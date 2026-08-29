@@ -41,12 +41,12 @@
           <button id="clear-all" class="danger" type="button">すべて消す</button>
         </div>
 
-        <p class="hint">元素を押すと原子を追加。原子を2つ順に選ぶと結合します。空間をドラッグで回転、ホイール/ピンチでズーム。</p>
+        <p class="hint">最初に元素を置き、原子から伸びる「手」をタップして結合位置を選びます。その後、付けたい元素を押してください。小さな2個の点は孤立電子対です。ドラッグで回転、ピンチでズーム。</p>
       </aside>
 
       <section class="viewer-wrap">
         <div id="viewer" class="viewer" aria-label="3D分子モデル"></div>
-        <div id="selection-chip" class="selection-chip">原子を選択してください</div>
+        <div id="selection-chip" class="selection-chip">元素を選んで最初の原子を置く</div>
       </section>
 
       <aside class="panel info-panel" aria-label="分子情報">
@@ -59,8 +59,8 @@
           <h2>選択中</h2>
           <dl class="details">
             <div><dt>元素</dt><dd id="selected-element">—</dd></div>
-            <div><dt>結合価</dt><dd id="selected-valence">—</dd></div>
-            <div><dt>目安</dt><dd id="selected-limit">—</dd></div>
+            <div><dt>使用結合価</dt><dd id="selected-valence">—</dd></div>
+            <div><dt>電子配置</dt><dd id="selected-limit">—</dd></div>
           </dl>
         </div>
 
@@ -72,6 +72,6 @@
     </section>
   </main>
 
-  <script type="module" src="./src/app.js"></script>
+  <script type="module" src="./src/app-v2.js"></script>
 </body>
 </html>
