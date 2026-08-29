@@ -1,12 +1,12 @@
 export const ATOMIC_MODEL = {
-  H:  { valenceElectrons: 1, shell: 2,  preferredValences: [1],    electronegativity: 2.20, covalentRadius: 0.31 },
-  C:  { valenceElectrons: 4, shell: 8,  preferredValences: [4],    electronegativity: 2.55, covalentRadius: 0.76 },
-  N:  { valenceElectrons: 5, shell: 8,  preferredValences: [3],    electronegativity: 3.04, covalentRadius: 0.71 },
-  O:  { valenceElectrons: 6, shell: 8,  preferredValences: [2],    electronegativity: 3.44, covalentRadius: 0.66 },
-  F:  { valenceElectrons: 7, shell: 8,  preferredValences: [1],    electronegativity: 3.98, covalentRadius: 0.57 },
-  P:  { valenceElectrons: 5, shell: 8,  preferredValences: [3, 5], electronegativity: 2.19, covalentRadius: 1.07 },
-  S:  { valenceElectrons: 6, shell: 8,  preferredValences: [2,4,6],electronegativity: 2.58, covalentRadius: 1.05 },
-  Cl: { valenceElectrons: 7, shell: 8,  preferredValences: [1],    electronegativity: 3.16, covalentRadius: 1.02 },
+  H:  { valenceElectrons: 1, shell: 2,  preferredValences: [1],     electronegativity: 2.20, covalentRadius: 0.31 },
+  C:  { valenceElectrons: 4, shell: 8,  preferredValences: [4],     electronegativity: 2.55, covalentRadius: 0.76 },
+  N:  { valenceElectrons: 5, shell: 8,  preferredValences: [3],     electronegativity: 3.04, covalentRadius: 0.71 },
+  O:  { valenceElectrons: 6, shell: 8,  preferredValences: [2],     electronegativity: 3.44, covalentRadius: 0.66 },
+  F:  { valenceElectrons: 7, shell: 8,  preferredValences: [1],     electronegativity: 3.98, covalentRadius: 0.57 },
+  P:  { valenceElectrons: 5, shell: 8,  preferredValences: [3, 5],  electronegativity: 2.19, covalentRadius: 1.07 },
+  S:  { valenceElectrons: 6, shell: 8,  preferredValences: [2,4,6], electronegativity: 2.58, covalentRadius: 1.05 },
+  Cl: { valenceElectrons: 7, shell: 8,  preferredValences: [1],     electronegativity: 3.16, covalentRadius: 1.02 },
 };
 
 export function preferredValence(element, currentBondOrder = 0) {
@@ -18,15 +18,16 @@ export function preferredValence(element, currentBondOrder = 0) {
   }, values[0]);
 }
 
-export function lonePairCount(element, bondOrderSum) {
-  const model = ATOMIC_MODEL[element];
-  if (!model) return 0;
-  if (element === 'H') return 0;
-  return Math.max(0, Math.floor((model.shell - 2 * bondOrderSum) / 2));
-}
-
 export function unpairedElectronCount(element, bondOrderSum) {
   return Math.max(0, preferredValence(element, bondOrderSum) - bondOrderSum);
+}
+
+export function lonePairCount(element, bondOrderSum) {
+  const model = ATOMIC_MODEL[element];
+  if (!model || element === 'H') return 0;
+  const unpaired = unpairedElectronCount(element, bondOrderSum);
+  const nonBondingElectrons = Math.max(0, model.valenceElectrons - bondOrderSum - unpaired);
+  return Math.max(0, Math.floor(nonBondingElectrons / 2));
 }
 
 export function electronDomainCount(element, bondOrderSum, neighborCount) {
@@ -51,7 +52,7 @@ export function idealBondAngleDeg(element, bondOrderSum, neighborCount) {
 
 export function valenceShellRadius(element, visualRadius = 0.45) {
   const covalent = ATOMIC_MODEL[element]?.covalentRadius ?? 0.75;
-  return visualRadius + 0.28 + Math.min(0.16, covalent * 0.08);
+  return visualRadius + 0.30 + Math.min(0.12, covalent * 0.07);
 }
 
 export function optimizeBondOrders(molecule, atomIds = null) {
@@ -59,7 +60,7 @@ export function optimizeBondOrders(molecule, atomIds = null) {
   const bonds = molecule.bonds.filter(b => scope.has(b.a) && scope.has(b.b));
   if (!bonds.length) return false;
   let changed = false;
-  for (let pass = 0; pass < 12; pass++) {
+  for (let pass = 0; pass < 16; pass++) {
     let bestMove = null;
     let bestDelta = -1e-9;
     const baseline = structurePenalty(molecule, scope);
@@ -92,9 +93,9 @@ export function structurePenalty(molecule, atomIds = null) {
     if (!scope.has(atom.id)) continue;
     const used = molecule.bondOrderForAtom(atom.id);
     const allowed = ATOMIC_MODEL[atom.element]?.preferredValences ?? [1];
-    const deficit = Math.min(...allowed.map(v => Math.abs(v - used)));
+    const nearest = Math.min(...allowed.map(v => Math.abs(v - used)));
     const excess = Math.max(0, used - Math.max(...allowed));
-    penalty += deficit * deficit * 6 + excess * excess * 40;
+    penalty += nearest * nearest * 6 + excess * excess * 40;
     if (used === 0 && molecule.atoms.length > 1) penalty += 0.6;
   }
   for (const bond of molecule.bonds) {
