@@ -14,15 +14,34 @@ function moleculeFrom(record, reverse = false) {
   return molecule;
 }
 
+function formulaCounts(formula) {
+  const matches = [...formula.matchAll(/([A-Z][a-z]?)(\d*)/g)];
+  assert.equal(matches.map(match => match[0]).join(''), formula, `Invalid formula: ${formula}`);
+  return Object.fromEntries(matches.map(([, symbol, count]) => [symbol, Number(count || 1)]));
+}
+
 const required = [
   'acetic-acid', 'formic-acid', 'propionic-acid', 'acetaldehyde', 'ethylene-glycol',
   'glycerol', 'benzene', 'toluene', 'phenol', 'aniline', 'ethyl-acetate',
+  'hydrogen-peroxide', 'carbonic-acid', 'vinyl-chloride', 'chlorobenzene', 'acrylic-acid',
+  'acetic-anhydride', 'glycine', 'alanine', 'terephthalic-acid', 'aspirin',
 ];
 for (const id of required) assert.ok(records.some(record => record.id === id), `Missing required record: ${id}`);
 
 for (const record of records) {
+  assert.ok(record.iupacNameEn, `Missing IUPAC name: ${record.id}`);
+  assert.deepEqual(formulaCounts(record.formula), chemistry.countElements(record.atoms), `Formula does not match graph: ${record.id}`);
+  const adjacency = record.atoms.map(() => []);
+  for (const [a, b] of record.bonds) { adjacency[a].push(b); adjacency[b].push(a); }
+  const visited = new Set([0]), queue = [0];
+  while (queue.length) for (const next of adjacency[queue.shift()]) if (!visited.has(next)) { visited.add(next); queue.push(next); }
+  assert.equal(visited.size, record.atoms.length, `Disconnected molecule record: ${record.id}`);
   assert.equal(moleculeFrom(record).recognizedMolecule()?.id, record.id, `Failed self-recognition: ${record.id}`);
 }
+
+assert.equal(records.find(record => record.id === 'acetic-acid').iupacNameEn, 'Ethanoic acid');
+assert.equal(records.find(record => record.id === 'toluene').iupacNameEn, 'Methylbenzene');
+assert.equal(records.find(record => record.id === 'hydrogen-chloride').formula, 'HCl');
 
 for (const id of required) {
   const record = records.find(item => item.id === id);

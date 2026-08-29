@@ -18,7 +18,10 @@
       ]
     ],
     "category": "basic-inorganic",
-    "formula": "H2"
+    "formula": "H2",
+    "iupacNameEn": "Dihydrogen",
+    "commonNameJa": "水素",
+    "commonNameEn": "Hydrogen"
   },
   {
     "id": "oxygen",
@@ -39,7 +42,10 @@
       ]
     ],
     "category": "basic-inorganic",
-    "formula": "O2"
+    "formula": "O2",
+    "iupacNameEn": "Dioxygen",
+    "commonNameJa": "酸素",
+    "commonNameEn": "Oxygen"
   },
   {
     "id": "nitrogen",
@@ -60,7 +66,10 @@
       ]
     ],
     "category": "basic-inorganic",
-    "formula": "N2"
+    "formula": "N2",
+    "iupacNameEn": "Dinitrogen",
+    "commonNameJa": "窒素",
+    "commonNameEn": "Nitrogen"
   },
   {
     "id": "water",
@@ -84,7 +93,10 @@
       ]
     ],
     "formula": "H2O",
-    "category": "basic-inorganic"
+    "category": "basic-inorganic",
+    "iupacNameEn": "Oxidane",
+    "commonNameJa": "水",
+    "commonNameEn": "Water"
   },
   {
     "id": "carbon-dioxide",
@@ -108,7 +120,8 @@
       ]
     ],
     "formula": "CO2",
-    "category": "basic-inorganic"
+    "category": "basic-inorganic",
+    "iupacNameEn": "Carbon dioxide"
   },
   {
     "id": "carbon-monoxide",
@@ -126,7 +139,8 @@
       ]
     ],
     "category": "basic-inorganic",
-    "formula": "CO"
+    "formula": "CO",
+    "iupacNameEn": "Carbon monoxide"
   },
   {
     "id": "ammonia",
@@ -155,8 +169,11 @@
         1
       ]
     ],
-    "formula": "H3N",
-    "category": "basic-inorganic"
+    "formula": "NH3",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Azane",
+    "commonNameJa": "アンモニア",
+    "commonNameEn": "Ammonia"
   },
   {
     "id": "hydrogen-sulfide",
@@ -180,7 +197,10 @@
       ]
     ],
     "formula": "H2S",
-    "category": "basic-inorganic"
+    "category": "basic-inorganic",
+    "iupacNameEn": "Sulfane",
+    "commonNameJa": "硫化水素",
+    "commonNameEn": "Hydrogen sulfide"
   },
   {
     "id": "hydrogen-chloride",
@@ -197,8 +217,9 @@
         1
       ]
     ],
-    "formula": "ClH",
-    "category": "basic-inorganic"
+    "formula": "HCl",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Hydrogen chloride"
   },
   {
     "id": "hydrogen-fluoride",
@@ -215,8 +236,9 @@
         1
       ]
     ],
-    "formula": "FH",
-    "category": "basic-inorganic"
+    "formula": "HF",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Hydrogen fluoride"
   },
   {
     "id": "chlorine",
@@ -237,7 +259,10 @@
       ]
     ],
     "category": "basic-inorganic",
-    "formula": "Cl2"
+    "formula": "Cl2",
+    "iupacNameEn": "Dichlorine",
+    "commonNameJa": "塩素",
+    "commonNameEn": "Chlorine"
   },
   {
     "id": "sulfur-dioxide",
@@ -260,8 +285,9 @@
         2
       ]
     ],
-    "formula": "O2S",
-    "category": "basic-inorganic"
+    "formula": "SO2",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Sulfur dioxide"
   },
   {
     "id": "sulfur-trioxide",
@@ -290,8 +316,9 @@
         2
       ]
     ],
-    "formula": "O3S",
-    "category": "basic-inorganic"
+    "formula": "SO3",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Sulfur trioxide"
   },
   {
     "id": "phosphine",
@@ -320,8 +347,11 @@
         1
       ]
     ],
-    "formula": "H3P",
-    "category": "basic-inorganic"
+    "formula": "PH3",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Phosphane",
+    "commonNameJa": "ホスフィン",
+    "commonNameEn": "Phosphine"
   },
   {
     "id": "phosphorus-trichloride",
@@ -350,8 +380,9 @@
         1
       ]
     ],
-    "formula": "Cl3P",
-    "category": "basic-inorganic"
+    "formula": "PCl3",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Phosphorus trichloride"
   },
   {
     "id": "phosphorus-pentachloride",
@@ -392,8 +423,9 @@
         1
       ]
     ],
-    "formula": "Cl5P",
-    "category": "basic-inorganic"
+    "formula": "PCl5",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Phosphorus pentachloride"
   },
   {
     "id": "sulfur-hexafluoride",
@@ -440,8 +472,9 @@
         1
       ]
     ],
-    "formula": "F6S",
-    "category": "basic-inorganic"
+    "formula": "SF6",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Sulfur hexafluoride"
   },
   {
     "id": "carbon-disulfide",
@@ -465,7 +498,8 @@
       ]
     ],
     "formula": "CS2",
-    "category": "basic-inorganic"
+    "category": "basic-inorganic",
+    "iupacNameEn": "Carbon disulfide"
   },
   {
     "id": "carbonyl-sulfide",
@@ -489,7 +523,8 @@
       ]
     ],
     "formula": "COS",
-    "category": "basic-inorganic"
+    "category": "basic-inorganic",
+    "iupacNameEn": "Carbonyl sulfide"
   },
   {
     "id": "phosphoric-acid",
@@ -542,8 +577,9 @@
         1
       ]
     ],
-    "formula": "H3O4P",
-    "category": "basic-inorganic"
+    "formula": "H3PO4",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Phosphoric acid"
   },
   {
     "id": "sulfuric-acid",
@@ -590,8 +626,108 @@
         1
       ]
     ],
-    "formula": "H2O4S",
-    "category": "basic-inorganic"
+    "formula": "H2SO4",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Sulfuric acid"
+  },
+  {
+    "id": "hydrogen-peroxide",
+    "nameJa": "過酸化水素",
+    "nameEn": "Hydrogen peroxide",
+    "atoms": [
+      "O",
+      "O",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        0,
+        2,
+        1
+      ],
+      [
+        1,
+        3,
+        1
+      ]
+    ],
+    "formula": "H2O2",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Hydrogen peroxide"
+  },
+  {
+    "id": "hypochlorous-acid",
+    "nameJa": "次亜塩素酸",
+    "nameEn": "Hypochlorous acid",
+    "atoms": [
+      "O",
+      "Cl",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        0,
+        2,
+        1
+      ]
+    ],
+    "formula": "HClO",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Hypochlorous acid"
+  },
+  {
+    "id": "carbonic-acid",
+    "nameJa": "炭酸",
+    "nameEn": "Carbonic acid",
+    "atoms": [
+      "C",
+      "O",
+      "O",
+      "O",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        0,
+        2,
+        1
+      ],
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        2,
+        4,
+        1
+      ],
+      [
+        3,
+        5,
+        1
+      ]
+    ],
+    "formula": "H2CO3",
+    "category": "basic-inorganic",
+    "iupacNameEn": "Carbonic acid"
   },
   {
     "id": "methane",
@@ -627,7 +763,8 @@
       ]
     ],
     "formula": "CH4",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Methane"
   },
   {
     "id": "ethane",
@@ -681,7 +818,8 @@
       ]
     ],
     "formula": "C2H6",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Ethane"
   },
   {
     "id": "propane",
@@ -753,7 +891,8 @@
       ]
     ],
     "formula": "C3H8",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Propane"
   },
   {
     "id": "n-butane",
@@ -846,7 +985,10 @@
       ]
     ],
     "formula": "C4H10",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Butane",
+    "commonNameJa": "n-ブタン",
+    "commonNameEn": "n-Butane"
   },
   {
     "id": "isobutane",
@@ -939,7 +1081,10 @@
       ]
     ],
     "formula": "C4H10",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "2-Methylpropane",
+    "commonNameJa": "イソブタン",
+    "commonNameEn": "Isobutane"
   },
   {
     "id": "n-pentane",
@@ -1050,7 +1195,10 @@
       ]
     ],
     "formula": "C5H12",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Pentane",
+    "commonNameJa": "n-ペンタン",
+    "commonNameEn": "n-Pentane"
   },
   {
     "id": "isopentane",
@@ -1161,7 +1309,10 @@
       ]
     ],
     "formula": "C5H12",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "2-Methylbutane",
+    "commonNameJa": "イソペンタン",
+    "commonNameEn": "Isopentane"
   },
   {
     "id": "neopentane",
@@ -1272,7 +1423,10 @@
       ]
     ],
     "formula": "C5H12",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "2,2-Dimethylpropane",
+    "commonNameJa": "ネオペンタン",
+    "commonNameEn": "Neopentane"
   },
   {
     "id": "n-hexane",
@@ -1401,7 +1555,10 @@
       ]
     ],
     "formula": "C6H14",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Hexane",
+    "commonNameJa": "n-ヘキサン",
+    "commonNameEn": "n-Hexane"
   },
   {
     "id": "ethene",
@@ -1446,7 +1603,10 @@
       ]
     ],
     "formula": "C2H4",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Ethene",
+    "commonNameJa": "エチレン",
+    "commonNameEn": "Ethene"
   },
   {
     "id": "propene",
@@ -1509,7 +1669,10 @@
       ]
     ],
     "formula": "C3H6",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Propene",
+    "commonNameJa": "プロピレン",
+    "commonNameEn": "Propene"
   },
   {
     "id": "1-butene",
@@ -1587,7 +1750,8 @@
       ]
     ],
     "formula": "C4H8",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "But-1-ene"
   },
   {
     "id": "2-butene",
@@ -1665,7 +1829,8 @@
       ]
     ],
     "formula": "C4H8",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "But-2-ene"
   },
   {
     "id": "isobutene",
@@ -1746,7 +1911,10 @@
       ]
     ],
     "formula": "C4H8",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "2-Methylprop-1-ene",
+    "commonNameJa": "イソブテン",
+    "commonNameEn": "Isobutene"
   },
   {
     "id": "1-pentene",
@@ -1842,7 +2010,8 @@
       ]
     ],
     "formula": "C5H10",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Pent-1-ene"
   },
   {
     "id": "2-pentene",
@@ -1938,7 +2107,8 @@
       ]
     ],
     "formula": "C5H10",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Pent-2-ene"
   },
   {
     "id": "ethyne",
@@ -1971,7 +2141,10 @@
       ]
     ],
     "formula": "C2H2",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Ethyne",
+    "commonNameJa": "アセチレン",
+    "commonNameEn": "Ethyne"
   },
   {
     "id": "propyne",
@@ -2019,7 +2192,8 @@
       ]
     ],
     "formula": "C3H4",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Propyne"
   },
   {
     "id": "1-butyne",
@@ -2085,7 +2259,8 @@
       ]
     ],
     "formula": "C4H6",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "But-1-yne"
   },
   {
     "id": "2-butyne",
@@ -2151,7 +2326,8 @@
       ]
     ],
     "formula": "C4H6",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "But-2-yne"
   },
   {
     "id": "cyclopropane",
@@ -2216,7 +2392,8 @@
       ]
     ],
     "formula": "C3H6",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Cyclopropane"
   },
   {
     "id": "cyclobutane",
@@ -2299,7 +2476,8 @@
       ]
     ],
     "formula": "C4H8",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Cyclobutane"
   },
   {
     "id": "cyclopentane",
@@ -2400,7 +2578,8 @@
       ]
     ],
     "formula": "C5H10",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Cyclopentane"
   },
   {
     "id": "cyclohexane",
@@ -2519,7 +2698,8 @@
       ]
     ],
     "formula": "C6H12",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Cyclohexane"
   },
   {
     "id": "methylcyclohexane",
@@ -2656,7 +2836,8 @@
       ]
     ],
     "formula": "C7H14",
-    "category": "hydrocarbon"
+    "category": "hydrocarbon",
+    "iupacNameEn": "Methylcyclohexane"
   },
   {
     "id": "benzene",
@@ -2739,7 +2920,8 @@
       ]
     ],
     "formula": "C6H6",
-    "category": "aromatic"
+    "category": "aromatic",
+    "iupacNameEn": "Benzene"
   },
   {
     "id": "toluene",
@@ -2843,7 +3025,10 @@
       ]
     ],
     "formula": "C7H8",
-    "category": "aromatic"
+    "category": "aromatic",
+    "iupacNameEn": "Methylbenzene",
+    "commonNameJa": "トルエン",
+    "commonNameEn": "Toluene"
   },
   {
     "id": "ethylbenzene",
@@ -2962,7 +3147,8 @@
       ]
     ],
     "formula": "C8H10",
-    "category": "aromatic"
+    "category": "aromatic",
+    "iupacNameEn": "Ethylbenzene"
   },
   {
     "id": "o-xylene",
@@ -3081,7 +3267,10 @@
       ]
     ],
     "formula": "C8H10",
-    "category": "aromatic"
+    "category": "aromatic",
+    "iupacNameEn": "1,2-Dimethylbenzene",
+    "commonNameJa": "o-キシレン",
+    "commonNameEn": "o-Xylene"
   },
   {
     "id": "m-xylene",
@@ -3200,7 +3389,10 @@
       ]
     ],
     "formula": "C8H10",
-    "category": "aromatic"
+    "category": "aromatic",
+    "iupacNameEn": "1,3-Dimethylbenzene",
+    "commonNameJa": "m-キシレン",
+    "commonNameEn": "m-Xylene"
   },
   {
     "id": "p-xylene",
@@ -3319,7 +3511,10 @@
       ]
     ],
     "formula": "C8H10",
-    "category": "aromatic"
+    "category": "aromatic",
+    "iupacNameEn": "1,4-Dimethylbenzene",
+    "commonNameJa": "p-キシレン",
+    "commonNameEn": "p-Xylene"
   },
   {
     "id": "styrene",
@@ -3429,7 +3624,10 @@
       ]
     ],
     "formula": "C8H8",
-    "category": "aromatic"
+    "category": "aromatic",
+    "iupacNameEn": "Ethenylbenzene",
+    "commonNameJa": "スチレン",
+    "commonNameEn": "Styrene"
   },
   {
     "id": "chloromethane",
@@ -3465,7 +3663,8 @@
       ]
     ],
     "formula": "CH3Cl",
-    "category": "halogenated-hydrocarbon"
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "Chloromethane"
   },
   {
     "id": "dichloromethane",
@@ -3501,7 +3700,8 @@
       ]
     ],
     "formula": "CH2Cl2",
-    "category": "halogenated-hydrocarbon"
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "Dichloromethane"
   },
   {
     "id": "chloroform",
@@ -3537,7 +3737,10 @@
       ]
     ],
     "formula": "CHCl3",
-    "category": "halogenated-hydrocarbon"
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "Trichloromethane",
+    "commonNameJa": "クロロホルム",
+    "commonNameEn": "Chloroform"
   },
   {
     "id": "carbon-tetrachloride",
@@ -3573,7 +3776,10 @@
       ]
     ],
     "formula": "CCl4",
-    "category": "halogenated-hydrocarbon"
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "Tetrachloromethane",
+    "commonNameJa": "四塩化炭素",
+    "commonNameEn": "Carbon tetrachloride"
   },
   {
     "id": "fluoromethane",
@@ -3609,7 +3815,8 @@
       ]
     ],
     "formula": "CH3F",
-    "category": "halogenated-hydrocarbon"
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "Fluoromethane"
   },
   {
     "id": "difluoromethane",
@@ -3645,7 +3852,247 @@
       ]
     ],
     "formula": "CH2F2",
-    "category": "halogenated-hydrocarbon"
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "Difluoromethane"
+  },
+  {
+    "id": "chloroethane",
+    "nameJa": "クロロエタン",
+    "nameEn": "Chloroethane",
+    "atoms": [
+      "C",
+      "C",
+      "Cl",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        1,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ]
+    ],
+    "formula": "C2H5Cl",
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "Chloroethane"
+  },
+  {
+    "id": "1-2-dichloroethane",
+    "nameJa": "1,2-ジクロロエタン",
+    "nameEn": "1,2-Dichloroethane",
+    "atoms": [
+      "C",
+      "C",
+      "Cl",
+      "Cl",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        0,
+        2,
+        1
+      ],
+      [
+        1,
+        3,
+        1
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        1,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ]
+    ],
+    "formula": "C2H4Cl2",
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "1,2-Dichloroethane"
+  },
+  {
+    "id": "vinyl-chloride",
+    "nameJa": "塩化ビニル",
+    "nameEn": "Vinyl chloride",
+    "atoms": [
+      "C",
+      "C",
+      "Cl",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        1,
+        5,
+        1
+      ]
+    ],
+    "formula": "C2H3Cl",
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "Chloroethene",
+    "commonNameJa": "塩化ビニル",
+    "commonNameEn": "Vinyl chloride"
+  },
+  {
+    "id": "chlorobenzene",
+    "nameJa": "クロロベンゼン",
+    "nameEn": "Chlorobenzene",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "Cl",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        5,
+        0,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        2,
+        8,
+        1
+      ],
+      [
+        3,
+        9,
+        1
+      ],
+      [
+        4,
+        10,
+        1
+      ],
+      [
+        5,
+        11,
+        1
+      ]
+    ],
+    "formula": "C6H5Cl",
+    "category": "halogenated-aromatic",
+    "iupacNameEn": "Chlorobenzene"
   },
   {
     "id": "methanol",
@@ -3687,7 +4134,8 @@
       ]
     ],
     "formula": "CH4O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "Methanol"
   },
   {
     "id": "ethanol",
@@ -3747,7 +4195,8 @@
       ]
     ],
     "formula": "C2H6O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "Ethanol"
   },
   {
     "id": "1-propanol",
@@ -3825,7 +4274,8 @@
       ]
     ],
     "formula": "C3H8O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "Propan-1-ol"
   },
   {
     "id": "2-propanol",
@@ -3906,7 +4356,8 @@
       ]
     ],
     "formula": "C3H8O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "Propan-2-ol"
   },
   {
     "id": "1-butanol",
@@ -4002,7 +4453,8 @@
       ]
     ],
     "formula": "C4H10O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "Butan-1-ol"
   },
   {
     "id": "2-butanol",
@@ -4098,7 +4550,8 @@
       ]
     ],
     "formula": "C4H10O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "Butan-2-ol"
   },
   {
     "id": "isobutanol",
@@ -4197,7 +4650,8 @@
       ]
     ],
     "formula": "C4H10O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "2-Methylpropan-1-ol"
   },
   {
     "id": "tert-butanol",
@@ -4296,7 +4750,8 @@
       ]
     ],
     "formula": "C4H10O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "2-Methylpropan-2-ol"
   },
   {
     "id": "ethylene-glycol",
@@ -4365,7 +4820,10 @@
       ]
     ],
     "formula": "C2H6O2",
-    "category": "polyol"
+    "category": "polyol",
+    "iupacNameEn": "Ethane-1,2-diol",
+    "commonNameJa": "エチレングリコール",
+    "commonNameEn": "Ethylene glycol"
   },
   {
     "id": "propylene-glycol",
@@ -4452,7 +4910,10 @@
       ]
     ],
     "formula": "C3H8O2",
-    "category": "polyol"
+    "category": "polyol",
+    "iupacNameEn": "Propane-1,2-diol",
+    "commonNameJa": "プロピレングリコール",
+    "commonNameEn": "Propylene glycol"
   },
   {
     "id": "glycerol",
@@ -4545,7 +5006,10 @@
       ]
     ],
     "formula": "C3H8O3",
-    "category": "polyol"
+    "category": "polyol",
+    "iupacNameEn": "Propane-1,2,3-triol",
+    "commonNameJa": "グリセリン",
+    "commonNameEn": "Glycerol"
   },
   {
     "id": "cyclohexanol",
@@ -4670,7 +5134,8 @@
       ]
     ],
     "formula": "C6H12O",
-    "category": "alcohol"
+    "category": "alcohol",
+    "iupacNameEn": "Cyclohexanol"
   },
   {
     "id": "dimethyl-ether",
@@ -4730,7 +5195,10 @@
       ]
     ],
     "formula": "C2H6O",
-    "category": "ether"
+    "category": "ether",
+    "iupacNameEn": "Methoxymethane",
+    "commonNameJa": "ジメチルエーテル",
+    "commonNameEn": "Dimethyl ether"
   },
   {
     "id": "methyl-ethyl-ether",
@@ -4811,7 +5279,10 @@
       ]
     ],
     "formula": "C3H8O",
-    "category": "ether"
+    "category": "ether",
+    "iupacNameEn": "Methoxyethane",
+    "commonNameJa": "メチルエチルエーテル",
+    "commonNameEn": "Methyl ethyl ether"
   },
   {
     "id": "diethyl-ether",
@@ -4910,7 +5381,10 @@
       ]
     ],
     "formula": "C4H10O",
-    "category": "ether"
+    "category": "ether",
+    "iupacNameEn": "Ethoxyethane",
+    "commonNameJa": "ジエチルエーテル",
+    "commonNameEn": "Diethyl ether"
   },
   {
     "id": "tetrahydrofuran",
@@ -5002,7 +5476,10 @@
       ]
     ],
     "formula": "C4H8O",
-    "category": "cyclic-ether"
+    "category": "cyclic-ether",
+    "iupacNameEn": "Oxolane",
+    "commonNameJa": "テトラヒドロフラン",
+    "commonNameEn": "Tetrahydrofuran"
   },
   {
     "id": "1-4-dioxane",
@@ -5097,7 +5574,8 @@
       ]
     ],
     "formula": "C4H8O2",
-    "category": "cyclic-ether"
+    "category": "cyclic-ether",
+    "iupacNameEn": "1,4-Dioxane"
   },
   {
     "id": "ethylene-oxide",
@@ -5153,7 +5631,177 @@
       ]
     ],
     "formula": "C2H4O",
-    "category": "cyclic-ether"
+    "category": "cyclic-ether",
+    "iupacNameEn": "Oxirane",
+    "commonNameJa": "エチレンオキシド",
+    "commonNameEn": "Ethylene oxide"
+  },
+  {
+    "id": "methanethiol",
+    "nameJa": "メタンチオール",
+    "nameEn": "Methanethiol",
+    "atoms": [
+      "C",
+      "S",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        0,
+        2,
+        1
+      ],
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        1,
+        5,
+        1
+      ]
+    ],
+    "formula": "CH4S",
+    "category": "thiol",
+    "iupacNameEn": "Methanethiol"
+  },
+  {
+    "id": "ethanethiol",
+    "nameJa": "エタンチオール",
+    "nameEn": "Ethanethiol",
+    "atoms": [
+      "C",
+      "C",
+      "S",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        1,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        2,
+        8,
+        1
+      ]
+    ],
+    "formula": "C2H6S",
+    "category": "thiol",
+    "iupacNameEn": "Ethanethiol"
+  },
+  {
+    "id": "dimethyl-sulfide",
+    "nameJa": "硫化ジメチル",
+    "nameEn": "Dimethyl sulfide",
+    "atoms": [
+      "C",
+      "S",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        2,
+        6,
+        1
+      ],
+      [
+        2,
+        7,
+        1
+      ],
+      [
+        2,
+        8,
+        1
+      ]
+    ],
+    "formula": "C2H6S",
+    "category": "thioether",
+    "iupacNameEn": "Methylsulfanylmethane",
+    "commonNameJa": "硫化ジメチル",
+    "commonNameEn": "Dimethyl sulfide"
   },
   {
     "id": "formaldehyde",
@@ -5186,7 +5834,10 @@
       ]
     ],
     "formula": "CH2O",
-    "category": "aldehyde"
+    "category": "aldehyde",
+    "iupacNameEn": "Methanal",
+    "commonNameJa": "ホルムアルデヒド",
+    "commonNameEn": "Formaldehyde"
   },
   {
     "id": "acetaldehyde",
@@ -5237,7 +5888,10 @@
       ]
     ],
     "formula": "C2H4O",
-    "category": "aldehyde"
+    "category": "aldehyde",
+    "iupacNameEn": "Ethanal",
+    "commonNameJa": "アセトアルデヒド",
+    "commonNameEn": "Acetaldehyde"
   },
   {
     "id": "propionaldehyde",
@@ -5306,7 +5960,10 @@
       ]
     ],
     "formula": "C3H6O",
-    "category": "aldehyde"
+    "category": "aldehyde",
+    "iupacNameEn": "Propanal",
+    "commonNameJa": "プロピオンアルデヒド",
+    "commonNameEn": "Propionaldehyde"
   },
   {
     "id": "butyraldehyde",
@@ -5393,7 +6050,10 @@
       ]
     ],
     "formula": "C4H8O",
-    "category": "aldehyde"
+    "category": "aldehyde",
+    "iupacNameEn": "Butanal",
+    "commonNameJa": "ブチルアルデヒド",
+    "commonNameEn": "Butyraldehyde"
   },
   {
     "id": "isobutyraldehyde",
@@ -5480,7 +6140,10 @@
       ]
     ],
     "formula": "C4H8O",
-    "category": "aldehyde"
+    "category": "aldehyde",
+    "iupacNameEn": "2-Methylpropanal",
+    "commonNameJa": "イソブチルアルデヒド",
+    "commonNameEn": "Isobutyraldehyde"
   },
   {
     "id": "benzaldehyde",
@@ -5575,7 +6238,8 @@
       ]
     ],
     "formula": "C7H6O",
-    "category": "aldehyde"
+    "category": "aldehyde",
+    "iupacNameEn": "Benzaldehyde"
   },
   {
     "id": "acetone",
@@ -5644,7 +6308,10 @@
       ]
     ],
     "formula": "C3H6O",
-    "category": "ketone"
+    "category": "ketone",
+    "iupacNameEn": "Propan-2-one",
+    "commonNameJa": "アセトン",
+    "commonNameEn": "Acetone"
   },
   {
     "id": "2-butanone",
@@ -5731,7 +6398,8 @@
       ]
     ],
     "formula": "C4H8O",
-    "category": "ketone"
+    "category": "ketone",
+    "iupacNameEn": "Butan-2-one"
   },
   {
     "id": "2-pentanone",
@@ -5833,7 +6501,8 @@
       ]
     ],
     "formula": "C5H10O",
-    "category": "ketone"
+    "category": "ketone",
+    "iupacNameEn": "Pentan-2-one"
   },
   {
     "id": "3-pentanone",
@@ -5935,7 +6604,8 @@
       ]
     ],
     "formula": "C5H10O",
-    "category": "ketone"
+    "category": "ketone",
+    "iupacNameEn": "Pentan-3-one"
   },
   {
     "id": "cyclohexanone",
@@ -6048,7 +6718,8 @@
       ]
     ],
     "formula": "C6H10O",
-    "category": "ketone"
+    "category": "ketone",
+    "iupacNameEn": "Cyclohexanone"
   },
   {
     "id": "formic-acid",
@@ -6087,7 +6758,10 @@
       ]
     ],
     "formula": "CH2O2",
-    "category": "carboxylic-acid"
+    "category": "carboxylic-acid",
+    "iupacNameEn": "Methanoic acid",
+    "commonNameJa": "ギ酸",
+    "commonNameEn": "Formic acid"
   },
   {
     "id": "acetic-acid",
@@ -6144,7 +6818,10 @@
       ]
     ],
     "formula": "C2H4O2",
-    "category": "carboxylic-acid"
+    "category": "carboxylic-acid",
+    "iupacNameEn": "Ethanoic acid",
+    "commonNameJa": "酢酸",
+    "commonNameEn": "Acetic acid"
   },
   {
     "id": "propionic-acid",
@@ -6219,7 +6896,10 @@
       ]
     ],
     "formula": "C3H6O2",
-    "category": "carboxylic-acid"
+    "category": "carboxylic-acid",
+    "iupacNameEn": "Propanoic acid",
+    "commonNameJa": "プロピオン酸",
+    "commonNameEn": "Propionic acid"
   },
   {
     "id": "butyric-acid",
@@ -6312,7 +6992,10 @@
       ]
     ],
     "formula": "C4H8O2",
-    "category": "carboxylic-acid"
+    "category": "carboxylic-acid",
+    "iupacNameEn": "Butanoic acid",
+    "commonNameJa": "酪酸",
+    "commonNameEn": "Butyric acid"
   },
   {
     "id": "isobutyric-acid",
@@ -6405,7 +7088,10 @@
       ]
     ],
     "formula": "C4H8O2",
-    "category": "carboxylic-acid"
+    "category": "carboxylic-acid",
+    "iupacNameEn": "2-Methylpropanoic acid",
+    "commonNameJa": "イソ酪酸",
+    "commonNameEn": "Isobutyric acid"
   },
   {
     "id": "valeric-acid",
@@ -6516,7 +7202,10 @@
       ]
     ],
     "formula": "C5H10O2",
-    "category": "carboxylic-acid"
+    "category": "carboxylic-acid",
+    "iupacNameEn": "Pentanoic acid",
+    "commonNameJa": "吉草酸",
+    "commonNameEn": "Valeric acid"
   },
   {
     "id": "oxalic-acid",
@@ -6573,7 +7262,10 @@
       ]
     ],
     "formula": "C2H2O4",
-    "category": "dicarboxylic-acid"
+    "category": "dicarboxylic-acid",
+    "iupacNameEn": "Ethanedioic acid",
+    "commonNameJa": "シュウ酸",
+    "commonNameEn": "Oxalic acid"
   },
   {
     "id": "lactic-acid",
@@ -6654,7 +7346,10 @@
       ]
     ],
     "formula": "C3H6O3",
-    "category": "hydroxy-acid"
+    "category": "hydroxy-acid",
+    "iupacNameEn": "2-Hydroxypropanoic acid",
+    "commonNameJa": "乳酸",
+    "commonNameEn": "Lactic acid"
   },
   {
     "id": "benzoic-acid",
@@ -6755,7 +7450,8 @@
       ]
     ],
     "formula": "C7H6O2",
-    "category": "aromatic-acid"
+    "category": "aromatic-acid",
+    "iupacNameEn": "Benzoic acid"
   },
   {
     "id": "methyl-formate",
@@ -6809,7 +7505,8 @@
       ]
     ],
     "formula": "C2H4O2",
-    "category": "ester"
+    "category": "ester",
+    "iupacNameEn": "Methyl methanoate"
   },
   {
     "id": "ethyl-formate",
@@ -6881,7 +7578,8 @@
       ]
     ],
     "formula": "C3H6O2",
-    "category": "ester"
+    "category": "ester",
+    "iupacNameEn": "Ethyl methanoate"
   },
   {
     "id": "methyl-acetate",
@@ -6953,7 +7651,8 @@
       ]
     ],
     "formula": "C3H6O2",
-    "category": "ester"
+    "category": "ester",
+    "iupacNameEn": "Methyl ethanoate"
   },
   {
     "id": "ethyl-acetate",
@@ -7043,7 +7742,8 @@
       ]
     ],
     "formula": "C4H8O2",
-    "category": "ester"
+    "category": "ester",
+    "iupacNameEn": "Ethyl ethanoate"
   },
   {
     "id": "methyl-propionate",
@@ -7133,7 +7833,8 @@
       ]
     ],
     "formula": "C4H8O2",
-    "category": "ester"
+    "category": "ester",
+    "iupacNameEn": "Methyl propanoate"
   },
   {
     "id": "ethyl-propionate",
@@ -7241,7 +7942,158 @@
       ]
     ],
     "formula": "C5H10O2",
-    "category": "ester"
+    "category": "ester",
+    "iupacNameEn": "Ethyl propanoate"
+  },
+  {
+    "id": "acrylic-acid",
+    "nameJa": "アクリル酸",
+    "nameEn": "Acrylic acid",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        2,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        4,
+        8,
+        1
+      ]
+    ],
+    "formula": "C3H4O2",
+    "category": "unsaturated-carboxylic-acid",
+    "iupacNameEn": "Prop-2-enoic acid",
+    "commonNameJa": "アクリル酸",
+    "commonNameEn": "Acrylic acid"
+  },
+  {
+    "id": "acetic-anhydride",
+    "nameJa": "無水酢酸",
+    "nameEn": "Acetic anhydride",
+    "atoms": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "C",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        1
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        1,
+        5,
+        2
+      ],
+      [
+        3,
+        6,
+        2
+      ],
+      [
+        0,
+        7,
+        1
+      ],
+      [
+        0,
+        8,
+        1
+      ],
+      [
+        0,
+        9,
+        1
+      ],
+      [
+        4,
+        10,
+        1
+      ],
+      [
+        4,
+        11,
+        1
+      ],
+      [
+        4,
+        12,
+        1
+      ]
+    ],
+    "formula": "C4H6O3",
+    "category": "acid-anhydride",
+    "iupacNameEn": "Ethanoic anhydride",
+    "commonNameJa": "無水酢酸",
+    "commonNameEn": "Acetic anhydride"
   },
   {
     "id": "methylamine",
@@ -7289,7 +8141,8 @@
       ]
     ],
     "formula": "CH5N",
-    "category": "amine"
+    "category": "amine",
+    "iupacNameEn": "Methanamine"
   },
   {
     "id": "ethylamine",
@@ -7355,7 +8208,8 @@
       ]
     ],
     "formula": "C2H7N",
-    "category": "amine"
+    "category": "amine",
+    "iupacNameEn": "Ethanamine"
   },
   {
     "id": "dimethylamine",
@@ -7421,7 +8275,8 @@
       ]
     ],
     "formula": "C2H7N",
-    "category": "amine"
+    "category": "amine",
+    "iupacNameEn": "N-Methylmethanamine"
   },
   {
     "id": "trimethylamine",
@@ -7505,7 +8360,8 @@
       ]
     ],
     "formula": "C3H9N",
-    "category": "amine"
+    "category": "amine",
+    "iupacNameEn": "N,N-Dimethylmethanamine"
   },
   {
     "id": "aniline",
@@ -7603,7 +8459,10 @@
       ]
     ],
     "formula": "C6H7N",
-    "category": "aromatic-amine"
+    "category": "aromatic-amine",
+    "iupacNameEn": "Benzenamine",
+    "commonNameJa": "アニリン",
+    "commonNameEn": "Aniline"
   },
   {
     "id": "formamide",
@@ -7645,7 +8504,10 @@
       ]
     ],
     "formula": "CH3NO",
-    "category": "amide"
+    "category": "amide",
+    "iupacNameEn": "Methanamide",
+    "commonNameJa": "ホルムアミド",
+    "commonNameEn": "Formamide"
   },
   {
     "id": "acetamide",
@@ -7705,7 +8567,10 @@
       ]
     ],
     "formula": "C2H5NO",
-    "category": "amide"
+    "category": "amide",
+    "iupacNameEn": "Ethanamide",
+    "commonNameJa": "アセトアミド",
+    "commonNameEn": "Acetamide"
   },
   {
     "id": "propionamide",
@@ -7783,7 +8648,10 @@
       ]
     ],
     "formula": "C3H7NO",
-    "category": "amide"
+    "category": "amide",
+    "iupacNameEn": "Propanamide",
+    "commonNameJa": "プロピオンアミド",
+    "commonNameEn": "Propionamide"
   },
   {
     "id": "urea",
@@ -7837,7 +8705,10 @@
       ]
     ],
     "formula": "CH4N2O",
-    "category": "amide"
+    "category": "amide",
+    "iupacNameEn": "Carbamide",
+    "commonNameJa": "尿素",
+    "commonNameEn": "Urea"
   },
   {
     "id": "hydrogen-cyanide",
@@ -7861,7 +8732,8 @@
       ]
     ],
     "formula": "CHN",
-    "category": "nitrile"
+    "category": "nitrile",
+    "iupacNameEn": "Hydrogen cyanide"
   },
   {
     "id": "acetonitrile",
@@ -7906,7 +8778,10 @@
       ]
     ],
     "formula": "C2H3N",
-    "category": "nitrile"
+    "category": "nitrile",
+    "iupacNameEn": "Ethanenitrile",
+    "commonNameJa": "アセトニトリル",
+    "commonNameEn": "Acetonitrile"
   },
   {
     "id": "acrylonitrile",
@@ -7954,7 +8829,10 @@
       ]
     ],
     "formula": "C3H3N",
-    "category": "nitrile"
+    "category": "nitrile",
+    "iupacNameEn": "Prop-2-enenitrile",
+    "commonNameJa": "アクリロニトリル",
+    "commonNameEn": "Acrylonitrile"
   },
   {
     "id": "pyridine",
@@ -8031,7 +8909,300 @@
       ]
     ],
     "formula": "C5H5N",
-    "category": "aromatic-heterocycle"
+    "category": "aromatic-heterocycle",
+    "iupacNameEn": "Pyridine"
+  },
+  {
+    "id": "acrolein",
+    "nameJa": "アクロレイン",
+    "nameEn": "Acrolein",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        1,
+        6,
+        1
+      ],
+      [
+        2,
+        7,
+        1
+      ]
+    ],
+    "formula": "C3H4O",
+    "category": "unsaturated-aldehyde",
+    "iupacNameEn": "Prop-2-enal",
+    "commonNameJa": "アクロレイン",
+    "commonNameEn": "Acrolein"
+  },
+  {
+    "id": "glycine",
+    "nameJa": "グリシン",
+    "nameEn": "Glycine",
+    "atoms": [
+      "N",
+      "C",
+      "C",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        2,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        1,
+        8,
+        1
+      ],
+      [
+        4,
+        9,
+        1
+      ]
+    ],
+    "formula": "C2H5NO2",
+    "category": "amino-acid",
+    "iupacNameEn": "2-Aminoethanoic acid",
+    "commonNameJa": "グリシン",
+    "commonNameEn": "Glycine"
+  },
+  {
+    "id": "alanine",
+    "nameJa": "アラニン",
+    "nameEn": "Alanine",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "N",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        1,
+        3,
+        1
+      ],
+      [
+        2,
+        4,
+        2
+      ],
+      [
+        2,
+        5,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        0,
+        7,
+        1
+      ],
+      [
+        0,
+        8,
+        1
+      ],
+      [
+        1,
+        9,
+        1
+      ],
+      [
+        3,
+        10,
+        1
+      ],
+      [
+        3,
+        11,
+        1
+      ],
+      [
+        5,
+        12,
+        1
+      ]
+    ],
+    "formula": "C3H7NO2",
+    "category": "amino-acid",
+    "iupacNameEn": "2-Aminopropanoic acid",
+    "commonNameJa": "アラニン",
+    "commonNameEn": "Alanine"
+  },
+  {
+    "id": "ethylenediamine",
+    "nameJa": "エチレンジアミン",
+    "nameEn": "Ethylenediamine",
+    "atoms": [
+      "N",
+      "C",
+      "C",
+      "N",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        1
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        1,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        2,
+        8,
+        1
+      ],
+      [
+        2,
+        9,
+        1
+      ],
+      [
+        3,
+        10,
+        1
+      ],
+      [
+        3,
+        11,
+        1
+      ]
+    ],
+    "formula": "C2H8N2",
+    "category": "diamine",
+    "iupacNameEn": "Ethane-1,2-diamine"
   },
   {
     "id": "phenol",
@@ -8123,7 +9294,10 @@
       ]
     ],
     "formula": "C6H6O",
-    "category": "aromatic-alcohol"
+    "category": "aromatic-alcohol",
+    "iupacNameEn": "Phenol",
+    "commonNameJa": "フェノール",
+    "commonNameEn": "Phenol"
   },
   {
     "id": "anisole",
@@ -8233,7 +9407,10 @@
       ]
     ],
     "formula": "C7H8O",
-    "category": "aromatic-ether"
+    "category": "aromatic-ether",
+    "iupacNameEn": "Methoxybenzene",
+    "commonNameJa": "アニソール",
+    "commonNameEn": "Anisole"
   },
   {
     "id": "acetophenone",
@@ -8349,7 +9526,10 @@
       ]
     ],
     "formula": "C8H8O",
-    "category": "aromatic-ketone"
+    "category": "aromatic-ketone",
+    "iupacNameEn": "1-Phenylethan-1-one",
+    "commonNameJa": "アセトフェノン",
+    "commonNameEn": "Acetophenone"
   },
   {
     "id": "catechol",
@@ -8444,7 +9624,10 @@
       ]
     ],
     "formula": "C6H6O2",
-    "category": "aromatic-diol"
+    "category": "aromatic-diol",
+    "iupacNameEn": "Benzene-1,2-diol",
+    "commonNameJa": "カテコール",
+    "commonNameEn": "Catechol"
   },
   {
     "id": "resorcinol",
@@ -8539,7 +9722,10 @@
       ]
     ],
     "formula": "C6H6O2",
-    "category": "aromatic-diol"
+    "category": "aromatic-diol",
+    "iupacNameEn": "Benzene-1,3-diol",
+    "commonNameJa": "レゾルシノール",
+    "commonNameEn": "Resorcinol"
   },
   {
     "id": "hydroquinone",
@@ -8634,7 +9820,10 @@
       ]
     ],
     "formula": "C6H6O2",
-    "category": "aromatic-diol"
+    "category": "aromatic-diol",
+    "iupacNameEn": "Benzene-1,4-diol",
+    "commonNameJa": "ヒドロキノン",
+    "commonNameEn": "Hydroquinone"
   },
   {
     "id": "salicylic-acid",
@@ -8744,7 +9933,10 @@
       ]
     ],
     "formula": "C7H6O3",
-    "category": "aromatic-acid"
+    "category": "aromatic-acid",
+    "iupacNameEn": "2-Hydroxybenzoic acid",
+    "commonNameJa": "サリチル酸",
+    "commonNameEn": "Salicylic acid"
   },
   {
     "id": "acetanilide",
@@ -8869,6 +10061,271 @@
       ]
     ],
     "formula": "C8H9NO",
-    "category": "aromatic-amide"
+    "category": "aromatic-amide",
+    "iupacNameEn": "N-Phenylacetamide",
+    "commonNameJa": "アセトアニリド",
+    "commonNameEn": "Acetanilide"
+  },
+  {
+    "id": "terephthalic-acid",
+    "nameJa": "テレフタル酸",
+    "nameEn": "Terephthalic acid",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "O",
+      "O",
+      "C",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        5,
+        0,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        6,
+        7,
+        2
+      ],
+      [
+        6,
+        8,
+        1
+      ],
+      [
+        3,
+        9,
+        1
+      ],
+      [
+        9,
+        10,
+        2
+      ],
+      [
+        9,
+        11,
+        1
+      ],
+      [
+        1,
+        12,
+        1
+      ],
+      [
+        2,
+        13,
+        1
+      ],
+      [
+        4,
+        14,
+        1
+      ],
+      [
+        5,
+        15,
+        1
+      ],
+      [
+        8,
+        16,
+        1
+      ],
+      [
+        11,
+        17,
+        1
+      ]
+    ],
+    "formula": "C8H6O4",
+    "category": "aromatic-dicarboxylic-acid",
+    "iupacNameEn": "Benzene-1,4-dicarboxylic acid",
+    "commonNameJa": "テレフタル酸",
+    "commonNameEn": "Terephthalic acid"
+  },
+  {
+    "id": "aspirin",
+    "nameJa": "アスピリン",
+    "nameEn": "Aspirin",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "O",
+      "O",
+      "O",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        5,
+        0,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        6,
+        7,
+        2
+      ],
+      [
+        6,
+        8,
+        1
+      ],
+      [
+        1,
+        9,
+        1
+      ],
+      [
+        9,
+        10,
+        1
+      ],
+      [
+        10,
+        11,
+        2
+      ],
+      [
+        10,
+        12,
+        1
+      ],
+      [
+        2,
+        13,
+        1
+      ],
+      [
+        3,
+        14,
+        1
+      ],
+      [
+        4,
+        15,
+        1
+      ],
+      [
+        5,
+        16,
+        1
+      ],
+      [
+        8,
+        17,
+        1
+      ],
+      [
+        12,
+        18,
+        1
+      ],
+      [
+        12,
+        19,
+        1
+      ],
+      [
+        12,
+        20,
+        1
+      ]
+    ],
+    "formula": "C9H8O4",
+    "category": "aromatic-ester-acid",
+    "iupacNameEn": "2-(Acetyloxy)benzoic acid",
+    "commonNameJa": "アスピリン",
+    "commonNameEn": "Aspirin"
   }
 ]

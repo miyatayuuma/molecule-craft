@@ -2,18 +2,20 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
-const [index, app, chemistry, solver, electronInteraction, database] = await Promise.all([
+const [index, app, chemistry, solver, electronInteraction, gestureArbitration, database] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
   readFile(new URL('src/app-v14.js', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js', root), 'utf8'),
   readFile(new URL('src/electron-interaction.js', root), 'utf8'),
+  readFile(new URL('src/gesture-arbitration.js', root), 'utf8'),
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=16"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=17"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=15'/);
 assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);
+assert.match(app, /from '\.\/gesture-arbitration\.js\?v=17'/);
 assert.equal((index.match(/data-element=/g) ?? []).length, 8, 'Static element palette must remain in HTML');
 assert.ok(database.length >= 100, `Expected at least 100 molecule records, got ${database.length}`);
 assert.doesNotMatch(chemistry, /const KNOWN_MOLECULES/);
@@ -23,6 +25,11 @@ assert.match(app, /ELECTRON_SNAP_PX=58/);
 assert.doesNotMatch(app, /electronHit=hits\.find/);
 assert.match(electronInteraction, /coreRadiusPx: 36/);
 assert.match(electronInteraction, /assistRadiusPx: 52/);
+assert.match(gestureArbitration, /atomCoreRadiusPx: 20/);
+assert.match(gestureArbitration, /atomStructureRadiusPx: 34/);
+assert.match(gestureArbitration, /bondEndpointExclusionPx: 24/);
+assert.doesNotMatch(app, /const bondHit=hits\.find/);
+assert.ok(database.every(record => typeof record.iupacNameEn === 'string' && record.iupacNameEn), 'Every molecule record must have an IUPAC name');
 assert.match(solver, /aromaticPlanarGroup/);
 assert.match(solver, /planarSubstituentGroup/);
 assert.match(solver, /doubleSubstituentSlots/);

@@ -163,7 +163,9 @@ export function moleculeFingerprint(atoms, bonds) {
 
 function validateMoleculeRecord(record, ids) {
   if (!record || typeof record !== 'object') throw new Error('Invalid molecule record.');
-  for (const key of ['id', 'nameJa', 'nameEn']) if (typeof record[key] !== 'string' || !record[key]) throw new Error(`Missing ${key}.`);
+  for (const key of ['id', 'nameJa', 'nameEn', 'iupacNameEn']) if (typeof record[key] !== 'string' || !record[key]) throw new Error(`Missing ${key}.`);
+  if (record.commonNameJa != null && (typeof record.commonNameJa !== 'string' || !record.commonNameJa)) throw new Error(`Invalid commonNameJa in ${record.id}.`);
+  if (record.commonNameEn != null && (typeof record.commonNameEn !== 'string' || !record.commonNameEn)) throw new Error(`Invalid commonNameEn in ${record.id}.`);
   if (ids.has(record.id)) throw new Error(`Duplicate molecule id: ${record.id}`);
   ids.add(record.id);
   if (!Array.isArray(record.atoms) || !record.atoms.length || record.atoms.some(element => !ELEMENTS[element])) throw new Error(`Invalid atoms in ${record.id}.`);

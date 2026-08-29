@@ -2,6 +2,38 @@ import { mkdir, writeFile } from 'node:fs/promises';
 
 const molecules = [];
 const defaultValence = { C: 4, N: 3, O: 2, F: 1, P: 3, S: 2, Cl: 1 };
+const iupacNames = {
+  hydrogen: 'Dihydrogen', oxygen: 'Dioxygen', nitrogen: 'Dinitrogen', chlorine: 'Dichlorine', water: 'Oxidane', ammonia: 'Azane', phosphine: 'Phosphane',
+  'hydrogen-sulfide': 'Sulfane', 'n-butane': 'Butane', isobutane: '2-Methylpropane', 'n-pentane': 'Pentane', isopentane: '2-Methylbutane', neopentane: '2,2-Dimethylpropane', 'n-hexane': 'Hexane',
+  '1-butene': 'But-1-ene', '2-butene': 'But-2-ene', isobutene: '2-Methylprop-1-ene', '1-pentene': 'Pent-1-ene', '2-pentene': 'Pent-2-ene', '1-butyne': 'But-1-yne', '2-butyne': 'But-2-yne',
+  toluene: 'Methylbenzene', 'o-xylene': '1,2-Dimethylbenzene', 'm-xylene': '1,3-Dimethylbenzene', 'p-xylene': '1,4-Dimethylbenzene', styrene: 'Ethenylbenzene',
+  chloroform: 'Trichloromethane', 'carbon-tetrachloride': 'Tetrachloromethane',
+  '1-propanol': 'Propan-1-ol', '2-propanol': 'Propan-2-ol', '1-butanol': 'Butan-1-ol', '2-butanol': 'Butan-2-ol', isobutanol: '2-Methylpropan-1-ol', 'tert-butanol': '2-Methylpropan-2-ol',
+  'ethylene-glycol': 'Ethane-1,2-diol', 'propylene-glycol': 'Propane-1,2-diol', glycerol: 'Propane-1,2,3-triol',
+  'dimethyl-ether': 'Methoxymethane', 'methyl-ethyl-ether': 'Methoxyethane', 'diethyl-ether': 'Ethoxyethane', tetrahydrofuran: 'Oxolane', 'ethylene-oxide': 'Oxirane',
+  formaldehyde: 'Methanal', acetaldehyde: 'Ethanal', propionaldehyde: 'Propanal', butyraldehyde: 'Butanal', isobutyraldehyde: '2-Methylpropanal',
+  acetone: 'Propan-2-one', '2-butanone': 'Butan-2-one', '2-pentanone': 'Pentan-2-one', '3-pentanone': 'Pentan-3-one',
+  'formic-acid': 'Methanoic acid', 'acetic-acid': 'Ethanoic acid', 'propionic-acid': 'Propanoic acid', 'butyric-acid': 'Butanoic acid', 'isobutyric-acid': '2-Methylpropanoic acid', 'valeric-acid': 'Pentanoic acid', 'oxalic-acid': 'Ethanedioic acid', 'lactic-acid': '2-Hydroxypropanoic acid',
+  'methyl-formate': 'Methyl methanoate', 'ethyl-formate': 'Ethyl methanoate', 'methyl-acetate': 'Methyl ethanoate', 'ethyl-acetate': 'Ethyl ethanoate', 'methyl-propionate': 'Methyl propanoate', 'ethyl-propionate': 'Ethyl propanoate',
+  methylamine: 'Methanamine', ethylamine: 'Ethanamine', dimethylamine: 'N-Methylmethanamine', trimethylamine: 'N,N-Dimethylmethanamine', aniline: 'Benzenamine', formamide: 'Methanamide', acetamide: 'Ethanamide', propionamide: 'Propanamide', urea: 'Carbamide', acetonitrile: 'Ethanenitrile', acrylonitrile: 'Prop-2-enenitrile',
+  anisole: 'Methoxybenzene', acetophenone: '1-Phenylethan-1-one', catechol: 'Benzene-1,2-diol', resorcinol: 'Benzene-1,3-diol', hydroquinone: 'Benzene-1,4-diol', 'salicylic-acid': '2-Hydroxybenzoic acid', acetanilide: 'N-Phenylacetamide',
+  'hydrogen-peroxide': 'Hydrogen peroxide', 'hypochlorous-acid': 'Hypochlorous acid', 'carbonic-acid': 'Carbonic acid', 'vinyl-chloride': 'Chloroethene',
+  methanethiol: 'Methanethiol', ethanethiol: 'Ethanethiol', 'dimethyl-sulfide': 'Methylsulfanylmethane', 'acrylic-acid': 'Prop-2-enoic acid', acrolein: 'Prop-2-enal',
+  'acetic-anhydride': 'Ethanoic anhydride', glycine: '2-Aminoethanoic acid', alanine: '2-Aminopropanoic acid', ethylenediamine: 'Ethane-1,2-diamine', 'terephthalic-acid': 'Benzene-1,4-dicarboxylic acid', aspirin: '2-(Acetyloxy)benzoic acid',
+};
+const commonNameIds = new Set([
+  'hydrogen', 'oxygen', 'nitrogen', 'chlorine', 'water', 'ammonia', 'phosphine', 'hydrogen-sulfide',
+  'n-butane', 'isobutane', 'n-pentane', 'isopentane', 'neopentane', 'n-hexane', 'ethene', 'propene', 'isobutene', 'ethyne', 'toluene', 'o-xylene', 'm-xylene', 'p-xylene', 'styrene',
+  'chloroform', 'carbon-tetrachloride', 'ethylene-glycol', 'propylene-glycol', 'glycerol', 'dimethyl-ether', 'methyl-ethyl-ether', 'diethyl-ether', 'tetrahydrofuran', 'ethylene-oxide',
+  'formaldehyde', 'acetaldehyde', 'propionaldehyde', 'butyraldehyde', 'isobutyraldehyde', 'acetone', 'formic-acid', 'acetic-acid', 'propionic-acid', 'butyric-acid', 'isobutyric-acid', 'valeric-acid', 'oxalic-acid', 'lactic-acid',
+  'aniline', 'formamide', 'acetamide', 'propionamide', 'urea', 'acetonitrile', 'acrylonitrile', 'phenol', 'anisole', 'acetophenone', 'catechol', 'resorcinol', 'hydroquinone', 'salicylic-acid', 'acetanilide',
+  'vinyl-chloride', 'dimethyl-sulfide', 'acrylic-acid', 'acrolein', 'acetic-anhydride', 'glycine', 'alanine', 'terephthalic-acid', 'aspirin',
+]);
+const conventionalFormulas = {
+  water: 'H2O', 'carbon-dioxide': 'CO2', 'carbon-monoxide': 'CO', ammonia: 'NH3', 'hydrogen-sulfide': 'H2S', 'hydrogen-chloride': 'HCl', 'hydrogen-fluoride': 'HF',
+  'sulfur-dioxide': 'SO2', 'sulfur-trioxide': 'SO3', phosphine: 'PH3', 'phosphorus-trichloride': 'PCl3', 'phosphorus-pentachloride': 'PCl5', 'sulfur-hexafluoride': 'SF6', 'carbon-disulfide': 'CS2', 'carbonyl-sulfide': 'COS', 'phosphoric-acid': 'H3PO4', 'sulfuric-acid': 'H2SO4',
+  'hydrogen-peroxide': 'H2O2', 'hypochlorous-acid': 'HClO', 'carbonic-acid': 'H2CO3',
+};
 
 function formulaFor(atoms) {
   const counts = atoms.reduce((out, atom) => ((out[atom] = (out[atom] ?? 0) + 1), out), {});
@@ -130,6 +162,9 @@ add({ id: 'carbon-disulfide', nameJa: '二硫化炭素', nameEn: 'Carbon disulfi
 add({ id: 'carbonyl-sulfide', nameJa: '硫化カルボニル', nameEn: 'Carbonyl sulfide', atoms: ['C', 'O', 'S'], bonds: [[0, 1, 2], [0, 2, 2]], category: 'basic-inorganic' });
 add({ id: 'phosphoric-acid', nameJa: 'リン酸', nameEn: 'Phosphoric acid', atoms: ['P', 'O', 'O', 'O', 'O'], bonds: [[0, 1, 2], [0, 2, 1], [0, 3, 1], [0, 4, 1]], valences: { 0: 5 }, category: 'basic-inorganic' });
 add({ id: 'sulfuric-acid', nameJa: '硫酸', nameEn: 'Sulfuric acid', atoms: ['S', 'O', 'O', 'O', 'O'], bonds: [[0, 1, 2], [0, 2, 2], [0, 3, 1], [0, 4, 1]], valences: { 0: 6 }, category: 'basic-inorganic' });
+add({ id: 'hydrogen-peroxide', nameJa: '過酸化水素', nameEn: 'Hydrogen peroxide', atoms: ['O', 'O'], bonds: [[0, 1, 1]], category: 'basic-inorganic' });
+add({ id: 'hypochlorous-acid', nameJa: '次亜塩素酸', nameEn: 'Hypochlorous acid', atoms: ['O', 'Cl'], bonds: [[0, 1, 1]], category: 'basic-inorganic' });
+add({ id: 'carbonic-acid', nameJa: '炭酸', nameEn: 'Carbonic acid', atoms: ['C', 'O', 'O', 'O'], bonds: [[0, 1, 2], [0, 2, 1], [0, 3, 1]], category: 'basic-inorganic' });
 
 // Hydrocarbons and halogenated hydrocarbons
 add({ id: 'methane', nameJa: 'メタン', nameEn: 'Methane', ...chain(1), category: 'hydrocarbon' });
@@ -187,6 +222,13 @@ for (const [id, nameJa, nameEn, halogens] of [
 ]) {
   add({ id, nameJa, nameEn, atoms: ['C', ...halogens], bonds: halogens.map((_, i) => [0, i + 1, 1]), category: 'halogenated-hydrocarbon' });
 }
+add({ id: 'chloroethane', nameJa: 'クロロエタン', nameEn: 'Chloroethane', atoms: ['C', 'C', 'Cl'], bonds: [[0, 1, 1], [1, 2, 1]], category: 'halogenated-hydrocarbon' });
+add({ id: '1-2-dichloroethane', nameJa: '1,2-ジクロロエタン', nameEn: '1,2-Dichloroethane', atoms: ['C', 'C', 'Cl', 'Cl'], bonds: [[0, 1, 1], [0, 2, 1], [1, 3, 1]], category: 'halogenated-hydrocarbon' });
+add({ id: 'vinyl-chloride', nameJa: '塩化ビニル', nameEn: 'Vinyl chloride', atoms: ['C', 'C', 'Cl'], bonds: [[0, 1, 2], [1, 2, 1]], category: 'halogenated-hydrocarbon' });
+{
+  const graph = aromatic([g => attach(g, 0, ['Cl'], [])]);
+  add({ id: 'chlorobenzene', nameJa: 'クロロベンゼン', nameEn: 'Chlorobenzene', ...graph, category: 'halogenated-aromatic' });
+}
 
 // Alcohols and ethers
 add({ id: 'methanol', nameJa: 'メタノール', nameEn: 'Methanol', ...alcoholChain(1, 0), category: 'alcohol' });
@@ -210,6 +252,9 @@ add({ id: 'diethyl-ether', nameJa: 'ジエチルエーテル', nameEn: 'Diethyl 
 add({ id: 'tetrahydrofuran', nameJa: 'テトラヒドロフラン', nameEn: 'Tetrahydrofuran', aliases: ['THF'], ...ring(['O', 'C', 'C', 'C', 'C']), category: 'cyclic-ether' });
 add({ id: '1-4-dioxane', nameJa: '1,4-ジオキサン', nameEn: '1,4-Dioxane', ...ring(['O', 'C', 'C', 'O', 'C', 'C']), category: 'cyclic-ether' });
 add({ id: 'ethylene-oxide', nameJa: 'エチレンオキシド', nameEn: 'Ethylene oxide', aliases: ['oxirane'], ...ring(['O', 'C', 'C']), category: 'cyclic-ether' });
+add({ id: 'methanethiol', nameJa: 'メタンチオール', nameEn: 'Methanethiol', atoms: ['C', 'S'], bonds: [[0, 1, 1]], category: 'thiol' });
+add({ id: 'ethanethiol', nameJa: 'エタンチオール', nameEn: 'Ethanethiol', atoms: ['C', 'C', 'S'], bonds: [[0, 1, 1], [1, 2, 1]], category: 'thiol' });
+add({ id: 'dimethyl-sulfide', nameJa: '硫化ジメチル', nameEn: 'Dimethyl sulfide', atoms: ['C', 'S', 'C'], bonds: [[0, 1, 1], [1, 2, 1]], category: 'thioether' });
 
 // Aldehydes and ketones
 add({ id: 'formaldehyde', nameJa: 'ホルムアルデヒド', nameEn: 'Formaldehyde', aliases: ['methanal'], ...aldehyde(1), category: 'aldehyde' });
@@ -249,6 +294,11 @@ add({ id: 'methyl-acetate', nameJa: '酢酸メチル', nameEn: 'Methyl acetate',
 add({ id: 'ethyl-acetate', nameJa: '酢酸エチル', nameEn: 'Ethyl acetate', ...ester(2, 2), category: 'ester' });
 add({ id: 'methyl-propionate', nameJa: 'プロピオン酸メチル', nameEn: 'Methyl propionate', ...ester(3, 1), category: 'ester' });
 add({ id: 'ethyl-propionate', nameJa: 'プロピオン酸エチル', nameEn: 'Ethyl propionate', ...ester(3, 2), category: 'ester' });
+{
+  const graph = acid(3); graph.bonds[0][2] = 2;
+  add({ id: 'acrylic-acid', nameJa: 'アクリル酸', nameEn: 'Acrylic acid', ...graph, category: 'unsaturated-carboxylic-acid' });
+}
+add({ id: 'acetic-anhydride', nameJa: '無水酢酸', nameEn: 'Acetic anhydride', atoms: ['C', 'C', 'O', 'C', 'C', 'O', 'O'], bonds: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 2], [3, 6, 2]], category: 'acid-anhydride' });
 
 // Nitrogen compounds
 add({ id: 'methylamine', nameJa: 'メチルアミン', nameEn: 'Methylamine', atoms: ['C', 'N'], bonds: [[0, 1, 1]], category: 'amine' });
@@ -267,6 +317,10 @@ add({ id: 'hydrogen-cyanide', nameJa: 'シアン化水素', nameEn: 'Hydrogen cy
 add({ id: 'acetonitrile', nameJa: 'アセトニトリル', nameEn: 'Acetonitrile', aliases: ['ethanenitrile'], atoms: ['C', 'C', 'N'], bonds: [[0, 1, 1], [1, 2, 3]], category: 'nitrile' });
 add({ id: 'acrylonitrile', nameJa: 'アクリロニトリル', nameEn: 'Acrylonitrile', atoms: ['C', 'C', 'C', 'N'], bonds: [[0, 1, 2], [1, 2, 1], [2, 3, 3]], category: 'nitrile' });
 add({ id: 'pyridine', nameJa: 'ピリジン', nameEn: 'Pyridine', ...ring(['N', 'C', 'C', 'C', 'C', 'C'], true), category: 'aromatic-heterocycle' });
+add({ id: 'acrolein', nameJa: 'アクロレイン', nameEn: 'Acrolein', atoms: ['C', 'C', 'C', 'O'], bonds: [[0, 1, 2], [1, 2, 1], [2, 3, 2]], category: 'unsaturated-aldehyde' });
+add({ id: 'glycine', nameJa: 'グリシン', nameEn: 'Glycine', atoms: ['N', 'C', 'C', 'O', 'O'], bonds: [[0, 1, 1], [1, 2, 1], [2, 3, 2], [2, 4, 1]], category: 'amino-acid' });
+add({ id: 'alanine', nameJa: 'アラニン', nameEn: 'Alanine', atoms: ['C', 'C', 'C', 'N', 'O', 'O'], bonds: [[0, 1, 1], [1, 2, 1], [1, 3, 1], [2, 4, 2], [2, 5, 1]], category: 'amino-acid' });
+add({ id: 'ethylenediamine', nameJa: 'エチレンジアミン', nameEn: 'Ethylenediamine', atoms: ['N', 'C', 'C', 'N'], bonds: [[0, 1, 1], [1, 2, 1], [2, 3, 1]], category: 'diamine' });
 
 // Oxygenated aromatics
 {
@@ -293,11 +347,31 @@ for (const [id, nameJa, nameEn, second] of [['catechol', 'カテコール', 'Cat
   const graph = aromatic([g => attach(g, 0, ['N', 'C', 'O', 'C'], [[0, 1, 1], [1, 2, 2], [1, 3, 1]])]);
   add({ id: 'acetanilide', nameJa: 'アセトアニリド', nameEn: 'Acetanilide', ...graph, category: 'aromatic-amide' });
 }
+{
+  const graph = aromatic([
+    g => attach(g, 0, ['C', 'O', 'O'], [[0, 1, 2], [0, 2, 1]]),
+    g => attach(g, 3, ['C', 'O', 'O'], [[0, 1, 2], [0, 2, 1]]),
+  ]);
+  add({ id: 'terephthalic-acid', nameJa: 'テレフタル酸', nameEn: 'Terephthalic acid', ...graph, category: 'aromatic-dicarboxylic-acid' });
+}
+{
+  const graph = aromatic([
+    g => attach(g, 0, ['C', 'O', 'O'], [[0, 1, 2], [0, 2, 1]]),
+    g => attach(g, 1, ['O', 'C', 'O', 'C'], [[0, 1, 1], [1, 2, 2], [1, 3, 1]]),
+  ]);
+  add({ id: 'aspirin', nameJa: 'アスピリン', nameEn: 'Aspirin', ...graph, category: 'aromatic-ester-acid' });
+}
 
 const ids = new Set();
 for (const molecule of molecules) {
   if (ids.has(molecule.id)) throw new Error(`Duplicate id: ${molecule.id}`);
   ids.add(molecule.id);
+  molecule.iupacNameEn = iupacNames[molecule.id] ?? molecule.nameEn;
+  if (commonNameIds.has(molecule.id)) {
+    molecule.commonNameJa = molecule.nameJa;
+    molecule.commonNameEn = molecule.nameEn;
+  }
+  molecule.formula = conventionalFormulas[molecule.id] ?? molecule.formula;
   molecule.bonds.forEach(([a, b, order]) => {
     if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0 || a >= molecule.atoms.length || b >= molecule.atoms.length || a === b || ![1, 2, 3].includes(order)) {
       throw new Error(`Invalid bond in ${molecule.id}: ${a},${b},${order}`);

@@ -11,7 +11,7 @@
   <main class="app-shell">
     <header class="topbar">
       <div><p class="eyebrow">CHEMISTRY SANDBOX</p><h1>Molecule Craft</h1></div>
-      <div class="molecule-summary" aria-live="polite"><strong id="molecule-name">自由制作</strong><span id="formula">—</span></div>
+      <div class="molecule-summary" aria-live="polite"><strong id="molecule-name">自由制作</strong><small id="molecule-iupac"></small><span id="formula">—</span></div>
     </header>
 
     <section class="workspace">
@@ -30,7 +30,7 @@
           </div>
         </div>
         <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">元素ボタンは未結合原子を追加します。白寄りのリングが選択中の原子、明るく不規則に揺れるシアンの点が不対電子です。発光点の近くからドラッグでき、タッチ中は電子が指の少し上に表示されます。結合可能な相手電子は同じ操作平面に投影され、画面上で近づけて離すと電子対ができ、単結合・二重結合・三重結合、または環閉鎖が成立します。結合後は視点を固定したまま、原子だけが滑らかに安定構造へ移動します。背景1本指ドラッグは分子全体の回転、2本指はパン・ズーム、ひねりで分子を回転します。結合線の長押しで結合次数を下げます。</p>
+        <p class="hint">元素ボタンは未結合原子を追加します。白寄りのリングが選択中の原子、明るく不規則に揺れるシアンの点が不対電子です。結合できる電子対がある間は発光点のドラッグを優先し、相手がなくなると原子を掴みやすい骨格調整モードへ自動で移ります。原子の中央からは常に原子を動かせます。電子を画面上で相手へ近づけて離すと、単結合・多重結合・環閉鎖が成立します。結合後は視点を固定したまま原子だけが安定構造へ移動します。背景1本指ドラッグは分子全体の回転、2本指はパン・ズーム、ひねりで分子を回転します。結合線の中央を長押しすると結合次数が下がります。</p>
       </aside>
 
       <section class="viewer-wrap">
@@ -40,6 +40,7 @@
           <span class="discovery-kicker">MOLECULE DISCOVERED</span>
           <strong id="discovery-formula">H₂O</strong>
           <span id="discovery-name">水</span>
+          <small id="discovery-iupac">IUPAC: oxidane</small>
         </div>
       </section>
 
@@ -50,6 +51,6 @@
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v14.js?v=16"></script>
+  <script type="module" src="./src/app-v14.js?v=17"></script>
 </body>
 </html>
