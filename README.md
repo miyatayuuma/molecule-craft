@@ -22,7 +22,7 @@
 
 ## 検証
 
-`node tests/recognition.test.mjs` と `node tests/source-contracts.test.mjs` で、分子DBとdirect-module構成の基本契約を確認できます。
+`node tests/recognition.test.mjs`、`node tests/structure-relaxation.test.mjs`、`node tests/source-contracts.test.mjs` で、分子DB・拘束ソルバー・direct-module構成の基本契約を確認できます。
 
 ## 起動
 

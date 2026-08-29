@@ -75,12 +75,12 @@ export function createStructureSolver({
       for (const atom of molecule.atoms) enforceLocalAngles(atom.id, 0.085 * scale, locked);
 
       // C/E. sp2 planes and sp linear axes
-      for (const frame of doubleFrames.values()) enforcePlane(frame.atomIds, frame.normal, frame.bond, 0.22 * scale, locked);
+      for (const frame of doubleFrames.values()) enforcePlane(frame.atomIds, frame.normal, [frame.bond.a, frame.bond.b], 0.22 * scale, locked, frame.bond);
       for (const atom of molecule.atoms) if (geometryFor(atom.id).kind === 'sp') enforceLinearCenter(atom.id, 0.16 * scale, locked);
 
       // D. Aromatic ring and directly attached substituents share one plane.
       for (const frame of aromaticFrames.values()) {
-        enforcePlane(frame.atomIds, frame.normal, null, 0.26 * scale, locked);
+        enforcePlane(frame.atomIds, frame.normal, frame.cycle, 0.26 * scale, locked);
         enforceRegularAromaticCycle(frame, 0.045 * scale, locked);
       }
 
@@ -127,9 +127,17 @@ export function createStructureSolver({
 
   function enforceLinearCenter(centerId, strength, locked) {
     const center = pos(centerId);
-    const neighbors = molecule.neighbors(centerId).map(neighbor => neighbor.atomId);
+    const neighbors = molecule.neighbors(centerId).sort((left, right) => right.order - left.order);
     if (!center || neighbors.length !== 2) return;
-    enforceAngle(center, neighbors[0], neighbors[1], Math.PI, strength, locked);
+    const primaryId = neighbors[0].atomId, secondaryId = neighbors[1].atomId, primary = pos(primaryId), secondary = pos(secondaryId);
+    if (!primary || !secondary || (locked.has(primaryId) && locked.has(secondaryId))) return;
+    if (!locked.has(secondaryId)) {
+      const length = secondary.distanceTo(center), target = center.clone().addScaledVector(primary.clone().sub(center).normalize(), -length);
+      secondary.lerp(target, Math.min(1, strength * 2.4));
+    } else if (!locked.has(primaryId)) {
+      const length = primary.distanceTo(center), target = center.clone().addScaledVector(secondary.clone().sub(center).normalize(), -length);
+      primary.lerp(target, Math.min(1, strength * 2.4));
+    }
   }
 
   function enforceAngle(center, aId, bId, target, strength, locked) {
@@ -160,10 +168,11 @@ export function createStructureSolver({
     }
   }
 
-  function enforcePlane(atomIds, normal, centralBond, strength, locked) {
+  function enforcePlane(atomIds, normal, anchorIds, strength, locked, centralBond = null) {
     const points = atomIds.map(pos).filter(Boolean);
     if (points.length < 3 || normal.lengthSq() < 1e-8) return;
-    const center = points.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / points.length);
+    const anchors = anchorIds.map(pos).filter(Boolean);
+    const center = anchors.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / anchors.length);
     const central = centralBond ? new Set([centralBond.a, centralBond.b]) : new Set();
     for (const id of atomIds) {
       const point = pos(id);
