@@ -18,7 +18,7 @@
       <aside class="panel tool-panel" aria-label="元素と操作">
         <div><h2>元素</h2><div id="element-palette" class="element-palette"></div></div>
         <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">原子をタップすると色が変わって選択状態になります。選択中は元素ボタン1タップにつき1原子だけ追加され、空きがあればすぐ結合します。原子ドラッグは分子全体の移動です。回したい単結合はダブルタップすると回転軸として強調表示され、その状態で片側の原子をドラッグすると、その結合を軸に回転します。背景タップか同じ結合の再ダブルタップで解除できます。結合は1本・2本・3本と色でも種類を分けています。2本指は平行スワイプで作業中心移動、ピンチでズーム、ひねりで視点回転。原子は削除ボタン、結合だけ連続タップで解除できます。</p>
+        <p class="hint">原子をタップすると色が変わって選択状態になります。選択中は元素ボタン1タップにつき1原子だけ追加され、空きがあればすぐ結合します。原子ドラッグは分子全体の移動です。回したい単結合はダブルタップすると回転軸として強調表示され、その状態で片側の原子をドラッグすると、その結合を軸に回転します。背景タップか同じ結合の再ダブルタップで解除できます。結合は単結合＝灰1本、二重結合＝黄橙2本、三重結合＝マゼンタ3本で表示し、二重・三重は線間隔と発光も強めています。2本指は平行スワイプで作業中心移動、ピンチでズーム、ひねりで視点回転。原子は削除ボタン、結合だけ連続タップで解除できます。</p>
       </aside>
 
       <section class="viewer-wrap">
@@ -38,6 +38,6 @@
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v8-4-safe.js"></script>
+  <script type="module" src="./src/app-v8-5.js"></script>
 </body>
 </html>
