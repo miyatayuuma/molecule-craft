@@ -54,21 +54,57 @@ function fixture(elements, bonds, coordinates) {
 }
 
 const angle=(a,center,b)=>a.clone().sub(center).angleTo(b.clone().sub(center))*180/Math.PI;
+const centroid=points=>points.reduce((sum,point)=>sum.add(point),new Vector3()).multiplyScalar(1/points.length);
+const planeSpread=(points,normal=new Vector3(0,0,1))=>{const center=centroid(points);return Math.max(...points.map(point=>Math.abs(point.clone().sub(center).dot(normal))));};
+const relaxLikeApp=(solver,duration=1380)=>{for(let elapsed=0;elapsed<=duration;elapsed+=1000/60){const scale=elapsed<280?.76:elapsed<760?.54:.36;solver.step(scale,2);}};
 
 {
   const item=fixture(['C','C','H','H','H','H'],[[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]],[[-.6,0,0],[.6,0,0],[-1,.75,0],[-1,-.75,0],[1,.75,0],[1,-.75,0]]);
-  item.solver.rebuildTopology();assert.equal(item.solver.snapshot().doublePlanarGroups[0].length,6);item.pos(2).z=1.1;
-  for(let index=0;index<180;index++)item.solver.step(.8,2);
-  assert.ok(Math.max(...item.ids.map((_,index)=>Math.abs(item.pos(index).z)))<.025,'Ethene did not return all atoms to plane');
+  item.solver.rebuildTopology();assert.equal(item.solver.snapshot().doublePlanarGroups[0].length,6);
+  assert.ok(item.solver.snapshot().doubleSubstituentSlots.every(endpoint=>new Set(endpoint.roots.map(root=>root.sign)).size===2),'Ethene hydrogens were not assigned distinct sp2 slots');
+  item.pos(2).set(-.08,.18,1.1);item.pos(3).set(-.12,.12,-.7);item.solver.rebuildTopology();
+  relaxLikeApp(item.solver);
+  const ethenePlaneError=planeSpread(item.ids.map((_,index)=>item.pos(index)));
+  assert.ok(ethenePlaneError<.025,`Ethene did not return all atoms to plane: ${ethenePlaneError}`);
+  for(const [center,partner,left,right] of [[0,1,2,3],[1,0,4,5]]){
+    const values=[angle(item.pos(partner),item.pos(center),item.pos(left)),angle(item.pos(partner),item.pos(center),item.pos(right)),angle(item.pos(left),item.pos(center),item.pos(right))];
+    assert.ok(values.every(value=>Math.abs(value-120)<2),`Ethene sp2 angles at carbon ${center}: ${values.join(', ')}`);
+    const axis=item.pos(partner).clone().sub(item.pos(center)).normalize(),side=new Vector3().crossVectors(new Vector3(0,0,1),axis).normalize();
+    const sideProducts=item.pos(left).clone().sub(item.pos(center)).normalize().dot(side)*item.pos(right).clone().sub(item.pos(center)).normalize().dot(side);
+    assert.ok(sideProducts<-.6,`Ethene hydrogens collapsed into the same in-plane slot at carbon ${center}`);
+  }
 }
 
 {
   const elements=[...Array(6).fill('C'),...Array(6).fill('H')],bonds=[],coordinates=[];
   for(let index=0;index<6;index++){bonds.push([index,(index+1)%6,index%2===0?2:1]);bonds.push([index,index+6,1]);}
   for(const radius of[1,1.65])for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*radius,Math.sin(index*Math.PI/3)*radius,0]);
-  const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();assert.equal(item.solver.snapshot().aromaticPlanarGroups[0].length,12);item.pos(8).z=1.2;
-  for(let index=0;index<200;index++)item.solver.step(.8,2);
-  assert.ok(Math.max(...item.ids.map((_,index)=>Math.abs(item.pos(index).z)))<.03,'Benzene substituent did not return to ring plane');
+  const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();assert.equal(item.solver.snapshot().aromaticPlanarGroups[0].length,12);item.pos(8).set(.05,.02,1.2);item.solver.rebuildTopology();
+  relaxLikeApp(item.solver);
+  assert.ok(planeSpread(item.ids.map((_,index)=>item.pos(index)))<.03,'Benzene substituent did not return to ring plane');
+  const center=centroid([...Array(6)].map((_,index)=>item.pos(index)));
+  for(let index=0;index<6;index++){
+    const radial=item.pos(index).clone().sub(center).normalize(),bondDirection=item.pos(index+6).clone().sub(item.pos(index)).normalize();
+    assert.ok(radial.dot(bondDirection)>.985,`Benzene hydrogen ${index} did not return outward`);
+  }
+}
+
+{
+  const elements=[...Array(6).fill('C'),...Array(5).fill('H'),'O','H'],bonds=[],coordinates=[];
+  for(let index=0;index<6;index++)bonds.push([index,(index+1)%6,index%2===0?2:1]);
+  for(let index=1;index<6;index++)bonds.push([index,index+5,1]);
+  bonds.push([0,11,1],[11,12,1]);
+  for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),0]);
+  for(let index=1;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*1.65,Math.sin(index*Math.PI/3)*1.65,0]);
+  coordinates.push([1.7,0,0],[2.35,0,0]);
+  const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+  const branchShift=new Vector3(-1.45,.18,.9);item.pos(11).add(branchShift);item.pos(12).add(branchShift);item.solver.rebuildTopology();
+  relaxLikeApp(item.solver);
+  const center=centroid([...Array(6)].map((_,index)=>item.pos(index))),radial=item.pos(0).clone().sub(center).normalize(),oxygenDirection=item.pos(11).clone().sub(item.pos(0)).normalize();
+  assert.ok(radial.dot(oxygenDirection)>.985,'Phenol oxygen did not return outside the aromatic ring');
+  const ringPlaneZ=centroid([...Array(6)].map((_,index)=>item.pos(index))).z;
+  assert.ok(Math.abs(item.pos(11).z-ringPlaneZ)<.03,'Phenol oxygen did not return to the aromatic plane');
+  assert.ok(Math.abs(item.pos(12).z-ringPlaneZ)<.05,'Phenol OH branch did not follow its oxygen back to the aromatic plane');
 }
 
 {

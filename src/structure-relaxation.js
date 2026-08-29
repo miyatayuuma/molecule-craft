@@ -35,12 +35,16 @@ export function createStructureSolver({
       if (bond.order !== 2 || aromaticEdges.has(key)) continue;
       const atomIds = planarSubstituentGroup(bond);
       const previous = doubleFrames.get(key);
-      nextDoubleFrames.set(key, {
+      const normal = previous && sameMembers(previous.atomIds, atomIds) ? previous.normal.clone() : doublePlaneNormal(bond, atomIds);
+      const frame = {
         key,
         bond: { a: bond.a, b: bond.b },
         atomIds,
-        normal: previous && sameMembers(previous.atomIds, atomIds) ? previous.normal.clone() : doublePlaneNormal(bond, atomIds),
-      });
+        normal,
+      };
+      frame.substituentSlots = doubleSubstituentSlots(frame, previous?.substituentSlots);
+      frame.slottedRootIds = new Set(frame.substituentSlots.flatMap(endpoint => endpoint.branches.map(branch => branch.rootId)));
+      nextDoubleFrames.set(key, frame);
     }
     doubleFrames = nextDoubleFrames;
 
@@ -49,12 +53,15 @@ export function createStructureSolver({
       const key = canonicalCycleKey(cycle);
       const atomIds = aromaticPlanarGroup(cycle);
       const previous = aromaticFrames.get(key);
-      nextAromaticFrames.set(key, {
+      const frame = {
         key,
         cycle: [...cycle],
         atomIds,
         normal: previous && sameMembers(previous.atomIds, atomIds) ? previous.normal.clone() : cycleNormal(cycle),
-      });
+      };
+      frame.substituents = aromaticSubstituentBranches(frame.cycle);
+      frame.substituentRootIds = new Set(frame.substituents.map(substituent => substituent.rootId));
+      nextAromaticFrames.set(key, frame);
     }
     aromaticFrames = nextAromaticFrames;
     stericExclusions = buildStericExclusions();
@@ -74,14 +81,20 @@ export function createStructureSolver({
       // B. Local electron-domain angles
       for (const atom of molecule.atoms) enforceLocalAngles(atom.id, 0.085 * scale, locked);
 
-      // C/E. sp2 planes and sp linear axes
-      for (const frame of doubleFrames.values()) enforcePlane(frame.atomIds, frame.normal, [frame.bond.a, frame.bond.b], 0.22 * scale, locked, frame.bond);
+      // C/E. sp2 planes, distinct in-plane substituent slots, and sp linear axes.
+      for (const frame of doubleFrames.values()) {
+        enforcePlane(frame.atomIds, frame.normal, [frame.bond.a, frame.bond.b], 0.22 * scale, locked, frame.bond, frame.slottedRootIds);
+        enforceDoubleSubstituentDirections(frame, 0.24 * scale, locked);
+      }
       for (const atom of molecule.atoms) if (geometryFor(atom.id).kind === 'sp') enforceLinearCenter(atom.id, 0.16 * scale, locked);
 
-      // D. Aromatic ring and directly attached substituents share one plane.
+      // D. Aromatic rings stay planar; external branches return to the outward
+      // direction instead of being allowed to settle inside the ring.
       for (const frame of aromaticFrames.values()) {
-        enforcePlane(frame.atomIds, frame.normal, frame.cycle, 0.26 * scale, locked);
+        enforcePlane(frame.atomIds, frame.normal, frame.cycle, 0.26 * scale, locked, null, frame.substituentRootIds);
         enforceRegularAromaticCycle(frame, 0.045 * scale, locked);
+        enforceAromaticSubstituentDirections(frame, 0.28 * scale, locked);
+        enforceConjugatedSubstituentPlane(frame, 0.22 * scale, locked);
       }
 
       // G. A deliberately light final separation avoids atom overlap without fighting angles.
@@ -168,7 +181,7 @@ export function createStructureSolver({
     }
   }
 
-  function enforcePlane(atomIds, normal, anchorIds, strength, locked, centralBond = null) {
+  function enforcePlane(atomIds, normal, anchorIds, strength, locked, centralBond = null, skipIds = null) {
     const points = atomIds.map(pos).filter(Boolean);
     if (points.length < 3 || normal.lengthSq() < 1e-8) return;
     const anchors = anchorIds.map(pos).filter(Boolean);
@@ -176,11 +189,75 @@ export function createStructureSolver({
     const central = centralBond ? new Set([centralBond.a, centralBond.b]) : new Set();
     for (const id of atomIds) {
       const point = pos(id);
-      if (!point || locked.has(id)) continue;
+      if (!point || locked.has(id) || skipIds?.has(id)) continue;
       const offset = point.clone().sub(center).dot(normal);
       const weight = central.has(id) ? 0.55 : 1;
       point.addScaledVector(normal, -offset * strength * weight);
     }
+  }
+
+  function enforceDoubleSubstituentDirections(frame, strength, locked) {
+    for (const endpoint of frame.substituentSlots) {
+      const center = pos(endpoint.centerId);
+      const partner = pos(endpoint.partnerId);
+      if (!center || !partner) continue;
+      const axis = partner.clone().sub(center);
+      if (axis.lengthSq() < 1e-8) continue;
+      axis.normalize();
+      let side = new THREE.Vector3().crossVectors(frame.normal, axis);
+      if (side.lengthSq() < 1e-8) side = perpendicular(axis);
+      else side.normalize();
+      for (const branch of endpoint.branches) {
+        const direction = axis.clone().multiplyScalar(-0.5).addScaledVector(side, branch.sign * Math.sqrt(3) / 2).normalize();
+        moveBranchRootToward(endpoint.centerId, branch, direction, strength, locked);
+      }
+    }
+  }
+
+  function enforceAromaticSubstituentDirections(frame, strength, locked) {
+    const ringPoints = frame.cycle.map(pos);
+    if (ringPoints.some(point => !point)) return;
+    const ringCenter = ringPoints.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / ringPoints.length);
+    for (const substituent of frame.substituents) {
+      const index = frame.cycle.indexOf(substituent.ringId);
+      const center = pos(substituent.ringId);
+      const previous = pos(frame.cycle[(index - 1 + frame.cycle.length) % frame.cycle.length]);
+      const next = pos(frame.cycle[(index + 1) % frame.cycle.length]);
+      if (!center || !previous || !next) continue;
+      let outward = previous.clone().sub(center).add(next.clone().sub(center)).multiplyScalar(-1);
+      outward.addScaledVector(frame.normal, -outward.dot(frame.normal));
+      const radial = center.clone().sub(ringCenter).addScaledVector(frame.normal, -center.clone().sub(ringCenter).dot(frame.normal));
+      if (outward.lengthSq() < 1e-8) outward = radial;
+      if (outward.lengthSq() < 1e-8) outward = perpendicular(frame.normal);
+      outward.normalize();
+      if (radial.lengthSq() > 1e-8 && outward.dot(radial) < 0) outward.multiplyScalar(-1);
+      moveBranchRootToward(substituent.ringId, substituent, outward, strength, locked);
+    }
+  }
+
+  function enforceConjugatedSubstituentPlane(frame, strength, locked) {
+    const ringPoints = frame.cycle.map(pos);
+    if (ringPoints.some(point => !point)) return;
+    const planeCenter = ringPoints.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / ringPoints.length);
+    for (const substituent of frame.substituents) {
+      for (const follower of substituent.planarFollowers) {
+        const root = pos(follower.rootId);
+        if (!root || follower.atomIds.some(id => locked.has(id))) continue;
+        const correction = frame.normal.clone().multiplyScalar(-root.clone().sub(planeCenter).dot(frame.normal) * Math.min(1, strength));
+        for (const id of follower.atomIds) pos(id)?.add(correction);
+      }
+    }
+  }
+
+  function moveBranchRootToward(centerId, branch, direction, strength, locked) {
+    const center = pos(centerId);
+    const root = pos(branch.rootId);
+    if (!center || !root || branch.atomIds.some(id => locked.has(id))) return;
+    const bond = bondBetween(centerId, branch.rootId);
+    if (!bond) return;
+    const target = center.clone().addScaledVector(direction, bondLengthFor(centerId, branch.rootId, bond.order));
+    const correction = target.sub(root).multiplyScalar(Math.min(1, strength));
+    for (const id of branch.atomIds) pos(id)?.add(correction);
   }
 
   function enforceRegularAromaticCycle(frame, strength, locked) {
@@ -250,6 +327,80 @@ export function createStructureSolver({
     const ids = new Set(cycle);
     for (const id of cycle) molecule.neighbors(id).forEach(neighbor => ids.add(neighbor.atomId));
     return [...ids];
+  }
+
+  function doubleSubstituentSlots(frame, previousSlots = null) {
+    const previousSigns = new Map();
+    for (const endpoint of previousSlots ?? []) for (const branch of endpoint.branches) previousSigns.set(`${endpoint.centerId}:${branch.rootId}`, branch.sign);
+    const endpoints = [];
+    for (const [centerId, partnerId] of [[frame.bond.a, frame.bond.b], [frame.bond.b, frame.bond.a]]) {
+      if (geometryFor(centerId).kind !== 'sp2') continue;
+      const branches = molecule.neighbors(centerId)
+        .filter(neighbor => neighbor.atomId !== partnerId)
+        .map(neighbor => ({ rootId: neighbor.atomId, atomIds: branchFromBond(centerId, neighbor.atomId) }))
+        .filter(branch => branch.atomIds);
+      if (!branches.length || branches.length > 2) continue;
+      const remembered = branches.map(branch => previousSigns.get(`${centerId}:${branch.rootId}`));
+      let signs;
+      if (remembered.every(sign => sign === -1 || sign === 1) && new Set(remembered).size === remembered.length) signs = remembered;
+      else signs = assignDoubleSlotSigns(centerId, partnerId, branches, frame.normal);
+      endpoints.push({ centerId, partnerId, branches: branches.map((branch, index) => ({ ...branch, sign: signs[index] })) });
+    }
+    return endpoints;
+  }
+
+  function assignDoubleSlotSigns(centerId, partnerId, branches, normal) {
+    const center = pos(centerId);
+    const partner = pos(partnerId);
+    if (!center || !partner) return branches.map((_, index) => index === 0 ? 1 : -1);
+    const axis = partner.clone().sub(center).normalize();
+    let side = new THREE.Vector3().crossVectors(normal, axis);
+    if (side.lengthSq() < 1e-8) side = perpendicular(axis);
+    else side.normalize();
+    const slots = [1, -1].map(sign => axis.clone().multiplyScalar(-0.5).addScaledVector(side, sign * Math.sqrt(3) / 2).normalize());
+    const directions = branches.map(branch => pos(branch.rootId)?.clone().sub(center).normalize() ?? slots[0]);
+    if (branches.length === 1) return [directions[0].dot(slots[0]) >= directions[0].dot(slots[1]) ? 1 : -1];
+    const direct = directions[0].dot(slots[0]) + directions[1].dot(slots[1]);
+    const crossed = directions[0].dot(slots[1]) + directions[1].dot(slots[0]);
+    return direct >= crossed ? [1, -1] : [-1, 1];
+  }
+
+  function aromaticSubstituentBranches(cycle) {
+    const cycleIds = new Set(cycle);
+    const branches = [];
+    for (const ringId of cycle) {
+      for (const neighbor of molecule.neighbors(ringId)) {
+        if (cycleIds.has(neighbor.atomId)) continue;
+        const atomIds = branchFromBond(ringId, neighbor.atomId, cycleIds);
+        if (atomIds) branches.push({ ringId, rootId: neighbor.atomId, atomIds, planarFollowers: conjugatedFollowerBranches(ringId, neighbor.atomId) });
+      }
+    }
+    return branches;
+  }
+
+  function conjugatedFollowerBranches(ringId, rootId) {
+    const root = atomById(rootId);
+    if (!root || (root.element !== 'O' && root.element !== 'N' && geometryFor(rootId).kind !== 'sp2')) return [];
+    return molecule.neighbors(rootId)
+      .filter(neighbor => neighbor.atomId !== ringId)
+      .map(neighbor => ({ rootId: neighbor.atomId, atomIds: branchFromBond(rootId, neighbor.atomId) }))
+      .filter(branch => branch.atomIds);
+  }
+
+  function branchFromBond(centerId, rootId, forbiddenIds = null) {
+    const seen = new Set([rootId]);
+    const queue = [rootId];
+    while (queue.length) {
+      const current = queue.shift();
+      for (const neighbor of molecule.neighbors(current)) {
+        const next = neighbor.atomId;
+        if ((current === rootId && next === centerId) || seen.has(next)) continue;
+        if (next === centerId || forbiddenIds?.has(next)) return null;
+        seen.add(next);
+        queue.push(next);
+      }
+    }
+    return [...seen];
   }
 
   function doublePlaneNormal(bond, atomIds) {
@@ -346,6 +497,8 @@ export function createStructureSolver({
       aromaticCycles: aromaticCycles.map(cycle => [...cycle]),
       doublePlanarGroups: [...doubleFrames.values()].map(frame => [...frame.atomIds]),
       aromaticPlanarGroups: [...aromaticFrames.values()].map(frame => [...frame.atomIds]),
+      doubleSubstituentSlots: [...doubleFrames.values()].flatMap(frame => frame.substituentSlots.map(endpoint => ({ centerId: endpoint.centerId, roots: endpoint.branches.map(branch => ({ id: branch.rootId, sign: branch.sign })) }))),
+      aromaticOutwardGroups: [...aromaticFrames.values()].map(frame => frame.substituents.map(substituent => ({ ringId: substituent.ringId, rootId: substituent.rootId }))),
     };
   }
 

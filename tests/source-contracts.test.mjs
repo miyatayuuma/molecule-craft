@@ -19,6 +19,8 @@ assert.match(app, /depthTest:false/);
 assert.match(app, /ELECTRON_SNAP_PX=58/);
 assert.match(solver, /aromaticPlanarGroup/);
 assert.match(solver, /planarSubstituentGroup/);
+assert.match(solver, /doubleSubstituentSlots/);
+assert.match(solver, /enforceAromaticSubstituentDirections/);
 
 const cameraMutationLines = app.split('\n').filter(line => /camera\.position\.(set|copy|add)|cameraTarget\.(set|copy|add)/.test(line));
 assert.equal(cameraMutationLines.length, 3, `Unexpected camera mutation:\n${cameraMutationLines.join('\n')}`);

@@ -14,6 +14,9 @@
     const results = [];
     const near = (actual, expected, tolerance) => Math.abs(actual - expected) <= tolerance;
     const angle = (a, center, b) => THREE.MathUtils.radToDeg(a.clone().sub(center).angleTo(b.clone().sub(center)));
+    const centroid = points => points.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / points.length);
+    const planeSpread = (points, normal = new THREE.Vector3(0,0,1)) => { const center = centroid(points); return Math.max(...points.map(point => Math.abs(point.clone().sub(center).dot(normal)))); };
+    const relaxLikeApp = (solver, duration = 1380) => { for (let elapsed = 0; elapsed <= duration; elapsed += 1000 / 60) { const scale = elapsed < 280 ? .76 : elapsed < 760 ? .54 : .36; solver.step(scale, 2); } };
 
     function fixture(elements, bonds, coordinates) {
       const molecule = new Molecule();
@@ -39,18 +42,22 @@
       catch (error) { results.push({ name, ok: false, error: error.message }); }
     }
 
-    run('ethene: 2C + 4H return to one plane', () => {
+    run('ethene: 4H return to distinct trigonal-planar slots', () => {
       const item = fixture(['C','C','H','H','H','H'], [[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]], [[-.6,0,0],[.6,0,0],[-1,.75,0],[-1,-.75,0],[1,.75,0],[1,-.75,0]]);
       item.solver.rebuildTopology();
       const groups = item.solver.snapshot().doublePlanarGroups;
       if (groups.length !== 1 || groups[0].length !== 6) throw new Error(`planar group size ${groups[0]?.length ?? 0}`);
-      item.pos(2).z = 1.1;
-      for (let index = 0; index < 180; index++) item.solver.step(.8, 2);
-      const maxZ = Math.max(...item.ids.map((_, index) => Math.abs(item.pos(index).z)));
-      if (maxZ > .025) throw new Error(`max plane error ${maxZ.toFixed(4)}`);
+      if (!item.solver.snapshot().doubleSubstituentSlots.every(endpoint => new Set(endpoint.roots.map(root => root.sign)).size === 2)) throw new Error('duplicate sp2 slot');
+      item.pos(2).set(-.08,.18,1.1); item.pos(3).set(-.12,.12,-.7); item.solver.rebuildTopology(); relaxLikeApp(item.solver);
+      const spread = planeSpread(item.ids.map((_, index) => item.pos(index)));
+      if (spread > .025) throw new Error(`max plane error ${spread.toFixed(4)}`);
+      for (const [center,partner,left,right] of [[0,1,2,3],[1,0,4,5]]) {
+        const values = [angle(item.pos(partner),item.pos(center),item.pos(left)),angle(item.pos(partner),item.pos(center),item.pos(right)),angle(item.pos(left),item.pos(center),item.pos(right))];
+        if (values.some(value => !near(value,120,2))) throw new Error(`carbon ${center} angles ${values.map(value => value.toFixed(2)).join(', ')}`);
+      }
     });
 
-    run('benzene: ring and all 6 hydrogens return to ring plane', () => {
+    run('benzene: all 6 hydrogens return to the outward ring-plane positions', () => {
       const elements = [...Array(6).fill('C'), ...Array(6).fill('H')], bonds = [];
       for (let index = 0; index < 6; index++) { bonds.push([index,(index+1)%6,index%2===0?2:1]); bonds.push([index,index+6,1]); }
       const coordinates = [];
@@ -58,10 +65,29 @@
       const item = fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
       const groups=item.solver.snapshot().aromaticPlanarGroups;
       if(groups.length!==1||groups[0].length!==12)throw new Error(`aromatic planar group size ${groups[0]?.length??0}`);
-      item.pos(8).z=1.2;
-      for(let index=0;index<200;index++)item.solver.step(.8,2);
-      const maxZ=Math.max(...item.ids.map((_,index)=>Math.abs(item.pos(index).z)));
-      if(maxZ>.03)throw new Error(`max plane error ${maxZ.toFixed(4)}`);
+      item.pos(8).set(.05,.02,1.2);item.solver.rebuildTopology();relaxLikeApp(item.solver);
+      const spread=planeSpread(item.ids.map((_,index)=>item.pos(index)));
+      if(spread>.03)throw new Error(`max plane error ${spread.toFixed(4)}`);
+      const center=centroid([...Array(6)].map((_,index)=>item.pos(index)));
+      for(let index=0;index<6;index++){
+        const radial=item.pos(index).clone().sub(center).normalize(),direction=item.pos(index+6).clone().sub(item.pos(index)).normalize();
+        if(radial.dot(direction)<=.985)throw new Error(`hydrogen ${index} remained inward`);
+      }
+    });
+
+    run('phenol: OH branch returns outside and into the aromatic plane', () => {
+      const elements=[...Array(6).fill('C'),...Array(5).fill('H'),'O','H'],bonds=[],coordinates=[];
+      for(let index=0;index<6;index++)bonds.push([index,(index+1)%6,index%2===0?2:1]);
+      for(let index=1;index<6;index++)bonds.push([index,index+5,1]);
+      bonds.push([0,11,1],[11,12,1]);
+      for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),0]);
+      for(let index=1;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*1.65,Math.sin(index*Math.PI/3)*1.65,0]);
+      coordinates.push([1.7,0,0],[2.35,0,0]);
+      const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+      const shift=new THREE.Vector3(-1.45,.18,.9);item.pos(11).add(shift);item.pos(12).add(shift);item.solver.rebuildTopology();relaxLikeApp(item.solver);
+      const center=centroid([...Array(6)].map((_,index)=>item.pos(index))),radial=item.pos(0).clone().sub(center).normalize(),oxygenDirection=item.pos(11).clone().sub(item.pos(0)).normalize();
+      if(radial.dot(oxygenDirection)<=.985)throw new Error('oxygen remained inside ring');
+      if(Math.abs(item.pos(11).z-center.z)>.03||Math.abs(item.pos(12).z-center.z)>.05)throw new Error('OH branch remained outside aromatic plane');
     });
 
     run('ethyne: both sp centers return to linear', () => {
