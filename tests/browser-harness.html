@@ -10,6 +10,7 @@
     import { ELEMENTS, Molecule } from '../src/chemistry.js';
     import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from '../src/bonding-model.js';
     import { createStructureSolver } from '../src/structure-relaxation.js?v=15';
+    import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from '../src/electron-interaction.js?v=16';
 
     const results = [];
     const near = (actual, expected, tolerance) => Math.abs(actual - expected) <= tolerance;
@@ -41,6 +42,15 @@
       try { test(); results.push({ name, ok: true }); }
       catch (error) { results.push({ name, ok: false, error: error.message }); }
     }
+
+    run('electron handles: core, assist, and ambiguity rules use screen distance', () => {
+      const electron=(atomId,x)=>({atomId,index:0,screenX:x,screenY:100,restScreenX:x,restScreenY:100});
+      const core=pickElectronAtPointer(100,100,[electron(1,132),electron(2,140)]);
+      const assist=pickElectronAtPointer(100,100,[electron(3,148),electron(4,170)]);
+      const ambiguous=pickElectronAtPointer(100,100,[electron(5,145),electron(6,149)]);
+      if(ELECTRON_POINTER_TARGET.coreRadiusPx!==36||ELECTRON_POINTER_TARGET.assistRadiusPx!==52)throw new Error('unexpected touch radii');
+      if(core?.atomId!==1||assist?.atomId!==3||ambiguous!==null)throw new Error('screen-space acquisition mismatch');
+    });
 
     run('ethene: 4H return to distinct trigonal-planar slots', () => {
       const item = fixture(['C','C','H','H','H','H'], [[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]], [[-.6,0,0],[.6,0,0],[-1,.75,0],[-1,-.75,0],[1,.75,0],[1,-.75,0]]);
