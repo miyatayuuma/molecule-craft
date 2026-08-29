@@ -9,25 +9,11 @@ export const ELEMENTS = {
   Cl: { name: '塩素',   color: '#16a34a', radius: 0.48, valences: [1] },
 };
 
-const KNOWN_MOLECULES = [
-  { name: '水素', atoms: ['H','H'], bonds: [[0,1,1]] },
-  { name: '酸素', atoms: ['O','O'], bonds: [[0,1,2]] },
-  { name: '窒素', atoms: ['N','N'], bonds: [[0,1,3]] },
-  { name: '水', atoms: ['O','H','H'], bonds: [[0,1,1],[0,2,1]] },
-  { name: '二酸化炭素', atoms: ['C','O','O'], bonds: [[0,1,2],[0,2,2]] },
-  { name: 'メタン', atoms: ['C','H','H','H','H'], bonds: [[0,1,1],[0,2,1],[0,3,1],[0,4,1]] },
-  { name: 'アンモニア', atoms: ['N','H','H','H'], bonds: [[0,1,1],[0,2,1],[0,3,1]] },
-  { name: 'エタン', atoms: ['C','C','H','H','H','H','H','H'], bonds: [[0,1,1],[0,2,1],[0,3,1],[0,4,1],[1,5,1],[1,6,1],[1,7,1]] },
-  { name: 'エチレン', atoms: ['C','C','H','H','H','H'], bonds: [[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]] },
-  { name: 'アセチレン', atoms: ['C','C','H','H'], bonds: [[0,1,3],[0,2,1],[1,3,1]] },
-  { name: 'メタノール', atoms: ['C','O','H','H','H','H'], bonds: [[0,1,1],[0,2,1],[0,3,1],[0,4,1],[1,5,1]] },
-  { name: 'エタノール', atoms: ['C','C','O','H','H','H','H','H','H'], bonds: [[0,1,1],[1,2,1],[0,3,1],[0,4,1],[0,5,1],[1,6,1],[1,7,1],[2,8,1]] },
-  { name: 'ジメチルエーテル', atoms: ['C','O','C','H','H','H','H','H','H'], bonds: [[0,1,1],[1,2,1],[0,3,1],[0,4,1],[0,5,1],[2,6,1],[2,7,1],[2,8,1]] },
-  { name: 'ホルムアルデヒド', atoms: ['C','O','H','H'], bonds: [[0,1,2],[0,2,1],[0,3,1]] },
-  { name: 'アセトン', atoms: ['C','C','O','C','H','H','H','H','H','H'], bonds: [[0,1,1],[1,2,2],[1,3,1],[0,4,1],[0,5,1],[0,6,1],[3,7,1],[3,8,1],[3,9,1]] },
-];
-
+export const UNKNOWN_NAME = '未知 / 未登録の構造';
 let nextAtomId = 1;
+let knownMolecules = [];
+let knownFingerprints = new Map();
+let databaseState = { loaded: false, count: 0, error: null };
 
 export class Molecule {
   constructor() {
@@ -53,13 +39,10 @@ export class Molecule {
   }
 
   setBond(a, b, order) {
-    if (a === b) return;
+    if (a === b || ![1, 2, 3].includes(order)) return;
     const existing = this.bonds.find(bond => samePair(bond, a, b));
-    if (existing) {
-      existing.order = order;
-    } else {
-      this.bonds.push({ a, b, order });
-    }
+    if (existing) existing.order = order;
+    else this.bonds.push({ a, b, order });
   }
 
   removeBond(a, b) {
@@ -67,77 +50,244 @@ export class Molecule {
   }
 
   bondOrderForAtom(id) {
-    return this.bonds.reduce((sum, bond) => {
-      return sum + ((bond.a === id || bond.b === id) ? bond.order : 0);
-    }, 0);
+    return this.bonds.reduce((sum, bond) => sum + ((bond.a === id || bond.b === id) ? bond.order : 0), 0);
   }
 
   neighbors(id) {
     return this.bonds
       .filter(bond => bond.a === id || bond.b === id)
-      .map(bond => ({
-        atomId: bond.a === id ? bond.b : bond.a,
-        order: bond.order,
-      }));
+      .map(bond => ({ atomId: bond.a === id ? bond.b : bond.a, order: bond.order }));
   }
 
   formula() {
     if (!this.atoms.length) return '—';
     const counts = countElements(this.atoms);
-    const order = hillOrder(Object.keys(counts));
-    return order.map(symbol => `${symbol}${counts[symbol] > 1 ? counts[symbol] : ''}`).join('');
+    return hillOrder(Object.keys(counts)).map(symbol => `${symbol}${counts[symbol] > 1 ? counts[symbol] : ''}`).join('');
   }
 
   validation() {
     if (!this.atoms.length) return { level: 'ok', message: '原子を追加してください' };
-
     for (const atom of this.atoms) {
       const used = this.bondOrderForAtom(atom.id);
-      const allowed = ELEMENTS[atom.element].valences;
-      const max = Math.max(...allowed);
-      if (used > max) {
-        return {
-          level: 'error',
-          message: `${atom.element} の結合価 ${used} は、このMVPで扱う上限 ${max} を超えています。`,
-        };
+      const max = Math.max(...ELEMENTS[atom.element].valences);
+      if (used > max && !isCarbonMonoxideException(this, used)) {
+        return { level: 'error', message: `${atom.element} の結合価 ${used} は、このモデルで扱う上限 ${max} を超えています。` };
       }
     }
-
     const openAtoms = this.atoms.filter(atom => {
       const used = this.bondOrderForAtom(atom.id);
-      const allowed = ELEMENTS[atom.element].valences;
-      return !allowed.includes(used);
+      return !ELEMENTS[atom.element].valences.includes(used) && !isCarbonMonoxideException(this, used);
     });
-
-    if (openAtoms.length) {
-      return {
-        level: 'warn',
-        message: `未充足の原子が ${openAtoms.length} 個あります。制作途中として保持できます。`,
-      };
-    }
-
+    if (openAtoms.length) return { level: 'warn', message: `未充足の原子が ${openAtoms.length} 個あります。制作途中として保持できます。` };
     return { level: 'ok', message: '典型原子価の範囲で結合が満たされています。' };
+  }
+
+  recognizedMolecule() {
+    if (!this.atoms.length || !databaseState.loaded) return null;
+    const fingerprint = moleculeFingerprint(this.atoms, this.bonds);
+    const candidates = knownFingerprints.get(fingerprint) ?? [];
+    return candidates.find(candidate => graphsAreIsomorphic(this.atoms, this.bonds, candidate.atoms, candidate.bonds)) ?? null;
   }
 
   recognizedName() {
     if (!this.atoms.length) return '自由制作';
-    const fp = fingerprint(this.atoms, this.bonds);
-    const match = KNOWN_FINGERPRINTS.get(fp);
-    return match ?? '未知 / 未登録の構造';
+    return this.recognizedMolecule()?.nameJa ?? UNKNOWN_NAME;
   }
+}
+
+export async function loadMoleculeDatabase(url = new URL('../data/molecules.json', import.meta.url)) {
+  try {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    setMoleculeDatabase(await response.json());
+    return { ok: true, count: databaseState.count };
+  } catch (error) {
+    knownMolecules = [];
+    knownFingerprints = new Map();
+    databaseState = { loaded: false, count: 0, error: String(error?.message ?? error) };
+    console.warn('Molecule database unavailable; name recognition is disabled.', error);
+    return { ok: false, count: 0, error: databaseState.error };
+  }
+}
+
+export function setMoleculeDatabase(records) {
+  if (!Array.isArray(records)) throw new Error('Molecule database must be an array.');
+  const ids = new Set();
+  const validated = records.map(record => validateMoleculeRecord(record, ids));
+  const index = new Map();
+  for (const record of validated) {
+    const fingerprint = moleculeFingerprint(
+      record.atoms.map((element, index) => ({ id: index, element })),
+      record.bonds.map(([a, b, order]) => ({ a, b, order })),
+    );
+    if (!index.has(fingerprint)) index.set(fingerprint, []);
+    index.get(fingerprint).push(record);
+  }
+  knownMolecules = validated;
+  knownFingerprints = index;
+  databaseState = { loaded: true, count: validated.length, error: null };
+}
+
+export function moleculeDatabaseStatus() {
+  return { ...databaseState };
 }
 
 export function countElements(atoms) {
   return atoms.reduce((acc, atom) => {
-    acc[atom.element] = (acc[atom.element] ?? 0) + 1;
+    const symbol = typeof atom === 'string' ? atom : atom.element;
+    acc[symbol] = (acc[symbol] ?? 0) + 1;
     return acc;
   }, {});
 }
 
-function hillOrder(symbols) {
-  if (symbols.includes('C')) {
-    return ['C', ...(symbols.includes('H') ? ['H'] : []), ...symbols.filter(s => s !== 'C' && s !== 'H').sort()];
+export function moleculeFingerprint(atoms, bonds) {
+  const graph = normalizedGraph(atoms, bonds);
+  const ids = graph.atoms.map(atom => atom.id);
+  let labels = new Map(graph.atoms.map(atom => [atom.id, atom.element]));
+  const rounds = Math.min(16, Math.max(6, graph.atoms.length));
+  for (let round = 0; round < rounds; round++) {
+    const next = new Map();
+    for (const id of ids) {
+      const neighbors = graph.adjacency.get(id).map(neighbor => `${neighbor.order}:${labels.get(neighbor.id)}`).sort().join(',');
+      next.set(id, hashString(`${graph.byId.get(id).element}[${neighbors}]`));
+    }
+    labels = next;
   }
+  const atomPart = [...labels.values()].sort().join('|');
+  const edgePart = graph.bonds.map(bond => {
+    const ends = [labels.get(bond.a), labels.get(bond.b)].sort();
+    return `${ends[0]}-${bond.order}-${ends[1]}`;
+  }).sort().join('|');
+  return `${graph.atoms.length};${graph.bonds.length};${atomPart};${edgePart}`;
+}
+
+function validateMoleculeRecord(record, ids) {
+  if (!record || typeof record !== 'object') throw new Error('Invalid molecule record.');
+  for (const key of ['id', 'nameJa', 'nameEn']) if (typeof record[key] !== 'string' || !record[key]) throw new Error(`Missing ${key}.`);
+  if (ids.has(record.id)) throw new Error(`Duplicate molecule id: ${record.id}`);
+  ids.add(record.id);
+  if (!Array.isArray(record.atoms) || !record.atoms.length || record.atoms.some(element => !ELEMENTS[element])) throw new Error(`Invalid atoms in ${record.id}.`);
+  if (!Array.isArray(record.bonds)) throw new Error(`Invalid bonds in ${record.id}.`);
+  const pairs = new Set();
+  for (const bond of record.bonds) {
+    if (!Array.isArray(bond) || bond.length !== 3) throw new Error(`Invalid bond in ${record.id}.`);
+    const [a, b, order] = bond;
+    if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0 || a >= record.atoms.length || b >= record.atoms.length || a === b || ![1, 2, 3].includes(order)) throw new Error(`Invalid bond in ${record.id}.`);
+    const key = pairKey(a, b);
+    if (pairs.has(key)) throw new Error(`Duplicate bond in ${record.id}.`);
+    pairs.add(key);
+  }
+  return Object.freeze({ ...record, atoms: Object.freeze([...record.atoms]), bonds: Object.freeze(record.bonds.map(bond => Object.freeze([...bond]))) });
+}
+
+function normalizedGraph(atoms, bonds) {
+  const normalizedAtoms = atoms.map((atom, index) => ({ id: atom.id ?? index, element: atom.element ?? atom }));
+  const normalizedBonds = bonds.map(bond => Array.isArray(bond)
+    ? { a: normalizedAtoms[bond[0]].id, b: normalizedAtoms[bond[1]].id, order: bond[2] }
+    : { a: bond.a, b: bond.b, order: bond.order });
+  const byId = new Map(normalizedAtoms.map(atom => [atom.id, atom]));
+  const adjacency = adjacencyFor(normalizedAtoms, normalizedBonds);
+  const aromaticEdges = aromaticCarbonEdges(normalizedAtoms, normalizedBonds, adjacency, byId);
+  const aromaticBonds = normalizedBonds.map(bond => ({ ...bond, order: aromaticEdges.has(pairKey(bond.a, bond.b)) ? 'a' : bond.order }));
+  return { atoms: normalizedAtoms, bonds: aromaticBonds, byId, adjacency: adjacencyFor(normalizedAtoms, aromaticBonds) };
+}
+
+function adjacencyFor(atoms, bonds) {
+  const adjacency = new Map(atoms.map(atom => [atom.id, []]));
+  for (const bond of bonds) {
+    adjacency.get(bond.a)?.push({ id: bond.b, order: bond.order });
+    adjacency.get(bond.b)?.push({ id: bond.a, order: bond.order });
+  }
+  return adjacency;
+}
+
+function aromaticCarbonEdges(atoms, bonds, adjacency, byId) {
+  const result = new Set();
+  const found = new Set();
+  const bondOrder = new Map(bonds.map(bond => [pairKey(bond.a, bond.b), bond.order]));
+  for (const start of atoms.map(atom => atom.id)) {
+    const walk = (current, path, visited) => {
+      if (path.length > 6) return;
+      for (const next of adjacency.get(current) ?? []) {
+        if (next.id === start && path.length === 6) {
+          const key = canonicalCycleKey(path);
+          if (found.has(key) || !path.every(id => byId.get(id)?.element === 'C')) continue;
+          found.add(key);
+          const orders = path.map((id, index) => bondOrder.get(pairKey(id, path[(index + 1) % 6])));
+          if (orders.every(order => order === 1 || order === 2) && orders.every((order, index) => order !== orders[(index + 1) % 6])) {
+            path.forEach((id, index) => result.add(pairKey(id, path[(index + 1) % 6])));
+          }
+          continue;
+        }
+        if (visited.has(next.id) || path.length >= 6) continue;
+        visited.add(next.id);
+        path.push(next.id);
+        walk(next.id, path, visited);
+        path.pop();
+        visited.delete(next.id);
+      }
+    };
+    walk(start, [start], new Set([start]));
+  }
+  return result;
+}
+
+function graphsAreIsomorphic(actualAtoms, actualBonds, templateAtoms, templateBonds) {
+  if (actualAtoms.length !== templateAtoms.length || actualBonds.length !== templateBonds.length) return false;
+  const left = normalizedGraph(actualAtoms, actualBonds);
+  const right = normalizedGraph(
+    templateAtoms.map((element, index) => ({ id: index, element })),
+    templateBonds.map(([a, b, order]) => ({ a, b, order })),
+  );
+  const descriptor = (graph, id) => {
+    const atom = graph.byId.get(id);
+    const edges = graph.adjacency.get(id).map(neighbor => `${neighbor.order}`).sort().join(',');
+    return `${atom.element}|${graph.adjacency.get(id).length}|${edges}`;
+  };
+  const rightByDescriptor = new Map();
+  for (const atom of right.atoms) {
+    const key = descriptor(right, atom.id);
+    if (!rightByDescriptor.has(key)) rightByDescriptor.set(key, []);
+    rightByDescriptor.get(key).push(atom.id);
+  }
+  const candidates = new Map();
+  for (const atom of left.atoms) {
+    const matches = rightByDescriptor.get(descriptor(left, atom.id)) ?? [];
+    if (!matches.length) return false;
+    candidates.set(atom.id, matches);
+  }
+  const order = [...left.atoms].sort((a, b) => candidates.get(a.id).length - candidates.get(b.id).length || left.adjacency.get(b.id).length - left.adjacency.get(a.id).length);
+  const mapping = new Map();
+  const used = new Set();
+  const edge = (graph, a, b) => graph.adjacency.get(a).find(neighbor => neighbor.id === b)?.order ?? null;
+  const search = index => {
+    if (index === order.length) return true;
+    const leftId = order[index].id;
+    for (const rightId of candidates.get(leftId)) {
+      if (used.has(rightId)) continue;
+      let compatible = true;
+      for (const [mappedLeft, mappedRight] of mapping) {
+        if (edge(left, leftId, mappedLeft) !== edge(right, rightId, mappedRight)) { compatible = false; break; }
+      }
+      if (!compatible) continue;
+      mapping.set(leftId, rightId);
+      used.add(rightId);
+      if (search(index + 1)) return true;
+      mapping.delete(leftId);
+      used.delete(rightId);
+    }
+    return false;
+  };
+  return search(0);
+}
+
+function isCarbonMonoxideException(molecule, used) {
+  return used === 3 && molecule.atoms.length === 2 && molecule.bonds.length === 1 && molecule.bonds[0].order === 3
+    && molecule.atoms.map(atom => atom.element).sort().join('-') === 'C-O';
+}
+
+function hillOrder(symbols) {
+  if (symbols.includes('C')) return ['C', ...(symbols.includes('H') ? ['H'] : []), ...symbols.filter(symbol => symbol !== 'C' && symbol !== 'H').sort()];
   return [...symbols].sort();
 }
 
@@ -145,42 +295,23 @@ function samePair(bond, a, b) {
   return (bond.a === a && bond.b === b) || (bond.a === b && bond.b === a);
 }
 
-function fingerprint(atoms, bonds) {
-  const ids = atoms.map(atom => atom.id);
-  const byId = new Map(atoms.map(atom => [atom.id, atom]));
-  const adjacency = new Map(ids.map(id => [id, []]));
-  bonds.forEach(bond => {
-    adjacency.get(bond.a)?.push({ id: bond.b, order: bond.order });
-    adjacency.get(bond.b)?.push({ id: bond.a, order: bond.order });
-  });
+function pairKey(a, b) {
+  return String(a) < String(b) ? `${a}:${b}` : `${b}:${a}`;
+}
 
-  let labels = new Map(atoms.map(atom => [atom.id, atom.element]));
-  for (let round = 0; round < 5; round++) {
-    const next = new Map();
-    for (const id of ids) {
-      const neighborLabels = adjacency.get(id)
-        .map(n => `${n.order}:${labels.get(n.id)}`)
-        .sort()
-        .join(',');
-      next.set(id, `${byId.get(id).element}[${neighborLabels}]`);
-    }
-    labels = next;
+function canonicalCycleKey(cycle) {
+  const variants = [];
+  for (const sequence of [cycle, [...cycle].reverse()]) {
+    for (let index = 0; index < sequence.length; index++) variants.push([...sequence.slice(index), ...sequence.slice(0, index)].join('-'));
   }
-
-  const atomPart = [...labels.values()].sort().join('|');
-  const edgePart = bonds.map(bond => {
-    const left = labels.get(bond.a);
-    const right = labels.get(bond.b);
-    return [left, right].sort().join(`-${bond.order}-`);
-  }).sort().join('|');
-
-  return `${atoms.length};${bonds.length};${atomPart};${edgePart}`;
+  return variants.sort()[0];
 }
 
-function templateFingerprint(template) {
-  const atoms = template.atoms.map((element, index) => ({ id: index + 1, element }));
-  const bonds = template.bonds.map(([a, b, order]) => ({ a: a + 1, b: b + 1, order }));
-  return fingerprint(atoms, bonds);
+function hashString(value) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
 }
-
-const KNOWN_FINGERPRINTS = new Map(KNOWN_MOLECULES.map(molecule => [templateFingerprint(molecule), molecule.name]));
