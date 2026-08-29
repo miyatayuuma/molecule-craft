@@ -17,22 +17,27 @@
     <section class="workspace">
       <aside class="panel tool-panel" aria-label="元素と操作">
         <div><h2>元素</h2><div id="element-palette" class="element-palette"></div></div>
-        <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">原子はドラッグで自由に移動。光る1個の点は結合に使える不対電子、2個並んだ点は孤立電子対です。不対電子を別の原子の不対電子へドラッグすると共有電子対ができて結合します。同じ2原子間でもう一組つなぐと二重結合、さらに一組で三重結合。原子をダブルタップすると電子へ寄れます。空間ドラッグで回転、ピンチでズーム。</p>
+        <div class="action-grid"><button id="delete-selected" class="secondary" type="button">単独原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
+        <p class="hint">原子を掴んで別の原子へ近づけると、結合可能な不対電子が光って自動吸着します。結合後は分子全体が一体で動き、適切な結合長・配位へ収束します。共有電子対をダブルタップすると結合を1段ずつほどけます。原子をダブルタップすると精密表示になり、電子を直接ドラッグすることもできます。</p>
       </aside>
 
       <section class="viewer-wrap">
         <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
         <div id="selection-chip" class="selection-chip">元素を押して原子を置く</div>
+        <div id="discovery" class="discovery" aria-live="assertive">
+          <span class="discovery-kicker">MOLECULE DISCOVERED</span>
+          <strong id="discovery-formula">H₂O</strong>
+          <span id="discovery-name">水</span>
+        </div>
       </section>
 
       <aside class="panel info-panel" aria-label="分子情報">
         <div><h2>状態</h2><div id="status" class="status ok">原子を追加してください</div></div>
-        <div><h2>選択中</h2><dl class="details"><div><dt>元素</dt><dd id="selected-element">—</dd></div><div><dt>結合次数合計</dt><dd id="selected-valence">—</dd></div><div><dt>価電子の見え方</dt><dd id="selected-limit">—</dd></div></dl></div>
+        <div><h2>選択中</h2><dl class="details"><div><dt>元素</dt><dd id="selected-element">—</dd></div><div><dt>結合次数合計</dt><dd id="selected-valence">—</dd></div><div><dt>結合可能</dt><dd id="selected-limit">—</dd></div></dl></div>
         <div><h2>構成</h2><div id="atom-counts" class="atom-counts">—</div></div>
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v3.js"></script>
+  <script type="module" src="./src/app-v4.js"></script>
 </body>
 </html>
