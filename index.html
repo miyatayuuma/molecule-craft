@@ -18,7 +18,7 @@
       <aside class="panel tool-panel" aria-label="元素と操作">
         <div><h2>元素</h2><div id="element-palette" class="element-palette"></div></div>
         <div class="action-grid"><button id="delete-selected" class="secondary" type="button">単独原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">原子を近づけると、価電子数・典型原子価・現在の結合状態から結合次数を自動で安定化します。O₂は二重、N₂は三重、CO₂は直線形へ。結合後は分子全体が一体で動きます。結合を連続タップすると結合エネルギーに応じた回数で1段ずつほどけます。原子をダブルタップすると電子を直接操作できます。</p>
+        <p class="hint">単結合は原子を引くと結合軸まわりに回転し、末端同士を近づければ環化できます。二重・三重結合と環内結合は回転を拘束します。2本指ではズーム＋視点回転。視点回転は画面中央の原子・結合を自動で中心にします。しばらく触らないと回転可能な単結合がゆっくり熱運動します。</p>
       </aside>
 
       <section class="viewer-wrap">
@@ -38,6 +38,6 @@
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v5.js"></script>
+  <script type="module" src="./src/app-v6.js"></script>
 </body>
 </html>
