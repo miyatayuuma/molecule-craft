@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Molecule Craft</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">CHEMISTRY SANDBOX</p>
+        <h1>Molecule Craft</h1>
+      </div>
+      <div class="molecule-summary" aria-live="polite">
+        <strong id="molecule-name">自由制作</strong>
+        <span id="formula">—</span>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="panel tool-panel" aria-label="元素と操作">
+        <div>
+          <h2>元素</h2>
+          <div id="element-palette" class="element-palette"></div>
+        </div>
+
+        <div>
+          <h2>結合</h2>
+          <div class="segmented" role="group" aria-label="結合次数">
+            <button class="bond-order active" data-order="1" type="button">単</button>
+            <button class="bond-order" data-order="2" type="button">二重</button>
+            <button class="bond-order" data-order="3" type="button">三重</button>
+          </div>
+        </div>
+
+        <div class="action-grid">
+          <button id="delete-selected" class="secondary" type="button">選択を削除</button>
+          <button id="clear-all" class="danger" type="button">すべて消す</button>
+        </div>
+
+        <p class="hint">元素を押すと原子を追加。原子を2つ順に選ぶと結合します。空間をドラッグで回転、ホイール/ピンチでズーム。</p>
+      </aside>
+
+      <section class="viewer-wrap">
+        <div id="viewer" class="viewer" aria-label="3D分子モデル"></div>
+        <div id="selection-chip" class="selection-chip">原子を選択してください</div>
+      </section>
+
+      <aside class="panel info-panel" aria-label="分子情報">
+        <div>
+          <h2>状態</h2>
+          <div id="status" class="status ok">原子を追加してください</div>
+        </div>
+
+        <div>
+          <h2>選択中</h2>
+          <dl class="details">
+            <div><dt>元素</dt><dd id="selected-element">—</dd></div>
+            <div><dt>結合価</dt><dd id="selected-valence">—</dd></div>
+            <div><dt>目安</dt><dd id="selected-limit">—</dd></div>
+          </dl>
+        </div>
+
+        <div>
+          <h2>構成</h2>
+          <div id="atom-counts" class="atom-counts">—</div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
