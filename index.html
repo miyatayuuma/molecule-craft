@@ -30,7 +30,7 @@
           </div>
         </div>
         <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">最初の元素を中心原子として置き、以後は結合先の原子を選んで1原子ずつ追加します。浮遊原子は作りません。不対電子を結合相手へドラッグすると結合次数を上げられます。炭素は単結合中心でsp³相当、二重結合中心でsp²平面、三重結合中心でsp直線へ整います。原子ドラッグは立体構造調整、単結合のダブルタップは回転軸固定、結合線の長押しは結合解除です。2本指は作業中心移動・ズーム・視点回転です。</p>
+        <p class="hint">背景を1本指でドラッグするとカメラが回転します。原子ドラッグは立体構造調整です。新しい原子は選択原子へ単結合で追加されます。二重・三重結合は結合線を上へスワイプ、または不対電子を既存の結合相手へドラッグして作れます。結合線の長押しで結合次数を下げ、最後は切断します。不対電子を同じ分子内の別原子へドラッグすると環を閉じられます。6員炭素環に交互3本の二重結合ができると芳香族環として平面化し、C6H6完成時はベンゼンとして認識します。単結合のダブルタップは回転軸固定です。2本指は作業中心移動・ズーム・視点回転です。</p>
       </aside>
 
       <section class="viewer-wrap">
@@ -50,6 +50,6 @@
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v9.js"></script>
+  <script type="module" src="./src/app-v10.js"></script>
 </body>
 </html>
