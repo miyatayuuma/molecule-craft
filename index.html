@@ -18,7 +18,7 @@
       <aside class="panel tool-panel" aria-label="元素と操作">
         <div><h2>元素</h2><div id="element-palette" class="element-palette"></div></div>
         <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">最初の元素が中心原子になります。以後は結合先の原子を選んで元素ボタンを押すと、空いている位置へ1原子ずつ追加されます。結合できない状態では浮遊原子は作りません。原子を1本指でドラッグすると、その原子側の枝を振って結合角や立体構造を調整でき、指を離すと自然な角度へ軽く整います。回転可能な単結合はダブルタップで回転軸として固定し、片側の原子をドラッグすると軸回転します。結合線の長押しで結合を徐々にほどけます。2本指は作業中心移動・ズーム・視点回転です。</p>
+        <p class="hint">最初の元素が中心原子になります。以後は結合先の原子を選び、元素ボタンから1原子ずつ追加します。浮遊原子は作りません。炭素の立体構造は結合次数に応じて、単結合中心はsp³相当、二重結合中心はsp²平面、三重結合中心はsp直線へ整います。原子ドラッグは分子全体を移動せず、その原子側の枝の向きを調整します。回転可能な単結合はダブルタップで回転軸に固定、結合線は長押しで徐々にほどけます。2本指は作業中心移動・ズーム・視点回転です。</p>
       </aside>
 
       <section class="viewer-wrap">
@@ -38,6 +38,6 @@
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v8-7.js"></script>
+  <script type="module" src="./src/app-v8-8.js"></script>
 </body>
 </html>
