@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
 import { ELEMENTS, Molecule, countElements, loadMoleculeDatabase, UNKNOWN_NAME } from './chemistry.js';
 import { ATOMIC_MODEL, preferredValence, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, idealBondAngleDeg } from './bonding-model.js';
-import { createStructureSolver } from './structure-relaxation.js';
+import { createStructureSolver } from './structure-relaxation.js?v=15';
 
 const molecule=new Molecule();
 const placements=new Map();

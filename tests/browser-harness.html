@@ -9,7 +9,7 @@
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
     import { ELEMENTS, Molecule } from '../src/chemistry.js';
     import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from '../src/bonding-model.js';
-    import { createStructureSolver } from '../src/structure-relaxation.js';
+    import { createStructureSolver } from '../src/structure-relaxation.js?v=15';
 
     const results = [];
     const near = (actual, expected, tolerance) => Math.abs(actual - expected) <= tolerance;
