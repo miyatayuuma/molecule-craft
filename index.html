@@ -18,12 +18,12 @@
       <aside class="panel tool-panel" aria-label="元素と操作">
         <div><h2>元素</h2><div id="element-palette" class="element-palette"></div></div>
         <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">不対電子は「次に原子が付きやすい位置」に表示されます。原子を選択して元素ボタンを押すと、1タップにつき1原子だけその位置へ追加され、既存の結合次数は勝手に変わりません。結合を外したいときは結合線を長押しすると徐々にほどけます。回転可能な単結合はダブルタップで回転軸として固定し、その状態で片側の原子をドラッグすると回転します。原子ドラッグは通常は分子全体の移動です。2本指は平行スワイプで作業中心移動、ピンチでズーム、ひねりで視点回転します。</p>
+        <p class="hint">最初の元素が中心原子になります。以後は結合先の原子を選んで元素ボタンを押すと、空いている位置へ1原子ずつ追加されます。結合できない状態では浮遊原子は作りません。原子を1本指でドラッグすると、その原子側の枝を振って結合角や立体構造を調整でき、指を離すと自然な角度へ軽く整います。回転可能な単結合はダブルタップで回転軸として固定し、片側の原子をドラッグすると軸回転します。結合線の長押しで結合を徐々にほどけます。2本指は作業中心移動・ズーム・視点回転です。</p>
       </aside>
 
       <section class="viewer-wrap">
         <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
-        <div id="selection-chip" class="selection-chip">元素を押して原子を置く</div>
+        <div id="selection-chip" class="selection-chip">元素を押して中心原子を置く</div>
         <div id="discovery" class="discovery" aria-live="assertive">
           <span class="discovery-kicker">MOLECULE DISCOVERED</span>
           <strong id="discovery-formula">H₂O</strong>
@@ -38,6 +38,6 @@
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v8-6.js"></script>
+  <script type="module" src="./src/app-v8-7.js"></script>
 </body>
 </html>
