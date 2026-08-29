@@ -17,8 +17,8 @@
     <section class="workspace">
       <aside class="panel tool-panel" aria-label="元素と操作">
         <div><h2>元素</h2><div id="element-palette" class="element-palette"></div></div>
-        <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を崩す</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">原子をタップすると選択状態になります。選択原子に結合余地がある間は、元素ボタン1タップにつき1原子だけ追加され、その場ですぐ結合します。選択原子が満タンになると、その後の元素追加は通常の浮遊原子として作業位置付近に出現します。原子ドラッグは分子全体の移動、回転可能な単結合は結合線をドラッグしてねじります。2本指は平行スワイプで作業中心移動、ピンチでズーム、ひねりで視点回転。原子・結合の連打破壊と中断時の回復も有効です。</p>
+        <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
+        <p class="hint">原子をタップすると選択状態になります。選択原子に結合余地がある間は、元素ボタン1タップにつき1原子だけ追加され、その場ですぐ結合します。選択原子が満タンになると、その後の元素追加は通常の浮遊原子として作業位置付近に出現します。原子ドラッグは分子全体の移動、回転可能な単結合は結合線をドラッグしてねじります。2本指は平行スワイプで作業中心移動、ピンチでズーム、ひねりで視点回転。原子は削除ボタンで消し、結合だけ連続タップで解除できます。結合破壊は途中で止めると回復します。</p>
       </aside>
 
       <section class="viewer-wrap">
@@ -38,6 +38,6 @@
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v8-1.js"></script>
+  <script type="module" src="./src/app-v8-2.js"></script>
 </body>
 </html>
