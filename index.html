@@ -18,12 +18,12 @@
       <aside class="panel tool-panel" aria-label="元素と操作">
         <div><h2>元素</h2><div id="element-palette" class="element-palette"></div></div>
         <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を崩す</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">2本指で短くタップした場所を回転中心に設定できます。新しい原子はその作業位置の近くに出現します。原子や結合を連続タップすると徐々に崩れ、途中で止めると破壊状態は回復します。原子はヒビと粒子が増え、限界で霧散。結合は細く裂け、共有電子対が両側へ戻って切断されます。単結合のねじれ・環化・放置時の熱運動も引き続き有効です。</p>
+        <p class="hint">原子をタップすると選択状態になり、そのまま元素ボタンを押すと空いている結合位置へ追加します。H・F・Clのような1価元素は可能数までまとめて付きます。原子ドラッグは常に分子全体の移動、回転可能な単結合は結合線そのものをドラッグしてねじります。2本指は平行スワイプで作業中心移動、ピンチでズーム、ひねりで視点回転。二重・三重結合は複数線、回転可能な単結合には水色リングを表示します。原子・結合の連打破壊と中断時の回復も有効です。</p>
       </aside>
 
       <section class="viewer-wrap">
         <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
-        <div id="selection-chip" class="selection-chip">元素を押して現在の作業位置へ原子を置く</div>
+        <div id="selection-chip" class="selection-chip">元素を押して原子を置く</div>
         <div id="discovery" class="discovery" aria-live="assertive">
           <span class="discovery-kicker">MOLECULE DISCOVERED</span>
           <strong id="discovery-formula">H₂O</strong>
@@ -38,6 +38,6 @@
       </aside>
     </section>
   </main>
-  <script type="module" src="./src/app-v7-final.js"></script>
+  <script type="module" src="./src/app-v8.js"></script>
 </body>
 </html>
