@@ -10,68 +10,29 @@
 <body>
   <main class="app-shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">CHEMISTRY SANDBOX</p>
-        <h1>Molecule Craft</h1>
-      </div>
-      <div class="molecule-summary" aria-live="polite">
-        <strong id="molecule-name">自由制作</strong>
-        <span id="formula">—</span>
-      </div>
+      <div><p class="eyebrow">CHEMISTRY SANDBOX</p><h1>Molecule Craft</h1></div>
+      <div class="molecule-summary" aria-live="polite"><strong id="molecule-name">自由制作</strong><span id="formula">—</span></div>
     </header>
 
     <section class="workspace">
       <aside class="panel tool-panel" aria-label="元素と操作">
-        <div>
-          <h2>元素</h2>
-          <div id="element-palette" class="element-palette"></div>
-        </div>
-
-        <div>
-          <h2>結合</h2>
-          <div class="segmented" role="group" aria-label="結合次数">
-            <button class="bond-order active" data-order="1" type="button">単</button>
-            <button class="bond-order" data-order="2" type="button">二重</button>
-            <button class="bond-order" data-order="3" type="button">三重</button>
-          </div>
-        </div>
-
-        <div class="action-grid">
-          <button id="delete-selected" class="secondary" type="button">選択を削除</button>
-          <button id="clear-all" class="danger" type="button">すべて消す</button>
-        </div>
-
-        <p class="hint">最初に元素を置き、原子から伸びる「手」をタップして結合位置を選びます。その後、付けたい元素を押してください。小さな2個の点は孤立電子対です。ドラッグで回転、ピンチでズーム。</p>
+        <div><h2>元素</h2><div id="element-palette" class="element-palette"></div></div>
+        <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
+        <p class="hint">原子はドラッグで自由に移動。光る1個の点は結合に使える不対電子、2個並んだ点は孤立電子対です。不対電子を別の原子の不対電子へドラッグすると共有電子対ができて結合します。同じ2原子間でもう一組つなぐと二重結合、さらに一組で三重結合。原子をダブルタップすると電子へ寄れます。空間ドラッグで回転、ピンチでズーム。</p>
       </aside>
 
       <section class="viewer-wrap">
-        <div id="viewer" class="viewer" aria-label="3D分子モデル"></div>
-        <div id="selection-chip" class="selection-chip">元素を選んで最初の原子を置く</div>
+        <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
+        <div id="selection-chip" class="selection-chip">元素を押して原子を置く</div>
       </section>
 
       <aside class="panel info-panel" aria-label="分子情報">
-        <div>
-          <h2>状態</h2>
-          <div id="status" class="status ok">原子を追加してください</div>
-        </div>
-
-        <div>
-          <h2>選択中</h2>
-          <dl class="details">
-            <div><dt>元素</dt><dd id="selected-element">—</dd></div>
-            <div><dt>使用結合価</dt><dd id="selected-valence">—</dd></div>
-            <div><dt>電子配置</dt><dd id="selected-limit">—</dd></div>
-          </dl>
-        </div>
-
-        <div>
-          <h2>構成</h2>
-          <div id="atom-counts" class="atom-counts">—</div>
-        </div>
+        <div><h2>状態</h2><div id="status" class="status ok">原子を追加してください</div></div>
+        <div><h2>選択中</h2><dl class="details"><div><dt>元素</dt><dd id="selected-element">—</dd></div><div><dt>結合次数合計</dt><dd id="selected-valence">—</dd></div><div><dt>価電子の見え方</dt><dd id="selected-limit">—</dd></div></dl></div>
+        <div><h2>構成</h2><div id="atom-counts" class="atom-counts">—</div></div>
       </aside>
     </section>
   </main>
-
-  <script type="module" src="./src/app-v2.js"></script>
+  <script type="module" src="./src/app-v3.js"></script>
 </body>
 </html>
