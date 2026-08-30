@@ -17,10 +17,12 @@ export function pickAtomAtPointer(clientX, clientY, candidates, radiusPx) {
   return ranked[0] ?? null;
 }
 
-// A filled atom keeps its generous target even beside reactive fragments.
-// Atom centers always win; outside them, the nearest actual target wins rather
-// than a distant electron's enlarged assist zone stealing a filled atom.
+// A direct hit on a visible electron is conceptually in front of the atom and
+// must remain draggable even when its projected position overlaps the atom
+// center (notably for H). The wider assist zone is still subordinate to a true
+// atom-center hit so a distant assisted electron does not steal unrelated atoms.
 export function chooseAtomOrElectron(clientX, clientY, atoms, electronPick) {
+  if (electronPick && electronPick.assisted !== true) return { kind: 'electron', ...electronPick };
   const core = pickAtomAtPointer(clientX, clientY, atoms, POINTER_ARBITRATION.atomCoreRadiusPx);
   if (core) return { kind: 'atom', ...core };
   const atom = pickAtomAtPointer(clientX, clientY, atoms.map(item => ({ ...item,
