@@ -113,7 +113,12 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     const project=point=>{const p=point.clone().project(camera);return {x:(p.x+1)*width/2,y:(1-p.y)*height/2};};
     const commands=[];
     for(const bond of layout.bonds){
-      const a=rotated[bond.a].world,b=rotated[bond.b].world;if(a.z>=camera.position.z||b.z>=camera.position.z)continue;
+      const start=rotated[bond.a],end=rotated[bond.b],axis=end.world.clone().sub(start.world).normalize();
+      // Stop sticks at sphere surfaces; drawing center-to-center would paint
+      // spokes over the foreground atom in the software depth-sorted renderer.
+      const a=start.world.clone().addScaledVector(axis,ELEMENTS[start.element].radius*.72);
+      const b=end.world.clone().addScaledVector(axis,-ELEMENTS[end.element].radius*.72);
+      if(a.z>=camera.position.z||b.z>=camera.position.z)continue;
       commands.push({z:(a.z+b.z)/2,draw:()=>{
         const p=project(a),q=project(b),length=Math.max(1,Math.hypot(q.x-p.x,q.y-p.y)),dx=-(q.y-p.y)/length,dy=(q.x-p.x)/length;
         const scale=height/(2*Math.tan(19*Math.PI/180)*(camera.position.z-(a.z+b.z)/2));
@@ -123,7 +128,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     }
     for(const atom of rotated){
       const depth=camera.position.z-atom.world.z;if(depth<=.01)continue;
-      commands.push({z:atom.world.z,draw:()=>{
+      commands.push({z:atom.world.z+ELEMENTS[atom.element].radius*.72,draw:()=>{
         const p=project(atom.world),r=ELEMENTS[atom.element].radius*.72*height/(2*Math.tan(19*Math.PI/180)*depth);
         const gradient=context.createRadialGradient(p.x-r*.3,p.y-r*.35,r*.07,p.x,p.y,r);
         gradient.addColorStop(0,'#ffffff');gradient.addColorStop(.25,ELEMENTS[atom.element].color);gradient.addColorStop(1,'#182337');
