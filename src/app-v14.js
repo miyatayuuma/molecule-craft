@@ -8,7 +8,9 @@ import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
 import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=20';
 import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
-import { expandCraftStructure, seedCraftCoordinates } from './craft-structures.js?v=21';
+import { expandCraftStructure } from './craft-structures.js?v=21';
+import { createPreviewModel } from './preview-model.js?v=26';
+import { planSpawn } from './spawn-layout.js?v=28';
 import { createElementPalette } from './element-progression.js?v=25';
 import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=26';
 
@@ -24,7 +26,6 @@ const atomVisuals=new Map(),bondVisuals=new Map();
 let electronVisuals=[],aromaticVisuals=[];
 const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
 const ELECTRON_SNAP_PX=58;
-const SPAWN_SAFE_MARGIN_PX=64;
 let structures=[],mainStructure=null,structureByAtom=new Map();
 const completionTracker=createCompletionTracker(),debrisTracker=createDebrisTracker();
 const workspaceView=createWorkspaceView();
@@ -118,28 +119,41 @@ function bindUI(){
 }
 
 function addElement(symbol){
-  if(!ELEMENTS[symbol]||!elementPalette.canUse(symbol)||interactionLocked())return;
+  if(!renderer||!ELEMENTS[symbol]||!elementPalette.canUse(symbol)||interactionLocked()||dragState||activePointers.size)return;
+  const plan=planWorkspaceSpawn([{x:0,y:0,z:0,radius:spawnRadius(symbol,0)}]);
+  if(!plan){pulse('追加できる空きがありません · 構造を移動・整理してください');return;}
   const atom=molecule.addAtom(symbol);
   protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
-  const position=molecule.atoms.length===1?cameraTarget.clone():spawnPosition();
-  placements.set(atom.id,{position});
-  selectAtom(atom.id);topologyChanged();ensureSpawnVisible([position]);refresh();
+  placements.set(atom.id,{position:plan.origin});
+  selectAtom(atom.id);topologyChanged();beginSpawnZoom(plan);refresh();
   pulse(molecule.atoms.length===1?`${symbol} を中心原子として追加`:`${symbol} を未結合原子として追加 · 不対電子をドラッグして結合`);
 }
 
 function addCraftPart(id){
   const template=collectionGame?.templateFor(id);
-  if(!renderer||!template||interactionLocked()||dragState)return false;
+  if(!renderer||!template||interactionLocked()||dragState||activePointers.size)return false;
   // Place an unconnected component beside the selection. No hidden auto-bond,
   // hydrogen completion, or prebuilt-molecule award: the final gesture is yours.
-  const origin=molecule.atoms.length?spawnPosition():cameraTarget.clone(),coordinates=seedCraftCoordinates(template);
-  const expanded=expandCraftStructure(molecule,template),right=cameraRight(),up=cameraUp(),depth=cameraDirection();
+  // Solve this small, private part before measuring its footprint. Relaxation
+  // must not reveal a larger part and trigger a delayed camera correction.
+  // The field has no virtual port neighbours, unlike the book preview.
+  const right=cameraRight(),up=cameraUp(),depth=cameraDirection();
+  const model=createPreviewModel(THREE,{...template,attachments:undefined});
+  for(let i=0;i<220;i++)model.step();
+  const coordinates=model.snapshot().atoms.map(atom=>new THREE.Vector3().addScaledVector(right,atom.point.x).addScaledVector(up,atom.point.y).addScaledVector(depth,atom.point.z)),orders=template.atoms.map(()=>0);
+  for(const [a,b,order] of template.bonds){orders[a]+=order;orders[b]+=order;}
+  const parts=coordinates.map((p,i)=>({x:p.dot(right),y:p.dot(up),z:-p.dot(depth),radius:spawnRadius(template.atoms[i],orders[i])})),plan=planWorkspaceSpawn(parts);
+  if(!plan){pulse('部品全体を置ける空きがありません · 構造を移動・整理してください');return false;}
+  const origin=plan.origin;
+  const expanded=expandCraftStructure(molecule,template);
   for(const [index,atomId]of expanded.ids.entries()){
-    const p=coordinates[index];placements.set(atomId,{position:origin.clone().addScaledVector(right,p.x).addScaledVector(up,p.y).addScaledVector(depth,p.z)});protectedUntil.set(atomId,performance.now()+DEBRIS_POLICY.protectionMs);
+    placements.set(atomId,{position:origin.clone().add(coordinates[index])});protectedUntil.set(atomId,performance.now()+DEBRIS_POLICY.protectionMs);
   }
-  ensureSpawnVisible(expanded.ids.map(pos).filter(Boolean));
+  beginSpawnZoom(plan);
   activeTorsionKey=null;selectAtom(expanded.attachments[0].atomId);topologyChanged();
-  startRelaxation(`${template.nameJa}を配置 · 安定化後に光る接続点を電子ドラッグでつなぐ`);return true;
+  // Coordinates are already solved. Running the solver a second time here
+  // would drift the placed part after its footprint has been fitted.
+  refresh();pulse(`${template.nameJa}を配置 · 光る電子をドラッグしてつなぐ`);return true;
 }
 
 function onPointerDown(e){
@@ -644,27 +658,6 @@ function updateTwoFinger(){
 }
 function panCamera(dx,dy){const dist=camera.position.distanceTo(cameraTarget),scale=dist*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*2/Math.max(1,viewer.clientHeight),delta=cameraRight().multiplyScalar(-dx*scale).add(cameraUp().multiplyScalar(dy*scale));camera.position.add(delta);cameraTarget.add(delta);}
 function zoomCamera(ratio){const off=camera.position.clone().sub(cameraTarget),next=THREE.MathUtils.clamp(off.length()*ratio,1.2,36);camera.position.copy(cameraTarget).add(off.normalize().multiplyScalar(next));}
-function ensureSpawnVisible(points,marginPx=SPAWN_SAFE_MARGIN_PX){
-  if(!renderer||!points?.length)return false;
-  const rect=renderer.domElement.getBoundingClientRect();if(rect.width<1||rect.height<1)return false;
-  const safeMargin=Math.max(24,Math.min(marginPx,rect.width*.22,rect.height*.22)),direction=camera.position.clone().sub(cameraTarget),initialDistance=direction.length();
-  if(initialDistance<1e-6)return false;direction.normalize();
-  const fits=()=>{
-    camera.lookAt(cameraTarget);camera.updateMatrixWorld();camera.updateProjectionMatrix();
-    return points.every(point=>{
-      const screen=worldToScreen(point);
-      return screen.depth>=-1&&screen.depth<=1&&screen.x>=rect.left+safeMargin&&screen.x<=rect.right-safeMargin&&screen.y>=rect.top+safeMargin&&screen.y<=rect.bottom-safeMargin;
-    });
-  };
-  if(fits())return false;
-  let distance=initialDistance;
-  for(let attempt=0;attempt<18&&distance<36;attempt++){
-    distance=Math.min(36,distance*1.14);camera.position.copy(cameraTarget).addScaledVector(direction,distance);
-    if(fits())break;
-  }
-  camera.far=Math.max(100,distance+20);camera.updateProjectionMatrix();
-  return distance>initialDistance+1e-3;
-}
 
 function pointerWorldOnPlane(e,planePoint,planeNormal){return screenPointToWorldOnPlane(e.clientX,e.clientY,planePoint,planeNormal);}
 function screenPointToWorldOnPlane(clientX,clientY,planePoint,planeNormal){
@@ -687,12 +680,25 @@ function capture(e){try{renderer.domElement.setPointerCapture(e.pointerId)}catch
 function selectAtom(id){workspaceView.select(id);if(selectedAtomId!==id){if(selectedAtomId!=null)protectedUntil.set(selectedAtomId,performance.now()+DEBRIS_POLICY.protectionMs);selectedAtomId=id;selectionChangedAt=performance.now();}}
 function interactionLocked(){return!!relaxation||!!bondTransition||!!frameTransition||collectionOpen;}
 function topologyChanged(){solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
-function spawnPosition(){
-  const center=pos(selectedAtomId)?.clone()??moleculeCenter(),right=cameraRight(),up=cameraUp(),seed=molecule.atoms.length;
-  for(let attempt=0;attempt<10;attempt++){
-    const angle=(seed+attempt)*2.399963,range=1.65+.24*Math.floor(attempt/3),candidate=center.clone().addScaledVector(right,Math.cos(angle)*range).addScaledVector(up,Math.sin(angle)*range);
-    if(molecule.atoms.every(atom=>!pos(atom.id)||candidate.distanceTo(pos(atom.id))>.95))return candidate;
-  }return center.clone().addScaledVector(right,2.2);
+function spawnRadius(element,order){
+  const r=ELEMENTS[element].radius;
+  return Math.max(r*1.04,(unpairedElectronCount(element,order)||lonePairCount(element,order))?valenceShellRadius(element,r*1.02)+.08:0)+.06;
+}
+function planWorkspaceSpawn(parts){
+  const rect=renderer.domElement.getBoundingClientRect(),right=cameraRight(),up=cameraUp(),back=cameraDirection().negate();
+  const local=point=>{const p=point.clone().sub(cameraTarget);return{x:p.dot(right),y:p.dot(up),z:p.dot(back)};};
+  const obstacles=molecule.atoms.filter(atom=>pos(atom.id)).map(atom=>({...local(pos(atom.id)),radius:spawnRadius(atom.element,molecule.bondOrderForAtom(atom.id))}));
+  const bonds=molecule.bonds.map(bond=>({a:{...local(pos(bond.a)),radius:.07},b:{...local(pos(bond.b)),radius:.07}}));
+  const actions=document.querySelector('.viewer-actions').getBoundingClientRect(),chip=selectionChip.getBoundingClientRect();
+  const insets={left:18,right:18,top:Math.max(88,actions.bottom-rect.top+12),bottom:Math.max(72,rect.bottom-chip.top+12)};
+  const plan=planSpawn({parts,obstacles,bonds,width:rect.width,height:rect.height,insets,distance:camera.position.distanceTo(cameraTarget),fov:camera.fov,anchor:local(pos(selectedAtomId)??cameraTarget)});
+  return plan?{...plan,origin:cameraTarget.clone().addScaledVector(right,plan.x).addScaledVector(up,plan.y)}:null;
+}
+function beginSpawnZoom(plan){
+  if(!plan.zoomed)return;
+  const target=cameraTarget.clone(),direction=camera.position.clone().sub(target).normalize(),position=target.clone().addScaledVector(direction,plan.distance);
+  frameTransition={kind:'spawn',startedAt:performance.now(),duration:reduceMotion?1:420,fromPosition:camera.position.clone(),fromTarget:target.clone(),position,target};
+  camera.far=Math.max(camera.far,plan.distance+20);camera.updateProjectionMatrix();
 }
 function disposeObject(object){object.traverse?.(item=>{item.geometry?.dispose?.();if(Array.isArray(item.material))item.material.forEach(material=>material.dispose?.());else item.material?.dispose?.();});}
 function disposeGroup(group){for(const object of[...group.children]){group.remove(object);disposeObject(object);}}

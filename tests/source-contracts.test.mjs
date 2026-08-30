@@ -12,7 +12,7 @@ const [index, app, chemistry, solver, electronInteraction, gestureArbitration, d
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=26"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=28"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=24'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=24'/);
 assert.match(app, /from '\.\/structure-edit\.js\?v=24'/);
@@ -28,7 +28,7 @@ assert.doesNotMatch(focusHandler,/requestStructureFrame|camera\./,'Focus change 
 assert.match(app, /workspaceView.frame\(focusedStructure\(\),fit.center\)/);
 assert.match(app, /solver.rotateReferenceFrames\(q,rotation.ids\);rotateStructure\(rotation,pos,q\)/);
 assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);
-assert.match(app, /from '\.\/gesture-arbitration\.js\?v=19'/);
+assert.match(app, /from '\.\/gesture-arbitration\.js\?v=20'/);
 assert.match(app, /from '\.\/workspace-model\.js\?v=20'/);
 assert.match(app, /from '\.\/chemistry\.js\?v=20'/);
 assert.doesNotMatch(app, /hasCompatibleElectronPair|lastCelebrated/);
@@ -70,6 +70,8 @@ const cameraMutationLines = app.split('\n').filter(line => /camera\.position\.(s
 assert.equal(cameraMutationLines.length, 4, `Unexpected camera mutation:\n${cameraMutationLines.join('\n')}`);
 assert.ok(cameraMutationLines.every(line => line.includes('const camera=') || line.includes('function panCamera') || line.includes('function zoomCamera') || line.includes('camera.position.lerpVectors(item.fromPosition')));
 assert.match(app, /if\(!frameTransition\|\|relaxation\|\|bondTransition\)return/);
+assert.doesNotMatch(app, /ensureSpawnVisible|function spawnPosition/);
+assert.match(app, /planWorkspaceSpawn\(parts\)/);
 assert.match(app, /frame-structure'\)\?\.addEventListener\('click',requestStructureFrame\)/);
 
 console.log('Source contract tests passed.');

@@ -21,6 +21,7 @@
     import { expandCraftStructure, seedCraftCoordinates } from '../src/craft-structures.js?v=21';
     import { checkPreviewModels } from './preview-model-checks.js?v=26';
     import { checkAromaticRendering } from './aromatic-rendering-checks.js?v=26';
+    import { checkSpawnLayouts } from './spawn-layout-checks.js?v=28';
 
     const collectionData=await loadCollectionData();
     const records=await fetch('../data/molecules.json').then(response=>response.json());setMoleculeDatabase(records);
@@ -58,6 +59,9 @@
 
     run('far bonds, docking, ring closure, low-FPS convergence and focused rotation',()=>{
       checkStructureMotion(THREE);
+    });
+    run('spawn layout: 17 whole parts stay within portrait/landscape bounds, including electron radii',()=>{
+      checkSpawnLayouts(THREE,collectionData.templates);
     });
     run('release at 15/60fps: fixed camera/backbone, smooth local return, independent components and preserved torsion',()=>{
       const result=checkReleaseMotion(THREE,records);
