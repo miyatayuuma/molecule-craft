@@ -24,10 +24,10 @@ console.log('Gesture arbitration tests passed.');
 
 const filled = { atomId: 1, screenX: 100, screenY: 100, unpaired: 0 };
 const reactive = { atomId: 2, screenX: 200, screenY: 100, unpaired: 1 };
-assert.equal(chooseAtomOrElectron(130,100,[filled,reactive],{atomId:2,distance:45}).atomId,1,'A distant electron assist must not steal a filled atom.');
-assert.equal(chooseAtomOrElectron(110,100,[filled],{atomId:2,distance:0}).kind,'atom','Atom centers always remain draggable.');
-assert.equal(chooseAtomOrElectron(130,100,[filled],{atomId:2,distance:3}).kind,'electron','A precise electron grab remains available near a filled atom.');
-assert.equal(chooseAtomOrElectron(225,100,[reactive],{atomId:2,distance:8}).kind,'electron');
+assert.equal(chooseAtomOrElectron(130,100,[filled,reactive],{atomId:2,distance:45,assisted:true}).atomId,1,'A distant electron assist must not steal a filled atom.');
+assert.equal(chooseAtomOrElectron(110,100,[filled],{atomId:2,distance:0,assisted:false}).kind,'electron','A directly hit electron must stay draggable even over an atom center.');
+assert.equal(chooseAtomOrElectron(130,100,[filled],{atomId:2,distance:3,assisted:false}).kind,'electron','A precise electron grab remains available near a filled atom.');
+assert.equal(chooseAtomOrElectron(225,100,[reactive],{atomId:2,distance:8,assisted:false}).kind,'electron');
 assert.equal(chooseAtomOrElectron(230,100,[reactive],null),null,'Reactive atoms leave their periphery for electrons.');
 assert.equal(chooseAtomOrElectron(230,100,[{...reactive,unpaired:0}],null).kind,'atom','Filling an atom immediately enlarges its target.');
-assert.equal(chooseAtomOrElectron(130,100,[{...filled,unpaired:1}],{atomId:1,distance:12}).kind,'electron','Breaking a bond restores electron priority for that atom.');
+assert.equal(chooseAtomOrElectron(130,100,[{...filled,unpaired:1}],{atomId:1,distance:12,assisted:false}).kind,'electron','Breaking a bond restores electron priority for that atom.');
