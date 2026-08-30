@@ -9,6 +9,14 @@ export const ATOMIC_MODEL = {
   Cl: { valenceElectrons: 7, shell: 8,  preferredValences: [1],     electronegativity: 3.16, covalentRadius: 1.02 },
 };
 
+// Approximate van der Waals radii (Å), scaled to the same display units as
+// covalent lengths. A soft 80% contact floor removes severe intramolecular
+// clashes without claiming an energy minimum, a phase, or intermolecular MD.
+const CONTACT_RADII = {H:1.2,C:1.7,N:1.55,O:1.52,F:1.47,P:1.8,S:1.8,Cl:1.75};
+export function nonbondedDistance(elementA, elementB) {
+  return ((CONTACT_RADII[elementA]??1.7)+(CONTACT_RADII[elementB]??1.7))*.78*.8;
+}
+
 export function preferredValence(element, currentBondOrder = 0) {
   const values = ATOMIC_MODEL[element]?.preferredValences ?? [1];
   return values.reduce((best, v) => {

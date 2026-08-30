@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createPreviewModel} from '../src/preview-model.js?v=30';
+import {createPreviewModel} from '../src/preview-model.js?v=31';
 import {sharedBondCurves,createSharedBonds,updateSharedBonds} from '../src/special-bonds.js?v=30';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
 const cases=[['sulfur-dioxide',[117]],['sulfur-trioxide',[120,120,120]],['phosphoric-acid',Array(6).fill(109.47)],['sulfuric-acid',Array(6).fill(109.47)],['phosphorus-pentachloride',[...Array(6).fill(90),120,120,120,180]],['sulfur-hexafluoride',[...Array(12).fill(90),180,180,180]]];

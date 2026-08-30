@@ -1,7 +1,7 @@
 import {planSpawn} from '../src/spawn-layout.js?v=28';
-import {createPreviewModel} from '../src/preview-model.js?v=30';
+import {createPreviewModel} from '../src/preview-model.js?v=31';
 import {ELEMENTS} from '../src/chemistry.js?v=20';
-import {unpairedElectronCount,lonePairCount,valenceShellRadius} from '../src/bonding-model.js?v=30';
+import {unpairedElectronCount,lonePairCount,valenceShellRadius} from '../src/bonding-model.js?v=31';
 
 export function checkSpawnLayouts(THREE,templates){
   let cases=0;

@@ -5,7 +5,7 @@ import {runInNewContext} from 'node:vm';
 import {checkAromaticRendering} from './aromatic-rendering-checks.js';
 import * as special from '../src/special-bonds.js?v=30';
 import * as rendering from '../src/aromatic-rendering.js?v=26';
-import {createPreviewModel} from '../src/preview-model.js?v=30';
+import {createPreviewModel} from '../src/preview-model.js?v=31';
 if(!process.argv[2])throw new Error('Pass the path to three.module.js');
 const THREE=await import(pathToFileURL(process.argv[2]));
 const json=async path=>JSON.parse(await readFile(new URL(path,import.meta.url)));
@@ -13,7 +13,7 @@ console.log(checkAromaticRendering(THREE,await json('../data/molecules.json'),aw
 
 // Exercise the real workspace mesh builder with actual Three.js geometry.
 // No WebGL or production-only test hooks are needed to count visible sticks.
-const app=await readFile(new URL('../src/app-v14.js?v=30',import.meta.url),'utf8');
+const app=await readFile(new URL('../src/app-v14.js?v=31',import.meta.url),'utf8');
 const section=(start,end)=>app.slice(app.indexOf(`function ${start}(`),app.indexOf(`function ${end}(`));
 const workspaceCode=[section('rebuildMoleculeMeshes','createAtomVisual'),section('createBondVisual','updateMoleculeTransforms'),section('createAromaticVisual','selectionHaloTexture'),section('disposeObject','resize')].join('\n');
 const benzene=(await json('../data/molecules.json')).find(r=>r.id==='benzene');

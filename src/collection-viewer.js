@@ -1,7 +1,8 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=30';
+import { createPreviewModel } from './preview-model.js?v=31';
 import { createPreviewControls } from './preview-controls.js?v=21';
+import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=31';
 import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=26';
 
 import { specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=30';
@@ -99,9 +100,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     for(const shared of layout.sharedGroups??[]){const visual=createSharedBonds(THREE,own);updateSharedBonds(THREE,visual,shared,id=>layout.atoms[id].point);group.add(visual);}
     for(const frame of aromaticFrames){const ring=createAromaticRing(THREE,own);updateAromaticRing(THREE,ring,frame);group.add(ring);}
     for(const port of layout.ports){
-      const geometry=own(new THREE.BufferGeometry().setFromPoints([layout.atoms[port.atom].point,port.point]));
-      const line=new THREE.Line(geometry,own(new THREE.LineDashedMaterial({color:0xfbbf24,dashSize:.1,gapSize:.065,depthTest:false})));line.computeLineDistances();line.renderOrder=5;group.add(line);
-      const ring=new THREE.Mesh(own(new THREE.TorusGeometry(.15,.026,6,24)),own(new THREE.MeshBasicMaterial({color:0xfbbf24,depthTest:false})));ring.position.copy(port.point);ring.renderOrder=6;ring.userData.portRing=true;group.add(ring);
+      group.add(createAttachmentMarker(THREE,port,own));
     }
   }
   function resize(){
@@ -115,7 +114,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     group.rotation.set(viewState.pitch,viewState.yaw,viewState.roll,'YXZ');
     const halfFov=Math.min(19*Math.PI/180,Math.atan(Math.tan(19*Math.PI/180)*width/height));
     camera.position.set(0,0,radius/Math.sin(halfFov)*1.12/viewState.zoom);camera.lookAt(0,0,0);camera.updateMatrixWorld();group.updateMatrixWorld();
-    if(renderer){for(const object of group.children)if(object.userData.portRing)object.quaternion.copy(group.quaternion).invert();renderer.render(scene,camera);}else drawSoftware();
+    if(renderer){group.traverse(object=>{if(object.userData.portRing)object.quaternion.copy(group.quaternion).invert();});renderer.render(scene,camera);}else drawSoftware();
   }
   function drawSoftware(){
     context.clearRect(0,0,width,height);
@@ -171,13 +170,22 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
         context.fillStyle=gradient;context.beginPath();context.arc(p.x,p.y,r,0,Math.PI*2);context.fill();
       }});
     }
-    commands.sort((a,b)=>a.z-b.z).forEach(command=>command.draw());
-    for(const atom of rotated)if(atom.charge){const p=project(atom.world);context.fillStyle='#e5f8ff';context.font='bold 16px sans-serif';context.fillText(atom.charge>0?'+':'−',p.x+12,p.y-12);}
     for(const port of layout.ports){
       const a=layout.atoms[port.atom].point.clone().applyQuaternion(group.quaternion),b=port.point.clone().applyQuaternion(group.quaternion);
       if(a.z>=camera.position.z||b.z>=camera.position.z)continue;
-      const p=project(a),q=project(b);context.strokeStyle='#fbbf24';context.lineWidth=2;context.setLineDash([5,4]);context.beginPath();context.moveTo(p.x,p.y);context.lineTo(q.x,q.y);context.stroke();context.setLineDash([]);context.beginPath();context.arc(q.x,q.y,8,0,Math.PI*2);context.stroke();
+      const r=ELEMENTS[layout.atoms[port.atom].element].radius*.72*height/(2*Math.tan(19*Math.PI/180)*(camera.position.z-a.z));
+      const segment=attachmentProjection(project(a),project(b),r+1);if(!segment)continue;
+      const {start:p,end:q}=segment;
+      // Small dashes sort individually against the atoms, including another
+      // atom crossing the middle of the ray when the model is rotated.
+      const length=Math.hypot(q.x-p.x,q.y-p.y);
+      for(let d=0;d<length;d+=9){const t=d/length,u=Math.min(1,(d+5)/length);
+        commands.push({z:a.z+(b.z-a.z)*(t+u)/2,draw:()=>{context.save();context.strokeStyle='#fbbf24';context.lineWidth=2;context.beginPath();context.moveTo(p.x+(q.x-p.x)*t,p.y+(q.y-p.y)*t);context.lineTo(p.x+(q.x-p.x)*u,p.y+(q.y-p.y)*u);context.stroke();context.restore();}});
+      }
+      commands.push({z:b.z,draw:()=>{context.save();context.strokeStyle='#fbbf24';context.lineWidth=2;context.beginPath();context.arc(q.x,q.y,8,0,Math.PI*2);context.stroke();context.restore();}});
     }
+    commands.sort((a,b)=>a.z-b.z).forEach(command=>command.draw());
+    for(const atom of rotated)if(atom.charge){const p=project(atom.world);context.fillStyle='#e5f8ff';context.font='bold 16px sans-serif';context.fillText(atom.charge>0?'+':'−',p.x+12,p.y-12);}
   }
   function bindControls(){
     listen(canvas,'pointerdown',event=>{if(event.button!==0)return;event.preventDefault();controls.down(event.pointerId,event.clientX,event.clientY);canvas.setPointerCapture(event.pointerId);canvas.focus({preventScroll:true});});

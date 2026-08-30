@@ -5,14 +5,14 @@ import {runInNewContext} from 'node:vm';
 import {checkSpawnLayouts} from './spawn-layout-checks.js';
 import {planSpawn} from '../src/spawn-layout.js';
 import {ELEMENTS,Molecule} from '../src/chemistry.js';
-import {unpairedElectronCount,lonePairCount,valenceShellRadius} from '../src/bonding-model.js?v=30';
-import {createPreviewModel} from '../src/preview-model.js?v=30';
-import {expandCraftStructure} from '../src/craft-structures.js?v=30';
+import {unpairedElectronCount,lonePairCount,valenceShellRadius} from '../src/bonding-model.js?v=31';
+import {createPreviewModel} from '../src/preview-model.js?v=31';
+import {expandCraftStructure} from '../src/craft-structures.js?v=31';
 if(!process.argv[2])throw new Error('Pass the path to three.module.js');
 const THREE=await import(pathToFileURL(process.argv[2]));
 const templates=JSON.parse(await readFile(new URL('../data/craft-structures.json',import.meta.url)));
 console.log(checkSpawnLayouts(THREE,templates));
-const app=await readFile(new URL('../src/app-v14.js?v=30',import.meta.url),'utf8');
+const app=await readFile(new URL('../src/app-v14.js?v=31',import.meta.url),'utf8');
 const section=(a,b)=>app.slice(app.indexOf(`function ${a}(`),app.indexOf(`function ${b}(`));
 const source=section('addElement','onPointerDown')+section('spawnRadius','disposeObject')+section('updateStructureFrame','updateDebris');
 function workspace(distance){

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Molecule, setMoleculeDatabase} from '../src/chemistry.js';
-import {atomBondState, bondAddition, geometryForAtom} from '../src/bonding-model.js?v=30';
+import {atomBondState, bondAddition, geometryForAtom} from '../src/bonding-model.js?v=31';
 import {sharedOxoGroups, specialEdgeKeys} from '../src/special-bonds.js?v=30';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
 setMoleculeDatabase(records);

@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aromatic display check</title><link rel="stylesheet" href="../styles.css?v=30"><style>body{padding:16px}main{max-width:390px;margin:auto}nav{display:flex;flex-wrap:wrap;gap:6px}#model{margin-top:16px}#summary{font-size:12px;overflow-wrap:anywhere}</style></head>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aromatic display check</title><link rel="stylesheet" href="../styles.css?v=31"><style>body{padding:16px}main{max-width:390px;margin:auto}nav{display:flex;flex-wrap:wrap;gap:6px}#model{margin-top:16px}#summary{font-size:12px;overflow-wrap:anywhere}</style></head>
 <body><main><h1>芳香環の描画検証</h1><p>検証専用。制作フィールド・発見記録は変更しません。</p><p id="summary">RUNNING</p>
 <nav><button data-record="benzene">ベンゼン</button><button data-record="benzaldehyde">ベンズアルデヒド</button><button data-record="phenyl">フェニル基</button><button data-record="cyclohexane">シクロヘキサン</button><button id="open-ring">環を切断</button><button id="close-ring">環を復元</button></nav>
 <h2 id="name"></h2><div id="model"></div></main>
 <script type="module">
   import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
-  import {createCollectionViewer} from '../src/collection-viewer.js?v=30';
-  import {checkAromaticRendering} from './aromatic-rendering-checks.js?v=26';
+  import {createCollectionViewer} from '../src/collection-viewer.js?v=31';
+  import {checkAromaticRendering} from './aromatic-rendering-checks.js?v=31';
   const [records,parts]=await Promise.all(['molecules','craft-structures'].map(name=>fetch(`../data/${name}.json`).then(r=>r.json())));
   try{document.querySelector('#summary').textContent=checkAromaticRendering(THREE,records,parts);}catch(error){document.querySelector('#summary').textContent=`FAIL: ${error.message}`;throw error;}
   const host=document.querySelector('#model');let viewer;

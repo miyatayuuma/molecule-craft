@@ -1,11 +1,13 @@
-import {motionFixture} from './structure-motion-checks.js?v=24';
-import {seedCraftCoordinates} from '../src/craft-structures.js?v=30';
+import {motionFixture} from './structure-motion-checks.js?v=31';
+import {seedCraftCoordinates} from '../src/craft-structures.js?v=31';
 import {connectedStructures,structureFrame} from '../src/workspace-model.js?v=20';
 import {createRelaxationSession} from '../src/structure-motion.js?v=30';
-import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=24';
+import {rotateStructure} from '../src/workspace-view.js?v=23';
+import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=31';
 
 // Actual Three.js camera projection, also runnable without a WebGL context.
-// This tests SCREEN displacement independently from camera matrix changes.
+// Rigid drag geometry and camera invariance; real pointer release/no-rebound
+// behaviour is exercised by mobile-ui-check.mjs against the production app.
 export function checkReleaseMotion(THREE,records) {
   const assert=(ok,message)=>{if(!ok)throw new Error(message);};
   const fixture=name=>{
@@ -24,43 +26,25 @@ export function checkReleaseMotion(THREE,records) {
   const measurements=[];
   for(const [name,element]of cases)for(const fps of [15,60]) {
     const item=fixture(name),atom=item.molecule.atoms.find(a=>a.element===element),plan=planStructureEdit(item.molecule,atom.id);
-    const fixed=item.ids.filter(id=>!plan.ids.includes(id)),before=new Map(fixed.map(id=>[id,item.pos(id).clone()]));
     const matrix=[...item.camera.matrixWorld.elements,...item.camera.projectionMatrix.elements];
-    const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),2.3/30);
-    // Same graph edit plan as the application; 30 drag updates, no global solver
-    // trying to chase a locked fingertip by moving the untouched backbone.
-    for(let i=0;i<30;i++) {
-      if(plan.mode==='structure') {
-        const pivot=item.pos(plan.pivotId);
-        item.solver.rotateReferenceFrames(q,new Set([...plan.ids,plan.pivotId]));
-        for(const id of plan.ids)item.pos(id).sub(pivot).applyQuaternion(q).add(pivot);
-      } else for(const id of plan.ids)item.pos(id).add(new THREE.Vector3(.012,.008,.02));
+    const center=structureFrame(item.scope,item.pos,44,390/430).center;
+    const rotation={ids:plan.scope,center};
+    const pairs=item.ids.flatMap((id,i)=>item.ids.slice(i+1).map(other=>[id,other,item.pos(id).distanceTo(item.pos(other))]));
+    const radii=new Map(item.ids.map(id=>[id,item.pos(id).distanceTo(center)]));
+    assert(plan.mode==='molecule-rotate',`${name}: free bonded-atom translation`);
+    // Use the actual rigid rotation primitive at different pointer update rates.
+    const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),2.3/fps);
+    let maxDistanceError=0;
+    for(let frame=0;frame<fps;frame++){
+      item.solver.rotateReferenceFrames(q,plan.scope);rotateStructure(rotation,item.pos,q);
+      maxDistanceError=Math.max(maxDistanceError,...pairs.map(([a,b,d])=>Math.abs(item.pos(a).distanceTo(item.pos(b))-d)));
+      assert(maxDistanceError<1e-9,`${name}: a drag deformed the molecule`);
+      assert(item.ids.every(id=>Math.abs(item.pos(id).distanceTo(center)-radii.get(id))<1e-9),`${name}: drag pivot drifted`);
     }
-    assert(fixed.every(id=>item.pos(id).distanceTo(before.get(id))===0),`${name}: drag moved untouched skeleton`);
-    const released=item.pos(atom.id).clone(),screens=new Map(fixed.map(id=>[id,item.screen(id)]));
-    const options=editRelaxationOptions(item.molecule,{...plan,atomId:atom.id});
-    const session=createRelaxationSession({solver:item.solver,...options});
-    let result,maxDrift=0,firstFrame=null,at200=null,elapsed=0;
-    const initiallyVisible=item.ids.every(id=>{const p=item.screen(id);return p.x>=0&&p.x<=390&&p.y>=0&&p.y<=430;});
-    for(let frame=1;frame<fps*9;frame++) {
-      elapsed=frame*1000/fps;result=session.advance(elapsed,{clock:()=>0});
-      if(!firstFrame)firstFrame=item.pos(atom.id).clone();
-      if(elapsed<=200)at200=item.pos(atom.id).clone();
-      for(const id of fixed)maxDrift=Math.max(maxDrift,item.screen(id).distanceTo(screens.get(id)));
-      assert(fixed.every(id=>item.pos(id).distanceTo(before.get(id))===0),`${name}: release moved untouched skeleton`);
-      assert([...item.camera.matrixWorld.elements,...item.camera.projectionMatrix.elements].every((value,i)=>value===matrix[i]),`${name}: camera changed`);
-      if(initiallyVisible)assert(item.ids.every(id=>{const p=item.screen(id);return p.x>=0&&p.x<=390&&p.y>=0&&p.y<=430;}),`${name}: release escaped the fixed viewport`);
-      if(result.done)break;
-    }
-    assert(result.converged,`${name} ${element} ${fps}fps: ${JSON.stringify(result)}`);
-    assert(maxDrift<.01,`${name}: backbone drifted ${maxDrift}px`);
-    const travel=released.distanceTo(item.pos(atom.id));
-    if(travel>.1) {
-      assert(firstFrame.distanceTo(released)<travel*.25,`${name}: first-frame teleport`);
-      assert(at200.distanceTo(item.pos(atom.id))>travel*.05,`${name}: motion ended before 200ms`);
-    }
-    measurements.push({name,element,fps,backboneDriftPx:maxDrift,durationMs:Math.round(elapsed)});
+    assert([...item.camera.matrixWorld.elements,...item.camera.projectionMatrix.elements].every((value,i)=>value===matrix[i]),`${name}: camera changed`);
+    measurements.push({name,element,fps,maxDistanceError});
   }
+
   // Changing the contents/placement of another component must have NO effect
   // on the focused component's relaxation, even if their spheres overlap.
   {
@@ -98,5 +82,5 @@ export function checkReleaseMotion(THREE,records) {
     let result;for(let frame=1;frame<400;frame++){result=session.advance(frame*1000/60,{clock:()=>0});if(result.done)break;}
     assert(result.converged&&direction().dot(rotated)>.98,'torsion of carbonyl group was undone');
   }
-  return {releaseCases:measurements.length,maxBackboneDriftPx:Math.max(...measurements.map(m=>m.backboneDriftPx)),measurements};
+  return {releaseCases:measurements.length,maxDistanceError:Math.max(...measurements.map(m=>m.maxDistanceError)),measurements};
 }

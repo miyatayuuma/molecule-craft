@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {Molecule,setMoleculeDatabase,countElements} from '../src/chemistry.js?v=20';
 import {connectedStructures} from '../src/workspace-model.js?v=20';
 import {detectFunctionalGroups} from '../src/functional-groups.js';
-import {expandCraftStructure} from '../src/craft-structures.js?v=30';
+import {expandCraftStructure} from '../src/craft-structures.js?v=31';
 import {createCollectionState} from '../src/collection-state.js';
 import {ELEMENT_UNLOCKS,availableElements,nextElementUnlock,createElementPalette} from '../src/element-progression.js';
 

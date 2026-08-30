@@ -11,7 +11,7 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=30">
+  <link rel="stylesheet" href="./styles.css?v=31">
 </head>
 <body>
   <main class="app-shell">
@@ -30,7 +30,6 @@
           <button id="clear-all" class="hold-clear" type="button" aria-label="1秒長押しでフィールドを全消去。図鑑は残ります" title="1秒長押しで全消去"><span>全消去</span><small>長押し</small></button>
           <button id="frame-structure" type="button" class="icon-button" aria-label="分子を画面に収める" title="分子を画面に収める">⛶</button>
         </div>
-        <button id="stop-relaxation" class="stop-relaxation" type="button" hidden>補正を止める</button>
         <div class="field-bottom"><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
         <button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>
         <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span><small id="discovery-learning"></small></div>
@@ -63,7 +62,7 @@
     <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
     <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子が図鑑に登録され、新しい原子や部品が使えるようになります。</p></div></section>
-    <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子の球をドラッグすると形を調整できます。背景をドラッグすると選んだ分子が回転。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。回せる単結合の中央をダブルタップすると、ねじる軸を固定できます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
+    <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>結合した原子の球や背景をドラッグすると、選んだ分子が回転。結合していない原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。回せる単結合の中央をダブルタップすると、ねじる軸を固定できます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
   </div></dialog>
   <dialog id="info-dialog" class="sheet" aria-labelledby="info-title"><header class="sheet-header"><h2 id="info-title">いまの分子</h2><button type="button" data-close-dialog aria-label="分子情報を閉じる">×</button></header><div class="sheet-body info-panel">
@@ -80,7 +79,7 @@
     <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
-  <script type="module" src="./src/app-v14.js?v=30"></script>
+  <script type="module" src="./src/app-v14.js?v=31"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>

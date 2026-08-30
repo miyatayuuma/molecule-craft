@@ -7,6 +7,7 @@ export function createStructureSolver({
   bondLengthFor,
   geometryFor: getGeometry,
   radiusFor,
+  nonbondedDistanceFor,
 }) {
   let dirty = true;
   let cycles = [];
@@ -270,7 +271,7 @@ export function createStructureSolver({
   function measureError({ ids = null } = {}) {
     if (dirty) rebuildTopology();
     const includes = id => !ids || ids.has(id);
-    let finite = true, bondRelative = 0, angleRadians = 0, planeDistance = 0;
+    let finite = true, bondRelative = 0, angleRadians = 0, planeDistance = 0, overlapRelative = 0;
     for (const atom of molecule.atoms) if (includes(atom.id)) {
       const point = pos(atom.id);
       if (!point || ![point.x, point.y, point.z].every(Number.isFinite)) finite = false;
@@ -293,8 +294,13 @@ export function createStructureSolver({
       const center = anchors.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / anchors.length);
       for (const id of frame.atomIds) if (includes(id) && pos(id)) planeDistance = Math.max(planeDistance, Math.abs(pos(id).clone().sub(center).dot(frame.normal)));
     }
-    finite &&= [bondRelative, angleRadians, planeDistance].every(Number.isFinite);
-    return { finite, bondRelative, angleRadians, planeDistance, topologyLimited };
+    if (nonbondedDistanceFor) for (let i=0;i<molecule.atoms.length;i++) for (let j=i+1;j<molecule.atoms.length;j++) {
+      const a=molecule.atoms[i].id,b=molecule.atoms[j].id;
+      if (!includes(a)||!includes(b)||componentIds.get(a)!==componentIds.get(b)||stericExclusions.has(pairKey(a,b))) continue;
+      overlapRelative=Math.max(overlapRelative,1-(pos(a)?.distanceTo(pos(b))??0)/nonbondedDistanceFor(a,b));
+    }
+    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative].every(Number.isFinite);
+    return { finite, bondRelative, angleRadians, planeDistance, overlapRelative, topologyLimited };
   }
 
   function angleBranch(centerId, rootId) {
@@ -463,8 +469,10 @@ export function createStructureSolver({
         if (!a || !b) continue;
         const delta = b.clone().sub(a);
         const length = delta.length();
-        const minimum = (radiusFor(aId) + radiusFor(bId)) * 0.72;
-        if (length >= minimum || length < 0.0001) continue;
+        const minimum = nonbondedDistanceFor?.(aId,bId) ?? (radiusFor(aId) + radiusFor(bId)) * 0.72;
+        if (length >= minimum) continue;
+        // Coincident atoms need a deterministic escape direction too.
+        if (length < 0.0001) delta.set(1,.37,-.21);
         const correction = delta.normalize().multiplyScalar((minimum - length) * strength);
         displacePair(aId, bId, correction.clone().multiplyScalar(-1), locked);
       }

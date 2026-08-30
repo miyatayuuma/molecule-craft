@@ -16,5 +16,4 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 /* Destructive action stays visible and requires continuous confirmation. */
 .hold-clear{position:relative;isolation:isolate;overflow:hidden;touch-action:none;user-select:none;-webkit-touch-callout:none;min-width:54px;min-height:44px;padding:5px 8px;color:#f6bbc1;border:1px solid #754451;background:#271f2e;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex-shrink:0}
 .hold-clear small{font-size:9px;color:#c8a5af}.hold-clear::before{content:'';position:absolute;inset:0 auto 0 0;width:var(--hold-progress,0%);background:#a33e54;z-index:-1}.hold-clear.holding{outline:2px solid #f2a0b0}
-.stop-relaxation{position:absolute;right:12px;top:76px;z-index:5;min-height:40px;padding:6px 12px;border-radius:18px;background:#243548;color:#d7edf7;border:1px solid #5a778b;font-size:12px}.stop-relaxation[hidden]{display:none}
 .viewer-actions .molecule-summary{min-width:0}.viewer-actions .molecule-summary strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

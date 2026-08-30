@@ -1,10 +1,11 @@
 // Build-time projections; the list never starts a renderer or solver.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createPreviewModel} from '../src/preview-model.js?v=30';
+import {createPreviewModel} from '../src/preview-model.js?v=31';
 import {ELEMENTS} from '../src/chemistry.js';
 import {aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js';
 import {specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=30';
+import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8').then(JSON.parse);
 const records=await read('data/molecules.json'),parts=await read('data/craft-structures.json');
 await mkdir(new URL('assets/models/',root),{recursive:true});
@@ -34,7 +35,11 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
   }
   const defs=new Set();
   atoms.forEach((atom,i)=>{const {x,y,z}=projected[i],r=radii[i];defs.add(atom.element);shapes.push({z,svg:`<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#${atom.element})"/>`});});
-  for(const port of layout.ports){const a=projected[port.atom],p=project(port.point.clone().applyQuaternion(rotation)),length=Math.hypot(p.x-a.x,p.y-a.y)||1,trim=Math.min(radii[port.atom],length);shapes.push({z:Infinity,svg:`<path d="M${n(a.x+(p.x-a.x)*trim/length)} ${n(a.y+(p.y-a.y)*trim/length)}L${n(p.x)} ${n(p.y)}" stroke="#e9bb69" stroke-dasharray="3 3"/><circle cx="${n(p.x)}" cy="${n(p.y)}" r="3" fill="none" stroke="#e9bb69"/>`});}
+  for(const port of layout.ports){
+    const a=projected[port.atom],p=project(port.point.clone().applyQuaternion(rotation)),segment=attachmentProjection(a,p,radii[port.atom]+.5);if(!segment)continue;
+    shapes.push({z:(a.z+p.z)/2,svg:`<path d="M${n(segment.start.x)} ${n(segment.start.y)}L${n(p.x)} ${n(p.y)}" stroke="#e9bb69" stroke-dasharray="3 3"/>`});
+    shapes.push({z:p.z,svg:`<circle cx="${n(p.x)}" cy="${n(p.y)}" r="3" fill="none" stroke="#e9bb69"/>`});
+  }
   atoms.forEach((atom,i)=>{if(atom.charge){const p=projected[i];shapes.push({z:Infinity,svg:`<text x="${n(p.x+radii[i])}" y="${n(p.y-radii[i])}" fill="#e5f8ff" font-size="12" font-family="sans-serif">${atom.charge>0?'+':'−'}</text>`});}});
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 128"><defs>${[...defs].map(symbol=>`<radialGradient id="${symbol}" cx="30%" cy="25%" r="75%"><stop stop-color="#e6f0f5"/><stop offset=".3" stop-color="${ELEMENTS[symbol].color}"/><stop offset="1" stop-color="${shade(ELEMENTS[symbol].color,.64)}"/></radialGradient>`).join('')}</defs>${shapes.sort((a,b)=>a.z-b.z).map(item=>item.svg).join('')}</svg>\n`;
   await writeFile(new URL(`assets/models/${kind}-${record.id}.svg`,root),svg);

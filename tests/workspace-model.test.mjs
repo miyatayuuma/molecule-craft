@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { Molecule, setMoleculeDatabase } from '../src/chemistry.js?v=20';
-import { unpairedElectronCount } from '../src/bonding-model.js?v=30';
+import { unpairedElectronCount } from '../src/bonding-model.js?v=31';
 import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from '../src/workspace-model.js';
 
 const records = JSON.parse(await readFile(new URL('../data/molecules.json', import.meta.url)));

@@ -26,7 +26,7 @@ function worker({fail=null,clients=[]}={}){
 }
 const good=worker();await good.call('install');assert.equal(good.skip,0,'Install must not force an update');await good.call('activate');assert.equal(good.claimed,1);
 let response=await good.call('fetch',{request:new Request(good.scope+'?release=any')});assert.match(await response.text(),/Molecule Craft/);
-const network=good.network;response=await good.call('fetch',{request:new Request(good.scope+'src/app-v14.js?v=30')});assert.match(await response.text(),/saveWorkspace/);assert.equal(good.network,network,'Cached release must serve without network');
+const network=good.network;response=await good.call('fetch',{request:new Request(good.scope+'src/app-v14.js?v=31')});assert.match(await response.text(),/saveWorkspace/);assert.equal(good.network,network,'Cached release must serve without network');
 response=await good.call('fetch',{request:new Request(good.scope+'tests/not-a-real-page.html')});assert.equal(response.status,404,'Never disguise missing pages as index');
 await good.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a'}});assert.equal(good.skip,1);
 const messages=[],busy=worker({clients:[{id:'a',url:'https://example.test/molecule-craft/'},{id:'b',url:'https://example.test/molecule-craft/'}]});await busy.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a',postMessage:m=>messages.push(m)}});assert.equal(busy.skip,0);assert.equal(messages[0].type,'UPDATE_BLOCKED');

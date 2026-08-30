@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { Molecule, setMoleculeDatabase, moleculeCatalog } from '../src/chemistry.js?v=20';
 import { connectedStructures } from '../src/workspace-model.js';
 import { validateFunctionalGroups, detectFunctionalGroups } from '../src/functional-groups.js';
-import { validateCraftStructures, expandCraftStructure, seedCraftCoordinates } from '../src/craft-structures.js?v=30';
+import { validateCraftStructures, expandCraftStructure, seedCraftCoordinates } from '../src/craft-structures.js?v=31';
 import { createCollectionState, COLLECTION_STORAGE_KEY } from '../src/collection-state.js';
 import { collectionCategory, COLLECTION_CATEGORIES, graphSummary } from '../src/collection-catalog.js';
 

@@ -1,8 +1,8 @@
 import { ELEMENTS } from './chemistry.js?v=20';
-import { ATOMIC_MODEL, bondLengthScale, geometryForAtom, atomBondState } from './bonding-model.js?v=30';
+import { ATOMIC_MODEL, bondLengthScale, geometryForAtom, atomBondState, nonbondedDistance } from './bonding-model.js?v=31';
 import { sharedOxoGroups } from './special-bonds.js?v=30';
-import { seedCraftCoordinates } from './craft-structures.js?v=30';
-import { createStructureSolver } from './structure-relaxation.js?v=30';
+import { seedCraftCoordinates } from './craft-structures.js?v=31';
+import { createStructureSolver } from './structure-relaxation.js?v=31';
 
 // A private graph, not a Molecule instance: opening the book cannot even consume
 // the field's atom-id sequence. DB topology and player placements are read-only.
@@ -19,6 +19,7 @@ export function createPreviewModel(THREE, record) {
     atomById:id=>atoms[id],bondBetween:(a,b)=>bonds.find(bond=>(bond.a===a&&bond.b===b)||(bond.a===b&&bond.b===a)),
     bondLengthFor:(a,b,order)=>(ATOMIC_MODEL[atoms[a].element].covalentRadius+ATOMIC_MODEL[atoms[b].element].covalentRadius)*.78*bondLengthScale(order),
     radiusFor:id=>ELEMENTS[atoms[id].element].radius,
+    nonbondedDistanceFor:(a,b)=>nonbondedDistance(atoms[a].element,atoms[b].element),
   });
   function snapshot(){
     const center=atoms.reduce((sum,atom)=>sum.add(placements.get(atom.id).position),new THREE.Vector3()).multiplyScalar(1/atoms.length);
@@ -33,7 +34,7 @@ export function createPreviewModel(THREE, record) {
         const choices=[];if(preferred.lengthSq()>1e-6)choices.push(preferred.normalize());
         for(let i=0;i<64;i++){const y=1-2*(i+.5)/64,r=Math.sqrt(1-y*y),a=i*2.3999632297;choices.push(new THREE.Vector3(r*Math.cos(a),y,r*Math.sin(a)));}
         choices.sort((a,b)=>Math.min(...used.map(v=>1-b.dot(v)))-Math.min(...used.map(v=>1-a.dot(v))));
-        const direction=choices[0];used.push(direction);ports.push({atom:port.atom,point:origin.clone().addScaledVector(direction,.95)});
+        const direction=choices[0];used.push(direction);ports.push({atom:port.atom,start:origin.clone().addScaledVector(direction,ELEMENTS[atoms[port.atom].element].radius*.72+.012),point:origin.clone().addScaledVector(direction,.95)});
       }
     }
     return {atoms:atoms.map((atom,id)=>({...atom,charge:atomBondState(molecule,atom.id).charge,point:points[id]})),bonds:bonds.map(b=>({...b})),ports,aromaticCycles:solver.snapshot().aromaticCycles,sharedGroups:sharedOxoGroups(molecule)};

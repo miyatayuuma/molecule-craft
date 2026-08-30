@@ -1,5 +1,5 @@
-import {createPreviewModel} from '../src/preview-model.js?v=30';
-import {ATOMIC_MODEL,bondLengthScale} from '../src/bonding-model.js?v=30';
+import {createPreviewModel} from '../src/preview-model.js?v=31';
+import {ATOMIC_MODEL,bondLengthScale} from '../src/bonding-model.js?v=31';
 
 export function checkPreviewModels(THREE,records,templates){
   const assert=(condition,message)=>{if(!condition)throw new Error(message);};
