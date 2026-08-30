@@ -39,13 +39,13 @@ export function createElementPalette(root = document) {
     }
     if(note)note.textContent=message;
   }
-  render('発見3種類で N（窒素）を解放');
+  render('N解放まで あと3種類');
   return {
     canUse:symbol=>available.has(symbol),
     update(state){
       available=new Set(state.unlockedElements());
       const next=nextElementUnlock(state.discoveredCount,available);
-      render(next?`次は ${next.elements.map(item=>`${item.symbol}（${item.name}）`).join('・')} · 新しい分子をあと${next.remaining}種類発見`:'すべての原子を解放済み');
+      render(next?`${next.elements.map(item=>item.symbol).join('・')}解放まで あと${next.remaining}種類`:'原子コンプリート');
     },
     fallback(){available=new Set(ELEMENT_UNLOCKS.map(item=>item.symbol));render('進行機能を利用できないため、すべての原子で自由制作できます');},
   };

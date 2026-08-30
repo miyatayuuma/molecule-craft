@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Molecule Craft",
+  "short_name": "分子クラフト",
+  "description": "原子をつないで、分子を発見。自分の分子図鑑を集めるクラフトゲーム。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101c29",
+  "theme_color": "#101c29",
+  "icons": [
+    {"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

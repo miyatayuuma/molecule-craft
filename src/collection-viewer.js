@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
+import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS } from './chemistry.js?v=20';
 import { createPreviewModel } from './preview-model.js?v=26';
 import { createPreviewControls } from './preview-controls.js?v=21';
@@ -21,12 +21,12 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
   const listen=(node,type,handler,options)=>{node.addEventListener(type,handler,options);listeners.push(()=>node.removeEventListener(type,handler,options));};
   const controls=createPreviewControls(view=>{Object.assign(viewState,view);zoomLabel.value=`${Math.round(view.zoom*100)}%`;requestDraw();});
   Object.assign(viewState,controls.snapshot());
-  for(const [label,action] of [['縮小',()=>controls.zoom(1/1.2)],['拡大',()=>controls.zoom(1.2)],['表示リセット',()=>controls.reset()]]){
-    const button=make('button',label);button.type='button';button.setAttribute('aria-label',`模型を${label}`);listen(button,'click',action);toolbar.append(button);
+  for(const [label,action,accessible] of [['−',()=>controls.zoom(1/1.2),'縮小'],['＋',()=>controls.zoom(1.2),'拡大'],['↺',()=>controls.reset(),'表示リセット']]){
+    const button=make('button',label);button.type='button';button.setAttribute('aria-label',`模型を${accessible}`);listen(button,'click',action);toolbar.append(button);
   }
   toolbar.append(zoomLabel);
-  const instruction=make('p','1本指で回転 · ピンチで拡大縮小 · 矢印キーでも回転できます。閲覧専用で、制作中の分子には影響しません。','collection-note');host.append(instruction);
-  if(record.attachments?.length)host.append(make('p','金色の輪と点線は接続可能点です。原子・電子ではありません。','model-port-key'));
+
+  if(record.attachments?.length)host.append(make('p','金色の輪が接続点','model-port-key'));
 
   function requestDraw(){if(!disposed&&!frame&&!owner.hidden)frame=requestAnimationFrame(tick);}
   function tick(){
@@ -72,8 +72,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     if(renderer)buildMeshes();
     bindControls();observer=new ResizeObserver(resize);observer.observe(stage);resize();
     host.dataset.renderMode=renderer?'webgl':'software-3d';
-    status.textContent=renderer?'立体模型 · 元素色と結合次数を表示':'立体模型 · 軽量3D表示（WebGLを利用できない環境）';
-    if(aromaticFrames.length)status.textContent+=' · 水色の輪は環全体で共有するπ電子の記号です';
+    status.textContent='ドラッグで回転 · ピンチで拡大';
   }
   const own=resource=>{resources.add(resource);return resource;};
   function buildMeshes(){

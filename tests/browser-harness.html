@@ -7,7 +7,7 @@
   <strong id="summary">RUNNING</strong>
   <p id="release-metrics"></p>
   <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
+    import * as THREE from '../vendor/three/three.module.min.js';
     import { ELEMENTS, Molecule, setMoleculeDatabase } from '../src/chemistry.js?v=20';
     import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from '../src/bonding-model.js';
     import { createStructureSolver } from '../src/structure-relaxation.js?v=24';
@@ -17,7 +17,7 @@
     import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=20';
     import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=20';
     import { createCollectionState } from '../src/collection-state.js?v=25';
-    import { loadCollectionData } from '../src/collection-ui.js?v=26';
+    import { loadCollectionData } from '../src/collection-ui.js?v=29';
     import { expandCraftStructure, seedCraftCoordinates } from '../src/craft-structures.js?v=21';
     import { checkPreviewModels } from './preview-model-checks.js?v=26';
     import { checkAromaticRendering } from './aromatic-rendering-checks.js?v=26';

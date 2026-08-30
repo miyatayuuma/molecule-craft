@@ -2,74 +2,84 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111827">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101c29">
+  <meta name="description" content="原子をつないで、分子を発見。あなただけの分子図鑑を集めよう。">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Molecule Craft">
   <title>Molecule Craft</title>
-  <link rel="stylesheet" href="./styles.css?v=25">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css?v=29">
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
-      <div><p class="eyebrow">CHEMISTRY SANDBOX</p><h1>Molecule Craft</h1></div>
-      <div class="molecule-summary" aria-live="polite"><strong id="molecule-name">自由制作</strong><small id="molecule-iupac"></small><span id="formula">—</span></div>
+      <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
+      <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
-    <div class="game-bar"><div><p id="game-loop-hint">原子から分子を発見して図鑑へ。共通構造を知るほど、使える部品が増えます。</p><small id="game-save-status" role="status"></small></div><button id="open-collection" type="button">図鑑</button></div>
-
+    <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p></div>
     <section class="workspace">
-      <aside class="panel tool-panel" aria-label="元素と操作">
-        <div class="palette-tabs" role="tablist" aria-label="クラフト素材"><button id="atoms-tab" type="button" role="tab" data-palette-tab="atoms" aria-selected="true" aria-controls="element-panel">原子</button><button id="parts-tab" type="button" role="tab" data-palette-tab="structures" aria-selected="false" aria-controls="craft-panel" tabindex="-1">構造 <small id="craft-count">未解禁</small></button></div>
+      <section class="viewer-wrap" aria-label="制作フィールド">
+        <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
+        <p id="viewer-unavailable" class="viewer-unavailable" hidden>このブラウザでは3D制作を開始できません。図鑑は利用できます。</p>
+        <div class="viewer-actions">
+          <div class="molecule-summary" aria-live="polite"><strong id="molecule-name">自由制作</strong><span id="formula">—</span></div>
+          <label id="structure-focus-label" class="viewer-focus" hidden><span class="sr-only">編集対象</span><select id="structure-focus" aria-label="編集する分子"></select></label>
+          <button id="frame-structure" type="button" class="icon-button" aria-label="分子を画面に収める" title="分子を画面に収める">⛶</button>
+        </div>
+        <div class="field-bottom"><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
+        <button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>
+        <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span><small id="discovery-learning"></small></div>
+      </section>
+      <aside class="tool-panel" aria-label="クラフト素材">
+        <div class="tray-header"><div class="palette-tabs" role="tablist" aria-label="クラフト素材"><button id="atoms-tab" type="button" role="tab" data-palette-tab="atoms" aria-selected="true" aria-controls="element-panel">原子</button><button id="parts-tab" type="button" role="tab" data-palette-tab="structures" aria-selected="false" aria-controls="craft-panel" tabindex="-1">部品 <small id="craft-count"></small></button></div><p id="element-unlock-hint" role="status"></p></div>
         <div id="element-panel" role="tabpanel" aria-labelledby="atoms-tab">
-          <h2>元素</h2>
-          <p id="element-unlock-hint" class="element-unlock-hint" role="status"></p>
           <div id="element-palette" class="element-palette">
-            <button type="button" class="element-button" data-element="H" style="--element-color:#f8fafc">H</button>
-            <button type="button" class="element-button" data-element="C" style="--element-color:#64748b">C</button>
-            <button type="button" class="element-button" data-element="N" style="--element-color:#3b82f6">N</button>
-            <button type="button" class="element-button" data-element="O" style="--element-color:#ef4444">O</button>
-            <button type="button" class="element-button" data-element="F" style="--element-color:#22c55e">F</button>
-            <button type="button" class="element-button" data-element="P" style="--element-color:#f97316">P</button>
-            <button type="button" class="element-button" data-element="S" style="--element-color:#eab308">S</button>
-            <button type="button" class="element-button" data-element="Cl" style="--element-color:#16a34a">Cl</button>
+            <button type="button" class="element-button" data-element="H" style="--element-color:#f8fafc"><strong>H</strong><small>水素</small></button>
+            <button type="button" class="element-button" data-element="C" style="--element-color:#64748b"><strong>C</strong><small>炭素</small></button>
+            <button type="button" class="element-button" data-element="N" style="--element-color:#3b82f6"><strong>N</strong><small>窒素</small></button>
+            <button type="button" class="element-button" data-element="O" style="--element-color:#ef4444"><strong>O</strong><small>酸素</small></button>
+            <button type="button" class="element-button" data-element="F" style="--element-color:#22c55e"><strong>F</strong><small>フッ素</small></button>
+            <button type="button" class="element-button" data-element="P" style="--element-color:#f97316"><strong>P</strong><small>リン</small></button>
+            <button type="button" class="element-button" data-element="S" style="--element-color:#eab308"><strong>S</strong><small>硫黄</small></button>
+            <button type="button" class="element-button" data-element="Cl" style="--element-color:#16a34a"><strong>Cl</strong><small>塩素</small></button>
           </div>
         </div>
-        <div id="craft-panel" role="tabpanel" aria-labelledby="parts-tab" hidden><div id="craft-palette" class="craft-palette"></div><p id="craft-empty" class="collection-note">既知の分子を発見すると部品が解禁されます。図鑑の分子式を手掛かりに、まず原子から作ってみましょう。</p><p class="collection-note">部品は選択原子の近くに配置。光る接続点から電子をドラッグしてつなぎます。Hは自動補完しません。</p></div>
-        <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">追加する原子・部品は表示枠内の空きに配置し、入り切らない場合だけズームアウトします。白寄りのリングが選択原子、シアンの発光点が不対電子です。不対電子がある原子は電子周辺から結合操作、ない原子は広い範囲で骨格操作できます。シアンの電子が原子球と重なる場所では電子操作を優先し、電子を避けて原子球をドラッグすると原子を動かせます。電子を相手へ近づけて離すと、単結合・多重結合・環閉鎖が成立し、視点を固定して安定配置へ移動します。結合線の中央を長押しすると結合次数が下がり、解放された不対電子を再び操作できます。背景ドラッグは表示対象の分子だけを中心まわりに回転、2本指はパン・ズーム・ひねり回転。背景ダブルタップで表示対象の分子に寄ります。背景をタップして原子選択を解除しても、表示対象は変わりません。別の分子の原子や「作業中の構造」を選ぶと対象が切り替わります。単結合の中央をダブルタップすると回転軸を固定できます。完成はつながった構造ごとに判定します。近くの小片は保持し、遠い未完成の小片だけを整理します。これは化学反応による消滅ではなく作業場の整理です。</p>
-      </aside>
-
-      <section class="viewer-wrap">
-        <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
-        <div class="viewer-actions"><label id="structure-focus-label" class="viewer-focus" hidden>編集対象<select id="structure-focus" aria-label="編集する分子" title="編集対象だけを切り替えます。視点は動きません。"></select></label><button id="frame-structure" type="button" title="表示対象の分子を画面内に収め、回転中心を合わせる">構造を表示</button><button id="undo-cleanup" type="button" hidden>整理を元に戻す</button></div>
-        <div id="selection-chip" class="selection-chip">元素を押して中心原子を置く</div>
-        <div id="discovery" class="discovery" aria-live="assertive">
-          <span id="discovery-kicker" class="discovery-kicker">STRUCTURE COMPLETE</span>
-          <strong id="discovery-formula">H₂O</strong>
-          <span id="discovery-name">水</span>
-          <small id="discovery-english"></small>
-          <small id="discovery-iupac">IUPAC: oxidane</small>
-          <small id="discovery-learning"></small>
-        </div>
-      </section>
-
-      <aside class="panel info-panel" aria-label="分子情報">
-        <div class="structures-section"><h2>作業中の構造 <span id="structure-count">完成 0 / 構造 0</span></h2><p class="hint">3D画面の「編集対象」または下の一覧で切替。視点は固定され、別分子は補正に干渉しません。</p><div id="structure-list" class="structure-list" aria-label="構造を選択"></div></div>
-        <div><h2>状態</h2><div id="status" class="status ok">原子を追加してください</div></div>
-        <div><h2>選択中</h2><dl class="details"><div><dt>元素</dt><dd id="selected-element">—</dd></div><div><dt>結合次数合計</dt><dd id="selected-valence">—</dd></div><div><dt>価電子</dt><dd id="selected-limit">—</dd></div></dl></div>
-        <div><h2>選択した構造の構成</h2><div id="atom-counts" class="atom-counts">—</div></div>
+        <div id="craft-panel" role="tabpanel" aria-labelledby="parts-tab" hidden><div id="craft-palette" class="craft-palette"></div><p id="craft-empty" class="empty-tray">分子を発見すると、部品が手に入るよ。</p></div>
       </aside>
     </section>
   </main>
-  <dialog id="collection-dialog" aria-labelledby="collection-title">
-    <div class="book-shell">
-      <header class="book-header"><div><p class="eyebrow">MOLECULE COLLECTION</p><h2 id="collection-title">分子と構造の図鑑</h2><p id="collection-progress"></p></div><button id="close-collection" type="button" aria-label="図鑑を閉じる">閉じる</button></header>
-      <p id="collection-storage" class="save-warning" role="status" hidden></p>
-      <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true" aria-controls="collection-list">分子</button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" aria-controls="collection-list" tabindex="-1">官能基・構造</button></div>
-      <div id="collection-controls" class="book-controls"><label id="collection-category-label">カテゴリ<select id="collection-category"><option value="all">すべて</option></select></label><label>表示<select id="collection-filter"><option value="available">今の原子で作れる</option><option value="all">すべて</option><option value="found">発見済み</option><option value="missing">未発見</option></select></label></div>
-      <div id="collection-list" class="collection-grid"></div>
-      <section id="collection-detail" hidden></section>
-      <footer class="book-footer"><p>原子は発見3種類でN、6種類でCl、10種類でS、15種類でP・Fを解放。部品は共通構造を含む分子の初発見、または異なる2種類の発見で解禁。同じ分子の繰り返しは不要です。</p><div id="collection-milestones" class="collection-tags"></div><small>図鑑進行はこのブラウザに保存。フィールドは再読み込みで初期化します。</small></footer>
-    </div>
-  </dialog>
-  <script type="module" src="./src/app-v14.js?v=28"></script>
+  <dialog id="menu-dialog" class="sheet" aria-labelledby="menu-title"><header class="sheet-header"><h2 id="menu-title">メニュー</h2><button type="button" data-close-dialog aria-label="メニューを閉じる">×</button></header><div class="sheet-body menu-items">
+    <button id="open-help" type="button">あそびかた <span>›</span></button><button id="menu-info" type="button">いまの分子 <span>›</span></button>
+    <button id="install-app" type="button">アプリをインストール <span>＋</span></button><p id="install-status" class="muted" role="status"></p>
+    <button id="update-app" type="button" hidden>更新して再起動 <span>↻</span></button><p id="update-status" class="muted" role="status"></p>
+    <button id="clear-all" class="danger" type="button">フィールドを空にする</button>
+    <p class="muted">図鑑と制作途中の分子は、この端末に自動保存されます。</p><p id="game-loop-hint" class="muted"></p>
+  </div></dialog>
+  <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
+    <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
+    <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
+    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子が図鑑に登録され、新しい原子や部品が使えるようになります。</p></div></section>
+    <details><summary>動かす・回す・外す</summary><p>原子の球をドラッグすると形を調整できます。背景をドラッグすると選んだ分子が回転。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。回せる単結合の中央をダブルタップすると、ねじる軸を固定できます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
+    <button id="help-done" type="button" class="primary">つくってみる</button>
+  </div></dialog>
+  <dialog id="info-dialog" class="sheet" aria-labelledby="info-title"><header class="sheet-header"><h2 id="info-title">いまの分子</h2><button type="button" data-close-dialog aria-label="分子情報を閉じる">×</button></header><div class="sheet-body info-panel">
+    <div id="status" class="status ok">原子を追加してください</div><p id="molecule-iupac" class="muted"></p>
+    <h3>選択した原子</h3><dl class="details"><div><dt>元素</dt><dd id="selected-element">—</dd></div><div><dt>結合</dt><dd id="selected-valence">—</dd></div><div><dt>電子</dt><dd id="selected-limit">—</dd></div></dl>
+    <h3>分子の構成</h3><div id="atom-counts" class="atom-counts">—</div>
+    <h3>フィールドの分子 <span id="structure-count"></span></h3><div id="structure-list" class="structure-list"></div>
+  </div></dialog>
+  <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="book-shell">
+    <header class="book-header"><div><h2 id="collection-title">分子図鑑</h2><p id="collection-progress"></p></div><button id="close-collection" type="button" aria-label="図鑑を閉じる">×</button></header>
+    <p id="collection-storage" class="save-warning" role="status" hidden></p>
+    <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true" aria-controls="collection-list">分子</button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" aria-controls="collection-list" tabindex="-1">部品</button></div>
+    <details id="collection-controls" class="book-controls"><summary>絞り込み <span id="filter-summary">今つくれる分子</span></summary><div class="filter-fields"><label id="collection-category-label">種類<select id="collection-category"><option value="all">すべて</option></select></label><label>表示<select id="collection-filter"><option value="available">今の原子で作れる</option><option value="all">すべて</option><option value="found">発見済み</option><option value="missing">未発見</option></select></label></div></details>
+    <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
+    <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
+  </div></dialog>
+  <script type="module" src="./src/app-v14.js?v=29"></script>
+  <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>
