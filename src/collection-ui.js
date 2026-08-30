@@ -1,20 +1,21 @@
 import { validateFunctionalGroups } from './functional-groups.js?v=21';
 import { validateCraftStructures } from './craft-structures.js?v=21';
-import { createCollectionState, MILESTONES } from './collection-state.js?v=21';
+import { createCollectionState, MILESTONES } from './collection-state.js?v=25';
+import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=25';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
-  const [groups,templates]=await Promise.all([load('../data/functional-groups.json?v=21'),load('../data/craft-structures.json?v=21')]);
+  const [groups,templates]=await Promise.all([load('../data/functional-groups.json?v=25'),load('../data/craft-structures.json?v=25')]);
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates};
 }
 
-export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document}){
+export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root)}){
   const data=await loadCollectionData();
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
   const state=createCollectionState({records,...data,storage});
   const q=id=>root.querySelector(`#${id}`),dialog=q('collection-dialog'),list=q('collection-list'),detail=q('collection-detail');
-  let tab='molecules',category='all',filter='all',currentDetail=null,detailViewer=null,detailGeneration=0;
+  let tab='molecules',category='all',filter='available',currentDetail=null,detailViewer=null,detailGeneration=0;
   const collectibleGroups=data.groups.filter(group=>group.collectible!==false),thumbnails=new Map();
   const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node;};
   const button=(text,handler,className)=>{const node=el('button',text,className);node.type='button';node.addEventListener('click',handler);return node;};
@@ -26,7 +27,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const host=el('div',null,'collection-model');detail.appendChild(host);
     host.appendChild(el('p','立体模型を読み込んでいます…','collection-note'));
     const generation=detailGeneration;
-    import('./collection-viewer.js?v=22').then(({createCollectionViewer})=>{
+    import('./collection-viewer.js?v=25').then(({createCollectionViewer})=>{
       if(generation!==detailGeneration||!dialog.open||!host.isConnected)return;
       host.replaceChildren();
       detailViewer=createCollectionViewer({host,record,name,onThumbnail:url=>{
@@ -61,8 +62,9 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   q('collection-filter').addEventListener('change',event=>{filter=event.target.value;currentDetail=null;renderBook();});
   function showDetail(kind,id){tab=kind;currentDetail={kind,id};renderBook();q('detail-back')?.focus();}
   function renderPalette(){
+    elementPalette.update(state);
     const container=q('craft-palette');container.replaceChildren();
-    for(const template of data.templates){
+    for(const template of [...data.templates].sort((a,b)=>a.tier-b.tier)){
       if(!state.isUnlocked(template.id)&&!state.hasGroup(template.unlock.groupId))continue;
       const unlocked=state.isUnlocked(template.id),count=state.groupSources(template.unlock.groupId).length;
       const node=button('',()=>{
@@ -79,7 +81,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     q('collection-progress').textContent=`分子 ${state.discoveredCount}/${records.length} · 構造 ${collectibleGroups.filter(group=>state.hasGroup(group.id)).length}/${collectibleGroups.length} · 部品 ${state.unlockedCount}/${data.templates.length}`;
     const storage=q('collection-storage');storage.textContent=state.storageMessage;storage.hidden=!state.storageMessage;
     q('game-save-status').textContent=state.storageMessage?'進行は未保存 · 図鑑で確認':'';
-    q('game-loop-hint').textContent=state.discoveredCount?`発見 ${state.discoveredCount} · 部品 ${state.unlockedCount}解禁 · 図鑑で共通構造を比べよう`:'原子から分子を発見すると図鑑に登録。共通構造を知るほど、使える部品が増えます。';
+    q('game-loop-hint').textContent=state.discoveredCount?`発見 ${state.discoveredCount} · 原子 ${state.unlockedElements().length}/8 · 部品 ${state.unlockedCount}解禁`:'H・C・Oから分子を発見。新しい原子と構造部品が使えるようになります。';
     const milestoneList=q('collection-milestones');milestoneList.replaceChildren();
     for(const id of state.milestoneIds())milestoneList.appendChild(el('span',MILESTONES[id],'collection-tag'));
   }
@@ -97,19 +99,20 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       if(items.length)select.appendChild(new Option(`${label} · ${items.filter(item=>state.hasMolecule(item.id)).length}/${items.length}`,key));
     }
     select.value=category;q('collection-filter').value=filter;list.replaceChildren();
-    const visible=known=>filter==='all'||(filter==='found'?known:!known);
+    const visible=(known,available)=>filter==='all'||(filter==='available'?available:filter==='found'?known:!known);
     if(tab==='molecules'){
       const ordered=[...records].sort((a,b)=>a.atoms.length-b.atoms.length||a.id.localeCompare(b.id));
       for(const record of ordered){
-        const known=state.hasMolecule(record.id);if(!visible(known)||(category!=='all'&&collectionCategory(record)!==category))continue;
+        const known=state.hasMolecule(record.id);if(!visible(known,state.canBuild(record))||(category!=='all'&&collectionCategory(record)!==category))continue;
         const card=button('',()=>showDetail('molecules',record.id),`collection-card ${known?'found':'unknown'}`);
         if(known)thumbnail(card,`molecules:${record.id}`);
         card.append(el('small',COLLECTION_CATEGORIES[collectionCategory(record)]),el('strong',known?moleculeDisplayName(record):'???'),el('span',record.formula,'collection-formula'),el('small',known?`発見 #${state.moleculeEntry(record.id).order}`:'未発見 · タップでヒント'));
+        if(!state.canBuild(record))card.appendChild(el('small',`原子 ${[...new Set(record.atoms.filter(element=>!state.canUseElement(element)))].join('・')} の解放後に制作`));
         list.appendChild(card);
       }
     }else{
       for(const group of collectibleGroups){
-        const known=state.hasGroup(group.id);if(!visible(known))continue;
+        const known=state.hasGroup(group.id);if(!visible(known,group.pattern.atoms.every(atom=>state.canUseElement(atom.element))))continue;
         const templates=data.templates.filter(template=>template.unlock.groupId===group.id),isUnlocked=templates.some(template=>state.isUnlocked(template.id));
         const card=button('',()=>showDetail('groups',group.id),`collection-card ${known?'found':'unknown'}`);
         if(known)thumbnail(card,`groups:${group.id}`);
@@ -143,6 +146,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const record=recordById(currentDetail.id),known=state.hasMolecule(record.id),matches=collectibleMatches(record);
     detail.append(el('h3',known?moleculeDisplayName(record):'???'),el('p',record.formula,'detail-formula'),el('p',COLLECTION_CATEGORIES[collectionCategory(record)]));
     if(!known){
+      if(!state.canBuild(record))detail.appendChild(el('p',`必要な未解放原子：${ELEMENT_UNLOCKS.filter(item=>record.atoms.includes(item.symbol)&&!state.canUseElement(item.symbol)).map(item=>`${item.symbol}（発見${item.discoveries}種類で解放）`).join('・')}`,'unlock-condition'));
       detail.appendChild(el('p','分子式は原子の個数の手掛かりです。同じ分子式でも、つなぎ方が違えば別の分子になります。'));
       const hint=button('もう一段ヒントを見る',()=>{
         hint.disabled=true;
@@ -151,10 +155,12 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }
     preview(record,moleculeDisplayName(record),`molecules:${record.id}`);
     detail.appendChild(el('p',record.nameEn));
+    if(record.learningNote)detail.appendChild(el('p',record.learningNote,'collection-note'));
     detail.appendChild(el('p',`IUPAC: ${record.iupacNameEn}`,'collection-note'));
     if(record.aliases?.length)detail.appendChild(el('p',`別名：${record.aliases.join('、')}`,'collection-note'));
     const entry=state.moleculeEntry(record.id);detail.appendChild(el('p',`発見 #${entry.order}${entry.at?` · ${new Date(entry.at).toLocaleDateString('ja-JP')}`:''}`,'collection-note'));
     detail.appendChild(el('p','模型は結合情報から生成した教材用の立体配置です。発見時の姿勢や実測構造を保存したものではありません。','collection-note'));
+    if(record.stereochemistry==='unspecified')detail.appendChild(el('p','この項目は立体配置を指定しない構造として収集します。L/Dなどの鏡像異性体は区別していません。','collection-note'));
     const tags=el('div',null,'collection-tags');
     for(const match of matches)tags.appendChild(button(groupById(match.id).nameJa,()=>showDetail('groups',match.id),'collection-tag'));
     if(!matches.length)tags.appendChild(el('p','代表的な官能基はありません。'));detail.appendChild(tags);
@@ -174,6 +180,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     describeEvent(event){
       if(!event?.isNew)return '';
       const messages=[];
+      if(event.unlockedElements?.length)messages.push(`${event.unlockedElements.map(symbol=>`${ELEMENT_UNLOCKS.find(item=>item.symbol===symbol).name}（${symbol}）`).join('・')}の原子カードを解放`);
       if(event.isomerOf.length)messages.push('同じ分子式で、別の構造を発見');
       const names=event.groupDiscoveries.map(groupById).filter(group=>group.collectible!==false).map(group=>group.nameJa);
       if(names.length)messages.push(`${names.join('・')}を発見`);

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111827">
   <title>Molecule Craft</title>
-  <link rel="stylesheet" href="./styles.css?v=24">
+  <link rel="stylesheet" href="./styles.css?v=25">
 </head>
 <body>
   <main class="app-shell">
@@ -20,6 +20,7 @@
         <div class="palette-tabs" role="tablist" aria-label="クラフト素材"><button id="atoms-tab" type="button" role="tab" data-palette-tab="atoms" aria-selected="true" aria-controls="element-panel">原子</button><button id="parts-tab" type="button" role="tab" data-palette-tab="structures" aria-selected="false" aria-controls="craft-panel" tabindex="-1">構造 <small id="craft-count">未解禁</small></button></div>
         <div id="element-panel" role="tabpanel" aria-labelledby="atoms-tab">
           <h2>元素</h2>
+          <p id="element-unlock-hint" class="element-unlock-hint" role="status"></p>
           <div id="element-palette" class="element-palette">
             <button type="button" class="element-button" data-element="H" style="--element-color:#f8fafc">H</button>
             <button type="button" class="element-button" data-element="C" style="--element-color:#64748b">C</button>
@@ -63,12 +64,12 @@
       <header class="book-header"><div><p class="eyebrow">MOLECULE COLLECTION</p><h2 id="collection-title">分子と構造の図鑑</h2><p id="collection-progress"></p></div><button id="close-collection" type="button" aria-label="図鑑を閉じる">閉じる</button></header>
       <p id="collection-storage" class="save-warning" role="status" hidden></p>
       <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true" aria-controls="collection-list">分子</button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" aria-controls="collection-list" tabindex="-1">官能基・構造</button></div>
-      <div id="collection-controls" class="book-controls"><label id="collection-category-label">カテゴリ<select id="collection-category"><option value="all">すべて</option></select></label><label>表示<select id="collection-filter"><option value="all">すべて</option><option value="found">発見済み</option><option value="missing">未発見</option></select></label></div>
+      <div id="collection-controls" class="book-controls"><label id="collection-category-label">カテゴリ<select id="collection-category"><option value="all">すべて</option></select></label><label>表示<select id="collection-filter"><option value="available">今の原子で作れる</option><option value="all">すべて</option><option value="found">発見済み</option><option value="missing">未発見</option></select></label></div>
       <div id="collection-list" class="collection-grid"></div>
       <section id="collection-detail" hidden></section>
-      <footer class="book-footer"><p>小さな部品は初発見、大きな部品は異なる2種類の分子で共通構造を見つけると解禁。同じ分子の繰り返しは不要です。</p><div id="collection-milestones" class="collection-tags"></div><small>図鑑進行はこのブラウザに保存。フィールドは再読み込みで初期化します。</small></footer>
+      <footer class="book-footer"><p>原子は発見3種類でN、6種類でCl、10種類でS、15種類でP・Fを解放。部品は共通構造を含む分子の初発見、または異なる2種類の発見で解禁。同じ分子の繰り返しは不要です。</p><div id="collection-milestones" class="collection-tags"></div><small>図鑑進行はこのブラウザに保存。フィールドは再読み込みで初期化します。</small></footer>
     </div>
   </dialog>
-  <script type="module" src="./src/app-v14.js?v=24"></script>
+  <script type="module" src="./src/app-v14.js?v=25"></script>
 </body>
 </html>

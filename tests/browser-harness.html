@@ -16,10 +16,10 @@
     import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from '../src/electron-interaction.js?v=16';
     import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=19';
     import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=20';
-    import { createCollectionState } from '../src/collection-state.js';
-    import { loadCollectionData } from '../src/collection-ui.js?v=22';
+    import { createCollectionState } from '../src/collection-state.js?v=25';
+    import { loadCollectionData } from '../src/collection-ui.js?v=25';
     import { expandCraftStructure, seedCraftCoordinates } from '../src/craft-structures.js?v=21';
-    import { checkPreviewModels } from './preview-model-checks.js';
+    import { checkPreviewModels } from './preview-model-checks.js?v=25';
 
     const collectionData=await loadCollectionData();
     const records=await fetch('../data/molecules.json').then(response=>response.json());setMoleculeDatabase(records);
@@ -63,7 +63,20 @@
       document.querySelector('#release-metrics').textContent=`${result.releaseCases} release cases · max untouched backbone drift ${result.maxBackboneDriftPx}px (390 × 430 viewport)`;
     });
     run('collection models: isolated geometry, ports and correct sp/sp2/sp3 shapes',()=>{
-      checkPreviewModels(THREE,records.filter(record=>['methane','ethene','ethyne','benzene','anisole','phenol'].includes(record.id)),collectionData.templates);
+      checkPreviewModels(THREE,records.filter(record=>record.learningNote||['methane','ethene','ethyne','benzene','anisole','phenol'].includes(record.id)),collectionData.templates);
+    });
+    run('atom progression: H/C/O start, distinct discoveries, N/Cl/S/P/F gates and legacy grants',()=>{
+      const state=createCollectionState({records,...collectionData});
+      const initial=records.filter(record=>state.canBuild(record));
+      if(state.unlockedElements().join(',')!=='H,C,O'||initial.length<15)throw new Error('Initial palette or reachable targets');
+      for(let i=0;i<15;i++){
+        const record=initial[i],graph=new Molecule(),ids=record.atoms.map(element=>graph.addAtom(element).id);
+        record.bonds.forEach(([a,b,order])=>graph.setBond(ids[a],ids[b],order));
+        state.observeStructures(connectedStructures(graph));state.observeStructures(connectedStructures(graph));
+        for(const [element,target] of [['N',3],['Cl',6],['S',10],['P',15],['F',15]])if(state.canUseElement(element)!==(i+1>=target))throw new Error(`Gate ${element} at ${i+1}`);
+      }
+      const legacy=createCollectionState({records,...collectionData,storage:{getItem:()=>JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'sulfur-hexafluoride'}]})}});
+      if(!legacy.canUseElement('F')||!legacy.canUseElement('S'))throw new Error('Legacy element access lost');
     });
 
     run('collection loop: methanol unlocks OH, OH plus raw skeleton discovers ethanol', () => {
@@ -89,7 +102,7 @@
       const restored=createCollectionState({records,...collectionData,storage});
       if(writes!==1||!restored.hasMolecule('water')||new Molecule().atoms.length)throw new Error('persistence separation failed');
     });
-    run('all 14 craft parts: topology seeds relax with finite coordinates and no camera', () => {
+    run('all craft parts: topology seeds relax with finite coordinates and no camera', () => {
       for(const template of collectionData.templates){
         const coordinates=seedCraftCoordinates(template).map(p=>[p.x,p.y,p.z]),item=fixture(template.atoms,template.bonds,coordinates);
         item.solver.rebuildTopology();relaxLikeApp(item.solver);

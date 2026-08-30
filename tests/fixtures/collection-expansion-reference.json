@@ -1,0 +1,26 @@
+{
+  "retrieved": "2026-08-30",
+  "note": "PubChem PUG REST MolecularFormula and ConnectivitySMILES. Connectivity only; amino-acid reference CIDs can specify L forms, but this app does not collect stereoisomers separately.",
+  "records": [
+    {"id":"citric-acid","cid":311,"formula":"C6H8O7","connectivitySMILES":"C(C(=O)O)C(CC(=O)O)(C(=O)O)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/311"},
+    {"id":"succinic-acid","cid":1110,"formula":"C4H6O4","connectivitySMILES":"C(CC(=O)O)C(=O)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/1110"},
+    {"id":"malic-acid","cid":525,"formula":"C4H6O5","connectivitySMILES":"C(C(C(=O)O)O)C(=O)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/525"},
+    {"id":"adipic-acid","cid":196,"formula":"C6H10O4","connectivitySMILES":"C(CCC(=O)O)CC(=O)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/196"},
+    {"id":"glycolic-acid","cid":757,"formula":"C2H4O3","connectivitySMILES":"C(C(=O)O)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/757"},
+    {"id":"malonic-acid","cid":867,"formula":"C3H4O4","connectivitySMILES":"C(C(=O)O)C(=O)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/867"},
+    {"id":"o-cresol","cid":335,"formula":"C7H8O","connectivitySMILES":"CC1=CC=CC=C1O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/335"},
+    {"id":"m-cresol","cid":342,"formula":"C7H8O","connectivitySMILES":"CC1=CC(=CC=C1)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/342"},
+    {"id":"p-cresol","cid":2879,"formula":"C7H8O","connectivitySMILES":"CC1=CC=C(C=C1)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/2879"},
+    {"id":"methyl-salicylate","cid":4133,"formula":"C8H8O3","connectivitySMILES":"COC(=O)C1=CC=CC=C1O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/4133"},
+    {"id":"n-butyl-acetate","cid":31272,"formula":"C6H12O2","connectivitySMILES":"CCCCOC(=O)C","source":"https://pubchem.ncbi.nlm.nih.gov/compound/31272"},
+    {"id":"isoamyl-acetate","cid":31276,"formula":"C7H14O2","connectivitySMILES":"CC(C)CCOC(=O)C","source":"https://pubchem.ncbi.nlm.nih.gov/compound/31276"},
+    {"id":"ethyl-benzoate","cid":7165,"formula":"C9H10O2","connectivitySMILES":"CCOC(=O)C1=CC=CC=C1","source":"https://pubchem.ncbi.nlm.nih.gov/compound/7165"},
+    {"id":"isopropyl-acetate","cid":7915,"formula":"C5H10O2","connectivitySMILES":"CC(C)OC(=O)C","source":"https://pubchem.ncbi.nlm.nih.gov/compound/7915"},
+    {"id":"methyl-benzoate","cid":7150,"formula":"C8H8O2","connectivitySMILES":"COC(=O)C1=CC=CC=C1","source":"https://pubchem.ncbi.nlm.nih.gov/compound/7150"},
+    {"id":"cumene","cid":7406,"formula":"C9H12","connectivitySMILES":"CC(C)C1=CC=CC=C1","source":"https://pubchem.ncbi.nlm.nih.gov/compound/7406"},
+    {"id":"benzyl-alcohol","cid":244,"formula":"C7H8O","connectivitySMILES":"C1=CC=C(C=C1)CO","source":"https://pubchem.ncbi.nlm.nih.gov/compound/244"},
+    {"id":"serine","cid":5951,"formula":"C3H7NO3","connectivitySMILES":"C(C(C(=O)O)N)O","source":"https://pubchem.ncbi.nlm.nih.gov/compound/5951"},
+    {"id":"cysteine","cid":5862,"formula":"C3H7NO2S","connectivitySMILES":"C(C(C(=O)O)N)S","source":"https://pubchem.ncbi.nlm.nih.gov/compound/5862"},
+    {"id":"methionine","cid":6137,"formula":"C5H11NO2S","connectivitySMILES":"CSCCC(C(=O)O)N","source":"https://pubchem.ncbi.nlm.nih.gov/compound/6137"}
+  ]
+}

@@ -1,7 +1,7 @@
 import { ELEMENTS } from './chemistry.js?v=20';
 import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from './bonding-model.js';
 import { seedCraftCoordinates } from './craft-structures.js?v=21';
-import { createStructureSolver } from './structure-relaxation.js?v=18';
+import { createStructureSolver } from './structure-relaxation.js?v=24';
 
 // A private graph, not a Molecule instance: opening the book cannot even consume
 // the field's atom-id sequence. DB topology and player placements are read-only.

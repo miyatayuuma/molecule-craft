@@ -43,7 +43,7 @@ function formulaFor(atoms) {
   return symbols.map(symbol => `${symbol}${counts[symbol] > 1 ? counts[symbol] : ''}`).join('');
 }
 
-function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valences = {} }) {
+function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valences = {}, iupacNameEn, learningNote, stereochemistry }) {
   const expandedAtoms = [...atoms];
   const expandedBonds = bonds.map(bond => [...bond]);
   const used = atoms.map(() => 0);
@@ -59,7 +59,7 @@ function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valence
       expandedAtoms.push('H');
     }
   });
-  molecules.push({ id, nameJa, nameEn, ...(aliases.length ? { aliases } : {}), atoms: expandedAtoms, bonds: expandedBonds, formula: formulaFor(expandedAtoms), category });
+  molecules.push({ id, nameJa, nameEn, ...(aliases.length ? { aliases } : {}), atoms: expandedAtoms, bonds: expandedBonds, formula: formulaFor(expandedAtoms), category, ...(iupacNameEn?{iupacNameEn,commonNameJa:nameJa,commonNameEn:nameEn}:{}), ...(learningNote?{learningNote}:{}), ...(stereochemistry?{stereochemistry}:{}) });
 }
 
 function raw(def) {
@@ -362,11 +362,77 @@ for (const [id, nameJa, nameEn, second] of [['catechol', 'カテコール', 'Cat
   add({ id: 'aspirin', nameJa: 'アスピリン', nameEn: 'Aspirin', ...graph, category: 'aromatic-ester-acid' });
 }
 
+// Collection expansion: familiar names that reward functional-group assembly.
+// Neutral connectivity only; optical isomers are not separate collection ids.
+function diacid(count) {
+  const graph=acid(count);
+  attach(graph,0,['O'],[]);graph.bonds.at(-1)[2]=2;
+  attach(graph,0,['O'],[]);
+  return graph;
+}
+for(const [id,nameJa,nameEn,count,iupacNameEn,learningNote] of [
+  ['malonic-acid','マロン酸','Malonic acid',3,'Propanedioic acid','カルボキシ基2個を、1個のCH₂がつなぐジカルボン酸。'],
+  ['succinic-acid','コハク酸','Succinic acid',4,'Butanedioic acid','生体の代謝にも登場するジカルボン酸。両端にカルボキシ基を持ちます。'],
+  ['adipic-acid','アジピン酸','Adipic acid',6,'Hexanedioic acid','ナイロン66の原料になるジカルボン酸。両端の官能基と炭素鎖に注目。'],
+]) add({id,nameJa,nameEn,iupacNameEn,learningNote,...diacid(count),category:'dicarboxylic-acid'});
+{
+  const graph=diacid(4);attach(graph,1,['O'],[]);
+  add({id:'malic-acid',nameJa:'リンゴ酸',nameEn:'Malic acid',iupacNameEn:'2-Hydroxybutanedioic acid',learningNote:'リンゴなどに含まれる有機酸。カルボキシ基2個とヒドロキシ基1個を組み合わせます。',stereochemistry:'unspecified',...graph,category:'hydroxy-acid'});
+}
+{
+  const graph=diacid(5);attach(graph,2,['C','O','O'],[[0,1,2],[0,2,1]]);attach(graph,2,['O'],[]);
+  add({id:'citric-acid',nameJa:'クエン酸',nameEn:'Citric acid',iupacNameEn:'2-Hydroxypropane-1,2,3-tricarboxylic acid',learningNote:'柑橘類などに含まれる有機酸。中央の炭素から枝分かれし、カルボキシ基を3個持ちます。',...graph,category:'hydroxy-acid'});
+}
+{
+  const graph=acid(2);attach(graph,0,['O'],[]);
+  add({id:'glycolic-acid',nameJa:'グリコール酸',nameEn:'Glycolic acid',iupacNameEn:'2-Hydroxyethanoic acid',learningNote:'ヒドロキシ酸の小さな例。CH₂にヒドロキシ基とカルボキシ基がつながります。',...graph,category:'hydroxy-acid'});
+}
+for(const [id,nameJa,nameEn,position] of [['o-cresol','o-クレゾール','o-Cresol',1],['m-cresol','m-クレゾール','m-Cresol',2],['p-cresol','p-クレゾール','p-Cresol',3]]){
+  const graph=aromatic([g=>attach(g,0,['O'],[]),g=>attach(g,position,['C'],[])]);
+  add({id,nameJa,nameEn,iupacNameEn:`${position+1}-Methylphenol`,learningNote:'フェノールの環にメチル基を1個追加した構造。置換位置が違う3種類を別々に収集できます。',...graph,category:'aromatic-alcohol'});
+}
+{
+  const graph=aromatic([g=>attach(g,0,['C','O','O','C'],[[0,1,2],[0,2,1],[2,3,1]]),g=>attach(g,1,['O'],[])]);
+  add({id:'methyl-salicylate',nameJa:'サリチル酸メチル',nameEn:'Methyl salicylate',iupacNameEn:'Methyl 2-hydroxybenzoate',learningNote:'ウィンターグリーンの香りに関係するエステル。芳香環・ヒドロキシ基・エステル結合を組み合わせます。',...graph,category:'aromatic-ester'});
+}
+for(const [id,nameJa,nameEn,carbonCount,iupacNameEn] of [
+  ['methyl-benzoate','安息香酸メチル','Methyl benzoate',1,'Methyl benzoate'],
+  ['ethyl-benzoate','安息香酸エチル','Ethyl benzoate',2,'Ethyl benzoate'],
+]){
+  const graph=aromatic([g=>attach(g,0,['C','O','O',...Array(carbonCount).fill('C')],[[0,1,2],[0,2,1],[2,3,1],...(carbonCount===2?[[3,4,1]]:[])])]);
+  add({id,nameJa,nameEn,iupacNameEn,learningNote:'香料にも使われる芳香族エステル。酸素側の炭素鎖を替えると別の分子になります。',...graph,category:'aromatic-ester'});
+}
+add({id:'n-butyl-acetate',nameJa:'酢酸n-ブチル',nameEn:'n-Butyl acetate',aliases:['酢酸ブチル','butyl acetate'],iupacNameEn:'Butyl ethanoate',learningNote:'塗料などの溶剤に使われるエステル。n-ブチル基を長い炭素鎖として活用できます。',...ester(2,4),category:'ester'});
+{
+  const graph=ester(2,4);attach(graph,6,['C'],[]);
+  add({id:'isoamyl-acetate',nameJa:'酢酸イソアミル',nameEn:'Isoamyl acetate',aliases:['isopentyl acetate'],iupacNameEn:'3-Methylbutyl ethanoate',learningNote:'バナナ様の香りで知られるエステル。直鎖の酢酸エステルとは異なり、末端近くで枝分かれします。',...graph,category:'ester'});
+}
+{
+  const graph=ester(2,2);attach(graph,4,['C'],[]);
+  add({id:'isopropyl-acetate',nameJa:'酢酸イソプロピル',nameEn:'Isopropyl acetate',iupacNameEn:'Propan-2-yl ethanoate',learningNote:'溶剤に使われるエステル。イソプロピル基の中央のCHが酸素につながります。',...graph,category:'ester'});
+}
+{
+  const graph=aromatic([g=>attach(g,0,['C','C','C'],[[0,1,1],[0,2,1]])]);
+  add({id:'cumene',nameJa:'クメン',nameEn:'Cumene',aliases:['イソプロピルベンゼン','isopropylbenzene'],iupacNameEn:'Propan-2-ylbenzene',learningNote:'フェノール製造の原料となる芳香族炭化水素。フェニル基とイソプロピル基を接続した骨格です。',...graph,category:'aromatic'});
+}
+{
+  const graph=aromatic([g=>attach(g,0,['C','O'],[[0,1,1]])]);
+  add({id:'benzyl-alcohol',nameJa:'ベンジルアルコール',nameEn:'Benzyl alcohol',iupacNameEn:'Phenylmethanol',learningNote:'芳香環にCH₂OHがつながるアルコール。酸素が環に直接つながるフェノールとは異なります。',...graph,category:'aromatic-alcohol'});
+}
+for(const [id,nameJa,nameEn,side,iupacNameEn,learningNote] of [
+  ['serine','セリン','Serine',['O'],'2-Amino-3-hydroxypropanoic acid','側鎖にヒドロキシ基を持つアミノ酸。アミノ基・カルボキシ基との組み合わせを学べます。'],
+  ['cysteine','システイン','Cysteine',['S'],'2-Amino-3-sulfanylpropanoic acid','側鎖にチオール基を持つアミノ酸。硫黄の解放で作れる生体分子が広がります。'],
+  ['methionine','メチオニン','Methionine',['C','S','C'],'2-Amino-4-methylsulfanylbutanoic acid','側鎖の途中に硫黄を含むアミノ酸。システインのSHとは異なるC–S–Cを持ちます。'],
+]){
+  const graph=acid(3);attach(graph,1,['N'],[]);attach(graph,0,side,side.slice(1).map((_,i)=>[i,i+1,1]));
+  add({id,nameJa,nameEn,iupacNameEn,learningNote,stereochemistry:'unspecified',...graph,category:'amino-acid'});
+}
+
 const ids = new Set();
 for (const molecule of molecules) {
   if (ids.has(molecule.id)) throw new Error(`Duplicate id: ${molecule.id}`);
   ids.add(molecule.id);
-  molecule.iupacNameEn = iupacNames[molecule.id] ?? molecule.nameEn;
+  molecule.iupacNameEn ??= iupacNames[molecule.id] ?? molecule.nameEn;
   if (commonNameIds.has(molecule.id)) {
     molecule.commonNameJa = molecule.nameJa;
     molecule.commonNameEn = molecule.nameEn;

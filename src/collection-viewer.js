@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
 import { ELEMENTS } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=21';
+import { createPreviewModel } from './preview-model.js?v=25';
 import { createPreviewControls } from './preview-controls.js?v=21';
 
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.

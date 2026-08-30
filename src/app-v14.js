@@ -9,6 +9,7 @@ import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-inter
 import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=19';
 import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
 import { expandCraftStructure, seedCraftCoordinates } from './craft-structures.js?v=21';
+import { createElementPalette } from './element-progression.js?v=25';
 
 const molecule=new Molecule();
 const placements=new Map();
@@ -33,6 +34,7 @@ let collectionGame=null,collectionOpen=false,collectionRevision=0,collectionChec
 
 const viewer=document.querySelector('#viewer');
 const palette=document.querySelector('#element-palette');
+const elementPalette=createElementPalette();
 const statusEl=document.querySelector('#status');
 const formulaEl=document.querySelector('#formula');
 const nameEl=document.querySelector('#molecule-name');
@@ -71,12 +73,12 @@ const solver=createStructureSolver({
 if(renderer){bindPalette();bindUI();refresh();resize();animate();}
 loadMoleculeDatabase().then(async result=>{
   syncWorkspace();if(renderer){refreshInfo();checkDiscovery();}
-  if(!result.ok){if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
+  if(!result.ok){elementPalette.fallback();if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
   try{
-    const {createCollectionUI}=await import('./collection-ui.js?v=22');
-    collectionGame=await createCollectionUI({records:moleculeCatalog(),onPlace:template=>addCraftPart(template.id),canOpen:()=>!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
+    const {createCollectionUI}=await import('./collection-ui.js?v=25');
+    collectionGame=await createCollectionUI({records:moleculeCatalog(),elementPalette,onPlace:template=>addCraftPart(template.id),canOpen:()=>!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
     collectionCheckedRevision=-1;if(renderer)checkDiscovery();
-  }catch(error){console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').textContent='図鑑を読み込めませんでした。原子からの制作は続けられます。';}
+  }catch(error){elementPalette.fallback();console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').textContent='図鑑を読み込めませんでした。原子からの制作は続けられます。';}
 });
 
 function bindPalette(){
@@ -114,7 +116,7 @@ function bindUI(){
 }
 
 function addElement(symbol){
-  if(!ELEMENTS[symbol]||interactionLocked())return;
+  if(!ELEMENTS[symbol]||!elementPalette.canUse(symbol)||interactionLocked())return;
   const atom=molecule.addAtom(symbol);
   protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
   placements.set(atom.id,{position:molecule.atoms.length===1?cameraTarget.clone():spawnPosition()});
