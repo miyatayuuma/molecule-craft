@@ -33,12 +33,12 @@
         </div>
         <div id="craft-panel" role="tabpanel" aria-labelledby="parts-tab" hidden><div id="craft-palette" class="craft-palette"></div><p id="craft-empty" class="collection-note">既知の分子を発見すると部品が解禁されます。図鑑の分子式を手掛かりに、まず原子から作ってみましょう。</p><p class="collection-note">部品は選択原子の近くに配置。光る接続点から電子をドラッグしてつなぎます。Hは自動補完しません。</p></div>
         <div class="action-grid"><button id="delete-selected" class="secondary" type="button">選択原子を削除</button><button id="clear-all" class="danger" type="button">すべて消す</button></div>
-        <p class="hint">白寄りのリングが選択原子、シアンの発光点が不対電子です。不対電子がある原子は電子周辺から結合操作、ない原子は広い範囲で骨格操作できます。原子中央からは常に原子を動かせます。電子を相手へ近づけて離すと、単結合・多重結合・環閉鎖が成立し、視点を固定して安定配置へ移動します。結合線の中央を長押しすると結合次数が下がり、解放された不対電子を再び操作できます。背景ドラッグは全体回転、2本指はパン・ズーム・ひねり回転。背景ダブルタップで主構造を表示します。単結合の中央をダブルタップすると回転軸を固定できます。完成はつながった構造ごとに判定します。近くの小片は保持し、遠い未完成の小片だけを整理します。これは化学反応による消滅ではなく作業場の整理です。</p>
+        <p class="hint">白寄りのリングが選択原子、シアンの発光点が不対電子です。不対電子がある原子は電子周辺から結合操作、ない原子は広い範囲で骨格操作できます。原子中央からは常に原子を動かせます。電子を相手へ近づけて離すと、単結合・多重結合・環閉鎖が成立し、視点を固定して安定配置へ移動します。結合線の中央を長押しすると結合次数が下がり、解放された不対電子を再び操作できます。背景ドラッグは表示対象の分子だけを中心まわりに回転、2本指はパン・ズーム・ひねり回転。背景ダブルタップで表示対象の分子に寄ります。背景をタップして原子選択を解除しても、表示対象は変わりません。別の分子の原子や「作業中の構造」を選ぶと対象が切り替わります。単結合の中央をダブルタップすると回転軸を固定できます。完成はつながった構造ごとに判定します。近くの小片は保持し、遠い未完成の小片だけを整理します。これは化学反応による消滅ではなく作業場の整理です。</p>
       </aside>
 
       <section class="viewer-wrap">
         <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
-        <div class="viewer-actions"><button id="frame-structure" type="button" title="選択した構造、または主構造を画面内に表示">構造を表示</button><button id="undo-cleanup" type="button" hidden>整理を元に戻す</button></div>
+        <div class="viewer-actions"><button id="frame-structure" type="button" title="表示対象の分子を画面内に収め、回転中心を合わせる">構造を表示</button><button id="undo-cleanup" type="button" hidden>整理を元に戻す</button></div>
         <div id="selection-chip" class="selection-chip">元素を押して中心原子を置く</div>
         <div id="discovery" class="discovery" aria-live="assertive">
           <span id="discovery-kicker" class="discovery-kicker">STRUCTURE COMPLETE</span>
