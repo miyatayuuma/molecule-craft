@@ -1,4 +1,4 @@
-import {createPreviewModel} from '../src/preview-model.js?v=25';
+import {createPreviewModel} from '../src/preview-model.js?v=26';
 import {ATOMIC_MODEL,bondLengthScale} from '../src/bonding-model.js';
 
 export function checkPreviewModels(THREE,records,templates){

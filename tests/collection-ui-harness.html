@@ -34,7 +34,7 @@
 <script type="module">
   import {Molecule,setMoleculeDatabase} from '../src/chemistry.js?v=20';
   import {connectedStructures} from '../src/workspace-model.js?v=20';
-  import {createCollectionUI} from '../src/collection-ui.js?v=25';
+  import {createCollectionUI} from '../src/collection-ui.js?v=26';
   import {expandCraftStructure} from '../src/craft-structures.js?v=21';
   const records=await fetch('../data/molecules.json').then(response=>response.json());setMoleculeDatabase(records);
   const model=new Molecule();let saved=null,carbon=null,port=null;

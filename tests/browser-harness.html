@@ -17,9 +17,10 @@
     import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=19';
     import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=20';
     import { createCollectionState } from '../src/collection-state.js?v=25';
-    import { loadCollectionData } from '../src/collection-ui.js?v=25';
+    import { loadCollectionData } from '../src/collection-ui.js?v=26';
     import { expandCraftStructure, seedCraftCoordinates } from '../src/craft-structures.js?v=21';
-    import { checkPreviewModels } from './preview-model-checks.js?v=25';
+    import { checkPreviewModels } from './preview-model-checks.js?v=26';
+    import { checkAromaticRendering } from './aromatic-rendering-checks.js?v=26';
 
     const collectionData=await loadCollectionData();
     const records=await fetch('../data/molecules.json').then(response=>response.json());setMoleculeDatabase(records);
@@ -64,6 +65,9 @@
     });
     run('collection models: isolated geometry, ports and correct sp/sp2/sp3 shapes',()=>{
       checkPreviewModels(THREE,records.filter(record=>record.learningNote||['methane','ethene','ethyne','benzene','anisole','phenol'].includes(record.id)),collectionData.templates);
+    });
+    run('aromatic display: uniform sticks, ring break/restore, plane tracking and unchanged topology',()=>{
+      checkAromaticRendering(THREE,records,collectionData.templates);
     });
     run('atom progression: H/C/O start, distinct discoveries, N/Cl/S/P/F gates and legacy grants',()=>{
       const state=createCollectionState({records,...collectionData});

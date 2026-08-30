@@ -27,7 +27,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const host=el('div',null,'collection-model');detail.appendChild(host);
     host.appendChild(el('p','立体模型を読み込んでいます…','collection-note'));
     const generation=detailGeneration;
-    import('./collection-viewer.js?v=25').then(({createCollectionViewer})=>{
+    import('./collection-viewer.js?v=26').then(({createCollectionViewer})=>{
       if(generation!==detailGeneration||!dialog.open||!host.isConnected)return;
       host.replaceChildren();
       detailViewer=createCollectionViewer({host,record,name,onThumbnail:url=>{

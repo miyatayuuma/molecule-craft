@@ -10,6 +10,7 @@ import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.j
 import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
 import { expandCraftStructure, seedCraftCoordinates } from './craft-structures.js?v=21';
 import { createElementPalette } from './element-progression.js?v=25';
+import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=26';
 
 const molecule=new Molecule();
 const placements=new Map();
@@ -75,7 +76,7 @@ loadMoleculeDatabase().then(async result=>{
   syncWorkspace();if(renderer){refreshInfo();checkDiscovery();}
   if(!result.ok){elementPalette.fallback();if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
   try{
-    const {createCollectionUI}=await import('./collection-ui.js?v=25');
+    const {createCollectionUI}=await import('./collection-ui.js?v=26');
     collectionGame=await createCollectionUI({records:moleculeCatalog(),elementPalette,onPlace:template=>addCraftPart(template.id),canOpen:()=>!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
     collectionCheckedRevision=-1;if(renderer)checkDiscovery();
   }catch(error){elementPalette.fallback();console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').textContent='図鑑を読み込めませんでした。原子からの制作は続けられます。';}
@@ -384,8 +385,9 @@ function ensureMoleculeMeshes(){
 }
 function rebuildMoleculeMeshes(){
   disposeGroup(moleculeGroup);atomVisuals.clear();bondVisuals.clear();electronVisuals=[];aromaticVisuals=[];
-  for(const bond of molecule.bonds)createBondVisual(bond);
-  const structural=solver.snapshot();for(const cycle of structural.aromaticCycles)createAromaticVisual(cycle);
+  const structural=solver.snapshot(),aromaticEdges=aromaticBondKeys(structural.aromaticCycles);
+  for(const bond of molecule.bonds)createBondVisual(bond,aromaticEdges);
+  for(const cycle of structural.aromaticCycles)createAromaticVisual(cycle);
   for(const atom of molecule.atoms)createAtomVisual(atom);
   renderTopologyDirty=false;updateMoleculeTransforms();
 }
@@ -410,12 +412,13 @@ function renderUnpairedElectron(atomId,index,dir,shell){
   for(const object of[visible,hit]){object.userData.electronAtomId=atomId;object.userData.electronIndex=index;moleculeGroup.add(object);}
   electronVisuals.push({atomId,index,dir:dir.clone(),shell,visible,hit,phase:(atomId*1.71+index*2.37)%6.28});
 }
-function createBondVisual(bond){
-  const key=bondKey(bond.a,bond.b),offsets=bond.order===1?[0]:bond.order===2?[-.09,.09]:[-.16,0,.16],baseColor=bond.order===1?0x94a3b8:bond.order===2?0xfbbf24:0xf472b6;
+function createBondVisual(bond,aromaticEdges){
+  const order=displayedBondOrder(bond,aromaticEdges);
+  const key=bondKey(bond.a,bond.b),offsets=order===1?[0]:order===2?[-.09,.09]:[-.16,0,.16],baseColor=order===1?0x94a3b8:order===2?0xfbbf24:0xf472b6;
   const hit=unitCylinder(.13,0xffffff,0);hit.userData.bondKey=key;moleculeGroup.add(hit);
   const lines=offsets.map(offset=>{
-    const mesh=unitCylinder(bond.order===1?.022:bond.order===2?.026:.028,baseColor,1);mesh.userData.bondKey=key;
-    if(bond.order>1){mesh.material.emissive=new THREE.Color(baseColor);mesh.material.emissiveIntensity=bond.order===2?.32:.44;}
+    const mesh=unitCylinder(order===1?.022:order===2?.026:.028,baseColor,1);mesh.userData.bondKey=key;
+    if(order>1){mesh.material.emissive=new THREE.Color(baseColor);mesh.material.emissiveIntensity=order===2?.32:.44;}
     moleculeGroup.add(mesh);return{mesh,offset};
   });
   bondVisuals.set(key,{bond,key,hit,lines,baseColor,transitionScale:1});
@@ -457,16 +460,10 @@ function setBondTransitionVisual(transition,scale){
   visual.transitionScale=THREE.MathUtils.clamp(scale,0.001,1);updateBondVisual(visual);
 }
 function createAromaticVisual(cycle){
-  const geometry=new THREE.BufferGeometry(),positions=new Float32Array(64*3);geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
-  const line=new THREE.LineLoop(geometry,new THREE.LineBasicMaterial({color:0xfde68a,transparent:true,opacity:.82,depthTest:true}));moleculeGroup.add(line);aromaticVisuals.push({cycle:[...cycle],line});
+  const ring=createAromaticRing(THREE);moleculeGroup.add(ring);aromaticVisuals.push({cycle:[...cycle],ring});
 }
 function updateAromaticVisual(visual){
-  const points=visual.cycle.map(pos);if(points.some(point=>!point)){visual.line.visible=false;return;}visual.line.visible=true;
-  const center=points.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/points.length);let normal=new THREE.Vector3();
-  for(let index=0;index<points.length;index++)normal.add(new THREE.Vector3().crossVectors(points[index].clone().sub(center),points[(index+1)%points.length].clone().sub(center)));
-  if(normal.lengthSq()<1e-8)return;normal.normalize();let u=points[0].clone().sub(center);u.addScaledVector(normal,-u.dot(normal));if(u.lengthSq()<1e-8)return;u.normalize();
-  const v=new THREE.Vector3().crossVectors(normal,u).normalize(),radius=points.reduce((sum,point)=>sum+point.distanceTo(center),0)/points.length*.48,attribute=visual.line.geometry.getAttribute('position');
-  for(let index=0;index<64;index++){const angle=index*2*Math.PI/64,point=center.clone().addScaledVector(u,Math.cos(angle)*radius).addScaledVector(v,Math.sin(angle)*radius);attribute.setXYZ(index,point.x,point.y,point.z);}attribute.needsUpdate=true;visual.line.geometry.computeBoundingSphere();
+  updateAromaticRing(THREE,visual.ring,aromaticRingFrame(THREE,visual.cycle.map(pos)));
 }
 function selectionHaloTexture(){
   if(selectionHaloTexture.value)return selectionHaloTexture.value;
@@ -627,7 +624,7 @@ function animateDebris(){
   }
   for(const ev of electronVisuals)setOpacity(ev.visible,debrisOpacity.get(ev.atomId)??1);
   for(const visual of bondVisuals.values())for(const {mesh} of visual.lines)setOpacity(mesh,debrisOpacity.get(visual.bond.a)??1);
-  for(const visual of aromaticVisuals)setOpacity(visual.line,.82*(debrisOpacity.get(visual.cycle[0])??1));
+  for(const visual of aromaticVisuals)setAromaticOpacity(visual.ring,debrisOpacity.get(visual.cycle[0])??1);
 }
 function setOpacity(mesh,opacity){const transparent=opacity<1;if(mesh.material.transparent!==transparent){mesh.material.transparent=transparent;mesh.material.needsUpdate=true;}mesh.material.opacity=opacity;mesh.material.depthWrite=!transparent;}
 function undoCleanup(){

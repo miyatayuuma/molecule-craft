@@ -44,7 +44,7 @@ export function createPreviewModel(THREE, record) {
         const direction=choices[0];used.push(direction);ports.push({atom:port.atom,point:origin.clone().addScaledVector(direction,.95)});
       }
     }
-    return {atoms:atoms.map((atom,id)=>({...atom,point:points[id]})),bonds:bonds.map(b=>({...b})),ports};
+    return {atoms:atoms.map((atom,id)=>({...atom,point:points[id]})),bonds:bonds.map(b=>({...b})),ports,aromaticCycles:solver.snapshot().aromaticCycles};
   }
   return {step:()=>solver.step(.65,2),snapshot};
 }

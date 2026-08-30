@@ -82,6 +82,8 @@
 
 `preview-model.js`（独立グラフ/既存ソルバー）、`preview-controls.js`（閲覧用操作）、`collection-viewer.js`（WebGL/軽量3D描画）を制作画面から分離しています。
 
+ベンゼン型の芳香族6員炭素環は、制作画面・図鑑ともに均一な1本棒6辺と水色の内円で表示します。内円はπ電子の非局在化を示す記号で、電子の軌道や追加の結合ではありません。`aromatic-rendering.js` が描画だけを変え、整数の結合次数・認識・原子価・配置計算は維持します。環を切断したり共役が失われたりすると通常の多重結合表示に戻ります。環外の二重結合と金色の接続点表示は維持します。
+
 制約：SMARTS全対応ではなく、第一級アミノ基・ベンゼン型6員炭素環などに範囲を限定しています。cis/trans・鏡像異性体、クラウド同期、反応経路は未対応です。ゲーム進行はこのブラウザの保存領域に依存します。
 
 ## 検証
@@ -91,6 +93,8 @@
 `node tests/collection.test.mjs` は官能基分類、全17部品の接続点、メタ保存の互換/失敗、重複と異性体、メタノール→OH解禁→エタノールのループを検証します。`tests/browser-harness.html` には同じ流れと全17部品の実Three.jsソルバー検証、`tests/collection-ui-harness.html` には本番保存を変更しない図鑑UIの手動検証を用意しています。後者のグラフ準備ボタンは検証専用で、3D実操作のテストではありません。
 
 `node tests/preview-controls.test.mjs` で回転・ピンチ・リセットの独立状態を検証します。Three.js 0.180.0を用意した環境では `node tests/preview-model-check.mjs /path/to/three/build/three.module.js` で162分子・17部品の配置を検証できます。ブラウザハーネスにも代表分子・追加20分子・全17部品の同じチェックがあります。
+
+`node tests/aromatic-rendering-check.mjs /path/to/three/build/three.module.js` は芳香環の描画規則、環切断・再形成、回転・退化座標、描画資源の解放と制作画面の実メッシュを検証します。`tests/aromatic-rendering-harness.html` で、幅390pxの図鑑模型、通常の二重結合、フェニル基の接続点を目視確認できます。
 
 ## 起動
 

@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
 import { ELEMENTS } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=25';
+import { createPreviewModel } from './preview-model.js?v=26';
 import { createPreviewControls } from './preview-controls.js?v=21';
+import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=26';
 
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
@@ -10,6 +11,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
   let disposed=false,frame=0,renderer=null,observer=null,model=null,layout=null;
   let scene=null,camera=null,group=null,width=1,height=1,radius=1,ready=false;
   let canvas=null,context=null,steps=0,stable=0,thumbnailSent=false;
+  let aromaticEdges=new Set(),aromaticFrames=[];
   const resources=new Set(),listeners=[],viewState={};
   const owner=host.ownerDocument,make=(tag,text,className)=>{const node=owner.createElement(tag);if(text)node.textContent=text;if(className)node.className=className;return node;};
   const stage=make('div',null,'model-stage'),status=make('p','立体模型を準備しています…','model-status');
@@ -49,6 +51,8 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
   layout=layouts.get(key)??null;if(!layout)model=createPreviewModel(THREE,record);
 
   function initialize(){
+    aromaticEdges=aromaticBondKeys(layout.aromaticCycles);
+    aromaticFrames=layout.aromaticCycles.map(cycle=>aromaticRingFrame(THREE,cycle.map(id=>layout.atoms[id].point))).filter(Boolean);
     radius=Math.max(.6,...layout.atoms.map(atom=>atom.point.length()+ELEMENTS[atom.element].radius*.72),...layout.ports.map(port=>port.point.length()+.18));
     scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.01,200);group=new THREE.Group();scene.add(group);
     scene.add(new THREE.HemisphereLight(0xffffff,0x24304a,2.5));
@@ -69,6 +73,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     bindControls();observer=new ResizeObserver(resize);observer.observe(stage);resize();
     host.dataset.renderMode=renderer?'webgl':'software-3d';
     status.textContent=renderer?'立体模型 · 元素色と結合次数を表示':'立体模型 · 軽量3D表示（WebGLを利用できない環境）';
+    if(aromaticFrames.length)status.textContent+=' · 水色の輪は環全体で共有するπ電子の記号です';
   }
   const own=resource=>{resources.add(resource);return resource;};
   function buildMeshes(){
@@ -80,14 +85,16 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     }
     const bondMaterial=own(new THREE.MeshStandardMaterial({color:0x9eafc5,roughness:.4}));
     for(const bond of layout.bonds){
+      const order=displayedBondOrder(bond,aromaticEdges);
       const a=layout.atoms[bond.a].point,b=layout.atoms[bond.b].point,axis=b.clone().sub(a).normalize();
       const reference=Math.abs(axis.z)<.85?new THREE.Vector3(0,0,1):new THREE.Vector3(0,1,0);
       const side=new THREE.Vector3().crossVectors(axis,reference).normalize();
-      for(let i=0;i<bond.order;i++){
-        const mesh=new THREE.Mesh(cylinder,bondMaterial);mesh.position.copy(a).add(b).multiplyScalar(.5).addScaledVector(side,(i-(bond.order-1)/2)*.13);
+      for(let i=0;i<order;i++){
+        const mesh=new THREE.Mesh(cylinder,bondMaterial);mesh.position.copy(a).add(b).multiplyScalar(.5).addScaledVector(side,(i-(order-1)/2)*.13);
         mesh.scale.set(.045,a.distanceTo(b),.045);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),axis);group.add(mesh);
       }
     }
+    for(const frame of aromaticFrames){const ring=createAromaticRing(THREE,own);updateAromaticRing(THREE,ring,frame);group.add(ring);}
     for(const port of layout.ports){
       const geometry=own(new THREE.BufferGeometry().setFromPoints([layout.atoms[port.atom].point,port.point]));
       const line=new THREE.Line(geometry,own(new THREE.LineDashedMaterial({color:0xfbbf24,dashSize:.1,gapSize:.065,depthTest:false})));line.computeLineDistances();line.renderOrder=5;group.add(line);
@@ -113,6 +120,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     const project=point=>{const p=point.clone().project(camera);return {x:(p.x+1)*width/2,y:(1-p.y)*height/2};};
     const commands=[];
     for(const bond of layout.bonds){
+      const order=displayedBondOrder(bond,aromaticEdges);
       const start=rotated[bond.a],end=rotated[bond.b],axis=end.world.clone().sub(start.world).normalize();
       // Stop sticks at sphere surfaces; drawing center-to-center would paint
       // spokes over the foreground atom in the software depth-sorted renderer.
@@ -123,8 +131,26 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
         const p=project(a),q=project(b),length=Math.max(1,Math.hypot(q.x-p.x,q.y-p.y)),dx=-(q.y-p.y)/length,dy=(q.x-p.x)/length;
         const scale=height/(2*Math.tan(19*Math.PI/180)*(camera.position.z-(a.z+b.z)/2));
         context.strokeStyle='#adbdcf';context.lineCap='round';context.lineWidth=Math.max(2,scale*.07);
-        for(let i=0;i<bond.order;i++){const offset=(i-(bond.order-1)/2)*.13*scale;context.beginPath();context.moveTo(p.x+dx*offset,p.y+dy*offset);context.lineTo(q.x+dx*offset,q.y+dy*offset);context.stroke();}
+        for(let i=0;i<order;i++){const offset=(i-(order-1)/2)*.13*scale;context.beginPath();context.moveTo(p.x+dx*offset,p.y+dy*offset);context.lineTo(q.x+dx*offset,q.y+dy*offset);context.stroke();}
       }});
+    }
+    // Sort short arc segments with atoms/bonds so rotation does not turn the
+    // entire ring into a foreground overlay in the software renderer.
+    for(const frame of aromaticFrames){
+      const points=aromaticRingPoints(frame).map(point=>point.applyQuaternion(group.quaternion));
+      for(let i=0;i<points.length;i++){
+        const a=points[i],b=points[(i+1)%points.length],z=(a.z+b.z)/2;
+        if(Math.max(a.z,b.z)>=camera.position.z)continue;
+        commands.push({z,draw:()=>{
+          const p=project(a),q=project(b),scale=height/(2*Math.tan(19*Math.PI/180)*(camera.position.z-z));
+          context.save();context.strokeStyle=AROMATIC_STYLE.cssColor;context.lineCap='round';
+          for(const [tube,opacity] of [[AROMATIC_STYLE.glowTube,AROMATIC_STYLE.glowOpacity],[AROMATIC_STYLE.tube,AROMATIC_STYLE.opacity]]){
+            context.globalAlpha=opacity;context.lineWidth=Math.max(1,tube*frame.radius*2*scale);
+            context.beginPath();context.moveTo(p.x,p.y);context.lineTo(q.x,q.y);context.stroke();
+          }
+          context.restore();
+        }});
+      }
     }
     for(const atom of rotated){
       const depth=camera.position.z-atom.world.z;if(depth<=.01)continue;
