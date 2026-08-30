@@ -1,10 +1,11 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
-import { ELEMENTS, Molecule, countElements, loadMoleculeDatabase, UNKNOWN_NAME } from './chemistry.js';
+import { ELEMENTS, Molecule, countElements, loadMoleculeDatabase, moleculeCatalog, UNKNOWN_NAME } from './chemistry.js?v=20';
 import { ATOMIC_MODEL, preferredValence, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, idealBondAngleDeg } from './bonding-model.js';
 import { createStructureSolver } from './structure-relaxation.js?v=18';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
 import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=19';
-import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=19';
+import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
+import { expandCraftStructure, seedCraftCoordinates } from './craft-structures.js';
 
 const molecule=new Molecule();
 const placements=new Map();
@@ -24,6 +25,7 @@ const protectedUntil=new Map(),cleanupUndo=[];
 let discoveryQueue=[],discoveryUntil=0,activeDiscovery=null;
 let lastBackgroundTap=null,frameTransition=null,pendingFrame=false;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
+let collectionGame=null,collectionOpen=false,collectionRevision=0,collectionCheckedRevision=-1;
 
 const viewer=document.querySelector('#viewer');
 const palette=document.querySelector('#element-palette');
@@ -46,8 +48,9 @@ const structureCount=document.querySelector('#structure-count');
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(44,1,.1,100);camera.position.set(5.2,4,7.6);
 const cameraTarget=new THREE.Vector3();
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.touchAction='none';viewer.appendChild(renderer.domElement);
+let renderer=null;
+try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}catch{statusEl.textContent='3D表示を開始できませんでした。WebGL対応ブラウザで開いてください。図鑑は利用できます。';}
+if(renderer){renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.touchAction='none';viewer.appendChild(renderer.domElement);}
 scene.add(new THREE.HemisphereLight(0xffffff,0x172033,2.7));
 const keyLight=new THREE.DirectionalLight(0xffffff,3.2);keyLight.position.set(6,8,8);scene.add(keyLight);
 const rim=new THREE.DirectionalLight(0x7dd3fc,1);rim.position.set(-5,1,4);scene.add(rim);
@@ -60,10 +63,15 @@ const solver=createStructureSolver({
   radiusFor:id=>ELEMENTS[atomById(id)?.element]?.radius??.42,
 });
 
-bindPalette();bindUI();refresh();resize();animate();
-loadMoleculeDatabase().then(result=>{
-  syncWorkspace();refreshInfo();checkDiscovery();
-  if(!result.ok)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');
+if(renderer){bindPalette();bindUI();refresh();resize();animate();}
+loadMoleculeDatabase().then(async result=>{
+  syncWorkspace();if(renderer){refreshInfo();checkDiscovery();}
+  if(!result.ok){if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
+  try{
+    const {createCollectionUI}=await import('./collection-ui.js?v=20');
+    collectionGame=await createCollectionUI({records:moleculeCatalog(),onPlace:template=>addCraftPart(template.id),canOpen:()=>!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
+    collectionCheckedRevision=-1;if(renderer)checkDiscovery();
+  }catch(error){console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').textContent='図鑑を読み込めませんでした。原子からの制作は続けられます。';}
 });
 
 function bindPalette(){
@@ -100,6 +108,20 @@ function addElement(symbol){
   placements.set(atom.id,{position:molecule.atoms.length===1?cameraTarget.clone():spawnPosition()});
   selectAtom(atom.id);topologyChanged();refresh();
   pulse(molecule.atoms.length===1?`${symbol} を中心原子として追加`:`${symbol} を未結合原子として追加 · 不対電子をドラッグして結合`);
+}
+
+function addCraftPart(id){
+  const template=collectionGame?.templateFor(id);
+  if(!renderer||!template||interactionLocked()||dragState)return false;
+  // Place an unconnected component beside the selection. No hidden auto-bond,
+  // hydrogen completion, or prebuilt-molecule award: the final gesture is yours.
+  const origin=molecule.atoms.length?spawnPosition():cameraTarget.clone(),coordinates=seedCraftCoordinates(template);
+  const expanded=expandCraftStructure(molecule,template),right=cameraRight(),up=cameraUp(),depth=cameraDirection();
+  for(const [index,atomId]of expanded.ids.entries()){
+    const p=coordinates[index];placements.set(atomId,{position:origin.clone().addScaledVector(right,p.x).addScaledVector(up,p.y).addScaledVector(depth,p.z)});protectedUntil.set(atomId,performance.now()+DEBRIS_POLICY.protectionMs);
+  }
+  activeTorsionKey=null;selectAtom(expanded.attachments[0].atomId);topologyChanged();
+  startRelaxation(`${template.nameJa}を配置 · 安定化後に光る接続点を電子ドラッグでつなぐ`);return true;
 }
 
 function onPointerDown(e){
@@ -463,9 +485,10 @@ function focusedStructure(){return structureByAtom.get(selectedAtomId)??mainStru
 function displayIdentity(structure=focusedStructure()){
   if(!structure)return{record:null,primary:'自由制作',iupac:'',formula:'—'};
   const record=structure.record;
-  return record?{record,primary:record.commonNameJa??record.nameJa,iupac:record.iupacNameEn??record.nameEn,formula:structure.formula}:{record:null,primary:structure.complete?'完成した構造（未登録）':UNKNOWN_NAME,iupac:'',formula:structure.formula};
+  return record?{record,primary:record.commonNameJa??record.nameJa,iupac:record.iupacNameEn??record.nameEn,formula:record.formula??structure.formula}:{record:null,primary:UNKNOWN_NAME,iupac:'',formula:structure.formula};
 }
 function syncWorkspace(){
+  collectionRevision++;
   const previousIds=mainStructure?.ids??new Set();
   structures=connectedStructures(molecule);mainStructure=chooseMainStructure(structures,previousIds);
   structureByAtom=new Map(structures.flatMap(item=>[...item.ids].map(id=>[id,item])));
@@ -495,11 +518,26 @@ function refreshStructureList(){
   }
 }
 function checkDiscovery(now=performance.now()){
-  if(interactionLocked()||dragState||now<discoveryUntil)return;
+  if(interactionLocked()||dragState||activePointers.size)return;
+  if(collectionGame&&collectionCheckedRevision!==collectionRevision){
+    collectionCheckedRevision=collectionRevision;
+    const result=collectionGame.observeStructures(structures);
+    for(const gameEvent of result.events){
+      const queued=discoveryQueue.find(item=>item.signature===gameEvent.signature);
+      if(queued){if(!queued.gameEvent)queued.gameEvent=gameEvent;}
+      else if(gameEvent.isNew)discoveryQueue.push({signature:gameEvent.signature,gameEvent});
+    }
+  }
+  if(now<discoveryUntil)return;
   const event=discoveryQueue.shift();if(!event)return;
   const item=structures.find(item=>item.signature===event.signature&&item.complete);if(!item)return;
-  const identity=displayIdentity(item);activeDiscovery=item.signature;discoveryUntil=now+2200;
-  discoveryFormula.textContent=identity.formula;discoveryName.textContent=identity.primary;discoveryIupac.textContent=identity.iupac?`IUPAC: ${identity.iupac}`:'このモデルの典型原子価を満たしています';discovery.classList.remove('show');void discovery.offsetWidth;discovery.classList.add('show');
+  const identity=displayIdentity(item),isNew=!!event.gameEvent?.isNew;activeDiscovery=item.signature;discoveryUntil=now+(isNew?2800:1300);
+  document.querySelector('#discovery-kicker').textContent=isNew?'NEW DISCOVERY':'完成';
+  document.querySelector('#discovery-english').textContent=isNew?identity.record?.nameEn??'':'';
+  document.querySelector('#discovery-learning').textContent=collectionGame?.describeEvent(event.gameEvent)??'';
+  discoveryFormula.textContent=identity.formula;discoveryName.textContent=identity.primary;discoveryIupac.textContent=isNew&&identity.iupac?`IUPAC: ${identity.iupac}`:'';
+  discovery.classList.toggle('new-discovery',isNew);discovery.classList.toggle('repeat',!isNew);discovery.classList.remove('show');void discovery.offsetWidth;discovery.classList.add('show');
+  if(isNew)vibrateFeedback(22,'touch');
 }
 function pulse(text){selectionChip.textContent=text;clearTimeout(pulse.t);pulse.t=setTimeout(()=>{if(relaxation)selectionChip.textContent=`${relaxation.message} · 視点固定`;else refreshInfo();},1700);}
 
@@ -581,13 +619,13 @@ function perpendicular(v){const ref=Math.abs(v.y)<.85?new THREE.Vector3(0,1,0):n
 function vibrateFeedback(duration,pointerType){if(pointerType==='mouse')return;try{navigator.vibrate?.(duration);}catch{}}
 function capture(e){try{renderer.domElement.setPointerCapture(e.pointerId)}catch{}}function release(e){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch{}}
 function selectAtom(id){if(selectedAtomId!==id){if(selectedAtomId!=null)protectedUntil.set(selectedAtomId,performance.now()+DEBRIS_POLICY.protectionMs);selectedAtomId=id;selectionChangedAt=performance.now();}}
-function interactionLocked(){return!!relaxation||!!bondTransition||!!frameTransition;}
+function interactionLocked(){return!!relaxation||!!bondTransition||!!frameTransition||collectionOpen;}
 function topologyChanged(){solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
 function spawnPosition(){
   const center=pos(selectedAtomId)?.clone()??moleculeCenter(),right=cameraRight(),up=cameraUp(),seed=molecule.atoms.length;
   for(let attempt=0;attempt<10;attempt++){
     const angle=(seed+attempt)*2.399963,range=1.65+.24*Math.floor(attempt/3),candidate=center.clone().addScaledVector(right,Math.cos(angle)*range).addScaledVector(up,Math.sin(angle)*range);
-    if(molecule.atoms.every(atom=>atom.id===molecule.atoms.at(-1)?.id||candidate.distanceTo(pos(atom.id))>.95))return candidate;
+    if(molecule.atoms.every(atom=>!pos(atom.id)||candidate.distanceTo(pos(atom.id))>.95))return candidate;
   }return center.clone().addScaledVector(right,2.2);
 }
 function disposeObject(object){object.traverse?.(item=>{item.geometry?.dispose?.();if(Array.isArray(item.material))item.material.forEach(material=>material.dispose?.());else item.material?.dispose?.();});}

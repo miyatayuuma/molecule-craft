@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { Molecule, setMoleculeDatabase } from '../src/chemistry.js';
+import { Molecule, setMoleculeDatabase } from '../src/chemistry.js?v=20';
 import { unpairedElectronCount } from '../src/bonding-model.js';
 import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from '../src/workspace-model.js';
 

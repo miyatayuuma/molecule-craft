@@ -132,6 +132,11 @@ export function moleculeDatabaseStatus() {
   return { ...databaseState };
 }
 
+// Validated records shared with the collection; no second DB download/index.
+export function moleculeCatalog() {
+  return knownMolecules.slice();
+}
+
 export function countElements(atoms) {
   return atoms.reduce((acc, atom) => {
     const symbol = typeof atom === 'string' ? atom : atom.element;

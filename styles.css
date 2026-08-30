@@ -11,6 +11,7 @@
   --danger: #fb7185;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(circle at 50% -10%, rgba(56, 189, 248, 0.15), transparent 34rem), #070b14; }
 button { font: inherit; }
 .app-shell { width: min(1440px, 100%); margin: 0 auto; padding: 20px; }
@@ -63,3 +64,64 @@ h2 { margin: 0 0 10px; font-size: 13px; color: #cbd5e1; letter-spacing: 0.04em; 
 @media (prefers-reduced-motion: reduce) { .discovery.show { animation-duration: .01ms; } }
 @media (max-width: 900px) { .workspace { grid-template-columns: 190px minmax(0, 1fr); } .info-panel { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); } .structures-section { grid-column: 1 / -1; } }
 @media (max-width: 650px) { .app-shell { padding: 12px; } .topbar { align-items: start; } .workspace { display: flex; flex-direction: column; min-height: 0; } .tool-panel { order: 2; } .viewer-wrap { order: 1; } .info-panel { order: 3; display: flex; } .panel { gap: 16px; } .element-palette { grid-template-columns: repeat(8, minmax(42px, 1fr)); overflow-x: auto; padding-bottom: 3px; } .viewer { min-height: 430px; } .molecule-summary strong { font-size: 13px; } .molecule-summary span { font-size: 16px; } .discovery { min-width: 190px; padding: 15px 20px; } }
+
+/* Collection UI is outside the renderer; closing the book returns to crafting. */
+.game-bar { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 14px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 14px; background: rgba(15,23,42,.8); }
+.game-bar p { margin: 0; color: #cbd5e1; font-size: 12px; line-height: 1.5; }
+#game-save-status { color: #fbbf24; }
+#open-collection, .palette-tabs button, .book-tabs button, .book-header button, .book-back, .collection-primary, .craft-part { min-height: 44px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; background: #172033; color: #e0f2fe; cursor: pointer; font: inherit; }
+#open-collection { flex-shrink: 0; color: #bae6fd; border-color: #0e7490; font-size: 13px; font-weight: 750; }
+.palette-tabs, .book-tabs { display: flex; gap: 8px; }
+.palette-tabs button, .book-tabs button { flex: 1; }
+.palette-tabs button[aria-selected="true"], .book-tabs button[aria-selected="true"] { color: #e0f2fe; background: #164e63; border-color: #38bdf8; }
+.palette-tabs small { display: block; font-size: 10px; color: #bae6fd; }
+.craft-palette { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.craft-part { font-size: 12px; overflow-wrap: anywhere; }
+.craft-part.unlocked { border-color: #0e7490; }
+.craft-part.locked { color: #94a3b8; border-style: dashed; }
+.collection-open { overflow: hidden; }
+#collection-dialog { width: min(900px,calc(100vw - 24px)); max-height: min(92dvh,1000px); margin: auto; padding: 0; border: 1px solid #334155; border-radius: 22px; background: #0b1220; color: #f8fafc; overscroll-behavior: contain; }
+#collection-dialog::backdrop { background: rgba(2,6,23,.78); }
+.book-shell { padding: 18px; }
+.book-header { position: sticky; top: -18px; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: -18px -18px 16px; padding: 18px; background: #0b1220; border-bottom: 1px solid var(--border); }
+.book-header h2 { margin: 0; font-size: 20px; color: #f8fafc; }
+.book-header p:not(.eyebrow) { margin: 7px 0 0; color: #94a3b8; font-size: 12px; }
+.book-header button { flex-shrink: 0; }
+.book-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.book-controls label { display: flex; flex: 1; flex-direction: column; gap: 5px; min-width: 120px; font-size: 11px; color: #94a3b8; }
+.book-controls select { width: 100%; min-height: 44px; padding: 8px; border: 1px solid #334155; border-radius: 9px; background: #0f172a; color: #e2e8f0; font-size: 13px; }
+.collection-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(155px,1fr)); gap: 10px; margin-top: 16px; }
+.collection-card { display: flex; flex-direction: column; align-items: start; gap: 7px; min-height: 135px; padding: 14px; border: 1px solid var(--border); border-radius: 14px; text-align: left; background: #0f172a; color: #f8fafc; cursor: pointer; overflow-wrap: anywhere; }
+.collection-card.found { border-color: #155e75; background: linear-gradient(135deg,#123447,#0f172a); }
+.collection-card.unknown { border-style: dashed; color: #94a3b8; }
+.collection-card strong { font-size: 14px; }
+.collection-card small { font-size: 10px; color: #94a3b8; }
+.collection-formula, .detail-formula { font-family: ui-monospace,monospace; font-size: 18px; color: #bae6fd; }
+.collection-note, .book-footer { font-size: 12px; line-height: 1.6; color: #94a3b8; }
+.book-footer { margin-top: 22px; border-top: 1px solid var(--border); padding-top: 10px; }
+.collection-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+.collection-tag { display: inline-flex; align-items: center; min-height: 32px; margin: 3px; padding: 6px 9px; border: 1px solid #334155; border-radius: 9px; background: #172033; color: #bae6fd; font-size: 12px; }
+button.collection-tag { min-height: 44px; cursor: pointer; }
+#collection-detail { margin-top: 16px; line-height: 1.65; }
+#collection-detail h3 { font-size: 24px; margin-bottom: 6px; overflow-wrap: anywhere; }
+#collection-detail h4 { font-size: 14px; }
+#collection-detail p { overflow-wrap: anywhere; }
+.unlock-condition { color: #67e8f9; }
+.collection-primary { color: #67e8f9; border-color: #0e7490; }
+.connection-diagram { display: block; width: min(100%,420px); margin: 14px auto; border: 1px solid var(--border); border-radius: 15px; }
+.save-warning { color: #fbbf24; background: #422006; padding: 12px; border-radius: 10px; font-size: 12px; }
+.game-bar button:focus-visible, .palette-tabs button:focus-visible, .craft-part:focus-visible, #collection-dialog button:focus-visible, #collection-dialog select:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+.discovery { inset: 70px 14px auto; min-width: 0; max-width: 420px; margin: 0 auto; gap: 3px; padding: 12px 16px; transform: none; filter: none; border-radius: 14px; }
+.discovery strong { font-size: 26px; }
+.discovery #discovery-name { font-size: 17px; }
+.discovery small { font-size: 10px; text-align: center; line-height: 1.5; }
+.discovery small:empty { display: none; }
+.discovery.new-discovery { border-color: #67e8f9; box-shadow: 0 0 24px rgba(34,211,238,.16); }
+.discovery.show { animation: collection-toast 2.7s ease-out forwards; }
+.discovery.repeat { top: 70px; right: 14px; left: auto; width: max-content; max-width: calc(100% - 28px); padding: 8px 12px; align-items: end; }
+.discovery.repeat strong, .discovery.repeat #discovery-name { font-size: 13px; }
+.discovery.repeat.show { animation-duration: 1.2s; }
+@keyframes collection-toast { 0% { opacity: 0; transform: translateY(-7px); } 12%,82% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-4px); } }
+@media (max-width: 650px) { .game-bar { padding: 9px 11px; } .collection-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .collection-card { min-height: 125px; padding: 11px; } .book-header h2 { font-size: 17px; } .book-shell { padding: 14px; } .book-header { top: -14px; margin: -14px -14px 14px; padding: 14px; } .craft-palette { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (prefers-reduced-motion: reduce) { .discovery.show { animation-name: collection-toast-still; } }
+@keyframes collection-toast-still { 0%,90% { opacity: 1; } 100% { opacity: 0; } }

@@ -1,0 +1,16 @@
+[
+  {"id":"hydroxyl","nameJa":"OH","label":"ヒドロキシ部品","tier":1,"unlock":{"groupId":"hydroxyl","distinctMolecules":1},"atoms":["O","H"],"bonds":[[0,1,1]],"attachments":[{"atom":0,"order":1,"slots":1}]},
+  {"id":"amino","nameJa":"NH₂","label":"アミノ部品","tier":1,"unlock":{"groupId":"amino","distinctMolecules":1},"atoms":["N","H","H"],"bonds":[[0,1,1],[0,2,1]],"attachments":[{"atom":0,"order":1,"slots":1}]},
+  {"id":"carbonyl","nameJa":"C=O","label":"カルボニル骨格","tier":1,"unlock":{"groupId":"carbonyl","distinctMolecules":1},"atoms":["C","O"],"bonds":[[0,1,2]],"attachments":[{"atom":0,"order":1,"slots":2}]},
+  {"id":"alkene","nameJa":"C=C","label":"二重結合骨格","tier":1,"unlock":{"groupId":"alkene","distinctMolecules":1},"atoms":["C","C"],"bonds":[[0,1,2]],"attachments":[{"atom":0,"order":1,"slots":2},{"atom":1,"order":1,"slots":2}]},
+  {"id":"alkyne","nameJa":"C≡C","label":"三重結合骨格","tier":1,"unlock":{"groupId":"alkyne","distinctMolecules":1},"atoms":["C","C"],"bonds":[[0,1,3]],"attachments":[{"atom":0,"order":1,"slots":1},{"atom":1,"order":1,"slots":1}]},
+  {"id":"aldehyde","nameJa":"CHO","label":"アルデヒド部品","tier":2,"unlock":{"groupId":"aldehyde","distinctMolecules":2},"atoms":["C","O","H"],"bonds":[[0,1,2],[0,2,1]],"attachments":[{"atom":0,"order":1,"slots":1}]},
+  {"id":"carboxyl","nameJa":"COOH","label":"カルボキシ部品","tier":2,"unlock":{"groupId":"carboxyl","distinctMolecules":2},"atoms":["C","O","O","H"],"bonds":[[0,1,2],[0,2,1],[2,3,1]],"attachments":[{"atom":0,"order":1,"slots":1}]},
+  {"id":"ether","nameJa":"C–O–C","label":"エーテル骨格","tier":2,"unlock":{"groupId":"ether","distinctMolecules":2},"atoms":["C","O","C"],"bonds":[[0,1,1],[1,2,1]],"attachments":[{"atom":0,"order":1,"slots":3},{"atom":2,"order":1,"slots":3}]},
+  {"id":"ester","nameJa":"C(=O)–O","label":"エステル接続部品","tier":2,"unlock":{"groupId":"ester","distinctMolecules":2},"atoms":["C","O","O"],"bonds":[[0,1,2],[0,2,1]],"attachments":[{"atom":0,"order":1,"slots":1},{"atom":2,"order":1,"slots":1}]},
+  {"id":"amide","nameJa":"CONH₂","label":"アミド部品","tier":2,"unlock":{"groupId":"amide","distinctMolecules":2},"atoms":["C","O","N","H","H"],"bonds":[[0,1,2],[0,2,1],[2,3,1],[2,4,1]],"attachments":[{"atom":0,"order":1,"slots":1}]},
+  {"id":"nitrile","nameJa":"C≡N","label":"ニトリル部品","tier":2,"unlock":{"groupId":"nitrile","distinctMolecules":2},"atoms":["C","N"],"bonds":[[0,1,3]],"attachments":[{"atom":0,"order":1,"slots":1}]},
+  {"id":"thiol","nameJa":"SH","label":"チオール部品","tier":2,"unlock":{"groupId":"thiol","distinctMolecules":2},"atoms":["S","H"],"bonds":[[0,1,1]],"attachments":[{"atom":0,"order":1,"slots":1}]},
+  {"id":"carbon-chain","nameJa":"CH₂–CH₂","label":"炭素鎖の延長部品","tier":2,"unlock":{"groupId":"carbon-chain","distinctMolecules":2},"atoms":["C","C","H","H","H","H"],"bonds":[[0,1,1],[0,2,1],[0,3,1],[1,4,1],[1,5,1]],"attachments":[{"atom":0,"order":1,"slots":1},{"atom":1,"order":1,"slots":1}]},
+  {"id":"phenyl","nameJa":"C₆H₅","label":"フェニル部品","tier":3,"unlock":{"groupId":"aromatic-ring","distinctMolecules":2},"atoms":["C","C","C","C","C","C","H","H","H","H","H"],"bonds":[[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],[1,6,1],[2,7,1],[3,8,1],[4,9,1],[5,10,1]],"attachments":[{"atom":0,"order":1,"slots":1}]}
+]

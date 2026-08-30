@@ -1,4 +1,4 @@
-import { Molecule, ELEMENTS } from './chemistry.js';
+import { Molecule, ELEMENTS } from './chemistry.js?v=20';
 
 // Topology-only state. Neither recognition nor cleanup depends on the camera.
 export function connectedStructures(molecule) {

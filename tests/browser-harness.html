@@ -7,12 +7,18 @@
   <strong id="summary">RUNNING</strong>
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
-    import { ELEMENTS, Molecule } from '../src/chemistry.js';
+    import { ELEMENTS, Molecule, setMoleculeDatabase } from '../src/chemistry.js?v=20';
     import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from '../src/bonding-model.js';
     import { createStructureSolver } from '../src/structure-relaxation.js?v=18';
     import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from '../src/electron-interaction.js?v=16';
     import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=19';
-    import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=19';
+    import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=20';
+    import { createCollectionState } from '../src/collection-state.js';
+    import { loadCollectionData } from '../src/collection-ui.js?v=20';
+    import { expandCraftStructure, seedCraftCoordinates } from '../src/craft-structures.js';
+
+    const collectionData=await loadCollectionData();
+    const records=await fetch('../data/molecules.json').then(response=>response.json());setMoleculeDatabase(records);
 
     const results = [];
     const near = (actual, expected, tolerance) => Math.abs(actual - expected) <= tolerance;
@@ -44,6 +50,37 @@
       try { test(); results.push({ name, ok: true }); }
       catch (error) { results.push({ name, ok: false, error: error.message }); }
     }
+
+    run('collection loop: methanol unlocks OH, OH plus raw skeleton discovers ethanol', () => {
+      const state=createCollectionState({records,...collectionData});
+      const graphFor=id=>{const model=new Molecule(),record=records.find(item=>item.id===id),ids=record.atoms.map(element=>model.addAtom(element).id);record.bonds.forEach(([a,b,order])=>model.setBond(ids[a],ids[b],order));return model;};
+      state.observeStructures(connectedStructures(graphFor('methanol')));
+      if(!state.isUnlocked('hydroxyl'))throw new Error('OH not unlocked');
+      const model=new Molecule(),ids=['C','C','H','H','H','H','H'].map(element=>model.addAtom(element).id);
+      [[0,1],[0,2],[0,3],[0,4],[1,5],[1,6]].forEach(([a,b])=>model.setBond(ids[a],ids[b],1));
+      const part=expandCraftStructure(model,collectionData.templates.find(item=>item.id==='hydroxyl'));
+      if(connectedStructures(model).some(item=>item.complete))throw new Error('part auto-completed molecule');
+      model.setBond(ids[1],part.attachments[0].atomId,1);
+      const result=state.observeStructures(connectedStructures(model));
+      if(result.events[0]?.record.id!=='ethanol'||!result.events[0]?.isNew)throw new Error('ethanol not discovered');
+      const isomer=state.observeStructures(connectedStructures(graphFor('dimethyl-ether')));
+      if(!isomer.events[0]?.isomerOf.includes('ethanol'))throw new Error('isomer discovery lost');
+    });
+    run('collection persistence: duplicate molecules do not reaward or rewrite storage', () => {
+      let saved=null,writes=0;const storage={getItem:()=>saved,setItem:(_,value)=>{saved=value;writes++;}};
+      const state=createCollectionState({records,...collectionData,storage}),model=new Molecule(),ids=['O','H','H'].map(element=>model.addAtom(element).id);
+      model.setBond(ids[0],ids[1],1);model.setBond(ids[0],ids[2],1);const structures=connectedStructures(model);
+      state.observeStructures(structures);state.observeStructures(structures);
+      const restored=createCollectionState({records,...collectionData,storage});
+      if(writes!==1||!restored.hasMolecule('water')||new Molecule().atoms.length)throw new Error('persistence separation failed');
+    });
+    run('all 14 craft parts: topology seeds relax with finite coordinates and no camera', () => {
+      for(const template of collectionData.templates){
+        const coordinates=seedCraftCoordinates(template).map(p=>[p.x,p.y,p.z]),item=fixture(template.atoms,template.bonds,coordinates);
+        item.solver.rebuildTopology();relaxLikeApp(item.solver);
+        if([...item.placements.values()].some(({position:p})=>!Number.isFinite(p.x+p.y+p.z)))throw new Error(`${template.id}: nonfinite positions`);
+      }
+    });
 
     run('independent structures: completion survives loose atoms and repeats after repair', () => {
       const model=new Molecule(), makeWater=()=>{
