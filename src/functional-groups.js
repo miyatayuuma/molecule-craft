@@ -68,7 +68,7 @@ export function structuralMilestones(graph, detected, groups) {
   function cyclic(id,parent){visited.add(id);for(const n of index.adjacency.get(id)){if(n.id===parent)continue;if(visited.has(n.id)||cyclic(n.id,id))return true;}return false;}
   if(index.atoms.some(atom=>!visited.has(atom.id)&&cyclic(atom.id,null)))result.push('ring');
   if(detected.some(item=>item.id==='aromatic-ring'))result.push('aromatic-ring');
-  const families=new Set(detected.map(item=>groups.find(group=>group.id===item.id)?.family).filter(family=>family&&!['skeleton','aromatic','unsaturation'].includes(family)));
+  const families=new Set(detected.map(item=>groups.find(group=>group.id===item.id)).filter(group=>group?.milestoneFamily!==false).map(group=>group?.family).filter(family=>family&&!['skeleton','aromatic','unsaturation'].includes(family)));
   if(detected.some(item=>['carboxyl','ester','amide'].includes(item.id)))families.delete('carbonyl');
   if(families.size>=2)result.push('multiple-groups');
   return result;

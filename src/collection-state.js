@@ -1,4 +1,4 @@
-import { detectFunctionalGroups, structuralMilestones } from './functional-groups.js';
+import { detectFunctionalGroups, structuralMilestones } from './functional-groups.js?v=21';
 
 export const COLLECTION_STORAGE_KEY = 'molecule-craft.collection.v1';
 export const MILESTONES = Object.freeze({

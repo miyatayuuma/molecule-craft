@@ -5,7 +5,7 @@ export function validateCraftStructures(templates, groups) {
   if(!Array.isArray(templates))throw new Error('Invalid structure templates');
   const groupIds=new Set(groups.map(group=>group.id)),ids=new Set();
   for(const item of templates){
-    if(!item.id||ids.has(item.id)||!item.nameJa||!item.label||!groupIds.has(item.unlock?.groupId)||![1,2].includes(item.unlock.distinctMolecules))throw new Error('Invalid structure unlock');
+    if(!item.id||ids.has(item.id)||!item.nameJa||!item.nameEn||!item.notation||!item.label||!groupIds.has(item.unlock?.groupId)||![1,2].includes(item.unlock.distinctMolecules))throw new Error('Invalid structure unlock');
     ids.add(item.id);
     if(!Array.isArray(item.atoms)||!item.atoms.length||item.atoms.some(element=>!ELEMENTS[element])||!Array.isArray(item.bonds)||!item.attachments?.length)throw new Error(`Invalid structure: ${item.id}`);
     const used=item.atoms.map(()=>0),pairs=new Set(),adjacency=item.atoms.map(()=>[]);
@@ -42,10 +42,13 @@ export function seedCraftCoordinates(template) {
   template.bonds.forEach(([a,b,order])=>{adjacency[a].push({id:b,order});adjacency[b].push({id:a,order});});
   const length=(a,b,order)=>((ATOMIC_MODEL[template.atoms[a]].covalentRadius+ATOMIC_MODEL[template.atoms[b]].covalentRadius)*.78*bondLengthScale(order));
   const points=new Map(),queue=[];
-  // Recognize a six-carbon ring from topology, not a molecule/part name.
-  const ring=template.atoms.map((element,id)=>({element,id})).filter(atom=>atom.element==='C'&&adjacency[atom.id].filter(n=>template.atoms[n.id]==='C').length===2).map(atom=>atom.id);
+  // A substituent carbon must not hide its parent ring (e.g. toluene).
   let ringOrder=[];
-  if(ring.length===6){let previous=-1,current=ring[0];for(let i=0;i<6;i++){ringOrder.push(current);const next=adjacency[current].find(n=>ring.includes(n.id)&&n.id!==previous);previous=current;current=next?.id;}if(current!==ringOrder[0]||new Set(ringOrder).size!==6)ringOrder=[];}
+  function findRing(path){
+    if(path.length===6){if(adjacency[path.at(-1)].some(n=>n.id===path[0]))ringOrder=path;return;}
+    for(const n of adjacency[path.at(-1)])if(!ringOrder.length&&template.atoms[n.id]==='C'&&!path.includes(n.id))findRing([...path,n.id]);
+  }
+  for(let id=0;id<template.atoms.length&&!ringOrder.length;id++)if(template.atoms[id]==='C')findRing([id]);
   if(ringOrder.length){
     const radius=ringOrder.reduce((sum,id,i)=>sum+length(id,ringOrder[(i+1)%6],adjacency[id].find(n=>n.id===ringOrder[(i+1)%6]).order),0)/6;
     ringOrder.forEach((id,i)=>{points.set(id,{x:radius*(1-Math.cos(i*Math.PI/3)),y:radius*Math.sin(i*Math.PI/3),z:0});queue.push(id);});

@@ -5,7 +5,7 @@ import { createStructureSolver } from './structure-relaxation.js?v=18';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
 import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=19';
 import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
-import { expandCraftStructure, seedCraftCoordinates } from './craft-structures.js';
+import { expandCraftStructure, seedCraftCoordinates } from './craft-structures.js?v=21';
 
 const molecule=new Molecule();
 const placements=new Map();
@@ -68,7 +68,7 @@ loadMoleculeDatabase().then(async result=>{
   syncWorkspace();if(renderer){refreshInfo();checkDiscovery();}
   if(!result.ok){if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
   try{
-    const {createCollectionUI}=await import('./collection-ui.js?v=20');
+    const {createCollectionUI}=await import('./collection-ui.js?v=21');
     collectionGame=await createCollectionUI({records:moleculeCatalog(),onPlace:template=>addCraftPart(template.id),canOpen:()=>!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
     collectionCheckedRevision=-1;if(renderer)checkDiscovery();
   }catch(error){console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').textContent='図鑑を読み込めませんでした。原子からの制作は続けられます。';}

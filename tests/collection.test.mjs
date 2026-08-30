@@ -35,6 +35,14 @@ assert.ok(detected('aniline').includes('amino'));
 assert.ok(!detected('dimethylamine').includes('amino'),'Primary amino is deliberately distinct from secondary amines.');
 assert.ok(!detected('benzene').includes('alkene'));
 assert.ok(detected('styrene').includes('alkene'));
+assert.ok(detected('ethene').includes('vinyl'));
+assert.ok(detected('propene').includes('vinyl'));
+assert.ok(!detected('2-butene').includes('vinyl'),'A double bond alone is not a vinyl group.');
+assert.ok(detected('ethyne').includes('ethynyl'));
+assert.ok(!detected('2-butyne').includes('ethynyl'),'An internal triple bond is not an ethynyl group.');
+assert.ok(detected('methanol').includes('methoxy'));
+assert.ok(detected('acetamide').includes('carbamoyl'));
+assert.ok(detected('toluene').includes('phenyl'));
 assert.equal(detectFunctionalGroups(record('glycerol'),groups).find(match=>match.id==='hydroxyl').count,3);
 assert.deepEqual(detectFunctionalGroups({...record('acetic-acid'),id:'renamed',nameJa:'not used'},groups),detectFunctionalGroups(record('acetic-acid'),groups),'Names do not drive functional group matching.');
 for(const group of groups)assert.ok(records.filter(entry=>detectFunctionalGroups(entry,[...groups]).some(match=>match.id===group.id)).length>=2,`Unlock must be achievable without repeating a molecule: ${group.id}`);
@@ -82,6 +90,8 @@ const beforeDuplicate=writes;reloaded.observeStructures([fixture('ethanol')]);as
 
 // Every template stays open at precisely its declared attachment points.
 for(const part of templates){
+  assert.ok(part.nameJa&&!/[=≡]/.test(part.nameJa),`${part.id}: palette needs a spoken structure name`);
+  assert.ok(part.notation&&part.nameEn);
   const model=new Molecule(),expanded=expandCraftStructure(model,part),component=connectedStructures(model)[0];
   assert.equal(component.complete,false,part.id);assert.equal(model.atoms.length,part.atoms.length);
   assert.deepEqual(model.bonds.map(bond=>[expanded.ids.indexOf(bond.a),expanded.ids.indexOf(bond.b),bond.order]),part.bonds);

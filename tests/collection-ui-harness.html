@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Collection UI integration test</title><link rel="stylesheet" href="../styles.css?v=20"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Collection UI integration test</title><link rel="stylesheet" href="../styles.css?v=21"></head>
 <body><main class="app-shell">
   <h1>図鑑UI検証</h1><p>検証用グラフを使う統合テスト。3D操作の実機試験ではありません。本番の保存データは変更しません。</p>
   <div class="game-bar"><div><p id="game-loop-hint"></p><small id="game-save-status"></small></div><button id="open-collection" type="button">図鑑</button></div>
@@ -20,8 +20,8 @@
 <script type="module">
   import {Molecule,setMoleculeDatabase} from '../src/chemistry.js?v=20';
   import {connectedStructures} from '../src/workspace-model.js?v=20';
-  import {createCollectionUI} from '../src/collection-ui.js?v=20';
-  import {expandCraftStructure} from '../src/craft-structures.js';
+  import {createCollectionUI} from '../src/collection-ui.js?v=21';
+  import {expandCraftStructure} from '../src/craft-structures.js?v=21';
   const records=await fetch('../data/molecules.json').then(response=>response.json());setMoleculeDatabase(records);
   const model=new Molecule();let saved=null,carbon=null,port=null;
   const q=id=>document.getElementById(id);

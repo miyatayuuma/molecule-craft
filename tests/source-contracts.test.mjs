@@ -12,7 +12,7 @@ const [index, app, chemistry, solver, electronInteraction, gestureArbitration, d
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=20"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=21"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=18'/);
 assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);
 assert.match(app, /from '\.\/gesture-arbitration\.js\?v=19'/);
@@ -27,7 +27,7 @@ assert.match(index, /id="collection-dialog"/);
 assert.match(index, /id="craft-panel"[^>]*hidden/);
 assert.match(app, /collectionCheckedRevision!==collectionRevision/);
 assert.match(app, /expandCraftStructure\(molecule,template\)/);
-assert.match(app, /await import\('\.\/collection-ui\.js\?v=20'\)/);
+assert.match(app, /await import\('\.\/collection-ui\.js\?v=21'\)/);
 assert.doesNotMatch(app, /localStorage\.setItem/);
 assert.equal((index.match(/data-element=/g) ?? []).length, 8, 'Static element palette must remain in HTML');
 assert.ok(database.length >= 100, `Expected at least 100 molecule records, got ${database.length}`);
