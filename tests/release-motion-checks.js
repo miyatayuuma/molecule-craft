@@ -3,10 +3,10 @@ import {seedCraftCoordinates} from '../src/craft-structures.js?v=31';
 import {connectedStructures,structureFrame} from '../src/workspace-model.js?v=20';
 import {createRelaxationSession} from '../src/structure-motion.js?v=30';
 import {rotateStructure} from '../src/workspace-view.js?v=23';
-import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=31';
+import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=32';
 
 // Actual Three.js camera projection, also runnable without a WebGL context.
-// Rigid drag geometry and camera invariance; real pointer release/no-rebound
+// Background drag geometry and camera invariance; real pointer release/no-rebound
 // behaviour is exercised by mobile-ui-check.mjs against the production app.
 export function checkReleaseMotion(THREE,records) {
   const assert=(ok,message)=>{if(!ok)throw new Error(message);};
@@ -31,7 +31,6 @@ export function checkReleaseMotion(THREE,records) {
     const rotation={ids:plan.scope,center};
     const pairs=item.ids.flatMap((id,i)=>item.ids.slice(i+1).map(other=>[id,other,item.pos(id).distanceTo(item.pos(other))]));
     const radii=new Map(item.ids.map(id=>[id,item.pos(id).distanceTo(center)]));
-    assert(plan.mode==='molecule-rotate',`${name}: free bonded-atom translation`);
     // Use the actual rigid rotation primitive at different pointer update rates.
     const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),2.3/fps);
     let maxDistanceError=0;
@@ -52,7 +51,7 @@ export function checkReleaseMotion(THREE,records) {
     const run=item=>{
       const atom=item.molecule.atoms.find(a=>a.element==='H'),plan=planStructureEdit(item.molecule,atom.id);
       item.pos(atom.id).add(new THREE.Vector3(0,0,.8));
-      const session=createRelaxationSession({solver:item.solver,...editRelaxationOptions(item.molecule,{...plan,atomId:atom.id})});
+      const session=createRelaxationSession({solver:item.solver,...editRelaxationOptions(item.molecule,{...plan,ids:[atom.id],atomId:atom.id})});
       for(let frame=1;frame<400;frame++)if(session.advance(frame*1000/60,{clock:()=>0}).done)break;
     };
     const extra=overlap.molecule.addAtom('O'),point=overlap.pos(overlap.ids[2]).clone().add(new THREE.Vector3(.15,.1,.2));

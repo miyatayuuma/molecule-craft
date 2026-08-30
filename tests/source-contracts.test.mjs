@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const [index, app, chemistry, solver, electronInteraction, gestureArbitration, database] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app-v14.js?v=31', root), 'utf8'),
+  readFile(new URL('src/app-v14.js?v=32', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=31', root), 'utf8'),
   readFile(new URL('src/electron-interaction.js', root), 'utf8'),
@@ -12,16 +12,16 @@ const [index, app, chemistry, solver, electronInteraction, gestureArbitration, d
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=31"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=32"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=31'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
-assert.match(app, /from '\.\/structure-edit\.js\?v=31'/);
+assert.match(app, /from '\.\/structure-edit\.js\?v=32'/);
 assert.match(app, /from '\.\/workspace-view\.js\?v=23'/);
 assert.doesNotMatch(app, /stableFrames|maxDuration/);
 assert.doesNotMatch(app, /pendingFrame|followDraggedBranch|function structurePlan|interruptRelaxation|panCamera/);
 assert.doesNotMatch(index, /stop-relaxation/);
 assert.match(app, /editRelaxationOptions\(molecule,state\)/);
-assert.match(app, /if\(activePointers.size&&dragState\?\.moved\)return/);
+assert.match(app, /activePointers.size&&dragState&&\(dragState.moved\|\|dragState.mode!=='molecule-rotate'\)/);
 assert.equal((app.match(/if\(!activePointers.has\(e.pointerId\)\)return/g)??[]).length,3,'Foreign pointer move/up/cancel must not steal an edit');
 assert.match(index, /id="structure-focus" aria-label="編集する分子"/);
 const focusHandler=app.slice(app.indexOf("structureFocus.addEventListener('change'"),app.indexOf("document.querySelector('#frame-structure')"));

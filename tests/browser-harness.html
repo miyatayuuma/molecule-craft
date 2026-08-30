@@ -12,7 +12,7 @@
     import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from '../src/bonding-model.js?v=31';
     import { createStructureSolver } from '../src/structure-relaxation.js?v=31';
     import { checkStructureMotion } from './structure-motion-checks.js?v=31';
-    import { checkReleaseMotion } from './release-motion-checks.js?v=31';
+    import { checkReleaseMotion } from './release-motion-checks.js?v=32';
     import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from '../src/electron-interaction.js?v=16';
     import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=20';
     import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=20';
@@ -23,6 +23,7 @@
     import { checkAromaticRendering } from './aromatic-rendering-checks.js?v=31';
     import { checkSpawnLayouts } from './spawn-layout-checks.js?v=31';
 
+    import { checkTorsionModel } from './torsion-checks.js?v=32';
     import { checkStructureSettlement } from './structure-settlement-checks.js?v=31';
 
     const collectionData=await loadCollectionData();
@@ -59,6 +60,7 @@
       catch (error) { results.push({ name, ok: false, error: error.message }); }
     }
 
+    run('torsion axes: fixed P, rings and resonance, selectable branches and unregistered graphs',()=>{checkTorsionModel(records);});
     run('automatic P repair, rotation during correction and surface attachment markers',()=>{checkStructureSettlement(THREE,records,collectionData.templates);});
     run('far bonds, docking, ring closure, low-FPS convergence and focused rotation',()=>{
       checkStructureMotion(THREE);
@@ -66,7 +68,7 @@
     run('spawn layout: 17 whole parts stay within portrait/landscape bounds, including electron radii',()=>{
       checkSpawnLayouts(THREE,collectionData.templates);
     });
-    run('release at 15/60fps: rigid bonded-atom rotation, fixed camera, independent components and preserved torsion',()=>{
+    run('release at 15/60fps: rigid background rotation, fixed camera, independent components and preserved torsion',()=>{
       const result=checkReleaseMotion(THREE,records);
       document.querySelector('#release-metrics').textContent=`${result.releaseCases} rigid drag cases · max pair-distance error ${result.maxDistanceError.toExponential(2)} (390 × 430 viewport)`;
     });
