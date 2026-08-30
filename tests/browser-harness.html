@@ -14,7 +14,7 @@
     import { checkStructureMotion } from './structure-motion-checks.js?v=24';
     import { checkReleaseMotion } from './release-motion-checks.js?v=24';
     import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from '../src/electron-interaction.js?v=16';
-    import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=19';
+    import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=20';
     import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=20';
     import { createCollectionState } from '../src/collection-state.js?v=25';
     import { loadCollectionData } from '../src/collection-ui.js?v=26';
@@ -129,11 +129,11 @@
       model.removeBond(a[0],a[1]);tracker.update(connectedStructures(model));model.setBond(a[0],a[1],1);
       if(tracker.update(connectedStructures(model)).length!==1)throw new Error('recompletion lost');
     });
-    run('per-atom gestures: filled atoms stay easy to grab beside reactive material', () => {
+    run('per-atom gestures: direct electrons win; distant assists do not steal atoms', () => {
       const atoms=[{atomId:1,screenX:100,screenY:100,unpaired:0},{atomId:2,screenX:200,screenY:100,unpaired:1}];
-      if(chooseAtomOrElectron(130,100,atoms,{atomId:2,distance:45})?.atomId!==1)throw new Error('filled atom target stolen');
-      if(chooseAtomOrElectron(225,100,atoms,{atomId:2,distance:8})?.kind!=='electron')throw new Error('reactive electron unavailable');
-      if(chooseAtomOrElectron(110,100,atoms,{atomId:2,distance:0})?.kind!=='atom')throw new Error('atom center stolen');
+      if(chooseAtomOrElectron(130,100,atoms,{atomId:2,distance:45,assisted:true})?.atomId!==1)throw new Error('filled atom target stolen');
+      if(chooseAtomOrElectron(225,100,atoms,{atomId:2,distance:8,assisted:false})?.kind!=='electron')throw new Error('reactive electron unavailable');
+      if(chooseAtomOrElectron(110,100,atoms,{atomId:2,distance:0,assisted:false})?.kind!=='electron')throw new Error('direct electron hidden behind atom');
     });
     run('cleanup and framing: preserve complete molecules, ignore far debris in fit', () => {
       const model=new Molecule(), ids=['O','H','H','H','H','C'].map(element=>model.addAtom(element).id);
