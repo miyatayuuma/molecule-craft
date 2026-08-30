@@ -39,6 +39,11 @@ h2 { margin: 0 0 10px; font-size: 13px; color: #cbd5e1; letter-spacing: 0.04em; 
 .viewer-actions { position: absolute; top: 12px; right: 12px; left: 12px; display: flex; justify-content: end; flex-wrap: wrap; gap: 8px; pointer-events: none; }
 .viewer-actions button, .structure-item { min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(15,23,42,.94); color: #e0f2fe; cursor: pointer; pointer-events: auto; }
 .viewer-actions button[hidden] { display: none; }
+.viewer-focus { display: flex; flex: 1 1 130px; max-width: 240px; min-width: 0; flex-direction: column; gap: 2px; pointer-events: auto; font-size: 10px; color: #bae6fd; }
+.viewer-focus[hidden] { display: none; }
+.viewer-focus select { width: 100%; min-height: 44px; padding: 8px; border: 1px solid #0e7490; border-radius: 12px; background: rgba(15,23,42,.94); color: #e0f2fe; font: inherit; font-size: 13px; text-overflow: ellipsis; }
+.viewer-focus select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.viewer-focus select:disabled { opacity: .6; }
 .viewer-actions button:focus-visible, .structure-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .structure-list { display: grid; gap: 6px; max-height: 220px; overflow-y: auto; }
 .structure-item { text-align: left; font-size: 12px; overflow-wrap: anywhere; }

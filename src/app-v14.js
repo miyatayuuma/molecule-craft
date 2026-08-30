@@ -1,8 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
 import { ELEMENTS, Molecule, countElements, loadMoleculeDatabase, moleculeCatalog, UNKNOWN_NAME } from './chemistry.js?v=20';
 import { ATOMIC_MODEL, preferredValence, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, idealBondAngleDeg } from './bonding-model.js';
-import { createStructureSolver } from './structure-relaxation.js?v=23';
-import { planBondDocking, createRelaxationSession } from './structure-motion.js?v=23';
+import { createStructureSolver } from './structure-relaxation.js?v=24';
+import { planBondDocking, createRelaxationSession } from './structure-motion.js?v=24';
+import { planStructureEdit, editRelaxationOptions } from './structure-edit.js?v=24';
 import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
 import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=19';
@@ -26,7 +27,7 @@ const completionTracker=createCompletionTracker(),debrisTracker=createDebrisTrac
 const workspaceView=createWorkspaceView();
 const protectedUntil=new Map(),cleanupUndo=[];
 let discoveryQueue=[],discoveryUntil=0,activeDiscovery=null;
-let lastBackgroundTap=null,frameTransition=null,pendingFrame=false;
+let lastBackgroundTap=null,frameTransition=null;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
 let collectionGame=null,collectionOpen=false,collectionRevision=0,collectionCheckedRevision=-1;
 
@@ -47,6 +48,7 @@ const discoveryName=document.querySelector('#discovery-name');
 const discoveryIupac=document.querySelector('#discovery-iupac');
 const structureList=document.querySelector('#structure-list');
 const structureCount=document.querySelector('#structure-count');
+const structureFocus=document.querySelector('#structure-focus');
 
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(44,1,.1,100);camera.position.set(5.2,4,7.6);
@@ -85,6 +87,12 @@ function bindPalette(){
   }
 }
 function bindUI(){
+  structureFocus.addEventListener('change',()=>{
+    if(interactionLocked()||dragState||activePointers.size){refreshStructureList();return;}
+    const item=structures.find(item=>item.key===structureFocus.value);if(!item)return;
+    selectAtom(item.graph.atoms[0].id);activeTorsionKey=null;lastBackgroundTap=null;refresh();
+    pulse('編集対象を切り替えました · 視点は固定／必要なら「構造を表示」');
+  });
   document.querySelector('#frame-structure')?.addEventListener('click',requestStructureFrame);
   document.querySelector('#undo-cleanup')?.addEventListener('click',undoCleanup);
   document.addEventListener('visibilitychange',()=>{debrisTracker.reset();fadeTargets.clear();});
@@ -96,7 +104,7 @@ function bindUI(){
   });
   document.querySelector('#clear-all')?.addEventListener('click',()=>{
     stopRelaxation();clearBondTransition();molecule.clear();placements.clear();workspaceView.clear();selectAtom(null);activeTorsionKey=null;dragState=null;electronReturn=null;hoverElectron=null;
-    activePointers.clear();multiGesture=null;frameTransition=null;pendingFrame=false;lastBackgroundTap=null;
+    activePointers.clear();multiGesture=null;frameTransition=null;lastBackgroundTap=null;
     cleanupUndo.length=0;protectedUntil.clear();debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();completionTracker.clear();discoveryQueue=[];activeDiscovery=null;discoveryUntil=0;discovery.classList.remove('show');topologyChanged();refresh();
   });
   const c=renderer.domElement;
@@ -130,6 +138,9 @@ function addCraftPart(id){
 
 function onPointerDown(e){
   if(interactionLocked()){pulse('構造変化中 · 視点は固定されています');return;}
+  // Once a drag is committed, a stray second finger cannot steal it or move
+  // the camera. Unregistered pointer events are ignored below as well.
+  if(activePointers.size&&dragState?.moved)return;
   activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,downAt:performance.now()});
   if(activePointers.size===2){lastBackgroundTap=null;clearTimeout(bondHoldTimer);beginTwoFinger();dragState=null;hoverElectron=null;return;}if(activePointers.size>1)return;
   const picked=chooseAtomOrElectron(e.clientX,e.clientY,screenAtomCandidates(),pickScreenElectron(e.clientX,e.clientY));
@@ -148,14 +159,15 @@ function beginAtomDrag(e,atomId){
   selectAtom(atomId);
   if(activeTorsionKey){
     const bond=bondFromKey(activeTorsionKey),sides=bond&&cutSides(bond.a,bond.b);
-    if(bond&&sides){const side=sides.a.has(atomId)?sides.a:sides.b.has(atomId)?sides.b:null;if(side){dragState={mode:'torsion',atomId,bond,ids:[...side],lastX:e.clientX,lastY:e.clientY,startX:e.clientX,startY:e.clientY,moved:false};capture(e);refresh();return;}}
+    if(bond&&sides){const side=sides.a.has(atomId)?sides.a:sides.b.has(atomId)?sides.b:null;if(side){dragState={mode:'torsion',atomId,bond,ids:[...side],scope:structureByAtom.get(atomId)?.ids,lastX:e.clientX,lastY:e.clientY,startX:e.clientX,startY:e.clientY,moved:false};capture(e);refresh();return;}}
     activeTorsionKey=null;
   }
-  const plan=structurePlan(atomId),home=pos(atomId)?.clone();
-  dragState=plan?{mode:'structure',atomId,pivotId:plan.pivotId,ids:plan.ids,lastX:e.clientX,lastY:e.clientY,startX:e.clientX,startY:e.clientY,moved:false}:{mode:'atom-translate',atomId,homeWorld:home,planeNormal:cameraDirection(),startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false};
+  const plan=planStructureEdit(molecule,atomId),home=pos(atomId)?.clone();
+  dragState={...plan,atomId,homeWorld:home,planeNormal:cameraDirection(),startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false};
   capture(e);refresh();
 }
 function onPointerMove(e){
+  if(!activePointers.has(e.pointerId))return;
   const p=activePointers.get(e.pointerId);if(p){p.x=e.clientX;p.y=e.clientY;}if(activePointers.size===2){updateTwoFinger();return;}if(!dragState)return;
   dragState.moved||=Math.hypot(e.clientX-dragState.startX,e.clientY-dragState.startY)>6;
   if(dragState.mode==='bond'){if(dragState.moved&&!dragState.holding)clearTimeout(bondHoldTimer);return;}
@@ -172,15 +184,18 @@ function onPointerMove(e){
   }
   if(!dragState.moved)return;
   if(dragState.mode==='atom-translate'){
-    const next=pointerWorldOnPlane(e,dragState.homeWorld,dragState.planeNormal);pos(dragState.atomId)?.copy(next);workspaceView.geometryChanged();updateMoleculeTransforms();return;
+    const next=pointerWorldOnPlane(e,dragState.homeWorld,dragState.planeNormal),delta=next.sub(pos(dragState.atomId));
+    for(const id of dragState.ids)pos(id)?.add(delta);
+    workspaceView.geometryChanged();updateMoleculeTransforms();return;
   }
   const dx=e.clientX-dragState.lastX,dy=e.clientY-dragState.lastY;dragState.lastX=e.clientX;dragState.lastY=e.clientY;
   if(dragState.mode==='molecule-rotate')rotateWholeMolecule(dx,dy,0,dragState.rotation);
-  if(dragState.mode==='torsion'){rotateAroundBond(dragState.bond,dragState.ids,(dx-dy*.25)*.012);followDraggedBranch(.12);}
-  if(dragState.mode==='structure'){rotateBranchTowardScreen(dragState.pivotId,dragState.atomId,dragState.ids,dx,dy);followDraggedBranch(.10);}
+  if(dragState.mode==='torsion')rotateAroundBond(dragState.bond,dragState.ids,(dx-dy*.25)*.012);
+  if(dragState.mode==='structure')rotateBranchTowardScreen(dragState.pivotId,dragState.atomId,dragState.ids,dx,dy);
   updateMoleculeTransforms();
 }
 function onPointerUp(e){
+  if(!activePointers.has(e.pointerId))return;
   const state=dragState,p=activePointers.get(e.pointerId);activePointers.delete(e.pointerId);if(activePointers.size<2)multiGesture=null;if(!state)return;
   const elapsed=p?performance.now()-p.downAt:Infinity,isTap=!state.moved&&elapsed<400;
   if(state.mode==='bond'){
@@ -188,25 +203,28 @@ function onPointerUp(e){
   }else if(state.mode==='electron'){
     if(!state.moved)selectAtom(state.atomId);else finishElectronDrag(state,e);hoverElectron=null;
   }else if(state.mode==='structure'){
-    if(isTap)selectAtom(state.atomId);else startRelaxation('立体構造を安定化しています');
+    if(isTap)selectAtom(state.atomId);else startRelaxation('動かした枝をその場で安定化しています',editRelaxationOptions(molecule,state));
   }else if(state.mode==='atom-translate'){
-    if(isTap)selectAtom(state.atomId);else startRelaxation('原子移動後の構造を安定化しています');
+    if(isTap)selectAtom(state.atomId);else startRelaxation('動かした原子をその場で安定化しています',editRelaxationOptions(molecule,state));
   }else if(state.mode==='torsion'){
-    if(!isTap)startRelaxation('単結合回転後の安定配置へ移動中');
+    if(!isTap)startRelaxation('ねじった枝をその場で安定化しています',editRelaxationOptions(molecule,state));
   }else if(state.mode==='molecule-rotate'){
     if(isTap){
       const now=performance.now(),previous=lastBackgroundTap;
-      if(previous&&now-previous.at<350&&Math.hypot(e.clientX-previous.x,e.clientY-previous.y)<28){lastBackgroundTap=null;pendingFrame=true;}
+      if(previous&&now-previous.at<350&&Math.hypot(e.clientX-previous.x,e.clientY-previous.y)<28){lastBackgroundTap=null;state.frameRequested=true;}
       else lastBackgroundTap={at:now,x:e.clientX,y:e.clientY};
       selectAtom(null);activeTorsionKey=null;
     }else lastBackgroundTap=null;
   }
   dragState=null;release(e);if(!interactionLocked())refresh();else refreshInfo(true);
+  if(state.frameRequested)requestStructureFrame();
 }
 function onPointerCancel(e){
+  if(!activePointers.has(e.pointerId))return;
   lastBackgroundTap=null;
   activePointers.delete(e.pointerId);clearTimeout(bondHoldTimer);
   if(dragState?.mode==='electron'&&dragState.moved)startElectronReturn(dragState);
+  if(dragState?.moved&&['structure','atom-translate','torsion'].includes(dragState.mode))startRelaxation('操作した部分をその場で安定化しています',editRelaxationOptions(molecule,dragState));
   dragState=null;multiGesture=null;hoverElectron=null;release(e);if(!interactionLocked())refresh();else refreshInfo(true);
 }
 
@@ -310,22 +328,16 @@ function clearBondTransition(){
   bondTransition=null;
 }
 
-function followDraggedBranch(strength){
-  const scope=structureByAtom.get(dragState.atomId)?.ids??new Set(),lockedIds=new Set(dragState.ids);
-  for(const atom of molecule.atoms)if(!scope.has(atom.id))lockedIds.add(atom.id);
-  solver.step(strength,1,{lockedIds});
-}
-function structurePlan(atomId){let best=null;for(const n of molecule.neighbors(atomId)){const sides=cutSides(atomId,n.atomId);if(!sides)continue;const side=sides.a.has(atomId)?sides.a:sides.b;if(!best||side.size<best.ids.length)best={pivotId:n.atomId,ids:[...side]};}return best;}
 function rotateBranchTowardScreen(pivotId,anchorId,ids,dx,dy){
   workspaceView.geometryChanged();
   const pivot=pos(pivotId),anchor=pos(anchorId);if(!pivot||!anchor)return;const old=anchor.clone().sub(pivot).normalize();
   const q1=new THREE.Quaternion().setFromAxisAngle(cameraUp(),-dx*.01),q2=new THREE.Quaternion().setFromAxisAngle(cameraRight(),-dy*.01),next=old.clone().applyQuaternion(q1).applyQuaternion(q2).normalize(),q=new THREE.Quaternion().setFromUnitVectors(old,next);
-  solver.rotateReferenceFrames(q,new Set(ids));for(const id of ids){const p=pos(id);if(p)p.sub(pivot).applyQuaternion(q).add(pivot);}
+  solver.rotateReferenceFrames(q,new Set([...ids,pivotId]));for(const id of ids){const p=pos(id);if(p)p.sub(pivot).applyQuaternion(q).add(pivot);}
 }
 function rotateAroundBond(bond,ids,angle){
   workspaceView.geometryChanged();
   const moving=new Set(ids),pivotId=moving.has(bond.a)?bond.b:bond.a,anchorId=moving.has(bond.a)?bond.a:bond.b,pivot=pos(pivotId),anchor=pos(anchorId);if(!pivot||!anchor)return;
-  const axis=anchor.clone().sub(pivot).normalize(),q=new THREE.Quaternion().setFromAxisAngle(axis,angle);solver.rotateReferenceFrames(q,new Set(ids));for(const id of ids){if(id===anchorId)continue;const p=pos(id);if(p)p.sub(pivot).applyQuaternion(q).add(pivot);}
+  const axis=anchor.clone().sub(pivot).normalize(),q=new THREE.Quaternion().setFromAxisAngle(axis,angle);solver.rotateReferenceFrames(q,new Set([...ids,pivotId]));for(const id of ids){if(id===anchorId)continue;const p=pos(id);if(p)p.sub(pivot).applyQuaternion(q).add(pivot);}
 }
 function rotateWholeMolecule(dx,dy,roll=0,rotation=workspaceView.capture(structures,mainStructure,pos)){
   if(!rotation)return;const qYaw=new THREE.Quaternion().setFromAxisAngle(cameraUp(),-dx*.009),qPitch=new THREE.Quaternion().setFromAxisAngle(cameraRight(),-dy*.009),q=qYaw.multiply(qPitch);
@@ -338,8 +350,8 @@ function startRelaxation(message='安定構造へ移動中',options={}){
   if(!molecule.atoms.length){stopRelaxation();refresh();return;}
   solver.rebuildTopology();
   const ids=options.ids??focusedStructure()?.ids??new Set(molecule.atoms.map(atom=>atom.id));
-  const lockedIds=new Set(molecule.atoms.filter(atom=>!ids.has(atom.id)).map(atom=>atom.id));
-  relaxation={session:createRelaxationSession({solver,ids,lockedIds,minDuration:options.minDuration??(reduceMotion?0:600),now:performance.now()}),message};
+  const lockedIds=options.lockedIds??new Set(molecule.atoms.filter(atom=>!ids.has(atom.id)).map(atom=>atom.id));
+  relaxation={session:createRelaxationSession({...options,solver,ids,lockedIds,minDuration:options.minDuration??(reduceMotion?0:600),now:performance.now()}),message};
   selectionChip.textContent=`${message} · 視点固定`;ensureMoleculeMeshes();updateMoleculeTransforms();refreshInfo(true);
 }
 function stopRelaxation(){relaxation=null;}
@@ -536,12 +548,16 @@ function refreshInfo(keep=false){
   if(!keep)selectionChip.textContent=activeTorsionKey?'回転軸固定中 · 原子ドラッグでねじる':unpairedElectronCount(selected.element,used)>0?`${selected.element} · 電子周辺＝結合／原子中央＝移動`:`${selected.element} · 骨格操作優先 · 原子をドラッグ`;
 }
 function refreshStructureList(){
+  document.querySelector('#structure-focus-label').hidden=structures.length<2;
+  structureFocus.disabled=interactionLocked()||!!dragState||activePointers.size>0;
+  structureFocus.replaceChildren();
   structureCount.textContent=`完成 ${structures.filter(item=>item.complete).length} / 構造 ${structures.length}`;
   structureList.replaceChildren();
   for(const [index,item] of structures.entries()){
     const button=document.createElement('button');button.type='button';button.className='structure-item';button.setAttribute('aria-pressed',String(item===focusedStructure()));
-    const identity=displayIdentity(item);button.textContent=`${index+1}. ${item.complete?'完成':'制作中'} · ${identity.formula}${item.record?` · ${identity.primary}`:''}`;
-    button.addEventListener('click',()=>{if(interactionLocked())return;selectAtom(item.graph.atoms[0].id);activeTorsionKey=null;refresh();});structureList.appendChild(button);
+    const identity=displayIdentity(item);button.textContent=`${item===focusedStructure()?'編集中 · ':''}${index+1}. ${item.complete?'完成':'制作中'} · ${identity.formula}${item.record?` · ${identity.primary}`:''}`;
+    const option=document.createElement('option');option.value=item.key;option.textContent=`${index+1}. ${item.record?identity.primary+' · ':''}${identity.formula}`;option.selected=item===focusedStructure();structureFocus.appendChild(option);
+    button.addEventListener('click',()=>{if(interactionLocked()||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);activeTorsionKey=null;lastBackgroundTap=null;refresh();});structureList.appendChild(button);
   }
 }
 function checkDiscovery(now=performance.now()){
@@ -570,12 +586,10 @@ function pulse(text){selectionChip.textContent=text;clearTimeout(pulse.t);pulse.
 
 function requestStructureFrame(){
   if(!focusedStructure())return;
-  pendingFrame=true;
-  if(interactionLocked()||dragState||activePointers.size){pulse('操作・構造変化の終了後に構造を表示します');return;}
+  if(interactionLocked()||dragState||activePointers.size){pulse('操作が終わってから「構造を表示」を押してください');return;}
   beginStructureFrame();
 }
 function beginStructureFrame(){
-  pendingFrame=false;
   const fit=structureFrame(focusedStructure(),pos,camera.fov,camera.aspect);if(!fit)return;
   workspaceView.frame(focusedStructure(),fit.center);
   const target=new THREE.Vector3(fit.center.x,fit.center.y,fit.center.z),direction=camera.position.clone().sub(cameraTarget).normalize();
@@ -662,6 +676,6 @@ function disposeGroup(group){for(const object of[...group.children]){group.remov
 function resize(){const w=Math.max(1,viewer.clientWidth),h=Math.max(1,viewer.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 function animate(now=performance.now()){
   requestAnimationFrame(animate);if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
-  if(pendingFrame&&!interactionLocked()&&!dragState&&!activePointers.size)beginStructureFrame();updateStructureFrame(now);
+  updateStructureFrame(now);
   camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);renderer.render(scene,camera);
 }

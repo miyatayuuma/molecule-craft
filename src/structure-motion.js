@@ -22,7 +22,7 @@ export function planBondDocking({THREE,molecule,positionFor,a,b,length,direction
 }
 
 export const RELAXATION_POLICY=Object.freeze({stepsPerSecond:240,maxStepsPerFrame:24,maxSteps:1440,bondRelative:.035,angleRadians:12*Math.PI/180,planeDistance:.045});
-export function createRelaxationSession({solver,ids=null,lockedIds=new Set(),minDuration=600,now=0,policy=RELAXATION_POLICY}) {
+export function createRelaxationSession({solver,ids=null,lockedIds=new Set(),strength=.65,rampMs=0,minDuration=600,now=0,policy=RELAXATION_POLICY}) {
   let previous=now,debt=0,elapsed=0,steps=0,stableSteps=0,finished=false,converged=false;
   let errors=solver.measureError({ids});
   const acceptable=()=>errors.finite&&errors.bondRelative<=policy.bondRelative&&errors.angleRadians<=policy.angleRadians&&errors.planeDistance<=policy.planeDistance;
@@ -34,7 +34,9 @@ export function createRelaxationSession({solver,ids=null,lockedIds=new Set(),min
       debt=Math.min(policy.maxStepsPerFrame*3,debt+dt*policy.stepsPerSecond/1000);
       const started=clock();let count=0;
       while(debt>=1&&count<policy.maxStepsPerFrame&&steps<policy.maxSteps&&clock()-started<budgetMs){
-        solver.step(.65,1,{lockedIds});steps++;count++;debt--;
+        const progress=rampMs?Math.min(1,(steps+1)*1000/policy.stepsPerSecond/rampMs):1;
+        const ramp=progress*progress*(3-2*progress);
+        solver.step(strength*(.08+.92*ramp),1,{lockedIds,activeIds:ids});steps++;count++;debt--;
       }
       if(count){errors=solver.measureError({ids});stableSteps=acceptable()?stableSteps+count:0;}
       // Time alone, or a small displacement at a bad equilibrium, is never

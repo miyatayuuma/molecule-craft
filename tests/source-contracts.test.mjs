@@ -12,11 +12,19 @@ const [index, app, chemistry, solver, electronInteraction, gestureArbitration, d
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=23"><\/script>/);
-assert.match(app, /from '\.\/structure-relaxation\.js\?v=23'/);
-assert.match(app, /from '\.\/structure-motion\.js\?v=23'/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=24"><\/script>/);
+assert.match(app, /from '\.\/structure-relaxation\.js\?v=24'/);
+assert.match(app, /from '\.\/structure-motion\.js\?v=24'/);
+assert.match(app, /from '\.\/structure-edit\.js\?v=24'/);
 assert.match(app, /from '\.\/workspace-view\.js\?v=23'/);
 assert.doesNotMatch(app, /stableFrames|maxDuration/);
+assert.doesNotMatch(app, /pendingFrame|followDraggedBranch|function structurePlan/);
+assert.match(app, /editRelaxationOptions\(molecule,state\)/);
+assert.match(app, /if\(activePointers.size&&dragState\?\.moved\)return/);
+assert.equal((app.match(/if\(!activePointers.has\(e.pointerId\)\)return/g)??[]).length,3,'Foreign pointer move/up/cancel must not steal an edit');
+assert.match(index, /id="structure-focus" aria-label="編集する分子"/);
+const focusHandler=app.slice(app.indexOf("structureFocus.addEventListener('change'"),app.indexOf("document.querySelector('#frame-structure')"));
+assert.doesNotMatch(focusHandler,/requestStructureFrame|camera\./,'Focus change must not reframe');
 assert.match(app, /workspaceView.frame\(focusedStructure\(\),fit.center\)/);
 assert.match(app, /solver.rotateReferenceFrames\(q,rotation.ids\);rotateStructure\(rotation,pos,q\)/);
 assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);

@@ -17,6 +17,7 @@ export function createStructureSolver({
   let stericExclusions = new Set();
   let bridgeSides = new Map();
   let angleTargets = new Map();
+  let componentIds = new Map();
 
   const pos = id => placements.get(id)?.position;
   const pairKey = (a, b) => `${Math.min(a, b)}:${Math.max(a, b)}`;
@@ -68,6 +69,15 @@ export function createStructureSolver({
     }
     aromaticFrames = nextAromaticFrames;
     stericExclusions = buildStericExclusions();
+    componentIds = new Map();
+    for (const atom of molecule.atoms) {
+      if (componentIds.has(atom.id)) continue;
+      const queue = [atom.id]; componentIds.set(atom.id, atom.id);
+      for (let i = 0; i < queue.length; i++) for (const neighbor of molecule.neighbors(queue[i])) {
+        if (componentIds.has(neighbor.atomId)) continue;
+        componentIds.set(neighbor.atomId, atom.id); queue.push(neighbor.atomId);
+      }
+    }
     // Cache graph cuts once per topology, not once per relaxation frame.
     bridgeSides = new Map();
     for (const bond of molecule.bonds) {
@@ -107,6 +117,7 @@ export function createStructureSolver({
 
       // B. Local electron-domain angles
       for (const atom of molecule.atoms) enforceLocalAngles(atom.id, 0.085 * scale, locked);
+      for (const atom of molecule.atoms) enforceTetrahedralVacancy(atom.id, 0.24 * scale, locked);
 
       // C/E. sp2 planes, distinct in-plane substituent slots, and sp linear axes.
       for (const frame of doubleFrames.values()) {
@@ -125,7 +136,7 @@ export function createStructureSolver({
       }
 
       // G. A deliberately light final separation avoids atom overlap without fighting angles.
-      enforceStericSeparation(0.018 * scale, locked);
+      enforceStericSeparation(0.018 * scale, locked, options.activeIds);
       // Angles/planes must not leave stretched bonds as an apparent equilibrium.
       for (const bond of molecule.bonds) enforceBondLength(bond, 0.35 * scale, locked);
 
@@ -188,6 +199,22 @@ export function createStructureSolver({
     } else if (!locked.has(primaryId)) {
       moveLinearBranch(centerId, primaryId, secondary.clone().sub(center).normalize().multiplyScalar(-1), Math.min(1, strength * 2.4), locked);
     }
+  }
+
+  function enforceTetrahedralVacancy(centerId, strength, locked) {
+    if (!locked.has(centerId) || geometryFor(centerId).kind !== 'sp3') return;
+    const neighbors = molecule.neighbors(centerId).map(n => n.atomId);
+    if (neighbors.length !== 4) return;
+    const moving = neighbors.filter(id => !locked.has(id));
+    if (moving.length !== 1) return;
+    // Three fixed tetrahedral bonds determine the remaining direction. Pure
+    // pair-angle gradients have a false stationary point on the opposite side
+    // of the sphere (e.g. a methane H dragged through the other three H atoms).
+    const center = pos(centerId), direction = new THREE.Vector3();
+    for (const id of neighbors) if (locked.has(id)) direction.sub(pos(id).clone().sub(center).normalize());
+    if (direction.lengthSq() < 1e-8) return;
+    const rootId = moving[0];
+    moveBranchRootToward(centerId, { rootId, atomIds: angleBranch(centerId, rootId) }, direction.normalize(), strength, locked);
   }
 
   function moveLinearBranch(centerId, rootId, direction, strength, locked) {
@@ -377,12 +404,16 @@ export function createStructureSolver({
     });
   }
 
-  function enforceStericSeparation(strength, locked) {
-    const atoms = molecule.atoms;
+  function enforceStericSeparation(strength, locked, activeIds = null) {
+    // Separate workspace components are separate craft projects, not an
+    // intermolecular dynamics simulation. A nearby model must not repel the
+    // focused model during its release animation.
+    const atoms = activeIds ? molecule.atoms.filter(atom => activeIds.has(atom.id)) : molecule.atoms;
     for (let left = 0; left < atoms.length; left++) {
       for (let right = left + 1; right < atoms.length; right++) {
         const aId = atoms[left].id;
         const bId = atoms[right].id;
+        if (componentIds.get(aId) !== componentIds.get(bId)) continue;
         if (stericExclusions.has(pairKey(aId, bId))) continue;
         const a = pos(aId);
         const b = pos(bId);
