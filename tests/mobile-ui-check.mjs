@@ -4,18 +4,18 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {createContext,runInContext} from 'node:vm';
-import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js';
+import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
 if(!process.argv[2])throw new Error('Pass jsdom/lib/api.js');
 const {JSDOM}=await import(pathToFileURL(process.argv[2]));
-const root=new URL('../',import.meta.url),appURL=new URL('src/app-v14.js',root),html=await readFile(new URL('index.html',root),'utf8');
+const root=new URL('../',import.meta.url),appURL=new URL('src/app-v14.js?v=30',root),html=await readFile(new URL('index.html',root),'utf8');
 let source=await readFile(appURL,'utf8'),bindings={};
 for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   const module=await import(new URL(match[2],appURL));
   if(match[1].startsWith('* as '))bindings[match[1].slice(5)]={...module};
   else for(const item of match[1].slice(1,-1).split(',')){const [name,alias]=item.trim().split(/\s+as\s+/);bindings[alias??name]=module[name];}
 }
-source=source.replace(/^import .*?;\n/gm,'').replace("await import('./collection-ui.js?v=29')",'collectionModule');
-const {createCollectionUI}=await import('../src/collection-ui.js?v=29');
+source=source.replace(/^import .*?;\n/gm,'').replace(/await import\('\.\/collection-ui\.js\?v=\d+'\)/,'collectionModule');
+const {createCollectionUI}=await import('../src/collection-ui.js?v=30');
 const records=JSON.parse(await readFile(new URL('data/molecules.json',root))),{setMoleculeDatabase}=await import('../src/chemistry.js?v=20');setMoleculeDatabase(records);
 const load=async input=>{const path=input instanceof URL?input:new URL(input,appURL);return {ok:true,json:async()=>JSON.parse(await readFile(path,'utf8'))};};
 const settle=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout(resolve,5));};
@@ -52,6 +52,45 @@ assert.match(app.document.querySelector('.dex-description').textContent,/砂糖�
 app.document.querySelector('[aria-label="次の項目"]').click();assert.equal(app.document.querySelector('.detail-heading .dex-number').textContent,'No. 005');
 app.document.querySelector('#close-collection').click();
 const reboot=await setup(raw);assert.equal(reboot.run('molecule.atoms.length'),2);const rebooted=JSON.parse(reboot.window.localStorage.getItem(WORKSPACE_STORAGE_KEY));assert.deepEqual(rebooted,snapshot,'Startup must restore the same pose and focus without relaxation/reframing');
-reboot.run("addElement('O')");assert.equal(reboot.run('molecule.atoms.length'),3);reboot.run('updateStructureFrame(2000)');reboot.document.querySelector('#open-menu').click();reboot.document.querySelector('#clear-all').click();assert.equal(reboot.run('molecule.atoms.length'),0);assert.equal(JSON.parse(reboot.window.localStorage.getItem(WORKSPACE_STORAGE_KEY)).atoms.length,0);
+reboot.run("addElement('O')");assert.equal(reboot.run('molecule.atoms.length'),3);reboot.run('updateStructureFrame(2000)');reboot.document.querySelector('#clear-all').click();assert.equal(reboot.run('molecule.atoms.length'),3,'A click never clears');reboot.run('clearField()');assert.equal(reboot.run('molecule.atoms.length'),0);assert.equal(JSON.parse(reboot.window.localStorage.getItem(WORKSPACE_STORAGE_KEY)).atoms.length,0);
 const future=JSON.stringify({...snapshot,schemaVersion:9}),protectedApp=await setup(future);protectedApp.run("addElement('C');saveWorkspace(true)");assert.equal(protectedApp.window.localStorage.getItem(WORKSPACE_STORAGE_KEY),future);assert.equal(protectedApp.document.querySelector('#workspace-save-status').hidden,false);
 console.log('Production DOM integration passed: startup, spawn, dialog guards, collection hints/images/text/navigation, exact restart, clear and future-save protection.');
+
+// Production permission -> visible handle -> drag -> animated bond -> recognition.
+// Only atom placement is seeded; every bond goes through the app's drag handler.
+for(const record of records.filter(r=>['carbon-monoxide','sulfur-dioxide','sulfur-trioxide','phosphoric-acid','sulfuric-acid','phosphorus-pentachloride','sulfur-hexafluoride'].includes(r.id))){
+  const scene=await setup();
+  scene.run(`globalThis.fixture=${JSON.stringify(record)};globalThis.fixtureIds=fixture.atoms.map((element,i)=>{const atom=molecule.addAtom(element);placements.set(atom.id,{position:new THREE.Vector3((i%3-1)*2,Math.floor(i/3)*2,0)});return atom.id;});topologyChanged();refresh();camera.lookAt(cameraTarget);camera.updateMatrixWorld();animateUnpairedElectrons(performance.now());`);
+  for(const [a,b,order]of record.bonds)for(let step=1;step<=order;step++){
+    scene.run(`globalThis.startId=fixtureIds[${a}];globalThis.endId=fixtureIds[${b}];globalThis.startVisual=electronVisuals.find(e=>e.atomId===startId);globalThis.endVisual=electronVisuals.find(e=>e.atomId===endId);`);
+    assert.ok(scene.run('!!startVisual&&!!endVisual'),`${record.id}: both rendered handles exist`);
+    scene.run(`globalThis.endScreen=worldToScreen(endVisual.visible.position);beginElectronDrag({clientX:0,clientY:0,pointerId:1,pointerType:'mouse'},{atomId:startId,index:startVisual.index,world:startVisual.visible.position.clone()});dragState.moved=true;dragState.currentWorld.copy(endVisual.visible.position);finishElectronDrag(dragState,{clientX:endScreen.x,clientY:endScreen.y});dragState=null;`);
+    assert.ok(scene.run('!!bondTransition'),`${record.id}: drag did not queue bond`);
+    assert.equal(scene.run('bondTransition.targetId'),scene.run('endId'),`${record.id}: hit wrong atom`);
+    for(let f=0;f<300&&scene.run('!!bondTransition||!!relaxation');f++){now+=1000/60;scene.run('if(bondTransition)updateBondTransition(performance.now());if(relaxation)updateRelaxation(performance.now());');}
+    assert.equal(scene.run(`bondBetween(startId,endId)?.order`),step,record.id);
+    scene.run('animateUnpairedElectrons(performance.now())');
+  }
+  assert.equal(scene.run('molecule.recognizedMolecule()?.id'),record.id);
+  const errors=scene.run('solver.measureError()');console.log(record.id,JSON.stringify(errors));
+  assert.ok(errors.finite&&errors.bondRelative<.035&&errors.angleRadians<12*Math.PI/180&&errors.planeDistance<.045,`${record.id}: final pose not converged`);
+  assert.ok(scene.run('electronVisuals.every(e=>Number.isFinite(e.visible.position.x))'));
+  if(record.id==='carbon-monoxide')assert.equal(scene.run('[...atomVisuals.values()].filter(v=>v.charge).length'),2);
+  if(record.id==='sulfur-trioxide'){
+    assert.equal(scene.run('sharedVisuals.length'),1);
+    assert.ok(scene.run('[...bondVisuals.values()].every(v=>v.lines.length===1)'));
+  }
+}
+// Unknown saturated graph, failed local edit, camera/skeleton preservation and
+// background rotation during relaxation. Neither recognition nor failure cuts bonds.
+const unknown=await setup();
+unknown.run(`globalThis.xids=['C','C','C','C'].map((element,i)=>{const a=molecule.addAtom(element);placements.set(a.id,{position:new THREE.Vector3(i%2,Math.floor(i/2),0)});return a.id;});for(let i=0;i<4;i++)molecule.setBond(xids[i],xids[(i+1)%4],2);topologyChanged();refresh();globalThis.beforeCamera=camera.matrixWorld.toArray();globalThis.beforeBonds=molecule.bonds.length;`);
+assert.equal(unknown.run('focusedStructure().record'),null);
+unknown.run(`globalThis.plan=planStructureEdit(molecule,xids[0]);globalThis.fixed=new Map(xids.filter(id=>!plan.ids.includes(id)).map(id=>[id,pos(id).clone()]));startRelaxation('test',{...editRelaxationOptions(molecule,plan),restore:new Map(plan.ids.map(id=>[id,pos(id).clone()]))});`);
+for(let i=0;i<180&&unknown.run('!!relaxation');i++){now+=1000/60;unknown.run('updateRelaxation(performance.now())');}
+assert.equal(unknown.run('!!relaxation'),false);assert.equal(unknown.run('molecule.bonds.length'),4);
+assert.ok(unknown.run('[...fixed].every(([id,p])=>pos(id).distanceTo(p)===0)'));
+unknown.run("startRelaxation();onPointerDown({pointerId:8,clientX:-500,clientY:-500,pointerType:'mouse'});");
+assert.equal(unknown.run('dragState.mode'),'molecule-rotate');assert.equal(unknown.run('!!relaxation'),false);
+unknown.run('clearField()');assert.equal(unknown.run('activePointers.size'),0);assert.equal(unknown.run('molecule.atoms.length'),0);
+console.log('Seven blocked molecules now complete through production drag/animation; unknown graphs remain editable and clear cancels active work.');

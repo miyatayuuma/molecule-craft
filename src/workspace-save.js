@@ -41,7 +41,7 @@ export function createWorkspaceStorage({storage,onStatus=()=>{}}={}){
       const value=JSON.parse(previous);
       if(Number(value?.schemaVersion)>1){blocked='future';status('新しい版の制作データを保護しています。アプリを更新してください。');return null;}
       snapshot=validateWorkspace(value);return snapshot;
-    }catch{blocked='invalid';status('制作データを復元できませんでした。保存を保護しています。新しく始める場合はメニューからフィールドを空にしてください。');return null;}
+    }catch{blocked='invalid';status('制作データを復元できませんでした。保存を保護しています。新しく始める場合は画面上部の「全消去」を長押ししてください。');return null;}
   }
   function write(value){
     if(blocked)return false;

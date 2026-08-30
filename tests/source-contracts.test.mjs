@@ -4,17 +4,17 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const [index, app, chemistry, solver, electronInteraction, gestureArbitration, database] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app-v14.js', root), 'utf8'),
+  readFile(new URL('src/app-v14.js?v=30', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
-  readFile(new URL('src/structure-relaxation.js', root), 'utf8'),
+  readFile(new URL('src/structure-relaxation.js?v=30', root), 'utf8'),
   readFile(new URL('src/electron-interaction.js', root), 'utf8'),
   readFile(new URL('src/gesture-arbitration.js', root), 'utf8'),
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=29"><\/script>/);
-assert.match(app, /from '\.\/structure-relaxation\.js\?v=24'/);
-assert.match(app, /from '\.\/structure-motion\.js\?v=24'/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=30"><\/script>/);
+assert.match(app, /from '\.\/structure-relaxation\.js\?v=30'/);
+assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-edit\.js\?v=24'/);
 assert.match(app, /from '\.\/workspace-view\.js\?v=23'/);
 assert.doesNotMatch(app, /stableFrames|maxDuration/);
@@ -40,7 +40,7 @@ assert.match(index, /id="collection-dialog"/);
 assert.match(index, /id="craft-panel"[^>]*hidden/);
 assert.match(app, /collectionCheckedRevision!==collectionRevision/);
 assert.match(app, /expandCraftStructure\(molecule,template\)/);
-assert.match(app, /await import\('\.\/collection-ui\.js\?v=29'\)/);
+assert.match(app, /await import\('\.\/collection-ui\.js\?v=30'\)/);
 assert.match(app, /!elementPalette.canUse\(symbol\)/);
 assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
 assert.match(index, /id="element-unlock-hint"/);

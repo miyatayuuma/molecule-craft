@@ -1,7 +1,7 @@
 import {Molecule, ELEMENTS} from '../src/chemistry.js?v=20';
-import {ATOMIC_MODEL,bondLengthScale,idealBondAngleDeg} from '../src/bonding-model.js';
-import {createStructureSolver} from '../src/structure-relaxation.js?v=24';
-import {planBondDocking,createRelaxationSession} from '../src/structure-motion.js?v=24';
+import {ATOMIC_MODEL,bondLengthScale,geometryForAtom} from '../src/bonding-model.js?v=30';
+import {createStructureSolver} from '../src/structure-relaxation.js?v=30';
+import {planBondDocking,createRelaxationSession} from '../src/structure-motion.js?v=30';
 import {connectedStructures,structureFrame} from '../src/workspace-model.js?v=20';
 import {createWorkspaceView,rotateStructure} from '../src/workspace-view.js?v=23';
 
@@ -11,12 +11,7 @@ export function motionFixture(THREE,elements,bonds,coordinates) {
   const placements=new Map(ids.map((id,i)=>[id,{position:new THREE.Vector3(...coordinates[i])}]));
   const pos=id=>placements.get(id).position,atomById=id=>molecule.atoms.find(a=>a.id===id);
   const bondLengthFor=(a,b,order)=>(ATOMIC_MODEL[atomById(a).element].covalentRadius+ATOMIC_MODEL[atomById(b).element].covalentRadius)*.78*bondLengthScale(order);
-  const geometryFor=id=>{
-    const ns=molecule.neighbors(id),orders=ns.map(n=>n.order),doubles=orders.filter(o=>o===2).length;
-    if(orders.includes(3)||doubles>=2)return{kind:'sp',angle:Math.PI};
-    if(doubles===1)return{kind:'sp2',angle:Math.PI*2/3};
-    return{kind:'sp3',angle:idealBondAngleDeg(atomById(id).element,molecule.bondOrderForAtom(id),ns.length)*Math.PI/180};
-  };
+  const geometryFor=id=>geometryForAtom(molecule,id);
   const solver=createStructureSolver({THREE,molecule,placements,atomById,bondLengthFor,geometryFor,
     bondBetween:(a,b)=>molecule.bonds.find(bond=>bond.a===a&&bond.b===b||bond.a===b&&bond.b===a),radiusFor:id=>ELEMENTS[atomById(id).element].radius});
   return{molecule,ids,placements,pos,solver,bondLengthFor};

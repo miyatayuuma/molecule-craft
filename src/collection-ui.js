@@ -1,5 +1,5 @@
 import { validateFunctionalGroups } from './functional-groups.js?v=21';
-import { validateCraftStructures } from './craft-structures.js?v=21';
+import { validateCraftStructures } from './craft-structures.js?v=30';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=25';
 import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=29';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
@@ -29,7 +29,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   function preview(record,name){
     const host=el('div',null,'collection-model');detail.appendChild(host);host.appendChild(el('p','模型を準備しています…','model-status'));
     const generation=detailGeneration;
-    import('./collection-viewer.js?v=29').then(({createCollectionViewer})=>{
+    import('./collection-viewer.js?v=30').then(({createCollectionViewer})=>{
       if(generation!==detailGeneration||!dialog.open||!host.isConnected)return;
       host.replaceChildren();detailViewer=createCollectionViewer({host,record,name});
     }).catch(error=>{if(generation===detailGeneration){host.replaceChildren(el('p','模型を読み込めませんでした。','model-status'));console.warn('Collection viewer unavailable',error);}});

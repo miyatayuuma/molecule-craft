@@ -21,16 +21,17 @@ export function planBondDocking({THREE,molecule,positionFor,a,b,length,direction
   };
 }
 
-export const RELAXATION_POLICY=Object.freeze({stepsPerSecond:240,maxStepsPerFrame:24,maxSteps:1440,bondRelative:.035,angleRadians:12*Math.PI/180,planeDistance:.045});
+export const RELAXATION_POLICY=Object.freeze({stepsPerSecond:240,maxStepsPerFrame:24,maxSteps:1440,maxDuration:2400,stallDuration:700,stallAfter:1300,bondRelative:.035,angleRadians:12*Math.PI/180,planeDistance:.045});
 export function createRelaxationSession({solver,ids=null,lockedIds=new Set(),strength=.65,rampMs=0,minDuration=600,now=0,policy=RELAXATION_POLICY}) {
-  let previous=now,debt=0,elapsed=0,steps=0,stableSteps=0,finished=false,converged=false;
+  let previous=now,debt=0,elapsed=0,steps=0,stableSteps=0,finished=false,converged=false,reason=null,best=Infinity,lastImprovement=0;
   let errors=solver.measureError({ids});
-  const acceptable=()=>errors.finite&&errors.bondRelative<=policy.bondRelative&&errors.angleRadians<=policy.angleRadians&&errors.planeDistance<=policy.planeDistance;
+  const acceptable=()=>errors.finite&&!errors.topologyLimited&&errors.bondRelative<=policy.bondRelative&&errors.angleRadians<=policy.angleRadians&&errors.planeDistance<=policy.planeDistance;
   return {
     pause(time){previous=time;debt=0;},
     advance(time,{clock=()=>performance.now(),budgetMs=5}={}){
-      if(finished)return {done:true,converged,errors,steps};
-      const dt=Math.min(100,Math.max(0,time-previous));previous=time;elapsed+=dt;
+      if(finished)return {done:true,converged,errors,steps,reason};
+      if(!errors.finite||errors.topologyLimited){finished=true;reason=errors.finite?'complexity':'nonfinite';return {done:true,converged:false,errors,steps,reason};}
+      const dt=Math.min(100,Math.max(0,time-previous));elapsed+=Math.max(0,time-previous);previous=time;
       debt=Math.min(policy.maxStepsPerFrame*3,debt+dt*policy.stepsPerSecond/1000);
       const started=clock();let count=0;
       while(debt>=1&&count<policy.maxStepsPerFrame&&steps<policy.maxSteps&&clock()-started<budgetMs){
@@ -42,8 +43,11 @@ export function createRelaxationSession({solver,ids=null,lockedIds=new Set(),str
       // Time alone, or a small displacement at a bad equilibrium, is never
       // success. An incompatible geometry returns an explicit unresolved result.
       converged=acceptable()&&stableSteps>=12;
-      finished=(converged&&elapsed>=minDuration)||steps>=policy.maxSteps||!errors.finite;
-      return {done:finished,converged:finished&&converged,errors,steps};
+      const score=Math.max(errors.bondRelative/policy.bondRelative,errors.angleRadians/policy.angleRadians,errors.planeDistance/policy.planeDistance);
+      if(score<best*.99){best=score;lastImprovement=elapsed;}
+      reason=!errors.finite?'nonfinite':errors.topologyLimited?'complexity':converged&&elapsed>=minDuration?'converged':elapsed>=policy.maxDuration?'timeout':elapsed>=policy.stallAfter&&elapsed-lastImprovement>=policy.stallDuration?'stalled':steps>=policy.maxSteps?'limit':null;
+      finished=!!reason;
+      return {done:finished,converged:finished&&reason==='converged',errors,steps,reason};
     },
   };
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {Molecule} from '../src/chemistry.js';
-import {captureWorkspace,restoreWorkspace,validateWorkspace,createWorkspaceStorage,WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js';
+import {captureWorkspace,restoreWorkspace,validateWorkspace,createWorkspaceStorage,WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
 function field(){const molecule=new Molecule(),placements=new Map(),camera=new THREE.PerspectiveCamera(44,390/650,.1,100),cameraTarget=new THREE.Vector3(4,-1,2);camera.position.set(7,5,11);camera.lookAt(cameraTarget);return {THREE,molecule,placements,camera,cameraTarget};}
 const original=field(),ids=['C','O','H','N'].map(element=>original.molecule.addAtom(element).id);
 original.molecule.setBond(ids[0],ids[1],2);original.molecule.setBond(ids[0],ids[2],1);

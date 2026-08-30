@@ -50,6 +50,59 @@ export function idealBondAngleDeg(element, bondOrderSum, neighborCount) {
   return 109.47;
 }
 
+// Connection handles are controls, not a literal count of atomic orbitals.
+// Charges are derived from the isolated CO graph; no global O(III) exception.
+export function carbonMonoxidePartner(molecule, id, order = 3) {
+  const atom = molecule.atoms.find(a => a.id === id), ns = molecule.neighbors(id);
+  if (!atom || ns.length !== 1 || ns[0].order !== order) return null;
+  const partner = molecule.atoms.find(a => a.id === ns[0].atomId);
+  return partner && [atom.element, partner.element].sort().join('-') === 'C-O'
+    && molecule.neighbors(partner.id).length === 1 ? partner : null;
+}
+
+export function atomBondState(molecule, id, ports = 0) {
+  const atom = molecule.atoms.find(a => a.id === id);
+  if (!atom) return { singles: 0, pairs: 0, charge: 0, sites: [] };
+  const used = molecule.bondOrderForAtom(id) + ports, model = ATOMIC_MODEL[atom.element];
+  if (carbonMonoxidePartner(molecule, id)) return { singles: 0, pairs: 1, charge: atom.element === 'C' ? -1 : 1, sites: [] };
+  const singles = unpairedElectronCount(atom.element, used), pairs = lonePairCount(atom.element, used);
+  const sites = Array.from({ length: singles }, () => 'electron');
+  if (!singles && used < Math.max(...model.preferredValences)) sites.push('extension');
+  if (atom.element === 'O' && carbonMonoxidePartner(molecule, id, 2)) sites.push('pair');
+  return { singles, pairs, charge: 0, sites };
+}
+
+export function bondAddition(molecule, a, b) {
+  const left = molecule.atoms.find(atom => atom.id === a), right = molecule.atoms.find(atom => atom.id === b);
+  const order = molecule.neighbors(a).find(n => n.atomId === b)?.order ?? 0;
+  if (!left || !right || a === b || order >= 3) return { allowed: false, reason: 'この接続はできません' };
+  const donor = carbonMonoxidePartner(molecule, a, 2)?.id === b;
+  if (donor) return { allowed: true, order: 3, kind: 'pair', donorId: left.element === 'O' ? a : b };
+  const allowed = [left, right].every(atom => atomBondState(molecule, atom.id).sites.some(site => site !== 'pair')
+    && molecule.bondOrderForAtom(atom.id) < Math.max(...ATOMIC_MODEL[atom.element].preferredValences));
+  const extended = [left, right].some(atom => atomBondState(molecule, atom.id).sites.includes('extension'));
+  return { allowed, order: order + 1, kind: extended ? 'extension' : 'electron', reason: allowed ? '' : '結合ルールに合わない接続です' };
+}
+
+export function geometryForAtom(molecule, id, ports = 0) {
+  const atom = molecule.atoms.find(a => a.id === id), ns = molecule.neighbors(id), orders = ns.map(n => n.order);
+  const used = molecule.bondOrderForAtom(id) + ports, state = atomBondState(molecule, id, ports);
+  const domains = ns.length + ports + state.pairs;
+  let kind, degrees;
+  if (['C', 'N', 'O'].includes(atom.element) && (orders.includes(3) || (atom.element === 'C' && orders.filter(o => o === 2).length >= 2))) { kind = 'sp'; degrees = 180; }
+  else if (['C', 'N', 'O'].includes(atom.element) && orders.includes(2)) { kind = 'sp2'; degrees = 120; }
+  else if (domains === 5) { kind = 'tbp'; degrees = 120; }
+  else if (domains >= 6) { kind = 'octahedral'; degrees = 90; }
+  else { degrees = idealBondAngleDeg(atom.element, used, ns.length + ports); kind = degrees >= 175 ? 'linear' : degrees >= 116 ? 'trigonal' : 'sp3'; }
+  const angle = degrees * Math.PI / 180;
+  const slots = kind === 'tbp' ? [[1,0,0],[-.5,Math.sqrt(3)/2,0],[-.5,-Math.sqrt(3)/2,0],[0,0,1],[0,0,-1]]
+    : kind === 'octahedral' ? [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]
+    : kind === 'sp' ? [[1,0,0],[-1,0,0]]
+    : kind === 'sp2' || kind === 'trigonal' ? [[1,0,0],[-.5,Math.sqrt(3)/2,0],[-.5,-Math.sqrt(3)/2,0]]
+    : [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]].map(v => v.map(x => x / Math.sqrt(3)));
+  return { kind, angle, cos: Math.cos(angle), slots };
+}
+
 export function valenceShellRadius(element, visualRadius = 0.45) {
   const covalent = ATOMIC_MODEL[element]?.covalentRadius ?? 0.75;
   return visualRadius + 0.30 + Math.min(0.12, covalent * 0.07);

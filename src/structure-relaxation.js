@@ -5,7 +5,7 @@ export function createStructureSolver({
   atomById,
   bondBetween,
   bondLengthFor,
-  geometryFor,
+  geometryFor: getGeometry,
   radiusFor,
 }) {
   let dirty = true;
@@ -13,11 +13,15 @@ export function createStructureSolver({
   let aromaticCycles = [];
   let aromaticEdges = new Set();
   let doubleFrames = new Map();
+  let trigonalFrames = new Map();
   let aromaticFrames = new Map();
   let stericExclusions = new Set();
   let bridgeSides = new Map();
   let angleTargets = new Map();
   let componentIds = new Map();
+  let adjacency = new Map(), geometries = new Map(), topologyLimited = false;
+  const neighborsFor = id => adjacency.get(id) ?? [];
+  const geometryFor = id => geometries.get(id) ?? getGeometry(id);
 
   const pos = id => placements.get(id)?.position;
   const pairKey = (a, b) => `${Math.min(a, b)}:${Math.max(a, b)}`;
@@ -27,8 +31,13 @@ export function createStructureSolver({
   }
 
   function rebuildTopology({ resetFrames = false } = {}) {
-    if (resetFrames) { doubleFrames.clear(); aromaticFrames.clear(); }
+    if (resetFrames) { doubleFrames.clear(); aromaticFrames.clear(); trigonalFrames.clear(); }
+    adjacency = new Map(molecule.atoms.map(a => [a.id, []]));
+    for (const bond of molecule.bonds) { adjacency.get(bond.a)?.push({atomId:bond.b,order:bond.order}); adjacency.get(bond.b)?.push({atomId:bond.a,order:bond.order}); }
+    geometries = new Map(molecule.atoms.map(a => [a.id,getGeometry(a.id)]));
+    topologyLimited = false;
     cycles = findCycles(8);
+    if (topologyLimited) cycles = []; // Keep the graph; do not optimize a partial set of rings.
     aromaticCycles = cycles.filter(isAromaticSixCarbonCycle);
     aromaticEdges = new Set();
     for (const cycle of aromaticCycles) cycle.forEach((id, index) => aromaticEdges.add(pairKey(id, cycle[(index + 1) % cycle.length])));
@@ -36,7 +45,7 @@ export function createStructureSolver({
     const nextDoubleFrames = new Map();
     for (const bond of molecule.bonds) {
       const key = pairKey(bond.a, bond.b);
-      if (bond.order !== 2 || aromaticEdges.has(key)) continue;
+      if (bond.order !== 2 || aromaticEdges.has(key) || [bond.a,bond.b].some(id => geometryFor(id).kind !== 'sp2')) continue;
       const atomIds = planarSubstituentGroup(bond);
       const previous = doubleFrames.get(key);
       const normal = previous && sameMembers(previous.atomIds, atomIds) ? previous.normal.clone() : doublePlaneNormal(bond, atomIds);
@@ -51,6 +60,15 @@ export function createStructureSolver({
       nextDoubleFrames.set(key, frame);
     }
     doubleFrames = nextDoubleFrames;
+    const nextTrigonalFrames = new Map();
+    for (const atom of molecule.atoms) {
+      const ns=neighborsFor(atom.id);
+      if (geometryFor(atom.id).kind!=='trigonal'||ns.length!==3) continue;
+      const atomIds=[atom.id,...ns.map(n=>n.atomId)], previous=trigonalFrames.get(atom.id);
+      const normal=previous&&sameMembers(previous.atomIds,atomIds)?previous.normal.clone():doublePlaneNormal({a:atom.id,b:ns[0].atomId},atomIds);
+      nextTrigonalFrames.set(atom.id,{atomIds,cycle:[atom.id],normal});
+    }
+    trigonalFrames=nextTrigonalFrames;
 
     const nextAromaticFrames = new Map();
     for (const cycle of aromaticCycles) {
@@ -73,7 +91,7 @@ export function createStructureSolver({
     for (const atom of molecule.atoms) {
       if (componentIds.has(atom.id)) continue;
       const queue = [atom.id]; componentIds.set(atom.id, atom.id);
-      for (let i = 0; i < queue.length; i++) for (const neighbor of molecule.neighbors(queue[i])) {
+      for (let i = 0; i < queue.length; i++) for (const neighbor of neighborsFor(queue[i])) {
         if (componentIds.has(neighbor.atomId)) continue;
         componentIds.set(neighbor.atomId, atom.id); queue.push(neighbor.atomId);
       }
@@ -86,10 +104,11 @@ export function createStructureSolver({
     }
     angleTargets = new Map();
     for (const atom of molecule.atoms) {
-      const neighbors = molecule.neighbors(atom.id);
+      const neighbors = neighborsFor(atom.id);
+      const geometry = geometryFor(atom.id), sites = coordinationSites(atom.id, neighbors, geometry);
       for (let i = 0; i < neighbors.length; i++) for (let j = i + 1; j < neighbors.length; j++) {
         const a = neighbors[i].atomId, b = neighbors[j].atomId;
-        let target = geometryFor(atom.id).angle;
+        let target = sites ? Math.acos(THREE.MathUtils.clamp(sites[i].dot(sites[j]), -1, 1)) : geometry.angle;
         for (const cycle of cycles) {
           const index = cycle.indexOf(atom.id);
           if (index < 0) continue;
@@ -105,26 +124,50 @@ export function createStructureSolver({
     dirty = false;
   }
 
+  // Assign distinct axial/equatorial sites once per topology, never a single
+  // impossible angle to all 10/15 neighbor pairs. Minimize pose disruption.
+  function coordinationSites(id, neighbors, geometry) {
+    if (!['tbp','octahedral'].includes(geometry.kind) || !geometry.slots || neighbors.length > geometry.slots.length) return null;
+    const slots = geometry.slots.map(v => new THREE.Vector3(...v));
+    const dirs = neighbors.map(n => pos(n.atomId).clone().sub(pos(id)).normalize());
+    let best = Infinity, result = null;
+    function search(chosen, used, score) {
+      if (score >= best) return;
+      if (chosen.length === dirs.length) { best = score; result = [...chosen]; return; }
+      const i = chosen.length;
+      for (let k=0;k<slots.length;k++) if (!used.has(k)) {
+        let next = score;
+        for (let j=0;j<i;j++) next += (dirs[i].dot(dirs[j])-slots[k].dot(slots[chosen[j]]))**2;
+        used.add(k); chosen.push(k); search(chosen,used,next); chosen.pop(); used.delete(k);
+      }
+    }
+    search([],new Set(),0);
+    return result?.map(i => slots[i]);
+  }
+
   function step(scale = 0.5, passes = 1, options = {}) {
     if (dirty) rebuildTopology();
     const locked = options.lockedIds ?? new Set();
     let maxMove = 0;
+    const activeAtoms = options.activeIds ? molecule.atoms.filter(a => options.activeIds.has(a.id)) : molecule.atoms;
+    const activeBonds = options.activeIds ? molecule.bonds.filter(b => options.activeIds.has(b.a) && options.activeIds.has(b.b)) : molecule.bonds;
     for (let pass = 0; pass < passes; pass++) {
-      const before = new Map(molecule.atoms.map(atom => [atom.id, pos(atom.id)?.clone()]));
+      const before = new Map(activeAtoms.map(atom => [atom.id, pos(atom.id)?.clone()]));
 
       // A. Bond lengths
-      for (const bond of molecule.bonds) enforceBondLength(bond, 0.12 * scale, locked);
+      for (const bond of activeBonds) enforceBondLength(bond, 0.12 * scale, locked);
 
       // B. Local electron-domain angles
-      for (const atom of molecule.atoms) enforceLocalAngles(atom.id, 0.085 * scale, locked);
-      for (const atom of molecule.atoms) enforceTetrahedralVacancy(atom.id, 0.24 * scale, locked);
+      for (const atom of activeAtoms) enforceLocalAngles(atom.id, 0.085 * scale, locked);
+      for (const atom of activeAtoms) enforceTetrahedralVacancy(atom.id, 0.24 * scale, locked);
 
       // C/E. sp2 planes, distinct in-plane substituent slots, and sp linear axes.
       for (const frame of doubleFrames.values()) {
         enforcePlane(frame.atomIds, frame.normal, [frame.bond.a, frame.bond.b], 0.22 * scale, locked, frame.bond, frame.slottedRootIds);
         enforceDoubleSubstituentDirections(frame, 0.24 * scale, locked);
       }
-      for (const atom of molecule.atoms) if (geometryFor(atom.id).kind === 'sp') enforceLinearCenter(atom.id, 0.16 * scale, locked);
+      for (const frame of trigonalFrames.values()) enforcePlane(frame.atomIds,frame.normal,frame.cycle,.22*scale,locked);
+      for (const atom of activeAtoms) if (geometryFor(atom.id).kind === 'sp') enforceLinearCenter(atom.id, 0.16 * scale, locked);
 
       // D. Aromatic rings stay planar; external branches return to the outward
       // direction instead of being allowed to settle inside the ring.
@@ -138,9 +181,9 @@ export function createStructureSolver({
       // G. A deliberately light final separation avoids atom overlap without fighting angles.
       enforceStericSeparation(0.018 * scale, locked, options.activeIds);
       // Angles/planes must not leave stretched bonds as an apparent equilibrium.
-      for (const bond of molecule.bonds) enforceBondLength(bond, 0.35 * scale, locked);
+      for (const bond of activeBonds) enforceBondLength(bond, 0.35 * scale, locked);
 
-      for (const atom of molecule.atoms) {
+      for (const atom of activeAtoms) {
         const point = pos(atom.id);
         const old = before.get(atom.id);
         if (point && old) maxMove = Math.max(maxMove, point.distanceTo(old));
@@ -152,6 +195,7 @@ export function createStructureSolver({
   function rotateReferenceFrames(quaternion, affectedIds = null) {
     if (dirty) rebuildTopology();
     const shouldRotate = frame => !affectedIds || frame.atomIds.every(id => affectedIds.has(id));
+    for (const frame of trigonalFrames.values()) if (shouldRotate(frame)) frame.normal.applyQuaternion(quaternion).normalize();
     for (const frame of doubleFrames.values()) if (shouldRotate(frame)) frame.normal.applyQuaternion(quaternion).normalize();
     for (const frame of aromaticFrames.values()) if (shouldRotate(frame)) frame.normal.applyQuaternion(quaternion).normalize();
   }
@@ -179,7 +223,7 @@ export function createStructureSolver({
 
   function enforceLocalAngles(centerId, strength, locked) {
     const center = pos(centerId);
-    const neighbors = molecule.neighbors(centerId).map(neighbor => neighbor.atomId);
+    const neighbors = neighborsFor(centerId).map(neighbor => neighbor.atomId);
     if (!center || neighbors.length < 2) return;
     for (let left = 0; left < neighbors.length; left++) {
       for (let right = left + 1; right < neighbors.length; right++) {
@@ -190,7 +234,7 @@ export function createStructureSolver({
 
   function enforceLinearCenter(centerId, strength, locked) {
     const center = pos(centerId);
-    const neighbors = molecule.neighbors(centerId).sort((left, right) => right.order - left.order);
+    const neighbors = neighborsFor(centerId).sort((left, right) => right.order - left.order);
     if (!center || neighbors.length !== 2) return;
     const primaryId = neighbors[0].atomId, secondaryId = neighbors[1].atomId, primary = pos(primaryId), secondary = pos(secondaryId);
     if (!primary || !secondary || (locked.has(primaryId) && locked.has(secondaryId))) return;
@@ -203,7 +247,7 @@ export function createStructureSolver({
 
   function enforceTetrahedralVacancy(centerId, strength, locked) {
     if (!locked.has(centerId) || geometryFor(centerId).kind !== 'sp3') return;
-    const neighbors = molecule.neighbors(centerId).map(n => n.atomId);
+    const neighbors = neighborsFor(centerId).map(n => n.atomId);
     if (neighbors.length !== 4) return;
     const moving = neighbors.filter(id => !locked.has(id));
     if (moving.length !== 1) return;
@@ -230,9 +274,8 @@ export function createStructureSolver({
     for (const atom of molecule.atoms) if (includes(atom.id)) {
       const point = pos(atom.id);
       if (!point || ![point.x, point.y, point.z].every(Number.isFinite)) finite = false;
-      const neighbors = molecule.neighbors(atom.id).map(n => n.atomId);
-      // The existing hypervalent model has several valid pair angles, not one.
-      if (!point || neighbors.length > 4) continue;
+      const neighbors = neighborsFor(atom.id).map(n => n.atomId);
+      if (!point) continue;
       for (let i = 0; i < neighbors.length; i++) for (let j = i + 1; j < neighbors.length; j++) {
         const a = pos(neighbors[i])?.clone().sub(point), b = pos(neighbors[j])?.clone().sub(point);
         if (!a || !b) { finite = false; continue; }
@@ -244,14 +287,14 @@ export function createStructureSolver({
       const target = bondLengthFor(bond.a, bond.b, bond.order);
       bondRelative = Math.max(bondRelative, Math.abs((pos(bond.a)?.distanceTo(pos(bond.b)) ?? Infinity) / target - 1));
     }
-    for (const frame of [...doubleFrames.values(), ...aromaticFrames.values()]) {
+    for (const frame of [...doubleFrames.values(), ...aromaticFrames.values(), ...trigonalFrames.values()]) {
       const anchors = (frame.cycle ?? [frame.bond.a, frame.bond.b]).map(pos);
       if (anchors.some(p => !p)) { finite = false; continue; }
       const center = anchors.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / anchors.length);
       for (const id of frame.atomIds) if (includes(id) && pos(id)) planeDistance = Math.max(planeDistance, Math.abs(pos(id).clone().sub(center).dot(frame.normal)));
     }
     finite &&= [bondRelative, angleRadians, planeDistance].every(Number.isFinite);
-    return { finite, bondRelative, angleRadians, planeDistance };
+    return { finite, bondRelative, angleRadians, planeDistance, topologyLimited };
   }
 
   function angleBranch(centerId, rootId) {
@@ -290,7 +333,7 @@ export function createStructureSolver({
   function rotateAngleBranch(ids, center, axis, angle) {
     // A rigidly rotated planar fragment carries its reference plane with it.
     // Partial plane edits remain constrained (e.g. dragging one ethene H).
-    for (const frame of [...doubleFrames.values(), ...aromaticFrames.values()]) {
+    for (const frame of [...doubleFrames.values(), ...aromaticFrames.values(), ...trigonalFrames.values()]) {
       if (frame.atomIds.every(id => ids.includes(id))) frame.normal.applyAxisAngle(axis, angle).normalize();
     }
     for (const id of ids) pos(id)?.sub(center).applyAxisAngle(axis, angle).add(center);
@@ -442,14 +485,14 @@ export function createStructureSolver({
 
   function planarSubstituentGroup(bond) {
     const ids = new Set([bond.a, bond.b]);
-    molecule.neighbors(bond.a).forEach(neighbor => ids.add(neighbor.atomId));
-    molecule.neighbors(bond.b).forEach(neighbor => ids.add(neighbor.atomId));
+    neighborsFor(bond.a).forEach(neighbor => ids.add(neighbor.atomId));
+    neighborsFor(bond.b).forEach(neighbor => ids.add(neighbor.atomId));
     return [...ids];
   }
 
   function aromaticPlanarGroup(cycle) {
     const ids = new Set(cycle);
-    for (const id of cycle) molecule.neighbors(id).forEach(neighbor => ids.add(neighbor.atomId));
+    for (const id of cycle) neighborsFor(id).forEach(neighbor => ids.add(neighbor.atomId));
     return [...ids];
   }
 
@@ -459,7 +502,7 @@ export function createStructureSolver({
     const endpoints = [];
     for (const [centerId, partnerId] of [[frame.bond.a, frame.bond.b], [frame.bond.b, frame.bond.a]]) {
       if (geometryFor(centerId).kind !== 'sp2') continue;
-      const branches = molecule.neighbors(centerId)
+      const branches = neighborsFor(centerId)
         .filter(neighbor => neighbor.atomId !== partnerId)
         .map(neighbor => ({ rootId: neighbor.atomId, atomIds: branchFromBond(centerId, neighbor.atomId) }))
         .filter(branch => branch.atomIds);
@@ -497,7 +540,7 @@ export function createStructureSolver({
     }
     const branches = [];
     for (const ringId of cycle) {
-      for (const neighbor of molecule.neighbors(ringId)) {
+      for (const neighbor of neighborsFor(ringId)) {
         if (cycleIds.has(neighbor.atomId)) continue;
         const atomIds = branchFromBond(ringId, neighbor.atomId, cycleIds);
         if (!atomIds) continue;
@@ -533,7 +576,7 @@ export function createStructureSolver({
   function conjugatedFollowerBranches(ringId, rootId) {
     const root = atomById(rootId);
     if (!root || (root.element !== 'O' && root.element !== 'N' && geometryFor(rootId).kind !== 'sp2')) return [];
-    return molecule.neighbors(rootId)
+    return neighborsFor(rootId)
       .filter(neighbor => neighbor.atomId !== ringId)
       .map(neighbor => ({ rootId: neighbor.atomId, atomIds: branchFromBond(rootId, neighbor.atomId) }))
       .filter(branch => branch.atomIds);
@@ -544,7 +587,7 @@ export function createStructureSolver({
     const queue = [rootId];
     while (queue.length) {
       const current = queue.shift();
-      for (const neighbor of molecule.neighbors(current)) {
+      for (const neighbor of neighborsFor(current)) {
         const next = neighbor.atomId;
         if ((current === rootId && next === centerId) || seen.has(next)) continue;
         if (next === centerId || forbiddenIds?.has(next)) return null;
@@ -564,7 +607,7 @@ export function createStructureSolver({
     let bestLength = 0;
     for (const id of atomIds) {
       if (id === bond.a || id === bond.b) continue;
-      const anchor = molecule.neighbors(bond.a).some(neighbor => neighbor.atomId === id) ? a : b;
+      const anchor = neighborsFor(bond.a).some(neighbor => neighbor.atomId === id) ? a : b;
       const side = pos(id)?.clone().sub(anchor);
       if (!side) continue;
       side.addScaledVector(axis, -side.dot(axis));
@@ -587,19 +630,22 @@ export function createStructureSolver({
   function buildStericExclusions() {
     const excluded = new Set();
     for (const atom of molecule.atoms) {
-      const direct = molecule.neighbors(atom.id).map(neighbor => neighbor.atomId);
+      const direct = neighborsFor(atom.id).map(neighbor => neighbor.atomId);
       direct.forEach(id => excluded.add(pairKey(atom.id, id)));
-      direct.forEach(id => molecule.neighbors(id).forEach(neighbor => excluded.add(pairKey(atom.id, neighbor.atomId))));
+      direct.forEach(id => neighborsFor(id).forEach(neighbor => excluded.add(pairKey(atom.id, neighbor.atomId))));
     }
     return excluded;
   }
 
   function findCycles(maxLength = 8) {
-    const found = new Map();
+    const found = new Map();let visits = 0;
     for (const start of molecule.atoms.map(atom => atom.id)) {
+      if (topologyLimited) break;
       const walk = (current, path, visited) => {
+        if (++visits > 20000 || found.size >= 256) { topologyLimited = true; return; }
         if (path.length > maxLength) return;
-        for (const neighbor of molecule.neighbors(current)) {
+        for (const neighbor of neighborsFor(current)) {
+          if (topologyLimited) return;
           const next = neighbor.atomId;
           if (next === start && path.length >= 3) {
             found.set(canonicalCycleKey(path), [...path]);

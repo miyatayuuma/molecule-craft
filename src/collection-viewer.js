@@ -1,8 +1,10 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=26';
+import { createPreviewModel } from './preview-model.js?v=30';
 import { createPreviewControls } from './preview-controls.js?v=21';
 import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=26';
+
+import { specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=30';
 
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
@@ -51,7 +53,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
   layout=layouts.get(key)??null;if(!layout)model=createPreviewModel(THREE,record);
 
   function initialize(){
-    aromaticEdges=aromaticBondKeys(layout.aromaticCycles);
+    aromaticEdges=new Set([...aromaticBondKeys(layout.aromaticCycles),...specialEdgeKeys(layout.sharedGroups??[])]);
     aromaticFrames=layout.aromaticCycles.map(cycle=>aromaticRingFrame(THREE,cycle.map(id=>layout.atoms[id].point))).filter(Boolean);
     radius=Math.max(.6,...layout.atoms.map(atom=>atom.point.length()+ELEMENTS[atom.element].radius*.72),...layout.ports.map(port=>port.point.length()+.18));
     scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.01,200);group=new THREE.Group();scene.add(group);
@@ -81,6 +83,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     for(const atom of layout.atoms){
       if(!materials.has(atom.element))materials.set(atom.element,own(new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element].color,roughness:.32,metalness:.06})));
       const mesh=new THREE.Mesh(sphere,materials.get(atom.element));mesh.position.copy(atom.point);mesh.scale.setScalar(ELEMENTS[atom.element].radius*.72);group.add(mesh);
+      if(atom.charge){const label=createChargeLabel(THREE,atom.charge,owner,own);label.position.copy(atom.point);label.position.y+=ELEMENTS[atom.element].radius*.72+.12;group.add(label);}
     }
     const bondMaterial=own(new THREE.MeshStandardMaterial({color:0x9eafc5,roughness:.4}));
     for(const bond of layout.bonds){
@@ -93,6 +96,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
         mesh.scale.set(.045,a.distanceTo(b),.045);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),axis);group.add(mesh);
       }
     }
+    for(const shared of layout.sharedGroups??[]){const visual=createSharedBonds(THREE,own);updateSharedBonds(THREE,visual,shared,id=>layout.atoms[id].point);group.add(visual);}
     for(const frame of aromaticFrames){const ring=createAromaticRing(THREE,own);updateAromaticRing(THREE,ring,frame);group.add(ring);}
     for(const port of layout.ports){
       const geometry=own(new THREE.BufferGeometry().setFromPoints([layout.atoms[port.atom].point,port.point]));
@@ -151,6 +155,13 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
         }});
       }
     }
+    for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point)){
+      const points=curve.map(p=>p.applyQuaternion(group.quaternion));
+      for(let i=1;i<points.length;i++){
+        const a=points[i-1],b=points[i];if(Math.max(a.z,b.z)>=camera.position.z)continue;
+        commands.push({z:(a.z+b.z)/2,draw:()=>{const p=project(a),q=project(b);context.save();context.strokeStyle='#8ce7ee';context.globalAlpha=.65;context.lineWidth=1.5;context.beginPath();context.moveTo(p.x,p.y);context.lineTo(q.x,q.y);context.stroke();context.restore();}});
+      }
+    }
     for(const atom of rotated){
       const depth=camera.position.z-atom.world.z;if(depth<=.01)continue;
       commands.push({z:atom.world.z+ELEMENTS[atom.element].radius*.72,draw:()=>{
@@ -161,6 +172,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
       }});
     }
     commands.sort((a,b)=>a.z-b.z).forEach(command=>command.draw());
+    for(const atom of rotated)if(atom.charge){const p=project(atom.world);context.fillStyle='#e5f8ff';context.font='bold 16px sans-serif';context.fillText(atom.charge>0?'+':'−',p.x+12,p.y-12);}
     for(const port of layout.ports){
       const a=layout.atoms[port.atom].point.clone().applyQuaternion(group.quaternion),b=port.point.clone().applyQuaternion(group.quaternion);
       if(a.z>=camera.position.z||b.z>=camera.position.z)continue;

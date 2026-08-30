@@ -1,5 +1,5 @@
 import { ELEMENTS } from './chemistry.js?v=20';
-import { ATOMIC_MODEL, preferredValence, bondLengthScale } from './bonding-model.js';
+import { ATOMIC_MODEL, preferredValence, bondLengthScale } from './bonding-model.js?v=30';
 
 export function validateCraftStructures(templates, groups) {
   if(!Array.isArray(templates))throw new Error('Invalid structure templates');

@@ -7,7 +7,7 @@ assert.equal(manifest.start_url,'./');assert.equal(manifest.scope,'./');assert.e
 for(const icon of manifest.icons){const data=await read(icon.src);assert.equal(data.subarray(1,4).toString(),'PNG');assert.equal(data.readUInt32BE(16),Number(icon.sizes.split('x')[0]));assert.ok(icon.purpose.includes('maskable'));}
 const source=await read('sw.js'),precache=await read('precache-manifest.js'),context={self:{}};runInNewContext(precache.toString(),context);
 const entries=context.self.PRECACHE_FILES,paths=new Set(entries.map(e=>e.path));
-for(const path of ['src/app-v14.js','src/collection-ui.js','src/collection-viewer.js','vendor/three/three.module.min.js','vendor/three/three.core.min.js','data/encyclopedia.json','assets/icon-192.png','index.html'])assert.ok(paths.has(path),path);
+for(const path of ['src/app-v14.js','src/collection-ui.js','src/collection-viewer.js','src/special-bonds.js','src/hold-action.js','vendor/three/three.module.min.js','vendor/three/three.core.min.js','data/encyclopedia.json','assets/icon-192.png','index.html'])assert.ok(paths.has(path),path);
 const sha=buffer=>createHash('sha256').update(buffer).digest('hex');
 for(const item of entries){assert.equal(sha(await read(item.path)),item.sha256,`Stale precache: ${item.path}`);}
 // Every literal module dependency is in the offline set, including old query suffixes.
@@ -26,7 +26,7 @@ function worker({fail=null,clients=[]}={}){
 }
 const good=worker();await good.call('install');assert.equal(good.skip,0,'Install must not force an update');await good.call('activate');assert.equal(good.claimed,1);
 let response=await good.call('fetch',{request:new Request(good.scope+'?release=any')});assert.match(await response.text(),/Molecule Craft/);
-const network=good.network;response=await good.call('fetch',{request:new Request(good.scope+'src/app-v14.js?v=29')});assert.match(await response.text(),/saveWorkspace/);assert.equal(good.network,network,'Cached release must serve without network');
+const network=good.network;response=await good.call('fetch',{request:new Request(good.scope+'src/app-v14.js?v=30')});assert.match(await response.text(),/saveWorkspace/);assert.equal(good.network,network,'Cached release must serve without network');
 response=await good.call('fetch',{request:new Request(good.scope+'tests/not-a-real-page.html')});assert.equal(response.status,404,'Never disguise missing pages as index');
 await good.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a'}});assert.equal(good.skip,1);
 const messages=[],busy=worker({clients:[{id:'a',url:'https://example.test/molecule-craft/'},{id:'b',url:'https://example.test/molecule-craft/'}]});await busy.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a',postMessage:m=>messages.push(m)}});assert.equal(busy.skip,0);assert.equal(messages[0].type,'UPDATE_BLOCKED');

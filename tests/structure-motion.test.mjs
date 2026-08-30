@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createRelaxationSession, RELAXATION_POLICY} from '../src/structure-motion.js';
+import {createRelaxationSession, RELAXATION_POLICY} from '../src/structure-motion.js?v=30';
 import {createWorkspaceView} from '../src/workspace-view.js';
 
 // No dependency on real wall-clock speed or WebGL for convergence policy tests.
@@ -14,8 +14,16 @@ for (const fps of [15,30,60]) {
   const solver={step:()=>0,measureError:()=>({finite:true,bondRelative:.5,angleRadians:0,planeDistance:0})};
   const session=createRelaxationSession({solver});let result;
   for(let frame=1;frame<=400;frame++){result=session.advance(frame*1000/60,{clock:()=>0});if(result.done)break;}
-  assert.equal(result.steps,RELAXATION_POLICY.maxSteps);
+  assert.ok(result.steps<RELAXATION_POLICY.maxSteps);assert.equal(result.reason,'stalled');
   assert.equal(result.converged,false,'No movement is NOT proof of correct bond lengths');
+}
+// A slow solver is still interrupted by elapsed visible time, not 1440 steps.
+for(const cost of [6,30]) {
+  let clock=0;
+  const session=createRelaxationSession({solver:{step:()=>{clock+=cost;},measureError:()=>({finite:true,bondRelative:1,angleRadians:0,planeDistance:0})}});
+  let result,time=0;
+  while(time<3000){time+=1000/60;result=session.advance(time,{clock:()=>clock});if(result.done)break;}
+  assert.ok(result.done&&time<=RELAXATION_POLICY.maxDuration+20);assert.equal(result.converged,false);
 }
 {
   const session=createRelaxationSession({solver:{step:()=>0,measureError:()=>({finite:true,bondRelative:1,angleRadians:0,planeDistance:0})}});

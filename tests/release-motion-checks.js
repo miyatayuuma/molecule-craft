@@ -1,7 +1,7 @@
 import {motionFixture} from './structure-motion-checks.js?v=24';
-import {seedCraftCoordinates} from '../src/craft-structures.js?v=21';
+import {seedCraftCoordinates} from '../src/craft-structures.js?v=30';
 import {connectedStructures,structureFrame} from '../src/workspace-model.js?v=20';
-import {createRelaxationSession} from '../src/structure-motion.js?v=24';
+import {createRelaxationSession} from '../src/structure-motion.js?v=30';
 import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=24';
 
 // Actual Three.js camera projection, also runnable without a WebGL context.
