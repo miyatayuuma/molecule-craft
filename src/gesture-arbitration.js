@@ -17,6 +17,19 @@ export function pickAtomAtPointer(clientX, clientY, candidates, radiusPx) {
   return ranked[0] ?? null;
 }
 
+// A filled atom keeps its generous target even beside reactive fragments.
+// Atom centers always win; outside them, the nearest actual target wins rather
+// than a distant electron's enlarged assist zone stealing a filled atom.
+export function chooseAtomOrElectron(clientX, clientY, atoms, electronPick) {
+  const core = pickAtomAtPointer(clientX, clientY, atoms, POINTER_ARBITRATION.atomCoreRadiusPx);
+  if (core) return { kind: 'atom', ...core };
+  const atom = pickAtomAtPointer(clientX, clientY, atoms.map(item => ({ ...item,
+    radiusPx: item.unpaired > 0 ? POINTER_ARBITRATION.atomReactiveRadiusPx : POINTER_ARBITRATION.atomStructureRadiusPx,
+  })));
+  if (electronPick && (!atom || atom.unpaired > 0 || electronPick.distance < atom.distance)) return { kind: 'electron', ...electronPick };
+  return atom ? { kind: 'atom', ...atom } : null;
+}
+
 export function pickBondAtPointer(clientX, clientY, candidates, target = POINTER_ARBITRATION) {
   const ranked = candidates
     .map(candidate => {

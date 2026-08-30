@@ -3,20 +3,27 @@ import { ELEMENTS, Molecule, countElements, loadMoleculeDatabase, UNKNOWN_NAME }
 import { ATOMIC_MODEL, preferredValence, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, idealBondAngleDeg } from './bonding-model.js';
 import { createStructureSolver } from './structure-relaxation.js?v=18';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
-import { POINTER_ARBITRATION, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from './gesture-arbitration.js?v=17';
+import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=19';
+import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=19';
 
 const molecule=new Molecule();
 const placements=new Map();
 const activePointers=new Map();
 const bondTapState=new Map();
 let selectedAtomId=null,activeTorsionKey=null,dragState=null,multiGesture=null;
-let bondHoldTimer=null,lastCelebrated='',relaxation=null;
+let bondHoldTimer=null,relaxation=null;
 let electronReturn=null,hoverElectron=null,bondTransition=null;
 let selectionChangedAt=performance.now(),renderTopologyDirty=true;
 const atomVisuals=new Map(),bondVisuals=new Map();
 let electronVisuals=[],aromaticVisuals=[];
 const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
 const ELECTRON_SNAP_PX=58;
+let structures=[],mainStructure=null,structureByAtom=new Map();
+const completionTracker=createCompletionTracker(),debrisTracker=createDebrisTracker();
+const protectedUntil=new Map(),cleanupUndo=[];
+let discoveryQueue=[],discoveryUntil=0,activeDiscovery=null;
+let lastBackgroundTap=null,frameTransition=null,pendingFrame=false;
+let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
 
 const viewer=document.querySelector('#viewer');
 const palette=document.querySelector('#element-palette');
@@ -33,6 +40,8 @@ const discovery=document.querySelector('#discovery');
 const discoveryFormula=document.querySelector('#discovery-formula');
 const discoveryName=document.querySelector('#discovery-name');
 const discoveryIupac=document.querySelector('#discovery-iupac');
+const structureList=document.querySelector('#structure-list');
+const structureCount=document.querySelector('#structure-count');
 
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(44,1,.1,100);camera.position.set(5.2,4,7.6);
@@ -53,7 +62,7 @@ const solver=createStructureSolver({
 
 bindPalette();bindUI();refresh();resize();animate();
 loadMoleculeDatabase().then(result=>{
-  refreshInfo();checkDiscovery();
+  syncWorkspace();refreshInfo();checkDiscovery();
   if(!result.ok)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');
 });
 
@@ -65,13 +74,18 @@ function bindPalette(){
   }
 }
 function bindUI(){
+  document.querySelector('#frame-structure')?.addEventListener('click',requestStructureFrame);
+  document.querySelector('#undo-cleanup')?.addEventListener('click',undoCleanup);
+  document.addEventListener('visibilitychange',()=>{debrisTracker.reset();fadeTargets.clear();});
   document.querySelector('#delete-selected')?.addEventListener('click',()=>{
     if(selectedAtomId==null||interactionLocked())return;
     molecule.removeAtom(selectedAtomId);placements.delete(selectedAtomId);selectAtom(null);activeTorsionKey=null;topologyChanged();
     startRelaxation('削除後の構造を安定化しています');
   });
   document.querySelector('#clear-all')?.addEventListener('click',()=>{
-    stopRelaxation();clearBondTransition();molecule.clear();placements.clear();selectAtom(null);activeTorsionKey=null;dragState=null;lastCelebrated='';electronReturn=null;hoverElectron=null;topologyChanged();refresh();
+    stopRelaxation();clearBondTransition();molecule.clear();placements.clear();selectAtom(null);activeTorsionKey=null;dragState=null;electronReturn=null;hoverElectron=null;
+    activePointers.clear();multiGesture=null;frameTransition=null;pendingFrame=false;lastBackgroundTap=null;
+    cleanupUndo.length=0;protectedUntil.clear();debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();completionTracker.clear();discoveryQueue=[];activeDiscovery=null;discoveryUntil=0;discovery.classList.remove('show');topologyChanged();refresh();
   });
   const c=renderer.domElement;
   c.addEventListener('pointerdown',onPointerDown);c.addEventListener('pointermove',onPointerMove);c.addEventListener('pointerup',onPointerUp);c.addEventListener('pointercancel',onPointerCancel);
@@ -82,6 +96,7 @@ function bindUI(){
 function addElement(symbol){
   if(!ELEMENTS[symbol]||interactionLocked())return;
   const atom=molecule.addAtom(symbol);
+  protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
   placements.set(atom.id,{position:molecule.atoms.length===1?cameraTarget.clone():spawnPosition()});
   selectAtom(atom.id);topologyChanged();refresh();
   pulse(molecule.atoms.length===1?`${symbol} を中心原子として追加`:`${symbol} を未結合原子として追加 · 不対電子をドラッグして結合`);
@@ -90,14 +105,12 @@ function addElement(symbol){
 function onPointerDown(e){
   if(interactionLocked()){pulse('構造変化中 · 視点は固定されています');return;}
   activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,downAt:performance.now()});
-  if(activePointers.size===2){beginTwoFinger();dragState=null;hoverElectron=null;return;}if(activePointers.size>1)return;
-  const reactive=hasCompatibleElectronPair(electronVisuals,canPairAtoms),atomCore=pickScreenAtom(e.clientX,e.clientY,POINTER_ARBITRATION.atomCoreRadiusPx);
-  const electronPick=!atomCore&&reactive?pickScreenElectron(e.clientX,e.clientY):null;
-  if(electronPick){beginElectronDrag(e,electronPick);return;}
-  const atomPick=atomCore??pickScreenAtom(e.clientX,e.clientY,reactive?POINTER_ARBITRATION.atomReactiveRadiusPx:POINTER_ARBITRATION.atomStructureRadiusPx);
-  if(atomPick){beginAtomDrag(e,atomPick.atomId);return;}
+  if(activePointers.size===2){lastBackgroundTap=null;clearTimeout(bondHoldTimer);beginTwoFinger();dragState=null;hoverElectron=null;return;}if(activePointers.size>1)return;
+  const picked=chooseAtomOrElectron(e.clientX,e.clientY,screenAtomCandidates(),pickScreenElectron(e.clientX,e.clientY));
+  if(picked){lastBackgroundTap=null;if(picked.kind==='electron')beginElectronDrag(e,picked);else beginAtomDrag(e,picked.atomId);return;}
   const bondPick=pickScreenBond(e.clientX,e.clientY);
   if(bondPick){
+    lastBackgroundTap=null;
     const key=bondPick.key;dragState={mode:'bond',key,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,holding:false};
     clearTimeout(bondHoldTimer);
     bondHoldTimer=setTimeout(()=>{if(!dragState||dragState.mode!=='bond'||dragState.key!==key||dragState.moved)return;dragState.holding=true;weakenBond(key);},580);
@@ -154,10 +167,18 @@ function onPointerUp(e){
     if(isTap)selectAtom(state.atomId);else startRelaxation('原子移動後の構造を安定化しています');
   }else if(state.mode==='torsion'){
     if(!isTap)startRelaxation('単結合回転後の安定配置へ移動中',{maxDuration:1250});
-  }else if(state.mode==='molecule-rotate'&&isTap){selectAtom(null);activeTorsionKey=null;}
+  }else if(state.mode==='molecule-rotate'){
+    if(isTap){
+      const now=performance.now(),previous=lastBackgroundTap;
+      if(previous&&now-previous.at<350&&Math.hypot(e.clientX-previous.x,e.clientY-previous.y)<28){lastBackgroundTap=null;pendingFrame=true;}
+      else lastBackgroundTap={at:now,x:e.clientX,y:e.clientY};
+      selectAtom(null);activeTorsionKey=null;
+    }else lastBackgroundTap=null;
+  }
   dragState=null;release(e);if(!interactionLocked())refresh();else refreshInfo(true);
 }
 function onPointerCancel(e){
+  lastBackgroundTap=null;
   activePointers.delete(e.pointerId);clearTimeout(bondHoldTimer);
   if(dragState?.mode==='electron'&&dragState.moved)startElectronReturn(dragState);
   dragState=null;multiGesture=null;hoverElectron=null;release(e);if(!interactionLocked())refresh();else refreshInfo(true);
@@ -182,15 +203,14 @@ function startElectronReturn(state){electronReturn={atomId:state.atomId,index:st
 function pickScreenElectron(clientX,clientY){
   const candidates=electronVisuals.filter(ev=>ev.visible.visible).map(ev=>{
     const screen=worldToScreen(ev.visible.position),restScreen=worldToScreen(electronRestPosition(ev));
-    return{atomId:ev.atomId,index:ev.index,screenX:screen.x,screenY:screen.y,restScreenX:restScreen.x,restScreenY:restScreen.y,priority:ev.atomId===selectedAtomId?1:0,world:ev.visible.position.clone()};
+    return{atomId:ev.atomId,index:ev.index,interactive:screen.depth>=-1&&screen.depth<=1,screenX:screen.x,screenY:screen.y,restScreenX:restScreen.x,restScreenY:restScreen.y,priority:ev.atomId===selectedAtomId?1:0,world:ev.visible.position.clone()};
   });
   return pickElectronAtPointer(clientX,clientY,candidates);
 }
-function pickScreenAtom(clientX,clientY,radiusPx){
-  const candidates=molecule.atoms.map(atom=>{
-    const screen=worldToScreen(pos(atom.id));return{atomId:atom.id,screenX:screen.x,screenY:screen.y,depth:screen.depth};
-  });
-  return pickAtomAtPointer(clientX,clientY,candidates,radiusPx);
+function screenAtomCandidates(){
+  return molecule.atoms.map(atom=>{
+    const screen=worldToScreen(pos(atom.id));return{atomId:atom.id,unpaired:unpairedElectronCount(atom.element,molecule.bondOrderForAtom(atom.id)),screenX:screen.x,screenY:screen.y,depth:screen.depth};
+  }).filter(atom=>atom.depth>=-1&&atom.depth<=1);
 }
 function pickScreenBond(clientX,clientY){
   const candidates=molecule.bonds.map(bond=>{
@@ -264,7 +284,7 @@ function rotateWholeMolecule(dx,dy,roll=0){
   if(roll)q.multiply(new THREE.Quaternion().setFromAxisAngle(cameraDirection(),roll));
   for(const a of molecule.atoms){const p=pos(a.id);if(p)p.sub(center).applyQuaternion(q).add(center);}solver.rotateReferenceFrames(q);
 }
-function moleculeCenter(){const pts=molecule.atoms.map(a=>pos(a.id)).filter(Boolean);return pts.length?pts.reduce((s,p)=>s.add(p),new THREE.Vector3()).multiplyScalar(1/pts.length):cameraTarget.clone();}
+function moleculeCenter(){const pts=(mainStructure?.graph.atoms??molecule.atoms).map(a=>pos(a.id)).filter(Boolean);return pts.length?pts.reduce((s,p)=>s.add(p),new THREE.Vector3()).multiplyScalar(1/pts.length):cameraTarget.clone();}
 
 function startRelaxation(message='安定構造へ移動中',options={}){
   if(!molecule.atoms.length){stopRelaxation();refresh();return;}
@@ -439,19 +459,100 @@ function findNearestCompatibleElectron(clientX,clientY,sourceAtomId,sourceIndex)
 function canPairAtoms(a,b){if(a===b||freeCapacity(a)<=0||freeCapacity(b)<=0)return false;const existing=bondBetween(a,b);return !existing||existing.order<3;}
 
 function refresh(){ensureMoleculeMeshes();updateMoleculeTransforms();refreshInfo();checkDiscovery();}
-function displayIdentity(){
-  if(!molecule.atoms.length)return{record:null,primary:'自由制作',iupac:'',formula:'—'};
-  const record=molecule.recognizedMolecule();
-  return record?{record,primary:record.commonNameJa??record.nameJa,iupac:record.iupacNameEn??record.nameEn,formula:record.formula??molecule.formula()}:{record:null,primary:UNKNOWN_NAME,iupac:'',formula:molecule.formula()};
+function focusedStructure(){return structureByAtom.get(selectedAtomId)??mainStructure;}
+function displayIdentity(structure=focusedStructure()){
+  if(!structure)return{record:null,primary:'自由制作',iupac:'',formula:'—'};
+  const record=structure.record;
+  return record?{record,primary:record.commonNameJa??record.nameJa,iupac:record.iupacNameEn??record.nameEn,formula:structure.formula}:{record:null,primary:structure.complete?'完成した構造（未登録）':UNKNOWN_NAME,iupac:'',formula:structure.formula};
+}
+function syncWorkspace(){
+  const previousIds=mainStructure?.ids??new Set();
+  structures=connectedStructures(molecule);mainStructure=chooseMainStructure(structures,previousIds);
+  structureByAtom=new Map(structures.flatMap(item=>[...item.ids].map(id=>[id,item])));
+  const current=new Set(structures.filter(item=>item.complete).map(item=>item.signature));
+  discoveryQueue=discoveryQueue.filter(item=>current.has(item.signature));
+  if(activeDiscovery&&!current.has(activeDiscovery)){activeDiscovery=null;discoveryUntil=0;discovery.classList.remove('show');}
+  discoveryQueue.push(...completionTracker.update(structures).map(item=>({key:item.key,signature:item.signature})));
+  for(const id of protectedUntil.keys())if(!structureByAtom.has(id))protectedUntil.delete(id);
 }
 function refreshInfo(keep=false){
-  const identity=displayIdentity(),reactive=hasCompatibleElectronPair(electronVisuals,canPairAtoms);formulaEl.textContent=identity.formula;nameEl.textContent=identity.primary;iupacNameEl.textContent=identity.iupac?`IUPAC: ${identity.iupac}`:'';const validation=molecule.validation();statusEl.className=`status ${validation.level}`;statusEl.textContent=validation.message;countsEl.replaceChildren();const counts=countElements(molecule.atoms);if(!molecule.atoms.length)countsEl.textContent='—';else for(const s of Object.keys(counts).sort()){const x=document.createElement('span');x.className='atom-count';x.textContent=`${s} × ${counts[s]}`;countsEl.appendChild(x);}
-  const selected=atomById(selectedAtomId);if(!selected){selectedElementEl.textContent=selectedValenceEl.textContent=selectedLimitEl.textContent='—';if(!keep)selectionChip.textContent=molecule.atoms.length?(reactive?'結合モード · 発光点の近くからドラッグして共有':'骨格調整モード · 原子をドラッグして立体構造を調整'):'元素を押して中心原子を置く';return;}
+  const focus=focusedStructure(),identity=displayIdentity(focus);formulaEl.textContent=identity.formula;nameEl.textContent=identity.primary;iupacNameEl.textContent=identity.iupac?`IUPAC: ${identity.iupac}`:'';
+  const validation=focus?.validation??molecule.validation();statusEl.className=`status ${validation.level}`;statusEl.textContent=focus?.complete?'完成 · このモデルの典型原子価を満たしています':validation.message;
+  countsEl.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)countsEl.textContent='—';else for(const s of Object.keys(counts).sort()){const x=document.createElement('span');x.className='atom-count';x.textContent=`${s} × ${counts[s]}`;countsEl.appendChild(x);}
+  refreshStructureList();
+  document.querySelector('#undo-cleanup').hidden=!cleanupUndo.length;
+  const selected=atomById(selectedAtomId);if(!selected){selectedElementEl.textContent=selectedValenceEl.textContent=selectedLimitEl.textContent='—';if(!keep)selectionChip.textContent=molecule.atoms.length?'原子中央＝骨格調整 · 不対電子の周辺＝結合 · 背景ダブルタップ＝構造を表示':'元素を押して中心原子を置く';return;}
   const used=molecule.bondOrderForAtom(selected.id);selectedElementEl.textContent=`${selected.element} / ${ELEMENTS[selected.element].name}`;selectedValenceEl.textContent=`${used} / 目標 ${preferredValence(selected.element,used)}`;selectedLimitEl.textContent=`不対電子 ${unpairedElectronCount(selected.element,used)} · 非共有電子対 ${lonePairCount(selected.element,used)}`;
-  if(!keep)selectionChip.textContent=activeTorsionKey?'回転軸固定中 · 原子ドラッグでねじる':reactive?`${selected.element} 選択中 · 発光点の近くから相手の電子へドラッグ`:`骨格調整モード · ${selected.element} をドラッグ`;
+  if(!keep)selectionChip.textContent=activeTorsionKey?'回転軸固定中 · 原子ドラッグでねじる':unpairedElectronCount(selected.element,used)>0?`${selected.element} · 電子周辺＝結合／原子中央＝移動`:`${selected.element} · 骨格操作優先 · 原子をドラッグ`;
 }
-function checkDiscovery(){const identity=displayIdentity(),sig=`${identity.formula}|${identity.record?.id??''}`;if(!identity.record||sig===lastCelebrated)return;lastCelebrated=sig;discoveryFormula.textContent=identity.formula;discoveryName.textContent=identity.primary;discoveryIupac.textContent=`IUPAC: ${identity.iupac}`;discovery.classList.remove('show');void discovery.offsetWidth;discovery.classList.add('show');}
+function refreshStructureList(){
+  structureCount.textContent=`完成 ${structures.filter(item=>item.complete).length} / 構造 ${structures.length}`;
+  structureList.replaceChildren();
+  for(const [index,item] of structures.entries()){
+    const button=document.createElement('button');button.type='button';button.className='structure-item';button.setAttribute('aria-pressed',String(item===focusedStructure()));
+    const identity=displayIdentity(item);button.textContent=`${index+1}. ${item.complete?'完成':'制作中'} · ${identity.formula}${item.record?` · ${identity.primary}`:''}`;
+    button.addEventListener('click',()=>{if(interactionLocked())return;selectAtom(item.graph.atoms[0].id);activeTorsionKey=null;refresh();});structureList.appendChild(button);
+  }
+}
+function checkDiscovery(now=performance.now()){
+  if(interactionLocked()||dragState||now<discoveryUntil)return;
+  const event=discoveryQueue.shift();if(!event)return;
+  const item=structures.find(item=>item.signature===event.signature&&item.complete);if(!item)return;
+  const identity=displayIdentity(item);activeDiscovery=item.signature;discoveryUntil=now+2200;
+  discoveryFormula.textContent=identity.formula;discoveryName.textContent=identity.primary;discoveryIupac.textContent=identity.iupac?`IUPAC: ${identity.iupac}`:'このモデルの典型原子価を満たしています';discovery.classList.remove('show');void discovery.offsetWidth;discovery.classList.add('show');
+}
 function pulse(text){selectionChip.textContent=text;clearTimeout(pulse.t);pulse.t=setTimeout(()=>{if(relaxation)selectionChip.textContent=`${relaxation.message} · 視点固定`;else refreshInfo();},1700);}
+
+function requestStructureFrame(){
+  if(!focusedStructure())return;
+  pendingFrame=true;
+  if(interactionLocked()||dragState||activePointers.size){pulse('操作・構造変化の終了後に構造を表示します');return;}
+  beginStructureFrame();
+}
+function beginStructureFrame(){
+  pendingFrame=false;
+  const fit=structureFrame(focusedStructure(),pos,camera.fov,camera.aspect);if(!fit)return;
+  const target=new THREE.Vector3(fit.center.x,fit.center.y,fit.center.z),direction=camera.position.clone().sub(cameraTarget).normalize();
+  const position=target.clone().addScaledVector(direction,fit.distance);
+  frameTransition={startedAt:performance.now(),duration:reduceMotion?1:420,fromPosition:camera.position.clone(),fromTarget:cameraTarget.clone(),position,target};
+  camera.far=Math.max(100,fit.distance+fit.radius*3,position.distanceTo(camera.position)+fit.radius*3);camera.updateProjectionMatrix();
+}
+function updateStructureFrame(now){
+  if(!frameTransition||relaxation||bondTransition)return;
+  const item=frameTransition,t=THREE.MathUtils.clamp((now-item.startedAt)/item.duration,0,1),ease=t*t*(3-2*t);
+  camera.position.lerpVectors(item.fromPosition,item.position,ease);cameraTarget.lerpVectors(item.fromTarget,item.target,ease);
+  if(t>=1){frameTransition=null;refreshInfo();}
+}
+
+function updateDebris(now){
+  if(now-cleanupCheckedAt<160)return;cleanupCheckedAt=now;
+  const protectedIds=new Set([...protectedUntil].filter(([,until])=>until>now).map(([id])=>id));
+  if(selectedAtomId!=null)protectedIds.add(selectedAtomId);
+  const result=debrisTracker.update({structures,main:mainStructure,positionFor:pos,protectedIds,now,suspended:document.hidden||interactionLocked()||!!dragState||activePointers.size>0||!!electronReturn});
+  fadeTargets=new Map(structures.flatMap(item=>[...item.ids].map(id=>[id,result.opacity.get(item.key)??1])));
+  if(!result.expired.length)return;
+  const ids=new Set(result.expired.flatMap(item=>[...item.ids]));
+  cleanupUndo.push({atoms:molecule.atoms.filter(atom=>ids.has(atom.id)).map(atom=>({...atom})),bonds:molecule.bonds.filter(bond=>ids.has(bond.a)&&ids.has(bond.b)).map(bond=>({...bond})),positions:new Map([...ids].map(id=>[id,pos(id).clone()]))});
+  molecule.atoms=molecule.atoms.filter(atom=>!ids.has(atom.id));molecule.bonds=molecule.bonds.filter(bond=>!ids.has(bond.a)&&!ids.has(bond.b));
+  for(const id of ids){placements.delete(id);debrisOpacity.delete(id);fadeTargets.delete(id);}
+  if(activeTorsionKey&&!bondFromKey(activeTorsionKey))activeTorsionKey=null;
+  topologyChanged();refresh();pulse('遠くの小片を整理しました · 「整理を元に戻す」で復元できます');
+}
+function animateDebris(){
+  for(const [id,visual] of atomVisuals){
+    const target=fadeTargets.get(id)??1,old=debrisOpacity.get(id)??1,alpha=Math.abs(old-target)<.005?target:old+(target-old)*.3;debrisOpacity.set(id,alpha);
+    setOpacity(visual.mesh,alpha);for(const pair of visual.lonePairs)for(const {electron} of pair.meshes)setOpacity(electron,alpha);
+  }
+  for(const ev of electronVisuals)setOpacity(ev.visible,debrisOpacity.get(ev.atomId)??1);
+  for(const visual of bondVisuals.values())for(const {mesh} of visual.lines)setOpacity(mesh,debrisOpacity.get(visual.bond.a)??1);
+  for(const visual of aromaticVisuals)setOpacity(visual.line,.82*(debrisOpacity.get(visual.cycle[0])??1));
+}
+function setOpacity(mesh,opacity){const transparent=opacity<1;if(mesh.material.transparent!==transparent){mesh.material.transparent=transparent;mesh.material.needsUpdate=true;}mesh.material.opacity=opacity;mesh.material.depthWrite=!transparent;}
+function undoCleanup(){
+  if(interactionLocked()||!cleanupUndo.length)return;
+  for(const saved of cleanupUndo){molecule.atoms.push(...saved.atoms);molecule.bonds.push(...saved.bonds);for(const [id,position] of saved.positions){placements.set(id,{position:position.clone()});protectedUntil.set(id,performance.now()+15000);}}
+  const id=cleanupUndo.at(-1).atoms[0]?.id;cleanupUndo.length=0;debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();selectAtom(id??null);topologyChanged();refresh();pulse('整理した小片を復元しました · 「構造を表示」で確認できます');
+}
 
 function beginTwoFinger(){if(interactionLocked())return;const p=[...activePointers.values()];multiGesture={mid:{x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2},dist:Math.hypot(p[1].x-p[0].x,p[1].y-p[0].y),angle:Math.atan2(p[1].y-p[0].y,p[1].x-p[0].x)};}
 function updateTwoFinger(){
@@ -479,9 +580,9 @@ function cameraRight(){camera.updateMatrixWorld();return new THREE.Vector3().set
 function perpendicular(v){const ref=Math.abs(v.y)<.85?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0);return new THREE.Vector3().crossVectors(v,ref).normalize();}
 function vibrateFeedback(duration,pointerType){if(pointerType==='mouse')return;try{navigator.vibrate?.(duration);}catch{}}
 function capture(e){try{renderer.domElement.setPointerCapture(e.pointerId)}catch{}}function release(e){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch{}}
-function selectAtom(id){if(selectedAtomId!==id){selectedAtomId=id;selectionChangedAt=performance.now();}}
-function interactionLocked(){return!!relaxation||!!bondTransition;}
-function topologyChanged(){solver.markTopologyDirty();renderTopologyDirty=true;}
+function selectAtom(id){if(selectedAtomId!==id){if(selectedAtomId!=null)protectedUntil.set(selectedAtomId,performance.now()+DEBRIS_POLICY.protectionMs);selectedAtomId=id;selectionChangedAt=performance.now();}}
+function interactionLocked(){return!!relaxation||!!bondTransition||!!frameTransition;}
+function topologyChanged(){solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
 function spawnPosition(){
   const center=pos(selectedAtomId)?.clone()??moleculeCenter(),right=cameraRight(),up=cameraUp(),seed=molecule.atoms.length;
   for(let attempt=0;attempt<10;attempt++){
@@ -493,5 +594,7 @@ function disposeObject(object){object.traverse?.(item=>{item.geometry?.dispose?.
 function disposeGroup(group){for(const object of[...group.children]){group.remove(object);disposeObject(object);}}
 function resize(){const w=Math.max(1,viewer.clientWidth),h=Math.max(1,viewer.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 function animate(now=performance.now()){
-  requestAnimationFrame(animate);camera.lookAt(cameraTarget);camera.updateMatrixWorld();if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);animateUnpairedElectrons(now);animateSelection(now);renderer.render(scene,camera);
+  requestAnimationFrame(animate);if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
+  if(pendingFrame&&!interactionLocked()&&!dragState&&!activePointers.size)beginStructureFrame();updateStructureFrame(now);
+  camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);renderer.render(scene,camera);
 }

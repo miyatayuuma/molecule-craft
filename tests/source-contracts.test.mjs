@@ -12,10 +12,16 @@ const [index, app, chemistry, solver, electronInteraction, gestureArbitration, d
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=18"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=19"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=18'/);
 assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);
-assert.match(app, /from '\.\/gesture-arbitration\.js\?v=17'/);
+assert.match(app, /from '\.\/gesture-arbitration\.js\?v=19'/);
+assert.match(app, /from '\.\/workspace-model\.js\?v=19'/);
+assert.doesNotMatch(app, /hasCompatibleElectronPair|lastCelebrated/);
+assert.match(app, /chooseAtomOrElectron\(e.clientX,e.clientY,screenAtomCandidates\(\)/);
+assert.match(app, /connectedStructures\(molecule\)/);
+assert.match(index, /id="frame-structure"/);
+assert.match(index, /id="undo-cleanup"/);
 assert.equal((index.match(/data-element=/g) ?? []).length, 8, 'Static element palette must remain in HTML');
 assert.ok(database.length >= 100, `Expected at least 100 molecule records, got ${database.length}`);
 assert.doesNotMatch(chemistry, /const KNOWN_MOLECULES/);
@@ -37,8 +43,10 @@ assert.match(solver, /enforceAromaticSubstituentDirections/);
 assert.match(solver, /assignAromaticFollowerSigns/);
 assert.match(solver, /enforceConjugatedSubstituentGeometry/);
 
-const cameraMutationLines = app.split('\n').filter(line => /camera\.position\.(set|copy|add)|cameraTarget\.(set|copy|add)/.test(line));
-assert.equal(cameraMutationLines.length, 3, `Unexpected camera mutation:\n${cameraMutationLines.join('\n')}`);
-assert.ok(cameraMutationLines.every(line => line.includes('const camera=') || line.includes('function panCamera') || line.includes('function zoomCamera')));
+const cameraMutationLines = app.split('\n').filter(line => /camera\.position\.(set|copy|add|lerp)|cameraTarget\.(set|copy|add|lerp)/.test(line));
+assert.equal(cameraMutationLines.length, 4, `Unexpected camera mutation:\n${cameraMutationLines.join('\n')}`);
+assert.ok(cameraMutationLines.every(line => line.includes('const camera=') || line.includes('function panCamera') || line.includes('function zoomCamera') || line.includes('camera.position.lerpVectors(item.fromPosition')));
+assert.match(app, /if\(!frameTransition\|\|relaxation\|\|bondTransition\)return/);
+assert.match(app, /frame-structure'\)\?\.addEventListener\('click',requestStructureFrame\)/);
 
 console.log('Source contract tests passed.');

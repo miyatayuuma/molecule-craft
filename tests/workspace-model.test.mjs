@@ -1,0 +1,83 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { Molecule, setMoleculeDatabase } from '../src/chemistry.js';
+import { unpairedElectronCount } from '../src/bonding-model.js';
+import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from '../src/workspace-model.js';
+
+const records = JSON.parse(await readFile(new URL('../data/molecules.json', import.meta.url)));
+setMoleculeDatabase(records);
+const molecule = new Molecule(), coordinates = new Map();
+function add(elements, bonds, x = 0) {
+  const ids = elements.map((element,index) => { const atom=molecule.addAtom(element); coordinates.set(atom.id,{x:x+index*.2,y:0,z:0}); return atom.id; });
+  bonds.forEach(([a,b,order]) => molecule.setBond(ids[a],ids[b],order)); return ids;
+}
+const water = add(['O','H','H'],[[0,1,1],[0,2,1]]);
+const water2 = add(['O','H','H'],[[0,1,1],[0,2,1]],4);
+const hydrogen = add(['H','H'],[[0,1,1]],40);
+const loose = add(['C'],[],1);
+let structures = connectedStructures(molecule);
+assert.equal(structures.length,4);
+assert.equal(structures.filter(item=>item.complete).length,3,'A free atom cannot block either finished molecule.');
+assert.equal(structures.filter(item=>item.record?.nameEn.toLowerCase()==='water').length,2,'Even identical molecules are recognized independently.');
+const tracker=createCompletionTracker();
+assert.equal(tracker.update(structures).length,3,'All newly completed components get their own event.');
+assert.equal(tracker.update(structures).length,0,'Selection/refresh cannot repeat completion.');
+const sum=id=>molecule.bondOrderForAtom(id);
+assert.equal(unpairedElectronCount('O',sum(water[0])),0);
+molecule.removeBond(water[0],water[2]);
+structures=connectedStructures(molecule);
+assert.equal(structures.find(item=>item.ids.has(water[0])).complete,false);
+assert.equal(unpairedElectronCount('O',sum(water[0])),1,'Bond break immediately restores reactive state.');
+assert.equal(tracker.update(structures).length,0,'Another finished water stays complete without another event.');
+molecule.setBond(water[0],water[2],1);
+assert.equal(tracker.update(connectedStructures(molecule)).length,1,'Recompletion is not suppressed by a stale name signature.');
+
+// DB availability is unrelated to completion; names may become unavailable.
+setMoleculeDatabase([]);
+structures=connectedStructures(molecule);
+assert.equal(structures.filter(item=>item.complete).length,3);
+assert.ok(structures.every(item=>item.record===null));
+setMoleculeDatabase(records);
+structures=connectedStructures(molecule);
+let main=chooseMainStructure(structures);
+assert.ok(main.ids.has(water[0]));
+assert.ok(chooseMainStructure(structures,new Set(loose)).ids.has(water[0]),'An abandoned first atom yields the main role to a connected structure.');
+const bigger=add(['C','C','C','C'],[[0,1,1],[1,2,1],[2,3,1]],20);
+structures=connectedStructures(molecule);
+assert.ok(chooseMainStructure(structures,main.ids).ids.has(water[0]),'A separate larger molecule cannot silently replace the tracked main structure.');
+const oldLarge=structures.find(item=>item.ids.has(bigger[0]));
+molecule.removeBond(bigger[0],bigger[1]);
+structures=connectedStructures(molecule);
+assert.ok(chooseMainStructure(structures,oldLarge.ids).ids.has(bigger[1]),'After splitting, keep the larger surviving side.');
+main=structures.find(item=>item.ids.has(water[0]));
+const debris=createDebrisTracker();
+const update=(now,options={})=>debris.update({structures,main,positionFor:id=>coordinates.get(id),now,...options});
+assert.equal(update(0).expired.length,0);
+assert.ok(!update(9000).expired.some(item=>item.ids.has(loose[0])),'Nearby raw material is retained indefinitely.');
+coordinates.set(loose[0],{x:100,y:0,z:0});debris.reset();
+assert.equal(update(10000).opacity.get(String(loose[0])),1);
+const mid=update(10000+DEBRIS_POLICY.delayMs+DEBRIS_POLICY.fadeMs/2);
+assert.ok(Math.abs(mid.opacity.get(String(loose[0]))-.5)<.001,'A distant piece fades before removal.');
+const expired=update(10000+DEBRIS_POLICY.delayMs+DEBRIS_POLICY.fadeMs);
+assert.ok(expired.expired.some(item=>item.ids.has(loose[0])));
+assert.ok(!expired.expired.some(item=>item.ids.has(hydrogen[0])),'Small completed molecules are NEVER debris, even far away.');
+assert.equal(update(20000,{protectedIds:new Set(loose)}).opacity.has(String(loose[0])),false,'Selection/new-atom grace cancels fade.');
+update(21000);assert.ok(!update(22000).expired.some(item=>item.ids.has(loose[0])),'Protection resets, not just pauses, the countdown.');
+update(23000,{suspended:true});
+assert.ok(!update(40000).expired.some(item=>item.ids.has(loose[0])),'A hidden tab, drag or relaxation cannot consume the grace period.');
+coordinates.set(loose[0],{x:40,y:0,z:0});
+assert.equal(update(50000).opacity.has(String(loose[0])),false,'Material near another completed molecule is not discarded for being far from main.');
+coordinates.set(loose[0],{x:100,y:0,z:0});update(60000);
+coordinates.set(loose[0],{x:1,y:0,z:0});
+assert.equal(update(65000).opacity.has(String(loose[0])),false,'Moving back into range cancels removal.');
+
+const before=JSON.stringify([...coordinates]);
+const portrait=structureFrame(main,id=>coordinates.get(id),44,.5);
+const landscape=structureFrame(main,id=>coordinates.get(id),44,2);
+assert.ok(portrait.distance>landscape.distance,'Portrait framing accounts for the horizontal field of view.');
+assert.ok(portrait.center.x<1,'A far fragment cannot distort the framing center.');
+assert.equal(before,JSON.stringify([...coordinates]),'Framing never moves the atoms.');
+assert.equal(structureFrame(null,()=>null,44,1),null);
+assert.ok(Number.isFinite(structureFrame(main,id=>coordinates.get(id),44,.01).distance));
+
+console.log('Workspace model tests passed: per-component completion, reactivity, main tracking, cleanup protection, and framing.');

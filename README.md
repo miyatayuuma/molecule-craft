@@ -16,14 +16,19 @@
 
 - 元素ボタンで未結合原子を追加
 - 不対電子どうしを画面上でドラッグして、単結合・多重結合・環を形成
-- 結合可能な不対電子対がある間は結合操作を優先し、閉殻時は原子の取得範囲を広げた骨格調整モードへ自動移行
+- 原子ごとに、不対電子があれば電子周辺の結合操作、なければ広い原子取得範囲を優先。原子中央は常に骨格操作。結合を壊すと対象原子だけ電子優先へ戻る
 - 原子ドラッグで局所構造を調整し、単結合は軸回転可能
 - 結合後はカメラを固定したまま、結合長・角度・sp/sp²・芳香族平面拘束へ段階的に緩和
 - 既知化合物は `data/molecules.json` の構造グラフから認識し、慣用名とIUPAC名を併記
+- 完成・名前認識は連結構造ごとに独立。未結合原子が残っても各完成品を認識し、同じ分子を複数作った場合も別々に完成通知。構造一覧から表示対象を選択
+- 「構造を表示」は選択構造（未選択なら主構造）を表示。背景ダブルタップは主構造を表示。カメラ方向と原子座標を維持したまま約0.42秒で位置・ズームを調整。構造緩和中の要求は終了後に実行
+- 未完成の小片だけを距離で整理。主構造より小さく、8原子以下・非H原子2個以下で、主構造・完成品・大きな構造などから7モデル単位（C–C単結合約6本分）より離れた状態が4.5秒続くと、0.65秒でフェードして削除
+- 近くの素材・完成品は削除しない。追加・選択解除後8秒は保護し、操作・緩和中や非表示タブでは整理を停止。「整理を元に戻す」で自動整理分を復元できる。整理は化学反応や原子消滅のシミュレーションではない
+- 「完成」はこの教材モデルでの原子価充足を意味し、実際の化学的安定性を保証しない。DBにない構造も完成判定可能
 
 ## 検証
 
-`node tests/recognition.test.mjs`、`node tests/structure-relaxation.test.mjs`、`node tests/electron-interaction.test.mjs`、`node tests/gesture-arbitration.test.mjs`、`node tests/source-contracts.test.mjs` で、分子DB・拘束ソルバー・操作裁定・direct-module構成の基本契約を確認できます。
+`node tests/recognition.test.mjs`、`node tests/structure-relaxation.test.mjs`、`node tests/electron-interaction.test.mjs`、`node tests/gesture-arbitration.test.mjs`、`node tests/workspace-model.test.mjs`、`node tests/source-contracts.test.mjs` で、分子DB・拘束ソルバー・操作裁定・複数構造の完成／整理・direct-module構成の基本契約を確認できます。
 
 ## 起動
 
