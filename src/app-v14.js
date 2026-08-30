@@ -6,7 +6,7 @@ import { planBondDocking, createRelaxationSession } from './structure-motion.js?
 import { planStructureEdit, editRelaxationOptions } from './structure-edit.js?v=24';
 import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
-import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=19';
+import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=20';
 import { connectedStructures, chooseMainStructure, createCompletionTracker, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
 import { expandCraftStructure, seedCraftCoordinates } from './craft-structures.js?v=21';
 import { createElementPalette } from './element-progression.js?v=25';
@@ -24,6 +24,7 @@ const atomVisuals=new Map(),bondVisuals=new Map();
 let electronVisuals=[],aromaticVisuals=[];
 const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
 const ELECTRON_SNAP_PX=58;
+const SPAWN_SAFE_MARGIN_PX=64;
 let structures=[],mainStructure=null,structureByAtom=new Map();
 const completionTracker=createCompletionTracker(),debrisTracker=createDebrisTracker();
 const workspaceView=createWorkspaceView();
@@ -120,8 +121,9 @@ function addElement(symbol){
   if(!ELEMENTS[symbol]||!elementPalette.canUse(symbol)||interactionLocked())return;
   const atom=molecule.addAtom(symbol);
   protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
-  placements.set(atom.id,{position:molecule.atoms.length===1?cameraTarget.clone():spawnPosition()});
-  selectAtom(atom.id);topologyChanged();refresh();
+  const position=molecule.atoms.length===1?cameraTarget.clone():spawnPosition();
+  placements.set(atom.id,{position});
+  selectAtom(atom.id);topologyChanged();ensureSpawnVisible([position]);refresh();
   pulse(molecule.atoms.length===1?`${symbol} を中心原子として追加`:`${symbol} を未結合原子として追加 · 不対電子をドラッグして結合`);
 }
 
@@ -135,6 +137,7 @@ function addCraftPart(id){
   for(const [index,atomId]of expanded.ids.entries()){
     const p=coordinates[index];placements.set(atomId,{position:origin.clone().addScaledVector(right,p.x).addScaledVector(up,p.y).addScaledVector(depth,p.z)});protectedUntil.set(atomId,performance.now()+DEBRIS_POLICY.protectionMs);
   }
+  ensureSpawnVisible(expanded.ids.map(pos).filter(Boolean));
   activeTorsionKey=null;selectAtom(expanded.attachments[0].atomId);topologyChanged();
   startRelaxation(`${template.nameJa}を配置 · 安定化後に光る接続点を電子ドラッグでつなぐ`);return true;
 }
@@ -641,6 +644,27 @@ function updateTwoFinger(){
 }
 function panCamera(dx,dy){const dist=camera.position.distanceTo(cameraTarget),scale=dist*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*2/Math.max(1,viewer.clientHeight),delta=cameraRight().multiplyScalar(-dx*scale).add(cameraUp().multiplyScalar(dy*scale));camera.position.add(delta);cameraTarget.add(delta);}
 function zoomCamera(ratio){const off=camera.position.clone().sub(cameraTarget),next=THREE.MathUtils.clamp(off.length()*ratio,1.2,36);camera.position.copy(cameraTarget).add(off.normalize().multiplyScalar(next));}
+function ensureSpawnVisible(points,marginPx=SPAWN_SAFE_MARGIN_PX){
+  if(!renderer||!points?.length)return false;
+  const rect=renderer.domElement.getBoundingClientRect();if(rect.width<1||rect.height<1)return false;
+  const safeMargin=Math.max(24,Math.min(marginPx,rect.width*.22,rect.height*.22)),direction=camera.position.clone().sub(cameraTarget),initialDistance=direction.length();
+  if(initialDistance<1e-6)return false;direction.normalize();
+  const fits=()=>{
+    camera.lookAt(cameraTarget);camera.updateMatrixWorld();camera.updateProjectionMatrix();
+    return points.every(point=>{
+      const screen=worldToScreen(point);
+      return screen.depth>=-1&&screen.depth<=1&&screen.x>=rect.left+safeMargin&&screen.x<=rect.right-safeMargin&&screen.y>=rect.top+safeMargin&&screen.y<=rect.bottom-safeMargin;
+    });
+  };
+  if(fits())return false;
+  let distance=initialDistance;
+  for(let attempt=0;attempt<18&&distance<36;attempt++){
+    distance=Math.min(36,distance*1.14);camera.position.copy(cameraTarget).addScaledVector(direction,distance);
+    if(fits())break;
+  }
+  camera.far=Math.max(100,distance+20);camera.updateProjectionMatrix();
+  return distance>initialDistance+1e-3;
+}
 
 function pointerWorldOnPlane(e,planePoint,planeNormal){return screenPointToWorldOnPlane(e.clientX,e.clientY,planePoint,planeNormal);}
 function screenPointToWorldOnPlane(clientX,clientY,planePoint,planeNormal){
