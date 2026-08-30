@@ -58,7 +58,8 @@ export function createTorsionModel(molecule,{aromaticCycles=[]}={}) {
     if(candidates.length)return {mode:'axis-select',atomId,ids:[],scope,candidates,reason:'光る結合をタップして軸を選ぼう'};
     const nearby=new Set([atomId,...neighbors(atomId).map(n=>n.atomId)]);
     const restricted=[...bonds.values()].find(item=>['restricted','ring','multiple'].includes(item.kind)&&nearby.has(item.bond.a)&&nearby.has(item.bond.b));
-    return {mode:'atom-locked',atomId,ids:[],scope,candidates,reason:restricted?.reason??'ここは支点です · 回す枝の原子を選ぼう'};
+    const hasAxis=[...bonds.values()].some(item=>item.allowed&&scope.has(item.bond.a));
+    return {mode:'atom-locked',atomId,ids:[],scope,candidates,reason:restricted?.reason??(hasAxis?'ここは支点です · 回す枝の原子を選ぼう':'この構造には枝を回せる軸がありません')};
   }
   return {bonds,forAtom};
 }
