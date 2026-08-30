@@ -25,6 +25,6 @@ if('serviceWorker'in navigator){
   });
   navigator.serviceWorker.register(new URL('../sw.js',import.meta.url),{scope:new URL('../',import.meta.url).pathname,updateViaCache:'none'}).then(reg=>{
     registration=reg;ready();
-    reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'){ready();if(!navigator.serviceWorker.controller)updateStatus.textContent='オフラインでも遊べる準備ができました。';}if(worker.state==='redundant'&&!navigator.serviceWorker.controller)updateStatus.textContent='オフラインの準備は、次回オンラインで開いたときに再試行します。';});});
+    reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'){ready();if(!navigator.serviceWorker.controller)updateStatus.textContent='オフラインでも遊べる準備ができました。';}if(worker.state==='redundant')updateStatus.textContent=navigator.serviceWorker.controller?'更新の準備を完了できませんでした。現在の版で続けられます。':'オフラインの準備は、次回オンラインで開いたときに再試行します。';});});
   }).catch(()=>{updateStatus.textContent='この環境ではオフライン機能を利用できません。';});
 }else updateStatus.textContent='この環境ではオフライン機能を利用できません。';
