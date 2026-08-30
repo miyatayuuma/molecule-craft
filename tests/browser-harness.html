@@ -9,7 +9,8 @@
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
     import { ELEMENTS, Molecule, setMoleculeDatabase } from '../src/chemistry.js?v=20';
     import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from '../src/bonding-model.js';
-    import { createStructureSolver } from '../src/structure-relaxation.js?v=18';
+    import { createStructureSolver } from '../src/structure-relaxation.js?v=23';
+    import { checkStructureMotion } from './structure-motion-checks.js?v=23';
     import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from '../src/electron-interaction.js?v=16';
     import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=19';
     import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=20';
@@ -52,6 +53,9 @@
       catch (error) { results.push({ name, ok: false, error: error.message }); }
     }
 
+    run('far bonds, docking, ring closure, low-FPS convergence and focused rotation',()=>{
+      checkStructureMotion(THREE);
+    });
     run('collection models: isolated geometry, ports and correct sp/sp2/sp3 shapes',()=>{
       checkPreviewModels(THREE,records.filter(record=>['methane','ethene','ethyne','benzene','anisole','phenol'].includes(record.id)),collectionData.templates);
     });

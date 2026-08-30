@@ -15,6 +15,8 @@ export function createStructureSolver({
   let doubleFrames = new Map();
   let aromaticFrames = new Map();
   let stericExclusions = new Set();
+  let bridgeSides = new Map();
+  let angleTargets = new Map();
 
   const pos = id => placements.get(id)?.position;
   const pairKey = (a, b) => `${Math.min(a, b)}:${Math.max(a, b)}`;
@@ -23,7 +25,8 @@ export function createStructureSolver({
     dirty = true;
   }
 
-  function rebuildTopology() {
+  function rebuildTopology({ resetFrames = false } = {}) {
+    if (resetFrames) { doubleFrames.clear(); aromaticFrames.clear(); }
     cycles = findCycles(8);
     aromaticCycles = cycles.filter(isAromaticSixCarbonCycle);
     aromaticEdges = new Set();
@@ -65,6 +68,30 @@ export function createStructureSolver({
     }
     aromaticFrames = nextAromaticFrames;
     stericExclusions = buildStericExclusions();
+    // Cache graph cuts once per topology, not once per relaxation frame.
+    bridgeSides = new Map();
+    for (const bond of molecule.bonds) {
+      const b = branchFromBond(bond.a, bond.b);
+      if (b) bridgeSides.set(pairKey(bond.a, bond.b), { a: branchFromBond(bond.b, bond.a), b, aId: bond.a });
+    }
+    angleTargets = new Map();
+    for (const atom of molecule.atoms) {
+      const neighbors = molecule.neighbors(atom.id);
+      for (let i = 0; i < neighbors.length; i++) for (let j = i + 1; j < neighbors.length; j++) {
+        const a = neighbors[i].atomId, b = neighbors[j].atomId;
+        let target = geometryFor(atom.id).angle;
+        for (const cycle of cycles) {
+          const index = cycle.indexOf(atom.id);
+          if (index < 0) continue;
+          const ends = [cycle[(index + cycle.length - 1) % cycle.length], cycle[(index + 1) % cycle.length]];
+          if (ends.includes(a) && ends.includes(b)) target = Math.min(target, (cycle.length - 2) * Math.PI / cycle.length);
+        }
+        // Conjugated O/N followers use the same 120-degree target as their
+        // aromatic constraint; competing target angles must not stall convergence.
+        if ([...aromaticFrames.values()].some(frame => frame.substituents.some(s => s.rootId === atom.id && s.planarFollowers.length))) target = 2 * Math.PI / 3;
+        angleTargets.set(`${atom.id}/${pairKey(a, b)}`, target);
+      }
+    }
     dirty = false;
   }
 
@@ -99,6 +126,8 @@ export function createStructureSolver({
 
       // G. A deliberately light final separation avoids atom overlap without fighting angles.
       enforceStericSeparation(0.018 * scale, locked);
+      // Angles/planes must not leave stretched bonds as an apparent equilibrium.
+      for (const bond of molecule.bonds) enforceBondLength(bond, 0.35 * scale, locked);
 
       for (const atom of molecule.atoms) {
         const point = pos(atom.id);
@@ -121,8 +150,19 @@ export function createStructureSolver({
     const b = pos(bond.b);
     if (!a || !b) return;
     const delta = b.clone().sub(a);
-    const length = Math.max(0.001, delta.length());
-    const correction = delta.normalize().multiplyScalar((length - bondLengthFor(bond.a, bond.b, bond.order)) * strength);
+    const length = delta.length(), target = bondLengthFor(bond.a, bond.b, bond.order);
+    if (length < 1e-8) delta.set(1, 0, 0);
+    const correction = delta.normalize().multiplyScalar((length - target) * strength);
+    const sides = bridgeSides.get(pairKey(bond.a, bond.b));
+    if (sides && Math.abs(length - target) > target * 0.12) {
+      const aLocked = sides.a.some(id => locked.has(id)), bLocked = sides.b.some(id => locked.has(id));
+      const total = sides.a.length + sides.b.length;
+      const wa = aLocked ? 0 : bLocked ? 1 : sides.b.length / total;
+      const wb = bLocked ? 0 : aLocked ? 1 : sides.a.length / total;
+      for (const id of sides.a) pos(id)?.addScaledVector(correction, wa);
+      for (const id of sides.b) pos(id)?.addScaledVector(correction, -wb);
+      return;
+    }
     displacePair(bond.a, bond.b, correction, locked);
   }
 
@@ -130,10 +170,9 @@ export function createStructureSolver({
     const center = pos(centerId);
     const neighbors = molecule.neighbors(centerId).map(neighbor => neighbor.atomId);
     if (!center || neighbors.length < 2) return;
-    const geometry = geometryFor(centerId);
     for (let left = 0; left < neighbors.length; left++) {
       for (let right = left + 1; right < neighbors.length; right++) {
-        enforceAngle(center, neighbors[left], neighbors[right], geometry.angle, strength, locked);
+        enforceAngle(centerId, neighbors[left], neighbors[right], angleTargets.get(`${centerId}/${pairKey(neighbors[left], neighbors[right])}`), strength, locked);
       }
     }
   }
@@ -145,15 +184,56 @@ export function createStructureSolver({
     const primaryId = neighbors[0].atomId, secondaryId = neighbors[1].atomId, primary = pos(primaryId), secondary = pos(secondaryId);
     if (!primary || !secondary || (locked.has(primaryId) && locked.has(secondaryId))) return;
     if (!locked.has(secondaryId)) {
-      const length = secondary.distanceTo(center), target = center.clone().addScaledVector(primary.clone().sub(center).normalize(), -length);
-      secondary.lerp(target, Math.min(1, strength * 2.4));
+      moveLinearBranch(centerId, secondaryId, primary.clone().sub(center).normalize().multiplyScalar(-1), Math.min(1, strength * 2.4), locked);
     } else if (!locked.has(primaryId)) {
-      const length = primary.distanceTo(center), target = center.clone().addScaledVector(secondary.clone().sub(center).normalize(), -length);
-      primary.lerp(target, Math.min(1, strength * 2.4));
+      moveLinearBranch(centerId, primaryId, secondary.clone().sub(center).normalize().multiplyScalar(-1), Math.min(1, strength * 2.4), locked);
     }
   }
 
-  function enforceAngle(center, aId, bId, target, strength, locked) {
+  function moveLinearBranch(centerId, rootId, direction, strength, locked) {
+    const sides = bridgeSides.get(pairKey(centerId, rootId));
+    const atomIds = sides ? (sides.aId === rootId ? sides.a : sides.b) : [rootId];
+    moveBranchRootToward(centerId, { rootId, atomIds }, direction, strength, locked);
+  }
+
+  function measureError({ ids = null } = {}) {
+    if (dirty) rebuildTopology();
+    const includes = id => !ids || ids.has(id);
+    let finite = true, bondRelative = 0, angleRadians = 0, planeDistance = 0;
+    for (const atom of molecule.atoms) if (includes(atom.id)) {
+      const point = pos(atom.id);
+      if (!point || ![point.x, point.y, point.z].every(Number.isFinite)) finite = false;
+      const neighbors = molecule.neighbors(atom.id).map(n => n.atomId);
+      // The existing hypervalent model has several valid pair angles, not one.
+      if (!point || neighbors.length > 4) continue;
+      for (let i = 0; i < neighbors.length; i++) for (let j = i + 1; j < neighbors.length; j++) {
+        const a = pos(neighbors[i])?.clone().sub(point), b = pos(neighbors[j])?.clone().sub(point);
+        if (!a || !b) { finite = false; continue; }
+        const target = angleTargets.get(`${atom.id}/${pairKey(neighbors[i], neighbors[j])}`);
+        angleRadians = Math.max(angleRadians, Math.abs(a.angleTo(b) - target));
+      }
+    }
+    for (const bond of molecule.bonds) if (includes(bond.a) && includes(bond.b)) {
+      const target = bondLengthFor(bond.a, bond.b, bond.order);
+      bondRelative = Math.max(bondRelative, Math.abs((pos(bond.a)?.distanceTo(pos(bond.b)) ?? Infinity) / target - 1));
+    }
+    for (const frame of [...doubleFrames.values(), ...aromaticFrames.values()]) {
+      const anchors = (frame.cycle ?? [frame.bond.a, frame.bond.b]).map(pos);
+      if (anchors.some(p => !p)) { finite = false; continue; }
+      const center = anchors.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / anchors.length);
+      for (const id of frame.atomIds) if (includes(id) && pos(id)) planeDistance = Math.max(planeDistance, Math.abs(pos(id).clone().sub(center).dot(frame.normal)));
+    }
+    finite &&= [bondRelative, angleRadians, planeDistance].every(Number.isFinite);
+    return { finite, bondRelative, angleRadians, planeDistance };
+  }
+
+  function angleBranch(centerId, rootId) {
+    const sides = bridgeSides.get(pairKey(centerId, rootId));
+    return sides ? (sides.aId === rootId ? sides.a : sides.b) : [rootId];
+  }
+
+  function enforceAngle(centerId, aId, bId, target, strength, locked) {
+    const center = pos(centerId);
     const a = pos(aId);
     const b = pos(bId);
     if (!a || !b || (locked.has(aId) && locked.has(bId))) return;
@@ -169,16 +249,24 @@ export function createStructureSolver({
     let axis = new THREE.Vector3().crossVectors(va, vb);
     if (axis.lengthSq() < 1e-8) axis = perpendicular(va);
     else axis.normalize();
-    const aWeight = locked.has(aId) ? 0 : locked.has(bId) ? 1 : 0.5;
-    const bWeight = locked.has(bId) ? 0 : locked.has(aId) ? 1 : 0.5;
-    if (aWeight) {
-      const targetA = center.clone().addScaledVector(va.applyAxisAngle(axis, -difference * strength * aWeight), la);
-      a.lerp(targetA, 0.7);
+    // Rotate bridge branches rigidly. Moving just a bonded neighbor was
+    // stretching its other bonds and making adjacent angle constraints fight.
+    const aIds = angleBranch(centerId, aId), bIds = angleBranch(centerId, bId);
+    const aLocked = aIds.some(id => locked.has(id)), bLocked = bIds.some(id => locked.has(id));
+    const total = aIds.length + bIds.length;
+    const aWeight = aLocked ? 0 : bLocked ? 1 : bIds.length / total;
+    const bWeight = bLocked ? 0 : aLocked ? 1 : aIds.length / total;
+    if (aWeight) rotateAngleBranch(aIds, center, axis, -difference * strength * aWeight * .7);
+    if (bWeight) rotateAngleBranch(bIds, center, axis, difference * strength * bWeight * .7);
+  }
+
+  function rotateAngleBranch(ids, center, axis, angle) {
+    // A rigidly rotated planar fragment carries its reference plane with it.
+    // Partial plane edits remain constrained (e.g. dragging one ethene H).
+    for (const frame of [...doubleFrames.values(), ...aromaticFrames.values()]) {
+      if (frame.atomIds.every(id => ids.includes(id))) frame.normal.applyAxisAngle(axis, angle).normalize();
     }
-    if (bWeight) {
-      const targetB = center.clone().addScaledVector(vb.applyAxisAngle(axis, difference * strength * bWeight), lb);
-      b.lerp(targetB, 0.7);
-    }
+    for (const id of ids) pos(id)?.sub(center).applyAxisAngle(axis, angle).add(center);
   }
 
   function enforcePlane(atomIds, normal, anchorIds, strength, locked, centralBond = null, skipIds = null) {
@@ -536,5 +624,5 @@ export function createStructureSolver({
     };
   }
 
-  return { step, markTopologyDirty, rebuildTopology, rotateReferenceFrames, snapshot };
+  return { step, measureError, markTopologyDirty, rebuildTopology, rotateReferenceFrames, snapshot };
 }

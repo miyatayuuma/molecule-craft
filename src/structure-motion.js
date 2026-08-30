@@ -1,0 +1,47 @@
+// Motion scheduling is independent of the camera, screen-space electron input,
+// and rendering. Docking is planned BEFORE a bond merges two components.
+export function planBondDocking({THREE,molecule,positionFor,a,b,length,directionFor,preferredIds=new Set()}) {
+  const component=start=>{const ids=new Set([start]),queue=[start];for(let i=0;i<queue.length;i++)for(const n of molecule.neighbors(queue[i]))if(!ids.has(n.atomId)){ids.add(n.atomId);queue.push(n.atomId);}return ids;};
+  const left=component(a),right=component(b);if(left.has(b))return null;
+  const leftAnchored=left.size>right.size||(left.size===right.size&&[...left].some(id=>preferredIds.has(id)));
+  const anchorId=leftAnchored?a:b,movingId=leftAnchored?b:a,ids=leftAnchored?right:left;
+  const anchor=positionFor(anchorId)?.clone(),origin=positionFor(movingId)?.clone();if(!anchor||!origin)return null;
+  const direction=directionFor?.(anchorId)?.clone()??origin.clone().sub(anchor);
+  if(direction.lengthSq()<1e-8)direction.set(1,0,0);direction.normalize();
+  const target=anchor.clone().addScaledVector(direction,length),incoming=directionFor?.(movingId)?.clone();
+  const rotation=incoming&&incoming.lengthSq()>1e-8?new THREE.Quaternion().setFromUnitVectors(incoming.normalize(),direction.clone().multiplyScalar(-1)):new THREE.Quaternion();
+  const initial=new Map([...ids].map(id=>[id,positionFor(id).clone()]));
+  const distance=origin.distanceTo(target),duration=Math.min(900,Math.max(300,300+distance*35));
+  return {ids,anchorId,movingId,duration,
+    apply(fraction){
+      const t=Math.min(1,Math.max(0,fraction)),ease=t*t*(3-2*t),q=new THREE.Quaternion().slerp(rotation,ease),center=origin.clone().lerp(target,ease);
+      for(const [id,point]of initial)positionFor(id)?.copy(point).sub(origin).applyQuaternion(q).add(center);
+      return t===1;
+    },
+  };
+}
+
+export const RELAXATION_POLICY=Object.freeze({stepsPerSecond:240,maxStepsPerFrame:24,maxSteps:1440,bondRelative:.035,angleRadians:12*Math.PI/180,planeDistance:.045});
+export function createRelaxationSession({solver,ids=null,lockedIds=new Set(),minDuration=600,now=0,policy=RELAXATION_POLICY}) {
+  let previous=now,debt=0,elapsed=0,steps=0,stableSteps=0,finished=false,converged=false;
+  let errors=solver.measureError({ids});
+  const acceptable=()=>errors.finite&&errors.bondRelative<=policy.bondRelative&&errors.angleRadians<=policy.angleRadians&&errors.planeDistance<=policy.planeDistance;
+  return {
+    pause(time){previous=time;debt=0;},
+    advance(time,{clock=()=>performance.now(),budgetMs=5}={}){
+      if(finished)return {done:true,converged,errors,steps};
+      const dt=Math.min(100,Math.max(0,time-previous));previous=time;elapsed+=dt;
+      debt=Math.min(policy.maxStepsPerFrame*3,debt+dt*policy.stepsPerSecond/1000);
+      const started=clock();let count=0;
+      while(debt>=1&&count<policy.maxStepsPerFrame&&steps<policy.maxSteps&&clock()-started<budgetMs){
+        solver.step(.65,1,{lockedIds});steps++;count++;debt--;
+      }
+      if(count){errors=solver.measureError({ids});stableSteps=acceptable()?stableSteps+count:0;}
+      // Time alone, or a small displacement at a bad equilibrium, is never
+      // success. An incompatible geometry returns an explicit unresolved result.
+      converged=acceptable()&&stableSteps>=12;
+      finished=(converged&&elapsed>=minDuration)||steps>=policy.maxSteps||!errors.finite;
+      return {done:finished,converged:finished&&converged,errors,steps};
+    },
+  };
+}

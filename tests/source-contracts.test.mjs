@@ -12,8 +12,13 @@ const [index, app, chemistry, solver, electronInteraction, gestureArbitration, d
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=22"><\/script>/);
-assert.match(app, /from '\.\/structure-relaxation\.js\?v=18'/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=23"><\/script>/);
+assert.match(app, /from '\.\/structure-relaxation\.js\?v=23'/);
+assert.match(app, /from '\.\/structure-motion\.js\?v=23'/);
+assert.match(app, /from '\.\/workspace-view\.js\?v=23'/);
+assert.doesNotMatch(app, /stableFrames|maxDuration/);
+assert.match(app, /workspaceView.frame\(focusedStructure\(\),fit.center\)/);
+assert.match(app, /solver.rotateReferenceFrames\(q,rotation.ids\);rotateStructure\(rotation,pos,q\)/);
 assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);
 assert.match(app, /from '\.\/gesture-arbitration\.js\?v=19'/);
 assert.match(app, /from '\.\/workspace-model\.js\?v=20'/);
