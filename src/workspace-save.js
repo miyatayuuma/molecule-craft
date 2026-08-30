@@ -50,9 +50,9 @@ export function createWorkspaceStorage({storage,onStatus=()=>{}}={}){
       if(!storage){status('制作途中の保存を利用できません。');return false;}
       const current=storage.getItem(WORKSPACE_STORAGE_KEY);
       if(current!==previous){blocked='conflict';status('別の画面で制作データが更新されました。この画面では上書きせず、保存を停止しています。');return false;}
-      if(raw===previous)return true;
+      if(raw===previous){status('');return true;}
       storage.setItem(WORKSPACE_STORAGE_KEY,raw);previous=raw;status('');return true;
     }catch{status('制作途中を保存できません。端末の空き容量やブラウザの設定を確認してください。');return false;}
   }
-  return {read,write,get protected(){return !!blocked;},get message(){return message;},get snapshot(){return snapshot;},allowReset(){if(blocked==='invalid'){blocked='';status('');return true;}return !blocked;}};
+  return {read,write,reportFailure:()=>status('制作途中を保存できません。原子の数や位置を確認してください。'),get protected(){return !!blocked;},get message(){return message;},get snapshot(){return snapshot;},allowReset(){if(blocked==='invalid'){blocked='';status('');return true;}return !blocked;}};
 }

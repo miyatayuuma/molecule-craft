@@ -725,7 +725,7 @@ function beginSpawnZoom(plan){
 function saveWorkspace(flush=false){
   if(!renderer)return true;
   if(!dragState&&!activePointers.size&&!relaxation&&!bondTransition){
-    try{const focus=focusedStructure(),rotation=workspaceView.capture(structures,mainStructure,pos);lastStableWorkspace=captureWorkspace({molecule,positionFor:pos,camera:frameTransition?{position:frameTransition.position,up:camera.up}:camera,cameraTarget:frameTransition?.target??cameraTarget,selectedAtomId,focusId:focus?.graph.atoms[0]?.id,pivot:rotation?.center});}catch{return false;}
+    try{const focus=focusedStructure(),rotation=workspaceView.capture(structures,mainStructure,pos);lastStableWorkspace=captureWorkspace({molecule,positionFor:pos,camera:frameTransition?{position:frameTransition.position,up:camera.up}:camera,cameraTarget:frameTransition?.target??cameraTarget,selectedAtomId,focusId:focus?.graph.atoms[0]?.id,pivot:rotation?.center});}catch{workspaceStorage.reportFailure();return false;}
   }
   return lastStableWorkspace?workspaceStorage.write(lastStableWorkspace):!flush||!molecule.atoms.length;
 }
