@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
 import { ELEMENTS, Molecule, countElements, loadMoleculeDatabase, UNKNOWN_NAME } from './chemistry.js';
 import { ATOMIC_MODEL, preferredValence, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, idealBondAngleDeg } from './bonding-model.js';
-import { createStructureSolver } from './structure-relaxation.js?v=15';
+import { createStructureSolver } from './structure-relaxation.js?v=18';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
 import { POINTER_ARBITRATION, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from './gesture-arbitration.js?v=17';
 

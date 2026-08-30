@@ -12,8 +12,8 @@ const [index, app, chemistry, solver, electronInteraction, gestureArbitration, d
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=17"><\/script>/);
-assert.match(app, /from '\.\/structure-relaxation\.js\?v=15'/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=18"><\/script>/);
+assert.match(app, /from '\.\/structure-relaxation\.js\?v=18'/);
 assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);
 assert.match(app, /from '\.\/gesture-arbitration\.js\?v=17'/);
 assert.equal((index.match(/data-element=/g) ?? []).length, 8, 'Static element palette must remain in HTML');
@@ -34,6 +34,8 @@ assert.match(solver, /aromaticPlanarGroup/);
 assert.match(solver, /planarSubstituentGroup/);
 assert.match(solver, /doubleSubstituentSlots/);
 assert.match(solver, /enforceAromaticSubstituentDirections/);
+assert.match(solver, /assignAromaticFollowerSigns/);
+assert.match(solver, /enforceConjugatedSubstituentGeometry/);
 
 const cameraMutationLines = app.split('\n').filter(line => /camera\.position\.(set|copy|add)|cameraTarget\.(set|copy|add)/.test(line));
 assert.equal(cameraMutationLines.length, 3, `Unexpected camera mutation:\n${cameraMutationLines.join('\n')}`);

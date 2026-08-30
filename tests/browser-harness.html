@@ -9,7 +9,7 @@
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
     import { ELEMENTS, Molecule } from '../src/chemistry.js';
     import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from '../src/bonding-model.js';
-    import { createStructureSolver } from '../src/structure-relaxation.js?v=15';
+    import { createStructureSolver } from '../src/structure-relaxation.js?v=18';
     import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from '../src/electron-interaction.js?v=16';
     import { POINTER_ARBITRATION, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=17';
 
@@ -108,6 +108,24 @@
       const center=centroid([...Array(6)].map((_,index)=>item.pos(index))),radial=item.pos(0).clone().sub(center).normalize(),oxygenDirection=item.pos(11).clone().sub(item.pos(0)).normalize();
       if(radial.dot(oxygenDirection)<=.985)throw new Error('oxygen remained inside ring');
       if(Math.abs(item.pos(11).z-center.z)>.03||Math.abs(item.pos(12).z-center.z)>.05)throw new Error('OH branch remained outside aromatic plane');
+    });
+
+    run('anisole: the methoxy carbon unfolds from the aromatic ring', () => {
+      const elements=[...Array(6).fill('C'),...Array(5).fill('H'),'O','C','H','H','H'],bonds=[],coordinates=[];
+      for(let index=0;index<6;index++)bonds.push([index,(index+1)%6,index%2===0?2:1]);
+      for(let index=1;index<6;index++)bonds.push([index,index+5,1]);
+      bonds.push([0,11,1],[11,12,1],[12,13,1],[12,14,1],[12,15,1]);
+      for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),0]);
+      for(let index=1;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*1.65,Math.sin(index*Math.PI/3)*1.65,0]);
+      coordinates.push([1.75,0,0],[1.02,.03,.12],[.55,.62,.28],[.55,-.52,-.25],[.72,.02,.82]);
+      const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+      const slot=item.solver.snapshot().aromaticFollowerSlots.flatMap(group=>group.followers).find(follower=>follower.id===item.ids[12]);
+      if(!slot||Math.abs(slot.sign)!==1)throw new Error('missing methoxy slot');
+      relaxLikeApp(item.solver);
+      const ringCenter=centroid([...Array(6)].map((_,index)=>item.pos(index))),coc=angle(item.pos(0),item.pos(11),item.pos(12));
+      const nearest=Math.min(...[...Array(6)].map((_,index)=>item.pos(12).distanceTo(item.pos(index))));
+      if(coc<=112||nearest<=.9)throw new Error(`folded C-O-C ${coc.toFixed(2)}°, distance ${nearest.toFixed(3)}`);
+      if(Math.abs(item.pos(11).z-ringCenter.z)>.04||Math.abs(item.pos(12).z-ringCenter.z)>.06)throw new Error('methoxy group remained outside aromatic plane');
     });
 
     run('ethyne: both sp centers return to linear', () => {

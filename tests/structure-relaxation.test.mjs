@@ -108,6 +108,42 @@ const relaxLikeApp=(solver,duration=1380)=>{for(let elapsed=0;elapsed<=duration;
 }
 
 {
+  const elements=[...Array(6).fill('C'),...Array(5).fill('H'),'O','C','H','H','H'],bonds=[],coordinates=[];
+  for(let index=0;index<6;index++)bonds.push([index,(index+1)%6,index%2===0?2:1]);
+  for(let index=1;index<6;index++)bonds.push([index,index+5,1]);
+  bonds.push([0,11,1],[11,12,1],[12,13,1],[12,14,1],[12,15,1]);
+  for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),0]);
+  for(let index=1;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*1.65,Math.sin(index*Math.PI/3)*1.65,0]);
+  coordinates.push([1.75,0,0],[1.02,.03,.12],[.55,.62,.28],[.55,-.52,-.25],[.72,.02,.82]);
+  const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+  const followerSlot=item.solver.snapshot().aromaticFollowerSlots.flatMap(group=>group.followers).find(follower=>follower.id===item.ids[12]);
+  assert.ok(followerSlot&&Math.abs(followerSlot.sign)===1,'Anisole methyl branch did not receive a stable aromatic follower slot');
+  relaxLikeApp(item.solver);
+  const ringCenter=centroid([...Array(6)].map((_,index)=>item.pos(index))),ringPlaneZ=ringCenter.z;
+  const arylOAngle=angle(item.pos(0),item.pos(11),item.pos(12));
+  const nearestRingDistance=Math.min(...[...Array(6)].map((_,index)=>item.pos(12).distanceTo(item.pos(index))));
+  assert.ok(arylOAngle>112,`Anisole C-O-C angle stayed folded at ${arylOAngle}`);
+  assert.ok(nearestRingDistance>.9,`Anisole methyl carbon remained stacked on the ring at ${nearestRingDistance}`);
+  assert.ok(Math.abs(item.pos(11).z-ringPlaneZ)<.04&&Math.abs(item.pos(12).z-ringPlaneZ)<.06,'Anisole C-O-C group did not return to the aromatic plane');
+}
+
+{
+  const elements=[...Array(6).fill('C'),...Array(5).fill('H'),'N','H','H'],bonds=[],coordinates=[];
+  for(let index=0;index<6;index++)bonds.push([index,(index+1)%6,index%2===0?2:1]);
+  for(let index=1;index<6;index++)bonds.push([index,index+5,1]);
+  bonds.push([0,11,1],[11,12,1],[11,13,1]);
+  for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),0]);
+  for(let index=1;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*1.65,Math.sin(index*Math.PI/3)*1.65,0]);
+  coordinates.push([1.75,0,0],[1.05,.08,.2],[1.08,-.05,-.18]);
+  const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+  const slots=item.solver.snapshot().aromaticFollowerSlots.flatMap(group=>group.followers).filter(follower=>follower.id===item.ids[12]||follower.id===item.ids[13]);
+  assert.equal(new Set(slots.map(slot=>slot.sign)).size,2,'Aniline hydrogens did not receive distinct aromatic follower slots');
+  relaxLikeApp(item.solver);
+  assert.ok(angle(item.pos(0),item.pos(11),item.pos(12))>112&&angle(item.pos(0),item.pos(11),item.pos(13))>112,'Aniline N-H branches folded toward the ring');
+  assert.ok(angle(item.pos(12),item.pos(11),item.pos(13))>112,'Aniline N-H branches collapsed into one slot');
+}
+
+{
   const item=fixture(['C','C','H','H'],[[0,1,3],[0,2,1],[1,3,1]],[[-.55,0,0],[.55,0,0],[-1.25,.65,0],[1.25,-.55,0]]);
   item.solver.rebuildTopology();for(let index=0;index<180;index++)item.solver.step(.8,2);
   const left=angle(item.pos(2),item.pos(0),item.pos(1)),right=angle(item.pos(0),item.pos(1),item.pos(3));
