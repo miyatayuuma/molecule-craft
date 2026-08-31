@@ -11,8 +11,8 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=34">
-  <link rel="stylesheet" href="./veil.css?v=34">
+  <link rel="stylesheet" href="./styles.css?v=35">
+  <link rel="stylesheet" href="./veil.css?v=35">
 </head>
 <body>
   <main class="app-shell">
@@ -60,6 +60,19 @@
     <button id="open-help" type="button">あそびかた <span>›</span></button><button id="menu-info" type="button">いまの分子 <span>›</span></button>
     <button id="install-app" type="button">アプリをインストール <span>＋</span></button><p id="install-status" class="muted" role="status"></p>
     <button id="update-app" type="button" hidden>更新して再起動 <span>↻</span></button><p id="update-status" class="muted" role="status"></p>
+    <button id="reset-all" type="button">ゲーム進行を最初からやり直す <span>↺</span></button>
+    <details class="reset-tools"><summary>開発用 · 初期化テスト</summary>
+      <p class="muted">選んだカテゴリだけ初期化します。図鑑・レシピ・元素の初期化時は、再発見や資源の重複を防ぐため制作フィールドも空にします。</p>
+      <fieldset><legend>初期化する項目</legend>
+        <label><input type="checkbox" name="reset-category" value="collection"> 図鑑・部品解放・発見記録</label>
+        <label><input type="checkbox" name="reset-category" value="recipes"> 分子レシピ</label>
+        <label><input type="checkbox" name="reset-category" value="elements"> 元素ストック</label>
+        <label><input type="checkbox" name="reset-category" value="molecules"> 分子ストック</label>
+        <label><input type="checkbox" name="reset-category" value="exploration"> H Veilの初回進行</label>
+        <label><input type="checkbox" name="reset-category" value="records"> 最大CHAIN</label>
+        <label><input type="checkbox" name="reset-category" value="workspace"> 制作フィールド</label>
+      </fieldset><button id="reset-selected" type="button">選択した項目を初期化</button>
+    </details><p id="reset-status" class="muted" role="status"></p>
     <p class="muted">図鑑と制作途中の分子は、この端末に自動保存されます。</p><p id="game-loop-hint" class="muted"></p>
   </div></dialog>
   <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
@@ -92,9 +105,8 @@
     <div id="veil-craft-prompt" class="veil-prompt" hidden><button id="veil-to-craft" type="button">Hが集まった · H₂を作りに戻る ↗</button></div>
     <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><button id="veil-boost" type="button" aria-label="H₂ブースト。1個消費。キーボードはスペース"><strong>H₂</strong><small>BOOST</small><span id="veil-fuel">0</span></button></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
-    <div id="veil-result" class="veil-result" hidden><small>H VEIL / RETURN</small><h2>ひと巡り、おかえり。</h2><p id="veil-result-stats"></p><button id="veil-next" type="button">もう一周飛ぶ</button><button id="veil-result-return" type="button">クラフトへ帰還</button></div>
   </section>
-  <script type="module" src="./src/app-v14.js?v=34"></script>
+  <script type="module" src="./src/app-v14.js?v=35"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>

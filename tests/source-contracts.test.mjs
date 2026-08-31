@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const [index, app, chemistry, solver, electronInteraction, gestureArbitration, database] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app-v14.js?v=34', root), 'utf8'),
+  readFile(new URL('src/app-v14.js?v=35', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=31', root), 'utf8'),
   readFile(new URL('src/electron-interaction.js', root), 'utf8'),
@@ -12,7 +12,7 @@ const [index, app, chemistry, solver, electronInteraction, gestureArbitration, d
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=34"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app-v14\.js\?v=35"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=31'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-edit\.js\?v=32'/);

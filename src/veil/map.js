@@ -21,7 +21,7 @@ const DEFINITIONS=[
   ['approach','空白へ',[[0,-2600],[140,-2730],[310,-2760]]],
   // 450-unit gap: > chain window at normal speed; < window during H₂ boost.
   ['landing','空白の向こう',[[765,-2760],[880,-2990],[650,-3240],[530,-3550]]],
-  ['detour','大きな回り道',[[0,-2600],[-410,-2740],[-800,-3090],[-730,-3570],[-300,-3870],[180,-3630],[530,-3550]]],
+  ['detour','外側の弧',[[0,-2600],[-410,-2740],[-800,-3090],[-730,-3570],[-300,-3870],[180,-3630],[530,-3550]]],
   ['gate','外縁の流れ',[[530,-3550],[530,-3750]]],
   ['beyond','帳の向こう',[[530,-3960],[220,-4140],[-160,-3980]]],
   ['return','帰りの流れ',[[530,-3550],[1000,-3190],[1090,-2400],[930,-1510],[1070,-700],[800,40],[300,280],[0,210]]],
@@ -32,8 +32,12 @@ export function createMap(seed=1){
   const dust=[];
   for(const route of routes)for(const [i,p]of route.points.entries()){
     dust.push({...p,id:dust.length,route:route.id,kind:route.kind??'normal',value:VEIL.dustValue,ready:0});
-    if(route.kind==='dense'||(['safe','return','technical'][denseChoice]===route.id&&i%24<12))for(const side of [-1,1])dust.push({...p,x:p.x-Math.sin(p.angle)*side*20,y:p.y+Math.cos(p.angle)*side*20,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0});
+    if(route.kind==='dense'||(['safe','return','technical'][denseChoice]===route.id&&i%VEIL.bandPeriod<VEIL.bandLength))for(const side of [-1,1])dust.push({...p,x:p.x-Math.sin(p.angle)*side*VEIL.denseLaneOffset,y:p.y+Math.cos(p.angle)*side*VEIL.denseLaneOffset,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0});
+    if(route.id==='risk'&&p.y<-1400&&p.y>-2130)for(const side of [-1,1])for(let lane=0;lane<VEIL.shoulderLanes;lane++){
+      const offset=side*(VEIL.shoulderOffset+lane*VEIL.denseLaneOffset);
+      dust.push({...p,x:p.x-Math.sin(p.angle)*offset,y:p.y+Math.cos(p.angle)*offset,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0,shoulder:true});
+    }
   }
   if(rng()<VEIL.rareChance){const route=routes.find(r=>r.id==='technical'),p=route.points[Math.floor(route.points.length*.6)];dust.push({...p,id:dust.length,route:route.id,kind:'rare',value:VEIL.rareValue*VEIL.dustPerH,ready:0});}
-  return {seed,routes,dust,fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4}],labels:[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'高密度 / 反発場'},{x:500,y:-2760,text:'H₂ → 空白をつなぐ'},{x:530,y:-3660,text:'外縁の逆流 ↑ H₂'}]};
+  return {seed,routes,dust,fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels:[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'H₂ → 空白をつなぐ'},{x:530,y:-3660,text:'外縁の流れ ↑ H₂'}]};
 }

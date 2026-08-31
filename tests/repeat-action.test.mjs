@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {bindRepeatAction} from '../src/veil/repeat-action.js';
+class Target extends EventTarget{constructor(){super();this.classList={add(){},remove(){}};this.hidden=false;this.disabled=false;this.isConnected=true;}focus(){}setPointerCapture(){}releasePointerCapture(){}}
+function event(target,type,props={}){const e=new Event(type,{cancelable:true});for(const [k,v]of Object.entries(props))Object.defineProperty(e,k,{value:v});target.dispatchEvent(e);return e;}
+function setup(h=20){const win=new Target(),doc=new Target(),button=new Target();doc.defaultView=win;button.ownerDocument=doc;let now=0,next=0,made=0;const timers=new Map();const clock={setTimeout:(fn,ms)=>{timers.set(++next,{fn,at:now+ms});return next;},clearTimeout:id=>timers.delete(id)};bindRepeatAction(button,{clock,delay:360,interval:140,action:()=>{if(h<2)return false;h-=2;made++;return h>=2;}});return {win,doc,button,get made(){return made;},advance(ms){now+=ms;for(const [id,t]of [...timers])if(t.at<=now){timers.delete(id);t.fn();}}};}
+let s=setup();event(s.button,'pointerdown',{button:0,pointerId:1});assert.equal(s.made,1);s.advance(359);assert.equal(s.made,1);s.advance(1);assert.equal(s.made,2);s.advance(140);assert.equal(s.made,3);event(s.win,'pointerup',{pointerId:2});s.advance(140);assert.equal(s.made,4);event(s.win,'pointerup',{pointerId:1});s.advance(3000);assert.equal(s.made,4);event(s.button,'click',{detail:1});assert.equal(s.made,4,'No duplicate synthesized click');
+for(const cancel of ['pointercancel','lostpointercapture','blur','pagehide']){s=setup();event(s.button,'pointerdown',{button:0,pointerId:1});event(s.win,cancel,{pointerId:1});s.advance(999);assert.equal(s.made,1);}
+s=setup();event(s.button,'pointerdown',{button:0,pointerId:1});s.doc.hidden=true;event(s.doc,'visibilitychange');s.advance(999);assert.equal(s.made,1);
+s=setup(5);event(s.button,'pointerdown',{button:0,pointerId:1});s.advance(360);s.advance(999);assert.equal(s.made,2,'Stops at insufficient atoms');
+s=setup();event(s.button,'keydown',{key:' ',repeat:false});for(let i=0;i<10;i++)event(s.button,'keydown',{key:' ',repeat:true});assert.equal(s.made,1);s.advance(360);assert.equal(s.made,2);event(s.win,'keyup',{key:' '});s.advance(999);assert.equal(s.made,2);
+s=setup();event(s.button,'click',{detail:0});assert.equal(s.made,1,'Assistive activation works');s.advance(999);assert.equal(s.made,1);
+s=setup();event(s.button,'pointerdown',{button:0,pointerId:1});s.advance(30000);assert.equal(s.made,2,'A stalled frame does not spend a backlog');
+console.log('Repeat synthesis: immediate action, delay/cadence, ownership, all cancellations, shortage, keyboard, assistive click and no catch-up burst passed.');
