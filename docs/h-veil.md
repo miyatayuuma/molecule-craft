@@ -1,5 +1,7 @@
 # H Veil — 水素の帳 / v35
 
+> This document records the v35 H-only home course. The continuous H → C → O phase is documented in `docs/hco-growth.md`.
+
 v1を含むmain `df98647051bc1849291956c9577ed161388d30d1` を起点にリファイン。H Veilだけを対象とし、新元素・新ステージ・敵・クラフトツリーは追加しない。既存Three.js制作、162分子の認識、図鑑、電子ドラッグ、軸回転は維持する。
 
 ## v1の評価と変更理由

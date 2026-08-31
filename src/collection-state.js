@@ -1,5 +1,5 @@
 import { detectFunctionalGroups, structuralMilestones } from './functional-groups.js?v=21';
-import { availableElements, ELEMENT_UNLOCKS } from './element-progression.js?v=25';
+import { availableElements, ELEMENT_UNLOCKS } from './element-progression.js?v=36';
 
 export const COLLECTION_STORAGE_KEY = 'molecule-craft.collection.v1';
 export const MILESTONES = Object.freeze({
@@ -7,7 +7,7 @@ export const MILESTONES = Object.freeze({
   'aromatic-ring':'芳香環を完成', isomer:'同じ分子式・異なる構造', 'multiple-groups':'複数の官能基を組み合わせた',
 });
 
-export function createCollectionState({records,groups,templates,storage=null,now=Date.now}) {
+export function createCollectionState({records,groups,templates,storage=null,now=Date.now,elementAccess=()=>true}) {
   const byId=new Map(records.map(record=>[record.id,record])),byGroup=new Map(groups.map(group=>[group.id,group]));
   const molecules=new Map(),sources=new Map(),unlocked=new Set(),milestones=new Set(),detections=new Map(),legacyElements=new Set();
   let elements=new Set(availableElements(0));
@@ -24,7 +24,7 @@ export function createCollectionState({records,groups,templates,storage=null,now
   }
   function updateUnlocks(){
     elements=new Set(availableElements(molecules.size,legacyElements));
-    for(const template of templates)if(template.atoms.every(element=>elements.has(element))&&(sources.get(template.unlock.groupId)?.size??0)>=template.unlock.distinctMolecules)unlocked.add(template.id);
+    for(const template of templates)if(template.atoms.every(element=>elements.has(element)&&elementAccess(element))&&(sources.get(template.unlock.groupId)?.size??0)>=template.unlock.distinctMolecules)unlocked.add(template.id);
   }
   function restore(){
     let raw;
@@ -66,12 +66,12 @@ export function createCollectionState({records,groups,templates,storage=null,now
     records,groups,templates,detectedFor,snapshot,
     get storageMessage(){return storageMessage;},
     get discoveredCount(){return molecules.size;},
-    get unlockedCount(){return unlocked.size;},
-    unlockedElements:()=>[...elements], canUseElement:symbol=>elements.has(symbol),
-    canBuild:record=>record.atoms.every(element=>elements.has(element)),
+    get unlockedCount(){return templates.filter(template=>unlocked.has(template.id)&&template.atoms.every(elementAccess)).length;},
+    unlockedElements:()=>[...elements].filter(elementAccess), canUseElement:symbol=>elements.has(symbol)&&elementAccess(symbol),
+    canBuild:record=>record.atoms.every(element=>elements.has(element)&&elementAccess(element)),
     hasMolecule:id=>molecules.has(id), moleculeEntry:id=>molecules.get(id),
     groupSources:id=>[...(sources.get(id)??[])], hasGroup:id=>sources.has(id),
-    isUnlocked:id=>unlocked.has(id), milestoneIds:()=>[...milestones],
+    isUnlocked:id=>{const template=templates.find(item=>item.id===id);return unlocked.has(id)&&!!template&&template.atoms.every(elementAccess);}, refreshAccess:updateUnlocks, milestoneIds:()=>[...milestones],
     isomersOf:record=>records.filter(candidate=>candidate.formula===record.formula&&candidate.id!==record.id),
     observeStructures(structures){
       let changed=false;const events=[];
