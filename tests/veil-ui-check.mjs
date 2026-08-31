@@ -7,7 +7,7 @@ import {createContext,runInContext} from 'node:vm';
 import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
 if(!process.argv[2])throw new Error('Pass jsdom/lib/api.js');
 const {JSDOM}=await import(pathToFileURL(process.argv[2]));
-const root=new URL('../',import.meta.url),appURL=new URL('src/app-v14.js?v=34',root),html=await readFile(new URL('index.html',root),'utf8');
+const root=new URL('../',import.meta.url),appURL=new URL('src/app-v14.js?v=35',root),html=await readFile(new URL('index.html',root),'utf8');
 let source=await readFile(appURL,'utf8'),bindings={};
 for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   const module=await import(new URL(match[2],appURL));
@@ -20,7 +20,7 @@ const records=JSON.parse(await readFile(new URL('data/molecules.json',root))),{s
 const load=async input=>{const path=input instanceof URL?input:new URL(input,appURL);return {ok:true,json:async()=>JSON.parse(await readFile(path,'utf8'))};};
 const settle=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout(resolve,5));};
 let now=1000;
-async function setup(saved=null,initialH=0,resourceSaved=null){
+async function setup(saved=null,initialH=0,resourceSaved=null,collectionSaved=null){
   const frames=new Map();let nextFrame=1;const raf=fn=>{const id=nextFrame++;frames.set(id,fn);return id;},cancel=id=>frames.delete(id);
   const dom=new JSDOM(html,{url:'https://example.test/molecule-craft/',pretendToBeVisual:true}),{window}=dom,{document}=window;
   Object.assign(globalThis,{window,document,Option:window.Option,fetch:load,requestAnimationFrame:raf,cancelAnimationFrame:cancel,ResizeObserver:class{observe(){}}});
@@ -28,12 +28,13 @@ async function setup(saved=null,initialH=0,resourceSaved=null){
   window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new window.Event('close'));};
   const context2d=new Proxy({createRadialGradient:()=>({addColorStop(){}})},{get:(target,key)=>key in target?target[key]:()=>{}});window.HTMLCanvasElement.prototype.getContext=()=>context2d;window.HTMLCanvasElement.prototype.getBoundingClientRect=()=>({width:390,height:844,left:0,top:0});
   if(resourceSaved)window.localStorage.setItem('molecule-craft.resources.v1',resourceSaved);
+  if(collectionSaved)window.localStorage.setItem('molecule-craft.collection.v1',collectionSaved);
   if(saved)window.localStorage.setItem(WORKSPACE_STORAGE_KEY,saved);
   const viewer=document.getElementById('viewer');Object.defineProperties(viewer,{clientWidth:{value:390},clientHeight:{value:650}});
   document.querySelector('.viewer-actions').getBoundingClientRect=()=>({bottom:74});document.querySelector('#selection-chip').getBoundingClientRect=()=>({top:590});
   const THREE={...bindings.THREE,WebGLRenderer:class{constructor(){this.domElement=document.createElement('canvas');this.domElement.getBoundingClientRect=()=>({left:0,top:0,right:390,bottom:650,width:390,height:650});}setPixelRatio(){}setSize(){}render(){}}};
-  const vibrations=[];const sandbox={...bindings,THREE,collectionModule:{createCollectionUI},loadMoleculeDatabase:async()=>({ok:true}),window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:raf,cancelAnimationFrame:cancel,setTimeout:()=>1,clearTimeout:()=>{},console};
-  const context=createContext(sandbox);runInContext(source,context);await settle();runInContext(`resources.collect(${initialH},0);resources.save();`,context);return {window,document,context,vibrations,tick(ms=1000/60){now+=ms;const callbacks=[...frames.values()];frames.clear();for(const cb of callbacks)cb(now);},run:code=>runInContext(code,context)};
+  let reloads=0;const vibrations=[];const sandbox={...bindings,createProgressResetUI:options=>bindings.createProgressResetUI({...options,reload:()=>reloads++}),THREE,collectionModule:{createCollectionUI},loadMoleculeDatabase:async()=>({ok:true}),window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:raf,cancelAnimationFrame:cancel,setTimeout:()=>1,clearTimeout:()=>{},console};
+  const context=createContext(sandbox);runInContext(source,context);await settle();runInContext(`resources.collect(${initialH},0);resources.save();`,context);return {window,document,context,vibrations,get reloads(){return reloads;},tick(ms=1000/60){now+=ms;const callbacks=[...frames.values()];frames.clear();for(const cb of callbacks)cb(now);},run:code=>runInContext(code,context)};
 }
 
 let game=await setup();
@@ -67,7 +68,7 @@ assert.equal(game.run("resources.state.recipes.includes('hydrogen')"),true);
 assert.equal(q('store-h2').hidden,false);
 q('store-h2').click();assert.equal(game.run('resources.state.molecules.hydrogen'),1);assert.equal(game.run('molecule.atoms.length'),0);
 q('store-h2').click();assert.equal(game.run('resources.state.molecules.hydrogen'),1,'Repeated store does not mint fuel');
-const hBefore=game.run('resources.state.elements.H');q('make-h2').click();const generated=Math.min(5,Math.floor(hBefore/2));
+const hBefore=game.run('resources.state.elements.H');q('make-h2').click();const generated=1;
 assert.equal(game.run('resources.state.elements.H'),hBefore-generated*2);
 assert.equal(game.run('resources.state.molecules.hydrogen'),1+generated);
 q('launch-veil').click();const fuel=game.run('resources.state.molecules.hydrogen');
@@ -104,3 +105,21 @@ const interrupted=JSON.parse(game.window.localStorage.getItem('molecule-craft.re
 assert.equal(interrupted.workspace.atoms.length,1);assert.equal(interrupted.elements.H,total-1);
 assert.equal(interrupted.elements.H+interrupted.workspace.atoms.filter(a=>a.element==='H').length,total);
 console.log('Interrupted atom deletion preserves the H balance atomically before settlement.');
+
+// Hold synthesis runs the actual UI callback; release stops inventory changes.
+game=await setup(null,30,saved);const make=q('make-h2'),beforeHold=game.run('resources.state.molecules.hydrogen');
+const down=new game.window.MouseEvent('pointerdown',{bubbles:true,cancelable:true,button:0});Object.defineProperty(down,'pointerId',{value:31});make.dispatchEvent(down);
+assert.equal(game.run('resources.state.molecules.hydrogen'),beforeHold+1,'Immediate one on contact');
+await new Promise(resolve=>setTimeout(resolve,540));
+const up=new game.window.MouseEvent('pointerup',{bubbles:true});Object.defineProperty(up,'pointerId',{value:31});make.dispatchEvent(up);
+const afterHold=game.run('resources.state.molecules.hydrogen');assert.ok(afterHold>=beforeHold+3);
+await new Promise(resolve=>setTimeout(resolve,190));assert.equal(game.run('resources.state.molecules.hydrogen'),afterHold,'Release cancels production');
+// Cancellation of the full reset is a no-op, confirmation commits once.
+q('open-menu').click();game.window.confirm=()=>false;const beforeReset=game.window.localStorage.getItem('molecule-craft.resources.v1');q('reset-all').click();assert.equal(game.window.localStorage.getItem('molecule-craft.resources.v1'),beforeReset);
+game.window.confirm=()=>true;q('reset-all').click();assert.equal(game.reloads,1);
+const resetSave=game.window.localStorage.getItem('molecule-craft.resources.v1'),resetBook=game.window.localStorage.getItem('molecule-craft.collection.v1');
+game.window.dispatchEvent(new game.window.Event('pagehide'));assert.equal(game.window.localStorage.getItem('molecule-craft.resources.v1'),resetSave,'Old graph cannot overwrite reset on pagehide');
+game=await setup(null,0,resetSave,resetBook);
+assert.equal(game.run('resources.state.elements.H'),0);assert.equal(game.run('resources.state.molecules.hydrogen'),0);assert.equal(game.run('resources.state.recipes.length'),0);assert.equal(game.run('molecule.atoms.length'),0);assert.equal(game.run('collectionGame.state.discoveredCount'),0);assert.equal(q('make-h2').hidden,true);
+q('launch-veil').click();game.window.dispatchEvent(new game.window.KeyboardEvent('keydown',{key:'ArrowUp'}));for(let i=0;i<200;i++)game.tick();assert.ok(game.run('resources.state.elements.H')>0);q('veil-return').click();
+console.log('Hold synthesis, reset cancellation, empty collection/recipe/workspace reboot and a fresh first collection passed.');

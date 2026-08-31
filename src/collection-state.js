@@ -11,7 +11,9 @@ export function createCollectionState({records,groups,templates,storage=null,now
   const byId=new Map(records.map(record=>[record.id,record])),byGroup=new Map(groups.map(group=>[group.id,group]));
   const molecules=new Map(),sources=new Map(),unlocked=new Set(),milestones=new Set(),detections=new Map(),legacyElements=new Set();
   let elements=new Set(availableElements(0));
-  let storageMessage='',readOnly=false;
+  let storageMessage='',readOnly=false,resetEpoch=0;
+  try{const resource=JSON.parse(storage?.getItem('molecule-craft.resources.v1')||'null');resetEpoch=resource?.resetEpoch??0;if(resource?.pendingReset)readOnly=true;}catch{}
+
   const detectedFor = record => {
     if(!detections.has(record.id))detections.set(record.id,detectFunctionalGroups(record,groups));
     return detections.get(record.id);
@@ -51,7 +53,11 @@ export function createCollectionState({records,groups,templates,storage=null,now
   }
   function persist(){
     if(!storage||readOnly)return;
-    try{storage.setItem(COLLECTION_STORAGE_KEY,JSON.stringify(snapshot()));storageMessage='';}
+    try{
+      const resource=JSON.parse(storage.getItem('molecule-craft.resources.v1')||'null');
+      if(resource?.pendingReset||(resource?.resetEpoch??0)!==resetEpoch){readOnly=true;storageMessage='進行が初期化されました。再読み込みしてください。';return;}
+      storage.setItem(COLLECTION_STORAGE_KEY,JSON.stringify(snapshot()));storageMessage='';
+    }
     catch{storageMessage='進行を保存できません。空き容量やブラウザの保存設定を確認してください。';}
   }
   restore();

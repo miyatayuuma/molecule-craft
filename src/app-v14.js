@@ -24,6 +24,7 @@ import { createWorkspaceStorage, captureWorkspace, restoreWorkspace } from './wo
 
 import { createResources } from './veil/resources.js';
 import { createVeilUI } from './veil/ui.js';
+import { createProgressResetUI } from './veil/reset-ui.js';
 let veilUI=null;
 const resources=createResources({onStatus:text=>{for(const id of ['resource-save-status','veil-save-warning']){const node=document.getElementById(id);if(node){node.textContent=text;node.hidden=!text;}}}});
 const molecule=new Molecule();
@@ -104,6 +105,7 @@ if(renderer){
   bindPalette();bindUI();refresh();resize();if(savedWorkspace)repairSavedGeometry();animate();
 }else document.querySelector('#viewer-unavailable').hidden=false;
 veilUI=createVeilUI({resources,canLeave:()=>!resources.blocked&&!interactionLocked()&&!dragState&&!activePointers.size&&(saveWorkspace(true)||!resources.blocked),onCraft:()=>{if(renderer){resize();refresh();}},onStore:storeHydrogen,onCommit:()=>saveWorkspace(true)});
+createProgressResetUI({resources,canReset:()=>!veilUI?.active&&!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen,beforeReset:()=>saveWorkspace(true)&&resources.save()});
 window.addEventListener('pagehide',()=>{saveWorkspace(true);resources.save();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveWorkspace(true);});
 window.addEventListener('molecule-craft:prepare-update',event=>{const saved=workspaceStorage.protected&&!molecule.atoms.length||saveWorkspace(true);if(!resources.save()||veilUI?.active||!saved||dragState||activePointers.size||relaxation||bondTransition||frameTransition||(collectionGame?.state.storageMessage&&collectionGame.state.discoveredCount>0))event.preventDefault();});
@@ -819,6 +821,7 @@ function beginSpawnZoom(plan){
   camera.far=Math.max(camera.far,plan.distance+20);camera.updateProjectionMatrix();
 }
 function saveWorkspace(flush=false){
+  if(resources.blocked)return false;
   if(!renderer)return true;
   if(!dragState&&!activePointers.size&&!relaxation&&!bondTransition){
     try{const focus=focusedStructure(),rotation=workspaceView.capture(structures,mainStructure,pos);lastStableWorkspace=captureWorkspace({molecule,positionFor:pos,camera:frameTransition?{position:frameTransition.position,up:camera.up}:camera,cameraTarget:frameTransition?.target??cameraTarget,selectedAtomId,focusId:focus?.graph.atoms[0]?.id,pivot:rotation?.center});}catch{workspaceStorage.reportFailure();return false;}
