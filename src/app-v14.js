@@ -22,6 +22,10 @@ import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds,
 import { createGameShell } from './game-shell.js?v=29';
 import { createWorkspaceStorage, captureWorkspace, restoreWorkspace } from './workspace-save.js?v=30';
 
+import { createResources } from './veil/resources.js';
+import { createVeilUI } from './veil/ui.js';
+let veilUI=null;
+const resources=createResources({onStatus:text=>{for(const id of ['resource-save-status','veil-save-warning']){const node=document.getElementById(id);if(node){node.textContent=text;node.hidden=!text;}}}});
 const molecule=new Molecule();
 const placements=new Map();
 const activePointers=new Map();
@@ -86,7 +90,7 @@ const solver=createStructureSolver({
 });
 
 const gameShell=createGameShell({canOpen:()=>!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen});
-const workspaceStorage=createWorkspaceStorage({onStatus:text=>{const node=document.querySelector('#workspace-save-status');node.textContent=text;node.hidden=!text;}});
+const workspaceStorage=createWorkspaceStorage({storage:resources.workspaceAdapter,onStatus:text=>{const node=document.querySelector('#workspace-save-status');node.textContent=text;node.hidden=!text;}});
 let savedWorkspace=null,lastSaveCheck=0,lastStableWorkspace=null;
 if(renderer){
   savedWorkspace=workspaceStorage.read();
@@ -99,9 +103,10 @@ if(renderer){
   }
   bindPalette();bindUI();refresh();resize();if(savedWorkspace)repairSavedGeometry();animate();
 }else document.querySelector('#viewer-unavailable').hidden=false;
-window.addEventListener('pagehide',()=>saveWorkspace(true));
+veilUI=createVeilUI({resources,canLeave:()=>!resources.blocked&&!interactionLocked()&&!dragState&&!activePointers.size&&(saveWorkspace(true)||!resources.blocked),onCraft:()=>{if(renderer){resize();refresh();}},onStore:storeHydrogen,onCommit:()=>saveWorkspace(true)});
+window.addEventListener('pagehide',()=>{saveWorkspace(true);resources.save();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveWorkspace(true);});
-window.addEventListener('molecule-craft:prepare-update',event=>{const saved=workspaceStorage.protected&&!molecule.atoms.length||saveWorkspace(true);if(!saved||dragState||activePointers.size||relaxation||bondTransition||frameTransition||(collectionGame?.state.storageMessage&&collectionGame.state.discoveredCount>0))event.preventDefault();});
+window.addEventListener('molecule-craft:prepare-update',event=>{const saved=workspaceStorage.protected&&!molecule.atoms.length||saveWorkspace(true);if(!resources.save()||veilUI?.active||!saved||dragState||activePointers.size||relaxation||bondTransition||frameTransition||(collectionGame?.state.storageMessage&&collectionGame.state.discoveredCount>0))event.preventDefault();});
 loadMoleculeDatabase().then(async result=>{
   syncWorkspace();if(savedWorkspace)discoveryQueue=[];if(renderer){refreshInfo();checkDiscovery();}
   if(!result.ok){elementPalette.fallback();if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
@@ -130,9 +135,10 @@ function bindUI(){
   document.querySelector('#undo-cleanup')?.addEventListener('click',undoCleanup);
   document.addEventListener('visibilitychange',()=>{debrisTracker.reset();fadeTargets.clear();relaxation?.session.pause(performance.now());});
   document.querySelector('#delete-selected')?.addEventListener('click',()=>{
-    if(selectedAtomId==null||interactionLocked())return;
+    if(selectedAtomId==null||interactionLocked()||dragState||activePointers.size)return;
     const ids=connectedComponent(selectedAtomId);
-    molecule.removeAtom(selectedAtomId);placements.delete(selectedAtomId);selectAtom(null);activeTorsionKey=null;topologyChanged();
+    resources.refund(countElements([atomById(selectedAtomId)]));molecule.removeAtom(selectedAtomId);placements.delete(selectedAtomId);selectAtom(null);activeTorsionKey=null;topologyChanged();
+    saveWorkspace(true);
     startRelaxation('削除後の構造を安定化しています',{ids});
   });
   bindHoldAction(document.querySelector('#clear-all'),clearField);
@@ -147,7 +153,7 @@ function clearField(){
   stopRelaxation();clearBondTransition();clearTorsionGuide();
   for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
   clearTimeout(bondHoldTimer);bondHoldTimer=null;
-  molecule.clear();placements.clear();workspaceView.clear();selectAtom(null);activeTorsionKey=null;dragState=null;electronReturn=null;hoverElectron=null;
+  resources.refund(countElements(molecule.atoms));molecule.clear();placements.clear();workspaceView.clear();selectAtom(null);activeTorsionKey=null;dragState=null;electronReturn=null;hoverElectron=null;
   activePointers.clear();multiGesture=null;frameTransition=null;lastBackgroundTap=null;
   cleanupUndo.length=0;protectedUntil.clear();unresolvedAtoms.clear();debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();completionTracker.clear();discoveryQueue=[];activeDiscovery=null;discoveryUntil=0;discovery.classList.remove('show');topologyChanged();refresh();saveWorkspace(true);pulse('フィールドを空にしました');
 }
@@ -156,6 +162,7 @@ function addElement(symbol){
   if(!renderer||!ELEMENTS[symbol]||!elementPalette.canUse(symbol)||interactionLocked()||dragState||activePointers.size)return;
   const plan=planWorkspaceSpawn([{x:0,y:0,z:0,radius:spawnRadius(symbol,0)}]);
   if(!plan){pulse('追加できる空きがありません · 構造を移動・整理してください');return;}
+  if(!resources.spend({[symbol]:1})){pulse('Hが足りません · 「Hを採集」から取りに行こう');return;}
   const atom=molecule.addAtom(symbol);
   protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
   placements.set(atom.id,{position:plan.origin});
@@ -178,6 +185,8 @@ function addCraftPart(id){
   for(const [a,b,order] of template.bonds){orders[a]+=order;orders[b]+=order;}
   const parts=coordinates.map((p,i)=>({x:p.dot(right),y:p.dot(up),z:-p.dot(depth),radius:spawnRadius(template.atoms[i],orders[i])})),plan=planWorkspaceSpawn(parts);
   if(!plan){pulse('部品全体を置ける空きがありません · 構造を移動・整理してください');return false;}
+  const cost=countElements(template.atoms.map(element=>({element})));
+  if(!resources.spend(cost)){pulse('部品に必要なHが足りません · H Veilで採集しよう');return false;}
   const origin=plan.origin;
   const expanded=expandCraftStructure(molecule,template);
   for(const [index,atomId]of expanded.ids.entries()){
@@ -654,6 +663,10 @@ function syncWorkspace(){
   for(const id of protectedUntil.keys())if(!structureByAtom.has(id))protectedUntil.delete(id);
 }
 function refreshInfo(keep=false){
+  const fuelReady=focusedStructure()?.complete&&focusedStructure()?.record?.id==='hydrogen';
+  document.querySelector('#store-h2').hidden=!fuelReady;
+  veilUI?.updateCraft();
+
   const focus=focusedStructure(),identity=displayIdentity(focus);formulaEl.textContent=identity.formula;nameEl.textContent=identity.primary;iupacNameEl.textContent=identity.iupac?`IUPAC: ${identity.iupac}`:'';
   const validation=focus?.validation??molecule.validation();statusEl.className=`status ${validation.level}`;statusEl.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
   countsEl.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)countsEl.textContent='—';else for(const s of Object.keys(counts).sort()){const x=document.createElement('span');x.className='atom-count';x.textContent=`${s} × ${counts[s]}`;countsEl.appendChild(x);}
@@ -678,6 +691,7 @@ function refreshStructureList(){
 }
 function checkDiscovery(now=performance.now()){
   if(interactionLocked()||dragState||activePointers.size)return;
+  if(!resources.state.recipes.includes('hydrogen')&&structures.some(item=>item.complete&&item.record?.id==='hydrogen')){resources.learn('hydrogen');veilUI?.updateCraft();resources.save();}
   if(collectionGame&&collectionCheckedRevision!==collectionRevision){
     collectionCheckedRevision=collectionRevision;
     const result=collectionGame.observeStructures(structures);
@@ -696,6 +710,14 @@ function checkDiscovery(now=performance.now()){
   discoveryFormula.textContent=identity.formula;discoveryName.textContent=identity.primary;
   discovery.classList.toggle('new-discovery',isNew);discovery.classList.toggle('repeat',!isNew);discovery.classList.remove('show');void discovery.offsetWidth;discovery.classList.add('show');
   if(isNew)vibrateFeedback(22,'touch');
+}
+function storeHydrogen(){
+  if(interactionLocked()||dragState||activePointers.size)return false;
+  const item=focusedStructure();
+  if(!item?.complete||item.record?.id!=='hydrogen'||item.ids.size!==2)return false;
+  if(!resources.storeHydrogen(1))return false;
+  for(const id of item.ids){molecule.removeAtom(id);placements.delete(id);protectedUntil.delete(id);}
+  selectAtom(null);topologyChanged();refresh();saveWorkspace(true);resources.save();return true;
 }
 function pulse(text){selectionChip.textContent=text;clearTimeout(pulse.t);pulse.t=setTimeout(()=>{if(relaxation)selectionChip.textContent='形を整えています…';else refreshInfo();},1700);}
 
@@ -728,6 +750,7 @@ function updateDebris(now){
   if(!result.expired.length)return;
   const ids=new Set(result.expired.flatMap(item=>[...item.ids]));
   cleanupUndo.push({atoms:molecule.atoms.filter(atom=>ids.has(atom.id)).map(atom=>({...atom})),bonds:molecule.bonds.filter(bond=>ids.has(bond.a)&&ids.has(bond.b)).map(bond=>({...bond})),positions:new Map([...ids].map(id=>[id,pos(id).clone()]))});
+  resources.refund(countElements(molecule.atoms.filter(atom=>ids.has(atom.id))));
   molecule.atoms=molecule.atoms.filter(atom=>!ids.has(atom.id));molecule.bonds=molecule.bonds.filter(bond=>!ids.has(bond.a)&&!ids.has(bond.b));
   for(const id of ids){placements.delete(id);debrisOpacity.delete(id);fadeTargets.delete(id);}
   if(activeTorsionKey&&!bondFromKey(activeTorsionKey))activeTorsionKey=null;
@@ -744,7 +767,8 @@ function animateDebris(){
 }
 function setOpacity(mesh,opacity){const transparent=opacity<1;if(mesh.material.transparent!==transparent){mesh.material.transparent=transparent;mesh.material.needsUpdate=true;}mesh.material.opacity=opacity;mesh.material.depthWrite=!transparent;}
 function undoCleanup(){
-  if(interactionLocked()||!cleanupUndo.length)return;
+  if(interactionLocked()||dragState||activePointers.size||!cleanupUndo.length)return;
+  if(!resources.spend(countElements(cleanupUndo.flatMap(saved=>saved.atoms)))){pulse('復元に必要なHが足りません');return;}
   for(const saved of cleanupUndo){molecule.atoms.push(...saved.atoms);molecule.bonds.push(...saved.bonds);for(const [id,position] of saved.positions){placements.set(id,{position:position.clone()});protectedUntil.set(id,performance.now()+15000);}}
   const id=cleanupUndo.at(-1).atoms[0]?.id;cleanupUndo.length=0;debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();selectAtom(id??null);topologyChanged();refresh();pulse('整理した小片を復元しました · 「構造を表示」で確認できます');
 }
@@ -772,7 +796,7 @@ function perpendicular(v){const ref=Math.abs(v.y)<.85?new THREE.Vector3(0,1,0):n
 function vibrateFeedback(duration,pointerType){if(pointerType==='mouse')return;try{navigator.vibrate?.(duration);}catch{}}
 function capture(e){try{renderer.domElement.setPointerCapture(e.pointerId)}catch{}}function release(e){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch{}}
 function selectAtom(id){if(id!==selectedAtomId||id==null)clearTorsionGuide();workspaceView.select(id);if(selectedAtomId!==id){if(selectedAtomId!=null)protectedUntil.set(selectedAtomId,performance.now()+DEBRIS_POLICY.protectionMs);selectedAtomId=id;selectionChangedAt=performance.now();}}
-function interactionLocked(){return!!relaxation||!!bondTransition||!!frameTransition||collectionOpen||gameShell.isOpen();}
+function interactionLocked(){return resources.blocked||!!veilUI?.active||!!relaxation||!!bondTransition||!!frameTransition||collectionOpen||gameShell.isOpen();}
 function topologyChanged(){torsionModel=null;clearTorsionGuide();stateCache.clear();geometryCache.clear();solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
 function spawnRadius(element,order){
   const r=ELEMENTS[element].radius;
@@ -799,14 +823,14 @@ function saveWorkspace(flush=false){
   if(!dragState&&!activePointers.size&&!relaxation&&!bondTransition){
     try{const focus=focusedStructure(),rotation=workspaceView.capture(structures,mainStructure,pos);lastStableWorkspace=captureWorkspace({molecule,positionFor:pos,camera:frameTransition?{position:frameTransition.position,up:camera.up}:camera,cameraTarget:frameTransition?.target??cameraTarget,selectedAtomId,focusId:focus?.graph.atoms[0]?.id,pivot:rotation?.center});}catch{workspaceStorage.reportFailure();return false;}
   }
-  return lastStableWorkspace?workspaceStorage.write(lastStableWorkspace):!flush||!molecule.atoms.length;
+  return (lastStableWorkspace?workspaceStorage.write(lastStableWorkspace):!flush||!molecule.atoms.length)&&resources.save();
 }
 
 function disposeObject(object){object.traverse?.(item=>{item.geometry?.dispose?.();if(item.userData?.formalCharge)item.material?.map?.dispose?.();if(Array.isArray(item.material))item.material.forEach(material=>material.dispose?.());else item.material?.dispose?.();});}
 function disposeGroup(group){for(const object of[...group.children]){group.remove(object);disposeObject(object);}}
 function resize(){const w=Math.max(1,viewer.clientWidth),h=Math.max(1,viewer.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 function animate(now=performance.now()){
-  requestAnimationFrame(animate);if(document.hidden||gameShell.isOpen()||collectionOpen)return;if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
+  requestAnimationFrame(animate);if(veilUI?.active||document.hidden||gameShell.isOpen()||collectionOpen)return;if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
   updateStructureFrame(now);
   camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);renderer.render(scene,camera);if(now-lastSaveCheck>1000){lastSaveCheck=now;saveWorkspace();}
 }

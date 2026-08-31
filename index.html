@@ -11,7 +11,8 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=32">
+  <link rel="stylesheet" href="./styles.css?v=34">
+  <link rel="stylesheet" href="./veil.css?v=34">
 </head>
 <body>
   <main class="app-shell">
@@ -19,7 +20,9 @@
       <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
       <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
-    <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p></div>
+    <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span>H₂ <b id="resource-h2">0</b></span></div><button id="make-h2" type="button" hidden>H₂を生成</button><button id="store-h2" type="button" hidden>H₂を燃料に保管</button><button id="launch-veil" type="button">Hを採集 ↗</button></div>
+    <p id="craft-resource-hint" class="craft-expedition-note"></p><p id="craft-last-run" class="craft-expedition-note"></p>
+    <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
     <section class="workspace">
       <section class="viewer-wrap" aria-label="制作フィールド">
         <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
@@ -80,7 +83,18 @@
     <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
-  <script type="module" src="./src/app-v14.js?v=32"></script>
+  <section id="veil-view" aria-label="H Veil 採集ステージ" tabindex="-1" hidden>
+    <canvas id="veil-canvas" aria-label="水素の流れを飛ぶフィールド"></canvas>
+    <div class="veil-hud"><div class="veil-stock"><span>H / STOCK</span><strong id="veil-h">0</strong><small id="veil-gained">+0</small></div><div id="veil-chain-block" class="veil-chain-block"><span>CHAIN</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button">帰還 ↗</button></div></div>
+    <div class="veil-title"><small>ATOMIC UNIVERSE / 01</small><h2>H Veil</h2><p>水素の帳</p></div>
+    <p id="veil-save-warning" class="veil-save-warning" role="status"></p>
+    <p id="veil-message" class="veil-message" role="status" hidden></p>
+    <div id="veil-craft-prompt" class="veil-prompt" hidden><button id="veil-to-craft" type="button">Hが集まった · H₂を作りに戻る ↗</button></div>
+    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><button id="veil-boost" type="button" aria-label="H₂ブースト。1個消費。キーボードはスペース"><strong>H₂</strong><small>BOOST</small><span id="veil-fuel">0</span></button></div>
+    <button id="veil-resume" type="button" hidden>飛行を再開</button>
+    <div id="veil-result" class="veil-result" hidden><small>H VEIL / RETURN</small><h2>ひと巡り、おかえり。</h2><p id="veil-result-stats"></p><button id="veil-next" type="button">もう一周飛ぶ</button><button id="veil-result-return" type="button">クラフトへ帰還</button></div>
+  </section>
+  <script type="module" src="./src/app-v14.js?v=34"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>

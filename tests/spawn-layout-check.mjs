@@ -4,10 +4,11 @@ import {pathToFileURL} from 'node:url';
 import {runInNewContext} from 'node:vm';
 import {checkSpawnLayouts} from './spawn-layout-checks.js';
 import {planSpawn} from '../src/spawn-layout.js';
-import {ELEMENTS,Molecule} from '../src/chemistry.js';
+import {ELEMENTS,Molecule,countElements} from '../src/chemistry.js';
 import {unpairedElectronCount,lonePairCount,valenceShellRadius} from '../src/bonding-model.js?v=31';
 import {createPreviewModel} from '../src/preview-model.js?v=31';
 import {expandCraftStructure} from '../src/craft-structures.js?v=31';
+import {createResources} from '../src/veil/resources.js';
 if(!process.argv[2])throw new Error('Pass the path to three.module.js');
 const THREE=await import(pathToFileURL(process.argv[2]));
 const templates=JSON.parse(await readFile(new URL('../data/craft-structures.json',import.meta.url)));
@@ -16,9 +17,10 @@ const app=await readFile(new URL('../src/app-v14.js?v=32',import.meta.url),'utf8
 const section=(a,b)=>app.slice(app.indexOf(`function ${a}(`),app.indexOf(`function ${b}(`));
 const source=section('addElement','onPointerDown')+section('spawnRadius','disposeObject')+section('updateStructureFrame','updateDebris');
 function workspace(distance){
+  const resources=createResources({storage:null});resources.collect(1000,0);
   const camera=new THREE.PerspectiveCamera(44,390/430,.01,200),target=new THREE.Vector3(1,2,3);
   camera.position.copy(target).add(new THREE.Vector3(3,2,5).normalize().multiplyScalar(distance));camera.lookAt(target);camera.updateMatrixWorld();
-  const scope={THREE,ELEMENTS,Molecule,planSpawn,unpairedElectronCount,lonePairCount,valenceShellRadius,createPreviewModel,expandCraftStructure,
+  const scope={THREE,ELEMENTS,Molecule,countElements,resources,planSpawn,unpairedElectronCount,lonePairCount,valenceShellRadius,createPreviewModel,expandCraftStructure,
     camera,cameraTarget:target,molecule:new Molecule(),placements:new Map(),protectedUntil:new Map(),activePointers:new Map(),craftSpawnLayouts:new Map(),selectedAtomId:null,dragState:null,relaxation:null,frameTransition:null,bondTransition:null,reduceMotion:false,performance:{now:()=>1000},DEBRIS_POLICY:{protectionMs:8000},
     elementPalette:{canUse:()=>true},collectionGame:{templateFor:id=>templates.find(t=>t.id===id)},renderer:{domElement:{getBoundingClientRect:()=>({left:0,top:0,right:390,bottom:430,width:390,height:430})}},
     document:{querySelector:()=>({getBoundingClientRect:()=>({bottom:74})})},rotationOptions:{hidden:true},selectionChip:{getBoundingClientRect:()=>({top:370})},pulse:()=>{},interactionLocked:()=>!!scope.frameTransition,
