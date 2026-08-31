@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101c29">
-  <meta name="description" content="原子をつないで、分子を発見。あなただけの分子図鑑を集めよう。">
+  <meta name="description" content="宇宙塵を集め、原子をつなぎ、分子の力で原子宇宙の奥へ進もう。">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Molecule Craft">
   <title>Molecule Craft</title>
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=35">
-  <link rel="stylesheet" href="./veil.css?v=35">
+  <link rel="stylesheet" href="./styles.css?v=36">
+  <link rel="stylesheet" href="./veil.css?v=36">
 </head>
 <body>
   <main class="app-shell">
@@ -20,7 +20,7 @@
       <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
       <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
-    <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span>H₂ <b id="resource-h2">0</b></span></div><button id="make-h2" type="button" hidden>H₂を生成</button><button id="store-h2" type="button" hidden>H₂を燃料に保管</button><button id="launch-veil" type="button">Hを採集 ↗</button></div>
+    <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span id="stock-c" hidden>C <b id="resource-c">0</b></span><span id="stock-o" hidden>O <b id="resource-o">0</b></span></div><button id="open-supply" type="button">分子・補給</button><button id="store-h2" type="button" hidden>分子を保管</button><button id="launch-veil" type="button">Hを採集 ↗</button></div>
     <p id="craft-resource-hint" class="craft-expedition-note"></p><p id="craft-last-run" class="craft-expedition-note"></p>
     <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
     <section class="workspace">
@@ -68,7 +68,7 @@
         <label><input type="checkbox" name="reset-category" value="recipes"> 分子レシピ</label>
         <label><input type="checkbox" name="reset-category" value="elements"> 元素ストック</label>
         <label><input type="checkbox" name="reset-category" value="molecules"> 分子ストック</label>
-        <label><input type="checkbox" name="reset-category" value="exploration"> H Veilの初回進行</label>
+        <label><input type="checkbox" name="reset-category" value="exploration"> 探索領域・元素発見・未知信号</label>
         <label><input type="checkbox" name="reset-category" value="records"> 最大CHAIN</label>
         <label><input type="checkbox" name="reset-category" value="workspace"> 制作フィールド</label>
       </fieldset><button id="reset-selected" type="button">選択した項目を初期化</button>
@@ -78,7 +78,7 @@
   <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
     <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
-    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子が図鑑に登録され、新しい原子や部品が使えるようになります。</p></div></section>
+    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録され、以後は原子から長押しで量産できます。H/C/Oは探索で見つかります。</p></div></section>
     <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子を押すと、回せる軸が光ります。1本ならそのまま枝をドラッグ。複数なら光る結合か番号で軸を選びます。🔒の箇所は固定です。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。回せる単結合はタップで軸を選べます。大きい骨格を支点に、小さい枝を回します。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
   </div></dialog>
@@ -96,17 +96,28 @@
     <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
-  <section id="veil-view" aria-label="H Veil 採集ステージ" tabindex="-1" hidden>
+  <dialog id="supply-dialog" class="sheet" aria-labelledby="supply-title"><header class="sheet-header"><h2 id="supply-title">分子・補給</h2><button type="button" data-close-dialog aria-label="補給を閉じる">×</button></header><div class="sheet-body supply-body">
+    <p id="supply-goal" class="supply-goal"></p><label for="molecule-select">見つけた構造・量産できる分子</label><select id="molecule-select"></select>
+    <div class="supply-recipe"><img id="recipe-model" alt="分子の構造ヒント" width="112" height="112" hidden><div><strong id="recipe-name"></strong><p id="recipe-hint"></p></div></div>
+    <details id="recipe-connections"><summary>原子と結合を確認</summary><p id="recipe-bonds"></p></details><p id="molecule-use" class="muted"></p>
+    <div class="supply-production"><span id="molecule-stock" role="status"></span><button id="make-h2" type="button" hidden>生成 · 長押し</button></div><p id="molecule-cost" class="muted"></p>
+    <p class="supply-stockline">H₂ <b id="resource-h2">0</b> · CH₄ <b id="resource-ch4">0</b> · O₂ <b id="resource-o2">0</b> · H₂O <b id="resource-water">0</b></p>
+    <div id="supply-systems" hidden><label for="drive-select">使う推進</label><select id="drive-select"><option value="hydrogen">H₂ · 水素推進</option><option value="combustion">CH₄ + 2 O₂ · 燃焼推進</option></select></div>
+    <label id="cooling-setting" class="cooling-setting" hidden><input id="auto-cooling" type="checkbox" checked> H₂Oで熱に応じて自動冷却</label>
+    <label for="expedition-anchor">次にたどる流れ</label><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veilへ補給</option></select>
+    <p class="muted">構造を知らなくても、正しく組めば発見できる。一度完成すると、原子を使って長押しで量産。図鑑の完成率は進行条件ではありません。</p>
+  </div></dialog>
+  <section id="veil-view" aria-label="原子宇宙を探索" tabindex="-1" hidden>
     <canvas id="veil-canvas" aria-label="水素の流れを飛ぶフィールド"></canvas>
-    <div class="veil-hud"><div class="veil-stock"><span>H / STOCK</span><strong id="veil-h">0</strong><small id="veil-gained">+0</small></div><div id="veil-chain-block" class="veil-chain-block"><span>CHAIN</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button">帰還 ↗</button></div></div>
-    <div class="veil-title"><small>ATOMIC UNIVERSE / 01</small><h2>H Veil</h2><p>水素の帳</p></div>
+    <div class="veil-hud"><div class="veil-stock"><span>H / STOCK</span><strong id="veil-h">0</strong><small id="veil-gained">+0</small><small id="veil-minerals"></small></div><div id="veil-chain-block" class="veil-chain-block"><span>CHAIN</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button">帰還 ↗</button></div></div>
+    <div class="veil-title"><small>ATOMIC UNIVERSE</small><h2 id="veil-region-name">H Veil</h2><p id="veil-region-subtitle">水素の帳</p></div><div id="veil-thermal" class="veil-thermal" hidden><span id="veil-heat-label">熱 0%</span><div><i id="veil-heat-meter"></i></div><small id="veil-cooling-status"></small></div>
     <p id="veil-save-warning" class="veil-save-warning" role="status"></p>
     <p id="veil-message" class="veil-message" role="status" hidden></p>
     <div id="veil-craft-prompt" class="veil-prompt" hidden><button id="veil-to-craft" type="button">Hが集まった · H₂を作りに戻る ↗</button></div>
-    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><button id="veil-boost" type="button" aria-label="H₂ブースト。1個消費。キーボードはスペース"><strong>H₂</strong><small>BOOST</small><span id="veil-fuel">0</span></button></div>
+    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-drive-switch" type="button" hidden>水素 ⇄ 燃焼</button><button id="veil-boost" type="button" aria-label="H₂ブースト。1個消費。キーボードはスペース"><strong id="veil-drive-label">H₂</strong><small>BOOST</small><span id="veil-fuel">0</span></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
-  <script type="module" src="./src/app-v14.js?v=35"></script>
+  <script type="module" src="./src/app-v14.js?v=36"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>

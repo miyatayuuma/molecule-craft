@@ -31,7 +31,10 @@ async function setup(saved=null,initialH=1000){
   document.querySelector('.viewer-actions').getBoundingClientRect=()=>({bottom:74});document.querySelector('#selection-chip').getBoundingClientRect=()=>({top:590});
   const THREE={...bindings.THREE,WebGLRenderer:class{constructor(){this.domElement=document.createElement('canvas');this.domElement.getBoundingClientRect=()=>({left:0,top:0,right:390,bottom:650,width:390,height:650});}setPixelRatio(){}setSize(){}render(){}}};
   const vibrations=[];const sandbox={...bindings,THREE,collectionModule:{createCollectionUI},loadMoleculeDatabase:async()=>({ok:true}),window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{},setTimeout:()=>1,clearTimeout:()=>{},console};
-  const context=createContext(sandbox);runInContext(source,context);await settle();runInContext(`resources.collect(${initialH},0);resources.save();`,context);return {window,document,context,vibrations,run:code=>runInContext(code,context)};
+  const context=createContext(sandbox);runInContext(source,context);await settle();
+  // This suite exercises the established unrestricted chemistry sandbox. Mark
+  // C/O as explored explicitly so the new expedition gate is tested elsewhere.
+  runInContext(`resources.collect({H:${initialH},C:${initialH},O:${initialH}},0);collectionGame?.refreshProgress();resources.save();`,context);return {window,document,context,vibrations,run:code=>runInContext(code,context)};
 }
 const savedOf=app=>JSON.stringify(JSON.parse(app.window.localStorage.getItem('molecule-craft.resources.v1')).workspace);
 const app=await setup();

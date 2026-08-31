@@ -25,6 +25,9 @@ export function createVeilAudio(){
       tone(f,A.pickupSeconds,A.pickupLevel);if(chain>=25)tone(f*1.5,.2,A.harmonyLevel);
       if(count>=6)tone(f/2,.22,.08);
     }else if(type==='boost'){tone(70,.28,A.boostLevel,0,'triangle',250);tone(196,.65,.09,.03,'sine',784);}
+    else if(type==='cooling'){tone(660,.42,.045,0,'sine',330);tone(440,.55,.035,.04,'triangle',220);}
+    else if(type==='cluster'){tone(92,.34,.12,0,'triangle',164);[0,5,9].forEach((n,i)=>tone(220*2**(n/12),.32,.055,.05+i*.035));}
+    else if(type==='signal'){[0,4,11].forEach((n,i)=>tone(330*2**(n/12),.48,.05,i*.09,'sine'));}
     else if(type==='dense'){[0,7,12].forEach((n,i)=>tone(196*2**(n/12),.3,.08,i*.04));}
     else if(type==='rare'||type==='gate'){[0,7,12,16].forEach((n,i)=>tone(294*2**(n/12),.45,.09,i*.11));}
     else if(type==='chainEnd'&&chain>=8){phrase=0;tone(196,.24,.04,0,'sine',164.8);}

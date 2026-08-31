@@ -1,7 +1,7 @@
 import { validateFunctionalGroups } from './functional-groups.js?v=21';
 import { validateCraftStructures } from './craft-structures.js?v=31';
-import { createCollectionState, MILESTONES } from './collection-state.js?v=25';
-import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=29';
+import { createCollectionState, MILESTONES } from './collection-state.js?v=36';
+import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=36';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
 
 export async function loadCollectionData(){
@@ -10,10 +10,10 @@ export async function loadCollectionData(){
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia};
 }
 
-export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root)}){
+export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true}){
   const data=await loadCollectionData();
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
-  const state=createCollectionState({records,...data,storage});
+  const state=createCollectionState({records,...data,storage,elementAccess});
   const q=id=>root.querySelector(`#${id}`),dialog=q('collection-dialog'),list=q('collection-list'),detail=q('collection-detail');
   let tab='molecules',category='all',filter='available',currentDetail=null,detailViewer=null,detailGeneration=0,listScroll=0;
   const collectibleGroups=data.groups.filter(group=>group.collectible!==false);
@@ -120,7 +120,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       const box=el('div',null,'unknown-detail');box.append(el('div','','unknown-model'),el('p','まだ見つかっていない分子'));
       const hint=button('ヒントを見る',()=>{
         hint.hidden=true;const hints=el('div',null,'hint-content');hints.append(el('p',record.formula,'detail-formula'),el('p',COLLECTION_CATEGORIES[collectionCategory(record)]));
-        if(!state.canBuild(record))hints.append(el('p',`必要な原子：${ELEMENT_UNLOCKS.filter(item=>record.atoms.includes(item.symbol)&&!state.canUseElement(item.symbol)).map(item=>`${item.symbol}（発見${item.discoveries}種類で解放）`).join('・')}`));
+        if(!state.canBuild(record))hints.append(el('p',`必要な原子：${ELEMENT_UNLOCKS.filter(item=>record.atoms.includes(item.symbol)&&!state.canUseElement(item.symbol)).map(item=>item.symbol==='C'?'C（H Veilの奥で発見）':item.symbol==='O'?'O（炭素の群れの奥で発見）':`${item.symbol}（発見${item.discoveries}種類で解放）`).join('・')}`));
         const more=button('もう一つヒント',()=>{more.hidden=true;hints.append(el('p',`含まれる部品：${matches.map(match=>groupById(match.id).nameJa).join('、')||'この図鑑の部品は含まれません'}`));});hints.append(more);box.append(hints);
       },'collection-primary');box.append(hint);detail.append(box);return;
     }
@@ -154,6 +154,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   renderPalette();renderSummary();
   return {state,templateFor:id=>state.isUnlocked(id)?data.templates.find(template=>template.id===id):null,
+    refreshProgress(){state.refreshAccess();renderPalette();renderSummary();if(dialog.open)renderBook();},
     observeStructures(structures){const result=state.observeStructures(structures);if(result.changed){renderPalette();renderSummary();if(dialog.open)renderBook();}return result;},
     describeEvent(event){
       if(!event?.isNew)return '';const messages=[];

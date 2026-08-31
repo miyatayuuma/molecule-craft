@@ -17,7 +17,9 @@ const app=await readFile(new URL('../src/app-v14.js?v=32',import.meta.url),'utf8
 const section=(a,b)=>app.slice(app.indexOf(`function ${a}(`),app.indexOf(`function ${b}(`));
 const source=section('addElement','onPointerDown')+section('spawnRadius','disposeObject')+section('updateStructureFrame','updateDebris');
 function workspace(distance){
-  const resources=createResources({storage:null});resources.collect(1000,0);
+  // Geometry checks run in a fully explored sandbox; expedition gating has its
+  // own progression tests and must not hide C/O from this adapter fixture.
+  const resources=createResources({storage:null});resources.collect({H:1000,C:1000,O:1000},0);
   const camera=new THREE.PerspectiveCamera(44,390/430,.01,200),target=new THREE.Vector3(1,2,3);
   camera.position.copy(target).add(new THREE.Vector3(3,2,5).normalize().multiplyScalar(distance));camera.lookAt(target);camera.updateMatrixWorld();
   const scope={THREE,ELEMENTS,Molecule,countElements,resources,planSpawn,unpairedElectronCount,lonePairCount,valenceShellRadius,createPreviewModel,expandCraftStructure,

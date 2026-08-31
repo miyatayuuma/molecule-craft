@@ -23,9 +23,9 @@ export function nextElementUnlock(discoveries, available) {
   return {elements:pending.filter(item=>item.discoveries===target),target,remaining:Math.max(0,target-discoveries)};
 }
 
-// Enhance, never replace, the static HTML palette. On DB/collection failure all
-// original buttons remain usable; failure must not turn progression into a gate.
-export function createElementPalette(root = document) {
+// Enhance, never replace, the static HTML palette. A collection-data failure
+// keeps already explored elements usable; exploration remains authoritative.
+export function createElementPalette(root = document, {canUse=()=>true,explorationHint=()=>''} = {}) {
   const buttons=[...root.querySelectorAll('#element-palette [data-element]')];
   const note=root.querySelector('#element-unlock-hint');
   let available=new Set(availableElements(0));
@@ -33,15 +33,15 @@ export function createElementPalette(root = document) {
     for(const button of buttons){
       const item=ELEMENT_UNLOCKS.find(item=>item.symbol===button.dataset.element);
       if(!item)continue;
-      button.hidden=!available.has(item.symbol);button.disabled=button.hidden;
+      button.hidden=!available.has(item.symbol)||!canUse(item.symbol);button.disabled=button.hidden;
       button.style.order=ELEMENT_UNLOCKS.indexOf(item);
       button.title=`${item.name}（${item.symbol}）を追加`;
     }
-    if(note)note.textContent=message;
+    if(note)note.textContent=explorationHint()||message;
   }
   render('N解放まで あと3種類');
   return {
-    canUse:symbol=>available.has(symbol),
+    canUse:symbol=>available.has(symbol)&&canUse(symbol),
     update(state){
       available=new Set(state.unlockedElements());
       const next=nextElementUnlock(state.discoveredCount,available);
