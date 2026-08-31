@@ -20,9 +20,9 @@ const records=JSON.parse(await readFile(new URL('data/molecules.json',root))),{s
 const load=async input=>{const path=input instanceof URL?input:new URL(input,appURL);return {ok:true,json:async()=>JSON.parse(await readFile(path,'utf8'))};};
 const settle=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout(resolve,5));};
 let now=1000;
-async function setup(saved=null){
+async function setup(saved=null,initialH=1000){
   const dom=new JSDOM(html,{url:'https://example.test/molecule-craft/',pretendToBeVisual:true}),{window}=dom,{document}=window;
-  Object.assign(globalThis,{window,document,Option:window.Option,fetch:load,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{}});
+  Object.assign(globalThis,{window,document,Option:window.Option,fetch:load,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{},ResizeObserver:class{observe(){}}});
   window.matchMedia=()=>({matches:false});window.confirm=()=>true;
   window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new window.Event('close'));};
   const context2d=new Proxy({createRadialGradient:()=>({addColorStop(){}})},{get:(target,key)=>key in target?target[key]:()=>{}});window.HTMLCanvasElement.prototype.getContext=()=>context2d;
@@ -31,13 +31,14 @@ async function setup(saved=null){
   document.querySelector('.viewer-actions').getBoundingClientRect=()=>({bottom:74});document.querySelector('#selection-chip').getBoundingClientRect=()=>({top:590});
   const THREE={...bindings.THREE,WebGLRenderer:class{constructor(){this.domElement=document.createElement('canvas');this.domElement.getBoundingClientRect=()=>({left:0,top:0,right:390,bottom:650,width:390,height:650});}setPixelRatio(){}setSize(){}render(){}}};
   const vibrations=[];const sandbox={...bindings,THREE,collectionModule:{createCollectionUI},loadMoleculeDatabase:async()=>({ok:true}),window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{},setTimeout:()=>1,clearTimeout:()=>{},console};
-  const context=createContext(sandbox);runInContext(source,context);await settle();return {window,document,context,vibrations,run:code=>runInContext(code,context)};
+  const context=createContext(sandbox);runInContext(source,context);await settle();runInContext(`resources.collect(${initialH},0);resources.save();`,context);return {window,document,context,vibrations,run:code=>runInContext(code,context)};
 }
+const savedOf=app=>JSON.stringify(JSON.parse(app.window.localStorage.getItem('molecule-craft.resources.v1')).workspace);
 const app=await setup();
 assert.ok(app.document.querySelector('#open-collection').textContent.includes('0/162'));
 app.run("addElement('C');addElement('H');");
 assert.equal(app.run('molecule.atoms.length'),2);assert.equal(app.document.querySelector('#selection-actions').hidden,false);assert.equal(app.run('saveWorkspace(true)'),true);
-const raw=app.window.localStorage.getItem(WORKSPACE_STORAGE_KEY),snapshot=JSON.parse(raw);assert.equal(snapshot.atoms.length,2);
+const raw=savedOf(app),snapshot=JSON.parse(raw);assert.equal(snapshot.atoms.length,2);
 app.document.querySelector('#open-menu').click();assert.ok(app.document.querySelector('#menu-dialog').open);app.run("addElement('O')");assert.equal(app.run('molecule.atoms.length'),2,'Open menu blocks field mutation');
 app.document.querySelector('#open-help').click();assert.ok(app.document.querySelector('#help-dialog').open);assert.equal(app.document.querySelector('#menu-dialog').open,false);app.document.querySelector('#help-done').click();
 app.document.querySelector('#open-collection').click();assert.ok(app.document.querySelector('#collection-dialog').open);
@@ -51,9 +52,9 @@ app.document.querySelector('#open-collection').click();const card=app.document.q
 assert.match(app.document.querySelector('.dex-description').textContent,/砂糖や塩/);assert.equal(app.document.querySelector('.detail-extras').open,false);assert.ok(app.document.querySelector('.detail-extras').textContent.includes('IUPAC'));
 app.document.querySelector('[aria-label="次の項目"]').click();assert.equal(app.document.querySelector('.detail-heading .dex-number').textContent,'No. 005');
 app.document.querySelector('#close-collection').click();
-const reboot=await setup(raw);assert.equal(reboot.run('molecule.atoms.length'),2);const rebooted=JSON.parse(reboot.window.localStorage.getItem(WORKSPACE_STORAGE_KEY));assert.deepEqual(rebooted,snapshot,'Startup must restore the same pose and focus without relaxation/reframing');
-reboot.run("addElement('O')");assert.equal(reboot.run('molecule.atoms.length'),3);reboot.run('updateStructureFrame(2000)');reboot.document.querySelector('#clear-all').click();assert.equal(reboot.run('molecule.atoms.length'),3,'A click never clears');reboot.run('clearField()');assert.equal(reboot.run('molecule.atoms.length'),0);assert.equal(JSON.parse(reboot.window.localStorage.getItem(WORKSPACE_STORAGE_KEY)).atoms.length,0);
-const future=JSON.stringify({...snapshot,schemaVersion:9}),protectedApp=await setup(future);protectedApp.run("addElement('C');saveWorkspace(true)");assert.equal(protectedApp.window.localStorage.getItem(WORKSPACE_STORAGE_KEY),future);assert.equal(protectedApp.document.querySelector('#workspace-save-status').hidden,false);
+const reboot=await setup(raw);assert.equal(reboot.run('molecule.atoms.length'),2);const rebooted=JSON.parse(savedOf(reboot));assert.deepEqual(rebooted,snapshot,'Startup must restore the same pose and focus without relaxation/reframing');
+reboot.run("addElement('O')");assert.equal(reboot.run('molecule.atoms.length'),3);reboot.run('updateStructureFrame(2000)');reboot.document.querySelector('#clear-all').click();assert.equal(reboot.run('molecule.atoms.length'),3,'A click never clears');reboot.run('clearField()');assert.equal(reboot.run('molecule.atoms.length'),0);assert.equal(JSON.parse(savedOf(reboot)).atoms.length,0);
+const future=JSON.stringify({...snapshot,schemaVersion:9}),protectedApp=await setup(future);protectedApp.run("addElement('C');saveWorkspace(true)");assert.equal(protectedApp.window.localStorage.getItem(WORKSPACE_STORAGE_KEY),future);assert.equal(protectedApp.document.querySelector('#resource-save-status').hidden,false);
 console.log('Production DOM integration passed: startup, spawn, dialog guards, collection hints/images/text/navigation, exact restart, clear and future-save protection.');
 
 // Production permission -> visible handle -> drag -> animated bond -> recognition.
@@ -95,7 +96,7 @@ for(const record of records.filter(r=>['carbon-monoxide','sulfur-dioxide','sulfu
   assert.equal(scene.document.querySelector('#stop-relaxation'),null,'Stop-correction control was not removed');
   if(record.id==='phosphoric-acid'){
     scene.run(`pos(fixtureIds[0]).add(new THREE.Vector3(-1.8,.4,.9));selectAtom(fixtureIds[0]);saveWorkspace(true);`);
-    const savedBad=scene.window.localStorage.getItem(WORKSPACE_STORAGE_KEY),repaired=await setup(savedBad);
+    const savedBad=savedOf(scene),repaired=await setup(savedBad);
     assert.ok(repaired.run('!!relaxation'),'A stretched old save must repair automatically');
     const initialNow=now;
     for(let frame=0;frame<60&&repaired.run('!!relaxation');frame++){now+=1000/60;repaired.run('updateRelaxation(performance.now())');}
