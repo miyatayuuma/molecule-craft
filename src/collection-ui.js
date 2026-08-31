@@ -10,7 +10,7 @@ export async function loadCollectionData(){
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia};
 }
 
-export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),getIsland=()=>null,onCraftRequest=()=>{}}){
+export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root)}){
   const data=await loadCollectionData();
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
   const state=createCollectionState({records,...data,storage});
@@ -74,7 +74,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function renderSummary(){
     const open=q('open-collection');open.replaceChildren(document.createTextNode('図鑑 '),el('small',`${state.discoveredCount}/${records.length}`));
-    q('collection-progress').textContent=['phenomena','creatures'].includes(tab)?`${getIsland()?.journalCount(tab)??0} / ${getIsland()?.journalTotal(tab)??0} 発見`:tab==='molecules'?`${state.discoveredCount} / ${records.length} 発見`:`${state.unlockedCount} / ${data.templates.length} 解放`;
+    q('collection-progress').textContent=tab==='molecules'?`${state.discoveredCount} / ${records.length} 発見`:`${state.unlockedCount} / ${data.templates.length} 解放`;
     const storage=q('collection-storage');storage.textContent=state.storageMessage;storage.hidden=!state.storageMessage;
     const save=q('game-save-status');save.textContent=state.storageMessage?'図鑑を保存できません。図鑑で確認してください。':'';save.hidden=!state.storageMessage;
     q('game-loop-hint').textContent=`発見 ${state.discoveredCount} · 原子 ${state.unlockedElements().length}/8 · 部品 ${state.unlockedCount}/${data.templates.length}`;
@@ -89,12 +89,6 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   function renderBook(){
     releaseViewer();renderSummary();
     for(const node of root.querySelectorAll('[data-book-tab]')){const active=node.dataset.bookTab===tab;node.setAttribute('aria-selected',String(active));node.tabIndex=active?0:-1;}
-    if(['phenomena','creatures'].includes(tab)){
-      q('collection-controls').hidden=true;const footer=dialog.querySelector('.book-footer');if(footer)footer.hidden=true;
-      list.hidden=false;detail.hidden=true;list.replaceChildren();
-      const island=getIsland();if(island)island.renderJournal(tab,list);else list.append(el('p','島の図鑑を準備しています。','collection-note'));
-      return;
-    }
     q('collection-controls').hidden=!!currentDetail;q('collection-category-label').hidden=tab!=='molecules';
     const footer=dialog.querySelector('.book-footer');if(footer)footer.hidden=!!currentDetail;
     list.hidden=!!currentDetail;detail.hidden=!currentDetail;
@@ -151,7 +145,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     detail.append(el('p',entry('groups',id)?.description??group.description,'dex-description'));
     for(const template of data.templates.filter(item=>item.unlock.groupId===id)){
       const unlocked=state.isUnlocked(template.id);detail.append(el('p',unlocked?'✓ この部品は使えます':`解放まで：異なる分子 ${sources.length}/${template.unlock.distinctMolecules}種類で発見`,'unlock-condition'));
-      if(unlocked)detail.append(button('部品トレーへ',()=>{paletteTab('structures');dialog.close();onCraftRequest();},'collection-primary'));
+      if(unlocked)detail.append(button('部品トレーへ',()=>{paletteTab('structures');dialog.close();},'collection-primary'));
     }
     const extra=section('くわしく');extra.append(el('p',`${group.nameEn} · ${group.notation}`),el('p',group.description));
     if(group.aliases?.length)extra.append(el('p',`別名：${group.aliases.join('、')}`));

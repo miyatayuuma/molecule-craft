@@ -21,7 +21,7 @@ const load=async input=>{const path=input instanceof URL?input:new URL(input,app
 const settle=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout(resolve,5));};
 let now=1000;
 async function setup(saved=null){
-  const dom=new JSDOM(html,{url:'https://example.test/molecule-craft/#craft',pretendToBeVisual:true}),{window}=dom,{document}=window;
+  const dom=new JSDOM(html,{url:'https://example.test/molecule-craft/',pretendToBeVisual:true}),{window}=dom,{document}=window;
   Object.assign(globalThis,{window,document,Option:window.Option,fetch:load,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{}});
   window.matchMedia=()=>({matches:false});window.confirm=()=>true;
   window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new window.Event('close'));};

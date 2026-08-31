@@ -12,16 +12,14 @@
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css?v=32">
-  <link rel="stylesheet" href="./island.css?v=33">
 </head>
-<body data-scene="craft">
+<body>
   <main class="app-shell">
     <header class="topbar">
       <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
       <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
-    <nav class="scene-nav" aria-label="遊ぶ場所"><div class="scene-switch"><button id="scene-island" type="button" aria-pressed="false">島</button><button id="scene-craft" type="button" aria-pressed="true">クラフト</button></div><span id="island-mini-progress" hidden>発見 0 · 生物 0</span></nav>
-    <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="island-save-status" hidden></p></div>
+    <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p></div>
     <section class="workspace">
       <section class="viewer-wrap" aria-label="制作フィールド">
         <div id="viewer" class="viewer" aria-label="3D分子模型"></div>
@@ -35,7 +33,6 @@
         <div id="rotation-cue" class="rotation-cue" role="status" hidden></div>
         <div class="field-bottom"><div id="rotation-axis-options" class="rotation-axis-options" role="group" aria-label="回転軸を選ぶ" hidden></div><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
         <button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>
-        <button id="world-use" type="button" class="world-use" hidden><span id="world-use-formula"></span><strong>世界で使う</strong><span aria-hidden="true">↗</span></button>
         <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span><small id="discovery-learning"></small></div>
       </section>
       <aside class="tool-panel" aria-label="クラフト素材">
@@ -55,37 +52,17 @@
         <div id="craft-panel" role="tabpanel" aria-labelledby="parts-tab" hidden><div id="craft-palette" class="craft-palette"></div><p id="craft-empty" class="empty-tray">分子を発見すると、部品が手に入るよ。</p></div>
       </aside>
     </section>
-    <section id="island-view" class="island-view" aria-label="Discovery Island" hidden>
-      <div class="island-stage">
-        <div id="island-canvas" class="island-canvas"></div>
-        <div class="island-heading"><span>MOLECULE CRAFT / 01</span><h2>Discovery Island</h2><p>この島で、何が起こる？</p></div>
-        <div class="island-camera-controls" role="group" aria-label="島のカメラと音"><button id="island-sound" type="button" aria-label="島の音を消す" aria-pressed="true">♪</button><button id="island-zoom-in" type="button" aria-label="島を拡大">＋</button><button id="island-zoom-out" type="button" aria-label="島を縮小">−</button><button id="island-frame" type="button" aria-label="島全体を見る">⛶</button></div>
-        <div id="island-targets" class="island-targets" aria-label="投入する場所"></div>
-        <p id="island-unavailable" class="island-unavailable" role="status" hidden></p>
-        <button id="island-discovery" class="island-discovery" type="button" aria-live="polite" hidden><span class="island-discovery-star" aria-hidden="true">✦</span><span><strong id="island-discovery-title"></strong><small id="island-discovery-note"></small></span></button>
-        <p class="island-camera-hint">ドラッグで回転 · 2本指で拡大・移動</p>
-        <aside id="island-inspector" class="island-inspector" aria-label="島のようす" hidden><div class="island-inspector-heading"><h3 id="island-target-name"></h3><button id="island-inspector-close" type="button" aria-label="島のようすを閉じる">×</button></div><p id="island-target-note"></p><div id="island-target-actions"></div></aside>
-      </div>
-      <div class="island-dock">
-        <div class="island-dock-heading"><div><strong id="island-held-name">まずは、島をさわってみよう</strong><small id="island-held-hint">分子をつくると、ここへ持ってこられます</small></div><button id="island-make" type="button">＋ 分子をつくる</button></div>
-        <div class="island-shelf-tools"><span id="island-sample-count">標本 0 / 10</span><div id="island-dose" role="group" aria-label="投入する量" hidden><button type="button" data-dose="1" aria-pressed="true">少し</button><button type="button" data-dose="3" aria-pressed="false">たっぷり</button></div><button id="island-cancel-sample" type="button" hidden>手をはなす</button></div>
-        <div id="island-samples" class="island-samples" aria-label="つくった分子の標本ボトル"></div>
-      </div>
-    </section>
   </main>
-  <div id="island-drag-ghost" class="island-drag-ghost" hidden></div>
   <dialog id="menu-dialog" class="sheet" aria-labelledby="menu-title"><header class="sheet-header"><h2 id="menu-title">メニュー</h2><button type="button" data-close-dialog aria-label="メニューを閉じる">×</button></header><div class="sheet-body menu-items">
     <button id="open-help" type="button">あそびかた <span>›</span></button><button id="menu-info" type="button">いまの分子 <span>›</span></button>
-    <button id="island-reset" type="button">島だけやり直す <span>↻</span></button>
     <button id="install-app" type="button">アプリをインストール <span>＋</span></button><p id="install-status" class="muted" role="status"></p>
     <button id="update-app" type="button" hidden>更新して再起動 <span>↻</span></button><p id="update-status" class="muted" role="status"></p>
-    <p class="muted">島・図鑑・制作途中の分子は、この端末に自動保存されます。別の端末とは同期しません。</p><p class="muted">島の反応は、性質をもとに誇張したゲームの表現です。現実の実験手順ではありません。</p><p id="game-loop-hint" class="muted"></p>
+    <p class="muted">図鑑と制作途中の分子は、この端末に自動保存されます。</p><p id="game-loop-hint" class="muted"></p>
   </div></dialog>
   <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
     <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
     <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子が図鑑に登録され、新しい原子や部品が使えるようになります。</p></div></section>
-    <section><span>04</span><div><h3>島へ持っていく</h3><p>完成したら「世界で使う」。標本ボトルを選び、島の好きな場所へタップかドラッグで投入。一度つくった分子は何度でも試せます。</p></div></section>
     <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子を押すと、回せる軸が光ります。1本ならそのまま枝をドラッグ。複数なら光る結合か番号で軸を選びます。🔒の箇所は固定です。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。回せる単結合はタップで軸を選べます。大きい骨格を支点に、小さい枝を回します。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
   </div></dialog>
@@ -98,13 +75,12 @@
   <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="book-shell">
     <header class="book-header"><div><h2 id="collection-title">分子図鑑</h2><p id="collection-progress"></p></div><button id="close-collection" type="button" aria-label="図鑑を閉じる">×</button></header>
     <p id="collection-storage" class="save-warning" role="status" hidden></p>
-    <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true" aria-controls="collection-list">分子</button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" aria-controls="collection-list" tabindex="-1">部品</button><button type="button" role="tab" data-book-tab="phenomena" aria-selected="false" aria-controls="collection-list" tabindex="-1">現象</button><button type="button" role="tab" data-book-tab="creatures" aria-selected="false" aria-controls="collection-list" tabindex="-1">生物</button></div>
+    <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true" aria-controls="collection-list">分子</button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" aria-controls="collection-list" tabindex="-1">部品</button></div>
     <details id="collection-controls" class="book-controls"><summary>絞り込み <span id="filter-summary">今つくれる分子</span></summary><div class="filter-fields"><label id="collection-category-label">種類<select id="collection-category"><option value="all">すべて</option></select></label><label>表示<select id="collection-filter"><option value="available">今の原子で作れる</option><option value="all">すべて</option><option value="found">発見済み</option><option value="missing">未発見</option></select></label></div></details>
     <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
-  <dialog id="island-reset-dialog" class="sheet" aria-labelledby="island-reset-title"><header class="sheet-header"><h2 id="island-reset-title">島だけやり直す？</h2><button type="button" data-close-dialog aria-label="島の初期化を閉じる">×</button></header><div class="sheet-body"><p>島の水・植物・装置・生物の位置を、最初に戻します。発見した現象・生物・標本ボトルと、クラフト中の分子は残ります。</p><button id="island-reset-confirm" type="button" class="danger">島の状態を初期化する</button><button id="island-reset-cancel" type="button">このまま続ける</button></div></dialog>
-  <script type="module" src="./src/app-v14.js?v=33"></script>
+  <script type="module" src="./src/app-v14.js?v=32"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>

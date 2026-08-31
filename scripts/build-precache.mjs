@@ -1,7 +1,7 @@
 import {readFile,writeFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const root=new URL('../',import.meta.url),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-const files=new Set(['index.html','styles.css','island.css','manifest.webmanifest']);
+const files=new Set(['index.html','styles.css','manifest.webmanifest']);
 async function collect(directory){for(const item of await readdir(new URL(directory,root),{withFileTypes:true})){const path=`${directory}${item.name}`;if(item.isDirectory())await collect(`${path}/`);else files.add(path);}}
 await collect('assets/');await collect('data/');await collect('vendor/');
 // Only current app modules: old archived entrypoints deliberately stay online-only.

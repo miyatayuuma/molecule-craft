@@ -21,7 +21,6 @@ import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds,
 
 import { createGameShell } from './game-shell.js?v=29';
 import { createWorkspaceStorage, captureWorkspace, restoreWorkspace } from './workspace-save.js?v=30';
-import { createIslandController } from './island-ui.js?v=33';
 
 const molecule=new Molecule();
 const placements=new Map();
@@ -45,7 +44,6 @@ let discoveryQueue=[],discoveryUntil=0,activeDiscovery=null;
 let lastBackgroundTap=null,frameTransition=null;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
 let collectionGame=null,collectionOpen=false,collectionRevision=0,collectionCheckedRevision=-1;
-let islandGame=null,islandActive=false;
 
 const viewer=document.querySelector('#viewer');
 const palette=document.querySelector('#element-palette');
@@ -106,23 +104,13 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)saveWorkspa
 window.addEventListener('molecule-craft:prepare-update',event=>{const saved=workspaceStorage.protected&&!molecule.atoms.length||saveWorkspace(true);if(!saved||dragState||activePointers.size||relaxation||bondTransition||frameTransition||(collectionGame?.state.storageMessage&&collectionGame.state.discoveredCount>0))event.preventDefault();});
 loadMoleculeDatabase().then(async result=>{
   syncWorkspace();if(savedWorkspace)discoveryQueue=[];if(renderer){refreshInfo();checkDiscovery();}
-  if(!result.ok){elementPalette.fallback();if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';initializeIsland();return;}
+  if(!result.ok){elementPalette.fallback();if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
   try{
-    const {createCollectionUI}=await import('./collection-ui.js?v=33');
-    collectionGame=await createCollectionUI({records:moleculeCatalog(),elementPalette,getIsland:()=>islandGame,onCraftRequest:()=>islandGame?.showCraft(),onPlace:template=>addCraftPart(template.id),canOpen:()=>!gameShell.isOpen()&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
+    const {createCollectionUI}=await import('./collection-ui.js?v=31');
+    collectionGame=await createCollectionUI({records:moleculeCatalog(),elementPalette,onPlace:template=>addCraftPart(template.id),canOpen:()=>!gameShell.isOpen()&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
     collectionCheckedRevision=-1;if(renderer)checkDiscovery();
   }catch(error){elementPalette.fallback();console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='図鑑を読み込めませんでした。原子からの制作は続けられます。';}
-  initializeIsland();
 });
-
-function initializeIsland(){
-  try{
-    islandGame=createIslandController({THREE,records:moleculeCatalog(),craftedIds:moleculeCatalog().filter(record=>collectionGame?.state.hasMolecule(record.id)).map(record=>record.id),getCurrent:focusedStructure,
-      canTravel:()=>!gameShell.isOpen()&&!collectionOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,
-      beforeTravel:()=>saveWorkspace(true),onScene:active=>{islandActive=active;if(!active&&renderer)resize();}});
-    islandGame?.observeStructures(structures);
-  }catch(error){console.warn('Island unavailable; craft remains usable.',error);islandActive=false;document.querySelector('#island-view').hidden=true;document.querySelector('.workspace').hidden=false;document.body.dataset.scene='craft';document.querySelector('#island-save-status').hidden=false;document.querySelector('#island-save-status').textContent='島を読み込めませんでした。クラフトと図鑑は利用できます。';}
-}
 
 function bindPalette(){
   if(!palette)return;
@@ -203,7 +191,7 @@ function addCraftPart(id){
 }
 
 function onPointerDown(e){
-  if(islandActive||bondTransition||frameTransition||collectionOpen||gameShell.isOpen()){pulse('構造変化中 · 視点は固定されています');return;}
+  if(bondTransition||frameTransition||collectionOpen||gameShell.isOpen()){pulse('構造変化中 · 視点は固定されています');return;}
   // Once a drag is committed, a stray second finger cannot steal it or move
   // the camera. Unregistered pointer events are ignored below as well.
   if(activePointers.size&&dragState&&(dragState.moved||dragState.mode!=='molecule-rotate'))return;
@@ -666,7 +654,6 @@ function syncWorkspace(){
   for(const id of protectedUntil.keys())if(!structureByAtom.has(id))protectedUntil.delete(id);
 }
 function refreshInfo(keep=false){
-  islandGame?.refreshCarry();
   const focus=focusedStructure(),identity=displayIdentity(focus);formulaEl.textContent=identity.formula;nameEl.textContent=identity.primary;iupacNameEl.textContent=identity.iupac?`IUPAC: ${identity.iupac}`:'';
   const validation=focus?.validation??molecule.validation();statusEl.className=`status ${validation.level}`;statusEl.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
   countsEl.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)countsEl.textContent='—';else for(const s of Object.keys(counts).sort()){const x=document.createElement('span');x.className='atom-count';x.textContent=`${s} × ${counts[s]}`;countsEl.appendChild(x);}
@@ -694,7 +681,6 @@ function checkDiscovery(now=performance.now()){
   if(collectionGame&&collectionCheckedRevision!==collectionRevision){
     collectionCheckedRevision=collectionRevision;
     const result=collectionGame.observeStructures(structures);
-    islandGame?.observeStructures(structures);
     for(const gameEvent of result.events){
       const queued=discoveryQueue.find(item=>item.signature===gameEvent.signature);
       if(queued){if(!queued.gameEvent)queued.gameEvent=gameEvent;}
@@ -786,7 +772,7 @@ function perpendicular(v){const ref=Math.abs(v.y)<.85?new THREE.Vector3(0,1,0):n
 function vibrateFeedback(duration,pointerType){if(pointerType==='mouse')return;try{navigator.vibrate?.(duration);}catch{}}
 function capture(e){try{renderer.domElement.setPointerCapture(e.pointerId)}catch{}}function release(e){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch{}}
 function selectAtom(id){if(id!==selectedAtomId||id==null)clearTorsionGuide();workspaceView.select(id);if(selectedAtomId!==id){if(selectedAtomId!=null)protectedUntil.set(selectedAtomId,performance.now()+DEBRIS_POLICY.protectionMs);selectedAtomId=id;selectionChangedAt=performance.now();}}
-function interactionLocked(){return!!relaxation||!!bondTransition||!!frameTransition||collectionOpen||gameShell.isOpen()||islandActive;}
+function interactionLocked(){return!!relaxation||!!bondTransition||!!frameTransition||collectionOpen||gameShell.isOpen();}
 function topologyChanged(){torsionModel=null;clearTorsionGuide();stateCache.clear();geometryCache.clear();solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
 function spawnRadius(element,order){
   const r=ELEMENTS[element].radius;
@@ -820,7 +806,7 @@ function disposeObject(object){object.traverse?.(item=>{item.geometry?.dispose?.
 function disposeGroup(group){for(const object of[...group.children]){group.remove(object);disposeObject(object);}}
 function resize(){const w=Math.max(1,viewer.clientWidth),h=Math.max(1,viewer.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 function animate(now=performance.now()){
-  requestAnimationFrame(animate);if(document.hidden||gameShell.isOpen()||collectionOpen||islandActive)return;if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
+  requestAnimationFrame(animate);if(document.hidden||gameShell.isOpen()||collectionOpen)return;if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
   updateStructureFrame(now);
   camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);renderer.render(scene,camera);if(now-lastSaveCheck>1000){lastSaveCheck=now;saveWorkspace();}
 }
