@@ -1,5 +1,4 @@
-import { EXPEDITION } from './config.js';
-import { DRIVES, MOLECULE_USES, REGIONS, driveAvailable, growthGoal } from './growth.js';
+import { DRIVES, MOLECULE_USES, REGIONS, driveAvailable, growthGoal, propulsionGauge } from './growth.js';
 
 const DRIVE_SECONDS=DRIVES.combustion.packetSeconds;
 const ANIMATION_MS=620;
@@ -54,6 +53,30 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onStore,onAnc
     announcement=`${formula(record)} ×${count} を分子ストックへ保管`;
     animateProduction(record,count,cost);update();return true;
   }
+  function fillTank(id){
+    if(productionBusy||resources.blocked||!canMake()||onCommit()===false)return false;
+    const filled=resources.fillTank(id);if(filled)announcement=id==='hydrogen'?'H₂ BURSTタンクを満タンに補給':'COMBUSTIONタンクを満タンに補給';update();return filled;
+  }
+  function produceShortage(id,count){select(id);setQuantity(count);q('recipe-name').scrollIntoView?.({block:'nearest'});}
+  function renderTanks(state){
+    const unlocked=state.recipes.includes('hydrogen'),systems=q('supply-systems');systems.hidden=!unlocked;if(!unlocked)return;
+    const hydrogen=resources.tankPlan('hydrogen'),hItem=hydrogen.items[0],hGauge=propulsionGauge('hydrogen',state.tanks);
+    q('supply-h2-current').textContent=hItem.current;q('supply-h2-capacity').textContent=hItem.capacity;q('supply-h2-meter').style.transform=`scaleX(${hGauge.ratio})`;
+    q('supply-h2-detail').textContent=hydrogen.full?`BASE STOCK H₂ ×${hItem.stock} · 満タン`:`BASE STOCK H₂ ×${hItem.stock} · 補給可能 ${hItem.transferable} / 必要 ${hItem.need}${hItem.shortage?` · 不足 H₂ ×${hItem.shortage}`:''}`;
+    q('fill-hydrogen').disabled=productionBusy||!hydrogen.canFill;q('fill-hydrogen').textContent=hydrogen.full?'満タン':`満タンまで補給 · H₂ ×${hItem.need}`;
+    const craftHydrogen=q('craft-hydrogen-shortage');craftHydrogen.hidden=!hItem.shortage;craftHydrogen.textContent=`不足分を作る · H₂ ×${hItem.shortage}`;
+
+    const combustionUnlocked=driveAvailable(state,'combustion'),combustionNode=q('supply-systems').querySelector('[data-tank="combustion"]');combustionNode.hidden=!combustionUnlocked;
+    if(combustionUnlocked){
+      const plan=resources.tankPlan('combustion'),methane=plan.items.find(item=>item.id==='methane'),oxygen=plan.items.find(item=>item.id==='oxygen'),gauge=propulsionGauge('combustion',state.tanks);
+      q('supply-combustion-packets').textContent=gauge.remaining;q('supply-combustion-capacity').textContent=gauge.capacity;q('supply-combustion-meter').style.transform=`scaleX(${gauge.ratio})`;
+      const missing=[methane.shortage?`CH₄ ×${methane.shortage}`:'',oxygen.shortage?`O₂ ×${oxygen.shortage}`:''].filter(Boolean).join(' / ');
+      q('supply-combustion-detail').textContent=`搭載 CH₄ ${methane.current}/${methane.capacity} · O₂ ${oxygen.current}/${oxygen.capacity} · ${Math.ceil(gauge.seconds)}秒分\nBASE STOCK CH₄ ×${methane.stock} · O₂ ×${oxygen.stock}${missing?` · 不足 ${missing}`:plan.full?' · 満タン':' · 満タン分を補給可能'}`;
+      q('fill-combustion').disabled=productionBusy||!plan.canFill;q('fill-combustion').textContent=plan.full?'満タン':`満タンまで補給 · CH₄ ×${methane.need} / O₂ ×${oxygen.need}`;
+      const craftMethane=q('craft-methane-shortage'),craftOxygen=q('craft-oxygen-shortage');craftMethane.hidden=!methane.shortage;craftOxygen.hidden=!oxygen.shortage;craftMethane.textContent=`不足分を作る · CH₄ ×${methane.shortage}`;craftOxygen.textContent=`不足分を作る · O₂ ×${oxygen.shortage}`;
+    }
+    q('supply-propulsion-note').textContent=`推進剤はBASE STOCKとは別に採集殻へ搭載します。COMBUSTIONは${DRIVE_SECONDS}秒ごとにCH₄ ×1とO₂ ×2を消費。通常航行はタンクが空でも使えます。`;
+  }
 
   function update(){
     const state=resources.state;
@@ -62,6 +85,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onStore,onAnc
       if(element!=='H')q(`stock-${element.toLowerCase()}`).hidden=!resources.canUseElement(element);
     }
     for(const [id,key] of [['hydrogen','h2'],['methane','ch4'],['oxygen','o2'],['water','water']])q(`resource-${key}`).textContent=state.molecules[id]??0;
+    renderTanks(state);
     q('craft-resource-hint').textContent=announcement||growthGoal(state).text;q('supply-goal').textContent=growthGoal(state).text;
 
     const available=[...new Set([...state.hints,...state.recipes])].filter(id=>resources.record(id)),key=available.join('|')+';'+state.recipes.join('|');
@@ -88,8 +112,6 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onStore,onAnc
     q('molecule-cost').textContent=complete?`消費 · ${costText(cost)}${affordable?'':' · 元素が不足'}`:'初回発見は制作フィールドで原子を組み立てます。';
     q('molecule-cost').dataset.affordable=String(affordable);q('make-h2').hidden=!complete;q('make-h2').disabled=productionBusy||resources.blocked||!affordable;q('make-h2').textContent=productionBusy?'合成中…':`${formula(record)} × ${quantity} を一括生成`;
 
-    q('supply-systems').hidden=!state.recipes.includes('hydrogen');
-    if(state.recipes.includes('hydrogen'))q('supply-propulsion-note').textContent=driveAvailable(state,'combustion')?`出発時に H₂ 最大${EXPEDITION.hydrogenCapacity}、CH₄ 最大${EXPEDITION.methaneCapacity}、O₂ 最大${EXPEDITION.oxygenCapacity}を自動搭載。DRIVEは${DRIVE_SECONDS}秒ごとにCH₄ × 1とO₂ × 2を消費します。`:`出発時にH₂を最大${EXPEDITION.hydrogenCapacity}回分、自動搭載。通常航行では消費せず、BURSTした分だけ在庫から減ります。`;
     const anchors=state.progress.regions.join('|');
     if(anchors!==anchorsKey){anchorsKey=anchors;const list=q('expedition-anchor'),selected=list.value;list.replaceChildren();for(const [id,text] of [['continue','探索の続き'],...state.progress.regions.map(id=>[id,`${REGIONS[id].name}へ補給`])]){const option=document.createElement('option');option.value=id;option.textContent=text;list.append(option);}list.value=selected||'continue';}
   }
@@ -100,6 +122,8 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onStore,onAnc
   q('production-minus').addEventListener('click',()=>setQuantity(quantity-1));q('production-plus').addEventListener('click',()=>setQuantity(quantity+1));
   q('production-add-5').addEventListener('click',()=>setQuantity(quantity+5));q('production-add-10').addEventListener('click',()=>setQuantity(quantity+10));q('production-max').addEventListener('click',()=>setQuantity(maximum()));
   q('make-h2').addEventListener('click',produce);
+  q('fill-hydrogen').addEventListener('click',()=>fillTank('hydrogen'));q('fill-combustion').addEventListener('click',()=>fillTank('combustion'));
+  q('craft-hydrogen-shortage').addEventListener('click',()=>produceShortage('hydrogen',resources.tankPlan('hydrogen').shortage.hydrogen));q('craft-methane-shortage').addEventListener('click',()=>produceShortage('methane',resources.tankPlan('combustion').shortage.methane));q('craft-oxygen-shortage').addEventListener('click',()=>produceShortage('oxygen',resources.tankPlan('combustion').shortage.oxygen));
   q('store-h2').addEventListener('click',()=>{const id=onStore();if(!id)return;choice=typeof id==='string'?id:'hydrogen';quantity=1;announcement=MOLECULE_USES[choice]?.discovery??'分子を保管しました。以後は数量を指定して量産できます。';update();});
   update();
   return {update,select,discovered(id){choice=id;quantity=1;announcement=MOLECULE_USES[id]?.discovery??'';update();},clearAnnouncement(){announcement='';},get open(){return dialog.open;},get producing(){return productionBusy;}};
