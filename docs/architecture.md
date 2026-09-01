@@ -42,7 +42,7 @@
 | 画面統合・入力・帰還 | `src/veil/ui.js` |
 | 音 | `src/veil/audio.js` |
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
-| 補給・長押し量産 | `src/veil/supply.js`, `src/veil/repeat-action.js` |
+| 補給・数量指定量産 | `src/veil/supply.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
 探索の現行ルールと意図は `docs/hco-growth.md` にあります。探索だけの変更では、分子DBや生成済みSVGを読む必要はありません。
