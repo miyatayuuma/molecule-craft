@@ -8,27 +8,29 @@ import {completeExpeditionTelemetry,logExpeditionTelemetry} from '../src/veil/te
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
 const emptyMap=()=>({seed:17,dust:[],fields:[],labels:[],routes:[]});
 
-// Expedition capacities describe usable packets, not a cap on base inventory.
+// Expedition tanks are filled from uncapped BASE STOCK before launch.
 const storage=memory(),resources=createResources({storage});
 for(const id of ['hydrogen','methane','oxygen'])resources.discover(id);
 Object.assign(resources.state.molecules,{hydrogen:20,methane:20,oxygen:40});resources.save();
+assert.deepEqual(resources.prepareExpedition(),{hydrogen:0,methane:0,oxygen:0});
+assert.ok(resources.fillTank('hydrogen'));assert.ok(resources.fillTank('combustion'));
 assert.deepEqual(resources.prepareExpedition(),{hydrogen:EXPEDITION.hydrogenCapacity,methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity});
-assert.equal(resources.state.molecules.hydrogen,20,'Loading a sortie must not discard unused base fuel');
+assert.deepEqual(resources.state.molecules,{hydrogen:17,methane:2,oxygen:4,water:0},'Supply transfers only the capped load from BASE STOCK');
 
 const fuelRun=createRun(emptyMap(),VEIL,{fuel:resources.prepareExpedition(),predators:false});
-const hydrogenBefore=resources.state.molecules.hydrogen;
-assert.ok(beginBurst(fuelRun,()=>resources.consumeDrive('hydrogen')));assert.equal(fuelRun.fuel.hydrogen,EXPEDITION.hydrogenCapacity-1);assert.equal(resources.state.molecules.hydrogen,hydrogenBefore-1);
+const baseBefore={...resources.state.molecules},hydrogenBefore=resources.state.tanks.hydrogen;
+assert.ok(beginBurst(fuelRun,()=>resources.consumeDrive('hydrogen')));assert.equal(fuelRun.fuel.hydrogen,EXPEDITION.hydrogenCapacity-1);assert.equal(resources.state.tanks.hydrogen,hydrogenBefore-1);
 assert.equal(beginBurst(fuelRun,()=>resources.consumeDrive('hydrogen')),false,'A repeated press during BURST/cooldown cannot double-spend');
 for(let used=1;used<EXPEDITION.hydrogenCapacity;used++){while(fuelRun.player.cooldown>0)stepRun(fuelRun,{x:0,y:-1},1/60);assert.ok(beginBurst(fuelRun,()=>resources.consumeDrive('hydrogen')));}
-assert.equal(fuelRun.fuel.hydrogen,0);assert.equal(beginBurst(fuelRun,()=>resources.consumeDrive('hydrogen')),false);assert.equal(resources.state.molecules.hydrogen,hydrogenBefore-EXPEDITION.hydrogenCapacity);
+assert.equal(fuelRun.fuel.hydrogen,0);assert.equal(beginBurst(fuelRun,()=>resources.consumeDrive('hydrogen')),false);assert.equal(resources.state.tanks.hydrogen,0);assert.deepEqual(resources.state.molecules,baseBefore,'BURST never spends BASE STOCK');
 
 // A combustion packet is bought only when needed. Releasing the control
 // preserves its remaining burn time and consumes no additional molecules.
-const driveRun=createRun(emptyMap(),VEIL,{fuel:{methane:3,oxygen:6},predators:false});let packets=0;
+const driveRun=createRun(emptyMap(),VEIL,{fuel:{methane:3,oxygen:6},predators:false}),tankBefore={...resources.state.tanks};let packets=0;
 setCombustionHeld(driveRun,true);for(let i=0;i<60;i++)stepRun(driveRun,{x:1,y:0},1/60,{consumeCombustion:()=>{packets++;return resources.consumeDrive('combustion');}});
 assert.equal(packets,1);assert.ok(driveRun.driveBuffer>.9&&driveRun.driveBuffer<1.1);const preserved=driveRun.driveBuffer;
 setCombustionHeld(driveRun,false);for(let i=0;i<300;i++)stepRun(driveRun,{x:1,y:0},1/60,{consumeCombustion:()=>{packets++;return false;}});assert.equal(packets,1);assert.equal(driveRun.driveBuffer,preserved);
-setCombustionHeld(driveRun,true);for(let i=0;i<310;i++)stepRun(driveRun,{x:1,y:0},1/60,{consumeCombustion:()=>{packets++;return resources.consumeDrive('combustion');}});assert.equal(packets,3);assert.equal(driveRun.fuel.methane,0);assert.equal(driveRun.fuel.oxygen,0);
+setCombustionHeld(driveRun,true);for(let i=0;i<310;i++)stepRun(driveRun,{x:1,y:0},1/60,{consumeCombustion:()=>{packets++;return resources.consumeDrive('combustion');}});assert.equal(packets,3);assert.equal(driveRun.fuel.methane,0);assert.equal(driveRun.fuel.oxygen,0);assert.equal(resources.state.tanks.methane,tankBefore.methane-3);assert.equal(resources.state.tanks.oxygen,tankBefore.oxygen-6);assert.deepEqual(resources.state.molecules,baseBefore);
 
 // FLOW/CHAIN changes feedback only. Identical steering produces an identical
 // path and pickup result regardless of its displayed count.
@@ -64,4 +66,4 @@ const failingData=new Map();let rejectWrites=false;const failingStorage={getItem
 assert.equal(DRIVES.hydrogen.type,'burst');assert.equal(DRIVES.combustion.type,'continuous');assert.ok(DRIVES.hydrogen.boostSeconds<DRIVES.combustion.packetSeconds);assert.equal(MOLECULE_USES.water.role,'catalog');assert.equal(DRIVES.water,undefined);
 const report=completeExpeditionTelemetry(cruising,{captured:false,result:{lost:{H:0,C:0,O:0}}});assert.equal(report.returnType,'voluntary');assert.equal(report.fuelUsed.methane,4);assert.equal(report.fuelUsed.oxygen,8);assert.ok(report.combustionSeconds>7.9);assert.equal(report.maxEaters,1);
 let debugReport=null;assert.equal(logExpeditionTelemetry(report,{location:{search:''},logger:value=>{debugReport=value;}}),false);assert.equal(debugReport,null);assert.equal(logExpeditionTelemetry(report,{location:{search:'?expeditionDebug=1'},logger:(label,value)=>{debugReport={label,value};}}),true);assert.equal(debugReport.value,report);
-console.log('Expedition Core passed: capped on-demand fuel, short BURST, hold/release combustion, cosmetic FLOW, safe escalation, fixed-speed pursuit, emergency separation, sustained escape, eventual capture and cargo-only loss.');
+console.log('Expedition Core passed: separate capped tanks, short BURST, hold/release combustion, cosmetic FLOW, safe escalation, fixed-speed pursuit, emergency separation, sustained escape, eventual capture and cargo-only loss.');
