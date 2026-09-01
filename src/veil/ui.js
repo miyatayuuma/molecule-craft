@@ -97,7 +97,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
       if(event.type==='danger'&&event.level==='danger'){notice('接触間近 · H₂ BURST',2);vibrate(28);}
       if(event.type==='driveIgnition'){vibrate(12);}
       if(event.type==='driveEmpty'){notice('COMBUSTION DRIVEの搭載分が空になった',2);stopCombustion();}
-      if(event.type==='capture'){captureReturnAt=now+650;resetInput();notice(`捕獲された · 今回の回収塵を${Math.round(EXPEDITION.captureLoss*100)}%失って強制帰還`,2);vibrate(55);}
+      if(event.type==='capture'){const preview=resources.previewExpedition(run.elementDust,true);renderer.scatterLostCargo(run,preview?.lost??{});captureReturnAt=now+650;resetInput();notice(`捕獲された · 今回の回収塵を${Math.round(EXPEDITION.captureLoss*100)}%失って強制帰還`,2);vibrate(55);}
     }
     if(run.time>messageUntil)q('veil-message').hidden=true;
     const propulsion=run.player.boost>0?'burst':run.player.combustion?'combustion':null;audio.update(run.player.speed,run.chain,propulsion);renderer.draw(run,dt,reduced);

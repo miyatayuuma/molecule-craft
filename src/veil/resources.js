@@ -10,6 +10,12 @@ const initialState=()=>({schemaVersion:2,elements:{H:0,C:0,O:0},molecules:{hydro
 const copy=x=>JSON.parse(JSON.stringify(x)),integer=x=>Number.isSafeInteger(x)&&x>=0&&x<=MAX;
 const validId=x=>typeof x==='string'&&/^[A-Za-z][A-Za-z0-9-]*$/.test(x)&&!['constructor','prototype','__proto__'].includes(x);
 const ids=x=>Array.isArray(x)&&x.every(validId)&&new Set(x).size===x.length;
+function expeditionSettlement(units,captured){
+  if(typeof captured!=='boolean'||!units||!Object.entries(units).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return null;
+  const kept={},lost={},rate=captured?EXPEDITION.captureLoss:0;
+  for(const el of MANAGED){const total=units[el]??0;lost[el]=Math.floor(total*rate);kept[el]=total-lost[el];}
+  return {rate,kept,lost};
+}
 function finishReset(storage,state){const p=state.pendingReset;if(!p)return;if(p.collection)storage.setItem(COLLECTION_KEY,JSON.stringify(emptyCollection()));if(p.legacy)storage.removeItem(WORKSPACE_STORAGE_KEY);if(p.help)storage.removeItem(HELP_KEY);const done={...state};delete done.pendingReset;storage.setItem(RESOURCE_KEY,JSON.stringify(done));delete state.pendingReset;}
 function validate(s){
   if(!s||![1,2].includes(s.schemaVersion)||!s.elements||!s.molecules||!ids(s.recipes)||!s.progress)throw Error('Invalid resources');
@@ -57,10 +63,10 @@ export function createResources({storage,onStatus=()=>{}}={}){
     findElement(el){if(blocked||!MANAGED.includes(el))return false;const first=!state.progress.foundElements.includes(el);reveal(el);guaranteed();return first;},
     collect(amount,best=0){if(blocked)return [];const amounts=typeof amount==='number'?{H:amount}:amount;if(!amounts||!Object.entries(amounts).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return [];const before=new Set(state.progress.foundElements);refund(amounts);for(const [el,n]of Object.entries(amounts))if(n>0){reveal(el);state.progress.totalCollected=Math.min(MAX,state.progress.totalCollected+n);}if(integer(best))state.progress.bestChain=Math.max(state.progress.bestChain,best);guaranteed();return state.progress.foundElements.filter(el=>!before.has(el));},
     collectDust(units,best){if(blocked||!Object.entries(units).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return [];const amounts={};for(const [el,n]of Object.entries(units)){const total=state.dust[el]+n;amounts[el]=Math.floor(total/GROWTH.dustPerAtom[el]);state.dust[el]=total%GROWTH.dustPerAtom[el];}return api.collect(amounts,best);},
+    previewExpedition:expeditionSettlement,
     settleExpedition(units,best=0,captured=false){
-      if(blocked||typeof captured!=='boolean'||!integer(best)||!units||!Object.entries(units).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return null;
-      const snapshot=copy(state),kept={},lost={},before={...state.elements},rate=captured?EXPEDITION.captureLoss:0;
-      for(const el of MANAGED){const total=units[el]??0;lost[el]=Math.floor(total*rate);kept[el]=total-lost[el];}
+      const settlement=expeditionSettlement(units,captured);if(blocked||!integer(best)||!settlement)return null;
+      const snapshot=copy(state),before={...state.elements},{rate,kept,lost}=settlement;
       const found=api.collectDust(kept,best);if(!save()){state=snapshot;return null;}
       const atoms={};for(const el of MANAGED)atoms[el]=state.elements[el]-before[el];return {captured,rate,kept,lost,atoms,found};
     },

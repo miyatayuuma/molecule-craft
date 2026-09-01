@@ -1,6 +1,26 @@
 import { VEIL } from './config.js';
 import { random } from './map.js';
 import { clamp } from './engine.js';
+export const LOST_CARGO_PARTICLE_CAP=36;
+const LOST_CARGO_ELEMENTS=['H','C','O'];
+export function lostCargoParticleCounts(lost,cap=LOST_CARGO_PARTICLE_CAP){
+  const weights=LOST_CARGO_ELEMENTS.map(element=>({element,amount:Number.isSafeInteger(lost?.[element])&&lost[element]>0?lost[element]:0})).filter(item=>item.amount>0);
+  const total=weights.reduce((sum,item)=>sum+item.amount,0),target=Math.min(Math.max(0,Math.floor(cap)),total);if(!target)return {H:0,C:0,O:0};
+  if(total<=target)return Object.fromEntries(LOST_CARGO_ELEMENTS.map(element=>[element,lost[element]??0]));
+  const counts={H:0,C:0,O:0},reserved=Math.min(target,weights.length);for(let i=0;i<reserved;i++)counts[weights[i].element]=1;
+  const remaining=target-reserved,shares=weights.map(item=>{const exact=item.amount/total*remaining,floor=Math.floor(exact);counts[item.element]+=floor;return {...item,remainder:exact-floor};});
+  let unassigned=target-Object.values(counts).reduce((sum,n)=>sum+n,0);shares.sort((a,b)=>b.remainder-a.remainder||b.amount-a.amount||LOST_CARGO_ELEMENTS.indexOf(a.element)-LOST_CARGO_ELEMENTS.indexOf(b.element));
+  for(let i=0;i<unassigned;i++)counts[shares[i%shares.length].element]++;
+  return counts;
+}
+export function createLostCargoParticles(lost,origin,rng=Math.random){
+  const counts=lostCargoParticleCounts(lost),particles=[];
+  for(const element of LOST_CARGO_ELEMENTS)for(let i=0;i<counts[element];i++){
+    const angle=rng()*Math.PI*2,speed=150+rng()*135,offset=4+rng()*10;
+    particles.push({element,x:origin.x+Math.cos(angle)*offset,y:origin.y+Math.sin(angle)*offset,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:0,duration:.48+rng()*.14,spin:(rng()-.5)*9});
+  }
+  return particles;
+}
 export function createVeilRenderer(canvas){
   const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw new Error('Canvas 2D unavailable');
   let w=1,h=1,scale=1,baseScale=1,camera={x:0,y:0},fresh=true;
@@ -124,6 +144,13 @@ export function createVeilRenderer(canvas){
       const q=screen(e.x,e.y);ctx.strokeStyle=e.kind==='rare'?'#edd099':e.kind==='carbon'?'#d7a9ef':e.kind==='oxygen'?'#ffad8f':'#9eeaff';ctx.globalAlpha=(1-e.life/e.duration)*.7;ctx.lineWidth=(1+fever*.7)*scale;
       ctx.beginPath();(e.trail??[]).forEach((point,i)=>{const at=screen(point.x,point.y);i?ctx.lineTo(at.x,at.y):ctx.moveTo(at.x,at.y);});ctx.lineTo(q.x,q.y);ctx.stroke();ctx.globalAlpha=1;glow(q.x,q.y,20*scale,e.kind);
     }
+    for(const particle of run.lostCargoEffects??[]){
+      particle.life+=dt;const drag=Math.exp(-dt*2.4);particle.x+=particle.vx*dt;particle.y+=particle.vy*dt;particle.vx*=drag;particle.vy*=drag;
+      const alpha=Math.max(0,1-particle.life/particle.duration)**1.35,at=screen(particle.x,particle.y),kind=particle.element==='C'?'carbon':particle.element==='O'?'oxygen':'normal',color=particle.element==='C'?'#e7c8ff':particle.element==='O'?'#ffd2bd':'#d1f5ff';
+      if(!reduced){ctx.strokeStyle=color;ctx.globalAlpha=alpha*.38;ctx.lineWidth=1.4*scale;ctx.beginPath();ctx.moveTo(at.x-particle.vx*.045*scale,at.y-particle.vy*.045*scale);ctx.lineTo(at.x,at.y);ctx.stroke();}
+      glow(at.x,at.y,(particle.element==='C'?28:24)*scale,kind,alpha*.82);ctx.save();ctx.translate(at.x,at.y);ctx.rotate(particle.spin*particle.life);ctx.fillStyle=color;ctx.globalAlpha=alpha;if(particle.element==='C'){ctx.beginPath();ctx.moveTo(4*scale,0);ctx.lineTo(-3*scale,-3*scale);ctx.lineTo(-2*scale,3*scale);ctx.closePath();ctx.fill();}else{ctx.beginPath();ctx.arc(0,0,(particle.element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;
+    }
+    if(run.lostCargoEffects)run.lostCargoEffects=run.lostCargoEffects.filter(particle=>particle.life<particle.duration);
     const q=screen(p.x,p.y);
     if(!reduced)for(let i=1;i<p.trail.length;i++){const a=screen(p.trail[i-1].x,p.trail[i-1].y),b=screen(p.trail[i].x,p.trail[i].y);ctx.strokeStyle=combustion?'#ffb27d':boost?'#baf5ff':'#70aec7';ctx.globalAlpha=i/p.trail.length*(boost?.7:.3);ctx.lineWidth=(boost?9:4)*scale*i/p.trail.length;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}ctx.globalAlpha=1;
     if(boost&&!reduced){
@@ -140,5 +167,5 @@ export function createVeilRenderer(canvas){
     if(run.gatePassed){const alpha=Math.max(0,1-(run.time-(run.gateTime??run.time))/6);ctx.fillStyle=`rgba(151,194,224,${alpha*.08})`;ctx.fillRect(0,0,w,h);}
     if(run.danger!=='clear'){const alpha=run.danger==='danger'?.18:.08,vignette=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.22,w/2,h/2,Math.max(w,h)*.72);vignette.addColorStop(0,'rgba(45,10,35,0)');vignette.addColorStop(1,`rgba(74,18,48,${alpha})`);ctx.fillStyle=vignette;ctx.fillRect(0,0,w,h);}
   }
-  resize();return {draw,resize,screen,reset(){fresh=true;},get size(){return {w,h,scale};}};
+  resize();return {draw,resize,screen,scatterLostCargo(run,lost){run.lostCargoEffects=createLostCargoParticles(lost,run.player,rng);return run.lostCargoEffects.length;},reset(){fresh=true;},get size(){return {w,h,scale};}};
 }
