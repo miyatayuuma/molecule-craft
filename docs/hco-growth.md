@@ -21,9 +21,11 @@ H₂ remains deliberately poor as normal travel: three short uses cannot become 
 
 H₂O remains discoverable, visible in the collection and mass-producible. Expedition code has no water consumer and Inner Horizon has no H₂O requirement.
 
-## Dust Eaters and return pressure
+## Collector Shell, Dust Eaters and return pressure
 
-DUST EATERS are rendered as light-swallowing cores with orbiting grains, wakes and distorted particle rings. They have no face, teeth, health or attack interaction.
+The controlled object is a temporary Collector Shell deployed from the base and continuously tethered by the ANCHOR FIELD. The shell moves, gathers dust, carries propulsion tanks and holds current-sortie cargo; the base itself never enters the atomic universe.
+
+DUST EATERS are field-disrupting particle phenomena, rendered as light-swallowing cores with orbiting grains, wakes and distorted particle rings. They destabilize the shell's holding and structural fields rather than eating a biological ship, and have no face, teeth, health or attack interaction.
 
 - The first 20 seconds of a sortie are safe.
 - Threat then rises from elapsed time and dust collected during the current sortie.
@@ -32,7 +34,9 @@ DUST EATERS are rendered as light-swallowing cores with orbiting grains, wakes a
 - Bodies use weak per-slot prediction, alternating flank offsets and separation. One trails or pressures a turn; later bodies approach on different lines and narrow exits.
 - HUD pressure appears only after a body exists and shows count and nearest distance rather than another permanent progress system.
 
-Contact ends the sortie. A voluntary return settles 100% of new dust; capture discards 15% of only that sortie's total dust, allocated deterministically across H/C/O before the remainder is converted at three units per atom. Existing atoms, molecules, recipes, collection records, visited regions and other permanent progress are never subtracted.
+Voluntary return starts a 0.8-second ANCHOR LOCK. The existing stable contraction is the lock itself, so no second presentation delay is stacked after it. Physics and contact remain active while the field forms; repeated return input cannot restart it, new propulsion input is blocked, and an H₂ BURST already in flight retains its short inertia. Lock completion performs stable RETRACT and settles 100% of new dust.
+
+Contact before lock completion destabilizes the holding field and switches the same sequence to emergency RETRACT. The Task 1 particles are the 15% of only that sortie's total dust spilling from that field, allocated deterministically across H/C/O before the remainder is converted at three units per atom. Existing atoms, molecules, recipes, collection records, visited regions and other permanent progress are never subtracted.
 
 Element discovery itself is permanent when C or O is first observed, even if the player is caught later. This prevents a capture from erasing knowledge while still making the unbanked material meaningful.
 
