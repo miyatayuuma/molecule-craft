@@ -42,7 +42,7 @@
 | 画面統合・入力・帰還 | `src/veil/ui.js` |
 | 音 | `src/veil/audio.js` |
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
-| 補給・長押し量産 | `src/veil/supply.js`, `src/veil/repeat-action.js` |
+| 補給・数量指定量産 | `src/veil/supply.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
 探索の現行ルールと意図は `docs/hco-growth.md` にあります。探索だけの変更では、分子DBや生成済みSVGを読む必要はありません。
@@ -86,7 +86,7 @@
 
 ## 保存
 
-- `molecule-craft.resources.v1`：H/C/O、分子在庫、レシピ、探索進行、精算、制作スナップショットの正本。移行と破損・未来版・競合保護は `src/veil/resources.js`。
+- `molecule-craft.resources.v1`：H/C/O、基地分子在庫、探索用推進タンク、レシピ、探索進行、精算、制作スナップショットの正本。移行と破損・未来版・競合保護は `src/veil/resources.js`。
 - `molecule-craft.workspace.v1`：従来workspaceの互換入力。構造スキーマと復元は `src/workspace-save.js`。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。

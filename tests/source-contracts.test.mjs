@@ -2,17 +2,18 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
-const [index, app, chemistry, solver, electronInteraction, gestureArbitration, database] = await Promise.all([
+const [index, app, chemistry, solver, electronInteraction, gestureArbitration, veilCss, database] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app.js?v=38', root), 'utf8'),
+  readFile(new URL('src/app.js?v=39', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=31', root), 'utf8'),
   readFile(new URL('src/electron-interaction.js', root), 'utf8'),
   readFile(new URL('src/gesture-arbitration.js', root), 'utf8'),
+  readFile(new URL('veil.css', root), 'utf8'),
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=38"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=39"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=31'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-edit\.js\?v=32'/);
@@ -47,6 +48,13 @@ assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB f
 assert.match(index, /id="element-unlock-hint"/);
 assert.match(index, /id="veil-combustion"/);
 assert.match(index, /id="veil-threat"/);
+assert.match(index, /BASE STOCK → COLLECTOR SHELL/);
+assert.match(index, /BASE ELEMENTS → MOLECULE STOCK/);
+assert.match(index, /EXPEDITION CARGO/);
+assert.match(index, /COLLECTOR SHELL · ANCHOR FIELD/);
+assert.match(index, /id="veil-anchor-meter"/);
+assert.match(veilCss, /\.veil-actions #veil-sound\{position:absolute/);
+assert.match(veilCss, /@media\(max-width:370px\)\{\.veil-chain-block\{display:none\}/);
 assert.doesNotMatch(index, /id="drive-select"|id="auto-cooling"|id="veil-thermal"/);
 assert.doesNotMatch(app, /localStorage\.setItem/);
 assert.equal((index.match(/data-element=/g) ?? []).length, 8, 'Static element palette must remain in HTML');

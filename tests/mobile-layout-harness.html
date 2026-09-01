@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><title>Mobile layout checks</title><style>body{background:#202830;color:#fff;font:14px system-ui;margin:16px}button{padding:12px;margin:4px}iframe{display:block;border:1px solid #71899c;margin-top:12px;background:#0b1420}p{margin:12px 0}</style>
 <h1>スマホ画面の配置検証</h1><p>本番画面の表示サイズを変えて確認します。3D操作の実機試験ではありません。</p>
-<div><button data-width="390" data-height="844">縦 390×844</button><button data-width="320" data-height="568">小 320×568</button><button data-width="844" data-height="390">横 844×390</button><button data-width="1280" data-height="800">大 1280×800</button><button id="check">配置を検証</button><button id="fixture">図鑑フィクスチャ</button><button id="field">制作画面</button><button id="axes">軸選択の配置</button></div>
+<div><button data-width="390" data-height="844">縦 390×844</button><button data-width="320" data-height="568">小 320×568</button><button data-width="844" data-height="390">横 844×390</button><button data-width="1280" data-height="800">大 1280×800</button><button id="check">配置を検証</button><button id="fixture">図鑑フィクスチャ</button><button id="field">制作画面</button><button id="supply">補給UX</button><button id="expedition">探索HUD</button><button id="axes">軸選択の配置</button></div>
 <p id="result">LOADING</p><iframe id="layout-preview" title="表示サイズ確認" src="../index.html?v=32" width="390" height="844"></iframe>
 <script type="module">
 const frame=document.querySelector('iframe'),result=document.querySelector('#result');
@@ -14,4 +14,7 @@ document.querySelector('#axes').onclick=()=>{
   cue.hidden=false;cue.textContent='↻';cue.style.left='50%';cue.style.top='45%';d.querySelector('#selection-actions').hidden=false;d.querySelector('#selection-chip').textContent='↻ 光る結合か番号で軸を選ぼう';requestAnimationFrame(check);
 };
 document.querySelector('#fixture').onclick=()=>{frame.src='./collection-ui-harness.html';};document.querySelector('#field').onclick=()=>{frame.src='../index.html?v=32';};
+const expeditionState=({full=false}={})=>({schemaVersion:3,elements:{H:200,C:50,O:80},molecules:{hydrogen:8,methane:14,oxygen:20,water:0},tanks:full?{hydrogen:3,methane:18,oxygen:36}:{hydrogen:1,methane:5,oxygen:8},recipes:['hydrogen','methane','oxygen'],hints:['hydrogen','methane','oxygen'],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:{bestChain:12,runs:3,cleared:true,craftPrompt:false,sound:false,foundElements:['H','C','O'],regions:['veil','carbon','oxygen'],checkpoint:'oxygen',frontier:false,totalCollected:180,signalMisses:0,signalLast:{}},workspace:null});
+function openFixture(target,full=false){if(!frame.contentWindow?.localStorage){result.textContent='本番画面を開いてください';return;}frame.contentWindow.localStorage.setItem('molecule-craft.resources.v1',JSON.stringify(expeditionState({full})));frame.addEventListener('load',()=>{frame.contentDocument.querySelector(target)?.click();requestAnimationFrame(check);},{once:true});frame.contentWindow.location.reload();}
+document.querySelector('#supply').onclick=()=>openFixture('#open-supply');document.querySelector('#expedition').onclick=()=>openFixture('#launch-veil',true);
 </script></html>

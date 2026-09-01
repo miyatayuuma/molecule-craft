@@ -1,4 +1,4 @@
-import { VEIL } from './config.js';
+import { VEIL, EXPEDITION } from './config.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
 // need no effect entry; future shared actions can be attached here independently.
 export const MOLECULE_USES = Object.freeze({
@@ -35,6 +35,24 @@ export const REGIONS=Object.freeze({
 export function regionAt(y){return y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
 export function flightConfig(){return {...VEIL,...GROWTH.flight,bounds:GROWTH.bounds};}
 export function driveAvailable(state,id){const drive=DRIVES[id];return !!drive&&Object.keys(drive.cost).every(key=>state.recipes.includes(key));}
+const finiteFuel=value=>Number.isFinite(value)?Math.max(0,value):0;
+export function combustionPackets(fuel={}){
+  const cost=DRIVES.combustion.cost;
+  return Math.max(0,Math.min(Math.floor(finiteFuel(fuel.methane)/cost.methane),Math.floor(finiteFuel(fuel.oxygen)/cost.oxygen)));
+}
+export function propulsionGauge(id,fuel={},driveBuffer=0){
+  let remaining=0,capacity=0,seconds=0;
+  if(id==='hydrogen'){
+    capacity=EXPEDITION.hydrogenCapacity;remaining=Math.min(capacity,Math.floor(finiteFuel(fuel.hydrogen)));
+  }else if(id==='combustion'){
+    capacity=combustionPackets({methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity});
+    const capacitySeconds=capacity*DRIVES.combustion.packetSeconds;
+    seconds=Math.min(capacitySeconds,combustionPackets(fuel)*DRIVES.combustion.packetSeconds+Math.min(DRIVES.combustion.packetSeconds,finiteFuel(driveBuffer)));
+    remaining=Math.min(capacity,Math.ceil(seconds/DRIVES.combustion.packetSeconds));
+  }
+  const ratio=capacity?Math.max(0,Math.min(1,id==='combustion'?seconds/(capacity*DRIVES.combustion.packetSeconds):remaining/capacity)):0;
+  return {remaining,capacity,seconds,ratio,state:ratio<=0?'empty':ratio<=.34?'low':'enough'};
+}
 export function growthGoal(state){
   const has=id=>state.recipes.includes(id),found=state.progress.foundElements??['H'];
   if(!has('hydrogen'))return {id:'hydrogen',text:'Hを2つつなぎ、緊急用のH₂ BURSTを発見しよう。'};

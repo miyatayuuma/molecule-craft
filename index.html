@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css?v=37">
-  <link rel="stylesheet" href="./veil.css?v=38">
+  <link rel="stylesheet" href="./veil.css?v=39">
 </head>
 <body>
   <main class="app-shell">
@@ -78,7 +78,8 @@
   <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
     <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
-    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録され、以後は原子から長押しで量産できます。H/C/Oは探索で見つかります。</p></div></section>
+    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録され、以後は数量と元素消費を確認して量産できます。H/C/Oは探索で見つかります。</p></div></section>
+    <section><span>04</span><div><h3>採集殻を回収する</h3><p>基地は採集殻をANCHOR FIELDで係留しています。帰還は短いANCHOR LOCKの後に全積荷を安定回収。DUST EATERが保持場を崩すと、安全装置が一部の積荷をこぼしながら緊急回収します。</p></div></section>
     <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子を押すと、回せる軸が光ります。1本ならそのまま枝をドラッグ。複数なら光る結合か番号で軸を選びます。🔒の箇所は固定です。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。回せる単結合はタップで軸を選べます。大きい骨格を支点に、小さい枝を回します。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
   </div></dialog>
@@ -97,26 +98,34 @@
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
   <dialog id="supply-dialog" class="sheet" aria-labelledby="supply-title"><header class="sheet-header"><h2 id="supply-title">分子・補給</h2><button type="button" data-close-dialog aria-label="補給を閉じる">×</button></header><div class="sheet-body supply-body">
-    <p id="supply-goal" class="supply-goal"></p><label for="molecule-select">見つけた構造・量産できる分子</label><select id="molecule-select"></select>
+    <p id="supply-goal" class="supply-goal"></p>
+    <section id="supply-systems" class="supply-systems" hidden><header><div><strong>EXPEDITION PROPULSION</strong><small>BASE STOCK → COLLECTOR SHELL</small></div><span>探索用タンク</span></header>
+      <article class="supply-tank" data-tank="hydrogen"><div class="supply-tank-title"><div><strong>H₂ BURST</strong><small>緊急スラスター</small></div><b><span id="supply-h2-current">0</span> / <span id="supply-h2-capacity">3</span></b></div><div class="supply-tank-meter"><i id="supply-h2-meter"></i></div><p id="supply-h2-detail"></p><div class="supply-tank-actions"><button id="fill-hydrogen" type="button">満タンまで補給</button><button id="craft-hydrogen-shortage" type="button" class="secondary" hidden>不足分を作る</button></div></article>
+      <article class="supply-tank" data-tank="combustion" hidden><div class="supply-tank-title"><div><strong>COMBUSTION</strong><small>CH₄ + O₂</small></div><b><span id="supply-combustion-packets">0</span> / <span id="supply-combustion-capacity">18</span> packets</b></div><div class="supply-tank-meter"><i id="supply-combustion-meter"></i></div><p id="supply-combustion-detail"></p><div class="supply-tank-actions"><button id="fill-combustion" type="button">満タンまで補給</button><button id="craft-methane-shortage" type="button" class="secondary" hidden>CH₄を作る</button><button id="craft-oxygen-shortage" type="button" class="secondary" hidden>O₂を作る</button></div></article>
+      <p id="supply-propulsion-note" class="muted"></p>
+    </section>
+    <div class="supply-section-heading"><strong>MOLECULE PRODUCTION</strong><small>BASE ELEMENTS → MOLECULE STOCK</small></div><label for="molecule-select">見つけた構造・量産できる分子</label><select id="molecule-select"></select>
     <div class="supply-recipe"><img id="recipe-model" alt="分子の構造ヒント" width="112" height="112" hidden><div><strong id="recipe-name"></strong><p id="recipe-hint"></p></div></div>
     <details id="recipe-connections"><summary>原子と結合を確認</summary><p id="recipe-bonds"></p></details><p id="molecule-use" class="muted"></p>
-    <div class="supply-production"><span id="molecule-stock" role="status"></span><button id="make-h2" type="button" hidden>生成 · 長押し</button></div><p id="molecule-cost" class="muted"></p>
-    <p class="supply-stockline">H₂ <b id="resource-h2">0</b> · CH₄ <b id="resource-ch4">0</b> · O₂ <b id="resource-o2">0</b> · H₂O <b id="resource-water">0</b></p>
-    <div id="supply-systems" class="supply-systems" hidden><strong>探索時の自動搭載</strong><p id="supply-propulsion-note" class="muted"></p></div>
+    <div class="supply-production"><span id="molecule-stock" role="status"></span><div id="production-controls" class="production-controls" hidden><button id="production-minus" type="button" aria-label="作成数を1減らす">−</button><output id="production-quantity" aria-label="作成数量">1</output><button id="production-plus" type="button" aria-label="作成数を1増やす">＋</button></div></div>
+    <div id="production-shortcuts" class="production-shortcuts" aria-label="作成数量のショートカット" hidden><button id="production-add-5" type="button">+5</button><button id="production-add-10" type="button">+10</button><button id="production-max" type="button"><span id="production-max-value">MAX 0</span></button></div>
+    <p id="molecule-cost" class="molecule-cost muted" data-affordable="false"></p><button id="make-h2" type="button" hidden>一括生成</button>
+    <div id="synthesis-stage" class="synthesis-stage" aria-hidden="true" hidden><span class="synthesis-source">BASE ELEMENTS</span><div id="synthesis-atoms" class="synthesis-atoms"></div><strong id="synthesis-formula"></strong><small id="synthesis-count"></small><span class="synthesis-destination">MOLECULE STOCK</span></div>
+    <p class="supply-stockline"><span>BASE MOLECULE STOCK</span> · H₂ <b id="resource-h2">0</b> · CH₄ <b id="resource-ch4">0</b> · O₂ <b id="resource-o2">0</b> · H₂O <b id="resource-water">0</b></p>
     <label for="expedition-anchor">次にたどる流れ</label><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veilへ補給</option></select>
-    <p class="muted">構造を知らなくても、正しく組めば発見できる。一度完成すると、原子を使って長押しで量産。図鑑の完成率は進行条件ではありません。</p>
+    <p class="muted">構造を知らなくても、正しく組めば発見できる。一度完成すると、数量と元素消費を確認して量産できます。図鑑の完成率は進行条件ではありません。</p>
   </div></dialog>
-  <section id="veil-view" aria-label="原子宇宙を探索" tabindex="-1" hidden>
-    <canvas id="veil-canvas" aria-label="水素の流れを飛ぶフィールド"></canvas>
-    <div class="veil-hud"><div class="veil-stock"><span>EXPEDITION CARGO</span><strong id="veil-h">H 0</strong><small id="veil-gained">拠点 H 0</small><small id="veil-minerals"></small></div><div id="veil-chain-block" class="veil-chain-block"><span>FLOW</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button">帰還 ↗</button></div></div>
-    <div class="veil-title"><small>ATOMIC UNIVERSE</small><h2 id="veil-region-name">H Veil</h2><p id="veil-region-subtitle">水素の帳</p></div><div id="veil-threat" class="veil-threat" hidden><span>DUST EATERS</span><b id="veil-eater-count">0</b><div><i id="veil-threat-meter"></i></div><small id="veil-eater-distance"></small></div>
+  <section id="veil-view" aria-label="採集殻で原子宇宙を探索" tabindex="-1" hidden>
+    <canvas id="veil-canvas" aria-label="ANCHOR FIELDで係留された採集殻の探索フィールド"></canvas>
+    <div class="veil-hud"><div class="veil-stock"><span>EXPEDITION CARGO</span><strong id="veil-h">H 0</strong><small id="veil-gained">BASE STOCK H 0</small><small id="veil-minerals"></small></div><div id="veil-chain-block" class="veil-chain-block"><span>FLOW</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button"><span id="veil-return-label">帰還 · ANCHOR</span><i class="anchor-lock-meter" aria-hidden="true"><span id="veil-anchor-meter"></span></i></button></div></div>
+    <div class="veil-title"><small>COLLECTOR SHELL · ANCHOR FIELD</small><h2 id="veil-region-name">H Veil</h2><p id="veil-region-subtitle">水素の帳</p></div><div id="veil-threat" class="veil-threat" hidden><span>DUST EATER · FIELD DISRUPTION</span><b id="veil-eater-count">0</b><div><i id="veil-threat-meter"></i></div><small id="veil-eater-distance"></small></div>
     <p id="veil-save-warning" class="veil-save-warning" role="status"></p>
     <p id="veil-message" class="veil-message" role="status" hidden></p>
     <div id="veil-craft-prompt" class="veil-prompt" hidden><button id="veil-to-craft" type="button">Hが集まった · H₂を作りに戻る ↗</button></div>
-    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-combustion" type="button" aria-label="CH₄とO₂の燃焼推進。押している間だけ作動。キーボードはShift" aria-pressed="false" hidden><strong>CH₄ + O₂</strong><small>HOLD DRIVE</small><span id="veil-combustion-fuel">0</span></button><button id="veil-boost" type="button" aria-label="H₂ BURST。1個消費。キーボードはスペース"><strong>H₂</strong><small>BURST</small><span id="veil-fuel">0</span></button></div></div>
+    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-combustion" type="button" aria-label="CH₄とO₂の燃焼推進。押している間だけ作動。キーボードはShift" aria-pressed="false" hidden><strong>CH₄ + O₂</strong><small id="veil-combustion-remaining">0 / 0 PACKETS</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel">CH₄ 0 · O₂ 0</span></button><button id="veil-boost" type="button" aria-label="H₂ BURST。1個消費。キーボードはスペース"><strong>H₂</strong><small>BURST <span id="veil-fuel">0 / 3</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
-  <script type="module" src="./src/app.js?v=38"></script>
+  <script type="module" src="./src/app.js?v=39"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
-import { VEIL } from './config.js';
+import { VEIL, EXPEDITION } from './config.js';
 import { random } from './map.js';
 import { clamp } from './engine.js';
 export const LOST_CARGO_PARTICLE_CAP=36;
-export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:.82}),emergency:Object.freeze({duration:.65})});
+export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:EXPEDITION.anchorLockSeconds}),emergency:Object.freeze({duration:.65})});
 const LOST_CARGO_ELEMENTS=['H','C','O'];
 const easeOutCubic=t=>1-(1-t)**3;
 const smoothstep=t=>t*t*(3-2*t);
@@ -187,7 +187,9 @@ export function createVeilRenderer(canvas){
     }
     if(boost){ctx.strokeStyle=combustion?'#e69b77':'#8bd9ea';ctx.globalAlpha=.09+fever*.05;ctx.lineWidth=1;ctx.beginPath();ctx.arc(q.x,q.y,(run.config.suctionRadius+(p.drive?.boostRadius??0)+Math.sin(run.time*4)*2)*scale,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
     glow(q.x,q.y,(boost?combustion?112:132:65+fever*12)*scale,combustion?'oxygen':'player',.85);
-    ctx.save();ctx.translate(q.x,q.y);ctx.rotate(p.angle);ctx.scale(scale*1.2,scale*1.2*(1-Math.abs(p.bank??0)*.18));ctx.fillStyle='#f1fbff';ctx.strokeStyle='#b2eaff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(17,0);ctx.quadraticCurveTo(-7,-14,-12,-8);ctx.lineTo(-6,0);ctx.lineTo(-12,8);ctx.quadraticCurveTo(-7,14,17,0);ctx.fill();ctx.stroke();ctx.fillStyle='#153e58';ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();ctx.restore();
+    // The controlled body is a field-held Collector Shell, not a conventional
+    // ship: a spherical gathering aperture rides inside a visible anchor halo.
+    ctx.save();ctx.translate(q.x,q.y);ctx.rotate(p.angle);ctx.scale(scale*1.2,scale*1.2*(1-Math.abs(p.bank??0)*.12));ctx.strokeStyle='#77b7c9';ctx.globalAlpha=.24;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-15,0);ctx.bezierCurveTo(-30,-5,-42,7,-58,0);ctx.stroke();ctx.globalAlpha=.42;ctx.beginPath();ctx.ellipse(0,0,22,17,0,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle='#eaf9fc';ctx.strokeStyle='#b2eaff';ctx.lineWidth=1.6;ctx.beginPath();ctx.ellipse(0,0,14,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#153e58';ctx.beginPath();ctx.ellipse(4,0,6,7,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#88d6e5';ctx.beginPath();ctx.arc(4,0,9,-.72,.72);ctx.stroke();ctx.fillStyle='#bff4fa';ctx.beginPath();ctx.arc(-5,0,2.2,0,Math.PI*2);ctx.fill();ctx.restore();
     for(const label of run.map.labels){const at=screen(label.x,label.y);if(Math.hypot(at.x-q.x,at.y-q.y)>480||at.y<110||at.y>h-180)continue;ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillStyle='#7395aa';ctx.fillText(label.text,at.x,at.y-35);}
     // A discreet wayfinder prevents empty-space wandering without a permanent map panel.
     let nearest=null,best=Infinity;for(const d of run.map.dust){if(d.ready>run.time)continue;const distance=Math.hypot(d.x-p.x,d.y-p.y);if(distance<best){nearest=d;best=distance;}}
