@@ -21,3 +21,18 @@
 @media(max-width:430px){.veil-title{top:151px}.veil-threat{top:151px}.veil-stock{min-width:106px}#veil-combustion{width:120px}}
 @media(max-width:370px){.veil-threat{top:214px;width:105px}.veil-drive-control{gap:5px}#veil-combustion{width:110px;min-height:54px}#veil-combustion span{font-size:9px}#veil-boost{width:86px;height:86px}}
 @media(max-height:500px){#veil-combustion{width:90px;min-height:48px}.veil-drive-control{gap:4px}.veil-threat{top:90px}.veil-chain-block b{font-size:24px}}
+
+/* Propulsion capacity stays inside the existing controls on narrow screens. */
+#veil-boost small span{font-size:10px;color:#87c1d5;letter-spacing:0}
+.propulsion-meter{display:block;width:54px;height:3px;border-radius:2px;overflow:hidden;background:#304758}
+.propulsion-meter span{display:block;width:100%;height:100%;background:#83dfef;transform:scaleX(0);transform-origin:left;transition:transform .12s linear}
+.veil-drive-control button[data-fuel-state=low] .propulsion-meter span{background:#f2b26e}
+.veil-drive-control button[data-fuel-state=empty] .propulsion-meter span{background:#b65d67}
+#veil-combustion{min-height:72px;gap:3px}
+#veil-combustion small{font-size:8px;letter-spacing:.6px;color:#f1c0a6;white-space:nowrap}
+#veil-combustion>span{font-size:9px;color:#ca957d}
+#veil-combustion .propulsion-meter{width:88px;background:#4c3937}
+#veil-combustion .propulsion-meter span{background:#f0a06e}
+@media(max-width:370px){#veil-combustion{min-height:62px}.propulsion-meter{height:3px}}
+@media(max-height:500px){#veil-combustion{min-height:58px}#veil-combustion>span{display:none}}
+@media(prefers-reduced-motion:reduce){.propulsion-meter span{transition:none}}
