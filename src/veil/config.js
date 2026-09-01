@@ -27,6 +27,7 @@ export const EXPEDITION = Object.freeze({
   hydrogenCapacity: 3,
   methaneCapacity: 18,
   oxygenCapacity: 36,
+  anchorLockSeconds: .8,
   captureLoss: .15,
   safeSeconds: 20,
   threatPerSecond: 1,
