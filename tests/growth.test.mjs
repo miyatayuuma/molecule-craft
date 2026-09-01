@@ -44,11 +44,11 @@ const moving=clusterRun.map.dust.find(d=>d.element==='O'&&d.flow),before=[moving
 
 // The hot opposing flow is crossed by sustained propulsion. H₂O remains a
 // normal catalogue molecule and is neither checked nor consumed here.
-function hotBand(combustion=false){const run=createRun(createUniverse(10),hydrogen,{fuel:{combustion:6},predators:false});Object.assign(run.player,{x:100,y:-8700,angle:-Math.PI/2,vx:0,vy:0});let packets=0;if(combustion)setCombustionHeld(run,true);
+function hotBand(combustion=false){const run=createRun(createUniverse(10),hydrogen,{fuel:{methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity},predators:false});Object.assign(run.player,{x:100,y:-8700,angle:-Math.PI/2,vx:0,vy:0});let packets=0;if(combustion)setCombustionHeld(run,true);
   for(let i=0;i<60*60&&run.region!=='frontier';i++)stepRun(run,{x:0,y:-1},1/60,{consumeCombustion:()=>{packets++;return true;}});
   return {run,packets};
 }
-assert.notEqual(hotBand(false).run.region,'frontier');const sustained=hotBand(true);assert.equal(sustained.run.region,'frontier');assert.ok(sustained.packets>=2&&sustained.packets<=EXPEDITION.combustionCapacity);
+assert.notEqual(hotBand(false).run.region,'frontier');const sustained=hotBand(true);assert.equal(sustained.run.region,'frontier');assert.ok(sustained.packets>=2&&sustained.packets<=EXPEDITION.methaneCapacity);
 
 // All four key structures are still recognized by the ordinary chemistry
 // graph. A knowledgeable player can complete them before reading a hint.
@@ -76,7 +76,7 @@ assert.ok(resources.makeMolecule('oxygen',2));assert.ok(resources.makeMolecule('
 const beforeFuel={methane:resources.state.molecules.methane,oxygen:resources.state.molecules.oxygen};assert.ok(resources.consumeDrive('combustion'));
 assert.equal(resources.state.molecules.methane,beforeFuel.methane-1);assert.equal(resources.state.molecules.oxygen,beforeFuel.oxygen-2);
 const beforeWater=resources.state.molecules.water;assert.equal(typeof resources.consumeCoolant,'undefined');assert.equal(resources.state.molecules.water,beforeWater);
-const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.molecules,{hydrogen:20,methane:20,oxygen:40});assert.deepEqual(capacity.prepareExpedition(),{hydrogen:EXPEDITION.hydrogenCapacity,combustion:EXPEDITION.combustionCapacity});
+const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.molecules,{hydrogen:20,methane:20,oxygen:40});assert.deepEqual(capacity.prepareExpedition(),{hydrogen:EXPEDITION.hydrogenCapacity,methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity});
 const sessionOnly=createResources({storage:null});sessionOnly.collect(4,0);sessionOnly.discover('hydrogen');assert.ok(sessionOnly.makeMolecule('hydrogen'));assert.ok(sessionOnly.consumeDrive('hydrogen'),'Session-only mode must remain playable when persistent storage is unavailable');
 
 // Ordinary DB molecules can be discovered and mass-produced but gain no
