@@ -1,7 +1,7 @@
 import { VEIL, EXPEDITION } from './config.js';
 import { createRun, stepRun, beginBurst, setCombustionHeld } from './engine.js';
 import { createUniverse } from './universe.js';
-import { DRIVES, REGIONS, flightConfig, driveAvailable, growthGoal } from './growth.js';
+import { DRIVES, REGIONS, flightConfig, driveAvailable, growthGoal, propulsionGauge } from './growth.js';
 import { createSupplyUI } from './supply.js';
 import { createVeilRenderer } from './renderer.js';
 import { createVeilAudio } from './audio.js';
@@ -79,8 +79,8 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
     q('veil-h').textContent=`H ${run.collectedElements.H}`;q('veil-gained').textContent=`拠点 H ${state.elements.H}`;
     q('veil-minerals').textContent=[['C',run.collectedElements.C],['O',run.collectedElements.O]].filter(([el])=>resources.canUseElement(el)||run.foundElements.includes(el)).map(([el,n])=>`${el} ${n}`).join(' · ');
     q('veil-chain').textContent=run.chain;q('veil-chain-block').dataset.fever=String(run.chain>=40);q('veil-chain-meter').style.transform=`scaleX(${Math.max(0,run.chainTime/run.config.chainSeconds)})`;
-    q('veil-fuel').textContent=run.fuel.hydrogen;q('veil-boost').classList.toggle('boosting',run.player.boost>0);q('veil-boost').setAttribute('aria-disabled',String(!driveAvailable(state,'hydrogen')||run.fuel.hydrogen<1||run.player.cooldown>0));
-    const combustion=driveAvailable(state,'combustion'),canBurn=run.fuel.methane>=DRIVE_COST.methane&&run.fuel.oxygen>=DRIVE_COST.oxygen;combustionButton.hidden=!combustion;combustionButton.classList.toggle('driving',run.player.combustion);combustionButton.setAttribute('aria-pressed',String(run.player.combustion));combustionButton.setAttribute('aria-disabled',String(!combustion||!canBurn&&run.driveBuffer<=0));q('veil-combustion-fuel').textContent=`CH₄ ${run.fuel.methane} · O₂ ${run.fuel.oxygen}${run.driveBuffer>0?` · ${run.driveBuffer.toFixed(1)}s`:''}`;
+    const burstGauge=propulsionGauge('hydrogen',run.fuel),boostButton=q('veil-boost');q('veil-fuel').textContent=`${burstGauge.remaining} / ${burstGauge.capacity}`;q('veil-burst-meter').style.transform=`scaleX(${burstGauge.ratio})`;boostButton.dataset.fuelState=burstGauge.state;boostButton.classList.toggle('boosting',run.player.boost>0);boostButton.setAttribute('aria-disabled',String(!driveAvailable(state,'hydrogen')||run.fuel.hydrogen<1||run.player.cooldown>0));
+    const combustion=driveAvailable(state,'combustion'),canBurn=run.fuel.methane>=DRIVE_COST.methane&&run.fuel.oxygen>=DRIVE_COST.oxygen,combustionGauge=propulsionGauge('combustion',run.fuel,run.driveBuffer);combustionButton.hidden=!combustion;combustionButton.dataset.fuelState=combustionGauge.state;combustionButton.classList.toggle('driving',run.player.combustion);combustionButton.setAttribute('aria-pressed',String(run.player.combustion));combustionButton.setAttribute('aria-disabled',String(!combustion||!canBurn&&run.driveBuffer<=0));q('veil-combustion-remaining').textContent=`${combustionGauge.remaining} / ${combustionGauge.capacity} PACKETS · ${Math.ceil(combustionGauge.seconds)}s`;q('veil-combustion-meter').style.transform=`scaleX(${combustionGauge.ratio})`;q('veil-combustion-fuel').textContent=`CH₄ ${run.fuel.methane} · O₂ ${run.fuel.oxygen}`;
     q('veil-region-name').textContent=region.name;q('veil-region-subtitle').textContent=region.subtitle;
     const threat=q('veil-threat');threat.hidden=!run.eaters.length;if(run.eaters.length){q('veil-eater-count').textContent=run.eaters.length;q('veil-eater-distance').textContent=Number.isFinite(run.nearestEater)?`最接近 ${Math.round(run.nearestEater)}`:'追跡中';q('veil-threat-meter').style.transform=`scaleX(${Math.max(0,Math.min(1,1-run.nearestEater/EXPEDITION.eaterWarningRadius))})`;threat.dataset.level=run.danger;}
     q('veil-sound').setAttribute('aria-pressed',String(state.progress.sound!==false));
