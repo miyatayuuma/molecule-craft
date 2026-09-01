@@ -17,3 +17,12 @@ Baseline: `main` at `1e0dde91a60a6a741a2e983ffdb12be20f0dd0c9` (Task 2 merged).
 - Pending: Phase 3 tanks, Phase 4–5 setting/ANCHOR LOCK, Phase 6 integration reviews.
 - Tests: `supply-production`, `growth`, `expedition-core`, `source-contracts`, and `veil-ui-check` pass.
 - Next: commit and checkpoint Phase 2, then implement persistent expedition tanks in Phase 3.
+
+## Phase 3 — explicit propulsion tanks
+
+- Implemented: persistent H₂/CH₄/O₂ Collector Shell tanks separate from BASE STOCK; atomic full-fill actions; exact transferable/required/shortage preview; effective COMBUSTION packets/seconds; shortage buttons preselect Phase 2 production quantities.
+- Save migration: schema 2 → 3 transfers the former capped automatic load into tanks and subtracts the same molecules from BASE STOCK, preserving total inventory and immediate expedition capability.
+- Changed: `src/veil/resources.js`, `src/veil/supply.js`, `index.html`, `veil.css`, targeted docs and expedition/resource/DOM tests.
+- Pending: Phase 4–5 setting/ANCHOR LOCK, Phase 6 integration reviews.
+- Tests: `supply-tanks`, `supply-production`, `expedition-core`, `growth`, `veil`, `veil-reset`, and `veil-ui-check` pass.
+- Next: commit and checkpoint Phase 3, then integrate Collector Shell / ANCHOR FIELD setting and risk-bearing return lock.
