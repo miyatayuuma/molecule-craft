@@ -1,14 +1,17 @@
 import { VEIL, EXPEDITION } from './config.js';
 import { createRun, stepRun, beginBurst, setCombustionHeld } from './engine.js';
 import { createUniverse } from './universe.js';
-import { REGIONS, flightConfig, driveAvailable, growthGoal } from './growth.js';
+import { DRIVES, REGIONS, flightConfig, driveAvailable, growthGoal } from './growth.js';
 import { createSupplyUI } from './supply.js';
 import { createVeilRenderer } from './renderer.js';
 import { createVeilAudio } from './audio.js';
+import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry.js';
+
+const DRIVE_COST=DRIVES.combustion.cost;
 
 export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onCraft=()=>{},onStore=()=>false,onCommit=()=>{}}){
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),combustionButton=q('veil-combustion'),audio=createVeilAudio();
-  let renderer=null,run=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,anchor='continue',captureReturnAt=0;
+  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,anchor='continue',captureReturnAt=0;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
   const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onStore,onAnchor:id=>{anchor=id;updateCraft();}});
@@ -36,12 +39,12 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
     anchor='continue';q('expedition-anchor').value='continue';active=true;paused=false;captureReturnAt=0;root.hidden=false;document.body.dataset.mode='veil';document.querySelector('.app-shell').inert=true;
     try{renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();}catch{active=false;root.hidden=true;document.body.dataset.mode='craft';document.querySelector('.app-shell').inert=false;q('craft-resource-hint').textContent='探索画面を開始できません。このブラウザのCanvas対応を確認してください。';return;}
     resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();
-    const first=resources.state.progress.runs===1?'最初は安全だ。塵を集め、気配が増す前に帰還しよう':driveAvailable(resources.state,'combustion')?`COMBUSTION DRIVE ${run.fuel.combustion}区画 · 長押しで継続航行`:has('hydrogen')?`H₂ BURST ${run.fuel.hydrogen}回 · 捕食体が迫る瞬間まで残そう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';
+    const first=resources.state.progress.runs===1?'最初は安全だ。塵を集め、気配が増す前に帰還しよう':driveAvailable(resources.state,'combustion')?`COMBUSTION DRIVE · CH₄ ${run.fuel.methane} / O₂ ${run.fuel.oxygen} · 長押しで継続航行`:has('hydrogen')?`H₂ BURST ${run.fuel.hydrogen}回 · 捕食体が迫る瞬間まで残そう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';
     notice(first,5);root.focus();last=0;hudAt=0;hud();updatePrompt();resources.save();raf=requestAnimationFrame(frame);
   }
   function finish(captured=false){
     if(!active||!run)return;active=false;cancelAnimationFrame(raf);resetInput();audio.pause();
-    const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured);root.hidden=true;document.body.dataset.mode='craft';document.querySelector('.app-shell').inert=false;
+    const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured);lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);root.hidden=true;document.body.dataset.mode='craft';document.querySelector('.app-shell').inert=false;
     const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
     const prefix=captured?`捕獲帰還 · 回収塵${Math.round(EXPEDITION.captureLoss*100)}%散逸`:'自主帰還 · 全回収';
     q('craft-last-run').textContent=result?`${prefix} · ${parts||'原子化なし'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
@@ -54,7 +57,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
   }
   function startCombustion(event=null){
     if(!active||paused||run.captured||!driveAvailable(resources.state,'combustion'))return;
-    if(run.fuel.combustion<1&&run.driveBuffer<=0){notice('搭載したCH₄ + O₂は空だ · 帰還して再出発しよう',2);return;}
+    if((run.fuel.methane<DRIVE_COST.methane||run.fuel.oxygen<DRIVE_COST.oxygen)&&run.driveBuffer<=0){notice('搭載したCH₄またはO₂が空だ · 帰還して再出発しよう',2);return;}
     audio.start();if(event?.pointerId!==undefined){event.preventDefault();drivePointer=event.pointerId;try{combustionButton.setPointerCapture(drivePointer);}catch{}}
     setCombustionHeld(run,true);combustionButton.classList.add('driving');
   }
@@ -65,7 +68,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
     q('veil-minerals').textContent=[['C',run.collectedElements.C],['O',run.collectedElements.O]].filter(([el])=>resources.canUseElement(el)||run.foundElements.includes(el)).map(([el,n])=>`${el} ${n}`).join(' · ');
     q('veil-chain').textContent=run.chain;q('veil-chain-block').dataset.fever=String(run.chain>=40);q('veil-chain-meter').style.transform=`scaleX(${Math.max(0,run.chainTime/run.config.chainSeconds)})`;
     q('veil-fuel').textContent=run.fuel.hydrogen;q('veil-boost').classList.toggle('boosting',run.player.boost>0);q('veil-boost').setAttribute('aria-disabled',String(!driveAvailable(state,'hydrogen')||run.fuel.hydrogen<1||run.player.cooldown>0));
-    const combustion=driveAvailable(state,'combustion');combustionButton.hidden=!combustion;combustionButton.classList.toggle('driving',run.player.combustion);combustionButton.setAttribute('aria-pressed',String(run.player.combustion));combustionButton.setAttribute('aria-disabled',String(!combustion||run.fuel.combustion<1&&run.driveBuffer<=0));q('veil-combustion-fuel').textContent=run.driveBuffer>0?`${run.fuel.combustion} · ${run.driveBuffer.toFixed(1)}s`:run.fuel.combustion;
+    const combustion=driveAvailable(state,'combustion'),canBurn=run.fuel.methane>=DRIVE_COST.methane&&run.fuel.oxygen>=DRIVE_COST.oxygen;combustionButton.hidden=!combustion;combustionButton.classList.toggle('driving',run.player.combustion);combustionButton.setAttribute('aria-pressed',String(run.player.combustion));combustionButton.setAttribute('aria-disabled',String(!combustion||!canBurn&&run.driveBuffer<=0));q('veil-combustion-fuel').textContent=`CH₄ ${run.fuel.methane} · O₂ ${run.fuel.oxygen}${run.driveBuffer>0?` · ${run.driveBuffer.toFixed(1)}s`:''}`;
     q('veil-region-name').textContent=region.name;q('veil-region-subtitle').textContent=region.subtitle;
     const threat=q('veil-threat');threat.hidden=!run.eaters.length;if(run.eaters.length){q('veil-eater-count').textContent=run.eaters.length;q('veil-eater-distance').textContent=Number.isFinite(run.nearestEater)?`最接近 ${Math.round(run.nearestEater)}`:'追跡中';q('veil-threat-meter').style.transform=`scaleX(${Math.max(0,Math.min(1,1-run.nearestEater/EXPEDITION.eaterWarningRadius))})`;threat.dataset.level=run.danger;}
     q('veil-sound').setAttribute('aria-pressed',String(state.progress.sound!==false));
@@ -117,5 +120,5 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
   window.addEventListener('pagehide',()=>{resources.save();audio.pause();});window.addEventListener('storage',event=>{if(event.key==='molecule-craft.resources.v1'){pause();resources.save();updateCraft();}});
   q('veil-resume').addEventListener('click',()=>{if(resources.blocked)return;paused=false;last=0;q('veil-resume').hidden=true;audio.start();root.focus();});
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
-  return {get active(){return active;},get run(){return run;},updateCraft,launch,pause,discovered:id=>supply.discovered(id)};
+  return {get active(){return active;},get run(){return run;},get lastTelemetry(){return lastTelemetry;},updateCraft,launch,pause,discovered:id=>supply.discovered(id)};
 }

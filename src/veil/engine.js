@@ -1,6 +1,7 @@
 import { VEIL, EXPEDITION } from './config.js';
 import { GROWTH, DRIVES, regionAt } from './growth.js';
 import { environmentAt, animateUniverse } from './universe.js';
+import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
@@ -43,13 +44,14 @@ export function moveFlight(p,input,dt,{config:c=VEIL,assist=null,force={x:0,y:0}
 export function beginBurst(run,consume){
   const p=run?.player;if(!p||run.captured||p.boost>0||p.cooldown>0||run.fuel.hydrogen<1)return false;
   if(!consume())return false;
-  run.fuel.hydrogen--;p.drive=DRIVES.hydrogen;p.boost=DRIVES.hydrogen.boostSeconds;p.cooldown=DRIVES.hydrogen.boostSeconds+DRIVES.hydrogen.boostCooldown;return true;
+  run.fuel.hydrogen--;run.telemetry.burstUses++;recordFuelUse(run.telemetry,'hydrogen');p.drive=DRIVES.hydrogen;p.boost=DRIVES.hydrogen.boostSeconds;p.cooldown=DRIVES.hydrogen.boostSeconds+DRIVES.hydrogen.boostCooldown;return true;
 }
 
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
 
-export function createRun(map,config=VEIL,{fuel={hydrogen:0,combustion:0},predators=true}={}){
-  return {map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:{hydrogen:fuel.hydrogen??0,combustion:fuel.combustion??0},driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0};
+export function createRun(map,config=VEIL,{fuel={hydrogen:0,methane:0,oxygen:0},predators=true}={}){
+  const loadout={hydrogen:fuel.hydrogen??0,methane:fuel.methane??0,oxygen:fuel.oxygen??0};
+  return {map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -58,20 +60,21 @@ function updateCombustion(run,dt,systems){
   const p=run.player;
   if(!run.driveHeld||p.boost>0||run.captured){p.combustion=false;return;}
   if(run.driveBuffer<=1e-8){
-    if(run.fuel.combustion<1||!systems.consumeCombustion?.()){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
-    run.fuel.combustion--;run.driveBuffer=DRIVES.combustion.packetSeconds;run.driveEmpty=false;run.events.push({type:'driveIgnition'});
+    const cost=DRIVES.combustion.cost;
+    if(run.fuel.methane<cost.methane||run.fuel.oxygen<cost.oxygen||!systems.consumeCombustion?.()){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
+    run.fuel.methane-=cost.methane;run.fuel.oxygen-=cost.oxygen;recordFuelUse(run.telemetry,'methane',cost.methane);recordFuelUse(run.telemetry,'oxygen',cost.oxygen);run.driveBuffer=DRIVES.combustion.packetSeconds;run.driveEmpty=false;run.events.push({type:'driveIgnition'});
   }
   p.drive=DRIVES.combustion;p.combustion=true;run.driveBuffer=Math.max(0,run.driveBuffer-dt);
-  if(run.driveBuffer<=0&&run.fuel.combustion<=0)p.combustion=false;
+  if(run.driveBuffer<=0&&(run.fuel.methane<DRIVES.combustion.cost.methane||run.fuel.oxygen<DRIVES.combustion.cost.oxygen))p.combustion=false;
 }
 
 function spawnEater(run){
-  const p=run.player,index=run.eaters.length,offsets=[Math.PI,-Math.PI*.58,Math.PI*.58,0,-Math.PI*.82],angle=p.angle+offsets[index%offsets.length],distance=EXPEDITION.eaterSpawnDistance+(index%2)*75;
+  const p=run.player,index=run.eaters.length,slots=[{angle:Math.PI,flank:0,lead:-2.4},{angle:-2.3,flank:-1,lead:.2},{angle:2.3,flank:1,lead:.2},{angle:-1.35,flank:-.7,lead:1},{angle:1.35,flank:.7,lead:1}],slot=slots[index%slots.length],angle=p.angle+slot.angle,distance=EXPEDITION.eaterSpawnDistance+(index%2)*65;
   // Let a new vortex approach from just outside the traversable field. Clamping
   // it to the player's boundary would make edge spawns appear at contact range.
   const x=p.x+Math.cos(angle)*distance,y=p.y+Math.sin(angle)*distance;
-  run.eaters.push({id:index,x,y,angle:Math.atan2(p.y-y,p.x-x),speed:EXPEDITION.eaterSpeed*.72,vx:0,vy:0,phase:index*1.731+(run.map.seed??1)*.013,trail:[]});
-  run.nextEaterSpawn=run.time+2.5;run.events.push({type:'eaterSpawn',count:run.eaters.length});
+  run.eaters.push({id:index,x,y,angle:Math.atan2(p.y-y,p.x-x),speed:EXPEDITION.eaterSpeed*.72,vx:0,vy:0,phase:index*1.731+(run.map.seed??1)*.013,flank:slot.flank,lead:slot.lead,trail:[]});
+  run.nextEaterSpawn=run.time+EXPEDITION.eaterSpawnDelay;run.events.push({type:'eaterSpawn',count:run.eaters.length});
 }
 
 function updateEaters(run,dt){
@@ -84,7 +87,8 @@ function updateEaters(run,dt){
   for(const eater of run.eaters){
     let sx=0,sy=0;
     for(const other of run.eaters){if(other===eater)continue;const dx=eater.x-other.x,dy=eater.y-other.y,d=Math.hypot(dx,dy)||1;if(d<EXPEDITION.eaterSeparationRadius){const f=(1-d/EXPEDITION.eaterSeparationRadius)*EXPEDITION.eaterSeparationForce;sx+=dx/d*f;sy+=dy/d*f;}}
-    const lead=Math.min(.7,Math.hypot(p.x-eater.x,p.y-eater.y)/500),tx=p.x+(p.vx??0)*lead,ty=p.y+(p.vy??0)*lead;
+    const distance=Math.hypot(p.x-eater.x,p.y-eater.y),lead=Math.min(EXPEDITION.eaterLeadSeconds,distance/650)*(eater.lead??1),heading=Math.atan2(p.vy??Math.sin(p.angle),p.vx??Math.cos(p.angle)),spread=clamp((distance-EXPEDITION.eaterContactRadius)/(EXPEDITION.eaterWarningRadius-EXPEDITION.eaterContactRadius),.12,1),flank=(eater.flank??0)*EXPEDITION.eaterFlankOffset*spread+Math.sin(run.time*.55+eater.phase)*18;
+    const tx=p.x+(p.vx??0)*lead-Math.sin(heading)*flank,ty=p.y+(p.vy??0)*lead+Math.cos(heading)*flank;
     const desired=Math.atan2(ty-eater.y+sy,tx-eater.x+sx),turn=clamp(angleDelta(eater.angle,desired),-EXPEDITION.eaterTurnRate*dt,EXPEDITION.eaterTurnRate*dt);eater.angle+=turn;
     eater.speed+=(EXPEDITION.eaterSpeed-eater.speed)*(1-Math.exp(-dt*EXPEDITION.eaterAcceleration));
     const grip=1-Math.exp(-dt*EXPEDITION.eaterGrip),tvx=Math.cos(eater.angle)*eater.speed,tvy=Math.sin(eater.angle)*eater.speed;
@@ -94,7 +98,7 @@ function updateEaters(run,dt){
   }
   run.nearestEater=run.eaters.reduce((best,eater)=>Math.min(best,Math.hypot(eater.x-p.x,eater.y-p.y)),Infinity);
   const danger=run.nearestEater<EXPEDITION.eaterDangerRadius?'danger':run.nearestEater<EXPEDITION.eaterWarningRadius?'warning':'clear';
-  if(danger!==run.danger){run.danger=danger;run.events.push({type:'danger',level:danger,distance:run.nearestEater});}
+  if(danger!==run.danger){run.danger=danger;if(danger==='danger')run.telemetry.dangerContacts++;run.events.push({type:'danger',level:danger,distance:run.nearestEater});}
   if(run.nearestEater<=EXPEDITION.eaterContactRadius){run.captured=true;run.captureAt=run.time;run.driveHeld=false;p.combustion=false;p.boost=0;run.events.push({type:'capture'});}
 }
 
@@ -140,7 +144,7 @@ function stepRunFrame(run,input,dt,systems){
     const bend=e.side*c.suctionBend*(1+Math.min(run.chain/c.feverChain,1)*.5),cx=(e.startX+p.x)/2-dy/length*bend,cy=(e.startY+p.y)/2+dx/length*bend;
     e.x=(1-t)**2*e.startX+2*(1-t)*t*cx+t*t*p.x;e.y=(1-t)**2*e.startY+2*(1-t)*t*cy+t*t*p.y;e.trail.push({x:e.x,y:e.y});if(e.trail.length>7)e.trail.shift();
   }
-  run.effects=run.effects.filter(e=>e.life<e.duration);p.trail.push({x:p.x,y:p.y});if(p.trail.length>28)p.trail.shift();updateEaters(run,dt);return run.events;
+  run.effects=run.effects.filter(e=>e.life<e.duration);p.trail.push({x:p.x,y:p.y});if(p.trail.length>28)p.trail.shift();updateEaters(run,dt);recordExpeditionFrame(run,dt);return run.events;
 }
 
 // Advance in fixed small slices so 15/30/60fps use the same pickup, pursuit,
