@@ -9,10 +9,10 @@ const storage=memory(),r=createResources({storage});
 assert.equal(r.state.elements.H,0);assert.equal(r.makeHydrogen(1),false);
 r.collect(20,25);assert.equal(r.spend({H:2}),true);r.learn('hydrogen');r.storeHydrogen(1);r.save();
 assert.equal(r.state.elements.H,18);assert.equal(r.state.molecules.hydrogen,1);
-assert.equal(r.consumeBoost(),true);assert.equal(r.consumeBoost(),false);
+const drive=createResources({storage:memory()});drive.learn('hydrogen');drive.state.molecules.hydrogen=3;assert.equal(drive.fillTank('hydrogen'),true);assert.equal(drive.consumeBoost(),true);assert.equal(drive.state.molecules.hydrogen,0);assert.equal(drive.state.tanks.hydrogen,2);
 assert.equal(r.makeHydrogen(5),true);assert.equal(r.state.elements.H,8);assert.equal(r.makeHydrogen(5),false);
 assert.equal(r.spend({H:9,C:1}),false);assert.equal(r.state.elements.H,8,'Rejected parts must not partially spend');
-r.save();const reboot=createResources({storage});assert.equal(reboot.state.elements.H,8);assert.equal(reboot.state.molecules.hydrogen,5);assert.equal(reboot.state.progress.bestChain,25);
+r.save();const reboot=createResources({storage});assert.equal(reboot.state.elements.H,8);assert.equal(reboot.state.molecules.hydrogen,6);assert.equal(reboot.state.progress.bestChain,25);
 const other=createResources({storage});reboot.collect(2,26);reboot.save();other.collect(8,26);assert.equal(other.save(),false);assert.ok(other.blocked);assert.equal(createResources({storage}).state.elements.H,10);
 for(const raw of ['{broken',JSON.stringify({...r.snapshot(),schemaVersion:99})]){const s=memory();s.setItem(RESOURCE_KEY,raw);const protectedSave=createResources({storage:s});assert.ok(protectedSave.blocked);protectedSave.collect(10,10);assert.equal(protectedSave.save(),false);assert.equal(s.getItem(RESOURCE_KEY),raw);}
 const legacy={schemaVersion:1,atoms:[{element:'H',position:[0,0,0]}],bonds:[],camera:{position:[5,4,7],target:[0,0,0],up:[0,1,0]},selected:0,focus:0,pivot:null};
