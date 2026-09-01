@@ -44,9 +44,14 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function hint(id){if(blocked||!records.has(id)||state.hints.includes(id))return false;state.hints.push(id);return true;}
   function guaranteed(){if(state.elements.H>=2||state.recipes.includes('hydrogen'))hint('hydrogen');if(state.progress.foundElements.includes('C'))hint('methane');if(state.progress.foundElements.includes('O')){hint('oxygen');hint('water');}}
   function costFor(id,count=1){const record=records.get(id);if(!record||!integer(count)||count<1)return null;const cost={};for(const el of record.atoms)cost[el]=(cost[el]??0)+count;return cost;}
+  function maxCraftable(id){
+    const record=records.get(id),current=state.molecules[id]??0;if(!record||!state.recipes.includes(id)||!integer(current))return 0;
+    const per=costFor(id),limits=Object.entries(per??{}).filter(([el,n])=>MANAGED.includes(el)&&n>0).map(([el,n])=>Math.floor(state.elements[el]/n));
+    return Math.max(0,Math.min(MAX-current,...(limits.length?limits:[MAX-current])));
+  }
   function discover(id){if(blocked||!records.has(id)||state.recipes.includes(id))return false;state.recipes.push(id);hint(id);state.molecules[id]??=0;return true;}
   const api={
-    get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,
+    get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,
     canUseElement:el=>!MANAGED.includes(el)||state.progress.foundElements.includes(el),record:id=>records.get(id),catalog:()=>[...records.values()],
     setCatalog(catalog){for(const rec of catalog)if(validId(rec.id)&&Array.isArray(rec.atoms))records.set(rec.id,rec);if(state.migrateDiscoveries&&!blocked){try{const b=JSON.parse(storage?.getItem(COLLECTION_KEY)||'null');for(const x of b?.discoveredMolecules??b?.discoveredMoleculeIds??[]){const id=typeof x==='string'?x:x.id,rec=records.get(id);if(!rec)continue;discover(id);for(const el of rec.atoms)reveal(el);}}catch{}delete state.migrateDiscoveries;guaranteed();save();}},
     reset(categories){
@@ -55,6 +60,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     },
     hint,learn:discover,discover,
     makeMolecule(id,count=1){const cost=costFor(id,count),current=state.molecules[id]??0;if(!cost||!state.recipes.includes(id)||current+count>MAX||!spend(cost))return false;state.molecules[id]=current+count;return true;},
+    produceMolecule(id,count=1){const snapshot=copy(state);if(!api.makeMolecule(id,count))return false;if(save()||!storage)return true;state=snapshot;return false;},
     storeMolecule(id,count=1){if(blocked||!records.has(id)||!integer(count)||count<1||(state.molecules[id]??0)+count>MAX)return false;state.molecules[id]=(state.molecules[id]??0)+count;discover(id);return true;},
     makeHydrogen:n=>api.makeMolecule('hydrogen',n),storeHydrogen:n=>api.storeMolecule('hydrogen',n),
     consumeMolecules(cost){if(blocked||!Object.entries(cost).every(([id,n])=>validId(id)&&integer(n)&&(state.molecules[id]??0)>=n))return false;for(const [id,n]of Object.entries(cost))state.molecules[id]-=n;if(save()||!storage)return true;for(const [id,n]of Object.entries(cost))state.molecules[id]+=n;return false;},
