@@ -39,6 +39,7 @@ async function setup(saved=null,initialH=0,resourceSaved=null,collectionSaved=nu
 
 let game=await setup();
 const q=id=>game.document.getElementById(id);
+const finishReturn=()=>{for(let i=0;i<60;i++)game.tick();};
 assert.equal(game.run('resources.state.elements.H'),0);
 q('element-palette').querySelector('[data-element="H"]').click();
 assert.equal(game.run('molecule.atoms.length'),0,'No free H from the ordinary palette');
@@ -49,7 +50,7 @@ for(let i=0;i<200;i++)game.tick();
 game.window.dispatchEvent(new game.window.KeyboardEvent('keyup',{key:'ArrowUp'}));
 const gathered=game.run('veilUI.run.collectedElements.H');assert.ok(gathered>0,'Keyboard flight actually collects expedition cargo through the production RAF');
 assert.equal(game.run('resources.state.elements.H'),0,'Cargo is not banked before return');assert.match(q('veil-h').textContent,/H [1-9]/);
-q('veil-return').click();assert.equal(q('veil-view').hidden,true);assert.equal(game.run('resources.state.elements.H'),gathered);
+const safeReturnTime=game.run('veilUI.run.time');q('veil-return').click();assert.equal(q('veil-view').hidden,false);assert.equal(game.run('veilUI.returning'),'stable');assert.equal(game.run('veilUI.run.returnEffect.mode'),'stable');assert.equal(game.run('resources.state.elements.H'),0,'Presentation does not settle cargo early');q('veil-return').click();for(let i=0;i<20;i++)game.tick();assert.equal(game.run('veilUI.run.time'),safeReturnTime,'Return presentation is a terminal visual state, not invulnerable gameplay');assert.equal(game.run('veilUI.returning'),'stable','Repeated return input cannot start a competing transition');finishReturn();assert.equal(q('veil-view').hidden,true);assert.equal(game.run('resources.state.elements.H'),gathered);
 q('element-palette').querySelector('[data-element="H"]').click();game.run('updateStructureFrame(performance.now()+1000)');
 q('element-palette').querySelector('[data-element="H"]').click();game.run('updateStructureFrame(performance.now()+1000)');
 assert.equal(game.run('resources.state.elements.H'),gathered-2);
@@ -83,7 +84,7 @@ pointer('pointercancel',11,93,665);assert.equal(q('veil-knob').style.transform,'
 for(let i=0;i<80;i++)game.tick();game.window.dispatchEvent(new game.window.Event('blur'));
 const beforePause=q('veil-gained').textContent;for(let i=0;i<180;i++)game.tick();assert.equal(q('veil-gained').textContent,beforePause);assert.equal(q('veil-resume').hidden,false);
 q('veil-resume').click();assert.equal(q('veil-resume').hidden,true);
-q('veil-return').click();
+q('veil-return').click();finishReturn();
 const saved=game.window.localStorage.getItem('molecule-craft.resources.v1'),snapshot=JSON.parse(saved);
 game=await setup(null,0,saved);
 assert.equal(game.run('resources.state.elements.H'),snapshot.elements.H);assert.equal(game.run('resources.state.molecules.hydrogen'),snapshot.molecules.hydrogen);assert.equal(game.run('molecule.atoms.length'),0);
@@ -121,7 +122,7 @@ const resetSave=game.window.localStorage.getItem('molecule-craft.resources.v1'),
 game.window.dispatchEvent(new game.window.Event('pagehide'));assert.equal(game.window.localStorage.getItem('molecule-craft.resources.v1'),resetSave,'Old graph cannot overwrite reset on pagehide');
 game=await setup(null,0,resetSave,resetBook);
 assert.equal(game.run('resources.state.elements.H'),0);assert.equal(game.run('resources.state.molecules.hydrogen'),0);assert.equal(game.run('resources.state.recipes.length'),0);assert.equal(game.run('molecule.atoms.length'),0);assert.equal(game.run('collectionGame.state.discoveredCount'),0);assert.equal(q('make-h2').hidden,true);
-q('launch-veil').click();game.window.dispatchEvent(new game.window.KeyboardEvent('keydown',{key:'ArrowUp'}));for(let i=0;i<200;i++)game.tick();assert.ok(game.run('veilUI.run.collectedElements.H')>0);assert.equal(game.run('resources.state.elements.H'),0);q('veil-return').click();assert.ok(game.run('resources.state.elements.H')>0);
+q('launch-veil').click();game.window.dispatchEvent(new game.window.KeyboardEvent('keydown',{key:'ArrowUp'}));for(let i=0;i<200;i++)game.tick();assert.ok(game.run('veilUI.run.collectedElements.H')>0);assert.equal(game.run('resources.state.elements.H'),0);q('veil-return').click();finishReturn();assert.ok(game.run('resources.state.elements.H')>0);
 console.log('Hold synthesis, reset cancellation, empty collection/recipe/workspace reboot and a fresh first collection passed.');
 
 // New exploration access reveals C/O in the same palette. A paid handmade CH₄
@@ -138,5 +139,5 @@ q('expedition-anchor').value='oxygen';q('expedition-anchor').dispatchEvent(new g
 q('launch-veil').click();assert.equal(q('veil-combustion').hidden,false);const methaneFuel=game.run('resources.state.molecules.methane'),oxygenFuel=game.run('resources.state.molecules.oxygen'),waterFuel=game.run('resources.state.molecules.water');
 q('veil-combustion').dispatchEvent(new game.window.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));game.tick();game.tick();assert.equal(game.run('resources.state.molecules.methane'),methaneFuel-1);assert.equal(game.run('resources.state.molecules.oxygen'),oxygenFuel-2);assert.ok(game.run('veilUI.run.driveBuffer')>1.9);assert.match(q('veil-combustion-fuel').textContent,/CH₄ \d+ · O₂ \d+/);q('veil-combustion').dispatchEvent(new game.window.MouseEvent('pointerup',{bubbles:true}));
 const h2Fuel=game.run('resources.state.molecules.hydrogen');q('veil-boost').dispatchEvent(new game.window.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));assert.equal(game.run('resources.state.molecules.hydrogen'),h2Fuel-1);assert.equal(game.run('resources.state.molecules.water'),waterFuel,'H₂O is not silently consumed by exploration');assert.equal(q('veil-thermal'),null);
-game.run(`var eaterPlayer=veilUI.run.player;veilUI.run.eaters=[{id:0,x:eaterPlayer.x,y:eaterPlayer.y,angle:0,speed:178,vx:0,vy:0,phase:0,trail:[]}];`);for(let i=0;i<60;i++)game.tick();assert.equal(q('veil-view').hidden,true);assert.match(q('craft-last-run').textContent,/捕獲帰還/);
+game.run(`veilUI.run.elementDust={H:20,C:14,O:7};veilUI.run.map.dust.forEach(dust=>dust.ready=Infinity);var beforeCaptureResources=JSON.stringify(resources.snapshot());var eaterPlayer=veilUI.run.player;veilUI.run.eaters=[{id:0,x:eaterPlayer.x,y:eaterPlayer.y,angle:0,speed:178,vx:0,vy:0,phase:0,trail:[]}];`);game.tick();assert.equal(game.run('veilUI.returning'),'emergency');assert.equal(game.run('veilUI.run.returnEffect.mode'),'emergency');assert.equal(game.run('veilUI.run.lostCargoEffects.length'),6,'Task 1 loss particles lead into emergency retrieval');assert.equal(game.run('JSON.stringify(resources.snapshot())'),game.run('beforeCaptureResources'),'Emergency presentation does not deduct resources before the existing settlement');const capturedTime=game.run('veilUI.run.time');q('veil-return').click();for(let i=0;i<20;i++)game.tick();assert.equal(q('veil-view').hidden,false);assert.equal(game.run('veilUI.run.time'),capturedTime);assert.equal(game.run('veilUI.returning'),'emergency','Normal return cannot replace an active emergency transition');finishReturn();assert.equal(q('veil-view').hidden,true);assert.match(q('craft-last-run').textContent,/捕獲帰還/);
 console.log('C/O palette gating, paid handmade CH₄ storage, generic hold production, automatic capped fuel, hold/release COMBUSTION DRIVE, independent H₂ BURST, no H₂O gate and captured return passed.');

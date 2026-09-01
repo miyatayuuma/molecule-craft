@@ -18,7 +18,7 @@ function previewCaptureLoss(units){
 
 export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onCraft=()=>{},onStore=()=>false,onCommit=()=>{}}){
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),combustionButton=q('veil-combustion'),audio=createVeilAudio();
-  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,anchor='continue',captureReturnAt=0;
+  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,anchor='continue',returnState=null;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
   const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onStore,onAnchor:id=>{anchor=id;updateCraft();}});
@@ -43,7 +43,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
     if(active||!canLeave()||resources.blocked)return;
     const seed=(Date.now()^((resources.state.progress.runs+1)*7919))>>>0,start=anchor!=='continue'?anchor:resources.state.progress.checkpoint;
     run=createRun(createUniverse(seed),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);resources.state.progress.runs++;
-    anchor='continue';q('expedition-anchor').value='continue';active=true;paused=false;captureReturnAt=0;root.hidden=false;document.body.dataset.mode='veil';document.querySelector('.app-shell').inert=true;
+    anchor='continue';q('expedition-anchor').value='continue';active=true;paused=false;returnState=null;root.hidden=false;document.body.dataset.mode='veil';document.querySelector('.app-shell').inert=true;
     try{renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();}catch{active=false;root.hidden=true;document.body.dataset.mode='craft';document.querySelector('.app-shell').inert=false;q('craft-resource-hint').textContent='探索画面を開始できません。このブラウザのCanvas対応を確認してください。';return;}
     resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();
     const first=resources.state.progress.runs===1?'最初は安全だ。塵を集め、気配が増す前に帰還しよう':driveAvailable(resources.state,'combustion')?`COMBUSTION DRIVE · CH₄ ${run.fuel.methane} / O₂ ${run.fuel.oxygen} · 長押しで継続航行`:has('hydrogen')?`H₂ BURST ${run.fuel.hydrogen}回 · 捕食体が迫る瞬間まで残そう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';
@@ -55,15 +55,20 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
     const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
     const prefix=captured?`捕獲帰還 · 回収塵${Math.round(EXPEDITION.captureLoss*100)}%散逸`:'自主帰還 · 全回収';
     q('craft-last-run').textContent=result?`${prefix} · ${parts||'原子化なし'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
-    run=null;captureReturnAt=0;onCraft();updateCraft();q('launch-veil').focus();
+    run=null;returnState=null;onCraft();updateCraft();q('launch-veil').focus();
+  }
+  function beginReturn(captured=false){
+    if(!active||!run||returnState)return false;resetInput();const mode=captured?'emergency':'stable',duration=renderer.beginReturn(run,mode);returnState={captured,duration,elapsed:0};audio.start();
+    if(!captured){audio.event('returnSafe');notice('安定回収 · 積荷を収束中',1);}
+    return true;
   }
   function burst(){
-    if(!active||paused||run.captured)return;audio.start();
+    if(!active||paused||returnState||run.captured)return;audio.start();
     if(beginBurst(run,()=>resources.consumeDrive('hydrogen'))){audio.event('burst');vibrate(22);hud();return;}
     if(run.player.boost<=0)notice(!has('hydrogen')?'H₂を作ると緊急噴射が使える':run.fuel.hydrogen<1?'この探索に積んだH₂は空だ · 帰還して再出発しよう':'H₂が不足している',2);
   }
   function startCombustion(event=null){
-    if(!active||paused||run.captured||!driveAvailable(resources.state,'combustion'))return;
+    if(!active||paused||returnState||run.captured||!driveAvailable(resources.state,'combustion'))return;
     if((run.fuel.methane<DRIVE_COST.methane||run.fuel.oxygen<DRIVE_COST.oxygen)&&run.driveBuffer<=0){notice('搭載したCH₄またはO₂が空だ · 帰還して再出発しよう',2);return;}
     audio.start();if(event?.pointerId!==undefined){event.preventDefault();drivePointer=event.pointerId;try{combustionButton.setPointerCapture(drivePointer);}catch{}}
     setCombustionHeld(run,true);combustionButton.classList.add('driving');
@@ -87,7 +92,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
   }
   function frame(now){
     if(!active)return;raf=requestAnimationFrame(frame);const dt=last?Math.min((now-last)/1000,.15):0;last=now;if(paused||document.hidden)return;
-    if(captureReturnAt&&now>=captureReturnAt){finish(true);return;}
+    if(returnState){audio.update(run.player.speed,run.chain,null);renderer.draw(run,dt,reduced);returnState.elapsed=Math.min(returnState.duration,returnState.elapsed+dt);if(returnState.elapsed>=returnState.duration)finish(returnState.captured);return;}
     const input={x:stick.x+(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0),y:stick.y+(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0)};
     for(const event of stepRun(run,input,dt,{consumeCombustion:()=>resources.consumeDrive('combustion')})){
       if(event.type!=='danger'||event.level!=='clear')audio.event(event.type,event.chain,event.count);
@@ -107,25 +112,25 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
       if(event.type==='danger'&&event.level==='danger'){notice('接触間近 · H₂ BURST',2);vibrate(28);}
       if(event.type==='driveIgnition'){vibrate(12);}
       if(event.type==='driveEmpty'){notice('COMBUSTION DRIVEの搭載分が空になった',2);stopCombustion();}
-      if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));captureReturnAt=now+650;resetInput();notice(`捕獲された · 今回の回収塵を${Math.round(EXPEDITION.captureLoss*100)}%失って強制帰還`,2);vibrate(55);}
+      if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));beginReturn(true);notice(`捕獲された · 今回の回収塵を${Math.round(EXPEDITION.captureLoss*100)}%失って強制帰還`,2);vibrate(55);}
     }
     if(run.time>messageUntil)q('veil-message').hidden=true;
     const propulsion=run.player.boost>0?'burst':run.player.combustion?'combustion':null;audio.update(run.player.speed,run.chain,propulsion);renderer.draw(run,dt,reduced);
     if(now-hudAt>70){hudAt=now;hud();}
   }
-  q('launch-veil').addEventListener('click',launch);q('veil-return').addEventListener('click',()=>finish(false));q('veil-to-craft').addEventListener('click',()=>finish(false));
+  q('launch-veil').addEventListener('click',launch);q('veil-return').addEventListener('click',()=>beginReturn(false));q('veil-to-craft').addEventListener('click',()=>beginReturn(false));
   q('veil-boost').addEventListener('pointerdown',event=>{event.preventDefault();burst();});q('veil-boost').addEventListener('click',event=>{if(event.detail===0)burst();});
   combustionButton.addEventListener('pointerdown',startCombustion);for(const type of ['pointerup','pointercancel','lostpointercapture'])combustionButton.addEventListener(type,event=>{if(drivePointer===null||event.pointerId===drivePointer)stopCombustion();});
   q('veil-sound').addEventListener('click',()=>{resources.state.progress.sound=resources.state.progress.sound===false;audio.mute(!resources.state.progress.sound);audio.start();resources.save();hud();});
-  pad.addEventListener('pointerdown',event=>{if(pointer!==null||paused)return;event.preventDefault();pointer=event.pointerId;const r=pad.getBoundingClientRect();origin={x:r.left+r.width/2,y:r.top+r.height/2};try{pad.setPointerCapture(pointer);}catch{}audio.start();move(event);});
+  pad.addEventListener('pointerdown',event=>{if(pointer!==null||paused||returnState)return;event.preventDefault();pointer=event.pointerId;const r=pad.getBoundingClientRect();origin={x:r.left+r.width/2,y:r.top+r.height/2};try{pad.setPointerCapture(pointer);}catch{}audio.start();move(event);});
   function move(event){if(event.pointerId!==pointer||!origin)return;const dx=event.clientX-origin.x,dy=event.clientY-origin.y,len=Math.hypot(dx,dy),radius=48;stick.x=len>6?dx/Math.max(radius,len):0;stick.y=len>6?dy/Math.max(radius,len):0;knob.style.transform=`translate(${stick.x*34}px,${stick.y*34}px)`;}
   pad.addEventListener('pointermove',move);for(const type of ['pointerup','pointercancel','lostpointercapture'])pad.addEventListener(type,event=>{if(event.pointerId===pointer){stick.x=stick.y=0;const id=pointer;pointer=null;try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}});
-  window.addEventListener('keydown',event=>{if(!active||paused)return;if(event.key===' '&&event.target.closest?.('button'))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d',' ','Shift'].includes(event.key)){event.preventDefault();if(event.key===' '){if(!event.repeat)burst();}else if(event.key==='Shift')startCombustion();else keys.add(event.key);audio.start();}if(event.key==='Escape')finish(false);});
+  window.addEventListener('keydown',event=>{if(!active||paused||returnState)return;if(event.key===' '&&event.target.closest?.('button'))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d',' ','Shift'].includes(event.key)){event.preventDefault();if(event.key===' '){if(!event.repeat)burst();}else if(event.key==='Shift')startCombustion();else keys.add(event.key);audio.start();}if(event.key==='Escape')beginReturn(false);});
   window.addEventListener('keyup',event=>{keys.delete(event.key);if(event.key==='Shift')stopCombustion();});
   function pause(){if(!active)return;resetInput();paused=true;audio.pause();resources.save();q('veil-resume').hidden=false;}
   window.addEventListener('blur',pause);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();last=0;});
   window.addEventListener('pagehide',()=>{resources.save();audio.pause();});window.addEventListener('storage',event=>{if(event.key==='molecule-craft.resources.v1'){pause();resources.save();updateCraft();}});
   q('veil-resume').addEventListener('click',()=>{if(resources.blocked)return;paused=false;last=0;q('veil-resume').hidden=true;audio.start();root.focus();});
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
-  return {get active(){return active;},get run(){return run;},get lastTelemetry(){return lastTelemetry;},updateCraft,launch,pause,discovered:id=>supply.discovered(id)};
+  return {get active(){return active;},get run(){return run;},get returning(){return returnState?.captured?'emergency':returnState?'stable':null;},get lastTelemetry(){return lastTelemetry;},updateCraft,launch,pause,discovered:id=>supply.discovered(id)};
 }
