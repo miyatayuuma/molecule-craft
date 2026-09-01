@@ -4,7 +4,7 @@ import {Molecule,setMoleculeDatabase} from '../src/chemistry.js?v=20';
 import {connectedStructures} from '../src/workspace-model.js?v=20';
 import {createRun,stepRun,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
 import {createUniverse} from '../src/veil/universe.js';
-import {GROWTH,MOLECULE_USES,flightConfig,driveAvailable,growthGoal} from '../src/veil/growth.js';
+import {GROWTH,MOLECULE_USES,flightConfig,driveAvailable,growthGoal,combustionPackets,propulsionGauge} from '../src/veil/growth.js';
 import {EXPEDITION} from '../src/veil/config.js';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 
@@ -12,6 +12,16 @@ const database=JSON.parse(await readFile(new URL('../data/molecules.json',import
 setMoleculeDatabase(database);
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key),data};};
 const state=recipes=>({recipes});
+
+// HUD fuel is derived from the same packet ratio and expedition capacities as
+// propulsion. The limiting reagent wins and display ratios are always clamped.
+assert.equal(combustionPackets({methane:12,oxygen:20}),10);
+assert.deepEqual(propulsionGauge('hydrogen',{hydrogen:99}),{remaining:EXPEDITION.hydrogenCapacity,capacity:EXPEDITION.hydrogenCapacity,seconds:0,ratio:1,state:'enough'});
+assert.equal(propulsionGauge('hydrogen',{hydrogen:1}).state,'low');assert.equal(propulsionGauge('hydrogen',{hydrogen:-4}).ratio,0);
+const fullCombustion=propulsionGauge('combustion',{methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity});assert.equal(fullCombustion.ratio,1);assert.equal(fullCombustion.remaining,EXPEDITION.methaneCapacity);
+const oxygenLimited=propulsionGauge('combustion',{methane:18,oxygen:20});assert.equal(oxygenLimited.remaining,10);assert.equal(oxygenLimited.seconds,20);
+const activeLastPacket=propulsionGauge('combustion',{methane:0,oxygen:0},1.25);assert.equal(activeLastPacket.remaining,1);assert.equal(activeLastPacket.seconds,1.25);
+assert.equal(propulsionGauge('combustion',{methane:999,oxygen:999},99).ratio,1);assert.equal(propulsionGauge('combustion',{methane:4,oxygen:1}).ratio,0);
 
 // Authored topology is stable while cluster centres, signals and small dust
 // offsets vary by seed. Carbon is gathered from bursts; Oxygen dust moves.
