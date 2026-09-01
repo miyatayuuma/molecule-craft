@@ -2,7 +2,17 @@ import { VEIL } from './config.js';
 import { random } from './map.js';
 import { clamp } from './engine.js';
 export const LOST_CARGO_PARTICLE_CAP=36;
+export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:.82}),emergency:Object.freeze({duration:.65})});
 const LOST_CARGO_ELEMENTS=['H','C','O'];
+const easeOutCubic=t=>1-(1-t)**3;
+const smoothstep=t=>t*t*(3-2*t);
+export function createReturnEffect(mode){const config=RETURN_EFFECTS[mode];if(!config)return null;return {mode,life:0,duration:config.duration};}
+export function returnEffectFrame(effect){
+  const progress=clamp((effect?.life??0)/(effect?.duration||1),0,1);
+  if(effect?.mode==='stable')return {mode:'stable',progress,collapse:smoothstep(progress),warp:0};
+  if(effect?.mode==='emergency'){const collapse=easeOutCubic(clamp((progress-.16)/.84,0,1)),warp=Math.sin(clamp(progress/.3,0,1)*Math.PI)*.032;return {mode:'emergency',progress,collapse,warp};}
+  return {mode:null,progress:0,collapse:0,warp:0};
+}
 export function lostCargoParticleCounts(lost,cap=LOST_CARGO_PARTICLE_CAP){
   const weights=LOST_CARGO_ELEMENTS.map(element=>({element,amount:Number.isSafeInteger(lost?.[element])&&lost[element]>0?lost[element]:0})).filter(item=>item.amount>0);
   const total=weights.reduce((sum,item)=>sum+item.amount,0),target=Math.min(Math.max(0,Math.floor(cap)),total);if(!target)return {H:0,C:0,O:0};
@@ -42,11 +52,29 @@ export function createVeilRenderer(canvas){
   }
   const screen=(x,y)=>({x:(x-camera.x)*scale+w/2,y:(y-camera.y)*scale+h/2});
   function glow(x,y,size,kind='normal',alpha=1){ctx.globalAlpha=alpha;ctx.drawImage(sprites[kind]||sprites.normal,x-size/2,y-size/2,size,size);ctx.globalAlpha=1;}
+  function drawReturnEffect(effect,center,reduced){
+    const frame=returnEffectFrame(effect),p=frame.progress,collapse=frame.collapse,maxRadius=Math.hypot(w,h)*.62;
+    if(frame.mode==='stable'){
+      if(!reduced)for(let i=0;i<18;i++){const delay=(i%6)*.025,local=easeOutCubic(clamp((p-delay)/(1-delay),0,1)),angle=i*2.399+(1-local)*.32,radius=maxRadius*(.34+(i%5)*.055)*(1-local)+5;glow(center.x+Math.cos(angle)*radius,center.y+Math.sin(angle)*radius,12+(i%3)*3,i%5===0?'rare':'normal',Math.sin(local*Math.PI)*.72);}
+      for(let i=0;i<3;i++){const local=easeOutCubic(clamp((p-i*.06)/(1-i*.06),0,1)),radius=Math.max(4,maxRadius*(.52+i*.1)*(1-local));ctx.strokeStyle=i===1?'#e1fbff':'#8fdae9';ctx.globalAlpha=Math.sin(local*Math.PI)*(.34+i*.08);ctx.lineWidth=(1.2+i*.45)*scale;ctx.beginPath();ctx.arc(center.x,center.y,radius,0,Math.PI*2);ctx.stroke();}
+      const aperture=Math.max(2,maxRadius*(1-collapse)),shade=ctx.createRadialGradient(center.x,center.y,Math.max(0,aperture*.32),center.x,center.y,Math.max(3,aperture));shade.addColorStop(0,'rgba(3,12,22,0)');shade.addColorStop(.62,`rgba(3,12,22,${p*.2})`);shade.addColorStop(1,`rgba(2,8,15,${Math.min(.96,p*1.12)})`);ctx.fillStyle=shade;ctx.fillRect(0,0,w,h);
+      if(p>.84){ctx.fillStyle=`rgba(2,8,15,${(p-.84)/.16*.88})`;ctx.fillRect(0,0,w,h);}
+    }else if(frame.mode==='emergency'){
+      const warning=Math.max(0,1-p/.34);ctx.save();ctx.translate(center.x,center.y);
+      for(let i=0;i<3;i++){const radius=Math.max(5,maxRadius*(.48+i*.09)*(1-collapse)),offset=(1-collapse)*Math.sin(p*31+i*2.1)*7;ctx.save();ctx.translate(offset,(i-1)*3*(1-collapse));ctx.rotate((i-1)*.12*(1-collapse));ctx.strokeStyle=i===1?'#d7a0d8':'#8e5b91';ctx.globalAlpha=.2+warning*.24;ctx.lineWidth=(1.2+i*.35)*scale;ctx.beginPath();ctx.ellipse(0,0,radius,radius*(.58+i*.06),0,0,Math.PI*2);ctx.stroke();ctx.restore();}
+      if(warning>0){ctx.strokeStyle='#dba2be';ctx.globalAlpha=warning*.42;ctx.lineWidth=2*scale;for(const side of [-1,1]){ctx.beginPath();ctx.arc(0,0,maxRadius*.2,-.5+side*.16,.5+side*.16);ctx.stroke();}}ctx.restore();
+      const aperture=Math.max(2,maxRadius*(1-collapse)),shade=ctx.createRadialGradient(center.x,center.y,Math.max(0,aperture*.2),center.x,center.y,Math.max(3,aperture));shade.addColorStop(0,'rgba(16,4,20,0)');shade.addColorStop(.52,`rgba(23,7,29,${p*.24})`);shade.addColorStop(1,`rgba(5,2,10,${Math.min(.98,p*1.22)})`);ctx.fillStyle=shade;ctx.fillRect(0,0,w,h);
+      if(p>.78){ctx.fillStyle=`rgba(5,2,10,${(p-.78)/.22*.92})`;ctx.fillRect(0,0,w,h);}
+    }
+    ctx.globalAlpha=1;
+  }
   function draw(run,dt,reduced=false){
     const p=run.player,burst=p.boost>0,combustion=p.combustion===true,boost=burst||combustion,fever=Math.min(run.chain/VEIL.feverChain,1),lead=Math.min(p.speed*VEIL.cameraLead,VEIL.cameraMaxLead);
+    if(run.returnEffect)run.returnEffect.life=Math.min(run.returnEffect.duration,run.returnEffect.life+dt);
     scale+=(baseScale*(boost&&!reduced?1-VEIL.boostZoom:1)-scale)*(1-Math.exp(-dt*5));
     const target={x:p.x+Math.cos(p.angle)*lead,y:p.y+Math.sin(p.angle)*lead};
     if(fresh){camera=target;fresh=false;}else{const ease=1-Math.exp(-dt*VEIL.cameraEase);camera.x+=(target.x-camera.x)*ease;camera.y+=(target.y-camera.y)*ease;}
+    const returnFrame=returnEffectFrame(run.returnEffect),returnCenter=screen(p.x,p.y);ctx.save();if(returnFrame.mode==='emergency'&&!reduced&&returnFrame.warp>0){ctx.translate(returnCenter.x,returnCenter.y);ctx.scale(1+returnFrame.warp,1-returnFrame.warp*.72);ctx.translate(-returnCenter.x,-returnCenter.y);}
     ctx.globalAlpha=1;ctx.lineWidth=1;ctx.lineCap='butt';
     ctx.drawImage(cloudLayer,-w*.15-Math.sin(camera.x*.0004)*w*.06,-h*.15-Math.sin(camera.y*.00025)*h*.06);
     if(run.map.universe){
@@ -166,6 +194,7 @@ export function createVeilRenderer(canvas){
     if(nearest&&best>140){const angle=Math.atan2(nearest.y-p.y,nearest.x-p.x),x=q.x+Math.cos(angle)*85,y=q.y+Math.sin(angle)*85;ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.strokeStyle='#729bad';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-5,-5);ctx.lineTo(2,0);ctx.lineTo(-5,5);ctx.stroke();ctx.restore();}
     if(run.gatePassed){const alpha=Math.max(0,1-(run.time-(run.gateTime??run.time))/6);ctx.fillStyle=`rgba(151,194,224,${alpha*.08})`;ctx.fillRect(0,0,w,h);}
     if(run.danger!=='clear'){const alpha=run.danger==='danger'?.18:.08,vignette=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.22,w/2,h/2,Math.max(w,h)*.72);vignette.addColorStop(0,'rgba(45,10,35,0)');vignette.addColorStop(1,`rgba(74,18,48,${alpha})`);ctx.fillStyle=vignette;ctx.fillRect(0,0,w,h);}
+    ctx.restore();if(run.returnEffect)drawReturnEffect(run.returnEffect,returnCenter,reduced);
   }
-  resize();return {draw,resize,screen,scatterLostCargo(run,lost){run.lostCargoEffects=createLostCargoParticles(lost,run.player,rng);return run.lostCargoEffects.length;},reset(){fresh=true;},get size(){return {w,h,scale};}};
+  resize();return {draw,resize,screen,beginReturn(run,mode){run.returnEffect=createReturnEffect(mode);return run.returnEffect?.duration??0;},scatterLostCargo(run,lost){run.lostCargoEffects=createLostCargoParticles(lost,run.player,rng);return run.lostCargoEffects.length;},reset(){fresh=true;},get size(){return {w,h,scale};}};
 }
