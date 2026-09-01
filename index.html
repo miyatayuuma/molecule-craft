@@ -97,15 +97,20 @@
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
   <dialog id="supply-dialog" class="sheet" aria-labelledby="supply-title"><header class="sheet-header"><h2 id="supply-title">分子・補給</h2><button type="button" data-close-dialog aria-label="補給を閉じる">×</button></header><div class="sheet-body supply-body">
-    <p id="supply-goal" class="supply-goal"></p><label for="molecule-select">見つけた構造・量産できる分子</label><select id="molecule-select"></select>
+    <p id="supply-goal" class="supply-goal"></p>
+    <section id="supply-systems" class="supply-systems" hidden><header><div><strong>EXPEDITION PROPULSION</strong><small>BASE STOCK → COLLECTOR SHELL</small></div><span>探索用タンク</span></header>
+      <article class="supply-tank" data-tank="hydrogen"><div class="supply-tank-title"><div><strong>H₂ BURST</strong><small>緊急スラスター</small></div><b><span id="supply-h2-current">0</span> / <span id="supply-h2-capacity">3</span></b></div><div class="supply-tank-meter"><i id="supply-h2-meter"></i></div><p id="supply-h2-detail"></p><div class="supply-tank-actions"><button id="fill-hydrogen" type="button">満タンまで補給</button><button id="craft-hydrogen-shortage" type="button" class="secondary" hidden>不足分を作る</button></div></article>
+      <article class="supply-tank" data-tank="combustion" hidden><div class="supply-tank-title"><div><strong>COMBUSTION</strong><small>CH₄ + O₂</small></div><b><span id="supply-combustion-packets">0</span> / <span id="supply-combustion-capacity">18</span> packets</b></div><div class="supply-tank-meter"><i id="supply-combustion-meter"></i></div><p id="supply-combustion-detail"></p><div class="supply-tank-actions"><button id="fill-combustion" type="button">満タンまで補給</button><button id="craft-methane-shortage" type="button" class="secondary" hidden>CH₄を作る</button><button id="craft-oxygen-shortage" type="button" class="secondary" hidden>O₂を作る</button></div></article>
+      <p id="supply-propulsion-note" class="muted"></p>
+    </section>
+    <div class="supply-section-heading"><strong>MOLECULE PRODUCTION</strong><small>BASE ELEMENTS → MOLECULE STOCK</small></div><label for="molecule-select">見つけた構造・量産できる分子</label><select id="molecule-select"></select>
     <div class="supply-recipe"><img id="recipe-model" alt="分子の構造ヒント" width="112" height="112" hidden><div><strong id="recipe-name"></strong><p id="recipe-hint"></p></div></div>
     <details id="recipe-connections"><summary>原子と結合を確認</summary><p id="recipe-bonds"></p></details><p id="molecule-use" class="muted"></p>
     <div class="supply-production"><span id="molecule-stock" role="status"></span><div id="production-controls" class="production-controls" hidden><button id="production-minus" type="button" aria-label="作成数を1減らす">−</button><output id="production-quantity" aria-label="作成数量">1</output><button id="production-plus" type="button" aria-label="作成数を1増やす">＋</button></div></div>
     <div id="production-shortcuts" class="production-shortcuts" aria-label="作成数量のショートカット" hidden><button id="production-add-5" type="button">+5</button><button id="production-add-10" type="button">+10</button><button id="production-max" type="button"><span id="production-max-value">MAX 0</span></button></div>
     <p id="molecule-cost" class="molecule-cost muted" data-affordable="false"></p><button id="make-h2" type="button" hidden>一括生成</button>
     <div id="synthesis-stage" class="synthesis-stage" aria-hidden="true" hidden><span class="synthesis-source">BASE ELEMENTS</span><div id="synthesis-atoms" class="synthesis-atoms"></div><strong id="synthesis-formula"></strong><small id="synthesis-count"></small><span class="synthesis-destination">MOLECULE STOCK</span></div>
-    <p class="supply-stockline">H₂ <b id="resource-h2">0</b> · CH₄ <b id="resource-ch4">0</b> · O₂ <b id="resource-o2">0</b> · H₂O <b id="resource-water">0</b></p>
-    <div id="supply-systems" class="supply-systems" hidden><strong>探索時の自動搭載</strong><p id="supply-propulsion-note" class="muted"></p></div>
+    <p class="supply-stockline"><span>BASE MOLECULE STOCK</span> · H₂ <b id="resource-h2">0</b> · CH₄ <b id="resource-ch4">0</b> · O₂ <b id="resource-o2">0</b> · H₂O <b id="resource-water">0</b></p>
     <label for="expedition-anchor">次にたどる流れ</label><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veilへ補給</option></select>
     <p class="muted">構造を知らなくても、正しく組めば発見できる。一度完成すると、数量と元素消費を確認して量産できます。図鑑の完成率は進行条件ではありません。</p>
   </div></dialog>
