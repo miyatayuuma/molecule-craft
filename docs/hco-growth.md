@@ -15,7 +15,7 @@ Ordinary flight is the same before and after H₂ discovery: speed 164, idle dri
 | H₂ BURST | H₂ × 3 | speed 760 for 0.65s | Emergency separation or one precise current crossing |
 | COMBUSTION DRIVE | CH₄ × 18 / O₂ × 36 | speed 470; 2s per CH₄ × 1 + O₂ × 2 | Hold for efficient sustained travel; release preserves the packet remainder |
 
-One H₂ is consumed only when a valid BURST starts. Combustion consumes `CH₄ × 1 + O₂ × 2` only when held propulsion needs a new two-second packet. Launching does not destroy unused stock: H₂, CH₄ and O₂ have independent sortie caps, while only actual use is saved atomically.
+Before launch, molecules move explicitly from uncapped BASE STOCK into independent Collector Shell tanks. A full-supply action commits only when every missing molecule is available; otherwise the UI shows the transferable amount and exact shortage without a partial transfer. One loaded H₂ is consumed only when a valid BURST starts. Combustion consumes loaded `CH₄ × 1 + O₂ × 2` only when held propulsion needs a new two-second packet. Unused tank contents remain loaded, and actual use is saved atomically without touching BASE STOCK.
 
 H₂ remains deliberately poor as normal travel: three short uses cannot become an unlimited cruise. The authored outer current is thin enough for one correctly timed BURST to cross, but normal thrust stalls physically. CH₄ alone has no action. Discovering O₂ turns the earlier fuel into up to 36 seconds of sustained drive that crosses the deep opposing flow without checking an inventory flag.
 
@@ -42,7 +42,7 @@ The fixed route skeleton, seeded interior variation and continuous coordinates r
 
 The deterministic balance run currently separates three choices: a 30-second saving sortie returns about 57 atoms without fuel; a 55-second Carbon sortie returns about 280 atoms while using H₂ only under pressure; a 35-second deep Oxygen sortie returns about 647 atoms while spending CH₄ × 18 and O₂ × 36. The deep run's fuel ingredients are worth 162 atoms, leaving about 485 net atoms—more than three minutes at the measured safe outer rate.
 
-Correct handmade structures can still be discovered without first receiving a hint. Once discovered, their exact H/C/O cost is used by the existing immediate-plus-hold production control. Optional database molecules such as CO₂ receive collection entries but no expedition action merely by existing.
+Correct handmade structures can still be discovered without first receiving a hint. Once discovered, quantity controls preview the exact total H/C/O cost and commit one atomic production batch; MAX uses the limiting element. Optional database molecules such as CO₂ receive collection entries but no expedition action merely by existing.
 
 Key hints remain deterministic: enough H suggests H₂, first C suggests CH₄, and first O suggests O₂ and H₂O. Seeded unknown signals can change optional discovery order or grant dust; the third eligible miss guarantees a hint. Randomness never gates the H → C → O path.
 
@@ -56,7 +56,7 @@ The drive API separates a momentary action (`beginBurst`) from held intent (`set
 
 `tests/expedition-core.test.mjs` and `tests/expedition-balance.test.mjs` verify:
 
-- base stock is uncapped while sortie fuel is capped;
+- base stock is uncapped while explicit sortie tanks are capped and persisted;
 - invalid repeated BURST input cannot double-spend;
 - releasing COMBUSTION DRIVE preserves its active packet;
 - FLOW/CHAIN cannot change movement or pickup results;
@@ -70,6 +70,6 @@ The drive API separates a momentary action (`beginBurst`) from held intent (`set
 - deep net return exceeds three minutes at the safe outer rate;
 - BURST spam, DRIVE always-on, fuel saving, fuel exhaustion and the fixed five-body cap remain bounded.
 
-`tests/growth.test.mjs` retains continuity, C-cluster, moving-O, handmade-key-molecule, exact economy, optional signal and save-migration checks. `tests/veil-ui-check.mjs` drives the production DOM through cargo collection, return settlement, capped H₂ use, held combustion, release, unchanged H₂O stock and automatic captured return. The full test suite also covers chemistry, collection, geometry, input and offline release integrity.
+`tests/growth.test.mjs` retains continuity, C-cluster, moving-O, handmade-key-molecule, exact economy, optional signal and save-migration checks. `tests/supply-production.test.mjs` and `tests/supply-tanks.test.mjs` cover batch economy, capped transfer and persistence. `tests/veil-ui-check.mjs` drives the production and supply DOM through cargo collection, return settlement, capped H₂ use, held combustion, release, unchanged H₂O stock and automatic captured return. The full test suite also covers chemistry, collection, geometry, input and offline release integrity.
 
 Run `node scripts/simulate-expedition.mjs` for the per-15-second enemy, cargo, depth and fuel comparison. These are deterministic mechanical checks, not a claim that the risk curve is subjectively final. Phone playtesting still needs to judge when the first pursuer feels fair, whether three BURST cards create good timing decisions, whether holding DRIVE remains comfortable, and whether the 15% loss creates tension without discouraging another sortie.
