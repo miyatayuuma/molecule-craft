@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {EXPEDITION} from '../src/veil/config.js';
 import {RETURN_EFFECTS,createReturnEffect,returnEffectFrame} from '../src/veil/renderer.js';
 
 const stable=createReturnEffect('stable'),emergency=createReturnEffect('emergency');
@@ -13,6 +14,6 @@ assert.equal(emergencyFrame.mode,'emergency');assert.ok(emergencyFrame.collapse>
 
 emergency.life=emergency.duration*.15;assert.ok(returnEffectFrame(emergency).warp>0,'Emergency retrieval begins with a short field distortion');
 for(const effect of [stable,emergency]){effect.life=effect.duration;const frame=returnEffectFrame(effect);assert.equal(frame.progress,1);assert.equal(frame.collapse,1);}
-assert.deepEqual(RETURN_EFFECTS,{stable:{duration:.82},emergency:{duration:.65}});
+assert.equal(RETURN_EFFECTS.stable.duration,EXPEDITION.anchorLockSeconds);assert.deepEqual(RETURN_EFFECTS,{stable:{duration:.8},emergency:{duration:.65}});
 
 console.log('Return effects passed: distinct controlled/emergency timing, collapse profiles and emergency-only distortion.');
