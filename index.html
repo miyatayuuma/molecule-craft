@@ -79,6 +79,7 @@
     <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
     <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録され、以後は数量と元素消費を確認して量産できます。H/C/Oは探索で見つかります。</p></div></section>
+    <section><span>04</span><div><h3>採集殻を回収する</h3><p>基地は採集殻をANCHOR FIELDで係留しています。帰還は短いANCHOR LOCKの後に全積荷を安定回収。DUST EATERが保持場を崩すと、安全装置が一部の積荷をこぼしながら緊急回収します。</p></div></section>
     <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子を押すと、回せる軸が光ります。1本ならそのまま枝をドラッグ。複数なら光る結合か番号で軸を選びます。🔒の箇所は固定です。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。回せる単結合はタップで軸を選べます。大きい骨格を支点に、小さい枝を回します。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
   </div></dialog>
@@ -114,10 +115,10 @@
     <label for="expedition-anchor">次にたどる流れ</label><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veilへ補給</option></select>
     <p class="muted">構造を知らなくても、正しく組めば発見できる。一度完成すると、数量と元素消費を確認して量産できます。図鑑の完成率は進行条件ではありません。</p>
   </div></dialog>
-  <section id="veil-view" aria-label="原子宇宙を探索" tabindex="-1" hidden>
-    <canvas id="veil-canvas" aria-label="水素の流れを飛ぶフィールド"></canvas>
-    <div class="veil-hud"><div class="veil-stock"><span>EXPEDITION CARGO</span><strong id="veil-h">H 0</strong><small id="veil-gained">拠点 H 0</small><small id="veil-minerals"></small></div><div id="veil-chain-block" class="veil-chain-block"><span>FLOW</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button">帰還 ↗</button></div></div>
-    <div class="veil-title"><small>ATOMIC UNIVERSE</small><h2 id="veil-region-name">H Veil</h2><p id="veil-region-subtitle">水素の帳</p></div><div id="veil-threat" class="veil-threat" hidden><span>DUST EATERS</span><b id="veil-eater-count">0</b><div><i id="veil-threat-meter"></i></div><small id="veil-eater-distance"></small></div>
+  <section id="veil-view" aria-label="採集殻で原子宇宙を探索" tabindex="-1" hidden>
+    <canvas id="veil-canvas" aria-label="ANCHOR FIELDで係留された採集殻の探索フィールド"></canvas>
+    <div class="veil-hud"><div class="veil-stock"><span>EXPEDITION CARGO</span><strong id="veil-h">H 0</strong><small id="veil-gained">BASE STOCK H 0</small><small id="veil-minerals"></small></div><div id="veil-chain-block" class="veil-chain-block"><span>FLOW</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button"><span id="veil-return-label">帰還 · ANCHOR</span><i class="anchor-lock-meter" aria-hidden="true"><span id="veil-anchor-meter"></span></i></button></div></div>
+    <div class="veil-title"><small>COLLECTOR SHELL · ANCHOR FIELD</small><h2 id="veil-region-name">H Veil</h2><p id="veil-region-subtitle">水素の帳</p></div><div id="veil-threat" class="veil-threat" hidden><span>DUST EATER · FIELD DISRUPTION</span><b id="veil-eater-count">0</b><div><i id="veil-threat-meter"></i></div><small id="veil-eater-distance"></small></div>
     <p id="veil-save-warning" class="veil-save-warning" role="status"></p>
     <p id="veil-message" class="veil-message" role="status" hidden></p>
     <div id="veil-craft-prompt" class="veil-prompt" hidden><button id="veil-to-craft" type="button">Hが集まった · H₂を作りに戻る ↗</button></div>
