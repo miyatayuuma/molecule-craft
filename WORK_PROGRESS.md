@@ -45,5 +45,5 @@ Baseline: `main` at `1e0dde91a60a6a741a2e983ffdb12be20f0dd0c9` (Task 2 merged).
 - PWA/save: runtime URL revision advanced to 39; generated precache rebuilt to release `423788c1805f061c` with 234 hashed assets. Schema 1/2 migration, schema 3 reload, quota rollback, stale-tab protection, and offline fetch pass.
 - Changed in final review: `src/veil/ui.js`, `veil.css`, `index.html`, mobile fixture/source contracts, PWA test references, and generated `precache-manifest.js`.
 - Tests: all 28 `*.test.mjs` suites pass; both jsdom production integration suites pass; repository hygiene passes with zero warnings.
-- Pending: commit the final review fixes, sync the complete branch, and mark the draft PR ready.
-- Next: no implementation phase remains.
+- Pending: no implementation work. Local HEAD and all 28 PR paths are synchronized; the PR remains draft because GitHub's ready-for-review mutation returned a schema error.
+- Next: retry the ready transition, then review/merge.
