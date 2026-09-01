@@ -18,13 +18,13 @@ export function createUniverse(seed=1){
   const map=createMap(seed),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];
   for(const d of map.dust){d.element='H';if(d.shoulder){d.x+=(rng()-.5)*13;d.y+=(rng()-.5)*16;}}
   for(const [id,label,knots,element]of ROUTES){
-    const route={id,label,element,points:sampleLine(knots,element==='O'?25:30)};map.routes.push(route);
+    const deep=id==='oxygen-main'||id==='oxygen-side',frontier=id==='horizon',profile=frontier?GROWTH.density.frontier:deep?GROWTH.density.oxygenDeep:element==='O'?GROWTH.density.oxygenEdge:GROWTH.density.carbon;
+    const route={id,label,element,points:sampleLine(knots,profile.spacing)};map.routes.push(route);
     for(const [i,p]of route.points.entries()){
-      const el=element==='C'?'H':element==='O'?(i%5===0?'H':i%17===0?'C':'O'):'H';
-      const fast=id==='oxygen-main'||id==='oxygen-side';
-      for(let lane=0;lane<(fast?3:1);lane++){
-        const offset=(fast?lane-1:0)*29+(rng()-.5)*10,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
-        map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:1,ready:0,flow:fast?{speed:165+rng()*60,span:210,phase:rng()}:null});
+      const el=element==='C'?(i%6===0?'C':'H'):element==='O'?(i%5===0?'H':i%17===0?'C':'O'):'H';
+      for(let lane=0;lane<profile.lanes;lane++){
+        const offset=(lane-(profile.lanes-1)/2)*27+(rng()-.5)*8,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
+        map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,flow:deep||frontier?{speed:165+rng()*60,span:210,phase:rng()}:null});
       }
     }
   }
@@ -32,7 +32,7 @@ export function createUniverse(seed=1){
     const cluster={id:i,x:point[0]+(rng()-.5)*65,y:point[1]+(rng()-.5)*70,radius:GROWTH.clusterRadius,ready:0,burstAt:-100,phase:rng()*Math.PI*2,particles:[]};
     for(let j=0;j<GROWTH.clusterParticles;j++){
       const element=j%5===0?'H':'C',angle=rng()*Math.PI*2;
-      const d={id:map.dust.length,x:cluster.x,y:cluster.y,angle,element,kind:element==='C'?'carbon':'normal',cluster:i,spread:.3+rng()*.7,value:3,ready:Infinity};
+      const d={id:map.dust.length,x:cluster.x,y:cluster.y,angle,element,kind:element==='C'?'carbon':'normal',cluster:i,spread:.3+rng()*.7,value:GROWTH.clusterValue,ready:Infinity};
       cluster.particles.push(d);map.dust.push(d);
     }map.clusters.push(cluster);
   }

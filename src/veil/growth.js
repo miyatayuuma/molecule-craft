@@ -10,13 +10,19 @@ export const MOLECULE_USES = Object.freeze({
 // Input chooses an action, not its physics. A later cruise controller can use
 // these same actions without changing resources or adding HUD buttons.
 export const DRIVES=Object.freeze({
-  hydrogen:{type:'burst',label:'H₂',name:'H₂ BURST',cost:{hydrogen:1},boostSpeed:800,boostSeconds:.7,boostRadius:10,boostCooldown:.35,boostAcceleration:24,boostGrip:18},
-  combustion:{type:'continuous',label:'CH₄ + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:460,packetSeconds:4,boostRadius:32,boostAcceleration:9,boostGrip:13},
+  hydrogen:{type:'burst',label:'H₂',name:'H₂ BURST',cost:{hydrogen:1},boostSpeed:760,boostSeconds:.65,boostRadius:8,boostCooldown:.55,boostAcceleration:28,boostGrip:20},
+  combustion:{type:'continuous',label:'CH₄ + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:470,packetSeconds:2,boostRadius:40,boostAcceleration:10,boostGrip:14},
 });
 export const GROWTH=Object.freeze({
   flight:{speed:164,driftSpeed:29,suctionRadius:30,assistRadius:78},
   dustPerAtom:{H:3,C:3,O:3},bounds:{left:-1100,right:1250,top:-12750,bottom:500},
-  clusterRadius:62,clusterRespawn:42,clusterParticles:30,clusterSpread:116,
+  clusterRadius:64,clusterRespawn:40,clusterParticles:36,clusterSpread:120,clusterValue:3,
+  density:{
+    carbon:{spacing:25,lanes:2,value:1},
+    oxygenEdge:{spacing:23,lanes:2,value:1},
+    oxygenDeep:{spacing:20,lanes:4,value:2},
+    frontier:{spacing:18,lanes:4,value:2},
+  },
   signalChance:.38,signalPity:3,
   carbonY:-4390,oxygenY:-7830,frontierY:-11680,
 });

@@ -35,6 +35,7 @@
 | 分子の役割と領域 | `src/veil/growth.js` のBURST、DRIVE、費用、領域境界、次目標 |
 | 探索物理・推進 | `src/veil/engine.js` |
 | DUST EATER | 状態・追跡・捕獲は `engine.js`、描画は `renderer.js` |
+| 遠征テレメトリ | `src/veil/telemetry.js`（`?expeditionDebug=1`時のみconsole出力） |
 | マップ骨格 | `src/veil/map.js` |
 | C/O領域・塵・流れ | `src/veil/universe.js` |
 | Canvas描画 | `src/veil/renderer.js` |
@@ -113,6 +114,7 @@
 | 配置・補正・torsion | `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |
 | workspace保存 | `workspace-save.test.mjs`, `workspace-model.test.mjs` |
 | 探索・成長・資源 | `expedition-core.test.mjs`, `growth.test.mjs`, `veil*.test.mjs` |
+| 探索バランスシミュレーション | `expedition-balance.test.mjs`, `scripts/simulate-expedition.mjs` |
 | 本番DOM統合 | `mobile-ui-check.mjs`, `veil-ui-check.mjs` |
 | オフライン配信 | `pwa.test.mjs` |
 | リポジトリ衛生 | `repository-hygiene.test.mjs` |
