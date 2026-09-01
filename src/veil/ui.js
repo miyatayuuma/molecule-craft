@@ -8,6 +8,13 @@ import { createVeilAudio } from './audio.js';
 import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry.js';
 
 const DRIVE_COST=DRIVES.combustion.cost;
+const LOST_CARGO_ELEMENTS=['H','C','O'];
+function previewCaptureLoss(units){
+  const rate=EXPEDITION.captureLoss,exact=LOST_CARGO_ELEMENTS.map((el,index)=>({el,index,value:(units[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
+  let remaining=Math.floor(LOST_CARGO_ELEMENTS.reduce((sum,el)=>sum+(units[el]??0),0)*rate)-LOST_CARGO_ELEMENTS.reduce((sum,el)=>sum+lost[el],0);
+  for(const item of exact.sort((a,b)=>(b.value-Math.floor(b.value))-(a.value-Math.floor(a.value))||a.index-b.index)){if(remaining<=0)break;if(lost[item.el]<(units[item.el]??0)){lost[item.el]++;remaining--;}}
+  return lost;
+}
 
 export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onCraft=()=>{},onStore=()=>false,onCommit=()=>{}}){
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),combustionButton=q('veil-combustion'),audio=createVeilAudio();
@@ -100,7 +107,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
       if(event.type==='danger'&&event.level==='danger'){notice('接触間近 · H₂ BURST',2);vibrate(28);}
       if(event.type==='driveIgnition'){vibrate(12);}
       if(event.type==='driveEmpty'){notice('COMBUSTION DRIVEの搭載分が空になった',2);stopCombustion();}
-      if(event.type==='capture'){captureReturnAt=now+650;resetInput();notice(`捕獲された · 今回の回収塵を${Math.round(EXPEDITION.captureLoss*100)}%失って強制帰還`,2);vibrate(55);}
+      if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));captureReturnAt=now+650;resetInput();notice(`捕獲された · 今回の回収塵を${Math.round(EXPEDITION.captureLoss*100)}%失って強制帰還`,2);vibrate(55);}
     }
     if(run.time>messageUntil)q('veil-message').hidden=true;
     const propulsion=run.player.boost>0?'burst':run.player.combustion?'combustion':null;audio.update(run.player.speed,run.chain,propulsion);renderer.draw(run,dt,reduced);
