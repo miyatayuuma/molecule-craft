@@ -13,7 +13,7 @@ if(!process.argv[2])throw new Error('Pass the path to three.module.js');
 const THREE=await import(pathToFileURL(process.argv[2]));
 const templates=JSON.parse(await readFile(new URL('../data/craft-structures.json',import.meta.url)));
 console.log(checkSpawnLayouts(THREE,templates));
-const app=await readFile(new URL('../src/app-v14.js?v=32',import.meta.url),'utf8');
+const app=await readFile(new URL('../src/app.js?v=38',import.meta.url),'utf8');
 const section=(a,b)=>app.slice(app.indexOf(`function ${a}(`),app.indexOf(`function ${b}(`));
 const source=section('addElement','onPointerDown')+section('spawnRadius','disposeObject')+section('updateStructureFrame','updateDebris');
 function workspace(distance){

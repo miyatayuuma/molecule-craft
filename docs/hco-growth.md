@@ -1,6 +1,6 @@
 # H → C → O / Expedition Core v1
 
-This release keeps the v36 continuous H/C/O world and replaces its passive-upgrade exploration model with a finite-sortie loop:
+The current continuous H/C/O world uses a finite-sortie exploration loop:
 
 > collect → stay for one more cluster → attract danger → spend propulsion → return → craft → change the next sortie
 
@@ -48,7 +48,7 @@ Key hints remain deterministic: enough H suggests H₂, first C suggests CH₄, 
 
 `src/veil/config.js` owns ordinary flight, collection feel and all sortie/pursuit values under `EXPEDITION`. `src/veil/growth.js` owns molecule roles, BURST/DRIVE output, packet duration, molecule cost and region boundaries. `src/veil/universe.js` owns authored routes, moving dust and physical currents. Resource settlement and base-stock protection live in `src/veil/resources.js`.
 
-The drive API separates a momentary action (`beginBurst`) from held intent (`setCombustionHeld`). A future cruise controller can operate the same held intent without changing molecule costs or inventory storage.
+The drive API separates a momentary action (`beginBurst`) from held intent (`setCombustionHeld`).
 
 ## Automated evidence and remaining playtest
 
