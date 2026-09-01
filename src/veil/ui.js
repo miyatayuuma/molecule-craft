@@ -81,7 +81,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
   }
   function hud(){
     if(!run)return;const state=resources.state,region=REGIONS[run.region]??REGIONS.veil;
-    q('veil-h').textContent=`H ${run.collectedElements.H}`;q('veil-gained').textContent=`拠点 H ${state.elements.H}`;
+    q('veil-h').textContent=`H ${run.collectedElements.H}`;q('veil-gained').textContent=`BASE STOCK H ${state.elements.H}`;
     q('veil-minerals').textContent=[['C',run.collectedElements.C],['O',run.collectedElements.O]].filter(([el])=>resources.canUseElement(el)||run.foundElements.includes(el)).map(([el,n])=>`${el} ${n}`).join(' · ');
     q('veil-chain').textContent=run.chain;q('veil-chain-block').dataset.fever=String(run.chain>=40);q('veil-chain-meter').style.transform=`scaleX(${Math.max(0,run.chainTime/run.config.chainSeconds)})`;
     const burstGauge=propulsionGauge('hydrogen',run.fuel),boostButton=q('veil-boost');q('veil-fuel').textContent=`${burstGauge.remaining} / ${burstGauge.capacity}`;q('veil-burst-meter').style.transform=`scaleX(${burstGauge.ratio})`;boostButton.dataset.fuelState=burstGauge.state;boostButton.classList.toggle('boosting',run.player.boost>0);boostButton.setAttribute('aria-disabled',String(!driveAvailable(state,'hydrogen')||run.fuel.hydrogen<1||run.player.cooldown>0));
