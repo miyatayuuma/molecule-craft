@@ -24,16 +24,20 @@ export function createVeilAudio(){
       const stage=Math.min(3,Math.floor(chain/25)),step=(phrase++%4)+stage,f=A.pickupBase*2**(A.notes[step]/12);
       tone(f,A.pickupSeconds,A.pickupLevel);if(chain>=25)tone(f*1.5,.2,A.harmonyLevel);
       if(count>=6)tone(f/2,.22,.08);
-    }else if(type==='boost'){tone(70,.28,A.boostLevel,0,'triangle',250);tone(196,.65,.09,.03,'sine',784);}
-    else if(type==='cooling'){tone(660,.42,.045,0,'sine',330);tone(440,.55,.035,.04,'triangle',220);}
+    }else if(type==='burst'||type==='boost'){tone(58,.18,A.boostLevel,0,'triangle',330);tone(220,.38,.1,.015,'sine',920);}
+    else if(type==='driveIgnition'){tone(72,.38,.16,0,'sawtooth',148);tone(148,.65,.07,.06,'triangle',220);}
+    else if(type==='eaterSpawn'){tone(86,.7,.09,0,'sine',43);tone(129,.45,.035,.08,'triangle',65);}
+    else if(type==='danger'){tone(110,.16,.065,0,'triangle',82);tone(82,.22,.05,.11,'sine',58);}
+    else if(type==='capture'){tone(96,.5,.14,0,'sawtooth',38);tone(48,.7,.1,.04,'sine',30);}
+    else if(type==='driveEmpty'){tone(168,.2,.055,0,'triangle',72);}
     else if(type==='cluster'){tone(92,.34,.12,0,'triangle',164);[0,5,9].forEach((n,i)=>tone(220*2**(n/12),.32,.055,.05+i*.035));}
     else if(type==='signal'){[0,4,11].forEach((n,i)=>tone(330*2**(n/12),.48,.05,i*.09,'sine'));}
     else if(type==='dense'){[0,7,12].forEach((n,i)=>tone(196*2**(n/12),.3,.08,i*.04));}
     else if(type==='rare'||type==='gate'){[0,7,12,16].forEach((n,i)=>tone(294*2**(n/12),.45,.09,i*.11));}
     else if(type==='chainEnd'&&chain>=8){phrase=0;tone(196,.24,.04,0,'sine',164.8);}
   }
-  return {start,event,update(speed,chain,boost){if(!ctx||!hum)return;const fever=Math.min(chain/VEIL.feverChain,1),t=ctx.currentTime;
+  return {start,event,update(speed,chain,propulsion){if(!ctx||!hum)return;const fever=Math.min(chain/VEIL.feverChain,1),t=ctx.currentTime,thrust=propulsion==='burst'?.14:propulsion==='combustion'?.09:0;
     hum.frequency.setTargetAtTime(55+speed*.065,t,.15);humGain.gain.setTargetAtTime(muted?0:Math.min(speed/VEIL.speed,1)*(A.movementLevel+fever*A.feverLevel),t,.12);
-    airGain?.gain.setTargetAtTime(muted?0:(chain>0?.04+fever*.06:0)+(boost?.14:0),t,.12);
+    airGain?.gain.setTargetAtTime(muted?0:(chain>0?.04+fever*.06:0)+thrust,t,.12);
   },mute(value){muted=value;if(master)master.gain.setTargetAtTime(muted?0:A.master,ctx.currentTime,.025);},pause(){if(ctx)void ctx.suspend().catch(()=>{});},dispose(){if(ctx)void ctx.close().catch(()=>{});}};
 }

@@ -1,4 +1,4 @@
-import { VEIL } from './config.js';
+import { EXPEDITION } from './config.js';
 import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,driveAvailable } from './growth.js';
 import { WORKSPACE_STORAGE_KEY,validateWorkspace } from '../workspace-save.js?v=30';
 export const RESOURCE_KEY='molecule-craft.resources.v1';
@@ -52,9 +52,18 @@ export function createResources({storage,onStatus=()=>{}}={}){
     storeMolecule(id,count=1){if(blocked||!records.has(id)||!integer(count)||count<1||(state.molecules[id]??0)+count>MAX)return false;state.molecules[id]=(state.molecules[id]??0)+count;discover(id);return true;},
     makeHydrogen:n=>api.makeMolecule('hydrogen',n),storeHydrogen:n=>api.storeMolecule('hydrogen',n),
     consumeMolecules(cost){if(blocked||!Object.entries(cost).every(([id,n])=>validId(id)&&integer(n)&&(state.molecules[id]??0)>=n))return false;for(const [id,n]of Object.entries(cost))state.molecules[id]-=n;if(save()||!storage)return true;for(const [id,n]of Object.entries(cost))state.molecules[id]+=n;return false;},
-    consumeBoost:()=>api.consumeMolecules({hydrogen:VEIL.boostCost}),consumeDrive:id=>driveAvailable(state,id)&&api.consumeMolecules(DRIVES[id].cost),consumeCoolant:()=>state.loadout.cooling&&state.recipes.includes('water')&&api.consumeMolecules({water:1}),
+    consumeBoost:()=>api.consumeMolecules(DRIVES.hydrogen.cost),consumeDrive:id=>driveAvailable(state,id)&&api.consumeMolecules(DRIVES[id].cost),
+    prepareExpedition(){return {hydrogen:driveAvailable(state,'hydrogen')?Math.min(EXPEDITION.hydrogenCapacity,state.molecules.hydrogen??0):0,combustion:driveAvailable(state,'combustion')?Math.min(EXPEDITION.combustionCapacity,state.molecules.methane??0,Math.floor((state.molecules.oxygen??0)/2)):0};},
+    findElement(el){if(blocked||!MANAGED.includes(el))return false;const first=!state.progress.foundElements.includes(el);reveal(el);guaranteed();return first;},
     collect(amount,best=0){if(blocked)return [];const amounts=typeof amount==='number'?{H:amount}:amount;if(!amounts||!Object.entries(amounts).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return [];const before=new Set(state.progress.foundElements);refund(amounts);for(const [el,n]of Object.entries(amounts))if(n>0){reveal(el);state.progress.totalCollected=Math.min(MAX,state.progress.totalCollected+n);}if(integer(best))state.progress.bestChain=Math.max(state.progress.bestChain,best);guaranteed();return state.progress.foundElements.filter(el=>!before.has(el));},
     collectDust(units,best){if(blocked||!Object.entries(units).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return [];const amounts={};for(const [el,n]of Object.entries(units)){const total=state.dust[el]+n;amounts[el]=Math.floor(total/GROWTH.dustPerAtom[el]);state.dust[el]=total%GROWTH.dustPerAtom[el];}return api.collect(amounts,best);},
+    settleExpedition(units,best=0,captured=false){
+      if(blocked||typeof captured!=='boolean'||!integer(best)||!units||!Object.entries(units).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return null;
+      const snapshot=copy(state),kept={},lost={},before={...state.elements},rate=captured?EXPEDITION.captureLoss:0;
+      for(const el of MANAGED){const total=units[el]??0;lost[el]=Math.floor(total*rate);kept[el]=total-lost[el];}
+      const found=api.collectDust(kept,best);if(!save()){state=snapshot;return null;}
+      const atoms={};for(const el of MANAGED)atoms[el]=state.elements[el]-before[el];return {captured,rate,kept,lost,atoms,found};
+    },
     visit(region){if(blocked||!Object.hasOwn(REGIONS,region))return false;const first=!state.progress.regions.includes(region);if(first)state.progress.regions.push(region);state.progress.checkpoint=region;if(region==='frontier')state.progress.frontier=true;if(region!=='veil')state.progress.cleared=true;return first;},
     signal(region,roll,choice){if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1))return null;const p=state.progress,last=p.signalLast[region];if(last!==undefined&&p.totalCollected-last<45)return {repeat:true};const candidates=[...records.values()].filter(rec=>!MOLECULE_USES[rec.id]&&!state.recipes.includes(rec.id)&&!state.hints.includes(rec.id)&&rec.atoms.length<=12&&rec.atoms.every(el=>MANAGED.includes(el)&&api.canUseElement(el)));if(candidates.length&&(roll<GROWTH.signalChance||p.signalMisses+1>=GROWTH.signalPity)){const rec=candidates[Math.floor(choice*candidates.length)];hint(rec.id);p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:rec.id};}if(candidates.length)p.signalMisses++;const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:{H:8,O:4};api.collect(bonus,0);p.signalLast[region]=p.totalCollected;save();return {bonus};},
     workspaceAdapter:{getItem(key){if(key!==WORKSPACE_STORAGE_KEY)return storage?.getItem(key)??null;return state.workspace?JSON.stringify(state.workspace):null;},setItem(key,raw){if(key!==WORKSPACE_STORAGE_KEY)throw Error();if(blocked)throw Error();state.workspace=validateWorkspace(JSON.parse(raw));if(!save())throw Error();}},

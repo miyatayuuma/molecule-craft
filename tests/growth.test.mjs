@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Molecule,setMoleculeDatabase} from '../src/chemistry.js?v=20';
 import {connectedStructures} from '../src/workspace-model.js?v=20';
-import {createRun,stepRun,beginBoost} from '../src/veil/engine.js';
+import {createRun,stepRun,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
 import {createUniverse} from '../src/veil/universe.js';
-import {DRIVES,GROWTH,MOLECULE_USES,flightConfig,driveAvailable,growthGoal} from '../src/veil/growth.js';
+import {GROWTH,MOLECULE_USES,flightConfig,driveAvailable,growthGoal} from '../src/veil/growth.js';
+import {EXPEDITION} from '../src/veil/config.js';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 
 const database=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
@@ -23,34 +24,31 @@ assert.ok(u1.dust.some(d=>d.element==='O'&&d.flow));
 assert.deepEqual(u1.routes.filter(r=>r.element==='C').map(r=>r.id),['carbon-entry','carbon-main','carbon-sweep']);
 assert.ok(u1.routes.filter(r=>r.element==='O').length>=4);
 
-// H₂ permanently changes ordinary collection feel before fuel is spent.
+// Owning H₂ no longer grants a hidden permanent movement or suction upgrade.
 const starter=flightConfig(state([])),hydrogen=flightConfig(state(['hydrogen']));
-assert.ok(hydrogen.speed>starter.speed*1.4);assert.ok(hydrogen.suctionRadius>starter.suctionRadius*3);
-function entrySweep(recipes){const run=createRun(createUniverse(45),flightConfig(state(recipes)));for(let i=0;i<12*60;i++)stepRun(run,{x:0,y:-1},1/60);return run;}
+assert.equal(hydrogen.speed,starter.speed);assert.equal(hydrogen.driftSpeed,starter.driftSpeed);assert.equal(hydrogen.suctionRadius,starter.suctionRadius);
+function entrySweep(recipes){const run=createRun(createUniverse(45),flightConfig(state(recipes)),{predators:false});for(let i=0;i<12*60;i++)stepRun(run,{x:0,y:-1},1/60);return run;}
 const slow=entrySweep([]),upgraded=entrySweep(['hydrogen']);
-assert.ok(upgraded.collected>=slow.collected*1.8,`Expected H₂ collection jump, got ${slow.collected} -> ${upgraded.collected}`);
+assert.equal(upgraded.collected,slow.collected);assert.equal(upgraded.player.y,slow.player.y);
 
 // The H/C boundary is an opposing current in world coordinates. Owning a
 // recipe does not open it; spending one H₂ boost supplies enough thrust.
-function outer({boost=false}={}){const run=createRun(createUniverse(9),flightConfig(state(['hydrogen'])));Object.assign(run.player,{x:530,y:-3620,angle:-Math.PI/2,vx:0,vy:0});if(boost)assert.ok(beginBoost(run.player,()=>true,DRIVES.hydrogen));for(let i=0;i<15*60;i++)stepRun(run,{x:0,y:-1},1/60);return run;}
+function outer({boost=false}={}){const run=createRun(createUniverse(9),hydrogen,{fuel:{hydrogen:1},predators:false});Object.assign(run.player,{x:530,y:-3620,angle:-Math.PI/2,vx:0,vy:0});if(boost)assert.ok(beginBurst(run,()=>true));for(let i=0;i<15*60;i++)stepRun(run,{x:0,y:-1},1/60);return run;}
 assert.equal(outer().region,'veil');assert.equal(outer({boost:true}).region,'carbon');
 
 // Entering a carbon mass produces a radial burst in the same simulation frame.
-const clusterRun=createRun(createUniverse(33),hydrogen),cluster=clusterRun.map.clusters[0];Object.assign(clusterRun.player,{x:cluster.x,y:cluster.y,vx:0,vy:0});
+const clusterRun=createRun(createUniverse(33),hydrogen,{predators:false}),cluster=clusterRun.map.clusters[0];Object.assign(clusterRun.player,{x:cluster.x,y:cluster.y,vx:0,vy:0});
 const burst=stepRun(clusterRun,{x:0,y:0},1/60);assert.ok(burst.some(event=>event.type==='cluster'));
 const carbonPickup=burst.find(event=>event.type==='pickup');assert.ok(carbonPickup?.units.C>=GROWTH.clusterParticles/2,'A cluster must release a meaningful C burst');
 const moving=clusterRun.map.dust.find(d=>d.element==='O'&&d.flow),before=[moving.x,moving.y];for(let i=0;i<20;i++)stepRun(clusterRun,{x:0,y:0},1/60);assert.notDeepEqual([moving.x,moving.y],before);
 
-// Heat and pressure form the frontier gate. Neither inventory nor a boolean
-// key opens it: only enough thrust while heat is actively removed succeeds.
-function hotBand(drive,cooling){const run=createRun(createUniverse(10),hydrogen);Object.assign(run.player,{x:100,y:-8700,angle:-Math.PI/2,vx:0,vy:0});let fuel=0,water=0,maxHeat=0;
-  for(let i=0;i<60*60&&run.region!=='frontier';i++){
-    if(run.player.boost<=0&&run.player.cooldown<=0)beginBoost(run.player,()=>{fuel++;return true;},DRIVES[drive]);
-    stepRun(run,{x:0,y:-1},1/60,{consumeCoolant:()=>{if(!cooling)return false;water++;return true;}});maxHeat=Math.max(maxHeat,run.heat);
-  }return {run,fuel,water,maxHeat};
+// The hot opposing flow is crossed by sustained propulsion. H₂O remains a
+// normal catalogue molecule and is neither checked nor consumed here.
+function hotBand(combustion=false){const run=createRun(createUniverse(10),hydrogen,{fuel:{combustion:6},predators:false});Object.assign(run.player,{x:100,y:-8700,angle:-Math.PI/2,vx:0,vy:0});let packets=0;if(combustion)setCombustionHeld(run,true);
+  for(let i=0;i<60*60&&run.region!=='frontier';i++)stepRun(run,{x:0,y:-1},1/60,{consumeCombustion:()=>{packets++;return true;}});
+  return {run,packets};
 }
-for(const [drive,cooling]of [['hydrogen',false],['hydrogen',true],['combustion',false]])assert.notEqual(hotBand(drive,cooling).run.region,'frontier',`${drive}/${cooling} bypassed the physical adaptation`);
-const adapted=hotBand('combustion',true);assert.equal(adapted.run.region,'frontier');assert.ok(adapted.fuel>=1&&adapted.water>=1&&adapted.maxHeat>GROWTH.cooling.threshold);
+assert.notEqual(hotBand(false).run.region,'frontier');const sustained=hotBand(true);assert.equal(sustained.run.region,'frontier');assert.ok(sustained.packets>=2&&sustained.packets<=EXPEDITION.combustionCapacity);
 
 // All four key structures are still recognized by the ordinary chemistry
 // graph. A knowledgeable player can complete them before reading a hint.
@@ -77,7 +75,8 @@ assert.ok(resources.spend({O:1,H:2}));assert.ok(resources.storeMolecule('water')
 assert.ok(resources.makeMolecule('oxygen',2));assert.ok(resources.makeMolecule('methane',1));assert.ok(driveAvailable(resources.state,'combustion'));
 const beforeFuel={methane:resources.state.molecules.methane,oxygen:resources.state.molecules.oxygen};assert.ok(resources.consumeDrive('combustion'));
 assert.equal(resources.state.molecules.methane,beforeFuel.methane-1);assert.equal(resources.state.molecules.oxygen,beforeFuel.oxygen-2);
-const beforeWater=resources.state.molecules.water;assert.ok(resources.consumeCoolant());assert.equal(resources.state.molecules.water,beforeWater-1);
+const beforeWater=resources.state.molecules.water;assert.equal(typeof resources.consumeCoolant,'undefined');assert.equal(resources.state.molecules.water,beforeWater);
+const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.molecules,{hydrogen:20,methane:20,oxygen:40});assert.deepEqual(capacity.prepareExpedition(),{hydrogen:EXPEDITION.hydrogenCapacity,combustion:EXPEDITION.combustionCapacity});
 const sessionOnly=createResources({storage:null});sessionOnly.collect(4,0);sessionOnly.discover('hydrogen');assert.ok(sessionOnly.makeMolecule('hydrogen'));assert.ok(sessionOnly.consumeDrive('hydrogen'),'Session-only mode must remain playable when persistent storage is unavailable');
 
 // Ordinary DB molecules can be discovered and mass-produced but gain no
@@ -99,4 +98,4 @@ const partialStorage=memory(),partial=createResources({storage:partialStorage});
 const legacyStorage=memory();legacyStorage.setItem(RESOURCE_KEY,JSON.stringify({schemaVersion:1,elements:{H:7},molecules:{hydrogen:2},recipes:['hydrogen'],progress:{bestChain:8,runs:2,cleared:true,craftPrompt:false,sound:true},workspace:null}));
 const migrated=createResources({storage:legacyStorage});assert.equal(migrated.state.schemaVersion,2);assert.deepEqual(migrated.state.elements,{H:7,C:0,O:0});assert.equal(migrated.state.molecules.hydrogen,2);assert.deepEqual(migrated.state.progress.foundElements,['H']);
 
-console.log('H → C → O growth loop passed: authored continuity with variation, H₂ collection jump and current crossing, carbon bursts, moving Oxygen flows, physical heat/cooling gate, four handmade key structures, exact molecule economy, CH₄/O₂ combustion, H₂O cooling, optional DB production, signal pity and save migration.');
+console.log('H → C → O growth loop passed: authored continuity with variation, unchanged normal flight, physical H₂ BURST crossing, carbon bursts, moving Oxygen flows, sustained CH₄/O₂ travel without H₂O gating, four handmade key structures, capped expedition fuel, optional DB production, signal pity and save migration.');

@@ -19,7 +19,8 @@ const DEFINITIONS=[
   ['safe','ゆるやかな流れ',[[0,-1100],[-380,-1300],[-670,-1720],[-520,-2200],[0,-2600]]],
   ['risk','濃い流れ',[[0,-1100],[340,-1320],[540,-1730],[350,-2130],[0,-2600]],'dense'],
   ['approach','空白へ',[[0,-2600],[140,-2730],[310,-2760]]],
-  // 450-unit gap: > chain window at normal speed; < window during H₂ boost.
+  // A quiet gap separates route phrases, but H₂ is reserved for danger and
+  // the boundary current rather than being a CHAIN-maintenance tool.
   ['landing','空白の向こう',[[765,-2760],[880,-2990],[650,-3240],[530,-3550]]],
   ['detour','外側の弧',[[0,-2600],[-410,-2740],[-800,-3090],[-730,-3570],[-300,-3870],[180,-3630],[530,-3550]]],
   ['gate','外縁の流れ',[[530,-3550],[530,-3750]]],
@@ -39,5 +40,5 @@ export function createMap(seed=1){
     }
   }
   if(rng()<VEIL.rareChance){const route=routes.find(r=>r.id==='technical'),p=route.points[Math.floor(route.points.length*.6)];dust.push({...p,id:dust.length,route:route.id,kind:'rare',value:VEIL.rareValue*VEIL.dustPerH,ready:0});}
-  return {seed,routes,dust,fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels:[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'H₂ → 空白をつなぐ'},{x:530,y:-3660,text:'外縁の流れ ↑ H₂'}]};
+  return {seed,routes,dust,fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels:[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'静かな切れ目'},{x:530,y:-3660,text:'外縁の強流 ↑ H₂ BURST'}]};
 }

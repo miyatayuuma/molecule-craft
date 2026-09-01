@@ -11,8 +11,8 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=36">
-  <link rel="stylesheet" href="./veil.css?v=36">
+  <link rel="stylesheet" href="./styles.css?v=37">
+  <link rel="stylesheet" href="./veil.css?v=37">
 </head>
 <body>
   <main class="app-shell">
@@ -102,22 +102,21 @@
     <details id="recipe-connections"><summary>原子と結合を確認</summary><p id="recipe-bonds"></p></details><p id="molecule-use" class="muted"></p>
     <div class="supply-production"><span id="molecule-stock" role="status"></span><button id="make-h2" type="button" hidden>生成 · 長押し</button></div><p id="molecule-cost" class="muted"></p>
     <p class="supply-stockline">H₂ <b id="resource-h2">0</b> · CH₄ <b id="resource-ch4">0</b> · O₂ <b id="resource-o2">0</b> · H₂O <b id="resource-water">0</b></p>
-    <div id="supply-systems" hidden><label for="drive-select">使う推進</label><select id="drive-select"><option value="hydrogen">H₂ · 水素推進</option><option value="combustion">CH₄ + 2 O₂ · 燃焼推進</option></select></div>
-    <label id="cooling-setting" class="cooling-setting" hidden><input id="auto-cooling" type="checkbox" checked> H₂Oで熱に応じて自動冷却</label>
+    <div id="supply-systems" class="supply-systems" hidden><strong>探索時の自動搭載</strong><p id="supply-propulsion-note" class="muted"></p></div>
     <label for="expedition-anchor">次にたどる流れ</label><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veilへ補給</option></select>
     <p class="muted">構造を知らなくても、正しく組めば発見できる。一度完成すると、原子を使って長押しで量産。図鑑の完成率は進行条件ではありません。</p>
   </div></dialog>
   <section id="veil-view" aria-label="原子宇宙を探索" tabindex="-1" hidden>
     <canvas id="veil-canvas" aria-label="水素の流れを飛ぶフィールド"></canvas>
-    <div class="veil-hud"><div class="veil-stock"><span>H / STOCK</span><strong id="veil-h">0</strong><small id="veil-gained">+0</small><small id="veil-minerals"></small></div><div id="veil-chain-block" class="veil-chain-block"><span>CHAIN</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button">帰還 ↗</button></div></div>
-    <div class="veil-title"><small>ATOMIC UNIVERSE</small><h2 id="veil-region-name">H Veil</h2><p id="veil-region-subtitle">水素の帳</p></div><div id="veil-thermal" class="veil-thermal" hidden><span id="veil-heat-label">熱 0%</span><div><i id="veil-heat-meter"></i></div><small id="veil-cooling-status"></small></div>
+    <div class="veil-hud"><div class="veil-stock"><span>EXPEDITION CARGO</span><strong id="veil-h">H 0</strong><small id="veil-gained">拠点 H 0</small><small id="veil-minerals"></small></div><div id="veil-chain-block" class="veil-chain-block"><span>FLOW</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button">帰還 ↗</button></div></div>
+    <div class="veil-title"><small>ATOMIC UNIVERSE</small><h2 id="veil-region-name">H Veil</h2><p id="veil-region-subtitle">水素の帳</p></div><div id="veil-threat" class="veil-threat" hidden><span>DUST EATERS</span><b id="veil-eater-count">0</b><div><i id="veil-threat-meter"></i></div><small id="veil-eater-distance"></small></div>
     <p id="veil-save-warning" class="veil-save-warning" role="status"></p>
     <p id="veil-message" class="veil-message" role="status" hidden></p>
     <div id="veil-craft-prompt" class="veil-prompt" hidden><button id="veil-to-craft" type="button">Hが集まった · H₂を作りに戻る ↗</button></div>
-    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-drive-switch" type="button" hidden>水素 ⇄ 燃焼</button><button id="veil-boost" type="button" aria-label="H₂ブースト。1個消費。キーボードはスペース"><strong id="veil-drive-label">H₂</strong><small>BOOST</small><span id="veil-fuel">0</span></button></div></div>
+    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-combustion" type="button" aria-label="CH₄とO₂の燃焼推進。押している間だけ作動。キーボードはShift" aria-pressed="false" hidden><strong>CH₄ + O₂</strong><small>HOLD DRIVE</small><span id="veil-combustion-fuel">0</span></button><button id="veil-boost" type="button" aria-label="H₂ BURST。1個消費。キーボードはスペース"><strong>H₂</strong><small>BURST</small><span id="veil-fuel">0</span></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
-  <script type="module" src="./src/app-v14.js?v=36"></script>
+  <script type="module" src="./src/app-v14.js?v=37"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>
