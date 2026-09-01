@@ -36,3 +36,14 @@ Baseline: `main` at `1e0dde91a60a6a741a2e983ffdb12be20f0dd0c9` (Task 2 merged).
 - Pending: Phase 6 integration reviews, mobile-width visual verification, full test/PWA run, and final PR sync.
 - Tests: focused expedition, return VFX, Task 1 loss-particle, audio, supply, and DOM interaction suites pass.
 - Next: commit and checkpoint Phase 4–5, then review the complete craft → supply → expedition → return loop twice.
+
+## Phase 6 — integrated loop review
+
+- Review 1, system consistency: H₂ capacity 3; COMBUSTION capacity CH₄ 18 / O₂ 36 = 18 packets = 36 seconds; HUD, supply preview, tank transfer, and engine consumption use the same constants and limiting-fuel calculation. Normal return keeps all cargo; emergency return still applies the existing cargo-only 15% loss once at settlement.
+- Review 2, player understanding: `BASE ELEMENTS → MOLECULE STOCK`, `BASE STOCK → COLLECTOR SHELL`, and `EXPEDITION CARGO` remain distinct in the production, supply, and flight surfaces. Shortage actions preselect the exact production quantity; ANCHOR LOCK and field-disruption copy explain stable versus emergency retrieval without a recurring modal.
+- Mobile verification: public PR preview checked at 390×844 and 320×568. Supply remains vertically scrollable with no horizontal overflow; quantity controls are 42–48 px high. A discovered top-HUD overflow was fixed by moving the sound control below return and hiding only cosmetic FLOW below 370 px.
+- PWA/save: runtime URL revision advanced to 39; generated precache rebuilt to release `423788c1805f061c` with 234 hashed assets. Schema 1/2 migration, schema 3 reload, quota rollback, stale-tab protection, and offline fetch pass.
+- Changed in final review: `src/veil/ui.js`, `veil.css`, `index.html`, mobile fixture/source contracts, PWA test references, and generated `precache-manifest.js`.
+- Tests: all 28 `*.test.mjs` suites pass; both jsdom production integration suites pass; repository hygiene passes with zero warnings.
+- Pending: commit the final review fixes, sync the complete branch, and mark the draft PR ready.
+- Next: no implementation phase remains.
