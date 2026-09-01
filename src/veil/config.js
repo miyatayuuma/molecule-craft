@@ -1,11 +1,11 @@
 // World units / seconds. Tune feel here; resource units are not individual atoms.
 export const VEIL = Object.freeze({
-  speed: 172, driftSpeed: 30, acceleration: 7, releaseDrag: 3.2,
+  speed: 164, driftSpeed: 29, acceleration: 7.5, releaseDrag: 3.2,
   turnRate: 5.8, boostTurnRate: 8.5, turnResponse: 9, reverseAssist: 1.45,
   velocityGrip: 10, boostGrip: 15, cornerSpeed: .64,
-  boostSpeed: 640, boostAcceleration: 17, boostSeconds: 1.08, boostCooldown: .28, boostCost: 1,
-  chainSeconds: 1.5, chainSpeedBonus: .09, chainRadiusBonus: 16, feverChain: 100,
-  suctionRadius: 40, boostRadius: 72, assistRadius: 78, assistStrength: .22,
+  boostAcceleration: 21, boostCooldown: .35,
+  chainSeconds: 1.45, feverChain: 80,
+  suctionRadius: 30, assistRadius: 78, assistStrength: .22,
   suctionSeconds: .3, feverSuctionSeconds: .18, suctionBend: 35,
   dustSpacing: 30, denseSpacing: 21, dustValue: 1, dustPerH: 3, rareValue: 8,
   denseLaneOffset: 21, shoulderOffset: 88, shoulderLanes: 2,
@@ -20,6 +20,27 @@ export const VEIL = Object.freeze({
   bounds: {left:-1100, right:1250, top:-4350, bottom:500},
   spawn: {x:0, y:180, angle:-Math.PI/2},
   gate: {x:530, y:-3800, width:460, height:140},
+});
+// Expedition-only limits and pursuit tuning. Base inventories remain uncapped;
+// these values describe what one sortie can use and how pressure escalates.
+export const EXPEDITION = Object.freeze({
+  hydrogenCapacity: 4,
+  combustionCapacity: 6,
+  captureLoss: .15,
+  safeSeconds: 18,
+  threatPerSecond: 1,
+  threatPerDustUnit: .03,
+  eaterThresholds: [10, 38, 70, 105, 145],
+  eaterSpawnDistance: 620,
+  eaterSpeed: 178,
+  eaterAcceleration: 3.2,
+  eaterTurnRate: 4.4,
+  eaterGrip: 5.2,
+  eaterContactRadius: 38,
+  eaterSeparationRadius: 135,
+  eaterSeparationForce: 65,
+  eaterWarningRadius: 470,
+  eaterDangerRadius: 260,
 });
 export const VEIL_AUDIO = Object.freeze({
   master: .25, pickupInterval: .075, pickupSeconds: .15,

@@ -38,13 +38,13 @@ export function createUniverse(seed=1){
   }
   for(const [region,x,y]of [['veil',390,-650],['carbon',840,-5660],['oxygen',-610,-8290]])map.signals.push({region,x:x+(rng()-.5)*60,y:y+(rng()-.5)*60,ready:false,roll:rng(),choice:rng()});
   map.fields.push({x:720,y:-5540,radius:210,phase:rng()*4,angle:-.4},{x:700,y:-9160,radius:290,phase:rng()*4,angle:Math.PI*.7},{x:-110,y:-10200,radius:300,phase:rng()*4,angle:.5});
-  map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'冷たい縁 · H / C / O'},{x:150,y:-8840,text:'高温・逆流 ↑  燃焼推進 + 冷却'},{x:100,y:-11980,text:'さらに奥に、違う光…'});
+  map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:150,y:-8840,text:'高温・逆流 ↑  COMBUSTION DRIVE'},{x:100,y:-11980,text:'さらに奥に、違う光…'});
   return map;
 }
 // Strata span the whole world. These are velocities and heat, not key flags.
 function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/fade),0,1);}
 export function environmentAt(p,time=0){
-  const outer=band(p.y,-4300,-3690,125),hot=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
+  const outer=band(p.y,-4100,-3690,105),hot=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
   return {pressure:outer*255+hot*310,flowX:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48,heat:hot*32+oxygen*(1-hot)*(1-coolEddy)*3,intensity:hot,eddy:coolEddy};
 }
@@ -52,7 +52,7 @@ export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;
   for(const d of map.dust)if(d.flow){const phase=((time*d.flow.speed/d.flow.span+d.flow.phase)%1-.5)*d.flow.span;d.x=d.baseX+Math.cos(d.angle)*phase;d.y=d.baseY+Math.sin(d.angle)*phase;}
   for(const cluster of map.clusters){
-    if(time>=cluster.ready&&Math.hypot(p.x-cluster.x,p.y-cluster.y)<cluster.radius+(p.boost>0?22:0)){
+    if(time>=cluster.ready&&Math.hypot(p.x-cluster.x,p.y-cluster.y)<cluster.radius+(p.boost>0||p.combustion?22:0)){
       cluster.ready=time+GROWTH.clusterRespawn;cluster.burstAt=time;for(const d of cluster.particles)d.ready=0;run.events.push({type:'cluster',x:cluster.x,y:cluster.y});
     }
     const age=time-cluster.burstAt;if(age<0||age>GROWTH.clusterRespawn)continue;

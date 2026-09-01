@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createMap,sampleLine} from '../src/veil/map.js';
-import {createRun,stepRun,beginBoost,createFlight,moveFlight} from '../src/veil/engine.js';
+import {createRun,stepRun,beginBurst} from '../src/veil/engine.js';
 import {VEIL} from '../src/veil/config.js';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
@@ -22,19 +22,20 @@ const noSpace=createResources({storage:{getItem:()=>null,setItem:()=>{throw Erro
 const m1=createMap(42),m2=createMap(42),m3=createMap(43);assert.deepEqual(m1,m2);assert.deepEqual(m1.routes,m3.routes);assert.notDeepEqual(m1.fields,m3.fields);
 assert.ok(m1.routes.some(x=>x.id==='risk'));assert.ok(m1.routes.some(x=>x.id==='safe'));
 for(const route of m1.routes)for(let i=1;i<route.points.length;i++)assert.ok(Math.hypot(route.points[i].x-route.points[i-1].x,route.points[i].y-route.points[i-1].y)<33);
-const fly=createRun(createMap(1));for(let i=0;i<180;i++)stepRun(fly,{x:0,y:-1},1/60);assert.ok(fly.collected>=3);assert.ok(fly.best>=10);assert.ok(fly.effects.length<=VEIL.maxEffects);
+const fly=createRun(createMap(1),VEIL,{predators:false});for(let i=0;i<180;i++)stepRun(fly,{x:0,y:-1},1/60);assert.ok(fly.collected>=3);assert.ok(fly.best>=10);assert.ok(fly.effects.length<=VEIL.maxEffects);
 const chain=fly.chain;for(let i=0;i<120;i++)stepRun(fly,{x:0,y:0},1/60);assert.equal(fly.chain,0);assert.ok(chain>0);
-// Gap is geometrical, not a flag: the same two lines with identical timing rules.
-function gap(boost){const points=[...sampleLine([[0,0],[0,-180]]),...sampleLine([[0,-640],[0,-1200]])];const map={dust:points.map((p,id)=>({...p,id,value:1,kind:'normal',ready:0})),fields:[]};const run=createRun(map);run.player.x=0;run.player.y=0;run.player.speed=VEIL.speed;let cuts=0,used=false;for(let i=0;i<420;i++){if(boost&&!used&&run.player.y<-150){assert.ok(beginBoost(run.player,()=>true));used=true;}for(const e of stepRun(run,{x:0,y:-1},1/60))if(e.type==='chainEnd'&&run.player.y>-700)cuts++;if(run.player.y<-750)break;}return cuts;}
-assert.ok(gap(false)>0);assert.equal(gap(true),0,'H₂ should bridge the actual blank interval');
-function gate(boost){const run=createRun(createMap(2));Object.assign(run.player,{x:VEIL.gate.x,y:VEIL.gate.y+130,angle:-Math.PI/2,speed:VEIL.speed});if(boost)beginBoost(run.player,()=>true);for(let i=0;i<120;i++)stepRun(run,{x:0,y:-1},1/60);return run;}
+// The gap is still a readable phrase break, but CHAIN/FLOW is feedback rather
+// than the reason to spend emergency fuel.
+function gap(){const points=[...sampleLine([[0,0],[0,-180]]),...sampleLine([[0,-640],[0,-1200]])];const map={dust:points.map((p,id)=>({...p,id,value:1,kind:'normal',ready:0})),fields:[]};const run=createRun(map,VEIL,{predators:false});run.player.x=0;run.player.y=0;run.player.speed=VEIL.speed;let cuts=0;for(let i=0;i<420;i++){for(const e of stepRun(run,{x:0,y:-1},1/60))if(e.type==='chainEnd'&&run.player.y>-700)cuts++;if(run.player.y<-750)break;}return cuts;}
+assert.ok(gap()>0);
+function gate(boost){const run=createRun(createMap(2),VEIL,{fuel:{hydrogen:1},predators:false});Object.assign(run.player,{x:VEIL.gate.x,y:VEIL.gate.y+130,angle:-Math.PI/2,speed:VEIL.speed});if(boost)beginBurst(run,()=>true);for(let i=0;i<120;i++)stepRun(run,{x:0,y:-1},1/60);return run;}
 assert.equal(gate(false).gatePassed,false);assert.equal(gate(true).gatePassed,true);
 // Follow authored route points with a human-like look-ahead, not teleportation.
-function circuit(seed,risk=false){const run=createRun(createMap(seed)),routeIds=['entry',risk?'risk':'safe','detour','return'];let fuel=0;for(const id of routeIds){const route=run.map.routes.find(x=>x.id===id);let index=0,frames=0;while(index<route.points.length&&frames++<60*100){const p=run.player;while(index<route.points.length-1&&Math.hypot(route.points[index].x-p.x,route.points[index].y-p.y)<75)index++;const target=route.points[index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(index===route.points.length-1&&d<70)break;if(risk&&id==='risk'&&p.y<-1550&&p.y>-1750&&fuel===0){beginBoost(p,()=>true);fuel++;}stepRun(run,{x:dx/d,y:dy/d},1/60);if(run.lap)break;}assert.ok(frames<60*100,`${id} must not trap the player`);}assert.ok(run.lap,'Return loop should cross its start');return {seed,risk,seconds:Math.round(run.time),H:run.collected,best:run.best,fuel};}
+function circuit(seed,risk=false){const run=createRun(createMap(seed),VEIL,{fuel:{hydrogen:1},predators:false}),routeIds=['entry',risk?'risk':'safe','detour','return'];let fuel=0;for(const id of routeIds){const route=run.map.routes.find(x=>x.id===id);let index=0,frames=0;while(index<route.points.length&&frames++<60*100){const p=run.player;while(index<route.points.length-1&&Math.hypot(route.points[index].x-p.x,route.points[index].y-p.y)<75)index++;const target=route.points[index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(index===route.points.length-1&&d<70)break;if(risk&&id==='risk'&&p.y<-1550&&p.y>-1750&&fuel===0){if(beginBurst(run,()=>true))fuel++;}stepRun(run,{x:dx/d,y:dy/d},1/60);if(run.lap)break;}assert.ok(frames<60*100,`${id} must not trap the player`);}assert.ok(run.lap,'Return loop should cross its start');return {seed,risk,seconds:Math.round(run.time),H:run.collected,best:run.best,fuel};}
 const laps=[circuit(41),circuit(42,true),circuit(43)];for(const lap of laps){assert.ok(lap.seconds>=55&&lap.seconds<=180);assert.ok(lap.H>=80&&lap.H<=350);}
 console.log('H Veil simulation:',JSON.stringify(laps));
-console.log('Resources, atomic migration, corruption/conflict/quota, movement, chains, authored map, boost gap and gate passed. Simulations do not establish subjective fun.');
+console.log('Resources, atomic migration, corruption/conflict/quota, movement, FLOW feedback, authored map and physical BURST gate passed. Simulations do not establish subjective fun.');
 
-const fpsRuns=[15,30,60].map(fps=>{const run=createRun(createMap(77));for(let frame=0;frame<fps*5;frame++)stepRun(run,{x:0,y:-1},1/fps);return run;});
+const fpsRuns=[15,30,60].map(fps=>{const run=createRun(createMap(77),VEIL,{predators:false});for(let frame=0;frame<fps*5;frame++)stepRun(run,{x:0,y:-1},1/fps);return run;});
 for(const run of fpsRuns){assert.ok(Math.abs(run.player.y-fpsRuns[2].player.y)<.1);assert.equal(run.collected,fpsRuns[2].collected);assert.equal(run.best,fpsRuns[2].best);}
 console.log('15/30/60fps: matching path, resources and chain.');
