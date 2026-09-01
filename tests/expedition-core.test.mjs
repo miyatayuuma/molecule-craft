@@ -44,6 +44,7 @@ const chaseConfig={...flightConfig(),bounds:{left:-20000,right:40000,top:-20000,
 const chase=()=>createRun(emptyMap(),chaseConfig,{fuel:{hydrogen:EXPEDITION.hydrogenCapacity,methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity}});
 const advance=(run,seconds,systems={})=>{for(let i=0;i<seconds*60&&!run.captured;i++)stepRun(run,{x:1,y:0},1/60,systems);};
 const safe=chase();advance(safe,EXPEDITION.safeSeconds-.1);assert.equal(safe.eaters.length,0,'The opening of every expedition is safe');advance(safe,11);assert.equal(safe.eaters.length,1);assert.ok(safe.nearestEater>EXPEDITION.eaterWarningRadius);
+assert.equal(EXPEDITION.anchorLockSeconds,.8);assert.ok(EXPEDITION.eaterSpeed*EXPEDITION.anchorLockSeconds<EXPEDITION.eaterDangerRadius,'A lock started outside the danger radius is mechanically fair');assert.ok(DRIVES.hydrogen.boostSpeed*DRIVES.hydrogen.boostSeconds>EXPEDITION.eaterSpeed*EXPEDITION.anchorLockSeconds*3,'BURST creates materially more separation than one lock interval consumes');
 
 const normal=chase();advance(normal,240);assert.ok(normal.captured);assert.ok(normal.time>EXPEDITION.safeSeconds+20);assert.ok(normal.eaters.length>=3,'Long stays add pursuers instead of scaling one enemy forever');
 
