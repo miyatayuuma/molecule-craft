@@ -108,14 +108,12 @@ assert.equal(interrupted.workspace.atoms.length,1);assert.equal(interrupted.elem
 assert.equal(interrupted.elements.H+interrupted.workspace.atoms.filter(a=>a.element==='H').length,total);
 console.log('Interrupted atom deletion preserves the H balance atomically before settlement.');
 
-// Hold synthesis runs the actual UI callback; release stops inventory changes.
-game=await setup(null,30,saved);const make=q('make-h2'),beforeHold=game.run('resources.state.molecules.hydrogen');
-const down=new game.window.MouseEvent('pointerdown',{bubbles:true,cancelable:true,button:0});Object.defineProperty(down,'pointerId',{value:31});make.dispatchEvent(down);
-assert.equal(game.run('resources.state.molecules.hydrogen'),beforeHold+1,'Immediate one on contact');
-await new Promise(resolve=>setTimeout(resolve,540));
-const up=new game.window.MouseEvent('pointerup',{bubbles:true});Object.defineProperty(up,'pointerId',{value:31});make.dispatchEvent(up);
-const afterHold=game.run('resources.state.molecules.hydrogen');assert.ok(afterHold>=beforeHold+3);
-await new Promise(resolve=>setTimeout(resolve,190));assert.equal(game.run('resources.state.molecules.hydrogen'),afterHold,'Release cancels production');
+// Explicit quantity synthesis commits one atomic batch. A second tap while the
+// conversion animation is active cannot duplicate that batch.
+game=await setup(null,30,saved);const make=q('make-h2'),beforeBatch=game.run('resources.state.molecules.hydrogen');
+q('production-add-5').click();assert.equal(q('production-quantity').value,'6');assert.match(q('molecule-cost').textContent,/H × 12/);
+make.click();make.click();assert.equal(game.run('resources.state.molecules.hydrogen'),beforeBatch+6,'Double tap cannot duplicate an in-flight batch');assert.equal(game.run('veilUI.active'),false);assert.equal(q('synthesis-stage').hidden,false);assert.ok(q('synthesis-atoms').children.length<=12);
+await new Promise(resolve=>setTimeout(resolve,680));assert.equal(q('synthesis-stage').hidden,true);assert.equal(make.disabled,false);
 // Cancellation of the full reset is a no-op, confirmation commits once.
 q('open-menu').click();game.window.confirm=()=>false;const beforeReset=game.window.localStorage.getItem('molecule-craft.resources.v1');q('reset-all').click();assert.equal(game.window.localStorage.getItem('molecule-craft.resources.v1'),beforeReset);
 game.window.confirm=()=>true;q('reset-all').click();assert.equal(game.reloads,1);
@@ -124,7 +122,7 @@ game.window.dispatchEvent(new game.window.Event('pagehide'));assert.equal(game.w
 game=await setup(null,0,resetSave,resetBook);
 assert.equal(game.run('resources.state.elements.H'),0);assert.equal(game.run('resources.state.molecules.hydrogen'),0);assert.equal(game.run('resources.state.recipes.length'),0);assert.equal(game.run('molecule.atoms.length'),0);assert.equal(game.run('collectionGame.state.discoveredCount'),0);assert.equal(q('make-h2').hidden,true);
 q('launch-veil').click();game.window.dispatchEvent(new game.window.KeyboardEvent('keydown',{key:'ArrowUp'}));for(let i=0;i<200;i++)game.tick();assert.ok(game.run('veilUI.run.collectedElements.H')>0);assert.equal(game.run('resources.state.elements.H'),0);q('veil-return').click();finishReturn();assert.ok(game.run('resources.state.elements.H')>0);
-console.log('Hold synthesis, reset cancellation, empty collection/recipe/workspace reboot and a fresh first collection passed.');
+console.log('Quantity synthesis, duplicate-tap guard, reset cancellation, empty collection/recipe/workspace reboot and a fresh first collection passed.');
 
 // New exploration access reveals C/O in the same palette. A paid handmade CH₄
 // is learned and stored once; the generic supply control then mass-produces it.
@@ -134,7 +132,7 @@ assert.equal(q('stock-c').hidden,false);assert.equal(q('stock-o').hidden,false);
 game.run(`resources.spend({C:1,H:4});globalThis.hcoIds=['C','H','H','H','H'].map((element,i)=>{const atom=molecule.addAtom(element);placements.set(atom.id,{position:new THREE.Vector3(i,0,0)});return atom.id;});for(let i=1;i<5;i++)molecule.setBond(hcoIds[0],hcoIds[i],1);topologyChanged();refresh();`);
 assert.equal(game.run("resources.state.recipes.includes('methane')"),true);assert.equal(q('store-h2').hidden,false);q('store-h2').click();assert.equal(game.run('resources.state.molecules.methane'),1);assert.equal(game.run('molecule.atoms.length'),0);
 q('open-supply').click();assert.equal(q('supply-dialog').open,true);const recipeValues=[...q('molecule-select').options].map(option=>option.value);assert.ok(recipeValues.includes('methane')&&recipeValues.includes('oxygen')&&recipeValues.includes('water'));
-q('molecule-select').value='methane';q('molecule-select').dispatchEvent(new game.window.Event('change',{bubbles:true}));const hBeforeMethane=game.run('resources.state.elements.H'),cBeforeMethane=game.run('resources.state.elements.C');q('make-h2').click();assert.equal(game.run('resources.state.elements.H'),hBeforeMethane-4);assert.equal(game.run('resources.state.elements.C'),cBeforeMethane-1);
+q('molecule-select').value='methane';q('molecule-select').dispatchEvent(new game.window.Event('change',{bubbles:true}));const hBeforeMethane=game.run('resources.state.elements.H'),cBeforeMethane=game.run('resources.state.elements.C');q('production-add-5').click();assert.equal(q('production-quantity').value,'6');assert.match(q('molecule-cost').textContent,/C × 6.*H × 24/);q('make-h2').click();q('make-h2').click();assert.equal(game.run('resources.state.elements.H'),hBeforeMethane-24);assert.equal(game.run('resources.state.elements.C'),cBeforeMethane-6);assert.equal(q('synthesis-formula').textContent,'CH₄');assert.ok(q('synthesis-atoms').children.length<=12);
 game.run(`resources.discover('hydrogen');resources.discover('oxygen');resources.discover('water');resources.makeMolecule('hydrogen',2);resources.makeMolecule('methane',2);resources.makeMolecule('oxygen',4);resources.makeMolecule('water',2);resources.visit('oxygen');veilUI.updateCraft();`);
 q('expedition-anchor').value='oxygen';q('expedition-anchor').dispatchEvent(new game.window.Event('change',{bubbles:true}));q('supply-dialog').close();
 q('launch-veil').click();assert.equal(q('veil-combustion').hidden,false);const methaneFuel=game.run('resources.state.molecules.methane'),oxygenFuel=game.run('resources.state.molecules.oxygen'),waterFuel=game.run('resources.state.molecules.water');
