@@ -5,6 +5,7 @@ const source = await readFile(new URL('../src/chemistry.js', import.meta.url), '
 const chemistry = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const records = JSON.parse(await readFile(new URL('../data/molecules.json', import.meta.url), 'utf8'));
 chemistry.setMoleculeDatabase(records);
+assert.ok(records.length >= 100, `Expected at least 100 molecule records, got ${records.length}`);
 
 function moleculeFrom(record, reverse = false) {
   const molecule = new chemistry.Molecule();

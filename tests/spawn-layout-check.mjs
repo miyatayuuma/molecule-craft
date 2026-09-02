@@ -8,12 +8,13 @@ import {ELEMENTS,Molecule,countElements} from '../src/chemistry.js';
 import {unpairedElectronCount,lonePairCount,valenceShellRadius} from '../src/bonding-model.js?v=31';
 import {createPreviewModel} from '../src/preview-model.js?v=31';
 import {expandCraftStructure} from '../src/craft-structures.js?v=31';
+import {createCraftWorkspace} from '../src/craft-workspace.js?v=1';
 import {createResources} from '../src/veil/resources.js';
 if(!process.argv[2])throw new Error('Pass the path to three.module.js');
 const THREE=await import(pathToFileURL(process.argv[2]));
 const templates=JSON.parse(await readFile(new URL('../data/craft-structures.json',import.meta.url)));
 console.log(checkSpawnLayouts(THREE,templates));
-const app=await readFile(new URL('../src/app.js?v=41',import.meta.url),'utf8');
+const app=await readFile(new URL('../src/app.js?v=42',import.meta.url),'utf8');
 const section=(a,b)=>app.slice(app.indexOf(`function ${a}(`),app.indexOf(`function ${b}(`));
 const source=section('addElement','onPointerDown')+section('spawnRadius','disposeObject')+section('updateStructureFrame','updateDebris');
 function workspace(distance){
@@ -30,6 +31,7 @@ function workspace(distance){
     atomById:id=>scope.molecule.atoms.find(a=>a.id===id),bondBetween:(a,b)=>scope.molecule.bonds.find(bond=>(bond.a===a&&bond.b===b)||(bond.a===b&&bond.b===a)),
     startRelaxation:()=>{throw new Error('Pre-solved parts must not relax again after fitting');},
     cameraRight:()=>new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0),cameraUp:()=>new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1),cameraDirection:()=>target.clone().sub(camera.position).normalize()};
+  scope.craftWorkspace=createCraftWorkspace({molecule:scope.molecule,placements:scope.placements,resources});
   runInNewContext(source,scope);return scope;
 }
 const room=workspace(10),cameraBefore=room.camera.position.clone(),targetBefore=room.cameraTarget.clone();room.addElement('C');room.addElement('H');

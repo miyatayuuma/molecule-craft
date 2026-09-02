@@ -10,6 +10,10 @@
 | マップ・塵・流れ | `src/veil/map.js`, `src/veil/universe.js` | `growth.test.mjs`, `veil-playthrough.test.mjs` |
 | 探索描画・HUD・音 | `src/veil/renderer.js`, `src/veil/ui.js`, `src/veil/audio.js`, `veil.css` | `veil-ui-check.mjs` |
 | 探索資源・帰還・保存 | `src/veil/resources.js`, `src/veil/supply.js` | `expedition-core.test.mjs`, `veil-reset.test.mjs` |
+| BASE STOCK入出庫・原子追加/削除/片付け | `src/craft-workspace.js` | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
+| クラフトのボタン・パレット操作 | `src/craft-controls.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
+| クラフト情報・構造一覧・完成表示 | `src/craft-panel.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
+| クラフトと図鑑・探索の接続 | `src/craft-connections.js` | `source-contracts.test.mjs`, `veil-ui-check.mjs` |
 | 結合操作 | `src/app.js`, `src/bonding-model.js`, `src/electron-interaction.js`, `src/gesture-arbitration.js` | `bond-state.test.mjs`, `mobile-ui-check.mjs` |
 | 3D配置・補正 | `src/conformation-engine.js`, `src/structure-relaxation.js`, `src/structure-motion.js`, `src/structure-settlement.js` | `conformation-regression.test.mjs`, `structure-relaxation.test.mjs` |
 | 分子変形・単結合回転 | `src/conformation-engine.js`, `src/torsion-model.js`, `src/structure-edit.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
@@ -20,12 +24,16 @@
 ## アプリ入口
 
 - `index.html`：本番DOM。読み込むアプリ入口は固定名の `src/app.js`。
-- `src/app.js`：Three.js制作画面、入力、発見、図鑑、資源、探索を接続する統合層。
+- `src/app.js`：固定entrypoint。Three.jsシーン、3D入力、結合・構造変形の統合と起動順だけを担当する。
+- `src/craft-workspace.js`：BASE STOCKとの原子入出庫と、制作グラフの追加・削除・全片付け・整理復元。
+- `src/craft-controls.js`：クラフト画面のDOMイベント登録。
+- `src/craft-panel.js`：分子情報、選択原子、構造一覧、完成表示のDOM更新。
+- `src/craft-connections.js`：探索UI・進捗初期化・図鑑遅延読込・保存ライフサイクルの接続。
 - `styles.css`：クラフト・図鑑・共通UI。
 - `veil.css`：探索画面と推進UI。
 - `src/pwa.js`：PWAインストール、更新通知、安全な再起動。
 
-`src/app.js` は起動時にクラフトと探索を構成し、分子DB読込後に `collection-ui.js`、図鑑模型が必要になった時点で `collection-viewer.js` を遅延importします。
+`src/app.js` は各小モジュールを組み合わせて起動します。分子DB読込後の `collection-ui.js` 遅延importは `craft-connections.js`、図鑑模型の遅延importは `collection-ui.js` が担当します。
 
 ## 探索ゲーム
 
@@ -51,6 +59,11 @@
 
 | 領域 | 担当 |
 |---|---|
+| BASE STOCKから取り出す／戻す | `src/craft-workspace.js` |
+| 原子・部品の追加、個別削除、全片付け、整理と復元 | `src/craft-workspace.js`（配置候補の計算と3D反映は `src/app.js`） |
+| パレット・構造切替・削除・片付けのイベント | `src/craft-controls.js` |
+| 分子名・式・選択情報・構造一覧・完成表示 | `src/craft-panel.js` |
+| 図鑑と探索画面への接続 | `src/craft-connections.js` |
 | 分子グラフ・式・DB認識 | `src/chemistry.js` |
 | 原子価・電子・結合許可・幾何 | `src/bonding-model.js` |
 | 電子／原子／結合のポインタ判定 | `src/electron-interaction.js`, `src/gesture-arbitration.js` |
@@ -114,6 +127,7 @@
 | 入力・長押し | `electron-interaction.test.mjs`, `gesture-arbitration.test.mjs`, `hold-action.test.mjs` |
 | 配置・補正・torsion | `conformation-regression.test.mjs`, `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |
 | workspace保存 | `workspace-save.test.mjs`, `workspace-model.test.mjs` |
+| BASE STOCK入出庫・制作グラフ操作 | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
 | 探索・成長・資源 | `expedition-core.test.mjs`, `growth.test.mjs`, `veil*.test.mjs` |
 | 探索バランスシミュレーション | `expedition-balance.test.mjs`, `scripts/simulate-expedition.mjs` |
 | 本番DOM統合 | `mobile-ui-check.mjs`, `veil-ui-check.mjs` |

@@ -18,7 +18,7 @@
 ## Scope rules
 
 - Exploration changes: start with the relevant files under `src/veil/`; do not open molecule data unless the change concerns recipes or molecule roles.
-- Craft changes: start with `src/app.js` and the craft modules named in `docs/architecture.md`.
+- Craft inventory, atom actions, controls, and panel changes: start with the owning `src/craft-*.js` module named in `docs/architecture.md`; open `src/app.js` only when the change crosses into Three.js integration or startup.
 - Collection changes: start with `src/collection-*.js`, `src/functional-groups.js`, and only the required data records.
 - PWA changes: start with `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs`, and `tests/pwa.test.mjs`.
 - Preserve current gameplay, saved-data compatibility, and offline behavior unless the task explicitly changes them.

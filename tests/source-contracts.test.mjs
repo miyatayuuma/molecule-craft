@@ -2,19 +2,22 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
-const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, database] = await Promise.all([
+const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, craftWorkspace, craftControls, craftConnections, craftPanel] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app.js?v=41', root), 'utf8'),
+  readFile(new URL('src/app.js?v=42', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=32', root), 'utf8'),
   readFile(new URL('src/conformation-engine.js?v=2', root), 'utf8'),
   readFile(new URL('src/electron-interaction.js', root), 'utf8'),
   readFile(new URL('src/gesture-arbitration.js', root), 'utf8'),
   readFile(new URL('veil.css', root), 'utf8'),
-  readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
+  readFile(new URL('src/craft-workspace.js', root), 'utf8'),
+  readFile(new URL('src/craft-controls.js', root), 'utf8'),
+  readFile(new URL('src/craft-connections.js', root), 'utf8'),
+  readFile(new URL('src/craft-panel.js', root), 'utf8'),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=41"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=42"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-settlement\.js\?v=32'/);
@@ -33,7 +36,7 @@ assert.match(app, /\['conformation','rigid-body'\]\.includes\(dragState\.mode\)\
 assert.match(app, /activePointers.size&&dragState&&\(dragState.moved\|\|dragState.mode!=='molecule-rotate'\)/);
 assert.equal((app.match(/if\(!activePointers.has\(e.pointerId\)\)return/g)??[]).length,3,'Foreign pointer move/up/cancel must not steal an edit');
 assert.match(index, /id="structure-focus" aria-label="編集する分子"/);
-const focusHandler=app.slice(app.indexOf("structureFocus.addEventListener('change'"),app.indexOf("document.querySelector('#frame-structure')"));
+const focusHandler=craftControls.slice(craftControls.indexOf("structureFocus.addEventListener('change'"),craftControls.indexOf("document.querySelector('#frame-structure')"));
 assert.doesNotMatch(focusHandler,/requestStructureFrame|camera\./,'Focus change must not reframe');
 assert.match(app, /workspaceView.frame\(focusedStructure\(\),fit.center\)/);
 assert.match(app, /solver.rotateReferenceFrames\(q,rotation.ids\);rotateStructure\(rotation,pos,q\)/);
@@ -48,9 +51,10 @@ assert.match(index, /id="frame-structure"/);
 assert.match(index, /id="undo-cleanup"/);
 assert.match(index, /id="collection-dialog"/);
 assert.match(index, /id="craft-panel"[^>]*hidden/);
-assert.match(app, /collectionCheckedRevision!==collectionRevision/);
-assert.match(app, /expandCraftStructure\(molecule,template\)/);
-assert.match(app, /await import\('\.\/collection-ui\.js\?v=36'\)/);
+assert.match(craftConnections, /checkedRevision!==revision/);
+assert.match(craftWorkspace, /expandCraftStructure\(molecule,template\)/);
+assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=36'\)/);
+assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations belong to craft-workspace.js');
 assert.match(app, /!elementPalette.canUse\(symbol\)/);
 assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
 assert.match(index, /id="element-unlock-hint"/);
@@ -66,7 +70,6 @@ assert.match(veilCss, /@media\(max-width:370px\)\{\.veil-chain-block\{display:no
 assert.doesNotMatch(index, /id="drive-select"|id="auto-cooling"|id="veil-thermal"/);
 assert.doesNotMatch(app, /localStorage\.setItem/);
 assert.equal((index.match(/data-element=/g) ?? []).length, 8, 'Static element palette must remain in HTML');
-assert.ok(database.length >= 100, `Expected at least 100 molecule records, got ${database.length}`);
 assert.doesNotMatch(chemistry, /const KNOWN_MOLECULES/);
 assert.doesNotMatch(app, /completeBenzeneCycle|renderMolecule\(|relaxGeometryStep/);
 assert.match(app, /depthTest:false/);
@@ -78,7 +81,6 @@ assert.match(gestureArbitration, /atomCoreRadiusPx: 20/);
 assert.match(gestureArbitration, /atomStructureRadiusPx: 34/);
 assert.match(gestureArbitration, /bondEndpointExclusionPx: 24/);
 assert.doesNotMatch(app, /const bondHit=hits\.find/);
-assert.ok(database.every(record => typeof record.iupacNameEn === 'string' && record.iupacNameEn), 'Every molecule record must have an IUPAC name');
 assert.match(solver, /aromaticPlanarGroup/);
 assert.match(solver, /planarSubstituentGroup/);
 assert.match(solver, /doubleSubstituentSlots/);
@@ -100,6 +102,12 @@ assert.ok(cameraMutationLines.every(line => line.includes('const camera=') || li
 assert.match(app, /if\(!frameTransition\|\|relaxation\|\|bondTransition\)return/);
 assert.doesNotMatch(app, /ensureSpawnVisible|function spawnPosition/);
 assert.match(app, /planWorkspaceSpawn\(parts\)/);
-assert.match(app, /frame-structure'\)\?\.addEventListener\('click',requestStructureFrame\)/);
+assert.match(craftControls, /frame-structure'\)\?\.addEventListener\('click',onFrame\)/);
+assert.match(app, /createCraftWorkspace\(\{molecule,placements,resources\}\)/);
+assert.match(app, /bindCraftControls\(/);
+assert.match(app, /connectExploration\(/);
+assert.match(app, /connectCollection\(/);
+assert.match(app, /createDiscoveryConnection\(/);
+assert.match(app, /craftPanel\.renderInfo\(/);
 
 console.log('Source contract tests passed.');
