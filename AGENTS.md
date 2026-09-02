@@ -23,6 +23,13 @@
 - PWA changes: start with `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs`, and `tests/pwa.test.mjs`.
 - Preserve current gameplay, saved-data compatibility, and offline behavior unless the task explicitly changes them.
 
+## Task completion
+
+- Work implementation tasks are pre-authorized through completion: implement the requested change, run only the relevant tests, commit, push, create a pull request, and merge it into `main` when checks pass.
+- Do not stop for separate approval before commit, push, pull-request creation, or merge unless the task explicitly says to stop earlier or not to merge.
+- Do not re-read the repository, rerun unrelated tests, or repeat completed investigation only to prepare commit / PR / merge operations.
+- Finish the full implementation-to-merge sequence in the same task whenever possible so a follow-up request such as `commit`, `push`, `create PR`, or `merge` is unnecessary.
+
 ## Generated files
 
 - Do not edit generated outputs directly.
