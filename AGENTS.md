@@ -23,20 +23,20 @@
 - PWA changes: start with `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs`, and `tests/pwa.test.mjs`.
 - Preserve current gameplay, saved-data compatibility, and offline behavior unless the task explicitly changes them.
 
-## Execution authority
+## Task execution
 
-- Work is pre-authorized to carry repository tasks through completion without asking the user for permission or confirmation at intermediate steps.
-- Do not ask whether to inspect required files, edit code, refactor within the requested scope, regenerate required outputs, run relevant tests, fix regressions caused by the task, commit, push, create a pull request, or merge to `main`.
-- When implementation details are not specified, make the smallest reasonable decision that satisfies the requested behavior and preserves existing behavior outside the task instead of asking for approval.
-- Do not stop to present a plan for approval. Investigate only as much as needed, implement, validate, and finish the task.
-- Do not perform unrelated destructive changes. If authentication, branch protection, platform policy, or a tool limitation makes an authorized step impossible, report that concrete blocker rather than asking whether to proceed.
+- For implementation tasks, proceed through the requested implementation and validation without pausing solely for intermediate confirmation when repository and tool permissions already allow the next step.
+- When an implementation detail is unspecified, make the smallest reasonable decision that satisfies the requested behavior and preserves existing behavior outside the task.
+- Do not stop only to present a plan for approval. Investigate only as much as needed, implement, validate, and continue.
+- If the requested delivery includes Git operations and repository permissions permit them, complete commit, push, pull-request creation, and merge in the same workflow when checks pass.
+- Respect branch protection, required reviews, CI requirements, authentication boundaries, platform policy, and explicit limits in the task.
+- If a required step is blocked by permissions, policy, or tooling, report the concrete blocker instead of performing unrelated work.
 
 ## Task completion
 
-- Work implementation tasks are pre-authorized through completion: implement the requested change, run only the relevant tests, commit, push, create a pull request, and merge it into `main` when checks pass.
-- Do not stop for separate approval before commit, push, pull-request creation, or merge unless the task explicitly says to stop earlier or not to merge.
+- Run only the relevant tests and repository checks needed for the change.
 - Do not re-read the repository, rerun unrelated tests, or repeat completed investigation only to prepare commit / PR / merge operations.
-- Finish the full implementation-to-merge sequence in the same task whenever possible so a follow-up request such as `commit`, `push`, `create PR`, or `merge` is unnecessary.
+- When Git delivery is part of the task, finish the implementation-to-merge sequence in the same workflow whenever repository policy permits it, so unnecessary follow-up turns are avoided.
 
 ## Generated files
 
