@@ -13,7 +13,7 @@ if(!process.argv[2])throw new Error('Pass the path to three.module.js');
 const THREE=await import(pathToFileURL(process.argv[2]));
 const templates=JSON.parse(await readFile(new URL('../data/craft-structures.json',import.meta.url)));
 console.log(checkSpawnLayouts(THREE,templates));
-const app=await readFile(new URL('../src/app.js?v=40',import.meta.url),'utf8');
+const app=await readFile(new URL('../src/app.js?v=41',import.meta.url),'utf8');
 const section=(a,b)=>app.slice(app.indexOf(`function ${a}(`),app.indexOf(`function ${b}(`));
 const source=section('addElement','onPointerDown')+section('spawnRadius','disposeObject')+section('updateStructureFrame','updateDebris');
 function workspace(distance){
@@ -25,7 +25,7 @@ function workspace(distance){
   const scope={THREE,ELEMENTS,Molecule,countElements,resources,planSpawn,unpairedElectronCount,lonePairCount,valenceShellRadius,createPreviewModel,expandCraftStructure,
     camera,cameraTarget:target,molecule:new Molecule(),placements:new Map(),protectedUntil:new Map(),activePointers:new Map(),craftSpawnLayouts:new Map(),selectedAtomId:null,dragState:null,relaxation:null,frameTransition:null,bondTransition:null,reduceMotion:false,performance:{now:()=>1000},DEBRIS_POLICY:{protectionMs:8000},
     elementPalette:{canUse:()=>true},collectionGame:{templateFor:id=>templates.find(t=>t.id===id)},renderer:{domElement:{getBoundingClientRect:()=>({left:0,top:0,right:390,bottom:430,width:390,height:430})}},
-    document:{querySelector:()=>({getBoundingClientRect:()=>({bottom:74})})},rotationOptions:{hidden:true},selectionChip:{getBoundingClientRect:()=>({top:370})},pulse:()=>{},interactionLocked:()=>!!scope.frameTransition,
+    document:{querySelector:()=>({getBoundingClientRect:()=>({bottom:74})})},selectionChip:{getBoundingClientRect:()=>({top:370})},pulse:()=>{},interactionLocked:()=>!!scope.frameTransition,
     topologyChanged:()=>{},refresh:()=>{},refreshInfo:()=>{},selectAtom:id=>{scope.selectedAtomId=id;},pos:id=>scope.placements.get(id)?.position,
     atomById:id=>scope.molecule.atoms.find(a=>a.id===id),bondBetween:(a,b)=>scope.molecule.bonds.find(bond=>(bond.a===a&&bond.b===b)||(bond.a===b&&bond.b===a)),
     startRelaxation:()=>{throw new Error('Pre-solved parts must not relax again after fitting');},

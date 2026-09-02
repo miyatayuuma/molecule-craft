@@ -22,11 +22,11 @@ function benzene(chainLength=0){
   const record=builder(),ring=Array.from({length:6},()=>record.atom('C'));
   ring.forEach((id,index)=>record.bond(id,ring[(index+1)%6],index%2===0?2:1));
   for(let index=1;index<6;index++)record.hydrogens(ring[index],1);
-  if(!chainLength){record.hydrogens(ring[0],1);return{...record,id:'benzene',dragIndex:ring[0],expectMove:false,rigidIndices:ring};}
+  if(!chainLength){record.hydrogens(ring[0],1);return{...record,id:'benzene',dragIndex:ring[0],expectMove:true,rigidIndices:ring};}
   const chain=Array.from({length:chainLength},()=>record.atom('C'));record.bond(ring[0],chain[0]);
   for(let index=1;index<chain.length;index++)record.bond(chain[index-1],chain[index]);
   chain.forEach((id,index)=>record.hydrogens(id,chainLength===1?3:index===chain.length-1?3:2));
-  return{...record,id:chainLength===1?'toluene':'butylbenzene',dragIndex:chain[chain.length-1],expectMove:chainLength>1,rigidIndices:ring};
+  return{...record,id:chainLength===1?'toluene':'butylbenzene',dragIndex:chain[chain.length-1],expectMove:true,rigidIndices:ring};
 }
 
 function alkane(length=6){
@@ -104,8 +104,9 @@ try{
     const [dragX,dragY]=record.dragDelta??[145,185];
     const target={x:Math.max(point.rect.left+28,Math.min(point.rect.right-28,point.x+dragX)),y:Math.max(point.rect.top+70,Math.min(point.rect.bottom-70,point.y+dragY))};
     await page.mouse.move(point.x,point.y);await page.mouse.down();
-    const gesture=await page.evaluate(()=>({cue:document.querySelector('#rotation-cue')?.dataset.state??null,
-      cueHidden:document.querySelector('#rotation-cue')?.hidden??null,selection:document.querySelector('#selection-chip')?.textContent??null}));
+    const gesture=await page.evaluate(()=>({cuePresent:!!document.querySelector('#rotation-cue'),
+      axisPickerPresent:!!document.querySelector('#rotation-axis-options'),
+      selection:document.querySelector('#selection-chip')?.textContent??null}));
     await page.mouse.move(target.x,target.y,{steps:2});await page.mouse.up();await page.waitForTimeout(1100);
     await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));const final=await page.evaluate(()=>JSON.parse(localStorage.getItem('molecule-craft.resources.v1')).workspace);
     const checked=solverFor(final),validation=checked.solver.validateConformation({
@@ -115,6 +116,7 @@ try{
       movement=Math.max(...perAtomMovement),draggedMovement=perAtomMovement[record.dragIndex];
     if(screenshotDir)await page.screenshot({path:`${screenshotDir}/${record.id}.png`,fullPage:true});
     assert.equal(validation.valid,true,`${record.id}: ${validation.reasons.join(',')}`);assert.equal(errors.length,0,`${record.id}: ${errors.join(' | ')}`);
+    assert.equal(gesture.cuePresent,false,`${record.id}: legacy rotation/lock icon still exists`);assert.equal(gesture.axisPickerPresent,false,`${record.id}: legacy axis picker still exists`);
     if(record.expectMove)assert.ok(draggedMovement>.01,`${record.id}: hostile drag produced no deformation (${JSON.stringify({gesture,point,target})})`);
     else assert.ok(draggedMovement<.01,`${record.id}: structurally unreachable atom followed the pointer`);
     results.push({id:record.id,movement:+movement.toFixed(3),draggedMovement:+draggedMovement.toFixed(3),gesture,ringPenetrations:validation.errors.ringPenetrations,

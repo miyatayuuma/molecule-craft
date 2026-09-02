@@ -36,17 +36,30 @@ export function createTorsionModel(molecule,{aromaticCycles=[]}={}) {
     const classification=allowed?'ROTATABLE':kind==='restricted'?'RESTRICTED':'LOCKED';
     bonds.set(key,{key,bond,sides,allowed,kind,classification,reason,heavyA:heavy(sides.a),heavyB:heavy(sides.b)});
   }
+  function pathToAnchor(start,scope){
+    const distance=new Map([[start,0]]),parent=new Map(),queue=[start];
+    for(let index=0;index<queue.length;index++)for(const next of neighbors(queue[index])){
+      if(!scope.has(next.atomId)||distance.has(next.atomId))continue;
+      distance.set(next.atomId,distance.get(queue[index])+1);parent.set(next.atomId,queue[index]);queue.push(next.atomId);
+    }
+    const heavyAtoms=[...scope].filter(id=>id!==start&&atoms.get(id).element!=='H');
+    if(!heavyAtoms.length)return new Set();
+    // Force travels away from the grabbed fragment toward the farthest heavy
+    // support. Locked edges on the route remain rigid, while every rotatable
+    // edge on that same route participates in the deformation.
+    heavyAtoms.sort((a,b)=>distance.get(b)-distance.get(a)||a-b);
+    const keys=new Set();let cursor=heavyAtoms[0];
+    while(cursor!==start&&parent.has(cursor)){const previous=parent.get(cursor);keys.add(keyFor(previous,cursor));cursor=previous;}
+    return keys;
+  }
   function forAtom(atomId,{activeKey=null,positionFor=null}={}){
     if(!atoms.has(atomId))return null;
     const scope=component(atomId);
     if(scope.size===1)return {mode:'atom-translate',atomId,ids:[atomId],scope,candidates:[]};
-    const candidates=[];
+    const candidates=[],pathKeys=pathToAnchor(atomId,scope);
     for(const item of bonds.values()){
-      if(!item.allowed||!scope.has(item.bond.a))continue;
+      if(!item.allowed||!scope.has(item.bond.a)||!pathKeys.has(item.key))continue;
       const left=item.sides.a.has(atomId),ids=left?item.sides.a:item.sides.b;
-      // Keep the larger heavy-atom skeleton as the support, never swing it
-      // around a terminal OH/H. Equal-sized sides may each be manipulated.
-      if((left?item.heavyA:item.heavyB)>(left?item.heavyB:item.heavyA))continue;
       const root=left?item.bond.a:item.bond.b,pivot=left?item.bond.b:item.bond.a;
       if(positionFor){
         const origin=positionFor(pivot),anchor=positionFor(root);
@@ -57,17 +70,13 @@ export function createTorsionModel(molecule,{aromaticCycles=[]}={}) {
       candidates.push({...item,ids:[...ids],root,pivot});
     }
     candidates.sort((a,b)=>a.ids.length-b.ids.length||a.bond.a-b.bond.a||a.bond.b-b.bond.b);
-    const selected=candidates.find(item=>item.key===activeKey)??(candidates.length===1?candidates[0]:null);
+    const selected=activeKey==null?null:candidates.find(item=>item.key===activeKey);
     if(selected)return {...selected,mode:'torsion',atomId,scope,candidates};
-    // Normal atom dragging distributes motion over every usable bond on the
-    // path toward the heavier support. Explicitly tapping an axis still enters
-    // the single-axis teaching mode above.
-    if(candidates.length>1&&activeKey==null)return {mode:'conformation',atomId,ids:[...new Set(candidates.flatMap(item=>item.ids))],scope,candidates};
-    if(candidates.length)return {mode:'axis-select',atomId,ids:[],scope,candidates,reason:'光る結合をタップして軸を選ぼう'};
-    const nearby=new Set([atomId,...neighbors(atomId).map(n=>n.atomId)]);
-    const restricted=[...bonds.values()].find(item=>['restricted','ring','multiple'].includes(item.kind)&&nearby.has(item.bond.a)&&nearby.has(item.bond.b));
-    const hasAxis=[...bonds.values()].some(item=>item.allowed&&scope.has(item.bond.a));
-    return {mode:'atom-locked',atomId,ids:[],scope,candidates,reason:restricted?.reason??(hasAxis?'ここは支点です · 回す枝の原子を選ぼう':'この構造には枝を回せる軸がありません')};
+    // Normal atom dragging always uses the conformation path. A molecule with
+    // one usable degree of freedom naturally has one axis, but it still follows
+    // the same soft-target solver instead of the legacy screen-delta torsion UI.
+    if(candidates.length)return {mode:'conformation',atomId,ids:[...new Set(candidates.flatMap(item=>item.ids))],scope,candidates};
+    return {mode:'rigid-body',atomId,ids:[...scope],scope,candidates,reason:'固定構造を保ったまま分子全体が動きます'};
   }
   return {bonds,forAtom};
 }

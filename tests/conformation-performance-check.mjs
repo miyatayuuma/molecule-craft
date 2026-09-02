@@ -5,8 +5,8 @@ import {Molecule,ELEMENTS} from '../src/chemistry.js?v=20';
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '../src/bonding-model.js?v=31';
 import {createPreviewModel} from '../src/preview-model.js?v=31';
 import {createStructureSolver} from '../src/structure-relaxation.js?v=32';
-import {createTorsionModel} from '../src/torsion-model.js?v=33';
-import {createConformationEngine} from '../src/conformation-engine.js?v=1';
+import {createTorsionModel} from '../src/torsion-model.js?v=34';
+import {createConformationEngine} from '../src/conformation-engine.js?v=2';
 
 const carbonCount=24,atoms=Array(carbonCount).fill('C'),bonds=[];
 for(let index=1;index<carbonCount;index++)bonds.push([index-1,index,1]);

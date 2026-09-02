@@ -4,28 +4,32 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, database] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app.js?v=40', root), 'utf8'),
+  readFile(new URL('src/app.js?v=41', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=32', root), 'utf8'),
-  readFile(new URL('src/conformation-engine.js?v=1', root), 'utf8'),
+  readFile(new URL('src/conformation-engine.js?v=2', root), 'utf8'),
   readFile(new URL('src/electron-interaction.js', root), 'utf8'),
   readFile(new URL('src/gesture-arbitration.js', root), 'utf8'),
   readFile(new URL('veil.css', root), 'utf8'),
   readFile(new URL('data/molecules.json', root), 'utf8').then(JSON.parse),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=40"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=41"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-settlement\.js\?v=32'/);
-assert.match(app, /from '\.\/torsion-model\.js\?v=33'/);
-assert.match(app, /from '\.\/conformation-engine\.js\?v=1'/);
+assert.match(app, /from '\.\/torsion-model\.js\?v=34'/);
+assert.match(app, /from '\.\/conformation-engine\.js\?v=2'/);
 assert.match(app, /from '\.\/workspace-view\.js\?v=23'/);
 assert.doesNotMatch(app, /stableFrames|maxDuration/);
 assert.doesNotMatch(app, /pendingFrame|followDraggedBranch|function structurePlan|interruptRelaxation|panCamera/);
 assert.doesNotMatch(index, /stop-relaxation/);
-assert.match(app, /conformationEngine\.updateDrag\(target\)/);
+assert.match(app, /conformationEngine\.updateDrag\(dragState\.targetWorld,\{deltaSeconds\}\)/);
 assert.match(app, /conformationEngine\.release\(\)/);
+assert.match(app, /function atomEditPlan\(atomId,activeKey=null\)/);
+assert.doesNotMatch(index, /rotation-axis-options|rotation-cue/);
+assert.doesNotMatch(app, /rotationOptions|rotationCue|candidateTorsionKeys|activeTorsionKey|axisGlow/);
+assert.match(app, /\['conformation','rigid-body'\]\.includes\(dragState\.mode\)\)advanceConformationDrag\(now\)/);
 assert.match(app, /activePointers.size&&dragState&&\(dragState.moved\|\|dragState.mode!=='molecule-rotate'\)/);
 assert.equal((app.match(/if\(!activePointers.has\(e.pointerId\)\)return/g)??[]).length,3,'Foreign pointer move/up/cancel must not steal an edit');
 assert.match(index, /id="structure-focus" aria-label="編集する分子"/);
@@ -85,7 +89,8 @@ assert.match(solver, /projectRigidConstraints/);
 assert.match(solver, /relaxStericIntersections/);
 assert.match(solver, /validateConformation/);
 assert.match(solver, /ringExclusionVolumes/);
-assert.match(conformation, /ccdToward/);
+assert.match(conformation, /jacobianToward/);
+assert.match(conformation, /forceStiffness|rigidBodyToward|velocities/);
 assert.match(conformation, /lastValid/);
 assert.match(conformation, /attemptScales/);
 

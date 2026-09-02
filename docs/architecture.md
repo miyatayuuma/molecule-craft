@@ -55,7 +55,7 @@
 | 原子価・電子・結合許可・幾何 | `src/bonding-model.js` |
 | 電子／原子／結合のポインタ判定 | `src/electron-interaction.js`, `src/gesture-arbitration.js` |
 | 結合成立時の移動 | `src/structure-motion.js` |
-| multi-torsion drag・rollback | `src/conformation-engine.js` |
+| force/velocity drag・whole-skeleton sway・rigid anchorまでのbalanced multi-torsion path・rollback | `src/conformation-engine.js` |
 | 剛体断片・結合長・角・平面・立体反発・環/鎖交差 | `src/structure-relaxation.js` |
 | release後の独立座標補正と補間 | `src/structure-settlement.js` |
 | rotatable / restricted / locked判定 | `src/torsion-model.js`, `src/structure-edit.js` |
