@@ -10,7 +10,7 @@ assert.equal(r.state.elements.H,0);assert.equal(r.makeHydrogen(1),false);
 assert.equal(r.spend({N:1}),false,'An unlocked element is not free without BASE STOCK');r.refund({N:1});assert.equal(r.spend({N:1}),true);assert.equal(r.state.elements.N,0);
 r.collect(20,25);r.learn('hydrogen');assert.equal(r.makeHydrogen(1),true);r.save();
 assert.equal(r.state.elements.H,18);assert.equal(r.state.molecules.hydrogen,1);
-const drive=createResources({storage:memory()});drive.learn('hydrogen');drive.state.molecules.hydrogen=3;assert.equal(drive.fillTank('hydrogen'),true);assert.equal(drive.consumeBoost(),true);assert.equal(drive.state.molecules.hydrogen,0);assert.equal(drive.state.tanks.hydrogen,2);
+const drive=createResources({storage:memory()});drive.learn('hydrogen');drive.state.molecules.hydrogen=3;assert.equal(drive.fillTank('hydrogen'),true);assert.equal(drive.consumeBoost(),true);assert.equal(drive.state.molecules.hydrogen,0);assert.deepEqual(drive.state.tanks.propellant,{molecule:'hydrogen',amount:2});
 assert.equal(r.makeHydrogen(5),true);assert.equal(r.state.elements.H,8);assert.equal(r.makeHydrogen(5),false);
 assert.equal(r.spend({H:9,C:1}),false);assert.equal(r.state.elements.H,8,'Rejected parts must not partially spend');
 r.save();const reboot=createResources({storage});assert.equal(reboot.state.elements.H,8);assert.equal(reboot.state.molecules.hydrogen,6);assert.equal(reboot.state.progress.bestChain,25);

@@ -21,8 +21,8 @@ import { createGameShell } from './game-shell.js?v=29';
 import { createWorkspaceStorage, captureWorkspace, restoreWorkspace } from './workspace-save.js?v=30';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { bindCraftControls } from './craft-controls.js?v=1';
-import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=1';
-import { createCraftPanel } from './craft-panel.js?v=1';
+import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=2';
+import { createCraftPanel } from './craft-panel.js?v=2';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;

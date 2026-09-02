@@ -2,11 +2,18 @@ import { VEIL, EXPEDITION } from './config.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
 // need no effect entry; future shared actions can be attached here independently.
 export const MOLECULE_USES = Object.freeze({
-  hydrogen:{formula:'H₂',name:'水素',atoms:['H','H'],role:'burst-propellant',hint:'Hを2つ置き、光る電子を1本つなぐ。',use:'原始的な短時間ガス噴射。通常航行には不向きだが、緊急回避と強い流れの突破に使える。',discovery:'H₂ BURSTを発見。一探索に積めるのは少量だけ。危険な瞬間まで残しておこう。'},
-  methane:{formula:'CH₄',name:'メタン',atoms:['C','H','H','H','H'],role:'fuel',hint:'Cを中心に、4つのHをそれぞれ1本でつなぐ。',use:'高密度な燃料。単独では推進に使えず、O₂と組み合わせて初めて連続航行できる。',discovery:'メタンを発見。燃料はできた。燃焼には、さらに奥にある酸化剤が必要だ。'},
-  oxygen:{formula:'O₂',name:'酸素',atoms:['O','O'],role:'oxidizer',hint:'Oを2つ置く。同じ2原子の電子を2回つなぎ、二重結合にする。',use:'燃料ではなく酸化剤。CH₄ 1個とO₂ 2個で、押している間だけ続くCOMBUSTION DRIVEを動かす。',discovery:'酸化剤ができた。H₂の一瞬の噴射から、CH₄ + O₂による高速航行へ。'},
+  hydrogen:{formula:'H₂',name:'水素',atoms:['H','H'],role:'burst-propellant',tankUses:['propellant'],performance:{propellant:{thrust:.82,load:.25}},hint:'Hを2つ置き、光る電子を1本つなぐ。',use:'原始的な短時間ガス噴射。通常航行には不向きだが、緊急回避と強い流れの突破に使える。',discovery:'H₂ BURSTを発見。一探索に積めるのは少量だけ。危険な瞬間まで残しておこう。'},
+  methane:{formula:'CH₄',name:'メタン',atoms:['C','H','H','H','H'],role:'fuel',tankUses:['fuel'],performance:{fuel:{load:.72,oxygen:.5}},hint:'Cを中心に、4つのHをそれぞれ1本でつなぐ。',use:'高密度な燃料。単独では推進に使えず、O₂と組み合わせて初めて連続航行できる。',discovery:'メタンを発見。燃料はできた。燃焼には、さらに奥にある酸化剤が必要だ。'},
+  oxygen:{formula:'O₂',name:'酸素',atoms:['O','O'],role:'oxidizer',tankUses:['oxidizer'],hint:'Oを2つ置く。同じ2原子の電子を2回つなぎ、二重結合にする。',use:'燃料ではなく酸化剤。CH₄ 1個とO₂ 2個で、押している間だけ続くCOMBUSTION DRIVEを動かす。',discovery:'酸化剤ができた。H₂の一瞬の噴射から、CH₄ + O₂による高速航行へ。'},
   water:{formula:'H₂O',name:'水',atoms:['O','H','H'],role:'catalog',hint:'Oを中心に、Hを2つそれぞれ1本でつなぐ。',use:'図鑑に記録し、通常通り量産できる分子。探索用の特殊作用は、まだ実装されていない。',discovery:'水を発見。図鑑に登録され、原子があれば量産できる。'},
 });
+export const TANK_USES=Object.freeze({
+  propellant:{label:'噴射剤',capacity:EXPEDITION.hydrogenCapacity},
+  fuel:{label:'燃料',capacity:EXPEDITION.methaneCapacity},
+  oxidizer:{label:'酸化剤',capacity:EXPEDITION.oxygenCapacity},
+  coolant:{label:'冷却剤',capacity:12},
+});
+export const tankUsesFor=id=>MOLECULE_USES[id]?.tankUses??[];
 // Input chooses an action, not its physics. A later cruise controller can use
 // these same actions without changing resources or adding HUD buttons.
 export const DRIVES=Object.freeze({

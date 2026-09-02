@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, craftWorkspace, craftControls, craftConnections, craftPanel] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app.js?v=42', root), 'utf8'),
+  readFile(new URL('src/app.js?v=43', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=32', root), 'utf8'),
   readFile(new URL('src/conformation-engine.js?v=2', root), 'utf8'),
@@ -17,7 +17,7 @@ const [index, app, chemistry, solver, conformation, electronInteraction, gesture
   readFile(new URL('src/craft-panel.js', root), 'utf8'),
 ]);
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=42"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=43"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-settlement\.js\?v=32'/);
@@ -53,15 +53,21 @@ assert.match(index, /id="collection-dialog"/);
 assert.match(index, /id="craft-panel"[^>]*hidden/);
 assert.match(craftConnections, /checkedRevision!==revision/);
 assert.match(craftWorkspace, /expandCraftStructure\(molecule,template\)/);
-assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=36'\)/);
+assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=37'\)/);
 assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations belong to craft-workspace.js');
 assert.match(app, /!elementPalette.canUse\(symbol\)/);
 assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
 assert.match(index, /id="element-unlock-hint"/);
 assert.match(index, /id="veil-combustion"/);
 assert.match(index, /id="veil-threat"/);
-assert.match(index, /BASE STOCK → COLLECTOR SHELL/);
-assert.match(index, /BASE ELEMENTS → MOLECULE STOCK/);
+assert.match(index, /id="open-supply" class="collector-access"/);
+assert.match(index, /id="shell-propellant"/);
+assert.match(index, /id="shell-fuel"/);
+assert.match(index, /id="shell-oxidizer"/);
+assert.match(index, /id="shell-coolant"/);
+assert.match(index, /id="tank-model-host"/);
+assert.match(index, /id="craft-tank-actions"/);
+assert.doesNotMatch(index, /id="molecule-select"|id="fill-hydrogen"|id="make-h2"/);
 assert.match(index, /EXPEDITION CARGO/);
 assert.match(index, /COLLECTOR SHELL · ANCHOR FIELD/);
 assert.match(index, /id="veil-anchor-meter"/);

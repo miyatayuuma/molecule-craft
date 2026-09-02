@@ -10,7 +10,7 @@ export function connectExploration({resources,canLeave,canSupply,onCraft,onCommi
 }
 
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
-  const {createCollectionUI}=await import('./collection-ui.js?v=36');
+  const {createCollectionUI}=await import('./collection-ui.js?v=37');
   return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange});
 }
 
