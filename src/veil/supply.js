@@ -17,7 +17,7 @@ export function compressedAtoms(cost={},limit=12){
   return weighted.flatMap(item=>Array(item.amount).fill(item.element)).slice(0,count);
 }
 
-export function createSupplyUI({resources,canOpen,canMake,onCommit,onStore,onAnchor}){
+export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog');
   let choice='hydrogen',quantity=1,optionsKey='',anchorsKey='',announcement='',productionBusy=false,animationTimer=null;
   const name=record=>record?.commonNameJa??record?.nameJa??record?.name??'';
@@ -124,7 +124,6 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onStore,onAnc
   q('make-h2').addEventListener('click',produce);
   q('fill-hydrogen').addEventListener('click',()=>fillTank('hydrogen'));q('fill-combustion').addEventListener('click',()=>fillTank('combustion'));
   q('craft-hydrogen-shortage').addEventListener('click',()=>produceShortage('hydrogen',resources.tankPlan('hydrogen').shortage.hydrogen));q('craft-methane-shortage').addEventListener('click',()=>produceShortage('methane',resources.tankPlan('combustion').shortage.methane));q('craft-oxygen-shortage').addEventListener('click',()=>produceShortage('oxygen',resources.tankPlan('combustion').shortage.oxygen));
-  q('store-h2').addEventListener('click',()=>{const id=onStore();if(!id)return;choice=typeof id==='string'?id:'hydrogen';quantity=1;announcement=MOLECULE_USES[choice]?.discovery??'分子を保管しました。以後は数量を指定して量産できます。';update();});
   update();
   return {update,select,discovered(id){choice=id;quantity=1;announcement=MOLECULE_USES[id]?.discovery??'';update();},clearAnnouncement(){announcement='';},get open(){return dialog.open;},get producing(){return productionBusy;}};
 }

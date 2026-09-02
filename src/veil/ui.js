@@ -16,12 +16,12 @@ function previewCaptureLoss(units){
   return lost;
 }
 
-export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onCraft=()=>{},onStore=()=>false,onCommit=()=>{}}){
+export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onCraft=()=>{},onCommit=()=>{}}){
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),combustionButton=q('veil-combustion'),audio=createVeilAudio();
   let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,anchor='continue',anchorLock=null,returnState=null;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
-  const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onStore,onAnchor:id=>{anchor=id;updateCraft();}});
+  const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onAnchor:id=>{anchor=id;updateCraft();}});
 
   function updateCraft(){
     supply.update();q('launch-veil').disabled=resources.blocked;

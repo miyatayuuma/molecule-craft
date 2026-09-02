@@ -87,7 +87,7 @@
 
 ## 保存
 
-- `molecule-craft.resources.v1`：H/C/O、基地分子在庫、探索用推進タンク、レシピ、探索進行、精算、制作スナップショットの正本。移行と破損・未来版・競合保護は `src/veil/resources.js`。
+- `molecule-craft.resources.v1`：BASE STOCKの原子在庫、基地分子在庫、探索用推進タンク、レシピ、探索進行、精算、制作スナップショットの正本。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。移行と破損・未来版・競合保護は `src/veil/resources.js`。
 - `molecule-craft.workspace.v1`：従来workspaceの互換入力。構造スキーマと復元は `src/workspace-save.js`。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。
