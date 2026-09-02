@@ -33,8 +33,7 @@
           <button id="clear-all" class="hold-clear" type="button" aria-label="1秒長押しでフィールドを全消去。図鑑は残ります" title="1秒長押しで全消去"><span>全消去</span><small>長押し</small></button>
           <button id="frame-structure" type="button" class="icon-button" aria-label="分子を画面に収める" title="分子を画面に収める">⛶</button>
         </div>
-        <div id="rotation-cue" class="rotation-cue" role="status" hidden></div>
-        <div class="field-bottom"><div id="rotation-axis-options" class="rotation-axis-options" role="group" aria-label="回転軸を選ぶ" hidden></div><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
+        <div class="field-bottom"><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
         <button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>
         <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span><small id="discovery-learning"></small></div>
       </section>
@@ -80,7 +79,7 @@
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
     <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録され、以後は数量と元素消費を確認して量産できます。H/C/Oは探索で見つかります。</p></div></section>
     <section><span>04</span><div><h3>採集殻を回収する</h3><p>基地は採集殻をANCHOR FIELDで係留しています。帰還は短いANCHOR LOCKの後に全積荷を安定回収。DUST EATERが保持場を崩すと、安全装置が一部の積荷をこぼしながら緊急回収します。</p></div></section>
-    <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子を押すと、回せる軸が光ります。1本ならそのまま枝をドラッグ。複数なら光る結合か番号で軸を選びます。🔒の箇所は固定です。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。回せる単結合はタップで軸を選べます。大きい骨格を支点に、小さい枝を回します。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
+    <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子をドラッグすると、環や二重結合などの固定構造を保ったまま、動ける複数の単結合を使って分子全体がしなります。届かない位置へ引いても結合は伸びません。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
   </div></dialog>
   <dialog id="info-dialog" class="sheet" aria-labelledby="info-title"><header class="sheet-header"><h2 id="info-title">いまの分子</h2><button type="button" data-close-dialog aria-label="分子情報を閉じる">×</button></header><div class="sheet-body info-panel">
@@ -125,7 +124,7 @@
     <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-combustion" type="button" aria-label="CH₄とO₂の燃焼推進。押している間だけ作動。キーボードはShift" aria-pressed="false" hidden><strong>CH₄ + O₂</strong><small id="veil-combustion-remaining">0 / 0 PACKETS</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel">CH₄ 0 · O₂ 0</span></button><button id="veil-boost" type="button" aria-label="H₂ BURST。1個消費。キーボードはスペース"><strong>H₂</strong><small>BURST <span id="veil-fuel">0 / 3</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
-  <script type="module" src="./src/app.js?v=40"></script>
+  <script type="module" src="./src/app.js?v=41"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>

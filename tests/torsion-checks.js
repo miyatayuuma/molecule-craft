@@ -1,5 +1,5 @@
 import {Molecule} from '../src/chemistry.js?v=20';
-import {createTorsionModel} from '../src/torsion-model.js?v=33';
+import {createTorsionModel} from '../src/torsion-model.js?v=34';
 import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=33';
 
 // Pure topology checks, shared by Node and the public browser harness.
@@ -9,15 +9,15 @@ export function checkTorsionModel(records){
   const key=(a,b)=>`${Math.min(a,b)}:${Math.max(a,b)}`;
   for(const name of ['methane','ethene','ethyne','benzene']){
     const record=records.find(r=>r.id===name),{molecule,ids}=graph(record.atoms,record.bonds),model=createTorsionModel(molecule);
-    for(const id of ids)assert(model.forAtom(id).mode==='atom-locked',`${name}: an atom can deform a locked structure`);
+    for(const id of ids)assert(model.forAtom(id).mode==='rigid-body',`${name}: a rigid atom cannot be grabbed as an intact body`);
     const loose=molecule.addAtom('O');assert(planStructureEdit(molecule,loose.id).mode==='atom-translate','Isolated atom cannot translate');
     assert(!planStructureEdit(molecule,ids[0]).scope.has(loose.id),'Disconnected atom included');
   }
   {
     const record=records.find(r=>r.id==='phosphoric-acid'),{molecule,ids}=graph(record.atoms,record.bonds),model=createTorsionModel(molecule);
-    assert(model.forAtom(ids[record.atoms.indexOf('P')]).mode==='atom-locked','Central P swings the skeleton around OH');
+    assert(model.forAtom(ids[record.atoms.indexOf('P')]).mode==='rigid-body','Central P does not expose an intact whole-structure pull');
     for(const id of ids.filter((_,i)=>record.atoms[i]==='H')){
-      const plan=model.forAtom(id);assert(plan.mode==='torsion'&&plan.ids.length===2,'OH should rotate around P–O');
+      const plan=model.forAtom(id);assert(plan.mode==='conformation'&&plan.candidates.length===1&&plan.ids.length===2,'OH should use the conformation solver around P–O');
       const locks=editRelaxationOptions(molecule,plan).lockedIds;
       assert(ids.filter(other=>!plan.ids.includes(other)).every(other=>locks.has(other)),'Local correction moves untouched skeleton');
     }
@@ -27,13 +27,13 @@ export function checkTorsionModel(records){
     const {molecule,ids}=graph(Array(6).fill('C'),[[0,1],[1,2],[2,3],[3,4],[4,5]]);
     for(let i=0;i<6;i++)for(let j=0;j<(i===0||i===5?3:2);j++)molecule.setBond(ids[i],molecule.addAtom('H').id,1);
     const model=createTorsionModel(molecule),plan=model.forAtom(ids[0]);
-    assert(plan.mode==='conformation'&&plan.candidates.length===3,'Three branch axes were not combined for conformation drag');
+    assert(plan.mode==='conformation'&&plan.candidates.length===5,'The full terminal-to-anchor torsion path was not combined for conformation drag');
     for(const candidate of plan.candidates){
       const selected=model.forAtom(ids[0],{activeKey:candidate.key});
       assert(selected.mode==='torsion'&&selected.key===candidate.key,'Explicit axis ignored');
       assert(selected.ids.includes(ids[0])&&!selected.ids.includes(ids[5]),'Wrong side moves');
     }
-    assert(model.forAtom(ids[0],{activeKey:'missing'}).mode==='axis-select','Stale axis was accepted');
+    assert(model.forAtom(ids[0],{activeKey:'missing'}).mode==='conformation','Stale axis blocked normal conformation drag');
   }
   for(const donor of ['N','O','S']){
     const {molecule,ids}=graph(['O','C',donor,'C','H','H'],[[0,1,2],[1,2],[2,3],[1,4],[3,5]]),model=createTorsionModel(molecule);
@@ -52,7 +52,7 @@ export function checkTorsionModel(records){
     assert(model.bonds.get(key(oxygen,aryl)).kind==='restricted',`${name}: aromatic follower plane not protected`);
     if(name==='anisole'){
       const methyl=molecule.neighbors(oxygen).find(n=>!ring.includes(n.atomId)).atomId;
-      assert(model.forAtom(methyl).mode==='torsion','Anisole methyl rotation unavailable');
+      assert(model.forAtom(methyl).mode==='conformation','Anisole methyl conformation unavailable');
     }
   }
   // A biaryl connector and a side chain are not themselves ring bonds.

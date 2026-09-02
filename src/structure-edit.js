@@ -1,4 +1,4 @@
-import {createTorsionModel} from './torsion-model.js?v=33';
+import {createTorsionModel} from './torsion-model.js?v=34';
 
 // Atom handles only translate isolated atoms or turn a smaller branch about a
 // valid axis. Background gestures alone rotate the whole selected molecule.

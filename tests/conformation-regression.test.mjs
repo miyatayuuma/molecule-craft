@@ -4,8 +4,8 @@ import * as THREE from '../vendor/three/three.module.min.js';
 import {Molecule,ELEMENTS} from '../src/chemistry.js?v=20';
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '../src/bonding-model.js?v=31';
 import {createStructureSolver} from '../src/structure-relaxation.js?v=32';
-import {createTorsionModel} from '../src/torsion-model.js?v=33';
-import {createConformationEngine} from '../src/conformation-engine.js?v=1';
+import {createTorsionModel} from '../src/torsion-model.js?v=34';
+import {createConformationEngine} from '../src/conformation-engine.js?v=2';
 import {createStructureSettlement} from '../src/structure-settlement.js?v=32';
 
 const pairKey=(a,b)=>`${Math.min(a,b)}:${Math.max(a,b)}`;
@@ -150,15 +150,63 @@ test('terminal drag distributes motion over multiple torsions without breaking t
     positionFor:item.positionFor,modelFor:()=>model});
   const initial=item.pos(0).clone(),target=initial.clone().add(new THREE.Vector3(-.35,2.4,1.8));
   const session=engine.beginDrag(item.ids[0]);assert.equal(session.plan.mode,'conformation');
-  let result;for(let update=0;update<10;update++)result=engine.updateDrag(target);
+  let result,earlyAngles;
+  for(let update=0;update<30;update++){
+    result=engine.updateDrag(target,{deltaSeconds:1/60});
+    if(update===3)earlyAngles=new Map(result.angles);
+  }
   assert.ok(result.accepted,'reachable drag target never produced a valid conformation');
   assert.ok(result.changedAxes.size>=2,`only ${result.changedAxes.size} torsion changed`);
+  const meaningfulAngles=[...result.angles.values()].map(Math.abs).filter(angle=>angle>.08),angleTotal=meaningfulAngles.reduce((sum,angle)=>sum+angle,0);
+  assert.ok(meaningfulAngles.length>=2,`only ${meaningfulAngles.length} torsion changed by a visible amount: ${JSON.stringify([...result.angles])}`);
+  assert.ok(Math.max(...meaningfulAngles)/angleTotal<.9,'one neighbouring axis absorbed nearly all chain motion');
+  const earlyTotal=[...earlyAngles.values()].reduce((sum,angle)=>sum+Math.abs(angle),0),lateTotal=[...result.angles.values()].reduce((sum,angle)=>sum+Math.abs(angle),0);
+  assert.ok(lateTotal>earlyTotal*1.5,'force did not continue propagating through the skeleton while held');
   assert.ok(result.afterDistance<result.beforeDistance,'drag did not move the terminal atom toward the target');
   assert.equal(item.solver.validateConformation({ids:session.plan.scope,rigidReference:session.rigidReference,mode:'drag'}).valid,true);
   for(const bond of item.molecule.bonds){
     const targetLength=item.bondLengthFor(bond.a,bond.b,bond.order),actual=item.positionFor(bond.a).distanceTo(item.positionFor(bond.b));
     assert.ok(Math.abs(actual/targetLength-1)<.1,'multi-torsion drag stretched a bond beyond drag tolerance');
   }
+  const release=engine.release();
+  assert.ok([...release.velocities.values()].filter(velocity=>Math.abs(velocity)>.01).length>=2,'drag did not retain distributed torsional momentum');
+});
+
+test('every atom in a fully rigid molecule remains grabbable without deforming the fragment',()=>{
+  const item=benzeneWithChain(0),ring=item.ids.slice(0,6);
+  for(let frame=0;frame<420;frame++)item.solver.step(.62,2);
+  const model=createTorsionModel(item.molecule,{aromaticCycles:[ring]});
+  for(const id of ring)assert.equal(model.forAtom(id).mode,'rigid-body','a rigid-ring atom was exposed as an immovable lock');
+  const pairDistances=[];
+  for(let left=0;left<ring.length;left++)for(let right=left+1;right<ring.length;right++){
+    pairDistances.push([ring[left],ring[right],item.positionFor(ring[left]).distanceTo(item.positionFor(ring[right]))]);
+  }
+  const grabbed=ring[2],engine=createConformationEngine({THREE,molecule:item.molecule,solver:item.solver,
+    positionFor:item.positionFor,modelFor:()=>model}),before=item.positionFor(grabbed).clone(),target=before.clone().add(new THREE.Vector3(.8,1.1,.45));
+  const session=engine.beginDrag(grabbed);assert.equal(session.plan.mode,'rigid-body');
+  let result;for(let frame=0;frame<24;frame++)result=engine.updateDrag(target,{deltaSeconds:1/60});
+  assert.ok(result.accepted&&item.positionFor(grabbed).distanceTo(before)>.05,'rigid structure could not be pulled');
+  assert.ok(pairDistances.every(([a,b,distance])=>Math.abs(item.positionFor(a).distanceTo(item.positionFor(b))-distance)<1e-8),'rigid-body pull deformed benzene');
+  const validation=item.solver.validateConformation({ids:session.plan.scope,rigidReference:session.rigidReference,mode:'drag'});
+  assert.equal(validation.valid,true);assert.equal(validation.errors.ringPenetrations,0);engine.release();
+});
+
+test('an atom lying on its only torsion axis still moves through whole-skeleton sway',()=>{
+  const item=benzeneWithChain(1),ring=item.ids.slice(0,6),methyl=item.ids[6],base=item.positionFor(methyl);
+  for(const offset of [[.2,.8,.65],[.2,-.8,.65],[.2,0,-.9]]){
+    const hydrogen=item.molecule.addAtom('H');item.placements.set(hydrogen.id,{position:base.clone().add(new THREE.Vector3(...offset))});
+    item.molecule.setBond(methyl,hydrogen.id,1);
+  }
+  item.solver.markTopologyDirty();for(let frame=0;frame<520;frame++)item.solver.step(.58,2);
+  const model=createTorsionModel(item.molecule,{aromaticCycles:[ring]}),plan=model.forAtom(methyl);
+  assert.equal(plan.mode,'conformation');assert.equal(plan.candidates.length,1);
+  const ringReference=[];for(let left=0;left<ring.length;left++)for(let right=left+1;right<ring.length;right++)ringReference.push([ring[left],ring[right],item.positionFor(ring[left]).distanceTo(item.positionFor(ring[right]))]);
+  const engine=createConformationEngine({THREE,molecule:item.molecule,solver:item.solver,positionFor:item.positionFor,modelFor:()=>model}),before=item.positionFor(methyl).clone();
+  const session=engine.beginDrag(methyl),target=before.clone().add(new THREE.Vector3(.7,1,.4));
+  let result;for(let frame=0;frame<24;frame++)result=engine.updateDrag(target,{deltaSeconds:1/60});
+  assert.ok(result.accepted&&item.positionFor(methyl).distanceTo(before)>.01,'axis-aligned grabbed atom remained stationary');
+  assert.ok(ringReference.every(([a,b,distance])=>Math.abs(item.positionFor(a).distanceTo(item.positionFor(b))/distance-1)<.015),'whole-skeleton sway deformed the aromatic ring');
+  assert.equal(item.solver.validateConformation({ids:session.plan.scope,rigidReference:session.rigidReference,mode:'drag'}).valid,true);engine.release();
 });
 
 test('invalid drag rolls back and release relaxation preserves the new conformation',()=>{

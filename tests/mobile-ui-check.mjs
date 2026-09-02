@@ -7,7 +7,7 @@ import {createContext,runInContext} from 'node:vm';
 import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
 if(!process.argv[2])throw new Error('Pass jsdom/lib/api.js');
 const {JSDOM}=await import(pathToFileURL(process.argv[2]));
-const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=40',root),html=await readFile(new URL('index.html',root),'utf8');
+const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=41',root),html=await readFile(new URL('index.html',root),'utf8');
 let source=await readFile(appURL,'utf8'),bindings={};
 for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   const module=await import(new URL(match[2],appURL));
@@ -79,19 +79,19 @@ for(const record of records.filter(r=>['carbon-monoxide','sulfur-dioxide','sulfu
   const errors=scene.run('solver.measureError()');console.log(record.id,JSON.stringify(errors));
   assert.ok(errors.finite&&errors.bondRelative<.035&&errors.angleRadians<12*Math.PI/180&&errors.planeDistance<.045,`${record.id}: final pose not converged`);
   assert.ok(scene.run('electronVisuals.every(e=>Number.isFinite(e.visible.position.x))'));
-  // Every element uses constrained torsion or a locked gesture, never translation.
+  // Every element uses force-driven conformation or rigid-body motion, never
+  // direct per-atom translation.
   scene.run(`globalThis.cameraBefore=camera.matrixWorld.toArray();globalThis.extra=molecule.addAtom('H');placements.set(extra.id,{position:new THREE.Vector3(30,30,30)});globalThis.extraBefore=pos(extra.id).clone();topologyChanged();refresh();`);
   for(let atomIndex=0;atomIndex<record.atoms.length;atomIndex++){
     scene.run(`clearTorsionGuide();globalThis.beforePose=new Map(fixtureIds.map(id=>[id,pos(id).clone()]));globalThis.pairs=molecule.bonds.map(b=>[b.a,b.b,pos(b.a).distanceTo(pos(b.b))]);globalThis.angles=fixtureIds.flatMap(id=>molecule.neighbors(id).flatMap((n,i,ns)=>ns.slice(i+1).map(other=>[id,n.atomId,other.atomId,pos(n.atomId).clone().sub(pos(id)).angleTo(pos(other.atomId).clone().sub(pos(id)))])));globalThis.event={pointerId:91,clientX:100,clientY:200,pointerType:'touch'};activePointers.set(91,{...event,downAt:performance.now()});beginAtomDrag(event,fixtureIds[${atomIndex}]);`);
-    assert.ok(['conformation','torsion','atom-locked','axis-select'].includes(scene.run('dragState.mode')),`${record.id}: atom ${atomIndex} is freely draggable`);
+    assert.ok(['conformation','rigid-body'].includes(scene.run('dragState.mode')),`${record.id}: atom ${atomIndex} escaped the force-driven interaction`);
     scene.run('globalThis.intent=dragState;');
-    scene.run(`onPointerMove({...event,clientX:245,clientY:420});onPointerUp({...event,clientX:245,clientY:420});`);
-    if(!['torsion','conformation'].includes(scene.run('intent.mode')))assert.equal(scene.run('!!relaxation'),false,'Locked drag triggered a return');
+    scene.run(`onPointerMove({...event,clientX:245,clientY:420});for(let frame=0;frame<18;frame++)advanceConformationDrag(performance.now()+(frame+1)*1000/60);onPointerUp({...event,clientX:245,clientY:420});`);
     for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
     assert.equal(scene.run('!!relaxation'),false,'Branch correction took too long');
     assert.ok(scene.run('molecule.bonds.every(b=>Math.abs(pos(b.a).distanceTo(pos(b.b))/bondLengthFor(b.a,b.b,b.order)-1)<.07)'),`${record.id}: drag broke a bond length`);
     assert.ok(scene.run('angles.every(([id,a,b,angle])=>Math.abs(pos(a).clone().sub(pos(id)).angleTo(pos(b).clone().sub(pos(id)))-angle)<.35)'),`${record.id}: bond angle changed severely`);
-    assert.ok(scene.run('fixtureIds.filter(id=>!intent.ids.includes(id)).every(id=>pos(id).distanceTo(beforePose.get(id))<1e-9)'),`${record.id}: correction moved support`);
+    assert.ok(scene.run('fixtureIds.some(id=>pos(id).distanceTo(beforePose.get(id))>.001)'),`${record.id}: force did not reach the skeleton`);
     assert.ok(scene.run('solver.validateConformation({ids:new Set(fixtureIds)}).valid'),`${record.id}: atom drag ended invalid`);
     assert.ok(scene.run('pos(extra.id).distanceTo(extraBefore)===0'),'Atom drag moved another component');
   }
@@ -128,7 +128,7 @@ assert.equal(unknown.run('dragState.mode'),'molecule-rotate');assert.equal(unkno
 unknown.run('clearField()');assert.equal(unknown.run('activePointers.size'),0);assert.equal(unknown.run('molecule.atoms.length'),0);
 console.log('Seven molecules complete through production drag; bonded atoms use constrained axes or locks without free translation; old P save repairs; unknown correction stays rotatable and clear cancels work.');
 
-// Real production handlers, guides and native axis buttons. Source coordinates
+// Real production handlers with the axis-picker UI removed. Source coordinates
 // come from the same model as the collection; only WebGL rendering is stubbed.
 async function torsionScene(record){
   const scene=await setup();
@@ -141,31 +141,33 @@ function cameraUnchanged(scene){assert.ok(scene.run('[...camera.matrixWorld.elem
 for(const name of ['methane','benzene','phosphoric-acid','acetamide']){
   const record=records.find(r=>r.id===name),scene=await torsionScene(record);
   const index=name==='phosphoric-acid'?record.atoms.indexOf('P'):name==='acetamide'?record.atoms.indexOf('N'):0;
-  press(scene,index);assert.equal(scene.run('dragState.mode'),'atom-locked',name);
-  assert.equal(scene.document.querySelector('#rotation-cue').textContent,'🔒');assert.deepEqual(scene.vibrations,[22],'Locked touch should vibrate once');
-  assert.equal(scene.document.querySelector('#rotation-axis-options').hidden,true);
+  press(scene,index);assert.equal(scene.run('dragState.mode'),name==='acetamide'?'conformation':'rigid-body',name);
+  assert.equal(scene.document.querySelector('#rotation-cue'),null);assert.deepEqual(scene.vibrations,[],'Normal atom pull should not use lock feedback');
+  assert.equal(scene.document.querySelector('#rotation-axis-options'),null);
   scene.run('onPointerDown({...event,pointerId:78,clientX:260});');
-  assert.equal(scene.run('activePointers.size'),1,'A second finger stole a locked atom gesture');assert.deepEqual(scene.vibrations,[22],'Extra finger should not vibrate');
-  scene.run('onPointerMove({...event,clientX:310,clientY:450});');release(scene);
-  assert.ok(scene.run('[...before].every(([id,p])=>pos(id).equals(p))'),`${name}: locked gesture moved structure`);
-  assert.equal(scene.run('!!relaxation'),false,'Locked gesture triggered correction');cameraUnchanged(scene);
+  assert.equal(scene.run('activePointers.size'),1,'A second finger stole the atom gesture');assert.deepEqual(scene.vibrations,[],'Extra finger should not vibrate');
+  scene.run('onPointerMove({...event,clientX:310,clientY:450});for(let frame=0;frame<18;frame++)advanceConformationDrag(performance.now()+(frame+1)*1000/60);');release(scene);
+  assert.ok(scene.run('[...before].some(([id,p])=>pos(id).distanceTo(p)>.01)'),`${name}: grabbed structure did not move`);
+  assert.ok(scene.run('molecule.bonds.every(b=>Math.abs(pos(b.a).distanceTo(pos(b.b))/bondLengthFor(b.a,b.b,b.order)-1)<.07)'),`${name}: grabbed structure broke a bond`);
+  for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
+  assert.equal(scene.run('!!relaxation'),false,'Release correction did not settle');cameraUnchanged(scene);
   // Background drag remains rigid whole-molecule rotation, even for locked rings.
   scene.run("onPointerDown({pointerId:80,pointerType:'mouse',clientX:-100,clientY:-100});");
-  assert.equal(scene.run('dragState.mode'),'molecule-rotate');assert.equal(scene.document.querySelector('#rotation-cue').hidden,true);
+  assert.equal(scene.run('dragState.mode'),'molecule-rotate');assert.equal(scene.document.querySelector('#rotation-cue'),null);
   scene.run("onPointerMove({pointerId:80,clientX:-40,clientY:-60});onPointerUp({pointerId:80,clientX:-40,clientY:-60});");
   assert.ok(scene.run('[...before].some(([id,p])=>pos(id).distanceTo(p)>.01)'),`${name}: background no longer rotates`);cameraUnchanged(scene);
 }
 {
-  const record=records.find(r=>r.id==='ethane'),scene=await torsionScene(record);press(scene,0);
-  assert.equal(scene.run('dragState.mode'),'torsion');
-  assert.equal(scene.document.querySelector('#rotation-cue').textContent,'↻');
-  assert.equal(scene.run('[...bondVisuals.values()].filter(v=>v.axisGlow.visible).length'),1);
-  assert.equal(scene.document.querySelector('#rotation-axis-options').hidden,true,'Single axis requires extra selection');
-  scene.run('onPointerMove({...event,clientX:157,clientY:215});');release(scene);
-  assert.ok(scene.run('intent.ids.some(id=>pos(id).distanceTo(before.get(id))>.01)'),'Torsion did not rotate its branch');
-  assert.ok(scene.run('molecule.atoms.filter(a=>!intent.ids.includes(a.id)).every(a=>pos(a.id).equals(before.get(a.id)))'),'Torsion moved fixed atoms');
+  const record=records.find(r=>r.id==='ethane'),scene=await torsionScene(record);press(scene,record.atoms.indexOf('H'));
+  assert.equal(scene.run('dragState.mode'),'conformation','Single degree of freedom fell back to the legacy torsion gesture');
+  assert.equal(scene.document.querySelector('#rotation-cue'),null);
+  assert.ok(scene.run('[...bondVisuals.values()].every(v=>!("axisGlow" in v))'));
+  assert.equal(scene.document.querySelector('#rotation-axis-options'),null);
+  scene.run('onPointerMove({...event,clientX:157,clientY:215});for(let frame=0;frame<18;frame++)advanceConformationDrag(performance.now()+(frame+1)*1000/60);');release(scene);
+  assert.ok(scene.run('intent.ids.some(id=>pos(id).distanceTo(before.get(id))>.01)'),'Conformation drag did not move its branch');
+  assert.ok(scene.run('molecule.atoms.some(a=>!intent.ids.includes(a.id)&&pos(a.id).distanceTo(before.get(a.id))>.001)'),'Force did not propagate into the supporting skeleton');
   for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
-  assert.ok(scene.run('molecule.bonds.every(b=>Math.abs(pos(b.a).distanceTo(pos(b.b))/bondLengthFor(b.a,b.b,b.order)-1)<.07)'),'Torsion stretched a bond');
+  assert.ok(scene.run('molecule.bonds.every(b=>Math.abs(pos(b.a).distanceTo(pos(b.b))/bondLengthFor(b.a,b.b,b.order)-1)<.07)'),'Conformation drag stretched a bond');
   assert.equal(scene.run('!!relaxation'),false,'Ordinary ethane release did not finish');cameraUnchanged(scene);
   scene.run("startRelaxation();globalThis.during=new Map(fids.map(id=>[id,pos(id).clone()]));globalThis.screen=worldToScreen(pos(fids[0]));onPointerDown({pointerId:82,pointerType:'touch',clientX:screen.x,clientY:screen.y});");
   assert.equal(scene.run('dragState.mode'),'atom-locked','Correction converted atom press into whole rotation');
@@ -173,47 +175,38 @@ for(const name of ['methane','benzene','phosphoric-acid','acetamide']){
   assert.ok(scene.run('[...during].every(([id,p])=>pos(id).equals(p))'),'Press during correction moved atoms');
   assert.equal(scene.run('!!relaxation'),true,'Press cancelled correction');
   for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
-  assert.equal(scene.run('torsionGuide.mode'),'torsion','Temporary correction lock did not clear');cameraUnchanged(scene);
+  assert.equal(scene.run('torsionGuide.mode'),'conformation','Temporary correction lock did not clear');cameraUnchanged(scene);
   // A new topology must dispose cached axes/cues. It cannot leave a selected
   // bridge active after a new cycle forms or a bond is removed.
-  scene.run('molecule.removeBond(intent.bond.a,intent.bond.b);topologyChanged();refresh();');
-  assert.equal(scene.run('activeTorsionKey'),null);assert.equal(scene.run('candidateTorsionKeys.size'),0);
-  assert.equal(scene.document.querySelector('#rotation-cue').hidden,true);
-  assert.equal(scene.run('[...bondVisuals.values()].some(v=>v.axisGlow.visible)'),false);
+  scene.run('molecule.removeBond(intent.candidates[0].bond.a,intent.candidates[0].bond.b);topologyChanged();refresh();');
+  assert.equal(scene.run('torsionGuide'),null);
+  assert.equal(scene.document.querySelector('#rotation-cue'),null);
+  assert.ok(scene.run('[...bondVisuals.values()].every(v=>!("axisGlow" in v))'));
 }
 {
   const record={atoms:Array(6).fill('C'),bonds:[[0,1,1],[1,2,1],[2,3,1],[3,4,1],[4,5,1]]};
   for(let i=0;i<6;i++)for(let j=0;j<(i===0||i===5?3:2);j++){record.bonds.push([i,record.atoms.length,1]);record.atoms.push('H');}
   const scene=await torsionScene(record);press(scene,0);
   assert.equal(scene.run('dragState.mode'),'conformation');
-  assert.equal(scene.document.querySelectorAll('#rotation-axis-options button').length,3);
-  assert.equal(scene.run('[...bondVisuals.values()].filter(v=>v.axisGlow.visible).length'),3);
-  scene.run('onPointerMove({...event,clientX:290,clientY:430});');release(scene);
+  assert.equal(scene.document.querySelector('#rotation-axis-options'),null);
+  assert.ok(scene.run('[...bondVisuals.values()].every(v=>!("axisGlow" in v))'));
+  assert.equal(scene.document.querySelector('#rotation-cue'),null);
+  scene.run('onPointerMove({...event,clientX:290,clientY:430});for(let frame=0;frame<24;frame++)advanceConformationDrag(performance.now()+(frame+1)*1000/60);');release(scene);
   assert.ok(scene.run('intent.ids.some(id=>pos(id).distanceTo(before.get(id))>.01)'),'Multi-torsion drag did not move the chain');
   assert.ok(scene.run('intent.lastResult.changedAxes.size>=2'),'Multi-torsion drag used fewer than two axes');
-  assert.ok(scene.run('molecule.atoms.filter(a=>!intent.ids.includes(a.id)).every(a=>pos(a.id).equals(before.get(a.id)))'),'Multi-torsion drag moved support');
-  for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
-  assert.equal(scene.run('!!relaxation'),false);
-  const expected=scene.run('torsionGuide.candidates[1].key');
-  scene.document.querySelectorAll('#rotation-axis-options button')[1].click();
-  assert.equal(scene.run('activeTorsionKey'),expected);
-  assert.equal(scene.document.querySelectorAll('#rotation-axis-options button[aria-pressed="true"]').length,1);
-  press(scene,0);assert.equal(scene.run('dragState.key'),expected);assert.equal(scene.run('dragState.mode'),'torsion');
-  scene.run('onPointerMove({...event,clientX:140,clientY:210});');release(scene);
-  assert.ok(scene.run('intent.ids.some(id=>pos(id).distanceTo(before.get(id))>.01)'),'Selected axis does not move its branch');
-  assert.ok(scene.run('molecule.atoms.filter(a=>!intent.ids.includes(a.id)).every(a=>pos(a.id).equals(before.get(a.id)))'),'Selected branch moved support');
+  assert.ok(scene.run('molecule.atoms.some(a=>!intent.ids.includes(a.id)&&pos(a.id).distanceTo(before.get(a.id))>.001)'),'Multi-torsion force did not reach its support');
   for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
   assert.equal(scene.run('!!relaxation'),false);cameraUnchanged(scene);
-  // The visible bond centre is also a target; one tap selects it. Use a
+  // A short bond tap must not reactivate the removed single-axis mode. Use a
   // controlled projection to keep the target clear of endpoint hit zones.
   scene.run('globalThis.axis=torsionGuide.candidates[0];globalThis.a=pos(axis.bond.a),b=pos(axis.bond.b);cameraTarget.copy(a).lerp(b,.5);globalThis.normal=new THREE.Vector3(0,0,1);if(Math.abs(b.clone().sub(a).normalize().dot(normal))>.9)normal.set(0,1,0);normal.cross(b.clone().sub(a)).normalize();camera.position.copy(cameraTarget).addScaledVector(normal,2.8);camera.lookAt(cameraTarget);camera.updateMatrixWorld();globalThis.middle=worldToScreen(a.clone().lerp(b,.5));');
   scene.run("onPointerDown({pointerId:84,pointerType:'mouse',clientX:middle.x,clientY:middle.y});");
   assert.equal(scene.run('dragState.mode'),'bond','Highlighted bond could not be tapped');
   scene.run("onPointerUp({pointerId:84,pointerType:'mouse',clientX:middle.x,clientY:middle.y});");
-  assert.equal(scene.run('activeTorsionKey'),scene.run('axis.key'),'Single bond tap did not select axis');
+  assert.equal(scene.run('torsionGuide.mode'),'conformation');
   scene.run("onPointerDown({pointerId:85,pointerType:'mouse',clientX:-500,clientY:-500});");
-  assert.equal(scene.run('[...bondVisuals.values()].some(v=>v.axisGlow.visible)'),false,'Background did not clear axis highlights');
+  assert.ok(scene.run('[...bondVisuals.values()].every(v=>!("axisGlow" in v))'),'Legacy axis highlight mesh was recreated');
   scene.run("onPointerUp({pointerId:85,pointerType:'mouse',clientX:-500,clientY:-500});clearField();");
-  assert.equal(scene.document.querySelector('#rotation-axis-options').hidden,true);
+  assert.equal(scene.document.querySelector('#rotation-axis-options'),null);
 }
-console.log('Production torsion UI passed: locked P/rings/amides, rigid background, auto axis, multiple numbered/bond-tap axes, support/camera invariance, pointer ownership and topology invalidation.');
+console.log('Production conformation UI passed: every atom is grabbable, rigid structures move intact, flexible structures propagate force through torsions, legacy axis UI stays hidden, and camera/pointer/topology invariants hold.');
