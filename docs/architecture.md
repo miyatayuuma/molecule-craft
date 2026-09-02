@@ -9,7 +9,7 @@
 | 探索物理・推進・DUST EATER | `src/veil/engine.js`, `src/veil/config.js`, `src/veil/growth.js` | `expedition-core.test.mjs`, `veil.test.mjs` |
 | マップ・塵・流れ | `src/veil/map.js`, `src/veil/universe.js` | `growth.test.mjs`, `veil-playthrough.test.mjs` |
 | 探索描画・HUD・音 | `src/veil/renderer.js`, `src/veil/ui.js`, `src/veil/audio.js`, `veil.css` | `veil-ui-check.mjs` |
-| 探索資源・帰還・保存 | `src/veil/resources.js`, `src/veil/supply.js` | `expedition-core.test.mjs`, `veil-reset.test.mjs` |
+| 探索資源・タンク・帰還・保存 | `src/veil/resources.js`, `src/veil/supply.js`, `src/veil/growth.js` | `supply-tanks.test.mjs`, `expedition-core.test.mjs`, `veil-reset.test.mjs` |
 | BASE STOCK入出庫・原子追加/削除/片付け | `src/craft-workspace.js` | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
 | クラフトのボタン・パレット操作 | `src/craft-controls.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
 | クラフト情報・構造一覧・完成表示 | `src/craft-panel.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
@@ -27,7 +27,7 @@
 - `src/app.js`：固定entrypoint。Three.jsシーン、3D入力、結合・構造変形の統合と起動順だけを担当する。
 - `src/craft-workspace.js`：BASE STOCKとの原子入出庫と、制作グラフの追加・削除・全片付け・整理復元。
 - `src/craft-controls.js`：クラフト画面のDOMイベント登録。
-- `src/craft-panel.js`：分子情報、選択原子、構造一覧、完成表示のDOM更新。
+- `src/craft-panel.js`：分子情報、選択原子、構造一覧、完成表示と完成分子からのタンク長押し充填UI。
 - `src/craft-connections.js`：探索UI・進捗初期化・図鑑遅延読込・保存ライフサイクルの接続。
 - `styles.css`：クラフト・図鑑・共通UI。
 - `veil.css`：探索画面と推進UI。
@@ -50,7 +50,9 @@
 | 画面統合・入力・帰還 | `src/veil/ui.js` |
 | 音 | `src/veil/audio.js` |
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
-| 補給・数量指定量産 | `src/veil/supply.js` |
+| 収集殻・用途別タンク選択・3D模型・図鑑導線 | `src/veil/supply.js` |
+| タンク用途・仮性能値 | `src/veil/growth.js` |
+| タンク内容・原子からの1分子単位量産充填 | `src/veil/resources.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
 探索の現行ルールと意図は `docs/hco-growth.md` にあります。探索だけの変更では、分子DBや生成済みSVGを読む必要はありません。
@@ -62,7 +64,7 @@
 | BASE STOCKから取り出す／戻す | `src/craft-workspace.js` |
 | 原子・部品の追加、個別削除、全片付け、整理と復元 | `src/craft-workspace.js`（配置候補の計算と3D反映は `src/app.js`） |
 | パレット・構造切替・削除・片付けのイベント | `src/craft-controls.js` |
-| 分子名・式・選択情報・構造一覧・完成表示 | `src/craft-panel.js` |
+| 分子名・式・選択情報・構造一覧・完成表示・対応タンク操作 | `src/craft-panel.js` |
 | 図鑑と探索画面への接続 | `src/craft-connections.js` |
 | 分子グラフ・式・DB認識 | `src/chemistry.js` |
 | 原子価・電子・結合許可・幾何 | `src/bonding-model.js` |
@@ -100,7 +102,7 @@
 
 ## 保存
 
-- `molecule-craft.resources.v1`：BASE STOCKの原子在庫、基地分子在庫、探索用推進タンク、レシピ、探索進行、精算、制作スナップショットの正本。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。移行と破損・未来版・競合保護は `src/veil/resources.js`。
+- `molecule-craft.resources.v1`：BASE STOCKの原子在庫、基地分子在庫、用途別タンク、レシピ、探索進行、精算、制作スナップショットの正本。内部schema v4では各タンクを「分子ID 1種類＋残量」で保存し、旧schema v3のH₂/CH₄/O₂残量を自動移行する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存し、連続量産資源には数えない。移行と破損・未来版・競合保護は `src/veil/resources.js`。
 - `molecule-craft.workspace.v1`：従来workspaceの互換入力。構造スキーマと復元は `src/workspace-save.js`。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。

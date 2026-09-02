@@ -138,5 +138,5 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onC
   window.addEventListener('pagehide',()=>{resources.save();audio.pause();});window.addEventListener('storage',event=>{if(event.key==='molecule-craft.resources.v1'){pause();resources.save();updateCraft();}});
   q('veil-resume').addEventListener('click',()=>{if(resources.blocked)return;paused=false;last=0;q('veil-resume').hidden=true;audio.start();root.focus();});
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
-  return {get active(){return active;},get run(){return run;},get returning(){return returnState?'emergency':anchorLock?'locking':null;},get anchorLock(){return anchorLock?{...anchorLock}:null;},get lastTelemetry(){return lastTelemetry;},updateCraft,launch,pause,discovered:id=>supply.discovered(id)};
+  return {get active(){return active;},get run(){return run;},get returning(){return returnState?'emergency':anchorLock?'locking':null;},get anchorLock(){return anchorLock?{...anchorLock}:null;},get lastTelemetry(){return lastTelemetry;},updateCraft,launch,pause,discovered:id=>supply.discovered(id),usesFor:id=>supply.usesFor(id),tankStatus:(use,id)=>supply.tankStatus(use,id),directFill:(use,id)=>supply.directFill(use,id)};
 }

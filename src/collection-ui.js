@@ -58,6 +58,11 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   q('collection-category').addEventListener('change',event=>{category=event.target.value;currentDetail=null;listScroll=0;renderBook();});
   q('collection-filter').addEventListener('change',event=>{filter=event.target.value;currentDetail=null;listScroll=0;renderBook();});
   function showDetail(kind,id){if(!currentDetail)listScroll=dialog.scrollTop;tab=kind;currentDetail={kind,id};renderBook();dialog.scrollTop=0;q('detail-back')?.focus({preventScroll:true});}
+  function openMolecule(id){
+    if(!state.hasMolecule(id)||!recordById(id)||!canOpen())return false;
+    tab='molecules';category='all';filter='found';currentDetail={kind:'molecules',id};listScroll=0;renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}dialog.scrollTop=0;return true;
+  }
+  window.addEventListener('molecule-craft:open-molecule',event=>openMolecule(event.detail?.id));
   function renderPalette(){
     elementPalette.update(state);const container=q('craft-palette');container.replaceChildren();
     for(const template of [...data.templates].sort((a,b)=>a.tier-b.tier)){
@@ -126,6 +131,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }
     preview(record,moleculeDisplayName(record));
     detail.append(el('p',entry(kind,id)?.description??record.learningNote??'この分子を図鑑に登録しました。','dex-description'));
+    detail.append(button('この分子をクラフト',()=>{dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));},'collection-primary'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
     if(record.learningNote)extra.append(el('p',record.learningNote));
@@ -154,6 +160,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   renderPalette();renderSummary();
   return {state,templateFor:id=>state.isUnlocked(id)?data.templates.find(template=>template.id===id):null,
+    openMolecule,
     refreshProgress(){state.refreshAccess();renderPalette();renderSummary();if(dialog.open)renderBook();},
     observeStructures(structures){const result=state.observeStructures(structures);if(result.changed){renderPalette();renderSummary();if(dialog.open)renderBook();}return result;},
     describeEvent(event){

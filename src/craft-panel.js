@@ -1,5 +1,6 @@
 import {ELEMENTS,UNKNOWN_NAME,countElements} from './chemistry.js?v=20';
 import {preferredValence,unpairedElectronCount} from './bonding-model.js?v=31';
+import {bindRepeatHoldAction} from './hold-action.js?v=31';
 
 export function createCraftPanel(document){
   const nodes={
@@ -7,7 +8,9 @@ export function createCraftPanel(document){
     selectedElement:document.querySelector('#selected-element'),selectedValence:document.querySelector('#selected-valence'),selectedLimit:document.querySelector('#selected-limit'),selectionChip:document.querySelector('#selection-chip'),
     discovery:document.querySelector('#discovery'),discoveryFormula:document.querySelector('#discovery-formula'),discoveryName:document.querySelector('#discovery-name'),
     structureList:document.querySelector('#structure-list'),structureCount:document.querySelector('#structure-count'),structureFocus:document.querySelector('#structure-focus'),
+    tankActions:document.querySelector('#craft-tank-actions'),
   };
+  let tankActionKey='',tankControls=[];
 
   function identity(structure){
     if(!structure)return{record:null,primary:'自由制作',iupac:'',formula:'—'};
@@ -26,8 +29,18 @@ export function createCraftPanel(document){
     }
   }
 
+  function renderTankActions(focus,veilUI){
+    const record=focus?.complete?focus.record:null,uses=(record&&veilUI?.usesFor(record.id))??[],key=record?`${record.id}:${uses.join('|')}`:'';
+    if(key!==tankActionKey){tankActionKey=key;for(const control of tankControls)control.cancel();tankControls=[];nodes.tankActions.replaceChildren();
+      for(const use of uses){const button=document.createElement('button');button.type='button';button.dataset.tankUse=use;button.dataset.moleculeId=record.id;nodes.tankActions.append(button);tankControls.push(bindRepeatHoldAction(button,()=>{const filled=veilUI.directFill(use,record.id);refreshTankButtons();return filled&&!button.disabled;}));}
+    }
+    function refreshTankButtons(){for(const button of nodes.tankActions.children){const status=veilUI?.tankStatus(button.dataset.tankUse,button.dataset.moleculeId);if(!status)continue;button.disabled=status.full||!status.affordable;button.dataset.replacing=String(status.replacing);button.textContent=`${status.label} ${status.current}/${status.capacity} · 長押し`;button.setAttribute('aria-label',`${status.label}タンクへ連続量産して充填。長押し`);}}
+    refreshTankButtons();nodes.tankActions.hidden=!uses.length;
+  }
+
   function renderInfo({keep,veilUI,focus,structures,selected,molecule,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure,cleanupAvailable}){
     veilUI?.updateCraft();const itemIdentity=identity(focus);nodes.formula.textContent=itemIdentity.formula;nodes.name.textContent=itemIdentity.primary;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';
+    renderTankActions(focus,veilUI);
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
     nodes.counts.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)nodes.counts.textContent='—';else for(const symbol of Object.keys(counts).sort()){const chip=document.createElement('span');chip.className='atom-count';chip.textContent=`${symbol} × ${counts[symbol]}`;nodes.counts.appendChild(chip);}
     renderStructureList({structures,focused:focus,disabled:structureListDisabled,onSelect:onSelectStructure});document.querySelector('#undo-cleanup').hidden=!cleanupAvailable;

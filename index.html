@@ -11,8 +11,8 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=37">
-  <link rel="stylesheet" href="./veil.css?v=39">
+  <link rel="stylesheet" href="./styles.css?v=38">
+  <link rel="stylesheet" href="./veil.css?v=40">
 </head>
 <body>
   <main class="app-shell">
@@ -20,7 +20,7 @@
       <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
       <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
-    <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span id="stock-c" hidden>C <b id="resource-c">0</b></span><span id="stock-o" hidden>O <b id="resource-o">0</b></span></div><button id="open-supply" type="button">分子・補給</button><button id="launch-veil" type="button">Hを採集 ↗</button></div>
+    <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span id="stock-c" hidden>C <b id="resource-c">0</b></span><span id="stock-o" hidden>O <b id="resource-o">0</b></span></div><button id="open-supply" class="collector-access" type="button" aria-label="収集殻とタンクを開く"><i aria-hidden="true"></i><span>収集殻</span></button></div>
     <p id="craft-resource-hint" class="craft-expedition-note"></p><p id="craft-last-run" class="craft-expedition-note"></p>
     <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
     <section class="workspace">
@@ -34,6 +34,7 @@
           <button id="frame-structure" type="button" class="icon-button" aria-label="分子を画面に収める" title="分子を画面に収める">⛶</button>
         </div>
         <div class="field-bottom"><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
+        <div id="craft-tank-actions" class="craft-tank-actions" aria-label="完成分子のタンク操作" hidden></div>
         <button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>
         <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span><small id="discovery-learning"></small></div>
       </section>
@@ -96,23 +97,21 @@
     <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
-  <dialog id="supply-dialog" class="sheet" aria-labelledby="supply-title"><header class="sheet-header"><h2 id="supply-title">分子・補給</h2><button type="button" data-close-dialog aria-label="補給を閉じる">×</button></header><div class="sheet-body supply-body">
-    <p id="supply-goal" class="supply-goal"></p>
-    <section id="supply-systems" class="supply-systems" hidden><header><div><strong>EXPEDITION PROPULSION</strong><small>BASE STOCK → COLLECTOR SHELL</small></div><span>探索用タンク</span></header>
-      <article class="supply-tank" data-tank="hydrogen"><div class="supply-tank-title"><div><strong>H₂ BURST</strong><small>緊急スラスター</small></div><b><span id="supply-h2-current">0</span> / <span id="supply-h2-capacity">3</span></b></div><div class="supply-tank-meter"><i id="supply-h2-meter"></i></div><p id="supply-h2-detail"></p><div class="supply-tank-actions"><button id="fill-hydrogen" type="button">満タンまで補給</button><button id="craft-hydrogen-shortage" type="button" class="secondary" hidden>不足分を作る</button></div></article>
-      <article class="supply-tank" data-tank="combustion" hidden><div class="supply-tank-title"><div><strong>COMBUSTION</strong><small>CH₄ + O₂</small></div><b><span id="supply-combustion-packets">0</span> / <span id="supply-combustion-capacity">18</span> packets</b></div><div class="supply-tank-meter"><i id="supply-combustion-meter"></i></div><p id="supply-combustion-detail"></p><div class="supply-tank-actions"><button id="fill-combustion" type="button">満タンまで補給</button><button id="craft-methane-shortage" type="button" class="secondary" hidden>CH₄を作る</button><button id="craft-oxygen-shortage" type="button" class="secondary" hidden>O₂を作る</button></div></article>
-      <p id="supply-propulsion-note" class="muted"></p>
+  <dialog id="supply-dialog" class="sheet" aria-labelledby="supply-title"><header class="sheet-header"><h2 id="supply-title">収集殻</h2><button type="button" data-close-dialog aria-label="収集殻を閉じる">×</button></header><div class="sheet-body supply-body">
+    <div class="collector-shell-map" aria-label="収集殻のタンク"><div class="collector-core" aria-hidden="true"><i></i><b>COLLECTOR<br>SHELL</b></div>
+      <button id="shell-propellant" class="shell-port port-propellant" type="button" aria-pressed="true"><span>噴射剤</span><small>—</small></button>
+      <button id="shell-fuel" class="shell-port port-fuel" type="button" aria-pressed="false"><span>燃料</span><small>—</small></button>
+      <button id="shell-oxidizer" class="shell-port port-oxidizer" type="button" aria-pressed="false"><span>酸化剤</span><small>—</small></button>
+      <button id="shell-coolant" class="shell-port port-coolant" type="button" aria-pressed="false"><span>冷却剤</span><small>—</small></button>
+      <button id="launch-veil" class="shell-launch" type="button">出発</button>
+    </div>
+    <p id="supply-announcement" class="supply-announcement" role="status" hidden></p>
+    <section id="tank-detail" class="tank-detail"><header><strong id="tank-detail-title">噴射剤</strong><b id="tank-load">0 / 3</b></header><div class="tank-load-meter"><i id="tank-load-meter"></i></div>
+      <div id="tank-molecules" class="tank-molecules" aria-label="発見済み分子"></div><p id="tank-empty" class="tank-empty">発見済み分子なし</p>
+      <div id="tank-model" class="tank-model" role="button" tabindex="0" aria-label="模型をタップして図鑑を開く" hidden><div id="tank-model-host"></div><span id="tank-model-name"></span><small>図鑑 ›</small></div>
+      <div id="tank-comparison" class="tank-comparison" hidden></div><p id="tank-replacement" class="tank-replacement" hidden></p>
     </section>
-    <div class="supply-section-heading"><strong>MOLECULE PRODUCTION</strong><small>BASE ELEMENTS → MOLECULE STOCK</small></div><label for="molecule-select">見つけた構造・量産できる分子</label><select id="molecule-select"></select>
-    <div class="supply-recipe"><img id="recipe-model" alt="分子の構造ヒント" width="112" height="112" hidden><div><strong id="recipe-name"></strong><p id="recipe-hint"></p></div></div>
-    <details id="recipe-connections"><summary>原子と結合を確認</summary><p id="recipe-bonds"></p></details><p id="molecule-use" class="muted"></p>
-    <div class="supply-production"><span id="molecule-stock" role="status"></span><div id="production-controls" class="production-controls" hidden><button id="production-minus" type="button" aria-label="作成数を1減らす">−</button><output id="production-quantity" aria-label="作成数量">1</output><button id="production-plus" type="button" aria-label="作成数を1増やす">＋</button></div></div>
-    <div id="production-shortcuts" class="production-shortcuts" aria-label="作成数量のショートカット" hidden><button id="production-add-5" type="button">+5</button><button id="production-add-10" type="button">+10</button><button id="production-max" type="button"><span id="production-max-value">MAX 0</span></button></div>
-    <p id="molecule-cost" class="molecule-cost muted" data-affordable="false"></p><button id="make-h2" type="button" hidden>一括生成</button>
-    <div id="synthesis-stage" class="synthesis-stage" aria-hidden="true" hidden><span class="synthesis-source">BASE ELEMENTS</span><div id="synthesis-atoms" class="synthesis-atoms"></div><strong id="synthesis-formula"></strong><small id="synthesis-count"></small><span class="synthesis-destination">MOLECULE STOCK</span></div>
-    <p class="supply-stockline"><span>BASE MOLECULE STOCK</span> · H₂ <b id="resource-h2">0</b> · CH₄ <b id="resource-ch4">0</b> · O₂ <b id="resource-o2">0</b> · H₂O <b id="resource-water">0</b></p>
-    <label for="expedition-anchor">次にたどる流れ</label><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veilへ補給</option></select>
-    <p class="muted">構造を知らなくても、正しく組めば発見できる。一度完成すると、数量と元素消費を確認して量産できます。図鑑の完成率は進行条件ではありません。</p>
+    <label class="anchor-select" for="expedition-anchor"><span>出発地点</span><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veil</option></select></label>
   </div></dialog>
   <section id="veil-view" aria-label="採集殻で原子宇宙を探索" tabindex="-1" hidden>
     <canvas id="veil-canvas" aria-label="ANCHOR FIELDで係留された採集殻の探索フィールド"></canvas>
@@ -124,7 +123,7 @@
     <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-combustion" type="button" aria-label="CH₄とO₂の燃焼推進。押している間だけ作動。キーボードはShift" aria-pressed="false" hidden><strong>CH₄ + O₂</strong><small id="veil-combustion-remaining">0 / 0 PACKETS</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel">CH₄ 0 · O₂ 0</span></button><button id="veil-boost" type="button" aria-label="H₂ BURST。1個消費。キーボードはスペース"><strong>H₂</strong><small>BURST <span id="veil-fuel">0 / 3</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
-  <script type="module" src="./src/app.js?v=42"></script>
+  <script type="module" src="./src/app.js?v=43"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>
