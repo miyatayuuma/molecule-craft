@@ -23,6 +23,14 @@
 - PWA changes: start with `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs`, and `tests/pwa.test.mjs`.
 - Preserve current gameplay, saved-data compatibility, and offline behavior unless the task explicitly changes them.
 
+## Execution authority
+
+- Work is pre-authorized to carry repository tasks through completion without asking the user for permission or confirmation at intermediate steps.
+- Do not ask whether to inspect required files, edit code, refactor within the requested scope, regenerate required outputs, run relevant tests, fix regressions caused by the task, commit, push, create a pull request, or merge to `main`.
+- When implementation details are not specified, make the smallest reasonable decision that satisfies the requested behavior and preserves existing behavior outside the task instead of asking for approval.
+- Do not stop to present a plan for approval. Investigate only as much as needed, implement, validate, and finish the task.
+- Do not perform unrelated destructive changes. If authentication, branch protection, platform policy, or a tool limitation makes an authorized step impossible, report that concrete blocker rather than asking whether to proceed.
+
 ## Task completion
 
 - Work implementation tasks are pre-authorized through completion: implement the requested change, run only the relevant tests, commit, push, create a pull request, and merge it into `main` when checks pass.
