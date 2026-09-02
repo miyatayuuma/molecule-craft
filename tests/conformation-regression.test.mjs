@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {Molecule,ELEMENTS} from '../src/chemistry.js?v=20';
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '../src/bonding-model.js?v=31';
-import {createStructureSolver} from '../src/structure-relaxation.js?v=31';
-import {createTorsionModel} from '../src/torsion-model.js?v=32';
+import {createStructureSolver} from '../src/structure-relaxation.js?v=32';
+import {createTorsionModel} from '../src/torsion-model.js?v=33';
+import {createConformationEngine} from '../src/conformation-engine.js?v=1';
+import {createStructureSettlement} from '../src/structure-settlement.js?v=32';
 
 const pairKey=(a,b)=>`${Math.min(a,b)}:${Math.max(a,b)}`;
 
@@ -19,7 +21,8 @@ function fixture(elements,bonds,coordinates){
     geometryFor:id=>geometryForAtom(molecule,id),radiusFor:id=>ELEMENTS[atomById(id).element].radius,
     nonbondedDistanceFor:(a,b)=>nonbondedDistance(atomById(a).element,atomById(b).element)});
   solver.rebuildTopology();
-  return{molecule,ids,placements,solver,pos:index=>placements.get(ids[index]).position};
+  return{molecule,ids,placements,solver,atomById,bondBetween,bondLengthFor,
+    geometryFor:id=>geometryForAtom(molecule,id),pos:index=>placements.get(ids[index]).position,positionFor:id=>placements.get(id)?.position};
 }
 
 function benzeneWithChain(chainLength=1){
@@ -54,7 +57,7 @@ function saturatedChain(length=6){
 }
 
 test('freedom analysis classifies rigid, restricted, locked and rotatable bonds',()=>{
-  const benzene=benzeneWithChain(2),ringIds=benzene.ids.slice(0,6);
+  const benzene=benzeneWithChain(3),ringIds=benzene.ids.slice(0,6);
   const aromatic=createTorsionModel(benzene.molecule,{aromaticCycles:[ringIds]});
   assert.equal(aromatic.bonds.get(pairKey(ringIds[0],ringIds[1])).classification,'LOCKED');
   assert.equal(aromatic.bonds.get(pairKey(benzene.ids[6],benzene.ids[7])).classification,'ROTATABLE');
@@ -73,6 +76,9 @@ test('freedom analysis classifies rigid, restricted, locked and rotatable bonds'
 
   const conjugated=fixture(['O','C','N','C','H','H'],[[0,1,2],[1,2],[2,3],[1,4],[3,5]],[[0,0,0],[1.1,0,0],[2.1,.5,0],[3.2,.2,.3],[1.1,-1,0],[3.8,.8,.6]]);
   assert.equal(createTorsionModel(conjugated.molecule).bonds.get(pairKey(conjugated.ids[1],conjugated.ids[2])).classification,'RESTRICTED');
+
+  const diene=fixture(['C','C','C','C','H','H'],[[0,1,2],[1,2],[2,3,2],[0,4],[3,5]],[[0,0,0],[1.1,0,0],[2.15,.25,0],[3.2,.25,0],[-.6,.8,0],[3.8,-.55,0]]);
+  assert.equal(createTorsionModel(diene.molecule).bonds.get(pairKey(diene.ids[1],diene.ids[2])).classification,'RESTRICTED');
 });
 
 test('benzene plus side chain rejects an atom placed in the ring center',()=>{
@@ -98,7 +104,7 @@ test('vinyl and double-bond chains keep their sp2 rigid fragment',()=>{
   assert.ok(fragment&&[0,1,2,3,5,6].every(index=>fragment.atomIds.includes(item.ids[index])),'C=C neighbourhood is not represented as one rigid fragment');
   const model=createTorsionModel(item.molecule);
   assert.equal(model.bonds.get(pairKey(item.ids[1],item.ids[2])).classification,'LOCKED');
-  assert.equal(model.bonds.get(pairKey(item.ids[3],item.ids[4])).classification,'ROTATABLE');
+  assert.equal(model.bonds.get(pairKey(item.ids[2],item.ids[3])).classification,'ROTATABLE');
 });
 
 test('long and branched chains provide distributed torsion paths',()=>{
@@ -135,4 +141,81 @@ test('severe 1-4 overlap, chain crossing and non-finite poses are invalid',()=>{
   assert.equal(crossing.solver.validateConformation().valid,false,'NaN pose was accepted');
   crossing.solver.restoreConformation(valid);
   assert.ok(Number.isFinite(crossing.pos(0).x),'rollback did not restore finite coordinates');
+});
+
+test('terminal drag distributes motion over multiple torsions without breaking the chain',()=>{
+  const item=saturatedChain(6);
+  for(let index=0;index<420;index++)item.solver.step(.62,2);
+  const model=createTorsionModel(item.molecule),engine=createConformationEngine({THREE,molecule:item.molecule,solver:item.solver,
+    positionFor:item.positionFor,modelFor:()=>model});
+  const initial=item.pos(0).clone(),target=initial.clone().add(new THREE.Vector3(-.35,2.4,1.8));
+  const session=engine.beginDrag(item.ids[0]);assert.equal(session.plan.mode,'conformation');
+  let result;for(let update=0;update<10;update++)result=engine.updateDrag(target);
+  assert.ok(result.accepted,'reachable drag target never produced a valid conformation');
+  assert.ok(result.changedAxes.size>=2,`only ${result.changedAxes.size} torsion changed`);
+  assert.ok(result.afterDistance<result.beforeDistance,'drag did not move the terminal atom toward the target');
+  assert.equal(item.solver.validateConformation({ids:session.plan.scope,rigidReference:session.rigidReference,mode:'drag'}).valid,true);
+  for(const bond of item.molecule.bonds){
+    const targetLength=item.bondLengthFor(bond.a,bond.b,bond.order),actual=item.positionFor(bond.a).distanceTo(item.positionFor(bond.b));
+    assert.ok(Math.abs(actual/targetLength-1)<.1,'multi-torsion drag stretched a bond beyond drag tolerance');
+  }
+});
+
+test('invalid drag rolls back and release relaxation preserves the new conformation',()=>{
+  const item=saturatedChain(6);for(let index=0;index<420;index++)item.solver.step(.62,2);
+  const model=createTorsionModel(item.molecule),engine=createConformationEngine({THREE,molecule:item.molecule,solver:item.solver,
+    positionFor:item.positionFor,modelFor:()=>model});
+  const initial=item.pos(0).clone(),target=initial.clone().add(new THREE.Vector3(-.2,2.1,1.4));
+  const session=engine.beginDrag(item.ids[0]);let accepted;
+  for(let update=0;update<8;update++)accepted=engine.updateDrag(target);
+  assert.ok(accepted.accepted);const dragged=item.pos(0).clone(),release=engine.release();
+  const settlement=createStructureSettlement({THREE,molecule:item.molecule,placements:item.placements,ids:release.ids,lockedIds:release.lockedIds,
+    bondLengthFor:item.bondLengthFor,geometryFor:item.geometryFor,radiusFor:id=>ELEMENTS[item.atomById(id).element].radius,
+    nonbondedDistanceFor:(a,b)=>nonbondedDistance(item.atomById(a).element,item.atomById(b).element),rigidReference:release.rigidReference,duration:1});
+  let settled;for(let frame=0;frame<80;frame++){settled=settlement.advance(frame*16,{clock:()=>0});if(settled.done)break;}
+  assert.ok(item.pos(0).distanceTo(initial)>.15,'release returned to the initial conformation');
+  assert.ok(item.pos(0).distanceTo(dragged)<1.2,'release discarded the user-created conformation');
+  assert.equal(item.solver.validateConformation({ids:release.ids,rigidReference:release.rigidReference}).valid,true,'release ended invalid');
+
+  const rollbackEngine=createConformationEngine({THREE,molecule:item.molecule,solver:item.solver,positionFor:item.positionFor,modelFor:()=>model});
+  rollbackEngine.beginDrag(item.ids[0]);const safe=item.positionFor(item.ids[0]).clone();item.positionFor(item.ids[0]).x=Number.NaN;
+  const rolledBack=rollbackEngine.updateDrag(new THREE.Vector3(Number.NaN,0,0));
+  assert.equal(rolledBack.rolledBack,true);assert.ok(item.positionFor(item.ids[0]).distanceTo(safe)<1e-9,'last valid pose was not restored');
+});
+
+test('aromatic anchor remains rigid and ring exclusion blocks a hostile drag',()=>{
+  const item=benzeneWithChain(4);
+  for(const [carbonIndex,count]of [[6,2],[7,2],[8,2],[9,3]])for(let h=0;h<count;h++){
+    const atom=item.molecule.addAtom('H'),base=item.pos(carbonIndex);
+    item.placements.set(atom.id,{position:base.clone().add(new THREE.Vector3(0,(h-.5)*.72,h%2?.76:-.76))});item.molecule.setBond(item.ids[carbonIndex],atom.id,1);
+  }
+  item.solver.markTopologyDirty();for(let index=0;index<520;index++)item.solver.step(.58,2);
+  const ring=item.ids.slice(0,6),model=createTorsionModel(item.molecule,{aromaticCycles:[ring]}),engine=createConformationEngine({
+    THREE,molecule:item.molecule,solver:item.solver,positionFor:item.positionFor,modelFor:()=>model,
+  });
+  const reference=[];for(let left=0;left<ring.length;left++)for(let right=left+1;right<ring.length;right++)reference.push([ring[left],ring[right],item.positionFor(ring[left]).distanceTo(item.positionFor(ring[right]))]);
+  const session=engine.beginDrag(item.ids[9]);assert.equal(session.plan.mode,'conformation');
+  const ordinary=item.positionFor(item.ids[9]).clone().add(new THREE.Vector3(.2,1.8,1.25));let result;
+  for(let update=0;update<8;update++)result=engine.updateDrag(ordinary);
+  assert.ok(result.accepted,'aromatic side chain could not flex');
+  assert.ok(reference.every(([a,b,distance])=>Math.abs(item.positionFor(a).distanceTo(item.positionFor(b))/distance-1)<.015),'aromatic anchor deformed');
+  const ringCenter=ring.reduce((sum,id)=>sum.add(item.positionFor(id)),new THREE.Vector3()).multiplyScalar(1/ring.length);
+  for(let update=0;update<18;update++)engine.updateDrag(ringCenter);
+  const validation=item.solver.validateConformation({ids:session.plan.scope,rigidReference:session.rigidReference,mode:'drag'});
+  assert.equal(validation.valid,true,'hostile ring drag left an invalid pose');assert.equal(validation.errors.ringPenetrations,0);
+  assert.ok(item.positionFor(item.ids[9]).distanceTo(ringCenter)>.2,'terminal atom entered the ring center');engine.release();
+});
+
+test('an unreachable target saturates torsions instead of stretching the molecule',()=>{
+  const item=saturatedChain(6);for(let index=0;index<420;index++)item.solver.step(.62,2);
+  const model=createTorsionModel(item.molecule),engine=createConformationEngine({THREE,molecule:item.molecule,solver:item.solver,
+    positionFor:item.positionFor,modelFor:()=>model}),session=engine.beginDrag(item.ids[0]);
+  const impossible=new THREE.Vector3(-90,80,70);for(let update=0;update<30;update++)engine.updateDrag(impossible);
+  assert.ok(item.pos(0).distanceTo(impossible)>100,'unreachable target was reached by stretching topology');
+  assert.equal(item.solver.validateConformation({ids:session.plan.scope,rigidReference:session.rigidReference,mode:'drag'}).valid,true);
+  for(const bond of item.molecule.bonds){
+    const expected=item.bondLengthFor(bond.a,bond.b,bond.order),actual=item.positionFor(bond.a).distanceTo(item.positionFor(bond.b));
+    assert.ok(Math.abs(actual/expected-1)<.1,'unreachable drag broke a bond length');
+  }
+  engine.release();
 });

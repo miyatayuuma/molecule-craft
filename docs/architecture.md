@@ -11,8 +11,8 @@
 | 探索描画・HUD・音 | `src/veil/renderer.js`, `src/veil/ui.js`, `src/veil/audio.js`, `veil.css` | `veil-ui-check.mjs` |
 | 探索資源・帰還・保存 | `src/veil/resources.js`, `src/veil/supply.js` | `expedition-core.test.mjs`, `veil-reset.test.mjs` |
 | 結合操作 | `src/app.js`, `src/bonding-model.js`, `src/electron-interaction.js`, `src/gesture-arbitration.js` | `bond-state.test.mjs`, `mobile-ui-check.mjs` |
-| 3D配置・補正 | `src/structure-relaxation.js`, `src/structure-motion.js`, `src/structure-settlement.js` | `structure-relaxation.test.mjs`, `structure-motion.test.mjs` |
-| 単結合回転 | `src/torsion-model.js`, `src/structure-edit.js`, `src/workspace-view.js` | `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
+| 3D配置・補正 | `src/conformation-engine.js`, `src/structure-relaxation.js`, `src/structure-motion.js`, `src/structure-settlement.js` | `conformation-regression.test.mjs`, `structure-relaxation.test.mjs` |
+| 分子変形・単結合回転 | `src/conformation-engine.js`, `src/torsion-model.js`, `src/structure-edit.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
 | 制作フィールド保存 | `src/workspace-save.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `veil-reset.test.mjs` |
 | 図鑑・発見・解放 | `src/collection-ui.js`, `src/collection-state.js`, `src/element-progression.js` | `collection.test.mjs`, `collection-expansion.test.mjs` |
 | PWA・更新 | `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs` | `pwa.test.mjs` |
@@ -55,9 +55,10 @@
 | 原子価・電子・結合許可・幾何 | `src/bonding-model.js` |
 | 電子／原子／結合のポインタ判定 | `src/electron-interaction.js`, `src/gesture-arbitration.js` |
 | 結合成立時の移動 | `src/structure-motion.js` |
-| 結合長・角・平面・近接反発 | `src/structure-relaxation.js` |
-| 独立座標での補正と補間 | `src/structure-settlement.js` |
-| torsion候補・固定判定 | `src/torsion-model.js`, `src/structure-edit.js` |
+| multi-torsion drag・rollback | `src/conformation-engine.js` |
+| 剛体断片・結合長・角・平面・立体反発・環/鎖交差 | `src/structure-relaxation.js` |
+| release後の独立座標補正と補間 | `src/structure-settlement.js` |
+| rotatable / restricted / locked判定 | `src/torsion-model.js`, `src/structure-edit.js` |
 | 表示対象・全体回転・画角 | `src/workspace-view.js`, `src/workspace-model.js` |
 | workspace保存・復元・未来版保護 | `src/workspace-save.js` |
 | 部品展開・初期座標 | `src/craft-structures.js` |
@@ -111,7 +112,7 @@
 | 分子認識・結合・特殊結合 | `recognition.test.mjs`, `bond-state.test.mjs`, `special-bonds-check.mjs` |
 | 図鑑・部品・元素解放 | `collection.test.mjs`, `collection-expansion.test.mjs` |
 | 入力・長押し | `electron-interaction.test.mjs`, `gesture-arbitration.test.mjs`, `hold-action.test.mjs` |
-| 配置・補正・torsion | `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |
+| 配置・補正・torsion | `conformation-regression.test.mjs`, `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |
 | workspace保存 | `workspace-save.test.mjs`, `workspace-model.test.mjs` |
 | 探索・成長・資源 | `expedition-core.test.mjs`, `growth.test.mjs`, `veil*.test.mjs` |
 | 探索バランスシミュレーション | `expedition-balance.test.mjs`, `scripts/simulate-expedition.mjs` |

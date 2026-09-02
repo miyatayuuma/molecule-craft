@@ -1,7 +1,7 @@
 import {Molecule,ELEMENTS} from '../src/chemistry.js?v=20';
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '../src/bonding-model.js?v=31';
 import {createPreviewModel} from '../src/preview-model.js?v=31';
-import {createStructureSettlement} from '../src/structure-settlement.js?v=31';
+import {createStructureSettlement} from '../src/structure-settlement.js?v=32';
 import {attachmentProjection,createAttachmentMarker} from '../src/attachment-rendering.js?v=31';
 
 export function checkStructureSettlement(THREE,records,parts){

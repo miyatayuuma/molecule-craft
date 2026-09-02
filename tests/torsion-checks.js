@@ -1,6 +1,6 @@
 import {Molecule} from '../src/chemistry.js?v=20';
-import {createTorsionModel} from '../src/torsion-model.js?v=32';
-import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=32';
+import {createTorsionModel} from '../src/torsion-model.js?v=33';
+import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=33';
 
 // Pure topology checks, shared by Node and the public browser harness.
 export function checkTorsionModel(records){
@@ -27,7 +27,7 @@ export function checkTorsionModel(records){
     const {molecule,ids}=graph(Array(6).fill('C'),[[0,1],[1,2],[2,3],[3,4],[4,5]]);
     for(let i=0;i<6;i++)for(let j=0;j<(i===0||i===5?3:2);j++)molecule.setBond(ids[i],molecule.addAtom('H').id,1);
     const model=createTorsionModel(molecule),plan=model.forAtom(ids[0]);
-    assert(plan.mode==='axis-select'&&plan.candidates.length===3,'Three branch axes require explicit selection');
+    assert(plan.mode==='conformation'&&plan.candidates.length===3,'Three branch axes were not combined for conformation drag');
     for(const candidate of plan.candidates){
       const selected=model.forAtom(ids[0],{activeKey:candidate.key});
       assert(selected.mode==='torsion'&&selected.key===candidate.key,'Explicit axis ignored');
@@ -42,7 +42,8 @@ export function checkTorsionModel(records){
   }
   {
     const {molecule,ids}=graph(['C','C','C','C','H','H'],[[0,1,2],[1,2],[2,3,2],[0,4],[3,5]]);
-    assert(createTorsionModel(molecule).bonds.get(key(ids[1],ids[2])).allowed,'Acyclic diene single bond incorrectly treated as a double bond');
+    const connector=createTorsionModel(molecule).bonds.get(key(ids[1],ids[2]));
+    assert(connector.classification==='RESTRICTED'&&!connector.allowed,'Conjugated diene connector was exposed as a free torsion');
   }
   for(const name of ['anisole','phenol']){
     const record=records.find(r=>r.id===name),{molecule,ids}=graph(record.atoms,record.bonds);
