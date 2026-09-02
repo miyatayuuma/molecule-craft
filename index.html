@@ -20,7 +20,7 @@
       <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
       <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
-    <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span id="stock-c" hidden>C <b id="resource-c">0</b></span><span id="stock-o" hidden>O <b id="resource-o">0</b></span></div><button id="open-supply" type="button">分子・補給</button><button id="store-h2" type="button" hidden>分子を保管</button><button id="launch-veil" type="button">Hを採集 ↗</button></div>
+    <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span id="stock-c" hidden>C <b id="resource-c">0</b></span><span id="stock-o" hidden>O <b id="resource-o">0</b></span></div><button id="open-supply" type="button">分子・補給</button><button id="launch-veil" type="button">Hを採集 ↗</button></div>
     <p id="craft-resource-hint" class="craft-expedition-note"></p><p id="craft-last-run" class="craft-expedition-note"></p>
     <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
     <section class="workspace">
@@ -30,7 +30,7 @@
         <div class="viewer-actions">
           <div class="molecule-summary" aria-live="polite"><strong id="molecule-name">自由制作</strong><span id="formula">—</span></div>
           <label id="structure-focus-label" class="viewer-focus" hidden><span class="sr-only">編集対象</span><select id="structure-focus" aria-label="編集する分子"></select></label>
-          <button id="clear-all" class="hold-clear" type="button" aria-label="1秒長押しでフィールドを全消去。図鑑は残ります" title="1秒長押しで全消去"><span>全消去</span><small>長押し</small></button>
+          <button id="clear-all" class="hold-clear" type="button" aria-label="1秒長押しでクラフト中の原子を片付ける" title="1秒長押しで片付ける"><span>片付ける</span><small>長押し</small></button>
           <button id="frame-structure" type="button" class="icon-button" aria-label="分子を画面に収める" title="分子を画面に収める">⛶</button>
         </div>
         <div class="field-bottom"><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
@@ -79,7 +79,7 @@
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
     <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録され、以後は数量と元素消費を確認して量産できます。H/C/Oは探索で見つかります。</p></div></section>
     <section><span>04</span><div><h3>採集殻を回収する</h3><p>基地は採集殻をANCHOR FIELDで係留しています。帰還は短いANCHOR LOCKの後に全積荷を安定回収。DUST EATERが保持場を崩すと、安全装置が一部の積荷をこぼしながら緊急回収します。</p></div></section>
-    <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。全消去は1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子をドラッグすると、環や二重結合などの固定構造を保ったまま、動ける複数の単結合を使って分子全体がしなります。届かない位置へ引いても結合は伸びません。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
+    <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。片付けるは1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子をドラッグすると、環や二重結合などの固定構造を保ったまま、動ける複数の単結合を使って分子全体がしなります。届かない位置へ引いても結合は伸びません。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
   </div></dialog>
   <dialog id="info-dialog" class="sheet" aria-labelledby="info-title"><header class="sheet-header"><h2 id="info-title">いまの分子</h2><button type="button" data-close-dialog aria-label="分子情報を閉じる">×</button></header><div class="sheet-body info-panel">

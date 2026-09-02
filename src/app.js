@@ -105,7 +105,7 @@ if(renderer){
   }
   bindPalette();bindUI();refresh();resize();if(savedWorkspace)repairSavedGeometry();animate();
 }else document.querySelector('#viewer-unavailable').hidden=false;
-veilUI=createVeilUI({resources,canLeave:()=>!resources.blocked&&!interactionLocked()&&!dragState&&!activePointers.size&&(saveWorkspace(true)||!resources.blocked),canSupply:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen()),onCraft:()=>{collectionGame?.refreshProgress();if(renderer){resize();refresh();}},onStore:storeFocusedMolecule,onCommit:()=>saveWorkspace(true)});
+veilUI=createVeilUI({resources,canLeave:()=>!resources.blocked&&!interactionLocked()&&!dragState&&!activePointers.size&&(saveWorkspace(true)||!resources.blocked),canSupply:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen()),onCraft:()=>{collectionGame?.refreshProgress();if(renderer){resize();refresh();}},onCommit:()=>saveWorkspace(true)});
 createProgressResetUI({resources,canReset:()=>!veilUI?.active&&!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen,beforeReset:()=>saveWorkspace(true)&&resources.save()});
 window.addEventListener('pagehide',()=>{saveWorkspace(true);resources.save();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveWorkspace(true);});
@@ -159,7 +159,7 @@ function clearField(){
   clearTimeout(bondHoldTimer);bondHoldTimer=null;
   resources.refund(countElements(molecule.atoms));molecule.clear();placements.clear();workspaceView.clear();selectAtom(null);dragState=null;electronReturn=null;hoverElectron=null;
   activePointers.clear();multiGesture=null;frameTransition=null;lastBackgroundTap=null;
-  cleanupUndo.length=0;protectedUntil.clear();unresolvedAtoms.clear();debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();completionTracker.clear();discoveryQueue=[];activeDiscovery=null;discoveryUntil=0;discovery.classList.remove('show');topologyChanged();refresh();saveWorkspace(true);pulse('フィールドを空にしました');
+  cleanupUndo.length=0;protectedUntil.clear();unresolvedAtoms.clear();debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();completionTracker.clear();discoveryQueue=[];activeDiscovery=null;discoveryUntil=0;discovery.classList.remove('show');topologyChanged();refresh();saveWorkspace(true);pulse('原子をBASE STOCKへ戻しました');
 }
 
 function addElement(symbol){
@@ -647,8 +647,6 @@ function syncWorkspace(){
   for(const id of protectedUntil.keys())if(!structureByAtom.has(id))protectedUntil.delete(id);
 }
 function refreshInfo(keep=false){
-  const moleculeReady=focusedStructure()?.complete&&!!focusedStructure()?.record;
-  document.querySelector('#store-h2').hidden=!moleculeReady;
   veilUI?.updateCraft();
 
   const focus=focusedStructure(),identity=displayIdentity(focus);formulaEl.textContent=identity.formula;nameEl.textContent=identity.primary;iupacNameEl.textContent=identity.iupac?`IUPAC: ${identity.iupac}`:'';
@@ -694,19 +692,6 @@ function checkDiscovery(now=performance.now()){
   discoveryFormula.textContent=identity.formula;discoveryName.textContent=identity.primary;
   discovery.classList.toggle('new-discovery',isNew);discovery.classList.toggle('repeat',!isNew);discovery.classList.remove('show');void discovery.offsetWidth;discovery.classList.add('show');
   if(isNew)vibrateFeedback(22,'touch');
-}
-function storeFocusedMolecule(){
-  if(interactionLocked()||dragState||activePointers.size)return false;
-  const item=focusedStructure();
-  if(!item?.complete||!item.record)return false;
-  const id=item.record.id,atoms=[...item.graph.atoms],bonds=[...item.graph.bonds],placed=atoms.map(atom=>[atom.id,placements.get(atom.id)]),protectedAt=atoms.map(atom=>[atom.id,protectedUntil.get(atom.id)]),selected=selectedAtomId,workspace=resources.state.workspace,stock=resources.state.molecules[id]??0,hadRecipe=resources.state.recipes.includes(id),hadHint=resources.state.hints.includes(id);if(!resources.storeMolecule(id,1))return false;
-  for(const id of item.ids){molecule.removeAtom(id);placements.delete(id);protectedUntil.delete(id);}
-  selectAtom(null);topologyChanged();
-  if(!saveWorkspace(true)){
-    resources.state.molecules[id]=stock;resources.state.workspace=workspace;if(!hadRecipe)resources.state.recipes=resources.state.recipes.filter(value=>value!==id);if(!hadHint)resources.state.hints=resources.state.hints.filter(value=>value!==id);
-    molecule.atoms.push(...atoms);molecule.bonds.push(...bonds);for(const [atomId,placement]of placed)placements.set(atomId,placement);for(const [atomId,until]of protectedAt)if(until!==undefined)protectedUntil.set(atomId,until);selectAtom(selected);topologyChanged();refreshInfo();return false;
-  }
-  refresh();return id;
 }
 function pulse(text){selectionChip.textContent=text;clearTimeout(pulse.t);pulse.t=setTimeout(()=>{if(relaxation)selectionChip.textContent='形を整えています…';else refreshInfo();},1700);}
 
