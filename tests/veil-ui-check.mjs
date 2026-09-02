@@ -7,7 +7,7 @@ import {createContext,runInContext} from 'node:vm';
 import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
 if(!process.argv[2])throw new Error('Pass jsdom/lib/api.js');
 const {JSDOM}=await import(pathToFileURL(process.argv[2]));
-const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=41',root),html=await readFile(new URL('index.html',root),'utf8');
+const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=42',root),html=await readFile(new URL('index.html',root),'utf8');
 let source=await readFile(appURL,'utf8'),bindings={};
 for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   const module=await import(new URL(match[2],appURL));
@@ -34,6 +34,7 @@ async function setup(saved=null,initialH=0,resourceSaved=null,collectionSaved=nu
   document.querySelector('.viewer-actions').getBoundingClientRect=()=>({bottom:74});document.querySelector('#selection-chip').getBoundingClientRect=()=>({top:590});
   const THREE={...bindings.THREE,WebGLRenderer:class{constructor(){this.domElement=document.createElement('canvas');this.domElement.getBoundingClientRect=()=>({left:0,top:0,right:390,bottom:650,width:390,height:650});}setPixelRatio(){}setSize(){}render(){}}};
   let reloads=0;const vibrations=[];const sandbox={...bindings,createProgressResetUI:options=>bindings.createProgressResetUI({...options,reload:()=>reloads++}),THREE,collectionModule:{createCollectionUI},loadMoleculeDatabase:async()=>({ok:true}),window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:raf,cancelAnimationFrame:cancel,setTimeout:()=>1,clearTimeout:()=>{},console};
+  sandbox.connectExploration=options=>bindings.connectExploration({...options,reset:{...options.reset,reload:()=>reloads++}});
   const context=createContext(sandbox);runInContext(source,context);await settle();runInContext(`resources.collect(${initialH},0);resources.save();`,context);return {window,document,context,vibrations,get reloads(){return reloads;},tick(ms=1000/60){now+=ms;const callbacks=[...frames.values()];frames.clear();for(const cb of callbacks)cb(now);},run:code=>runInContext(code,context)};
 }
 
