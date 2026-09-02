@@ -10,6 +10,7 @@
 | マップ・塵・流れ | `src/veil/map.js`, `src/veil/universe.js` | `growth.test.mjs`, `veil-playthrough.test.mjs` |
 | 探索描画・HUD・音 | `src/veil/renderer.js`, `src/veil/ui.js`, `src/veil/audio.js`, `veil.css` | `veil-ui-check.mjs` |
 | 探索資源・タンク・帰還・保存 | `src/veil/resources.js`, `src/veil/supply.js`, `src/veil/growth.js` | `supply-tanks.test.mjs`, `expedition-core.test.mjs`, `veil-reset.test.mjs` |
+| 分子のゲーム用役割・性能バランス | `src/veil/molecule-roles.js` | `molecule-roles.test.mjs` |
 | BASE STOCK入出庫・原子追加/削除/片付け | `src/craft-workspace.js` | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
 | クラフトのボタン・パレット操作 | `src/craft-controls.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
 | クラフト情報・構造一覧・完成表示 | `src/craft-panel.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
@@ -40,7 +41,8 @@
 | 領域 | 担当 |
 |---|---|
 | バランス定数 | `src/veil/config.js` の通常飛行・EXPEDITION・音設定 |
-| 分子の役割と領域 | `src/veil/growth.js` のBURST、DRIVE、費用、領域境界、次目標 |
+| 分子の役割と領域 | `src/veil/growth.js` の現在有効なBURST、DRIVE、費用、領域境界、次目標 |
+| 分子役割候補・性能値 | `src/veil/molecule-roles.js`。化学DBとは分離したゲーム値。未対応の役割を現行タンクへ自動接続しない |
 | 探索物理・推進 | `src/veil/engine.js` |
 | DUST EATER | 状態・追跡・捕獲は `engine.js`、描画は `renderer.js` |
 | 遠征テレメトリ | `src/veil/telemetry.js`（`?expeditionDebug=1`時のみconsole出力） |
@@ -51,7 +53,7 @@
 | 音 | `src/veil/audio.js` |
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
 | 収集殻・用途別タンク選択・3D模型・図鑑導線 | `src/veil/supply.js` |
-| タンク用途・仮性能値 | `src/veil/growth.js` |
+| タンク用途・現行仮性能値 | `src/veil/growth.js` |
 | タンク内容・原子からの1分子単位量産充填 | `src/veil/resources.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
@@ -88,6 +90,7 @@
 - `src/functional-groups.js`：官能基検出。
 - `src/collection-catalog.js`：分類と表示名。
 - `src/element-progression.js`：元素解放。
+- `src/veil/molecule-roles.js`：fuel / propellant / oxidizer / coolant候補とゲーム用性能値。化学的事実DBへゲーム性能を混在させない。
 
 現行データは次の4ファイルです。
 
@@ -126,6 +129,7 @@
 |---|---|
 | 分子認識・結合・特殊結合 | `recognition.test.mjs`, `bond-state.test.mjs`, `special-bonds-check.mjs` |
 | 図鑑・部品・元素解放 | `collection.test.mjs`, `collection-expansion.test.mjs` |
+| 分子のゲーム用役割・性能値 | `molecule-roles.test.mjs` |
 | 入力・長押し | `electron-interaction.test.mjs`, `gesture-arbitration.test.mjs`, `hold-action.test.mjs` |
 | 配置・補正・torsion | `conformation-regression.test.mjs`, `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |
 | workspace保存 | `workspace-save.test.mjs`, `workspace-model.test.mjs` |
