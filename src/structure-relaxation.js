@@ -17,6 +17,9 @@ export function createStructureSolver({
   let trigonalFrames = new Map();
   let aromaticFrames = new Map();
   let stericExclusions = new Set();
+  let stericRelations = new Map();
+  let ringFrames = [];
+  let rigidFragments = [];
   let bridgeSides = new Map();
   let angleTargets = new Map();
   let componentIds = new Map();
@@ -87,7 +90,9 @@ export function createStructureSolver({
       nextAromaticFrames.set(key, frame);
     }
     aromaticFrames = nextAromaticFrames;
-    stericExclusions = buildStericExclusions();
+    ({excluded:stericExclusions,relations:stericRelations}=buildStericRelations());
+    ringFrames = cycles.map(cycle => ({cycle:[...cycle],key:canonicalCycleKey(cycle),aromatic:aromaticCycles.some(item=>sameMembers(item,cycle))}));
+    rigidFragments = buildRigidFragments();
     componentIds = new Map();
     for (const atom of molecule.atoms) {
       if (componentIds.has(atom.id)) continue;
@@ -154,35 +159,17 @@ export function createStructureSolver({
     const activeBonds = options.activeIds ? molecule.bonds.filter(b => options.activeIds.has(b.a) && options.activeIds.has(b.b)) : molecule.bonds;
     for (let pass = 0; pass < passes; pass++) {
       const before = new Map(activeAtoms.map(atom => [atom.id, pos(atom.id)?.clone()]));
-
-      // A. Bond lengths
-      for (const bond of activeBonds) enforceBondLength(bond, 0.12 * scale, locked);
-
-      // B. Local electron-domain angles
-      for (const atom of activeAtoms) enforceLocalAngles(atom.id, 0.085 * scale, locked);
-      for (const atom of activeAtoms) enforceTetrahedralVacancy(atom.id, 0.24 * scale, locked);
-
-      // C/E. sp2 planes, distinct in-plane substituent slots, and sp linear axes.
-      for (const frame of doubleFrames.values()) {
-        enforcePlane(frame.atomIds, frame.normal, [frame.bond.a, frame.bond.b], 0.22 * scale, locked, frame.bond, frame.slottedRootIds);
-        enforceDoubleSubstituentDirections(frame, 0.24 * scale, locked);
-      }
-      for (const frame of trigonalFrames.values()) enforcePlane(frame.atomIds,frame.normal,frame.cycle,.22*scale,locked);
-      for (const atom of activeAtoms) if (geometryFor(atom.id).kind === 'sp') enforceLinearCenter(atom.id, 0.16 * scale, locked);
-
-      // D. Aromatic rings stay planar; external branches return to the outward
-      // direction instead of being allowed to settle inside the ring.
-      for (const frame of aromaticFrames.values()) {
-        enforcePlane(frame.atomIds, frame.normal, frame.cycle, 0.26 * scale, locked, null, frame.substituentRootIds);
-        enforceRegularAromaticCycle(frame, 0.045 * scale, locked);
-        enforceAromaticSubstituentDirections(frame, 0.28 * scale, locked);
-        enforceConjugatedSubstituentGeometry(frame, 0.30 * scale, locked);
-      }
-
-      // G. A deliberately light final separation avoids atom overlap without fighting angles.
-      enforceStericSeparation(0.018 * scale, locked, options.activeIds);
-      // Angles/planes must not leave stretched bonds as an apparent equilibrium.
-      for (const bond of activeBonds) enforceBondLength(bond, 0.35 * scale, locked);
+      // Stage B: topology-derived hard geometry. Stage A (torsion IK) lives in
+      // conformation-engine.js and feeds a chemically valid trial pose here.
+      for(const bond of activeBonds)enforceBondLength(bond,.12*scale,locked);
+      // Stage D: local electron-domain geometry remains a soft correction.
+      relaxLocalGeometry(scale,locked,activeAtoms);
+      projectRigidConstraints(scale,locked,activeAtoms);
+      // Stage C: non-bonded collisions and explicit topology penetration.
+      // It runs after local geometry so collision response cannot become the
+      // source of a large angular correction in the same iteration.
+      relaxStericIntersections(scale,locked,options.activeIds);
+      for(const bond of activeBonds)enforceBondLength(bond,.35*scale,locked);
 
       for (const atom of activeAtoms) {
         const point = pos(atom.id);
@@ -191,6 +178,32 @@ export function createStructureSolver({
       }
     }
     return maxMove;
+  }
+
+  function projectRigidConstraints(scale,locked,activeAtoms){
+    for(const frame of doubleFrames.values()){
+      enforcePlane(frame.atomIds,frame.normal,[frame.bond.a,frame.bond.b],.22*scale,locked,frame.bond,frame.slottedRootIds);
+      enforceDoubleSubstituentDirections(frame,.24*scale,locked);
+    }
+    for(const frame of trigonalFrames.values())enforcePlane(frame.atomIds,frame.normal,frame.cycle,.22*scale,locked);
+    for(const atom of activeAtoms)if(geometryFor(atom.id).kind==='sp')enforceLinearCenter(atom.id,.16*scale,locked);
+    for(const frame of aromaticFrames.values()){
+      enforcePlane(frame.atomIds,frame.normal,frame.cycle,.26*scale,locked,null,frame.substituentRootIds);
+      enforceRegularAromaticCycle(frame,.045*scale,locked);
+      enforceAromaticSubstituentDirections(frame,.28*scale,locked);
+      enforceConjugatedSubstituentGeometry(frame,.30*scale,locked);
+    }
+  }
+
+  function relaxStericIntersections(scale,locked,activeIds=null){
+    enforceStericSeparation(.018*scale,locked,activeIds);
+    enforceRingExclusion(.035*scale,locked,activeIds);
+    enforceBondIntersectionSeparation(.018*scale,locked,activeIds);
+  }
+
+  function relaxLocalGeometry(scale,locked,activeAtoms){
+    for(const atom of activeAtoms)enforceLocalAngles(atom.id,.085*scale,locked);
+    for(const atom of activeAtoms)enforceTetrahedralVacancy(atom.id,.24*scale,locked);
   }
 
   function rotateReferenceFrames(quaternion, affectedIds = null) {
@@ -268,7 +281,7 @@ export function createStructureSolver({
     moveBranchRootToward(centerId, { rootId, atomIds }, direction, strength, locked);
   }
 
-  function measureError({ ids = null } = {}) {
+  function measureError({ ids = null, rigidReference = null } = {}) {
     if (dirty) rebuildTopology();
     const includes = id => !ids || ids.has(id);
     let finite = true, bondRelative = 0, angleRadians = 0, planeDistance = 0, overlapRelative = 0;
@@ -294,13 +307,197 @@ export function createStructureSolver({
       const center = anchors.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / anchors.length);
       for (const id of frame.atomIds) if (includes(id) && pos(id)) planeDistance = Math.max(planeDistance, Math.abs(pos(id).clone().sub(center).dot(frame.normal)));
     }
-    if (nonbondedDistanceFor) for (let i=0;i<molecule.atoms.length;i++) for (let j=i+1;j<molecule.atoms.length;j++) {
-      const a=molecule.atoms[i].id,b=molecule.atoms[j].id;
-      if (!includes(a)||!includes(b)||componentIds.get(a)!==componentIds.get(b)||stericExclusions.has(pairKey(a,b))) continue;
-      overlapRelative=Math.max(overlapRelative,1-(pos(a)?.distanceTo(pos(b))??0)/nonbondedDistanceFor(a,b));
+    const atoms=molecule.atoms.filter(atom=>includes(atom.id));
+    if (nonbondedDistanceFor) for(const [left,right] of spatialAtomPairs(atoms)){
+      const a=left.id,b=right.id;
+      if(componentIds.get(a)!==componentIds.get(b)||stericExclusions.has(pairKey(a,b)))continue;
+      overlapRelative=Math.max(overlapRelative,1-(pos(a)?.distanceTo(pos(b))??0)/stericMinimum(a,b));
     }
-    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative].every(Number.isFinite);
-    return { finite, bondRelative, angleRadians, planeDistance, overlapRelative, topologyLimited };
+    const ringIssues=measureRingPenetrations(includes);
+    const bondIntersections=measureBondIntersections(includes);
+    const rigidRelative=measureRigidDeviation(rigidReference,includes);
+    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative, rigidRelative].every(Number.isFinite);
+    return {finite,bondRelative,angleRadians,planeDistance,overlapRelative,
+      ringPenetrations:ringIssues.atomCount+ringIssues.bondCount,ringAtomPenetrations:ringIssues.atomCount,
+      ringBondPenetrations:ringIssues.bondCount,bondIntersections,rigidRelative,topologyLimited};
+  }
+
+  function stericMinimum(a,b){
+    const base=nonbondedDistanceFor?.(a,b)??((radiusFor(a)+radiusFor(b))*.72);
+    // 1–2 and 1–3 pairs are excluded. A 1–4 pair still repels, with a small
+    // allowance for normal gauche conformations.
+    return stericRelations.get(pairKey(a,b))===3?base*.84:base;
+  }
+
+  function spatialAtomPairs(atoms){
+    const cellSize=2.5,cells=new Map(),order=new Map(atoms.map((atom,index)=>[atom.id,index]));
+    const cellFor=point=>[Math.floor(point.x/cellSize),Math.floor(point.y/cellSize),Math.floor(point.z/cellSize)];
+    const key=(x,y,z)=>`${x},${y},${z}`;
+    for(const atom of atoms){
+      const point=pos(atom.id);if(!point||![point.x,point.y,point.z].every(Number.isFinite))continue;
+      const [x,y,z]=cellFor(point),bucket=cells.get(key(x,y,z))??[];bucket.push(atom);cells.set(key(x,y,z),bucket);
+    }
+    const pairs=[];
+    for(const atom of atoms){
+      const point=pos(atom.id);if(!point||![point.x,point.y,point.z].every(Number.isFinite))continue;
+      const [x,y,z]=cellFor(point);
+      for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++)for(const other of cells.get(key(x+dx,y+dy,z+dz))??[]){
+        if(order.get(other.id)<=order.get(atom.id))continue;pairs.push([atom,other]);
+      }
+    }
+    return pairs;
+  }
+
+  function ringGeometry(frame){
+    const points=frame.cycle.map(pos);
+    if(points.some(point=>!point||![point.x,point.y,point.z].every(Number.isFinite)))return null;
+    const center=points.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/points.length);
+    const normal=cycleNormal(frame.cycle);if(normal.lengthSq()<1e-10)return null;
+    let u=points[0].clone().sub(center);u.addScaledVector(normal,-u.dot(normal));
+    if(u.lengthSq()<1e-10)u=perpendicular(normal);else u.normalize();
+    const v=new THREE.Vector3().crossVectors(normal,u).normalize();
+    const polygon=points.map(point=>{const offset=point.clone().sub(center);return{x:offset.dot(u),y:offset.dot(v)};});
+    const averageEdge=points.reduce((sum,point,index)=>sum+point.distanceTo(points[(index+1)%points.length]),0)/points.length;
+    return {...frame,points,center,normal,u,v,polygon,thickness:Math.max(.14,Math.min(.38,averageEdge*.28))};
+  }
+
+  function ringProjection(point,geometry){
+    const offset=point.clone().sub(geometry.center),distance=offset.dot(geometry.normal);
+    return{x:offset.dot(geometry.u),y:offset.dot(geometry.v),distance};
+  }
+
+  function pointInPolygon(point,polygon){
+    let inside=false;
+    for(let left=0,right=polygon.length-1;left<polygon.length;right=left++){
+      const a=polygon[left],b=polygon[right];
+      if((a.y>point.y)!==(b.y>point.y)&&point.x<(b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+    }
+    return inside;
+  }
+
+  function segmentCrossesRing(a,b,geometry){
+    const left=ringProjection(a,geometry),right=ringProjection(b,geometry),epsilon=1e-7;
+    if(Math.abs(left.distance)<epsilon&&Math.abs(right.distance)<epsilon){
+      const middle={x:(left.x+right.x)/2,y:(left.y+right.y)/2};
+      return pointInPolygon(left,geometry.polygon)||pointInPolygon(right,geometry.polygon)||pointInPolygon(middle,geometry.polygon);
+    }
+    if(left.distance*right.distance>0&&Math.min(Math.abs(left.distance),Math.abs(right.distance))>geometry.thickness)return false;
+    const denominator=left.distance-right.distance;
+    const t=Math.abs(denominator)<epsilon ? .5 : THREE.MathUtils.clamp(left.distance/denominator,0,1);
+    const point={x:left.x+(right.x-left.x)*t,y:left.y+(right.y-left.y)*t};
+    return pointInPolygon(point,geometry.polygon)&&Math.abs(left.distance+(right.distance-left.distance)*t)<=geometry.thickness;
+  }
+
+  function measureRingPenetrations(includes){
+    let atomCount=0,bondCount=0;
+    for(const frame of ringFrames){
+      const geometry=ringGeometry(frame);if(!geometry)continue;
+      const ringIds=new Set(frame.cycle),component=componentIds.get(frame.cycle[0]);
+      for(const atom of molecule.atoms){
+        if(!includes(atom.id)||ringIds.has(atom.id)||componentIds.get(atom.id)!==component)continue;
+        const point=pos(atom.id);if(!point)continue;const projection=ringProjection(point,geometry);
+        if(Math.abs(projection.distance)<geometry.thickness&&pointInPolygon(projection,geometry.polygon))atomCount++;
+      }
+      for(const bond of molecule.bonds){
+        if(!includes(bond.a)||!includes(bond.b)||ringIds.has(bond.a)||ringIds.has(bond.b)||componentIds.get(bond.a)!==component)continue;
+        const a=pos(bond.a),b=pos(bond.b);if(a&&b&&segmentCrossesRing(a,b,geometry))bondCount++;
+      }
+    }
+    return{atomCount,bondCount};
+  }
+
+  function segmentCandidatePairs(bonds){
+    const cellSize=1.5,cells=new Map(),overflow=[],pairs=new Set(),key=(x,y,z)=>`${x},${y},${z}`;
+    bonds.forEach((bond,index)=>{
+      const a=pos(bond.a),b=pos(bond.b);if(!a||!b)return;
+      const min=[Math.min(a.x,b.x),Math.min(a.y,b.y),Math.min(a.z,b.z)].map(value=>Math.floor((value-.14)/cellSize));
+      const max=[Math.max(a.x,b.x),Math.max(a.y,b.y),Math.max(a.z,b.z)].map(value=>Math.floor((value+.14)/cellSize));
+      const count=(max[0]-min[0]+1)*(max[1]-min[1]+1)*(max[2]-min[2]+1);
+      if(count>96){overflow.push(index);return;}
+      for(let x=min[0];x<=max[0];x++)for(let y=min[1];y<=max[1];y++)for(let z=min[2];z<=max[2];z++){
+        const bucket=cells.get(key(x,y,z))??[];for(const other of bucket)pairs.add(`${other}:${index}`);bucket.push(index);cells.set(key(x,y,z),bucket);
+      }
+    });
+    for(const index of overflow)for(let other=0;other<bonds.length;other++)if(other!==index)pairs.add(`${Math.min(index,other)}:${Math.max(index,other)}`);
+    return [...pairs].map(value=>value.split(':').map(Number)).map(([left,right])=>[bonds[left],bonds[right]]);
+  }
+
+  function segmentDistance(a0,a1,b0,b1){
+    const u=a1.clone().sub(a0),v=b1.clone().sub(b0),w=a0.clone().sub(b0);
+    const aa=u.dot(u),bb=u.dot(v),cc=v.dot(v),dd=u.dot(w),ee=v.dot(w),denominator=aa*cc-bb*bb,epsilon=1e-10;
+    let sN,sD=denominator,tN,tD=denominator;
+    if(denominator<epsilon){sN=0;sD=1;tN=ee;tD=cc;}
+    else{
+      sN=bb*ee-cc*dd;tN=aa*ee-bb*dd;
+      if(sN<0){sN=0;tN=ee;tD=cc;}else if(sN>sD){sN=sD;tN=ee+bb;tD=cc;}
+    }
+    if(tN<0){tN=0;if(-dd<0)sN=0;else if(-dd>aa)sN=sD;else{sN=-dd;sD=aa;}}
+    else if(tN>tD){tN=tD;if(-dd+bb<0)sN=0;else if(-dd+bb>aa)sN=sD;else{sN=-dd+bb;sD=aa;}}
+    const sc=Math.abs(sN)<epsilon?0:sN/sD,tc=Math.abs(tN)<epsilon?0:tN/tD;
+    return w.addScaledVector(u,sc).addScaledVector(v,-tc).length();
+  }
+
+  function measureBondIntersections(includes){
+    const bonds=molecule.bonds.filter(bond=>includes(bond.a)&&includes(bond.b));let count=0;
+    for(const [left,right] of segmentCandidatePairs(bonds)){
+      if(left.a===right.a||left.a===right.b||left.b===right.a||left.b===right.b)continue;
+      if(isRingBond(left)||isRingBond(right))continue;
+      if(componentIds.get(left.a)!==componentIds.get(right.a))continue;
+      const points=[pos(left.a),pos(left.b),pos(right.a),pos(right.b)];if(points.some(point=>!point))continue;
+      if(segmentDistance(...points)<.13)count++;
+    }
+    return count;
+  }
+
+  function isRingBond(bond){return ringFrames.some(frame=>{
+    const left=frame.cycle.indexOf(bond.a),right=frame.cycle.indexOf(bond.b);
+    return left>=0&&right>=0&&(Math.abs(left-right)===1||Math.abs(left-right)===frame.cycle.length-1);
+  });}
+
+  function captureRigidReference(){
+    if(dirty)rebuildTopology();
+    return rigidFragments.map(fragment=>{
+      const pairs=[];
+      for(let left=0;left<fragment.atomIds.length;left++)for(let right=left+1;right<fragment.atomIds.length;right++){
+        const a=fragment.atomIds[left],b=fragment.atomIds[right],distance=pos(a)?.distanceTo(pos(b));
+        if(Number.isFinite(distance)&&distance>1e-8)pairs.push({a,b,distance});
+      }
+      return{id:fragment.id,pairs};
+    });
+  }
+
+  function measureRigidDeviation(reference,includes){
+    if(!reference)return 0;let relative=0;
+    for(const fragment of reference)for(const pair of fragment.pairs??[]){
+      if(!includes(pair.a)||!includes(pair.b))continue;
+      const distance=pos(pair.a)?.distanceTo(pos(pair.b));
+      relative=Math.max(relative,Math.abs((distance??Infinity)/pair.distance-1));
+    }
+    return relative;
+  }
+
+  function captureConformation(ids=null){
+    if(dirty)rebuildTopology();const includes=id=>!ids||ids.has(id);
+    return new Map(molecule.atoms.filter(atom=>includes(atom.id)&&pos(atom.id)).map(atom=>[atom.id,pos(atom.id).clone()]));
+  }
+
+  function restoreConformation(snapshot){
+    if(!(snapshot instanceof Map))return false;let restored=false;
+    for(const[id,point]of snapshot){if(!pos(id)||!point)continue;pos(id).copy(point);restored=true;}
+    return restored;
+  }
+
+  function validateConformation({ids=null,rigidReference=null,mode='release'}={}){
+    const errors=measureError({ids,rigidReference}),drag=mode==='drag';
+    const limits={bondRelative:drag ? .10 : .07,angleRadians:(drag ? 26 : 20)*Math.PI/180,planeDistance:drag ? .10 : .075,
+      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035};
+    const reasons=[];
+    if(!errors.finite)reasons.push('nonfinite');
+    if(errors.topologyLimited)reasons.push('topology');
+    for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative'])if(errors[key]>limits[key])reasons.push(key);
+    if(errors.ringPenetrations)reasons.push('ring-penetration');
+    if(errors.bondIntersections)reasons.push('bond-intersection');
+    return{valid:reasons.length===0,reasons,errors,limits};
   }
 
   function angleBranch(centerId, rootId) {
@@ -458,24 +655,59 @@ export function createStructureSolver({
     // intermolecular dynamics simulation. A nearby model must not repel the
     // focused model during its release animation.
     const atoms = activeIds ? molecule.atoms.filter(atom => activeIds.has(atom.id)) : molecule.atoms;
-    for (let left = 0; left < atoms.length; left++) {
-      for (let right = left + 1; right < atoms.length; right++) {
-        const aId = atoms[left].id;
-        const bId = atoms[right].id;
-        if (componentIds.get(aId) !== componentIds.get(bId)) continue;
-        if (stericExclusions.has(pairKey(aId, bId))) continue;
-        const a = pos(aId);
-        const b = pos(bId);
-        if (!a || !b) continue;
-        const delta = b.clone().sub(a);
-        const length = delta.length();
-        const minimum = nonbondedDistanceFor?.(aId,bId) ?? (radiusFor(aId) + radiusFor(bId)) * 0.72;
-        if (length >= minimum) continue;
-        // Coincident atoms need a deterministic escape direction too.
-        if (length < 0.0001) delta.set(1,.37,-.21);
-        const correction = delta.normalize().multiplyScalar((minimum - length) * strength);
-        displacePair(aId, bId, correction.clone().multiplyScalar(-1), locked);
+    for(const [left,right] of spatialAtomPairs(atoms)){
+      const aId=left.id,bId=right.id;
+      if(componentIds.get(aId)!==componentIds.get(bId)||stericExclusions.has(pairKey(aId,bId)))continue;
+      const a=pos(aId),b=pos(bId);if(!a||!b)continue;
+      const delta=b.clone().sub(a),length=delta.length(),minimum=stericMinimum(aId,bId);
+      if(length>=minimum)continue;
+      // Coincident atoms need a deterministic escape direction too.
+      if(length<.0001)delta.set(1,.37,-.21);
+      const correction=delta.normalize().multiplyScalar((minimum-length)*strength);
+      displacePair(aId,bId,correction.clone().multiplyScalar(-1),locked);
+    }
+  }
+
+  function closestRingBoundary(point,geometry){
+    let best=null,bestDistance=Infinity;
+    for(let index=0;index<geometry.polygon.length;index++){
+      const a=geometry.polygon[index],b=geometry.polygon[(index+1)%geometry.polygon.length],dx=b.x-a.x,dy=b.y-a.y,lengthSq=dx*dx+dy*dy;
+      const t=lengthSq?THREE.MathUtils.clamp(((point.x-a.x)*dx+(point.y-a.y)*dy)/lengthSq,0,1):0;
+      const candidate={x:a.x+dx*t,y:a.y+dy*t},distance=Math.hypot(candidate.x-point.x,candidate.y-point.y);
+      if(candidate.distance<bestDistance){bestDistance=candidate.distance;best=candidate;}
+    }
+    return best;
+  }
+
+  function enforceRingExclusion(strength,locked,activeIds=null){
+    for(const frame of ringFrames){
+      const geometry=ringGeometry(frame);if(!geometry)continue;
+      const ringIds=new Set(frame.cycle),component=componentIds.get(frame.cycle[0]);
+      for(const atom of molecule.atoms){
+        if((activeIds&&!activeIds.has(atom.id))||ringIds.has(atom.id)||locked.has(atom.id)||componentIds.get(atom.id)!==component)continue;
+        const point=pos(atom.id);if(!point)continue;const projection=ringProjection(point,geometry);
+        if(Math.abs(projection.distance)>=geometry.thickness||!pointInPolygon(projection,geometry.polygon))continue;
+        const boundary=closestRingBoundary(projection,geometry);if(!boundary)continue;
+        let dx=boundary.x-projection.x,dy=boundary.y-projection.y,length=Math.hypot(dx,dy);
+        if(length<1e-8){dx=atom.id%2 ? .7 : -.7;dy=.45;length=Math.hypot(dx,dy);}
+        const clearance=.06,correction=geometry.u.clone().multiplyScalar(dx/length*(length+clearance)).addScaledVector(geometry.v,dy/length*(length+clearance));
+        point.addScaledVector(correction,Math.min(1,strength*4));
       }
+    }
+  }
+
+  function enforceBondIntersectionSeparation(strength,locked,activeIds=null){
+    const bonds=molecule.bonds.filter(bond=>!activeIds||activeIds.has(bond.a)&&activeIds.has(bond.b));
+    for(const [left,right] of segmentCandidatePairs(bonds)){
+      if(left.a===right.a||left.a===right.b||left.b===right.a||left.b===right.b||componentIds.get(left.a)!==componentIds.get(right.a)||isRingBond(left)||isRingBond(right))continue;
+      const points=[pos(left.a),pos(left.b),pos(right.a),pos(right.b)];if(points.some(point=>!point)||segmentDistance(...points)>=.13)continue;
+      const leftAxis=points[1].clone().sub(points[0]).normalize(),rightAxis=points[3].clone().sub(points[2]).normalize();
+      let normal=new THREE.Vector3().crossVectors(leftAxis,rightAxis);
+      if(normal.lengthSq()<1e-8)normal=perpendicular(leftAxis);else normal.normalize();
+      if((left.a+left.b+right.a+right.b)%2)normal.multiplyScalar(-1);
+      const leftLocked=locked.has(left.a)||locked.has(left.b),rightLocked=locked.has(right.a)||locked.has(right.b);
+      if(!leftLocked){pos(left.a).addScaledVector(normal,strength);pos(left.b).addScaledVector(normal,strength);}
+      if(!rightLocked){const weight=leftLocked?2:1;pos(right.a).addScaledVector(normal,-strength*weight);pos(right.b).addScaledVector(normal,-strength*weight);}
     }
   }
 
@@ -635,14 +867,41 @@ export function createStructureSolver({
     return normal.lengthSq() < 1e-8 ? new THREE.Vector3(0, 0, 1) : normal.normalize();
   }
 
-  function buildStericExclusions() {
-    const excluded = new Set();
+  function buildStericRelations() {
+    const excluded = new Set(), relations = new Map();
     for (const atom of molecule.atoms) {
-      const direct = neighborsFor(atom.id).map(neighbor => neighbor.atomId);
-      direct.forEach(id => excluded.add(pairKey(atom.id, id)));
-      direct.forEach(id => neighborsFor(id).forEach(neighbor => excluded.add(pairKey(atom.id, neighbor.atomId))));
+      const queue=[{id:atom.id,depth:0}],seen=new Set([atom.id]);
+      for(let index=0;index<queue.length;index++){
+        const {id,depth}=queue[index];
+        if(depth>=3)continue;
+        for(const neighbor of neighborsFor(id)){
+          if(seen.has(neighbor.atomId))continue;
+          const nextDepth=depth+1,key=pairKey(atom.id,neighbor.atomId);
+          seen.add(neighbor.atomId);queue.push({id:neighbor.atomId,depth:nextDepth});
+          if(!relations.has(key)||nextDepth<relations.get(key))relations.set(key,nextDepth);
+          if(nextDepth<=2)excluded.add(key);
+        }
+      }
     }
-    return excluded;
+    return {excluded,relations};
+  }
+
+  function buildRigidFragments(){
+    const seeds=[];
+    for(const cycle of cycles)seeds.push({atomIds:new Set(cycle),kinds:new Set(aromaticCycles.some(item=>sameMembers(item,cycle))?['AROMATIC','RING']:['RING'])});
+    for(const frame of doubleFrames.values())seeds.push({atomIds:new Set(frame.atomIds),kinds:new Set(['SP2'])});
+    for(const frame of trigonalFrames.values())seeds.push({atomIds:new Set(frame.atomIds),kinds:new Set(['PLANAR'])});
+    for(const atom of molecule.atoms)if(geometryFor(atom.id).kind==='sp')seeds.push({atomIds:new Set([atom.id,...neighborsFor(atom.id).map(item=>item.atomId)]),kinds:new Set(['SP'])});
+    // Constraint groups that share an atom are one rigid island. A rotatable
+    // connector merely joins two islands and therefore never merges them.
+    for(let left=0;left<seeds.length;left++)for(let right=left+1;right<seeds.length;){
+      if([...seeds[left].atomIds].some(id=>seeds[right].atomIds.has(id))){
+        for(const id of seeds[right].atomIds)seeds[left].atomIds.add(id);
+        for(const kind of seeds[right].kinds)seeds[left].kinds.add(kind);
+        seeds.splice(right,1);
+      }else right++;
+    }
+    return seeds.map((seed,index)=>({id:`rigid-${index}`,atomIds:[...seed.atomIds],kinds:[...seed.kinds].sort()}));
   }
 
   function findCycles(maxLength = 8) {
@@ -703,11 +962,18 @@ export function createStructureSolver({
       aromaticCycles: aromaticCycles.map(cycle => [...cycle]),
       doublePlanarGroups: [...doubleFrames.values()].map(frame => [...frame.atomIds]),
       aromaticPlanarGroups: [...aromaticFrames.values()].map(frame => [...frame.atomIds]),
+      rigidFragments: rigidFragments.map(fragment=>({id:fragment.id,atomIds:[...fragment.atomIds],kinds:[...fragment.kinds]})),
+      ringExclusionVolumes: ringFrames.map(frame=>({key:frame.key,atomIds:[...frame.cycle],aromatic:frame.aromatic,thickness:ringGeometry(frame)?.thickness??0})),
+      stericClasses: {
+        excluded12and13:stericExclusions.size,
+        included14:[...stericRelations.values()].filter(distance=>distance===3).length,
+      },
       doubleSubstituentSlots: [...doubleFrames.values()].flatMap(frame => frame.substituentSlots.map(endpoint => ({ centerId: endpoint.centerId, roots: endpoint.branches.map(branch => ({ id: branch.rootId, sign: branch.sign })) }))),
       aromaticOutwardGroups: [...aromaticFrames.values()].map(frame => frame.substituents.map(substituent => ({ ringId: substituent.ringId, rootId: substituent.rootId }))),
       aromaticFollowerSlots: [...aromaticFrames.values()].flatMap(frame => frame.substituents.map(substituent => ({ ringId: substituent.ringId, rootId: substituent.rootId, followers: substituent.planarFollowers.map(follower => ({ id: follower.rootId, sign: follower.sign })) }))),
     };
   }
 
-  return { step, measureError, markTopologyDirty, rebuildTopology, rotateReferenceFrames, snapshot };
+  return {step,measureError,validateConformation,captureConformation,restoreConformation,captureRigidReference,
+    markTopologyDirty,rebuildTopology,rotateReferenceFrames,snapshot};
 }

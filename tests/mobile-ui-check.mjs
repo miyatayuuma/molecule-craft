@@ -7,7 +7,7 @@ import {createContext,runInContext} from 'node:vm';
 import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
 if(!process.argv[2])throw new Error('Pass jsdom/lib/api.js');
 const {JSDOM}=await import(pathToFileURL(process.argv[2]));
-const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=39',root),html=await readFile(new URL('index.html',root),'utf8');
+const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=40',root),html=await readFile(new URL('index.html',root),'utf8');
 let source=await readFile(appURL,'utf8'),bindings={};
 for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   const module=await import(new URL(match[2],appURL));
@@ -83,16 +83,16 @@ for(const record of records.filter(r=>['carbon-monoxide','sulfur-dioxide','sulfu
   scene.run(`globalThis.cameraBefore=camera.matrixWorld.toArray();globalThis.extra=molecule.addAtom('H');placements.set(extra.id,{position:new THREE.Vector3(30,30,30)});globalThis.extraBefore=pos(extra.id).clone();topologyChanged();refresh();`);
   for(let atomIndex=0;atomIndex<record.atoms.length;atomIndex++){
     scene.run(`clearTorsionGuide();globalThis.beforePose=new Map(fixtureIds.map(id=>[id,pos(id).clone()]));globalThis.pairs=molecule.bonds.map(b=>[b.a,b.b,pos(b.a).distanceTo(pos(b.b))]);globalThis.angles=fixtureIds.flatMap(id=>molecule.neighbors(id).flatMap((n,i,ns)=>ns.slice(i+1).map(other=>[id,n.atomId,other.atomId,pos(n.atomId).clone().sub(pos(id)).angleTo(pos(other.atomId).clone().sub(pos(id)))])));globalThis.event={pointerId:91,clientX:100,clientY:200,pointerType:'touch'};activePointers.set(91,{...event,downAt:performance.now()});beginAtomDrag(event,fixtureIds[${atomIndex}]);`);
-    assert.ok(['torsion','atom-locked','axis-select'].includes(scene.run('dragState.mode')),`${record.id}: atom ${atomIndex} is freely draggable`);
+    assert.ok(['conformation','torsion','atom-locked','axis-select'].includes(scene.run('dragState.mode')),`${record.id}: atom ${atomIndex} is freely draggable`);
     scene.run('globalThis.intent=dragState;');
     scene.run(`onPointerMove({...event,clientX:245,clientY:420});onPointerUp({...event,clientX:245,clientY:420});`);
-    assert.ok(scene.run('pairs.every(([a,b,length])=>Math.abs(pos(a).distanceTo(pos(b))-length)<1e-9)'),`${record.id}: drag deformed molecule`);
-    assert.ok(scene.run('angles.every(([id,a,b,angle])=>Math.abs(pos(a).clone().sub(pos(id)).angleTo(pos(b).clone().sub(pos(id)))-angle)<1e-9)'),`${record.id}: bond angle changed`);
-    assert.ok(scene.run('fixtureIds.filter(id=>!intent.ids.includes(id)).every(id=>pos(id).distanceTo(beforePose.get(id))<1e-9)'),`${record.id}: fixed support moved`);
-    if(scene.run('intent.mode')!=='torsion')assert.equal(scene.run('!!relaxation'),false,'Locked drag triggered a return');
+    if(!['torsion','conformation'].includes(scene.run('intent.mode')))assert.equal(scene.run('!!relaxation'),false,'Locked drag triggered a return');
     for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
     assert.equal(scene.run('!!relaxation'),false,'Branch correction took too long');
+    assert.ok(scene.run('molecule.bonds.every(b=>Math.abs(pos(b.a).distanceTo(pos(b.b))/bondLengthFor(b.a,b.b,b.order)-1)<.07)'),`${record.id}: drag broke a bond length`);
+    assert.ok(scene.run('angles.every(([id,a,b,angle])=>Math.abs(pos(a).clone().sub(pos(id)).angleTo(pos(b).clone().sub(pos(id)))-angle)<.35)'),`${record.id}: bond angle changed severely`);
     assert.ok(scene.run('fixtureIds.filter(id=>!intent.ids.includes(id)).every(id=>pos(id).distanceTo(beforePose.get(id))<1e-9)'),`${record.id}: correction moved support`);
+    assert.ok(scene.run('solver.validateConformation({ids:new Set(fixtureIds)}).valid'),`${record.id}: atom drag ended invalid`);
     assert.ok(scene.run('pos(extra.id).distanceTo(extraBefore)===0'),'Atom drag moved another component');
   }
   assert.ok(scene.run('camera.matrixWorld.toArray().every((n,i)=>n===cameraBefore[i])'),'Rigid drag changed camera');
@@ -164,8 +164,9 @@ for(const name of ['methane','benzene','phosphoric-acid','acetamide']){
   scene.run('onPointerMove({...event,clientX:157,clientY:215});');release(scene);
   assert.ok(scene.run('intent.ids.some(id=>pos(id).distanceTo(before.get(id))>.01)'),'Torsion did not rotate its branch');
   assert.ok(scene.run('molecule.atoms.filter(a=>!intent.ids.includes(a.id)).every(a=>pos(a.id).equals(before.get(a.id)))'),'Torsion moved fixed atoms');
-  assert.ok(scene.run('molecule.bonds.every(b=>Math.abs(pos(b.a).distanceTo(pos(b.b))-before.get(b.a).distanceTo(before.get(b.b)))<1e-9)'),'Torsion stretched a bond');
-  assert.equal(scene.run('!!relaxation'),false,'Ordinary ethane torsion rebounded');cameraUnchanged(scene);
+  for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
+  assert.ok(scene.run('molecule.bonds.every(b=>Math.abs(pos(b.a).distanceTo(pos(b.b))/bondLengthFor(b.a,b.b,b.order)-1)<.07)'),'Torsion stretched a bond');
+  assert.equal(scene.run('!!relaxation'),false,'Ordinary ethane release did not finish');cameraUnchanged(scene);
   scene.run("startRelaxation();globalThis.during=new Map(fids.map(id=>[id,pos(id).clone()]));globalThis.screen=worldToScreen(pos(fids[0]));onPointerDown({pointerId:82,pointerType:'touch',clientX:screen.x,clientY:screen.y});");
   assert.equal(scene.run('dragState.mode'),'atom-locked','Correction converted atom press into whole rotation');
   scene.run("onPointerMove({pointerId:82,clientX:screen.x+80,clientY:screen.y+70});onPointerUp({pointerId:82,clientX:screen.x+80,clientY:screen.y+70});");
@@ -184,11 +185,15 @@ for(const name of ['methane','benzene','phosphoric-acid','acetamide']){
   const record={atoms:Array(6).fill('C'),bonds:[[0,1,1],[1,2,1],[2,3,1],[3,4,1],[4,5,1]]};
   for(let i=0;i<6;i++)for(let j=0;j<(i===0||i===5?3:2);j++){record.bonds.push([i,record.atoms.length,1]);record.atoms.push('H');}
   const scene=await torsionScene(record);press(scene,0);
-  assert.equal(scene.run('dragState.mode'),'axis-select');
+  assert.equal(scene.run('dragState.mode'),'conformation');
   assert.equal(scene.document.querySelectorAll('#rotation-axis-options button').length,3);
   assert.equal(scene.run('[...bondVisuals.values()].filter(v=>v.axisGlow.visible).length'),3);
   scene.run('onPointerMove({...event,clientX:290,clientY:430});');release(scene);
-  assert.ok(scene.run('[...before].every(([id,p])=>pos(id).equals(p))'),'Ambiguous drag moved before axis selection');
+  assert.ok(scene.run('intent.ids.some(id=>pos(id).distanceTo(before.get(id))>.01)'),'Multi-torsion drag did not move the chain');
+  assert.ok(scene.run('intent.lastResult.changedAxes.size>=2'),'Multi-torsion drag used fewer than two axes');
+  assert.ok(scene.run('molecule.atoms.filter(a=>!intent.ids.includes(a.id)).every(a=>pos(a.id).equals(before.get(a.id)))'),'Multi-torsion drag moved support');
+  for(let f=0;f<60&&scene.run('!!relaxation');f++){now+=1000/60;scene.run('updateRelaxation(performance.now())');}
+  assert.equal(scene.run('!!relaxation'),false);
   const expected=scene.run('torsionGuide.candidates[1].key');
   scene.document.querySelectorAll('#rotation-axis-options button')[1].click();
   assert.equal(scene.run('activeTorsionKey'),expected);

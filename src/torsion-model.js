@@ -24,13 +24,17 @@ export function createTorsionModel(molecule,{aromaticCycles=[]}={}) {
     else {
       const donor=(a,b)=>['N','O','S'].includes(atoms.get(a).element)&&atoms.get(b).element==='C'&&pi(b);
       // Match the existing aromatic-planarity constraints for exocyclic pi
-      // groups. Biaryl C–C and acyclic C(sp2)–C(sp2) single bonds remain usable.
+      // groups. A single bond joining two non-biaryl pi centers belongs to one
+      // conjugated rigid island and is not a normal free-torsion axis.
       const planarFollower=(a,b)=>aromatic.has(a)&&!aromatic.has(b)&&(pi(b)||['N','O'].includes(atoms.get(b).element));
-      if(donor(bond.a,bond.b)||donor(bond.b,bond.a)||planarFollower(bond.a,bond.b)||planarFollower(bond.b,bond.a)){
+      const conjugated=pi(bond.a)&&pi(bond.b)&&!(aromatic.has(bond.a)&&aromatic.has(bond.b));
+      if(conjugated||donor(bond.a,bond.b)||donor(bond.b,bond.a)||planarFollower(bond.a,bond.b)||planarFollower(bond.b,bond.a)){
         reason='共鳴する部分は、この模型では平面に保ちます';kind='restricted';
       }
     }
-    bonds.set(key,{key,bond,sides,allowed:!reason,kind,reason,heavyA:heavy(sides.a),heavyB:heavy(sides.b)});
+    const allowed=!reason;
+    const classification=allowed?'ROTATABLE':kind==='restricted'?'RESTRICTED':'LOCKED';
+    bonds.set(key,{key,bond,sides,allowed,kind,classification,reason,heavyA:heavy(sides.a),heavyB:heavy(sides.b)});
   }
   function forAtom(atomId,{activeKey=null,positionFor=null}={}){
     if(!atoms.has(atomId))return null;
@@ -55,6 +59,10 @@ export function createTorsionModel(molecule,{aromaticCycles=[]}={}) {
     candidates.sort((a,b)=>a.ids.length-b.ids.length||a.bond.a-b.bond.a||a.bond.b-b.bond.b);
     const selected=candidates.find(item=>item.key===activeKey)??(candidates.length===1?candidates[0]:null);
     if(selected)return {...selected,mode:'torsion',atomId,scope,candidates};
+    // Normal atom dragging distributes motion over every usable bond on the
+    // path toward the heavier support. Explicitly tapping an axis still enters
+    // the single-axis teaching mode above.
+    if(candidates.length>1&&activeKey==null)return {mode:'conformation',atomId,ids:[...new Set(candidates.flatMap(item=>item.ids))],scope,candidates};
     if(candidates.length)return {mode:'axis-select',atomId,ids:[],scope,candidates,reason:'光る結合をタップして軸を選ぼう'};
     const nearby=new Set([atomId,...neighbors(atomId).map(n=>n.atomId)]);
     const restricted=[...bonds.values()].find(item=>['restricted','ring','multiple'].includes(item.kind)&&nearby.has(item.bond.a)&&nearby.has(item.bond.b));

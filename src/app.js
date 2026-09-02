@@ -2,11 +2,11 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, Molecule, countElements, loadMoleculeDatabase, moleculeCatalog, UNKNOWN_NAME } from './chemistry.js?v=20';
 import { ATOMIC_MODEL, preferredValence, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, atomBondState, bondAddition, geometryForAtom, nonbondedDistance } from './bonding-model.js?v=31';
-import { createStructureSolver } from './structure-relaxation.js?v=31';
+import { createStructureSolver } from './structure-relaxation.js?v=32';
 import { planBondDocking } from './structure-motion.js?v=30';
-import { createStructureSettlement } from './structure-settlement.js?v=31';
-import { planStructureEdit, editRelaxationOptions } from './structure-edit.js?v=32';
-import { createTorsionModel } from './torsion-model.js?v=32';
+import { createStructureSettlement } from './structure-settlement.js?v=32';
+import { createTorsionModel } from './torsion-model.js?v=33';
+import { createConformationEngine } from './conformation-engine.js?v=1';
 import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
 import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=20';
@@ -91,6 +91,7 @@ const solver=createStructureSolver({
   radiusFor:id=>ELEMENTS[atomById(id)?.element]?.radius??.42,
   nonbondedDistanceFor:(a,b)=>nonbondedDistance(atomById(a).element,atomById(b).element),
 });
+const conformationEngine=createConformationEngine({THREE,molecule,solver,positionFor:pos,modelFor:currentTorsionModel});
 
 const gameShell=createGameShell({canOpen:()=>!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen});
 const workspaceStorage=createWorkspaceStorage({storage:resources.workspaceAdapter,onStatus:text=>{const node=document.querySelector('#workspace-save-status');node.textContent=text;node.hidden=!text;}});
@@ -211,7 +212,7 @@ function onPointerDown(e){
   if(activePointers.size&&dragState&&(dragState.moved||dragState.mode!=='molecule-rotate'))return;
   saveWorkspace();
   activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,downAt:performance.now()});
-  if(activePointers.size===2){lastBackgroundTap=null;clearTimeout(bondHoldTimer);beginTwoFinger();dragState=null;hoverElectron=null;return;}if(activePointers.size>1)return;
+  if(activePointers.size===2){lastBackgroundTap=null;clearTimeout(bondHoldTimer);conformationEngine.release();beginTwoFinger();dragState=null;hoverElectron=null;return;}if(activePointers.size>1)return;
   if(relaxation){
     const picked=chooseAtomOrElectron(e.clientX,e.clientY,screenAtomCandidates(),pickScreenElectron(e.clientX,e.clientY));
     if(picked){selectAtom(picked.atomId);showTorsionGuide({mode:'atom-locked',atomId:picked.atomId,candidates:[],reason:'形を整えています'});dragState={mode:'atom-locked',atomId:picked.atomId,startX:e.clientX,startY:e.clientY,moved:false};vibrateFeedback(22,e.pointerType);capture(e);return;}
@@ -234,7 +235,7 @@ function onPointerDown(e){
   dragState={mode:'molecule-rotate',rotation:workspaceView.capture(structures,mainStructure,pos),startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false};capture(e);
 }
 function currentTorsionModel(){return torsionModel??=createTorsionModel(molecule,{aromaticCycles:solver.snapshot().aromaticCycles});}
-function atomEditPlan(atomId,activeKey=activeTorsionKey){return planStructureEdit(molecule,atomId,{model:currentTorsionModel(),activeKey,positionFor:pos});}
+function atomEditPlan(atomId,activeKey=activeTorsionKey){return conformationEngine.plan(atomId,{activeKey});}
 function clearTorsionGuide(){
   torsionGuide=null;activeTorsionKey=null;candidateTorsionKeys.clear();rotationOptions.replaceChildren();rotationOptions.hidden=true;rotationCue.hidden=true;
 }
@@ -251,7 +252,7 @@ function showTorsionGuide(plan){
     });
   }
   rotationCue.dataset.state=plan.mode;rotationCue.textContent=plan.mode==='atom-locked'?'🔒':'↻';
-  rotationCue.setAttribute('aria-label',plan.mode==='torsion'?'この枝は軸回転できます':plan.reason);updateRotationCue();
+  rotationCue.setAttribute('aria-label',plan.mode==='conformation'?'複数の結合を使って鎖全体がしなります':plan.mode==='torsion'?'この枝は軸回転できます':plan.reason);updateRotationCue();
 }
 function updateRotationCue(){
   if(!torsionGuide||!pos(torsionGuide.atomId)||collectionOpen||gameShell.isOpen()||bondTransition){rotationCue.hidden=true;return;}
@@ -263,20 +264,19 @@ function updateRotationCue(){
 }
 function torsionHint(){
   if(!torsionGuide)return null;
-  return torsionGuide.mode==='torsion'?'↻ 光る軸の周りに枝をドラッグ':torsionGuide.mode==='axis-select'?'↻ 光る結合か番号で軸を選ぼう':`🔒 ${torsionGuide.reason}`;
+  return torsionGuide.mode==='conformation'?'↻ 鎖全体の結合を使ってしなります':torsionGuide.mode==='torsion'?'↻ 光る軸の周りに枝をドラッグ':torsionGuide.mode==='axis-select'?'↻ 光る結合か番号で軸を選ぼう':`🔒 ${torsionGuide.reason}`;
 }
 function beginAtomDrag(e,atomId){
   const key=activeTorsionKey;selectAtom(atomId);
   const plan=atomEditPlan(atomId,key),home=pos(atomId)?.clone();showTorsionGuide(plan);
+  if(['conformation','torsion'].includes(plan.mode))conformationEngine.beginDrag(atomId,{preparedPlan:plan});
   dragState={...plan,homeWorld:home,planeNormal:cameraDirection(),startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,pointerType:e.pointerType};
   if(plan.mode==='atom-locked')vibrateFeedback(22,e.pointerType);
   capture(e);refresh();
 }
 function finishTorsion(state){
-  if(!state.moved)return;
-  const errors=solver.measureError({ids:state.scope});
-  if(errors.bondRelative>.035||errors.angleRadians>12*Math.PI/180||errors.planeDistance>.045||errors.overlapRelative>.15)
-    startRelaxation('枝の重なりを整えています',editRelaxationOptions(molecule,state));
+  const release=conformationEngine.release();if(!state.moved||!release)return;
+  startRelaxation(state.mode==='conformation'?'鎖全体の形を整えています':'枝の重なりを整えています',release);
 }
 function onPointerMove(e){
   if(!activePointers.has(e.pointerId))return;
@@ -303,8 +303,15 @@ function onPointerMove(e){
     workspaceView.geometryChanged();updateMoleculeTransforms();return;
   }
   const dx=e.clientX-dragState.lastX,dy=e.clientY-dragState.lastY;dragState.lastX=e.clientX;dragState.lastY=e.clientY;
+  if(dragState.mode==='conformation'){
+    const target=pointerWorldOnPlane(e,dragState.homeWorld,dragState.planeNormal),result=conformationEngine.updateDrag(target);
+    dragState.lastResult=result;if(result.accepted)workspaceView.geometryChanged();updateMoleculeTransforms();return;
+  }
+  if(dragState.mode==='torsion'){
+    const result=conformationEngine.rotateDrag((dx-dy*.25)*.012);dragState.lastResult=result;
+    if(result.accepted)workspaceView.geometryChanged();updateMoleculeTransforms();return;
+  }
   if(dragState.mode==='molecule-rotate')rotateWholeMolecule(dx,dy,0,dragState.rotation);
-  if(dragState.mode==='torsion')rotateAroundBond(dragState.bond,dragState.ids,(dx-dy*.25)*.012);
   updateMoleculeTransforms();
 }
 function onPointerUp(e){
@@ -317,7 +324,7 @@ function onPointerUp(e){
     if(!state.moved)selectAtom(state.atomId);else finishElectronDrag(state,e);hoverElectron=null;
   }else if(state.mode==='atom-translate'){
     if(isTap)selectAtom(state.atomId);
-  }else if(state.mode==='torsion'){
+  }else if(state.mode==='torsion'||state.mode==='conformation'){
     finishTorsion(state);
   }else if(state.mode==='molecule-rotate'){
     if(isTap&&state.atomId!=null)selectAtom(state.atomId);
@@ -336,7 +343,7 @@ function onPointerCancel(e){
   lastBackgroundTap=null;
   activePointers.delete(e.pointerId);clearTimeout(bondHoldTimer);
   if(dragState?.mode==='electron'&&dragState.moved)startElectronReturn(dragState);
-  if(dragState?.mode==='torsion')finishTorsion(dragState);
+  if(dragState?.mode==='torsion'||dragState?.mode==='conformation')finishTorsion(dragState);
   dragState=null;multiGesture=null;hoverElectron=null;release(e);if(!interactionLocked())refresh();else refreshInfo(true);
 }
 
@@ -445,11 +452,6 @@ function clearBondTransition(){
 }
 
 
-function rotateAroundBond(bond,ids,angle){
-  workspaceView.geometryChanged();
-  const moving=new Set(ids),pivotId=moving.has(bond.a)?bond.b:bond.a,anchorId=moving.has(bond.a)?bond.a:bond.b,pivot=pos(pivotId),anchor=pos(anchorId);if(!pivot||!anchor)return;
-  const axis=anchor.clone().sub(pivot).normalize(),q=new THREE.Quaternion().setFromAxisAngle(axis,angle);solver.rotateReferenceFrames(q,new Set([...ids,pivotId]));for(const id of ids){if(id===anchorId)continue;const p=pos(id);if(p)p.sub(pivot).applyQuaternion(q).add(pivot);}
-}
 function rotateWholeMolecule(dx,dy,roll=0,rotation=workspaceView.capture(structures,mainStructure,pos)){
   if(!rotation)return;const qYaw=new THREE.Quaternion().setFromAxisAngle(cameraUp(),-dx*.009),qPitch=new THREE.Quaternion().setFromAxisAngle(cameraRight(),-dy*.009),q=qYaw.multiply(qPitch);
   if(roll)q.multiply(new THREE.Quaternion().setFromAxisAngle(cameraDirection(),roll));
@@ -460,8 +462,8 @@ function moleculeCenter(){const center=workspaceView.capture(structures,mainStru
 function repairSavedGeometry(){
   if(relaxation||bondTransition)return;
   const ids=focusedStructure()?.ids;if(!ids)return;
-  const error=solver.measureError({ids});
-  if(error.finite&&(error.bondRelative>.035||error.angleRadians>12*Math.PI/180||error.planeDistance>.045||error.overlapRelative>.15))startRelaxation('形を整えています',{ids});
+  const validation=solver.validateConformation({ids});
+  if(!validation.valid&&validation.errors.finite)startRelaxation('形を整えています',{ids});
 }
 function startRelaxation(message='形を整えています',options={}){
   if(!molecule.atoms.length){stopRelaxation();refresh();return;}
@@ -469,7 +471,7 @@ function startRelaxation(message='形を整えています',options={}){
   const ids=new Set([...(options.ids??focusedStructure()?.ids??[])].filter(id=>pos(id)));
   for(const id of ids)unresolvedAtoms.delete(id);
   const session=createStructureSettlement({THREE,molecule,placements,ids,lockedIds:options.lockedIds,bondLengthFor,geometryFor,
-    radiusFor:id=>ELEMENTS[atomById(id).element].radius,nonbondedDistanceFor:(a,b)=>nonbondedDistance(atomById(a).element,atomById(b).element),
+    radiusFor:id=>ELEMENTS[atomById(id).element].radius,nonbondedDistanceFor:(a,b)=>nonbondedDistance(atomById(a).element,atomById(b).element),rigidReference:options.rigidReference,
     now:performance.now(),duration:reduceMotion?1:240});
   relaxation={ids,session,message};selectionChip.textContent='形を整えています…';ensureMoleculeMeshes();updateMoleculeTransforms();refreshInfo(true);
 }
@@ -807,7 +809,7 @@ function vibrateFeedback(duration,pointerType){if(pointerType==='mouse')return;t
 function capture(e){try{renderer.domElement.setPointerCapture(e.pointerId)}catch{}}function release(e){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch{}}
 function selectAtom(id){if(id!==selectedAtomId||id==null)clearTorsionGuide();workspaceView.select(id);if(selectedAtomId!==id){if(selectedAtomId!=null)protectedUntil.set(selectedAtomId,performance.now()+DEBRIS_POLICY.protectionMs);selectedAtomId=id;selectionChangedAt=performance.now();}}
 function interactionLocked(){return resources.blocked||!!veilUI?.active||!!relaxation||!!bondTransition||!!frameTransition||collectionOpen||gameShell.isOpen();}
-function topologyChanged(){torsionModel=null;clearTorsionGuide();stateCache.clear();geometryCache.clear();solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
+function topologyChanged(){torsionModel=null;conformationEngine.topologyChanged();clearTorsionGuide();stateCache.clear();geometryCache.clear();solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
 function spawnRadius(element,order){
   const r=ELEMENTS[element].radius;
   return Math.max(r*1.04,(unpairedElectronCount(element,order)||lonePairCount(element,order))?valenceShellRadius(element,r*1.02)+.08:0)+.06;

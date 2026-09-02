@@ -1,6 +1,6 @@
 import {Molecule, ELEMENTS} from '../src/chemistry.js?v=20';
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom} from '../src/bonding-model.js?v=31';
-import {createStructureSolver} from '../src/structure-relaxation.js?v=31';
+import {createStructureSolver} from '../src/structure-relaxation.js?v=32';
 import {planBondDocking,createRelaxationSession} from '../src/structure-motion.js?v=30';
 import {connectedStructures,structureFrame} from '../src/workspace-model.js?v=20';
 import {createWorkspaceView,rotateStructure} from '../src/workspace-view.js?v=23';

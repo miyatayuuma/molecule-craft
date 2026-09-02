@@ -3,7 +3,7 @@ import {seedCraftCoordinates} from '../src/craft-structures.js?v=31';
 import {connectedStructures,structureFrame} from '../src/workspace-model.js?v=20';
 import {createRelaxationSession} from '../src/structure-motion.js?v=30';
 import {rotateStructure} from '../src/workspace-view.js?v=23';
-import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=32';
+import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=33';
 
 // Actual Three.js camera projection, also runnable without a WebGL context.
 // Background drag geometry and camera invariance; real pointer release/no-rebound
