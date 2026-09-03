@@ -4,6 +4,7 @@ import { EXPEDITION } from '../src/veil/config.js';
 import { DRIVES, REGIONS, flightConfig, regionAt } from '../src/veil/growth.js';
 import { createResources } from '../src/veil/resources.js';
 import { completeExpeditionTelemetry } from '../src/veil/telemetry.js';
+import { performanceFor } from '../src/veil/molecule-roles.js';
 import { pathToFileURL } from 'node:url';
 
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
@@ -20,7 +21,7 @@ function pathFor(map,ids,start){
 }
 
 export function simulate({name,start,routes,seconds,drive='off',burst='off',loop=false,seed=20260901}){
-  const map=createUniverse(seed),fuel={hydrogen:EXPEDITION.hydrogenCapacity,methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity},run=createRun(map,flightConfig(),{fuel});
+  const map=createUniverse(seed),fuel={propellant:{molecule:'hydrogen',amount:performanceFor('hydrogen','propellant').capacity},fuel:{molecule:'methane',amount:performanceFor('methane','fuel').capacity},oxidizer:{molecule:'oxygen',amount:performanceFor('oxygen','oxidizer').capacity}},run=createRun(map,flightConfig(),{fuel});
   Object.assign(run.player,REGIONS[start],{vx:0,vy:0});run.region=start;const path=pathFor(map,routes,run.player),timeline=[],encounters=[];let nextSample=15;
   for(let frame=0;frame<seconds*60&&!run.captured;frame++){
     const p=run.player;
@@ -32,10 +33,10 @@ export function simulate({name,start,routes,seconds,drive='off',burst='off',loop
     if(burstNow&&p.cooldown<=0)beginBurst(run,()=>true);
     const events=stepRun(run,{x:dx/length,y:dy/length},1/60,{consumeCombustion:()=>true});
     for(const event of events)if(['eaterSpawn','danger','capture'].includes(event.type))encounters.push({seconds:+run.time.toFixed(1),type:event.type,level:event.level,x:Math.round(p.x),y:Math.round(p.y),distance:Number.isFinite(run.nearestEater)?Math.round(run.nearestEater):null});
-    if(run.time+1e-6>=nextSample){timeline.push({seconds:nextSample,eaters:run.eaters.length,atoms:total(run.collectedElements),depth:Math.round(run.telemetry.maxDepth),H2:run.fuel.hydrogen,CH4:run.fuel.methane,O2:run.fuel.oxygen});nextSample+=15;}
+    if(run.time+1e-6>=nextSample){timeline.push({seconds:nextSample,eaters:run.eaters.length,atoms:total(run.collectedElements),depth:Math.round(run.telemetry.maxDepth),H2:run.fuel.propellant.amount,CH4:run.fuel.fuel.amount,O2:run.fuel.oxidizer.amount});nextSample+=15;}
   }
   const resources=createResources({storage:memory()}),settlement=resources.settleExpedition(run.elementDust,run.best,run.captured),report=completeExpeditionTelemetry(run,{captured:run.captured,result:settlement});
-  const fuelAtoms=report.fuelUsed.hydrogen*2+report.fuelUsed.methane*5+report.fuelUsed.oxygen*2,gross=total(report.collected),minutes=Math.max(report.duration/60,1/60);
+  const fuelAtoms=(report.fuelUsed.hydrogen??0)*2+(report.fuelUsed.methane??0)*5+(report.fuelUsed.oxygen??0)*2,gross=total(report.collected),minutes=Math.max(report.duration/60,1/60);
   return {name,...report,grossAtoms:gross,fuelAtomCost:fuelAtoms,netAtoms:gross-fuelAtoms,grossPerMinute:Math.round(gross/minutes),netPerMinute:Math.round((gross-fuelAtoms)/minutes),timeline,encounters};
 }
 

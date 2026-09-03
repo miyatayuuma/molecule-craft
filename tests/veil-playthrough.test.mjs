@@ -16,7 +16,7 @@ function follow(run,id,{novice=false,boost=false,onLap=()=>{}}={}){
  assert.ok(frames<60*110,`${id}: no trapping / endless correction`);return fuel;
 }
 function laps({novice=false,boost=false,seed=42}={}){
- const run=createRun(createMap(seed),VEIL,{fuel:{hydrogen:4},predators:false}),rows=[];let fuel=0;
+ const run=createRun(createMap(seed),VEIL,{fuel:{hydrogen:120},predators:false}),rows=[];let fuel=0;
  for(let lap=0;lap<3;lap++){
   const startH=run.collected,startTime=run.time,startFuel=fuel;
   for(const id of ['entry',boost?'risk':'safe','detour','return'])fuel+=follow(run,id,{novice,boost});
@@ -28,7 +28,7 @@ function laps({novice=false,boost=false,seed=42}={}){
 }
 const reports=[laps({novice:true}),laps(),laps({boost:true})];
 for(const boosted of [false,true]){
- const turnRun=createRun({seed:1,dust:[],fields:[],labels:[],routes:[]},VEIL,{fuel:{hydrogen:1},predators:false}),p=turnRun.player;p.speed=VEIL.speed;p.vx=0;p.vy=-p.speed;if(boosted)assert.ok(beginBurst(turnRun,()=>true));let time=0;
+ const turnRun=createRun({seed:1,dust:[],fields:[],labels:[],routes:[]},VEIL,{fuel:{hydrogen:40},predators:false}),p=turnRun.player;p.speed=VEIL.speed;p.vx=0;p.vy=-p.speed;if(boosted)assert.ok(beginBurst(turnRun,()=>true));let time=0;
  while(time<2&&Math.abs(angleDelta(p.angle,Math.PI/2))>.18){moveFlight(p,{x:0,y:1},1/60);time+=1/60;}
  assert.ok(time<.75,'Reverse must respond without a long U-turn');if(boosted)assert.ok(Math.hypot(p.x,p.y-VEIL.spawn.y)<170,'Boost countersteering must not throw player far from a line');
 }

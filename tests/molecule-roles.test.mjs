@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {
   ROLE_BALANCE_VERSION,
+  activeTankRolesFor,
+  combustionPacketFor,
   MOLECULE_ROLE_PROFILES,
   moleculesForRole,
   performanceFor,
   rolesFor,
+  tankCapacityFor,
 } from '../src/veil/molecule-roles.js';
 import {MOLECULE_USES} from '../src/veil/growth.js';
 
@@ -46,6 +49,12 @@ for(const [id,bursts] of Object.entries(burstTargets)){
   assert.ok(propellant.burstPower>0&&propellant.burstPower<=1);
 }
 assert.deepEqual(performanceFor('hydrogen','propellant'),{capacity:120,moleculesPerBurst:40,burstPower:1});
+assert.equal(tankCapacityFor('propellant','hydrogen'),120);
+assert.deepEqual(activeTankRolesFor('ammonia'),['propellant','fuel']);
+assert.deepEqual(activeTankRolesFor('water'),[],'Coolant remains data-only until thermal runtime exists');
+assert.deepEqual(combustionPacketFor('methane'),{fuel:'methane',fuelAmount:1,oxidizer:'oxygen',oxygenAmount:2,seconds:2});
+assert.deepEqual(combustionPacketFor('hydrogen'),{fuel:'hydrogen',fuelAmount:2,oxidizer:'oxygen',oxygenAmount:1,seconds:1.2});
+assert.deepEqual(combustionPacketFor('ammonia'),{fuel:'ammonia',fuelAmount:4,oxidizer:'oxygen',oxygenAmount:3,seconds:3.2});
 
 // Coolant keeps total capacity and harsh-environment tolerance separate so a
 // later thermal system can make high-performance fluids situationally valuable.
@@ -56,9 +65,8 @@ for(const id of moleculesForRole('coolant')){
 assert.ok(performanceFor('ethylene-glycol','coolant').environmentTolerance>performanceFor('water','coolant').environmentTolerance);
 assert.ok(performanceFor('nitrogen','coolant').environmentTolerance>performanceFor('water','coolant').environmentTolerance);
 
-// Role registration is deliberately staged: adding candidate data must not make
-// an unsupported molecule appear in the current tank UI before runtime support
-// for molecule-specific capacity/consumption exists.
+// Progression-specific records remain separate: runtime roles must not alter
+// unknown-signal eligibility by being copied into MOLECULE_USES.
 assert.equal(MOLECULE_USES['carbon-dioxide'],undefined);
 assert.deepEqual(MOLECULE_USES.hydrogen.tankUses,['propellant']);
 assert.deepEqual(MOLECULE_USES.methane.tankUses,['fuel']);
