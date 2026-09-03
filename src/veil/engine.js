@@ -1,5 +1,6 @@
 import { VEIL, EXPEDITION } from './config.js';
-import { GROWTH, DRIVES, regionAt } from './growth.js';
+import { GROWTH, DRIVES, burstDriveFor, regionAt } from './growth.js';
+import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { environmentAt, animateUniverse } from './universe.js';
 import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
 
@@ -42,15 +43,17 @@ export function moveFlight(p,input,dt,{config:c=VEIL,assist=null,force={x:0,y:0}
 }
 
 export function beginBurst(run,consume){
-  const p=run?.player;if(!p||run.captured||p.boost>0||p.cooldown>0||run.fuel.hydrogen<1)return false;
-  if(!consume())return false;
-  run.fuel.hydrogen--;run.telemetry.burstUses++;recordFuelUse(run.telemetry,'hydrogen');p.drive=DRIVES.hydrogen;p.boost=DRIVES.hydrogen.boostSeconds;p.cooldown=DRIVES.hydrogen.boostSeconds+DRIVES.hydrogen.boostCooldown;return true;
+  const p=run?.player,slot=run?.fuel?.propellant,performance=performanceFor(slot?.molecule,'propellant'),drive=burstDriveFor(slot?.molecule);
+  if(!p||!performance||!drive||run.captured||p.boost>0||p.cooldown>0||slot.amount<performance.moleculesPerBurst)return false;
+  if(!consume(performance.moleculesPerBurst,slot.molecule))return false;
+  slot.amount-=performance.moleculesPerBurst;run.telemetry.burstUses++;recordFuelUse(run.telemetry,'propellant',slot.molecule,performance.moleculesPerBurst);p.drive=drive;p.boost=drive.boostSeconds;p.cooldown=drive.boostSeconds+drive.boostCooldown;return true;
 }
 
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
 
-export function createRun(map,config=VEIL,{fuel={hydrogen:0,methane:0,oxygen:0},predators=true}={}){
-  const loadout={hydrogen:fuel.hydrogen??0,methane:fuel.methane??0,oxygen:fuel.oxygen??0};
+export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
+  const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0}:{molecule:legacy,amount:fuel[legacy]??0};
+  const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen')};
   return {map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
@@ -59,13 +62,13 @@ function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?cl
 function updateCombustion(run,dt,systems){
   const p=run.player;
   if(!run.driveHeld||p.boost>0||run.captured){p.combustion=false;return;}
+  const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,packet=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});
   if(run.driveBuffer<=1e-8){
-    const cost=DRIVES.combustion.cost;
-    if(run.fuel.methane<cost.methane||run.fuel.oxygen<cost.oxygen||!systems.consumeCombustion?.()){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
-    run.fuel.methane-=cost.methane;run.fuel.oxygen-=cost.oxygen;recordFuelUse(run.telemetry,'methane',cost.methane);recordFuelUse(run.telemetry,'oxygen',cost.oxygen);run.driveBuffer=DRIVES.combustion.packetSeconds;run.driveEmpty=false;run.events.push({type:'driveIgnition'});
+    if(!packet||oxidizer.molecule!==packet.oxidizer||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount||!systems.consumeCombustion?.(packet)){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
+    fuel.amount-=packet.fuelAmount;oxidizer.amount-=packet.oxygenAmount;recordFuelUse(run.telemetry,'fuel',fuel.molecule,packet.fuelAmount);recordFuelUse(run.telemetry,'oxidizer',oxidizer.molecule,packet.oxygenAmount);run.driveBuffer=packet.seconds;run.driveEmpty=false;run.events.push({type:'driveIgnition'});
   }
   p.drive=DRIVES.combustion;p.combustion=true;run.driveBuffer=Math.max(0,run.driveBuffer-dt);
-  if(run.driveBuffer<=0&&(run.fuel.methane<DRIVES.combustion.cost.methane||run.fuel.oxygen<DRIVES.combustion.cost.oxygen))p.combustion=false;
+  if(run.driveBuffer<=0&&(!packet||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount))p.combustion=false;
 }
 
 function spawnEater(run){

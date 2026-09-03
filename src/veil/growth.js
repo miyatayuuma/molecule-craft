@@ -1,4 +1,5 @@
 import { VEIL, EXPEDITION } from './config.js';
+import { activeTankRolesFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
 // need no effect entry; future shared actions can be attached here independently.
 export const MOLECULE_USES = Object.freeze({
@@ -8,17 +9,18 @@ export const MOLECULE_USES = Object.freeze({
   water:{formula:'H₂O',name:'水',atoms:['O','H','H'],role:'catalog',hint:'Oを中心に、Hを2つそれぞれ1本でつなぐ。',use:'図鑑に記録し、通常通り量産できる分子。探索用の特殊作用は、まだ実装されていない。',discovery:'水を発見。図鑑に登録され、原子があれば量産できる。'},
 });
 export const TANK_USES=Object.freeze({
-  propellant:{label:'噴射剤',capacity:EXPEDITION.hydrogenCapacity},
-  fuel:{label:'燃料',capacity:EXPEDITION.methaneCapacity},
-  oxidizer:{label:'酸化剤',capacity:EXPEDITION.oxygenCapacity},
-  coolant:{label:'冷却剤',capacity:12},
+  propellant:{label:'噴射剤'},
+  fuel:{label:'燃料'},
+  oxidizer:{label:'酸化剤'},
+  coolant:{label:'冷却剤'},
 });
-export const tankUsesFor=id=>MOLECULE_USES[id]?.tankUses??[];
+export const tankUsesFor=id=>activeTankRolesFor(id);
+export const tankCapacity=(use,id)=>tankCapacityFor(use,id);
 // Input chooses an action, not its physics. A later cruise controller can use
 // these same actions without changing resources or adding HUD buttons.
 export const DRIVES=Object.freeze({
-  hydrogen:{type:'burst',label:'H₂',name:'H₂ BURST',cost:{hydrogen:1},boostSpeed:760,boostSeconds:.65,boostRadius:8,boostCooldown:.55,boostAcceleration:28,boostGrip:20},
-  combustion:{type:'continuous',label:'CH₄ + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:470,packetSeconds:2,boostRadius:40,boostAcceleration:10,boostGrip:14},
+  hydrogen:{type:'burst',label:'H₂',name:'H₂ BURST',cost:{hydrogen:40},boostSpeed:760,boostSeconds:.65,boostRadius:8,boostCooldown:.55,boostAcceleration:28,boostGrip:20},
+  combustion:{type:'continuous',label:'FUEL + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:470,packetSeconds:2,boostRadius:40,boostAcceleration:10,boostGrip:14},
 });
 export const GROWTH=Object.freeze({
   flight:{speed:164,driftSpeed:29,suctionRadius:30,assistRadius:78},
@@ -41,23 +43,36 @@ export const REGIONS=Object.freeze({
 });
 export function regionAt(y){return y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
 export function flightConfig(){return {...VEIL,...GROWTH.flight,bounds:GROWTH.bounds};}
-export function driveAvailable(state,id){const drive=DRIVES[id];return !!drive&&Object.keys(drive.cost).every(key=>state.recipes.includes(key));}
-const finiteFuel=value=>Number.isFinite(value)?Math.max(0,value):0;
-export function combustionPackets(fuel={}){
-  const cost=DRIVES.combustion.cost;
-  return Math.max(0,Math.min(Math.floor(finiteFuel(fuel.methane)/cost.methane),Math.floor(finiteFuel(fuel.oxygen)/cost.oxygen)));
+export function driveAvailable(state,id){
+  if(id==='hydrogen')return state.recipes.includes('hydrogen');
+  if(id==='combustion')return state.recipes.includes('oxygen')&&state.recipes.some(molecule=>performanceFor(molecule,'fuel'));
+  return false;
 }
-export function propulsionGauge(id,fuel={},driveBuffer=0){
-  let remaining=0,capacity=0,seconds=0;
+const finiteFuel=value=>Number.isFinite(value)?Math.max(0,value):0;
+const slot=(loadout,use,legacy)=>loadout?.[use]?.molecule?loadout[use]:{molecule:legacy,amount:finiteFuel(loadout?.[legacy])};
+export function combustionPackets(loadout={}){
+  const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen'),packet=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});
+  if(!packet||oxidizer.molecule!=='oxygen')return 0;
+  return Math.max(0,Math.min(Math.floor(finiteFuel(fuel.amount)/packet.fuelAmount),Math.floor(finiteFuel(oxidizer.amount)/packet.oxygenAmount)));
+}
+export function burstDriveFor(id){
+  const performance=performanceFor(id,'propellant');if(!performance)return null;
+  const base=DRIVES.hydrogen,power=performance.burstPower;
+  return {...base,label:id,name:'BURST',boostSpeed:GROWTH.flight.speed+(base.boostSpeed-GROWTH.flight.speed)*power,boostAcceleration:base.boostAcceleration*(.55+.45*power),boostGrip:base.boostGrip*(.65+.35*power)};
+}
+export function propulsionGauge(id,loadout={},driveBuffer=0){
+  let remaining=0,capacity=0,seconds=0,maxSeconds=0;
   if(id==='hydrogen'){
-    capacity=EXPEDITION.hydrogenCapacity;remaining=Math.min(capacity,Math.floor(finiteFuel(fuel.hydrogen)));
+    const propellant=slot(loadout,'propellant','hydrogen'),performance=performanceFor(propellant.molecule,'propellant');
+    capacity=performance?Math.floor(performance.capacity/performance.moleculesPerBurst):0;remaining=performance?Math.min(capacity,Math.floor(finiteFuel(propellant.amount)/performance.moleculesPerBurst)):0;
   }else if(id==='combustion'){
-    capacity=combustionPackets({methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity});
-    const capacitySeconds=capacity*DRIVES.combustion.packetSeconds;
-    seconds=Math.min(capacitySeconds,combustionPackets(fuel)*DRIVES.combustion.packetSeconds+Math.min(DRIVES.combustion.packetSeconds,finiteFuel(driveBuffer)));
-    remaining=Math.min(capacity,Math.ceil(seconds/DRIVES.combustion.packetSeconds));
+    const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen'),packet=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});
+    const full={fuel:{molecule:fuel.molecule,amount:tankCapacity('fuel',fuel.molecule)??0},oxidizer:{molecule:oxidizer.molecule,amount:tankCapacity('oxidizer',oxidizer.molecule)??0}};
+    capacity=packet?combustionPackets(full):0;maxSeconds=capacity*(packet?.seconds??0);
+    seconds=Math.min(maxSeconds,combustionPackets(loadout)*(packet?.seconds??0)+Math.min(packet?.seconds??0,finiteFuel(driveBuffer)));
+    remaining=Math.min(capacity,packet?.seconds?Math.ceil(seconds/packet.seconds):0);
   }
-  const ratio=capacity?Math.max(0,Math.min(1,id==='combustion'?seconds/(capacity*DRIVES.combustion.packetSeconds):remaining/capacity)):0;
+  const ratio=capacity?Math.max(0,Math.min(1,id==='combustion'?seconds/maxSeconds:remaining/capacity)):0;
   return {remaining,capacity,seconds,ratio,state:ratio<=0?'empty':ratio<=.34?'low':'enough'};
 }
 export function growthGoal(state){

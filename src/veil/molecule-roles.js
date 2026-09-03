@@ -85,3 +85,28 @@ export const roleProfileFor=id=>MOLECULE_ROLE_PROFILES[id]??null;
 export const rolesFor=id=>roleProfileFor(id)?.roles??[];
 export const performanceFor=(id,role)=>roleProfileFor(id)?.performance?.[role]??null;
 export const moleculesForRole=role=>Object.entries(MOLECULE_ROLE_PROFILES).filter(([,entry])=>entry.roles.includes(role)).map(([id])=>id);
+
+// Runtime activation is intentionally narrower than the data registry. Coolant
+// profiles are ready for the later thermal task but must not appear in today's
+// Collector Shell UI.
+export const ACTIVE_TANK_ROLES=Object.freeze(['propellant','fuel','oxidizer']);
+export const activeTankRolesFor=id=>rolesFor(id).filter(role=>ACTIVE_TANK_ROLES.includes(role));
+export const tankCapacityFor=(role,id)=>performanceFor(id,role)?.capacity??null;
+
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const integerRatio=value=>{
+  for(let denominator=1;denominator<=100;denominator++){
+    const numerator=Math.round(value*denominator);
+    if(Math.abs(numerator/denominator-value)<1e-9){const divisor=gcd(numerator,denominator);return {numerator:numerator/divisor,denominator:denominator/divisor};}
+  }
+  return null;
+};
+
+// Combustion spends whole molecule-count game units. The smallest packet whose
+// O2 cost is integral avoids fractional saved inventory and rounding loss.
+export function combustionPacketFor(id,{baseSeconds=2}={}){
+  const fuel=performanceFor(id,'fuel'),oxygen=integerRatio(fuel?.oxygenPerFuel);
+  if(!fuel||!oxygen)return null;
+  const fuelAmount=oxygen.denominator,oxygenAmount=oxygen.numerator;
+  return Object.freeze({fuel:id,fuelAmount,oxidizer:'oxygen',oxygenAmount,seconds:fuelAmount*baseSeconds*fuel.energy});
+}

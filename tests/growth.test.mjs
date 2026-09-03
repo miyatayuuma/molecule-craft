@@ -16,8 +16,8 @@ const state=recipes=>({recipes});
 // HUD fuel is derived from the same packet ratio and expedition capacities as
 // propulsion. The limiting reagent wins and display ratios are always clamped.
 assert.equal(combustionPackets({methane:12,oxygen:20}),10);
-assert.deepEqual(propulsionGauge('hydrogen',{hydrogen:99}),{remaining:EXPEDITION.hydrogenCapacity,capacity:EXPEDITION.hydrogenCapacity,seconds:0,ratio:1,state:'enough'});
-assert.equal(propulsionGauge('hydrogen',{hydrogen:1}).state,'low');assert.equal(propulsionGauge('hydrogen',{hydrogen:-4}).ratio,0);
+assert.deepEqual(propulsionGauge('hydrogen',{hydrogen:120}),{remaining:3,capacity:3,seconds:0,ratio:1,state:'enough'});
+assert.equal(propulsionGauge('hydrogen',{hydrogen:40}).state,'low');assert.equal(propulsionGauge('hydrogen',{hydrogen:-4}).ratio,0);
 const fullCombustion=propulsionGauge('combustion',{methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity});assert.equal(fullCombustion.ratio,1);assert.equal(fullCombustion.remaining,EXPEDITION.methaneCapacity);
 const oxygenLimited=propulsionGauge('combustion',{methane:18,oxygen:20});assert.equal(oxygenLimited.remaining,10);assert.equal(oxygenLimited.seconds,20);
 const activeLastPacket=propulsionGauge('combustion',{methane:0,oxygen:0},1.25);assert.equal(activeLastPacket.remaining,1);assert.equal(activeLastPacket.seconds,1.25);
@@ -43,7 +43,7 @@ assert.equal(upgraded.collected,slow.collected);assert.equal(upgraded.player.y,s
 
 // The H/C boundary is an opposing current in world coordinates. Owning a
 // recipe does not open it; spending one H₂ boost supplies enough thrust.
-function outer({boost=false}={}){const run=createRun(createUniverse(9),hydrogen,{fuel:{hydrogen:1},predators:false});Object.assign(run.player,{x:530,y:-3620,angle:-Math.PI/2,vx:0,vy:0});if(boost)assert.ok(beginBurst(run,()=>true));for(let i=0;i<15*60;i++)stepRun(run,{x:0,y:-1},1/60);return run;}
+function outer({boost=false}={}){const run=createRun(createUniverse(9),hydrogen,{fuel:{hydrogen:40},predators:false});Object.assign(run.player,{x:530,y:-3620,angle:-Math.PI/2,vx:0,vy:0});if(boost)assert.ok(beginBurst(run,()=>true));for(let i=0;i<15*60;i++)stepRun(run,{x:0,y:-1},1/60);return run;}
 assert.equal(outer().region,'veil');assert.equal(outer({boost:true}).region,'carbon');
 
 // Entering a carbon mass produces a radial burst in the same simulation frame.
@@ -84,8 +84,8 @@ assert.ok(resources.discover('oxygen'));assert.ok(resources.makeMolecule('oxygen
 assert.ok(resources.discover('water'));assert.ok(resources.makeMolecule('water'));
 assert.ok(resources.makeMolecule('oxygen',2));assert.ok(resources.makeMolecule('methane',1));assert.ok(driveAvailable(resources.state,'combustion'));
 const beforeWater=resources.state.molecules.water;assert.equal(typeof resources.consumeCoolant,'undefined');assert.equal(resources.state.molecules.water,beforeWater);
-const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.molecules,{hydrogen:20,methane:20,oxygen:40});assert.deepEqual(capacity.prepareExpedition(),{hydrogen:0,methane:0,oxygen:0});assert.ok(capacity.fillTank('hydrogen'));assert.ok(capacity.fillTank('combustion'));assert.deepEqual(capacity.prepareExpedition(),{hydrogen:EXPEDITION.hydrogenCapacity,methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity});
-const sessionOnly=createResources({storage:null});sessionOnly.collect(6,0);sessionOnly.discover('hydrogen');assert.ok(sessionOnly.makeMolecule('hydrogen',3));assert.ok(sessionOnly.fillTank('hydrogen'));assert.ok(sessionOnly.consumeDrive('hydrogen'),'Session-only mode must remain playable when persistent storage is unavailable');
+const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.molecules,{hydrogen:140,methane:20,oxygen:40});assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0}});assert.ok(capacity.fillTank('hydrogen'));assert.ok(capacity.fillTank('combustion'));assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36}});
+const sessionOnly=createResources({storage:null});sessionOnly.collect(240,0);sessionOnly.discover('hydrogen');assert.ok(sessionOnly.makeMolecule('hydrogen',120));assert.ok(sessionOnly.fillTank('hydrogen'));assert.ok(sessionOnly.consumeDrive('hydrogen'),'Session-only mode must remain playable when persistent storage is unavailable');
 
 // Ordinary DB molecules can be discovered and mass-produced but gain no
 // expedition action merely by being present in the catalogue.
@@ -104,6 +104,6 @@ assert.ok(luck.state.hints.includes('hydrogen')&&luck.state.hints.includes('meth
 // their former automatic loadout into tanks without changing the total fuel.
 const partialStorage=memory(),partial=createResources({storage:partialStorage});partial.collectDust({H:1,C:0,O:0},0);partial.save();const partialReload=createResources({storage:partialStorage});assert.equal(partialReload.state.dust.H,1);partialReload.collectDust({H:2,C:0,O:0},0);assert.equal(partialReload.state.elements.H,1);
 const legacyStorage=memory();legacyStorage.setItem(RESOURCE_KEY,JSON.stringify({schemaVersion:1,elements:{H:7},molecules:{hydrogen:2},recipes:['hydrogen'],progress:{bestChain:8,runs:2,cleared:true,craftPrompt:false,sound:true},workspace:null}));
-const migrated=createResources({storage:legacyStorage});assert.equal(migrated.state.schemaVersion,4);assert.deepEqual(migrated.state.elements,{H:7,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0});assert.equal(migrated.state.molecules.hydrogen,0);assert.deepEqual(migrated.state.tanks.propellant,{molecule:'hydrogen',amount:2});assert.deepEqual(migrated.state.progress.foundElements,['H']);
+const migrated=createResources({storage:legacyStorage});assert.equal(migrated.state.schemaVersion,5);assert.deepEqual(migrated.state.elements,{H:7,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0});assert.equal(migrated.state.molecules.hydrogen,0);assert.deepEqual(migrated.state.tanks.propellant,{molecule:'hydrogen',amount:80});assert.deepEqual(migrated.state.progress.foundElements,['H']);
 
 console.log('H → C → O growth loop passed: authored continuity with variation, unchanged normal flight, physical H₂ BURST crossing, carbon bursts, moving Oxygen flows, sustained CH₄/O₂ travel without H₂O gating, four handmade key structures, explicit expedition tanks, optional DB production, signal pity and save migration.');

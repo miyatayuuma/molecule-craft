@@ -41,8 +41,8 @@
 | 領域 | 担当 |
 |---|---|
 | バランス定数 | `src/veil/config.js` の通常飛行・EXPEDITION・音設定 |
-| 分子の役割と領域 | `src/veil/growth.js` の現在有効なBURST、DRIVE、費用、領域境界、次目標 |
-| 分子役割候補・性能値 | `src/veil/molecule-roles.js`。化学DBとは分離したゲーム値。未対応の役割を現行タンクへ自動接続しない |
+| 分子の役割と領域 | `src/veil/growth.js` のBURST/DRIVE共通動作、領域境界、次目標 |
+| 分子役割・性能値・分子別容量 | `src/veil/molecule-roles.js`。化学DBとは分離したゲーム値。coolantはデータのみで未稼働 |
 | 探索物理・推進 | `src/veil/engine.js` |
 | DUST EATER | 状態・追跡・捕獲は `engine.js`、描画は `renderer.js` |
 | 遠征テレメトリ | `src/veil/telemetry.js`（`?expeditionDebug=1`時のみconsole出力） |
@@ -53,8 +53,8 @@
 | 音 | `src/veil/audio.js` |
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
 | 収集殻・用途別タンク選択・3D模型・図鑑導線 | `src/veil/supply.js` |
-| タンク用途・現行仮性能値 | `src/veil/growth.js` |
-| タンク内容・原子からの1分子単位量産充填 | `src/veil/resources.js` |
+| タンク用途・汎用推進計算 | `src/veil/growth.js`, `src/veil/molecule-roles.js` |
+| タンク内容・原子からの1分子単位量産充填・旧完成分子の移送 | `src/veil/resources.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
 探索の現行ルールと意図は `docs/hco-growth.md` にあります。探索だけの変更では、分子DBや生成済みSVGを読む必要はありません。
@@ -105,7 +105,7 @@
 
 ## 保存
 
-- `molecule-craft.resources.v1`：BASE STOCKの原子在庫、基地分子在庫、用途別タンク、レシピ、探索進行、精算、制作スナップショットの正本。内部schema v4では各タンクを「分子ID 1種類＋残量」で保存し、旧schema v3のH₂/CH₄/O₂残量を自動移行する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存し、連続量産資源には数えない。移行と破損・未来版・競合保護は `src/veil/resources.js`。
+- `molecule-craft.resources.v1`：BASE STOCKの原子在庫、基地分子在庫、用途別タンク、レシピ、探索進行、精算、制作スナップショットの正本。内部schema v5では各タンクを「分子ID 1種類＋分子数」で保存し、容量を用途＋分子IDから解決する。旧schemaのH₂ 0–3 BURST分は0/40/80/120分子へ変換し、CH₄/O₂残量は維持する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存し、連続量産資源には数えない。移行と破損・未来版・競合保護は `src/veil/resources.js`。
 - `molecule-craft.workspace.v1`：従来workspaceの互換入力。構造スキーマと復元は `src/workspace-save.js`。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。

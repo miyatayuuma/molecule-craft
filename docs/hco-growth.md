@@ -1,4 +1,4 @@
-# H → C → O / Expedition Core v2
+# H → C → O / Expedition Core v3
 
 The current continuous H/C/O world uses a finite-sortie exploration loop:
 
@@ -12,12 +12,12 @@ Ordinary flight is the same before and after H₂ discovery: speed 164, idle dri
 
 | Action | Sortie capacity | Output | Intended decision |
 |---|---:|---:|---|
-| H₂ BURST | H₂ × 3 | speed 760 for 0.65s | Emergency separation or one precise current crossing |
-| COMBUSTION DRIVE | CH₄ × 18 / O₂ × 36 | speed 470; 2s per CH₄ × 1 + O₂ × 2 | Hold for efficient sustained travel; release preserves the packet remainder |
+| BURST | H₂ × 120 = 3 uses; later propellants use their own capacity/cost/power | 0.65s; selected molecule changes thrust | Emergency separation or one precise current crossing |
+| COMBUSTION DRIVE | selected fuel capacity / O₂ × 36 | speed 470; packet duration follows fuel energy and O₂ ratio | Hold for efficient sustained travel; release preserves the packet remainder |
 
-Before launch, molecules move explicitly from uncapped BASE STOCK into independent Collector Shell tanks. A full-supply action commits only when every missing molecule is available; otherwise the UI shows the transferable amount and exact shortage without a partial transfer. One loaded H₂ is consumed only when a valid BURST starts. Combustion consumes loaded `CH₄ × 1 + O₂ × 2` only when held propulsion needs a new two-second packet. Unused tank contents remain loaded, and actual use is saved atomically without touching BASE STOCK.
+Before launch, molecules move explicitly from uncapped BASE STOCK into independent Collector Shell tanks. Capacity resolves from tank use plus selected molecule. A valid BURST consumes that propellant's `moleculesPerBurst`; H₂ consumes 40 and still provides three full-tank uses. Combustion buys the smallest whole-molecule packet that satisfies the selected fuel's `oxygenPerFuel`; its paid duration is `fuel amount × 2s × energy`. Unused and non-limiting tank contents remain loaded, and actual use is saved atomically without touching BASE STOCK. Older finished-molecule inventory is used before new atom-to-tank production.
 
-H₂ remains deliberately poor as normal travel: three short uses cannot become an unlimited cruise. The authored outer current is thin enough for one correctly timed BURST to cross, but normal thrust stalls physically. CH₄ alone has no action. Discovering O₂ turns the earlier fuel into up to 36 seconds of sustained drive that crosses the deep opposing flow without checking an inventory flag.
+H₂ remains deliberately poor as normal travel: three short uses cannot become an unlimited cruise. The authored outer current is thin enough for one correctly timed BURST to cross, but normal thrust stalls physically. Later propellants trade peak power for more uses. Fuel alone has no combustion action; O₂ remains the sole active oxidizer. Fuel energy changes endurance while the COMBUSTION top speed stays common.
 
 H₂O remains discoverable, visible in the collection and mass-producible. Expedition code has no water consumer and Inner Horizon has no H₂O requirement.
 
@@ -46,13 +46,13 @@ The fixed route skeleton, seeded interior variation and continuous coordinates r
 
 The deterministic balance run currently separates three choices: a 30-second saving sortie returns about 57 atoms without fuel; a 55-second Carbon sortie returns about 280 atoms while using H₂ only under pressure; a 35-second deep Oxygen sortie returns about 647 atoms while spending CH₄ × 18 and O₂ × 36. The deep run's fuel ingredients are worth 162 atoms, leaving about 485 net atoms—more than three minutes at the measured safe outer rate.
 
-Correct handmade structures can still be discovered without first receiving a hint. Once discovered, quantity controls preview the exact total H/C/O cost and commit one atomic production batch; MAX uses the limiting element. Optional database molecules such as CO₂ receive collection entries but no expedition action merely by existing.
+Correct handmade structures can still be discovered without first receiving a hint. Once discovered, ordinary molecules remain mass-producible; supported propellants and fuels additionally become eligible for their tanks. Role data does not enter progression-specific `MOLECULE_USES`, so merely registering a role never changes unknown-signal order or the fresh H → C → O path. Coolant profiles remain hidden until thermal runtime exists.
 
 Key hints remain deterministic: enough H suggests H₂, first C suggests CH₄, and first O suggests O₂ and H₂O. Seeded unknown signals can change optional discovery order or grant dust; the third eligible miss guarantees a hint. Randomness never gates the H → C → O path.
 
 ## Tunable boundaries
 
-`src/veil/config.js` owns ordinary flight, collection feel and all sortie/pursuit values under `EXPEDITION`. `src/veil/growth.js` owns molecule roles, BURST/DRIVE output, packet duration, density profiles and region boundaries. `src/veil/universe.js` owns authored routes, moving dust and physical currents. Resource settlement and base-stock protection live in `src/veil/resources.js`. `src/veil/telemetry.js` records one-run metrics and prints them only with `?expeditionDebug=1`.
+`src/veil/config.js` owns ordinary flight, collection feel and all sortie/pursuit values under `EXPEDITION`. `src/veil/molecule-roles.js` owns role performance, capacities and whole-molecule combustion packets. `src/veil/growth.js` owns shared BURST/DRIVE output, density profiles and region boundaries. `src/veil/universe.js` owns authored routes, moving dust and physical currents. Resource settlement, schema v5 migration and base-stock protection live in `src/veil/resources.js`. `src/veil/telemetry.js` records molecule IDs and consumption per run and prints them only with `?expeditionDebug=1`.
 
 The drive API separates a momentary action (`beginBurst`) from held intent (`setCombustionHeld`).
 
@@ -74,6 +74,6 @@ The drive API separates a momentary action (`beginBurst`) from held intent (`set
 - deep net return exceeds three minutes at the safe outer rate;
 - BURST spam, DRIVE always-on, fuel saving, fuel exhaustion and the fixed five-body cap remain bounded.
 
-`tests/growth.test.mjs` retains continuity, C-cluster, moving-O, handmade-key-molecule, exact economy, optional signal and save-migration checks. `tests/supply-production.test.mjs` and `tests/supply-tanks.test.mjs` cover batch economy, direct atom-to-tank production, one-kind replacement, caps and persistence. `tests/veil-ui-check.mjs` drives the Collector Shell and supply DOM through cargo collection, return settlement, completed-molecule long-press supply, capped H₂ use, held combustion, release, unchanged H₂O stock and automatic captured return. The full test suite also covers chemistry, collection, geometry, input and offline release integrity.
+`tests/generic-propulsion.test.mjs` exercises every registered propellant and fuel, performance ordering, integer combustion packets, remainder preservation and staged coolant eligibility. `tests/growth.test.mjs` retains continuity, C-cluster, moving-O, handmade-key-molecule, optional signal and save-migration checks. `tests/supply-production.test.mjs` and `tests/supply-tanks.test.mjs` cover ordinary production, direct atom-to-tank production, old finished inventory transfer, one-kind replacement, molecule capacities and schema v2–v5 persistence. `tests/veil-ui-check.mjs` drives the Collector Shell and supply DOM through cargo collection, return settlement, completed-molecule long-press supply, capped H₂ use, held combustion, release, unchanged H₂O stock and automatic captured return.
 
 Run `node scripts/simulate-expedition.mjs` for the per-15-second enemy, cargo, depth and fuel comparison. These are deterministic mechanical checks, not a claim that the risk curve is subjectively final. Phone playtesting still needs to judge when the first pursuer feels fair, whether three BURST cards create good timing decisions, whether holding DRIVE remains comfortable, and whether the 15% loss creates tension without discouraging another sortie.

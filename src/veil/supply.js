@@ -1,4 +1,5 @@
 import { MOLECULE_USES,REGIONS,TANK_USES } from './growth.js';
+import { performanceFor } from './molecule-roles.js';
 
 const USE_ORDER=['propellant','fuel','oxidizer','coolant'];
 
@@ -22,13 +23,13 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
   }
   function metric(label,value){const row=document.createElement('div'),text=document.createElement('span'),track=document.createElement('i'),fill=document.createElement('b');text.textContent=label;fill.style.transform=`scaleX(${Math.max(0,Math.min(1,value??0))})`;track.append(fill);row.append(text,track);return row;}
   function renderMetrics(record){
-    const host=q('tank-comparison');host.replaceChildren();const performance=MOLECULE_USES[record?.id]?.performance?.[selectedUse];
-    if(selectedUse==='fuel')host.append(metric('積載量',performance?.load??.5),metric('必要O₂',performance?.oxygen??.5));
-    if(selectedUse==='propellant')host.append(metric('瞬発力',performance?.thrust??.5),metric('搭載量',performance?.load??.5));
+    const host=q('tank-comparison');host.replaceChildren();const performance=performanceFor(record?.id,selectedUse);
+    if(selectedUse==='fuel'&&performance){const oxygen=performance.capacity*performance.oxygenPerFuel;host.append(metric(`持続性能 ${Math.round(performance.energy*100)}%`,performance.energy/5.2),metric(`満載時O₂ ${oxygen}`,oxygen/60));}
+    if(selectedUse==='propellant'&&performance){const bursts=Math.floor(performance.capacity/performance.moleculesPerBurst);host.append(metric(`瞬発力 ${Math.round(performance.burstPower*100)}%`,performance.burstPower),metric(`BURST ${bursts}回`,bursts/10));}
     host.hidden=!host.childElementCount;
   }
   function renderTankDetail(){
-    const list=candidates(selectedUse);if(!list.some(record=>record.id===selectedId))selectedId=list[0]?.id??null;
+    const list=candidates(selectedUse),loadedId=resources.state.tanks[selectedUse]?.molecule;if(!list.some(record=>record.id===selectedId))selectedId=list.some(record=>record.id===loadedId)?loadedId:list[0]?.id??null;
     q('tank-detail').hidden=false;q('tank-detail-title').textContent=TANK_USES[selectedUse].label;
     const tabs=q('tank-molecules');tabs.replaceChildren();
     for(const record of list){const button=document.createElement('button');button.type='button';button.dataset.moleculeId=record.id;button.setAttribute('aria-pressed',String(record.id===selectedId));button.textContent=`${formula(record)} · ${name(record)}`;button.addEventListener('click',()=>{selectedId=record.id;update();});tabs.append(button);}
@@ -36,12 +37,12 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
     if(!list.length){empty.textContent='発見済み分子なし';q('tank-comparison').hidden=true;releaseViewer();}
     const record=resources.record(selectedId),status=selectedId?resources.tankStatus(selectedUse,selectedId):resources.tankStatus(selectedUse);
     if(record){q('tank-model-name').textContent=`${formula(record)} · ${name(record)}`;mountViewer(record);renderMetrics(record);}
-    const loaded=tankRecord(selectedUse),tank=resources.state.tanks[selectedUse];q('tank-load').textContent=loaded?`${formula(loaded)} ${tank.amount} / ${TANK_USES[selectedUse].capacity}`:`0 / ${TANK_USES[selectedUse].capacity}`;
-    q('tank-load-meter').style.transform=`scaleX(${tank.amount/TANK_USES[selectedUse].capacity})`;
+    const loaded=tankRecord(selectedUse),tank=resources.state.tanks[selectedUse],loadedStatus=resources.tankStatus(selectedUse);q('tank-load').textContent=loaded?`${formula(loaded)} ${tank.amount} / ${loadedStatus.loadedCapacity}`:'EMPTY';
+    q('tank-load-meter').style.transform=`scaleX(${loadedStatus.loadedCapacity?tank.amount/loadedStatus.loadedCapacity:0})`;
     q('tank-replacement').hidden=!status?.replacing;q('tank-replacement').textContent=status?.replacing?`${formula(loaded)}を排出して${formula(record)}へ入替`:'';
   }
   function renderShell(){
-    for(const use of USE_ORDER){const button=q(`shell-${use}`),tank=resources.state.tanks[use],record=tankRecord(use);button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?`${formula(record)} ${tank.amount}/${TANK_USES[use].capacity}`:'—';}
+    for(const use of USE_ORDER){const button=q(`shell-${use}`),tank=resources.state.tanks[use],record=tankRecord(use),status=resources.tankStatus(use);button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?`${formula(record)} ${tank.amount}/${status.loadedCapacity}`:'—';}
   }
   function update(){
     const state=resources.state;
@@ -51,7 +52,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
   }
   function directFill(use,id){
     if(resources.blocked||!canMake()||onCommit()===false)return false;
-    const filled=resources.fillTankFromElements(use,id);if(filled){const record=resources.record(id),tank=resources.tankStatus(use,id);announcement=`${formula(record)} ${tank.current}/${tank.capacity}`;update();}return filled;
+    const filled=resources.transferMoleculesToTank(use,id,1)||resources.fillTankFromElements(use,id);if(filled){const record=resources.record(id),tank=resources.tankStatus(use,id);announcement=`${formula(record)} ${tank.current}/${tank.capacity}`;update();}return filled;
   }
 
   q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';dialog.showModal();update();});
