@@ -11,21 +11,21 @@ const emptyMap=()=>({seed:17,dust:[],fields:[],labels:[],routes:[]});
 const H2=performanceFor('hydrogen','propellant');
 const fullLoadout={propellant:{molecule:'hydrogen',amount:H2.capacity},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36}};
 
-// Expedition tanks are filled from uncapped BASE STOCK before launch.
+// Expedition tanks are filled directly from BASE STOCK before launch.
 const storage=memory(),resources=createResources({storage});
 for(const id of ['hydrogen','methane','oxygen'])resources.discover(id);
-Object.assign(resources.state.molecules,{hydrogen:140,methane:20,oxygen:40});resources.save();
+Object.assign(resources.state.elements,{H:312,C:18,O:72});resources.save();
 assert.deepEqual(resources.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0}});
-assert.ok(resources.fillTank('hydrogen'));assert.ok(resources.fillTank('combustion'));
+assert.ok(resources.fillTankFromElements('propellant','hydrogen',120));assert.ok(resources.fillTankFromElements('fuel','methane',18));assert.ok(resources.fillTankFromElements('oxidizer','oxygen',36));
 assert.deepEqual(resources.prepareExpedition(),fullLoadout);
-assert.deepEqual(resources.state.molecules,{hydrogen:20,methane:2,oxygen:4,water:0},'Supply transfers only the molecule-specific capped load from BASE STOCK');
+assert.deepEqual(resources.state.elements,{H:0,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0},'Direct filling consumes only the required atoms');
 
 const fuelRun=createRun(emptyMap(),VEIL,{fuel:resources.prepareExpedition(),predators:false});
-const baseBefore={...resources.state.molecules},hydrogenBefore=resources.state.tanks.propellant.amount;
+const baseBefore={...resources.state.elements},hydrogenBefore=resources.state.tanks.propellant.amount;
 assert.ok(beginBurst(fuelRun,()=>resources.consumeBoost()));assert.equal(fuelRun.fuel.propellant.amount,H2.capacity-H2.moleculesPerBurst);assert.equal(resources.state.tanks.propellant.amount,hydrogenBefore-H2.moleculesPerBurst);
 assert.equal(beginBurst(fuelRun,()=>resources.consumeDrive('hydrogen')),false,'A repeated press during BURST/cooldown cannot double-spend');
 for(let used=1;used<3;used++){while(fuelRun.player.cooldown>0)stepRun(fuelRun,{x:0,y:-1},1/60);assert.ok(beginBurst(fuelRun,()=>resources.consumeBoost()));}
-assert.equal(fuelRun.fuel.propellant.amount,0);assert.equal(beginBurst(fuelRun,()=>resources.consumeBoost()),false);assert.equal(resources.state.tanks.propellant.amount,0);assert.deepEqual(resources.state.molecules,baseBefore,'BURST never spends BASE STOCK');
+assert.equal(fuelRun.fuel.propellant.amount,0);assert.equal(beginBurst(fuelRun,()=>resources.consumeBoost()),false);assert.equal(resources.state.tanks.propellant.amount,0);assert.deepEqual(resources.state.elements,baseBefore,'BURST never spends BASE STOCK');
 
 // A combustion packet is bought only when needed. Releasing the control
 // preserves its remaining burn time and consumes no additional molecules.
@@ -33,7 +33,7 @@ const driveRun=createRun(emptyMap(),VEIL,{fuel:{methane:3,oxygen:6},predators:fa
 setCombustionHeld(driveRun,true);for(let i=0;i<60;i++)stepRun(driveRun,{x:1,y:0},1/60,{consumeCombustion:packet=>{packets++;return resources.consumeCombustion(packet);}});
 assert.equal(packets,1);assert.ok(driveRun.driveBuffer>.9&&driveRun.driveBuffer<1.1);const preserved=driveRun.driveBuffer;
 setCombustionHeld(driveRun,false);for(let i=0;i<300;i++)stepRun(driveRun,{x:1,y:0},1/60,{consumeCombustion:()=>{packets++;return false;}});assert.equal(packets,1);assert.equal(driveRun.driveBuffer,preserved);
-setCombustionHeld(driveRun,true);for(let i=0;i<310;i++)stepRun(driveRun,{x:1,y:0},1/60,{consumeCombustion:packet=>{packets++;return resources.consumeCombustion(packet);}});assert.equal(packets,3);assert.equal(driveRun.fuel.fuel.amount,0);assert.equal(driveRun.fuel.oxidizer.amount,0);assert.equal(resources.state.tanks.fuel.amount,tankBefore.methane-3);assert.equal(resources.state.tanks.oxidizer.amount,tankBefore.oxygen-6);assert.deepEqual(resources.state.molecules,baseBefore);
+setCombustionHeld(driveRun,true);for(let i=0;i<310;i++)stepRun(driveRun,{x:1,y:0},1/60,{consumeCombustion:packet=>{packets++;return resources.consumeCombustion(packet);}});assert.equal(packets,3);assert.equal(driveRun.fuel.fuel.amount,0);assert.equal(driveRun.fuel.oxidizer.amount,0);assert.equal(resources.state.tanks.fuel.amount,tankBefore.methane-3);assert.equal(resources.state.tanks.oxidizer.amount,tankBefore.oxygen-6);assert.deepEqual(resources.state.elements,baseBefore);
 
 // FLOW/CHAIN changes feedback only. Identical steering produces an identical
 // path and pickup result regardless of its displayed count.
@@ -61,10 +61,10 @@ const finite=chase();let finitePackets=0,started=false;while(!finite.captured&&f
 assert.equal(finitePackets,EXPEDITION.methaneCapacity);assert.ok(finite.captured);assert.ok(finite.eaters.length>=2,'Finite cruise fuel cannot erase the eventual return decision');
 
 // Voluntary return keeps all new dust. Capture applies a tunable loss only to
-// this run; old atoms, molecules, recipes and permanent discovery remain safe.
-function settlement(captured){const r=createResources({storage:memory()});r.collect({H:10,C:2,O:3},0);r.discover('hydrogen');r.makeMolecule('hydrogen',2);r.findElement('O');r.save();const before=r.snapshot(),result=r.settleExpedition({H:20,C:6,O:3},44,captured);return {r,before,result};}
+// this run; old atoms, recipes and permanent discovery remain safe.
+function settlement(captured){const r=createResources({storage:memory()});r.collect({H:10,C:2,O:3},0);r.discover('hydrogen');r.findElement('O');r.save();const before=r.snapshot(),result=r.settleExpedition({H:20,C:6,O:3},44,captured);return {r,before,result};}
 const voluntary=settlement(false);assert.deepEqual(voluntary.result.lost,{H:0,C:0,O:0});assert.deepEqual(voluntary.result.kept,{H:20,C:6,O:3});
-const captured=settlement(true);assert.equal(captured.result.rate,EXPEDITION.captureLoss);assert.deepEqual(captured.result.lost,{H:3,C:1,O:0});assert.equal(Object.values(captured.result.lost).reduce((sum,n)=>sum+n,0),Math.floor(29*EXPEDITION.captureLoss));assert.deepEqual(captured.result.atoms,{H:5,C:1,O:1});assert.deepEqual(captured.r.state.molecules,captured.before.molecules);assert.deepEqual(captured.r.state.recipes,captured.before.recipes);assert.ok(captured.r.state.progress.foundElements.includes('O'));assert.ok(captured.r.state.elements.H>=captured.before.elements.H);
+const captured=settlement(true);assert.equal(captured.result.rate,EXPEDITION.captureLoss);assert.deepEqual(captured.result.lost,{H:3,C:1,O:0});assert.equal(Object.values(captured.result.lost).reduce((sum,n)=>sum+n,0),Math.floor(29*EXPEDITION.captureLoss));assert.deepEqual(captured.result.atoms,{H:5,C:1,O:1});assert.deepEqual(captured.r.state.recipes,captured.before.recipes);assert.ok(captured.r.state.progress.foundElements.includes('O'));assert.ok(captured.r.state.elements.H>=captured.before.elements.H);
 const failingData=new Map();let rejectWrites=false;const failingStorage={getItem:key=>failingData.get(key)??null,setItem:(key,value)=>{if(rejectWrites)throw Error('quota');failingData.set(key,value);},removeItem:key=>failingData.delete(key)},failing=createResources({storage:failingStorage});failing.collect(10,0);failing.save();const beforeFailure=failing.snapshot();rejectWrites=true;assert.equal(failing.settleExpedition({H:30,C:0,O:0},12,true),null);assert.deepEqual(failing.state.elements,beforeFailure.elements,'An interrupted settlement cannot partially bank cargo');assert.deepEqual(failing.state.dust,beforeFailure.dust);
 
 assert.equal(DRIVES.hydrogen.type,'burst');assert.equal(DRIVES.combustion.type,'continuous');assert.ok(DRIVES.hydrogen.boostSeconds<DRIVES.combustion.packetSeconds);assert.equal(MOLECULE_USES.water.role,'catalog');assert.equal(DRIVES.water,undefined);

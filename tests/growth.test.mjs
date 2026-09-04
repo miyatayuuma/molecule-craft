@@ -72,25 +72,22 @@ const storage=memory(),resources=createResources({storage});resources.setCatalog
 assert.deepEqual(resources.state.progress.foundElements,['H']);assert.equal(resources.canUseElement('C'),false);assert.equal(resources.spend({C:1}),false);
 resources.collect(24,0);assert.ok(resources.state.hints.includes('hydrogen'));assert.equal(resources.state.recipes.includes('hydrogen'),false,'A hint is not a completed recipe');
 assert.equal(growthGoal(resources.state).id,'hydrogen');
-assert.ok(resources.discover('hydrogen'));assert.ok(resources.makeMolecule('hydrogen'));assert.equal(resources.state.molecules.hydrogen,1);assert.ok(hydrogen.suctionRadius===flightConfig(resources.state).suctionRadius);
+assert.ok(resources.discover('hydrogen'));assert.equal(Object.hasOwn(resources.state,'molecules'),false);assert.ok(hydrogen.suctionRadius===flightConfig(resources.state).suctionRadius);
 
 resources.collectDust({C:3},0);assert.equal(resources.canUseElement('C'),true);assert.ok(resources.state.hints.includes('methane'));assert.equal(growthGoal(resources.state).id,'methane');
-resources.collect({H:20,C:5},0);assert.ok(resources.discover('methane'));assert.ok(resources.makeMolecule('methane'));assert.equal(resources.state.molecules.methane,1);
+resources.collect({H:20,C:5},0);assert.ok(resources.discover('methane'));
 assert.equal(driveAvailable(resources.state,'combustion'),false,'CH₄ is fuel, not a standalone ability');
 
 resources.collectDust({O:3},0);assert.ok(resources.state.hints.includes('oxygen')&&resources.state.hints.includes('water'));
 resources.collect({H:10,O:20},0);
-assert.ok(resources.discover('oxygen'));assert.ok(resources.makeMolecule('oxygen'));
-assert.ok(resources.discover('water'));assert.ok(resources.makeMolecule('water'));
-assert.ok(resources.makeMolecule('oxygen',2));assert.ok(resources.makeMolecule('methane',1));assert.ok(driveAvailable(resources.state,'combustion'));
-const beforeWater=resources.state.molecules.water;assert.equal(typeof resources.consumeCoolant,'undefined');assert.equal(resources.state.molecules.water,beforeWater);
-const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.molecules,{hydrogen:140,methane:20,oxygen:40});assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0}});assert.ok(capacity.fillTank('hydrogen'));assert.ok(capacity.fillTank('combustion'));assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36}});
-const sessionOnly=createResources({storage:null});sessionOnly.collect(240,0);sessionOnly.discover('hydrogen');assert.ok(sessionOnly.makeMolecule('hydrogen',120));assert.ok(sessionOnly.fillTank('hydrogen'));assert.ok(sessionOnly.consumeDrive('hydrogen'),'Session-only mode must remain playable when persistent storage is unavailable');
+assert.ok(resources.discover('oxygen'));assert.ok(resources.discover('water'));assert.ok(driveAvailable(resources.state,'combustion'));assert.equal(typeof resources.consumeCoolant,'undefined');
+const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.elements,{H:312,C:18,O:72});assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0}});assert.ok(capacity.fillTankFromElements('propellant','hydrogen',120));assert.ok(capacity.fillTankFromElements('fuel','methane',18));assert.ok(capacity.fillTankFromElements('oxidizer','oxygen',36));assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36}});
+const sessionOnly=createResources({storage:null});sessionOnly.collect(240,0);sessionOnly.discover('hydrogen');assert.ok(sessionOnly.fillTankFromElements('propellant','hydrogen',120));assert.ok(sessionOnly.consumeDrive('hydrogen'),'Session-only mode must remain playable when persistent storage is unavailable');
 
-// Ordinary DB molecules can be discovered and mass-produced but gain no
-// expedition action merely by being present in the catalogue.
+// Ordinary DB molecules can be discovered but gain no persistent finished
+// inventory merely by being present in the catalogue.
 assert.equal(MOLECULE_USES['carbon-dioxide'],undefined);assert.ok(resources.discover('carbon-dioxide'));
-const co2Cost=resources.costFor('carbon-dioxide');assert.deepEqual(co2Cost,{C:1,O:2});assert.ok(resources.makeMolecule('carbon-dioxide'));assert.equal(resources.state.molecules['carbon-dioxide'],1);
+const co2Cost=resources.costFor('carbon-dioxide');assert.deepEqual(co2Cost,{C:1,O:2});assert.equal(Object.hasOwn(resources.state,'molecules'),false);
 
 // Random signals change side-discovery order. Three misses guarantee a hint,
 // and the key loop already has deterministic hints from element discovery.
@@ -100,10 +97,9 @@ for(let attempt=1;attempt<=3;attempt++){
 }
 assert.ok(luck.state.hints.includes('hydrogen')&&luck.state.hints.includes('methane')&&luck.state.hints.includes('oxygen')&&luck.state.hints.includes('water'));
 
-// Fractional dust, inventories and tanks survive a reload. Old saves transfer
-// their former automatic loadout into tanks without changing the total fuel.
+// Fractional dust and tanks survive a reload. Pre-tank finished inventory is discarded.
 const partialStorage=memory(),partial=createResources({storage:partialStorage});partial.collectDust({H:1,C:0,O:0},0);partial.save();const partialReload=createResources({storage:partialStorage});assert.equal(partialReload.state.dust.H,1);partialReload.collectDust({H:2,C:0,O:0},0);assert.equal(partialReload.state.elements.H,1);
 const legacyStorage=memory();legacyStorage.setItem(RESOURCE_KEY,JSON.stringify({schemaVersion:1,elements:{H:7},molecules:{hydrogen:2},recipes:['hydrogen'],progress:{bestChain:8,runs:2,cleared:true,craftPrompt:false,sound:true},workspace:null}));
-const migrated=createResources({storage:legacyStorage});assert.equal(migrated.state.schemaVersion,5);assert.deepEqual(migrated.state.elements,{H:7,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0});assert.equal(migrated.state.molecules.hydrogen,0);assert.deepEqual(migrated.state.tanks.propellant,{molecule:'hydrogen',amount:80});assert.deepEqual(migrated.state.progress.foundElements,['H']);
+const migrated=createResources({storage:legacyStorage});assert.equal(migrated.state.schemaVersion,6);assert.deepEqual(migrated.state.elements,{H:7,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0});assert.equal(Object.hasOwn(migrated.state,'molecules'),false);assert.deepEqual(migrated.state.tanks.propellant,{molecule:null,amount:0});assert.deepEqual(migrated.state.progress.foundElements,['H']);
 
 console.log('H → C → O growth loop passed: authored continuity with variation, unchanged normal flight, physical H₂ BURST crossing, carbon bursts, moving Oxygen flows, sustained CH₄/O₂ travel without H₂O gating, four handmade key structures, explicit expedition tanks, optional DB production, signal pity and save migration.');

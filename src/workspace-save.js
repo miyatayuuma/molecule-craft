@@ -3,8 +3,8 @@ export const WORKSPACE_STORAGE_KEY='molecule-craft.workspace.v1';
 const ELEMENTS=new Set(['H','C','N','O','F','P','S','Cl']);
 const point=value=>Array.isArray(value)&&value.length===3&&value.every(n=>Number.isFinite(n)&&Math.abs(n)<=10000);
 export function validateWorkspace(value){
-  if(!value||value.schemaVersion!==1)throw new Error('Unsupported workspace');
-  const {atoms,bonds,camera,selected,focus,pivot}=value;
+  if(!value||![1,2].includes(value.schemaVersion))throw new Error('Unsupported workspace');
+  const {atoms,bonds,camera,selected,focus,pivot,targetMoleculeId}=value;
   if(!Array.isArray(atoms)||atoms.length>1000||!Array.isArray(bonds)||bonds.length>3000)throw new Error('Invalid graph size');
   if(!atoms.every(a=>a&&ELEMENTS.has(a.element)&&point(a.position)))throw new Error('Invalid atoms');
   const index=id=>Number.isInteger(id)&&id>=0&&id<atoms.length;
@@ -16,18 +16,19 @@ export function validateWorkspace(value){
   const cross=[direction[1]*camera.up[2]-direction[2]*camera.up[1],direction[2]*camera.up[0]-direction[0]*camera.up[2],direction[0]*camera.up[1]-direction[1]*camera.up[0]];
   if(Math.hypot(...cross)<distance*.001)throw new Error('Invalid camera up');
   if((selected!==null&&!index(selected))||(focus!==null&&!index(focus))||(pivot!==null&&!point(pivot)))throw new Error('Invalid focus');
+  if(targetMoleculeId!==undefined&&targetMoleculeId!==null&&(typeof targetMoleculeId!=='string'||!/^[A-Za-z][A-Za-z0-9-]*$/.test(targetMoleculeId)))throw new Error('Invalid target');
   return value;
 }
-export function captureWorkspace({molecule,positionFor,camera,cameraTarget,selectedAtomId,focusId,pivot=null}){
+export function captureWorkspace({molecule,positionFor,camera,cameraTarget,selectedAtomId,focusId,pivot=null,targetMoleculeId=null}){
   const ids=new Map(molecule.atoms.map((atom,index)=>[atom.id,index])),toArray=p=>[p.x,p.y,p.z].map(n=>n===0?0:n);
-  return validateWorkspace({schemaVersion:1,atoms:molecule.atoms.map(atom=>({element:atom.element,position:toArray(positionFor(atom.id))})),bonds:molecule.bonds.map(bond=>[ids.get(bond.a),ids.get(bond.b),bond.order]),selected:ids.get(selectedAtomId)??null,focus:ids.get(focusId)??null,pivot:pivot?toArray(pivot):null,camera:{position:toArray(camera.position),target:toArray(cameraTarget),up:toArray(camera.up)}});
+  return validateWorkspace({schemaVersion:2,atoms:molecule.atoms.map(atom=>({element:atom.element,position:toArray(positionFor(atom.id))})),bonds:molecule.bonds.map(bond=>[ids.get(bond.a),ids.get(bond.b),bond.order]),selected:ids.get(selectedAtomId)??null,focus:ids.get(focusId)??null,pivot:pivot?toArray(pivot):null,targetMoleculeId,camera:{position:toArray(camera.position),target:toArray(cameraTarget),up:toArray(camera.up)}});
 }
 export function restoreWorkspace(saved,{THREE,molecule,placements,camera,cameraTarget}){
   validateWorkspace(saved);molecule.clear();placements.clear();
   const ids=saved.atoms.map(atom=>{const item=molecule.addAtom(atom.element);placements.set(item.id,{position:new THREE.Vector3(...atom.position)});return item.id;});
   for(const [a,b,order]of saved.bonds)molecule.setBond(ids[a],ids[b],order);
   camera.position.fromArray(saved.camera.position);cameraTarget.fromArray(saved.camera.target);camera.up.fromArray(saved.camera.up).normalize();camera.far=Math.max(camera.far,camera.position.distanceTo(cameraTarget)+30);camera.lookAt(cameraTarget);camera.updateProjectionMatrix();camera.updateMatrixWorld();
-  return {selected:ids[saved.selected]??null,focus:ids[saved.focus]??null,pivot:saved.pivot?new THREE.Vector3(...saved.pivot):null};
+  return {selected:ids[saved.selected]??null,focus:ids[saved.focus]??null,pivot:saved.pivot?new THREE.Vector3(...saved.pivot):null,targetMoleculeId:saved.targetMoleculeId??null};
 }
 export function createWorkspaceStorage({storage,onStatus=()=>{}}={}){
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
@@ -39,7 +40,7 @@ export function createWorkspaceStorage({storage,onStatus=()=>{}}={}){
       if(previous===null)return null;
       if(previous.length>2000000)throw new Error('Save too large');
       const value=JSON.parse(previous);
-      if(Number(value?.schemaVersion)>1){blocked='future';status('新しい版の制作データを保護しています。アプリを更新してください。');return null;}
+      if(Number(value?.schemaVersion)>2){blocked='future';status('新しい版の制作データを保護しています。アプリを更新してください。');return null;}
       snapshot=validateWorkspace(value);return snapshot;
     }catch{blocked='invalid';status('制作データを復元できませんでした。保存を保護しています。新しく始める場合は画面上部の「片付ける」を長押ししてください。');return null;}
   }

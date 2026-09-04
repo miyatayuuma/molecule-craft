@@ -25,10 +25,11 @@
 ## アプリ入口
 
 - `index.html`：本番DOM。読み込むアプリ入口は固定名の `src/app.js`。
-- `src/app.js`：固定entrypoint。Three.jsシーン、3D入力、結合・構造変形の統合と起動順だけを担当する。
+- `src/app.js`：固定entrypoint。Three.jsシーン、3D入力、結合・構造変形、制作目標のライフサイクルと起動順を担当する。
 - `src/craft-workspace.js`：BASE STOCKとの原子入出庫と、制作グラフの追加・削除・全片付け・整理復元。
 - `src/craft-controls.js`：クラフト画面のDOMイベント登録。
-- `src/craft-panel.js`：分子情報、選択原子、構造一覧、完成表示と完成分子からのタンク長押し充填UI。
+- `src/craft-panel.js`：分子情報、制作目標、構造一覧、完成表示と完成分子からのタンク長押し充填UI。
+- `src/tank-charge.js`：固定時間の長押し充填、途中確定、入替廃棄の演出とキャンセル制御。
 - `src/craft-connections.js`：探索UI・進捗初期化・図鑑遅延読込・保存ライフサイクルの接続。
 - `styles.css`：クラフト・図鑑・共通UI。
 - `veil.css`：探索画面と推進UI。
@@ -54,7 +55,8 @@
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
 | 収集殻・用途別タンク選択・3D模型・図鑑導線 | `src/veil/supply.js` |
 | タンク用途・汎用推進計算 | `src/veil/growth.js`, `src/veil/molecule-roles.js` |
-| タンク内容・原子からの1分子単位量産充填・旧完成分子の移送 | `src/veil/resources.js` |
+| タンク内容・原子からの一括生成充填・旧完成分子在庫の破棄移行 | `src/veil/resources.js` |
+| 収集殻の共通描画 | `src/veil/collector-shell.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
 探索の現行ルールと意図は `docs/hco-growth.md` にあります。探索だけの変更では、分子DBや生成済みSVGを読む必要はありません。
@@ -105,8 +107,8 @@
 
 ## 保存
 
-- `molecule-craft.resources.v1`：BASE STOCKの原子在庫、基地分子在庫、用途別タンク、レシピ、探索進行、精算、制作スナップショットの正本。内部schema v5では各タンクを「分子ID 1種類＋分子数」で保存し、容量を用途＋分子IDから解決する。旧schemaのH₂ 0–3 BURST分は0/40/80/120分子へ変換し、CH₄/O₂残量は維持する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存し、連続量産資源には数えない。移行と破損・未来版・競合保護は `src/veil/resources.js`。
-- `molecule-craft.workspace.v1`：従来workspaceの互換入力。構造スキーマと復元は `src/workspace-save.js`。
+- `molecule-craft.resources.v1`：BASE STOCKの原子在庫、用途別タンク、レシピ、探索進行、精算、制作スナップショットの正本。内部schema v6では完成分子の中間在庫を持たず、原子を直接消費して各タンクへ生成充填する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。移行と破損・未来版・競合保護は `src/veil/resources.js`。
+- `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部schema v2は構造と制作目標を保存し、復元は `src/workspace-save.js`。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。
 

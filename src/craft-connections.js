@@ -3,8 +3,8 @@ import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionTracker} from './workspace-model.js?v=20';
 import {MOLECULE_USES} from './veil/growth.js';
 
-export function connectExploration({resources,canLeave,canSupply,onCraft,onCommit,reset}){
-  const veilUI=createVeilUI({resources,canLeave,canSupply,onCraft,onCommit});
+export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
+  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit});
   createProgressResetUI({resources,...reset});
   return veilUI;
 }
