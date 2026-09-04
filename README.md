@@ -5,7 +5,7 @@
 ## 現在のゲームループ
 
 1. 基地からANCHOR FIELDで採集殻（Collector Shell）を原子宇宙へ展開する。
-2. H/C/OをCARGOとして集め、発見した噴射剤のBURSTまたは燃料 + O₂のCOMBUSTION DRIVEを消費して奥へ進む。
+2. H/C/OをCARGOとして集め、発見した噴射剤のBURSTまたは燃料 + O₂のCOMBUSTION DRIVEを消費して奥へ進む。連続燃焼の熱は冷却剤タンクが自動制御する。
 3. 0.8秒のANCHOR LOCKを通して安定回収し、帰還した元素から分子を手作業で発見する。
 4. 完成模型を設計として、BASE STOCKの原子から探索用タンクへ必要分子を長押し充填し、次の採集殻を展開する。
 5. DUST EATERの保持場干渉が迫ったら、BURSTで距離を作って安全な回収時間を確保する。

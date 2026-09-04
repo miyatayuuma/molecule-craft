@@ -20,8 +20,8 @@ function pathFor(map,ids,start){
   return {points,index};
 }
 
-export function simulate({name,start,routes,seconds,drive='off',burst='off',loop=false,seed=20260901}){
-  const map=createUniverse(seed),fuel={propellant:{molecule:'hydrogen',amount:performanceFor('hydrogen','propellant').capacity},fuel:{molecule:'methane',amount:performanceFor('methane','fuel').capacity},oxidizer:{molecule:'oxygen',amount:performanceFor('oxygen','oxidizer').capacity}},run=createRun(map,flightConfig(),{fuel});
+export function simulate({name,start,routes,seconds,drive='off',burst='off',coolant=null,loop=false,seed=20260901}){
+  const coolantProfile=performanceFor(coolant,'coolant'),map=createUniverse(seed),fuel={propellant:{molecule:'hydrogen',amount:performanceFor('hydrogen','propellant').capacity},fuel:{molecule:'methane',amount:performanceFor('methane','fuel').capacity},oxidizer:{molecule:'oxygen',amount:performanceFor('oxygen','oxidizer').capacity},coolant:{molecule:coolant,amount:coolantProfile?.capacity??0}},run=createRun(map,flightConfig(),{fuel});
   Object.assign(run.player,REGIONS[start],{vx:0,vy:0});run.region=start;const path=pathFor(map,routes,run.player),timeline=[],encounters=[];let nextSample=15;
   for(let frame=0;frame<seconds*60&&!run.captured;frame++){
     const p=run.player;
@@ -31,12 +31,12 @@ export function simulate({name,start,routes,seconds,drive='off',burst='off',loop
     const driveOn=drive==='always'||drive==='danger'&&run.eaters.length>0;setCombustionHeld(run,driveOn);
     const burstNow=burst==='spam'||burst==='danger'&&run.nearestEater<EXPEDITION.eaterDangerRadius+35;
     if(burstNow&&p.cooldown<=0)beginBurst(run,()=>true);
-    const events=stepRun(run,{x:dx/length,y:dy/length},1/60,{consumeCombustion:()=>true});
+    const events=stepRun(run,{x:dx/length,y:dy/length},1/60,{consumeCombustion:()=>true,consumeCoolant:()=>true});
     for(const event of events)if(['eaterSpawn','danger','capture'].includes(event.type))encounters.push({seconds:+run.time.toFixed(1),type:event.type,level:event.level,x:Math.round(p.x),y:Math.round(p.y),distance:Number.isFinite(run.nearestEater)?Math.round(run.nearestEater):null});
-    if(run.time+1e-6>=nextSample){timeline.push({seconds:nextSample,eaters:run.eaters.length,atoms:total(run.collectedElements),depth:Math.round(run.telemetry.maxDepth),H2:run.fuel.propellant.amount,CH4:run.fuel.fuel.amount,O2:run.fuel.oxidizer.amount});nextSample+=15;}
+    if(run.time+1e-6>=nextSample){timeline.push({seconds:nextSample,eaters:run.eaters.length,atoms:total(run.collectedElements),depth:Math.round(run.telemetry.maxDepth),heat:Math.round(run.heat),H2:run.fuel.propellant.amount,CH4:run.fuel.fuel.amount,O2:run.fuel.oxidizer.amount,coolant:run.fuel.coolant.amount});nextSample+=15;}
   }
   const resources=createResources({storage:memory()}),settlement=resources.settleExpedition(run.elementDust,run.best,run.captured),report=completeExpeditionTelemetry(run,{captured:run.captured,result:settlement});
-  const fuelAtoms=(report.fuelUsed.hydrogen??0)*2+(report.fuelUsed.methane??0)*5+(report.fuelUsed.oxygen??0)*2,gross=total(report.collected),minutes=Math.max(report.duration/60,1/60);
+  const fuelAtoms=(report.fuelUsed.hydrogen??0)*2+(report.fuelUsed.methane??0)*5+(report.fuelUsed.oxygen??0)*2+(report.fuelUsed.water??0)*3,gross=total(report.collected),minutes=Math.max(report.duration/60,1/60);
   return {name,...report,grossAtoms:gross,fuelAtomCost:fuelAtoms,netAtoms:gross-fuelAtoms,grossPerMinute:Math.round(gross/minutes),netPerMinute:Math.round((gross-fuelAtoms)/minutes),timeline,encounters};
 }
 
@@ -49,7 +49,7 @@ export function density(seed=20260901){
 export const SCENARIOS=[
   {name:'saving',start:'veil',routes:['entry','safe','detour','return'],seconds:30},
   {name:'normal',start:'carbon',routes:['carbon-loop'],seconds:55,burst:'danger',loop:true},
-  {name:'deep',start:'oxygen',routes:['oxygen-loop'],seconds:35,drive:'always',loop:true},
+  {name:'deep',start:'oxygen',routes:['oxygen-loop'],seconds:35,drive:'always',coolant:'water',loop:true},
   {name:'burst-spam',start:'veil',routes:['entry','risk','detour','return'],seconds:110,burst:'spam',loop:true},
   {name:'drive-always',start:'oxygen',routes:['oxygen-loop'],seconds:150,drive:'always',burst:'danger',loop:true},
   {name:'fuel-saving-overstay',start:'veil',routes:['entry','safe','detour','return'],seconds:150,loop:true},

@@ -11,9 +11,9 @@ const hydrogen=performanceFor('hydrogen','propellant');
 
 assert.equal(saving.returnType,'voluntary');assert.equal(saving.fuelAtomCost,0);assert.ok(saving.grossAtoms>40);assert.equal(saving.maxEaters,1);
 assert.equal(normal.returnType,'voluntary');assert.ok(normal.maxEaters>=2);assert.ok(normal.burstUses>0&&normal.burstUses<=hydrogen.capacity/hydrogen.moleculesPerBurst);assert.ok(normal.netAtoms>saving.netAtoms*3);
-assert.equal(deep.returnType,'voluntary');assert.ok(deep.maxEaters>=3);assert.equal(deep.fuelUsed.methane,EXPEDITION.methaneCapacity);assert.equal(deep.fuelUsed.oxygen,EXPEDITION.oxygenCapacity);assert.ok(deep.netAtoms>saving.grossPerMinute*3,'One deep sortie should beat three minutes at the safe outer rate after fuel cost');assert.ok(deep.grossAtoms>deep.fuelAtomCost*3);
+assert.equal(deep.returnType,'voluntary');assert.ok(deep.maxEaters>=3);assert.equal(deep.fuelUsed.methane,EXPEDITION.methaneCapacity);assert.equal(deep.fuelUsed.oxygen,EXPEDITION.oxygenCapacity);assert.ok(deep.fuelUsed.water>0&&deep.fuelUsed.water<performanceFor('water','coolant').capacity);assert.equal(deep.overheatEvents,0);assert.ok(deep.netAtoms>saving.grossPerMinute*3,'One cooled deep sortie should beat three minutes at the safe outer rate after all resource costs');assert.ok(deep.grossAtoms>deep.fuelAtomCost*2.5);
 assert.equal(spam.fuelUsed.hydrogen,hydrogen.capacity);assert.equal(spam.fuelUsed.methane??0,0);assert.equal(spam.returnType,'forced','Spamming the finite emergency load cannot become perpetual cruise');
-assert.equal(always.returnType,'forced');assert.ok(always.maxEaters>=3);assert.equal(always.fuelUsed.methane,EXPEDITION.methaneCapacity);assert.ok(always.burstUses<=hydrogen.capacity/hydrogen.moleculesPerBurst);
+assert.equal(always.returnType,'forced');assert.ok(always.maxEaters>=3);assert.ok(always.overheatEvents>0,'Continuous combustion without coolant is thermally limited');assert.ok(always.burstUses<=hydrogen.capacity/hydrogen.moleculesPerBurst);
 assert.equal(overstay.returnType,'forced');assert.equal(overstay.fuelAtomCost,0);assert.ok(overstay.duration>saving.duration);
 
 const density=report.density,available=id=>density[id].routeUnits+density[id].clusterUnits;

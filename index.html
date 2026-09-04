@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css?v=38">
-  <link rel="stylesheet" href="./veil.css?v=40">
+  <link rel="stylesheet" href="./veil.css?v=41">
 </head>
 <body>
   <main class="app-shell">
@@ -80,7 +80,7 @@
   <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
     <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
-    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録されます。探索用の分子は、完成模型を設計として使い、原子を直接消費してタンクへ充填できます。H/C/Oは探索で見つかります。</p></div></section>
+    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録されます。探索用の分子は、完成模型を設計として使い、原子を直接消費してタンクへ充填できます。冷却剤は燃焼熱が高まると自動で作動します。H/C/Oは探索で見つかります。</p></div></section>
     <section><span>04</span><div><h3>採集殻を回収する</h3><p>基地は採集殻をANCHOR FIELDで係留しています。帰還は短いANCHOR LOCKの後に全積荷を安定回収。DUST EATERが保持場を崩すと、安全装置が一部の積荷をこぼしながら緊急回収します。</p></div></section>
     <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。片付けるは1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子をドラッグすると、環や二重結合などの固定構造を保ったまま、動ける複数の単結合を使って分子全体がしなります。届かない位置へ引いても結合は伸びません。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
@@ -104,7 +104,7 @@
       <button id="shell-propellant" class="shell-port port-propellant" data-tank-role="propellant" type="button" aria-pressed="true"><i aria-hidden="true"></i><span>噴射剤</span><small>—</small></button>
       <button id="shell-fuel" class="shell-port port-fuel" data-tank-role="fuel" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>燃料</span><small>—</small></button>
       <button id="shell-oxidizer" class="shell-port port-oxidizer" data-tank-role="oxidizer" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>酸化剤</span><small>—</small></button>
-      <button id="shell-coolant" class="shell-port port-coolant" data-tank-role="coolant" type="button" aria-pressed="false" hidden><i aria-hidden="true"></i><span>冷却剤</span><small>—</small></button>
+      <button id="shell-coolant" class="shell-port port-coolant" data-tank-role="coolant" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>冷却剤</span><small>—</small></button>
     </div>
     <p id="supply-announcement" class="supply-announcement" role="status" hidden></p>
     <section id="tank-detail" class="tank-detail"><header><strong id="tank-detail-title">噴射剤</strong><b id="tank-load">0 / 3</b></header><div class="tank-load-meter"><i id="tank-load-meter"></i></div>
@@ -121,7 +121,7 @@
     <p id="veil-save-warning" class="veil-save-warning" role="status"></p>
     <p id="veil-message" class="veil-message" role="status" hidden></p>
     <div id="veil-craft-prompt" class="veil-prompt" hidden><button id="veil-to-craft" type="button">Hが集まった · H₂を作りに戻る ↗</button></div>
-    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-combustion" type="button" aria-label="燃料とO₂の燃焼推進。押している間だけ作動。キーボードはShift" aria-pressed="false" hidden><strong>FUEL + O₂</strong><small id="veil-combustion-remaining">0 / 0 PACKETS</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel">—</span></button><button id="veil-boost" type="button" aria-label="噴射剤BURST。キーボードはスペース"><strong>—</strong><small>BURST <span id="veil-fuel">0 / 0</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
+    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><div id="veil-thermal" class="veil-thermal" data-state="normal" hidden><span><b id="veil-thermal-state">NORMAL</b><strong id="veil-heat">0%</strong></span><i aria-hidden="true"><span id="veil-heat-meter"></span></i><small id="veil-coolant">NO COOLANT · 0</small></div><button id="veil-combustion" type="button" aria-label="燃料とO₂の燃焼推進。押している間だけ作動し、過熱後は安全温度で自動復帰。キーボードはShift" aria-pressed="false" hidden><strong>FUEL + O₂</strong><small id="veil-combustion-remaining">0 / 0 PACKETS</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel">—</span></button><button id="veil-boost" type="button" aria-label="噴射剤BURST。キーボードはスペース"><strong>—</strong><small>BURST <span id="veil-fuel">0 / 0</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
   <script type="module" src="./src/app.js?v=44"></script>

@@ -6,7 +6,7 @@ import {combustionPacketFor} from '../src/veil/molecule-roles.js';
 const database=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
 const memory=()=>{const data=new Map();let reject=false;return {getItem:key=>data.get(key)??null,setItem:(key,value)=>{if(reject)throw Error('quota');data.set(key,value);},removeItem:key=>data.delete(key),reject(value=true){reject=value;},data};};
 const emptyTanks={propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}};
-const loadout=(propellant=null,fuel=null,oxidizer=null)=>({propellant:propellant??{molecule:null,amount:0},fuel:fuel??{molecule:null,amount:0},oxidizer:oxidizer??{molecule:null,amount:0}});
+const loadout=(propellant=null,fuel=null,oxidizer=null,coolant=null)=>({propellant:propellant??{molecule:null,amount:0},fuel:fuel??{molecule:null,amount:0},oxidizer:oxidizer??{molecule:null,amount:0},coolant:coolant??{molecule:null,amount:0}});
 
 const storage=memory(),resources=createResources({storage});resources.setCatalog(database);assert.equal(resources.state.schemaVersion,6);assert.equal(Object.hasOwn(resources.state,'molecules'),false);assert.deepEqual(resources.state.tanks,emptyTanks);
 resources.discover('hydrogen');resources.state.elements.H=82;resources.save();assert.ok(resources.spend({H:2}),'The handmade H2 template checks two atoms out of BASE STOCK');resources.save();
@@ -16,6 +16,8 @@ resources.state.elements.H=8;assert.equal(resources.fillTankFromElements('propel
 const replacement=resources.fillTankFromElements('propellant','carbon-dioxide',2);assert.equal(replacement.discarded,4);assert.deepEqual(resources.state.tanks.propellant,{molecule:'carbon-dioxide',amount:2});assert.deepEqual(createResources({storage}).state.tanks.propellant,{molecule:'carbon-dioxide',amount:2});
 
 const combustionStorage=memory(),combustion=createResources({storage:combustionStorage});combustion.setCatalog(database);for(const id of ['hydrogen','oxygen'])combustion.discover(id);Object.assign(combustion.state.elements,{H:8,O:4});combustion.save();assert.equal(combustion.fillTankFromElements('fuel','hydrogen',4).added,4);assert.equal(combustion.fillTankFromElements('oxidizer','oxygen',2).added,2);const packet=combustionPacketFor('hydrogen');assert.ok(combustion.consumeCombustion(packet));assert.deepEqual(combustion.prepareExpedition(),loadout(null,{molecule:'hydrogen',amount:2},{molecule:'oxygen',amount:1}));
+
+const coolingStorage=memory(),cooling=createResources({storage:coolingStorage});cooling.setCatalog(database);cooling.discover('water');Object.assign(cooling.state.elements,{H:6,O:3});cooling.save();assert.equal(cooling.fillTankFromElements('coolant','water',3).added,3);assert.ok(cooling.consumeTank('coolant','water',1));assert.deepEqual(cooling.prepareExpedition(),loadout(null,null,null,{molecule:'water',amount:2}));
 
 const failingStorage=memory(),failing=createResources({storage:failingStorage});failing.discover('hydrogen');failing.state.elements.H=2;failing.save();const beforeFailure=failing.snapshot();failingStorage.reject();assert.equal(failing.fillTankFromElements('propellant','hydrogen'),false);assert.deepEqual(failing.snapshot(),beforeFailure);
 

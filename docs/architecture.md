@@ -43,7 +43,7 @@
 |---|---|
 | バランス定数 | `src/veil/config.js` の通常飛行・EXPEDITION・音設定 |
 | 分子の役割と領域 | `src/veil/growth.js` のBURST/DRIVE共通動作、領域境界、次目標 |
-| 分子役割・性能値・分子別容量 | `src/veil/molecule-roles.js`。化学DBとは分離したゲーム値。coolantはデータのみで未稼働 |
+| 分子役割・性能値・分子別容量 | `src/veil/molecule-roles.js`。化学DBとは分離したゲーム値。coolantを含む4タンクが稼働 |
 | 探索物理・推進 | `src/veil/engine.js` |
 | DUST EATER | 状態・追跡・捕獲は `engine.js`、描画は `renderer.js` |
 | 遠征テレメトリ | `src/veil/telemetry.js`（`?expeditionDebug=1`時のみconsole出力） |
