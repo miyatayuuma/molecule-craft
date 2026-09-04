@@ -1,4 +1,4 @@
-import { VEIL, EXPEDITION } from './config.js';
+import { VEIL, EXPEDITION, THERMAL } from './config.js';
 import { GROWTH, DRIVES, burstDriveFor, regionAt } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { environmentAt, animateUniverse } from './universe.js';
@@ -53,15 +53,15 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0}:{molecule:legacy,amount:fuel[legacy]??0};
-  const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen')};
-  return {map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
+  const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null)};
+  return {map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,overheated:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
 
 function updateCombustion(run,dt,systems){
   const p=run.player;
-  if(!run.driveHeld||p.boost>0||run.captured){p.combustion=false;return;}
+  if(!run.driveHeld||p.boost>0||run.captured||run.overheated){p.combustion=false;return;}
   const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,packet=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});
   if(run.driveBuffer<=1e-8){
     if(!packet||oxidizer.molecule!==packet.oxidizer||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount||!systems.consumeCombustion?.(packet)){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
@@ -69,6 +69,26 @@ function updateCombustion(run,dt,systems){
   }
   p.drive=DRIVES.combustion;p.combustion=true;run.driveBuffer=Math.max(0,run.driveBuffer-dt);
   if(run.driveBuffer<=0&&(!packet||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount))p.combustion=false;
+}
+
+function updateThermal(run,dt,systems){
+  const p=run.player,fuelPerformance=performanceFor(run.fuel.fuel.molecule,'fuel');
+  run.heat+=p.combustion?THERMAL.heatPerSecond*(fuelPerformance?.heatFactor??1)*dt:-THERMAL.naturalCoolingPerSecond*dt;
+  run.heat=clamp(run.heat,0,THERMAL.overheatThreshold);
+  const coolant=run.fuel.coolant,coolantPerformance=performanceFor(coolant?.molecule,'coolant');
+  const thermostat=run.heat>=THERMAL.coolantStart&&(p.combustion||run.overheated);
+  if(thermostat&&run.coolantBuffer<=1e-8&&coolantPerformance&&coolant.amount>=1){
+    if(systems.consumeCoolant?.(1,coolant.molecule)){
+      coolant.amount--;run.coolantBuffer=THERMAL.coolantSecondsPerMolecule;recordFuelUse(run.telemetry,'coolant',coolant.molecule,1);run.coolantEmpty=false;
+      if(!run.coolantEpisode){run.coolantEpisode=true;run.events.push({type:'coolantStart',molecule:coolant.molecule});}
+    }
+  }
+  const coolingSeconds=Math.min(dt,run.coolantBuffer);run.coolantActive=coolingSeconds>1e-8;
+  if(run.coolantActive){run.coolantBuffer=Math.max(0,run.coolantBuffer-coolingSeconds);run.heat=Math.max(0,run.heat-THERMAL.coolantCoolingPerSecond*coolantPerformance.coolingPower*coolingSeconds);}
+  if(run.heat<THERMAL.coolantStart&&run.coolantBuffer<=1e-8)run.coolantEpisode=false;
+  if(thermostat&&coolantPerformance&&coolant.amount<1&&run.coolantBuffer<=1e-8&&!run.coolantEmpty){run.coolantEmpty=true;run.events.push({type:'coolantEmpty',molecule:coolant.molecule});}
+  if(!run.overheated&&run.heat>=THERMAL.overheatThreshold){run.overheated=true;p.combustion=false;run.telemetry.overheatEvents++;run.events.push({type:'overheat'});}
+  else if(run.overheated&&run.heat<=THERMAL.recoveryThreshold){run.overheated=false;run.events.push({type:'heatRecovered'});}
 }
 
 function spawnEater(run){
@@ -108,9 +128,9 @@ function updateEaters(run,dt){
 function stepRunFrame(run,input,dt,systems){
   const {player:p,map,config:c}=run;dt=clamp(dt,0,c.maxFrame);run.time+=dt;run.events.length=0;
   if(run.captured)return run.events;
-  animateUniverse(run);updateCombustion(run,dt,systems);
+  animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
   const environment=map.universe?environmentAt(p,run.time):null;
-  const targetHeat=environment?clamp(environment.heat/32*100,0,100):0;run.heat+=(targetHeat-run.heat)*(1-Math.exp(-dt*(targetHeat>run.heat?1.2:.7)));
+  const targetHeat=environment?clamp(environment.heat/32*100,0,100):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
   let nearest=null,distance=c.assistRadius;const desired=Math.atan2(input.y,input.x);
   for(const dust of map.dust){if(dust.ready>run.time)continue;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}

@@ -82,7 +82,7 @@ export function createVeilRenderer(canvas){
       const carbon=clamp((-p.y-3300)/4700,0,1),oxygen=clamp((-p.y-7600)/4000,0,1);
       ctx.fillStyle=`rgba(71,31,91,${carbon*(1-oxygen)*.18})`;ctx.fillRect(0,0,w,h);
       ctx.fillStyle=`rgba(103,38,30,${oxygen*.22})`;ctx.fillRect(0,0,w,h);
-      if(run.heat>0){ctx.fillStyle=`rgba(255,77,38,${Math.min(run.heat/100*.12,.12)})`;ctx.fillRect(0,0,w,h);}
+      const visibleHeat=Math.max(run.ambientHeat??0,run.heat??0);if(visibleHeat>0){ctx.fillStyle=`rgba(255,77,38,${Math.min(visibleHeat/100*.12,.12)})`;ctx.fillRect(0,0,w,h);}
     }
     ctx.fillStyle='#aac5d6';
     for(const s of stars){const x=((s.x*w-camera.x*s.z*scale)%w+w)%w,y=((s.y*h-camera.y*s.z*scale)%h+h)%h;ctx.globalAlpha=.14+s.z;ctx.beginPath();ctx.arc(x,y,s.r,0,Math.PI*2);ctx.fill();if(boost&&!reduced){ctx.strokeStyle='#6597b2';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-Math.cos(p.angle)*(55+fever*25)*s.z,y-Math.sin(p.angle)*(55+fever*25)*s.z);ctx.stroke();}}ctx.globalAlpha=1;

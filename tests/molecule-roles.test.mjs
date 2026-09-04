@@ -50,8 +50,8 @@ for(const [id,bursts] of Object.entries(burstTargets)){
 }
 assert.deepEqual(performanceFor('hydrogen','propellant'),{capacity:120,moleculesPerBurst:40,burstPower:1});
 assert.equal(tankCapacityFor('propellant','hydrogen'),120);
-assert.deepEqual(activeTankRolesFor('ammonia'),['propellant','fuel']);
-assert.deepEqual(activeTankRolesFor('water'),[],'Coolant remains data-only until thermal runtime exists');
+assert.deepEqual(activeTankRolesFor('ammonia'),['propellant','fuel','coolant']);
+assert.deepEqual(activeTankRolesFor('water'),['coolant']);
 assert.deepEqual(combustionPacketFor('methane'),{fuel:'methane',fuelAmount:1,oxidizer:'oxygen',oxygenAmount:2,seconds:2});
 assert.deepEqual(combustionPacketFor('hydrogen'),{fuel:'hydrogen',fuelAmount:2,oxidizer:'oxygen',oxygenAmount:1,seconds:1.2});
 assert.deepEqual(combustionPacketFor('ammonia'),{fuel:'ammonia',fuelAmount:4,oxidizer:'oxygen',oxygenAmount:3,seconds:3.2});
@@ -72,4 +72,4 @@ assert.deepEqual(MOLECULE_USES.hydrogen.tankUses,['propellant']);
 assert.deepEqual(MOLECULE_USES.methane.tankUses,['fuel']);
 assert.deepEqual(MOLECULE_USES.oxygen.tankUses,['oxidizer']);
 
-console.log('Molecule role balance passed: DB coverage, fuel stoichiometry, burst economics, coolant profiles, and staged runtime activation.');
+console.log('Molecule role balance passed: DB coverage, fuel stoichiometry, burst economics, and active coolant profiles.');

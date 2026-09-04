@@ -86,10 +86,8 @@ export const rolesFor=id=>roleProfileFor(id)?.roles??[];
 export const performanceFor=(id,role)=>roleProfileFor(id)?.performance?.[role]??null;
 export const moleculesForRole=role=>Object.entries(MOLECULE_ROLE_PROFILES).filter(([,entry])=>entry.roles.includes(role)).map(([id])=>id);
 
-// Runtime activation is intentionally narrower than the data registry. Coolant
-// profiles are ready for the later thermal task but must not appear in today's
-// Collector Shell UI.
-export const ACTIVE_TANK_ROLES=Object.freeze(['propellant','fuel','oxidizer']);
+// Runtime roles are the subset exposed by the Collector Shell and expedition.
+export const ACTIVE_TANK_ROLES=Object.freeze(['propellant','fuel','oxidizer','coolant']);
 export const activeTankRolesFor=id=>rolesFor(id).filter(role=>ACTIVE_TANK_ROLES.includes(role));
 export const tankCapacityFor=(role,id)=>performanceFor(id,role)?.capacity??null;
 

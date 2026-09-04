@@ -52,8 +52,8 @@ const burst=stepRun(clusterRun,{x:0,y:0},1/60);assert.ok(burst.some(event=>event
 const carbonPickup=burst.find(event=>event.type==='pickup');assert.ok(carbonPickup?.units.C>=GROWTH.clusterParticles/2,'A cluster must release a meaningful C burst');
 const moving=clusterRun.map.dust.find(d=>d.element==='O'&&d.flow),before=[moving.x,moving.y];for(let i=0;i<20;i++)stepRun(clusterRun,{x:0,y:0},1/60);assert.notDeepEqual([moving.x,moving.y],before);
 
-// The hot opposing flow is crossed by sustained propulsion. H₂O remains a
-// normal catalogue molecule and is neither checked nor consumed here.
+// The hot opposing flow is crossed by sustained propulsion. Ambient heat is
+// deliberately independent from the optional coolant loop in v1.
 function hotBand(combustion=false){const run=createRun(createUniverse(10),hydrogen,{fuel:{methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity},predators:false});Object.assign(run.player,{x:100,y:-8700,angle:-Math.PI/2,vx:0,vy:0});let packets=0;if(combustion)setCombustionHeld(run,true);
   for(let i=0;i<60*60&&run.region!=='frontier';i++)stepRun(run,{x:0,y:-1},1/60,{consumeCombustion:()=>{packets++;return true;}});
   return {run,packets};
@@ -80,8 +80,8 @@ assert.equal(driveAvailable(resources.state,'combustion'),false,'CH₄ is fuel, 
 
 resources.collectDust({O:3},0);assert.ok(resources.state.hints.includes('oxygen')&&resources.state.hints.includes('water'));
 resources.collect({H:10,O:20},0);
-assert.ok(resources.discover('oxygen'));assert.ok(resources.discover('water'));assert.ok(driveAvailable(resources.state,'combustion'));assert.equal(typeof resources.consumeCoolant,'undefined');
-const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.elements,{H:312,C:18,O:72});assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0}});assert.ok(capacity.fillTankFromElements('propellant','hydrogen',120));assert.ok(capacity.fillTankFromElements('fuel','methane',18));assert.ok(capacity.fillTankFromElements('oxidizer','oxygen',36));assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36}});
+assert.ok(resources.discover('oxygen'));assert.ok(resources.discover('water'));assert.ok(driveAvailable(resources.state,'combustion'));assert.ok(resources.tankCatalog('coolant').some(record=>record.id==='water'));
+const capacity=createResources({storage:memory()});capacity.setCatalog(database);for(const id of ['hydrogen','methane','oxygen'])capacity.discover(id);Object.assign(capacity.state.elements,{H:312,C:18,O:72});assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}});assert.ok(capacity.fillTankFromElements('propellant','hydrogen',120));assert.ok(capacity.fillTankFromElements('fuel','methane',18));assert.ok(capacity.fillTankFromElements('oxidizer','oxygen',36));assert.deepEqual(capacity.prepareExpedition(),{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:{molecule:null,amount:0}});
 const sessionOnly=createResources({storage:null});sessionOnly.collect(240,0);sessionOnly.discover('hydrogen');assert.ok(sessionOnly.fillTankFromElements('propellant','hydrogen',120));assert.ok(sessionOnly.consumeDrive('hydrogen'),'Session-only mode must remain playable when persistent storage is unavailable');
 
 // Ordinary DB molecules can be discovered but gain no persistent finished

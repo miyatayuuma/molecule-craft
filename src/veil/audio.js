@@ -31,6 +31,10 @@ export function createVeilAudio(){
     else if(type==='returnSafe'){tone(220,.42,.055,0,'sine',330);tone(330,.45,.048,.08,'sine',440);tone(440,.48,.04,.16,'triangle',554);tone(132,.62,.055,.04,'sine',82);}
     else if(type==='capture'){tone(210,.11,.075,0,'triangle',118);tone(96,.48,.13,.045,'sawtooth',38);tone(48,.62,.085,.07,'sine',30);}
     else if(type==='driveEmpty'){tone(168,.2,.055,0,'triangle',72);}
+    else if(type==='coolantStart'){tone(330,.24,.04,0,'sine',246);tone(494,.32,.025,.05,'triangle',370);}
+    else if(type==='coolantEmpty'){tone(190,.13,.05,0,'triangle',128);tone(128,.2,.04,.1,'sine',92);}
+    else if(type==='overheat'){tone(164,.18,.09,0,'sawtooth',72);tone(98,.34,.07,.12,'triangle',44);}
+    else if(type==='heatRecovered'){tone(220,.24,.04,0,'sine',330);tone(330,.28,.035,.07,'triangle',440);}
     else if(type==='cluster'){tone(92,.34,.12,0,'triangle',164);[0,5,9].forEach((n,i)=>tone(220*2**(n/12),.32,.055,.05+i*.035));}
     else if(type==='signal'){[0,4,11].forEach((n,i)=>tone(330*2**(n/12),.48,.05,i*.09,'sine'));}
     else if(type==='dense'){[0,7,12].forEach((n,i)=>tone(196*2**(n/12),.3,.08,i*.04));}

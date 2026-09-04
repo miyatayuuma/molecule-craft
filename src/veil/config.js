@@ -47,6 +47,18 @@ export const EXPEDITION = Object.freeze({
   eaterWarningRadius: 500,
   eaterDangerRadius: 250,
 });
+// Deliberately compressed thermal game units. Ambient region heat remains a
+// visual/environment signal and does not enter this propulsion loop in v1.
+export const THERMAL = Object.freeze({
+  heatPerSecond: 10,
+  naturalCoolingPerSecond: 14,
+  coolantCoolingPerSecond: 12,
+  coolantSecondsPerMolecule: 1,
+  coolantStart: 35,
+  hotThreshold: 70,
+  overheatThreshold: 100,
+  recoveryThreshold: 55,
+});
 export const VEIL_AUDIO = Object.freeze({
   master: .25, pickupInterval: .075, pickupSeconds: .15,
   pickupLevel: .095, pickupBase: 196, harmonyLevel: .022,

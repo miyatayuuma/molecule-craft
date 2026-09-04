@@ -39,6 +39,9 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
     }else if(selectedUse==='oxidizer'){
       const powers=all.map(p=>p.oxidizingPower),capacities=all.map(p=>p.capacity);
       host.append(metric('酸化性能',ratio(selected.oxidizingPower,powers),ratio(loaded?.oxidizingPower??0,powers),`${Math.round(selected.oxidizingPower*100)}%`),metric('搭載容量',ratio(selected.capacity,capacities),ratio(loaded?.capacity??0,capacities),String(selected.capacity)));
+    }else if(selectedUse==='coolant'){
+      const powers=all.map(p=>p.coolingPower),capacities=all.map(p=>p.capacity);
+      host.append(metric('冷却出力',ratio(selected.coolingPower,powers),ratio(loaded?.coolingPower??0,powers),`${Math.round(selected.coolingPower*100)}%`),metric('搭載容量',ratio(selected.capacity,capacities),ratio(loaded?.capacity??0,capacities),String(selected.capacity)));
     }
     host.hidden=!host.childElementCount;
   }

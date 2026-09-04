@@ -9,13 +9,14 @@ import {performanceFor} from '../src/veil/molecule-roles.js';
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
 const emptyMap=()=>({seed:17,dust:[],fields:[],labels:[],routes:[]});
 const H2=performanceFor('hydrogen','propellant');
-const fullLoadout={propellant:{molecule:'hydrogen',amount:H2.capacity},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36}};
+const emptyCoolant={molecule:null,amount:0};
+const fullLoadout={propellant:{molecule:'hydrogen',amount:H2.capacity},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:emptyCoolant};
 
 // Expedition tanks are filled directly from BASE STOCK before launch.
 const storage=memory(),resources=createResources({storage});
 for(const id of ['hydrogen','methane','oxygen'])resources.discover(id);
 Object.assign(resources.state.elements,{H:312,C:18,O:72});resources.save();
-assert.deepEqual(resources.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0}});
+assert.deepEqual(resources.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:emptyCoolant});
 assert.ok(resources.fillTankFromElements('propellant','hydrogen',120));assert.ok(resources.fillTankFromElements('fuel','methane',18));assert.ok(resources.fillTankFromElements('oxidizer','oxygen',36));
 assert.deepEqual(resources.prepareExpedition(),fullLoadout);
 assert.deepEqual(resources.state.elements,{H:0,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0},'Direct filling consumes only the required atoms');
@@ -67,7 +68,7 @@ const voluntary=settlement(false);assert.deepEqual(voluntary.result.lost,{H:0,C:
 const captured=settlement(true);assert.equal(captured.result.rate,EXPEDITION.captureLoss);assert.deepEqual(captured.result.lost,{H:3,C:1,O:0});assert.equal(Object.values(captured.result.lost).reduce((sum,n)=>sum+n,0),Math.floor(29*EXPEDITION.captureLoss));assert.deepEqual(captured.result.atoms,{H:5,C:1,O:1});assert.deepEqual(captured.r.state.recipes,captured.before.recipes);assert.ok(captured.r.state.progress.foundElements.includes('O'));assert.ok(captured.r.state.elements.H>=captured.before.elements.H);
 const failingData=new Map();let rejectWrites=false;const failingStorage={getItem:key=>failingData.get(key)??null,setItem:(key,value)=>{if(rejectWrites)throw Error('quota');failingData.set(key,value);},removeItem:key=>failingData.delete(key)},failing=createResources({storage:failingStorage});failing.collect(10,0);failing.save();const beforeFailure=failing.snapshot();rejectWrites=true;assert.equal(failing.settleExpedition({H:30,C:0,O:0},12,true),null);assert.deepEqual(failing.state.elements,beforeFailure.elements,'An interrupted settlement cannot partially bank cargo');assert.deepEqual(failing.state.dust,beforeFailure.dust);
 
-assert.equal(DRIVES.hydrogen.type,'burst');assert.equal(DRIVES.combustion.type,'continuous');assert.ok(DRIVES.hydrogen.boostSeconds<DRIVES.combustion.packetSeconds);assert.equal(MOLECULE_USES.water.role,'catalog');assert.equal(DRIVES.water,undefined);
+assert.equal(DRIVES.hydrogen.type,'burst');assert.equal(DRIVES.combustion.type,'continuous');assert.ok(DRIVES.hydrogen.boostSeconds<DRIVES.combustion.packetSeconds);assert.equal(MOLECULE_USES.water.role,'coolant');assert.equal(DRIVES.water,undefined);
 const report=completeExpeditionTelemetry(cruising,{captured:false,result:{lost:{H:0,C:0,O:0}}});assert.equal(report.returnType,'voluntary');assert.equal(report.fuelUsed.methane,4);assert.equal(report.fuelUsed.oxygen,8);assert.ok(report.combustionSeconds>7.9);assert.equal(report.maxEaters,1);
 let debugReport=null;assert.equal(logExpeditionTelemetry(report,{location:{search:''},logger:value=>{debugReport=value;}}),false);assert.equal(debugReport,null);assert.equal(logExpeditionTelemetry(report,{location:{search:'?expeditionDebug=1'},logger:(label,value)=>{debugReport={label,value};}}),true);assert.equal(debugReport.value,report);
 console.log('Expedition Core passed: separate capped tanks, short BURST, hold/release combustion, cosmetic FLOW, safe escalation, fixed-speed pursuit, emergency separation, sustained escape, eventual capture and cargo-only loss.');
