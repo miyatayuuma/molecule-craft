@@ -1,16 +1,15 @@
 import { EXPEDITION } from './config.js';
-import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,TANK_USES,driveAvailable,tankCapacity,tankUsesFor } from './growth.js';
+import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,TANK_USES,tankCapacity,tankUsesFor } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { WORKSPACE_STORAGE_KEY,validateWorkspace } from '../workspace-save.js?v=30';
 export const RESOURCE_KEY='molecule-craft.resources.v1';
 const COLLECTION_KEY='molecule-craft.collection.v1',HELP_KEY='molecule-craft.help.v1',MANAGED=['H','C','O'],STOCKED=['H','C','N','O','F','P','S','Cl'],MAX=1e9;
-const TANK_GROUPS=Object.freeze({hydrogen:[['propellant','hydrogen']],combustion:[['fuel','methane'],['oxidizer','oxygen']]});
-export const RESET_CATEGORIES=Object.freeze(['collection','recipes','elements','molecules','exploration','records','workspace']);
+export const RESET_CATEGORIES=Object.freeze(['collection','recipes','elements','tanks','exploration','records','workspace']);
 const emptyCollection=()=>({schemaVersion:2,discoveredMolecules:[],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]});
 const initialProgress=()=>({bestChain:0,runs:0,cleared:false,craftPrompt:false,sound:true,foundElements:['H'],regions:['veil'],checkpoint:'veil',frontier:false,totalCollected:0,signalMisses:0,signalLast:{}});
 const initialTanks=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,{molecule:null,amount:0}]));
 const emptyElementStock=()=>Object.fromEntries(STOCKED.map(element=>[element,0]));
-const initialState=()=>({schemaVersion:5,elements:emptyElementStock(),molecules:{hydrogen:0,methane:0,oxygen:0,water:0},tanks:initialTanks(),recipes:[],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:initialProgress(),workspace:null});
+const initialState=()=>({schemaVersion:6,elements:emptyElementStock(),tanks:initialTanks(),recipes:[],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:initialProgress(),workspace:null});
 const copy=x=>JSON.parse(JSON.stringify(x)),integer=x=>Number.isSafeInteger(x)&&x>=0&&x<=MAX;
 function expeditionLoss(units,rate){
   const exact=MANAGED.map((el,index)=>({el,index,value:(units[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
@@ -22,9 +21,10 @@ const validId=x=>typeof x==='string'&&/^[A-Za-z][A-Za-z0-9-]*$/.test(x)&&!['cons
 const ids=x=>Array.isArray(x)&&x.every(validId)&&new Set(x).size===x.length;
 function finishReset(storage,state){const p=state.pendingReset;if(!p)return;if(p.collection)storage.setItem(COLLECTION_KEY,JSON.stringify(emptyCollection()));if(p.legacy)storage.removeItem(WORKSPACE_STORAGE_KEY);if(p.help)storage.removeItem(HELP_KEY);const done={...state};delete done.pendingReset;storage.setItem(RESOURCE_KEY,JSON.stringify(done));delete state.pendingReset;}
 function validate(s){
-  if(!s||![1,2,3,4,5].includes(s.schemaVersion)||!s.elements||!s.molecules||!ids(s.recipes)||!s.progress)throw Error('Invalid resources');
-  for(const values of [s.elements,s.molecules])for(const [key,n]of Object.entries(values))if(!validId(key)||!integer(n))throw Error('Invalid inventory');
-  if(!integer(s.elements.H)||!integer(s.molecules.hydrogen)||typeof s.progress.cleared!=='boolean'||!integer(s.progress.bestChain)||!integer(s.progress.runs))throw Error('Invalid progress');
+  if(!s||![1,2,3,4,5,6].includes(s.schemaVersion)||!s.elements||!ids(s.recipes)||!s.progress)throw Error('Invalid resources');
+  for(const [key,n]of Object.entries(s.elements))if(!validId(key)||!integer(n))throw Error('Invalid inventory');
+  if(s.schemaVersion<=5){if(!s.molecules)throw Error('Invalid inventory');for(const [key,n]of Object.entries(s.molecules))if(!validId(key)||!integer(n))throw Error('Invalid inventory');if(!integer(s.molecules.hydrogen))throw Error('Invalid inventory');}
+  if(!integer(s.elements.H)||typeof s.progress.cleared!=='boolean'||!integer(s.progress.bestChain)||!integer(s.progress.runs))throw Error('Invalid progress');
   if(s.resetEpoch!==undefined&&!integer(s.resetEpoch))throw Error('Invalid reset epoch');
   if(s.pendingReset!==undefined&&(!s.pendingReset||['collection','legacy','help'].some(k=>typeof s.pendingReset[k]!=='boolean')))throw Error('Invalid reset journal');
   if(s.workspace!==null)validateWorkspace(s.workspace);
@@ -50,15 +50,23 @@ function validate(s){
     for(const use of Object.keys(TANK_USES)){const tank=s.tanks[use];if(!tank||tank.molecule!==null&&!validId(tank.molecule)||!integer(tank.amount)||tank.amount>0&&!tank.molecule)throw Error('Invalid tank');const capacity=tank.molecule?tankCapacity(use,tank.molecule):0;if(tank.molecule&&capacity===null||tank.amount>(capacity??0))throw Error('Invalid tank capacity');}
     for(const el of MANAGED)if(!integer(s.elements[el])||!integer(s.dust[el])||s.dust[el]>=GROWTH.dustPerAtom[el])throw Error('Invalid atom balance');
     const p=s.progress;if(!Array.isArray(p.foundElements)||!p.foundElements.includes('H')||!p.foundElements.every(e=>MANAGED.includes(e))||!Array.isArray(p.regions)||!p.regions.includes('veil')||!p.regions.every(id=>Object.hasOwn(REGIONS,id))||!p.regions.includes(p.checkpoint)||typeof p.frontier!=='boolean'||!integer(p.totalCollected)||!integer(p.signalMisses)||!p.signalLast||Object.entries(p.signalLast).some(([id,n])=>!Object.hasOwn(REGIONS,id)||!integer(n)))throw Error('Invalid expedition');
-  }return s;
+  }
+  if(s.schemaVersion===6){
+    if(!ids(s.hints)||!s.dust||!s.loadout||!Object.hasOwn(DRIVES,s.loadout.drive)||typeof s.loadout.cooling!=='boolean'||!s.tanks||Object.hasOwn(s,'molecules'))throw Error('Invalid systems');
+    for(const use of Object.keys(TANK_USES)){const tank=s.tanks[use];if(!tank||tank.molecule!==null&&!validId(tank.molecule)||!integer(tank.amount)||tank.amount>0&&!tank.molecule)throw Error('Invalid tank');const capacity=tank.molecule?tankCapacity(use,tank.molecule):0;if(tank.molecule&&capacity===null||tank.amount>(capacity??0))throw Error('Invalid tank capacity');}
+    for(const el of MANAGED)if(!integer(s.elements[el])||!integer(s.dust[el])||s.dust[el]>=GROWTH.dustPerAtom[el])throw Error('Invalid atom balance');
+    const p=s.progress;if(!Array.isArray(p.foundElements)||!p.foundElements.includes('H')||!p.foundElements.every(e=>MANAGED.includes(e))||!Array.isArray(p.regions)||!p.regions.includes('veil')||!p.regions.every(id=>Object.hasOwn(REGIONS,id))||!p.regions.includes(p.checkpoint)||typeof p.frontier!=='boolean'||!integer(p.totalCollected)||!integer(p.signalMisses)||!p.signalLast||Object.entries(p.signalLast).some(([id,n])=>!Object.hasOwn(REGIONS,id)||!integer(n)))throw Error('Invalid expedition');
+  }
+  return s;
 }
 function migrate(old){
-  if(old.schemaVersion===5)return {...old,elements:{...emptyElementStock(),...old.elements},tanks:{...initialTanks(),...old.tanks}};
-  const next={...initialState(),...old,schemaVersion:5};next.elements={...emptyElementStock(),...old.elements};next.molecules={hydrogen:0,methane:0,oxygen:0,water:0,...old.molecules};next.tanks=initialTanks();next.progress={...initialProgress(),...old.progress};
+  if(old.schemaVersion===6)return {...old,elements:{...emptyElementStock(),...old.elements},tanks:{...initialTanks(),...old.tanks}};
+  const {molecules:discardedMoleculeInventory,...oldWithoutMolecules}=old;
+  const next={...initialState(),...oldWithoutMolecules,schemaVersion:6};next.elements={...emptyElementStock(),...old.elements};next.tanks=initialTanks();next.progress={...initialProgress(),...old.progress};
   const load=(use,id,amount,{legacyBurstUnits=false}={})=>{const capacity=tankCapacity(use,id)??0,value=Math.min(capacity,(amount??0)*(legacyBurstUnits?performanceFor(id,'propellant')?.moleculesPerBurst??1:1));if(value>0)next.tanks[use]={molecule:id,amount:value};};
-  if(old.schemaVersion===4){for(const use of Object.keys(TANK_USES)){const tank=old.tanks?.[use];if(tank?.molecule)load(use,tank.molecule,tank.amount,{legacyBurstUnits:use==='propellant'&&tank.molecule==='hydrogen'});}}
+  if(old.schemaVersion===5){for(const use of Object.keys(TANK_USES)){const tank=old.tanks?.[use];if(tank?.molecule)load(use,tank.molecule,tank.amount);}}
+  else if(old.schemaVersion===4){for(const use of Object.keys(TANK_USES)){const tank=old.tanks?.[use];if(tank?.molecule)load(use,tank.molecule,tank.amount,{legacyBurstUnits:use==='propellant'&&tank.molecule==='hydrogen'});}}
   else if(old.schemaVersion===3){load('propellant','hydrogen',old.tanks.hydrogen,{legacyBurstUnits:true});load('fuel','methane',old.tanks.methane);load('oxidizer','oxygen',old.tanks.oxygen);}
-  else{const transfer=(use,id,allowed=true)=>{if(!allowed)return;const oldCapacity=use==='propellant'?EXPEDITION.hydrogenCapacity:tankCapacity(use,id)??0,amount=Math.min(oldCapacity,next.molecules[id]??0);next.molecules[id]-=amount;load(use,id,amount,{legacyBurstUnits:use==='propellant'});};transfer('propellant','hydrogen',next.recipes.includes('hydrogen'));const combustion=driveAvailable(next,'combustion');transfer('fuel','methane',combustion);transfer('oxidizer','oxygen',combustion);}
   if(old.schemaVersion===1)next.migrateDiscoveries=true;for(const a of next.workspace?.atoms??[])if(MANAGED.includes(a.element)&&!next.progress.foundElements.includes(a.element))next.progress.foundElements.push(a.element);return next;
 }
 export function createResources({storage,onStatus=()=>{}}={}){
@@ -76,44 +84,37 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function guaranteed(){if(state.elements.H>=2||state.recipes.includes('hydrogen'))hint('hydrogen');if(state.progress.foundElements.includes('C'))hint('methane');if(state.progress.foundElements.includes('O')){hint('oxygen');hint('water');}}
   function costFor(id,count=1){const record=records.get(id);if(!record||!integer(count)||count<1)return null;const cost={};for(const el of record.atoms)cost[el]=(cost[el]??0)+count;return cost;}
   function maxCraftable(id){
-    const record=records.get(id),current=state.molecules[id]??0;if(!record||!state.recipes.includes(id)||!integer(current))return 0;
+    const record=records.get(id);if(!record||!state.recipes.includes(id))return 0;
     const per=costFor(id),limits=Object.entries(per??{}).filter(([el,n])=>STOCKED.includes(el)&&n>0).map(([el,n])=>Math.floor((state.elements[el]??0)/n));
-    return Math.max(0,Math.min(MAX-current,...(limits.length?limits:[MAX-current])));
-  }
-  function tankPlan(id){
-    const fuels=TANK_GROUPS[id];if(!fuels)return null;
-    const items=fuels.map(([use,fuel])=>{const tank=state.tanks[use],current=tank.molecule===fuel?tank.amount:0,capacity=tankCapacity(use,fuel)??0,need=Math.max(0,capacity-current),stock=state.molecules[fuel]??0,transferable=Math.min(need,stock);return {id:fuel,use,current,capacity,need,stock,transferable,shortage:need-transferable,replacing:tank.amount>0&&tank.molecule!==fuel};});
-    const full=items.every(item=>item.need===0),shortage=Object.fromEntries(items.filter(item=>item.shortage>0).map(item=>[item.id,item.shortage]));
-    return {id,items,full,canFill:!full&&items.every(item=>item.shortage===0),shortage};
+    return Math.max(0,Math.min(MAX,...(limits.length?limits:[MAX])));
   }
   function tankStatus(use,id=null){
     const definition=TANK_USES[use],tank=state.tanks[use];if(!definition||!tank)return null;
     const selected=id??tank.molecule,current=selected&&tank.molecule===selected?tank.amount:0,capacity=selected?tankCapacity(use,selected):0,loadedCapacity=tank.molecule?tankCapacity(use,tank.molecule):0,cost=selected?costFor(selected):null;
-    const stored=selected?state.molecules[selected]??0:0;
-    return {use,label:definition.label,capacity,loadedCapacity,molecule:tank.molecule,amount:tank.amount,selected,current,stored,replacing:!!selected&&tank.amount>0&&tank.molecule!==selected,full:!!selected&&tank.molecule===selected&&tank.amount>=capacity,discovered:!!selected&&state.recipes.includes(selected),affordable:!!selected&&fitsTank(selected,use)&&(stored>0||canAfford(cost)),cost};
+    return {use,label:definition.label,capacity,loadedCapacity,molecule:tank.molecule,amount:tank.amount,selected,current,replacing:!!selected&&tank.amount>0&&tank.molecule!==selected,full:!!selected&&tank.molecule===selected&&tank.amount>=capacity,discovered:!!selected&&state.recipes.includes(selected),affordable:!!selected&&fitsTank(selected,use)&&canAfford(cost),cost};
   }
-  function fillTankFromElements(use,id){
-    const status=tankStatus(use,id);if(blocked||!status||!status.discovered||status.full||!status.affordable)return false;
+  function tankFillPlan(use,id){
+    const status=tankStatus(use,id);if(!status||!status.discovered||!fitsTank(id,use))return null;
+    const space=Math.max(0,status.capacity-status.current),maxAdd=Math.min(space,maxCraftable(id));
+    return {...status,space,maxAdd,discarded:status.replacing?status.amount:0,target:status.current+maxAdd};
+  }
+  function fillTankFromElements(use,id,count=1){
+    const plan=tankFillPlan(use,id);if(blocked||!plan||!integer(count)||count<1||count>plan.maxAdd)return false;
     const snapshot=copy(state),tank=state.tanks[use];if(tank.molecule!==id){tank.molecule=id;tank.amount=0;}
-    if(!spend(status.cost)){state=snapshot;return false;}tank.amount++;
-    if(save()||!storage)return true;state=snapshot;return false;
+    if(!spend(costFor(id,count))){state=snapshot;return false;}tank.amount+=count;
+    const result={committed:true,added:count,discarded:plan.discarded,current:tank.amount,capacity:plan.capacity};
+    if(save()||!storage)return result;state=snapshot;return false;
   }
-  function discover(id){if(blocked||!records.has(id)||state.recipes.includes(id))return false;state.recipes.push(id);hint(id);state.molecules[id]??=0;return true;}
+  function discover(id){if(blocked||!records.has(id)||state.recipes.includes(id))return false;state.recipes.push(id);hint(id);return true;}
   const api={
-    get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankPlan,tankStatus,fillTankFromElements,
+    get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,
     canUseElement:el=>!MANAGED.includes(el)||state.progress.foundElements.includes(el),record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
     setCatalog(catalog){for(const rec of catalog)if(validId(rec.id)&&Array.isArray(rec.atoms))records.set(rec.id,rec);if(state.migrateDiscoveries&&!blocked){try{const b=JSON.parse(storage?.getItem(COLLECTION_KEY)||'null');for(const x of b?.discoveredMolecules??b?.discoveredMoleculeIds??[]){const id=typeof x==='string'?x:x.id,rec=records.get(id);if(!rec)continue;discover(id);for(const el of rec.atoms)reveal(el);}}catch{}delete state.migrateDiscoveries;guaranteed();save();}},
     reset(categories){
       const selected=new Set(categories),full=RESET_CATEGORIES.every(k=>selected.has(k));if(!selected.size||[...selected].some(k=>!RESET_CATEGORIES.includes(k))||blocked&&!full)return {committed:false};let next;
-      try{if(!storage||storage.getItem(RESOURCE_KEY)!==previous)throw Error();next=full?initialState():copy(state);next.progress.sound=state.progress.sound;const clear=full||['workspace','elements','collection','recipes'].some(k=>selected.has(k));if(clear){if(!full&&!selected.has('elements'))for(const a of next.workspace?.atoms??[])if(STOCKED.includes(a.element))next.elements[a.element]=Math.min(MAX,(next.elements[a.element]??0)+1);next.workspace=null;}if(selected.has('recipes')){next.recipes=[];next.hints=[];next.loadout={drive:'hydrogen',cooling:true};delete next.migrateDiscoveries;}for(const key of ['elements','molecules'])if(selected.has(key))for(const symbol of Object.keys(next[key]))next[key][symbol]=0;if(full||selected.has('molecules'))next.tanks=initialTanks();if(selected.has('elements'))next.dust={H:0,C:0,O:0};if(selected.has('exploration')){const {bestChain,sound}=next.progress;next.progress={...initialProgress(),bestChain,sound};for(const el of MANAGED)if(next.elements[el]>0||next.workspace?.atoms.some(a=>a.element===el))next.progress.foundElements.push(el);next.progress.foundElements=[...new Set(next.progress.foundElements)];}if(selected.has('records'))next.progress.bestChain=0;next.resetEpoch=(state.resetEpoch??0)+1;next.pendingReset={collection:selected.has('collection'),legacy:clear,help:full};const raw=JSON.stringify(validate(next));storage.setItem(RESOURCE_KEY,raw);previous=raw;state=next;}catch{report('初期化できませんでした。保存は変更していません。再読み込みして確認してください。');return {committed:false};}blocked=true;try{finishReset(storage,state);previous=storage.getItem(RESOURCE_KEY);report('初期化しました。再読み込みします。');return {committed:true,complete:true};}catch{report('初期化を記録しました。再読み込み時に残りを安全に完了します。');return {committed:true,complete:false};}
+      try{if(!storage||storage.getItem(RESOURCE_KEY)!==previous)throw Error();next=full?initialState():copy(state);next.progress.sound=state.progress.sound;const clear=full||['workspace','elements','collection','recipes'].some(k=>selected.has(k));if(clear){if(!full&&!selected.has('elements'))for(const a of next.workspace?.atoms??[])if(STOCKED.includes(a.element))next.elements[a.element]=Math.min(MAX,(next.elements[a.element]??0)+1);next.workspace=null;}if(selected.has('recipes')){next.recipes=[];next.hints=[];next.loadout={drive:'hydrogen',cooling:true};delete next.migrateDiscoveries;}if(full||selected.has('tanks'))next.tanks=initialTanks();if(selected.has('elements')){for(const symbol of Object.keys(next.elements))next.elements[symbol]=0;next.dust={H:0,C:0,O:0};}if(selected.has('exploration')){const {bestChain,sound}=next.progress;next.progress={...initialProgress(),bestChain,sound};for(const el of MANAGED)if(next.elements[el]>0||next.workspace?.atoms.some(a=>a.element===el))next.progress.foundElements.push(el);next.progress.foundElements=[...new Set(next.progress.foundElements)];}if(selected.has('records'))next.progress.bestChain=0;next.resetEpoch=(state.resetEpoch??0)+1;next.pendingReset={collection:selected.has('collection'),legacy:clear,help:full};const raw=JSON.stringify(validate(next));storage.setItem(RESOURCE_KEY,raw);previous=raw;state=next;}catch{report('初期化できませんでした。保存は変更していません。再読み込みして確認してください。');return {committed:false};}blocked=true;try{finishReset(storage,state);previous=storage.getItem(RESOURCE_KEY);report('初期化しました。再読み込みします。');return {committed:true,complete:true};}catch{report('初期化を記録しました。再読み込み時に残りを安全に完了します。');return {committed:true,complete:false};}
     },
     hint,learn:discover,discover,
-    makeMolecule(id,count=1){const cost=costFor(id,count),current=state.molecules[id]??0;if(!cost||!state.recipes.includes(id)||current+count>MAX||!spend(cost))return false;state.molecules[id]=current+count;return true;},
-    produceMolecule(id,count=1){const snapshot=copy(state);if(!api.makeMolecule(id,count))return false;if(save()||!storage)return true;state=snapshot;return false;},
-    makeHydrogen:n=>api.makeMolecule('hydrogen',n),
-    consumeMolecules(cost){if(blocked||!Object.entries(cost).every(([id,n])=>validId(id)&&integer(n)&&(state.molecules[id]??0)>=n))return false;for(const [id,n]of Object.entries(cost))state.molecules[id]-=n;if(save()||!storage)return true;for(const [id,n]of Object.entries(cost))state.molecules[id]+=n;return false;},
-    fillTank(id){const plan=tankPlan(id);if(blocked||!plan?.canFill)return false;const snapshot=copy(state);for(const item of plan.items){state.molecules[item.id]-=item.need;state.tanks[item.use]={molecule:item.id,amount:item.capacity};}if(save()||!storage)return true;state=snapshot;return false;},
-    transferMoleculesToTank(use,id,count=MAX){const status=tankStatus(use,id),available=state.molecules[id]??0,amount=Math.min(count,available,Math.max(0,(status?.capacity??0)-(status?.current??0)));if(blocked||!status?.discovered||!integer(count)||amount<=0)return false;const snapshot=copy(state),tank=state.tanks[use];if(tank.molecule!==id){tank.molecule=id;tank.amount=0;}state.molecules[id]-=amount;tank.amount+=amount;if(save()||!storage)return true;state=snapshot;return false;},
     consumeTank(use,id,amount){const tank=state.tanks[use];if(blocked||!state.recipes.includes(id)||!fitsTank(id,use)||!integer(amount)||amount<1||tank?.molecule!==id||tank.amount<amount)return false;const snapshot=copy(state);tank.amount-=amount;if(save()||!storage)return true;state=snapshot;return false;},
     consumeBoost:()=>{const tank=state.tanks.propellant,performance=performanceFor(tank.molecule,'propellant');return !!performance&&api.consumeTank('propellant',tank.molecule,performance.moleculesPerBurst);},
     consumeCombustion(){const fuel=state.tanks.fuel,oxidizer=state.tanks.oxidizer,p=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});if(blocked||!state.recipes.includes(fuel.molecule)||!state.recipes.includes(oxidizer.molecule)||!p||fuel.molecule!==p.fuel||oxidizer.molecule!==p.oxidizer||fuel.amount<p.fuelAmount||oxidizer.amount<p.oxygenAmount)return false;const snapshot=copy(state);fuel.amount-=p.fuelAmount;oxidizer.amount-=p.oxygenAmount;if(save()||!storage)return true;state=snapshot;return false;},

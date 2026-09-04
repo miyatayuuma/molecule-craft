@@ -1,7 +1,7 @@
 import { RESET_CATEGORIES } from './resources.js';
 export function createProgressResetUI({resources,canReset=()=>true,beforeReset=()=>true,reload=()=>window.location.reload()}){
   const q=id=>document.getElementById(id),status=q('reset-status');
-  const labels={collection:'図鑑・部品解放・発見記録',recipes:'分子レシピ',elements:'元素ストック',molecules:'分子ストック',exploration:'探索領域・元素発見・未知信号',records:'最大CHAIN',workspace:'制作フィールド'};
+  const labels={collection:'図鑑・部品解放・発見記録',recipes:'分子レシピ',elements:'元素ストック',tanks:'タンク内容',exploration:'探索領域・元素発見・未知信号',records:'最大CHAIN',workspace:'制作フィールド'};
   function reset(categories,full){
     if(!canReset())return;
     if(!categories.length){status.textContent='初期化する項目を選んでください。';return;}

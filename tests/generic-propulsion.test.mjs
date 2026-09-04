@@ -39,7 +39,7 @@ const resources=createResources({storage:memory()});resources.setCatalog(databas
 for(const id of ['hydrogen','ammonia','nitrogen','carbon-dioxide','n-butane','oxygen','water'])resources.discover(id);
 assert.deepEqual(resources.tankCatalog('propellant').map(record=>record.id).sort(),['hydrogen','ammonia','nitrogen','carbon-dioxide','n-butane'].sort());
 assert.deepEqual(resources.tankCatalog('oxidizer').map(record=>record.id),['oxygen']);
-assert.deepEqual(resources.tankCatalog('coolant'),[],'Coolant candidates remain hidden until thermal runtime is implemented');
-assert.equal(resources.maxCraftable('water'),0);resources.state.elements.H=4;resources.state.elements.O=2;assert.ok(resources.produceMolecule('water',2),'No-role runtime molecules remain ordinarily mass-producible');
+assert.deepEqual(resources.tankCatalog('coolant'),[],'Coolant candidates remain inactive until thermal runtime is implemented');
+assert.equal(resources.maxCraftable('water'),0);resources.state.elements.H=4;resources.state.elements.O=2;assert.equal(resources.maxCraftable('water'),2);assert.equal(resources.tankFillPlan('coolant','water'),null,'Inactive roles cannot receive physical inventory');
 
 console.log('Generic propulsion passed: all registered propellants and fuels drive runtime performance, integer packets preserve remainders, and staged tank eligibility remains intact.');

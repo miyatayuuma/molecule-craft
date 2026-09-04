@@ -131,7 +131,6 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }
     preview(record,moleculeDisplayName(record));
     detail.append(el('p',entry(kind,id)?.description??record.learningNote??'この分子を図鑑に登録しました。','dex-description'));
-    detail.append(button('この分子をクラフト',()=>{dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));},'collection-primary'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
     if(record.learningNote)extra.append(el('p',record.learningNote));

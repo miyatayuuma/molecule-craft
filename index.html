@@ -21,6 +21,7 @@
       <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
     <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span id="stock-c" hidden>C <b id="resource-c">0</b></span><span id="stock-o" hidden>O <b id="resource-o">0</b></span></div><button id="open-supply" class="collector-access" type="button" aria-label="収集殻とタンクを開く"><i aria-hidden="true"></i><span>収集殻</span></button></div>
+    <section id="craft-target" class="craft-target" aria-label="制作目標" hidden><div><small>制作目標</small><strong id="craft-target-name"></strong><span id="craft-target-formula"></span></div><div id="craft-target-atoms" class="craft-target-atoms"></div><button id="clear-craft-target" type="button" aria-label="制作目標を解除">×</button></section>
     <p id="craft-resource-hint" class="craft-expedition-note"></p><p id="craft-last-run" class="craft-expedition-note"></p>
     <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
     <section class="workspace">
@@ -35,6 +36,7 @@
         </div>
         <div class="field-bottom"><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
         <div id="craft-tank-actions" class="craft-tank-actions" aria-label="完成分子のタンク操作" hidden></div>
+        <div id="tank-charge-stage" class="tank-charge-stage" role="status" aria-live="polite" hidden><canvas aria-hidden="true"></canvas><div><span id="tank-charge-icon" aria-hidden="true"></span><strong id="tank-charge-label"></strong><small id="tank-charge-result"></small></div></div>
         <button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>
         <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span><small id="discovery-learning"></small></div>
       </section>
@@ -67,7 +69,7 @@
         <label><input type="checkbox" name="reset-category" value="collection"> 図鑑・部品解放・発見記録</label>
         <label><input type="checkbox" name="reset-category" value="recipes"> 分子レシピ</label>
         <label><input type="checkbox" name="reset-category" value="elements"> 元素ストック</label>
-        <label><input type="checkbox" name="reset-category" value="molecules"> 分子ストック</label>
+        <label><input type="checkbox" name="reset-category" value="tanks"> タンク内容</label>
         <label><input type="checkbox" name="reset-category" value="exploration"> 探索領域・元素発見・未知信号</label>
         <label><input type="checkbox" name="reset-category" value="records"> 最大CHAIN</label>
         <label><input type="checkbox" name="reset-category" value="workspace"> 制作フィールド</label>
@@ -78,7 +80,7 @@
   <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
     <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
     <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
-    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録され、以後は数量と元素消費を確認して量産できます。H/C/Oは探索で見つかります。</p></div></section>
+    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録されます。探索用の分子は、完成模型を設計として使い、原子を直接消費してタンクへ充填できます。H/C/Oは探索で見つかります。</p></div></section>
     <section><span>04</span><div><h3>採集殻を回収する</h3><p>基地は採集殻をANCHOR FIELDで係留しています。帰還は短いANCHOR LOCKの後に全積荷を安定回収。DUST EATERが保持場を崩すと、安全装置が一部の積荷をこぼしながら緊急回収します。</p></div></section>
     <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。片付けるは1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子をドラッグすると、環や二重結合などの固定構造を保ったまま、動ける複数の単結合を使って分子全体がしなります。届かない位置へ引いても結合は伸びません。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
     <button id="help-done" type="button" class="primary">つくってみる</button>
@@ -98,20 +100,19 @@
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
   <dialog id="supply-dialog" class="sheet" aria-labelledby="supply-title"><header class="sheet-header"><h2 id="supply-title">収集殻</h2><button type="button" data-close-dialog aria-label="収集殻を閉じる">×</button></header><div class="sheet-body supply-body">
-    <div class="collector-shell-map" aria-label="収集殻のタンク"><div class="collector-core" aria-hidden="true"><i></i><b>COLLECTOR<br>SHELL</b></div>
-      <button id="shell-propellant" class="shell-port port-propellant" type="button" aria-pressed="true"><span>噴射剤</span><small>—</small></button>
-      <button id="shell-fuel" class="shell-port port-fuel" type="button" aria-pressed="false"><span>燃料</span><small>—</small></button>
-      <button id="shell-oxidizer" class="shell-port port-oxidizer" type="button" aria-pressed="false"><span>酸化剤</span><small>—</small></button>
-      <button id="shell-coolant" class="shell-port port-coolant" type="button" aria-pressed="false"><span>冷却剤</span><small>—</small></button>
-      <button id="launch-veil" class="shell-launch" type="button">出発</button>
+    <div class="collector-shell-map" aria-label="収集殻のタンク"><canvas id="collector-shell-preview" aria-hidden="true"></canvas>
+      <button id="shell-propellant" class="shell-port port-propellant" data-tank-role="propellant" type="button" aria-pressed="true"><i aria-hidden="true"></i><span>噴射剤</span><small>—</small></button>
+      <button id="shell-fuel" class="shell-port port-fuel" data-tank-role="fuel" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>燃料</span><small>—</small></button>
+      <button id="shell-oxidizer" class="shell-port port-oxidizer" data-tank-role="oxidizer" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>酸化剤</span><small>—</small></button>
+      <button id="shell-coolant" class="shell-port port-coolant" data-tank-role="coolant" type="button" aria-pressed="false" hidden><i aria-hidden="true"></i><span>冷却剤</span><small>—</small></button>
     </div>
     <p id="supply-announcement" class="supply-announcement" role="status" hidden></p>
     <section id="tank-detail" class="tank-detail"><header><strong id="tank-detail-title">噴射剤</strong><b id="tank-load">0 / 3</b></header><div class="tank-load-meter"><i id="tank-load-meter"></i></div>
       <div id="tank-molecules" class="tank-molecules" aria-label="発見済み分子"></div><p id="tank-empty" class="tank-empty">発見済み分子なし</p>
-      <div id="tank-model" class="tank-model" role="button" tabindex="0" aria-label="模型をタップして図鑑を開く" hidden><div id="tank-model-host"></div><span id="tank-model-name"></span><small>図鑑 ›</small></div>
-      <div id="tank-comparison" class="tank-comparison" hidden></div><p id="tank-replacement" class="tank-replacement" hidden></p>
+      <div class="tank-inspector"><div id="tank-model" class="tank-model" hidden><div id="tank-model-host"></div><div class="tank-model-caption"><span id="tank-model-name"></span><button id="tank-open-collection" type="button">図鑑 ›</button></div></div>
+      <div class="tank-decision"><div id="tank-comparison" class="tank-comparison" hidden></div><p id="tank-replacement" class="tank-replacement" hidden></p><p id="tank-affordability" class="tank-affordability"></p><button id="tank-craft-molecule" class="primary" type="button">この分子をクラフト</button></div></div>
     </section>
-    <label class="anchor-select" for="expedition-anchor"><span>出発地点</span><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veil</option></select></label>
+    <div class="supply-footer"><label class="anchor-select" for="expedition-anchor"><span>出発地点</span><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veil</option></select></label><button id="launch-veil" class="shell-launch" type="button">出発</button></div>
   </div></dialog>
   <section id="veil-view" aria-label="採集殻で原子宇宙を探索" tabindex="-1" hidden>
     <canvas id="veil-canvas" aria-label="ANCHOR FIELDで係留された採集殻の探索フィールド"></canvas>
