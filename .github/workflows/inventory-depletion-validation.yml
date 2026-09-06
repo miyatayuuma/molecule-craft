@@ -36,3 +36,4 @@ jobs:
           git add precache-manifest.js
           git commit -m "Regenerate precache manifest"
           git push
+# Temporary validation only; remove before merge.
