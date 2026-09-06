@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - feature/inventory-driven-depletion
+  pull_request:
+    branches:
+      - main
 permissions:
   contents: write
 jobs:
@@ -25,6 +28,7 @@ jobs:
           node tests/pwa.test.mjs
           node scripts/check-repository-hygiene.mjs
       - name: Commit generated manifest
+        if: github.event_name == 'push'
         run: |
           if git diff --quiet -- precache-manifest.js; then exit 0; fi
           git config user.name "github-actions[bot]"
