@@ -14,6 +14,23 @@ export function sampleLine(knots,spacing=VEIL.dustSpacing){
   }
   return result;
 }
+
+const DEPLETION_LIMITS=Object.freeze({H:{start:80,full:800},C:{start:40,full:400},O:{start:40,full:400}});
+const OPTIONAL_H_ROUTES=new Set(['detour','technical']);
+const clamp01=value=>Math.max(0,Math.min(1,value));
+function hashRoll(seed,key){let h=seed>>>0;for(let i=0;i<key.length;i++){h^=key.charCodeAt(i);h=Math.imul(h,16777619);}h^=h>>>16;return(h>>>0)/4294967296;}
+export function inventoryDepletion(stock={},element){
+  const limits=DEPLETION_LIMITS[element];if(!limits)return 0;
+  const amount=Number.isFinite(stock?.[element])?Math.max(0,stock[element]):0,t=clamp01((amount-limits.start)/(limits.full-limits.start));
+  return t*t*(3-2*t);
+}
+export function keepDepletedSegment(level,seed,routeId,index,{optional=false}={}){
+  if(optional&&level>=.9)return false;
+  if(level<.58)return true;
+  const block=Math.floor(index/7),chance=Math.min(.55,(level-.58)/.42*.55);
+  return hashRoll(seed,`${routeId}:${block}`)>=chance;
+}
+
 const DEFINITIONS=[
   ['entry','はじまりの流れ',[[0,210],[0,-220],[-180,-540],[0,-830],[0,-1100]]],
   ['safe','ゆるやかな流れ',[[0,-1100],[-380,-1300],[-670,-1720],[-520,-2200],[0,-2600]]],
@@ -28,17 +45,21 @@ const DEFINITIONS=[
   ['return','帰りの流れ',[[530,-3550],[1000,-3190],[1090,-2400],[930,-1510],[1070,-700],[800,40],[300,280],[0,210]]],
   ['technical','折り返す光',[[930,-1510],[610,-1010],[360,-720],[570,-450],[390,-180],[0,210]],'technical'],
 ];
-export function createMap(seed=1){
-  const rng=random(seed),denseChoice=Math.floor(rng()*3),routes=DEFINITIONS.map(([id,label,knots,kind])=>({id,label,kind,points:sampleLine(knots,kind==='dense'?VEIL.denseSpacing:VEIL.dustSpacing)}));
-  const dust=[];
+export function createMap(seed=1,stock={}){
+  const rng=random(seed),denseChoice=Math.floor(rng()*3),hDepletion=inventoryDepletion(stock,'H'),routes=DEFINITIONS.map(([id,label,knots,kind])=>({id,label,kind,points:sampleLine(knots,kind==='dense'?VEIL.denseSpacing:VEIL.dustSpacing)}));
+  const dust=[],denseSideCount=hDepletion<.3?2:hDepletion<.58?1:0,shoulderLaneCount=hDepletion<.2?VEIL.shoulderLanes:hDepletion<.45?Math.max(1,Math.ceil(VEIL.shoulderLanes/2)):0;
   for(const route of routes)for(const [i,p]of route.points.entries()){
-    dust.push({...p,id:dust.length,route:route.id,kind:route.kind??'normal',value:VEIL.dustValue,ready:0});
-    if(route.kind==='dense'||(['safe','return','technical'][denseChoice]===route.id&&i%VEIL.bandPeriod<VEIL.bandLength))for(const side of [-1,1])dust.push({...p,x:p.x-Math.sin(p.angle)*side*VEIL.denseLaneOffset,y:p.y+Math.cos(p.angle)*side*VEIL.denseLaneOffset,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0});
-    if(route.id==='risk'&&p.y<-1400&&p.y>-2130)for(const side of [-1,1])for(let lane=0;lane<VEIL.shoulderLanes;lane++){
+    const optional=OPTIONAL_H_ROUTES.has(route.id),keepCenter=keepDepletedSegment(hDepletion,seed,route.id,i,{optional});
+    if(keepCenter)dust.push({...p,id:dust.length,route:route.id,kind:route.kind??'normal',value:VEIL.dustValue,ready:0});
+    if(keepCenter&&(route.kind==='dense'||(['safe','return','technical'][denseChoice]===route.id&&i%VEIL.bandPeriod<VEIL.bandLength))){
+      const sides=denseSideCount===2?[-1,1]:denseSideCount===1?[-1]:[];
+      for(const side of sides)dust.push({...p,x:p.x-Math.sin(p.angle)*side*VEIL.denseLaneOffset,y:p.y+Math.cos(p.angle)*side*VEIL.denseLaneOffset,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0,lane:side});
+    }
+    if(keepCenter&&route.id==='risk'&&p.y<-1400&&p.y>-2130)for(const side of [-1,1])for(let lane=0;lane<shoulderLaneCount;lane++){
       const offset=side*(VEIL.shoulderOffset+lane*VEIL.denseLaneOffset);
-      dust.push({...p,x:p.x-Math.sin(p.angle)*offset,y:p.y+Math.cos(p.angle)*offset,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0,shoulder:true});
+      dust.push({...p,x:p.x-Math.sin(p.angle)*offset,y:p.y+Math.cos(p.angle)*offset,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0,shoulder:true,lane:side*(lane+2)});
     }
   }
   if(rng()<VEIL.rareChance){const route=routes.find(r=>r.id==='technical'),p=route.points[Math.floor(route.points.length*.6)];dust.push({...p,id:dust.length,route:route.id,kind:'rare',value:VEIL.rareValue*VEIL.dustPerH,ready:0});}
-  return {seed,routes,dust,fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels:[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'静かな切れ目'},{x:530,y:-3660,text:'外縁の強流 ↑ H₂ BURST'}]};
+  return {seed,routes,dust,depletion:{H:hDepletion,C:inventoryDepletion(stock,'C'),O:inventoryDepletion(stock,'O')},fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels:[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'静かな切れ目'},{x:530,y:-3660,text:'外縁の強流 ↑ H₂ BURST'}]};
 }

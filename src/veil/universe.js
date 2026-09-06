@@ -1,4 +1,4 @@
-import { createMap, sampleLine, random } from './map.js';
+import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 // Fixed landmarks and connections; variable contents stay near these curves.
@@ -13,26 +13,32 @@ const ROUTES=[
   ['oxygen-side','速い支流',[[120,-8700],[870,-9040],[930,-9660],[670,-10160],[80,-10670]],'O'],
   ['horizon','まだ名のない光',[[100,-11830],[0,-12200],[280,-12470]],'O'],
 ];
+const OPTIONAL_ROUTES=new Set(['carbon-sweep','oxygen-eddy','oxygen-side']);
 const CLUSTERS=[[-120,-4990],[-410,-5350],[-160,-5680],[350,-6020],[230,-6400],[-140,-6790],[170,-7210],[570,-5140],[820,-5540],[660,-5950],[-380,-8150],[-500,-8540],[600,-9450]];
-export function createUniverse(seed=1){
-  const map=createMap(seed),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];
+function activeLaneCount(lanes,level){return level<.28?lanes:level<.62?Math.max(1,Math.ceil(lanes/2)):1;}
+export function createUniverse(seed=1,stock={}){
+  const map=createMap(seed,stock),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];
   for(const d of map.dust){d.element='H';if(d.shoulder){d.x+=(rng()-.5)*13;d.y+=(rng()-.5)*16;}}
   for(const [id,label,knots,element]of ROUTES){
     const deep=id==='oxygen-main'||id==='oxygen-side',frontier=id==='horizon',profile=frontier?GROWTH.density.frontier:deep?GROWTH.density.oxygenDeep:element==='O'?GROWTH.density.oxygenEdge:GROWTH.density.carbon;
-    const route={id,label,element,points:sampleLine(knots,profile.spacing)};map.routes.push(route);
+    const route={id,label,element,points:sampleLine(knots,profile.spacing)},routeDepletion=map.depletion[element]??0,lanes=activeLaneCount(profile.lanes,routeDepletion),optional=OPTIONAL_ROUTES.has(id);map.routes.push(route);
     for(const [i,p]of route.points.entries()){
-      const el=element==='C'?(i%6===0?'C':'H'):element==='O'?(i%5===0?'H':i%17===0?'C':'O'):'H';
-      for(let lane=0;lane<profile.lanes;lane++){
-        const offset=(lane-(profile.lanes-1)/2)*27+(rng()-.5)*8,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
-        map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,flow:deep||frontier?{speed:165+rng()*60,span:210,phase:rng()}:null});
+      const el=element==='C'?(i%6===0?'C':'H'):element==='O'?(i%5===0?'H':i%17===0?'C':'O'):'H',jitter=Array.from({length:profile.lanes},()=> (rng()-.5)*8),elementDepletion=map.depletion[el]??0;
+      if(!keepDepletedSegment(routeDepletion,seed^0x29d41,id,i,{optional})||!keepDepletedSegment(elementDepletion,seed^0x7f4a7c15,`${id}:${el}`,i))continue;
+      for(let lane=0;lane<lanes;lane++){
+        const offset=(lane-(lanes-1)/2)*27+jitter[lane],x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
+        map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,lane:lane-(lanes-1)/2,flow:deep||frontier?{speed:165+rng()*60,span:210,phase:rng()}:null});
       }
+      // Keep the random stream stable across lane-collapse states so currents and landmarks do not jump with inventory.
+      for(let lane=lanes;lane<profile.lanes;lane++)if(deep||frontier){rng();rng();}
     }
   }
   for(const [i,point]of CLUSTERS.entries()){
     const cluster={id:i,x:point[0]+(rng()-.5)*65,y:point[1]+(rng()-.5)*70,radius:GROWTH.clusterRadius,ready:0,burstAt:-100,phase:rng()*Math.PI*2,particles:[]};
     for(let j=0;j<GROWTH.clusterParticles;j++){
-      const element=j%5===0?'H':'C',angle=rng()*Math.PI*2;
-      const d={id:map.dust.length,x:cluster.x,y:cluster.y,angle,element,kind:element==='C'?'carbon':'normal',cluster:i,spread:.3+rng()*.7,value:GROWTH.clusterValue,ready:Infinity};
+      const element=j%5===0?'H':'C',angle=rng()*Math.PI*2,spread=.3+rng()*.7;
+      if(!keepDepletedSegment(map.depletion[element]??0,seed^0x16f11,`cluster-${i}:${element}`,j))continue;
+      const d={id:map.dust.length,x:cluster.x,y:cluster.y,angle,element,kind:element==='C'?'carbon':'normal',cluster:i,spread,value:GROWTH.clusterValue,ready:Infinity};
       cluster.particles.push(d);map.dust.push(d);
     }map.clusters.push(cluster);
   }
