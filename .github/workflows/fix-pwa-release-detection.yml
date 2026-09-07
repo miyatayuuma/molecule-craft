@@ -33,7 +33,7 @@ jobs:
           t=t.replace(sourceBefore,sourceAfter);
           const testMarker="const entries=context.self.PRECACHE_FILES,paths=new Set(entries.map(e=>e.path));";
           if(!t.includes(testMarker))throw new Error('pwa test insertion point not found');
-          t=t.replace(testMarker,`${testMarker}\nassert.match(buildSource,/PRECACHE_ASSET_VERSION/,'Precache build must stamp the top-level service worker each release');\nconst assetVersion=sha(Buffer.from(JSON.stringify(entries))).slice(0,16);\nassert.match(sourceText,new RegExp('^/\\\\* PRECACHE_ASSET_VERSION:'+assetVersion+' \\\\*/'),'Service worker stamp must match current asset set');\nassert.equal(context.self.PRECACHE_VERSION,sha(Buffer.from(JSON.stringify(entries)+sourceText)).slice(0,16),'Precache version must include stamped service worker bytes');`);
+          t=t.replace(testMarker,`${testMarker}\nassert.match(buildSource,/PRECACHE_ASSET_VERSION/,'Precache build must stamp the top-level service worker each release');\nconst assetVersion=createHash('sha256').update(Buffer.from(JSON.stringify(entries))).digest('hex').slice(0,16);\nassert.match(sourceText,new RegExp('^/\\\\* PRECACHE_ASSET_VERSION:'+assetVersion+' \\\\*/'),'Service worker stamp must match current asset set');\nassert.equal(context.self.PRECACHE_VERSION,createHash('sha256').update(Buffer.from(JSON.stringify(entries)+sourceText)).digest('hex').slice(0,16),'Precache version must include stamped service worker bytes');`);
           fs.writeFileSync(testPath,t);
           NODE
       - run: node scripts/build-precache.mjs
