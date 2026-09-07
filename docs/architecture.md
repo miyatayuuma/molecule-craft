@@ -26,7 +26,7 @@
 
 - `index.html`：本番DOM。読み込むアプリ入口は固定名の `src/app.js`。
 - `src/app.js`：固定entrypoint。Three.jsシーン、3D入力、結合・構造変形、制作目標のライフサイクルと起動順を担当する。
-- `src/craft-workspace.js`：BASE STOCKとの原子入出庫と、制作グラフの追加・削除・全片付け・整理復元。
+- `src/craft-workspace.js`：BASE STOCKとの原子入出庫と、制作グラフの追加・削除・全片付け・整理復元。`addPart` は解放確認・一括仮出庫を担当。
 - `src/craft-controls.js`：クラフト画面のDOMイベント登録。
 - `src/craft-panel.js`：分子情報、制作目標、構造一覧、完成表示と完成分子からのタンク長押し充填UI。
 - `src/tank-charge.js`：固定時間の長押し充填、途中確定、入替廃棄の演出とキャンセル制御。
@@ -83,6 +83,7 @@
 | rotatable / restricted / locked判定 | `src/torsion-model.js`, `src/structure-edit.js` |
 | 表示対象・全体回転・画角 | `src/workspace-view.js`, `src/workspace-model.js` |
 | workspace保存・復元・未来版保護 | `src/workspace-save.js` |
+| ターゲットの最小部品分解（UI非依存） | `src/craft-decomposition.js`。対応テスト：`craft-decomposition.test.mjs` |
 | 部品展開・初期座標 | `src/craft-structures.js` |
 | 追加位置 | `src/spawn-layout.js` |
 | 芳香環・特殊結合・接続点 | `src/aromatic-rendering.js`, `src/special-bonds.js`, `src/attachment-rendering.js` |

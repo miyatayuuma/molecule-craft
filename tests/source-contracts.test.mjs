@@ -56,7 +56,7 @@ assert.match(index, /id="undo-cleanup"/);
 assert.match(index, /id="collection-dialog"/);
 assert.match(index, /id="craft-panel"[^>]*hidden/);
 assert.match(craftConnections, /checkedRevision!==revision/);
-assert.match(craftWorkspace, /expandCraftStructure\(molecule,template\)/);
+assert.match(craftWorkspace, /expandCraftStructure\(staged,template\)/);
 assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=37'\)/);
 assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations belong to craft-workspace.js');
 assert.match(app, /!elementPalette.canUse\(symbol\)/);
@@ -114,7 +114,7 @@ assert.match(app, /if\(!frameTransition\|\|relaxation\|\|bondTransition\)return/
 assert.doesNotMatch(app, /ensureSpawnVisible|function spawnPosition/);
 assert.match(app, /planWorkspaceSpawn\(parts\)/);
 assert.match(craftControls, /frame-structure'\)\?\.addEventListener\('click',onFrame\)/);
-assert.match(app, /createCraftWorkspace\(\{molecule,placements,resources,onStockChange:syncCraftStock\}\)/);
+assert.match(app, /createCraftWorkspace\(\{molecule,placements,resources,resolveUnlockedPart:id=>collectionGame\?\.templateFor\(id\),onStockChange:syncCraftStock\}\)/);
 assert.match(app, /bindCraftControls\(/);
 assert.match(app, /connectExploration\(/);
 assert.match(app, /connectCollection\(/);

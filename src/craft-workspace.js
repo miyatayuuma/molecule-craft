@@ -1,10 +1,10 @@
-import {countElements} from './chemistry.js?v=20';
+import {Molecule,countElements} from './chemistry.js?v=20';
 import {expandCraftStructure} from './craft-structures.js?v=31';
 
 // Owns the atomic boundary between BASE STOCK and the craft workspace.
 // Visual placement and interaction remain in app.js; every graph mutation that
 // changes checked-out atoms passes through this module.
-export function createCraftWorkspace({molecule,placements,resources,onStockChange=()=>{}}){
+export function createCraftWorkspace({molecule,placements,resources,resolveUnlockedPart=()=>null,onStockChange=()=>{}}){
   const costOf=atoms=>countElements(atoms);
 
   function addAtom(element,position){
@@ -13,11 +13,27 @@ export function createCraftWorkspace({molecule,placements,resources,onStockChang
   }
 
   function addStructure(template,positions){
-    const cost=costOf(template.atoms.map(element=>({element})));
-    if(!resources.spend(cost))return null;
-    const expanded=expandCraftStructure(molecule,template);
+    // Prepare in isolation before checking out any stock. Malformed templates
+    // or interrupted expansion cannot leave a half-built component in the field.
+    if(!Array.isArray(positions)||positions.length!==template?.atoms?.length||positions.some(p=>!p))return null;
+    const staged=new Molecule();let expanded;
+    try{
+      const pairs=new Set();
+      for(const [a,b,order] of template.bonds){
+        const key=[a,b].sort((x,y)=>x-y).join(':');
+        if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=template.atoms.length||b>=template.atoms.length||a===b||![1,2,3].includes(order)||pairs.has(key))return null;
+        pairs.add(key);
+      }
+      expanded=expandCraftStructure(staged,template);
+    }catch{return null;}
+    const cost=costOf(staged.atoms);if(!resources.spend(cost))return null;
+    molecule.atoms.push(...staged.atoms);molecule.bonds.push(...staged.bonds);
     for(const [index,atomId] of expanded.ids.entries())placements.set(atomId,{position:positions[index]});
     onStockChange();return expanded;
+  }
+
+  function addPart(id,positions){
+    const template=resolveUnlockedPart(id);return template?addStructure(template,positions):null;
   }
 
   function removeAtom(id){
@@ -50,5 +66,5 @@ export function createCraftWorkspace({molecule,placements,resources,onStockChang
     onStockChange();return true;
   }
 
-  return{addAtom,addStructure,removeAtom,clear,removeAtoms,restore};
+  return{addAtom,addStructure,addPart,removeAtom,clear,removeAtoms,restore};
 }

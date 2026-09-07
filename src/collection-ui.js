@@ -76,6 +76,7 @@ export async function createCollectionUI({records,onPlace,onSupply=null,canOpen=
       const node=button('',()=>{
         if(unlocked)onPlace(template);else if(canOpen()){showDetail('groups',template.unlock.groupId);if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}}
       },`craft-part ${unlocked?'unlocked':'locked'}`);
+      node.dataset.partId=template.id;
       thumbnail(node,'groups',template.unlock.groupId);
       node.append(el('strong',template.nameJa),el('span',template.notation,'craft-notation'));
       if(!unlocked)node.append(el('small',`解放まで ${count}/${template.unlock.distinctMolecules}`));
