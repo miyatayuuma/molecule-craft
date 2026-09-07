@@ -5,7 +5,9 @@ import {runInNewContext} from 'node:vm';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root)),manifest=JSON.parse(await read('manifest.webmanifest'));
 assert.equal(manifest.start_url,'./');assert.equal(manifest.scope,'./');assert.equal(manifest.display,'standalone');
 for(const icon of manifest.icons){const data=await read(icon.src);assert.equal(data.subarray(1,4).toString(),'PNG');assert.equal(data.readUInt32BE(16),Number(icon.sizes.split('x')[0]));assert.ok(icon.purpose.includes('maskable'));}
-const source=await read('sw.js'),precache=await read('precache-manifest.js'),context={self:{}};runInNewContext(precache.toString(),context);
+const source=await read('sw.js'),pwaSource=(await read('src/pwa.js')).toString(),precache=await read('precache-manifest.js'),context={self:{}};runInNewContext(precache.toString(),context);
+assert.match(pwaSource,/registration\.update\(\)/,'Client must explicitly check for a new service worker');
+assert.match(pwaSource,/addEventListener\('focus'.*checkForUpdate/,'Returning to the app must re-check for updates');
 const entries=context.self.PRECACHE_FILES,paths=new Set(entries.map(e=>e.path));
 for(const path of ['src/app.js','src/collection-ui.js','src/collection-viewer.js','src/special-bonds.js','src/hold-action.js','vendor/three/three.module.min.js','vendor/three/three.core.min.js','data/encyclopedia.json','assets/icon-192.png','index.html'])assert.ok(paths.has(path),path);
 const sha=buffer=>createHash('sha256').update(buffer).digest('hex');
@@ -31,4 +33,4 @@ response=await good.call('fetch',{request:new Request(good.scope+'tests/not-a-re
 await good.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a'}});assert.equal(good.skip,1);
 const messages=[],busy=worker({clients:[{id:'a',url:'https://example.test/molecule-craft/'},{id:'b',url:'https://example.test/molecule-craft/'}]});await busy.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a',postMessage:m=>messages.push(m)}});assert.equal(busy.skip,0);assert.equal(messages[0].type,'UPDATE_BLOCKED');
 const broken=worker({fail:'src/collection-ui.js'});await assert.rejects(broken.call('install'));assert.equal(broken.cacheMap.size,0,'Partial/corrupt release must not remain installed');
-console.log(`PWA passed: ${entries.length} hashed assets, dependency closure, icons, 179 numbered entries/previews, offline shell/modules, missing pages, explicit update and multi-window blocking.`);
+console.log(`PWA passed: ${entries.length} hashed assets, dependency closure, icons, 179 numbered entries/previews, offline shell/modules, missing pages, explicit discovery/activation updates and multi-window blocking.`);
