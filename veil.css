@@ -74,3 +74,9 @@
 .craft-emblem-action .craft-emblem-a{fill:#e9f4f9}.craft-emblem-action .craft-emblem-b{fill:#67d9c7}.craft-emblem-action .craft-emblem-c{fill:#ed7f82}
 #cho-goal-action.craft-emblem-action{min-height:42px;padding:6px 12px}
 .veil-prompt .craft-emblem-action{gap:9px;padding:10px 18px;font-size:13px}
+
+/* Unified craft-goal atom previews. */
+.cho-goal-action{max-width:calc(100% - 28px);flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto}
+#cho-goal-action .craft-target-atoms,.veil-prompt .craft-target-atoms{display:flex;flex:none;flex-wrap:nowrap;align-items:center;gap:4px;margin-left:2px}
+.veil-prompt .craft-emblem-action{max-width:100%;overflow-x:auto;justify-content:flex-start}
+#craft-target:not([hidden])~#cho-goal-action{display:none}

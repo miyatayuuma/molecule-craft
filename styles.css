@@ -29,3 +29,14 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .element-button{gap:2px;position:relative}.atom-preview{display:block;width:29px;height:29px;flex:none;border-radius:50%;background:radial-gradient(circle at 32% 25%,#fff 0%,var(--element-color) 32%,color-mix(in srgb,var(--element-color) 35%,#080e18) 85%);box-shadow:inset -3px -4px 7px #0005,0 3px 8px #0005}.element-button[data-element=H] .atom-preview{width:22px;height:22px}.element-button strong{font-size:15px}.element-button small{font-size:9px}.craft-part{position:relative;padding:5px 8px 5px 62px;flex-basis:156px;min-height:68px}.craft-part .collection-thumbnail{position:absolute;left:3px;top:50%;transform:translateY(-50%);width:56px;height:56px;object-fit:contain}.craft-part .craft-notation{font-size:11px}.craft-part strong{font-size:10px}
 #element-unlock-hint{display:none}#selection-chip:empty{display:none}#craft-empty{font-size:0}#craft-empty:after{content:'◇';font-size:28px;color:#7896a4}.tank-charge-stage.fading{animation:charge-stage-out .32s ease-out forwards}@keyframes charge-stage-out{to{opacity:0;transform:translateY(3px)}}@media(prefers-reduced-motion:reduce){.tank-charge-stage.fading{animation:none}}
 @media(min-width:950px){.craft-part{padding:58px 6px 6px;align-items:center;text-align:center}.craft-part .collection-thumbnail{top:0;left:50%;transform:translateX(-50%)}}
+
+/* Unified craft target strip. */
+.craft-target{display:flex;align-items:center;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding:7px 14px}
+.craft-target .craft-emblem{width:25px;height:25px;flex:none;overflow:visible;filter:drop-shadow(0 0 5px #75dfce38)}
+.craft-target .craft-emblem path{fill:none;stroke:#75dfce;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.craft-target .craft-emblem-a{fill:#e9f4f9}.craft-target .craft-emblem-b{fill:#67d9c7}.craft-target .craft-emblem-c{fill:#ed7f82}
+.craft-target #craft-target-formula{flex:none;color:#8fe0df;font-size:15px;font-weight:750;white-space:nowrap}
+.craft-target .craft-target-atoms{display:flex;flex:none;flex-wrap:nowrap;align-items:center;gap:5px;width:auto;margin-left:0;order:initial}
+.craft-target #craft-target-name{min-width:0;max-width:180px;overflow:hidden;text-overflow:ellipsis;color:#a9c4ce;font-size:11px;white-space:nowrap}
+.craft-target>button{flex:none;margin-left:auto}
+@media(max-width:430px){.craft-target{flex-wrap:nowrap;gap:6px}.craft-target .craft-target-atoms{width:auto;order:initial}.craft-target #craft-target-name{max-width:110px}}

@@ -1,4 +1,4 @@
-import {createVeilUI} from './veil/ui.js';
+import {createVeilUI} from './veil/ui.js?v=2';
 import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionTracker} from './workspace-model.js?v=20';
 

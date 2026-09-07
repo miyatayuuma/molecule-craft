@@ -7,6 +7,7 @@ import { createVeilRenderer } from './renderer.js';
 import { createVeilAudio } from './audio.js';
 import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
+import { renderCraftTargetAtoms } from '../craft-panel.js?v=3';
 
 const LOST_CARGO_ELEMENTS=['H','C','O'];
 function previewCaptureLoss(units){
@@ -18,7 +19,7 @@ function previewCaptureLoss(units){
 
 export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onBeforeLaunch=()=>true,onCraft=()=>{},onCommit=()=>{}}){
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),combustionButton=q('veil-combustion'),audio=createVeilAudio();
-  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,anchor='continue',anchorLock=null,returnState=null;
+  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,anchor='continue',anchorLock=null,returnState=null,pendingCraftId=null;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
@@ -31,12 +32,12 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     updatePrompt();q('cho-completion').hidden=!resources.state.progress.choCompleted;
   }
   function updatePrompt(){
-    const goal=growthGoal(resources.state,{cargo:run?.collectedElements??{}}),cost=goal.id&&resources.costFor(goal.id),withCargo=el=>(resources.state.elements[el]??0)+(run?.collectedElements[el]??0);
+    const goal=growthGoal(resources.state,{cargo:run?.collectedElements??{}}),record=goal.id?resources.record(goal.id):null,cost=goal.id&&resources.costFor(goal.id),withCargo=el=>(resources.state.elements[el]??0)+(run?.collectedElements[el]??0);
     const affordable=cost&&Object.entries(cost).every(([el,n])=>withCargo(el)>=n),firstHydrogen=goal.id==='hydrogen'&&(run?.collectedElements.H??0)>=VEIL.firstCraftH;
     q('craft-resource-hint').textContent='';
-    const goalAction=q('cho-goal-action');goalAction.hidden=!goal.id;q('cho-goal-label').textContent=goal.id?formula(goal.id):'';goalAction.setAttribute('aria-label',goal.id?`${formula(goal.id)}をクラフト`:'');
+    const goalAction=q('cho-goal-action');goalAction.hidden=!goal.id;q('cho-goal-label').textContent=goal.id?formula(goal.id):'';goalAction.setAttribute('aria-label',goal.id?`${formula(goal.id)}をクラフト`:'');renderCraftTargetAtoms(q('cho-goal-atoms'),record,[],{size:26});
     const ready=active&&goal.id&&!has(goal.id)&&affordable&&(resources.state.hints.includes(goal.id)||firstHydrogen);
-    q('veil-craft-prompt').hidden=!ready;if(ready){const record=resources.record(goal.id),label=record?.formula??'◉';q('veil-to-craft-label').textContent=label;q('veil-to-craft').setAttribute('aria-label',`${label}をクラフトするため戻る`);}
+    q('veil-craft-prompt').hidden=!ready;if(ready){const label=record?.formula??'◉';q('veil-to-craft-label').textContent=label;q('veil-to-craft').setAttribute('aria-label',`${label}をクラフトするため戻る`);renderCraftTargetAtoms(q('veil-to-craft-atoms'),record,[],{size:24});}else q('veil-to-craft-atoms')?.replaceChildren();
   }
   function notice(text,seconds=4,icon='✦'){q('veil-message').setAttribute('aria-label',text);q('veil-message').textContent=icon;messageUntil=(run?.time??0)+seconds;q('veil-message').hidden=false;}
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
@@ -58,7 +59,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);root.hidden=true;document.body.dataset.mode='craft';document.querySelector('.app-shell').inert=false;
     const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
     q('craft-last-run').textContent=result?`${result.completedNow?'◎ CHO ✓ · ':''}${captured?'⚠':'↩'} ${parts||'—'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
-    run=null;anchorLock=null;returnState=null;onCraft();updateCraft();q('launch-veil').focus();
+    const pending=pendingCraftId;pendingCraftId=null;run=null;anchorLock=null;returnState=null;onCraft();updateCraft();q('launch-veil').focus();if(pending)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:pending,source:'field'}}));
   }
   function beginReturn(captured=false){
     if(!active||!run||paused||returnState)return false;
@@ -138,7 +139,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   q('cho-goal-action').addEventListener('click',()=>{const goal=growthGoal(resources.state);if(goal.id)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:goal.id}}));});
   q('cho-continue').addEventListener('click',()=>q('open-supply').click());
-  q('launch-veil').addEventListener('click',launch);q('veil-return').addEventListener('click',()=>beginReturn(false));q('veil-to-craft').addEventListener('click',()=>beginReturn(false));
+  q('launch-veil').addEventListener('click',launch);q('veil-return').addEventListener('click',()=>beginReturn(false));q('veil-to-craft').addEventListener('click',()=>{const goal=growthGoal(resources.state,{cargo:run?.collectedElements??{}}),id=goal.id??null;if(id&&beginReturn(false))pendingCraftId=id;});
   q('veil-boost').addEventListener('pointerdown',event=>{event.preventDefault();burst();});q('veil-boost').addEventListener('click',event=>{if(event.detail===0)burst();});
   combustionButton.addEventListener('pointerdown',startCombustion);for(const type of ['pointerup','pointercancel','lostpointercapture'])combustionButton.addEventListener(type,event=>{if(drivePointer===null||event.pointerId===drivePointer)stopCombustion();});
   q('veil-sound').addEventListener('click',()=>{resources.state.progress.sound=resources.state.progress.sound===false;audio.mute(!resources.state.progress.sound);audio.start();resources.save();hud();});
