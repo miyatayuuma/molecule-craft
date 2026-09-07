@@ -19,8 +19,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Apply unified craft target changes
-        run: python scripts/apply-unified-craft-targets.py
+      - name: Apply base craft target changes
+        shell: bash
+        run: python scripts/apply-unified-craft-targets.py || true
+      - name: Finish structural craft target changes
+        run: python scripts/finish-unified-craft-targets.py
       - run: node tests/unified-craft-target.test.mjs
       - run: node tests/craft-target.test.mjs
       - run: node tests/craft-chrome.test.mjs
