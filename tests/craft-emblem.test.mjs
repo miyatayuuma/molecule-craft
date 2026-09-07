@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const root=new URL('../',import.meta.url);
+const [index,css,supply]=await Promise.all([readFile(new URL('index.html',root),'utf8'),readFile(new URL('veil.css',root),'utf8'),readFile(new URL('src/veil/supply.js',root),'utf8')]);
+assert.doesNotMatch(index,/⚒/,'Generic hammer icon must not return');
+assert.match(index,/class="craft-emblem"/);
+assert.match(index,/id="tank-open-collection" type="button">図鑑<\/button>/);
+assert.match(css,/Logo-derived craft emblem/);
+assert.match(css,/\.craft-emblem-action/);
+assert.match(css,/tank-molecules button>span small\{font-size:9px/);
+assert.match(supply,/tank-load'\)\.textContent=loaded\?formula\(loaded\):'—'/);
+console.log('Craft emblem visual contract passed.');

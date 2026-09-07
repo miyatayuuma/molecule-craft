@@ -55,3 +55,14 @@
 @keyframes paired-feed{to{filter:brightness(1.5)}}@keyframes cooling-flow{to{box-shadow:0 0 20px #70ddce55}}
 @media(prefers-reduced-motion:reduce){.driving .paired-tanks em,.veil-thermal[data-state=cooling]{animation:none}.tank-scale>b,.paired-tanks em{transition:none}}
 #veil-coolant-level{--tank-color:#91ddd4;height:5px}#supply-dialog .port-oxidizer{left:auto;right:10px}#supply-dialog .port-coolant{right:auto;left:10px}#supply-dialog .collector-shell-map:after{display:block;content:'＋ ♨';position:absolute;left:auto;right:24px;top:50%;bottom:auto;width:76px;height:auto;border:0;border-radius:0;transform:translateY(-50%);text-align:center;color:#efb98e;font-size:16px}
+
+/* Logo-derived craft emblem and compact tank visual polish. */
+#supply-dialog .craft-emblem-action{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;border-color:#67cfc1;background:linear-gradient(145deg,#174954,#12323f);color:#e8fbf7;font-size:11px;font-weight:650;letter-spacing:.04em;box-shadow:inset 0 0 0 1px #8ce5d51a,0 5px 14px #03101840}
+#supply-dialog .craft-emblem{width:25px;height:25px;flex:none;overflow:visible;filter:drop-shadow(0 0 5px #75dfce38)}
+#supply-dialog .craft-emblem path{fill:none;stroke:#75dfce;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#supply-dialog .craft-emblem-a{fill:#e9f4f9}#supply-dialog .craft-emblem-b{fill:#67d9c7}#supply-dialog .craft-emblem-c{fill:#ed7f82}
+#supply-dialog .tank-model-caption>button{min-height:40px;padding:5px 9px;border-radius:10px}
+#supply-dialog .tank-molecules button>span small{font-size:9px;line-height:1.25;color:#9ab5c1}
+#supply-dialog .tank-decision>button{min-height:44px}
+@media(hover:hover){#supply-dialog .craft-emblem-action:hover{border-color:#8ae3d6;background:linear-gradient(145deg,#1b5660,#153b47)}}
+@media(max-width:370px){#supply-dialog .craft-emblem-action{gap:6px;padding-left:8px;padding-right:8px}#supply-dialog .craft-emblem{width:22px;height:22px}}
