@@ -37,7 +37,7 @@ export function createCraftPanel(document){
   }
 
   function renderStructureList({structures,focused,disabled,onSelect}){
-    document.querySelector('#structure-focus-label').hidden=structures.length<2;
+    const focusLabel=document.querySelector('#structure-focus-label');if(focusLabel)focusLabel.hidden=structures.length<2;
     nodes.structureFocus.disabled=disabled;nodes.structureFocus.replaceChildren();
     nodes.structureCount.textContent=`完成 ${structures.filter(item=>item.complete).length} / 構造 ${structures.length}`;nodes.structureList.replaceChildren();
     for(const [index,item] of structures.entries()){
