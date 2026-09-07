@@ -35,7 +35,7 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
     active.delete(node);node.getAnimations?.().forEach(animation=>animation.cancel());
     Object.assign(node.style,{display:'none',opacity:'0',backgroundImage:'none',willChange:'auto'});
   }
-  function move({from,to,color='#bfeef4',size=12,duration=320,image=null,delay=0}){
+  function move({from,to,color='#bfeef4',size=12,duration=620,image=null,delay=0}){
     if(reduced||!from||!to)return false;
     const node=acquire();if(!node)return false;
     node.style.width=`${size}px`;node.style.height=`${size}px`;
@@ -50,8 +50,8 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
     if(typeof node.animate==='function'){
       const animation=node.animate([
         {transform:transform(from,.58),opacity:0},
-        {transform:transform(from,.92),opacity:1,offset:.14},
-        {transform:transform({x:mx,y:my},1),opacity:.96,offset:.55},
+        {transform:transform(from,.92),opacity:1,offset:.12},
+        {transform:transform({x:mx,y:my},1),opacity:.98,offset:.58},
         {transform:transform(to,.28),opacity:0},
       ],{duration,delay,easing:'cubic-bezier(.22,.72,.24,1)',fill:'forwards'});
       animation.finished.catch(()=>{}).finally(()=>release(node));
@@ -79,14 +79,14 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
       const source=elementSource(symbol);if(!source.point)continue;
       const index=used.get(symbol)??0;used.set(symbol,index+1);
       const angle=index*1.9+emitted*.72,offset={x:to.x+Math.cos(angle)*7,y:to.y+Math.sin(angle)*7};
-      if(move({from:source.point,to:offset,color:source.color,size:10,duration:300+emitted*18,delay:Math.min(90,emitted*14)}))emitted++;
+      if(move({from:source.point,to:offset,color:source.color,size:10,duration:650+emitted*24,delay:Math.min(120,emitted*20)}))emitted++;
       if(active.size>=MAX_PARTICLES)break;
     }
     return emitted;
   }
   function partFromPalette(button,to=viewerPoint()){
     const source=centerOf(button?.querySelector?.('.collection-thumbnail')??button),image=button?.querySelector?.('.collection-thumbnail')?.src;
-    return move({from:source,to,image,size:image?32:16,color:'#8fe0df',duration:360});
+    return move({from:source,to,image,size:image?32:16,color:'#8fe0df',duration:720});
   }
   function clearPendingPart(){pendingPart=null;if(pendingPartTimer){view.clearTimeout?.(pendingPartTimer);pendingPartTimer=0;}}
   function cancelAll(){clearPendingPart();for(const node of [...active])release(node);}
@@ -103,8 +103,8 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
       const symbol=node.dataset.elementStock,next=Math.max(0,Number(node.textContent??0)),previous=stockCounts.get(symbol);
       stockCounts.set(symbol,next);if(previous==null||next===previous||!ready)continue;
       const delta=next-previous,count=Math.min(3,Math.abs(delta));
-      if(delta<0){partSpent=partSpent||!!part;if(!suppressDepletion)for(let i=0;i<count;i++)atomFromStock(symbol,viewerPoint(),{delay:i*28});}
-      if(delta>0)for(let i=0;i<count;i++)atomToStock(symbol,viewerPoint(),{delay:i*28});
+      if(delta<0){partSpent=partSpent||!!part;if(!suppressDepletion)for(let i=0;i<count;i++)atomFromStock(symbol,viewerPoint(),{delay:i*55});}
+      if(delta>0)for(let i=0;i<count;i++)atomToStock(symbol,viewerPoint(),{delay:i*55});
     }
     if(partSpent){partFromPalette(part.button);clearPendingPart();}
   }
