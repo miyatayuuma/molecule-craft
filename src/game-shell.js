@@ -4,13 +4,16 @@ function pruneInstructionalChrome(document){
   const clear=q('clear-all');clear?.removeAttribute('title');clear?.querySelector('small')?.remove();
 
   for(const selector of [
-    '#open-help','#help-dialog','#selection-chip','#craft-last-run','#element-unlock-hint','#game-loop-hint','#craft-empty','.reset-tools',
+    '#open-help','#help-dialog','#craft-last-run','#element-unlock-hint','#game-loop-hint','#craft-empty','.reset-tools',
     '.element-button small','#molecule-iupac','#tank-next-hint','.tank-explanation','#tank-affordability','#tank-charge-result','#oxygen-route-guide',
     '.veil-stock > span','#veil-gained','#veil-chain-block','.veil-title > small','#veil-region-subtitle',
     '#veil-threat','#veil-goal','#veil-message','#veil-pad-label','#veil-thermal-state','#veil-coolant',
     '#veil-combustion-remaining','#veil-boost > small',
   ])for(const node of document.querySelectorAll(selector))node.style.display='none';
 
+  // The spawn planner uses this chip's screen rectangle as the lower safe-area
+  // boundary. Keep its geometry while removing it visually.
+  const selectionChip=q('selection-chip');if(selectionChip)selectionChip.style.visibility='hidden';
   const autoSave=q('reset-status')?.nextElementSibling;if(autoSave?.matches('p.muted'))autoSave.remove();
   q('show-extra-elements')?.closest('details')?.querySelector('p.muted')?.remove();
 }
