@@ -2,6 +2,23 @@ import {ELEMENTS,UNKNOWN_NAME,countElements} from './chemistry.js?v=20';
 import {preferredValence} from './bonding-model.js?v=31';
 import {bindTankChargeAction} from './tank-charge.js';
 
+export function craftTargetSlots(record,placedAtoms=[]){
+  if(!record?.atoms)return[];
+  const needed=countElements(record.atoms),placed=countElements(placedAtoms),slots=[];
+  for(const [symbol,total]of Object.entries(needed).sort(([a],[b])=>a.localeCompare(b)))for(let index=0;index<total;index++)slots.push({symbol,index,filled:index<(placed[symbol]??0)});
+  return slots;
+}
+
+function targetLabelColor(color){
+  const value=String(color??'').replace('#','');if(!/^[0-9a-f]{6}$/i.test(value))return'#f8fafc';
+  const r=parseInt(value.slice(0,2),16),g=parseInt(value.slice(2,4),16),b=parseInt(value.slice(4,6),16);return .299*r+.587*g+.114*b>168?'#07131f':'#f8fafc';
+}
+
+function styleTargetAtom(node,symbol,filled){
+  const color=ELEMENTS[symbol]?.color??'#94a3b8',base=filled?color:`color-mix(in srgb,${color} 26%,#344451)`,highlight=filled?`color-mix(in srgb,#fff 48%,${color})`:`color-mix(in srgb,#fff 18%,${color})`,edge=filled?`color-mix(in srgb,${color} 72%,#d8f3f5)`:`color-mix(in srgb,${color} 28%,#60717d)`,text=filled?targetLabelColor(color):'#eef5f8';
+  node.style.cssText=`display:inline-grid;place-items:center;flex:0 0 31px;width:31px;height:31px;border:1px solid ${edge};border-radius:50%;background:radial-gradient(circle at 34% 28%,${highlight} 0 10%,${base} 48%,color-mix(in srgb,${base} 66%,#07131f) 100%);box-shadow:${filled?'inset -3px -4px 7px #07131f55,0 2px 7px #0005':'inset -2px -3px 6px #07131f66,0 1px 4px #0003'};color:${text};font-size:12px;font-weight:800;line-height:1;text-shadow:${text==='#07131f'?'0 1px 1px #fff6':'0 1px 2px #000'};user-select:none;transition:transform .18s ease,filter .18s ease,opacity .18s ease;${filled?'':'filter:saturate(.46) brightness(.86);'}`;
+}
+
 export function createCraftPanel(document){
   const nodes={
     status:document.querySelector('#status'),formula:document.querySelector('#formula'),name:document.querySelector('#molecule-name'),iupac:document.querySelector('#molecule-iupac'),counts:document.querySelector('#atom-counts'),
@@ -10,7 +27,7 @@ export function createCraftPanel(document){
     structureList:document.querySelector('#structure-list'),structureCount:document.querySelector('#structure-count'),structureFocus:document.querySelector('#structure-focus'),
     tankActions:document.querySelector('#craft-tank-actions'),chargeStage:document.querySelector('#tank-charge-stage'),target:document.querySelector('#craft-target'),targetName:document.querySelector('#craft-target-name'),targetFormula:document.querySelector('#craft-target-formula'),targetAtoms:document.querySelector('#craft-target-atoms'),
   };
-  let tankActionKey='',tankControls=[],clearTarget=()=>{};
+  let tankActionKey='',tankControls=[],clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};
   document.querySelector('#clear-craft-target')?.addEventListener('click',()=>clearTarget());
 
   function identity(structure){
@@ -39,15 +56,17 @@ export function createCraftPanel(document){
     refreshTankButtons();nodes.tankActions.hidden=!uses.length;
   }
 
-  function renderTarget(record,available,onClearTarget){
-    clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record)return;
-    nodes.targetName.textContent=record.commonNameJa??record.nameJa??record.name??'制作目標';nodes.targetFormula.textContent=record.formula??'';nodes.targetAtoms.replaceChildren();
-    for(const [symbol,needed]of Object.entries(countElements(record.atoms)).sort()){const have=available?.[symbol]??0,chip=document.createElement('span');chip.className='craft-target-atom';chip.dataset.short=String(have<needed);chip.textContent=`${symbol} ${Math.min(have,needed)}/${needed}`;nodes.targetAtoms.appendChild(chip);}
+  function renderTarget(record,placedAtoms,onClearTarget){
+    clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){lastTargetKey='';lastTargetFilled={};return;}
+    nodes.targetName.textContent=record.commonNameJa??record.nameJa??record.name??'制作目標';nodes.targetFormula.textContent=record.formula??'';nodes.targetAtoms.replaceChildren();nodes.targetAtoms.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0';
+    const slots=craftTargetSlots(record,placedAtoms),key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
+    for(const slot of slots){if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;const chip=document.createElement('span');chip.className='craft-target-atom';chip.dataset.element=slot.symbol;chip.dataset.filled=String(slot.filled);chip.textContent=slot.symbol;chip.setAttribute('aria-label',`${ELEMENTS[slot.symbol]?.name??slot.symbol} ${slot.filled?'配置済み':'未配置'}`);styleTargetAtom(chip,slot.symbol,slot.filled);nodes.targetAtoms.appendChild(chip);if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
+    lastTargetKey=key;lastTargetFilled=filledNow;
   }
 
-  function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetAvailable,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure,cleanupAvailable}){
+  function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure,cleanupAvailable}){
     veilUI?.updateCraft();const itemIdentity=identity(focus);nodes.formula.textContent=itemIdentity.formula;nodes.name.textContent=itemIdentity.primary;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';
-    renderTarget(target,targetAvailable,onClearTarget);
+    renderTarget(target,molecule.atoms,onClearTarget);
     renderTankActions(focus,veilUI);
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
     nodes.counts.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)nodes.counts.textContent='—';else for(const symbol of Object.keys(counts).sort()){const chip=document.createElement('span');chip.className='atom-count';chip.textContent=`${symbol} × ${counts[symbol]}`;nodes.counts.appendChild(chip);}
