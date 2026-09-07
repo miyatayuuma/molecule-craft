@@ -16,6 +16,10 @@ const [index, app, chemistry, solver, conformation, electronInteraction, gesture
   readFile(new URL('src/craft-connections.js', root), 'utf8'),
   readFile(new URL('src/craft-panel.js', root), 'utf8'),
 ]);
+const collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'utf8');
+assert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|模型を(?:拡大|縮小|表示リセット)/,'Collection viewer zoom/reset buttons stay removed');
+assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
+assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
 
 assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=45"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);

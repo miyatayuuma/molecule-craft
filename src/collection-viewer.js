@@ -19,15 +19,10 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},show
   const owner=host.ownerDocument,make=(tag,text,className)=>{const node=owner.createElement(tag);if(text)node.textContent=text;if(className)node.className=className;return node;};
   const stage=make('div',null,'model-stage'),status=make('p','立体模型を準備しています…','model-status');
   status.setAttribute('role','status');
-  const toolbar=make('div',null,'model-toolbar'),zoomLabel=make('output','100%','model-zoom');
-  host.append(stage,toolbar,status);host.classList.add('collection-model');
+  host.append(stage,status);host.classList.add('collection-model');
   const listen=(node,type,handler,options)=>{node.addEventListener(type,handler,options);listeners.push(()=>node.removeEventListener(type,handler,options));};
-  const controls=createPreviewControls(view=>{Object.assign(viewState,view);zoomLabel.value=`${Math.round(view.zoom*100)}%`;requestDraw();});
+  const controls=createPreviewControls(view=>{Object.assign(viewState,view);requestDraw();});
   Object.assign(viewState,controls.snapshot());
-  for(const [label,action,accessible] of [['−',()=>controls.zoom(1/1.2),'縮小'],['＋',()=>controls.zoom(1.2),'拡大'],['↺',()=>controls.reset(),'表示リセット']]){
-    const button=make('button',label);button.type='button';button.setAttribute('aria-label',`模型を${accessible}`);listen(button,'click',action);toolbar.append(button);
-  }
-  toolbar.append(zoomLabel);
 
   if(record.attachments?.length)host.append(make('p','金色の輪が接続点','model-port-key'));
 
