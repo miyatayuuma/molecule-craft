@@ -1,0 +1,57 @@
+name: Apply craft emblem polish
+
+on:
+  push:
+    branches: [craft-emblem-polish-apply]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: craft-emblem-polish-apply
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply UI polish
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const replace=(path,from,to)=>{const text=fs.readFileSync(path,'utf8');if(!text.includes(from))throw new Error(`${path}: target not found`);fs.writeFileSync(path,text.replace(from,to));};
+          replace('index.html',
+            '<div class="tank-model-caption"><span id="tank-model-name"></span><button id="tank-open-collection" type="button">図鑑 ›</button></div>',
+            '<div class="tank-model-caption"><span id="tank-model-name"></span><button id="tank-open-collection" type="button">図鑑</button></div>');
+          replace('index.html',
+            '<button id="tank-craft-molecule" class="primary" type="button">⚒ クラフト</button>',
+            '<button id="tank-craft-molecule" class="primary craft-emblem-action" type="button"><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><span>クラフト</span></button>');
+          replace('src/veil/supply.js',
+            "q('tank-load').textContent=loaded?formula(loaded):'EMPTY';",
+            "q('tank-load').textContent=loaded?formula(loaded):'—';");
+          const css='\n/* Logo-derived craft emblem and compact tank visual polish. */\n#supply-dialog .craft-emblem-action{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;border-color:#67cfc1;background:linear-gradient(145deg,#174954,#12323f);color:#e8fbf7;font-size:11px;font-weight:650;letter-spacing:.04em;box-shadow:inset 0 0 0 1px #8ce5d51a,0 5px 14px #03101840}\n#supply-dialog .craft-emblem{width:25px;height:25px;flex:none;overflow:visible;filter:drop-shadow(0 0 5px #75dfce38)}\n#supply-dialog .craft-emblem path{fill:none;stroke:#75dfce;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}\n#supply-dialog .craft-emblem-a{fill:#e9f4f9}#supply-dialog .craft-emblem-b{fill:#67d9c7}#supply-dialog .craft-emblem-c{fill:#ed7f82}\n#supply-dialog .tank-model-caption>button{min-height:40px;padding:5px 9px;border-radius:10px}\n#supply-dialog .tank-molecules button>span small{font-size:9px;line-height:1.25;color:#9ab5c1}\n#supply-dialog .tank-decision>button{min-height:44px}\n@media(hover:hover){#supply-dialog .craft-emblem-action:hover{border-color:#8ae3d6;background:linear-gradient(145deg,#1b5660,#153b47)}}\n@media(max-width:370px){#supply-dialog .craft-emblem-action{gap:6px;padding-left:8px;padding-right:8px}#supply-dialog .craft-emblem{width:22px;height:22px}}\n';
+          const veil=fs.readFileSync('veil.css','utf8');if(!veil.includes('Logo-derived craft emblem'))fs.writeFileSync('veil.css',veil+css);
+          fs.writeFileSync('tests/craft-emblem.test.mjs',`import assert from 'node:assert/strict';\nimport {readFile} from 'node:fs/promises';\nconst root=new URL('../',import.meta.url);\nconst [index,css,supply]=await Promise.all([readFile(new URL('index.html',root),'utf8'),readFile(new URL('veil.css',root),'utf8'),readFile(new URL('src/veil/supply.js',root),'utf8')]);\nassert.doesNotMatch(index,/⚒/,'Generic hammer icon must not return');\nassert.match(index,/class="craft-emblem"/);\nassert.match(index,/id="tank-open-collection" type="button">図鑑<\\/button>/);\nassert.match(css,/Logo-derived craft emblem/);\nassert.match(css,/\\.craft-emblem-action/);\nassert.match(css,/tank-molecules button>span small\\{font-size:9px/);\nassert.match(supply,/tank-load'\\)\\.textContent=loaded\\?formula\\(loaded\\):'—'/);\nconsole.log('Craft emblem visual contract passed.');\n`);
+          NODE
+      - name: Regenerate offline release
+        run: node scripts/build-precache.mjs
+      - name: Craft emblem regression
+        run: node --test tests/craft-emblem.test.mjs
+      - name: Source contracts
+        run: node tests/source-contracts.test.mjs
+      - name: PWA integrity
+        run: node tests/pwa.test.mjs
+      - name: Unit tests
+        run: node --test tests/*.test.mjs
+      - name: Repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: Commit result and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/craft-emblem-apply.yml
+          git add index.html veil.css src/veil/supply.js tests/craft-emblem.test.mjs precache-manifest.js
+          git commit -m "Replace craft hammer with molecule emblem"
+          git push
