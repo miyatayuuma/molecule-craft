@@ -44,7 +44,7 @@ let structures=[],mainStructure=null,structureByAtom=new Map();
 const debrisTracker=createDebrisTracker();
 const workspaceView=createWorkspaceView();
 const syncCraftStock=()=>syncElementStocks(document,resources.state.elements);
-const craftWorkspace=createCraftWorkspace({molecule,placements,resources,onStockChange:syncCraftStock});
+const craftWorkspace=createCraftWorkspace({molecule,placements,resources,resolveUnlockedPart:id=>collectionGame?.templateFor(id),onStockChange:syncCraftStock});
 const protectedUntil=new Map(),cleanupUndo=[];
 let lastBackgroundTap=null,frameTransition=null;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
@@ -161,7 +161,7 @@ function addCraftPart(id){
   const parts=coordinates.map((p,i)=>({x:p.dot(right),y:p.dot(up),z:-p.dot(depth),radius:spawnRadius(template.atoms[i],orders[i])})),plan=planWorkspaceSpawn(parts);
   if(!plan){pulse('部品全体を置ける空きがありません · 構造を移動・整理してください');return false;}
   const origin=plan.origin;
-  const expanded=craftWorkspace.addStructure(template,coordinates.map(point=>origin.clone().add(point)));
+  const expanded=craftWorkspace.addPart(id,coordinates.map(point=>origin.clone().add(point)));
   if(!expanded){pulse(`部品に必要な原子が足りません · 探索で補給しよう`);return false;}
   for(const [index,atomId]of expanded.ids.entries()){
     protectedUntil.set(atomId,performance.now()+DEBRIS_POLICY.protectionMs);

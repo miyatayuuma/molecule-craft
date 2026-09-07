@@ -56,7 +56,7 @@ assert.match(app.document.querySelector('.dex-description').textContent,/砂糖�
 app.document.querySelector('[aria-label="次の項目"]').click();assert.equal(app.document.querySelector('.detail-heading .dex-number').textContent,'No. 005');
 app.document.querySelector('#close-collection').click();
 const reboot=await setup(raw);assert.equal(reboot.run('molecule.atoms.length'),2);const rebooted=JSON.parse(savedOf(reboot));assert.deepEqual(rebooted,snapshot,'Startup must restore the same pose and focus without relaxation/reframing');
-reboot.run("addElement('O')");assert.equal(reboot.run('molecule.atoms.length'),3);reboot.run('updateStructureFrame(2000)');assert.equal(reboot.document.querySelector('#clear-all span').textContent,'片付ける');reboot.document.querySelector('#clear-all').click();assert.equal(reboot.run('molecule.atoms.length'),3,'A click never clears');reboot.run('clearField()');assert.equal(reboot.run('molecule.atoms.length'),0);assert.equal(JSON.parse(savedOf(reboot)).atoms.length,0);
+reboot.run("addElement('O')");assert.equal(reboot.run('molecule.atoms.length'),3);reboot.run('updateStructureFrame(2000)');assert.match(reboot.document.querySelector('#clear-all').getAttribute('aria-label'),/長押し.*片付ける/);reboot.document.querySelector('#clear-all').click();assert.equal(reboot.run('molecule.atoms.length'),3,'A click never clears');reboot.run('clearField()');assert.equal(reboot.run('molecule.atoms.length'),0);assert.equal(JSON.parse(savedOf(reboot)).atoms.length,0);
 const future=JSON.stringify({...snapshot,schemaVersion:9}),protectedApp=await setup(future);protectedApp.run("addElement('C');saveWorkspace(true)");assert.equal(protectedApp.window.localStorage.getItem(WORKSPACE_STORAGE_KEY),future);assert.equal(protectedApp.document.querySelector('#resource-save-status').hidden,false);
 console.log('Production DOM integration passed: startup, spawn, dialog guards, collection hints/images/text/navigation, exact restart, clear and future-save protection.');
 
@@ -210,3 +210,13 @@ for(const name of ['methane','benzene','phosphoric-acid','acetamide']){
   assert.equal(scene.document.querySelector('#rotation-axis-options'),null);
 }
 console.log('Production conformation UI passed: every atom is grabbable, rigid structures move intact, flexible structures propagate force through torsions, legacy axis UI stays hidden, and camera/pointer/topology invariants hold.');
+
+// Free-work part entry uses the real unlock state, palette and checkout path.
+const partApp=await setup();assert.equal(partApp.run("addCraftPart('hydroxyl')"),false);
+partApp.run(`(()=>{const record=moleculeCatalog().find(r=>r.id==='methanol'),demo=new Molecule(),ids=record.atoms.map(el=>demo.addAtom(el).id);for(const [a,b,o] of record.bonds)demo.setBond(ids[a],ids[b],o);collectionGame.observeStructures(connectedStructures(demo));})()`);
+assert.equal(partApp.run("collectionGame.state.isUnlocked('hydroxyl')"),true);
+partApp.document.querySelector('#parts-tab').click();
+const partButton=partApp.document.querySelector('#craft-palette [data-part-id="hydroxyl"]');assert.ok(partButton);assert.ok(partButton.querySelector('img'));
+const partStock=JSON.parse(partApp.run('JSON.stringify(resources.state.elements)'));partButton.click();
+assert.equal(partApp.run('molecule.atoms.length'),2);assert.equal(partApp.run('molecule.bonds.length'),1);assert.equal(partApp.run('resources.state.elements.O'),partStock.O-1);assert.equal(partApp.run('resources.state.elements.H'),partStock.H-1);assert.equal(partApp.run('craftTargetId'),null);
+console.log('Free-work parts passed: real unlock state → existing model palette → ordinary O-H atoms, atomic checkout, no target required.');
