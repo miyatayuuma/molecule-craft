@@ -23,6 +23,7 @@ import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { bindCraftControls } from './craft-controls.js?v=1';
 import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=3';
 import { createCraftPanel } from './craft-panel.js?v=3';
+import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
@@ -607,9 +608,20 @@ function syncWorkspace(){
   discoveryConnection.sync(structures);
   for(const id of protectedUntil.keys())if(!structureByAtom.has(id))protectedUntil.delete(id);
 }
+function targetPartsFor(record){
+  if(!record)return[];
+  const state=collectionGame?.state,unlocked=state?.templates?.filter(template=>state.isUnlocked(template.id))??[];
+  return decomposeTargetIntoAvailableParts(record,unlocked).map(item=>item.partId?{...item,template:collectionGame?.templateFor(item.partId)}:item);
+}
+function placeTargetPart(item){
+  if(!item)return false;
+  if(item.partId)return addCraftPart(item.partId);
+  addElement(item.element);return true;
+}
 function refreshInfo(keep=false){
   const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;
-  craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target:resources.record(craftTargetId),targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:cleanupUndo.length>0,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
+  const target=resources.record(craftTargetId);
+  craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target,targetParts:targetPartsFor(target),onPlaceTargetPart:placeTargetPart,targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:cleanupUndo.length>0,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
 }
 function refreshStructureList(){
   craftPanel.renderStructureList({structures,focused:focusedStructure(),disabled:interactionLocked()||!!dragState||activePointers.size>0,onSelect:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
