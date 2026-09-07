@@ -21,8 +21,8 @@ import { createGameShell } from './game-shell.js?v=29';
 import { createWorkspaceStorage, captureWorkspace, restoreWorkspace } from './workspace-save.js?v=30';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { bindCraftControls } from './craft-controls.js?v=1';
-import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=2';
-import { createCraftPanel } from './craft-panel.js?v=2';
+import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=3';
+import { createCraftPanel } from './craft-panel.js?v=3';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
@@ -83,7 +83,7 @@ if(renderer){
   savedWorkspace=workspaceStorage.read();
   if(savedWorkspace){
     const restored=restoreWorkspace(savedWorkspace,{THREE,molecule,placements,camera,cameraTarget});
-    selectedAtomId=restored.selected;craftTargetId=resources.state.recipes.includes(restored.targetMoleculeId)?restored.targetMoleculeId:null;workspaceView.select(restored.focus);topologyChanged();
+    selectedAtomId=restored.selected;craftTargetId=(resources.state.recipes.includes(restored.targetMoleculeId)||resources.state.hints.includes(restored.targetMoleculeId))?restored.targetMoleculeId:null;workspaceView.select(restored.focus);topologyChanged();
     if(restored.pivot&&focusedStructure())workspaceView.frame(focusedStructure(),restored.pivot);
     for(const atom of molecule.atoms)protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
     discoveryConnection.discardQueued();
@@ -128,7 +128,7 @@ function clearField({clearTarget=false,silent=false}={}){
 }
 
 function beginCraftTarget(id){
-  const record=resources.record(id);if(!record||!resources.state.recipes.includes(id)||interactionLocked()||dragState||activePointers.size)return false;
+  const record=resources.record(id),targetable=resources.state.recipes.includes(id)||resources.state.hints.includes(id);if(!record||!targetable||interactionLocked()||dragState||activePointers.size)return false;
   if(!clearField({silent:true}))return false;craftTargetId=id;refresh();saveWorkspace(true);pulse(`${record.formula??record.name??'分子'}を制作目標にしました`);return true;
 }
 
@@ -609,7 +609,7 @@ function syncWorkspace(){
 }
 function refreshInfo(keep=false){
   const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;
-  craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target:resources.record(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:cleanupUndo.length>0,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
+  craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target:resources.record(craftTargetId),targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:cleanupUndo.length>0,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
 }
 function refreshStructureList(){
   craftPanel.renderStructureList({structures,focused:focusedStructure(),disabled:interactionLocked()||!!dragState||activePointers.size>0,onSelect:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
