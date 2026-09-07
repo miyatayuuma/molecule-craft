@@ -1,0 +1,24 @@
+name: Collector shell validation
+on:
+  push:
+    branches:
+      - replace-collector-shell-sprite
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --check src/veil/collector-shell.js
+      - run: node tests/launch-dialog-lock.test.mjs
+      - run: node scripts/check-repository-hygiene.mjs
+      - run: node scripts/build-precache.mjs
+      - run: node tests/pwa.test.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: collector-shell-generated
+          path: |
+            precache-manifest.js
+            sw.js
