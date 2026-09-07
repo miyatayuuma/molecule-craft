@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {launchDestinationLayout} from '../src/veil/supply.js';
 
+const source=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
+assert.match(source,/collector-launch-handle/,'Explorer launch must have a dedicated touch target');
+assert.match(source,/launchHandle\.addEventListener\('pointerdown',beginLaunch\)/,'Drag must start from the dedicated touch target');
+assert.match(source,/shellCanvas\.style\.transform=`translate/,'The visible explorer must follow the drag');
 const ids=['veil','carbon','oxygen','frontier','veil','carbon'];
 for(let count=1;count<=5;count++){
   const layout=launchDestinationLayout(ids.slice(0,count));
