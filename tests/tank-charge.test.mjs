@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {bindTankChargeAction} from '../src/tank-charge.js';
+import {bindTankChargeAction,moleculeChargeLayout} from '../src/tank-charge.js';
 
 class Tokens{constructor(){this.values=new Set();}add(...items){for(const item of items)this.values.add(item);}remove(...items){for(const item of items)this.values.delete(item);}}
 class Node extends EventTarget{
@@ -18,6 +18,11 @@ function harness(plan,{reduced=false}={}){
   const advance=milliseconds=>{now+=milliseconds;const callbacks=[...queued.values()];queued.clear();for(const callback of callbacks)callback(now);};
   return {button,stage,result,control,commits,finishResults,pointer,advance,view,document};
 }
+
+const methaneLayout=moleculeChargeLayout({atoms:['C','H','H','H','H'],bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]]});
+assert.equal(methaneLayout.length,5,'Charge layout contains every atom without creating 3D models');
+assert.deepEqual(methaneLayout[0],{x:0,y:0},'The highest-degree atom becomes the visual molecule center');
+assert.ok(methaneLayout.slice(1).every(point=>Math.hypot(point.x,point.y)>0),'Substituent atoms form a lightweight radial shell');
 
 const base={label:'噴射剤',capacity:10,loadedCapacity:0,amount:0,current:0,maxAdd:10,replacing:false};
 const partial=harness(base);partial.pointer('pointerdown');assert.equal(partial.stage.hidden,false);partial.advance(900);partial.pointer('pointerup');assert.deepEqual(partial.commits,[5],'Early release commits the proportional whole-molecule amount');
