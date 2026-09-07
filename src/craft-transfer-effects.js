@@ -9,7 +9,7 @@ const centerOf=node=>{
 const now=()=>globalThis.performance?.now?.()??Date.now();
 
 export function createCraftTransferEffects(root=document,{reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false}={}){
-  let layer=null,ready=false,suppressDepletionUntil=0;
+  let layer=null,ready=false,pendingPart=null,pendingPartTimer=0;
   const pool=[],active=new Set(),stockCounts=new Map();
   const view=root.defaultView??globalThis;
   const Mutation=view.MutationObserver??globalThis.MutationObserver;
@@ -88,7 +88,8 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
     const source=centerOf(button?.querySelector?.('.collection-thumbnail')??button),image=button?.querySelector?.('.collection-thumbnail')?.src;
     return move({from:source,to,image,size:image?32:16,color:'#8fe0df',duration:360});
   }
-  function cancelAll(){for(const node of [...active])release(node);}
+  function clearPendingPart(){pendingPart=null;if(pendingPartTimer){view.clearTimeout?.(pendingPartTimer);pendingPartTimer=0;}}
+  function cancelAll(){clearPendingPart();for(const node of [...active])release(node);}
 
   function snapshotStocks(){
     for(const node of root.querySelectorAll?.('#element-palette [data-element-stock]')??[]){
@@ -96,22 +97,23 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
     }
   }
   function onStocksChanged(){
-    const charging=root.querySelector?.('#tank-charge-stage');
-    const suppressDepletion=now()<suppressDepletionUntil||!!(charging&&!charging.hidden);
+    const charging=root.querySelector?.('#tank-charge-stage'),part=pendingPart&&pendingPart.expires>=now()?pendingPart:null;
+    const suppressDepletion=!!part||!!(charging&&!charging.hidden);let partSpent=false;
     for(const node of root.querySelectorAll?.('#element-palette [data-element-stock]')??[]){
       const symbol=node.dataset.elementStock,next=Math.max(0,Number(node.textContent??0)),previous=stockCounts.get(symbol);
       stockCounts.set(symbol,next);if(previous==null||next===previous||!ready)continue;
       const delta=next-previous,count=Math.min(3,Math.abs(delta));
-      if(delta<0&&!suppressDepletion)for(let i=0;i<count;i++)atomFromStock(symbol,viewerPoint(),{delay:i*28});
+      if(delta<0){partSpent=partSpent||!!part;if(!suppressDepletion)for(let i=0;i<count;i++)atomFromStock(symbol,viewerPoint(),{delay:i*28});}
       if(delta>0)for(let i=0;i<count;i++)atomToStock(symbol,viewerPoint(),{delay:i*28});
     }
+    if(partSpent){partFromPalette(part.button);clearPendingPart();}
   }
   const palette=root.querySelector?.('#element-palette');
   const observer=Mutation&&palette?new Mutation(onStocksChanged):null;
   observer?.observe(palette,{subtree:true,childList:true,characterData:true});
   root.addEventListener?.('click',event=>{
     const part=event.target?.closest?.('.craft-part.unlocked');if(!part)return;
-    suppressDepletionUntil=now()+180;partFromPalette(part);
+    clearPendingPart();pendingPart={button:part,expires:now()+220};pendingPartTimer=view.setTimeout?.(()=>clearPendingPart(),240)??0;
   },true);
   root.addEventListener?.('visibilitychange',()=>{if(root.hidden)cancelAll();});
   view.addEventListener?.('pagehide',cancelAll);
