@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - replace-collector-shell-sprite
+permissions:
+  contents: write
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -16,9 +18,11 @@ jobs:
       - run: node scripts/check-repository-hygiene.mjs
       - run: node scripts/build-precache.mjs
       - run: node tests/pwa.test.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: collector-shell-generated
-          path: |
-            precache-manifest.js
-            sw.js
+      - name: Commit generated offline assets and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/collector-shell-validation.yml
+          git add precache-manifest.js sw.js
+          git commit -m "Regenerate offline cache for collector shell sprite"
+          git push
