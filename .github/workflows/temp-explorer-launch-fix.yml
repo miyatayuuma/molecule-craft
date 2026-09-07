@@ -1,0 +1,59 @@
+name: Temporary explorer launch dialog validation
+
+on:
+  push:
+    branches:
+      - fix-explorer-launch-dialog-lock
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-explorer-launch-dialog-lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply focused launch fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('src/app.js')
+          source=path.read_text()
+          old="canLeave:()=>!resources.blocked&&!interactionLocked()&&!dragState&&!activePointers.size&&(saveWorkspace(true)||!resources.blocked)"
+          new="canLeave:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen())&&(saveWorkspace(true)||!resources.blocked)"
+          if old not in source:
+              raise SystemExit('Expected canLeave predicate not found')
+          path.write_text(source.replace(old,new,1))
+          Path('tests/launch-dialog-lock.test.mjs').write_text("""import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+          const shell=await readFile(new URL('../src/game-shell.js',import.meta.url),'utf8');
+          assert.ok(shell.includes("isOpen:()=>dialogs.some(dialog=>dialog.open)"),'Game shell treats the supply dialog itself as an open dialog');
+          assert.ok(app.includes("canLeave:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen())&&(saveWorkspace(true)||!resources.blocked)"),'Expedition launch must remain allowed while the supply dialog itself is open');
+          assert.ok(!app.includes("canLeave:()=>!resources.blocked&&!interactionLocked()"),'Launch must not reuse the craft interaction lock that includes the supply dialog');
+          console.log('Explorer launch dialog lock passed.');
+          """)
+          PY
+      - name: Regenerate PWA release
+        run: node scripts/build-precache.mjs
+      - name: Test explorer launch dialog lock
+        run: node tests/launch-dialog-lock.test.mjs
+      - name: Test explorer selector
+        run: node tests/launch-selector.test.mjs
+      - name: Test PWA
+        run: node tests/pwa.test.mjs
+      - name: Check repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: Commit fix and generated release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app.js tests/launch-dialog-lock.test.mjs sw.js precache-manifest.js
+          git commit -m "Allow explorer launch from supply dialog"
+          git push origin HEAD:fix-explorer-launch-dialog-lock
