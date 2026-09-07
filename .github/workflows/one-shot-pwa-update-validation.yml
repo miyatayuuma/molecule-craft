@@ -1,0 +1,32 @@
+name: One-shot PWA update validation
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
+jobs:
+  validate-pwa-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/pwa-update-discovery
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Regenerate offline manifest
+        run: node scripts/build-precache.mjs
+      - name: Run PWA validation
+        run: |
+          node tests/pwa.test.mjs
+          node scripts/check-repository-hygiene.mjs
+      - name: Commit generated manifest to feature branch
+        run: |
+          if git diff --quiet -- precache-manifest.js; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add precache-manifest.js
+          git commit -m "Regenerate precache manifest for PWA update fix"
+          git push origin HEAD:fix/pwa-update-discovery
