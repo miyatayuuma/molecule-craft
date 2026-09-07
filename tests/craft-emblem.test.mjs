@@ -6,6 +6,7 @@ assert.doesNotMatch(index,/⚒/,'Generic hammer icon must not return');
 assert.match(index,/class="craft-emblem"/);
 assert.match(index,/id="tank-open-collection" type="button">図鑑<\/button>/);
 assert.match(css,/Logo-derived craft emblem/);
+assert.doesNotMatch(css,/＋ ♨/,'Symbol-only shell explanation must stay removed');
 assert.match(css,/\.craft-emblem-action/);
 assert.match(css,/tank-molecules button>span small\{font-size:9px/);
 assert.match(supply,/tank-load'\)\.textContent=loaded\?formula\(loaded\):'—'/);
