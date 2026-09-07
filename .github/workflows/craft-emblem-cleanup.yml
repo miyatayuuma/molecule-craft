@@ -1,0 +1,44 @@
+name: Remove symbolic shell hint
+
+on:
+  push:
+    branches: [craft-emblem-polish-apply]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: craft-emblem-polish-apply
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Remove symbolic-only shell hint
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const path='veil.css',text=fs.readFileSync(path,'utf8');
+          const old="#veil-coolant-level{--tank-color:#91ddd4;height:5px}#supply-dialog .port-oxidizer{left:auto;right:10px}#supply-dialog .port-coolant{right:auto;left:10px}#supply-dialog .collector-shell-map:after{display:block;content:'＋ ♨';position:absolute;left:auto;right:24px;top:50%;bottom:auto;width:76px;height:auto;border:0;border-radius:0;transform:translateY(-50%);text-align:center;color:#efb98e;font-size:16px}";
+          const next="#veil-coolant-level{--tank-color:#91ddd4;height:5px}#supply-dialog .port-oxidizer{left:auto;right:10px}#supply-dialog .port-coolant{right:auto;left:10px}#supply-dialog .collector-shell-map:after{display:none}";
+          if(!text.includes(old))throw new Error('symbolic shell hint target not found');
+          fs.writeFileSync(path,text.replace(old,next));
+          const test='tests/craft-emblem.test.mjs';let t=fs.readFileSync(test,'utf8');
+          t=t.replace("assert.match(css,/Logo-derived craft emblem/);","assert.match(css,/Logo-derived craft emblem/);\nassert.doesNotMatch(css,/＋ ♨/,'Symbol-only shell explanation must stay removed');");
+          fs.writeFileSync(test,t);
+          NODE
+      - name: Regenerate offline release
+        run: node scripts/build-precache.mjs
+      - name: Regression
+        run: node --test tests/craft-emblem.test.mjs && node tests/pwa.test.mjs
+      - name: Commit result and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/craft-emblem-cleanup.yml
+          git add veil.css tests/craft-emblem.test.mjs precache-manifest.js
+          git commit -m "Remove symbolic shell hint"
+          git push
