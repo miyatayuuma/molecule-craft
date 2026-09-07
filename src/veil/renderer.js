@@ -1,4 +1,6 @@
+import {CHO_DESTINATION} from './cho-campaign.js';
 import { VEIL, EXPEDITION } from './config.js';
+import { OXYGEN_ROUTES,OXYGEN_REWARD } from './oxygen-routes.js';
 import { random } from './map.js';
 import { clamp } from './engine.js';
 import { drawCollectorShell } from './collector-shell.js';
@@ -104,6 +106,36 @@ export function createVeilRenderer(canvas){
         ctx.beginPath();for(let j=0;j<=22;j++){const x=-1250+j/22*2600,yy=y+Math.sin(x*.006+i*.8+run.time*1.3)*18+wave;j?ctx.lineTo(x,yy):ctx.moveTo(x,yy);}ctx.stroke();
       }ctx.globalAlpha=1;
     }
+    if(run.map.universe){
+      for(const route of OXYGEN_ROUTES){
+        ctx.strokeStyle=route.color;ctx.lineWidth=2;ctx.globalAlpha=.28;
+        ctx.beginPath();route.knots.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();
+        const bands=route.gates.length?route.gates:Array.from({length:14},(_,i)=>({y:-8910-i*110,depth:60,pressure:route.pressure}));
+        for(const gate of bands){
+          if(route.restStops?.some(stop=>Math.abs(gate.y-stop.y)<stop.depth/2+gate.depth/2))continue;
+          const left=route.x-route.width/2,top=gate.y-gate.depth/2;
+          ctx.fillStyle=route.color;ctx.globalAlpha=gate.pressure>500?.18:.08;ctx.fillRect(left,top,route.width,gate.depth);
+          ctx.globalAlpha=.65;ctx.lineWidth=gate.pressure>500?3:1.5;
+          for(let i=0;i<5;i++){
+            const x=left+25+i*45,y=gate.y+(reduced?0:((run.time*35+i*9)%24)-12);
+            ctx.beginPath();ctx.moveTo(x-6,y-5);ctx.lineTo(x,y+4);ctx.lineTo(x+6,y-5);ctx.stroke();
+          }
+        }
+        if(route.gates.length>1){
+          ctx.fillStyle=route.color;ctx.font='12px system-ui';ctx.textAlign='center';ctx.globalAlpha=.65;
+          for(const gate of route.gates.slice(1))ctx.fillText('↖ · ↗',route.x,gate.y+150);
+        }
+        for(const stop of route.restStops??[]){
+          ctx.fillStyle='#6ab2cb';ctx.globalAlpha=.2;ctx.fillRect(route.x-route.width/2,stop.y-stop.depth/2,route.width,stop.depth);
+        }
+      }
+      ctx.strokeStyle='#bde6db';ctx.globalAlpha=.45;ctx.lineWidth=1;ctx.beginPath();ctx.arc(OXYGEN_REWARD.x,OXYGEN_REWARD.y,OXYGEN_REWARD.radius+15,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+    }
+    if(run.map.universe){
+      const d=CHO_DESTINATION;ctx.save();ctx.strokeStyle=run.destinationReached?'#bff5c9':'#f4d38b';ctx.lineWidth=3;ctx.setLineDash([12,8]);
+      ctx.beginPath();ctx.arc(d.x,d.y,d.radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      ctx.font='18px system-ui';ctx.textAlign='center';ctx.fillStyle='#f4e7c9';ctx.fillText(run.destinationReached?'◎ ✓ → ↩':'◎ CHO',d.x,d.y-120);ctx.restore();
+    }
     // Flow geometry is visible before entering it, and even after its dust is collected.
     for(const route of run.map.routes){const element=route.element??'H',color=element==='C'?'#54345f':element==='O'?'#70433d':route.kind==='dense'?'#214f62':'#142e40',arrow=element==='C'?'#80588e':element==='O'?'#9b6554':'#33546a';ctx.beginPath();route.points.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.strokeStyle=color;ctx.lineWidth=element==='O'?1.8:1.2;ctx.globalAlpha=element==='O'?.8:1;ctx.stroke();ctx.globalAlpha=1;
       for(let i=10;i<route.points.length;i+=24){const q=route.points[i];ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.angle);ctx.strokeStyle=arrow;ctx.beginPath();ctx.moveTo(-7,-4);ctx.lineTo(0,0);ctx.lineTo(-7,4);ctx.stroke();ctx.restore();}}
@@ -191,7 +223,7 @@ export function createVeilRenderer(canvas){
     // The controlled body is a field-held Collector Shell, not a conventional
     // ship: a spherical gathering aperture rides inside a visible anchor halo.
     drawCollectorShell(ctx,{x:q.x,y:q.y,angle:p.angle,scale,bank:p.bank??0});
-    for(const label of run.map.labels){const at=screen(label.x,label.y);if(Math.hypot(at.x-q.x,at.y-q.y)>480||at.y<110||at.y>h-180)continue;ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillStyle='#7395aa';ctx.fillText(label.text,at.x,at.y-35);}
+    for(const label of run.map.labels){const at=screen(label.x,label.y);if(Math.hypot(at.x-q.x,at.y-q.y)>480||at.y<110||at.y>h-180)continue;ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillStyle='#7395aa';ctx.fillText(/最深部/.test(label.text)?'◎ ↑':/静かな渦/.test(label.text)?'◌ O':/炭素|C/.test(label.text)?'C':/酸素|O/.test(label.text)?'O':'↑',at.x,at.y-35);}
     // A discreet wayfinder prevents empty-space wandering without a permanent map panel.
     let nearest=null,best=Infinity;for(const d of run.map.dust){if(d.ready>run.time)continue;const distance=Math.hypot(d.x-p.x,d.y-p.y);if(distance<best){nearest=d;best=distance;}}
     if(nearest&&best>140){const angle=Math.atan2(nearest.y-p.y,nearest.x-p.x),x=q.x+Math.cos(angle)*85,y=q.y+Math.sin(angle)*85;ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.strokeStyle='#729bad';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-5,-5);ctx.lineTo(2,0);ctx.lineTo(-5,5);ctx.stroke();ctx.restore();}

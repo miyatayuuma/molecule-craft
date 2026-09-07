@@ -10,7 +10,7 @@ import { specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
 
-export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
+export function createCollectionViewer({host,record,name,onThumbnail=()=>{},showGestureHint=true}) {
   let disposed=false,frame=0,renderer=null,observer=null,model=null,layout=null;
   let scene=null,camera=null,group=null,width=1,height=1,radius=1,ready=false;
   let canvas=null,context=null,steps=0,stable=0,thumbnailSent=false;
@@ -75,7 +75,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{}}) {
     if(renderer)buildMeshes();
     bindControls();observer=new ResizeObserver(resize);observer.observe(stage);resize();
     host.dataset.renderMode=renderer?'webgl':'software-3d';
-    status.textContent='ドラッグで回転 · ピンチで拡大';
+    status.textContent=showGestureHint?'ドラッグで回転 · ピンチで拡大':'';status.hidden=!showGestureHint;
   }
   const own=resource=>{resources.add(resource);return resource;};
   function buildMeshes(){

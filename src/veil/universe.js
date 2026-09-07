@@ -1,5 +1,7 @@
+import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
+import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,oxygenPressureAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 // Fixed landmarks and connections; variable contents stay near these curves.
 const ROUTES=[
@@ -9,29 +11,46 @@ const ROUTES=[
   ['carbon-return','外縁へ続くHの流れ',[[170,-7190],[-690,-6790],[-870,-5840],[-790,-4930],[-430,-4370],[-160,-3980]],'H'],
   ['oxygen-entry','冷たい縁',[[170,-7750],[170,-8090],[-70,-8390],[120,-8700]],'O'],
   ['oxygen-eddy','冷たい渦',[[120,-8700],[-500,-8630],[-700,-8230],[-340,-7970],[170,-8090]],'O'],
-  ['oxygen-main','熱の奥へ',[[120,-8700],[390,-9150],[100,-9710],[-170,-10180],[80,-10670],[250,-11200],[100,-11830]],'O'],
-  ['oxygen-side','速い支流',[[120,-8700],[870,-9040],[930,-9660],[670,-10160],[80,-10670]],'O'],
-  ['horizon','まだ名のない光',[[100,-11830],[0,-12200],[280,-12470]],'O'],
+  ...OXYGEN_ROUTES.map(route=>[route.id,route.label,route.knots,'O']),
+  ['oxygen-depth','熱の奥へ',[[120,-10670],[250,-11200],[100,-11830]],'O'],
+  ['horizon','CHOの最深部へ',[[100,-11830],[0,-12200],[CHO_DESTINATION.x,CHO_DESTINATION.y]],'O'],
 ];
 const OPTIONAL_ROUTES=new Set(['carbon-sweep','oxygen-eddy','oxygen-side']);
 const CLUSTERS=[[-120,-4990],[-410,-5350],[-160,-5680],[350,-6020],[230,-6400],[-140,-6790],[170,-7210],[570,-5140],[820,-5540],[660,-5950],[-380,-8150],[-500,-8540],[600,-9450]];
 function activeLaneCount(lanes,level){return level<.28?lanes:level<.62?Math.max(1,Math.ceil(lanes/2)):1;}
-export function createUniverse(seed=1,stock={}){
+export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}){
+  if(!Number.isFinite(harvestLayout.sideSpacing)||harvestLayout.sideSpacing<0||!Number.isInteger(harvestLayout.eddyAtoms)||harvestLayout.eddyAtoms<0||harvestLayout.eddyAtoms>1000)throw Error('Invalid oxygen harvest layout');
   const map=createMap(seed,stock),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];
-  for(const d of map.dust){d.element='H';if(d.shoulder){d.x+=(rng()-.5)*13;d.y+=(rng()-.5)*16;}}
+  // Consume the full shoulder stream even when stock hides a lane. Inventory
+  // changes dust presence, never seeded landmarks or the physical currents.
+  const shoulders=new Map(),key=d=>`${d.route}:${d.x}:${d.y}`;
+  for(const d of (map.depletion.H?createMap(seed):map).dust)if(d.shoulder)shoulders.set(key(d),[(rng()-.5)*13,(rng()-.5)*16]);
+  for(const d of map.dust){d.element='H';if(d.shoulder){const noise=shoulders.get(key(d));d.x+=noise[0];d.y+=noise[1];}}
   for(const [id,label,knots,element]of ROUTES){
-    const deep=id==='oxygen-main'||id==='oxygen-side',frontier=id==='horizon',profile=frontier?GROWTH.density.frontier:deep?GROWTH.density.oxygenDeep:element==='O'?GROWTH.density.oxygenEdge:GROWTH.density.carbon;
+    const authored=OXYGEN_ROUTES.find(route=>route.id===id),deep=!!authored||id==='oxygen-depth',frontier=id==='horizon',profile=authored?{spacing:20,lanes:authored.lanes,value:authored.value}:frontier?GROWTH.density.frontier:deep?GROWTH.density.oxygenDeep:element==='O'?GROWTH.density.oxygenEdge:GROWTH.density.carbon;
     const route={id,label,element,points:sampleLine(knots,profile.spacing)},routeDepletion=map.depletion[element]??0,lanes=activeLaneCount(profile.lanes,routeDepletion),optional=OPTIONAL_ROUTES.has(id);map.routes.push(route);
     for(const [i,p]of route.points.entries()){
-      const el=element==='C'?(i%6===0?'C':'H'):element==='O'?(i%5===0?'H':i%17===0?'C':'O'):'H',jitter=Array.from({length:profile.lanes},()=> (rng()-.5)*8),elementDepletion=map.depletion[el]??0;
-      if(!keepDepletedSegment(routeDepletion,seed^0x29d41,id,i,{optional})||!keepDepletedSegment(elementDepletion,seed^0x7f4a7c15,`${id}:${el}`,i))continue;
-      for(let lane=0;lane<lanes;lane++){
-        const offset=(lane-(lanes-1)/2)*27+jitter[lane],x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
-        map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,lane:lane-(lanes-1)/2,flow:deep||frontier?{speed:165+rng()*60,span:210,phase:rng()}:null});
+      const el=element==='C'?(i%6===0?'C':'H'):element==='O'?(i%5===0?'H':i%17===0?'C':'O'):'H';
+      const keep=keepDepletedSegment(routeDepletion,seed^0x29d41,id,i,{optional})&&keepDepletedSegment(map.depletion[el]??0,seed^0x7f4a7c15,`${id}:${el}`,i);
+      for(let lane=0;lane<profile.lanes;lane++){
+        const jitter=(rng()-.5)*8,flow=!authored&&(deep||frontier)?{speed:165+rng()*60,span:210,phase:rng()}:null;
+        if(!keep||lane>=lanes)continue;
+        const spacing=id==='oxygen-side'&&p.y<-9000&&p.y>-10400?harvestLayout.sideSpacing:27;
+        const offset=(lane-(lanes-1)/2)*spacing+jitter,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
+        map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,lane:lane-(lanes-1)/2,flow});
       }
-      // Keep the random stream stable across lane-collapse states so currents and landmarks do not jump with inventory.
-      for(let lane=lanes;lane<profile.lanes;lane++)if(deep||frontier){rng();rng();}
     }
+  }
+  // A compact O pocket in the physically quiet main-route eddy rewards stopping.
+  for(let i=0;i<harvestLayout.eddyAtoms;i++){
+    if(!keepDepletedSegment(map.depletion.O,seed,'oxygen-rest-harvest',i))continue;
+    const angle=i*2.399963,radius=Math.sqrt((i+.5)/harvestLayout.eddyAtoms)*55,x=120+Math.cos(angle)*radius,y=-9700+Math.sin(angle)*radius;
+    map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:'oxygen-rest-harvest',element:'O',kind:'oxygen',value:3,ready:0});
+  }
+  for(let i=0;i<90;i++){
+    const angle=i*2.399963,radius=Math.sqrt((i+.5)/90)*OXYGEN_REWARD.radius,x=OXYGEN_REWARD.x+Math.cos(angle)*radius,y=OXYGEN_REWARD.y+Math.sin(angle)*radius,element=i%6===0?'C':'O';
+    if(!keepDepletedSegment(map.depletion[element],seed,`oxygen-harvest:${element}`,i))continue;
+    map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:'oxygen-harvest',element,kind:element==='C'?'carbon':'oxygen',value:3,ready:0});
   }
   for(const [i,point]of CLUSTERS.entries()){
     const cluster={id:i,x:point[0]+(rng()-.5)*65,y:point[1]+(rng()-.5)*70,radius:GROWTH.clusterRadius,ready:0,burstAt:-100,phase:rng()*Math.PI*2,particles:[]};
@@ -43,8 +62,10 @@ export function createUniverse(seed=1,stock={}){
     }map.clusters.push(cluster);
   }
   for(const [region,x,y]of [['veil',390,-650],['carbon',840,-5660],['oxygen',-610,-8290]])map.signals.push({region,x:x+(rng()-.5)*60,y:y+(rng()-.5)*60,ready:false,roll:rng(),choice:rng()});
-  map.fields.push({x:720,y:-5540,radius:210,phase:rng()*4,angle:-.4},{x:700,y:-9160,radius:290,phase:rng()*4,angle:Math.PI*.7},{x:-110,y:-10200,radius:300,phase:rng()*4,angle:.5});
-  map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:150,y:-8840,text:'高温・逆流 ↑  COMBUSTION DRIVE'},{x:100,y:-11980,text:'さらに奥に、違う光…'});
+  map.fields.push({x:720,y:-5540,radius:210,phase:rng()*4,angle:-.4});
+  for(const route of OXYGEN_ROUTES){map.labels.push({x:route.x,y:-8890,text:route.label});for(const stop of route.restStops??[])map.labels.push({x:route.x,y:stop.y,text:'静かな渦 · Oを集めながら休む'});}
+  map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · Oの集積'});
+  map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:100,y:-11980,text:'最深部へ ↑ · 到達したら正常帰還'});
   return map;
 }
 // Strata span the whole world. These are velocities and heat, not key flags.
@@ -52,7 +73,8 @@ function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/f
 export function environmentAt(p,time=0){
   const outer=band(p.y,-4100,-3690,105),hot=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
-  return {pressure:outer*255+hot*310,flowX:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48,heat:hot*32+oxygen*(1-hot)*(1-coolEddy)*3,intensity:hot,eddy:coolEddy};
+  const routePressure=oxygenPressureAt(p);
+  return {pressure:routePressure??outer*255+hot*310,flowX:routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48,heat:hot*32+oxygen*(1-hot)*(1-coolEddy)*3,intensity:hot,eddy:coolEddy};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;

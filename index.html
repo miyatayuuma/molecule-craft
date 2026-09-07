@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101c29">
-  <meta name="description" content="宇宙塵を集め、原子をつなぎ、分子の力で原子宇宙の奥へ進もう。">
+  <meta name="description" content="宇宙塵を集め、原子をつなぎ、分子の力でCHOの最深部へ到達し、帰還しよう。">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Molecule Craft">
   <title>Molecule Craft</title>
@@ -22,7 +22,8 @@
     </header>
     <div class="resource-bar" aria-label="採集した素材"><div class="resource-stock"><span>H <b id="resource-h">0</b></span><span id="stock-c" hidden>C <b id="resource-c">0</b></span><span id="stock-o" hidden>O <b id="resource-o">0</b></span></div><button id="open-supply" class="collector-access" type="button" aria-label="収集殻とタンクを開く"><i aria-hidden="true"></i><span>収集殻</span></button></div>
     <section id="craft-target" class="craft-target" aria-label="制作目標" hidden><div><small>制作目標</small><strong id="craft-target-name"></strong><span id="craft-target-formula"></span></div><div id="craft-target-atoms" class="craft-target-atoms"></div><button id="clear-craft-target" type="button" aria-label="制作目標を解除">×</button></section>
-    <p id="craft-resource-hint" class="craft-expedition-note"></p><p id="craft-last-run" class="craft-expedition-note"></p>
+    <p id="craft-resource-hint" class="craft-expedition-note"></p><button id="cho-goal-action" class="cho-goal-action" type="button" hidden>作り方を見る</button><p id="craft-last-run" class="craft-expedition-note"></p>
+    <section id="cho-completion" class="cho-completion" aria-labelledby="cho-completion-title" hidden><h2 id="cho-completion-title">CHO探索クリア</h2><button id="cho-continue" type="button">↗ 探索</button></section>
     <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
     <section class="workspace">
       <section class="viewer-wrap" aria-label="制作フィールド">
@@ -38,20 +39,20 @@
         <div id="craft-tank-actions" class="craft-tank-actions" aria-label="完成分子のタンク操作" hidden></div>
         <div id="tank-charge-stage" class="tank-charge-stage" role="status" aria-live="polite" hidden><canvas aria-hidden="true"></canvas><div><span id="tank-charge-icon" aria-hidden="true"></span><strong id="tank-charge-label"></strong><small id="tank-charge-result"></small></div></div>
         <button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>
-        <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span><small id="discovery-learning"></small></div>
+        <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span><small id="discovery-learning" hidden></small></div>
       </section>
       <aside class="tool-panel" aria-label="クラフト素材">
         <div class="tray-header"><div class="palette-tabs" role="tablist" aria-label="クラフト素材"><button id="atoms-tab" type="button" role="tab" data-palette-tab="atoms" aria-selected="true" aria-controls="element-panel">原子</button><button id="parts-tab" type="button" role="tab" data-palette-tab="structures" aria-selected="false" aria-controls="craft-panel" tabindex="-1">部品 <small id="craft-count"></small></button></div><p id="element-unlock-hint" role="status"></p></div>
         <div id="element-panel" role="tabpanel" aria-labelledby="atoms-tab">
           <div id="element-palette" class="element-palette">
-            <button type="button" class="element-button" data-element="H" style="--element-color:#f8fafc"><strong>H</strong><small>水素</small></button>
-            <button type="button" class="element-button" data-element="C" style="--element-color:#64748b"><strong>C</strong><small>炭素</small></button>
-            <button type="button" class="element-button" data-element="N" style="--element-color:#3b82f6"><strong>N</strong><small>窒素</small></button>
-            <button type="button" class="element-button" data-element="O" style="--element-color:#ef4444"><strong>O</strong><small>酸素</small></button>
-            <button type="button" class="element-button" data-element="F" style="--element-color:#22c55e"><strong>F</strong><small>フッ素</small></button>
-            <button type="button" class="element-button" data-element="P" style="--element-color:#f97316"><strong>P</strong><small>リン</small></button>
-            <button type="button" class="element-button" data-element="S" style="--element-color:#eab308"><strong>S</strong><small>硫黄</small></button>
-            <button type="button" class="element-button" data-element="Cl" style="--element-color:#16a34a"><strong>Cl</strong><small>塩素</small></button>
+            <button type="button" class="element-button" data-element="H" style="--element-color:#f8fafc"><span class="atom-preview" aria-hidden="true"></span><strong>H</strong><small>水素</small></button>
+            <button type="button" class="element-button" data-element="C" style="--element-color:#64748b"><span class="atom-preview" aria-hidden="true"></span><strong>C</strong><small>炭素</small></button>
+            <button type="button" class="element-button" data-element="N" style="--element-color:#3b82f6"><span class="atom-preview" aria-hidden="true"></span><strong>N</strong><small>窒素</small></button>
+            <button type="button" class="element-button" data-element="O" style="--element-color:#ef4444"><span class="atom-preview" aria-hidden="true"></span><strong>O</strong><small>酸素</small></button>
+            <button type="button" class="element-button" data-element="F" style="--element-color:#22c55e"><span class="atom-preview" aria-hidden="true"></span><strong>F</strong><small>フッ素</small></button>
+            <button type="button" class="element-button" data-element="P" style="--element-color:#f97316"><span class="atom-preview" aria-hidden="true"></span><strong>P</strong><small>リン</small></button>
+            <button type="button" class="element-button" data-element="S" style="--element-color:#eab308"><span class="atom-preview" aria-hidden="true"></span><strong>S</strong><small>硫黄</small></button>
+            <button type="button" class="element-button" data-element="Cl" style="--element-color:#16a34a"><span class="atom-preview" aria-hidden="true"></span><strong>Cl</strong><small>塩素</small></button>
           </div>
         </div>
         <div id="craft-panel" role="tabpanel" aria-labelledby="parts-tab" hidden><div id="craft-palette" class="craft-palette"></div><p id="craft-empty" class="empty-tray">分子を発見すると、部品が手に入るよ。</p></div>
@@ -70,20 +71,20 @@
         <label><input type="checkbox" name="reset-category" value="recipes"> 分子レシピ</label>
         <label><input type="checkbox" name="reset-category" value="elements"> 元素ストック</label>
         <label><input type="checkbox" name="reset-category" value="tanks"> タンク内容</label>
-        <label><input type="checkbox" name="reset-category" value="exploration"> 探索領域・元素発見・未知信号</label>
+        <label><input type="checkbox" name="reset-category" value="exploration"> 探索領域・元素発見・未知信号・CHOクリア</label>
         <label><input type="checkbox" name="reset-category" value="records"> 最大CHAIN</label>
         <label><input type="checkbox" name="reset-category" value="workspace"> 制作フィールド</label>
       </fieldset><button id="reset-selected" type="button">選択した項目を初期化</button>
     </details><p id="reset-status" class="muted" role="status"></p>
-    <p class="muted">図鑑と制作途中の分子は、この端末に自動保存されます。</p><p id="game-loop-hint" class="muted"></p>
+    <p class="muted">図鑑と制作途中の分子は、この端末に自動保存されます。</p><p id="game-loop-hint" class="muted"></p><details><summary>自由制作の表示</summary><label><input id="show-extra-elements" type="checkbox"> 解放済みの他元素も表示する</label><p class="muted">CHO探索のクリアには不要です。既存の分子模型や発見記録はそのまま残ります。</p></details>
   </div></dialog>
   <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
-    <section><span>01</span><div><h3>原子を置く</h3><p>下の原子カードをタップ。</p></div></section>
-    <section><span>02</span><div><h3>光る電子をつなぐ</h3><p>シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
-    <section><span>03</span><div><h3>分子を発見する</h3><p>完成した分子は図鑑に登録されます。探索用の分子は、完成模型を設計として使い、原子を直接消費してタンクへ充填できます。冷却剤は燃焼熱が高まると自動で作動します。H/C/Oは探索で見つかります。</p></div></section>
-    <section><span>04</span><div><h3>採集殻を回収する</h3><p>基地は採集殻をANCHOR FIELDで係留しています。帰還は短いANCHOR LOCKの後に全積荷を安定回収。DUST EATERが保持場を崩すと、安全装置が一部の積荷をこぼしながら緊急回収します。</p></div></section>
+    <section><span>01</span><div><h3>まずHを採集する</h3><p>収集殻を開いて出発。光る塵を集め、帰還ボタンで材料を持ち帰ります。タンクが空でも通常航行できます。</p></div></section>
+    <section><span>02</span><div><h3>H₂を作って噴射する</h3><p>Hを2つ置き、シアンの点を相手の点へドラッグ。同じ原子同士をもう一度つなぐと二重結合に。</p></div></section>
+    <section><span>03</span><div><h3>CとOで攻略を変える</h3><p>完成した分子は図鑑に登録されます。探索用の分子は、完成模型を設計として使い、原子を直接消費してタンクへ充填できます。冷却剤は燃焼熱が高まると自動で作動します。H₂は強い一噴射、CO₂は反復噴射。CH₄とO₂は燃焼に使い、水で冷やすか途中で休みます。</p></div></section>
+    <section><span>04</span><div><h3>最深部から帰還してクリア</h3><p>最深部の金色の輪へ到達し、その遠征で正常帰還するとCHO探索クリア。図鑑の全項目を埋める必要はありません。帰還は短いANCHOR LOCKの後に全積荷を安定回収。DUST EATERが保持場を崩すと、安全装置が一部の積荷をこぼしながら緊急回収します。</p></div></section>
     <details><summary>特殊な接続と表示</summary><p>薄紫の輪はリン・硫黄の追加接続点です。電子が増えた印ではありません。C=Oだけの構造では、酸素の2点入りの輪から電子対を共有してCOを作れます。＋・−は形式電荷です。</p><p>水色の内円や曲線は、電子を広い範囲で共有することを表す記号です。電子の通り道ではありません。片付けるは1秒長押し。図鑑の発見は残ります。</p></details><details><summary>動かす・回す・外す</summary><p>原子をドラッグすると、環や二重結合などの固定構造を保ったまま、動ける複数の単結合を使って分子全体がしなります。届かない位置へ引いても結合は伸びません。背景をドラッグすると分子全体が回転し、未結合の原子はドラッグで移動できます。2本指で拡大縮小・ひねり回転、背景のダブルタップで分子に寄ります。</p><p>結合棒の中央を長押しすると、結合が1段階外れます。共鳴する部分は、この模型では平面に保ちます。</p><p>金色の輪は部品の接続点です。配置した後、光る電子からつないでください。</p></details>
-    <button id="help-done" type="button" class="primary">つくってみる</button>
+    <button id="help-done" type="button" class="primary">探索をはじめよう</button>
   </div></dialog>
   <dialog id="info-dialog" class="sheet" aria-labelledby="info-title"><header class="sheet-header"><h2 id="info-title">いまの分子</h2><button type="button" data-close-dialog aria-label="分子情報を閉じる">×</button></header><div class="sheet-body info-panel">
     <div id="status" class="status ok">原子を追加してください</div><p id="molecule-iupac" class="muted"></p>
@@ -95,7 +96,7 @@
     <header class="book-header"><div><h2 id="collection-title">分子図鑑</h2><p id="collection-progress"></p></div><button id="close-collection" type="button" aria-label="図鑑を閉じる">×</button></header>
     <p id="collection-storage" class="save-warning" role="status" hidden></p>
     <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true" aria-controls="collection-list">分子</button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" aria-controls="collection-list" tabindex="-1">部品</button></div>
-    <details id="collection-controls" class="book-controls"><summary>絞り込み <span id="filter-summary">今つくれる分子</span></summary><div class="filter-fields"><label id="collection-category-label">種類<select id="collection-category"><option value="all">すべて</option></select></label><label>表示<select id="collection-filter"><option value="available">今の原子で作れる</option><option value="all">すべて</option><option value="found">発見済み</option><option value="missing">未発見</option></select></label></div></details>
+    <details id="collection-controls" class="book-controls"><summary>絞り込み <span id="filter-summary">今つくれる分子</span></summary><div class="filter-fields"><label>範囲<select id="collection-scope"><option value="cho">CHOの分子・部品</option><option value="all">他元素も含めた図鑑</option></select></label><label id="collection-category-label">種類<select id="collection-category"><option value="all">すべて</option></select></label><label>表示<select id="collection-filter"><option value="available">今の原子で作れる</option><option value="all">すべて</option><option value="found">発見済み</option><option value="missing">未発見</option></select></label></div></details>
     <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>
@@ -108,20 +109,22 @@
     </div>
     <p id="supply-announcement" class="supply-announcement" role="status" hidden></p>
     <section id="tank-detail" class="tank-detail"><header><strong id="tank-detail-title">噴射剤</strong><b id="tank-load">0 / 3</b></header><div class="tank-load-meter"><i id="tank-load-meter"></i></div>
-      <div id="tank-molecules" class="tank-molecules" aria-label="発見済み分子"></div><p id="tank-empty" class="tank-empty">発見済み分子なし</p>
+      <div id="tank-molecules" class="tank-molecules" aria-label="発見済み分子"></div><p id="tank-empty" class="tank-empty">発見済み分子なし</p><button id="tank-next-hint" type="button" hidden>作り方を見る</button>
       <div class="tank-inspector"><div id="tank-model" class="tank-model" hidden><div id="tank-model-host"></div><div class="tank-model-caption"><span id="tank-model-name"></span><button id="tank-open-collection" type="button">図鑑 ›</button></div></div>
-      <div class="tank-decision"><div id="tank-comparison" class="tank-comparison" hidden></div><p id="tank-replacement" class="tank-replacement" hidden></p><p id="tank-affordability" class="tank-affordability"></p><button id="tank-craft-molecule" class="primary" type="button">この分子をクラフト</button></div></div>
+      <div class="tank-decision"><details class="tank-explanation"><summary>ⓘ</summary><div id="tank-comparison" class="tank-comparison" hidden></div><p id="tank-use-guide" class="tank-affordability"></p></details><p id="tank-replacement" class="tank-replacement" hidden></p><p id="tank-affordability" class="tank-affordability"></p><button id="tank-craft-molecule" class="primary" type="button">⚒ クラフト</button></div></div>
     </section>
+    <details id="oxygen-route-guide" class="oxygen-route-guide" hidden><summary>酸素の分岐 · 次の遠征を考える</summary><div id="oxygen-route-chart"></div><div id="oxygen-route-notes"></div><p id="loaded-combustion-summary"></p><button id="oxygen-co2-hint" type="button">反復噴射の候補を図鑑で見る</button></details>
     <div class="supply-footer"><label class="anchor-select" for="expedition-anchor"><span>出発地点</span><select id="expedition-anchor"><option value="continue">探索の続き</option><option value="veil">H Veil</option></select></label><button id="launch-veil" class="shell-launch" type="button">出発</button></div>
   </div></dialog>
   <section id="veil-view" aria-label="採集殻で原子宇宙を探索" tabindex="-1" hidden>
     <canvas id="veil-canvas" aria-label="ANCHOR FIELDで係留された採集殻の探索フィールド"></canvas>
     <div class="veil-hud"><div class="veil-stock"><span>EXPEDITION CARGO</span><strong id="veil-h">H 0</strong><small id="veil-gained">BASE STOCK H 0</small><small id="veil-minerals"></small></div><div id="veil-chain-block" class="veil-chain-block"><span>FLOW</span><b id="veil-chain">0</b><div class="veil-chain-track"><i id="veil-chain-meter"></i></div></div><div class="veil-actions"><button id="veil-sound" type="button" aria-label="採集の音" aria-pressed="true">♪</button><button id="veil-return" type="button"><span id="veil-return-label">帰還 · ANCHOR</span><i class="anchor-lock-meter" aria-hidden="true"><span id="veil-anchor-meter"></span></i></button></div></div>
     <div class="veil-title"><small>COLLECTOR SHELL · ANCHOR FIELD</small><h2 id="veil-region-name">H Veil</h2><p id="veil-region-subtitle">水素の帳</p></div><div id="veil-threat" class="veil-threat" hidden><span>DUST EATER · FIELD DISRUPTION</span><b id="veil-eater-count">0</b><div><i id="veil-threat-meter"></i></div><small id="veil-eater-distance"></small></div>
+    <p id="veil-goal" class="veil-goal"></p>
     <p id="veil-save-warning" class="veil-save-warning" role="status"></p>
     <p id="veil-message" class="veil-message" role="status" hidden></p>
     <div id="veil-craft-prompt" class="veil-prompt" hidden><button id="veil-to-craft" type="button">Hが集まった · H₂を作りに戻る ↗</button></div>
-    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><div id="veil-thermal" class="veil-thermal" data-state="normal" hidden><span><b id="veil-thermal-state">NORMAL</b><strong id="veil-heat">0%</strong></span><i aria-hidden="true"><span id="veil-heat-meter"></span></i><small id="veil-coolant">NO COOLANT · 0</small></div><button id="veil-combustion" type="button" aria-label="燃料とO₂の燃焼推進。押している間だけ作動し、過熱後は安全温度で自動復帰。キーボードはShift" aria-pressed="false" hidden><strong>FUEL + O₂</strong><small id="veil-combustion-remaining">0 / 0 PACKETS</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel">—</span></button><button id="veil-boost" type="button" aria-label="噴射剤BURST。キーボードはスペース"><strong>—</strong><small>BURST <span id="veil-fuel">0 / 0</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
+    <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><div id="veil-thermal" class="veil-thermal" data-state="normal" hidden><span><b id="veil-thermal-state">NORMAL</b><strong id="veil-heat">0%</strong></span><i aria-hidden="true"><span id="veil-heat-meter"></span></i><small id="veil-coolant">❄ ∅</small><div id="veil-coolant-level" class="tank-scale" role="meter" aria-label="冷却剤" aria-valuemin="0"><b></b></div></div><button id="veil-combustion" type="button" aria-label="燃料とO₂の燃焼推進。押している間だけ作動し、過熱後は安全温度で自動復帰。キーボードはShift" aria-pressed="false" hidden><strong>FUEL + O₂</strong><small id="veil-combustion-remaining">0 / 0 PACKETS</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel" class="paired-tanks"><span data-role="fuel"><b></b><i><em></em></i></span><span class="combustion-link" aria-hidden="true">＋<br>♨</span><span data-role="oxidizer"><b></b><i><em></em></i></span></span></button><button id="veil-boost" type="button" aria-label="噴射剤BURST。キーボードはスペース"><strong>—</strong><small>BURST <span id="veil-fuel">0 / 0</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
   <script type="module" src="./src/app.js?v=44"></script>

@@ -1,8 +1,10 @@
+import {isCHO} from './veil/cho-campaign.js';
 import { validateFunctionalGroups } from './functional-groups.js?v=21';
 import { validateCraftStructures } from './craft-structures.js?v=31';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=36';
 import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=36';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
+import { expeditionUseFor } from './veil/propulsion-guide.js';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -10,12 +12,13 @@ export async function loadCollectionData(){
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia};
 }
 
-export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true}){
+export async function createCollectionUI({records,onPlace,onSupply=null,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true}){
   const data=await loadCollectionData();
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
   const state=createCollectionState({records,...data,storage,elementAccess});
   const q=id=>root.querySelector(`#${id}`),dialog=q('collection-dialog'),list=q('collection-list'),detail=q('collection-detail');
-  let tab='molecules',category='all',filter='available',currentDetail=null,detailViewer=null,detailGeneration=0,listScroll=0;
+  let tab='molecules',category='all',filter='available',scope='cho',currentDetail=null,detailViewer=null,detailGeneration=0,listScroll=0;
+  q('collection-scope')?.addEventListener('change',()=>{scope=q('collection-scope').value;currentDetail=null;renderBook();});
   const collectibleGroups=data.groups.filter(group=>group.collectible!==false);
   const groupById=id=>data.groups.find(group=>group.id===id),recordById=id=>records.find(record=>record.id===id);
   const collectibleMatches=record=>state.detectedFor(record).filter(match=>groupById(match.id).collectible!==false);
@@ -59,18 +62,21 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   q('collection-filter').addEventListener('change',event=>{filter=event.target.value;currentDetail=null;listScroll=0;renderBook();});
   function showDetail(kind,id){if(!currentDetail)listScroll=dialog.scrollTop;tab=kind;currentDetail={kind,id};renderBook();dialog.scrollTop=0;q('detail-back')?.focus({preventScroll:true});}
   function openMolecule(id){
-    if(!state.hasMolecule(id)||!recordById(id)||!canOpen())return false;
-    tab='molecules';category='all';filter='found';currentDetail={kind:'molecules',id};listScroll=0;renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}dialog.scrollTop=0;return true;
+    if(!recordById(id)||!canOpen())return false;
+    scope=isCHO(recordById(id).atoms)?'cho':'all';tab='molecules';category='all';filter=state.hasMolecule(id)?'found':'available';currentDetail={kind:'molecules',id};listScroll=0;renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}dialog.scrollTop=0;return true;
   }
   window.addEventListener('molecule-craft:open-molecule',event=>openMolecule(event.detail?.id));
+  root.querySelector('#show-extra-elements')?.addEventListener('change',()=>renderPalette());
   function renderPalette(){
     elementPalette.update(state);const container=q('craft-palette');container.replaceChildren();
     for(const template of [...data.templates].sort((a,b)=>a.tier-b.tier)){
+      if(!root.querySelector('#show-extra-elements')?.checked&&!isCHO(template.atoms))continue;
       if(!state.isUnlocked(template.id)&&!state.hasGroup(template.unlock.groupId))continue;
       const unlocked=state.isUnlocked(template.id),count=state.groupSources(template.unlock.groupId).length;
       const node=button('',()=>{
         if(unlocked)onPlace(template);else if(canOpen()){showDetail('groups',template.unlock.groupId);if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}}
       },`craft-part ${unlocked?'unlocked':'locked'}`);
+      thumbnail(node,'groups',template.unlock.groupId);
       node.append(el('strong',template.nameJa),el('span',template.notation,'craft-notation'));
       if(!unlocked)node.append(el('small',`解放まで ${count}/${template.unlock.distinctMolecules}`));
       node.title=`${template.nameJa} ${template.notation}`;container.appendChild(node);
@@ -82,18 +88,19 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     q('collection-progress').textContent=tab==='molecules'?`${state.discoveredCount} / ${records.length} 発見`:`${state.unlockedCount} / ${data.templates.length} 解放`;
     const storage=q('collection-storage');storage.textContent=state.storageMessage;storage.hidden=!state.storageMessage;
     const save=q('game-save-status');save.textContent=state.storageMessage?'図鑑を保存できません。図鑑で確認してください。':'';save.hidden=!state.storageMessage;
-    q('game-loop-hint').textContent=`発見 ${state.discoveredCount} · 原子 ${state.unlockedElements().length}/8 · 部品 ${state.unlockedCount}/${data.templates.length}`;
+    q('game-loop-hint').textContent=`発見 ${records.filter(r=>isCHO(r.atoms)&&state.hasMolecule(r.id)).length}（CHO） · 図鑑完成は任意のやり込み`;
     const milestoneList=q('collection-milestones');milestoneList.replaceChildren();for(const id of state.milestoneIds())milestoneList.appendChild(el('span',MILESTONES[id],'collection-tag'));
   }
   function visibleItems(kind=tab){
     const visible=(known,available)=>filter==='all'||(filter==='available'?available:filter==='found'?known:!known);
-    return (kind==='molecules'?records:collectibleGroups).filter(item=>kind==='molecules'?
+    return (kind==='molecules'?records:collectibleGroups).filter(item=>scope==='all'||isCHO(kind==='molecules'?item.atoms:item.pattern.atoms)).filter(item=>kind==='molecules'?
       visible(state.hasMolecule(item.id),state.canBuild(item))&&(category==='all'||collectionCategory(item)===category):
       visible(state.hasGroup(item.id),item.pattern.atoms.every(atom=>state.canUseElement(atom.element)))).sort((a,b)=>number(kind,a.id)-number(kind,b.id));
   }
   function renderBook(){
     releaseViewer();renderSummary();
     for(const node of root.querySelectorAll('[data-book-tab]')){const active=node.dataset.bookTab===tab;node.setAttribute('aria-selected',String(active));node.tabIndex=active?0:-1;}
+    if(q('collection-scope'))q('collection-scope').value=scope;
     q('collection-controls').hidden=!!currentDetail;q('collection-category-label').hidden=tab!=='molecules';
     const footer=dialog.querySelector('.book-footer');if(footer)footer.hidden=!!currentDetail;
     list.hidden=!!currentDetail;detail.hidden=!currentDetail;
@@ -130,6 +137,12 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       },'collection-primary');box.append(hint);detail.append(box);return;
     }
     preview(record,moleculeDisplayName(record));
+    const use=expeditionUseFor(id);
+    if(use){
+      const box=el('section',null,'expedition-use');box.append(el('h3',`探索での用途 · ${use.label}`),el('p',use.strength),el('p',use.good),el('p',use.weakness));
+      if(onSupply)box.append(button('補給で比較する',()=>{dialog.close();document.body.classList.remove('collection-open');onOpenChange(false);if(onSupply(id,use.role)===false){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}},'collection-primary'));
+      detail.append(box);
+    }
     detail.append(el('p',entry(kind,id)?.description??record.learningNote??'この分子を図鑑に登録しました。','dex-description'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
@@ -164,7 +177,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     observeStructures(structures){const result=state.observeStructures(structures);if(result.changed){renderPalette();renderSummary();if(dialog.open)renderBook();}return result;},
     describeEvent(event){
       if(!event?.isNew)return '';const messages=[];
-      if(event.unlockedElements?.length)messages.push(`${event.unlockedElements.map(symbol=>`${ELEMENT_UNLOCKS.find(item=>item.symbol===symbol).name}（${symbol}）`).join('・')}を解放`);
+      if(root.querySelector('#show-extra-elements')?.checked&&event.unlockedElements?.length)messages.push(`${event.unlockedElements.map(symbol=>`${ELEMENT_UNLOCKS.find(item=>item.symbol===symbol).name}（${symbol}）`).join('・')}を解放`);
       if(event.unlockedParts.length)messages.push(`${event.unlockedParts.map(id=>data.templates.find(template=>template.id===id).nameJa).join('・')}を獲得`);
       return messages.join(' ／ ')||'図鑑に登録しました';
     },

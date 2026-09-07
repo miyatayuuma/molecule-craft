@@ -1,4 +1,23 @@
-# H → C → O / Expedition Core v4
+# CHO campaign / Expedition Core
+
+
+The CHO campaign now ends at the marked destination (280, −12470), radius 95.
+Reaching it sets a run-only flag; the same sortie must return voluntarily through
+the usual live-contact 0.8s ANCHOR LOCK. `settleExpedition` accepts the optional
+fourth argument `{destinationReached}` and commits `progress.choCompleted` with
+cargo in one save. Capture, a later unrelated safe return, a Frontier visit, and
+a failed save cannot complete the campaign. Old v6 saves default to false;
+future saves remain protected. Exploration reset clears completion. After a
+successful ending, the existing anchors, crafting and exploration remain usable.
+
+Normal atom and part palettes show CHO. The menu can reveal already unlocked
+other elements for free crafting; their models, stock and discovery records are
+preserved. The book defaults to CHO with an explicit all-elements scope. These
+view choices do not delete or reset progression. The five introductory molecules
+remain H₂, CH₄, O₂, H₂O and CO₂; all five are not a completion requirement.
+
+The target first-play length is 30–60 minutes, **not yet validated by human
+playtesting**. See [CHO delivery and playtest status](planning/cho-completion-roadmap.md).
 
 The current continuous H/C/O world uses a finite-sortie exploration loop:
 
@@ -19,7 +38,7 @@ Before launch, a completed handmade model acts as the production design. Holding
 
 H₂ remains deliberately poor as normal travel: three short uses cannot become an unlimited cruise. The authored outer current is thin enough for one correctly timed BURST to cross, but normal thrust stalls physically. Later propellants trade peak power for more uses. Fuel alone has no combustion action; O₂ remains the sole active oxidizer. Fuel energy changes endurance while the COMBUSTION top speed stays common.
 
-H₂O remains discoverable and visible in the collection. It has no active tank role, persistent finished inventory, expedition consumer or Inner Horizon requirement.
+H₂O is an active automatic coolant. It is never a required molecule key: other coolants or a deliberate rest can support combustion travel.
 
 ## Collector Shell, Dust Eaters and return pressure
 
@@ -42,15 +61,37 @@ Element discovery itself is permanent when C or O is first observed, even if the
 
 ## Preserved H/C/O world
 
-The fixed route skeleton, seeded interior variation and continuous coordinates remain unchanged. H follows readable lines, Carbon Drift uses two-lane mixed flows and 36-particle C-rich clusters, and the deep Oxygen routes use four moving lanes with two dust units per particle. The shallow route gap is shortened so movement keeps producing pickups. Visited regions remain selectable replenishment anchors.
+The H/C route skeleton, seeded interior variation and continuous coordinates remain unchanged. H follows readable lines and Carbon Drift uses two-lane mixed flows and 36-particle C-rich clusters. Oxygen now branches into three authored routes; moving lanes continue beyond their merge. Visited regions remain selectable replenishment anchors.
 
-The deterministic balance run currently separates three choices: a 30-second saving sortie returns about 57 atoms without fuel; a 55-second Carbon sortie returns about 280 atoms while using H₂ only under pressure; a 35-second deep Oxygen sortie returns about 647 atoms while spending CH₄ × 18, O₂ × 36 and H₂O × 27. The cooled deep run leaves about 404 net atoms—more than three minutes at the measured safe outer rate.
+The deterministic balance run separates a free 30-second saving sortie, a 55-second Carbon sortie using H₂ under pressure, and a 35-second cooled Oxygen sortie. Run `node scripts/simulate-expedition.mjs` for current quantities; the deep run must still beat three minutes of safe outer collection after consumed propulsion atoms are deducted.
 
 Correct handmade structures can still be discovered without first receiving a hint. Once discovered, supported propellants, fuels, oxidizers and coolants become eligible for direct production into their tanks; other molecules remain collection discoveries only. Role data does not enter progression-specific `MOLECULE_USES`, so merely registering a role never changes unknown-signal order or the fresh H → C → O path.
 
 COMBUSTION DRIVE adds a separate 0–100 propulsion heat value. Methane reaches the cutoff after about ten uninterrupted seconds without coolant; natural cooling unlocks it at 55, and held input then re-ignites automatically without discarding paid packet time. The automatic thermostat begins at 35 and spends whole coolant molecules only after persistent storage accepts the deduction. Ambient region heat remains separate in v1, and BURST neither produces nor depends on propulsion heat.
 
-Key hints remain deterministic: enough H suggests H₂, first C suggests CH₄, and first O suggests O₂ and H₂O. Seeded unknown signals can change optional discovery order or grant dust; the third eligible miss guarantees a hint. Randomness never gates the H → C → O path.
+Key hints remain deterministic: enough H suggests H₂, first C suggests CH₄, and first O suggests O₂, H₂O and CO₂. Existing O-aware saves receive the CO₂ hint when the catalog loads, without a free discovery or tank contents. Seeded unknown signals can change optional discovery order or grant dust; the third eligible miss guarantees a hint. Randomness never gates the H → C → O path.
+
+## Oxygen branch experiment
+
+At (120, −8700), three physical routes lead to an O-rich collection pocket at (120, −10720). Their geometry, pressure, chart and obstacle drawing share `src/veil/oxygen-routes.js`. No collision or passage rule reads recipe or molecule IDs.
+
+| Route | Physical demand | Tradeoff |
+| --- | --- | --- |
+| 強流の近道 | One thin 600-unit opposing current | H₂ crosses in one burst; lower harvest and low material cost |
+| 連続する支流 | Four thin 490-unit opposing currents, laterally spread collection | CO₂ saves H; collect rapidly along one line or steer to the other bands |
+| 持続流の本道 | A long 370-unit opposing current and an O-rich quiet eddy | Higher O per sortie without spending propellant; coolant or a rest manages heat |
+
+Side collection lanes are spaced 90 units apart in the branch interior; the main eddy holds an additional 180 O atoms worth of dust. These are placement changes, not molecule-performance changes. The original 27-unit / no-bonus layout remains an explicit simulation control.
+
+The midpoint rest eddy at (120, −9700) has no opposing pressure. A player can release combustion and steer within it until cool, then continue without coolant. Water and CO₂ coolant both support continuous passage. Travelling outside the marked lanes remains possible through the surrounding current. Beyond the merge, the existing deep environment resumes.
+
+Role performance, tank capacities, combustion speed and thermal constants are unchanged. Collection notes explain a molecule's use, suitable situation and weakness, with a callback to its supply comparison. The supply sheet includes a collapsible route chart, a CO₂ hint link, actual limiting-O₂ combustion time and cooling status. It does not select or lock a route. Discovery still requires a handmade molecule; charging still consumes BASE STOCK atoms.
+
+Return shows burst count, combustion time and overheat count. At most one suggestion is based on observed overheating or sustained lack of forward progress during a burst in opposing flow. Route visits, current crossings and reaching the shared pocket are run-only telemetry. No new save schema, loadout budget, skill tree or permanent route unlock is introduced.
+
+Run `node scripts/simulate-oxygen-routes.mjs` for finite-tank trips from the actual Oxygen anchor, including an uncooled rest strategy and an alternative coolant. `tests/oxygen-routes.test.mjs` checks 30/60fps, multiple seeds, four CO₂ bursts, strong-current rejection of weak thrust, successful returns, material tradeoffs and compatible hint backfill. H₂ momentum can also cross the four thin currents with two bursts: this alternative is faster but consumes more atoms than CO₂, and is deliberately preserved.
+
+`tests/oxygen-routes-browser-check.mjs` accepts a Playwright module path and optional local HTTP URL. `OXYGEN_CHROMIUM_PATH` optionally selects an installed Chromium executable. It verifies production mobile layout, collection → supply → craft, flight and return in an isolated browser context; screenshots go to `/tmp/molecule-craft-oxygen-*.png`. Human phone playtesting remains useful for judging burst timing and the clarity of route cues.
 
 ## Tunable boundaries
 
