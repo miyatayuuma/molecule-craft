@@ -1,0 +1,60 @@
+name: Temporary explorer drag fix
+on:
+  push:
+    branches:
+      - fix-explorer-drag-hit-target
+permissions:
+  contents: write
+jobs:
+  patch-test:
+    if: ${{ !contains(github.event.head_commit.message, '[skip explorer drag fix]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Patch explorer drag hit target
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const path='src/veil/supply.js';
+          let s=fs.readFileSync(path,'utf8');
+          const before=`  const launchLayer=document.createElement('div');launchLayer.id='expedition-destinations';launchLayer.setAttribute('aria-hidden','true');Object.assign(launchLayer.style,{position:'absolute',inset:'0',zIndex:'3',pointerEvents:'none'});shellMap.append(launchLayer);\n  shellCanvas.removeAttribute('aria-hidden');shellCanvas.tabIndex=0;shellCanvas.setAttribute('role','button');shellCanvas.setAttribute('aria-label','探索機をドラッグして出発地点を選ぶ');Object.assign(shellCanvas.style,{zIndex:'1',touchAction:'none',cursor:'grab',transformOrigin:'center',transition:'transform .16s ease, opacity .16s ease'});`;
+          const after=`  const launchLayer=document.createElement('div');launchLayer.id='expedition-destinations';launchLayer.setAttribute('aria-hidden','true');Object.assign(launchLayer.style,{position:'absolute',inset:'0',zIndex:'3',pointerEvents:'none'});shellMap.append(launchLayer);\n  const launchHandle=document.createElement('button');launchHandle.type='button';launchHandle.id='collector-launch-handle';launchHandle.setAttribute('aria-label','探索機をドラッグして出発地点を選ぶ');Object.assign(launchHandle.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'80px',height:'80px',transform:'translate(-50%,-50%)',zIndex:'4',padding:'0',border:'0',borderRadius:'50%',background:'transparent',boxShadow:'none',touchAction:'none',cursor:'grab'});shellMap.append(launchHandle);\n  Object.assign(shellCanvas.style,{zIndex:'1',pointerEvents:'none',transformOrigin:'center',transition:'transform .16s ease, opacity .16s ease'});`;
+          if(!s.includes(before))throw new Error('interactive canvas block not found');
+          s=s.replace(before,after);
+          s=s.replace(`function resetLaunchPosition(){shellCanvas.style.transition=reduced?'none':'transform .16s ease, opacity .16s ease';shellCanvas.style.transform='translate(0px,0px)';shellCanvas.style.opacity='1';shellCanvas.style.cursor='grab';}`,
+            `function resetLaunchPosition(){shellCanvas.style.transition=reduced?'none':'transform .16s ease, opacity .16s ease';shellCanvas.style.transform='translate(0px,0px)';shellCanvas.style.opacity='1';launchHandle.style.cursor='grab';}`);
+          const beginBefore=`  function beginLaunch(event){\n    if(launchPointer!==null||resources.blocked||!canOpen()||event.button!==undefined&&event.button!==0)return;const rect=shellMap.getBoundingClientRect(),cx=rect.left+rect.width/2+10,cy=rect.top+rect.height/2;if(Math.hypot(event.clientX-cx,event.clientY-cy)>48)return;event.preventDefault();launchPointer=event.pointerId;launchStart={x:event.clientX,y:event.clientY};launchDragged=0;showLaunchDestinations(true);shellCanvas.style.transition='none';shellCanvas.style.cursor='grabbing';try{shellCanvas.setPointerCapture(launchPointer);}catch{}moveLaunch(event);\n  }`;
+          const beginAfter=`  function beginLaunch(event){\n    if(launchPointer!==null||resources.blocked||!canOpen()||event.button!==undefined&&event.button!==0)return;event.preventDefault();launchPointer=event.pointerId;launchStart={x:event.clientX,y:event.clientY};launchDragged=0;showLaunchDestinations(true);shellCanvas.style.transition='none';launchHandle.style.cursor='grabbing';try{launchHandle.setPointerCapture(launchPointer);}catch{}moveLaunch(event);\n  }`;
+          if(!s.includes(beginBefore))throw new Error('beginLaunch block not found');
+          s=s.replace(beginBefore,beginAfter);
+          s=s.replace(`try{shellCanvas.releasePointerCapture(pointer);}catch{}`,'try{launchHandle.releasePointerCapture(pointer);}catch{}');
+          const listenersBefore=`  shellCanvas.addEventListener('pointerdown',beginLaunch);shellCanvas.addEventListener('pointermove',moveLaunch);shellCanvas.addEventListener('pointerup',event=>endLaunch(event));shellCanvas.addEventListener('pointercancel',event=>endLaunch(event,true));shellCanvas.addEventListener('lostpointercapture',event=>{if(event.pointerId===launchPointer)endLaunch(event,true);});shellCanvas.addEventListener('keydown',event=>{if(event.key==='Escape'){showLaunchDestinations(false);resetLaunchPosition();return;}if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();showLaunchDestinations(!launchOpen);if(launchOpen)(launchItems.find(item=>item.checkpoint)??launchItems[0])?.node.focus();});`;
+          const listenersAfter=`  launchHandle.addEventListener('pointerdown',beginLaunch);launchHandle.addEventListener('pointermove',moveLaunch);launchHandle.addEventListener('pointerup',event=>endLaunch(event));launchHandle.addEventListener('pointercancel',event=>endLaunch(event,true));launchHandle.addEventListener('lostpointercapture',event=>{if(event.pointerId===launchPointer)endLaunch(event,true);});launchHandle.addEventListener('keydown',event=>{if(event.key==='Escape'){showLaunchDestinations(false);resetLaunchPosition();return;}if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();showLaunchDestinations(!launchOpen);if(launchOpen)(launchItems.find(item=>item.checkpoint)??launchItems[0])?.node.focus();});`;
+          if(!s.includes(listenersBefore))throw new Error('listener block not found');
+          s=s.replace(listenersBefore,listenersAfter);
+          fs.writeFileSync(path,s);
+
+          const testPath='tests/launch-selector.test.mjs';
+          let t=fs.readFileSync(testPath,'utf8');
+          t=t.replace("import assert from 'node:assert/strict';\n", "import assert from 'node:assert/strict';\nimport {readFile} from 'node:fs/promises';\n");
+          t=t.replace("const ids=['veil','carbon','oxygen','frontier','veil','carbon'];", "const source=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');\nassert.match(source,/collector-launch-handle/,'Explorer launch must have a dedicated touch target');\nassert.match(source,/launchHandle\\.addEventListener\\('pointerdown',beginLaunch\\)/,'Drag must start from the dedicated touch target');\nassert.match(source,/shellCanvas\\.style\\.transform=`translate/,'The visible explorer must follow the drag');\nconst ids=['veil','carbon','oxygen','frontier','veil','carbon'];");
+          fs.writeFileSync(testPath,t);
+          NODE
+      - run: node scripts/build-precache.mjs
+      - run: node scripts/check-repository-hygiene.mjs
+      - run: node tests/launch-selector.test.mjs
+      - run: node tests/ui-symbols.test.mjs
+      - run: node tests/supply-production.test.mjs
+      - run: node tests/supply-tanks.test.mjs
+      - run: node tests/expedition-core.test.mjs
+      - run: node tests/pwa.test.mjs
+      - name: Commit fix and generated manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/veil/supply.js tests/launch-selector.test.mjs precache-manifest.js
+          git commit -m "Fix explorer drag touch target [skip explorer drag fix]"
+          git push
