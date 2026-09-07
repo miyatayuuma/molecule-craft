@@ -120,5 +120,9 @@ assert.match(app, /connectExploration\(/);
 assert.match(app, /connectCollection\(/);
 assert.match(app, /createDiscoveryConnection\(/);
 assert.match(app, /craftPanel\.renderInfo\(/);
+assert.match(app, /decomposeTargetIntoAvailableParts\(record,unlocked\)/);
+assert.match(app, /targetParts:targetPartsFor\(target\)/);
+assert.match(craftPanel, /renderCraftTargetParts/);
+assert.match(craftPanel, /onPlaceTargetPart/);
 
 console.log('Source contract tests passed.');
