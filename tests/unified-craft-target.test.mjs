@@ -19,6 +19,10 @@ assert.match(app,/resources\.state\.recipes\.includes\(id\)\|\|resources\.state\
 assert.match(app,/targetDiscovered:resources\.state\.recipes\.includes\(craftTargetId\)/,'Discovery state must be explicit when rendering the target');
 assert.match(panel,/nodes\.targetName\.hidden=!discovered/,'Undiscovered target names must stay hidden');
 assert.match(panel,/export function renderCraftTargetAtoms/,'Atom previews must share one renderer');
+assert.match(veilUi,/import \{ renderCraftTargetAtoms \} from '\.\.\/craft-panel\.js\?v=3'/,'Field UI must import the shared atom renderer');
+assert.match(veilUi,/returnState=null,pendingCraftId=null/,'Field UI must declare pending target state');
+assert.equal((veilUi.match(/const pending=pendingCraftId/g)??[]).length,1,'Return must carry the pending target exactly once');
+assert.equal((veilUi.match(/source:'field'/g)??[]).length,1,'Field target dispatch must occur exactly once');
 assert.match(veilUi,/renderCraftTargetAtoms\(q\('cho-goal-atoms'\)/);
 assert.match(veilUi,/renderCraftTargetAtoms\(q\('veil-to-craft-atoms'\)/);
 assert.match(veilUi,/pendingCraftId=id/);
