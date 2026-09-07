@@ -1,0 +1,52 @@
+name: Temporary collection viewer cleanup
+on:
+  push:
+    branches:
+      - remove-collection-viewer-buttons
+permissions:
+  contents: write
+jobs:
+  patch-test:
+    if: ${{ !contains(github.event.head_commit.message, '[skip collection cleanup]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Remove collection viewer toolbar buttons
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const path='src/collection-viewer.js';
+          let s=fs.readFileSync(path,'utf8');
+          const before="  const toolbar=make('div',null,'model-toolbar'),zoomLabel=make('output','100%','model-zoom');\n  host.append(stage,toolbar,status);host.classList.add('collection-model');";
+          const after="  host.append(stage,status);host.classList.add('collection-model');";
+          if(!s.includes(before))throw new Error('collection viewer toolbar declaration not found');
+          s=s.replace(before,after);
+          const controlsBefore="  const controls=createPreviewControls(view=>{Object.assign(viewState,view);zoomLabel.value=`${Math.round(view.zoom*100)}%`;requestDraw();});\n  Object.assign(viewState,controls.snapshot());\n  for(const [label,action,accessible] of [['−',()=>controls.zoom(1/1.2),'縮小'],['＋',()=>controls.zoom(1.2),'拡大'],['↺',()=>controls.reset(),'表示リセット']]){\n    const button=make('button',label);button.type='button';button.setAttribute('aria-label',`模型を${accessible}`);listen(button,'click',action);toolbar.append(button);\n  }\n  toolbar.append(zoomLabel);";
+          const controlsAfter="  const controls=createPreviewControls(view=>{Object.assign(viewState,view);requestDraw();});\n  Object.assign(viewState,controls.snapshot());";
+          if(!s.includes(controlsBefore))throw new Error('collection viewer toolbar controls not found');
+          s=s.replace(controlsBefore,controlsAfter);
+          fs.writeFileSync(path,s);
+
+          const testPath='tests/source-contracts.test.mjs';
+          let t=fs.readFileSync(testPath,'utf8');
+          const marker="]);\n\nassert.match(index";
+          if(!t.includes(marker))throw new Error('source-contract insertion point not found');
+          t=t.replace(marker,"]);\nconst collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'utf8');\nassert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|controls\\.zoom\\(|controls\\.reset\\(|模型を(?:拡大|縮小|表示リセット)/,'Collection viewers rely on direct gestures, not zoom/reset buttons');\nassert.match(collectionViewer,/createPreviewControls\\(/,'Collection viewer gesture controls remain enabled');\n\nassert.match(index");
+          fs.writeFileSync(testPath,t);
+          NODE
+      - run: node scripts/build-precache.mjs
+      - run: node scripts/check-repository-hygiene.mjs
+      - run: node tests/source-contracts.test.mjs
+      - run: node tests/collection.test.mjs
+      - run: node tests/collection-expansion.test.mjs
+      - run: node tests/pwa.test.mjs
+      - name: Commit cleanup and generated manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/collection-viewer.js tests/source-contracts.test.mjs precache-manifest.js
+          git commit -m "Remove collection viewer zoom controls [skip collection cleanup]"
+          git push
