@@ -7,6 +7,7 @@ const [supply,craftPanel]=await Promise.all([
   readFile(new URL('src/craft-panel.js',root),'utf8'),
 ]);
 
+// Keep these cues semantic: one flame for combustion, discrete ticks only where a tick means one BURST.
 assert.match(supply,/if\(use!=='propellant'\)return 0/,'Only the burst/propellant tank may expose discrete tick marks');
 assert.match(supply,/Math\.floor\(performance\.capacity\/performance\.moleculesPerBurst\)/,'Propellant tick count must follow full-tank burst count');
 assert.match(supply,/styleTankMeter\(q\('veil-coolant-level'\),'coolant',null\)/,'Coolant tank must be normalized to a continuous bar');
