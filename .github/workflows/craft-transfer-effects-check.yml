@@ -1,0 +1,40 @@
+name: Craft transfer effects check
+
+on:
+  push:
+    branches:
+      - craft-transfer-effects
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run focused regression tests
+        run: |
+          node tests/craft-workspace.test.mjs
+          node tests/tank-charge.test.mjs
+          node tests/craft-stock-chrome.test.mjs
+          node tests/source-contracts.test.mjs
+          node scripts/check-repository-hygiene.mjs
+      - name: Regenerate offline release
+        run: node scripts/build-precache.mjs
+      - name: Validate PWA release
+        run: |
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit generated release files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js precache-manifest.js
+          if ! git diff --cached --quiet; then
+            git commit -m "Regenerate offline precache"
+            git push
+          fi
