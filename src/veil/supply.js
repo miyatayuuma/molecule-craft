@@ -3,6 +3,7 @@ import { ACTIVE_TANK_ROLES,moleculesForRole,performanceFor } from './molecule-ro
 import { drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_JUNCTION } from './oxygen-routes.js';
 import { expeditionUseFor,loadedCombustionSummary } from './propulsion-guide.js';
+import { syncElementStocks } from '../element-progression.js?v=36';
 
 const USE_ORDER=[...ACTIVE_TANK_ROLES];
 
@@ -78,7 +79,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
     drawCollectorShellPreview(shellCanvas);
   }
   function update(){
-    const state=resources.state;for(const element of ['H','C','O']){q(`resource-${element.toLowerCase()}`).textContent=state.elements[element];if(element!=='H')q(`stock-${element.toLowerCase()}`).hidden=!resources.canUseElement(element);}
+    const state=resources.state;syncElementStocks(document,state.elements);
     renderShell();renderTankDetail();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
     q('oxygen-route-guide').hidden=!state.progress.foundElements.includes('O');
     const burn=loadedCombustionSummary(state.tanks);q('loaded-combustion-summary').textContent=`現在の搭載分：燃焼 ${Math.floor(burn.seconds)}秒 · ${burn.cooling}`;
