@@ -11,9 +11,12 @@ function pruneInstructionalChrome(document){
     '#veil-combustion-remaining','#veil-boost > small',
   ])for(const node of document.querySelectorAll(selector))node.style.display='none';
 
-  // Directly tapping atoms already switches the edited structure. Keep the
-  // craft surface focused on direct manipulation by removing redundant chrome.
-  for(const selector of ['#structure-focus-label','#frame-structure','#open-info'])document.querySelector(selector)?.remove();
+  // Directly tapping atoms already switches the edited structure. Hide the
+  // redundant craft chrome without removing nodes that existing render/bind
+  // code still references during startup.
+  for(const selector of ['#structure-focus-label','#frame-structure','#open-info']){
+    const node=document.querySelector(selector);if(node)node.style.display='none';
+  }
 
   const deleteButton=q('delete-selected');
   if(deleteButton){
