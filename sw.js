@@ -23,6 +23,7 @@ self.addEventListener('activate',event=>event.waitUntil((async()=>{
   await self.clients.claim();
 })()));
 self.addEventListener('message',event=>{
+  if(event.data?.type==='GET_VERSION'){event.ports?.[0]?.postMessage({type:'APP_VERSION',version:self.PRECACHE_VERSION});return;}
   if(event.data?.type!=='ACTIVATE_UPDATE')return;
   event.waitUntil((async()=>{
     const clients=(await self.clients.matchAll({type:'window',includeUncontrolled:true})).filter(client=>new URL(client.url).pathname.startsWith(rootPath));
