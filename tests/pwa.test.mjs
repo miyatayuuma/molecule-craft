@@ -5,10 +5,14 @@ import {runInNewContext} from 'node:vm';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root)),manifest=JSON.parse(await read('manifest.webmanifest'));
 assert.equal(manifest.start_url,'./');assert.equal(manifest.scope,'./');assert.equal(manifest.display,'standalone');
 for(const icon of manifest.icons){const data=await read(icon.src);assert.equal(data.subarray(1,4).toString(),'PNG');assert.equal(data.readUInt32BE(16),Number(icon.sizes.split('x')[0]));assert.ok(icon.purpose.includes('maskable'));}
-const source=await read('sw.js'),pwaSource=(await read('src/pwa.js')).toString(),precache=await read('precache-manifest.js'),context={self:{}};runInNewContext(precache.toString(),context);
+const source=await read('sw.js'),sourceText=source.toString(),buildSource=(await read('scripts/build-precache.mjs')).toString(),pwaSource=(await read('src/pwa.js')).toString(),precache=await read('precache-manifest.js'),context={self:{}};runInNewContext(precache.toString(),context);
 assert.match(pwaSource,/registration\.update\(\)/,'Client must explicitly check for a new service worker');
 assert.match(pwaSource,/addEventListener\('focus'.*checkForUpdate/,'Returning to the app must re-check for updates');
 const entries=context.self.PRECACHE_FILES,paths=new Set(entries.map(e=>e.path));
+assert.match(buildSource,/PRECACHE_ASSET_VERSION/,'Precache build must stamp the top-level service worker each release');
+const assetVersion=createHash('sha256').update(Buffer.from(JSON.stringify(entries))).digest('hex').slice(0,16);
+assert.match(sourceText,new RegExp('^/\\* PRECACHE_ASSET_VERSION:'+assetVersion+' \\*/'),'Service worker stamp must match current asset set');
+assert.equal(context.self.PRECACHE_VERSION,createHash('sha256').update(Buffer.from(JSON.stringify(entries)+sourceText)).digest('hex').slice(0,16),'Precache version must include stamped service worker bytes');
 for(const path of ['src/app.js','src/collection-ui.js','src/collection-viewer.js','src/special-bonds.js','src/hold-action.js','vendor/three/three.module.min.js','vendor/three/three.core.min.js','data/encyclopedia.json','assets/icon-192.png','index.html'])assert.ok(paths.has(path),path);
 const sha=buffer=>createHash('sha256').update(buffer).digest('hex');
 for(const item of entries){assert.equal(sha(await read(item.path)),item.sha256,`Stale precache: ${item.path}`);}
