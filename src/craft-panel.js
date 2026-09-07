@@ -66,14 +66,14 @@ export function createCraftPanel(document){
 
 function renderTarget(record,placedAtoms,onClearTarget,{discovered=false}={}){
   clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;lastTargetKey='';lastTargetFilled={};return;}
-  const displayName=record.commonNameJa??record.nameJa??record.name??'';nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=record.formula??'';nodes.target.setAttribute('aria-label',`${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標`);
+  const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標`);
   const rendered=renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms),key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
   for(const {slot,node:chip}of rendered){if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
   lastTargetKey=key;lastTargetFilled=filledNow;
 }
 
 function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure,cleanupAvailable}){
-    veilUI?.updateCraft();const itemIdentity=identity(focus);nodes.formula.textContent=itemIdentity.formula;nodes.name.textContent=itemIdentity.primary;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';
+    veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';
     renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered});
     renderTankActions(focus,veilUI);
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;

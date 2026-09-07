@@ -7,6 +7,10 @@ import { syncElementStocks } from '../element-progression.js?v=36';
 
 const USE_ORDER=[...ACTIVE_TANK_ROLES];
 
+export function tankMeterSegments(use,moleculeId){
+  if(use!=='propellant')return 0;const performance=performanceFor(moleculeId,'propellant');return performance?.moleculesPerBurst?Math.floor(performance.capacity/performance.moleculesPerBurst):0;
+}
+
 export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview');
   let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0;
@@ -15,6 +19,19 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
   const candidates=use=>resources.tankCatalog(use);
   const tankRecord=use=>{const id=resources.state.tanks[use]?.molecule;return id?resources.record(id):null;};
   const ratio=(value,values)=>{const finite=values.filter(Number.isFinite),max=Math.max(...finite,1);return Math.max(0,Math.min(1,value/max));};
+  function styleTankMeter(track,use,moleculeId){
+    const fill=track?.firstElementChild;if(!track||!fill)return;const segments=tankMeterSegments(use,moleculeId);
+    track.dataset.segments=String(segments);track.style.backgroundRepeat='repeat-x';fill.style.webkitMaskRepeat='repeat-x';fill.style.maskRepeat='repeat-x';
+    if(segments>1){const cell=`calc(100% / ${segments}) 100%`,gap=segments>=9?'1px':'2px',pattern=`linear-gradient(90deg,#304553 0 calc(100% - ${gap}),#152734 calc(100% - ${gap}) 100%)`,mask=`linear-gradient(90deg,#000 0 calc(100% - ${gap}),transparent calc(100% - ${gap}) 100%)`;track.style.background=pattern;track.style.backgroundSize=cell;fill.style.webkitMaskImage=mask;fill.style.webkitMaskSize=cell;fill.style.maskImage=mask;fill.style.maskSize=cell;return;}
+    track.style.background='#304553';track.style.backgroundSize='auto';fill.style.webkitMaskImage='none';fill.style.webkitMaskSize='auto';fill.style.maskImage='none';fill.style.maskSize='auto';
+  }
+  function setTankMeterLevel(track,ratio){
+    const fill=track?.firstElementChild;if(!track||!fill)return;const value=Math.max(0,Math.min(1,ratio||0)),segments=Number(track.dataset.segments)||0;
+    if(segments>1){fill.style.transform='none';fill.style.clipPath=`inset(0 ${(1-value)*100}% 0 0)`;fill.style.transition='clip-path .2s linear';return;}
+    fill.style.clipPath='none';fill.style.transition='transform .2s linear';fill.style.transform=`scaleX(${value})`;
+  }
+  const combustionLink=document.querySelector('#veil-combustion .combustion-link');if(combustionLink)combustionLink.textContent='🔥';
+  styleTankMeter(q('veil-coolant-level'),'coolant',null);
 
   function releaseViewer(){viewerGeneration++;viewer?.dispose();viewer=null;viewerKey='';q('tank-model-host')?.replaceChildren();}
   function openCollection(){if(!selectedId)return;dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:open-molecule',{detail:{id:selectedId}}));}
@@ -69,13 +86,13 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
     const record=resources.record(selectedId),plan=selectedId?resources.tankFillPlan(selectedUse,selectedId):null;
     const guide=expeditionUseFor(selectedId,selectedUse);q('tank-use-guide').textContent=guide?`${guide.good} ${guide.weakness}`:'';
     if(record){q('tank-model-name').textContent=`${formula(record)} · ${name(record)}`;mountViewer(record);renderMetrics(record);}
-    const loaded=tankRecord(selectedUse),tank=resources.state.tanks[selectedUse],loadedStatus=resources.tankStatus(selectedUse);q('tank-load').textContent=loaded?formula(loaded):'—';q('tank-load-meter').parentElement.setAttribute('role','meter');q('tank-load-meter').parentElement.setAttribute('aria-label',TANK_USES[selectedUse].label);q('tank-load-meter').parentElement.setAttribute('aria-valuemin','0');q('tank-load-meter').parentElement.setAttribute('aria-valuemax',String(loadedStatus.loadedCapacity||1));q('tank-load-meter').parentElement.setAttribute('aria-valuenow',String(tank.amount));q('tank-load-meter').style.transform=`scaleX(${loadedStatus.loadedCapacity?tank.amount/loadedStatus.loadedCapacity:0})`;
+    const loaded=tankRecord(selectedUse),tank=resources.state.tanks[selectedUse],loadedStatus=resources.tankStatus(selectedUse),loadTrack=q('tank-load-meter').parentElement;q('tank-load').textContent=loaded?formula(loaded):'—';styleTankMeter(loadTrack,selectedUse,tank.molecule);loadTrack.setAttribute('role','meter');loadTrack.setAttribute('aria-label',TANK_USES[selectedUse].label);loadTrack.setAttribute('aria-valuemin','0');loadTrack.setAttribute('aria-valuemax',String(loadedStatus.loadedCapacity||1));loadTrack.setAttribute('aria-valuenow',String(tank.amount));setTankMeterLevel(loadTrack,loadedStatus.loadedCapacity?tank.amount/loadedStatus.loadedCapacity:0);
     q('tank-replacement').setAttribute('aria-label',plan?.replacing?`${formula(loaded)}を廃棄して${formula(record)}へ入替`:'');q('tank-replacement').hidden=!plan?.replacing;q('tank-replacement').textContent=plan?.replacing?`${formula(loaded)} ✕ → ${formula(record)}`:'';
     const missing=record?Object.entries(resources.costFor(record.id)??{}).filter(([el,n])=>(resources.state.elements[el]??0)<n).map(([el,n])=>`${el} ×${n-(resources.state.elements[el]??0)}`):[];
     q('tank-affordability').textContent=plan?.full?'満タン':missing.length?`＋ ${missing.join(' · ')}`:plan?.maxAdd?'● → ◉':'充填できません';
   }
   function renderShell(){
-    for(const use of USE_ORDER){const button=q(`shell-${use}`),tank=resources.state.tanks[use],record=tankRecord(use),status=resources.tankStatus(use),presentation=TANK_PRESENTATION[use];button.style.setProperty('--tank-color',presentation.color);button.querySelector('i').textContent=presentation.icon;button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?formula(record):'—';let track=button.querySelector('.tank-scale');if(!track){track=document.createElement('span');track.className='tank-scale';track.append(document.createElement('b'));button.append(track);}track.setAttribute('role','meter');track.setAttribute('aria-label',TANK_USES[use].label);track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax',String(status.loadedCapacity||1));track.setAttribute('aria-valuenow',String(tank.amount));track.firstElementChild.style.transform=`scaleX(${status.loadedCapacity?tank.amount/status.loadedCapacity:0})`;}
+    for(const use of USE_ORDER){const button=q(`shell-${use}`),tank=resources.state.tanks[use],record=tankRecord(use),status=resources.tankStatus(use),presentation=TANK_PRESENTATION[use];button.style.setProperty('--tank-color',presentation.color);button.querySelector('i').textContent=presentation.icon;button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?formula(record):'—';let track=button.querySelector('.tank-scale');if(!track){track=document.createElement('span');track.className='tank-scale';track.append(document.createElement('b'));button.append(track);}styleTankMeter(track,use,tank.molecule);track.setAttribute('role','meter');track.setAttribute('aria-label',TANK_USES[use].label);track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax',String(status.loadedCapacity||1));track.setAttribute('aria-valuenow',String(tank.amount));setTankMeterLevel(track,status.loadedCapacity?tank.amount/status.loadedCapacity:0);}
     drawCollectorShellPreview(shellCanvas);
   }
   function update(){
