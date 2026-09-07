@@ -97,7 +97,7 @@ loadMoleculeDatabase().then(async result=>{
   if(!result.ok){elementPalette.fallback();if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
   resources.setCatalog(moleculeCatalog());
   try{
-    collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),canOpen:()=>!gameShell.isOpen()&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
+    collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
     discoveryConnection.collectionReady();if(renderer){checkDiscovery();refreshInfo();}
   }catch(error){elementPalette.fallback();console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='図鑑を読み込めませんでした。原子からの制作は続けられます。';}
 });
@@ -702,7 +702,7 @@ function planWorkspaceSpawn(parts){
   const obstacles=molecule.atoms.filter(atom=>pos(atom.id)).map(atom=>({...local(pos(atom.id)),radius:spawnRadius(atom.element,molecule.bondOrderForAtom(atom.id))}));
   const bonds=molecule.bonds.map(bond=>({a:{...local(pos(bond.a)),radius:.07},b:{...local(pos(bond.b)),radius:.07}}));
   const actions=document.querySelector('.viewer-actions').getBoundingClientRect(),chip=selectionChip.getBoundingClientRect();
-  const insets={left:18,right:18,top:Math.max(88,actions.bottom-rect.top+12),bottom:Math.max(72,rect.bottom-chip.top+12)};
+  const insets={left:18,right:18,top:Math.max(88,actions.bottom-rect.top+12),bottom:Math.max(72,selectionChip.textContent?rect.bottom-chip.top+12:72)};
   const plan=planSpawn({parts,obstacles,bonds,width:rect.width,height:rect.height,insets,distance:camera.position.distanceTo(cameraTarget),fov:camera.fov,anchor:local(pos(selectedAtomId)??cameraTarget)});
   return plan?{...plan,origin:cameraTarget.clone().addScaledVector(right,plan.x).addScaledVector(up,plan.y)}:null;
 }

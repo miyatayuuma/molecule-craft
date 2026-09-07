@@ -1,7 +1,9 @@
+import {recordChoDestination} from './cho-campaign.js';
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
 import { GROWTH, DRIVES, burstDriveFor, regionAt } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { environmentAt, animateUniverse } from './universe.js';
+import { recordOxygenPassage } from './oxygen-routes.js';
 import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -46,7 +48,7 @@ export function beginBurst(run,consume){
   const p=run?.player,slot=run?.fuel?.propellant,performance=performanceFor(slot?.molecule,'propellant'),drive=burstDriveFor(slot?.molecule);
   if(!p||!performance||!drive||run.captured||p.boost>0||p.cooldown>0||slot.amount<performance.moleculesPerBurst)return false;
   if(!consume(performance.moleculesPerBurst,slot.molecule))return false;
-  slot.amount-=performance.moleculesPerBurst;run.telemetry.burstUses++;recordFuelUse(run.telemetry,'propellant',slot.molecule,performance.moleculesPerBurst);p.drive=drive;p.boost=drive.boostSeconds;p.cooldown=drive.boostSeconds+drive.boostCooldown;return true;
+  slot.amount-=performance.moleculesPerBurst;run.telemetry.burstUses++;run.burstStallRecorded=false;recordFuelUse(run.telemetry,'propellant',slot.molecule,performance.moleculesPerBurst);p.drive=drive;p.boost=drive.boostSeconds;p.cooldown=drive.boostSeconds+drive.boostCooldown;return true;
 }
 
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
@@ -54,7 +56,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null)};
-  return {map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,overheated:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,overheated:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -144,6 +146,7 @@ function stepRunFrame(run,input,dt,systems){
   // combustion drive can cross it; merely owning a recipe cannot.
   if(Math.abs(p.x-g.x)<g.width/2&&Math.abs(p.y-g.y)<g.height&&!propelled){const strength=c.gateDeflection*(1-Math.abs(p.x-g.x)/(g.width/2));force.x+=strength;force.y+=strength*.25;}
   moveFlight(p,input,dt,{config:c,assist:nearest,force,environment});
+  recordOxygenPassage(run,old,dt);recordChoDestination(run,old);
   if(map.universe){const region=regionAt(p.y);if(region!==run.region){run.region=region;run.events.push({type:'region',region});}}
   if(!run.gatePassed&&propelled&&old.y>=g.y-50&&p.y<g.y-50&&Math.abs(p.x-g.x)<g.width/2){run.gatePassed=true;run.events.push({type:'gate'});}
   if(Math.hypot(p.x-c.spawn.x,p.y-c.spawn.y)>c.lapRearmDistance)run.departed=true;

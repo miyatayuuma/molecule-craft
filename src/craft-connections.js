@@ -2,6 +2,7 @@ import {createVeilUI} from './veil/ui.js';
 import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionTracker} from './workspace-model.js?v=20';
 import {MOLECULE_USES} from './veil/growth.js';
+import {expeditionUseFor} from './veil/propulsion-guide.js';
 
 export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
   const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit});
@@ -9,9 +10,9 @@ export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,
   return veilUI;
 }
 
-export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
+export async function connectCollection({records,elementPalette,elementAccess,onPlace,onSupply,canOpen,onOpenChange}){
   const {createCollectionUI}=await import('./collection-ui.js?v=37');
-  return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange});
+  return createCollectionUI({records,elementPalette,elementAccess,onPlace,onSupply,canOpen,onOpenChange});
 }
 
 export function bindSaveLifecycle({window,document,onPageHide,onHidden,onPrepareUpdate}){
@@ -40,7 +41,7 @@ export function createDiscoveryConnection({resources,getVeilUI,getCollection,onP
     }
     if(now<until)return;const event=queue.shift();if(!event)return;
     const item=structures.find(candidate=>candidate.signature===event.signature&&candidate.complete);if(!item)return;
-    const isNew=!!event.gameEvent?.isNew;active=item.signature;until=now+(isNew?2800:1300);onPresent({item,isNew,learning:MOLECULE_USES[item.record?.id]?.discovery??collection?.describeEvent(event.gameEvent)??''});if(isNew)onVibrate();
+    const isNew=!!event.gameEvent?.isNew,use=expeditionUseFor(item.record?.id);active=item.signature;until=now+(isNew?2800:1300);onPresent({item,isNew,learning:MOLECULE_USES[item.record?.id]?.discovery??(use?`${use.label}を発見。${use.good}`:collection?.describeEvent(event.gameEvent)??'')});if(isNew)onVibrate();
   }
   return{sync,check,clear,discardQueued,collectionReady};
 }

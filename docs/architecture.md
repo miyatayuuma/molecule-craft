@@ -46,9 +46,12 @@
 | 分子役割・性能値・分子別容量 | `src/veil/molecule-roles.js`。化学DBとは分離したゲーム値。coolantを含む4タンクが稼働 |
 | 探索物理・推進 | `src/veil/engine.js` |
 | DUST EATER | 状態・追跡・捕獲は `engine.js`、描画は `renderer.js` |
+| CHO最終地点・遠征中の到達判定 | `src/veil/cho-campaign.js`。クリア確定は `resources.js` の正常帰還精算 |
 | 遠征テレメトリ | `src/veil/telemetry.js`（`?expeditionDebug=1`時のみconsole出力） |
 | マップ骨格 | `src/veil/map.js` |
 | C/O領域・塵・流れ | `src/veil/universe.js` |
+| 酸素の分岐・逆流・静かな渦 | `src/veil/oxygen-routes.js`。物理・描画・補給見取り図の共通定義 |
+| 分子用途の説明・搭載分比較・帰還助言 | `src/veil/propulsion-guide.js` |
 | Canvas描画 | `src/veil/renderer.js` |
 | 画面統合・入力・帰還 | `src/veil/ui.js` |
 | 音 | `src/veil/audio.js` |
@@ -138,6 +141,8 @@
 | BASE STOCK入出庫・制作グラフ操作 | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
 | 探索・成長・資源 | `expedition-core.test.mjs`, `growth.test.mjs`, `veil*.test.mjs` |
 | 探索バランスシミュレーション | `expedition-balance.test.mjs`, `scripts/simulate-expedition.mjs` |
+| CHO通し進行・クリア保存 | `cho-campaign.test.mjs`, `scripts/simulate-cho-campaign.mjs` |
+| 酸素分岐の構成比較・実ブラウザ | `oxygen-routes.test.mjs`, `oxygen-routes-browser-check.mjs`, `scripts/simulate-oxygen-routes.mjs` |
 | 本番DOM統合 | `mobile-ui-check.mjs`, `veil-ui-check.mjs` |
 | オフライン配信 | `pwa.test.mjs` |
 | リポジトリ衛生 | `repository-hygiene.test.mjs` |

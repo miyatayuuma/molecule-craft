@@ -52,9 +52,9 @@ export function createCraftPanel(document){
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
     nodes.counts.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)nodes.counts.textContent='—';else for(const symbol of Object.keys(counts).sort()){const chip=document.createElement('span');chip.className='atom-count';chip.textContent=`${symbol} × ${counts[symbol]}`;nodes.counts.appendChild(chip);}
     renderStructureList({structures,focused:focus,disabled:structureListDisabled,onSelect:onSelectStructure});document.querySelector('#undo-cleanup').hidden=!cleanupAvailable;
-    document.querySelector('#selection-actions').hidden=!selected;if(!selected){nodes.selectedElement.textContent=nodes.selectedValence.textContent=nodes.selectedLimit.textContent='—';if(!keep)nodes.selectionChip.textContent=molecule.atoms.length?'':'原子をえらんで、はじめよう';return;}
+    document.querySelector('#selection-actions').hidden=!selected;if(!selected){nodes.selectedElement.textContent=nodes.selectedValence.textContent=nodes.selectedLimit.textContent='—';if(!keep)nodes.selectionChip.textContent='';return;}
     const used=molecule.bondOrderForAtom(selected.id),state=stateFor(selected.id);nodes.selectedElement.textContent=`${selected.element} / ${ELEMENTS[selected.element].name}`;nodes.selectedValence.textContent=`${used} / 目標 ${state.charge?used:preferredValence(selected.element,used)}`;nodes.selectedLimit.textContent=`不対電子 ${state.singles} · 非共有電子対 ${state.pairs}${state.charge?` · 形式電荷 ${state.charge>0?'+':'−'}1`:''}${state.sites.includes('extension')?' · 薄紫の輪は追加接続点':''}${state.sites.includes('pair')?' · 2点入りの輪は共有できる電子対':''}`;
-    if(!keep)nodes.selectionChip.textContent=state.sites.includes('extension')?'薄紫の輪から結合を追加できます':state.sites.includes('pair')?'2点入りの輪から電子対を共有できます':unpairedElectronCount(selected.element,used)>0?`${ELEMENTS[selected.element].name} · 光る点をつなごう`:`${ELEMENTS[selected.element].name}`;
+    if(!keep)nodes.selectionChip.textContent=selected.element;
   }
 
   function showDiscovery({isNew,learning,itemIdentity}){

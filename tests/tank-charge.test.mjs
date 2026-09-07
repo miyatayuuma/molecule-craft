@@ -10,10 +10,10 @@ class Node extends EventTarget{
   setPointerCapture(){}releasePointerCapture(){}
 }
 const context=new Proxy({createRadialGradient:()=>({addColorStop(){}})},{get:(target,key)=>key in target?target[key]:()=>{}});
-function harness(plan){
+function harness(plan,{reduced=false}={}){
   let now=0,nextFrame=1,commits=[],finishResults=[],queued=new Map();const view=new EventTarget(),document=new EventTarget();document.defaultView=view;document.hidden=false;document.createElement=()=>new Node(document);
   const result=new Node(document),icon=new Node(document),label=new Node(document),canvas=new Node(document);canvas.getContext=()=>context;const stage=new Node(document),stageNodes=new Map([['#tank-charge-result',result],['#tank-charge-icon',icon],['#tank-charge-label',label],['canvas',canvas]]);stage.querySelector=selector=>stageNodes.get(selector)??null;stage.children=[canvas,icon,label,result];
-  const button=new Node(document),control=bindTankChargeAction(button,{stage,use:'propellant',record:{atoms:['H','H']},planFor:()=>plan,commit:count=>(commits.push(count),{current:(plan.current??0)+count,capacity:plan.capacity}),onFinish:value=>finishResults.push(value),clock:()=>now,raf:callback=>{const id=nextFrame++;queued.set(id,callback);return id;},cancelRaf:id=>queued.delete(id),delay:()=>1,cancelDelay:()=>{},reduced:false});control.refresh();
+  const button=new Node(document),control=bindTankChargeAction(button,{stage,use:'propellant',record:{atoms:['H','H']},planFor:()=>plan,commit:count=>(commits.push(count),{current:(plan.current??0)+count,capacity:plan.capacity}),onFinish:value=>finishResults.push(value),clock:()=>now,raf:callback=>{const id=nextFrame++;queued.set(id,callback);return id;},cancelRaf:id=>queued.delete(id),reduced});control.refresh();
   const pointer=(type,id=1)=>{const event=new Event(type,{cancelable:true});Object.defineProperties(event,{button:{value:0},isPrimary:{value:true},pointerId:{value:id},clientX:{value:10},clientY:{value:10}});button.dispatchEvent(event);};
   const advance=milliseconds=>{now+=milliseconds;const callbacks=[...queued.values()];queued.clear();for(const callback of callbacks)callback(now);};
   return {button,stage,result,control,commits,finishResults,pointer,advance,view,document};
@@ -24,7 +24,7 @@ const partial=harness(base);partial.pointer('pointerdown');assert.equal(partial.
 
 const full=harness(base);full.pointer('pointerdown');full.advance(1500);assert.deepEqual(full.commits,[10],'An empty tank reaches full in 1.5 seconds');assert.equal(full.result.textContent,'満タン');
 
-const cancelled=harness(base);cancelled.pointer('pointerdown');cancelled.advance(900);cancelled.pointer('pointercancel');assert.deepEqual(cancelled.commits,[],'Pointer cancellation never mutates resources');assert.equal(cancelled.stage.hidden,true);
+const cancelled=harness(base);cancelled.pointer('pointerdown');cancelled.advance(900);cancelled.pointer('pointercancel');assert.deepEqual(cancelled.commits,[],'Pointer cancellation never mutates resources');assert.equal(cancelled.stage.hidden,false,'Cancellation keeps particles visible during fade');cancelled.advance(160);assert.equal(cancelled.stage.hidden,false);cancelled.advance(160);assert.equal(cancelled.stage.hidden,true);assert.deepEqual(cancelled.commits,[]);
 
 const blurred=harness(base);blurred.pointer('pointerdown');blurred.advance(900);blurred.view.dispatchEvent(new Event('blur'));assert.deepEqual(blurred.commits,[],'Window blur cancels without committing');
 
@@ -33,3 +33,10 @@ const topUp=harness({...base,capacity:120,loadedCapacity:120,amount:118,current:
 const replacement=harness({...base,loadedCapacity:10,amount:8,maxAdd:10,replacing:true});replacement.pointer('pointerdown');replacement.advance(600);replacement.pointer('pointerup');assert.deepEqual(replacement.commits,[],'The opening replacement phase only depicts discarding the old contents');replacement.pointer('pointerdown');replacement.advance(1500);assert.deepEqual(replacement.commits,[10],'A full replacement finishes discard and refill within 1.5 seconds');
 
 console.log('Tank charge passed: fixed full duration, proportional top-up/release, replacement phase, and cancellation safety.');
+
+const resumed=harness(base);resumed.pointer('pointerdown');resumed.advance(900);resumed.pointer('pointerup');resumed.pointer('pointerdown');resumed.advance(320);assert.equal(resumed.stage.hidden,false,'Starting a new fill cancels the previous fade');resumed.advance(1180);assert.deepEqual(resumed.commits,[5,10]);resumed.advance(320);assert.equal(resumed.stage.hidden,true);assert.deepEqual(resumed.commits,[5,10],'The fade never repeats payment');
+
+const shared=harness(base);shared.pointer('pointerdown');shared.advance(900);shared.pointer('pointerup');
+const second=new Node(shared.document);bindTankChargeAction(second,{stage:shared.stage,use:'coolant',record:{atoms:['H','H','O']},planFor:()=>base,commit:()=>false,clock:()=>0,raf:()=>0,cancelRaf:()=>{},reduced:false});
+const press=new Event('pointerdown',{cancelable:true});Object.defineProperties(press,{button:{value:0},pointerId:{value:2}});second.dispatchEvent(press);shared.advance(320);assert.equal(shared.stage.hidden,false,'A previous control cannot hide the next control’s animation');assert.equal(shared.stage.dataset.tankUse,'coolant');
+const reducedMotion=harness(base,{reduced:true});reducedMotion.pointer('pointerdown');reducedMotion.advance(900);reducedMotion.pointer('pointerup');assert.deepEqual(reducedMotion.commits,[5]);assert.equal(reducedMotion.stage.hidden,true,'Reduced motion avoids the particle drain animation');

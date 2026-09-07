@@ -41,3 +41,13 @@ test('the same seed and stock produce the same depleted field',()=>{
   const signature=map=>map.dust.map(({route,element,x,y,kind})=>[route,element,x,y,kind]);
   assert.deepEqual(signature(a),signature(b));
 });
+
+test('stock changes particle presence without moving landmarks or currents',()=>{
+  const totals={};for(const seed of [1,71,991]){
+    const a=createUniverse(seed),b=createUniverse(seed,{H:800,C:400,O:400});
+    assert.deepEqual(a.clusters.map(({x,y,phase})=>({x,y,phase})),b.clusters.map(({x,y,phase})=>({x,y,phase})));
+    assert.deepEqual(a.signals,b.signals);assert.deepEqual(a.fields,b.fields);assert.deepEqual(a.routes,b.routes);
+    for(const route of ['oxygen-rest-harvest','oxygen-harvest']){const before=a.dust.filter(d=>d.route===route).length,after=b.dust.filter(d=>d.route===route).length;assert.ok(after<=before);totals[route]=(totals[route]??0)+before-after;}
+  }
+  for(const removed of Object.values(totals))assert.ok(removed>0,'Local pockets use the upstream seeded depletion rule');
+});

@@ -52,10 +52,11 @@ const burst=stepRun(clusterRun,{x:0,y:0},1/60);assert.ok(burst.some(event=>event
 const carbonPickup=burst.find(event=>event.type==='pickup');assert.ok(carbonPickup?.units.C>=GROWTH.clusterParticles/2,'A cluster must release a meaningful C burst');
 const moving=clusterRun.map.dust.find(d=>d.element==='O'&&d.flow),before=[moving.x,moving.y];for(let i=0;i<20;i++)stepRun(clusterRun,{x:0,y:0},1/60);assert.notDeepEqual([moving.x,moving.y],before);
 
-// The hot opposing flow is crossed by sustained propulsion. Ambient heat is
-// deliberately independent from the optional coolant loop in v1.
-function hotBand(combustion=false){const run=createRun(createUniverse(10),hydrogen,{fuel:{methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity},predators:false});Object.assign(run.player,{x:100,y:-8700,angle:-Math.PI/2,vx:0,vy:0});let packets=0;if(combustion)setCombustionHeld(run,true);
-  for(let i=0;i<60*60&&run.region!=='frontier';i++)stepRun(run,{x:0,y:-1},1/60,{consumeCombustion:()=>{packets++;return true;}});
+// The main branch and the flow beyond its merge remain connected to Frontier.
+// Always-on travel now uses coolant; oxygen-routes.test verifies an uncooled
+// rest strategy and another coolant, so water is never a molecule gate.
+function hotBand(combustion=false){const run=createRun(createUniverse(10),hydrogen,{fuel:{methane:EXPEDITION.methaneCapacity,oxygen:EXPEDITION.oxygenCapacity,coolant:{molecule:'water',amount:80}},predators:false});Object.assign(run.player,{x:100,y:-8700,angle:-Math.PI/2,vx:0,vy:0});let packets=0;if(combustion)setCombustionHeld(run,true);
+  for(let i=0;i<60*60&&run.region!=='frontier';i++)stepRun(run,{x:0,y:-1},1/60,{consumeCombustion:()=>{packets++;return true;},consumeCoolant:()=>true});
   return {run,packets};
 }
 assert.notEqual(hotBand(false).run.region,'frontier');const sustained=hotBand(true);assert.equal(sustained.run.region,'frontier');assert.ok(sustained.packets>=2&&sustained.packets<=EXPEDITION.methaneCapacity);

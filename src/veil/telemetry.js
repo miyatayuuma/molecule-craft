@@ -5,7 +5,7 @@ const counts=(keys,source={})=>Object.fromEntries(keys.map(key=>[key,source[key]
 
 export function createExpeditionTelemetry(loadout={}){
   const slots=Object.fromEntries(['propellant','fuel','oxidizer','coolant'].map(use=>[use,{molecule:loadout[use]?.molecule??null,start:loadout[use]?.amount??0,used:0}]));
-  return {duration:0,maxDepth:0,collected:counts(ELEMENTS),slots,fuelUsed:{},burstUses:0,combustionSeconds:0,maxHeat:0,overheatEvents:0,maxEaters:0,minEaterDistance:Infinity,dangerContacts:0,returnType:null,loss:counts(ELEMENTS)};
+  return {duration:0,maxDepth:0,collected:counts(ELEMENTS),slots,fuelUsed:{},burstUses:0,combustionSeconds:0,maxHeat:0,overheatEvents:0,maxEaters:0,minEaterDistance:Infinity,dangerContacts:0,returnType:null,loss:counts(ELEMENTS),routesVisited:[],currentCrossings:[],harvestReached:false,stalledBursts:0};
 }
 
 export function recordFuelUse(telemetry,use,molecule,amount=1){
@@ -27,7 +27,8 @@ export function completeExpeditionTelemetry(run,{captured=false,result=null}={})
   recordExpeditionFrame(run,0);const t=run.telemetry;t.returnType=captured?'forced':'voluntary';
   for(const element of ELEMENTS)t.loss[element]=result?.lost?.[element]??0;
   return {
-    duration:+t.duration.toFixed(2),maxDepth:Math.round(t.maxDepth),collected:{...t.collected},loadout:Object.fromEntries(Object.entries(t.slots).map(([use,slot])=>[use,{...slot}])),fuelUsed:{...t.fuelUsed},burstUses:t.burstUses,combustionSeconds:+t.combustionSeconds.toFixed(2),maxHeat:+t.maxHeat.toFixed(2),overheatEvents:t.overheatEvents,maxEaters:t.maxEaters,minEaterDistance:Number.isFinite(t.minEaterDistance)?Math.round(t.minEaterDistance):null,dangerContacts:t.dangerContacts,returnType:t.returnType,loss:{...t.loss},
+    routesVisited:[...t.routesVisited],currentCrossings:[...t.currentCrossings],harvestReached:t.harvestReached,stalledBursts:t.stalledBursts,
+    destinationReached:!!run.destinationReached,choCompleted:!!result?.completedNow,duration:+t.duration.toFixed(2),maxDepth:Math.round(t.maxDepth),collected:{...t.collected},loadout:Object.fromEntries(Object.entries(t.slots).map(([use,slot])=>[use,{...slot}])),fuelUsed:{...t.fuelUsed},burstUses:t.burstUses,combustionSeconds:+t.combustionSeconds.toFixed(2),maxHeat:+t.maxHeat.toFixed(2),overheatEvents:t.overheatEvents,maxEaters:t.maxEaters,minEaterDistance:Number.isFinite(t.minEaterDistance)?Math.round(t.minEaterDistance):null,dangerContacts:t.dangerContacts,returnType:t.returnType,loss:{...t.loss},
   };
 }
 

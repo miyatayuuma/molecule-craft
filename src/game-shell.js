@@ -9,7 +9,7 @@ export function createGameShell({canOpen=()=>true}={}){
   }
   q('help-done')?.addEventListener('click',()=>q('help-dialog').close());
   let seen=false;try{seen=localStorage.getItem('molecule-craft.help.v1')==='seen';}catch{}
-  if(!seen){q('selection-chip').textContent='原子を置いて、光る点をつないでみよう';q('open-help')?.classList.add('primary');}
+  if(!seen){q('selection-chip').textContent='';q('open-supply')?.classList.add('primary');q('open-help')?.classList.add('primary');}
   q('help-dialog')?.addEventListener('close',()=>{try{localStorage.setItem('molecule-craft.help.v1','seen');}catch{}q('open-help')?.classList.remove('primary');});
   return {close:()=>dialogs.forEach(dialog=>{if(dialog.open)dialog.close();}),isOpen:()=>dialogs.some(dialog=>dialog.open),closeMenu:()=>q('menu-dialog')?.close()};
 }
