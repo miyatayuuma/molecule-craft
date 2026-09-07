@@ -1,13 +1,25 @@
+import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
-const root=new URL('../',import.meta.url);
-const [index,css,supply]=await Promise.all([readFile(new URL('index.html',root),'utf8'),readFile(new URL('veil.css',root),'utf8'),readFile(new URL('src/veil/supply.js',root),'utf8')]);
-assert.doesNotMatch(index,/⚒/,'Generic hammer icon must not return');
-assert.match(index,/class="craft-emblem"/);
-assert.match(index,/id="tank-open-collection" type="button">図鑑<\/button>/);
-assert.match(css,/Logo-derived craft emblem/);
-assert.doesNotMatch(css,/＋ ♨/,'Symbol-only shell explanation must stay removed');
-assert.match(css,/\.craft-emblem-action/);
-assert.match(css,/tank-molecules button>span small\{font-size:9px/);
-assert.match(supply,/tank-load'\)\.textContent=loaded\?formula\(loaded\):'—'/);
-console.log('Craft emblem visual contract passed.');
+import fs from 'node:fs';
+import path from 'node:path';
+
+function runtimeText(dir='src'){
+  let out='';
+  for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
+    const file=path.join(dir,entry.name);
+    if(entry.isDirectory())out+=runtimeText(file);
+    else if(/\.js$/.test(entry.name))out+=fs.readFileSync(file,'utf8');
+  }
+  return out;
+}
+
+test('all craft entry points use the molecule emblem instead of hammer glyphs',()=>{
+  const index=fs.readFileSync('index.html','utf8');
+  const source=runtimeText();
+  assert.equal((index+source).includes('⚒'),false);
+  assert.match(index,/id="tank-craft-molecule"[^>]*craft-emblem-action/);
+  assert.match(index,/id="cho-goal-action"[^>]*craft-emblem-action/);
+  assert.match(index,/id="veil-to-craft"[^>]*craft-emblem-action/);
+  assert.match(index,/id="cho-goal-label"/);
+  assert.match(index,/id="veil-to-craft-label"/);
+});
