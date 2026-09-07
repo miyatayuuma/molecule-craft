@@ -11,6 +11,16 @@ function pruneInstructionalChrome(document){
     '#veil-combustion-remaining','#veil-boost > small',
   ])for(const node of document.querySelectorAll(selector))node.style.display='none';
 
+  // Directly tapping atoms already switches the edited structure. Keep the
+  // craft surface focused on direct manipulation by removing redundant chrome.
+  for(const selector of ['#structure-focus-label','#frame-structure','#open-info'])document.querySelector(selector)?.remove();
+
+  const deleteButton=q('delete-selected');
+  if(deleteButton){
+    deleteButton.textContent='';deleteButton.classList.add('icon-button');
+    deleteButton.insertAdjacentHTML('beforeend','<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg>');
+  }
+
   // The spawn planner uses this chip's screen rectangle as the lower safe-area
   // boundary. Keep its geometry while removing it visually.
   const selectionChip=q('selection-chip');if(selectionChip)selectionChip.style.visibility='hidden';
