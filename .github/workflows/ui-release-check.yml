@@ -18,13 +18,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Refresh offline release
+        run: node scripts/build-precache.mjs
       - name: Run tests
         run: |
           set -euo pipefail
           for test in tests/*.test.mjs; do node "$test"; done
           node scripts/check-repository-hygiene.mjs
-      - name: Refresh offline release
-        run: node scripts/build-precache.mjs
       - name: Commit generated precache
         run: |
           if git diff --quiet -- precache-manifest.js; then exit 0; fi
