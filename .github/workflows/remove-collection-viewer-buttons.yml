@@ -34,7 +34,7 @@ jobs:
           let t=fs.readFileSync(testPath,'utf8');
           const marker="]);\n\nassert.match(index";
           if(!t.includes(marker))throw new Error('source-contract insertion point not found');
-          t=t.replace(marker,"]);\nconst collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'utf8');\nassert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|controls\\.zoom\\(|controls\\.reset\\(|模型を(?:拡大|縮小|表示リセット)/,'Collection viewers rely on direct gestures, not zoom/reset buttons');\nassert.match(collectionViewer,/createPreviewControls\\(/,'Collection viewer gesture controls remain enabled');\n\nassert.match(index");
+          t=t.replace(marker,"]);\nconst collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'utf8');\nassert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|模型を(?:拡大|縮小|表示リセット)/,'Collection viewer zoom/reset buttons stay removed');\nassert.match(collectionViewer,/createPreviewControls\\(/,'Collection viewer gesture controls remain enabled');\nassert.match(collectionViewer,/controls\\.zoom\\(/,'Pinch or wheel zoom remains available');\n\nassert.match(index");
           fs.writeFileSync(testPath,t);
           NODE
       - run: node scripts/build-precache.mjs
