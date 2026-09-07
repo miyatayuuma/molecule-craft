@@ -24,6 +24,8 @@ jobs:
         run: python scripts/apply-unified-craft-targets.py || true
       - name: Finish structural craft target changes
         run: python scripts/finish-unified-craft-targets.py
+      - name: Ensure runtime dependencies
+        run: python scripts/ensure-unified-craft-target-runtime.py
       - run: node tests/unified-craft-target.test.mjs
       - run: node tests/craft-target.test.mjs
       - run: node tests/craft-chrome.test.mjs
@@ -39,5 +41,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html styles.css veil.css src/app.js src/craft-connections.js src/craft-panel.js src/veil/ui.js tests/source-contracts.test.mjs tests/unified-craft-target.test.mjs precache-manifest.js
-          git commit -m "Unify craft targets and hide undiscovered names"
+          git commit -m "Complete unified craft target runtime"
           git push origin HEAD:${{ github.head_ref }}
