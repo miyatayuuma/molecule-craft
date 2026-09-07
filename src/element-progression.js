@@ -23,6 +23,18 @@ export function nextElementUnlock(discoveries, available) {
   return {elements:pending.filter(item=>item.discoveries===target),target,remaining:Math.max(0,target-discoveries)};
 }
 
+export function syncElementStocks(root = document, elements = {}) {
+  for (const button of root.querySelectorAll('#element-palette [data-element]')) {
+    const symbol=button.dataset.element,stock=button.querySelector('[data-element-stock]');
+    if(!stock)continue;
+    const count=Math.max(0,Number(elements[symbol]??0));
+    stock.textContent=String(count);button.dataset.stockCount=String(count);
+    button.disabled=button.hidden||count<=0;
+    const item=ELEMENT_UNLOCKS.find(item=>item.symbol===symbol);
+    if(item)button.setAttribute('aria-label',`${item.name}（${symbol}） 在庫 ${count}`);
+  }
+}
+
 // Enhance, never replace, the static HTML palette. A collection-data failure
 // keeps already explored elements usable; exploration remains authoritative.
 export function createElementPalette(root = document, {canUse=()=>true,explorationHint=()=>''} = {}) {
@@ -35,7 +47,7 @@ export function createElementPalette(root = document, {canUse=()=>true,explorati
     for(const button of buttons){
       const item=ELEMENT_UNLOCKS.find(item=>item.symbol===button.dataset.element);
       if(!item)continue;
-      button.hidden=!visible(item.symbol)||!available.has(item.symbol)||!canUse(item.symbol);button.disabled=button.hidden;
+      button.hidden=!visible(item.symbol)||!available.has(item.symbol)||!canUse(item.symbol);button.disabled=button.hidden||Number(button.dataset.stockCount??0)<=0;
       button.style.order=ELEMENT_UNLOCKS.indexOf(item);
       button.title=`${item.name}（${item.symbol}）を追加`;
     }

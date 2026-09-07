@@ -99,8 +99,9 @@ assert.equal(connectedStructures(field)[0].record?.id,'acetic-acid');
 assert.equal(loop.observeStructures(connectedStructures(field)).events[0].isNew,true);
 
 // All gates update the original buttons in place and can fail open. This small
-// DOM double complements the public browser integration harness.
-const buttons=ELEMENT_UNLOCKS.map(item=>({dataset:{element:item.symbol},style:{},hidden:false,disabled:false})),note={textContent:''};
+// DOM double complements the public browser integration harness. Give each gate
+// one unit of stock so this test isolates progression visibility from inventory.
+const buttons=ELEMENT_UNLOCKS.map(item=>({dataset:{element:item.symbol,stockCount:'1'},style:{},hidden:false,disabled:false})),note={textContent:''};
 const extra={checked:false,addEventListener(type,fn){this.change=fn;}},root={querySelectorAll:()=>buttons,querySelector:selector=>selector==='#show-extra-elements'?extra:note},palette=createElementPalette(root);
 assert.deepEqual(buttons.filter(b=>!b.hidden).map(b=>b.dataset.element),['H','C','O']);assert.equal(palette.canUse('N'),false);
 palette.update(loop);assert.equal(palette.canUse('N'),false,'Normal campaign stays CHO even when the legacy collection unlocks N');assert.match(note.textContent,/CHO/);

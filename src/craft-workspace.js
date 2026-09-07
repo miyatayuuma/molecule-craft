@@ -4,12 +4,12 @@ import {expandCraftStructure} from './craft-structures.js?v=31';
 // Owns the atomic boundary between BASE STOCK and the craft workspace.
 // Visual placement and interaction remain in app.js; every graph mutation that
 // changes checked-out atoms passes through this module.
-export function createCraftWorkspace({molecule,placements,resources}){
+export function createCraftWorkspace({molecule,placements,resources,onStockChange=()=>{}}){
   const costOf=atoms=>countElements(atoms);
 
   function addAtom(element,position){
     if(!resources.spend({[element]:1}))return null;
-    const atom=molecule.addAtom(element);placements.set(atom.id,{position});return atom;
+    const atom=molecule.addAtom(element);placements.set(atom.id,{position});onStockChange();return atom;
   }
 
   function addStructure(template,positions){
@@ -17,16 +17,16 @@ export function createCraftWorkspace({molecule,placements,resources}){
     if(!resources.spend(cost))return null;
     const expanded=expandCraftStructure(molecule,template);
     for(const [index,atomId] of expanded.ids.entries())placements.set(atomId,{position:positions[index]});
-    return expanded;
+    onStockChange();return expanded;
   }
 
   function removeAtom(id){
     const atom=molecule.atoms.find(item=>item.id===id);if(!atom)return false;
-    resources.refund(costOf([atom]));molecule.removeAtom(id);placements.delete(id);return true;
+    resources.refund(costOf([atom]));molecule.removeAtom(id);placements.delete(id);onStockChange();return true;
   }
 
   function clear(){
-    resources.refund(costOf(molecule.atoms));molecule.clear();placements.clear();
+    resources.refund(costOf(molecule.atoms));molecule.clear();placements.clear();onStockChange();
   }
 
   function removeAtoms(ids){
@@ -38,7 +38,7 @@ export function createCraftWorkspace({molecule,placements,resources}){
     resources.refund(costOf(snapshot.atoms));
     molecule.atoms=molecule.atoms.filter(atom=>!removed.has(atom.id));molecule.bonds=molecule.bonds.filter(bond=>!removed.has(bond.a)&&!removed.has(bond.b));
     for(const id of removed)placements.delete(id);
-    return snapshot;
+    onStockChange();return snapshot;
   }
 
   function restore(snapshots){
@@ -47,7 +47,7 @@ export function createCraftWorkspace({molecule,placements,resources}){
       molecule.atoms.push(...saved.atoms);molecule.bonds.push(...saved.bonds);
       for(const [id,position] of saved.positions)placements.set(id,{position:position.clone()});
     }
-    return true;
+    onStockChange();return true;
   }
 
   return{addAtom,addStructure,removeAtom,clear,removeAtoms,restore};

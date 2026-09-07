@@ -110,7 +110,7 @@ assert.match(app, /if\(!frameTransition\|\|relaxation\|\|bondTransition\)return/
 assert.doesNotMatch(app, /ensureSpawnVisible|function spawnPosition/);
 assert.match(app, /planWorkspaceSpawn\(parts\)/);
 assert.match(craftControls, /frame-structure'\)\?\.addEventListener\('click',onFrame\)/);
-assert.match(app, /createCraftWorkspace\(\{molecule,placements,resources\}\)/);
+assert.match(app, /createCraftWorkspace\(\{molecule,placements,resources,onStockChange:syncCraftStock\}\)/);
 assert.match(app, /bindCraftControls\(/);
 assert.match(app, /connectExploration\(/);
 assert.match(app, /connectCollection\(/);
