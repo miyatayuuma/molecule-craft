@@ -26,4 +26,6 @@ jobs:
       - name: Install browser-test DOM
         run: npm install --no-save --no-package-lock jsdom@26
       - name: Run production Veil UI integration
-        run: node tests/veil-ui-check.mjs "$(node -p \"require.resolve('jsdom/lib/api.js')\")"
+        run: |
+          JSDOM_PATH=$(node -e "console.log(require.resolve('jsdom/lib/api.js'))")
+          node tests/veil-ui-check.mjs "$JSDOM_PATH"
