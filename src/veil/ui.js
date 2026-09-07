@@ -34,9 +34,9 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const goal=growthGoal(resources.state,{cargo:run?.collectedElements??{}}),cost=goal.id&&resources.costFor(goal.id),withCargo=el=>(resources.state.elements[el]??0)+(run?.collectedElements[el]??0);
     const affordable=cost&&Object.entries(cost).every(([el,n])=>withCargo(el)>=n),firstHydrogen=goal.id==='hydrogen'&&(run?.collectedElements.H??0)>=VEIL.firstCraftH;
     q('craft-resource-hint').textContent='';
-    q('cho-goal-action').hidden=!goal.id;q('cho-goal-action').textContent=goal.id?`⚒ ${formula(goal.id)}`:'';
+    const goalAction=q('cho-goal-action');goalAction.hidden=!goal.id;q('cho-goal-label').textContent=goal.id?formula(goal.id):'';goalAction.setAttribute('aria-label',goal.id?`${formula(goal.id)}をクラフト`:'');
     const ready=active&&goal.id&&!has(goal.id)&&affordable&&(resources.state.hints.includes(goal.id)||firstHydrogen);
-    q('veil-craft-prompt').hidden=!ready;if(ready){const record=resources.record(goal.id);q('veil-to-craft').textContent=`↩ ⚒ ${record?.formula??'◉'}`;}
+    q('veil-craft-prompt').hidden=!ready;if(ready){const record=resources.record(goal.id),label=record?.formula??'◉';q('veil-to-craft-label').textContent=label;q('veil-to-craft').setAttribute('aria-label',`${label}をクラフトするため戻る`);}
   }
   function notice(text,seconds=4,icon='✦'){q('veil-message').setAttribute('aria-label',text);q('veil-message').textContent=icon;messageUntil=(run?.time??0)+seconds;q('veil-message').hidden=false;}
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
