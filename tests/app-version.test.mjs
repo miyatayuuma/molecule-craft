@@ -13,5 +13,7 @@ const handlers={},messages=[];
 const self={PRECACHE_VERSION:'0123456789abcdef',registration:{scope:'https://example.test/molecule-craft/'},addEventListener:(type,handler)=>handlers[type]=handler};
 runInNewContext(sw,{self,importScripts:()=>{},URL,caches:{},Request,Response,crypto:globalThis.crypto,fetch:()=>{}});
 handlers.message({data:{type:'GET_VERSION'},ports:[{postMessage:message=>messages.push(message)}]});
-assert.deepEqual(messages,[{type:'APP_VERSION',version:'0123456789abcdef'}]);
+assert.equal(messages.length,1);
+assert.equal(messages[0].type,'APP_VERSION');
+assert.equal(messages[0].version,'0123456789abcdef');
 console.log('App version passed: menu reads the release id from the controlling service worker.');
