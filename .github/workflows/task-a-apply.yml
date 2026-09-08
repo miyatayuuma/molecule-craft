@@ -17,7 +17,10 @@ jobs:
         with:
           node-version: 22
       - name: Apply implementation and validate
-        run: node scripts/task-a-apply.mjs
+        run: |
+          npm install --no-save --prefix /tmp/task-a-jsdom jsdom@26
+          sed -i "s#execFileSync('node',\['tests/veil-ui-check.mjs'\],{stdio:'inherit'});#execFileSync('node',['tests/veil-ui-check.mjs','/tmp/task-a-jsdom/node_modules/jsdom/lib/api.js'],{stdio:'inherit'});#" scripts/task-a-apply.mjs
+          node scripts/task-a-apply.mjs
       - name: Commit implementation
         run: |
           git config user.name "github-actions[bot]"
