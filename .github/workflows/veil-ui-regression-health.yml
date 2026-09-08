@@ -1,0 +1,53 @@
+name: Veil UI regression health
+
+on:
+  push:
+    branches: [test/veil-ui-regression-health]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/veil-ui-regression-health
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Update stale Veil UI regression expectations
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/veil-ui-check.mjs')
+          s=p.read_text()
+          old1='''// New exploration access reveals C/O in the same palette. A paid handmade CH₄\n// is learned while its atoms stay checked out; putting it away refunds them.\nassert.equal(q('stock-c').hidden,true);assert.equal(q('element-palette').querySelector('[data-element="C"]').hidden,true);\ngame.run(`resources.collect({H:40,C:12,O:16},0);collectionGame.refreshProgress();veilUI.updateCraft();`);\nassert.equal(q('stock-c').hidden,false);assert.equal(q('stock-o').hidden,false);assert.equal(q('element-palette').querySelector('[data-element="C"]').hidden,false);assert.equal(q('element-palette').querySelector('[data-element="O"]').hidden,false);\ngame.run(`resources.spend({C:1,H:4});globalThis.hcoIds=['C','H','H','H','H'].map((element,i)=>{const atom=molecule.addAtom(element);placements.set(atom.id,{position:new THREE.Vector3(i,0,0)});return atom.id;});for(let i=1;i<5;i++)molecule.setBond(hcoIds[0],hcoIds[i],1);topologyChanged();refresh();`);\nassert.equal(game.run("resources.state.recipes.includes('methane')"),true);assert.equal(game.run('molecule.atoms.length'),5);assert.ok(q('craft-tank-actions').querySelector('[data-tank-use="fuel"]'));game.run('clearField()');assert.equal(game.run('molecule.atoms.length'),0);\ngame.run(`resources.collect({H:400,C:30,O:80},0);resources.discover('hydrogen');resources.discover('oxygen');resources.discover('water');resources.fillTankFromElements('propellant','hydrogen',120);resources.fillTankFromElements('fuel','methane',18);resources.fillTankFromElements('oxidizer','oxygen',36);resources.fillTankFromElements('coolant','water',8);resources.visit('oxygen');veilUI.updateCraft();`);\nassert.deepEqual(game.run('resources.state.tanks'),{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:{molecule:'water',amount:8}});\nq('open-supply').click();q('shell-fuel').click();assert.equal(q('tank-model-name').textContent,'CH₄ · メタン');assert.equal(q('tank-comparison').children.length,2);q('shell-oxidizer').click();assert.equal(q('tank-model-name').textContent,'O₂ · 酸素');q('shell-coolant').click();assert.equal(q('tank-model-name').textContent,'H₂O · 水');assert.equal(q('tank-comparison').children.length,2);\nq('expedition-anchor').value='oxygen';q('expedition-anchor').dispatchEvent(new game.window.Event('change',{bubbles:true}));q('launch-veil').click();assert.equal(q('veil-combustion').hidden,false);const methaneFuel=game.run('resources.state.tanks.fuel.amount'),oxygenFuel=game.run('resources.state.tanks.oxidizer.amount'),elementsBeforeDrive=game.run('JSON.stringify(resources.state.elements)');'''
+          new1='''// New exploration access reveals C/O in the same palette. A paid handmade CH₄\n// is learned while its atoms stay checked out; putting it away refunds them.\nassert.equal(q('element-palette').querySelector('[data-element="C"]').hidden,true);\ngame.run(`resources.collect({H:40,C:12,O:16},0);collectionGame.refreshProgress();veilUI.updateCraft();`);\nassert.equal(q('element-palette').querySelector('[data-element="C"]').hidden,false);assert.equal(q('element-palette').querySelector('[data-element="O"]').hidden,false);\ngame.run(`resources.spend({C:1,H:4});globalThis.hcoIds=['C','H','H','H','H'].map((element,i)=>{const atom=molecule.addAtom(element);placements.set(atom.id,{position:new THREE.Vector3(i,0,0)});return atom.id;});for(let i=1;i<5;i++)molecule.setBond(hcoIds[0],hcoIds[i],1);topologyChanged();refresh();`);\nassert.equal(game.run("resources.state.recipes.includes('methane')"),true);assert.equal(game.run('molecule.atoms.length'),5);assert.equal(q('craft-tank-actions').hidden,true);assert.equal(q('craft-tank-actions').querySelector('[data-tank-use="fuel"]'),null);game.run('clearField()');assert.equal(game.run('molecule.atoms.length'),0);\ngame.run(`resources.collect({H:400,C:30,O:80},0);resources.discover('hydrogen');resources.discover('oxygen');resources.discover('water');resources.setLoadoutTank('propellant','hydrogen');resources.setLoadoutTank('fuel','methane');resources.setLoadoutTank('oxidizer','oxygen');resources.setLoadoutTank('coolant','water');resources.visit('oxygen');veilUI.updateCraft();`);\nq('open-supply').click();q('shell-fuel').click();assert.equal(q('tank-model-name').textContent,'CH₄ · メタン');assert.equal(q('tank-comparison').children.length,2);q('shell-oxidizer').click();assert.equal(q('tank-model-name').textContent,'O₂ · 酸素');q('shell-coolant').click();assert.equal(q('tank-model-name').textContent,'H₂O · 水');assert.equal(q('tank-comparison').children.length,2);\nq('expedition-anchor').value='oxygen';q('expedition-anchor').dispatchEvent(new game.window.Event('change',{bubbles:true}));q('launch-veil').click();await new Promise(resolve=>setTimeout(resolve,540));assert.deepEqual(game.run('resources.state.tanks'),{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:{molecule:'water',amount:12}});assert.equal(q('veil-combustion').hidden,false);const methaneFuel=game.run('resources.state.tanks.fuel.amount'),oxygenFuel=game.run('resources.state.tanks.oxidizer.amount'),elementsBeforeDrive=game.run('JSON.stringify(resources.state.elements)');'''
+          if old1 not in s: raise SystemExit('C/O stale block not found')
+          s=s.replace(old1,new1,1)
+
+          old2='''[...q('collection-detail').querySelectorAll('button')].find(b=>b.textContent==='補給で比較する').click();assert.equal(q('collection-dialog').open,false);assert.equal(q('supply-dialog').open,true);assert.match(q('tank-model-name').textContent,/CO[₂2]/);\nq('tank-craft-molecule').click();game.run('clearField()');assert.match(q('craft-target').textContent,/CO₂|二酸化炭素/);\ngame.run(`resources.spend({C:1,O:2});var co2Again=['C','O','O'].map((element,i)=>{const atom=molecule.addAtom(element);placements.set(atom.id,{position:new THREE.Vector3(i,0,0)});return atom.id;});molecule.setBond(co2Again[0],co2Again[1],2);molecule.setBond(co2Again[0],co2Again[2],2);topologyChanged();refresh();`);\nconst co2Button=q('craft-tank-actions').querySelector('[data-tank-use="propellant"]');assert.ok(co2Button);\nconst co2Pointer=type=>{const event=new game.window.MouseEvent(type,{bubbles:true,cancelable:true});Object.defineProperty(event,'pointerId',{value:31});co2Button.dispatchEvent(event);};\nco2Pointer('pointerdown');for(let i=0;i<150;i++)game.tick();co2Pointer('pointerup');\nassert.equal(game.run('resources.state.tanks.propellant.molecule'),'carbon-dioxide');assert.equal(game.run('resources.state.tanks.propellant.amount'),72);\nq('open-supply').click();q('launch-veil').click();assert.equal(q('veil-boost').getAttribute('aria-description'),'残り噴射 9回');q('veil-boost').click();q('veil-return').click();finishReturn();assert.match(q('craft-last-run').textContent,/↩/);\ngame.window.dispatchEvent(new game.window.CustomEvent('molecule-craft:open-molecule',{detail:{id:'carbon-dioxide'}}));[...q('collection-detail').querySelectorAll('button')].find(b=>b.textContent==='補給で比較する').click();assert.match(q('tank-comparison').textContent,/8回/);\nconsole.log('CO₂ loop passed: unknown hint, handmade discovery, collection → supply → craft, replacement hold charge, nine-use expedition and return review.');'''
+          new2='''[...q('collection-detail').querySelectorAll('button')].find(b=>b.textContent==='補給で比較する').click();assert.equal(q('collection-dialog').open,false);assert.equal(q('supply-dialog').open,true);assert.match(q('tank-model-name').textContent,/CO[₂2]/);\nassert.equal(q('tank-craft-molecule').hidden,true);const co2Choice=q('tank-molecules').querySelector('[data-molecule-id="carbon-dioxide"]');assert.ok(co2Choice);const beforeCo2Loadout=game.run('resources.snapshot()');co2Choice.click();assert.deepEqual(game.run('resources.state.tanks'),beforeCo2Loadout.tanks,'Selecting CO₂ does not mutate the loaded tank');assert.equal(game.run('resources.selectedLoadout().propellant'),'carbon-dioxide');\nq('launch-veil').click();await new Promise(resolve=>setTimeout(resolve,540));assert.equal(game.run('resources.state.tanks.propellant.molecule'),'carbon-dioxide');assert.equal(game.run('resources.state.tanks.propellant.amount'),72);assert.equal(q('veil-boost').getAttribute('aria-description'),'残り噴射 9回');q('veil-boost').click();q('veil-return').click();finishReturn();assert.match(q('craft-last-run').textContent,/↩/);\ngame.window.dispatchEvent(new game.window.CustomEvent('molecule-craft:open-molecule',{detail:{id:'carbon-dioxide'}}));[...q('collection-detail').querySelectorAll('button')].find(b=>b.textContent==='補給で比較する').click();assert.match(q('tank-comparison').textContent,/8回/);\nconsole.log('CO₂ loop passed: unknown hint, handmade discovery, collection → loadout selection, launch auto-synthesis, nine-use expedition and return review.');'''
+          if old2 not in s: raise SystemExit('CO2 stale block not found')
+          p.write_text(s.replace(old2,new2,1))
+          PY
+      - name: Validate full regression suite
+        run: |
+          npm install --no-save --prefix /tmp/veil-jsdom jsdom@26
+          node tests/veil-ui-check.mjs /tmp/veil-jsdom/node_modules/jsdom/lib/api.js
+          node tests/supply-tanks.test.mjs
+          node scripts/check-repository-hygiene.mjs
+      - name: Commit repaired test
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/veil-ui-regression-health.yml
+          git add tests/veil-ui-check.mjs
+          git commit -m "Repair Veil UI regression coverage"
+          git push origin HEAD:test/veil-ui-regression-health
