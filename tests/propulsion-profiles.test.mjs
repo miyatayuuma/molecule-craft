@@ -45,3 +45,9 @@ assert.ok(nitrogen.coolantBuffer<glycol.coolantBuffer);
 assert.ok(nitrogen.heat<glycol.heat);
 
 console.log('Propulsion profiles passed: shared top speed, fuel response ordering, and short/strong vs long/weak coolant behavior.');
+
+// Ambient heat drains the paid service buffer faster; tolerance is a continuous
+// multiplier, never an equipment permission check.
+function expose(id,heat){const run=coolantRun(id);run.ambientHeat=heat;const before=run.coolantBuffer;stepRun(run,{x:0,y:-1},1/60,{consumeCombustion:()=>true,consumeCoolant:()=>true});return before-run.coolantBuffer;}
+assert.ok(expose('nitrogen',100)>expose('ethylene-glycol',100));assert.ok(expose('ethylene-glycol',100)>expose('ethylene-glycol',0));
+for(const id of ['hydrogen','methane','ethyne','dimethyl-ether','propane','n-hexane']){const r=launch(id),buffer=r.driveBuffer;setCombustionHeld(r,false);stepRun(r,{x:0,y:-1},1/60,{consumeCombustion:()=>true});assert.equal(r.player.combustion,false);assert.equal(r.driveBuffer,buffer);}

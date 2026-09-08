@@ -1,3 +1,4 @@
+import {drawChallengeCurrents} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD } from './oxygen-routes.js';
@@ -107,6 +108,7 @@ export function createVeilRenderer(canvas){
       }ctx.globalAlpha=1;
     }
     if(run.map.universe){
+      drawChallengeCurrents(ctx,run.time);
       for(const route of OXYGEN_ROUTES){
         ctx.strokeStyle=route.color;ctx.lineWidth=2;ctx.globalAlpha=.22;
         ctx.beginPath();route.knots.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();

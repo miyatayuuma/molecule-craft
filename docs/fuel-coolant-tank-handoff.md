@@ -44,7 +44,7 @@ Coolant profileを以下へ分離した。
 
 - `coolingPower`: 単位時間あたりの冷却強度
 - `durationFactor`: 1分子が働く時間
-- `environmentTolerance`: 将来の高温環境用。現時点では未接続。
+- `environmentTolerance`: 高温環境での実効持続減少を緩和する。
 
 ランタイムで `durationFactor` を実際のcoolant bufferへ反映済み。
 
@@ -67,89 +67,80 @@ Coolant profileを以下へ分離した。
   - H2 > CH4 > n-hexane の加速応答
   - N2とethylene glycolの実ランタイム冷却差
 
-## Important unfinished work for Codex
+## PR #63 completion / 2026-09-08
 
-### 1. Playtest and tune the acceleration curves
+### Acceleration decision
 
-現在は加速度差の最初の実装。
+既存responseを維持。実エンジン60fps、静穏区間、開始速度29から共通最高速470の90%へ到達する時間：
 
-必ず実機相当の探索プレイで、少なくとも以下を比較する。
+| Fuel | 90%到達（秒） | 0.2秒時の速度 |
+| --- | ---: | ---: |
+| H₂ | 0.283 | 382.0 |
+| CH₄ | 0.433 | 314.1 |
+| C₂H₂ | 0.300 | 372.4 |
+| DME | 0.317 | 369.3 |
+| propane | 0.550 | 278.1 |
+| n-hexane | 0.783 | 223.7 |
+| H₂ BURST（比較） | 0.033 | 757.3 |
 
-- H2
-- CH4
-- C2H2 or DME
-- propane
-- n-hexane
+BURST最高速760と瞬発力の役割は残る。点火前倒しでn-hexaneも周期区間を通過可能。周期区間の正常帰還まで、開始直後点火はH₂ 3.23秒／n-hexane 3.38秒、入口直前点火は4.93秒／5.12秒。応答差はあるが、この単一区間のタイム差だけでは装備優劣を決めない。連続燃焼ボーナス・再点火罰・離した後の自動推進は追加しない。支払い済み燃焼時間は保持する。
 
-確認点：
-- 高応答がBURSTを侵食していないか。
-- CH4が基準として扱いやすいか。
-- 重巡航Fuelが単なる弱いFuelではなく、先読み点火で成立するか。
-- 共通最高速は維持する。
+Chromiumの実Canvas画面・キーボードでも6 Fuelの加速、離した後の燃焼停止、支払い済み時間保持を確認。人間による主観的な操作感の評価は未確認。
 
-必要なら `response` と `DRIVES.combustion.boostAcceleration` を調整する。
+### Permanent O₂ processing
 
-### 2. Long-burn advantage only if playtest needs it
+| 加工 | 容量 | 発見済みレシピの条件 | 一度だけ支払うBASE STOCK |
+| --- | ---: | --- | --- |
+| 初期 | 36 | — | — |
+| Elastomer Seal Repair | 48 | ethene + propene | C24 H48 |
+| Composite Overwrap | 72 | phenol + formaldehyde | C96 H48 O16 |
 
-現行packetはボタンを離しても残量を保存するため、ON/OFF自体に再点火コストはない。
+第1段階は劣化シールと微小リークの補修による使用可能容量の回復。第2段階は樹脂マトリクス＋炭素繊維による容器補強。小分子のクラフトを加工技術の入口とする抽象化であり、加工費は工業的な合成反応式ではない。ゴムを圧力容器の耐圧材とせず、巨大高分子の手作業・部品在庫・遠征ごとの維持費も作らない。
 
-加速度差だけでResponsive / Cruiseの操作差が不足する場合のみ、長時間連続燃焼に小さな効率メリットを追加する。
+schema v7に強化段階を保存。v6以前は容量36・強化なしへ移行し、既存タンク残量を保持。強化時にO₂は増殖せず、追加容量は別途補充する。保存失敗時は原子支払いと強化をロールバック。resources、補給メーター、容量表示、出発時loadout、飛行O₂ゲージ・推進予算へ反映。タンク初期化では強化もリセットする。
 
-避けること：
-- ボタンを離したのに推力が残る操作不能感。
-- 再点火ごとに1packet丸ごと失う強い罰。
+### Mixed expedition and coolant
 
-### 3. Couple `environmentTolerance` to future hot regions
+任意の周期逆流（y -8350〜-8750）、曲線強流（-10820〜-11320）、高温区間（-11320〜-11600）を追加。流れの描画と物理は同じ領域を使う。側方の既存経路も使え、装備による通行可否判定はない。Dust Eaterと0.8秒の帰還ロックは既存処理を維持。
 
-現行のambient heatはまだFuel/Coolant消費へ本格接続されていない。
+横断でDME／シール用分子、propane／複合材用分子、glycol／n-hexaneの既存ヒントを解放する。既存の帰還してクラフトする導線へ次の燃料・冷却剤を渡す。ブラウザで周期区間横断→DME報酬→正常帰還→制作目標へのイベントまで確認。完成レシピや装備を無料付与しない。
 
-高温難所では、低tolerance coolantの実効持続が落ち、高tolerance glycol系が長く働く程度にする。
+環境熱は機体に最大3.75 heat/秒を加え、冷却bufferの消費速度を `1 + 0.8 × ambientHeat / 100 / environmentTolerance` 倍にする。冷却強度と基本持続は維持。静かな渦の環境熱を軽減。N₂/NH₃の強冷却、waterの基準、glycolの弱く長い持続を維持する連続的な負荷であり、特定冷却剤の鍵穴ではない。
 
-「特定Coolantでないと通れない扉」にはしない。
+seed71、酸素アンカーから混合区間終端y=-11640へ向かい、敵・実タンク消費あり、熱75超で休止／35まで回復、危険時BURST、65秒上限の自動操作：
 
-### 4. O2 tank repair / reinforcement system
+| Fuel | O₂容量 | Coolant | 正常帰還まで | 冷却剤残量 |
+| --- | ---: | --- | ---: | ---: |
+| n-hexane | 36 | water | 捕獲（35.25秒） | 49 / 80 |
+| n-hexane | 36 | N₂ | 28.18秒 | 11 / 72 |
+| n-hexane | 36 | NH₃ | 28.18秒 | 17 / 60 |
+| n-hexane | 36 | ethylene glycol | 捕獲（38.65秒） | 23 / 32 |
+| n-hexane | 48 | water | 48.28秒 | 25 / 80 |
+| n-hexane | 48 | N₂ | 23.28秒 | 3 / 72 |
+| n-hexane | 48 | NH₃ | 23.28秒 | 12 / 60 |
+| n-hexane | 48 | ethylene glycol | 45.80秒 | 17 / 32 |
 
-これは未実装。保存・UI・材料加工まで一貫して実装する。
+容量72はこの終端では48と同じ到達時間で、追加O₂が余力として残る。n-hexaneの満載時燃焼予算は容量36／48／72で約20.76／41.52／62.28秒。初期容量も通過可能で、増量後は冷却休止と敵への露出が次の制約になる。ただし強冷却はこの短い評価コースで速さに有利。glycolの残量は長期余力であり、全経路で最適との結論ではない。
 
-推奨進行：
+代表のn-hexane / water / O₂48は30fpsで48.57秒、60fpsで48.28秒、いずれも正常帰還・冷却残25。これは固定操作の機械的比較であり、人間の成功率やCHO最終地点の攻略結果ではない。スクリプトはランタイムのタンク消費を使い、BASE STOCKの遠征収支全体は評価しない。
 
-1. **Elastomer Seal Repair**
-   - 劣化したシール/微小リークを補修する恒久アップグレード。
-   - O2の使用可能容量を回復する。
-   - ゴムそのものが高圧容器を強化する設定にはしない。
+### Reproduction
 
-2. **Composite Overwrap**
-   - 樹脂をマトリクスとした炭素繊維複合材で圧力容器を補強する恒久アップグレード。
-   - O2の定格容量をさらに増やす。
+```sh
+node scripts/evaluate-propulsion-profiles.mjs > /tmp/fuel-profiles.json
+node --input-type=module - <<'JS'
+import {evaluateProfile} from './scripts/evaluate-propulsion-profiles.mjs';
+for (const capacity of [36,48,72])
+  for (const coolant of ['water','nitrogen','ammonia','ethylene-glycol'])
+    console.log(evaluateProfile({fuel:'n-hexane',capacity,coolant}));
+JS
+# Serve repository, then provide an installed Playwright module path:
+python3 -m http.server 8765
+# In another terminal:
+node tests/fuel-profiles-browser-check.mjs /absolute/path/to/playwright/index.mjs http://127.0.0.1:8765
+```
 
-初期値36を基準に、例えば `36 -> 48 -> 72` 程度からプレイテストしてよいが固定値ではない。
-
-重要：
-- 毎遠征ゴム/樹脂を消費する維持費にはしない。
-- 容量到達を難所のhard gateにしない。
-- 小容量でも上手い操作なら突破可能、大容量なら奥まで行って正常帰還しやすい、という余力差にする。
-- O2容量増加により長時間燃焼が可能になり、その結果Heat/Coolantが次の制約になる流れを狙う。
-
-### 5. Material crafting abstraction
-
-高分子鎖をクラフト画面で大量に手作業させない。
-
-モノマー/関連分子の発見・クラフトを材料技術の入口にし、その後は加工としてSeal / Liner / Compositeを生成する。
-
-具体的な材料分子はDB存在確認と進行設計をしてから確定する。
-
-### 6. Field obstacles that expose the differences
-
-単一難所 = 単一正解装備にはしない。
-
-1遠征内に複数要求を混在させる。
-
-- 短い周期逆流：Responsive Fuelが扱いやすい
-- 長い曲線強流：Cruise Fuelの先読み点火が有利
-- 高温長距離：Fuel heat + Coolant duration/tolerance
-- Dust Eater帰還：往路で使い切らない判断
-
-難所突破 -> Inspiration Reward -> Craft Target -> 新装備 -> 別ルート、のループへ接続する。
+追加テスト：`tank-upgrades.test.mjs`、`expedition-challenges.test.mjs`、`propulsion-profiles.test.mjs`。ブラウザ検証はモバイル幅390pxで実補給ボタン、36→48→72表示、実ランタイムと制作導線を使用する。次の調整判断は、人間による点火の先読み・視覚的な流れの読み取りの確認を基に行う。
 
 ## Validation before merge
 

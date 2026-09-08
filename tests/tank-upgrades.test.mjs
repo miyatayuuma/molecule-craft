@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
+import {propulsionGauge} from '../src/veil/growth.js';
+import {createRun} from '../src/veil/engine.js';
+const records=[{id:'ethene',atoms:['C','C','H','H','H','H']},{id:'propene',atoms:['C','C','C',...Array(6).fill('H')]},{id:'phenol',atoms:[...Array(6).fill('C'),...Array(6).fill('H'),'O']},{id:'formaldehyde',atoms:['C','O','H','H']},{id:'n-hexane',atoms:[...Array(6).fill('C'),...Array(14).fill('H')]}];
+const data=new Map(),storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)},r=createResources({storage});r.setCatalog(records);r.collect({H:500,C:500,O:500});
+r.discover('oxygen');r.discover('n-hexane');r.fillTankFromElements('oxidizer','oxygen',36);
+assert.equal(r.upgradeOxygenTank(),false);for(const id of ['ethene','propene'])r.discover(id);
+const before={...r.state.elements};assert.ok(r.upgradeOxygenTank());assert.equal(r.state.elements.C,before.C-24);assert.equal(r.state.elements.H,before.H-48);assert.equal(r.state.tanks.oxidizer.amount,36);assert.equal(r.tankFillPlan('oxidizer','oxygen').maxAdd,12);assert.equal(r.upgradeOxygenTank(),false);
+for(const id of ['phenol','formaldehyde'])r.discover(id);assert.ok(r.upgradeOxygenTank());r.fillTankFromElements('oxidizer','oxygen',36);r.fillTankFromElements('fuel','n-hexane',6);
+const load=r.prepareExpedition(),run=createRun({dust:[],fields:[],routes:[],labels:[]},undefined,{fuel:load});assert.equal(run.fuel.oxidizer.capacity,72);assert.equal(propulsionGauge('combustion',run.fuel).capacity,3);assert.equal(r.tankStatus('oxidizer').loadedCapacity,72);
+const saved=r.snapshot(),reload=createResources({storage});assert.equal(reload.blocked,false);assert.equal(reload.state.upgrades.oxygenTank,2);assert.deepEqual(reload.snapshot(),saved);assert.equal(reload.upgradeOxygenTank(),false);
+const old={...saved,schemaVersion:6};delete old.upgrades;old.tanks.oxidizer.amount=36;storage.setItem(RESOURCE_KEY,JSON.stringify(old));const migrated=createResources({storage});assert.equal(migrated.state.schemaVersion,7);assert.equal(migrated.state.upgrades.oxygenTank,0);assert.equal(migrated.state.tanks.oxidizer.amount,36);
+const corrupt={...saved,upgrades:{oxygenTank:3}};storage.setItem(RESOURCE_KEY,JSON.stringify(corrupt));assert.equal(createResources({storage}).blocked,true);
+let fail=false;const broken={getItem:()=>null,setItem(){if(fail)throw Error('quota');}},b=createResources({storage:broken});b.setCatalog(records);b.collect({H:100,C:100,O:100});b.discover('ethene');b.discover('propene');const snapshot=b.snapshot();fail=true;assert.equal(b.upgradeOxygenTank(),false);assert.deepEqual(b.snapshot(),snapshot);
+const poor=createResources({storage:null});poor.setCatalog(records);poor.discover('ethene');poor.discover('propene');const untouched=poor.snapshot();assert.equal(poor.upgradeOxygenTank(),false);assert.deepEqual(poor.snapshot(),untouched);
+console.log('Tank upgrades: atomic fabrication, prerequisite/stock gating, capacity, run/gauge, persistence, migration and protected saves passed.');
