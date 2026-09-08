@@ -175,8 +175,8 @@ game=await setup(null,0,game.window.localStorage.getItem('molecule-craft.resourc
 q('open-supply').click();q('launch-veil').click();
 game.run(`Object.assign(veilUI.run.player,{x:280,y:-12470,vx:0,vy:0});veilUI.run.eaters=[];veilUI.run.predators=false;`);game.tick();game.tick();
 assert.equal(game.run('veilUI.run.destinationReached'),true);assert.equal(game.run('resources.state.progress.choCompleted'),false);
-q('veil-return').click();finishReturn();assert.equal(game.run('resources.state.progress.choCompleted'),true);assert.equal(q('cho-completion').hidden,false);assert.match(q('craft-last-run').textContent,/CHO ✓/);
+q('veil-return').click();finishReturn();assert.equal(game.run('resources.state.progress.choCompleted'),true);assert.equal(q('cho-completion'),null);assert.match(q('craft-last-run').textContent,/CHO ✓/);
 const completedRaw=game.window.localStorage.getItem('molecule-craft.resources.v1');
-game=await setup(null,0,completedRaw);assert.equal(q('cho-completion').hidden,false);assert.equal(q('craft-resource-hint').textContent,'');
-q('cho-continue').click();assert.equal(q('supply-dialog').open,true);
-console.log('CHO production UI passed: physical final arrival, stable return ending, persisted completion and free exploration CTA.');
+game=await setup(null,0,completedRaw);assert.equal(q('cho-completion'),null);assert.equal(q('craft-resource-hint').textContent,'');
+q('open-supply').click();assert.equal(q('supply-dialog').open,true);
+console.log('CHO completion persists without the obsolete completion CTA; the standard exploration entry remains available.');

@@ -29,7 +29,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     supply.update();q('launch-veil').disabled=resources.blocked;
     const checkpoint=resources.state.progress.checkpoint;
     q('launch-veil').textContent='↗ 出発';
-    updatePrompt();q('cho-completion').hidden=!resources.state.progress.choCompleted;
+    updatePrompt();
   }
   function updatePrompt(){
     const goal=growthGoal(resources.state,{cargo:run?.collectedElements??{}}),record=goal.id?resources.record(goal.id):null,cost=goal.id&&resources.costFor(goal.id),withCargo=el=>(resources.state.elements[el]??0)+(run?.collectedElements[el]??0);
@@ -138,7 +138,6 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(anchorLock||now-hudAt>70){hudAt=now;hud();}if(lockComplete)finish(false);
   }
   q('cho-goal-action').addEventListener('click',()=>{const goal=growthGoal(resources.state);if(goal.id)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:goal.id}}));});
-  q('cho-continue').addEventListener('click',()=>q('open-supply').click());
   q('launch-veil').addEventListener('click',launch);q('veil-return').addEventListener('click',()=>beginReturn(false));q('veil-to-craft').addEventListener('click',()=>{const goal=growthGoal(resources.state,{cargo:run?.collectedElements??{}}),id=goal.id??null;if(id&&beginReturn(false))pendingCraftId=id;});
   q('veil-boost').addEventListener('pointerdown',event=>{event.preventDefault();burst();});q('veil-boost').addEventListener('click',event=>{if(event.detail===0)burst();});
   combustionButton.addEventListener('pointerdown',startCombustion);for(const type of ['pointerup','pointercancel','lostpointercapture'])combustionButton.addEventListener(type,event=>{if(drivePointer===null||event.pointerId===drivePointer)stopCombustion();});

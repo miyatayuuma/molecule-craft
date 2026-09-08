@@ -58,7 +58,7 @@ try{
     const {createResources}=await import('/src/veil/resources.js');const r=createResources({storage:localStorage});r.visit('frontier');r.save();
   });
   await page.reload();await page.waitForSelector('#open-supply');
-  assert.equal(await page.locator('#cho-completion').isVisible(),false);
+  assert.equal(await page.locator('#cho-completion').count(),0);
   assert.equal(await page.locator('#element-palette [data-element="N"]').isVisible(),false);
   await page.locator('#open-supply').click();await page.locator('#launch-veil').click();
   await page.keyboard.down('ArrowUp');await page.waitForTimeout(2600);
@@ -66,11 +66,13 @@ try{
   await page.keyboard.up('ArrowRight');await page.keyboard.up('ArrowUp');
   await page.waitForFunction(()=>document.querySelector('#veil-goal').dataset.reached==='true');
   await page.screenshot({path:'/tmp/molecule-craft-cho-destination.png'});
-  await page.locator('#veil-return').click();await page.waitForSelector('#cho-completion:not([hidden])');
+  await page.locator('#veil-return').click();await page.waitForSelector('#veil-view',{state:'hidden'});
   assert.match(await page.locator('#craft-last-run').innerText(),/CHO ✓/);
+  assert.equal(await page.locator('#cho-completion').count(),0);
   await page.screenshot({path:'/tmp/molecule-craft-cho-ending.png'});
-  await page.reload();await page.waitForSelector('#cho-completion:not([hidden])');
-  await page.locator('#cho-continue').click();await page.waitForSelector('#supply-dialog[open]');
+  await page.reload();await page.waitForSelector('#open-supply');
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('molecule-craft.resources.v1')).progress.choCompleted),true);
+  await page.locator('#open-supply').click();await page.waitForSelector('#supply-dialog[open]');
   await page.locator('#supply-dialog [data-close-dialog]').click();
   // Render an actual production frame at each obstacle for visual inspection.
   await page.evaluate(async()=>{

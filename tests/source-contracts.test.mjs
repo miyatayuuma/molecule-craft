@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, craftWorkspace, craftControls, craftConnections, craftPanel] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app.js?v=49', root), 'utf8'),
+  readFile(new URL('src/app.js?v=50', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=32', root), 'utf8'),
   readFile(new URL('src/conformation-engine.js?v=2', root), 'utf8'),
@@ -21,7 +21,7 @@ assert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|模型を(?:拡�
 assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
 assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=49"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=50"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-settlement\.js\?v=32'/);
@@ -131,6 +131,10 @@ assert.doesNotMatch(app, /return expanded;/);
 assert.match(app, /return true;/);
 assert.match(craftPanel, /compactPartNotation/);
 assert.match(index, /data-molecule-craft-shell="2"/);
+assert.doesNotMatch(index, /id="cho-completion"|id="cho-continue"/);
+assert.doesNotMatch(index, /<button id="open-supply"[^>]*>\s*<img[^>]+collector-shell\.png/);
+assert.doesNotMatch(index, /id="discovery-learning"/);
+assert.doesNotMatch(app, /cho-completion|cho-continue/);
 assert.match(app, /Craft information refresh failed; 3D workspace remains active/);
 assert.match(app, /Initial craft refresh failed; continuing runtime startup/);
 assert.match(index, /class=\"craft-target-meta\"/);
