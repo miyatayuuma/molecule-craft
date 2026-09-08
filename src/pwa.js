@@ -1,3 +1,5 @@
+const EXPECTED_LOADER_REV='31',loaderRev=new URL(import.meta.url).searchParams.get('v')??'';
+if(loaderRev!==EXPECTED_LOADER_REV){location.reload();}else{
 // Waiting updates auto-activate only after the app confirms that its current state is safe to save and reload.
 const install=document.getElementById('install-app'),installStatus=document.getElementById('install-status');
 const update=document.getElementById('update-app'),updateStatus=document.getElementById('update-status');
@@ -38,7 +40,8 @@ async function checkForUpdate(force=false){
 }
 update.addEventListener('click',()=>{if(!registration?.waiting){checkForUpdate(true);return;}activateWaitingUpdate({manual:true});});
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(reloadOnChange){location.reload();return;}requestRunningVersion();});
+  const hadController=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(hadController||reloadOnChange){location.reload();return;}requestRunningVersion();});
   navigator.serviceWorker.addEventListener('message',event=>{
     if(event.data?.type==='UPDATE_BLOCKED'){activationRequested=false;reloadOnChange=false;update.disabled=false;update.hidden=false;updateStatus.textContent='ほかのMolecule Craftの画面を閉じると更新できます。';}
   });
@@ -50,3 +53,5 @@ if('serviceWorker'in navigator){
   window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:true}))checkForUpdate();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:true}))checkForUpdate();}});
 }else{versionStatus.textContent='APP VERSION NETWORK';updateStatus.textContent='この環境ではオフライン機能を利用できません。';}
+
+}

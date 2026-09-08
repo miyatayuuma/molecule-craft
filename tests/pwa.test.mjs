@@ -9,6 +9,8 @@ const source=await read('sw.js'),sourceText=source.toString(),buildSource=(await
 assert.match(pwaSource,/registration\.update\(\)/,'Client must explicitly check for a new service worker');
 assert.match(pwaSource,/addEventListener\('focus'.*checkForUpdate/,'Returning to the app must re-check for updates');
 assert.match(pwaSource,/function activateWaitingUpdate/,'Waiting updates should have one guarded activation path');
+assert.match(pwaSource,/EXPECTED_LOADER_REV='31'/,'Current PWA bytes must reject an older HTML loader revision');
+assert.match(pwaSource,/hadController\|\|reloadOnChange/,'Controller replacement must reload an already-controlled document');
 assert.match(pwaSource,/molecule-craft:prepare-update/,'Automatic activation must reuse the existing safe-save gate');
 assert.match(pwaSource,/ready\(\{auto:true\}\)/,'Waiting updates should auto-activate when the app is safe');
 const entries=context.self.PRECACHE_FILES,paths=new Set(entries.map(e=>e.path));
