@@ -66,6 +66,7 @@ p.write_text(s)
 
 p=Path('tests/source-contracts.test.mjs'); t=p.read_text()
 t=t.replace('src/app.js?v=48','src/app.js?v=49').replace('src/pwa.js?v=33','src/pwa.js?v=34')
+t=t.replace(r'app\.js\?v=48',r'app\.js\?v=49').replace(r'pwa\.js\?v=33',r'pwa\.js\?v=34')
 marker='assert.match(craftPanel, /compactPartNotation/);'
 if marker not in t: raise SystemExit('source contract marker not found')
 t=t.replace(marker,marker+'\nassert.match(index, /data-molecule-craft-shell="2"/);\nassert.match(app, /Craft information refresh failed; 3D workspace remains active/);\nassert.match(app, /Initial craft refresh failed; continuing runtime startup/);',1)
