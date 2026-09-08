@@ -1,4 +1,5 @@
 import {moleculesForRole,performanceFor} from './molecule-roles.js';
+import {COLLECTOR_SHELL_SPRITE_URL} from './collector-shell.js';
 
 const clamp=(value,min=0,max=1)=>Math.max(min,Math.min(max,value));
 const range=(values,value,invert=false)=>{
@@ -72,13 +73,14 @@ export function bottleneckFor(id,role,{oxidizerRatio=1,coolantRatio=1}={}){
 }
 
 const STYLES=`
-#supply-dialog .tank-explanation{display:none}
+#supply-dialog .tank-explanation,#supply-dialog .tank-replacement{display:none!important}
 .mc-behavior-preview{display:grid;gap:9px;padding:9px;border:1px solid #31505f;border-radius:13px;background:linear-gradient(160deg,#0b2130,#091823);min-height:106px;overflow:hidden}
 .mc-preview-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}.mc-preview-head strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:600;color:#d6edf4}.mc-preview-limit{display:flex;align-items:center;gap:5px;flex:none;color:#9cb9c5;font-size:8px;white-space:nowrap}.mc-preview-limit:before{content:'';width:7px;height:7px;border-radius:50%;background:#7395a3;box-shadow:0 0 7px #7395a355}.mc-preview-limit[data-part=heat]:before{background:#dc865f;box-shadow:0 0 8px #dc865f66}.mc-preview-limit[data-part=oxygen]:before{background:#8dbcf4;box-shadow:0 0 8px #8dbcf466}.mc-preview-limit[data-part=coolant]:before{background:#87d8cf;box-shadow:0 0 8px #87d8cf66}.mc-preview-limit[data-part=burst]:before{background:#8fdced;box-shadow:0 0 8px #8fdced66}
-.mc-flight-compare{position:relative;height:50px;border-radius:10px;background:linear-gradient(90deg,#102735 0 12%,#153344 12% 13%,#0c1c28 13% 100%);overflow:hidden}.mc-flight-compare:after{content:'';position:absolute;left:12%;right:7%;top:50%;height:1px;background:linear-gradient(90deg,#41647555,#41647520)}.mc-run{position:absolute;left:8%;top:50%;width:15px;height:9px;border:1px solid currentColor;border-radius:60% 48% 48% 60%;transform:translateY(-50%);z-index:2}.mc-run:after{content:'';position:absolute;right:100%;top:3px;width:10px;height:2px;background:currentColor;opacity:.55}.mc-run.current{color:#6e8996;opacity:.55;animation:mc-current var(--current-time,1.45s) ease-out infinite}.mc-run.candidate{color:#bceefa;box-shadow:0 0 var(--candidate-glow,5px) rgba(238,130,84,var(--candidate-heat));animation:mc-candidate var(--candidate-time,1.2s) ease-out infinite}.mc-run.candidate:after{width:var(--candidate-tail,10px);opacity:var(--candidate-tail-opacity,.7)}.mc-preview-legend{position:absolute;right:5px;top:4px;display:flex;gap:8px;color:#698895;font-size:7px}.mc-preview-legend span{display:flex;align-items:center;gap:3px}.mc-preview-legend i{display:block;width:8px;height:1px;background:#6e8996}.mc-preview-legend .candidate i{background:#bceefa;box-shadow:0 0 4px #bceefa55}.mc-preview-cells{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}.mc-preview-cell{position:relative;height:17px;border:1px solid #294756;border-radius:6px;background:#0b1924;overflow:hidden}.mc-preview-cell:before{content:attr(data-label);position:absolute;inset:0;display:grid;place-items:center;font-size:7px;letter-spacing:.4px;color:#89a9b7;z-index:2}.mc-preview-cell i{position:absolute;inset:auto 0 0;height:100%;transform:scaleX(var(--level));transform-origin:left;background:linear-gradient(90deg,#1b5265,#4fa8bd55);opacity:.5}.mc-preview-cell.load i{background:linear-gradient(90deg,#76412d,#d071454d)}
-@keyframes mc-current{0%{left:8%}75%,100%{left:var(--current-travel,72%)}}@keyframes mc-candidate{0%{left:8%}75%,100%{left:var(--candidate-travel,78%)}}
+.mc-flight-compare{position:relative;height:54px;border-radius:10px;background:linear-gradient(90deg,#102735 0 12%,#153344 12% 13%,#0c1c28 13% 100%);overflow:hidden}.mc-flight-compare:after{content:'';position:absolute;left:12%;right:7%;top:50%;height:1px;background:linear-gradient(90deg,#41647555,#41647520)}.mc-run{position:absolute;left:8%;z-index:2;width:var(--shell-width,13px);height:var(--shell-height,20px);object-fit:contain;transform:translate(-50%,-50%) rotate(90deg);transform-origin:center;animation-duration:2.2s;animation-iteration-count:infinite;animation-fill-mode:both}.mc-run.current{top:62%;opacity:.38;filter:grayscale(.45) brightness(.8);animation-name:mc-current;animation-timing-function:var(--current-ease,ease-out)}.mc-run.candidate{top:38%;filter:drop-shadow(0 0 var(--candidate-glow,5px) rgba(238,130,84,var(--candidate-heat)));animation-name:mc-candidate;animation-timing-function:var(--candidate-ease,ease-out)}
+.mc-preview-legend{position:absolute;right:5px;top:4px;display:flex;gap:8px;color:#698895;font-size:7px}.mc-preview-legend span{display:flex;align-items:center;gap:3px}.mc-preview-legend i{display:block;width:8px;height:1px;background:#6e8996}.mc-preview-legend .candidate i{background:#bceefa;box-shadow:0 0 4px #bceefa55}.mc-preview-cells{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}.mc-preview-cell{position:relative;height:17px;border:1px solid #294756;border-radius:6px;background:#0b1924;overflow:hidden}.mc-preview-cell:before{content:attr(data-label);position:absolute;inset:0;display:grid;place-items:center;font-size:7px;letter-spacing:.4px;color:#89a9b7;z-index:2}.mc-preview-cell i{position:absolute;inset:auto 0 0;height:100%;transform:scaleX(var(--level));transform-origin:left;background:linear-gradient(90deg,#1b5265,#4fa8bd55);opacity:.5}.mc-preview-cell.load i{background:linear-gradient(90deg,#76412d,#d071454d)}
+@keyframes mc-current{0%{left:8%}66%,100%{left:var(--current-travel,72%)}}@keyframes mc-candidate{0%{left:8%}66%,100%{left:var(--candidate-travel,78%)}}
 @media(prefers-reduced-motion:reduce){.mc-run.current,.mc-run.candidate{animation:none}.mc-run.current{left:var(--current-travel,72%)}.mc-run.candidate{left:var(--candidate-travel,78%)}}
-@media(max-width:370px){.mc-behavior-preview{padding:8px;gap:7px}.mc-preview-head strong{font-size:9px}.mc-flight-compare{height:44px}.mc-preview-limit{font-size:7px}}
+@media(max-width:370px){.mc-behavior-preview{padding:8px;gap:7px}.mc-preview-head strong{font-size:9px}.mc-flight-compare{height:50px}.mc-preview-limit{font-size:7px}}
 /* Flight HUD: keep the meaningful physical stores, remove duplicate abstract bars. */
 #veil-combustion>.propulsion-meter,.veil-thermal>i{display:none!important}#veil-combustion{min-height:66px!important}.veil-thermal{padding:5px 8px!important;opacity:.52;transition:opacity .15s ease,border-color .15s ease,box-shadow .15s ease}.veil-thermal[data-state=hot],.veil-thermal[data-state=cooling],.veil-thermal[data-state=overheat]{opacity:1}.veil-thermal>span{justify-content:center!important}.veil-thermal small{text-align:center}.paired-tanks i{height:31px!important}.combustion-link{width:24px;height:24px;display:grid!important;place-items:center;border-radius:50%;background:#241d1a;transition:box-shadow .15s ease,background .15s ease}.driving .combustion-link{background:#4b281d!important;box-shadow:0 0 16px #ef894d88!important}.veil-thermal[data-state=hot]+#veil-combustion .combustion-link,.veil-thermal[data-state=overheat]+#veil-combustion .combustion-link{box-shadow:0 0 16px #e9744f88}.veil-thermal[data-state=cooling]{background:linear-gradient(90deg,#0a1b28c7,#123330c7,#0a1b28c7)}
 @media(prefers-reduced-motion:reduce){.veil-thermal,.combustion-link{transition:none}}
@@ -87,17 +89,21 @@ const STYLES=`
 function activeRole(){
   const node=document.querySelector('#supply-dialog .shell-port[data-active=true]');return node?.dataset.tankRole??null;
 }
+function motionEase(response){
+  const r=clamp(response??.5);
+  if(r>.72)return 'cubic-bezier(.12,.72,.22,1)';
+  if(r<.28)return 'cubic-bezier(.45,.02,.78,.58)';
+  return 'cubic-bezier(.28,.38,.42,.92)';
+}
 function profileVars(profile){
   if(!profile)return {};
-  const drive=profile.drive??.5,heat=profile.heat??0;
+  const drive=profile.drive??.5,heat=profile.heat??0,endurance=profile.endurance??.5;
   return {
-    travel:`${Math.round(48+profile.endurance*40)}%`,
-    time:`${(1.65-profile.response*.65).toFixed(2)}s`,
+    travel:`${Math.round(38+endurance*46+drive*8)}%`,
+    ease:motionEase(profile.response),
     drive:String(drive),
     heat:String(heat),
     glow:`${Math.round(3+heat*10)}px`,
-    tail:`${Math.round(7+drive*13)}px`,
-    tailOpacity:String(.45+drive*.5),
   };
 }
 function labelsFor(role){
@@ -114,8 +120,9 @@ function renderSelectionPreview(){
   let host=document.querySelector('.mc-behavior-preview');if(!host){host=document.createElement('section');host.className='mc-behavior-preview';host.setAttribute('aria-live','polite');document.querySelector('#supply-dialog .tank-decision')?.prepend(host);}if(!host)return;
   const oxidizerRatio=ratioFromMeter(document.querySelector('#shell-oxidizer .tank-scale')),coolantRatio=ratioFromMeter(document.querySelector('#shell-coolant .tank-scale')),limit=bottleneckFor(id,role,{oxidizerRatio,coolantRatio}),candidateVars=profileVars(candidate),currentVars=profileVars(current??candidate),formula=selected.querySelector('strong')?.textContent||id,labels=labelsFor(role);
   const load=role==='fuel'?candidate.heat:role==='coolant'?1-(candidate.tolerance??0):role==='propellant'?candidate.drive:candidate.endurance;
-  host.style.setProperty('--candidate-travel',candidateVars.travel);host.style.setProperty('--candidate-time',candidateVars.time);host.style.setProperty('--candidate-drive',candidateVars.drive);host.style.setProperty('--candidate-heat',candidateVars.heat);host.style.setProperty('--candidate-glow',candidateVars.glow);host.style.setProperty('--candidate-tail',candidateVars.tail);host.style.setProperty('--candidate-tail-opacity',candidateVars.tailOpacity);host.style.setProperty('--current-travel',currentVars.travel);host.style.setProperty('--current-time',currentVars.time);
-  host.innerHTML=`<div class="mc-preview-head"><strong>${formula}</strong><span class="mc-preview-limit" data-part="${limit?.part??''}">${limit?.text??''}</span></div><div class="mc-flight-compare" aria-hidden="true"><span class="mc-preview-legend"><span><i></i>現在</span><span class="candidate"><i></i>候補</span></span><i class="mc-run current"></i><i class="mc-run candidate"></i></div><div class="mc-preview-cells" aria-hidden="true"><span class="mc-preview-cell response" data-label="${labels[0]}"><i style="--level:${candidate.drive}"></i></span><span class="mc-preview-cell endurance" data-label="${labels[1]}"><i style="--level:${candidate.endurance}"></i></span><span class="mc-preview-cell load" data-label="${labels[2]}"><i style="--level:${load}"></i></span></div>`;
+  const shellScale=clamp(Math.min((window.innerWidth||390)/660,(window.innerHeight||844)/950),.48,1.15);
+  host.style.setProperty('--shell-width',`${(21*shellScale).toFixed(1)}px`);host.style.setProperty('--shell-height',`${(34*shellScale).toFixed(1)}px`);host.style.setProperty('--candidate-travel',candidateVars.travel);host.style.setProperty('--candidate-ease',candidateVars.ease);host.style.setProperty('--candidate-drive',candidateVars.drive);host.style.setProperty('--candidate-heat',candidateVars.heat);host.style.setProperty('--candidate-glow',candidateVars.glow);host.style.setProperty('--current-travel',currentVars.travel);host.style.setProperty('--current-ease',currentVars.ease);
+  host.innerHTML=`<div class="mc-preview-head"><strong>${formula}</strong><span class="mc-preview-limit" data-part="${limit?.part??''}">${limit?.text??''}</span></div><div class="mc-flight-compare" aria-hidden="true"><span class="mc-preview-legend"><span><i></i>現在</span><span class="candidate"><i></i>候補</span></span><img class="mc-run current" src="${COLLECTOR_SHELL_SPRITE_URL}" alt=""><img class="mc-run candidate" src="${COLLECTOR_SHELL_SPRITE_URL}" alt=""></div><div class="mc-preview-cells" aria-hidden="true"><span class="mc-preview-cell response" data-label="${labels[0]}"><i style="--level:${candidate.drive}"></i></span><span class="mc-preview-cell endurance" data-label="${labels[1]}"><i style="--level:${candidate.endurance}"></i></span><span class="mc-preview-cell load" data-label="${labels[2]}"><i style="--level:${load}"></i></span></div>`;
   host.setAttribute('aria-label',`${formula}。現在装備との挙動比較。${limit?.text??''}`);
 }
 function schedulePreview(){queueMicrotask(renderSelectionPreview);}
@@ -123,6 +130,7 @@ function install(){
   if(document.getElementById('mc-equipment-ux-style'))return;
   const style=document.createElement('style');style.id='mc-equipment-ux-style';style.textContent=STYLES;document.head.append(style);
   const dialog=document.getElementById('supply-dialog');if(dialog){dialog.addEventListener('click',schedulePreview);new MutationObserver(schedulePreview).observe(dialog,{attributes:true,attributeFilter:['open']});}
+  window.addEventListener('resize',schedulePreview,{passive:true});
   schedulePreview();
 }
 if(typeof document!=='undefined'){
