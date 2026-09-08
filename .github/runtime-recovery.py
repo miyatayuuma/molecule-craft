@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 p=Path('index.html'); h=p.read_text()
 if '<html lang="ja">' not in h: raise SystemExit('html root not found')
@@ -67,7 +66,7 @@ p.write_text(s)
 
 p=Path('tests/source-contracts.test.mjs'); t=p.read_text()
 t=t.replace('src/app.js?v=48','src/app.js?v=49').replace('src/pwa.js?v=33','src/pwa.js?v=34')
-marker='assert.match(index, /class="craft-target-meta"/);'
+marker='assert.match(craftPanel, /compactPartNotation/);'
 if marker not in t: raise SystemExit('source contract marker not found')
 t=t.replace(marker,marker+'\nassert.match(index, /data-molecule-craft-shell="2"/);\nassert.match(app, /Craft information refresh failed; 3D workspace remains active/);\nassert.match(app, /Initial craft refresh failed; continuing runtime startup/);',1)
 p.write_text(t)
@@ -75,11 +74,9 @@ p.write_text(t)
 p=Path('tests/pwa.test.mjs'); t=p.read_text()
 anchor="assert.match(pwaSource,/function activateWaitingUpdate/,'Waiting updates should have one guarded activation path');"
 if anchor not in t: raise SystemExit('PWA test anchor not found')
-addition="""
-assert.match(pwaSource,/SHELL_API='2'/,'PWA must declare the compatible HTML shell API');
-assert.match(pwaSource,/dataset\.moleculeCraftShell/,'PWA must validate the DOM shell instead of module URL query identity');
-assert.match(pwaSource,/sessionStorage\.getItem\(shellRecoveryKey\)/,'Shell recovery must be one-shot to prevent reload loops');
-assert.match(pwaSource,/location\.replace\(new URL\('\.\.\/',import\.meta\.url\)\.href\)/,'A mixed shell must navigate to the current app root');
-"""
+addition=("\nassert.match(pwaSource,/SHELL_API='2'/,'PWA must declare the compatible HTML shell API');"
+          "\nassert.match(pwaSource,/dataset\\.moleculeCraftShell/,'PWA must validate the DOM shell instead of module URL query identity');"
+          "\nassert.match(pwaSource,/sessionStorage\\.getItem\\(shellRecoveryKey\\)/,'Shell recovery must be one-shot to prevent reload loops');"
+          "\nassert.match(pwaSource,/location\\.replace\\(new URL\\('\\.\\.\\/',import\\.meta\\.url\\)\\.href\\)/,'A mixed shell must navigate to the current app root');\n")
 t=t.replace(anchor,anchor+addition,1)
 p.write_text(t)
