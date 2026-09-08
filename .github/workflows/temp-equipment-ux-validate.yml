@@ -12,10 +12,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install ephemeral DOM test dependency
+        run: npm install --no-save --package-lock=false jsdom@26
       - name: Equipment UX tests
         run: node --test tests/equipment-ux.test.mjs
       - name: Exploration UI checks
-        run: node tests/veil-ui-check.mjs
+        run: node tests/veil-ui-check.mjs node_modules/jsdom/lib/api.js
       - name: Repository hygiene
         run: node scripts/check-repository-hygiene.mjs
       - name: Regenerate offline release
