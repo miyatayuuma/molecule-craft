@@ -1,0 +1,68 @@
+name: hotfix-pwa-reload-loop
+on:
+  push:
+    branches: [fix/pwa-reload-loop]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Remove reload-loop guard and restore conservative updates
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/pwa.js'); s=p.read_text()
+          prefix="const EXPECTED_LOADER_REV='32',loaderRev=new URL(import.meta.url).searchParams.get('v')??'';\nif(loaderRev!==EXPECTED_LOADER_REV){location.reload();}else{\n"
+          if not s.startswith(prefix): raise SystemExit('expected broken loader guard not found')
+          s=s[len(prefix):]
+          if not s.endswith('\n}\n'): raise SystemExit('expected loader guard closing brace not found')
+          s=s[:-3]+'\n'
+          s=s.replace("  const hadController=!!navigator.serviceWorker.controller;\n  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(hadController||reloadOnChange){location.reload();return;}requestRunningVersion();});",
+                      "  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(reloadOnChange){reloadOnChange=false;location.reload();return;}requestRunningVersion();});")
+          s=s.replace("registration=reg;ready({auto:true});requestRunningVersion();", "registration=reg;ready({auto:false});requestRunningVersion();")
+          s=s.replace("if(navigator.serviceWorker.controller)ready({auto:true});", "if(navigator.serviceWorker.controller)ready({auto:false});")
+          s=s.replace("window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:true}))checkForUpdate();});", "window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:false}))checkForUpdate();});")
+          s=s.replace("document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:true}))checkForUpdate();}});", "document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:false}))checkForUpdate();}});")
+          p.write_text(s)
+
+          p=Path('index.html'); h=p.read_text()
+          if 'src/pwa.js?v=32' not in h: raise SystemExit('pwa loader v32 not found')
+          p.write_text(h.replace('src/pwa.js?v=32','src/pwa.js?v=33',1))
+
+          p=Path('tests/source-contracts.test.mjs'); t=p.read_text().replace('src/pwa.js?v=32','src/pwa.js?v=33')
+          p.write_text(t)
+          p=Path('tests/pwa.test.mjs'); t=p.read_text()
+          for line in [
+            "assert.match(pwaSource,/EXPECTED_LOADER_REV='32'/,'PWA loader must declare the HTML loader revision it expects');\n",
+            "assert.match(pwaSource,/loaderRev!==EXPECTED_LOADER_REV.*location\\.reload/,'A stale HTML loader must reload into the current cached shell');\n",
+            "assert.match(pwaSource,/const hadController=!!navigator\\.serviceWorker\\.controller/,'Controller changes must know whether this was already a controlled shell');\n",
+            "assert.match(pwaSource,/hadController\\|\\|reloadOnChange/,'An existing controlled document must reload whenever its controller changes');\n",
+          ]: t=t.replace(line,'')
+          t += "\nassert.doesNotMatch(pwaSource,/loaderRev!==EXPECTED_LOADER_REV/,'PWA must never reload-loop based on a query stripped by cached responses');\nassert.doesNotMatch(pwaSource,/hadController\\|\\|reloadOnChange/,'Controller changes must not unconditionally reload an already-controlled page');\nassert.match(pwaSource,/ready\\(\\{auto:false\\}\\)/,'Waiting releases should remain manual until update activation is stable');\n"
+          p.write_text(t)
+          PY
+      - name: Validate hotfix
+        run: |
+          node --check src/pwa.js
+          npm install --prefix /tmp/mc-jsdom jsdom@26
+          node tests/source-contracts.test.mjs
+          node tests/mobile-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
+          node tests/craft-target-display.test.mjs
+          node scripts/build-precache.mjs
+          node tests/pwa.test.mjs
+          node scripts/check-repository-hygiene.mjs
+          git diff --check
+      - name: Commit hotfix
+        run: |
+          rm .github/workflows/hotfix-pwa-reload-loop.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Stop PWA reload loop"
+          git push
