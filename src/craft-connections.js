@@ -8,9 +8,9 @@ export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,
   return veilUI;
 }
 
-export async function connectCollection({records,elementPalette,elementAccess,onPlace,onSupply,canOpen,onOpenChange}){
+export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
   const {createCollectionUI}=await import('./collection-ui.js?v=37');
-  return createCollectionUI({records,elementPalette,elementAccess,onPlace,onSupply,canOpen,onOpenChange});
+  return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange});
 }
 
 export function bindSaveLifecycle({window,document,onPageHide,onHidden,onPrepareUpdate}){

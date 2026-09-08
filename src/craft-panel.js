@@ -1,6 +1,7 @@
 import {ELEMENTS,UNKNOWN_NAME,countElements} from './chemistry.js?v=20';
 import {preferredValence} from './bonding-model.js?v=31';
 import {bindTankChargeAction} from './tank-charge.js';
+import {pubchemReferenceFor} from './pubchem-reference.js';
 
 export function craftTargetSlots(record,placedAtoms=[]){
   if(!record?.atoms)return[];
@@ -59,6 +60,7 @@ export function createCraftPanel(document){
     structureList:document.querySelector('#structure-list'),structureCount:document.querySelector('#structure-count'),structureFocus:document.querySelector('#structure-focus'),
     tankActions:document.querySelector('#craft-tank-actions'),chargeStage:document.querySelector('#tank-charge-stage'),target:document.querySelector('#craft-target'),targetName:document.querySelector('#craft-target-name'),targetFormula:document.querySelector('#craft-target-formula'),targetAtoms:document.querySelector('#craft-target-atoms'),
   };
+  const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる');nodes.pubchem=pubchemLink;
   let tankActionKey='',tankControls=[],clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};
   document.querySelector('#clear-craft-target')?.addEventListener('click',()=>clearTarget());
 
@@ -98,7 +100,7 @@ function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetP
 }
 
 function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure,cleanupAvailable}){
-    veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';
+    veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.formula.append(nodes.pubchem);nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';const reference=focus?.complete&&!focus.record?pubchemReferenceFor(focus):null;nodes.pubchem.hidden=!reference;if(reference){nodes.pubchem.href=reference.url;nodes.pubchem.dataset.searchMode=reference.mode;nodes.pubchem.title=reference.mode==='structure'?'PubChemで構造検索':'PubChemで分子式検索';}else{nodes.pubchem.removeAttribute('href');delete nodes.pubchem.dataset.searchMode;nodes.pubchem.removeAttribute('title');}
     renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart});
     renderTankActions(focus,veilUI);
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
