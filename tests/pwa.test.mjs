@@ -24,7 +24,7 @@ assert.match(buildSource,/PRECACHE_ASSET_VERSION/,'Precache build must stamp the
 const assetVersion=createHash('sha256').update(Buffer.from(JSON.stringify(entries))).digest('hex').slice(0,16);
 assert.match(sourceText,new RegExp('^/\\* PRECACHE_ASSET_VERSION:'+assetVersion+' \\*/'),'Service worker stamp must match current asset set');
 assert.equal(context.self.PRECACHE_VERSION,createHash('sha256').update(Buffer.from(JSON.stringify(entries)+sourceText)).digest('hex').slice(0,16),'Precache version must include stamped service worker bytes');
-for(const path of ['src/app.js','src/collection-ui.js','src/collection-viewer.js','src/special-bonds.js','src/hold-action.js','vendor/three/three.module.min.js','vendor/three/three.core.min.js','data/encyclopedia.json','assets/icon-192.png','index.html'])assert.ok(paths.has(path),path);
+for(const path of ['src/app.js','src/collection-ui.js','src/collection-viewer.js','src/special-bonds.js','src/hold-action.js','src/veil/loadout-preview.js','vendor/three/three.module.min.js','vendor/three/three.core.min.js','data/encyclopedia.json','assets/icon-192.png','index.html'])assert.ok(paths.has(path),path);
 const sha=buffer=>createHash('sha256').update(buffer).digest('hex');
 for(const item of entries){assert.equal(sha(await read(item.path)),item.sha256,`Stale precache: ${item.path}`);}
 // Every literal module dependency is in the offline set, including old query suffixes.
@@ -43,9 +43,9 @@ function worker({fail=null,clients=[]}={}){
 }
 const good=worker();await good.call('install');assert.equal(good.skip,0,'Install must not force an update');await good.call('activate');assert.equal(good.claimed,1);
 let response=await good.call('fetch',{request:new Request(good.scope+'?release=any')});assert.match(await response.text(),/Molecule Craft/);
-const network=good.network;response=await good.call('fetch',{request:new Request(good.scope+'src/app.js?v=42')});assert.match(await response.text(),/saveWorkspace/);assert.equal(good.network,network,'Cached release must serve without network');
+const network=good.network;response=await good.call('fetch',{request:new Request(good.scope+'src/app.js?v=42')});assert.match(await response.text(),/saveWorkspace/);assert.equal(good.network,network+1,'Online runtime modules must check deployed bytes before the offline cache');
 response=await good.call('fetch',{request:new Request(good.scope+'tests/not-a-real-page.html')});assert.equal(response.status,404,'Never disguise missing pages as index');
 await good.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a'}});assert.equal(good.skip,1);
 const messages=[],busy=worker({clients:[{id:'a',url:'https://example.test/molecule-craft/'},{id:'b',url:'https://example.test/molecule-craft/'}]});await busy.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a',postMessage:m=>messages.push(m)}});assert.equal(busy.skip,0);assert.equal(messages[0].type,'UPDATE_BLOCKED');
 const broken=worker({fail:'src/collection-ui.js'});await assert.rejects(broken.call('install'));assert.equal(broken.cacheMap.size,0,'Partial/corrupt release must not remain installed');
-console.log(`PWA passed: ${entries.length} hashed assets, dependency closure, icons, 179 numbered entries/previews, offline shell/modules, missing pages, explicit discovery/activation updates and multi-window blocking.`);
+console.log(`PWA passed: ${entries.length} hashed assets, dependency closure, icons, 179 numbered entries/previews, online refresh with verified offline fallback, missing pages, explicit discovery/activation updates and multi-window blocking.`);
