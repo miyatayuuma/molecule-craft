@@ -29,7 +29,11 @@ export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=3
   if(!container)return[];container.replaceChildren();const rendered=[],placed=countElements(placedAtoms),used={};
   for(const item of parts){
     if(item.partId){
-      const template=item.template,chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-part';chip.dataset.partId=item.partId;chip.textContent=template?.notation??template?.label??item.partId;chip.setAttribute('aria-label',`${template?.nameJa??chip.textContent}をクラフト台へ出す`);chip.style.cssText='display:inline-grid;place-items:center;flex:0 0 auto;min-height:31px;padding:0 9px;border:1px solid #4b7a76;border-radius:10px;background:#173b40;color:#bdf2e8;font-size:11px;font-weight:800;line-height:1;white-space:nowrap;';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot:null});continue;
+      const template=item.template,chip=container.ownerDocument.createElement('button'),model=container.ownerDocument.createElement('img'),formula=container.ownerDocument.createElement('strong');
+      chip.type='button';chip.className='craft-target-part';chip.dataset.partId=item.partId;
+      model.className='craft-target-part-model';model.alt='';model.src=new URL(`../assets/models/part-${item.partId}.svg`,import.meta.url).href;model.addEventListener('error',()=>{model.hidden=true;},{once:true});
+      const notation=String(template?.notation??template?.label??item.partId).replace(/^[\s–—-]+|[\s–—-]+$/g,'')||item.partId;formula.className='craft-target-part-formula';formula.textContent=notation;
+      chip.setAttribute('aria-label',`${template?.nameJa??notation}をクラフト台へ出す`);chip.append(model,formula);chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot:null});continue;
     }
     const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;const slot={symbol,index,filled:index<(placed[symbol]??0)},chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled=String(slot.filled);chip.textContent=symbol;chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);styleTargetAtom(chip,symbol,slot.filled,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot});
   }
@@ -78,7 +82,7 @@ export function createCraftPanel(document){
 function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=[],onPlaceTargetPart=()=>{}}={}){
   clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;lastTargetKey='';lastTargetFilled={};return;}
   const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標`);
-  const rendered=targetParts.length?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms),key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
+  const rendered=targetParts.length?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:36,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:36}),key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
   for(const {slot,node:chip}of rendered){if(!slot)continue;if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
   lastTargetKey=key;lastTargetFilled=filledNow;
 }

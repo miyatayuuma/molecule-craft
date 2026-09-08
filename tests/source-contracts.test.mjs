@@ -124,5 +124,8 @@ assert.match(app, /decomposeTargetIntoAvailableParts\(record,unlocked\)/);
 assert.match(app, /targetParts:targetPartsFor\(target\)/);
 assert.match(craftPanel, /renderCraftTargetParts/);
 assert.match(craftPanel, /onPlaceTargetPart/);
+assert.match(craftPanel, /part-\$\{item\.partId\}\.svg/);
+assert.match(craftPanel, /craft-target-part-formula/);
+assert.match(index, /styles\.css\?v=40/);
 
 console.log('Source contract tests passed.');
