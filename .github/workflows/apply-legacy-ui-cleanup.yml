@@ -42,40 +42,40 @@ jobs:
           s=s.replace('src/app.js?v=49','src/app.js?v=50')
           s=s.replace(r'app\.js\?v=49',r'app\.js\?v=50')
           marker='assert.match(index, /data-molecule-craft-shell="2"/);'
-          add='''\nassert.doesNotMatch(index, /id="cho-completion"|id="cho-continue"|CHO探索クリア/);\nassert.doesNotMatch(index, /<button id="open-supply"[^>]*>\\s*<img[^>]+collector-shell\\.png/);\nassert.doesNotMatch(index, /id="discovery-learning"/);\nassert.doesNotMatch(app, /cho-completion|cho-continue/);'''
+          add='\nassert.doesNotMatch(index, /id="cho-completion"|id="cho-continue"|CHO探索クリア/);\nassert.doesNotMatch(index, /<button id="open-supply"[^>]*>\\s*<img[^>]+collector-shell\\.png/);\nassert.doesNotMatch(index, /id="discovery-learning"/);\nassert.doesNotMatch(app, /cho-completion|cho-continue/);'
           if add.strip() not in s:
               if marker not in s: raise SystemExit('source contract marker missing')
               s=s.replace(marker,marker+add,1)
           p.write_text(s)
 
           p=Path('tests/veil-ui-check.mjs'); s=p.read_text()
-          old="""q('veil-return').click();finishReturn();assert.equal(game.run('resources.state.progress.choCompleted'),true);assert.equal(q('cho-completion').hidden,false);assert.match(q('craft-last-run').textContent,/CHO ✓/);
-const completedRaw=game.window.localStorage.getItem('molecule-craft.resources.v1');
-game=await setup(null,0,completedRaw);assert.equal(q('cho-completion').hidden,false);assert.equal(q('craft-resource-hint').textContent,'');
-q('cho-continue').click();assert.equal(q('supply-dialog').open,true);
-console.log('CHO production UI passed: physical final arrival, stable return ending, persisted completion and free exploration CTA.');"""
-          new="""q('veil-return').click();finishReturn();assert.equal(game.run('resources.state.progress.choCompleted'),true);assert.equal(q('cho-completion'),null);assert.match(q('craft-last-run').textContent,/CHO ✓/);
-const completedRaw=game.window.localStorage.getItem('molecule-craft.resources.v1');
-game=await setup(null,0,completedRaw);assert.equal(q('cho-completion'),null);assert.equal(q('craft-resource-hint').textContent,'');
-q('open-supply').click();assert.equal(q('supply-dialog').open,true);
-console.log('CHO completion persists without the obsolete completion CTA; the standard exploration entry remains available.');"""
+          old=("q('veil-return').click();finishReturn();assert.equal(game.run('resources.state.progress.choCompleted'),true);assert.equal(q('cho-completion').hidden,false);assert.match(q('craft-last-run').textContent,/CHO ✓/);\n" +
+               "const completedRaw=game.window.localStorage.getItem('molecule-craft.resources.v1');\n" +
+               "game=await setup(null,0,completedRaw);assert.equal(q('cho-completion').hidden,false);assert.equal(q('craft-resource-hint').textContent,'');\n" +
+               "q('cho-continue').click();assert.equal(q('supply-dialog').open,true);\n" +
+               "console.log('CHO production UI passed: physical final arrival, stable return ending, persisted completion and free exploration CTA.');")
+          new=("q('veil-return').click();finishReturn();assert.equal(game.run('resources.state.progress.choCompleted'),true);assert.equal(q('cho-completion'),null);assert.match(q('craft-last-run').textContent,/CHO ✓/);\n" +
+               "const completedRaw=game.window.localStorage.getItem('molecule-craft.resources.v1');\n" +
+               "game=await setup(null,0,completedRaw);assert.equal(q('cho-completion'),null);assert.equal(q('craft-resource-hint').textContent,'');\n" +
+               "q('open-supply').click();assert.equal(q('supply-dialog').open,true);\n" +
+               "console.log('CHO completion persists without the obsolete completion CTA; the standard exploration entry remains available.');")
           if old not in s: raise SystemExit('veil UI CHO block missing')
           p.write_text(s.replace(old,new,1))
 
           p=Path('tests/oxygen-routes-browser-check.mjs'); s=p.read_text()
           s=s.replace("  assert.equal(await page.locator('#cho-completion').isVisible(),false);", "  assert.equal(await page.locator('#cho-completion').count(),0);")
-          old="""  await page.locator('#veil-return').click();await page.waitForSelector('#cho-completion:not([hidden])');
-  assert.match(await page.locator('#craft-last-run').innerText(),/CHO ✓/);
-  await page.screenshot({path:'/tmp/molecule-craft-cho-ending.png'});
-  await page.reload();await page.waitForSelector('#cho-completion:not([hidden])');
-  await page.locator('#cho-continue').click();await page.waitForSelector('#supply-dialog[open]');"""
-          new="""  await page.locator('#veil-return').click();await page.waitForSelector('#veil-view',{state:'hidden'});
-  assert.match(await page.locator('#craft-last-run').innerText(),/CHO ✓/);
-  assert.equal(await page.locator('#cho-completion').count(),0);
-  await page.screenshot({path:'/tmp/molecule-craft-cho-ending.png'});
-  await page.reload();await page.waitForSelector('#open-supply');
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('molecule-craft.resources.v1')).progress.choCompleted),true);
-  await page.locator('#open-supply').click();await page.waitForSelector('#supply-dialog[open]');"""
+          old=("  await page.locator('#veil-return').click();await page.waitForSelector('#cho-completion:not([hidden])');\n" +
+               "  assert.match(await page.locator('#craft-last-run').innerText(),/CHO ✓/);\n" +
+               "  await page.screenshot({path:'/tmp/molecule-craft-cho-ending.png'});\n" +
+               "  await page.reload();await page.waitForSelector('#cho-completion:not([hidden])');\n" +
+               "  await page.locator('#cho-continue').click();await page.waitForSelector('#supply-dialog[open]');")
+          new=("  await page.locator('#veil-return').click();await page.waitForSelector('#veil-view',{state:'hidden'});\n" +
+               "  assert.match(await page.locator('#craft-last-run').innerText(),/CHO ✓/);\n" +
+               "  assert.equal(await page.locator('#cho-completion').count(),0);\n" +
+               "  await page.screenshot({path:'/tmp/molecule-craft-cho-ending.png'});\n" +
+               "  await page.reload();await page.waitForSelector('#open-supply');\n" +
+               "  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('molecule-craft.resources.v1')).progress.choCompleted),true);\n" +
+               "  await page.locator('#open-supply').click();await page.waitForSelector('#supply-dialog[open]');")
           if old not in s: raise SystemExit('oxygen browser CHO block missing')
           p.write_text(s.replace(old,new,1))
 
