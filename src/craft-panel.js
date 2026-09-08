@@ -1,6 +1,5 @@
 import {ELEMENTS,UNKNOWN_NAME,countElements} from './chemistry.js?v=20';
 import {preferredValence} from './bonding-model.js?v=31';
-import {bindTankChargeAction} from './tank-charge.js';
 import {createPubchemIntroState,pubchemReferenceFor} from './pubchem-reference.js';
 
 export function craftTargetSlots(record,placedAtoms=[]){
@@ -82,13 +81,8 @@ export function createCraftPanel(document){
     }
   }
 
-  function renderTankActions(focus,veilUI){
-    const record=focus?.complete?focus.record:null,uses=(record&&veilUI?.usesFor(record.id))??[],key=record?`${record.id}:${uses.join('|')}`:'';
-    if(key!==tankActionKey){tankActionKey=key;for(const control of tankControls)control.cancel();tankControls=[];nodes.tankActions.replaceChildren();
-      for(const use of uses){const button=document.createElement('button');button.type='button';button.dataset.tankUse=use;button.dataset.moleculeId=record.id;nodes.tankActions.append(button);let control;control=bindTankChargeAction(button,{stage:nodes.chargeStage,use,record,planFor:()=>veilUI.fillPlan(use,record.id),commit:count=>veilUI.commitFill(use,record.id,count),onStart:()=>{for(const item of tankControls)if(item!==control)item.cancel();},onFinish:()=>refreshTankButtons()});tankControls.push(control);}
-    }
-    function refreshTankButtons(){for(const control of tankControls)control.refresh();}
-    refreshTankButtons();nodes.tankActions.hidden=!uses.length;
+  function renderTankActions(){
+    if(tankActionKey){tankActionKey='';for(const control of tankControls)control.cancel?.();tankControls=[];}nodes.tankActions.replaceChildren();nodes.tankActions.hidden=true;
   }
 
 

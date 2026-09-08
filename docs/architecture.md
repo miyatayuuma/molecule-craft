@@ -28,7 +28,7 @@
 - `src/app.js`：固定entrypoint。Three.jsシーン、3D入力、結合・構造変形、制作目標のライフサイクルと起動順を担当する。
 - `src/craft-workspace.js`：BASE STOCKとの原子入出庫と、制作グラフの追加・削除・全片付け・整理復元。`addPart` は解放確認・一括仮出庫を担当。
 - `src/craft-controls.js`：クラフト画面のDOMイベント登録。
-- `src/craft-panel.js`：分子情報、制作目標、構造一覧、完成表示と完成分子からのタンク長押し充填UI。
+- `src/craft-panel.js`：分子情報、制作目標、構造一覧、完成表示。補給目的の反復クラフト操作は持たない。
 - `src/tank-charge.js`：固定時間の長押し充填、途中確定、入替廃棄の演出とキャンセル制御。
 - `src/craft-connections.js`：探索UI・進捗初期化・図鑑遅延読込・保存ライフサイクルの接続。
 - `styles.css`：クラフト・図鑑・共通UI。
@@ -111,7 +111,7 @@
 
 ## 保存
 
-- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v7は恒久O₂強化も保存し、完成分子の中間在庫を持たず、原子を直接消費して各タンクへ生成充填する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。移行と破損・未来版・競合保護は `src/veil/resources.js`。
+- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v7は恒久O₂強化に加えて次回ロードアウトを保存し、完成分子の中間在庫を持たない。出発確定時にBASE STOCKから不足分だけ自動錬成し、タンク交換・破棄・保存を一括処理する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。移行と破損・未来版・競合保護は `src/veil/resources.js`。
 - `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部schema v2は構造と制作目標を保存し、復元は `src/workspace-save.js`。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。

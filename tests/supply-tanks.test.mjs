@@ -1,29 +1,46 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
-import {combustionPacketFor} from '../src/veil/molecule-roles.js';
 
 const database=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
 const memory=()=>{const data=new Map();let reject=false;return {getItem:key=>data.get(key)??null,setItem:(key,value)=>{if(reject)throw Error('quota');data.set(key,value);},removeItem:key=>data.delete(key),reject(value=true){reject=value;},data};};
-const emptyTanks={propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}};
-const loadout=(propellant=null,fuel=null,oxidizer=null,coolant=null)=>({propellant:propellant??{molecule:null,amount:0},fuel:fuel??{molecule:null,amount:0},oxidizer:oxidizer??{molecule:null,amount:0},coolant:coolant??{molecule:null,amount:0}});
+const setup=()=>{const storage=memory(),resources=createResources({storage});resources.setCatalog(database);return {storage,resources};};
 
-const storage=memory(),resources=createResources({storage});resources.setCatalog(database);assert.equal(resources.state.schemaVersion,6);assert.equal(Object.hasOwn(resources.state,'molecules'),false);assert.deepEqual(resources.state.tanks,emptyTanks);
-resources.discover('hydrogen');resources.state.elements.H=82;resources.save();assert.ok(resources.spend({H:2}),'The handmade H2 template checks two atoms out of BASE STOCK');resources.save();
-assert.equal(resources.fillTankFromElements('propellant','hydrogen',40).added,40);assert.deepEqual(resources.state.tanks.propellant,{molecule:'hydrogen',amount:40});assert.equal(resources.state.elements.H,0);assert.deepEqual(resources.prepareExpedition(),loadout({molecule:'hydrogen',amount:40}));assert.ok(resources.consumeBoost());
+{
+ const {resources}=setup();for(const id of ['hydrogen','methane','oxygen','water','carbon-dioxide'])resources.discover(id);Object.assign(resources.state.elements,{H:1000,C:100,O:1000});resources.save();
+ const before=resources.snapshot();assert.ok(resources.setLoadoutTank('propellant','hydrogen'));assert.ok(resources.setLoadoutTank('fuel','methane'));assert.ok(resources.setLoadoutTank('oxidizer','oxygen'));assert.ok(resources.setLoadoutTank('coolant','water'));assert.deepEqual(resources.state.elements,before.elements);assert.deepEqual(resources.state.tanks,before.tanks);
+ const plan=resources.launchFillPlan();assert.equal(plan.status,'FULL');const expected={};for(const entry of plan.full.entries)for(const [el,n]of Object.entries(entry.cost))expected[el]=(expected[el]??0)+n;const stockBefore={...resources.state.elements};const committed=resources.commitLaunchFill();assert.ok(committed);for(const [el,n]of Object.entries(expected))assert.equal(resources.state.elements[el],stockBefore[el]-n);for(const entry of committed.plan.entries)assert.deepEqual(resources.state.tanks[entry.use],entry.molecule?{molecule:entry.molecule,amount:entry.target}:{molecule:null,amount:0});
+}
 
-resources.state.elements.H=8;assert.equal(resources.fillTankFromElements('propellant','hydrogen',4).added,4);resources.discover('carbon-dioxide');resources.state.elements.C=2;resources.state.elements.O=4;resources.save();
-const replacement=resources.fillTankFromElements('propellant','carbon-dioxide',2);assert.equal(replacement.discarded,4);assert.deepEqual(resources.state.tanks.propellant,{molecule:'carbon-dioxide',amount:2});assert.deepEqual(createResources({storage}).state.tanks.propellant,{molecule:'carbon-dioxide',amount:2});
+{
+ const {resources}=setup();resources.discover('methane');resources.setLoadoutTank('fuel','methane');Object.assign(resources.state.elements,{H:400,C:100});resources.save();assert.ok(resources.commitLaunchFill());const cap=resources.state.tanks.fuel.amount;resources.consumeTank('fuel','methane',Math.floor(cap/2));const remaining=resources.state.tanks.fuel.amount,atoms={...resources.state.elements};const plan=resources.launchFillPlan();const entry=plan.full.entries.find(x=>x.use==='fuel');assert.equal(entry.current,remaining);assert.equal(entry.add,entry.capacity-remaining);assert.ok(resources.commitLaunchFill());assert.equal(resources.state.tanks.fuel.amount,entry.capacity);assert.equal(resources.state.elements.C,atoms.C-entry.add);assert.equal(resources.state.elements.H,atoms.H-entry.add*4);
+}
 
-const combustionStorage=memory(),combustion=createResources({storage:combustionStorage});combustion.setCatalog(database);for(const id of ['hydrogen','oxygen'])combustion.discover(id);Object.assign(combustion.state.elements,{H:8,O:4});combustion.save();assert.equal(combustion.fillTankFromElements('fuel','hydrogen',4).added,4);assert.equal(combustion.fillTankFromElements('oxidizer','oxygen',2).added,2);const packet=combustionPacketFor('hydrogen');assert.ok(combustion.consumeCombustion(packet));assert.deepEqual(combustion.prepareExpedition(),loadout(null,{molecule:'hydrogen',amount:2},{molecule:'oxygen',amount:1}));
+{
+ const {resources}=setup();for(const id of ['methane','hydrogen'])resources.discover(id);Object.assign(resources.state.elements,{H:400,C:100});resources.setLoadoutTank('fuel','methane');resources.save();assert.ok(resources.commitLaunchFill());resources.consumeTank('fuel','methane',Math.max(1,Math.floor(resources.state.tanks.fuel.amount/2)));const old=resources.state.tanks.fuel.amount,stock={...resources.state.elements};assert.ok(resources.setLoadoutTank('fuel','hydrogen'));assert.equal(resources.state.tanks.fuel.amount,old);assert.deepEqual(resources.state.elements,stock);const result=resources.commitLaunchFill();assert.ok(result);assert.equal(resources.state.tanks.fuel.molecule,'hydrogen');assert.notEqual(resources.state.tanks.fuel.amount,old);assert.equal(resources.state.elements.C,stock.C);
+}
 
-const coolingStorage=memory(),cooling=createResources({storage:coolingStorage});cooling.setCatalog(database);cooling.discover('water');Object.assign(cooling.state.elements,{H:6,O:3});cooling.save();assert.equal(cooling.fillTankFromElements('coolant','water',3).added,3);assert.ok(cooling.consumeTank('coolant','water',1));assert.deepEqual(cooling.prepareExpedition(),loadout(null,null,null,{molecule:'water',amount:2}));
+{
+ const {resources}=setup();resources.discover('hydrogen');Object.assign(resources.state.elements,{H:240});resources.setLoadoutTank('propellant','hydrogen');resources.save();assert.ok(resources.commitLaunchFill());resources.consumeTank('propellant','hydrogen',40);const remaining=resources.state.tanks.propellant.amount,stock=resources.state.elements.H;assert.ok(resources.setLoadoutTank('propellant',null));assert.equal(resources.state.tanks.propellant.amount,remaining);assert.equal(resources.state.elements.H,stock);assert.ok(resources.commitLaunchFill());assert.deepEqual(resources.state.tanks.propellant,{molecule:null,amount:0});assert.equal(resources.state.elements.H,stock);
+}
 
-const failingStorage=memory(),failing=createResources({storage:failingStorage});failing.discover('hydrogen');failing.state.elements.H=2;failing.save();const beforeFailure=failing.snapshot();failingStorage.reject();assert.equal(failing.fillTankFromElements('propellant','hydrogen'),false);assert.deepEqual(failing.snapshot(),beforeFailure);
+{
+ const {resources}=setup();for(const id of ['methane','water'])resources.discover(id);resources.setLoadoutTank('fuel','methane');resources.setLoadoutTank('coolant','water');Object.assign(resources.state.elements,{H:24,C:20,O:20});resources.save();const plan=resources.launchFillPlan();assert.equal(plan.status,'PARTIAL');assert.equal(resources.commitLaunchFill(),false);const fuel=plan.partial.entries.find(x=>x.use==='fuel'),coolant=plan.partial.entries.find(x=>x.use==='coolant');assert.ok(fuel.target>0&&coolant.target>0);assert.ok(Math.abs(fuel.target/fuel.capacity-coolant.target/coolant.capacity)<=Math.max(1/fuel.capacity,1/coolant.capacity)+1e-9);const result=resources.commitLaunchFill({partial:true});assert.ok(result);assert.equal(resources.state.tanks.fuel.amount,fuel.target);assert.equal(resources.state.tanks.coolant.amount,coolant.target);
+}
 
-const base={elements:{H:0,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0},molecules:{hydrogen:17,methane:2,oxygen:4,water:9},recipes:['hydrogen','methane','oxygen'],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:{bestChain:0,runs:0,cleared:false,craftPrompt:false,sound:true,foundElements:['H'],regions:['veil'],checkpoint:'veil',frontier:false,totalCollected:0,signalMisses:0,signalLast:{}},workspace:null};
-const legacy5=memory();legacy5.setItem(RESOURCE_KEY,JSON.stringify({...base,schemaVersion:5,tanks:{propellant:{molecule:'hydrogen',amount:70},fuel:{molecule:'methane',amount:7},oxidizer:{molecule:'oxygen',amount:9},coolant:{molecule:null,amount:0}}}));const migrated5=createResources({storage:legacy5});assert.equal(Object.hasOwn(migrated5.state,'molecules'),false);assert.deepEqual(migrated5.state.tanks.propellant,{molecule:'hydrogen',amount:70});
-const legacy3=memory();legacy3.setItem(RESOURCE_KEY,JSON.stringify({...base,schemaVersion:3,tanks:{hydrogen:3,methane:18,oxygen:36}}));const migrated3=createResources({storage:legacy3});assert.equal(migrated3.state.schemaVersion,6);assert.deepEqual(migrated3.state.tanks,{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:{molecule:null,amount:0}});
-const legacy4=memory();legacy4.setItem(RESOURCE_KEY,JSON.stringify({...base,schemaVersion:4,tanks:{propellant:{molecule:'hydrogen',amount:2},fuel:{molecule:'methane',amount:9},oxidizer:{molecule:'oxygen',amount:17},coolant:{molecule:null,amount:0}}}));const migrated4=createResources({storage:legacy4});assert.deepEqual(migrated4.state.tanks,{propellant:{molecule:'hydrogen',amount:80},fuel:{molecule:'methane',amount:9},oxidizer:{molecule:'oxygen',amount:17},coolant:{molecule:null,amount:0}});
-const legacy2=memory();legacy2.setItem(RESOURCE_KEY,JSON.stringify({...base,schemaVersion:2,molecules:{hydrogen:200,methane:20,oxygen:40,water:30}}));const migrated2=createResources({storage:legacy2});assert.deepEqual(migrated2.state.tanks,emptyTanks);assert.equal(Object.hasOwn(migrated2.state,'molecules'),false);
-console.log('Generic tank supply passed: v6 inventory removal, direct batches, replacement discard, consumption, rollback, persistence, and v2-v5 migration.');
+{
+ const {resources}=setup();resources.discover('methane');resources.setLoadoutTank('fuel','methane');resources.state.elements.C=0;resources.state.elements.H=0;resources.save();const plan=resources.launchFillPlan();assert.equal(plan.status,'IMPOSSIBLE');const before=resources.snapshot();assert.equal(resources.commitLaunchFill({partial:true}),false);assert.deepEqual(resources.snapshot(),before);
+}
+
+{
+ const {resources}=setup();assert.equal(resources.launchFillPlan().status,'FULL');assert.ok(resources.commitLaunchFill());
+}
+
+{
+ const {storage,resources}=setup();resources.discover('hydrogen');resources.state.elements.H=240;resources.setLoadoutTank('propellant','hydrogen');resources.save();const before=resources.snapshot();storage.reject();assert.equal(resources.commitLaunchFill(),false);assert.deepEqual(resources.snapshot(),before);
+}
+
+{
+ const legacy=memory(),base={schemaVersion:7,upgrades:{oxygenTank:0},elements:{H:10,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0},tanks:{propellant:{molecule:'hydrogen',amount:4},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}},recipes:['hydrogen'],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:{bestChain:0,runs:0,cleared:false,craftPrompt:false,sound:true,foundElements:['H'],regions:['veil'],checkpoint:'veil',frontier:false,choCompleted:false,totalCollected:0,signalMisses:0,signalLast:{}},workspace:null};legacy.setItem(RESOURCE_KEY,JSON.stringify(base));const migrated=createResources({storage:legacy});assert.equal(migrated.selectedLoadout().propellant,'hydrogen');assert.deepEqual(migrated.state.tanks.propellant,{molecule:'hydrogen',amount:4});assert.equal(migrated.state.elements.H,10);
+}
+console.log('Loadout auto-synthesis supply passed: free selection, residual reuse, replacement discard, empty tanks, proportional partial fill, impossible guard, rollback, and legacy initialization.');
