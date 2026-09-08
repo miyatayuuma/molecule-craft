@@ -33,7 +33,13 @@ self.addEventListener('message',event=>{
 });
 self.addEventListener('fetch',event=>{
   const url=new URL(event.request.url);if(event.request.method!=='GET'||url.origin!==appURL.origin||!url.pathname.startsWith(rootPath))return;
-  // Never turn missing tests, other projects or APIs into the application shell.
+  // Online sessions prefer the deployed bytes. The verified precache remains the offline fallback.
+  // This prevents a forgotten manifest rebuild from pinning an old UI indefinitely.
   const path=url.pathname===rootPath?new URL('index.html',appURL).href:normalized(url);
-  event.respondWith((async()=>{const cached=await(await caches.open(CACHE)).match(path);return cached??fetch(event.request);})());
+  event.respondWith((async()=>{
+    let networkResponse=null;
+    try{networkResponse=await fetch(event.request);if(networkResponse.ok)return networkResponse;}catch{}
+    const cached=await(await caches.open(CACHE)).match(path);
+    return cached??networkResponse??Response.error();
+  })());
 });
