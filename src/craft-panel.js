@@ -19,6 +19,16 @@ function styleTargetAtom(node,symbol,filled,size=31){
   node.style.cssText=`display:inline-grid;place-items:center;flex:0 0 ${size}px;width:${size}px;height:${size}px;border:1px solid ${edge};border-radius:50%;background:radial-gradient(circle at 34% 28%,${highlight} 0 10%,${base} 48%,color-mix(in srgb,${base} 66%,#07131f) 100%);box-shadow:${filled?'inset -3px -4px 7px #07131f55,0 2px 7px #0005':'inset -2px -3px 6px #07131f66,0 1px 4px #0003'};color:${text};font-size:${size<=27?10:12}px;font-weight:800;line-height:1;text-shadow:${text==='#07131f'?'0 1px 1px #fff6':'0 1px 2px #000'};user-select:none;transition:transform .18s ease,filter .18s ease,opacity .18s ease;${filled?'':'filter:saturate(.46) brightness(.86);'}`;
 }
 
+function partCompositionFormula(template){
+  const atoms=template?.atoms??[],counts=countElements(atoms),order=[];for(const symbol of atoms)if(!order.includes(symbol))order.push(symbol);
+  return order.map(symbol=>`${symbol}${counts[symbol]>1?counts[symbol]:''}`).join('');
+}
+export function compactPartNotation(template){
+  const raw=String(template?.notation??template?.label??template?.id??'').trim();if([...raw].length<=10)return raw;
+  const leading=raw.match(/^[–—-]/)?.[0]??(template?.attachments?.length?'–':''),trailing=raw.match(/[–—-]$/)?.[0]??(template?.attachments?.length>1?'–':'');
+  const formula=partCompositionFormula(template);return formula?`${leading}${formula}${trailing}`:raw;
+}
+
 export function renderCraftTargetAtoms(container,record,placedAtoms=[],{size=31}={}){
   if(!container)return[];container.replaceChildren();const rendered=[];
   for(const slot of craftTargetSlots(record,placedAtoms)){const chip=container.ownerDocument.createElement('span');chip.className='craft-target-atom';chip.dataset.element=slot.symbol;chip.dataset.filled=String(slot.filled);chip.textContent=slot.symbol;chip.setAttribute('aria-label',`${ELEMENTS[slot.symbol]?.name??slot.symbol} ${slot.filled?'配置済み':'未配置'}`);styleTargetAtom(chip,slot.symbol,slot.filled,size);container.appendChild(chip);rendered.push({slot,node:chip});}
@@ -32,7 +42,7 @@ export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=3
       const template=item.template,chip=container.ownerDocument.createElement('button'),model=container.ownerDocument.createElement('img'),formula=container.ownerDocument.createElement('strong');
       chip.type='button';chip.className='craft-target-part';chip.dataset.partId=item.partId;
       model.className='craft-target-part-model';model.alt='';model.src=new URL(`../assets/models/part-${item.partId}.svg`,import.meta.url).href;model.addEventListener('error',()=>{model.hidden=true;},{once:true});
-      const notation=String(template?.notation??template?.label??item.partId).replace(/^[\s–—-]+|[\s–—-]+$/g,'')||item.partId;formula.className='craft-target-part-formula';formula.textContent=notation;
+      const notation=compactPartNotation(template)||item.partId;formula.className='craft-target-part-formula';formula.textContent=notation;formula.dataset.long=String([...notation].length>8);
       chip.setAttribute('aria-label',`${template?.nameJa??notation}をクラフト台へ出す`);chip.append(model,formula);chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot:null});continue;
     }
     const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;const slot={symbol,index,filled:index<(placed[symbol]??0)},chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled=String(slot.filled);chip.textContent=symbol;chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);styleTargetAtom(chip,symbol,slot.filled,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot});
@@ -79,15 +89,15 @@ export function createCraftPanel(document){
   }
 
 
-function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=[],onPlaceTargetPart=()=>{}}={}){
+function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{}}={}){
   clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;lastTargetKey='';lastTargetFilled={};return;}
   const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標`);
-  const rendered=targetParts.length?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:36,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:36}),key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
+  const rendered=targetParts!==null?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:31,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:31}),key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
   for(const {slot,node:chip}of rendered){if(!slot)continue;if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
   lastTargetKey=key;lastTargetFilled=filledNow;
 }
 
-function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=[],onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure,cleanupAvailable}){
+function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure,cleanupAvailable}){
     veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';
     renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart});
     renderTankActions(focus,veilUI);

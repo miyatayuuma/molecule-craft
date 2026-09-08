@@ -22,7 +22,7 @@ import { createWorkspaceStorage, captureWorkspace, restoreWorkspace } from './wo
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { bindCraftControls } from './craft-controls.js?v=1';
 import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=3';
-import { createCraftPanel } from './craft-panel.js?v=3';
+import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 
 import { createResources } from './veil/resources.js';
@@ -50,6 +50,7 @@ const protectedUntil=new Map(),cleanupUndo=[];
 let lastBackgroundTap=null,frameTransition=null;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
 let collectionGame=null,collectionOpen=false,craftTargetId=null;
+const targetDeployments=new Map();let targetDeploymentTargetId=null;
 
 const viewer=document.querySelector('#viewer');
 const palette=document.querySelector('#element-palette');
@@ -143,7 +144,7 @@ function addElement(symbol){
   if(!atom){pulse(`${symbol}が足りません · 探索で補給しよう`);return;}
   protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
   selectAtom(atom.id);topologyChanged();beginSpawnZoom(plan);refresh();
-  pulse(`${ELEMENTS[symbol].name}を置きました`);
+  pulse(`${ELEMENTS[symbol].name}を置きました`);return atom;
 }
 
 function addCraftPart(id){
@@ -171,7 +172,7 @@ function addCraftPart(id){
   selectAtom(expanded.attachments[0].atomId);topologyChanged();
   // Coordinates are already solved. Running the solver a second time here
   // would drift the placed part after its footprint has been fitted.
-  refresh();pulse(`${template.nameJa}を置きました`);return true;
+  refresh();pulse(`${template.nameJa}を置きました`);return expanded;
 }
 
 function onPointerDown(e){
@@ -608,15 +609,24 @@ function syncWorkspace(){
   discoveryConnection.sync(structures);
   for(const id of protectedUntil.keys())if(!structureByAtom.has(id))protectedUntil.delete(id);
 }
+function targetPartKey(item){return`${item.partId??item.element}:${(item.atomIndices??[]).join(',')}`;}
+function syncTargetDeployments(record){
+  const targetId=record?.id??null;
+  if(targetDeploymentTargetId!==targetId){targetDeployments.clear();targetDeploymentTargetId=targetId;}
+  const active=new Set(molecule.atoms.map(atom=>atom.id));
+  for(const [key,ids]of targetDeployments)if([...ids].every(id=>!active.has(id)))targetDeployments.delete(key);
+}
 function targetPartsFor(record){
-  if(!record)return[];
+  syncTargetDeployments(record);if(!record)return[];
   const state=collectionGame?.state,unlocked=state?.templates?.filter(template=>state.isUnlocked(template.id))??[];
-  return decomposeTargetIntoAvailableParts(record,unlocked).map(item=>item.partId?{...item,template:collectionGame?.templateFor(item.partId)}:item);
+  return decomposeTargetIntoAvailableParts(record,unlocked).map(item=>{const targetKey=targetPartKey(item);return item.partId?{...item,targetKey,template:collectionGame?.templateFor(item.partId)}:{...item,targetKey};}).filter(item=>!targetDeployments.has(item.targetKey));
 }
 function placeTargetPart(item){
-  if(!item)return false;
-  if(item.partId)return addCraftPart(item.partId);
-  addElement(item.element);return true;
+  if(!item?.targetKey||targetDeployments.has(item.targetKey))return false;
+  let ids;
+  if(item.partId){const expanded=addCraftPart(item.partId);if(!expanded)return false;ids=expanded.ids;}
+  else{const atom=addElement(item.element);if(!atom)return false;ids=[atom.id];}
+  targetDeployments.set(item.targetKey,new Set(ids));refreshInfo();return true;
 }
 function refreshInfo(keep=false){
   const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;

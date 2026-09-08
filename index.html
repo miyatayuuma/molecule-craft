@@ -11,7 +11,7 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=40">
+  <link rel="stylesheet" href="./styles.css?v=41">
   <link rel="stylesheet" href="./veil.css?v=42">
 </head>
 <body>
@@ -21,7 +21,7 @@
       <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
     <div class="resource-bar"><button id="open-supply" class="collector-access" type="button" aria-label="収集殻とタンクを開く"><i aria-hidden="true"></i><span>収集殻</span></button></div>
-    <section id="craft-target" class="craft-target" aria-label="制作目標" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><strong id="craft-target-formula"></strong><div id="craft-target-atoms" class="craft-target-atoms"></div><span id="craft-target-name" hidden></span><button id="clear-craft-target" type="button" aria-label="制作目標を解除">×</button></section>
+    <section id="craft-target" class="craft-target" aria-label="制作目標" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><div class="craft-target-meta"><strong id="craft-target-formula"></strong><span id="craft-target-name" hidden></span></div><div id="craft-target-atoms" class="craft-target-atoms"></div><button id="clear-craft-target" type="button" aria-label="制作目標を解除">×</button></section>
     <p id="craft-resource-hint" class="craft-expedition-note"></p><button id="cho-goal-action" class="cho-goal-action craft-emblem-action" type="button" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><span id="cho-goal-label"></span><span id="cho-goal-atoms" class="craft-target-atoms" aria-hidden="true"></span></button><p id="craft-last-run" class="craft-expedition-note"></p>
     <section id="cho-completion" class="cho-completion" aria-labelledby="cho-completion-title" hidden><h2 id="cho-completion-title">CHO探索クリア</h2><button id="cho-continue" type="button">↗ 探索</button></section>
     <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
@@ -127,7 +127,7 @@
     <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><div id="veil-thermal" class="veil-thermal" data-state="normal" hidden><span><b id="veil-thermal-state">NORMAL</b><strong id="veil-heat">0%</strong></span><i aria-hidden="true"><span id="veil-heat-meter"></span></i><small id="veil-coolant">❄ ∅</small><div id="veil-coolant-level" class="tank-scale" role="meter" aria-label="冷却剤" aria-valuemin="0"><b></b></div></div><button id="veil-combustion" type="button" aria-label="燃料とO₂の燃焼推進。押している間だけ作動し、過熱後は安全温度で自動復帰。キーボードはShift" aria-pressed="false" hidden><strong>FUEL + O₂</strong><small id="veil-combustion-remaining">0 / 0 PACKETS</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel" class="paired-tanks"><span data-role="fuel"><b></b><i><em></em></i></span><span class="combustion-link" aria-hidden="true">＋<br>♨</span><span data-role="oxidizer"><b></b><i><em></em></i></span></span></button><button id="veil-boost" type="button" aria-label="噴射剤BURST。キーボードはスペース"><strong>—</strong><small>BURST <span id="veil-fuel">0 / 0</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
-  <script type="module" src="./src/app.js?v=45"></script>
+  <script type="module" src="./src/app.js?v=46"></script>
   <script type="module" src="./src/pwa.js?v=29"></script>
 </body>
 </html>
