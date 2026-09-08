@@ -86,10 +86,10 @@ console.log('CHO completion persists without the obsolete completion CTA; the st
         shell: bash
         run: |
           set -euo pipefail
-          ! grep -nE 'id="cho-completion"|id="cho-continue"|CHO探索クリア|id="discovery-learning"' index.html
-          ! grep -nE "cho-completion|cho-continue" src/veil/ui.js
-          ! grep -nE '\.cho-completion' veil.css
-          ! grep -nE '<button id="open-supply"[^>]*><img[^>]+collector-shell\.png' index.html
+          if grep -nE 'id="cho-completion"|id="cho-continue"|CHO探索クリア|id="discovery-learning"' index.html; then exit 1; fi
+          if grep -nE "cho-completion|cho-continue" src/veil/ui.js; then exit 1; fi
+          if grep -nE '\.cho-completion' veil.css; then exit 1; fi
+          if grep -nE '<button id="open-supply"[^>]*><img[^>]+collector-shell\.png' index.html; then exit 1; fi
           node --check src/veil/ui.js
           node tests/source-contracts.test.mjs
           npm install --prefix /tmp/mc-jsdom jsdom@26 >/dev/null
