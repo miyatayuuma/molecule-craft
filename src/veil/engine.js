@@ -1,6 +1,6 @@
 import {recordChoDestination} from './cho-campaign.js';
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
-import { GROWTH, DRIVES, burstDriveFor, regionAt } from './growth.js';
+import { GROWTH, DRIVES, burstDriveFor, combustionDriveFor, regionAt } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { environmentAt, animateUniverse } from './universe.js';
 import { recordOxygenPassage } from './oxygen-routes.js';
@@ -13,7 +13,7 @@ export function createFlight(config=VEIL){
   return {...config.spawn,speed:config.driftSpeed,vx:0,vy:0,boost:0,cooldown:0,combustion:false,drive:null,bank:0,trail:[]};
 }
 
-function activePropulsion(p){return p.boost>0?p.drive:p.combustion?DRIVES.combustion:null;}
+function activePropulsion(p){return p.boost>0?p.drive:p.combustion?(p.drive??DRIVES.combustion):null;}
 
 // CHAIN intentionally does not enter movement or suction calculations. It is
 // retained as audiovisual phrasing only.
@@ -69,7 +69,7 @@ function updateCombustion(run,dt,systems){
     if(!packet||oxidizer.molecule!==packet.oxidizer||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount||!systems.consumeCombustion?.(packet)){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
     fuel.amount-=packet.fuelAmount;oxidizer.amount-=packet.oxygenAmount;recordFuelUse(run.telemetry,'fuel',fuel.molecule,packet.fuelAmount);recordFuelUse(run.telemetry,'oxidizer',oxidizer.molecule,packet.oxygenAmount);run.driveBuffer=packet.seconds;run.driveEmpty=false;run.events.push({type:'driveIgnition'});
   }
-  p.drive=DRIVES.combustion;p.combustion=true;run.driveBuffer=Math.max(0,run.driveBuffer-dt);
+  p.drive=combustionDriveFor(fuel.molecule)??DRIVES.combustion;p.combustion=true;run.driveBuffer=Math.max(0,run.driveBuffer-dt);
   if(run.driveBuffer<=0&&(!packet||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount))p.combustion=false;
 }
 
@@ -81,7 +81,7 @@ function updateThermal(run,dt,systems){
   const thermostat=run.heat>=THERMAL.coolantStart&&(p.combustion||run.overheated);
   if(thermostat&&run.coolantBuffer<=1e-8&&coolantPerformance&&coolant.amount>=1){
     if(systems.consumeCoolant?.(1,coolant.molecule)){
-      coolant.amount--;run.coolantBuffer=THERMAL.coolantSecondsPerMolecule;recordFuelUse(run.telemetry,'coolant',coolant.molecule,1);run.coolantEmpty=false;
+      coolant.amount--;run.coolantBuffer=THERMAL.coolantSecondsPerMolecule*(coolantPerformance.durationFactor??1);recordFuelUse(run.telemetry,'coolant',coolant.molecule,1);run.coolantEmpty=false;
       if(!run.coolantEpisode){run.coolantEpisode=true;run.events.push({type:'coolantStart',molecule:coolant.molecule});}
     }
   }
