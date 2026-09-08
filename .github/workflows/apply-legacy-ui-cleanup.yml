@@ -28,17 +28,11 @@ jobs:
 
           p=Path('src/veil/ui.js'); s=p.read_text()
           s=s.replace("    updatePrompt();q('cho-completion').hidden=!resources.state.progress.choCompleted;",'    updatePrompt();')
-          # Remove the obsolete CHO completion launch binding if present.
           s=s.replace("q('cho-continue')?.addEventListener('click',()=>{q('launch-veil').click();});",'')
           s=s.replace("q('cho-continue')?.addEventListener('click',()=>q('launch-veil').click());",'')
           p.write_text(s)
 
-          p=Path('src/craft-panel.js'); s=p.read_text()
-          # discovery-learning was never read or written by the current panel.
-          p.write_text(s)
-
           p=Path('styles.css'); s=p.read_text()
-          # Remove the obsolete CHO completion visual block only; preserve unrelated CHO goal styles.
           s=re.sub(r'\n?\.cho-completion\b[^\{]*\{[^\}]*\}(?:\s*\.cho-completion[^\{]*\{[^\}]*\})*','',s)
           p.write_text(s)
 
@@ -52,7 +46,6 @@ jobs:
               s=s.replace(marker,marker+add,1)
           p.write_text(s)
 
-          # Remove temporary audit machinery from the final tree.
           for name in ['.github/workflows/audit-legacy-ui.yml','.github/workflows/audit-legacy-ui-trigger.yml']:
               Path(name).unlink(missing_ok=True)
           PY
@@ -79,3 +72,4 @@ jobs:
           git add -A
           git commit -m "Remove obsolete craft and expedition UI remnants"
           git push
+# trigger
