@@ -1,0 +1,60 @@
+name: debug-browser-runtime
+on:
+  push:
+    branches: [debug/browser-runtime]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run real Chrome diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/mc-http.log 2>&1 &
+          SERVER=$!
+          trap 'kill $SERVER || true' EXIT
+          npm install --prefix /tmp/mc-browser playwright-core@1.55.0 >/dev/null
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          echo "chrome=$CHROME"
+          CHROME="$CHROME" node --input-type=module <<'NODE'
+          import {chromium} from '/tmp/mc-browser/node_modules/playwright-core/index.mjs';
+          const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME,args:['--no-sandbox','--enable-webgl','--ignore-gpu-blocklist','--use-gl=swiftshader']});
+          const page=await browser.newPage({viewport:{width:412,height:915},deviceScaleFactor:2});
+          const errors=[];
+          page.on('pageerror',error=>{errors.push(String(error.stack||error));console.log('PAGEERROR',error.stack||error);});
+          page.on('console',msg=>console.log('CONSOLE',msg.type(),msg.text()));
+          await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+          await page.waitForTimeout(1500);
+          const before=await page.evaluate(()=>({
+            hidden:document.hidden,
+            body:[document.body.clientWidth,document.body.clientHeight],
+            workspace:(()=>{const r=document.querySelector('.workspace')?.getBoundingClientRect();return r&&[r.x,r.y,r.width,r.height]})(),
+            viewer:(()=>{const r=document.querySelector('#viewer')?.getBoundingClientRect();return r&&[r.x,r.y,r.width,r.height]})(),
+            wrap:(()=>{const r=document.querySelector('.viewer-wrap')?.getBoundingClientRect();return r&&[r.x,r.y,r.width,r.height]})(),
+            canvas:(()=>{const c=document.querySelector('#viewer canvas'),r=c?.getBoundingClientRect();return c&&{rect:[r.x,r.y,r.width,r.height],width:c.width,height:c.height}})(),
+            unavailable:document.querySelector('#viewer-unavailable')?.hidden,
+            openDialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id),
+            supplyDisabled:document.querySelector('#open-supply')?.disabled,
+            collectionDisabled:document.querySelector('#open-collection')?.disabled,
+            hDisabled:document.querySelector('[data-element="H"]')?.disabled,
+            formula:document.querySelector('#formula')?.textContent,
+          }));
+          console.log('BEFORE',JSON.stringify(before));
+          await page.locator('#open-supply').click();
+          await page.waitForTimeout(100);
+          console.log('SUPPLY',await page.evaluate(()=>({open:document.querySelector('#supply-dialog')?.open,dialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)})));
+          if(await page.locator('#supply-dialog').evaluate(d=>d.open)) await page.locator('#supply-dialog [data-close-dialog]').click();
+          await page.locator('#open-collection').click();
+          await page.waitForTimeout(500);
+          console.log('COLLECTION',await page.evaluate(()=>({open:document.querySelector('#collection-dialog')?.open,dialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)})));
+          console.log('ERROR_COUNT',errors.length);
+          await page.screenshot({path:'/tmp/runtime.png',fullPage:true});
+          await browser.close();
+          if(errors.length) process.exitCode=2;
+          NODE
