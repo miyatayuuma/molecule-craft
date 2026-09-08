@@ -1,0 +1,90 @@
+name: Task A integration hardening
+
+on:
+  push:
+    branches: [task-a-loadout-auto-synthesis-v2]
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: task-a-loadout-auto-synthesis-v2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Patch launch integration
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def sub_once(text, pattern, repl, label, flags=0):
+              out, n = re.subn(pattern, repl, text, count=1, flags=flags)
+              if n != 1:
+                  raise SystemExit(f'{label}: expected 1 replacement, got {n}')
+              return out
+
+          p=Path('src/veil/resources.js'); s=p.read_text()
+          s=sub_once(s,
+            r"  const affordableCost=cost=>Object\.entries\(cost\)\.every\(\(\[el,n\]\)=>>?\(state\.elements\[el\]\?\?0\)>=n\);\n  function fillEntriesAt\(rate\)\{.*?\n  function commitLaunchFill",
+            """  function launchAvailableElements(includeWorkspace=true){const available={...state.elements};if(includeWorkspace)for(const atom of state.workspace?.atoms??[])if(STOCKED.includes(atom.element))available[atom.element]=(available[atom.element]??0)+1;return available;}\n  const affordableCost=(cost,available=state.elements)=>Object.entries(cost).every(([el,n])=>(available[el]??0)>=n);\n  function fillEntriesAt(rate){\n    const selected=selectedLoadout(),entries=[];\n    for(const use of Object.keys(TANK_USES)){\n      const molecule=selected[use],tank=state.tanks[use],valid=!molecule||state.recipes.includes(molecule)&&fitsTank(molecule,use)&&records.has(molecule),same=valid&&!!molecule&&tank.molecule===molecule,current=same?tank.amount:0,capacity=valid&&molecule?tankCapacity(use,molecule,state.upgrades)??0:0;\n      const scaled=valid&&molecule?Math.floor(capacity*Math.max(0,Math.min(1,rate))):0,target=valid&&molecule?Math.max(current,scaled):0,add=Math.max(0,target-current),cost=valid&&add?costFor(molecule,add):{};\n      entries.push({use,molecule,currentMolecule:tank.molecule,currentAmount:tank.amount,current,capacity,target,add,cost,invalid:!valid,discard:valid&&tank.amount>0&&tank.molecule!==molecule?tank.amount:0,replacing:valid&&tank.amount>0&&tank.molecule!==molecule});\n    }\n    const cost={};for(const entry of entries)addCost(cost,entry.cost);return {rate,entries,cost};\n  }\n  function launchFillPlan({includeWorkspace=true}={}){\n    const available=launchAvailableElements(includeWorkspace),full=fillEntriesAt(1),required={...full.cost},invalid=full.entries.filter(entry=>entry.invalid).map(entry=>({use:entry.use,molecule:entry.molecule})),missing=Object.fromEntries(Object.entries(required).filter(([el,n])=>(available[el]??0)<n).map(([el,n])=>[el,{have:available[el]??0,need:n}]));\n    if(invalid.length)return {status:'IMPOSSIBLE',full,partial:fillEntriesAt(0),required,missing,invalid};\n    if(affordableCost(full.cost,available))return {status:'FULL',full,partial:full,required,missing,invalid};\n    let low=0,high=1;for(let i=0;i<32;i++){const mid=(low+high)/2,attempt=fillEntriesAt(mid);if(affordableCost(attempt.cost,available))low=mid;else high=mid;}\n    const partial=fillEntriesAt(low),selectedCount=partial.entries.filter(entry=>entry.molecule).length,usable=selectedCount===0||partial.entries.some(entry=>entry.molecule&&entry.target>0);\n    return {status:usable?'PARTIAL':'IMPOSSIBLE',full,partial,required,missing,invalid};\n  }\n  function commitLaunchFill""",
+            'resources launch planner', re.S)
+          s=s.replace("const preview=launchFillPlan();if(preview.status==='IMPOSSIBLE'", "const preview=launchFillPlan({includeWorkspace:false});if(preview.status==='IMPOSSIBLE'",1)
+          p.write_text(s)
+
+          p=Path('src/veil/supply.js'); s=p.read_text()
+          s=s.replace("export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){","export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaunch=()=>true,onLaunchReady=()=>false,onAnchor}){",1)
+          s=s.replace(",launchItems=[],launchBypass=false,launchBusy=false;",",launchItems=[],launchBusy=false;",1)
+          s=sub_once(s,
+            r"  async function commitAndContinue\(partial\)\{.*?\n  \}\n\n  q\('open-supply'\)",
+            """  async function commitAndContinue(partial){\n    if(launchBusy||resources.blocked||!canOpen())return false;\n    launchBusy=true;\n    if(onPrepareLaunch()===false){launchBusy=false;update();return false;}\n    const result=resources.commitLaunchFill({partial});\n    if(!result){launchBusy=false;update();return false;}\n    update();\n    if(Object.keys(result.plan.cost).length)await playSynthesis(result.plan);\n    launchBusy=false;\n    const started=onLaunchReady()!==false;\n    if(started)dialog.close();else update();\n    return started;\n  }\n\n  q('open-supply')""",
+            'supply continuation', re.S)
+          s=sub_once(s,
+            r"q\('expedition-anchor'\)\.addEventListener\('change',\(\)=>onAnchor\(q\('expedition-anchor'\)\.value\)\);q\('launch-veil'\)\.addEventListener\('click',event=>\{if\(launchBypass\)\{dialog\.close\(\);return;\}event\.preventDefault\(\);event\.stopImmediatePropagation\(\);",
+            "q('expedition-anchor').addEventListener('change',()=>onAnchor(q('expedition-anchor').value));q('launch-veil').addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();",
+            'supply launch handler')
+          p.write_text(s)
+
+          p=Path('src/veil/ui.js'); s=p.read_text()
+          s=s.replace("const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onAnchor:id=>{anchor=id;updateCraft();}});","const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onPrepareLaunch:onBeforeLaunch,onLaunchReady:()=>launch({prepared:true}),onAnchor:id=>{anchor=id;updateCraft();}});",1)
+          s=s.replace("  function launch(){\n    if(active||!canLeave()||resources.blocked||onBeforeLaunch()===false)return;","  function launch({prepared=false}={}){\n    if(active||!canLeave()||resources.blocked||!prepared&&onBeforeLaunch()===false)return false;",1)
+          s=s.replace("q('craft-resource-hint').textContent='探索画面を開始できません。このブラウザのCanvas対応を確認してください。';return;}","q('craft-resource-hint').textContent='探索画面を開始できません。このブラウザのCanvas対応を確認してください。';return false;}",1)
+          s=s.replace("resources.save();raf=requestAnimationFrame(frame);\n  }\n  function finish", "resources.save();raf=requestAnimationFrame(frame);return true;\n  }\n  function finish",1)
+          p.write_text(s)
+
+          p=Path('tests/veil-ui-check.mjs'); s=p.read_text()
+          old="q('element-palette').querySelector('[data-element=\"H\"]').click();game.run('updateStructureFrame(performance.now()+1000)');game.run('clearField()');assert.equal(q('craft-target').hidden,false,'Manual cleanup retains the craft target');\nq('open-supply').click();const launchStock=game.run('resources.state.elements.H');q('launch-veil').click();await new Promise(resolve=>setTimeout(resolve,540));assert.equal(q('craft-target').hidden,true,'Launching exploration clears the craft target');const fuel=game.run('resources.state.tanks.propellant.amount');assert.equal(fuel,120,'Departure auto-synthesizes the selected propellant to full capacity');assert.equal(game.run('resources.state.elements.H'),launchStock-240,'Departure consumes only the atoms needed for launch fill');"
+          new="q('element-palette').querySelector('[data-element=\"H\"]').click();game.run('updateStructureFrame(performance.now()+1000)');assert.equal(game.run('molecule.atoms.length'),1,'One checked-out atom remains on the craft field before launch');assert.equal(q('craft-target').hidden,false,'Craft target remains until departure');\nq('open-supply').click();const launchStock=game.run('resources.state.elements.H');q('launch-veil').click();await new Promise(resolve=>setTimeout(resolve,540));assert.equal(q('craft-target').hidden,true,'Launching exploration clears the craft target');assert.equal(game.run('molecule.atoms.length'),0,'Departure clears the craft workspace before auto synthesis');const fuel=game.run('resources.state.tanks.propellant.amount');assert.equal(fuel,120,'Departure auto-synthesizes the selected propellant to full capacity');assert.equal(game.run('resources.state.elements.H'),launchStock+1-240,'Checked-out atoms return to BASE STOCK before launch synthesis');"
+          if old not in s: raise SystemExit('veil-ui workspace launch anchor missing')
+          p.write_text(s.replace(old,new,1))
+
+          p=Path('tests/supply-tanks.test.mjs'); s=p.read_text()
+          anchor="console.log('Loadout auto-synthesis supply passed: free selection, residual reuse, replacement discard, empty tanks, proportional partial fill, impossible guard, rollback, and legacy initialization.');"
+          extra="""{\n const {resources}=setup();resources.discover('hydrogen');resources.state.loadout.tanks.propellant='not-discovered';const before=resources.snapshot();const plan=resources.launchFillPlan();assert.equal(plan.status,'IMPOSSIBLE');assert.equal(plan.invalid.length,1);assert.equal(resources.commitLaunchFill({partial:true}),false);assert.deepEqual(resources.snapshot(),before);\n}\n\n"""
+          if anchor not in s: raise SystemExit('supply test anchor missing')
+          p.write_text(s.replace(anchor,extra+anchor,1))
+          PY
+      - name: Validate integration
+        run: |
+          npm install --no-save --prefix /tmp/task-a-jsdom jsdom@26
+          node tests/supply-tanks.test.mjs
+          node tests/veil-ui-check.mjs /tmp/task-a-jsdom/node_modules/jsdom/lib/api.js
+          node scripts/check-repository-hygiene.mjs
+          node scripts/build-precache.mjs
+      - name: Commit hardened integration
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/task-a-integrate.yml
+          git add -A
+          git commit -m "Harden loadout launch integration"
+          git push origin HEAD:task-a-loadout-auto-synthesis-v2
