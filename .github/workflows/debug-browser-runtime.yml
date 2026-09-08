@@ -30,7 +30,8 @@ jobs:
             {element:'H',position:[.8,-.8,0]},{element:'H',position:[.8,0,.9]},{element:'H',position:[2.2,.4,0]}
           ],bonds:[[0,1,1],[0,3,1],[0,4,1],[0,5,1],[1,2,1],[1,6,1],[1,7,1],[2,8,1]],selected:8,focus:0,pivot:[.3,0,0],targetMoleculeId:'ethanol',camera:{position:[5.2,4,7.6],target:[0,0,0],up:[0,1,0]}};
           const resources={schemaVersion:6,elements:{H:60,C:30,N:0,O:30,F:0,P:0,S:0,Cl:0},tanks:{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}},recipes:['hydrogen','methane','oxygen','water','ethanol'],hints:['hydrogen','methane','oxygen','water','ethanol'],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:{bestChain:0,runs:1,cleared:true,craftPrompt:false,sound:true,foundElements:['H','C','O'],regions:['veil','carbon','oxygen'],checkpoint:'oxygen',frontier:false,choCompleted:false,totalCollected:100,signalMisses:0,signalLast:{}},workspace};
-          const collection={schemaVersion:2,discoveredMolecules:['hydrogen','methane','oxygen','water','ethanol'],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
+          const unlocked=['methyl','hydroxyl','carbonyl','carbon-chain','ether','alkene','alkyne','aldehyde','carboxyl','ester','amide','nitrile'];
+          const collection={schemaVersion:2,discoveredMolecules:['hydrogen','methane','oxygen','water','ethanol'],discoveredGroups:['methyl','hydroxyl','carbonyl','ethyl','methoxy','vinyl','ethynyl','aldehyde','carboxyl','ester','carbamoyl','nitrile'],unlockedStructures:unlocked,legacyElements:[],milestones:[]};
           async function run(label,{saved=false}={}){
             const context=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2});
             if(saved)await context.addInitScript(({resources,collection})=>{localStorage.setItem('molecule-craft.resources.v1',JSON.stringify(resources));localStorage.setItem('molecule-craft.collection.v1',JSON.stringify(collection));},{resources,collection});
@@ -39,26 +40,12 @@ jobs:
             page.on('console',msg=>{if(msg.type()==='error')console.log(label,'CONSOLE',msg.type(),msg.text());});
             await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
             await page.waitForTimeout(1800);
-            const state=await page.evaluate(()=>({
-              canvas:!!document.querySelector('#viewer canvas'),
-              viewer:(()=>{const r=document.querySelector('#viewer')?.getBoundingClientRect();return r&&[r.width,r.height]})(),
-              formula:document.querySelector('#formula')?.textContent,
-              target:document.querySelector('#craft-target-formula')?.textContent,
-              stockH:document.querySelector('[data-element-stock="H"]')?.textContent,
-              supplyListenersTest:null,
-              openDialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)
-            }));
+            const state=await page.evaluate(()=>({canvas:!!document.querySelector('#viewer canvas'),viewer:(()=>{const r=document.querySelector('#viewer')?.getBoundingClientRect();return r&&[r.width,r.height]})(),formula:document.querySelector('#formula')?.textContent,target:document.querySelector('#craft-target-formula')?.textContent,targetParts:[...document.querySelectorAll('#craft-target-atoms .craft-target-part')].map(x=>x.dataset.partId),stockH:document.querySelector('[data-element-stock="H"]')?.textContent,openDialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)}));
             console.log(label,'STATE',JSON.stringify(state),'ERROR_COUNT',errors.length);
-            await page.locator('#open-supply').click();await page.waitForTimeout(100);
-            console.log(label,'SUPPLY_OPEN',await page.locator('#supply-dialog').evaluate(d=>d.open));
+            await page.locator('#open-supply').click();await page.waitForTimeout(100);console.log(label,'SUPPLY_OPEN',await page.locator('#supply-dialog').evaluate(d=>d.open));
             if(await page.locator('#supply-dialog').evaluate(d=>d.open))await page.locator('#supply-dialog [data-close-dialog]').click();
-            await page.locator('#open-collection').click();await page.waitForTimeout(250);
-            console.log(label,'COLLECTION_OPEN',await page.locator('#collection-dialog').evaluate(d=>d.open));
-            await context.close();
-            return errors;
+            await page.locator('#open-collection').click();await page.waitForTimeout(250);console.log(label,'COLLECTION_OPEN',await page.locator('#collection-dialog').evaluate(d=>d.open));
+            await context.close();return errors;
           }
-          const fresh=await run('FRESH');
-          const savedErrors=await run('SAVED',{saved:true});
-          await browser.close();
-          if(fresh.length||savedErrors.length)process.exitCode=2;
+          const fresh=await run('FRESH');const savedErrors=await run('SAVED',{saved:true});await browser.close();if(fresh.length||savedErrors.length)process.exitCode=2;
           NODE
