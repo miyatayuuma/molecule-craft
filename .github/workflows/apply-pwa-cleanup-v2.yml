@@ -1,0 +1,163 @@
+name: apply-pwa-cleanup-v2
+on:
+  push:
+    branches: [fix/pwa-auto-update-cleanup]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply scoped cleanup
+        shell: bash
+        run: |
+          cat > src/pwa.js <<'EOF'
+          // Waiting updates auto-activate only after the app confirms that its current state is safe to save and reload.
+          const install=document.getElementById('install-app'),installStatus=document.getElementById('install-status');
+          const update=document.getElementById('update-app'),updateStatus=document.getElementById('update-status');
+          const versionStatus=document.createElement('p');versionStatus.id='app-version';versionStatus.className='muted';versionStatus.textContent='APP VERSION —';document.querySelector('#menu-dialog .menu-items')?.append(versionStatus);
+          let installPrompt=null,registration=null,reloadOnChange=false,lastUpdateCheck=0,updateCheck=null,activationRequested=false;
+          const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+          function installState(){if(standalone()){install.hidden=true;installStatus.textContent='アプリとして起動中';}}
+          function requestRunningVersion(){
+            const worker=navigator.serviceWorker?.controller;if(!worker){versionStatus.textContent='APP VERSION NETWORK';versionStatus.title='Service Worker未制御';return;}
+            const channel=new MessageChannel();channel.port1.onmessage=event=>{if(event.data?.type!=='APP_VERSION')return;const id=String(event.data.version??'');versionStatus.textContent=id?`APP VERSION ${id.slice(0,8)}`:'APP VERSION —';versionStatus.title=id;channel.port1.close();};
+            try{worker.postMessage({type:'GET_VERSION'},[channel.port2]);}catch{versionStatus.textContent='APP VERSION —';}
+          }
+          installState();
+          window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;if(!standalone()){install.hidden=false;installStatus.textContent='ホーム画面からすぐに遊べます。';}});
+          window.addEventListener('appinstalled',()=>{installPrompt=null;install.hidden=true;installStatus.textContent='インストールしました。';});
+          install.addEventListener('click',async()=>{
+            if(installPrompt){const prompt=installPrompt;installPrompt=null;await prompt.prompt();const choice=await prompt.userChoice;installStatus.textContent=choice.outcome==='accepted'?'インストールを受け付けました。':'いつでもメニューから追加できます。';}
+            else installStatus.textContent=/iPad|iPhone|iPod/.test(navigator.userAgent)?'Safariの共有ボタンから「ホーム画面に追加」を選んでください。':'ブラウザのメニューから「アプリをインストール」または「ホーム画面に追加」を選んでください。';
+          });
+          function activateWaitingUpdate({manual=false}={}){
+            const worker=registration?.waiting;if(!worker||!navigator.serviceWorker.controller)return false;
+            const event=new Event('molecule-craft:prepare-update',{cancelable:true});window.dispatchEvent(event);
+            if(event.defaultPrevented){update.hidden=false;update.disabled=false;updateStatus.textContent=manual?'操作が終わり、制作途中を保存できてから更新してください。':'新しい版があります。操作が終わると自動で更新します。';return false;}
+            if(activationRequested)return true;
+            activationRequested=true;reloadOnChange=true;update.hidden=false;update.disabled=true;updateStatus.textContent='更新を準備しています…';worker.postMessage({type:'ACTIVATE_UPDATE'});return true;
+          }
+          function ready({auto=true}={}){
+            if(!registration?.waiting||!navigator.serviceWorker.controller)return false;
+            update.hidden=false;if(auto&&activateWaitingUpdate())return true;
+            if(!updateStatus.textContent)updateStatus.textContent='新しい版があります。制作途中を保存して更新できます。';return true;
+          }
+          async function checkForUpdate(force=false){
+            if(!registration||!navigator.serviceWorker.controller)return;
+            if(registration.waiting){ready({auto:true});return;}
+            const now=Date.now();if(!force&&now-lastUpdateCheck<5*60*1000)return;
+            if(updateCheck)return updateCheck;lastUpdateCheck=now;
+            updateCheck=registration.update().then(()=>ready({auto:true})).catch(()=>{}).finally(()=>{updateCheck=null;});return updateCheck;
+          }
+          update.addEventListener('click',()=>{if(!registration?.waiting){checkForUpdate(true);return;}activateWaitingUpdate({manual:true});});
+          if('serviceWorker'in navigator){
+            navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(reloadOnChange){location.reload();return;}requestRunningVersion();});
+            navigator.serviceWorker.addEventListener('message',event=>{
+              if(event.data?.type==='UPDATE_BLOCKED'){activationRequested=false;reloadOnChange=false;update.disabled=false;update.hidden=false;updateStatus.textContent='ほかのMolecule Craftの画面を閉じると更新できます。';}
+            });
+            navigator.serviceWorker.register(new URL('../sw.js',import.meta.url),{scope:new URL('../',import.meta.url).pathname,updateViaCache:'none'}).then(reg=>{
+              registration=reg;ready({auto:true});requestRunningVersion();
+              reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'){if(navigator.serviceWorker.controller)ready({auto:true});else updateStatus.textContent='オフラインでも遊べる準備ができました。';}if(worker.state==='redundant')updateStatus.textContent=navigator.serviceWorker.controller?'更新の準備を完了できませんでした。現在の版で続けられます。':'オフラインの準備は、次回オンラインで開いたときに再試行します。';});});
+              checkForUpdate(true);
+            }).catch(()=>{versionStatus.textContent='APP VERSION NETWORK';updateStatus.textContent='この環境ではオフライン機能を利用できません。';});
+            window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:true}))checkForUpdate();});
+            document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:true}))checkForUpdate();}});
+          }else{versionStatus.textContent='APP VERSION NETWORK';updateStatus.textContent='この環境ではオフライン機能を利用できません。';}
+          EOF
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          # Keep only the final target-bar CSS layer.
+          p=Path('styles.css'); css=p.read_text()
+          start=css.find('.craft-target{flex:none;display:flex;align-items:center;gap:10px;')
+          end=css.find('.field-bottom{flex-wrap:wrap}',start)
+          if start<0 or end<0: raise SystemExit('obsolete craft target CSS block not found')
+          css=css[:start]+css[end:]
+          css=re.sub(r'#element-unlock-hint\{[^{}]*\}','',css)
+          css=css.replace('.tray-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}', '.tray-header{display:flex;align-items:center;margin-bottom:8px}')
+          p.write_text(css)
+
+          # Remove the permanently hidden element hint from production and the UI harness.
+          p=Path('index.html'); html=p.read_text()
+          if '<p id="element-unlock-hint" role="status"></p>' not in html: raise SystemExit('element unlock hint DOM not found')
+          html=html.replace('<p id="element-unlock-hint" role="status"></p>','',1)
+          html=html.replace('styles.css?v=42','styles.css?v=43',1).replace('src/app.js?v=47','src/app.js?v=48',1).replace('src/pwa.js?v=29','src/pwa.js?v=30',1)
+          p.write_text(html)
+
+          p=Path('tests/collection-ui-harness.html'); harness=p.read_text()
+          harness=re.sub(r'\s*<p id="element-unlock-hint"[^>]*></p>','',harness,count=1)
+          p.write_text(harness)
+
+          p=Path('src/game-shell.js'); shell=p.read_text().replace("'#open-help','#help-dialog','#craft-last-run','#element-unlock-hint','#game-loop-hint','#craft-empty','.reset-tools',", "'#open-help','#help-dialog','#craft-last-run','#game-loop-hint','#craft-empty','.reset-tools',",1)
+          p.write_text(shell)
+
+          # Element progression now only controls availability/visibility; no hidden explanatory text is maintained.
+          p=Path('src/element-progression.js'); src=p.read_text()
+          src=src.replace("export function createElementPalette(root = document, {canUse=()=>true,explorationHint=()=>''} = {}) {", "export function createElementPalette(root = document, {canUse=()=>true} = {}) {")
+          src=src.replace("  const note=root.querySelector('#element-unlock-hint');\n",'').replace('  let lastState=null;\n','').replace('  function render(message){\n','  function render(){\n')
+          src=src.replace("    if(note)note.textContent=explorationHint()||(extra?.checked?message:'CHOの原子で最深部を目指そう');\n",'')
+          src=src.replace("  extra?.addEventListener('change',()=>render(lastState?'自由制作 · 解放済みの原子':'CHOの原子で最深部を目指そう'));\n  render('CHOの原子で最深部を目指そう');", "  extra?.addEventListener('change',render);\n  render();")
+          src=src.replace('      lastState=state;\n','').replace('      const next=nextElementUnlock(state.discoveredCount,available);\n','').replace("      render(next?`${next.elements.map(item=>item.symbol).join('・')}解放まで あと${next.remaining}種類`:'原子コンプリート');", '      render();')
+          src=src.replace("fallback(){available=new Set(ELEMENT_UNLOCKS.map(item=>item.symbol));render('進行情報を読み込めません。探索済みのCHO原子で制作できます');}", 'fallback(){available=new Set(ELEMENT_UNLOCKS.map(item=>item.symbol));render();}')
+          p.write_text(src)
+
+          p=Path('src/app.js'); app=p.read_text().replace("./element-progression.js?v=36","./element-progression.js?v=37",1)
+          old="const elementPalette=createElementPalette(document,{canUse:symbol=>resources.canUseElement(symbol),explorationHint:()=>!resources.canUseElement('C')?'CはH Veilの奥で見つかる':!resources.canUseElement('O')?'Oは炭素の群れの奥で見つかる':''});syncCraftStock();"
+          new="const elementPalette=createElementPalette(document,{canUse:symbol=>resources.canUseElement(symbol)});syncCraftStock();"
+          if old not in app: raise SystemExit('element palette integration line not found')
+          p.write_text(app.replace(old,new,1))
+
+          p=Path('tests/collection-expansion.test.mjs'); t=p.read_text()
+          old="const buttons=ELEMENT_UNLOCKS.map(item=>({dataset:{element:item.symbol,stockCount:'1'},style:{},hidden:false,disabled:false})),note={textContent:''};\nconst extra={checked:false,addEventListener(type,fn){this.change=fn;}},root={querySelectorAll:()=>buttons,querySelector:selector=>selector==='#show-extra-elements'?extra:note},palette=createElementPalette(root);\nassert.deepEqual(buttons.filter(b=>!b.hidden).map(b=>b.dataset.element),['H','C','O']);assert.equal(palette.canUse('N'),false);\npalette.update(loop);assert.equal(palette.canUse('N'),false,'Normal campaign stays CHO even when the legacy collection unlocks N');assert.match(note.textContent,/CHO/);\nextra.checked=true;extra.change();palette.update(loop);assert.ok(palette.canUse('N'));assert.match(note.textContent,/Cl/);"
+          new="const buttons=ELEMENT_UNLOCKS.map(item=>({dataset:{element:item.symbol,stockCount:'1'},style:{},hidden:false,disabled:false}));\nconst extra={checked:false,addEventListener(type,fn){this.change=fn;}},root={querySelectorAll:()=>buttons,querySelector:selector=>selector==='#show-extra-elements'?extra:null},palette=createElementPalette(root);\nassert.deepEqual(buttons.filter(b=>!b.hidden).map(b=>b.dataset.element),['H','C','O']);assert.equal(palette.canUse('N'),false);\npalette.update(loop);assert.equal(palette.canUse('N'),false,'Normal campaign stays CHO even when the legacy collection unlocks N');\nextra.checked=true;extra.change();palette.update(loop);assert.ok(palette.canUse('N'));"
+          if old not in t: raise SystemExit('collection expansion hint assertions not found')
+          p.write_text(t.replace(old,new,1))
+
+          p=Path('tests/source-contracts.test.mjs'); t=p.read_text()
+          t=t.replace("readFile(new URL('src/app.js?v=47', root), 'utf8')", "readFile(new URL('src/app.js?v=48', root), 'utf8')",1)
+          t=t.replace("/<script type=\"module\" src=\"\\.\\/src\\/app\\.js\\?v=47\"><\\/script>/", "/<script type=\"module\" src=\"\\.\\/src\\/app\\.js\\?v=48\"><\\/script>/",1)
+          t=t.replace("assert.match(index, /id=\"element-unlock-hint\"/);\n",'').replace("assert.match(index, /styles\\.css\\?v=42/);", "assert.match(index, /styles\\.css\\?v=43/);")
+          p.write_text(t)
+
+          p=Path('tests/pwa.test.mjs'); t=p.read_text()
+          anchor="assert.match(pwaSource,/addEventListener\\('focus'.*checkForUpdate/,'Returning to the app must re-check for updates');\n"
+          addition="assert.match(pwaSource,/function activateWaitingUpdate/,'Waiting updates should have one guarded activation path');\nassert.match(pwaSource,/molecule-craft:prepare-update/,'Automatic activation must reuse the existing safe-save gate');\nassert.match(pwaSource,/ready\\(\\{auto:true\\}\\)/,'Waiting updates should auto-activate when the app is safe');\n"
+          if anchor not in t: raise SystemExit('pwa test anchor not found')
+          p.write_text(t.replace(anchor,anchor+addition,1))
+          PY
+      - name: Verify stale UI references are gone
+        run: |
+          if grep -R "element-unlock-hint" index.html styles.css src tests; then exit 1; fi
+          if grep -q "\.craft-target{flex:none;display:flex;align-items:center;gap:10px" styles.css; then exit 1; fi
+          test "$(grep -o "single final target-bar layout layer" styles.css | wc -l)" -eq 1
+      - name: Install isolated jsdom
+        run: npm install --prefix /tmp/mc-jsdom jsdom@26
+      - name: Focused validation
+        run: |
+          node --check src/pwa.js
+          node --check src/element-progression.js
+          node --check src/app.js
+          node tests/craft-target-display.test.mjs
+          node tests/source-contracts.test.mjs
+          node tests/mobile-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
+          node tests/collection-expansion.test.mjs
+      - name: Regenerate offline release and validate
+        run: |
+          node scripts/build-precache.mjs
+          node tests/pwa.test.mjs
+          node scripts/check-repository-hygiene.mjs
+          git diff --check
+      - name: Commit implementation
+        run: |
+          rm .github/workflows/apply-pwa-cleanup-v2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix PWA update flow and clean obsolete craft UI"
+          git push
