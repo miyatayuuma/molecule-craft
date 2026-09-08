@@ -4,7 +4,6 @@ import { validateCraftStructures } from './craft-structures.js?v=31';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=36';
 import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=36';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
-import { expeditionUseFor } from './veil/propulsion-guide.js';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -12,7 +11,7 @@ export async function loadCollectionData(){
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia};
 }
 
-export async function createCollectionUI({records,onPlace,onSupply=null,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true}){
+export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true}){
   const data=await loadCollectionData();
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
   const state=createCollectionState({records,...data,storage,elementAccess});
@@ -138,12 +137,6 @@ export async function createCollectionUI({records,onPlace,onSupply=null,canOpen=
       },'collection-primary');box.append(hint);detail.append(box);return;
     }
     preview(record,moleculeDisplayName(record));
-    const use=expeditionUseFor(id);
-    if(use){
-      const box=el('section',null,'expedition-use');box.append(el('h3',`探索での用途 · ${use.label}`),el('p',use.strength),el('p',use.good),el('p',use.weakness));
-      if(onSupply)box.append(button('補給で比較する',()=>{dialog.close();document.body.classList.remove('collection-open');onOpenChange(false);if(onSupply(id,use.role)===false){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}},'collection-primary'));
-      detail.append(box);
-    }
     detail.append(el('p',entry(kind,id)?.description??record.learningNote??'この分子を図鑑に登録しました。','dex-description'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));

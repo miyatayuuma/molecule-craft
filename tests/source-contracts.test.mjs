@@ -17,7 +17,14 @@ const [index, app, chemistry, solver, conformation, electronInteraction, gesture
   readFile(new URL('src/craft-panel.js', root), 'utf8'),
 ]);
 const collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'utf8');
+const collectionUI=await readFile(new URL('src/collection-ui.js',root),'utf8');
+const pubchemReference=await readFile(new URL('src/pubchem-reference.js',root),'utf8');
 assert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|模型を(?:拡大|縮小|表示リセット)/,'Collection viewer zoom/reset buttons stay removed');
+assert.doesNotMatch(collectionUI,/expeditionUseFor|expedition-use|探索での用途|補給で比較する/,'Collection stays chemistry-focused and does not repeat expedition guidance');
+assert.doesNotMatch(craftConnections,/onSupply/,'Collection connection no longer carries supply guidance callbacks');
+assert.match(craftPanel,/pubchemReferenceFor\(focus\)/);
+assert.match(craftPanel,/className='pubchem-link'/);
+assert.match(pubchemReference,/pubchem\.ncbi\.nlm\.nih\.gov\/\#query=/);
 assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
 assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
 
