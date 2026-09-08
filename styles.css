@@ -40,3 +40,13 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .craft-target #craft-target-name{min-width:0;max-width:180px;overflow:hidden;text-overflow:ellipsis;color:#a9c4ce;font-size:11px;white-space:nowrap}
 .craft-target>button{flex:none;margin-left:auto}
 @media(max-width:430px){.craft-target{flex-wrap:nowrap;gap:6px}.craft-target .craft-target-atoms{width:auto;order:initial}.craft-target #craft-target-name{max-width:110px}}
+
+
+/* Craft target model parts. */
+.craft-target{min-height:60px;padding-top:8px;padding-bottom:8px}
+.craft-target .craft-target-atoms{height:46px;align-items:center}
+.craft-target-part{position:relative;display:grid;place-items:center;flex:0 0 72px;width:72px;height:46px;min-height:46px;padding:0;overflow:hidden;border:1px solid #4b7a76;border-radius:12px;background:#102b34;color:#f3fffd;isolation:isolate}
+.craft-target-part:hover{background:#173c43}
+.craft-target-part-model{position:absolute;z-index:0;left:50%;top:50%;width:72px;height:48px;object-fit:cover;transform:translate(-50%,-50%) scale(1.35);filter:drop-shadow(0 2px 4px #0008);pointer-events:none;user-select:none}
+.craft-target-part-formula{position:relative;z-index:1;max-width:66px;padding:1px 3px;color:#f7ffff;font-size:11px;font-weight:850;line-height:1.1;letter-spacing:-.02em;text-align:center;text-shadow:0 1px 2px #02070aff,0 0 5px #02070aff;white-space:nowrap;pointer-events:none}
+@media(max-width:430px){.craft-target{min-height:58px}.craft-target-part{flex-basis:66px;width:66px}.craft-target-part-model{width:68px}.craft-target-part-formula{max-width:61px;font-size:10px}}
