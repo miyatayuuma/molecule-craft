@@ -1,0 +1,73 @@
+name: apply-shell-coherence
+on:
+  push:
+    branches: [fix/shell-coherence-recovery]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply shell coherence recovery
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p=Path('src/pwa.js')
+          src=p.read_text()
+          if "const EXPECTED_LOADER_REV='31'" not in src:
+              src="const EXPECTED_LOADER_REV='31',loaderRev=new URL(import.meta.url).searchParams.get('v')??'';\nif(loaderRev!==EXPECTED_LOADER_REV){location.reload();}else{\n"+src+"\n}\n"
+          old="if('serviceWorker'in navigator){\n  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(reloadOnChange){location.reload();return;}requestRunningVersion();});"
+          new="if('serviceWorker'in navigator){\n  const hadController=!!navigator.serviceWorker.controller;\n  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(hadController||reloadOnChange){location.reload();return;}requestRunningVersion();});"
+          if old not in src:
+              raise SystemExit('controllerchange anchor not found')
+          p.write_text(src.replace(old,new,1))
+
+          p=Path('index.html')
+          html=p.read_text()
+          if 'src/pwa.js?v=30' not in html:
+              raise SystemExit('expected pwa loader revision not found')
+          html=html.replace('src/pwa.js?v=30','src/pwa.js?v=31',1)
+          p.write_text(html)
+
+          p=Path('tests/source-contracts.test.mjs')
+          t=p.read_text()
+          t=t.replace('src/pwa.js?v=30','src/pwa.js?v=31')
+          p.write_text(t)
+
+          p=Path('tests/pwa.test.mjs')
+          t=p.read_text()
+          anchor="assert.match(pwaSource,/function activateWaitingUpdate/,'Waiting updates should have one guarded activation path');\n"
+          extra="assert.match(pwaSource,/EXPECTED_LOADER_REV='31'/,'Current PWA bytes must reject an older HTML loader revision');\nassert.match(pwaSource,/hadController\\|\\|reloadOnChange/,'Controller replacement must reload an already-controlled document');\n"
+          if anchor not in t:
+              raise SystemExit('PWA test anchor not found')
+          if extra not in t:
+              t=t.replace(anchor,anchor+extra,1)
+          p.write_text(t)
+          PY
+      - name: Validate shell and startup
+        run: |
+          node --check src/pwa.js
+          npm install --prefix /tmp/mc-jsdom jsdom@26
+          node tests/source-contracts.test.mjs
+          node tests/mobile-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
+          node tests/craft-target-display.test.mjs
+      - name: Regenerate and validate PWA
+        run: |
+          node scripts/build-precache.mjs
+          node tests/pwa.test.mjs
+          node scripts/check-repository-hygiene.mjs
+          git diff --check
+      - name: Commit implementation
+        run: |
+          rm .github/workflows/apply-shell-coherence.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Keep PWA shell and service worker coherent"
+          git push
