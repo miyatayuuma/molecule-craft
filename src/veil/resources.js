@@ -118,25 +118,27 @@ export function createResources({storage,onStatus=()=>{}}={}){
     if(save()||!storage)return true;state=before;return false;
   }
   const addCost=(target,cost)=>{for(const [el,n]of Object.entries(cost??{}))target[el]=(target[el]??0)+n;return target;};
-  const affordableCost=cost=>Object.entries(cost).every(([el,n])=>(state.elements[el]??0)>=n);
+  function launchAvailableElements(includeWorkspace=true){const available={...state.elements};if(includeWorkspace)for(const atom of state.workspace?.atoms??[])if(STOCKED.includes(atom.element))available[atom.element]=(available[atom.element]??0)+1;return available;}
+  const affordableCost=(cost,available=state.elements)=>Object.entries(cost).every(([el,n])=>(available[el]??0)>=n);
   function fillEntriesAt(rate){
     const selected=selectedLoadout(),entries=[];
     for(const use of Object.keys(TANK_USES)){
-      const molecule=selected[use],tank=state.tanks[use],same=!!molecule&&tank.molecule===molecule,current=same?tank.amount:0,capacity=molecule?tankCapacity(use,molecule,state.upgrades)??0:0;
-      const scaled=molecule?Math.floor(capacity*Math.max(0,Math.min(1,rate))):0,target=molecule?Math.max(current,scaled):0,add=Math.max(0,target-current),cost=add?costFor(molecule,add):{};
-      entries.push({use,molecule,currentMolecule:tank.molecule,currentAmount:tank.amount,current,capacity,target,add,cost,discard:tank.amount>0&&tank.molecule!==molecule?tank.amount:0,replacing:tank.amount>0&&tank.molecule!==molecule});
+      const molecule=selected[use],tank=state.tanks[use],valid=!molecule||state.recipes.includes(molecule)&&fitsTank(molecule,use)&&records.has(molecule),same=valid&&!!molecule&&tank.molecule===molecule,current=same?tank.amount:0,capacity=valid&&molecule?tankCapacity(use,molecule,state.upgrades)??0:0;
+      const scaled=valid&&molecule?Math.floor(capacity*Math.max(0,Math.min(1,rate))):0,target=valid&&molecule?Math.max(current,scaled):0,add=Math.max(0,target-current),cost=valid&&add?costFor(molecule,add):{};
+      entries.push({use,molecule,currentMolecule:tank.molecule,currentAmount:tank.amount,current,capacity,target,add,cost,invalid:!valid,discard:valid&&tank.amount>0&&tank.molecule!==molecule?tank.amount:0,replacing:valid&&tank.amount>0&&tank.molecule!==molecule});
     }
     const cost={};for(const entry of entries)addCost(cost,entry.cost);return {rate,entries,cost};
   }
-  function launchFillPlan(){
-    const full=fillEntriesAt(1),required={...full.cost},missing=Object.fromEntries(Object.entries(required).filter(([el,n])=>(state.elements[el]??0)<n).map(([el,n])=>[el,{have:state.elements[el]??0,need:n}]));
-    if(affordableCost(full.cost))return {status:'FULL',full,partial:full,required,missing};
-    let low=0,high=1;for(let i=0;i<32;i++){const mid=(low+high)/2,attempt=fillEntriesAt(mid);if(affordableCost(attempt.cost))low=mid;else high=mid;}
+  function launchFillPlan({includeWorkspace=true}={}){
+    const available=launchAvailableElements(includeWorkspace),full=fillEntriesAt(1),required={...full.cost},invalid=full.entries.filter(entry=>entry.invalid).map(entry=>({use:entry.use,molecule:entry.molecule})),missing=Object.fromEntries(Object.entries(required).filter(([el,n])=>(available[el]??0)<n).map(([el,n])=>[el,{have:available[el]??0,need:n}]));
+    if(invalid.length)return {status:'IMPOSSIBLE',full,partial:fillEntriesAt(0),required,missing,invalid};
+    if(affordableCost(full.cost,available))return {status:'FULL',full,partial:full,required,missing,invalid};
+    let low=0,high=1;for(let i=0;i<32;i++){const mid=(low+high)/2,attempt=fillEntriesAt(mid);if(affordableCost(attempt.cost,available))low=mid;else high=mid;}
     const partial=fillEntriesAt(low),selectedCount=partial.entries.filter(entry=>entry.molecule).length,usable=selectedCount===0||partial.entries.some(entry=>entry.molecule&&entry.target>0);
-    return {status:usable?'PARTIAL':'IMPOSSIBLE',full,partial,required,missing};
+    return {status:usable?'PARTIAL':'IMPOSSIBLE',full,partial,required,missing,invalid};
   }
   function commitLaunchFill({partial=false}={}){
-    if(blocked)return false;const preview=launchFillPlan();if(preview.status==='IMPOSSIBLE'||preview.status==='PARTIAL'&&!partial)return false;
+    if(blocked)return false;const preview=launchFillPlan({includeWorkspace:false});if(preview.status==='IMPOSSIBLE'||preview.status==='PARTIAL'&&!partial)return false;
     const plan=preview.status==='FULL'?preview.full:preview.partial,before=copy(state);if(!spend(plan.cost)){state=before;return false;}
     for(const entry of plan.entries){const tank=state.tanks[entry.use];if(!entry.molecule){tank.molecule=null;tank.amount=0;}else{tank.molecule=entry.molecule;tank.amount=entry.target;}}
     if(save()||!storage)return {committed:true,status:preview.status,plan:copy(plan),required:copy(preview.required),missing:copy(preview.missing)};state=before;return false;

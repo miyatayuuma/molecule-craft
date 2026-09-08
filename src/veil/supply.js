@@ -17,13 +17,13 @@ export function tankMeterSegments(use,moleculeId){
   if(use!=='propellant')return 0;const performance=performanceFor(moleculeId,'propellant');return performance?.moleculesPerBurst?Math.floor(performance.capacity/performance.moleculesPerBurst):0;
 }
 
-export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
+export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaunch=()=>true,onLaunchReady=()=>false,onAnchor}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
   const upgrades=document.createElement('div');upgrades.id='oxygen-upgrades';upgrades.className='oxygen-upgrades';q('tank-detail').append(upgrades);
   const launchPreview=document.createElement('div');launchPreview.id='loadout-stock-preview';launchPreview.setAttribute('aria-label','出発時に必要なBASE STOCK');Object.assign(launchPreview.style,{display:'flex',gap:'7px',flexWrap:'wrap',justifyContent:'center',minHeight:'30px',alignItems:'center'});q('tank-detail').after(launchPreview);
   const partialPanel=document.createElement('div'),partialRows=document.createElement('div'),partialGo=document.createElement('button'),partialBack=document.createElement('button');partialPanel.id='partial-fill-confirm';partialPanel.hidden=true;Object.assign(partialPanel.style,{position:'absolute',inset:'auto 10px 10px 10px',zIndex:'9',padding:'12px',border:'1px solid #678494',borderRadius:'14px',background:'#071925f2',boxShadow:'0 10px 30px #0008'});Object.assign(partialRows.style,{display:'grid',gap:'6px',marginBottom:'10px'});partialGo.type='button';partialGo.className='primary';partialGo.textContent='この量で出る';partialBack.type='button';partialBack.textContent='戻る';partialPanel.append(partialRows,partialGo,partialBack);q('supply-dialog').querySelector('.sheet-body').append(partialPanel);
   const synthesisLayer=document.createElement('div');synthesisLayer.setAttribute('aria-hidden','true');Object.assign(synthesisLayer.style,{position:'absolute',inset:'0',zIndex:'8',pointerEvents:'none',overflow:'hidden'});shellMap.append(synthesisLayer);
-  let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchActive=null,launchOpen=false,launchItems=[],launchBypass=false,launchBusy=false;
+  let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false;
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const formula=record=>MOLECULE_USES[record?.id]?.formula??record?.formula??'';
   const name=record=>record?.commonNameJa??record?.nameJa??record?.name??MOLECULE_USES[record?.id]?.name??'';
@@ -190,12 +190,22 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
     if(reduced||!plan||typeof Element==='undefined'){return;}synthesisLayer.replaceChildren();const atoms=[];for(const [el,n]of Object.entries(plan.cost))for(let i=0;i<Math.min(4,n);i++)atoms.push(el);if(!atoms.length)return;const rect=shellMap.getBoundingClientRect();for(const [index,el]of atoms.entries()){const dot=document.createElement('span');dot.textContent=el;Object.assign(dot.style,{position:'absolute',left:`${24+(index%4)*18}%`,bottom:'4px',width:'22px',height:'22px',display:'grid',placeItems:'center',borderRadius:'50%',border:'1px solid #bfefff',background:'#123142ee',fontSize:'10px',fontWeight:'800'});synthesisLayer.append(dot);dot.animate?.([{transform:'translate(0,0) scale(.7)',opacity:.2},{transform:`translate(${rect.width*(.5-(.24+(index%4)*.18))}px,${-rect.height*.32}px) scale(1)`,opacity:1,offset:.58},{transform:`translate(${rect.width*(.52-(.24+(index%4)*.18))}px,${-rect.height*.48}px) scale(.35)`,opacity:0}],{duration:460,index,easing:'ease-in-out',fill:'forwards'});}await new Promise(resolve=>setTimeout(resolve,480));synthesisLayer.replaceChildren();
   }
   async function commitAndContinue(partial){
-    if(launchBusy||resources.blocked||!canOpen()||onCommit()===false)return false;launchBusy=true;const result=resources.commitLaunchFill({partial});if(!result){launchBusy=false;update();return false;}update();if(!Object.keys(result.plan.cost).length){launchBusy=false;launchBypass=true;q('launch-veil').click();launchBypass=false;return true;}await playSynthesis(result.plan);launchBusy=false;launchBypass=true;q('launch-veil').click();launchBypass=false;return true;
+    if(launchBusy||resources.blocked||!canOpen())return false;
+    launchBusy=true;
+    if(onPrepareLaunch()===false){launchBusy=false;update();return false;}
+    const result=resources.commitLaunchFill({partial});
+    if(!result){launchBusy=false;update();return false;}
+    update();
+    if(Object.keys(result.plan.cost).length)await playSynthesis(result.plan);
+    launchBusy=false;
+    const started=onLaunchReady()!==false;
+    if(started)dialog.close();else update();
+    return started;
   }
 
   q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';partialPanel.hidden=true;dialog.showModal();update();showLaunchDestinations(false);resetLaunchPosition();});
   for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{showLaunchDestinations(false);resetLaunchPosition();selectedUse=use;selectedId=null;update();});
-  q('expedition-anchor').addEventListener('change',()=>onAnchor(q('expedition-anchor').value));q('launch-veil').addEventListener('click',event=>{if(launchBypass){dialog.close();return;}event.preventDefault();event.stopImmediatePropagation();if(launchBusy||resources.blocked||!canOpen())return;const plan=renderLaunchPlan();if(plan.status==='IMPOSSIBLE'){partialPanel.hidden=true;return;}if(plan.status==='PARTIAL'){showPartialConfirm(plan);return;}commitAndContinue(false);});partialGo.addEventListener('click',()=>{partialPanel.hidden=true;commitAndContinue(true);});partialBack.addEventListener('click',()=>{partialPanel.hidden=true;});dialog.addEventListener('close',()=>{partialPanel.hidden=true;releaseViewer();showLaunchDestinations(false);resetLaunchPosition();});
+  q('expedition-anchor').addEventListener('change',()=>onAnchor(q('expedition-anchor').value));q('launch-veil').addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();if(launchBusy||resources.blocked||!canOpen())return;const plan=renderLaunchPlan();if(plan.status==='IMPOSSIBLE'){partialPanel.hidden=true;return;}if(plan.status==='PARTIAL'){showPartialConfirm(plan);return;}commitAndContinue(false);});partialGo.addEventListener('click',()=>{partialPanel.hidden=true;commitAndContinue(true);});partialBack.addEventListener('click',()=>{partialPanel.hidden=true;});dialog.addEventListener('close',()=>{partialPanel.hidden=true;releaseViewer();showLaunchDestinations(false);resetLaunchPosition();});
   q('tank-next-hint').addEventListener('click',()=>{const id=q('tank-next-hint').dataset.moleculeId;if(id){dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));}});
   q('tank-open-collection').addEventListener('click',openCollection);q('tank-craft-molecule').addEventListener('click',startCraft);
   q('oxygen-co2-hint').addEventListener('click',()=>{dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:open-molecule',{detail:{id:'carbon-dioxide'}}));});

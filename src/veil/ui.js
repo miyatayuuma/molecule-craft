@@ -23,7 +23,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
-  const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onAnchor:id=>{anchor=id;updateCraft();}});
+  const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onPrepareLaunch:onBeforeLaunch,onLaunchReady:()=>launch({prepared:true}),onAnchor:id=>{anchor=id;updateCraft();}});
 
   function updateCraft(){
     supply.update();q('launch-veil').disabled=resources.blocked;
@@ -43,16 +43,16 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
   function resetInput(){stick.x=stick.y=0;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
   function positionAt(id){const at=REGIONS[id]??REGIONS.veil;run.player.x=at.x;run.player.y=at.y;run.player.angle=at.angle;run.player.vx=run.player.vy=0;run.player.trail=[];run.region=id;}
-  function launch(){
-    if(active||!canLeave()||resources.blocked||onBeforeLaunch()===false)return;
+  function launch({prepared=false}={}){
+    if(active||!canLeave()||resources.blocked||!prepared&&onBeforeLaunch()===false)return false;
     const seed=(Date.now()^((resources.state.progress.runs+1)*7919))>>>0,start=anchor!=='continue'?anchor:resources.state.progress.checkpoint;
     run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);resources.state.progress.runs++;
     anchor='continue';q('expedition-anchor').value='continue';active=true;paused=false;anchorLock=null;returnState=null;root.hidden=false;document.body.dataset.mode='veil';document.querySelector('.app-shell').inert=true;
-    try{renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();}catch{active=false;root.hidden=true;document.body.dataset.mode='craft';document.querySelector('.app-shell').inert=false;q('craft-resource-hint').textContent='探索画面を開始できません。このブラウザのCanvas対応を確認してください。';return;}
+    try{renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();}catch{active=false;root.hidden=true;document.body.dataset.mode='craft';document.querySelector('.app-shell').inert=false;q('craft-resource-hint').textContent='探索画面を開始できません。このブラウザのCanvas対応を確認してください。';return false;}
     resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();
     const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,propellant=run.fuel.propellant;
     const first=resources.state.progress.runs===1?'採集殻を展開 · ANCHOR RETURNで回収':fuel.molecule&&oxidizer.molecule?'COMBUSTION DRIVE · 長押しで継続航行':propellant.molecule?`${formula(propellant.molecule)} BURST · ANCHOR LOCK前の緊急離脱に残そう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';
-    notice(first,5);root.focus();last=0;hudAt=0;hud();updatePrompt();resources.save();raf=requestAnimationFrame(frame);
+    notice(first,5);root.focus();last=0;hudAt=0;hud();updatePrompt();resources.save();raf=requestAnimationFrame(frame);return true;
   }
   function finish(captured=false){
     if(!active||!run)return;active=false;cancelAnimationFrame(raf);resetInput();audio.pause();

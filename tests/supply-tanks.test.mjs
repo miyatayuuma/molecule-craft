@@ -43,4 +43,8 @@ const setup=()=>{const storage=memory(),resources=createResources({storage});res
 {
  const legacy=memory(),base={schemaVersion:7,upgrades:{oxygenTank:0},elements:{H:10,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0},tanks:{propellant:{molecule:'hydrogen',amount:4},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}},recipes:['hydrogen'],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:{bestChain:0,runs:0,cleared:false,craftPrompt:false,sound:true,foundElements:['H'],regions:['veil'],checkpoint:'veil',frontier:false,choCompleted:false,totalCollected:0,signalMisses:0,signalLast:{}},workspace:null};legacy.setItem(RESOURCE_KEY,JSON.stringify(base));const migrated=createResources({storage:legacy});assert.equal(migrated.selectedLoadout().propellant,'hydrogen');assert.deepEqual(migrated.state.tanks.propellant,{molecule:'hydrogen',amount:4});assert.equal(migrated.state.elements.H,10);
 }
+{
+ const {resources}=setup();resources.discover('hydrogen');resources.state.loadout.tanks.propellant='not-discovered';const before=resources.snapshot();const plan=resources.launchFillPlan();assert.equal(plan.status,'IMPOSSIBLE');assert.equal(plan.invalid.length,1);assert.equal(resources.commitLaunchFill({partial:true}),false);assert.deepEqual(resources.snapshot(),before);
+}
+
 console.log('Loadout auto-synthesis supply passed: free selection, residual reuse, replacement discard, empty tanks, proportional partial fill, impossible guard, rollback, and legacy initialization.');
