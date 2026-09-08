@@ -38,6 +38,7 @@ jobs:
 
           p=Path('tests/source-contracts.test.mjs'); t=p.read_text()
           t=t.replace('styles.css?v=43','styles.css?v=44').replace('src/pwa.js?v=31','src/pwa.js?v=32')
+          t=t.replace(r'styles\.css\?v=43',r'styles\.css\?v=44').replace(r'src\/pwa\.js\?v=31',r'src\/pwa\.js\?v=32')
           p.write_text(t)
           p=Path('tests/pwa.test.mjs'); t=p.read_text().replace("EXPECTED_LOADER_REV='31'","EXPECTED_LOADER_REV='32'")
           p.write_text(t)
