@@ -24,6 +24,7 @@ import { bindCraftControls } from './craft-controls.js?v=1';
 import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=3';
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
+import { matchCraftTarget } from './craft-target-satisfaction.js';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
@@ -50,7 +51,6 @@ const protectedUntil=new Map(),cleanupUndo=[];
 let lastBackgroundTap=null,frameTransition=null;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
 let collectionGame=null,collectionOpen=false,craftTargetId=null;
-const targetDeployments=new Map();let targetDeploymentTargetId=null;
 let refreshInfoFault='',animationFault='';
 
 const viewer=document.querySelector('#viewer');
@@ -612,24 +612,16 @@ function syncWorkspace(){
   discoveryConnection.sync(structures);
   for(const id of protectedUntil.keys())if(!structureByAtom.has(id))protectedUntil.delete(id);
 }
-function targetPartKey(item){return`${item.partId??item.element}:${(item.atomIndices??[]).join(',')}`;}
-function syncTargetDeployments(record){
-  const targetId=record?.id??null;
-  if(targetDeploymentTargetId!==targetId){targetDeployments.clear();targetDeploymentTargetId=targetId;}
-  const active=new Set(molecule.atoms.map(atom=>atom.id));
-  for(const [key,ids]of targetDeployments)if([...ids].every(id=>!active.has(id)))targetDeployments.delete(key);
-}
 function targetPartsFor(record){
-  syncTargetDeployments(record);if(!record)return[];
+  if(!record)return[];
   const state=collectionGame?.state,unlocked=state?.templates?.filter(template=>state.isUnlocked(template.id))??[];
-  return decomposeTargetIntoAvailableParts(record,unlocked).map(item=>{const targetKey=targetPartKey(item);return item.partId?{...item,targetKey,template:collectionGame?.templateFor(item.partId)}:{...item,targetKey};}).filter(item=>!targetDeployments.has(item.targetKey));
+  const pieces=decomposeTargetIntoAvailableParts(record,unlocked);
+  return matchCraftTarget(record,pieces,molecule).unsatisfiedPieces.map(item=>item.partId?{...item,template:collectionGame?.templateFor(item.partId)}:item);
 }
 function placeTargetPart(item){
-  if(!item?.targetKey||targetDeployments.has(item.targetKey))return false;
-  const before=new Set(molecule.atoms.map(atom=>atom.id));
-  if(item.partId){if(!addCraftPart(item.partId))return false;}else addElement(item.element);
-  const ids=molecule.atoms.filter(atom=>!before.has(atom.id)).map(atom=>atom.id);if(!ids.length)return false;
-  targetDeployments.set(item.targetKey,new Set(ids));refreshInfo();return true;
+  if(!item)return false;
+  if(item.partId)return addCraftPart(item.partId);
+  return addElement(item.element);
 }
 function refreshInfo(keep=false){
   try{
