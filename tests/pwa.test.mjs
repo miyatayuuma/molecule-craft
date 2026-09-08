@@ -8,6 +8,9 @@ for(const icon of manifest.icons){const data=await read(icon.src);assert.equal(d
 const source=await read('sw.js'),sourceText=source.toString(),buildSource=(await read('scripts/build-precache.mjs')).toString(),pwaSource=(await read('src/pwa.js')).toString(),precache=await read('precache-manifest.js'),context={self:{}};runInNewContext(precache.toString(),context);
 assert.match(pwaSource,/registration\.update\(\)/,'Client must explicitly check for a new service worker');
 assert.match(pwaSource,/addEventListener\('focus'.*checkForUpdate/,'Returning to the app must re-check for updates');
+assert.match(pwaSource,/function activateWaitingUpdate/,'Waiting updates should have one guarded activation path');
+assert.match(pwaSource,/molecule-craft:prepare-update/,'Automatic activation must reuse the existing safe-save gate');
+assert.match(pwaSource,/ready\(\{auto:true\}\)/,'Waiting updates should auto-activate when the app is safe');
 const entries=context.self.PRECACHE_FILES,paths=new Set(entries.map(e=>e.path));
 assert.match(buildSource,/PRECACHE_ASSET_VERSION/,'Precache build must stamp the top-level service worker each release');
 const assetVersion=createHash('sha256').update(Buffer.from(JSON.stringify(entries))).digest('hex').slice(0,16);

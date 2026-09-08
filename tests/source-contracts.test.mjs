@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, craftWorkspace, craftControls, craftConnections, craftPanel] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app.js?v=47', root), 'utf8'),
+  readFile(new URL('src/app.js?v=48', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=32', root), 'utf8'),
   readFile(new URL('src/conformation-engine.js?v=2', root), 'utf8'),
@@ -21,7 +21,7 @@ assert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|模型を(?:拡�
 assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
 assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=47"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=48"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-settlement\.js\?v=32'/);
@@ -61,7 +61,6 @@ assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=37'\)/);
 assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations belong to craft-workspace.js');
 assert.match(app, /!elementPalette.canUse\(symbol\)/);
 assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
-assert.match(index, /id="element-unlock-hint"/);
 assert.match(index, /id="veil-combustion"/);
 assert.match(index, /id="veil-threat"/);
 assert.match(index, /id="open-supply" class="collector-access"/);
@@ -132,6 +131,6 @@ assert.doesNotMatch(app, /return expanded;/);
 assert.match(app, /return true;/);
 assert.match(craftPanel, /compactPartNotation/);
 assert.match(index, /class=\"craft-target-meta\"/);
-assert.match(index, /styles\.css\?v=42/);
+assert.match(index, /styles\.css\?v=43/);
 
 console.log('Source contract tests passed.');

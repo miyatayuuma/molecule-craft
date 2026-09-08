@@ -37,13 +37,11 @@ export function syncElementStocks(root = document, elements = {}) {
 
 // Enhance, never replace, the static HTML palette. A collection-data failure
 // keeps already explored elements usable; exploration remains authoritative.
-export function createElementPalette(root = document, {canUse=()=>true,explorationHint=()=>''} = {}) {
+export function createElementPalette(root = document, {canUse=()=>true} = {}) {
   const buttons=[...root.querySelectorAll('#element-palette [data-element]')];
-  const note=root.querySelector('#element-unlock-hint');
   let available=new Set(availableElements(0));
   const extra=root.querySelector('#show-extra-elements'),visible=symbol=>['H','C','O'].includes(symbol)||!!extra?.checked;
-  let lastState=null;
-  function render(message){
+  function render(){
     for(const button of buttons){
       const item=ELEMENT_UNLOCKS.find(item=>item.symbol===button.dataset.element);
       if(!item)continue;
@@ -51,18 +49,15 @@ export function createElementPalette(root = document, {canUse=()=>true,explorati
       button.style.order=ELEMENT_UNLOCKS.indexOf(item);
       button.title=`${item.name}（${item.symbol}）を追加`;
     }
-    if(note)note.textContent=explorationHint()||(extra?.checked?message:'CHOの原子で最深部を目指そう');
   }
-  extra?.addEventListener('change',()=>render(lastState?'自由制作 · 解放済みの原子':'CHOの原子で最深部を目指そう'));
-  render('CHOの原子で最深部を目指そう');
+  extra?.addEventListener('change',render);
+  render();
   return {
     canUse:symbol=>visible(symbol)&&available.has(symbol)&&canUse(symbol),
     update(state){
-      lastState=state;
       available=new Set(state.unlockedElements());
-      const next=nextElementUnlock(state.discoveredCount,available);
-      render(next?`${next.elements.map(item=>item.symbol).join('・')}解放まで あと${next.remaining}種類`:'原子コンプリート');
+      render();
     },
-    fallback(){available=new Set(ELEMENT_UNLOCKS.map(item=>item.symbol));render('進行情報を読み込めません。探索済みのCHO原子で制作できます');},
+    fallback(){available=new Set(ELEMENT_UNLOCKS.map(item=>item.symbol));render();},
   };
 }

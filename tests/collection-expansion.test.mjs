@@ -101,11 +101,11 @@ assert.equal(loop.observeStructures(connectedStructures(field)).events[0].isNew,
 // All gates update the original buttons in place and can fail open. This small
 // DOM double complements the public browser integration harness. Give each gate
 // one unit of stock so this test isolates progression visibility from inventory.
-const buttons=ELEMENT_UNLOCKS.map(item=>({dataset:{element:item.symbol,stockCount:'1'},style:{},hidden:false,disabled:false})),note={textContent:''};
-const extra={checked:false,addEventListener(type,fn){this.change=fn;}},root={querySelectorAll:()=>buttons,querySelector:selector=>selector==='#show-extra-elements'?extra:note},palette=createElementPalette(root);
+const buttons=ELEMENT_UNLOCKS.map(item=>({dataset:{element:item.symbol,stockCount:'1'},style:{},hidden:false,disabled:false}));
+const extra={checked:false,addEventListener(type,fn){this.change=fn;}},root={querySelectorAll:()=>buttons,querySelector:selector=>selector==='#show-extra-elements'?extra:null},palette=createElementPalette(root);
 assert.deepEqual(buttons.filter(b=>!b.hidden).map(b=>b.dataset.element),['H','C','O']);assert.equal(palette.canUse('N'),false);
-palette.update(loop);assert.equal(palette.canUse('N'),false,'Normal campaign stays CHO even when the legacy collection unlocks N');assert.match(note.textContent,/CHO/);
-extra.checked=true;extra.change();palette.update(loop);assert.ok(palette.canUse('N'));assert.match(note.textContent,/Cl/);
+palette.update(loop);assert.equal(palette.canUse('N'),false,'Normal campaign stays CHO even when the legacy collection unlocks N');
+extra.checked=true;extra.change();palette.update(loop);assert.ok(palette.canUse('N'));
 palette.fallback();assert.ok(buttons.every(button=>!button.hidden&&!button.disabled));assert.ok(palette.canUse('P'));
 extra.checked=false;extra.change();palette.fallback();assert.equal(palette.canUse('N'),false,'Data-load fallback preserves the selected CHO scope');
 console.log(`Expansion passed: 20 PubChem topologies, atom gates/migration, 3 named parts, recipe loop and palette failure fallback.`);
