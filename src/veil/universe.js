@@ -1,3 +1,4 @@
+import {challengeEnvironment} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
@@ -73,8 +74,9 @@ function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/f
 export function environmentAt(p,time=0){
   const outer=band(p.y,-4100,-3690,105),hot=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
-  const routePressure=oxygenPressureAt(p);
-  return {pressure:routePressure??outer*255+hot*310,flowX:routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48,heat:hot*32+oxygen*(1-hot)*(1-coolEddy)*3,intensity:hot,eddy:coolEddy};
+  const quiet=OXYGEN_ROUTES.some(r=>r.restStops?.some(s=>Math.abs(p.y-s.y)<s.depth/2&&Math.abs(p.x-r.x)<r.width/2));
+  const challenge=challengeEnvironment(p,time),routePressure=challenge?.pressure??oxygenPressureAt(p);
+  return {pressure:routePressure??outer*255+hot*310,flowX:challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),heat:Math.max(challenge?.heat??0,hot*32+oxygen*(1-hot)*(1-coolEddy)*3)*(quiet?.2:1),intensity:hot,eddy:coolEddy};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;

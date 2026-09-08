@@ -1,6 +1,7 @@
+import {recordChallengePassage} from './expedition-challenges.js';
 import {recordChoDestination} from './cho-campaign.js';
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
-import { GROWTH, DRIVES, burstDriveFor, regionAt } from './growth.js';
+import { GROWTH, DRIVES, burstDriveFor, combustionDriveFor, regionAt } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { environmentAt, animateUniverse } from './universe.js';
 import { recordOxygenPassage } from './oxygen-routes.js';
@@ -13,7 +14,7 @@ export function createFlight(config=VEIL){
   return {...config.spawn,speed:config.driftSpeed,vx:0,vy:0,boost:0,cooldown:0,combustion:false,drive:null,bank:0,trail:[]};
 }
 
-function activePropulsion(p){return p.boost>0?p.drive:p.combustion?DRIVES.combustion:null;}
+function activePropulsion(p){return p.boost>0?p.drive:p.combustion?(p.drive??DRIVES.combustion):null;}
 
 // CHAIN intentionally does not enter movement or suction calculations. It is
 // retained as audiovisual phrasing only.
@@ -54,7 +55,7 @@ export function beginBurst(run,consume){
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
 
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
-  const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0}:{molecule:legacy,amount:fuel[legacy]??0};
+  const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null)};
   return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,overheated:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
@@ -69,24 +70,26 @@ function updateCombustion(run,dt,systems){
     if(!packet||oxidizer.molecule!==packet.oxidizer||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount||!systems.consumeCombustion?.(packet)){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
     fuel.amount-=packet.fuelAmount;oxidizer.amount-=packet.oxygenAmount;recordFuelUse(run.telemetry,'fuel',fuel.molecule,packet.fuelAmount);recordFuelUse(run.telemetry,'oxidizer',oxidizer.molecule,packet.oxygenAmount);run.driveBuffer=packet.seconds;run.driveEmpty=false;run.events.push({type:'driveIgnition'});
   }
-  p.drive=DRIVES.combustion;p.combustion=true;run.driveBuffer=Math.max(0,run.driveBuffer-dt);
+  p.drive=combustionDriveFor(fuel.molecule)??DRIVES.combustion;p.combustion=true;run.driveBuffer=Math.max(0,run.driveBuffer-dt);
   if(run.driveBuffer<=0&&(!packet||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount))p.combustion=false;
 }
 
 function updateThermal(run,dt,systems){
   const p=run.player,fuelPerformance=performanceFor(run.fuel.fuel.molecule,'fuel');
+  run.heat+=run.ambientHeat/100*2.5*dt;
   run.heat+=p.combustion?THERMAL.heatPerSecond*(fuelPerformance?.heatFactor??1)*dt:-THERMAL.naturalCoolingPerSecond*dt;
   run.heat=clamp(run.heat,0,THERMAL.overheatThreshold);
   const coolant=run.fuel.coolant,coolantPerformance=performanceFor(coolant?.molecule,'coolant');
   const thermostat=run.heat>=THERMAL.coolantStart&&(p.combustion||run.overheated);
   if(thermostat&&run.coolantBuffer<=1e-8&&coolantPerformance&&coolant.amount>=1){
     if(systems.consumeCoolant?.(1,coolant.molecule)){
-      coolant.amount--;run.coolantBuffer=THERMAL.coolantSecondsPerMolecule;recordFuelUse(run.telemetry,'coolant',coolant.molecule,1);run.coolantEmpty=false;
+      coolant.amount--;run.coolantBuffer=THERMAL.coolantSecondsPerMolecule*(coolantPerformance.durationFactor??1);recordFuelUse(run.telemetry,'coolant',coolant.molecule,1);run.coolantEmpty=false;
       if(!run.coolantEpisode){run.coolantEpisode=true;run.events.push({type:'coolantStart',molecule:coolant.molecule});}
     }
   }
-  const coolingSeconds=Math.min(dt,run.coolantBuffer);run.coolantActive=coolingSeconds>1e-8;
-  if(run.coolantActive){run.coolantBuffer=Math.max(0,run.coolantBuffer-coolingSeconds);run.heat=Math.max(0,run.heat-THERMAL.coolantCoolingPerSecond*coolantPerformance.coolingPower*coolingSeconds);}
+  const exposure=1+.8*(run.ambientHeat/100)/Math.max(.1,coolantPerformance?.environmentTolerance??1);
+  const coolingSeconds=Math.min(dt,run.coolantBuffer/exposure);run.coolantActive=coolingSeconds>1e-8;
+  if(run.coolantActive){run.coolantBuffer=Math.max(0,run.coolantBuffer-coolingSeconds*exposure);run.heat=Math.max(0,run.heat-THERMAL.coolantCoolingPerSecond*coolantPerformance.coolingPower*coolingSeconds);}
   if(run.heat<THERMAL.coolantStart&&run.coolantBuffer<=1e-8)run.coolantEpisode=false;
   if(thermostat&&coolantPerformance&&coolant.amount<1&&run.coolantBuffer<=1e-8&&!run.coolantEmpty){run.coolantEmpty=true;run.events.push({type:'coolantEmpty',molecule:coolant.molecule});}
   if(!run.overheated&&run.heat>=THERMAL.overheatThreshold){run.overheated=true;p.combustion=false;run.telemetry.overheatEvents++;run.events.push({type:'overheat'});}
@@ -132,7 +135,7 @@ function stepRunFrame(run,input,dt,systems){
   if(run.captured)return run.events;
   animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
   const environment=map.universe?environmentAt(p,run.time):null;
-  const targetHeat=environment?clamp(environment.heat/32*100,0,100):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));
+  const targetHeat=environment?clamp(environment.heat/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
   let nearest=null,distance=c.assistRadius;const desired=Math.atan2(input.y,input.x);
   for(const dust of map.dust){if(dust.ready>run.time)continue;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}
@@ -146,7 +149,7 @@ function stepRunFrame(run,input,dt,systems){
   // combustion drive can cross it; merely owning a recipe cannot.
   if(Math.abs(p.x-g.x)<g.width/2&&Math.abs(p.y-g.y)<g.height&&!propelled){const strength=c.gateDeflection*(1-Math.abs(p.x-g.x)/(g.width/2));force.x+=strength;force.y+=strength*.25;}
   moveFlight(p,input,dt,{config:c,assist:nearest,force,environment});
-  recordOxygenPassage(run,old,dt);recordChoDestination(run,old);
+  recordChallengePassage(run,old);recordOxygenPassage(run,old,dt);recordChoDestination(run,old);
   if(map.universe){const region=regionAt(p.y);if(region!==run.region){run.region=region;run.events.push({type:'region',region});}}
   if(!run.gatePassed&&propelled&&old.y>=g.y-50&&p.y<g.y-50&&Math.abs(p.x-g.x)<g.width/2){run.gatePassed=true;run.events.push({type:'gate'});}
   if(Math.hypot(p.x-c.spawn.x,p.y-c.spawn.y)>c.lapRearmDistance)run.departed=true;

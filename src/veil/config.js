@@ -47,8 +47,8 @@ export const EXPEDITION = Object.freeze({
   eaterWarningRadius: 500,
   eaterDangerRadius: 250,
 });
-// Deliberately compressed thermal game units. Ambient region heat remains a
-// visual/environment signal and does not enter this propulsion loop in v1.
+// Compressed thermal game units; ambient exposure adds heat and shortens
+// coolant service time according to its environment tolerance.
 export const THERMAL = Object.freeze({
   heatPerSecond: 10,
   naturalCoolingPerSecond: 14,

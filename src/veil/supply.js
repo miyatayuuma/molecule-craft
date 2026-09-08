@@ -19,6 +19,7 @@ export function tankMeterSegments(use,moleculeId){
 
 export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
+  const upgrades=document.createElement('div');upgrades.id='oxygen-upgrades';upgrades.className='oxygen-upgrades';q('tank-detail').append(upgrades);
   let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchActive=null,launchOpen=false,launchItems=[];
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const formula=record=>MOLECULE_USES[record?.id]?.formula??record?.formula??'';
@@ -105,7 +106,8 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
       const cooling=document.createElement('p');cooling.textContent=preview.cooling;host.append(cooling);
     }else if(selectedUse==='oxidizer'){
       const powers=all.map(p=>p.oxidizingPower),capacities=all.map(p=>p.capacity);
-      host.append(metric('酸化性能',ratio(selected.oxidizingPower,powers),ratio(loaded?.oxidizingPower??0,powers),`${Math.round(selected.oxidizingPower*100)}%`),metric('搭載容量',ratio(selected.capacity,capacities),ratio(loaded?.capacity??0,capacities),String(selected.capacity)));
+      const actual=resources.tankStatus('oxidizer',record.id).capacity;
+      host.append(metric('酸化性能',ratio(selected.oxidizingPower,powers),ratio(loaded?.oxidizingPower??0,powers),`${Math.round(selected.oxidizingPower*100)}%`),metric('搭載容量',actual/72,actual/72,String(actual)));
     }else if(selectedUse==='coolant'){
       const powers=all.map(p=>p.coolingPower),capacities=all.map(p=>p.capacity);
       host.append(metric('冷却出力',ratio(selected.coolingPower,powers),ratio(loaded?.coolingPower??0,powers),`${Math.round(selected.coolingPower*100)}%`),metric('搭載容量',ratio(selected.capacity,capacities),ratio(loaded?.capacity??0,capacities),String(selected.capacity)));
@@ -140,9 +142,18 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onAnchor}){
     for(const use of USE_ORDER){const button=q(`shell-${use}`),tank=resources.state.tanks[use],record=tankRecord(use),status=resources.tankStatus(use),presentation=TANK_PRESENTATION[use];button.style.setProperty('--tank-color',presentation.color);button.querySelector('i').textContent=presentation.icon;button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?formula(record):'—';let track=button.querySelector('.tank-scale');if(!track){track=document.createElement('span');track.className='tank-scale';track.append(document.createElement('b'));button.append(track);}styleTankMeter(track,use,tank.molecule);track.setAttribute('role','meter');track.setAttribute('aria-label',TANK_USES[use].label);track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax',String(status.loadedCapacity||1));track.setAttribute('aria-valuenow',String(tank.amount));setTankMeterLevel(track,status.loadedCapacity?tank.amount/status.loadedCapacity:0);}
     drawCollectorShellPreview(shellCanvas);drawAccessIcon();
   }
+  function renderUpgrades(){
+    upgrades.hidden=selectedUse!=='oxidizer';upgrades.replaceChildren();if(upgrades.hidden)return;
+    const plan=resources.oxygenUpgradePlan(),level=resources.state.upgrades.oxygenTank;
+    const action=document.createElement('button');action.type='button';action.dataset.upgrade=plan?.id??'complete';action.textContent=plan?`${plan.icon} O₂ → ${plan.capacity}`:'▧ O₂ 72 ✓';action.setAttribute('aria-label',plan?`${plan.name}。恒久加工。${Object.entries(plan.cost).map(([el,n])=>`${el} ${n}`).join('、')}`:'Composite Overwrap 完了');action.disabled=!plan?.available||!plan?.affordable||resources.blocked;upgrades.append(action);upgrades.dataset.level=String(level);
+    if(!plan)return;
+    for(const id of plan.requires){const button=document.createElement('button'),record=resources.record(id);button.type='button';button.dataset.material=id;button.disabled=!resources.state.hints.includes(id)&&!resources.state.recipes.includes(id);thumbnail(button,record??{id});button.setAttribute('aria-label',name(record)||id);button.append(Object.assign(document.createElement('span'),{textContent:`${formula(record)||id}${resources.state.recipes.includes(id)?' ✓':''}`}));button.addEventListener('click',()=>{dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));});upgrades.append(button);}
+    const cost=document.createElement('small');cost.textContent=Object.entries(plan.cost).map(([el,n])=>`${el} ×${n}`).join(' · ');upgrades.append(cost);
+    action.addEventListener('click',()=>{if(!canMake()||onCommit()===false)return;if(resources.upgradeOxygenTank())update();});
+  }
   function update(){
     const state=resources.state;syncElementStocks(document,state.elements);
-    renderShell();renderTankDetail();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
+    renderShell();renderTankDetail();renderUpgrades();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
     q('oxygen-route-guide').hidden=!state.progress.foundElements.includes('O');
     const burn=loadedCombustionSummary(state.tanks);q('loaded-combustion-summary').textContent=`現在の搭載分：燃焼 ${Math.floor(burn.seconds)}秒 · ${burn.cooling}`;
     const anchors=`${state.progress.regions.join('|')}|${state.progress.checkpoint}`;if(anchors!==anchorsKey){anchorsKey=anchors;const list=q('expedition-anchor'),selected=list.value;list.replaceChildren();for(const [id,text]of [['continue','探索の続き'],...state.progress.regions.map(id=>[id,REGIONS[id].name])]){const option=document.createElement('option');option.value=id;option.textContent=text;list.append(option);}list.value=selected&&[...list.options].some(option=>option.value===selected)?selected:'continue';renderLaunchDestinations();}

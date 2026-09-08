@@ -80,3 +80,4 @@
 #cho-goal-action .craft-target-atoms,.veil-prompt .craft-target-atoms{display:flex;flex:none;flex-wrap:nowrap;align-items:center;gap:4px;margin-left:2px}
 .veil-prompt .craft-emblem-action{max-width:100%;overflow-x:auto;justify-content:flex-start}
 #craft-target:not([hidden])~#cho-goal-action{display:none}
+.oxygen-upgrades{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.oxygen-upgrades button{display:flex;align-items:center;gap:5px;min-height:42px;padding:6px;font-size:11px}.oxygen-upgrades button img{width:34px;height:30px;object-fit:contain}.oxygen-upgrades small{width:100%;color:#91aab8;font-size:10px}

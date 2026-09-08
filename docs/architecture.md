@@ -49,7 +49,7 @@
 | CHO最終地点・遠征中の到達判定 | `src/veil/cho-campaign.js`。クリア確定は `resources.js` の正常帰還精算 |
 | 遠征テレメトリ | `src/veil/telemetry.js`（`?expeditionDebug=1`時のみconsole出力） |
 | マップ骨格 | `src/veil/map.js` |
-| C/O領域・塵・流れ | `src/veil/universe.js` |
+| C/O領域・塵・流れ | `src/veil/universe.js`, `expedition-challenges.js`（任意難所・報酬） |
 | 酸素の分岐・逆流・静かな渦 | `src/veil/oxygen-routes.js`。物理・描画・補給見取り図の共通定義 |
 | 分子用途の説明・搭載分比較・帰還助言 | `src/veil/propulsion-guide.js` |
 | Canvas描画 | `src/veil/renderer.js` |
@@ -58,7 +58,7 @@
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
 | 収集殻・用途別タンク選択・3D模型・図鑑導線 | `src/veil/supply.js` |
 | タンク用途・汎用推進計算 | `src/veil/growth.js`, `src/veil/molecule-roles.js` |
-| タンク内容・原子からの一括生成充填・旧完成分子在庫の破棄移行 | `src/veil/resources.js` |
+| タンク内容・直接充填・旧在庫移行・恒久強化 | `src/veil/resources.js`, `tank-upgrades.js` |
 | 収集殻の共通描画 | `src/veil/collector-shell.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
@@ -111,7 +111,7 @@
 
 ## 保存
 
-- `molecule-craft.resources.v1`：BASE STOCKの原子在庫、用途別タンク、レシピ、探索進行、精算、制作スナップショットの正本。内部schema v6では完成分子の中間在庫を持たず、原子を直接消費して各タンクへ生成充填する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。移行と破損・未来版・競合保護は `src/veil/resources.js`。
+- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v7は恒久O₂強化も保存し、完成分子の中間在庫を持たず、原子を直接消費して各タンクへ生成充填する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。移行と破損・未来版・競合保護は `src/veil/resources.js`。
 - `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部schema v2は構造と制作目標を保存し、復元は `src/workspace-save.js`。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。

@@ -1,3 +1,4 @@
+import { oxygenCapacity } from './tank-upgrades.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { activeTankRolesFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
@@ -15,12 +16,12 @@ export const TANK_USES=Object.freeze({
   coolant:{label:'冷却剤'},
 });
 export const tankUsesFor=id=>activeTankRolesFor(id);
-export const tankCapacity=(use,id)=>tankCapacityFor(use,id);
+export const tankCapacity=(use,id,upgrades={})=>use==='oxidizer'&&id==='oxygen'?oxygenCapacity(upgrades.oxygenTank):tankCapacityFor(use,id);
 // Input chooses an action, not its physics. A later cruise controller can use
 // these same actions without changing resources or adding HUD buttons.
 export const DRIVES=Object.freeze({
   hydrogen:{type:'burst',label:'H₂',name:'H₂ BURST',cost:{hydrogen:40},boostSpeed:760,boostSeconds:.65,boostRadius:8,boostCooldown:.55,boostAcceleration:28,boostGrip:20},
-  combustion:{type:'continuous',label:'FUEL + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:470,packetSeconds:2,boostRadius:40,boostAcceleration:10,boostGrip:14},
+  combustion:{type:'continuous',label:'FUEL + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:470,packetSeconds:2,boostRadius:40,boostAcceleration:5.2,boostGrip:14},
 });
 export const GROWTH=Object.freeze({
   flight:{speed:164,driftSpeed:29,suctionRadius:30,assistRadius:78},
@@ -60,6 +61,11 @@ export function burstDriveFor(id){
   const base=DRIVES.hydrogen,power=performance.burstPower;
   return {...base,label:id,name:'BURST',boostSpeed:GROWTH.flight.speed+(base.boostSpeed-GROWTH.flight.speed)*power,boostAcceleration:base.boostAcceleration*(.55+.45*power),boostGrip:base.boostGrip*(.65+.35*power)};
 }
+export function combustionDriveFor(id){
+  const performance=performanceFor(id,'fuel');if(!performance)return null;
+  const base=DRIVES.combustion,response=performance.response??1;
+  return {...base,label:id,name:'COMBUSTION DRIVE',boostAcceleration:base.boostAcceleration*response};
+}
 export function propulsionGauge(id,loadout={},driveBuffer=0){
   let remaining=0,capacity=0,seconds=0,maxSeconds=0;
   if(id==='hydrogen'){
@@ -67,7 +73,7 @@ export function propulsionGauge(id,loadout={},driveBuffer=0){
     capacity=performance?Math.floor(performance.capacity/performance.moleculesPerBurst):0;remaining=performance?Math.min(capacity,Math.floor(finiteFuel(propellant.amount)/performance.moleculesPerBurst)):0;
   }else if(id==='combustion'){
     const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen'),packet=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});
-    const full={fuel:{molecule:fuel.molecule,amount:tankCapacity('fuel',fuel.molecule)??0},oxidizer:{molecule:oxidizer.molecule,amount:tankCapacity('oxidizer',oxidizer.molecule)??0}};
+    const full={fuel:{molecule:fuel.molecule,amount:tankCapacity('fuel',fuel.molecule)??0},oxidizer:{molecule:oxidizer.molecule,amount:oxidizer.capacity??tankCapacity('oxidizer',oxidizer.molecule)??0}};
     capacity=packet?combustionPackets(full):0;maxSeconds=capacity*(packet?.seconds??0);
     seconds=Math.min(maxSeconds,combustionPackets(loadout)*(packet?.seconds??0)+Math.min(packet?.seconds??0,finiteFuel(driveBuffer)));
     remaining=Math.min(capacity,packet?.seconds?Math.ceil(seconds/packet.seconds):0);
