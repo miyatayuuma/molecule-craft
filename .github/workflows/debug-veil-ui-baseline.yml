@@ -1,0 +1,17 @@
+name: debug-veil-ui-baseline
+on:
+  push:
+    branches: [debug/veil-ui-baseline]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          npm install --prefix /tmp/mc-jsdom jsdom@26 >/dev/null
+          node tests/veil-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
