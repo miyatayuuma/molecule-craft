@@ -20,6 +20,7 @@ jobs:
         run: |
           npm install --no-save --prefix /tmp/task-a-jsdom jsdom@26
           sed -i "s#update();await playSynthesis(result.plan);#update();if(!Object.keys(result.plan.cost).length){launchBusy=false;launchBypass=true;q('launch-veil').click();launchBypass=false;return true;}await playSynthesis(result.plan);#" scripts/task-a-apply.mjs
+          sed -i "s#launchBusy||resources.blocked||!canOpen()||!canMake()||onCommit()===false#launchBusy||resources.blocked||!canOpen()||onCommit()===false#" scripts/task-a-apply.mjs
           sed -i "s#execFileSync('node',\['tests/veil-ui-check.mjs'\],{stdio:'inherit'});#execFileSync('node',['tests/veil-ui-check.mjs','/tmp/task-a-jsdom/node_modules/jsdom/lib/api.js'],{stdio:'inherit'});#" scripts/task-a-apply.mjs
           python scripts/task-a-ui-patch.py
           node scripts/task-a-apply.mjs
