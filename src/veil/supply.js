@@ -1,8 +1,8 @@
 import { MOLECULE_USES,REGIONS,TANK_USES } from './growth.js';
-import { ACTIVE_TANK_ROLES,moleculesForRole,performanceFor } from './molecule-roles.js';
+import { ACTIVE_TANK_ROLES,performanceFor } from './molecule-roles.js';
 import { drawCollectorShell,drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_JUNCTION } from './oxygen-routes.js';
-import { expeditionUseFor,loadedCombustionSummary } from './propulsion-guide.js';
+import { renderLoadoutPreview } from './loadout-preview.js';
 import { syncElementStocks } from '../element-progression.js?v=36';
 
 const USE_ORDER=[...ACTIVE_TANK_ROLES];
@@ -23,14 +23,13 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
   const launchPreview=document.createElement('div');launchPreview.id='loadout-stock-preview';launchPreview.setAttribute('aria-label','出発時に必要なBASE STOCK');Object.assign(launchPreview.style,{display:'flex',gap:'7px',flexWrap:'wrap',justifyContent:'center',minHeight:'30px',alignItems:'center'});q('tank-detail').after(launchPreview);
   const partialPanel=document.createElement('div'),partialRows=document.createElement('div'),partialGo=document.createElement('button'),partialBack=document.createElement('button');partialPanel.id='partial-fill-confirm';partialPanel.hidden=true;Object.assign(partialPanel.style,{position:'absolute',inset:'auto 10px 10px 10px',zIndex:'9',padding:'12px',border:'1px solid #678494',borderRadius:'14px',background:'#071925f2',boxShadow:'0 10px 30px #0008'});Object.assign(partialRows.style,{display:'grid',gap:'6px',marginBottom:'10px'});partialGo.type='button';partialGo.className='primary';partialGo.textContent='この量で出る';partialBack.type='button';partialBack.textContent='戻る';partialPanel.append(partialRows,partialGo,partialBack);q('supply-dialog').querySelector('.sheet-body').append(partialPanel);
   const synthesisLayer=document.createElement('div');synthesisLayer.setAttribute('aria-hidden','true');Object.assign(synthesisLayer.style,{position:'absolute',inset:'0',zIndex:'8',pointerEvents:'none',overflow:'hidden'});shellMap.append(synthesisLayer);
-  let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false;
+  let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',launchPointer=null,launchStart=null,launchDragged=0,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false;
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const formula=record=>MOLECULE_USES[record?.id]?.formula??record?.formula??'';
   const name=record=>record?.commonNameJa??record?.nameJa??record?.name??MOLECULE_USES[record?.id]?.name??'';
   const formulaId=id=>id?(formula(resources.record(id)??{id})||id):'∅';
   const candidates=use=>resources.tankCatalog(use);
   const tankRecord=use=>{const id=resources.state.tanks[use]?.molecule;return id?resources.record(id):null;};
-  const ratio=(value,values)=>{const finite=values.filter(Number.isFinite),max=Math.max(...finite,1);return Math.max(0,Math.min(1,value/max));};
   function styleTankMeter(track,use,moleculeId){
     const fill=track?.firstElementChild;if(!track||!fill)return;const segments=tankMeterSegments(use,moleculeId);
     track.dataset.segments=String(segments);track.style.backgroundRepeat='repeat-x';fill.style.webkitMaskRepeat='repeat-x';fill.style.maskRepeat='repeat-x';
@@ -83,40 +82,10 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
   }
   launchHandle.addEventListener('pointerdown',beginLaunch);launchHandle.addEventListener('pointermove',moveLaunch);launchHandle.addEventListener('pointerup',event=>endLaunch(event));launchHandle.addEventListener('pointercancel',event=>endLaunch(event,true));launchHandle.addEventListener('lostpointercapture',event=>{if(event.pointerId===launchPointer)endLaunch(event,true);});launchHandle.addEventListener('keydown',event=>{if(event.key==='Escape'){showLaunchDestinations(false);resetLaunchPosition();return;}if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();showLaunchDestinations(!launchOpen);if(launchOpen)(launchItems.find(item=>item.checkpoint)??launchItems[0])?.node.focus();});
 
-  function releaseViewer(){viewerGeneration++;viewer?.dispose();viewer=null;viewerKey='';q('tank-model-host')?.replaceChildren();}
-  function openCollection(){if(!selectedId)return;dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:open-molecule',{detail:{id:selectedId}}));}
-  function startCraft(){if(!selectedId)return;dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:selectedId}}));}
-  function mountViewer(record){
-    const host=q('tank-model-host'),key=record?.id??'';if(!dialog.open||!record||viewerKey===key)return;
-    releaseViewer();viewerKey=key;const generation=viewerGeneration,status=document.createElement('p');status.className='model-status';status.textContent='模型を準備しています…';host.append(status);
-    import('../collection-viewer.js?v=31').then(({createCollectionViewer})=>{
-      if(generation!==viewerGeneration||!dialog.open||viewerKey!==key||!host.isConnected)return;
-      host.replaceChildren();viewer=createCollectionViewer({host,record,name:name(record),showGestureHint:false});
-    }).catch(()=>{if(generation===viewerGeneration){host.replaceChildren();const failed=document.createElement('p');failed.className='model-status';failed.textContent='模型を表示できません';host.append(failed);}});
-  }
-  function metric(label,value,baseline,text){
-    const row=document.createElement('div'),caption=document.createElement('span'),track=document.createElement('i'),fill=document.createElement('b'),marker=document.createElement('em');caption.textContent=`${label} ${text}`;fill.style.transform=`scaleX(${value})`;marker.style.left=`${baseline*100}%`;track.append(fill,marker);row.append(caption,track);return row;
-  }
-  function renderMetrics(record){
-    const host=q('tank-comparison');host.replaceChildren();const selected=performanceFor(record?.id,selectedUse),loaded=performanceFor(resources.state.tanks[selectedUse]?.molecule,selectedUse);if(!selected){host.hidden=true;return;}
-    const all=moleculesForRole(selectedUse).map(id=>performanceFor(id,selectedUse));
-    if(selectedUse==='propellant'){
-      const bursts=p=>Math.floor(p.capacity/p.moleculesPerBurst),burstValues=all.map(bursts);
-      const tank=resources.state.tanks.propellant,amount=tank.molecule===record.id?tank.amount:resources.tankFillPlan('propellant',record.id)?.target??0,remaining=Math.floor(amount/selected.moleculesPerBurst);
-      host.append(metric('噴射の強さ',selected.burstPower,loaded?.burstPower??0,`${Math.round(selected.burstPower*100)}%`),metric(tank.molecule===record.id?'残り噴射':'充填可能',ratio(remaining,burstValues),ratio(loaded?Math.floor(tank.amount/loaded.moleculesPerBurst):0,burstValues),`${remaining}回（満載${bursts(selected)}）`));
-    }else if(selectedUse==='fuel'){
-      const tank=resources.state.tanks.fuel,amount=tank.molecule===record.id?tank.amount:resources.tankFillPlan('fuel',record.id)?.target??0,current=loadedCombustionSummary(resources.state.tanks),preview=loadedCombustionSummary({...resources.state.tanks,fuel:{molecule:record.id,amount}});
-      host.append(metric(tank.molecule===record.id?'燃焼可能':'充填後の燃焼',Math.min(1,preview.seconds/60),Math.min(1,current.seconds/60),`${Math.floor(preview.seconds)}秒 · 現在のO₂で`));
-      const cooling=document.createElement('p');cooling.textContent=preview.cooling;host.append(cooling);
-    }else if(selectedUse==='oxidizer'){
-      const powers=all.map(p=>p.oxidizingPower),capacities=all.map(p=>p.capacity);
-      const actual=resources.tankStatus('oxidizer',record.id).capacity;
-      host.append(metric('酸化性能',ratio(selected.oxidizingPower,powers),ratio(loaded?.oxidizingPower??0,powers),`${Math.round(selected.oxidizingPower*100)}%`),metric('搭載容量',actual/72,actual/72,String(actual)));
-    }else if(selectedUse==='coolant'){
-      const powers=all.map(p=>p.coolingPower),capacities=all.map(p=>p.capacity);
-      host.append(metric('冷却出力',ratio(selected.coolingPower,powers),ratio(loaded?.coolingPower??0,powers),`${Math.round(selected.coolingPower*100)}%`),metric('搭載容量',ratio(selected.capacity,capacities),ratio(loaded?.capacity??0,capacities),String(selected.capacity)));
-    }
-    host.hidden=!host.childElementCount;
+  function renderComparison(record){
+    const host=q('tank-comparison');if(!record){host.replaceChildren();host.hidden=true;return;}
+    const tank=resources.state.tanks[selectedUse],plan=resources.launchFillPlan(),preview=plan.status==='FULL'?plan.full:plan.partial,entry=preview.entries.find(item=>item.use===selectedUse&&item.molecule===record.id),loadout=resources.selectedLoadout(),oxygenEntry=preview.entries.find(item=>item.use==='oxidizer'),candidateAmount=entry?.target??resources.tankFillPlan(selectedUse,record.id)?.target??null,oxygenAmount=oxygenEntry?.target??resources.state.tanks.oxidizer.amount??0,coolantId=selectedUse==='coolant'?record.id:(loadout.coolant??resources.state.tanks.coolant.molecule);
+    renderLoadoutPreview(host,{use:selectedUse,candidateId:record.id,currentId:tank.molecule,currentAmount:tank.amount,candidateAmount,oxygenAmount,coolantId,reduced});
   }
   function thumbnail(button,record){
     const img=document.createElement('img');img.src=new URL(`../../assets/models/molecule-${record.id}.svg`,import.meta.url).href;img.alt='';img.width=76;img.height=56;img.loading='lazy';img.decoding='async';img.addEventListener('error',()=>img.remove(),{once:true});button.append(img);
@@ -131,15 +100,13 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
   function renderTankDetail(){
     const loadedId=resources.state.tanks[selectedUse]?.molecule,loadoutId=resources.selectedLoadout()[selectedUse],list=candidates(selectedUse);if(selectedId!==null&&!list.some(record=>record.id===selectedId))selectedId=null;if(selectedId===null&&loadoutId&&list.some(record=>record.id===loadoutId))selectedId=loadoutId;
     q('tank-detail').hidden=false;q('tank-detail-title').textContent=TANK_USES[selectedUse].label;renderCandidates(list,loadedId);
-    const empty=q('tank-empty'),model=q('tank-model'),decision=q('tank-craft-molecule');empty.hidden=!!list.length;model.hidden=!selectedId;decision.hidden=true;
+    const empty=q('tank-empty'),model=q('tank-model'),decision=q('tank-craft-molecule');empty.hidden=!!list.length;model.hidden=true;decision.hidden=true;
     const hintIds={propellant:['hydrogen','carbon-dioxide'],fuel:['methane'],oxidizer:['oxygen'],coolant:['water']},hintId=hintIds[selectedUse].find(id=>resources.state.hints.includes(id)&&!resources.state.recipes.includes(id));
     q('tank-next-hint').hidden=!hintId;q('tank-next-hint').dataset.moleculeId=hintId??'';q('tank-next-hint').textContent=hintId?`${formula(resources.record(hintId))||hintId}の作り方を見る`:'';
-    if(!list.length){empty.textContent='発見済み分子なし';q('tank-comparison').hidden=true;q('tank-affordability').textContent='';releaseViewer();}
-    const record=resources.record(selectedId),guide=expeditionUseFor(selectedId,selectedUse);q('tank-use-guide').textContent=guide?`${guide.good} ${guide.weakness}`:'';
-    if(record){q('tank-model-name').textContent=`${formula(record)} · ${name(record)}`;mountViewer(record);renderMetrics(record);}else{releaseViewer();q('tank-comparison').hidden=true;q('tank-use-guide').textContent='';}
+    if(!list.length){empty.textContent='発見済み分子なし';q('tank-comparison').hidden=true;}
+    const record=resources.record(selectedId);q('tank-use-guide').hidden=true;q('tank-use-guide').textContent='';if(record)renderComparison(record);else{q('tank-comparison').replaceChildren();q('tank-comparison').hidden=true;}
     const loaded=tankRecord(selectedUse),tank=resources.state.tanks[selectedUse],loadedStatus=resources.tankStatus(selectedUse),loadTrack=q('tank-load-meter').parentElement;q('tank-load').textContent=loaded?`${formula(loaded)} ${tank.amount}`:'∅';styleTankMeter(loadTrack,selectedUse,tank.molecule);loadTrack.setAttribute('role','meter');loadTrack.setAttribute('aria-label',`${TANK_USES[selectedUse].label}の現在残量`);loadTrack.setAttribute('aria-valuemin','0');loadTrack.setAttribute('aria-valuemax',String(loadedStatus.loadedCapacity||1));loadTrack.setAttribute('aria-valuenow',String(tank.amount));setTankMeterLevel(loadTrack,loadedStatus.loadedCapacity?tank.amount/loadedStatus.loadedCapacity:0);
-    const changing=tank.amount>0&&tank.molecule!==loadoutId;q('tank-replacement').hidden=!changing;q('tank-replacement').textContent=changing?`${formulaId(tank.molecule)} ✕ → ${formulaId(loadoutId)}`:'';q('tank-replacement').setAttribute('aria-label',changing?`${formulaId(tank.molecule)}の残量は出発時に破棄`:'' );
-    const plan=resources.launchFillPlan(),preview=plan.status==='FULL'?plan.full:plan.partial,entry=preview.entries.find(item=>item.use===selectedUse);q('tank-affordability').textContent=!loadoutId?'∅':plan.status==='FULL'?'◉':entry?`${entry.target} / ${entry.capacity}`:'—';
+    q('tank-replacement').hidden=true;q('tank-replacement').textContent='';q('tank-replacement').removeAttribute('aria-label');q('tank-affordability').hidden=true;q('tank-affordability').textContent='';
   }
   function renderLaunchPlan(){
     const plan=resources.launchFillPlan();launchPreview.replaceChildren();for(const [el,need]of Object.entries(plan.required)){const have=resources.state.elements[el]??0,chip=document.createElement('span');chip.textContent=`${el} ${have} / ${need}`;chip.dataset.sufficient=String(have>=need);Object.assign(chip.style,{display:'inline-grid',placeItems:'center',minWidth:'54px',height:'28px',padding:'0 7px',borderRadius:'15px',border:`1px ${have>=need?'solid':'dashed'} ${have>=need?'#7fa9b7':'#d9a06e'}`,opacity:have>=need?'1':'.9',fontSize:'12px',fontWeight:'700'});launchPreview.append(chip);}
@@ -162,7 +129,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
     const state=resources.state;syncElementStocks(document,state.elements);
     renderShell();renderTankDetail();renderUpgrades();renderLaunchPlan();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
     q('oxygen-route-guide').hidden=!state.progress.foundElements.includes('O');
-    const burn=loadedCombustionSummary(state.tanks);q('loaded-combustion-summary').textContent=`現在の搭載分：燃焼 ${Math.floor(burn.seconds)}秒 · ${burn.cooling}`;
+    const burnSummary=q('loaded-combustion-summary');if(burnSummary){burnSummary.hidden=true;burnSummary.textContent='';}
     const anchors=`${state.progress.regions.join('|')}|${state.progress.checkpoint}`;if(anchors!==anchorsKey){anchorsKey=anchors;const list=q('expedition-anchor'),selected=list.value;list.replaceChildren();for(const [id,text]of [['continue','探索の続き'],...state.progress.regions.map(id=>[id,REGIONS[id].name])]){const option=document.createElement('option');option.value=id;option.textContent=text;list.append(option);}list.value=selected&&[...list.options].some(option=>option.value===selected)?selected:'continue';renderLaunchDestinations();}
   }
   function openMolecule(id,use=null){
@@ -205,9 +172,8 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
 
   q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';partialPanel.hidden=true;dialog.showModal();update();showLaunchDestinations(false);resetLaunchPosition();});
   for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{showLaunchDestinations(false);resetLaunchPosition();selectedUse=use;selectedId=null;update();});
-  q('expedition-anchor').addEventListener('change',()=>onAnchor(q('expedition-anchor').value));q('launch-veil').addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();if(launchBusy||resources.blocked||!canOpen())return;const plan=renderLaunchPlan();if(plan.status==='IMPOSSIBLE'){partialPanel.hidden=true;return;}if(plan.status==='PARTIAL'){showPartialConfirm(plan);return;}commitAndContinue(false);});partialGo.addEventListener('click',()=>{partialPanel.hidden=true;commitAndContinue(true);});partialBack.addEventListener('click',()=>{partialPanel.hidden=true;});dialog.addEventListener('close',()=>{partialPanel.hidden=true;releaseViewer();showLaunchDestinations(false);resetLaunchPosition();});
+  q('expedition-anchor').addEventListener('change',()=>onAnchor(q('expedition-anchor').value));q('launch-veil').addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();if(launchBusy||resources.blocked||!canOpen())return;const plan=renderLaunchPlan();if(plan.status==='IMPOSSIBLE'){partialPanel.hidden=true;return;}if(plan.status==='PARTIAL'){showPartialConfirm(plan);return;}commitAndContinue(false);});partialGo.addEventListener('click',()=>{partialPanel.hidden=true;commitAndContinue(true);});partialBack.addEventListener('click',()=>{partialPanel.hidden=true;});dialog.addEventListener('close',()=>{partialPanel.hidden=true;showLaunchDestinations(false);resetLaunchPosition();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
   q('tank-next-hint').addEventListener('click',()=>{const id=q('tank-next-hint').dataset.moleculeId;if(id){dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));}});
-  q('tank-open-collection').addEventListener('click',openCollection);q('tank-craft-molecule').addEventListener('click',startCraft);
   q('oxygen-co2-hint').addEventListener('click',()=>{dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:open-molecule',{detail:{id:'carbon-dioxide'}}));});
   if(globalThis.ResizeObserver){new ResizeObserver(()=>{drawAccessIcon();if(dialog.open)drawCollectorShellPreview(shellCanvas);}).observe(accessCanvas);new ResizeObserver(()=>{if(dialog.open)drawCollectorShellPreview(shellCanvas);}).observe(shellCanvas);}
   drawAccessIcon();renderRouteGuide();update();
