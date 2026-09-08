@@ -2,6 +2,10 @@ from pathlib import Path
 
 p=Path('tests/veil-ui-check.mjs')
 s=p.read_text()
+old="q('open-supply').click();assert.equal(q('supply-dialog').open,true);q('launch-veil').click();assert.equal(q('supply-dialog').open,false);assert.equal(q('veil-view').hidden,false);"
+new="q('open-supply').click();assert.equal(q('supply-dialog').open,true);q('launch-veil').click();await settle();assert.equal(q('supply-dialog').open,false);assert.equal(q('veil-view').hidden,false);"
+if old not in s: raise SystemExit('missing initial launch block')
+s=s.replace(old,new)
 old="""const tankAction=q('craft-tank-actions').querySelector('[data-tank-use=\"propellant\"]');assert.ok(tankAction);const hBefore=game.run('resources.state.elements.H');tankAction.click();assert.equal(game.run('resources.state.elements.H'),hBefore,'A short tap does not produce');
 const holdDown=new game.window.MouseEvent('pointerdown',{bubbles:true,cancelable:true,button:0});Object.defineProperty(holdDown,'pointerId',{value:70});tankAction.dispatchEvent(holdDown);assert.equal(q('tank-charge-stage').hidden,false);assert.match(q('tank-charge-label').textContent,/噴射剤へ充填/);game.tick(1600);
 assert.equal(game.run('resources.state.elements.H'),hBefore-240);assert.deepEqual(game.run('resources.state.tanks.propellant'),{molecule:'hydrogen',amount:120});assert.equal(game.run('molecule.atoms.length'),2,'The handmade molecule remains as the production template');
