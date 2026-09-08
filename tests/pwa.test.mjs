@@ -9,10 +9,11 @@ const source=await read('sw.js'),sourceText=source.toString(),buildSource=(await
 assert.match(pwaSource,/registration\.update\(\)/,'Client must explicitly check for a new service worker');
 assert.match(pwaSource,/addEventListener\('focus'.*checkForUpdate/,'Returning to the app must re-check for updates');
 assert.match(pwaSource,/function activateWaitingUpdate/,'Waiting updates should have one guarded activation path');
-assert.match(pwaSource,/EXPECTED_LOADER_REV='32'/,'Current PWA bytes must reject an older HTML loader revision');
-assert.match(pwaSource,/hadController\|\|reloadOnChange/,'Controller replacement must reload an already-controlled document');
 assert.match(pwaSource,/molecule-craft:prepare-update/,'Automatic activation must reuse the existing safe-save gate');
-assert.match(pwaSource,/ready\(\{auto:true\}\)/,'Waiting updates should auto-activate when the app is safe');
+assert.doesNotMatch(pwaSource,/EXPECTED_LOADER_REV|loaderRev!==EXPECTED_LOADER_REV/,'PWA must not reload based on module query identity');
+assert.doesNotMatch(pwaSource,/hadController\|\|reloadOnChange/,'Controller replacement must not unconditionally reload an already-controlled document');
+assert.doesNotMatch(pwaSource,/ready\(\{auto:true\}\)/,'Waiting releases must not auto-activate during hotfix stabilization');
+assert.match(pwaSource,/ready\(\{auto:false\}\)/,'Waiting releases should remain manual until update activation is stable');
 const entries=context.self.PRECACHE_FILES,paths=new Set(entries.map(e=>e.path));
 assert.match(buildSource,/PRECACHE_ASSET_VERSION/,'Precache build must stamp the top-level service worker each release');
 const assetVersion=createHash('sha256').update(Buffer.from(JSON.stringify(entries))).digest('hex').slice(0,16);

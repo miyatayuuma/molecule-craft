@@ -1,5 +1,3 @@
-const EXPECTED_LOADER_REV='32',loaderRev=new URL(import.meta.url).searchParams.get('v')??'';
-if(loaderRev!==EXPECTED_LOADER_REV){location.reload();}else{
 // Waiting updates auto-activate only after the app confirms that its current state is safe to save and reload.
 const install=document.getElementById('install-app'),installStatus=document.getElementById('install-status');
 const update=document.getElementById('update-app'),updateStatus=document.getElementById('update-status');
@@ -33,25 +31,22 @@ function ready({auto=true}={}){
 }
 async function checkForUpdate(force=false){
   if(!registration||!navigator.serviceWorker.controller)return;
-  if(registration.waiting){ready({auto:true});return;}
+  if(registration.waiting){ready({auto:false});return;}
   const now=Date.now();if(!force&&now-lastUpdateCheck<5*60*1000)return;
   if(updateCheck)return updateCheck;lastUpdateCheck=now;
-  updateCheck=registration.update().then(()=>ready({auto:true})).catch(()=>{}).finally(()=>{updateCheck=null;});return updateCheck;
+  updateCheck=registration.update().then(()=>ready({auto:false})).catch(()=>{}).finally(()=>{updateCheck=null;});return updateCheck;
 }
 update.addEventListener('click',()=>{if(!registration?.waiting){checkForUpdate(true);return;}activateWaitingUpdate({manual:true});});
 if('serviceWorker'in navigator){
-  const hadController=!!navigator.serviceWorker.controller;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(hadController||reloadOnChange){location.reload();return;}requestRunningVersion();});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(reloadOnChange){reloadOnChange=false;location.reload();return;}requestRunningVersion();});
   navigator.serviceWorker.addEventListener('message',event=>{
     if(event.data?.type==='UPDATE_BLOCKED'){activationRequested=false;reloadOnChange=false;update.disabled=false;update.hidden=false;updateStatus.textContent='ほかのMolecule Craftの画面を閉じると更新できます。';}
   });
   navigator.serviceWorker.register(new URL('../sw.js',import.meta.url),{scope:new URL('../',import.meta.url).pathname,updateViaCache:'none'}).then(reg=>{
-    registration=reg;ready({auto:true});requestRunningVersion();
-    reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'){if(navigator.serviceWorker.controller)ready({auto:true});else updateStatus.textContent='オフラインでも遊べる準備ができました。';}if(worker.state==='redundant')updateStatus.textContent=navigator.serviceWorker.controller?'更新の準備を完了できませんでした。現在の版で続けられます。':'オフラインの準備は、次回オンラインで開いたときに再試行します。';});});
+    registration=reg;ready({auto:false});requestRunningVersion();
+    reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'){if(navigator.serviceWorker.controller)ready({auto:false});else updateStatus.textContent='オフラインでも遊べる準備ができました。';}if(worker.state==='redundant')updateStatus.textContent=navigator.serviceWorker.controller?'更新の準備を完了できませんでした。現在の版で続けられます。':'オフラインの準備は、次回オンラインで開いたときに再試行します。';});});
     checkForUpdate(true);
   }).catch(()=>{versionStatus.textContent='APP VERSION NETWORK';updateStatus.textContent='この環境ではオフライン機能を利用できません。';});
-  window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:true}))checkForUpdate();});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:true}))checkForUpdate();}});
+  window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:false}))checkForUpdate();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:false}))checkForUpdate();}});
 }else{versionStatus.textContent='APP VERSION NETWORK';updateStatus.textContent='この環境ではオフライン機能を利用できません。';}
-
-}
