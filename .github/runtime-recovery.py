@@ -21,13 +21,15 @@ s=prefix+s.rstrip()+"\n}\n"
 p.write_text(s)
 
 p=Path('src/app.js'); s=p.read_text()
+global_anchor="const targetDeployments=new Map();let targetDeploymentTargetId=null;"
+if global_anchor not in s: raise SystemExit('runtime globals anchor not found')
+s=s.replace(global_anchor,global_anchor+"\nlet refreshInfoFault='',animationFault='';",1)
 old_info="""function refreshInfo(keep=false){
   const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;
   const target=resources.record(craftTargetId);
   craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target,targetParts:targetPartsFor(target),onPlaceTargetPart:placeTargetPart,targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:cleanupUndo.length>0,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
 }"""
-new_info="""let refreshInfoFault='';
-function refreshInfo(keep=false){
+new_info="""function refreshInfo(keep=false){
   try{
     const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;
     const target=resources.record(craftTargetId);
@@ -49,8 +51,7 @@ old_anim="""function animate(now=performance.now()){
   updateStructureFrame(now);
   camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);renderer.render(scene,camera);if(now-lastSaveCheck>1000){lastSaveCheck=now;saveWorkspace();}
 }"""
-new_anim="""let animationFault='';
-function animate(now=performance.now()){
+new_anim="""function animate(now=performance.now()){
   requestAnimationFrame(animate);if(veilUI?.active||document.hidden||gameShell.isOpen()||collectionOpen)return;
   try{
     if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
