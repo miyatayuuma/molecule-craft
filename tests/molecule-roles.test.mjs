@@ -16,7 +16,7 @@ const database=JSON.parse(await readFile(new URL('../data/molecules.json',import
 const records=new Map(database.map(record=>[record.id,record]));
 const countAtoms=record=>record.atoms.reduce((counts,element)=>(counts[element]=(counts[element]??0)+1,counts),{});
 
-assert.equal(ROLE_BALANCE_VERSION,1);
+assert.equal(ROLE_BALANCE_VERSION,2);
 assert.equal(moleculesForRole('propellant').length,5);
 assert.equal(moleculesForRole('fuel').length,15);
 assert.equal(moleculesForRole('coolant').length,8);
@@ -29,18 +29,22 @@ for(const [id,profile] of Object.entries(MOLECULE_ROLE_PROFILES)){
   for(const role of profile.roles)assert.ok(performanceFor(id,role),`${id}/${role} must have performance data`);
 }
 
-// Fuel O2 ratios follow complete-combustion stoichiometry. Energy, capacity and
-// heatFactor are intentionally compressed game-balance values.
+// Fuel O2 ratios follow complete-combustion stoichiometry. Energy, capacity,
+// heatFactor and response are compressed game-balance values. Response changes
+// acceleration toward one shared COMBUSTION DRIVE top speed.
 for(const id of moleculesForRole('fuel')){
   const atoms=countAtoms(records.get(id));
   const expected=(atoms.C??0)+(atoms.H??0)/4-(atoms.O??0)/2;
   const fuel=performanceFor(id,'fuel');
   assert.equal(fuel.oxygenPerFuel,expected,`${id} O2/fuel must match its formula`);
-  assert.ok(fuel.capacity>0&&fuel.energy>0&&fuel.heatFactor>0);
+  assert.ok(fuel.capacity>0&&fuel.energy>0&&fuel.heatFactor>0&&fuel.response>0);
 }
-assert.deepEqual(performanceFor('methane','fuel'),{capacity:18,oxygenPerFuel:2,energy:1,heatFactor:1});
-assert.deepEqual(performanceFor('hydrogen','fuel'),{capacity:28,oxygenPerFuel:.5,energy:.3,heatFactor:.75});
+assert.deepEqual(performanceFor('methane','fuel'),{capacity:18,oxygenPerFuel:2,energy:1,heatFactor:1,response:1});
+assert.deepEqual(performanceFor('hydrogen','fuel'),{capacity:28,oxygenPerFuel:.5,energy:.3,heatFactor:.75,response:1.55});
 assert.equal(performanceFor('n-hexane','fuel').energy,5.19);
+assert.ok(performanceFor('hydrogen','fuel').response>performanceFor('methane','fuel').response);
+assert.ok(performanceFor('methane','fuel').response>performanceFor('n-hexane','fuel').response);
+assert.ok(performanceFor('ethyne','fuel').heatFactor>performanceFor('methanol','fuel').heatFactor);
 
 const burstTargets={hydrogen:3,ammonia:8,nitrogen:8,'carbon-dioxide':9,'n-butane':10};
 for(const [id,bursts] of Object.entries(burstTargets)){
@@ -56,14 +60,18 @@ assert.deepEqual(combustionPacketFor('methane'),{fuel:'methane',fuelAmount:1,oxi
 assert.deepEqual(combustionPacketFor('hydrogen'),{fuel:'hydrogen',fuelAmount:2,oxidizer:'oxygen',oxygenAmount:1,seconds:1.2});
 assert.deepEqual(combustionPacketFor('ammonia'),{fuel:'ammonia',fuelAmount:4,oxidizer:'oxygen',oxygenAmount:3,seconds:3.2});
 
-// Coolant keeps total capacity and harsh-environment tolerance separate so a
-// later thermal system can make high-performance fluids situationally valuable.
+// Coolant separates instantaneous cooling from dwell time. Full-tank cooling
+// budgets stay in the same broad band, while N2/NH3 are short and strong and
+// glycols are weak but persistent. environmentTolerance is reserved for later
+// hot-region coupling and may be below the water baseline.
 for(const id of moleculesForRole('coolant')){
   const coolant=performanceFor(id,'coolant');
-  assert.ok(coolant.capacity>0&&coolant.coolingPower>0&&coolant.environmentTolerance>=1);
+  assert.ok(coolant.capacity>0&&coolant.coolingPower>0&&coolant.durationFactor>0&&coolant.environmentTolerance>0);
 }
-assert.ok(performanceFor('ethylene-glycol','coolant').environmentTolerance>performanceFor('water','coolant').environmentTolerance);
-assert.ok(performanceFor('nitrogen','coolant').environmentTolerance>performanceFor('water','coolant').environmentTolerance);
+assert.ok(performanceFor('nitrogen','coolant').coolingPower>performanceFor('water','coolant').coolingPower);
+assert.ok(performanceFor('nitrogen','coolant').durationFactor<performanceFor('water','coolant').durationFactor);
+assert.ok(performanceFor('ethylene-glycol','coolant').durationFactor>performanceFor('water','coolant').durationFactor);
+assert.ok(performanceFor('propylene-glycol','coolant').environmentTolerance>performanceFor('water','coolant').environmentTolerance);
 
 // Progression-specific records remain separate: runtime roles must not alter
 // unknown-signal eligibility by being copied into MOLECULE_USES.
@@ -72,4 +80,4 @@ assert.deepEqual(MOLECULE_USES.hydrogen.tankUses,['propellant']);
 assert.deepEqual(MOLECULE_USES.methane.tankUses,['fuel']);
 assert.deepEqual(MOLECULE_USES.oxygen.tankUses,['oxidizer']);
 
-console.log('Molecule role balance passed: DB coverage, fuel stoichiometry, burst economics, and active coolant profiles.');
+console.log('Molecule role balance passed: DB coverage, fuel response/stoichiometry, burst economics, and coolant time profiles.');
