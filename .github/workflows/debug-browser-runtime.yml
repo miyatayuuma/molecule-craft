@@ -24,7 +24,7 @@ jobs:
           echo "chrome=$CHROME"
           CHROME="$CHROME" node --input-type=module <<'NODE'
           import {chromium} from '/tmp/mc-browser/node_modules/playwright-core/index.mjs';
-          const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME,args:['--no-sandbox','--enable-webgl','--ignore-gpu-blocklist','--use-gl=swiftshader']});
+          const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME,args:['--no-sandbox','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader-webgl']});
           const page=await browser.newPage({viewport:{width:412,height:915},deviceScaleFactor:2});
           const errors=[];
           page.on('pageerror',error=>{errors.push(String(error.stack||error));console.log('PAGEERROR',error.stack||error);});
@@ -46,6 +46,7 @@ jobs:
             formula:document.querySelector('#formula')?.textContent,
           }));
           console.log('BEFORE',JSON.stringify(before));
+          if(!before.canvas) throw new Error('3D canvas missing');
           await page.locator('#open-supply').click();
           await page.waitForTimeout(100);
           console.log('SUPPLY',await page.evaluate(()=>({open:document.querySelector('#supply-dialog')?.open,dialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)})));
@@ -54,7 +55,6 @@ jobs:
           await page.waitForTimeout(500);
           console.log('COLLECTION',await page.evaluate(()=>({open:document.querySelector('#collection-dialog')?.open,dialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)})));
           console.log('ERROR_COUNT',errors.length);
-          await page.screenshot({path:'/tmp/runtime.png',fullPage:true});
           await browser.close();
           if(errors.length) process.exitCode=2;
           NODE
