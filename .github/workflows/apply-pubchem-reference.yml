@@ -1,0 +1,190 @@
+name: apply-pubchem-reference
+on:
+  push:
+    branches: [feature/pubchem-unknown-reference]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply encyclopedia cleanup and PubChem reference
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          Path('src/pubchem-reference.js').write_text(r'''const STRUCTURE_ELEMENTS=new Set(['C','N','O','F','Cl']);
+          const TYPICAL_VALENCE=Object.freeze({H:1,C:4,N:3,O:2,F:1,Cl:1});
+          const BOND_SYMBOL=Object.freeze({1:'',2:'=',3:'#'});
+
+          function conservativeSmiles(graph){
+            const atoms=graph?.atoms??[],bonds=graph?.bonds??[];
+            if(!atoms.length)return null;
+            const byId=new Map();
+            for(const atom of atoms){
+              if(!atom||byId.has(atom.id)||!(atom.element in TYPICAL_VALENCE))return null;
+              byId.set(atom.id,atom);
+            }
+            const adjacency=new Map(atoms.map(atom=>[atom.id,[]]));
+            for(const bond of bonds){
+              if(!bond||!byId.has(bond.a)||!byId.has(bond.b)||bond.a===bond.b||!BOND_SYMBOL[bond.order]&&bond.order!==1)return null;
+              adjacency.get(bond.a).push({id:bond.b,order:bond.order});
+              adjacency.get(bond.b).push({id:bond.a,order:bond.order});
+            }
+            for(const atom of atoms){
+              const edges=adjacency.get(atom.id),used=edges.reduce((sum,edge)=>sum+edge.order,0);
+              if(used!==TYPICAL_VALENCE[atom.element])return null;
+              if(atom.element==='H'&&(edges.length!==1||edges[0].order!==1))return null;
+            }
+            const heavy=atoms.filter(atom=>atom.element!=='H');
+            if(!heavy.length||heavy.some(atom=>!STRUCTURE_ELEMENTS.has(atom.element)))return null;
+            const heavyIds=new Set(heavy.map(atom=>atom.id));
+            const heavyBonds=bonds.filter(bond=>heavyIds.has(bond.a)&&heavyIds.has(bond.b));
+            if(heavy.length>1&&heavyBonds.length!==heavy.length-1)return null;
+            const heavyAdjacency=new Map(heavy.map(atom=>[atom.id,[]]));
+            for(const bond of heavyBonds){
+              heavyAdjacency.get(bond.a).push({id:bond.b,order:bond.order});
+              heavyAdjacency.get(bond.b).push({id:bond.a,order:bond.order});
+            }
+            if(heavy.length>1){
+              const seen=new Set(),queue=[heavy[0].id];
+              while(queue.length){const id=queue.shift();if(seen.has(id))continue;seen.add(id);for(const edge of heavyAdjacency.get(id))queue.push(edge.id);}
+              if(seen.size!==heavy.length)return null;
+            }
+            for(const atom of heavy){
+              if((atom.element==='F'||atom.element==='Cl')&&heavyAdjacency.get(atom.id).length===0)return null;
+            }
+            const atomToken=id=>byId.get(id).element;
+            const sortEdges=(left,right)=>atomToken(left.id).localeCompare(atomToken(right.id))||left.order-right.order||left.id-right.id;
+            const render=(id,parent=null)=>{
+              const children=heavyAdjacency.get(id).filter(edge=>edge.id!==parent).sort(sortEdges);
+              let value=atomToken(id);
+              if(!children.length)return value;
+              const main=children[children.length-1];
+              for(const child of children.slice(0,-1))value+=`(${BOND_SYMBOL[child.order]}${render(child.id,id)})`;
+              value+=`${BOND_SYMBOL[main.order]}${render(main.id,id)}`;
+              return value;
+            };
+            return render([...heavy].sort((a,b)=>a.id-b.id)[0].id);
+          }
+
+          export function pubchemReferenceFor(structure){
+            const formula=typeof structure?.formula==='string'?structure.formula.trim():'';
+            if(!formula||formula==='—')return null;
+            const smiles=conservativeSmiles(structure?.graph);
+            const query=smiles||formula,mode=smiles?'structure':'formula';
+            return Object.freeze({mode,query,url:`https://pubchem.ncbi.nlm.nih.gov/#query=${encodeURIComponent(query)}`});
+          }
+
+          export {conservativeSmiles};
+          ''')
+
+          p=Path('src/craft-panel.js'); s=p.read_text()
+          old="import {bindTankChargeAction} from './tank-charge.js';\n"
+          new=old+"import {pubchemReferenceFor} from './pubchem-reference.js';\n"
+          if old not in s: raise SystemExit('craft-panel import marker missing')
+          s=s.replace(old,new,1)
+          marker="  };\n  let tankActionKey='',tankControls=[],clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};"
+          replacement="  };\n  const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる');nodes.pubchem=pubchemLink;\n  let tankActionKey='',tankControls=[],clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};"
+          if marker not in s: raise SystemExit('craft-panel node marker missing')
+          s=s.replace(marker,replacement,1)
+          old_line="    veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';"
+          new_line="    veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.formula.append(nodes.pubchem);nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';const reference=focus?.complete&&!focus.record?pubchemReferenceFor(focus):null;nodes.pubchem.hidden=!reference;if(reference){nodes.pubchem.href=reference.url;nodes.pubchem.dataset.searchMode=reference.mode;nodes.pubchem.title=reference.mode==='structure'?'PubChemで構造検索':'PubChemで分子式検索';}else{nodes.pubchem.removeAttribute('href');delete nodes.pubchem.dataset.searchMode;nodes.pubchem.removeAttribute('title');}"
+          if old_line not in s: raise SystemExit('craft-panel render marker missing')
+          s=s.replace(old_line,new_line,1)
+          p.write_text(s)
+
+          p=Path('src/collection-ui.js'); s=p.read_text()
+          s=s.replace("import { expeditionUseFor } from './veil/propulsion-guide.js';\n",'',1)
+          old_sig="export async function createCollectionUI({records,onPlace,onSupply=null,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true}){"
+          new_sig="export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true}){"
+          if old_sig not in s: raise SystemExit('collection signature marker missing')
+          s=s.replace(old_sig,new_sig,1)
+          old_block="""    const use=expeditionUseFor(id);\n    if(use){\n      const box=el('section',null,'expedition-use');box.append(el('h3',`探索での用途 · ${use.label}`),el('p',use.strength),el('p',use.good),el('p',use.weakness));\n      if(onSupply)box.append(button('補給で比較する',()=>{dialog.close();document.body.classList.remove('collection-open');onOpenChange(false);if(onSupply(id,use.role)===false){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}},'collection-primary'));\n      detail.append(box);\n    }\n"""
+          if old_block not in s: raise SystemExit('collection expedition block missing')
+          s=s.replace(old_block,'',1)
+          p.write_text(s)
+
+          p=Path('src/craft-connections.js'); s=p.read_text()
+          old="export async function connectCollection({records,elementPalette,elementAccess,onPlace,onSupply,canOpen,onOpenChange}){\n  const {createCollectionUI}=await import('./collection-ui.js?v=37');\n  return createCollectionUI({records,elementPalette,elementAccess,onPlace,onSupply,canOpen,onOpenChange});\n}"
+          new="export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){\n  const {createCollectionUI}=await import('./collection-ui.js?v=37');\n  return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange});\n}"
+          if old not in s: raise SystemExit('craft connection marker missing')
+          s=s.replace(old,new,1);p.write_text(s)
+
+          p=Path('styles.css'); s=p.read_text()
+          style="\n.pubchem-link{pointer-events:auto;display:inline-grid;place-items:center;width:24px;height:24px;margin-left:7px;vertical-align:middle;border:1px solid #355869;border-radius:50%;background:#10283a;color:var(--accent)!important;text-decoration:none;font-size:13px!important;line-height:1;box-shadow:0 1px 5px #0004}.pubchem-link:hover{background:#19384b;border-color:#4c7b87}\n"
+          if '.pubchem-link{' not in s:s+=style
+          p.write_text(s)
+
+          Path('tests/pubchem-reference.test.mjs').write_text(r'''import assert from 'node:assert/strict';
+          import {conservativeSmiles,pubchemReferenceFor} from '../src/pubchem-reference.js';
+
+          const structure=(atoms,bonds,formula)=>({formula,graph:{atoms:atoms.map((element,index)=>({id:index+1,element})),bonds:bonds.map(([a,b,order])=>({a:a+1,b:b+1,order}))}});
+
+          const ethanol=structure(['C','C','O','H','H','H','H','H','H'],[[0,1,1],[1,2,1],[0,3,1],[0,4,1],[0,5,1],[1,6,1],[1,7,1],[2,8,1]],'C2H6O');
+          assert.equal(conservativeSmiles(ethanol.graph),'CCO');
+          assert.deepEqual(pubchemReferenceFor(ethanol),{mode:'structure',query:'CCO',url:'https://pubchem.ncbi.nlm.nih.gov/#query=CCO'});
+
+          const formaldehyde=structure(['C','O','H','H'],[[0,1,2],[0,2,1],[0,3,1]],'CH2O');
+          assert.equal(conservativeSmiles(formaldehyde.graph),'C=O');
+
+          const cyclopropane=structure(['C','C','C','H','H','H','H','H','H'],[[0,1,1],[1,2,1],[2,0,1],[0,3,1],[0,4,1],[1,5,1],[1,6,1],[2,7,1],[2,8,1]],'C3H6');
+          assert.equal(conservativeSmiles(cyclopropane.graph),null,'Cycles deliberately fall back to formula search.');
+          assert.equal(pubchemReferenceFor(cyclopropane).mode,'formula');
+
+          const phosphine=structure(['P','H','H','H'],[[0,1,1],[0,2,1],[0,3,1]],'PH3');
+          assert.equal(pubchemReferenceFor(phosphine).mode,'formula','P/S chemistry stays on the conservative fallback.');
+
+          const hydrogen=structure(['H','H'],[[0,1,1]],'H2');
+          assert.equal(pubchemReferenceFor(hydrogen).mode,'formula','No-heavy-atom structures use formula search.');
+
+          const hydrogenChloride=structure(['Cl','H'],[[0,1,1]],'HCl');
+          assert.equal(pubchemReferenceFor(hydrogenChloride).mode,'formula','Standalone halogen hydrides avoid implicit-H ambiguity.');
+
+          assert.equal(pubchemReferenceFor({formula:'—',graph:{atoms:[],bonds:[]}}),null);
+          console.log('PubChem reference tests passed.');
+          ''')
+
+          p=Path('tests/source-contracts.test.mjs'); s=p.read_text()
+          marker="const collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'utf8');"
+          add="\nconst collectionUI=await readFile(new URL('src/collection-ui.js',root),'utf8');\nconst pubchemReference=await readFile(new URL('src/pubchem-reference.js',root),'utf8');"
+          if marker not in s: raise SystemExit('source contract read marker missing')
+          if 'const collectionUI=' not in s:s=s.replace(marker,marker+add,1)
+          assert_marker="assert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|模型を(?:拡大|縮小|表示リセット)/,'Collection viewer zoom/reset buttons stay removed');"
+          asserts="\nassert.doesNotMatch(collectionUI,/expeditionUseFor|expedition-use|探索での用途|補給で比較する/,'Collection stays chemistry-focused and does not repeat expedition guidance');\nassert.doesNotMatch(craftConnections,/onSupply/,'Collection connection no longer carries supply guidance callbacks');\nassert.match(craftPanel,/pubchemReferenceFor\(focus\)/);\nassert.match(craftPanel,/className='pubchem-link'/);\nassert.match(pubchemReference,/pubchem\.ncbi\.nlm\.nih\.gov\/\#query=/);"
+          if assert_marker not in s: raise SystemExit('source contract assert marker missing')
+          if 'Collection stays chemistry-focused' not in s:s=s.replace(assert_marker,assert_marker+asserts,1)
+          p.write_text(s)
+          PY
+      - name: Validate focused changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check src/pubchem-reference.js
+          node --check src/craft-panel.js
+          node --check src/collection-ui.js
+          node --check src/craft-connections.js
+          node tests/pubchem-reference.test.mjs
+          node tests/source-contracts.test.mjs
+          node tests/collection.test.mjs
+          npm install --prefix /tmp/mc-jsdom jsdom@26 >/dev/null
+          node tests/mobile-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
+          if git diff -- data/ | grep -q .; then echo 'Molecule DB/data files must remain unchanged'; exit 1; fi
+          node scripts/build-precache.mjs
+          node tests/pwa.test.mjs
+          node scripts/check-repository-hygiene.mjs
+          git diff --check
+      - name: Commit implementation
+        shell: bash
+        run: |
+          rm .github/workflows/apply-pubchem-reference.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add PubChem lookup for unregistered molecules"
+          git push
