@@ -18,8 +18,14 @@ jobs:
           node-version: 20
       - name: Focused preview and role tests
         run: |
+          node --check src/veil/loadout-preview.js
+          node --check src/veil/supply.js
           node tests/loadout-preview.test.mjs
           node tests/molecule-roles.test.mjs
+      - name: Veil UI regression
+        run: |
+          npm install --no-save --no-package-lock jsdom@26
+          node tests/veil-ui-check.mjs "$(node -p \"require.resolve('jsdom/lib/api.js')\")"
       - name: Repository hygiene
         run: node scripts/check-repository-hygiene.mjs
       - name: Rebuild PWA release
