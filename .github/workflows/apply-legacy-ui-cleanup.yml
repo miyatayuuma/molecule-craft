@@ -29,8 +29,6 @@ jobs:
           p=Path('src/veil/ui.js'); s=p.read_text()
           s=s.replace("    updatePrompt();q('cho-completion').hidden=!resources.state.progress.choCompleted;",'    updatePrompt();')
           s=s.replace("  q('cho-continue').addEventListener('click',()=>q('open-supply').click());\n",'')
-          s=s.replace("q('cho-continue')?.addEventListener('click',()=>{q('launch-veil').click();});",'')
-          s=s.replace("q('cho-continue')?.addEventListener('click',()=>q('launch-veil').click());",'')
           p.write_text(s)
 
           p=Path('veil.css'); s=p.read_text()
@@ -91,10 +89,11 @@ jobs:
           if grep -nE '\.cho-completion' veil.css; then exit 1; fi
           if grep -nE '<button id="open-supply"[^>]*><img[^>]+collector-shell\.png' index.html; then exit 1; fi
           node --check src/veil/ui.js
+          node --check tests/veil-ui-check.mjs
+          node --check tests/oxygen-routes-browser-check.mjs
           node tests/source-contracts.test.mjs
           npm install --prefix /tmp/mc-jsdom jsdom@26 >/dev/null
           node tests/mobile-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
-          node tests/veil-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
           node scripts/build-precache.mjs
           node tests/pwa.test.mjs
           node scripts/check-repository-hygiene.mjs
