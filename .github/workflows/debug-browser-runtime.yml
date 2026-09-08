@@ -21,40 +21,44 @@ jobs:
           trap 'kill $SERVER || true' EXIT
           npm install --prefix /tmp/mc-browser playwright-core@1.55.0 >/dev/null
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
-          echo "chrome=$CHROME"
           CHROME="$CHROME" node --input-type=module <<'NODE'
           import {chromium} from '/tmp/mc-browser/node_modules/playwright-core/index.mjs';
           const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME,args:['--no-sandbox','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader-webgl']});
-          const page=await browser.newPage({viewport:{width:412,height:915},deviceScaleFactor:2});
-          const errors=[];
-          page.on('pageerror',error=>{errors.push(String(error.stack||error));console.log('PAGEERROR',error.stack||error);});
-          page.on('console',msg=>console.log('CONSOLE',msg.type(),msg.text()));
-          await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
-          await page.waitForTimeout(1500);
-          const before=await page.evaluate(()=>({
-            hidden:document.hidden,
-            body:[document.body.clientWidth,document.body.clientHeight],
-            workspace:(()=>{const r=document.querySelector('.workspace')?.getBoundingClientRect();return r&&[r.x,r.y,r.width,r.height]})(),
-            viewer:(()=>{const r=document.querySelector('#viewer')?.getBoundingClientRect();return r&&[r.x,r.y,r.width,r.height]})(),
-            wrap:(()=>{const r=document.querySelector('.viewer-wrap')?.getBoundingClientRect();return r&&[r.x,r.y,r.width,r.height]})(),
-            canvas:(()=>{const c=document.querySelector('#viewer canvas'),r=c?.getBoundingClientRect();return c&&{rect:[r.x,r.y,r.width,r.height],width:c.width,height:c.height}})(),
-            unavailable:document.querySelector('#viewer-unavailable')?.hidden,
-            openDialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id),
-            supplyDisabled:document.querySelector('#open-supply')?.disabled,
-            collectionDisabled:document.querySelector('#open-collection')?.disabled,
-            hDisabled:document.querySelector('[data-element="H"]')?.disabled,
-            formula:document.querySelector('#formula')?.textContent,
-          }));
-          console.log('BEFORE',JSON.stringify(before));
-          if(!before.canvas) throw new Error('3D canvas missing');
-          await page.locator('#open-supply').click();
-          await page.waitForTimeout(100);
-          console.log('SUPPLY',await page.evaluate(()=>({open:document.querySelector('#supply-dialog')?.open,dialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)})));
-          if(await page.locator('#supply-dialog').evaluate(d=>d.open)) await page.locator('#supply-dialog [data-close-dialog]').click();
-          await page.locator('#open-collection').click();
-          await page.waitForTimeout(500);
-          console.log('COLLECTION',await page.evaluate(()=>({open:document.querySelector('#collection-dialog')?.open,dialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)})));
-          console.log('ERROR_COUNT',errors.length);
+          const workspace={schemaVersion:2,atoms:[
+            {element:'C',position:[-.8,0,0]},{element:'C',position:[.8,0,0]},{element:'O',position:[1.7,.3,0]},
+            {element:'H',position:[-1.2,.8,0]},{element:'H',position:[-1.2,-.8,0]},{element:'H',position:[-.8,0,.9]},
+            {element:'H',position:[.8,-.8,0]},{element:'H',position:[.8,0,.9]},{element:'H',position:[2.2,.4,0]}
+          ],bonds:[[0,1,1],[0,3,1],[0,4,1],[0,5,1],[1,2,1],[1,6,1],[1,7,1],[2,8,1]],selected:8,focus:0,pivot:[.3,0,0],targetMoleculeId:'ethanol',camera:{position:[5.2,4,7.6],target:[0,0,0],up:[0,1,0]}};
+          const resources={schemaVersion:6,elements:{H:60,C:30,N:0,O:30,F:0,P:0,S:0,Cl:0},tanks:{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}},recipes:['hydrogen','methane','oxygen','water','ethanol'],hints:['hydrogen','methane','oxygen','water','ethanol'],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:{bestChain:0,runs:1,cleared:true,craftPrompt:false,sound:true,foundElements:['H','C','O'],regions:['veil','carbon','oxygen'],checkpoint:'oxygen',frontier:false,choCompleted:false,totalCollected:100,signalMisses:0,signalLast:{}},workspace};
+          const collection={schemaVersion:2,discoveredMolecules:['hydrogen','methane','oxygen','water','ethanol'],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
+          async function run(label,{saved=false}={}){
+            const context=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2});
+            if(saved)await context.addInitScript(({resources,collection})=>{localStorage.setItem('molecule-craft.resources.v1',JSON.stringify(resources));localStorage.setItem('molecule-craft.collection.v1',JSON.stringify(collection));},{resources,collection});
+            const page=await context.newPage(),errors=[];
+            page.on('pageerror',error=>{errors.push(String(error.stack||error));console.log(label,'PAGEERROR',error.stack||error);});
+            page.on('console',msg=>{if(msg.type()==='error')console.log(label,'CONSOLE',msg.type(),msg.text());});
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+            await page.waitForTimeout(1800);
+            const state=await page.evaluate(()=>({
+              canvas:!!document.querySelector('#viewer canvas'),
+              viewer:(()=>{const r=document.querySelector('#viewer')?.getBoundingClientRect();return r&&[r.width,r.height]})(),
+              formula:document.querySelector('#formula')?.textContent,
+              target:document.querySelector('#craft-target-formula')?.textContent,
+              stockH:document.querySelector('[data-element-stock="H"]')?.textContent,
+              supplyListenersTest:null,
+              openDialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id)
+            }));
+            console.log(label,'STATE',JSON.stringify(state),'ERROR_COUNT',errors.length);
+            await page.locator('#open-supply').click();await page.waitForTimeout(100);
+            console.log(label,'SUPPLY_OPEN',await page.locator('#supply-dialog').evaluate(d=>d.open));
+            if(await page.locator('#supply-dialog').evaluate(d=>d.open))await page.locator('#supply-dialog [data-close-dialog]').click();
+            await page.locator('#open-collection').click();await page.waitForTimeout(250);
+            console.log(label,'COLLECTION_OPEN',await page.locator('#collection-dialog').evaluate(d=>d.open));
+            await context.close();
+            return errors;
+          }
+          const fresh=await run('FRESH');
+          const savedErrors=await run('SAVED',{saved:true});
           await browser.close();
-          if(errors.length) process.exitCode=2;
+          if(fresh.length||savedErrors.length)process.exitCode=2;
           NODE
