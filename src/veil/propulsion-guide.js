@@ -1,5 +1,6 @@
 import {performanceFor,activeTankRolesFor,combustionPacketFor} from './molecule-roles.js';
 import {combustionPackets} from './growth.js';
+import './equipment-ux.js';
 
 export function expeditionUseFor(id,preferredRole=null){
   const roles=activeTankRolesFor(id),role=roles.includes(preferredRole)?preferredRole:roles[0];
