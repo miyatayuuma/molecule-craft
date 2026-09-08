@@ -1,4 +1,4 @@
-const EXPECTED_LOADER_REV='31',loaderRev=new URL(import.meta.url).searchParams.get('v')??'';
+const EXPECTED_LOADER_REV='32',loaderRev=new URL(import.meta.url).searchParams.get('v')??'';
 if(loaderRev!==EXPECTED_LOADER_REV){location.reload();}else{
 // Waiting updates auto-activate only after the app confirms that its current state is safe to save and reload.
 const install=document.getElementById('install-app'),installStatus=document.getElementById('install-status');

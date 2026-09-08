@@ -131,6 +131,6 @@ assert.doesNotMatch(app, /return expanded;/);
 assert.match(app, /return true;/);
 assert.match(craftPanel, /compactPartNotation/);
 assert.match(index, /class=\"craft-target-meta\"/);
-assert.match(index, /styles\.css\?v=43/);
+assert.match(index, /styles\.css\?v=44/);
 
 console.log('Source contract tests passed.');
