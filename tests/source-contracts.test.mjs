@@ -24,6 +24,11 @@ assert.doesNotMatch(collectionUI,/expeditionUseFor|expedition-use|探索での�
 assert.doesNotMatch(craftConnections,/onSupply/,'Collection connection no longer carries supply guidance callbacks');
 assert.match(craftPanel,/pubchemReferenceFor\(focus\)/);
 assert.match(craftPanel,/className='pubchem-link'/);
+assert.match(craftPanel,/createPubchemIntroState/);
+assert.doesNotMatch(craftPanel,/nodes\.pubchem\.title|PubChemで構造検索|PubChemで分子式検索/,'PubChem has no hover-only explanation');
+assert.match(pubchemReference,/molecule-craft\.pubchem-intro\.v1/);
+assert.match(pubchemReference,/PubChem ↗/);
+
 assert.match(pubchemReference,/pubchem\.ncbi\.nlm\.nih\.gov\/\#query=/);
 assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
 assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');

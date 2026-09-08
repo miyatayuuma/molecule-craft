@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {conservativeSmiles,pubchemReferenceFor} from '../src/pubchem-reference.js';
+import {PUBCHEM_INTRO_STORAGE_KEY,conservativeSmiles,createPubchemIntroState,pubchemReferenceFor} from '../src/pubchem-reference.js';
 
 const structure=(atoms,bonds,formula)=>({formula,graph:{atoms:atoms.map((element,index)=>({id:index+1,element})),bonds:bonds.map(([a,b,order])=>({a:a+1,b:b+1,order}))}});
 
@@ -24,4 +24,16 @@ const hydrogenChloride=structure(['Cl','H'],[[0,1,1]],'HCl');
 assert.equal(pubchemReferenceFor(hydrogenChloride).mode,'formula','Standalone halogen hydrides avoid implicit-H ambiguity.');
 
 assert.equal(pubchemReferenceFor({formula:'—',graph:{atoms:[],bonds:[]}}),null);
+
+let introValue=null,writes=0;
+const introStorage={getItem:key=>key===PUBCHEM_INTRO_STORAGE_KEY?introValue:null,setItem:(key,value)=>{assert.equal(key,PUBCHEM_INTRO_STORAGE_KEY);introValue=value;writes++;}};
+const intro=createPubchemIntroState(introStorage);
+assert.equal(intro.label('first-signature'),'PubChem ↗','The first unregistered completion teaches the external reference once.');
+assert.equal(intro.label('first-signature'),'PubChem ↗','Repeated renders of the same first completion keep the label stable.');
+assert.equal(writes,1);
+assert.equal(intro.label(null),'↗','Leaving the first unregistered completion ends the teaching state.');
+assert.equal(intro.label('second-signature'),'↗','Later unregistered completions stay visually secondary.');
+assert.equal(createPubchemIntroState(introStorage).label('after-reload'),'↗','The intro is remembered on the device.');
+const deniedIntro=createPubchemIntroState({getItem(){throw Error('denied');},setItem(){throw Error('denied');}});
+assert.equal(deniedIntro.label('fallback'),'PubChem ↗','Storage denial must not break the affordance.');
 console.log('PubChem reference tests passed.');
