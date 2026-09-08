@@ -30,7 +30,7 @@ jobs:
           if old not in s: raise SystemExit('unconditional controller reload not found')
           s=s.replace(old,new,1)
           s=s.replace('ready({auto:true})','ready({auto:false})')
-          p.write_text(s)
+          p.write_text(s.rstrip()+'\n')
 
           p=Path('index.html'); h=p.read_text()
           if 'src/pwa.js?v=32' not in h: raise SystemExit('pwa loader v32 not found')
