@@ -17,18 +17,19 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
+
           p=Path('src/pwa.js'); s=p.read_text()
           prefix="const EXPECTED_LOADER_REV='32',loaderRev=new URL(import.meta.url).searchParams.get('v')??'';\nif(loaderRev!==EXPECTED_LOADER_REV){location.reload();}else{\n"
           if not s.startswith(prefix): raise SystemExit('expected broken loader guard not found')
           s=s[len(prefix):]
           if not s.endswith('\n}\n'): raise SystemExit('expected loader guard closing brace not found')
           s=s[:-3]+'\n'
-          s=s.replace("  const hadController=!!navigator.serviceWorker.controller;\n  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(hadController||reloadOnChange){location.reload();return;}requestRunningVersion();});",
-                      "  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(reloadOnChange){reloadOnChange=false;location.reload();return;}requestRunningVersion();});")
-          s=s.replace("registration=reg;ready({auto:true});requestRunningVersion();", "registration=reg;ready({auto:false});requestRunningVersion();")
-          s=s.replace("if(navigator.serviceWorker.controller)ready({auto:true});", "if(navigator.serviceWorker.controller)ready({auto:false});")
-          s=s.replace("window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:true}))checkForUpdate();});", "window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:false}))checkForUpdate();});")
-          s=s.replace("document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:true}))checkForUpdate();}});", "document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:false}))checkForUpdate();}});")
+          old="  const hadController=!!navigator.serviceWorker.controller;\n  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(hadController||reloadOnChange){location.reload();return;}requestRunningVersion();});"
+          new="  navigator.serviceWorker.addEventListener('controllerchange',()=>{activationRequested=false;if(reloadOnChange){reloadOnChange=false;location.reload();return;}requestRunningVersion();});"
+          if old not in s: raise SystemExit('unconditional controller reload not found')
+          s=s.replace(old,new,1)
+          s=s.replace('ready({auto:true})','ready({auto:false})')
           p.write_text(s)
 
           p=Path('index.html'); h=p.read_text()
@@ -37,14 +38,20 @@ jobs:
 
           p=Path('tests/source-contracts.test.mjs'); t=p.read_text().replace('src/pwa.js?v=32','src/pwa.js?v=33')
           p.write_text(t)
+
           p=Path('tests/pwa.test.mjs'); t=p.read_text()
-          for line in [
-            "assert.match(pwaSource,/EXPECTED_LOADER_REV='32'/,'PWA loader must declare the HTML loader revision it expects');\n",
-            "assert.match(pwaSource,/loaderRev!==EXPECTED_LOADER_REV.*location\\.reload/,'A stale HTML loader must reload into the current cached shell');\n",
-            "assert.match(pwaSource,/const hadController=!!navigator\\.serviceWorker\\.controller/,'Controller changes must know whether this was already a controlled shell');\n",
-            "assert.match(pwaSource,/hadController\\|\\|reloadOnChange/,'An existing controlled document must reload whenever its controller changes');\n",
-          ]: t=t.replace(line,'')
-          t += "\nassert.doesNotMatch(pwaSource,/loaderRev!==EXPECTED_LOADER_REV/,'PWA must never reload-loop based on a query stripped by cached responses');\nassert.doesNotMatch(pwaSource,/hadController\\|\\|reloadOnChange/,'Controller changes must not unconditionally reload an already-controlled page');\nassert.match(pwaSource,/ready\\(\\{auto:false\\}\\)/,'Waiting releases should remain manual until update activation is stable');\n"
+          t=re.sub(r"^assert\.match\(pwaSource,/EXPECTED_LOADER_REV='32'/.*\n",'',t,flags=re.M)
+          t=re.sub(r"^assert\.match\(pwaSource,/hadController\\\|\\\|reloadOnChange/.*\n",'',t,flags=re.M)
+          t=re.sub(r"^assert\.match\(pwaSource,/ready\\\(\\\{auto:true\\\}\\\)/.*\n",'',t,flags=re.M)
+          anchor="assert.match(pwaSource,/molecule-craft:prepare-update/,'Automatic activation must reuse the existing safe-save gate');\n"
+          addition=(
+            "assert.doesNotMatch(pwaSource,/EXPECTED_LOADER_REV|loaderRev!==EXPECTED_LOADER_REV/,'PWA must not reload based on module query identity');\n"
+            "assert.doesNotMatch(pwaSource,/hadController\\|\\|reloadOnChange/,'Controller replacement must not unconditionally reload an already-controlled document');\n"
+            "assert.doesNotMatch(pwaSource,/ready\\(\\{auto:true\\}\\)/,'Waiting releases must not auto-activate during hotfix stabilization');\n"
+            "assert.match(pwaSource,/ready\\(\\{auto:false\\}\\)/,'Waiting releases should remain manual until update activation is stable');\n"
+          )
+          if anchor not in t: raise SystemExit('PWA test anchor not found')
+          t=t.replace(anchor,anchor+addition,1)
           p.write_text(t)
           PY
       - name: Validate hotfix
