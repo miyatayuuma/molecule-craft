@@ -20,7 +20,7 @@ export const tankCapacity=(use,id)=>tankCapacityFor(use,id);
 // these same actions without changing resources or adding HUD buttons.
 export const DRIVES=Object.freeze({
   hydrogen:{type:'burst',label:'H₂',name:'H₂ BURST',cost:{hydrogen:40},boostSpeed:760,boostSeconds:.65,boostRadius:8,boostCooldown:.55,boostAcceleration:28,boostGrip:20},
-  combustion:{type:'continuous',label:'FUEL + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:470,packetSeconds:2,boostRadius:40,boostAcceleration:10,boostGrip:14},
+  combustion:{type:'continuous',label:'FUEL + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:470,packetSeconds:2,boostRadius:40,boostAcceleration:5.2,boostGrip:14},
 });
 export const GROWTH=Object.freeze({
   flight:{speed:164,driftSpeed:29,suctionRadius:30,assistRadius:78},
@@ -59,6 +59,11 @@ export function burstDriveFor(id){
   const performance=performanceFor(id,'propellant');if(!performance)return null;
   const base=DRIVES.hydrogen,power=performance.burstPower;
   return {...base,label:id,name:'BURST',boostSpeed:GROWTH.flight.speed+(base.boostSpeed-GROWTH.flight.speed)*power,boostAcceleration:base.boostAcceleration*(.55+.45*power),boostGrip:base.boostGrip*(.65+.35*power)};
+}
+export function combustionDriveFor(id){
+  const performance=performanceFor(id,'fuel');if(!performance)return null;
+  const base=DRIVES.combustion,response=performance.response??1;
+  return {...base,label:id,name:'COMBUSTION DRIVE',boostAcceleration:base.boostAcceleration*response};
 }
 export function propulsionGauge(id,loadout={},driveBuffer=0){
   let remaining=0,capacity=0,seconds=0,maxSeconds=0;
