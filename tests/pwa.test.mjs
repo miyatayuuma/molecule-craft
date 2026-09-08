@@ -9,6 +9,11 @@ const source=await read('sw.js'),sourceText=source.toString(),buildSource=(await
 assert.match(pwaSource,/registration\.update\(\)/,'Client must explicitly check for a new service worker');
 assert.match(pwaSource,/addEventListener\('focus'.*checkForUpdate/,'Returning to the app must re-check for updates');
 assert.match(pwaSource,/function activateWaitingUpdate/,'Waiting updates should have one guarded activation path');
+assert.match(pwaSource,/SHELL_API='2'/,'PWA must declare the compatible HTML shell API');
+assert.match(pwaSource,/dataset\.moleculeCraftShell/,'PWA must validate the DOM shell instead of module URL query identity');
+assert.match(pwaSource,/sessionStorage\.getItem\(shellRecoveryKey\)/,'Shell recovery must be one-shot to prevent reload loops');
+assert.match(pwaSource,/location\.replace\(new URL\('\.\.\/',import\.meta\.url\)\.href\)/,'A mixed shell must navigate to the current app root');
+
 assert.match(pwaSource,/molecule-craft:prepare-update/,'Automatic activation must reuse the existing safe-save gate');
 assert.doesNotMatch(pwaSource,/EXPECTED_LOADER_REV|loaderRev!==EXPECTED_LOADER_REV/,'PWA must not reload based on module query identity');
 assert.doesNotMatch(pwaSource,/hadController\|\|reloadOnChange/,'Controller replacement must not unconditionally reload an already-controlled document');

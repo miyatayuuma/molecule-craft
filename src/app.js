@@ -51,6 +51,7 @@ let lastBackgroundTap=null,frameTransition=null;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
 let collectionGame=null,collectionOpen=false,craftTargetId=null;
 const targetDeployments=new Map();let targetDeploymentTargetId=null;
+let refreshInfoFault='',animationFault='';
 
 const viewer=document.querySelector('#viewer');
 const palette=document.querySelector('#element-palette');
@@ -90,7 +91,9 @@ if(renderer){
     for(const atom of molecule.atoms)protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
     discoveryConnection.discardQueued();
   }
-  bindUI();refresh();resize();if(savedWorkspace)repairSavedGeometry();animate();
+  bindUI();
+  try{refresh();}catch(error){console.error('Initial craft refresh failed; continuing runtime startup.',error);}
+  resize();if(savedWorkspace)try{repairSavedGeometry();}catch(error){console.error('Saved geometry repair failed; continuing with restored positions.',error);}animate();
 }else document.querySelector('#viewer-unavailable').hidden=false;
 veilUI=connectExploration({resources,canLeave:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen())&&(saveWorkspace(true)||!resources.blocked),canSupply:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen()),onBeforeLaunch:()=>clearField({clearTarget:true,silent:true}),onCraft:()=>{collectionGame?.refreshProgress();if(renderer){resize();refresh();}},onCommit:()=>saveWorkspace(true),reset:{canReset:()=>!veilUI?.active&&!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen,beforeReset:()=>saveWorkspace(true)&&resources.save()}});
 window.addEventListener('molecule-craft:craft-molecule',event=>beginCraftTarget(event.detail?.id));
@@ -629,9 +632,12 @@ function placeTargetPart(item){
   targetDeployments.set(item.targetKey,new Set(ids));refreshInfo();return true;
 }
 function refreshInfo(keep=false){
-  const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;
-  const target=resources.record(craftTargetId);
-  craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target,targetParts:targetPartsFor(target),onPlaceTargetPart:placeTargetPart,targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:cleanupUndo.length>0,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
+  try{
+    const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;
+    const target=resources.record(craftTargetId);
+    craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target,targetParts:targetPartsFor(target),onPlaceTargetPart:placeTargetPart,targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:cleanupUndo.length>0,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
+    refreshInfoFault='';return true;
+  }catch(error){const detail=String(error?.stack??error);if(detail!==refreshInfoFault){refreshInfoFault=detail;console.error('Craft information refresh failed; 3D workspace remains active.',error);}return false;}
 }
 function refreshStructureList(){
   craftPanel.renderStructureList({structures,focused:focusedStructure(),disabled:interactionLocked()||!!dragState||activePointers.size>0,onSelect:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
@@ -748,8 +754,12 @@ function disposeObject(object){object.traverse?.(item=>{item.geometry?.dispose?.
 function disposeGroup(group){for(const object of[...group.children]){group.remove(object);disposeObject(object);}}
 function resize(){const w=Math.max(1,viewer.clientWidth),h=Math.max(1,viewer.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 function animate(now=performance.now()){
-  requestAnimationFrame(animate);if(veilUI?.active||document.hidden||gameShell.isOpen()||collectionOpen)return;if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
-  if(dragState?.moved&&['conformation','rigid-body'].includes(dragState.mode))advanceConformationDrag(now);
-  updateStructureFrame(now);
-  camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);renderer.render(scene,camera);if(now-lastSaveCheck>1000){lastSaveCheck=now;saveWorkspace();}
+  requestAnimationFrame(animate);if(veilUI?.active||document.hidden||gameShell.isOpen()||collectionOpen)return;
+  try{
+    if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
+    if(dragState?.moved&&['conformation','rigid-body'].includes(dragState.mode))advanceConformationDrag(now);
+    updateStructureFrame(now);camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);animationFault='';
+  }catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('Craft animation update failed; rendering the current scene.',error);}}
+  try{renderer.render(scene,camera);}catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('3D render failed.',error);}}
+  if(now-lastSaveCheck>1000){lastSaveCheck=now;saveWorkspace();}
 }
