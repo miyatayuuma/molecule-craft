@@ -13,7 +13,7 @@ import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.j
 import { connectedStructures, chooseMainStructure, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
 import { createPreviewModel } from './preview-model.js?v=31';
 import { planSpawn } from './spawn-layout.js?v=28';
-import { createElementPalette, syncElementStocks } from './element-progression.js?v=36';
+import { createElementPalette, syncElementStocks } from './element-progression.js?v=37';
 import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=26';
 import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=30';
 
@@ -54,7 +54,7 @@ const targetDeployments=new Map();let targetDeploymentTargetId=null;
 
 const viewer=document.querySelector('#viewer');
 const palette=document.querySelector('#element-palette');
-const elementPalette=createElementPalette(document,{canUse:symbol=>resources.canUseElement(symbol),explorationHint:()=>!resources.canUseElement('C')?'CはH Veilの奥で見つかる':!resources.canUseElement('O')?'Oは炭素の群れの奥で見つかる':''});syncCraftStock();
+const elementPalette=createElementPalette(document,{canUse:symbol=>resources.canUseElement(symbol)});syncCraftStock();
 const craftPanel=createCraftPanel(document),{status:statusEl,selectionChip,discovery,structureFocus}=craftPanel.nodes;
 const discoveryConnection=createDiscoveryConnection({resources,getVeilUI:()=>veilUI,getCollection:()=>collectionGame,onDismiss:()=>discovery.classList.remove('show'),onPresent:({item,isNew,learning})=>craftPanel.showDiscovery({isNew,learning,itemIdentity:craftPanel.identity(item)}),onVibrate:()=>vibrateFeedback(22,'touch')});
 
