@@ -37,7 +37,7 @@ export function renderCraftTargetAtoms(container,record,placedAtoms=[],{size=31}
 }
 
 export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=31,onPlace=()=>{}}={}){
-  if(!container)return[];container.replaceChildren();const rendered=[],placed=countElements(placedAtoms),used={};
+  if(!container)return[];container.replaceChildren();const rendered=[],used={};
   for(const item of parts){
     if(item.partId){
       const template=item.template,chip=container.ownerDocument.createElement('button'),model=container.ownerDocument.createElement('img'),formula=container.ownerDocument.createElement('strong');
@@ -46,7 +46,7 @@ export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=3
       const notation=compactPartNotation(template)||item.partId;formula.className='craft-target-part-formula';formula.textContent=notation;formula.dataset.long=String([...notation].length>8);
       chip.setAttribute('aria-label',`${template?.nameJa??notation}をクラフト台へ出す`);chip.append(model,formula);chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot:null});continue;
     }
-    const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;const slot={symbol,index,filled:index<(placed[symbol]??0)},chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled=String(slot.filled);chip.textContent=symbol;chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);styleTargetAtom(chip,symbol,slot.filled,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot});
+    const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;const slot={symbol,index,filled:false},chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled=String(slot.filled);chip.textContent=symbol;chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);styleTargetAtom(chip,symbol,slot.filled,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot});
   }
   return rendered;
 }

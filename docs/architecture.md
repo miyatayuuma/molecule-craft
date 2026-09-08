@@ -83,7 +83,7 @@
 | rotatable / restricted / locked判定 | `src/torsion-model.js`, `src/structure-edit.js` |
 | 表示対象・全体回転・画角 | `src/workspace-view.js`, `src/workspace-model.js` |
 | workspace保存・復元・未来版保護 | `src/workspace-save.js` |
-| ターゲットの最小部品分解（UI非依存） | `src/craft-decomposition.js`。対応テスト：`craft-decomposition.test.mjs` |
+| ターゲット分解・実グラフ不足判定 | `src/craft-decomposition.js`, `src/craft-target-satisfaction.js`（対応名のテスト） |
 | 部品展開・初期座標 | `src/craft-structures.js` |
 | 追加位置 | `src/spawn-layout.js` |
 | 芳香環・特殊結合・接続点 | `src/aromatic-rendering.js`, `src/special-bonds.js`, `src/attachment-rendering.js` |
