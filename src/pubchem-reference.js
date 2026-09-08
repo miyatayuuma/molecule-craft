@@ -2,6 +2,23 @@ const STRUCTURE_ELEMENTS=new Set(['C','N','O','F','Cl']);
 const TYPICAL_VALENCE=Object.freeze({H:1,C:4,N:3,O:2,F:1,Cl:1});
 const BOND_SYMBOL=Object.freeze({1:'',2:'=',3:'#'});
 
+const PUBCHEM_INTRO_STORAGE_KEY='molecule-craft.pubchem-intro.v1';
+
+export function createPubchemIntroState(storage){
+  let seen=false,activeSignature=null;
+  try{seen=storage?.getItem(PUBCHEM_INTRO_STORAGE_KEY)==='1';}catch{}
+  return Object.freeze({
+    label(signature=null){
+      if(!signature){activeSignature=null;return'↗';}
+      if(activeSignature&&activeSignature!==signature)activeSignature=null;
+      if(!seen){seen=true;activeSignature=signature;try{storage?.setItem(PUBCHEM_INTRO_STORAGE_KEY,'1');}catch{}}
+      return activeSignature===signature?'PubChem ↗':'↗';
+    },
+  });
+}
+
+export {PUBCHEM_INTRO_STORAGE_KEY};
+
 function conservativeSmiles(graph){
   const atoms=graph?.atoms??[],bonds=graph?.bonds??[];
   if(!atoms.length)return null;
