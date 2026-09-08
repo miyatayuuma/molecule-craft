@@ -1,0 +1,37 @@
+name: Veil UI regression debug
+
+on:
+  push:
+    branches: [test/veil-ui-regression-health]
+
+jobs:
+  debug:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/veil-ui-regression-health
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reuse repair patch and inspect launch preflight
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          w=Path('.github/workflows/veil-ui-regression-health.yml').read_text()
+          body=w.split("python - <<'PY'\n",1)[1].split('\n          PY',1)[0]
+          Path('/tmp/patch.py').write_text('\n'.join(line[10:] if line.startswith('          ') else line for line in body.splitlines()))
+          PY
+          python /tmp/patch.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/veil-ui-check.mjs');s=p.read_text()
+          needle="q('expedition-anchor').value='oxygen';q('expedition-anchor').dispatchEvent(new game.window.Event('change',{bubbles:true}));q('launch-veil').click();await new Promise(resolve=>setTimeout(resolve,540));"
+          repl="q('expedition-anchor').value='oxygen';q('expedition-anchor').dispatchEvent(new game.window.Event('change',{bubbles:true}));console.log('LOADOUT',game.run('JSON.stringify(resources.selectedLoadout())'));console.log('ELEMENTS',game.run('JSON.stringify(resources.state.elements)'));console.log('PLAN',game.run('JSON.stringify(resources.launchFillPlan())'));q('launch-veil').click();await new Promise(resolve=>setTimeout(resolve,540));"
+          if needle not in s: raise SystemExit('debug anchor missing')
+          p.write_text(s.replace(needle,repl,1))
+          PY
+          npm install --no-save --prefix /tmp/veil-jsdom jsdom@26
+          node tests/veil-ui-check.mjs /tmp/veil-jsdom/node_modules/jsdom/lib/api.js
