@@ -6,6 +6,21 @@
 
 プレイ画面に説明文を追加しない。性能差は挙動、ゲージ、既存の装備UIから理解できるようにする。
 
+## Context / token budget guardrails
+
+このタスクではコンテキスト消費を最小化する。既存の `AGENTS.md` と本ファイルを起点にし、必要な担当ファイルだけを読む。
+
+- 最初からリポジトリ全体を読み込まない。
+- 原則として `src/veil/molecule-roles.js`, `growth.js`, `engine.js`, `resources.js`, `supply.js` と対応テストだけを対象にする。`config.js`, `universe.js`, UI周辺は実際に変更が必要になった時だけ開く。
+- `src/app.js`、Git履歴、過去PR/Issue、`vendor/`、生成SVG、生成済みprecacheは、具体的な不具合原因の調査が必要な場合を除き読まない。
+- 材料候補のDB確認では `data/molecules.json` 全文を読まず、必要な分子ID・名称だけ検索して該当レコードを読む。
+- 無関係なリファクタや「ついでの整理」を行わない。変更は今回のFuel / Coolant / O2 tank系に限定する。
+- 各工程では担当テストだけを実行する。失敗した場合も、失敗箇所と直接依存だけを追加調査する。
+- 下記の最終Validation一式は、仕上げ前に原則1回だけ実行する。関連コードをその後変更した場合のみ、影響するテストを再実行する。
+- precache再生成はruntime asset変更がすべて確定した最後に1回行う。
+- commit / PR更新 / mergeのためだけにファイルを再読込したり、通過済みテストを再実行したりしない。
+- 既存の `fuel-coolant-profiles-v2` / Draft PR #63 をそのまま継続し、同内容の別branch・別PRを作らない。
+
 ## Implemented on `fuel-coolant-profiles-v2`
 
 ### Fuel response
