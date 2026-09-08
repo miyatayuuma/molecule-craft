@@ -1,0 +1,53 @@
+name: debug-runtime-recovery-browser
+on:
+  push:
+    branches: [debug/runtime-recovery-browser]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify runtime in real Chrome
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/mc-http.log 2>&1 &
+          SERVER=$!
+          trap 'kill $SERVER || true' EXIT
+          npm install --prefix /tmp/mc-browser playwright-core@1.55.0 >/dev/null
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          CHROME="$CHROME" node --input-type=module <<'NODE'
+          import {chromium} from '/tmp/mc-browser/node_modules/playwright-core/index.mjs';
+          const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME,args:['--no-sandbox','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader-webgl']});
+          const workspace={schemaVersion:2,atoms:[{element:'C',position:[-.8,0,0]},{element:'C',position:[.8,0,0]},{element:'O',position:[1.7,.3,0]},{element:'H',position:[-1.2,.8,0]},{element:'H',position:[-1.2,-.8,0]},{element:'H',position:[-.8,0,.9]},{element:'H',position:[.8,-.8,0]},{element:'H',position:[.8,0,.9]},{element:'H',position:[2.2,.4,0]}],bonds:[[0,1,1],[0,3,1],[0,4,1],[0,5,1],[1,2,1],[1,6,1],[1,7,1],[2,8,1]],selected:8,focus:0,pivot:[.3,0,0],targetMoleculeId:'ethanol',camera:{position:[5.2,4,7.6],target:[0,0,0],up:[0,1,0]}};
+          const resources={schemaVersion:6,elements:{H:60,C:30,N:0,O:30,F:0,P:0,S:0,Cl:0},tanks:{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}},recipes:['hydrogen','methane','oxygen','water','ethanol'],hints:['hydrogen','methane','oxygen','water','ethanol'],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true},progress:{bestChain:0,runs:1,cleared:true,craftPrompt:false,sound:true,foundElements:['H','C','O'],regions:['veil','carbon','oxygen'],checkpoint:'oxygen',frontier:false,choCompleted:false,totalCollected:100,signalMisses:0,signalLast:{}},workspace};
+          const collection={schemaVersion:2,discoveredMolecules:['hydrogen','methane','oxygen','water','ethanol'],discoveredGroups:['methyl','hydroxyl','carbonyl','ethyl'],unlockedStructures:['methyl','hydroxyl','carbonyl','carbon-chain'],legacyElements:[],milestones:[]};
+          async function verify(label,{saved=false}={}){
+            const context=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2});
+            if(saved)await context.addInitScript(({resources,collection})=>{localStorage.setItem('molecule-craft.resources.v1',JSON.stringify(resources));localStorage.setItem('molecule-craft.collection.v1',JSON.stringify(collection));},{resources,collection});
+            const page=await context.newPage(),errors=[];
+            page.on('pageerror',error=>{errors.push(String(error.stack||error));console.log(label,'PAGEERROR',error.stack||error);});
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});await page.waitForTimeout(1500);
+            const state=await page.evaluate(()=>({shell:document.documentElement.dataset.moleculeCraftShell,canvas:!!document.querySelector('#viewer canvas'),viewer:(()=>{const r=document.querySelector('#viewer')?.getBoundingClientRect();return [r?.width,r?.height]})(),formula:document.querySelector('#formula')?.textContent,target:document.querySelector('#craft-target-formula')?.textContent,targetParts:[...document.querySelectorAll('#craft-target-atoms .craft-target-part')].map(n=>n.dataset.partId)}));
+            console.log(label,JSON.stringify(state),'errors',errors.length);
+            if(state.shell!=='2'||!state.canvas||!state.viewer[0]||!state.viewer[1])throw new Error(`${label} runtime shell/canvas invalid`);
+            await page.locator('#open-supply').click();await page.waitForTimeout(80);if(!await page.locator('#supply-dialog').evaluate(d=>d.open))throw new Error(`${label} supply did not open`);await page.locator('#supply-dialog [data-close-dialog]').click();
+            await page.locator('#open-collection').click();await page.waitForTimeout(250);if(!await page.locator('#collection-dialog').evaluate(d=>d.open))throw new Error(`${label} collection did not open`);
+            if(errors.length)throw new Error(`${label} page errors: ${errors.join('\n')}`);
+            await context.close();
+          }
+          await verify('FRESH');await verify('SAVED',{saved:true});
+          const context=await browser.newContext({viewport:{width:412,height:915}}),page=await context.newPage();
+          await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});await page.waitForTimeout(500);
+          await page.evaluate(()=>{document.documentElement.dataset.moleculeCraftShell='legacy';return import('./src/pwa.js?recovery-probe=1');}).catch(()=>{});
+          await page.waitForTimeout(800);
+          const recovered=await page.evaluate(()=>({shell:document.documentElement.dataset.moleculeCraftShell,url:location.href,key:sessionStorage.getItem('molecule-craft.shell-recovery.2')}));
+          console.log('RECOVERY',JSON.stringify(recovered));
+          if(recovered.shell!=='2'||!recovered.url.endsWith('/'))throw new Error('mixed shell did not recover to current root');
+          await browser.close();
+          NODE
