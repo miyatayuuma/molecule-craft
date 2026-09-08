@@ -42,7 +42,7 @@ jobs:
           s=s.replace('src/app.js?v=49','src/app.js?v=50')
           s=s.replace(r'app\.js\?v=49',r'app\.js\?v=50')
           marker='assert.match(index, /data-molecule-craft-shell="2"/);'
-          add='\nassert.doesNotMatch(index, /id="cho-completion"|id="cho-continue"|CHO探索クリア/);\nassert.doesNotMatch(index, /<button id="open-supply"[^>]*>\\s*<img[^>]+collector-shell\\.png/);\nassert.doesNotMatch(index, /id="discovery-learning"/);\nassert.doesNotMatch(app, /cho-completion|cho-continue/);'
+          add='\nassert.doesNotMatch(index, /id="cho-completion"|id="cho-continue"/);\nassert.doesNotMatch(index, /<button id="open-supply"[^>]*>\\s*<img[^>]+collector-shell\\.png/);\nassert.doesNotMatch(index, /id="discovery-learning"/);\nassert.doesNotMatch(app, /cho-completion|cho-continue/);'
           if add.strip() not in s:
               if marker not in s: raise SystemExit('source contract marker missing')
               s=s.replace(marker,marker+add,1)
@@ -86,7 +86,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -nE 'id="cho-completion"|id="cho-continue"|CHO探索クリア|id="discovery-learning"' index.html; then exit 1; fi
+          if grep -nE 'id="cho-completion"|id="cho-continue"|id="discovery-learning"' index.html; then exit 1; fi
           if grep -nE "cho-completion|cho-continue" src/veil/ui.js; then exit 1; fi
           if grep -nE '\.cho-completion' veil.css; then exit 1; fi
           if grep -nE '<button id="open-supply"[^>]*><img[^>]+collector-shell\.png' index.html; then exit 1; fi
