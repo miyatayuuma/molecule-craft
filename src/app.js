@@ -144,7 +144,7 @@ function addElement(symbol){
   if(!atom){pulse(`${symbol}が足りません · 探索で補給しよう`);return;}
   protectedUntil.set(atom.id,performance.now()+DEBRIS_POLICY.protectionMs);
   selectAtom(atom.id);topologyChanged();beginSpawnZoom(plan);refresh();
-  pulse(`${ELEMENTS[symbol].name}を置きました`);return atom;
+  pulse(`${ELEMENTS[symbol].name}を置きました`);
 }
 
 function addCraftPart(id){
@@ -172,7 +172,7 @@ function addCraftPart(id){
   selectAtom(expanded.attachments[0].atomId);topologyChanged();
   // Coordinates are already solved. Running the solver a second time here
   // would drift the placed part after its footprint has been fitted.
-  refresh();pulse(`${template.nameJa}を置きました`);return expanded;
+  refresh();pulse(`${template.nameJa}を置きました`);return true;
 }
 
 function onPointerDown(e){
@@ -623,9 +623,9 @@ function targetPartsFor(record){
 }
 function placeTargetPart(item){
   if(!item?.targetKey||targetDeployments.has(item.targetKey))return false;
-  let ids;
-  if(item.partId){const expanded=addCraftPart(item.partId);if(!expanded)return false;ids=expanded.ids;}
-  else{const atom=addElement(item.element);if(!atom)return false;ids=[atom.id];}
+  const before=new Set(molecule.atoms.map(atom=>atom.id));
+  if(item.partId){if(!addCraftPart(item.partId))return false;}else addElement(item.element);
+  const ids=molecule.atoms.filter(atom=>!before.has(atom.id)).map(atom=>atom.id);if(!ids.length)return false;
   targetDeployments.set(item.targetKey,new Set(ids));refreshInfo();return true;
 }
 function refreshInfo(keep=false){
