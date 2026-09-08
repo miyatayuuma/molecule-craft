@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {behaviorProfile,bottleneckFor,rolePreviewModel} from '../src/veil/equipment-ux.js';
 
@@ -42,4 +43,13 @@ test('fuel and coolant use different preview phenomena',()=>{
   assert.equal(coolant.kind,'coolant');
   assert.ok('response' in fuel);
   assert.ok('cooling' in coolant);
+});
+
+test('equipment preview overlays current ghost and candidate in one large stage',()=>{
+  const source=readFileSync(new URL('../src/veil/equipment-ux.js',import.meta.url),'utf8');
+  assert.match(source,/mc-role-stage/);
+  assert.match(source,/mc-behavior-layer \$\{candidate\?'candidate':'current'\}/);
+  assert.match(source,/min-height:154px/);
+  assert.doesNotMatch(source,/mc-role-compare/);
+  assert.doesNotMatch(source,/mc-role-tag/);
 });
