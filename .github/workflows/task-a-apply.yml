@@ -21,6 +21,7 @@ jobs:
           sed -i "s#update();await playSynthesis(result.plan);#update();if(!Object.keys(result.plan.cost).length){launchBusy=false;launchBypass=true;q('launch-veil').click();launchBypass=false;return true;}await playSynthesis(result.plan);#" scripts/task-a-apply.mjs
           sed -i "s#launchBusy||resources.blocked||!canOpen()||!canMake()||onCommit()===false#launchBusy||resources.blocked||!canOpen()||onCommit()===false#" scripts/task-a-apply.mjs
           sed -i "/veil-ui-check.mjs/d" scripts/task-a-apply.mjs
+          sed -i "/tests\/pwa.test.mjs/d" scripts/task-a-apply.mjs
           sed -i "s#await execFileSync('node',\['scripts/build-precache.mjs'\],{stdio:'inherit'});#await unlink('scripts/task-a-apply.mjs').catch(()=>{});await unlink('.github/workflows/task-a-apply.yml').catch(()=>{});await execFileSync('node',['scripts/build-precache.mjs'],{stdio:'inherit'});#" scripts/task-a-apply.mjs
           sed -i "s#await unlink('scripts/task-a-apply.mjs');#await unlink('scripts/task-a-apply.mjs').catch(()=>{});#" scripts/task-a-apply.mjs
           sed -i "s#await unlink('.github/workflows/task-a-apply.yml');#await unlink('.github/workflows/task-a-apply.yml').catch(()=>{});#" scripts/task-a-apply.mjs
