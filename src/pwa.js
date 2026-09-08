@@ -1,3 +1,10 @@
+const SHELL_API='2',shellApi=document.documentElement.dataset.moleculeCraftShell??'',shellRecoveryKey=`molecule-craft.shell-recovery.${SHELL_API}`;
+let recoverShell=false;
+if(shellApi!==SHELL_API){
+  let attempted=false;try{attempted=sessionStorage.getItem(shellRecoveryKey)==='1';if(!attempted)sessionStorage.setItem(shellRecoveryKey,'1');}catch{}
+  if(!attempted){recoverShell=true;location.replace(new URL('../',import.meta.url).href);}else console.error('Molecule Craft shell recovery stopped after one attempt.');
+}else try{sessionStorage.removeItem(shellRecoveryKey);}catch{}
+if(!recoverShell&&shellApi===SHELL_API){
 // Waiting updates auto-activate only after the app confirms that its current state is safe to save and reload.
 const install=document.getElementById('install-app'),installStatus=document.getElementById('install-status');
 const update=document.getElementById('update-app'),updateStatus=document.getElementById('update-status');
@@ -50,3 +57,4 @@ if('serviceWorker'in navigator){
   window.addEventListener('focus',()=>{requestRunningVersion();if(!ready({auto:false}))checkForUpdate();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){requestRunningVersion();if(!ready({auto:false}))checkForUpdate();}});
 }else{versionStatus.textContent='APP VERSION NETWORK';updateStatus.textContent='この環境ではオフライン機能を利用できません。';}
+}
