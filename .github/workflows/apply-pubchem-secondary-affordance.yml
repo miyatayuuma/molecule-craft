@@ -21,23 +21,22 @@ jobs:
 
           p=Path('src/pubchem-reference.js'); s=p.read_text()
           marker="const BOND_SYMBOL=Object.freeze({1:'',2:'=',3:'#'});\n"
-          addition="""const PUBCHEM_INTRO_STORAGE_KEY='molecule-craft.pubchem-intro.v1';
-
-export function createPubchemIntroState(storage){
-  let seen=false,activeSignature=null;
-  try{seen=storage?.getItem(PUBCHEM_INTRO_STORAGE_KEY)==='1';}catch{}
-  return Object.freeze({
-    label(signature=null){
-      if(!signature){activeSignature=null;return'↗';}
-      if(activeSignature&&activeSignature!==signature)activeSignature=null;
-      if(!seen){seen=true;activeSignature=signature;try{storage?.setItem(PUBCHEM_INTRO_STORAGE_KEY,'1');}catch{}}
-      return activeSignature===signature?'PubChem ↗':'↗';
-    },
-  });
-}
-
-export {PUBCHEM_INTRO_STORAGE_KEY};
-"""
+          addition=(
+            "const PUBCHEM_INTRO_STORAGE_KEY='molecule-craft.pubchem-intro.v1';\n\n"
+            "export function createPubchemIntroState(storage){\n"
+            "  let seen=false,activeSignature=null;\n"
+            "  try{seen=storage?.getItem(PUBCHEM_INTRO_STORAGE_KEY)==='1';}catch{}\n"
+            "  return Object.freeze({\n"
+            "    label(signature=null){\n"
+            "      if(!signature){activeSignature=null;return'↗';}\n"
+            "      if(activeSignature&&activeSignature!==signature)activeSignature=null;\n"
+            "      if(!seen){seen=true;activeSignature=signature;try{storage?.setItem(PUBCHEM_INTRO_STORAGE_KEY,'1');}catch{}}\n"
+            "      return activeSignature===signature?'PubChem ↗':'↗';\n"
+            "    },\n"
+            "  });\n"
+            "}\n\n"
+            "export {PUBCHEM_INTRO_STORAGE_KEY};\n"
+          )
           if 'createPubchemIntroState' not in s:
               if marker not in s: raise SystemExit('pubchem reference marker missing')
               s=s.replace(marker,marker+'\n'+addition,1)
@@ -65,19 +64,19 @@ export {PUBCHEM_INTRO_STORAGE_KEY};
           p=Path('tests/pubchem-reference.test.mjs'); s=p.read_text()
           s=s.replace("import {conservativeSmiles,pubchemReferenceFor} from '../src/pubchem-reference.js';", "import {PUBCHEM_INTRO_STORAGE_KEY,conservativeSmiles,createPubchemIntroState,pubchemReferenceFor} from '../src/pubchem-reference.js';",1)
           marker="assert.equal(pubchemReferenceFor({formula:'—',graph:{atoms:[],bonds:[]}}),null);\n"
-          addition="""
-let introValue=null,writes=0;
-const introStorage={getItem:key=>key===PUBCHEM_INTRO_STORAGE_KEY?introValue:null,setItem:(key,value)=>{assert.equal(key,PUBCHEM_INTRO_STORAGE_KEY);introValue=value;writes++;}};
-const intro=createPubchemIntroState(introStorage);
-assert.equal(intro.label('first-signature'),'PubChem ↗','The first unregistered completion teaches the external reference once.');
-assert.equal(intro.label('first-signature'),'PubChem ↗','Repeated renders of the same first completion keep the label stable.');
-assert.equal(writes,1);
-assert.equal(intro.label(null),'↗','Leaving the first unregistered completion ends the teaching state.');
-assert.equal(intro.label('second-signature'),'↗','Later unregistered completions stay visually secondary.');
-assert.equal(createPubchemIntroState(introStorage).label('after-reload'),'↗','The intro is remembered on the device.');
-const deniedIntro=createPubchemIntroState({getItem(){throw Error('denied');},setItem(){throw Error('denied');}});
-assert.equal(deniedIntro.label('fallback'),'PubChem ↗','Storage denial must not break the affordance.');
-"""
+          addition=(
+            "\nlet introValue=null,writes=0;\n"
+            "const introStorage={getItem:key=>key===PUBCHEM_INTRO_STORAGE_KEY?introValue:null,setItem:(key,value)=>{assert.equal(key,PUBCHEM_INTRO_STORAGE_KEY);introValue=value;writes++;}};\n"
+            "const intro=createPubchemIntroState(introStorage);\n"
+            "assert.equal(intro.label('first-signature'),'PubChem ↗','The first unregistered completion teaches the external reference once.');\n"
+            "assert.equal(intro.label('first-signature'),'PubChem ↗','Repeated renders of the same first completion keep the label stable.');\n"
+            "assert.equal(writes,1);\n"
+            "assert.equal(intro.label(null),'↗','Leaving the first unregistered completion ends the teaching state.');\n"
+            "assert.equal(intro.label('second-signature'),'↗','Later unregistered completions stay visually secondary.');\n"
+            "assert.equal(createPubchemIntroState(introStorage).label('after-reload'),'↗','The intro is remembered on the device.');\n"
+            "const deniedIntro=createPubchemIntroState({getItem(){throw Error('denied');},setItem(){throw Error('denied');}});\n"
+            "assert.equal(deniedIntro.label('fallback'),'PubChem ↗','Storage denial must not break the affordance.');\n"
+          )
           if 'first-signature' not in s:
               if marker not in s: raise SystemExit('pubchem test marker missing')
               s=s.replace(marker,marker+addition,1)
@@ -85,12 +84,12 @@ assert.equal(deniedIntro.label('fallback'),'PubChem ↗','Storage denial must no
 
           p=Path('tests/source-contracts.test.mjs'); s=p.read_text()
           marker="assert.match(craftPanel,/className='pubchem-link'/);"
-          additions="""
-assert.match(craftPanel,/createPubchemIntroState/);
-assert.doesNotMatch(craftPanel,/nodes\.pubchem\.title|PubChemで構造検索|PubChemで分子式検索/,'PubChem has no hover-only explanation');
-assert.match(pubchemReference,/molecule-craft\.pubchem-intro\.v1/);
-assert.match(pubchemReference,/PubChem ↗/);
-"""
+          additions=(
+            "\nassert.match(craftPanel,/createPubchemIntroState/);"
+            "\nassert.doesNotMatch(craftPanel,/nodes\\.pubchem\\.title|PubChemで構造検索|PubChemで分子式検索/,'PubChem has no hover-only explanation');"
+            "\nassert.match(pubchemReference,/molecule-craft\\.pubchem-intro\\.v1/);"
+            "\nassert.match(pubchemReference,/PubChem ↗/);\n"
+          )
           if 'hover-only explanation' not in s:
               if marker not in s: raise SystemExit('source contract pubchem marker missing')
               s=s.replace(marker,marker+additions,1)
