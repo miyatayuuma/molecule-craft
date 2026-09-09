@@ -2,7 +2,7 @@ import {challengeEnvironment} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
-import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,oxygenPressureAt } from './oxygen-routes.js';
+import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenVortexFlowAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 // Fixed landmarks and connections; variable contents stay near these curves.
 const ROUTES=[
@@ -11,12 +11,12 @@ const ROUTES=[
   ['carbon-sweep','群れの内側',[[-120,-4990],[560,-5140],[840,-5540],[650,-5950],[230,-6400]],'C'],
   ['carbon-return','外縁へ続くHの流れ',[[170,-7190],[-690,-6790],[-870,-5840],[-790,-4930],[-430,-4370],[-160,-3980]],'H'],
   ['oxygen-entry','冷たい縁',[[170,-7750],[170,-8090],[-70,-8390],[120,-8700]],'O'],
-  ['oxygen-eddy','冷たい渦',[[120,-8700],[-500,-8630],[-700,-8230],[-340,-7970],[170,-8090]],'O'],
+  [OXYGEN_VORTEX.id,OXYGEN_VORTEX.label,OXYGEN_VORTEX.knots,'O'],
   ...OXYGEN_ROUTES.map(route=>[route.id,route.label,route.knots,'O']),
   ['oxygen-depth','熱の奥へ',[[120,-10670],[250,-11200],[100,-11830]],'O'],
   ['horizon','CHOの最深部へ',[[100,-11830],[0,-12200],[CHO_DESTINATION.x,CHO_DESTINATION.y]],'O'],
 ];
-const OPTIONAL_ROUTES=new Set(['carbon-sweep','oxygen-eddy','oxygen-side']);
+const OPTIONAL_ROUTES=new Set(['carbon-sweep',OXYGEN_VORTEX.id,'oxygen-side']);
 const CLUSTERS=[[-120,-4990],[-410,-5350],[-160,-5680],[350,-6020],[230,-6400],[-140,-6790],[170,-7210],[570,-5140],[820,-5540],[660,-5950],[-380,-8150],[-500,-8540],[600,-9450]];
 function activeLaneCount(lanes,level){return level<.28?lanes:level<.62?Math.max(1,Math.ceil(lanes/2)):1;}
 export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}){
@@ -42,11 +42,22 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
       }
     }
   }
+  // Orbiting O particles are both the distant cue and the provisional reward.
+  // Their geometry does not depend on stock depletion, so the current remains legible.
+  for(const [ringIndex,ring]of OXYGEN_VORTEX.particleRings.entries())for(let i=0;i<ring.count;i++){
+    const phase=i/ring.count*Math.PI*2+ringIndex*.37,x=OXYGEN_VORTEX.center.x+Math.cos(phase)*ring.radius,y=OXYGEN_VORTEX.center.y+Math.sin(phase)*ring.radius;
+    map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:phase-Math.PI/2,route:'oxygen-vortex-flow',element:'O',kind:'oxygen',value:1,ready:0,flow:{speed:1,span:1,phase:0},vortex:{radius:ring.radius,phase,angularSpeed:ring.angularSpeed}});
+  }
   // A compact O pocket in the physically quiet main-route eddy rewards stopping.
   for(let i=0;i<harvestLayout.eddyAtoms;i++){
     if(!keepDepletedSegment(map.depletion.O,seed,'oxygen-rest-harvest',i))continue;
     const angle=i*2.399963,radius=Math.sqrt((i+.5)/harvestLayout.eddyAtoms)*55,x=120+Math.cos(angle)*radius,y=-9700+Math.sin(angle)*radius;
     map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:'oxygen-rest-harvest',element:'O',kind:'oxygen',value:3,ready:0});
+  }
+  for(let i=0;i<54;i++){
+    const angle=i*2.399963,radius=Math.sqrt((i+.5)/54)*OXYGEN_VORTEX_REWARD.radius,x=OXYGEN_VORTEX_REWARD.x+Math.cos(angle)*radius,y=OXYGEN_VORTEX_REWARD.y+Math.sin(angle)*radius,element=i%8===0?'C':'O';
+    if(!keepDepletedSegment(map.depletion[element],seed^0x62a711,`oxygen-vortex-reward:${element}`,i))continue;
+    map.dust.push({id:map.dust.length,x,y,angle:angle-Math.PI/2,route:'oxygen-vortex-reward',element,kind:element==='C'?'carbon':'oxygen',value:3,ready:0});
   }
   for(let i=0;i<90;i++){
     const angle=i*2.399963,radius=Math.sqrt((i+.5)/90)*OXYGEN_REWARD.radius,x=OXYGEN_REWARD.x+Math.cos(angle)*radius,y=OXYGEN_REWARD.y+Math.sin(angle)*radius,element=i%6===0?'C':'O';
@@ -75,12 +86,16 @@ export function environmentAt(p,time=0){
   const outer=band(p.y,-4100,-3690,105),hot=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
   const quiet=OXYGEN_ROUTES.some(r=>r.restStops?.some(s=>Math.abs(p.y-s.y)<s.depth/2&&Math.abs(p.x-r.x)<r.width/2));
-  const challenge=challengeEnvironment(p,time),routePressure=challenge?.pressure??oxygenPressureAt(p);
-  return {pressure:routePressure??outer*255+hot*310,flowX:challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),heat:Math.max(challenge?.heat??0,hot*32+oxygen*(1-hot)*(1-coolEddy)*3)*(quiet?.2:1),intensity:hot,eddy:coolEddy};
+  const challenge=challengeEnvironment(p,time),routePressure=challenge?.pressure??oxygenPressureAt(p),vortex=oxygenVortexFlowAt(p);
+  const basePressure=routePressure??outer*255+hot*310,baseFlowX=challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
+  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,heat:Math.max(challenge?.heat??0,hot*32+oxygen*(1-hot)*(1-coolEddy)*3)*(quiet?.2:1),intensity:hot,eddy:coolEddy,vortex:vortex.intensity};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;
-  for(const d of map.dust)if(d.flow){const phase=((time*d.flow.speed/d.flow.span+d.flow.phase)%1-.5)*d.flow.span;d.x=d.baseX+Math.cos(d.angle)*phase;d.y=d.baseY+Math.sin(d.angle)*phase;}
+  for(const d of map.dust){
+    if(d.vortex){const angle=d.vortex.phase+time*d.vortex.angularSpeed;d.x=OXYGEN_VORTEX.center.x+Math.cos(angle)*d.vortex.radius;d.y=OXYGEN_VORTEX.center.y+Math.sin(angle)*d.vortex.radius;d.angle=angle-Math.PI/2;}
+    else if(d.flow){const phase=((time*d.flow.speed/d.flow.span+d.flow.phase)%1-.5)*d.flow.span;d.x=d.baseX+Math.cos(d.angle)*phase;d.y=d.baseY+Math.sin(d.angle)*phase;}
+  }
   for(const cluster of map.clusters){
     if(time>=cluster.ready&&Math.hypot(p.x-cluster.x,p.y-cluster.y)<cluster.radius+(p.boost>0||p.combustion?22:0)){
       cluster.ready=time+GROWTH.clusterRespawn;cluster.burstAt=time;for(const d of cluster.particles)d.ready=0;run.events.push({type:'cluster',x:cluster.x,y:cluster.y});
