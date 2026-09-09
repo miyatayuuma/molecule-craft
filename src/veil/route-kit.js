@@ -99,8 +99,9 @@ export function routeSocket(route,progress=.5,id='route-socket'){
   return Object.freeze({id,position:freezePoint(point),angle:point.angle,width:route.width,progress:t});
 }
 
-export function createVortexFlybyRoute({id='vortex-route',entry,exit,center,width=220,outerRadius=620,innerRadius=105,startAngle=.4,inwardTurns=.39,outwardTurns=.25,direction=-1,spacing=20}={}){
+export function createVortexFlybyRoute({id='vortex-route',entry,exit,center,width=220,outerRadius=620,outwardRadius=outerRadius,innerRadius=105,startAngle=.4,inwardTurns=.39,outwardTurns=.25,direction=-1,spacing=20}={}){
   if(!entry||!exit||!center)throw Error('Vortex route requires entry, exit and center sockets');
+  if(!(outerRadius>innerRadius&&outwardRadius>innerRadius&&innerRadius>0))throw Error('Vortex route radii must exceed inner radius');
   const sweepIn=direction*Math.PI*2*inwardTurns;
   const thetaIn=startAngle+sweepIn,coreExitAngle=thetaIn+Math.PI,sweepOut=direction*Math.PI*2*outwardTurns;
   const approachEnd={x:center.x+Math.cos(startAngle)*outerRadius,y:center.y+Math.sin(startAngle)*outerRadius};
@@ -113,13 +114,13 @@ export function createVortexFlybyRoute({id='vortex-route',entry,exit,center,widt
   const innerIn=inward.at(-1),innerOut={x:center.x+Math.cos(coreExitAngle)*innerRadius,y:center.y+Math.sin(coreExitAngle)*innerRadius};
   const inwardEndAngle=innerIn.angle,radialAngle=Math.atan2(center.y-innerIn.y,center.x-innerIn.x),radialUnit=unit(radialAngle),inwardUnit=unit(inwardEndAngle);
   const coreA=cubicSection('core-in',innerIn,{x:innerIn.x+inwardUnit.x*48,y:innerIn.y+inwardUnit.y*48},{x:center.x-radialUnit.x*34,y:center.y-radialUnit.y*34},center,8);
-  const outwardStartAngle=spiralTangent(center,innerRadius,outerRadius,coreExitAngle,sweepOut,0),outwardUnit=unit(outwardStartAngle);
+  const outwardStartAngle=spiralTangent(center,innerRadius,outwardRadius,coreExitAngle,sweepOut,0),outwardUnit=unit(outwardStartAngle);
   const coreB=cubicSection('core-out',center,{x:center.x+radialUnit.x*34,y:center.y+radialUnit.y*34},{x:innerOut.x-outwardUnit.x*48,y:innerOut.y-outwardUnit.y*48},innerOut,8);
-  const outward=spiralSection('spiral-out',center,innerRadius,outerRadius,coreExitAngle,sweepOut,24);
+  const outward=spiralSection('spiral-out',center,innerRadius,outwardRadius,coreExitAngle,sweepOut,24);
   const outerOut=outward.at(-1),outwardEndAngle=outerOut.angle,exitAngle=Number.isFinite(exit.angle)?exit.angle:Math.atan2(exit.y-outerOut.y,exit.x-outerOut.x),exitDistance=Math.hypot(exit.x-outerOut.x,exit.y-outerOut.y),startHandle=Math.min(150,exitDistance*.55),exitHandle=Math.min(120,exitDistance*.45),outUnit=unit(outwardEndAngle),xUnit=unit(exitAngle);
   const exitCurve=cubicSection('exit',outerOut,{x:outerOut.x+outUnit.x*startHandle,y:outerOut.y+outUnit.y*startHandle},{x:exit.x-xUnit.x*exitHandle,y:exit.y-xUnit.y*exitHandle},exit,14);
   const dense=[];for(const section of [approach,inward,coreA,coreB,outward,exitCurve])appendPath(dense,section);
-  const points=resamplePath(dense,spacing),fieldOffsets=[-width*.42,-width*.2,0,width*.2,width*.42],fieldLines=Object.freeze(fieldOffsets.map(offset=>offsetPath(points,offset)));
+  const points=resamplePath(dense,spacing),fieldOffsets=[-width*.13,-width*.065,0,width*.065,width*.13],fieldLines=Object.freeze(fieldOffsets.map(offset=>offsetPath(points,offset)));
   return Object.freeze({id,width,center:freezePoint(center),points,fieldLines,sections:Object.freeze(['approach','spiral-in','core-in','core-out','spiral-out','exit']),entry:Object.freeze({position:freezePoint(entry),angle:entryAngle,width}),exit:Object.freeze({position:freezePoint(exit),angle:exitAngle,width}),sockets:Object.freeze({entry:freezePoint(entry),core:freezePoint(center),exit:freezePoint(exit)})});
 }
 
