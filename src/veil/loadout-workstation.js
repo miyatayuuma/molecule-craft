@@ -6,7 +6,7 @@ const DRIVE_UNIT_URL=new URL('../../assets/loadout-drive-unit.png',import.meta.u
 const MODEL_URL=id=>new URL(`../../assets/models/molecule-${id}.svg`,import.meta.url).href;
 const SLOT_USES=['propellant','fuel','oxidizer','coolant'];
 const PULSE_SLOT_FRAME=Object.freeze({width:10.9,top:38.5,height:27.0});
-const DRIVE_SLOT_FRAME=Object.freeze({width:11.0,top:38.0,height:27.0});
+const DRIVE_SLOT_FRAME=Object.freeze({width:10.0,top:38.0,height:27.0});
 
 const slotGeometry=(centerX,frame)=>Object.freeze({
   centerX,
@@ -21,8 +21,8 @@ export const LOADOUT_LABELS=Object.freeze({propellant:'PULSE',fuel:'FUEL',oxidiz
 export const LOADOUT_SLOT_GEOMETRY=Object.freeze({
   propellant:slotGeometry(16.05,PULSE_SLOT_FRAME),
   fuel:slotGeometry(65.10,DRIVE_SLOT_FRAME),
-  oxidizer:slotGeometry(78.20,DRIVE_SLOT_FRAME),
-  coolant:slotGeometry(90.30,DRIVE_SLOT_FRAME),
+  oxidizer:slotGeometry(77.20,DRIVE_SLOT_FRAME),
+  coolant:slotGeometry(88.80,DRIVE_SLOT_FRAME),
 });
 
 const centerX=use=>LOADOUT_SLOT_GEOMETRY[use].centerX;

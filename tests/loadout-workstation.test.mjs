@@ -10,7 +10,7 @@ test('LOADOUT DRIVE slots share one fixed boundary frame',()=>{
   assert.equal(new Set(slots.map(slot=>slot.width)).size,1);
   assert.equal(new Set(slots.map(slot=>slot.height)).size,1);
   assert.equal(new Set(slots.map(slot=>slot.top)).size,1);
-  assert.equal(slots[0].width,11.0);
+  assert.equal(slots[0].width,10.0);
   assert.equal(slots[0].height,27);
   assert.equal(slots[0].top,38);
 });
@@ -21,7 +21,7 @@ test('LOADOUT DRIVE boundaries use the tuned horizontal positions',()=>{
   const coolant=LOADOUT_SLOT_GEOMETRY.coolant;
   assert.deepEqual(
     [fuel.left,right(fuel),oxidizer.left,right(oxidizer),coolant.left,right(coolant)],
-    [59.6,70.6,72.7,83.7,84.8,95.8],
+    [60.1,70.1,72.2,82.2,83.8,93.8],
   );
 });
 
