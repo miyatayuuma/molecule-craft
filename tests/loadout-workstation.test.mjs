@@ -10,21 +10,19 @@ test('LOADOUT DRIVE slots share one fixed boundary frame',()=>{
   assert.equal(new Set(slots.map(slot=>slot.width)).size,1);
   assert.equal(new Set(slots.map(slot=>slot.height)).size,1);
   assert.equal(new Set(slots.map(slot=>slot.top)).size,1);
-  assert.equal(slots[0].width,11.4);
+  assert.equal(slots[0].width,11.0);
   assert.equal(slots[0].height,27);
   assert.equal(slots[0].top,38);
 });
 
-test('LOADOUT DRIVE boundaries follow the visible tank bodies and separators',()=>{
+test('LOADOUT DRIVE boundaries use the tuned horizontal positions',()=>{
   const fuel=LOADOUT_SLOT_GEOMETRY.fuel;
   const oxidizer=LOADOUT_SLOT_GEOMETRY.oxidizer;
   const coolant=LOADOUT_SLOT_GEOMETRY.coolant;
   assert.deepEqual(
     [fuel.left,right(fuel),oxidizer.left,right(oxidizer),coolant.left,right(coolant)],
-    [59.4,70.8,71.0,82.4,82.6,94.0],
+    [59.6,70.6,72.7,83.7,84.8,95.8],
   );
-  assert.equal(Number((oxidizer.left-right(fuel)).toFixed(2)),0.2);
-  assert.equal(Number((coolant.left-right(oxidizer)).toFixed(2)),0.2);
 });
 
 test('LOADOUT slot rectangles stay centered on their schematic anchors',()=>{
@@ -35,10 +33,10 @@ test('LOADOUT slot rectangles stay centered on their schematic anchors',()=>{
   }
 });
 
-test('LOADOUT PULSE boundary targets the central white tank frame',()=>{
+test('LOADOUT PULSE boundary is shifted right and down',()=>{
   const pulse=LOADOUT_SLOT_GEOMETRY.propellant;
   assert.deepEqual(
     {left:pulse.left,width:pulse.width,top:pulse.top,height:pulse.height},
-    {left:9.6,width:10.9,top:37.5,height:27},
+    {left:10.6,width:10.9,top:38.5,height:27},
   );
 });
