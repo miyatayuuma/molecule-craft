@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 
 const source=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
 const veilSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
+const connections=await readFile(new URL('../src/craft-connections.js',import.meta.url),'utf8');
 
 const closeAt=source.indexOf("if(dialog.open)dialog.close();");
 const launchAt=source.indexOf("started=onLaunchReady()!==false");
@@ -19,5 +20,12 @@ assert.match(veilSource,/active=false;paused=false;run=null;anchorLock=null;retu
 assert.match(veilSource,/root\.hidden=true;document\.body\.dataset\.mode='craft';appShell\.inert=false/,'Failed launch must restore craft visibility and input');
 assert.match(veilSource,/catch\(error\)\{return rollbackLaunch\(\{previousAnchor,previousRuns,error\}\);\}/,'Every synchronous launch initialization failure must use the rollback path');
 assert.ok(veilSource.indexOf('resources.state.progress.runs=nextRun')<veilSource.indexOf('if(!resources.save())throw Error(\'Expedition launch state could not be saved.\')'),'Run count must only be committed after view initialization succeeds');
+
+assert.match(connections,/from '\.\/veil\/ui\.js\?v=3'/,'Exploration UI changes must use a fresh module URL instead of reusing the stale v2 module');
+assert.match(connections,/function normalizeExplorationMode\(\)/,'Exploration connection must normalize any orphaned mode state on startup');
+assert.match(connections,/if\(veil\)veil\.hidden=true/,'Startup recovery hides any orphaned exploration view');
+assert.match(connections,/if\(appShell\)appShell\.inert=false/,'Startup recovery restores craft pointer input');
+assert.match(connections,/document\.body\.dataset\.mode='craft'/,'Startup recovery restores craft mode');
+assert.ok(connections.indexOf('normalizeExplorationMode();')<connections.indexOf('createVeilUI({resources'),'Mode recovery must happen before exploration UI listeners are connected');
 
 console.log('Launch transition regression passed.');
