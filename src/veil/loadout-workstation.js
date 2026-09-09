@@ -5,8 +5,8 @@ const PULSE_UNIT_URL=new URL('../../assets/loadout-pulse-unit.png',import.meta.u
 const DRIVE_UNIT_URL=new URL('../../assets/loadout-drive-unit.png',import.meta.url).href;
 const MODEL_URL=id=>new URL(`../../assets/models/molecule-${id}.svg`,import.meta.url).href;
 const SLOT_USES=['propellant','fuel','oxidizer','coolant'];
-const PULSE_SLOT_FRAME=Object.freeze({width:10.9,top:37.5,height:27.0});
-const DRIVE_SLOT_FRAME=Object.freeze({width:11.4,top:38.0,height:27.0});
+const PULSE_SLOT_FRAME=Object.freeze({width:10.9,top:38.5,height:27.0});
+const DRIVE_SLOT_FRAME=Object.freeze({width:11.0,top:38.0,height:27.0});
 
 const slotGeometry=(centerX,frame)=>Object.freeze({
   centerX,
@@ -19,10 +19,10 @@ const slotGeometry=(centerX,frame)=>Object.freeze({
 
 export const LOADOUT_LABELS=Object.freeze({propellant:'PULSE',fuel:'FUEL',oxidizer:'O₂',coolant:'COOLANT'});
 export const LOADOUT_SLOT_GEOMETRY=Object.freeze({
-  propellant:slotGeometry(15.05,PULSE_SLOT_FRAME),
+  propellant:slotGeometry(16.05,PULSE_SLOT_FRAME),
   fuel:slotGeometry(65.10,DRIVE_SLOT_FRAME),
-  oxidizer:slotGeometry(76.70,DRIVE_SLOT_FRAME),
-  coolant:slotGeometry(88.30,DRIVE_SLOT_FRAME),
+  oxidizer:slotGeometry(78.20,DRIVE_SLOT_FRAME),
+  coolant:slotGeometry(90.30,DRIVE_SLOT_FRAME),
 });
 
 const centerX=use=>LOADOUT_SLOT_GEOMETRY[use].centerX;
