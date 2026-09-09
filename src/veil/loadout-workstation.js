@@ -5,17 +5,36 @@ const PULSE_UNIT_URL=new URL('../../assets/loadout-pulse-unit.png',import.meta.u
 const DRIVE_UNIT_URL=new URL('../../assets/loadout-drive-unit.png',import.meta.url).href;
 const MODEL_URL=id=>new URL(`../../assets/models/molecule-${id}.svg`,import.meta.url).href;
 const SLOT_USES=['propellant','fuel','oxidizer','coolant'];
+const PULSE_SLOT_FRAME=Object.freeze({width:10.9,top:37.5,height:27.0});
+const DRIVE_SLOT_FRAME=Object.freeze({width:9.4,top:38.0,height:27.0});
+
+const slotGeometry=(centerX,frame)=>Object.freeze({
+  centerX,
+  left:Number((centerX-frame.width/2).toFixed(2)),
+  width:frame.width,
+  top:frame.top,
+  height:frame.height,
+  labelX:centerX,
+});
 
 export const LOADOUT_LABELS=Object.freeze({propellant:'PULSE',fuel:'FUEL',oxidizer:'O₂',coolant:'COOLANT'});
 export const LOADOUT_SLOT_GEOMETRY=Object.freeze({
-  propellant:Object.freeze({left:9.6,width:10.9,top:36.5,height:31.5,labelX:15.05,shape:'M96 75 H205 V129 H96 Z'}),
-  fuel:Object.freeze({left:59.0,width:10.2,top:37.0,height:30.0,labelX:64.10,shape:'M590 76 H692 V130 H590 Z'}),
-  oxidizer:Object.freeze({left:71.0,width:9.0,top:37.0,height:30.0,labelX:75.50,shape:'M710 76 H800 V130 H710 Z'}),
-  coolant:Object.freeze({left:82.4,width:9.4,top:37.0,height:30.0,labelX:87.10,shape:'M824 76 H918 V130 H824 Z'}),
+  propellant:slotGeometry(15.05,PULSE_SLOT_FRAME),
+  fuel:slotGeometry(64.10,DRIVE_SLOT_FRAME),
+  oxidizer:slotGeometry(75.50,DRIVE_SLOT_FRAME),
+  coolant:slotGeometry(87.10,DRIVE_SLOT_FRAME),
 });
 
-const centerX=use=>LOADOUT_SLOT_GEOMETRY[use].labelX;
+const centerX=use=>LOADOUT_SLOT_GEOMETRY[use].centerX;
 const pct=value=>`${value}%`;
+const svgRectGeometry=geometry=>({
+  x:Math.round(geometry.left*10),
+  y:Math.round(geometry.top*2),
+  width:Math.round(geometry.width*10),
+  height:Math.round(geometry.height*2),
+  rx:9,
+  ry:7,
+});
 
 function addUnitImages(map){
   if(!map)return;
@@ -52,9 +71,9 @@ function addSchematic(map){
 
   const hitSvg=svgElement('svg',{class:'loadout-slot-overlay',viewBox:'0 0 1000 200',preserveAspectRatio:'none','aria-hidden':'true'});
   for(const use of SLOT_USES){
-    const path=svgElement('path',{class:'loadout-slot-path','data-use':use,d:LOADOUT_SLOT_GEOMETRY[use].shape});
-    path.addEventListener('click',event=>{event.stopPropagation();document.getElementById(`shell-${use}`)?.click();});
-    hitSvg.append(path);
+    const rect=svgElement('rect',{class:'loadout-slot-path','data-use':use,...svgRectGeometry(LOADOUT_SLOT_GEOMETRY[use])});
+    rect.addEventListener('click',event=>{event.stopPropagation();document.getElementById(`shell-${use}`)?.click();});
+    hitSvg.append(rect);
   }
   map.append(hitSvg);
 
