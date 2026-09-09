@@ -4,17 +4,21 @@ import test from 'node:test';
 
 const source=readFileSync(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8');
 
-test('loadout workstation defines tank-silhouette geometry instead of rectangular thirds',()=>{
+test('loadout workstation uses straight rectangular geometry on white tank structures',()=>{
   assert.match(source,/LOADOUT_SLOT_GEOMETRY/);
-  assert.match(source,/propellant:Object\.freeze\(\{left:9\.0,width:12\.9/);
-  assert.match(source,/fuel:Object\.freeze\(\{left:57\.7,width:12\.2/);
-  assert.match(source,/oxidizer:Object\.freeze\(\{left:69\.9,width:11\.3/);
-  assert.match(source,/coolant:Object\.freeze\(\{left:81\.4,width:11\.6/);
-  for(const use of ['propellant','fuel','oxidizer','coolant'])assert.match(source,new RegExp(`${use}:Object\\.freeze\\(\\{[^}]*shape:'M`));
+  assert.match(source,/propellant:Object\.freeze\(\{left:9\.6,width:10\.9/);
+  assert.match(source,/fuel:Object\.freeze\(\{left:59\.0,width:10\.2/);
+  assert.match(source,/oxidizer:Object\.freeze\(\{left:71\.0,width:9\.0/);
+  assert.match(source,/coolant:Object\.freeze\(\{left:82\.4,width:9\.4/);
+  assert.match(source,/shape:'M96 75 H205 V129 H96 Z'/);
+  assert.match(source,/shape:'M590 76 H692 V130 H590 Z'/);
+  assert.match(source,/shape:'M710 76 H800 V130 H710 Z'/);
+  assert.match(source,/shape:'M824 76 H918 V130 H824 Z'/);
+  assert.doesNotMatch(source,/shape:'[^']*[QLC]/);
   assert.doesNotMatch(source,/--loadout-drive-cell/);
 });
 
-test('SVG hit overlay forwards clicks only from tank silhouette paths',()=>{
+test('SVG hit overlay forwards clicks only from tank paths',()=>{
   assert.match(source,/loadout-slot-overlay/);
   assert.match(source,/class:'loadout-slot-path'/);
   assert.match(source,/'data-use':use/);
@@ -34,7 +38,7 @@ test('schematic, labels, pods, and hit areas share geometry-derived centers',()=
   assert.match(source,/width:var\(--slot-width\)!important/);
 });
 
-test('selection highlight follows silhouette path rather than rectangular pseudo element',()=>{
+test('selection highlight uses the same rectangular tank path',()=>{
   assert.match(source,/loadout-slot-path\[data-use='fuel'\]/);
   assert.match(source,/loadout-slot-path\[data-use='oxidizer'\]/);
   assert.match(source,/loadout-slot-path\[data-use='coolant'\]/);
@@ -44,12 +48,20 @@ test('selection highlight follows silhouette path rather than rectangular pseudo
   assert.doesNotMatch(source,/\.port-propellant\[data-active=true\]:before/);
 });
 
-test('dark end caps and connectors are excluded by gaps between silhouette paths',()=>{
-  assert.match(source,/fuel:Object\.freeze\([^\n]*shape:'M592 76 H678/);
-  assert.match(source,/oxidizer:Object\.freeze\([^\n]*shape:'M713 76 H791/);
-  assert.match(source,/coolant:Object\.freeze\([^\n]*shape:'M828 76 H910/);
-  assert.doesNotMatch(source,/fuel:Object\.freeze\(\{left:56\.6,width:12\.7/);
-  assert.doesNotMatch(source,/coolant:Object\.freeze\(\{left:80\.7,width:15\.0/);
+test('dark end caps and inter-tank connectors remain outside hit boxes',()=>{
+  assert.match(source,/fuel:Object\.freeze\([^\n]*shape:'M590 76 H692/);
+  assert.match(source,/oxidizer:Object\.freeze\([^\n]*shape:'M710 76 H800/);
+  assert.match(source,/coolant:Object\.freeze\([^\n]*shape:'M824 76 H918/);
+  assert.doesNotMatch(source,/M576 76 H700/);
+  assert.doesNotMatch(source,/M695 76 H812/);
+  assert.doesNotMatch(source,/M810 76 H932/);
+});
+
+test('vertical bounds remain unchanged from the approved silhouette pass',()=>{
+  assert.match(source,/propellant:Object\.freeze\(\{left:9\.6,width:10\.9,top:36\.5,height:31\.5/);
+  assert.match(source,/fuel:Object\.freeze\(\{left:59\.0,width:10\.2,top:37\.0,height:30\.0/);
+  assert.match(source,/oxidizer:Object\.freeze\(\{left:71\.0,width:9\.0,top:37\.0,height:30\.0/);
+  assert.match(source,/coolant:Object\.freeze\(\{left:82\.4,width:9\.4,top:37\.0,height:30\.0/);
 });
 
 test('current molecule display keeps the backed pod below each tank',()=>{
