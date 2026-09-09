@@ -33,7 +33,9 @@ export function oxygenVortexFlowAt(p){
   // readable pre-flow cue, not an invisible rail that steers for the player.
   const guide=routeFlowAt(OXYGEN_VORTEX_ROUTE,p,{speed:4.5,radius:OXYGEN_VORTEX_ROUTE.width*.72});
   const dx=p.x-vortexCenter.x,dy=p.y-vortexCenter.y,radius=Math.hypot(dx,dy);
-  if(!Number.isFinite(radius)||radius<1||radius>=OXYGEN_VORTEX.influenceRadius)return {...guide,radius,guideIntensity:guide.intensity};
+  if(!Number.isFinite(radius))return {x:0,y:0,intensity:0,radius,guideIntensity:0};
+  if(radius<1)return {x:0,y:0,intensity:0,radius,guideIntensity:guide.intensity};
+  if(radius>=OXYGEN_VORTEX.influenceRadius)return {...guide,radius,guideIntensity:guide.intensity};
   const rx=dx/radius,ry=dy/radius,tx=-ry*OXYGEN_VORTEX.direction,ty=rx*OXYGEN_VORTEX.direction;
   const edge=smoothstep((OXYGEN_VORTEX.influenceRadius-radius)/(OXYGEN_VORTEX.influenceRadius-OXYGEN_VORTEX.outerRadius));
   const coreFade=smoothstep((radius-OXYGEN_VORTEX.coreRadius*.45)/(OXYGEN_VORTEX.coreRadius*.8));
@@ -46,8 +48,8 @@ export function oxygenVortexFlowAt(p){
   const inwardAssist=OXYGEN_VORTEX.inwardAssist*edge*clamp(-radialVelocity/130,0,1)*clamp(tangentVelocity/150,0,1);
   const escapeBand=Math.sin(Math.PI*clamp((radius-OXYGEN_VORTEX.coreRadius)/(OXYGEN_VORTEX.outerRadius-OXYGEN_VORTEX.coreRadius),0,1));
   const escape=OXYGEN_VORTEX.escapeAssist*edge*escapeBand*clamp(radialVelocity/130,0,1)*clamp(tangentVelocity/180,0,1);
-  const radial=escape-baseInward-inwardAssist,guideWeight=1-edge*.7;
-  return {x:tx*tangential+rx*radial+guide.x*guideWeight,y:ty*tangential+ry*radial+guide.y*guideWeight,intensity:Math.max(edge*coreFade,guide.intensity*.55),radius,radial,tangential,guideIntensity:guide.intensity};
+  const radial=escape-baseInward-inwardAssist,guideWeight=coreFade*(1-edge*.7);
+  return {x:tx*tangential+rx*radial+guide.x*guideWeight,y:ty*tangential+ry*radial+guide.y*guideWeight,intensity:Math.max(edge*coreFade,guide.intensity*.55*coreFade),radius,radial,tangential,guideIntensity:guide.intensity*coreFade};
 }
 export const OXYGEN_ROUTES=Object.freeze([
   {id:'oxygen-shortcut',label:'強流の近道',color:'#a8d8f0',x:-300,width:230,
