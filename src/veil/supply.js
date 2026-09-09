@@ -59,8 +59,8 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
   }
   function destinationTransform(item,scale=1){return `translate(-50%,-50%) translate(${item.x}px,${item.y}px) scale(${scale})`;}
   function showLaunchDestinations(show){
-    launchOpen=show;launchLayer.setAttribute('aria-hidden',String(!show));for(const item of launchItems){item.node.style.opacity=show?'1':'0';item.node.style.pointerEvents=show?'auto':'none';item.node.tabIndex=show?0:-1;item.node.style.transform=destinationTransform(item,show?(item===launchActive?1.16:1):.55);item.node.style.boxShadow=item===launchActive?`0 0 25px ${item.color},inset 0 0 12px ${item.color}55`:item.checkpoint?`0 0 14px ${item.color}77`:`0 0 10px ${item.color}44`;}
-    for(const use of USE_ORDER)q(`shell-${use}`).style.opacity=show?'.34':'1';if(!show)launchActive=null;
+    launchOpen=show;shellMap.classList.toggle('launch-selecting',show);launchLayer.setAttribute('aria-hidden',String(!show));for(const item of launchItems){item.node.style.opacity=show?'1':'0';item.node.style.pointerEvents=show?'auto':'none';item.node.tabIndex=show?0:-1;item.node.style.transform=destinationTransform(item,show?(item===launchActive?1.16:1):.55);item.node.style.boxShadow=item===launchActive?`0 0 25px ${item.color},inset 0 0 12px ${item.color}55`:item.checkpoint?`0 0 14px ${item.color}77`:`0 0 10px ${item.color}44`;}
+    for(const use of USE_ORDER)q(`shell-${use}`).style.opacity=show?'.34':'1';for(const path of shellMap.querySelectorAll('.loadout-slot-path'))path.style.pointerEvents=show?'none':'visibleFill';if(!show)launchActive=null;
   }
   function resetLaunchPosition(){shellCanvas.style.transition=reduced?'none':'transform .16s ease, opacity .16s ease';shellCanvas.style.transform='translate(0px,0px)';shellCanvas.style.opacity='1';launchHandle.style.cursor='grab';}
   function renderLaunchDestinations(){
@@ -162,7 +162,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
   }
   function commitFill(){return false;}
   function showPartialConfirm(plan){
-    partialRows.replaceChildren();for(const entry of plan.partial.entries.filter(item=>item.molecule)){const row=document.createElement('div'),label=document.createElement('span'),track=document.createElement('i'),fill=document.createElement('b');label.textContent=`${TANK_USES[entry.use].label} · ${formulaId(entry.molecule)}  ${entry.target}/${entry.capacity}`;Object.assign(track.style,{display:'block',height:'5px',borderRadius:'4px',background:'#304553',overflow:'hidden'});Object.assign(fill.style,{display:'block',height:'100%',transformOrigin:'left',transform:`scaleX(${entry.capacity?entry.target/entry.capacity:0})`,background:'#9ad8e5'});track.append(fill);row.append(label,track);partialRows.append(row);}partialPanel.hidden=false;
+    partialRows.replaceChildren();for(const entry of plan.partial.entries.filter(item=>item.molecule)){const row=document.createElement('div'),label=document.createElement('span'),track=document.createElement('i'),fill=document.createElement('b');label.textContent=`${TANK_USES[entry.use].label} · ${formulaId(entry.molecule)}  ${entry.target}/${entry.capacity}`;Object.assign(track.style,{display:'block',height:'5px',borderRadius:'4px',background:'#304553',overflow:'hidden'});Object.assign(fill.style,{display:'block',height:'100%',transformOrigin:'left',transform:`scaleX(${entry.capacity?entry.target/entry.capacity:0})`,background:'#9ad8e5'});track.append(fill);row.append(label,track);partialRows.append(row);}partialPanel.hidden=false;queueMicrotask(()=>{partialPanel.scrollIntoView?.({block:'nearest',behavior:reduced?'auto':'smooth'});partialGo.focus?.({preventScroll:true});});
   }
   async function playSynthesis(plan){
     if(reduced||!plan||typeof Element==='undefined'){return;}synthesisLayer.replaceChildren();const atoms=[];for(const [el,n]of Object.entries(plan.cost))for(let i=0;i<Math.min(4,n);i++)atoms.push(el);if(!atoms.length)return;const rect=shellMap.getBoundingClientRect();for(const [index,el]of atoms.entries()){const dot=document.createElement('span');dot.textContent=el;Object.assign(dot.style,{position:'absolute',left:`${24+(index%4)*18}%`,bottom:'4px',width:'22px',height:'22px',display:'grid',placeItems:'center',borderRadius:'50%',border:'1px solid #bfefff',background:'#123142ee',fontSize:'10px',fontWeight:'800'});synthesisLayer.append(dot);dot.animate?.([{transform:'translate(0,0) scale(.7)',opacity:.2},{transform:`translate(${rect.width*(.5-(.24+(index%4)*.18))}px,${-rect.height*.32}px) scale(1)`,opacity:1,offset:.58},{transform:`translate(${rect.width*(.52-(.24+(index%4)*.18))}px,${-rect.height*.48}px) scale(.35)`,opacity:0}],{duration:460,index,easing:'ease-in-out',fill:'forwards'});}await new Promise(resolve=>setTimeout(resolve,480));synthesisLayer.replaceChildren();
@@ -170,15 +170,22 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
   async function commitAndContinue(partial){
     if(launchBusy||resources.blocked||!canOpen())return false;
     launchBusy=true;
-    if(onPrepareLaunch()===false){launchBusy=false;update();return false;}
-    const result=resources.commitLaunchFill({partial});
-    if(!result){launchBusy=false;update();return false;}
-    update();
-    if(Object.keys(result.plan.cost).length)await playSynthesis(result.plan);
-    launchBusy=false;
-    const started=onLaunchReady()!==false;
-    if(started)dialog.close();else update();
-    return started;
+    try{
+      if(onPrepareLaunch()===false){update();return false;}
+      const result=resources.commitLaunchFill({partial});
+      if(!result){update();return false;}
+      update();
+      if(Object.keys(result.plan.cost).length)await playSynthesis(result.plan);
+      if(dialog.open)dialog.close();
+      let started=false;
+      try{started=onLaunchReady()!==false;}catch(error){console.error('Expedition launch failed after loadout commit.',error);}
+      if(started)return true;
+      if(!resources.blocked&&canOpen()&&!dialog.open)dialog.showModal();
+      update();
+      return false;
+    }finally{
+      launchBusy=false;
+    }
   }
 
   q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';partialPanel.hidden=true;dialog.showModal();update();showLaunchDestinations(false);resetLaunchPosition();});
