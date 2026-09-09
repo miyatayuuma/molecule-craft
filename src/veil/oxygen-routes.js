@@ -29,7 +29,9 @@ export const OXYGEN_VORTEX=Object.freeze({
   ]),
 });
 export function oxygenVortexFlowAt(p){
-  const guide=routeFlowAt(OXYGEN_VORTEX_ROUTE,p,{speed:34,radius:OXYGEN_VORTEX_ROUTE.width*.72});
+  // Route guidance is deliberately much weaker than the vortex itself. It is a
+  // readable pre-flow cue, not an invisible rail that steers for the player.
+  const guide=routeFlowAt(OXYGEN_VORTEX_ROUTE,p,{speed:4.5,radius:OXYGEN_VORTEX_ROUTE.width*.72});
   const dx=p.x-vortexCenter.x,dy=p.y-vortexCenter.y,radius=Math.hypot(dx,dy);
   if(!Number.isFinite(radius)||radius<1||radius>=OXYGEN_VORTEX.influenceRadius)return {...guide,radius,guideIntensity:guide.intensity};
   const rx=dx/radius,ry=dy/radius,tx=-ry*OXYGEN_VORTEX.direction,ty=rx*OXYGEN_VORTEX.direction;
