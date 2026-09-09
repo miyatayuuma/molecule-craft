@@ -1,35 +1,37 @@
-// One authored experiment. Geometry is shared by physics, dust, drawing and
-// the supply chart; no route knows about recipes, molecule IDs or unlocks.
-// Placement parameters are also accepted by offline comparison runs.
+import {createVortexFlybyRoute,routeFlowAt} from './route-kit.js';
+
+// One authored experiment. Route geometry and local field guidance share one
+// route definition; the vortex remains a reusable area feature layered on top.
 export const OXYGEN_HARVEST=Object.freeze({sideSpacing:90,eddyAtoms:180});
 export const OXYGEN_JUNCTION=Object.freeze({x:120,y:-8700});
 export const OXYGEN_REWARD=Object.freeze({x:120,y:-10720,radius:95});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smoothstep=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const freezePoints=points=>Object.freeze(points.map(point=>Object.freeze(point)));
-const spiral=(center,startRadius,endRadius,startAngle,turns,steps,direction)=>Array.from({length:steps+1},(_,i)=>{
-  const t=i/steps,r=startRadius+(endRadius-startRadius)*t,angle=startAngle+direction*Math.PI*2*turns*t;
-  return [center.x+Math.cos(angle)*r,center.y+Math.sin(angle)*r];
-});
 const vortexCenter=Object.freeze({x:-500,y:-8380});
-const vortexDirection=-1,vortexStartAngle=.38;
-const vortexInward=spiral(vortexCenter,590,110,vortexStartAngle,.78,18,vortexDirection);
-const vortexExitAngle=vortexStartAngle+vortexDirection*Math.PI*2*.78+Math.PI/2;
-const vortexOutward=spiral(vortexCenter,110,620,vortexExitAngle,.58,16,vortexDirection);
+const vortexDirection=-1;
+export const OXYGEN_VORTEX_ROUTE=createVortexFlybyRoute({
+  id:'oxygen-vortex-route',
+  entry:{x:170,y:-8090,angle:-Math.PI/2},
+  exit:{...OXYGEN_JUNCTION,angle:-Math.PI/2},
+  center:vortexCenter,width:230,outerRadius:620,innerRadius:105,startAngle:.4,inwardTurns:.39,outwardTurns:.25,direction:vortexDirection,spacing:20,
+});
+export const OXYGEN_VORTEX_REWARD=Object.freeze({x:vortexCenter.x,y:vortexCenter.y,radius:72});
 export const OXYGEN_VORTEX=Object.freeze({
-  id:'oxygen-vortex',label:'冷たい渦',center:vortexCenter,direction:vortexDirection,
+  id:'oxygen-vortex',label:'冷たい渦',center:vortexCenter,direction:vortexDirection,routeId:OXYGEN_VORTEX_ROUTE.id,
   influenceRadius:760,outerRadius:560,coreRadius:82,tangentialSpeed:112,inwardSpeed:40,inwardAssist:110,escapeAssist:96,
-  knots:freezePoints([[170,-8090],[70,-8135],...vortexInward,[vortexCenter.x,vortexCenter.y],...vortexOutward,[160,-8360],[205,-8200],[170,-8090]]),
+  knots:freezePoints(OXYGEN_VORTEX_ROUTE.points.map(point=>[point.x,point.y])),
+  sockets:Object.freeze({entry:OXYGEN_VORTEX_ROUTE.sockets.entry,core:OXYGEN_VORTEX_ROUTE.sockets.core,exit:OXYGEN_VORTEX_ROUTE.sockets.exit,reward:OXYGEN_VORTEX_REWARD}),
   particleRings:Object.freeze([
     Object.freeze({radius:660,count:20,angularSpeed:-.13}),Object.freeze({radius:560,count:24,angularSpeed:-.17}),
     Object.freeze({radius:455,count:26,angularSpeed:-.22}),Object.freeze({radius:350,count:24,angularSpeed:-.28}),
     Object.freeze({radius:245,count:20,angularSpeed:-.34}),Object.freeze({radius:150,count:14,angularSpeed:-.40}),
   ]),
 });
-export const OXYGEN_VORTEX_REWARD=Object.freeze({x:vortexCenter.x,y:vortexCenter.y,radius:72});
 export function oxygenVortexFlowAt(p){
+  const guide=routeFlowAt(OXYGEN_VORTEX_ROUTE,p,{speed:34,radius:OXYGEN_VORTEX_ROUTE.width*.72});
   const dx=p.x-vortexCenter.x,dy=p.y-vortexCenter.y,radius=Math.hypot(dx,dy);
-  if(!Number.isFinite(radius)||radius<1||radius>=OXYGEN_VORTEX.influenceRadius)return {x:0,y:0,intensity:0,radius};
+  if(!Number.isFinite(radius)||radius<1||radius>=OXYGEN_VORTEX.influenceRadius)return {...guide,radius,guideIntensity:guide.intensity};
   const rx=dx/radius,ry=dy/radius,tx=-ry*OXYGEN_VORTEX.direction,ty=rx*OXYGEN_VORTEX.direction;
   const edge=smoothstep((OXYGEN_VORTEX.influenceRadius-radius)/(OXYGEN_VORTEX.influenceRadius-OXYGEN_VORTEX.outerRadius));
   const coreFade=smoothstep((radius-OXYGEN_VORTEX.coreRadius*.45)/(OXYGEN_VORTEX.coreRadius*.8));
@@ -42,8 +44,8 @@ export function oxygenVortexFlowAt(p){
   const inwardAssist=OXYGEN_VORTEX.inwardAssist*edge*clamp(-radialVelocity/130,0,1)*clamp(tangentVelocity/150,0,1);
   const escapeBand=Math.sin(Math.PI*clamp((radius-OXYGEN_VORTEX.coreRadius)/(OXYGEN_VORTEX.outerRadius-OXYGEN_VORTEX.coreRadius),0,1));
   const escape=OXYGEN_VORTEX.escapeAssist*edge*escapeBand*clamp(radialVelocity/130,0,1)*clamp(tangentVelocity/180,0,1);
-  const radial=escape-baseInward-inwardAssist;
-  return {x:tx*tangential+rx*radial,y:ty*tangential+ry*radial,intensity:edge*coreFade,radius,radial,tangential};
+  const radial=escape-baseInward-inwardAssist,guideWeight=1-edge*.7;
+  return {x:tx*tangential+rx*radial+guide.x*guideWeight,y:ty*tangential+ry*radial+guide.y*guideWeight,intensity:Math.max(edge*coreFade,guide.intensity*.55),radius,radial,tangential,guideIntensity:guide.intensity};
 }
 export const OXYGEN_ROUTES=Object.freeze([
   {id:'oxygen-shortcut',label:'強流の近道',color:'#a8d8f0',x:-300,width:230,
