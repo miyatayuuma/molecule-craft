@@ -18,7 +18,7 @@ const vortexExitAngle=vortexStartAngle+vortexDirection*Math.PI*2*.78+Math.PI/2;
 const vortexOutward=spiral(vortexCenter,110,620,vortexExitAngle,.58,16,vortexDirection);
 export const OXYGEN_VORTEX=Object.freeze({
   id:'oxygen-vortex',label:'冷たい渦',center:vortexCenter,direction:vortexDirection,
-  influenceRadius:760,outerRadius:560,coreRadius:82,tangentialSpeed:112,inwardSpeed:40,escapeAssist:96,
+  influenceRadius:760,outerRadius:560,coreRadius:82,tangentialSpeed:112,inwardSpeed:40,inwardAssist:110,escapeAssist:96,
   knots:freezePoints([[170,-8090],[70,-8135],...vortexInward,[vortexCenter.x,vortexCenter.y],...vortexOutward,[160,-8360],[205,-8200],[170,-8090]]),
   particleRings:Object.freeze([
     Object.freeze({radius:660,count:20,angularSpeed:-.13}),Object.freeze({radius:560,count:24,angularSpeed:-.17}),
@@ -34,11 +34,15 @@ export function oxygenVortexFlowAt(p){
   const edge=smoothstep((OXYGEN_VORTEX.influenceRadius-radius)/(OXYGEN_VORTEX.influenceRadius-OXYGEN_VORTEX.outerRadius));
   const coreFade=smoothstep((radius-OXYGEN_VORTEX.coreRadius*.45)/(OXYGEN_VORTEX.coreRadius*.8));
   const tangential=OXYGEN_VORTEX.tangentialSpeed*edge*(.58+.42*clamp(radius/OXYGEN_VORTEX.outerRadius,0,1))*coreFade;
-  const inward=OXYGEN_VORTEX.inwardSpeed*edge*clamp((radius-OXYGEN_VORTEX.coreRadius)/(OXYGEN_VORTEX.outerRadius-OXYGEN_VORTEX.coreRadius),0,1);
   const vx=Number.isFinite(p.vx)?p.vx:0,vy=Number.isFinite(p.vy)?p.vy:0,radialVelocity=vx*rx+vy*ry,tangentVelocity=vx*tx+vy*ty;
+  // Cutting inward while already travelling with the current converts orbital
+  // speed into inward progress. Pointing straight at the centre still works,
+  // but is not the quickest standard-thrust line.
+  const baseInward=OXYGEN_VORTEX.inwardSpeed*edge*clamp((radius-OXYGEN_VORTEX.coreRadius)/(OXYGEN_VORTEX.outerRadius-OXYGEN_VORTEX.coreRadius),0,1);
+  const inwardAssist=OXYGEN_VORTEX.inwardAssist*edge*clamp(-radialVelocity/130,0,1)*clamp(tangentVelocity/150,0,1);
   const escapeBand=Math.sin(Math.PI*clamp((radius-OXYGEN_VORTEX.coreRadius)/(OXYGEN_VORTEX.outerRadius-OXYGEN_VORTEX.coreRadius),0,1));
   const escape=OXYGEN_VORTEX.escapeAssist*edge*escapeBand*clamp(radialVelocity/130,0,1)*clamp(tangentVelocity/180,0,1);
-  const radial=escape-inward;
+  const radial=escape-baseInward-inwardAssist;
   return {x:tx*tangential+rx*radial,y:ty*tangential+ry*radial,intensity:edge*coreFade,radius,radial,tangential};
 }
 export const OXYGEN_ROUTES=Object.freeze([
