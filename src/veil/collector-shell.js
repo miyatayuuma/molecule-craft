@@ -43,8 +43,6 @@ export function drawCollectorShell(ctx,{x=0,y=0,angle=0,scale=1,bank=0}={}){
     ctx.scale(scale*(1-Math.abs(bank)*.18),scale);
     ctx.drawImage(image,-SPRITE_WIDTH/2,-SPRITE_HEIGHT/2,SPRITE_WIDTH,SPRITE_HEIGHT);
   }else{
-    // Keep a tiny vector fallback for unsupported/failed image loading; normal
-    // gameplay uses the sprite asset above.
     ctx.rotate(-Math.PI/2);ctx.scale(scale*1.2,scale*1.2*(1-Math.abs(bank)*.18));fallback(ctx);
   }
   ctx.restore();ctx.globalAlpha=1;
@@ -53,5 +51,5 @@ export function drawCollectorShell(ctx,{x=0,y=0,angle=0,scale=1,bank=0}={}){
 export function drawCollectorShellPreview(canvas){
   const rect=canvas.getBoundingClientRect(),ratio=Math.min(globalThis.devicePixelRatio??1,2),width=Math.max(1,Math.round(rect.width*ratio)),height=Math.max(1,Math.round(rect.height*ratio));
   if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
-  const ctx=canvas.getContext('2d');if(!ctx)return;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,rect.width,rect.height);drawCollectorShell(ctx,{x:rect.width/2+10,y:rect.height/2,angle:-Math.PI/2,scale:Math.min(rect.width/150,rect.height/90)});
+  const ctx=canvas.getContext('2d');if(!ctx)return;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,rect.width,rect.height);drawCollectorShell(ctx,{x:rect.width*.39,y:rect.height*.52,angle:-Math.PI/2,scale:Math.min(rect.width/150,rect.height/90)});
 }

@@ -1,36 +1,32 @@
 import assert from 'node:assert/strict';
-import {
-  propellantPreviewValues,
-  fuelPreviewValues,
-  coolantPreviewValues,
-  loadoutPreviewValues,
-} from '../src/veil/loadout-preview.js';
+import {propellantPreviewValues,fuelPreviewValues,coolantPreviewValues,oxidizerPreviewValues,loadoutPreviewValues} from '../src/veil/loadout-preview.js';
 
-const h2Burst=propellantPreviewValues('hydrogen');
-const co2Burst=propellantPreviewValues('carbon-dioxide');
-assert.ok(h2Burst.burstDistance>co2Burst.burstDistance,'H2 burst should visibly travel farther than CO2');
-assert.equal(h2Burst.fullShots,3);
-assert.equal(co2Burst.fullShots,9);
+const h2=propellantPreviewValues('hydrogen');
+const co2=propellantPreviewValues('carbon-dioxide');
+assert.ok(h2.burstVisual>co2.burstVisual,'H2 keeps the stronger single BURST');
+assert.equal(h2.fullShots,3);
+assert.equal(co2.fullShots,9);
 assert.equal(propellantPreviewValues('hydrogen',{amount:80}).shots,2);
+assert.ok(co2.shots>h2.shots,'CO2 keeps the higher BURST count');
 
-const h2Fuel=fuelPreviewValues('hydrogen',{oxygenAmount:36,coolantId:'water'});
-const dmeFuel=fuelPreviewValues('dimethyl-ether',{oxygenAmount:36,coolantId:'water'});
-const hexaneFuel=fuelPreviewValues('n-hexane',{oxygenAmount:36,coolantId:'water'});
-assert.ok(h2Fuel.responseVisual>dmeFuel.responseVisual);
-assert.ok(dmeFuel.responseVisual>hexaneFuel.responseVisual);
-assert.notEqual(h2Fuel.fuelDrainRate,hexaneFuel.fuelDrainRate);
-assert.notEqual(h2Fuel.oxygenDrainRate,hexaneFuel.oxygenDrainRate);
-assert.notEqual(h2Fuel.heatRise,hexaneFuel.heatRise);
-assert.ok(fuelPreviewValues('methane',{coolantId:'nitrogen'}).heatRise<fuelPreviewValues('methane',{coolantId:'water'}).heatRise,'strong coolant should suppress the fuel preview heat rise');
+const methane=fuelPreviewValues('methane',{oxygenAmount:36,coolantId:'water'});
+const hydrogen=fuelPreviewValues('hydrogen',{oxygenAmount:36,coolantId:'water'});
+const methaneStrongCooling=fuelPreviewValues('methane',{oxygenAmount:36,coolantId:'nitrogen'});
+assert.ok(hydrogen.responseVisual>methane.responseVisual,'Fast-response fuels rank higher on acceleration');
+assert.ok(methane.endurance>hydrogen.endurance,'Longer-running fuel loadouts rank higher on endurance');
+assert.ok(methaneStrongCooling.thermalMargin>methane.thermalMargin,'Stronger coolant increases thermal margin');
+assert.ok(methane.thermalMargin>=0&&methane.thermalMargin<=1);
 
 const nitrogen=coolantPreviewValues('nitrogen');
+const water=coolantPreviewValues('water');
 const glycol=coolantPreviewValues('ethylene-glycol');
-assert.ok(nitrogen.initialCooling>glycol.initialCooling,'N2 should cool faster initially');
-assert.ok(nitrogen.endurance<glycol.endurance,'glycol should persist longer');
-assert.ok(nitrogen.highHeatTolerance<glycol.highHeatTolerance,'glycol should retain more high-temperature effectiveness');
-assert.ok(nitrogen.depletionRate>glycol.depletionRate,'N2 should deplete faster in the preview');
+assert.ok(nitrogen.cooling>glycol.cooling,'N2 keeps the stronger initial cooling');
+assert.ok(glycol.endurance>water.endurance,'Glycol exposes its longer coolant endurance');
+assert.ok(glycol.thermalMargin>nitrogen.thermalMargin,'Glycol keeps the larger high-temperature margin');
 
-assert.deepEqual(loadoutPreviewValues('oxidizer','oxygen'),{minimal:true});
+const oxygen=oxidizerPreviewValues('oxygen');
+assert.equal(oxygen.oxidizingPower,1);
+assert.deepEqual(loadoutPreviewValues('oxidizer','oxygen'),oxygen);
 assert.equal(loadoutPreviewValues('fuel','oxygen'),null);
 
-console.log('Loadout preview values passed: propellant burst/shot tradeoff, fuel response/consumption/heat, coolant rate/endurance/tolerance.');
+console.log('Loadout preview bars passed: PULSE tradeoff and role-specific DRIVE metrics.');
