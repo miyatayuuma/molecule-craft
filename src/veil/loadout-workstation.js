@@ -8,10 +8,10 @@ const SLOT_USES=['propellant','fuel','oxidizer','coolant'];
 
 export const LOADOUT_LABELS=Object.freeze({propellant:'PULSE',fuel:'FUEL',oxidizer:'O₂',coolant:'COOLANT'});
 export const LOADOUT_SLOT_GEOMETRY=Object.freeze({
-  propellant:Object.freeze({left:9.0,width:12.9,top:36.5,height:31.5,labelX:15.45,shape:'M103 75 H190 Q204 75 211 87 L219 99 L211 117 Q204 129 190 129 H111 Q98 129 91 117 L86 99 L93 85 Q98 75 103 75 Z'}),
-  fuel:Object.freeze({left:57.7,width:12.2,top:37.0,height:30.0,labelX:63.80,shape:'M592 76 H678 Q689 76 695 87 L700 102 L694 118 Q689 130 678 130 H598 Q586 130 580 118 L576 102 L581 87 Q586 76 592 76 Z'}),
-  oxidizer:Object.freeze({left:69.9,width:11.3,top:37.0,height:30.0,labelX:75.55,shape:'M713 76 H791 Q802 76 808 87 L812 102 L806 118 Q801 130 790 130 H716 Q705 130 699 118 L695 102 L700 87 Q705 76 713 76 Z'}),
-  coolant:Object.freeze({left:81.4,width:11.6,top:37.0,height:30.0,labelX:87.20,shape:'M828 76 H910 Q921 76 927 87 L932 102 L926 118 Q921 130 910 130 H832 Q821 130 815 118 L810 102 L815 87 Q820 76 828 76 Z'}),
+  propellant:Object.freeze({left:9.6,width:10.9,top:36.5,height:31.5,labelX:15.05,shape:'M96 75 H205 V129 H96 Z'}),
+  fuel:Object.freeze({left:59.0,width:10.2,top:37.0,height:30.0,labelX:64.10,shape:'M590 76 H692 V130 H590 Z'}),
+  oxidizer:Object.freeze({left:71.0,width:9.0,top:37.0,height:30.0,labelX:75.50,shape:'M710 76 H800 V130 H710 Z'}),
+  coolant:Object.freeze({left:82.4,width:9.4,top:37.0,height:30.0,labelX:87.10,shape:'M824 76 H918 V130 H824 Z'}),
 });
 
 const centerX=use=>LOADOUT_SLOT_GEOMETRY[use].labelX;
@@ -261,8 +261,8 @@ function installStyles(){
 #supply-dialog .loadout-slot-path{fill:#a9f1f5;fill-opacity:.001;stroke:transparent;stroke-width:1.6;vector-effect:non-scaling-stroke;pointer-events:visibleFill;cursor:pointer;touch-action:manipulation;transition:fill-opacity .12s ease,stroke .12s ease,filter .12s ease}
 #supply-dialog .collector-shell-map:has(#shell-propellant[data-active=true]) .loadout-slot-path[data-use='propellant'],#supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-slot-path[data-use='fuel'],#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-slot-path[data-use='oxidizer'],#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-slot-path[data-use='coolant']{fill-opacity:.12;stroke:#a8edf5d6;filter:drop-shadow(0 0 5px #74d6e177)}
 #supply-dialog .loadout-callout-label{position:absolute;z-index:6;color:#d8e8ed;font-size:11px;font-weight:800;line-height:1;letter-spacing:.09em;pointer-events:none;user-select:none;text-shadow:0 1px 4px #000,0 0 7px #6dc8d044;transition:opacity .14s ease,color .12s ease}
-#supply-dialog .loadout-pulse-label{left:var(--slot-label-x,15.45%);top:22px;transform:translateX(-50%)}
-#supply-dialog .loadout-drive-label{left:75.55%;top:17px;transform:translateX(-50%);font-size:12px;letter-spacing:.14em}
+#supply-dialog .loadout-pulse-label{left:var(--slot-label-x,15.05%);top:22px;transform:translateX(-50%)}
+#supply-dialog .loadout-drive-label{left:75.50%;top:17px;transform:translateX(-50%);font-size:12px;letter-spacing:.14em}
 #supply-dialog .loadout-fuel-label,#supply-dialog .loadout-oxidizer-label,#supply-dialog .loadout-coolant-label{left:var(--slot-label-x);top:69%;transform:translateX(-50%)}
 #supply-dialog #collector-shell-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:2!important}
 #supply-dialog #collector-launch-handle{left:var(--loadout-ship-x)!important;top:52%!important;width:76px!important;height:76px!important}
