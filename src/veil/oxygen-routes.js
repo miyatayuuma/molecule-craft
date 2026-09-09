@@ -4,6 +4,47 @@
 export const OXYGEN_HARVEST=Object.freeze({sideSpacing:90,eddyAtoms:180});
 export const OXYGEN_JUNCTION=Object.freeze({x:120,y:-8700});
 export const OXYGEN_REWARD=Object.freeze({x:120,y:-10720,radius:95});
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const smoothstep=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+const freezePoints=points=>Object.freeze(points.map(point=>Object.freeze(point)));
+const spiral=(center,startRadius,endRadius,startAngle,turns,steps,direction)=>Array.from({length:steps+1},(_,i)=>{
+  const t=i/steps,r=startRadius+(endRadius-startRadius)*t,angle=startAngle+direction*Math.PI*2*turns*t;
+  return [center.x+Math.cos(angle)*r,center.y+Math.sin(angle)*r];
+});
+const vortexCenter=Object.freeze({x:-500,y:-8380});
+const vortexDirection=-1,vortexStartAngle=.38;
+const vortexInward=spiral(vortexCenter,590,110,vortexStartAngle,.78,18,vortexDirection);
+const vortexExitAngle=vortexStartAngle+vortexDirection*Math.PI*2*.78+Math.PI/2;
+const vortexOutward=spiral(vortexCenter,110,620,vortexExitAngle,.58,16,vortexDirection);
+export const OXYGEN_VORTEX=Object.freeze({
+  id:'oxygen-vortex',label:'冷たい渦',center:vortexCenter,direction:vortexDirection,
+  influenceRadius:760,outerRadius:560,coreRadius:82,tangentialSpeed:112,inwardSpeed:40,inwardAssist:110,escapeAssist:96,
+  knots:freezePoints([[170,-8090],[70,-8135],...vortexInward,[vortexCenter.x,vortexCenter.y],...vortexOutward,[160,-8360],[205,-8200],[170,-8090]]),
+  particleRings:Object.freeze([
+    Object.freeze({radius:660,count:20,angularSpeed:-.13}),Object.freeze({radius:560,count:24,angularSpeed:-.17}),
+    Object.freeze({radius:455,count:26,angularSpeed:-.22}),Object.freeze({radius:350,count:24,angularSpeed:-.28}),
+    Object.freeze({radius:245,count:20,angularSpeed:-.34}),Object.freeze({radius:150,count:14,angularSpeed:-.40}),
+  ]),
+});
+export const OXYGEN_VORTEX_REWARD=Object.freeze({x:vortexCenter.x,y:vortexCenter.y,radius:72});
+export function oxygenVortexFlowAt(p){
+  const dx=p.x-vortexCenter.x,dy=p.y-vortexCenter.y,radius=Math.hypot(dx,dy);
+  if(!Number.isFinite(radius)||radius<1||radius>=OXYGEN_VORTEX.influenceRadius)return {x:0,y:0,intensity:0,radius};
+  const rx=dx/radius,ry=dy/radius,tx=-ry*OXYGEN_VORTEX.direction,ty=rx*OXYGEN_VORTEX.direction;
+  const edge=smoothstep((OXYGEN_VORTEX.influenceRadius-radius)/(OXYGEN_VORTEX.influenceRadius-OXYGEN_VORTEX.outerRadius));
+  const coreFade=smoothstep((radius-OXYGEN_VORTEX.coreRadius*.45)/(OXYGEN_VORTEX.coreRadius*.8));
+  const tangential=OXYGEN_VORTEX.tangentialSpeed*edge*(.58+.42*clamp(radius/OXYGEN_VORTEX.outerRadius,0,1))*coreFade;
+  const vx=Number.isFinite(p.vx)?p.vx:0,vy=Number.isFinite(p.vy)?p.vy:0,radialVelocity=vx*rx+vy*ry,tangentVelocity=vx*tx+vy*ty;
+  // Cutting inward while already travelling with the current converts orbital
+  // speed into inward progress. Pointing straight at the centre still works,
+  // but is not the quickest standard-thrust line.
+  const baseInward=OXYGEN_VORTEX.inwardSpeed*edge*clamp((radius-OXYGEN_VORTEX.coreRadius)/(OXYGEN_VORTEX.outerRadius-OXYGEN_VORTEX.coreRadius),0,1);
+  const inwardAssist=OXYGEN_VORTEX.inwardAssist*edge*clamp(-radialVelocity/130,0,1)*clamp(tangentVelocity/150,0,1);
+  const escapeBand=Math.sin(Math.PI*clamp((radius-OXYGEN_VORTEX.coreRadius)/(OXYGEN_VORTEX.outerRadius-OXYGEN_VORTEX.coreRadius),0,1));
+  const escape=OXYGEN_VORTEX.escapeAssist*edge*escapeBand*clamp(radialVelocity/130,0,1)*clamp(tangentVelocity/180,0,1);
+  const radial=escape-baseInward-inwardAssist;
+  return {x:tx*tangential+rx*radial,y:ty*tangential+ry*radial,intensity:edge*coreFade,radius,radial,tangential};
+}
 export const OXYGEN_ROUTES=Object.freeze([
   {id:'oxygen-shortcut',label:'強流の近道',color:'#a8d8f0',x:-300,width:230,
     summary:'強い一噴射で薄い流れを越える。短時間・採集少なめ。',
@@ -14,11 +55,10 @@ export const OXYGEN_ROUTES=Object.freeze([
     knots:[[120,-8700],[850,-8870],[850,-10480],[120,-10670]],
     gates:[-9150,-9500,-9850,-10200].map(y=>({y,depth:24,pressure:490})),pressure:0,lanes:4,value:3},
   {id:'oxygen-main',label:'持続流の本道',color:'#f0b28f',x:120,width:230,
-    summary:'長い逆流を燃焼で進む。静かな渦で冷却しながらOをまとめて回収。',
+    summary:'長い逆流を燃焼で進む。流れの切れ目で冷却しながらOをまとめて回収。',
     knots:[[120,-8700],[120,-8870],[120,-9700],[120,-10480],[120,-10670]],
     gates:[],restStops:[{y:-9700,depth:180}],pressure:370,lanes:2,value:2},
 ]);
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function oxygenRouteAt(p){
   if(p.y>-8870||p.y<-10480)return null;
   return OXYGEN_ROUTES.find(route=>Math.abs(p.x-route.x)<route.width/2)??null;
