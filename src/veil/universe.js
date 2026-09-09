@@ -2,7 +2,7 @@ import {challengeEnvironment} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
-import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenVortexFlowAt } from './oxygen-routes.js';
+import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenVortexFlowAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 // Fixed landmarks and connections; variable contents stay near these curves.
 const ROUTES=[
@@ -29,7 +29,8 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
   for(const d of map.dust){d.element='H';if(d.shoulder){const noise=shoulders.get(key(d));d.x+=noise[0];d.y+=noise[1];}}
   for(const [id,label,knots,element]of ROUTES){
     const authored=OXYGEN_ROUTES.find(route=>route.id===id),deep=!!authored||id==='oxygen-depth',frontier=id==='horizon',profile=authored?{spacing:20,lanes:authored.lanes,value:authored.value}:frontier?GROWTH.density.frontier:deep?GROWTH.density.oxygenDeep:element==='O'?GROWTH.density.oxygenEdge:GROWTH.density.carbon;
-    const route={id,label,element,points:sampleLine(knots,profile.spacing)},routeDepletion=map.depletion[element]??0,lanes=activeLaneCount(profile.lanes,routeDepletion),optional=OPTIONAL_ROUTES.has(id);map.routes.push(route);
+    const geometry=id===OXYGEN_VORTEX.id?OXYGEN_VORTEX_ROUTE:null,points=geometry?.points??sampleLine(knots,profile.spacing);
+    const route={id,label,element,points,geometry,visual:geometry?{kind:'field-flow',color:'#8fc8d5',fieldLines:geometry.fieldLines,particleSpeed:.18}:null},routeDepletion=map.depletion[element]??0,lanes=activeLaneCount(profile.lanes,routeDepletion),optional=OPTIONAL_ROUTES.has(id);map.routes.push(route);
     for(const [i,p]of route.points.entries()){
       const el=element==='C'?(i%6===0?'C':'H'):element==='O'?(i%5===0?'H':i%17===0?'C':'O'):'H';
       const keep=keepDepletedSegment(routeDepletion,seed^0x29d41,id,i,{optional})&&keepDepletedSegment(map.depletion[el]??0,seed^0x7f4a7c15,`${id}:${el}`,i);
