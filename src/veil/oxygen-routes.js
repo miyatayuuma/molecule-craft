@@ -14,7 +14,7 @@ export const OXYGEN_VORTEX_ROUTE=createVortexFlybyRoute({
   id:'oxygen-vortex-route',
   entry:{x:170,y:-8090,angle:-Math.PI/2},
   exit:{...OXYGEN_JUNCTION,angle:-Math.PI/2},
-  center:vortexCenter,width:230,outerRadius:620,innerRadius:105,startAngle:.4,inwardTurns:.39,outwardTurns:.25,direction:vortexDirection,spacing:20,
+  center:vortexCenter,width:230,outerRadius:620,outwardRadius:820,innerRadius:105,startAngle:.4,inwardTurns:.27,outwardTurns:.23,direction:vortexDirection,spacing:20,
 });
 export const OXYGEN_VORTEX_REWARD=Object.freeze({x:vortexCenter.x,y:vortexCenter.y,radius:72});
 export const OXYGEN_VORTEX=Object.freeze({
