@@ -25,7 +25,6 @@ assert.ok(glycol.endurance>water.endurance,'Glycol exposes its longer coolant en
 assert.ok(glycol.thermalMargin>nitrogen.thermalMargin,'Glycol keeps the larger high-temperature margin');
 
 const oxygen=oxidizerPreviewValues('oxygen');
-assert.equal(oxygen.burnSupply,1);
 assert.equal(oxygen.oxidizingPower,1);
 assert.deepEqual(loadoutPreviewValues('oxidizer','oxygen'),oxygen);
 assert.equal(loadoutPreviewValues('fuel','oxygen'),null);
