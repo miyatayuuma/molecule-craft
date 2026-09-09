@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,oxygenVortexFlowAt} from '../src/veil/oxygen-routes.js';
+import {OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,OXYGEN_VORTEX_ROUTE,oxygenVortexFlowAt} from '../src/veil/oxygen-routes.js';
 import {animateUniverse,createUniverse,environmentAt} from '../src/veil/universe.js';
 
 const magnitude=v=>Math.hypot(v.x,v.y);
@@ -64,9 +64,12 @@ assert.ok(flowLine.turns<1&&straight.turns<1,'The route must not require repetit
 // Map, physics and moving visual particles share the same authored vortex.
 const run={map:createUniverse(81),player:{x:170,y:-8090,boost:0,combustion:false},time:0,config:{suctionRadius:30},events:[]};
 const vortexRoute=run.map.routes.find(route=>route.id===OXYGEN_VORTEX.id);assert.ok(vortexRoute&&vortexRoute.optional);
+assert.equal(vortexRoute.geometry,OXYGEN_VORTEX_ROUTE,'Map route must reuse Route Kit geometry directly');
+assert.equal(vortexRoute.element,null,'Dedicated field rendering must not reuse the strong generic O route stroke');assert.equal(vortexRoute.sourceElement,'O');
+assert.equal(vortexRoute.points,OXYGEN_VORTEX_ROUTE.points);assert.equal(vortexRoute.visual.fieldLines,OXYGEN_VORTEX_ROUTE.fieldLines);
 const orbiters=run.map.dust.filter(d=>d.vortex),expectedOrbiters=OXYGEN_VORTEX.particleRings.reduce((sum,ring)=>sum+ring.count,0);assert.equal(orbiters.length,expectedOrbiters);
 const particle=orbiters[0],before={x:particle.x,y:particle.y};run.time=1;animateUniverse(run);assert.notDeepEqual({x:particle.x,y:particle.y},before);
 assert.ok(Math.abs(Math.hypot(particle.x-OXYGEN_VORTEX.center.x,particle.y-OXYGEN_VORTEX.center.y)-particle.vortex.radius)<1e-6);
 const env=environmentAt({...east,vx:116,vy:-116},0);assert.ok(env.vortex>.9&&Number.isFinite(env.flowX)&&Number.isFinite(env.pressure));
 
-console.log('Vortex route passed: gradual cue, directional entry, flow-assisted inward line, crossable core, spiral escape, sub-lap standard solution, moving visual current and provisional centre reward.');
+console.log('Vortex route passed: gradual cue, directional entry, flow-assisted inward line, crossable core, spiral escape, sub-lap standard solution, shared Route Kit geometry, moving visual current and provisional centre reward.');
