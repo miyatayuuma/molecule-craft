@@ -12,7 +12,7 @@ function installStyles(){if(document.getElementById(STYLE_ID))return;const style
 #supply-dialog .collector-shell-map:before,#supply-dialog .collector-shell-map:after,#supply-dialog .collector-core{display:none!important}
 #supply-dialog .loadout-unit-image{position:absolute;z-index:1;display:block;object-fit:contain;pointer-events:none;user-select:none;transition:opacity .14s ease,filter .14s ease}
 #supply-dialog .loadout-pulse-image{left:2.5%;top:50%;width:25%;height:74px;transform:translateY(-50%)}
-#supply-dialog .loadout-drive-image{top:50%;right:2.5%;width:55%;height:auto;aspect-ratio:640/227;transform:translateY(-50%)}
+#supply-dialog .loadout-drive-image{top:50%;right:2.5%;width:55%;height:auto;aspect-ratio:320/113;transform:translateY(-50%)}
 #supply-dialog .loadout-drive-label{position:absolute;z-index:5;right:20%;top:15px;color:#a9c0cb;font-size:9px;font-weight:800;letter-spacing:.22em;line-height:1;pointer-events:none;text-shadow:0 1px 4px #000}
 #supply-dialog #collector-shell-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:2!important}
 #supply-dialog #collector-launch-handle{left:39%!important;top:52%!important;width:76px!important;height:76px!important}
