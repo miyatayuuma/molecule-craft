@@ -15,11 +15,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Install jsdom for integration check
+        run: npm install --no-save --package-lock=false jsdom@26.1.0
       - name: Parse LOADOUT workstation
         run: node --check src/veil/loadout-workstation.js
       - name: Run focused LOADOUT thumbnail tests
         run: node --test --test-name-pattern="current molecule display|responsive layout" tests/loadout-schematic.test.mjs
       - name: Run veil UI contract check
-        run: node tests/veil-ui-check.mjs
+        run: node tests/veil-ui-check.mjs "$PWD/node_modules/jsdom/lib/api.js"
       - name: Run repository hygiene check
         run: node scripts/check-repository-hygiene.mjs
