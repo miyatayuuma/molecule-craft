@@ -52,20 +52,20 @@ jobs:
           text = test.read_text()
           replacements = [
               (
-                  "assert.match(source,/\\.loadout-molecule-pod\\{[^}]*top:100%[^}]*width:145%;height:54px[^}]*transform:translate\\(-50%,-58%\\)/);",
-                  "assert.match(source,/\\.loadout-molecule-pod\\{[^}]*top:calc\\(100% \\+ 28px\\)[^}]*width:145%;height:54px[^}]*transform:translate\\(-50%,-50%\\)/);",
+                  r"top:100%[^}]*width:145%;height:54px[^}]*transform:translate\(-50%,-58%\)",
+                  r"top:calc\(100% \+ 28px\)[^}]*width:145%;height:54px[^}]*transform:translate\(-50%,-50%\)",
               ),
               (
-                  "assert.match(source,/\\.port-propellant>\\.loadout-molecule-pod\\{width:175%;height:62px;top:100%/);",
-                  "assert.match(source,/\\.port-propellant>\\.loadout-molecule-pod\\{width:175%;height:62px;top:calc\\(100% \\+ 28px\\)[^}]*transform:translate\\(-50%,-50%\\)/);",
+                  r"\.port-propellant>\.loadout-molecule-pod\{width:175%;height:62px;top:100%",
+                  r"\.port-propellant>\.loadout-molecule-pod\{width:175%;height:62px;top:calc\(100% \+ 28px\)",
               ),
               (
-                  "assert.match(source,/loadout-molecule-pod\\{height:50px;transform:translate\\(-50%,-56%\\)/);",
-                  "assert.match(source,/loadout-molecule-pod\\{height:50px;transform:translate\\(-50%,-50%\\)/);",
+                  r"loadout-molecule-pod\{height:50px;transform:translate\(-50%,-56%\)",
+                  r"loadout-molecule-pod\{height:50px;transform:translate\(-50%,-50%\)",
               ),
               (
-                  "assert.match(source,/port-propellant>\\.loadout-molecule-pod\\{height:56px;transform:translate\\(-50%,-56%\\)/);",
-                  "assert.match(source,/port-propellant>\\.loadout-molecule-pod\\{height:56px;transform:translate\\(-50%,-50%\\)/);",
+                  r"port-propellant>\.loadout-molecule-pod\{height:56px;transform:translate\(-50%,-56%\)",
+                  r"port-propellant>\.loadout-molecule-pod\{height:56px;transform:translate\(-50%,-50%\)",
               ),
           ]
           for old, new in replacements:
