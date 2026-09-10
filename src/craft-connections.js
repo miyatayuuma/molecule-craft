@@ -9,9 +9,38 @@ function normalizeExplorationMode(){
   if(document.body?.dataset)document.body.dataset.mode='craft';
 }
 
+function describeError(error){
+  if(error instanceof Error)return `${error.name}: ${error.message}`;
+  if(error&&typeof error==='object'&&'message'in error)return String(error.message);
+  return String(error??'unknown error');
+}
+
+function showLaunchDiagnostic(text){
+  const status=document.getElementById('craft-resource-hint');
+  if(status)status.textContent=text;
+}
+
+function installExplorationDiagnostics(){
+  if(window.__moleculeCraftExplorationDiagnostics)return;
+  window.__moleculeCraftExplorationDiagnostics=true;
+  const originalError=console.error.bind(console);
+  console.error=(...args)=>{
+    originalError(...args);
+    if(args[0]==='Expedition launch initialization failed.')showLaunchDiagnostic(`LAUNCH FAIL · ${describeError(args[1])}`);
+  };
+  window.addEventListener('error',event=>{
+    const message=event.error?describeError(event.error):event.message;
+    showLaunchDiagnostic(`RUNTIME ERROR · ${message}`);
+  });
+  window.addEventListener('unhandledrejection',event=>showLaunchDiagnostic(`PROMISE ERROR · ${describeError(event.reason)}`));
+}
+
 export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
-  normalizeExplorationMode();
-  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit});
+  normalizeExplorationMode();installExplorationDiagnostics();
+  const checkedCanLeave=()=>{const ok=canLeave();if(!ok)showLaunchDiagnostic('LAUNCH BLOCK · canLeave=false');return ok;};
+  const checkedCanSupply=()=>{const ok=canSupply();if(!ok)showLaunchDiagnostic('LAUNCH BLOCK · canSupply=false');return ok;};
+  const checkedBeforeLaunch=()=>{const ok=onBeforeLaunch();if(ok===false)showLaunchDiagnostic('LAUNCH BLOCK · onBeforeLaunch=false');return ok;};
+  const veilUI=createVeilUI({resources,canLeave:checkedCanLeave,canSupply:checkedCanSupply,onBeforeLaunch:checkedBeforeLaunch,onCraft,onCommit});
   createProgressResetUI({resources,...reset});
   return veilUI;
 }
