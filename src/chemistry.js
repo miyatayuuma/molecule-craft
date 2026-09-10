@@ -95,19 +95,38 @@ export class Molecule {
   }
 }
 
-export async function loadMoleculeDatabase(url = new URL('../data/molecules.json', import.meta.url)) {
+async function tryDatabaseSource(source, load, errors) {
   try {
-    const response = await fetch(url, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const response = await load();
+    if (!response?.ok) throw new Error(`HTTP ${response?.status ?? 'unknown'}`);
     setMoleculeDatabase(await response.json());
-    return { ok: true, count: databaseState.count };
+    return { ok: true, count: databaseState.count, source };
   } catch (error) {
-    knownMolecules = [];
-    knownFingerprints = new Map();
-    databaseState = { loaded: false, count: 0, error: String(error?.message ?? error) };
-    console.warn('Molecule database unavailable; name recognition is disabled.', error);
-    return { ok: false, count: 0, error: databaseState.error };
+    errors.push(`${source}: ${String(error?.message ?? error)}`);
+    return null;
   }
+}
+
+export async function loadMoleculeDatabase(url = new URL('../data/molecules.json', import.meta.url)) {
+  const errors = [];
+  let result = await tryDatabaseSource('network', () => fetch(url, { cache: 'no-store' }), errors);
+  if (result) return result;
+
+  result = await tryDatabaseSource('precache', async () => {
+    const match = globalThis.caches?.match;
+    if (typeof match !== 'function') throw new Error('Cache Storage unavailable');
+    return match.call(globalThis.caches, url, { ignoreSearch: true });
+  }, errors);
+  if (result) return result;
+
+  result = await tryDatabaseSource('network-retry', () => fetch(url, { cache: 'reload' }), errors);
+  if (result) return result;
+
+  knownMolecules = [];
+  knownFingerprints = new Map();
+  databaseState = { loaded: false, count: 0, error: errors.join(' | ') || 'Molecule database unavailable' };
+  console.warn('Molecule database unavailable; name recognition is disabled.', databaseState.error);
+  return { ok: false, count: 0, error: databaseState.error };
 }
 
 export function setMoleculeDatabase(records) {
