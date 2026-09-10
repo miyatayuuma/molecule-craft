@@ -10,6 +10,9 @@ function installCraftActionBar(document){
     clear.className='hold-clear icon-button';clear.setAttribute('aria-label','1秒長押しで全片付け。クラフト中の全要素をBASE STOCKへ戻して片付ける');clear.setAttribute('title','全片付け');
     clear.innerHTML='<svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 8h8l-.7 11H8.7L8 8z"/><path d="M6.5 7h11M10 7l1-2h2l1 2M10.5 10.5v5M13.5 10.5v5"/></svg>';
   }
+  for(const text of document.querySelectorAll?.('#help-dialog .help-steps p')??[]){
+    if(text.textContent.includes('片付けるは1秒長押し'))text.textContent='ゴミ箱は1秒長押しで全片付け。↶で直前のCRAFT操作を1操作ずつ元に戻せます。図鑑の発見は残ります。';
+  }
 }
 
 // DOM event ownership for the craft screen. Callbacks keep Three.js and
