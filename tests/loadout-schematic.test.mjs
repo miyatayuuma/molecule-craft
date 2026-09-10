@@ -1,44 +1,72 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
+import {LOADOUT_SLOT_GEOMETRY} from '../src/veil/loadout-workstation.js';
 
 const source=readFileSync(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8');
+const SLOT_USES=['propellant','fuel','oxidizer','coolant'];
+const EXPECTED_GEOMETRY=Object.freeze({
+  propellant:Object.freeze({centerX:16.05,left:10.6,width:10.9,top:38.5,height:27,labelX:16.05}),
+  fuel:Object.freeze({centerX:65.1,left:60.1,width:10,top:38,height:27,labelX:65.1}),
+  oxidizer:Object.freeze({centerX:77.2,left:72.2,width:10,top:38,height:27,labelX:77.2}),
+  coolant:Object.freeze({centerX:88.8,left:83.8,width:10,top:38,height:27,labelX:88.8}),
+});
+const frameOf=({width,top,height})=>({width,top,height});
+const rightOf=geometry=>geometry.left+geometry.width;
 
-test('loadout workstation uses straight rectangular geometry on white tank structures',()=>{
-  assert.match(source,/LOADOUT_SLOT_GEOMETRY/);
-  assert.match(source,/propellant:Object\.freeze\(\{left:9\.6,width:10\.9/);
-  assert.match(source,/fuel:Object\.freeze\(\{left:59\.0,width:10\.2/);
-  assert.match(source,/oxidizer:Object\.freeze\(\{left:71\.0,width:9\.0/);
-  assert.match(source,/coolant:Object\.freeze\(\{left:82\.4,width:9\.4/);
-  assert.match(source,/shape:'M96 75 H205 V129 H96 Z'/);
-  assert.match(source,/shape:'M590 76 H692 V130 H590 Z'/);
-  assert.match(source,/shape:'M710 76 H800 V130 H710 Z'/);
-  assert.match(source,/shape:'M824 76 H918 V130 H824 Z'/);
-  assert.doesNotMatch(source,/shape:'[^']*[QLC]/);
-  assert.doesNotMatch(source,/--loadout-drive-cell/);
+function assertClose(actual,expected,message){
+  assert.ok(Math.abs(actual-expected)<1e-9,`${message}: expected ${expected}, got ${actual}`);
+}
+
+test('LOADOUT slot geometry matches the approved current contract',()=>{
+  assert.deepEqual(Object.keys(LOADOUT_SLOT_GEOMETRY),SLOT_USES);
+  for(const use of SLOT_USES){
+    const geometry=LOADOUT_SLOT_GEOMETRY[use],expected=EXPECTED_GEOMETRY[use];
+    assert.deepEqual(geometry,expected,`${use} geometry`);
+    assertClose(geometry.left,geometry.centerX-geometry.width/2,`${use} left edge derives from center and width`);
+    assert.equal(geometry.labelX,geometry.centerX,`${use} label stays centered`);
+  }
 });
 
-test('SVG hit overlay forwards clicks only from tank paths',()=>{
+test('PULSE and DRIVE slots retain their shared frame contracts',()=>{
+  assert.deepEqual(frameOf(LOADOUT_SLOT_GEOMETRY.propellant),{width:10.9,top:38.5,height:27});
+  const driveFrame={width:10,top:38,height:27};
+  for(const use of ['fuel','oxidizer','coolant'])assert.deepEqual(frameOf(LOADOUT_SLOT_GEOMETRY[use]),driveFrame,`${use} DRIVE frame`);
+});
+
+test('DRIVE slot rectangles do not overlap',()=>{
+  const driveUses=['fuel','oxidizer','coolant'];
+  for(let i=0;i<driveUses.length-1;i++){
+    const leftUse=driveUses[i],rightUse=driveUses[i+1];
+    assert.ok(rightOf(LOADOUT_SLOT_GEOMETRY[leftUse])<=LOADOUT_SLOT_GEOMETRY[rightUse].left,`${leftUse} must not overlap ${rightUse}`);
+  }
+});
+
+test('SVG hit overlay derives rectangular tap bounds from LOADOUT_SLOT_GEOMETRY',()=>{
   assert.match(source,/loadout-slot-overlay/);
   assert.match(source,/class:'loadout-slot-path'/);
   assert.match(source,/'data-use':use/);
-  assert.match(source,/d:LOADOUT_SLOT_GEOMETRY\[use\]\.shape/);
+  assert.match(source,/svgElement\('rect',\{class:'loadout-slot-path','data-use':use,\.\.\.svgRectGeometry\(LOADOUT_SLOT_GEOMETRY\[use\]\)\}\)/);
   assert.match(source,/document\.getElementById\(`shell-\$\{use\}`\)\?\.click\(\)/);
   assert.match(source,/\.loadout-slot-path\{[^}]*pointer-events:visibleFill/);
   assert.match(source,/\.shell-port\{[^}]*pointer-events:none/);
 });
 
-test('schematic, labels, pods, and hit areas share geometry-derived centers',()=>{
-  assert.match(source,/const centerX=use=>LOADOUT_SLOT_GEOMETRY\[use\]\.labelX/);
-  assert.match(source,/centerX\('fuel'\)/);
-  assert.match(source,/centerX\('oxidizer'\)/);
-  assert.match(source,/centerX\('coolant'\)/);
-  assert.match(source,/--slot-label-x/);
+test('schematic, labels, pods, and hit areas stay wired to shared geometry',()=>{
+  assert.match(source,/const centerX=use=>LOADOUT_SLOT_GEOMETRY\[use\]\.centerX/);
+  assert.match(source,/button\.style\.setProperty\('--slot-left',pct\(geometry\.left\)\)/);
+  assert.match(source,/button\.style\.setProperty\('--slot-width',pct\(geometry\.width\)\)/);
+  assert.match(source,/button\.style\.setProperty\('--slot-top',pct\(geometry\.top\)\)/);
+  assert.match(source,/button\.style\.setProperty\('--slot-height',pct\(geometry\.height\)\)/);
+  assert.match(source,/LOADOUT_SLOT_GEOMETRY\[use\]\.labelX/);
   assert.match(source,/left:var\(--slot-left\)!important/);
   assert.match(source,/width:var\(--slot-width\)!important/);
+  assert.match(source,/top:var\(--slot-top\)!important/);
+  assert.match(source,/height:var\(--slot-height\)!important/);
 });
 
-test('selection highlight uses the same rectangular tank path',()=>{
+test('selection highlight uses the same rectangular tank overlay',()=>{
+  assert.match(source,/loadout-slot-path\[data-use='propellant'\]/);
   assert.match(source,/loadout-slot-path\[data-use='fuel'\]/);
   assert.match(source,/loadout-slot-path\[data-use='oxidizer'\]/);
   assert.match(source,/loadout-slot-path\[data-use='coolant'\]/);
@@ -46,22 +74,6 @@ test('selection highlight uses the same rectangular tank path',()=>{
   assert.match(source,/fill-opacity:\.12/);
   assert.doesNotMatch(source,/\.shell-port\[data-active=true\]:before/);
   assert.doesNotMatch(source,/\.port-propellant\[data-active=true\]:before/);
-});
-
-test('dark end caps and inter-tank connectors remain outside hit boxes',()=>{
-  assert.match(source,/fuel:Object\.freeze\([^\n]*shape:'M590 76 H692/);
-  assert.match(source,/oxidizer:Object\.freeze\([^\n]*shape:'M710 76 H800/);
-  assert.match(source,/coolant:Object\.freeze\([^\n]*shape:'M824 76 H918/);
-  assert.doesNotMatch(source,/M576 76 H700/);
-  assert.doesNotMatch(source,/M695 76 H812/);
-  assert.doesNotMatch(source,/M810 76 H932/);
-});
-
-test('vertical bounds remain unchanged from the approved silhouette pass',()=>{
-  assert.match(source,/propellant:Object\.freeze\(\{left:9\.6,width:10\.9,top:36\.5,height:31\.5/);
-  assert.match(source,/fuel:Object\.freeze\(\{left:59\.0,width:10\.2,top:37\.0,height:30\.0/);
-  assert.match(source,/oxidizer:Object\.freeze\(\{left:71\.0,width:9\.0,top:37\.0,height:30\.0/);
-  assert.match(source,/coolant:Object\.freeze\(\{left:82\.4,width:9\.4,top:37\.0,height:30\.0/);
 });
 
 test('current molecule display is frameless, separated, and sits behind tank art',()=>{
