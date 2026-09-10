@@ -68,11 +68,11 @@ test('current molecule display is frameless, separated, and sits behind tank art
   assert.match(source,/loadout-molecule-pod/);
   assert.match(source,/\.loadout-unit-image\{[^}]*z-index:2/);
   assert.match(source,/\.shell-port\{z-index:0!important/);
-  assert.match(source,/\.loadout-molecule-pod\{[^}]*top:0[^}]*width:145%;height:54px[^}]*transform:translate\(-50%,-58%\)[^}]*border:0[^}]*background:none[^}]*box-shadow:none[^}]*pointer-events:none/);
+  assert.match(source,/\.loadout-molecule-pod\{[^}]*top:100%[^}]*width:145%;height:54px[^}]*transform:translate\(-50%,-58%\)[^}]*border:0[^}]*background:none[^}]*box-shadow:none[^}]*pointer-events:none/);
   assert.match(source,/\.loadout-molecule-thumb\{width:100%;height:100%/);
   assert.match(source,/#shell-fuel:not\(\.loadout-slot-empty\)>\.loadout-molecule-pod\{left:18%\}/);
   assert.match(source,/#shell-coolant:not\(\.loadout-slot-empty\)>\.loadout-molecule-pod\{left:82%\}/);
-  assert.match(source,/\.port-propellant>\.loadout-molecule-pod\{width:175%;height:62px/);
+  assert.match(source,/\.port-propellant>\.loadout-molecule-pod\{width:175%;height:62px;top:100%/);
   assert.match(source,/\.loadout-slot-empty>\.loadout-molecule-pod\{left:50%;top:calc\(100% \+ 16px\);width:100%;height:24px/);
   assert.match(source,/\.loadout-pod-formula\{display:none!important\}/);
   assert.doesNotMatch(source,/background:linear-gradient\(180deg,#102b3be8,#081923ee\)/);
