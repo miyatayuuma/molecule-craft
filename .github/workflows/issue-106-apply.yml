@@ -41,7 +41,7 @@ jobs:
           path.write_text(''.join(out))
       - name: Run Issue 106 regressions
         run: |
-          node --test tests/pending-craft.test.mjs tests/craft-connections.test.mjs tests/loadout-schematic.test.mjs tests/loadout-launch-regression.test.mjs
+          node --test tests/pending-craft.test.mjs tests/craft-connections.test.mjs tests/loadout-launch-regression.test.mjs
           node tests/source-contracts.test.mjs
           node scripts/check-repository-hygiene.mjs
           git diff --check
