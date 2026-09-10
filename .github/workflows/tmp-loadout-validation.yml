@@ -1,0 +1,25 @@
+name: Temporary LOADOUT validation
+
+on:
+  push:
+    branches: [ui/loadout-molecule-thumbnails]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Parse LOADOUT workstation
+        run: node --check src/veil/loadout-workstation.js
+      - name: Run focused LOADOUT thumbnail tests
+        run: node --test --test-name-pattern="current molecule display|responsive layout" tests/loadout-schematic.test.mjs
+      - name: Run veil UI contract check
+        run: node tests/veil-ui-check.mjs
+      - name: Run repository hygiene check
+        run: node scripts/check-repository-hygiene.mjs
