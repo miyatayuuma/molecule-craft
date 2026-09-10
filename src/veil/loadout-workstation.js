@@ -289,13 +289,13 @@ function installStyles(){
 #supply-dialog .shell-port{z-index:0!important;min-width:0!important;min-height:0!important;margin:0!important;box-sizing:border-box;left:var(--slot-left)!important;right:auto!important;top:var(--slot-top)!important;bottom:auto!important;width:var(--slot-width)!important;height:var(--slot-height)!important;transform:none!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#d9e8ed;overflow:visible;pointer-events:none;transition:opacity .14s ease}
 #supply-dialog .shell-port>i,#supply-dialog .shell-port>span:not(.loadout-molecule-pod):not(.tank-scale),#supply-dialog .shell-port>small{display:none!important}
 #supply-dialog .shell-port .tank-scale{display:none!important}
-#supply-dialog .loadout-molecule-pod{position:absolute;z-index:0;left:50%;top:0;width:145%;height:54px;transform:translate(-50%,-58%);display:grid;place-items:center;padding:0;box-sizing:border-box;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none;user-select:none}
+#supply-dialog .loadout-molecule-pod{position:absolute;z-index:0;left:50%;top:100%;width:145%;height:54px;transform:translate(-50%,-58%);display:grid;place-items:center;padding:0;box-sizing:border-box;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none;user-select:none}
 #supply-dialog .loadout-molecule-thumb{width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;filter:drop-shadow(0 1px 3px #000b) drop-shadow(0 0 5px #9ce9f044)}
 #supply-dialog .loadout-pod-formula{display:none!important}
 #supply-dialog .loadout-pod-empty{align-self:center;color:#c7e7ed;font-size:18px;font-weight:700;opacity:.62}
 #supply-dialog #shell-fuel:not(.loadout-slot-empty)>.loadout-molecule-pod{left:18%}
 #supply-dialog #shell-coolant:not(.loadout-slot-empty)>.loadout-molecule-pod{left:82%}
-#supply-dialog .port-propellant>.loadout-molecule-pod{width:175%;height:62px;top:0;transform:translate(-50%,-58%)}
+#supply-dialog .port-propellant>.loadout-molecule-pod{width:175%;height:62px;top:100%;transform:translate(-50%,-58%)}
 #supply-dialog .loadout-slot-empty>.loadout-molecule-pod{left:50%;top:calc(100% + 16px);width:100%;height:24px;transform:translateX(-50%)}
 #supply-dialog .collector-shell-map:has(#shell-propellant[data-active=true]) .loadout-pulse-label,#supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-fuel-label,#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-oxidizer-label,#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-coolant-label{color:#f0fdff;text-shadow:0 1px 4px #000,0 0 9px #83dbe477}
 #supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-drive-label,#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-drive-label,#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-drive-label{color:#f0fdff}
