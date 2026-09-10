@@ -64,12 +64,18 @@ test('vertical bounds remain unchanged from the approved silhouette pass',()=>{
   assert.match(source,/coolant:Object\.freeze\(\{left:82\.4,width:9\.4,top:37\.0,height:30\.0/);
 });
 
-test('current molecule display keeps the backed pod below each tank',()=>{
+test('current molecule display is frameless, separated, and sits behind tank art',()=>{
   assert.match(source,/loadout-molecule-pod/);
-  assert.match(source,/background:linear-gradient\(180deg,#102b3be8,#081923ee\)/);
-  assert.match(source,/top:calc\(100% \+ 18px\)/);
-  assert.match(source,/width:58px/);
-  assert.match(source,/loadout-pod-formula/);
+  assert.match(source,/\.loadout-unit-image\{[^}]*z-index:2/);
+  assert.match(source,/\.shell-port\{z-index:0!important/);
+  assert.match(source,/\.loadout-molecule-pod\{[^}]*top:0[^}]*width:145%;height:54px[^}]*transform:translate\(-50%,-58%\)[^}]*border:0[^}]*background:none[^}]*box-shadow:none[^}]*pointer-events:none/);
+  assert.match(source,/\.loadout-molecule-thumb\{width:100%;height:100%/);
+  assert.match(source,/#shell-fuel:not\(\.loadout-slot-empty\)>\.loadout-molecule-pod\{left:18%\}/);
+  assert.match(source,/#shell-coolant:not\(\.loadout-slot-empty\)>\.loadout-molecule-pod\{left:82%\}/);
+  assert.match(source,/\.port-propellant>\.loadout-molecule-pod\{width:175%;height:62px/);
+  assert.match(source,/\.loadout-slot-empty>\.loadout-molecule-pod\{left:50%;top:calc\(100% \+ 16px\);width:100%;height:24px/);
+  assert.match(source,/\.loadout-pod-formula\{display:none!important\}/);
+  assert.doesNotMatch(source,/background:linear-gradient\(180deg,#102b3be8,#081923ee\)/);
   assert.match(source,/assets\/models\/molecule-\$\{id\}\.svg/);
 });
 
@@ -91,6 +97,8 @@ test('launch gestures stay on the existing ship anchor and overlay disables duri
 test('responsive layout keeps one-piece DRIVE and molecule pods readable',()=>{
   assert.match(source,/loadout-drive-unit\.png/);
   assert.match(source,/@media\(max-width:370px\)/);
-  assert.match(source,/loadout-molecule-pod\{width:52px;height:37px/);
+  assert.match(source,/loadout-molecule-pod\{height:50px;transform:translate\(-50%,-56%\)/);
+  assert.match(source,/port-propellant>\.loadout-molecule-pod\{height:56px;transform:translate\(-50%,-56%\)/);
+  assert.match(source,/loadout-slot-empty>\.loadout-molecule-pod\{height:24px;transform:translateX\(-50%\)/);
   assert.doesNotMatch(source,/loadout-drive-fuel-image|loadout-drive-oxidizer-image|loadout-drive-coolant-image/);
 });
