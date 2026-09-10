@@ -7,6 +7,7 @@ function node(id=''){
 }
 
 test('bindCraftControls exposes Undo beside a trash-can full-cleanup control without changing hold safety',()=>{
+  globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
   const undo=node('undo-cleanup'),clear=node('clear-all'),frame=node('frame-structure'),del=node('delete-selected'),actions=node('actions'),palette=node('palette'),focus=node('structure-focus'),viewer=node('viewer'),canvas=node('canvas');
   actions.insertBefore=(child,before)=>{actions.inserted=[child,before];};
   const document={hidden:false,defaultView:{addEventListener(){}},querySelector(selector){if(selector==='.viewer-actions')return actions;if(selector==='#undo-cleanup')return undo;if(selector==='#clear-all')return clear;if(selector==='#frame-structure')return frame;if(selector==='#delete-selected')return del;return null;},addEventListener(){}};
