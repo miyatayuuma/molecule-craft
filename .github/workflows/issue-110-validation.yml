@@ -18,7 +18,7 @@ jobs:
           node --check src/craft-controls.js
           node --check src/craft-panel.js
       - name: Undo history tests
-        run: node --test tests/craft-history.test.mjs tests/craft-history-restore-failure.test.mjs tests/craft-undo-contract.test.mjs tests/craft-controls-ui.test.mjs tests/craft-target-undo-derived.test.mjs
+        run: node --test tests/craft-history.test.mjs tests/craft-history-restore-failure.test.mjs tests/craft-history-session-boundary.test.mjs tests/craft-undo-contract.test.mjs tests/craft-controls-ui.test.mjs tests/craft-target-undo-derived.test.mjs
       - name: Related regressions
         run: |
           node tests/craft-workspace.test.mjs
