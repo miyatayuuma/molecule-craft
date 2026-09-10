@@ -33,19 +33,19 @@ const db=JSON.parse(await read('data/molecules.json')),parts=JSON.parse(await re
 for(const [kind,items,key]of [['molecule',db,'molecules'],['part',parts,'parts']]){
   const numbers=new Set();for(const item of items){const entry=dex[key][key==='parts'?item.unlock.groupId:item.id];assert.ok(entry&&entry.description.length>15);assert.ok(Number.isInteger(entry.number)&&!numbers.has(entry.number));numbers.add(entry.number);assert.ok(paths.has(`assets/models/${kind}-${item.id}.svg`));}
 }
-function worker({fail=null,clients=[]}={}){
-  const handlers={},cacheMap=new Map(),scope='https://example.test/molecule-craft/';let skip=0,claimed=0,network=0;
+function worker({fail=null,clients=[],staleHttp=null}={}){
+  const handlers={},cacheMap=new Map(),scope='https://example.test/molecule-craft/';let skip=0,claimed=0,network=0,lastRequest=null;
   const caches={open:async key=>{if(!cacheMap.has(key)){const rows=new Map();cacheMap.set(key,{put:async(url,response)=>rows.set(String(url),response.clone()),match:async url=>rows.get(String(url))?.clone(),rows});}return cacheMap.get(key);},keys:async()=>[...cacheMap.keys()],delete:async key=>cacheMap.delete(key)};
   const self={...context.self,registration:{scope},clients:{claim:async()=>claimed++,matchAll:async()=>clients},skipWaiting:async()=>skip++,addEventListener:(event,fn)=>handlers[event]=fn};
-  const env={self,caches,importScripts:()=>{},URL,Request,Response,crypto:webcrypto,fetch:async request=>{network++;const path=new URL(typeof request==='string'?request:request.url).pathname.replace('/molecule-craft/','');if(path===fail)return new Response('BAD',{status:200});try{return new Response(await read(path));}catch{return new Response('NOT FOUND',{status:404});}}};runInNewContext(source.toString(),env);
+  const env={self,caches,importScripts:()=>{},URL,Request,Response,crypto:webcrypto,fetch:async request=>{network++;lastRequest=request;const path=new URL(typeof request==='string'?request:request.url).pathname.replace('/molecule-craft/','');if(path===fail)return new Response('BAD',{status:200});if(path===staleHttp&&request.cache!=='reload')return new Response('STALE HTTP CACHE');try{return new Response(await read(path));}catch{return new Response('NOT FOUND',{status:404});}}};runInNewContext(source.toString(),env);
   const call=async(type,extra={})=>{let promise;handlers[type]({...extra,waitUntil:p=>promise=p,respondWith:p=>promise=p});return promise;};
-  return {call,cacheMap,caches,get skip(){return skip;},get network(){return network;},get claimed(){return claimed;},scope};
+  return {call,cacheMap,caches,get skip(){return skip;},get network(){return network;},get lastRequest(){return lastRequest;},get claimed(){return claimed;},scope};
 }
-const good=worker();await good.call('install');assert.equal(good.skip,0,'Install must not force an update');await good.call('activate');assert.equal(good.claimed,1);
+const good=worker({staleHttp:'src/app.js'});await good.call('install');assert.equal(good.skip,0,'Install must not force an update');await good.call('activate');assert.equal(good.claimed,1);
 let response=await good.call('fetch',{request:new Request(good.scope+'?release=any')});assert.match(await response.text(),/Molecule Craft/);
-const network=good.network;response=await good.call('fetch',{request:new Request(good.scope+'src/app.js?v=42')});assert.match(await response.text(),/saveWorkspace/);assert.equal(good.network,network+1,'Online runtime modules must check deployed bytes before the offline cache');
+const network=good.network;response=await good.call('fetch',{request:new Request(good.scope+'src/app.js?v=42')});assert.match(await response.text(),/saveWorkspace/);assert.equal(good.network,network+1,'Online runtime modules must check deployed bytes before the offline cache');assert.equal(good.lastRequest.cache,'reload','Runtime fetches must bypass stale HTTP-cache module bytes');
 response=await good.call('fetch',{request:new Request(good.scope+'tests/not-a-real-page.html')});assert.equal(response.status,404,'Never disguise missing pages as index');
 await good.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a'}});assert.equal(good.skip,1);
 const messages=[],busy=worker({clients:[{id:'a',url:'https://example.test/molecule-craft/'},{id:'b',url:'https://example.test/molecule-craft/'}]});await busy.call('message',{data:{type:'ACTIVATE_UPDATE'},source:{id:'a',postMessage:m=>messages.push(m)}});assert.equal(busy.skip,0);assert.equal(messages[0].type,'UPDATE_BLOCKED');
 const broken=worker({fail:'src/collection-ui.js'});await assert.rejects(broken.call('install'));assert.equal(broken.cacheMap.size,0,'Partial/corrupt release must not remain installed');
-console.log(`PWA passed: ${entries.length} hashed assets, dependency closure, icons, 179 numbered entries/previews, online refresh with verified offline fallback, missing pages, explicit discovery/activation updates and multi-window blocking.`);
+console.log(`PWA passed: ${entries.length} hashed assets, dependency closure, icons, 179 numbered entries/previews, HTTP-cache-safe online refresh with verified offline fallback, missing pages, explicit discovery/activation updates and multi-window blocking.`);

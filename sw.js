@@ -34,11 +34,12 @@ self.addEventListener('message',event=>{
 self.addEventListener('fetch',event=>{
   const url=new URL(event.request.url);if(event.request.method!=='GET'||url.origin!==appURL.origin||!url.pathname.startsWith(rootPath))return;
   // Online sessions prefer the deployed bytes. The verified precache remains the offline fallback.
-  // This prevents a forgotten manifest rebuild from pinning an old UI indefinitely.
+  // Force HTTP-cache revalidation so unchanged module URLs cannot resurrect stale release bytes.
+  // This also prevents a forgotten manifest rebuild from pinning an old UI indefinitely.
   const path=url.pathname===rootPath?new URL('index.html',appURL).href:normalized(url);
   event.respondWith((async()=>{
     let networkResponse=null;
-    try{networkResponse=await fetch(event.request);if(networkResponse.ok)return networkResponse;}catch{}
+    try{networkResponse=await fetch(new Request(event.request,{cache:'reload'}));if(networkResponse.ok)return networkResponse;}catch{}
     const cached=await(await caches.open(CACHE)).match(path);
     return cached??networkResponse??Response.error();
   })());
