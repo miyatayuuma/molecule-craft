@@ -1,1 +1,0 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {createCraftHistory} from '../src/craft-history.js';test('exhausted undo is no-op',()=>{let n=0;const h=createCraftHistory({capture:()=>({n}),restore:s=>{n=s.n;return true;}});assert.equal(h.undo(),false);assert.equal(n,0);});

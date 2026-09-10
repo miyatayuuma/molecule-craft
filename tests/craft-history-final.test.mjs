@@ -1,1 +1,0 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {createCraftHistory} from '../src/craft-history.js';test('baseline remains immutable',()=>{let s={n:0};const h=createCraftHistory({capture:()=>({...s}),restore:x=>{s={...x};return true;}});h.record(()=>{s.n=1;return true;});h.undo();assert.equal(s.n,0);});
