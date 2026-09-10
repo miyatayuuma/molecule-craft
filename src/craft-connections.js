@@ -1,6 +1,7 @@
 import {createVeilUI} from './veil/ui.js?v=3';
 import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionTracker} from './workspace-model.js?v=20';
+import {installPendingCraftAccess} from './pending-craft.js?v=1';
 
 function normalizeExplorationMode(){
   const veil=document.querySelector('#veil-view'),appShell=document.querySelector('.app-shell');
@@ -111,7 +112,8 @@ function installLoadoutShortageUI(resources){
 
 export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
   normalizeExplorationMode();installEmptyDeparturePolicy(resources);
-  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch:preserveSupplyDuringPrepare(onBeforeLaunch),onCraft,onCommit});
+  const pendingCraft=installPendingCraftAccess({resources});
+  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch:preserveSupplyDuringPrepare(onBeforeLaunch),onCraft:(...args)=>{pendingCraft.refresh();return onCraft(...args);},onCommit});
   installLoadoutShortageUI(resources);
   createProgressResetUI({resources,...reset});
   return veilUI;
