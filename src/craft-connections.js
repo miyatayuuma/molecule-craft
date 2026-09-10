@@ -35,6 +35,15 @@ function installEmptyDeparturePolicy(resources){
   };
 }
 
+export function preserveSupplyDuringPrepare(onBeforeLaunch,root=document){
+  return ()=>{
+    const dialog=root.getElementById?.('supply-dialog')??root.querySelector?.('#supply-dialog'),wasOpen=!!dialog?.open;
+    const result=onBeforeLaunch();
+    if(wasOpen&&dialog&&!dialog.open)try{dialog.showModal();}catch{}
+    return result;
+  };
+}
+
 function shortageText(plan){
   const parts=Object.entries(plan?.missing??{}).map(([el,row])=>`${el} −${Math.max(0,(row.need??0)-(row.have??0))}`).filter(text=>!text.endsWith('−0'));
   return parts.length?`BASE STOCK不足 · ${parts.join(' · ')}`:'';
@@ -64,7 +73,7 @@ function installLoadoutShortageUI(resources){
 
 export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
   normalizeExplorationMode();installEmptyDeparturePolicy(resources);
-  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit});
+  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch:preserveSupplyDuringPrepare(onBeforeLaunch),onCraft,onCommit});
   installLoadoutShortageUI(resources);
   createProgressResetUI({resources,...reset});
   return veilUI;
