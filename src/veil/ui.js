@@ -8,8 +8,6 @@ import { createVeilAudio } from './audio.js';
 import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { renderCraftTargetAtoms } from '../craft-panel.js?v=3';
-import { getUIStateCoordinator,UI_MODE } from '../ui-state.js';
-import { runLaunchTransaction } from './launch-transaction.js';
 
 const LOST_CARGO_ELEMENTS=['H','C','O'];
 function previewCaptureLoss(units){
@@ -20,7 +18,7 @@ function previewCaptureLoss(units){
 }
 
 export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onBeforeLaunch=()=>true,onCraft=()=>{},onCommit=()=>{}}){
-  const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),combustionButton=q('veil-combustion'),audio=createVeilAudio(),uiState=getUIStateCoordinator();
+  const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),combustionButton=q('veil-combustion'),audio=createVeilAudio(),appShell=document.querySelector('.app-shell');
   let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,anchor='continue',anchorLock=null,returnState=null,pendingCraftId=null;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
@@ -45,42 +43,37 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
   function resetInput(){stick.x=stick.y=0;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
   function positionAt(id){const at=REGIONS[id]??REGIONS.veil;run.player.x=at.x;run.player.y=at.y;run.player.angle=at.angle;run.player.vx=run.player.vy=0;run.player.trail=[];run.region=id;}
-  function rollbackLaunch({previousAnchor,previousRuns,error,phase}){
+  function rollbackLaunch({previousAnchor,previousRuns,error}){
     if(raf)try{cancelAnimationFrame(raf);}catch{}raf=0;
     try{resetInput();}catch{}
     try{audio.pause();}catch{}
     resources.state.progress.runs=previousRuns;
     anchor=previousAnchor;const anchorSelect=q('expedition-anchor');if(anchorSelect)anchorSelect.value=previousAnchor;
     active=false;paused=false;run=null;anchorLock=null;returnState=null;last=0;hudAt=0;
-    uiState.transition(UI_MODE.LOADOUT);
+    root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
     const status=q('craft-resource-hint');if(status)status.textContent='探索画面を開始できません。LOADOUTに戻りました。再度出発してください。';
-    console.error(`Expedition launch initialization failed during ${phase??'unknown'}.`,error);
+    console.error('Expedition launch initialization failed.',error);
     return false;
   }
   function launch({prepared=false}={}){
     if(active||!canLeave()||resources.blocked||!prepared&&onBeforeLaunch()===false)return false;
     const previousAnchor=anchor,previousRuns=resources.state.progress.runs,nextRun=previousRuns+1;
-    return runLaunchTransaction({
-      steps:[
-        {name:'createRun',run:()=>{const seed=(Date.now()^(nextRun*7919))>>>0,start=anchor!=='continue'?anchor:resources.state.progress.checkpoint;run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);}},
-        {name:'prepareRuntime',run:()=>{anchor='continue';q('expedition-anchor').value='continue';paused=false;anchorLock=null;returnState=null;last=0;hudAt=0;}},
-        {name:'createRenderer',run:()=>{renderer??=createVeilRenderer(canvas);}},
-        {name:'resizeRenderer',run:()=>renderer.resize()},
-        {name:'resetRenderer',run:()=>renderer.reset()},
-        {name:'resetInput',run:()=>{resetInput();q('veil-resume').hidden=true;}},
-        {name:'startAudio',run:()=>{audio.mute(resources.state.progress.sound===false);audio.start();}},
-        {name:'prepareHud',run:()=>{supply.clearAnnouncement();const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,propellant=run.fuel.propellant;const first=nextRun===1?'採集殻を展開 · ANCHOR RETURNで回収':fuel.molecule&&oxidizer.molecule?'COMBUSTION DRIVE · 長押しで継続航行':propellant.molecule?`${formula(propellant.molecule)} BURST · ANCHOR LOCK前の緊急離脱に残そう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';notice(first,5);hud();}},
-        {name:'updatePrompt',run:()=>{active=true;updatePrompt();}},
-        {name:'initialDraw',run:()=>renderer.draw(run,0,reduced)},
-        {name:'saveLaunch',run:()=>{resources.state.progress.runs=nextRun;if(!resources.save())throw Error('Expedition launch state could not be saved.');}},
-      ],
-      commit:()=>{uiState.transition(UI_MODE.EXPLORE);renderer.resize();raf=requestAnimationFrame(frame);try{root.focus();}catch{}},
-      rollback:(error,phase)=>rollbackLaunch({previousAnchor,previousRuns,error,phase}),
-    });
+    try{
+      const seed=(Date.now()^(nextRun*7919))>>>0,start=anchor!=='continue'?anchor:resources.state.progress.checkpoint;
+      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);
+      anchor='continue';q('expedition-anchor').value='continue';active=true;paused=false;anchorLock=null;returnState=null;root.hidden=false;document.body.dataset.mode='veil';appShell.inert=true;
+      renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();
+      resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();
+      const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,propellant=run.fuel.propellant;
+      const first=nextRun===1?'採集殻を展開 · ANCHOR RETURNで回収':fuel.molecule&&oxidizer.molecule?'COMBUSTION DRIVE · 長押しで継続航行':propellant.molecule?`${formula(propellant.molecule)} BURST · ANCHOR LOCK前の緊急離脱に残そう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';
+      notice(first,5);root.focus();last=0;hudAt=0;hud();updatePrompt();
+      resources.state.progress.runs=nextRun;raf=requestAnimationFrame(frame);if(!resources.save())throw Error('Expedition launch state could not be saved.');
+      return true;
+    }catch(error){return rollbackLaunch({previousAnchor,previousRuns,error});}
   }
   function finish(captured=false){
     if(!active||!run)return;active=false;cancelAnimationFrame(raf);resetInput();audio.pause();
-    const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);uiState.transition(UI_MODE.CRAFT);
+    const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
     const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
     q('craft-last-run').textContent=result?`${result.completedNow?'◎ CHO ✓ · ':''}${captured?'⚠':'↩'} ${parts||'—'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
     const pending=pendingCraftId;pendingCraftId=null;run=null;anchorLock=null;returnState=null;onCraft();updateCraft();q('launch-veil').focus();if(pending)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:pending,source:'field'}}));
