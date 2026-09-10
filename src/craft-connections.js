@@ -9,38 +9,63 @@ function normalizeExplorationMode(){
   if(document.body?.dataset)document.body.dataset.mode='craft';
 }
 
-function describeError(error){
-  if(error instanceof Error)return `${error.name}: ${error.message}`;
-  if(error&&typeof error==='object'&&'message'in error)return String(error.message);
-  return String(error??'unknown error');
+export function normalizeLaunchFillPlan(plan){
+  if(plan?.status==='IMPOSSIBLE'&&!(plan.invalid?.length))return {...plan,status:'PARTIAL',emptyDeparture:true};
+  return plan;
 }
 
-function showLaunchDiagnostic(text){
-  const status=document.getElementById('craft-resource-hint');
-  if(status)status.textContent=text;
+export function commitEmptyLaunchFill(resources,preview){
+  if(resources.blocked||preview?.status!=='IMPOSSIBLE'||preview.invalid?.length)return false;
+  const before=Object.fromEntries(Object.entries(resources.state.tanks).map(([use,tank])=>[use,{...tank}]));
+  for(const entry of preview.partial.entries){
+    const tank=resources.state.tanks[entry.use];if(!tank)continue;
+    tank.molecule=entry.molecule??null;tank.amount=entry.target??0;
+  }
+  if(resources.save())return {committed:true,status:'PARTIAL',plan:preview.partial,required:preview.required,missing:preview.missing,emptyDeparture:true};
+  for(const [use,tank]of Object.entries(before))Object.assign(resources.state.tanks[use],tank);
+  return false;
 }
 
-function installExplorationDiagnostics(){
-  if(window.__moleculeCraftExplorationDiagnostics)return;
-  window.__moleculeCraftExplorationDiagnostics=true;
-  const originalError=console.error.bind(console);
-  console.error=(...args)=>{
-    originalError(...args);
-    if(args[0]==='Expedition launch initialization failed.')showLaunchDiagnostic(`LAUNCH FAIL · ${describeError(args[1])}`);
+function installEmptyDeparturePolicy(resources){
+  const basePlan=resources.launchFillPlan.bind(resources),baseCommit=resources.commitLaunchFill.bind(resources);
+  resources.launchFillPlan=options=>normalizeLaunchFillPlan(basePlan(options));
+  resources.commitLaunchFill=({partial=false}={})=>{
+    const result=baseCommit({partial});if(result||!partial)return result;
+    return commitEmptyLaunchFill(resources,basePlan({includeWorkspace:false}));
   };
-  window.addEventListener('error',event=>{
-    const message=event.error?describeError(event.error):event.message;
-    showLaunchDiagnostic(`RUNTIME ERROR · ${message}`);
-  });
-  window.addEventListener('unhandledrejection',event=>showLaunchDiagnostic(`PROMISE ERROR · ${describeError(event.reason)}`));
+}
+
+function shortageText(plan){
+  const parts=Object.entries(plan?.missing??{}).map(([el,row])=>`${el} −${Math.max(0,(row.need??0)-(row.have??0))}`).filter(text=>!text.endsWith('−0'));
+  return parts.length?`BASE STOCK不足 · ${parts.join(' · ')}`:'';
+}
+
+function installLoadoutShortageUI(resources){
+  const launch=document.getElementById('launch-veil'),preview=document.getElementById('loadout-stock-preview'),dialog=document.getElementById('supply-dialog');
+  if(!launch||!preview||!dialog)return;
+  const paintPreview=()=>{
+    const plan=resources.launchFillPlan(),text=shortageText(plan),existing=preview.querySelector('[data-launch-shortage-summary]');
+    if(!text){existing?.remove();return;}
+    const summary=existing??document.createElement('strong');summary.dataset.launchShortageSummary='true';summary.textContent=text;
+    Object.assign(summary.style,{flexBasis:'100%',textAlign:'center',fontSize:'12px',fontWeight:'800',color:'#ffd0a3'});
+    if(!existing)preview.prepend(summary);
+  };
+  const showConfirmDetails=()=>{
+    const plan=resources.launchFillPlan(),panel=document.getElementById('partial-fill-confirm');if(!panel||panel.hidden)return;
+    const text=shortageText(plan),existing=panel.querySelector('[data-launch-shortage-detail]');
+    if(text){const detail=existing??document.createElement('div');detail.dataset.launchShortageDetail='true';detail.textContent=text;Object.assign(detail.style,{marginBottom:'9px',fontSize:'13px',fontWeight:'800',color:'#ffd0a3'});if(!existing)panel.prepend(detail);}else existing?.remove();
+    const go=panel.querySelector('button.primary'),hasUsable=plan.partial.entries.some(entry=>entry.molecule&&entry.target>0);if(go)go.textContent=hasUsable?'この搭載量で出る':'空タンクで出る';
+  };
+  launch.addEventListener('click',()=>queueMicrotask(()=>{paintPreview();showConfirmDetails();}),true);
+  dialog.addEventListener('click',()=>queueMicrotask(paintPreview));
+  document.getElementById('open-supply')?.addEventListener('click',()=>queueMicrotask(paintPreview));
+  paintPreview();
 }
 
 export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
-  normalizeExplorationMode();installExplorationDiagnostics();
-  const checkedCanLeave=()=>{const ok=canLeave();if(!ok)showLaunchDiagnostic('LAUNCH BLOCK · canLeave=false');return ok;};
-  const checkedCanSupply=()=>{const ok=canSupply();if(!ok)showLaunchDiagnostic('LAUNCH BLOCK · canSupply=false');return ok;};
-  const checkedBeforeLaunch=()=>{const ok=onBeforeLaunch();if(ok===false)showLaunchDiagnostic('LAUNCH BLOCK · onBeforeLaunch=false');return ok;};
-  const veilUI=createVeilUI({resources,canLeave:checkedCanLeave,canSupply:checkedCanSupply,onBeforeLaunch:checkedBeforeLaunch,onCraft,onCommit});
+  normalizeExplorationMode();installEmptyDeparturePolicy(resources);
+  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit});
+  installLoadoutShortageUI(resources);
   createProgressResetUI({resources,...reset});
   return veilUI;
 }
