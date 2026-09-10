@@ -27,7 +27,7 @@ assert.match(veilSource,/uiState\.transition\(UI_MODE\.CRAFT\)/,'Successful retu
 assert.doesNotMatch(veilSource,/root\.hidden=true;document\.body\.dataset\.mode='craft';appShell\.inert=false/,'Exploration runtime must not independently own global UI rollback state');
 
 assert.match(connections,/getUIStateCoordinator/,'Exploration connection must use the central UI state coordinator');
-assert.match(connections,/uiState\.transition\(UI_MODE\.CRAFT\)/,'Exploration startup recovery must normalize through the coordinator');
-assert.ok(connections.indexOf('uiState.transition(UI_MODE.CRAFT);')<connections.indexOf('createVeilUI({resources'),'Mode recovery must happen before exploration UI listeners are connected');
+assert.match(connections,/getUIStateCoordinator\(\)\.transition\(UI_MODE\.CRAFT\)/,'Exploration startup recovery must normalize through the coordinator');
+assert.ok(connections.indexOf('getUIStateCoordinator().transition(UI_MODE.CRAFT);')<connections.indexOf('createVeilUI({resources'),'Mode recovery must happen before exploration UI listeners are connected');
 
 console.log('Launch transition regression passed.');
