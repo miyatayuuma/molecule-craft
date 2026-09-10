@@ -1,0 +1,1 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {createCraftHistory} from '../src/craft-history.js';test('history depth reflects mutations',()=>{let n=0;const h=createCraftHistory({capture:()=>({n}),restore:s=>{n=s.n;return true;}});h.record(()=>{n++;return true;});assert.equal(h.depth,1);});
