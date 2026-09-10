@@ -29,18 +29,21 @@ test('bond creation and bond-order changes restore the previous graph without du
   fx.history.undo();assert.deepEqual(fx.state.workspace.bonds,[]);assert.deepEqual(fx.state.elements,stockAfterAtoms);
 });
 
-test('atom deletion and full cleanup are destructive boundaries that cut earlier Undo history',()=>{
+test('bonded atom deletion and full cleanup are destructive boundaries that cut earlier Undo history',()=>{
   const fx=fixture();
   fx.history.record(()=>{fx.state.elements.H--;fx.state.workspace.atoms.push({element:'H'});return true;});
   fx.history.record(()=>{fx.state.elements.C--;fx.state.workspace.atoms.push({element:'C'});return true;});
-  assert.equal(fx.history.depth,2);
-  fx.history.record(()=>{fx.state.workspace.atoms.pop();fx.state.elements.C++;return true;});
-  assert.equal(fx.history.depth,0);assert.equal(fx.history.undo(),false,'deletion cannot cross the destructive boundary');
+  fx.history.record(()=>{fx.state.workspace.bonds.push([0,1,1]);return true;});
+  assert.equal(fx.history.depth,3);
+  fx.history.record(()=>{fx.state.workspace.atoms.pop();fx.state.workspace.bonds=[];fx.state.elements.C++;return true;});
+  assert.equal(fx.history.depth,0);assert.equal(fx.history.canUndo,false);assert.equal(fx.changes.at(-1).canUndo,false,'Undo UI state is disabled at the destructive boundary');
+  assert.equal(fx.history.undo(),false,'bonded atom deletion cannot cross the destructive boundary');
 
   fx.history.record(()=>{fx.state.elements.O--;fx.state.workspace.atoms.push({element:'O'});return true;});
   assert.equal(fx.history.depth,1);
   fx.history.record(()=>{for(const atom of fx.state.workspace.atoms)fx.state.elements[atom.element]++;fx.state.workspace={atoms:[],bonds:[]};return true;});
-  assert.equal(fx.history.depth,0);assert.equal(fx.history.undo(),false,'full cleanup is irreversible');
+  assert.equal(fx.history.depth,0);assert.equal(fx.history.canUndo,false);assert.equal(fx.changes.at(-1).canUndo,false,'Undo UI state is disabled after full cleanup');
+  assert.equal(fx.history.undo(),false,'full cleanup is irreversible');
 });
 
 test('ordinary edits after a destructive boundary remain Undoable only back to the post-destruction baseline',()=>{
@@ -90,7 +93,7 @@ test('failed/no-op mutations do not create history and a new mutation after undo
 test('reset defines a new session baseline and pending gestures collapse to one history entry',()=>{
   const fx=fixture();
   fx.history.record(()=>{fx.state.elements.H--;fx.state.workspace.atoms.push({element:'H'});return true;});
-  fx.history.reset();assert.equal(fx.history.canUndo,false);
+  fx.history.reset();assert.equal(fx.history.canUndo,false);assert.equal(fx.changes.at(-1).canUndo,false,'Undo UI state is disabled after reset');
   fx.history.begin();for(let i=0;i<25;i++)fx.state.workspace.atoms[0].x=i;fx.history.commit();
   assert.equal(fx.history.depth,1);fx.history.undo();assert.equal('x' in fx.state.workspace.atoms[0],false);
 });
