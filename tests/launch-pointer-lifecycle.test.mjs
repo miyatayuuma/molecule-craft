@@ -13,11 +13,14 @@ assert.match(reset,/if\(!keepDestinations\)showLaunchDestinations\(false\);/,'Cl
 assert.match(reset,/resetLaunchPosition\(\);/,'Cleanup must restore the explorer visual position');
 assert.ok(reset.indexOf('launchPointer=null')<reset.indexOf('releasePointerCapture(pointer)'),'Pointer identity must be cleared before releasing capture so a later lostpointercapture is harmless');
 
+assert.match(source,/function launchDestination\(id\)\{\s*resetLaunchGesture\(\);if\(!canOpen\(\)\|\|resources\.blocked\)return false;/,'Destination selection must return to idle before a blocked or failed launch attempt');
 assert.match(source,/function endLaunch\(event,cancel=false\)[\s\S]*?resetLaunchGesture\(\{keepDestinations:!cancel&&!id&&wasTap\}\);/,'pointerup/pointercancel must finish through centralized cleanup without changing tap-open behavior');
 assert.match(source,/launchHandle\.addEventListener\('pointercancel',event=>endLaunch\(event,true\)\)/,'pointercancel must cancel the gesture');
 assert.match(source,/launchHandle\.addEventListener\('lostpointercapture',event=>\{if\(event\.pointerId===launchPointer\)endLaunch\(event,true\);\}\)/,'lostpointercapture must cancel only the active pointer');
 assert.match(source,/dialog\.addEventListener\('close',[\s\S]*?resetLaunchGesture\(\)/,'Closing LOADOUT mid-drag must clear pointer state and capture');
 assert.match(source,/q\('open-supply'\)\.addEventListener\('click',[\s\S]*?resetLaunchGesture\(\)/,'Reopening LOADOUT must start from an idle launch gesture');
+assert.match(source,/if\(onPrepareLaunch\(\)===false\)\{update\(\);return false;\}/,'Rejected launch preparation must return without committing');
+assert.match(source,/if\(started\)return true;\s*if\(!resources\.blocked&&canOpen\(\)&&!dialog\.open\)dialog\.showModal\(\);/,'A false launch callback must restore LOADOUT for retry');
 assert.match(source,/finally\{\s*launchBusy=false;/,'Failed or rejected launch preparation must release the launch busy lock');
 
-console.log('LOADOUT launch pointer lifecycle passed: cancel, lost capture, close/reopen, retry, and busy cleanup are guarded.');
+console.log('LOADOUT launch pointer lifecycle passed: cancel, lost capture, close/reopen, preparation failure, callback failure, retry, and busy cleanup are guarded.');
