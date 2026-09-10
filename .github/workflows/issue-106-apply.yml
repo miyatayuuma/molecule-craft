@@ -1,0 +1,46 @@
+name: Issue 106 apply and verify
+
+on:
+  push:
+    branches: [issue-106-pending-craft-route]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Remove legacy LOADOUT pending-craft coupling
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('src/veil/supply.js')
+          text = path.read_text()
+          old_render = "    const hintIds={propellant:['hydrogen','carbon-dioxide'],fuel:['methane'],oxidizer:['oxygen'],coolant:['water']},hintId=hintIds[selectedUse].find(id=>resources.state.hints.includes(id)&&!resources.state.recipes.includes(id));\n    q('tank-next-hint').hidden=!hintId;q('tank-next-hint').dataset.moleculeId=hintId??'';q('tank-next-hint').textContent=hintId?`${formula(resources.record(hintId))||hintId}の作り方を見る`:'';\n"
+          old_event = "  q('tank-next-hint').addEventListener('click',()=>{const id=q('tank-next-hint').dataset.moleculeId;if(id){dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));}});\n"
+          if text.count(old_render) != 1 or text.count(old_event) != 1:
+              raise SystemExit('Expected legacy LOADOUT hint blocks were not found exactly once')
+          text = text.replace(old_render, '').replace(old_event, '')
+          path.write_text(text)
+      - name: Run Issue 106 regressions
+        run: |
+          node --test tests/pending-craft.test.mjs tests/craft-connections.test.mjs tests/loadout-schematic.test.mjs tests/loadout-launch-regression.test.mjs
+          node tests/source-contracts.test.mjs
+          node scripts/check-repository-hygiene.mjs
+          git diff --check
+      - name: Rebuild verified offline release
+        run: node scripts/build-precache.mjs
+      - name: Commit applied patch and generated release
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/veil/supply.js sw.js precache-manifest.js
+          git commit -m "Remove LOADOUT pending craft coupling"
+          git push
