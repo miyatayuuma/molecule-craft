@@ -1,6 +1,6 @@
 import {createVeilUI} from './veil/ui.js?v=3';
 import {createProgressResetUI} from './veil/reset-ui.js';
-import {createCompletionTracker} from './workspace-model.js?v=20';
+import {createCompletionSideEffectGate} from './completion-side-effects.js?v=1';
 import {installPendingCraftAccess} from './pending-craft.js?v=1';
 
 function normalizeExplorationMode(){
@@ -131,26 +131,42 @@ export function bindSaveLifecycle({window,document,onPageHide,onHidden,onPrepare
 }
 
 export function createDiscoveryConnection({resources,getVeilUI,getCollection,onPresent,onDismiss,onVibrate}){
-  const completionTracker=createCompletionTracker();let queue=[],until=0,active=null,revision=0,checkedRevision=-1;
+  const completionGate=createCompletionSideEffectGate();let queue=[],pendingStructures=new Map(),until=0,active=null;
   function sync(structures){
-    revision++;const current=new Set(structures.filter(item=>item.complete).map(item=>item.signature));queue=queue.filter(item=>current.has(item.signature));
-    if(active&&!current.has(active)){active=null;until=0;onDismiss();}
-    queue.push(...completionTracker.update(structures).map(item=>({key:item.key,signature:item.signature})));
+    const currentByKey=new Map(structures.map(item=>[item.key,item])),currentSignatures=new Set(structures.filter(item=>item.complete).map(item=>item.signature));
+    queue=queue.flatMap(event=>{const item=currentByKey.get(event.key);return item?.complete?[{...event,signature:item.signature}]:[];});
+    for(const [key,event]of pendingStructures){const item=currentByKey.get(key);if(!item||item.signature!==event.signature)pendingStructures.delete(key);}
+    if(active&&!currentSignatures.has(active)){active=null;until=0;onDismiss();}
+    const {changed,completions}=completionGate.sync(structures),completionKeys=new Set(completions.map(item=>item.key)),queuedKeys=new Set(queue.map(item=>item.key));
+    for(const item of changed)if(!completionKeys.has(item.key))pendingStructures.set(item.key,{key:item.key,signature:item.signature});
+    for(const item of completions)if(!queuedKeys.has(item.key)){queue.push({key:item.key,signature:item.signature,effectsDone:false,gameEvent:null});queuedKeys.add(item.key);}
   }
-  function discardQueued(){queue=[];active=null;until=0;onDismiss();}
-  function clear(){completionTracker.clear();discardQueued();}
-  function collectionReady(){checkedRevision=-1;}
+  function discardQueued(){queue=[];pendingStructures.clear();active=null;until=0;onDismiss();}
+  function clear(){completionGate.suppressNextSync();discardQueued();}
+  function collectionReady(){}
   function check(structures,{blocked=false,now=performance.now()}={}){
     if(blocked)return;
-    const veilUI=getVeilUI(),collection=getCollection();
-    for(const item of structures)if(item.complete&&item.record){const learned=resources.discover(item.record.id);if(learned){veilUI?.discovered(item.record.id);collection?.refreshProgress();resources.save();}}
-    if(collection&&checkedRevision!==revision){
-      checkedRevision=revision;const result=collection.observeStructures(structures);
-      for(const gameEvent of result.events){const queued=queue.find(item=>item.signature===gameEvent.signature);if(queued){if(!queued.gameEvent)queued.gameEvent=gameEvent;}else if(gameEvent.isNew)queue.push({signature:gameEvent.signature,gameEvent});}
+    const collection=getCollection();if(!collection)return;
+    if(pendingStructures.size){
+      const passive=[...pendingStructures.values()].map(event=>structures.find(item=>item.key===event.key&&item.signature===event.signature)).filter(Boolean).map(item=>({...item,record:null}));
+      pendingStructures.clear();if(passive.length)collection.observeStructures(passive);
     }
-    if(now<until)return;const event=queue.shift();if(!event)return;
-    const item=structures.find(candidate=>candidate.signature===event.signature&&candidate.complete);if(!item)return;
-    const isNew=!!event.gameEvent?.isNew;active=item.signature;until=now+(isNew?2800:1300);onPresent({item,isNew});if(isNew)onVibrate();
+    const veilUI=getVeilUI();
+    for(const event of queue){
+      if(event.effectsDone)continue;
+      const item=structures.find(candidate=>candidate.key===event.key&&candidate.signature===event.signature&&candidate.complete);if(!item)continue;
+      if(item.record){
+        const learned=resources.discover(item.record.id);
+        if(learned){veilUI?.discovered(item.record.id);collection.refreshProgress();resources.save();}
+      }
+      const result=collection.observeStructures([item]);event.gameEvent=result.events.find(candidate=>candidate.signature===item.signature)??null;event.effectsDone=true;
+    }
+    if(now<until)return;
+    while(queue.length){
+      const event=queue[0],item=structures.find(candidate=>candidate.key===event.key&&candidate.signature===event.signature&&candidate.complete);
+      if(!item){queue.shift();continue;}if(!event.effectsDone)return;
+      queue.shift();const isNew=!!event.gameEvent?.isNew;active=item.signature;until=now+(isNew?2800:1300);onPresent({item,isNew});if(isNew)onVibrate();return;
+    }
   }
   return{sync,check,clear,discardQueued,collectionReady};
 }
