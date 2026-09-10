@@ -1,16 +1,10 @@
 import {createVeilUI} from './veil/ui.js?v=3';
 import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionTracker} from './workspace-model.js?v=20';
-
-function normalizeExplorationMode(){
-  const veil=document.querySelector('#veil-view'),appShell=document.querySelector('.app-shell');
-  if(veil)veil.hidden=true;
-  if(appShell)appShell.inert=false;
-  if(document.body?.dataset)document.body.dataset.mode='craft';
-}
+import {getUIStateCoordinator,UI_MODE} from './ui-state.js';
 
 export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
-  normalizeExplorationMode();
+  getUIStateCoordinator().transition(UI_MODE.CRAFT);
   const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit});
   createProgressResetUI({resources,...reset});
   return veilUI;
