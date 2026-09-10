@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {installEmptyDeparturePolicy,preserveSupplyDuringPrepare} from '../src/craft-connections.js?v=1';
+import {commitRebalancedLaunchFill,installEmptyDeparturePolicy,preserveSupplyDuringPrepare} from '../src/craft-connections.js?v=1';
 import {createResources} from '../src/veil/resources.js';
 
 const database=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
@@ -67,8 +67,17 @@ function assertPlanCommitted(resources,result,before){
 }
 
 {
+  const resources=setup();resources.state.loadout.tanks.propellant='not-discovered';const before=resources.snapshot(),plan=resources.launchFillPlan();assert.equal(plan.status,'IMPOSSIBLE');assert.equal(plan.invalid.length,1);assert.equal(resources.commitLaunchFill({partial:true}),false);assert.deepEqual(resources.snapshot(),before);
+}
+
+{
+  const state={elements:{H:4},tanks:{propellant:{molecule:null,amount:0}}},resources={blocked:false,state,spend(cost){if((state.elements.H??0)<(cost.H??0))return false;state.elements.H-=cost.H??0;return true;},save:()=>false};
+  const preview={status:'PARTIAL',partial:{entries:[{use:'propellant',molecule:'hydrogen',target:2}],cost:{H:4}},required:{H:4},missing:{}};const before=JSON.parse(JSON.stringify(state));assert.equal(commitRebalancedLaunchFill(resources,preview),false);assert.deepEqual(state,before,'failed persistence must roll back BASE STOCK and tanks');
+}
+
+{
   const dialog={open:true,showModal(){this.open=true;}},root={getElementById:id=>id==='supply-dialog'?dialog:null},failure=new Error('prepare failed');
   const prepare=preserveSupplyDuringPrepare(()=>{dialog.open=false;throw failure;},root);assert.throws(prepare,failure);assert.equal(dialog.open,true,'LOADOUT must be restored even when launch preparation throws');
 }
 
-console.log('Issue #104 LOADOUT shortage/empty-slot matrix passed: FULL, PARTIAL, zero-fill, H/C/O and combined shortages, shared-stock competition, explicit commit, selection preservation, and prepare failure recovery.');
+console.log('Issue #104 LOADOUT shortage/empty-slot matrix passed: FULL, PARTIAL, zero-fill, H/C/O and combined shortages, shared-stock competition, explicit commit, selection preservation, rollback, invalid-loadout guard, and prepare failure recovery.');
