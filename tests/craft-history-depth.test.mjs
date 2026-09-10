@@ -1,0 +1,1 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {createCraftHistory} from '../src/craft-history.js';test('undo decrements depth',()=>{let n=0;const h=createCraftHistory({capture:()=>({n}),restore:s=>{n=s.n;return true;}});h.record(()=>{n=1;return true;});h.undo();assert.equal(h.depth,0);});
