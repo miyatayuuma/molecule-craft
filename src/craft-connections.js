@@ -9,6 +9,32 @@ function normalizeExplorationMode(){
   if(document.body?.dataset)document.body.dataset.mode='craft';
 }
 
+const copy=x=>JSON.parse(JSON.stringify(x));
+const addCost=(target,cost)=>{for(const [el,n] of Object.entries(cost??{}))target[el]=(target[el]??0)+n;return target;};
+const canAppendCost=(current,extra,available)=>Object.entries(extra??{}).every(([el,n])=>(current[el]??0)+n<=(available[el]??0));
+function launchAvailableElements(resources,{includeWorkspace=true}={}){
+  const available={...resources.state.elements};
+  if(includeWorkspace)for(const atom of resources.state.workspace?.atoms??[])if(Object.hasOwn(available,atom.element))available[atom.element]=(available[atom.element]??0)+1;
+  return available;
+}
+
+export function rebalanceLaunchFillPlan(resources,plan,{includeWorkspace=true}={}){
+  if(!plan||plan.status==='FULL'||plan.invalid?.length||!plan.partial?.entries)return plan;
+  const available=launchAvailableElements(resources,{includeWorkspace}),entries=plan.partial.entries.map(entry=>({...entry,cost:{...(entry.cost??{})}})),cost={...(plan.partial.cost??{})};
+  while(true){
+    let best=null;
+    for(let index=0;index<entries.length;index++){
+      const entry=entries[index];if(!entry.molecule||entry.invalid||entry.target>=entry.capacity)continue;
+      const unit=resources.costFor(entry.molecule,1);if(!unit||!canAppendCost(cost,unit,available))continue;
+      const ratio=entry.capacity?entry.target/entry.capacity:1;if(!best||ratio<best.ratio-1e-12)best={index,unit,ratio};
+    }
+    if(!best)break;
+    const entry=entries[best.index];entry.target++;entry.add++;addCost(entry.cost,best.unit);addCost(cost,best.unit);
+  }
+  const partial={...plan.partial,entries,cost},selectedCount=entries.filter(entry=>entry.molecule).length,usable=selectedCount===0||entries.some(entry=>entry.molecule&&entry.target>0);
+  return {...plan,status:usable?'PARTIAL':'IMPOSSIBLE',partial};
+}
+
 export function normalizeLaunchFillPlan(plan){
   if(plan?.status==='IMPOSSIBLE'&&!(plan.invalid?.length))return {...plan,status:'PARTIAL',emptyDeparture:true};
   return plan;
@@ -26,21 +52,33 @@ export function commitEmptyLaunchFill(resources,preview){
   return false;
 }
 
-function installEmptyDeparturePolicy(resources){
+export function commitRebalancedLaunchFill(resources,preview){
+  if(resources.blocked||preview?.status!=='PARTIAL'||preview.emptyDeparture)return false;
+  const plan=preview.partial,beforeElements={...resources.state.elements},beforeTanks=Object.fromEntries(Object.entries(resources.state.tanks).map(([use,tank])=>[use,{...tank}]));
+  if(!resources.spend(plan.cost))return false;
+  for(const entry of plan.entries){const tank=resources.state.tanks[entry.use];if(!tank)continue;if(!entry.molecule){tank.molecule=null;tank.amount=0;}else{tank.molecule=entry.molecule;tank.amount=entry.target;}}
+  if(resources.save())return {committed:true,status:'PARTIAL',plan:copy(plan),required:copy(preview.required),missing:copy(preview.missing)};
+  Object.assign(resources.state.elements,beforeElements);for(const [use,tank]of Object.entries(beforeTanks))Object.assign(resources.state.tanks[use],tank);return false;
+}
+
+export function installEmptyDeparturePolicy(resources){
   const basePlan=resources.launchFillPlan.bind(resources),baseCommit=resources.commitLaunchFill.bind(resources);
-  resources.launchFillPlan=options=>normalizeLaunchFillPlan(basePlan(options));
+  const policyPlan=options=>normalizeLaunchFillPlan(rebalanceLaunchFillPlan(resources,basePlan(options),options));
+  resources.launchFillPlan=policyPlan;
   resources.commitLaunchFill=({partial=false}={})=>{
-    const result=baseCommit({partial});if(result||!partial)return result;
-    return commitEmptyLaunchFill(resources,basePlan({includeWorkspace:false}));
+    const raw=basePlan({includeWorkspace:false}),preview=normalizeLaunchFillPlan(rebalanceLaunchFillPlan(resources,raw,{includeWorkspace:false}));
+    if(preview.status==='FULL')return baseCommit({partial:false});
+    if(preview.status==='IMPOSSIBLE'||!partial)return false;
+    if(preview.emptyDeparture)return commitEmptyLaunchFill(resources,raw);
+    return commitRebalancedLaunchFill(resources,preview);
   };
 }
 
 export function preserveSupplyDuringPrepare(onBeforeLaunch,root=document){
   return ()=>{
     const dialog=root.getElementById?.('supply-dialog')??root.querySelector?.('#supply-dialog'),wasOpen=!!dialog?.open;
-    const result=onBeforeLaunch();
-    if(wasOpen&&dialog&&!dialog.open)try{dialog.showModal();}catch{}
-    return result;
+    try{return onBeforeLaunch();}
+    finally{if(wasOpen&&dialog&&!dialog.open)try{dialog.showModal();}catch{}}
   };
 }
 
