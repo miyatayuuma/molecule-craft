@@ -1,0 +1,88 @@
+name: Align LOADOUT molecule thumbnails
+
+on:
+  push:
+    branches: [ui/loadout-molecule-thumbnails-align-empty]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ui/loadout-molecule-thumbnails-align-empty
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Align selected molecule thumbnails with empty marker height
+        shell: python
+        run: |
+          from pathlib import Path
+
+          source = Path('src/veil/loadout-workstation.js')
+          text = source.read_text()
+          replacements = [
+              (
+                  "#supply-dialog .loadout-molecule-pod{position:absolute;z-index:0;left:50%;top:100%;width:145%;height:54px;transform:translate(-50%,-58%);",
+                  "#supply-dialog .loadout-molecule-pod{position:absolute;z-index:0;left:50%;top:calc(100% + 28px);width:145%;height:54px;transform:translate(-50%,-50%);",
+              ),
+              (
+                  "#supply-dialog .port-propellant>.loadout-molecule-pod{width:175%;height:62px;top:100%;transform:translate(-50%,-58%)}",
+                  "#supply-dialog .port-propellant>.loadout-molecule-pod{width:175%;height:62px;top:calc(100% + 28px);transform:translate(-50%,-50%)}",
+              ),
+              (
+                  "#supply-dialog .loadout-molecule-pod{height:50px;transform:translate(-50%,-56%)}",
+                  "#supply-dialog .loadout-molecule-pod{height:50px;transform:translate(-50%,-50%)}",
+              ),
+              (
+                  "#supply-dialog .port-propellant>.loadout-molecule-pod{height:56px;transform:translate(-50%,-56%)}",
+                  "#supply-dialog .port-propellant>.loadout-molecule-pod{height:56px;transform:translate(-50%,-50%)}",
+              ),
+          ]
+          for old, new in replacements:
+              assert old in text, old
+              text = text.replace(old, new, 1)
+          source.write_text(text)
+
+          test = Path('tests/loadout-schematic.test.mjs')
+          text = test.read_text()
+          replacements = [
+              (
+                  "assert.match(source,/\\.loadout-molecule-pod\\{[^}]*top:100%[^}]*width:145%;height:54px[^}]*transform:translate\\(-50%,-58%\\)/);",
+                  "assert.match(source,/\\.loadout-molecule-pod\\{[^}]*top:calc\\(100% \\+ 28px\\)[^}]*width:145%;height:54px[^}]*transform:translate\\(-50%,-50%\\)/);",
+              ),
+              (
+                  "assert.match(source,/\\.port-propellant>\\.loadout-molecule-pod\\{width:175%;height:62px;top:100%/);",
+                  "assert.match(source,/\\.port-propellant>\\.loadout-molecule-pod\\{width:175%;height:62px;top:calc\\(100% \\+ 28px\\)[^}]*transform:translate\\(-50%,-50%\\)/);",
+              ),
+              (
+                  "assert.match(source,/loadout-molecule-pod\\{height:50px;transform:translate\\(-50%,-56%\\)/);",
+                  "assert.match(source,/loadout-molecule-pod\\{height:50px;transform:translate\\(-50%,-50%\\)/);",
+              ),
+              (
+                  "assert.match(source,/port-propellant>\\.loadout-molecule-pod\\{height:56px;transform:translate\\(-50%,-56%\\)/);",
+                  "assert.match(source,/port-propellant>\\.loadout-molecule-pod\\{height:56px;transform:translate\\(-50%,-50%\\)/);",
+              ),
+          ]
+          for old, new in replacements:
+              assert old in text, old
+              text = text.replace(old, new, 1)
+          test.write_text(text)
+      - name: Parse LOADOUT workstation
+        run: node --check src/veil/loadout-workstation.js
+      - name: Run focused LOADOUT tests
+        run: node --test --test-name-pattern="current molecule display|responsive layout|launch gestures" tests/loadout-schematic.test.mjs
+      - name: Run repository hygiene check
+        run: node scripts/check-repository-hygiene.mjs
+      - name: Commit validated alignment adjustment
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/veil/loadout-workstation.js tests/loadout-schematic.test.mjs
+          git commit -m "Align LOADOUT molecule thumbnails with empty marker"
+          git push
