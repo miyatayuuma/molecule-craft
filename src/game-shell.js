@@ -1,3 +1,5 @@
+import {getUIStateCoordinator,UI_MODE} from './ui-state.js';
+
 // Dialog orchestration and the deliberately minimal gameplay chrome live outside the 3D renderer.
 function pruneInstructionalChrome(document){
   const q=id=>document.getElementById(id);
@@ -33,13 +35,18 @@ function pruneInstructionalChrome(document){
 
 export function createGameShell({canOpen=()=>true}={}){
   pruneInstructionalChrome(document);
-  const q=id=>document.getElementById(id),dialogs=[...document.querySelectorAll('dialog.sheet')];
-  function open(id){if(!canOpen())return;for(const dialog of dialogs)if(dialog.open)dialog.close();q(id)?.showModal();}
+  const q=id=>document.getElementById(id),dialogs=[...document.querySelectorAll('dialog.sheet')],uiState=getUIStateCoordinator();
+  function open(id){
+    if(!canOpen())return;
+    for(const dialog of dialogs)if(dialog.open)dialog.close();
+    if(id==='menu-dialog'){uiState.transition(UI_MODE.MENU);return;}
+    q(id)?.showModal();uiState.syncFromDom();
+  }
   for(const [button,id]of [['open-menu','menu-dialog'],['open-help','help-dialog'],['open-info','info-dialog'],['menu-info','info-dialog']])q(button)?.addEventListener('click',()=>open(id));
   for(const dialog of dialogs){
     dialog.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
     dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
   }
   q('help-done')?.addEventListener('click',()=>q('help-dialog')?.close());
-  return {close:()=>dialogs.forEach(dialog=>{if(dialog.open)dialog.close();}),isOpen:()=>dialogs.some(dialog=>dialog.open),closeMenu:()=>q('menu-dialog')?.close()};
+  return {close:()=>{dialogs.forEach(dialog=>{if(dialog.open)dialog.close();});uiState.syncFromDom();},isOpen:()=>dialogs.some(dialog=>dialog.open),closeMenu:()=>{const menu=q('menu-dialog');if(menu?.open)menu.close();uiState.syncFromDom();}};
 }
