@@ -12,16 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: 57ea0f95764bf988c6416c1c666ece4ca2de8561
-      - name: Package exact base main for local comparison
-        run: tar --exclude=.git -czf /tmp/issue-115-base-main.tar.gz .
-      - uses: actions/upload-artifact@v4
-        with:
-          name: issue-115-base-main-57ea0f9
-          path: /tmp/issue-115-base-main.tar.gz
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Run base regression suite
-        run: node --test tests/*.test.mjs
+      - name: Rebuild generated precache for validation
+        run: node scripts/build-precache.mjs
+      - name: Run Issue 115 and Issue 113 regression coverage
+        run: node --test tests/craft-history.test.mjs tests/completion-side-effects.test.mjs tests/craft-connections.test.mjs tests/craft-undo-contract.test.mjs tests/source-contracts.test.mjs tests/pwa.test.mjs tests/issue-113-regression.test.mjs tests/loadout-launch-regression.test.mjs
