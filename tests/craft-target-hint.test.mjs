@@ -45,15 +45,19 @@ test('electron highlight is opt-in, uses current unpaired visuals, and invalidat
  const target={atoms:['H','H'],bonds:[[0,1,1]]},first=run(target,graph(['H','H'],[],[11,12]));
  const visuals=[{atomId:11,index:2,kind:'electron'},{atomId:11,index:0,kind:'electron'},{atomId:12,index:1,kind:'extension'},{atomId:12,index:3,kind:'electron'}];
  assert.equal(craftHintElectronKeys(first,visuals).size,0,'derivation alone must not reveal a hint');
- assert.equal(requestCraftHintHighlight(),true);
+ requestCraftHintHighlight();
  assert.deepEqual([...craftHintElectronKeys(first,visuals)].sort(),['11:0','12:3']);
  const restored=run(target,graph(['H','H'],[],[41,42])),restoredVisuals=[{atomId:41,index:0,kind:'electron'},{atomId:42,index:0,kind:'electron'}];
  assert.equal(craftHintElectronKeys(restored,restoredVisuals).size,0,'workspace/Undo context change clears the old request');
- assert.equal(requestCraftHintHighlight(),true);
+ requestCraftHintHighlight();
  assert.deepEqual([...craftHintElectronKeys(restored,restoredVisuals)].sort(),['41:0','42:0']);
 });
-test('no safe current candidate cannot arm the presentation layer',()=>{
- craftHintElectronKeys(null,[]);assert.equal(requestCraftHintHighlight(),false);
+test('requesting with no safe current candidate never reveals an electron',()=>{
+ craftHintElectronKeys(null,[]);requestCraftHintHighlight();assert.equal(craftHintElectronKeys(null,[]).size,0);
+});
+test('a safe partial workspace may hint an already-present bond without waiting for unrelated target atoms',()=>{
+ const co2={atoms:['C','O','O'],bonds:[[0,1,2],[0,2,2]]},r=run(co2,graph(['C','O']));
+ assert.deepEqual(r.workspaceIndices,[0,1]);assert.equal(r.nextOrder,1);
 });
 test('large interchangeable loose-atom workspaces stay deterministic without enumerating isomorphisms',()=>{
  const target={atoms:Array(40).fill('H'),bonds:[]},workspace=graph(Array(20).fill('H'));
