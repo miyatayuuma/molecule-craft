@@ -7,8 +7,8 @@
 1. 基地からANCHOR FIELDで採集殻（Collector Shell）を原子宇宙へ展開する。
 2. H/C/OをCARGOとして集め、発見した噴射剤のBURSTまたは燃料 + O₂のCOMBUSTION DRIVEを消費して奥へ進む。連続燃焼の熱は冷却剤タンクが自動制御する。
 3. 0.8秒のANCHOR LOCKを通して安定回収し、帰還した元素から分子を手作業で発見する。
-4. 完成模型を設計として、BASE STOCKの原子から探索用タンクへ必要分子を長押し充填し、次の採集殻を展開する。
-5. DUST EATERの保持場干渉が迫ったら、BURSTで距離を作って安全な回収時間を確保する。
+4. LOADOUTで発見済みの対応分子を各タンクへ選び、出発確定時に不足分をBASE STOCKから自動錬成して搭載する。材料不足時は現行のFULL / PARTIAL / IMPOSSIBLE判定に従う。
+5. DUST EATERの保持場干渉が迫ったら、BURSTやDRIVEで距離を作って安全な回収時間を確保する。
 
 ANCHOR LOCK完了後の安定回収は今回の積荷を100%確保します。完了前にDUST EATERが保持場を崩した場合、安全装置が緊急回収し、保持場からこぼれた今回の積荷15%だけを失います。BASE STOCK、タンク内容、図鑑、レシピ、恒久進行は安全です。
 
@@ -37,13 +37,23 @@ Three.js 0.180.0は `vendor/three/` に同梱されています。通常起動�
 |---|---|
 | `src/` | クラフト、図鑑、保存、共通UI |
 | `src/veil/` | 探索、推進、DUST EATER、資源精算 |
-| `data/` | 162分子DB、図鑑文、官能基、部品 |
-| `assets/models/` | 162分子・17部品の生成済みSVG |
+| `data/` | 分子DB、図鑑文、官能基、部品 |
+| `assets/models/` | 生成済み分子・部品SVG |
 | `tests/` | 現行仕様の単体・統合・手動確認 |
 | `scripts/` | DB、SVG、precache、repository hygieneの生成・検査 |
-| `docs/` | 現行アーキテクチャと探索設計 |
+| `docs/` | 現行設計契約と、明示的な未実装計画 |
 
-タスク別のコードマップは [docs/architecture.md](docs/architecture.md)、探索の現行仕様は [docs/hco-growth.md](docs/hco-growth.md) を参照してください。
+## Documentation source of truth
+
+- [docs/architecture.md](docs/architecture.md) — 現行コード責務・保存・テストの対応表
+- [docs/game-design.md](docs/game-design.md) — 今後も維持するゲーム設計原則と禁止方向
+- [docs/hco-growth.md](docs/hco-growth.md) — 現行H/C/O探索・LOADOUT・推進・帰還契約
+- [docs/route-kit.md](docs/route-kit.md) — 探索ルート構築部品の現行契約
+- [docs/ui-state-model.md](docs/ui-state-model.md) — 現在のUI状態所有権と未実装の中央調停方針
+- [docs/planning/cho-completion-roadmap.md](docs/planning/cho-completion-roadmap.md) — 未完の初見プレイ検証ゲート
+- [docs/planning/molecule-craft-astra-direction-brief.md](docs/planning/molecule-craft-astra-direction-brief.md) — CHO後の未実装方向性
+
+`docs/planning/` は将来計画であり、production runtimeの仕様値はsourceと上記現行docsを優先します。完了済みhandoff、PR単位の進捗、過去の比較表はGit履歴・Issue・PRへ残し、main上のsource of truthにはしません。
 
 ## テスト
 
