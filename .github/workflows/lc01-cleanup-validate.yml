@@ -54,6 +54,8 @@ jobs:
           replaceOnce('src/craft-transfer-effects.js',`    const charging=root.querySelector?.('#tank-charge-stage'),part=pendingPart&&pendingPart.expires>=now()?pendingPart:null;\n    const suppressDepletion=!!part||!!(charging&&!charging.hidden);`,`    const part=pendingPart&&pendingPart.expires>=now()?pendingPart:null;\n    const suppressDepletion=!!part;`);
           replaceOnce('src/craft-transfer-effects.js',`  return{atomFromStock,atomToStock,chargeFromStock,partFromPalette,cancelAll,_activeCount:()=>active.size};`,`  return{atomFromStock,atomToStock,partFromPalette,cancelAll,_activeCount:()=>active.size};`);
 
+          replaceOnce('src/game-shell.js',`    '#molecule-iupac','#tank-next-hint','.tank-explanation','#tank-affordability','#tank-charge-result','#oxygen-route-guide',`,`    '#molecule-iupac','#tank-next-hint','.tank-explanation','#tank-affordability','#oxygen-route-guide',`);
+
           let css=read('styles.css');
           const oldCss=css;
           css=css.replace(/\.craft-tank-actions[^\{]*\{[^{}]*\}/g,'');
@@ -70,6 +72,10 @@ jobs:
 
           replaceOnce('tests/source-contracts.test.mjs',`const pubchemReference=await readFile(new URL('src/pubchem-reference.js',root),'utf8');`,`const pubchemReference=await readFile(new URL('src/pubchem-reference.js',root),'utf8');\nconst craftTransferEffects=await readFile(new URL('src/craft-transfer-effects.js',root),'utf8');\nconst styles=await readFile(new URL('styles.css',root),'utf8');`);
           replaceOnce('tests/source-contracts.test.mjs',`assert.match(index, /id="craft-tank-actions"/);`,`assert.doesNotMatch(index,/id="craft-tank-actions"|id="tank-charge-stage"/,'Legacy manual tank-charge DOM stays removed');\nassert.doesNotMatch(craftPanel,/craft-tank-actions|tank-charge-stage|tankActionKey|tankControls|renderTankActions/,'Craft panel no longer carries manual tank-charge state');\nassert.doesNotMatch(craftTransferEffects,/chargeFromStock|tank-charge-stage/,'Transfer effects no longer special-case manual tank charging');\nassert.doesNotMatch(styles,/craft-tank-actions|tank-charge-stage|charge-stage-(?:in|out)/,'Legacy manual tank-charge CSS stays removed');\nawait assert.rejects(readFile(new URL('src/tank-charge.js',root),'utf8'),error=>error?.code==='ENOENT','Legacy tank-charge runtime module stays deleted');`);
+
+          replaceOnce('tests/veil-ui-check.mjs',`assert.equal(q('craft-tank-actions').hidden,true,'Discovered molecules no longer expose repeat-fill craft actions');assert.equal(q('craft-tank-actions').querySelector('[data-tank-use="propellant"]'),null);`,`assert.equal(q('craft-tank-actions'),null,'Legacy manual tank-charge actions stay removed');`);
+          replaceOnce('tests/veil-ui-check.mjs',`assert.equal(q('craft-tank-actions').hidden,true);assert.equal(q('craft-tank-actions').querySelector('[data-tank-use="fuel"]'),null);`,`assert.equal(q('craft-tank-actions'),null);`);
+          replaceOnce('tests/veil-ui-check.mjs',`assert.equal(q('craft-tank-actions').hidden,true);`,`assert.equal(q('craft-tank-actions'),null);`);
 
           for(const path of ['src/tank-charge.js','tests/tank-charge.test.mjs']){
             if(!existsSync(path))throw new Error(`Expected legacy file missing before cleanup: ${path}`);
@@ -95,6 +101,8 @@ jobs:
           node tests/veil-playthrough.test.mjs
           node tests/craft-controls-ui.test.mjs
           node tests/craft-workspace.test.mjs
+          npm install --no-save --package-lock=false jsdom@26
+          node tests/veil-ui-check.mjs "$(node -p "require.resolve('jsdom')")"
       - name: Rebuild and verify PWA release
         run: |
           node scripts/build-precache.mjs
