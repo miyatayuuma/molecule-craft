@@ -1,0 +1,50 @@
+name: LC-04 verification
+
+on:
+  push:
+    branches: [legacy-cleanup-lc-04]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Collection persistence golden migrations
+        run: node tests/collection-persistence.test.mjs
+      - name: Collection runtime regressions
+        run: |
+          node tests/collection.test.mjs
+          node tests/collection-expansion.test.mjs
+      - name: Saved progress and DB readiness regressions
+        run: |
+          node tests/issue-113-regression.test.mjs
+          node tests/issue-119-regression.test.mjs
+      - name: LOADOUT candidate regression
+        run: node tests/supply-tanks.test.mjs
+      - name: Rebuild verified offline release
+        run: node scripts/build-precache.mjs
+      - name: PWA integrity
+        run: node tests/pwa.test.mjs
+      - name: Repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: Diff hygiene
+        run: git diff --check
+      - name: Commit generated PWA outputs when needed
+        shell: bash
+        run: |
+          if git diff --quiet -- sw.js precache-manifest.js; then
+            echo "Generated PWA outputs are already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js precache-manifest.js
+          git commit -m "Refresh PWA precache for LC-04"
+          git push
