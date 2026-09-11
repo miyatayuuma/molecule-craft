@@ -86,11 +86,15 @@ jobs:
           node tests/supply-tanks.test.mjs
           node tests/loadout-preview.test.mjs
           node tests/loadout-workstation.test.mjs
+          node tests/loadout-launch-regression.test.mjs
+          node tests/launch-pointer-lifecycle.test.mjs
           node tests/launch-transition.test.mjs
           node tests/issue-122-launch-route.test.mjs
           node tests/veil-playthrough.test.mjs
+          sed -i "s#../src/workspace-save.js?v=30#../src/workspace-persistence.js?v=1#" tests/veil-ui-check.mjs tests/mobile-ui-check.mjs
           node tests/veil-ui-check.mjs /tmp/lc06a/node_modules/jsdom/lib/api.js
           node tests/mobile-ui-check.mjs /tmp/lc06a/node_modules/jsdom/lib/api.js
+          git checkout -- tests/veil-ui-check.mjs tests/mobile-ui-check.mjs
           node tests/pwa.test.mjs
       - name: Remove temporary workflow and run hygiene checks
         run: |
