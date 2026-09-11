@@ -2,6 +2,7 @@ import {createVeilUI} from './veil/ui.js?v=3';
 import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionSideEffectGate} from './completion-side-effects.js?v=1';
 import {installPendingCraftAccess} from './pending-craft.js?v=1';
+import {loadMoleculeDatabase,moleculeCatalog} from './chemistry.js?v=20';
 
 function normalizeExplorationMode(){
   const veil=document.querySelector('#veil-view'),appShell=document.querySelector('.app-shell');
@@ -110,13 +111,37 @@ function installLoadoutShortageUI(resources){
   paintPreview();
 }
 
-export function connectExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
-  normalizeExplorationMode();installEmptyDeparturePolicy(resources);
+export async function prepareExplorationCatalog(resources){
+  const result=await loadMoleculeDatabase();
+  if(!result.ok)return result;
+  resources.setCatalog(moleculeCatalog());
+  return result;
+}
+
+function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
+  installEmptyDeparturePolicy(resources);
   const pendingCraft=installPendingCraftAccess({resources});
   const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch:preserveSupplyDuringPrepare(onBeforeLaunch),onCraft:(...args)=>{pendingCraft.refresh();return onCraft(...args);},onCommit});
   installLoadoutShortageUI(resources);
   createProgressResetUI({resources,...reset});
   return veilUI;
+}
+
+export function connectExploration(options){
+  normalizeExplorationMode();
+  let veilUI=null;
+  const ready=prepareExplorationCatalog(options.resources).then(result=>{
+    if(!result.ok)return null;
+    veilUI=createReadyExploration(options);
+    return veilUI;
+  }).catch(error=>{console.warn('Exploration unavailable until molecule DB is ready.',error);return null;});
+  return{
+    get active(){return veilUI?.active??false;},
+    get ready(){return ready;},
+    updateCraft(){return veilUI?.updateCraft?.();},
+    openSupply(...args){return veilUI?.openSupply?.(...args)??false;},
+    discovered(...args){return veilUI?.discovered?.(...args);},
+  };
 }
 
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
