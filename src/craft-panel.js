@@ -58,11 +58,11 @@ export function createCraftPanel(document){
     selectedElement:document.querySelector('#selected-element'),selectedValence:document.querySelector('#selected-valence'),selectedLimit:document.querySelector('#selected-limit'),selectionChip:document.querySelector('#selection-chip'),
     discovery:document.querySelector('#discovery'),discoveryFormula:document.querySelector('#discovery-formula'),discoveryName:document.querySelector('#discovery-name'),
     structureList:document.querySelector('#structure-list'),structureCount:document.querySelector('#structure-count'),structureFocus:document.querySelector('#structure-focus'),
-    tankActions:document.querySelector('#craft-tank-actions'),chargeStage:document.querySelector('#tank-charge-stage'),target:document.querySelector('#craft-target'),targetName:document.querySelector('#craft-target-name'),targetFormula:document.querySelector('#craft-target-formula'),targetAtoms:document.querySelector('#craft-target-atoms'),
+target:document.querySelector('#craft-target'),targetName:document.querySelector('#craft-target-name'),targetFormula:document.querySelector('#craft-target-formula'),targetAtoms:document.querySelector('#craft-target-atoms'),
   };
   const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる');nodes.pubchem=pubchemLink;
   let pubchemStorage=null;try{pubchemStorage=document.defaultView?.localStorage??null;}catch{}const pubchemIntro=createPubchemIntroState(pubchemStorage);
-  let tankActionKey='',tankControls=[],clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};
+  let clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};
   document.querySelector('#clear-craft-target')?.addEventListener('click',()=>clearTarget());
 
   function identity(structure){
@@ -82,10 +82,6 @@ export function createCraftPanel(document){
     }
   }
 
-  function renderTankActions(){
-    if(tankActionKey){tankActionKey='';for(const control of tankControls)control.cancel?.();tankControls=[];}nodes.tankActions.replaceChildren();nodes.tankActions.hidden=true;
-  }
-
 
 function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{}}={}){
   clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;lastTargetKey='';lastTargetFilled={};return;}
@@ -100,7 +96,6 @@ function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetP
 function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure}){
     veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.formula.append(nodes.pubchem);nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';const reference=focus?.complete&&!focus.record?pubchemReferenceFor(focus):null;nodes.pubchem.hidden=!reference;nodes.pubchem.textContent=pubchemIntro.label(reference?focus.signature:null);if(reference){nodes.pubchem.href=reference.url;nodes.pubchem.dataset.searchMode=reference.mode;}else{nodes.pubchem.removeAttribute('href');delete nodes.pubchem.dataset.searchMode;}
     renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart});
-    renderTankActions(focus,veilUI);
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
     nodes.counts.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)nodes.counts.textContent='—';else for(const symbol of Object.keys(counts).sort()){const chip=document.createElement('span');chip.className='atom-count';chip.textContent=`${symbol} × ${counts[symbol]}`;nodes.counts.appendChild(chip);}
     renderStructureList({structures,focused:focus,disabled:structureListDisabled,onSelect:onSelectStructure});

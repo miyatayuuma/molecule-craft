@@ -29,7 +29,6 @@
 - `src/craft-workspace.js`：BASE STOCKとの原子入出庫と、制作グラフの追加・削除・全片付け・整理復元。`addPart` は解放確認・一括仮出庫を担当。
 - `src/craft-controls.js`：クラフト画面のDOMイベント登録。
 - `src/craft-panel.js`：分子情報、制作目標、構造一覧、完成表示。補給目的の反復クラフト操作は持たない。
-- `src/tank-charge.js`：固定時間の長押し充填、途中確定、入替廃棄の演出とキャンセル制御。
 - `src/craft-connections.js`：探索UI・進捗初期化・図鑑遅延読込・保存ライフサイクルの接続。
 - `styles.css`：クラフト・図鑑・共通UI。
 - `veil.css`：探索画面と推進UI。
@@ -58,7 +57,7 @@
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
 | 収集殻・用途別タンク選択・3D模型・図鑑導線 | `src/veil/supply.js` |
 | タンク用途・汎用推進計算 | `src/veil/growth.js`, `src/veil/molecule-roles.js` |
-| タンク内容・直接充填・旧在庫移行・恒久強化 | `src/veil/resources.js`, `tank-upgrades.js` |
+| タンク内容・ロードアウト自動錬成・旧在庫移行・恒久強化 | `src/veil/resources.js`, `src/veil/supply.js`, `tank-upgrades.js` |
 | 収集殻の共通描画 | `src/veil/collector-shell.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
@@ -71,7 +70,7 @@
 | BASE STOCKから取り出す／戻す | `src/craft-workspace.js` |
 | 原子・部品の追加、個別削除、全片付け、整理と復元 | `src/craft-workspace.js`（配置候補の計算と3D反映は `src/app.js`） |
 | パレット・構造切替・削除・片付けのイベント | `src/craft-controls.js` |
-| 分子名・式・選択情報・構造一覧・完成表示・対応タンク操作 | `src/craft-panel.js` |
+| 分子名・式・選択情報・構造一覧・完成表示 | `src/craft-panel.js` |
 | 図鑑と探索画面への接続 | `src/craft-connections.js` |
 | 分子グラフ・式・DB認識 | `src/chemistry.js` |
 | 原子価・電子・結合許可・幾何 | `src/bonding-model.js` |
