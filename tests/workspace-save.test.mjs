@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {Molecule} from '../src/chemistry.js';
-import {captureWorkspace,restoreWorkspace,validateWorkspace,createWorkspaceStorage,WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
+import {WORKSPACE_SCHEMA,captureWorkspace,restoreWorkspace,validateWorkspace} from '../src/workspace-save.js?v=31';
+import {createWorkspaceStorage,WORKSPACE_STORAGE_KEY} from '../src/workspace-persistence.js?v=1';
 function field(){const molecule=new Molecule(),placements=new Map(),camera=new THREE.PerspectiveCamera(44,390/650,.1,100),cameraTarget=new THREE.Vector3(4,-1,2);camera.position.set(7,5,11);camera.lookAt(cameraTarget);return {THREE,molecule,placements,camera,cameraTarget};}
 const original=field(),ids=['C','O','H','N'].map(element=>original.molecule.addAtom(element).id);
 original.molecule.setBond(ids[0],ids[1],2);original.molecule.setBond(ids[0],ids[2],1);
 ids.forEach((id,i)=>original.placements.set(id,{position:new THREE.Vector3(i*.78-2,i*.17,-i*.19)}));
 const saved=captureWorkspace({...original,positionFor:id=>original.placements.get(id).position,selectedAtomId:ids[2],focusId:ids[0],pivot:new THREE.Vector3(-.8,.2,-.5),targetMoleculeId:'methane'});
+assert.equal(saved.schemaVersion,WORKSPACE_SCHEMA);
+const legacyLike=structuredClone(saved);legacyLike.schemaVersion=1;delete legacyLike.targetMoleculeId;assert.throws(()=>validateWorkspace(legacyLike),/current workspace/,'runtime restore boundary accepts canonical current workspaces only');
 const restored=field(),selection=restoreWorkspace(structuredClone(saved),restored);
 assert.equal(selection.targetMoleculeId,'methane');
 assert.deepEqual(captureWorkspace({...restored,positionFor:id=>restored.placements.get(id).position,selectedAtomId:selection.selected,focusId:selection.focus,pivot:selection.pivot,targetMoleculeId:selection.targetMoleculeId}),saved,'Graph, loose atoms, target, exact positions, camera and focus must survive a round trip');

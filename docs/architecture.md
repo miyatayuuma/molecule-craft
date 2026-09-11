@@ -18,7 +18,7 @@
 | 結合操作 | `src/app.js`, `src/bonding-model.js`, `src/electron-interaction.js`, `src/gesture-arbitration.js` | `bond-state.test.mjs`, `mobile-ui-check.mjs` |
 | 3D配置・補正 | `src/conformation-engine.js`, `src/structure-relaxation.js`, `src/structure-motion.js`, `src/structure-settlement.js` | `conformation-regression.test.mjs`, `structure-relaxation.test.mjs` |
 | 分子変形・単結合回転 | `src/conformation-engine.js`, `src/torsion-model.js`, `src/structure-edit.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
-| 制作フィールド保存 | `src/workspace-save.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `veil-reset.test.mjs` |
+| 制作フィールド保存 | `src/workspace-save.js`, `src/workspace-persistence.js`, `src/workspace-migrations.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `workspace-persistence.test.mjs`, `veil-reset.test.mjs` |
 | 図鑑・発見・解放 | `src/collection-ui.js`, `src/collection-state.js`, `src/element-progression.js` | `collection.test.mjs`, `collection-expansion.test.mjs` |
 | PWA・更新 | `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs` | `pwa.test.mjs` |
 
@@ -81,7 +81,7 @@
 | release後の独立座標補正と補間 | `src/structure-settlement.js` |
 | rotatable / restricted / locked判定 | `src/torsion-model.js`, `src/structure-edit.js` |
 | 表示対象・全体回転・画角 | `src/workspace-view.js`, `src/workspace-model.js` |
-| workspace保存・復元・未来版保護 | `src/workspace-save.js` |
+| workspace canonical capture / restore | `src/workspace-save.js`。旧schema normalizeとstorage保護は `workspace-migrations.js`, `workspace-persistence.js` |
 | ターゲット分解・実グラフ不足判定 | `src/craft-decomposition.js`, `src/craft-target-satisfaction.js`（対応名のテスト） |
 | 部品展開・初期座標 | `src/craft-structures.js` |
 | 追加位置 | `src/spawn-layout.js` |
@@ -111,7 +111,7 @@
 ## 保存
 
 - `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v7は恒久O₂強化に加えて次回ロードアウトを保存し、完成分子の中間在庫を持たない。出発確定時にBASE STOCKから不足分だけ自動錬成し、タンク交換・破棄・保存を一括処理する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。runtimeの資源・タンク・LOADOUT状態管理は `src/veil/resources.js`、resources schema v1〜v7のvalidation / migrationと破損・未来版保護、current-schema書き出しは `src/veil/resources-persistence.js`。
-- `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部schema v2は構造と制作目標を保存し、復元は `src/workspace-save.js`。
+- `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部current schemaはv2。v1/v2判定・normalize・破損/未来版保護とcurrent-only writeは `src/workspace-migrations.js`, `src/workspace-persistence.js`、runtimeのcanonical capture / restoreは `src/workspace-save.js`。resources初回移行に必要な旧workspace bridgeもこのmigration境界を利用する。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。
 
