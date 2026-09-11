@@ -18,7 +18,10 @@ jobs:
       - name: Install DOM harness dependency
         run: npm install --no-save --package-lock=false jsdom@26
       - name: Production LOADOUT to EXPLORE harness
-        run: node tests/veil-ui-check.mjs "$PWD/node_modules/jsdom/lib/api.js"
+        run: |
+          sed "s/,loadMoleculeDatabase:async()=>({ok:true})//" tests/veil-ui-check.mjs > /tmp/veil-ui-check.mjs
+          cp /tmp/veil-ui-check.mjs tests/veil-ui-check-audit.mjs
+          node tests/veil-ui-check-audit.mjs "$PWD/node_modules/jsdom/lib/api.js"
       - name: Focused launch regressions
         run: |
           node tests/issue-119-regression.test.mjs
