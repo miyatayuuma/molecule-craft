@@ -26,6 +26,7 @@ import { bindSaveLifecycle, connectCollection, connectExploration, createDiscove
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 import { matchCraftTarget } from './craft-target-satisfaction.js';
+import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js?v=1';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
@@ -51,7 +52,7 @@ const craftWorkspace=createCraftWorkspace({molecule,placements,resources,resolve
 const protectedUntil=new Map();
 let lastBackgroundTap=null,frameTransition=null;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
-let collectionGame=null,collectionOpen=false,craftTargetId=null;
+let collectionGame=null,collectionOpen=false,craftTargetId=null,craftBondHint=null;
 let refreshInfoFault='',animationFault='';
 
 const viewer=document.querySelector('#viewer');
@@ -571,12 +572,14 @@ function animateSelection(now){
   }
 }
 function animateUnpairedElectrons(now){
+  const hintKeys=bondTransition?new Set():craftHintElectronKeys(craftBondHint,electronVisuals),hintWave=.5+.5*Math.sin(now*.009);
   for(const ev of electronVisuals){
     const atomPos=pos(ev.atomId);if(!atomPos)continue;let world;
     const pairing=bondTransition?.kind==='form'&&!bondTransition.applied&&((ev.atomId===bondTransition.sourceId&&ev.index===bondTransition.sourceIndex)||(ev.atomId===bondTransition.targetId&&ev.index===bondTransition.targetIndex));
     ev.visible.visible=!pairing;ev.hit.visible=!pairing;if(pairing)continue;
     const dragged=dragState?.mode==='electron'&&dragState.atomId===ev.atomId&&dragState.index===ev.index;
     const compatible=dragState?.mode==='electron'&&!dragged&&canPairAtoms(dragState.atomId,ev.atomId);
+    const hinted=hintKeys.has(`${ev.atomId}:${ev.index}`);
     if(dragged)world=dragState.currentWorld.clone();
     else if(electronReturn&&electronReturn.atomId===ev.atomId&&electronReturn.index===ev.index){const t=THREE.MathUtils.clamp((now-electronReturn.startedAt)/electronReturn.duration,0,1),ease=1-Math.pow(1-t,3),home=electronHomePosition(ev.atomId,ev.index,now);world=electronReturn.from.clone().lerp(home,ease);if(t>=1)electronReturn=null;}
     else world=unstableElectronPosition(ev,now);
@@ -587,9 +590,9 @@ function animateUnpairedElectrons(now){
     const target=hoverElectron&&hoverElectron.atomId===ev.atomId&&hoverElectron.index===ev.index;
     ev.visible.position.copy(world);ev.hit.position.copy(world);
     if(ev.kind!=='electron')ev.visible.quaternion.copy(camera.quaternion);
-    ev.visible.material.depthTest=false;ev.visible.renderOrder=(compatible||dragged)?20:10;
-    ev.visible.scale.setScalar(dragged?1.55:target?1.62:compatible?1.18:1+.10*Math.sin(now*.008+ev.phase));
-    ev.visible.material.emissiveIntensity=dragged?2.5:target?3.0:compatible?1.9:1.25+.45*(.5+.5*Math.sin(now*.006+ev.phase));
+    ev.visible.material.depthTest=false;ev.visible.renderOrder=(compatible||dragged)?20:hinted?16:10;
+    ev.visible.scale.setScalar(dragged?1.55:target?1.62:compatible?1.18:hinted?1.24+.18*hintWave:1+.10*Math.sin(now*.008+ev.phase));
+    ev.visible.material.emissiveIntensity=dragged?2.5:target?3.0:compatible?1.9:hinted?2.05+1.15*hintWave:1.25+.45*(.5+.5*Math.sin(now*.006+ev.phase));
   }
 }
 function unstableElectronPosition(ev,now){
@@ -633,7 +636,7 @@ function placeTargetPart(item){
 function refreshInfo(keep=false){
   try{
     const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;
-    const target=resources.record(craftTargetId);
+    const target=resources.record(craftTargetId);craftBondHint=nextCraftBondHint(target,molecule);
     craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target,targetParts:targetPartsFor(target),onPlaceTargetPart:placeTargetPart,targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:true,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
     setUndoAvailable(craftHistory.canUndo);refreshInfoFault='';return true;
   }catch(error){const detail=String(error?.stack??error);if(detail!==refreshInfoFault){refreshInfoFault=detail;console.error('Craft information refresh failed; 3D workspace remains active.',error);}return false;}
