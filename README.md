@@ -40,7 +40,7 @@ Three.js 0.180.0は `vendor/three/` に同梱されています。通常起動�
 | `data/` | 分子DB、図鑑文、官能基、部品 |
 | `assets/models/` | 生成済み分子・部品SVG |
 | `tests/` | 現行仕様の単体・統合・手動確認 |
-| `scripts/` | DB、SVG、precache、repository hygieneの生成・検査 |
+| `scripts/` | DB、SVG、precache、repository hygieneの生成・検査と、現行探索バランスの手動評価 |
 | `docs/` | 現行設計契約と、明示的な未実装計画 |
 
 ## Documentation source of truth
@@ -70,6 +70,15 @@ node tests/veil-ui-check.mjs /path/to/jsdom/lib/api.js
 ```
 
 実Three.jsを使う追加の幾何検証は `tests/*-check.mjs` にあります。各ファイル先頭の実行方法を参照してください。
+
+## 手動評価tooling
+
+以下はproduction runtimeを変更せず、現行sourceの定数・route・engineを使って探索バランスや設計判断を再現するための手動評価です。
+
+- `node scripts/evaluate-propulsion-profiles.mjs` — fuel response、coolant profile、現行O₂容量36 / 48 / 72での推進差を比較する。
+- `node scripts/simulate-expedition.mjs` — 通常・深部・BURST / DRIVE極端運用の収支、危険度、推進コストを決定論的に比較する。`expedition-balance.test.mjs` も同じ評価器を利用する。
+- `node scripts/simulate-cho-campaign.mjs` — 新規状態から分子発見、現行LOADOUT出発時自動錬成、CHO最終到達・正常帰還・保存までを機械的に通す。人間の初見プレイ時間評価には使わない。
+- `node scripts/simulate-oxygen-routes.mjs` — Oxygen分岐の有限tank・route・loadout・CHO最終遠征を比較する。`oxygen-loadout-evaluation.test.mjs` と `cho-campaign.test.mjs` もこの評価器を利用する。
 
 ## 生成物
 
