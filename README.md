@@ -62,6 +62,12 @@ node --test tests/*.test.mjs
 node scripts/check-repository-hygiene.mjs
 ```
 
+PRでは依存install不要の軽量guardrailとして、repository hygiene、source contract、PWA生成物freshness / integrity、差分whitespaceを自動検証します。precacheを更新すべき変更かだけ確認する場合は、生成物を書き換えずに次を実行できます。
+
+```sh
+node scripts/build-precache.mjs --check
+```
+
 本番DOM統合試験にはjsdomの実体パスを渡します。
 
 ```sh

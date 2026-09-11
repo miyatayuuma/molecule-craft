@@ -17,7 +17,7 @@
 | クラフトと図鑑・探索の接続 | `src/craft-connections.js` | `source-contracts.test.mjs`, `veil-ui-check.mjs` |
 | 結合操作 | `src/app.js`, `src/bonding-model.js`, `src/electron-interaction.js`, `src/gesture-arbitration.js` | `bond-state.test.mjs`, `mobile-ui-check.mjs` |
 | 3D配置・補正 | `src/conformation-engine.js`, `src/structure-relaxation.js`, `src/structure-motion.js`, `src/structure-settlement.js` | `conformation-regression.test.mjs`, `structure-relaxation.test.mjs` |
-| 分子変形・単結合回転 | `src/conformation-engine.js`, `src/torsion-model.js`, `src/structure-edit.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
+| 分子変形・単結合回転 | `src/conformation-engine.js`, `src/torsion-model.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
 | 制作フィールド保存 | `src/workspace-save.js`, `src/workspace-persistence.js`, `src/workspace-migrations.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `workspace-persistence.test.mjs`, `veil-reset.test.mjs` |
 | 図鑑・発見・解放 | `src/collection-ui.js`, `src/collection-state.js`, `src/element-progression.js` | `collection.test.mjs`, `collection-expansion.test.mjs` |
 | PWA・更新 | `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs` | `pwa.test.mjs` |
@@ -50,7 +50,6 @@
 | マップ骨格 | `src/veil/map.js` |
 | C/O領域・塵・流れ | `src/veil/universe.js`, `expedition-challenges.js`（任意難所・報酬） |
 | 酸素の分岐・逆流・静かな渦 | `src/veil/oxygen-routes.js`。物理・描画・補給見取り図の共通定義 |
-| 分子用途の説明・搭載分比較・帰還助言 | `src/veil/propulsion-guide.js` |
 | Canvas描画 | `src/veil/renderer.js` |
 | 画面統合・入力・帰還 | `src/veil/ui.js` |
 | 音 | `src/veil/audio.js` |
@@ -79,7 +78,7 @@
 | force/velocity drag・whole-skeleton sway・rigid anchorまでのbalanced multi-torsion path・rollback | `src/conformation-engine.js` |
 | 剛体断片・結合長・角・平面・立体反発・環/鎖交差 | `src/structure-relaxation.js` |
 | release後の独立座標補正と補間 | `src/structure-settlement.js` |
-| rotatable / restricted / locked判定 | `src/torsion-model.js`, `src/structure-edit.js` |
+| rotatable / restricted / locked判定 | `src/torsion-model.js` |
 | 表示対象・全体回転・画角 | `src/workspace-view.js`, `src/workspace-model.js` |
 | workspace canonical capture / restore | `src/workspace-save.js`。旧schema normalizeとstorage保護は `workspace-migrations.js`, `workspace-persistence.js` |
 | ターゲット分解・実グラフ不足判定 | `src/craft-decomposition.js`, `src/craft-target-satisfaction.js`（対応名のテスト） |

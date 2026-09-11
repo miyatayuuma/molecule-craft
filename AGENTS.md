@@ -43,16 +43,18 @@
 - Do not edit generated outputs directly.
 - `scripts/build-molecule-db.mjs` generates `data/molecules.json`.
 - `scripts/build-collection-assets.mjs` generates `assets/models/*.svg`.
-- `scripts/build-precache.mjs` generates `precache-manifest.js`.
+- `scripts/build-precache.mjs` generates `precache-manifest.js` and the release marker in `sw.js`.
 - Change the source or generator, regenerate, then run the matching tests.
-- Regenerate the precache last after any runtime asset changes.
+- Regenerate the precache last after any runtime asset changes; `node scripts/build-precache.mjs --check` verifies committed PWA outputs without rewriting them.
 
 ## Repository hygiene
 
 - The only application entrypoint under `src/` is the fixed name `src/app.js`.
+- Every `src/**/*.js` file must be reachable from an explicit production module entry/import path; test- or script-only code belongs outside `src/`.
 - Do not add version-numbered entrypoints such as `src/app-v*.js`.
 - Do not keep historical implementations as copied code in `legacy/`, `archive/`, `old/`, `backup/`, or similarly named paths.
 - Do not duplicate source files to record change history. Use Git history.
-- Keep README focused on the current app; do not append release-by-release implementation logs.
-- Keep this file and `docs/architecture.md` short and operational.
-- Run `node scripts/check-repository-hygiene.mjs` and the relevant tests before committing.
+- Completed handoffs and `WORK_PROGRESS.md`-style transient records belong in Git history, Issues, or PRs; `docs/planning/` is reserved for genuinely future work.
+- Manual/evaluation scripts are valid current tooling, but keep an ownership reference in README/docs, a test/workflow, another script, or their generated artifact.
+- Keep README and this file concise. `docs/architecture.md` is the operational source-of-truth code map: split domain narrative when it stops serving navigation, rather than enforcing an arbitrary byte threshold.
+- Run `node scripts/check-repository-hygiene.mjs` and the relevant tests before committing. Pull requests also run the dependency-free repository validation workflow.
