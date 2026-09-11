@@ -13,7 +13,10 @@ export const UNKNOWN_NAME = '未知 / 未登録の構造';
 let nextAtomId = 1;
 let knownMolecules = [];
 let knownFingerprints = new Map();
-let databaseState = { loaded: false, count: 0, error: null };
+let knownById = new Map();
+let databaseState = { status: 'idle', loaded: false, count: 0, error: null, source: null };
+let databaseLoadPromise = null;
+let databaseLoadUrl = null;
 
 export class Molecule {
   constructor() {
@@ -83,7 +86,7 @@ export class Molecule {
   }
 
   recognizedMolecule() {
-    if (!this.atoms.length || !databaseState.loaded) return null;
+    if (!this.atoms.length || databaseState.status !== 'ready') return null;
     const fingerprint = moleculeFingerprint(this.atoms, this.bonds);
     const candidates = knownFingerprints.get(fingerprint) ?? [];
     return candidates.find(candidate => graphsAreIsomorphic(this.atoms, this.bonds, candidate.atoms, candidate.bonds)) ?? null;
@@ -95,11 +98,39 @@ export class Molecule {
   }
 }
 
+export function normalizeMoleculeId(value) {
+  if (typeof value !== 'string') throw new Error('Molecule id must be a string.');
+  const id = value.trim();
+  if (!id || !/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(id) || ['constructor', 'prototype', '__proto__'].includes(id)) throw new Error(`Invalid molecule id: ${value}`);
+  return id;
+}
+
+function publishMoleculeDatabase(records, source = 'direct') {
+  if (!Array.isArray(records)) throw new Error('Molecule database must be an array.');
+  const ids = new Set();
+  const validated = records.map(record => validateMoleculeRecord(record, ids));
+  const fingerprints = new Map();
+  const byId = new Map();
+  for (const record of validated) {
+    const fingerprint = moleculeFingerprint(
+      record.atoms.map((element, index) => ({ id: index, element })),
+      record.bonds.map(([a, b, order]) => ({ a, b, order })),
+    );
+    if (!fingerprints.has(fingerprint)) fingerprints.set(fingerprint, []);
+    fingerprints.get(fingerprint).push(record);
+    byId.set(record.id, record);
+  }
+  knownMolecules = validated;
+  knownFingerprints = fingerprints;
+  knownById = byId;
+  databaseState = { status: 'ready', loaded: true, count: validated.length, error: null, source };
+}
+
 async function tryDatabaseSource(source, load, errors) {
   try {
     const response = await load();
     if (!response?.ok) throw new Error(`HTTP ${response?.status ?? 'unknown'}`);
-    setMoleculeDatabase(await response.json());
+    publishMoleculeDatabase(await response.json(), source);
     return { ok: true, count: databaseState.count, source };
   } catch (error) {
     errors.push(`${source}: ${String(error?.message ?? error)}`);
@@ -107,7 +138,7 @@ async function tryDatabaseSource(source, load, errors) {
   }
 }
 
-export async function loadMoleculeDatabase(url = new URL('../data/molecules.json', import.meta.url)) {
+async function performMoleculeDatabaseLoad(url) {
   const errors = [];
   let result = await tryDatabaseSource('network', () => fetch(url, { cache: 'no-store' }), errors);
   if (result) return result;
@@ -124,36 +155,48 @@ export async function loadMoleculeDatabase(url = new URL('../data/molecules.json
 
   knownMolecules = [];
   knownFingerprints = new Map();
-  databaseState = { loaded: false, count: 0, error: errors.join(' | ') || 'Molecule database unavailable' };
+  knownById = new Map();
+  databaseState = { status: 'error', loaded: false, count: 0, error: errors.join(' | ') || 'Molecule database unavailable', source: null };
   console.warn('Molecule database unavailable; name recognition is disabled.', databaseState.error);
   return { ok: false, count: 0, error: databaseState.error };
 }
 
+export function loadMoleculeDatabase(url = new URL('../data/molecules.json', import.meta.url)) {
+  const key = String(url);
+  if (databaseLoadPromise) return databaseLoadPromise;
+  databaseState = { status: 'loading', loaded: false, count: 0, error: null, source: null };
+  databaseLoadUrl = key;
+  const promise = performMoleculeDatabaseLoad(url).finally(() => {
+    if (databaseLoadPromise === promise) {
+      databaseLoadPromise = null;
+      databaseLoadUrl = null;
+    }
+  });
+  databaseLoadPromise = promise;
+  return promise;
+}
+
 export function setMoleculeDatabase(records) {
-  if (!Array.isArray(records)) throw new Error('Molecule database must be an array.');
-  const ids = new Set();
-  const validated = records.map(record => validateMoleculeRecord(record, ids));
-  const index = new Map();
-  for (const record of validated) {
-    const fingerprint = moleculeFingerprint(
-      record.atoms.map((element, index) => ({ id: index, element })),
-      record.bonds.map(([a, b, order]) => ({ a, b, order })),
-    );
-    if (!index.has(fingerprint)) index.set(fingerprint, []);
-    index.get(fingerprint).push(record);
-  }
-  knownMolecules = validated;
-  knownFingerprints = index;
-  databaseState = { loaded: true, count: validated.length, error: null };
+  publishMoleculeDatabase(records, 'direct');
 }
 
 export function moleculeDatabaseStatus() {
   return { ...databaseState };
 }
 
+function assertMoleculeDatabaseReady() {
+  if (databaseState.status !== 'ready') throw new Error(`Molecule database is not ready (${databaseState.status}).`);
+}
+
 // Validated records shared with the collection; no second DB download/index.
 export function moleculeCatalog() {
+  assertMoleculeDatabaseReady();
   return knownMolecules.slice();
+}
+
+export function moleculeRecord(id) {
+  assertMoleculeDatabaseReady();
+  return knownById.get(normalizeMoleculeId(id)) ?? null;
 }
 
 export function countElements(atoms) {
@@ -187,23 +230,24 @@ export function moleculeFingerprint(atoms, bonds) {
 
 function validateMoleculeRecord(record, ids) {
   if (!record || typeof record !== 'object') throw new Error('Invalid molecule record.');
-  for (const key of ['id', 'nameJa', 'nameEn', 'iupacNameEn']) if (typeof record[key] !== 'string' || !record[key]) throw new Error(`Missing ${key}.`);
-  if (record.commonNameJa != null && (typeof record.commonNameJa !== 'string' || !record.commonNameJa)) throw new Error(`Invalid commonNameJa in ${record.id}.`);
-  if (record.commonNameEn != null && (typeof record.commonNameEn !== 'string' || !record.commonNameEn)) throw new Error(`Invalid commonNameEn in ${record.id}.`);
-  if (ids.has(record.id)) throw new Error(`Duplicate molecule id: ${record.id}`);
-  ids.add(record.id);
-  if (!Array.isArray(record.atoms) || !record.atoms.length || record.atoms.some(element => !ELEMENTS[element])) throw new Error(`Invalid atoms in ${record.id}.`);
-  if (!Array.isArray(record.bonds)) throw new Error(`Invalid bonds in ${record.id}.`);
+  const id = normalizeMoleculeId(record.id);
+  for (const key of ['nameJa', 'nameEn', 'iupacNameEn']) if (typeof record[key] !== 'string' || !record[key]) throw new Error(`Missing ${key}.`);
+  if (record.commonNameJa != null && (typeof record.commonNameJa !== 'string' || !record.commonNameJa)) throw new Error(`Invalid commonNameJa in ${id}.`);
+  if (record.commonNameEn != null && (typeof record.commonNameEn !== 'string' || !record.commonNameEn)) throw new Error(`Invalid commonNameEn in ${id}.`);
+  if (ids.has(id)) throw new Error(`Duplicate molecule id: ${id}`);
+  ids.add(id);
+  if (!Array.isArray(record.atoms) || !record.atoms.length || record.atoms.some(element => !ELEMENTS[element])) throw new Error(`Invalid atoms in ${id}.`);
+  if (!Array.isArray(record.bonds)) throw new Error(`Invalid bonds in ${id}.`);
   const pairs = new Set();
   for (const bond of record.bonds) {
-    if (!Array.isArray(bond) || bond.length !== 3) throw new Error(`Invalid bond in ${record.id}.`);
+    if (!Array.isArray(bond) || bond.length !== 3) throw new Error(`Invalid bond in ${id}.`);
     const [a, b, order] = bond;
-    if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0 || a >= record.atoms.length || b >= record.atoms.length || a === b || ![1, 2, 3].includes(order)) throw new Error(`Invalid bond in ${record.id}.`);
+    if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0 || a >= record.atoms.length || b >= record.atoms.length || a === b || ![1, 2, 3].includes(order)) throw new Error(`Invalid bond in ${id}.`);
     const key = pairKey(a, b);
-    if (pairs.has(key)) throw new Error(`Duplicate bond in ${record.id}.`);
+    if (pairs.has(key)) throw new Error(`Duplicate bond in ${id}.`);
     pairs.add(key);
   }
-  return Object.freeze({ ...record, atoms: Object.freeze([...record.atoms]), bonds: Object.freeze(record.bonds.map(bond => Object.freeze([...bond]))) });
+  return Object.freeze({ ...record, id, atoms: Object.freeze([...record.atoms]), bonds: Object.freeze(record.bonds.map(bond => Object.freeze([...bond]))) });
 }
 
 function normalizedGraph(atoms, bonds) {
