@@ -57,7 +57,7 @@ const supply=await readFile(new URL('../src/veil/supply.js',import.meta.url),'ut
 const veil=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
 const connections=await readFile(new URL('../src/craft-connections.js',import.meta.url),'utf8');
 const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
-assert.match(supply,/function launchDestination\(id\)[\s\S]*?expedition-anchor[\s\S]*?dispatchEvent\(new Event\('change'[\s\S]*?q\('launch-veil'\)\.click\(\)/);
+assert.match(supply,/function launchDestination\(id\)[\s\S]*?expedition-anchor[\s\S]*?dispatchEvent\(new window\.Event\('change'[\s\S]*?q\('launch-veil'\)\.click\(\)/);
 assert.match(supply,/function commitAndContinue\(partial\)[\s\S]*?onPrepareLaunch\(\)[\s\S]*?commitLaunchFill[\s\S]*?onLaunchReady\(\)/);
 assert.match(veil,/onLaunchReady:\(\)=>launch\(\{prepared:true\}\)/);
 assert.match(veil,/function launch\(\{prepared=false\}=\{\}\)/);
