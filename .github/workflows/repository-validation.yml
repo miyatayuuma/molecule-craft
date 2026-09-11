@@ -1,0 +1,26 @@
+name: Repository validation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Repository hygiene
+        run: node tests/repository-hygiene.test.mjs
+      - name: Source contracts
+        run: node tests/source-contracts.test.mjs
+      - name: PWA integrity
+        run: node tests/pwa.test.mjs
+      - name: Whitespace errors in pull request diff
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
