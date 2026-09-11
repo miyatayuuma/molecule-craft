@@ -1,7 +1,8 @@
 import { EXPEDITION } from './config.js';
 import { GROWTH,DRIVES,REGIONS,TANK_USES,tankCapacity } from './growth.js';
 import { performanceFor } from './molecule-roles.js';
-import { WORKSPACE_STORAGE_KEY,validateWorkspace } from '../workspace-save.js?v=30';
+import { validatePersistedWorkspace,migrateWorkspaceSave } from '../workspace-migrations.js?v=1';
+import { WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';
 
 export const RESOURCE_KEY='molecule-craft.resources.v1';
 export const SCHEMA_VERSION=7;
@@ -33,7 +34,7 @@ function validatePersistedState(s){
   if(s.progress.choCompleted!==undefined&&typeof s.progress.choCompleted!=='boolean')throw Error('Invalid CHO completion');
   if(s.resetEpoch!==undefined&&!integer(s.resetEpoch))throw Error('Invalid reset epoch');
   if(s.pendingReset!==undefined&&(!s.pendingReset||['collection','legacy','help'].some(k=>typeof s.pendingReset[k]!=='boolean')))throw Error('Invalid reset journal');
-  if(s.workspace!==null)validateWorkspace(s.workspace);
+  if(s.workspace!==null)validatePersistedWorkspace(s.workspace);
   if(s.schemaVersion===2){
     if(!ids(s.hints)||!s.dust||!s.loadout||!Object.hasOwn(DRIVES,s.loadout.drive)||typeof s.loadout.cooling!=='boolean')throw Error('Invalid systems');
     for(const el of MANAGED)if(!integer(s.elements[el])||!integer(s.dust[el])||s.dust[el]>=GROWTH.dustPerAtom[el])throw Error('Invalid atom balance');
@@ -68,9 +69,10 @@ function validatePersistedState(s){
 }
 
 function migrate(old){
-  if(old.schemaVersion>=6){const tanks={...createInitialTanks(),...old.tanks},fallback=Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,tanks[use]?.molecule??null])),selected=validSelectedLoadout(old.loadout?.tanks)?{...fallback,...old.loadout.tanks}:fallback;return {...old,schemaVersion:SCHEMA_VERSION,upgrades:old.schemaVersion===SCHEMA_VERSION?old.upgrades:{oxygenTank:0},progress:{...createInitialProgress(),...old.progress},elements:{...emptyElementStock(),...old.elements},tanks,loadout:{drive:old.loadout?.drive??'hydrogen',cooling:old.loadout?.cooling??true,tanks:selected}};}
+  const workspace=old.workspace===null?null:migrateWorkspaceSave(old.workspace);
+  if(old.schemaVersion>=6){const tanks={...createInitialTanks(),...old.tanks},fallback=Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,tanks[use]?.molecule??null])),selected=validSelectedLoadout(old.loadout?.tanks)?{...fallback,...old.loadout.tanks}:fallback;return {...old,schemaVersion:SCHEMA_VERSION,workspace,upgrades:old.schemaVersion===SCHEMA_VERSION?old.upgrades:{oxygenTank:0},progress:{...createInitialProgress(),...old.progress},elements:{...emptyElementStock(),...old.elements},tanks,loadout:{drive:old.loadout?.drive??'hydrogen',cooling:old.loadout?.cooling??true,tanks:selected}};}
   const {molecules:discardedMoleculeInventory,...oldWithoutMolecules}=old;
-  const next={...createInitialResourcesState(),...oldWithoutMolecules,schemaVersion:SCHEMA_VERSION,upgrades:{oxygenTank:0}};next.elements={...emptyElementStock(),...old.elements};next.tanks=createInitialTanks();next.progress={...createInitialProgress(),...old.progress};
+  const next={...createInitialResourcesState(),...oldWithoutMolecules,schemaVersion:SCHEMA_VERSION,workspace,upgrades:{oxygenTank:0}};next.elements={...emptyElementStock(),...old.elements};next.tanks=createInitialTanks();next.progress={...createInitialProgress(),...old.progress};
   const load=(use,id,amount,{legacyBurstUnits=false}={})=>{const capacity=tankCapacity(use,id)??0,value=Math.min(capacity,(amount??0)*(legacyBurstUnits?performanceFor(id,'propellant')?.moleculesPerBurst??1:1));if(value>0)next.tanks[use]={molecule:id,amount:value};};
   if(old.schemaVersion===5){for(const use of Object.keys(TANK_USES)){const tank=old.tanks?.[use];if(tank?.molecule)load(use,tank.molecule,tank.amount);}}
   else if(old.schemaVersion===4){for(const use of Object.keys(TANK_USES)){const tank=old.tanks?.[use];if(tank?.molecule)load(use,tank.molecule,tank.amount,{legacyBurstUnits:use==='propellant'&&tank.molecule==='hydrogen'});}}

@@ -28,6 +28,11 @@ assert.equal(SCHEMA_VERSION,7);
 for(const fixture of fixtures){const migrated=migrateResourcesSave(JSON.stringify(fixture.raw));assert.deepEqual(migrated,fixture.want,`v${fixture.version} -> v7 golden migration`);assert.equal(migrated.schemaVersion,7);assert.equal(Object.hasOwn(migrated,'molecules'),false,`v${fixture.version} must not expose legacy molecule inventory`);if(fixture.version<=6)assert.equal(migrated.upgrades.oxygenTank,0,`v${fixture.version} gets pre-upgrade default`);}
 
 const normalizedV7=migrateResourcesSave(JSON.stringify(fixtures.at(-1).raw));assert.deepEqual(JSON.parse(serializeResourcesState(normalizedV7)),normalizedV7,'egress writes current canonical state only');assert.throws(()=>serializeResourcesState(fixtures[5].raw),/schema/i,'egress must reject legacy schema states');
+const embeddedV1Workspace={schemaVersion:1,atoms:[{element:'H',position:[0,0,0]}],bonds:[],selected:0,focus:0,pivot:null,camera:{position:[4,3,8],target:[0,0,0],up:[0,1,0]}};
+const resourceWithLegacyWorkspace={...fixtures[5].raw,workspace:embeddedV1Workspace};
+const migratedEmbeddedWorkspace=migrateResourcesSave(JSON.stringify(resourceWithLegacyWorkspace));
+assert.deepEqual(migratedEmbeddedWorkspace.workspace,{...embeddedV1Workspace,schemaVersion:2,targetMoleculeId:null},'resources persistence keeps its legacy bridge but hands runtime a canonical workspace');
+
 
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
 const legacyRaw=JSON.stringify(fixtures[2].raw),legacyStorage=memory();legacyStorage.setItem(RESOURCE_KEY,legacyRaw);const hydratedLegacy=createResources({storage:legacyStorage});assert.equal(hydratedLegacy.blocked,false);assert.equal(hydratedLegacy.state.schemaVersion,7);assert.equal(legacyStorage.getItem(RESOURCE_KEY),legacyRaw,'hydrate must not eagerly rewrite a valid legacy save');assert.equal(hydratedLegacy.save(),true);assert.equal(JSON.parse(legacyStorage.getItem(RESOURCE_KEY)).schemaVersion,7,'the next normal save writes canonical v7');

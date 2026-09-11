@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createResources,RESOURCE_KEY,RESET_CATEGORIES} from '../src/veil/resources.js';
 import {createCollectionState,COLLECTION_STORAGE_KEY} from '../src/collection-state.js';
-import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
+import {WORKSPACE_STORAGE_KEY} from '../src/workspace-persistence.js?v=1';
 import {Molecule,setMoleculeDatabase} from '../src/chemistry.js?v=20';
 import {connectedStructures} from '../src/workspace-model.js';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));setMoleculeDatabase(records);
@@ -11,8 +11,9 @@ function fixture(){
  const write=fn=>{if(++operation===failAt)throw Error('Interrupted storage');fn();};
  const storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>write(()=>data.set(k,v)),removeItem:k=>write(()=>data.delete(k))};
  const resources=createResources({storage});resources.collect(30,95);resources.learn('hydrogen');resources.fillTankFromElements('propellant','hydrogen',3);resources.state.progress.cleared=true;resources.state.progress.runs=7;resources.state.progress.special='pure-h';
- const workspace={schemaVersion:1,atoms:[{element:'H',position:[0,0,0]},{element:'H',position:[1,0,0]}],bonds:[[0,1,1]],camera:{position:[5,4,7],target:[0,0,0],up:[0,1,0]},selected:0,focus:0,pivot:null};
- resources.spend({H:2});resources.workspaceAdapter.setItem(WORKSPACE_STORAGE_KEY,JSON.stringify(workspace));storage.setItem(WORKSPACE_STORAGE_KEY,JSON.stringify(workspace));
+ const legacyWorkspace={schemaVersion:1,atoms:[{element:'H',position:[0,0,0]},{element:'H',position:[1,0,0]}],bonds:[[0,1,1]],camera:{position:[5,4,7],target:[0,0,0],up:[0,1,0]},selected:0,focus:0,pivot:null};
+ const workspace={...legacyWorkspace,schemaVersion:2,targetMoleculeId:null};
+ resources.spend({H:2});resources.workspaceAdapter.setItem(WORKSPACE_STORAGE_KEY,JSON.stringify(workspace));storage.setItem(WORKSPACE_STORAGE_KEY,JSON.stringify(legacyWorkspace));
  storage.setItem(COLLECTION_STORAGE_KEY,JSON.stringify({schemaVersion:2,discoveredMolecules:[{id:'hydrogen',at:1}],legacyElements:['N'],milestones:['double-bond']}));storage.setItem('molecule-craft.help.v1','seen');storage.setItem('unrelated-application','keep');
  return {storage,resources,data,fail(n){operation=0;failAt=n;}};
 }

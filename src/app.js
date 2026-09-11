@@ -18,7 +18,8 @@ import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromatic
 import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=30';
 
 import { createGameShell } from './game-shell.js?v=29';
-import { createWorkspaceStorage, captureWorkspace, restoreWorkspace } from './workspace-save.js?v=30';
+import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
+import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { createCraftHistory } from './craft-history.js?v=1';
 import { bindCraftControls } from './craft-controls.js?v=1';
