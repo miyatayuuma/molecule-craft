@@ -13,15 +13,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 793a10477d3cc7170549872f9cb73d5afddd6ccc
-      - name: Package exact PR head for local reproduction
-        run: tar --exclude=.git -czf /tmp/issue-115-head.tar.gz .
+          ref: 57ea0f95764bf988c6416c1c666ece4ca2de8561
+      - name: Package exact base main for local comparison
+        run: tar --exclude=.git -czf /tmp/issue-115-base-main.tar.gz .
       - uses: actions/upload-artifact@v4
         with:
-          name: issue-115-head-793a104
-          path: /tmp/issue-115-head.tar.gz
+          name: issue-115-base-main-57ea0f9
+          path: /tmp/issue-115-base-main.tar.gz
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Run regression suite
+      - name: Run base regression suite
         run: node --test tests/*.test.mjs
