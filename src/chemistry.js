@@ -101,7 +101,7 @@ export class Molecule {
 export function normalizeMoleculeId(value) {
   if (typeof value !== 'string') throw new Error('Molecule id must be a string.');
   const id = value.trim();
-  if (!id || !/^[A-Za-z][A-Za-z0-9-]*$/.test(id) || ['constructor', 'prototype', '__proto__'].includes(id)) throw new Error(`Invalid molecule id: ${value}`);
+  if (!id || !/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(id) || ['constructor', 'prototype', '__proto__'].includes(id)) throw new Error(`Invalid molecule id: ${value}`);
   return id;
 }
 
