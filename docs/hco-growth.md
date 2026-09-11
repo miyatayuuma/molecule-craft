@@ -1,123 +1,190 @@
 # CHO campaign / Expedition Core
 
+この文書は、現在mainで稼働しているH/C/O探索、LOADOUT、推進、帰還、CHO完了条件のproduction契約です。ゲーム全体の永続原則は `game-design.md`、ルート部品は `route-kit.md`、未完の人間プレイ検証は `planning/cho-completion-roadmap.md` を参照してください。
 
-The CHO campaign now ends at the marked destination (280, −12470), radius 95.
-Reaching it sets a run-only flag; the same sortie must return voluntarily through
-the usual live-contact 0.8s ANCHOR LOCK. `settleExpedition` accepts the optional
-fourth argument `{destinationReached}` and commits `progress.choCompleted` with
-cargo in one save. Capture, a later unrelated safe return, a Frontier visit, and
-a failed save cannot complete the campaign. Old v6 saves default to false;
-future saves remain protected. Exploration reset clears completion. After a
-successful ending, the existing anchors, crafting and exploration remain usable.
+## Campaign completion
 
-Normal atom and part palettes show CHO. The menu can reveal already unlocked
-other elements for free crafting; their models, stock and discovery records are
-preserved. The book defaults to CHO with an explicit all-elements scope. These
-view choices do not delete or reset progression. The five introductory molecules
-remain H₂, CH₄, O₂, H₂O and CO₂; all five are not a completion requirement.
+CHO campaignの終点は `(280, -12470)`、到達半径95です。
 
-The target first-play length is 30–60 minutes, **not yet validated by human
-playtesting**. See [CHO delivery and playtest status](planning/cho-completion-roadmap.md).
+- 終点到達はその遠征だけの `destinationReached` として扱います。
+- **同じ遠征で通常の0.8秒ANCHOR LOCKを完了し、voluntary returnした時だけ** `progress.choCompleted` を保存します。
+- 終点到達後に捕獲された場合は完了しません。
+- 別遠征の安全帰還へ到達状態を持ち越しません。
+- 完了後も既存のクラフト・探索・アンカーは利用できます。
 
-The current continuous H/C/O world uses a finite-sortie exploration loop:
+初回プレイ目標は30〜60分ですが、人間の初見プレイではまだ検証していません。完了宣言のゲートは `planning/cho-completion-roadmap.md` にあります。
 
-> collect → stay for one more cluster → attract danger → spend propulsion → return → craft → change the next sortie
+## Current loop
 
-It adds no element, molecule, stage, attack, boss, loadout screen or recipe-gacha expansion.
+```text
+基地でLOADOUTを選ぶ
+→ Collector Shellを展開
+→ H/C/Oを集める
+→ stay / go deeperでpressureを上げる
+→ BURST / DRIVE / coolingを使う
+→ voluntary returnまたはforced return
+→ BASE STOCKで分子を手作業して発見
+→ 次のLOADOUTを更新
+```
+
+通常飛行は推進資源なしでも常に利用できます。FLOW / CHAINは移動速度、操舵、pickup radiusを変えません。
+
+## LOADOUT and launch synthesis
+
+現在のタンクは次の4用途です。
+
+- propellant
+- fuel
+- oxidizer
+- coolant
+
+LOADOUTでは、**発見済みかつその用途に対応する分子**を各slotへ選びます。選択そのものではBASE STOCKを消費せず、既存タンク内容も変更しません。
+
+出発時は `src/veil/resources.js` が選択LOADOUTと現在タンクを比較し、必要な不足分をBASE STOCKから自動錬成します。
+
+- 十分な材料がある場合はFULL。
+- 全満載には足りないが使用可能な量を組める場合はPARTIALとして確認対象になります。
+- 有効な搭載を作れない場合はIMPOSSIBLEです。
+- 同じ分子が既に入っているslotは残量を利用し、不足分だけ追加します。
+- 別分子へ切り替えるslotは、出発commit時に旧内容を置き換えます。
+- 空slotは空として出発します。
+- LOADOUT選択は保存され、次回編集時の基準になります。
+
+CRAFT workspaceにはタンク充填操作を置きません。完成模型は発見・制作設計であり、ユーザー向けのタンク補給境界はLOADOUT出発transactionです。完成分子の中間在庫は現行schemaに存在しません。
+
+保存元 `molecule-craft.resources.v1` の現行内部schemaはv7です。旧schemaからのtank内容・進行互換を維持し、未来schemaや破損saveを保護します。
 
 ## Propulsion roles
 
-Ordinary flight is the same before and after H₂ discovery: speed 164, idle drift 29 and suction radius 30. FLOW/CHAIN never enters speed, steering or pickup-radius calculations.
+### BURST
 
-| Action | Sortie capacity | Output | Intended decision |
-|---|---:|---:|---|
-| BURST | H₂ × 120 = 3 uses; later propellants use their own capacity/cost/power | 0.65s; selected molecule changes thrust | Emergency separation or one precise current crossing |
-| COMBUSTION DRIVE | selected fuel capacity / O₂ × 36 | speed 470; packet duration follows fuel energy and O₂ ratio | Hold for efficient sustained travel; release preserves the packet remainder |
+H₂は基準propellantです。
 
-Before launch, a completed handmade model acts as the production design. Holding its role button consumes atoms directly from uncapped BASE STOCK and forms molecules inside the selected Collector Shell tank; there is no separate finished-molecule inventory. Capacity resolves from tank use plus selected molecule. A valid BURST consumes that propellant's `moleculesPerBurst`; H₂ consumes 40 and still provides three full-tank uses. Combustion buys the smallest whole-molecule packet that satisfies the selected fuel's `oxygenPerFuel`; its paid duration is `fuel amount × 2s × energy`. Unused and non-limiting tank contents remain loaded, and actual use is saved atomically without touching BASE STOCK. Replacing a tank visibly discards its old contents and never refunds them.
+- tank capacity: 120
+- 1 BURST: 40 molecules
+- full tank: 3 uses
+- short emergency / precision propulsion
 
-H₂ remains deliberately poor as normal travel: three short uses cannot become an unlimited cruise. The authored outer current is thin enough for one correctly timed BURST to cross, but normal thrust stalls physically. Later propellants trade peak power for more uses. Fuel alone has no combustion action; O₂ remains the sole active oxidizer. Fuel energy changes endurance while the COMBUSTION top speed stays common.
+他の登録propellantも `src/veil/molecule-roles.js` の `capacity` / `moleculesPerBurst` / `burstPower` に従って同じruntimeを使います。後発propellantはピーク出力と使用回数のtrade-offを持ちます。
 
-H₂O is an active automatic coolant. It is never a required molecule key: other coolants or a deliberate rest can support combustion travel.
+### COMBUSTION DRIVE
 
-## Collector Shell, Dust Eaters and return pressure
+FuelとO₂を消費する持続高速推進です。
 
-The controlled object is a temporary Collector Shell deployed from the base and continuously tethered by the ANCHOR FIELD. The shell moves, gathers dust, carries propulsion tanks and holds current-sortie cargo; the base itself never enters the atomic universe.
+- top-speedの基本役割は全fuelで共通。
+- fuelごとの `response` が加速立ち上がりを変えます。
+- `energy` と `oxygenPerFuel` が実際の燃焼packetと持続時間・O₂消費を決めます。
+- 入力を離しても支払い済みpacket remainderは捨てません。
+- fuelまたはO₂が不足すればDRIVEは停止しますが、通常飛行は継続できます。
+- O₂は現在唯一のactive oxidizerです。
 
-DUST EATERS are field-disrupting particle phenomena, rendered as light-swallowing cores with orbiting grains, wakes and distorted particle rings. They destabilize the shell's holding and structural fields rather than eating a biological ship, and have no face, teeth, health or attack interaction.
+性能・容量の数値source of truthは `src/veil/molecule-roles.js` です。化学DBへゲーム性能を移しません。
 
-- The first 20 seconds of a sortie are safe.
-- Threat then rises from elapsed time and dust collected during the current sortie.
-- Thresholds at 8 / 24 / 38 / 58 / 84 threat add up to five bodies.
-- Each body converges on a fixed speed of 168. It does not scale with recipes, ship speed or progress.
-- Bodies use weak per-slot prediction, alternating flank offsets and separation. One trails or pressures a turn; later bodies approach on different lines and narrow exits.
-- HUD pressure appears only after a body exists and shows count and nearest distance rather than another permanent progress system.
+## Heat and coolant
 
-Voluntary return starts a 0.8-second ANCHOR LOCK. The existing stable contraction is the lock itself, so no second presentation delay is stacked after it. Physics and contact remain active while the field forms; repeated return input cannot restart it, new propulsion input is blocked, and an H₂ BURST already in flight retains its short inertia. Lock completion performs stable RETRACT and settles 100% of new dust.
+COMBUSTION DRIVEには独立した0–100のpropulsion heatがあります。
 
-Contact before lock completion destabilizes the holding field and switches the same sequence to emergency RETRACT. The Task 1 particles are the 15% of only that sortie's total dust spilling from that field, allocated deterministically across H/C/O before the remainder is converted at three units per atom. Existing atoms, tank contents, recipes, collection records, visited regions and other permanent progress are never subtracted.
+- sustained DRIVEでheatが増加します。
+- overheatするとDRIVEを停止し、自然冷却後に再利用できます。
+- coolantは自動thermostatからwhole-molecule単位で消費されます。
+- coolantごとの `coolingPower` / `durationFactor` / `environmentTolerance` が強度、持続、高温環境での消費効率を分けます。
+- BURSTと通常飛行はcoolant必須ではありません。
+- ambient/environment heatはpropulsion heatへ負荷を加えますが、特定coolant IDの所持判定で通路を開閉しません。
 
-Element discovery itself is permanent when C or O is first observed, even if the player is caught later. This prevents a capture from erasing knowledge while still making the unbanked material meaningful.
+Coolant候補は厳密なupgrade chainではなく、強い短時間冷却、基準型、弱い長時間型等の用途差を持ちます。
 
-## Preserved H/C/O world
+## Permanent O₂ processing
 
-The H/C route skeleton, seeded interior variation and continuous coordinates remain unchanged. H follows readable lines and Carbon Drift uses two-lane mixed flows and 36-particle C-rich clusters. Oxygen now branches into three authored routes; moving lanes continue beyond their merge. Visited regions remain selectable replenishment anchors.
+O₂ tankの恒久容量は次の3段階です。
 
-The deterministic balance run separates a free 30-second saving sortie, a 55-second Carbon sortie using H₂ under pressure, and a 35-second cooled Oxygen sortie. Run `node scripts/simulate-expedition.mjs` for current quantities; the deep run must still beat three minutes of safe outer collection after consumed propulsion atoms are deducted.
+| 段階 | 容量 | 解禁条件 | BASE STOCK加工費 |
+|---|---:|---|---|
+| initial | 36 | — | — |
+| Elastomer Seal Repair | 48 | ethene + propeneを発見 | C24 H48 |
+| Composite Overwrap | 72 | phenol + formaldehydeを発見 | C96 H48 O16 |
 
-Correct handmade structures can still be discovered without first receiving a hint. Once discovered, supported propellants, fuels, oxidizers and coolants become eligible for direct production into their tanks; other molecules remain collection discoveries only. Role data does not enter progression-specific `MOLECULE_USES`, so merely registering a role never changes unknown-signal order or the fresh H → C → O path.
+設計上の意味は、1段階目が劣化sealとmicro-leakの修復、2段階目が樹脂matrix／carbon-fibre overwrapによる圧力容器補強です。これは巨大高分子在庫や工業反応式を直接シミュレートせず、発見済み小分子を加工技術の入口として扱う抽象化です。
 
-COMBUSTION DRIVE adds a separate 0–100 propulsion heat value. Methane reaches the cutoff after about ten uninterrupted seconds without coolant; natural cooling unlocks it at 55, and held input then re-ignites automatically without discarding paid packet time. The automatic thermostat begins at 35 and spends whole coolant molecules only after persistent storage accepts the deduction. Ambient region heat remains separate in v1, and BURST neither produces nor depends on propulsion heat.
+強化は容量だけを増やし、O₂そのものを無料生成しません。追加容量は通常のLOADOUT錬成で補充します。tank resetでは強化段階もresetします。
 
-Key hints remain deterministic: enough H suggests H₂, first C suggests CH₄, and first O suggests O₂, H₂O and CO₂. Existing O-aware saves receive the CO₂ hint when the catalog loads, without a free discovery or tank contents. Seeded unknown signals can change optional discovery order or grant dust; the third eligible miss guarantees a hint. Randomness never gates the H → C → O path.
+## Collector Shell, Dust Eater and return
 
-## Oxygen branch experiment
+操作対象は基地そのものではなく、一時的に展開されたCollector Shellです。
 
-At (120, −8700), three physical routes lead to an O-rich collection pocket at (120, −10720). Their geometry, pressure, chart and obstacle drawing share `src/veil/oxygen-routes.js`. No collision or passage rule reads recipe or molecule IDs.
+DUST EATERは生物型のcombat enemyではなく、Collector Shellのholding fieldを不安定化する追跡現象です。pressureは遠征時間と採集で増え、複数個体が退路を狭めます。
 
-| Route | Physical demand | Tradeoff |
-| --- | --- | --- |
-| 強流の近道 | One thin 600-unit opposing current | H₂ crosses in one burst; lower harvest and low material cost |
-| 連続する支流 | Four thin 490-unit opposing currents, laterally spread collection | CO₂ saves H; collect rapidly along one line or steer to the other bands |
-| 持続流の本道 | A long 370-unit opposing current and an O-rich quiet eddy | Higher O per sortie without spending propellant; coolant or a rest manages heat |
+### Voluntary return
 
-Side collection lanes are spaced 90 units apart in the branch interior; the main eddy holds an additional 180 O atoms worth of dust. These are placement changes, not molecule-performance changes. The original 27-unit / no-bonus layout remains an explicit simulation control.
+```text
+ANCHOR LOCK 0.8s
+→ stable RETRACT
+→ current-sortie cargo 100% retained
+```
 
-The midpoint rest eddy at (120, −9700) has no opposing pressure. A player can release combustion and steer within it until cool, then continue without coolant. Water and CO₂ coolant both support continuous passage. Travelling outside the marked lanes remains possible through the surrounding current. Beyond the merge, the existing deep environment resumes.
+lock中も物理と接触判定は有効です。
 
-Role performance, tank capacities, combustion speed and thermal constants are unchanged. Collection notes explain a molecule's use, suitable situation and weakness, with a callback to its supply comparison. The supply sheet includes a collapsible route chart, a CO₂ hint link, actual limiting-O₂ combustion time and cooling status. It does not select or lock a route. Discovery still requires a handmade molecule; charging still consumes BASE STOCK atoms.
+### Forced return
 
-Return shows burst count, combustion time and overheat count. At most one suggestion is based on observed overheating or sustained lack of forward progress during a burst in opposing flow. Route visits, current crossings and reaching the shared pocket are run-only telemetry. No new save schema, loadout budget, skill tree or permanent route unlock is introduced.
+DUST EATER接触では、現在遠征cargoの15%だけを失ってemergency RETRACTします。
 
-Run `node scripts/simulate-oxygen-routes.mjs` for finite-tank trips from the actual Oxygen anchor, including an uncooled rest strategy and an alternative coolant. `tests/oxygen-routes.test.mjs` checks 30/60fps, multiple seeds, four CO₂ bursts, strong-current rejection of weak thrust, successful returns, material tradeoffs and compatible hint backfill. H₂ momentum can also cross the four thin currents with two bursts: this alternative is faster but consumes more atoms than CO₂, and is deliberately preserved.
+失わないもの：
 
-`tests/oxygen-routes-browser-check.mjs` accepts a Playwright module path and optional local HTTP URL. `OXYGEN_CHROMIUM_PATH` optionally selects an installed Chromium executable. It verifies production mobile layout, collection → supply → craft, flight and return in an isolated browser context; screenshots go to `/tmp/molecule-craft-oxygen-*.png`. Human phone playtesting remains useful for judging burst timing and the clarity of route cues.
+- BASE STOCK
+- tank contents
+- recipes / discoveries
+- encyclopedia state
+- permanent upgrades / progression
 
-## Tunable boundaries
+元素の発見知識は、帰還前に捕獲されても巻き戻しません。
 
-`src/veil/config.js` owns ordinary flight, collection feel, thermal constants and all sortie/pursuit values under `EXPEDITION`. `src/veil/molecule-roles.js` owns role performance, capacities and whole-molecule combustion packets. `src/veil/growth.js` owns shared BURST/DRIVE output, density profiles and region boundaries. `src/veil/universe.js` owns authored routes, moving dust and physical currents. Resource settlement, schema v6 migration and base-stock protection live in `src/veil/resources.js`. `src/tank-charge.js` owns fixed-time hold charging and cancellation. `src/veil/collector-shell.js` supplies the shared field/supply-shell drawing. `src/veil/telemetry.js` records molecule IDs, heat and consumption per run and prints them only with `?expeditionDebug=1`.
+## H/C/O world and routes
 
-The drive API separates a momentary action (`beginBurst`) from held intent (`setCombustionHeld`).
+現行worldはH Veil → Carbon Drift → Oxygen領域 → CHO最深部まで連続座標でつながります。酸素領域には、異なる流れ・採集効率・休止余地を持つ複数経路とvortex routeがあります。
 
-## Automated evidence and remaining playtest
+重要なのは、route selectionを分子IDでlockしないことです。同じ区間でも、強いBURST、持続DRIVE、冷却しながらの巡航、休止、迂回など複数の解法を許します。
 
-`tests/expedition-core.test.mjs` and `tests/expedition-balance.test.mjs` verify:
+Route constructionの再利用境界は `route-kit.md` がsource of truthです。
 
-- base stock is uncapped while explicit sortie tanks are capped and persisted;
-- invalid repeated BURST input cannot double-spend;
-- releasing COMBUSTION DRIVE preserves its active packet;
-- FLOW/CHAIN cannot change movement or pickup results;
-- no eater appears during the safe interval;
-- normal flight is eventually caught by fixed-speed pursuers;
-- one emergency BURST increases separation by more than 250 world units in the controlled chase;
-- eight seconds of combustion increases separation from one eater by more than 1000 world units;
-- full CH₄/O₂ capacity is finite and continued greed still ends in capture after additional bodies arrive;
-- voluntary and captured settlement preserve all base-owned state and apply loss only to current cargo.
-- saving, normal and deep strategies have distinct fuel, risk and return profiles;
-- deep net return exceeds three minutes at the safe outer rate;
-- cooled deep travel avoids overheat while uncooled always-on combustion records thermal cutoffs;
-- BURST spam, DRIVE always-on, fuel saving, fuel exhaustion and the fixed five-body cap remain bounded.
+## Stock-dependent field depletion
 
-`tests/generic-propulsion.test.mjs` exercises every registered propellant, fuel and coolant, performance ordering, integer combustion packets and remainder preservation. `tests/thermal-coolant.test.mjs` fixes the short-burn window, cutoff, automatic cooling/recovery, atomic coolant consumption, depletion and telemetry behavior. `tests/growth.test.mjs` retains continuity, C-cluster, moving-O, handmade-key-molecule, optional signal and save-migration checks. `tests/supply-production.test.mjs` and `tests/supply-tanks.test.mjs` cover direct atom-to-tank batches, old finished-inventory removal, one-kind replacement, molecule capacities and schema v2–v6 persistence. `tests/tank-charge.test.mjs` covers the 1.5-second full charge, proportional top-up/release, replacement phase and cancellation safety. `tests/veil-ui-check.mjs` drives the Collector Shell and supply DOM through cargo collection, return settlement, completed-molecule long-press supply, coolant comparison and automatic cooling, capped H₂ use, held combustion and automatic captured return.
+探索fieldは出発時の基地在庫を入力として生成します。在庫が多い元素ほど採集dustを減らせますが、次を維持します。
 
-Run `node scripts/simulate-expedition.mjs` for the per-15-second enemy, cargo, depth, heat and resource comparison. These are deterministic mechanical checks, not a claim that the risk curve is subjectively final. Phone playtesting still needs to judge when the first pursuer feels fair, whether three BURST cards create good timing decisions, whether holding DRIVE remains comfortable, whether automatic cooling is legible, and whether the 15% loss creates tension without discouraging another sortie.
+- 同じseedならfixed landmarkとroute位置を変えない。
+- physical currentを在庫量で変えない。
+- optional dust laneやclusterの有無は変わってよい。
+- tankへ既に支払い済みの原子はBASE STOCKには含めません。
+- 遠征途中の採集によって同じfieldを再生成しません。
+
+この分離により、在庫抑制がroute navigationやseed比較そのものを壊さないようにします。
+
+## Discovery and progression
+
+fresh-saveの理解順はH → C → Oを維持します。
+
+- HからH₂を手作業で発見してBURSTを得る。
+- C到達後にCH₄を発見し、O到達後にO₂を発見してcombustionへ進む。
+- H₂O / CO₂などは有用な選択肢ですが、CHO campaign完了の必須分子一覧にはしません。
+- 正しい構造を自力で作った場合はhintより先に発見できます。
+- role profileがDBにあるだけでは利用可能にしません。実際の発見と元素供給経路を必要とします。
+
+`src/veil/molecule-roles.js` のrole登録と、`src/veil/growth.js` のprogression／unknown-signal metadataは分離します。role追加だけで序盤の未知信号順序を変えません。
+
+## Source ownership
+
+| Contract | Source |
+|---|---|
+| normal flight / expedition / thermal constants | `src/veil/config.js` |
+| game-role performance / molecule capacity | `src/veil/molecule-roles.js` |
+| progression metadata / shared drive behavior | `src/veil/growth.js` |
+| resources / save / launch auto-synthesis / O₂ upgrade transaction | `src/veil/resources.js` |
+| LOADOUT UI / launch selection | `src/veil/supply.js` |
+| propulsion physics | `src/veil/engine.js` |
+| route / dust / stock depletion | `src/veil/universe.js`, `src/veil/oxygen-routes.js` |
+| reusable route geometry | `src/veil/route-kit.js`, `docs/route-kit.md` |
+| CHO completion | `src/veil/cho-campaign.js`, `src/veil/resources.js` |
+
+Exact tuning values in source take precedence over prose when they change together in a future gameplay task.
+
+## Validation boundary
+
+Mechanical regressions are covered by focused tests around expedition core, loadout launch, supply tanks, molecule roles, thermal/coolant, O₂ upgrades, routes and CHO completion. Human playtesting is still required for subjective difficulty, first-time comprehension and the 30–60 minute target; that unresolved work is tracked only in `planning/cho-completion-roadmap.md`.
