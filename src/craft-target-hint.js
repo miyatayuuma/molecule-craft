@@ -92,15 +92,12 @@ export function nextCraftBondHint(targetGraph,workspaceGraph){
   return{...selected,contextKey,equivalentCandidates:candidates.map(candidate=>({atomIds:[...candidate.atomIds],workspaceIndices:[...candidate.workspaceIndices],currentOrder:candidate.currentOrder,nextOrder:candidate.nextOrder,targetOrder:candidate.targetOrder}))};
 }
 
-let presentedContextKey=null,requestedContextKey=null,latestHint=null;
-export function requestCraftHintHighlight(){
-  if(!latestHint?.contextKey)return false;
-  requestedContextKey=latestHint.contextKey;return true;
-}
+let presentedContextKey=null,requestedContextKey=null,requestPending=false;
+export function requestCraftHintHighlight(){requestPending=true;}
 export function craftHintElectronKeys(hint,electronVisuals){
   const contextKey=hint?.contextKey??null;
   if(contextKey!==presentedContextKey){presentedContextKey=contextKey;requestedContextKey=null;}
-  latestHint=hint??null;
+  if(requestPending){requestPending=false;requestedContextKey=contextKey;}
   if(!hint||requestedContextKey!==contextKey||!Array.isArray(hint.atomIds)||hint.atomIds.length!==2||!Array.isArray(electronVisuals))return new Set();
   const selected=[];
   for(const atomId of hint.atomIds){
