@@ -66,8 +66,9 @@ jobs:
         shell: bash
         run: |
           rm .github/workflows/lc-02-5-validation.yml
+          rm -rf node_modules
           git status --short
-          test "$(git status --short | wc -l)" -eq 1
+          test "$(git status --short | wc -l)" -eq 2
           git diff -- tests/veil-ui-check.mjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
