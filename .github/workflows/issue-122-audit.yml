@@ -1,0 +1,31 @@
+name: Issue 122 launch audit
+
+on:
+  push:
+    branches: [audit/issue-122-launch-route]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install DOM harness dependency
+        run: npm install --no-save --package-lock=false jsdom@26
+      - name: Production LOADOUT to EXPLORE harness
+        run: node tests/veil-ui-check.mjs "$PWD/node_modules/jsdom/lib/api.js"
+      - name: Focused launch regressions
+        run: |
+          node tests/issue-119-regression.test.mjs
+          node tests/issue-113-regression.test.mjs
+          node tests/loadout-launch-regression.test.mjs
+          node tests/launch-transition.test.mjs
+          node tests/launch-pointer-lifecycle.test.mjs
+          node tests/launch-dialog-lock.test.mjs
+          node tests/craft-connections.test.mjs
+          node tests/repository-hygiene.test.mjs
