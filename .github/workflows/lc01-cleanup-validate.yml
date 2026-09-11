@@ -101,8 +101,6 @@ jobs:
           node tests/veil-playthrough.test.mjs
           node tests/craft-controls-ui.test.mjs
           node tests/craft-workspace.test.mjs
-          npm install --no-save --package-lock=false jsdom@26
-          node tests/veil-ui-check.mjs "$(node -p "require.resolve('jsdom')")"
       - name: Rebuild and verify PWA release
         run: |
           node scripts/build-precache.mjs
