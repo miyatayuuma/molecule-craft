@@ -1,4 +1,4 @@
-function normalizeAtoms(graph,{workspace=false}={}){
+function normalizeAtoms(graph){
   if(!Array.isArray(graph?.atoms)||!Array.isArray(graph?.bonds))return null;
   const atoms=graph.atoms.map((atom,index)=>{
     if(typeof atom==='string')return{id:index,element:atom,index};
@@ -10,17 +10,15 @@ function normalizeAtoms(graph,{workspace=false}={}){
   for(const bond of graph.bonds){
     let a,b,order;
     if(Array.isArray(bond)){[a,b,order]=bond;}
-    else{a=workspace?(byId.get(bond?.a)??bond?.a):(byId.get(bond?.a)??bond?.a);b=workspace?(byId.get(bond?.b)??bond?.b):(byId.get(bond?.b)??bond?.b);order=bond?.order;}
-    if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=atoms.length||b>=atoms.length||a===b||!Number.isFinite(order)||order<=0)return null;
-    const normalizedOrder=Math.trunc(order);edges[a].set(b,normalizedOrder);edges[b].set(a,normalizedOrder);
+    else{a=byId.get(bond?.a)??bond?.a;b=byId.get(bond?.b)??bond?.b;order=bond?.order;}
+    if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=atoms.length||b>=atoms.length||a===b||!Number.isInteger(order)||order<=0)return null;
+    edges[a].set(b,order);edges[b].set(a,order);
   }
   return{atoms,edges};
 }
 
 function incidentOrder(edges,index){let total=0;for(const order of edges[index].values())total+=order;return total;}
-
 function elementCounts(atoms){const counts=new Map();for(const atom of atoms)counts.set(atom.element,(counts.get(atom.element)??0)+1);return counts;}
-
 function candidateTargets(target,workspace,workspaceIndex){
   const atom=workspace.atoms[workspaceIndex],used=incidentOrder(workspace.edges,workspaceIndex);
   return target.atoms.filter(targetAtom=>targetAtom.element===atom.element&&incidentOrder(target.edges,targetAtom.index)>=used).map(targetAtom=>targetAtom.index);
@@ -42,8 +40,8 @@ function findEmbedding(target,workspace,{requiredPair=null}={}){
       if(workspaceOrder>targetOrder)return false;
     }
     if(requiredPair){
-      if(workspaceIndex===requiredA&&targetForWorkspace[requiredB]>=0){if((target.edges[targetIndex].get(targetForWorkspace[requiredB])??0)<=requiredCurrent)return false;}
-      if(workspaceIndex===requiredB&&targetForWorkspace[requiredA]>=0){if((target.edges[targetIndex].get(targetForWorkspace[requiredA])??0)<=requiredCurrent)return false;}
+      if(workspaceIndex===requiredA&&targetForWorkspace[requiredB]>=0&&(target.edges[targetIndex].get(targetForWorkspace[requiredB])??0)<=requiredCurrent)return false;
+      if(workspaceIndex===requiredB&&targetForWorkspace[requiredA]>=0&&(target.edges[targetIndex].get(targetForWorkspace[requiredA])??0)<=requiredCurrent)return false;
     }
     return true;
   }
@@ -63,7 +61,7 @@ function findEmbedding(target,workspace,{requiredPair=null}={}){
 }
 
 export function nextCraftBondHint(targetGraph,workspaceGraph){
-  const target=normalizeAtoms(targetGraph),workspace=normalizeAtoms(workspaceGraph,{workspace:true});
+  const target=normalizeAtoms(targetGraph),workspace=normalizeAtoms(workspaceGraph);
   if(!target||!workspace||workspace.atoms.length<2||workspace.atoms.length>target.atoms.length)return null;
   const targetCounts=elementCounts(target.atoms),workspaceCounts=elementCounts(workspace.atoms);
   for(const [element,count] of workspaceCounts)if(count>(targetCounts.get(element)??0))return null;
@@ -87,4 +85,15 @@ export function nextCraftBondHint(targetGraph,workspaceGraph){
   candidates.sort((left,right)=>right.currentOrder-left.currentOrder||left.workspaceIndices[0]-right.workspaceIndices[0]||left.workspaceIndices[1]-right.workspaceIndices[1]||left.targetAtomIndices[0]-right.targetAtomIndices[0]||left.targetAtomIndices[1]-right.targetAtomIndices[1]);
   const selected=candidates[0];
   return{...selected,equivalentCandidates:candidates.map(candidate=>({atomIds:[...candidate.atomIds],workspaceIndices:[...candidate.workspaceIndices],currentOrder:candidate.currentOrder,nextOrder:candidate.nextOrder,targetOrder:candidate.targetOrder}))};
+}
+
+export function craftHintElectronKeys(hint,electronVisuals){
+  if(!Array.isArray(hint?.atomIds)||hint.atomIds.length!==2||!Array.isArray(electronVisuals))return new Set();
+  const selected=[];
+  for(const atomId of hint.atomIds){
+    const electron=electronVisuals.filter(item=>item?.atomId===atomId&&item?.kind==='electron').sort((a,b)=>a.index-b.index)[0];
+    if(!electron)return new Set();
+    selected.push(`${electron.atomId}:${electron.index}`);
+  }
+  return new Set(selected);
 }
