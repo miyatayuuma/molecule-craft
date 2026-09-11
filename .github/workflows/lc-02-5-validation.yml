@@ -1,0 +1,45 @@
+name: LC-02.5 validation
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install standalone harness dependency
+        run: npm install --no-save --no-package-lock jsdom@24
+      - name: Reproduce stale harness failure on LC-02 base
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          git checkout "$BASE_SHA"
+          set +e
+          node tests/veil-ui-check.mjs "$PWD/node_modules/jsdom/lib/api.js" > /tmp/lc-02-base.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/lc-02-base.log
+          test "$status" -ne 0
+          grep -F "Molecule database is not ready (loading)" /tmp/lc-02-base.log
+          git checkout "$HEAD_SHA"
+      - name: Run fixed veil UI standalone harness
+        run: node tests/veil-ui-check.mjs "$PWD/node_modules/jsdom/lib/api.js"
+      - name: Run Issue 119 DB readiness regression
+        run: node tests/issue-119-regression.test.mjs
+      - name: Run chemistry recognition regression
+        run: node tests/recognition.test.mjs
+      - name: Run repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
