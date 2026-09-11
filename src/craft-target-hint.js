@@ -19,6 +19,11 @@ function normalizeAtoms(graph){
 
 function incidentOrder(edges,index){let total=0;for(const order of edges[index].values())total+=order;return total;}
 function elementCounts(atoms){const counts=new Map();for(const atom of atoms)counts.set(atom.element,(counts.get(atom.element)??0)+1);return counts;}
+function graphSignature(graph,{includeIds=false}={}){
+  const atoms=graph.atoms.map(atom=>includeIds?[atom.id,atom.element]:atom.element),bonds=[];
+  for(let a=0;a<graph.edges.length;a++)for(const [b,order]of graph.edges[a])if(a<b)bonds.push([a,b,order]);
+  return JSON.stringify([atoms,bonds]);
+}
 function candidateTargets(target,workspace,workspaceIndex){
   const atom=workspace.atoms[workspaceIndex],used=incidentOrder(workspace.edges,workspaceIndex);
   return target.atoms.filter(targetAtom=>targetAtom.element===atom.element&&incidentOrder(target.edges,targetAtom.index)>=used).map(targetAtom=>targetAtom.index);
@@ -83,12 +88,20 @@ export function nextCraftBondHint(targetGraph,workspaceGraph){
   }
   if(!candidates.length)return null;
   candidates.sort((left,right)=>right.currentOrder-left.currentOrder||left.workspaceIndices[0]-right.workspaceIndices[0]||left.workspaceIndices[1]-right.workspaceIndices[1]||left.targetAtomIndices[0]-right.targetAtomIndices[0]||left.targetAtomIndices[1]-right.targetAtomIndices[1]);
-  const selected=candidates[0];
-  return{...selected,equivalentCandidates:candidates.map(candidate=>({atomIds:[...candidate.atomIds],workspaceIndices:[...candidate.workspaceIndices],currentOrder:candidate.currentOrder,nextOrder:candidate.nextOrder,targetOrder:candidate.targetOrder}))};
+  const selected=candidates[0],contextKey=`${graphSignature(target)}\n${graphSignature(workspace,{includeIds:true})}`;
+  return{...selected,contextKey,equivalentCandidates:candidates.map(candidate=>({atomIds:[...candidate.atomIds],workspaceIndices:[...candidate.workspaceIndices],currentOrder:candidate.currentOrder,nextOrder:candidate.nextOrder,targetOrder:candidate.targetOrder}))};
 }
 
+let presentedContextKey=null,requestedContextKey=null,latestHint=null;
+export function requestCraftHintHighlight(){
+  if(!latestHint?.contextKey)return false;
+  requestedContextKey=latestHint.contextKey;return true;
+}
 export function craftHintElectronKeys(hint,electronVisuals){
-  if(!Array.isArray(hint?.atomIds)||hint.atomIds.length!==2||!Array.isArray(electronVisuals))return new Set();
+  const contextKey=hint?.contextKey??null;
+  if(contextKey!==presentedContextKey){presentedContextKey=contextKey;requestedContextKey=null;}
+  latestHint=hint??null;
+  if(!hint||requestedContextKey!==contextKey||!Array.isArray(hint.atomIds)||hint.atomIds.length!==2||!Array.isArray(electronVisuals))return new Set();
   const selected=[];
   for(const atomId of hint.atomIds){
     const electron=electronVisuals.filter(item=>item?.atomId===atomId&&item?.kind==='electron').sort((a,b)=>a.index-b.index)[0];
