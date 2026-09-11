@@ -72,18 +72,6 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
   function atomToStock(symbol,from=viewerPoint(),options={}){
     const target=elementSource(symbol);return move({from,to:target.point,color:target.color,...options});
   }
-  function chargeFromStock(record,to){
-    if(reduced||!record?.atoms?.length||!to)return 0;
-    const atoms=record.atoms.slice(0,8),used=new Map();let emitted=0;
-    for(const symbol of atoms){
-      const source=elementSource(symbol);if(!source.point)continue;
-      const index=used.get(symbol)??0;used.set(symbol,index+1);
-      const angle=index*1.9+emitted*.72,offset={x:to.x+Math.cos(angle)*7,y:to.y+Math.sin(angle)*7};
-      if(move({from:source.point,to:offset,color:source.color,size:10,duration:650+emitted*24,delay:Math.min(120,emitted*20)}))emitted++;
-      if(active.size>=MAX_PARTICLES)break;
-    }
-    return emitted;
-  }
   function partFromPalette(button,to=viewerPoint()){
     const source=centerOf(button?.querySelector?.('.collection-thumbnail')??button),image=button?.querySelector?.('.collection-thumbnail')?.src;
     return move({from:source,to,image,size:image?32:16,color:'#8fe0df',duration:720});
@@ -97,8 +85,8 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
     }
   }
   function onStocksChanged(){
-    const charging=root.querySelector?.('#tank-charge-stage'),part=pendingPart&&pendingPart.expires>=now()?pendingPart:null;
-    const suppressDepletion=!!part||!!(charging&&!charging.hidden);let partSpent=false;
+    const part=pendingPart&&pendingPart.expires>=now()?pendingPart:null;
+    const suppressDepletion=!!part;let partSpent=false;
     for(const node of root.querySelectorAll?.('#element-palette [data-element-stock]')??[]){
       const symbol=node.dataset.elementStock,next=Math.max(0,Number(node.textContent??0)),previous=stockCounts.get(symbol);
       stockCounts.set(symbol,next);if(previous==null||next===previous||!ready)continue;
@@ -119,7 +107,7 @@ export function createCraftTransferEffects(root=document,{reduced=globalThis.mat
   view.addEventListener?.('pagehide',cancelAll);
   view.setTimeout?.(()=>{snapshotStocks();ready=true;},0);
 
-  return{atomFromStock,atomToStock,chargeFromStock,partFromPalette,cancelAll,_activeCount:()=>active.size};
+  return{atomFromStock,atomToStock,partFromPalette,cancelAll,_activeCount:()=>active.size};
 }
 
 export function getCraftTransferEffects(root=document,options){
