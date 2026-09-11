@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {nextCraftBondHint as hint} from '../src/craft-target-hint.js';
+import {craftHintElectronKeys,nextCraftBondHint as hint} from '../src/craft-target-hint.js';
 const graph=(atoms,bonds=[],ids=atoms.map((_,i)=>100+i))=>({atoms:atoms.map((element,i)=>({id:ids[i],element})),bonds:bonds.map(([a,b,order])=>({a:ids[a],b:ids[b],order}))});
 const run=(target,workspace)=>{const before=JSON.stringify([target,workspace]),result=hint(target,workspace);assert.equal(JSON.stringify([target,workspace]),before);return result;};
 
@@ -40,6 +40,11 @@ test('recomputation uses only the supplied current workspace and never retains s
  const target={atoms:['H','H'],bonds:[[0,1,1]]};
  const first=run(target,graph(['H','H'],[],[11,12]));assert.deepEqual(first.atomIds,[11,12]);
  const restored=run(target,graph(['H','H'],[],[41,42]));assert.deepEqual(restored.atomIds,[41,42]);
+});
+test('electron highlight derives exactly one current unpaired visual per endpoint',()=>{
+ const visuals=[{atomId:11,index:2,kind:'electron'},{atomId:11,index:0,kind:'electron'},{atomId:12,index:1,kind:'extension'},{atomId:12,index:3,kind:'electron'}];
+ assert.deepEqual([...craftHintElectronKeys({atomIds:[11,12]},visuals)].sort(),['11:0','12:3']);
+ assert.equal(craftHintElectronKeys({atomIds:[11,99]},visuals).size,0,'missing/currently non-unpaired endpoint suppresses the whole pair');
 });
 test('large interchangeable loose-atom workspaces stay deterministic without enumerating isomorphisms',()=>{
  const target={atoms:Array(40).fill('H'),bonds:[]},workspace=graph(Array(20).fill('H'));
