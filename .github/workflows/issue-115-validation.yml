@@ -12,6 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: 793a10477d3cc7170549872f9cb73d5afddd6ccc
+      - name: Package exact PR head for local reproduction
+        run: tar --exclude=.git -czf /tmp/issue-115-head.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue-115-head-793a104
+          path: /tmp/issue-115-head.tar.gz
       - uses: actions/setup-node@v4
         with:
           node-version: 20
