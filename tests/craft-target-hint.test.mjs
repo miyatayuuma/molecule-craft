@@ -28,6 +28,12 @@ test('atom IDs are labels only: renaming them does not change the chosen structu
  const a=run(target,graph(['O','C','O'],[],[900,7,300])),b=run(target,graph(['O','C','O'],[],[1,999,2]));
  assert.deepEqual(a.workspaceIndices,b.workspaceIndices);assert.equal(a.currentOrder,b.currentOrder);assert.equal(a.nextOrder,b.nextOrder);
 });
+test('workspace atom order does not change the canonical target bond selected when choices are structurally different',()=>{
+ const target={atoms:['C','O','H'],bonds:[[0,1,2],[0,2,1]]};
+ const a=run(target,graph(['H','C','O'],[],[5,6,7])),b=run(target,graph(['O','C','H'],[],[70,60,50]));
+ assert.deepEqual([...a.targetAtomIndices].sort((x,y)=>x-y),[0,1]);
+ assert.deepEqual([...b.targetAtomIndices].sort((x,y)=>x-y),[0,1]);
+});
 test('wrong bond, overbond, excess composition, insufficient endpoints, and completion hide the hint',()=>{
  const co2={atoms:['C','O','O'],bonds:[[0,1,2],[0,2,2]]};
  assert.equal(run(co2,graph(['O','O'],[[0,1,1]])),null);
