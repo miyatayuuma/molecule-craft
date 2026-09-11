@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {createContext,runInContext} from 'node:vm';
-import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
+import {WORKSPACE_STORAGE_KEY} from '../src/workspace-persistence.js?v=1';
 if(!process.argv[2])throw new Error('Pass jsdom/lib/api.js');
 const {JSDOM}=await import(pathToFileURL(process.argv[2]));
-const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=44',root),html=await readFile(new URL('index.html',root),'utf8');
+const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=50',root),html=await readFile(new URL('index.html',root),'utf8');
 let source=await readFile(appURL,'utf8'),bindings={};
 for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   const module=await import(new URL(match[2],appURL));
@@ -15,8 +15,9 @@ for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   else for(const item of match[1].slice(1,-1).split(',')){const [name,alias]=item.trim().split(/\s+as\s+/);bindings[alias??name]=module[name];}
 }
 source=source.replace(/^import .*?;\n/gm,'').replace(/await import\('\.\/collection-ui\.js\?v=\d+'\)/,'collectionModule');
-const {createCollectionUI}=await import('../src/collection-ui.js?v=31');
-const records=JSON.parse(await readFile(new URL('data/molecules.json',root))),{setMoleculeDatabase}=await import('../src/chemistry.js?v=20');setMoleculeDatabase(records);
+const {createCollectionUI}=await import('../src/collection-ui.js?v=37');
+const {moleculeDatabaseStatus}=await import('../src/chemistry.js?v=20');
+const records=JSON.parse(await readFile(new URL('data/molecules.json',root),'utf8'));
 const load=async input=>{const path=input instanceof URL?input:new URL(input,appURL);return {ok:true,json:async()=>JSON.parse(await readFile(path,'utf8'))};};
 const settle=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout(resolve,5));};
 let now=1000;
@@ -30,8 +31,8 @@ async function setup(saved=null,initialH=1000){
   const viewer=document.getElementById('viewer');Object.defineProperties(viewer,{clientWidth:{value:390},clientHeight:{value:650}});
   document.querySelector('.viewer-actions').getBoundingClientRect=()=>({bottom:74});document.querySelector('#selection-chip').getBoundingClientRect=()=>({top:590});
   const THREE={...bindings.THREE,WebGLRenderer:class{constructor(){this.domElement=document.createElement('canvas');this.domElement.getBoundingClientRect=()=>({left:0,top:0,right:390,bottom:650,width:390,height:650});}setPixelRatio(){}setSize(){}render(){}}};
-  const vibrations=[];const sandbox={...bindings,THREE,collectionModule:{createCollectionUI},loadMoleculeDatabase:async()=>({ok:true}),window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{},setTimeout:()=>1,clearTimeout:()=>{},console};
-  const context=createContext(sandbox);runInContext(source,context);await settle();
+  const vibrations=[];const sandbox={...bindings,THREE,collectionModule:{createCollectionUI},window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{},setTimeout:()=>1,clearTimeout:()=>{},console};
+  const context=createContext(sandbox);runInContext(source,context);await runInContext('veilUI.ready',context);await settle();assert.equal(moleculeDatabaseStatus().status,'ready','Standalone app boot must reach the production molecule DB ready state');
   // This suite exercises the established unrestricted chemistry sandbox. Mark
   // C/O as explored explicitly so the new expedition gate is tested elsewhere.
   runInContext(`resources.collect({H:${initialH},C:${initialH},O:${initialH}},0);collectionGame?.refreshProgress();resources.save();`,context);return {window,document,context,vibrations,run:code=>runInContext(code,context)};
