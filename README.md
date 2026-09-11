@@ -50,7 +50,7 @@ Three.js 0.180.0は `vendor/three/` に同梱されています。通常起動�
 - [docs/hco-growth.md](docs/hco-growth.md) — 現行H/C/O探索・LOADOUT・推進・帰還契約
 - [docs/route-kit.md](docs/route-kit.md) — 探索ルート構築部品の現行契約
 - [docs/ui-state-model.md](docs/ui-state-model.md) — 現在のUI状態所有権と未実装の中央調停方針
-- [docs/planning/cho-completion-roadmap.md](docs/planning/cho-completion-roadmap.md) — 未完の初見プレイ検証ゲート
+- [docs/planning/cho-completion-roadmap.md](docs/planning/cho-completion-roadmap) — 未完の初見プレイ検証ゲート
 - [docs/planning/molecule-craft-astra-direction-brief.md](docs/planning/molecule-craft-astra-direction-brief.md) — CHO後の未実装方向性
 
 `docs/planning/` は将来計画であり、production runtimeの仕様値はsourceと上記現行docsを優先します。完了済みhandoff、PR単位の進捗、過去の比較表はGit履歴・Issue・PRへ残し、main上のsource of truthにはしません。
@@ -60,6 +60,12 @@ Three.js 0.180.0は `vendor/three/` に同梱されています。通常起動�
 ```sh
 node --test tests/*.test.mjs
 node scripts/check-repository-hygiene.mjs
+```
+
+PRでは依存install不要の軽量guardrailとして、repository hygiene、source contract、PWA生成物freshness / integrity、差分whitespaceを自動検証します。precacheを更新すべき変更かだけ確認する場合は、生成物を書き換えずに次を実行できます。
+
+```sh
+node scripts/build-precache.mjs --check
 ```
 
 本番DOM統合試験にはjsdomの実体パスを渡します。
