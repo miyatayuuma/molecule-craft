@@ -1,9 +1,20 @@
 const clone=value=>globalThis.structuredClone?globalThis.structuredClone(value):JSON.parse(JSON.stringify(value));
 const keyOf=value=>JSON.stringify(value);
 
+const workspaceAtomCount=snapshot=>Array.isArray(snapshot?.workspace?.atoms)?snapshot.workspace.atoms.length:null;
+
+// CRAFT deletes return atoms to BASE STOCK, so a decrease in workspace atoms is
+// the shared destructive boundary. The mutation itself succeeds, but history
+// before that boundary is intentionally discarded instead of becoming Undoable.
+export function isDestructiveCraftChange(before,after){
+  const beforeCount=workspaceAtomCount(before),afterCount=workspaceAtomCount(after);
+  return beforeCount!==null&&afterCount!==null&&afterCount<beforeCount;
+}
+
 // Session-local undo history for semantic CRAFT mutations. Snapshots are owned
 // by the integration layer so workspace graph and BASE STOCK can be restored
-// atomically without operation-specific inverse logic.
+// atomically without operation-specific inverse logic. Progression/discovery is
+// deliberately outside these snapshots and therefore remains monotonic.
 export function createCraftHistory({capture,restore,onChange=()=>{}}={}){
   if(typeof capture!=='function'||typeof restore!=='function')throw new TypeError('capture and restore are required');
   const past=[];let pending=null,pendingKey='',restoring=false;
@@ -17,6 +28,7 @@ export function createCraftHistory({capture,restore,onChange=()=>{}}={}){
     if(pending===null)return false;
     const before=pending,beforeKey=pendingKey,after=clone(capture());pending=null;pendingKey='';
     if(keyOf(after)===beforeKey)return false;
+    if(isDestructiveCraftChange(before,after)){past.length=0;notify();return true;}
     past.push(before);notify();return true;
   }
   function cancel(){const had=pending!==null;pending=null;pendingKey='';return had;}
