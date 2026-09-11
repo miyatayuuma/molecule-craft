@@ -49,6 +49,7 @@ jobs:
           supply=replaceOnce(supply,"q('tank-use-guide').hidden=true;q('tank-use-guide').textContent='';",'', 'tank-use-guide no-op reset');
           supply=replaceOnce(supply,"q('tank-replacement').hidden=true;q('tank-replacement').textContent='';q('tank-replacement').removeAttribute('aria-label');q('tank-affordability').hidden=true;q('tank-affordability').textContent='';",'', 'obsolete loadout placeholder reset');
           supply=replaceOnce(supply,"const burnSummary=q('loaded-combustion-summary');if(burnSummary){burnSummary.hidden=true;burnSummary.textContent='';}",'', 'loaded combustion no-op reset');
+          supply=supply.replace(/[ \t]+$/gm,'');
           write('src/veil/supply.js',supply);
 
           let styles=read('styles.css');
