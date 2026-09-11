@@ -110,7 +110,7 @@
 
 ## 保存
 
-- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v7は恒久O₂強化に加えて次回ロードアウトを保存し、完成分子の中間在庫を持たない。出発確定時にBASE STOCKから不足分だけ自動錬成し、タンク交換・破棄・保存を一括処理する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。移行と破損・未来版・競合保護は `src/veil/resources.js`。
+- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v7は恒久O₂強化に加えて次回ロードアウトを保存し、完成分子の中間在庫を持たない。出発確定時にBASE STOCKから不足分だけ自動錬成し、タンク交換・破棄・保存を一括処理する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。runtimeの資源・タンク・LOADOUT状態管理は `src/veil/resources.js`、resources schema v1〜v7のvalidation / migrationと破損・未来版保護、current-schema書き出しは `src/veil/resources-persistence.js`。
 - `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部schema v2は構造と制作目標を保存し、復元は `src/workspace-save.js`。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。
