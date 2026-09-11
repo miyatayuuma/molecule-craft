@@ -1,5 +1,6 @@
 import {ELEMENTS,UNKNOWN_NAME,countElements} from './chemistry.js?v=20';
 import {preferredValence} from './bonding-model.js?v=31';
+import {requestCraftHintHighlight} from './craft-target-hint.js?v=1';
 import {createPubchemIntroState,pubchemReferenceFor} from './pubchem-reference.js';
 
 export function craftTargetSlots(record,placedAtoms=[]){
@@ -89,7 +90,9 @@ export function createCraftPanel(document){
 function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{}}={}){
   clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;lastTargetKey='';lastTargetFilled={};return;}
   const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標`);
-  const rendered=targetParts!==null?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:31,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:31}),key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
+  const rendered=targetParts!==null?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:31,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:31});
+  const hintButton=document.createElement('button');hintButton.type='button';hintButton.className='craft-target-hint';hintButton.textContent='ヒント';hintButton.setAttribute('aria-label','次に結ぶ電子ペアをハイライト');hintButton.addEventListener('click',()=>requestCraftHintHighlight());nodes.targetAtoms.prepend(hintButton);
+  const key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
   for(const {slot,node:chip}of rendered){if(!slot)continue;if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
   lastTargetKey=key;lastTargetFilled=filledNow;
 }
