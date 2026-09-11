@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {propellantPreviewValues,fuelPreviewValues,coolantPreviewValues,oxidizerPreviewValues,loadoutPreviewValues} from '../src/veil/loadout-preview.js';
+import {propellantPreviewValues,fuelPreviewValues,coolantPreviewValues,oxidizerPreviewValues,loadoutPreviewValues,renderLoadoutPreview} from '../src/veil/loadout-preview.js';
 
 const h2=propellantPreviewValues('hydrogen');
 const co2=propellantPreviewValues('carbon-dioxide');
@@ -29,4 +29,27 @@ assert.equal(oxygen.oxidizingPower,1);
 assert.deepEqual(loadoutPreviewValues('oxidizer','oxygen'),oxygen);
 assert.equal(loadoutPreviewValues('fuel','oxygen'),null);
 
-console.log('Loadout preview bars passed: PULSE tradeoff and role-specific DRIVE metrics.');
+// Regression for #122: the PULSE comparison is rendered again during launch
+// preparation. An undeclared `dots` binding here used to throw after the tank
+// fill commit, before LOADOUT could close and onLaunchReady could run.
+class FakeNode{
+  constructor(tag='div'){this.tag=tag;this.children=[];this.style={};this.dataset={};this.hidden=false;this.className='';this.textContent='';}
+  append(...items){this.children.push(...items);}
+  replaceChildren(...items){this.children=[...items];}
+  closest(){return null;}
+}
+const originalDocument=globalThis.document;
+try{
+  globalThis.document={createElement:tag=>new FakeNode(tag)};
+  const host=new FakeNode();
+  const rendered=renderLoadoutPreview(host,{use:'propellant',candidateId:'hydrogen',currentId:'hydrogen',currentAmount:80});
+  assert.equal(host.hidden,false);
+  assert.equal(host.dataset.previewKind,'propellant');
+  assert.equal(rendered.candidate.shots,3);
+  assert.equal(rendered.current.shots,2);
+  assert.equal(host.children.length,2,'PULSE preview renders stats and charge rows without throwing');
+}finally{
+  if(originalDocument===undefined)delete globalThis.document;else globalThis.document=originalDocument;
+}
+
+console.log('Loadout preview bars passed: PULSE tradeoff, renderable charge rows and role-specific DRIVE metrics.');

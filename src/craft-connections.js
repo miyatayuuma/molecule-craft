@@ -127,6 +127,31 @@ function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onC
   return veilUI;
 }
 
+// #119 made exploration initialization asynchronous so LOADOUT cannot observe an
+// incomplete molecule catalog. Keep the pre-#119 public exploration surface
+// intact while the concrete UI is deferred; callers must not have to know which
+// side of the DB-ready boundary they are on.
+export function createDeferredExplorationFacade(getCurrent,ready){
+  const current=()=>getCurrent?.()??null;
+  return{
+    get active(){return current()?.active??false;},
+    get run(){return current()?.run??null;},
+    get returning(){return current()?.returning??null;},
+    get anchorLock(){return current()?.anchorLock??null;},
+    get lastTelemetry(){return current()?.lastTelemetry??null;},
+    get ready(){return ready;},
+    updateCraft(...args){return current()?.updateCraft?.(...args);},
+    launch(...args){return current()?.launch?.(...args)??false;},
+    pause(...args){return current()?.pause?.(...args)??false;},
+    openSupply(...args){return current()?.openSupply?.(...args)??false;},
+    discovered(...args){return current()?.discovered?.(...args);},
+    usesFor(...args){return current()?.usesFor?.(...args)??[];},
+    tankStatus(...args){return current()?.tankStatus?.(...args)??null;},
+    fillPlan(...args){return current()?.fillPlan?.(...args)??null;},
+    commitFill(...args){return current()?.commitFill?.(...args)??false;},
+  };
+}
+
 export function connectExploration(options){
   normalizeExplorationMode();
   let veilUI=null;
@@ -135,13 +160,7 @@ export function connectExploration(options){
     veilUI=createReadyExploration(options);
     return veilUI;
   }).catch(error=>{console.warn('Exploration unavailable until molecule DB is ready.',error);return null;});
-  return{
-    get active(){return veilUI?.active??false;},
-    get ready(){return ready;},
-    updateCraft(){return veilUI?.updateCraft?.();},
-    openSupply(...args){return veilUI?.openSupply?.(...args)??false;},
-    discovered(...args){return veilUI?.discovered?.(...args);},
-  };
+  return createDeferredExplorationFacade(()=>veilUI,ready);
 }
 
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){

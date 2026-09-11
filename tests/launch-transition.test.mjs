@@ -26,6 +26,17 @@ assert.match(connections,/function normalizeExplorationMode\(\)/,'Exploration co
 assert.match(connections,/if\(veil\)veil\.hidden=true/,'Startup recovery hides any orphaned exploration view');
 assert.match(connections,/if\(appShell\)appShell\.inert=false/,'Startup recovery restores craft pointer input');
 assert.match(connections,/document\.body\.dataset\.mode='craft'/,'Startup recovery restores craft mode');
-assert.ok(connections.indexOf('normalizeExplorationMode();')<connections.indexOf('createVeilUI({resources'),'Mode recovery must happen before exploration UI listeners are connected');
+
+// #119 defers createVeilUI until molecule DB readiness. Verify execution order
+// inside connectExploration instead of comparing helper declaration positions.
+const connectStart=connections.indexOf('export function connectExploration(options)');
+const connectEnd=connections.indexOf('\nexport async function connectCollection',connectStart);
+const connectSource=connections.slice(connectStart,connectEnd);
+const normalizeAt=connectSource.indexOf('normalizeExplorationMode();');
+const prepareAt=connectSource.indexOf('prepareExplorationCatalog(options.resources)');
+const createAt=connectSource.indexOf('veilUI=createReadyExploration(options)');
+assert.ok(connectStart>=0&&connectEnd>connectStart,'connectExploration source must be present');
+assert.ok(normalizeAt>=0&&prepareAt>normalizeAt,'Mode recovery must happen before DB readiness work starts');
+assert.ok(createAt>prepareAt,'Exploration UI listeners must only be created after the DB readiness promise resolves');
 
 console.log('Launch transition regression passed.');
