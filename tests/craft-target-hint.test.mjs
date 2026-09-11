@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {craftHintElectronKeys,nextCraftBondHint as hint} from '../src/craft-target-hint.js';
+import {craftHintElectronKeys,nextCraftBondHint as hint,requestCraftHintHighlight} from '../src/craft-target-hint.js';
 const graph=(atoms,bonds=[],ids=atoms.map((_,i)=>100+i))=>({atoms:atoms.map((element,i)=>({id:ids[i],element})),bonds:bonds.map(([a,b,order])=>({a:ids[a],b:ids[b],order}))});
 const run=(target,workspace)=>{const before=JSON.stringify([target,workspace]),result=hint(target,workspace);assert.equal(JSON.stringify([target,workspace]),before);return result;};
 
-test('H2 highlights its only available electron pair',()=>{
+test('H2 derives its only available electron pair',()=>{
  const target={atoms:['H','H'],bonds:[[0,1,1]]},r=run(target,graph(['H','H']));assert.deepEqual(r.atomIds,[100,101]);assert.equal(r.nextOrder,1);
 });
 test('O2 recomputes one bond-order increment at a time on the same atoms',()=>{
@@ -41,10 +41,19 @@ test('recomputation uses only the supplied current workspace and never retains s
  const first=run(target,graph(['H','H'],[],[11,12]));assert.deepEqual(first.atomIds,[11,12]);
  const restored=run(target,graph(['H','H'],[],[41,42]));assert.deepEqual(restored.atomIds,[41,42]);
 });
-test('electron highlight derives exactly one current unpaired visual per endpoint',()=>{
+test('electron highlight is opt-in, uses current unpaired visuals, and invalidates when workspace context changes',()=>{
+ const target={atoms:['H','H'],bonds:[[0,1,1]]},first=run(target,graph(['H','H'],[],[11,12]));
  const visuals=[{atomId:11,index:2,kind:'electron'},{atomId:11,index:0,kind:'electron'},{atomId:12,index:1,kind:'extension'},{atomId:12,index:3,kind:'electron'}];
- assert.deepEqual([...craftHintElectronKeys({atomIds:[11,12]},visuals)].sort(),['11:0','12:3']);
- assert.equal(craftHintElectronKeys({atomIds:[11,99]},visuals).size,0,'missing/currently non-unpaired endpoint suppresses the whole pair');
+ assert.equal(craftHintElectronKeys(first,visuals).size,0,'derivation alone must not reveal a hint');
+ assert.equal(requestCraftHintHighlight(),true);
+ assert.deepEqual([...craftHintElectronKeys(first,visuals)].sort(),['11:0','12:3']);
+ const restored=run(target,graph(['H','H'],[],[41,42])),restoredVisuals=[{atomId:41,index:0,kind:'electron'},{atomId:42,index:0,kind:'electron'}];
+ assert.equal(craftHintElectronKeys(restored,restoredVisuals).size,0,'workspace/Undo context change clears the old request');
+ assert.equal(requestCraftHintHighlight(),true);
+ assert.deepEqual([...craftHintElectronKeys(restored,restoredVisuals)].sort(),['41:0','42:0']);
+});
+test('no safe current candidate cannot arm the presentation layer',()=>{
+ craftHintElectronKeys(null,[]);assert.equal(requestCraftHintHighlight(),false);
 });
 test('large interchangeable loose-atom workspaces stay deterministic without enumerating isomorphisms',()=>{
  const target={atoms:Array(40).fill('H'),bonds:[]},workspace=graph(Array(20).fill('H'));
