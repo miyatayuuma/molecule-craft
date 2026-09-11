@@ -87,7 +87,8 @@ export function nextCraftBondHint(targetGraph,workspaceGraph){
     candidates.push({atomIds:[workspace.atoms[a].id,workspace.atoms[b].id],workspaceIndices:[a,b],currentOrder,nextOrder:currentOrder+1,targetOrder,targetAtomIndices:[embedding[a],embedding[b]]});
   }
   if(!candidates.length)return null;
-  candidates.sort((left,right)=>right.currentOrder-left.currentOrder||left.workspaceIndices[0]-right.workspaceIndices[0]||left.workspaceIndices[1]-right.workspaceIndices[1]||left.targetAtomIndices[0]-right.targetAtomIndices[0]||left.targetAtomIndices[1]-right.targetAtomIndices[1]);
+  const targetPair=candidate=>[...candidate.targetAtomIndices].sort((a,b)=>a-b);
+  candidates.sort((left,right)=>{const l=targetPair(left),r=targetPair(right);return right.currentOrder-left.currentOrder||l[0]-r[0]||l[1]-r[1]||left.workspaceIndices[0]-right.workspaceIndices[0]||left.workspaceIndices[1]-right.workspaceIndices[1];});
   const selected=candidates[0],contextKey=`${graphSignature(target)}\n${graphSignature(workspace,{includeIds:true})}`;
   return{...selected,contextKey,equivalentCandidates:candidates.map(candidate=>({atomIds:[...candidate.atomIds],workspaceIndices:[...candidate.workspaceIndices],currentOrder:candidate.currentOrder,nextOrder:candidate.nextOrder,targetOrder:candidate.targetOrder}))};
 }
