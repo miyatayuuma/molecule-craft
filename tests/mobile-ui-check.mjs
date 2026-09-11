@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {createContext,runInContext} from 'node:vm';
-import {WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';
+import {WORKSPACE_STORAGE_KEY} from '../src/workspace-persistence.js?v=1';
 if(!process.argv[2])throw new Error('Pass jsdom/lib/api.js');
 const {JSDOM}=await import(pathToFileURL(process.argv[2]));
-const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=44',root),html=await readFile(new URL('index.html',root),'utf8');
+const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=50',root),html=await readFile(new URL('index.html',root),'utf8');
 let source=await readFile(appURL,'utf8'),bindings={};
 for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   const module=await import(new URL(match[2],appURL));
@@ -15,7 +15,7 @@ for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   else for(const item of match[1].slice(1,-1).split(',')){const [name,alias]=item.trim().split(/\s+as\s+/);bindings[alias??name]=module[name];}
 }
 source=source.replace(/^import .*?;\n/gm,'').replace(/await import\('\.\/collection-ui\.js\?v=\d+'\)/,'collectionModule');
-const {createCollectionUI}=await import('../src/collection-ui.js?v=31');
+const {createCollectionUI}=await import('../src/collection-ui.js?v=37');
 const {moleculeDatabaseStatus}=await import('../src/chemistry.js?v=20');
 const records=JSON.parse(await readFile(new URL('data/molecules.json',root),'utf8'));
 const load=async input=>{const path=input instanceof URL?input:new URL(input,appURL);return {ok:true,json:async()=>JSON.parse(await readFile(path,'utf8'))};};
