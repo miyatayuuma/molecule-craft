@@ -17,7 +17,6 @@ for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
 }
 source=source.replace(/^import .*?;\n/gm,'').replace(/await import\('\.\/collection-ui\.js\?v=\d+'\)/,'collectionModule');
 const {createCollectionUI}=await import('../src/collection-ui.js?v=37');
-const records=JSON.parse(await readFile(new URL('data/molecules.json',root))),{setMoleculeDatabase}=await import('../src/chemistry.js?v=20');setMoleculeDatabase(records);
 const load=async input=>{const path=input instanceof URL?input:new URL(input,appURL);return {ok:true,json:async()=>JSON.parse(await readFile(path,'utf8'))};};
 const settle=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout(resolve,5));};
 let now=1000;
@@ -34,9 +33,9 @@ async function setup(saved=null,initialH=0,resourceSaved=null,collectionSaved=nu
   const viewer=document.getElementById('viewer');Object.defineProperties(viewer,{clientWidth:{value:390},clientHeight:{value:650}});
   document.querySelector('.viewer-actions').getBoundingClientRect=()=>({bottom:74});document.querySelector('#selection-chip').getBoundingClientRect=()=>({top:590});
   const THREE={...bindings.THREE,WebGLRenderer:class{constructor(){this.domElement=document.createElement('canvas');this.domElement.getBoundingClientRect=()=>({left:0,top:0,right:390,bottom:650,width:390,height:650});}setPixelRatio(){}setSize(){}render(){}}};
-  let reloads=0;const vibrations=[];const sandbox={...bindings,createProgressResetUI:options=>bindings.createProgressResetUI({...options,reload:()=>reloads++}),THREE,collectionModule:{createCollectionUI},loadMoleculeDatabase:async()=>({ok:true}),window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:raf,cancelAnimationFrame:cancel,setTimeout:()=>1,clearTimeout:()=>{},console};
+  let reloads=0;const vibrations=[];const sandbox={...bindings,createProgressResetUI:options=>bindings.createProgressResetUI({...options,reload:()=>reloads++}),THREE,collectionModule:{createCollectionUI},window,document,navigator:{vibrate:duration=>vibrations.push(duration)},devicePixelRatio:1,ResizeObserver:class{observe(){}},performance:{now:()=>now},fetch:load,requestAnimationFrame:raf,cancelAnimationFrame:cancel,setTimeout:()=>1,clearTimeout:()=>{},console};
   sandbox.connectExploration=options=>bindings.connectExploration({...options,reset:{...options.reset,reload:()=>reloads++}});
-  const context=createContext(sandbox);runInContext(source,context);await settle();runInContext(`resources.collect(${initialH},0);resources.save();`,context);return {window,document,context,vibrations,get reloads(){return reloads;},tick(ms=1000/60){now+=ms;const callbacks=[...frames.values()];frames.clear();for(const cb of callbacks)cb(now);},run:code=>runInContext(code,context)};
+  const context=createContext(sandbox);runInContext(source,context);await runInContext('veilUI.ready',context);await settle();runInContext(`resources.collect(${initialH},0);resources.save();`,context);return {window,document,context,vibrations,get reloads(){return reloads;},tick(ms=1000/60){now+=ms;const callbacks=[...frames.values()];frames.clear();for(const cb of callbacks)cb(now);},run:code=>runInContext(code,context)};
 }
 
 let game=await setup();
