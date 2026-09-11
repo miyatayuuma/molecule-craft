@@ -1,0 +1,72 @@
+name: LC-02.5 veil UI harness validation
+
+on:
+  push:
+    branches:
+      - lc-02-5-veil-ui-readiness-harness
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install standalone DOM dependency
+        run: npm install --no-save --package-lock=false jsdom@26.1.0
+      - name: Reproduce stale harness failure
+        shell: bash
+        run: |
+          set +e
+          node tests/veil-ui-check.mjs "$PWD/node_modules/jsdom/lib/api.js" > /tmp/veil-before.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/veil-before.log
+          if [ "$code" -eq 0 ]; then
+            echo 'Expected the pre-fix standalone harness to fail.' >&2
+            exit 1
+          fi
+          grep -F 'Molecule database is not ready (loading)' /tmp/veil-before.log
+      - name: Align standalone harness with production readiness
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('tests/veil-ui-check.mjs')
+          text = path.read_text()
+          old = "const records=JSON.parse(await readFile(new URL('data/molecules.json',root))),{setMoleculeDatabase}=await import('../src/chemistry.js?v=20');setMoleculeDatabase(records);\n"
+          new = "const {moleculeDatabaseStatus}=await import('../src/chemistry.js?v=20');\n"
+          assert old in text, 'legacy direct DB preload not found'
+          text = text.replace(old, new, 1)
+          old = ",loadMoleculeDatabase:async()=>({ok:true}),window,document,"
+          new = ",window,document,"
+          assert old in text, 'legacy loadMoleculeDatabase stub not found'
+          text = text.replace(old, new, 1)
+          old = "const context=createContext(sandbox);runInContext(source,context);await settle();runInContext(`resources.collect(${initialH},0);resources.save();`,context);"
+          new = "const context=createContext(sandbox);runInContext(source,context);await runInContext('veilUI.ready',context);await settle();assert.equal(moleculeDatabaseStatus().status,'ready','Standalone app boot must reach the production molecule DB ready state');runInContext(`resources.collect(${initialH},0);resources.save();`,context);"
+          assert old in text, 'legacy setup readiness sequence not found'
+          text = text.replace(old, new, 1)
+          path.write_text(text)
+      - name: Run LC-02.5 regressions
+        shell: bash
+        run: |
+          node tests/veil-ui-check.mjs "$PWD/node_modules/jsdom/lib/api.js"
+          node tests/issue-119-regression.test.mjs
+          node tests/repository-hygiene.test.mjs
+      - name: Commit validated harness only
+        shell: bash
+        run: |
+          rm .github/workflows/lc-02-5-validation.yml
+          git status --short
+          test "$(git status --short | wc -l)" -eq 1
+          git diff -- tests/veil-ui-check.mjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/veil-ui-check.mjs .github/workflows/lc-02-5-validation.yml
+          git commit -m 'test: align veil UI harness with DB readiness'
+          git push origin HEAD:lc-02-5-veil-ui-readiness-harness
