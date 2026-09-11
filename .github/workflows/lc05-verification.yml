@@ -1,0 +1,119 @@
+name: LC-05 verification
+
+on:
+  push:
+    branches: [legacy-cleanup-lc-05]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply LC-05 integration edits
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p=Path(path); text=p.read_text()
+              count=text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one match, found {count}: {old[:80]!r}')
+              p.write_text(text.replace(old,new))
+
+          replace('src/app.js',
+            "import { createWorkspaceStorage, captureWorkspace, restoreWorkspace } from './workspace-save.js?v=30';",
+            "import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';\nimport { createWorkspaceStorage } from './workspace-persistence.js?v=1';")
+
+          replace('src/veil/resources.js',
+            "import { WORKSPACE_STORAGE_KEY,validateWorkspace } from '../workspace-save.js?v=30';",
+            "import { validateWorkspace } from '../workspace-save.js?v=31';\nimport { WORKSPACE_STORAGE_KEY,parseWorkspaceSave } from '../workspace-persistence.js?v=1';")
+          replace('src/veil/resources.js',
+            "if(legacy)state.workspace=validateWorkspace(JSON.parse(legacy));",
+            "if(legacy)state.workspace=parseWorkspaceSave(legacy);")
+
+          replace('src/veil/resources-persistence.js',
+            "import { WORKSPACE_STORAGE_KEY,validateWorkspace } from '../workspace-save.js?v=30';",
+            "import { validatePersistedWorkspace,migrateWorkspaceSave } from '../workspace-migrations.js?v=1';\nimport { WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';")
+          replace('src/veil/resources-persistence.js',
+            "if(s.workspace!==null)validateWorkspace(s.workspace);",
+            "if(s.workspace!==null)validatePersistedWorkspace(s.workspace);")
+          replace('src/veil/resources-persistence.js',
+            "function migrate(old){\n  if(old.schemaVersion>=6)",
+            "function migrate(old){\n  const workspace=old.workspace===null?null:migrateWorkspaceSave(old.workspace);\n  if(old.schemaVersion>=6)")
+          replace('src/veil/resources-persistence.js',
+            "return {...old,schemaVersion:SCHEMA_VERSION,upgrades:",
+            "return {...old,schemaVersion:SCHEMA_VERSION,workspace,upgrades:")
+          replace('src/veil/resources-persistence.js',
+            "const next={...createInitialResourcesState(),...oldWithoutMolecules,schemaVersion:SCHEMA_VERSION,upgrades:{oxygenTank:0}};",
+            "const next={...createInitialResourcesState(),...oldWithoutMolecules,schemaVersion:SCHEMA_VERSION,workspace,upgrades:{oxygenTank:0}};")
+
+          replace('tests/workspace-save.test.mjs',
+            "import {captureWorkspace,restoreWorkspace,validateWorkspace,createWorkspaceStorage,WORKSPACE_STORAGE_KEY} from '../src/workspace-save.js?v=30';",
+            "import {WORKSPACE_SCHEMA,captureWorkspace,restoreWorkspace,validateWorkspace} from '../src/workspace-save.js?v=31';\nimport {createWorkspaceStorage,WORKSPACE_STORAGE_KEY} from '../src/workspace-persistence.js?v=1';")
+          replace('tests/workspace-save.test.mjs',
+            "const restored=field(),selection=restoreWorkspace(structuredClone(saved),restored);",
+            "assert.equal(saved.schemaVersion,WORKSPACE_SCHEMA);\nconst legacyLike=structuredClone(saved);legacyLike.schemaVersion=1;delete legacyLike.targetMoleculeId;assert.throws(()=>validateWorkspace(legacyLike),/current workspace/,'runtime restore boundary accepts canonical current workspaces only');\nconst restored=field(),selection=restoreWorkspace(structuredClone(saved),restored);")
+
+          insert="""\nconst embeddedV1Workspace={schemaVersion:1,atoms:[{element:'H',position:[0,0,0]}],bonds:[],selected:0,focus:0,pivot:null,camera:{position:[4,3,8],target:[0,0,0],up:[0,1,0]}};\nconst resourceWithLegacyWorkspace={...fixtures[5].raw,workspace:embeddedV1Workspace};\nconst migratedEmbeddedWorkspace=migrateResourcesSave(JSON.stringify(resourceWithLegacyWorkspace));\nassert.deepEqual(migratedEmbeddedWorkspace.workspace,{...embeddedV1Workspace,schemaVersion:2,targetMoleculeId:null},'resources persistence keeps its legacy bridge but hands runtime a canonical workspace');\n"""
+          replace('tests/resources-persistence.test.mjs',
+            "const normalizedV7=migrateResourcesSave(JSON.stringify(fixtures.at(-1).raw));assert.deepEqual(JSON.parse(serializeResourcesState(normalizedV7)),normalizedV7,'egress writes current canonical state only');assert.throws(()=>serializeResourcesState(fixtures[5].raw),/schema/i,'egress must reject legacy schema states');",
+            "const normalizedV7=migrateResourcesSave(JSON.stringify(fixtures.at(-1).raw));assert.deepEqual(JSON.parse(serializeResourcesState(normalizedV7)),normalizedV7,'egress writes current canonical state only');assert.throws(()=>serializeResourcesState(fixtures[5].raw),/schema/i,'egress must reject legacy schema states');"+insert)
+
+          replace('docs/architecture.md',
+            "| 制作フィールド保存 | `src/workspace-save.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `veil-reset.test.mjs` |",
+            "| 制作フィールド保存 | `src/workspace-save.js`, `src/workspace-persistence.js`, `src/workspace-migrations.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `workspace-persistence.test.mjs`, `veil-reset.test.mjs` |")
+          replace('docs/architecture.md',
+            "| workspace保存・復元・未来版保護 | `src/workspace-save.js` |",
+            "| workspace canonical capture / restore | `src/workspace-save.js`。旧schema normalizeとstorage保護は `workspace-migrations.js`, `workspace-persistence.js` |")
+          replace('docs/architecture.md',
+            "- `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部schema v2は構造と制作目標を保存し、復元は `src/workspace-save.js`。",
+            "- `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部current schemaはv2。v1/v2判定・normalize・破損/未来版保護とcurrent-only writeは `src/workspace-migrations.js`, `src/workspace-persistence.js`、runtimeのcanonical capture / restoreは `src/workspace-save.js`。resources初回移行に必要な旧workspace bridgeもこのmigration境界を利用する。")
+          PY
+      - name: Workspace persistence golden migrations
+        run: node tests/workspace-persistence.test.mjs
+      - name: Workspace save and resources persistence regressions
+        run: |
+          node tests/workspace-save.test.mjs
+          node tests/resources-persistence.test.mjs
+          node tests/veil-reset.test.mjs
+      - name: Craft workspace and Undo regressions
+        run: |
+          node tests/craft-workspace.test.mjs
+          node tests/craft-history.test.mjs
+          node tests/craft-history-delete-regression.test.mjs
+          node tests/craft-undo-contract.test.mjs
+          node tests/craft-target-undo-derived.test.mjs
+      - name: Completion and reload regressions
+        run: |
+          node tests/completion-side-effects.test.mjs
+          node tests/issue-113-regression.test.mjs
+          node tests/source-contracts.test.mjs
+      - name: Rebuild verified offline release
+        run: node scripts/build-precache.mjs
+      - name: PWA integrity
+        run: node tests/pwa.test.mjs
+      - name: Repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: Diff hygiene
+        run: git diff --check
+      - name: Commit verified LC-05 integration and generated PWA outputs
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "LC-05 integration is already committed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src tests docs sw.js precache-manifest.js
+          git commit -m "LC-05: isolate workspace persistence compatibility"
+          git push
