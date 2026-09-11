@@ -29,13 +29,15 @@ for(const fixture of fixtures){const migrated=migrateResourcesSave(JSON.stringif
 
 const normalizedV7=migrateResourcesSave(JSON.stringify(fixtures.at(-1).raw));assert.deepEqual(JSON.parse(serializeResourcesState(normalizedV7)),normalizedV7,'egress writes current canonical state only');assert.throws(()=>serializeResourcesState(fixtures[5].raw),/schema/i,'egress must reject legacy schema states');
 
+const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
+const legacyRaw=JSON.stringify(fixtures[2].raw),legacyStorage=memory();legacyStorage.setItem(RESOURCE_KEY,legacyRaw);const hydratedLegacy=createResources({storage:legacyStorage});assert.equal(hydratedLegacy.blocked,false);assert.equal(hydratedLegacy.state.schemaVersion,7);assert.equal(legacyStorage.getItem(RESOURCE_KEY),legacyRaw,'hydrate must not eagerly rewrite a valid legacy save');assert.equal(hydratedLegacy.save(),true);assert.equal(JSON.parse(legacyStorage.getItem(RESOURCE_KEY)).schemaVersion,7,'the next normal save writes canonical v7');
+
 const malformed=[
   '{broken',
   JSON.stringify({...fixtures[6].raw,schemaVersion:99}),
   JSON.stringify({...fixtures[2].raw,tanks:{...fixtures[2].raw.tanks,hydrogen:'2'}}),
   JSON.stringify({...fixtures[6].raw,upgrades:{oxygenTank:3}}),
 ];
-const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
 for(const raw of malformed){assert.throws(()=>migrateResourcesSave(raw));const storage=memory();storage.setItem(RESOURCE_KEY,raw);const resources=createResources({storage});assert.equal(resources.blocked,true,'invalid persisted state must block writes');assert.equal(resources.save(),false);assert.equal(storage.getItem(RESOURCE_KEY),raw,'invalid persisted state must remain untouched');}
 
-console.log('Resources persistence migration passed: v1-v7 goldens, old inventory/tanks, pre-upgrade defaults, current-only egress, and malformed-save protection.');
+console.log('Resources persistence migration passed: v1-v7 goldens, old inventory/tanks, pre-upgrade defaults, deferred canonical writeback, current-only egress, and malformed-save protection.');
