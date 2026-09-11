@@ -1,3 +1,4 @@
+# LC-05 branch-only verifier; removed before merge.
 name: LC-05 verification
 
 on:
