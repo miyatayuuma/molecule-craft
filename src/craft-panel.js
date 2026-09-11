@@ -86,17 +86,19 @@ export function createCraftPanel(document){
   }
 
 
-function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{}}={}){
+function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{},onRequestTargetHint=()=>{},targetHintActive=false,targetHintDisabled=false}={}){
   clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;lastTargetKey='';lastTargetFilled={};return;}
   const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標`);
-  const rendered=targetParts!==null?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:31,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:31}),key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
+  const rendered=targetParts!==null?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:31,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:31});
+  const hintButton=document.createElement('button');hintButton.type='button';hintButton.className='craft-target-hint';hintButton.textContent=targetHintActive?'ヒント中':'ヒント';hintButton.disabled=targetHintDisabled;hintButton.setAttribute('aria-label','次に結ぶ電子ペアをハイライト');hintButton.setAttribute('aria-pressed',String(targetHintActive));hintButton.addEventListener('click',onRequestTargetHint);nodes.targetAtoms.prepend(hintButton);
+  const key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
   for(const {slot,node:chip}of rendered){if(!slot)continue;if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
   lastTargetKey=key;lastTargetFilled=filledNow;
 }
 
-function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure}){
+function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,onRequestTargetHint,targetHintActive=false,targetHintDisabled=false,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure}){
     veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.formula.append(nodes.pubchem);nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';const reference=focus?.complete&&!focus.record?pubchemReferenceFor(focus):null;nodes.pubchem.hidden=!reference;nodes.pubchem.textContent=pubchemIntro.label(reference?focus.signature:null);if(reference){nodes.pubchem.href=reference.url;nodes.pubchem.dataset.searchMode=reference.mode;}else{nodes.pubchem.removeAttribute('href');delete nodes.pubchem.dataset.searchMode;}
-    renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart});
+    renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart,onRequestTargetHint,targetHintActive,targetHintDisabled});
     renderTankActions(focus,veilUI);
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
     nodes.counts.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)nodes.counts.textContent='—';else for(const symbol of Object.keys(counts).sort()){const chip=document.createElement('span');chip.className='atom-count';chip.textContent=`${symbol} × ${counts[symbol]}`;nodes.counts.appendChild(chip);}
