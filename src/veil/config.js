@@ -10,7 +10,7 @@ export const VEIL = Object.freeze({
   dustSpacing: 30, denseSpacing: 21, dustValue: 1, dustPerH: 3, rareValue: 8,
   denseLaneOffset: 21, shoulderOffset: 88, shoulderLanes: 2,
   bandPeriod: 24, bandLength: 12,
-  firstCraftH: 24, respawnSeconds: 45, rareChance: .28,
+  respawnSeconds: 45, rareChance: .28,
   fieldForce: 112, fieldRadius: 200, fieldPeriod: 7, fieldPulse: .28,
   boostFieldResistance: .10, maxOpposingFlow: .22, gateDeflection: 230,
   lapMinSeconds: 40, lapRadius: 150, lapRearmDistance: 700,
