@@ -1,5 +1,5 @@
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
-import { createRun, stepRun, beginBurst, setCombustionHeld } from './engine.js';
+import { createRun, stepRun, beginBurst, setCombustionHeld, triggerInsight, discardActiveInsight, discardRunInsights } from './expedition-run.js';
 import { createUniverse } from './universe.js';
 import { DRIVES, MOLECULE_USES, REGIONS, flightConfig, growthGoal, propulsionGauge, propulsionSpeedMax } from './growth.js';
 import { createSupplyUI } from './supply.js';
@@ -38,10 +38,18 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const affordable=cost&&Object.entries(cost).every(([el,n])=>withCargo(el)>=n),firstHydrogen=goal.id==='hydrogen'&&(run?.collectedElements.H??0)>=VEIL.firstCraftH;
     q('craft-resource-hint').textContent='';
     const goalAction=q('cho-goal-action');goalAction.hidden=!goal.id;q('cho-goal-label').textContent=goal.id?formula(goal.id):'';goalAction.setAttribute('aria-label',goal.id?`${formula(goal.id)}をクラフト`:'');renderCraftTargetAtoms(q('cho-goal-atoms'),record,[],{size:26});
-    const ready=active&&goal.id&&!has(goal.id)&&affordable&&(resources.state.hints.includes(goal.id)||firstHydrogen);
+    const ready=active&&goal.id&&!has(goal.id)&&affordable&&(resources.state.hints.includes(goal.id)||run?.carriedInsights?.includes(goal.id)||firstHydrogen);
     q('veil-craft-prompt').hidden=!ready;if(ready){const label=record?.formula??'◉';q('veil-to-craft-label').textContent=label;q('veil-to-craft').setAttribute('aria-label',`${label}をクラフトするため戻る`);renderCraftTargetAtoms(q('veil-to-craft-atoms'),record,[],{size:24});}else q('veil-to-craft-atoms')?.replaceChildren();
   }
   function notice(text,seconds=4,icon='✦'){q('veil-message').setAttribute('aria-label',text);q('veil-message').textContent=icon;messageUntil=(run?.time??0)+seconds;q('veil-message').hidden=false;}
+  function handleInsight(event){
+    if(!event||!run)return false;
+    if(event.type==='insightAnalysisStart'){notice(`解析中 · ${formula(event.id)} · 5s`,2.5,'⌁');return true;}
+    if(event.type==='insightReady'){if(!run.inspiration||performanceFor(event.id,'fuel')||performanceFor(event.id,'coolant'))run.inspiration=event.id;updatePrompt();notice(event.critical?`閃き · ${formula(event.id)}`:`解析完了 · ${formula(event.id)}`,3,'✧');return true;}
+    return false;
+  }
+  function offerInsight(id){return handleInsight(triggerInsight(run,id,resources.state));}
+  function offerProgressionInsights(){if(!run)return;for(const id of resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements}))offerInsight(id);}
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
   function resetInput(){stick.x=stick.y=0;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
   function positionAt(id){const at=REGIONS[id]??REGIONS.veil;run.player.x=at.x;run.player.y=at.y;run.player.angle=at.angle;run.player.vx=run.player.vy=0;run.player.trail=[];run.region=id;}
@@ -75,15 +83,15 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   function finish(captured=false){
     if(!active||!run)return;active=false;cancelAnimationFrame(raf);resetInput();audio.pause();
-    const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
+    const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached,insights:captured?[]:completed.carriedInsights});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);discardRunInsights(completed);root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
     const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
     q('craft-last-run').textContent=result?`${result.completedNow?'◎ CHO ✓ · ':''}${captured?'⚠':'↩'} ${parts||'—'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
     const pending=pendingCraftId;pendingCraftId=null;run=null;anchorLock=null;returnState=null;thermalNotice=null;thermalNoticeUntil=0;onCraft();updateCraft();q('launch-veil').focus();if(pending)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:pending,source:'field'}}));
   }
   function beginReturn(captured=false){
     if(!active||!run||paused||returnState)return false;
-    if(captured){resetInput();anchorLock=null;const duration=renderer.beginReturn(run,'emergency');returnState={captured:true,duration,elapsed:0};audio.start();hud();return true;}
-    if(anchorLock||run.captured)return false;resetInput();renderer.beginReturn(run,'stable');anchorLock={duration:EXPEDITION.anchorLockSeconds,elapsed:0};audio.start();audio.event('returnSafe');notice('ANCHOR LOCK · 保持場を安定収縮',1);hud();
+    if(captured){discardRunInsights(run);resetInput();anchorLock=null;const duration=renderer.beginReturn(run,'emergency');returnState={captured:true,duration,elapsed:0};audio.start();hud();return true;}
+    if(anchorLock||run.captured)return false;discardActiveInsight(run);resetInput();renderer.beginReturn(run,'stable');anchorLock={duration:EXPEDITION.anchorLockSeconds,elapsed:0};audio.start();audio.event('returnSafe');notice('ANCHOR LOCK · 保持場を安定収縮',1);hud();
     return true;
   }
   function burst(){
@@ -118,7 +126,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   function signalText(result){
     if(!result)return '未知信号は消えた';if(result.repeat)return 'この流れの信号は、しばらく静かだ';
-    if(result.recipe){const record=resources.record(result.recipe);return `ひらめき：${record?.formula??record?.name??'未知分子'}の構造断片\n進行に必須ではない発見`;}
+    if(result.recipe){const record=resources.record(result.recipe);return `未知分子の構造信号：${record?.formula??record?.name??'未知分子'}\n解析可能な断片を捕捉`;}
     return `未知信号から塵がほどけた · ${Object.entries(result.bonus).map(([el,n])=>`${el} +${n}`).join(' · ')}`;
   }
   function frame(now){
@@ -127,19 +135,20 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const input=anchorLock?{x:0,y:0}:{x:stick.x+(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0),y:stick.y+(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0)};
     for(const event of stepRun(run,input,dt,{consumeCombustion:packet=>resources.consumeCombustion(packet),consumeCoolant:(amount,molecule)=>resources.consumeTank('coolant',molecule,amount)})){
       if(event.type!=='danger'||event.level!=='clear')audio.event(event.type,event.chain,event.count);
-      if(event.type==='pickup')updatePrompt();
+      if(event.type==='pickup'){offerProgressionInsights();updatePrompt();}
       if(event.type==='choDestination'){notice('CHOの最深部に到達 · 帰還ボタンで記録を持ち帰ろう',8,'◎ ✓ ↩');vibrate(35);}
       if(event.type==='oxygenJunction')notice('酸素の分岐',6,'↖ ↑ ↗');
       if(event.type==='element'){
-        const first=resources.findElement(event.element);if(first&&event.element!=='H'){notice(event.element==='C'?'Cを発見 · 点の列ではなく、炭素塊へ飛び込もう':'Oを発見 · CH₄と組み合わせる酸化剤が作れる',5);vibrate(24);resources.save();}updatePrompt();
+        const first=resources.findElementForExpedition(event.element);offerProgressionInsights();if(first&&event.element!=='H'){notice(event.element==='C'?'Cを発見 · 点の列ではなく、炭素塊へ飛び込もう':'Oを発見 · CH₄と組み合わせる酸化剤が作れる',5);vibrate(24);resources.save();}updatePrompt();
       }
       if(event.type==='dense')vibrate(10);
       if(event.type==='cluster'){notice('炭素塊がほどけた · 散るC塵をまとめて吸おう',2.5);vibrate(18);}
       if(event.type==='rare'){resources.state.progress.special='pure-h';notice(`高純度H塵 +${VEIL.rareValue}`,3);vibrate(16);}
       if(event.type==='gate'){resources.state.progress.cleared=true;run.gateTime=run.time;resources.save();notice('Hの帳を抜けた · BURSTを使うべき瞬間だった',4);}
       if(event.type==='region'){const first=resources.visit(event.region);if(first)notice(event.region==='carbon'?'CARBON DRIFT · 粒子列の先に、塊が脈打つ':event.region==='oxygen'?'OXYGEN SURGE · 高速流と熱の領域':event.region==='frontier'?'INNER HORIZON · 金色の輪が最終地点。到達後は正常帰還を':`${REGIONS[event.region].name}へ戻った`,6);resources.save();}
-      if(event.type==='inspiration'){const fresh=event.rewards.filter(id=>resources.hint(id));if(fresh.length){run.inspiration=fresh.find(id=>performanceFor(id,'fuel')||performanceFor(id,'coolant'))??fresh[0];resources.save();updatePrompt();notice('✧',3);}}
-      if(event.type==='signal'){const result=resources.signal(event.region,event.roll,event.choice);notice(signalText(result),result?.recipe?5:3);supply.update();}
+      if(event.type==='inspiration')for(const id of event.rewards)offerInsight(id);
+      if(event.type==='signal'){const result=resources.signal(event.region,event.roll,event.choice);notice(signalText(result),result?.recipe?3:3);if(result?.recipe)offerInsight(result.recipe);supply.update();}
+      if(event.type==='insightReady')handleInsight(event);
       if(event.type==='lap')notice('流れをひと巡り · 保持場への干渉は下がらない',3);
       if(event.type==='eaterSpawn'){notice(event.count===1?'DUST EATER · 採集殻の保持場を崩す粒子現象':`DUST EATERS × ${event.count} · 保持場が破綻する前にANCHOR RETURNを`,4);vibrate(18);}
       if(event.type==='danger'&&event.level==='warning')notice('保持場への干渉が近い · H₂ BURSTで距離を作るか帰還',3,'⚠');
