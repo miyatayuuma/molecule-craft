@@ -8,7 +8,7 @@ import {createFlight,createRun,moveFlight,stepRun} from '../src/veil/engine.js';
 import {createUniverse,environmentAt,OXYGEN_ENTRY_KNOTS} from '../src/veil/universe.js';
 import {DRIVES,flightConfig} from '../src/veil/growth.js';
 import {
-  OXYGEN_HARVEST,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,
+  DEEP_OXYGEN_ROUTES,OXYGEN_HARVEST,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,
   oxygenPressureAt,oxygenRouteAt,oxygenRouteCenterAtY,oxygenVortexFlowAt,
 } from '../src/veil/oxygen-routes.js';
 
@@ -165,7 +165,7 @@ test('Oxygen Network route pressure stays traversable and propulsion keeps a mat
   assert.ok(mainDrive<mainNormal*.6,`COMBUSTION DRIVE must materially improve sustained traversal (${mainDrive.toFixed(2)}s vs ${mainNormal.toFixed(2)}s)`);
 });
 
-test('Oxygen main recovery moves the existing harvest pocket without changing its amount or value',()=>{
+test('Oxygen main recovery keeps its harvest while Deep Oxygen expands from production data',()=>{
   const universe=createUniverse(1,{H:0,C:0,O:0}),rest=universe.dust.filter(dust=>dust.route==='oxygen-rest-harvest');
   assert.equal(rest.length,OXYGEN_HARVEST.eddyAtoms);
   assert.equal(rest.length,180);
@@ -173,9 +173,13 @@ test('Oxygen main recovery moves the existing harvest pocket without changing it
   assert.ok(rest.every(dust=>Math.hypot(dust.x-300,dust.y+9750)<=56),'rest harvest follows the new recovery center');
   assert.ok(rest.every(dust=>Math.hypot(dust.x-120,dust.y+9700)>100),'rest harvest no longer uses the old hardcoded center');
   assert.deepEqual(OXYGEN_REWARD,{x:120,y:-10720,radius:95},'network merge reward stays unchanged');
-  const depth=universe.routes.find(route=>route.id==='oxygen-depth'),distanceToDepth=([x,y])=>Math.min(...depth.points.map(point=>Math.hypot(point.x-x,point.y-y)));
-  assert.ok(distanceToDepth([120,-10670])<20,'Deep Oxygen start stays at the network merge');
-  assert.ok(distanceToDepth([100,-11830])<20,'Deep Oxygen exit stays unchanged');
+  assert.equal(universe.routes.some(route=>route.id==='oxygen-depth'),false,'legacy single Deep route is removed');
+  const distanceToRoute=(route,[x,y])=>Math.min(...route.points.map(point=>Math.hypot(point.x-x,point.y-y)));
+  for(const authored of DEEP_OXYGEN_ROUTES){
+    const route=universe.routes.find(candidate=>candidate.id===authored.id);assert.ok(route,`${authored.id} route must exist`);
+    assert.ok(distanceToRoute(route,[120,-10800])<20,`${authored.id} starts at the Deep decision point`);
+    assert.ok(distanceToRoute(route,[100,-11830])<20,`${authored.id} converges at Frontier approach`);
+  }
 });
 
 test('FIELD map renders curved route widths, the single BURST gate and DRIVE recovery from production data',()=>{
