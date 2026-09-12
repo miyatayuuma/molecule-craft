@@ -28,7 +28,9 @@ jobs:
           node tests/craft-input-recovery.test.mjs
           node tests/game-shell-recovery.test.mjs
       - name: Expedition insights
-        run: node tests/expedition-insights.test.mjs
+        run: |
+          node tests/expedition-insights.test.mjs
+          node tests/signal-eligibility.test.mjs
       - name: Insight taxonomy and presentation
         run: |
           node tests/insight-category.test.mjs
