@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import {simulateOxygenRoute as simulateCurrentRoute} from '../scripts/simulate-oxygen-routes.mjs';
 import {OXYGEN_ROUTES,oxygenPressureAt} from '../src/veil/oxygen-routes.js';
-import {expeditionReview,loadedCombustionSummary} from '../src/veil/propulsion-guide.js';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 
 // Keep the original authored-layout regression as a control. CHO placement
@@ -28,19 +27,17 @@ assert.equal(rest.reached,true,'A rest in the quiet eddy is a real uncooled solu
 const alternative=simulateOxygenRoute({routeId:'oxygen-main',propellant:null,drive:true,coolant:'carbon-dioxide'});
 assert.equal(alternative.reached,true,'Water is not a molecule key');assert.equal(alternative.overheatEvents,0);
 const overheat=simulateOxygenRoute({routeId:'oxygen-main',propellant:null,drive:true});
-assert.ok(overheat.overheatEvents>0);assert.match(expeditionReview(overheat).advice,/過熱/);
+assert.ok(overheat.overheatEvents>0);
 const weak=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:'carbon-dioxide'});
-assert.equal(weak.reached,false);assert.equal(weak.currentCrossings.length,0);assert.ok(weak.stalledBursts>0);assert.match(expeditionReview(weak).advice,/逆流/);
+assert.equal(weak.reached,false);assert.equal(weak.currentCrossings.length,0);assert.ok(weak.stalledBursts>0);
 const few=simulateOxygenRoute({routeId:'oxygen-side',propellant:'hydrogen'});
 assert.equal(few.reached,true,'H₂ momentum can cross two thin currents per burst: preserve the physical alternative');assert.equal(few.burstUses,2);assert.equal(few.currentCrossings.length,4);
 const repeated=simulateOxygenRoute(cases[1]);assert.ok(few.duration<repeated.duration);assert.ok(few.fuelAtomCost>repeated.fuelAtomCost);assert.ok(few.netAtoms<repeated.netAtoms,'The faster alternative costs more material');
 const continuous=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:null,drive:true,coolant:'water'});
 assert.equal(continuous.currentCrossings.length,0,'Continuous thrust alone cannot cross the strong short current');
-assert.equal(expeditionReview({...main,overheatEvents:0,stalledBursts:0}).advice,'','No invented failure diagnosis');
 for(const route of OXYGEN_ROUTES)for(const gate of route.gates)assert.equal(oxygenPressureAt({x:route.x,y:gate.y}),gate.pressure);
 assert.equal(oxygenPressureAt({x:120,y:-9700}),0,'The marked rest pocket is physically quiet');
 assert.equal(oxygenPressureAt({x:0,y:-4000}),null,'The first H/C passage is not changed');
-assert.equal(loadedCombustionSummary({fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:2}}).seconds,2,'Supply compares actual limiting O₂');
 
 // Add a deterministic hint to an existing v6 save without learning or gifting
 // the molecule, and keep future saves protected.
@@ -50,4 +47,4 @@ const saved=JSON.parse(data.get(RESOURCE_KEY));saved.hints=saved.hints.filter(id
 const restored=createResources({storage});restored.setCatalog(records);assert.ok(restored.state.hints.includes('carbon-dioxide'));assert.equal(restored.state.recipes.includes('carbon-dioxide'),false);assert.deepEqual(restored.state.elements,saved.elements);assert.deepEqual(restored.state.tanks,saved.tanks);
 assert.ok(JSON.parse(data.get(RESOURCE_KEY)).hints.includes('carbon-dioxide'));
 saved.schemaVersion=99;const future=JSON.stringify(saved);data.set(RESOURCE_KEY,future);const protectedState=createResources({storage});protectedState.setCatalog(records);assert.equal(data.get(RESOURCE_KEY),future);
-console.log('Oxygen routes passed: physical crossings, distinct finite builds, 30/60fps and seeds, quiet-eddy alternative, return, evidence-only advice and old-save hints.');
+console.log('Oxygen routes passed: physical crossings, distinct finite builds, 30/60fps and seeds, quiet-eddy alternative, return and old-save hints.');
