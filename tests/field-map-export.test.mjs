@@ -4,7 +4,9 @@ import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {buildFieldMapSvg} from '../scripts/export-field-map.mjs';
-import {createUniverse,environmentAt} from '../src/veil/universe.js';
+import {createFlight,moveFlight} from '../src/veil/engine.js';
+import {createUniverse,environmentAt,OXYGEN_ENTRY_KNOTS} from '../src/veil/universe.js';
+import {DRIVES,flightConfig} from '../src/veil/growth.js';
 import {OXYGEN_JUNCTION,OXYGEN_ROUTES,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,oxygenVortexFlowAt} from '../src/veil/oxygen-routes.js';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -35,13 +37,15 @@ test('FIELD map exporter is deterministic and required layers are present',async
 });
 
 test('Oxygen Entry follows the expansion geometry and stays safe-biased through its middle',()=>{
-  const knots=[[170,-7750],[170,-8090],[420,-8300],[420,-8500],[120,-8700]];
+  const entryKnots=[[170,-8090],[420,-8300],[420,-8500],[120,-8700]];
+  const routeKnots=[[170,-7750],...entryKnots];
+  assert.deepEqual(OXYGEN_ENTRY_KNOTS,entryKnots);
   const route=createUniverse(1,{H:0,C:0,O:0}).routes.find(candidate=>candidate.id==='oxygen-entry');
   assert.ok(route,'oxygen-entry route must exist');
   const distanceToRoute=([x,y])=>Math.min(...route.points.map(point=>Math.hypot(point.x-x,point.y-y)));
-  for(const knot of knots)assert.ok(distanceToRoute(knot)<12,`oxygen-entry must pass ${knot.join(',')}`);
-  assert.deepEqual([OXYGEN_JUNCTION.x,OXYGEN_JUNCTION.y],knots.at(-1));
-  for(const networkRoute of OXYGEN_ROUTES)assert.deepEqual(networkRoute.knots[0],knots.at(-1),`${networkRoute.id} must still start at the existing junction`);
+  for(const knot of routeKnots)assert.ok(distanceToRoute(knot)<12,`oxygen-entry must pass ${knot.join(',')}`);
+  assert.deepEqual([OXYGEN_JUNCTION.x,OXYGEN_JUNCTION.y],entryKnots.at(-1));
+  for(const networkRoute of OXYGEN_ROUTES)assert.deepEqual(networkRoute.knots[0],entryKnots.at(-1),`${networkRoute.id} must still start at the existing junction`);
 
   for(const point of [{x:420,y:-8300},{x:420,y:-8500}]){
     const vortex=oxygenVortexFlowAt({...point,vx:0,vy:0});
@@ -55,6 +59,31 @@ test('Oxygen Entry follows the expansion geometry and stays safe-biased through 
     }
   }
   assert.deepEqual(OXYGEN_VORTEX_REWARD,{x:OXYGEN_VORTEX.center.x,y:OXYGEN_VORTEX.center.y,radius:72});
+});
+
+test('Oxygen Entry remains G1 while COMBUSTION DRIVE makes the travel materially faster',()=>{
+  // The current pulse challenge still overlaps the junction by design. Skirt its
+  // lower edge here so this test measures Entry traversability without pretending
+  // that the later challenge-placement task has already happened.
+  const waypoints=[
+    ...OXYGEN_ENTRY_KNOTS.slice(1,-1).map(([x,y])=>({x,y})),
+    {x:420,y:-8780},{x:120,y:-8780},{...OXYGEN_JUNCTION},
+  ];
+  const traverse=drive=>{
+    const config=flightConfig(),player=createFlight(config),dt=1/60;
+    Object.assign(player,{x:170,y:-8090,angle:-Math.PI/2,vx:0,vy:0});
+    let index=0;
+    for(let frame=0;frame<20/dt;frame++){
+      const target=waypoints[index],dx=target.x-player.x,dy=target.y-player.y,distance=Math.hypot(dx,dy);
+      if(distance<22){if(index===waypoints.length-1)return frame*dt;index++;continue;}
+      player.combustion=drive;player.drive=drive?DRIVES.combustion:null;
+      moveFlight(player,{x:dx/distance,y:dy/distance},dt,{config,environment:environmentAt(player,frame*dt)});
+    }
+    return Infinity;
+  };
+  const normal=traverse(false),combustion=traverse(true);
+  assert.ok(Number.isFinite(normal)&&normal<12,'normal thrust must be able to reach the junction without a capability gate');
+  assert.ok(combustion<normal*.7,`COMBUSTION DRIVE should be materially faster (${combustion.toFixed(2)}s vs ${normal.toFixed(2)}s)`);
 });
 
 test('DUST EATER and RETURN remain dynamic/global instead of authored points',()=>{
