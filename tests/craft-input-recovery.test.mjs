@@ -36,3 +36,12 @@ test('animation update faults abort transient locks without clearing the CRAFT w
   assert.doesNotMatch(body,/craftWorkspace\.clear\(\)|clearField\(/);
   assert.match(app,/console\.error\('Craft animation update failed; rendering the current scene\.',error\);\}recoverCraftAnimationState\(\);/);
 });
+
+
+test('menu recovery reuses the transient-state fail-safe instead of clearing the workspace',async()=>{
+  const shell=await readFile(new URL('../src/game-shell.js',import.meta.url),'utf8');
+  assert.match(shell,/onBlockedMenuOpen/);
+  assert.match(shell,/id==='menu-dialog'\)onBlockedMenuOpen\(\)/);
+  assert.match(app,/onBlockedMenuOpen:\(\)=>recoverCraftAnimationState\(\)/);
+  assert.ok(app.includes("from './game-shell.js?v=31'"));
+});

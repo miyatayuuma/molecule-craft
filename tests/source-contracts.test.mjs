@@ -35,7 +35,7 @@ assert.match(pubchemReference,/pubchem\.ncbi\.nlm\.nih\.gov\/\#query=/);
 assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
 assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=51"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=52"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-settlement\.js\?v=32'/);
