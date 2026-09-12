@@ -49,7 +49,7 @@ jobs:
           replace_once(
               'tests/veil-ui-check.mjs',
               "assert.equal(q('open-supply').textContent.trim(),'収集殻');",
-              "assert.equal(q('open-supply').getAttribute('aria-label'),'収集殻とタンクを開く');assert.equal(q('open-supply').textContent.trim(),'','Legacy collector access text stays removed');",
+              "assert.equal(q('open-supply').getAttribute('aria-label'),'探索機を開く');assert.equal(q('open-supply').textContent.trim(),'','Legacy collector access text stays removed');",
           )
           replace_once(
               'tests/veil-ui-check.mjs',
