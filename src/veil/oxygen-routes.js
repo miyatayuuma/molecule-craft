@@ -99,7 +99,7 @@ export const OXYGEN_THERMAL=Object.freeze({
     'oxygen-deep-skill':freezeStops([[-10800,0],[-11000,4],[-11200,14],[-11320,16],[-11480,14],[-11570,8],[-11620,3],[-11700,0],[-11830,0]]),
     'oxygen-deep-thermal':freezeStops([[-10800,0],[-10950,4],[-11050,10],[-11200,24],[-11350,38],[-11500,48],[-11570,40],[-11620,18],[-11700,0],[-11830,0]]),
   }),
-  deepThermalRouteId:'oxygen-deep-thermal',deepCombustionFactor:1.4,deepFadePadding:100,
+  deepThermalRouteId:'oxygen-deep-thermal',deepCombustionFactor:2.4,deepFadePadding:100,
   frontierRecovery:DEEP_OXYGEN_FRONTIER_RECOVERY,
 });
 function profileAtY(stops,y){
