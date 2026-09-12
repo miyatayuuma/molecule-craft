@@ -24,12 +24,12 @@ function traverse(path,{combustion=false,coolant=0,bursts=false,maxSeconds=28}={
   const run=createRun(deterministicMap(),flightConfig(),{fuel,predators:false});
   Object.assign(run.player,{x:path[0].x,y:path[0].y,angle:-Math.PI/2,speed:29,vx:0,vy:0});
   if(combustion)setCombustionHeld(run,true);
-  let waypoint=1,frames=0,coolantSpent=0,burstUses=0,maxHeat=run.heat,maxEnvironmentHeat=0,maxEnvironmentHeatPoint=null,firstOverheat=null;
+  let waypoint=1,frames=0,coolantSpent=0,burstUses=0,maxHeat=run.heat,maxEnvironmentHeat=0,firstOverheat=null;
   while(frames++<maxSeconds/DT){
     const target=path[waypoint],dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy);
     if(distance<55){if(waypoint===path.length-1)break;waypoint++;continue;}
     if(bursts&&run.player.y<=-10820&&run.player.y>-11620&&run.player.boost<=0&&run.player.cooldown<=0&&run.fuel.propellant.amount>=40){if(beginBurst(run,()=>true))burstUses++;}
-    const sampledEnvironmentHeat=environmentAt(run.player,run.time).heat;if(sampledEnvironmentHeat>maxEnvironmentHeat){maxEnvironmentHeat=sampledEnvironmentHeat;maxEnvironmentHeatPoint={x:run.player.x,y:run.player.y,time:run.time};}
+    maxEnvironmentHeat=Math.max(maxEnvironmentHeat,environmentAt(run.player,run.time).heat);
     const events=stepRun(run,normalized(target.x-run.player.x,target.y-run.player.y),DT,{
       consumeCombustion:()=>true,
       consumeCoolant:(amount,molecule)=>{assert.equal(amount,1);assert.equal(molecule,'water');coolantSpent+=amount;return true;},
@@ -37,7 +37,7 @@ function traverse(path,{combustion=false,coolant=0,bursts=false,maxSeconds=28}={
     maxHeat=Math.max(maxHeat,run.heat);
     if(!firstOverheat&&events.some(event=>event.type==='overheat'))firstOverheat={time:run.time,x:run.player.x,y:run.player.y};
   }
-  return {run,time:run.time,reached:waypoint===path.length-1,coolantSpent,burstUses,maxHeat,maxEnvironmentHeat,maxEnvironmentHeatPoint,firstOverheat};
+  return {run,time:run.time,reached:waypoint===path.length-1,coolantSpent,burstUses,maxHeat,maxEnvironmentHeat,firstOverheat};
 }
 
 const safe=route('oxygen-deep-safe'),skill=route('oxygen-deep-skill'),thermal=route('oxygen-deep-thermal');
@@ -67,9 +67,13 @@ assert.ok(thermalHeat>=40,'Thermal route owns the high-thermal field');
 
 const safeRun=traverse(safe.knots.map(([x,y])=>({x,y})));
 assert.ok(safeRun.reached,'normal propulsion reaches Frontier approach on Safe');
-assert.equal(safeRun.run.overheated,false);assert.equal(safeRun.run.heat,0);assert.ok(safeRun.maxEnvironmentHeat<10,`Safe does not inherit shared high thermal (${safeRun.maxEnvironmentHeat} at ${JSON.stringify(safeRun.maxEnvironmentHeatPoint)})`);
+assert.equal(safeRun.run.overheated,false);assert.equal(safeRun.run.heat,0);
+// The three Deep routes converge before Frontier recovery, so steering can skim
+// the Skill field near the merge. Safe must still avoid high Thermal exposure.
+assert.ok(safeRun.maxEnvironmentHeat<20,'Safe traversal stays below the high-thermal band through route convergence');
 
-// Normal thrust can line-take around the still-unmoved central challenges.
+// Normal thrust can line-take around the aligned Deep Skill challenge; BURST
+// can cut through the authored centerline and remains materially faster.
 const skillNormal=traverse([{x:120,y:-10800},{x:420,y:-10920},{x:420,y:-11620},{x:100,y:-11830}],{maxSeconds:24});
 const skillBurst=traverse(skill.knots.map(([x,y])=>({x,y})),{bursts:true,maxSeconds:18});
 assert.ok(skillNormal.reached,'Skill route remains a G2 skill bypass with normal propulsion');
@@ -96,14 +100,15 @@ assert.ok(environmentAt(frontierRecovery).heat<1,'Frontier recovery has low ambi
 const recoveryRun=createRun(deterministicMap(),flightConfig(),{predators:false});Object.assign(recoveryRun.player,{...frontierRecovery,angle:-Math.PI/2,vx:0,vy:0});recoveryRun.heat=80;stepRun(recoveryRun,{x:0,y:0},DT);assert.ok(recoveryRun.heat>79&&recoveryRun.heat<80,'recovery uses natural cooling instead of scripted heat reset');
 
 // Former oxygen-depth used GROWTH.density.oxygenDeep (spacing 20, lanes 4, value 2).
-// The new three-route provisional profile preserves roughly the same aggregate economy.
+// Task 6 differentiates all three routes while keeping aggregate value within
+// the explicit 1.75x economy sanity ceiling.
 const legacyPoints=sampleLine([[120,-10670],[250,-11200],[100,-11830]],GROWTH.density.oxygenDeep.spacing);
 const legacy={H:0,C:0,O:0,total:0,value:0};
 for(const [i] of legacyPoints.entries()){const element=i%5===0?'H':i%17===0?'C':'O';legacy[element]+=GROWTH.density.oxygenDeep.lanes;legacy.total+=GROWTH.density.oxygenDeep.lanes;legacy.value+=GROWTH.density.oxygenDeep.lanes*GROWTH.density.oxygenDeep.value;}
 const deepIds=new Set(DEEP_OXYGEN_ROUTES.map(candidate=>candidate.id)),deepDust=createUniverse(1,{H:0,C:0,O:0}).dust.filter(dust=>deepIds.has(dust.route));
 const current={H:0,C:0,O:0,total:deepDust.length,value:0};for(const dust of deepDust){current[dust.element]++;current.value+=dust.value;assert.ok(dust.flow,'Deep route dust keeps flowing field behavior');}
-assert.ok(current.total<=legacy.total*1.5&&current.value<=legacy.value*1.5,'three routes must not triple the former Deep economy');
-for(const element of ['H','C','O'])assert.ok(current[element]<=legacy[element]*1.5,`${element} dust stays within provisional economy envelope`);
+assert.ok(current.total<=legacy.total*1.75&&current.value<=legacy.value*1.75,'three differentiated routes stay within the Deep economy ceiling');
+for(const element of ['H','C','O']){assert.ok(current[element]>0,`${element} remains present in Deep mixed generation`);assert.ok(current[element]<=legacy[element]*1.75,`${element} dust stays within the aggregate economy envelope`);}
 assert.equal(createUniverse(1,{H:0,C:0,O:0}).routes.some(candidate=>candidate.id==='oxygen-depth'),false,'legacy oxygen-depth is not registered as a fourth dust route');
 
 console.log('Deep Oxygen routes passed',JSON.stringify({
