@@ -1,32 +1,64 @@
-name: CRAFT navigation regression inspect
+name: CRAFT navigation regression validation
 
 on:
   push:
     branches: [fix/craft-navigation-regression]
 
+permissions:
+  contents: write
+
 jobs:
-  inspect:
+  validate:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: |
+      - name: Focused regressions
+        run: |
+          node tests/craft-navigation-ux.test.mjs
+          node tests/pubchem-reference.test.mjs
+          node tests/craft-chrome.test.mjs
+          node tests/source-contracts.test.mjs
+      - name: Generate and verify PWA
+        run: |
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+      - name: Install browser harness
+        run: |
           npm install --prefix /tmp/craft-browser playwright@1.55.0
           /tmp/craft-browser/node_modules/.bin/playwright install chromium
-      - run: |
+      - name: Verify mobile and desktop CRAFT affordances
+        run: |
           python3 -m http.server 4173 >/tmp/craft-http.log 2>&1 &
-          cat >/tmp/inspect.mjs <<'EOF'
+          cat >/tmp/verify.mjs <<'EOF'
           import {chromium} from '/tmp/craft-browser/node_modules/playwright/index.mjs';
           const browser=await chromium.launch({headless:true});
-          const page=await browser.newPage({viewport:{width:390,height:844}});
-          await page.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});
-          await page.waitForTimeout(2500);
-          const rows=await page.evaluate(()=>[...document.querySelectorAll('button,a')].map((n,i)=>{const r=n.getBoundingClientRect(),s=getComputedStyle(n);return {i,tag:n.tagName,id:n.id,cls:n.className,text:n.textContent.trim(),aria:n.getAttribute('aria-label'),title:n.getAttribute('title'),hidden:n.hidden,display:s.display,visibility:s.visibility,rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],parent:n.parentElement?.className??n.parentElement?.id??''};}).filter(x=>x.display!=='none'&&x.visibility!=='hidden'&&x.rect[2]>0&&x.rect[3]>0));
-          console.log(JSON.stringify(rows,null,2));
-          await page.screenshot({path:'/tmp/craft.png',fullPage:true});
-          await browser.close();
+          try{
+            for(const viewport of [{width:390,height:844,name:'mobile'},{width:1280,height:800,name:'desktop'}]){
+              const page=await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
+              await page.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});
+              await page.waitForFunction(()=>document.querySelector('#collector-access-preview')&&document.querySelector('#undo-cleanup')?.textContent.includes('戻す'));
+              const result=await page.evaluate(()=>{
+                const access=document.querySelector('#open-supply'),icon=document.querySelector('#collector-access-preview'),undo=document.querySelector('#undo-cleanup'),clear=document.querySelector('#clear-all'),formula=document.querySelector('#formula'),pubchem=document.querySelector('.pubchem-link');
+                const ar=access.getBoundingClientRect(),ir=icon.getBoundingClientRect(),ur=undo.getBoundingClientRect(),cr=clear.getBoundingClientRect();
+                const visible=r=>r.width>0&&r.height>0&&r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1;
+                const overlap=!(ur.right<=cr.left||cr.right<=ur.left||ur.bottom<=cr.top||cr.bottom<=ur.top);
+                const gap=cr.left-ur.right;
+                return {accessText:access.textContent.trim(),accessLabel:access.getAttribute('aria-label'),accessVisible:visible(ar),iconVisible:visible(ir),undoText:undo.textContent.trim(),undoLabel:undo.getAttribute('aria-label'),undoVisible:visible(ur),undoHit:[ur.width,ur.height],clearVisible:visible(cr),overlap,gap,pubchemInFormula:pubchem?.parentElement===formula,pubchemText:pubchem?.textContent,pubchemLabel:pubchem?.getAttribute('aria-label')};
+              });
+              if(result.accessText!==''||result.accessLabel!=='探索機を開く'||!result.accessVisible||!result.iconVisible||result.undoText!=='← 戻す'||result.undoLabel!=='直前のCRAFT操作を元に戻す'||!result.undoVisible||result.undoHit[1]<44||!result.clearVisible||result.overlap||result.gap<10||!result.pubchemInFormula||result.pubchemText!=='PubChem ↗'||result.pubchemLabel!=='PubChemでこの分子を調べる（外部サイト）')throw new Error(`${viewport.name} contract failed: ${JSON.stringify(result)}`);
+              console.log(viewport.name,JSON.stringify(result));
+              await page.close();
+            }
+          } finally {await browser.close();}
           EOF
-          node /tmp/inspect.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: craft-nav-screenshot
-          path: /tmp/craft.png
+          node /tmp/verify.mjs
+      - name: Commit generated artifacts if needed
+        run: |
+          if git diff --quiet -- sw.js precache-manifest.js; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js precache-manifest.js
+          git commit -m "Refresh PWA precache for CRAFT navigation regression fix"
+          git push
