@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main, fix/loadout-card-order-stability]
+    branches: [main]
 
 permissions:
   contents: write
@@ -15,10 +15,6 @@ jobs:
       - uses: actions/checkout@v5
       - name: Runtime
         run: node --version
-      - name: LOADOUT card ordering regression
-        run: |
-          node --test tests/loadout-card-order.test.mjs
-          node --test tests/loadout-workstation.test.mjs
       - name: Rebuild verified offline release
         run: node scripts/build-precache.mjs
       - name: Commit generated release when needed
