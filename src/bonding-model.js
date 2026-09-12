@@ -99,6 +99,7 @@ export function geometryForAtom(molecule, id, ports = 0) {
   let kind, degrees;
   if (['C', 'N', 'O'].includes(atom.element) && (orders.includes(3) || (atom.element === 'C' && orders.filter(o => o === 2).length >= 2))) { kind = 'sp'; degrees = 180; }
   else if (['C', 'N', 'O'].includes(atom.element) && orders.includes(2)) { kind = 'sp2'; degrees = 120; }
+  else if (atom.element === 'C' && orders.length > 0 && orders.every(order => order === 1)) { kind = 'sp3'; degrees = 109.47; }
   else if (domains === 5) { kind = 'tbp'; degrees = 120; }
   else if (domains >= 6) { kind = 'octahedral'; degrees = 90; }
   else { degrees = idealBondAngleDeg(atom.element, used, ns.length + ports); kind = degrees >= 175 ? 'linear' : degrees >= 116 ? 'trigonal' : 'sp3'; }
