@@ -81,7 +81,7 @@ export const DEEP_OXYGEN_ROUTES=Object.freeze([
     summary:'低圧・高熱。H₂Oでsustained DRIVE距離が大きく伸びるがhard gateではない。',
     knots:freezePoints([[120,-10800],[760,-11050],[760,-11500],[100,-11830]]),pressure:20,spacing:20,lanes:1,value:2,flowing:true}),
 ]);
-export const DEEP_OXYGEN_FRONTIER_RECOVERY=Object.freeze({x:100,y:-11700,rx:250,ry:130});
+export const DEEP_OXYGEN_FRONTIER_RECOVERY=Object.freeze({x:100,y:-11700,rx:320,ry:130});
 export const DEEP_OXYGEN_OFF_ROUTE_PRESSURE=90;
 
 // Thermal values are environmentAt().heat game units, not player heat. Route C
