@@ -4,10 +4,13 @@ import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {buildFieldMapSvg} from '../scripts/export-field-map.mjs';
-import {createFlight,moveFlight} from '../src/veil/engine.js';
+import {createFlight,createRun,moveFlight,stepRun} from '../src/veil/engine.js';
 import {createUniverse,environmentAt,OXYGEN_ENTRY_KNOTS} from '../src/veil/universe.js';
 import {DRIVES,flightConfig} from '../src/veil/growth.js';
-import {OXYGEN_JUNCTION,OXYGEN_ROUTES,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,oxygenVortexFlowAt} from '../src/veil/oxygen-routes.js';
+import {
+  OXYGEN_HARVEST,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,
+  oxygenPressureAt,oxygenRouteAt,oxygenRouteCenterAtY,oxygenVortexFlowAt,
+} from '../src/veil/oxygen-routes.js';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const script=fileURLToPath(new URL('../scripts/export-field-map.mjs',import.meta.url));
@@ -84,6 +87,105 @@ test('Oxygen Entry remains G1 while COMBUSTION DRIVE makes the travel materially
   const normal=traverse(false),combustion=traverse(true);
   assert.ok(Number.isFinite(normal)&&normal<12,'normal thrust must be able to reach the junction without a capability gate');
   assert.ok(combustion<normal*.7,`COMBUSTION DRIVE should be materially faster (${combustion.toFixed(2)}s vs ${normal.toFixed(2)}s)`);
+});
+
+test('Oxygen Network uses the locked three-route geometry and curved membership',()=>{
+  const routes=Object.fromEntries(OXYGEN_ROUTES.map(route=>[route.id,route]));
+  assert.deepEqual(routes['oxygen-shortcut'].knots,[[120,-8700],[-320,-9000],[-320,-10350],[120,-10670]]);
+  assert.deepEqual(routes['oxygen-main'].knots,[[120,-8700],[300,-9100],[350,-9600],[260,-10150],[120,-10670]]);
+  assert.deepEqual(routes['oxygen-side'].knots,[[120,-8700],[780,-9000],[850,-10350],[120,-10670]]);
+  for(const route of Object.values(routes)){
+    assert.deepEqual(route.knots[0],[120,-8700]);
+    assert.deepEqual(route.knots.at(-1),[120,-10670]);
+    assert.equal(route.width,230);
+  }
+  assert.deepEqual([routes['oxygen-shortcut'].lanes,routes['oxygen-shortcut'].value],[1,2]);
+  assert.deepEqual([routes['oxygen-main'].lanes,routes['oxygen-main'].value],[2,2]);
+  assert.deepEqual([routes['oxygen-side'].lanes,routes['oxygen-side'].value],[4,3]);
+
+  const samples=[
+    ['oxygen-shortcut',-9700,-320],
+    ['oxygen-main',-9000,255],
+    ['oxygen-side',-9700,816.2962962962963],
+    ['oxygen-shortcut',-10450,-182.5],
+    ['oxygen-main',-10450,179.23076923076923],
+    ['oxygen-side',-10450,621.875],
+  ];
+  for(const [id,y,x] of samples){
+    const route=routes[id];
+    assert.ok(Math.abs(oxygenRouteCenterAtY(route,y)-x)<1e-9,`${id} center at ${y}`);
+    assert.equal(oxygenRouteAt({x,y})?.id,id,`${id} membership at ${x},${y}`);
+  }
+  assert.ok(Math.abs(samples[1][2]-routes['oxygen-main'].x)>routes['oxygen-main'].width/2,'DRIVE sample must fail the old fixed route.x test');
+  assert.ok(Math.abs(samples[5][2]-routes['oxygen-side'].x)>routes['oxygen-side'].width/2,'THERMAL sample must fail the old fixed route.x test');
+});
+
+test('Oxygen Network pressure roles separate BURST, DRIVE and low-pressure routes',()=>{
+  const routes=Object.fromEntries(OXYGEN_ROUTES.map(route=>[route.id,route]));
+  const burst=routes['oxygen-shortcut'],drive=routes['oxygen-main'],thermal=routes['oxygen-side'];
+  assert.deepEqual(burst.gates,[{y:-9700,depth:94,pressure:600}]);
+  assert.equal(burst.pressure,0);
+  assert.equal(oxygenPressureAt({x:-320,y:-9400}),0,'BURST route outside the chokepoint stays quiet');
+  assert.equal(oxygenPressureAt({x:-320,y:-9700}),600,'BURST chokepoint keeps the existing strong pressure');
+  assert.equal(oxygenPressureAt({x:-320,y:-9650}),0,'BURST gate remains localized');
+
+  assert.equal(drive.pressure,370);
+  assert.deepEqual(drive.restStops,[{x:300,y:-9750,depth:180}]);
+  assert.equal(oxygenPressureAt({x:255,y:-9000}),370,'DRIVE route has sustained moderate resistance');
+  assert.equal(oxygenPressureAt({x:300,y:-9750}),0,'DRIVE recovery cuts route pressure');
+  assert.equal(oxygenPressureAt({x:301,y:-9900}),370,'DRIVE pressure resumes after recovery');
+
+  assert.equal(thermal.pressure,0);
+  assert.deepEqual(thermal.gates,[],'THERMAL-oriented route has no legacy four-gate pressure pattern');
+  assert.equal(oxygenPressureAt({x:816,y:-9700}),0,'THERMAL-oriented route is low pressure');
+  for(const route of [burst,drive,thermal]){
+    assert.equal(route.requiredCapability,undefined,'no route becomes a hard capability gate');
+    assert.equal(route.requires,undefined,'no capability requirement is introduced');
+  }
+});
+
+test('Oxygen Network route pressure stays traversable and propulsion keeps a material advantage',()=>{
+  const traverse=({x,y,targetY,burst=false,drive=false,maxSeconds=6})=>{
+    const config=flightConfig(),fuel=drive?{fuel:{molecule:'methane',amount:18,capacity:18},oxidizer:{molecule:'oxygen',amount:36,capacity:36}}:{},run=createRun(createUniverse(1,{H:0,C:0,O:0}),config,{fuel,predators:false});
+    Object.assign(run.player,{x,y,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});run.region='oxygen';
+    if(burst){run.player.drive=DRIVES.hydrogen;run.player.boost=DRIVES.hydrogen.boostSeconds;}
+    if(drive)run.driveHeld=true;
+    const systems=drive?{consumeCombustion:()=>true}:{},dt=1/60;
+    for(let frame=0;frame<maxSeconds/dt;frame++){
+      stepRun(run,{x:0,y:-1},dt,systems);
+      if(run.player.y<=targetY)return run.time;
+    }
+    return Infinity;
+  };
+  const shortcutNormal=traverse({x:-320,y:-9600,targetY:-9800,maxSeconds:4}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});
+  assert.ok(Number.isFinite(shortcutNormal),'normal thrust must cross the localized BURST chokepoint');
+  assert.ok(shortcutBurst<shortcutNormal*.7,`BURST must materially ease the chokepoint (${shortcutBurst.toFixed(2)}s vs ${shortcutNormal.toFixed(2)}s)`);
+  const mainNormal=traverse({x:300,y:-9000,targetY:-9400}),mainDrive=traverse({x:300,y:-9000,targetY:-9400,drive:true});
+  assert.ok(Number.isFinite(mainNormal),'normal thrust must traverse sustained DRIVE-route pressure');
+  assert.ok(mainDrive<mainNormal*.6,`COMBUSTION DRIVE must materially improve sustained traversal (${mainDrive.toFixed(2)}s vs ${mainNormal.toFixed(2)}s)`);
+});
+
+test('Oxygen main recovery moves the existing harvest pocket without changing its amount or value',()=>{
+  const universe=createUniverse(1,{H:0,C:0,O:0}),rest=universe.dust.filter(dust=>dust.route==='oxygen-rest-harvest');
+  assert.equal(rest.length,OXYGEN_HARVEST.eddyAtoms);
+  assert.equal(rest.length,180);
+  assert.ok(rest.every(dust=>dust.value===3));
+  assert.ok(rest.every(dust=>Math.hypot(dust.x-300,dust.y+9750)<=56),'rest harvest follows the new recovery center');
+  assert.ok(rest.every(dust=>Math.hypot(dust.x-120,dust.y+9700)>100),'rest harvest no longer uses the old hardcoded center');
+  assert.deepEqual(OXYGEN_REWARD,{x:120,y:-10720,radius:95},'network merge reward stays unchanged');
+  const depth=universe.routes.find(route=>route.id==='oxygen-depth'),distanceToDepth=([x,y])=>Math.min(...depth.points.map(point=>Math.hypot(point.x-x,point.y-y)));
+  assert.ok(distanceToDepth([120,-10670])<20,'Deep Oxygen start stays at the network merge');
+  assert.ok(distanceToDepth([100,-11830])<20,'Deep Oxygen exit stays unchanged');
+});
+
+test('FIELD map renders curved route widths, the single BURST gate and DRIVE recovery from production data',()=>{
+  const svg=buildFieldMapSvg();
+  assert.match(svg,/data-route-width="oxygen-shortcut" d="M 120 -8700 L -320 -9000 L -320 -10350 L 120 -10670" stroke-width="230"/);
+  assert.match(svg,/data-route-width="oxygen-main" d="M 120 -8700 L 300 -9100 L 350 -9600 L 260 -10150 L 120 -10670" stroke-width="230"/);
+  assert.match(svg,/data-route-width="oxygen-side" d="M 120 -8700 L 780 -9000 L 850 -10350 L 120 -10670" stroke-width="230"/);
+  assert.match(svg,/data-pressure-gate="oxygen-shortcut:0" data-pressure="600" x="-435" y="-9747" width="230" height="94"/);
+  assert.doesNotMatch(svg,/data-pressure-gate="oxygen-side:/);
+  assert.match(svg,/data-rest-stop="oxygen-main" x="185" y="-9840" width="230" height="180"/);
 });
 
 test('DUST EATER and RETURN remain dynamic/global instead of authored points',()=>{

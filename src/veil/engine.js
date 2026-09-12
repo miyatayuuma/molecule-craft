@@ -140,7 +140,8 @@ function stepRunFrame(run,input,dt,systems){
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
   let nearest=null,distance=c.assistRadius;const desired=Math.atan2(input.y,input.x);
   for(const dust of map.dust){if(dust.ready>run.time)continue;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}
-  const force={x:0,y:0};
+  const routePressure=environment?.traversableRoutePressure,movementEnvironment=Number.isFinite(routePressure)?{...environment,pressure:environment.pressure-routePressure}:environment;
+  const force={x:0,y:Number.isFinite(routePressure)?routePressure:0};
   for(const field of map.fields){
     const phase=(run.time+field.phase)/c.fieldPeriod*Math.PI*2;field.intensity=1-c.fieldPulse+c.fieldPulse*Math.sin(phase);field.active=true;
     const dx=p.x-field.x,dy=p.y-field.y,d=Math.hypot(dx,dy);if(d<field.radius){const strength=c.fieldForce*(1-(d/field.radius)**2)*field.intensity;force.x+=Math.cos(field.angle??.12)*strength;force.y+=Math.sin(field.angle??.12)*strength;}
@@ -149,7 +150,7 @@ function stepRunFrame(run,input,dt,systems){
   // The boundary is a physical current. A short H₂ burst or the later
   // combustion drive can cross it; merely owning a recipe cannot.
   if(Math.abs(p.x-g.x)<g.width/2&&Math.abs(p.y-g.y)<g.height&&!propelled){const strength=c.gateDeflection*(1-Math.abs(p.x-g.x)/(g.width/2));force.x+=strength;force.y+=strength*.25;}
-  moveFlight(p,input,dt,{config:c,assist:nearest,force,environment});
+  moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:movementEnvironment});
   recordChallengePassage(run,old);recordOxygenPassage(run,old,dt);recordChoDestination(run,old);
   if(map.universe){const region=regionAt(p.y);if(region!==run.region){run.region=region;run.events.push({type:'region',region});}}
   if(!run.gatePassed&&propelled&&old.y>=g.y-50&&p.y<g.y-50&&Math.abs(p.x-g.x)<g.width/2){run.gatePassed=true;run.events.push({type:'gate'});}

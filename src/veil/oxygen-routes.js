@@ -52,29 +52,50 @@ export function oxygenVortexFlowAt(p){
   return {x:tx*tangential+rx*radial+guide.x*guideWeight,y:ty*tangential+ry*radial+guide.y*guideWeight,intensity:Math.max(edge*coreFade,guide.intensity*.55*coreFade),radius,radial,tangential,guideIntensity:guide.intensity*coreFade};
 }
 export const OXYGEN_ROUTES=Object.freeze([
-  {id:'oxygen-shortcut',label:'強流の近道',color:'#a8d8f0',x:-300,width:230,
-    summary:'強い一噴射で薄い流れを越える。短時間・採集少なめ。',
-    knots:[[120,-8700],[-300,-8870],[-300,-10480],[120,-10670]],
-    gates:[{y:-9250,depth:94,pressure:600}],pressure:0,lanes:1,value:2},
-  {id:'oxygen-side',label:'連続する支流',color:'#b4d99c',x:850,width:230,
-    summary:'4つの弱い逆流と、左右に広がる採集帯。急ぐか、進路を変えて拾うか。',
-    knots:[[120,-8700],[850,-8870],[850,-10480],[120,-10670]],
-    gates:[-9150,-9500,-9850,-10200].map(y=>({y,depth:24,pressure:490})),pressure:0,lanes:4,value:3},
+  {id:'oxygen-shortcut',label:'BURSTの近道',color:'#a8d8f0',x:-300,width:230,
+    summary:'最短経路。中央の短い強流はBURSTで明確に楽になるが、能力必須にはしない。',
+    knots:[[120,-8700],[-320,-9000],[-320,-10350],[120,-10670]],
+    gates:[{y:-9700,depth:94,pressure:600}],pressure:0,lanes:1,value:2},
+  {id:'oxygen-side',label:'低圧の支流',color:'#b4d99c',x:850,width:230,
+    summary:'広い低圧帯でOを多く拾う。thermal差別化は後続調整で加える。',
+    knots:[[120,-8700],[780,-9000],[850,-10350],[120,-10670]],
+    gates:[],pressure:0,lanes:4,value:3},
   {id:'oxygen-main',label:'持続流の本道',color:'#f0b28f',x:120,width:230,
-    summary:'長い逆流を燃焼で進む。流れの切れ目で冷却しながらOをまとめて回収。',
-    knots:[[120,-8700],[120,-8870],[120,-9700],[120,-10480],[120,-10670]],
-    gates:[],restStops:[{y:-9700,depth:180}],pressure:370,lanes:2,value:2},
+    summary:'長い中程度の逆流を進むstandard route。途中の静かな採集帯で区切れる。',
+    knots:[[120,-8700],[300,-9100],[350,-9600],[260,-10150],[120,-10670]],
+    gates:[],restStops:[{x:300,y:-9750,depth:180}],pressure:370,lanes:2,value:2},
 ]);
+export function oxygenRouteCenterAtY(route,y){
+  if(!Number.isFinite(y)||!Array.isArray(route?.knots))return null;
+  for(let i=0;i<route.knots.length-1;i++){
+    const [x0,y0]=route.knots[i],[x1,y1]=route.knots[i+1];
+    if((y-y0)*(y-y1)>0)continue;
+    if(y0===y1)return y===y0?(x0+x1)/2:null;
+    const t=(y-y0)/(y1-y0);
+    return x0+(x1-x0)*t;
+  }
+  return null;
+}
 export function oxygenRouteAt(p){
   if(p.y>-8870||p.y<-10480)return null;
-  return OXYGEN_ROUTES.find(route=>Math.abs(p.x-route.x)<route.width/2)??null;
+  return OXYGEN_ROUTES.find(route=>{
+    const centerX=oxygenRouteCenterAtY(route,p.y);
+    return centerX!==null&&Math.abs(p.x-centerX)<route.width/2;
+  })??null;
+}
+export function oxygenRestStopAt(p,route=oxygenRouteAt(p)){
+  if(!route)return null;
+  return (route.restStops??[]).find(stop=>{
+    const centerX=stop.x??oxygenRouteCenterAtY(route,stop.y)??route.x;
+    return Math.abs(p.y-stop.y)<stop.depth/2&&Math.abs(p.x-centerX)<route.width/2;
+  })??null;
 }
 export function oxygenPressureAt(p){
   if(p.y>-8700||p.y<-10850)return null;
   if(p.y>-8870||p.y<-10480)return 0; // approach, merge and shared harvest pocket
   const route=oxygenRouteAt(p);
   if(!route)return 370; // leaving a route is possible, but still costs thrust
-  if(route.restStops?.some(stop=>Math.abs(p.y-stop.y)<stop.depth/2))return 0;
+  if(oxygenRestStopAt(p,route))return 0;
   let pressure=route.pressure;
   for(const gate of route.gates){
     const edge=gate.depth/2-Math.abs(p.y-gate.y);
