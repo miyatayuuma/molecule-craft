@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main]
+    branches: [main, recipe-insight-regional-signal]
 
 permissions:
   contents: write
