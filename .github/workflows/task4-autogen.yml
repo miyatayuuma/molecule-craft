@@ -17,5 +17,64 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          from pathlib import import Path
+          from pathlib import Path
+          path=Path('src/veil/universe.js')
+          text=path.read_text()
+          old="import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenVortexFlowAt } from './oxygen-routes.js';"
+          new="import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt } from './oxygen-routes.js';"
+          assert old in text
+          text=text.replace(old,new,1)
+          start=text.index('// Strata span the whole world. These are velocities and heat, not key flags.')
+          end=text.index('export function animateUniverse',start)
+          replacement="""// Flow/pressure strata remain global where authored; thermal exposure is now
+          // composed from low Oxygen ambience, route-local heat and the Deep handoff.
+          function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/fade),0,1);}
+          export function environmentAt(p,time=0){
+            const outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
+            const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
+            const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p);
+            const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),routePressure=challenge?.pressure??oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
+            const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
+            const oxygenAmbient=oxygen*(1-coolEddy)*3,recovering=quiet||thermal.recovery,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));
+            return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:challenge?null:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
+          }
+          """
+          path.write_text(text[:start]+replacement+text[end:])
+
+          thermal=Path('tests/thermal-coolant.test.mjs')
+          text=thermal.read_text()
+          old="assert.ok(short.heat>29&&short.heat<31);"
+          new="assert.ok(Math.abs(short.heat-THERMAL.heatPerSecond*3)<.1);"
+          assert old in text
+          text=text.replace(old,new,1)
+          old="const recoveryEvents=advance(hot,4,{consumeCombustion:combustion});"
+          new="const recoveryEvents=advance(hot,3.3,{consumeCombustion:combustion});"
+          assert old in text
+          thermal.write_text(text.replace(old,new,1))
           PY
+      - name: Deterministic thermal simulations
+        run: |
+          node tests/oxygen-thermal-progression.test.mjs
+          node tests/thermal-coolant.test.mjs
+      - name: Regenerate current FIELD map
+        run: |
+          node scripts/export-field-map.mjs
+          node scripts/export-field-map.mjs --check
+          node scripts/export-field-expansion-proposal.mjs --check
+      - name: Rebuild PWA freshness artifacts
+        run: |
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+      - name: Guardrails
+        run: |
+          node tests/repository-hygiene.test.mjs
+          node tests/source-contracts.test.mjs
+          git diff --check
+      - name: Commit generated Task 4 result
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/veil/universe.js tests/thermal-coolant.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js
+          git commit -m "Finish Oxygen thermal progression calibration"
+          git push
