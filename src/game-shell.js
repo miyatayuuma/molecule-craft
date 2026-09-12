@@ -31,8 +31,28 @@ function pruneInstructionalChrome(document){
   q('show-extra-elements')?.closest('details')?.querySelector('p.muted')?.remove();
 }
 
+function installCraftNavigationChrome(document){
+  const back=document.getElementById('open-supply');if(!back)return;
+  const apply=()=>{
+    if(!back.querySelector('#collector-access-preview'))return false;
+    const arrow=document.createElement('span'),label=document.createElement('span');arrow.textContent='←';arrow.setAttribute('aria-hidden','true');label.textContent='戻る';
+    back.replaceChildren(arrow,label);back.className='craft-navigation-back';back.setAttribute('aria-label','探索機へ戻る');back.setAttribute('title','探索機へ戻る');
+    Object.assign(back.style,{display:'inline-flex',alignItems:'center',gap:'6px',minWidth:'44px',minHeight:'44px',padding:'8px 12px',justifyContent:'flex-start',marginLeft:'0',marginRight:'auto'});
+    return true;
+  };
+  if(apply())return;
+  const Observer=document.defaultView?.MutationObserver;if(!Observer)return;
+  const observer=new Observer(()=>{if(apply())observer.disconnect();});observer.observe(back,{childList:true});
+}
+
+function placePubchemWithMoleculeInfo(document){
+  const link=document.querySelector('.pubchem-link');if(!link)return;
+  link.setAttribute('aria-label','PubChemでこの分子を調べる（外部サイト）');
+  Object.assign(link.style,{marginLeft:'0',minWidth:'auto',minHeight:'32px',padding:'4px 6px',borderLeft:'0'});
+}
+
 export function createGameShell({canOpen=()=>true}={}){
-  pruneInstructionalChrome(document);
+  pruneInstructionalChrome(document);installCraftNavigationChrome(document);placePubchemWithMoleculeInfo(document);
   const q=id=>document.getElementById(id),dialogs=[...document.querySelectorAll('dialog.sheet')];
   function open(id){if(!canOpen())return;for(const dialog of dialogs)if(dialog.open)dialog.close();q(id)?.showModal();}
   for(const [button,id]of [['open-menu','menu-dialog'],['open-help','help-dialog'],['open-info','info-dialog'],['menu-info','info-dialog']])q(button)?.addEventListener('click',()=>open(id));
