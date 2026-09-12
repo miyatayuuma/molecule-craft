@@ -15,7 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Apply scoped recovery changes
-        run: python3 scripts/apply-craft-input-recovery.py
+        run: |
+          python3 scripts/apply-craft-input-recovery.py
+          python3 scripts/fix-craft-input-test-fixture.py
       - name: Validate CRAFT recovery and adjacent contracts
         run: |
           node tests/craft-controls-ui.test.mjs
