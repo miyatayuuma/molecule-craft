@@ -36,7 +36,7 @@ function installCraftNavigationChrome(document){
   const apply=()=>{
     if(!back.querySelector('#collector-access-preview'))return false;
     const arrow=document.createElement('span'),label=document.createElement('span');arrow.textContent='←';arrow.setAttribute('aria-hidden','true');label.textContent='戻る';
-    back.replaceChildren(arrow,label);back.className='craft-navigation-back';back.setAttribute('aria-label','探索機へ戻る');back.setAttribute('title','探索機へ戻る');
+    back.replaceChildren(arrow,label);back.className='collector-access craft-navigation-back';back.setAttribute('aria-label','探索機へ戻る');back.setAttribute('title','探索機へ戻る');
     Object.assign(back.style,{display:'inline-flex',alignItems:'center',gap:'6px',minWidth:'44px',minHeight:'44px',padding:'8px 12px',justifyContent:'flex-start',marginLeft:'0',marginRight:'auto'});
     return true;
   };
