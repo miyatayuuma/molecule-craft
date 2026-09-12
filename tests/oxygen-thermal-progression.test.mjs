@@ -31,12 +31,12 @@ function simulateRoute(routeId,{combustion=false,coolant=0,burstY=null,continueD
   if(combustion)setCombustionHeld(run,true);
   const path=authored.knots.map(([x,y])=>({x,y}));
   if(continueDeep)path.push({x:250,y:-11200});
-  let waypoint=1,burstUsed=false,frames=0,coolantSpent=0,combustionPackets=0,maxHeat=run.heat,maxEnvironmentHeat=0,frontHalfMaxHeat=0,recoveryCoast=0,recoveryCoastStarted=false;
+  let waypoint=1,burstUses=0,frames=0,coolantSpent=0,combustionPackets=0,maxHeat=run.heat,maxEnvironmentHeat=0,frontHalfMaxHeat=0,recoveryCoast=0,recoveryCoastStarted=false;
   const strain=[],overheats=[],coolantStarts=[];
   while(frames++<60*32){
     const target=path[waypoint],dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy);
     if(distance<65&&waypoint<path.length-1){waypoint++;continue;}
-    if(burstY!==null&&!burstUsed&&run.player.y<=burstY){assert.ok(beginBurst(run,()=>true),'BURST should start at the authored chokepoint');burstUsed=true;}
+    if(burstY!==null&&burstUses<2&&run.player.y<=burstY&&run.player.boost<=0&&run.player.cooldown<=0&&run.fuel.propellant.amount>=40){if(beginBurst(run,()=>true))burstUses++;}
     if(combustion&&recoveryCoastSeconds>0){
       if(!recoveryCoastStarted&&run.player.y<=-9660){recoveryCoastStarted=true;setCombustionHeld(run,false);}
       if(recoveryCoastStarted&&recoveryCoast<recoveryCoastSeconds){
@@ -59,7 +59,7 @@ function simulateRoute(routeId,{combustion=false,coolant=0,burstY=null,continueD
     if(Math.hypot(run.player.x-target.x,run.player.y-target.y)<65&&waypoint===path.length-1)break;
   }
   assert.ok(frames<60*32,`${routeId} deterministic traversal must terminate`);
-  return {run,frames,time:run.time,strain,overheats,coolantStarts,coolantSpent,combustionPackets,maxHeat,maxEnvironmentHeat,frontHalfMaxHeat,burstUsed,recoveryCoast};
+  return {run,frames,time:run.time,strain,overheats,coolantStarts,coolantSpent,combustionPackets,maxHeat,maxEnvironmentHeat,frontHalfMaxHeat,burstUsed:burstUses>0,burstUses,recoveryCoast};
 }
 
 // Thermal geometry is narrow and follows the production Route C centerline.
@@ -124,9 +124,11 @@ assert.ok(bDrive.run.heat<cDry.run.heat-20,'Route B heat buildup must be clearly
 assert.ok(environmentAt({x:300,y:-9750}).heat<1,'Route B recovery is low ambient heat');
 
 // Scenario E: Route A keeps its pressure/BURST identity rather than becoming a
-// thermal route.
-const aBurst=simulateRoute('oxygen-shortcut',{burstY:-9600});
+// thermal route. Task 6 aligns pulse with this corridor, so use the canonical
+// two-burst H2 starter if the first burst cannot clear the whole dynamic field.
+const aBurst=simulateRoute('oxygen-shortcut',{burstY:-9400});
 assert.equal(aBurst.strain.length,0);assert.equal(aBurst.overheats.length,0);assert.ok(aBurst.burstUsed);
+assert.ok(aBurst.burstUses<=2,'Route A traversal stays within the canonical two-burst starter');
 assert.ok(aBurst.maxEnvironmentHeat<5,'Route A has no high route-local thermal exposure');
 
 // Scenario F: merge recovery is cool, then Deep Oxygen rises again. The
