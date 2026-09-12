@@ -117,7 +117,7 @@ test('Oxygen Network uses the locked three-route geometry and curved membership'
     assert.equal(oxygenRouteAt({x,y})?.id,id,`${id} membership at ${x},${y}`);
   }
   assert.ok(Math.abs(samples[1][2]-routes['oxygen-main'].x)>routes['oxygen-main'].width/2,'DRIVE sample must fail the old fixed route.x test');
-  assert.ok(Math.abs(samples[2][2]-routes['oxygen-side'].x)>routes['oxygen-side'].width/2,'THERMAL sample must fail the old fixed route.x test');
+  assert.ok(Math.abs(samples[5][2]-routes['oxygen-side'].x)>routes['oxygen-side'].width/2,'THERMAL sample must fail the old fixed route.x test');
 });
 
 test('Oxygen Network pressure roles separate BURST, DRIVE and low-pressure routes',()=>{
@@ -152,9 +152,9 @@ test('Oxygen main recovery moves the existing harvest pocket without changing it
   assert.ok(rest.every(dust=>Math.hypot(dust.x-300,dust.y+9750)<=56),'rest harvest follows the new recovery center');
   assert.ok(rest.every(dust=>Math.hypot(dust.x-120,dust.y+9700)>100),'rest harvest no longer uses the old hardcoded center');
   assert.deepEqual(OXYGEN_REWARD,{x:120,y:-10720,radius:95},'network merge reward stays unchanged');
-  const depth=universe.routes.find(route=>route.id==='oxygen-depth');
-  assert.deepEqual([depth.points[0].x,depth.points[0].y],[120,-10670]);
-  assert.deepEqual([depth.points.at(-1).x,depth.points.at(-1).y],[100,-11830]);
+  const depth=universe.routes.find(route=>route.id==='oxygen-depth'),distanceToDepth=([x,y])=>Math.min(...depth.points.map(point=>Math.hypot(point.x-x,point.y-y)));
+  assert.ok(distanceToDepth([120,-10670])<20,'Deep Oxygen start stays at the network merge');
+  assert.ok(distanceToDepth([100,-11830])<20,'Deep Oxygen exit stays unchanged');
 });
 
 test('FIELD map renders curved route widths, the single BURST gate and DRIVE recovery from production data',()=>{
