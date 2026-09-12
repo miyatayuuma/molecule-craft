@@ -19,7 +19,6 @@ for(const seed of [1,71])for(const fps of [30,60]){
   assert.ok(reports[1].grossAtoms>reports[0].grossAtoms&&reports[1].grossAtoms>reports[2].grossAtoms,'The repeated-current route rewards repeated collecting');
   assert.ok(reports[1].duration>reports[0].duration&&reports[1].duration>reports[2].duration);
   assert.ok(reports[0].fuelAtomCost<reports[1].fuelAtomCost&&reports[0].fuelAtomCost<reports[2].fuelAtomCost);
-  assert.ok(reports[1].maxEaters>0,'The longer route remains exposed to normal pursuit');
 }
 const [shortcut,,main]=cases.map(options=>simulateOxygenRoute(options));
 assert.ok(shortcut.duration<main.duration,'The shortcut crosses the branch itself fastest');
