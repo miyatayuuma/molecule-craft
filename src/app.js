@@ -17,7 +17,7 @@ import { createElementPalette, syncElementStocks } from './element-progression.j
 import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=26';
 import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=30';
 
-import { createGameShell } from './game-shell.js?v=30';
+import { createGameShell } from './game-shell.js?v=31';
 import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
 import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
@@ -82,7 +82,7 @@ const solver=createStructureSolver({
 });
 const conformationEngine=createConformationEngine({THREE,molecule,solver,positionFor:pos,modelFor:currentTorsionModel});
 
-const gameShell=createGameShell({canOpen:()=>!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen});
+const gameShell=createGameShell({canOpen:()=>!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen,onBlockedMenuOpen:()=>recoverCraftAnimationState()});
 const workspaceStorage=createWorkspaceStorage({storage:resources.workspaceAdapter,onStatus:text=>{const node=document.querySelector('#workspace-save-status');node.textContent=text;node.hidden=!text;}});
 const craftHistory=createCraftHistory({capture:captureCraftHistoryState,restore:restoreCraftHistoryState,onChange:({canUndo})=>setUndoAvailable(canUndo)});
 let savedWorkspace=null,lastSaveCheck=0,lastStableWorkspace=null;

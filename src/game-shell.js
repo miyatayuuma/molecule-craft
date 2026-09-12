@@ -25,10 +25,10 @@ function pruneInstructionalChrome(document){
   q('show-extra-elements')?.closest('details')?.querySelector('p.muted')?.remove();
 }
 
-export function createGameShell({canOpen=()=>true}={}){
+export function createGameShell({canOpen=()=>true,onBlockedMenuOpen=()=>{}}={}){
   pruneInstructionalChrome(document);
   const q=id=>document.getElementById(id),dialogs=[...document.querySelectorAll('dialog.sheet')];
-  function open(id){if(!canOpen())return;for(const dialog of dialogs)if(dialog.open)dialog.close();q(id)?.showModal();}
+  function open(id){if(!canOpen()&&id==='menu-dialog')onBlockedMenuOpen();if(!canOpen())return;for(const dialog of dialogs)if(dialog.open)dialog.close();q(id)?.showModal();}
   for(const [button,id]of [['open-menu','menu-dialog'],['open-help','help-dialog'],['open-info','info-dialog'],['menu-info','info-dialog']])q(button)?.addEventListener('click',()=>open(id));
   for(const dialog of dialogs){
     dialog.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
