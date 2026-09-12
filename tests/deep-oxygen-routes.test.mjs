@@ -83,12 +83,16 @@ assert.equal(deepOxygenRouteAt({x:1100,y:-11200}),null,'off-route point must not
 // Route-local pressure replaces the old generic Deep band while remaining traversable.
 assert.deepEqual([routes['oxygen-deep-safe'].width,routes['oxygen-deep-skill'].width,routes['oxygen-deep-thermal'].width],[280,180,260]);
 assert.deepEqual([routes['oxygen-deep-safe'].pressure,routes['oxygen-deep-skill'].pressure,routes['oxygen-deep-thermal'].pressure],[24,60,20]);
-for(const [id,y] of [['oxygen-deep-safe',-11200],['oxygen-deep-skill',-11650],['oxygen-deep-thermal',-11200]]){
+for(const [id,y] of [['oxygen-deep-safe',-11200],['oxygen-deep-thermal',-11200]]){
   const route=routes[id],x=oxygenRouteCenterAtY(route,y);
   assert.equal(deepOxygenPressureAt({x,y}),route.pressure,`${id} local pressure`);
   assert.equal(oxygenPressureAt({x,y}),route.pressure,`${id} integrated pressure`);
   assert.equal(environmentAt({x,y}).traversableRoutePressure,route.pressure,`${id} pressure uses traversable-route safety`);
 }
+const skillPressureY=-11450,skillPressureX=oxygenRouteCenterAtY(routes['oxygen-deep-skill'],skillPressureY);
+assert.equal(deepOxygenPressureAt({x:skillPressureX,y:skillPressureY}),routes['oxygen-deep-skill'].pressure,'Skill route owns moderate base pressure under the temporary challenge overlap');
+assert.equal(oxygenPressureAt({x:skillPressureX,y:skillPressureY}),routes['oxygen-deep-skill'].pressure,'Skill pressure helper remains route-local');
+assert.equal(environmentAt({x:skillPressureX,y:skillPressureY}).traversableRoutePressure,null,'existing challenge pressure keeps priority over Skill route pressure');
 assert.equal(deepOxygenPressureAt({x:1100,y:-11200}),DEEP_OXYGEN_OFF_ROUTE_PRESSURE,'off-route Deep space keeps moderate environmental pressure');
 
 // Safe Route is the low-thermal baseline and needs neither coolant nor a capability.
