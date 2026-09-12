@@ -31,34 +31,29 @@ function currentViewBox(currentSvg){
 }
 
 function routeSvg(route){
-  const nodes=route.points.map(([x,y],index)=>`<circle class="proposal-node" data-node="${index}" cx="${x}" cy="${y}" r="15"/>`).join('\n');
-  return `<metadata>${escapeXml(route.role)}</metadata>\n<path id="${route.id}" class="proposal-route" data-gate-class="${escapeXml(route.gateClass)}" data-width-intent="${escapeXml(route.widthIntent)}" d="${pathData(route.points)}"/>\n${nodes}`;
+  return `<path id="${route.id}" class="proposal-route" data-gate-class="${escapeXml(route.gateClass)}" data-width-intent="${escapeXml(route.widthIntent)}" data-role="${escapeXml(route.role)}" d="${pathData(route.points)}"/>`;
 }
 
 function recoverySvg(){
-  return RECOVERY_ZONES.map(zone=>`<g id="${zone.id}" data-semantics="low environmental pressure; low heat; route decision point; future predator-pressure reduction candidate"><ellipse cx="${zone.x}" cy="${zone.y}" rx="${zone.rx}" ry="${zone.ry}"/><text x="${zone.x+zone.rx+25}" y="${zone.y-10}">${escapeXml(zone.label)}</text></g>`).join('\n');
+  return RECOVERY_ZONES.map(zone=>`<ellipse id="${zone.id}" data-label="${escapeXml(zone.label)}" data-semantics="low environmental pressure; low heat; route decision point; future predator-pressure reduction candidate" cx="${zone.x}" cy="${zone.y}" rx="${zone.rx}" ry="${zone.ry}"/>`).join('\n');
 }
 
 function densitySvg(element){
-  return DENSITY_INTENTS.filter(zone=>zone.element===element).map(zone=>`<g id="${zone.id}" data-element="${element}" data-density-intent="${escapeXml(zone.level)}"><ellipse cx="${zone.x}" cy="${zone.y}" rx="${zone.rx}" ry="${zone.ry}"/><text x="${zone.x-zone.rx+18}" y="${zone.y}">${escapeXml(zone.label)}</text></g>`).join('\n');
+  return DENSITY_INTENTS.filter(zone=>zone.element===element).map(zone=>`<ellipse id="${zone.id}" data-element="${element}" data-density-intent="${escapeXml(zone.level)}" data-label="${escapeXml(zone.label)}" cx="${zone.x}" cy="${zone.y}" rx="${zone.rx}" ry="${zone.ry}"/>`).join('\n');
 }
 
 function thermalIntentSvg(){
-  return `<metadata>relative thermal design intent only; proposal only; no canonical heat values; environmentAt() is unchanged</metadata>\n${THERMAL_INTENTS.map(zone=>`<g id="${zone.id}" class="thermal-intent thermal-${zone.kind}" data-thermal-intent="${zone.kind}"><ellipse cx="${zone.x}" cy="${zone.y}" rx="${zone.rx}" ry="${zone.ry}"/><text x="${zone.x-zone.rx+20}" y="${zone.y+10}">${escapeXml(zone.label)}</text></g>`).join('\n')}`;
+  return `<metadata>relative thermal design intent only; proposal only; no canonical heat values; environmentAt() is unchanged</metadata>\n${THERMAL_INTENTS.map(zone=>`<ellipse id="${zone.id}" class="thermal-intent thermal-${zone.kind}" data-thermal-intent="${zone.kind}" data-label="${escapeXml(zone.label)}" cx="${zone.x}" cy="${zone.y}" rx="${zone.rx}" ry="${zone.ry}"/>`).join('\n')}`;
 }
-
 function gateSvg(){
-  return GATE_MARKERS.map(marker=>`<g id="${marker.id}" class="gate-marker gate-${marker.gate.toLowerCase()}" data-route="${marker.route}" data-gate="${marker.gate}"${marker.candidate?' data-candidate="true"':''}><circle cx="${marker.x}" cy="${marker.y}" r="29"/><text x="${marker.x+42}" y="${marker.y-18}">${marker.gate}${marker.candidate?' CANDIDATE':''} · ${escapeXml(marker.label)}</text></g>`).join('\n');
+  return GATE_MARKERS.map(marker=>`<g id="${marker.id}" class="gate-marker gate-${marker.gate.toLowerCase()}" data-route="${marker.route}" data-gate="${marker.gate}" data-label="${escapeXml(marker.label)}"${marker.candidate?' data-candidate="true"':''}><circle cx="${marker.x}" cy="${marker.y}" r="29"/><text x="${marker.x+38}" y="${marker.y-12}">${marker.gate}${marker.candidate?'?':''}</text></g>`).join('\n');
 }
-
 function challengeSvg(){
-  return `<metadata>Current challenge footprints remain visible in the faint CURRENT reference; these markers are placement intent only and do not change rewards or logic.</metadata>\n${CHALLENGE_INTENTS.map(item=>`<g id="${item.id}" data-challenge-intent="${item.type}" data-route="${item.route}"><path class="challenge-diamond" d="M ${item.x} ${item.y-34} L ${item.x+34} ${item.y} L ${item.x} ${item.y+34} L ${item.x-34} ${item.y} Z"/><text x="${item.x+50}" y="${item.y-18}">${escapeXml(item.label)}</text></g>`).join('\n')}`;
+  return `<metadata>Current challenge footprints remain visible in the faint CURRENT reference; these markers are placement intent only and do not change rewards or logic.</metadata>\n${CHALLENGE_INTENTS.map(item=>`<g id="${item.id}" data-challenge-intent="${item.type}" data-route="${item.route}" data-label="${escapeXml(item.label)}"><path class="challenge-diamond" d="M ${item.x} ${item.y-34} L ${item.x+34} ${item.y} L ${item.x} ${item.y+34} L ${item.x-34} ${item.y} Z"/><text x="${item.x+44}" y="${item.y-12}">${item.type}</text></g>`).join('\n')}`;
 }
-
 function signalSvg(){
-  return `<metadata>Signal candidate zones and relative complexity only; signal selection/unlock rules remain undefined for a later task.</metadata>\n${SIGNAL_INTENTS.map(item=>`<g id="${item.id}" data-signal-intent="candidate" data-complexity="${item.complexity}"><circle cx="${item.x}" cy="${item.y}" r="${item.r}"/><text x="${item.x+item.r+24}" y="${item.y-12}">${escapeXml(item.label)}</text></g>`).join('\n')}`;
+  return `<metadata>Signal candidate zones and relative complexity only; signal selection/unlock rules remain undefined for a later task.</metadata>\n${SIGNAL_INTENTS.map(item=>`<g id="${item.id}" data-signal-intent="candidate" data-complexity="${item.complexity}" data-label="${escapeXml(item.label)}"><circle cx="${item.x}" cy="${item.y}" r="${item.r}"/><text x="${item.x+item.r+20}" y="${item.y-10}">signal · ${item.complexity}</text></g>`).join('\n')}`;
 }
-
 function anchorsSvg(){
   return Object.entries(ANCHORS).map(([id,anchor])=>{
     if(id==='currentVortexApprox')return `<g id="anchor-${id}" data-current-reference="true"><circle class="vortex-reference" cx="${anchor.x}" cy="${anchor.y}" r="210"/><text x="${anchor.x-360}" y="${anchor.y-250}">${escapeXml(anchor.label)} ≈ (${anchor.x},${anchor.y})</text></g>`;
