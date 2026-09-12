@@ -7,7 +7,7 @@ function pruneInstructionalChrome(document){
     '#open-help','#help-dialog','#craft-last-run','#game-loop-hint','#craft-empty','.reset-tools',
     '#molecule-iupac','#tank-next-hint','.tank-explanation','#tank-affordability','#oxygen-route-guide',
     '.veil-stock > span','#veil-gained','#veil-chain-block','.veil-title > small','#veil-region-subtitle',
-    '#veil-threat','#veil-goal','#veil-message','#veil-pad-label','#veil-thermal-state','#veil-coolant',
+    '#veil-threat','#veil-goal','#veil-message','#veil-pad-label','#veil-coolant','#veil-coolant-level',
     '#veil-boost > small',
   ])for(const node of document.querySelectorAll(selector))node.style.display='none';
 

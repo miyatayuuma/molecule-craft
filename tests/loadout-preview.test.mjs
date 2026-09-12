@@ -29,9 +29,6 @@ assert.equal(oxygen.oxidizingPower,1);
 assert.deepEqual(loadoutPreviewValues('oxidizer','oxygen'),oxygen);
 assert.equal(loadoutPreviewValues('fuel','oxygen'),null);
 
-// Regression for #122: the PULSE comparison is rendered again during launch
-// preparation. An undeclared `dots` binding here used to throw after the tank
-// fill commit, before LOADOUT could close and onLaunchReady could run.
 class FakeNode{
   constructor(tag='div'){this.tag=tag;this.children=[];this.style={};this.dataset={};this.hidden=false;this.className='';this.textContent='';}
   append(...items){this.children.push(...items);}
@@ -41,15 +38,31 @@ class FakeNode{
 const originalDocument=globalThis.document;
 try{
   globalThis.document={createElement:tag=>new FakeNode(tag)};
+  const empty=new FakeNode();
+  assert.equal(renderLoadoutPreview(empty,{use:'propellant',candidateId:null}),null);
+  assert.equal(empty.hidden,true,'No selected PULSE molecule leaves a natural empty preview');
+  assert.equal(empty.children.length,0,'No placeholder or ghost dots are emitted without a selection');
+
   const host=new FakeNode();
-  const rendered=renderLoadoutPreview(host,{use:'propellant',candidateId:'hydrogen',currentId:'hydrogen',currentAmount:80});
+  const rendered=renderLoadoutPreview(host,{use:'propellant',candidateId:'hydrogen',currentId:'hydrogen',currentAmount:0});
   assert.equal(host.hidden,false);
   assert.equal(host.dataset.previewKind,'propellant');
-  assert.equal(rendered.candidate.shots,3);
-  assert.equal(rendered.current.shots,2);
-  assert.equal(host.children.length,2,'PULSE preview renders stats and charge rows without throwing');
+  assert.equal(rendered.candidate.fullShots,3);
+  assert.equal(rendered.current.shots,0,'Current fill may be empty without changing capability');
+  assert.equal(host.children.length,2,'PULSE preview renders stats and capability dots');
+  const charges=host.children[1];
+  assert.equal(charges.children.length,1,'PULSE has no ghost comparison row');
+  const chargeRow=charges.children[0];
+  assert.equal(chargeRow.dataset.ghost,undefined,'No ghost-dot state is emitted');
+  assert.equal(chargeRow.children[0].textContent,'PULSE');
+  assert.equal(chargeRow.children[1].children.length,3,'H2 shows only its canonical maximum PULSE count');
+
+  const changed=new FakeNode();
+  renderLoadoutPreview(changed,{use:'propellant',candidateId:'carbon-dioxide',currentId:'hydrogen',currentAmount:0});
+  assert.equal(changed.children[1].children.length,1);
+  assert.equal(changed.children[1].children[0].children[1].children.length,9,'Molecule changes follow canonical propellant performance');
 }finally{
   if(originalDocument===undefined)delete globalThis.document;else globalThis.document=originalDocument;
 }
 
-console.log('Loadout preview bars passed: PULSE tradeoff, renderable charge rows and role-specific DRIVE metrics.');
+console.log('Loadout preview passed: PULSE max-capability dots, empty selection, no ghost comparison row, and role-specific DRIVE metrics.');

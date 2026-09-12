@@ -44,6 +44,7 @@ export const REGIONS=Object.freeze({
 });
 export function regionAt(y){return y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
 export function flightConfig(){return {...VEIL,...GROWTH.flight,bounds:GROWTH.bounds};}
+export function propulsionSpeedMax(config=GROWTH.flight){return Math.max(Number(config?.speed)||0,...Object.values(DRIVES).map(drive=>Number(drive.boostSpeed)||0));}
 export function driveAvailable(state,id){
   if(id==='hydrogen')return state.recipes.includes('hydrogen');
   if(id==='combustion')return state.recipes.includes('oxygen')&&state.recipes.some(molecule=>performanceFor(molecule,'fuel'));

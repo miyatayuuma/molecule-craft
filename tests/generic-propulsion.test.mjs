@@ -1,13 +1,23 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRun,stepRun,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
-import {flightConfig,propulsionGauge} from '../src/veil/growth.js';
+import {DRIVES,flightConfig,propulsionGauge,propulsionSpeedMax} from '../src/veil/growth.js';
 import {combustionPacketFor,moleculesForRole,performanceFor} from '../src/veil/molecule-roles.js';
 import {createResources} from '../src/veil/resources.js';
 
 const emptyMap=()=>({seed:1,dust:[],fields:[],labels:[],routes:[]});
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
 const database=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
+
+const flight=flightConfig(),configuredMax=Math.max(flight.speed,...Object.values(DRIVES).map(drive=>drive.boostSpeed??0));
+assert.equal(propulsionSpeedMax(flight),configuredMax,'HUD speed scale is derived from current flight and propulsion configuration');
+const normalRun=createRun(emptyMap(),flight,{predators:false});stepRun(normalRun,{x:0,y:-1},.25);
+const turningRun=createRun(emptyMap(),flight,{predators:false});stepRun(turningRun,{x:1,y:0},.25);
+assert.ok(turningRun.player.speed<normalRun.player.speed,'Steering/cornering changes the canonical scalar speed');
+const combustionRun=createRun(emptyMap(),flight,{fuel:{fuel:{molecule:'methane',amount:1},oxidizer:{molecule:'oxygen',amount:2}},predators:false});setCombustionHeld(combustionRun,true);stepRun(combustionRun,{x:0,y:-1},.25,{consumeCombustion:()=>true});
+const burstRun=createRun(emptyMap(),flight,{fuel:{propellant:{molecule:'hydrogen',amount:40}},predators:false});assert.ok(beginBurst(burstRun,()=>true));stepRun(burstRun,{x:0,y:-1},.25);
+assert.ok(normalRun.player.speed<combustionRun.player.speed&&combustionRun.player.speed<burstRun.player.speed,'Canonical speed orders normal flight < COMBUSTION DRIVE < H2 BURST');
+assert.ok(burstRun.player.speed<=configuredMax,'Configured HUD scale covers the fastest representative propulsion state');
 
 // Every registered propellant is a real runtime input. A full tank provides the
 // declared BURST count, consumes molecule-count units, and changes movement.
@@ -42,4 +52,4 @@ assert.deepEqual(resources.tankCatalog('oxidizer').map(record=>record.id),['oxyg
 assert.deepEqual(resources.tankCatalog('coolant').map(record=>record.id).sort(),['water','nitrogen','carbon-dioxide','ammonia'].sort());
 assert.equal(resources.maxCraftable('water'),0);resources.state.elements.H=4;resources.state.elements.O=2;assert.equal(resources.maxCraftable('water'),2);assert.equal(resources.tankFillPlan('coolant','water').maxAdd,2,'Active coolant roles receive physical inventory');
 
-console.log('Generic propulsion passed: registered propellants, fuels and coolants are active, and integer packets preserve remainders.');
+console.log('Generic propulsion passed: configured speed scale, steering response, propulsion ordering, registered roles, and integer packet remainders.');

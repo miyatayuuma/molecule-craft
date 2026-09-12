@@ -21,6 +21,13 @@ jobs:
         run: |
           node tests/source-contracts.test.mjs
           node tests/persistence-boundary-source-contract.test.mjs
+      - name: Propulsion HUD regressions
+        run: |
+          node tests/loadout-preview.test.mjs
+          node tests/loadout-card-order.test.mjs
+          node tests/generic-propulsion.test.mjs
+          node tests/coolant-feedback.test.mjs
+          node tests/propulsion-hud-source.test.mjs
       - name: Generated PWA freshness
         run: node scripts/build-precache.mjs --check
       - name: PWA integrity
