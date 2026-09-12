@@ -22,9 +22,11 @@ assert.match(ui,/speedMeter\.id='veil-speed-meter'/);
 assert.match(ui,/speedMeter\.setAttribute\('role','meter'\)/);
 assert.match(ui,/aria-valuemax/);assert.match(ui,/aria-valuenow/);
 assert.match(ui,/q\('veil-heat'\)\.textContent='SPEED'/,'Primary quantitative bar is explicitly labeled SPEED');
+assert.doesNotMatch(ui,/run\.heat\/THERMAL\.overheatThreshold/,'Exact heat no longer drives a primary quantitative bar');
 assert.match(ui,/thermalIndicators=\{normal:'',cooling:'❄ COOLING',hot:'♨ HOT',overheat:'♨ OVERHEAT'\}/,'Thermal states include non-color indicators');
 assert.match(ui,/thermal\.dataset\.state=thermalState/);
 assert.match(ui,/thermalState==='cooling'.*thermalState==='hot'/,'Cooling and hot states tint the HUD box background');
+assert.match(ui,/thermalState==='overheat'\?thermalIndicators\.overheat/,'Overheat warning takes precedence over transient coolant notices');
 assert.match(ui,/thermalNotice='❄ EMPTY'/,'Coolant depletion gets momentary in-HUD feedback from the existing event');
 assert.match(ui,/event\.type==='coolantStart'/);assert.match(ui,/event\.type==='coolantEmpty'/);
 assert.doesNotMatch(ui,/q\('veil-coolant-level'\)/,'Coolant amount is no longer a live primary HUD meter');
@@ -33,8 +35,13 @@ assert.doesNotMatch(gameShell,/#veil-thermal-state/,'Thermal state indicator rem
 
 assert.match(index,/id="veil-combustion-remaining">HOLD DRIVE<\/small>/,'DRIVE hold affordance remains in production DOM');
 assert.match(index,/data-role="fuel"/);assert.match(index,/data-role="oxidizer"/);
+assert.match(ui,/for\(const role of \['fuel','oxidizer'\]\)/,'FIELD keeps updating both fuel and oxidizer meters');
+assert.match(ui,/node\.setAttribute\('aria-valuenow',String\(slot\.amount\)\)/,'Fuel/O2 meters keep current-value accessibility semantics');
+assert.match(ui,/combustionButton\.setAttribute\('aria-disabled',String\(!combustion\|\|run\.overheated/,'Overheat still disables DRIVE');
 assert.match(ui,/combustionButton\.addEventListener\('pointerdown',startCombustion\)/,'Pointer-hold DRIVE binding is unchanged');
 assert.match(ui,/q\('veil-boost'\)\.addEventListener\('pointerdown'/,'BURST binding remains independent');
+assert.match(ui,/q\('veil-resume'\).*root\.focus\(\)/,'Existing FIELD resume focus contract remains intact');
+assert.doesNotMatch(gameShell,/#veil-combustion-remaining/,'HOLD DRIVE is not pruned as generic chrome');
 
 // No new layout footprint is introduced: the existing responsive drive column
 // widths remain the bounding geometry, while one coolant meter is removed.
