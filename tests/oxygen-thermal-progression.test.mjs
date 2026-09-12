@@ -20,7 +20,7 @@ function deterministicMap(){
   return map;
 }
 
-function simulateRoute(routeId,{combustion=false,coolant=0,burstY=null,continueDeep=false}={}){
+function simulateRoute(routeId,{combustion=false,coolant=0,burstY=null,continueDeep=false,recoveryCoastSeconds=0}={}){
   const authored=route(routeId);assert.ok(authored,`Missing ${routeId}`);
   const fuel={};
   if(combustion){fuel.fuel={molecule:'methane',amount:18};fuel.oxidizer={molecule:'oxygen',amount:36};}
@@ -31,12 +31,19 @@ function simulateRoute(routeId,{combustion=false,coolant=0,burstY=null,continueD
   if(combustion)setCombustionHeld(run,true);
   const path=authored.knots.map(([x,y])=>({x,y}));
   if(continueDeep)path.push({x:250,y:-11200});
-  let waypoint=1,burstUsed=false,frames=0,coolantSpent=0,combustionPackets=0,maxHeat=run.heat,maxEnvironmentHeat=0,frontHalfMaxHeat=0;
+  let waypoint=1,burstUsed=false,frames=0,coolantSpent=0,combustionPackets=0,maxHeat=run.heat,maxEnvironmentHeat=0,frontHalfMaxHeat=0,recoveryCoast=0,recoveryCoastStarted=false;
   const strain=[],overheats=[],coolantStarts=[];
   while(frames++<60*32){
     const target=path[waypoint],dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy);
     if(distance<65&&waypoint<path.length-1){waypoint++;continue;}
     if(burstY!==null&&!burstUsed&&run.player.y<=burstY){assert.ok(beginBurst(run,()=>true),'BURST should start at the authored chokepoint');burstUsed=true;}
+    if(combustion&&recoveryCoastSeconds>0){
+      if(!recoveryCoastStarted&&run.player.y<=-9660){recoveryCoastStarted=true;setCombustionHeld(run,false);}
+      if(recoveryCoastStarted&&recoveryCoast<recoveryCoastSeconds){
+        recoveryCoast+=DT;
+        if(recoveryCoast>=recoveryCoastSeconds)setCombustionHeld(run,true);
+      }
+    }
     const input=normalized(target.x-run.player.x,target.y-run.player.y);
     const envBefore=environmentAt(run.player,run.time);maxEnvironmentHeat=Math.max(maxEnvironmentHeat,envBefore.heat);
     const events=stepRun(run,input,DT,{
@@ -52,7 +59,7 @@ function simulateRoute(routeId,{combustion=false,coolant=0,burstY=null,continueD
     if(Math.hypot(run.player.x-target.x,run.player.y-target.y)<65&&waypoint===path.length-1)break;
   }
   assert.ok(frames<60*32,`${routeId} deterministic traversal must terminate`);
-  return {run,frames,time:run.time,strain,overheats,coolantStarts,coolantSpent,combustionPackets,maxHeat,maxEnvironmentHeat,frontHalfMaxHeat,burstUsed};
+  return {run,frames,time:run.time,strain,overheats,coolantStarts,coolantSpent,combustionPackets,maxHeat,maxEnvironmentHeat,frontHalfMaxHeat,burstUsed,recoveryCoast};
 }
 
 // Thermal geometry is narrow and follows the production Route C centerline.
@@ -106,9 +113,10 @@ assert.ok(cAmbient.maxEnvironmentHeat>10,'Route C has real ambient thermal expos
 assert.equal(cAmbient.strain.length,0);assert.equal(cAmbient.overheats.length,0);assert.equal(cAmbient.run.heat,0);
 assert.ok(cAmbient.run.player.y<-10600,'Route C remains passable without H2O or COMBUSTION');
 
-// Scenario D: Route B stays a DRIVE route. Its authored recovery is thermally
-// quiet and a direct intended traversal stays below the HOT crossing.
-const bDrive=simulateRoute('oxygen-main',{combustion:true});
+// Scenario D: Route B remains a DRIVE route, but its authored recovery is a
+// rational place to coast briefly and use ordinary natural cooling.
+const bDrive=simulateRoute('oxygen-main',{combustion:true,recoveryCoastSeconds:.45});
+assert.ok(bDrive.recoveryCoast>=.45,'Route B traversal should use the authored recovery coast');
 assert.equal(bDrive.strain.length,0,'Route B intended DRIVE must not teach thermal strain');
 assert.equal(bDrive.overheats.length,0);assert.ok(bDrive.run.heat<THERMAL.hotThreshold);
 assert.ok(bDrive.run.heat<cDry.run.heat-20,'Route B heat buildup must be clearly lower than Route C');
@@ -148,6 +156,6 @@ assert.ok(resources.progressionInsightCandidates().includes('water'),'Route C th
 console.log('Oxygen thermal progression passed',JSON.stringify({
   routeCDry:{heat:+cDry.run.heat.toFixed(2),strainY:+cDry.strain[0].y.toFixed(1),time:+cDry.time.toFixed(2),overheats:cDry.overheats.length},
   routeCWater8:{heat:+cWet.run.heat.toFixed(2),waterUsed:cWet.coolantSpent,waterLeft:cWet.run.fuel.coolant.amount,time:+cWet.time.toFixed(2),overheats:cWet.overheats.length},
-  routeB:{heat:+bDrive.run.heat.toFixed(2),time:+bDrive.time.toFixed(2),overheats:bDrive.overheats.length},
+  routeB:{heat:+bDrive.run.heat.toFixed(2),time:+bDrive.time.toFixed(2),recoveryCoast:+bDrive.recoveryCoast.toFixed(2),overheats:bDrive.overheats.length},
   deep:{mergeHeat:+mergeHeat.toFixed(2),deepWarm:+deepWarm.toFixed(2),challengeHeat,frontierHeat:+frontierHeat.toFixed(2)},
 }));
