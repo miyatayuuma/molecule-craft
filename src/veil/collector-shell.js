@@ -1,3 +1,20 @@
+let fieldScreenAnchor=null;
+const fieldScreenAnchorListeners=new Set();
+
+export function publishCollectorShellScreenAnchor(anchor){
+  if(!anchor||![anchor.x,anchor.y,anchor.w,anchor.h].every(Number.isFinite))return false;
+  fieldScreenAnchor={x:anchor.x,y:anchor.y,w:anchor.w,h:anchor.h,scale:Number.isFinite(anchor.scale)?anchor.scale:1};
+  for(const listener of fieldScreenAnchorListeners)listener(fieldScreenAnchor);
+  return true;
+}
+
+export function subscribeCollectorShellScreenAnchor(listener){
+  if(typeof listener!=='function')return ()=>{};
+  fieldScreenAnchorListeners.add(listener);if(fieldScreenAnchor)listener(fieldScreenAnchor);return ()=>fieldScreenAnchorListeners.delete(listener);
+}
+
+export function resetCollectorShellScreenAnchor(){fieldScreenAnchor=null;}
+
 export const TANK_PRESENTATION=Object.freeze({
   propellant:Object.freeze({icon:'↗',color:'#78d5e7'}),
   fuel:Object.freeze({icon:'◆',color:'#f1a36f'}),
@@ -36,7 +53,9 @@ function ensureSprite(){
 if(typeof globalThis.window!=='undefined'&&typeof globalThis.window.Image==='function')ensureSprite();
 
 export function drawCollectorShell(ctx,{x=0,y=0,angle=0,scale=1,bank=0}={}){
-  const options={x,y,angle,scale,bank},image=ensureSprite();
+  const options={x,y,angle,scale,bank},canvas=ctx.canvas,width=canvas?.clientWidth??0,height=canvas?.clientHeight??0;
+  if(canvas?.id==='veil-canvas'&&width>0&&height>0)publishCollectorShellScreenAnchor({x,y,w:width,h:height,scale});
+  const image=ensureSprite();
   if(!image&&spriteState==='loading'){pendingDraws.set(ctx,{ctx,options});return;}
   ctx.save();ctx.translate(x,y);ctx.rotate(angle+Math.PI/2);
   if(image){
