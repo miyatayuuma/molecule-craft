@@ -37,7 +37,7 @@ const rejected=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:
 
 for(const molecule of moleculesForRole('coolant')){
   const profile=performanceFor(molecule,'coolant'),run=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:2},oxidizer:{molecule:'oxygen',amount:4},coolant:{molecule,amount:1}},predators:false});run.heat=THERMAL.coolantStart;setCombustionHeld(run,true);advance(run,1,{consumeCombustion:combustion,consumeCoolant:()=>true});
-  const expected=THERMAL.coolantStart+THERMAL.heatPerSecond-THERMAL.coolantCoolingPerSecond*profile.coolingPower;assert.ok(Math.abs(run.heat-expected)<1e-8,`${molecule} coolingPower drives real heat removal`);assert.equal(run.fuel.coolant.amount,0);
+  const serviceSeconds=Math.min(1,THERMAL.coolantSecondsPerMolecule*profile.durationFactor),expected=THERMAL.coolantStart+THERMAL.heatPerSecond-THERMAL.coolantCoolingPerSecond*profile.coolingPower*serviceSeconds;assert.ok(Math.abs(run.heat-expected)<1e-8,`${molecule} coolingPower and durationFactor drive real heat removal`);assert.equal(run.fuel.coolant.amount,0);
 }
 
 const burst=createRun(emptyMap(),VEIL,{fuel:{propellant:{molecule:'hydrogen',amount:40}},predators:false});assert.ok(beginBurst(burst,()=>true));advance(burst,1);assert.equal(burst.heat,0,'BURST is thermally independent in v1');

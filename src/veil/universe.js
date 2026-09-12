@@ -2,7 +2,7 @@ import {challengeEnvironment} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
-import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenVortexFlowAt } from './oxygen-routes.js';
+import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export const OXYGEN_ENTRY_KNOTS=Object.freeze([
   Object.freeze([170,-8090]),Object.freeze([420,-8300]),Object.freeze([420,-8500]),Object.freeze([120,-8700]),
@@ -93,15 +93,17 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
   map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:100,y:-11980,text:'最深部へ ↑ · 到達したら正常帰還'});
   return map;
 }
-// Strata span the whole world. These are velocities and heat, not key flags.
+// Flow/pressure strata remain global where authored; thermal exposure is now
+// composed from low Oxygen ambience, route-local heat and the Deep handoff.
 function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/fade),0,1);}
 export function environmentAt(p,time=0){
-  const outer=band(p.y,-4100,-3690,105),hot=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
+  const outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
-  const quiet=!!oxygenRestStopAt(p);
+  const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p);
   const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),routePressure=challenge?.pressure??oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
-  const basePressure=routePressure??outer*255+hot*310,baseFlowX=challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
-  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:challenge?null:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,hot*32+oxygen*(1-hot)*(1-coolEddy)*3)*(quiet?.2:1),intensity:hot,eddy:coolEddy,vortex:vortex.intensity};
+  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
+  const oxygenAmbient=oxygen*(1-coolEddy)*3,recovering=quiet||thermal.recovery,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));
+  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:challenge?null:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;
