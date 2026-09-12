@@ -21,6 +21,11 @@ jobs:
         run: |
           node tests/source-contracts.test.mjs
           node tests/persistence-boundary-source-contract.test.mjs
+      - name: CRAFT input recovery
+        run: |
+          node tests/craft-controls-ui.test.mjs
+          node tests/craft-history.test.mjs
+          node tests/craft-input-recovery.test.mjs
       - name: Expedition insights
         run: node tests/expedition-insights.test.mjs
       - name: Insight taxonomy and presentation
