@@ -38,11 +38,12 @@ jobs:
           replace("    const lockComplete=!!anchorLock&&", "    insightPresentation.sync(run);\n    const lockComplete=!!anchorLock&&")
           path.write_text(source)
           PY
-      - name: Presentation regressions
-        run: |
-          node tests/insight-presentation.test.mjs
-          node tests/veil-audio.test.mjs
-          node tests/expedition-insights.test.mjs
+      - name: Insight presentation regression
+        run: node tests/insight-presentation.test.mjs
+      - name: Insight audio regression
+        run: node tests/veil-audio.test.mjs
+      - name: Insight lifecycle regression
+        run: node tests/expedition-insights.test.mjs
       - name: Rebuild verified offline release
         run: node scripts/build-precache.mjs
       - name: Commit integration and generated release
