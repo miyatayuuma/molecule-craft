@@ -8,7 +8,7 @@ import {createFlight,createRun,moveFlight,stepRun} from '../src/veil/engine.js';
 import {createUniverse,environmentAt,OXYGEN_ENTRY_KNOTS} from '../src/veil/universe.js';
 import {DRIVES,flightConfig} from '../src/veil/growth.js';
 import {
-  OXYGEN_HARVEST,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,
+  DEEP_OXYGEN_ROUTES,OXYGEN_HARVEST,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,
   oxygenPressureAt,oxygenRouteAt,oxygenRouteCenterAtY,oxygenVortexFlowAt,
 } from '../src/veil/oxygen-routes.js';
 
@@ -35,6 +35,8 @@ test('FIELD map exporter is deterministic and required layers are present',async
   assert.match(first,/id="h-boundary-current" data-gate="h-boundary" x="300" y="-3940" width="460" height="280"/);
   assert.match(first,/id="h-boundary-gate-marker"[^>]*cx="530" cy="-3800"/);
   assert.match(first,/id="cho-destination" data-radius="95" cx="280" cy="-12470" r="95"/);
+  for(const route of DEEP_OXYGEN_ROUTES)assert.match(first,new RegExp(`id="route-${route.id}"`),`${route.id} current-map centerline`);
+  assert.doesNotMatch(first,/id="route-oxygen-depth"/,'legacy Deep route must not remain as a fourth field route');
   const committed=await readFile(output,'utf8');
   assert.equal(committed,first);
 });
@@ -165,7 +167,7 @@ test('Oxygen Network route pressure stays traversable and propulsion keeps a mat
   assert.ok(mainDrive<mainNormal*.6,`COMBUSTION DRIVE must materially improve sustained traversal (${mainDrive.toFixed(2)}s vs ${mainNormal.toFixed(2)}s)`);
 });
 
-test('Oxygen main recovery moves the existing harvest pocket without changing its amount or value',()=>{
+test('Oxygen main recovery keeps its harvest while Deep routes replace the legacy single path',()=>{
   const universe=createUniverse(1,{H:0,C:0,O:0}),rest=universe.dust.filter(dust=>dust.route==='oxygen-rest-harvest');
   assert.equal(rest.length,OXYGEN_HARVEST.eddyAtoms);
   assert.equal(rest.length,180);
@@ -173,12 +175,16 @@ test('Oxygen main recovery moves the existing harvest pocket without changing it
   assert.ok(rest.every(dust=>Math.hypot(dust.x-300,dust.y+9750)<=56),'rest harvest follows the new recovery center');
   assert.ok(rest.every(dust=>Math.hypot(dust.x-120,dust.y+9700)>100),'rest harvest no longer uses the old hardcoded center');
   assert.deepEqual(OXYGEN_REWARD,{x:120,y:-10720,radius:95},'network merge reward stays unchanged');
-  const depth=universe.routes.find(route=>route.id==='oxygen-depth'),distanceToDepth=([x,y])=>Math.min(...depth.points.map(point=>Math.hypot(point.x-x,point.y-y)));
-  assert.ok(distanceToDepth([120,-10670])<20,'Deep Oxygen start stays at the network merge');
-  assert.ok(distanceToDepth([100,-11830])<20,'Deep Oxygen exit stays unchanged');
+  assert.equal(universe.routes.some(route=>route.id==='oxygen-depth'),false,'legacy oxygen-depth route is gone');
+  for(const authored of DEEP_OXYGEN_ROUTES){
+    const runtime=universe.routes.find(route=>route.id===authored.id);assert.ok(runtime,`${authored.id} is generated`);
+    const distanceToRoute=([x,y])=>Math.min(...runtime.points.map(point=>Math.hypot(point.x-x,point.y-y)));
+    assert.ok(distanceToRoute([120,-10800])<45,`${authored.id} starts at Deep decision`);
+    assert.ok(distanceToRoute([100,-11830])<45,`${authored.id} converges at Frontier approach`);
+  }
 });
 
-test('FIELD map renders curved route widths, the single BURST gate and DRIVE recovery from production data',()=>{
+test('FIELD map renders existing network widths and all Deep production centerlines',()=>{
   const svg=buildFieldMapSvg();
   assert.match(svg,/data-route-width="oxygen-shortcut" d="M 120 -8700 L -320 -9000 L -320 -10350 L 120 -10670" stroke-width="230"/);
   assert.match(svg,/data-route-width="oxygen-main" d="M 120 -8700 L 300 -9100 L 350 -9600 L 260 -10150 L 120 -10670" stroke-width="230"/);
@@ -186,6 +192,7 @@ test('FIELD map renders curved route widths, the single BURST gate and DRIVE rec
   assert.match(svg,/data-pressure-gate="oxygen-shortcut:0" data-pressure="600" x="-435" y="-9747" width="230" height="94"/);
   assert.doesNotMatch(svg,/data-pressure-gate="oxygen-side:/);
   assert.match(svg,/data-rest-stop="oxygen-main" x="185" y="-9840" width="230" height="180"/);
+  for(const route of DEEP_OXYGEN_ROUTES)assert.match(svg,new RegExp(`id="route-${route.id}"`),route.id);
 });
 
 test('DUST EATER and RETURN remain dynamic/global instead of authored points',()=>{

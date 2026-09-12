@@ -2,7 +2,7 @@ import {challengeEnvironment} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
-import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt } from './oxygen-routes.js';
+import { DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export const OXYGEN_ENTRY_KNOTS=Object.freeze([
   Object.freeze([170,-8090]),Object.freeze([420,-8300]),Object.freeze([420,-8500]),Object.freeze([120,-8700]),
@@ -17,7 +17,7 @@ const ROUTES=[
   ['oxygen-entry','冷たい縁',OXYGEN_ENTRY_ROUTE_KNOTS,'O'],
   [OXYGEN_VORTEX.id,OXYGEN_VORTEX.label,OXYGEN_VORTEX.knots,'O'],
   ...OXYGEN_ROUTES.map(route=>[route.id,route.label,route.knots,'O']),
-  ['oxygen-depth','熱の奥へ',[[120,-10670],[250,-11200],[100,-11830]],'O'],
+  ...DEEP_OXYGEN_ROUTES.map(route=>[route.id,route.label,route.knots,'O']),
   ['horizon','CHOの最深部へ',[[100,-11830],[0,-12200],[CHO_DESTINATION.x,CHO_DESTINATION.y]],'O'],
 ];
 const OPTIONAL_ROUTES=new Set(['carbon-sweep',OXYGEN_VORTEX.id,'oxygen-side']);
@@ -32,7 +32,8 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
   for(const d of (map.depletion.H?createMap(seed):map).dust)if(d.shoulder)shoulders.set(key(d),[(rng()-.5)*13,(rng()-.5)*16]);
   for(const d of map.dust){d.element='H';if(d.shoulder){const noise=shoulders.get(key(d));d.x+=noise[0];d.y+=noise[1];}}
   for(const [id,label,knots,element]of ROUTES){
-    const authored=OXYGEN_ROUTES.find(route=>route.id===id),deep=!!authored||id==='oxygen-depth',frontier=id==='horizon',profile=authored?{spacing:20,lanes:authored.lanes,value:authored.value}:frontier?GROWTH.density.frontier:deep?GROWTH.density.oxygenDeep:element==='O'?GROWTH.density.oxygenEdge:GROWTH.density.carbon;
+    const networkRoute=OXYGEN_ROUTES.find(route=>route.id===id),deepRoute=DEEP_OXYGEN_ROUTES.find(route=>route.id===id),authored=networkRoute??deepRoute,deep=!!deepRoute,frontier=id==='horizon';
+    const profile=authored?{spacing:authored.spacing??20,lanes:authored.lanes,value:authored.value}:frontier?GROWTH.density.frontier:element==='O'?GROWTH.density.oxygenEdge:GROWTH.density.carbon;
     const geometry=id===OXYGEN_VORTEX.id?OXYGEN_VORTEX_ROUTE:null,points=geometry?.points??sampleLine(knots,profile.spacing);
     // Field routes keep their gameplay element separately so the generic route renderer
     // only leaves a dark structural trace underneath the dedicated moving streamlines.
@@ -42,7 +43,7 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
       const el=element==='C'?(i%6===0?'C':'H'):element==='O'?(i%5===0?'H':i%17===0?'C':'O'):'H';
       const keep=keepDepletedSegment(routeDepletion,seed^0x29d41,id,i,{optional:route.optional})&&keepDepletedSegment(map.depletion[el]??0,seed^0x7f4a7c15,`${id}:${el}`,i);
       for(let lane=0;lane<profile.lanes;lane++){
-        const jitter=(rng()-.5)*8,flow=!authored&&(deep||frontier)?{speed:165+rng()*60,span:210,phase:rng()}:null;
+        const jitter=(rng()-.5)*8,flow=(deep||frontier)?{speed:165+rng()*60,span:210,phase:rng()}:null;
         if(!keep||lane>=lanes)continue;
         const spacing=id==='oxygen-side'&&p.y<-9000&&p.y>-10400?harvestLayout.sideSpacing:27;
         const offset=(lane-(lanes-1)/2)*spacing+jitter,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
@@ -89,12 +90,13 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
     const labelY=-8890,labelX=oxygenRouteCenterAtY(route,labelY)??route.x;map.labels.push({x:labelX,y:labelY,text:route.label});
     for(const stop of route.restStops??[])map.labels.push({x:stop.x??oxygenRouteCenterAtY(route,stop.y)??route.x,y:stop.y,text:'静かな渦 · Oを集めながら休む'});
   }
+  for(const route of DEEP_OXYGEN_ROUTES){const labelY=-10950,labelX=oxygenRouteCenterAtY(route,labelY)??route.x;map.labels.push({x:labelX,y:labelY,text:route.label});}
   map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · Oの集積'});
   map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:100,y:-11980,text:'最深部へ ↑ · 到達したら正常帰還'});
   return map;
 }
 // Flow/pressure strata remain global where authored; thermal exposure is now
-// composed from low Oxygen ambience, route-local heat and the Deep handoff.
+// composed from low Oxygen ambience and route-local thermal fields.
 function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/fade),0,1);}
 export function environmentAt(p,time=0){
   const outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
@@ -113,7 +115,7 @@ export function animateUniverse(run){
   }
   for(const cluster of map.clusters){
     if(time>=cluster.ready&&Math.hypot(p.x-cluster.x,p.y-cluster.y)<cluster.radius+(p.boost>0||p.combustion?22:0)){
-      cluster.ready=time+GROWTH.clusterRespawn;cluster.burstAt=time;for(const d of cluster.particles)d.ready=0;run.events.push({type:'cluster',x:cluster.x,y:cluster.y});
+      cluster.ready=run.time+GROWTH.clusterRespawn;cluster.burstAt=run.time;for(const d of cluster.particles)d.ready=0;run.events.push({type:'cluster',x:cluster.x,y:cluster.y});
     }
     const age=time-cluster.burstAt;if(age<0||age>GROWTH.clusterRespawn)continue;
     for(const d of cluster.particles){const radius=14+GROWTH.clusterSpread*d.spread*(1-Math.exp(-age*2.4));d.x=cluster.x+Math.cos(d.angle+Math.min(age,5)*.08)*radius;d.y=cluster.y+Math.sin(d.angle+Math.min(age,5)*.08)*radius;}
