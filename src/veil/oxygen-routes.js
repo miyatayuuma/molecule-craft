@@ -8,6 +8,7 @@ export const OXYGEN_REWARD=Object.freeze({x:120,y:-10720,radius:95});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smoothstep=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const freezePoints=points=>Object.freeze(points.map(point=>Object.freeze(point)));
+const freezeStops=stops=>Object.freeze(stops.map(([y,value])=>Object.freeze({y,value})));
 const vortexCenter=Object.freeze({x:-500,y:-8380});
 const vortexDirection=-1;
 export const OXYGEN_VORTEX_ROUTE=createVortexFlybyRoute({
@@ -57,7 +58,7 @@ export const OXYGEN_ROUTES=Object.freeze([
     knots:[[120,-8700],[-320,-9000],[-320,-10350],[120,-10670]],
     gates:[{y:-9700,depth:94,pressure:600}],pressure:0,lanes:1,value:2},
   {id:'oxygen-side',label:'低圧の支流',color:'#b4d99c',x:850,width:230,
-    summary:'広い低圧帯でOを多く拾う。thermal差別化は後続調整で加える。',
+    summary:'広い低圧帯でOを多く拾う支流。',
     knots:[[120,-8700],[780,-9000],[850,-10350],[120,-10670]],
     gates:[],pressure:0,lanes:4,value:3},
   {id:'oxygen-main',label:'持続流の本道',color:'#f0b28f',x:120,width:230,
@@ -65,6 +66,31 @@ export const OXYGEN_ROUTES=Object.freeze([
     knots:[[120,-8700],[300,-9100],[350,-9600],[260,-10150],[120,-10670]],
     gates:[],restStops:[{x:300,y:-9750,depth:180}],pressure:370,lanes:2,value:2},
 ]);
+// Thermal values are environmentAt().heat game units, not player heat. Route C
+// owns the network-local field; Deep Oxygen is a shared handoff field and fades
+// before Frontier. The merge recovery remains deliberately cooler between them.
+export const OXYGEN_THERMAL=Object.freeze({
+  routeId:'oxygen-side',coreRadius:150,fadeRadius:260,
+  heatStops:freezeStops([
+    [-8870,1],[-9050,2],[-9200,4],[-9700,18],[-9800,28],[-10050,40],
+    [-10250,48],[-10480,48],[-10510,32],[-10540,8],[-10560,0],[-10670,0],
+  ]),
+  mergeRecovery:Object.freeze({x:120,y:-10800,radius:330,top:-10640,bottom:-10900}),
+  deepHeatStops:freezeStops([
+    [-10900,0],[-11000,3],[-11200,16],[-11320,24],[-11500,30],[-11650,30],
+    [-11780,8],[-11830,0],
+  ]),
+});
+function profileAtY(stops,y){
+  if(!Number.isFinite(y)||!stops.length||y>stops[0].y||y<stops.at(-1).y)return 0;
+  for(let i=0;i<stops.length-1;i++){
+    const a=stops[i],b=stops[i+1];
+    if(y>a.y||y<b.y)continue;
+    const t=smoothstep((a.y-y)/(a.y-b.y));
+    return a.value+(b.value-a.value)*t;
+  }
+  return stops.at(-1).value;
+}
 export function oxygenRouteCenterAtY(route,y){
   if(!Number.isFinite(y)||!Array.isArray(route?.knots))return null;
   for(let i=0;i<route.knots.length-1;i++){
@@ -75,6 +101,15 @@ export function oxygenRouteCenterAtY(route,y){
     return x0+(x1-x0)*t;
   }
   return null;
+}
+export function oxygenThermalAt(p){
+  const route=OXYGEN_ROUTES.find(candidate=>candidate.id===OXYGEN_THERMAL.routeId),centerX=oxygenRouteCenterAtY(route,p.y);
+  const distance=centerX===null?Infinity:Math.abs(p.x-centerX);
+  const lateral=distance<=OXYGEN_THERMAL.coreRadius?1:distance>=OXYGEN_THERMAL.fadeRadius?0:1-smoothstep((distance-OXYGEN_THERMAL.coreRadius)/(OXYGEN_THERMAL.fadeRadius-OXYGEN_THERMAL.coreRadius));
+  const routeHeat=profileAtY(OXYGEN_THERMAL.heatStops,p.y)*lateral,deepHeat=profileAtY(OXYGEN_THERMAL.deepHeatStops,p.y);
+  const recovery=Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.y<=OXYGEN_THERMAL.mergeRecovery.top&&p.y>=OXYGEN_THERMAL.mergeRecovery.bottom&&Math.hypot(p.x-OXYGEN_THERMAL.mergeRecovery.x,p.y-OXYGEN_THERMAL.mergeRecovery.y)<=OXYGEN_THERMAL.mergeRecovery.radius;
+  const heat=Math.max(routeHeat,deepHeat);
+  return {heat,routeHeat,deepHeat,recovery,intensity:clamp(heat/48,0,1)};
 }
 export function oxygenRouteAt(p){
   if(p.y>-8870||p.y<-10480)return null;
