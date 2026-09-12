@@ -3,7 +3,8 @@ import {bindHoldAction} from './hold-action.js?v=30';
 function installCraftActionBar(document){
   const actions=document.querySelector('.viewer-actions'),undo=document.querySelector('#undo-cleanup'),clear=document.querySelector('#clear-all');
   if(undo){
-    undo.className='icon-button';undo.hidden=false;undo.disabled=true;undo.textContent='↶';undo.setAttribute('aria-label','元に戻す');undo.setAttribute('title','元に戻す');
+    undo.className='craft-history-undo';undo.hidden=false;undo.disabled=true;undo.textContent='← 戻す';undo.setAttribute('aria-label','直前のCRAFT操作を元に戻す');undo.setAttribute('title','直前のCRAFT操作を元に戻す');
+    Object.assign(undo.style,{minWidth:'72px',minHeight:'44px',padding:'8px 10px',marginRight:'12px',background:'#14283be8',borderColor:'#365266',color:'#d8e8f2',fontSize:'13px',fontWeight:'650'});
     if(actions&&clear)actions.insertBefore(undo,clear);
   }
   if(clear){
@@ -11,7 +12,7 @@ function installCraftActionBar(document){
     clear.innerHTML='<svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 8h8l-.7 11H8.7L8 8z"/><path d="M6.5 7h11M10 7l1-2h2l1 2M10.5 10.5v5M13.5 10.5v5"/></svg>';
   }
   for(const text of document.querySelectorAll?.('#help-dialog .help-steps p')??[]){
-    if(text.textContent.includes('片付けるは1秒長押し'))text.textContent='ゴミ箱は1秒長押しで全片付け。↶で直前のCRAFT操作を1操作ずつ元に戻せます。図鑑の発見は残ります。';
+    if(text.textContent.includes('片付けるは1秒長押し'))text.textContent='ゴミ箱は1秒長押しで全片付け。「← 戻す」で直前のCRAFT操作を1操作ずつ元に戻せます。図鑑の発見は残ります。';
   }
 }
 

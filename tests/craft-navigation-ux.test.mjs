@@ -4,43 +4,45 @@ import {readFile} from 'node:fs/promises';
 import {createGameShell} from '../src/game-shell.js';
 
 const root=new URL('../',import.meta.url);
-const [craftPanel,pubchemReference,supply]=await Promise.all([
+const [craftPanel,pubchemReference,supply,craftControls]=await Promise.all([
   readFile(new URL('src/craft-panel.js',root),'utf8'),
   readFile(new URL('src/pubchem-reference.js',root),'utf8'),
   readFile(new URL('src/veil/supply.js',root),'utf8'),
+  readFile(new URL('src/craft-controls.js',root),'utf8'),
 ]);
 
 function node(id=''){
   return{id,className:'',textContent:'',style:{},attributes:new Map(),listeners:new Map(),children:[],
     setAttribute(key,value){this.attributes.set(key,String(value));},removeAttribute(key){this.attributes.delete(key);},getAttribute(key){return this.attributes.get(key)??null;},
-    addEventListener(type,handler){this.listeners.set(type,handler);},querySelector(selector){if(selector==='#collector-access-preview'&&this.preview)return this.preview;return null;},
-    querySelectorAll(){return[];},replaceChildren(...children){this.children=children;},append(...children){this.children.push(...children);},
+    addEventListener(type,handler){this.listeners.set(type,handler);},querySelector(){return null;},querySelectorAll(){return[];},replaceChildren(...children){this.children=children;},append(...children){this.children.push(...children);},
     classList:{add(){},remove(){}},matches(){return false;},closest(){return null;}};
 }
 
-test('CRAFT back chrome preserves navigation and separates the PubChem information link',()=>{
-  const back=node('open-supply');back.preview={};const originalNavigation=()=>{};back.listeners.set('click',originalNavigation);
+test('CRAFT collector access remains the exploration-machine control',()=>{
+  const access=node('open-supply');access.className='collector-access';access.textContent='';const originalNavigation=()=>{};access.listeners.set('click',originalNavigation);
   const document={
-    defaultView:{},
-    getElementById(id){return id==='open-supply'?back:null;},
+    getElementById(id){return id==='open-supply'?access:null;},
     querySelector(){return null;},
     querySelectorAll(){return[];},
-    createElement(){return node();},
   };
   const previous=globalThis.document;globalThis.document=document;
   try{createGameShell();}finally{globalThis.document=previous;}
 
-  assert.equal(back.listeners.get('click'),originalNavigation,'Navigation binding stays on the same button node');
-  assert.ok(back.className.split(/\s+/).includes('craft-navigation-back'));
-  assert.ok(back.className.split(/\s+/).includes('collector-access'),'Existing navigation style primitive is reused');
-  assert.deepEqual(back.children.map(child=>child.textContent),['←','戻る']);
-  assert.equal(back.children[0].getAttribute('aria-hidden'),'true');
-  assert.equal(back.getAttribute('aria-label'),'探索機へ戻る');
-  assert.equal(back.style.marginLeft,'0');assert.equal(back.style.marginRight,'auto');
-  assert.equal(back.style.minHeight,'44px');
-  assert.doesNotMatch(back.children.map(child=>child.textContent).join(''),/削除|片付け|ゴミ|trash/i);
-  assert.match(supply,/q\('open-supply'\)\.addEventListener\('click'/,'Existing LOADOUT opening action remains the navigation destination');
+  assert.equal(access.listeners.get('click'),originalNavigation,'Existing exploration binding stays on the collector-access node');
+  assert.equal(access.className,'collector-access','Game-shell chrome must not repurpose the exploration-machine button');
+  assert.equal(access.textContent,'');
+  assert.match(supply,/accessCanvas\.id='collector-access-preview'/,'The exploration-machine preview remains owned by supply UI');
+  assert.match(supply,/access\.append\(accessCanvas\)/,'The machine icon remains mounted in the access button');
+  assert.match(supply,/access\.setAttribute\('aria-label','探索機を開く'\)/,'The control keeps exploration semantics');
+});
 
+test('CRAFT history undo is visibly distinct from destructive cleanup',()=>{
+  assert.match(craftControls,/undo\.textContent='← 戻す'/,'Undo uses a clear leftward affordance plus a short label');
+  assert.match(craftControls,/直前のCRAFT操作を元に戻す/,'Accessible semantics remain undo rather than navigation');
+  assert.match(craftControls,/marginRight:'12px'/,'Undo is spatially separated from the destructive clear control');
+  assert.match(craftControls,/clear\.className='hold-clear icon-button'/,'Clear remains the destructive cleanup control');
+  assert.match(craftControls,/document\.querySelector\('#undo-cleanup'\)\?\.addEventListener\('click',onUndo\)/,'Undo behavior is unchanged');
+  assert.doesNotMatch(craftControls,/undo\.textContent='↶'/,'The old ambiguous curved-arrow presentation is removed');
 });
 
 test('PubChem stays with molecule identity and remains an explicit external link',()=>{
