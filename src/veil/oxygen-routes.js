@@ -66,9 +66,27 @@ export const OXYGEN_ROUTES=Object.freeze([
     knots:[[120,-8700],[300,-9100],[350,-9600],[260,-10150],[120,-10670]],
     gates:[],restStops:[{x:300,y:-9750,depth:180}],pressure:370,lanes:2,value:2},
 ]);
+
+// Deep Oxygen remains physically open: these values describe authored route
+// advantages, not capability gates. A coarser provisional dust spacing keeps the
+// three-route expansion near the former single-route economy until Task 6.
+export const DEEP_OXYGEN_ROUTES=Object.freeze([
+  {id:'oxygen-deep-safe',label:'Deep Safe Long',color:'#9bbfd1',x:-650,width:260,classification:'G0 / G1',
+    summary:'長い安全側baseline。低圧・低熱で通常推進と自然冷却だけでも安定通過できる。',
+    knots:[[120,-10800],[-650,-11000],[-720,-11450],[100,-11830]],pressure:18,spacing:40,lanes:2,value:2},
+  {id:'oxygen-deep-skill',label:'Deep Skill Fast',color:'#a8d8f0',x:100,width:180,classification:'G2',
+    summary:'最短のprecision route。中央challengeは通常推進でもライン取りで迂回でき、BURSTなら直進しやすい。',
+    knots:[[120,-10800],[100,-11200],[100,-11830]],pressure:34,spacing:40,lanes:2,value:2},
+  {id:'oxygen-deep-thermal',label:'Deep Thermal',color:'#d69678',x:760,width:260,classification:'G1 → partial G3 candidate',
+    summary:'低圧の高熱route。H₂Oは連続DRIVEを明確に伸ばすが、通常移動や休止による通過を妨げない。',
+    knots:[[120,-10800],[760,-11050],[760,-11500],[100,-11830]],pressure:16,spacing:40,lanes:2,value:2},
+]);
+export const DEEP_OXYGEN_FRONTIER_RECOVERY=Object.freeze({x:100,y:-11700,rx:250,ry:130});
+const DEEP_OFF_ROUTE_PRESSURE=120;
+
 // Thermal values are environmentAt().heat game units, not player heat. Route C
-// owns the network-local field; Deep Oxygen is a shared handoff field and fades
-// before Frontier. The merge recovery remains deliberately cooler between them.
+// owns the network-local field. Deep heat is route-local and converges into a
+// naturally cool Frontier recovery zone rather than a scripted heat reset.
 export const OXYGEN_THERMAL=Object.freeze({
   routeId:'oxygen-side',coreRadius:150,fadeRadius:260,
   heatStops:freezeStops([
@@ -76,10 +94,17 @@ export const OXYGEN_THERMAL=Object.freeze({
     [-10480,48],[-10510,32],[-10540,8],[-10560,0],[-10670,0],
   ]),
   mergeRecovery:Object.freeze({x:120,y:-10800,radius:330,top:-10640,bottom:-10900}),
-  deepHeatStops:freezeStops([
-    [-10900,0],[-11000,3],[-11200,16],[-11320,24],[-11500,30],[-11650,30],
-    [-11780,8],[-11830,0],
-  ]),
+  deepProfiles:Object.freeze({
+    'oxygen-deep-safe':Object.freeze({coreRadius:145,fadeRadius:255,heatStops:freezeStops([
+      [-10900,0],[-11000,1],[-11200,3],[-11450,5],[-11550,5],[-11620,0],[-11830,0],
+    ])}),
+    'oxygen-deep-skill':Object.freeze({coreRadius:100,fadeRadius:190,heatStops:freezeStops([
+      [-10900,0],[-11000,3],[-11200,14],[-11320,18],[-11500,18],[-11620,0],[-11830,0],
+    ])}),
+    'oxygen-deep-thermal':Object.freeze({coreRadius:165,fadeRadius:300,heatStops:freezeStops([
+      [-10900,0],[-11000,5],[-11150,18],[-11300,36],[-11450,48],[-11550,48],[-11620,0],[-11830,0],
+    ])}),
+  }),
 });
 function profileAtY(stops,y){
   if(!Number.isFinite(y)||!stops.length||y>stops[0].y||y<stops.at(-1).y)return 0;
@@ -102,14 +127,54 @@ export function oxygenRouteCenterAtY(route,y){
   }
   return null;
 }
+function routeLateral(route,p,coreRadius,fadeRadius){
+  const centerX=oxygenRouteCenterAtY(route,p.y),distance=centerX===null?Infinity:Math.abs(p.x-centerX);
+  if(distance<=coreRadius)return 1;
+  if(distance>=fadeRadius)return 0;
+  return 1-smoothstep((distance-coreRadius)/(fadeRadius-coreRadius));
+}
+function mergeRecoveryAt(p){
+  const recovery=OXYGEN_THERMAL.mergeRecovery;
+  return Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.y<=recovery.top&&p.y>=recovery.bottom&&Math.hypot(p.x-recovery.x,p.y-recovery.y)<=recovery.radius;
+}
+export function deepOxygenFrontierRecoveryAt(p){
+  const recovery=DEEP_OXYGEN_FRONTIER_RECOVERY;
+  if(!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return false;
+  const dx=(p.x-recovery.x)/recovery.rx,dy=(p.y-recovery.y)/recovery.ry;
+  return dx*dx+dy*dy<=1;
+}
+export function deepOxygenRouteAt(p){
+  if(!Number.isFinite(p?.x)||!Number.isFinite(p?.y)||p.y>-10800||p.y<-11830)return null;
+  let best=null,bestDistance=Infinity;
+  for(const route of DEEP_OXYGEN_ROUTES){
+    const centerX=oxygenRouteCenterAtY(route,p.y);
+    if(centerX===null)continue;
+    const distance=Math.abs(p.x-centerX);
+    if(distance<=route.width/2&&distance<bestDistance){best=route;bestDistance=distance;}
+  }
+  return best;
+}
+export function deepOxygenPressureAt(p){
+  if(!Number.isFinite(p?.y)||p.y>-10800||p.y<-11830)return null;
+  if(mergeRecoveryAt(p)||deepOxygenFrontierRecoveryAt(p))return 0;
+  return deepOxygenRouteAt(p)?.pressure??DEEP_OFF_ROUTE_PRESSURE;
+}
 export function oxygenThermalAt(p){
-  const route=OXYGEN_ROUTES.find(candidate=>candidate.id===OXYGEN_THERMAL.routeId),centerX=oxygenRouteCenterAtY(route,p.y);
-  const distance=centerX===null?Infinity:Math.abs(p.x-centerX);
-  const lateral=distance<=OXYGEN_THERMAL.coreRadius?1:distance>=OXYGEN_THERMAL.fadeRadius?0:1-smoothstep((distance-OXYGEN_THERMAL.coreRadius)/(OXYGEN_THERMAL.fadeRadius-OXYGEN_THERMAL.coreRadius));
-  const routeHeat=profileAtY(OXYGEN_THERMAL.heatStops,p.y)*lateral,deepHeat=profileAtY(OXYGEN_THERMAL.deepHeatStops,p.y);
-  const recovery=Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.y<=OXYGEN_THERMAL.mergeRecovery.top&&p.y>=OXYGEN_THERMAL.mergeRecovery.bottom&&Math.hypot(p.x-OXYGEN_THERMAL.mergeRecovery.x,p.y-OXYGEN_THERMAL.mergeRecovery.y)<=OXYGEN_THERMAL.mergeRecovery.radius;
-  const heat=Math.max(routeHeat,deepHeat);
-  return {heat,routeHeat,deepHeat,recovery,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+.71*clamp(routeHeat/48,0,1)};
+  const route=OXYGEN_ROUTES.find(candidate=>candidate.id===OXYGEN_THERMAL.routeId);
+  const routeLateralFactor=routeLateral(route,p,OXYGEN_THERMAL.coreRadius,OXYGEN_THERMAL.fadeRadius);
+  const routeHeat=profileAtY(OXYGEN_THERMAL.heatStops,p.y)*routeLateralFactor;
+  const mergeRecovery=mergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;
+  let deepHeat=0,deepThermalHeat=0;
+  if(!recovery){
+    for(const deepRoute of DEEP_OXYGEN_ROUTES){
+      const profile=OXYGEN_THERMAL.deepProfiles[deepRoute.id];
+      const local=profileAtY(profile.heatStops,p.y)*routeLateral(deepRoute,p,profile.coreRadius,profile.fadeRadius);
+      deepHeat=Math.max(deepHeat,local);
+      if(deepRoute.id==='oxygen-deep-thermal')deepThermalHeat=local;
+    }
+  }
+  const heat=Math.max(routeHeat,deepHeat),networkFactor=.71*clamp(routeHeat/48,0,1),deepFactor=.71*clamp(deepThermalHeat/48,0,1);
+  return {heat,routeHeat,deepHeat,deepThermalHeat,recovery,mergeRecovery,frontierRecovery,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,deepFactor)};
 }
 export function oxygenRouteAt(p){
   if(p.y>-8870||p.y<-10480)return null;
@@ -126,6 +191,8 @@ export function oxygenRestStopAt(p,route=oxygenRouteAt(p)){
   })??null;
 }
 export function oxygenPressureAt(p){
+  const deepPressure=deepOxygenPressureAt(p);
+  if(deepPressure!==null)return deepPressure;
   if(p.y>-8700||p.y<-10850)return null;
   if(p.y>-8870||p.y<-10480)return 0; // approach, merge and shared harvest pocket
   const route=oxygenRouteAt(p);
