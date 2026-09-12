@@ -18,51 +18,20 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           path=Path('scripts/export-field-map.mjs')
           text=path.read_text()
-          text=text.replace(
-              "import {EXPEDITION_CHALLENGES,challengeCenter} from '../src/veil/expedition-challenges.js';",
-              "import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt} from '../src/veil/expedition-challenges.js';",
-          )
-          text=text.replace(
-              "const left=ys.map(y=>({x:challengeCenter(zone,y)-zone.width,y}));",
-              "const left=ys.map(y=>({x:challengeCenter(zone,y)-challengeWidthAt(zone,y),y}));",
-          )
-          text=text.replace(
-              "const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+zone.width,y}));",
-              "const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+challengeWidthAt(zone,y),y}));",
-          )
-          path.write_text(text)
-
-          path=Path('tests/oxygen-field-integration.test.mjs')
-          text=path.read_text()
-          text=text.replace(
-              "import {EXPEDITION_CHALLENGES,challengeCenter,recordChallengePassage} from '../src/veil/expedition-challenges.js';",
-              "import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt,recordChallengePassage} from '../src/veil/expedition-challenges.js';",
-          )
-          marker="assert.equal(overlap(thermal,deep['oxygen-deep-skill']),false);"
-          addition="""assert.equal(overlap(thermal,deep['oxygen-deep-skill']),false);
-assert.equal(challengeWidthAt(curve,curve.centerY),curve.width,'curve keeps its nominal width through the authored center');
-assert.equal(challengeWidthAt(curve,curve.top),100,'curve tapers before the shared Frontier merge');
-for(let y=curve.bottom;y>=curve.top;y-=25){
-  for(const route of [deep['oxygen-deep-safe'],deep['oxygen-deep-thermal']]){
-    const routeX=oxygenRouteCenterAtY(route,y);if(routeX===null)continue;
-    const clearance=Math.abs(routeX-challengeCenter(curve,y))-challengeWidthAt(curve,y)-route.width/2;
-    assert.ok(clearance>0,`curve field must not overlap ${route.id} corridor at y=${y} (clearance ${clearance})`);
-  }
-}"""
-          if marker in text and 'curve tapers before the shared Frontier merge' not in text:
-              text=text.replace(marker,addition)
+          text=text.replace("import {EXPEDITION_CHALLENGES,challengeCenter} from '../src/veil/expedition-challenges.js';", "import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt} from '../src/veil/expedition-challenges.js';")
+          text=text.replace("const left=ys.map(y=>({x:challengeCenter(zone,y)-zone.width,y}));", "const left=ys.map(y=>({x:challengeCenter(zone,y)-challengeWidthAt(zone,y),y}));")
+          text=text.replace("const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+zone.width,y}));", "const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+challengeWidthAt(zone,y),y}));")
           path.write_text(text)
           PY
           node scripts/export-field-map.mjs
           node scripts/build-precache.mjs
-          if ! git diff --quiet -- scripts/export-field-map.mjs tests/oxygen-field-integration.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js; then
+          if ! git diff --quiet -- scripts/export-field-map.mjs docs/maps/current-field.svg precache-manifest.js sw.js; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add scripts/export-field-map.mjs tests/oxygen-field-integration.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js
-            git commit -m "Follow tapered challenge geometry in map and tests"
+            git add scripts/export-field-map.mjs docs/maps/current-field.svg precache-manifest.js sw.js
+            git commit -m "Follow tapered challenge geometry in FIELD map"
             git push origin "HEAD:${{ github.head_ref }}"
           fi
       - name: Repository hygiene
