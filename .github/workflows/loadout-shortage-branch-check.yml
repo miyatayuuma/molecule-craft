@@ -1,0 +1,24 @@
+name: LOADOUT shortage branch check
+
+on:
+  push:
+    branches: [loadout-shortage-confirmation-simplification]
+
+permissions:
+  contents: read
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: LOADOUT shortage confirmation
+        run: node tests/loadout-shortage-confirmation.test.mjs
+      - name: LOADOUT launch regression matrix
+        run: node tests/loadout-launch-regression.test.mjs
+      - name: LOADOUT workstation geometry
+        run: node --test tests/loadout-workstation.test.mjs
+      - name: Supply production contract
+        run: node tests/supply-production.test.mjs
+      - name: Supply tank contract
+        run: node tests/supply-tanks.test.mjs
