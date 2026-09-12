@@ -53,7 +53,7 @@ jobs:
             "",
             "const menuButton=node('open-menu'),infoButton=node('open-info'),menu=node('menu-dialog'),info=node('info-dialog');",
             "const byId=new Map([[menuButton.id,menuButton],[infoButton.id,infoButton],[menu.id,menu],[info.id,info]]);",
-            "globalThis.document={getElementById:id=>byId.get(id)??null,querySelectorAll(selector){return selector==='dialog.sheet'?[menu,info]:[];}};",
+            "globalThis.document={getElementById:id=>byId.get(id)??null,querySelector(selector){return selector.startsWith('#')?(byId.get(selector.slice(1))??null):null;},querySelectorAll(selector){return selector==='dialog.sheet'?[menu,info]:[];}};",
             "const {createGameShell}=await import('../src/game-shell.js?recovery-test=1');",
             "",
             "test('menu is a recovery escape hatch for transient CRAFT locks',()=>{",
