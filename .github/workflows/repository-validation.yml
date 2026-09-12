@@ -21,6 +21,12 @@ jobs:
         run: |
           node tests/source-contracts.test.mjs
           node tests/persistence-boundary-source-contract.test.mjs
+      - name: Encyclopedia registration reveal
+        run: |
+          node tests/registration-reveal.test.mjs
+          node tests/collection.test.mjs
+          node tests/collection-expansion.test.mjs
+          node tests/capability-unlock.test.mjs
       - name: CRAFT input recovery
         run: |
           node tests/craft-controls-ui.test.mjs

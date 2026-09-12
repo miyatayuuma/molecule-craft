@@ -6,6 +6,7 @@ import {loadMoleculeDatabase,moleculeCatalog} from './chemistry.js?v=20';
 import {CRITICAL_INSIGHT_IDS} from './veil/insights.js';
 import {primaryRoleFor} from './veil/molecule-roles.js';
 import {installTankCapabilityPresentation} from './veil/capability-unlock.js?v=1';
+import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=1';
 
 function normalizeExplorationMode(){
   const veil=document.querySelector('#veil-view'),appShell=document.querySelector('.app-shell');
@@ -181,7 +182,7 @@ export function bindSaveLifecycle({window,document,onPageHide,onHidden,onPrepare
   window.addEventListener('molecule-craft:prepare-update',onPrepareUpdate);
 }
 
-export function createDiscoveryConnection({resources,getVeilUI,getCollection,onPresent,onDismiss,onVibrate}){
+export function createDiscoveryConnection({resources,getVeilUI,getCollection,onPresent,onDismiss,onVibrate,presentRegistration=presentFirstRegistration}){
   const completionGate=createCompletionSideEffectGate();let queue=[],pendingStructures=new Map(),until=0,active=null;
   function sync(structures){
     const currentByKey=new Map(structures.map(item=>[item.key,item])),currentSignatures=new Set(structures.filter(item=>item.complete).map(item=>item.signature));
@@ -216,7 +217,13 @@ export function createDiscoveryConnection({resources,getVeilUI,getCollection,onP
     while(queue.length){
       const event=queue[0],item=structures.find(candidate=>candidate.key===event.key&&candidate.signature===event.signature&&candidate.complete);
       if(!item){queue.shift();continue;}if(!event.effectsDone)return;
-      queue.shift();const isNew=!!event.gameEvent?.isNew;active=item.signature;until=now+(isNew?2800:1300);onPresent({item,isNew});if(isNew)onVibrate();return;
+      const isNew=!!event.gameEvent?.isNew,recordId=event.gameEvent?.record?.id??item.record?.id;
+      if(isNew&&recordId){
+        onDismiss();
+        if(!presentRegistration({collection,id:recordId}))return;
+        queue.shift();active=null;until=now+REGISTRATION_REVEAL_HOLD_MS;onVibrate();return;
+      }
+      queue.shift();active=item.signature;until=now+1300;onPresent({item,isNew});if(isNew)onVibrate();return;
     }
   }
   return{sync,check,clear,discardQueued,collectionReady};
