@@ -28,12 +28,12 @@ assert.equal(pubchemReferenceFor({formula:'—',graph:{atoms:[],bonds:[]}}),null
 let introValue=null,writes=0;
 const introStorage={getItem:key=>key===PUBCHEM_INTRO_STORAGE_KEY?introValue:null,setItem:(key,value)=>{assert.equal(key,PUBCHEM_INTRO_STORAGE_KEY);introValue=value;writes++;}};
 const intro=createPubchemIntroState(introStorage);
-assert.equal(intro.label('first-signature'),'PubChem ↗','The first unregistered completion teaches the external reference once.');
-assert.equal(intro.label('first-signature'),'PubChem ↗','Repeated renders of the same first completion keep the label stable.');
+assert.equal(intro.label('first-signature'),'PubChem ↗','The external reference is explicit on first use.');
+assert.equal(intro.label('first-signature'),'PubChem ↗','Repeated renders keep the explicit label stable.');
 assert.equal(writes,1);
-assert.equal(intro.label(null),'↗','Leaving the first unregistered completion ends the teaching state.');
-assert.equal(intro.label('second-signature'),'↗','Later unregistered completions stay visually secondary.');
-assert.equal(createPubchemIntroState(introStorage).label('after-reload'),'↗','The intro is remembered on the device.');
+assert.equal(intro.label(null),'PubChem ↗','Leaving a molecule does not collapse the external-link affordance.');
+assert.equal(intro.label('second-signature'),'PubChem ↗','Later unregistered completions remain explicitly labeled.');
+assert.equal(createPubchemIntroState(introStorage).label('after-reload'),'PubChem ↗','The affordance remains explicit after reload.');
 const deniedIntro=createPubchemIntroState({getItem(){throw Error('denied');},setItem(){throw Error('denied');}});
 assert.equal(deniedIntro.label('fallback'),'PubChem ↗','Storage denial must not break the affordance.');
 console.log('PubChem reference tests passed.');
