@@ -17,12 +17,12 @@ import { createElementPalette, syncElementStocks } from './element-progression.j
 import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=26';
 import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=30';
 
-import { createGameShell } from './game-shell.js?v=29';
+import { createGameShell } from './game-shell.js?v=30';
 import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
 import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { createCraftHistory } from './craft-history.js?v=1';
-import { bindCraftControls } from './craft-controls.js?v=1';
+import { bindCraftControls } from './craft-controls.js?v=2';
 import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=3';
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
@@ -116,14 +116,7 @@ function bindUI(){
   bindCraftControls({document,palette,elements:ELEMENTS,structureFocus,viewer,canvas:renderer.domElement,resizeObserver:ResizeObserver,
     canChangeStructure:()=>!interactionLocked()&&!dragState&&!activePointers.size,refreshStructureList,findStructure:key=>structures.find(item=>item.key===key),
     onStructureChange:{addElement,focus:item=>{selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;refresh();gameShell.closeMenu();repairSavedGeometry();pulse('編集する分子を切り替えました');}},
-    onUndo:undoCraft,onDelete:()=>{
-    if(selectedAtomId==null||interactionLocked()||dragState||activePointers.size)return;
-    const ids=connectedComponent(selectedAtomId);craftHistory.begin();
-    if(!craftWorkspace.removeAtom(selectedAtomId)){craftHistory.cancel();return;}
-    selectAtom(null);topologyChanged();craftHistory.commit();
-    saveWorkspace(true);
-    startRelaxation('削除後の構造を安定化しています',{ids});
-    },onClear:clearField,onVisibilityChange:()=>{debrisTracker.reset();fadeTargets.clear();relaxation?.session.pause(performance.now());},
+    onUndo:undoCraft,onClear:clearField,onVisibilityChange:()=>{debrisTracker.reset();fadeTargets.clear();relaxation?.session.pause(performance.now());},
     onPointerDown,onPointerMove,onPointerUp,onPointerCancel,onWheel:e=>{e.preventDefault();if(interactionLocked()){pulse('構造変化中は視点を固定しています');return;}zoomCamera(Math.exp(e.deltaY*.001));},onResize:resize});
 }
 
