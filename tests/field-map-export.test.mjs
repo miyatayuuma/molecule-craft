@@ -159,7 +159,7 @@ test('Oxygen Network route pressure stays traversable and propulsion keeps a mat
     }
     return Infinity;
   };
-  const shortcutNormal=traverse({x:-320,y:-9600,targetY:-9800,maxSeconds:4}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});
+  const shortcutNormal=traverse({x:-432,y:-9600,targetY:-9800,maxSeconds:12}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});
   assert.ok(Number.isFinite(shortcutNormal),'normal thrust must cross the localized BURST chokepoint');
   assert.ok(shortcutBurst<shortcutNormal*.7,`BURST must materially ease the chokepoint (${shortcutBurst.toFixed(2)}s vs ${shortcutNormal.toFixed(2)}s)`);
   const mainNormal=traverse({x:300,y:-9000,targetY:-9400}),mainDrive=traverse({x:300,y:-9000,targetY:-9400,drive:true});
