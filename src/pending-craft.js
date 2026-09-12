@@ -43,7 +43,7 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
   const legacy=root.getElementById?.('tank-next-hint');
   if(legacy){legacy.hidden=true;legacy.style.display='none';legacy.setAttribute('aria-hidden','true');legacy.tabIndex=-1;}
 
-  let access=root.getElementById?.('open-pending-crafts'),dialog=root.getElementById?.('pending-crafts-dialog'),list=null,count=null,previousIds=[],acknowledgedIds=new Set(),acknowledgedKey='',attentionSequence=0;
+  let access=root.getElementById?.('open-pending-crafts'),dialog=root.getElementById?.('pending-crafts-dialog'),list=null,count=null,previousIds=[],acknowledgedIds=new Set(),acknowledgedKey='';
   if(!access){
     access=root.createElement('button');access.id='open-pending-crafts';access.type='button';access.className='icon-button pending-craft-access';access.innerHTML='<span aria-hidden="true">💡</span><small></small>';count=access.querySelector('small');
     actions.insertBefore(access,collection.nextSibling);
@@ -108,12 +108,9 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
   }
   function setAttention(attention){
     access.dataset.attention=attention;
-    if(attention!=='unseen'){attentionSequence++;delete access.dataset.attentionNew;}
+    if(attention!=='unseen')delete access.dataset.attentionNew;
   }
-  function triggerNewAttention(){
-    const sequence=++attentionSequence;delete access.dataset.attentionNew;
-    queueMicrotask(()=>{if(sequence===attentionSequence&&!access.hidden&&access.dataset.attention==='unseen')access.dataset.attentionNew='true';});
-  }
+  function triggerNewAttention(){access.dataset.attentionNew='true';}
   function acknowledge(ids){
     const current=uniqueIds(ids);acknowledgedIds=new Set(current);acknowledgedKey=current.join('|');setAttention(current.length?'acknowledged':'none');
   }
@@ -125,6 +122,7 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
     else{setAttention(transition.attention);if(transition.attention==='unseen'&&transition.addedIds.length)triggerNewAttention();}
     previousIds=ids;return ids;
   }
+  access.addEventListener('animationend',event=>{if(event.animationName==='pending-craft-new-bulb')delete access.dataset.attentionNew;});
   access.addEventListener('click',()=>{const ids=refresh();if(!ids.length)return;renderList(ids);acknowledge(ids);dialog.showModal?.();});
 
   for(const method of ['setCatalog','hint','discover','learn','reset']){
