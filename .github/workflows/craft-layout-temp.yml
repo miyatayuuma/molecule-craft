@@ -1,0 +1,43 @@
+name: CRAFT desktop mobile layout check
+
+on:
+  push:
+    branches: [fix/craft-navigation-ux-cleanup]
+
+jobs:
+  layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install headless browser harness
+        run: |
+          npm install --prefix /tmp/craft-browser playwright@1.55.0
+          /tmp/craft-browser/node_modules/.bin/playwright install chromium
+      - name: Serve production build
+        run: |
+          python3 -m http.server 4173 >/tmp/craft-http.log 2>&1 &
+          echo $! >/tmp/craft-http.pid
+      - name: Verify CRAFT navigation hierarchy at desktop and mobile sizes
+        run: |
+          cat >/tmp/craft-layout-check.mjs <<'EOF'
+          import {chromium} from '/tmp/craft-browser/node_modules/playwright/index.mjs';
+          const browser=await chromium.launch({headless:true});
+          try{
+            for(const viewport of [{width:390,height:844,name:'mobile'},{width:1280,height:800,name:'desktop'}]){
+              const page=await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
+              await page.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});
+              await page.waitForFunction(()=>document.querySelector('#open-supply')?.textContent.includes('戻る'));
+              const result=await page.evaluate(()=>{
+                const back=document.querySelector('#open-supply'),clear=document.querySelector('#clear-all'),formula=document.querySelector('#formula'),pubchem=document.querySelector('.pubchem-link');
+                const br=back.getBoundingClientRect(),cr=clear.getBoundingClientRect();
+                const visible=r=>r.width>0&&r.height>0&&r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1;
+                const overlap=!(br.right<=cr.left||cr.right<=br.left||br.bottom<=cr.top||cr.bottom<=br.top);
+                return {backText:back.textContent.trim(),backLabel:back.getAttribute('aria-label'),backVisible:visible(br),hit:[br.width,br.height],clearVisible:visible(cr),overlap,pubchemInFormula:pubchem?.parentElement===formula,pubchemLabel:pubchem?.getAttribute('aria-label'),pubchemText:pubchem?.textContent,marginLeft:getComputedStyle(pubchem).marginLeft,borderLeft:getComputedStyle(pubchem).borderLeftWidth};
+              });
+              if(result.backText!=='←戻る'||result.backLabel!=='探索機へ戻る'||!result.backVisible||result.hit[1]<44||!result.clearVisible||result.overlap||!result.pubchemInFormula||result.pubchemLabel!=='PubChemでこの分子を調べる（外部サイト）'||result.marginLeft!=='0px'||result.borderLeft!=='0px')throw new Error(`${viewport.name} contract failed: ${JSON.stringify(result)}`);
+              console.log(viewport.name,JSON.stringify(result));
+              await page.close();
+            }
+          } finally {await browser.close();}
+          EOF
+          node /tmp/craft-layout-check.mjs
