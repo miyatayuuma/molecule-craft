@@ -20,6 +20,7 @@ const collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'
 const collectionUI=await readFile(new URL('src/collection-ui.js',root),'utf8');
 const pubchemReference=await readFile(new URL('src/pubchem-reference.js',root),'utf8');
 const styles=await readFile(new URL('styles.css',root),'utf8');
+const gameShell=await readFile(new URL('src/game-shell.js',root),'utf8');
 assert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|模型を(?:拡大|縮小|表示リセット)/,'Collection viewer zoom/reset buttons stay removed');
 assert.doesNotMatch(collectionUI,/expeditionUseFor|expedition-use|探索での用途|補給で比較する/,'Collection stays chemistry-focused and does not repeat expedition guidance');
 assert.doesNotMatch(craftConnections,/onSupply/,'Collection connection no longer carries supply guidance callbacks');
@@ -77,6 +78,8 @@ assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations b
 assert.match(app, /!elementPalette.canUse\(symbol\)/);
 assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
 assert.match(index, /id="veil-combustion"/);
+assert.match(index, /id="veil-combustion-remaining">HOLD DRIVE<\/small>/,'Exploration combustion control keeps its operational DRIVE label');
+assert.doesNotMatch(gameShell, /#veil-combustion-remaining/,'Gameplay chrome pruning must not hide the DRIVE action affordance');
 assert.match(index, /id="veil-threat"/);
 assert.match(index, /id="open-supply" class="collector-access"/);
 assert.doesNotMatch(index, /<span>収集殻<\/span>/,'Legacy collector access text label stays removed');

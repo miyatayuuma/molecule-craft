@@ -8,7 +8,7 @@ function pruneInstructionalChrome(document){
     '#molecule-iupac','#tank-next-hint','.tank-explanation','#tank-affordability','#oxygen-route-guide',
     '.veil-stock > span','#veil-gained','#veil-chain-block','.veil-title > small','#veil-region-subtitle',
     '#veil-threat','#veil-goal','#veil-message','#veil-pad-label','#veil-thermal-state','#veil-coolant',
-    '#veil-combustion-remaining','#veil-boost > small',
+    '#veil-boost > small',
   ])for(const node of document.querySelectorAll(selector))node.style.display='none';
 
   // Directly tapping atoms already switches the edited structure. Hide the
