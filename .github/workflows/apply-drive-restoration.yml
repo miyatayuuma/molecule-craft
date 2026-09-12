@@ -1,0 +1,94 @@
+name: Apply DRIVE restoration
+
+on:
+  push:
+    branches: [fix/exploration-drive-restoration]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Apply focused restoration and regression coverage
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              s = p.read_text()
+              if s.count(old) != 1:
+                  raise SystemExit(f'{path}: expected exactly one match, got {s.count(old)}')
+              p.write_text(s.replace(old, new, 1))
+
+          replace_once(
+              'src/game-shell.js',
+              "    '#veil-combustion-remaining','#veil-boost > small',",
+              "    '#veil-boost > small',",
+          )
+          replace_once(
+              'index.html',
+              '<small id="veil-combustion-remaining">0 / 0 PACKETS</small>',
+              '<small id="veil-combustion-remaining">HOLD DRIVE</small>',
+          )
+          replace_once(
+              'src/veil/ui.js',
+              "q('veil-combustion-remaining').textContent='';",
+              "q('veil-combustion-remaining').textContent='HOLD DRIVE';",
+          )
+          replace_once(
+              'tests/veil-ui-check.mjs',
+              "assert.equal(game.run('veilUI.active'),true);",
+              "assert.equal(game.run('veilUI.active'),true);assert.equal(q('veil-combustion').hidden,true,'DRIVE stays hidden when no valid fuel + O₂ loadout is launched');",
+          )
+          replace_once(
+              'tests/veil-ui-check.mjs',
+              "assert.equal(q('veil-combustion').hidden,false);const methaneFuel=",
+              "assert.equal(q('veil-combustion').hidden,false);assert.equal(q('veil-combustion-remaining').style.display,'','DRIVE action cue must not be pruned by the game shell');assert.equal(q('veil-combustion-remaining').textContent,'HOLD DRIVE','Loaded combustion control must expose the existing hold DRIVE affordance');assert.equal(q('veil-boost').hidden,false,'BURST remains independently available');const methaneFuel=",
+          )
+          replace_once(
+              'tests/source-contracts.test.mjs',
+              "const styles=await readFile(new URL('styles.css',root),'utf8');",
+              "const styles=await readFile(new URL('styles.css',root),'utf8');\nconst gameShell=await readFile(new URL('src/game-shell.js',root),'utf8');",
+          )
+          replace_once(
+              'tests/source-contracts.test.mjs',
+              "assert.match(index, /id=\"veil-combustion\"/);",
+              "assert.match(index, /id=\"veil-combustion\"/);\nassert.match(index, /id=\"veil-combustion-remaining\">HOLD DRIVE<\\/small>/,'Exploration combustion control keeps its operational DRIVE label');\nassert.doesNotMatch(gameShell, /#veil-combustion-remaining/,'Gameplay chrome pruning must not hide the DRIVE action affordance');",
+          )
+          Path('.github/workflows/apply-drive-restoration.yml').unlink()
+          PY
+      - name: Focused syntax and source contracts
+        run: |
+          node --check src/game-shell.js
+          node --check src/veil/ui.js
+          node tests/source-contracts.test.mjs
+      - name: Production DOM integration
+        shell: bash
+        run: |
+          npm install --prefix /tmp/mc-jsdom jsdom@26 >/dev/null
+          node tests/veil-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
+          node tests/mobile-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
+      - name: Regenerate verified PWA outputs
+        run: node scripts/build-precache.mjs
+      - name: Repository validation
+        shell: bash
+        run: |
+          node --test tests/*.test.mjs
+          node scripts/check-repository-hygiene.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit validated restoration
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Restore exploration DRIVE control"
+          git push
