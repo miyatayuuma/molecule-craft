@@ -55,7 +55,11 @@ const shortage=(state,element)=>state.shortages.find(item=>item.element===elemen
   const source=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
   assert.doesNotMatch(source,/loadout-stock-preview/,'confirmation must not depend on the legacy DOM stock preview');
   assert.doesNotMatch(source,/噴射材|収集殻|BASE STOCK不足/,'legacy terminology must not return to the confirmation');
-  assert.match(source,/搭載できません/);assert.match(source,/data\.launchShortage/);assert.match(source,/item\.actual} \/ \$\{item\.requested/,'quantity is presented as actual / requested rather than percentage-only');
+  assert.match(source,/搭載できません/);assert.match(source,/dataset\.launchShortage/);assert.match(source,/item\.actual} \/ \$\{item\.requested/,'quantity is presented as actual / requested rather than percentage-only');
+  assert.match(source,/gridTemplateColumns:'minmax\(0,1fr\) auto'/,'molecule identity and quantity must share a stable responsive row');
+  assert.match(source,/overflowWrap:'anywhere'/,'long molecule identity/shortage text must be allowed to wrap');
+  assert.match(source,/flexWrap:'wrap'/,'confirmation actions must wrap instead of overlapping on narrow screens');
+  assert.match(source,/maxHeight:'calc\(100% - 20px\)'/,'confirmation must remain scrollable within the LOADOUT sheet');
 }
 
-console.log('LOADOUT shortage confirmation passed: FULL silence, canonical PARTIAL quantities/shortages, zero-fill, multi-element shortage, preview/commit parity and legacy terminology guard.');
+console.log('LOADOUT shortage confirmation passed: FULL silence, canonical PARTIAL quantities/shortages, zero-fill, multi-element shortage, preview/commit parity, responsive layout and legacy terminology guard.');
