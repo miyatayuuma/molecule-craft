@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   repository-guardrails:
@@ -15,6 +15,17 @@ jobs:
           fetch-depth: 0
       - name: Runtime
         run: node --version
+      - name: Regenerate Task 6 derived assets
+        run: |
+          node scripts/export-field-map.mjs
+          node scripts/build-precache.mjs
+          if ! git diff --quiet -- docs/maps/current-field.svg precache-manifest.js sw.js; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/maps/current-field.svg precache-manifest.js sw.js
+            git commit -m "Regenerate Task 6 derived assets"
+            git push origin "HEAD:${{ github.head_ref }}"
+          fi
       - name: Repository hygiene
         run: node tests/repository-hygiene.test.mjs
       - name: Current FIELD developer map
@@ -44,6 +55,7 @@ jobs:
           node tests/signal-eligibility.test.mjs
       - name: Thermal and expedition regressions
         run: |
+          node tests/oxygen-field-integration.test.mjs
           node tests/deep-oxygen-routes.test.mjs
           node tests/oxygen-thermal-progression.test.mjs
           node tests/thermal-coolant.test.mjs

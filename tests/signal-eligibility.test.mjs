@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {CRITICAL_INSIGHT_IDS} from '../src/veil/expedition-run.js';
-import {CHALLENGE_INSIGHT_IDS,EXPEDITION_CHALLENGES,recordChallengePassage} from '../src/veil/expedition-challenges.js';
+import {CHALLENGE_INSIGHT_IDS,EXPEDITION_CHALLENGES,challengeCenter,recordChallengePassage} from '../src/veil/expedition-challenges.js';
 import {GROWTH,REGIONS,REGION_ORDER} from '../src/veil/growth.js';
 import {createResources,minimumSignalRegionFor,regionRank,signalCandidateEligible} from '../src/veil/resources.js';
 
@@ -39,10 +39,13 @@ for(const id of CHALLENGE_INSIGHT_IDS)assert.equal(eligible({id,atoms:['H']},'fr
 
 // Challenge traversal still emits the curated reward list once, unchanged.
 for(const challenge of EXPEDITION_CHALLENGES){
-  const run={map:{universe:true},player:{x:120,y:challenge.bottom-1},events:[]};
-  recordChallengePassage(run,{x:120,y:challenge.bottom+1});run.player.y=challenge.top-1;recordChallengePassage(run,{x:120,y:challenge.bottom-1});
+  const startY=challenge.bottom-1,endY=challenge.top-1;
+  const run={map:{universe:true},player:{x:challengeCenter(challenge,startY),y:startY},events:[]};
+  recordChallengePassage(run,{x:challengeCenter(challenge,challenge.bottom+1),y:challenge.bottom+1});
+  run.player.x=challengeCenter(challenge,endY);run.player.y=endY;
+  recordChallengePassage(run,{x:challengeCenter(challenge,startY),y:startY});
   assert.deepEqual(run.events,[{type:'inspiration',rewards:challenge.rewards}]);
-  recordChallengePassage(run,{x:120,y:challenge.bottom-1});assert.equal(run.events.length,1);
+  recordChallengePassage(run,{x:challengeCenter(challenge,startY),y:startY});assert.equal(run.events.length,1);
 }
 
 // Eligibility is cumulative by region, but required FIELD elements must still
