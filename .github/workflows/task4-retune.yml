@@ -13,8 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Production thermal simulation
-        run: node tests/oxygen-thermal-progression.test.mjs
+      - name: Focused thermal and expedition regressions
+        run: |
+          node tests/oxygen-thermal-progression.test.mjs
+          node tests/thermal-coolant.test.mjs
+          node tests/expedition-core.test.mjs
       - name: Regenerate and verify maps
         run: |
           node scripts/export-field-map.mjs
@@ -26,8 +29,10 @@ jobs:
           node scripts/build-precache.mjs --check
       - name: Guardrails
         run: |
+          node tests/field-map-export.test.mjs
           node tests/repository-hygiene.test.mjs
           node tests/source-contracts.test.mjs
+          node tests/pwa.test.mjs
           git diff --check
       - name: Commit generated artifacts
         shell: bash
@@ -35,5 +40,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/maps/current-field.svg precache-manifest.js sw.js
-          git commit -m "Refresh Route C thermal artifacts"
+          git diff --cached --quiet || git commit -m "Refresh Route C thermal artifacts"
           git push
