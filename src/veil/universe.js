@@ -132,11 +132,11 @@ function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/f
 export function environmentAt(p,time=0){
   const outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
-  const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p);
-  const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),challengePressure=challenge?.pressure;
+  const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p),recovering=quiet||thermal.recovery;
+  const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),challengePressure=recovering?0:challenge?.pressure;
   const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
-  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
-  const oxygenAmbient=oxygen*(1-coolEddy)*3,recovering=quiet||thermal.recovery,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));
+  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
+  const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));
   return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
 }
 export function animateUniverse(run){
