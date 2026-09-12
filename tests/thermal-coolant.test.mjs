@@ -11,10 +11,10 @@ const combustion=()=>true;
 // Short burns are unrestricted. Without coolant, methane reaches the hard
 // limit at roughly ten seconds and naturally recovers while the paid packet is
 // retained for automatic re-ignition.
-const short=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:20},oxidizer:{molecule:'oxygen',amount:40}},predators:false});setCombustionHeld(short,true);advance(short,3,{consumeCombustion:combustion});assert.ok(short.player.combustion);assert.ok(short.heat>29&&short.heat<31);assert.equal(short.overheated,false);
+const short=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:20},oxidizer:{molecule:'oxygen',amount:40}},predators:false});setCombustionHeld(short,true);advance(short,3,{consumeCombustion:combustion});assert.ok(short.player.combustion);assert.ok(Math.abs(short.heat-THERMAL.heatPerSecond*3)<.1);assert.equal(short.overheated,false);
 
 const hot=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'n-hexane',amount:6},oxidizer:{molecule:'oxygen',amount:36}},predators:false});setCombustionHeld(hot,true);const hotEvents=advance(hot,8.2,{consumeCombustion:combustion});assert.ok(hotEvents.some(event=>event.type==='overheat'));assert.equal(hot.overheated,true);assert.equal(hot.player.combustion,false);const paidAtCutoff=hot.driveBuffer;assert.ok(paidAtCutoff>0,'Overheat preserves already purchased combustion time');
-const recoveryEvents=advance(hot,4,{consumeCombustion:combustion});assert.ok(recoveryEvents.some(event=>event.type==='heatRecovered'));assert.equal(hot.overheated,false);assert.equal(hot.player.combustion,true,'A held control automatically re-ignites after cooling');assert.ok(hot.driveBuffer<paidAtCutoff);
+const recoveryEvents=advance(hot,3.3,{consumeCombustion:combustion});assert.ok(recoveryEvents.some(event=>event.type==='heatRecovered'));assert.equal(hot.overheated,false);assert.equal(hot.player.combustion,true,'A held control automatically re-ignites after cooling');assert.ok(hot.driveBuffer<paidAtCutoff);
 
 // Thermal strain is semantic combustion experience: only a below -> HOT
 // crossing while combustion is actively heating emits it, once per run.
