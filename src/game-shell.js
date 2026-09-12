@@ -45,14 +45,8 @@ function installCraftNavigationChrome(document){
   const observer=new Observer(()=>{if(apply())observer.disconnect();});observer.observe(back,{childList:true});
 }
 
-function placePubchemWithMoleculeInfo(document){
-  const link=document.querySelector('.pubchem-link');if(!link)return;
-  link.setAttribute('aria-label','PubChemでこの分子を調べる（外部サイト）');
-  Object.assign(link.style,{marginLeft:'0',minWidth:'auto',minHeight:'32px',padding:'4px 6px',borderLeft:'0'});
-}
-
 export function createGameShell({canOpen=()=>true}={}){
-  pruneInstructionalChrome(document);installCraftNavigationChrome(document);placePubchemWithMoleculeInfo(document);
+  pruneInstructionalChrome(document);installCraftNavigationChrome(document);
   const q=id=>document.getElementById(id),dialogs=[...document.querySelectorAll('dialog.sheet')];
   function open(id){if(!canOpen())return;for(const dialog of dialogs)if(dialog.open)dialog.close();q(id)?.showModal();}
   for(const [button,id]of [['open-menu','menu-dialog'],['open-help','help-dialog'],['open-info','info-dialog'],['menu-info','info-dialog']])q(button)?.addEventListener('click',()=>open(id));

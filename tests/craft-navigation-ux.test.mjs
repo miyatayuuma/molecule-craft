@@ -20,11 +20,10 @@ function node(id=''){
 
 test('CRAFT back chrome preserves navigation and separates the PubChem information link',()=>{
   const back=node('open-supply');back.preview={};const originalNavigation=()=>{};back.listeners.set('click',originalNavigation);
-  const pubchem=node('pubchem');
   const document={
     defaultView:{},
     getElementById(id){return id==='open-supply'?back:null;},
-    querySelector(selector){return selector==='.pubchem-link'?pubchem:null;},
+    querySelector(){return null;},
     querySelectorAll(){return[];},
     createElement(){return node();},
   };
@@ -42,14 +41,15 @@ test('CRAFT back chrome preserves navigation and separates the PubChem informati
   assert.doesNotMatch(back.children.map(child=>child.textContent).join(''),/削除|片付け|ゴミ|trash/i);
   assert.match(supply,/q\('open-supply'\)\.addEventListener\('click'/,'Existing LOADOUT opening action remains the navigation destination');
 
-  assert.equal(pubchem.getAttribute('aria-label'),'PubChemでこの分子を調べる（外部サイト）');
-  assert.equal(pubchem.style.marginLeft,'0');assert.equal(pubchem.style.borderLeft,'0');
 });
 
 test('PubChem stays with molecule identity and remains an explicit external link',()=>{
   assert.match(craftPanel,/nodes\.formula\.append\(nodes\.pubchem\)/,'PubChem remains in the formula information group');
   assert.match(craftPanel,/pubchemLink\.target='_blank'/);
   assert.match(craftPanel,/pubchemLink\.rel='noopener noreferrer external'/);
+  assert.match(craftPanel,/PubChemでこの分子を調べる（外部サイト）/);
+  assert.match(craftPanel,/marginLeft:'0'/);
+  assert.match(craftPanel,/borderLeft:'0'/);
   assert.match(craftPanel,/pubchemReferenceFor\(focus\)/,'Molecule changes keep driving the PubChem mapping');
   assert.match(pubchemReference,/return'PubChem ↗'/,'The external-link affordance never collapses to a bare arrow');
 });

@@ -60,7 +60,7 @@ export function createCraftPanel(document){
     structureList:document.querySelector('#structure-list'),structureCount:document.querySelector('#structure-count'),structureFocus:document.querySelector('#structure-focus'),
 target:document.querySelector('#craft-target'),targetName:document.querySelector('#craft-target-name'),targetFormula:document.querySelector('#craft-target-formula'),targetAtoms:document.querySelector('#craft-target-atoms'),
   };
-  const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる');nodes.pubchem=pubchemLink;
+  const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='PubChem ↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる（外部サイト）');Object.assign(pubchemLink.style,{marginLeft:'0',minWidth:'auto',minHeight:'32px',padding:'4px 6px',borderLeft:'0'});nodes.pubchem=pubchemLink;
   let pubchemStorage=null;try{pubchemStorage=document.defaultView?.localStorage??null;}catch{}const pubchemIntro=createPubchemIntroState(pubchemStorage);
   let clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};
   document.querySelector('#clear-craft-target')?.addEventListener('click',()=>clearTarget());
