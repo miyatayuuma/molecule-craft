@@ -64,6 +64,8 @@
 
 Current FIELD developer map は `scripts/export-field-map.mjs` が現行 `src/veil/` 実装から `docs/maps/current-field.svg` を生成するdeveloper-only資料です。再生成は `node scripts/export-field-map.mjs`、freshness確認は `node scripts/export-field-map.mjs --check`。FIELD runtime / PWA配信物ではありません。
 
+FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が座標・gate・density・thermal・challenge・signalのdeveloper-only design intentを所有し、`scripts/export-field-expansion-proposal.mjs` が `docs/maps/field-expansion-proposal.svg` を生成します。`current-field.svg` を同一viewBoxの薄いCURRENT referenceとして重ねるだけでproduction `src/`からはimportしません。再生成は `node scripts/export-field-expansion-proposal.mjs`、freshness確認は `node scripts/export-field-expansion-proposal.mjs --check`。このSVGとdataは後続FIELD実装のdesign sourceであり、現在のgameplay実装を示すものではありません。
+
 ## クラフト
 
 | 領域 | 担当 |
@@ -82,7 +84,7 @@ Current FIELD developer map は `scripts/export-field-map.mjs` が現行 `src/ve
 | release後の独立座標補正と補間 | `src/structure-settlement.js` |
 | rotatable / restricted / locked判定 | `src/torsion-model.js` |
 | 表示対象・全体回転・画角 | `src/workspace-view.js`, `src/workspace-model.js` |
-| workspace canonical capture / restore | `src/workspace-save.js`。旧schema normalizeとstorage保護は `workspace-migrations.js`, `workspace-persistence.js` |
+| workspace canonical capture / restore | `src/workspace-save.js`。旧schema normalizeとstorage保護は `src/workspace-migrations.js`, `src/workspace-persistence.js` |
 | ターゲット分解・実グラフ不足判定 | `src/craft-decomposition.js`, `src/craft-target-satisfaction.js`（対応名のテスト） |
 | 部品展開・初期座標 | `src/craft-structures.js` |
 | 追加位置 | `src/spawn-layout.js` |
