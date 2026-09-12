@@ -44,6 +44,7 @@ jobs:
           node tests/signal-eligibility.test.mjs
       - name: Thermal and expedition regressions
         run: |
+          node tests/deep-oxygen-routes.test.mjs
           node tests/oxygen-thermal-progression.test.mjs
           node tests/thermal-coolant.test.mjs
           node tests/expedition-core.test.mjs
