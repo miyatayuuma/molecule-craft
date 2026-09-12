@@ -1,26 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-
 const root=new URL('../',import.meta.url);
-const [index,gameShell,craftPanel]=await Promise.all([
-  readFile(new URL('index.html',root),'utf8'),
-  readFile(new URL('src/game-shell.js',root),'utf8'),
-  readFile(new URL('src/craft-panel.js',root),'utf8'),
-]);
-
-for(const id of ['structure-focus-label','open-info']){
-  assert.match(index,new RegExp(`id="${id}"`),`${id} remains available to startup code`);
-  assert.match(gameShell,new RegExp(`#${id}`),`${id} must be hidden from the live craft chrome`);
-}
-assert.doesNotMatch(index,/id="frame-structure"/,'Legacy CRAFT frame button stays removed');
-assert.doesNotMatch(gameShell,/#frame-structure/,'Legacy frame button no longer needs startup hiding');
-assert.match(gameShell,/node\.style\.display='none'/,'Remaining redundant craft chrome stays visually hidden without removing startup DOM dependencies');
-assert.doesNotMatch(gameShell,/querySelector\(selector\)\?\.remove\(\)/,'Craft chrome pruning must not remove nodes still referenced by render/bind code');
-assert.match(craftPanel,/const focusLabel=document\.querySelector\('#structure-focus-label'\);if\(focusLabel\)focusLabel\.hidden=/,'Craft panel must tolerate the focus label being unavailable');
-
-assert.match(gameShell,/deleteButton\.textContent=''/,'Delete control must not retain a text label');
-assert.match(gameShell,/deleteButton\.classList\.add\('icon-button'\)/,'Delete control must use compact icon-button chrome');
-assert.match(gameShell,/viewBox="0 0 24 24"/,'Delete control must receive a trash-can SVG');
-assert.match(index,/id="delete-selected"[^>]*aria-label="選択した原子を削除"/,'Delete control must keep its accessible label');
-
+const [index,gameShell,craftPanel,craftControls,app]=await Promise.all([readFile(new URL('index.html',root),'utf8'),readFile(new URL('src/game-shell.js',root),'utf8'),readFile(new URL('src/craft-panel.js',root),'utf8'),readFile(new URL('src/craft-controls.js',root),'utf8'),readFile(new URL('src/app.js',root),'utf8')]);
+for(const id of ['structure-focus-label','open-info']){assert.match(index,new RegExp(`id="${id}"`));assert.match(gameShell,new RegExp(`#${id}`));}
+assert.doesNotMatch(index,/id="frame-structure"/);assert.doesNotMatch(gameShell,/#frame-structure/);assert.match(gameShell,/node\.style\.display='none'/);assert.doesNotMatch(gameShell,/querySelector\(selector\)\?\.remove\(\)/);assert.match(craftPanel,/const focusLabel=document\.querySelector\('#structure-focus-label'\);if\(focusLabel\)focusLabel\.hidden=/);
+assert.doesNotMatch(index,/id="delete-selected"/);assert.doesNotMatch(gameShell,/delete-selected|deleteButton/);assert.doesNotMatch(craftControls,/delete-selected|onDelete/);assert.doesNotMatch(app,/onDelete:|削除後の構造を安定化しています/);assert.doesNotMatch(index,/<circle cx="7" cy="6\.5"|<circle cx="12" cy="5"|<circle cx="17" cy="6\.5"/);assert.match(index,/id="clear-all"[^>]*[\s\S]*?<path d="M8 8h8l-\.7 11H8\.7L8 8z"/);
 console.log('Craft chrome tests passed.');

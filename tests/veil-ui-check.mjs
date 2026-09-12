@@ -8,7 +8,7 @@ import {createContext,runInContext} from 'node:vm';
 import {WORKSPACE_STORAGE_KEY} from '../src/workspace-persistence.js?v=1';
 if(!process.argv[2])throw new Error('Pass jsdom/lib/api.js');
 const {JSDOM}=await import(pathToFileURL(process.argv[2]));
-const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=50',root),html=await readFile(new URL('index.html',root),'utf8');
+const root=new URL('../',import.meta.url),appURL=new URL('src/app.js?v=51',root),html=await readFile(new URL('index.html',root),'utf8');
 let source=await readFile(appURL,'utf8'),bindings={};
 for(const match of source.matchAll(/^import (.*?) from '([^']+)';$/gm)){
   const module=await import(new URL(match[2],appURL));
@@ -98,20 +98,20 @@ assert.equal(q('molecule-select'),null);assert.equal(q('fill-hydrogen'),null);
 // Returned atoms are reusable, not free; a reload cannot refund them again.
 game.run('resources.collect(2,0);resources.save();');const balance=game.run('resources.state.elements.H');
 q('element-palette').querySelector('[data-element="H"]').click();game.run('updateStructureFrame(performance.now()+1000)');
-q('delete-selected').click();for(let i=0;i<150;i++)game.tick();
+game.run(`var removedAtom=molecule.atoms[0].id;craftWorkspace.removeAtom(removedAtom);selectAtom(null);topologyChanged();saveWorkspace(true);`);for(let i=0;i<150;i++)game.tick();
 assert.equal(game.run('resources.state.elements.H'),balance);
 assert.equal(JSON.parse(game.window.localStorage.getItem('molecule-craft.resources.v1')).workspace.atoms.length,0);
 console.log('Production H Veil UI passed: Collector Shell loadout selection, launch auto-synthesis, manual H₂ discovery, explicit encyclopedia route, target cleanup, boost spending, multitouch cancellation, blur pause, exact resource/workspace reload and refunds. Canvas/WebGL are stubbed; this is not a visual or subjective playtest.');
 
-// Delete + close during settlement must never persist refunded H beside the old atom.
+// Programmatic workspace removal + close during settlement must never persist refunded H beside the old atom.
 game.run('resources.collect(2,0);resources.save();');const total=game.run('resources.state.elements.H');
 for(let i=0;i<2;i++){q('element-palette').querySelector('[data-element="H"]').click();game.run('updateStructureFrame(performance.now()+1000)');}
-q('delete-selected').click();assert.equal(game.run('!!relaxation'),true);
+game.run(`var removedAtom=molecule.atoms[0].id,removedIds=connectedComponent(removedAtom);craftHistory.begin();craftWorkspace.removeAtom(removedAtom);selectAtom(null);topologyChanged();craftHistory.commit();saveWorkspace(true);startRelaxation('workspace removal settlement',{ids:removedIds});`);assert.equal(game.run('!!relaxation'),true);
 game.window.dispatchEvent(new game.window.Event('pagehide'));
 const interrupted=JSON.parse(game.window.localStorage.getItem('molecule-craft.resources.v1'));
 assert.equal(interrupted.workspace.atoms.length,1);assert.equal(interrupted.elements.H,total-1);
 assert.equal(interrupted.elements.H+interrupted.workspace.atoms.filter(a=>a.element==='H').length,total);
-console.log('Interrupted atom deletion preserves the H balance atomically before settlement.');
+console.log('Interrupted workspace atom removal preserves the H balance atomically before settlement.');
 
 game=await setup(null,30,saved);q('open-supply').click();for(const id of ['shell-propellant','shell-fuel','shell-oxidizer','shell-coolant'])assert.ok(q(id));assert.equal(q('shell-coolant').hidden,false,'Coolant is an active Collector Shell tank');assert.equal(q('molecule-select'),null);q('supply-dialog').close();
 // Cancellation of the full reset is a no-op, confirmation commits once.
