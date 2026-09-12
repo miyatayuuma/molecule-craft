@@ -48,6 +48,11 @@ jobs:
           )
           replace_once(
               'tests/veil-ui-check.mjs',
+              "assert.equal(q('open-supply').textContent.trim(),'収集殻');",
+              "assert.equal(q('open-supply').getAttribute('aria-label'),'収集殻とタンクを開く');assert.equal(q('open-supply').textContent.trim(),'','Legacy collector access text stays removed');",
+          )
+          replace_once(
+              'tests/veil-ui-check.mjs',
               "assert.equal(q('veil-combustion').hidden,false);const methaneFuel=",
               "assert.equal(q('veil-combustion').hidden,false);assert.equal(q('veil-combustion-remaining').style.display,'','DRIVE action cue must not be pruned by the game shell');assert.equal(q('veil-combustion-remaining').textContent,'HOLD DRIVE','Loaded combustion control must expose the existing hold DRIVE affordance');assert.equal(q('veil-boost').hidden,false,'BURST remains independently available');const methaneFuel=",
           )
