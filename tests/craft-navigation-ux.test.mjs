@@ -18,7 +18,7 @@ function node(id=''){
     classList:{add(){},remove(){}},matches(){return false;},closest(){return null;}};
 }
 
-test('CRAFT back chrome preserves the existing exploration navigation action and stays non-destructive',()=>{
+test('CRAFT back chrome preserves navigation and separates the PubChem information link',()=>{
   const back=node('open-supply');back.preview={};const originalNavigation=()=>{};back.listeners.set('click',originalNavigation);
   const pubchem=node('pubchem');
   const document={
@@ -40,6 +40,9 @@ test('CRAFT back chrome preserves the existing exploration navigation action and
   assert.equal(back.style.minHeight,'44px');
   assert.doesNotMatch(back.children.map(child=>child.textContent).join(''),/削除|片付け|ゴミ|trash/i);
   assert.match(supply,/q\('open-supply'\)\.addEventListener\('click'/,'Existing LOADOUT opening action remains the navigation destination');
+
+  assert.equal(pubchem.getAttribute('aria-label'),'PubChemでこの分子を調べる（外部サイト）');
+  assert.equal(pubchem.style.marginLeft,'0');assert.equal(pubchem.style.borderLeft,'0');
 });
 
 test('PubChem stays with molecule identity and remains an explicit external link',()=>{
@@ -48,6 +51,4 @@ test('PubChem stays with molecule identity and remains an explicit external link
   assert.match(craftPanel,/pubchemLink\.rel='noopener noreferrer external'/);
   assert.match(craftPanel,/pubchemReferenceFor\(focus\)/,'Molecule changes keep driving the PubChem mapping');
   assert.match(pubchemReference,/return'PubChem ↗'/,'The external-link affordance never collapses to a bare arrow');
-  assert.equal(pubchem.getAttribute('aria-label'),'PubChemでこの分子を調べる（外部サイト）');
-  assert.equal(pubchem.style.marginLeft,'0');assert.equal(pubchem.style.borderLeft,'0');
 });
