@@ -1,21 +1,17 @@
-node:internal/modules/run_main:123
-    triggerUncaughtException(
-    ^
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
 
-AssertionError [ERR_ASSERTION]: A rest in the quiet eddy is a real uncooled solution
-
-false !== true
-
-    at file:///home/runner/work/molecule-craft/molecule-craft/tests/oxygen-routes.test.mjs:26:8
-    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
-    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
-    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
-  generatedMessage: false,
-  code: 'ERR_ASSERTION',
-  actual: false,
-  expected: true,
-  operator: 'strictEqual',
-  diff: 'simple'
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/molecule-craft/molecule-craft/src/veil/propulsion-guide.js' imported from /home/runner/work/molecule-craft/molecule-craft/tests/oxygen-routes.test.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:724:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:320:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///home/runner/work/molecule-craft/molecule-craft/src/veil/propulsion-guide.js'
 }
 
 Node.js v22.23.2
