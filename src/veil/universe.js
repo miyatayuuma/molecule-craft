@@ -2,7 +2,7 @@ import {challengeEnvironment} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
-import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenVortexFlowAt } from './oxygen-routes.js';
+import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenVortexFlowAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export const OXYGEN_ENTRY_KNOTS=Object.freeze([
   Object.freeze([170,-8090]),Object.freeze([420,-8300]),Object.freeze([420,-8500]),Object.freeze([120,-8700]),
@@ -57,9 +57,11 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
     map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:phase-Math.PI/2,route:'oxygen-vortex-flow',element:'O',kind:'oxygen',value:1,ready:0,flow:{speed:1,span:1,phase:0},vortex:{radius:ring.radius,phase,angularSpeed:ring.angularSpeed}});
   }
   // A compact O pocket in the physically quiet main-route eddy rewards stopping.
+  const recoveryRoute=OXYGEN_ROUTES.find(route=>route.id==='oxygen-main'),recovery=recoveryRoute?.restStops?.[0];
+  if(!recovery)throw Error('oxygen-main recovery stop is missing');
   for(let i=0;i<harvestLayout.eddyAtoms;i++){
     if(!keepDepletedSegment(map.depletion.O,seed,'oxygen-rest-harvest',i))continue;
-    const angle=i*2.399963,radius=Math.sqrt((i+.5)/harvestLayout.eddyAtoms)*55,x=120+Math.cos(angle)*radius,y=-9700+Math.sin(angle)*radius;
+    const angle=i*2.399963,radius=Math.sqrt((i+.5)/harvestLayout.eddyAtoms)*55,x=recovery.x+Math.cos(angle)*radius,y=recovery.y+Math.sin(angle)*radius;
     map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:'oxygen-rest-harvest',element:'O',kind:'oxygen',value:3,ready:0});
   }
   for(let i=0;i<54;i++){
@@ -83,7 +85,10 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
   }
   for(const [region,x,y]of [['veil',390,-650],['carbon',840,-5660],['oxygen',-610,-8290]])map.signals.push({region,x:x+(rng()-.5)*60,y:y+(rng()-.5)*60,ready:false,roll:rng(),choice:rng()});
   map.fields.push({x:720,y:-5540,radius:210,phase:rng()*4,angle:-.4});
-  for(const route of OXYGEN_ROUTES){map.labels.push({x:route.x,y:-8890,text:route.label});for(const stop of route.restStops??[])map.labels.push({x:route.x,y:stop.y,text:'静かな渦 · Oを集めながら休む'});}
+  for(const route of OXYGEN_ROUTES){
+    const labelY=-8890,labelX=oxygenRouteCenterAtY(route,labelY)??route.x;map.labels.push({x:labelX,y:labelY,text:route.label});
+    for(const stop of route.restStops??[])map.labels.push({x:stop.x??oxygenRouteCenterAtY(route,stop.y)??route.x,y:stop.y,text:'静かな渦 · Oを集めながら休む'});
+  }
   map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · Oの集積'});
   map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:100,y:-11980,text:'最深部へ ↑ · 到達したら正常帰還'});
   return map;
@@ -93,7 +98,7 @@ function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/f
 export function environmentAt(p,time=0){
   const outer=band(p.y,-4100,-3690,105),hot=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
-  const quiet=OXYGEN_ROUTES.some(r=>r.restStops?.some(s=>Math.abs(p.y-s.y)<s.depth/2&&Math.abs(p.x-r.x)<r.width/2));
+  const quiet=!!oxygenRestStopAt(p);
   const challenge=challengeEnvironment(p,time),routePressure=challenge?.pressure??oxygenPressureAt(p),vortex=oxygenVortexFlowAt(p);
   const basePressure=routePressure??outer*255+hot*310,baseFlowX=challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
   return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,heat:Math.max(challenge?.heat??0,hot*32+oxygen*(1-hot)*(1-coolEddy)*3)*(quiet?.2:1),intensity:hot,eddy:coolEddy,vortex:vortex.intensity};
