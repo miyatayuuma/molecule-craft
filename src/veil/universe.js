@@ -7,6 +7,13 @@ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export const OXYGEN_ENTRY_KNOTS=Object.freeze([
   Object.freeze([170,-8090]),Object.freeze([420,-8300]),Object.freeze([420,-8500]),Object.freeze([120,-8700]),
 ]);
+export const FIELD_SIGNALS=Object.freeze([
+  Object.freeze({id:'veil',region:'veil',x:390,y:-650}),
+  Object.freeze({id:'carbon',region:'carbon',x:840,y:-5660}),
+  Object.freeze({id:'oxygen-network',region:'oxygen',complexity:'route-choice',x:520,y:-9250}),
+  Object.freeze({id:'oxygen-deep',region:'oxygen',complexity:'deep',x:-280,y:-11100}),
+  Object.freeze({id:'oxygen-frontier',region:'frontier',complexity:'frontier',x:100,y:-11620}),
+]);
 const OXYGEN_ENTRY_ROUTE_KNOTS=Object.freeze([Object.freeze([170,-7750]),...OXYGEN_ENTRY_KNOTS]);
 // Fixed landmarks and connections; variable contents stay near these curves.
 const ROUTES=[
@@ -84,7 +91,14 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
       cluster.particles.push(d);map.dust.push(d);
     }map.clusters.push(cluster);
   }
-  for(const [region,x,y]of [['veil',390,-650],['carbon',840,-5660],['oxygen',-610,-8290]])map.signals.push({region,x:x+(rng()-.5)*60,y:y+(rng()-.5)*60,ready:false,roll:rng(),choice:rng()});
+  // Keep veil/carbon and the legacy third signal RNG stream stable. The two
+  // additional authored depth signals use their own deterministic stream so
+  // unrelated universe RNG (for example field phase) does not shift.
+  const extraSignalRng=random(seed^0x2f6e2b1d);
+  for(const [index,authored]of FIELD_SIGNALS.entries()){
+    const source=index<3?rng:extraSignalRng,anchorX=authored.x,anchorY=authored.y;
+    map.signals.push({...authored,anchorX,anchorY,x:anchorX+(source()-.5)*60,y:anchorY+(source()-.5)*60,ready:false,roll:source(),choice:source()});
+  }
   map.fields.push({x:720,y:-5540,radius:210,phase:rng()*4,angle:-.4});
   for(const route of OXYGEN_ROUTES){
     const labelY=-8890,labelX=oxygenRouteCenterAtY(route,labelY)??route.x;map.labels.push({x:labelX,y:labelY,text:route.label});
@@ -102,10 +116,11 @@ export function environmentAt(p,time=0){
   const outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
   const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p);
-  const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),routePressure=challenge?.pressure??oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
-  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
+  const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),challengePressure=challenge?.pressure;
+  const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
+  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
   const oxygenAmbient=oxygen*(1-coolEddy)*3,recovering=quiet||thermal.recovery,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));
-  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:challenge?null:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
+  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;
