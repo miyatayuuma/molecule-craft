@@ -16,6 +16,19 @@ const short=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:20}
 const hot=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'n-hexane',amount:6},oxidizer:{molecule:'oxygen',amount:36}},predators:false});setCombustionHeld(hot,true);const hotEvents=advance(hot,8.2,{consumeCombustion:combustion});assert.ok(hotEvents.some(event=>event.type==='overheat'));assert.equal(hot.overheated,true);assert.equal(hot.player.combustion,false);const paidAtCutoff=hot.driveBuffer;assert.ok(paidAtCutoff>0,'Overheat preserves already purchased combustion time');
 const recoveryEvents=advance(hot,4,{consumeCombustion:combustion});assert.ok(recoveryEvents.some(event=>event.type==='heatRecovered'));assert.equal(hot.overheated,false);assert.equal(hot.player.combustion,true,'A held control automatically re-ignites after cooling');assert.ok(hot.driveBuffer<paidAtCutoff);
 
+// Thermal strain is semantic combustion experience: only a below -> HOT
+// crossing while combustion is actively heating emits it, once per run.
+{
+  const ambient=createRun(emptyMap(),VEIL,{predators:false});ambient.heat=THERMAL.hotThreshold-.05;ambient.ambientHeat=1000;const ambientEvents=advance(ambient,1/60);assert.ok(ambient.heat>=THERMAL.hotThreshold);assert.ok(!ambientEvents.some(event=>event.type==='thermalStrain'),'ambient-only HOT does not count');
+
+  const below=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:2},oxidizer:{molecule:'oxygen',amount:4}},predators:false});below.heat=THERMAL.hotThreshold-1;setCombustionHeld(below,true);const belowEvents=advance(below,1/60,{consumeCombustion:combustion});assert.ok(below.heat<THERMAL.hotThreshold);assert.ok(!belowEvents.some(event=>event.type==='thermalStrain'));
+
+  const crossing=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:2},oxidizer:{molecule:'oxygen',amount:4}},predators:false});crossing.heat=THERMAL.hotThreshold-.05;setCombustionHeld(crossing,true);const first=advance(crossing,1/60,{consumeCombustion:combustion});assert.equal(first.filter(event=>event.type==='thermalStrain').length,1);assert.equal(crossing.thermalStrainEmitted,true);
+  crossing.heat=THERMAL.hotThreshold-.05;const second=advance(crossing,1/60,{consumeCombustion:combustion});assert.equal(second.filter(event=>event.type==='thermalStrain').length,0,'same run does not emit duplicate strain events');
+
+  const alreadyHot=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:2},oxidizer:{molecule:'oxygen',amount:4}},predators:false});alreadyHot.heat=THERMAL.hotThreshold+.1;setCombustionHeld(alreadyHot,true);const alreadyHotEvents=advance(alreadyHot,1/60,{consumeCombustion:combustion});assert.ok(!alreadyHotEvents.some(event=>event.type==='thermalStrain'),'starting HOT is not a crossing');
+}
+
 // The thermostat starts at 35, consumes whole coolant molecules only after a
 // durable callback succeeds, and keeps sustained methane below overheat.
 const cooled=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:20},oxidizer:{molecule:'oxygen',amount:40},coolant:{molecule:'water',amount:20}},predators:false});let coolantSpent=0;setCombustionHeld(cooled,true);const cooledEvents=advance(cooled,20,{consumeCombustion:combustion,consumeCoolant:(amount,molecule)=>{assert.equal(amount,1);assert.equal(molecule,'water');coolantSpent+=amount;return true;}});assert.ok(cooledEvents.some(event=>event.type==='coolantStart'));assert.equal(cooled.overheated,false);assert.ok(cooled.heat>=THERMAL.coolantStart-3&&cooled.heat<THERMAL.hotThreshold);assert.equal(cooled.fuel.coolant.amount,20-coolantSpent);assert.ok(coolantSpent>0);
@@ -33,4 +46,4 @@ const depleted=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:
 
 const report=completeExpeditionTelemetry(cooled,{result:{lost:{H:0,C:0,O:0}}});assert.equal(report.loadout.coolant.molecule,'water');assert.equal(report.loadout.coolant.used,coolantSpent);assert.equal(report.fuelUsed.water,coolantSpent);assert.equal(report.overheatEvents,0);assert.ok(report.maxHeat>=cooled.heat);
 
-console.log('Thermal coolant passed: short-burn freedom, hard cutoff, automatic cooling/recovery, atomic consumption, depletion, and telemetry.');
+console.log('Thermal coolant passed: combustion-only HOT crossing strain, duplicate suppression, short-burn freedom, hard cutoff, automatic cooling/recovery, atomic consumption, depletion, and telemetry.');

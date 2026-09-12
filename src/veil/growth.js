@@ -84,14 +84,17 @@ export function propulsionGauge(id,loadout={},driveBuffer=0){
   return {remaining,capacity,seconds,ratio,state:ratio<=0?'empty':ratio<=.34?'low':'enough'};
 }
 export function growthGoal(state,{cargo={}}={}){
-  const has=id=>state.recipes.includes(id),found=state.progress.foundElements??['H'];
+  const has=id=>state.recipes.includes(id),hinted=id=>state.hints?.includes(id),found=state.progress.foundElements??['H'];
   if(state.progress.choCompleted)return {text:'CHO探索クリア · 自由探索で構成を試したり、気になるCHO分子を作ろう。'};
-  if(!has('hydrogen')&&(state.elements?.H??0)+(cargo.H??0)<2)return {text:'収集殻から出発し、Hの光を集めて帰還しよう。材料がなくても通常航行できる。'};
-  if(!has('hydrogen'))return {id:'hydrogen',text:'Hを2つつなぎ、緊急用のH₂ BURSTを発見しよう。'};
+  if(!has('hydrogen'))return hinted('hydrogen')?{id:'hydrogen',text:'得た構造をもとにH₂をCRAFTし、緊急用BURSTを準備しよう。'}:{text:'Hの光を集め、緊急噴射を実用量試せるだけの材料を確保しよう。'};
   if(!found.includes('C'))return {text:'完成したH₂模型の噴射剤ボタンを長押しで充填。H Veilの奥の強流で噴射し、Cを探そう。'};
-  if(!has('methane'))return {id:'methane',text:'Cで作れる燃料は？ ヒントを見ても、自分の知識で組んでもいい。'};
+  if(!has('methane'))return hinted('methane')?{id:'methane',text:'得た構造をもとにCH₄をCRAFTしよう。燃焼にはさらに酸化剤が必要だ。'}:{text:'CとHを集め、燃料として試せるだけの材料を確保しよう。'};
   if(!found.includes('O'))return {text:'CH₄は燃料。酸化剤を探して、炭素の群れのさらに奥へ。'};
-  if(!has('oxygen'))return {id:'oxygen',text:'O同士を二重結合に。CH₄と組み合わせる酸化剤を作ろう。'};
+  if(!has('oxygen'))return hinted('oxygen')?{id:'oxygen',text:'得た構造をもとにO₂をCRAFTし、CH₄と組み合わせる酸化剤を準備しよう。'}:{text:'Oを集め、COMBUSTION DRIVEを試せるだけの酸化剤材料を確保しよう。'};
+  if(!has('water')){
+    if(!state.progress.thermalStrainExperienced)return {text:'CH₄とO₂を積み、COMBUSTION DRIVEでさらに奥へ。連続燃焼の制約を実際に確かめよう。'};
+    return hinted('water')?{id:'water',text:'熱制約への対策として得た構造をCRAFTし、冷却剤として試そう。'}:{text:'燃焼の熱制約は見えた。HとOを集め、対策を実用量試せる材料を確保しよう。'};
+  }
   if(!state.progress.frontier)return {text:'CH₄とO₂を充填して酸素の奥へ。水で冷却するか静かな渦で休もう。CO₂は反復噴射の選択肢。'};
   return {text:'最深部の金色の輪へ進み、正常帰還してCHO探索を完了しよう。噴射・燃焼・休止を組み合わせよう。'};
 }

@@ -57,7 +57,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null)};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,overheated:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -75,10 +75,11 @@ function updateCombustion(run,dt,systems){
 }
 
 function updateThermal(run,dt,systems){
-  const p=run.player,fuelPerformance=performanceFor(run.fuel.fuel.molecule,'fuel');
+  const p=run.player,fuelPerformance=performanceFor(run.fuel.fuel.molecule,'fuel'),previousHeat=run.heat;
   run.heat+=run.ambientHeat/100*2.5*dt;
   run.heat+=p.combustion?THERMAL.heatPerSecond*(fuelPerformance?.heatFactor??1)*dt:-THERMAL.naturalCoolingPerSecond*dt;
   run.heat=clamp(run.heat,0,THERMAL.overheatThreshold);
+  if(!run.thermalStrainEmitted&&p.combustion&&previousHeat<THERMAL.hotThreshold&&run.heat>=THERMAL.hotThreshold){run.thermalStrainEmitted=true;run.events.push({type:'thermalStrain'});}
   const coolant=run.fuel.coolant,coolantPerformance=performanceFor(coolant?.molecule,'coolant');
   const thermostat=run.heat>=THERMAL.coolantStart&&(p.combustion||run.overheated);
   if(thermostat&&run.coolantBuffer<=1e-8&&coolantPerformance&&coolant.amount>=1){
