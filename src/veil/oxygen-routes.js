@@ -72,8 +72,8 @@ export const OXYGEN_ROUTES=Object.freeze([
 export const OXYGEN_THERMAL=Object.freeze({
   routeId:'oxygen-side',coreRadius:150,fadeRadius:260,
   heatStops:freezeStops([
-    [-8870,1],[-9050,2],[-9200,4],[-9700,18],[-9800,28],[-10050,40],
-    [-10250,48],[-10480,48],[-10510,32],[-10540,8],[-10560,0],[-10670,0],
+    [-8870,1],[-9050,2],[-9200,4],[-9500,12],[-9700,32],[-9800,48],
+    [-10480,48],[-10510,32],[-10540,8],[-10560,0],[-10670,0],
   ]),
   mergeRecovery:Object.freeze({x:120,y:-10800,radius:330,top:-10640,bottom:-10900}),
   deepHeatStops:freezeStops([
