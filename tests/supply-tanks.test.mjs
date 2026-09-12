@@ -5,6 +5,33 @@ import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 const database=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
 const memory=()=>{const data=new Map();let reject=false;return {getItem:key=>data.get(key)??null,setItem:(key,value)=>{if(reject)throw Error('quota');data.set(key,value);},removeItem:key=>data.delete(key),reject(value=true){reject=value;},data};};
 const setup=()=>{const storage=memory(),resources=createResources({storage});resources.setCatalog(database);return {storage,resources};};
+const tankUses=['propellant','fuel','oxidizer','coolant'];
+
+{
+ for(const [id,use] of [['hydrogen','propellant'],['methane','fuel'],['oxygen','oxidizer'],['water','coolant']]){
+  const {resources}=setup(),before=resources.snapshot(),result=resources.discoverWithLoadout(id,use);
+  assert.deepEqual(result,{learned:true,assignedUse:use});assert.equal(resources.selectedLoadout()[use],id);
+  for(const other of tankUses)if(other!==use)assert.equal(resources.selectedLoadout()[other],null,`${id} must not auto-select unrelated ${other} slot`);
+  assert.deepEqual(resources.state.tanks,before.tanks,`${id} discovery must not fill actual tanks`);assert.deepEqual(resources.state.elements,before.elements,`${id} discovery must not consume BASE STOCK`);
+ }
+}
+
+{
+ const {resources}=setup();resources.discover('methanol');assert.ok(resources.setLoadoutTank('fuel','methanol'));const selected={...resources.selectedLoadout()},tanks=structuredClone(resources.state.tanks),elements={...resources.state.elements};
+ const result=resources.discoverWithLoadout('methane','fuel');assert.deepEqual(result,{learned:true,assignedUse:null});assert.deepEqual(resources.selectedLoadout(),selected,'First methane CRAFT must preserve an existing fuel choice');assert.deepEqual(resources.state.tanks,tanks);assert.deepEqual(resources.state.elements,elements);
+}
+
+{
+ const {resources}=setup();assert.deepEqual(resources.discoverWithLoadout('hydrogen','propellant'),{learned:true,assignedUse:'propellant'});assert.ok(resources.setLoadoutTank('propellant',null));const before=resources.snapshot();assert.equal(resources.discoverWithLoadout('hydrogen','propellant'),false);assert.deepEqual(resources.snapshot(),before,'Repeat CRAFT must not restore or alter the first-use assignment');
+}
+
+{
+ const {resources}=setup(),before=resources.snapshot(),result=resources.discoverWithLoadout('methanol',null);assert.deepEqual(result,{learned:true,assignedUse:null});assert.deepEqual(resources.selectedLoadout(),before.loadout.tanks,'Non-critical discovery must not auto-select any tank');assert.deepEqual(resources.state.tanks,before.tanks);assert.deepEqual(resources.state.elements,before.elements);
+}
+
+{
+ const {storage,resources}=setup(),before=resources.snapshot();storage.reject();assert.equal(resources.discoverWithLoadout('hydrogen','propellant'),false);assert.deepEqual(resources.snapshot(),before,'Discovery and auto-assignment roll back together when persistence fails');
+}
 
 {
  const {resources}=setup();for(const id of ['hydrogen','methane','oxygen','water','carbon-dioxide'])resources.discover(id);Object.assign(resources.state.elements,{H:1000,C:100,O:1000});resources.save();
@@ -47,4 +74,4 @@ const setup=()=>{const storage=memory(),resources=createResources({storage});res
  const {resources}=setup();resources.discover('hydrogen');resources.state.loadout.tanks.propellant='not-discovered';const before=resources.snapshot();const plan=resources.launchFillPlan();assert.equal(plan.status,'IMPOSSIBLE');assert.equal(plan.invalid.length,1);assert.equal(resources.commitLaunchFill({partial:true}),false);assert.deepEqual(resources.snapshot(),before);
 }
 
-console.log('Loadout auto-synthesis supply passed: free selection, residual reuse, replacement discard, empty tanks, proportional partial fill, impossible guard, rollback, and legacy initialization.');
+console.log('Loadout auto-synthesis supply passed: atomic capability assignment, overwrite protection, tank/content separation, rollback, free selection, residual reuse, replacement discard, empty tanks, proportional partial fill, impossible guard, and legacy initialization.');
