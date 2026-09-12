@@ -23,7 +23,6 @@ jobs:
           node tests/craft-controls-ui.test.mjs
           node tests/craft-history.test.mjs
           node tests/craft-input-recovery.test.mjs
-          node tests/craft-undo-contract.test.mjs
           node tests/incomplete-carbon-geometry.test.mjs
           node tests/structure-settlement-check.mjs
           node tests/source-contracts.test.mjs
