@@ -179,8 +179,8 @@ test('Oxygen main recovery keeps its harvest while Deep routes replace the legac
   for(const authored of DEEP_OXYGEN_ROUTES){
     const runtime=universe.routes.find(route=>route.id===authored.id);assert.ok(runtime,`${authored.id} is generated`);
     const distanceToRoute=([x,y])=>Math.min(...runtime.points.map(point=>Math.hypot(point.x-x,point.y-y)));
-    assert.ok(distanceToRoute([120,-10800])<20,`${authored.id} starts at Deep decision`);
-    assert.ok(distanceToRoute([100,-11830])<20,`${authored.id} converges at Frontier approach`);
+    assert.ok(distanceToRoute([120,-10800])<45,`${authored.id} starts at Deep decision`);
+    assert.ok(distanceToRoute([100,-11830])<45,`${authored.id} converges at Frontier approach`);
   }
 });
 

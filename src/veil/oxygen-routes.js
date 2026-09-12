@@ -173,7 +173,7 @@ export function oxygenThermalAt(p){
       if(deepRoute.id==='oxygen-deep-thermal')deepThermalHeat=local;
     }
   }
-  const heat=Math.max(routeHeat,deepHeat),networkFactor=.71*clamp(routeHeat/48,0,1),deepFactor=.71*clamp(deepThermalHeat/48,0,1);
+  const heat=Math.max(routeHeat,deepHeat),networkFactor=.71*clamp(routeHeat/48,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1);
   return {heat,routeHeat,deepHeat,deepThermalHeat,recovery,mergeRecovery,frontierRecovery,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,deepFactor)};
 }
 export function oxygenRouteAt(p){
