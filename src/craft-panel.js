@@ -15,9 +15,9 @@ function targetLabelColor(color){
   const r=parseInt(value.slice(0,2),16),g=parseInt(value.slice(2,4),16),b=parseInt(value.slice(4,6),16);return .299*r+.587*g+.114*b>168?'#07131f':'#f8fafc';
 }
 
-function styleTargetAtom(node,symbol,filled,size=31){
-  const color=ELEMENTS[symbol]?.color??'#94a3b8',base=filled?color:`color-mix(in srgb,${color} 26%,#344451)`,highlight=filled?`color-mix(in srgb,#fff 48%,${color})`:`color-mix(in srgb,#fff 18%,${color})`,edge=filled?`color-mix(in srgb,${color} 72%,#d8f3f5)`:`color-mix(in srgb,${color} 28%,#60717d)`,text=filled?targetLabelColor(color):'#eef5f8';
-  node.style.cssText=`display:inline-grid;place-items:center;flex:0 0 ${size}px;width:${size}px;height:${size}px;border:1px solid ${edge};border-radius:50%;background:radial-gradient(circle at 34% 28%,${highlight} 0 10%,${base} 48%,color-mix(in srgb,${base} 66%,#07131f) 100%);box-shadow:${filled?'inset -3px -4px 7px #07131f55,0 2px 7px #0005':'inset -2px -3px 6px #07131f66,0 1px 4px #0003'};color:${text};font-size:${size<=27?10:12}px;font-weight:800;line-height:1;text-shadow:${text==='#07131f'?'0 1px 1px #fff6':'0 1px 2px #000'};user-select:none;transition:transform .18s ease,filter .18s ease,opacity .18s ease;${filled?'':'filter:saturate(.46) brightness(.86);'}`;
+function styleTargetAtom(node,symbol,size=31){
+  const color=ELEMENTS[symbol]?.color??'#94a3b8',highlight=`color-mix(in srgb,#fff 48%,${color})`,edge=`color-mix(in srgb,${color} 72%,#d8f3f5)`,text=targetLabelColor(color);
+  node.style.cssText=`display:inline-grid;place-items:center;flex:0 0 ${size}px;width:${size}px;height:${size}px;border:1px solid ${edge};border-radius:50%;background:radial-gradient(circle at 34% 28%,${highlight} 0 10%,${color} 48%,color-mix(in srgb,${color} 66%,#07131f) 100%);box-shadow:inset -3px -4px 7px #07131f55,0 2px 7px #0005;color:${text};font-size:${size<=27?10:12}px;font-weight:800;line-height:1;text-shadow:${text==='#07131f'?'0 1px 1px #fff6':'0 1px 2px #000'};user-select:none;transition:transform .18s ease,opacity .18s ease;`;
 }
 
 function partCompositionFormula(template){
@@ -32,7 +32,7 @@ export function compactPartNotation(template){
 
 export function renderCraftTargetAtoms(container,record,placedAtoms=[],{size=31}={}){
   if(!container)return[];container.replaceChildren();const rendered=[];
-  for(const slot of craftTargetSlots(record,placedAtoms)){const chip=container.ownerDocument.createElement('span');chip.className='craft-target-atom';chip.dataset.element=slot.symbol;chip.dataset.filled=String(slot.filled);chip.textContent=slot.symbol;chip.setAttribute('aria-label',`${ELEMENTS[slot.symbol]?.name??slot.symbol} ${slot.filled?'配置済み':'未配置'}`);styleTargetAtom(chip,slot.symbol,slot.filled,size);container.appendChild(chip);rendered.push({slot,node:chip});}
+  for(const slot of craftTargetSlots(record,placedAtoms)){const chip=container.ownerDocument.createElement('span');chip.className='craft-target-atom';chip.dataset.element=slot.symbol;chip.dataset.filled=String(slot.filled);chip.textContent=slot.symbol;chip.setAttribute('aria-label',`${ELEMENTS[slot.symbol]?.name??slot.symbol} ${slot.filled?'配置済み':'未配置'}`);styleTargetAtom(chip,slot.symbol,size);container.appendChild(chip);rendered.push({slot,node:chip});}
   return rendered;
 }
 
@@ -46,7 +46,7 @@ export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=3
       const notation=compactPartNotation(template)||item.partId;formula.className='craft-target-part-formula';formula.textContent=notation;formula.dataset.long=String([...notation].length>8);
       chip.setAttribute('aria-label',`${template?.nameJa??notation}をクラフト台へ出す`);chip.append(model,formula);chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot:null});continue;
     }
-    const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;const slot={symbol,index,filled:false},chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled=String(slot.filled);chip.textContent=symbol;chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);styleTargetAtom(chip,symbol,slot.filled,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot});
+    const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;const slot={symbol,index,filled:false},chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled=String(slot.filled);chip.textContent=symbol;chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);styleTargetAtom(chip,symbol,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot});
   }
   return rendered;
 }
