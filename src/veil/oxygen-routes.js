@@ -68,18 +68,18 @@ export const OXYGEN_ROUTES=Object.freeze([
 ]);
 
 // Deep Oxygen remains physically open: these values describe authored route
-// advantages, not capability gates. A coarser provisional dust spacing keeps the
-// three-route expansion near the former single-route economy until Task 6.
+// advantages, not capability gates. Task 6 differentiates reward efficiency
+// while keeping the Task 5 topology, pressure and thermal profiles unchanged.
 export const DEEP_OXYGEN_ROUTES=Object.freeze([
   {id:'oxygen-deep-safe',label:'Deep Safe Long',color:'#9bbfd1',x:-650,width:260,classification:'G0 / G1',
     summary:'長い安全側baseline。低圧・低熱で通常推進と自然冷却だけでも安定通過できる。',
-    knots:[[120,-10800],[-650,-11000],[-720,-11450],[100,-11830]],pressure:18,spacing:40,lanes:2,value:2},
+    knots:[[120,-10800],[-650,-11000],[-720,-11450],[100,-11830]],pressure:18,spacing:44,lanes:2,value:2},
   {id:'oxygen-deep-skill',label:'Deep Skill Fast',color:'#a8d8f0',x:100,width:180,classification:'G2',
     summary:'最短のprecision route。中央challengeは通常推進でもライン取りで迂回でき、BURSTなら直進しやすい。',
-    knots:[[120,-10800],[100,-11200],[100,-11830]],pressure:34,spacing:40,lanes:2,value:2},
+    knots:[[120,-10800],[100,-11200],[100,-11830]],pressure:34,spacing:32,lanes:2,value:2},
   {id:'oxygen-deep-thermal',label:'Deep Thermal',color:'#d69678',x:760,width:260,classification:'G1 → partial G3 candidate',
     summary:'低圧の高熱route。H₂Oは連続DRIVEを明確に伸ばすが、通常移動や休止による通過を妨げない。',
-    knots:[[120,-10800],[760,-11050],[760,-11500],[100,-11830]],pressure:16,spacing:40,lanes:2,value:2},
+    knots:[[120,-10800],[760,-11050],[760,-11500],[100,-11830]],pressure:16,spacing:36,lanes:3,value:3},
 ]);
 export const DEEP_OXYGEN_FRONTIER_RECOVERY=Object.freeze({x:100,y:-11700,rx:250,ry:130});
 const DEEP_OFF_ROUTE_PRESSURE=120;

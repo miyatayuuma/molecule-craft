@@ -1,13 +1,15 @@
 import {OXYGEN_VORTEX_ROUTE} from './oxygen-routes.js';
 
 // Optional currents share physics, visual geometry and traversal rewards.
+// centerX/centerY are the authored route-alignment anchors; curve keeps its
+// existing sinusoidal centerline around that baseline.
 export const EXPEDITION_CHALLENGES=Object.freeze([
-  {id:'pulse',bottom:-8350,top:-8750,width:220,rewards:['dimethyl-ether','ethene','propene']},
-  {id:'curve',bottom:-10820,top:-11320,width:240,rewards:['propane','phenol','formaldehyde']},
-  {id:'thermal',bottom:-11320,top:-11600,width:260,rewards:['ethylene-glycol','n-hexane']},
+  {id:'pulse',bottom:-9450,top:-9850,width:220,centerX:-320,centerY:-9650,rewards:['dimethyl-ether','ethene','propene']},
+  {id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:['propane','phenol','formaldehyde']},
+  {id:'thermal',bottom:-11160,top:-11440,width:260,centerX:760,centerY:-11300,rewards:['ethylene-glycol','n-hexane']},
 ]);
 export const CHALLENGE_INSIGHT_IDS=Object.freeze([...new Set(EXPEDITION_CHALLENGES.flatMap(challenge=>challenge.rewards))]);
-export const challengeCenter=(zone,y)=>zone.id==='curve'?120+170*Math.sin((y-zone.bottom)/500*Math.PI):120;
+export const challengeCenter=(zone,y)=>zone.id==='curve'?zone.centerX+170*Math.sin((y-zone.bottom)/500*Math.PI):zone.centerX;
 export function challengeEnvironment(p,time){
   const z=EXPEDITION_CHALLENGES.find(z=>p.y<=z.bottom&&p.y>=z.top&&Math.abs(p.x-challengeCenter(z,p.y))<z.width);
   if(!z)return null;
