@@ -2,11 +2,8 @@ node:internal/modules/run_main:123
     triggerUncaughtException(
     ^
 
-AssertionError [ERR_ASSERTION]: {"routesVisited":[],"currentCrossings":[],"harvestReached":false,"stalledBursts":0,"destinationReached":false,"choCompleted":false,"duration":31.35,"maxDepth":8835,"collected":{"H":6,"C":1,"O":25},"loadout":{"propellant":{"molecule":"hydrogen","start":120,"used":0},"fuel":{"molecule":null,"start":0,"used":0},"oxidizer":{"molecule":null,"start":0,"used":0},"coolant":{"molecule":null,"start":0,"used":0}},"fuelUsed":{},"burstUses":0,"combustionSeconds":0,"maxHeat":0,"overheatEvents":0,"maxEaters":1,"minEaterDistance":38,"dangerContacts":1,"returnType":"forced","loss":{"H":3,"C":0,"O":11},"routeId":"oxygen-shortcut","policy":"burst","seed":1,"fps":30,"detour":false,"destination":"harvest","stock":{},"lateralOffset":0,"timingOffset":0,"grossAtoms":32,"fuelAtomCost":0,"netAtoms":27,"initialFillAtoms":{"H":240,"C":0,"O":0},"consumedAtoms":{"H":0,"C":0,"O":0},"returnedAtoms":{"H":5,"C":1,"O":21},"netByElement":{"H":5,"C":1,"O":21},"remainingTanks":{"propellant":{"molecule":"hydrogen","amount":120},"fuel":{"molecule":null,"amount":0},"oxidizer":{"molecule":null,"amount":0},"coolant":{"molecule":null,"amount":0}},"remainingDust":{"H":1,"C":1,"O":2},"cargoDust":{"H":19,"C":4,"O":76},"arrivalSeconds":null,"reached":false,"returnLockSeconds":0,"actualBurstTimes":[],"propulsionSwitches":0,"modeTransitions":0,"driveBuffer":0,"accountingConsistent":true,"position":{"x":85,"y":-8640}}
-
-false !== true
-
-    at file:///home/runner/work/molecule-craft/molecule-craft/tests/oxygen-routes.test.mjs:16:39
+AssertionError [ERR_ASSERTION]: The longer route remains exposed to normal pursuit
+    at file:///home/runner/work/molecule-craft/molecule-craft/tests/oxygen-routes.test.mjs:22:10
     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
@@ -14,7 +11,7 @@ false !== true
   code: 'ERR_ASSERTION',
   actual: false,
   expected: true,
-  operator: 'strictEqual',
+  operator: '==',
   diff: 'simple'
 }
 
