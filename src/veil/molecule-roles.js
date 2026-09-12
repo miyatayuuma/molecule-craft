@@ -5,26 +5,29 @@
 
 export const ROLE_BALANCE_VERSION=2;
 
-const profile=(roles,performance)=>Object.freeze({roles:Object.freeze([...roles]),performance:Object.freeze(performance)});
+const profile=(roles,performance,primaryRole=roles.length===1?roles[0]:null)=>{
+  if(!primaryRole||!roles.includes(primaryRole))throw new TypeError(`Multi-role molecule profile requires an explicit primary role: ${roles.join(',')}`);
+  return Object.freeze({roles:Object.freeze([...roles]),primaryRole,performance:Object.freeze(performance)});
+};
 
 export const MOLECULE_ROLE_PROFILES=Object.freeze({
   hydrogen:profile(['propellant','fuel'],{
     propellant:Object.freeze({capacity:120,moleculesPerBurst:40,burstPower:1.00}),
     fuel:Object.freeze({capacity:28,oxygenPerFuel:.50,energy:.30,heatFactor:.75,response:1.55}),
-  }),
+  },'propellant'),
   ammonia:profile(['propellant','fuel','coolant'],{
     propellant:Object.freeze({capacity:96,moleculesPerBurst:12,burstPower:.82}),
     fuel:Object.freeze({capacity:24,oxygenPerFuel:.75,energy:.40,heatFactor:.70,response:.78}),
     coolant:Object.freeze({capacity:60,coolingPower:1.50,durationFactor:.65,environmentTolerance:.85}),
-  }),
+  },'propellant'),
   nitrogen:profile(['propellant','coolant'],{
     propellant:Object.freeze({capacity:80,moleculesPerBurst:10,burstPower:.72}),
     coolant:Object.freeze({capacity:72,coolingPower:1.90,durationFactor:.45,environmentTolerance:.55}),
-  }),
+  },'propellant'),
   'carbon-dioxide':profile(['propellant','coolant'],{
     propellant:Object.freeze({capacity:72,moleculesPerBurst:8,burstPower:.62}),
     coolant:Object.freeze({capacity:64,coolingPower:.95,durationFactor:.95,environmentTolerance:.80}),
-  }),
+  },'propellant'),
   methane:profile(['fuel'],{
     fuel:Object.freeze({capacity:18,oxygenPerFuel:2.00,energy:1.00,heatFactor:1.00,response:1.00}),
   }),
@@ -37,7 +40,7 @@ export const MOLECULE_ROLE_PROFILES=Object.freeze({
   'n-butane':profile(['propellant','fuel'],{
     propellant:Object.freeze({capacity:40,moleculesPerBurst:4,burstPower:.52}),
     fuel:Object.freeze({capacity:9,oxygenPerFuel:6.50,energy:3.31,heatFactor:1.15,response:.72}),
-  }),
+  },'propellant'),
   isobutane:profile(['fuel'],{
     fuel:Object.freeze({capacity:9,oxygenPerFuel:6.50,energy:3.29,heatFactor:1.13,response:.80}),
   }),
@@ -53,11 +56,11 @@ export const MOLECULE_ROLE_PROFILES=Object.freeze({
   methanol:profile(['fuel','coolant'],{
     fuel:Object.freeze({capacity:20,oxygenPerFuel:1.50,energy:.80,heatFactor:.85,response:1.30}),
     coolant:Object.freeze({capacity:56,coolingPower:1.20,durationFactor:.85,environmentTolerance:.90}),
-  }),
+  },'fuel'),
   ethanol:profile(['fuel','coolant'],{
     fuel:Object.freeze({capacity:16,oxygenPerFuel:3.00,energy:1.54,heatFactor:.95,response:1.12}),
     coolant:Object.freeze({capacity:48,coolingPower:1.05,durationFactor:1.15,environmentTolerance:1.00}),
-  }),
+  },'fuel'),
   '1-butanol':profile(['fuel'],{
     fuel:Object.freeze({capacity:10,oxygenPerFuel:6.00,energy:3.02,heatFactor:1.00,response:.82}),
   }),
@@ -83,6 +86,7 @@ export const MOLECULE_ROLE_PROFILES=Object.freeze({
 
 export const roleProfileFor=id=>MOLECULE_ROLE_PROFILES[id]??null;
 export const rolesFor=id=>roleProfileFor(id)?.roles??[];
+export const primaryRoleFor=id=>roleProfileFor(id)?.primaryRole??null;
 export const performanceFor=(id,role)=>roleProfileFor(id)?.performance?.[role]??null;
 export const moleculesForRole=role=>Object.entries(MOLECULE_ROLE_PROFILES).filter(([,entry])=>entry.roles.includes(role)).map(([id])=>id);
 
