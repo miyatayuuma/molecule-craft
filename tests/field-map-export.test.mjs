@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {buildFieldMapSvg} from '../scripts/export-field-map.mjs';
-import {createFlight,moveFlight} from '../src/veil/engine.js';
+import {createFlight,createRun,moveFlight,stepRun} from '../src/veil/engine.js';
 import {createUniverse,environmentAt,OXYGEN_ENTRY_KNOTS} from '../src/veil/universe.js';
 import {DRIVES,flightConfig} from '../src/veil/growth.js';
 import {
@@ -142,6 +142,27 @@ test('Oxygen Network pressure roles separate BURST, DRIVE and low-pressure route
     assert.equal(route.requiredCapability,undefined,'no route becomes a hard capability gate');
     assert.equal(route.requires,undefined,'no capability requirement is introduced');
   }
+});
+
+test('Oxygen Network route pressure stays traversable and propulsion keeps a material advantage',()=>{
+  const traverse=({x,y,targetY,burst=false,drive=false,maxSeconds=6})=>{
+    const config=flightConfig(),fuel=drive?{fuel:{molecule:'methane',amount:18,capacity:18},oxidizer:{molecule:'oxygen',amount:36,capacity:36}}:{},run=createRun(createUniverse(1,{H:0,C:0,O:0}),config,{fuel,predators:false});
+    Object.assign(run.player,{x,y,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});run.region='oxygen';
+    if(burst){run.player.drive=DRIVES.hydrogen;run.player.boost=DRIVES.hydrogen.boostSeconds;}
+    if(drive)run.driveHeld=true;
+    const systems=drive?{consumeCombustion:()=>true}:{},dt=1/60;
+    for(let frame=0;frame<maxSeconds/dt;frame++){
+      stepRun(run,{x:0,y:-1},dt,systems);
+      if(run.player.y<=targetY)return run.time;
+    }
+    return Infinity;
+  };
+  const shortcutNormal=traverse({x:-320,y:-9600,targetY:-9800,maxSeconds:4}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});
+  assert.ok(Number.isFinite(shortcutNormal),'normal thrust must cross the localized BURST chokepoint');
+  assert.ok(shortcutBurst<shortcutNormal*.7,`BURST must materially ease the chokepoint (${shortcutBurst.toFixed(2)}s vs ${shortcutNormal.toFixed(2)}s)`);
+  const mainNormal=traverse({x:300,y:-9000,targetY:-9400}),mainDrive=traverse({x:300,y:-9000,targetY:-9400,drive:true});
+  assert.ok(Number.isFinite(mainNormal),'normal thrust must traverse sustained DRIVE-route pressure');
+  assert.ok(mainDrive<mainNormal*.6,`COMBUSTION DRIVE must materially improve sustained traversal (${mainDrive.toFixed(2)}s vs ${mainNormal.toFixed(2)}s)`);
 });
 
 test('Oxygen main recovery moves the existing harvest pocket without changing its amount or value',()=>{
