@@ -71,13 +71,6 @@ jobs:
           new="const serviceSeconds=Math.min(1,THERMAL.coolantSecondsPerMolecule*profile.durationFactor),expected=THERMAL.coolantStart+THERMAL.heatPerSecond-THERMAL.coolantCoolingPerSecond*profile.coolingPower*serviceSeconds;assert.ok(Math.abs(run.heat-expected)<1e-8,`${molecule} coolingPower and durationFactor drive real heat removal`);"
           assert old in s
           p.write_text(s.replace(old,new))
-
-          p=Path('.github/workflows/repository-validation.yml')
-          s=p.read_text()
-          old="""      - name: Oxygen thermal progression\n        run: node tests/oxygen-thermal-progression.test.mjs\n"""
-          new="""      - name: Thermal and expedition regressions\n        run: |\n          node tests/oxygen-thermal-progression.test.mjs\n          node tests/thermal-coolant.test.mjs\n          node tests/expedition-core.test.mjs\n"""
-          assert old in s
-          p.write_text(s.replace(old,new))
           PY
       - name: Focused thermal and expedition regressions
         run: |
@@ -105,6 +98,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/workflows/repository-validation.yml src/veil/config.js src/veil/engine.js src/veil/oxygen-routes.js src/veil/universe.js tests/oxygen-thermal-progression.test.mjs tests/thermal-coolant.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js
+          git add src/veil/config.js src/veil/engine.js src/veil/oxygen-routes.js src/veil/universe.js tests/oxygen-thermal-progression.test.mjs tests/thermal-coolant.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js
           git diff --cached --quiet || git commit -m "Localize Route C combustion thermal load"
           git push
