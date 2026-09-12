@@ -21,8 +21,17 @@ jobs:
         run: |
           node tests/source-contracts.test.mjs
           node tests/persistence-boundary-source-contract.test.mjs
-      - name: Generated PWA freshness
-        run: node scripts/build-precache.mjs --check
+      - name: Propulsion HUD regressions
+        run: |
+          node tests/loadout-preview.test.mjs
+          node tests/loadout-card-order.test.mjs
+          node tests/generic-propulsion.test.mjs
+          node tests/thermal-coolant.test.mjs
+          node tests/propulsion-hud-source.test.mjs
+      - name: Generate PWA diff for review
+        run: |
+          node scripts/build-precache.mjs
+          git diff --exit-code -- sw.js precache-manifest.js
       - name: PWA integrity
         run: node tests/pwa.test.mjs
       - name: Whitespace errors in pull request diff
