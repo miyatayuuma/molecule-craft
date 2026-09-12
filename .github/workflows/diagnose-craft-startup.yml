@@ -1,0 +1,51 @@
+name: Diagnose CRAFT startup
+
+on:
+  push:
+    branches:
+      - codex/craft-input-freeze-recovery
+
+permissions:
+  contents: read
+
+jobs:
+  startup-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - name: Build diagnostic entrypoint
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          text=Path('index.html').read_text()
+          probe='''<script>\nwindow.__diagErrors=[];\nwindow.addEventListener('error',e=>window.__diagErrors.push(String(e.error?.stack||e.message||e.error)));\nwindow.addEventListener('unhandledrejection',e=>window.__diagErrors.push(String(e.reason?.stack||e.reason)));\nsetTimeout(()=>{\n  const menu=document.querySelector('#menu-dialog');\n  document.querySelector('#open-menu')?.click();\n  document.documentElement.dataset.diagMenu=menu?.open?'open':'closed';\n  document.documentElement.dataset.diagCanvas=String(document.querySelectorAll('#viewer canvas').length);\n  document.documentElement.dataset.diagUndo=String(document.querySelector('#undo-cleanup')?.hidden);\n  document.documentElement.dataset.diagErrors=window.__diagErrors.join(' || ').slice(0,1500);\n},2500);\n</script>'''
+          Path('diagnostic.html').write_text(text.replace('</body>',probe+'\n</body>'))
+          PY
+      - name: Start static server
+        run: |
+          python3 -m http.server 8000 >/tmp/molecule-http.log 2>&1 &
+          echo $! >/tmp/molecule-http.pid
+          sleep 1
+      - name: Run clean-profile Chrome smoke
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$CHROME" ]; then echo 'No Chrome executable found'; exit 2; fi
+          echo "Chrome: $CHROME"
+          set +e
+          timeout 25s "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --user-data-dir=/tmp/molecule-chrome --virtual-time-budget=5000 --enable-logging=stderr --v=0 --dump-dom http://127.0.0.1:8000/diagnostic.html >/tmp/molecule-dom.html 2>/tmp/molecule-chrome.log
+          STATUS=$?
+          set -e
+          echo "chrome_status=$STATUS"
+          echo '--- DIAGNOSTIC ATTRS ---'
+          grep -o 'data-diag-[^>]*' /tmp/molecule-dom.html | head -1 || true
+          echo '--- CONSOLE / CHROME ERRORS ---'
+          grep -E 'SEVERE|ERROR|Uncaught|TypeError|ReferenceError|SyntaxError|Craft animation|Initial craft|Saved geometry|Failed to load' /tmp/molecule-chrome.log || true
+          echo '--- APP MARKERS ---'
+          grep -o '<canvas[^>]*' /tmp/molecule-dom.html | head -2 || true
+          grep -o '<dialog id="menu-dialog"[^>]*' /tmp/molecule-dom.html | head -1 || true
+          test "$STATUS" -eq 0
+          grep -q 'data-diag-menu="open"' /tmp/molecule-dom.html
+          grep -q 'data-diag-errors=""' /tmp/molecule-dom.html
