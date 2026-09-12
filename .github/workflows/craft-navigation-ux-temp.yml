@@ -1,0 +1,43 @@
+name: CRAFT navigation branch validation
+
+on:
+  push:
+    branches: [fix/craft-navigation-ux-cleanup]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Runtime
+        run: node --version
+      - name: Focused CRAFT navigation tests
+        run: |
+          node tests/craft-navigation-ux.test.mjs
+          node tests/pubchem-reference.test.mjs
+          node tests/craft-chrome.test.mjs
+          node tests/source-contracts.test.mjs
+      - name: Relevant navigation boundary tests
+        run: |
+          node tests/loadout-workstation.test.mjs
+          node tests/issue-119-regression.test.mjs
+      - name: Generate verified PWA release
+        run: node scripts/build-precache.mjs
+      - name: Commit generated release when needed
+        shell: bash
+        run: |
+          if git diff --quiet -- sw.js precache-manifest.js; then
+            echo "Precache is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js precache-manifest.js
+          git commit -m "Refresh PWA precache manifest"
+          git push
+      - name: PWA integrity
+        run: node tests/pwa.test.mjs
