@@ -48,13 +48,11 @@ export const EXPEDITION = Object.freeze({
   eaterDangerRadius: 250,
 });
 // Compressed thermal game units; ambient exposure adds heat and shortens
-// coolant service time according to its environment tolerance. Combustion and
-// coolant rates stay proportionally paired so H₂O keeps its pre-existing
-// thermostat relationship while a full-speed Route C traversal can teach HOT.
+// coolant service time according to its environment tolerance.
 export const THERMAL = Object.freeze({
-  heatPerSecond: 13.8,
+  heatPerSecond: 10,
   naturalCoolingPerSecond: 14,
-  coolantCoolingPerSecond: 16.56,
+  coolantCoolingPerSecond: 12,
   coolantSecondsPerMolecule: 1,
   coolantStart: 35,
   hotThreshold: 70,
