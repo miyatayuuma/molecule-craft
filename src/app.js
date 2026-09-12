@@ -116,7 +116,7 @@ function bindUI(){
   bindCraftControls({document,palette,elements:ELEMENTS,structureFocus,viewer,canvas:renderer.domElement,resizeObserver:ResizeObserver,
     canChangeStructure:()=>!interactionLocked()&&!dragState&&!activePointers.size,refreshStructureList,findStructure:key=>structures.find(item=>item.key===key),
     onStructureChange:{addElement,focus:item=>{selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;refresh();gameShell.closeMenu();repairSavedGeometry();pulse('編集する分子を切り替えました');}},
-    onFrame:requestStructureFrame,onUndo:undoCraft,onDelete:()=>{
+    onUndo:undoCraft,onDelete:()=>{
     if(selectedAtomId==null||interactionLocked()||dragState||activePointers.size)return;
     const ids=connectedComponent(selectedAtomId);craftHistory.begin();
     if(!craftWorkspace.removeAtom(selectedAtomId)){craftHistory.cancel();return;}

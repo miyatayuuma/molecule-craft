@@ -8,11 +8,13 @@ const [index,gameShell,craftPanel]=await Promise.all([
   readFile(new URL('src/craft-panel.js',root),'utf8'),
 ]);
 
-for(const id of ['structure-focus-label','frame-structure','open-info']){
+for(const id of ['structure-focus-label','open-info']){
   assert.match(index,new RegExp(`id="${id}"`),`${id} remains available to startup code`);
   assert.match(gameShell,new RegExp(`#${id}`),`${id} must be hidden from the live craft chrome`);
 }
-assert.match(gameShell,/node\.style\.display='none'/,'Redundant craft chrome must be visually hidden without removing startup DOM dependencies');
+assert.doesNotMatch(index,/id="frame-structure"/,'Legacy CRAFT frame button stays removed');
+assert.doesNotMatch(gameShell,/#frame-structure/,'Legacy frame button no longer needs startup hiding');
+assert.match(gameShell,/node\.style\.display='none'/,'Remaining redundant craft chrome stays visually hidden without removing startup DOM dependencies');
 assert.doesNotMatch(gameShell,/querySelector\(selector\)\?\.remove\(\)/,'Craft chrome pruning must not remove nodes still referenced by render/bind code');
 assert.match(craftPanel,/const focusLabel=document\.querySelector\('#structure-focus-label'\);if\(focusLabel\)focusLabel\.hidden=/,'Craft panel must tolerate the focus label being unavailable');
 

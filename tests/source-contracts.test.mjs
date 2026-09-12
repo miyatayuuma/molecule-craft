@@ -64,7 +64,7 @@ assert.match(app, /from '\.\/chemistry\.js\?v=20'/);
 assert.doesNotMatch(app, /hasCompatibleElectronPair|lastCelebrated/);
 assert.match(app, /chooseAtomOrElectron\(e.clientX,e.clientY,screenAtomCandidates\(\)/);
 assert.match(app, /connectedStructures\(molecule\)/);
-assert.match(index, /id="frame-structure"/);
+assert.doesNotMatch(index, /id="frame-structure"/,'Legacy CRAFT frame button stays removed');
 assert.match(index, /id="undo-cleanup"/);
 assert.match(index, /id="collection-dialog"/);
 assert.match(index, /id="craft-panel"[^>]*hidden/);
@@ -79,6 +79,7 @@ assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB f
 assert.match(index, /id="veil-combustion"/);
 assert.match(index, /id="veil-threat"/);
 assert.match(index, /id="open-supply" class="collector-access"/);
+assert.doesNotMatch(index, /<span>収集殻<\/span>/,'Legacy collector access text label stays removed');
 assert.match(index, /id="shell-propellant"/);
 assert.match(index, /id="shell-fuel"/);
 assert.match(index, /id="shell-oxidizer"/);
@@ -90,6 +91,7 @@ await assert.rejects(readFile(new URL('src/craft-transfer-effects.js',root),'utf
 assert.doesNotMatch(styles,/craft-tank-actions|tank-charge-stage|charge-stage-(?:in|out)/,'Legacy manual tank-charge CSS stays removed');
 assert.doesNotMatch(index,/id="(?:tank-use-guide|tank-replacement|tank-affordability|loaded-combustion-summary)"/,'Inactive loadout guidance placeholders stay removed');
 assert.doesNotMatch(styles,/\.model-toolbar\b|\.model-zoom\b/,'Removed collection model toolbar CSS stays removed');
+assert.doesNotMatch(styles,/\.undo-cleanup\b|\.collector-access (?:img|span)\b/,'Legacy hidden CRAFT/access chrome selectors stay removed');
 assert.doesNotMatch(veilCss,/#supply-dialog \.tank-affordability\b|\.tank-model #tank-model-host \.model-toolbar\b|\.tank-replacement\b|#tank-use-guide\b/,'Removed loadout placeholder selectors stay removed');
 await assert.rejects(readFile(new URL('src/tank-charge.js',root),'utf8'),error=>error?.code==='ENOENT','Legacy tank-charge runtime module stays deleted');
 assert.doesNotMatch(index, /id="molecule-select"|id="fill-hydrogen"|id="make-h2"/);
@@ -134,7 +136,7 @@ assert.ok(cameraMutationLines.every(line => line.includes('const camera=') || li
 assert.match(app, /if\(!frameTransition\|\|relaxation\|\|bondTransition\)return/);
 assert.doesNotMatch(app, /ensureSpawnVisible|function spawnPosition/);
 assert.match(app, /planWorkspaceSpawn\(parts\)/);
-assert.match(craftControls, /frame-structure'\)\?\.addEventListener\('click',onFrame\)/);
+assert.doesNotMatch(craftControls,/frame-structure|onFrame/,'Legacy CRAFT frame button event contract stays removed');
 assert.match(app, /createCraftWorkspace\(\{molecule,placements,resources,resolveUnlockedPart:id=>collectionGame\?\.templateFor\(id\),onStockChange:syncCraftStock\}\)/);
 assert.match(app, /bindCraftControls\(/);
 assert.match(app, /connectExploration\(/);
