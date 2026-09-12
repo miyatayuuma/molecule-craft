@@ -27,7 +27,7 @@ jobs:
           s=p.read_text()
           s=s.replace("""  heatStops:freezeStops([\n    [-8870,1],[-9050,2],[-9150,4],[-9200,48],[-10480,48],\n    [-10510,32],[-10540,8],[-10560,0],[-10670,0],\n  ]),""","""  heatStops:freezeStops([\n    [-8870,1],[-9050,2],[-9200,4],[-9500,12],[-9700,32],[-9800,48],\n    [-10480,48],[-10510,32],[-10540,8],[-10560,0],[-10670,0],\n  ]),""")
           old="  return {heat,routeHeat,deepHeat,recovery,intensity:clamp(heat/48,0,1)};"
-          new="  return {heat,routeHeat,deepHeat,recovery,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+.70*clamp(routeHeat/48,0,1)};"
+          new="  return {heat,routeHeat,deepHeat,recovery,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+.71*clamp(routeHeat/48,0,1)};"
           assert old in s
           p.write_text(s.replace(old,new))
 
