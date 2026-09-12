@@ -5,10 +5,10 @@ import {createUniverse,environmentAt} from '../src/veil/universe.js';
 import {EXPEDITION,VEIL} from '../src/veil/config.js';
 import {GROWTH,REGIONS,flightConfig,regionAt} from '../src/veil/growth.js';
 import {
-  OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,
+  DEEP_OXYGEN_ROUTES,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,
   OXYGEN_VORTEX_REWARD,OXYGEN_VORTEX_ROUTE,oxygenPressureAt,oxygenRouteCenterAtY,
 } from '../src/veil/oxygen-routes.js';
-import {EXPEDITION_CHALLENGES,challengeCenter} from '../src/veil/expedition-challenges.js';
+import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt} from '../src/veil/expedition-challenges.js';
 import {CHO_DESTINATION} from '../src/veil/cho-campaign.js';
 
 const ROOT=new URL('../',import.meta.url);
@@ -96,7 +96,7 @@ function routeCenterlinesSvg(universe){
 }
 
 function routeWidthsSvg(){
-  const routePaths=OXYGEN_ROUTES.map(route=>`<path data-route-width="${route.id}" d="${pointPath(route.knots.map(([x,y])=>({x,y})))}" stroke-width="${fmt(route.width)}"/>`);
+  const routePaths=[...OXYGEN_ROUTES,...DEEP_OXYGEN_ROUTES].map(route=>`<path data-route-width="${route.id}" d="${pointPath(route.knots.map(([x,y])=>({x,y})))}" stroke-width="${fmt(route.width)}"/>`);
   const vortex=`<path data-route-width="${OXYGEN_VORTEX_ROUTE.id}" d="${pointPath(OXYGEN_VORTEX_ROUTE.points)}" stroke-width="${fmt(OXYGEN_VORTEX_ROUTE.width)}"/>`;
   return [...routePaths,vortex].join('\n');
 }
@@ -139,10 +139,10 @@ function sampledPressureSvg(bounds){
 function challengeSvg(){
   return EXPEDITION_CHALLENGES.map(zone=>{
     const ys=[];for(let y=zone.top;y<zone.bottom;y+=25)ys.push(y);ys.push(zone.bottom);
-    const left=ys.map(y=>({x:challengeCenter(zone,y)-zone.width,y}));
-    const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+zone.width,y}));
+    const left=ys.map(y=>({x:challengeCenter(zone,y)-challengeWidthAt(zone,y),y}));
+    const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+challengeWidthAt(zone,y),y}));
     const polygon=[...left,...right];
-    return `<path data-challenge="${zone.id}" data-half-width="${zone.width}" data-full-width="${zone.width*2}" d="${pointPath(polygon)} Z"/>`;
+    return `<path data-challenge="${zone.id}" data-anchor-x="${zone.centerX}" data-anchor-y="${zone.centerY}" data-half-width="${zone.width}" data-full-width="${zone.width*2}" d="${pointPath(polygon)} Z"/>`;
   }).join('\n');
 }
 
@@ -169,13 +169,24 @@ function thermalSvg(bounds){
   return [`<metadata>sample=${THERMAL_STEP} world units; source=environmentAt(point, 0); environment heat != player thermal state; max-sampled-heat=${fmt(max)}</metadata>`,...buckets.map((cells,index)=>cells.length?`<path data-heat-bin="${index+1}" fill-opacity="${fmt(.035+(index+1)*.035)}" d="${rectPath(cells)}"/>`:'').filter(Boolean)].join('\n');
 }
 
+function routeDensitySvg(){
+  const tiers={
+    'oxygen-shortcut':'low-medium','oxygen-main':'medium-stable','oxygen-side':'high',
+    'oxygen-deep-safe':'medium','oxygen-deep-skill':'medium-high','oxygen-deep-thermal':'high-very-high',
+  };
+  return [...OXYGEN_ROUTES,...DEEP_OXYGEN_ROUTES].map(route=>{
+    const y=route.id.startsWith('oxygen-deep-')?-11340:-10100,x=oxygenRouteCenterAtY(route,y)??route.x;
+    return `<g data-density-route="${route.id}" data-density-tier="${tiers[route.id]}" data-spacing="${route.spacing??20}" data-lanes="${route.lanes}" data-value="${route.value}"><text x="${fmt(x+30)}" y="${fmt(y-28)}">${escapeXml(route.id)} · ${tiers[route.id]} · spacing ${route.spacing??20} / lanes ${route.lanes} / value ${route.value}</text></g>`;
+  }).join('\n');
+}
+
 function gameplaySvg(universe,config){
   const checkpoints=Object.entries(REGIONS).map(([id,region])=>`<g data-checkpoint="${id}"><circle cx="${region.x}" cy="${region.y}" r="26"/><text x="${region.x+38}" y="${region.y-18}">${escapeXml(region.name)} restart (${region.x},${region.y})</text></g>`).join('\n');
   const restStops=OXYGEN_ROUTES.flatMap(route=>(route.restStops??[]).map(stop=>{
     const centerX=stop.x??oxygenRouteCenterAtY(route,stop.y)??route.x;
     return `<rect data-rest-stop="${route.id}" x="${fmt(centerX-route.width/2)}" y="${fmt(stop.y-stop.depth/2)}" width="${route.width}" height="${stop.depth}"/>`;
   })).join('\n');
-  const signals=universe.signals.map(signal=>`<g data-signal="${signal.region}"><circle cx="${fmt(signal.x)}" cy="${fmt(signal.y)}" r="22"/><text x="${fmt(signal.x+35)}" y="${fmt(signal.y-18)}">${signal.region} signal baseline</text></g>`).join('\n');
+  const signals=`<metadata>seeded runtime positions; data-anchor-* are authored FIELD_SIGNALS points; jitter is deterministic and capped at +/-30 world units</metadata>\n${universe.signals.map(signal=>`<g data-signal="${signal.id}" data-region="${signal.region}" data-complexity="${signal.complexity??''}" data-anchor-x="${signal.anchorX}" data-anchor-y="${signal.anchorY}" data-jitter-x="${fmt(signal.x-signal.anchorX)}" data-jitter-y="${fmt(signal.y-signal.anchorY)}"><circle cx="${fmt(signal.x)}" cy="${fmt(signal.y)}" r="22"/><text x="${fmt(signal.x+35)}" y="${fmt(signal.y-18)}">${escapeXml(signal.complexity??signal.region)} signal baseline</text></g>`).join('\n')}`;
   return [
     layer('spawn','spawn',`<circle id="field-spawn" cx="${config.spawn.x}" cy="${config.spawn.y}" r="34"/><text x="${config.spawn.x+45}" y="${config.spawn.y-24}">FIELD spawn (${config.spawn.x},${config.spawn.y})</text>`),
     layer('checkpoints','checkpoints',checkpoints),
@@ -184,6 +195,7 @@ function gameplaySvg(universe,config){
     layer('rest-stops','rest stops',restStops),
     layer('rewards','rewards',`<circle id="oxygen-reward" cx="${OXYGEN_REWARD.x}" cy="${OXYGEN_REWARD.y}" r="${OXYGEN_REWARD.radius}"/><circle id="vortex-reward" cx="${OXYGEN_VORTEX_REWARD.x}" cy="${OXYGEN_VORTEX_REWARD.y}" r="${OXYGEN_VORTEX_REWARD.radius}"/>`),
     layer('signals','signals',signals),
+    layer('route-density','route density',routeDensitySvg()),
     layer('destination','destination',`<circle id="cho-destination" data-radius="${CHO_DESTINATION.radius}" cx="${CHO_DESTINATION.x}" cy="${CHO_DESTINATION.y}" r="${CHO_DESTINATION.radius}"/><text x="${CHO_DESTINATION.x+120}" y="${CHO_DESTINATION.y-35}">${escapeXml(CHO_DESTINATION.label)} (${CHO_DESTINATION.x},${CHO_DESTINATION.y})</text>`),
   ].join('\n');
 }
@@ -207,6 +219,7 @@ function legendSvg(bounds,universe){
     'RETURN: global player action / no fixed world position',
     'checkpoint marks are REGIONS restart anchors, not physical checkpoint objects',
     'Oxygen challenge width in source is half-width; map shows full 2× width',
+    'Route density annotations are authored spacing / lanes / value profiles.',
     'No inferred walls/corridor polygons are generated.',
   ];
   return `<rect class="legend-panel" x="1390" y="${bounds.top+70}" width="1450" height="${lines.length*92+100}" rx="24"/>\n${lines.map((line,index)=>`<text class="legend-text ${index===0?'legend-title':''}" x="1450" y="${bounds.top+150+index*92}">${escapeXml(line)}</text>`).join('\n')}`;
@@ -224,7 +237,7 @@ export function buildFieldMapSvg(){
     layer('authored-gates','authored gates',authoredGatesSvg()),
   ].join('\n');
   const gameplay=gameplaySvg(universe,config);
-  return `<!-- Generated by scripts/export-field-map.mjs; do not edit. -->\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="${NS}" viewBox="${view.left} ${view.top} ${width} ${height}" width="900" height="${fmt(900*height/width)}" role="img" aria-labelledby="title desc">\n<title id="title">Molecule Craft current FIELD developer map</title>\n<desc id="desc">Coordinate-faithful deterministic developer map generated from current FIELD source.</desc>\n<metadata id="field-map-metadata">baseline-seed=${BASELINE_SEED}; stock=H0,C0,O0; source-bounds=GROWTH.bounds; procedural element positions are a deterministic baseline snapshot, not invariant authored positions; DUST EATER has no authored map position; RETURN has no fixed world position.</metadata>\n<style>\n.major-grid{stroke:#334151;stroke-width:2;opacity:.34}.grid-labels,.axis-label,.legend-text,.region-label,#layer-labels text,#layer-gameplay text{font:32px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#d9e2ea}.axis{stroke:#91a4b5;stroke-width:5;opacity:.7}.origin{fill:#fff;stroke:#17212b;stroke-width:8}.region-label{font-size:48px;font-weight:700;opacity:.58}.legend-title{font-size:46px;font-weight:800}.legend-panel{fill:#101922;stroke:#617487;stroke-width:4;opacity:.96}\n#layer-regions rect{opacity:.075}#playable-bounds rect{fill:none;stroke:#e7edf2;stroke-width:8}#route-centerlines path{fill:none;stroke:#b7c3ce;stroke-width:5;opacity:.72}#route-centerlines [data-element="H"]{stroke:#8bc8dc}#route-centerlines [data-element="C"]{stroke:#c7a676}#route-centerlines [data-element="O"]{stroke:#d7a4a4}#route-widths rect{fill:#8db6c7;stroke:#a6cad7;stroke-width:2;opacity:.09}#route-widths path{fill:none;stroke:#a6cad7;stroke-linecap:round;stroke-linejoin:round;opacity:.09}#authored-gates rect{fill:#e1b267;stroke:#f1cb88;stroke-width:5;opacity:.25}#authored-gates line{stroke:#ffdb95;stroke-width:9;stroke-dasharray:24 16}\n.element{fill:none;stroke-linecap:round;opacity:.72}.element-h{stroke:#79d2ee;stroke-width:5}.element-c{stroke:#c79a62;stroke-width:7}.element-o{stroke:#e19090;stroke-width:6}#layer-hazards-fields circle{fill:#9f8fd0;stroke:#c0b4ec;stroke-width:4;opacity:.16}#layer-hazards-pressure path{fill:#6f8db7;stroke:none}#layer-hazards-challenges path{fill:#d58a61;stroke:#f0a77e;stroke-width:5;opacity:.17}#layer-hazards-vortex circle{fill:none;stroke:#7ebfca;stroke-width:6;opacity:.42}#layer-hazards-vortex [data-vortex="core"]{fill:#7ebfca;opacity:.18}#layer-thermal path{fill:#e86945;stroke:none}#layer-gameplay circle,#layer-gameplay rect{fill:none;stroke:#f4e1a0;stroke-width:7}#signals circle{stroke:#d5b2ff}#destination circle{stroke:#f2c45b;stroke-width:12}#layer-labels text{font-size:34px;paint-order:stroke;stroke:#101820;stroke-width:10;stroke-linejoin:round}.annotation{font:30px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#cbd7e1}\n</style>\n${layer('layer-grid','grid',gridSvg(bounds))}\n${layer('layer-regions','regions',regionSvg(bounds),{'data-carbon-y':GROWTH.carbonY,'data-oxygen-y':GROWTH.oxygenY,'data-frontier-y':GROWTH.frontierY})}\n${layer('layer-geometry','geometry',geometry)}\n${layer('layer-elements-h','elements H',elementLayer(universe,'H'))}\n${layer('layer-elements-c','elements C',elementLayer(universe,'C'))}\n${layer('layer-elements-o','elements O',elementLayer(universe,'O'))}\n${layer('layer-hazards-fields','hazards: map fields',mapFieldsSvg(universe))}\n${layer('layer-hazards-pressure','hazards: oxygen pressure',sampledPressureSvg(bounds))}\n${layer('layer-hazards-challenges','hazards: challenges',challengeSvg())}\n${layer('layer-hazards-vortex','hazards: vortex',vortexSvg())}\n${layer('layer-hazards-dust-eater','hazards: DUST EATER','<metadata>DUST EATER: dynamic pursuit hazard / no authored map position</metadata>')}\n${layer('layer-thermal','thermal',thermalSvg(bounds))}\n${layer('layer-gameplay','gameplay points',gameplay)}\n${layer('layer-labels','labels',labelsSvg(universe))}\n${layer('layer-annotations','annotations',`<text class="annotation" x="${bounds.left+40}" y="${bounds.top+55}">Y increases downward exactly as FIELD source coordinates; no axis inversion.</text>\n${legendSvg(bounds,universe)}`)}\n</svg>\n`;
+  return `<!-- Generated by scripts/export-field-map.mjs; do not edit. -->\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="${NS}" viewBox="${view.left} ${view.top} ${width} ${height}" width="900" height="${fmt(900*height/width)}" role="img" aria-labelledby="title desc">\n<title id="title">Molecule Craft current FIELD developer map</title>\n<desc id="desc">Coordinate-faithful deterministic developer map generated from current FIELD source.</desc>\n<metadata id="field-map-metadata">baseline-seed=${BASELINE_SEED}; stock=H0,C0,O0; source-bounds=GROWTH.bounds; procedural element positions are a deterministic baseline snapshot, not invariant authored positions; DUST EATER has no authored map position; RETURN has no fixed world position.</metadata>\n<style>\n.major-grid{stroke:#334151;stroke-width:2;opacity:.34}.grid-labels,.axis-label,.legend-text,.region-label,#layer-labels text,#layer-gameplay text{font:32px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#d9e2ea}.axis{stroke:#91a4b5;stroke-width:5;opacity:.7}.origin{fill:#fff;stroke:#17212b;stroke-width:8}.region-label{font-size:48px;font-weight:700;opacity:.58}.legend-title{font-size:46px;font-weight:800}.legend-panel{fill:#101922;stroke:#617487;stroke-width:4;opacity:.96}\n#layer-regions rect{opacity:.075}#playable-bounds rect{fill:none;stroke:#e7edf2;stroke-width:8}#route-centerlines path{fill:none;stroke:#b7c3ce;stroke-width:5;opacity:.72}#route-centerlines [data-element="H"]{stroke:#8bc8dc}#route-centerlines [data-element="C"]{stroke:#c7a676}#route-centerlines [data-element="O"]{stroke:#d7a4a4}#route-widths rect{fill:#8db6c7;stroke:#a6cad7;stroke-width:2;opacity:.09}#route-widths path{fill:none;stroke:#a6cad7;stroke-linecap:round;stroke-linejoin:round;opacity:.09}#authored-gates rect{fill:#e1b267;stroke:#f1cb88;stroke-width:5;opacity:.25}#authored-gates line{stroke:#ffdb95;stroke-width:9;stroke-dasharray:24 16}\n.element{fill:none;stroke-linecap:round;opacity:.72}.element-h{stroke:#79d2ee;stroke-width:5}.element-c{stroke:#c79a62;stroke-width:7}.element-o{stroke:#e19090;stroke-width:6}#layer-hazards-fields circle{fill:#9f8fd0;stroke:#c0b4ec;stroke-width:4;opacity:.16}#layer-hazards-pressure path{fill:#6f8db7;stroke:none}#layer-hazards-challenges path{fill:#d58a61;stroke:#f0a77e;stroke-width:5;opacity:.17}#layer-hazards-vortex circle{fill:none;stroke:#7ebfca;stroke-width:6;opacity:.42}#layer-hazards-vortex [data-vortex="core"]{fill:#7ebfca;opacity:.18}#layer-thermal path{fill:#e86945;stroke:none}#layer-gameplay circle,#layer-gameplay rect{fill:none;stroke:#f4e1a0;stroke-width:7}#signals circle{stroke:#d5b2ff}#destination circle{stroke:#f2c45b;stroke-width:12}#route-density text{font-size:27px;fill:#d7e6cf;paint-order:stroke;stroke:#101820;stroke-width:8}#layer-labels text{font-size:34px;paint-order:stroke;stroke:#101820;stroke-width:10;stroke-linejoin:round}.annotation{font:30px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#cbd7e1}\n</style>\n${layer('layer-grid','grid',gridSvg(bounds))}\n${layer('layer-regions','regions',regionSvg(bounds),{'data-carbon-y':GROWTH.carbonY,'data-oxygen-y':GROWTH.oxygenY,'data-frontier-y':GROWTH.frontierY})}\n${layer('layer-geometry','geometry',geometry)}\n${layer('layer-elements-h','elements H',elementLayer(universe,'H'))}\n${layer('layer-elements-c','elements C',elementLayer(universe,'C'))}\n${layer('layer-elements-o','elements O',elementLayer(universe,'O'))}\n${layer('layer-hazards-fields','hazards: map fields',mapFieldsSvg(universe))}\n${layer('layer-hazards-pressure','hazards: oxygen pressure',sampledPressureSvg(bounds))}\n${layer('layer-hazards-challenges','hazards: challenges',challengeSvg())}\n${layer('layer-hazards-vortex','hazards: vortex',vortexSvg())}\n${layer('layer-hazards-dust-eater','hazards: DUST EATER','<metadata>DUST EATER: dynamic pursuit hazard / no authored map position</metadata>')}\n${layer('layer-thermal','thermal',thermalSvg(bounds))}\n${layer('layer-gameplay','gameplay points',gameplay)}\n${layer('layer-labels','labels',labelsSvg(universe))}\n${layer('layer-annotations','annotations',`<text class="annotation" x="${bounds.left+40}" y="${bounds.top+55}">Y increases downward exactly as FIELD source coordinates; no axis inversion.</text>\n${legendSvg(bounds,universe)}`)}\n</svg>\n`;
 }
 
 export async function exportFieldMap({check=false}={}){
