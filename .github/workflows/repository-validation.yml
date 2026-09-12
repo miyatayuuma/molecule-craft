@@ -21,8 +21,8 @@ jobs:
           from pathlib import Path
           path=Path('tests/field-map-export.test.mjs')
           text=path.read_text()
-          old="const shortcutNormal=traverse({x:-320,y:-9600,targetY:-9800,maxSeconds:4}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});"
-          new="const shortcutNormal=traverse({x:-432,y:-9600,targetY:-9800,maxSeconds:12}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});"
+          old="const shortcutNormal=traverse({x:-432,y:-9600,targetY:-9800,maxSeconds:12}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});"
+          new="const shortcutNormal=traverse({x:-530,y:-9600,targetY:-9800,maxSeconds:6}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});"
           if old not in text:
               raise SystemExit('Task 6 traversal assertion source was not found')
           path.write_text(text.replace(old,new))
@@ -33,7 +33,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add tests/field-map-export.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js
-            git commit -m "Validate pulse line-choice traversal"
+            git commit -m "Validate pulse peripheral line choice"
             git push origin "HEAD:${{ github.head_ref }}"
           fi
       - name: Repository hygiene
