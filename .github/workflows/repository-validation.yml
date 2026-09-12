@@ -23,9 +23,12 @@ jobs:
           node tests/persistence-boundary-source-contract.test.mjs
       - name: Expedition insights
         run: node tests/expedition-insights.test.mjs
-      - name: FIELD insight presentation
+      - name: Insight taxonomy and presentation
         run: |
+          node tests/insight-category.test.mjs
+          node tests/molecule-roles.test.mjs
           node tests/insight-presentation.test.mjs
+          node tests/pending-craft.test.mjs
           node tests/veil-audio.test.mjs
       - name: Propulsion HUD regressions
         run: |
