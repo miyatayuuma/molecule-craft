@@ -8,7 +8,7 @@ import {
   DEEP_OXYGEN_ROUTES,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,
   OXYGEN_VORTEX_REWARD,OXYGEN_VORTEX_ROUTE,oxygenPressureAt,oxygenRouteCenterAtY,
 } from '../src/veil/oxygen-routes.js';
-import {EXPEDITION_CHALLENGES,challengeCenter} from '../src/veil/expedition-challenges.js';
+import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt} from '../src/veil/expedition-challenges.js';
 import {CHO_DESTINATION} from '../src/veil/cho-campaign.js';
 
 const ROOT=new URL('../',import.meta.url);
@@ -139,8 +139,8 @@ function sampledPressureSvg(bounds){
 function challengeSvg(){
   return EXPEDITION_CHALLENGES.map(zone=>{
     const ys=[];for(let y=zone.top;y<zone.bottom;y+=25)ys.push(y);ys.push(zone.bottom);
-    const left=ys.map(y=>({x:challengeCenter(zone,y)-zone.width,y}));
-    const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+zone.width,y}));
+    const left=ys.map(y=>({x:challengeCenter(zone,y)-challengeWidthAt(zone,y),y}));
+    const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+challengeWidthAt(zone,y),y}));
     const polygon=[...left,...right];
     return `<path data-challenge="${zone.id}" data-anchor-x="${zone.centerX}" data-anchor-y="${zone.centerY}" data-half-width="${zone.width}" data-full-width="${zone.width*2}" d="${pointPath(polygon)} Z"/>`;
   }).join('\n');
