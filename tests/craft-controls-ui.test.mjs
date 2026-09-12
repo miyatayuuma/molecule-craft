@@ -20,3 +20,21 @@ test('bindCraftControls exposes icon-only Undo beside hold-safe full cleanup wit
   assert.ok(undo.listeners.has('click'),'Undo remains bound');
   assert.ok(clear.listeners.has('pointerdown'));assert.ok(clear.listeners.has('click'),'Full cleanup remains bound through the existing hold action');
 });
+
+
+test('bindCraftControls routes capture loss, blur, and hidden visibility to interruption cleanup',()=>{
+  globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
+  const undo=node('undo-cleanup'),clear=node('clear-all'),actions=node('actions'),palette=node('palette'),focus=node('structure-focus'),viewer=node('viewer'),canvas=node('canvas'),windowListeners=new Map(),documentListeners=new Map();
+  actions.insertBefore=()=>{};
+  const add=(map,type,fn)=>{const list=map.get(type)??[];list.push(fn);map.set(type,list);};
+  const document={hidden:false,defaultView:{addEventListener(type,fn){add(windowListeners,type,fn);}},querySelector(selector){if(selector==='.viewer-actions')return actions;if(selector==='#undo-cleanup')return undo;if(selector==='#clear-all')return clear;return null;},querySelectorAll(){return[];},addEventListener(type,fn){add(documentListeners,type,fn);}};
+  for(const item of [undo,clear,actions,palette,focus,viewer,canvas])item.ownerDocument=document;
+  class ResizeObserver{constructor(fn){this.fn=fn;}observe(target){this.target=target;}}
+  let cancelled=0,interrupted=0,visibility=0;
+  bindCraftControls({document,palette,elements:{},structureFocus:focus,viewer,canvas,resizeObserver:ResizeObserver,canChangeStructure:()=>true,refreshStructureList(){},findStructure(){},onStructureChange:{addElement(){},focus(){}},onUndo(){},onClear(){},onVisibilityChange(){visibility++;},onInteractionInterrupted(){interrupted++;},onPointerDown(){},onPointerMove(){},onPointerUp(){},onPointerCancel(){cancelled++;},onWheel(){},onResize(){}});
+  assert.ok(canvas.listeners.has('lostpointercapture'));
+  canvas.listeners.get('lostpointercapture')({pointerId:9});assert.equal(cancelled,1);
+  for(const fn of windowListeners.get('blur')??[])fn();assert.equal(interrupted,1);
+  document.hidden=true;for(const fn of documentListeners.get('visibilitychange')??[])fn();assert.equal(visibility,1);assert.equal(interrupted,2);
+  document.hidden=false;for(const fn of documentListeners.get('visibilitychange')??[])fn();assert.equal(visibility,2);assert.equal(interrupted,2,'foreground visibility change is not an interruption');
+});

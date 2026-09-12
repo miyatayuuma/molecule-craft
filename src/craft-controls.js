@@ -16,7 +16,7 @@ function installCraftActionBar(document){
 // interaction state in the application integration layer.
 export function bindCraftControls({document,palette,elements,structureFocus,viewer,canvas,resizeObserver,
   canChangeStructure,refreshStructureList,findStructure,onStructureChange,onUndo,onClear,
-  onVisibilityChange,onPointerDown,onPointerMove,onPointerUp,onPointerCancel,onWheel,onResize}){
+  onVisibilityChange,onInteractionInterrupted=()=>{},onPointerDown,onPointerMove,onPointerUp,onPointerCancel,onWheel,onResize}){
   installCraftActionBar(document);
   if(palette)for(const button of palette.querySelectorAll('[data-element]')){
     const symbol=button.dataset.element;if(elements[symbol])button.style.setProperty('--element-color',elements[symbol].color);
@@ -27,9 +27,10 @@ export function bindCraftControls({document,palette,elements,structureFocus,view
     const item=findStructure(structureFocus.value);if(item)onStructureChange.focus(item);
   });
   document.querySelector('#undo-cleanup')?.addEventListener('click',onUndo);
-  document.addEventListener('visibilitychange',onVisibilityChange);
+  document.addEventListener('visibilitychange',()=>{onVisibilityChange();if(document.hidden)onInteractionInterrupted();});
+  document.defaultView?.addEventListener?.('blur',onInteractionInterrupted);
   bindHoldAction(document.querySelector('#clear-all'),onClear);
-  canvas.addEventListener('pointerdown',onPointerDown);canvas.addEventListener('pointermove',onPointerMove);canvas.addEventListener('pointerup',onPointerUp);canvas.addEventListener('pointercancel',onPointerCancel);
+  canvas.addEventListener('pointerdown',onPointerDown);canvas.addEventListener('pointermove',onPointerMove);canvas.addEventListener('pointerup',onPointerUp);canvas.addEventListener('pointercancel',onPointerCancel);canvas.addEventListener('lostpointercapture',onPointerCancel);
   canvas.addEventListener('wheel',onWheel,{passive:false});
   new resizeObserver(onResize).observe(viewer);
 }

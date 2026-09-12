@@ -97,3 +97,12 @@ test('reset defines a new session baseline and pending gestures collapse to one 
   fx.history.begin();for(let i=0;i<25;i++)fx.state.workspace.atoms[0].x=i;fx.history.commit();
   assert.equal(fx.history.depth,1);fx.history.undo();assert.equal('x' in fx.state.workspace.atoms[0],false);
 });
+
+
+test('rollback restores an interrupted pending gesture without adding an Undo entry',()=>{
+  const fx=fixture(),baseline=copy(fx.state);
+  fx.history.begin();fx.state.elements.H--;fx.state.workspace.atoms.push({element:'H',x:12});
+  assert.equal(fx.history.pending,true);assert.equal(fx.history.rollback(),true);
+  assert.deepEqual(fx.state,baseline);assert.equal(fx.history.pending,false);assert.equal(fx.history.depth,0);assert.equal(fx.history.canUndo,false);
+  assert.equal(fx.history.rollback(),false,'repeated interruption is idempotent');
+});
