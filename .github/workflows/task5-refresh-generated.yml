@@ -17,6 +17,14 @@ jobs:
         run: |
           node scripts/export-field-map.mjs
           node scripts/build-precache.mjs
+      - name: Task 5 focused validation
+        run: |
+          node tests/deep-oxygen-routes.test.mjs
+          node tests/oxygen-thermal-progression.test.mjs
+          node tests/thermal-coolant.test.mjs
+          node tests/expedition-core.test.mjs
+          node scripts/export-field-expansion-proposal.mjs --check
+          node scripts/build-precache.mjs --check
       - name: Commit generated artifacts
         shell: bash
         run: |
