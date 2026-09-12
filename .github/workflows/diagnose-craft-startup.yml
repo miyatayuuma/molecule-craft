@@ -68,7 +68,7 @@ jobs:
 
           recovery=Path('tests/craft-input-recovery.test.mjs')
           text=recovery.read_text()
-          text += "\n\ntest('menu recovery reuses the transient-state fail-safe instead of clearing the workspace',async()=>{\n  const shell=await readFile(new URL('../src/game-shell.js',import.meta.url),'utf8');\n  assert.match(shell,/onBlockedMenuOpen/);\n  assert.match(shell,/id==='menu-dialog'\\)onBlockedMenuOpen\\(\\)/);\n  assert.match(app,/onBlockedMenuOpen:\\(\\)=>recoverCraftAnimationState\\(\\)/);\n  assert.match(app,/from '\\\.\\/game-shell\\.js\\?v=31'/);\n});\n"
+          text += "\n\ntest('menu recovery reuses the transient-state fail-safe instead of clearing the workspace',async()=>{\n  const shell=await readFile(new URL('../src/game-shell.js',import.meta.url),'utf8');\n  assert.match(shell,/onBlockedMenuOpen/);\n  assert.match(shell,/id==='menu-dialog'\\)onBlockedMenuOpen\\(\\)/);\n  assert.match(app,/onBlockedMenuOpen:\\(\\)=>recoverCraftAnimationState\\(\\)/);\n  assert.ok(app.includes(\"from './game-shell.js?v=31'\"));\n});\n"
           recovery.write_text(text)
           PY
       - name: Validate recovery contracts
