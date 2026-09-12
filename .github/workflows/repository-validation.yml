@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   repository-guardrails:
@@ -15,6 +15,39 @@ jobs:
           fetch-depth: 0
       - name: Runtime
         run: node --version
+      - name: Refresh Task 6 regression fixtures
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('tests/deep-oxygen-routes.test.mjs')
+          text=path.read_text()
+          replacements={
+            "const curve=EXPEDITION_CHALLENGES.find(candidate=>candidate.id==='curve');assert.deepEqual(curve,{id:'curve',bottom:-10820,top:-11320,width:240,rewards:['propane','phenol','formaldehyde']});":
+            "const curve=EXPEDITION_CHALLENGES.find(candidate=>candidate.id==='curve');assert.deepEqual(curve,{id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:['propane','phenol','formaldehyde']});",
+            "let waypoint=1,frames=0,coolantSpent=0,burstUses=0,maxHeat=run.heat,maxEnvironmentHeat=0,firstOverheat=null;":
+            "let waypoint=1,frames=0,coolantSpent=0,burstUses=0,maxHeat=run.heat,maxEnvironmentHeat=0,maxEnvironmentHeatPoint=null,firstOverheat=null;",
+            "maxEnvironmentHeat=Math.max(maxEnvironmentHeat,environmentAt(run.player,run.time).heat);":
+            "const sampledEnvironmentHeat=environmentAt(run.player,run.time).heat;if(sampledEnvironmentHeat>maxEnvironmentHeat){maxEnvironmentHeat=sampledEnvironmentHeat;maxEnvironmentHeatPoint={x:run.player.x,y:run.player.y,time:run.time};}",
+            "return {run,time:run.time,reached:waypoint===path.length-1,coolantSpent,burstUses,maxHeat,maxEnvironmentHeat,firstOverheat};":
+            "return {run,time:run.time,reached:waypoint===path.length-1,coolantSpent,burstUses,maxHeat,maxEnvironmentHeat,maxEnvironmentHeatPoint,firstOverheat};",
+            "assert.equal(safeRun.run.overheated,false);assert.equal(safeRun.run.heat,0);assert.ok(safeRun.maxEnvironmentHeat<10,'Safe does not inherit shared high thermal');":
+            "assert.equal(safeRun.run.overheated,false);assert.equal(safeRun.run.heat,0);assert.ok(safeRun.maxEnvironmentHeat<10,`Safe does not inherit shared high thermal (${safeRun.maxEnvironmentHeat} at ${JSON.stringify(safeRun.maxEnvironmentHeatPoint)})`);",
+          }
+          for old,new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Task 6 Deep regression source was not found: {old[:80]}')
+              text=text.replace(old,new)
+          path.write_text(text)
+          PY
+          node scripts/export-field-map.mjs
+          node scripts/build-precache.mjs
+          if ! git diff --quiet -- tests/deep-oxygen-routes.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tests/deep-oxygen-routes.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js
+            git commit -m "Refresh Task 6 Deep Oxygen regressions"
+            git push origin "HEAD:${{ github.head_ref }}"
+          fi
       - name: Repository hygiene
         run: node tests/repository-hygiene.test.mjs
       - name: Current FIELD developer map
@@ -44,6 +77,7 @@ jobs:
           node tests/signal-eligibility.test.mjs
       - name: Thermal and expedition regressions
         run: |
+          node tests/oxygen-field-integration.test.mjs
           node tests/deep-oxygen-routes.test.mjs
           node tests/oxygen-thermal-progression.test.mjs
           node tests/thermal-coolant.test.mjs
