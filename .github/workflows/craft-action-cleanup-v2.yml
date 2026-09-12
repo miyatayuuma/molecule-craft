@@ -1,0 +1,161 @@
+name: CRAFT action cleanup implementation v2
+
+on:
+  push:
+    branches: [fix/craft-action-cleanup]
+
+permissions:
+  contents: write
+
+jobs:
+  implement-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Apply focused CRAFT action cleanup
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new, count=1):
+              p=Path(path); text=p.read_text()
+              actual=text.count(old)
+              if actual != count:
+                  raise SystemExit(f'{path}: expected {count} occurrences, found {actual}: {old[:100]!r}')
+              p.write_text(text.replace(old,new,count))
+
+          replace('index.html',
+          '''<button id="clear-all" class="hold-clear icon-button" type="button" aria-label="1秒長押しでクラフト中の原子をBASE STOCKへ戻して片付ける"><svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="7" cy="6.5" r="1.7"/><circle cx="12" cy="5" r="1.7"/><circle cx="17" cy="6.5" r="1.7"/><path d="M12 9v5m-2.4-2.2L12 14.2l2.4-2.4M5.5 15.5h13l-1.2 4H6.7z"/></svg></button>''',
+          '''<button id="clear-all" class="hold-clear icon-button" type="button" aria-label="1秒長押しで全片付け。クラフト中の全要素をBASE STOCKへ戻して片付ける"><svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 8h8l-.7 11H8.7L8 8z"/><path d="M6.5 7h11M10 7l1-2h2l1 2M10.5 10.5v5M13.5 10.5v5"/></svg></button>''')
+          replace('index.html',
+          '''<div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div>''',
+          '''<div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button></div>''')
+          replace('index.html',
+          '''<button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>''',
+          '''<button id="undo-cleanup" class="icon-button craft-history-undo" type="button" aria-label="直前のCRAFT操作を元に戻す" title="直前のCRAFT操作を元に戻す" hidden><svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 7L4 12l5 5"/><path d="M5 12h7a7 7 0 0 1 7 7"/></svg></button>''')
+          replace('index.html','''片付けるは1秒長押し。図鑑の発見は残ります。''','''ゴミ箱は1秒長押しで全片付け。左向き矢印で直前のCRAFT操作を1操作ずつ元に戻せます。図鑑の発見は残ります。''')
+          replace('index.html','''./src/app.js?v=50''','''./src/app.js?v=51''')
+
+          replace('src/app.js',"import { createGameShell } from './game-shell.js?v=29';","import { createGameShell } from './game-shell.js?v=30';")
+          replace('src/app.js',"import { bindCraftControls } from './craft-controls.js?v=1';","import { bindCraftControls } from './craft-controls.js?v=2';")
+          replace('src/app.js',
+          '''    onUndo:undoCraft,onDelete:()=>{\n    if(selectedAtomId==null||interactionLocked()||dragState||activePointers.size)return;\n    const ids=connectedComponent(selectedAtomId);craftHistory.begin();\n    if(!craftWorkspace.removeAtom(selectedAtomId)){craftHistory.cancel();return;}\n    selectAtom(null);topologyChanged();craftHistory.commit();\n    saveWorkspace(true);\n    startRelaxation('削除後の構造を安定化しています',{ids});\n    },onClear:clearField,''',
+          '''    onUndo:undoCraft,onClear:clearField,''')
+
+          replace('src/game-shell.js',
+          '''  const deleteButton=q('delete-selected');\n  if(deleteButton){\n    deleteButton.textContent='';deleteButton.classList.add('icon-button');\n    deleteButton.insertAdjacentHTML('beforeend','<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg>');\n  }\n\n''','')
+
+          replace('src/craft-controls.js',
+          '''  if(undo){\n    undo.className='craft-history-undo';undo.hidden=false;undo.disabled=true;undo.textContent='← 戻す';undo.setAttribute('aria-label','直前のCRAFT操作を元に戻す');undo.setAttribute('title','直前のCRAFT操作を元に戻す');\n    Object.assign(undo.style,{minWidth:'72px',minHeight:'44px',padding:'8px 10px',marginRight:'12px',background:'#14283be8',borderColor:'#365266',color:'#d8e8f2',fontSize:'13px',fontWeight:'650'});\n    if(actions&&clear)actions.insertBefore(undo,clear);\n  }''',
+          '''  if(undo){\n    undo.className='icon-button craft-history-undo';undo.hidden=false;undo.disabled=true;undo.setAttribute('aria-label','直前のCRAFT操作を元に戻す');undo.setAttribute('title','直前のCRAFT操作を元に戻す');\n    undo.style.marginRight='12px';\n    if(actions&&clear)actions.insertBefore(undo,clear);\n  }''')
+          replace('src/craft-controls.js',
+          '''    clear.innerHTML='<svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 8h8l-.7 11H8.7L8 8z"/><path d="M6.5 7h11M10 7l1-2h2l1 2M10.5 10.5v5M13.5 10.5v5"/></svg>';\n''','')
+          replace('src/craft-controls.js',
+          '''  for(const text of document.querySelectorAll?.('#help-dialog .help-steps p')??[]){\n    if(text.textContent.includes('片付けるは1秒長押し'))text.textContent='ゴミ箱は1秒長押しで全片付け。「← 戻す」で直前のCRAFT操作を1操作ずつ元に戻せます。図鑑の発見は残ります。';\n  }\n''','')
+          replace('src/craft-controls.js','''  canChangeStructure,refreshStructureList,findStructure,onStructureChange,onUndo,onDelete,onClear,''','''  canChangeStructure,refreshStructureList,findStructure,onStructureChange,onUndo,onClear,''')
+          replace('src/craft-controls.js','''  document.querySelector('#delete-selected')?.addEventListener('click',onDelete);\n''','')
+
+          replace('tests/source-contracts.test.mjs','''assert.match(index, /<script type="module" src="\\.\\/src\\/app\\.js\\?v=50"><\\/script>/);''','''assert.match(index, /<script type="module" src="\\.\\/src\\/app\\.js\\?v=51"><\\/script>/);''')
+          replace('tests/veil-ui-check.mjs',"appURL=new URL('src/app.js?v=50',root)","appURL=new URL('src/app.js?v=51',root)")
+          replace('tests/veil-ui-check.mjs',
+          '''q('element-palette').querySelector('[data-element="H"]').click();game.run('updateStructureFrame(performance.now()+1000)');\nq('delete-selected').click();for(let i=0;i<150;i++)game.tick();''',
+          '''q('element-palette').querySelector('[data-element="H"]').click();game.run('updateStructureFrame(performance.now()+1000)');\ngame.run(`var removedAtom=molecule.atoms[0].id;craftWorkspace.removeAtom(removedAtom);selectAtom(null);topologyChanged();saveWorkspace(true);`);for(let i=0;i<150;i++)game.tick();''')
+          replace('tests/veil-ui-check.mjs',
+          '''// Delete + close during settlement must never persist refunded H beside the old atom.\ngame.run('resources.collect(2,0);resources.save();');const total=game.run('resources.state.elements.H');\nfor(let i=0;i<2;i++){q('element-palette').querySelector('[data-element="H"]').click();game.run('updateStructureFrame(performance.now()+1000)');}\nq('delete-selected').click();assert.equal(game.run('!!relaxation'),true);''',
+          '''// Programmatic workspace removal + close during settlement must never persist refunded H beside the old atom.\ngame.run('resources.collect(2,0);resources.save();');const total=game.run('resources.state.elements.H');\nfor(let i=0;i<2;i++){q('element-palette').querySelector('[data-element="H"]').click();game.run('updateStructureFrame(performance.now()+1000)');}\ngame.run(`var removedAtom=molecule.atoms[0].id,removedIds=connectedComponent(removedAtom);craftHistory.begin();craftWorkspace.removeAtom(removedAtom);selectAtom(null);topologyChanged();craftHistory.commit();saveWorkspace(true);startRelaxation('workspace removal settlement',{ids:removedIds});`);assert.equal(game.run('!!relaxation'),true);''')
+          replace('tests/veil-ui-check.mjs',"console.log('Interrupted atom deletion preserves the H balance atomically before settlement.');","console.log('Interrupted workspace atom removal preserves the H balance atomically before settlement.');")
+          PY
+
+          cat > tests/craft-controls-ui.test.mjs <<'EOF'
+          import test from 'node:test';
+          import assert from 'node:assert/strict';
+          import {bindCraftControls} from '../src/craft-controls.js';
+
+          function node(id=''){
+            return{id,hidden:id==='undo-cleanup',disabled:false,className:id==='undo-cleanup'?'icon-button craft-history-undo':'',textContent:'',attributes:new Map(),listeners:new Map(),style:{setProperty(){}},classList:{add(){},remove(){}},setAttribute(k,v){this.attributes.set(k,String(v));},getAttribute(k){return this.attributes.get(k)??null;},addEventListener(k,fn){this.listeners.set(k,fn);},querySelectorAll(){return[];},getBoundingClientRect(){return{left:0,right:44,top:0,bottom:44};},setPointerCapture(){},releasePointerCapture(){}};
+          }
+
+          test('bindCraftControls exposes icon-only Undo beside hold-safe full cleanup without selected-atom delete',()=>{
+            globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
+            const undo=node('undo-cleanup'),clear=node('clear-all'),actions=node('actions'),palette=node('palette'),focus=node('structure-focus'),viewer=node('viewer'),canvas=node('canvas');
+            actions.insertBefore=(child,before)=>{actions.inserted=[child,before];};
+            const document={hidden:false,defaultView:{addEventListener(){}},querySelector(selector){if(selector==='.viewer-actions')return actions;if(selector==='#undo-cleanup')return undo;if(selector==='#clear-all')return clear;return null;},querySelectorAll(){return[];},addEventListener(){}};
+            for(const item of [undo,clear,actions,palette,focus,viewer,canvas])item.ownerDocument=document;
+            class ResizeObserver{constructor(fn){this.fn=fn;}observe(target){this.target=target;}}
+            bindCraftControls({document,palette,elements:{},structureFocus:focus,viewer,canvas,resizeObserver:ResizeObserver,canChangeStructure:()=>true,refreshStructureList(){},findStructure(){},onStructureChange:{addElement(){},focus(){}},onUndo(){},onClear(){},onVisibilityChange(){},onPointerDown(){},onPointerMove(){},onPointerUp(){},onPointerCancel(){},onWheel(){},onResize(){}});
+            assert.deepEqual(actions.inserted,[undo,clear]);
+            assert.equal(undo.hidden,false);assert.equal(undo.disabled,true);assert.equal(undo.className,'icon-button craft-history-undo');assert.equal(undo.textContent,'');assert.equal(undo.getAttribute('aria-label'),'直前のCRAFT操作を元に戻す');assert.equal(undo.style.marginRight,'12px');
+            assert.equal(clear.className,'hold-clear icon-button');assert.equal(clear.getAttribute('title'),'全片付け');assert.match(clear.getAttribute('aria-label'),/全片付け/);
+            assert.ok(undo.listeners.has('click'),'Undo remains bound');
+            assert.ok(clear.listeners.has('pointerdown'));assert.ok(clear.listeners.has('click'),'Full cleanup remains bound through the existing hold action');
+          });
+          EOF
+
+          cat > tests/craft-navigation-ux.test.mjs <<'EOF'
+          import test from 'node:test';
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          import {createGameShell} from '../src/game-shell.js';
+
+          const root=new URL('../',import.meta.url);
+          const [index,app,gameShell,craftPanel,pubchemReference,supply,craftControls]=await Promise.all([
+            readFile(new URL('index.html',root),'utf8'),readFile(new URL('src/app.js',root),'utf8'),readFile(new URL('src/game-shell.js',root),'utf8'),readFile(new URL('src/craft-panel.js',root),'utf8'),readFile(new URL('src/pubchem-reference.js',root),'utf8'),readFile(new URL('src/veil/supply.js',root),'utf8'),readFile(new URL('src/craft-controls.js',root),'utf8'),
+          ]);
+          function node(id=''){return{id,className:'',textContent:'',style:{},attributes:new Map(),listeners:new Map(),children:[],setAttribute(key,value){this.attributes.set(key,String(value));},removeAttribute(key){this.attributes.delete(key);},getAttribute(key){return this.attributes.get(key)??null;},addEventListener(type,handler){this.listeners.set(type,handler);},querySelector(){return null;},querySelectorAll(){return[];},replaceChildren(...children){this.children=children;},append(...children){this.children.push(...children);},classList:{add(){},remove(){}},matches(){return false;},closest(){return null;}};}
+          test('CRAFT collector access remains the exploration-machine control',()=>{const access=node('open-supply');access.className='collector-access';access.textContent='';const originalNavigation=()=>{};access.listeners.set('click',originalNavigation);const document={getElementById(id){return id==='open-supply'?access:null;},querySelector(){return null;},querySelectorAll(){return[];}};const previous=globalThis.document;globalThis.document=document;try{createGameShell();}finally{globalThis.document=previous;}assert.equal(access.listeners.get('click'),originalNavigation);assert.equal(access.className,'collector-access');assert.equal(access.textContent,'');assert.match(supply,/accessCanvas\.id='collector-access-preview'/);assert.match(supply,/access\.append\(accessCanvas\)/);assert.match(supply,/access\.setAttribute\('aria-label','探索機を開く'\)/);});
+          test('CRAFT history undo is icon-only and visually paired with the destructive trash icon',()=>{assert.match(index,/id="undo-cleanup" class="icon-button craft-history-undo"[^>]*aria-label="直前のCRAFT操作を元に戻す"/);const sharedIcons=index.match(/<svg class="cleanup-icon"/g)??[];assert.ok(sharedIcons.length>=2);assert.match(index,/id="undo-cleanup"[\s\S]*?<path d="M9 7L4 12l5 5"\/><path d="M5 12h7a7 7 0 0 1 7 7"\/>/);assert.match(craftControls,/undo\.style\.marginRight='12px'/);assert.match(craftControls,/document\.querySelector\('#undo-cleanup'\)\?\.addEventListener\('click',onUndo\)/);assert.doesNotMatch(craftControls,/undo\.textContent|← 戻す|↶/);});
+          test('legacy transient cleanup art and selected-atom delete action are removed end-to-end',()=>{assert.doesNotMatch(index,/<circle cx="7" cy="6\.5"|<circle cx="12" cy="5"|<circle cx="17" cy="6\.5"/);assert.match(index,/id="clear-all"[\s\S]*?<path d="M8 8h8l-\.7 11H8\.7L8 8z"/);for(const source of [index,app,gameShell,craftControls])assert.doesNotMatch(source,/delete-selected|onDelete/);assert.doesNotMatch(app,/削除後の構造を安定化しています/);});
+          test('PubChem stays with molecule identity and remains an explicit external link',()=>{assert.match(craftPanel,/nodes\.formula\.append\(nodes\.pubchem\)/);assert.match(craftPanel,/pubchemLink\.target='_blank'/);assert.match(craftPanel,/pubchemLink\.rel='noopener noreferrer external'/);assert.match(craftPanel,/PubChemでこの分子を調べる（外部サイト）/);assert.match(craftPanel,/marginLeft:'0'/);assert.match(craftPanel,/borderLeft:'0'/);assert.match(craftPanel,/pubchemReferenceFor\(focus\)/);assert.match(pubchemReference,/return'PubChem ↗'/);});
+          EOF
+
+          cat > tests/craft-chrome.test.mjs <<'EOF'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const root=new URL('../',import.meta.url);
+          const [index,gameShell,craftPanel,craftControls,app]=await Promise.all([readFile(new URL('index.html',root),'utf8'),readFile(new URL('src/game-shell.js',root),'utf8'),readFile(new URL('src/craft-panel.js',root),'utf8'),readFile(new URL('src/craft-controls.js',root),'utf8'),readFile(new URL('src/app.js',root),'utf8')]);
+          for(const id of ['structure-focus-label','open-info']){assert.match(index,new RegExp(`id="${id}"`));assert.match(gameShell,new RegExp(`#${id}`));}
+          assert.doesNotMatch(index,/id="frame-structure"/);assert.doesNotMatch(gameShell,/#frame-structure/);assert.match(gameShell,/node\.style\.display='none'/);assert.doesNotMatch(gameShell,/querySelector\(selector\)\?\.remove\(\)/);assert.match(craftPanel,/const focusLabel=document\.querySelector\('#structure-focus-label'\);if\(focusLabel\)focusLabel\.hidden=/);
+          assert.doesNotMatch(index,/id="delete-selected"/);assert.doesNotMatch(gameShell,/delete-selected|deleteButton/);assert.doesNotMatch(craftControls,/delete-selected|onDelete/);assert.doesNotMatch(app,/onDelete:|削除後の構造を安定化しています/);assert.doesNotMatch(index,/<circle cx="7" cy="6\.5"|<circle cx="12" cy="5"|<circle cx="17" cy="6\.5"/);assert.match(index,/id="clear-all"[^>]*[\s\S]*?<path d="M8 8h8l-\.7 11H8\.7L8 8z"/);
+          console.log('Craft chrome tests passed.');
+          EOF
+
+      - name: Focused regressions and orphan scan
+        run: |
+          node tests/craft-navigation-ux.test.mjs
+          node tests/craft-controls-ui.test.mjs
+          node tests/pubchem-reference.test.mjs
+          node tests/craft-chrome.test.mjs
+          node tests/source-contracts.test.mjs
+          node tests/craft-history.test.mjs
+          node tests/craft-workspace.test.mjs
+          ! grep -R -n --exclude-dir=.git -E 'delete-selected|onDelete' index.html src tests/craft-controls-ui.test.mjs tests/veil-ui-check.mjs
+          ! grep -R -n --exclude-dir=.git -E '<circle cx="7" cy="6\.5"|<circle cx="12" cy="5"|<circle cx="17" cy="6\.5"' index.html src
+      - name: Generate and verify PWA
+        run: |
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+      - name: Install browser harness
+        run: |
+          npm install --prefix /tmp/craft-browser playwright@1.55.0
+          /tmp/craft-browser/node_modules/.bin/playwright install chromium
+      - name: Verify first paint and live mobile/desktop controls
+        run: |
+          python3 -m http.server 4173 >/tmp/craft-http.log 2>&1 &
+          cat >/tmp/verify.mjs <<'EOF'
+          import {chromium} from '/tmp/craft-browser/node_modules/playwright/index.mjs';
+          const browser=await chromium.launch({headless:true});
+          try{
+            const staticPage=await browser.newPage({javaScriptEnabled:false,viewport:{width:390,height:844}});await staticPage.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});const initial=await staticPage.evaluate(()=>({legacyCircles:document.querySelectorAll('#clear-all circle').length,clearPaths:document.querySelectorAll('#clear-all path').length,deleteExists:!!document.querySelector('#delete-selected'),undoText:document.querySelector('#undo-cleanup')?.textContent.trim(),undoPaths:document.querySelectorAll('#undo-cleanup path').length}));if(initial.legacyCircles!==0||initial.clearPaths!==2||initial.deleteExists||initial.undoText!==''||initial.undoPaths!==2)throw new Error(`static first-paint contract failed: ${JSON.stringify(initial)}`);await staticPage.close();
+            for(const viewport of [{width:390,height:844,name:'mobile'},{width:1280,height:800,name:'desktop'}]){const page=await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});await page.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('#collector-access-preview')&&document.querySelector('#undo-cleanup')&&!document.querySelector('#undo-cleanup').hidden);const result=await page.evaluate(()=>{const undo=document.querySelector('#undo-cleanup'),clear=document.querySelector('#clear-all'),u=undo.getBoundingClientRect(),c=clear.getBoundingClientRect(),us=getComputedStyle(undo.querySelector('svg')),cs=getComputedStyle(clear.querySelector('svg'));return{undoText:undo.textContent.trim(),undoLabel:undo.getAttribute('aria-label'),undoHit:[u.width,u.height],undoPaths:undo.querySelectorAll('path').length,clearCircles:clear.querySelectorAll('circle').length,clearPaths:clear.querySelectorAll('path').length,stroke:[us.strokeWidth,cs.strokeWidth],deleteExists:!!document.querySelector('#delete-selected'),gap:c.left-u.right};});if(result.undoText!==''||result.undoLabel!=='直前のCRAFT操作を元に戻す'||result.undoHit[0]!==44||result.undoHit[1]<44||result.undoPaths!==2||result.clearCircles!==0||result.clearPaths!==2||result.stroke[0]!==result.stroke[1]||result.deleteExists||result.gap<10)throw new Error(`${viewport.name} contract failed: ${JSON.stringify(result)}`);console.log(viewport.name,JSON.stringify(result));await page.close();}
+          }finally{await browser.close();}
+          EOF
+          node /tmp/verify.mjs
+      - name: Remove temporary workflows and commit implementation
+        run: |
+          rm .github/workflows/craft-action-cleanup.yml .github/workflows/craft-action-cleanup-v2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove obsolete CRAFT action controls [craft-action-cleanup-generated]"
+          git push
