@@ -150,7 +150,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='gate'){resources.state.progress.cleared=true;run.gateTime=run.time;resources.save();notice('Hの帳を抜けた · BURSTを使うべき瞬間だった',4);}
       if(event.type==='region'){const first=resources.visit(event.region);if(first)notice(event.region==='carbon'?'CARBON DRIFT · 粒子列の先に、塊が脈打つ':event.region==='oxygen'?'OXYGEN SURGE · 高速流と熱の領域':event.region==='frontier'?'INNER HORIZON · 金色の輪が最終地点。到達後は正常帰還を':`${REGIONS[event.region].name}へ戻った`,6);resources.save();}
       if(event.type==='inspiration')for(const id of event.rewards)offerInsight(id);
-      if(event.type==='signal'){const result=resources.signal(event.region,event.roll,event.choice);notice(signalText(result),result?.recipe?3:3);if(result?.recipe)offerInsight(result.recipe);supply.update();}
+      if(event.type==='signal'){const excludeIds=new Set(run.carriedInsights);if(run.analysis?.id)excludeIds.add(run.analysis.id);const result=resources.signal(event.region,event.roll,event.choice,{excludeIds});notice(signalText(result),result?.recipe?3:3);if(result?.recipe)offerInsight(result.recipe);supply.update();}
       if(event.type==='insightReady')handleInsight(event);
       if(event.type==='lap')notice('流れをひと巡り · 保持場への干渉は下がらない',3);
       if(event.type==='eaterSpawn'){notice(event.count===1?'DUST EATER · 採集殻の保持場を崩す粒子現象':`DUST EATERS × ${event.count} · 保持場が破綻する前にANCHOR RETURNを`,4);vibrate(18);}
