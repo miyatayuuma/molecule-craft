@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {EXPEDITION_CHALLENGES,challengeCenter,recordChallengePassage} from '../src/veil/expedition-challenges.js';
+import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt,recordChallengePassage} from '../src/veil/expedition-challenges.js';
 import {createUniverse,environmentAt,FIELD_SIGNALS,animateUniverse} from '../src/veil/universe.js';
 import {DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,oxygenRouteCenterAtY} from '../src/veil/oxygen-routes.js';
 import {buildFieldMapSvg} from '../scripts/export-field-map.mjs';
@@ -29,6 +29,15 @@ assert.equal(overlap(curve,deep['oxygen-deep-safe']),false);
 assert.equal(overlap(curve,deep['oxygen-deep-thermal']),false);
 assert.equal(overlap(thermal,deep['oxygen-deep-safe']),false);
 assert.equal(overlap(thermal,deep['oxygen-deep-skill']),false);
+assert.equal(challengeWidthAt(curve,curve.centerY),curve.width,'curve keeps its nominal width through the authored center');
+assert.equal(challengeWidthAt(curve,curve.top),100,'curve tapers before the shared Frontier merge');
+for(let y=curve.bottom;y>=curve.top;y-=25){
+  for(const route of [deep['oxygen-deep-safe'],deep['oxygen-deep-thermal']]){
+    const routeX=oxygenRouteCenterAtY(route,y);if(routeX===null)continue;
+    const clearance=Math.abs(routeX-challengeCenter(curve,y))-challengeWidthAt(curve,y)-route.width/2;
+    assert.ok(clearance>0,`curve field must not overlap ${route.id} corridor at y=${y} (clearance ${clearance})`);
+  }
+}
 
 function passage(zone,route){
   const run={map:{universe:true},player:{x:0,y:zone.bottom+10},events:[]};
