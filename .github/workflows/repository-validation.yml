@@ -19,6 +19,8 @@ jobs:
         run: node tests/repository-hygiene.test.mjs
       - name: Current FIELD developer map
         run: node tests/field-map-export.test.mjs
+      - name: FIELD expansion proposal map
+        run: node tests/field-expansion-proposal.test.mjs
       - name: Source contracts
         run: |
           node tests/source-contracts.test.mjs
