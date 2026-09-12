@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main]
+    branches: [main, critical-insight-operational-readiness]
 
 permissions:
   contents: write
