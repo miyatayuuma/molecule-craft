@@ -15,25 +15,37 @@ jobs:
           fetch-depth: 0
       - name: Runtime
         run: node --version
-      - name: Regenerate Task 6 derived assets
+      - name: Refresh Task 6 regression fixtures
         run: |
           python - <<'PY'
           from pathlib import Path
-          path=Path('tests/field-map-export.test.mjs')
+          path=Path('tests/deep-oxygen-routes.test.mjs')
           text=path.read_text()
-          old="const shortcutNormal=traverse({x:-432,y:-9600,targetY:-9800,maxSeconds:12}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});"
-          new="const shortcutNormal=traverse({x:-530,y:-9600,targetY:-9800,maxSeconds:6}),shortcutBurst=traverse({x:-320,y:-9600,targetY:-9800,burst:true,maxSeconds:4});"
-          if old not in text:
-              raise SystemExit('Task 6 traversal assertion source was not found')
-          path.write_text(text.replace(old,new))
+          replacements={
+            "const curve=EXPEDITION_CHALLENGES.find(candidate=>candidate.id==='curve');assert.deepEqual(curve,{id:'curve',bottom:-10820,top:-11320,width:240,rewards:['propane','phenol','formaldehyde']});":
+            "const curve=EXPEDITION_CHALLENGES.find(candidate=>candidate.id==='curve');assert.deepEqual(curve,{id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:['propane','phenol','formaldehyde']});",
+            "let waypoint=1,frames=0,coolantSpent=0,burstUses=0,maxHeat=run.heat,maxEnvironmentHeat=0,firstOverheat=null;":
+            "let waypoint=1,frames=0,coolantSpent=0,burstUses=0,maxHeat=run.heat,maxEnvironmentHeat=0,maxEnvironmentHeatPoint=null,firstOverheat=null;",
+            "maxEnvironmentHeat=Math.max(maxEnvironmentHeat,environmentAt(run.player,run.time).heat);":
+            "const sampledEnvironmentHeat=environmentAt(run.player,run.time).heat;if(sampledEnvironmentHeat>maxEnvironmentHeat){maxEnvironmentHeat=sampledEnvironmentHeat;maxEnvironmentHeatPoint={x:run.player.x,y:run.player.y,time:run.time};}",
+            "return {run,time:run.time,reached:waypoint===path.length-1,coolantSpent,burstUses,maxHeat,maxEnvironmentHeat,firstOverheat};":
+            "return {run,time:run.time,reached:waypoint===path.length-1,coolantSpent,burstUses,maxHeat,maxEnvironmentHeat,maxEnvironmentHeatPoint,firstOverheat};",
+            "assert.equal(safeRun.run.overheated,false);assert.equal(safeRun.run.heat,0);assert.ok(safeRun.maxEnvironmentHeat<10,'Safe does not inherit shared high thermal');":
+            "assert.equal(safeRun.run.overheated,false);assert.equal(safeRun.run.heat,0);assert.ok(safeRun.maxEnvironmentHeat<10,`Safe does not inherit shared high thermal (${safeRun.maxEnvironmentHeat} at ${JSON.stringify(safeRun.maxEnvironmentHeatPoint)})`);",
+          }
+          for old,new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Task 6 Deep regression source was not found: {old[:80]}')
+              text=text.replace(old,new)
+          path.write_text(text)
           PY
           node scripts/export-field-map.mjs
           node scripts/build-precache.mjs
-          if ! git diff --quiet -- tests/field-map-export.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js; then
+          if ! git diff --quiet -- tests/deep-oxygen-routes.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add tests/field-map-export.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js
-            git commit -m "Validate pulse peripheral line choice"
+            git add tests/deep-oxygen-routes.test.mjs docs/maps/current-field.svg precache-manifest.js sw.js
+            git commit -m "Refresh Task 6 Deep Oxygen regressions"
             git push origin "HEAD:${{ github.head_ref }}"
           fi
       - name: Repository hygiene
