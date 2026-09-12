@@ -28,12 +28,23 @@ jobs:
         run: node scripts/export-field-expansion-proposal.mjs --check
       - name: Vortex contracts
         run: node tests/vortex-route.test.mjs
-      - name: Capture Oxygen Network diagnostics
-        run: node tests/oxygen-routes.test.mjs > oxygen-routes-ci.log 2>&1 || true
-      - name: Commit diagnostic snapshot
+      - name: Oxygen Network regressions
+        run: node tests/oxygen-routes.test.mjs
+      - name: Growth regressions
+        run: node tests/growth.test.mjs
+      - name: Spawn layout regressions
+        run: node tests/spawn-layout.test.mjs
+      - name: Repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: PWA freshness
+        run: node scripts/build-precache.mjs --check
+      - name: Whitespace check
+        run: git diff --check
+      - name: Commit generated assets and remove temporary diagnostics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/maps/current-field.svg precache-manifest.js oxygen-routes-ci.log
-          git commit -m "Capture Oxygen Entry generated assets and diagnostics"
+          git rm .github/workflows/oxygen-entry-generator.yml oxygen-routes-ci.log
+          git add -A
+          git commit -m "Finalize Oxygen Entry generated assets"
           git push origin HEAD:${{ github.head_ref }}
