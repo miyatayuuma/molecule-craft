@@ -52,9 +52,9 @@ export const EXPEDITION = Object.freeze({
 // coolant rates stay proportionally paired so H₂O keeps its pre-existing
 // thermostat relationship while a full-speed Route C traversal can teach HOT.
 export const THERMAL = Object.freeze({
-  heatPerSecond: 14.25,
+  heatPerSecond: 13,
   naturalCoolingPerSecond: 14,
-  coolantCoolingPerSecond: 17.1,
+  coolantCoolingPerSecond: 15.6,
   coolantSecondsPerMolecule: 1,
   coolantStart: 35,
   hotThreshold: 70,
