@@ -3,9 +3,10 @@ import {simulateOxygenRoute as simulateCurrentRoute} from '../scripts/simulate-o
 import {OXYGEN_ROUTES,oxygenPressureAt} from '../src/veil/oxygen-routes.js';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 
-// Keep the original authored-layout regression as a control. CHO placement
-// and completion are exercised separately in cho-campaign.test.mjs.
-const simulateOxygenRoute=options=>simulateCurrentRoute({harvestLayout:{sideSpacing:27,eddyAtoms:0},...options});
+// Keep Network regressions isolated at the canonical junction. Oxygen Entry
+// traversal is covered separately so its temporary pulse overlap cannot make
+// downstream route balance look changed.
+const simulateOxygenRoute=options=>simulateCurrentRoute({harvestLayout:{sideSpacing:27,eddyAtoms:0},start:'junction',...options});
 const cases=[
   {routeId:'oxygen-shortcut',propellant:'hydrogen'},
   {routeId:'oxygen-side',propellant:'carbon-dioxide'},
@@ -20,7 +21,7 @@ for(const seed of [1,71])for(const fps of [30,60]){
   assert.ok(reports[0].fuelAtomCost<reports[1].fuelAtomCost&&reports[0].fuelAtomCost<reports[2].fuelAtomCost);
   assert.ok(reports[1].maxEaters>0,'The longer route remains exposed to normal pursuit');
 }
-const [shortcut,,main]=cases.map(options=>simulateOxygenRoute({...options,start:'junction'}));
+const [shortcut,,main]=cases.map(options=>simulateOxygenRoute(options));
 assert.ok(shortcut.duration<main.duration,'The shortcut crosses the branch itself fastest');
 const rest=simulateOxygenRoute({routeId:'oxygen-main',propellant:null,drive:true,rest:true});
 assert.equal(rest.reached,true,'A rest in the quiet eddy is a real uncooled solution');assert.equal(rest.overheatEvents,0);assert.ok(rest.duration>main.duration);
