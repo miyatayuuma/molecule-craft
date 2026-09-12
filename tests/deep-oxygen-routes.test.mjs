@@ -24,12 +24,12 @@ function traverse(path,{combustion=false,coolant=0,bursts=false,maxSeconds=28}={
   const run=createRun(deterministicMap(),flightConfig(),{fuel,predators:false});
   Object.assign(run.player,{x:path[0].x,y:path[0].y,angle:-Math.PI/2,speed:29,vx:0,vy:0});
   if(combustion)setCombustionHeld(run,true);
-  let waypoint=1,frames=0,coolantSpent=0,burstUses=0,maxHeat=run.heat,maxEnvironmentHeat=0,firstOverheat=null;
+  let waypoint=1,frames=0,coolantSpent=0,burstUses=0,maxHeat=run.heat,maxEnvironmentHeat=0,maxEnvironmentHeatPoint=null,firstOverheat=null;
   while(frames++<maxSeconds/DT){
     const target=path[waypoint],dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy);
     if(distance<55){if(waypoint===path.length-1)break;waypoint++;continue;}
     if(bursts&&run.player.y<=-10820&&run.player.y>-11620&&run.player.boost<=0&&run.player.cooldown<=0&&run.fuel.propellant.amount>=40){if(beginBurst(run,()=>true))burstUses++;}
-    maxEnvironmentHeat=Math.max(maxEnvironmentHeat,environmentAt(run.player,run.time).heat);
+    const sampledEnvironmentHeat=environmentAt(run.player,run.time).heat;if(sampledEnvironmentHeat>maxEnvironmentHeat){maxEnvironmentHeat=sampledEnvironmentHeat;maxEnvironmentHeatPoint={x:run.player.x,y:run.player.y,time:run.time};}
     const events=stepRun(run,normalized(target.x-run.player.x,target.y-run.player.y),DT,{
       consumeCombustion:()=>true,
       consumeCoolant:(amount,molecule)=>{assert.equal(amount,1);assert.equal(molecule,'water');coolantSpent+=amount;return true;},
@@ -37,7 +37,7 @@ function traverse(path,{combustion=false,coolant=0,bursts=false,maxSeconds=28}={
     maxHeat=Math.max(maxHeat,run.heat);
     if(!firstOverheat&&events.some(event=>event.type==='overheat'))firstOverheat={time:run.time,x:run.player.x,y:run.player.y};
   }
-  return {run,time:run.time,reached:waypoint===path.length-1,coolantSpent,burstUses,maxHeat,maxEnvironmentHeat,firstOverheat};
+  return {run,time:run.time,reached:waypoint===path.length-1,coolantSpent,burstUses,maxHeat,maxEnvironmentHeat,maxEnvironmentHeatPoint,firstOverheat};
 }
 
 const safe=route('oxygen-deep-safe'),skill=route('oxygen-deep-skill'),thermal=route('oxygen-deep-thermal');
@@ -67,7 +67,7 @@ assert.ok(thermalHeat>=40,'Thermal route owns the high-thermal field');
 
 const safeRun=traverse(safe.knots.map(([x,y])=>({x,y})));
 assert.ok(safeRun.reached,'normal propulsion reaches Frontier approach on Safe');
-assert.equal(safeRun.run.overheated,false);assert.equal(safeRun.run.heat,0);assert.ok(safeRun.maxEnvironmentHeat<10,'Safe does not inherit shared high thermal');
+assert.equal(safeRun.run.overheated,false);assert.equal(safeRun.run.heat,0);assert.ok(safeRun.maxEnvironmentHeat<10,`Safe does not inherit shared high thermal (${safeRun.maxEnvironmentHeat} at ${JSON.stringify(safeRun.maxEnvironmentHeatPoint)})`);
 
 // Normal thrust can line-take around the still-unmoved central challenges.
 const skillNormal=traverse([{x:120,y:-10800},{x:420,y:-10920},{x:420,y:-11620},{x:100,y:-11830}],{maxSeconds:24});
@@ -75,7 +75,7 @@ const skillBurst=traverse(skill.knots.map(([x,y])=>({x,y})),{bursts:true,maxSeco
 assert.ok(skillNormal.reached,'Skill route remains a G2 skill bypass with normal propulsion');
 assert.ok(skillBurst.reached&&skillBurst.burstUses>=2,'BURST can cut through the difficult central section');
 assert.ok(skillBurst.time<skillNormal.time*.8,`BURST should materially improve traversal (${skillBurst.time.toFixed(2)}s vs ${skillNormal.time.toFixed(2)}s)`);
-const curve=EXPEDITION_CHALLENGES.find(candidate=>candidate.id==='curve');assert.deepEqual(curve,{id:'curve',bottom:-10820,top:-11320,width:240,rewards:['propane','phenol','formaldehyde']});
+const curve=EXPEDITION_CHALLENGES.find(candidate=>candidate.id==='curve');assert.deepEqual(curve,{id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:['propane','phenol','formaldehyde']});
 
 const thermalPath=thermal.knots.map(([x,y])=>({x,y}));
 const thermalDry=traverse(thermalPath,{combustion:true,maxSeconds:20});
