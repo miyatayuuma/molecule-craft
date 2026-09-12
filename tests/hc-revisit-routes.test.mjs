@@ -12,7 +12,7 @@ import {EXPEDITION_CHALLENGES} from '../src/veil/expedition-challenges.js';
 import {DEEP_OXYGEN_FRONTIER_RECOVERY,OXYGEN_ROUTES,OXYGEN_THERMAL} from '../src/veil/oxygen-routes.js';
 import {buildFieldMapSvg} from '../scripts/export-field-map.mjs';
 
-const TASK6_BASELINE=Object.freeze({hydrogenRegionValue:1037,carbonRegionValue:938});
+const TASK6_BASELINE=Object.freeze({hydrogenRegionValue:1153,carbonRegionValue:938});
 const CARBON_REGION=Object.freeze({top:-7830,bottom:-4390});
 const lengthOf=points=>points.slice(1).reduce((sum,point,index)=>sum+Math.hypot(point.x-points[index].x,point.y-points[index].y),0);
 const routeBy=(map,id)=>map.routes.find(route=>route.id===id);
