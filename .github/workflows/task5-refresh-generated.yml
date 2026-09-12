@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   refresh:
+    # Temporary branch-only generator/validation harness; removed before PR delivery.
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
