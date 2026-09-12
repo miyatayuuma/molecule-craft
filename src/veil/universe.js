@@ -103,7 +103,7 @@ export function environmentAt(p,time=0){
   const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),routePressure=challenge?.pressure??oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
   const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=challenge?.flowX??(routePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
   const oxygenAmbient=oxygen*(1-coolEddy)*3,recovering=quiet||thermal.recovery,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));
-  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:challenge?null:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
+  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:challenge?null:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;

@@ -76,6 +76,7 @@ assert.ok(environmentAt({x:oxygenRouteCenterAtY(routeC,-9000),y:-9000}).heat<5,'
 assert.ok(environmentAt({x:oxygenRouteCenterAtY(routeC,-9500),y:-9500}).heat<20,'Route C warm section rises gradually');
 assert.ok(environmentAt({x:oxygenRouteCenterAtY(routeC,-10050),y:-10050}).heat>=35,'Route C learning section is high thermal');
 assert.ok(environmentAt({x:oxygenRouteCenterAtY(routeB,-10050),y:-10050}).heat<5,'Route B remains mostly cool beside Route C');
+assert.ok(environmentAt({x:oxygenRouteCenterAtY(routeB,-10050),y:-10050}).combustionHeatFactor===1,'Route B keeps neutral combustion thermal load');
 
 // Scenario A: fastest clean centerline DRIVE learns HOT late in Route C, once,
 // with meaningful reaction time before any overheat.
@@ -113,10 +114,9 @@ assert.ok(cAmbient.maxEnvironmentHeat>10,'Route C has real ambient thermal expos
 assert.equal(cAmbient.strain.length,0);assert.equal(cAmbient.overheats.length,0);assert.equal(cAmbient.run.heat,0);
 assert.ok(cAmbient.run.player.y<-10600,'Route C remains passable without H2O or COMBUSTION');
 
-// Scenario D: Route B remains a DRIVE route, but its authored recovery is a
-// rational place to coast briefly and use ordinary natural cooling.
-const bDrive=simulateRoute('oxygen-main',{combustion:true,recoveryCoastSeconds:.45});
-assert.ok(bDrive.recoveryCoast>=.45,'Route B traversal should use the authored recovery coast');
+// Scenario D: Route B remains a sustained DRIVE route. Its authored recovery
+// is thermally quiet, but intended traversal does not require a cooling stop.
+const bDrive=simulateRoute('oxygen-main',{combustion:true});
 assert.equal(bDrive.strain.length,0,'Route B intended DRIVE must not teach thermal strain');
 assert.equal(bDrive.overheats.length,0);assert.ok(bDrive.run.heat<THERMAL.hotThreshold);
 assert.ok(bDrive.run.heat<cDry.run.heat-20,'Route B heat buildup must be clearly lower than Route C');

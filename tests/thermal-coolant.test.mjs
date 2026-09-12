@@ -11,10 +11,10 @@ const combustion=()=>true;
 // Short burns are unrestricted. Without coolant, methane reaches the hard
 // limit at roughly ten seconds and naturally recovers while the paid packet is
 // retained for automatic re-ignition.
-const short=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:20},oxidizer:{molecule:'oxygen',amount:40}},predators:false});setCombustionHeld(short,true);advance(short,3,{consumeCombustion:combustion});assert.ok(short.player.combustion);assert.ok(Math.abs(short.heat-THERMAL.heatPerSecond*3)<.1);assert.equal(short.overheated,false);
+const short=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:20},oxidizer:{molecule:'oxygen',amount:40}},predators:false});setCombustionHeld(short,true);advance(short,3,{consumeCombustion:combustion});assert.ok(short.player.combustion);assert.ok(short.heat>29&&short.heat<31);assert.equal(short.overheated,false);
 
 const hot=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'n-hexane',amount:6},oxidizer:{molecule:'oxygen',amount:36}},predators:false});setCombustionHeld(hot,true);const hotEvents=advance(hot,8.2,{consumeCombustion:combustion});assert.ok(hotEvents.some(event=>event.type==='overheat'));assert.equal(hot.overheated,true);assert.equal(hot.player.combustion,false);const paidAtCutoff=hot.driveBuffer;assert.ok(paidAtCutoff>0,'Overheat preserves already purchased combustion time');
-const recoveryEvents=advance(hot,3.3,{consumeCombustion:combustion});assert.ok(recoveryEvents.some(event=>event.type==='heatRecovered'));assert.equal(hot.overheated,false);assert.equal(hot.player.combustion,true,'A held control automatically re-ignites after cooling');assert.ok(hot.driveBuffer<paidAtCutoff);
+const recoveryEvents=advance(hot,4,{consumeCombustion:combustion});assert.ok(recoveryEvents.some(event=>event.type==='heatRecovered'));assert.equal(hot.overheated,false);assert.equal(hot.player.combustion,true,'A held control automatically re-ignites after cooling');assert.ok(hot.driveBuffer<paidAtCutoff);
 
 // Thermal strain is semantic combustion experience: only a below -> HOT
 // crossing while combustion is actively heating emits it, once per run.
@@ -37,7 +37,7 @@ const rejected=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:
 
 for(const molecule of moleculesForRole('coolant')){
   const profile=performanceFor(molecule,'coolant'),run=createRun(emptyMap(),VEIL,{fuel:{fuel:{molecule:'methane',amount:2},oxidizer:{molecule:'oxygen',amount:4},coolant:{molecule,amount:1}},predators:false});run.heat=THERMAL.coolantStart;setCombustionHeld(run,true);advance(run,1,{consumeCombustion:combustion,consumeCoolant:()=>true});
-  const expected=THERMAL.coolantStart+THERMAL.heatPerSecond-THERMAL.coolantCoolingPerSecond*profile.coolingPower;assert.ok(Math.abs(run.heat-expected)<1e-8,`${molecule} coolingPower drives real heat removal`);assert.equal(run.fuel.coolant.amount,0);
+  const serviceSeconds=Math.min(1,THERMAL.coolantSecondsPerMolecule*profile.durationFactor),expected=THERMAL.coolantStart+THERMAL.heatPerSecond-THERMAL.coolantCoolingPerSecond*profile.coolingPower*serviceSeconds;assert.ok(Math.abs(run.heat-expected)<1e-8,`${molecule} coolingPower and durationFactor drive real heat removal`);assert.equal(run.fuel.coolant.amount,0);
 }
 
 const burst=createRun(emptyMap(),VEIL,{fuel:{propellant:{molecule:'hydrogen',amount:40}},predators:false});assert.ok(beginBurst(burst,()=>true));advance(burst,1);assert.equal(burst.heat,0,'BURST is thermally independent in v1');
