@@ -26,7 +26,7 @@ jobs:
           node tests/loadout-preview.test.mjs
           node tests/loadout-card-order.test.mjs
           node tests/generic-propulsion.test.mjs
-          node tests/thermal-coolant.test.mjs
+          node tests/coolant-feedback.test.mjs
           node tests/propulsion-hud-source.test.mjs
       - name: Generate PWA diff for review
         run: |
