@@ -26,6 +26,7 @@ jobs:
           node tests/craft-controls-ui.test.mjs
           node tests/craft-history.test.mjs
           node tests/craft-input-recovery.test.mjs
+          node tests/game-shell-recovery.test.mjs
       - name: Expedition insights
         run: node tests/expedition-insights.test.mjs
       - name: Insight taxonomy and presentation
