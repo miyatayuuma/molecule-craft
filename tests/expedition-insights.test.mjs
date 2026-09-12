@@ -83,7 +83,7 @@ for(const id of CRITICAL_INSIGHT_IDS){
 // Signal success returns a candidate without granting a hint. The existing
 // bonus path still grants atoms, but no longer leaks guaranteed hints in FIELD.
 {
-  const value=resources();value.findElementForExpedition('H');value.findElementForExpedition('C');const before=[...value.state.hints],result=value.signal('veil',0,0);assert.equal(result.recipe,'ethane');assert.deepEqual(value.state.hints,before);
+  const value=resources();value.findElementForExpedition('H');value.findElementForExpedition('C');const before=[...value.state.hints],result=value.signal('carbon',0,0);assert.equal(result.recipe,'ethane');assert.deepEqual(value.state.hints,before);
   const bonus=createResources({storage:memory()}),bonusBefore=[...bonus.state.hints],bonusResult=bonus.signal('veil',.999,.5);assert.ok(bonusResult.bonus);assert.deepEqual(bonus.state.hints,bonusBefore);assert.ok(bonus.state.elements.H>0);
 }
 

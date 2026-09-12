@@ -1,6 +1,8 @@
 import { nextOxygenUpgrade } from './tank-upgrades.js';
 import { EXPEDITION } from './config.js';
-import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,TANK_USES,tankCapacity,tankUsesFor } from './growth.js';
+import { CHALLENGE_INSIGHT_IDS } from './expedition-challenges.js';
+import { CRITICAL_INSIGHT_IDS } from './insights.js';
+import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,REGION_ORDER,TANK_USES,tankCapacity,tankUsesFor } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { validateWorkspace } from '../workspace-save.js?v=31';
 import { WORKSPACE_STORAGE_KEY,parseWorkspaceSave } from '../workspace-persistence.js?v=1';
@@ -10,6 +12,18 @@ const COLLECTION_KEY='molecule-craft.collection.v1',MANAGED=MANAGED_ELEMENTS,STO
 export const RESET_CATEGORIES=Object.freeze(['collection','recipes','elements','tanks','exploration','records','workspace']);
 const initialProgress=createInitialProgress,initialTanks=createInitialTanks,initialSelectedLoadout=createInitialSelectedLoadout,initialState=createInitialResourcesState;
 const copy=x=>JSON.parse(JSON.stringify(x)),integer=isResourceInteger,validId=isValidResourceId;
+const SIGNAL_ELEMENTS=Object.freeze(['H','C','O']),CRITICAL_SIGNAL_IDS=new Set(CRITICAL_INSIGHT_IDS),CHALLENGE_SIGNAL_IDS=new Set(CHALLENGE_INSIGHT_IDS);
+export const regionRank=region=>REGION_ORDER.indexOf(region);
+export function minimumSignalRegionFor(record){
+  if(!record||!validId(record.id)||!Array.isArray(record.atoms)||!record.atoms.length||record.atoms.some(el=>!SIGNAL_ELEMENTS.includes(el)))return null;
+  if(record.atoms.includes('O'))return 'oxygen';
+  if(record.atoms.includes('C'))return 'carbon';
+  return record.atoms.every(el=>el==='H')?'veil':null;
+}
+export function signalCandidateEligible(record,{region,recipes=[],hints=[],excludeIds=new Set(),canUseElement=()=>false}={}){
+  const minimum=minimumSignalRegionFor(record),currentRank=regionRank(region),minimumRank=regionRank(minimum);
+  return minimum!==null&&currentRank>=minimumRank&&!CRITICAL_SIGNAL_IDS.has(record.id)&&!CHALLENGE_SIGNAL_IDS.has(record.id)&&!recipes.includes(record.id)&&!hints.includes(record.id)&&!excludeIds.has(record.id)&&record.atoms.length<=12&&record.atoms.every(canUseElement);
+}
 function expeditionLoss(units,rate){
   const exact=MANAGED.map((el,index)=>({el,index,value:(units[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
   let remaining=Math.floor(MANAGED.reduce((sum,el)=>sum+(units[el]??0),0)*rate)-MANAGED.reduce((sum,el)=>sum+lost[el],0);
@@ -122,7 +136,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
       const atoms={};for(const el of MANAGED)atoms[el]=state.elements[el]-before[el];return {captured,rate,kept,lost,atoms,found,completedNow,committedInsights};
     },
     visit(region){if(blocked||!Object.hasOwn(REGIONS,region))return false;const first=!state.progress.regions.includes(region);if(first)state.progress.regions.push(region);state.progress.checkpoint=region;if(region==='frontier')state.progress.frontier=true;if(region!=='veil')state.progress.cleared=true;return first;},
-    signal(region,roll,choice){if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1))return null;const p=state.progress,last=p.signalLast[region];if(last!==undefined&&p.totalCollected-last<45)return {repeat:true};const candidates=[...records.values()].filter(rec=>!MOLECULE_USES[rec.id]&&!state.recipes.includes(rec.id)&&!state.hints.includes(rec.id)&&rec.atoms.length<=12&&rec.atoms.every(el=>MANAGED.includes(el)&&api.canUseElement(el)));if(candidates.length&&(roll<GROWTH.signalChance||p.signalMisses+1>=GROWTH.signalPity)){const rec=candidates[Math.floor(choice*candidates.length)];p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:rec.id};}if(candidates.length)p.signalMisses++;const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};},
+    signal(region,roll,choice,{excludeIds=[]}={}){if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1))return null;const p=state.progress,last=p.signalLast[region];if(last!==undefined&&p.totalCollected-last<45)return {repeat:true};const excluded=excludeIds instanceof Set?excludeIds:new Set(Array.isArray(excludeIds)?excludeIds:[]),candidates=[...records.values()].filter(rec=>signalCandidateEligible(rec,{region,recipes:state.recipes,hints:state.hints,excludeIds:excluded,canUseElement:el=>MANAGED.includes(el)&&api.canUseElement(el)}));if(candidates.length&&(roll<GROWTH.signalChance||p.signalMisses+1>=GROWTH.signalPity)){const rec=candidates[Math.floor(choice*candidates.length)];p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:rec.id};}if(candidates.length)p.signalMisses++;const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};},
     workspaceAdapter:{getItem(key){if(key!==WORKSPACE_STORAGE_KEY)return storage?.getItem(key)??null;return state.workspace?JSON.stringify(state.workspace):null;},setItem(key,raw){if(key!==WORKSPACE_STORAGE_KEY)throw Error();if(blocked)throw Error();state.workspace=validateWorkspace(JSON.parse(raw));if(!save())throw Error();}},
   };if(!storage)report('端末保存を利用できません。この画面の間だけ資源を保持します。');return api;
 }

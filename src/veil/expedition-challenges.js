@@ -6,6 +6,7 @@ export const EXPEDITION_CHALLENGES=Object.freeze([
   {id:'curve',bottom:-10820,top:-11320,width:240,rewards:['propane','phenol','formaldehyde']},
   {id:'thermal',bottom:-11320,top:-11600,width:260,rewards:['ethylene-glycol','n-hexane']},
 ]);
+export const CHALLENGE_INSIGHT_IDS=Object.freeze([...new Set(EXPEDITION_CHALLENGES.flatMap(challenge=>challenge.rewards))]);
 export const challengeCenter=(zone,y)=>zone.id==='curve'?120+170*Math.sin((y-zone.bottom)/500*Math.PI):120;
 export function challengeEnvironment(p,time){
   const z=EXPEDITION_CHALLENGES.find(z=>p.y<=z.bottom&&p.y>=z.top&&Math.abs(p.x-challengeCenter(z,p.y))<z.width);
@@ -28,7 +29,8 @@ export function drawChallengeCurrents(ctx,time){
   for(const z of EXPEDITION_CHALLENGES){
     ctx.strokeStyle=z.id==='thermal'?'#cf7451':'#8ba6c7';ctx.lineWidth=1.5;
     for(let i=0;i<16;i++){const y=z.top+((i/16+time*.13)%1)*(z.bottom-z.top),x=challengeCenter(z,y)+(i%3-1)*z.width*.45;
-      ctx.globalAlpha=z.id==='pulse'?.12+.12*(1+Math.sin(time*2*Math.PI/2.4))/2:.16;ctx.beginPath();ctx.moveTo(x,y-22);ctx.quadraticCurveTo(x+10,y,x,y+22);ctx.stroke();}
+      ctx.globalAlpha=z.id==='pulse'?.12+.12*(1+Math.sin(time*2*Math.PI/2.4))/2:.16;ctx.beginPath();ctx.moveTo(x,y-22);ctx.quadraticCurveTo(x+10,y,x,y+22);ctx.stroke();
+    }
   }
   // Vortex route visualises the same geometry that guides dust and local flow.
   // It stays faint: the player reads a field, not a painted road.

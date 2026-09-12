@@ -42,6 +42,7 @@ export const REGIONS=Object.freeze({
   oxygen:{name:'Oxygen Surge',subtitle:'酸素の奔流',element:'O',x:170,y:-8090,angle:-Math.PI/2},
   frontier:{name:'Inner Horizon',subtitle:'まだ名のない光',element:'O',x:100,y:-11920,angle:-Math.PI/2},
 });
+export const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','frontier']);
 export function regionAt(y){return y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
 export function flightConfig(){return {...VEIL,...GROWTH.flight,bounds:GROWTH.bounds};}
 export function propulsionSpeedMax(config=GROWTH.flight){return Math.max(Number(config?.speed)||0,...Object.values(DRIVES).map(drive=>Number(drive.boostSpeed)||0));}
