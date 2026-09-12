@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main, codex/field-player-anchored-insights]
+    branches: [main]
 
 permissions:
   contents: write
