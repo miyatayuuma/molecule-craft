@@ -1,0 +1,47 @@
+name: Finalize FIELD map tooling once
+
+on:
+  push:
+    branches:
+      - current-field-developer-map
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Document exporter ownership
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('docs/architecture.md')
+          text=path.read_text()
+          marker='探索の現行ルールと意図は `docs/hco-growth.md` にあります。探索だけの変更では、分子DBや生成済みSVGを読む必要はありません。\n\n'
+          addition='Current FIELD developer map は `scripts/export-field-map.mjs` が現行 `src/veil/` 実装から `docs/maps/current-field.svg` を生成するdeveloper-only資料です。再生成は `node scripts/export-field-map.mjs`、freshness確認は `node scripts/export-field-map.mjs --check`。FIELD runtime / PWA配信物ではありません。\n\n'
+          if addition not in text:
+              if marker not in text:
+                  raise SystemExit('architecture insertion marker not found')
+              text=text.replace(marker,marker+addition,1)
+              path.write_text(text)
+          PY
+      - name: FIELD map exporter test
+        run: node tests/field-map-export.test.mjs
+      - name: Repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: Generated FIELD map freshness
+        run: node scripts/export-field-map.mjs --check
+      - name: Diff whitespace
+        run: git diff --check
+      - name: Commit documentation and remove one-shot workflow
+        run: |
+          git rm .github/workflows/finalize-field-map-once.yml
+          git add docs/architecture.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Document FIELD map exporter"
+          git push
