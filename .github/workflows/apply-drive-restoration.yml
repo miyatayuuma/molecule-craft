@@ -81,14 +81,18 @@ jobs:
           node tests/mobile-ui-check.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
       - name: Regenerate verified PWA outputs
         run: node scripts/build-precache.mjs
-      - name: Repository validation
-        shell: bash
+      - name: Repository hygiene
+        run: node tests/repository-hygiene.test.mjs
+      - name: Source contracts
         run: |
-          node --test tests/*.test.mjs
-          node scripts/check-repository-hygiene.mjs
-          node scripts/build-precache.mjs --check
-          node tests/pwa.test.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
-          git diff --check
+          node tests/source-contracts.test.mjs
+          node tests/persistence-boundary-source-contract.test.mjs
+      - name: Generated PWA freshness
+        run: node scripts/build-precache.mjs --check
+      - name: PWA integrity
+        run: node tests/pwa.test.mjs
+      - name: Whitespace errors
+        run: git diff --check
       - name: Commit validated restoration
         shell: bash
         run: |
