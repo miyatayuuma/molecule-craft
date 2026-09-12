@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import {commitEmptyLaunchFill,createDiscoveryConnection,normalizeLaunchFillPlan,preserveSupplyDuringPrepare} from '../src/craft-connections.js?v=2';
+import {commitEmptyLaunchFill,createDiscoveryConnection,criticalPrimaryLoadoutUse,normalizeLaunchFillPlan,preserveSupplyDuringPrepare} from '../src/craft-connections.js?v=2';
+
+assert.deepEqual(Object.fromEntries(['hydrogen','methane','oxygen','water'].map(id=>[id,criticalPrimaryLoadoutUse(id)])),{hydrogen:'propellant',methane:'fuel',oxygen:'oxidizer',water:'coolant'});
+assert.equal(criticalPrimaryLoadoutUse('methanol'),null,'Non-critical molecules do not request an automatic loadout assignment');
 
 const emptyPreview={status:'IMPOSSIBLE',invalid:[],partial:{entries:[{use:'propellant',molecule:'hydrogen',target:0}],cost:{}},required:{H:2},missing:{H:{have:0,need:2}}};
 const normalized=normalizeLaunchFillPlan(emptyPreview);assert.equal(normalized.status,'PARTIAL');assert.equal(normalized.emptyDeparture,true);
@@ -16,22 +19,22 @@ const invalidPreview={...emptyPreview,invalid:[{use:'propellant',molecule:'missi
 }
 
 function connectionFixture(){
-  const calls={discover:0,save:0,veil:0,refresh:0,observe:0,observed:[],present:[],dismiss:0,vibrate:0};
+  const calls={discover:0,save:0,veil:0,refresh:0,observe:0,observed:[],present:[],dismiss:0,vibrate:0,uses:[],discoveries:[]};
   const learned=new Set();
-  const resources={discover:id=>{calls.discover++;if(learned.has(id))return false;learned.add(id);return true;},save:()=>{calls.save++;}};
+  const resources={discoverWithLoadout:(id,use)=>{calls.discover++;calls.uses.push(use);if(learned.has(id))return false;learned.add(id);calls.save++;return{learned:true,assignedUse:use};}};
   const collection={
     refreshProgress:()=>{calls.refresh++;},
     observeStructures:structures=>{calls.observe++;calls.observed.push(structures);return{events:structures.filter(item=>item.record).map(item=>({signature:item.signature,isNew:!item.signature.includes('known')}))};},
     describeEvent:()=>'',
   };
-  const bridge=createDiscoveryConnection({resources,getVeilUI:()=>({discovered:()=>{calls.veil++;}}),getCollection:()=>collection,onPresent:event=>calls.present.push(event),onDismiss:()=>{calls.dismiss++;},onVibrate:()=>{calls.vibrate++;}});
+  const bridge=createDiscoveryConnection({resources,getVeilUI:()=>({discovered:(id,outcome)=>{calls.veil++;calls.discoveries.push({id,outcome});}}),getCollection:()=>collection,onPresent:event=>calls.present.push(event),onDismiss:()=>{calls.dismiss++;},onVibrate:()=>{calls.vibrate++;}});
   return{calls,bridge};
 }
 
 {
   const {calls,bridge}=connectionFixture(),item={key:'1,2',signature:'hydrogen-graph',complete:true,record:{id:'hydrogen'},graph:{}};
   bridge.sync([item]);bridge.check([item],{now:1000});
-  assert.equal(calls.discover,1);assert.equal(calls.save,1);assert.equal(calls.veil,1);assert.equal(calls.refresh,1);assert.equal(calls.observe,1);assert.equal(calls.present.length,1);assert.equal(calls.present[0].isNew,true);assert.equal(calls.vibrate,1);
+  assert.equal(calls.discover,1);assert.equal(calls.save,1);assert.equal(calls.uses[0],'propellant');assert.equal(calls.veil,1);assert.deepEqual(calls.discoveries[0],{id:'hydrogen',outcome:{autoAssignedUse:'propellant'}});assert.equal(calls.refresh,1);assert.equal(calls.observe,1);assert.equal(calls.present.length,1);assert.equal(calls.present[0].isNew,true);assert.equal(calls.vibrate,1);
   bridge.check([item],{now:1100});assert.equal(calls.discover,1);assert.equal(calls.observe,1);assert.equal(calls.present.length,1,'Completion side effects are edge-triggered, not rescanned every frame');
   bridge.sync([]);assert.equal(calls.dismiss,1,'Removing the active structure dismisses its completion feedback');
 
@@ -43,6 +46,8 @@ function connectionFixture(){
   const observeAfterIncomplete=calls.observe;
   bridge.sync([{...item,signature:'hydrogen-rebuilt'}]);bridge.check([{...item,signature:'hydrogen-rebuilt'}],{now:5200});
   assert.equal(calls.discover,2,'A later forward incomplete -> complete edge is processed');
+  assert.equal(calls.save,1,'Repeat CRAFT does not persist or re-emit an unlock');
+  assert.equal(calls.veil,1,'Repeat CRAFT does not re-fire capability presentation');
   assert.equal(calls.observe,observeAfterIncomplete+1);
 }
 
@@ -64,4 +69,4 @@ function connectionFixture(){
   assert.equal(calls.observed[0][0].record,null,'Non-completion structural observation cannot register a molecule');
 }
 
-console.log('Craft connections passed: launch fallback, LOADOUT preservation, forward-only completion side effects, passive restore/hydrate suppression and structural milestone isolation.');
+console.log('Craft connections passed: critical primary-role assignment, launch fallback, LOADOUT preservation, forward-only completion side effects, passive restore/hydrate suppression and structural milestone isolation.');

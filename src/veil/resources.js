@@ -69,9 +69,10 @@ export function createResources({storage,onStatus=()=>{}}={}){
     if(save()||!storage)return result;state=snapshot;return false;
   }
   function selectedLoadout(){return {...initialSelectedLoadout(),...(state.loadout?.tanks??{})};}
+  function selectLoadoutState(use,id){state.loadout={drive:state.loadout?.drive??'hydrogen',cooling:state.loadout?.cooling??true,tanks:selectedLoadout()};state.loadout.tanks[use]=id;}
   function setLoadoutTank(use,id){
     if(blocked||!Object.hasOwn(TANK_USES,use)||id!==null&&(!validId(id)||!state.recipes.includes(id)||!fitsTank(id,use)))return false;
-    const before=copy(state);state.loadout={drive:state.loadout?.drive??'hydrogen',cooling:state.loadout?.cooling??true,tanks:selectedLoadout()};state.loadout.tanks[use]=id;
+    const before=copy(state);selectLoadoutState(use,id);
     if(save()||!storage)return true;state=before;return false;
   }
   const addCost=(target,cost)=>{for(const [el,n]of Object.entries(cost??{}))target[el]=(target[el]??0)+n;return target;};
@@ -109,6 +110,12 @@ export function createResources({storage,onStatus=()=>{}}={}){
     if(save())return true;state=before;return false;
   }
   function discover(id){if(blocked||!records.has(id)||state.recipes.includes(id))return false;state.recipes.push(id);hint(id);return true;}
+  function discoverWithLoadout(id,use=null){
+    if(use!==null&&(!Object.hasOwn(TANK_USES,use)||!fitsTank(id,use)))return false;
+    const before=copy(state);if(!discover(id))return false;let assignedUse=null;
+    if(use!==null&&selectedLoadout()[use]===null){selectLoadoutState(use,id);assignedUse=use;}
+    if(save()||!storage)return {learned:true,assignedUse};state=before;return false;
+  }
   function recordThermalStrain(){if(blocked||state.progress.thermalStrainExperienced)return false;state.progress.thermalStrainExperienced=true;if(save()||!storage)return true;state.progress.thermalStrainExperienced=false;return false;}
   const api={
     get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,oxygenUpgradePlan,upgradeOxygenTank,recordThermalStrain,
@@ -118,7 +125,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
       const selected=new Set(categories),full=RESET_CATEGORIES.every(k=>selected.has(k));if(!selected.size||[...selected].some(k=>!RESET_CATEGORIES.includes(k))||blocked&&!full)return {committed:false};let next;
       try{if(!storage||storage.getItem(RESOURCE_KEY)!==previous)throw Error();next=full?initialState():copy(state);next.progress.sound=state.progress.sound;const clear=full||['workspace','elements','collection','recipes'].some(k=>selected.has(k));if(clear){if(!full&&!selected.has('elements'))for(const a of next.workspace?.atoms??[])if(STOCKED.includes(a.element))next.elements[a.element]=Math.min(MAX,(next.elements[a.element]??0)+1);next.workspace=null;}if(selected.has('recipes')){next.recipes=[];next.hints=[];next.loadout={drive:'hydrogen',cooling:true,tanks:initialSelectedLoadout()};delete next.migrateDiscoveries;}if(full||selected.has('tanks')){next.tanks=initialTanks();next.upgrades={oxygenTank:0};}if(selected.has('elements')){for(const symbol of Object.keys(next.elements))next.elements[symbol]=0;next.dust={H:0,C:0,O:0};}if(selected.has('exploration')){const {bestChain,sound}=next.progress;next.progress={...initialProgress(),bestChain,sound};for(const el of MANAGED)if(next.elements[el]>0||next.workspace?.atoms.some(a=>a.element===el))next.progress.foundElements.push(el);next.progress.foundElements=[...new Set(next.progress.foundElements)];}if(selected.has('records'))next.progress.bestChain=0;next.resetEpoch=(state.resetEpoch??0)+1;next.pendingReset={collection:selected.has('collection'),legacy:clear,help:full};const raw=serializeResourcesState(next);storage.setItem(RESOURCE_KEY,raw);previous=raw;state=next;}catch{report('初期化できませんでした。保存は変更していません。再読み込みして確認してください。');return {committed:false};}blocked=true;try{finishPendingResourcesReset(storage,state);previous=storage.getItem(RESOURCE_KEY);report('初期化しました。再読み込みします。');return {committed:true,complete:true};}catch{report('初期化を記録しました。再読み込み時に残りを安全に完了します。');return {committed:true,complete:false};}
     },
-    hint,learn:discover,discover,
+    hint,learn:discover,discover,discoverWithLoadout,
     consumeTank(use,id,amount){const tank=state.tanks[use];if(blocked||!state.recipes.includes(id)||!fitsTank(id,use)||!integer(amount)||amount<1||tank?.molecule!==id||tank.amount<amount)return false;const snapshot=copy(state);tank.amount-=amount;if(save()||!storage)return true;state=snapshot;return false;},
     consumeBoost:()=>{const tank=state.tanks.propellant,performance=performanceFor(tank.molecule,'propellant');return !!performance&&api.consumeTank('propellant',tank.molecule,performance.moleculesPerBurst);},
     consumeCombustion(){const fuel=state.tanks.fuel,oxidizer=state.tanks.oxidizer,p=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});if(blocked||!state.recipes.includes(fuel.molecule)||!state.recipes.includes(oxidizer.molecule)||!p||fuel.molecule!==p.fuel||oxidizer.molecule!==p.oxidizer||fuel.amount<p.fuelAmount||oxidizer.amount<p.oxygenAmount)return false;const snapshot=copy(state);fuel.amount-=p.fuelAmount;oxidizer.amount-=p.oxygenAmount;if(save()||!storage)return true;state=snapshot;return false;},
