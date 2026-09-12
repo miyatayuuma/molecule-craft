@@ -2,7 +2,7 @@ import {challengeEnvironment} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleAuthoredLine, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
-import { DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt } from './oxygen-routes.js';
+import { DEEP_OXYGEN_FRONTIER_RECOVERY,DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_THERMAL,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const freezeKnots=knots=>Object.freeze(knots.map(knot=>Object.freeze(knot)));
 export const OXYGEN_ENTRY_KNOTS=Object.freeze([
@@ -117,6 +117,8 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
     for(const stop of route.restStops??[])map.labels.push({x:stop.x??oxygenRouteCenterAtY(route,stop.y)??route.x,y:stop.y,text:'environment recovery · Oを集めながら休む'});
   }
   for(const route of DEEP_OXYGEN_ROUTES){const labelY=-10950,labelX=oxygenRouteCenterAtY(route,labelY)??route.x;map.labels.push({x:labelX,y:labelY,text:route.label});}
+  map.labels.push({x:OXYGEN_THERMAL.mergeRecovery.x,y:OXYGEN_THERMAL.mergeRecovery.y,text:'environment recovery · network merge'});
+  map.labels.push({x:DEEP_OXYGEN_FRONTIER_RECOVERY.x,y:DEEP_OXYGEN_FRONTIER_RECOVERY.y,text:'environment recovery · Frontier approach'});
   const carbonRevisit=map.routes.find(route=>route.id===CARBON_REVISIT_ROUTE.id),carbonAnchor=carbonRevisit?.points[Math.floor((carbonRevisit?.points.length??1)*.48)];
   if(carbonAnchor)map.labels.push({x:carbonAnchor.x,y:carbonAnchor.y,text:`${carbonRevisit.id} · ${carbonRevisit.densityTier} C · spacing ${carbonRevisit.spacing} / lanes ${carbonRevisit.authoredLanes} / value ${carbonRevisit.value}`});
   map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · Oの集積'});
