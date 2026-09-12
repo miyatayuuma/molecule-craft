@@ -42,6 +42,8 @@ jobs:
         run: |
           node tests/expedition-insights.test.mjs
           node tests/signal-eligibility.test.mjs
+      - name: Oxygen thermal progression
+        run: node tests/oxygen-thermal-progression.test.mjs
       - name: Insight taxonomy and presentation
         run: |
           node tests/insight-category.test.mjs
