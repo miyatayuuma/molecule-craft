@@ -1,0 +1,26 @@
+name: CRAFT action integration check
+
+on:
+  push:
+    branches: [fix/craft-action-cleanup]
+
+permissions:
+  contents: write
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install jsdom harness
+        run: npm install --prefix /tmp/craft-jsdom jsdom@27
+      - name: Run production DOM + Three integration harness
+        run: node tests/veil-ui-check.mjs /tmp/craft-jsdom/node_modules/jsdom/lib/api.js
+      - name: Remove temporary workflow
+        run: |
+          rm .github/workflows/craft-action-integration-check.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove temporary CRAFT integration workflow"
+          git push
