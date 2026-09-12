@@ -4,21 +4,72 @@ on:
   push:
     branches: [fix/craft-navigation-ux-cleanup]
 
+permissions:
+  contents: write
+
 jobs:
   layout:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Apply initialization-order fix
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path=Path('src/craft-panel.js')
+          text=path.read_text()
+          old="const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる');nodes.pubchem=pubchemLink;"
+          new="const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='PubChem ↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる（外部サイト）');Object.assign(pubchemLink.style,{marginLeft:'0',minWidth:'auto',minHeight:'32px',padding:'4px 6px',borderLeft:'0'});nodes.pubchem=pubchemLink;"
+          assert old in text
+          path.write_text(text.replace(old,new))
+
+          path=Path('src/game-shell.js')
+          text=path.read_text()
+          old="""function placePubchemWithMoleculeInfo(document){
+            const link=document.querySelector('.pubchem-link');if(!link)return;
+            link.setAttribute('aria-label','PubChemでこの分子を調べる（外部サイト）');
+            Object.assign(link.style,{marginLeft:'0',minWidth:'auto',minHeight:'32px',padding:'4px 6px',borderLeft:'0'});
+          }
+
+          export function createGameShell({canOpen=()=>true}={}){
+            pruneInstructionalChrome(document);installCraftNavigationChrome(document);placePubchemWithMoleculeInfo(document);"""
+          new="""export function createGameShell({canOpen=()=>true}={}){
+            pruneInstructionalChrome(document);installCraftNavigationChrome(document);"""
+          assert old in text
+          path.write_text(text.replace(old,new))
+
+          path=Path('tests/craft-navigation-ux.test.mjs')
+          text=path.read_text()
+          text=text.replace("  const pubchem=node('pubchem');\n",'')
+          text=text.replace("    querySelector(selector){return selector==='.pubchem-link'?pubchem:null;},","    querySelector(){return null;},")
+          text=text.replace("\n  assert.equal(pubchem.getAttribute('aria-label'),'PubChemでこの分子を調べる（外部サイト）');\n  assert.equal(pubchem.style.marginLeft,'0');assert.equal(pubchem.style.borderLeft,'0');",'')
+          needle="  assert.match(craftPanel,/pubchemLink\\.rel='noopener noreferrer external'/);"
+          replacement=needle+"\n  assert.match(craftPanel,/PubChemでこの分子を調べる（外部サイト）/);\n  assert.match(craftPanel,/marginLeft:'0'/);\n  assert.match(craftPanel,/borderLeft:'0'/);"
+          assert needle in text
+          path.write_text(text.replace(needle,replacement))
+          PY
+      - name: Focused regression tests
+        run: |
+          node tests/craft-navigation-ux.test.mjs
+          node tests/pubchem-reference.test.mjs
+          node tests/craft-chrome.test.mjs
+          node tests/source-contracts.test.mjs
+          node tests/loadout-workstation.test.mjs
+          node tests/issue-119-regression.test.mjs
+      - name: Generate verified PWA release
+        run: |
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
       - name: Install headless browser harness
         run: |
           npm install --prefix /tmp/craft-browser playwright@1.55.0
           /tmp/craft-browser/node_modules/.bin/playwright install chromium
-      - name: Serve production build
-        run: |
-          python3 -m http.server 4173 >/tmp/craft-http.log 2>&1 &
-          echo $! >/tmp/craft-http.pid
       - name: Verify CRAFT navigation hierarchy at desktop and mobile sizes
         run: |
+          python3 -m http.server 4173 >/tmp/craft-http.log 2>&1 &
           cat >/tmp/craft-layout-check.mjs <<'EOF'
           import {chromium} from '/tmp/craft-browser/node_modules/playwright/index.mjs';
           const browser=await chromium.launch({headless:true});
@@ -41,3 +92,11 @@ jobs:
           } finally {await browser.close();}
           EOF
           node /tmp/craft-layout-check.mjs
+      - name: Commit validated implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/game-shell.js src/craft-panel.js src/pubchem-reference.js tests/craft-navigation-ux.test.mjs tests/pubchem-reference.test.mjs sw.js precache-manifest.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Fix CRAFT navigation information hierarchy"
+          git push
