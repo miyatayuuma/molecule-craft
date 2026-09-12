@@ -126,7 +126,7 @@ assert.equal(oxygenPressureAt({x:760,y:-11350}),20,'Deep Thermal stays low press
 
 const thermalDry=simulate({routeId:'oxygen-deep-thermal',combustion:true,maxSeconds:16});
 assert.ok(thermalDry.entryMaxHeat<THERMAL.hotThreshold,'Deep Thermal must not overheat immediately at entrance');
-assert.ok(thermalDry.maxHeat>=THERMAL.hotThreshold,'dry sustained DRIVE must encounter meaningful thermal strain');
+assert.ok(thermalDry.maxHeat>=THERMAL.hotThreshold,`dry sustained DRIVE must encounter meaningful thermal strain (maxHeat=${thermalDry.maxHeat.toFixed(2)})`);
 assert.ok(thermalDry.strain.length>=1,'dry sustained DRIVE should cross HOT');
 assert.ok(thermalDry.run.player.y<-11770,'overheat, if any, must not hard-lock the route');
 if(thermalDry.overheats.length)assert.ok(thermalDry.overheats[0].y<-11200,'dry overheat must not happen at route entrance');
