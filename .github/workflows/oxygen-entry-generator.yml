@@ -20,18 +20,26 @@ jobs:
         run: |
           node scripts/export-field-map.mjs
           node scripts/build-precache.mjs
-      - name: Verify Oxygen Entry scope
+      - name: FIELD map contracts
         run: |
           node tests/field-map-export.test.mjs
           node scripts/export-field-map.mjs --check
-          node scripts/export-field-expansion-proposal.mjs --check
-          node tests/vortex-route.test.mjs
-          node tests/oxygen-routes.test.mjs
-          node tests/growth.test.mjs
-          node tests/spawn-layout.test.mjs
-          node scripts/check-repository-hygiene.mjs
-          node scripts/build-precache.mjs --check
-          git diff --check
+      - name: Proposal freshness
+        run: node scripts/export-field-expansion-proposal.mjs --check
+      - name: Vortex contracts
+        run: node tests/vortex-route.test.mjs
+      - name: Oxygen Network regressions
+        run: node tests/oxygen-routes.test.mjs
+      - name: Growth regressions
+        run: node tests/growth.test.mjs
+      - name: Spawn layout regressions
+        run: node tests/spawn-layout.test.mjs
+      - name: Repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: PWA freshness
+        run: node scripts/build-precache.mjs --check
+      - name: Whitespace check
+        run: git diff --check
       - name: Commit generated assets and remove helper workflow
         run: |
           git config user.name "github-actions[bot]"
