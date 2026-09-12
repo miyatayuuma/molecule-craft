@@ -17,6 +17,10 @@ export function tankMeterSegments(use,moleculeId){
   if(use!=='propellant')return 0;const performance=performanceFor(moleculeId,'propellant');return performance?.moleculesPerBurst?Math.floor(performance.capacity/performance.moleculesPerBurst):0;
 }
 
+export function loadoutCandidateCards(list,{loadoutId=null,loadedId=null}={}){
+  return list.map(record=>({record,selected:record.id===loadoutId,loaded:record.id===loadedId}));
+}
+
 export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaunch=()=>true,onLaunchReady=()=>false,onAnchor}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
   const upgrades=document.createElement('div');upgrades.id='oxygen-upgrades';upgrades.className='oxygen-upgrades';q('tank-detail').append(upgrades);
@@ -109,8 +113,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
   function renderCandidates(list,loadedId){
     const tabs=q('tank-molecules'),left=tabs.scrollLeft,loadoutId=resources.selectedLoadout()[selectedUse];tabs.replaceChildren();
     const emptyButton=document.createElement('button'),emptyLabels=document.createElement('span'),emptyState=document.createElement('small');emptyButton.type='button';emptyButton.dataset.moleculeId='';emptyButton.dataset.loaded=String(!loadedId);emptyButton.setAttribute('aria-pressed',String(loadoutId===null));Object.assign(emptyLabels,{textContent:'∅'});emptyState.textContent=loadoutId===null?'選択中':'';emptyButton.append(emptyLabels,emptyState);emptyButton.addEventListener('click',()=>{if(resources.setLoadoutTank(selectedUse,null)){selectedId=null;update();}});tabs.append(emptyButton);
-    list=[...list].sort((a,b)=>(a.id===loadoutId?-2:a.id===loadedId?-1:0)-(b.id===loadoutId?-2:b.id===loadedId?-1:0));
-    for(const record of list){const button=document.createElement('button'),labels=document.createElement('span'),state=document.createElement('small');button.type='button';button.dataset.moleculeId=record.id;button.dataset.loaded=String(record.id===loadedId);button.setAttribute('aria-pressed',String(record.id===loadoutId));thumbnail(button,record);labels.append(Object.assign(document.createElement('strong'),{textContent:formula(record)}),Object.assign(document.createElement('small'),{textContent:name(record)}));state.textContent=record.id===loadoutId?'選択中':record.id===loadedId?'残量あり':'';button.append(labels,state);button.addEventListener('click',()=>{if(resources.setLoadoutTank(selectedUse,record.id)){selectedId=record.id;update();}});tabs.append(button);}
+    for(const {record,selected,loaded} of loadoutCandidateCards(list,{loadoutId,loadedId})){const button=document.createElement('button'),labels=document.createElement('span'),state=document.createElement('small');button.type='button';button.dataset.moleculeId=record.id;button.dataset.loaded=String(loaded);button.setAttribute('aria-pressed',String(selected));thumbnail(button,record);labels.append(Object.assign(document.createElement('strong'),{textContent:formula(record)}),Object.assign(document.createElement('small'),{textContent:name(record)}));state.textContent=selected?'選択中':loaded?'残量あり':'';button.append(labels,state);button.addEventListener('click',()=>{if(resources.setLoadoutTank(selectedUse,record.id)){selectedId=record.id;update();}});tabs.append(button);}
     tabs.scrollLeft=left;
   }
   function renderTankDetail(){
