@@ -65,6 +65,13 @@ jobs:
           s=s.replace(marker,marker+insert)
           p.write_text(s)
 
+          p=Path('tests/thermal-coolant.test.mjs')
+          s=p.read_text()
+          old="const expected=THERMAL.coolantStart+THERMAL.heatPerSecond-THERMAL.coolantCoolingPerSecond*profile.coolingPower;assert.ok(Math.abs(run.heat-expected)<1e-8,`${molecule} coolingPower drives real heat removal`);"
+          new="const serviceSeconds=Math.min(1,THERMAL.coolantSecondsPerMolecule*profile.durationFactor),expected=THERMAL.coolantStart+THERMAL.heatPerSecond-THERMAL.coolantCoolingPerSecond*profile.coolingPower*serviceSeconds;assert.ok(Math.abs(run.heat-expected)<1e-8,`${molecule} coolingPower and durationFactor drive real heat removal`);"
+          assert old in s
+          p.write_text(s.replace(old,new))
+
           p=Path('.github/workflows/repository-validation.yml')
           s=p.read_text()
           old="""      - name: Oxygen thermal progression\n        run: node tests/oxygen-thermal-progression.test.mjs\n"""
