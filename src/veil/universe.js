@@ -77,7 +77,7 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
   for(const [i,point]of CLUSTERS.entries()){
     const cluster={id:i,x:point[0]+(rng()-.5)*65,y:point[1]+(rng()-.5)*70,radius:GROWTH.clusterRadius,ready:0,burstAt:-100,phase:rng()*Math.PI*2,particles:[]};
     for(let j=0;j<GROWTH.clusterParticles;j++){
-      const element=j%5===0?'H':'C',angle=rng()*Math.PI*2,spread:.3+rng()*.7;
+      const element=j%5===0?'H':'C',angle=rng()*Math.PI*2,spread=.3+rng()*.7;
       if(!keepDepletedSegment(map.depletion[element]??0,seed^0x16f11,`cluster-${i}:${element}`,j))continue;
       const d={id:map.dust.length,x:cluster.x,y:cluster.y,angle,element,kind:element==='C'?'carbon':'normal',cluster:i,spread,value:GROWTH.clusterValue,ready:Infinity};
       cluster.particles.push(d);map.dust.push(d);
