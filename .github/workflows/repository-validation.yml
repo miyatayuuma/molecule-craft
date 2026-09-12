@@ -21,6 +21,8 @@ jobs:
         run: |
           node tests/source-contracts.test.mjs
           node tests/persistence-boundary-source-contract.test.mjs
+      - name: Expedition insights
+        run: node tests/expedition-insights.test.mjs
       - name: Propulsion HUD regressions
         run: |
           node tests/loadout-preview.test.mjs
