@@ -87,7 +87,7 @@ jobs:
           node --test tests/*.test.mjs
           node scripts/check-repository-hygiene.mjs
           node scripts/build-precache.mjs --check
-          node tests/pwa.test.mjs
+          node tests/pwa.test.mjs /tmp/mc-jsdom/node_modules/jsdom/lib/api.js
           git diff --check
       - name: Commit validated restoration
         shell: bash
