@@ -1,6 +1,6 @@
 import {pathToFileURL} from 'node:url';
 import {createRun,stepRun,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
-import {createUniverse,OXYGEN_ENTRY_KNOTS} from '../src/veil/universe.js';
+import {createUniverse} from '../src/veil/universe.js';
 import {CHO_DESTINATION} from '../src/veil/cho-campaign.js';
 import {EXPEDITION} from '../src/veil/config.js';
 import {flightConfig,REGIONS} from '../src/veil/growth.js';
@@ -30,10 +30,7 @@ export function simulateOxygenRoute({routeId='oxygen-shortcut',propellant='hydro
     // Leave the strong gate's width, cross the surrounding 370 current, rejoin.
     knots=[...route.knots.slice(0,2),[-300,-9020],[-470,-9120],[-470,-9390],[-300,-9530],...route.knots.slice(2)];
   }
-  const entryPoints=start==='oxygen'?OXYGEN_ENTRY_KNOTS.slice(1).map(([x,y])=>({x,y})):[];
-  const branchPoints=knots.slice(1).map(([x,y])=>({x:x+lateralOffset,y}));
-  const harvestIndex=entryPoints.length+branchPoints.length;
-  const points=[...entryPoints,...branchPoints,OXYGEN_REWARD,...(destination==='final'?[{x:250,y:-11200},{x:100,y:-11830},{x:0,y:-12200},CHO_DESTINATION]:[])];
+  const points=[...knots.slice(start==='oxygen'?0:1).map(([x,y])=>({x:x+lateralOffset,y})),OXYGEN_REWARD,...(destination==='final'?[{x:250,y:-11200},{x:100,y:-11830},{x:0,y:-12200},CHO_DESTINATION]:[])];
   let index=0,resting=false,returning=0,arrivalSeconds=null,replayIndex=0,previousMode='coast',modeTransitions=0,propulsionSwitches=0,lastPropulsion=null;
   const actualBurstTimes=[];
   const tick=input=>{
@@ -49,7 +46,7 @@ export function simulateOxygenRoute({routeId='oxygen-shortcut',propellant='hydro
     if(destination==='final'?run.destinationReached:run.telemetry.harvestReached){
       setCombustionHeld(run,false);tick({x:0,y:0});returning+=1/fps;if(returning+1e-8>=EXPEDITION.anchorLockSeconds)break;continue;
     }
-    if(destination==='final'&&run.telemetry.harvestReached&&index<=harvestIndex)index=harvestIndex+1;
+    if(destination==='final'&&run.telemetry.harvestReached&&index<=knots.length)index=knots.length+1;
     const p=run.player,target=points[index],atRest=rest&&route.restStops?.some(stop=>target.y===stop.y)&&Math.hypot(p.x-target.x,p.y-target.y)<30;
     if(atRest&&run.heat>20)resting=true;
     if(run.heat<=20)resting=false;
