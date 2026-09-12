@@ -32,7 +32,8 @@ test('CRAFT back chrome preserves navigation and separates the PubChem informati
   try{createGameShell();}finally{globalThis.document=previous;}
 
   assert.equal(back.listeners.get('click'),originalNavigation,'Navigation binding stays on the same button node');
-  assert.equal(back.className,'craft-navigation-back');
+  assert.ok(back.className.split(/\s+/).includes('craft-navigation-back'));
+  assert.ok(back.className.split(/\s+/).includes('collector-access'),'Existing navigation style primitive is reused');
   assert.deepEqual(back.children.map(child=>child.textContent),['←','戻る']);
   assert.equal(back.children[0].getAttribute('aria-hidden'),'true');
   assert.equal(back.getAttribute('aria-label'),'探索機へ戻る');
