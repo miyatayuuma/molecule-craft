@@ -4,13 +4,17 @@ import { createMap, sampleLine, random, keepDepletedSegment } from './map.js';
 import { GROWTH } from './growth.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenVortexFlowAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+export const OXYGEN_ENTRY_KNOTS=Object.freeze([
+  Object.freeze([170,-8090]),Object.freeze([420,-8300]),Object.freeze([420,-8500]),Object.freeze([120,-8700]),
+]);
+const OXYGEN_ENTRY_ROUTE_KNOTS=Object.freeze([Object.freeze([170,-7750]),...OXYGEN_ENTRY_KNOTS]);
 // Fixed landmarks and connections; variable contents stay near these curves.
 const ROUTES=[
   ['carbon-entry','塊の光へ',[[530,-3980],[450,-4300],[250,-4620],[-120,-4990]],'C'],
   ['carbon-main','群れをほどく',[[-120,-4990],[-420,-5340],[-130,-5670],[350,-6020],[230,-6400],[-140,-6790],[170,-7190],[170,-7750]],'C'],
   ['carbon-sweep','群れの内側',[[-120,-4990],[560,-5140],[840,-5540],[650,-5950],[230,-6400]],'C'],
   ['carbon-return','外縁へ続くHの流れ',[[170,-7190],[-690,-6790],[-870,-5840],[-790,-4930],[-430,-4370],[-160,-3980]],'H'],
-  ['oxygen-entry','冷たい縁',[[170,-7750],[170,-8090],[420,-8300],[420,-8500],[120,-8700]],'O'],
+  ['oxygen-entry','冷たい縁',OXYGEN_ENTRY_ROUTE_KNOTS,'O'],
   [OXYGEN_VORTEX.id,OXYGEN_VORTEX.label,OXYGEN_VORTEX.knots,'O'],
   ...OXYGEN_ROUTES.map(route=>[route.id,route.label,route.knots,'O']),
   ['oxygen-depth','熱の奥へ',[[120,-10670],[250,-11200],[100,-11830]],'O'],
