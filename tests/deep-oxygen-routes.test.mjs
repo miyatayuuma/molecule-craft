@@ -22,7 +22,7 @@ function deterministicMap(){
   return map;
 }
 
-function simulate({routeId,path=null,combustion=false,coolant=0,burstY=null,maxSeconds=30}){
+function simulate({routeId,path=null,combustion=false,coolant=0,burstY=null,manageHeat=false,maxSeconds=30}){
   const route=deepRoute(routeId);assert.ok(route,`Missing ${routeId}`);
   const fuel={};
   if(combustion){fuel.fuel={molecule:'methane',amount:18};fuel.oxidizer={molecule:'oxygen',amount:36};}
@@ -38,6 +38,10 @@ function simulate({routeId,path=null,combustion=false,coolant=0,burstY=null,maxS
     const target=waypoints[waypoint],dx=target.x-run.player.x,dy=target.y-run.player.y,d=Math.hypot(dx,dy);
     if(d<55&&waypoint<waypoints.length-1){waypoint++;continue;}
     if(burstY!==null&&!burstUsed&&run.player.y<=burstY){assert.ok(beginBurst(run,()=>true),'BURST should start');burstUsed=true;}
+    if(manageHeat){
+      if(run.driveHeld&&run.heat>=THERMAL.hotThreshold)setCombustionHeld(run,false);
+      else if(!run.driveHeld&&run.heat<=THERMAL.recoveryThreshold)setCombustionHeld(run,true);
+    }
     const input=normalized(target.x-run.player.x,target.y-run.player.y);
     const events=stepRun(run,input,DT,{
       consumeCombustion:()=>true,
@@ -65,7 +69,6 @@ assert.equal(DEEP_OXYGEN_ROUTES.length,3);
 assert.ok(distance(routes['oxygen-deep-skill'].knots)<distance(routes['oxygen-deep-safe'].knots));
 assert.ok(distance(routes['oxygen-deep-skill'].knots)<distance(routes['oxygen-deep-thermal'].knots));
 
-// Membership follows the interpolated centerline instead of a fixed authored x.
 const membershipSamples=[
   ['oxygen-deep-safe',-11200,-681.1111111111111],
   ['oxygen-deep-skill',-11450,100],
@@ -80,7 +83,6 @@ for(const [id,y,x] of membershipSamples){
 }
 assert.equal(deepOxygenRouteAt({x:1100,y:-11200}),null,'off-route point must not be claimed');
 
-// Route-local pressure replaces the old generic Deep band while remaining traversable.
 assert.deepEqual([routes['oxygen-deep-safe'].width,routes['oxygen-deep-skill'].width,routes['oxygen-deep-thermal'].width],[280,180,260]);
 assert.deepEqual([routes['oxygen-deep-safe'].pressure,routes['oxygen-deep-skill'].pressure,routes['oxygen-deep-thermal'].pressure],[24,60,20]);
 for(const [id,y] of [['oxygen-deep-safe',-11200],['oxygen-deep-thermal',-11200]]){
@@ -95,15 +97,12 @@ assert.equal(oxygenPressureAt({x:skillPressureX,y:skillPressureY}),routes['oxyge
 assert.equal(environmentAt({x:skillPressureX,y:skillPressureY}).traversableRoutePressure,null,'existing challenge pressure keeps priority over Skill route pressure');
 assert.equal(deepOxygenPressureAt({x:1100,y:-11200}),DEEP_OXYGEN_OFF_ROUTE_PRESSURE,'off-route Deep space keeps moderate environmental pressure');
 
-// Safe Route is the low-thermal baseline and needs neither coolant nor a capability.
 const safe=simulate({routeId:'oxygen-deep-safe',maxSeconds:28});
 assert.ok(safe.run.player.y<-11770,'Safe Route normal propulsion reaches Frontier approach');
 assert.equal(safe.overheats.length,0);assert.equal(safe.strain.length,0);assert.equal(safe.run.fuel.coolant.molecule,null);
 const safeHeat=environmentAt({x:oxygenRouteCenterAtY(routes['oxygen-deep-safe'],-11450),y:-11450}).heat;
 assert.ok(safeHeat<10,'Safe Route stays low thermal');
 
-// Skill Route remains a G2 skill bypass. Normal propulsion skirts the unchanged
-// curve challenge; one BURST can take the shorter central line materially faster.
 const skillNormalPath=[[120,-10800],[410,-10920],[410,-11620],[100,-11830]];
 const skillBurstPath=[[120,-10800],[300,-10920],[300,-11620],[100,-11830]];
 const skillNormal=simulate({routeId:'oxygen-deep-skill',path:skillNormalPath,maxSeconds:20});
@@ -114,8 +113,6 @@ assert.ok(skillBurst.time<skillNormal.time*.9,`BURST should materially improve S
 const curve=EXPEDITION_CHALLENGES.find(challenge=>challenge.id==='curve');
 assert.deepEqual(curve,{id:'curve',bottom:-10820,top:-11320,width:240,rewards:['propane','phenol','formaldehyde']},'curve challenge source contract stays unchanged');
 
-// Route-owned Deep thermal is ordered Safe < Skill < Thermal away from the
-// existing central thermal challenge.
 for(const y of [-11050,-11200]){
   const safeX=oxygenRouteCenterAtY(routes['oxygen-deep-safe'],y),skillX=oxygenRouteCenterAtY(routes['oxygen-deep-skill'],y),thermalX=oxygenRouteCenterAtY(routes['oxygen-deep-thermal'],y);
   const safeLocal=oxygenThermalAt({x:safeX,y}).deepHeat,skillLocal=oxygenThermalAt({x:skillX,y}).deepHeat,thermalLocal=oxygenThermalAt({x:thermalX,y}).deepHeat;
@@ -131,15 +128,17 @@ assert.ok(thermalDry.strain.length>=1,'dry sustained DRIVE should cross HOT');
 assert.ok(thermalDry.run.player.y<-11770,'overheat, if any, must not hard-lock the route');
 if(thermalDry.overheats.length)assert.ok(thermalDry.overheats[0].y<-11200,'dry overheat must not happen at route entrance');
 
+const thermalManagedDry=simulate({routeId:'oxygen-deep-thermal',combustion:true,manageHeat:true,maxSeconds:18});
+assert.ok(thermalManagedDry.run.player.y<-11770,'dry heat management can finish without a hard gate');
+assert.ok(thermalManagedDry.run.telemetry.combustionSeconds<thermalManagedDry.time-.5,'dry management must release DRIVE for recovery');
+
 const thermalWet=simulate({routeId:'oxygen-deep-thermal',combustion:true,coolant:8,maxSeconds:16});
 assert.ok(thermalWet.coolantSpent>0&&thermalWet.coolantSpent<=8,'H2O x8 must actively cool Deep Thermal');
 assert.ok(thermalWet.maxHeat<thermalDry.maxHeat-15,`H2O should create a clear heat gap (${thermalWet.maxHeat.toFixed(1)} vs ${thermalDry.maxHeat.toFixed(1)})`);
 assert.equal(thermalWet.overheats.length,0,'H2O x8 should reach Frontier approach without overheat');
 assert.ok(thermalWet.run.player.y<-11770,'H2O x8 reaches Frontier approach');
-assert.ok(thermalWet.run.telemetry.combustionSeconds>thermalDry.run.telemetry.combustionSeconds+.5,'H2O extends sustained COMBUSTION time');
+assert.ok(thermalWet.run.telemetry.combustionSeconds>thermalManagedDry.run.telemetry.combustionSeconds+.5,'H2O extends sustained COMBUSTION time versus dry heat management');
 
-// Frontier recovery is environmental only: low heat/pressure and ordinary
-// natural cooling, with no scripted reset or predator immunity flags.
 assert.deepEqual(DEEP_OXYGEN_FRONTIER_RECOVERY,{x:100,y:-11700,rx:320,ry:130});
 for(const id of ['oxygen-deep-safe','oxygen-deep-skill','oxygen-deep-thermal']){
   const x=oxygenRouteCenterAtY(routes[id],-11700);
@@ -153,8 +152,6 @@ Object.assign(recoveryRun.player,{x:100,y:-11700,angle:-Math.PI/2,vx:0,vy:0,spee
 stepRun(recoveryRun,{x:0,y:0},DT,{});
 assert.ok(recoveryRun.heat<80&&recoveryRun.heat>79.5,'recovery uses gradual natural cooling rather than an instant reset');
 
-// Single-route Deep dust is replaced, not duplicated. Provisional one-lane
-// allocation keeps the total economy close to the old four-lane baseline.
 const universe=createUniverse(1,{H:0,C:0,O:0});
 assert.equal(universe.routes.some(route=>route.id==='oxygen-depth'),false,'legacy oxygen-depth dust route is removed');
 for(const id of Object.keys(routes))assert.ok(universe.routes.some(route=>route.id===id),`${id} generated from production route data`);
@@ -167,7 +164,6 @@ const counts=Object.fromEntries(['H','C','O'].map(element=>[element,deepDust.fil
 assert.ok(Object.values(counts).every(count=>count>0),'all legacy Deep elements remain present');
 assert.ok(deepDust.every(dust=>dust.flow),'all three Deep routes retain flowing dust');
 
-// Network Task 4 and global thermal contracts remain untouched here.
 assert.deepEqual(OXYGEN_ROUTES.find(route=>route.id==='oxygen-side').knots,[[120,-8700],[780,-9000],[850,-10350],[120,-10670]]);
 assert.deepEqual(THERMAL,{heatPerSecond:10,naturalCoolingPerSecond:14,coolantCoolingPerSecond:12,coolantSecondsPerMolecule:1,coolantStart:35,hotThreshold:70,overheatThreshold:100,recoveryThreshold:55});
 assert.equal(OXYGEN_THERMAL.routeId,'oxygen-side');
@@ -178,6 +174,7 @@ console.log('Deep Oxygen routes passed',JSON.stringify({
   safe:{time:+safe.time.toFixed(2),heat:+safe.maxHeat.toFixed(2)},
   skill:{normal:+skillNormal.time.toFixed(2),burst:+skillBurst.time.toFixed(2)},
   thermalDry:{time:+thermalDry.time.toFixed(2),heat:+thermalDry.maxHeat.toFixed(2),overheats:thermalDry.overheats.length,combustion:+thermalDry.run.telemetry.combustionSeconds.toFixed(2)},
+  thermalManagedDry:{time:+thermalManagedDry.time.toFixed(2),heat:+thermalManagedDry.maxHeat.toFixed(2),combustion:+thermalManagedDry.run.telemetry.combustionSeconds.toFixed(2)},
   thermalWater8:{time:+thermalWet.time.toFixed(2),heat:+thermalWet.maxHeat.toFixed(2),waterUsed:thermalWet.coolantSpent,combustion:+thermalWet.run.telemetry.combustionSeconds.toFixed(2)},
   recovery:{heat:+recoveryEnv.heat.toFixed(2),pressure:+recoveryEnv.pressure.toFixed(2)},
   dust:{legacyCount,newCount:deepDust.length,legacyValue,newValue,counts},
