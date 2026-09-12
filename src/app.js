@@ -21,8 +21,8 @@ import { createGameShell } from './game-shell.js?v=30';
 import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
 import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
-import { createCraftHistory } from './craft-history.js?v=1';
-import { bindCraftControls } from './craft-controls.js?v=2';
+import { createCraftHistory } from './craft-history.js?v=2';
+import { bindCraftControls } from './craft-controls.js?v=3';
 import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=3';
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
@@ -117,6 +117,7 @@ function bindUI(){
     canChangeStructure:()=>!interactionLocked()&&!dragState&&!activePointers.size,refreshStructureList,findStructure:key=>structures.find(item=>item.key===key),
     onStructureChange:{addElement,focus:item=>{selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;refresh();gameShell.closeMenu();repairSavedGeometry();pulse('編集する分子を切り替えました');}},
     onUndo:undoCraft,onClear:clearField,onVisibilityChange:()=>{debrisTracker.reset();fadeTargets.clear();relaxation?.session.pause(performance.now());},
+    onInteractionInterrupted:abortPointerInteraction,
     onPointerDown,onPointerMove,onPointerUp,onPointerCancel,onWheel:e=>{e.preventDefault();if(interactionLocked()){pulse('構造変化中は視点を固定しています');return;}zoomCamera(Math.exp(e.deltaY*.001));},onResize:resize});
 }
 
@@ -293,16 +294,20 @@ function onPointerUp(e){
   dragState=null;release(e);if(!interactionLocked())refresh();else refreshInfo(true);
   if(state.frameRequested)requestStructureFrame();
 }
-function onPointerCancel(e){
-  if(!activePointers.has(e.pointerId))return;
-  lastBackgroundTap=null;
-  const state=dragState;activePointers.delete(e.pointerId);clearTimeout(bondHoldTimer);
-  if(state?.mode==='electron'&&state.moved)startElectronReturn(state);
-  if(state?.mode==='torsion'||state?.mode==='conformation'||state?.mode==='rigid-body')finishTorsion(state);
-  const keepBond=state?.mode==='bond'&&state.holding&&!!bondTransition;
-  if(!keepBond){const changed=state?.moved&&['atom-translate','torsion','conformation','rigid-body','molecule-rotate'].includes(state.mode);changed?craftHistory.commit():craftHistory.cancel();}
-  dragState=null;multiGesture=null;hoverElectron=null;release(e);if(!interactionLocked())refresh();else refreshInfo(true);
+function abortPointerInteraction(e=null){
+  if(e?.pointerId!==undefined&&!activePointers.has(e.pointerId))return false;
+  if(!activePointers.size&&!dragState&&!multiGesture&&!hoverElectron&&!craftHistory.pending)return false;
+  lastBackgroundTap=null;clearTimeout(bondHoldTimer);bondHoldTimer=null;
+  try{conformationEngine.release();}catch{}
+  if(craftHistory.pending){
+    try{if(craftHistory.rollback())return true;}
+    catch(error){console.error('Craft gesture rollback failed; clearing transient input state.',error);}
+  }
+  for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
+  activePointers.clear();dragState=null;multiGesture=null;hoverElectron=null;electronReturn=null;
+  if(!interactionLocked())refresh();else refreshInfo(true);return true;
 }
+function onPointerCancel(e){if(!activePointers.has(e.pointerId))return;abortPointerInteraction(e);}
 
 function finishElectronDrag(state,e){
   const target=findNearestCompatibleElectron(e.clientX,e.clientY-state.liftPx,state.atomId,state.index);
@@ -761,13 +766,30 @@ function saveWorkspace(flush=false){
 function disposeObject(object){object.traverse?.(item=>{item.geometry?.dispose?.();if(item.userData?.formalCharge)item.material?.map?.dispose?.();if(Array.isArray(item.material))item.material.forEach(material=>material.dispose?.());else item.material?.dispose?.();});}
 function disposeGroup(group){for(const object of[...group.children]){group.remove(object);disposeObject(object);}}
 function resize(){const w=Math.max(1,viewer.clientWidth),h=Math.max(1,viewer.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+function recoverCraftAnimationState(){
+  if(!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!multiGesture&&!craftHistory.pending)return false;
+  if(craftHistory.pending){
+    try{if(craftHistory.rollback())return true;}
+    catch(error){console.error('Craft animation rollback failed; aborting transient transaction.',error);}
+  }
+  try{conformationEngine.release();}catch{}
+  stopRelaxation();frameTransition=null;clearTimeout(bondHoldTimer);bondHoldTimer=null;
+  try{clearBondTransition();}catch{
+    bondTransition=null;
+    for(const object of[...interactionOverlay.children])try{interactionOverlay.remove(object);disposeObject(object);}catch{}
+  }
+  for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
+  activePointers.clear();dragState=null;multiGesture=null;hoverElectron=null;electronReturn=null;lastBackgroundTap=null;
+  try{refreshInfo(true);}catch{}
+  return true;
+}
 function animate(now=performance.now()){
   requestAnimationFrame(animate);if(veilUI?.active||document.hidden||gameShell.isOpen()||collectionOpen)return;
   try{
     if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
     if(dragState?.moved&&['conformation','rigid-body'].includes(dragState.mode))advanceConformationDrag(now);
     updateStructureFrame(now);camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);animationFault='';
-  }catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('Craft animation update failed; rendering the current scene.',error);}}
+  }catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('Craft animation update failed; rendering the current scene.',error);}recoverCraftAnimationState();}
   try{renderer.render(scene,camera);}catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('3D render failed.',error);}}
   if(now-lastSaveCheck>1000){lastSaveCheck=now;saveWorkspace();}
 }

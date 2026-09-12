@@ -32,6 +32,15 @@ export function createCraftHistory({capture,restore,onChange=()=>{}}={}){
     past.push(before);notify();return true;
   }
   function cancel(){const had=pending!==null;pending=null;pendingKey='';return had;}
+  function rollback(){
+    if(restoring||pending===null)return false;
+    const snapshot=pending,snapshotKey=pendingKey;pending=null;pendingKey='';restoring=true;let restored=false;
+    try{restored=restore(clone(snapshot))!==false;}
+    catch(error){pending=snapshot;pendingKey=snapshotKey;throw error;}
+    finally{restoring=false;}
+    if(!restored){pending=snapshot;pendingKey=snapshotKey;}
+    notify();return restored;
+  }
   function reset(){past.length=0;cancel();notify();}
   function undo(){
     if(restoring||!past.length)return false;
@@ -49,5 +58,5 @@ export function createCraftHistory({capture,restore,onChange=()=>{}}={}){
   }
 
   notify();
-  return{begin,commit,cancel,reset,undo,record,get canUndo(){return past.length>0;},get depth(){return past.length;},get pending(){return pending!==null;}};
+  return{begin,commit,cancel,rollback,reset,undo,record,get canUndo(){return past.length>0;},get depth(){return past.length;},get pending(){return pending!==null;}};
 }
