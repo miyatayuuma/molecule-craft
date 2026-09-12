@@ -3,6 +3,9 @@ import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionSideEffectGate} from './completion-side-effects.js?v=1';
 import {installPendingCraftAccess} from './pending-craft.js?v=1';
 import {loadMoleculeDatabase,moleculeCatalog} from './chemistry.js?v=20';
+import {CRITICAL_INSIGHT_IDS} from './veil/insights.js';
+import {primaryRoleFor} from './veil/molecule-roles.js';
+import {installTankCapabilityPresentation} from './veil/capability-unlock.js?v=1';
 
 function normalizeExplorationMode(){
   const veil=document.querySelector('#veil-view'),appShell=document.querySelector('.app-shell');
@@ -14,6 +17,8 @@ function normalizeExplorationMode(){
 const copy=x=>JSON.parse(JSON.stringify(x));
 const addCost=(target,cost)=>{for(const [el,n] of Object.entries(cost??{}))target[el]=(target[el]??0)+n;return target;};
 const canAppendCost=(current,extra,available)=>Object.entries(extra??{}).every(([el,n])=>(current[el]??0)+n<=(available[el]??0));
+const CRITICAL_DISCOVERY_IDS=new Set(CRITICAL_INSIGHT_IDS);
+export function criticalPrimaryLoadoutUse(id){return CRITICAL_DISCOVERY_IDS.has(id)?primaryRoleFor(id):null;}
 function launchAvailableElements(resources,{includeWorkspace=true}={}){
   const available={...resources.state.elements};
   if(includeWorkspace)for(const atom of resources.state.workspace?.atoms??[])if(Object.hasOwn(available,atom.element))available[atom.element]=(available[atom.element]??0)+1;
@@ -122,6 +127,8 @@ function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onC
   installEmptyDeparturePolicy(resources);
   const pendingCraft=installPendingCraftAccess({resources});
   const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch:preserveSupplyDuringPrepare(onBeforeLaunch),onCraft:(...args)=>{pendingCraft.refresh();return onCraft(...args);},onCommit});
+  const capabilityPresentation=installTankCapabilityPresentation({resources}),forwardDiscovery=veilUI.discovered?.bind(veilUI);
+  veilUI.discovered=(id,outcome)=>{forwardDiscovery?.(id);capabilityPresentation.discovered(id,outcome);};
   installLoadoutShortageUI(resources);
   createProgressResetUI({resources,...reset});
   return veilUI;
@@ -200,8 +207,8 @@ export function createDiscoveryConnection({resources,getVeilUI,getCollection,onP
       if(event.effectsDone)continue;
       const item=structures.find(candidate=>candidate.key===event.key&&candidate.signature===event.signature&&candidate.complete);if(!item)continue;
       if(item.record){
-        const learned=resources.discover(item.record.id);
-        if(learned){veilUI?.discovered(item.record.id);collection.refreshProgress();resources.save();}
+        const discovery=resources.discoverWithLoadout(item.record.id,criticalPrimaryLoadoutUse(item.record.id));
+        if(discovery?.learned){veilUI?.discovered(item.record.id,{autoAssignedUse:discovery.assignedUse??null});collection.refreshProgress();}
       }
       const result=collection.observeStructures([item]);event.gameEvent=result.events.find(candidate=>candidate.signature===item.signature)??null;event.effectsDone=true;
     }
