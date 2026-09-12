@@ -1,7 +1,7 @@
 import { VEIL, VEIL_AUDIO as A } from './config.js';
 // Semantic events keep sample replacement independent of simulation and input.
 export function createVeilAudio(){
-  let ctx=null,master=null,hum=null,humGain=null,air=null,airGain=null,lastPickup=-1,phrase=0,muted=false;
+  let ctx=null,master=null,hum=null,humGain=null,air=null,airGain=null,lastPickup=-1,lastInsight=-Infinity,phrase=0,muted=false;
   function start(){try{if(!ctx){
     const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;ctx=new Audio();
     master=ctx.createGain();master.gain.value=muted?0:A.master;
@@ -37,6 +37,10 @@ export function createVeilAudio(){
     else if(type==='heatRecovered'){tone(220,.24,.04,0,'sine',330);tone(330,.28,.035,.07,'triangle',440);}
     else if(type==='cluster'){tone(92,.34,.12,0,'triangle',164);[0,5,9].forEach((n,i)=>tone(220*2**(n/12),.32,.055,.05+i*.035));}
     else if(type==='signal'){[0,4,11].forEach((n,i)=>tone(330*2**(n/12),.48,.05,i*.09,'sine'));}
+    else if(type==='insight'){
+      if(!ctx||muted||ctx.state!=='running'||ctx.currentTime-lastInsight<.16)return;lastInsight=ctx.currentTime;
+      tone(392,.22,.06,0,'triangle',523);tone(523,.24,.052,.055,'sine',659);tone(784,.28,.04,.11,'sine');
+    }
     else if(type==='dense'){[0,7,12].forEach((n,i)=>tone(196*2**(n/12),.3,.08,i*.04));}
     else if(type==='rare'||type==='gate'){[0,7,12,16].forEach((n,i)=>tone(294*2**(n/12),.45,.09,i*.11));}
     else if(type==='chainEnd'&&chain>=8){phrase=0;tone(196,.24,.04,0,'sine',164.8);}

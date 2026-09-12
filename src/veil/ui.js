@@ -5,6 +5,7 @@ import { DRIVES, MOLECULE_USES, REGIONS, flightConfig, growthGoal, propulsionGau
 import { createSupplyUI } from './supply.js';
 import { createVeilRenderer } from './renderer.js';
 import { createVeilAudio } from './audio.js';
+import { createInsightPresentation } from './insight-presentation.js';
 import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { renderCraftTargetAtoms } from '../craft-panel.js?v=3';
@@ -25,6 +26,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
+  const insightPresentation=createInsightPresentation({root,resources,formula,audio,reduced});
   const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onPrepareLaunch:onBeforeLaunch,onLaunchReady:()=>launch({prepared:true}),onAnchor:id=>{anchor=id;updateCraft();}});
 
   function updateCraft(){
@@ -44,8 +46,8 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   function notice(text,seconds=4,icon='✦'){q('veil-message').setAttribute('aria-label',text);q('veil-message').textContent=icon;messageUntil=(run?.time??0)+seconds;q('veil-message').hidden=false;}
   function handleInsight(event){
     if(!event||!run)return false;
-    if(event.type==='insightAnalysisStart'){notice(`解析中 · ${formula(event.id)} · 5s`,2.5,'⌁');return true;}
-    if(event.type==='insightReady'){if(!run.inspiration||performanceFor(event.id,'fuel')||performanceFor(event.id,'coolant'))run.inspiration=event.id;updatePrompt();notice(event.critical?`閃き · ${formula(event.id)}`:`解析完了 · ${formula(event.id)}`,3,'✧');return true;}
+    if(event.type==='insightAnalysisStart'){insightPresentation.sync(run);return true;}
+    if(event.type==='insightReady'){if(!run.inspiration||performanceFor(event.id,'fuel')||performanceFor(event.id,'coolant'))run.inspiration=event.id;updatePrompt();insightPresentation.ready(event,run);insightPresentation.sync(run);return true;}
     return false;
   }
   function offerInsight(id){return handleInsight(triggerInsight(run,id,resources.state));}
@@ -57,6 +59,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(raf)try{cancelAnimationFrame(raf);}catch{}raf=0;
     try{resetInput();}catch{}
     try{audio.pause();}catch{}
+    insightPresentation.clear();
     resources.state.progress.runs=previousRuns;
     anchor=previousAnchor;const anchorSelect=q('expedition-anchor');if(anchorSelect)anchorSelect.value=previousAnchor;
     active=false;paused=false;run=null;anchorLock=null;returnState=null;last=0;hudAt=0;thermalNotice=null;thermalNoticeUntil=0;
@@ -70,7 +73,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const previousAnchor=anchor,previousRuns=resources.state.progress.runs,nextRun=previousRuns+1;
     try{
       const seed=(Date.now()^(nextRun*7919))>>>0,start=anchor!=='continue'?anchor:resources.state.progress.checkpoint;
-      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);thermalNotice=null;thermalNoticeUntil=0;
+      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);thermalNotice=null;thermalNoticeUntil=0;insightPresentation.clear();
       anchor='continue';q('expedition-anchor').value='continue';active=true;paused=false;anchorLock=null;returnState=null;root.hidden=false;document.body.dataset.mode='veil';appShell.inert=true;
       renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();
       resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();
@@ -83,15 +86,15 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   function finish(captured=false){
     if(!active||!run)return;active=false;cancelAnimationFrame(raf);resetInput();audio.pause();
-    const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached,insights:captured?[]:completed.carriedInsights});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);discardRunInsights(completed);root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
+    const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached,insights:captured?[]:completed.carriedInsights});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);discardRunInsights(completed);insightPresentation.clear();root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
     const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
     q('craft-last-run').textContent=result?`${result.completedNow?'◎ CHO ✓ · ':''}${captured?'⚠':'↩'} ${parts||'—'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
     const pending=pendingCraftId;pendingCraftId=null;run=null;anchorLock=null;returnState=null;thermalNotice=null;thermalNoticeUntil=0;onCraft();updateCraft();q('launch-veil').focus();if(pending)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:pending,source:'field'}}));
   }
   function beginReturn(captured=false){
     if(!active||!run||paused||returnState)return false;
-    if(captured){discardRunInsights(run);resetInput();anchorLock=null;const duration=renderer.beginReturn(run,'emergency');returnState={captured:true,duration,elapsed:0};audio.start();hud();return true;}
-    if(anchorLock||run.captured)return false;discardActiveInsight(run);resetInput();renderer.beginReturn(run,'stable');anchorLock={duration:EXPEDITION.anchorLockSeconds,elapsed:0};audio.start();audio.event('returnSafe');notice('ANCHOR LOCK · 保持場を安定収縮',1);hud();
+    if(captured){discardRunInsights(run);insightPresentation.clear();resetInput();anchorLock=null;const duration=renderer.beginReturn(run,'emergency');returnState={captured:true,duration,elapsed:0};audio.start();hud();return true;}
+    if(anchorLock||run.captured)return false;discardActiveInsight(run);insightPresentation.sync(run);resetInput();renderer.beginReturn(run,'stable');anchorLock={duration:EXPEDITION.anchorLockSeconds,elapsed:0};audio.start();audio.event('returnSafe');notice('ANCHOR LOCK · 保持場を安定収縮',1);hud();
     return true;
   }
   function burst(){
@@ -126,7 +129,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   function signalText(result){
     if(!result)return '未知信号は消えた';if(result.repeat)return 'この流れの信号は、しばらく静かだ';
-    if(result.recipe){const record=resources.record(result.recipe);return `未知分子の構造信号：${record?.formula??record?.name??'未知分子'}\n解析可能な断片を捕捉`;}
+    if(result.recipe)return '未知分子の構造信号を捕捉\n構造解析を開始';
     return `未知信号から塵がほどけた · ${Object.entries(result.bonus).map(([el,n])=>`${el} +${n}`).join(' · ')}`;
   }
   function frame(now){
@@ -134,7 +137,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(returnState){returnState.elapsed=Math.min(returnState.duration,returnState.elapsed+dt);audio.update(run.player.speed,run.chain,null);renderer.draw(run,dt,reduced);returnHud();if(returnState.elapsed>=returnState.duration)finish(returnState.captured);return;}
     const input=anchorLock?{x:0,y:0}:{x:stick.x+(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0),y:stick.y+(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0)};
     for(const event of stepRun(run,input,dt,{consumeCombustion:packet=>resources.consumeCombustion(packet),consumeCoolant:(amount,molecule)=>resources.consumeTank('coolant',molecule,amount)})){
-      if(event.type!=='danger'||event.level!=='clear')audio.event(event.type,event.chain,event.count);
+      if(event.type!=='insightReady'&&(event.type!=='danger'||event.level!=='clear'))audio.event(event.type,event.chain,event.count);
       if(event.type==='pickup'){offerProgressionInsights();updatePrompt();}
       if(event.type==='choDestination'){notice('CHOの最深部に到達 · 帰還ボタンで記録を持ち帰ろう',8,'◎ ✓ ↩');vibrate(35);}
       if(event.type==='oxygenJunction')notice('酸素の分岐',6,'↖ ↑ ↗');
@@ -161,6 +164,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='heatRecovered'){notice(run.driveHeld?'THERMAL READY · 燃焼を自動再開':'THERMAL READY',1.5);vibrate(10);}
       if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));beginReturn(true);notice(`保持場破綻 · 回収塵${Math.round(EXPEDITION.captureLoss*100)}%がこぼれ、緊急RETRACT`,2);vibrate(55);}
     }
+    insightPresentation.sync(run);
     const lockComplete=!!anchorLock&&(anchorLock.elapsed=Math.min(anchorLock.duration,anchorLock.elapsed+dt))>=anchorLock.duration;
     if(run.time>messageUntil)q('veil-message').hidden=true;
     const propulsion=run.player.boost>0?'burst':run.player.combustion?'combustion':null;audio.update(run.player.speed,run.chain,propulsion);renderer.draw(run,dt,reduced);
