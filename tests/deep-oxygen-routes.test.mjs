@@ -83,7 +83,7 @@ assert.equal(deepOxygenRouteAt({x:1100,y:-11200}),null,'off-route point must not
 // Route-local pressure replaces the old generic Deep band while remaining traversable.
 assert.deepEqual([routes['oxygen-deep-safe'].width,routes['oxygen-deep-skill'].width,routes['oxygen-deep-thermal'].width],[280,180,260]);
 assert.deepEqual([routes['oxygen-deep-safe'].pressure,routes['oxygen-deep-skill'].pressure,routes['oxygen-deep-thermal'].pressure],[24,60,20]);
-for(const [id,y] of [['oxygen-deep-safe',-11200],['oxygen-deep-skill',-11450],['oxygen-deep-thermal',-11200]]){
+for(const [id,y] of [['oxygen-deep-safe',-11200],['oxygen-deep-skill',-11650],['oxygen-deep-thermal',-11200]]){
   const route=routes[id],x=oxygenRouteCenterAtY(route,y);
   assert.equal(deepOxygenPressureAt({x,y}),route.pressure,`${id} local pressure`);
   assert.equal(oxygenPressureAt({x,y}),route.pressure,`${id} integrated pressure`);
@@ -136,7 +136,11 @@ assert.ok(thermalWet.run.telemetry.combustionSeconds>thermalDry.run.telemetry.co
 
 // Frontier recovery is environmental only: low heat/pressure and ordinary
 // natural cooling, with no scripted reset or predator immunity flags.
-assert.deepEqual(DEEP_OXYGEN_FRONTIER_RECOVERY,{x:100,y:-11700,rx:250,ry:130});
+assert.deepEqual(DEEP_OXYGEN_FRONTIER_RECOVERY,{x:100,y:-11700,rx:320,ry:130});
+for(const id of ['oxygen-deep-safe','oxygen-deep-skill','oxygen-deep-thermal']){
+  const x=oxygenRouteCenterAtY(routes[id],-11700);
+  assert.equal(deepOxygenPressureAt({x,y:-11700}),0,`${id} naturally crosses Frontier recovery`);
+}
 const recoveryEnv=environmentAt({x:100,y:-11700});
 assert.ok(recoveryEnv.heat<5);assert.equal(recoveryEnv.traversableRoutePressure,0);assert.ok(Math.abs(recoveryEnv.pressure)<1);
 assert.equal(DEEP_OXYGEN_FRONTIER_RECOVERY.invulnerable,undefined);assert.equal(DEEP_OXYGEN_FRONTIER_RECOVERY.eaterSuppression,undefined);
