@@ -1,0 +1,42 @@
+name: Oxygen Entry generated assets
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  generate-and-verify:
+    if: github.head_ref == 'field-map-oxygen-entry'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Regenerate tracked assets
+        run: |
+          node scripts/export-field-map.mjs
+          node scripts/build-precache.mjs
+      - name: Verify Oxygen Entry scope
+        run: |
+          node tests/field-map-export.test.mjs
+          node scripts/export-field-map.mjs --check
+          node scripts/export-field-expansion-proposal.mjs --check
+          node tests/vortex-route.test.mjs
+          node tests/oxygen-routes.test.mjs
+          node tests/growth.test.mjs
+          node tests/spawn-layout.test.mjs
+          node scripts/check-repository-hygiene.mjs
+          node scripts/build-precache.mjs --check
+          git diff --check
+      - name: Commit generated assets and remove helper workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/oxygen-entry-generator.yml
+          git add -A
+          git commit -m "Regenerate FIELD map and PWA assets"
+          git push origin HEAD:${{ github.head_ref }}
