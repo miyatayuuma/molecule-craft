@@ -18,7 +18,7 @@ function installCraftActionBar(document){
 // DOM event ownership for the craft screen. Callbacks keep Three.js and
 // interaction state in the application integration layer.
 export function bindCraftControls({document,palette,elements,structureFocus,viewer,canvas,resizeObserver,
-  canChangeStructure,refreshStructureList,findStructure,onStructureChange,onFrame,onUndo,onDelete,onClear,
+  canChangeStructure,refreshStructureList,findStructure,onStructureChange,onUndo,onDelete,onClear,
   onVisibilityChange,onPointerDown,onPointerMove,onPointerUp,onPointerCancel,onWheel,onResize}){
   installCraftActionBar(document);
   if(palette)for(const button of palette.querySelectorAll('[data-element]')){
@@ -29,7 +29,6 @@ export function bindCraftControls({document,palette,elements,structureFocus,view
     if(!canChangeStructure()){refreshStructureList();return;}
     const item=findStructure(structureFocus.value);if(item)onStructureChange.focus(item);
   });
-  document.querySelector('#frame-structure')?.addEventListener('click',onFrame);
   document.querySelector('#undo-cleanup')?.addEventListener('click',onUndo);
   document.addEventListener('visibilitychange',onVisibilityChange);
   document.querySelector('#delete-selected')?.addEventListener('click',onDelete);

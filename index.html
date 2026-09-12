@@ -20,7 +20,7 @@
       <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
       <div class="topbar-actions"><button id="open-collection" type="button">図鑑 <small>0/162</small></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
-    <div class="resource-bar"><button id="open-supply" class="collector-access" type="button" aria-label="収集殻とタンクを開く"><span>収集殻</span></button></div>
+    <div class="resource-bar"><button id="open-supply" class="collector-access" type="button" aria-label="探索機を開く"></button></div>
     <section id="craft-target" class="craft-target" aria-label="制作目標" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><div class="craft-target-meta"><strong id="craft-target-formula"></strong><span id="craft-target-name" hidden></span></div><div id="craft-target-atoms" class="craft-target-atoms"></div><button id="clear-craft-target" type="button" aria-label="制作目標を解除">×</button></section>
     <p id="craft-resource-hint" class="craft-expedition-note"></p><button id="cho-goal-action" class="cho-goal-action craft-emblem-action" type="button" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><span id="cho-goal-label"></span><span id="cho-goal-atoms" class="craft-target-atoms" aria-hidden="true"></span></button><p id="craft-last-run" class="craft-expedition-note"></p>
     <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
@@ -32,7 +32,6 @@
           <div class="molecule-summary" aria-live="polite"><strong id="molecule-name">自由制作</strong><span id="formula">—</span></div>
           <label id="structure-focus-label" class="viewer-focus" hidden><span class="sr-only">編集対象</span><select id="structure-focus" aria-label="編集する分子"></select></label>
           <button id="clear-all" class="hold-clear icon-button" type="button" aria-label="1秒長押しでクラフト中の原子をBASE STOCKへ戻して片付ける"><svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="7" cy="6.5" r="1.7"/><circle cx="12" cy="5" r="1.7"/><circle cx="17" cy="6.5" r="1.7"/><path d="M12 9v5m-2.4-2.2L12 14.2l2.4-2.4M5.5 15.5h13l-1.2 4H6.7z"/></svg></button>
-          <button id="frame-structure" type="button" class="icon-button" aria-label="分子を画面に収める" title="分子を画面に収める">⛶</button>
         </div>
         <div class="field-bottom"><div id="selection-chip" class="selection-chip" aria-live="polite">原子をえらんで、はじめよう</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="選択した分子の情報">情報</button><button id="delete-selected" type="button" aria-label="選択した原子を削除">削除</button></div></div>
         <button id="undo-cleanup" class="undo-cleanup" type="button" hidden>整理を戻す</button>

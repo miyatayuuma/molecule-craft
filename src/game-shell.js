@@ -14,7 +14,7 @@ function pruneInstructionalChrome(document){
   // Directly tapping atoms already switches the edited structure. Hide the
   // redundant craft chrome without removing nodes that existing render/bind
   // code still references during startup.
-  for(const selector of ['#structure-focus-label','#frame-structure','#open-info']){
+  for(const selector of ['#structure-focus-label','#open-info']){
     const node=document.querySelector(selector);if(node)node.style.display='none';
   }
 
