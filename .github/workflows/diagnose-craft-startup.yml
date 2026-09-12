@@ -1,4 +1,4 @@
-name: Diagnose CRAFT startup
+name: Apply CRAFT menu recovery
 
 on:
   push:
@@ -6,46 +6,131 @@ on:
       - codex/craft-input-freeze-recovery
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  startup-smoke:
+  apply-recovery:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: main
-      - name: Build diagnostic entrypoint
+          ref: codex/craft-menu-recovery
+      - name: Apply scoped menu recovery
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          text=Path('index.html').read_text()
-          probe='''<script>\nwindow.__diagErrors=[];\nwindow.addEventListener('error',e=>window.__diagErrors.push(String(e.error?.stack||e.message||e.error)));\nwindow.addEventListener('unhandledrejection',e=>window.__diagErrors.push(String(e.reason?.stack||e.reason)));\nsetTimeout(()=>{\n  const menu=document.querySelector('#menu-dialog');\n  document.querySelector('#open-menu')?.click();\n  document.documentElement.dataset.diagMenu=menu?.open?'open':'closed';\n  document.documentElement.dataset.diagCanvas=String(document.querySelectorAll('#viewer canvas').length);\n  document.documentElement.dataset.diagUndo=String(document.querySelector('#undo-cleanup')?.hidden);\n  document.documentElement.dataset.diagErrors=window.__diagErrors.join(' || ').slice(0,1500);\n},2500);\n</script>'''
-          Path('diagnostic.html').write_text(text.replace('</body>',probe+'\n</body>'))
+
+          def replace_once(path, old, new):
+              p=Path(path); text=p.read_text()
+              if old not in text:
+                  raise SystemExit(f'missing expected source in {path}: {old[:120]!r}')
+              p.write_text(text.replace(old,new,1))
+
+          replace_once('src/game-shell.js',
+            'export function createGameShell({canOpen=()=>true}={}){',
+            'export function createGameShell({canOpen=()=>true,onBlockedMenuOpen=()=>{}}={}){')
+          replace_once('src/game-shell.js',
+            "  function open(id){if(!canOpen())return;for(const dialog of dialogs)if(dialog.open)dialog.close();q(id)?.showModal();}",
+            "  function open(id){if(!canOpen()&&id==='menu-dialog')onBlockedMenuOpen();if(!canOpen())return;for(const dialog of dialogs)if(dialog.open)dialog.close();q(id)?.showModal();}")
+
+          replace_once('src/app.js',
+            "import { createGameShell } from './game-shell.js?v=30';",
+            "import { createGameShell } from './game-shell.js?v=31';")
+          replace_once('src/app.js',
+            "const gameShell=createGameShell({canOpen:()=>!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen});",
+            "const gameShell=createGameShell({canOpen:()=>!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen,onBlockedMenuOpen:()=>recoverCraftAnimationState()});")
+
+          replace_once('index.html',
+            '<script type="module" src="./src/app.js?v=51"></script>',
+            '<script type="module" src="./src/app.js?v=52"></script>')
+
+          Path('tests/game-shell-recovery.test.mjs').write_text(r'''import test from 'node:test';
+import assert from 'node:assert/strict';
+
+function node(id=''){
+  return {
+    id,open:false,style:{},listeners:new Map(),
+    addEventListener(type,fn){this.listeners.set(type,fn);},
+    removeAttribute(){},querySelector(){return null;},matches(){return false;},remove(){},
+    showModal(){this.open=true;},close(){this.open=false;},
+    click(){this.listeners.get('click')?.({target:this});},
+  };
+}
+
+const menuButton=node('open-menu'),infoButton=node('open-info'),menu=node('menu-dialog'),info=node('info-dialog');
+const byId=new Map([[menuButton.id,menuButton],[infoButton.id,infoButton],[menu.id,menu],[info.id,info]]);
+globalThis.document={
+  getElementById:id=>byId.get(id)??null,
+  querySelectorAll(selector){return selector==='dialog.sheet'?[menu,info]:[];},
+};
+const {createGameShell}=await import('../src/game-shell.js?recovery-test=1');
+
+test('menu is a recovery escape hatch for transient CRAFT locks',()=>{
+  let locked=true,recoveries=0;
+  createGameShell({canOpen:()=>!locked,onBlockedMenuOpen:()=>{recoveries++;locked=false;}});
+  menuButton.click();
+  assert.equal(recoveries,1);
+  assert.equal(menu.open,true);
+});
+
+test('non-menu sheets do not bypass the CRAFT interaction lock',()=>{
+  menu.open=false;info.open=false;
+  let recoveries=0;
+  createGameShell({canOpen:()=>false,onBlockedMenuOpen:()=>{recoveries++;}});
+  infoButton.click();
+  assert.equal(recoveries,0);
+  assert.equal(info.open,false);
+});
+''')
+
+          recovery=Path('tests/craft-input-recovery.test.mjs')
+          text=recovery.read_text()
+          text += r'''
+
+test('menu recovery reuses the transient-state fail-safe instead of clearing the workspace',async()=>{
+  const shell=await readFile(new URL('../src/game-shell.js',import.meta.url),'utf8');
+  assert.match(shell,/onBlockedMenuOpen/);
+  assert.match(shell,/id==='menu-dialog'\)onBlockedMenuOpen\(\)/);
+  assert.match(app,/onBlockedMenuOpen:\(\)=>recoverCraftAnimationState\(\)/);
+  assert.match(app,/from '\.\/game-shell\.js\?v=31'/);
+});
+'''
+          recovery.write_text(text)
           PY
-      - name: Start static server
+      - name: Validate recovery contracts
         run: |
-          python3 -m http.server 8000 >/tmp/molecule-http.log 2>&1 &
-          echo $! >/tmp/molecule-http.pid
-          sleep 1
-      - name: Run clean-profile Chrome smoke
+          node tests/game-shell-recovery.test.mjs
+          node tests/craft-input-recovery.test.mjs
+          node tests/craft-history.test.mjs
+          node tests/source-contracts.test.mjs
+          node tests/app-version.test.mjs
+          node tests/repository-hygiene.test.mjs
+      - name: Refresh and validate PWA artifacts
+        run: |
+          node scripts/build-precache.mjs
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Clean-profile browser startup smoke
         shell: bash
         run: |
+          python3 -m http.server 8000 >/tmp/molecule-http.log 2>&1 &
+          sleep 1
           CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
-          if [ -z "$CHROME" ]; then echo 'No Chrome executable found'; exit 2; fi
-          echo "Chrome: $CHROME"
-          set +e
-          timeout 25s "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --user-data-dir=/tmp/molecule-chrome --virtual-time-budget=5000 --enable-logging=stderr --v=0 --dump-dom http://127.0.0.1:8000/diagnostic.html >/tmp/molecule-dom.html 2>/tmp/molecule-chrome.log
-          STATUS=$?
-          set -e
-          echo "chrome_status=$STATUS"
-          echo '--- DIAGNOSTIC ATTRS ---'
-          grep -o 'data-diag-[^>]*' /tmp/molecule-dom.html | head -1 || true
-          echo '--- CONSOLE / CHROME ERRORS ---'
-          grep -E 'SEVERE|ERROR|Uncaught|TypeError|ReferenceError|SyntaxError|Craft animation|Initial craft|Saved geometry|Failed to load' /tmp/molecule-chrome.log || true
-          echo '--- APP MARKERS ---'
-          grep -o '<canvas[^>]*' /tmp/molecule-dom.html | head -2 || true
-          grep -o '<dialog id="menu-dialog"[^>]*' /tmp/molecule-dom.html | head -1 || true
-          test "$STATUS" -eq 0
-          grep -q 'data-diag-menu="open"' /tmp/molecule-dom.html
-          grep -q 'data-diag-errors=""' /tmp/molecule-dom.html
+          test -n "$CHROME"
+          cp index.html diagnostic.html
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('diagnostic.html'); text=p.read_text(); probe='''<script>window.__diagErrors=[];addEventListener('error',e=>window.__diagErrors.push(String(e.error?.stack||e.message)));setTimeout(()=>{document.querySelector('#open-menu')?.click();document.documentElement.dataset.diagMenu=document.querySelector('#menu-dialog')?.open?'open':'closed';document.documentElement.dataset.diagErrors=window.__diagErrors.join(' || ').slice(0,1200);},2200);</script>''';p.write_text(text.replace('</body>',probe+'</body>'))
+          PY
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --user-data-dir=/tmp/molecule-chrome --virtual-time-budget=4500 --dump-dom http://127.0.0.1:8000/diagnostic.html >/tmp/dom.html 2>/tmp/chrome.log
+          grep -q 'data-diag-menu="open"' /tmp/dom.html
+          grep -q 'data-diag-errors=""' /tmp/dom.html
+      - name: Commit verified hotfix
+        run: |
+          rm -f diagnostic.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Make CRAFT menu a recovery escape hatch"
+          git push origin HEAD:codex/craft-menu-recovery
