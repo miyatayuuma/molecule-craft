@@ -1,0 +1,56 @@
+name: FIELD insight presentation build
+
+on:
+  push:
+    branches: [codex/field-insight-presentation]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Integrate presentation controller
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('src/veil/ui.js')
+          source=path.read_text()
+          def replace(old,new):
+              global source
+              if old not in source:
+                  raise SystemExit(f'Expected UI contract not found: {old[:90]!r}')
+              source=source.replace(old,new,1)
+          replace("import { createVeilAudio } from './audio.js';\n", "import { createVeilAudio } from './audio.js';\nimport { createInsightPresentation } from './insight-presentation.js';\n")
+          replace("  const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;\n  const supply=", "  const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;\n  const insightPresentation=createInsightPresentation({root,resources,formula,audio,reduced});\n  const supply=")
+          replace("  function handleInsight(event){\n    if(!event||!run)return false;\n    if(event.type==='insightAnalysisStart'){notice(`解析中 · ${formula(event.id)} · 5s`,2.5,'⌁');return true;}\n    if(event.type==='insightReady'){if(!run.inspiration||performanceFor(event.id,'fuel')||performanceFor(event.id,'coolant'))run.inspiration=event.id;updatePrompt();notice(event.critical?`閃き · ${formula(event.id)}`:`解析完了 · ${formula(event.id)}`,3,'✧');return true;}\n    return false;\n  }", "  function handleInsight(event){\n    if(!event||!run)return false;\n    if(event.type==='insightAnalysisStart'){insightPresentation.sync(run);return true;}\n    if(event.type==='insightReady'){if(!run.inspiration||performanceFor(event.id,'fuel')||performanceFor(event.id,'coolant'))run.inspiration=event.id;updatePrompt();insightPresentation.ready(event,run);insightPresentation.sync(run);return true;}\n    return false;\n  }")
+          replace("    try{audio.pause();}catch{}\n    resources.state.progress.runs=previousRuns;", "    try{audio.pause();}catch{}\n    insightPresentation.clear();\n    resources.state.progress.runs=previousRuns;")
+          replace("      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);thermalNotice=null;thermalNoticeUntil=0;", "      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);thermalNotice=null;thermalNoticeUntil=0;insightPresentation.clear();")
+          replace("logExpeditionTelemetry(lastTelemetry);discardRunInsights(completed);root.hidden=true;", "logExpeditionTelemetry(lastTelemetry);discardRunInsights(completed);insightPresentation.clear();root.hidden=true;")
+          replace("    if(captured){discardRunInsights(run);resetInput();", "    if(captured){discardRunInsights(run);insightPresentation.clear();resetInput();")
+          replace("    if(anchorLock||run.captured)return false;discardActiveInsight(run);resetInput();", "    if(anchorLock||run.captured)return false;discardActiveInsight(run);insightPresentation.sync(run);resetInput();")
+          replace("    if(result.recipe){const record=resources.record(result.recipe);return `未知分子の構造信号：${record?.formula??record?.name??'未知分子'}\\n解析可能な断片を捕捉`;}", "    if(result.recipe)return '未知分子の構造信号を捕捉\\n構造解析を開始';")
+          replace("      if(event.type!=='danger'||event.level!=='clear')audio.event(event.type,event.chain,event.count);", "      if(event.type!=='insightReady'&&(event.type!=='danger'||event.level!=='clear'))audio.event(event.type,event.chain,event.count);")
+          replace("    const lockComplete=!!anchorLock&&", "    insightPresentation.sync(run);\n    const lockComplete=!!anchorLock&&")
+          path.write_text(source)
+          PY
+      - name: Presentation regressions
+        run: |
+          node tests/insight-presentation.test.mjs
+          node tests/veil-audio.test.mjs
+          node tests/expedition-insights.test.mjs
+      - name: Rebuild verified offline release
+        run: node scripts/build-precache.mjs
+      - name: Commit integration and generated release
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/veil/ui.js sw.js precache-manifest.js
+          git diff --cached --check
+          git commit -m "Integrate FIELD insight presentation"
+          git push
