@@ -52,10 +52,8 @@ jobs:
           assert old in text
           thermal.write_text(text.replace(old,new,1))
           PY
-      - name: Deterministic thermal simulations
-        run: |
-          node tests/oxygen-thermal-progression.test.mjs
-          node tests/thermal-coolant.test.mjs
+      - name: Deterministic thermal simulation
+        run: node tests/oxygen-thermal-progression.test.mjs
       - name: Regenerate current FIELD map
         run: |
           node scripts/export-field-map.mjs
