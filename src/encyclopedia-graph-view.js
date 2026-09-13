@@ -1,4 +1,4 @@
-import {GRAPH_NODE_STATE,adjacentGraphSectorAnchor,buildVisibleGraphProjection,canonicalGraphPositions,graphNodePresentation,layoutFocusNeighborhood,searchKnownGraphNodes} from './encyclopedia-graph.js?v=2';
+import {GRAPH_NODE_STATE,adjacentGraphSectorAnchor,buildVisibleGraphProjection,canonicalGraphPositions,graphNodePresentation,graphNodeState,layoutFocusNeighborhood,searchKnownGraphNodes} from './encyclopedia-graph.js?v=2';
 
 const STYLE_ID='molecule-craft-encyclopedia-graph-style';
 const STYLE=`
