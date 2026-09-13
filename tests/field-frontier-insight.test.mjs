@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createMoleculeGraph,getFrontierCandidates,scoreFrontierCandidates,selectFrontierCandidate} from '../src/molecule-graph.js';
 import {CHALLENGE_INSIGHT_IDS} from '../src/veil/expedition-challenges.js';
-import {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_SECONDS,advanceInsightAnalysis,createInsightRunState,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,triggerInsight} from '../src/veil/insights.js';
+import {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_DISTANCE,FIELD_INSIGHT_MIN_SECONDS,advanceInsightAnalysis,createInsightRunState,ensureInsightEngagementOrigin,fieldInsightOpportunityEligibility,triggerInsight,updateInsightEngagement} from '../src/veil/insights.js';
 import {createResources} from '../src/veil/resources.js';
 import {EXPEDITION} from '../src/veil/config.js';
 
@@ -11,7 +11,8 @@ const graph=createMoleculeGraph(raw),reserved=new Set([...CRITICAL_INSIGHT_IDS,.
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
 const catalog=graph.nodes.map(node=>({id:node.id,formula:node.id,atoms:['H']}));
 const roots=graph.roots.filter(id=>graph.nodeById(id));
-const engaged={time:EXPEDITION.safeSeconds,collectedElements:{H:1,C:1,O:1}};
+function engagement({time=FIELD_INSIGHT_MIN_SECONDS,distance=FIELD_INSIGHT_MIN_DISTANCE}={}){const value=Object.assign({time:0,player:{x:0,y:0}},createInsightRunState());ensureInsightEngagementOrigin(value);value.time=time;value.player.y=-distance;updateInsightEngagement(value);return value;}
+const engaged=engagement();
 const run=()=>Object.assign({captured:false,events:[]},createInsightRunState());
 const settle=(value,flight,captured=false)=>value.settleExpedition({H:0,C:0,O:0},0,captured,{insights:flight?.carriedInsights??[]});
 function make({discoverRoots=true}={}){const value=createResources({storage:memory()});value.setCatalog(catalog);value.setFrontierGraph(graph);if(discoverRoots)for(const id of roots)value.discover(id);return value;}
@@ -25,18 +26,16 @@ function expandableChoice(value,region){
   return {target,roll,frontierIds};
 }
 
-// Insight trigger eligibility opens with the same safe-window boundary that starts
-// DUST EATER threat accumulation and requires run-local molecular sampling.
+// Ordinary Graph insight eligibility requires both simulation time and real
+// world-space displacement from the fixed launch origin, then latches for the run.
 {
-  assert.equal(FIELD_INSIGHT_MIN_SECONDS,EXPEDITION.safeSeconds,'insight timing follows the expedition safe-window boundary');
-  const methane={id:'methane',atoms:['C','H','H','H','H']},oxygen={id:'oxygen',atoms:['O','O']},nitrogen={id:'nitrogen',atoms:['N','N']};
-  assert.deepEqual(fieldInsightRequiredElements(methane),['C','H']);
-  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS-0.01,collectedElements:{H:1,C:1,O:0}},methane).ready,false,'elapsed time alone must not open early');
-  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:0,O:0}},methane).ready,false,'CH4 needs both H and C sampled in this run');
-  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:1,O:0}},methane).ready,true);
-  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:1}},oxygen).ready,true,'O2 only requires O sampling');
-  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:0}},nitrogen).ready,false,'non-HCO candidates still require real FIELD activity');
-  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:0,O:0}},nitrogen).ready,true,'non-HCO candidates fall back to any FIELD element instead of becoming impossible');
+  assert.equal(FIELD_INSIGHT_MIN_SECONDS,EXPEDITION.safeSeconds,'insight timing keeps the established 20-second lower bound');
+  assert.equal(FIELD_INSIGHT_MIN_DISTANCE,1200,'engagement distance reaches the first authored route split instead of launch jitter');
+  const timeOnly=engagement({time:FIELD_INSIGHT_MIN_SECONDS,distance:0});assert.equal(fieldInsightOpportunityEligibility(timeOnly).ready,false);assert.equal(fieldInsightOpportunityEligibility(timeOnly).elapsedReady,true);assert.equal(fieldInsightOpportunityEligibility(timeOnly).distanceReady,false);
+  const distanceOnly=engagement({time:0,distance:FIELD_INSIGHT_MIN_DISTANCE});assert.equal(fieldInsightOpportunityEligibility(distanceOnly).ready,false);assert.equal(fieldInsightOpportunityEligibility(distanceOnly).elapsedReady,false);assert.equal(fieldInsightOpportunityEligibility(distanceOnly).distanceReady,true);
+  assert.equal(fieldInsightOpportunityEligibility(engagement({time:FIELD_INSIGHT_MIN_SECONDS-.01,distance:FIELD_INSIGHT_MIN_DISTANCE})).ready,false,'distance cannot bypass minimum time');
+  assert.equal(fieldInsightOpportunityEligibility(engagement({time:FIELD_INSIGHT_MIN_SECONDS,distance:FIELD_INSIGHT_MIN_DISTANCE-.01})).ready,false,'time cannot bypass minimum distance');
+  const latched=engagement();assert.equal(fieldInsightOpportunityEligibility(latched).ready,true);latched.player.y=0;updateInsightEngagement(latched);assert.equal(fieldInsightOpportunityEligibility(latched).ready,true,'returning to launch must not revoke engagement');assert.equal(latched.insightEngagementMaxDistance,FIELD_INSIGHT_MIN_DISTANCE);
 }
 
 // Launch snapshots discovered/known state, delegates extraction/scoring/selection
@@ -58,11 +57,11 @@ function expandableChoice(value,region){
 // the same one-run opportunity matures without requiring a second signal hit.
 {
   const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});
-  const early=value.signal('veil',.999,.999,{runContext:{time:2,collectedElements:{H:1,C:1,O:1}}});assert.deepEqual(early,{deferred:true,frontier:true});
-  let diag=value.frontierInsightDiagnostics();assert.equal(diag.signalObserved,true);assert.equal(diag.opportunityCreated,false);
-  assert.equal(value.pollFrontierInsight({time:FIELD_INSIGHT_MIN_SECONDS-0.01,collectedElements:{H:1,C:1,O:1}}),null,'time gate blocks deferred frontier');
-  assert.equal(value.pollFrontierInsight({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:0}}),null,'action gate blocks deferred frontier');
-  const matured=value.pollFrontierInsight(engaged);assert.deepEqual(matured,{managed:true,recipe:target.id,frontier:true});diag=value.frontierInsightDiagnostics();assert.equal(diag.opportunityCreated,true);
+  const signalLastBefore=value.state.progress.signalLast.veil,early=value.signal('veil',.999,.999,{runContext:engagement({time:2,distance:FIELD_INSIGHT_MIN_DISTANCE})});assert.deepEqual(early,{deferred:true,frontier:true});
+  let diag=value.frontierInsightDiagnostics();assert.equal(diag.signalObserved,true);assert.equal(diag.opportunityCreated,false);assert.equal(diag.selectedCandidateId,target.id);assert.equal(value.state.progress.signalLast.veil,signalLastBefore,'gate miss must not consume persistent signal cooldown');
+  assert.equal(value.pollFrontierInsight(engagement({time:FIELD_INSIGHT_MIN_SECONDS-.01,distance:FIELD_INSIGHT_MIN_DISTANCE})),null,'time gate blocks deferred frontier');
+  assert.equal(value.pollFrontierInsight(engagement({time:FIELD_INSIGHT_MIN_SECONDS,distance:FIELD_INSIGHT_MIN_DISTANCE-.01})),null,'distance gate blocks deferred frontier');
+  const matured=value.pollFrontierInsight(engaged);assert.deepEqual(matured,{managed:true,recipe:target.id,frontier:true});diag=value.frontierInsightDiagnostics();assert.equal(diag.opportunityCreated,true);assert.equal(value.state.progress.signalLast.veil,value.state.progress.totalCollected,'signal cooldown begins only when opportunity actually matures');
   assert.equal(value.pollFrontierInsight(engaged),null,'deferred opportunity matures at most once');
 }
 
@@ -150,7 +149,7 @@ function expandableChoice(value,region){
 }
 
 const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
-assert.match(uiSource,/fieldInsightOpportunityEligibility\(run,resources\.record\(id\)\)\.ready/,'critical insights must use the run engagement gate');
+assert.doesNotMatch(uiSource,/fieldInsightOpportunityEligibility\(run,resources\.record\(id\)\)/,'critical progression must bypass the ordinary Graph engagement gate');
 assert.match(uiSource,/runContext:run/,'FIELD signals must pass current-run time and collection context');
 assert.match(uiSource,/pollFrontierInsight\(run\)/,'deferred frontier observations must mature from the live run context');
 
