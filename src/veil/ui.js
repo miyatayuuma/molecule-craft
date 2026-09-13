@@ -3,6 +3,7 @@ import { createRun, stepRun, beginBurst, setCombustionHeld, triggerInsight, disc
 import { createUniverse } from './universe.js';
 import { DRIVES, MOLECULE_USES, REGIONS, flightConfig, growthGoal, propulsionGauge, propulsionSpeedMax } from './growth.js';
 import { createSupplyUI } from './supply.js';
+import { createExpeditionLaunchRequester,isExpeditionDestinationAvailable } from './launch-request.js';
 import { createVeilRenderer } from './renderer.js';
 import { createVeilAudio } from './audio.js';
 import { createInsightPresentation } from './insight-presentation.js';
@@ -22,13 +23,22 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),combustionButton=q('veil-combustion'),thermal=q('veil-thermal'),outputMeterFill=q('veil-heat-meter'),outputMeter=outputMeterFill?.parentElement,audio=createVeilAudio(),appShell=document.querySelector('.app-shell');
   if(outputMeter){outputMeter.id='veil-output-meter';outputMeter.removeAttribute('aria-hidden');outputMeter.setAttribute('role','meter');outputMeter.setAttribute('aria-label','推進出力');outputMeter.setAttribute('aria-valuemin','0');outputMeter.setAttribute('aria-valuemax','100');}
   if(outputMeterFill)outputMeterFill.id='veil-output-meter-fill';
-  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,thermalNotice=null,thermalNoticeUntil=0,anchor='continue',anchorLock=null,returnState=null,pendingCraftId=null;
+  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,thermalNotice=null,thermalNoticeUntil=0,anchor='continue',anchorLock=null,returnState=null,pendingCraftId=null,requestExpeditionLaunch=()=>false;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
   const insightPresentation=createInsightPresentation({root,resources,formula,audio,reduced});
-  const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onPrepareLaunch:onBeforeLaunch,onLaunchReady:()=>launch({prepared:true}),onAnchor:id=>{anchor=id;updateCraft();}});
+  const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onPrepareLaunch:onBeforeLaunch,onRequestLaunch:id=>requestExpeditionLaunch(id),onLaunchReady:()=>launch({prepared:true}),onAnchor:selectLaunchDestination});
+  requestExpeditionLaunch=createExpeditionLaunchRequester({
+    isAvailable:id=>!active&&!resources.blocked&&isExpeditionDestinationAvailable(resources.state,id)&&!!REGIONS[id==='continue'?resources.state.progress.checkpoint:id],
+    selectDestination:selectLaunchDestination,
+    prepareLaunch:id=>supply.requestLaunch(id),
+  });
 
+  function selectLaunchDestination(id){
+    const regionId=id==='continue'?resources.state.progress.checkpoint:id;if(!isExpeditionDestinationAvailable(resources.state,id)||!REGIONS[regionId])return false;
+    anchor=id;const select=q('expedition-anchor');if(select&&[...select.options].some(option=>option.value===id))select.value=id;updateCraft();return true;
+  }
   function updateCraft(){
     supply.update();q('launch-veil').disabled=resources.blocked;
     const checkpoint=resources.state.progress.checkpoint;
@@ -174,7 +184,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(anchorLock||now-hudAt>70){hudAt=now;hud();}if(lockComplete)finish(false);
   }
   q('cho-goal-action').addEventListener('click',()=>{const goal=growthGoal(resources.state);if(goal.id)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:goal.id}}));});
-  q('launch-veil').addEventListener('click',launch);q('veil-return').addEventListener('click',()=>beginReturn(false));q('veil-to-craft').addEventListener('click',()=>{const goal=run?.inspiration?{id:run.inspiration}:growthGoal(resources.state,{cargo:run?.collectedElements??{}}),id=goal.id??null;if(id&&beginReturn(false))pendingCraftId=id;});
+  q('launch-veil').addEventListener('click',event=>{event.preventDefault();requestExpeditionLaunch(anchor);});q('veil-return').addEventListener('click',()=>beginReturn(false));q('veil-to-craft').addEventListener('click',()=>{const goal=run?.inspiration?{id:run.inspiration}:growthGoal(resources.state,{cargo:run?.collectedElements??{}}),id=goal.id??null;if(id&&beginReturn(false))pendingCraftId=id;});
   q('veil-boost').addEventListener('pointerdown',event=>{event.preventDefault();burst();});q('veil-boost').addEventListener('click',event=>{if(event.detail===0)burst();});
   combustionButton.addEventListener('pointerdown',startCombustion);for(const type of ['pointerup','pointercancel','lostpointercapture'])combustionButton.addEventListener(type,event=>{if(drivePointer===null||event.pointerId===drivePointer)stopCombustion();});
   q('veil-sound').addEventListener('click',()=>{resources.state.progress.sound=resources.state.progress.sound===false;audio.mute(!resources.state.progress.sound);audio.start();resources.save();hud();});
@@ -188,5 +198,5 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   window.addEventListener('pagehide',()=>{resources.save();audio.pause();});window.addEventListener('storage',event=>{if(event.key==='molecule-craft.resources.v1'){pause();resources.save();updateCraft();}});
   q('veil-resume').addEventListener('click',()=>{if(resources.blocked)return;paused=false;last=0;q('veil-resume').hidden=true;audio.start();root.focus();});
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
-  return {get active(){return active;},get run(){return run;},get returning(){return returnState?'emergency':anchorLock?'locking':null;},get anchorLock(){return anchorLock?{...anchorLock}:null;},get lastTelemetry(){return lastTelemetry;},updateCraft,launch,pause,openSupply:(id,use)=>supply.openMolecule(id,use),discovered:id=>supply.discovered(id),usesFor:id=>supply.usesFor(id),tankStatus:(use,id)=>supply.tankStatus(use,id),fillPlan:(use,id)=>supply.fillPlan(use,id),commitFill:(use,id,count)=>supply.commitFill(use,id,count)};
+  return {get active(){return active;},get run(){return run;},get returning(){return returnState?'emergency':anchorLock?'locking':null;},get anchorLock(){return anchorLock?{...anchorLock}:null;},get lastTelemetry(){return lastTelemetry;},updateCraft,requestExpeditionLaunch,launch,pause,openSupply:(id,use)=>supply.openMolecule(id,use),discovered:id=>supply.discovered(id),usesFor:id=>supply.usesFor(id),tankStatus:(use,id)=>supply.tankStatus(use,id),fillPlan:(use,id)=>supply.fillPlan(use,id),commitFill:(use,id,count)=>supply.commitFill(use,id,count)};
 }
