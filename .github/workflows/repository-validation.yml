@@ -39,6 +39,8 @@ jobs:
           node tests/collection.test.mjs
           node tests/collection-expansion.test.mjs
           node tests/capability-unlock.test.mjs
+      - name: Encyclopedia graph UI
+        run: node tests/encyclopedia-graph-ui.test.mjs
       - name: Molecule DB v2 persistence
         run: |
           node tests/collection-persistence.test.mjs

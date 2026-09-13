@@ -1,0 +1,61 @@
+import {GRAPH_NODE_STATE,buildVisibleGraphProjection,canonicalGraphPositions,graphNodePresentation,layoutFocusNeighborhood,searchKnownGraphNodes} from './encyclopedia-graph.js';
+
+const STYLE_ID='molecule-craft-encyclopedia-graph-style';
+const STYLE=`
+.encyclopedia-graph-host{display:block;min-height:0}.encyclopedia-graph{display:grid;gap:10px;margin-top:10px}.graph-toolbar{display:flex;align-items:center;gap:8px}.graph-search{width:100%;min-height:44px;padding:9px 12px;border:1px solid #2b4658;border-radius:12px;background:#0e1e2c;color:inherit}.graph-search::placeholder{color:#6f8797}.graph-stage{position:relative;height:clamp(390px,58dvh,560px);min-height:390px;overflow:hidden;border:1px solid #203b4b;border-radius:22px;background:radial-gradient(circle at 50% 45%,#173246 0,#0e2030 48%,#0a1724 100%);isolation:isolate}.graph-stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}.graph-edge{stroke:#6b94a4;stroke-width:1.25;opacity:.22}.graph-edge.direct{stroke:#8fe2d5;stroke-width:1.8;opacity:.68}.graph-edge.cross{stroke:#7db8be;opacity:.38}.graph-edge.teaser{stroke-dasharray:3 5;opacity:.18}.graph-context-node{fill:#385568;opacity:.16}.graph-context-node.known{fill:#5b9f9a;opacity:.22}.graph-teaser-node{fill:#5d8696;opacity:.2}.graph-continuation{fill:#7dc5bd;opacity:.28}.graph-node{position:absolute;z-index:3;width:66px;height:66px;min-height:66px;padding:5px;border-radius:50%;transform:translate(-50%,-50%);display:grid;place-items:center;align-content:center;gap:1px;text-align:center;border:1px solid #476b7e;background:#142b3a;box-shadow:0 4px 16px #0005;color:#e7f4f8;overflow:hidden}.graph-node strong{display:-webkit-box;max-width:54px;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:9px;line-height:1.15;font-weight:750}.graph-node small{max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#a5c9c6}.graph-node.registered{border:2px solid #6fd4c4;background:radial-gradient(circle at 35% 28%,#315b59,#173d41 72%);box-shadow:0 0 0 1px #83e0d233,0 4px 18px #0006}.graph-node.known{border:2px solid #86d1c8;background:linear-gradient(180deg,#183a43 0 50%,#102734 50%);box-shadow:0 0 0 4px #6bd4c315,0 4px 18px #0006}.graph-node.known:after{content:'';position:absolute;inset:5px;border:1px dashed #8ddbd0;border-radius:50%;opacity:.5;animation:graph-known-pulse 2.6s ease-in-out infinite}.graph-node.unknown{border:1px dashed #55778a;background:#102330cc;box-shadow:none;color:transparent}.graph-node.unknown:before{content:'';width:19px;height:19px;border:1px solid #6f91a2;border-radius:50%;opacity:.52}.graph-node.focus{width:82px;height:82px;min-height:82px;z-index:5;box-shadow:0 0 0 5px #63ded018,0 8px 24px #0008}.graph-node.focus strong{max-width:66px;font-size:10px}.graph-node.highlight{outline:2px solid #9ec7d5;outline-offset:5px}.graph-node.reveal{animation:graph-reveal .42s cubic-bezier(.2,.75,.2,1)}.graph-focus-card{display:flex;min-height:48px;align-items:center;justify-content:center;gap:10px;padding:2px 4px}.graph-focus-identity{min-width:0;text-align:center}.graph-focus-identity strong{display:block;font-size:14px;line-height:1.25;overflow-wrap:anywhere}.graph-focus-identity small{display:block;margin-top:3px;color:#9ec7c4;font-size:11px}.graph-focus-card button{flex:none;min-height:40px;padding:7px 11px;font-size:11px}.graph-empty-focus{height:44px}.graph-stage[data-empty=true]:after{content:'◇';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:34px;color:#527386;opacity:.5}.graph-live{position:absolute}.graph-stage button:focus-visible{outline:3px solid #8be6d8;outline-offset:4px}.graph-search-hint{font-size:10px;color:#7894a5;white-space:nowrap}@keyframes graph-known-pulse{0%,100%{opacity:.28}50%{opacity:.72}}@keyframes graph-reveal{0%{opacity:0;transform:translate(-50%,-50%) scale(.72)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media(max-width:650px){.encyclopedia-graph{margin-top:8px}.graph-stage{height:min(58dvh,520px);min-height:390px}.graph-toolbar{padding:0 1px}.graph-focus-card{padding-bottom:4px}}
+@media(max-width:360px){.graph-stage{min-height:370px}.graph-node{width:62px;height:62px;min-height:62px}.graph-node.focus{width:76px;height:76px;min-height:76px}}
+@media(prefers-reduced-motion:reduce){.graph-node.known:after{animation:none}.graph-node.reveal{animation:none}}
+`;
+
+function ensureStyles(root){
+  const document=root?.nodeType===9?root:root?.ownerDocument??globalThis.document;if(!document?.head||document.getElementById(STYLE_ID))return;
+  const style=document.createElement('style');style.id=STYLE_ID;style.textContent=STYLE;document.head.append(style);
+}
+const svgEl=(document,tag,attrs={})=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [key,value]of Object.entries(attrs))node.setAttribute(key,String(value));return node;};
+const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+
+export function renderEncyclopediaGraph({
+  host,graph,records,stateOptions,focusId,highlightId=null,onFocus=()=>{},onDetail=()=>{},onCraft=()=>{},previousPositions=new Map(),previousVisibleIds=new Set(),win=globalThis.window,
+}={}){
+  if(!host||!graph)throw Error('Graph host and graph are required');
+  const document=host.ownerDocument??globalThis.document;ensureStyles(document);host.className='encyclopedia-graph-host';host.replaceChildren();
+  const recordById=new Map(records.map(record=>[record.id,record])),projection=buildVisibleGraphProjection(graph,{focusId,...stateOptions});
+  const wrapper=document.createElement('div');wrapper.className='encyclopedia-graph';
+  const toolbar=document.createElement('div');toolbar.className='graph-toolbar';
+  const search=document.createElement('input');search.type='search';search.className='graph-search';search.placeholder='登録済み・レシピ判明を検索';search.setAttribute('aria-label','分子を検索してグラフへ移動');
+  const datalist=document.createElement('datalist'),listId='collection-graph-search-options';datalist.id=listId;search.setAttribute('list',listId);
+  const refreshSearch=()=>{const matches=searchKnownGraphNodes(records,stateOptions,search.value);datalist.replaceChildren(...matches.map(({presentation})=>{const option=document.createElement('option');option.value=presentation.name;option.label=presentation.formula;return option;}));return matches;};
+  search.addEventListener('input',refreshSearch);search.addEventListener('change',()=>{const match=refreshSearch()[0];if(match)onFocus(match.record.id);});search.addEventListener('keydown',event=>{if(event.key==='Enter'){const match=refreshSearch()[0];if(match){event.preventDefault();onFocus(match.record.id);}}});
+  toolbar.append(search,datalist);wrapper.append(toolbar);
+  const stage=document.createElement('div');stage.className='graph-stage';stage.setAttribute('role','group');stage.setAttribute('aria-label','分子関係グラフ');stage.dataset.empty=String(!projection.visibleIds.length);
+  wrapper.append(stage);
+  const rect=host.getBoundingClientRect?.()??{width:0};const width=Math.max(320,Math.min(720,rect.width||host.clientWidth||360)),height=Math.max(370,Math.min(560,win?.innerHeight?win.innerHeight*.58:480));
+  const layout=layoutFocusNeighborhood(graph,focusId,{width,height,nodeDiameter:width<=360?62:66}),canonical=canonicalGraphPositions(graph),center=layout.center,focusGlobal=canonical.get(focusId)??{x:0,y:0};
+  const positions=new Map(layout.positions),contextPosition=id=>{
+    if(positions.has(id))return positions.get(id);
+    const point=canonical.get(id)??focusGlobal,scale=.25,x=center.x+(point.x-focusGlobal.x)*scale,y=center.y+(point.y-focusGlobal.y)*scale;
+    return {x:clamp(x,18,width-18),y:clamp(y,22,height-22),kind:projection.twoHop.includes(id)?'teaser':'distant'};
+  };
+  for(const id of [...projection.twoHop,...projection.distant])positions.set(id,contextPosition(id));
+  const svg=svgEl(document,'svg',{viewBox:`0 0 ${width} ${height}`,'aria-hidden':'true'});stage.append(svg);
+  const oneHopSet=new Set(projection.oneHop),twoHopSet=new Set(projection.twoHop);
+  for(const edge of projection.visibleEdges){const a=positions.get(edge.from)??contextPosition(edge.from),b=positions.get(edge.to)??contextPosition(edge.to);if(!a||!b)continue;const direct=edge.from===focusId&&oneHopSet.has(edge.to)||edge.to===focusId&&oneHopSet.has(edge.from),cross=oneHopSet.has(edge.from)&&oneHopSet.has(edge.to),teaser=twoHopSet.has(edge.from)||twoHopSet.has(edge.to);svg.append(svgEl(document,'line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:`graph-edge${direct?' direct':cross?' cross':teaser?' teaser':''}`}));}
+  for(const edge of projection.teaserEdges){const a=positions.get(edge.from)??contextPosition(edge.from),b=positions.get(edge.to)??contextPosition(edge.to);if(!a||!b)continue;svg.append(svgEl(document,'line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'graph-edge teaser'}));}
+  for(const id of projection.distant){const point=positions.get(id),state=projection.stateFor(id);svg.append(svgEl(document,'circle',{cx:point.x,cy:point.y,r:state===GRAPH_NODE_STATE.UNKNOWN?5:7,class:`graph-context-node${state!==GRAPH_NODE_STATE.UNKNOWN?' known':''}`}));}
+  for(const id of projection.twoHop){const point=positions.get(id);svg.append(svgEl(document,'circle',{cx:point.x,cy:point.y,r:4,class:'graph-teaser-node'}));}
+  for(const row of projection.continuation)if(row.continues){const base=positions.get(row.id),angle=base?.angle??0;if(!base)continue;svg.append(svgEl(document,'circle',{cx:base.x+Math.cos(angle)*43,cy:base.y+Math.sin(angle)*43,r:3,class:'graph-continuation'}));}
+  const interactiveIds=[focusId,...projection.oneHop].filter((id,index,array)=>id&&array.indexOf(id)===index);
+  const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  for(const id of interactiveIds){
+    const point=positions.get(id);if(!point)continue;const state=projection.stateFor(id),record=recordById.get(id),presentation=graphNodePresentation(record,state,{selected:id===focusId});
+    const node=document.createElement('button');node.type='button';node.className=`graph-node ${state}${id===focusId?' focus':''}${id===highlightId?' highlight':''}${previousVisibleIds.size&&!previousVisibleIds.has(id)?' reveal':''}`;node.style.left=`${point.x}px`;node.style.top=`${point.y}px`;node.setAttribute('aria-label',presentation.ariaLabel);node.setAttribute('aria-pressed',String(id===focusId));node.dataset.graphState=state;
+    if(state!==GRAPH_NODE_STATE.UNKNOWN){const name=document.createElement('strong');name.textContent=presentation.name;const formula=document.createElement('small');formula.textContent=presentation.formula;node.append(name,formula);}
+    node.addEventListener('click',()=>{if(id===focusId&&presentation.canOpenDetail)onDetail(id);else onFocus(id);});stage.append(node);
+    const previous=previousPositions.get(id);if(previous&&!reduceMotion&&node.animate){const dx=previous.x-point.x,dy=previous.y-point.y;if(Math.hypot(dx,dy)>1)node.animate([{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`},{transform:'translate(-50%,-50%)'}],{duration:320,easing:'cubic-bezier(.2,.7,.2,1)'});}
+  }
+  const focusedState=projection.stateFor(focusId),focusedPresentation=graphNodePresentation(recordById.get(focusId),focusedState,{selected:true}),card=document.createElement('div');card.className='graph-focus-card';
+  if(focusedState!==GRAPH_NODE_STATE.UNKNOWN){const identity=document.createElement('div');identity.className='graph-focus-identity';const strong=document.createElement('strong');strong.textContent=focusedPresentation.name;const small=document.createElement('small');small.textContent=focusedPresentation.formula;identity.append(strong,small);card.append(identity);if(focusedPresentation.canOpenDetail){const action=document.createElement('button');action.type='button';action.textContent='詳細を見る';action.addEventListener('click',()=>onDetail(focusId));card.append(action);}else if(focusedPresentation.canCraft){const action=document.createElement('button');action.type='button';action.textContent='クラフト';action.addEventListener('click',()=>onCraft(focusId));card.append(action);}}
+  else card.classList.add('graph-empty-focus');wrapper.append(card);host.append(wrapper);
+  return {projection,positions,visibleIds:new Set(projection.visibleIds)};
+}

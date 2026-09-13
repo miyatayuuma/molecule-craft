@@ -4,19 +4,28 @@ import { validateCraftStructures } from './craft-structures.js?v=31';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=36';
 import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=36';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
+import {loadMoleculeGraph} from './molecule-graph.js?v=2';
+import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=1';
+import {renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=1';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
-  const [groups,templates,encyclopedia]=await Promise.all([load('../data/functional-groups.json?v=25'),load('../data/craft-structures.json?v=25'),load('../data/encyclopedia.json?v=29').catch(()=>({molecules:{},parts:{}}))]);
-  validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia};
+  const [groups,templates,encyclopedia,graph]=await Promise.all([
+    load('../data/functional-groups.json?v=25'),
+    load('../data/craft-structures.json?v=25'),
+    load('../data/encyclopedia.json?v=29').catch(()=>({molecules:{},parts:{}})),
+    loadMoleculeGraph({url:new URL('../data/molecule-graph.json',import.meta.url).href}),
+  ]);
+  validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph};
 }
 
-export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true}){
+export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true,recipeState=()=>({recipes:[],hints:[]})}){
   const data=await loadCollectionData();
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
   const state=createCollectionState({records,...data,storage,elementAccess});
   const q=id=>root.querySelector(`#${id}`),dialog=q('collection-dialog'),list=q('collection-list'),detail=q('collection-detail');
   let tab='molecules',category='all',filter='available',scope='cho',currentDetail=null,detailViewer=null,detailGeneration=0,listScroll=0;
+  let graphFocusId=null,graphHighlightId=null,lastGraphPositions=new Map(),lastGraphVisibleIds=new Set();
   q('collection-scope')?.addEventListener('change',()=>{scope=q('collection-scope').value;currentDetail=null;renderBook();});
   const collectibleGroups=data.groups.filter(group=>group.collectible!==false);
   const groupById=id=>data.groups.find(group=>group.id===id),recordById=id=>records.find(record=>record.id===id);
@@ -27,6 +36,12 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node;};
   const button=(text,handler,className)=>{const node=el('button',text,className);node.type='button';node.addEventListener('click',handler);return node;};
   const section=(title)=>{const node=el('details',null,'detail-extras');node.append(el('summary',title));detail.append(node);return node;};
+  const registeredIds=()=>new Set(records.filter(record=>state.hasMolecule(record.id)).map(record=>record.id));
+  function graphStateOptions(){const resources=recipeState?.()??{},registered=registeredIds();return {registeredIds:registered,recipes:new Set(resources.recipes??[]),hints:new Set(resources.hints??[])};}
+  function ensureGraphFocus(){
+    const options=graphStateOptions(),entriesById=new Map([...options.registeredIds].map(id=>[id,state.moleculeEntry(id)]));
+    graphFocusId=selectInitialGraphFocus(data.graph,{...options,previousId:graphFocusId,entriesById});return graphFocusId;
+  }
   function releaseViewer(){detailGeneration++;detailViewer?.dispose();detailViewer=null;}
   function preview(record,name){
     const host=el('div',null,'collection-model');detail.appendChild(host);host.appendChild(el('p','模型を準備しています…','model-status'));
@@ -52,17 +67,28 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     for(const [index,node] of nodes.entries())node.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?nodes.length-1:(index+(event.key==='ArrowRight'?1:-1)+nodes.length)%nodes.length;nodes[next].click();nodes[next].focus();});
   };
   keyboardTabs('[data-palette-tab]');keyboardTabs('[data-book-tab]');
-  q('open-collection').addEventListener('click',()=>{if(!canOpen())return;renderBook();dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);});
+  q('open-collection').addEventListener('click',()=>{if(!canOpen())return;ensureGraphFocus();renderBook();dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);});
   q('close-collection').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('close',()=>{releaseViewer();document.body.classList.remove('collection-open');onOpenChange(false);});
   dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
-  for(const node of root.querySelectorAll('[data-book-tab]'))node.addEventListener('click',()=>{tab=node.dataset.bookTab;currentDetail=null;listScroll=0;renderBook();});
+  for(const node of root.querySelectorAll('[data-book-tab]'))node.addEventListener('click',()=>{tab=node.dataset.bookTab;currentDetail=null;listScroll=0;if(tab==='molecules')ensureGraphFocus();renderBook();});
   q('collection-category').addEventListener('change',event=>{category=event.target.value;currentDetail=null;listScroll=0;renderBook();});
   q('collection-filter').addEventListener('change',event=>{filter=event.target.value;currentDetail=null;listScroll=0;renderBook();});
-  function showDetail(kind,id){if(!currentDetail)listScroll=dialog.scrollTop;tab=kind;currentDetail={kind,id};renderBook();dialog.scrollTop=0;q('detail-back')?.focus({preventScroll:true});}
+  function showDetail(kind,id){
+    if(kind==='molecules'&&!state.hasMolecule(id))return false;
+    if(!currentDetail)listScroll=dialog.scrollTop;tab=kind;currentDetail={kind,id};renderBook();dialog.scrollTop=0;q('detail-back')?.focus({preventScroll:true});return true;
+  }
+  function focusGraph(id){
+    const options=graphStateOptions(),next=transitionGraphFocus(data.graph,ensureGraphFocus(),id,options);graphFocusId=next.focusId;graphHighlightId=next.highlightId;renderBook();return next.changed;
+  }
   function openMolecule(id){
-    if(!recordById(id)||!canOpen())return false;
-    scope=isCHO(recordById(id).atoms)?'cho':'all';tab='molecules';category='all';filter=state.hasMolecule(id)?'found':'available';currentDetail={kind:'molecules',id};listScroll=0;renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}dialog.scrollTop=0;return true;
+    const record=recordById(id);if(!record||!canOpen())return false;
+    tab='molecules';currentDetail=null;listScroll=0;scope=isCHO(record.atoms)?'cho':'all';
+    const nodeState=graphNodeState(id,graphStateOptions());
+    if(nodeState===GRAPH_NODE_STATE.REGISTERED){graphFocusId=id;graphHighlightId=null;currentDetail={kind:'molecules',id};}
+    else if(nodeState===GRAPH_NODE_STATE.KNOWN){graphFocusId=id;graphHighlightId=null;}
+    else ensureGraphFocus();
+    renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');onOpenChange(true);}dialog.scrollTop=0;return nodeState!==GRAPH_NODE_STATE.UNKNOWN;
   }
   window.addEventListener('molecule-craft:open-molecule',event=>openMolecule(event.detail?.id));
   root.querySelector('#show-extra-elements')?.addEventListener('change',()=>renderPalette());
@@ -85,57 +111,60 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function renderSummary(){
     const open=q('open-collection');open.replaceChildren(document.createTextNode('図鑑 '),el('small',`${state.discoveredCount}/${records.length}`));
-    q('collection-progress').textContent=tab==='molecules'?`${state.discoveredCount} / ${records.length} 発見`:`${state.unlockedCount} / ${data.templates.length} 解放`;
+    q('collection-progress').textContent=tab==='molecules'?`${state.discoveredCount} / ${records.length}`:`${state.unlockedCount} / ${data.templates.length} 解放`;
     const storage=q('collection-storage');storage.textContent=state.storageMessage;storage.hidden=!state.storageMessage;
     const save=q('game-save-status');save.textContent=state.storageMessage?'図鑑を保存できません。図鑑で確認してください。':'';save.hidden=!state.storageMessage;
     q('game-loop-hint').textContent=`発見 ${records.filter(r=>isCHO(r.atoms)&&state.hasMolecule(r.id)).length}（CHO） · 図鑑完成は任意のやり込み`;
     const milestoneList=q('collection-milestones');milestoneList.replaceChildren();for(const id of state.milestoneIds())milestoneList.appendChild(el('span',MILESTONES[id],'collection-tag'));
   }
   function visibleItems(kind=tab){
+    if(kind==='molecules')return records.filter(item=>state.hasMolecule(item.id)).sort((a,b)=>number(kind,a.id)-number(kind,b.id));
     const visible=(known,available)=>filter==='all'||(filter==='available'?available:filter==='found'?known:!known);
-    return (kind==='molecules'?records:collectibleGroups).filter(item=>scope==='all'||isCHO(kind==='molecules'?item.atoms:item.pattern.atoms)).filter(item=>kind==='molecules'?
-      visible(state.hasMolecule(item.id),state.canBuild(item))&&(category==='all'||collectionCategory(item)===category):
-      visible(state.hasGroup(item.id),item.pattern.atoms.every(atom=>state.canUseElement(atom.element)))).sort((a,b)=>number(kind,a.id)-number(kind,b.id));
+    return collectibleGroups.filter(item=>scope==='all'||isCHO(item.pattern.atoms)).filter(item=>visible(state.hasGroup(item.id),item.pattern.atoms.every(atom=>state.canUseElement(atom.element))).sort((a,b)=>number(kind,a.id)-number(kind,b.id));
+  }
+  function renderGraph(){
+    ensureGraphFocus();
+    const result=renderEncyclopediaGraph({
+      host:list,graph:data.graph,records,stateOptions:graphStateOptions(),focusId:graphFocusId,highlightId:graphHighlightId,
+      previousPositions:lastGraphPositions,previousVisibleIds:lastGraphVisibleIds,
+      onFocus:id=>focusGraph(id),onDetail:id=>showDetail('molecules',id),
+      onCraft:id=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();},
+    });
+    lastGraphPositions=result.positions;lastGraphVisibleIds=result.visibleIds;
+  }
+  function renderGroupList(){
+    list.className='collection-grid';
+    const select=q('collection-category');select.replaceChildren(new Option('すべて','all'));select.value='all';q('collection-filter').value=filter;
+    if(q('filter-summary'))q('filter-summary').textContent=q('collection-filter').selectedOptions[0]?.textContent??'';
+    list.replaceChildren();
+    for(const item of visibleItems('groups')){
+      const known=state.hasGroup(item.id),card=button('',()=>showDetail('groups',item.id),`collection-card ${known?'found':'unknown'}`);card.dataset.entryId=item.id;
+      card.append(el('small',numberLabel('groups',item.id),'dex-number'));
+      if(known){thumbnail(card,'groups',item.id);card.append(el('span',data.templates.some(t=>t.unlock.groupId===item.id&&state.isUnlocked(t.id))?'✓':'●','dex-state'));}
+      else card.append(el('span','','unknown-model'));
+      card.append(el('strong',known?item.nameJa:'???'));list.appendChild(card);
+    }
+    if(!list.childElementCount)list.appendChild(el('p','この条件の項目はありません。','collection-note'));
   }
   function renderBook(){
     releaseViewer();renderSummary();
     for(const node of root.querySelectorAll('[data-book-tab]')){const active=node.dataset.bookTab===tab;node.setAttribute('aria-selected',String(active));node.tabIndex=active?0:-1;}
     if(q('collection-scope'))q('collection-scope').value=scope;
-    q('collection-controls').hidden=!!currentDetail;q('collection-category-label').hidden=tab!=='molecules';
+    q('collection-controls').hidden=!!currentDetail||tab==='molecules';q('collection-category-label').hidden=true;
     const footer=dialog.querySelector('.book-footer');if(footer)footer.hidden=!!currentDetail;
     list.hidden=!!currentDetail;detail.hidden=!currentDetail;
     if(currentDetail){renderDetail();return;}
-    const select=q('collection-category');select.replaceChildren(new Option('すべて','all'));
-    for(const [key,label]of Object.entries(COLLECTION_CATEGORIES))if(records.some(record=>collectionCategory(record)===key))select.appendChild(new Option(label,key));
-    select.value=category;q('collection-filter').value=filter;
-    if(q('filter-summary'))q('filter-summary').textContent=`${category!=='all'&&tab==='molecules'?`${COLLECTION_CATEGORIES[category]} · `:''}${q('collection-filter').selectedOptions[0]?.textContent??''}`;
-    list.replaceChildren();
-    for(const item of visibleItems()){
-      const known=tab==='molecules'?state.hasMolecule(item.id):state.hasGroup(item.id),kind=tab;
-      const card=button('',()=>showDetail(kind,item.id),`collection-card ${known?'found':'unknown'}`);card.dataset.entryId=item.id;
-      card.append(el('small',numberLabel(tab,item.id),'dex-number'));
-      if(known){thumbnail(card,tab,item.id);card.append(el('span',tab==='groups'&&data.templates.some(t=>t.unlock.groupId===item.id&&state.isUnlocked(t.id))?'✓':'●','dex-state'));}
-      else card.append(el('span','','unknown-model'));
-      card.append(el('strong',known?(tab==='molecules'?moleculeDisplayName(item):item.nameJa):'???'));list.appendChild(card);
-    }
-    if(!list.childElementCount)list.appendChild(el('p','この条件の項目はありません。','collection-note'));
+    if(tab==='molecules'){renderGraph();return;}
+    renderGroupList();
   }
   function renderDetail(){
     detail.replaceChildren();const {kind,id}=currentDetail,nav=el('div',null,'detail-navigation');
-    const back=button('‹ 一覧',()=>{const previous=currentDetail.id;currentDetail=null;renderBook();dialog.scrollTop=listScroll;[...list.querySelectorAll('button')].find(node=>node.dataset.entryId===previous)?.focus({preventScroll:true});},'book-back');back.id='detail-back';nav.append(back);
+    const back=button(kind==='molecules'?'‹ グラフ':'‹ 一覧',()=>{const previous=currentDetail.id;currentDetail=null;if(kind==='molecules')graphFocusId=previous;renderBook();dialog.scrollTop=listScroll;kind==='groups'&&[...list.querySelectorAll('button')].find(node=>node.dataset.entryId===previous)?.focus({preventScroll:true});},'book-back');back.id='detail-back';nav.append(back);
     const items=visibleItems(kind),index=items.findIndex(item=>item.id===id);
     for(const [label,delta]of [['‹',-1],['›',1]]){const next=items[index+delta],node=button(label,()=>{if(next)showDetail(kind,next.id);});node.setAttribute('aria-label',delta<0?'前の項目':'次の項目');node.disabled=index<0||!next;nav.append(node);}detail.append(nav);
     if(kind==='groups'){renderGroup(id);return;}
-    const record=recordById(id),known=state.hasMolecule(id),matches=collectibleMatches(record);
-    heading(kind,id,known?moleculeDisplayName(record):'???',known?record.formula:'');
-    if(!known){
-      const box=el('div',null,'unknown-detail');box.append(el('div','','unknown-model'),el('p','まだ見つかっていない分子'));
-      const hint=button('ヒントを見る',()=>{
-        hint.hidden=true;const hints=el('div',null,'hint-content');hints.append(el('p',record.formula,'detail-formula'),el('p',COLLECTION_CATEGORIES[collectionCategory(record)]));
-        if(!state.canBuild(record))hints.append(el('p',`必要な原子：${ELEMENT_UNLOCKS.filter(item=>record.atoms.includes(item.symbol)&&!state.canUseElement(item.symbol)).map(item=>item.symbol==='C'?'C（H Veilの奥で発見）':item.symbol==='O'?'O（炭素の群れの奥で発見）':`${item.symbol}（発見${item.discoveries}種類で解放）`).join('・')}`));
-        const more=button('もう一つヒント',()=>{more.hidden=true;hints.append(el('p',`含まれる部品：${matches.map(match=>groupById(match.id).nameJa).join('、')||'この図鑑の部品は含まれません'}`));});hints.append(more);box.append(hints);
-      },'collection-primary');box.append(hint);detail.append(box);return;
-    }
+    const record=recordById(id);if(!record||!state.hasMolecule(id)){currentDetail=null;renderBook();return;}
+    const matches=collectibleMatches(record);heading(kind,id,moleculeDisplayName(record),record.formula);
     preview(record,moleculeDisplayName(record));
     detail.append(el('p',entry(kind,id)?.description??record.learningNote??'この分子を図鑑に登録しました。','dex-description'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
@@ -143,7 +172,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(record.learningNote)extra.append(el('p',record.learningNote));
     const discovered=state.moleculeEntry(id);extra.append(el('p',`発見 ${discovered.order}番目${discovered.at?` · ${new Date(discovered.at).toLocaleDateString('ja-JP')}`:''}`));
     const tags=el('div',null,'collection-tags');for(const match of matches)tags.append(button(groupById(match.id).nameJa,()=>showDetail('groups',match.id),'collection-tag'));if(matches.length){extra.append(el('h4','見つかる部品'),tags);}
-    const relatives=state.isomersOf(record);if(relatives.length){extra.append(el('h4','同じ分子式の仲間'));for(const item of relatives)extra.append(button(state.hasMolecule(item.id)?moleculeDisplayName(item):'???',()=>showDetail('molecules',item.id),'collection-tag'));}
+    const relatives=state.isomersOf(record);if(relatives.length){extra.append(el('h4','同じ分子式の仲間'));for(const item of relatives)extra.append(button(state.hasMolecule(item.id)?moleculeDisplayName(item):'???',()=>state.hasMolecule(item.id)&&showDetail('molecules',item.id),'collection-tag'));}
     extra.append(el('p','模型は結合情報からつくった教材用の配置です。実測構造ではありません。水色の内円は芳香環に広がるπ電子を表す記号です。cis/transや鏡像異性体は分けて収集していません。'));
   }
   function heading(kind,id,name,formula=''){
