@@ -17,10 +17,10 @@ export function ensureInsightEngagementOrigin(run){
   if(!finitePoint(run.insightEngagementOrigin))run.insightEngagementOrigin=finitePoint(run.player);
   return finitePoint(run.insightEngagementOrigin);
 }
-export function fieldInsightOpportunityEligibility(run,record=null){
+export function fieldInsightOpportunityEligibility(run){
   const minimumSeconds=FIELD_INSIGHT_MIN_SECONDS,minimumDistance=FIELD_INSIGHT_MIN_DISTANCE,elapsed=Number.isFinite(run?.time)?Math.max(0,run.time):0,maxDistance=Number.isFinite(run?.insightEngagementMaxDistance)?Math.max(0,run.insightEngagementMaxDistance):0;
-  const elapsedReady=elapsed+1e-9>=minimumSeconds,distanceReady=maxDistance+1e-9>=minimumDistance,criticalBypass=CRITICAL_INSIGHTS.has(record?.id),engagementSatisfied=run?.insightEngagementSatisfied===true;
-  return {ready:criticalBypass||engagementSatisfied,elapsedReady,distanceReady,engagementSatisfied,criticalBypass,elapsed,maximumDistance:maxDistance,minimumSeconds,minimumDistance};
+  const elapsedReady=elapsed+1e-9>=minimumSeconds,distanceReady=maxDistance+1e-9>=minimumDistance,engagementSatisfied=run?.insightEngagementSatisfied===true;
+  return {ready:engagementSatisfied,elapsedReady,distanceReady,engagementSatisfied,elapsed,maximumDistance:maxDistance,minimumSeconds,minimumDistance};
 }
 export function updateInsightEngagement(run){
   if(!run)return fieldInsightOpportunityEligibility(run);
