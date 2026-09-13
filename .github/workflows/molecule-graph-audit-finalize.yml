@@ -13,6 +13,19 @@ jobs:
         with:
           ref: design/molecule-graph-audit
           fetch-depth: 0
+      - name: Normalize compact proposal data
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,writeFile} from 'node:fs/promises';
+          const path='data/molecule-graph.proposed.json';
+          const graph=JSON.parse(await readFile(path,'utf8'));
+          const molecules=JSON.parse(await readFile('data/molecules.json','utf8'));
+          graph.existingInventory=molecules.map(m=>m.id);
+          const fromIndex=graph.edgeColumns.indexOf('from'),toIndex=graph.edgeColumns.indexOf('to');
+          const aliases=new Map([['ethene-oxide','ethylene-oxide']]);
+          for(const edge of graph.edges)for(const index of [fromIndex,toIndex])if(aliases.has(edge[index]))edge[index]=aliases.get(edge[index]);
+          await writeFile(path,JSON.stringify(graph)+'\n');
+          NODE
       - name: Align compact schema documentation
         run: |
           python - <<'PY'
@@ -38,6 +51,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/molecule-graph-design.md docs/maps/molecule-graph-proposed.svg
+          git add data/molecule-graph.proposed.json docs/molecule-graph-design.md docs/maps/molecule-graph-proposed.svg
           git commit -m "Finalize molecule graph proposal artifacts"
           git push origin HEAD:design/molecule-graph-audit
