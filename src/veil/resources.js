@@ -4,6 +4,7 @@ import { CHALLENGE_INSIGHT_IDS } from './expedition-challenges.js';
 import { CRITICAL_INSIGHT_IDS } from './insights.js';
 import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,REGION_ORDER,TANK_USES,tankCapacity,tankUsesFor } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
+import { getFrontierCandidates,loadMoleculeGraph,scoreFrontierCandidates,selectFrontierCandidate } from '../molecule-graph.js';
 import { validateWorkspace } from '../workspace-save.js?v=31';
 import { WORKSPACE_STORAGE_KEY,parseWorkspaceSave } from '../workspace-persistence.js?v=1';
 import { RESOURCE_KEY,MAX_RESOURCE_VALUE,MANAGED_ELEMENTS,STOCKED_ELEMENTS,createInitialProgress,createInitialTanks,createInitialSelectedLoadout,createInitialResourcesState,isResourceInteger,isValidResourceId,loadPersistedResources,serializeResourcesState,finishPendingResourcesReset } from './resources-persistence.js';
@@ -15,7 +16,7 @@ export const WATER_THERMAL_INTERRUPTION_REQUIREMENT=2;
 export const criticalInsightStarterCount=id=>CRITICAL_INSIGHT_STARTER_COUNTS[id]??0;
 const initialProgress=createInitialProgress,initialTanks=createInitialTanks,initialSelectedLoadout=createInitialSelectedLoadout,initialState=createInitialResourcesState;
 const copy=x=>JSON.parse(JSON.stringify(x)),integer=isResourceInteger,validId=isValidResourceId;
-const SIGNAL_ELEMENTS=Object.freeze(['H','C','O']),CRITICAL_SIGNAL_IDS=new Set(CRITICAL_INSIGHT_IDS),CHALLENGE_SIGNAL_IDS=new Set(CHALLENGE_INSIGHT_IDS);
+const SIGNAL_ELEMENTS=Object.freeze(['H','C','O']),CRITICAL_SIGNAL_IDS=new Set(CRITICAL_INSIGHT_IDS),CHALLENGE_SIGNAL_IDS=new Set(CHALLENGE_INSIGHT_IDS),FRONTIER_RESERVED_IDS=Object.freeze([...new Set([...CRITICAL_INSIGHT_IDS,...CHALLENGE_INSIGHT_IDS])]);
 export const regionRank=region=>REGION_ORDER.indexOf(region);
 export function minimumSignalRegionFor(record){
   if(!record||!validId(record.id)||!Array.isArray(record.atoms)||!record.atoms.length||record.atoms.some(el=>!SIGNAL_ELEMENTS.includes(el)))return null;
@@ -35,7 +36,8 @@ function expeditionLoss(units,rate){
 }
 export function createResources({storage,onStatus=()=>{}}={}){
   if(storage===undefined)try{storage=window.localStorage;}catch{storage=null;}
-  let state=initialState(),previous=null,blocked=false,message='';const records=new Map(Object.entries(MOLECULE_USES).map(([id,d])=>[id,{id,...d}])),report=x=>{message=x;onStatus(x);};
+  let state=initialState(),previous=null,blocked=false,message='',frontierGraph=null,frontierRun=null,lastFrontierRun=null;const records=new Map(Object.entries(MOLECULE_USES).map(([id,d])=>[id,{id,...d}])),report=x=>{message=x;onStatus(x);};
+  if(typeof window!=='undefined')void loadMoleculeGraph().then(graph=>{frontierGraph=graph;}).catch(()=>{});
   const usesFor=id=>tankUsesFor(id),fitsTank=(id,use)=>usesFor(id).includes(use)&&Object.hasOwn(TANK_USES,use);
   try{const loaded=loadPersistedResources(storage);previous=loaded.previous;if(loaded.state)state=loaded.state;else{const legacy=storage?.getItem(WORKSPACE_STORAGE_KEY);if(legacy)state.workspace=parseWorkspaceSave(legacy);if(legacy||storage?.getItem(COLLECTION_KEY))state.migrateDiscoveries=true;for(const a of state.workspace?.atoms??[])if(MANAGED.includes(a.element)&&!state.progress.foundElements.includes(a.element))state.progress.foundElements.push(a.element);}}catch{blocked=true;report('資源または制作の保存を復元できません。元の保存を保護しています。');}
   if(state.migrateDiscoveries&&!blocked)try{const b=JSON.parse(storage?.getItem(COLLECTION_KEY)||'null'),e=b?.discoveredMolecules??b?.discoveredMoleculeIds??[];if(e.some(x=>(typeof x==='string'?x:x.id)==='hydrogen')&&!state.recipes.includes('hydrogen'))state.recipes.push('hydrogen');}catch{}
@@ -121,10 +123,37 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function recordDriveThermalInterruption(){
     if(blocked||state.recipes.includes('water'))return false;const before=state.progress.driveThermalInterruptions??0,after=Math.min(WATER_THERMAL_INTERRUPTION_REQUIREMENT,before+1);if(after===before)return false;state.progress.driveThermalInterruptions=after;if(save()||!storage)return true;state.progress.driveThermalInterruptions=before;return false;
   }
+  function beginFrontierRun(region=state.progress.checkpoint,rng=Math.random){
+    const launchRegion=Object.hasOwn(REGIONS,region)?region:'veil',base={selectedCandidateId:null,launchRegion,weightingRegion:null,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:null};frontierRun=base;lastFrontierRun=null;
+    if(api.progressionInsightCandidates().length){base.reason='critical-pending';return;}
+    if(!frontierGraph){base.reason='graph-unavailable';return;}
+    const discoveredIds=[...state.recipes],knownRecipeIds=[...new Set([...state.hints,...FRONTIER_RESERVED_IDS])],candidates=getFrontierCandidates(frontierGraph,{discoveredIds,knownRecipeIds});
+    if(!candidates.length){base.reason='no-candidate';return;}
+    const scored=scoreFrontierCandidates(frontierGraph,candidates,{discoveredIds,region:launchRegion}),selected=selectFrontierCandidate(scored,{rng:typeof rng==='function'?rng:Math.random});
+    if(!selected){base.reason='no-selection';return;}
+    if(!records.has(selected.id)){base.reason='candidate-missing-record';return;}
+    base.selectedCandidateId=selected.id;base.weightingRegion=selected.weighting?.regionAffinity?.region??null;
+  }
+  function suppressFrontierInsightForCritical(){
+    if(!frontierRun||frontierRun.reason||frontierRun.opportunityCreated)return false;
+    frontierRun.reason='critical-pending';return true;
+  }
+  function frontierSignal(region){
+    if(!frontierRun)return null;
+    if(frontierRun.reason||frontierRun.opportunityCreated||region!==frontierRun.launchRegion)return {managed:true};
+    frontierRun.opportunityCreated=true;frontierRun.acquired=true;return {managed:true,recipe:frontierRun.selectedCandidateId};
+  }
+  function finalizeFrontierRun(captured,insights,committedInsights){
+    if(!frontierRun)return null;const id=frontierRun.selectedCandidateId;frontierRun.carried=!!id&&insights.includes(id);frontierRun.committed=!!id&&committedInsights.includes(id);frontierRun.lost=!!captured&&frontierRun.acquired;
+    if(frontierRun.committed)frontierRun.reason='committed';else if(frontierRun.lost)frontierRun.reason='lost';else if(frontierRun.acquired&&!frontierRun.carried)frontierRun.reason='analysis-incomplete';else if(frontierRun.carried)frontierRun.reason='not-committed';else if(!frontierRun.reason)frontierRun.reason='not-acquired';
+    lastFrontierRun=copy(frontierRun);frontierRun=null;return copy(lastFrontierRun);
+  }
+  function signalBonus(region,p){const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};}
   const api={
     get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,oxygenUpgradePlan,upgradeOxygenTank,recordThermalStrain,recordDriveThermalInterruption,
     canUseElement:el=>!MANAGED.includes(el)||state.progress.foundElements.includes(el),record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
     setCatalog(catalog){for(const rec of catalog)if(validId(rec.id)&&Array.isArray(rec.atoms))records.set(rec.id,rec);if(state.migrateDiscoveries&&!blocked){try{const b=JSON.parse(storage?.getItem(COLLECTION_KEY)||'null');for(const x of b?.discoveredMolecules??b?.discoveredMoleculeIds??[]){const id=typeof x==='string'?x:x.id,rec=records.get(id);if(!rec)continue;discover(id);for(const el of rec.atoms)reveal(el);}}catch{}delete state.migrateDiscoveries;legacyGuaranteed();save();}},
+    setFrontierGraph(graph){frontierGraph=graph??null;return !!frontierGraph;},suppressFrontierInsightForCritical,frontierInsightDiagnostics:()=>copy(frontierRun??lastFrontierRun??{selectedCandidateId:null,launchRegion:null,weightingRegion:null,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:'no-run'}),
     reset(categories){
       const selected=new Set(categories),full=RESET_CATEGORIES.every(k=>selected.has(k));if(!selected.size||[...selected].some(k=>!RESET_CATEGORIES.includes(k))||blocked&&!full)return {committed:false};let next;
       try{if(!storage||storage.getItem(RESOURCE_KEY)!==previous)throw Error();next=full?initialState():copy(state);next.progress.sound=state.progress.sound;const clear=full||['workspace','elements','collection','recipes'].some(k=>selected.has(k));if(clear){if(!full&&!selected.has('elements'))for(const a of next.workspace?.atoms??[])if(STOCKED.includes(a.element))next.elements[a.element]=Math.min(MAX,(next.elements[a.element]??0)+1);next.workspace=null;}if(selected.has('recipes')){next.recipes=[];next.hints=[];next.loadout={drive:'hydrogen',cooling:true,tanks:initialSelectedLoadout()};delete next.migrateDiscoveries;}if(full||selected.has('tanks')){next.tanks=initialTanks();next.upgrades={oxygenTank:0};}if(selected.has('elements')){for(const symbol of Object.keys(next.elements))next.elements[symbol]=0;next.dust={H:0,C:0,O:0};}if(selected.has('exploration')){const {bestChain,sound}=next.progress;next.progress={...initialProgress(),bestChain,sound};for(const el of MANAGED)if(next.elements[el]>0||next.workspace?.atoms.some(a=>a.element===el))next.progress.foundElements.push(el);next.progress.foundElements=[...new Set(next.progress.foundElements)];}if(selected.has('records'))next.progress.bestChain=0;next.resetEpoch=(state.resetEpoch??0)+1;next.pendingReset={collection:selected.has('collection'),legacy:clear,help:full};const raw=serializeResourcesState(next);storage.setItem(RESOURCE_KEY,raw);previous=raw;state=next;}catch{report('初期化できませんでした。保存は変更していません。再読み込みして確認してください。');return {committed:false};}blocked=true;try{finishPendingResourcesReset(storage,state);previous=storage.getItem(RESOURCE_KEY);report('初期化しました。再読み込みします。');return {committed:true,complete:true};}catch{report('初期化を記録しました。再読み込み時に残りを安全に完了します。');return {committed:true,complete:false};}
@@ -134,7 +163,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     consumeBoost:()=>{const tank=state.tanks.propellant,performance=performanceFor(tank.molecule,'propellant');return !!performance&&api.consumeTank('propellant',tank.molecule,performance.moleculesPerBurst);},
     consumeCombustion(){const fuel=state.tanks.fuel,oxidizer=state.tanks.oxidizer,p=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});if(blocked||!state.recipes.includes(fuel.molecule)||!state.recipes.includes(oxidizer.molecule)||!p||fuel.molecule!==p.fuel||oxidizer.molecule!==p.oxidizer||fuel.amount<p.fuelAmount||oxidizer.amount<p.oxygenAmount)return false;const snapshot=copy(state);fuel.amount-=p.fuelAmount;oxidizer.amount-=p.oxygenAmount;if(save()||!storage)return true;state=snapshot;return false;},
     consumeDrive:id=>id==='hydrogen'?api.consumeBoost():id==='combustion'?api.consumeCombustion():false,
-    prepareExpedition(){const entry=use=>{const tank=state.tanks[use],supported=tank?.molecule&&state.recipes.includes(tank.molecule)&&fitsTank(tank.molecule,use);return {molecule:supported?tank.molecule:null,amount:supported?tank.amount:0,...(supported&&use==='oxidizer'&&state.upgrades.oxygenTank>0?{capacity:tankCapacity(use,tank.molecule,state.upgrades)}:{})};};return {propellant:entry('propellant'),fuel:entry('fuel'),oxidizer:entry('oxidizer'),coolant:entry('coolant')};},
+    prepareExpedition({region=state.progress.checkpoint,rng=Math.random}={}){beginFrontierRun(region,rng);const entry=use=>{const tank=state.tanks[use],supported=tank?.molecule&&state.recipes.includes(tank.molecule)&&fitsTank(tank.molecule,use);return {molecule:supported?tank.molecule:null,amount:supported?tank.amount:0,...(supported&&use==='oxidizer'&&state.upgrades.oxygenTank>0?{capacity:tankCapacity(use,tank.molecule,state.upgrades)}:{})};};return {propellant:entry('propellant'),fuel:entry('fuel'),oxidizer:entry('oxidizer'),coolant:entry('coolant')};},
     progressionInsightCandidates({cargo={},foundElements=[]}={}){if(blocked)return [];const found=new Set([...state.progress.foundElements,...foundElements]),available=progressionAvailableElements(cargo),eligible=[];if(criticalStarterReady('hydrogen',available))eligible.push('hydrogen');if(state.recipes.includes('hydrogen')&&found.has('C')&&criticalStarterReady('methane',available))eligible.push('methane');if(state.recipes.includes('methane')&&found.has('O')&&criticalStarterReady('oxygen',available))eligible.push('oxygen');if(state.recipes.includes('methane')&&state.recipes.includes('oxygen')&&(state.progress.driveThermalInterruptions??0)>=WATER_THERMAL_INTERRUPTION_REQUIREMENT&&criticalStarterReady('water',available))eligible.push('water');return eligible.filter(id=>records.has(id)&&!state.recipes.includes(id)&&!state.hints.includes(id));},
     findElementForExpedition(el){if(blocked||!MANAGED.includes(el))return false;const first=!state.progress.foundElements.includes(el);reveal(el);return first;},
     findElement(el){if(blocked||!MANAGED.includes(el))return false;const first=!state.progress.foundElements.includes(el);reveal(el);return first;},
@@ -149,10 +178,10 @@ export function createResources({storage,onStatus=()=>{}}={}){
       const persistentHints=[...state.hints],found=api.collectDust(kept,best);state.hints.length=0;state.hints.push(...persistentHints);
       const committedInsights=[];if(!captured)for(const id of insights)if(!state.recipes.includes(id)&&hint(id))committedInsights.push(id);
       if(!save()){state=snapshot;return null;}
-      const atoms={};for(const el of MANAGED)atoms[el]=state.elements[el]-before[el];return {captured,rate,kept,lost,atoms,found,completedNow,committedInsights};
+      const frontierInsight=finalizeFrontierRun(captured,insights,committedInsights),atoms={};for(const el of MANAGED)atoms[el]=state.elements[el]-before[el];return {captured,rate,kept,lost,atoms,found,completedNow,committedInsights,frontierInsight};
     },
     visit(region){if(blocked||!Object.hasOwn(REGIONS,region))return false;const first=!state.progress.regions.includes(region);if(first)state.progress.regions.push(region);state.progress.checkpoint=region;if(region==='frontier')state.progress.frontier=true;if(region!=='veil')state.progress.cleared=true;return first;},
-    signal(region,roll,choice,{excludeIds=[]}={}){if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1))return null;const p=state.progress,last=p.signalLast[region];if(last!==undefined&&p.totalCollected-last<45)return {repeat:true};const excluded=excludeIds instanceof Set?excludeIds:new Set(Array.isArray(excludeIds)?excludeIds:[]),candidates=[...records.values()].filter(rec=>signalCandidateEligible(rec,{region,recipes:state.recipes,hints:state.hints,excludeIds:excluded,canUseElement:el=>MANAGED.includes(el)&&api.canUseElement(el)}));if(candidates.length&&(roll<GROWTH.signalChance||p.signalMisses+1>=GROWTH.signalPity)){const rec=candidates[Math.floor(choice*candidates.length)];p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:rec.id};}if(candidates.length)p.signalMisses++;const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};},
+    signal(region,roll,choice,{excludeIds=[]}={}){if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1))return null;const p=state.progress,last=p.signalLast[region];if(last!==undefined&&p.totalCollected-last<45)return {repeat:true};const frontier=frontierSignal(region);if(frontier?.managed){if(frontier.recipe){p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:frontier.recipe,frontier:true};}return signalBonus(region,p);}const excluded=excludeIds instanceof Set?excludeIds:new Set(Array.isArray(excludeIds)?excludeIds:[]),candidates=[...records.values()].filter(rec=>signalCandidateEligible(rec,{region,recipes:state.recipes,hints:state.hints,excludeIds:excluded,canUseElement:el=>MANAGED.includes(el)&&api.canUseElement(el)}));if(candidates.length&&(roll<GROWTH.signalChance||p.signalMisses+1>=GROWTH.signalPity)){const rec=candidates[Math.floor(choice*candidates.length)];p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:rec.id};}if(candidates.length)p.signalMisses++;return signalBonus(region,p);},
     workspaceAdapter:{getItem(key){if(key!==WORKSPACE_STORAGE_KEY)return storage?.getItem(key)??null;return state.workspace?JSON.stringify(state.workspace):null;},setItem(key,raw){if(key!==WORKSPACE_STORAGE_KEY)throw Error();if(blocked)throw Error();state.workspace=validateWorkspace(JSON.parse(raw));if(!save())throw Error();}},
   };if(!storage)report('端末保存を利用できません。この画面の間だけ資源を保持します。');return api;
 }

@@ -51,7 +51,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     return false;
   }
   function offerInsight(id){return handleInsight(triggerInsight(run,id,resources.state));}
-  function offerProgressionInsights(){if(!run)return;for(const id of resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements}))offerInsight(id);}
+  function offerProgressionInsights(){if(!run)return;const ids=resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements});if(ids.length)resources.suppressFrontierInsightForCritical();for(const id of ids)offerInsight(id);}
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
   function resetInput(){stick.x=stick.y=0;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
   function positionAt(id){const at=REGIONS[id]??REGIONS.veil;run.player.x=at.x;run.player.y=at.y;run.player.angle=at.angle;run.player.vx=run.player.vy=0;run.player.trail=[];run.region=id;}
@@ -73,7 +73,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const previousAnchor=anchor,previousRuns=resources.state.progress.runs,nextRun=previousRuns+1;
     try{
       const seed=(Date.now()^(nextRun*7919))>>>0,start=anchor!=='continue'?anchor:resources.state.progress.checkpoint;
-      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);thermalNotice=null;thermalNoticeUntil=0;insightPresentation.clear();
+      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition({region:start})});positionAt(start);thermalNotice=null;thermalNoticeUntil=0;insightPresentation.clear();
       anchor='continue';q('expedition-anchor').value='continue';active=true;paused=false;anchorLock=null;returnState=null;root.hidden=false;document.body.dataset.mode='veil';appShell.inert=true;
       renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();
       resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();offerProgressionInsights();

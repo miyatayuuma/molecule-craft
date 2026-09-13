@@ -27,6 +27,7 @@ jobs:
         run: |
           node tests/molecule-graph.test.mjs
           node tests/molecule-frontier.test.mjs
+          node tests/field-frontier-insight.test.mjs
           node scripts/export-molecule-graph.mjs --check
       - name: Source contracts
         run: |
