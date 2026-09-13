@@ -1,4 +1,4 @@
-name: Encyclopedia browser diagnostic
+name: Encyclopedia startup hotfix
 
 on:
   push:
@@ -6,31 +6,100 @@ on:
       - fix/encyclopedia-graph-load
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  browser-smoke:
+  fix:
+    if: github.event.head_commit.message == 'Add temporary encyclopedia startup hotfix runner'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Create direct module probe
+        with:
+          ref: fix/encyclopedia-graph-load
+          fetch-depth: 0
+      - name: Fix browser parse regression and stale fallback
         run: |
-          cat > browser-module-probe.html <<'EOF'
-          <!doctype html><meta charset="utf-8"><body><p>probe</p><script type="module" src="./src/collection-ui.js?v=37"></script>
-          EOF
-      - name: Serve repository
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path=Path('src/collection-ui.js')
+          source=path.read_text()
+          old="""    return collectibleGroups.filter(item=>scope==='all'||isCHO(item.pattern.atoms)).filter(item=>visible(state.hasGroup(item.id),item.pattern.atoms.every(atom=>state.canUseElement(atom.element))).sort((a,b)=>number(kind,a.id)-number(kind,b.id));"""
+          new="""    const items=collectibleGroups
+              .filter(item=>scope==='all'||isCHO(item.pattern.atoms))
+              .filter(item=>visible(state.hasGroup(item.id),item.pattern.atoms.every(atom=>state.canUseElement(atom.element))));
+            return items.sort((a,b)=>number(kind,a.id)-number(kind,b.id));"""
+          if old not in source: raise SystemExit('collection UI malformed filter/sort expression not found')
+          path.write_text(source.replace(old,new,1))
+
+          path=Path('index.html')
+          source=path.read_text()
+          if '図鑑 <small>0/162</small>' not in source: raise SystemExit('legacy 162 fallback not found')
+          path.write_text(source.replace('図鑑 <small>0/162</small>','図鑑 <small>0/129</small>',1))
+
+          path=Path('src/craft-connections.js')
+          source=path.read_text()
+          if "./collection-ui.js?v=37" not in source: raise SystemExit('collection UI import version not found')
+          path.write_text(source.replace("./collection-ui.js?v=37","./collection-ui.js?v=38",1))
+
+          path=Path('src/app.js')
+          source=path.read_text()
+          if "./craft-connections.js?v=3" not in source: raise SystemExit('craft connections import version not found')
+          path.write_text(source.replace("./craft-connections.js?v=3","./craft-connections.js?v=4",1))
+          PY
+      - name: Add browser startup regression
         run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/server.log 2>&1 &
-          for i in {1..20}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep .25; done
-          cat /tmp/server.log
-          exit 1
-      - name: Capture Chrome parse error
+          cat > tests/browser-startup.test.mjs <<'NODE'
+          import assert from 'node:assert/strict';
+          import {createServer} from 'node:http';
+          import {readFile,mkdtemp,rm} from 'node:fs/promises';
+          import {spawn,spawnSync} from 'node:child_process';
+          import {extname,join,normalize,resolve} from 'node:path';
+          import {tmpdir} from 'node:os';
+
+          const root=resolve(new URL('..',import.meta.url).pathname);
+          const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
+          const server=createServer(async(req,res)=>{
+            try{
+              const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),relative=pathname==='/'?'index.html':pathname.replace(/^\/+/,''),file=normalize(join(root,relative));
+              if(!file.startsWith(root)){res.writeHead(403).end();return;}
+              const body=await readFile(file);res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);
+            }catch{res.writeHead(404).end('not found');}
+          });
+          await new Promise(resolveListen=>server.listen(0,'127.0.0.1',resolveListen));
+          const {port}=server.address();
+          const candidates=['google-chrome','chromium','chromium-browser'];let chrome='';
+          for(const command of candidates){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
+          assert.ok(chrome,'A Chromium browser is required for startup smoke validation');
+          const profile=await mkdtemp(join(tmpdir(),'molecule-craft-browser-'));
+          try{
+            const child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,'--virtual-time-budget=6500','--dump-dom',`http://127.0.0.1:${port}/`],{stdio:['ignore','pipe','pipe']});
+            let dom='',stderr='';child.stdout.setEncoding('utf8');child.stderr.setEncoding('utf8');child.stdout.on('data',chunk=>dom+=chunk);child.stderr.on('data',chunk=>stderr+=chunk);
+            const code=await new Promise((resolveExit,reject)=>{const timer=setTimeout(()=>{child.kill('SIGKILL');reject(new Error('Browser startup smoke timed out'));},20000);child.on('error',reject);child.on('close',value=>{clearTimeout(timer);resolveExit(value);});});
+            assert.equal(code,0,`Chromium startup failed: ${stderr.slice(-2000)}`);
+            assert.ok(!dom.includes('図鑑を読み込めませんでした。原子からの制作は続けられます。'),'Collection startup must not fall back to the unavailable state');
+            assert.match(dom,/id="open-collection"[^>]*>図鑑\s*<small>0\/129<\/small>/s,'Encyclopedia startup denominator must resolve to the 129-molecule production DB');
+            assert.ok(!stderr.includes('Uncaught SyntaxError'),'Browser startup must not contain module syntax errors');
+          }finally{server.close();await rm(profile,{recursive:true,force:true});}
+          console.log('Browser startup passed: Encyclopedia initializes against the 129-molecule production catalog without module parse failures.');
+          NODE
+      - name: Regenerate PWA assets
+        run: node scripts/build-precache.mjs
+      - name: Validate hotfix
         run: |
-          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
-          test -n "$CHROME" || { echo 'Chrome executable not found'; exit 1; }
-          "$CHROME" --version
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=4000 --enable-logging=stderr --v=1 --dump-dom http://127.0.0.1:4173/browser-module-probe.html >/tmp/probe.html 2>/tmp/probe.log || true
-          grep -E 'CONSOLE|SyntaxError|collection-ui' /tmp/probe.log | tail -n 80 || true
-          echo '--- source lines ---'
-          nl -ba src/collection-ui.js | sed -n '1,220p'
-          exit 1
+          node --check src/collection-ui.js
+          node tests/browser-startup.test.mjs
+          node tests/encyclopedia-graph-ui.test.mjs
+          node tests/collection.test.mjs
+          node tests/collection-expansion.test.mjs
+          node tests/repository-hygiene.test.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit hotfix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/collection-ui.js src/craft-connections.js src/app.js index.html tests/browser-startup.test.mjs sw.js precache-manifest.js
+          git commit -m 'Fix Encyclopedia Graph browser startup'
+          git push origin HEAD:fix/encyclopedia-graph-load
