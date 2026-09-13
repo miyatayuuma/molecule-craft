@@ -4,7 +4,7 @@ import { VEIL, EXPEDITION, THERMAL } from './config.js';
 import { GROWTH, DRIVES, burstDriveFor, combustionDriveFor, regionAt } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { environmentAt, animateUniverse } from './universe.js';
-import { recordOxygenPassage } from './oxygen-routes.js';
+import { OXYGEN_THERMAL, recordOxygenPassage } from './oxygen-routes.js';
 import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -57,7 +57,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null)};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -137,6 +137,7 @@ function stepRunFrame(run,input,dt,systems){
   animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
   const environment=map.universe?environmentAt(p,run.time):null;
   const targetHeat=environment?clamp(environment.heat/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?.combustionHeatFactor??1;
+  const coolantLearning=!!environment?.coolantLearning&&p.combustion&&!run.fuel.coolant?.molecule;run.coolantNeedExposure=coolantLearning?run.coolantNeedExposure+dt:0;if(!run.coolantNeedEmitted&&run.coolantNeedExposure>=OXYGEN_THERMAL.learningExposureSeconds){run.coolantNeedEmitted=true;run.events.push({type:'coolantNeed',exposure:run.coolantNeedExposure});}
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
   let nearest=null,distance=c.assistRadius;const desired=Math.atan2(input.y,input.x);
   for(const dust of map.dust){if(dust.ready>run.time)continue;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}

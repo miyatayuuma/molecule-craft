@@ -183,14 +183,16 @@ assert.equal(resources.state.progress.driveThermalInterruptions,1);
 assert.ok(!resources.progressionInsightCandidates().includes('water'),'first DRIVE interruption is still insufficient');
 assert.equal(resources.recordDriveThermalInterruption(),true);
 assert.equal(resources.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT);
-assert.ok(resources.progressionInsightCandidates().includes('water'),'second DRIVE interruption makes H2O insight ready');
+assert.ok(!resources.progressionInsightCandidates().includes('water'),'generic DRIVE interruptions alone must not reveal H2O');
+assert.equal(resources.recordCoolantNeedExperience(),true);
+assert.ok(resources.progressionInsightCandidates().includes('water'),'sustained COMBUSTION in the authored high-thermal zone makes H2O insight ready');
 
 // Current v8 saves preserve thermal progression exactly. Pre-v8 saves are intentionally
 // incompatible with Molecule DB v2 and reset rather than partially migrating fields.
 const currentStorage=memory(),currentState=resources.snapshot();currentStorage.setItem(RESOURCE_KEY,JSON.stringify(currentState));
-const reloadedCurrent=createResources({storage:currentStorage});assert.equal(reloadedCurrent.blocked,false);assert.equal(reloadedCurrent.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT,'current save retains DRIVE interruption progression');assert.ok(reloadedCurrent.progressionInsightCandidates().includes('water'),'current save retains H2O readiness');
+const reloadedCurrent=createResources({storage:currentStorage});assert.equal(reloadedCurrent.blocked,false);assert.equal(reloadedCurrent.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT,'current save retains DRIVE interruption telemetry');assert.equal(reloadedCurrent.state.progress.coolantNeedExperienced,true,'current save retains authored thermal-zone experience');assert.ok(reloadedCurrent.progressionInsightCandidates().includes('water'),'current save retains H2O readiness');
 const legacyStorage=memory(),legacyState={...currentState,schemaVersion:7};legacyStorage.setItem(RESOURCE_KEY,JSON.stringify(legacyState));
-const legacyResources=createResources({storage:legacyStorage});assert.equal(legacyResources.blocked,false);assert.equal(legacyResources.state.progress.driveThermalInterruptions,0,'pre-v8 save resets thermal progression');assert.ok(!legacyResources.state.recipes.includes('water'),'pre-v8 recipe progress is intentionally discarded');
+const legacyResources=createResources({storage:legacyStorage});assert.equal(legacyResources.blocked,false);assert.equal(legacyResources.state.progress.driveThermalInterruptions,0,'pre-v8 save resets thermal progression');assert.equal(legacyResources.state.progress.coolantNeedExperienced,false,'pre-v8 save resets coolant-learning progression');assert.ok(!legacyResources.state.recipes.includes('water'),'pre-v8 recipe progress is intentionally discarded');
 
 console.log('Oxygen thermal progression passed',JSON.stringify({
   routeCDry:{heat:+cDry.run.heat.toFixed(2),strainY:+cDry.strain[0].y.toFixed(1),time:+cDry.time.toFixed(2),overheats:cDry.overheats.length},
