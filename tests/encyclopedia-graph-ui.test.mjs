@@ -124,4 +124,18 @@ for(const id of productionEmpty.visibleIds){
   const formula=recordById.get(id)?.formula;if(formula)assert.equal(presentation.ariaLabel.includes(formula),false,`${id}: unknown ARIA must not leak formula`);
 }
 
+const [graphViewSource,collectionUISource,stylesSource]=await Promise.all([
+  readFile(new URL('../src/encyclopedia-graph-view.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/collection-ui.js',import.meta.url),'utf8'),
+  readFile(new URL('../styles.css',import.meta.url),'utf8'),
+]);
+assert.doesNotMatch(graphViewSource,/詳細を見る/,'Graph footer detail button must not return');
+assert.doesNotMatch(collectionUISource,/‹ グラフ/,'Detail Graph back button must not return');
+assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs inside the selected thumbnail');
+assert.match(graphViewSource,/onDetail\(id,node\)/,'focused thumbnail itself must own Graph -> Detail');
+assert.match(collectionUISource,/showMoleculeDetailFromGraph/);
+assert.match(collectionUISource,/returnMoleculeDetailToGraph/);
+assert.match(collectionUISource,/Math\.hypot\(event\.clientX-start\.x,event\.clientY-start\.y\)>8/,'Detail tap return must distinguish tap from model drag');
+assert.match(stylesSource,/molecule-shared-transition/,'shared-element ghost must render above both Graph and Detail');
+
 console.log(`Encyclopedia graph UI passed: state/privacy, cross-links, teaser expansion, deterministic sector layout, degree-${maxDegreeNode.degree} mobile geometry.`);
