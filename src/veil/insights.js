@@ -1,6 +1,20 @@
+import {EXPEDITION} from './config.js';
+
 export const INSIGHT_ANALYSIS_SECONDS=5;
 export const CRITICAL_INSIGHT_IDS=Object.freeze(['hydrogen','methane','oxygen','water']);
-const CRITICAL_INSIGHTS=new Set(CRITICAL_INSIGHT_IDS);
+export const FIELD_INSIGHT_MIN_SECONDS=EXPEDITION.safeSeconds;
+const CRITICAL_INSIGHTS=new Set(CRITICAL_INSIGHT_IDS),FIELD_ACTION_ELEMENTS=Object.freeze(['H','C','O']);
+
+export function fieldInsightRequiredElements(record){
+  if(!Array.isArray(record?.atoms)||!record.atoms.length)return [];
+  return [...new Set(record.atoms.filter(element=>FIELD_ACTION_ELEMENTS.includes(element)))];
+}
+
+export function fieldInsightOpportunityEligibility(run,record){
+  const minimumSeconds=FIELD_INSIGHT_MIN_SECONDS,elapsed=Number.isFinite(run?.time)?Math.max(0,run.time):0,collected=run?.collectedElements??{},validRecord=Array.isArray(record?.atoms)&&record.atoms.length>0,requiredElements=fieldInsightRequiredElements(record);
+  const elapsedReady=elapsed+1e-9>=minimumSeconds,requiresAnyFieldElement=validRecord&&!requiredElements.length,missingElements=requiredElements.filter(element=>(collected[element]??0)<1),actionReady=validRecord&&(requiredElements.length?!missingElements.length:FIELD_ACTION_ELEMENTS.some(element=>(collected[element]??0)>=1));
+  return {ready:elapsedReady&&actionReady,elapsedReady,actionReady,minimumSeconds,requiredElements,missingElements,requiresAnyFieldElement};
+}
 
 export function createInsightRunState(){return {analysis:null,carriedInsights:[]};}
 
