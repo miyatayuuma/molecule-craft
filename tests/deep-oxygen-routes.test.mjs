@@ -79,7 +79,7 @@ const skillBurst=traverse(skill.knots.map(([x,y])=>({x,y})),{bursts:true,maxSeco
 assert.ok(skillNormal.reached,'Skill route remains a G2 skill bypass with normal propulsion');
 assert.ok(skillBurst.reached&&skillBurst.burstUses>=2,'BURST can cut through the difficult central section');
 assert.ok(skillBurst.time<skillNormal.time*.8,`BURST should materially improve traversal (${skillBurst.time.toFixed(2)}s vs ${skillNormal.time.toFixed(2)}s)`);
-const curve=EXPEDITION_CHALLENGES.find(candidate=>candidate.id==='curve');assert.deepEqual(curve,{id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:['propane','phenol','formaldehyde']});
+const curve=EXPEDITION_CHALLENGES.find(candidate=>candidate.id==='curve');assert.deepEqual(curve,{id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:[]});
 
 const thermalPath=thermal.knots.map(([x,y])=>({x,y}));
 const thermalDry=traverse(thermalPath,{combustion:true,maxSeconds:20});
