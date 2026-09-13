@@ -1,23 +1,10 @@
-# Molecule Graph proposal design
+# Molecule Graph production design
 
-> **PROPOSAL ONLY.** Based on `main` `0fc76f0a05bf3ae137f3a604a5f8a5ecd658ad1f`.
-> This document and `data/molecule-graph.proposed.json` are design artifacts. They do not replace `data/molecules.json`, do not alter encyclopedia UI, FIELD runtime, recipe insight runtime, save progression, utility unlocks, or crafting behavior.
+> Production source of truth: `data/molecule-graph.json`, paired 1:1 with `data/molecules.json`. The 162-entry legacy inventory was replaced by the audited 129-node graph in Molecule DB v2.
 
 ## 1. Decision summary
 
-The current production database contains **162 molecules**. The proposal deliberately does not preserve that count.
-
-| Audit result | Existing molecules |
-|---|---:|
-| RETAIN | 117 |
-| REWRITE | 8 |
-| DELETE | 37 |
-| Existing molecules included in graph | 125 |
-| ADD | 4 |
-| **Proposal graph nodes** | **129** |
-| **Proposal graph edges** | **144** |
-
-The graph is one connected component, has no isolated nodes, and has a maximum direct-neighbor count of **6**. The longest detected corridor of degree-2 interior nodes is **4**, well below the “10–20 node thin branch” failure mode.
+The production database and discovery graph now contain **129 molecules / nodes** connected by **144 edges**. The migration applied the PR #176 audit outcome: RETAIN 117, REWRITE 8, DELETE 37, and ADD 4. The graph is one connected component, has no isolated nodes, a maximum direct-neighbor count of **6**, and a longest degree-2 corridor of **4**.
 
 The main reduction is not “remove obscure chemistry.” It is “remove repeated homolog/isomer cards when they do not open a new branch.” This keeps characteristic leaves such as `carbon-tetrachloride`, `aspirin`, `methionine`, and `dimethyl-sulfoxide`, while removing repeated C5 alkene/ketone/ester/cresol/xylene variants whose graph role is already represented nearby.
 
@@ -26,8 +13,8 @@ The main reduction is not “remove obscure chemistry.” It is “remove repeat
 This is a **general undirected discovery graph**, not a reaction mechanism diagram and not a single-parent tree.
 
 - An edge means “these two molecules are understandable neighbors after a relatively small structural change.”
-- `from` → `to` records the preferred conceptual progression from simpler to more derived structure. Adjacency/frontier traversal is **undirected by schema contract**; the compact proposal does not store a redundant `bidirectional` flag.
-- Each edge exists once in `edges[]`; each node stores incident array indexes in `connectionEdgeIndexes[]`. This avoids reciprocal edge duplicates while keeping node-local traversal cheap in the compact machine proposal.
+- `from` → `to` records the preferred conceptual progression from simpler to more derived structure. Adjacency/frontier traversal is **undirected by schema contract**; the compact graph does not store a redundant `bidirectional` flag.
+- Each edge exists once in `edges[]`; each node stores incident array indexes in `connectionEdgeIndexes[]`. This avoids reciprocal edge duplicates while keeping node-local traversal cheap in the compact machine graph.
 - Direct neighbors are intentionally capped at **6** so a selected molecule can show its immediate neighborhood around a phone-sized radial layout.
 - Cross-links are preferred over long homolog ladders where a chemically understandable cross-link exists.
 - A LEAF is allowed only when it has a strong property, use, structural distinction, or familiar context.
@@ -42,7 +29,7 @@ The graph has three structural ROOTs:
 | `methane` (CH4) | Carbon phase: CH4 is discovered after reaching C | ROOT for the carbon trunk, without changing current unlock timing |
 | `oxygen` (O2) | Oxygen phase: O2 discovery enables combustion progression | ROOT for the oxygen side, without changing current unlock timing |
 
-`water` is intentionally **not** a ROOT. It is a high-value H/O BRIDGE. Current `docs/hco-growth.md` explicitly treats H2O as useful but optional rather than a CHO completion requirement; this proposal preserves that behavior.
+`water` is intentionally **not** a ROOT. It is a high-value H/O BRIDGE. Current `docs/hco-growth.md` explicitly treats H2O as useful but optional rather than a CHO completion requirement; the production graph preserves that behavior.
 
 `freshSaveKnownGraphNodes` is therefore empty. “ROOT” means layout/progression anchor, not “grant this recipe on a fresh save.”
 
@@ -305,7 +292,7 @@ All 8 REWRITE entries and replacement copy are in the DB audit.
 
 ## 15. Developer visualization
 
-`scripts/export-molecule-graph-proposal.mjs` renders `docs/maps/molecule-graph-proposed.svg`.
+`scripts/export-molecule-graph-proposal.mjs` renders `docs/maps/molecule-graph.svg`.
 
 The SVG is **developer-only**. It is intended to expose:
 

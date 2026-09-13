@@ -18,8 +18,8 @@ const countAtoms=record=>record.atoms.reduce((counts,element)=>(counts[element]=
 
 assert.equal(ROLE_BALANCE_VERSION,2);
 assert.equal(moleculesForRole('propellant').length,5);
-assert.equal(moleculesForRole('fuel').length,15);
-assert.equal(moleculesForRole('coolant').length,8);
+assert.equal(moleculesForRole('fuel').length,14);
+assert.equal(moleculesForRole('coolant').length,7);
 assert.deepEqual(moleculesForRole('oxidizer'),['oxygen']);
 
 for(const [id,profile] of Object.entries(MOLECULE_ROLE_PROFILES)){
@@ -71,7 +71,7 @@ for(const id of moleculesForRole('coolant')){
 assert.ok(performanceFor('nitrogen','coolant').coolingPower>performanceFor('water','coolant').coolingPower);
 assert.ok(performanceFor('nitrogen','coolant').durationFactor<performanceFor('water','coolant').durationFactor);
 assert.ok(performanceFor('ethylene-glycol','coolant').durationFactor>performanceFor('water','coolant').durationFactor);
-assert.ok(performanceFor('propylene-glycol','coolant').environmentTolerance>performanceFor('water','coolant').environmentTolerance);
+assert.ok(performanceFor('ethylene-glycol','coolant').environmentTolerance>performanceFor('water','coolant').environmentTolerance);
 
 // Progression-specific records remain separate: runtime roles must not alter
 // unknown-signal eligibility by being copied into MOLECULE_USES.

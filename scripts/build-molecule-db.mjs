@@ -428,6 +428,22 @@ for(const [id,nameJa,nameEn,side,iupacNameEn,learningNote] of [
   add({id,nameJa,nameEn,iupacNameEn,learningNote,stereochemistry:'unspecified',...graph,category:'amino-acid'});
 }
 
+const PRODUCTION_EXCLUDED_MOLECULE_IDS = new Set(["sulfur-hexafluoride","isopentane","neopentane","1-pentene","2-pentene","o-xylene","m-xylene","chloroethane","1-propanol","isobutanol","propylene-glycol","1-4-dioxane","ethanethiol","butyraldehyde","isobutyraldehyde","2-pentanone","3-pentanone","isobutyric-acid","valeric-acid","methyl-formate","ethyl-formate","methyl-acetate","methyl-propionate","ethyl-propionate","ethylamine","formamide","propionamide","resorcinol","acetanilide","o-cresol","m-cresol","p-cresol","methyl-benzoate","ethyl-benzoate","n-butyl-acetate","isopropyl-acetate","cumene"]);
+
+{
+  const graph = ring(6);
+  graph.bonds[0][2] = 2;
+  add({ id: 'cyclohexene', nameJa: 'シクロヘキセン', nameEn: 'Cyclohexene', category: 'cyclic-hydrocarbon', ...graph, iupacNameEn: 'Cyclohex-1-ene', learningNote: "6員環に1本のC=C二重結合を持つシクロアルケン。水素化するとシクロヘキサンになり、さらに不飽和化したベンゼンと比べると環状炭化水素の結合次数と反応性の違いが見える。" });
+}
+add({ id: 'pyruvic-acid', nameJa: 'ピルビン酸', nameEn: 'Pyruvic acid', category: 'carboxylic-acid', atoms: ['C','C','C','O','O','O'], bonds: [[0,1,1],[1,2,1],[1,3,2],[2,4,2],[2,5,1]], iupacNameEn: '2-Oxopropanoic acid', learningNote: "ピルビン酸はカルボキシ基とケトン基を同時に持つα-ケト酸。解糖系でグルコース分解の要所に現れ、乳酸やアラニンへ変換されるため、生体化学とカルボニル化学をつなぐ。" });
+add({ id: 'furan', nameJa: 'フラン', nameEn: 'Furan', category: 'ether-cyclic-ether', atoms: ['O','C','C','C','C'], bonds: [[0,1,1],[1,2,2],[2,3,1],[3,4,2],[4,0,1]], valences: {0:2}, iupacNameEn: 'Furan', learningNote: "酸素1個を含む5員芳香族複素環。テトラヒドロフランとは同じO含有環でも芳香族性と不飽和度が異なり、バイオマス由来原料から得られるフラン化合物の基本骨格でもある。" });
+add({ id: 'dimethyl-sulfoxide', nameJa: 'ジメチルスルホキシド', nameEn: 'Dimethyl sulfoxide', aliases: ['DMSO'], category: 'sulfur-compounds', atoms: ['C','S','C','O'], bonds: [[0,1,1],[1,2,1],[1,3,2]], valences: {1:4}, iupacNameEn: 'Dimethyl sulfoxide', learningNote: "硫黄に酸素が結合したスルホキシドで、強い極性を持つ非プロトン性溶媒。硫化ジメチルの酸化体にあたり、有機反応の溶媒や生体試料の凍結保護などに広く使われる。" });
+
+for (let index = molecules.length - 1; index >= 0; index--) {
+  if (PRODUCTION_EXCLUDED_MOLECULE_IDS.has(molecules[index].id)) molecules.splice(index, 1);
+}
+if (molecules.length !== 129) throw new Error(`Production molecule inventory drifted: ${molecules.length}`);
+
 const ids = new Set();
 for (const molecule of molecules) {
   if (ids.has(molecule.id)) throw new Error(`Duplicate id: ${molecule.id}`);

@@ -185,16 +185,12 @@ assert.equal(resources.recordDriveThermalInterruption(),true);
 assert.equal(resources.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT);
 assert.ok(resources.progressionInsightCandidates().includes('water'),'second DRIVE interruption makes H2O insight ready');
 
-// Missing progress fields normalize safely without rewriting the stored save
-// until the next normal save, and already-owned H2O is never rolled back.
-const legacyStorage=memory(),legacyState=resources.snapshot();delete legacyState.progress.driveThermalInterruptions;legacyStorage.setItem(RESOURCE_KEY,JSON.stringify(legacyState));
-const legacyResources=createResources({storage:legacyStorage});assert.equal(legacyResources.blocked,false);assert.equal(legacyResources.state.progress.driveThermalInterruptions,0,'older saves default the new counter to zero');
-const ownedStorage=memory(),owned=createResources({storage:ownedStorage});owned.setCatalog([
-  {id:'methane',formula:'CH4',atoms:['C','H','H','H','H']},
-  {id:'oxygen',formula:'O2',atoms:['O','O']},
-  {id:'water',formula:'H2O',atoms:['H','H','O']},
-]);owned.discover('methane');owned.discover('oxygen');owned.discover('water');const ownedState=owned.snapshot();delete ownedState.progress.driveThermalInterruptions;ownedStorage.setItem(RESOURCE_KEY,JSON.stringify(ownedState));
-const reloadedOwned=createResources({storage:ownedStorage});assert.ok(reloadedOwned.state.recipes.includes('water'),'existing H2O recipe survives missing new progress field');assert.equal(reloadedOwned.state.progress.driveThermalInterruptions,0);assert.ok(!reloadedOwned.progressionInsightCandidates().includes('water'),'owned H2O is not re-offered as progression');assert.equal(reloadedOwned.recordDriveThermalInterruption(),false,'owned H2O does not accumulate obsolete progression');
+// Current v8 saves preserve thermal progression exactly. Pre-v8 saves are intentionally
+// incompatible with Molecule DB v2 and reset rather than partially migrating fields.
+const currentStorage=memory(),currentState=resources.snapshot();currentStorage.setItem(RESOURCE_KEY,JSON.stringify(currentState));
+const reloadedCurrent=createResources({storage:currentStorage});assert.equal(reloadedCurrent.blocked,false);assert.equal(reloadedCurrent.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT,'current save retains DRIVE interruption progression');assert.ok(reloadedCurrent.progressionInsightCandidates().includes('water'),'current save retains H2O readiness');
+const legacyStorage=memory(),legacyState={...currentState,schemaVersion:7};legacyStorage.setItem(RESOURCE_KEY,JSON.stringify(legacyState));
+const legacyResources=createResources({storage:legacyStorage});assert.equal(legacyResources.blocked,false);assert.equal(legacyResources.state.progress.driveThermalInterruptions,0,'pre-v8 save resets thermal progression');assert.ok(!legacyResources.state.recipes.includes('water'),'pre-v8 recipe progress is intentionally discarded');
 
 console.log('Oxygen thermal progression passed',JSON.stringify({
   routeCDry:{heat:+cDry.run.heat.toFixed(2),strainY:+cDry.strain[0].y.toFixed(1),time:+cDry.time.toFixed(2),overheats:cDry.overheats.length},

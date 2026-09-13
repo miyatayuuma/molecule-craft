@@ -38,7 +38,7 @@ function parseReference(smiles){
   return model;
 }
 const references=await json('./fixtures/collection-expansion-reference.json');
-assert.equal(references.records.length,20);
+assert.equal(references.records.length,12);
 for(const ref of references.records){
   const model=parseReference(ref.connectivitySMILES),entry=record(ref.id);
   assert.ok(entry?.learningNote&&entry.iupacNameEn&&entry.commonNameJa,ref.id);
@@ -63,26 +63,22 @@ for(let i=0;i<15;i++){
 }
 assert.equal(nextElementUnlock(15,game.unlockedElements()),null);
 
-// Low-progress legacy players retain elements used in real discoveries, not
-// fabricated/removed ids; schema 2 preserves the grants across later reloads.
-let saved=JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'sulfur-hexafluoride'},{id:'removed'},{id:'sulfur-hexafluoride'}]});
+// Molecule DB v2 deliberately resets pre-v3 collection saves instead of translating deleted discoveries.
+let saved=JSON.stringify({schemaVersion:2,discoveredMolecules:[{id:'methanol',at:1,order:1}],legacyElements:['O'],milestones:[]});
 let writes=0;const storage={getItem:()=>saved,setItem:(_,value)=>{saved=value;writes++;}};
-const legacy=newGame(storage);assert.equal(legacy.discoveredCount,1);assert.ok(legacy.canUseElement('S')&&legacy.canUseElement('F'));assert.equal(legacy.canUseElement('P'),false);
-assert.equal(writes,0,'Loading should not write each frame or rewrite a valid save');
-legacy.observeStructures([fixture('methane')]);assert.equal(JSON.parse(saved).schemaVersion,2);
-const restored=newGame(storage);assert.ok(restored.canUseElement('F'));assert.ok(restored.canUseElement('S'));assert.equal(restored.canUseElement('N'),false);
-assert.equal(new Molecule().atoms.length,0,'Do not restore the crafting field');
-const removed=newGame({getItem:()=>JSON.stringify({schemaVersion:1,discoveredMoleculeIds:['removed'],unlockedElements:['P']})});
-assert.deepEqual(removed.unlockedElements(),['H','C','O']);
+const legacy=newGame(storage);assert.equal(legacy.discoveredCount,0);assert.deepEqual(legacy.unlockedElements(),['H','C','O']);
+assert.equal(writes,0,'Loading an incompatible save resets runtime state without eager per-frame writes');
+legacy.observeStructures([fixture('methane')]);assert.equal(JSON.parse(saved).schemaVersion,3);
+const restored=newGame(storage);assert.equal(restored.discoveredCount,1);assert.equal(new Molecule().atoms.length,0,'Do not restore the crafting field');
 
 // Ordinary named open parts, with exact branching and hydrogen requirements.
 assert.ok(detect('methane','methyl'));assert.ok(detect('toluene','methyl'));assert.equal(detect('ethene','methyl'),false);
-assert.ok(detect('2-propanol','isopropyl'));assert.ok(detect('cumene','isopropyl'));assert.equal(detect('1-propanol','isopropyl'),false);assert.equal(detect('tert-butanol','isopropyl'),false);
-assert.ok(detect('1-butanol','n-butyl'));assert.ok(detect('n-butyl-acetate','n-butyl'));
-for(const id of ['2-butanol','isobutanol','tert-butanol','cyclobutane'])assert.equal(detect(id,'n-butyl'),false,id);
+assert.ok(detect('2-propanol','isopropyl'));assert.ok(detect('isobutane','isopropyl'));assert.equal(detect('tert-butanol','isopropyl'),false);
+assert.ok(detect('1-butanol','n-butyl'));assert.ok(detect('n-butane','n-butyl'));
+for(const id of ['2-butanol','tert-butanol','cyclobutane'])assert.equal(detect(id,'n-butyl'),false,id);
 assert.equal(templates.filter(entry=>entry.unlock.groupId==='ethyl').length,1,'Keep the existing ethyl part/id');
 const progression=newGame(null);progression.observeStructures([fixture('methane')]);assert.ok(progression.isUnlocked('methyl'));
-for(const [group,first,second] of [['isopropyl','2-propanol','cumene'],['n-butyl','1-butanol','n-butyl-acetate']]){
+for(const [group,first,second] of [['isopropyl','2-propanol','isobutane'],['n-butyl','1-butanol','n-butane']]){
   progression.observeStructures([fixture(first)]);assert.equal(progression.isUnlocked(group),false);
   progression.observeStructures([fixture(first)]);assert.equal(progression.isUnlocked(group),false);
   progression.observeStructures([fixture(second)]);assert.ok(progression.isUnlocked(group));
