@@ -14,7 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Apply production cleanup and regressions
-        run: node scripts/apply-launch-stabilization.mjs
+        run: |
+          node scripts/apply-launch-stabilization.mjs
+          node scripts/fix-launch-stabilization-test.mjs
       - name: Targeted launch validation
         run: |
           node tests/loadout-shortage-confirmation.test.mjs
