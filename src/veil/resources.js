@@ -5,6 +5,7 @@ import { CRITICAL_INSIGHT_IDS } from './insights.js';
 import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,REGION_ORDER,TANK_USES,tankCapacity,tankUsesFor } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { getFrontierCandidates,loadMoleculeGraph,scoreFrontierCandidates,selectFrontierCandidate } from '../molecule-graph.js';
+import { availableElements } from '../element-progression.js?v=37';
 import { validateWorkspace } from '../workspace-save.js?v=31';
 import { WORKSPACE_STORAGE_KEY,parseWorkspaceSave } from '../workspace-persistence.js?v=1';
 import { RESOURCE_KEY,MAX_RESOURCE_VALUE,MANAGED_ELEMENTS,STOCKED_ELEMENTS,createInitialProgress,createInitialTanks,createInitialSelectedLoadout,createInitialResourcesState,isResourceInteger,isValidResourceId,loadPersistedResources,serializeResourcesState,finishPendingResourcesReset } from './resources-persistence.js';
@@ -127,8 +128,8 @@ export function createResources({storage,onStatus=()=>{}}={}){
     const launchRegion=Object.hasOwn(REGIONS,region)?region:'veil',base={selectedCandidateId:null,launchRegion,weightingRegion:null,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:null};frontierRun=base;lastFrontierRun=null;
     if(api.progressionInsightCandidates().length){base.reason='critical-pending';return;}
     if(!frontierGraph){base.reason='graph-unavailable';return;}
-    const discoveredIds=[...state.recipes],knownRecipeIds=[...new Set([...state.hints,...FRONTIER_RESERVED_IDS])],candidates=getFrontierCandidates(frontierGraph,{discoveredIds,knownRecipeIds});
-    if(!candidates.length){base.reason='no-candidate';return;}
+    const discoveredIds=[...state.recipes],knownRecipeIds=[...new Set([...state.hints,...FRONTIER_RESERVED_IDS])],graphCandidates=getFrontierCandidates(frontierGraph,{discoveredIds,knownRecipeIds}),unlockedElements=new Set(availableElements(state.recipes.length)),candidates=graphCandidates.filter(candidate=>{const record=records.get(candidate.id);return !!record&&Array.isArray(record.atoms)&&record.atoms.length>0&&record.atoms.every(el=>unlockedElements.has(el)&&(!MANAGED.includes(el)||state.progress.foundElements.includes(el)));});
+    if(!candidates.length){base.reason=graphCandidates.length?'element-locked':'no-candidate';return;}
     const scored=scoreFrontierCandidates(frontierGraph,candidates,{discoveredIds,region:launchRegion}),selected=selectFrontierCandidate(scored,{rng:typeof rng==='function'?rng:Math.random});
     if(!selected){base.reason='no-selection';return;}
     if(!records.has(selected.id)){base.reason='candidate-missing-record';return;}

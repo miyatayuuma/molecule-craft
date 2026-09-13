@@ -90,6 +90,24 @@ function expandableChoice(value,region){
   assert.equal(value.suppressFrontierInsightForCritical(),true);assert.equal(value.frontierInsightDiagnostics().reason,'critical-pending');const signal=value.signal('oxygen',0,0);assert.ok(signal.bonus&&!signal.recipe,'unspawned Graph opportunity stays suppressed once critical progression becomes ready');
 }
 
+// Graph visibility is broader than FIELD insight eligibility. A direct
+// neighbor that requires an element not yet unlocked by registered-molecule
+// progression stays visible in the Encyclopedia but cannot be selected as a
+// FIELD idea until that element unlocks. Regression: CH3F must wait for F.
+{
+  const value=make({discoverRoots:false});
+  value.setCatalog([{id:'fluoromethane',formula:'CH3F',atoms:['C','H','H','H','F']}]);
+  value.state.progress.foundElements=['H','C','O'];
+  value.state.recipes=['methane'];
+  value.state.hints=graph.nodes.map(node=>node.id).filter(id=>id!=='fluoromethane');
+  value.prepareExpedition({region:'veil',rng:()=>0});
+  let diag=value.frontierInsightDiagnostics();assert.equal(diag.selectedCandidateId,null);assert.equal(diag.reason,'element-locked','F-containing frontier stays ineligible before the 15-registration F unlock');
+  const fillers=graph.nodes.map(node=>node.id).filter(id=>id!=='methane'&&id!=='fluoromethane').slice(0,14);
+  value.state.recipes=['methane',...fillers];
+  value.prepareExpedition({region:'veil',rng:()=>0});
+  diag=value.frontierInsightDiagnostics();assert.equal(diag.selectedCandidateId,'fluoromethane','the same graph frontier becomes eligible once F is unlocked');
+}
+
 // Empty frontier is a normal FIELD run: no DB-wide or legacy regional recipe
 // fallback is allowed once an expedition frontier snapshot exists.
 {
