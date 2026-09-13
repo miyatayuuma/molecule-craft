@@ -82,6 +82,14 @@ function expandableChoice(value,region){
   const value=make({discoverRoots:false});value.state.elements.H=80;assert.ok(value.progressionInsightCandidates().includes('hydrogen'));value.prepareExpedition({region:'veil',rng:()=>0});const diag=value.frontierInsightDiagnostics();assert.equal(diag.reason,'critical-pending');assert.equal(diag.selectedCandidateId,null);const signal=value.signal('veil',0,0);assert.ok(signal.bonus&&!signal.recipe);
 }
 
+// A critical insight that becomes ready after launch still owns the run before
+// the Graph opportunity is emitted. This closes the cargo/thermal readiness race.
+{
+  const value=make(),{target,roll}=expandableChoice(value,'oxygen');value.prepareExpedition({region:'oxygen',rng:()=>roll});assert.equal(value.frontierInsightDiagnostics().selectedCandidateId,target.id);
+  value.state.progress.driveThermalInterruptions=2;const critical=value.progressionInsightCandidates({cargo:{H:8},foundElements:[]});assert.ok(critical.includes('water'),'water becomes critical-ready during the expedition');
+  assert.equal(value.suppressFrontierInsightForCritical(),true);assert.equal(value.frontierInsightDiagnostics().reason,'critical-pending');const signal=value.signal('oxygen',0,0);assert.ok(signal.bonus&&!signal.recipe,'unspawned Graph opportunity stays suppressed once critical progression becomes ready');
+}
+
 // Empty frontier is a normal FIELD run: no DB-wide or legacy regional recipe
 // fallback is allowed once an expedition frontier snapshot exists.
 {
