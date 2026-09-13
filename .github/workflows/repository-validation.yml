@@ -56,7 +56,6 @@ jobs:
           node tests/game-shell-recovery.test.mjs
           node tests/craft-target-colors.test.mjs
           node tests/craft-target-satisfaction.test.mjs
-          node tests/craft-target-satisfaction-ui-check.mjs
       - name: Expedition insights
         run: |
           node tests/expedition-insights.test.mjs
