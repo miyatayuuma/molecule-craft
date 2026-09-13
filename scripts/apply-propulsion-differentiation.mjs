@@ -72,13 +72,4 @@ await replaceOnce('tests/propulsion-differentiation.test.mjs',mapAssertionAnchor
   }
 });`);
 
-const validation=`      - name: Thermal and expedition regressions
-        run: |
-          node tests/oxygen-field-integration.test.mjs`;
-await replaceOnce('.github/workflows/repository-validation.yml',validation,`      - name: Thermal and expedition regressions
-        run: |
-          node tests/propulsion-differentiation.test.mjs
-          node tests/oxygen-field-integration.test.mjs`);
-
 await unlink('scripts/apply-propulsion-differentiation.mjs');
-await unlink('.github/workflows/burst-drive-finalize.yml');
