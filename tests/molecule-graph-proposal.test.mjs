@@ -10,7 +10,10 @@ const [graphRaw,moleculesRaw,audit]=await Promise.all([
 ]);
 const graph=JSON.parse(graphRaw),molecules=JSON.parse(moleculesRaw);
 const rowsToObjects=(columns,rows)=>rows.map(row=>Object.fromEntries(columns.map((key,index)=>[key,row[index]])));
-const nodes=rowsToObjects(graph.nodeColumns,graph.nodes),edges=rowsToObjects(graph.edgeColumns,graph.edges);
+const nodes=rowsToObjects(graph.nodeColumns,graph.nodes);
+const endpointId=value=>Number.isInteger(value)?nodes[value]?.id:value;
+const rawEdges=rowsToObjects(graph.edgeColumns,graph.edges);
+const edges=rawEdges.map(edge=>({...edge,from:endpointId(edge.from),to:endpointId(edge.to)}));
 const byId=new Map(nodes.map(node=>[node.id,node]));
 assert.equal(byId.size,nodes.length,'node IDs must be unique');
 assert.equal(nodes.length,129,'proposal node count is design-locked');
@@ -47,6 +50,10 @@ const validRelationCodes=new Set(Object.keys(graph.relationCodes).map(Number));
 const adjacency=new Map(nodes.map(node=>[node.id,new Set()]));
 const incident=new Map(nodes.map(node=>[node.id,[]]));
 const pairs=new Set();
+rawEdges.forEach((edge,index)=>{
+  if(Number.isInteger(edge.from))assert(edge.from>=0&&edge.from<nodes.length,`edge.from node index out of range at ${index}`);
+  if(Number.isInteger(edge.to))assert(edge.to>=0&&edge.to<nodes.length,`edge.to node index out of range at ${index}`);
+});
 edges.forEach((edge,index)=>{
   assert(byId.has(edge.from),`missing edge.from ${edge.from}`);assert(byId.has(edge.to),`missing edge.to ${edge.to}`);assert.notEqual(edge.from,edge.to,`self edge ${edge.from}`);
   assert(validRelationCodes.has(edge.relationCode),`invalid relationCode on edge ${index}`);
