@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import {THERMAL} from '../src/veil/config.js';
-import {beginBurst,createRun,setCombustionHeld,stepRun} from '../src/veil/engine.js';
+import {beginBurst,createRun,setCombustionHeld,stepRun} from '../src/veil/expedition-run.js';
 import {EXPEDITION_CHALLENGES} from '../src/veil/expedition-challenges.js';
 import {flightConfig} from '../src/veil/growth.js';
 import {OXYGEN_ROUTES,oxygenRouteCenterAtY} from '../src/veil/oxygen-routes.js';
-import {criticalInsightStarterCount,createResources} from '../src/veil/resources.js';
+import {RESOURCE_KEY,WATER_THERMAL_INTERRUPTION_REQUIREMENT,criticalInsightStarterCount,createResources} from '../src/veil/resources.js';
 import {createUniverse,environmentAt} from '../src/veil/universe.js';
 
 const DT=1/60;
@@ -53,13 +53,26 @@ function simulateRoute(routeId,{combustion=false,coolant=0,burstY=null,continueD
     maxHeat=Math.max(maxHeat,run.heat);if(run.player.y>-9700)frontHalfMaxHeat=Math.max(frontHalfMaxHeat,run.heat);
     for(const event of events){
       if(event.type==='thermalStrain')strain.push({time:run.time,x:run.player.x,y:run.player.y,heat:run.heat,combustion:run.player.combustion});
-      if(event.type==='overheat')overheats.push({time:run.time,x:run.player.x,y:run.player.y,heat:run.heat});
+      if(event.type==='overheat')overheats.push({time:run.time,x:run.player.x,y:run.player.y,heat:run.heat,driveInterrupted:event.driveInterrupted===true});
       if(event.type==='coolantStart')coolantStarts.push({time:run.time,y:run.player.y,heat:run.heat});
     }
     if(Math.hypot(run.player.x-target.x,run.player.y-target.y)<65&&waypoint===path.length-1)break;
   }
   assert.ok(frames<60*32,`${routeId} deterministic traversal must terminate`);
   return {run,frames,time:run.time,strain,overheats,coolantStarts,coolantSpent,combustionPackets,maxHeat,maxEnvironmentHeat,frontHalfMaxHeat,burstUsed:burstUses>0,burstUses,recoveryCoast};
+}
+
+function simulateDriveInterruptions(seconds=22){
+  const run=createRun(deterministicMap(),flightConfig(),{fuel:{fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36}},predators:false});
+  setCombustionHeld(run,true);
+  const overheats=[],recoveries=[];
+  for(let frame=0;frame<seconds/DT;frame++){
+    for(const event of stepRun(run,{x:0,y:0},DT,{consumeCombustion:()=>true})){
+      if(event.type==='overheat')overheats.push({time:run.time,driveInterrupted:event.driveInterrupted===true});
+      if(event.type==='heatRecovered')recoveries.push(run.time);
+    }
+  }
+  return {run,overheats,recoveries};
 }
 
 // Thermal geometry is narrow and follows the production Route C centerline.
@@ -106,6 +119,7 @@ assert.ok(cWet.run.player.combustion,'COMBUSTION remains active at the merge wit
 const cDryDeep=simulateRoute('oxygen-side',{combustion:true,continueDeep:true});
 const cWetDeep=simulateRoute('oxygen-side',{combustion:true,coolant:8,continueDeep:true});
 assert.ok(cDryDeep.overheats.length>=1,'dry sustained DRIVE should eventually overheat after Route C');
+assert.ok(cDryDeep.overheats.every(event=>event.driveInterrupted),'DRIVE overheat is tagged as a propulsion interruption');
 assert.ok(!cWetDeep.overheats.length||cWetDeep.overheats[0].time>cDryDeep.overheats[0].time+1,'H2O x8 should extend sustained DRIVE time by at least one second');
 
 // Scenario C: environmental heat exists, but ordinary propulsion cannot emit
@@ -142,7 +156,16 @@ assert.ok(frontierHeat<5,'Deep thermal handoff fades before Frontier');
 const thermalChallenge=EXPEDITION_CHALLENGES.find(challenge=>challenge.id==='thermal');
 assert.deepEqual(thermalChallenge,{id:'thermal',bottom:-11160,top:-11440,width:260,centerX:760,centerY:-11300,rewards:['ethylene-glycol','n-hexane']});
 
-// Production event -> persistent thermal record -> unchanged H2O readiness.
+// Repeated no-coolant DRIVE demonstrates the intended stop -> recover -> reuse
+// sequence. A single held input still requires two distinct thermal cycles.
+const driveCycles=simulateDriveInterruptions();
+assert.equal(WATER_THERMAL_INTERRUPTION_REQUIREMENT,2,'H2O should require two clear DRIVE interruptions');
+assert.ok(driveCycles.overheats.length>=WATER_THERMAL_INTERRUPTION_REQUIREMENT,'sustained dry DRIVE should produce repeated interruptions');
+assert.ok(driveCycles.overheats.slice(0,WATER_THERMAL_INTERRUPTION_REQUIREMENT).every(event=>event.driveInterrupted),'only active DRIVE overheat cycles are progression-relevant');
+assert.ok(driveCycles.recoveries.some(time=>time>driveCycles.overheats[0].time&&time<driveCycles.overheats[1].time),'second interruption requires a completed recovery and DRIVE reuse');
+
+// Production experience -> persistent progression. HOT alone and the first
+// actual interruption are insufficient; the second interruption unlocks H2O.
 assert.equal(criticalInsightStarterCount('water'),8,'canonical water starter remains eight molecules');
 const resources=createResources({storage:memory()});
 resources.setCatalog([
@@ -154,11 +177,29 @@ resources.discover('methane');resources.discover('oxygen');resources.findElement
 resources.state.elements.H=16;resources.state.elements.O=8;
 assert.ok(!resources.progressionInsightCandidates().includes('water'),'materials alone do not reveal H2O');
 assert.equal(cDry.strain.length,1);assert.equal(resources.recordThermalStrain(),true);
-assert.ok(resources.progressionInsightCandidates().includes('water'),'Route C thermal strain makes unchanged H2O prerequisites ready');
+assert.ok(!resources.progressionInsightCandidates().includes('water'),'first thermal strain does not reveal H2O');
+assert.equal(resources.recordDriveThermalInterruption(),true);
+assert.equal(resources.state.progress.driveThermalInterruptions,1);
+assert.ok(!resources.progressionInsightCandidates().includes('water'),'first DRIVE interruption is still insufficient');
+assert.equal(resources.recordDriveThermalInterruption(),true);
+assert.equal(resources.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT);
+assert.ok(resources.progressionInsightCandidates().includes('water'),'second DRIVE interruption makes H2O insight ready');
+
+// Missing progress fields normalize safely without rewriting the stored save
+// until the next normal save, and already-owned H2O is never rolled back.
+const legacyStorage=memory(),legacyState=resources.snapshot();delete legacyState.progress.driveThermalInterruptions;legacyStorage.setItem(RESOURCE_KEY,JSON.stringify(legacyState));
+const legacyResources=createResources({storage:legacyStorage});assert.equal(legacyResources.blocked,false);assert.equal(legacyResources.state.progress.driveThermalInterruptions,0,'older saves default the new counter to zero');
+const ownedStorage=memory(),owned=createResources({storage:ownedStorage});owned.setCatalog([
+  {id:'methane',formula:'CH4',atoms:['C','H','H','H','H']},
+  {id:'oxygen',formula:'O2',atoms:['O','O']},
+  {id:'water',formula:'H2O',atoms:['H','H','O']},
+]);owned.discover('methane');owned.discover('oxygen');owned.discover('water');const ownedState=owned.snapshot();delete ownedState.progress.driveThermalInterruptions;ownedStorage.setItem(RESOURCE_KEY,JSON.stringify(ownedState));
+const reloadedOwned=createResources({storage:ownedStorage});assert.ok(reloadedOwned.state.recipes.includes('water'),'existing H2O recipe survives missing new progress field');assert.equal(reloadedOwned.state.progress.driveThermalInterruptions,0);assert.ok(!reloadedOwned.progressionInsightCandidates().includes('water'),'owned H2O is not re-offered as progression');assert.equal(reloadedOwned.recordDriveThermalInterruption(),false,'owned H2O does not accumulate obsolete progression');
 
 console.log('Oxygen thermal progression passed',JSON.stringify({
   routeCDry:{heat:+cDry.run.heat.toFixed(2),strainY:+cDry.strain[0].y.toFixed(1),time:+cDry.time.toFixed(2),overheats:cDry.overheats.length},
   routeCWater8:{heat:+cWet.run.heat.toFixed(2),waterUsed:cWet.coolantSpent,waterLeft:cWet.run.fuel.coolant.amount,time:+cWet.time.toFixed(2),overheats:cWet.overheats.length},
   routeB:{heat:+bDrive.run.heat.toFixed(2),time:+bDrive.time.toFixed(2),recoveryCoast:+bDrive.recoveryCoast.toFixed(2),overheats:bDrive.overheats.length},
+  driveCycles:{overheats:driveCycles.overheats.length,recoveries:driveCycles.recoveries.length,first:driveCycles.overheats[0]?.time,second:driveCycles.overheats[1]?.time},
   deep:{mergeHeat:+mergeHeat.toFixed(2),deepWarm:+deepWarm.toFixed(2),challengeHeat,frontierHeat:+frontierHeat.toFixed(2)},
 }));

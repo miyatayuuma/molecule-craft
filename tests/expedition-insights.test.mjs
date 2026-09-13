@@ -103,18 +103,17 @@ for(const id of CRITICAL_INSIGHT_IDS){
   const noMethane=resources();noMethane.findElementForExpedition('O');noMethane.state.elements.O=cost.O;assert.ok(!noMethane.progressionInsightCandidates().includes('oxygen'));
 }
 
-// H₂O needs completed CH₄ + O₂, eight coolant molecules worth of atoms, and the
-// persistent combustion thermal-strain milestone. Materials or O discovery do
-// not reveal the answer by themselves.
+// H₂O needs completed CH₄ + O₂, eight coolant molecules worth of atoms, and two
+// actual DRIVE thermal interruptions. HOT/thermal strain alone is insufficient.
 {
-  const value=resources(),cost=starterCost(value,'water');assert.deepEqual(cost,{O:8,H:16});value.discover('methane');value.discover('oxygen');value.findElementForExpedition('O');Object.assign(value.state.elements,cost);assert.ok(!value.progressionInsightCandidates().includes('water'));value.state.progress.thermalStrainExperienced=true;value.state.elements.O--;assert.ok(!value.progressionInsightCandidates().includes('water'));value.state.elements.O++;assert.ok(value.progressionInsightCandidates().includes('water'));
-  const oOnly=resources();oOnly.findElementForExpedition('O');Object.assign(oOnly.state.elements,cost);oOnly.state.progress.thermalStrainExperienced=true;assert.ok(!oOnly.progressionInsightCandidates().includes('water'));
+  const value=resources(),cost=starterCost(value,'water');assert.deepEqual(cost,{O:8,H:16});value.discover('methane');value.discover('oxygen');value.findElementForExpedition('O');Object.assign(value.state.elements,cost);assert.ok(!value.progressionInsightCandidates().includes('water'));value.state.progress.thermalStrainExperienced=true;assert.ok(!value.progressionInsightCandidates().includes('water'));assert.equal(value.recordDriveThermalInterruption(),true);assert.ok(!value.progressionInsightCandidates().includes('water'));assert.equal(value.recordDriveThermalInterruption(),true);value.state.elements.O--;assert.ok(!value.progressionInsightCandidates().includes('water'));value.state.elements.O++;assert.ok(value.progressionInsightCandidates().includes('water'));
+  const oOnly=resources();oOnly.findElementForExpedition('O');Object.assign(oOnly.state.elements,cost);oOnly.state.progress.thermalStrainExperienced=true;oOnly.recordDriveThermalInterruption();oOnly.recordDriveThermalInterruption();assert.ok(!oOnly.progressionInsightCandidates().includes('water'));
 }
 
-// Thermal knowledge survives capture while the H₂O idea remains run-local and
-// can be offered again from BASE STOCK on the next launch evaluation.
+// Thermal/DRIVE experience survives capture while the H₂O idea remains
+// run-local and can be offered again from BASE STOCK on the next launch.
 {
-  const value=resources(),cost=starterCost(value,'water');value.discover('methane');value.discover('oxygen');Object.assign(value.state.elements,cost);assert.equal(value.recordThermalStrain(),true);const flight=run();assert.deepEqual(triggerInsight(flight,'water',value.state),{type:'insightReady',id:'water',critical:true});settle(value,flight,true);assert.equal(value.state.progress.thermalStrainExperienced,true);assert.ok(!value.state.hints.includes('water'));assert.deepEqual(value.progressionInsightCandidates(),['water']);
+  const value=resources(),cost=starterCost(value,'water');value.discover('methane');value.discover('oxygen');Object.assign(value.state.elements,cost);assert.equal(value.recordThermalStrain(),true);assert.equal(value.recordDriveThermalInterruption(),true);assert.equal(value.recordDriveThermalInterruption(),true);assert.deepEqual(value.progressionInsightCandidates(),['water']);const flight=run();assert.deepEqual(triggerInsight(flight,'water',value.state),{type:'insightReady',id:'water',critical:true});settle(value,flight,true);assert.equal(value.state.progress.thermalStrainExperienced,true);assert.equal(value.state.progress.driveThermalInterruptions,2);assert.ok(!value.state.hints.includes('water'));assert.deepEqual(value.progressionInsightCandidates(),['water']);
   const next=run(),id=value.progressionInsightCandidates()[0];assert.deepEqual(triggerInsight(next,id,value.state),{type:'insightReady',id:'water',critical:true});
 }
 
@@ -127,8 +126,8 @@ for(const id of CRITICAL_INSIGHT_IDS){
   const legacy=createResources({storage:memory()});legacy.state.migrateDiscoveries=true;legacy.state.elements.H=2;legacy.state.progress.foundElements.push('C','O');legacy.setCatalog(catalog);for(const id of [...CRITICAL_INSIGHT_IDS,'carbon-dioxide'])assert.ok(legacy.state.hints.includes(id),`${id} legacy import compatibility`);
 }
 
-// Guidance exposes a craft target only after its insight. Before thermal strain
-// it sends the player to use COMBUSTION DRIVE without naming water/coolant.
+// Guidance exposes a craft target only after its insight. Before H₂O insight it
+// sends the player to use COMBUSTION DRIVE without naming water/coolant.
 {
   const value=resources();assert.equal(growthGoal(value.state).id,undefined);value.discover('hydrogen');value.findElementForExpedition('C');assert.equal(growthGoal(value.state).id,undefined);value.hint('methane');assert.equal(growthGoal(value.state).id,'methane');value.discover('methane');value.findElementForExpedition('O');assert.equal(growthGoal(value.state).id,undefined);value.hint('oxygen');assert.equal(growthGoal(value.state).id,'oxygen');value.discover('oxygen');const before=growthGoal(value.state);assert.equal(before.id,undefined);assert.ok(!/H₂O|水|冷却/.test(before.text));assert.match(before.text,/COMBUSTION DRIVE/);value.state.progress.thermalStrainExperienced=true;assert.equal(growthGoal(value.state).id,undefined);value.hint('water');assert.equal(growthGoal(value.state).id,'water');
 }
@@ -153,4 +152,4 @@ for(const id of CRITICAL_INSIGHT_IDS){
   const value=resources();value.findElementForExpedition('O');assert.deepEqual(value.state.hints,[]);const flight=run();flight.carriedInsights=['ethane'];const result=settle(value,flight);assert.deepEqual(result.committedInsights,['ethane']);assert.deepEqual(value.state.hints,['ethane']);assert.ok(!value.state.hints.includes('oxygen'));assert.ok(!value.state.hints.includes('water'));assert.ok(!value.state.hints.includes('carbon-dioxide'));
 }
 
-console.log('Expedition Insights passed: run-local lifecycle, operational critical readiness, sequence gates, thermal H₂O unlock, launch reacquisition, legacy isolation, guidance and signal boundary.');
+console.log('Expedition Insights passed: run-local lifecycle, operational critical readiness, sequence gates, delayed thermal H₂O unlock, launch reacquisition, legacy isolation, guidance and signal boundary.');
