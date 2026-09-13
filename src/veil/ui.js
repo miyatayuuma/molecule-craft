@@ -29,11 +29,13 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   const has=id=>resources.state.recipes.includes(id);
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
   const insightPresentation=createInsightPresentation({root,resources,formula,audio,reduced});
+  const launchRegionId=id=>id==='continue'?resources.state.progress.checkpoint:id;
+  const destinationAvailable=id=>isExpeditionDestinationAvailable(resources.state,id)&&!!REGIONS[launchRegionId(id)];
   const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onRequestLaunch:id=>requestExpeditionLaunch(id),onLaunchReady:(id,options)=>launchTransaction?.execute(id,options)??Promise.resolve({status:'blocked',reason:'transaction-unavailable'}),onAnchor:selectLaunchDestination});
   launchTransaction=createLaunchTransaction({
     validate:id=>{
       if(active||resources.blocked)return 'blocked';
-      return isExpeditionDestinationAvailable(resources.state,id)&&!!REGIONS[id==='continue'?resources.state.progress.checkpoint:id]||'invalid-destination';
+      return destinationAvailable(id)||'invalid-destination';
     },
     beforeLaunch:()=>canLeave()&&onBeforeLaunch()!==false,
     snapshot:()=>({resources:captureLaunchRollbackState(resources),anchor}),
@@ -49,18 +51,17 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     rollback:context=>rollbackLaunchTransaction(context),
   });
   requestExpeditionLaunch=createExpeditionLaunchRequester({
-    isAvailable:id=>!active&&!launchTransaction.inFlight&&!supply.launchPending&&!resources.blocked&&isExpeditionDestinationAvailable(resources.state,id)&&!!REGIONS[id==='continue'?resources.state.progress.checkpoint:id],
+    isAvailable:id=>!active&&!launchTransaction.inFlight&&!supply.launchPending&&!resources.blocked&&destinationAvailable(id),
     selectDestination:selectLaunchDestination,
     prepareLaunch:id=>supply.requestLaunch(id),
   });
 
   function selectLaunchDestination(id){
-    const regionId=id==='continue'?resources.state.progress.checkpoint:id;if(!isExpeditionDestinationAvailable(resources.state,id)||!REGIONS[regionId])return false;
+    if(!destinationAvailable(id))return false;
     anchor=id;const select=q('expedition-anchor');if(select&&[...select.options].some(option=>option.value===id))select.value=id;updateCraft();return true;
   }
   function updateCraft(){
     supply.update();q('launch-veil').disabled=resources.blocked;
-    const checkpoint=resources.state.progress.checkpoint;
     q('launch-veil').textContent='↗ 出発';
     updatePrompt();
   }
@@ -105,9 +106,8 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const status=q('craft-resource-hint');if(status)status.textContent='探索画面を開始できません。LOADOUTに戻りました。再度出発してください。';
     console.error('Expedition launch transaction failed and was rolled back.',error);return true;
   }
-  function launch(){return requestExpeditionLaunch(anchor);}
   function finish(captured=false){
-    if(!active||!run)return;active=false;cancelAnimationFrame(raf);resetInput();audio.pause();
+    if(!active||!run)return;active=false;cancelAnimationFrame(raf);raf=0;resetInput();audio.pause();
     const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached,insights:captured?[]:completed.carriedInsights});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);discardRunInsights(completed);insightPresentation.clear();root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
     const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
     q('craft-last-run').textContent=result?`${result.completedNow?'◎ CHO ✓ · ':''}${captured?'⚠':'↩'} ${parts||'—'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
@@ -210,5 +210,5 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   window.addEventListener('pagehide',()=>{resources.save();audio.pause();});window.addEventListener('storage',event=>{if(event.key==='molecule-craft.resources.v1'){pause();resources.save();updateCraft();}});
   q('veil-resume').addEventListener('click',()=>{if(resources.blocked)return;paused=false;last=0;q('veil-resume').hidden=true;audio.start();root.focus();});
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
-  return {get active(){return active;},get run(){return run;},get returning(){return returnState?'emergency':anchorLock?'locking':null;},get anchorLock(){return anchorLock?{...anchorLock}:null;},get lastTelemetry(){return lastTelemetry;},updateCraft,requestExpeditionLaunch,launch,pause,openSupply:(id,use)=>supply.openMolecule(id,use),discovered:id=>supply.discovered(id),usesFor:id=>supply.usesFor(id),tankStatus:(use,id)=>supply.tankStatus(use,id),fillPlan:(use,id)=>supply.fillPlan(use,id),commitFill:(use,id,count)=>supply.commitFill(use,id,count)};
+  return {get active(){return active;},get run(){return run;},get returning(){return returnState?'emergency':anchorLock?'locking':null;},get anchorLock(){return anchorLock?{...anchorLock}:null;},get lastTelemetry(){return lastTelemetry;},updateCraft,requestExpeditionLaunch,pause,openSupply:(id,use)=>supply.openMolecule(id,use),discovered:id=>supply.discovered(id),usesFor:id=>supply.usesFor(id),tankStatus:(use,id)=>supply.tankStatus(use,id),fillPlan:(use,id)=>supply.fillPlan(use,id),commitFill:(use,id,count)=>supply.commitFill(use,id,count)};
 }

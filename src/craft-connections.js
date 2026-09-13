@@ -16,7 +16,6 @@ function normalizeExplorationMode(){
   if(document.body?.dataset)document.body.dataset.mode='craft';
 }
 
-const copy=x=>JSON.parse(JSON.stringify(x));
 const addCost=(target,cost)=>{for(const [el,n] of Object.entries(cost??{}))target[el]=(target[el]??0)+n;return target;};
 const canAppendCost=(current,extra,available)=>Object.entries(extra??{}).every(([el,n])=>(current[el]??0)+n<=(available[el]??0));
 const CRITICAL_DISCOVERY_IDS=new Set(CRITICAL_INSIGHT_IDS);
@@ -50,73 +49,9 @@ export function normalizeLaunchFillPlan(plan){
   return plan;
 }
 
-export function commitEmptyLaunchFill(resources,preview){
-  if(resources.blocked||preview?.status!=='IMPOSSIBLE'||preview.invalid?.length)return false;
-  const before=Object.fromEntries(Object.entries(resources.state.tanks).map(([use,tank])=>[use,{...tank}]));
-  for(const entry of preview.partial.entries){
-    const tank=resources.state.tanks[entry.use];if(!tank)continue;
-    tank.molecule=entry.molecule??null;tank.amount=entry.target??0;
-  }
-  if(resources.save())return {committed:true,status:'PARTIAL',plan:preview.partial,required:preview.required,missing:preview.missing,emptyDeparture:true};
-  for(const [use,tank]of Object.entries(before))Object.assign(resources.state.tanks[use],tank);
-  return false;
-}
-
-export function commitRebalancedLaunchFill(resources,preview){
-  if(resources.blocked||preview?.status!=='PARTIAL'||preview.emptyDeparture)return false;
-  const plan=preview.partial,beforeElements={...resources.state.elements},beforeTanks=Object.fromEntries(Object.entries(resources.state.tanks).map(([use,tank])=>[use,{...tank}]));
-  if(!resources.spend(plan.cost))return false;
-  for(const entry of plan.entries){const tank=resources.state.tanks[entry.use];if(!tank)continue;if(!entry.molecule){tank.molecule=null;tank.amount=0;}else{tank.molecule=entry.molecule;tank.amount=entry.target;}}
-  if(resources.save())return {committed:true,status:'PARTIAL',plan:copy(plan),required:copy(preview.required),missing:copy(preview.missing)};
-  Object.assign(resources.state.elements,beforeElements);for(const [use,tank]of Object.entries(beforeTanks))Object.assign(resources.state.tanks[use],tank);return false;
-}
-
 export function installEmptyDeparturePolicy(resources){
-  const basePlan=resources.launchFillPlan.bind(resources),baseCommit=resources.commitLaunchFill.bind(resources);
-  const policyPlan=options=>normalizeLaunchFillPlan(rebalanceLaunchFillPlan(resources,basePlan(options),options));
-  resources.launchFillPlan=policyPlan;
-  resources.commitLaunchFill=({partial=false}={})=>{
-    const raw=basePlan({includeWorkspace:false}),preview=normalizeLaunchFillPlan(rebalanceLaunchFillPlan(resources,raw,{includeWorkspace:false}));
-    if(preview.status==='FULL')return baseCommit({partial:false});
-    if(preview.status==='IMPOSSIBLE'||!partial)return false;
-    if(preview.emptyDeparture)return commitEmptyLaunchFill(resources,raw);
-    return commitRebalancedLaunchFill(resources,preview);
-  };
-}
-
-export function preserveSupplyDuringPrepare(onBeforeLaunch,root=document){
-  return ()=>{
-    const dialog=root.getElementById?.('supply-dialog')??root.querySelector?.('#supply-dialog'),wasOpen=!!dialog?.open;
-    try{return onBeforeLaunch();}
-    finally{if(wasOpen&&dialog&&!dialog.open)try{dialog.showModal();}catch{}}
-  };
-}
-
-function shortageText(plan){
-  const parts=Object.entries(plan?.missing??{}).map(([el,row])=>`${el} −${Math.max(0,(row.need??0)-(row.have??0))}`).filter(text=>!text.endsWith('−0'));
-  return parts.length?`BASE STOCK不足 · ${parts.join(' · ')}`:'';
-}
-
-function installLoadoutShortageUI(resources){
-  const preview=document.getElementById('loadout-stock-preview'),dialog=document.getElementById('supply-dialog'),panel=document.getElementById('partial-fill-confirm');
-  if(!preview||!dialog)return;
-  const paintPreview=()=>{
-    const plan=resources.launchFillPlan(),text=shortageText(plan),existing=preview.querySelector('[data-launch-shortage-summary]');
-    if(!text){existing?.remove();return;}
-    const summary=existing??document.createElement('strong');summary.dataset.launchShortageSummary='true';summary.textContent=text;
-    Object.assign(summary.style,{flexBasis:'100%',textAlign:'center',fontSize:'12px',fontWeight:'800',color:'#ffd0a3'});
-    if(!existing)preview.prepend(summary);
-  };
-  const showConfirmDetails=()=>{
-    const plan=resources.launchFillPlan();if(!panel||panel.hidden)return;
-    const text=shortageText(plan),existing=panel.querySelector('[data-launch-shortage-detail]');
-    if(text){const detail=existing??document.createElement('div');detail.dataset.launchShortageDetail='true';detail.textContent=text;Object.assign(detail.style,{marginBottom:'9px',fontSize:'13px',fontWeight:'800',color:'#ffd0a3'});if(!existing)panel.prepend(detail);}else existing?.remove();
-    const go=panel.querySelector('button.primary'),hasUsable=plan.partial.entries.some(entry=>entry.molecule&&entry.target>0);if(go)go.textContent=hasUsable?'この搭載量で出る':'空タンクで出る';
-  };
-  if(panel&&globalThis.MutationObserver)new MutationObserver(()=>queueMicrotask(()=>{paintPreview();showConfirmDetails();})).observe(panel,{attributes:true,attributeFilter:['hidden']});
-  dialog.addEventListener('click',()=>queueMicrotask(paintPreview));
-  document.getElementById('open-supply')?.addEventListener('click',()=>queueMicrotask(paintPreview));
-  paintPreview();
+  const basePlan=resources.launchFillPlan.bind(resources);
+  resources.launchFillPlan=options=>normalizeLaunchFillPlan(rebalanceLaunchFillPlan(resources,basePlan(options),options));
 }
 
 export async function prepareExplorationCatalog(resources){
@@ -130,18 +65,16 @@ export async function prepareExplorationCatalog(resources){
 function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
   installEmptyDeparturePolicy(resources);
   const pendingCraft=installPendingCraftAccess({resources});
-  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch:preserveSupplyDuringPrepare(onBeforeLaunch),onCraft:(...args)=>{pendingCraft.refresh();return onCraft(...args);},onCommit});
+  const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft:(...args)=>{pendingCraft.refresh();return onCraft(...args);},onCommit});
   const capabilityPresentation=installTankCapabilityPresentation({resources}),forwardDiscovery=veilUI.discovered?.bind(veilUI);
   veilUI.discovered=(id,outcome)=>{forwardDiscovery?.(id);capabilityPresentation.discovered(id,outcome);};
-  installLoadoutShortageUI(resources);
   createProgressResetUI({resources,...reset});
   return veilUI;
 }
 
-// #119 made exploration initialization asynchronous so LOADOUT cannot observe an
-// incomplete molecule catalog. Keep the pre-#119 public exploration surface
-// intact while the concrete UI is deferred; callers must not have to know which
-// side of the DB-ready boundary they are on.
+// Exploration initialization stays behind the molecule DB-ready boundary. The
+// deferred facade exposes the production application APIs without compatibility
+// launch aliases, so callers cannot bypass requestExpeditionLaunch(destinationId).
 export function createDeferredExplorationFacade(getCurrent,ready){
   const current=()=>getCurrent?.()??null;
   return{
@@ -153,7 +86,6 @@ export function createDeferredExplorationFacade(getCurrent,ready){
     get ready(){return ready;},
     updateCraft(...args){return current()?.updateCraft?.(...args);},
     requestExpeditionLaunch(...args){return current()?.requestExpeditionLaunch?.(...args)??false;},
-    launch(...args){return current()?.launch?.(...args)??false;},
     pause(...args){return current()?.pause?.(...args)??false;},
     openSupply(...args){return current()?.openSupply?.(...args)??false;},
     discovered(...args){return current()?.discovered?.(...args);},

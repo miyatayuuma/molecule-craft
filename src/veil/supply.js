@@ -3,6 +3,7 @@ import { ACTIVE_TANK_ROLES,performanceFor } from './molecule-roles.js';
 import { drawCollectorShell,drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_JUNCTION } from './oxygen-routes.js';
 import { renderLoadoutPreview } from './loadout-preview.js';
+import { isExpeditionDestinationAvailable } from './launch-request.js';
 import { syncElementStocks } from '../element-progression.js?v=36';
 
 const USE_ORDER=[...ACTIVE_TANK_ROLES];
@@ -139,8 +140,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   }
   function renderLaunchPlan(){return resources.launchFillPlan();}
   function requestLaunch(destinationId){
-    const checkpoint=resources.state.progress.checkpoint,available=destinationId==='continue'?!!REGIONS[checkpoint]:resources.state.progress.regions.includes(destinationId)&&!!REGIONS[destinationId];
-    if(!available||launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen())return false;
+    if(!isExpeditionDestinationAvailable(resources.state,destinationId)||launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen())return false;
     requestedDestinationId=destinationId;const plan=renderLaunchPlan();
     if(plan.status==='IMPOSSIBLE'){requestedDestinationId=null;partialPanel.hidden=true;return false;}
     if(plan.status==='PARTIAL'){showPartialConfirm(plan);return true;}
