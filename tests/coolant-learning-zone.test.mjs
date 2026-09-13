@@ -5,6 +5,7 @@ import {flightConfig} from '../src/veil/growth.js';
 import {OXYGEN_ROUTES,OXYGEN_THERMAL,oxygenRouteCenterAtY} from '../src/veil/oxygen-routes.js';
 import {createUniverse,environmentAt} from '../src/veil/universe.js';
 
+// Keep the H₂O learning gate tied to authored thermal traversal, not generic heat accumulation.
 const DT=1/120;
 const route=id=>OXYGEN_ROUTES.find(candidate=>candidate.id===id);
 function runPinned({x,y,seconds,combustion=true,coolant=null}){
