@@ -50,10 +50,10 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
   }else count=access.querySelector('small');
 
   if(!dialog){
-    dialog=root.createElement('dialog');dialog.id='pending-crafts-dialog';dialog.className='sheet';dialog.setAttribute('aria-labelledby','pending-crafts-title');
+    dialog=root.createElement('dialog');dialog.id='pending-crafts-dialog';dialog.className='sheet';dialog.setAttribute('aria-label','設計図');
     const header=root.createElement('header');header.className='sheet-header';
-    const heading=root.createElement('div'),title=root.createElement('h2'),subtitle=root.createElement('p'),close=root.createElement('button');
-    title.id='pending-crafts-title';title.textContent='未作成の設計図';subtitle.className='muted';subtitle.textContent='探索で見つけた、まだ作っていない分子';close.type='button';close.setAttribute('aria-label','未作成の設計図を閉じる');close.textContent='×';heading.append(title,subtitle);header.append(heading,close);
+    const close=root.createElement('button');
+    close.type='button';close.setAttribute('aria-label','設計図を閉じる');close.textContent='×';header.append(close);
     const body=root.createElement('div');body.className='sheet-body';list=root.createElement('div');list.className='pending-craft-list';body.append(list);dialog.append(header,body);root.body?.append(dialog);
     close.addEventListener('click',()=>dialog.close());
     dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
@@ -116,7 +116,7 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
   }
   function refresh(){
     const ids=candidates(),transition=pendingAttentionTransition({previousIds,currentIds:ids,acknowledgedIds:[...acknowledgedIds]});
-    access.hidden=!ids.length;access.dataset.pending=String(!!ids.length);access.setAttribute('aria-label',ids.length?`未作成の設計図 ${ids.length}件`:'未作成の設計図なし');if(count)count.textContent=ids.length?String(ids.length):'';
+    access.hidden=!ids.length;access.dataset.pending=String(!!ids.length);access.setAttribute('aria-label',ids.length?`設計図 ${ids.length}件`:'設計図なし');if(count)count.textContent=ids.length?String(ids.length):'';
     acknowledgedIds=new Set(transition.acknowledgedIds);acknowledgedKey=transition.acknowledgedKey;
     if(dialog.open){renderList(ids);acknowledge(ids);if(!ids.length)dialog.close();}
     else{setAttention(transition.attention);if(transition.attention==='unseen'&&transition.addedIds.length)triggerNewAttention();}

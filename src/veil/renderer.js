@@ -134,7 +134,8 @@ export function createVeilRenderer(canvas){
           ctx.strokeStyle='#79b8cc';ctx.globalAlpha=.12;ctx.lineWidth=1;for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(route.x,stop.y,radius*(.35+i*.18),radius*(.13+i*.055),run.time*.08+i*.8,0,Math.PI*1.75);ctx.stroke();}
         }
       }
-      ctx.strokeStyle='#bde6db';ctx.globalAlpha=.45;ctx.lineWidth=1;ctx.beginPath();ctx.arc(OXYGEN_REWARD.x,OXYGEN_REWARD.y,OXYGEN_REWARD.radius+15,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+      // Reward convergence is shown as oxygen-colored motes physically streaming inward, not a marker glyph.
+      const rewardGlow=ctx.createRadialGradient(OXYGEN_REWARD.x,OXYGEN_REWARD.y,0,OXYGEN_REWARD.x,OXYGEN_REWARD.y,OXYGEN_REWARD.radius*1.2);rewardGlow.addColorStop(0,'rgba(255,148,77,.16)');rewardGlow.addColorStop(1,'rgba(255,148,77,0)');ctx.fillStyle=rewardGlow;ctx.fillRect(OXYGEN_REWARD.x-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.y-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.radius*2.4,OXYGEN_REWARD.radius*2.4);for(let i=0;i<9;i++){const phase=(run.time*.18+i/9)%1,r=OXYGEN_REWARD.radius*(1.05-phase*.82),a=i*2.399+run.time*.12;ctx.globalAlpha=.16+phase*.48;ctx.fillStyle='#ff944d';ctx.beginPath();ctx.arc(OXYGEN_REWARD.x+Math.cos(a)*r,OXYGEN_REWARD.y+Math.sin(a)*r,1.5+phase*2.1,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
     }
     if(run.map.universe){
       const d=CHO_DESTINATION,pulse=1+Math.sin(run.time*1.7)*.035,radius=d.radius*pulse;ctx.save();
@@ -184,7 +185,8 @@ export function createVeilRenderer(canvas){
         }
       }
       for(const signal of run.map.signals)if(!signal.ready){
-        const pulse=(run.time*.7)%1,radius=18+pulse*34;ctx.strokeStyle='#f1d28b';ctx.globalAlpha=(1-pulse)*.42;ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(signal.x,signal.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.7;ctx.beginPath();for(let i=0;i<3;i++){const a=run.time*.4+i*Math.PI*2/3;i?ctx.lineTo(signal.x+Math.cos(a)*9,signal.y+Math.sin(a)*9):ctx.moveTo(signal.x+Math.cos(a)*9,signal.y+Math.sin(a)*9);}ctx.closePath();ctx.stroke();ctx.globalAlpha=1;
+        // Signals read as emission: a live core plus paired wavefronts, never an abstract triangle marker.
+        const pulse=(run.time*.7)%1,core=ctx.createRadialGradient(signal.x,signal.y,0,signal.x,signal.y,14);core.addColorStop(0,'rgba(241,210,139,.8)');core.addColorStop(.22,'rgba(241,210,139,.3)');core.addColorStop(1,'rgba(241,210,139,0)');ctx.fillStyle=core;ctx.globalAlpha=.8;ctx.fillRect(signal.x-14,signal.y-14,28,28);ctx.fillStyle='#f1d28b';ctx.beginPath();ctx.arc(signal.x,signal.y,2.6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#f1d28b';ctx.lineWidth=1.3;for(let wave=0;wave<3;wave++){const phase=(pulse+wave/3)%1,radius=9+phase*42;ctx.globalAlpha=(1-phase)*.36;ctx.beginPath();ctx.arc(signal.x,signal.y,radius,-.72,.72);ctx.stroke();ctx.beginPath();ctx.arc(signal.x,signal.y,radius,Math.PI-.72,Math.PI+.72);ctx.stroke();}ctx.globalAlpha=1;
       }
       const horizon=ctx.createRadialGradient(100,-12200,0,100,-12200,470);horizon.addColorStop(0,'rgba(238,218,255,.36)');horizon.addColorStop(.22,'rgba(181,135,215,.15)');horizon.addColorStop(1,'rgba(103,68,143,0)');ctx.fillStyle=horizon;ctx.fillRect(-420,-12720,1040,1040);
     }
