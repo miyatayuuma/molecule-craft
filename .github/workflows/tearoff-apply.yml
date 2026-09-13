@@ -1,0 +1,45 @@
+name: Apply craft tear-off integration
+
+on:
+  push:
+    branches:
+      - feat/craft-fragment-tearoff
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    if: ${{ !contains(github.event.head_commit.message, '[tearoff-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply runtime patch
+        run: node scripts/apply-craft-tearoff-task.mjs
+      - name: Run focused tests
+        run: |
+          node tests/craft-tearoff.test.mjs
+          node tests/craft-workspace.test.mjs
+          node tests/conformation-regression.test.mjs
+          node tests/bond-state.test.mjs
+          node tests/source-contracts.test.mjs
+          node tests/mobile-ui-check.mjs
+      - name: Regenerate and verify PWA outputs
+        run: |
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+      - name: Repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: Commit validated integration
+        run: |
+          rm scripts/apply-craft-tearoff-task.mjs .github/workflows/tearoff-apply.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Implement craft fragment tear-off [tearoff-applied]"
+          git push origin HEAD:feat/craft-fragment-tearoff
