@@ -13,28 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Create module probe
+      - name: Create direct module probe
         run: |
           cat > browser-module-probe.html <<'EOF'
-          <!doctype html><meta charset="utf-8"><body><pre id="out"></pre><script type="module">
-          const out=document.querySelector('#out');
-          const mods=[
-            './src/veil/cho-campaign.js',
-            './src/functional-groups.js?v=21',
-            './src/craft-structures.js?v=31',
-            './src/collection-state.js?v=36',
-            './src/element-progression.js?v=36',
-            './src/collection-catalog.js',
-            './src/molecule-graph.js?v=2',
-            './src/encyclopedia-graph.js?v=1',
-            './src/encyclopedia-graph-view.js?v=1',
-            './src/collection-ui.js?v=37',
-          ];
-          for(const mod of mods){
-            try{await import(mod);out.textContent+=`${mod} OK\n`;}
-            catch(error){out.textContent+=`${mod} FAIL ${error?.name}: ${error?.message}\n${error?.stack??''}\n`;}
-          }
-          </script>
+          <!doctype html><meta charset="utf-8"><body><p>probe</p><script type="module" src="./src/collection-ui.js?v=37"></script>
           EOF
       - name: Serve repository
         run: |
@@ -42,10 +24,13 @@ jobs:
           for i in {1..20}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep .25; done
           cat /tmp/server.log
           exit 1
-      - name: Probe module imports in Chrome
+      - name: Capture Chrome parse error
         run: |
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME" || { echo 'Chrome executable not found'; exit 1; }
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=5000 --dump-dom http://127.0.0.1:4173/browser-module-probe.html >/tmp/probe.html 2>/tmp/probe.log || true
-          sed -n '/<pre id="out">/,/<\/pre>/p' /tmp/probe.html
-          grep -q 'collection-ui.js?v=37 OK' /tmp/probe.html
+          "$CHROME" --version
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=4000 --enable-logging=stderr --v=1 --dump-dom http://127.0.0.1:4173/browser-module-probe.html >/tmp/probe.html 2>/tmp/probe.log || true
+          grep -E 'CONSOLE|SyntaxError|collection-ui' /tmp/probe.log | tail -n 80 || true
+          echo '--- source lines ---'
+          nl -ba src/collection-ui.js | sed -n '1,220p'
+          exit 1
