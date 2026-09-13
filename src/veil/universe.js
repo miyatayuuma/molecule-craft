@@ -18,8 +18,10 @@ export const ENVIRONMENT_RECOVERY_CONTRACT=Object.freeze({
   excludes:Object.freeze(['dust-eater-suppression','dust-eater-despawn','threat-decay-bonus','capture-immunity','forced-enemy-distance','instant-heat-reset','instant-fuel-recovery']),
 });
 // Compact shears turn BURST's high initial acceleration into a spatial advantage.
-// They sit on existing short/skill lines and keep longer bypass routes physically open.
+// The first one pays off H₂ in Carbon Drift; later ones reinforce the same skill
+// on Oxygen short/skill lines. Longer routes remain physically open as bypasses.
 export const BURST_ADVANTAGE_FIELDS=Object.freeze([
+  Object.freeze({id:'carbon-sweep-shear',x:840,y:-5540,radius:105,phase:1.75,angle:0,force:2600,cleanHalfWidth:40,route:'carbon-sweep',kind:'burst-advantage'}),
   Object.freeze({id:'oxygen-shortcut-shear',x:-320,y:-9700,radius:105,phase:1.75,angle:0,force:2600,cleanHalfWidth:40,route:'oxygen-shortcut',kind:'burst-advantage'}),
   Object.freeze({id:'deep-skill-shear',x:100,y:-11450,radius:105,phase:1.75,angle:Math.PI,force:2600,cleanHalfWidth:40,route:'oxygen-deep-skill',kind:'burst-advantage'}),
 ]);
@@ -111,13 +113,12 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
   }
   // Keep veil/carbon and the legacy third signal RNG stream stable. The two
   // additional authored depth signals use their own deterministic stream so
-  // unrelated universe RNG (for example field phase) does not shift.
+  // unrelated universe RNG does not shift.
   const extraSignalRng=random(seed^0x2f6e2b1d);
   for(const [index,authored]of FIELD_SIGNALS.entries()){
     const source=index<3?rng:extraSignalRng,anchorX=authored.x,anchorY=authored.y;
     map.signals.push({...authored,anchorX,anchorY,x:anchorX+(source()-.5)*60,y:anchorY+(source()-.5)*60,ready:false,roll:source(),choice:source()});
   }
-  map.fields.push({x:720,y:-5540,radius:210,phase:rng()*4,angle:-.4});
   // Clone authored fields because the engine stores frame-local intensity/active state on them.
   for(const field of BURST_ADVANTAGE_FIELDS){
     map.fields.push({...field});
