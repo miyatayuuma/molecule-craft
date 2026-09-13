@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main, feature/molecule-frontier-engine]
+    branches: [main]
 
 permissions:
   contents: write
