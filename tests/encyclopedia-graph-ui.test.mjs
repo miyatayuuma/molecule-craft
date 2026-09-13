@@ -148,7 +148,7 @@ assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigat
 assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition must remain longer than branch navigation');
 assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
 assert.match(graphViewSource,/runGraphGeometryMotion\(graphMotion,geometryTweens/,'Edges, teaser/context marks, and nodes must move as one spatial graph rather than redraw independently');
-assert.match(graphViewSource,/geometryTween\(line[\s\S]*previousPositions\.get\(edge\.from\)[\s\S]*previousPositions\.get\(edge\.to\)/,'Graph edges must interpolate from their previous endpoints');
+assert.match(graphViewSource,/previousPositions\.get\(edge\.from\)[\s\S]*previousPositions\.get\(edge\.to\)[\s\S]*geometryTween\(line/,'Graph edges must interpolate from their previous endpoints');
 assert.match(graphViewSource,/animateContinuity\(document,continuity,id,rectOf\(visual\)[\s\S]*sourceSurface:stage[\s\S]*onDetail\(id,node\)/,'Graph must preserve both the molecule and surrounding graph surface before switching to Detail');
 assert.match(graphViewSource,/document\.addEventListener\('pointerup'[\s\S]*direction:'to-graph'/,'Detail return must use the inverse zoom language from the still-visible Detail molecule');
 assert.match(collectionUISource,/host\.dataset\.moleculeId=record\.id/,'Detail return surface must expose the currently rendered molecule ID');
