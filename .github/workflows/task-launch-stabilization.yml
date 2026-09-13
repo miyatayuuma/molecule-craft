@@ -17,6 +17,7 @@ jobs:
         run: |
           node scripts/apply-launch-stabilization.mjs
           node scripts/fix-launch-stabilization-test.mjs
+          node scripts/fix-supply-tanks-current-contract.mjs
       - name: Targeted launch validation
         run: |
           node tests/loadout-shortage-confirmation.test.mjs
