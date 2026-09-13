@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   repository-guardrails:
@@ -15,13 +15,17 @@ jobs:
           fetch-depth: 0
       - name: Regenerate PWA artifacts for handoff
         run: |
+          git checkout -B work/h2o-coolant-progression-delay origin/work/h2o-coolant-progression-delay
           node scripts/build-precache.mjs
-          echo '--- GENERATED SW START ---'
-          cat sw.js
-          echo '--- GENERATED SW END ---'
-          echo '--- GENERATED PRECACHE START ---'
-          cat precache-manifest.js
-          echo '--- GENERATED PRECACHE END ---'
+          if ! git diff --quiet -- sw.js precache-manifest.js; then
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git add sw.js precache-manifest.js
+            git commit -m "Regenerate PWA artifacts"
+            git push origin HEAD:work/h2o-coolant-progression-delay
+          fi
+      - name: Resources persistence compatibility
+        run: node tests/resources-persistence.test.mjs
       - name: Repository hygiene
         run: node tests/repository-hygiene.test.mjs
       - name: H / C revisit routes
