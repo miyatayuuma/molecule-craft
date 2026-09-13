@@ -15,8 +15,10 @@ jobs:
           fetch-depth: 0
       - name: Repository hygiene
         run: node tests/repository-hygiene.test.mjs
-      - name: H / C revisit routes
-        run: node tests/hc-revisit-routes.test.mjs
+      - name: H / C revisit routes and H economy
+        run: |
+          node tests/hc-revisit-routes.test.mjs
+          node tests/h-economy-balance.test.mjs
       - name: Current FIELD developer map
         run: node tests/field-map-export.test.mjs
       - name: FIELD expansion proposal map
