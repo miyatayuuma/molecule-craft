@@ -88,7 +88,7 @@ const DEEP_OFF_ROUTE_PRESSURE=120;
 // owns the network-local field. Deep heat is route-local and converges into a
 // naturally cool Frontier recovery zone rather than a scripted heat reset.
 export const OXYGEN_THERMAL=Object.freeze({
-  routeId:'oxygen-side',coreRadius:150,fadeRadius:260,
+  routeId:'oxygen-side',coreRadius:150,fadeRadius:260,learningHeat:32,learningExposureSeconds:1.25,
   heatStops:freezeStops([
     [-8870,1],[-9050,2],[-9200,4],[-9500,12],[-9700,32],[-9800,48],
     [-10480,48],[-10510,32],[-10540,8],[-10560,0],[-10670,0],
@@ -174,7 +174,8 @@ export function oxygenThermalAt(p){
     }
   }
   const heat=Math.max(routeHeat,deepHeat),networkFactor=.71*clamp(routeHeat/48,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1);
-  return {heat,routeHeat,deepHeat,deepThermalHeat,recovery,mergeRecovery,frontierRecovery,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,deepFactor)};
+  const coolantLearning=!recovery&&routeHeat>=OXYGEN_THERMAL.learningHeat;
+  return {heat,routeHeat,deepHeat,deepThermalHeat,recovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,deepFactor)};
 }
 export function oxygenRouteAt(p){
   if(p.y>-8870||p.y<-10480)return null;

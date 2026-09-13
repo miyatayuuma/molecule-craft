@@ -158,7 +158,8 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='danger'&&event.level==='danger'){notice('保持場の破綻間近 · H₂ BURST',2,'⚠');vibrate(28);}
       if(event.type==='driveIgnition'){hud();vibrate(12);}
       if(event.type==='driveEmpty'){notice('COMBUSTION DRIVEの搭載分が空になった',2);stopCombustion();}
-      if(event.type==='thermalStrain'){resources.recordThermalStrain();offerProgressionInsights();updatePrompt();}
+      if(event.type==='thermalStrain'){resources.recordThermalStrain();updatePrompt();}
+      if(event.type==='coolantNeed'){resources.recordCoolantNeedExperience();offerProgressionInsights();updatePrompt();notice('THERMAL LIMIT · 冷却なしでは高熱流で連続燃焼できない',2.5,'♨');}
       if(event.type==='coolantStart'){notice(`AUTO COOLING · ${formula(event.molecule)}`,1.5,'❄ → ♨');vibrate(8);}
       if(event.type==='coolantEmpty'){thermalNotice='❄ EMPTY';thermalNoticeUntil=run.time+2.5;hud();notice('冷却剤が空になった · 燃焼熱に注意',2.5,'❄ ∅');vibrate(14);}
       if(event.type==='overheat'){if(event.driveInterrupted){resources.recordDriveThermalInterruption();offerProgressionInsights();updatePrompt();}notice('OVERHEAT · 安全温度まで燃焼停止',2.5,'♨ !');vibrate(38);}

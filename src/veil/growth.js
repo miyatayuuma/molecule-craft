@@ -92,7 +92,7 @@ export function growthGoal(state,{cargo={}}={}){
   if(!found.includes('O'))return {text:'CH₄は燃料。酸化剤を探して、炭素の群れのさらに奥へ。'};
   if(!has('oxygen'))return hinted('oxygen')?{id:'oxygen',text:'得た構造をもとにO₂をCRAFTし、CH₄と組み合わせる酸化剤を準備しよう。'}:{text:'Oを集め、COMBUSTION DRIVEを試せるだけの酸化剤材料を確保しよう。'};
   if(!has('water')){
-    if(!state.progress.thermalStrainExperienced)return {text:'CH₄とO₂を積み、COMBUSTION DRIVEでさらに奥へ。連続燃焼の制約を実際に確かめよう。'};
+    if(!state.progress.coolantNeedExperienced)return {text:'CH₄とO₂を積み、COMBUSTION DRIVEで高熱の支流を進もう。連続燃焼では冷却の必要性が見えてくる。'};
     return hinted('water')?{id:'water',text:'熱制約への対策として得た構造をCRAFTし、冷却剤として試そう。'}:{text:'燃焼の熱制約は見えた。HとOを集め、対策を実用量試せる材料を確保しよう。'};
   }
   if(!state.progress.frontier)return {text:'CH₄とO₂を充填して酸素の奥へ。水で冷却するか静かな渦で休もう。CO₂は反復噴射の選択肢。'};
