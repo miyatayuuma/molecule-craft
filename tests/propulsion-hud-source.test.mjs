@@ -16,12 +16,13 @@ assert.doesNotMatch(loadoutPreview,/ghost|current\.shots/,'LOADOUT PULSE has no 
 
 assert.match(growth,/export function propulsionSpeedMax\(config=GROWTH\.flight\)/);
 assert.match(growth,/Object\.values\(DRIVES\).*boostSpeed/,'Speed scale follows configured propulsion drives');
-assert.match(ui,/speed=Math\.max\(0,run\.player\.speed\)/,'FIELD HUD reads canonical run.player.speed');
-assert.match(ui,/speedMax=propulsionSpeedMax\(run\.config\)/,'FIELD HUD scale is configuration-derived');
-assert.match(ui,/speedMeter\.id='veil-speed-meter'/);
-assert.match(ui,/speedMeter\.setAttribute\('role','meter'\)/);
-assert.match(ui,/aria-valuemax/);assert.match(ui,/aria-valuenow/);
-assert.match(ui,/q\('veil-heat'\)\.textContent='SPEED'/,'Primary quantitative bar is explicitly labeled SPEED');
+assert.match(ui,/output=Math\.max\(0,run\.player\.speed\)/,'FIELD OUTPUT reads the propulsion-side run.player.speed state, not final displacement');
+assert.match(ui,/outputMax=propulsionSpeedMax\(run\.config\)/,'FIELD OUTPUT scale is configuration-derived');
+assert.match(ui,/outputMeter\.id='veil-output-meter'/);
+assert.match(ui,/outputMeter\.setAttribute\('role','meter'\)/);
+assert.match(ui,/outputMeter\.setAttribute\('aria-label','推進出力'\)/);assert.match(ui,/outputMeter\.setAttribute\('aria-valuemax','100'\)/);assert.match(ui,/aria-valuenow/);
+assert.match(ui,/q\('veil-heat'\)\.textContent='OUTPUT'/,'Primary quantitative bar is explicitly labeled OUTPUT');
+assert.doesNotMatch(ui,/textContent='SPEED'|aria-label','現在速度'|veil-speed-meter/,'FIELD HUD must not present propulsion state as actual speed');
 assert.doesNotMatch(ui,/run\.heat\/THERMAL\.overheatThreshold/,'Exact heat no longer drives a primary quantitative bar');
 assert.match(ui,/thermalIndicators=\{normal:'',cooling:'❄ COOLING',hot:'♨ HOT',overheat:'♨ OVERHEAT'\}/,'Thermal states include non-color indicators');
 assert.match(ui,/thermal\.dataset\.state=thermalState/);
@@ -49,4 +50,4 @@ assert.match(veilCss,/@media\(max-width:370px\)\{\.veil-thermal\{width:110px/);
 assert.match(veilCss,/@media\(max-height:500px\)\{\.veil-thermal\{width:90px/);
 assert.match(veilCss,/@media\(max-width:370px\).*#veil-combustion\{width:110px/);
 
-console.log('Propulsion HUD source contract passed: max PULSE dots, canonical speed meter, thermal states, coolant feedback, DRIVE/BURST bindings, and responsive bounds.');
+console.log('Propulsion HUD source contract passed: max PULSE dots, propulsion OUTPUT meter, thermal states, coolant feedback, DRIVE/BURST bindings, and responsive bounds.');
