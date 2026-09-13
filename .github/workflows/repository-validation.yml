@@ -23,9 +23,10 @@ jobs:
         run: node tests/field-map-export.test.mjs
       - name: FIELD expansion proposal map
         run: node tests/field-expansion-proposal.test.mjs
-      - name: Production molecule graph
+      - name: Molecule graph / frontier
         run: |
           node tests/molecule-graph.test.mjs
+          node tests/molecule-frontier.test.mjs
           node scripts/export-molecule-graph.mjs --check
       - name: Source contracts
         run: |
