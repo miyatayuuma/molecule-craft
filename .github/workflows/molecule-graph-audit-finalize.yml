@@ -22,7 +22,10 @@ jobs:
           const molecules=JSON.parse(await readFile('data/molecules.json','utf8'));
           graph.existingInventory=molecules.map(m=>m.id);
           const fromIndex=graph.edgeColumns.indexOf('from'),toIndex=graph.edgeColumns.indexOf('to');
-          const aliases=new Map([['ethene-oxide','ethylene-oxide']]);
+          const aliases=new Map([
+            ['ethene-oxide','ethylene-oxide'],
+            ['ethylendiamine','ethylenediamine'],
+          ]);
           for(const edge of graph.edges)for(const index of [fromIndex,toIndex])if(aliases.has(edge[index]))edge[index]=aliases.get(edge[index]);
           await writeFile(path,JSON.stringify(graph)+'\n');
           NODE
