@@ -32,7 +32,7 @@ const shortage=(state,element)=>state.shortages.find(item=>item.element===elemen
   assert.equal(plan.status,'PARTIAL');
   assert.equal(state.zeroFill,false);
   for(const item of state.rows){const actual=plan.partial.entries.find(entry=>entry.use===item.use),requested=plan.full.entries.find(entry=>entry.use===item.use);assert.equal(item.actual,actual.target);assert.equal(item.requested,requested.target);}
-  assert.equal(shortage(state,'H').count,plan.missing.H.need-plan.missing.H.have,'shortage count must come from canonical plan.missing');
+  assert.deepEqual(shortage(state,'H'),{element:'H',have:plan.missing.H.have,need:plan.missing.H.need},'shortage state must expose canonical have / need');
   const preview=state.rows.map(item=>({use:item.use,molecule:item.molecule,amount:item.actual}));
   const result=resources.commitLaunchFill({partial:true});assert.ok(result?.committed);
   for(const item of preview)assert.deepEqual(resources.state.tanks[item.use],{molecule:item.molecule,amount:item.amount},'committed tank amount must match confirmation preview');
@@ -48,18 +48,18 @@ const shortage=(state,element)=>state.shortages.find(item=>item.element===elemen
 {
   const resources=setup({H:20,C:0,O:10}),plan=resources.launchFillPlan(),state=launchConfirmationState(plan);
   assert.equal(plan.status,'PARTIAL');
-  for(const element of ['H','C','O'])assert.equal(shortage(state,element).count,plan.missing[element].need-plan.missing[element].have);
+  for(const element of ['H','C','O'])assert.deepEqual(shortage(state,element),{element,have:plan.missing[element].have,need:plan.missing[element].need});
 }
 
 {
   const source=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
   assert.doesNotMatch(source,/loadout-stock-preview/,'confirmation must not depend on the legacy DOM stock preview');
   assert.doesNotMatch(source,/噴射材|収集殻|BASE STOCK不足/,'legacy terminology must not return to the confirmation');
-  assert.match(source,/搭載できません/);assert.match(source,/dataset\.launchShortage/);assert.match(source,/item\.actual} \/ \$\{item\.requested/,'quantity is presented as actual / requested rather than percentage-only');
+  assert.doesNotMatch(source,/搭載できません|足りません/,'visible shortage state must not use explanatory prose');assert.match(source,/dataset\.launchShortage/);assert.match(source,/item\.actual} \/ \${item\.requested/,'tank quantity is presented as actual / requested');assert.match(source,/item\.have} \/ \${item\.need/,'element shortage is presented directly as have / need');
   assert.match(source,/gridTemplateColumns:'minmax\(0,1fr\) auto'/,'molecule identity and quantity must share a stable responsive row');
   assert.match(source,/overflowWrap:'anywhere'/,'long molecule identity/shortage text must be allowed to wrap');
   assert.match(source,/flexWrap:'wrap'/,'confirmation actions must wrap instead of overlapping on narrow screens');
   assert.match(source,/maxHeight:'calc\(100% - 20px\)'/,'confirmation must remain scrollable within the LOADOUT sheet');
 }
 
-console.log('LOADOUT shortage confirmation passed: FULL silence, canonical PARTIAL quantities/shortages, zero-fill, multi-element shortage, preview/commit parity, responsive layout and legacy terminology guard.');
+console.log('LOADOUT shortage confirmation passed: direct have/need state, no explanatory shortage prose, zero-fill, preview/commit parity and responsive layout.');

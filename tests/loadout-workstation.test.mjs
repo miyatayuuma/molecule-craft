@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import { LOADOUT_SLOT_GEOMETRY } from '../src/veil/loadout-workstation.js';
 
 const DRIVE_USES=['fuel','oxidizer','coolant'];
@@ -39,4 +40,12 @@ test('LOADOUT PULSE boundary is shifted right and down',()=>{
     {left:pulse.left,width:pulse.width,top:pulse.top,height:pulse.height},
     {left:10.6,width:10.9,top:38.5,height:27},
   );
+});
+
+test('LOADOUT stock preview exposes element state without an explanatory shortage banner',async()=>{
+  const source=await readFile(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8');
+  assert.doesNotMatch(source,/材料不足|loadout-shortage-status/);
+  assert.match(source,/chip\.dataset\.stockState=chip\.dataset\.sufficient==='false'\?'short':'ready'/);
+  assert.match(source,/preview\.setAttribute\('aria-label','必要元素'\)/);
+  assert.match(source,/\[data-sufficient='false'\]/,'insufficient element chips receive direct visual state');
 });

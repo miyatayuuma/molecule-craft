@@ -6,6 +6,8 @@ const source=await readFile(new URL('../src/veil/supply.js',import.meta.url),'ut
 assert.match(source,/collector-launch-handle/,'Explorer launch must have a dedicated touch target');
 assert.match(source,/launchHandle\.addEventListener\('pointerdown',beginLaunch\)/,'Drag must start from the dedicated touch target');
 assert.match(source,/shellCanvas\.style\.transform=`translate/,'The visible explorer must follow the drag');
+assert.match(source,/resetLaunchGesture\(\{keepDestinations:true\}\)/,'Destination launch must preserve selector context through shortage confirmation');
+assert.match(source,/shellCanvas\.style\.transform=`translate\(\$\{target\.x\}px,\$\{target\.y\}px\)`/,'Explorer must stay parked on the selected destination while launch state is evaluated');
 const ids=['veil','carbon','oxygen','frontier','veil','carbon'];
 for(let count=1;count<=5;count++){
   const layout=launchDestinationLayout(ids.slice(0,count));

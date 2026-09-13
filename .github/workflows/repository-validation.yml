@@ -63,6 +63,13 @@ jobs:
           node tests/generic-propulsion.test.mjs
           node tests/coolant-feedback.test.mjs
           node tests/propulsion-hud-source.test.mjs
+      - name: UI de-explanation regressions
+        run: |
+          node tests/loadout-shortage-confirmation.test.mjs
+          node tests/loadout-workstation.test.mjs
+          node tests/launch-selector.test.mjs
+          node tests/launch-pointer-lifecycle.test.mjs
+          node tests/ui-symbols.test.mjs
       - name: Generated PWA freshness
         run: node scripts/build-precache.mjs --check
       - name: PWA integrity

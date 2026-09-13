@@ -44,7 +44,8 @@ assert.match(pendingSource,/pending-craft-new-bulb \.92s/,'new pending recipes r
 assert.match(pendingSource,/pending-craft-reminder-bulb 7\.2s/,'unseen recipes receive a sparse reminder cadence');
 assert.match(pendingSource,/@media \(prefers-reduced-motion:reduce\)[\s\S]*animation:none[\s\S]*box-shadow/,'reduced motion disables movement while preserving static unseen emphasis');
 assert.doesNotMatch(pendingSource,/style\.animation|setInterval|localStorage|sessionStorage|aria-live|navigator\.vibrate|\.play\(/,'attention stays attribute/CSS-driven, session-memory-only, quiet, and free of periodic ARIA announcements');
-assert.match(pendingSource,/`未作成の設計図 \$\{ids\.length\}件`/,'accessible pending count remains on the navigation button');
+assert.match(pendingSource,/`設計図 \${ids\.length}件`/,'accessible pending count remains concise on the navigation button');
+assert.doesNotMatch(pendingSource,/未作成の設計図|探索で見つけた、まだ作っていない分子/,'pending blueprints must not explain their state with visible prose');
 assert.match(pendingSource,/insight-category\.css/,'pending rows load the shared category palette');
 assert.match(connectionsSource,/onCraft:\(\.\.\.args\)=>\{pendingCraft\.refresh\(\);return onCraft\(\.\.\.args\);\}/,'normal return refreshes pending attention before handing control back to CRAFT');
 assert.match(veilSource,/resources\.settleExpedition\([\s\S]*insights:captured\?\[\]:completed\.carriedInsights\}[\s\S]*onCraft\(\)/,'normal returns commit carried insight ids before the pending refresh while capture commits none');

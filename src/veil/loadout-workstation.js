@@ -187,41 +187,14 @@ function observeMoleculeSlots(map){
   syncMoleculeSlots(map);
 }
 
-function shortageRatio(chips){
-  let ratio=1;
-  for(const chip of chips){
-    const match=chip.textContent?.match(/(\d+)\s*\/\s*(\d+)/);
-    if(!match)continue;
-    const have=Number(match[1]),need=Number(match[2]);
-    if(need>0)ratio=Math.min(ratio,have/need);
-  }
-  return Math.max(0,Math.min(1,ratio));
-}
-
 function syncStockPreview(preview){
   if(!preview)return;
   const chips=[...preview.children].filter(node=>node.dataset?.sufficient!==undefined);
   if(!chips.length){preview.hidden=true;return;}
   const insufficient=chips.some(chip=>chip.dataset.sufficient==='false');
-  if(!insufficient){preview.hidden=true;return;}
-  preview.hidden=false;
-  for(const chip of chips)chip.hidden=true;
-  const ratio=shortageRatio(chips);
-  let status=preview.querySelector('.loadout-shortage-status');
-  if(!status){
-    status=document.createElement('div');
-    status.className='loadout-shortage-status';
-    const label=document.createElement('span'),track=document.createElement('i'),fill=document.createElement('b');
-    label.textContent='材料不足';
-    track.append(fill);
-    status.append(label,track);
-    preview.append(status);
-  }
-  if(status.dataset.ratio!==String(ratio)){
-    status.dataset.ratio=String(ratio);
-    status.querySelector('b').style.transform=`scaleX(${ratio})`;
-  }
-  preview.setAttribute('aria-label',`材料不足 ${Math.round(ratio*100)}%`);
+  preview.hidden=!insufficient;
+  for(const chip of chips){chip.hidden=false;chip.dataset.stockState=chip.dataset.sufficient==='false'?'short':'ready';}
+  if(insufficient)preview.setAttribute('aria-label','必要元素');else preview.removeAttribute('aria-label');
 }
 
 function observeStockPreview(){
@@ -301,11 +274,11 @@ function installStyles(){
 #supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-drive-label,#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-drive-label,#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-drive-label{color:#f0fdff}
 #supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-unit-image,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-schematic-lines,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-slot-overlay,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-callout-label{opacity:.28}
 #supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-slot-path{pointer-events:none}
-#supply-dialog #loadout-stock-preview{display:grid!important;grid-template-columns:1fr!important;width:min(330px,calc(100% - 44px));min-height:0!important;margin:8px auto 0;padding:0!important}
+#supply-dialog #loadout-stock-preview{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px;width:min(330px,calc(100% - 44px));min-height:0!important;margin:8px auto 0;padding:0!important}
 #supply-dialog #loadout-stock-preview[hidden]{display:none!important}
-#supply-dialog .loadout-shortage-status{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px;width:100%;color:#bfd0d6;font-size:10px;font-weight:700;letter-spacing:.04em}
-#supply-dialog .loadout-shortage-status>i{position:relative;display:block;height:6px;overflow:hidden;border-radius:8px;background:#203844;box-shadow:inset 0 1px 2px #0008}
-#supply-dialog .loadout-shortage-status>i>b{position:absolute;inset:0;border-radius:inherit;transform-origin:left;background:linear-gradient(90deg,#6db8c6,#9edce5);box-shadow:0 0 8px #77d1dc44;transition:transform .18s ease}
+#supply-dialog #loadout-stock-preview>[data-sufficient]{min-width:0;padding:6px 8px;border:1px solid #34505d;border-radius:9px;background:#0b202b;color:#c9d8dd;font-variant-numeric:tabular-nums;text-align:center}
+#supply-dialog #loadout-stock-preview>[data-sufficient='true']{opacity:.42}
+#supply-dialog #loadout-stock-preview>[data-sufficient='false']{border-color:#b97856;box-shadow:inset 0 0 0 1px #b9785633,0 0 9px #b9785622;color:#f0d2bf}
 #supply-dialog .tank-explanation{display:block!important}#supply-dialog .tank-explanation>summary{display:none!important}#supply-dialog .tank-explanation .tank-comparison{margin-top:0!important}#supply-dialog .tank-decision{justify-content:center}#supply-dialog .tank-comparison{gap:7px!important;padding:2px 0}
 #supply-dialog .tank-comparison .loadout-stat{display:grid!important;grid-template-columns:62px 1fr!important;align-items:center;gap:8px!important;min-height:16px;color:#a9c0ca;font-size:9px!important}
 #supply-dialog .tank-comparison .loadout-stat>span{overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important}
@@ -316,8 +289,8 @@ function installStyles(){
 #supply-dialog .loadout-charges>div{display:flex;align-items:center;gap:4px;min-height:11px;flex-wrap:wrap}#supply-dialog .loadout-charges i{display:block;width:8px;height:8px;border-radius:50%;background:#a7e2eb;box-shadow:0 0 5px #71ccd933}#supply-dialog .loadout-charges[data-ghost=true]{opacity:.38}
 #supply-dialog #tank-detail-title{font-size:0}#supply-dialog #tank-detail-title:after{font-size:14px;font-weight:700;letter-spacing:.04em}
 #supply-dialog:has(#shell-propellant[data-active='true']) #tank-detail-title:after{content:'PULSE'}#supply-dialog:has(#shell-fuel[data-active='true']) #tank-detail-title:after{content:'FUEL'}#supply-dialog:has(#shell-oxidizer[data-active='true']) #tank-detail-title:after{content:'O₂'}#supply-dialog:has(#shell-coolant[data-active='true']) #tank-detail-title:after{content:'COOLANT'}
-@media(max-width:370px){#supply-dialog .collector-shell-map{height:194px!important}#supply-dialog #collector-launch-handle{width:70px!important;height:70px!important}#supply-dialog .loadout-molecule-pod{height:50px;transform:translate(-50%,-50%)}#supply-dialog .port-propellant>.loadout-molecule-pod{height:56px;transform:translate(-50%,-50%)}#supply-dialog .loadout-slot-empty>.loadout-molecule-pod{height:24px;transform:translateX(-50%)}#supply-dialog .loadout-callout-label{font-size:10px}#supply-dialog .loadout-drive-label{top:15px;font-size:11px}#supply-dialog .loadout-pulse-label{top:20px}#supply-dialog .loadout-fuel-label,#supply-dialog .loadout-oxidizer-label,#supply-dialog .loadout-coolant-label{top:68.5%}#supply-dialog .tank-comparison .loadout-stat,#supply-dialog .loadout-charges{grid-template-columns:55px 1fr}#supply-dialog .loadout-shortage-status{gap:8px;font-size:9.5px}}
-@media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog .loadout-schematic-lines,#supply-dialog .loadout-slot-path,#supply-dialog .loadout-callout-label,#supply-dialog .loadout-shortage-status>i>b{transition:none}}
+@media(max-width:370px){#supply-dialog .collector-shell-map{height:194px!important}#supply-dialog #collector-launch-handle{width:70px!important;height:70px!important}#supply-dialog .loadout-molecule-pod{height:50px;transform:translate(-50%,-50%)}#supply-dialog .port-propellant>.loadout-molecule-pod{height:56px;transform:translate(-50%,-50%)}#supply-dialog .loadout-slot-empty>.loadout-molecule-pod{height:24px;transform:translateX(-50%)}#supply-dialog .loadout-callout-label{font-size:10px}#supply-dialog .loadout-drive-label{top:15px;font-size:11px}#supply-dialog .loadout-pulse-label{top:20px}#supply-dialog .loadout-fuel-label,#supply-dialog .loadout-oxidizer-label,#supply-dialog .loadout-coolant-label{top:68.5%}#supply-dialog .tank-comparison .loadout-stat,#supply-dialog .loadout-charges{grid-template-columns:55px 1fr}#supply-dialog #loadout-stock-preview{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog .loadout-schematic-lines,#supply-dialog .loadout-slot-path,#supply-dialog .loadout-callout-label{transition:none}}
 `;
   document.head.append(style);
 }
