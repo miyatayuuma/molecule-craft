@@ -38,10 +38,10 @@ builder=builder.replace(marker,productionBlock+marker);
 await write('scripts/build-molecule-db.mjs',builder);
 run('scripts/build-molecule-db.mjs');
 
-// Encyclopedia follows the canonical DB exactly; deleted cards disappear and rewrites/additions are explicit.
+// Encyclopedia follows the canonical molecule DB while retaining the independent craft-part catalog.
 const molecules=JSON.parse(await read('data/molecules.json')),oldEncyclopedia=JSON.parse(await read('data/encyclopedia.json'));
 if(molecules.length!==129)throw Error(`Expected 129 generated molecules, got ${molecules.length}`);
-const encyclopedia={schemaVersion:oldEncyclopedia.schemaVersion??1,molecules:{}};
+const encyclopedia={...oldEncyclopedia,molecules:{}};
 for(const [index,molecule] of molecules.entries()){
   const previous=oldEncyclopedia.molecules?.[molecule.id],description=descriptionOverrides[molecule.id]??previous?.description??molecule.learningNote;
   if(!description)throw Error(`Missing encyclopedia description: ${molecule.id}`);
