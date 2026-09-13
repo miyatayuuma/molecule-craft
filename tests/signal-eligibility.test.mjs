@@ -112,10 +112,10 @@ assert.equal(GROWTH.signalChance,.38);assert.equal(GROWTH.signalPity,3);
 }
 
 // FIELD constructs the exclusion set from both active analysis and carried
-// insights, and passes only that set into resources.signal().
+// insights, and passes it together with current-run engagement context.
 const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
 assert.match(uiSource,/const excludeIds=new Set\(run\.carriedInsights\)/);
 assert.match(uiSource,/run\.analysis\?\.id\)excludeIds\.add\(run\.analysis\.id\)/);
-assert.match(uiSource,/resources\.signal\(event\.region,event\.roll,event\.choice,\{excludeIds\}\)/);
+assert.match(uiSource,/resources\.signal\(event\.region,event\.roll,event\.choice,\{excludeIds,runContext:run\}\)/);
 
 console.log('Regional signal eligibility passed: source ownership, cumulative region rank, element unlock, persistent/run-local exclusions, deterministic choice, bonus, pity and cooldown.');

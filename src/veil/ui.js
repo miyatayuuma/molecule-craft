@@ -1,5 +1,5 @@
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
-import { createRun, stepRun, beginBurst, setCombustionHeld, triggerInsight, discardActiveInsight, discardRunInsights } from './expedition-run.js';
+import { createRun, stepRun, beginBurst, setCombustionHeld, triggerInsight, discardActiveInsight, discardRunInsights, fieldInsightOpportunityEligibility } from './expedition-run.js';
 import { createUniverse } from './universe.js';
 import { DRIVES, MOLECULE_USES, REGIONS, flightConfig, growthGoal, propulsionGauge, propulsionSpeedMax } from './growth.js';
 import { createSupplyUI } from './supply.js';
@@ -51,7 +51,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     return false;
   }
   function offerInsight(id){return handleInsight(triggerInsight(run,id,resources.state));}
-  function offerProgressionInsights(){if(!run)return;const ids=resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements});if(ids.length)resources.suppressFrontierInsightForCritical();for(const id of ids)offerInsight(id);}
+  function offerProgressionInsights(){if(!run)return;const ids=resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements}).filter(id=>!run.carriedInsights.includes(id)&&run.analysis?.id!==id&&fieldInsightOpportunityEligibility(run,resources.record(id)).ready);if(ids.length)resources.suppressFrontierInsightForCritical();for(const id of ids)offerInsight(id);}
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
   function resetInput(){stick.x=stick.y=0;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
   function positionAt(id){const at=REGIONS[id]??REGIONS.veil;run.player.x=at.x;run.player.y=at.y;run.player.angle=at.angle;run.player.vx=run.player.vy=0;run.player.trail=[];run.region=id;}
@@ -150,7 +150,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='gate'){resources.state.progress.cleared=true;run.gateTime=run.time;resources.save();notice('Hの帳を抜けた · BURSTを使うべき瞬間だった',4);}
       if(event.type==='region'){const first=resources.visit(event.region);if(first)notice(event.region==='carbon'?'CARBON DRIFT · 粒子列の先に、塊が脈打つ':event.region==='oxygen'?'OXYGEN SURGE · 高速流と熱の領域':event.region==='frontier'?'INNER HORIZON · 金色の輪が最終地点。到達後は正常帰還を':`${REGIONS[event.region].name}へ戻った`,6);resources.save();}
       if(event.type==='inspiration')for(const id of event.rewards)offerInsight(id);
-      if(event.type==='signal'){const excludeIds=new Set(run.carriedInsights);if(run.analysis?.id)excludeIds.add(run.analysis.id);const result=resources.signal(event.region,event.roll,event.choice,{excludeIds});notice(signalText(result),result?.recipe?3:3);if(result?.recipe)offerInsight(result.recipe);supply.update();}
+      if(event.type==='signal'){const excludeIds=new Set(run.carriedInsights);if(run.analysis?.id)excludeIds.add(run.analysis.id);const result=resources.signal(event.region,event.roll,event.choice,{excludeIds,runContext:run});if(!result?.deferred)notice(signalText(result),result?.recipe?3:3);if(result?.recipe)offerInsight(result.recipe);supply.update();}
       if(event.type==='insightReady')handleInsight(event);
       if(event.type==='lap')notice('流れをひと巡り · 保持場への干渉は下がらない',3);
       if(event.type==='eaterSpawn'){notice(event.count===1?'DUST EATER · 採集殻の保持場を崩す粒子現象':`DUST EATERS × ${event.count} · 保持場が破綻する前にANCHOR RETURNを`,4);vibrate(18);}
@@ -165,6 +165,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='heatRecovered'){notice(run.driveHeld?'THERMAL READY · 燃焼を自動再開':'THERMAL READY',1.5);vibrate(10);}
       if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));beginReturn(true);notice(`保持場破綻 · 回収塵${Math.round(EXPEDITION.captureLoss*100)}%がこぼれ、緊急RETRACT`,2);vibrate(55);}
     }
+    offerProgressionInsights();const deferredFrontier=resources.pollFrontierInsight(run);if(deferredFrontier?.recipe)offerInsight(deferredFrontier.recipe);
     insightPresentation.sync(run);
     const lockComplete=!!anchorLock&&(anchorLock.elapsed=Math.min(anchorLock.duration,anchorLock.elapsed+dt))>=anchorLock.duration;
     if(run.time>messageUntil)q('veil-message').hidden=true;

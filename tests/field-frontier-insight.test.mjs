@@ -2,14 +2,16 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createMoleculeGraph,getFrontierCandidates,scoreFrontierCandidates,selectFrontierCandidate} from '../src/molecule-graph.js';
 import {CHALLENGE_INSIGHT_IDS} from '../src/veil/expedition-challenges.js';
-import {CRITICAL_INSIGHT_IDS,advanceInsightAnalysis,createInsightRunState,triggerInsight} from '../src/veil/insights.js';
+import {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_SECONDS,advanceInsightAnalysis,createInsightRunState,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,triggerInsight} from '../src/veil/insights.js';
 import {createResources} from '../src/veil/resources.js';
+import {EXPEDITION} from '../src/veil/config.js';
 
 const raw=JSON.parse(await readFile(new URL('../data/molecule-graph.json',import.meta.url),'utf8'));
 const graph=createMoleculeGraph(raw),reserved=new Set([...CRITICAL_INSIGHT_IDS,...CHALLENGE_INSIGHT_IDS]);
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
 const catalog=graph.nodes.map(node=>({id:node.id,formula:node.id,atoms:['H']}));
 const roots=graph.roots.filter(id=>graph.nodeById(id));
+const engaged={time:EXPEDITION.safeSeconds,collectedElements:{H:1,C:1,O:1}};
 const run=()=>Object.assign({captured:false,events:[]},createInsightRunState());
 const settle=(value,flight,captured=false)=>value.settleExpedition({H:0,C:0,O:0},0,captured,{insights:flight?.carriedInsights??[]});
 function make({discoverRoots=true}={}){const value=createResources({storage:memory()});value.setCatalog(catalog);value.setFrontierGraph(graph);if(discoverRoots)for(const id of roots)value.discover(id);return value;}
@@ -23,6 +25,20 @@ function expandableChoice(value,region){
   return {target,roll,frontierIds};
 }
 
+// Insight trigger eligibility opens with the same safe-window boundary that starts
+// DUST EATER threat accumulation and requires run-local molecular sampling.
+{
+  assert.equal(FIELD_INSIGHT_MIN_SECONDS,EXPEDITION.safeSeconds,'insight timing follows the expedition safe-window boundary');
+  const methane={id:'methane',atoms:['C','H','H','H','H']},oxygen={id:'oxygen',atoms:['O','O']},nitrogen={id:'nitrogen',atoms:['N','N']};
+  assert.deepEqual(fieldInsightRequiredElements(methane),['C','H']);
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS-0.01,collectedElements:{H:1,C:1,O:0}},methane).ready,false,'elapsed time alone must not open early');
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:0,O:0}},methane).ready,false,'CH4 needs both H and C sampled in this run');
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:1,O:0}},methane).ready,true);
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:1}},oxygen).ready,true,'O2 only requires O sampling');
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:0}},nitrogen).ready,false,'non-HCO candidates still require real FIELD activity');
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:0,O:0}},nitrogen).ready,true,'non-HCO candidates fall back to any FIELD element instead of becoming impossible');
+}
+
 // Launch snapshots discovered/known state, delegates extraction/scoring/selection
 // to the production graph frontier API, uses the canonical FIELD region and
 // excludes critical/challenge-owned progression from ordinary graph insights.
@@ -34,7 +50,20 @@ function expandableChoice(value,region){
   value.state.hints.push(target.id);
   assert.equal(value.frontierInsightDiagnostics().selectedCandidateId,target.id,'external knowledge changes must not redraw the run snapshot');
   const wrongRegion=value.signal('veil',0,0);assert.ok(wrongRegion.bonus);assert.equal(value.frontierInsightDiagnostics().opportunityCreated,false);
-  const opportunity=value.signal('oxygen',.999,.999);assert.deepEqual(opportunity,{recipe:target.id,frontier:true},'frontier selection must not be weighted a second time by regional signal choice/chance');assert.equal(value.frontierInsightDiagnostics().opportunityCreated,true);
+  const opportunity=value.signal('oxygen',.999,.999,{runContext:engaged});assert.deepEqual(opportunity,{recipe:target.id,frontier:true},'frontier selection must not be weighted a second time by regional signal choice/chance');assert.equal(value.frontierInsightDiagnostics().opportunityCreated,true);
+}
+
+// Crossing the authored signal before the gate opens records the observation but
+// cannot start analysis. Once both elapsed-time and run-local action gates pass,
+// the same one-run opportunity matures without requiring a second signal hit.
+{
+  const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});
+  const early=value.signal('veil',.999,.999,{runContext:{time:2,collectedElements:{H:1,C:1,O:1}}});assert.deepEqual(early,{deferred:true,frontier:true});
+  let diag=value.frontierInsightDiagnostics();assert.equal(diag.signalObserved,true);assert.equal(diag.opportunityCreated,false);
+  assert.equal(value.pollFrontierInsight({time:FIELD_INSIGHT_MIN_SECONDS-0.01,collectedElements:{H:1,C:1,O:1}}),null,'time gate blocks deferred frontier');
+  assert.equal(value.pollFrontierInsight({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:0}}),null,'action gate blocks deferred frontier');
+  const matured=value.pollFrontierInsight(engaged);assert.deepEqual(matured,{managed:true,recipe:target.id,frontier:true});diag=value.frontierInsightDiagnostics();assert.equal(diag.opportunityCreated,true);
+  assert.equal(value.pollFrontierInsight(engaged),null,'deferred opportunity matures at most once');
 }
 
 // A frontier opportunity reuses the ordinary five-second analysis -> carried
@@ -42,7 +71,7 @@ function expandableChoice(value,region){
 // not register/discover the molecule until CRAFT completes.
 {
   const value=make(),{target,roll,frontierIds}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});
-  const opportunity=value.signal('veil',.999,.999);assert.equal(opportunity.recipe,target.id);
+  const opportunity=value.signal('veil',.999,.999,{runContext:engaged});assert.equal(opportunity.recipe,target.id);
   const flight=run(),started=triggerInsight(flight,opportunity.recipe,value.state);assert.deepEqual(started,{type:'insightAnalysisStart',id:target.id});advanceInsightAnalysis(flight,4.9);assert.deepEqual(flight.carriedInsights,[]);advanceInsightAnalysis(flight,.1);assert.deepEqual(flight.carriedInsights,[target.id]);
   const result=settle(value,flight);assert.deepEqual(result.committedInsights,[target.id]);assert.ok(value.state.hints.includes(target.id),'normal return makes the recipe known');assert.ok(!value.state.recipes.includes(target.id),'normal return must not register the molecule');assert.equal(result.frontierInsight.committed,true);assert.equal(result.frontierInsight.carried,true);
 
@@ -57,7 +86,7 @@ function expandableChoice(value,region){
 // eligibility, deeper region movement and enough collection to clear signal
 // cooldown cannot produce a second frontier recipe in the same run.
 {
-  const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});assert.equal(value.signal('veil',0,0).recipe,target.id);value.collect(45,0);
+  const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});assert.equal(value.signal('veil',0,0,{runContext:engaged}).recipe,target.id);value.collect(45,0);
   const second=value.signal('veil',0,0);assert.ok(second.bonus&&!second.recipe);const moved=value.signal('carbon',0,0);assert.ok(moved.bonus&&!moved.recipe);const diag=value.frontierInsightDiagnostics();assert.equal(diag.selectedCandidateId,target.id);assert.equal(diag.opportunityCreated,true);
 }
 
@@ -71,7 +100,7 @@ function expandableChoice(value,region){
 // Capture/forced return uses the existing settlement loss semantic: even a
 // completed carried analysis is not committed and remains eligible next run.
 {
-  const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});const opportunity=value.signal('veil',0,0),flight=run();triggerInsight(flight,opportunity.recipe,value.state);advanceInsightAnalysis(flight,5);assert.deepEqual(flight.carriedInsights,[target.id]);
+  const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});const opportunity=value.signal('veil',0,0,{runContext:engaged}),flight=run();triggerInsight(flight,opportunity.recipe,value.state);advanceInsightAnalysis(flight,5);assert.deepEqual(flight.carriedInsights,[target.id]);
   const result=settle(value,flight,true);assert.deepEqual(result.committedInsights,[]);assert.ok(!value.state.hints.includes(target.id));assert.equal(result.frontierInsight.lost,true);assert.equal(result.frontierInsight.committed,false);
   value.prepareExpedition({region:'veil',rng:()=>roll});assert.equal(value.frontierInsightDiagnostics().selectedCandidateId,target.id);
 }
@@ -117,7 +146,12 @@ function expandableChoice(value,region){
 // Settlement is idempotent at the persistent knowledge boundary. A repeated
 // return callback cannot commit the same frontier insight twice.
 {
-  const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});const opportunity=value.signal('veil',0,0),flight=run();triggerInsight(flight,opportunity.recipe,value.state);advanceInsightAnalysis(flight,5);const first=settle(value,flight),second=settle(value,flight);assert.deepEqual(first.committedInsights,[target.id]);assert.deepEqual(second.committedInsights,[]);assert.equal(value.state.hints.filter(id=>id===target.id).length,1);
+  const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});const opportunity=value.signal('veil',0,0,{runContext:engaged}),flight=run();triggerInsight(flight,opportunity.recipe,value.state);advanceInsightAnalysis(flight,5);const first=settle(value,flight),second=settle(value,flight);assert.deepEqual(first.committedInsights,[target.id]);assert.deepEqual(second.committedInsights,[]);assert.equal(value.state.hints.filter(id=>id===target.id).length,1);
 }
+
+const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
+assert.match(uiSource,/fieldInsightOpportunityEligibility\(run,resources\.record\(id\)\)\.ready/,'critical insights must use the run engagement gate');
+assert.match(uiSource,/runContext:run/,'FIELD signals must pass current-run time and collection context');
+assert.match(uiSource,/pollFrontierInsight\(run\)/,'deferred frontier observations must mature from the live run context');
 
 console.log('FIELD frontier insight integration passed: production graph selection, one-run signal guard, ordinary analysis/carried lifecycle, return commit/loss, critical priority, no fallback and CRAFT frontier expansion.');

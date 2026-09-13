@@ -2,7 +2,7 @@ import {createRun as createBaseRun,stepRun as stepBaseRun} from './engine.js';
 import {advanceInsightAnalysis,createInsightRunState} from './insights.js';
 
 export {beginBurst,setCombustionHeld} from './engine.js';
-export {CRITICAL_INSIGHT_IDS,INSIGHT_ANALYSIS_SECONDS,discardActiveInsight,discardRunInsights,triggerInsight} from './insights.js';
+export {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_SECONDS,INSIGHT_ANALYSIS_SECONDS,discardActiveInsight,discardRunInsights,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,triggerInsight} from './insights.js';
 
 export function createRun(...args){return Object.assign(createBaseRun(...args),createInsightRunState());}
 
