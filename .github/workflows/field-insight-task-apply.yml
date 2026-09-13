@@ -44,6 +44,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/veil/insights.js src/veil/expedition-run.js src/veil/resources.js src/veil/ui.js tests/field-frontier-insight.test.mjs tests/field-insight-engagement.test.mjs .github/workflows/repository-validation.yml sw.js precache-manifest.js
+          git checkout -- .github/workflows/repository-validation.yml
+          git add src/veil/insights.js src/veil/expedition-run.js src/veil/resources.js src/veil/ui.js tests/field-frontier-insight.test.mjs tests/field-insight-engagement.test.mjs sw.js precache-manifest.js
           git commit -m "Gate FIELD graph insights behind exploration engagement"
           git push
