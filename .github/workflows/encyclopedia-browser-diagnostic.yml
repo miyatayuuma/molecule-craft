@@ -44,13 +44,36 @@ jobs:
           for i in {1..20}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep .25; done
           cat /tmp/server.log
           exit 1
-      - name: Probe module imports in Chrome
+      - name: Locate Chrome parse failure
         run: |
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME" || { echo 'Chrome executable not found'; exit 1; }
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --remote-debugging-port=9222 --user-data-dir=/tmp/mc-chrome about:blank >/tmp/cdp-chrome.log 2>&1 &
+          CHROME_PID=$!
+          for i in {1..40}; do curl -fsS http://127.0.0.1:9222/json/list >/tmp/tabs.json && break; sleep .25; done
+          node --input-type=module <<'NODE'
+          const tabs=await (await fetch('http://127.0.0.1:9222/json/list')).json();
+          const socket=new WebSocket(tabs[0].webSocketDebuggerUrl);let seq=0;
+          const pending=new Map();
+          const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+          socket.addEventListener('message',event=>{
+            const msg=JSON.parse(event.data);
+            if(msg.id&&pending.has(msg.id)){const job=pending.get(msg.id);pending.delete(msg.id);msg.error?job.reject(msg.error):job.resolve(msg.result);return;}
+            if(msg.method==='Debugger.scriptFailedToParse')console.log('SCRIPT_FAILED',JSON.stringify({url:msg.params.url,startLine:msg.params.startLine,startColumn:msg.params.startColumn,endLine:msg.params.endLine,endColumn:msg.params.endColumn}));
+            if(msg.method==='Runtime.exceptionThrown')console.log('EXCEPTION',JSON.stringify(msg.params.exceptionDetails));
+          });
+          await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));
+          await send('Debugger.enable');await send('Runtime.enable');await send('Page.enable');
+          await send('Page.navigate',{url:'http://127.0.0.1:4173/browser-module-probe.html'});
+          await new Promise(resolve=>setTimeout(resolve,4500));
+          socket.close();
+          NODE
+          kill "$CHROME_PID" || true
+      - name: Probe module imports in Chrome
+        run: |
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=5000 --dump-dom http://127.0.0.1:4173/browser-module-probe.html >/tmp/probe.html 2>/tmp/probe.log || true
           sed -n '/<pre id="out">/,/<\/pre>/p' /tmp/probe.html
-          cat /tmp/server.log
       - name: Load application in headless Chrome
         run: |
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
