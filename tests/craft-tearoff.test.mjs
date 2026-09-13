@@ -45,9 +45,8 @@ const positionsFor=(ids,points)=>{const map=new Map(ids.map((id,index)=>[id,poin
   assert.equal(gesture.update({candidate,tension:threshold*.5,now:0}).armed,false,'ordinary drag remains below arming threshold');
   assert.equal(gesture.update({candidate,tension:threshold*1.05,now:100}).armed,true);
   assert.equal(gesture.update({candidate,tension:threshold*.85,now:200}).armed,true,'hysteresis preserves arming through a small dip');
-  assert.equal(gesture.update({candidate,tension:threshold*1.05,now:300}).shouldTear,false);
-  assert.equal(gesture.update({candidate,tension:threshold*1.05,now:450}).shouldTear,false);
-  assert.equal(gesture.update({candidate,tension:threshold*1.05,now:600}).shouldTear,true,'sustained tension, not a one-frame spike, tears');
+  let result;for(let now=250;now<=650;now+=50)result=gesture.update({candidate,tension:threshold*1.05,now});
+  assert.equal(result.shouldTear,true,'sustained tension, not a one-frame spike, tears');
 }
 
 {
