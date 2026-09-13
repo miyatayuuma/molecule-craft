@@ -54,7 +54,7 @@ for(const [zone,route] of [[pulse,network['oxygen-shortcut']],[curve,deep['oxyge
 }
 for(const [zone,route] of [[pulse,network['oxygen-main']],[curve,deep['oxygen-deep-safe']],[thermal,deep['oxygen-deep-skill']]]){
   const run=passage(zone,route);
-  assert.equal(run.challengeProgress[zone.id]?.complete,true,false,`${zone.id} adjacent route must not complete`);
+  assert.notEqual(run.challengeProgress[zone.id]?.complete,true,`${zone.id} adjacent route must not complete`);
   assert.deepEqual(run.events,[],`${zone.id} adjacent route must not emit molecule insight`);
 }
 
