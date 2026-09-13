@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createDeferredExplorationFacade} from '../src/craft-connections.js';
 import {createExpeditionLaunchRequester,isExpeditionDestinationAvailable} from '../src/veil/launch-request.js';
 
 const state={progress:{checkpoint:'carbon',regions:['veil','carbon','oxygen']}};
@@ -32,4 +33,12 @@ assert.equal(isExpeditionDestinationAvailable({},'continue'),false);
   assert.deepEqual(calls,[['select','veil']],'failed selection must stop before launch preparation');
 }
 
-console.log('Launch request contract passed: explicit destination validation, selection, and preparation share one bounded application entrypoint.');
+{
+  let current=null;const calls=[],facade=createDeferredExplorationFacade(()=>current,Promise.resolve(null));
+  assert.equal(facade.requestExpeditionLaunch('oxygen'),false,'DB-not-ready facade must preserve the existing blocked launch behavior');
+  current={requestExpeditionLaunch:id=>{calls.push(id);return true;}};
+  assert.equal(facade.requestExpeditionLaunch('oxygen'),true);
+  assert.deepEqual(calls,['oxygen'],'DB-ready facade must forward the explicit destination id to the application launch API');
+}
+
+console.log('Launch request contract passed: explicit destination validation, DB-ready gating, selection, and preparation share one bounded application entrypoint.');
