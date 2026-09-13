@@ -35,7 +35,7 @@ export function launchConfirmationState(plan){
   return {rows,shortages,zeroFill:rows.length>0&&rows.every(row=>row.actual===0)};
 }
 
-export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaunch=()=>true,onRequestLaunch=()=>false,onLaunchReady=()=>false,onAnchor}){
+export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaunch=()=>false,onLaunchReady=()=>false,onAnchor}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
   const upgrades=document.createElement('div');upgrades.id='oxygen-upgrades';upgrades.className='oxygen-upgrades';q('tank-detail').append(upgrades);
   const partialPanel=document.createElement('div'),partialRows=document.createElement('div'),partialActions=document.createElement('div'),partialGo=document.createElement('button'),partialBack=document.createElement('button');partialPanel.id='partial-fill-confirm';partialPanel.hidden=true;Object.assign(partialPanel.style,{position:'absolute',inset:'auto 10px 10px 10px',zIndex:'9',padding:'12px',maxHeight:'calc(100% - 20px)',overflow:'auto',border:'1px solid #678494',borderRadius:'14px',background:'#071925f2',boxShadow:'0 10px 30px #0008'});Object.assign(partialRows.style,{display:'grid',gap:'8px',marginBottom:'10px'});Object.assign(partialActions.style,{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'flex-end'});partialGo.type='button';partialGo.className='primary';partialGo.textContent='出発';partialBack.type='button';partialBack.textContent='戻る';partialActions.append(partialBack,partialGo);partialPanel.append(partialRows,partialActions);q('supply-dialog').querySelector('.sheet-body').append(partialPanel);
@@ -140,7 +140,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
   function renderLaunchPlan(){return resources.launchFillPlan();}
   function requestLaunch(destinationId){
     const checkpoint=resources.state.progress.checkpoint,available=destinationId==='continue'?!!REGIONS[checkpoint]:resources.state.progress.regions.includes(destinationId)&&!!REGIONS[destinationId];
-    if(!available||launchBusy||resources.blocked||!canOpen())return false;
+    if(!available||launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen())return false;
     requestedDestinationId=destinationId;const plan=renderLaunchPlan();
     if(plan.status==='IMPOSSIBLE'){requestedDestinationId=null;partialPanel.hidden=true;return false;}
     if(plan.status==='PARTIAL'){showPartialConfirm(plan);return true;}
@@ -197,15 +197,14 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
     const destinationId=requestedDestinationId;if(!destinationId||launchBusy||resources.blocked||!canOpen())return false;
     launchBusy=true;
     try{
-      if(onPrepareLaunch()===false){update();return false;}
-      const result=resources.commitLaunchFill({partial});
-      if(!result){update();return false;}
-      update();
-      if(Object.keys(result.plan.cost).length)await playSynthesis(result.plan);
+      const preview=renderLaunchPlan(),plan=preview.status==='FULL'?preview.full:preview.partial;
+      if(preview.status==='IMPOSSIBLE'||preview.status==='PARTIAL'&&!partial){requestedDestinationId=null;update();return false;}
+      if(Object.keys(plan.cost).length)await playSynthesis(plan);
       if(dialog.open)dialog.close();
-      let started=false;
-      try{started=onLaunchReady(destinationId)!==false;}catch(error){console.error('Expedition launch failed after loadout commit.',error);}
-      if(started){requestedDestinationId=null;return true;}
+      let outcome;
+      try{outcome=await onLaunchReady(destinationId,{partial});}catch(error){console.error('Expedition launch transaction failed unexpectedly.',error);outcome={status:'failed',reason:'unexpected',error};}
+      if(outcome===true||outcome?.status==='success'){requestedDestinationId=null;return true;}
+      requestedDestinationId=null;
       if(!resources.blocked&&canOpen()&&!dialog.open)dialog.showModal();
       update();
       return false;
@@ -216,9 +215,9 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
 
   q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';requestedDestinationId=null;partialPanel.hidden=true;dialog.showModal();update();resetLaunchGesture();});
   for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{resetLaunchGesture();selectedUse=use;selectedId=null;update();});
-  q('expedition-anchor').addEventListener('change',()=>{requestedDestinationId=null;onAnchor(q('expedition-anchor').value);});partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
+  q('expedition-anchor').addEventListener('change',()=>{requestedDestinationId=null;onAnchor(q('expedition-anchor').value);});partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;if(!launchBusy)requestedDestinationId=null;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
   q('tank-craft-molecule').addEventListener('click',startCraft);
   if(globalThis.ResizeObserver){new ResizeObserver(()=>{drawAccessIcon();if(dialog.open)drawCollectorShellPreview(shellCanvas);}).observe(accessCanvas);new ResizeObserver(()=>{if(dialog.open)drawCollectorShellPreview(shellCanvas);}).observe(shellCanvas);}
   drawAccessIcon();renderRouteGuide();update();
-  return {update,requestLaunch,openMolecule,discovered(id){const uses=resources.tankUses(id);if(uses.length){selectedUse=uses[0];selectedId=id;}},clearAnnouncement(){announcement='';},usesFor:id=>resources.tankUses(id),tankStatus:(use,id)=>resources.tankStatus(use,id),fillPlan:(use,id)=>resources.tankFillPlan(use,id),commitFill,get open(){return dialog.open;}};
+  return {update,requestLaunch,openMolecule,discovered(id){const uses=resources.tankUses(id);if(uses.length){selectedUse=uses[0];selectedId=id;}},clearAnnouncement(){announcement='';},usesFor:id=>resources.tankUses(id),tankStatus:(use,id)=>resources.tankStatus(use,id),fillPlan:(use,id)=>resources.tankFillPlan(use,id),commitFill,get open(){return dialog.open;},get launchPending(){return launchBusy||requestedDestinationId!==null;}};
 }
