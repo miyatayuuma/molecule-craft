@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Fix current-detail continuity contract
+      - name: Apply final integration fixes
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -46,6 +46,13 @@ jobs:
           addition=anchor+"\nassert.match(collectionUISource,/host\\.dataset\\.moleculeId=record\\.id/,'Detail return surface must expose the currently rendered molecule ID');\nassert.match(graphViewSource,/const id=detailMoleculeId\\(press\\.host,state\\.focusId\\)/,'pre-switch bridge must follow Detail navigation instead of stale Graph focus');"
           if anchor not in text: raise SystemExit('encyclopedia continuity test anchor not found')
           test.write_text(text.replace(anchor,addition,1))
+
+          oxygen=Path('tests/oxygen-field-integration.test.mjs')
+          text=oxygen.read_text()
+          old="assert.deepEqual(run.events,[{type:'inspiration',rewards:zone.rewards}],`${zone.id} correct-route completion`);"
+          new="assert.deepEqual(run.events,[{type:'inspiration',rewards:[]}],`${zone.id} traversal records completion without bypassing Graph frontier`);"
+          if old not in text: raise SystemExit('oxygen fixed-reward expectation not found')
+          oxygen.write_text(text.replace(old,new,1))
           PY
       - name: Focused regressions
         run: |
@@ -61,7 +68,7 @@ jobs:
           rm .github/workflows/pr190-finalize.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add src/collection-ui.js src/encyclopedia-graph-view.js tests/encyclopedia-graph-ui.test.mjs precache-manifest.js sw.js .github/workflows/pr190-finalize.yml
+          git add src/collection-ui.js src/encyclopedia-graph-view.js tests/encyclopedia-graph-ui.test.mjs tests/oxygen-field-integration.test.mjs precache-manifest.js sw.js .github/workflows/pr190-finalize.yml
           git diff --cached --check
-          git commit -m "Finalize molecule continuity and refresh PWA"
+          git commit -m "Finalize graph continuity and challenge integration"
           git push
