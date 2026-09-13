@@ -1,0 +1,59 @@
+name: Molecule DB v2 migration
+
+on:
+  push:
+    branches:
+      - production/molecule-db-v2
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.event.head_commit.message == 'Run molecule DB v2 migration'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply production migration and regenerate assets
+        run: node scripts/migrate-molecule-db-v2.mjs
+      - name: Validate molecule DB, graph, collection and persistence
+        run: |
+          node tests/molecule-graph.test.mjs
+          node tests/collection.test.mjs
+          node tests/collection-expansion.test.mjs
+          node tests/collection-persistence.test.mjs
+          node tests/recognition.test.mjs
+          node tests/pubchem-reference.test.mjs
+          node tests/capability-unlock.test.mjs
+          node tests/molecule-roles.test.mjs
+          node tests/resources-persistence.test.mjs
+      - name: Validate crafting and critical FIELD progression
+        run: |
+          node tests/craft-target.test.mjs
+          node tests/craft-target-hint.test.mjs
+          node tests/generic-propulsion.test.mjs
+          node tests/expedition-core.test.mjs
+          node tests/oxygen-field-integration.test.mjs
+          node tests/oxygen-thermal-progression.test.mjs
+          node tests/thermal-coolant.test.mjs
+      - name: Validate source, repository and generated assets
+        run: |
+          node tests/source-contracts.test.mjs
+          node tests/persistence-boundary-source-contract.test.mjs
+          node tests/repository-hygiene.test.mjs
+          node scripts/export-molecule-graph.mjs --check
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit generated production migration
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Promote molecule graph to production DB v2'
+          git push origin HEAD:production/molecule-db-v2
