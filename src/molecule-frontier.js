@@ -1,5 +1,8 @@
+import {FRONTIER_WEIGHTING} from './molecule-frontier-weighting.js';
+export {FRONTIER_WEIGHTING,scoreFrontierCandidates} from './molecule-frontier-weighting.js';
+export {selectFrontierCandidate,createSeededFrontierRng} from './molecule-frontier-selection.js';
+
 const REGION_NAMES=Object.freeze({H:'Hydrogen',C:'Carbon',O:'Oxygen',D:'Deep',F:'Frontier'});
-export const FRONTIER_WEIGHTING=Object.freeze({baseWeight:1,shallowBonus:.16,unexploredBranchBonus:.28,regionAffinityBonus:.25});
 function ids(value){if(typeof value==='string')return new Set([value]);if(value==null)return new Set();try{return new Set([...value].filter(id=>typeof id==='string'&&id));}catch{return new Set();}}
 const sorted=value=>[...ids(value)].sort((a,b)=>a.localeCompare(b));
 const validGraph=graph=>!!graph&&Array.isArray(graph.nodes)&&typeof graph.nodeById==='function'&&typeof graph.getNeighbors==='function';
