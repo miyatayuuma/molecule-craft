@@ -16,4 +16,6 @@ for index,line in enumerate(lines):
 missing=set(replacements)-found
 if missing:
     raise SystemExit(f'patch lines not found: {sorted(missing)}')
-path.write_text('\n'.join(lines)+'\n')
+text='\n'.join(lines)+'\n'
+text=text.replace("if(!keepDestinations){showLaunchDestinations(false);resetLaunchPosition();}else launchHandle.style.cursor='grab';","if(!keepDestinations)showLaunchDestinations(false);if(!keepDestinations)resetLaunchPosition();else launchHandle.style.cursor='grab';")
+path.write_text(text)
