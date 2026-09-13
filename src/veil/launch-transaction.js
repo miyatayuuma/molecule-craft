@@ -6,16 +6,15 @@ export class LaunchTransactionError extends Error{
   constructor(reason,message=reason){super(message);this.name='LaunchTransactionError';this.reason=reason;}
 }
 
-function restoreObject(target,snapshot){
-  for(const key of Object.keys(target))if(!Object.hasOwn(snapshot,key))delete target[key];
-  for(const [key,value]of Object.entries(snapshot))target[key]=copy(value);
+export function captureLaunchRollbackState(resources){
+  const state=resources?.state;if(!state)return null;
+  return {elements:copy(state.elements),tanks:copy(state.tanks),runs:state.progress?.runs??0};
 }
 
-export function captureLaunchRollbackState(resources){return copy(resources.state);}
-
 export function restoreLaunchRollbackState(resources,snapshot){
-  if(!resources?.state||!snapshot)return false;
-  restoreObject(resources.state,snapshot);
+  const state=resources?.state;if(!state||!snapshot)return false;
+  state.elements=copy(snapshot.elements);state.tanks=copy(snapshot.tanks);
+  if(state.progress)state.progress.runs=snapshot.runs;
   return true;
 }
 
