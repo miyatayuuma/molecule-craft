@@ -1,4 +1,4 @@
-import { CURRENT_COLLECTION_SCHEMA_VERSION,isFutureCollectionSave,migrateCollectionSave,validateCanonicalCollectionState } from './collection-migrations.js?v=1';
+import { CURRENT_COLLECTION_SCHEMA_VERSION,isFutureCollectionSave,migrateCollectionSave,validateCanonicalCollectionState } from './collection-migrations.js?v=2';
 
 export const COLLECTION_STORAGE_KEY='molecule-craft.collection.v1';
 const RESOURCE_STORAGE_KEY='molecule-craft.resources.v1';

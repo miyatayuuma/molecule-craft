@@ -1,6 +1,6 @@
 import { detectFunctionalGroups, structuralMilestones } from './functional-groups.js?v=21';
 import { availableElements } from './element-progression.js?v=36';
-import { CURRENT_COLLECTION_SCHEMA_VERSION } from './collection-migrations.js?v=1';
+import { CURRENT_COLLECTION_SCHEMA_VERSION } from './collection-migrations.js?v=2';
 import { COLLECTION_STORAGE_KEY,createCollectionPersistence } from './collection-persistence.js?v=1';
 
 export { createMoleculeGraph,loadMoleculeGraph } from './molecule-graph.js?v=1';

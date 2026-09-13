@@ -65,589 +65,457 @@
       "number": 16,
       "description": "ほかの分子に塩素を取り入れる反応に使われる。湿気とも反応するため、乾いた状態で扱われる。"
     },
-    "sulfur-hexafluoride": {
-      "number": 17,
-      "description": "電気を通しにくく、電力設備の絶縁に使われる気体。大気に出ると長く残り、強い温室効果を持つ。"
-    },
     "carbon-disulfide": {
-      "number": 18,
+      "number": 17,
       "description": "水に溶けにくく、硫黄をよく溶かす液体。レーヨンをつくる工程に使われるが、有毒で燃えやすい。"
     },
     "carbonyl-sulfide": {
-      "number": 19,
+      "number": 18,
       "description": "大気にごく少量含まれる気体。海や火山などから放出され、硫黄が地球を巡る流れに関わる。"
     },
     "phosphoric-acid": {
-      "number": 20,
+      "number": 19,
       "description": "肥料をつくる材料で、飲料の酸味調整にも使われる。リンは骨や歯、細胞の働きにも欠かせない。"
     },
     "sulfuric-acid": {
-      "number": 21,
+      "number": 20,
       "description": "肥料や自動車用の鉛蓄電池などに使われる。工業を支える強い酸で、濃いものは水分を強く引きつける。"
     },
     "hydrogen-peroxide": {
-      "number": 22,
+      "number": 21,
       "description": "時間とともに水と酸素に変わる。薄めたものは消毒に、漂白にも使われる。"
     },
     "hypochlorous-acid": {
-      "number": 23,
+      "number": 22,
       "description": "細菌などの働きを弱める性質を持つ。水の消毒でも活躍し、酸性度によって存在する割合が変わる。"
     },
     "carbonic-acid": {
-      "number": 24,
+      "number": 23,
       "description": "二酸化炭素が水に溶けると、一部がこの弱い酸になる。炭酸飲料や雨水にも関わる。"
     },
     "methane": {
-      "number": 25,
+      "number": 24,
       "description": "都市ガスや天然ガスの主役。湿地や動物のおなかで微生物がつくることもあり、よく燃える。"
     },
     "ethane": {
-      "number": 26,
+      "number": 25,
       "description": "天然ガスに含まれる気体。工場でエチレンに変えられ、プラスチックづくりの入口になる。"
     },
     "propane": {
-      "number": 27,
+      "number": 26,
       "description": "ガスボンベに詰められ、料理や暖房に使われる。圧力をかけると液体になり、運びやすくなる。"
     },
     "n-butane": {
-      "number": 28,
+      "number": 27,
       "description": "カセットこんろの燃料に使われる気体。寒い場所では気体になりにくく、火力が弱くなることがある。"
     },
     "isobutane": {
-      "number": 29,
+      "number": 28,
       "description": "冷蔵庫の冷媒やガス燃料に使われる。n-ブタンと同じ分子式でも、沸騰する温度は違う。"
     },
     "n-pentane": {
-      "number": 30,
+      "number": 29,
       "description": "すぐに蒸発する、燃えやすい液体。発泡スチロールに細かな泡をつくる材料にもなる。"
     },
-    "isopentane": {
-      "number": 31,
-      "description": "室温に近い温度で沸騰する。発泡材料や冷却の用途で、その蒸発しやすさが役立つ。"
-    },
-    "neopentane": {
-      "number": 32,
-      "description": "ペンタンの仲間の中でも特に沸点が低い。原子の数が同じでも、形で性質が変わる例のひとつ。"
-    },
     "n-hexane": {
-      "number": 33,
+      "number": 30,
       "description": "水に溶けにくく、油を溶かすのが得意。植物の種から油を取り出す工程でも使われる。"
     },
     "ethene": {
-      "number": 34,
+      "number": 31,
       "description": "果物の熟成を進める植物ホルモンとしても働く。たくさんつながると、ポリエチレンになる。"
     },
     "propene": {
-      "number": 35,
+      "number": 32,
       "description": "たくさんつなげるとポリプロピレンになる。食品容器やロープ、自動車部品へと姿を変える材料。"
     },
     "1-butene": {
-      "number": 36,
+      "number": 33,
       "description": "ポリエチレンの性質を調整する材料として使われる。少し混ぜることで、やわらかさなどを変えられる。"
     },
     "2-butene": {
-      "number": 37,
+      "number": 34,
       "description": "燃料や化学製品をつくる工程に登場する気体。原子の並ぶ向きの違いでも性質が変わる。"
     },
     "isobutene": {
-      "number": 38,
+      "number": 35,
       "description": "空気を通しにくいブチルゴムをつくる材料。タイヤの内側など、空気を閉じ込めたい場所で役立つ。"
     },
-    "1-pentene": {
-      "number": 39,
-      "description": "ほかの分子と反応させ、新しい材料をつくる液体。合成樹脂の性質を調整する研究にも使われる。"
-    },
-    "2-pentene": {
-      "number": 40,
-      "description": "石油由来の混合物にも見られる、燃えやすい液体。1-ペンテンとは反応の進み方が変わる。"
-    },
     "ethyne": {
-      "number": 41,
+      "number": 36,
       "description": "酸素と一緒に燃やすと高温の炎になる。金属の溶接や切断にも使われてきた気体。"
     },
     "propyne": {
-      "number": 42,
-      "description": "よく燃える気体で、特殊な燃料の成分になる。さまざまな有機分子をつくる材料としても使われる。"
+      "number": 37,
+      "description": "端に三重結合を持つ小さなアルキン。三重結合部分はほぼ直線形で、末端水素を手がかりにC–C結合形成へ展開できる。propane/propeneとの結合次数比較にも向く。"
     },
     "1-butyne": {
-      "number": 43,
-      "description": "ほかの分子と組み合わせ、新しい炭素のつながりをつくれる。化学合成の材料になる気体。"
+      "number": 38,
+      "description": "鎖の端に三重結合を持つC4アルキン。2-butyneと比べ、三重結合が端か内部かで反応点が変わる。"
     },
     "2-butyne": {
-      "number": 44,
-      "description": "室温付近で沸騰する、揮発しやすい物質。1-ブチンとは、反応できる場所の性質が異なる。"
+      "number": 39,
+      "description": "鎖中央に三重結合を持つ対称なC4アルキン。末端水素を持たず、1-butyneとの位置異性比較に向く。"
     },
     "cyclopropane": {
-      "number": 45,
+      "number": 40,
       "description": "小さな輪にひずみを抱えた、燃えやすい気体。輪が開く反応を起こしやすい。"
     },
     "cyclobutane": {
-      "number": 46,
-      "description": "小さな輪が少し折れ曲がっている。平らになるより、そのほうが原子どうしの窮屈さを減らせる。"
+      "number": 41,
+      "description": "4員環はsp3炭素の理想結合角から大きく外れるため環ひずみが大きい。完全な平面を避けて少し折れ曲がるがひずみは残り、シクロプロパン・シクロペンタン・シクロヘキサンとの比較で環サイズと安定性の違いが見える。"
     },
     "cyclopentane": {
-      "number": 47,
+      "number": 42,
       "description": "冷蔵庫などの断熱材に泡をつくる用途がある。輪は平らなままではなく、少し曲がった形をとる。"
     },
     "cyclohexane": {
-      "number": 48,
+      "number": 43,
       "description": "ナイロンの原料づくりに使われる液体。輪は椅子に似た立体的な形をとると安定する。"
     },
     "methylcyclohexane": {
-      "number": 49,
+      "number": 44,
       "description": "水に混ざりにくく、油や樹脂を溶かす液体。水素を運ぶ技術でも利用が研究されている。"
     },
     "benzene": {
-      "number": 50,
+      "number": 45,
       "description": "いろいろな化学製品の出発点になる液体。輪全体で電子が広がる性質を持つが、有毒で発がん性がある。"
     },
     "toluene": {
-      "number": 51,
+      "number": 46,
       "description": "塗料や接着剤の樹脂を溶かす用途がある。水に混ざりにくく、蒸発しやすい液体。"
     },
     "ethylbenzene": {
-      "number": 52,
+      "number": 47,
       "description": "主にスチレンをつくる材料になる。そこから発泡スチロールなど、身近なプラスチックにつながる。"
     },
-    "o-xylene": {
-      "number": 53,
-      "description": "染料や樹脂の材料づくりに使われる。キシレンの仲間でも、工場での主な行き先が異なる。"
-    },
-    "m-xylene": {
-      "number": 54,
-      "description": "塗料や樹脂に関わる液体。丈夫な樹脂の材料になるイソフタル酸も、ここからつくれる。"
-    },
     "p-xylene": {
-      "number": 55,
+      "number": 48,
       "description": "ペットボトルの材料づくりにつながる液体。酸化すると、PETの原料であるテレフタル酸になる。"
     },
     "styrene": {
-      "number": 56,
+      "number": 49,
       "description": "たくさんつながるとポリスチレンになる。硬い容器にも、軽い発泡スチロールにも姿を変える。"
     },
     "chloromethane": {
-      "number": 57,
+      "number": 50,
       "description": "シリコーンの製造に使われる気体。自然界でも、海や植物などから少量放出される。"
     },
     "dichloromethane": {
-      "number": 58,
+      "number": 51,
       "description": "油脂や樹脂を溶かす、揮発しやすい液体。蒸気を吸い込まないよう管理が必要。"
     },
     "chloroform": {
-      "number": 59,
+      "number": 52,
       "description": "昔は麻酔薬に使われたが、体への害が問題になった。現在は主に化学製品の材料などに使われる。"
     },
     "carbon-tetrachloride": {
-      "number": 60,
+      "number": 53,
       "description": "昔は消火剤や洗浄に使われた。人体やオゾン層への影響から、用途が厳しく制限されている。"
     },
     "fluoromethane": {
-      "number": 61,
+      "number": 54,
       "description": "常温では気体で、低い温度で沸騰する。半導体の加工など、特殊な工業用途で使われる。"
     },
     "difluoromethane": {
-      "number": 62,
+      "number": 55,
       "description": "エアコンの冷媒R32として使われる。液体と気体を行き来しながら、熱を運ぶ。"
     },
-    "chloroethane": {
-      "number": 63,
-      "description": "蒸発するときに周囲の熱を奪う。皮膚を一時的に冷やす医療用スプレーにも使われる。"
-    },
     "1-2-dichloroethane": {
-      "number": 64,
+      "number": 56,
       "description": "主に塩化ビニルをつくる出発材料。配管などに使われる樹脂へとつながる。"
     },
     "vinyl-chloride": {
-      "number": 65,
+      "number": 57,
       "description": "たくさんつながると塩化ビニル樹脂になる。配管などの材料になるが、この気体自体は有毒。"
     },
     "chlorobenzene": {
-      "number": 66,
+      "number": 58,
       "description": "染料やほかの化学製品をつくる材料。水には溶けにくく、樹脂を溶かす用途もある。"
     },
     "methanol": {
-      "number": 67,
+      "number": 59,
       "description": "燃料や樹脂の材料になるアルコール。飲むと失明や命の危険があり、お酒のアルコールとは別物。"
     },
     "ethanol": {
-      "number": 68,
+      "number": 60,
       "description": "発酵でつくられる、お酒のアルコール。消毒や燃料にも使われ、水ともよく混ざる。"
     },
-    "1-propanol": {
-      "number": 69,
-      "description": "印刷インクや化粧品などの製造に使われる。水にも混ざる、蒸発しやすいアルコール。"
-    },
     "2-propanol": {
-      "number": 70,
+      "number": 61,
       "description": "イソプロピルアルコールとも呼ばれる。油汚れの洗浄や消毒に使われ、電子部品の清掃にも登場する。"
     },
     "1-butanol": {
-      "number": 71,
+      "number": 62,
       "description": "塗料や樹脂を扱う工場で使われる。エタノールより水と混ざりにくく、蒸発もゆっくり。"
     },
     "2-butanol": {
-      "number": 72,
+      "number": 63,
       "description": "塗料などに使う2-ブタノンの原料になる。1-ブタノールと同じ分子式でも、変化してできる物質が違う。"
     },
-    "isobutanol": {
-      "number": 73,
-      "description": "塗料や香料の材料づくりに使われる。微生物にこのアルコールをつくらせる研究もある。"
-    },
     "tert-butanol": {
-      "number": 74,
+      "number": 64,
       "description": "涼しい室内では固まることがあるアルコール。ブタノールの仲間でも、融ける温度が大きく違う。"
     },
     "ethylene-glycol": {
-      "number": 75,
+      "number": 65,
       "description": "水に混ぜると凍りにくくなり、不凍液に使われる。PETの原料にもなるが、飲むと有毒。"
     },
-    "propylene-glycol": {
-      "number": 76,
-      "description": "水分を保つ性質があり、食品や化粧品に使われる。凍結を防ぐ液体の成分にもなる。"
-    },
     "glycerol": {
-      "number": 77,
+      "number": 66,
       "description": "水分を引きつける、とろりとした液体。化粧品やせっけんなどで、しっとり感を保つ役目を持つ。"
     },
     "cyclohexanol": {
-      "number": 78,
+      "number": 67,
       "description": "ナイロンの原料づくりにつながる。融点が室温に近く、温度によって固体にも液体にもなる。"
     },
     "dimethyl-ether": {
-      "number": 79,
+      "number": 68,
       "description": "スプレー缶で中身を押し出す気体として使われる。燃料としての利用も研究されている。"
     },
     "methyl-ethyl-ether": {
-      "number": 80,
-      "description": "低い温度で沸騰する、燃えやすい物質。水に混ざりにくいエーテルの仲間。"
+      "number": 69,
+      "description": "Oを挟んでmethyl/ethyl基を持つ非対称ether。dimethyl ether→diethyl etherを1 carbon stepでつなぐ。"
     },
     "diethyl-ether": {
-      "number": 81,
+      "number": 70,
       "description": "すぐに蒸発し、非常に燃えやすい液体。昔は麻酔薬に使われ、実験では物質を分ける操作にも登場する。"
     },
     "tetrahydrofuran": {
-      "number": 82,
+      "number": 71,
       "description": "樹脂を溶かすのが得意な液体。化学反応を進めるための液体としてもよく使われる。"
     },
-    "1-4-dioxane": {
-      "number": 83,
-      "description": "水とよく混ざり、化学製品の製造で使われてきた。環境中の水に残ることが問題になる。"
-    },
     "ethylene-oxide": {
-      "number": 84,
+      "number": 72,
       "description": "熱に弱い医療器具の滅菌に使われる気体。反応しやすく、有毒なので厳重な管理が必要。"
     },
     "methanethiol": {
-      "number": 85,
+      "number": 73,
       "description": "ごく少量でも強いにおいを感じる気体。口臭や、食品が変化するときのにおいにも関わる。"
     },
-    "ethanethiol": {
-      "number": 86,
-      "description": "とても強いにおいを持つ。漏れたガスに気づけるよう、LPガスににおいを付ける用途がある。"
-    },
     "dimethyl-sulfide": {
-      "number": 87,
+      "number": 74,
       "description": "海のにおいに関わる物質のひとつ。海の微生物が生み出し、空気中の硫黄の流れにも関わる。"
     },
     "formaldehyde": {
-      "number": 88,
+      "number": 75,
       "description": "樹脂や接着剤の原料になる。建材から放出されると、室内の空気や健康に影響することがある。"
     },
     "acetaldehyde": {
-      "number": 89,
+      "number": 76,
       "description": "体内でお酒のアルコールが分解される途中にできる。顔が赤くなる、気分が悪くなる原因のひとつ。"
     },
     "propionaldehyde": {
-      "number": 90,
-      "description": "樹脂や香料など、ほかの製品をつくる中間材料。刺激のあるにおいを持つ、揮発しやすい液体。"
-    },
-    "butyraldehyde": {
-      "number": 91,
-      "description": "塗料やプラスチックに関わる製品の出発材料。特徴的なにおいを持つ液体。"
-    },
-    "isobutyraldehyde": {
-      "number": 92,
-      "description": "医薬品や農薬などの材料づくりに使われる。ブチルアルデヒドとは、できる製品の形が異なる。"
+      "number": 77,
+      "description": "propanalとも呼ばれるC3 aldehyde。酸化でpropionic acidへつながり、同式のacetoneとのaldehyde/ketone比較BRIDGEになる。"
     },
     "benzaldehyde": {
-      "number": 93,
+      "number": 78,
       "description": "アーモンドを思わせる香りを持つ。香料に使われ、杏仁の香りにも関係する。"
     },
     "acetone": {
-      "number": 94,
+      "number": 79,
       "description": "マニキュアの樹脂を溶かし、除光液に使われる。水ともよく混ざり、すばやく蒸発する。"
     },
     "2-butanone": {
-      "number": 95,
+      "number": 80,
       "description": "塗料や接着剤の樹脂を溶かす液体。工場ではMEKという名前でも呼ばれる。"
     },
-    "2-pentanone": {
-      "number": 96,
-      "description": "果物などの香りに少量含まれることがある。水には溶けにくい、揮発しやすい液体。"
-    },
-    "3-pentanone": {
-      "number": 97,
-      "description": "樹脂を溶かす用途がある液体。2-ペンタノンと同じ分子式でも、沸点などの性質が変わる。"
-    },
     "cyclohexanone": {
-      "number": 98,
+      "number": 81,
       "description": "ナイロンの原料をつくる大切な中間材料。塗料や樹脂を溶かす用途もある。"
     },
     "formic-acid": {
-      "number": 99,
+      "number": 82,
       "description": "一部のアリが身を守るために使う酸。皮革の加工などにも使われる。"
     },
     "acetic-acid": {
-      "number": 100,
+      "number": 83,
       "description": "お酢の酸っぱさと、つんとしたにおいの主役。接着剤や繊維の材料づくりにも使われる。"
     },
     "propionic-acid": {
-      "number": 101,
+      "number": 84,
       "description": "かびの増殖を抑える性質がある。塩の形でパンなどの保存料に使われる。"
     },
     "butyric-acid": {
-      "number": 102,
+      "number": 85,
       "description": "傷んだバターの強いにおいに関わる。腸内では微生物がつくり、大腸の細胞のエネルギーにもなる。"
     },
-    "isobutyric-acid": {
-      "number": 103,
-      "description": "強いにおいを持つ酸。別の分子と組み合わせると、果物のような香りの材料にもなる。"
-    },
-    "valeric-acid": {
-      "number": 104,
-      "description": "独特の強いにおいを持つ酸。エステルに変えることで、香料などの材料になる。"
-    },
     "oxalic-acid": {
-      "number": 105,
+      "number": 86,
       "description": "ほうれん草などの植物にも含まれる。カルシウムと結びつきやすく、尿路結石に関わることがある。"
     },
     "lactic-acid": {
-      "number": 106,
+      "number": 87,
       "description": "乳酸菌が糖からつくり、発酵食品の酸味になる。運動中の体でもつくられ、再びエネルギーとして使われる。"
     },
     "benzoic-acid": {
-      "number": 107,
+      "number": 88,
       "description": "水には溶けにくい白い固体。塩の形で、飲料などの保存料にも使われる。"
     },
-    "methyl-formate": {
-      "number": 108,
-      "description": "蒸発しやすいエステルの仲間。発泡材料や、ほかの化学製品をつくる用途がある。"
-    },
-    "ethyl-formate": {
-      "number": 109,
-      "description": "果物にも含まれる香り成分。香料のほか、害虫を防ぐ用途にも使われる。"
-    },
-    "methyl-acetate": {
-      "number": 110,
-      "description": "接着剤や塗料の樹脂を溶かす液体。果物を思わせるにおいがあり、蒸発しやすい。"
-    },
     "ethyl-acetate": {
-      "number": 111,
+      "number": 89,
       "description": "果物のような香りを持ち、接着剤やインクにも使われる。酢酸とエタノールからつくれる。"
     },
-    "methyl-propionate": {
-      "number": 112,
-      "description": "果物を思わせるにおいを持つ。香料や、ほかの化学製品の原料として使われる。"
-    },
-    "ethyl-propionate": {
-      "number": 113,
-      "description": "甘く果実のような香りを持つ液体。香りを組み立てるための材料になる。"
-    },
     "acrylic-acid": {
-      "number": 114,
+      "number": 90,
       "description": "水を吸う樹脂や接着剤の原料になる。紙おむつの吸水材にもつながる出発材料。"
     },
     "acetic-anhydride": {
-      "number": 115,
+      "number": 91,
       "description": "ほかの分子を加工する反応に使われる。アスピリンや、アセテート繊維の製造にも登場する。"
     },
     "methylamine": {
-      "number": 116,
+      "number": 92,
       "description": "医薬品や農薬などの材料になる気体。魚を思わせるにおいがあり、水によく溶ける。"
     },
-    "ethylamine": {
-      "number": 117,
-      "description": "染料や医薬品などをつくる出発材料。水に溶けるとアルカリ性を示す。"
-    },
     "dimethylamine": {
-      "number": 118,
+      "number": 93,
       "description": "工業製品をつくるための原料になる。強いにおいを持ち、自然界でも少量生じることがある。"
     },
     "trimethylamine": {
-      "number": 119,
+      "number": 94,
       "description": "魚の生臭いにおいの原因のひとつ。魚に含まれる物質を微生物が変化させると生まれる。"
     },
     "aniline": {
-      "number": 120,
+      "number": 95,
       "description": "染料やウレタン材料づくりに使われる。昔の合成染料の発展にも関わった物質。"
     },
-    "formamide": {
-      "number": 121,
-      "description": "水とよく混ざり、蒸発しにくい液体。化学合成や、核酸を扱う研究にも使われる。"
-    },
     "acetamide": {
-      "number": 122,
-      "description": "室温では結晶になる物質。ほかの有機化合物をつくる中間材料として使われる。"
-    },
-    "propionamide": {
-      "number": 123,
-      "description": "水に溶ける結晶性の物質。アミドの性質や反応を調べる際にも登場する。"
+      "number": 96,
+      "description": "acetic acidのOHがNH2へ置換されたamide。水素結合とacid→amideの官能基変換を比較できる。"
     },
     "urea": {
-      "number": 124,
+      "number": 97,
       "description": "体が余分な窒素を尿として出すためにつくる。肥料や、肌を保湿する製品にも使われる。"
     },
     "hydrogen-cyanide": {
-      "number": 125,
+      "number": 98,
       "description": "細胞が酸素を利用する働きを妨げる、非常に有毒な物質。化学工場では厳重に管理して扱われる。"
     },
     "acetonitrile": {
-      "number": 126,
+      "number": 99,
       "description": "物質を細かく分けて調べる分析でよく使われる。水と混ざる液体で、化学反応にも利用される。"
     },
     "acrylonitrile": {
-      "number": 127,
+      "number": 100,
       "description": "アクリル繊維や丈夫な樹脂の原料。衣類や家電の材料につながるが、この液体自体は有毒。"
     },
     "pyridine": {
-      "number": 128,
-      "description": "鼻につく強いにおいを持つ液体。医薬品などをつくる反応で使われる。"
+      "number": 101,
+      "description": "benzeneのCHを1つNへ置換した6員芳香族heterocycle。芳香族性を保ちつつNの孤立電子対が塩基性・配位性を与える。"
     },
     "acrolein": {
-      "number": 129,
+      "number": 102,
       "description": "油を高温にすると生じることがある。煙の刺激に関わり、目や呼吸器を強く刺激する。"
     },
     "glycine": {
-      "number": 130,
+      "number": 103,
       "description": "体のたんぱく質をつくるアミノ酸。コラーゲンに多く含まれ、甘みも持っている。"
     },
     "alanine": {
-      "number": 131,
+      "number": 104,
       "description": "体のたんぱく質をつくるアミノ酸。筋肉と肝臓の間で、エネルギーや窒素をやり取りする働きにも関わる。"
     },
     "ethylenediamine": {
-      "number": 132,
+      "number": 105,
       "description": "金属イオンをつかまえる化合物の原料になる。樹脂などの製造にも使われる。"
     },
     "phenol": {
-      "number": 133,
+      "number": 106,
       "description": "樹脂の材料として広く使われる。昔は消毒にも使われたが、皮膚を傷める有害な物質。"
     },
     "anisole": {
-      "number": 134,
+      "number": 107,
       "description": "アニスを思わせる香りを持つ液体。香料や、ほかの有機化合物をつくる材料になる。"
     },
     "acetophenone": {
-      "number": 135,
+      "number": 108,
       "description": "花を思わせる甘い香りを持つ。香料や、医薬品などをつくる中間材料に使われる。"
     },
     "catechol": {
-      "number": 136,
+      "number": 109,
       "description": "植物に関わる物質の中にも見られる。空気中で酸化されやすく、色の変化を起こす。"
     },
-    "resorcinol": {
-      "number": 137,
-      "description": "接着剤や樹脂の材料になる。タイヤのゴムと繊維を結びつける技術にも関わる。"
-    },
     "hydroquinone": {
-      "number": 138,
+      "number": 110,
       "description": "酸化されやすい性質を利用する物質。写真の現像や、望まない重合を防ぐ用途がある。"
     },
     "salicylic-acid": {
-      "number": 139,
+      "number": 111,
       "description": "植物が病気に対抗する仕組みに関わる。角質をやわらかくする性質があり、医薬品にも使われる。"
     },
-    "acetanilide": {
-      "number": 140,
-      "description": "昔は熱や痛みを抑える薬として使われた。副作用が問題となり、現在は主に化学合成の材料。"
-    },
     "terephthalic-acid": {
-      "number": 141,
+      "number": 112,
       "description": "PETをつくる主な原料。ペットボトルやポリエステルの服につながる白い固体。"
     },
     "aspirin": {
-      "number": 142,
+      "number": 113,
       "description": "痛みや熱を抑える薬の成分。少量で血小板の働きを抑える用途もある。"
     },
     "malonic-acid": {
-      "number": 143,
+      "number": 114,
       "description": "ほかの炭素のつながりをつくる反応に使われる。医薬品などの材料づくりに登場する。"
     },
     "succinic-acid": {
-      "number": 144,
+      "number": 115,
       "description": "貝のうまみに関わる成分のひとつ。体の中でエネルギーを取り出す仕組みにも登場する。"
     },
     "adipic-acid": {
-      "number": 145,
+      "number": 116,
       "description": "ナイロン66の原料になる白い固体。丈夫な繊維や、自動車部品などの材料につながる。"
     },
     "malic-acid": {
-      "number": 146,
+      "number": 117,
       "description": "リンゴなどの果物に含まれ、酸っぱさを生む。飲料やお菓子の酸味調整にも使われる。"
     },
     "citric-acid": {
-      "number": 147,
+      "number": 118,
       "description": "レモンなどに多い、酸っぱさの主役。水あかの成分を溶かし、掃除でも活躍する。"
     },
     "glycolic-acid": {
-      "number": 148,
+      "number": 119,
       "description": "化粧品や洗浄剤などに使われる酸。生分解性のある樹脂をつくる材料にもなる。"
     },
-    "o-cresol": {
-      "number": 149,
-      "description": "消毒薬に関係するクレゾールの仲間。樹脂などの材料にもなるが、皮膚を傷める性質がある。"
-    },
-    "m-cresol": {
-      "number": 150,
-      "description": "消毒作用を持つクレゾールの仲間。医薬品や香料など、ほかの化合物をつくる原料になる。"
-    },
-    "p-cresol": {
-      "number": 151,
-      "description": "微生物の働きでも生まれ、強いにおいを持つ。酸化を防ぐ添加剤などの原料にもなる。"
-    },
     "methyl-salicylate": {
-      "number": 152,
+      "number": 120,
       "description": "湿布を思わせる独特のにおいを持つ。外用薬や香料に使われるが、飲むためのものではない。"
     },
-    "methyl-benzoate": {
-      "number": 153,
-      "description": "花や果物を思わせる香りを持つ液体。香料として使われ、植物の香りにも含まれる。"
-    },
-    "ethyl-benzoate": {
-      "number": 154,
-      "description": "甘く果実のような香りを持つ。香水などで香りを組み立てる材料になる。"
-    },
-    "n-butyl-acetate": {
-      "number": 155,
-      "description": "果物のような香りを持ち、塗料にも使われる。樹脂を溶かし、塗った後に蒸発する。"
-    },
     "isoamyl-acetate": {
-      "number": 156,
+      "number": 121,
       "description": "バナナを思わせる香りで知られる。果物の香りを再現する材料に使われる。"
     },
-    "isopropyl-acetate": {
-      "number": 157,
-      "description": "果実のようなにおいを持つ、蒸発しやすい液体。印刷インクなどに使われる。"
-    },
-    "cumene": {
-      "number": 158,
-      "description": "フェノールとアセトンをつくる原料になる。樹脂や洗浄など、別々の用途へつながる出発点。"
-    },
     "benzyl-alcohol": {
-      "number": 159,
+      "number": 122,
       "description": "花の香りにも含まれる液体。香料や、製品を保存しやすくする成分として使われる。"
     },
     "serine": {
-      "number": 160,
+      "number": 123,
       "description": "体のたんぱく質をつくるアミノ酸。細胞の膜や、ほかの大切な物質をつくる材料にもなる。"
     },
     "cysteine": {
-      "number": 161,
+      "number": 124,
       "description": "髪や爪のたんぱく質を支えるアミノ酸。硫黄どうしの橋をつくり、たんぱく質の形を保つ。"
     },
     "methionine": {
-      "number": 162,
+      "number": 125,
       "description": "食べ物から取る必要があるアミノ酸。体がたんぱく質をつくり始める合図にも関わる。"
+    },
+    "cyclohexene": {
+      "number": 126,
+      "description": "6員環に1本のC=C二重結合を持つシクロアルケン。水素化するとシクロヘキサンになり、さらに不飽和化したベンゼンと比べると環状炭化水素の結合次数と反応性の違いが見える。"
+    },
+    "pyruvic-acid": {
+      "number": 127,
+      "description": "ピルビン酸はカルボキシ基とケトン基を同時に持つα-ケト酸。解糖系でグルコース分解の要所に現れ、乳酸やアラニンへ変換されるため、生体化学とカルボニル化学をつなぐ。"
+    },
+    "furan": {
+      "number": 128,
+      "description": "酸素1個を含む5員芳香族複素環。テトラヒドロフランとは同じO含有環でも芳香族性と不飽和度が異なり、バイオマス由来原料から得られるフラン化合物の基本骨格でもある。"
+    },
+    "dimethyl-sulfoxide": {
+      "number": 129,
+      "description": "硫黄に酸素が結合したスルホキシドで、強い極性を持つ非プロトン性溶媒。硫化ジメチルの酸化体にあたり、有機反応の溶媒や生体試料の凍結保護などに広く使われる。"
     }
   },
   "parts": {

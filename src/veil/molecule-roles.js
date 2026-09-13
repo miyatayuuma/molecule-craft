@@ -64,9 +64,6 @@ export const MOLECULE_ROLE_PROFILES=Object.freeze({
   '1-butanol':profile(['fuel'],{
     fuel:Object.freeze({capacity:10,oxygenPerFuel:6.00,energy:3.02,heatFactor:1.00,response:.82}),
   }),
-  isobutanol:profile(['fuel'],{
-    fuel:Object.freeze({capacity:10,oxygenPerFuel:6.00,energy:3.00,heatFactor:.98,response:.90}),
-  }),
   'dimethyl-ether':profile(['fuel'],{
     fuel:Object.freeze({capacity:14,oxygenPerFuel:3.00,energy:1.65,heatFactor:1.00,response:1.42}),
   }),
@@ -75,9 +72,6 @@ export const MOLECULE_ROLE_PROFILES=Object.freeze({
   }),
   'ethylene-glycol':profile(['coolant'],{
     coolant:Object.freeze({capacity:32,coolingPower:.65,durationFactor:2.80,environmentTolerance:1.65}),
-  }),
-  'propylene-glycol':profile(['coolant'],{
-    coolant:Object.freeze({capacity:30,coolingPower:.60,durationFactor:3.20,environmentTolerance:1.75}),
   }),
   oxygen:profile(['oxidizer'],{
     oxidizer:Object.freeze({capacity:36,oxidizingPower:1.00}),

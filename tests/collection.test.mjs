@@ -105,9 +105,9 @@ assert.throws(()=>validateCraftStructures([{...template('carboxyl'),bonds:[[0,1,
 
 const loadRaw=raw=>createCollectionState({records,groups,templates,storage:{getItem:()=>raw,setItem:()=>{}}});
 assert.equal(loadRaw('{broken').discoveredCount,0);
-assert.equal(loadRaw(JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'removed'},{id:'methanol'},{id:'methanol'}],unlockedStructures:['phenyl']})).discoveredCount,1);
+assert.equal(loadRaw(JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'removed'},{id:'methanol'},{id:'methanol'}],unlockedStructures:['phenyl']})).discoveredCount,0,'legacy collection discoveries reset under schema v3');
 assert.equal(loadRaw(JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'methanol'}],unlockedStructures:['phenyl']})).isUnlocked('phenyl'),false);
-assert.equal(loadRaw(JSON.stringify({schemaVersion:0,discoveredMoleculeIds:['methanol']})).isUnlocked('hydroxyl'),true);
+assert.equal(loadRaw(JSON.stringify({schemaVersion:0,discoveredMoleculeIds:['methanol']})).isUnlocked('hydroxyl'),false,'legacy collection unlocks reset under schema v3');
 let futureWrites=0;
 const future=createCollectionState({records,groups,templates,storage:{getItem:()=>JSON.stringify({schemaVersion:99}),setItem:()=>futureWrites++}});
 future.observeStructures([fixture('methanol')]);assert.equal(futureWrites,0,'Never overwrite a future-version save.');

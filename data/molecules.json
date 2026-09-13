@@ -428,55 +428,6 @@
     "iupacNameEn": "Phosphorus pentachloride"
   },
   {
-    "id": "sulfur-hexafluoride",
-    "nameJa": "六フッ化硫黄",
-    "nameEn": "Sulfur hexafluoride",
-    "atoms": [
-      "S",
-      "F",
-      "F",
-      "F",
-      "F",
-      "F",
-      "F"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        0,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ]
-    ],
-    "formula": "SF6",
-    "category": "basic-inorganic",
-    "iupacNameEn": "Sulfur hexafluoride"
-  },
-  {
     "id": "carbon-disulfide",
     "nameJa": "二硫化炭素",
     "nameEn": "Carbon disulfide",
@@ -1201,234 +1152,6 @@
     "commonNameEn": "n-Pentane"
   },
   {
-    "id": "isopentane",
-    "nameJa": "イソペンタン",
-    "nameEn": "Isopentane",
-    "aliases": [
-      "2-methylbutane"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        1,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ],
-      [
-        3,
-        13,
-        1
-      ],
-      [
-        4,
-        14,
-        1
-      ],
-      [
-        4,
-        15,
-        1
-      ],
-      [
-        4,
-        16,
-        1
-      ]
-    ],
-    "formula": "C5H12",
-    "category": "hydrocarbon",
-    "iupacNameEn": "2-Methylbutane",
-    "commonNameJa": "イソペンタン",
-    "commonNameEn": "Isopentane"
-  },
-  {
-    "id": "neopentane",
-    "nameJa": "ネオペンタン",
-    "nameEn": "Neopentane",
-    "aliases": [
-      "2,2-dimethylpropane"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        0,
-        4,
-        1
-      ],
-      [
-        1,
-        5,
-        1
-      ],
-      [
-        1,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        2,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ],
-      [
-        3,
-        13,
-        1
-      ],
-      [
-        4,
-        14,
-        1
-      ],
-      [
-        4,
-        15,
-        1
-      ],
-      [
-        4,
-        16,
-        1
-      ]
-    ],
-    "formula": "C5H12",
-    "category": "hydrocarbon",
-    "iupacNameEn": "2,2-Dimethylpropane",
-    "commonNameJa": "ネオペンタン",
-    "commonNameEn": "Neopentane"
-  },
-  {
     "id": "n-hexane",
     "nameJa": "n-ヘキサン",
     "nameEn": "n-Hexane",
@@ -1915,200 +1638,6 @@
     "iupacNameEn": "2-Methylprop-1-ene",
     "commonNameJa": "イソブテン",
     "commonNameEn": "Isobutene"
-  },
-  {
-    "id": "1-pentene",
-    "nameJa": "1-ペンテン",
-    "nameEn": "1-Pentene",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        2,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        3,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ],
-      [
-        4,
-        12,
-        1
-      ],
-      [
-        4,
-        13,
-        1
-      ],
-      [
-        4,
-        14,
-        1
-      ]
-    ],
-    "formula": "C5H10",
-    "category": "hydrocarbon",
-    "iupacNameEn": "Pent-1-ene"
-  },
-  {
-    "id": "2-pentene",
-    "nameJa": "2-ペンテン",
-    "nameEn": "2-Pentene",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        2
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        3,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ],
-      [
-        4,
-        12,
-        1
-      ],
-      [
-        4,
-        13,
-        1
-      ],
-      [
-        4,
-        14,
-        1
-      ]
-    ],
-    "formula": "C5H10",
-    "category": "hydrocarbon",
-    "iupacNameEn": "Pent-2-ene"
   },
   {
     "id": "ethyne",
@@ -3151,250 +2680,6 @@
     "iupacNameEn": "Ethylbenzene"
   },
   {
-    "id": "o-xylene",
-    "nameJa": "o-キシレン",
-    "nameEn": "o-Xylene",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        2,
-        8,
-        1
-      ],
-      [
-        3,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        5,
-        11,
-        1
-      ],
-      [
-        6,
-        12,
-        1
-      ],
-      [
-        6,
-        13,
-        1
-      ],
-      [
-        6,
-        14,
-        1
-      ],
-      [
-        7,
-        15,
-        1
-      ],
-      [
-        7,
-        16,
-        1
-      ],
-      [
-        7,
-        17,
-        1
-      ]
-    ],
-    "formula": "C8H10",
-    "category": "aromatic",
-    "iupacNameEn": "1,2-Dimethylbenzene",
-    "commonNameJa": "o-キシレン",
-    "commonNameEn": "o-Xylene"
-  },
-  {
-    "id": "m-xylene",
-    "nameJa": "m-キシレン",
-    "nameEn": "m-Xylene",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        2,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        3,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        5,
-        11,
-        1
-      ],
-      [
-        6,
-        12,
-        1
-      ],
-      [
-        6,
-        13,
-        1
-      ],
-      [
-        6,
-        14,
-        1
-      ],
-      [
-        7,
-        15,
-        1
-      ],
-      [
-        7,
-        16,
-        1
-      ],
-      [
-        7,
-        17,
-        1
-      ]
-    ],
-    "formula": "C8H10",
-    "category": "aromatic",
-    "iupacNameEn": "1,3-Dimethylbenzene",
-    "commonNameJa": "m-キシレン",
-    "commonNameEn": "m-Xylene"
-  },
-  {
     "id": "p-xylene",
     "nameJa": "p-キシレン",
     "nameEn": "p-Xylene",
@@ -3856,61 +3141,6 @@
     "iupacNameEn": "Difluoromethane"
   },
   {
-    "id": "chloroethane",
-    "nameJa": "クロロエタン",
-    "nameEn": "Chloroethane",
-    "atoms": [
-      "C",
-      "C",
-      "Cl",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        0,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        1,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ]
-    ],
-    "formula": "C2H5Cl",
-    "category": "halogenated-hydrocarbon",
-    "iupacNameEn": "Chloroethane"
-  },
-  {
     "id": "1-2-dichloroethane",
     "nameJa": "1,2-ジクロロエタン",
     "nameEn": "1,2-Dichloroethane",
@@ -4199,85 +3429,6 @@
     "iupacNameEn": "Ethanol"
   },
   {
-    "id": "1-propanol",
-    "nameJa": "1-プロパノール",
-    "nameEn": "1-Propanol",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        0,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ]
-    ],
-    "formula": "C3H8O",
-    "category": "alcohol",
-    "iupacNameEn": "Propan-1-ol"
-  },
-  {
     "id": "2-propanol",
     "nameJa": "2-プロパノール",
     "nameEn": "2-Propanol",
@@ -4554,106 +3705,6 @@
     "iupacNameEn": "Butan-2-ol"
   },
   {
-    "id": "isobutanol",
-    "nameJa": "イソブタノール",
-    "nameEn": "Isobutanol",
-    "aliases": [
-      "2-methyl-1-propanol"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        1,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        2,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ],
-      [
-        3,
-        13,
-        1
-      ],
-      [
-        4,
-        14,
-        1
-      ]
-    ],
-    "formula": "C4H10O",
-    "category": "alcohol",
-    "iupacNameEn": "2-Methylpropan-1-ol"
-  },
-  {
     "id": "tert-butanol",
     "nameJa": "tert-ブタノール",
     "nameEn": "tert-Butanol",
@@ -4824,96 +3875,6 @@
     "iupacNameEn": "Ethane-1,2-diol",
     "commonNameJa": "エチレングリコール",
     "commonNameEn": "Ethylene glycol"
-  },
-  {
-    "id": "propylene-glycol",
-    "nameJa": "プロピレングリコール",
-    "nameEn": "Propylene glycol",
-    "aliases": [
-      "propane-1,2-diol"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "O",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        1,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        2,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ],
-      [
-        4,
-        12,
-        1
-      ]
-    ],
-    "formula": "C3H8O2",
-    "category": "polyol",
-    "iupacNameEn": "Propane-1,2-diol",
-    "commonNameJa": "プロピレングリコール",
-    "commonNameEn": "Propylene glycol"
   },
   {
     "id": "glycerol",
@@ -5482,102 +4443,6 @@
     "commonNameEn": "Tetrahydrofuran"
   },
   {
-    "id": "1-4-dioxane",
-    "nameJa": "1,4-ジオキサン",
-    "nameEn": "1,4-Dioxane",
-    "atoms": [
-      "O",
-      "C",
-      "C",
-      "O",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        1
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        1,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        2,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        4,
-        11,
-        1
-      ],
-      [
-        5,
-        12,
-        1
-      ],
-      [
-        5,
-        13,
-        1
-      ]
-    ],
-    "formula": "C4H8O2",
-    "category": "cyclic-ether",
-    "iupacNameEn": "1,4-Dioxane"
-  },
-  {
     "id": "ethylene-oxide",
     "nameJa": "エチレンオキシド",
     "nameEn": "Ethylene oxide",
@@ -5678,67 +4543,6 @@
     "formula": "CH4S",
     "category": "thiol",
     "iupacNameEn": "Methanethiol"
-  },
-  {
-    "id": "ethanethiol",
-    "nameJa": "エタンチオール",
-    "nameEn": "Ethanethiol",
-    "atoms": [
-      "C",
-      "C",
-      "S",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        0,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        1,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        2,
-        8,
-        1
-      ]
-    ],
-    "formula": "C2H6S",
-    "category": "thiol",
-    "iupacNameEn": "Ethanethiol"
   },
   {
     "id": "dimethyl-sulfide",
@@ -5964,186 +4768,6 @@
     "iupacNameEn": "Propanal",
     "commonNameJa": "プロピオンアルデヒド",
     "commonNameEn": "Propionaldehyde"
-  },
-  {
-    "id": "butyraldehyde",
-    "nameJa": "ブチルアルデヒド",
-    "nameEn": "Butyraldehyde",
-    "aliases": [
-      "butanal"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        2
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        1,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        2,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ]
-    ],
-    "formula": "C4H8O",
-    "category": "aldehyde",
-    "iupacNameEn": "Butanal",
-    "commonNameJa": "ブチルアルデヒド",
-    "commonNameEn": "Butyraldehyde"
-  },
-  {
-    "id": "isobutyraldehyde",
-    "nameJa": "イソブチルアルデヒド",
-    "nameEn": "Isobutyraldehyde",
-    "aliases": [
-      "2-methylpropanal"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        2
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        1,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        2,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ]
-    ],
-    "formula": "C4H8O",
-    "category": "aldehyde",
-    "iupacNameEn": "2-Methylpropanal",
-    "commonNameJa": "イソブチルアルデヒド",
-    "commonNameEn": "Isobutyraldehyde"
   },
   {
     "id": "benzaldehyde",
@@ -6400,212 +5024,6 @@
     "formula": "C4H8O",
     "category": "ketone",
     "iupacNameEn": "Butan-2-one"
-  },
-  {
-    "id": "2-pentanone",
-    "nameJa": "2-ペンタノン",
-    "nameEn": "2-Pentanone",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        1,
-        5,
-        2
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        0,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ],
-      [
-        4,
-        13,
-        1
-      ],
-      [
-        4,
-        14,
-        1
-      ],
-      [
-        4,
-        15,
-        1
-      ]
-    ],
-    "formula": "C5H10O",
-    "category": "ketone",
-    "iupacNameEn": "Pentan-2-one"
-  },
-  {
-    "id": "3-pentanone",
-    "nameJa": "3-ペンタノン",
-    "nameEn": "3-Pentanone",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        2,
-        5,
-        2
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        0,
-        8,
-        1
-      ],
-      [
-        1,
-        9,
-        1
-      ],
-      [
-        1,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ],
-      [
-        4,
-        13,
-        1
-      ],
-      [
-        4,
-        14,
-        1
-      ],
-      [
-        4,
-        15,
-        1
-      ]
-    ],
-    "formula": "C5H10O",
-    "category": "ketone",
-    "iupacNameEn": "Pentan-3-one"
   },
   {
     "id": "cyclohexanone",
@@ -6998,216 +5416,6 @@
     "commonNameEn": "Butyric acid"
   },
   {
-    "id": "isobutyric-acid",
-    "nameJa": "イソ酪酸",
-    "nameEn": "Isobutyric acid",
-    "aliases": [
-      "2-methylpropanoic acid"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        2
-      ],
-      [
-        3,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        1,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        2,
-        11,
-        1
-      ],
-      [
-        2,
-        12,
-        1
-      ],
-      [
-        5,
-        13,
-        1
-      ]
-    ],
-    "formula": "C4H8O2",
-    "category": "carboxylic-acid",
-    "iupacNameEn": "2-Methylpropanoic acid",
-    "commonNameJa": "イソ酪酸",
-    "commonNameEn": "Isobutyric acid"
-  },
-  {
-    "id": "valeric-acid",
-    "nameJa": "吉草酸",
-    "nameEn": "Valeric acid",
-    "aliases": [
-      "pentanoic acid"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        4,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        0,
-        8,
-        1
-      ],
-      [
-        0,
-        9,
-        1
-      ],
-      [
-        1,
-        10,
-        1
-      ],
-      [
-        1,
-        11,
-        1
-      ],
-      [
-        2,
-        12,
-        1
-      ],
-      [
-        2,
-        13,
-        1
-      ],
-      [
-        3,
-        14,
-        1
-      ],
-      [
-        3,
-        15,
-        1
-      ],
-      [
-        6,
-        16,
-        1
-      ]
-    ],
-    "formula": "C5H10O2",
-    "category": "carboxylic-acid",
-    "iupacNameEn": "Pentanoic acid",
-    "commonNameJa": "吉草酸",
-    "commonNameEn": "Valeric acid"
-  },
-  {
     "id": "oxalic-acid",
     "nameJa": "シュウ酸",
     "nameEn": "Oxalic acid",
@@ -7454,207 +5662,6 @@
     "iupacNameEn": "Benzoic acid"
   },
   {
-    "id": "methyl-formate",
-    "nameJa": "ギ酸メチル",
-    "nameEn": "Methyl formate",
-    "atoms": [
-      "C",
-      "O",
-      "O",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        0,
-        4,
-        1
-      ],
-      [
-        3,
-        5,
-        1
-      ],
-      [
-        3,
-        6,
-        1
-      ],
-      [
-        3,
-        7,
-        1
-      ]
-    ],
-    "formula": "C2H4O2",
-    "category": "ester",
-    "iupacNameEn": "Methyl methanoate"
-  },
-  {
-    "id": "ethyl-formate",
-    "nameJa": "ギ酸エチル",
-    "nameEn": "Ethyl formate",
-    "atoms": [
-      "C",
-      "O",
-      "O",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        3,
-        6,
-        1
-      ],
-      [
-        3,
-        7,
-        1
-      ],
-      [
-        4,
-        8,
-        1
-      ],
-      [
-        4,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ]
-    ],
-    "formula": "C3H6O2",
-    "category": "ester",
-    "iupacNameEn": "Ethyl methanoate"
-  },
-  {
-    "id": "methyl-acetate",
-    "nameJa": "酢酸メチル",
-    "nameEn": "Methyl acetate",
-    "atoms": [
-      "C",
-      "C",
-      "O",
-      "O",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        2
-      ],
-      [
-        1,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        4,
-        8,
-        1
-      ],
-      [
-        4,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ]
-    ],
-    "formula": "C3H6O2",
-    "category": "ester",
-    "iupacNameEn": "Methyl ethanoate"
-  },
-  {
     "id": "ethyl-acetate",
     "nameJa": "酢酸エチル",
     "nameEn": "Ethyl acetate",
@@ -7744,206 +5751,6 @@
     "formula": "C4H8O2",
     "category": "ester",
     "iupacNameEn": "Ethyl ethanoate"
-  },
-  {
-    "id": "methyl-propionate",
-    "nameJa": "プロピオン酸メチル",
-    "nameEn": "Methyl propionate",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "O",
-      "O",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        2,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        0,
-        8,
-        1
-      ],
-      [
-        1,
-        9,
-        1
-      ],
-      [
-        1,
-        10,
-        1
-      ],
-      [
-        5,
-        11,
-        1
-      ],
-      [
-        5,
-        12,
-        1
-      ],
-      [
-        5,
-        13,
-        1
-      ]
-    ],
-    "formula": "C4H8O2",
-    "category": "ester",
-    "iupacNameEn": "Methyl propanoate"
-  },
-  {
-    "id": "ethyl-propionate",
-    "nameJa": "プロピオン酸エチル",
-    "nameEn": "Ethyl propionate",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "O",
-      "O",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        2,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        1
-      ],
-      [
-        5,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        0,
-        8,
-        1
-      ],
-      [
-        0,
-        9,
-        1
-      ],
-      [
-        1,
-        10,
-        1
-      ],
-      [
-        1,
-        11,
-        1
-      ],
-      [
-        5,
-        12,
-        1
-      ],
-      [
-        5,
-        13,
-        1
-      ],
-      [
-        6,
-        14,
-        1
-      ],
-      [
-        6,
-        15,
-        1
-      ],
-      [
-        6,
-        16,
-        1
-      ]
-    ],
-    "formula": "C5H10O2",
-    "category": "ester",
-    "iupacNameEn": "Ethyl propanoate"
   },
   {
     "id": "acrylic-acid",
@@ -8143,73 +5950,6 @@
     "formula": "CH5N",
     "category": "amine",
     "iupacNameEn": "Methanamine"
-  },
-  {
-    "id": "ethylamine",
-    "nameJa": "エチルアミン",
-    "nameEn": "Ethylamine",
-    "atoms": [
-      "C",
-      "C",
-      "N",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        0,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        1,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        2,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ]
-    ],
-    "formula": "C2H7N",
-    "category": "amine",
-    "iupacNameEn": "Ethanamine"
   },
   {
     "id": "dimethylamine",
@@ -8465,51 +6205,6 @@
     "commonNameEn": "Aniline"
   },
   {
-    "id": "formamide",
-    "nameJa": "ホルムアミド",
-    "nameEn": "Formamide",
-    "atoms": [
-      "C",
-      "O",
-      "N",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        2,
-        4,
-        1
-      ],
-      [
-        2,
-        5,
-        1
-      ]
-    ],
-    "formula": "CH3NO",
-    "category": "amide",
-    "iupacNameEn": "Methanamide",
-    "commonNameJa": "ホルムアミド",
-    "commonNameEn": "Formamide"
-  },
-  {
     "id": "acetamide",
     "nameJa": "アセトアミド",
     "nameEn": "Acetamide",
@@ -8571,87 +6266,6 @@
     "iupacNameEn": "Ethanamide",
     "commonNameJa": "アセトアミド",
     "commonNameEn": "Acetamide"
-  },
-  {
-    "id": "propionamide",
-    "nameJa": "プロピオンアミド",
-    "nameEn": "Propionamide",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "O",
-      "N",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        2,
-        4,
-        1
-      ],
-      [
-        0,
-        5,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        1,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        4,
-        11,
-        1
-      ]
-    ],
-    "formula": "C3H7NO",
-    "category": "amide",
-    "iupacNameEn": "Propanamide",
-    "commonNameJa": "プロピオンアミド",
-    "commonNameEn": "Propionamide"
   },
   {
     "id": "urea",
@@ -9630,104 +7244,6 @@
     "commonNameEn": "Catechol"
   },
   {
-    "id": "resorcinol",
-    "nameJa": "レゾルシノール",
-    "nameEn": "Resorcinol",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "O",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        2,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        3,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        5,
-        11,
-        1
-      ],
-      [
-        6,
-        12,
-        1
-      ],
-      [
-        7,
-        13,
-        1
-      ]
-    ],
-    "formula": "C6H6O2",
-    "category": "aromatic-diol",
-    "iupacNameEn": "Benzene-1,3-diol",
-    "commonNameJa": "レゾルシノール",
-    "commonNameEn": "Resorcinol"
-  },
-  {
     "id": "hydroquinone",
     "nameJa": "ヒドロキノン",
     "nameEn": "Hydroquinone",
@@ -9937,134 +7453,6 @@
     "iupacNameEn": "2-Hydroxybenzoic acid",
     "commonNameJa": "サリチル酸",
     "commonNameEn": "Salicylic acid"
-  },
-  {
-    "id": "acetanilide",
-    "nameJa": "アセトアニリド",
-    "nameEn": "Acetanilide",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "N",
-      "C",
-      "O",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        6,
-        7,
-        1
-      ],
-      [
-        7,
-        8,
-        2
-      ],
-      [
-        7,
-        9,
-        1
-      ],
-      [
-        1,
-        10,
-        1
-      ],
-      [
-        2,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ],
-      [
-        4,
-        13,
-        1
-      ],
-      [
-        5,
-        14,
-        1
-      ],
-      [
-        6,
-        15,
-        1
-      ],
-      [
-        9,
-        16,
-        1
-      ],
-      [
-        9,
-        17,
-        1
-      ],
-      [
-        9,
-        18,
-        1
-      ]
-    ],
-    "formula": "C8H9NO",
-    "category": "aromatic-amide",
-    "iupacNameEn": "N-Phenylacetamide",
-    "commonNameJa": "アセトアニリド",
-    "commonNameEn": "Acetanilide"
   },
   {
     "id": "terephthalic-acid",
@@ -10930,339 +8318,6 @@
     "learningNote": "ヒドロキシ酸の小さな例。CH₂にヒドロキシ基とカルボキシ基がつながります。"
   },
   {
-    "id": "o-cresol",
-    "nameJa": "o-クレゾール",
-    "nameEn": "o-Cresol",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        1,
-        7,
-        1
-      ],
-      [
-        2,
-        8,
-        1
-      ],
-      [
-        3,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        5,
-        11,
-        1
-      ],
-      [
-        6,
-        12,
-        1
-      ],
-      [
-        7,
-        13,
-        1
-      ],
-      [
-        7,
-        14,
-        1
-      ],
-      [
-        7,
-        15,
-        1
-      ]
-    ],
-    "formula": "C7H8O",
-    "category": "aromatic-alcohol",
-    "iupacNameEn": "2-Methylphenol",
-    "commonNameJa": "o-クレゾール",
-    "commonNameEn": "o-Cresol",
-    "learningNote": "フェノールの環にメチル基を1個追加した構造。置換位置が違う3種類を別々に収集できます。"
-  },
-  {
-    "id": "m-cresol",
-    "nameJa": "m-クレゾール",
-    "nameEn": "m-Cresol",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        2,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        3,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        5,
-        11,
-        1
-      ],
-      [
-        6,
-        12,
-        1
-      ],
-      [
-        7,
-        13,
-        1
-      ],
-      [
-        7,
-        14,
-        1
-      ],
-      [
-        7,
-        15,
-        1
-      ]
-    ],
-    "formula": "C7H8O",
-    "category": "aromatic-alcohol",
-    "iupacNameEn": "3-Methylphenol",
-    "commonNameJa": "m-クレゾール",
-    "commonNameEn": "m-Cresol",
-    "learningNote": "フェノールの環にメチル基を1個追加した構造。置換位置が違う3種類を別々に収集できます。"
-  },
-  {
-    "id": "p-cresol",
-    "nameJa": "p-クレゾール",
-    "nameEn": "p-Cresol",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        3,
-        7,
-        1
-      ],
-      [
-        1,
-        8,
-        1
-      ],
-      [
-        2,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        5,
-        11,
-        1
-      ],
-      [
-        6,
-        12,
-        1
-      ],
-      [
-        7,
-        13,
-        1
-      ],
-      [
-        7,
-        14,
-        1
-      ],
-      [
-        7,
-        15,
-        1
-      ]
-    ],
-    "formula": "C7H8O",
-    "category": "aromatic-alcohol",
-    "iupacNameEn": "4-Methylphenol",
-    "commonNameJa": "p-クレゾール",
-    "commonNameEn": "p-Cresol",
-    "learningNote": "フェノールの環にメチル基を1個追加した構造。置換位置が違う3種類を別々に収集できます。"
-  },
-  {
     "id": "methyl-salicylate",
     "nameJa": "サリチル酸メチル",
     "nameEn": "Methyl salicylate",
@@ -11390,404 +8445,6 @@
     "commonNameJa": "サリチル酸メチル",
     "commonNameEn": "Methyl salicylate",
     "learningNote": "ウィンターグリーンの香りに関係するエステル。芳香環・ヒドロキシ基・エステル結合を組み合わせます。"
-  },
-  {
-    "id": "methyl-benzoate",
-    "nameJa": "安息香酸メチル",
-    "nameEn": "Methyl benzoate",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "O",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        6,
-        7,
-        2
-      ],
-      [
-        6,
-        8,
-        1
-      ],
-      [
-        8,
-        9,
-        1
-      ],
-      [
-        1,
-        10,
-        1
-      ],
-      [
-        2,
-        11,
-        1
-      ],
-      [
-        3,
-        12,
-        1
-      ],
-      [
-        4,
-        13,
-        1
-      ],
-      [
-        5,
-        14,
-        1
-      ],
-      [
-        9,
-        15,
-        1
-      ],
-      [
-        9,
-        16,
-        1
-      ],
-      [
-        9,
-        17,
-        1
-      ]
-    ],
-    "formula": "C8H8O2",
-    "category": "aromatic-ester",
-    "iupacNameEn": "Methyl benzoate",
-    "commonNameJa": "安息香酸メチル",
-    "commonNameEn": "Methyl benzoate",
-    "learningNote": "香料にも使われる芳香族エステル。酸素側の炭素鎖を替えると別の分子になります。"
-  },
-  {
-    "id": "ethyl-benzoate",
-    "nameJa": "安息香酸エチル",
-    "nameEn": "Ethyl benzoate",
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "O",
-      "O",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        6,
-        7,
-        2
-      ],
-      [
-        6,
-        8,
-        1
-      ],
-      [
-        8,
-        9,
-        1
-      ],
-      [
-        9,
-        10,
-        1
-      ],
-      [
-        1,
-        11,
-        1
-      ],
-      [
-        2,
-        12,
-        1
-      ],
-      [
-        3,
-        13,
-        1
-      ],
-      [
-        4,
-        14,
-        1
-      ],
-      [
-        5,
-        15,
-        1
-      ],
-      [
-        9,
-        16,
-        1
-      ],
-      [
-        9,
-        17,
-        1
-      ],
-      [
-        10,
-        18,
-        1
-      ],
-      [
-        10,
-        19,
-        1
-      ],
-      [
-        10,
-        20,
-        1
-      ]
-    ],
-    "formula": "C9H10O2",
-    "category": "aromatic-ester",
-    "iupacNameEn": "Ethyl benzoate",
-    "commonNameJa": "安息香酸エチル",
-    "commonNameEn": "Ethyl benzoate",
-    "learningNote": "香料にも使われる芳香族エステル。酸素側の炭素鎖を替えると別の分子になります。"
-  },
-  {
-    "id": "n-butyl-acetate",
-    "nameJa": "酢酸n-ブチル",
-    "nameEn": "n-Butyl acetate",
-    "aliases": [
-      "酢酸ブチル",
-      "butyl acetate"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "O",
-      "O",
-      "C",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        2
-      ],
-      [
-        1,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        1
-      ],
-      [
-        5,
-        6,
-        1
-      ],
-      [
-        6,
-        7,
-        1
-      ],
-      [
-        0,
-        8,
-        1
-      ],
-      [
-        0,
-        9,
-        1
-      ],
-      [
-        0,
-        10,
-        1
-      ],
-      [
-        4,
-        11,
-        1
-      ],
-      [
-        4,
-        12,
-        1
-      ],
-      [
-        5,
-        13,
-        1
-      ],
-      [
-        5,
-        14,
-        1
-      ],
-      [
-        6,
-        15,
-        1
-      ],
-      [
-        6,
-        16,
-        1
-      ],
-      [
-        7,
-        17,
-        1
-      ],
-      [
-        7,
-        18,
-        1
-      ],
-      [
-        7,
-        19,
-        1
-      ]
-    ],
-    "formula": "C6H12O2",
-    "category": "ester",
-    "iupacNameEn": "Butyl ethanoate",
-    "commonNameJa": "酢酸n-ブチル",
-    "commonNameEn": "n-Butyl acetate",
-    "learningNote": "塗料などの溶剤に使われるエステル。n-ブチル基を長い炭素鎖として活用できます。"
   },
   {
     "id": "isoamyl-acetate",
@@ -11939,263 +8596,6 @@
     "commonNameJa": "酢酸イソアミル",
     "commonNameEn": "Isoamyl acetate",
     "learningNote": "バナナ様の香りで知られるエステル。直鎖の酢酸エステルとは異なり、末端近くで枝分かれします。"
-  },
-  {
-    "id": "isopropyl-acetate",
-    "nameJa": "酢酸イソプロピル",
-    "nameEn": "Isopropyl acetate",
-    "atoms": [
-      "C",
-      "C",
-      "O",
-      "O",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        1
-      ],
-      [
-        1,
-        2,
-        2
-      ],
-      [
-        1,
-        3,
-        1
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        1
-      ],
-      [
-        4,
-        6,
-        1
-      ],
-      [
-        0,
-        7,
-        1
-      ],
-      [
-        0,
-        8,
-        1
-      ],
-      [
-        0,
-        9,
-        1
-      ],
-      [
-        4,
-        10,
-        1
-      ],
-      [
-        5,
-        11,
-        1
-      ],
-      [
-        5,
-        12,
-        1
-      ],
-      [
-        5,
-        13,
-        1
-      ],
-      [
-        6,
-        14,
-        1
-      ],
-      [
-        6,
-        15,
-        1
-      ],
-      [
-        6,
-        16,
-        1
-      ]
-    ],
-    "formula": "C5H10O2",
-    "category": "ester",
-    "iupacNameEn": "Propan-2-yl ethanoate",
-    "commonNameJa": "酢酸イソプロピル",
-    "commonNameEn": "Isopropyl acetate",
-    "learningNote": "溶剤に使われるエステル。イソプロピル基の中央のCHが酸素につながります。"
-  },
-  {
-    "id": "cumene",
-    "nameJa": "クメン",
-    "nameEn": "Cumene",
-    "aliases": [
-      "イソプロピルベンゼン",
-      "isopropylbenzene"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "C",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        1,
-        2,
-        1
-      ],
-      [
-        2,
-        3,
-        2
-      ],
-      [
-        3,
-        4,
-        1
-      ],
-      [
-        4,
-        5,
-        2
-      ],
-      [
-        5,
-        0,
-        1
-      ],
-      [
-        0,
-        6,
-        1
-      ],
-      [
-        6,
-        7,
-        1
-      ],
-      [
-        6,
-        8,
-        1
-      ],
-      [
-        1,
-        9,
-        1
-      ],
-      [
-        2,
-        10,
-        1
-      ],
-      [
-        3,
-        11,
-        1
-      ],
-      [
-        4,
-        12,
-        1
-      ],
-      [
-        5,
-        13,
-        1
-      ],
-      [
-        6,
-        14,
-        1
-      ],
-      [
-        7,
-        15,
-        1
-      ],
-      [
-        7,
-        16,
-        1
-      ],
-      [
-        7,
-        17,
-        1
-      ],
-      [
-        8,
-        18,
-        1
-      ],
-      [
-        8,
-        19,
-        1
-      ],
-      [
-        8,
-        20,
-        1
-      ]
-    ],
-    "formula": "C9H12",
-    "category": "aromatic",
-    "iupacNameEn": "Propan-2-ylbenzene",
-    "commonNameJa": "クメン",
-    "commonNameEn": "Cumene",
-    "learningNote": "フェノール製造の原料となる芳香族炭化水素。フェニル基とイソプロピル基を接続した骨格です。"
   },
   {
     "id": "benzyl-alcohol",
@@ -12628,5 +9028,328 @@
     "commonNameEn": "Methionine",
     "learningNote": "側鎖の途中に硫黄を含むアミノ酸。システインのSHとは異なるC–S–Cを持ちます。",
     "stereochemistry": "unspecified"
+  },
+  {
+    "id": "cyclohexene",
+    "nameJa": "シクロヘキセン",
+    "nameEn": "Cyclohexene",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        1
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        1
+      ],
+      [
+        5,
+        0,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        2,
+        8,
+        1
+      ],
+      [
+        2,
+        9,
+        1
+      ],
+      [
+        3,
+        10,
+        1
+      ],
+      [
+        3,
+        11,
+        1
+      ],
+      [
+        4,
+        12,
+        1
+      ],
+      [
+        4,
+        13,
+        1
+      ],
+      [
+        5,
+        14,
+        1
+      ],
+      [
+        5,
+        15,
+        1
+      ]
+    ],
+    "formula": "C6H10",
+    "category": "cyclic-hydrocarbon",
+    "iupacNameEn": "Cyclohex-1-ene",
+    "commonNameJa": "シクロヘキセン",
+    "commonNameEn": "Cyclohexene",
+    "learningNote": "6員環に1本のC=C二重結合を持つシクロアルケン。水素化するとシクロヘキサンになり、さらに不飽和化したベンゼンと比べると環状炭化水素の結合次数と反応性の違いが見える。"
+  },
+  {
+    "id": "pyruvic-acid",
+    "nameJa": "ピルビン酸",
+    "nameEn": "Pyruvic acid",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "O",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        1,
+        3,
+        2
+      ],
+      [
+        2,
+        4,
+        2
+      ],
+      [
+        2,
+        5,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        0,
+        7,
+        1
+      ],
+      [
+        0,
+        8,
+        1
+      ],
+      [
+        5,
+        9,
+        1
+      ]
+    ],
+    "formula": "C3H4O3",
+    "category": "carboxylic-acid",
+    "iupacNameEn": "2-Oxopropanoic acid",
+    "commonNameJa": "ピルビン酸",
+    "commonNameEn": "Pyruvic acid",
+    "learningNote": "ピルビン酸はカルボキシ基とケトン基を同時に持つα-ケト酸。解糖系でグルコース分解の要所に現れ、乳酸やアラニンへ変換されるため、生体化学とカルボニル化学をつなぐ。"
+  },
+  {
+    "id": "furan",
+    "nameJa": "フラン",
+    "nameEn": "Furan",
+    "atoms": [
+      "O",
+      "C",
+      "C",
+      "C",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        2
+      ],
+      [
+        2,
+        3,
+        1
+      ],
+      [
+        3,
+        4,
+        2
+      ],
+      [
+        4,
+        0,
+        1
+      ],
+      [
+        1,
+        5,
+        1
+      ],
+      [
+        2,
+        6,
+        1
+      ],
+      [
+        3,
+        7,
+        1
+      ],
+      [
+        4,
+        8,
+        1
+      ]
+    ],
+    "formula": "C4H4O",
+    "category": "ether-cyclic-ether",
+    "iupacNameEn": "Furan",
+    "commonNameJa": "フラン",
+    "commonNameEn": "Furan",
+    "learningNote": "酸素1個を含む5員芳香族複素環。テトラヒドロフランとは同じO含有環でも芳香族性と不飽和度が異なり、バイオマス由来原料から得られるフラン化合物の基本骨格でもある。"
+  },
+  {
+    "id": "dimethyl-sulfoxide",
+    "nameJa": "ジメチルスルホキシド",
+    "nameEn": "Dimethyl sulfoxide",
+    "aliases": [
+      "DMSO"
+    ],
+    "atoms": [
+      "C",
+      "S",
+      "C",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        1,
+        3,
+        2
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        2,
+        7,
+        1
+      ],
+      [
+        2,
+        8,
+        1
+      ],
+      [
+        2,
+        9,
+        1
+      ]
+    ],
+    "formula": "C2H6OS",
+    "category": "sulfur-compounds",
+    "iupacNameEn": "Dimethyl sulfoxide",
+    "commonNameJa": "ジメチルスルホキシド",
+    "commonNameEn": "Dimethyl sulfoxide",
+    "learningNote": "硫黄に酸素が結合したスルホキシドで、強い極性を持つ非プロトン性溶媒。硫化ジメチルの酸化体にあたり、有機反応の溶媒や生体試料の凍結保護などに広く使われる。"
   }
 ]
