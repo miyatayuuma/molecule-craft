@@ -44,6 +44,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/pending-craft.js src/veil/loadout-workstation.js src/veil/supply.js src/veil/renderer.js tests/pending-craft.test.mjs tests/loadout-shortage-confirmation.test.mjs tests/loadout-workstation.test.mjs tests/launch-selector.test.mjs tests/ui-symbols.test.mjs .github/workflows/repository-validation.yml precache-manifest.js sw.js
+          git add src/pending-craft.js src/veil/loadout-workstation.js src/veil/supply.js src/veil/renderer.js tests/pending-craft.test.mjs tests/loadout-shortage-confirmation.test.mjs tests/loadout-workstation.test.mjs tests/launch-selector.test.mjs tests/ui-symbols.test.mjs precache-manifest.js sw.js
           git commit -m "Remove explanatory UI from FIELD and LOADOUT"
           git push origin HEAD:ui-deexplanation-pass
