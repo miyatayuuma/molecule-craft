@@ -41,6 +41,8 @@ jobs:
           node tests/capability-unlock.test.mjs
       - name: Encyclopedia graph UI
         run: node tests/encyclopedia-graph-ui.test.mjs
+      - name: Browser startup
+        run: node tests/browser-startup.test.mjs
       - name: Molecule DB v2 persistence
         run: |
           node tests/collection-persistence.test.mjs
