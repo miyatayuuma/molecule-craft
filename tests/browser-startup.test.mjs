@@ -26,7 +26,7 @@ try{
   child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
   let stderr='';child.stderr.setEncoding('utf8');child.stderr.on('data',chunk=>stderr+=chunk);
   let tabs=null;
-  for(let attempt=0;attempt<80;attempt++){
+  for(let attempt=0;attempt<160;attempt++){
     try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}
     await new Promise(resolveWait=>setTimeout(resolveWait,100));
   }
