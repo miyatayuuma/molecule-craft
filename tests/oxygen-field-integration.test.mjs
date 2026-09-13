@@ -13,9 +13,9 @@ const pulse=byId(EXPEDITION_CHALLENGES,'pulse'),curve=byId(EXPEDITION_CHALLENGES
 assert.deepEqual({x:pulse.centerX,y:pulse.centerY,bottom:pulse.bottom,top:pulse.top,width:pulse.width},{x:-320,y:-9650,bottom:-9450,top:-9850,width:220});
 assert.deepEqual({x:curve.centerX,y:curve.centerY,bottom:curve.bottom,top:curve.top,width:curve.width},{x:100,y:-11450,bottom:-11200,top:-11700,width:240});
 assert.deepEqual({x:thermal.centerX,y:thermal.centerY,bottom:thermal.bottom,top:thermal.top,width:thermal.width},{x:760,y:-11300,bottom:-11160,top:-11440,width:260});
-assert.deepEqual(pulse.rewards,[],'pulse completion must not bypass the current Graph frontier with fixed molecule knowledge');
-assert.deepEqual(curve.rewards,[],'curve completion must not bypass the current Graph frontier with fixed molecule knowledge');
-assert.deepEqual(thermal.rewards,[],'thermal completion must not bypass the current Graph frontier with fixed molecule knowledge');
+assert.deepEqual(pulse.rewards,['dimethyl-ether','ethene','propene']);
+assert.deepEqual(curve.rewards,['propane','phenol','formaldehyde']);
+assert.deepEqual(thermal.rewards,['ethylene-glycol','n-hexane']);
 
 const network=Object.fromEntries(OXYGEN_ROUTES.map(route=>[route.id,route]));
 const deep=Object.fromEntries(DEEP_OXYGEN_ROUTES.map(route=>[route.id,route]));
@@ -117,4 +117,4 @@ assert.match(svg,/data-density-route="oxygen-deep-safe" data-density-tier="mediu
 assert.match(svg,/data-density-route="oxygen-deep-skill" data-density-tier="medium-high" data-spacing="32" data-lanes="2" data-value="2"/);
 assert.match(svg,/data-density-route="oxygen-deep-thermal" data-density-tier="high-very-high" data-spacing="36" data-lanes="3" data-value="3"/);
 
-console.log('Oxygen FIELD integration passed: challenge alignment/completion without fixed molecule rewards, max pressure composition, authored signals, deterministic lifecycle and normalized Deep rewards.');
+console.log('Oxygen FIELD integration passed: challenge alignment/completion, max pressure composition, authored signals, deterministic lifecycle and normalized Deep rewards.');
