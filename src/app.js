@@ -28,6 +28,7 @@ import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 import { matchCraftTarget } from './craft-target-satisfaction.js';
 import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js?v=1';
+import { createTearGesture, findTearCandidate, projectedTearPull } from './craft-tearoff.js?v=1';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
@@ -45,6 +46,7 @@ let electronVisuals=[],aromaticVisuals=[],sharedVisuals=[];
 const unresolvedAtoms=new Set(),stateCache=new Map(),geometryCache=new Map();
 const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
 const ELECTRON_SNAP_PX=58;
+const TEAR_WARNING_COLOR=new THREE.Color(0xfb7185);
 let structures=[],mainStructure=null,structureByAtom=new Map();
 const debrisTracker=createDebrisTracker();
 const workspaceView=createWorkspaceView();
@@ -220,7 +222,7 @@ function beginAtomDrag(e,atomId){
   const plan=atomEditPlan(atomId),home=pos(atomId)?.clone();showTorsionGuide(plan);
   if(['conformation','torsion','rigid-body'].includes(plan.mode))conformationEngine.beginDrag(atomId,{preparedPlan:plan});
   dragState={...plan,homeWorld:home,targetWorld:home?.clone(),planeNormal:cameraDirection(),startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,
-    lastPhysicsAt:performance.now(),moved:false,pointerType:e.pointerType};
+    lastPhysicsAt:performance.now(),moved:false,pointerType:e.pointerType,tearGesture:createTearGesture(),tearCandidate:null,tearFeedback:0,tearProgress:0};
   if(plan.mode==='atom-locked')vibrateFeedback(22,e.pointerType);
   capture(e);refresh();
 }
@@ -233,6 +235,23 @@ function advanceConformationDrag(now=performance.now()){
   const deltaSeconds=Math.max(1/240,Math.min(1/20,(now-dragState.lastPhysicsAt)/1000||1/60));dragState.lastPhysicsAt=now;
   const result=conformationEngine.updateDrag(dragState.targetWorld,{deltaSeconds});dragState.lastResult=result;
   if(result.accepted)workspaceView.geometryChanged();updateMoleculeTransforms();
+}
+function advanceTearDrag(now=performance.now()){
+  const state=dragState;if(!state?.moved||state.mode==='tear-complete'||state.atomId==null||!state.homeWorld||!state.targetWorld||!state.tearGesture)return false;
+  const pullVector=state.targetWorld.clone().sub(state.homeWorld),candidate=findTearCandidate(molecule,state.atomId,{positionFor:pos,pullVector}),tension=projectedTearPull(candidate,pullVector),previous=state.tearFeedback??0;
+  const result=state.tearGesture.update({candidate,tension,now});state.tearCandidate=result.candidate;state.tearFeedback=Math.max(result.feedback,result.progress*.85);state.tearProgress=result.progress;
+  if(result.armedJustNow)vibrateFeedback(12,state.pointerType);
+  if(result.shouldTear)return performTearOff(state,result.candidate);
+  if(Math.abs(previous-state.tearFeedback)>.01)updateMoleculeTransforms();return false;
+}
+function performTearOff(state,candidate){
+  if(!candidate||state.mode==='tear-complete')return false;
+  try{conformationEngine.release();}catch{}
+  const removed=new Set(candidate.grabFragment);craftWorkspace.removeAtoms(removed);
+  for(const id of removed){protectedUntil.delete(id);unresolvedAtoms.delete(id);debrisOpacity.delete(id);fadeTargets.delete(id);}
+  const nextSelected=removed.has(selectedAtomId)?candidate.bodySideId:selectedAtomId;state.mode='tear-complete';state.tearCandidate=null;state.tearFeedback=0;state.tearProgress=1;
+  protectedUntil.set(candidate.bodySideId,performance.now()+DEBRIS_POLICY.protectionMs);topologyChanged();selectAtom(atomById(nextSelected)?nextSelected:candidate.bodySideId);workspaceView.geometryChanged();craftHistory.commit();
+  vibrateFeedback(30,state.pointerType);ensureMoleculeMeshes();updateMoleculeTransforms();refreshInfo(true);pulse('小片をBASE STOCKへ戻しました');return true;
 }
 function onPointerMove(e){
   if(!activePointers.has(e.pointerId))return;
@@ -251,9 +270,10 @@ function onPointerMove(e){
     updateMoleculeTransforms();return;
   }
   if(!dragState.moved)return;
+  if(dragState.atomId!=null&&dragState.homeWorld&&dragState.planeNormal){dragState.targetWorld=pointerWorldOnPlane(e,dragState.homeWorld,dragState.planeNormal);advanceTearDrag();if(dragState.mode==='tear-complete')return;}
   if(dragState.mode==='atom-locked'||dragState.mode==='axis-select')return;
   if(dragState.mode==='atom-translate'){
-    const next=pointerWorldOnPlane(e,dragState.homeWorld,dragState.planeNormal);
+    const next=dragState.targetWorld.clone();
     const delta=next.sub(pos(dragState.atomId));
     for(const id of dragState.ids)pos(id)?.add(delta);
     workspaceView.geometryChanged();updateMoleculeTransforms();return;
@@ -273,7 +293,9 @@ function onPointerUp(e){
   if(!activePointers.has(e.pointerId))return;
   const state=dragState,p=activePointers.get(e.pointerId);activePointers.delete(e.pointerId);if(activePointers.size<2)multiGesture=null;if(!state){craftHistory.cancel();return;}
   const elapsed=p?performance.now()-p.downAt:Infinity,isTap=!state.moved&&elapsed<400;
-  if(state.mode==='bond'){
+  if(state.mode==='tear-complete'){
+    craftHistory.cancel();
+  }else if(state.mode==='bond'){
     clearTimeout(bondHoldTimer);bondHoldTimer=null;if(isTap&&!state.holding)handleBondTap(state.key,e.pointerType);if(!state.holding)craftHistory.cancel();
   }else if(state.mode==='electron'){
     if(!state.moved){selectAtom(state.atomId);craftHistory.cancel();}else if(!finishElectronDrag(state,e))craftHistory.cancel();hoverElectron=null;
@@ -510,7 +532,7 @@ function createBondVisual(bond,aromaticEdges){
     if(order>1){mesh.material.emissive=new THREE.Color(baseColor);mesh.material.emissiveIntensity=order===2?.32:.44;}
     moleculeGroup.add(mesh);return{mesh,offset};
   });
-  bondVisuals.set(key,{bond,key,hit,lines,baseColor,transitionScale:1});
+  bondVisuals.set(key,{bond,key,hit,lines,baseColor,baseEmissiveIntensity:order===1?0:order===2?.32:.44,transitionScale:1});
 }
 function unitCylinder(radius,color,opacity=1){
   const geometry=new THREE.CylinderGeometry(radius,radius,1,12),material=new THREE.MeshStandardMaterial({color,roughness:.32,transparent:opacity<1,opacity,depthWrite:opacity>0});
@@ -535,11 +557,12 @@ function updateMoleculeTransforms(){
 }
 function updateBondVisual(visual){
   const a=pos(visual.bond.a),b=pos(visual.bond.b);if(!a||!b)return;
-  const direction=b.clone().sub(a).normalize(),side=perpendicular(direction);
+  const direction=b.clone().sub(a).normalize(),side=perpendicular(direction),tear=dragState?.tearCandidate?.key===visual.key?THREE.MathUtils.clamp(dragState.tearFeedback??0,0,1):0;
   placeUnitCylinder(visual.hit,a,b,1);
   for(const {mesh,offset} of visual.lines){
     const shift=side.clone().multiplyScalar(offset),left=a.clone().add(shift),right=b.clone().add(shift);
-    placeUnitCylinder(mesh,left,right,visual.transitionScale);mesh.material.color.setHex(visual.baseColor);
+    placeUnitCylinder(mesh,left,right,visual.transitionScale);mesh.material.color.setHex(visual.baseColor).lerp(TEAR_WARNING_COLOR,tear);
+    mesh.material.emissive.setHex(tear?0xfb7185:(visual.baseEmissiveIntensity?visual.baseColor:0));mesh.material.emissiveIntensity=visual.baseEmissiveIntensity+tear*1.6;mesh.scale.x=mesh.scale.z=1-.18*tear;
   }
 }
 function placeUnitCylinder(mesh,a,b,lengthScale=1){
@@ -788,6 +811,7 @@ function animate(now=performance.now()){
   try{
     if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
     if(dragState?.moved&&['conformation','rigid-body'].includes(dragState.mode))advanceConformationDrag(now);
+    if(dragState?.moved&&dragState.atomId!=null&&dragState.mode!=='tear-complete')advanceTearDrag(now);
     updateStructureFrame(now);camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);animationFault='';
   }catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('Craft animation update failed; rendering the current scene.',error);}recoverCraftAnimationState();}
   try{renderer.render(scene,camera);}catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('3D render failed.',error);}}

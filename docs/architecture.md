@@ -15,7 +15,7 @@
 | クラフトのボタン・パレット操作 | `src/craft-controls.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
 | クラフト情報・構造一覧・完成表示 | `src/craft-panel.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
 | クラフトと図鑑・探索の接続 | `src/craft-connections.js` | `source-contracts.test.mjs`, `veil-ui-check.mjs` |
-| 結合操作 | `src/app.js`, `src/bonding-model.js`, `src/electron-interaction.js`, `src/gesture-arbitration.js` | `bond-state.test.mjs`, `mobile-ui-check.mjs` |
+| 結合操作・branch tear-off | `src/app.js`, `src/bonding-model.js`, `src/electron-interaction.js`, `src/gesture-arbitration.js`, `src/craft-tearoff.js` | `bond-state.test.mjs`, `craft-tearoff.test.mjs`, `mobile-ui-check.mjs` |
 | 3D配置・補正 | `src/conformation-engine.js`, `src/structure-relaxation.js`, `src/structure-motion.js`, `src/structure-settlement.js` | `conformation-regression.test.mjs`, `structure-relaxation.test.mjs` |
 | 分子変形・単結合回転 | `src/conformation-engine.js`, `src/torsion-model.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
 | 制作フィールド保存 | `src/workspace-save.js`, `src/workspace-persistence.js`, `src/workspace-migrations.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `workspace-persistence.test.mjs`, `veil-reset.test.mjs` |
@@ -78,6 +78,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | 分子グラフ・式・DB認識 | `src/chemistry.js` |
 | 原子価・電子・結合許可・幾何 | `src/bonding-model.js` |
 | 電子／原子／結合のポインタ判定 | `src/electron-interaction.js`, `src/gesture-arbitration.js` |
+| branch tear-off候補・張力hold/hysteresis | `src/craft-tearoff.js`（純粋graph/gesture logic）、`src/app.js`（3D drag統合とfeedback） |
 | 結合成立時の移動 | `src/structure-motion.js` |
 | force/velocity drag・whole-skeleton sway・rigid anchorまでのbalanced multi-torsion path・rollback | `src/conformation-engine.js` |
 | 剛体断片・結合長・角・平面・立体反発・環/鎖交差 | `src/structure-relaxation.js` |
