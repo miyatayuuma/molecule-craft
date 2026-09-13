@@ -35,12 +35,12 @@ export function launchConfirmationState(plan){
   return {rows,shortages,zeroFill:rows.length>0&&rows.every(row=>row.actual===0)};
 }
 
-export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaunch=()=>true,onLaunchReady=()=>false,onAnchor}){
+export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaunch=()=>true,onRequestLaunch=()=>false,onLaunchReady=()=>false,onAnchor}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
   const upgrades=document.createElement('div');upgrades.id='oxygen-upgrades';upgrades.className='oxygen-upgrades';q('tank-detail').append(upgrades);
   const partialPanel=document.createElement('div'),partialRows=document.createElement('div'),partialActions=document.createElement('div'),partialGo=document.createElement('button'),partialBack=document.createElement('button');partialPanel.id='partial-fill-confirm';partialPanel.hidden=true;Object.assign(partialPanel.style,{position:'absolute',inset:'auto 10px 10px 10px',zIndex:'9',padding:'12px',maxHeight:'calc(100% - 20px)',overflow:'auto',border:'1px solid #678494',borderRadius:'14px',background:'#071925f2',boxShadow:'0 10px 30px #0008'});Object.assign(partialRows.style,{display:'grid',gap:'8px',marginBottom:'10px'});Object.assign(partialActions.style,{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'flex-end'});partialGo.type='button';partialGo.className='primary';partialGo.textContent='出発';partialBack.type='button';partialBack.textContent='戻る';partialActions.append(partialBack,partialGo);partialPanel.append(partialRows,partialActions);q('supply-dialog').querySelector('.sheet-body').append(partialPanel);
   const synthesisLayer=document.createElement('div');synthesisLayer.setAttribute('aria-hidden','true');Object.assign(synthesisLayer.style,{position:'absolute',inset:'0',zIndex:'8',pointerEvents:'none',overflow:'hidden'});shellMap.append(synthesisLayer);
-  let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false;
+  let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false,requestedDestinationId=null;
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const formula=record=>MOLECULE_USES[record?.id]?.formula??record?.formula??'';
   const name=record=>record?.commonNameJa??record?.nameJa??record?.name??MOLECULE_USES[record?.id]?.name??'';
@@ -86,12 +86,12 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
     if(!keepDestinations)showLaunchDestinations(false);if(!keepDestinations)resetLaunchPosition();else launchHandle.style.cursor='grab';
   }
   function renderLaunchDestinations(){
-    const checkpoint=resources.state.progress.checkpoint;launchItems=launchDestinationLayout(resources.state.progress.regions).map(point=>{const region=REGIONS[point.id],cue=REGION_CUES[point.id]??{glyph:region.element??'·',color:'#9ad8e5'},button=document.createElement('button'),item={...point,node:button,color:cue.color,checkpoint:point.id===checkpoint};button.type='button';button.dataset.region=point.id;button.dataset.checkpoint=String(item.checkpoint);button.setAttribute('aria-label',`${region.name}へ出発`);Object.assign(button.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'46px',height:'46px',minWidth:'46px',minHeight:'46px',padding:'0',overflow:'hidden',borderRadius:'50%',border:`1px solid ${cue.color}99`,background:`radial-gradient(circle at 50% 50%,${cue.color}22 0 30%,#0b2231ee 31% 64%,#07141f 65%)`,opacity:'0',pointerEvents:'none',transform:destinationTransform(item,.55),transition:reduced?'none':'opacity .14s ease, transform .14s ease, box-shadow .14s ease',touchAction:'none'});decorateDestination(button,cue);button.addEventListener('click',event=>{event.stopPropagation();launchDestination(point.id);});launchLayer.append(button);return item;});
+    const checkpoint=resources.state.progress.checkpoint;launchItems=launchDestinationLayout(resources.state.progress.regions).map(point=>{const region=REGIONS[point.id],cue=REGION_CUES[point.id]??{glyph:region.element??'·',color:'#9ad8e5'},button=document.createElement('button'),item={...point,node:button,color:cue.color,checkpoint:point.id===checkpoint};button.type='button';button.dataset.region=point.id;button.dataset.checkpoint=String(item.checkpoint);button.setAttribute('aria-label',`${region.name}へ出発`);Object.assign(button.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'46px',height:'46px',minWidth:'46px',minHeight:'46px',padding:'0',overflow:'hidden',borderRadius:'50%',border:`1px solid ${cue.color}99`,background:`radial-gradient(circle at 50% 50%,${cue.color}22 0 30%,#0b2231ee 31% 64%,#07141f 65%)`,opacity:'0',pointerEvents:'none',transform:destinationTransform(item,.55),transition:reduced?'none':'opacity .14s ease, transform .14s ease, box-shadow .14s ease',touchAction:'none'});decorateDestination(button,cue);button.addEventListener('click',event=>{event.stopPropagation();requestDestinationLaunch(point.id);});launchLayer.append(button);return item;});
     if(launchOpen)showLaunchDestinations(true);
   }
   function setLaunchActive(next){if(launchActive===next)return;launchActive=next;if(launchOpen)showLaunchDestinations(true);}
-  function launchDestination(id){
-    resetLaunchGesture();if(!canOpen()||resources.blocked)return false;const target=launchItems.find(item=>item.id===id);if(!target)return false;resetLaunchGesture({keepDestinations:true});setLaunchActive(target);showLaunchDestinations(true);shellCanvas.style.transition=reduced?'none':'transform .12s ease';shellCanvas.style.transform=`translate(${target.x}px,${target.y}px)`;const select=q('expedition-anchor'),option=[...select.options].find(item=>item.value===id);if(!option)return false;select.value=id;select.dispatchEvent(new window.Event('change',{bubbles:true}));q('launch-veil').click();return true;
+  function requestDestinationLaunch(id){
+    resetLaunchGesture();if(!canOpen()||resources.blocked)return false;const target=launchItems.find(item=>item.id===id);if(!target)return false;resetLaunchGesture({keepDestinations:true});setLaunchActive(target);showLaunchDestinations(true);shellCanvas.style.transition=reduced?'none':'transform .12s ease';shellCanvas.style.transform=`translate(${target.x}px,${target.y}px)`;return onRequestLaunch(id)!==false;
   }
   function moveLaunch(event){
     if(event.pointerId!==launchPointer||!launchStart)return;const rawX=event.clientX-launchStart.x,rawY=event.clientY-launchStart.y,len=Math.hypot(rawX,rawY),limit=84,factor=len>limit?limit/len:1,dx=rawX*factor,dy=rawY*factor;launchDragged=Math.max(launchDragged,len);let nearest=null,best=Infinity;for(const item of launchItems){const distance=Math.hypot(rawX-item.x,rawY-item.y);if(distance<best){best=distance;nearest=item;}}if(best>44)nearest=null;setLaunchActive(nearest);const x=nearest?.x??dx,y=nearest?.y??dy;shellCanvas.style.transform=`translate(${x}px,${y}px)`;
@@ -100,7 +100,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
     if(launchPointer!==null||resources.blocked||!canOpen()||event.button!==undefined&&event.button!==0)return;event.preventDefault();launchPointer=event.pointerId;launchStart={x:event.clientX,y:event.clientY};launchDragged=0;showLaunchDestinations(true);shellCanvas.style.transition='none';launchHandle.style.cursor='grabbing';try{launchHandle.setPointerCapture(launchPointer);}catch{}moveLaunch(event);
   }
   function endLaunch(event,cancel=false){
-    if(event.pointerId!==launchPointer)return;const id=launchActive?.id??null,wasTap=launchDragged<8;resetLaunchGesture({keepDestinations:!cancel&&!id&&wasTap});if(cancel)return;if(id)launchDestination(id);
+    if(event.pointerId!==launchPointer)return;const id=launchActive?.id??null,wasTap=launchDragged<8;resetLaunchGesture({keepDestinations:!cancel&&!id&&wasTap});if(cancel)return;if(id)requestDestinationLaunch(id);
   }
   launchHandle.addEventListener('pointerdown',beginLaunch);launchHandle.addEventListener('pointermove',moveLaunch);launchHandle.addEventListener('pointerup',event=>endLaunch(event));launchHandle.addEventListener('pointercancel',event=>endLaunch(event,true));launchHandle.addEventListener('lostpointercapture',event=>{if(event.pointerId===launchPointer)endLaunch(event,true);});launchHandle.addEventListener('keydown',event=>{if(event.key==='Escape'){resetLaunchGesture();return;}if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();showLaunchDestinations(!launchOpen);if(launchOpen)(launchItems.find(item=>item.checkpoint)??launchItems[0])?.node.focus();});
 
@@ -138,6 +138,14 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
 
   }
   function renderLaunchPlan(){return resources.launchFillPlan();}
+  function requestLaunch(destinationId){
+    const checkpoint=resources.state.progress.checkpoint,available=destinationId==='continue'?!!REGIONS[checkpoint]:resources.state.progress.regions.includes(destinationId)&&!!REGIONS[destinationId];
+    if(!available||launchBusy||resources.blocked||!canOpen())return false;
+    requestedDestinationId=destinationId;const plan=renderLaunchPlan();
+    if(plan.status==='IMPOSSIBLE'){requestedDestinationId=null;partialPanel.hidden=true;return false;}
+    if(plan.status==='PARTIAL'){showPartialConfirm(plan);return true;}
+    void commitAndContinue(false);return true;
+  }
   function renderShell(){
     const plan=resources.launchFillPlan(),preview=plan.status==='FULL'?plan.full:plan.partial,selected=resources.selectedLoadout();for(const use of USE_ORDER){const button=q(`shell-${use}`),id=selected[use],record=id?resources.record(id):null,entry=preview.entries.find(item=>item.use===use),presentation=TANK_PRESENTATION[use],capacity=entry?.capacity??0,amount=entry?.target??0;button.style.setProperty('--tank-color',presentation.color);button.querySelector('i').textContent=presentation.icon;button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?formula(record):'∅';let track=button.querySelector('.tank-scale');if(!track){track=document.createElement('span');track.className='tank-scale';track.append(document.createElement('b'));button.append(track);}styleTankMeter(track,use,id);track.setAttribute('role','meter');track.setAttribute('aria-label',`${TANK_USES[use].label}の出発時プレビュー`);track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax',String(capacity||1));track.setAttribute('aria-valuenow',String(amount));setTankMeterLevel(track,capacity?amount/capacity:0);}
     drawCollectorShellPreview(shellCanvas);drawAccessIcon();
@@ -186,7 +194,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
     if(reduced||!plan||typeof Element==='undefined'){return;}synthesisLayer.replaceChildren();const atoms=[];for(const [el,n]of Object.entries(plan.cost))for(let i=0;i<Math.min(4,n);i++)atoms.push(el);if(!atoms.length)return;const rect=shellMap.getBoundingClientRect();for(const [index,el]of atoms.entries()){const dot=document.createElement('span');dot.textContent=el;Object.assign(dot.style,{position:'absolute',left:`${24+(index%4)*18}%`,bottom:'4px',width:'22px',height:'22px',display:'grid',placeItems:'center',borderRadius:'50%',border:'1px solid #bfefff',background:'#123142ee',fontSize:'10px',fontWeight:'800'});synthesisLayer.append(dot);dot.animate?.([{transform:'translate(0,0) scale(.7)',opacity:.2},{transform:`translate(${rect.width*(.5-(.24+(index%4)*.18))}px,${-rect.height*.32}px) scale(1)`,opacity:1,offset:.58},{transform:`translate(${rect.width*(.52-(.24+(index%4)*.18))}px,${-rect.height*.48}px) scale(.35)`,opacity:0}],{duration:460,index,easing:'ease-in-out',fill:'forwards'});}await new Promise(resolve=>setTimeout(resolve,480));synthesisLayer.replaceChildren();
   }
   async function commitAndContinue(partial){
-    if(launchBusy||resources.blocked||!canOpen())return false;
+    const destinationId=requestedDestinationId;if(!destinationId||launchBusy||resources.blocked||!canOpen())return false;
     launchBusy=true;
     try{
       if(onPrepareLaunch()===false){update();return false;}
@@ -196,8 +204,8 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
       if(Object.keys(result.plan.cost).length)await playSynthesis(result.plan);
       if(dialog.open)dialog.close();
       let started=false;
-      try{started=onLaunchReady()!==false;}catch(error){console.error('Expedition launch failed after loadout commit.',error);}
-      if(started)return true;
+      try{started=onLaunchReady(destinationId)!==false;}catch(error){console.error('Expedition launch failed after loadout commit.',error);}
+      if(started){requestedDestinationId=null;return true;}
       if(!resources.blocked&&canOpen()&&!dialog.open)dialog.showModal();
       update();
       return false;
@@ -206,11 +214,11 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onPrepareLaun
     }
   }
 
-  q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';partialPanel.hidden=true;dialog.showModal();update();resetLaunchGesture();});
+  q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';requestedDestinationId=null;partialPanel.hidden=true;dialog.showModal();update();resetLaunchGesture();});
   for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{resetLaunchGesture();selectedUse=use;selectedId=null;update();});
-  q('expedition-anchor').addEventListener('change',()=>onAnchor(q('expedition-anchor').value));q('launch-veil').addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();if(launchBusy||resources.blocked||!canOpen())return;const plan=renderLaunchPlan();if(plan.status==='IMPOSSIBLE'){partialPanel.hidden=true;return;}if(plan.status==='PARTIAL'){showPartialConfirm(plan);return;}commitAndContinue(false);});partialGo.addEventListener('click',()=>{partialPanel.hidden=true;commitAndContinue(true);});partialBack.addEventListener('click',()=>{partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
+  q('expedition-anchor').addEventListener('change',()=>{requestedDestinationId=null;onAnchor(q('expedition-anchor').value);});partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
   q('tank-craft-molecule').addEventListener('click',startCraft);
   if(globalThis.ResizeObserver){new ResizeObserver(()=>{drawAccessIcon();if(dialog.open)drawCollectorShellPreview(shellCanvas);}).observe(accessCanvas);new ResizeObserver(()=>{if(dialog.open)drawCollectorShellPreview(shellCanvas);}).observe(shellCanvas);}
   drawAccessIcon();renderRouteGuide();update();
-  return {update,openMolecule,discovered(id){const uses=resources.tankUses(id);if(uses.length){selectedUse=uses[0];selectedId=id;}},clearAnnouncement(){announcement='';},usesFor:id=>resources.tankUses(id),tankStatus:(use,id)=>resources.tankStatus(use,id),fillPlan:(use,id)=>resources.tankFillPlan(use,id),commitFill,get open(){return dialog.open;}};
+  return {update,requestLaunch,openMolecule,discovered(id){const uses=resources.tankUses(id);if(uses.length){selectedUse=uses[0];selectedId=id;}},clearAnnouncement(){announcement='';},usesFor:id=>resources.tankUses(id),tankStatus:(use,id)=>resources.tankStatus(use,id),fillPlan:(use,id)=>resources.tankFillPlan(use,id),commitFill,get open(){return dialog.open;}};
 }
