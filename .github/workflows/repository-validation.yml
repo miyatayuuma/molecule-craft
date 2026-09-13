@@ -84,7 +84,9 @@ jobs:
           node tests/launch-pointer-lifecycle.test.mjs
           node tests/ui-symbols.test.mjs
       - name: Generated PWA freshness
-        run: node scripts/build-precache.mjs --check
+        run: |
+          node scripts/build-precache.mjs
+          git diff --exit-code -- sw.js precache-manifest.js
       - name: PWA integrity
         run: node tests/pwa.test.mjs
       - name: Whitespace errors in pull request diff
