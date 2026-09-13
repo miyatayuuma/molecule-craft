@@ -72,8 +72,8 @@ test('propulsion and economy parameters remain unchanged while FIELD differentia
 
 test('two compact BURST-advantage fields are fixed on existing optional/skill lines',()=>{
   assert.deepEqual(BURST_ADVANTAGE_FIELDS.map(({id,x,y,radius,angle,force,cleanHalfWidth,route})=>({id,x,y,radius,angle,force,cleanHalfWidth,route})),[
-    {id:'oxygen-shortcut-shear',x:-320,y:-9700,radius:105,angle:0,force:2600,cleanHalfWidth:50,route:'oxygen-shortcut'},
-    {id:'deep-skill-shear',x:100,y:-11450,radius:105,angle:Math.PI,force:2600,cleanHalfWidth:50,route:'oxygen-deep-skill'},
+    {id:'oxygen-shortcut-shear',x:-320,y:-9700,radius:105,angle:0,force:2600,cleanHalfWidth:40,route:'oxygen-shortcut'},
+    {id:'deep-skill-shear',x:100,y:-11450,radius:105,angle:Math.PI,force:2600,cleanHalfWidth:40,route:'oxygen-deep-skill'},
   ]);
   const shortcut=OXYGEN_ROUTES.find(route=>route.id==='oxygen-shortcut');
   const deepSkill=DEEP_OXYGEN_ROUTES.find(route=>route.id==='oxygen-deep-skill');
