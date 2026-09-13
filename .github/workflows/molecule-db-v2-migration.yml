@@ -108,6 +108,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout HEAD -- .github/workflows/molecule-db-v2-migration.yml .github/workflows/repository-validation.yml
           git add -A
           git commit -m 'Promote molecule graph to production DB v2'
           git push origin HEAD:production/molecule-db-v2
