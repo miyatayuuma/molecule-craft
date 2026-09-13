@@ -18,4 +18,9 @@ if missing:
     raise SystemExit(f'patch lines not found: {sorted(missing)}')
 text='\n'.join(lines)+'\n'
 text=text.replace("if(!keepDestinations){showLaunchDestinations(false);resetLaunchPosition();}else launchHandle.style.cursor='grab';","if(!keepDestinations)showLaunchDestinations(false);if(!keepDestinations)resetLaunchPosition();else launchHandle.style.cursor='grab';")
+old="const target=launchItems.find(item=>item.id===id);if(!target||!canOpen()||resources.blocked)return false;resetLaunchGesture({keepDestinations:true});setLaunchActive(target);"
+new="resetLaunchGesture();if(!canOpen()||resources.blocked)return false;const target=launchItems.find(item=>item.id===id);if(!target)return false;resetLaunchGesture({keepDestinations:true});setLaunchActive(target);"
+if old not in text:
+    raise SystemExit('launch destination patch string not found')
+text=text.replace(old,new,1)
 path.write_text(text)
