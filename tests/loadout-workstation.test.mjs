@@ -49,3 +49,18 @@ test('LOADOUT stock preview exposes element state without an explanatory shortag
   assert.match(source,/preview\.setAttribute\('aria-label','必要元素'\)/);
   assert.match(source,/\[data-sufficient='false'\]/,'insufficient element chips receive direct visual state');
 });
+
+test('LOADOUT owns no direct Encyclopedia navigation affordance or relay',async()=>{
+  const [html,supply]=await Promise.all([
+    readFile(new URL('../index.html',import.meta.url),'utf8'),
+    readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8'),
+  ]);
+  const loadout=html.match(/<dialog id="supply-dialog"[\s\S]*?<\/dialog>/)?.[0]??'';
+  assert.ok(loadout,'LOADOUT dialog remains present');
+  assert.doesNotMatch(loadout,/id="tank-open-collection"/);
+  assert.doesNotMatch(loadout,/id="oxygen-co2-hint"/);
+  assert.doesNotMatch(loadout,/>図鑑<|図鑑で見る/);
+  assert.match(loadout,/<div class="tank-model-caption"><span id="tank-model-name"><\/span><\/div>/,'model caption remains without an empty action slot');
+  assert.match(loadout,/<div id="oxygen-route-chart"><\/div><div id="oxygen-route-notes"><\/div><\/details>/,'route guide remains complete without an orphan action slot');
+  assert.doesNotMatch(supply,/molecule-craft:open-molecule|openCollection|tank-open-collection|oxygen-co2-hint/);
+});
