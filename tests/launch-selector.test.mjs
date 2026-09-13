@@ -8,6 +8,7 @@ assert.match(source,/launchHandle\.addEventListener\('pointerdown',beginLaunch\)
 assert.match(source,/shellCanvas\.style\.transform=`translate/,'The visible explorer must follow the drag');
 assert.match(source,/resetLaunchGesture\(\{keepDestinations:true\}\)/,'Destination launch must preserve selector context through shortage confirmation');
 assert.match(source,/shellCanvas\.style\.transform=`translate\(\$\{target\.x\}px,\$\{target\.y\}px\)`/,'Explorer must stay parked on the selected destination while launch state is evaluated');
+assert.match(source,/partialBack\.addEventListener\('click',\(\)=>\{partialPanel\.hidden=true;resetLaunchGesture\(\);\}\)/,'Back from shortage confirmation must clear destination highlight and recenter the explorer');
 const ids=['veil','carbon','oxygen','frontier','veil','carbon'];
 for(let count=1;count<=5;count++){
   const layout=launchDestinationLayout(ids.slice(0,count));
