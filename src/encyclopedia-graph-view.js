@@ -17,6 +17,7 @@ const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const continuityStates=new WeakMap();
 const rectOf=node=>{const rect=node?.getBoundingClientRect?.();return rect&&Number.isFinite(rect.width)&&Number.isFinite(rect.height)&&rect.width>0&&rect.height>0?{left:rect.left??rect.x??0,top:rect.top??rect.y??0,width:rect.width,height:rect.height}:null;};
 const detailVisualRect=host=>{const rect=rectOf(host);if(!rect)return null;const width=Math.min(240,Math.max(140,rect.width*.58)),height=width*78/96;return {left:rect.left+(rect.width-width)/2,top:rect.top+(rect.height-height)/2,width,height};};
+const detailMoleculeId=(host,fallback)=>host?.dataset?.moleculeId||fallback;
 function cleanupContinuity(document,state){state.ghost?.remove?.();state.ghost=null;document.body?.classList.remove('molecule-continuity-active');}
 function animateContinuity(document,state,id,from,targetRect,{duration=560,waitMs=1100,win=globalThis.window}={}){
   if(!from||win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return false;cleanupContinuity(document,state);
@@ -34,9 +35,9 @@ function continuityState(document,win){
   let state=continuityStates.get(document);if(state)return state;
   state={focusId:null,ghost:null,press:null};continuityStates.set(document,state);
   document.addEventListener('pointerdown',event=>{const host=event.target?.closest?.('.molecule-detail-return');if(!host||event.button!==undefined&&event.button!==0)return;state.press={pointerId:event.pointerId,x:event.clientX,y:event.clientY,at:Date.now(),host};},true);
-  document.addEventListener('pointerup',event=>{const press=state.press;state.press=null;if(!press||press.pointerId!==event.pointerId||Date.now()-press.at>650||Math.hypot(event.clientX-press.x,event.clientY-press.y)>8||!state.focusId)return;const from=detailVisualRect(press.host);animateContinuity(document,state,state.focusId,from,()=>{const node=document.querySelector(`[data-graph-id="${state.focusId}"]`),visual=node?.querySelector?.('.graph-focus-thumbnail')??node;return rectOf(visual);},{duration:520,waitMs:1300,win});},true);
+  document.addEventListener('pointerup',event=>{const press=state.press;state.press=null;if(!press||press.pointerId!==event.pointerId||Date.now()-press.at>650||Math.hypot(event.clientX-press.x,event.clientY-press.y)>8)return;const id=detailMoleculeId(press.host,state.focusId);if(!id)return;const from=detailVisualRect(press.host);animateContinuity(document,state,id,from,()=>{const node=document.querySelector(`[data-graph-id="${id}"]`),visual=node?.querySelector?.('.graph-focus-thumbnail')??node;return rectOf(visual);},{duration:520,waitMs:1300,win});},true);
   document.addEventListener('pointercancel',()=>{state.press=null;},true);
-  document.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;const host=event.target?.closest?.('.molecule-detail-return');if(!host||!state.focusId)return;animateContinuity(document,state,state.focusId,detailVisualRect(host),()=>{const node=document.querySelector(`[data-graph-id="${state.focusId}"]`),visual=node?.querySelector?.('.graph-focus-thumbnail')??node;return rectOf(visual);},{duration:520,waitMs:1300,win});},true);
+  document.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;const host=event.target?.closest?.('.molecule-detail-return');if(!host)return;const id=detailMoleculeId(host,state.focusId);if(!id)return;animateContinuity(document,state,id,detailVisualRect(host),()=>{const node=document.querySelector(`[data-graph-id="${id}"]`),visual=node?.querySelector?.('.graph-focus-thumbnail')??node;return rectOf(visual);},{duration:520,waitMs:1300,win});},true);
   return state;
 }
 

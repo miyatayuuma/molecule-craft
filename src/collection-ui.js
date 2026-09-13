@@ -71,7 +71,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const targetNode=list.querySelector(`[data-graph-id="${id}"]`),target=targetNode?.querySelector?.('.graph-focus-thumbnail')??targetNode,to=snapshotRect(target?.getBoundingClientRect?.());if(target)target.style.opacity='0';await animateMoleculeSharedElement(record,from,to,{duration:360});if(target){target.style.opacity='';target.animate?.([{opacity:0},{opacity:1}],{duration:100});}moleculeTransitioning=false;targetNode?.focus?.({preventScroll:true});return true;
   }
   function installDetailGraphReturn(host,record,name){
-    host.classList.add('molecule-detail-return');host.tabIndex=0;host.setAttribute('role','button');host.setAttribute('aria-label',`${name}からグラフへ戻る`);let press=null;
+    host.classList.add('molecule-detail-return');host.dataset.moleculeId=record.id;host.tabIndex=0;host.setAttribute('role','button');host.setAttribute('aria-label',`${name}からグラフへ戻る`);let press=null;
     host.addEventListener('pointerdown',event=>{if(event.button!==undefined&&event.button!==0)return;press={id:event.pointerId,x:event.clientX,y:event.clientY,at:Date.now()};},true);
     host.addEventListener('pointerup',event=>{if(!press||press.id!==event.pointerId)return;const start=press;press=null;if(Date.now()-start.at>650||Math.hypot(event.clientX-start.x,event.clientY-start.y)>8)return;void returnMoleculeDetailToGraph(record.id,host);},true);
     host.addEventListener('pointercancel',()=>{press=null;},true);host.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();void returnMoleculeDetailToGraph(record.id,host);});

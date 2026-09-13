@@ -134,6 +134,8 @@ assert.doesNotMatch(collectionUISource,/‹ グラフ/,'Detail Graph back button
 assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs inside the selected thumbnail');
 assert.match(graphViewSource,/animateContinuity\(document,continuity,id,rectOf\(visual\)[\s\S]*onDetail\(id,node\)/,'Graph must create the continuity visual before switching to Detail');
 assert.match(graphViewSource,/document\.addEventListener\('pointerup'[\s\S]*animateContinuity/,'Detail return must create its continuity visual from the still-visible Detail surface');
+assert.match(collectionUISource,/host\.dataset\.moleculeId=record\.id/,'Detail return surface must expose the currently rendered molecule ID');
+assert.match(graphViewSource,/const id=detailMoleculeId\(press\.host,state\.focusId\)/,'pre-switch bridge must follow Detail navigation instead of stale Graph focus');
 assert.match(graphViewSource,/molecule-continuity-active \.molecule-shared-transition\{visibility:hidden!important\}/,'the legacy post-switch ghost must not overlap the pre-switch bridge');
 assert.match(graphViewSource,/duration:560/,'Graph to Detail continuity should be deliberately readable instead of snapping');
 assert.match(collectionUISource,/showMoleculeDetailFromGraph/);
