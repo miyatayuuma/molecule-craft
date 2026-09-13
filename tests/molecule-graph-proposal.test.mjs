@@ -32,14 +32,14 @@ assert.deepEqual(Object.fromEntries(['RETAIN','REWRITE','DELETE'].map(decision=>
 const deleteIds=new Set(auditRows.filter(row=>row.decision==='DELETE').map(row=>row.id));
 for(const id of deleteIds)assert(!byId.has(id),`DELETE molecule leaked into proposal: ${id}`);
 
+const addSection=audit.split('## ADD candidates')[1]?.split('\n## ')[0]??'';
 const additions=new Map((graph.additions??[]).map(item=>[item.id,item]));
 assert.equal(additions.size,4,'exactly four structural gap-fill ADD candidates are proposed');
 for(const [id,item] of additions){
   assert(byId.has(id),`ADD must exist as proposal node: ${id}`);
   assert(!productionIds.includes(id),`ADD must not already exist in production inventory: ${id}`);
   assert.equal(typeof item.reason,'string');assert(item.reason.trim().length>12,`ADD needs a substantive reason: ${id}`);
-  const auditLine=audit.split('\n').find(line=>line.includes(`\`${id}\``)&&line.includes('**ADD**'));
-  assert(auditLine,`ADD must have an audit entry: ${id}`);
+  assert(addSection.split('\n').some(line=>line.includes(`\`${id}\``)),`ADD must have an audit entry: ${id}`);
 }
 
 const validFamilyCodes=new Set(Object.keys(graph.familyCodes).map(Number));
