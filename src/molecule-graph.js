@@ -14,6 +14,8 @@ export function createMoleculeGraph(raw){
   const graph={
     schemaVersion:raw.schemaVersion,
     roots:Object.freeze([...(raw.graphRoots??[])]),
+    familyCodes:Object.freeze({...raw.familyCodes}),
+    branchCodes:Object.freeze({...raw.branchCodes}),
     nodes:Object.freeze(nodes),
     edges:Object.freeze(edges),
     nodeById:id=>byId.get(id)??null,
@@ -28,3 +30,5 @@ export async function loadMoleculeGraph({fetchImpl=globalThis.fetch,url='./data/
   if(!response?.ok)throw Error(`Molecule graph load failed: ${response?.status??'network'}`);
   return createMoleculeGraph(await response.json());
 }
+
+export {getFrontierCandidates,FRONTIER_WEIGHTING,scoreFrontierCandidates,selectFrontierCandidate,createSeededFrontierRng} from './molecule-frontier.js';
