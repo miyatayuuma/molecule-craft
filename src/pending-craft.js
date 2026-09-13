@@ -50,10 +50,11 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
   }else count=access.querySelector('small');
 
   if(!dialog){
-    dialog=root.createElement('dialog');dialog.id='pending-crafts-dialog';dialog.className='sheet';dialog.setAttribute('aria-label','設計図');
+    dialog=root.createElement('dialog');dialog.id='pending-crafts-dialog';dialog.className='sheet';dialog.setAttribute('aria-label','ひらめいた分子');
     const header=root.createElement('header');header.className='sheet-header';
+    const heading=root.createElement('h2');heading.textContent='ひらめき';
     const close=root.createElement('button');
-    close.type='button';close.setAttribute('aria-label','設計図を閉じる');close.textContent='×';header.append(close);
+    close.type='button';close.setAttribute('aria-label','ひらめき一覧を閉じる');close.textContent='×';header.append(heading,close);
     const body=root.createElement('div');body.className='sheet-body';list=root.createElement('div');list.className='pending-craft-list';body.append(list);dialog.append(header,body);root.body?.append(dialog);
     close.addEventListener('click',()=>dialog.close());
     dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
@@ -71,6 +72,11 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
       .pending-craft-access[data-attention="unseen"][data-attention-new="true"]::before{border:1px solid rgba(244,215,125,.38);box-shadow:0 0 10px rgba(244,215,125,.22);animation:pending-craft-new-halo .92s ease-out 1}
       .pending-craft-access[data-attention="unseen"][data-attention-new="true"]::after{animation-delay:1.25s}
       .pending-craft-access[data-attention="unseen"][data-attention-new="true"] small{animation:pending-craft-badge-pop .62s cubic-bezier(.2,.9,.25,1.25) 1}
+      #pending-crafts-dialog.sheet{position:fixed;inset:50% auto auto 50%;transform:translate(-50%,-50%);margin:0;width:min(520px,calc(100vw - 32px));max-height:min(72dvh,620px);border-radius:22px;overflow:auto;box-shadow:0 24px 70px #000a}
+      #pending-crafts-dialog .sheet-header{position:sticky;top:0}
+      #pending-crafts-dialog .sheet-header h2{font-size:17px;letter-spacing:.02em}
+      #pending-crafts-dialog .sheet-body{padding:16px 18px 20px}
+      @media(max-width:520px){#pending-crafts-dialog.sheet{width:calc(100vw - 24px);max-height:74dvh}}
       @keyframes pending-craft-new-bulb{0%,100%{transform:translateY(0) rotate(0) scale(1)}20%{transform:translateY(1px) rotate(-7deg) scale(.94)}42%{transform:translateY(-3px) rotate(6deg) scale(1.12)}64%{transform:translateY(-1px) rotate(-3deg) scale(1.05)}82%{transform:translateY(0) rotate(2deg) scale(1.01)}}
       @keyframes pending-craft-new-halo{0%{opacity:0;transform:scale(.72)}28%{opacity:.72;transform:scale(.9)}100%{opacity:0;transform:scale(1.38)}}
       @keyframes pending-craft-badge-pop{0%,100%{transform:scale(1)}42%{transform:scale(1.24)}70%{transform:scale(.96)}}

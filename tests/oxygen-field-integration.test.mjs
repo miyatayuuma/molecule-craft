@@ -51,7 +51,7 @@ function passage(zone,route){
 }
 for(const [zone,route] of [[pulse,network['oxygen-shortcut']],[curve,deep['oxygen-deep-skill']],[thermal,deep['oxygen-deep-thermal']]]){
   const run=passage(zone,route);
-  assert.deepEqual(run.events,[{type:'inspiration',rewards:zone.rewards}],`${zone.id} correct-route completion`);
+  assert.deepEqual(run.events,[{type:'inspiration',rewards:[]}],`${zone.id} traversal records completion without bypassing Graph frontier`);
   assert.equal(run.challengeProgress[zone.id]?.complete,true);
 }
 for(const [zone,route] of [[pulse,network['oxygen-main']],[curve,deep['oxygen-deep-safe']],[thermal,deep['oxygen-deep-skill']]]){

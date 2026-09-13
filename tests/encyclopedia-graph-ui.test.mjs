@@ -132,7 +132,12 @@ const [graphViewSource,collectionUISource,stylesSource]=await Promise.all([
 assert.doesNotMatch(graphViewSource,/詳細を見る/,'Graph footer detail button must not return');
 assert.doesNotMatch(collectionUISource,/‹ グラフ/,'Detail Graph back button must not return');
 assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs inside the selected thumbnail');
-assert.match(graphViewSource,/onDetail\(id,node\)/,'focused thumbnail itself must own Graph -> Detail');
+assert.match(graphViewSource,/animateContinuity\(document,continuity,id,rectOf\(visual\)[\s\S]*onDetail\(id,node\)/,'Graph must create the continuity visual before switching to Detail');
+assert.match(graphViewSource,/document\.addEventListener\('pointerup'[\s\S]*animateContinuity/,'Detail return must create its continuity visual from the still-visible Detail surface');
+assert.match(collectionUISource,/host\.dataset\.moleculeId=record\.id/,'Detail return surface must expose the currently rendered molecule ID');
+assert.match(graphViewSource,/const id=detailMoleculeId\(press\.host,state\.focusId\)/,'pre-switch bridge must follow Detail navigation instead of stale Graph focus');
+assert.match(graphViewSource,/molecule-continuity-active \.molecule-shared-transition\{visibility:hidden!important\}/,'the legacy post-switch ghost must not overlap the pre-switch bridge');
+assert.match(graphViewSource,/duration:560/,'Graph to Detail continuity should be deliberately readable instead of snapping');
 assert.match(collectionUISource,/showMoleculeDetailFromGraph/);
 assert.match(collectionUISource,/returnMoleculeDetailToGraph/);
 assert.match(collectionUISource,/function preview\(record,name,\{graphReturn=false\}=\{\}\)/,'shared preview defaults to no Graph return');
@@ -140,4 +145,4 @@ assert.match(collectionUISource,/preview\(record,moleculeDisplayName\(record\),\
 assert.match(collectionUISource,/Math\.hypot\(event\.clientX-start\.x,event\.clientY-start\.y\)>8/,'Detail tap return must distinguish tap from model drag');
 assert.match(stylesSource,/molecule-shared-transition/,'shared-element ghost must render above both Graph and Detail');
 
-console.log(`Encyclopedia graph UI passed: state/privacy, cross-links, teaser expansion, deterministic sector layout, degree-${maxDegreeNode.degree} mobile geometry.`);
+console.log(`Encyclopedia graph UI passed: state/privacy, cross-links, teaser expansion, deterministic sector layout, degree-${maxDegreeNode.degree} mobile geometry and continuous Detail transition.`);

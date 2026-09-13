@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {ELEMENTS} from '../src/chemistry.js?v=20';
 import {renderCraftTargetAtoms,renderCraftTargetParts} from '../src/craft-panel.js';
 
@@ -54,4 +55,9 @@ test('target part element items use canonical color without changing part presen
   assert.equal(part.node.className,'craft-target-part');
   assert.equal(part.node.children[1].className,'craft-target-part-formula');
   assert.equal(part.node.children[1].textContent,'–OH');
+});
+
+test('craft target material bar has no redundant hint control',async()=>{
+  const source=await readFile(new URL('../src/craft-panel.js',import.meta.url),'utf8');
+  assert.doesNotMatch(source,/craft-target-hint|hintButton\.textContent='ヒント'|requestCraftHintHighlight/,'target materials should stand on their own without a separate ヒント control');
 });

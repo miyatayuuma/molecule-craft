@@ -1,6 +1,10 @@
 import {OXYGEN_VORTEX_ROUTE} from './oxygen-routes.js';
 
-// Optional currents share physics, visual geometry and traversal rewards.
+// Optional currents share physics, visual geometry and traversal landmarks.
+// rewards preserve the authored molecule associations for map/design tooling,
+// but traversal itself no longer grants those fixed ordinary insights. Normal
+// knowledge discovery is owned by the Molecule Graph frontier; critical
+// progression insights remain the explicit exception in resources.js.
 // centerX/centerY are the authored route-alignment anchors; curve keeps its
 // existing sinusoidal centerline around that baseline. The nominal width stays
 // 240 while its Frontier-side tail tapers before the three Deep routes merge.
@@ -9,7 +13,9 @@ export const EXPEDITION_CHALLENGES=Object.freeze([
   {id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:['propane','phenol','formaldehyde']},
   {id:'thermal',bottom:-11160,top:-11440,width:260,centerX:760,centerY:-11300,rewards:['ethylene-glycol','n-hexane']},
 ]);
-export const CHALLENGE_INSIGHT_IDS=Object.freeze([...new Set(EXPEDITION_CHALLENGES.flatMap(challenge=>challenge.rewards))]);
+// Challenge-associated molecules are ordinary Graph-frontier molecules now;
+// none are reserved as an out-of-graph FIELD insight source.
+export const CHALLENGE_INSIGHT_IDS=Object.freeze([]);
 export const challengeCenter=(zone,y)=>zone.id==='curve'?zone.centerX+170*Math.sin((y-zone.bottom)/500*Math.PI):zone.centerX;
 export const challengeWidthAt=(zone,y)=>{
   if(zone.id!=='curve')return zone.width;
@@ -31,7 +37,7 @@ export function recordChallengePassage(run,old){
     if(!run.challengeProgress[z.id]?.complete&&old.y>=z.bottom&&p.y<z.bottom&&inside)run.challengeProgress[z.id]={distance:0};
     const progress=run.challengeProgress[z.id];if(!progress||progress.complete)continue;
     if(inside&&p.y<z.bottom&&old.y>z.top)progress.distance+=Math.max(0,old.y-p.y);
-    if(old.y>=z.top&&p.y<z.top&&inside&&progress.distance>=(z.bottom-z.top)*.7){progress.complete=true;run.events.push({type:'inspiration',rewards:z.rewards});}
+    if(old.y>=z.top&&p.y<z.top&&inside&&progress.distance>=(z.bottom-z.top)*.7){progress.complete=true;run.events.push({type:'inspiration',rewards:[]});}
   }
 }
 export function drawChallengeCurrents(ctx,time){

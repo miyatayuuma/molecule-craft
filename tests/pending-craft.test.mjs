@@ -42,6 +42,9 @@ assert.match(pendingSource,/renderList\(ids\);acknowledge\(ids\);if\(!ids\.lengt
 assert.match(pendingSource,/renderList\(ids\);acknowledge\(ids\);dialog\.showModal/,'opening the pending list acknowledges the current set immediately');
 assert.match(pendingSource,/pending-craft-new-bulb \.92s/,'new pending recipes receive a short one-shot bulb motion');
 assert.match(pendingSource,/pending-craft-reminder-bulb 7\.2s/,'unseen recipes receive a sparse reminder cadence');
+assert.match(pendingSource,/#pending-crafts-dialog\.sheet\{position:fixed;inset:50% auto auto 50%;transform:translate\(-50%,-50%\);margin:0/,'Insight list must open as a centered primary panel instead of a bottom sheet');
+assert.match(pendingSource,/max-height:min\(72dvh,620px\)/,'centered Insight panel keeps a large but bounded reading area');
+assert.match(pendingSource,/heading\.textContent='ひらめき'/,'the temporary knowledge panel identifies its purpose without verbose explanation');
 assert.match(pendingSource,/@media \(prefers-reduced-motion:reduce\)[\s\S]*animation:none[\s\S]*box-shadow/,'reduced motion disables movement while preserving static unseen emphasis');
 assert.doesNotMatch(pendingSource,/style\.animation|setInterval|localStorage|sessionStorage|aria-live|navigator\.vibrate|\.play\(/,'attention stays attribute/CSS-driven, session-memory-only, quiet, and free of periodic ARIA announcements');
 assert.match(pendingSource,/`設計図 \${ids\.length}件`/,'accessible pending count remains concise on the navigation button');
@@ -52,4 +55,4 @@ assert.match(veilSource,/resources\.settleExpedition\([\s\S]*insights:captured\?
 assert.doesNotMatch(supplySource,/const hintIds=\{propellant:/,'LOADOUT must not own hardcoded unfinished-molecule candidates');
 assert.doesNotMatch(supplySource,/tank-next-hint'\)\.addEventListener/,'LOADOUT must not own the unfinished-molecule craft route');
 
-console.log('Pending craft passed: session-local unseen/acknowledged attention, add-only re-arm, sparse/reduced-motion affordance, return integration, category semantics and craft routing.');
+console.log('Pending craft passed: centered knowledge panel, session-local unseen/acknowledged attention, sparse/reduced-motion affordance, return integration, category semantics and craft routing.');

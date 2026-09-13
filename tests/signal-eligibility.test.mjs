@@ -31,20 +31,24 @@ assert.equal(minimumSignalRegionFor({id:'oxygen-only',atoms:['O','O','O']}),'oxy
 assert.equal(minimumSignalRegionFor({id:'nitrogen-test',atoms:['N','H']}),null);
 assert.equal(minimumSignalRegionFor({id:'empty-test',atoms:[]}),null);
 
-// Critical progression and challenge-owned rewards are never generic signals.
+// Critical progression remains source-owned, while challenge associations are
+// design metadata only and no longer reserve ordinary molecules from Graph frontier.
 const challengeRewards=EXPEDITION_CHALLENGES.flatMap(challenge=>challenge.rewards);
-assert.deepEqual(CHALLENGE_INSIGHT_IDS,[...new Set(challengeRewards)]);
+assert.deepEqual(challengeRewards,[
+  'dimethyl-ether','ethene','propene','propane','phenol','formaldehyde','ethylene-glycol','n-hexane',
+]);
+assert.deepEqual(CHALLENGE_INSIGHT_IDS,[]);
 for(const id of CRITICAL_INSIGHT_IDS)assert.equal(eligible({id,atoms:['H']},'frontier'),false,`${id} is critical-owned`);
-for(const id of CHALLENGE_INSIGHT_IDS)assert.equal(eligible({id,atoms:['H']},'frontier'),false,`${id} is challenge-owned`);
+for(const id of challengeRewards)assert.equal(eligible({id,atoms:['H']},'frontier'),true,`${id} stays ordinary Graph-frontier eligible`);
 
-// Challenge traversal still emits the curated reward list once, unchanged.
+// Challenge traversal still records completion once, but grants no fixed ordinary insight.
 for(const challenge of EXPEDITION_CHALLENGES){
   const startY=challenge.bottom-1,endY=challenge.top-1;
   const run={map:{universe:true},player:{x:challengeCenter(challenge,startY),y:startY},events:[]};
   recordChallengePassage(run,{x:challengeCenter(challenge,challenge.bottom+1),y:challenge.bottom+1});
   run.player.x=challengeCenter(challenge,endY);run.player.y=endY;
   recordChallengePassage(run,{x:challengeCenter(challenge,startY),y:startY});
-  assert.deepEqual(run.events,[{type:'inspiration',rewards:challenge.rewards}]);
+  assert.deepEqual(run.events,[{type:'inspiration',rewards:[]}]);
   recordChallengePassage(run,{x:challengeCenter(challenge,startY),y:startY});assert.equal(run.events.length,1);
 }
 
