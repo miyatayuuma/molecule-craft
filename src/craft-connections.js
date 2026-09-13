@@ -1,4 +1,4 @@
-import {createVeilUI} from './veil/ui.js?v=3';
+import {createVeilUI} from './veil/ui.js?v=4';
 import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionSideEffectGate} from './completion-side-effects.js?v=1';
 import {installPendingCraftAccess} from './pending-craft.js?v=1';
@@ -98,8 +98,8 @@ function shortageText(plan){
 }
 
 function installLoadoutShortageUI(resources){
-  const launch=document.getElementById('launch-veil'),preview=document.getElementById('loadout-stock-preview'),dialog=document.getElementById('supply-dialog');
-  if(!launch||!preview||!dialog)return;
+  const preview=document.getElementById('loadout-stock-preview'),dialog=document.getElementById('supply-dialog'),panel=document.getElementById('partial-fill-confirm');
+  if(!preview||!dialog)return;
   const paintPreview=()=>{
     const plan=resources.launchFillPlan(),text=shortageText(plan),existing=preview.querySelector('[data-launch-shortage-summary]');
     if(!text){existing?.remove();return;}
@@ -108,12 +108,12 @@ function installLoadoutShortageUI(resources){
     if(!existing)preview.prepend(summary);
   };
   const showConfirmDetails=()=>{
-    const plan=resources.launchFillPlan(),panel=document.getElementById('partial-fill-confirm');if(!panel||panel.hidden)return;
+    const plan=resources.launchFillPlan();if(!panel||panel.hidden)return;
     const text=shortageText(plan),existing=panel.querySelector('[data-launch-shortage-detail]');
     if(text){const detail=existing??document.createElement('div');detail.dataset.launchShortageDetail='true';detail.textContent=text;Object.assign(detail.style,{marginBottom:'9px',fontSize:'13px',fontWeight:'800',color:'#ffd0a3'});if(!existing)panel.prepend(detail);}else existing?.remove();
     const go=panel.querySelector('button.primary'),hasUsable=plan.partial.entries.some(entry=>entry.molecule&&entry.target>0);if(go)go.textContent=hasUsable?'この搭載量で出る':'空タンクで出る';
   };
-  launch.addEventListener('click',()=>queueMicrotask(()=>{paintPreview();showConfirmDetails();}),true);
+  if(panel&&globalThis.MutationObserver)new MutationObserver(()=>queueMicrotask(()=>{paintPreview();showConfirmDetails();})).observe(panel,{attributes:true,attributeFilter:['hidden']});
   dialog.addEventListener('click',()=>queueMicrotask(paintPreview));
   document.getElementById('open-supply')?.addEventListener('click',()=>queueMicrotask(paintPreview));
   paintPreview();
@@ -152,6 +152,7 @@ export function createDeferredExplorationFacade(getCurrent,ready){
     get lastTelemetry(){return current()?.lastTelemetry??null;},
     get ready(){return ready;},
     updateCraft(...args){return current()?.updateCraft?.(...args);},
+    requestExpeditionLaunch(...args){return current()?.requestExpeditionLaunch?.(...args)??false;},
     launch(...args){return current()?.launch?.(...args)??false;},
     pause(...args){return current()?.pause?.(...args)??false;},
     openSupply(...args){return current()?.openSupply?.(...args)??false;},
