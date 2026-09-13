@@ -7,7 +7,8 @@ const outputUrl=new URL('docs/maps/molecule-graph-proposed.svg',root);
 const graph=JSON.parse(await readFile(graphUrl,'utf8'));
 const rowsToObjects=(columns,rows)=>rows.map(row=>Object.fromEntries(columns.map((key,index)=>[key,row[index]])));
 const nodes=rowsToObjects(graph.nodeColumns,graph.nodes);
-const edges=rowsToObjects(graph.edgeColumns,graph.edges);
+const endpointId=value=>Number.isInteger(value)?nodes[value]?.id:value;
+const edges=rowsToObjects(graph.edgeColumns,graph.edges).map(edge=>({...edge,from:endpointId(edge.from),to:endpointId(edge.to)}));
 const additions=new Set((graph.additions??[]).map(item=>item.id));
 const sectorByCode=Object.fromEntries(Object.entries(graph.sectorCodes).map(([code,name])=>[Number(code),name]));
 const familyByCode=Object.fromEntries(Object.entries(graph.familyCodes).map(([code,name])=>[Number(code),name]));
@@ -15,7 +16,7 @@ const roleByCode=graph.roleCodes??{};
 const sectorAngle={N:-90,NE:-45,E:0,SE:45,S:90,SW:135,W:180,NW:-135};
 const width=2600,height=2600,cx=width/2,cy=height/2;
 const hash=text=>{let value=2166136261;for(const ch of text){value^=ch.codePointAt(0);value=Math.imul(value,16777619);}return value>>>0;};
-const esc=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
+const esc=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&apos;'}[ch]));
 const position=node=>{
   const sector=sectorByCode[node.sectorCode]??'CENTER',h=hash(node.id);
   if(sector==='CENTER'){
@@ -37,6 +38,7 @@ const nodeClass=node=>{
 };
 const edgeLines=edges.map(edge=>{
   const a=positions.get(edge.from),b=positions.get(edge.to);
+  if(!a||!b)throw new Error(`Unknown graph edge endpoint: ${String(edge.from)} -> ${String(edge.to)}`);
   return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" class="edge" data-relation="${esc(graph.relationCodes[edge.relationCode]??edge.relationCode)}"/>`;
 }).join('\n');
 const nodeGroups=nodes.map(node=>{
