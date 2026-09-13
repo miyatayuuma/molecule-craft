@@ -51,11 +51,11 @@ const positionsFor=(ids,points)=>{const map=new Map(ids.map((id,index)=>[id,poin
 }
 
 {
-  // Canonical workspace removal refunds the detached fragment and removes the crossing bond.
-  const{molecule,ids}=graph(['C','O','H'],[[0,1],[1,2]]),placements=new Map(ids.map((id,index)=>[id,{position:{clone(){return this;},index}}])),stock={C:0,O:0,H:0};
+  // Canonical workspace removal refunds the detached OH and drops only the crossing C-O bond.
+  const{molecule,ids}=graph(['C','C','O','H'],[[0,1],[1,2],[2,3]]),placements=new Map(ids.map((id,index)=>[id,{position:{clone(){return this;},index}}])),stock={C:0,O:0,H:0};
   const resources={spend(){return true;},refund(cost){for(const[symbol,count]of Object.entries(cost))stock[symbol]=(stock[symbol]??0)+count;}};
-  const workspace=createCraftWorkspace({molecule,placements,resources}),candidate=findTearCandidate(molecule,ids[1]);assert.ok(candidate);workspace.removeAtoms(candidate.grabFragment);
-  assert.deepEqual(stock,{C:0,O:1,H:1});assert.deepEqual(molecule.atoms.map(atom=>atom.id),[ids[0]]);assert.equal(molecule.bonds.length,0);assert.equal(molecule.bondOrderForAtom(ids[0]),0);
+  const workspace=createCraftWorkspace({molecule,placements,resources}),candidate=findTearCandidate(molecule,ids[2]);assert.ok(candidate);workspace.removeAtoms(candidate.grabFragment);
+  assert.deepEqual(stock,{C:0,O:1,H:1});assert.deepEqual(molecule.atoms.map(atom=>atom.id),[ids[0],ids[1]]);assert.equal(molecule.bonds.length,1);assert.equal(molecule.bondOrderForAtom(ids[1]),1);
 }
 
 console.log('Craft tear-off passed: bridge fragments, size priority, ring safety, sustained gesture and BASE STOCK return.');
