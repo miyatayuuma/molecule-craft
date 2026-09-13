@@ -1,0 +1,43 @@
+name: Molecule graph audit finalizer
+on:
+  push:
+    branches: [design/molecule-graph-audit]
+permissions:
+  contents: write
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: design/molecule-graph-audit
+          fetch-depth: 0
+      - name: Align compact schema documentation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('docs/molecule-graph-design.md')
+          s=p.read_text()
+          s=s.replace("- `from` → `to` records the preferred conceptual progression from simpler to more derived structure. All current proposal edges have `bidirectional: true` for adjacency/frontier calculation.\n- Each edge exists once in `edges[]`; each node stores incident edge IDs in `connections[]`. This avoids storing reciprocal edge duplicates while still making node-local traversal cheap.","- `from` → `to` records the preferred conceptual progression from simpler to more derived structure. Adjacency/frontier traversal is **undirected by schema contract**; the compact proposal does not store a redundant `bidirectional` flag.\n- Each edge exists once in `edges[]`; each node stores incident array indexes in `connectionEdgeIndexes[]`. This avoids reciprocal edge duplicates while keeping node-local traversal cheap in the compact machine proposal.")
+          s=s.replace("- direct adjacency: `connections[]` + `edges[]`","- direct adjacency: `connectionEdgeIndexes[]` + `edges[]` (undirected by proposal schema contract)")
+          s=s.replace("5. every edge is bidirectional and both endpoint `connections[]` lists are exact,","5. every edge is treated as one undirected pair and both endpoint `connectionEdgeIndexes[]` lists are exact,")
+          p.write_text(s)
+          PY
+      - name: Generate developer graph map
+        run: node scripts/export-molecule-graph-proposal.mjs
+      - name: Focused validation
+        run: |
+          node tests/molecule-graph-proposal.test.mjs
+          node scripts/export-molecule-graph-proposal.mjs --check
+          node tests/repository-hygiene.test.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit generated proposal artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/molecule-graph-design.md docs/maps/molecule-graph-proposed.svg
+          git commit -m "Finalize molecule graph proposal artifacts"
+          git push origin HEAD:design/molecule-graph-audit
