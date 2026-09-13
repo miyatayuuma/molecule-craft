@@ -1,6 +1,6 @@
 import { ELEMENT_UNLOCKS } from './element-progression.js?v=36';
 
-export const CURRENT_COLLECTION_SCHEMA_VERSION=2;
+export const CURRENT_COLLECTION_SCHEMA_VERSION=3;
 const validElementSymbols=new Set(ELEMENT_UNLOCKS.map(item=>item.symbol));
 
 const recordMap=records=>new Map((records??[]).map(record=>[record.id,record]));
@@ -23,16 +23,13 @@ export function validateCanonicalCollectionState(state,{records=[],milestoneIds=
 }
 
 export function migrateCollectionSave(saved,{records=[],milestoneIds=[]}={}){
-  if(!saved||typeof saved!=='object')return null;
-  if(isFutureCollectionSave(saved))return null;
+  if(!saved||typeof saved!=='object'||saved.schemaVersion!==CURRENT_COLLECTION_SCHEMA_VERSION)return null;
   const byId=recordMap(records),validMilestones=milestoneSet(milestoneIds),legacyElements=new Set(),discoveredMolecules=[],seen=new Set(),milestones=[];
-  if(saved.schemaVersion===CURRENT_COLLECTION_SCHEMA_VERSION&&Array.isArray(saved.legacyElements))for(const symbol of saved.legacyElements)if(validElementSymbols.has(symbol))legacyElements.add(symbol);
-  const entries=saved.discoveredMolecules??saved.discoveredMoleculeIds??[];
-  if(Array.isArray(entries))for(const entry of entries){
-    const id=typeof entry==='string'?entry:entry?.id,record=byId.get(id);
+  if(Array.isArray(saved.legacyElements))for(const symbol of saved.legacyElements)if(validElementSymbols.has(symbol))legacyElements.add(symbol);
+  if(Array.isArray(saved.discoveredMolecules))for(const entry of saved.discoveredMolecules){
+    const id=entry?.id,record=byId.get(id);
     if(!record||seen.has(id))continue;
     const at=Number.isFinite(entry?.at)&&entry.at>=0?entry.at:null;
-    if(saved.schemaVersion!==CURRENT_COLLECTION_SCHEMA_VERSION)for(const symbol of record.atoms??[])legacyElements.add(symbol);
     seen.add(id);discoveredMolecules.push({id,at,order:discoveredMolecules.length+1});
   }
   if(Array.isArray(saved.milestones))for(const id of saved.milestones)if(validMilestones.has(id)&&!milestones.includes(id))milestones.push(id);
