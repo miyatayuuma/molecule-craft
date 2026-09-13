@@ -1,6 +1,6 @@
 # Molecule Graph proposal design
 
-> **PROPOSAL ONLY.** Based on `main` `0fc76f0a05bf3ae137f3a604a5f8a5ecd658ad1f`.  
+> **PROPOSAL ONLY.** Based on `main` `0fc76f0a05bf3ae137f3a604a5f8a5ecd658ad1f`.
 > This document and `data/molecule-graph.proposed.json` are design artifacts. They do not replace `data/molecules.json`, do not alter encyclopedia UI, FIELD runtime, recipe insight runtime, save progression, utility unlocks, or crafting behavior.
 
 ## 1. Decision summary
