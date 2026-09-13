@@ -1,0 +1,85 @@
+name: Encyclopedia sector navigation patch
+
+on:
+  push:
+    branches:
+      - feat/encyclopedia-sector-navigation
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'Add Encyclopedia sector navigation patch runner'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: feat/encyclopedia-sector-navigation
+          fetch-depth: 0
+      - name: Patch sector navigation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          graph=Path('src/encyclopedia-graph.js')
+          s=graph.read_text()
+          anchor="export function transitionGraphFocus(graph,currentFocus,targetId,stateOptions={}){\n"
+          if anchor not in s: raise SystemExit('transition anchor missing')
+          helper="""const sectorIdentityRank=(graph,id,stateOptions)=>{\n  const node=graph.nodeById(id),state=graphNodeState(id,stateOptions),roles=String(node?.roleCodes??'');\n  const roleRank=roles.includes('R')?0:roles.includes('H')?1:roles.includes('G')?2:roles.includes('B')?3:4;\n  const stateRank=state===GRAPH_NODE_STATE.REGISTERED?0:1;\n  return [node?.depth??999,roleRank,stateRank,node?.tier??999,id];\n};\nconst compareRank=(a,b)=>{for(let i=0;i<Math.max(a.length,b.length);i++){const av=a[i],bv=b[i];if(av===bv)continue;if(typeof av==='string'||typeof bv==='string')return String(av).localeCompare(String(bv));return (av??0)-(bv??0);}return 0;};\n\nexport function graphSectorAnchors(graph,stateOptions={}){\n  const bySector=new Map();\n  for(const node of graph.nodes){\n    if(graphNodeState(node.id,stateOptions)===GRAPH_NODE_STATE.UNKNOWN)continue;\n    const current=bySector.get(node.sectorCode);\n    if(!current||compareRank(sectorIdentityRank(graph,node.id,stateOptions),sectorIdentityRank(graph,current,stateOptions))<0)bySector.set(node.sectorCode,node.id);\n  }\n  return [...bySector].sort((a,b)=>a[0]-b[0]).map(([sectorCode,id])=>({sectorCode,id}));\n}\n\nexport function adjacentGraphSectorAnchor(graph,currentFocus,stateOptions={},direction=1){\n  const anchors=graphSectorAnchors(graph,stateOptions);if(anchors.length<2)return null;\n  const currentSector=graph.nodeById(currentFocus)?.sectorCode;\n  let index=anchors.findIndex(row=>row.sectorCode===currentSector);\n  if(index<0){index=anchors.findIndex(row=>row.id===currentFocus);if(index<0)index=0;}\n  const step=direction<0?-1:1;\n  for(let offset=1;offset<=anchors.length;offset++){const row=anchors[(index+step*offset+anchors.length)%anchors.length];if(row.id!==currentFocus)return row;}\n  return null;\n}\n\n"""
+          s=s.replace(anchor,helper+anchor,1)
+          graph.write_text(s)
+
+          view=Path('src/encyclopedia-graph-view.js')
+          s=view.read_text()
+          old="import {GRAPH_NODE_STATE,buildVisibleGraphProjection,canonicalGraphPositions,graphNodePresentation,layoutFocusNeighborhood,searchKnownGraphNodes} from './encyclopedia-graph.js';"
+          new="import {GRAPH_NODE_STATE,adjacentGraphSectorAnchor,buildVisibleGraphProjection,canonicalGraphPositions,graphNodePresentation,layoutFocusNeighborhood,searchKnownGraphNodes} from './encyclopedia-graph.js?v=2';"
+          if old not in s: raise SystemExit('view import anchor missing')
+          s=s.replace(old,new,1)
+          old=".graph-stage{position:relative;height:clamp(390px,58dvh,560px);min-height:390px;overflow:hidden;"
+          if old not in s: raise SystemExit('stage css anchor missing')
+          s=s.replace(old,old+"touch-action:pan-y;",1)
+          css_anchor=".graph-node.highlight{outline:2px solid #9ec7d5;outline-offset:5px}"
+          css_add=".graph-sector-jump{position:absolute;z-index:7;top:50%;width:34px;height:52px;min-height:0;padding:0;border:0;background:#0a172499;color:#9fc7d2;font-size:28px;line-height:1;border-radius:17px;transform:translateY(-50%);opacity:.62;backdrop-filter:blur(3px)}.graph-sector-jump:hover,.graph-sector-jump:focus-visible{opacity:1;background:#173246dd}.graph-sector-jump.previous{left:6px}.graph-sector-jump.next{right:6px}"
+          if css_anchor not in s: raise SystemExit('css anchor missing')
+          s=s.replace(css_anchor,css_add+css_anchor,1)
+          stage_anchor="  wrapper.append(stage);\n"
+          nav_block="""  wrapper.append(stage);\n  const previousSector=adjacentGraphSectorAnchor(graph,focusId,stateOptions,-1),nextSector=adjacentGraphSectorAnchor(graph,focusId,stateOptions,1);\n  const addSectorJump=(row,direction)=>{if(!row)return;const button=document.createElement('button');button.type='button';button.className=`graph-sector-jump ${direction<0?'previous':'next'}`;button.textContent=direction<0?'‹':'›';const record=recordById.get(row.id),presentation=graphNodePresentation(record,graphNodeState(row.id,stateOptions));button.setAttribute('aria-label',`${presentation.name||'別系統'}へ移動`);button.addEventListener('click',event=>{event.stopPropagation();onFocus(row.id);});stage.append(button);};\n  addSectorJump(previousSector,-1);addSectorJump(nextSector,1);\n  let swipe=null;\n  stage.addEventListener('pointerdown',event=>{if(event.target!==stage||event.button!==undefined&&event.button!==0)return;swipe={id:event.pointerId,x:event.clientX,y:event.clientY,at:Date.now()};try{stage.setPointerCapture?.(event.pointerId);}catch{}});\n  stage.addEventListener('pointerup',event=>{if(!swipe||swipe.id!==event.pointerId)return;const start=swipe;swipe=null;const dx=event.clientX-start.x,dy=event.clientY-start.y,threshold=Math.max(44,Math.min(72,(stage.clientWidth||width)*.14));if(Date.now()-start.at>900||Math.abs(dx)<threshold||Math.abs(dx)<Math.abs(dy)*1.2)return;const target=dx<0?nextSector:previousSector;if(target)onFocus(target.id);});\n  stage.addEventListener('pointercancel',()=>{swipe=null;});\n"""
+          if stage_anchor not in s: raise SystemExit('stage anchor missing')
+          s=s.replace(stage_anchor,nav_block,1)
+          view.write_text(s)
+
+          collection=Path('src/collection-ui.js')
+          s=collection.read_text()
+          if "from './encyclopedia-graph.js?v=1';" not in s or "from './encyclopedia-graph-view.js?v=1';" not in s: raise SystemExit('collection import anchors missing')
+          s=s.replace("from './encyclopedia-graph.js?v=1';", "from './encyclopedia-graph.js?v=2';",1)
+          s=s.replace("from './encyclopedia-graph-view.js?v=1';", "from './encyclopedia-graph-view.js?v=2';",1)
+          collection.write_text(s)
+
+          test=Path('tests/encyclopedia-graph-ui.test.mjs')
+          s=test.read_text()
+          s=s.replace("  graphNodePresentation,\n", "  graphNodePresentation,\n  graphSectorAnchors,\n  adjacentGraphSectorAnchor,\n",1)
+          anchor="const canonicalA=canonicalGraphPositions(fixture),canonicalB=canonicalGraphPositions(fixture);\n"
+          block="""const sectorState={registeredIds:new Set(['a','b','c','d']),recipes:new Set(),hints:new Set()};\nconst sectorAnchors=graphSectorAnchors(fixture,sectorState);\nassert.deepEqual(sectorAnchors.map(row=>row.sectorCode),[0,1,2,3],'Sector navigation exposes only sectors with known identity');\nassert.equal(sectorAnchors.find(row=>row.sectorCode===1)?.id,'b','Sector anchor prefers the shallowest structural entry');\nassert.equal(adjacentGraphSectorAnchor(fixture,'a',sectorState,1)?.id,'b');\nassert.equal(adjacentGraphSectorAnchor(fixture,'a',sectorState,-1)?.id,'c','Reverse navigation wraps to the previous known sector without exposing unknown nodes');\nassert.equal(graphSectorAnchors(fixture,{registeredIds:new Set(['a']),recipes:new Set(),hints:new Set()}).length,1,'Unknown-only sectors must not become swipe destinations');\nassert.equal(adjacentGraphSectorAnchor(fixture,'a',{registeredIds:new Set(['a']),recipes:new Set(),hints:new Set()},1),null,'Single known sector has no synthetic destination');\n\n"""
+          if anchor not in s: raise SystemExit('test anchor missing')
+          s=s.replace(anchor,block+anchor,1)
+          test.write_text(s)
+          PY
+      - name: Validate and regenerate PWA
+        run: |
+          node tests/encyclopedia-graph-ui.test.mjs
+          node tests/browser-startup.test.mjs
+          node tests/collection.test.mjs
+          node tests/source-contracts.test.mjs
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          node tests/repository-hygiene.test.mjs
+          git diff --check
+      - name: Commit implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/encyclopedia-graph.js src/encyclopedia-graph-view.js src/collection-ui.js tests/encyclopedia-graph-ui.test.mjs precache-manifest.js sw.js
+          git commit -m 'Add sector swipe navigation to Encyclopedia Graph'
+          git push origin HEAD:feat/encyclopedia-sector-navigation
