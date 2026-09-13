@@ -21,6 +21,20 @@ jobs:
           node-version: 22
       - name: Apply production migration and regenerate assets
         run: node scripts/migrate-molecule-db-v2.mjs
+      - name: Remove deleted molecule runtime roles
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,writeFile} from 'node:fs/promises';
+          const path='src/veil/molecule-roles.js';
+          let source=await readFile(path,'utf8');
+          for(const id of ['isobutanol','propylene-glycol']){
+            const pattern=new RegExp(`\\n  ['\"]?${id}['\"]?:profile\\(\\[[\\s\\S]*?\\n  \\}\\),`);
+            if(!pattern.test(source))throw new Error(`Expected deleted runtime role not found: ${id}`);
+            source=source.replace(pattern,'');
+          }
+          await writeFile(path,source);
+          NODE
+          node scripts/build-precache.mjs
       - name: Validate molecule DB, graph, collection and persistence
         run: |
           node tests/molecule-graph.test.mjs
