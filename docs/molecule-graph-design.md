@@ -26,8 +26,8 @@ The main reduction is not “remove obscure chemistry.” It is “remove repeat
 This is a **general undirected discovery graph**, not a reaction mechanism diagram and not a single-parent tree.
 
 - An edge means “these two molecules are understandable neighbors after a relatively small structural change.”
-- `from` → `to` records the preferred conceptual progression from simpler to more derived structure. All current proposal edges have `bidirectional: true` for adjacency/frontier calculation.
-- Each edge exists once in `edges[]`; each node stores incident edge IDs in `connections[]`. This avoids storing reciprocal edge duplicates while still making node-local traversal cheap.
+- `from` → `to` records the preferred conceptual progression from simpler to more derived structure. Adjacency/frontier traversal is **undirected by schema contract**; the compact proposal does not store a redundant `bidirectional` flag.
+- Each edge exists once in `edges[]`; each node stores incident array indexes in `connectionEdgeIndexes[]`. This avoids reciprocal edge duplicates while keeping node-local traversal cheap in the compact machine proposal.
 - Direct neighbors are intentionally capped at **6** so a selected molecule can show its immediate neighborhood around a phone-sized radial layout.
 - Cross-links are preferred over long homolog ladders where a chemically understandable cross-link exists.
 - A LEAF is allowed only when it has a strong property, use, structural distinction, or familiar context.
@@ -250,7 +250,7 @@ for each candidate:
 
 Required data are all present in the proposal:
 
-- direct adjacency: `connections[]` + `edges[]`
+- direct adjacency: `connectionEdgeIndexes[]` + `edges[]` (undirected by proposal schema contract)
 - duplicate removal key: node `id`
 - depth: `node.depth`
 - coarse progression: `node.tier`
@@ -333,7 +333,7 @@ node scripts/export-molecule-graph-proposal.mjs --check
 2. every edge endpoint exists,
 3. no duplicate undirected pair,
 4. no self-edge,
-5. every edge is bidirectional and both endpoint `connections[]` lists are exact,
+5. every edge is treated as one undirected pair and both endpoint `connectionEdgeIndexes[]` lists are exact,
 6. every node has a declared family,
 7. every node has at least one valid role,
 8. every node has integer depth/tier and valid affinity/sector data,
