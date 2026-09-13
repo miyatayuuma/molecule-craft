@@ -13,6 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Check changed module syntax
+        run: |
+          for file in src/collection-ui.js src/encyclopedia-graph.js src/encyclopedia-graph-view.js src/molecule-graph.js src/craft-connections.js; do
+            echo "--- $file ---"
+            node --check "$file"
+          done
       - name: Serve repository
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/server.log 2>&1 &
