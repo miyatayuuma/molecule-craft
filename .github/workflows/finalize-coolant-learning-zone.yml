@@ -1,0 +1,164 @@
+name: Finalize coolant learning zone
+
+on:
+  push:
+    branches: [field/coolant-learning-zone]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: field/coolant-learning-zone
+          fetch-depth: 0
+      - name: Apply coolant-learning progression
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p=Path(path); text=p.read_text()
+              if old not in text:
+                  raise SystemExit(f'missing replacement target in {path}: {old[:120]!r}')
+              p.write_text(text.replace(old,new,1))
+
+          replace('src/veil/oxygen-routes.js',
+          "export const OXYGEN_THERMAL=Object.freeze({\n  routeId:'oxygen-side',coreRadius:150,fadeRadius:260,",
+          "export const OXYGEN_THERMAL=Object.freeze({\n  routeId:'oxygen-side',coreRadius:150,fadeRadius:260,learningHeat:32,learningExposureSeconds:1.25,")
+          replace('src/veil/oxygen-routes.js',
+          "  return {heat,routeHeat,deepHeat,deepThermalHeat,recovery,mergeRecovery,frontierRecovery,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,deepFactor)};",
+          "  const coolantLearning=!recovery&&routeHeat>=OXYGEN_THERMAL.learningHeat;\n  return {heat,routeHeat,deepHeat,deepThermalHeat,recovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,deepFactor)};")
+
+          replace('src/veil/universe.js',
+          "return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};",
+          "return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};")
+
+          replace('src/veil/engine.js',
+          "import { recordOxygenPassage } from './oxygen-routes.js';",
+          "import { OXYGEN_THERMAL, recordOxygenPassage } from './oxygen-routes.js';")
+          replace('src/veil/engine.js',
+          "coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,overheated:false,thermalStrainEmitted:false,region:'veil'",
+          "coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil'")
+          replace('src/veil/engine.js',
+          "  const targetHeat=environment?clamp(environment.heat/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?.combustionHeatFactor??1;",
+          "  const targetHeat=environment?clamp(environment.heat/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?.combustionHeatFactor??1;\n  const coolantLearning=!!environment?.coolantLearning&&p.combustion&&!run.fuel.coolant?.molecule;run.coolantNeedExposure=coolantLearning?run.coolantNeedExposure+dt:0;if(!run.coolantNeedEmitted&&run.coolantNeedExposure>=OXYGEN_THERMAL.learningExposureSeconds){run.coolantNeedEmitted=true;run.events.push({type:'coolantNeed',exposure:run.coolantNeedExposure});}")
+
+          replace('src/veil/resources-persistence.js',
+          "thermalStrainExperienced:false,driveThermalInterruptions:0",
+          "thermalStrainExperienced:false,driveThermalInterruptions:0,coolantNeedExperienced:false")
+          replace('src/veil/resources-persistence.js',
+          "  if(s.progress.driveThermalInterruptions!==undefined&&!integer(s.progress.driveThermalInterruptions))throw Error('Invalid thermal progression');",
+          "  if(s.progress.driveThermalInterruptions!==undefined&&!integer(s.progress.driveThermalInterruptions))throw Error('Invalid thermal progression');\n  if(s.progress.coolantNeedExperienced!==undefined&&typeof s.progress.coolantNeedExperienced!=='boolean')throw Error('Invalid thermal progression');")
+
+          replace('src/veil/resources.js',
+          "  function recordDriveThermalInterruption(){\n    if(blocked||state.recipes.includes('water'))return false;const before=state.progress.driveThermalInterruptions??0,after=Math.min(WATER_THERMAL_INTERRUPTION_REQUIREMENT,before+1);if(after===before)return false;state.progress.driveThermalInterruptions=after;if(save()||!storage)return true;state.progress.driveThermalInterruptions=before;return false;\n  }",
+          "  function recordDriveThermalInterruption(){\n    if(blocked||state.recipes.includes('water'))return false;const before=state.progress.driveThermalInterruptions??0,after=Math.min(WATER_THERMAL_INTERRUPTION_REQUIREMENT,before+1);if(after===before)return false;state.progress.driveThermalInterruptions=after;if(save()||!storage)return true;state.progress.driveThermalInterruptions=before;return false;\n  }\n  function recordCoolantNeedExperience(){if(blocked||state.recipes.includes('water')||state.progress.coolantNeedExperienced)return false;state.progress.coolantNeedExperienced=true;if(save()||!storage)return true;state.progress.coolantNeedExperienced=false;return false;}")
+          replace('src/veil/resources.js',
+          "upgradeOxygenTank,recordThermalStrain,recordDriveThermalInterruption,",
+          "upgradeOxygenTank,recordThermalStrain,recordDriveThermalInterruption,recordCoolantNeedExperience,")
+          replace('src/veil/resources.js',
+          "state.recipes.includes('methane')&&state.recipes.includes('oxygen')&&(state.progress.driveThermalInterruptions??0)>=WATER_THERMAL_INTERRUPTION_REQUIREMENT&&criticalStarterReady('water',available)",
+          "state.recipes.includes('methane')&&state.recipes.includes('oxygen')&&state.progress.coolantNeedExperienced===true&&criticalStarterReady('water',available)")
+
+          replace('src/veil/growth.js',
+          "    if(!state.progress.thermalStrainExperienced)return {text:'CH₄とO₂を積み、COMBUSTION DRIVEでさらに奥へ。連続燃焼の制約を実際に確かめよう。'};",
+          "    if(!state.progress.coolantNeedExperienced)return {text:'CH₄とO₂を積み、COMBUSTION DRIVEで高熱の支流を進もう。連続燃焼では冷却の必要性が見えてくる。'};")
+
+          replace('src/veil/ui.js',
+          "      if(event.type==='thermalStrain'){resources.recordThermalStrain();offerProgressionInsights();updatePrompt();}\n      if(event.type==='coolantStart')",
+          "      if(event.type==='thermalStrain'){resources.recordThermalStrain();updatePrompt();}\n      if(event.type==='coolantNeed'){resources.recordCoolantNeedExperience();offerProgressionInsights();updatePrompt();notice('THERMAL LIMIT · 冷却なしでは高熱流で連続燃焼できない',2.5,'♨');}\n      if(event.type==='coolantStart')")
+
+          replace('tests/oxygen-thermal-progression.test.mjs',
+          "assert.equal(resources.recordDriveThermalInterruption(),true);\nassert.equal(resources.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT);\nassert.ok(resources.progressionInsightCandidates().includes('water'),'second DRIVE interruption makes H2O insight ready');",
+          "assert.equal(resources.recordDriveThermalInterruption(),true);\nassert.equal(resources.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT);\nassert.ok(!resources.progressionInsightCandidates().includes('water'),'generic DRIVE interruptions alone must not reveal H2O');\nassert.equal(resources.recordCoolantNeedExperience(),true);\nassert.ok(resources.progressionInsightCandidates().includes('water'),'sustained COMBUSTION in the authored high-thermal zone makes H2O insight ready');")
+          replace('tests/oxygen-thermal-progression.test.mjs',
+          "assert.equal(reloadedCurrent.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT,'current save retains DRIVE interruption progression');assert.ok(reloadedCurrent.progressionInsightCandidates().includes('water'),'current save retains H2O readiness');",
+          "assert.equal(reloadedCurrent.state.progress.driveThermalInterruptions,WATER_THERMAL_INTERRUPTION_REQUIREMENT,'current save retains DRIVE interruption telemetry');assert.equal(reloadedCurrent.state.progress.coolantNeedExperienced,true,'current save retains authored thermal-zone experience');assert.ok(reloadedCurrent.progressionInsightCandidates().includes('water'),'current save retains H2O readiness');")
+          replace('tests/oxygen-thermal-progression.test.mjs',
+          "assert.equal(legacyResources.state.progress.driveThermalInterruptions,0,'pre-v8 save resets thermal progression');",
+          "assert.equal(legacyResources.state.progress.driveThermalInterruptions,0,'pre-v8 save resets thermal progression');assert.equal(legacyResources.state.progress.coolantNeedExperienced,false,'pre-v8 save resets coolant-learning progression');")
+          PY
+          cat > tests/coolant-learning-zone.test.mjs <<'EOF'
+          import test from 'node:test';
+          import assert from 'node:assert/strict';
+          import {createRun,setCombustionHeld,stepRun} from '../src/veil/expedition-run.js';
+          import {flightConfig} from '../src/veil/growth.js';
+          import {OXYGEN_ROUTES,OXYGEN_THERMAL,oxygenRouteCenterAtY} from '../src/veil/oxygen-routes.js';
+          import {createUniverse,environmentAt} from '../src/veil/universe.js';
+
+          const DT=1/120;
+          const route=id=>OXYGEN_ROUTES.find(candidate=>candidate.id===id);
+          function runPinned({x,y,seconds,combustion=true,coolant=null}){
+            const fuel={fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36}};
+            if(coolant)fuel.coolant={molecule:coolant,amount:8};
+            const run=createRun(createUniverse(19,{H:0,C:0,O:0}),flightConfig(),{fuel,predators:false});
+            Object.assign(run.player,{x,y,angle:-Math.PI/2,vx:0,vy:0});
+            setCombustionHeld(run,combustion);
+            const events=[];
+            for(let elapsed=0;elapsed<seconds;elapsed+=DT){
+              run.player.x=x;run.player.y=y;
+              events.push(...stepRun(run,{x:0,y:0},DT,{consumeCombustion:()=>true,consumeCoolant:()=>true}));
+            }
+            return {run,events};
+          }
+
+          test('Route C high-thermal core is the authored coolant-learning area',()=>{
+            const side=route('oxygen-side'),main=route('oxygen-main'),y=-10050;
+            const sideX=oxygenRouteCenterAtY(side,y),mainX=oxygenRouteCenterAtY(main,y);
+            const sideEnv=environmentAt({x:sideX,y}),mainEnv=environmentAt({x:mainX,y});
+            assert.ok(sideEnv.coolantLearning,'Route C core must expose coolant-learning semantics');
+            assert.ok(sideEnv.heat>=OXYGEN_THERMAL.learningHeat);
+            assert.equal(mainEnv.coolantLearning,false,'Route B must not teach coolant need');
+            assert.ok(mainEnv.heat<5);
+          });
+
+          test('coolant need requires sustained active COMBUSTION inside the authored high-thermal core',()=>{
+            const y=-10050,x=oxygenRouteCenterAtY(route('oxygen-side'),y),threshold=OXYGEN_THERMAL.learningExposureSeconds;
+            const short=runPinned({x,y,seconds:threshold-.12});
+            assert.equal(short.events.filter(event=>event.type==='coolantNeed').length,0,'brief contact must not reveal the solution');
+            const learned=runPinned({x,y,seconds:threshold+.35});
+            const events=learned.events.filter(event=>event.type==='coolantNeed');
+            assert.equal(events.length,1,'sustained Route C combustion emits one coolant-need event');
+            assert.ok(events[0].exposure>=threshold);
+            assert.equal(learned.run.coolantNeedEmitted,true);
+            const coast=runPinned({x,y,seconds:threshold+.5,combustion:false});
+            assert.equal(coast.events.some(event=>event.type==='coolantNeed'),false,'ambient heat without COMBUSTION must not teach coolant need');
+          });
+
+          test('generic overheat and non-thermal DRIVE routes cannot unlock coolant-learning semantics',()=>{
+            const threshold=OXYGEN_THERMAL.learningExposureSeconds;
+            const generic=runPinned({x:0,y:-6000,seconds:22});
+            assert.ok(generic.events.some(event=>event.type==='overheat'),'generic sustained DRIVE can still overheat');
+            assert.equal(generic.events.some(event=>event.type==='coolantNeed'),false,'generic overheat is no longer a coolant-insight shortcut');
+            const y=-10050,x=oxygenRouteCenterAtY(route('oxygen-main'),y),main=runPinned({x,y,seconds:threshold+2});
+            assert.equal(main.events.some(event=>event.type==='coolantNeed'),false,'Route B sustained DRIVE keeps its non-thermal role');
+          });
+          EOF
+      - name: Rebuild PWA precache last
+        run: node scripts/build-precache.mjs
+      - name: Focused validation
+        run: |
+          node tests/coolant-learning-zone.test.mjs
+          node tests/oxygen-thermal-progression.test.mjs
+          node tests/propulsion-differentiation.test.mjs
+          node tests/h-economy-balance.test.mjs
+          node tests/field-map-export.test.mjs
+          node tests/repository-hygiene.test.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit implementation and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/finalize-coolant-learning-zone.yml
+          git add src/veil/oxygen-routes.js src/veil/universe.js src/veil/engine.js src/veil/resources-persistence.js src/veil/resources.js src/veil/growth.js src/veil/ui.js tests/oxygen-thermal-progression.test.mjs tests/coolant-learning-zone.test.mjs precache-manifest.js sw.js
+          git commit -m "Tie coolant insight to authored thermal exposure"
+          git push origin HEAD:field/coolant-learning-zone
