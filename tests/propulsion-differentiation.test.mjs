@@ -13,7 +13,7 @@ const fuelFor=mode=>mode==='drive'?{
   oxidizer:{molecule:'oxygen',amount:36,capacity:36},
 }:{};
 const systemsFor=mode=>mode==='drive'?{consumeCombustion:()=>true}:{};
-const BYPASS_X=Object.freeze({'h-boundary-shear':250,'oxygen-shortcut-shear':-530,'deep-skill-shear':-720});
+const BYPASS_X=Object.freeze({'oxygen-shortcut-shear':-530,'deep-skill-shear':-720});
 
 function prepareRun({x,y,mode}){
   const config=flightConfig(),run=createRun(createUniverse(1,{H:0,C:0,O:0}),config,{fuel:fuelFor(mode),predators:false});
@@ -22,7 +22,7 @@ function prepareRun({x,y,mode}){
     run.player.drive=DRIVES.hydrogen;
     run.player.boost=DRIVES.hydrogen.boostSeconds;
   }else if(mode==='drive')run.driveHeld=true;
-  return {config,run,systems:systemsFor(mode)};
+  return {run,systems:systemsFor(mode)};
 }
 
 function traverseBand({field,mode,x=field.x}){
@@ -70,14 +70,11 @@ test('propulsion and economy parameters remain unchanged while FIELD differentia
   assert.deepEqual(THERMAL,{heatPerSecond:10,naturalCoolingPerSecond:14,coolantCoolingPerSecond:12,coolantSecondsPerMolecule:1,coolantStart:35,hotThreshold:70,overheatThreshold:100,recoveryThreshold:55});
 });
 
-test('three compact BURST-advantage fields are fixed on existing optional/skill lines',()=>{
+test('two compact BURST-advantage fields are fixed on existing optional/skill lines',()=>{
   assert.deepEqual(BURST_ADVANTAGE_FIELDS.map(({id,x,y,radius,angle,force,cleanHalfWidth,route})=>({id,x,y,radius,angle,force,cleanHalfWidth,route})),[
-    {id:'h-boundary-shear',x:530,y:-3800,radius:110,angle:0,force:2600,cleanHalfWidth:50,route:'h-boundary'},
     {id:'oxygen-shortcut-shear',x:-320,y:-9700,radius:105,angle:0,force:2600,cleanHalfWidth:50,route:'oxygen-shortcut'},
     {id:'deep-skill-shear',x:100,y:-11450,radius:105,angle:Math.PI,force:2600,cleanHalfWidth:50,route:'oxygen-deep-skill'},
   ]);
-  assert.equal(BURST_ADVANTAGE_FIELDS[0].x,VEIL.gate.x);
-  assert.equal(BURST_ADVANTAGE_FIELDS[0].y,VEIL.gate.y);
   const shortcut=OXYGEN_ROUTES.find(route=>route.id==='oxygen-shortcut');
   const deepSkill=DEEP_OXYGEN_ROUTES.find(route=>route.id==='oxygen-deep-skill');
   assert.ok(Math.abs(oxygenRouteCenterAtY(shortcut,-9700)+320)<EPSILON);
