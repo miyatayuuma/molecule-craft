@@ -1,0 +1,41 @@
+name: Finalize Carbon BURST stress point
+
+on:
+  push:
+    branches: [field/carbon-burst-stress-point]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: field/carbon-burst-stress-point
+          fetch-depth: 0
+      - name: Regenerate FIELD map
+        run: node scripts/export-field-map.mjs
+      - name: Rebuild PWA precache last
+        run: node scripts/build-precache.mjs
+      - name: Focused validation
+        run: |
+          node tests/propulsion-differentiation.test.mjs
+          node tests/field-map-export.test.mjs
+          node tests/hc-revisit-routes.test.mjs
+          node tests/h-economy-balance.test.mjs
+          node tests/repository-hygiene.test.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit generated outputs and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/finalize-carbon-burst-stress.yml
+          git add docs/maps/current-field.svg sw.js precache-manifest.js
+          git commit -m "Finalize Carbon BURST stress point"
+          git push origin HEAD:field/carbon-burst-stress-point
