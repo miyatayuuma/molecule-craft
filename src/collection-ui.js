@@ -76,8 +76,8 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     host.addEventListener('pointerup',event=>{if(!press||press.id!==event.pointerId)return;const start=press;press=null;if(Date.now()-start.at>650||Math.hypot(event.clientX-start.x,event.clientY-start.y)>8)return;void returnMoleculeDetailToGraph(record.id,host);},true);
     host.addEventListener('pointercancel',()=>{press=null;},true);host.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();void returnMoleculeDetailToGraph(record.id,host);});
   }
-  function preview(record,name){
-    const host=el('div',null,'collection-model');installDetailGraphReturn(host,record,name);detail.appendChild(host);host.appendChild(el('p','模型を準備しています…','model-status'));
+  function preview(record,name,{graphReturn=false}={}){
+    const host=el('div',null,'collection-model');if(graphReturn)installDetailGraphReturn(host,record,name);detail.appendChild(host);host.appendChild(el('p','模型を準備しています…','model-status'));
     const generation=detailGeneration;
     import('./collection-viewer.js?v=31').then(({createCollectionViewer})=>{
       if(generation!==detailGeneration||!dialog.open||!host.isConnected)return;
@@ -201,7 +201,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(kind==='groups'){renderGroup(id);return;}
     const record=recordById(id);if(!record||!state.hasMolecule(id)){currentDetail=null;renderBook();return;}
     const matches=collectibleMatches(record);heading(kind,id,moleculeDisplayName(record),record.formula);
-    preview(record,moleculeDisplayName(record));
+    preview(record,moleculeDisplayName(record),{graphReturn:true});
     detail.append(el('p',entry(kind,id)?.description??record.learningNote??'この分子を図鑑に登録しました。','dex-description'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));

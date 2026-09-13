@@ -135,6 +135,8 @@ assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs insid
 assert.match(graphViewSource,/onDetail\(id,node\)/,'focused thumbnail itself must own Graph -> Detail');
 assert.match(collectionUISource,/showMoleculeDetailFromGraph/);
 assert.match(collectionUISource,/returnMoleculeDetailToGraph/);
+assert.match(collectionUISource,/function preview\(record,name,\{graphReturn=false\}=\{\}\)/,'shared preview defaults to no Graph return');
+assert.match(collectionUISource,/preview\(record,moleculeDisplayName\(record\),\{graphReturn:true\}\)/,'only molecule Detail opts into Graph return');
 assert.match(collectionUISource,/Math\.hypot\(event\.clientX-start\.x,event\.clientY-start\.y\)>8/,'Detail tap return must distinguish tap from model drag');
 assert.match(stylesSource,/molecule-shared-transition/,'shared-element ghost must render above both Graph and Detail');
 
