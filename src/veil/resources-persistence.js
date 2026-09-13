@@ -12,7 +12,7 @@ export const STOCKED_ELEMENTS=['H','C','N','O','F','P','S','Cl'];
 export const MAX_RESOURCE_VALUE=1e9;
 
 const emptyCollection=()=>({schemaVersion:2,discoveredMolecules:[],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]});
-export const createInitialProgress=()=>({bestChain:0,runs:0,cleared:false,craftPrompt:false,sound:true,foundElements:['H'],regions:['veil'],checkpoint:'veil',frontier:false,choCompleted:false,totalCollected:0,signalMisses:0,signalLast:{},thermalStrainExperienced:false});
+export const createInitialProgress=()=>({bestChain:0,runs:0,cleared:false,craftPrompt:false,sound:true,foundElements:['H'],regions:['veil'],checkpoint:'veil',frontier:false,choCompleted:false,totalCollected:0,signalMisses:0,signalLast:{},thermalStrainExperienced:false,driveThermalInterruptions:0});
 export const createInitialTanks=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,{molecule:null,amount:0}]));
 export const createInitialSelectedLoadout=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,null]));
 const emptyElementStock=()=>Object.fromEntries(STOCKED_ELEMENTS.map(element=>[element,0]));
@@ -33,6 +33,7 @@ function validatePersistedState(s){
   if(!integer(s.elements.H)||typeof s.progress.cleared!=='boolean'||!integer(s.progress.bestChain)||!integer(s.progress.runs))throw Error('Invalid progress');
   if(s.progress.choCompleted!==undefined&&typeof s.progress.choCompleted!=='boolean')throw Error('Invalid CHO completion');
   if(s.progress.thermalStrainExperienced!==undefined&&typeof s.progress.thermalStrainExperienced!=='boolean')throw Error('Invalid thermal progression');
+  if(s.progress.driveThermalInterruptions!==undefined&&!integer(s.progress.driveThermalInterruptions))throw Error('Invalid thermal progression');
   if(s.resetEpoch!==undefined&&!integer(s.resetEpoch))throw Error('Invalid reset epoch');
   if(s.pendingReset!==undefined&&(!s.pendingReset||['collection','legacy','help'].some(k=>typeof s.pendingReset[k]!=='boolean')))throw Error('Invalid reset journal');
   if(s.workspace!==null)validatePersistedWorkspace(s.workspace);
