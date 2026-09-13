@@ -1,0 +1,37 @@
+name: Encyclopedia browser diagnostic
+
+on:
+  push:
+    branches:
+      - fix/encyclopedia-graph-load
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Serve repository
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/server.log 2>&1 &
+          echo $! >/tmp/server.pid
+          for i in {1..20}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep .25; done
+          cat /tmp/server.log
+          exit 1
+      - name: Load application in headless Chrome
+        run: |
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME" || { echo 'Chrome executable not found'; exit 1; }
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=6000 --enable-logging=stderr --v=1 --dump-dom http://127.0.0.1:4173/ >/tmp/dom.html 2>/tmp/chrome.log || true
+          echo '--- relevant DOM ---'
+          grep -oE '図鑑[^<]{0,20}|0/[0-9]+|図鑑を読み込めませんでした[^<]*' /tmp/dom.html || true
+          echo '--- browser console / errors ---'
+          grep -E 'CONSOLE|ERROR|Error|Failed|unavailable|Collection' /tmp/chrome.log | tail -n 120 || true
+          python3 - <<'PY'
+          from pathlib import Path
+          dom=Path('/tmp/dom.html').read_text(errors='replace')
+          assert '図鑑を読み込めませんでした。原子からの制作は続けられます。' not in dom, 'collection startup failure is visible'
+          assert '0/129' in dom, 'production denominator did not initialize to 129'
+          PY
