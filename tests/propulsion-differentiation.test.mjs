@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {EXPEDITION,THERMAL,VEIL} from '../src/veil/config.js';
+import {buildFieldMapSvg} from '../scripts/export-field-map.mjs';
 import {createRun,stepRun} from '../src/veil/engine.js';
 import {DRIVES,flightConfig} from '../src/veil/growth.js';
 import {performanceFor} from '../src/veil/molecule-roles.js';
@@ -84,6 +85,10 @@ test('two compact BURST-advantage fields are fixed on existing optional/skill li
   for(const route of [...OXYGEN_ROUTES,...DEEP_OXYGEN_ROUTES]){
     assert.equal(route.requiredCapability,undefined,`${route.id} must not become a hard capability gate`);
     assert.equal(route.requires,undefined,`${route.id} must remain physically open`);
+  }
+  const svg=buildFieldMapSvg();
+  for(const field of BURST_ADVANTAGE_FIELDS){
+    assert.match(svg,new RegExp(`data-burst-advantage="${field.id}"[^>]*data-route="${field.route}"[^>]*data-force="${field.force}"[^>]*data-clean-half-width="${field.cleanHalfWidth}"`),`developer map must identify ${field.id}`);
   }
 });
 

@@ -148,7 +148,7 @@ export function createVeilRenderer(canvas){
     // Wisps travel in the direction of the force: no collision outlines or debug rings.
     for(const f of run.map.fields){
       const at=screen(f.x,f.y),r=f.radius;if(at.x<-r*scale||at.x>w+r*scale||at.y<-r*scale||at.y>h+r*scale)continue;
-      const intensity=f.intensity??.7;
+      const intensity=f.intensity??.7,forceCue=clamp(Math.sqrt((f.force??VEIL.fieldForce)/VEIL.fieldForce),1,1.8);
       const fog=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,r);
       fog.addColorStop(0,`rgba(136,136,220,${.09+intensity*.06})`);fog.addColorStop(1,'rgba(88,117,169,0)');
       ctx.fillStyle=fog;ctx.fillRect(f.x-r,f.y-r,r*2,r*2);
@@ -156,7 +156,7 @@ export function createVeilRenderer(canvas){
       for(let i=0;i<13;i++){
         const band=(i-6)*r/9,span=Math.sqrt(Math.max(0,r*r-band*band));
         const wave=(x)=>band+Math.sin(x/r*3+i*.65-run.time*.65)*13*Math.sin((x/span+1)*Math.PI/2);
-        ctx.strokeStyle='#889bc3';ctx.lineWidth=i%3===0?2:1;ctx.globalAlpha=(.09+intensity*.12)*(1-Math.abs(band)/r);
+        ctx.strokeStyle='#889bc3';ctx.lineWidth=(i%3===0?2:1)*forceCue;ctx.globalAlpha=Math.min(.42,(.09+intensity*.12)*forceCue)*(1-Math.abs(band)/r);
         ctx.beginPath();for(let j=0;j<=28;j++){const x=-span+j/28*span*2;j?ctx.lineTo(x,wave(x)):ctx.moveTo(x,wave(x));}ctx.stroke();
         for(let j=0;j<3;j++){const phase=(run.time*(.16+intensity*.08)+i*.073+j/3)%1,x=(phase*2-1)*span,y=wave(x);
           ctx.globalAlpha=Math.sin(phase*Math.PI)*(.24+intensity*.22);ctx.fillStyle='#a2b9e0';ctx.beginPath();ctx.ellipse(x,y,3.8,1.2,0,0,Math.PI*2);ctx.fill();}

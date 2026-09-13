@@ -17,6 +17,12 @@ export const ENVIRONMENT_RECOVERY_CONTRACT=Object.freeze({
   kind:'environment-recovery',pressure:'reduced-or-zero',ambientThermal:'reduced',opportunity:'stop-and-reorient',
   excludes:Object.freeze(['dust-eater-suppression','dust-eater-despawn','threat-decay-bonus','capture-immunity','forced-enemy-distance','instant-heat-reset','instant-fuel-recovery']),
 });
+// Compact shears turn BURST's high initial acceleration into a spatial advantage.
+// They sit on existing short/skill lines and keep longer bypass routes physically open.
+export const BURST_ADVANTAGE_FIELDS=Object.freeze([
+  Object.freeze({id:'oxygen-shortcut-shear',x:-320,y:-9700,radius:105,phase:1.75,angle:0,force:2600,cleanHalfWidth:40,route:'oxygen-shortcut',kind:'burst-advantage'}),
+  Object.freeze({id:'deep-skill-shear',x:100,y:-11450,radius:105,phase:1.75,angle:Math.PI,force:2600,cleanHalfWidth:40,route:'oxygen-deep-skill',kind:'burst-advantage'}),
+]);
 export const FIELD_SIGNALS=Object.freeze([
   Object.freeze({id:'veil',region:'veil',x:390,y:-650}),
   Object.freeze({id:'carbon',region:'carbon',x:840,y:-5660}),
@@ -112,6 +118,11 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
     map.signals.push({...authored,anchorX,anchorY,x:anchorX+(source()-.5)*60,y:anchorY+(source()-.5)*60,ready:false,roll:source(),choice:source()});
   }
   map.fields.push({x:720,y:-5540,radius:210,phase:rng()*4,angle:-.4});
+  // Clone authored fields because the engine stores frame-local intensity/active state on them.
+  for(const field of BURST_ADVANTAGE_FIELDS){
+    map.fields.push({...field});
+    map.labels.push({x:field.x+field.radius+28,y:field.y-field.radius-24,text:`BURST ADV · ${field.id} · short shear / force ${field.force} / clean ±${field.cleanHalfWidth}`});
+  }
   for(const route of OXYGEN_ROUTES){
     const labelY=-8890,labelX=oxygenRouteCenterAtY(route,labelY)??route.x;map.labels.push({x:labelX,y:labelY,text:route.label});
     for(const stop of route.restStops??[])map.labels.push({x:stop.x??oxygenRouteCenterAtY(route,stop.y)??route.x,y:stop.y,text:'environment recovery · Oを集めながら休む'});
