@@ -91,13 +91,14 @@ test('current molecule display is frameless, separated, and sits behind tank art
   assert.match(source,/assets\/models\/molecule-\$\{id\}\.svg/);
 });
 
-test('stock preview remains a simple shortage bar and hides when fully affordable',()=>{
+test('stock preview reuses existing shortage chips and hides when fully affordable',()=>{
   assert.match(source,/syncStockPreview/);
-  assert.match(source,/材料不足/);
-  assert.match(source,/loadout-shortage-status/);
-  assert.match(source,/chip\.dataset\.sufficient==='false'/);
-  assert.match(source,/if\(!insufficient\)\{preview\.hidden=true;return;\}/);
-  assert.match(source,/scaleX\(\$\{ratio\}\)/);
+  assert.doesNotMatch(source,/材料不足|loadout-shortage-status/,'the removed explanatory shortage banner must not be restored');
+  assert.ok(source.includes('node.dataset?.sufficient!==undefined'));
+  assert.match(source,/chip.dataset.sufficient==='false'/);
+  assert.match(source,/preview.hidden=!insufficient/);
+  assert.ok(source.includes("chip.dataset.stockState=chip.dataset.sufficient==='false'?'short':'ready'"));
+  assert.ok(source.includes("preview.setAttribute('aria-label','必要元素')"));
 });
 
 test('launch gestures stay on the existing ship anchor and overlay disables during destination selection',()=>{

@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {installEmptyDeparturePolicy} from '../src/craft-connections.js?v=3';
 import {createResources} from '../src/veil/resources.js';
 import {launchConfirmationState} from '../src/veil/supply.js';
+import {stageLaunchSupply} from '../src/veil/launch-transaction.js';
 
 const database=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
 const USES=['propellant','fuel','oxidizer','coolant'];
@@ -34,7 +35,7 @@ const shortage=(state,element)=>state.shortages.find(item=>item.element===elemen
   for(const item of state.rows){const actual=plan.partial.entries.find(entry=>entry.use===item.use),requested=plan.full.entries.find(entry=>entry.use===item.use);assert.equal(item.actual,actual.target);assert.equal(item.requested,requested.target);}
   assert.deepEqual(shortage(state,'H'),{element:'H',have:plan.missing.H.have,need:plan.missing.H.need},'shortage state must expose canonical have / need');
   const preview=state.rows.map(item=>({use:item.use,molecule:item.molecule,amount:item.actual}));
-  const result=resources.commitLaunchFill({partial:true});assert.ok(result?.committed);
+  const result=stageLaunchSupply(resources,{partial:true});assert.ok(result?.committed);
   for(const item of preview)assert.deepEqual(resources.state.tanks[item.use],{molecule:item.molecule,amount:item.amount},'committed tank amount must match confirmation preview');
 }
 
