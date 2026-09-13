@@ -31,7 +31,10 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   const insightPresentation=createInsightPresentation({root,resources,formula,audio,reduced});
   const supply=createSupplyUI({resources,canOpen:canLeave,canMake:canSupply,onCommit,onRequestLaunch:id=>requestExpeditionLaunch(id),onLaunchReady:(id,options)=>launchTransaction?.execute(id,options)??Promise.resolve({status:'blocked',reason:'transaction-unavailable'}),onAnchor:selectLaunchDestination});
   launchTransaction=createLaunchTransaction({
-    validate:id=>!active&&!resources.blocked&&isExpeditionDestinationAvailable(resources.state,id)&&!!REGIONS[id==='continue'?resources.state.progress.checkpoint:id]||'invalid-destination',
+    validate:id=>{
+      if(active||resources.blocked)return 'blocked';
+      return isExpeditionDestinationAvailable(resources.state,id)&&!!REGIONS[id==='continue'?resources.state.progress.checkpoint:id]||'invalid-destination';
+    },
     beforeLaunch:()=>canLeave()&&onBeforeLaunch()!==false,
     snapshot:()=>({resources:captureLaunchRollbackState(resources),anchor}),
     commitSupply:({partial})=>stageLaunchSupply(resources,{partial}),
@@ -56,7 +59,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     anchor=id;const select=q('expedition-anchor');if(select&&[...select.options].some(option=>option.value===id))select.value=id;updateCraft();return true;
   }
   function updateCraft(){
-    supply.update();q('launch-veil').disabled=resources.blocked||launchTransaction?.inFlight===true;
+    supply.update();q('launch-veil').disabled=resources.blocked;
     const checkpoint=resources.state.progress.checkpoint;
     q('launch-veil').textContent='↗ 出発';
     updatePrompt();
@@ -193,7 +196,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(anchorLock||now-hudAt>70){hudAt=now;hud();}if(lockComplete)finish(false);
   }
   q('cho-goal-action').addEventListener('click',()=>{const goal=growthGoal(resources.state);if(goal.id)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:goal.id}}));});
-  q('launch-veil').addEventListener('click',event=>{event.preventDefault();requestExpeditionLaunch(anchor);});q('veil-return').addEventListener('click',()=>beginReturn(false));q('veil-to-craft').addEventListener('click',()=>{const goal=run?.inspiration?{id:run.inspiration}:growthGoal(resources.state,{cargo:run.collectedElements??{}}),id=goal.id??null;if(id&&beginReturn(false))pendingCraftId=id;});
+  q('launch-veil').addEventListener('click',event=>{event.preventDefault();requestExpeditionLaunch(anchor);});q('veil-return').addEventListener('click',()=>beginReturn(false));q('veil-to-craft').addEventListener('click',()=>{const goal=run?.inspiration?{id:run.inspiration}:growthGoal(resources.state,{cargo:run?.collectedElements??{}}),id=goal.id??null;if(id&&beginReturn(false))pendingCraftId=id;});
   q('veil-boost').addEventListener('pointerdown',event=>{event.preventDefault();burst();});q('veil-boost').addEventListener('click',event=>{if(event.detail===0)burst();});
   combustionButton.addEventListener('pointerdown',startCombustion);for(const type of ['pointerup','pointercancel','lostpointercapture'])combustionButton.addEventListener(type,event=>{if(drivePointer===null||event.pointerId===drivePointer)stopCombustion();});
   q('veil-sound').addEventListener('click',()=>{resources.state.progress.sound=resources.state.progress.sound===false;audio.mute(!resources.state.progress.sound);audio.start();resources.save();hud();});
