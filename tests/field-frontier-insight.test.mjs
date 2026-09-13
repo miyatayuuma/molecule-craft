@@ -115,7 +115,7 @@ function expandableChoice(value,region){
 // the Graph opportunity is emitted. This closes the cargo/thermal readiness race.
 {
   const value=make(),{target,roll}=expandableChoice(value,'oxygen');value.prepareExpedition({region:'oxygen',rng:()=>roll});assert.equal(value.frontierInsightDiagnostics().selectedCandidateId,target.id);
-  value.state.progress.driveThermalInterruptions=2;const critical=value.progressionInsightCandidates({cargo:{H:8},foundElements:[]});assert.ok(critical.includes('water'),'water becomes critical-ready during the expedition');
+  assert.equal(value.recordCoolantNeedExperience(),true);const critical=value.progressionInsightCandidates({cargo:{H:8},foundElements:[]});assert.ok(critical.includes('water'),'water becomes critical-ready during the expedition after authored coolant-need exposure');
   assert.equal(value.suppressFrontierInsightForCritical(),true);assert.equal(value.frontierInsightDiagnostics().reason,'critical-pending');const signal=value.signal('oxygen',0,0);assert.ok(signal.bonus&&!signal.recipe,'unspawned Graph opportunity stays suppressed once critical progression becomes ready');
 }
 
