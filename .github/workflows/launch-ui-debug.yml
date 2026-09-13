@@ -1,0 +1,42 @@
+name: Launch UI debug
+
+on:
+  push:
+    branches:
+      - work/launch-transaction-rollback
+
+permissions:
+  contents: read
+
+jobs:
+  ui-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: shortage confirmation
+        if: always()
+        run: node tests/loadout-shortage-confirmation.test.mjs
+      - name: loadout workstation
+        if: always()
+        run: node tests/loadout-workstation.test.mjs
+      - name: loadout launch regression
+        if: always()
+        run: node tests/loadout-launch-regression.test.mjs
+      - name: issue 122 launch route
+        if: always()
+        run: node tests/issue-122-launch-route.test.mjs
+      - name: launch request
+        if: always()
+        run: node tests/launch-request.test.mjs
+      - name: launch transaction
+        if: always()
+        run: node tests/launch-transaction.test.mjs
+      - name: launch selector
+        if: always()
+        run: node tests/launch-selector.test.mjs
+      - name: launch pointer lifecycle
+        if: always()
+        run: node tests/launch-pointer-lifecycle.test.mjs
+      - name: UI symbols
+        if: always()
+        run: node tests/ui-symbols.test.mjs
