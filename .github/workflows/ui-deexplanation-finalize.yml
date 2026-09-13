@@ -18,7 +18,9 @@ jobs:
           ref: ui-deexplanation-pass
           fetch-depth: 0
       - name: Apply focused UI de-explanation pass
-        run: python scripts/tmp-ui-deexplanation-patch.py
+        run: |
+          python scripts/tmp-ui-deexplanation-prepatch.py
+          python scripts/tmp-ui-deexplanation-patch.py
       - name: Regenerate canonical PWA artifacts
         run: node scripts/build-precache.mjs
       - name: Focused validation
