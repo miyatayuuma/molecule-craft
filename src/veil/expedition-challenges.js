@@ -10,6 +10,10 @@ export const EXPEDITION_CHALLENGES=Object.freeze([
   {id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450},
   {id:'thermal',bottom:-11160,top:-11440,width:260,centerX:760,centerY:-11300},
 ]);
+// Compatibility export: challenges no longer own molecule IDs. Keeping the
+// symbol empty lets existing consumers treat all non-critical molecules as
+// ordinary graph-frontier candidates.
+export const CHALLENGE_INSIGHT_IDS=Object.freeze([]);
 export const challengeCenter=(zone,y)=>zone.id==='curve'?zone.centerX+170*Math.sin((y-zone.bottom)/500*Math.PI):zone.centerX;
 export const challengeWidthAt=(zone,y)=>{
   if(zone.id!=='curve')return zone.width;
