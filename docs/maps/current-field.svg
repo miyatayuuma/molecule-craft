@@ -148,7 +148,7 @@
 </g>
 <g id="layer-hazards-fields" inkscape:groupmode="layer" inkscape:label="hazards: map fields">
 <circle data-map-field="0" data-field-id="" data-angle="0.15" data-force="112" cx="472.196" cy="-1651.895" r="200"/>
-<circle data-map-field="1" data-field-id="" data-angle="-0.4" data-force="112" cx="720" cy="-5540" r="210"/>
+<g data-burst-advantage="carbon-sweep-shear" data-route="carbon-sweep" data-force="2600" data-clean-half-width="40"><circle data-map-field="1" data-field-id="carbon-sweep-shear" data-angle="0" data-force="2600" cx="840" cy="-5540" r="105"/><line x1="840" y1="-5540" x2="926.1" y2="-5540"/><text x="971" y="-5667">BURST ADV · carbon-sweep-shear · short shear · clean ±40</text></g>
 <g data-burst-advantage="oxygen-shortcut-shear" data-route="oxygen-shortcut" data-force="2600" data-clean-half-width="40"><circle data-map-field="2" data-field-id="oxygen-shortcut-shear" data-angle="0" data-force="2600" cx="-320" cy="-9700" r="105"/><line x1="-320" y1="-9700" x2="-233.9" y2="-9700"/><text x="-189" y="-9827">BURST ADV · oxygen-shortcut-shear · short shear · clean ±40</text></g>
 <g data-burst-advantage="deep-skill-shear" data-route="oxygen-deep-skill" data-force="2600" data-clean-half-width="40"><circle data-map-field="3" data-field-id="deep-skill-shear" data-angle="3.142" data-force="2600" cx="100" cy="-11450" r="105"/><line x1="100" y1="-11450" x2="13.9" y2="-11450"/><text x="231" y="-11577">BURST ADV · deep-skill-shear · short shear · clean ±40</text></g>
 </g>
@@ -234,24 +234,25 @@
 <text data-authored-label="2" x="500" y="-2760">静かな切れ目</text>
 <text data-authored-label="3" x="530" y="-3660">外縁の強流 ↑ H₂ BURST</text>
 <text data-authored-label="4" x="-940.241" y="-2599.397">hydrogen-revisit · very-high H · spacing 20 / lanes 3 / value 2</text>
-<text data-authored-label="5" x="-187" y="-9829">BURST ADV · oxygen-shortcut-shear · short shear / force 2600 / clean ±40</text>
-<text data-authored-label="6" x="233" y="-11579">BURST ADV · deep-skill-shear · short shear / force 2600 / clean ±40</text>
-<text data-authored-label="7" x="-158.667" y="-8890">BURSTの近道</text>
-<text data-authored-label="8" x="538" y="-8890">低圧の支流</text>
-<text data-authored-label="9" x="205.5" y="-8890">持続流の本道</text>
-<text data-authored-label="10" x="300" y="-9750">environment recovery · Oを集めながら休む</text>
-<text data-authored-label="11" x="-457.5" y="-10950">Deep Safe Long</text>
-<text data-authored-label="12" x="112.5" y="-10950">Deep Skill Fast</text>
-<text data-authored-label="13" x="504" y="-10950">Deep Thermal</text>
-<text data-authored-label="14" x="120" y="-10800">environment recovery · network merge</text>
-<text data-authored-label="15" x="100" y="-11700">environment recovery · Frontier approach</text>
-<text data-authored-label="16" x="982.128" y="-6495.521">carbon-revisit · very-high C · spacing 22 / lanes 3 / value 1</text>
-<text data-authored-label="17" x="120" y="-10720">流れの合流点 · Oの集積</text>
-<text data-authored-label="18" x="250" y="-4500">炭素の群れ ↑</text>
-<text data-authored-label="19" x="-120" y="-4890">塊へ進入 → Cがほどける</text>
-<text data-authored-label="20" x="170" y="-7590">酸素の奔流 ↑</text>
-<text data-authored-label="21" x="-490" y="-8050">流れの縁 · H / C / O</text>
-<text data-authored-label="22" x="100" y="-11980">最深部へ ↑ · 到達したら正常帰還</text>
+<text data-authored-label="5" x="973" y="-5669">BURST ADV · carbon-sweep-shear · short shear / force 2600 / clean ±40</text>
+<text data-authored-label="6" x="-187" y="-9829">BURST ADV · oxygen-shortcut-shear · short shear / force 2600 / clean ±40</text>
+<text data-authored-label="7" x="233" y="-11579">BURST ADV · deep-skill-shear · short shear / force 2600 / clean ±40</text>
+<text data-authored-label="8" x="-158.667" y="-8890">BURSTの近道</text>
+<text data-authored-label="9" x="538" y="-8890">低圧の支流</text>
+<text data-authored-label="10" x="205.5" y="-8890">持続流の本道</text>
+<text data-authored-label="11" x="300" y="-9750">environment recovery · Oを集めながら休む</text>
+<text data-authored-label="12" x="-457.5" y="-10950">Deep Safe Long</text>
+<text data-authored-label="13" x="112.5" y="-10950">Deep Skill Fast</text>
+<text data-authored-label="14" x="504" y="-10950">Deep Thermal</text>
+<text data-authored-label="15" x="120" y="-10800">environment recovery · network merge</text>
+<text data-authored-label="16" x="100" y="-11700">environment recovery · Frontier approach</text>
+<text data-authored-label="17" x="982.128" y="-6495.521">carbon-revisit · very-high C · spacing 22 / lanes 3 / value 1</text>
+<text data-authored-label="18" x="120" y="-10720">流れの合流点 · Oの集積</text>
+<text data-authored-label="19" x="250" y="-4500">炭素の群れ ↑</text>
+<text data-authored-label="20" x="-120" y="-4890">塊へ進入 → Cがほどける</text>
+<text data-authored-label="21" x="170" y="-7590">酸素の奔流 ↑</text>
+<text data-authored-label="22" x="-490" y="-8050">流れの縁 · H / C / O</text>
+<text data-authored-label="23" x="100" y="-11980">最深部へ ↑ · 到達したら正常帰還</text>
 </g>
 <g id="layer-annotations" inkscape:groupmode="layer" inkscape:label="annotations">
 <text class="annotation" x="-1060" y="-12695">Y increases downward exactly as FIELD source coordinates; no axis inversion.</text>
