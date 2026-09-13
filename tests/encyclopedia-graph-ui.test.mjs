@@ -15,6 +15,7 @@ import {
   selectInitialGraphFocus,
   transitionGraphFocus,
 } from '../src/encyclopedia-graph.js';
+import {ENCYCLOPEDIA_MOTION,graphNodeMotionStart} from '../src/encyclopedia-graph-view.js';
 
 const json=async path=>JSON.parse(await readFile(new URL(path,import.meta.url),'utf8'));
 const [productionRaw,records]=await Promise.all([json('../data/molecule-graph.json'),json('../data/molecules.json')]);
@@ -99,6 +100,17 @@ assert.deepEqual([...layoutA.positions],[...layoutB.positions],'Local layout mus
 assert.equal(layoutA.positions.get('b').y<layoutA.center.y,true,'N-sector neighbor should remain north-biased');
 assert.equal(layoutA.positions.get('c').x>layoutA.center.x,true,'E-sector neighbor should remain east-biased');
 
+assert.equal(ENCYCLOPEDIA_MOTION.graphNavigationDuration,560,'Branch traversal must be slow enough to preserve spatial orientation');
+assert.equal(ENCYCLOPEDIA_MOTION.detailZoomDuration,760,'Graph/Detail shared-element zoom should read as a distinct, longer scale transition');
+assert.equal(ENCYCLOPEDIA_MOTION.easing,'cubic-bezier(.4,0,.2,1)');
+const layoutToB=layoutFocusNeighborhood(fixture,'b',{width:360,height:480});
+const incomingB=graphNodeMotionStart(layoutA.positions.get('b'),layoutToB.positions.get('b'),{nodeDiameter:66,focusDiameter:124});
+const outgoingA=graphNodeMotionStart(layoutA.positions.get('a'),layoutToB.positions.get('a'),{nodeDiameter:66,focusDiameter:124});
+assert(incomingB&&incomingB.scale<1,'Selected neighbor must grow continuously from neighbor scale while moving into the center');
+assert(outgoingA&&outgoingA.scale>1,'Previous focus must shrink continuously from focus scale while retreating into its neighbor position');
+assert(Math.hypot(incomingB.dx,incomingB.dy)>40,'Incoming focus must preserve a readable directional travel vector');
+assert(Math.hypot(outgoingA.dx,outgoingA.dy)>40,'Outgoing focus must preserve the inverse directional travel vector');
+
 const maxDegreeNode=production.nodes.map(node=>({id:node.id,degree:production.getNeighbors(node.id).length})).sort((a,b)=>b.degree-a.degree||a.id.localeCompare(b.id))[0];
 assert.equal(maxDegreeNode.degree,6,'Production max-degree regression fixture should exercise six neighbors');
 const mobileLayout=layoutFocusNeighborhood(production,maxDegreeNode.id,{width:320,height:430,nodeDiameter:62,focusDiameter:116});
@@ -132,12 +144,20 @@ const [graphViewSource,collectionUISource,stylesSource]=await Promise.all([
 assert.doesNotMatch(graphViewSource,/詳細を見る/,'Graph footer detail button must not return');
 assert.doesNotMatch(collectionUISource,/‹ グラフ/,'Detail Graph back button must not return');
 assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs inside the selected thumbnail');
-assert.match(graphViewSource,/animateContinuity\(document,continuity,id,rectOf\(visual\)[\s\S]*onDetail\(id,node\)/,'Graph must create the continuity visual before switching to Detail');
-assert.match(graphViewSource,/document\.addEventListener\('pointerup'[\s\S]*animateContinuity/,'Detail return must create its continuity visual from the still-visible Detail surface');
+assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigation timing must remain deliberately readable');
+assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition must remain longer than branch navigation');
+assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
+assert.match(graphViewSource,/runGraphGeometryMotion\(graphMotion,geometryTweens/,'Edges, teaser/context marks, and nodes must move as one spatial graph rather than redraw independently');
+assert.match(graphViewSource,/previousPositions\.get\(edge\.from\)[\s\S]*previousPositions\.get\(edge\.to\)[\s\S]*geometryTween\(line/,'Graph edges must interpolate from their previous endpoints');
+assert.match(graphViewSource,/animateContinuity\(document,continuity,id,rectOf\(visual\)[\s\S]*sourceSurface:stage[\s\S]*onDetail\(id,node\)/,'Graph must preserve both the molecule and surrounding graph surface before switching to Detail');
+assert.match(graphViewSource,/document\.addEventListener\('pointerup'[\s\S]*direction:'to-graph'/,'Detail return must use the inverse zoom language from the still-visible Detail molecule');
 assert.match(collectionUISource,/host\.dataset\.moleculeId=record\.id/,'Detail return surface must expose the currently rendered molecule ID');
 assert.match(graphViewSource,/const id=detailMoleculeId\(press\.host,state\.focusId\)/,'pre-switch bridge must follow Detail navigation instead of stale Graph focus');
 assert.match(graphViewSource,/molecule-continuity-active \.molecule-shared-transition\{visibility:hidden!important\}/,'the legacy post-switch ghost must not overlap the pre-switch bridge');
-assert.match(graphViewSource,/duration:560/,'Graph to Detail continuity should be deliberately readable instead of snapping');
+assert.match(graphViewSource,/cleanupContinuity\(document,state\);\s*if\(!from\|\|win\?\.matchMedia/,'reduced-motion must still clear any replaced transition lifecycle before returning immediately');
+assert.match(graphViewSource,/state\.animation\?\.cancel\?\.\(\);state\.surfaceAnimation\?\.cancel\?\.\(\)/,'rapid replacement must cancel both molecule and surface animations');
+assert.match(graphViewSource,/state\.ghost\?\.remove\?\.\(\);state\.surface\?\.remove\?\.\(\)/,'rapid replacement must remove bridge and surface clones');
+assert.match(graphViewSource,/graphMotionState\(host,win\)/,'Graph rerender must cancel stale node/geometry motion before starting the next focus move');
 assert.match(collectionUISource,/showMoleculeDetailFromGraph/);
 assert.match(collectionUISource,/returnMoleculeDetailToGraph/);
 assert.match(collectionUISource,/function preview\(record,name,\{graphReturn=false\}=\{\}\)/,'shared preview defaults to no Graph return');
@@ -145,4 +165,4 @@ assert.match(collectionUISource,/preview\(record,moleculeDisplayName\(record\),\
 assert.match(collectionUISource,/Math\.hypot\(event\.clientX-start\.x,event\.clientY-start\.y\)>8/,'Detail tap return must distinguish tap from model drag');
 assert.match(stylesSource,/molecule-shared-transition/,'shared-element ghost must render above both Graph and Detail');
 
-console.log(`Encyclopedia graph UI passed: state/privacy, cross-links, teaser expansion, deterministic sector layout, degree-${maxDegreeNode.degree} mobile geometry and continuous Detail transition.`);
+console.log(`Encyclopedia graph UI passed: state/privacy, spatial branch motion, continuous ${ENCYCLOPEDIA_MOTION.detailZoomDuration}ms Detail zoom, cancellation, reduced-motion, degree-${maxDegreeNode.degree} mobile geometry.`);
