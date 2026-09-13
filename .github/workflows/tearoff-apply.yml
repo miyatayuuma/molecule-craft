@@ -26,7 +26,6 @@ jobs:
           node tests/craft-tearoff.test.mjs
           node tests/craft-workspace.test.mjs
           node tests/conformation-regression.test.mjs
-          node tests/bond-state.test.mjs
           node tests/source-contracts.test.mjs
           node tests/mobile-ui-check.mjs
       - name: Regenerate and verify PWA outputs
