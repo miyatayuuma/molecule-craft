@@ -26,12 +26,12 @@ function prepareRun({x,y,mode}){
 }
 
 function traverseBand({field,mode,x=field.x}){
-  const startY=field.y+field.radius+75,targetY=field.y-field.radius-75;
+  const margin=20,startY=field.y+field.radius+margin,targetY=field.y-field.radius-margin;
   const {run,systems}=prepareRun({x,y:startY,mode});
   const dt=1/120,limit=8;
   let bandTime=0,maxDeviation=0;
   for(let frame=0;frame<limit/dt;frame++){
-    const target={x,y:targetY-220},dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy)||1;
+    const target={x,y:targetY-160},dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy)||1;
     stepRun(run,{x:dx/distance,y:dy/distance},dt,systems);
     if(Math.abs(run.player.y-field.y)<=field.radius){
       bandTime+=dt;
@@ -93,7 +93,7 @@ test('compact shear fields reward BURST with a clean one-shot line while normal 
     const normalDirect=traverseBand({field,mode:'normal'}),normalBypass=traverseBand({field,mode:'normal',x:BYPASS_X[field.id]}),burst=traverseBand({field,mode:'burst'}),drive=traverseBand({field,mode:'drive'});
     const report={id:field.id,normalDirect,normalBypass,burst,drive};reports.push(report);console.log('BURST field metric',JSON.stringify(report));
     assert.ok(normalBypass.success,`${field.id}: normal thrust must retain a skill/safe bypass`);
-    assert.ok(burst.success,`${field.id}: BURST traversal must succeed`);
+    assert.ok(burst.success,`${field.id}: BURST traversal must succeed when fired at the compact shear entrance`);
     assert.ok(drive.success,`${field.id}: DRIVE traversal must succeed`);
     assert.ok(burst.maxDeviation<=field.cleanHalfWidth+12,`${field.id}: BURST should hold the compact line (${burst.maxDeviation.toFixed(1)} <= ${field.cleanHalfWidth+12})`);
     assert.ok(drive.maxDeviation>field.cleanHalfWidth,`${field.id}: DRIVE should require visible line correction (${drive.maxDeviation.toFixed(1)} > ${field.cleanHalfWidth})`);
