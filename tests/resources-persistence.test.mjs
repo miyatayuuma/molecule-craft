@@ -1,51 +1,27 @@
 import assert from 'node:assert/strict';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
-import {SCHEMA_VERSION,migrateResourcesSave,serializeResourcesState} from '../src/veil/resources-persistence.js';
+import {SCHEMA_VERSION,createInitialResourcesState,loadPersistedResources,migrateResourcesSave,serializeResourcesState} from '../src/veil/resources-persistence.js';
 
-const progress={bestChain:7,runs:3,cleared:false,foundElements:['H','C','O'],regions:['veil'],checkpoint:'veil',frontier:false,totalCollected:19,signalMisses:1,signalLast:{veil:4}};
-const elements={H:11,C:4,O:6,N:2};
-const molecules={hydrogen:9,methane:3};
-const recipes=['hydrogen','methane','oxygen'];
-const systems={hints:['water'],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true}};
-const emptyTanks=()=>({propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:{molecule:null,amount:0}});
-const tanks=(propellant=0)=>({propellant:{molecule:propellant?'hydrogen':null,amount:propellant},fuel:{molecule:'methane',amount:3},oxidizer:{molecule:'oxygen',amount:4},coolant:{molecule:null,amount:0}});
-const selected=(withTanks=false)=>({drive:'hydrogen',cooling:true,tanks:withTanks?{propellant:'hydrogen',fuel:'methane',oxidizer:'oxygen',coolant:null}:{propellant:null,fuel:null,oxidizer:null,coolant:null}});
-const currentProgress={bestChain:7,runs:3,cleared:false,craftPrompt:false,sound:true,foundElements:['H','C','O'],regions:['veil'],checkpoint:'veil',frontier:false,choCompleted:false,totalCollected:19,signalMisses:1,signalLast:{veil:4},thermalStrainExperienced:false,driveThermalInterruptions:0};
-const currentElements={H:11,C:4,N:2,O:6,F:0,P:0,S:0,Cl:0};
-function expected({hints=[],dust={H:0,C:0,O:0},tankState=emptyTanks(),loadout=selected(false),upgrade=0,migrateDiscoveries=false}={}){const result={schemaVersion:7,upgrades:{oxygenTank:upgrade},elements:currentElements,tanks:tankState,recipes,hints,dust,loadout,progress:currentProgress,workspace:null};if(migrateDiscoveries)result.migrateDiscoveries=true;return result;}
+const memory=(entries=[])=>{const data=new Map(entries);return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key),raw:key=>data.get(key)??null};};
 
-const fixtures=[
-  {version:1,raw:{schemaVersion:1,elements,molecules,recipes,progress,workspace:null},want:expected({migrateDiscoveries:true})},
-  {version:2,raw:{schemaVersion:2,elements,molecules,recipes,progress,workspace:null,...systems},want:expected({hints:systems.hints,dust:systems.dust})},
-  {version:3,raw:{schemaVersion:3,elements,molecules,recipes,progress,workspace:null,...systems,tanks:{hydrogen:2,methane:3,oxygen:4}},want:expected({hints:systems.hints,dust:systems.dust,tankState:tanks(80),loadout:selected(true)})},
-  {version:4,raw:{schemaVersion:4,elements,molecules,recipes,progress,workspace:null,...systems,tanks:{propellant:{molecule:'hydrogen',amount:2},fuel:{molecule:'methane',amount:3},oxidizer:{molecule:'oxygen',amount:4},coolant:{molecule:null,amount:0}}},want:expected({hints:systems.hints,dust:systems.dust,tankState:tanks(80),loadout:selected(true)})},
-  {version:5,raw:{schemaVersion:5,elements,molecules,recipes,progress,workspace:null,...systems,tanks:tanks(40)},want:expected({hints:systems.hints,dust:systems.dust,tankState:tanks(40),loadout:selected(true)})},
-  {version:6,raw:{schemaVersion:6,elements,recipes,progress,workspace:null,...systems,tanks:tanks(40)},want:expected({hints:systems.hints,dust:systems.dust,tankState:tanks(40),loadout:selected(true)})},
-  {version:7,raw:{schemaVersion:7,upgrades:{oxygenTank:1},elements,recipes,progress,workspace:null,...systems,tanks:tanks(40)},want:expected({hints:systems.hints,dust:systems.dust,tankState:tanks(40),loadout:selected(true),upgrade:1})},
-];
+assert.equal(SCHEMA_VERSION,8,'molecule DB v2 requires a hard resource-save schema boundary');
+const initial=createInitialResourcesState();
+for(const version of [1,2,3,4,5,6,7]){
+  const legacy={...initial,schemaVersion:version,elements:{...initial.elements,H:999,C:500,O:250},recipes:['hydrogen','methane','oxygen','water'],progress:{...initial.progress,bestChain:99,runs:42,foundElements:['H','C','O'],regions:['veil','carbon','oxygen'],checkpoint:'oxygen',frontier:true,thermalStrainExperienced:true,driveThermalInterruptions:2}};
+  assert.deepEqual(migrateResourcesSave(JSON.stringify(legacy)),initial,`schema v${version} must reset rather than migrate resource/progression state`);
+  const storage=memory([[RESOURCE_KEY,JSON.stringify(legacy)],['molecule-craft.collection.v1',JSON.stringify({schemaVersion:2,discoveredMolecules:[{id:'water',at:1,order:1}]})]]);
+  const loaded=loadPersistedResources(storage);
+  assert.deepEqual(loaded.state,initial,`schema v${version} load must return clean initial resources without exception`);
+  assert.equal(JSON.parse(storage.raw(RESOURCE_KEY)).schemaVersion,SCHEMA_VERSION,`schema v${version} reset must write the current resource schema`);
+  assert.equal(storage.raw('molecule-craft.collection.v1'),null,`schema v${version} reset must discard incompatible collection discovery state`);
+}
 
-assert.equal(SCHEMA_VERSION,7);
-for(const fixture of fixtures){const migrated=migrateResourcesSave(JSON.stringify(fixture.raw));assert.deepEqual(migrated,fixture.want,`v${fixture.version} -> v7 golden migration`);assert.equal(migrated.schemaVersion,7);assert.equal(Object.hasOwn(migrated,'molecules'),false,`v${fixture.version} must not expose legacy molecule inventory`);if(fixture.version<=6)assert.equal(migrated.upgrades.oxygenTank,0,`v${fixture.version} gets pre-upgrade default`);}
+const current={...createInitialResourcesState(),upgrades:{oxygenTank:1},elements:{...initial.elements,H:311,C:144,O:92,N:8},recipes:['hydrogen','methane','oxygen','water'],hints:['water'],dust:{H:1,C:2,O:3},loadout:{drive:'hydrogen',cooling:true,tanks:{propellant:'hydrogen',fuel:'methane',oxidizer:'oxygen',coolant:'water'}},tanks:{propellant:{molecule:'hydrogen',amount:40},fuel:{molecule:'methane',amount:3},oxidizer:{molecule:'oxygen',amount:4},coolant:{molecule:'water',amount:2}},progress:{...initial.progress,bestChain:7,runs:3,cleared:true,foundElements:['H','C','O'],regions:['veil','carbon','oxygen'],checkpoint:'oxygen',frontier:true,totalCollected:91,thermalStrainExperienced:true,driveThermalInterruptions:2}};
+const serialized=serializeResourcesState(current);assert.deepEqual(JSON.parse(serialized),current,'current schema serialization preserves BASE STOCK, recipes, tanks, progression and loadout capability state');
+const storage=memory([[RESOURCE_KEY,serialized]]),loaded=loadPersistedResources(storage);assert.deepEqual(loaded.state,current,'current schema direct load round-trips without normalization loss');
+const resources=createResources({storage});assert.equal(resources.blocked,false);assert.deepEqual(resources.state,current,'runtime hydration preserves current save state');assert.equal(resources.save(),true,'current save remains writable');assert.deepEqual(JSON.parse(storage.raw(RESOURCE_KEY)),current,'normal save/reload keeps current state stable');
 
-const strainedRaw={...fixtures.at(-1).raw,progress:{...progress,thermalStrainExperienced:true}},strained=migrateResourcesSave(JSON.stringify(strainedRaw));assert.equal(strained.progress.thermalStrainExperienced,true,'current milestone survives normalization');
-const interruptedRaw={...fixtures.at(-1).raw,progress:{...progress,thermalStrainExperienced:true,driveThermalInterruptions:2}},interrupted=migrateResourcesSave(JSON.stringify(interruptedRaw));assert.equal(interrupted.progress.driveThermalInterruptions,2,'DRIVE thermal interruption progress survives normalization');
-const normalizedV7=migrateResourcesSave(JSON.stringify(fixtures.at(-1).raw));assert.equal(normalizedV7.progress.thermalStrainExperienced,false,'missing historical field defaults false');assert.equal(normalizedV7.progress.driveThermalInterruptions,0,'missing DRIVE interruption field defaults zero');assert.deepEqual(JSON.parse(serializeResourcesState(normalizedV7)),normalizedV7,'egress writes current canonical state only');assert.throws(()=>serializeResourcesState(fixtures[5].raw),/schema/i,'egress must reject legacy schema states');
-const embeddedV1Workspace={schemaVersion:1,atoms:[{element:'H',position:[0,0,0]}],bonds:[],selected:0,focus:0,pivot:null,camera:{position:[4,3,8],target:[0,0,0],up:[0,1,0]}};
-const resourceWithLegacyWorkspace={...fixtures[5].raw,workspace:embeddedV1Workspace};
-const migratedEmbeddedWorkspace=migrateResourcesSave(JSON.stringify(resourceWithLegacyWorkspace));
-assert.deepEqual(migratedEmbeddedWorkspace.workspace,{...embeddedV1Workspace,schemaVersion:2,targetMoleculeId:null},'resources persistence keeps its legacy bridge but hands runtime a canonical workspace');
+const malformedStorage=memory([[RESOURCE_KEY,'{broken']]);const malformed=createResources({storage:malformedStorage});assert.equal(malformed.blocked,false,'corrupt persisted resource JSON resets rather than blank-screening or write-blocking');assert.deepEqual(malformed.state,initial);assert.equal(malformed.save(),true);
+assert.throws(()=>serializeResourcesState({...current,schemaVersion:7}),/schema/i,'egress rejects old resource schema states');
 
-const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};};
-const legacyRaw=JSON.stringify(fixtures[2].raw),legacyStorage=memory();legacyStorage.setItem(RESOURCE_KEY,legacyRaw);const hydratedLegacy=createResources({storage:legacyStorage});assert.equal(hydratedLegacy.blocked,false);assert.equal(hydratedLegacy.state.schemaVersion,7);assert.equal(hydratedLegacy.state.progress.thermalStrainExperienced,false);assert.equal(hydratedLegacy.state.progress.driveThermalInterruptions,0);assert.equal(legacyStorage.getItem(RESOURCE_KEY),legacyRaw,'hydrate must not eagerly rewrite a valid legacy save');assert.equal(hydratedLegacy.save(),true);assert.equal(JSON.parse(legacyStorage.getItem(RESOURCE_KEY)).schemaVersion,7,'the next normal save writes canonical v7');
-
-const malformed=[
-  '{broken',
-  JSON.stringify({...fixtures[6].raw,schemaVersion:99}),
-  JSON.stringify({...fixtures[2].raw,tanks:{...fixtures[2].raw.tanks,hydrogen:'2'}}),
-  JSON.stringify({...fixtures[6].raw,upgrades:{oxygenTank:3}}),
-  JSON.stringify({...fixtures[6].raw,progress:{...progress,thermalStrainExperienced:'yes'}}),
-  JSON.stringify({...fixtures[6].raw,progress:{...progress,driveThermalInterruptions:'two'}}),
-];
-for(const raw of malformed){assert.throws(()=>migrateResourcesSave(raw));const storage=memory();storage.setItem(RESOURCE_KEY,raw);const resources=createResources({storage});assert.equal(resources.blocked,true,'invalid persisted state must block writes');assert.equal(resources.save(),false);assert.equal(storage.getItem(RESOURCE_KEY),raw,'invalid persisted state must remain untouched');}
-
-console.log('Resources persistence migration passed: v1-v7 goldens, thermal progression normalization/validation, old inventory/tanks, pre-upgrade defaults, deferred canonical writeback, current-only egress, and malformed-save protection.');
+console.log('Resources persistence v8 passed: v1-v7 reset cleanly and current BASE STOCK/progression/capability state round-trips.');
