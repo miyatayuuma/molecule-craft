@@ -3,6 +3,7 @@ import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionSideEffectGate} from './completion-side-effects.js?v=1';
 import {installPendingCraftAccess} from './pending-craft.js?v=1';
 import {loadMoleculeDatabase,moleculeCatalog} from './chemistry.js?v=20';
+import {loadMoleculeGraph} from './molecule-graph.js';
 import {CRITICAL_INSIGHT_IDS} from './veil/insights.js';
 import {primaryRoleFor} from './veil/molecule-roles.js';
 import {installTankCapabilityPresentation} from './veil/capability-unlock.js?v=1';
@@ -118,9 +119,10 @@ function installLoadoutShortageUI(resources){
 }
 
 export async function prepareExplorationCatalog(resources){
-  const result=await loadMoleculeDatabase();
+  const [result,frontierGraph]=await Promise.all([loadMoleculeDatabase(),loadMoleculeGraph().catch(()=>null)]);
   if(!result.ok)return result;
   resources.setCatalog(moleculeCatalog());
+  resources.setFrontierGraph(frontierGraph);
   return result;
 }
 
