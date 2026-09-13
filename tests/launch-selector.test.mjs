@@ -3,12 +3,18 @@ import {readFile} from 'node:fs/promises';
 import {launchDestinationLayout} from '../src/veil/supply.js';
 
 const source=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
+const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
 assert.match(source,/collector-launch-handle/,'Explorer launch must have a dedicated touch target');
 assert.match(source,/launchHandle\.addEventListener\('pointerdown',beginLaunch\)/,'Drag must start from the dedicated touch target');
 assert.match(source,/shellCanvas\.style\.transform=`translate/,'The visible explorer must follow the drag');
 assert.match(source,/resetLaunchGesture\(\{keepDestinations:true\}\)/,'Destination launch must preserve selector context through shortage confirmation');
 assert.match(source,/shellCanvas\.style\.transform=`translate\(\$\{target\.x\}px,\$\{target\.y\}px\)`/,'Explorer must stay parked on the selected destination while launch state is evaluated');
-assert.match(source,/partialBack\.addEventListener\('click',\(\)=>\{partialPanel\.hidden=true;resetLaunchGesture\(\);\}\)/,'Back from shortage confirmation must clear destination highlight and recenter the explorer');
+assert.match(source,/return onRequestLaunch\(id\)!==false;/,'Destination interaction must call the application launch request callback with an explicit destination id');
+assert.match(source,/partialBack\.addEventListener\('click',\(\)=>\{requestedDestinationId=null;partialPanel\.hidden=true;resetLaunchGesture\(\);\}\)/,'Back from shortage confirmation must clear the pending destination, highlight, and explorer position');
+assert.doesNotMatch(source,/dispatchEvent\(new window\.Event\('change'/,'Launch must not relay application behavior through a synthetic destination change event');
+assert.doesNotMatch(source,/q\('launch-veil'\)\.click\(\)/,'Launch must not relay application behavior through a pseudo-click');
+assert.match(uiSource,/createExpeditionLaunchRequester/,'EXPLORE must own an application-level launch requester');
+assert.match(uiSource,/q\('launch-veil'\)\.addEventListener\('click',event=>\{event\.preventDefault\(\);requestExpeditionLaunch\(anchor\);\}\)/,'The launch affordance must enter the same application request API');
 const ids=['veil','carbon','oxygen','frontier','veil','carbon'];
 for(let count=1;count<=5;count++){
   const layout=launchDestinationLayout(ids.slice(0,count));
@@ -18,4 +24,4 @@ for(let count=1;count<=5;count++){
 }
 assert.equal(launchDestinationLayout(ids).length,5,'Destination fan stays readable when more regions are added');
 assert.deepEqual(launchDestinationLayout(['unknown','veil']).map(({id})=>id),['veil']);
-console.log('Explorer launch selector passed: 1–5 radial destinations, fixed radius, and five-destination cap.');
+console.log('Explorer launch selector passed: radial inputs share the explicit launch request API without DOM event relays.');
