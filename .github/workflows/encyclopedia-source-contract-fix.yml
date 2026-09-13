@@ -1,0 +1,47 @@
+name: Encyclopedia source contract fixer
+
+on:
+  push:
+    branches:
+      - fix/encyclopedia-graph-load
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.event.head_commit.message == 'Add temporary Encyclopedia source contract fixer'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: fix/encyclopedia-graph-load
+          fetch-depth: 0
+      - name: Update collection module revision contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('tests/source-contracts.test.mjs')
+          source=path.read_text()
+          old="assert.match(craftConnections, /await import\\('\\.\\/collection-ui\\.js\\?v=37'\\)/);"
+          new="assert.match(craftConnections, /await import\\('\\.\\/collection-ui\\.js\\?v=38'\\)/);"
+          if old not in source: raise SystemExit('v37 collection import contract not found')
+          path.write_text(source.replace(old,new,1))
+          PY
+      - name: Validate and refresh generated PWA if needed
+        run: |
+          node tests/source-contracts.test.mjs
+          if ! node scripts/build-precache.mjs --check; then
+            node scripts/build-precache.mjs
+          fi
+          node scripts/build-precache.mjs --check
+          node tests/browser-startup.test.mjs
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit source contract fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/source-contracts.test.mjs sw.js precache-manifest.js
+          git commit -m 'Update Encyclopedia module revision contract'
+          git push origin HEAD:fix/encyclopedia-graph-load
