@@ -47,9 +47,12 @@ assert.doesNotMatch(pendingSource,/style\.animation|setInterval|localStorage|ses
 assert.match(pendingSource,/`設計図 \${ids\.length}件`/,'accessible pending count remains concise on the navigation button');
 assert.doesNotMatch(pendingSource,/未作成の設計図|探索で見つけた、まだ作っていない分子/,'pending blueprints must not explain their state with visible prose');
 assert.match(pendingSource,/insight-category\.css/,'pending rows load the shared category palette');
+assert.match(pendingSource,/dialog\.className='sheet pending-craft-dialog'/,'pending insight list has a dedicated modal-lite surface instead of using the generic bottom sheet unchanged');
+assert.match(pendingSource,/#pending-crafts-dialog\.pending-craft-dialog\{position:fixed;inset:50% auto auto 50%[\s\S]*transform:translate\(-50%,-50%\)/,'pending insight list is centered in the viewport on larger screens');
+assert.match(pendingSource,/@media \(max-width:650px\)\{#pending-crafts-dialog\.pending-craft-dialog\{inset:46% auto auto 50%;width:calc\(100vw - 24px\);max-height:62dvh\}/,'mobile placement stays near the visual center with usable viewport margins');
 assert.match(connectionsSource,/onCraft:\(\.\.\.args\)=>\{pendingCraft\.refresh\(\);return onCraft\(\.\.\.args\);\}/,'normal return refreshes pending attention before handing control back to CRAFT');
 assert.match(veilSource,/resources\.settleExpedition\([\s\S]*insights:captured\?\[\]:completed\.carriedInsights\}[\s\S]*onCraft\(\)/,'normal returns commit carried insight ids before the pending refresh while capture commits none');
 assert.doesNotMatch(supplySource,/const hintIds=\{propellant:/,'LOADOUT must not own hardcoded unfinished-molecule candidates');
 assert.doesNotMatch(supplySource,/tank-next-hint'\)\.addEventListener/,'LOADOUT must not own the unfinished-molecule craft route');
 
-console.log('Pending craft passed: session-local unseen/acknowledged attention, add-only re-arm, sparse/reduced-motion affordance, return integration, category semantics and craft routing.');
+console.log('Pending craft passed: centered modal-lite chooser, session-local unseen/acknowledged attention, add-only re-arm, sparse/reduced-motion affordance, return integration, category semantics and craft routing.');

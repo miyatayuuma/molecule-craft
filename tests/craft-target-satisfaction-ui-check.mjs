@@ -47,14 +47,14 @@ const remaining=()=>game.run("JSON.stringify(targetPartsFor(resources.record(cra
 assert.ok(oh());const stock=JSON.parse(game.run('JSON.stringify(resources.state.elements)'));
 oh().click();assert.equal(oh(),null);const fromTarget=remaining();
 assert.equal(game.run('resources.state.elements.O'),stock.O-1);assert.equal(game.run('resources.state.elements.H'),stock.H-1);
-game.run('updateStructureFrame(2000);molecule.removeBond(molecule.atoms[0].id,molecule.atoms[1].id);topologyChanged();refreshInfo();');assert.ok(oh());
+game.run('updateStructureFrame(2000);molecule.removeBond(molecule.atoms[0].id,molecule.atoms[1].id);topologyChanged();refreshInfo();');assert.equal(oh(),null,'breaking a bond must not re-request atoms already reserved in the workspace');
 game.run('molecule.setBond(molecule.atoms[0].id,molecule.atoms[1].id,1);topologyChanged();refreshInfo();');assert.equal(oh(),null);
 game.run('clearField({silent:true});');assert.ok(oh());
 game.document.querySelector('#parts-tab').click();game.document.querySelector('#craft-palette [data-part-id="hydroxyl"]').click();assert.equal(remaining(),fromTarget);
-game.run('updateStructureFrame(2000);clearField({silent:true});addElement("O");updateStructureFrame(2000);addElement("H");updateStructureFrame(2000);');assert.ok(oh());
+game.run('updateStructureFrame(2000);clearField({silent:true});addElement("O");updateStructureFrame(2000);addElement("H");updateStructureFrame(2000);');assert.equal(oh(),null,'loose O/H atoms already satisfy the target material requirement');
 game.run('molecule.setBond(molecule.atoms[0].id,molecule.atoms[1].id,1);topologyChanged();refreshInfo();');assert.equal(remaining(),fromTarget);
 game.run('saveWorkspace(true);');
 const resourceSaved=game.window.localStorage.getItem('molecule-craft.resources.v1'),collectionSaved=game.window.localStorage.getItem('molecule-craft.collection.v1');
 const restored=await setup(null,0,resourceSaved,collectionSaved);assert.equal(restored.run("JSON.stringify(targetPartsFor(resources.record(craftTargetId)).map(p=>[p.partId,p.atomIndices]))"),fromTarget);assert.equal(restored.document.querySelector('#craft-target-atoms [data-part-id="hydroxyl"]'),null);
-restored.run('craftWorkspace.removeAtom(molecule.atoms[0].id);selectAtom(null);topologyChanged();refreshInfo();');assert.ok(restored.document.querySelector('#craft-target-atoms [data-part-id="hydroxyl"]'));
-console.log('Target graph DOM passed: top/tray/manual origins, break/rebond/delete, stock checkout and reload derive the same missing pieces.');
+restored.run('craftWorkspace.removeAtom(molecule.atoms[0].id);selectAtom(null);topologyChanged();refreshInfo();');assert.equal(restored.document.querySelector('#craft-target-atoms [data-part-id="hydroxyl"]'),null,'a partially missing shortcut falls back to the actually missing atom instead of re-requesting the whole part');assert.ok(restored.document.querySelector('#craft-target-atoms [data-element="O"]'));
+console.log('Target material DOM passed: shortcut/manual origins, break/rebond/delete, stock checkout and reload keep workspace atoms reserved independently from topology.');

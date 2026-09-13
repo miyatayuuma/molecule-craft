@@ -40,7 +40,9 @@ jobs:
           node tests/collection-expansion.test.mjs
           node tests/capability-unlock.test.mjs
       - name: Encyclopedia graph UI
-        run: node tests/encyclopedia-graph-ui.test.mjs
+        run: |
+          node tests/encyclopedia-graph-ui.test.mjs
+          node tests/encyclopedia-shared-transition.test.mjs
       - name: Browser startup
         run: node tests/browser-startup.test.mjs
       - name: Molecule DB v2 persistence
@@ -54,6 +56,7 @@ jobs:
           node tests/craft-input-recovery.test.mjs
           node tests/game-shell-recovery.test.mjs
           node tests/craft-target-colors.test.mjs
+          node tests/craft-target-display.test.mjs
       - name: Expedition insights
         run: |
           node tests/expedition-insights.test.mjs

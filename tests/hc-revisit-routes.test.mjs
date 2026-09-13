@@ -110,7 +110,7 @@ test('recovery is environmental only and DUST EATER remains global pursuit',asyn
   assert.match(engine,/if\(run\.nearestEater<=EXPEDITION\.eaterContactRadius\)\{run\.captured=true/,'global capture remains present');
 });
 
-test('Task 6 signals/challenges stay unchanged and developer map exposes revisit/recovery semantics',()=>{
+test('Task 6 signal/challenge geometry stays stable while insight ownership belongs to the Graph frontier',()=>{
   assert.deepEqual(FIELD_SIGNALS.map(({id,region,complexity,x,y})=>({id,region,complexity,x,y})),[
     {id:'veil',region:'veil',complexity:undefined,x:390,y:-650},
     {id:'carbon',region:'carbon',complexity:undefined,x:840,y:-5660},
@@ -118,11 +118,8 @@ test('Task 6 signals/challenges stay unchanged and developer map exposes revisit
     {id:'oxygen-deep',region:'oxygen',complexity:'deep',x:-280,y:-11100},
     {id:'oxygen-frontier',region:'frontier',complexity:'frontier',x:100,y:-11620},
   ]);
-  assert.deepEqual(EXPEDITION_CHALLENGES.map(({id,rewards})=>({id,rewards})),[
-    {id:'pulse',rewards:['dimethyl-ether','ethene','propene']},
-    {id:'curve',rewards:['propane','phenol','formaldehyde']},
-    {id:'thermal',rewards:['ethylene-glycol','n-hexane']},
-  ]);
+  assert.deepEqual(EXPEDITION_CHALLENGES.map(({id})=>id),['pulse','curve','thermal']);
+  assert.ok(EXPEDITION_CHALLENGES.every(challenge=>!Object.hasOwn(challenge,'rewards')),'challenge routes must not own fixed molecule rewards');
   const svg=buildFieldMapSvg();
   assert.match(svg,/id="route-hydrogen-revisit"/);
   assert.match(svg,/id="route-carbon-revisit"/);

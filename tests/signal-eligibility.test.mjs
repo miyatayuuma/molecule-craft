@@ -31,21 +31,22 @@ assert.equal(minimumSignalRegionFor({id:'oxygen-only',atoms:['O','O','O']}),'oxy
 assert.equal(minimumSignalRegionFor({id:'nitrogen-test',atoms:['N','H']}),null);
 assert.equal(minimumSignalRegionFor({id:'empty-test',atoms:[]}),null);
 
-// Critical progression and challenge-owned rewards are never generic signals.
-const challengeRewards=EXPEDITION_CHALLENGES.flatMap(challenge=>challenge.rewards);
-assert.deepEqual(CHALLENGE_INSIGHT_IDS,[...new Set(challengeRewards)]);
+// Only critical progression remains outside the ordinary Graph frontier.
+// Authored challenge routes no longer own molecule IDs or fixed insight rewards.
+assert.deepEqual(CHALLENGE_INSIGHT_IDS,[]);
 for(const id of CRITICAL_INSIGHT_IDS)assert.equal(eligible({id,atoms:['H']},'frontier'),false,`${id} is critical-owned`);
-for(const id of CHALLENGE_INSIGHT_IDS)assert.equal(eligible({id,atoms:['H']},'frontier'),false,`${id} is challenge-owned`);
+for(const id of ['dimethyl-ether','phenol','n-hexane'])assert.equal(eligible({id,atoms:['H']},'frontier'),true,`${id} is no longer challenge-owned`);
 
-// Challenge traversal still emits the curated reward list once, unchanged.
+// Challenge traversal records route completion without directly granting any
+// molecule. Knowledge is selected later by the ordinary Graph frontier.
 for(const challenge of EXPEDITION_CHALLENGES){
   const startY=challenge.bottom-1,endY=challenge.top-1;
   const run={map:{universe:true},player:{x:challengeCenter(challenge,startY),y:startY},events:[]};
   recordChallengePassage(run,{x:challengeCenter(challenge,challenge.bottom+1),y:challenge.bottom+1});
   run.player.x=challengeCenter(challenge,endY);run.player.y=endY;
   recordChallengePassage(run,{x:challengeCenter(challenge,startY),y:startY});
-  assert.deepEqual(run.events,[{type:'inspiration',rewards:challenge.rewards}]);
-  recordChallengePassage(run,{x:challengeCenter(challenge,startY),y:startY});assert.equal(run.events.length,1);
+  assert.equal(run.challengeProgress[challenge.id]?.complete,true);assert.deepEqual(run.events,[]);
+  recordChallengePassage(run,{x:challengeCenter(challenge,startY),y:startY});assert.deepEqual(run.events,[]);
 }
 
 // Eligibility is cumulative by region, but required FIELD elements must still
@@ -66,7 +67,7 @@ assert.equal(eligible(H1,'frontier',{excludeIds:new Set([H1.id])}),false);
 assert.equal(eligible({id:'dozen-hydrogen',atoms:Array(12).fill('H')},'veil'),true);
 assert.equal(eligible({id:'thirteen-hydrogen',atoms:Array(13).fill('H')},'veil'),false);
 
-// Resource-level candidate selection honors the same cumulative region rules.
+// Legacy region eligibility remains deterministic as a pure policy helper.
 function signalAt(region,unlocks=[]){const value=make();for(const element of unlocks)value.findElementForExpedition(element);const before=[...value.state.hints],result=value.signal(region,0,.999);assert.deepEqual(value.state.hints,before);return result;}
 assert.equal(signalAt('veil').recipe,H1.id);
 assert.equal(signalAt('carbon',['C']).recipe,C1.id);
@@ -118,4 +119,4 @@ assert.match(uiSource,/const excludeIds=new Set\(run\.carriedInsights\)/);
 assert.match(uiSource,/run\.analysis\?\.id\)excludeIds\.add\(run\.analysis\.id\)/);
 assert.match(uiSource,/resources\.signal\(event\.region,event\.roll,event\.choice,\{excludeIds,runContext:run\}\)/);
 
-console.log('Regional signal eligibility passed: source ownership, cumulative region rank, element unlock, persistent/run-local exclusions, deterministic choice, bonus, pity and cooldown.');
+console.log('Regional signal eligibility passed: critical ownership, graph-neutral challenge traversal, cumulative region rank, element unlock, exclusions, deterministic choice, bonus, pity and cooldown.');
