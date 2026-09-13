@@ -29,7 +29,7 @@ export function sampleAuthoredLine(knots,spacing=VEIL.dustSpacing){
 const freezeKnots=knots=>Object.freeze(knots.map(knot=>Object.freeze(knot)));
 export const HYDROGEN_REVISIT_ROUTE=Object.freeze({
   id:'hydrogen-revisit',label:'H revisit pocket',classification:'G0 / G1',densityTier:'very-high',revisit:true,
-  knots:freezeKnots([[-520,-2200],[-930,-2450],[-850,-2950],[-800,-3090]]),spacing:20,lanes:3,value:VEIL.dustValue,
+  knots:freezeKnots([[-520,-2200],[-930,-2450],[-850,-2950],[-800,-3090]]),spacing:20,lanes:3,value:VEIL.dustValue*2,
 });
 
 const DEPLETION_LIMITS=Object.freeze({H:{start:80,full:800},C:{start:40,full:400},O:{start:40,full:400}});
