@@ -175,7 +175,7 @@ export function connectExploration(options){
 }
 
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
-  const {createCollectionUI}=await import('./collection-ui.js?v=37');
+  const {createCollectionUI}=await import('./collection-ui.js?v=38');
   return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
 }
 

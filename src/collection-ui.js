@@ -120,7 +120,10 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   function visibleItems(kind=tab){
     if(kind==='molecules')return records.filter(item=>state.hasMolecule(item.id)).sort((a,b)=>number(kind,a.id)-number(kind,b.id));
     const visible=(known,available)=>filter==='all'||(filter==='available'?available:filter==='found'?known:!known);
-    return collectibleGroups.filter(item=>scope==='all'||isCHO(item.pattern.atoms)).filter(item=>visible(state.hasGroup(item.id),item.pattern.atoms.every(atom=>state.canUseElement(atom.element))).sort((a,b)=>number(kind,a.id)-number(kind,b.id));
+    const items=collectibleGroups
+    .filter(item=>scope==='all'||isCHO(item.pattern.atoms))
+    .filter(item=>visible(state.hasGroup(item.id),item.pattern.atoms.every(atom=>state.canUseElement(atom.element))));
+  return items.sort((a,b)=>number(kind,a.id)-number(kind,b.id));
   }
   function renderGraph(){
     ensureGraphFocus();
