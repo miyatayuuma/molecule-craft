@@ -90,6 +90,15 @@ jobs:
           node tests/launch-selector.test.mjs
           node tests/launch-pointer-lifecycle.test.mjs
           node tests/ui-symbols.test.mjs
+      - name: Regenerate PWA artifacts for validation
+        run: node scripts/build-precache.mjs
+      - name: Upload regenerated PWA artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-pwa
+          path: |
+            precache-manifest.js
+            sw.js
       - name: Generated PWA freshness
         run: node scripts/build-precache.mjs --check
       - name: PWA integrity
