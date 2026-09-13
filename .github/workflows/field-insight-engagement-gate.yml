@@ -18,7 +18,9 @@ jobs:
           ref: fix/field-insight-engagement-gate
           fetch-depth: 0
       - name: Apply engagement gate
-        run: python3 scripts/tmp-field-insight-patch.py
+        run: |
+          python3 scripts/tmp-field-insight-patch.py
+          python3 scripts/tmp-field-insight-contract-patch.py
       - name: Validate engagement gate
         run: |
           node tests/field-frontier-insight.test.mjs
@@ -36,6 +38,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/veil/insights.js src/veil/expedition-run.js src/veil/resources.js src/veil/ui.js tests/field-frontier-insight.test.mjs precache-manifest.js sw.js
+          git add src/veil/insights.js src/veil/expedition-run.js src/veil/resources.js src/veil/ui.js tests/field-frontier-insight.test.mjs tests/signal-eligibility.test.mjs precache-manifest.js sw.js
           git commit -m 'Gate FIELD insights behind exploration activity'
           git push origin HEAD:fix/field-insight-engagement-gate
