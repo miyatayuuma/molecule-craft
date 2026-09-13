@@ -32,11 +32,29 @@ jobs:
             source=source.replace(pattern,'');
           }
           await writeFile('src/veil/molecule-roles.js',source);
-          const testPath='tests/collection.test.mjs';
-          let test=await readFile(testPath,'utf8');
-          test=test.replace("assert.equal(loadRaw(JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'removed'},{id:'methanol'},{id:'methanol'}],unlockedStructures:['phenyl']})).discoveredCount,1);","assert.equal(loadRaw(JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'removed'},{id:'methanol'},{id:'methanol'}],unlockedStructures:['phenyl']})).discoveredCount,0,'legacy collection discoveries reset under schema v3');");
-          test=test.replace("assert.equal(loadRaw(JSON.stringify({schemaVersion:0,discoveredMoleculeIds:['methanol']})).isUnlocked('hydroxyl'),true);","assert.equal(loadRaw(JSON.stringify({schemaVersion:0,discoveredMoleculeIds:['methanol']})).isUnlocked('hydroxyl'),false,'legacy collection unlocks reset under schema v3');");
-          await writeFile(testPath,test);
+          const collectionPath='tests/collection.test.mjs';
+          let collection=await readFile(collectionPath,'utf8');
+          collection=collection.replace("assert.equal(loadRaw(JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'removed'},{id:'methanol'},{id:'methanol'}],unlockedStructures:['phenyl']})).discoveredCount,1);","assert.equal(loadRaw(JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'removed'},{id:'methanol'},{id:'methanol'}],unlockedStructures:['phenyl']})).discoveredCount,0,'legacy collection discoveries reset under schema v3');");
+          collection=collection.replace("assert.equal(loadRaw(JSON.stringify({schemaVersion:0,discoveredMoleculeIds:['methanol']})).isUnlocked('hydroxyl'),true);","assert.equal(loadRaw(JSON.stringify({schemaVersion:0,discoveredMoleculeIds:['methanol']})).isUnlocked('hydroxyl'),false,'legacy collection unlocks reset under schema v3');");
+          await writeFile(collectionPath,collection);
+          const fixturePath='tests/fixtures/collection-expansion-reference.json';
+          const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
+          const productionIds=new Set(JSON.parse(await readFile('data/molecules.json','utf8')).map(item=>item.id));
+          fixture.records=fixture.records.filter(item=>productionIds.has(item.id));
+          fixture.note+=' Molecule DB v2 filters this reference fixture to current production IDs.';
+          await writeFile(fixturePath,JSON.stringify(fixture,null,2)+'\n');
+          const expansionPath='tests/collection-expansion.test.mjs';
+          let expansion=await readFile(expansionPath,'utf8');
+          expansion=expansion.replace('assert.equal(references.records.length,20);','assert.equal(references.records.length,12);');
+          const legacyStart=expansion.indexOf('// Low-progress legacy players retain elements used in real discoveries');
+          const ordinaryStart=expansion.indexOf('// Ordinary named open parts');
+          if(legacyStart<0||ordinaryStart<0)throw new Error('Collection expansion legacy section not found');
+          expansion=expansion.slice(0,legacyStart)+`// Molecule DB v2 deliberately resets pre-v3 collection saves instead of translating deleted discoveries.\nlet saved=JSON.stringify({schemaVersion:2,discoveredMolecules:[{id:'methanol',at:1,order:1}],legacyElements:['O'],milestones:[]});\nlet writes=0;const storage={getItem:()=>saved,setItem:(_,value)=>{saved=value;writes++;}};\nconst legacy=newGame(storage);assert.equal(legacy.discoveredCount,0);assert.deepEqual(legacy.unlockedElements(),['H','C','O']);\nassert.equal(writes,0,'Loading an incompatible save resets runtime state without eager per-frame writes');\nlegacy.observeStructures([fixture('methane')]);assert.equal(JSON.parse(saved).schemaVersion,3);\nconst restored=newGame(storage);assert.equal(restored.discoveredCount,1);assert.equal(new Molecule().atoms.length,0,'Do not restore the crafting field');\n\n`+expansion.slice(ordinaryStart);
+          expansion=expansion.replace("assert.ok(detect('2-propanol','isopropyl'));assert.ok(detect('cumene','isopropyl'));assert.equal(detect('1-propanol','isopropyl'),false);assert.equal(detect('tert-butanol','isopropyl'),false);","assert.ok(detect('2-propanol','isopropyl'));assert.ok(detect('isobutane','isopropyl'));assert.equal(detect('tert-butanol','isopropyl'),false);");
+          expansion=expansion.replace("assert.ok(detect('1-butanol','n-butyl'));assert.ok(detect('n-butyl-acetate','n-butyl'));","assert.ok(detect('1-butanol','n-butyl'));assert.ok(detect('n-butane','n-butyl'));");
+          expansion=expansion.replace("for(const id of ['2-butanol','isobutanol','tert-butanol','cyclobutane'])","for(const id of ['2-butanol','tert-butanol','cyclobutane'])");
+          expansion=expansion.replace("[['isopropyl','2-propanol','cumene'],['n-butyl','1-butanol','n-butyl-acetate']]","[['isopropyl','2-propanol','isobutane'],['n-butyl','1-butanol','n-butane']]");
+          await writeFile(expansionPath,expansion);
           NODE
           node scripts/build-precache.mjs
       - name: Validate molecule DB, graph, collection and persistence
