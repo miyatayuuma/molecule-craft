@@ -49,9 +49,13 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   function detailMoleculeRect(host){
     const rect=snapshotRect(host?.getBoundingClientRect?.());if(!rect)return null;const width=Math.min(240,Math.max(140,rect.width*.58)),height=width*78/96;return {left:rect.left+(rect.width-width)/2,top:rect.top+(rect.height-height)/2,width,height};
   }
-  async function animateMoleculeSharedElement(record,from,to,{duration=400}={}){
-    if(!record||!from||!to||prefersReducedMotion())return;
-    const ghost=el('img',null,'molecule-shared-transition');ghost.src=moleculeAsset(record.id);ghost.alt='';ghost.width=96;ghost.height=78;Object.assign(ghost.style,{left:`${from.left}px`,top:`${from.top}px`,width:`${from.width}px`,height:`${from.height}px`});document.body.append(ghost);
+  async function createMoleculeSharedVisual(record,from,source=null){
+    if(!record||!from||prefersReducedMotion())return null;
+    const sourceImage=source?.tagName==='IMG'?source:null,ghost=sourceImage?.cloneNode?.(false)??el('img');ghost.className='molecule-shared-transition';ghost.alt='';if(!ghost.src)ghost.src=moleculeAsset(record.id);ghost.width=96;ghost.height=78;Object.assign(ghost.style,{left:`${from.left}px`,top:`${from.top}px`,width:`${from.width}px`,height:`${from.height}px`});document.body.append(ghost);
+    if(!sourceImage&&typeof ghost.decode==='function')try{await ghost.decode();}catch{}return ghost;
+  }
+  async function animateMoleculeSharedElement(ghost,from,to,{duration=400}={}){
+    if(!ghost||!from||!to){ghost?.remove();return;}
     const dx=to.left-from.left,dy=to.top-from.top,sx=to.width/from.width,sy=to.height/from.height,animation=ghost.animate?.([{transform:'translate(0,0) scale(1,1)',opacity:1},{transform:`translate(${dx}px,${dy}px) scale(${sx},${sy})`,opacity:1}],{duration,easing:'cubic-bezier(.2,.72,.2,1)',fill:'forwards'});
     if(animation)try{await animation.finished;}catch{}ghost.remove();
   }
@@ -61,14 +65,14 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   async function showMoleculeDetailFromGraph(id,sourceNode){
     const record=recordById(id);if(!record||!state.hasMolecule(id)||moleculeTransitioning)return false;
     const source=sourceNode?.querySelector?.('.graph-focus-thumbnail')??sourceNode,from=snapshotRect(source?.getBoundingClientRect?.());if(!from)return showDetail('molecules',id);
-    moleculeTransitioning=true;if(!currentDetail)listScroll=dialog.scrollTop;tab='molecules';currentDetail={kind:'molecules',id};renderBook();dialog.scrollTop=0;
-    const host=detail.querySelector('.molecule-detail-return'),to=detailMoleculeRect(host);if(host)host.style.opacity='0';const chrome=[...detail.children].filter(node=>node!==host);for(const node of chrome)node.animate?.([{opacity:0},{opacity:1}],{duration:180,delay:150,easing:'ease-out'});
-    await animateMoleculeSharedElement(record,from,to,{duration:420});if(host){host.style.opacity='';host.animate?.([{opacity:0},{opacity:1}],{duration:120,easing:'ease-out'});}moleculeTransitioning=false;host?.focus?.({preventScroll:true});return true;
+    moleculeTransitioning=true;const ghost=await createMoleculeSharedVisual(record,from,source);if(source&&ghost)source.style.opacity='0';if(!currentDetail)listScroll=dialog.scrollTop;tab='molecules';currentDetail={kind:'molecules',id};renderBook();dialog.scrollTop=0;
+    const host=detail.querySelector('.molecule-detail-return'),to=detailMoleculeRect(host);if(host&&ghost)host.style.opacity='0';const chrome=[...detail.children].filter(node=>node!==host);for(const node of chrome)node.animate?.([{opacity:0},{opacity:1}],{duration:180,delay:150,easing:'ease-out'});
+    await animateMoleculeSharedElement(ghost,from,to,{duration:420});if(host&&ghost){host.style.opacity='';host.animate?.([{opacity:0},{opacity:1}],{duration:120,easing:'ease-out'});}moleculeTransitioning=false;host?.focus?.({preventScroll:true});return true;
   }
   async function returnMoleculeDetailToGraph(id,modelHost){
-    const record=recordById(id);if(!record||moleculeTransitioning)return false;const from=detailMoleculeRect(modelHost);if(!from)return false;moleculeTransitioning=true;await fadeDetailChrome(modelHost);if(modelHost)modelHost.style.opacity='0';
+    const record=recordById(id);if(!record||moleculeTransitioning)return false;const from=detailMoleculeRect(modelHost);if(!from)return false;moleculeTransitioning=true;const ghost=await createMoleculeSharedVisual(record,from);await fadeDetailChrome(modelHost);if(modelHost&&ghost)modelHost.style.opacity='0';
     currentDetail=null;graphFocusId=id;graphHighlightId=null;renderBook();dialog.scrollTop=listScroll;
-    const targetNode=list.querySelector(`[data-graph-id="${id}"]`),target=targetNode?.querySelector?.('.graph-focus-thumbnail')??targetNode,to=snapshotRect(target?.getBoundingClientRect?.());if(target)target.style.opacity='0';await animateMoleculeSharedElement(record,from,to,{duration:360});if(target){target.style.opacity='';target.animate?.([{opacity:0},{opacity:1}],{duration:100});}moleculeTransitioning=false;targetNode?.focus?.({preventScroll:true});return true;
+    const targetNode=list.querySelector(`[data-graph-id="${id}"]`),target=targetNode?.querySelector?.('.graph-focus-thumbnail')??targetNode,to=snapshotRect(target?.getBoundingClientRect?.());if(target&&ghost)target.style.opacity='0';await animateMoleculeSharedElement(ghost,from,to,{duration:360});if(target&&ghost){target.style.opacity='';target.animate?.([{opacity:0},{opacity:1}],{duration:100});}moleculeTransitioning=false;targetNode?.focus?.({preventScroll:true});return true;
   }
   function installDetailGraphReturn(host,record,name){
     host.classList.add('molecule-detail-return');host.tabIndex=0;host.setAttribute('role','button');host.setAttribute('aria-label',`${name}からグラフへ戻る`);let press=null;
