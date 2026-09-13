@@ -53,25 +53,30 @@ assert.equal(facade.commitFill('propellant','hydrogen',1),'committed');
 assert.ok(calls.some(call=>call[0]==='requestExpeditionLaunch'&&call[1]==='oxygen'));
 assert.ok(calls.some(call=>call[0]==='launch'));
 
-// Launch requests now cross the application boundary with an explicit
-// destination id. The hidden select remains a presentation/selection control;
-// application behavior no longer depends on synthetic change or pseudo-click.
+// Launch requests cross the application boundary with an explicit destination
+// id. LOADOUT confirmation stays pre-transaction; supply/resource mutation and
+// EXPLORE initialization are owned by the application launch transaction.
 const supply=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
 const veil=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
 const connections=await readFile(new URL('../src/craft-connections.js',import.meta.url),'utf8');
 const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
 assert.match(supply,/function requestDestinationLaunch\(id\)[\s\S]*?onRequestLaunch\(id\)/);
 assert.match(supply,/function requestLaunch\(destinationId\)[\s\S]*?requestedDestinationId=destinationId[\s\S]*?commitAndContinue/);
-assert.match(supply,/function commitAndContinue\(partial\)[\s\S]*?onPrepareLaunch\(\)[\s\S]*?commitLaunchFill[\s\S]*?onLaunchReady\(destinationId\)/);
+assert.match(supply,/function commitAndContinue\(partial\)[\s\S]*?onLaunchReady\(destinationId,\{partial\}\)/);
+assert.doesNotMatch(supply,/onPrepareLaunch/,'LOADOUT must not own the pre-launch application mutation hook');
+assert.doesNotMatch(supply,/resources\.commitLaunchFill/,'LOADOUT must not persist supply before the launch transaction commits');
 assert.doesNotMatch(supply,/dispatchEvent\(new window\.Event\('change'/);
 assert.doesNotMatch(supply,/q\('launch-veil'\)\.click\(\)/);
 assert.match(veil,/createExpeditionLaunchRequester/);
+assert.match(veil,/createLaunchTransaction/);
 assert.match(veil,/onRequestLaunch:id=>requestExpeditionLaunch\(id\)/);
+assert.match(veil,/onLaunchReady:\(id,options\)=>launchTransaction\?\.execute\(id,options\)/);
+assert.match(veil,/commitSupply:\(\{partial\}\)=>stageLaunchSupply\(resources,\{partial\}\)/);
+assert.match(veil,/persist:\(\)=>resources\.save\(\)/);
 assert.match(veil,/q\('launch-veil'\)\.addEventListener\('click',event=>\{event\.preventDefault\(\);requestExpeditionLaunch\(anchor\);\}\)/);
-assert.match(veil,/onLaunchReady:\(\)=>launch\(\{prepared:true\}\)/);
-assert.match(veil,/function launch\(\{prepared=false\}=\{\}\)/);
+assert.match(veil,/function launch\(\)\{return requestExpeditionLaunch\(anchor\);\}/);
 assert.match(app,/onBeforeLaunch:\(\)=>clearField\(\{clearTarget:true,silent:true,recordHistory:false\}\)/);
 assert.match(connections,/requestExpeditionLaunch\(\.\.\.args\)\{return current\(\)\?\.requestExpeditionLaunch\?\.\(\.\.\.args\)\?\?false;\}/);
 assert.match(connections,/prepareExplorationCatalog\(options\.resources\)[\s\S]*?veilUI=createReadyExploration\(options\)/);
 
-console.log('Issue #122 launch route contract passed: DB-deferred exploration preserves the facade while launch intents use one explicit destination request API.');
+console.log('Issue #122 launch route contract passed: DB-deferred exploration preserves the facade while launch intents use one explicit destination request API and transaction boundary.');
