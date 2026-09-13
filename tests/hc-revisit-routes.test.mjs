@@ -126,7 +126,7 @@ test('Task 6 signals/challenges stay unchanged and developer map exposes revisit
   const svg=buildFieldMapSvg();
   assert.match(svg,/id="route-hydrogen-revisit"/);
   assert.match(svg,/id="route-carbon-revisit"/);
-  assert.match(svg,/hydrogen-revisit · very-high H · spacing 20 \/ lanes 3 \/ value 1/);
+  assert.match(svg,/hydrogen-revisit · very-high H · spacing 20 \/ lanes 3 \/ value 2/);
   assert.match(svg,/carbon-revisit · very-high C · spacing 22 \/ lanes 3 \/ value 1/);
   assert.match(svg,/environment recovery · Oを集めながら休む/);
   assert.match(svg,/environment recovery · network merge/);
