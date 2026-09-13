@@ -4,6 +4,7 @@ import {makeGraph} from './molecule-frontier-fixtures.mjs';
 
 const ids=rows=>rows.map(row=>row.id);
 const linear=makeGraph({nodes:[{id:'a',depth:0,branches:['main']},{id:'b',depth:1,branches:['main']},{id:'c',depth:2,branches:['main']}],edges:[['a','b'],['b','c']],roots:['a']});
+assert.deepEqual(getFrontierCandidates(linear,{discoveredIds:[]}),[],'graph roots must not be auto-discovered by the query engine');
 let candidates=getFrontierCandidates(linear,{discoveredIds:['missing','a']});
 assert.deepEqual(ids(candidates),['b'],'linear frontier must expose only the direct undiscovered neighbor');
 assert.deepEqual(candidates[0].directDiscoveredNeighbors,['a']);
