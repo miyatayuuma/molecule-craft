@@ -1,15 +1,15 @@
 import {OXYGEN_VORTEX_ROUTE} from './oxygen-routes.js';
 
-// Optional currents share physics, visual geometry and traversal rewards.
+// Optional currents share physics and visual geometry. Molecule knowledge is
+// awarded only through the graph frontier; traversal itself never bypasses it.
 // centerX/centerY are the authored route-alignment anchors; curve keeps its
 // existing sinusoidal centerline around that baseline. The nominal width stays
 // 240 while its Frontier-side tail tapers before the three Deep routes merge.
 export const EXPEDITION_CHALLENGES=Object.freeze([
-  {id:'pulse',bottom:-9450,top:-9850,width:220,centerX:-320,centerY:-9650,rewards:['dimethyl-ether','ethene','propene']},
-  {id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:['propane','phenol','formaldehyde']},
-  {id:'thermal',bottom:-11160,top:-11440,width:260,centerX:760,centerY:-11300,rewards:['ethylene-glycol','n-hexane']},
+  {id:'pulse',bottom:-9450,top:-9850,width:220,centerX:-320,centerY:-9650},
+  {id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450},
+  {id:'thermal',bottom:-11160,top:-11440,width:260,centerX:760,centerY:-11300},
 ]);
-export const CHALLENGE_INSIGHT_IDS=Object.freeze([...new Set(EXPEDITION_CHALLENGES.flatMap(challenge=>challenge.rewards))]);
 export const challengeCenter=(zone,y)=>zone.id==='curve'?zone.centerX+170*Math.sin((y-zone.bottom)/500*Math.PI):zone.centerX;
 export const challengeWidthAt=(zone,y)=>{
   if(zone.id!=='curve')return zone.width;
@@ -31,7 +31,7 @@ export function recordChallengePassage(run,old){
     if(!run.challengeProgress[z.id]?.complete&&old.y>=z.bottom&&p.y<z.bottom&&inside)run.challengeProgress[z.id]={distance:0};
     const progress=run.challengeProgress[z.id];if(!progress||progress.complete)continue;
     if(inside&&p.y<z.bottom&&old.y>z.top)progress.distance+=Math.max(0,old.y-p.y);
-    if(old.y>=z.top&&p.y<z.top&&inside&&progress.distance>=(z.bottom-z.top)*.7){progress.complete=true;run.events.push({type:'inspiration',rewards:z.rewards});}
+    if(old.y>=z.top&&p.y<z.top&&inside&&progress.distance>=(z.bottom-z.top)*.7)progress.complete=true;
   }
 }
 export function drawChallengeCurrents(ctx,time){
