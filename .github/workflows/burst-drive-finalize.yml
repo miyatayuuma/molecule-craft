@@ -16,7 +16,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Apply focused FIELD patch
-        run: node scripts/apply-propulsion-differentiation.mjs
+        run: |
+          node scripts/apply-propulsion-differentiation.mjs
+          node scripts/adjust-propulsion-finalizer.mjs
       - name: Regenerate developer map
         run: node scripts/export-field-map.mjs
       - name: Regenerate PWA artifacts last
