@@ -1,0 +1,45 @@
+name: Encyclopedia graph branch validation
+
+on:
+  push:
+    branches: [encyclopedia-graph-ui-production]
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-refresh:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Runtime
+        run: node --version
+      - name: Encyclopedia graph UI
+        run: node tests/encyclopedia-graph-ui.test.mjs
+      - name: Production graph and collection regressions
+        run: |
+          node tests/molecule-graph.test.mjs
+          node tests/collection.test.mjs
+          node tests/collection-expansion.test.mjs
+          node tests/source-contracts.test.mjs
+      - name: Repository hygiene
+        run: node tests/repository-hygiene.test.mjs
+      - name: Refresh PWA release
+        run: node scripts/build-precache.mjs
+      - name: PWA integrity
+        run: |
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+      - name: Commit generated PWA assets
+        shell: bash
+        run: |
+          if git diff --quiet -- sw.js precache-manifest.js; then
+            echo "PWA assets are already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js precache-manifest.js
+          git commit -m "Refresh PWA precache for encyclopedia graph"
+          git push
