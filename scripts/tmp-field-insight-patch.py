@@ -1,0 +1,183 @@
+from pathlib import Path
+
+insights=Path('src/veil/insights.js')
+s=insights.read_text()
+if "import {EXPEDITION} from './config.js';" not in s:
+    s="import {EXPEDITION} from './config.js';\n\n"+s
+old="export const CRITICAL_INSIGHT_IDS=Object.freeze(['hydrogen','methane','oxygen','water']);\nconst CRITICAL_INSIGHTS=new Set(CRITICAL_INSIGHT_IDS);\n"
+new="""export const CRITICAL_INSIGHT_IDS=Object.freeze(['hydrogen','methane','oxygen','water']);
+export const FIELD_INSIGHT_MIN_SECONDS=EXPEDITION.safeSeconds;
+const CRITICAL_INSIGHTS=new Set(CRITICAL_INSIGHT_IDS),FIELD_ACTION_ELEMENTS=Object.freeze(['H','C','O']);
+
+export function fieldInsightRequiredElements(record){
+  if(!Array.isArray(record?.atoms)||!record.atoms.length)return [];
+  return [...new Set(record.atoms.filter(element=>FIELD_ACTION_ELEMENTS.includes(element)))];
+}
+
+export function fieldInsightOpportunityEligibility(run,record){
+  const minimumSeconds=FIELD_INSIGHT_MIN_SECONDS,elapsed=Number.isFinite(run?.time)?Math.max(0,run.time):0,collected=run?.collectedElements??{},validRecord=Array.isArray(record?.atoms)&&record.atoms.length>0,requiredElements=fieldInsightRequiredElements(record);
+  const elapsedReady=elapsed+1e-9>=minimumSeconds,requiresAnyFieldElement=validRecord&&!requiredElements.length,missingElements=requiredElements.filter(element=>(collected[element]??0)<1),actionReady=validRecord&&(requiredElements.length?!missingElements.length:FIELD_ACTION_ELEMENTS.some(element=>(collected[element]??0)>=1));
+  return {ready:elapsedReady&&actionReady,elapsedReady,actionReady,minimumSeconds,requiredElements,missingElements,requiresAnyFieldElement};
+}
+"""
+if old not in s: raise SystemExit('insights anchor missing')
+s=s.replace(old,new,1)
+insights.write_text(s)
+
+run=Path('src/veil/expedition-run.js')
+s=run.read_text()
+old="export {CRITICAL_INSIGHT_IDS,INSIGHT_ANALYSIS_SECONDS,discardActiveInsight,discardRunInsights,triggerInsight} from './insights.js';"
+new="export {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_SECONDS,INSIGHT_ANALYSIS_SECONDS,discardActiveInsight,discardRunInsights,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,triggerInsight} from './insights.js';"
+if old not in s: raise SystemExit('expedition-run export anchor missing')
+run.write_text(s.replace(old,new,1))
+
+resources=Path('src/veil/resources.js')
+s=resources.read_text()
+old="import { CRITICAL_INSIGHT_IDS } from './insights.js';"
+new="import { CRITICAL_INSIGHT_IDS,fieldInsightOpportunityEligibility } from './insights.js';"
+if old not in s: raise SystemExit('resources insight import anchor missing')
+s=s.replace(old,new,1)
+old="const launchRegion=Object.hasOwn(REGIONS,region)?region:'veil',base={selectedCandidateId:null,launchRegion,weightingRegion:null,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:null};frontierRun=base;lastFrontierRun=null;"
+new="const launchRegion=Object.hasOwn(REGIONS,region)?region:'veil',base={selectedCandidateId:null,launchRegion,weightingRegion:null,signalObserved:false,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:null};frontierRun=base;lastFrontierRun=null;"
+if old not in s: raise SystemExit('frontier base anchor missing')
+s=s.replace(old,new,1)
+old="""  function suppressFrontierInsightForCritical(){
+    if(!frontierRun||frontierRun.reason||frontierRun.opportunityCreated)return false;
+    frontierRun.reason='critical-pending';return true;
+  }
+  function frontierSignal(region){
+    if(!frontierRun)return null;
+    if(frontierRun.reason||frontierRun.opportunityCreated||region!==frontierRun.launchRegion)return {managed:true};
+    frontierRun.opportunityCreated=true;frontierRun.acquired=true;return {managed:true,recipe:frontierRun.selectedCandidateId};
+  }
+"""
+new="""  function suppressFrontierInsightForCritical(){
+    if(!frontierRun||frontierRun.reason||frontierRun.opportunityCreated)return false;
+    frontierRun.reason='critical-pending';return true;
+  }
+  function frontierInsightEligibility(runContext={}){
+    if(!frontierRun)return {managed:false,pending:false,ready:true,signalObserved:false};
+    const id=frontierRun.selectedCandidateId,pending=!!id&&!frontierRun.reason&&!frontierRun.opportunityCreated;
+    if(!pending)return {managed:true,pending:false,ready:true,signalObserved:!!frontierRun.signalObserved};
+    return {managed:true,pending:true,signalObserved:!!frontierRun.signalObserved,...fieldInsightOpportunityEligibility(runContext,records.get(id))};
+  }
+  function createFrontierOpportunity(){
+    if(!frontierRun?.selectedCandidateId||frontierRun.reason||frontierRun.opportunityCreated)return null;
+    frontierRun.opportunityCreated=true;frontierRun.acquired=true;return {managed:true,recipe:frontierRun.selectedCandidateId,frontier:true};
+  }
+  function frontierSignal(region,runContext={}){
+    if(!frontierRun)return null;
+    if(frontierRun.reason||frontierRun.opportunityCreated||region!==frontierRun.launchRegion)return {managed:true};
+    frontierRun.signalObserved=true;const gate=frontierInsightEligibility(runContext);
+    if(!gate.ready)return {managed:true,deferred:true,frontier:true};
+    return createFrontierOpportunity();
+  }
+  function pollFrontierInsight(runContext={}){
+    if(!frontierRun?.signalObserved||frontierRun.reason||frontierRun.opportunityCreated)return null;
+    if(!frontierInsightEligibility(runContext).ready)return null;
+    return createFrontierOpportunity();
+  }
+"""
+if old not in s: raise SystemExit('frontier signal block missing')
+s=s.replace(old,new,1)
+old="setFrontierGraph(graph){frontierGraph=graph??null;return !!frontierGraph;},suppressFrontierInsightForCritical,frontierInsightDiagnostics:()=>copy(frontierRun??lastFrontierRun??{selectedCandidateId:null,launchRegion:null,weightingRegion:null,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:'no-run'}),"
+new="setFrontierGraph(graph){frontierGraph=graph??null;return !!frontierGraph;},suppressFrontierInsightForCritical,frontierInsightEligibility,pollFrontierInsight,frontierInsightDiagnostics:()=>copy(frontierRun??lastFrontierRun??{selectedCandidateId:null,launchRegion:null,weightingRegion:null,signalObserved:false,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:'no-run'}),"
+if old not in s: raise SystemExit('frontier api anchor missing')
+s=s.replace(old,new,1)
+old="signal(region,roll,choice,{excludeIds=[]}={}){"
+new="signal(region,roll,choice,{excludeIds=[],runContext={}}={}){"
+if old not in s: raise SystemExit('signal signature anchor missing')
+s=s.replace(old,new,1)
+old="const frontier=frontierSignal(region);if(frontier?.managed){if(frontier.recipe){p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:frontier.recipe,frontier:true};}return signalBonus(region,p);}"
+new="const frontier=frontierSignal(region,runContext);if(frontier?.managed){if(frontier.recipe){p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:frontier.recipe,frontier:true};}if(frontier.deferred){p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {deferred:true,frontier:true};}return signalBonus(region,p);}"
+if old not in s: raise SystemExit('signal frontier branch anchor missing')
+s=s.replace(old,new,1)
+resources.write_text(s)
+
+ui=Path('src/veil/ui.js')
+s=ui.read_text()
+old="import { createRun, stepRun, beginBurst, setCombustionHeld, triggerInsight, discardActiveInsight, discardRunInsights } from './expedition-run.js';"
+new="import { createRun, stepRun, beginBurst, setCombustionHeld, triggerInsight, discardActiveInsight, discardRunInsights, fieldInsightOpportunityEligibility } from './expedition-run.js';"
+if old not in s: raise SystemExit('ui expedition import anchor missing')
+s=s.replace(old,new,1)
+old="function offerProgressionInsights(){if(!run)return;const ids=resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements});if(ids.length)resources.suppressFrontierInsightForCritical();for(const id of ids)offerInsight(id);}"
+new="function offerProgressionInsights(){if(!run)return;const ids=resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements}).filter(id=>!run.carriedInsights.includes(id)&&run.analysis?.id!==id&&fieldInsightOpportunityEligibility(run,resources.record(id)).ready);if(ids.length)resources.suppressFrontierInsightForCritical();for(const id of ids)offerInsight(id);}"
+if old not in s: raise SystemExit('ui progression offer anchor missing')
+s=s.replace(old,new,1)
+old="if(event.type==='signal'){const excludeIds=new Set(run.carriedInsights);if(run.analysis?.id)excludeIds.add(run.analysis.id);const result=resources.signal(event.region,event.roll,event.choice,{excludeIds});notice(signalText(result),result?.recipe?3:3);if(result?.recipe)offerInsight(result.recipe);supply.update();}"
+new="if(event.type==='signal'){const excludeIds=new Set(run.carriedInsights);if(run.analysis?.id)excludeIds.add(run.analysis.id);const result=resources.signal(event.region,event.roll,event.choice,{excludeIds,runContext:run});if(!result?.deferred)notice(signalText(result),result?.recipe?3:3);if(result?.recipe)offerInsight(result.recipe);supply.update();}"
+if old not in s: raise SystemExit('ui signal handler anchor missing')
+s=s.replace(old,new,1)
+old="""      if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));beginReturn(true);notice(`保持場破綻 · 回収塵${Math.round(EXPEDITION.captureLoss*100)}%がこぼれ、緊急RETRACT`,2);vibrate(55);}
+    }
+    insightPresentation.sync(run);
+"""
+new="""      if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));beginReturn(true);notice(`保持場破綻 · 回収塵${Math.round(EXPEDITION.captureLoss*100)}%がこぼれ、緊急RETRACT`,2);vibrate(55);}
+    }
+    offerProgressionInsights();const deferredFrontier=resources.pollFrontierInsight(run);if(deferredFrontier?.recipe)offerInsight(deferredFrontier.recipe);
+    insightPresentation.sync(run);
+"""
+if old not in s: raise SystemExit('ui post-event anchor missing')
+s=s.replace(old,new,1)
+ui.write_text(s)
+
+test=Path('tests/field-frontier-insight.test.mjs')
+s=test.read_text()
+s=s.replace("import {CRITICAL_INSIGHT_IDS,advanceInsightAnalysis,createInsightRunState,triggerInsight} from '../src/veil/insights.js';", "import {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_SECONDS,advanceInsightAnalysis,createInsightRunState,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,triggerInsight} from '../src/veil/insights.js';",1)
+s=s.replace("import {createResources} from '../src/veil/resources.js';", "import {createResources} from '../src/veil/resources.js';\nimport {EXPEDITION} from '../src/veil/config.js';",1)
+anchor="const roots=graph.roots.filter(id=>graph.nodeById(id));\n"
+add="const engaged={time:EXPEDITION.safeSeconds,collectedElements:{H:1,C:1,O:1}};\n"
+if anchor not in s: raise SystemExit('test roots anchor missing')
+s=s.replace(anchor,anchor+add,1)
+marker="// Launch snapshots discovered/known state, delegates extraction/scoring/selection\n"
+block="""// Insight trigger eligibility opens with the same safe-window boundary that starts
+// DUST EATER threat accumulation and requires run-local molecular sampling.
+{
+  assert.equal(FIELD_INSIGHT_MIN_SECONDS,EXPEDITION.safeSeconds,'insight timing follows the expedition safe-window boundary');
+  const methane={id:'methane',atoms:['C','H','H','H','H']},oxygen={id:'oxygen',atoms:['O','O']},nitrogen={id:'nitrogen',atoms:['N','N']};
+  assert.deepEqual(fieldInsightRequiredElements(methane),['C','H']);
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS-0.01,collectedElements:{H:1,C:1,O:0}},methane).ready,false,'elapsed time alone must not open early');
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:0,O:0}},methane).ready,false,'CH4 needs both H and C sampled in this run');
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:1,O:0}},methane).ready,true);
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:1}},oxygen).ready,true,'O2 only requires O sampling');
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:0}},nitrogen).ready,false,'non-HCO candidates still require real FIELD activity');
+  assert.equal(fieldInsightOpportunityEligibility({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:1,C:0,O:0}},nitrogen).ready,true,'non-HCO candidates fall back to any FIELD element instead of becoming impossible');
+}
+
+"""
+if marker not in s: raise SystemExit('test insertion marker missing')
+s=s.replace(marker,block+marker,1)
+replacements={
+    "const opportunity=value.signal('oxygen',.999,.999);":"const opportunity=value.signal('oxygen',.999,.999,{runContext:engaged});",
+    "const opportunity=value.signal('veil',.999,.999);":"const opportunity=value.signal('veil',.999,.999,{runContext:engaged});",
+    "assert.equal(value.signal('veil',0,0).recipe,target.id);":"assert.equal(value.signal('veil',0,0,{runContext:engaged}).recipe,target.id);",
+    "const opportunity=value.signal('veil',0,0),flight=run();":"const opportunity=value.signal('veil',0,0,{runContext:engaged}),flight=run();",
+}
+for old,new in replacements.items():
+    if old not in s: raise SystemExit(f'test signal anchor missing: {old}')
+    s=s.replace(old,new)
+marker="// A frontier opportunity reuses the ordinary five-second analysis -> carried\n"
+block="""// Crossing the authored signal before the gate opens records the observation but
+// cannot start analysis. Once both elapsed-time and run-local action gates pass,
+// the same one-run opportunity matures without requiring a second signal hit.
+{
+  const value=make(),{target,roll}=expandableChoice(value,'veil');value.prepareExpedition({region:'veil',rng:()=>roll});
+  const early=value.signal('veil',.999,.999,{runContext:{time:2,collectedElements:{H:1,C:1,O:1}}});assert.deepEqual(early,{deferred:true,frontier:true});
+  let diag=value.frontierInsightDiagnostics();assert.equal(diag.signalObserved,true);assert.equal(diag.opportunityCreated,false);
+  assert.equal(value.pollFrontierInsight({time:FIELD_INSIGHT_MIN_SECONDS-0.01,collectedElements:{H:1,C:1,O:1}}),null,'time gate blocks deferred frontier');
+  assert.equal(value.pollFrontierInsight({time:FIELD_INSIGHT_MIN_SECONDS,collectedElements:{H:0,C:0,O:0}}),null,'action gate blocks deferred frontier');
+  const matured=value.pollFrontierInsight(engaged);assert.deepEqual(matured,{managed:true,recipe:target.id,frontier:true});diag=value.frontierInsightDiagnostics();assert.equal(diag.opportunityCreated,true);
+  assert.equal(value.pollFrontierInsight(engaged),null,'deferred opportunity matures at most once');
+}
+
+"""
+if marker not in s: raise SystemExit('deferred test marker missing')
+s=s.replace(marker,block+marker,1)
+ui_contract="""const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
+assert.match(uiSource,/fieldInsightOpportunityEligibility\\(run,resources\\.record\\(id\\)\\)\\.ready/,'critical insights must use the run engagement gate');
+assert.match(uiSource,/runContext:run/,'FIELD signals must pass current-run time and collection context');
+assert.match(uiSource,/pollFrontierInsight\\(run\\)/,'deferred frontier observations must mature from the live run context');
+
+"""
+s=s.replace("console.log('FIELD frontier insight integration passed:",ui_contract+"console.log('FIELD frontier insight integration passed:",1)
+test.write_text(s)
