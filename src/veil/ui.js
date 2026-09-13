@@ -73,7 +73,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const previousAnchor=anchor,previousRuns=resources.state.progress.runs,nextRun=previousRuns+1;
     try{
       const seed=(Date.now()^(nextRun*7919))>>>0,start=anchor!=='continue'?anchor:resources.state.progress.checkpoint;
-      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition()});positionAt(start);thermalNotice=null;thermalNoticeUntil=0;insightPresentation.clear();
+      run=createRun(createUniverse(seed,resources.state.elements),flightConfig(resources.state),{fuel:resources.prepareExpedition({region:start})});positionAt(start);thermalNotice=null;thermalNoticeUntil=0;insightPresentation.clear();
       anchor='continue';q('expedition-anchor').value='continue';active=true;paused=false;anchorLock=null;returnState=null;root.hidden=false;document.body.dataset.mode='veil';appShell.inert=true;
       renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();
       resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();offerProgressionInsights();
