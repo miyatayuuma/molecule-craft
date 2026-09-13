@@ -19,6 +19,24 @@ jobs:
             echo "--- $file ---"
             node --check "$file"
           done
+      - name: Create module probe
+        run: |
+          cat > browser-module-probe.html <<'EOF'
+          <!doctype html><meta charset="utf-8"><body><pre id="out"></pre><script type="module">
+          const out=document.querySelector('#out');
+          const mods=[
+            './src/molecule-graph.js?v=2',
+            './src/encyclopedia-graph.js?v=1',
+            './src/encyclopedia-graph-view.js?v=1',
+            './src/collection-state.js?v=36',
+            './src/collection-ui.js?v=37',
+          ];
+          for(const mod of mods){
+            try{await import(mod);out.textContent+=`${mod} OK\n`;}
+            catch(error){out.textContent+=`${mod} FAIL ${error?.name}: ${error?.message}\n${error?.stack??''}\n`;}
+          }
+          </script>
+          EOF
       - name: Serve repository
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/server.log 2>&1 &
@@ -26,10 +44,16 @@ jobs:
           for i in {1..20}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep .25; done
           cat /tmp/server.log
           exit 1
-      - name: Load application in headless Chrome
+      - name: Probe module imports in Chrome
         run: |
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME" || { echo 'Chrome executable not found'; exit 1; }
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=5000 --dump-dom http://127.0.0.1:4173/browser-module-probe.html >/tmp/probe.html 2>/tmp/probe.log || true
+          sed -n '/<pre id="out">/,/<\/pre>/p' /tmp/probe.html
+          cat /tmp/server.log
+      - name: Load application in headless Chrome
+        run: |
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=6000 --enable-logging=stderr --v=1 --dump-dom http://127.0.0.1:4173/ >/tmp/dom.html 2>/tmp/chrome.log || true
           echo '--- relevant DOM ---'
           grep -oE '図鑑[^<]{0,20}|0/[0-9]+|図鑑を読み込めませんでした[^<]*' /tmp/dom.html || true
