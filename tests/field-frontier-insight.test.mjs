@@ -49,8 +49,8 @@ function expandableChoice(value,region){
   value.prepareExpedition({region:'veil',rng:()=>roll});assert.notEqual(value.frontierInsightDiagnostics().selectedCandidateId,target.id,'known recipe is excluded on the next launch');
   const beforeCraft=new Set(frontierRows(value,'veil').candidates.map(row=>row.id));
   const crafted=value.discoverWithLoadout(target.id,null);assert.equal(crafted.learned,true);assert.ok(value.state.recipes.includes(target.id),'CRAFT completion promotes recipe knowledge to registered/discovered');
-  const afterCraft=frontierRows(value,'veil').candidates,newIds=afterCraft.candidates.filter(row=>!frontierIds.has(row.id)&&!beforeCraft.has(row.id));assert.ok(newIds.length>0,'CRAFT/registration expands the graph frontier through the crafted node');
-  value.prepareExpedition({region:'veil',rng:()=>0});const next=value.frontierInsightDiagnostics().selectedCandidateId;assert.ok(next===null||afterCraft.candidates.some(row=>row.id===next));assert.notEqual(next,target.id);
+  const {candidates:afterCraft}=frontierRows(value,'veil'),newIds=afterCraft.filter(row=>!frontierIds.has(row.id)&&!beforeCraft.has(row.id));assert.ok(newIds.length>0,'CRAFT/registration expands the graph frontier through the crafted node');
+  value.prepareExpedition({region:'veil',rng:()=>0});const next=value.frontierInsightDiagnostics().selectedCandidateId;assert.ok(next===null||afterCraft.some(row=>row.id===next));assert.notEqual(next,target.id);
 }
 
 // One expedition can create at most one graph opportunity. Repeated signal
