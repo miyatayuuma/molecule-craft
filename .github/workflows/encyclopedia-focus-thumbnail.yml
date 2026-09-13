@@ -1,0 +1,74 @@
+name: Encyclopedia focus thumbnail patch
+
+on:
+  push:
+    branches:
+      - feat/encyclopedia-focus-thumbnail
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'Add Encyclopedia focus thumbnail patch runner'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: feat/encyclopedia-focus-thumbnail
+          fetch-depth: 0
+      - name: Patch focus thumbnail hierarchy
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          graph=Path('src/encyclopedia-graph.js')
+          s=graph.read_text()
+          s=s.replace("if(state===GRAPH_NODE_STATE.UNKNOWN)return {state,name:'',formula:'',ariaLabel:selected?'選択中の未知の分子':'未知の分子',canOpenDetail:false,canCraft:false};", "if(state===GRAPH_NODE_STATE.UNKNOWN)return {state,name:'',formula:'',ariaLabel:selected?'選択中の未知の分子':'未知の分子',canOpenDetail:false,canCraft:false,showThumbnail:false};")
+          s=s.replace("return {state,name,formula,ariaLabel:[name,formula,state===GRAPH_NODE_STATE.REGISTERED?'登録済み':'レシピ判明'].filter(Boolean).join(' '),canOpenDetail:state===GRAPH_NODE_STATE.REGISTERED,canCraft:state===GRAPH_NODE_STATE.KNOWN};", "return {state,name,formula,ariaLabel:[name,formula,state===GRAPH_NODE_STATE.REGISTERED?'登録済み':'レシピ判明'].filter(Boolean).join(' '),canOpenDetail:state===GRAPH_NODE_STATE.REGISTERED,canCraft:state===GRAPH_NODE_STATE.KNOWN,showThumbnail:selected};")
+          s=s.replace("export function layoutFocusNeighborhood(graph,focusId,{width=360,height=480,nodeDiameter=66}={}){", "export function layoutFocusNeighborhood(graph,focusId,{width=360,height=480,nodeDiameter=66,focusDiameter=nodeDiameter}={}){")
+          s=s.replace("  const radius=Math.max(nodeDiameter+30,Math.min(138,width*.34,height*.29));", "  const radius=Math.max((focusDiameter+nodeDiameter)/2+14,Math.min(138,width*.34,height*.29));")
+          s=s.replace("  return {center,radius,nodeDiameter,positions,neighbors};", "  return {center,radius,nodeDiameter,focusDiameter,positions,neighbors};")
+          old="export function localBoundsOverlap(layout,{diameter=layout.nodeDiameter??66}={}){\n  const points=[...layout.positions.values()];\n  for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)if(Math.hypot(points[i].x-points[j].x,points[i].y-points[j].y)<diameter-1e-6)return true;\n  return false;\n}"
+          new="export function localBoundsOverlap(layout,{diameter=layout.nodeDiameter??66,focusDiameter=layout.focusDiameter??diameter}={}){\n  const points=[...layout.positions.values()];\n  const radius=point=>(point.kind==='focus'?focusDiameter:diameter)/2;\n  for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)if(Math.hypot(points[i].x-points[j].x,points[i].y-points[j].y)<radius(points[i])+radius(points[j])-1e-6)return true;\n  return false;\n}"
+          if old not in s: raise SystemExit('localBoundsOverlap anchor missing')
+          s=s.replace(old,new)
+          graph.write_text(s)
+
+          view=Path('src/encyclopedia-graph-view.js')
+          s=view.read_text()
+          s=s.replace(".graph-node.focus{width:82px;height:82px;min-height:82px;z-index:5;box-shadow:0 0 0 5px #63ded018,0 8px 24px #0008}.graph-node.focus strong{max-width:66px;font-size:10px}", ".graph-node.focus{width:124px;height:124px;min-height:124px;padding:12px;z-index:5;border-width:2px;box-shadow:0 0 0 6px #63ded018,0 10px 30px #0009}.graph-node.focus.registered{background:radial-gradient(circle at 38% 30%,#386663,#173d41 70%)}.graph-node.focus.known{background:radial-gradient(circle at 38% 30%,#234c50,#102734 72%)}.graph-node.focus.unknown:before{width:32px;height:32px;border-width:2px}.graph-node.focus strong{max-width:96px;font-size:11px}.graph-focus-thumbnail{display:block;width:96px;height:78px;object-fit:contain;pointer-events:none;position:relative;z-index:1;filter:drop-shadow(0 5px 7px #0008)}.graph-node.focus.known .graph-focus-thumbnail{opacity:.76;filter:saturate(.78) drop-shadow(0 5px 7px #0008)}")
+          s=s.replace("@media(max-width:360px){.graph-stage{min-height:370px}.graph-node{width:62px;height:62px;min-height:62px}.graph-node.focus{width:76px;height:76px;min-height:76px}}", "@media(max-width:360px){.graph-stage{min-height:370px}.graph-node{width:62px;height:62px;min-height:62px}.graph-node.focus{width:116px;height:116px;min-height:116px;padding:11px}.graph-focus-thumbnail{width:88px;height:70px}}")
+          s=s.replace("  const layout=layoutFocusNeighborhood(graph,focusId,{width,height,nodeDiameter:width<=360?62:66}),canonical=canonicalGraphPositions(graph),center=layout.center,focusGlobal=canonical.get(focusId)??{x:0,y:0};", "  const nodeDiameter=width<=360?62:66,focusDiameter=width<=360?116:124;\n  const layout=layoutFocusNeighborhood(graph,focusId,{width,height,nodeDiameter,focusDiameter}),canonical=canonicalGraphPositions(graph),center=layout.center,focusGlobal=canonical.get(focusId)??{x:0,y:0};")
+          old="    if(state!==GRAPH_NODE_STATE.UNKNOWN){const name=document.createElement('strong');name.textContent=presentation.name;const formula=document.createElement('small');formula.textContent=presentation.formula;node.append(name,formula);}\n"
+          new="    if(state!==GRAPH_NODE_STATE.UNKNOWN){\n      const appendLabels=()=>{const name=document.createElement('strong');name.textContent=presentation.name;const formula=document.createElement('small');formula.textContent=presentation.formula;node.append(name,formula);};\n      if(presentation.showThumbnail&&record){const img=document.createElement('img');img.className='graph-focus-thumbnail';img.src=new URL(`../assets/models/molecule-${record.id}.svg`,import.meta.url).href;img.alt='';img.width=96;img.height=78;img.decoding='async';img.addEventListener('error',()=>{img.remove();appendLabels();},{once:true});node.append(img);}else appendLabels();\n    }\n"
+          if old not in s: raise SystemExit('focus node content anchor missing')
+          s=s.replace(old,new)
+          view.write_text(s)
+
+          test=Path('tests/encyclopedia-graph-ui.test.mjs')
+          s=test.read_text()
+          s=s.replace("assert.equal(unknownPresentation.canCraft,false);", "assert.equal(unknownPresentation.canCraft,false);\nassert.equal(unknownPresentation.showThumbnail,false,'Unknown focus must never reveal a molecule thumbnail');")
+          s=s.replace("const knownPresentation=graphNodePresentation(fixtureRecords[1],GRAPH_NODE_STATE.KNOWN);\nassert.equal(knownPresentation.canOpenDetail,false);assert.equal(knownPresentation.canCraft,true);\nconst registeredPresentation=graphNodePresentation(fixtureRecords[0],GRAPH_NODE_STATE.REGISTERED);\nassert.equal(registeredPresentation.canOpenDetail,true);assert.equal(registeredPresentation.canCraft,false);", "const knownPresentation=graphNodePresentation(fixtureRecords[1],GRAPH_NODE_STATE.KNOWN,{selected:true});\nassert.equal(knownPresentation.canOpenDetail,false);assert.equal(knownPresentation.canCraft,true);assert.equal(knownPresentation.showThumbnail,true,'Focused known recipe should show its molecule thumbnail');\nconst registeredPresentation=graphNodePresentation(fixtureRecords[0],GRAPH_NODE_STATE.REGISTERED,{selected:true});\nassert.equal(registeredPresentation.canOpenDetail,true);assert.equal(registeredPresentation.canCraft,false);assert.equal(registeredPresentation.showThumbnail,true,'Focused registered molecule should show its molecule thumbnail');")
+          s=s.replace("const mobileLayout=layoutFocusNeighborhood(production,maxDegreeNode.id,{width:320,height:430,nodeDiameter:62});", "const mobileLayout=layoutFocusNeighborhood(production,maxDegreeNode.id,{width:320,height:430,nodeDiameter:62,focusDiameter:116});")
+          s=s.replace("assert.equal(localBoundsOverlap(mobileLayout,{diameter:62}),false,'Central node and six neighbors must not overlap in representative portrait geometry');", "assert.equal(localBoundsOverlap(mobileLayout,{diameter:62,focusDiameter:116}),false,'Enlarged focus thumbnail node and six neighbors must not overlap in representative portrait geometry');")
+          test.write_text(s)
+          PY
+      - name: Validate and regenerate PWA
+        run: |
+          node tests/encyclopedia-graph-ui.test.mjs
+          node tests/browser-startup.test.mjs
+          node tests/collection.test.mjs
+          node tests/source-contracts.test.mjs
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          node tests/repository-hygiene.test.mjs
+          git diff --check
+      - name: Commit implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/encyclopedia-graph.js src/encyclopedia-graph-view.js tests/encyclopedia-graph-ui.test.mjs precache-manifest.js sw.js
+          git commit -m 'Emphasize Encyclopedia focus molecule thumbnail'
+          git push origin HEAD:feat/encyclopedia-focus-thumbnail
