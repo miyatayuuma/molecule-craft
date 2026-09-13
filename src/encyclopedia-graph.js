@@ -13,10 +13,10 @@ export function graphNodeState(id,{registeredIds=[],recipes=[],hints=[]}={}){
 }
 
 export function graphNodePresentation(record,state,{selected=false}={}){
-  if(state===GRAPH_NODE_STATE.UNKNOWN)return {state,name:'',formula:'',ariaLabel:selected?'選択中の未知の分子':'未知の分子',canOpenDetail:false,canCraft:false};
+  if(state===GRAPH_NODE_STATE.UNKNOWN)return {state,name:'',formula:'',ariaLabel:selected?'選択中の未知の分子':'未知の分子',canOpenDetail:false,canCraft:false,showThumbnail:false};
   const name=record?.commonNameJa??record?.nameJa??record?.nameEn??record?.id??'';
   const formula=record?.formula??'';
-  return {state,name,formula,ariaLabel:[name,formula,state===GRAPH_NODE_STATE.REGISTERED?'登録済み':'レシピ判明'].filter(Boolean).join(' '),canOpenDetail:state===GRAPH_NODE_STATE.REGISTERED,canCraft:state===GRAPH_NODE_STATE.KNOWN};
+  return {state,name,formula,ariaLabel:[name,formula,state===GRAPH_NODE_STATE.REGISTERED?'登録済み':'レシピ判明'].filter(Boolean).join(' '),canOpenDetail:state===GRAPH_NODE_STATE.REGISTERED,canCraft:state===GRAPH_NODE_STATE.KNOWN,showThumbnail:selected};
 }
 
 export function canonicalGraphPositions(graph){
@@ -64,14 +64,14 @@ export function buildVisibleGraphProjection(graph,{focusId,registeredIds=[],reci
   return {focusId,visibleIds:[...visible],oneHop,hiddenOneHop,twoHop,distant,visibleEdges,teaserEdges,continuation,stateFor};
 }
 
-export function layoutFocusNeighborhood(graph,focusId,{width=360,height=480,nodeDiameter=66}={}){
+export function layoutFocusNeighborhood(graph,focusId,{width=360,height=480,nodeDiameter=66,focusDiameter=nodeDiameter}={}){
   const center={x:width/2,y:Math.max(150,Math.min(height*.46,height-150))};
   const neighbors=[...graph.getNeighbors(focusId)].sort((a,b)=>{
     const na=graph.nodeById(a),nb=graph.nodeById(b),aa=SECTOR_ANGLE[na?.sectorCode]??-Math.PI/2,ab=SECTOR_ANGLE[nb?.sectorCode]??-Math.PI/2;
     return aa-ab||a.localeCompare(b);
   });
   const slots=Array.from({length:8},(_,index)=>-Math.PI/2+index*Math.PI/4),used=new Set(),positions=new Map([[focusId,{...center,kind:'focus',angle:0}]]);
-  const radius=Math.max(nodeDiameter+30,Math.min(138,width*.34,height*.29));
+  const radius=Math.max((focusDiameter+nodeDiameter)/2+14,Math.min(138,width*.34,height*.29));
   for(const id of neighbors){
     const preferred=SECTOR_ANGLE[graph.nodeById(id)?.sectorCode]??-Math.PI/2;
     let best=-1,bestDistance=Infinity;
@@ -81,12 +81,13 @@ export function layoutFocusNeighborhood(graph,focusId,{width=360,height=480,node
     if(best<0)continue;used.add(best);const angle=slots[best];
     positions.set(id,{x:center.x+Math.cos(angle)*radius,y:center.y+Math.sin(angle)*radius,kind:'neighbor',angle});
   }
-  return {center,radius,nodeDiameter,positions,neighbors};
+  return {center,radius,nodeDiameter,focusDiameter,positions,neighbors};
 }
 
-export function localBoundsOverlap(layout,{diameter=layout.nodeDiameter??66}={}){
+export function localBoundsOverlap(layout,{diameter=layout.nodeDiameter??66,focusDiameter=layout.focusDiameter??diameter}={}){
   const points=[...layout.positions.values()];
-  for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)if(Math.hypot(points[i].x-points[j].x,points[i].y-points[j].y)<diameter-1e-6)return true;
+  const radius=point=>(point.kind==='focus'?focusDiameter:diameter)/2;
+  for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)if(Math.hypot(points[i].x-points[j].x,points[i].y-points[j].y)<radius(points[i])+radius(points[j])-1e-6)return true;
   return false;
 }
 

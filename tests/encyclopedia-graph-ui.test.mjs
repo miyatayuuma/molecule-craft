@@ -57,13 +57,14 @@ assert.equal(unknownPresentation.name,'');
 assert.equal(unknownPresentation.formula,'');
 assert.equal(unknownPresentation.canOpenDetail,false);
 assert.equal(unknownPresentation.canCraft,false);
+assert.equal(unknownPresentation.showThumbnail,false,'Unknown focus must never reveal a molecule thumbnail');
 assert.match(unknownPresentation.ariaLabel,/未知の分子/);
 assert.doesNotMatch(unknownPresentation.ariaLabel,/D|D1/);
 assert.deepEqual(searchKnownGraphNodes(fixtureRecords,state,'D'),[],'Unknown nodes must not leak through search');
-const knownPresentation=graphNodePresentation(fixtureRecords[1],GRAPH_NODE_STATE.KNOWN);
-assert.equal(knownPresentation.canOpenDetail,false);assert.equal(knownPresentation.canCraft,true);
-const registeredPresentation=graphNodePresentation(fixtureRecords[0],GRAPH_NODE_STATE.REGISTERED);
-assert.equal(registeredPresentation.canOpenDetail,true);assert.equal(registeredPresentation.canCraft,false);
+const knownPresentation=graphNodePresentation(fixtureRecords[1],GRAPH_NODE_STATE.KNOWN,{selected:true});
+assert.equal(knownPresentation.canOpenDetail,false);assert.equal(knownPresentation.canCraft,true);assert.equal(knownPresentation.showThumbnail,true,'Focused known recipe should show its molecule thumbnail');
+const registeredPresentation=graphNodePresentation(fixtureRecords[0],GRAPH_NODE_STATE.REGISTERED,{selected:true});
+assert.equal(registeredPresentation.canOpenDetail,true);assert.equal(registeredPresentation.canCraft,false);assert.equal(registeredPresentation.showThumbnail,true,'Focused registered molecule should show its molecule thumbnail');
 
 const local=buildVisibleGraphProjection(fixture,{focusId:'a',...state});
 assert.deepEqual(new Set(local.oneHop),new Set(['b','c']));
@@ -89,10 +90,10 @@ assert.equal(layoutA.positions.get('c').x>layoutA.center.x,true,'E-sector neighb
 
 const maxDegreeNode=production.nodes.map(node=>({id:node.id,degree:production.getNeighbors(node.id).length})).sort((a,b)=>b.degree-a.degree||a.id.localeCompare(b.id))[0];
 assert.equal(maxDegreeNode.degree,6,'Production max-degree regression fixture should exercise six neighbors');
-const mobileLayout=layoutFocusNeighborhood(production,maxDegreeNode.id,{width:320,height:430,nodeDiameter:62});
+const mobileLayout=layoutFocusNeighborhood(production,maxDegreeNode.id,{width:320,height:430,nodeDiameter:62,focusDiameter:116});
 assert.equal(mobileLayout.neighbors.length,6);
 assert.equal(mobileLayout.positions.size,7);
-assert.equal(localBoundsOverlap(mobileLayout,{diameter:62}),false,'Central node and six neighbors must not overlap in representative portrait geometry');
+assert.equal(localBoundsOverlap(mobileLayout,{diameter:62,focusDiameter:116}),false,'Enlarged focus thumbnail node and six neighbors must not overlap in representative portrait geometry');
 for(const point of mobileLayout.positions.values()){
   assert(point.x>=31&&point.x<=289,`mobile x tap bound: ${point.x}`);
   assert(point.y>=31&&point.y<=399,`mobile y tap bound: ${point.y}`);
