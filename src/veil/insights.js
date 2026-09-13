@@ -3,6 +3,7 @@ import {EXPEDITION} from './config.js';
 export const INSIGHT_ANALYSIS_SECONDS=5;
 export const CRITICAL_INSIGHT_IDS=Object.freeze(['hydrogen','methane','oxygen','water']);
 export const FIELD_INSIGHT_MIN_SECONDS=EXPEDITION.safeSeconds;
+export const FIELD_INSIGHT_MIN_DISTANCE=1200;
 const CRITICAL_INSIGHTS=new Set(CRITICAL_INSIGHT_IDS),FIELD_ACTION_ELEMENTS=Object.freeze(['H','C','O']);
 
 export function fieldInsightRequiredElements(record){
@@ -10,13 +11,27 @@ export function fieldInsightRequiredElements(record){
   return [...new Set(record.atoms.filter(element=>FIELD_ACTION_ELEMENTS.includes(element)))];
 }
 
-export function fieldInsightOpportunityEligibility(run,record){
-  const minimumSeconds=FIELD_INSIGHT_MIN_SECONDS,elapsed=Number.isFinite(run?.time)?Math.max(0,run.time):0,collected=run?.collectedElements??{},validRecord=Array.isArray(record?.atoms)&&record.atoms.length>0,requiredElements=fieldInsightRequiredElements(record);
-  const elapsedReady=elapsed+1e-9>=minimumSeconds,requiresAnyFieldElement=validRecord&&!requiredElements.length,missingElements=requiredElements.filter(element=>(collected[element]??0)<1),actionReady=validRecord&&(requiredElements.length?!missingElements.length:FIELD_ACTION_ELEMENTS.some(element=>(collected[element]??0)>=1));
-  return {ready:elapsedReady&&actionReady,elapsedReady,actionReady,minimumSeconds,requiredElements,missingElements,requiresAnyFieldElement};
+const finitePoint=point=>point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?{x:point.x,y:point.y}:null;
+export function ensureInsightEngagementOrigin(run){
+  if(!run)return null;
+  if(!finitePoint(run.insightEngagementOrigin))run.insightEngagementOrigin=finitePoint(run.player);
+  return finitePoint(run.insightEngagementOrigin);
+}
+export function fieldInsightOpportunityEligibility(run){
+  const minimumSeconds=FIELD_INSIGHT_MIN_SECONDS,minimumDistance=FIELD_INSIGHT_MIN_DISTANCE,elapsed=Number.isFinite(run?.time)?Math.max(0,run.time):0,maxDistance=Number.isFinite(run?.insightEngagementMaxDistance)?Math.max(0,run.insightEngagementMaxDistance):0;
+  const elapsedReady=elapsed+1e-9>=minimumSeconds,distanceReady=maxDistance+1e-9>=minimumDistance,engagementSatisfied=run?.insightEngagementSatisfied===true;
+  return {ready:engagementSatisfied,elapsedReady,distanceReady,engagementSatisfied,elapsed,maximumDistance:maxDistance,minimumSeconds,minimumDistance};
+}
+export function updateInsightEngagement(run){
+  if(!run)return fieldInsightOpportunityEligibility(run);
+  const origin=ensureInsightEngagementOrigin(run),player=finitePoint(run.player);
+  if(origin&&player){const distance=Math.hypot(player.x-origin.x,player.y-origin.y);run.insightEngagementMaxDistance=Math.max(Number.isFinite(run.insightEngagementMaxDistance)?run.insightEngagementMaxDistance:0,distance);}
+  const status=fieldInsightOpportunityEligibility(run);
+  if(!run.insightEngagementSatisfied&&status.elapsedReady&&status.distanceReady)run.insightEngagementSatisfied=true;
+  return fieldInsightOpportunityEligibility(run);
 }
 
-export function createInsightRunState(){return {analysis:null,carriedInsights:[]};}
+export function createInsightRunState(){return {analysis:null,carriedInsights:[],insightEngagementOrigin:null,insightEngagementMaxDistance:0,insightEngagementSatisfied:false};}
 
 function known(run,id,persistent){return !!(persistent?.recipes?.includes(id)||persistent?.hints?.includes(id)||run?.carriedInsights?.includes(id)||run?.analysis?.id===id);}
 
