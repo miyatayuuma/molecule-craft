@@ -28,6 +28,7 @@ jobs:
           node tests/molecule-graph.test.mjs
           node tests/molecule-frontier.test.mjs
           node tests/field-frontier-insight.test.mjs
+          node tests/expedition-challenges.test.mjs
           node scripts/export-molecule-graph.mjs --check
       - name: Source contracts
         run: |
@@ -54,6 +55,7 @@ jobs:
           node tests/craft-input-recovery.test.mjs
           node tests/game-shell-recovery.test.mjs
           node tests/craft-target-colors.test.mjs
+          node tests/craft-target-satisfaction.test.mjs
       - name: Expedition insights
         run: |
           node tests/expedition-insights.test.mjs
