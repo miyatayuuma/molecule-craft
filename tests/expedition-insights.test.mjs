@@ -135,8 +135,8 @@ for(const id of CRITICAL_INSIGHT_IDS){
 // FIELD launch re-evaluates critical readiness immediately and the historical
 // hintless H₂ craft shortcut no longer exists in the UI source.
 {
-  const ui=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8'),launch=ui.slice(ui.indexOf('function launch'),ui.indexOf('function finish'));
-  assert.ok(launch.includes('offerProgressionInsights();'),'launch must offer critical progression without an extra pickup');assert.ok(!ui.includes('firstCraftH'));assert.ok(!ui.includes('firstHydrogen'));
+  const ui=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8'),start=ui.indexOf('function initializeExploreLaunch'),launch=ui.slice(start,ui.indexOf('function rollbackLaunchTransaction',start));
+  assert.ok(launch.includes('offerProgressionInsights();'),'EXPLORE initialization must offer critical progression without an extra pickup');assert.ok(!ui.includes('firstCraftH'));assert.ok(!ui.includes('firstHydrogen'));
 }
 
 // Signal success returns a candidate without granting a hint. The existing
