@@ -90,7 +90,8 @@ lacks(supply,"q('launch-veil').click()",'launch must not pseudo-click the fallba
 has(veil,'const destinationAvailable=id=>isExpeditionDestinationAvailable(resources.state,id)&&!!REGIONS[launchRegionId(id)]','request, selection and transaction guards must share one destination policy');
 has(veil,"return destinationAvailable(id)||'invalid-destination';");
 has(veil,'isAvailable:id=>!active&&!launchTransaction.inFlight&&!supply.launchPending&&!resources.blocked&&destinationAvailable(id)','layer-specific active/in-flight/pending guards remain without duplicating destination policy');
-has(veil,'function selectLaunchDestination(id){\n    if(!destinationAvailable(id))return false;');
+has(veil,'function selectLaunchDestination(id){');
+has(veil,'if(!destinationAvailable(id))return false;','selection must use the canonical destination policy');
 has(veil,"q('launch-veil').addEventListener('click',event=>{event.preventDefault();requestExpeditionLaunch(anchor);});",'normal launch button is a direct application request path, not a relay');
 lacks(veil,'function launch(){return requestExpeditionLaunch(anchor);}','legacy launch wrapper must be removed');
 assert.equal(veil.split("q('launch-veil').addEventListener").length-1,1,'launch handler is installed once per UI instance');
