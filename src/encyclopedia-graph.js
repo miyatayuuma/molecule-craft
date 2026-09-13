@@ -91,6 +91,34 @@ export function localBoundsOverlap(layout,{diameter=layout.nodeDiameter??66,focu
   return false;
 }
 
+const sectorIdentityRank=(graph,id,stateOptions)=>{
+  const node=graph.nodeById(id),state=graphNodeState(id,stateOptions),roles=String(node?.roleCodes??'');
+  const roleRank=roles.includes('R')?0:roles.includes('H')?1:roles.includes('G')?2:roles.includes('B')?3:4;
+  const stateRank=state===GRAPH_NODE_STATE.REGISTERED?0:1;
+  return [node?.depth??999,roleRank,stateRank,node?.tier??999,id];
+};
+const compareRank=(a,b)=>{for(let i=0;i<Math.max(a.length,b.length);i++){const av=a[i],bv=b[i];if(av===bv)continue;if(typeof av==='string'||typeof bv==='string')return String(av).localeCompare(String(bv));return (av??0)-(bv??0);}return 0;};
+
+export function graphSectorAnchors(graph,stateOptions={}){
+  const bySector=new Map();
+  for(const node of graph.nodes){
+    if(graphNodeState(node.id,stateOptions)===GRAPH_NODE_STATE.UNKNOWN)continue;
+    const current=bySector.get(node.sectorCode);
+    if(!current||compareRank(sectorIdentityRank(graph,node.id,stateOptions),sectorIdentityRank(graph,current,stateOptions))<0)bySector.set(node.sectorCode,node.id);
+  }
+  return [...bySector].sort((a,b)=>a[0]-b[0]).map(([sectorCode,id])=>({sectorCode,id}));
+}
+
+export function adjacentGraphSectorAnchor(graph,currentFocus,stateOptions={},direction=1){
+  const anchors=graphSectorAnchors(graph,stateOptions);if(anchors.length<2)return null;
+  const currentSector=graph.nodeById(currentFocus)?.sectorCode;
+  let index=anchors.findIndex(row=>row.sectorCode===currentSector);
+  if(index<0){index=anchors.findIndex(row=>row.id===currentFocus);if(index<0)index=0;}
+  const step=direction<0?-1:1;
+  for(let offset=1;offset<=anchors.length;offset++){const row=anchors[(index+step*offset+anchors.length)%anchors.length];if(row.id!==currentFocus)return row;}
+  return null;
+}
+
 export function transitionGraphFocus(graph,currentFocus,targetId,stateOptions={}){
   const targetState=graphNodeState(targetId,stateOptions);
   if(targetState===GRAPH_NODE_STATE.UNKNOWN)return {focusId:currentFocus,highlightId:targetId,changed:false};

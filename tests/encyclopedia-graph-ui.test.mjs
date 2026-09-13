@@ -6,6 +6,8 @@ import {
   buildVisibleGraphProjection,
   canonicalGraphPositions,
   graphNodePresentation,
+  graphSectorAnchors,
+  adjacentGraphSectorAnchor,
   graphNodeState,
   layoutFocusNeighborhood,
   localBoundsOverlap,
@@ -80,6 +82,15 @@ assert(afterRegistration.visibleIds.includes('d')&&afterRegistration.visibleIds.
 
 assert.deepEqual(transitionGraphFocus(fixture,'a','d',state),{focusId:'a',highlightId:'d',changed:false},'Unknown tap must not disclose or center identity');
 assert.deepEqual(transitionGraphFocus(fixture,'a','b',state),{focusId:'b',highlightId:null,changed:true},'Known node selection must move focus');
+
+const sectorState={registeredIds:new Set(['a','b','c','d']),recipes:new Set(),hints:new Set()};
+const sectorAnchors=graphSectorAnchors(fixture,sectorState);
+assert.deepEqual(sectorAnchors.map(row=>row.sectorCode),[0,1,2,3],'Sector navigation exposes only sectors with known identity');
+assert.equal(sectorAnchors.find(row=>row.sectorCode===1)?.id,'b','Sector anchor prefers the shallowest structural entry');
+assert.equal(adjacentGraphSectorAnchor(fixture,'a',sectorState,1)?.id,'b');
+assert.equal(adjacentGraphSectorAnchor(fixture,'a',sectorState,-1)?.id,'c','Reverse navigation wraps to the previous known sector without exposing unknown nodes');
+assert.equal(graphSectorAnchors(fixture,{registeredIds:new Set(['a']),recipes:new Set(),hints:new Set()}).length,1,'Unknown-only sectors must not become swipe destinations');
+assert.equal(adjacentGraphSectorAnchor(fixture,'a',{registeredIds:new Set(['a']),recipes:new Set(),hints:new Set()},1),null,'Single known sector has no synthetic destination');
 
 const canonicalA=canonicalGraphPositions(fixture),canonicalB=canonicalGraphPositions(fixture);
 assert.deepEqual([...canonicalA],[...canonicalB],'Canonical layout must be deterministic');

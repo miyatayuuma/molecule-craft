@@ -5,8 +5,8 @@ import { createCollectionState, MILESTONES } from './collection-state.js?v=36';
 import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=36';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
 import {loadMoleculeGraph} from './molecule-graph.js?v=2';
-import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=1';
-import {renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=1';
+import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=2';
+import {renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=2';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
