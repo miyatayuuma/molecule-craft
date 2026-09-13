@@ -144,7 +144,7 @@ function stepRunFrame(run,input,dt,systems){
   const force={x:0,y:Number.isFinite(routePressure)?routePressure:0};
   for(const field of map.fields){
     const phase=(run.time+field.phase)/c.fieldPeriod*Math.PI*2;field.intensity=1-c.fieldPulse+c.fieldPulse*Math.sin(phase);field.active=true;
-    const dx=p.x-field.x,dy=p.y-field.y,d=Math.hypot(dx,dy);if(d<field.radius){const strength=c.fieldForce*(1-(d/field.radius)**2)*field.intensity;force.x+=Math.cos(field.angle??.12)*strength;force.y+=Math.sin(field.angle??.12)*strength;}
+    const dx=p.x-field.x,dy=p.y-field.y,d=Math.hypot(dx,dy);if(d<field.radius){const fieldForce=Number.isFinite(field.force)?Math.max(0,field.force):c.fieldForce,strength=fieldForce*(1-(d/field.radius)**2)*field.intensity;force.x+=Math.cos(field.angle??.12)*strength;force.y+=Math.sin(field.angle??.12)*strength;}
   }
   const g=c.gate;
   // The boundary is a physical current. A short H₂ burst or the later
