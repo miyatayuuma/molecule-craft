@@ -20,6 +20,7 @@ const copy=x=>JSON.parse(JSON.stringify(x));
 const addCost=(target,cost)=>{for(const [el,n] of Object.entries(cost??{}))target[el]=(target[el]??0)+n;return target;};
 const canAppendCost=(current,extra,available)=>Object.entries(extra??{}).every(([el,n])=>(current[el]??0)+n<=(available[el]??0));
 const CRITICAL_DISCOVERY_IDS=new Set(CRITICAL_INSIGHT_IDS);
+let connectedResources=null;
 export function criticalPrimaryLoadoutUse(id){return CRITICAL_DISCOVERY_IDS.has(id)?primaryRoleFor(id):null;}
 function launchAvailableElements(resources,{includeWorkspace=true}={}){
   const available={...resources.state.elements};
@@ -163,7 +164,7 @@ export function createDeferredExplorationFacade(getCurrent,ready){
 }
 
 export function connectExploration(options){
-  normalizeExplorationMode();
+  normalizeExplorationMode();connectedResources=options.resources;
   let veilUI=null;
   const ready=prepareExplorationCatalog(options.resources).then(result=>{
     if(!result.ok)return null;
@@ -175,7 +176,7 @@ export function connectExploration(options){
 
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
   const {createCollectionUI}=await import('./collection-ui.js?v=37');
-  return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange});
+  return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
 }
 
 export function bindSaveLifecycle({window,document,onPageHide,onHidden,onPrepareUpdate}){
