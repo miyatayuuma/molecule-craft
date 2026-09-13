@@ -2,55 +2,68 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {matchCraftTarget as match} from '../src/craft-target-satisfaction.js';
 import {decomposeTargetIntoAvailableParts as decompose} from '../src/craft-decomposition.js';
+
 const target={atoms:['C','C','O','H','H','H','H','H','H'],bonds:[[0,1,1],[1,2,1],[0,3,1],[0,4,1],[0,5,1],[1,6,1],[1,7,1],[2,8,1]]};
 const oh={id:'hydroxyl',atoms:['O','H'],bonds:[[0,1,1]]},pieces=decompose(target,[oh]);
-const graph=(atoms=[],bonds=[])=>({atoms:atoms.map((element,i)=>({id:i+20,element})),bonds:bonds.map(([a,b,order])=>({a:a+20,b:b+20,order}))});
-const hydroxyl=()=>graph(['O','H'],[[0,1,1]]);
+const graph=(atoms=[],bonds=[],ids=atoms.map((_,i)=>i+20))=>({atoms:atoms.map((element,i)=>({id:ids[i],element})),bonds:bonds.map(([a,b,order])=>({a:ids[a],b:ids[b],order}))});
+const missingAtoms=result=>result.unsatisfiedPieces.flatMap(piece=>piece.partId?piece.atomIndices.map(()=>null):[piece.element]).filter(Boolean);
 function run(workspace,t=target,p=pieces){
-  const before=JSON.stringify([t,p,workspace]),r=match(t,p,workspace);
-  assert.equal(JSON.stringify([t,p,workspace]),before,'Pure inputs');
-  assert.equal(new Set(r.assignments.map(a=>a.workspaceAtomId)).size,r.assignments.length,'No shared workspace atom');
-  assert.equal(new Set(r.assignments.map(a=>a.targetIndex)).size,r.assignments.length,'No shared target atom');
-  assert.equal(r.satisfiedPieces.length+r.unsatisfiedPieces.length,p.length);return r;
+  const before=JSON.stringify([t,p,workspace]),result=match(t,p,workspace);
+  assert.equal(JSON.stringify([t,p,workspace]),before,'matcher is pure');
+  assert.equal(new Set(result.assignments.map(item=>item.workspaceAtomId)).size,result.assignments.length,'workspace atoms are reserved once');
+  assert.equal(new Set(result.assignments.map(item=>item.targetIndex)).size,result.assignments.length,'target atoms are secured once');
+  return result;
 }
-const hasOH=r=>r.satisfiedPieces.some(p=>p.partId==='hydroxyl');
-test('empty workspace leaves every piece missing',()=>assert.deepEqual(run(graph()).unsatisfiedPieces,pieces));
-test('target placement, tray placement and manually bonded atoms give identical results',()=>{
-  const top=hydroxyl(),tray=hydroxyl(),manual=graph(['O','H']);manual.bonds.push({a:20,b:21,order:1});
-  assert.ok(hasOH(run(top)));assert.deepEqual(run(top),run(tray));assert.deepEqual(run(top),run(manual));
+
+test('empty workspace leaves every decomposed material missing',()=>assert.deepEqual(run(graph()).unsatisfiedPieces,pieces));
+
+test('material reservation ignores current bond topology',()=>{
+  const loose=run(graph(['O','H'])),bonded=run(graph(['O','H'],[[0,1,1]])),wrong=run(graph(['O','H'],[[0,1,3]]));
+  assert.deepEqual(loose,bonded);assert.deepEqual(loose,wrong);
+  assert.ok(loose.satisfiedPieces.some(piece=>piece.partId==='hydroxyl'),'O + H secure the hydroxyl material shortcut even before bonding');
 });
-test('bond removal, rebonding and atom deletion update satisfaction',()=>{
-  const w=hydroxyl();w.bonds=[];assert.equal(hasOH(run(w)),false);w.bonds.push({a:20,b:21,order:1});assert.ok(hasOH(run(w)));w.atoms.pop();w.bonds=[];assert.equal(hasOH(run(w)),false);
+
+test('breaking and rebuilding bonds never makes secured material reappear',()=>{
+  const workspace=graph(['O','H'],[[0,1,1]]),before=run(workspace);workspace.bonds=[];const broken=run(workspace);workspace.bonds.push({a:20,b:21,order:1});const rebuilt=run(workspace);
+  assert.deepEqual(broken,before);assert.deepEqual(rebuilt,before);
 });
-test('valid inter-piece connections preserve OH; unrelated components do not invalidate it',()=>{
-  assert.ok(hasOH(run(graph(['O','H','C'],[[0,1,1],[0,2,1]]))));
-  const base=run(hydroxyl()),extra=run(graph(['O','H','H','H','N'],[[0,1,1],[2,3,1]]));assert.deepEqual(extra,base);
+
+test('deleting a secured atom reintroduces only the exact missing atom',()=>{
+  const completeOH=run(graph(['O','H']));assert.ok(completeOH.satisfiedPieces.some(piece=>piece.partId==='hydroxyl'));
+  const onlyO=run(graph(['O']));assert.equal(onlyO.satisfiedPieces.some(piece=>piece.partId==='hydroxyl'),false);assert.ok(missingAtoms(onlyO).includes('H'));
+  assert.equal(onlyO.unsatisfiedPieces.some(piece=>piece.partId==='hydroxyl'),false,'partially secured shortcuts fall back to atomic shortage instead of re-requesting the whole part');
 });
-test('wrong order, wrong neighbor, excess bonds and inconsistent single-atom assignments are rejected',()=>{
-  for(const w of [graph(['O','H'],[[0,1,2]]),graph(['O','H','N'],[[0,1,1],[0,2,1]]),graph(['O','H','C','C'],[[0,1,1],[0,2,1],[0,3,1]])])assert.equal(hasOH(run(w)),false);
-  const water={atoms:['O','H','H'],bonds:[[0,1,1],[0,2,1]]};
-  assert.equal(run(graph(['H','H'],[[0,1,1]]),water,decompose(water,[])).satisfiedPieces.length,0,'H₂ cannot stand in for two water H atoms');
+
+test('workspace extras and unrelated elements do not increase target coverage',()=>{
+  const base=run(graph(['O','H'])),extra=run(graph(['O','H','O','N','F']));
+  assert.equal(extra.assignments.length,base.assignments.length,'only target composition is reserved');
+  assert.deepEqual(extra.unsatisfiedPieces,base.unsatisfiedPieces);
 });
-test('duplicate OH pieces cannot reuse one occurrence',()=>{
-  const t={atoms:['O','H','O','H'],bonds:[[0,1,1],[2,3,1],[0,2,1]]},p=decompose(t,[oh]);
-  assert.equal(run(hydroxyl(),t,p).satisfiedPieces.length,1);
-  assert.equal(run(graph(['O','H','O','H'],[[0,1,1],[2,3,1]]),t,p).satisfiedPieces.length,2);
+
+test('whole target pieces are preferred before atomic remainder',()=>{
+  const result=run(graph(['O','H']));
+  assert.ok(result.satisfiedPieces.some(piece=>piece.partId==='hydroxyl'));
+  assert.equal(result.unsatisfiedPieces.filter(piece=>piece.partId==='hydroxyl').length,0);
+  assert.equal(result.unsatisfiedPieces.reduce((sum,piece)=>sum+piece.atomIndices.length,0),target.atoms.length-2);
 });
-test('global coverage handles overlapping placements instead of consuming the first candidate',()=>{
-  // The C-N component can occupy either C. Putting it on the C-H piece blocks
-  // the only C-H component; the optimal assignment preserves both pieces.
-  const t={atoms:['C','N','C','H','N'],bonds:[[0,1,1],[0,2,1],[2,3,1],[2,4,1]]};
-  const p=[{partId:'ch',atomIndices:[2,3]},{partId:'cn',atomIndices:[0,1]},{partId:null,element:'N',atomIndices:[4]}];
-  const w=graph(['C','N','C','H'],[[0,1,1],[2,3,1]]),r=run(w,t,p);assert.equal(r.satisfiedPieces.length,2);assert.deepEqual(r.unsatisfiedPieces,[p[2]]);
-  assert.deepEqual(run({...w,atoms:[...w.atoms].reverse(),bonds:[...w.bonds].reverse()},t,p),r);
+
+test('partial multi-atom piece reports exact remaining composition',()=>{
+  const t={atoms:['C','C','C','H','H'],bonds:[]},p=[{partId:'fragment',atomIndices:[0,1,2,3,4]}],result=run(graph(['C','C','H']),t,p);
+  assert.deepEqual(result.satisfiedPieces,[]);assert.deepEqual(missingAtoms(result).sort(),['C','H']);assert.equal(result.assignments.length,3);
 });
-test('target changes and unlock changes derive fresh results; serialized workspace is equivalent',()=>{
-  const w=hydroxyl(),original=run(w);assert.deepEqual(run(JSON.parse(JSON.stringify(w))),original);
-  const hydrogen={atoms:['H','H'],bonds:[[0,1,1]]};assert.equal(run(w,hydrogen,decompose(hydrogen,[])).satisfiedPieces.length,0);
-  const locked=run(w,target,decompose(target,[]));assert.equal(locked.satisfiedPieces.length,2);assert.ok(hasOH(run(w)));
+
+test('target and decomposition changes derive fresh composition results',()=>{
+  const workspace=graph(['O','H']),original=run(workspace);assert.deepEqual(run(JSON.parse(JSON.stringify(workspace))),original);
+  const hydrogen={atoms:['H','H'],bonds:[[0,1,1]]},hydrogenPieces=decompose(hydrogen,[]),hydrogenResult=run(workspace,hydrogen,hydrogenPieces);
+  assert.equal(hydrogenResult.assignments.length,1);assert.equal(hydrogenResult.unsatisfiedPieces.reduce((sum,piece)=>sum+piece.atomIndices.length,0),1);
+  const atomOnly=run(workspace,target,decompose(target,[]));assert.equal(atomOnly.assignments.length,2);
 });
-test('completed target covers all pieces without a separate completion system',()=>assert.equal(run(graph(target.atoms,target.bonds)).unsatisfiedPieces.length,0));
-test('many interchangeable loose atoms have deterministic bounded search',()=>{
-  const t={atoms:Array(40).fill('H'),bonds:[]},w=graph(Array(20).fill('H')),p=decompose(t,[]);
-  const r=run(w,t,p);assert.equal(r.satisfiedPieces.length,20);assert.deepEqual(run(w,t,p),r);
+
+test('complete target composition secures every material regardless of intermediate bonds',()=>{
+  const shuffled=[...target.atoms].reverse(),result=run(graph(shuffled,[]));assert.equal(result.unsatisfiedPieces.length,0);assert.equal(result.assignments.length,target.atoms.length);
+});
+
+test('many interchangeable atoms remain deterministic and bounded',()=>{
+  const t={atoms:Array(40).fill('H'),bonds:[]},workspace=graph(Array(20).fill('H')),p=decompose(t,[]),result=run(workspace,t,p);
+  assert.equal(result.assignments.length,20);assert.equal(result.unsatisfiedPieces.length,20);assert.deepEqual(run(workspace,t,p),result);
 });
