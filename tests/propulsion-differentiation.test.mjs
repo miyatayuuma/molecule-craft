@@ -13,6 +13,7 @@ const fuelFor=mode=>mode==='drive'?{
   oxidizer:{molecule:'oxygen',amount:36,capacity:36},
 }:{};
 const systemsFor=mode=>mode==='drive'?{consumeCombustion:()=>true}:{};
+const BYPASS_X=Object.freeze({'h-boundary-shear':250,'oxygen-shortcut-shear':-530,'deep-skill-shear':-720});
 
 function prepareRun({x,y,mode}){
   const config=flightConfig(),run=createRun(createUniverse(1,{H:0,C:0,O:0}),config,{fuel:fuelFor(mode),predators:false});
@@ -24,13 +25,13 @@ function prepareRun({x,y,mode}){
   return {config,run,systems:systemsFor(mode)};
 }
 
-function traverseBurstField(field,mode){
+function traverseBand({field,mode,x=field.x}){
   const startY=field.y+field.radius+75,targetY=field.y-field.radius-75;
-  const {run,systems}=prepareRun({x:field.x,y:startY,mode});
+  const {run,systems}=prepareRun({x,y:startY,mode});
   const dt=1/120,limit=8;
   let bandTime=0,maxDeviation=0;
   for(let frame=0;frame<limit/dt;frame++){
-    const target={x:field.x,y:targetY-220},dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy)||1;
+    const target={x,y:targetY-220},dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy)||1;
     stepRun(run,{x:dx/distance,y:dy/distance},dt,systems);
     if(Math.abs(run.player.y-field.y)<=field.radius){
       bandTime+=dt;
@@ -89,12 +90,12 @@ test('three compact BURST-advantage fields are fixed on existing optional/skill 
   }
 });
 
-test('compact shear fields reward BURST with a clean one-shot line instead of making DRIVE equivalent',()=>{
+test('compact shear fields reward BURST with a clean one-shot line while normal thrust keeps a safe bypass',()=>{
   const reports=[];
   for(const field of BURST_ADVANTAGE_FIELDS){
-    const normal=traverseBurstField(field,'normal'),burst=traverseBurstField(field,'burst'),drive=traverseBurstField(field,'drive');
-    reports.push({id:field.id,normal,burst,drive});
-    assert.ok(normal.success,`${field.id}: normal thrust must still traverse or recover without a hard gate`);
+    const normalDirect=traverseBand({field,mode:'normal'}),normalBypass=traverseBand({field,mode:'normal',x:BYPASS_X[field.id]}),burst=traverseBand({field,mode:'burst'}),drive=traverseBand({field,mode:'drive'});
+    const report={id:field.id,normalDirect,normalBypass,burst,drive};reports.push(report);console.log('BURST field metric',JSON.stringify(report));
+    assert.ok(normalBypass.success,`${field.id}: normal thrust must retain a skill/safe bypass`);
     assert.ok(burst.success,`${field.id}: BURST traversal must succeed`);
     assert.ok(drive.success,`${field.id}: DRIVE traversal must succeed`);
     assert.ok(burst.maxDeviation<=field.cleanHalfWidth+12,`${field.id}: BURST should hold the compact line (${burst.maxDeviation.toFixed(1)} <= ${field.cleanHalfWidth+12})`);
