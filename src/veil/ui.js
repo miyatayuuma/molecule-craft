@@ -46,7 +46,10 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       const nextRun=resources.state.progress.runs+1,start=destinationId!=='continue'?destinationId:resources.state.progress.checkpoint,seed=(Date.now()^(nextRun*7919))>>>0;
       return {nextRun,start,seed,fuel:resources.prepareExpedition({region:start})};
     },
-    createRun:({prepared})=>createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities:{combustionDrive:driveAvailable(resources.state,'combustion')}}),flightConfig(resources.state),{fuel:prepared.fuel}),
+    createRun:({prepared})=>{
+      const config=flightConfig(resources.state),capabilities={combustionDrive:driveAvailable(resources.state,'combustion'),nitrogenField:config.nitrogenField===true};
+      return createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities}),config,{fuel:prepared.fuel});
+    },
     initializeExplore:({prepared,run:nextRun})=>initializeExploreLaunch(prepared,nextRun),
     stageSuccess:({prepared})=>{resources.state.progress.runs=prepared.nextRun;raf=requestAnimationFrame(frame);return true;},
     persist:()=>resources.save(),
