@@ -16,13 +16,14 @@ const make=(catalog=regionalCatalog)=>{const value=createResources({storage:memo
 const eligible=(record,region,{unlocked=new Set(['H','C','O']),recipes=[],hints=[],excludeIds=new Set()}={})=>signalCandidateEligible(record,{region,recipes,hints,excludeIds,canUseElement:element=>unlocked.has(element)});
 
 // FIELD region order is an explicit progression rank and stays aligned with the
-// current authored region keys.
-assert.deepEqual(REGION_ORDER,['veil','carbon','oxygen','frontier']);
+// current authored region keys, including the post-CHO Nitrogen extension.
+assert.deepEqual(REGION_ORDER,['veil','carbon','oxygen','frontier','nitrogen']);
 assert.deepEqual(Object.keys(REGIONS),REGION_ORDER);
 for(const [rank,region] of REGION_ORDER.entries())assert.equal(regionRank(region),rank);
 assert.equal(regionRank('unknown'),-1);
 
-// Minimum signal region is derived from H/C/O composition, not DB metadata.
+// Minimum ordinary signal region remains derived from H/C/O composition.
+// Nitrogen chapter objectives use their dedicated Critical / Graph-frontier path.
 assert.equal(minimumSignalRegionFor(H1),'veil');
 assert.equal(minimumSignalRegionFor(C1),'carbon');
 assert.equal(minimumSignalRegionFor(O1),'oxygen');
@@ -118,8 +119,7 @@ assert.equal(GROWTH.signalChance,.38);assert.equal(GROWTH.signalPity,3);
 // FIELD constructs the exclusion set from both active analysis and carried
 // insights, and passes it together with current-run engagement context.
 const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
-assert.match(uiSource,/const excludeIds=new Set\(run\.carriedInsights\)/);
-assert.match(uiSource,/run\.analysis\?\.id\)excludeIds\.add\(run\.analysis\.id\)/);
-assert.match(uiSource,/resources\.signal\(event\.region,event\.roll,event\.choice,\{excludeIds,runContext:run\}\)/);
+assert.match(uiSource,/excludeIds:new Set\(\[\.\.\.run\.carriedInsights,\.\.\.\(run\.analysis\?\[run\.analysis\.id\]:\[\]\)\]\)/);
+assert.match(uiSource,/runContext:run/);
 
-console.log('Regional signal eligibility passed: source ownership, cumulative region rank, element unlock, persistent/run-local exclusions, deterministic choice, bonus, pity and cooldown.');
+console.log('Signal eligibility passed: cumulative H/C/O region gating, discovery requirements, Graph-owned challenge molecules, challenge traversal events, run-local exclusions and pity/cooldown semantics.');
