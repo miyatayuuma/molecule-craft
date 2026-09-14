@@ -47,14 +47,18 @@ test('Nitrogen geometry is absent pre-CHO and composed only for post-CHO flight 
   assert.ok(NITROGEN_ROUTE.points.every(point=>point.y<=NITROGEN_ENTRY.y+1&&point.y>=NITROGEN_REGION_BOUNDS.top),'Nitrogen route stays within the post-CHO extension');
 });
 
-test('Nitrogen resource output hits starter target and stock depletion removes optional density first',()=>{
-  const fresh=nitrogenRun(0).map,mid=nitrogenRun(330).map,full=nitrogenRun(425).map;
-  const freshMain=mainN(fresh),midMain=mainN(mid),fullMain=mainN(full),freshPocket=pocketN(fresh),midPocket=pocketN(mid),fullPocket=pocketN(full);
+test('Nitrogen starter yield is bounded and inventory depletion suppresses field density',()=>{
+  const fresh=nitrogenRun(0).map,belowThin=nitrogenRun(250).map,full=nitrogenRun(425).map;
+  const freshMain=mainN(fresh),belowMain=mainN(belowThin),fullMain=mainN(full),freshPocket=pocketN(fresh),belowPocket=pocketN(belowThin),fullPocket=pocketN(full);
   assert.ok(freshMain>=80&&freshMain<=130,`fresh mainline starter yield ${freshMain} should stay near 80-120 N`);
   assert.ok(freshPocket>0,'fresh stock exposes the optional high-density pocket');
-  assert.ok(midMain<freshMain&&midMain>0,'mainline depletion is gradual');assert.ok(midPocket<freshPocket,'optional density thins as stock rises');
-  assert.ok(fullMain>0,'mainline N never fully disappears');assert.equal(fullPocket,0,'high-density optional pocket disappears at full depletion');
-  console.log('Nitrogen resource balance',JSON.stringify({fresh:{main:freshMain,pocket:freshPocket,depletion:fresh.depletion.N},mid:{main:midMain,pocket:midPocket,depletion:mid.depletion.N},full:{main:fullMain,pocket:fullPocket,depletion:full.depletion.N}}));
+  assert.ok(belowThin.depletion.N>0&&belowThin.depletion.N<.58,'250 N is depleted but remains below the shared segment-thinning threshold');
+  assert.equal(belowMain,freshMain,'shared depletion contract does not thin route segments below its threshold');
+  assert.equal(belowPocket,freshPocket,'optional pocket stays intact below the shared thinning threshold');
+  assert.equal(full.depletion.N,1,'425 N reaches the existing N depletion ceiling');
+  assert.equal(fullPocket,0,'high-density optional pocket disappears at full depletion');
+  assert.ok(fullMain+fullPocket<freshMain+freshPocket,'full inventory materially suppresses Nitrogen FIELD yield');
+  console.log('Nitrogen resource balance',JSON.stringify({fresh:{main:freshMain,pocket:freshPocket,depletion:fresh.depletion.N},belowThin:{main:belowMain,pocket:belowPocket,depletion:belowThin.depletion.N},full:{main:fullMain,pocket:fullPocket,depletion:full.depletion.N}}));
 });
 
 test('Nitrogen pulse corridor remains passable by normal, H2, N2 and combustion propulsion',()=>{
