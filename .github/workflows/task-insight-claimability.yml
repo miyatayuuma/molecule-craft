@@ -24,6 +24,13 @@ jobs:
           new="const engagedRun=(overrides={})=>Object.assign({},createInsightRunState(),{captured:false,region:'carbon',time:FIELD_INSIGHT_MIN_SECONDS+1,insightEngagementSatisfied:true,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+1,player:{x:0,y:0},collectedElements:{H:0,C:0,N:0,O:0},map:{signals:[]},events:[]},overrides);"
           if old not in s: raise SystemExit('engagedRun fixture target missing')
           p.write_text(s.replace(old,new,1))
+
+          p=Path('tests/signal-eligibility.test.mjs')
+          s=p.read_text()
+          old="""assert.match(uiSource,/const excludeIds=new Set\\(run\\.carriedInsights\\)/);\nassert.match(uiSource,/run\\.analysis\\?\\.id\\)excludeIds\\.add\\(run\\.analysis\\.id\\)/);\nassert.match(uiSource,/resources\\.signal\\(event\\.region,event\\.roll,event\\.choice,\\{excludeIds,runContext:run\\}\\)/);"""
+          new="""assert.match(uiSource,/function currentInsightExcludeIds\\(\\)\\{const ids=new Set\\(run\\?\\.carriedInsights\\?\\?\\[\\]\\)/);\nassert.match(uiSource,/syncFieldInsightMarkerClaimability\\(run,signal=>resources\\.signalClaimability/);\nassert.match(uiSource,/resources\\.signal\\(event\\.region,event\\.roll,event\\.choice,\\{excludeIds,runContext:run,claimableOnly:true\\}\\)/);"""
+          if old not in s: raise SystemExit('signal eligibility source contract target missing')
+          p.write_text(s.replace(old,new,1))
           PY
       - name: Focused Insight and Nitrogen regressions
         run: |
