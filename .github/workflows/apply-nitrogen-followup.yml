@@ -34,6 +34,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/element-progression.js src/app.js src/veil/renderer.js index.html tests/nitrogen-field-pickup-browser.test.mjs tests/nitrogen-visual-identity.test.mjs .github/workflows/repository-validation.yml sw.js precache-manifest.js
+          git add src/element-progression.js src/app.js src/veil/renderer.js index.html tests/nitrogen-field-pickup-browser.test.mjs tests/nitrogen-visual-identity.test.mjs sw.js precache-manifest.js
           git commit -m "Fix Nitrogen FIELD identity and CRAFT access"
           git push
