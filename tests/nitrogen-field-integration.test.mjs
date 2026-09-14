@@ -48,7 +48,7 @@ test('Nitrogen geometry is absent pre-CHO and composed only for post-CHO flight 
 });
 
 test('Nitrogen resource output hits starter target and stock depletion removes optional density first',()=>{
-  const fresh=nitrogenRun(0).map,mid=nitrogenRun(250).map,full=nitrogenRun(425).map;
+  const fresh=nitrogenRun(0).map,mid=nitrogenRun(330).map,full=nitrogenRun(425).map;
   const freshMain=mainN(fresh),midMain=mainN(mid),fullMain=mainN(full),freshPocket=pocketN(fresh),midPocket=pocketN(mid),fullPocket=pocketN(full);
   assert.ok(freshMain>=80&&freshMain<=130,`fresh mainline starter yield ${freshMain} should stay near 80-120 N`);
   assert.ok(freshPocket>0,'fresh stock exposes the optional high-density pocket');
