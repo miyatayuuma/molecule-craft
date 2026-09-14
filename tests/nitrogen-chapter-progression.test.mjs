@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createMoleculeGraph,getFrontierCandidates} from '../src/molecule-graph.js';
-import {growthGoal,REGIONS} from '../src/veil/growth.js';
+import {flightConfig,growthGoal,REGIONS} from '../src/veil/growth.js';
 import {isExpeditionDestinationAvailable} from '../src/veil/launch-request.js';
 import {CRITICAL_INSIGHT_IDS,advanceInsightAnalysis,createInsightRunState,fieldInsightRequiredElements,triggerInsight} from '../src/veil/insights.js';
 import {performanceFor} from '../src/veil/molecule-roles.js';
@@ -27,16 +27,19 @@ test('Nitrogen chapter eligibility is derived only from committed CHO completion
   const returned=resource();const result=returned.settleExpedition({H:0,C:0,O:0,N:0},0,false,{destinationReached:true});assert.equal(result.completedNow,true);assert.equal(returned.state.progress.choCompleted,true,'normal settlement remains the CHO completion authority');
 });
 
-test('Task 2 keeps unfinished Nitrogen FIELD and element access unavailable',()=>{
-  assert.equal(NITROGEN_REGION_AVAILABLE,false);
-  assert.equal(Object.hasOwn(REGIONS,'nitrogen'),false,'Nitrogen geometry is not a production region yet');
-  const state={progress:{checkpoint:'nitrogen',regions:['veil','nitrogen']}};
-  assert.equal(isExpeditionDestinationAvailable(state,'nitrogen'),false,'unknown region IDs cannot be launched even if stale state lists them');
-  assert.equal(isExpeditionDestinationAvailable(state,'continue'),false,'continue cannot relay into unavailable geometry');
+test('Task 3 exposes Nitrogen FIELD and N authority only after CHO completion',()=>{
+  assert.equal(NITROGEN_REGION_AVAILABLE,true);
+  assert.equal(Object.hasOwn(REGIONS,'nitrogen'),true,'Nitrogen is now a production region');
+  const locked={progress:{choCompleted:false,checkpoint:'veil',regions:['veil']}};
+  assert.equal(isExpeditionDestinationAvailable(locked,'nitrogen'),false,'pre-CHO saves cannot launch Nitrogen');
+  assert.equal(flightConfig(locked).bounds.top,-12750,'pre-CHO deepest bound is unchanged');
+  const eligible={progress:{choCompleted:true,checkpoint:'veil',regions:['veil']}};
+  assert.equal(isExpeditionDestinationAvailable(eligible,'nitrogen'),true,'CHO completion derives Nitrogen destination availability without a saved region flag');
+  assert.ok(flightConfig(eligible).bounds.top<-12750,'post-CHO flight bounds include the Nitrogen extension');
+  assert.equal(isExpeditionDestinationAvailable(eligible,'unimplemented-region'),false,'unknown region IDs remain fail-closed');
 
-  const value=resource();value.state.progress.choCompleted=true;value.findElementForExpedition('N');assert.equal(value.canUseElement('N'),false,'N stays player-inaccessible until the production Nitrogen region gate opens');
-  assert.equal(nitrogenElementAccessible(value.state.progress),false);
-  assert.equal(nitrogenElementAccessible(value.state.progress,{regionAvailable:true}),true,'Task 3 can activate N authority without a save-schema flag');
+  const value=resource();value.findElementForExpedition('N');assert.equal(value.canUseElement('N'),false,'N remains inaccessible before CHO completion even if stale state contains N discovery');
+  value.state.progress.choCompleted=true;assert.equal(value.canUseElement('N'),true);assert.equal(nitrogenElementAccessible(value.state.progress),true,'N authority uses the production source capability without a persistent flag');
 });
 
 test('N2 critical candidate requires chapter, Nitrogen FIELD context, N discovery and engagement',()=>{
@@ -46,10 +49,9 @@ test('N2 critical candidate requires chapter, Nitrogen FIELD context, N discover
   value.state.progress.choCompleted=true;
   assert.equal(nitrogenCriticalInsightCandidate(value.state,{...context,regionAvailable:false}),null,'eligibility is distinct from destination availability');
   assert.equal(nitrogenCriticalInsightCandidate(value.state,{...context,fieldContext:false}),null,'CHO FIELD cannot emit N2');
-  assert.equal(nitrogenCriticalInsightCandidate(value.state,{...context,nitrogenEngaged:false}),null,'entering a future region is insufficient without authored N engagement');
+  assert.equal(nitrogenCriticalInsightCandidate(value.state,{...context,nitrogenEngaged:false}),null,'entering Nitrogen FIELD is insufficient without exploration engagement');
   assert.equal(nitrogenCriticalInsightCandidate(value.state,context),NITROGEN_MOLECULE_ID);
-  assert.ok(!value.progressionInsightCandidates({nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'production default keeps the Task 2 gate closed');
-  assert.ok(value.progressionInsightCandidates({nitrogenRegionAvailable:true,nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'resource candidate API is ready for Task 3 context');
+  assert.ok(value.progressionInsightCandidates({nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'production default now enables the Task 3 Nitrogen region capability');
   value.hint(NITROGEN_MOLECULE_ID);assert.equal(nitrogenCriticalInsightCandidate(value.state,context),null,'committed N2 knowledge removes the critical candidate');
 });
 
@@ -63,7 +65,7 @@ test('N2 reuses critical lifecycle and existing role/category profiles unchanged
 
   assert.deepEqual(normal.discoverWithLoadout(NITROGEN_MOLECULE_ID,null),{learned:true,assignedUse:null});assert.equal(nitrogenChapterState(normal.state,{regionAvailable:true}).stage,'ammonia-frontier');assert.ok(normal.tankCatalog('propellant').some(record=>record.id===NITROGEN_MOLECULE_ID));assert.ok(normal.tankCatalog('coolant').some(record=>record.id===NITROGEN_MOLECULE_ID));
 
-  const lost=resource();lost.state.progress.choCompleted=true;lost.findElementForExpedition('N');const lostRun=flight();triggerInsight(lostRun,NITROGEN_MOLECULE_ID,lost.state);const forced=settle(lost,lostRun,true);assert.deepEqual(forced.committedInsights,[]);assert.ok(!lost.state.hints.includes(NITROGEN_MOLECULE_ID));assert.ok(lost.progressionInsightCandidates({nitrogenRegionAvailable:true,nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'forced return leaves N2 eligible for a later run');
+  const lost=resource();lost.state.progress.choCompleted=true;lost.findElementForExpedition('N');const lostRun=flight();triggerInsight(lostRun,NITROGEN_MOLECULE_ID,lost.state);const forced=settle(lost,lostRun,true);assert.deepEqual(forced.committedInsights,[]);assert.ok(!lost.state.hints.includes(NITROGEN_MOLECULE_ID));assert.ok(lost.progressionInsightCandidates({nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'forced return leaves N2 eligible for a later run');
 });
 
 test('NH3 chapter priority is a normal direct-neighbor Graph frontier objective',()=>{
@@ -83,13 +85,12 @@ test('NH3 uses ordinary analysis, normal-return commit and forced-return loss',(
   const lost=resource();lost.state.progress.choCompleted=true;lost.discover(NITROGEN_MOLECULE_ID);const lostRun=flight();triggerInsight(lostRun,AMMONIA_MOLECULE_ID,lost.state);advanceInsightAnalysis(lostRun,5);settle(lost,lostRun,true);assert.ok(!lost.state.hints.includes(AMMONIA_MOLECULE_ID));assert.equal(nitrogenFrontierObjective(graph,lost.state)?.id,AMMONIA_MOLECULE_ID);
 });
 
-test('growthGoal is stable in Task 2 and ready for Task 3 player-facing stages',()=>{
-  const state={progress:{choCompleted:true,foundElements:['H','C','O','N']},recipes:[],hints:[]};const stable=growthGoal(state);assert.match(stable.text,/CHO探索クリア/);assert.doesNotMatch(stable.text,/窒素|N₂|NH₃/,'Task 2 must not instruct the player to enter an unavailable N FIELD');
-  assert.match(growthGoal(state,{nitrogenRegionAvailable:true}).text,/窒素/);
-  state.hints.push(NITROGEN_MOLECULE_ID);assert.equal(growthGoal(state,{nitrogenRegionAvailable:true}).id,NITROGEN_MOLECULE_ID);
-  state.recipes.push(NITROGEN_MOLECULE_ID);assert.match(growthGoal(state,{nitrogenRegionAvailable:true}).text,/NH₃/);
-  state.hints.push(AMMONIA_MOLECULE_ID);assert.equal(growthGoal(state,{nitrogenRegionAvailable:true}).id,AMMONIA_MOLECULE_ID);
-  state.recipes.push(AMMONIA_MOLECULE_ID);assert.match(growthGoal(state,{nitrogenRegionAvailable:true}).text,/Nitrogen chapter/);
+test('growthGoal follows production Nitrogen player-facing stages and stops before Rare Survey',()=>{
+  const state={progress:{choCompleted:true,foundElements:['H','C','O','N']},recipes:[],hints:[]};assert.match(growthGoal(state).text,/Nitrogen FIELD|N₂/);
+  state.hints.push(NITROGEN_MOLECULE_ID);assert.equal(growthGoal(state).id,NITROGEN_MOLECULE_ID);
+  state.recipes.push(NITROGEN_MOLECULE_ID);assert.match(growthGoal(state).text,/NH₃/);
+  state.hints.push(AMMONIA_MOLECULE_ID);assert.equal(growthGoal(state).id,AMMONIA_MOLECULE_ID);
+  state.recipes.push(AMMONIA_MOLECULE_ID);const complete=growthGoal(state);assert.match(complete.text,/Nitrogen chapter/);assert.doesNotMatch(complete.text,/Rare|Survey|希少/);
 });
 
 test('Nitrogen progression persists through existing schema without a new save flag',()=>{
