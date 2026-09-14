@@ -10,10 +10,10 @@ import { specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
 
-export function createCollectionViewer({host,record,name,onThumbnail=()=>{},showGestureHint=true}) {
+export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onReady=()=>{},showGestureHint=true}) {
   let disposed=false,frame=0,renderer=null,observer=null,model=null,layout=null;
   let scene=null,camera=null,group=null,width=1,height=1,radius=1,ready=false;
-  let canvas=null,context=null,steps=0,stable=0,thumbnailSent=false;
+  let canvas=null,context=null,steps=0,stable=0,thumbnailSent=false,readyNotified=false;
   let aromaticEdges=new Set(),aromaticFrames=[];
   const resources=new Set(),listeners=[],viewState={};
   const owner=host.ownerDocument,make=(tag,text,className)=>{const node=owner.createElement(tag);if(text)node.textContent=text;if(className)node.className=className;return node;};
@@ -40,6 +40,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},show
       try{initialize();ready=true;}catch(error){status.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';console.warn('Collection preview unavailable',error);releaseGraphics();return;}
     }
     draw();
+    if(!readyNotified){readyNotified=true;try{onReady({snapshot:snapshotImage(),view:{...viewState}});}catch{}}
     if(!thumbnailSent){
       thumbnailSent=true;
       try{const small=make('canvas');small.width=96;small.height=80;const scale=Math.min(96/canvas.width,80/canvas.height),w=canvas.width*scale,h=canvas.height*scale;small.getContext('2d').drawImage(canvas,(96-w)/2,(80-h)/2,w,h);onThumbnail(small.toDataURL('image/png'));}catch{}
@@ -97,6 +98,9 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},show
     for(const port of layout.ports){
       group.add(createAttachmentMarker(THREE,port,own));
     }
+  }
+  function snapshotImage(){
+    if(!canvas)return null;try{const image=make('canvas'),sourceWidth=Math.max(1,canvas.width||width),sourceHeight=Math.max(1,canvas.height||height);image.width=sourceWidth;image.height=sourceHeight;const target=image.getContext('2d');if(!target)return null;target.drawImage(canvas,0,0,sourceWidth,sourceHeight);return image.toDataURL('image/png');}catch{return null;}
   }
   function resize(){
     if(disposed||!canvas)return;
@@ -201,5 +205,5 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},show
   }
   listen(owner,'visibilitychange',()=>{controls.cancel();if(owner.hidden){cancelAnimationFrame(frame);frame=0;}else requestDraw();});
   requestDraw();
-  return {dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);frame=0;releaseGraphics();model=null;host.replaceChildren();}};
+  return {snapshot(){if(disposed||!ready)return null;try{draw();}catch{}return snapshotImage();},view(){return {...viewState};},dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);frame=0;releaseGraphics();model=null;host.replaceChildren();}};
 }
