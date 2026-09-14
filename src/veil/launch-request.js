@@ -1,9 +1,11 @@
+import {REGIONS} from './growth.js';
+
 export function isExpeditionDestinationAvailable(state,destinationId){
   if(typeof destinationId!=='string'||!destinationId)return false;
   const progress=state?.progress;
   if(!progress)return false;
-  if(destinationId==='continue')return typeof progress.checkpoint==='string'&&progress.checkpoint.length>0;
-  return Array.isArray(progress.regions)&&progress.regions.includes(destinationId);
+  if(destinationId==='continue')return typeof progress.checkpoint==='string'&&Object.hasOwn(REGIONS,progress.checkpoint);
+  return Object.hasOwn(REGIONS,destinationId)&&Array.isArray(progress.regions)&&progress.regions.includes(destinationId);
 }
 
 export function createExpeditionLaunchRequester({isAvailable,selectDestination,prepareLaunch}){
