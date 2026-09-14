@@ -16,6 +16,7 @@ const server=createServer(async(req,res)=>{
     if(relative==='src/veil/ui.js'){
       let source=body.toString('utf8');
       source=source.replace('function frame(now){',"function frame(now){globalThis.__nitrogenPickupRun=run;globalThis.__nitrogenPickupResources=resources;globalThis.__nitrogenPickupRenderer=renderer;");
+      source=source.replace('const completed=run,result=',"const completed=run;globalThis.__nitrogenReturnedCargo=completed.elementDust.N;const result=");
       body=Buffer.from(source);
     }
     res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);
@@ -65,10 +66,10 @@ try{
   const cargoBeforeReturn=await evaluate(`globalThis.__nitrogenPickupRun.elementDust.N`);assert.ok(cargoBeforeReturn>0);
   await evaluate(`document.querySelector('#veil-return').click()`);
   await waitFor(`document.querySelector('#veil-view')?.hidden===true`,'normal Nitrogen return did not finish',120);
-  const returned=await evaluate(`(()=>{const saved=JSON.parse(localStorage.getItem('molecule-craft.resources.v1'));return {stock:saved.elements.N,found:saved.progress.foundElements.includes('N'),summary:document.querySelector('#craft-last-run')?.textContent??''};})()`);
-  assert.equal(returned.stock,cargoBeforeReturn,'normal return must settle all run-local N cargo into BASE STOCK');assert.equal(returned.found,true);assert.match(returned.summary,/N \+[1-9]/,'return summary must expose settled N');
+  const returned=await evaluate(`(()=>{const saved=JSON.parse(localStorage.getItem('molecule-craft.resources.v1'));return {stock:saved.elements.N,cargo:globalThis.__nitrogenReturnedCargo,found:saved.progress.foundElements.includes('N'),summary:document.querySelector('#craft-last-run')?.textContent??''};})()`);
+  assert.ok(returned.cargo>=cargoBeforeReturn,'anchor lock may collect additional nearby N but cannot lose already collected cargo on normal return');assert.equal(returned.stock,returned.cargo,'normal return must settle the final run-local N cargo into BASE STOCK');assert.equal(returned.found,true);assert.match(returned.summary,/N \+[1-9]/,'return summary must expose settled N');
   assert.equal(exceptions.length,0,`Nitrogen pickup/return browser flow must not throw: ${JSON.stringify(exceptions)}`);
 }finally{
   try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await new Promise(resolveWait=>setTimeout(resolveWait,100));server.close();await rm(profile,{recursive:true,force:true});
 }
-console.log('Nitrogen Chromium regression passed: production launch contains visible FIELD canvas/N dust, overlap collects N into run cargo, N2 marker becomes claimable, and normal return settles N into BASE STOCK.');
+console.log('Nitrogen Chromium regression passed: production launch contains visible FIELD canvas/N dust, overlap collects N into run cargo, N2 marker becomes claimable, and normal return settles final N cargo into BASE STOCK.');
