@@ -8,9 +8,12 @@ import { getFrontierCandidates,loadMoleculeGraph,scoreFrontierCandidates,selectF
 import { availableElements } from '../element-progression.js?v=37';
 import { validateWorkspace } from '../workspace-save.js?v=31';
 import { WORKSPACE_STORAGE_KEY,parseWorkspaceSave } from '../workspace-persistence.js?v=1';
-import { RESOURCE_KEY,MAX_RESOURCE_VALUE,MANAGED_ELEMENTS,STOCKED_ELEMENTS,createInitialProgress,createInitialTanks,createInitialSelectedLoadout,createInitialResourcesState,isResourceInteger,isValidResourceId,loadPersistedResources,serializeResourcesState,finishPendingResourcesReset } from './resources-persistence.js';
+import { RESOURCE_KEY,MAX_RESOURCE_VALUE,MANAGED_ELEMENTS,DUST_ELEMENTS,STOCKED_ELEMENTS,createInitialProgress,createInitialTanks,createInitialSelectedLoadout,createInitialResourcesState,isResourceInteger,isValidResourceId,loadPersistedResources,serializeResourcesState,finishPendingResourcesReset } from './resources-persistence.js';
 export { RESOURCE_KEY };
-const COLLECTION_KEY='molecule-craft.collection.v1',MANAGED=MANAGED_ELEMENTS,STOCKED=STOCKED_ELEMENTS,MAX=MAX_RESOURCE_VALUE;
+const COLLECTION_KEY='molecule-craft.collection.v1',MANAGED=MANAGED_ELEMENTS,DUST=DUST_ELEMENTS,STOCKED=STOCKED_ELEMENTS,MAX=MAX_RESOURCE_VALUE;
+const PLAYER_ACCESS_ELEMENTS=Object.freeze(['H','C','O']),PLAYER_ACCESS=new Set(PLAYER_ACCESS_ELEMENTS);
+export function progressionElementAccessible(progress,element){return STOCKED.includes(element)&&PLAYER_ACCESS.has(element)&&Array.isArray(progress?.foundElements)&&progress.foundElements.includes(element);}
+const expeditionElements=units=>MANAGED.filter(el=>DUST.includes(el)||Object.hasOwn(units??{},el));
 export const RESET_CATEGORIES=Object.freeze(['collection','recipes','elements','tanks','exploration','records','workspace']);
 export const CRITICAL_INSIGHT_STARTER_COUNTS=Object.freeze({hydrogen:80,methane:4,oxygen:8,water:8});
 export const WATER_THERMAL_INTERRUPTION_REQUIREMENT=2;
@@ -30,8 +33,8 @@ export function signalCandidateEligible(record,{region,recipes=[],hints=[],exclu
   return minimum!==null&&currentRank>=minimumRank&&!CRITICAL_SIGNAL_IDS.has(record.id)&&!CHALLENGE_SIGNAL_IDS.has(record.id)&&!recipes.includes(record.id)&&!hints.includes(record.id)&&!excludeIds.has(record.id)&&record.atoms.length<=12&&record.atoms.every(canUseElement);
 }
 function expeditionLoss(units,rate){
-  const exact=MANAGED.map((el,index)=>({el,index,value:(units[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
-  let remaining=Math.floor(MANAGED.reduce((sum,el)=>sum+(units[el]??0),0)*rate)-MANAGED.reduce((sum,el)=>sum+lost[el],0);
+  const elements=expeditionElements(units),exact=elements.map((el,index)=>({el,index,value:(units[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
+  let remaining=Math.floor(elements.reduce((sum,el)=>sum+(units[el]??0),0)*rate)-elements.reduce((sum,el)=>sum+lost[el],0);
   for(const item of exact.sort((a,b)=>(b.value-Math.floor(b.value))-(a.value-Math.floor(a.value))||a.index-b.index)){if(remaining<=0)break;if(lost[item.el]<(units[item.el]??0)){lost[item.el]++;remaining--;}}
   return lost;
 }
@@ -129,7 +132,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     const launchRegion=Object.hasOwn(REGIONS,region)?region:'veil',base={selectedCandidateId:null,launchRegion,weightingRegion:null,signalObserved:false,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:null};frontierRun=base;lastFrontierRun=null;
     if(api.progressionInsightCandidates().length){base.reason='critical-pending';return;}
     if(!frontierGraph){base.reason='graph-unavailable';return;}
-    const discoveredIds=[...state.recipes],knownRecipeIds=[...new Set([...state.hints,...FRONTIER_RESERVED_IDS])],graphCandidates=getFrontierCandidates(frontierGraph,{discoveredIds,knownRecipeIds}),unlockedElements=new Set(availableElements(state.recipes.length)),candidates=graphCandidates.filter(candidate=>{const record=records.get(candidate.id);return !!record&&Array.isArray(record.atoms)&&record.atoms.length>0&&record.atoms.every(el=>unlockedElements.has(el)&&(!MANAGED.includes(el)||state.progress.foundElements.includes(el)));});
+    const discoveredIds=[...state.recipes],knownRecipeIds=[...new Set([...state.hints,...FRONTIER_RESERVED_IDS])],graphCandidates=getFrontierCandidates(frontierGraph,{discoveredIds,knownRecipeIds}),candidates=graphCandidates.filter(candidate=>{const record=records.get(candidate.id);return !!record&&Array.isArray(record.atoms)&&record.atoms.length>0&&record.atoms.every(el=>api.canUseElement(el));});
     if(!candidates.length){base.reason=graphCandidates.length?'element-locked':'no-candidate';return;}
     const scored=scoreFrontierCandidates(frontierGraph,candidates,{discoveredIds,region:launchRegion}),selected=selectFrontierCandidate(scored,{rng:typeof rng==='function'?rng:Math.random});
     if(!selected){base.reason='no-selection';return;}
@@ -172,7 +175,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function signalBonus(region,p){const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};}
   const api={
     get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,oxygenUpgradePlan,upgradeOxygenTank,recordThermalStrain,recordDriveThermalInterruption,recordCoolantNeedExperience,
-    canUseElement:el=>!MANAGED.includes(el)||state.progress.foundElements.includes(el),record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
+    canUseElement:el=>progressionElementAccessible(state.progress,el),record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
     setCatalog(catalog){for(const rec of catalog)if(validId(rec.id)&&Array.isArray(rec.atoms))records.set(rec.id,rec);if(state.migrateDiscoveries&&!blocked){try{const b=JSON.parse(storage?.getItem(COLLECTION_KEY)||'null');for(const x of b?.discoveredMolecules??b?.discoveredMoleculeIds??[]){const id=typeof x==='string'?x:x.id,rec=records.get(id);if(!rec)continue;discover(id);for(const el of rec.atoms)reveal(el);}}catch{}delete state.migrateDiscoveries;legacyGuaranteed();save();}},
     setFrontierGraph(graph){frontierGraph=graph??null;return !!frontierGraph;},suppressFrontierInsightForCritical,frontierInsightEligibility,pollFrontierInsight,frontierInsightDiagnostics:()=>copy(frontierRun??lastFrontierRun??{selectedCandidateId:null,launchRegion:null,weightingRegion:null,signalObserved:false,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:'no-run'}),
     reset(categories){
@@ -189,17 +192,17 @@ export function createResources({storage,onStatus=()=>{}}={}){
     findElementForExpedition(el){if(blocked||!MANAGED.includes(el))return false;const first=!state.progress.foundElements.includes(el);reveal(el);return first;},
     findElement(el){if(blocked||!MANAGED.includes(el))return false;const first=!state.progress.foundElements.includes(el);reveal(el);return first;},
     collect(amount,best=0){if(blocked)return [];const amounts=typeof amount==='number'?{H:amount}:amount;if(!amounts||!Object.entries(amounts).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return [];const before=new Set(state.progress.foundElements);refund(amounts);for(const [el,n]of Object.entries(amounts))if(n>0){reveal(el);state.progress.totalCollected=Math.min(MAX,state.progress.totalCollected+n);}if(integer(best))state.progress.bestChain=Math.max(state.progress.bestChain,best);return state.progress.foundElements.filter(el=>!before.has(el));},
-    collectDust(units,best){if(blocked||!Object.entries(units).every(([el,n])=>MANAGED.includes(el)&&integer(n)))return [];const amounts={};for(const [el,n]of Object.entries(units)){const total=state.dust[el]+n;amounts[el]=Math.floor(total/GROWTH.dustPerAtom[el]);state.dust[el]=total%GROWTH.dustPerAtom[el];}return api.collect(amounts,best);},
+    collectDust(units,best){if(blocked||!Object.entries(units).every(([el,n])=>DUST.includes(el)&&integer(n)))return [];const amounts={};for(const [el,n]of Object.entries(units)){const total=state.dust[el]+n;amounts[el]=Math.floor(total/GROWTH.dustPerAtom[el]);state.dust[el]=total%GROWTH.dustPerAtom[el];}return api.collect(amounts,best);},
     settleExpedition(units,best=0,captured=false,{destinationReached=false,insights=[]}={}){
       if(blocked||typeof destinationReached!=='boolean'||typeof captured!=='boolean'||!integer(best)||!units||!Object.entries(units).every(([el,n])=>MANAGED.includes(el)&&integer(n))||!Array.isArray(insights)||insights.some(id=>!validId(id)))return null;
-      const snapshot=copy(state),kept={},before={...state.elements},rate=captured?EXPEDITION.captureLoss:0,lost=expeditionLoss(units,rate);
-      for(const el of MANAGED)kept[el]=(units[el]??0)-lost[el];
+      const snapshot=copy(state),kept={},before={...state.elements},rate=captured?EXPEDITION.captureLoss:0,lost=expeditionLoss(units,rate),elements=expeditionElements(units);
+      for(const el of elements)kept[el]=(units[el]??0)-lost[el];
       const completedNow=destinationReached&&!captured&&!state.progress.choCompleted;
       if(completedNow)state.progress.choCompleted=true;
-      const persistentHints=[...state.hints],found=api.collectDust(kept,best);state.hints.length=0;state.hints.push(...persistentHints);
+      const persistentHints=[...state.hints],dustKept=Object.fromEntries(Object.entries(kept).filter(([el])=>DUST.includes(el))),directKept=Object.fromEntries(Object.entries(kept).filter(([el])=>!DUST.includes(el))),found=api.collectDust(dustKept,best);for(const el of api.collect(directKept,0))if(!found.includes(el))found.push(el);state.hints.length=0;state.hints.push(...persistentHints);
       const committedInsights=[];if(!captured)for(const id of insights)if(!state.recipes.includes(id)&&hint(id))committedInsights.push(id);
       if(!save()){state=snapshot;return null;}
-      const frontierInsight=finalizeFrontierRun(captured,insights,committedInsights),atoms={};for(const el of MANAGED)atoms[el]=state.elements[el]-before[el];return {captured,rate,kept,lost,atoms,found,completedNow,committedInsights,frontierInsight};
+      const frontierInsight=finalizeFrontierRun(captured,insights,committedInsights),atoms={};for(const el of elements)atoms[el]=state.elements[el]-before[el];return {captured,rate,kept,lost,atoms,found,completedNow,committedInsights,frontierInsight};
     },
     visit(region){if(blocked||!Object.hasOwn(REGIONS,region))return false;const first=!state.progress.regions.includes(region);if(first)state.progress.regions.push(region);state.progress.checkpoint=region;if(region==='frontier')state.progress.frontier=true;if(region!=='veil')state.progress.cleared=true;return first;},
     signal(region,roll,choice,{excludeIds=[],runContext={}}={}){if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1))return null;const p=state.progress,last=p.signalLast[region];if(last!==undefined&&p.totalCollected-last<45)return {repeat:true};const frontier=frontierSignal(region,runContext);if(frontier?.managed){if(frontier.recipe){p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:frontier.recipe,frontier:true};}if(frontier.deferred)return {deferred:true,frontier:true};return signalBonus(region,p);}const excluded=excludeIds instanceof Set?excludeIds:new Set(Array.isArray(excludeIds)?excludeIds:[]),candidates=[...records.values()].filter(rec=>signalCandidateEligible(rec,{region,recipes:state.recipes,hints:state.hints,excludeIds:excluded,canUseElement:el=>MANAGED.includes(el)&&api.canUseElement(el)}));if(candidates.length&&(roll<GROWTH.signalChance||p.signalMisses+1>=GROWTH.signalPity)){const rec=candidates[Math.floor(choice*candidates.length)];p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:rec.id};}if(candidates.length)p.signalMisses++;return signalBonus(region,p);},
