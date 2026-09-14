@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
       - name: Apply Element Authority / N foundation branch patch
         run: |
-          node scripts/task-element-authority-n-foundation.mjs
+          node scripts/task-element-authority-n-foundation-v2.mjs
           node scripts/build-precache.mjs
           git diff --check
           if ! git diff --quiet; then
