@@ -41,6 +41,24 @@ jobs:
             if old not in s: raise SystemExit('NH3 lifecycle fixture target missing')
             s=s.replace(old,new,1)
           p.write_text(s)
+
+          p=Path('tests/expedition-insights.test.mjs')
+          s=p.read_text()
+          old="const starterCost=(value,id)=>value.costFor(id,criticalInsightStarterCount(id));"
+          new="const starterCost=(value,id)=>value.costFor(id,criticalInsightStarterCount(id));\nfunction unlockInsightElements(value,id){for(const el of new Set(value.record(id)?.atoms??[])){if(el==='N')value.state.progress.choCompleted=true;if(el!=='H')value.findElementForExpedition(el);}}"
+          if old not in s: raise SystemExit('expedition insight helper target missing')
+          s=s.replace(old,new,1)
+          replacements=[
+            ("const value=resources(),flight=run(),started=triggerInsight(flight,'ethane',value.state);", "const value=resources(),flight=run();unlockInsightElements(value,'ethane');const started=triggerInsight(flight,'ethane',value.state);"),
+            ("const value=resources(),flight=run(),ready=triggerInsight(flight,id,value.state);", "const value=resources(),flight=run();unlockInsightElements(value,id);const ready=triggerInsight(flight,id,value.state);"),
+            ("const lostValue=resources(),lostRun=run();triggerInsight(lostRun,id,lostValue.state);", "const lostValue=resources(),lostRun=run();unlockInsightElements(lostValue,id);triggerInsight(lostRun,id,lostValue.state);"),
+            ("const hinted=resources();hinted.hint('ethane');", "const hinted=resources();unlockInsightElements(hinted,'ethane');hinted.hint('ethane');"),
+            ("const value=resources();value.findElementForExpedition('O');assert.deepEqual(value.state.hints,[]);const flight=run();flight.carriedInsights=['ethane'];", "const value=resources();value.findElementForExpedition('C');value.findElementForExpedition('O');assert.deepEqual(value.state.hints,[]);const flight=run();flight.carriedInsights=['ethane'];")
+          ]
+          for old,new in replacements:
+            if old not in s: raise SystemExit(f'expedition insight fixture target missing: {old[:60]}')
+            s=s.replace(old,new,1)
+          p.write_text(s)
           PY
       - name: Focused Insight and Nitrogen regressions
         run: |
