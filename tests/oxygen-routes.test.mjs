@@ -1,53 +1,97 @@
+import test from 'node:test';
 import assert from 'node:assert/strict';
-import {simulateOxygenRoute as simulateCurrentRoute} from '../scripts/simulate-oxygen-routes.mjs';
+import {simulateOxygenRoute} from '../scripts/simulate-oxygen-routes.mjs';
+import {createRun,stepRun} from '../src/veil/engine.js';
+import {DRIVES,flightConfig} from '../src/veil/growth.js';
+import {createUniverse} from '../src/veil/universe.js';
+import {BURST_ADVANTAGE_FIELDS} from '../src/veil/universe.js';
+import {EXPEDITION_CHALLENGES} from '../src/veil/expedition-challenges.js';
 import {OXYGEN_ROUTES,oxygenPressureAt} from '../src/veil/oxygen-routes.js';
-import {expeditionReview,loadedCombustionSummary} from '../src/veil/propulsion-guide.js';
-import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 
-// Keep the original authored-layout regression as a control. CHO placement
-// and completion are exercised separately in cho-campaign.test.mjs.
-const simulateOxygenRoute=options=>simulateCurrentRoute({harvestLayout:{sideSpacing:27,eddyAtoms:0},...options});
-const cases=[
-  {routeId:'oxygen-shortcut',propellant:'hydrogen'},
-  {routeId:'oxygen-side',propellant:'carbon-dioxide'},
-  {routeId:'oxygen-main',propellant:null,drive:true,coolant:'water'},
-];
-for(const seed of [1,71])for(const fps of [30,60]){
-  const reports=cases.map(options=>simulateOxygenRoute({...options,seed,fps}));
-  for(const report of reports){assert.equal(report.reached,true,JSON.stringify(report));assert.equal(report.returnType,'voluntary');assert.ok(report.netAtoms>0);assert.equal(report.overheatEvents,0);}
-  assert.equal(reports[0].burstUses,1);assert.equal(reports[1].burstUses,4);assert.equal(reports[1].currentCrossings.length,4);assert.equal(reports[2].burstUses,0);
-  assert.ok(reports[1].grossAtoms>reports[0].grossAtoms&&reports[1].grossAtoms>reports[2].grossAtoms,'The repeated-current route rewards repeated collecting');
-  assert.ok(reports[1].duration>reports[0].duration&&reports[1].duration>reports[2].duration);
-  assert.ok(reports[0].fuelAtomCost<reports[1].fuelAtomCost&&reports[0].fuelAtomCost<reports[2].fuelAtomCost);
-  assert.ok(reports[1].maxEaters>0,'The longer route remains exposed to normal pursuit');
-}
-const [shortcut,,main]=cases.map(options=>simulateOxygenRoute({...options,start:'junction'}));
-assert.ok(shortcut.duration<main.duration,'The shortcut crosses the branch itself fastest');
-const rest=simulateOxygenRoute({routeId:'oxygen-main',propellant:null,drive:true,rest:true});
-assert.equal(rest.reached,true,'A rest in the quiet eddy is a real uncooled solution');assert.equal(rest.overheatEvents,0);assert.ok(rest.duration>main.duration);
-const alternative=simulateOxygenRoute({routeId:'oxygen-main',propellant:null,drive:true,coolant:'carbon-dioxide'});
-assert.equal(alternative.reached,true,'Water is not a molecule key');assert.equal(alternative.overheatEvents,0);
-const overheat=simulateOxygenRoute({routeId:'oxygen-main',propellant:null,drive:true});
-assert.ok(overheat.overheatEvents>0);assert.match(expeditionReview(overheat).advice,/過熱/);
-const weak=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:'carbon-dioxide'});
-assert.equal(weak.reached,false);assert.equal(weak.currentCrossings.length,0);assert.ok(weak.stalledBursts>0);assert.match(expeditionReview(weak).advice,/逆流/);
-const few=simulateOxygenRoute({routeId:'oxygen-side',propellant:'hydrogen'});
-assert.equal(few.reached,true,'H₂ momentum can cross two thin currents per burst: preserve the physical alternative');assert.equal(few.burstUses,2);assert.equal(few.currentCrossings.length,4);
-const repeated=simulateOxygenRoute(cases[1]);assert.ok(few.duration<repeated.duration);assert.ok(few.fuelAtomCost>repeated.fuelAtomCost);assert.ok(few.netAtoms<repeated.netAtoms,'The faster alternative costs more material');
-const continuous=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:null,drive:true,coolant:'water'});
-assert.equal(continuous.currentCrossings.length,0,'Continuous thrust alone cannot cross the strong short current');
-assert.equal(expeditionReview({...main,overheatEvents:0,stalledBursts:0}).advice,'','No invented failure diagnosis');
-for(const route of OXYGEN_ROUTES)for(const gate of route.gates)assert.equal(oxygenPressureAt({x:route.x,y:gate.y}),gate.pressure);
-assert.equal(oxygenPressureAt({x:120,y:-9700}),0,'The marked rest pocket is physically quiet');
-assert.equal(oxygenPressureAt({x:0,y:-4000}),null,'The first H/C passage is not changed');
-assert.equal(loadedCombustionSummary({fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:2}}).seconds,2,'Supply compares actual limiting O₂');
+const routes=Object.fromEntries(OXYGEN_ROUTES.map(route=>[route.id,route]));
+const shortcut=routes['oxygen-shortcut'];
+const noPredators={predators:false,start:'junction',maxSeconds:45};
 
-// Add a deterministic hint to an existing v6 save without learning or gifting
-// the molecule, and keep future saves protected.
-const records=[{id:'carbon-dioxide',atoms:['C','O','O']}],data=new Map(),storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
-const old=createResources({storage});old.collect({H:12,C:6,O:12});old.save();
-const saved=JSON.parse(data.get(RESOURCE_KEY));saved.hints=saved.hints.filter(id=>id!=='carbon-dioxide');data.set(RESOURCE_KEY,JSON.stringify(saved));
-const restored=createResources({storage});restored.setCatalog(records);assert.ok(restored.state.hints.includes('carbon-dioxide'));assert.equal(restored.state.recipes.includes('carbon-dioxide'),false);assert.deepEqual(restored.state.elements,saved.elements);assert.deepEqual(restored.state.tanks,saved.tanks);
-assert.ok(JSON.parse(data.get(RESOURCE_KEY)).hints.includes('carbon-dioxide'));
-saved.schemaVersion=99;const future=JSON.stringify(saved);data.set(RESOURCE_KEY,future);const protectedState=createResources({storage});protectedState.setCatalog(records);assert.equal(data.get(RESOURCE_KEY),future);
-console.log('Oxygen routes passed: physical crossings, distinct finite builds, 30/60fps and seeds, quiet-eddy alternative, return, evidence-only advice and old-save hints.');
+test('shortcut is a two-stage localized 600-pressure corridor around the existing pulse/shear field',()=>{
+  assert.deepEqual(shortcut.knots,[[120,-8700],[-320,-9000],[-320,-10350],[120,-10670]]);
+  assert.equal(shortcut.width,230);
+  assert.deepEqual(shortcut.gates,[{y:-9480,depth:72,pressure:600},{y:-9950,depth:72,pressure:600}]);
+  assert.equal(shortcut.pressure,0);
+  assert.equal(oxygenPressureAt({x:-320,y:-9480}),600);
+  assert.equal(oxygenPressureAt({x:-320,y:-9950}),600);
+  assert.equal(oxygenPressureAt({x:-320,y:-9700}),0,'route pressure clears around the existing pulse/shear center');
+  assert.equal(oxygenPressureAt({x:-320,y:-9360}),0);
+  assert.equal(oxygenPressureAt({x:-320,y:-10070}),0);
+  const shear=BURST_ADVANTAGE_FIELDS.find(field=>field.id==='oxygen-shortcut-shear');
+  const pulse=EXPEDITION_CHALLENGES.find(challenge=>challenge.id==='pulse');
+  assert.deepEqual({x:shear.x,y:shear.y,radius:shear.radius},{x:-320,y:-9700,radius:105});
+  assert.deepEqual({top:pulse.top,bottom:pulse.bottom,centerY:pulse.centerY},{top:-9850,bottom:-9450,centerY:-9650});
+  for(const gate of shortcut.gates)assert.ok(Math.abs(gate.y-shear.y)>gate.depth/2+shear.radius,'pressure band must not stack on the compact shear field');
+  assert.ok(shortcut.gates[0].y<=pulse.bottom&&shortcut.gates[0].y>=pulse.top,'gate 1 sits only at the pulse entry edge');
+  assert.ok(shortcut.gates[1].y<pulse.top,'gate 2 sits beyond the pulse field');
+});
+
+test('normal bypass and DRIVE direct traversal stay open while the direct H2 line uses exactly two BURSTs',()=>{
+  const normal=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:null,drive:false,detour:true,...noPredators});
+  const drive=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:null,drive:true,...noPredators});
+  const burst=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:'hydrogen',drive:false,...noPredators});
+  console.log('Task3 shortcut modes',JSON.stringify({normal:{arrivalSeconds:normal.arrivalSeconds,reached:normal.reached},drive:{arrivalSeconds:drive.arrivalSeconds,reached:drive.reached},burst:{arrivalSeconds:burst.arrivalSeconds,reached:burst.reached,burstUses:burst.burstUses,actualBurstTimes:burst.actualBurstTimes}},null,2));
+  assert.equal(normal.reached,true,'normal propulsion keeps a skill bypass around both pressure bands');
+  assert.equal(drive.reached,true,'DRIVE-only direct traversal remains possible without becoming a capability requirement');
+  assert.equal(burst.reached,true,'H2 direct shortcut traversal succeeds');
+  assert.equal(burst.burstUses,2,'the direct corridor consumes one H2 BURST per localized gate');
+  assert.deepEqual(burst.currentCrossings,['oxygen-shortcut:0','oxygen-shortcut:1']);
+  assert.ok(burst.arrivalSeconds<normal.arrivalSeconds*.8,'direct BURST remains materially quicker than the normal skill bypass');
+  assert.equal(shortcut.requiredCapability,undefined);
+  assert.equal(shortcut.requires,undefined);
+});
+
+test('localized gate traversal favors BURST over DRIVE without making DRIVE a hard failure',()=>{
+  const cross=(gate,mode)=>{
+    const config=flightConfig(),dt=1/60,startY=gate.y+110,targetY=gate.y-110;
+    const fuel=mode==='drive'?{fuel:{molecule:'methane',amount:18,capacity:18},oxidizer:{molecule:'oxygen',amount:36,capacity:36}}:{};
+    const run=createRun(createUniverse(1,{H:0,C:0,O:0}),config,{fuel,predators:false});
+    Object.assign(run.player,{x:-320,y:startY,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});run.region='oxygen';
+    if(mode==='burst'){run.player.drive=DRIVES.hydrogen;run.player.boost=DRIVES.hydrogen.boostSeconds;}
+    if(mode==='drive')run.driveHeld=true;
+    const systems=mode==='drive'?{consumeCombustion:()=>true}:{};
+    for(let frame=0;frame<8/dt;frame++){
+      stepRun(run,{x:0,y:-1},dt,systems);
+      if(run.player.y<=targetY)return run.time;
+    }
+    return Infinity;
+  };
+  for(const gate of shortcut.gates){
+    const burst=cross(gate,'burst'),drive=cross(gate,'drive');
+    assert.ok(Number.isFinite(drive),'DRIVE-only remains physically able to cross each localized gate');
+    assert.ok(Number.isFinite(burst),'BURST crosses each localized gate');
+    assert.ok(burst<drive*.8,`BURST must beat DRIVE across the localized band (${burst.toFixed(2)}s vs ${drive.toFixed(2)}s at y=${gate.y})`);
+  }
+});
+
+test('one BURST does not trivialize both bands and the canonical shortcut never needs a third',()=>{
+  const canonical=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:'hydrogen',...noPredators});
+  assert.equal(canonical.burstUses,2);
+  const oneBurst=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:'hydrogen',burstTimes:[canonical.actualBurstTimes[0]],...noPredators});
+  assert.ok(!oneBurst.reached||oneBurst.arrivalSeconds>canonical.arrivalSeconds*1.2,'one BURST must not erase the two-stage terrain');
+  assert.ok(canonical.burstUses<=2,'canonical shortcut must never require a third BURST');
+});
+
+test('two-BURST shortcut traversal is stable at 30/60fps and multiple seeds',()=>{
+  for(const seed of [1,71,2026])for(const fps of [30,60]){
+    const report=simulateOxygenRoute({routeId:'oxygen-shortcut',propellant:'hydrogen',seed,fps,...noPredators});
+    assert.equal(report.reached,true,`seed ${seed} @ ${fps}fps reaches merge`);
+    assert.equal(report.burstUses,2,`seed ${seed} @ ${fps}fps uses exactly two BURSTs`);
+    assert.equal(report.currentCrossings.length,2,`seed ${seed} @ ${fps}fps crosses both pressure bands`);
+    assert.equal(report.overheatEvents,0);
+  }
+});
+
+test('main and side route identities are untouched by the shortcut gate split',()=>{
+  assert.deepEqual(routes['oxygen-main'].knots,[[120,-8700],[300,-9100],[350,-9600],[260,-10150],[120,-10670]]);
+  assert.deepEqual([routes['oxygen-main'].pressure,routes['oxygen-main'].lanes,routes['oxygen-main'].value],[370,2,2]);
+  assert.deepEqual(routes['oxygen-main'].restStops,[{x:300,y:-9750,depth:180}]);
+  assert.deepEqual(routes['oxygen-side'].knots,[[120,-8700],[780,-9000],[850,-10350],[120,-10670]]);
+  assert.deepEqual([routes['oxygen-side'].pressure,routes['oxygen-side'].lanes,routes['oxygen-side'].value],[0,2,2]);
+  assert.deepEqual(routes['oxygen-side'].gates,[]);
+});

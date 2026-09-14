@@ -56,7 +56,7 @@ export const OXYGEN_ROUTES=Object.freeze([
   {id:'oxygen-shortcut',label:'BURSTの近道',color:'#a8d8f0',x:-300,width:230,
     summary:'最短経路。中央の短い強流はBURSTで明確に楽になるが、能力必須にはしない。',
     knots:[[120,-8700],[-320,-9000],[-320,-10350],[120,-10670]],
-    gates:[{y:-9700,depth:94,pressure:600}],pressure:0,lanes:1,value:2},
+    gates:[{y:-9480,depth:72,pressure:600},{y:-9950,depth:72,pressure:600}],pressure:0,lanes:1,value:2},
   {id:'oxygen-side',label:'低圧の支流',color:'#b4d99c',x:850,width:230,
     summary:'広い低圧帯を通るthermal-oriented支流。採集量ではなく走行特性で選ぶ。',
     knots:[[120,-8700],[780,-9000],[850,-10350],[120,-10670]],
