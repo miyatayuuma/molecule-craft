@@ -14,7 +14,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Apply focused production changes
-        run: python scripts/task-insight-claimability-patch.py
+        run: |
+          python scripts/task-insight-claimability-patch.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/insight-claimability-consistency.test.mjs')
+          s=p.read_text()
+          old="const engagedRun=(overrides={})=>Object.assign({captured:false,region:'carbon',time:FIELD_INSIGHT_MIN_SECONDS+1,insightEngagementSatisfied:true,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+1,player:{x:0,y:0},collectedElements:{H:0,C:0,N:0,O:0},map:{signals:[]},events:[]},createInsightRunState(),overrides);"
+          new="const engagedRun=(overrides={})=>Object.assign({},createInsightRunState(),{captured:false,region:'carbon',time:FIELD_INSIGHT_MIN_SECONDS+1,insightEngagementSatisfied:true,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+1,player:{x:0,y:0},collectedElements:{H:0,C:0,N:0,O:0},map:{signals:[]},events:[]},overrides);"
+          if old not in s: raise SystemExit('engagedRun fixture target missing')
+          p.write_text(s.replace(old,new,1))
+          PY
       - name: Focused Insight and Nitrogen regressions
         run: |
           node tests/insight-claimability-consistency.test.mjs
