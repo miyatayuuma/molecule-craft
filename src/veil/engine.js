@@ -41,7 +41,7 @@ export function moveFlight(p,input,dt,{config:c=VEIL,assist=null,force={x:0,y:0}
   if(dot<limit){fx+=(limit-dot)*Math.cos(p.angle);fy+=(limit-dot)*Math.sin(p.angle);}
   const resistance=propelled?c.boostFieldResistance:Math.min(1,p.speed/c.speed);
   p.x=clamp(p.x+(p.vx+fx*resistance+(environment?.flowX??0))*dt,c.bounds.left,c.bounds.right);
-  p.y=clamp(p.y+(p.vy+fy*resistance+(environment?.pressure??0))*dt,c.bounds.top,c.bounds.bottom);
+  p.y=clamp(p.y+(p.vy+fy*resistance+(environment?.pressure??0)+(environment?.flowY??0))*dt,c.bounds.top,c.bounds.bottom);
   p.boost=Math.max(0,p.boost-dt);p.cooldown=Math.max(0,p.cooldown-dt);
 }
 
@@ -135,7 +135,7 @@ function stepRunFrame(run,input,dt,systems){
   const {player:p,map,config:c}=run;dt=clamp(dt,0,c.maxFrame);run.time+=dt;run.events.length=0;
   if(run.captured)return run.events;
   animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
-  const environment=map.universe?environmentAt(p,run.time):null;
+  const environment=map.universe?environmentAt(p,run.time,map):null;
   const targetHeat=environment?clamp(environment.heat/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?.combustionHeatFactor??1;
   const coolantLearning=!!environment?.coolantLearning&&p.combustion&&!run.fuel.coolant?.molecule;run.coolantNeedExposure=coolantLearning?run.coolantNeedExposure+dt:0;if(!run.coolantNeedEmitted&&run.coolantNeedExposure>=OXYGEN_THERMAL.learningExposureSeconds){run.coolantNeedEmitted=true;run.events.push({type:'coolantNeed',exposure:run.coolantNeedExposure});}
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;

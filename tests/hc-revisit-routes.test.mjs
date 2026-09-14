@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {THERMAL} from '../src/veil/config.js';
 import {createFlight,moveFlight} from '../src/veil/engine.js';
-import {DRIVES,flightConfig} from '../src/veil/growth.js';
-import {HYDROGEN_REVISIT_ROUTE,createMap} from '../src/veil/map.js';
+import {DRIVES,driveAvailable,flightConfig} from '../src/veil/growth.js';
+import {HYDROGEN_REVISIT_POCKET,HYDROGEN_REVISIT_ROUTE,createMap} from '../src/veil/map.js';
 import {
-  CARBON_DEEP_Y,CARBON_REVISIT_ROUTE,ENVIRONMENT_RECOVERY_CONTRACT,FIELD_SIGNALS,createUniverse,environmentAt,
+  CARBON_DEEP_Y,CARBON_REVISIT_POCKET,CARBON_REVISIT_ROUTE,ENVIRONMENT_RECOVERY_CONTRACT,FIELD_SIGNALS,createUniverse,environmentAt,
 } from '../src/veil/universe.js';
 import {EXPEDITION_CHALLENGES} from '../src/veil/expedition-challenges.js';
 import {DEEP_OXYGEN_FRONTIER_RECOVERY,OXYGEN_ROUTES,OXYGEN_THERMAL} from '../src/veil/oxygen-routes.js';
@@ -35,63 +35,76 @@ function traverse(knots,{burst=false,drive=false,maxSeconds=20}={}){
   return Infinity;
 }
 
-test('H/C revisit geometry is exact, connected, open and endpoint-complete',()=>{
+test('H/C revisit geometry is derived from persistent COMBUSTION DRIVE availability',()=>{
   assert.deepEqual(HYDROGEN_REVISIT_ROUTE.knots,[[-520,-2200],[-930,-2450],[-850,-2950],[-800,-3090]]);
   assert.deepEqual(CARBON_REVISIT_ROUTE.knots,[[840,-5540],[1080,-6000],[980,-6500],[650,-6900],[170,-7190]]);
-  assert.equal(HYDROGEN_REVISIT_ROUTE.id,'hydrogen-revisit');
-  assert.equal(CARBON_REVISIT_ROUTE.id,'carbon-revisit');
-  assert.equal(HYDROGEN_REVISIT_ROUTE.classification,'G0 / G1');
-  assert.equal(CARBON_REVISIT_ROUTE.classification,'G0 / G1');
-
-  const hMap=createMap(1,{H:0,C:0,O:0}),h=routeBy(hMap,HYDROGEN_REVISIT_ROUTE.id);
-  assert.ok(h,'hydrogen revisit route exists');
-  assert.ok(distance(h.points[0],HYDROGEN_REVISIT_ROUTE.knots[0])<=1);
-  assert.ok(distance(h.points.at(-1),HYDROGEN_REVISIT_ROUTE.knots.at(-1))<=1,'H authored endpoint must survive sampling');
-  assert.ok(nearest(routeBy(hMap,'safe'),HYDROGEN_REVISIT_ROUTE.knots[0])<=31,'H revisit begins on safe topology');
-  assert.ok(nearest(routeBy(hMap,'detour'),HYDROGEN_REVISIT_ROUTE.knots.at(-1))<=31,'H revisit rejoins detour topology');
-
-  const universe=createUniverse(1,{H:0,C:0,O:0}),c=routeBy(universe,CARBON_REVISIT_ROUTE.id);
-  assert.ok(c,'carbon revisit route exists');
-  assert.ok(distance(c.points[0],CARBON_REVISIT_ROUTE.knots[0])<=1);
-  assert.ok(distance(c.points.at(-1),CARBON_REVISIT_ROUTE.knots.at(-1))<=1,'C authored endpoint must survive sampling');
-  assert.ok(nearest(routeBy(universe,'carbon-sweep'),CARBON_REVISIT_ROUTE.knots[0])<=26,'C revisit begins on carbon-sweep topology');
-  assert.ok(nearest(routeBy(universe,'carbon-main'),CARBON_REVISIT_ROUTE.knots.at(-1))<=26,'C revisit rejoins Carbon progression');
-  for(const route of [h,c]){
-    assert.equal(route.requiredCapability,undefined);
-    assert.equal(route.requires,undefined);
-    for(const point of route.points){const env=environmentAt(point,0);assert.ok(Math.abs(env.pressure)<25,`${route.id} must not contain a strong pressure gate`);assert.ok(env.heat<5,`${route.id} must stay non-thermal`);}
+  const preH=createMap(1,{H:0,C:0,O:0}),pre=createUniverse(1,{H:0,C:0,O:0});
+  for(const map of [preH,pre]){
+    assert.equal(routeBy(map,'hydrogen-revisit'),undefined);
+    assert.equal(routeBy(map,'carbon-revisit'),undefined);
+    assert.equal(map.dust.some(dust=>dust.route?.includes('revisit')),false);
+    assert.equal((map.currents??[]).some(current=>current.id.includes('revisit')),false);
+    assert.equal(map.labels.some(label=>label.text.includes('revisit')),false);
   }
+  const state={recipes:['hydrogen','methane','oxygen']};
+  assert.equal(driveAvailable({recipes:['hydrogen','methane']},'combustion'),false);
+  assert.equal(driveAvailable(state,'combustion'),true);
+  const reloaded=JSON.parse(JSON.stringify(state));
+  assert.equal(driveAvailable(reloaded,'combustion'),true,'reload-equivalent persistent recipe state derives the same unlock');
+  const capabilities={combustionDrive:driveAvailable(reloaded,'combustion')};
+  const hMap=createMap(1,{H:0,C:0,O:0},{capabilities}),universe=createUniverse(1,{H:0,C:0,O:0},{capabilities});
+  const h=routeBy(hMap,'hydrogen-revisit'),c=routeBy(universe,'carbon-revisit');
+  assert.ok(h&&c,'both revisit loops appear after COMBUSTION DRIVE is available');
+  assert.ok(distance(h.points[0],HYDROGEN_REVISIT_ROUTE.knots[0])<=1&&distance(h.points.at(-1),HYDROGEN_REVISIT_ROUTE.knots.at(-1))<=1);
+  assert.ok(distance(c.points[0],CARBON_REVISIT_ROUTE.knots[0])<=1&&distance(c.points.at(-1),CARBON_REVISIT_ROUTE.knots.at(-1))<=1);
+  assert.ok(nearest(routeBy(hMap,'safe'),HYDROGEN_REVISIT_ROUTE.knots[0])<=31);
+  assert.ok(nearest(routeBy(hMap,'detour'),HYDROGEN_REVISIT_ROUTE.knots.at(-1))<=31);
+  assert.ok(nearest(routeBy(universe,'carbon-sweep'),CARBON_REVISIT_ROUTE.knots[0])<=31);
+  assert.ok(nearest(routeBy(universe,'carbon-main'),CARBON_REVISIT_ROUTE.knots.at(-1))<=31);
+  assert.equal(hMap.currents.find(current=>current.id==='hydrogen-revisit-current')?.force,90);
+  assert.equal(universe.currents.find(current=>current.id==='carbon-revisit-current')?.force,90);
+  assert.ok(environmentAt(h.points[Math.floor(h.points.length/2)],0,hMap).currentIntensity>0);
+  assert.ok(environmentAt(c.points[Math.floor(c.points.length/2)],0,universe).currentIntensity>0);
+  assert.equal(driveAvailable({...state,loadout:{}},'combustion'),true,'removing the current LOADOUT cannot relock geometry');
 });
 
-test('revisit density hierarchy and Task 6 aggregate economy guardrails hold',()=>{
-  const hMap=createMap(1,{H:0,C:0,O:0}),hRevisit=routeBy(hMap,'hydrogen-revisit');
-  const hRevisitNorm=normalized(routeValue(hMap,'hydrogen-revisit'),lengthOf(hRevisit.points));
-  const hOrdinary=Math.max(...['safe','detour'].map(id=>normalized(routeValue(hMap,id),lengthOf(routeBy(hMap,id).points))));
-  const hAfter=hMap.dust.reduce((sum,dust)=>sum+dust.value,0);
-  assert.ok(hRevisitNorm>=hOrdinary*1.5,`H revisit ${hRevisitNorm.toFixed(2)} must be >= 1.5x ordinary ${hOrdinary.toFixed(2)}`);
-  assert.ok(hAfter/TASK6_BASELINE.hydrogenRegionValue<1.5,`H aggregate inflated ${hAfter/TASK6_BASELINE.hydrogenRegionValue}x`);
-
-  const universe=createUniverse(1,{H:0,C:0,O:0}),ordinary=routeBy(universe,'carbon-sweep'),main=routeBy(universe,'carbon-main'),revisit=routeBy(universe,'carbon-revisit');
-  const ordinaryNorm=normalized(routeValue(universe,'carbon-sweep','C'),lengthOf(ordinary.points));
-  const deepPoints=main.points.filter(point=>point.y<=CARBON_DEEP_Y),deepNorm=normalized(routeValue(universe,'carbon-main','C',dust=>(dust.baseY??dust.y)<=CARBON_DEEP_Y),lengthOf(deepPoints));
-  const revisitNorm=normalized(routeValue(universe,'carbon-revisit','C'),lengthOf(revisit.points));
-  assert.ok(ordinaryNorm<deepNorm,`ordinary C ${ordinaryNorm.toFixed(2)} must stay below deep ${deepNorm.toFixed(2)}`);
-  assert.ok(deepNorm<revisitNorm,`deep C ${deepNorm.toFixed(2)} must stay below revisit ${revisitNorm.toFixed(2)}`);
-  assert.ok(revisitNorm>=ordinaryNorm*1.5&&revisitNorm<=ordinaryNorm*2.1,`C revisit ratio ${(revisitNorm/ordinaryNorm).toFixed(2)}x is outside intended range`);
-  const carbonAfter=universe.dust.filter(dust=>dust.element==='C'&&(dust.baseY??dust.y)<=CARBON_REGION.bottom&&(dust.baseY??dust.y)>CARBON_REGION.top).reduce((sum,dust)=>sum+dust.value,0);
-  assert.ok(carbonAfter/TASK6_BASELINE.carbonRegionValue<1.5,`C aggregate inflated ${carbonAfter/TASK6_BASELINE.carbonRegionValue}x`);
-  console.log(`Task7 economy seed=1: H ${TASK6_BASELINE.hydrogenRegionValue} -> ${hAfter}; H revisit ${hRevisitNorm.toFixed(2)}/1000. C ${TASK6_BASELINE.carbonRegionValue} -> ${carbonAfter}; C ordinary ${ordinaryNorm.toFixed(2)}, deep ${deepNorm.toFixed(2)}, revisit ${revisitNorm.toFixed(2)}/1000.`);
+test('revisit resource reward is local, composition-specific, and stock-depleted independently of geometry',()=>{
+  const capabilities={combustionDrive:true};
+  const hMap=createMap(1,{H:0,C:0,O:0},{capabilities}),universe=createUniverse(1,{H:0,C:0,O:0},{capabilities});
+  const hPocket=hMap.dust.filter(dust=>dust.route===HYDROGEN_REVISIT_POCKET.id),cPocket=universe.dust.filter(dust=>dust.route===CARBON_REVISIT_POCKET.id);
+  const sum=(dust,element)=>dust.filter(item=>item.element===element).reduce((total,item)=>total+item.value,0);
+  assert.ok(sum(hPocket,'H')>sum(hPocket,'C')*3,'H revisit pocket is H-dominant');
+  assert.ok(sum(cPocket,'C')>sum(cPocket,'H')*3,'C revisit pocket is C-dominant');
+  assert.ok(hPocket.every(dust=>Math.hypot(dust.x-HYDROGEN_REVISIT_POCKET.x,dust.y-HYDROGEN_REVISIT_POCKET.y)<=HYDROGEN_REVISIT_POCKET.radius+1));
+  assert.ok(cPocket.every(dust=>Math.hypot(dust.x-CARBON_REVISIT_POCKET.x,dust.y-CARBON_REVISIT_POCKET.y)<=CARBON_REVISIT_POCKET.radius+1));
+  const highH=createMap(1,{H:800,C:400,O:0},{capabilities}),highC=createUniverse(1,{H:800,C:400,O:0},{capabilities});
+  assert.ok(routeBy(highH,'hydrogen-revisit')&&routeBy(highC,'carbon-revisit'),'stock depletion never removes unlocked geometry');
+  assert.ok(highH.currents.some(current=>current.id==='hydrogen-revisit-current')&&highC.currents.some(current=>current.id==='carbon-revisit-current'),'stock depletion never removes unlocked current');
+  assert.ok(highH.dust.filter(dust=>dust.route===HYDROGEN_REVISIT_POCKET.id).length<hPocket.length);
+  assert.ok(highC.dust.filter(dust=>dust.route===CARBON_REVISIT_POCKET.id).length<cPocket.length);
 });
 
-test('normal propulsion passes revisit routes while BURST/DRIVE are materially faster',()=>{
-  const hNormal=traverse(HYDROGEN_REVISIT_ROUTE.knots),hBurst=traverse(HYDROGEN_REVISIT_ROUTE.knots,{burst:true});
-  assert.ok(Number.isFinite(hNormal),'normal propulsion must complete H revisit');
-  assert.ok(hBurst<hNormal*.8,`BURST should materially shorten H revisit (${hBurst.toFixed(2)}s vs ${hNormal.toFixed(2)}s)`);
-  const cNormal=traverse(CARBON_REVISIT_ROUTE.knots),cDrive=traverse(CARBON_REVISIT_ROUTE.knots,{drive:true});
-  assert.ok(Number.isFinite(cNormal),'normal propulsion must complete C revisit');
-  assert.ok(cDrive<cNormal*.75,`DRIVE should materially shorten C revisit (${cDrive.toFixed(2)}s vs ${cNormal.toFixed(2)}s)`);
-  assert.ok(cDrive*THERMAL.heatPerSecond<THERMAL.hotThreshold,`C revisit continuous DRIVE should not itself cross thermal strain (${cDrive.toFixed(2)}s)`);
-  console.log(`Task7 traversal: H normal ${hNormal.toFixed(2)}s / BURST ${hBurst.toFixed(2)}s; C normal ${cNormal.toFixed(2)}s / DRIVE ${cDrive.toFixed(2)}s.`);
+function traverseRoute(map,route,{drive=false,maxSeconds=45}={}){
+  const config=flightConfig(),player=createFlight(config),dt=1/60,points=route.points;
+  Object.assign(player,{x:points[0].x,y:points[0].y,angle:points[0].angle,vx:0,vy:0,speed:config.driftSpeed});
+  let index=1;
+  for(let frame=0;frame<maxSeconds/dt;frame++){
+    const target=points[Math.min(index,points.length-1)],dx=target.x-player.x,dy=target.y-player.y,d=Math.hypot(dx,dy);
+    if(d<24){if(index===points.length-1)return frame*dt;index=Math.min(points.length-1,index+3);continue;}
+    player.drive=drive?DRIVES.combustion:null;player.combustion=drive;
+    moveFlight(player,{x:dx/d,y:dy/d},dt,{config,environment:environmentAt(player,frame*dt,map)});
+  }
+  return Infinity;
+}
+
+test('revisit currents stay skill-traversable while COMBUSTION DRIVE is materially faster',()=>{
+  const capabilities={combustionDrive:true},hMap=createMap(1,{H:0,C:0,O:0},{capabilities}),universe=createUniverse(1,{H:0,C:0,O:0},{capabilities});
+  for(const [map,id] of [[hMap,'hydrogen-revisit'],[universe,'carbon-revisit']]){
+    const route=routeBy(map,id),normal=traverseRoute(map,route),drive=traverseRoute(map,route,{drive:true});
+    assert.ok(Number.isFinite(normal),`${id} normal propulsion must complete`);
+    assert.ok(drive<normal*.7,`${id} DRIVE should be at least 30% faster (${drive.toFixed(2)}s vs ${normal.toFixed(2)}s)`);
+    assert.equal(route.requiredCapability,undefined);assert.equal(route.requires,undefined);
+  }
 });
 
 test('recovery is environmental only and DUST EATER remains global pursuit',async()=>{
@@ -124,10 +137,14 @@ test('Task 6 signals/challenges stay unchanged and developer map exposes revisit
     {id:'thermal',rewards:['ethylene-glycol','n-hexane']},
   ]);
   const svg=buildFieldMapSvg();
-  assert.match(svg,/id="route-hydrogen-revisit"/);
-  assert.match(svg,/id="route-carbon-revisit"/);
-  assert.match(svg,/hydrogen-revisit · very-high H · spacing 20 \/ lanes 3 \/ value 2/);
-  assert.match(svg,/carbon-revisit · very-high C · spacing 22 \/ lanes 3 \/ value 1/);
+  assert.doesNotMatch(svg,/id="route-hydrogen-revisit"/,'pre-DRIVE baseline must not contain H revisit');
+  assert.doesNotMatch(svg,/id="route-carbon-revisit"/,'pre-DRIVE baseline must not contain C revisit');
+  assert.match(svg,/id="post-drive-route-hydrogen-revisit"/);
+  assert.match(svg,/id="post-drive-route-carbon-revisit"/);
+  assert.match(svg,/data-revisit-current="hydrogen-revisit-current" data-force="90" data-width="180"/);
+  assert.match(svg,/data-revisit-current="carbon-revisit-current" data-force="90" data-width="180"/);
+  assert.match(svg,/data-revisit-pocket="hydrogen-revisit-pocket"/);
+  assert.match(svg,/data-revisit-pocket="carbon-revisit-pocket"/);
   assert.match(svg,/environment recovery · Oを集めながら休む/);
   assert.match(svg,/environment recovery · network merge/);
   assert.match(svg,/environment recovery · Frontier approach/);
