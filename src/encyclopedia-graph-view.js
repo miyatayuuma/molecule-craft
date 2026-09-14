@@ -112,7 +112,7 @@ export function renderEncyclopediaGraph({
   host,graph,records,stateOptions,focusId,highlightId=null,onFocus=()=>{},onDetail=()=>{},onCraft=()=>{},previousPositions=new Map(),previousVisibleIds=new Set(),win=globalThis.window,
 }={}){
   if(!host||!graph)throw Error('Graph host and graph are required');
-  const document=host.ownerDocument??globalThis.document;ensureStyles(document);const continuity=continuityState(document,win);continuity.focusId=focusId;const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,graphMotion=graphMotionState(host,win);host.className='encyclopedia-graph-host';host.replaceChildren();
+  const document=host.ownerDocument??globalThis.document;ensureStyles(document);const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,graphMotion=graphMotionState(host,win);host.className='encyclopedia-graph-host';host.replaceChildren();
   const recordById=new Map(records.map(record=>[record.id,record])),projection=buildVisibleGraphProjection(graph,{focusId,...stateOptions});
   const wrapper=document.createElement('div');wrapper.className='encyclopedia-graph';
   const toolbar=document.createElement('div');toolbar.className='graph-toolbar';
@@ -160,7 +160,7 @@ export function renderEncyclopediaGraph({
         const label=document.createElement('span');label.className='graph-focus-label';const name=document.createElement('strong');name.textContent=presentation.name;const formula=document.createElement('small');formula.textContent=presentation.formula;label.append(name,formula);node.append(img,label);
       }else appendLabels();
     }
-    node.dataset.graphId=id;node.addEventListener('click',()=>{if(id===focusId&&presentation.canOpenDetail){const visual=node.querySelector('.graph-focus-thumbnail')??node;animateContinuity(document,continuity,id,rectOf(visual),()=>detailVisualRect(detailHostForId(document,id)),{direction:'to-detail',duration:ENCYCLOPEDIA_MOTION.detailZoomDuration,waitMs:1200,win,sourceVisual:visual,sourceSurface:stage});onDetail(id,node);}else onFocus(id);});stage.append(node);
+    node.dataset.graphId=id;node.addEventListener('click',()=>{if(id===focusId&&presentation.canOpenDetail)onDetail(id,node);else onFocus(id);});stage.append(node);
     if(previous&&!reduceMotion&&node.animate){const start=graphNodeMotionStart(previous,point,{nodeDiameter,focusDiameter});if(start&&(Math.hypot(start.dx,start.dy)>1||Math.abs(start.scale-1)>.01)){const animation=node.animate([{transform:`translate(calc(-50% + ${start.dx}px),calc(-50% + ${start.dy}px)) scale(${start.scale})`},{transform:'translate(-50%,-50%) scale(1)'}],{duration:ENCYCLOPEDIA_MOTION.graphNavigationDuration,easing:ENCYCLOPEDIA_MOTION.easing,fill:'both'});if(animation){graphMotion.animations.add(animation);animation.finished.catch(()=>{}).then(()=>graphMotion.animations.delete(animation));}}}
   }
   if(!reduceMotion)runGraphGeometryMotion(graphMotion,geometryTweens,{win});

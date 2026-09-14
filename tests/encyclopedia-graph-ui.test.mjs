@@ -149,12 +149,12 @@ assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition m
 assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
 assert.match(graphViewSource,/runGraphGeometryMotion\(graphMotion,geometryTweens/,'Edges, teaser/context marks, and nodes must move as one spatial graph rather than redraw independently');
 assert.match(graphViewSource,/previousPositions\.get\(edge\.from\)[\s\S]*previousPositions\.get\(edge\.to\)[\s\S]*geometryTween\(line/,'Graph edges must interpolate from their previous endpoints');
-assert.match(graphViewSource,/animateContinuity\(document,continuity,id,rectOf\(visual\)[\s\S]*sourceSurface:stage[\s\S]*onDetail\(id,node\)/,'Graph must preserve both the molecule and surrounding graph surface before switching to Detail');
-assert.match(graphViewSource,/document\.addEventListener\('pointerup'[\s\S]*direction:'to-graph'/,'Detail return must use the inverse zoom language from the still-visible Detail molecule');
+assert.match(graphViewSource,/presentation\.canOpenDetail\)onDetail\(id,node\)/,'Graph view must delegate the measured selected node to the single collection transition owner');
+assert.match(collectionUISource,/returnMoleculeDetailToGraph\(currentMoleculeId\(\)\?\?record\.id,host\)/,'Detail return must use the current Detail molecule ID after navigation');
 assert.match(collectionUISource,/host\.dataset\.moleculeId=record\.id/,'Detail return surface must expose the currently rendered molecule ID');
 assert.match(graphViewSource,/const id=detailMoleculeId\(press\.host,state\.focusId\)/,'pre-switch bridge must follow Detail navigation instead of stale Graph focus');
-assert.match(graphViewSource,/molecule-continuity-active \.molecule-shared-transition\{visibility:hidden!important\}/,'the legacy post-switch ghost must not overlap the pre-switch bridge');
-assert.match(graphViewSource,/cleanupContinuity\(document,state\);\s*if\(!from\|\|win\?\.matchMedia/,'reduced-motion must still clear any replaced transition lifecycle before returning immediately');
+assert.match(collectionUISource,/createMoleculeTransitionController/,'Graph and Detail must share one explicit transition owner');
+assert.match(collectionUISource,/detailTransitionHandle/,'Detail renderer readiness must feed the active transition instead of spawning a second ghost');
 assert.match(graphViewSource,/state\.animation\?\.cancel\?\.\(\);state\.surfaceAnimation\?\.cancel\?\.\(\)/,'rapid replacement must cancel both molecule and surface animations');
 assert.match(graphViewSource,/state\.ghost\?\.remove\?\.\(\);state\.surface\?\.remove\?\.\(\)/,'rapid replacement must remove bridge and surface clones');
 assert.match(graphViewSource,/graphMotionState\(host,win\)/,'Graph rerender must cancel stale node/geometry motion before starting the next focus move');
