@@ -1,13 +1,13 @@
 import {getFrontierCandidates} from '../molecule-frontier.js';
+import {NITROGEN_REGION_ID} from './nitrogen-config.js';
 
 export const NITROGEN_MOLECULE_ID='nitrogen';
 export const AMMONIA_MOLECULE_ID='ammonia';
-export const NITROGEN_REGION_ID='nitrogen';
+export {NITROGEN_REGION_ID};
 
-// Task 2 deliberately keeps the unfinished Nitrogen FIELD unavailable. Task 3
-// flips this only when the region geometry, spawning, signal and map are all
-// production-ready. This is a source capability, never persistent save state.
-export const NITROGEN_REGION_AVAILABLE=false;
+// Task 3 productionizes the FIELD. Availability remains a source capability;
+// player eligibility is still derived from progress.choCompleted.
+export const NITROGEN_REGION_AVAILABLE=true;
 
 const includes=(value,id)=>Array.isArray(value)&&value.includes(id);
 const known=(state,id)=>includes(state?.recipes,id)||includes(state?.hints,id);
@@ -31,8 +31,6 @@ export function nitrogenElementAccessible(progress,{regionAvailable=NITROGEN_REG
   return nitrogenChapterEligible(progress)&&regionAvailable===true&&Array.isArray(progress?.foundElements)&&progress.foundElements.includes('N');
 }
 
-// FIELD ownership stays outside this module. Task 3 supplies the active-region
-// and authored N-engagement facts; without both, N2 can never leak into CHO.
 export function nitrogenCriticalInsightCandidate(state,{regionAvailable=NITROGEN_REGION_AVAILABLE,fieldContext=false,nitrogenEngaged=false,foundElements=[]}={}){
   const chapter=nitrogenChapterState(state,{regionAvailable});
   if(!chapter.eligible||!chapter.destinationAvailable||chapter.nitrogenKnown||fieldContext!==true||nitrogenEngaged!==true)return null;
@@ -54,11 +52,11 @@ export function nitrogenGrowthGoal(state,{regionAvailable=NITROGEN_REGION_AVAILA
   if(!chapter.eligible)return null;
   switch(chapter.playerStage){
     case 'eligible-waiting-field':return {text:'CHO探索クリア · 次の探索領域を準備中。自由探索でCHO分子や装備構成を試そう。'};
-    case 'nitrogen-critical':return {text:'新しい窒素領域でNを採集し、最初の重要な構造を見つけよう。'};
+    case 'nitrogen-critical':return {text:'Nitrogen FIELDへ出発し、Nを採集しながらpulse corridorを進んでN₂のInsightを見つけよう。'};
     case 'nitrogen-craft':return {id:NITROGEN_MOLECULE_ID,text:'得た構造をもとにN₂をCRAFTし、窒素系の噴射剤・冷却剤を使えるようにしよう。'};
-    case 'ammonia-frontier':return {text:'N₂から図鑑Graphの直接隣接branchを辿り、NH₃のInsightを探そう。'};
+    case 'ammonia-frontier':return {text:'N₂から図鑑Graphの直接隣接branchを辿り、Nitrogen FIELDでNH₃のInsightを探そう。'};
     case 'ammonia-craft':return {id:AMMONIA_MOLECULE_ID,text:'得た構造をもとにNH₃をCRAFTし、Nitrogen chapterの中核を完成させよう。'};
-    case 'complete':return {text:'Nitrogen chapterの中核を完了。次の探索段階に備えて装備構成を試そう。'};
+    case 'complete':return {text:'Nitrogen chapterの中核を完了。次の探索段階が実装されるまでは装備構成やGraph branchを試そう。'};
     default:return null;
   }
 }
