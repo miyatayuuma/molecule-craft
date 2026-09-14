@@ -8,6 +8,13 @@ def replace(path, old, new):
         raise SystemExit(f'missing anchor in {path}: {old[:180]!r}')
     p.write_text(text.replace(old,new,1))
 
+# CHO campaign still carried the pre-critical-insight "return with H24" growthGoal
+# contract. Production now uses the critical Insight starter count (80 H2 = 160 H
+# atoms) through progressionInsightCandidates(); keep production as source of truth.
+replace('tests/cho-campaign.test.mjs',
+"const empty=createResources({storage:memory()});assert.equal(growthGoal(empty.state).id,undefined);assert.equal(growthGoal(empty.state,{cargo:{H:24}}).id,'hydrogen','The first sortie prompts return before banking H');",
+"const empty=createResources({storage:memory()});assert.equal(growthGoal(empty.state).id,undefined);empty.collect({H:160});assert.deepEqual(empty.progressionInsightCandidates(),['hydrogen'],'160 H atoms unlock the current H2 critical Insight starter');")
+
 # Developer map annotations must reflect Task 2's de-farmed route profile. Side is
 # still longer, but it is no longer a high-density reward route.
 replace('scripts/export-field-map.mjs',
