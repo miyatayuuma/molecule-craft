@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {createCraftTargetMatchTracker,evaluateCraftTargetMatch} from '../src/craft-target-match.js';
 
 const graph=(atoms,bonds=[],ids=atoms.map((_,index)=>100+index))=>({
@@ -76,7 +77,14 @@ test('target set, change and clear reset tracker state cleanly',()=>{
   assert.equal(tracker.update(double,workspace).percent,50);assert.equal(tracker.update(single,workspace).percent,100);assert.equal(tracker.update(null,workspace),null);assert.equal(tracker.update(double,workspace).percent,50);
 });
 
-test('coordinate-only changes reuse the cached graph result and evaluation is side-effect free',()=>{
-  const tracker=createCraftTargetMatchTracker(),co=target(['C','O'],[[0,1,2]],'co'),workspace=graph(['C','O'],[[0,1,1]]),before=JSON.stringify(workspace),first=tracker.update(co,workspace);workspace.atoms[0].position={x:3,y:7,z:-2};const second=tracker.update(co,workspace);
-  assert.equal(second,first);delete workspace.atoms[0].position;assert.equal(JSON.stringify(workspace),before);
+test('coordinate-only and bond-list-order-only changes reuse the cached graph result',()=>{
+  const tracker=createCraftTargetMatchTracker(),chain=target(['C','C','C'],[[0,1,1],[1,2,1]],'chain'),workspace=graph(['C','C','C'],[[0,1,1],[1,2,1]]),before=JSON.stringify(workspace),first=tracker.update(chain,workspace);
+  workspace.atoms[0].position={x:3,y:7,z:-2};const moved=tracker.update(chain,workspace);assert.equal(moved,first);delete workspace.atoms[0].position;assert.equal(JSON.stringify(workspace),before);
+  workspace.bonds.reverse();const reordered=tracker.update(chain,workspace);assert.equal(reordered,first);
+});
+
+test('target bar integration renders percent, bottom scale and subtle heat without changing craft validity',async()=>{
+  const source=await readFile(new URL('../src/craft-panel.js',import.meta.url),'utf8');
+  assert.match(source,/createCraftTargetMatchTracker/);assert.match(source,/targetMatchTracker\.update\(target,molecule\)/);assert.match(source,/targetMatch\.textContent=`\$\{percent\}%`/);assert.match(source,/bottom:'0'/);assert.match(source,/scaleX\(\$\{ratio\}\)/);assert.match(source,/targetTint\.style\.opacity/);assert.match(source,/nodes\.target\.hidden=!record/);
+  assert.doesNotMatch(source,/STRUCTURE MATCH|正解|不正解/);assert.doesNotMatch(source,/targetMatch.*(?:complete|discovery|validation)\s*=/i);
 });
