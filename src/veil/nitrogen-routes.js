@@ -31,11 +31,11 @@ export function nitrogenEnvironmentAt(p,time=0){
 }
 export function appendNitrogenField(map,seed=1,stock={}){
   if(map.routes?.some(route=>route.id===NITROGEN_ROUTE.id))return map;
-  const depletion=inventoryDepletion(stock,'N'),rng=random(seed^0x6e6974),route={id:NITROGEN_ROUTE.id,label:'Pulse Corridor',element:'N',sourceElement:'N',points:NITROGEN_ROUTE.points,width:NITROGEN_ROUTE.width,spacing:30,lanes:2,authoredLanes:2,value:1,routeDepletion:depletion,nitrogen:true};
+  const depletion=inventoryDepletion(stock,'N'),rng=random(seed^0x6e6974),route={id:NITROGEN_ROUTE.id,label:'Pulse Corridor',element:'N',sourceElement:'N',points:NITROGEN_ROUTE.points,width:NITROGEN_ROUTE.width,spacing:30,lanes:1,authoredLanes:1,value:1,routeDepletion:depletion,nitrogen:true};
   map.routes.push(route);map.depletion.N=depletion;
   for(const [i,p] of NITROGEN_ROUTE.points.entries()){
     if(!keepDepletedSegment(depletion,seed^0x4e32,NITROGEN_ROUTE.id,i))continue;
-    for(let lane=0;lane<2;lane++){const offset=(lane-.5)*48+(rng()-.5)*7,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:NITROGEN_ROUTE.id,element:'N',kind:'nitrogen',value:1,ready:0,lane:lane-.5});}
+    const x=p.x+(rng()-.5)*7,y=p.y+(rng()-.5)*7;map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:NITROGEN_ROUTE.id,element:'N',kind:'nitrogen',value:1,ready:0,lane:0});
   }
   for(let i=0;i<NITROGEN_HIGH_DENSITY_POCKET.particles;i++){
     if(!keepDepletedSegment(depletion,seed^0x91a7,`${NITROGEN_HIGH_DENSITY_POCKET.id}:N`,i,{optional:true}))continue;
