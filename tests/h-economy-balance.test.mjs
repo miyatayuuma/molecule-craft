@@ -63,31 +63,21 @@ test('canonical molecule definitions determine H2, CH4 and H2O H demand',()=>{
   assert.equal(tankCapacity('coolant','water'),80);
 });
 
-test('H revisit fixes the one-BURST refill gap without changing geometry or making H abundant',()=>{
+test('H revisit is a post-DRIVE local recovery pocket rather than fresh-save farm geometry',()=>{
   assert.deepEqual(HYDROGEN_REVISIT_ROUTE.knots,[[-520,-2200],[-930,-2450],[-850,-2950],[-800,-3090]]);
-  assert.equal(HYDROGEN_REVISIT_ROUTE.spacing,20);assert.equal(HYDROGEN_REVISIT_ROUTE.lanes,3);assert.equal(HYDROGEN_REVISIT_ROUTE.value,2);
-
-  const map=createMap(SEED,{H:0,C:0,O:0}),route=map.routes.find(item=>item.id===HYDROGEN_REVISIT_ROUTE.id),dust=map.dust.filter(item=>item.route===HYDROGEN_REVISIT_ROUTE.id);
-  const afterUnits=dust.reduce((sum,item)=>sum+item.value,0),beforeUnits=dust.length*BASELINE_REVISIT_VALUE,length=routeLength(route);
-  const afterH=atomReward(afterUnits),beforeH=atomReward(beforeUnits),burstH=hCost('hydrogen',performanceFor('hydrogen','propellant').moleculesPerBurst),fullH=hCost('hydrogen',performanceFor('hydrogen','propellant').capacity);
-  assert.ok(beforeH<burstH,`baseline revisit ${beforeH} H should expose the audited refill gap below one ${burstH} H BURST`);
-  assert.ok(afterH>burstH,`balanced revisit ${afterH} H should cover one BURST`);
-  assert.ok(afterH<fullH,`revisit ${afterH} H must not refill an entire H2 tank (${fullH} H)`);
-
+  const pre=createMap(SEED,{H:0,C:0,O:0});
+  assert.equal(pre.routes.some(route=>route.id===HYDROGEN_REVISIT_ROUTE.id),false);
+  const capabilities={combustionDrive:true},map=createMap(SEED,{H:0,C:0,O:0},{capabilities}),route=map.routes.find(item=>item.id===HYDROGEN_REVISIT_ROUTE.id),pocket=map.dust.filter(item=>item.route==='hydrogen-revisit-pocket');
+  assert.ok(route&&pocket.length>0);
+  const hUnits=pocket.filter(item=>item.element==='H').reduce((sum,item)=>sum+item.value,0),cUnits=pocket.filter(item=>item.element==='C').reduce((sum,item)=>sum+item.value,0);
+  assert.ok(hUnits>cUnits*3,'localized revisit reward stays H-dominant');
   const ordinary=Math.max(...['safe','detour'].map(id=>{const candidate=map.routes.find(item=>item.id===id);return normalizedAtoms(routeUnits(map,id),routeLength(candidate));}));
-  assert.ok(normalizedAtoms(afterUnits,length)>=ordinary*1.5,'revisit remains a clear optional efficiency advantage');
-  assert.ok(VEIL.suctionRadius>VEIL.denseLaneOffset,'normal flight already reaches all three revisit lanes from centerline');
-  assert.ok(VEIL.suctionRadius+DRIVES.hydrogen.boostRadius>VEIL.denseLaneOffset,'BURST does not unlock otherwise unreachable revisit reward');
-
-  const aggregateAfter=map.dust.reduce((sum,item)=>sum+item.value,0),aggregateBefore=aggregateAfter-(afterUnits-beforeUnits),withoutRevisit=aggregateAfter-afterUnits;
-  const starterH=hCost('hydrogen',criticalInsightStarterCount('hydrogen'));
-  assert.ok(atomReward(withoutRevisit)>=starterH+burstH,'normal H field can reach H2 progression plus a BURST without the revisit pocket');
-  assert.ok((aggregateAfter-aggregateBefore)/DUST_PER_H<fullH*.3,'localized change must stay small relative to a full H2 load');
-
-  const highStock=createMap(SEED,{H:600,C:0,O:0}),highAggregate=atomReward(highStock.dust.reduce((sum,item)=>sum+item.value,0));
-  assert.ok(highAggregate<fullH,'stock depletion still prevents H from becoming effectively unlimited');
-  assert.ok(inventoryDepletion({H:750},'H')>=.9);assert.equal(routeUnits(createMap(SEED,{H:750,C:0,O:0}),HYDROGEN_REVISIT_ROUTE.id),0,'high-stock depletion removes the optional pocket');
-  console.log('H economy balance delta',JSON.stringify({veilAggregate:{beforeH:rounded(atomReward(aggregateBefore)),afterH:rounded(atomReward(aggregateAfter)),deltaH:rounded(atomReward(aggregateAfter-aggregateBefore))},revisit:{beforeH:rounded(beforeH),afterH:rounded(afterH),beforePer1000:rounded(normalizedAtoms(beforeUnits,length)),afterPer1000:rounded(normalizedAtoms(afterUnits,length)),length:rounded(length)},highStock:{H600Aggregate:rounded(highAggregate),H750Revisit:0}},null,2));
+  const revisitLine=normalizedAtoms(routeUnits(map,HYDROGEN_REVISIT_ROUTE.id),routeLength(route));
+  assert.ok(revisitLine<=ordinary*1.2,'route-wide dust is no longer the high-density reward');
+  const highStock=createMap(SEED,{H:800,C:400,O:0},{capabilities});
+  assert.ok(highStock.routes.some(item=>item.id===HYDROGEN_REVISIT_ROUTE.id));
+  assert.ok(highStock.currents.some(current=>current.id==='hydrogen-revisit-current'));
+  assert.equal(highStock.dust.filter(item=>item.route==='hydrogen-revisit-pocket').length,0,'high stock suppresses the optional pocket without relocking terrain');
 });
 
 test('phase demand separates progression H from optional propulsion H',()=>{
@@ -130,7 +120,7 @@ test('C/O economy and route geometry remain outside the H-only balance change',(
     {id:'oxygen-side',lanes:4,value:3},
     {id:'oxygen-main',lanes:2,value:2},
   ]);
-  const universe=createUniverse(SEED,{H:0,C:0,O:0}),hRevisit=routeUnits(universe,HYDROGEN_REVISIT_ROUTE.id,'H');
+  const universe=createUniverse(SEED,{H:0,C:0,O:0},{capabilities:{combustionDrive:true}}),hRevisit=routeUnits(universe,HYDROGEN_REVISIT_ROUTE.id,'H');
   assert.ok(hRevisit>0);assert.equal(routeUnits(universe,HYDROGEN_REVISIT_ROUTE.id,'C'),0);assert.equal(routeUnits(universe,HYDROGEN_REVISIT_ROUTE.id,'O'),0);
 
   const auditedRoutes=['entry','safe','risk','detour','hydrogen-revisit','carbon-main','carbon-return','carbon-revisit','oxygen-entry','oxygen-main','oxygen-side','oxygen-deep-safe','oxygen-deep-thermal','horizon'];

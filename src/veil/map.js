@@ -28,8 +28,12 @@ export function sampleAuthoredLine(knots,spacing=VEIL.dustSpacing){
 
 const freezeKnots=knots=>Object.freeze(knots.map(knot=>Object.freeze(knot)));
 export const HYDROGEN_REVISIT_ROUTE=Object.freeze({
-  id:'hydrogen-revisit',label:'H revisit pocket',classification:'G0 / G1',densityTier:'very-high',revisit:true,
-  knots:freezeKnots([[-520,-2200],[-930,-2450],[-850,-2950],[-800,-3090]]),spacing:20,lanes:3,value:VEIL.dustValue*2,
+  id:'hydrogen-revisit',label:'H revisit loop',classification:'G0 / G1',densityTier:'local-pocket',revisit:true,
+  knots:freezeKnots([[-520,-2200],[-930,-2450],[-850,-2950],[-800,-3090]]),spacing:30,lanes:1,value:VEIL.dustValue,
+  current:Object.freeze({width:180,force:90}),
+});
+export const HYDROGEN_REVISIT_POCKET=Object.freeze({
+  id:'hydrogen-revisit-pocket',x:-900,y:-2700,radius:72,particles:50,value:2,primary:'H',secondary:'C',
 });
 
 const DEPLETION_LIMITS=Object.freeze({H:{start:80,full:800},C:{start:40,full:400},O:{start:40,full:400}});
@@ -63,10 +67,10 @@ const DEFINITIONS=[
   ['technical','折り返す光',[[930,-1510],[610,-1010],[360,-720],[570,-450],[390,-180],[0,210]],'technical'],
   [HYDROGEN_REVISIT_ROUTE.id,HYDROGEN_REVISIT_ROUTE.label,HYDROGEN_REVISIT_ROUTE.knots],
 ];
-export function createMap(seed=1,stock={}){
-  const rng=random(seed),denseChoice=Math.floor(rng()*3),hDepletion=inventoryDepletion(stock,'H'),routes=DEFINITIONS.map(([id,label,knots,kind])=>{
+export function createMap(seed=1,stock={},{capabilities={}}={}){
+  const rng=random(seed),denseChoice=Math.floor(rng()*3),hDepletion=inventoryDepletion(stock,'H'),depletion={H:hDepletion,C:inventoryDepletion(stock,'C'),O:inventoryDepletion(stock,'O')},revisitUnlocked=capabilities.combustionDrive===true,routes=DEFINITIONS.filter(([id])=>id!==HYDROGEN_REVISIT_ROUTE.id||revisitUnlocked).map(([id,label,knots,kind])=>{
     const revisit=id===HYDROGEN_REVISIT_ROUTE.id,profile=revisit?HYDROGEN_REVISIT_ROUTE:null;
-    return {id,label,kind,points:revisit?sampleAuthoredLine(knots,profile.spacing):sampleLine(knots,kind==='dense'?VEIL.denseSpacing:VEIL.dustSpacing),revisit,densityTier:profile?.densityTier,classification:profile?.classification,spacing:profile?.spacing,lanes:profile?.lanes,value:profile?.value};
+    return {id,label,kind,points:revisit?sampleAuthoredLine(knots,profile.spacing):sampleLine(knots,kind==='dense'?VEIL.denseSpacing:VEIL.dustSpacing),revisit,densityTier:profile?.densityTier,classification:profile?.classification,spacing:profile?.spacing,lanes:profile?.lanes,value:profile?.value,width:profile?.current?.width};
   });
   const dust=[],denseSideCount=hDepletion<.3?2:hDepletion<.58?1:0,shoulderLaneCount=hDepletion<.2?VEIL.shoulderLanes:hDepletion<.45?Math.max(1,Math.ceil(VEIL.shoulderLanes/2)):0;
   for(const route of routes)for(const [i,p]of route.points.entries()){
@@ -90,9 +94,20 @@ export function createMap(seed=1,stock={}){
       dust.push({...p,x:p.x-Math.sin(p.angle)*offset,y:p.y+Math.cos(p.angle)*offset,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0,shoulder:true,lane:side*(lane+2)});
     }
   }
+  const revisit=routes.find(route=>route.id===HYDROGEN_REVISIT_ROUTE.id),currents=[];
+  if(revisit){
+    currents.push({id:'hydrogen-revisit-current',route:revisit,width:HYDROGEN_REVISIT_ROUTE.current.width,force:HYDROGEN_REVISIT_ROUTE.current.force,speed:-HYDROGEN_REVISIT_ROUTE.current.force});
+    const pocket=HYDROGEN_REVISIT_POCKET;
+    for(let i=0;i<pocket.particles;i++){
+      const element=i%5===0?pocket.secondary:pocket.primary;
+      if(!keepDepletedSegment(depletion[element]??0,seed^0x52f4a3,`${pocket.id}:${element}`,i,{optional:true}))continue;
+      const angle=i*2.399963,radius=Math.sqrt((i+.5)/pocket.particles)*pocket.radius,x=pocket.x+Math.cos(angle)*radius,y=pocket.y+Math.sin(angle)*radius;
+      dust.push({id:dust.length,x,y,angle:-Math.PI/2,route:pocket.id,element,kind:element==='C'?'carbon':'normal',value:pocket.value,ready:0,pocket:pocket.id});
+    }
+  }
   if(rng()<VEIL.rareChance){const route=routes.find(r=>r.id==='technical'),p=route.points[Math.floor(route.points.length*.6)];dust.push({...p,id:dust.length,route:route.id,kind:'rare',value:VEIL.rareValue*VEIL.dustPerH,ready:0});}
   const labels=[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'静かな切れ目'},{x:530,y:-3660,text:'外縁の強流 ↑ H₂ BURST'}];
-  const revisit=routes.find(route=>route.id===HYDROGEN_REVISIT_ROUTE.id),anchor=revisit?.points[Math.floor((revisit?.points.length??1)*.55)];
-  if(anchor)labels.push({x:anchor.x,y:anchor.y,text:`${revisit.id} · ${revisit.densityTier} H · spacing ${revisit.spacing} / lanes ${revisit.lanes} / value ${revisit.value}`});
-  return {seed,routes,dust,depletion:{H:hDepletion,C:inventoryDepletion(stock,'C'),O:inventoryDepletion(stock,'O')},fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels};
+  const anchor=revisit?.points[Math.floor((revisit?.points.length??1)*.55)];
+  if(anchor)labels.push({x:anchor.x,y:anchor.y,text:`${revisit.id} · post-DRIVE current ${HYDROGEN_REVISIT_ROUTE.current.force} · local H pocket`});
+  return {seed,routes,dust,depletion,currents,capabilities:{combustionDrive:revisitUnlocked},fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels};
 }

@@ -16,7 +16,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const script=fileURLToPath(new URL('../scripts/export-field-map.mjs',import.meta.url));
 const output=new URL('../docs/maps/current-field.svg',import.meta.url);
 const requiredLayers=[
-  'layer-grid','layer-regions','layer-geometry','playable-bounds','route-centerlines','route-widths','authored-gates',
+  'layer-grid','layer-regions','layer-geometry','layer-revisit-post-drive','playable-bounds','route-centerlines','route-widths','authored-gates',
   'layer-elements-h','layer-elements-c','layer-elements-o','layer-hazards-fields','layer-hazards-pressure',
   'layer-hazards-challenges','layer-hazards-vortex','layer-hazards-dust-eater','layer-thermal','layer-gameplay',
   'spawn','checkpoints','gates','junctions','rest-stops','rewards','signals','destination','layer-labels',

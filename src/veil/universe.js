@@ -1,6 +1,7 @@
 import {challengeEnvironment} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleAuthoredLine, sampleLine, random, keepDepletedSegment } from './map.js';
+import { routeFlowAt } from './route-kit.js';
 import { GROWTH } from './growth.js';
 import { DEEP_OXYGEN_FRONTIER_RECOVERY,DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_THERMAL,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt } from './oxygen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -10,8 +11,12 @@ export const OXYGEN_ENTRY_KNOTS=Object.freeze([
 ]);
 export const CARBON_DEEP_Y=-6200;
 export const CARBON_REVISIT_ROUTE=Object.freeze({
-  id:'carbon-revisit',label:'C revisit pocket',classification:'G0 / G1',densityTier:'very-high',revisit:true,
-  knots:freezeKnots([[840,-5540],[1080,-6000],[980,-6500],[650,-6900],[170,-7190]]),spacing:22,lanes:3,value:GROWTH.density.carbon.value,
+  id:'carbon-revisit',label:'C revisit loop',classification:'G0 / G1',densityTier:'local-pocket',revisit:true,
+  knots:freezeKnots([[840,-5540],[1080,-6000],[980,-6500],[650,-6900],[170,-7190]]),spacing:30,lanes:1,value:GROWTH.density.carbon.value,
+  current:Object.freeze({width:180,force:90}),
+});
+export const CARBON_REVISIT_POCKET=Object.freeze({
+  id:'carbon-revisit-pocket',x:980,y:-6300,radius:78,particles:50,value:2,primary:'C',secondary:'H',
 });
 export const ENVIRONMENT_RECOVERY_CONTRACT=Object.freeze({
   kind:'environment-recovery',pressure:'reduced-or-zero',ambientThermal:'reduced',opportunity:'stop-and-reorient',
@@ -49,21 +54,23 @@ const ROUTES=[
 const OPTIONAL_ROUTES=new Set(['carbon-sweep',CARBON_REVISIT_ROUTE.id,OXYGEN_VORTEX.id,'oxygen-side']);
 const CLUSTERS=[[-120,-4990],[-410,-5350],[-160,-5680],[350,-6020],[230,-6400],[-140,-6790],[170,-7210],[570,-5140],[820,-5540],[660,-5950],[-380,-8150],[-500,-8540],[600,-9450]];
 function activeLaneCount(lanes,level){return level<.28?lanes:level<.62?Math.max(1,Math.ceil(lanes/2)):1;}
-export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}){
+export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,capabilities={}}={}){
   if(!Number.isFinite(harvestLayout.sideSpacing)||harvestLayout.sideSpacing<0||!Number.isInteger(harvestLayout.eddyAtoms)||harvestLayout.eddyAtoms<0||harvestLayout.eddyAtoms>1000)throw Error('Invalid oxygen harvest layout');
-  const map=createMap(seed,stock),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];
+  const revisitUnlocked=capabilities.combustionDrive===true,map=createMap(seed,stock,{capabilities}),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];
   // Consume the full shoulder stream even when stock hides a lane. Inventory
   // changes dust presence, never seeded landmarks or the physical currents.
   const shoulders=new Map(),key=d=>`${d.route}:${d.x}:${d.y}`;
-  for(const d of (map.depletion.H?createMap(seed):map).dust)if(d.shoulder)shoulders.set(key(d),[(rng()-.5)*13,(rng()-.5)*16]);
-  for(const d of map.dust){d.element='H';if(d.shoulder){const noise=shoulders.get(key(d));d.x+=noise[0];d.y+=noise[1];}}
+  for(const d of (map.depletion.H?createMap(seed,{}, {capabilities}):map).dust)if(d.shoulder)shoulders.set(key(d),[(rng()-.5)*13,(rng()-.5)*16]);
+  for(const d of map.dust){d.element??='H';if(d.shoulder){const noise=shoulders.get(key(d));d.x+=noise[0];d.y+=noise[1];}}
   for(const [id,label,knots,element]of ROUTES){
     const networkRoute=OXYGEN_ROUTES.find(route=>route.id===id),deepRoute=DEEP_OXYGEN_ROUTES.find(route=>route.id===id),authored=networkRoute??deepRoute,deep=!!deepRoute,frontier=id==='horizon',carbonRevisit=id===CARBON_REVISIT_ROUTE.id;
+    if(carbonRevisit&&!revisitUnlocked)continue;
     const profile=carbonRevisit?CARBON_REVISIT_ROUTE:authored?{spacing:authored.spacing??20,lanes:authored.lanes,value:authored.value}:frontier?GROWTH.density.frontier:element==='O'?GROWTH.density.oxygenEdge:GROWTH.density.carbon;
     const geometry=id===OXYGEN_VORTEX.id?OXYGEN_VORTEX_ROUTE:null,points=geometry?.points??(carbonRevisit?sampleAuthoredLine(knots,profile.spacing):sampleLine(knots,profile.spacing));
     // Field routes keep their gameplay element separately so the generic route renderer
     // only leaves a dark structural trace underneath the dedicated moving streamlines.
     const route={id,label,element:geometry?null:element,sourceElement:element,kind:geometry?'field-flow':undefined,points,geometry,visual:geometry?{kind:'field-flow',color:'#8fc8d5',fieldLines:geometry.fieldLines,particleSpeed:.18}:null,routeDepletion:map.depletion[element]??0,lanes:activeLaneCount(profile.lanes,map.depletion[element]??0),authoredLanes:profile.lanes,spacing:profile.spacing,value:profile.value,optional:OPTIONAL_ROUTES.has(id),revisit:carbonRevisit,densityTier:carbonRevisit?CARBON_REVISIT_ROUTE.densityTier:undefined,classification:carbonRevisit?CARBON_REVISIT_ROUTE.classification:undefined};map.routes.push(route);
+    if(carbonRevisit)map.currents.push({id:'carbon-revisit-current',route,width:CARBON_REVISIT_ROUTE.current.width,force:CARBON_REVISIT_ROUTE.current.force,speed:-CARBON_REVISIT_ROUTE.current.force});
     const routeDepletion=map.depletion[element]??0,lanes=route.lanes,routeRng=carbonRevisit?random(seed^0x43a9d7b1):rng;
     for(const [i,p]of route.points.entries()){
       const carbonEvery=id==='carbon-main'&&p.y<=CARBON_DEEP_Y?4:6;
@@ -76,6 +83,15 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
         const offset=(lane-(lanes-1)/2)*spacing+jitter,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
         map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,lane:lane-(lanes-1)/2,flow});
       }
+    }
+  }
+  if(revisitUnlocked){
+    const pocket=CARBON_REVISIT_POCKET;
+    for(let i=0;i<pocket.particles;i++){
+      const element=i%5===0?pocket.secondary:pocket.primary;
+      if(!keepDepletedSegment(map.depletion[element]??0,seed^0x63c2d1,`${pocket.id}:${element}`,i,{optional:true}))continue;
+      const angle=i*2.399963,radius=Math.sqrt((i+.5)/pocket.particles)*pocket.radius,x=pocket.x+Math.cos(angle)*radius,y=pocket.y+Math.sin(angle)*radius;
+      map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:pocket.id,element,kind:element==='C'?'carbon':'normal',value:pocket.value,ready:0,pocket:pocket.id});
     }
   }
   // Orbiting O particles are both the distant cue and the provisional reward.
@@ -132,7 +148,7 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
   map.labels.push({x:OXYGEN_THERMAL.mergeRecovery.x,y:OXYGEN_THERMAL.mergeRecovery.y,text:'environment recovery · network merge'});
   map.labels.push({x:DEEP_OXYGEN_FRONTIER_RECOVERY.x,y:DEEP_OXYGEN_FRONTIER_RECOVERY.y,text:'environment recovery · Frontier approach'});
   const carbonRevisit=map.routes.find(route=>route.id===CARBON_REVISIT_ROUTE.id),carbonAnchor=carbonRevisit?.points[Math.floor((carbonRevisit?.points.length??1)*.48)];
-  if(carbonAnchor)map.labels.push({x:carbonAnchor.x,y:carbonAnchor.y,text:`${carbonRevisit.id} · ${carbonRevisit.densityTier} C · spacing ${carbonRevisit.spacing} / lanes ${carbonRevisit.authoredLanes} / value ${carbonRevisit.value}`});
+  if(carbonAnchor)map.labels.push({x:carbonAnchor.x,y:carbonAnchor.y,text:`${carbonRevisit.id} · post-DRIVE current ${CARBON_REVISIT_ROUTE.current.force} · local C pocket`});
   map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · Oの集積'});
   map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:100,y:-11980,text:'最深部へ ↑ · 到達したら正常帰還'});
   return map;
@@ -141,15 +157,22 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST}={}
 // composed from low Oxygen ambience and route-local thermal fields. Recovery
 // only changes that environment; DUST EATER state remains owned by engine.js.
 function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/fade),0,1);}
-export function environmentAt(p,time=0){
+function revisitCurrentAt(map,p){
+  let x=0,y=0,intensity=0;
+  for(const current of map?.currents??[]){
+    const flow=routeFlowAt(current.route,p,{speed:current.speed,radius:current.width/2});x+=flow.x;y+=flow.y;intensity=Math.max(intensity,flow.intensity);
+  }
+  return {x,y,intensity};
+}
+export function environmentAt(p,time=0,map=null){
   const outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
   const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p),recovering=quiet||thermal.recovery;
   const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),challengePressure=recovering?0:challenge?.pressure;
   const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
-  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48);
+  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),revisitCurrent=revisitCurrentAt(map,p);
   const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));
-  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x,traversableRoutePressure:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
+  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x+revisitCurrent.x,flowY:revisitCurrent.y,currentIntensity:revisitCurrent.intensity,traversableRoutePressure:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;

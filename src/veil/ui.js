@@ -1,7 +1,7 @@
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
 import { createRun, stepRun, beginBurst, setCombustionHeld, triggerInsight, discardActiveInsight, discardRunInsights } from './expedition-run.js';
 import { createUniverse } from './universe.js';
-import { DRIVES, MOLECULE_USES, REGIONS, flightConfig, growthGoal, propulsionGauge, propulsionSpeedMax } from './growth.js';
+import { DRIVES, MOLECULE_USES, REGIONS, driveAvailable, flightConfig, growthGoal, propulsionGauge, propulsionSpeedMax } from './growth.js';
 import { createSupplyUI } from './supply.js';
 import { createExpeditionLaunchRequester,isExpeditionDestinationAvailable } from './launch-request.js';
 import { captureLaunchRollbackState,createLaunchTransaction,restoreLaunchRollbackState,stageLaunchSupply } from './launch-transaction.js';
@@ -44,7 +44,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       const nextRun=resources.state.progress.runs+1,start=destinationId!=='continue'?destinationId:resources.state.progress.checkpoint,seed=(Date.now()^(nextRun*7919))>>>0;
       return {nextRun,start,seed,fuel:resources.prepareExpedition({region:start})};
     },
-    createRun:({prepared})=>createRun(createUniverse(prepared.seed,resources.state.elements),flightConfig(resources.state),{fuel:prepared.fuel}),
+    createRun:({prepared})=>createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities:{combustionDrive:driveAvailable(resources.state,'combustion')}}),flightConfig(resources.state),{fuel:prepared.fuel}),
     initializeExplore:({prepared,run:nextRun})=>initializeExploreLaunch(prepared,nextRun),
     stageSuccess:({prepared})=>{resources.state.progress.runs=prepared.nextRun;raf=requestAnimationFrame(frame);return true;},
     persist:()=>resources.save(),
