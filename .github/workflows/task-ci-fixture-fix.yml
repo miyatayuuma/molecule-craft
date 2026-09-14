@@ -1,0 +1,40 @@
+name: Align Oxygen signal fixture
+
+on:
+  push:
+    branches: [fix/insight-claimability-consistency]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Update legacy signal fixture
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/oxygen-field-integration.test.mjs')
+          s=p.read_text()
+          old="""{\n  const signal=byId(universe.signals,'oxygen-deep'),run={map:universe,time:0,player:{x:signal.x,y:signal.y,boost:0,combustion:false},config:{suctionRadius:80},events:[]};\n  animateUniverse(run);const first=[...run.events];animateUniverse(run);\n  assert.equal(first.length,1);assert.deepEqual(first[0],{type:'signal',region:'oxygen',roll:signal.roll,choice:signal.choice});\n  assert.equal(run.events.length,1,'signal fires once');\n}\n"""
+          new="""{\n  const signal=byId(universe.signals,'oxygen-deep'),run={map:universe,time:0,player:{x:signal.x,y:signal.y,boost:0,combustion:false},config:{suctionRadius:80},events:[]};\n  animateUniverse(run);assert.equal(run.events.length,0,'non-claimable signal geometry stays collision-inert');assert.equal(signal.ready,false);\n  signal.claimable=true;animateUniverse(run);const first=[...run.events];animateUniverse(run);\n  assert.equal(first.length,1);assert.deepEqual(first[0],{type:'signal',region:'oxygen',roll:signal.roll,choice:signal.choice});\n  assert.equal(run.events.length,1,'claimable signal fires once');assert.equal(signal.claimable,false,'pickup consumes marker claimability');\n}\n"""
+          if old not in s: raise SystemExit('oxygen signal fixture target missing')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: Validate focused regression
+        run: |
+          node tests/oxygen-field-integration.test.mjs
+          node tests/insight-claimability-consistency.test.mjs
+          node scripts/build-precache.mjs --check
+          git diff --check
+      - name: Commit fixture update
+        run: |
+          git rm .github/workflows/task-ci-fixture-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/oxygen-field-integration.test.mjs
+          git commit -m "Align FIELD signal regression with claimability"
+          git push
