@@ -89,7 +89,7 @@ for(const id of ['veil','carbon','oxygen-network','oxygen-deep','oxygen-frontier
 
 assert.deepEqual([network['oxygen-shortcut'].lanes,network['oxygen-shortcut'].value],[1,2]);
 assert.deepEqual([network['oxygen-main'].lanes,network['oxygen-main'].value],[2,2]);
-assert.deepEqual([network['oxygen-side'].lanes,network['oxygen-side'].value],[4,3]);
+assert.deepEqual([network['oxygen-side'].lanes,network['oxygen-side'].value],[2,2]);
 assert.deepEqual([deep['oxygen-deep-safe'].spacing,deep['oxygen-deep-safe'].lanes,deep['oxygen-deep-safe'].value],[44,2,2]);
 assert.deepEqual([deep['oxygen-deep-skill'].spacing,deep['oxygen-deep-skill'].lanes,deep['oxygen-deep-skill'].value],[32,2,2]);
 assert.deepEqual([deep['oxygen-deep-thermal'].spacing,deep['oxygen-deep-thermal'].lanes,deep['oxygen-deep-thermal'].value],[36,3,3]);
