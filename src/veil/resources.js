@@ -2,7 +2,7 @@ import { nextOxygenUpgrade } from './tank-upgrades.js';
 import { EXPEDITION } from './config.js';
 import { CHALLENGE_INSIGHT_IDS } from './expedition-challenges.js';
 import { CRITICAL_INSIGHT_IDS,fieldInsightOpportunityEligibility } from './insights.js';
-import { NITROGEN_REGION_AVAILABLE,nitrogenChapterState,nitrogenCriticalInsightCandidate,nitrogenElementAccessible,nitrogenFrontierObjective } from './nitrogen-progression.js';
+import { NITROGEN_MOLECULE_ID,NITROGEN_REGION_AVAILABLE,nitrogenChapterState,nitrogenCriticalInsightCandidate,nitrogenElementAccessible,nitrogenFrontierObjective } from './nitrogen-progression.js';
 import { NITROGEN_REGION_ID } from './nitrogen-config.js';
 import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,REGION_ORDER,TANK_USES,tankCapacity,tankUsesFor } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
