@@ -4,27 +4,110 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  refresh-precache-on-task-branch:
+  repository-guardrails:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.head_ref }}
           fetch-depth: 0
-      - name: Rebuild verified PWA release
-        run: node scripts/build-precache.mjs
-      - name: Commit generated release
-        shell: bash
+      - name: Repository hygiene
+        run: node tests/repository-hygiene.test.mjs
+      - name: H / C revisit routes and H economy
         run: |
-          if git diff --quiet -- sw.js precache-manifest.js; then
-            echo "Precache is already current."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add sw.js precache-manifest.js
-          git commit -m "Refresh PWA precache manifest"
-          git push origin HEAD:${{ github.head_ref }}
+          node tests/hc-revisit-routes.test.mjs
+          node tests/h-economy-balance.test.mjs
+      - name: CHO FIELD integrated production baseline
+        run: node tests/cho-field-polish.test.mjs
+      - name: Current FIELD developer map
+        run: |
+          node tests/field-map-export.test.mjs
+          node tests/nitrogen-field-map.test.mjs
+      - name: FIELD expansion proposal map
+        run: node tests/field-expansion-proposal.test.mjs
+      - name: Molecule graph / frontier
+        run: |
+          node tests/molecule-graph.test.mjs
+          node tests/molecule-frontier.test.mjs
+          node tests/field-frontier-insight.test.mjs
+          node tests/expedition-challenges.test.mjs
+          node scripts/export-molecule-graph.mjs --check
+      - name: Source contracts
+        run: |
+          node tests/source-contracts.test.mjs
+          node tests/persistence-boundary-source-contract.test.mjs
+      - name: Encyclopedia registration reveal
+        run: |
+          node tests/registration-reveal.test.mjs
+          node tests/collection.test.mjs
+          node tests/collection-expansion.test.mjs
+          node tests/capability-unlock.test.mjs
+      - name: Encyclopedia graph UI
+        run: node tests/encyclopedia-graph-ui.test.mjs
+      - name: Browser startup
+        run: node tests/browser-startup.test.mjs
+      - name: Molecule DB v2 persistence
+        run: |
+          node tests/collection-persistence.test.mjs
+          node tests/resources-persistence.test.mjs
+      - name: Element authority / nitrogen chapter and FIELD
+        run: |
+          node tests/element-authority-n-foundation.test.mjs
+          node tests/nitrogen-chapter-progression.test.mjs
+          node tests/nitrogen-field-integration.test.mjs
+          node tests/inventory-depletion.test.mjs
+      - name: CRAFT input recovery
+        run: |
+          node tests/craft-controls-ui.test.mjs
+          node tests/craft-history.test.mjs
+          node tests/craft-input-recovery.test.mjs
+          node tests/game-shell-recovery.test.mjs
+          node tests/craft-target-colors.test.mjs
+          node tests/craft-target-satisfaction.test.mjs
+          node --test tests/craft-target-match.test.mjs
+      - name: Expedition insights
+        run: |
+          node tests/expedition-insights.test.mjs
+          node tests/signal-eligibility.test.mjs
+      - name: Thermal and expedition regressions
+        run: |
+          node tests/propulsion-differentiation.test.mjs
+          node tests/oxygen-routes.test.mjs
+          node tests/oxygen-field-integration.test.mjs
+          node tests/deep-oxygen-routes.test.mjs
+          node tests/oxygen-thermal-progression.test.mjs
+          node tests/thermal-coolant.test.mjs
+          node tests/expedition-core.test.mjs
+      - name: Insight taxonomy and presentation
+        run: |
+          node tests/insight-category.test.mjs
+          node tests/molecule-roles.test.mjs
+          node tests/insight-presentation.test.mjs
+          node tests/pending-craft.test.mjs
+          node tests/veil-audio.test.mjs
+      - name: Propulsion HUD regressions
+        run: |
+          node tests/loadout-preview.test.mjs
+          node tests/loadout-card-order.test.mjs
+          node tests/generic-propulsion.test.mjs
+          node tests/coolant-feedback.test.mjs
+          node tests/propulsion-hud-source.test.mjs
+      - name: UI de-explanation regressions
+        run: |
+          node tests/loadout-shortage-confirmation.test.mjs
+          node tests/loadout-workstation.test.mjs
+          node tests/loadout-launch-regression.test.mjs
+          node tests/issue-122-launch-route.test.mjs
+          node tests/launch-request.test.mjs
+          node tests/launch-transaction.test.mjs
+          node tests/launch-selector.test.mjs
+          node tests/launch-pointer-lifecycle.test.mjs
+          node tests/ui-symbols.test.mjs
+      - name: Generated PWA freshness
+        run: node scripts/build-precache.mjs --check
+      - name: PWA integrity
+        run: node tests/pwa.test.mjs
+      - name: Whitespace errors in pull request diff
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
