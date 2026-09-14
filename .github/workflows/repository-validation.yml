@@ -50,6 +50,10 @@ jobs:
         run: |
           node tests/collection-persistence.test.mjs
           node tests/resources-persistence.test.mjs
+      - name: Element authority / nitrogen resource foundation
+        run: |
+          node tests/element-authority-n-foundation.test.mjs
+          node tests/inventory-depletion.test.mjs
       - name: CRAFT input recovery
         run: |
           node tests/craft-controls-ui.test.mjs

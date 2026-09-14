@@ -1,8 +1,8 @@
 import {isCHO} from './veil/cho-campaign.js';
 import { validateFunctionalGroups } from './functional-groups.js?v=21';
 import { validateCraftStructures } from './craft-structures.js?v=31';
-import { createCollectionState, MILESTONES } from './collection-state.js?v=36';
-import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=36';
+import { createCollectionState, MILESTONES } from './collection-state.js?v=37';
+import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=38';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
 import {loadMoleculeGraph} from './molecule-graph.js?v=2';
 import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=2';
