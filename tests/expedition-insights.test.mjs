@@ -12,6 +12,7 @@ const catalog=[
   {id:'ethane',formula:'C₂H₆',atoms:['C','C','H','H','H','H','H','H']},
   {id:'propane',formula:'C₃H₈',atoms:['C','C','C','H','H','H','H','H','H','H','H']},
   {id:'carbon-dioxide',formula:'CO₂',atoms:['C','O','O']},
+  {id:'nitrogen',formula:'N₂',atoms:['N','N']},
 ];
 function resources(){const value=createResources({storage:memory()});value.setCatalog(catalog);return value;}
 const run=()=>createRun(emptyMap(),VEIL,{predators:false});
@@ -19,8 +20,8 @@ function advance(value,seconds,fps=60){const frames=Math.round(seconds*fps),even
 const settle=(value,flight,captured=false)=>value.settleExpedition({H:0,C:0,O:0},0,captured,{insights:flight.carriedInsights});
 const starterCost=(value,id)=>value.costFor(id,criticalInsightStarterCount(id));
 
-assert.deepEqual(CRITICAL_INSIGHT_IDS,['hydrogen','methane','oxygen','water'],'Critical progression is an explicit canonical ID set');
-assert.deepEqual(CRITICAL_INSIGHT_STARTER_COUNTS,{hydrogen:80,methane:4,oxygen:8,water:8},'starter operational loads are canonical molecule counts');
+assert.deepEqual(CRITICAL_INSIGHT_IDS,['hydrogen','methane','oxygen','water','nitrogen'],'Critical progression is an explicit canonical ID set');
+assert.deepEqual(CRITICAL_INSIGHT_STARTER_COUNTS,{hydrogen:80,methane:4,oxygen:8,water:8},'starter operational loads remain the authored CHO molecule counts');
 
 // Normal ideas start one five-second simulation-time analysis and do not touch
 // persistent hints until a voluntary settlement commits the carried result.
@@ -118,12 +119,13 @@ for(const id of CRITICAL_INSIGHT_IDS){
 }
 
 // Current gameplay no longer runs legacy guaranteed hints. The old behavior is
-// retained only behind the migration-only migrateDiscoveries flag.
+// retained only behind the migration-only migrateDiscoveries flag; Nitrogen is
+// never injected by that CHO compatibility path.
 {
   const current=resources();current.state.elements.H=2;current.findElement('C');current.findElement('O');current.setCatalog(catalog);for(const id of [...CRITICAL_INSIGHT_IDS,'carbon-dioxide'])assert.ok(!current.state.hints.includes(id),`${id} must not be current guaranteed progression`);
   current.hint('carbon-dioxide');current.findElement('O');assert.ok(current.state.hints.includes('carbon-dioxide'),'existing CO₂ acquisition is preserved');
 
-  const legacy=createResources({storage:memory()});legacy.state.migrateDiscoveries=true;legacy.state.elements.H=2;legacy.state.progress.foundElements.push('C','O');legacy.setCatalog(catalog);for(const id of [...CRITICAL_INSIGHT_IDS,'carbon-dioxide'])assert.ok(legacy.state.hints.includes(id),`${id} legacy import compatibility`);
+  const legacy=createResources({storage:memory()});legacy.state.migrateDiscoveries=true;legacy.state.elements.H=2;legacy.state.progress.foundElements.push('C','O');legacy.setCatalog(catalog);for(const id of ['hydrogen','methane','oxygen','water','carbon-dioxide'])assert.ok(legacy.state.hints.includes(id),`${id} legacy import compatibility`);assert.ok(!legacy.state.hints.includes('nitrogen'),'legacy CHO migration must not grant the Nitrogen chapter critical insight');
 }
 
 // Guidance exposes a craft target only after its insight. Before authored
@@ -152,4 +154,4 @@ for(const id of CRITICAL_INSIGHT_IDS){
   const value=resources();value.findElementForExpedition('O');assert.deepEqual(value.state.hints,[]);const flight=run();flight.carriedInsights=['ethane'];const result=settle(value,flight);assert.deepEqual(result.committedInsights,['ethane']);assert.deepEqual(value.state.hints,['ethane']);assert.ok(!value.state.hints.includes('oxygen'));assert.ok(!value.state.hints.includes('water'));assert.ok(!value.state.hints.includes('carbon-dioxide'));
 }
 
-console.log('Expedition Insights passed: run-local lifecycle, operational critical readiness, sequence gates, authored thermal H₂O unlock, launch reacquisition, legacy isolation, guidance and signal boundary.');
+console.log('Expedition Insights passed: run-local lifecycle, CHO + nitrogen critical semantics, operational CHO readiness, sequence gates, authored thermal H₂O unlock, launch reacquisition, legacy isolation, guidance and signal boundary.');
