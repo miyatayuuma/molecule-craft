@@ -165,7 +165,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='choDestination'){notice('CHOの最深部に到達 · 帰還ボタンで記録を持ち帰ろう',8,'◎ ✓ ↩');vibrate(35);}
       if(event.type==='oxygenJunction')notice('酸素の分岐',6,'↖ ↑ ↗');
       if(event.type==='element'){
-        const first=resources.findElementForExpedition(event.element);offerProgressionInsights();if(first&&event.element!=='H'){notice(event.element==='C'?'Cを発見 · 点の列ではなく、炭素塊へ飛び込もう':'Oを発見 · CH₄と組み合わせる酸化剤が作れる',5);vibrate(24);resources.save();}updatePrompt();
+        const first=resources.findElementForExpedition(event.element);offerProgressionInsights();if(first&&event.element!=='H'){const message=event.element==='C'?'Cを発見 · 点の列ではなく、炭素塊へ飛び込もう':event.element==='N'?'Nを発見 · Nitrogen FIELDの主要資源を回収した':'Oを発見 · CH₄と組み合わせる酸化剤が作れる';notice(message,5);vibrate(24);resources.save();}updatePrompt();
       }
       if(event.type==='dense')vibrate(10);
       if(event.type==='cluster'){notice('炭素塊がほどけた · 散るC塵をまとめて吸おう',2.5);vibrate(18);}
