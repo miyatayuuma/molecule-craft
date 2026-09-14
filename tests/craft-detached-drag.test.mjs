@@ -43,7 +43,7 @@ test('application keeps detached presentation until release and clears it on all
   assert.match(app,/if\(state\.mode==='tear-detached'\)\{\s*cleanupDetachedTear\(state\);\s*craftHistory\.cancel\(\);/s,'normal pointer release removes only the detached presentation');
   assert.match(app,/function abortPointerInteraction[\s\S]*cleanupDetachedTear\(dragState\)[\s\S]*dragState=null/,'pointer cancel / blur cleanup cannot leave a ghost');
   assert.match(app,/function recoverCraftAnimationState[\s\S]*cleanupDetachedTear\(dragState\)[\s\S]*dragState=null/,'animation recovery clears detached presentation');
-  assert.match(controls,/lostpointercapture', 'lost pointer capture is routed through the cancellation path');
+  assert.match(controls,/lostpointercapture/,'lost pointer capture is routed through the cancellation path');
   assert.doesNotMatch(app,/detached[^\n]*userData\.(?:atomId|electronAtomId|bondKey)/i,'detached visuals expose no gameplay pick metadata');
 });
 
