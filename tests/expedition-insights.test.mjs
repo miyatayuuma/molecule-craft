@@ -19,6 +19,7 @@ const run=()=>createRun(emptyMap(),VEIL,{predators:false});
 function advance(value,seconds,fps=60){const frames=Math.round(seconds*fps),events=[];for(let i=0;i<frames;i++)events.push(...stepRun(value,input,1/fps));return events;}
 const settle=(value,flight,captured=false)=>value.settleExpedition({H:0,C:0,O:0},0,captured,{insights:flight.carriedInsights});
 const starterCost=(value,id)=>value.costFor(id,criticalInsightStarterCount(id));
+function unlockInsightElements(value,id){for(const el of new Set(value.record(id)?.atoms??[])){if(el==='N')value.state.progress.choCompleted=true;if(el!=='H')value.findElementForExpedition(el);}}
 
 assert.deepEqual(CRITICAL_INSIGHT_IDS,['hydrogen','methane','oxygen','water','nitrogen'],'Critical progression is an explicit canonical ID set');
 assert.deepEqual(CRITICAL_INSIGHT_STARTER_COUNTS,{hydrogen:80,methane:4,oxygen:8,water:8},'starter operational loads remain the authored CHO molecule counts');
@@ -26,7 +27,7 @@ assert.deepEqual(CRITICAL_INSIGHT_STARTER_COUNTS,{hydrogen:80,methane:4,oxygen:8
 // Normal ideas start one five-second simulation-time analysis and do not touch
 // persistent hints until a voluntary settlement commits the carried result.
 {
-  const value=resources(),flight=run(),started=triggerInsight(flight,'ethane',value.state);
+  const value=resources(),flight=run();unlockInsightElements(value,'ethane');const started=triggerInsight(flight,'ethane',value.state);
   assert.deepEqual(started,{type:'insightAnalysisStart',id:'ethane'});assert.equal(flight.analysis.id,'ethane');assert.equal(flight.analysis.requiredDuration,5);assert.deepEqual(flight.carriedInsights,[]);assert.deepEqual(value.state.hints,[]);
   advance(flight,4.9);assert.ok(flight.analysis);assert.deepEqual(flight.carriedInsights,[]);assert.deepEqual(value.state.hints,[]);
   const events=advance(flight,.1);assert.equal(flight.analysis,null);assert.deepEqual(flight.carriedInsights,['ethane']);assert.ok(events.some(event=>event.type==='insightReady'&&event.id==='ethane'&&!event.critical));assert.deepEqual(value.state.hints,[]);
@@ -53,10 +54,10 @@ for(const fps of [15,30,60]){
 // Critical progression bypasses the analysis slot but still remains run-local
 // until voluntary return. Capture loses it.
 for(const id of CRITICAL_INSIGHT_IDS){
-  const value=resources(),flight=run(),ready=triggerInsight(flight,id,value.state);assert.deepEqual(ready,{type:'insightReady',id,critical:true});assert.equal(flight.analysis,null);assert.deepEqual(flight.carriedInsights,[id]);assert.ok(!value.state.hints.includes(id));
+  const value=resources(),flight=run();unlockInsightElements(value,id);const ready=triggerInsight(flight,id,value.state);assert.deepEqual(ready,{type:'insightReady',id,critical:true});assert.equal(flight.analysis,null);assert.deepEqual(flight.carriedInsights,[id]);assert.ok(!value.state.hints.includes(id));
   const result=settle(value,flight);assert.deepEqual(result.committedInsights,[id]);assert.ok(value.state.hints.includes(id));
 
-  const lostValue=resources(),lostRun=run();triggerInsight(lostRun,id,lostValue.state);const lost=settle(lostValue,lostRun,true);assert.deepEqual(lost.committedInsights,[]);assert.ok(!lostValue.state.hints.includes(id));
+  const lostValue=resources(),lostRun=run();unlockInsightElements(lostValue,id);triggerInsight(lostRun,id,lostValue.state);const lost=settle(lostValue,lostRun,true);assert.deepEqual(lost.committedInsights,[]);assert.ok(!lostValue.state.hints.includes(id));
 }
 
 // Lost ideas are eligible again on a later run.
@@ -74,7 +75,7 @@ for(const id of CRITICAL_INSIGHT_IDS){
 
 // Persistent, active and carried duplicates are rejected.
 {
-  const hinted=resources();hinted.hint('ethane');assert.equal(triggerInsight(run(),'ethane',hinted.state),null);
+  const hinted=resources();unlockInsightElements(hinted,'ethane');hinted.hint('ethane');assert.equal(triggerInsight(run(),'ethane',hinted.state),null);
   const crafted=resources();crafted.discover('propane');assert.equal(triggerInsight(run(),'propane',crafted.state),null);
   const value=resources(),flight=run();triggerInsight(flight,'water',value.state);assert.equal(triggerInsight(flight,'water',value.state),null);triggerInsight(flight,'ethane',value.state);assert.equal(triggerInsight(flight,'ethane',value.state),null);
 }
@@ -151,7 +152,7 @@ for(const id of CRITICAL_INSIGHT_IDS){
 // Expedition settlement commits only carried ideas on voluntary return. Raw
 // element discovery during settlement cannot recreate critical/CO₂ hints.
 {
-  const value=resources();value.findElementForExpedition('O');assert.deepEqual(value.state.hints,[]);const flight=run();flight.carriedInsights=['ethane'];const result=settle(value,flight);assert.deepEqual(result.committedInsights,['ethane']);assert.deepEqual(value.state.hints,['ethane']);assert.ok(!value.state.hints.includes('oxygen'));assert.ok(!value.state.hints.includes('water'));assert.ok(!value.state.hints.includes('carbon-dioxide'));
+  const value=resources();value.findElementForExpedition('C');value.findElementForExpedition('O');assert.deepEqual(value.state.hints,[]);const flight=run();flight.carriedInsights=['ethane'];const result=settle(value,flight);assert.deepEqual(result.committedInsights,['ethane']);assert.deepEqual(value.state.hints,['ethane']);assert.ok(!value.state.hints.includes('oxygen'));assert.ok(!value.state.hints.includes('water'));assert.ok(!value.state.hints.includes('carbon-dioxide'));
 }
 
 console.log('Expedition Insights passed: run-local lifecycle, CHO + nitrogen critical semantics, operational CHO readiness, sequence gates, authored thermal H₂O unlock, launch reacquisition, legacy isolation, guidance and signal boundary.');

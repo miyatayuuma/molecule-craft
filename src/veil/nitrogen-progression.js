@@ -31,11 +31,10 @@ export function nitrogenElementAccessible(progress,{regionAvailable=NITROGEN_REG
   return nitrogenChapterEligible(progress)&&regionAvailable===true&&Array.isArray(progress?.foundElements)&&progress.foundElements.includes('N');
 }
 
-export function nitrogenCriticalInsightCandidate(state,{regionAvailable=NITROGEN_REGION_AVAILABLE,fieldContext=false,nitrogenEngaged=false,foundElements=[]}={}){
+export function nitrogenCriticalInsightCandidate(state,{regionAvailable=NITROGEN_REGION_AVAILABLE,fieldContext=false,nitrogenEngaged=false,collectedElements={}}={}){
   const chapter=nitrogenChapterState(state,{regionAvailable});
   if(!chapter.eligible||!chapter.destinationAvailable||chapter.nitrogenKnown||fieldContext!==true||nitrogenEngaged!==true)return null;
-  const found=new Set([...(Array.isArray(state?.progress?.foundElements)?state.progress.foundElements:[]),...(Array.isArray(foundElements)?foundElements:[])]);
-  return found.has('N')?NITROGEN_MOLECULE_ID:null;
+  return Number(collectedElements?.N)>0?NITROGEN_MOLECULE_ID:null;
 }
 
 // NH3 is never injected into the graph. It becomes a chapter objective only if
