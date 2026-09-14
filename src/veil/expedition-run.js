@@ -1,10 +1,14 @@
 import {createRun as createBaseRun,stepRun as stepBaseRun} from './engine.js';
 import {advanceInsightAnalysis,createInsightRunState,ensureInsightEngagementOrigin,updateInsightEngagement} from './insights.js';
+import {appendNitrogenField} from './nitrogen-routes.js';
 
 export {beginBurst,setCombustionHeld} from './engine.js';
 export {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_DISTANCE,FIELD_INSIGHT_MIN_SECONDS,INSIGHT_ANALYSIS_SECONDS,discardActiveInsight,discardRunInsights,ensureInsightEngagementOrigin,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,triggerInsight,updateInsightEngagement} from './insights.js';
 
-export function createRun(...args){return Object.assign(createBaseRun(...args),createInsightRunState());}
+export function createRun(map,config,...args){
+  if(config?.nitrogenField===true)appendNitrogenField(map,map?.seed??1,{N:config.nitrogenStock??0});
+  return Object.assign(createBaseRun(map,config,...args),createInsightRunState());
+}
 
 export function stepRun(run,input,elapsed,systems={}){
   ensureInsightEngagementOrigin(run);
