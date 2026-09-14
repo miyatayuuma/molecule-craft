@@ -29,7 +29,7 @@ jobs:
           node scripts/build-precache.mjs --check
           node tests/pwa.test.mjs
           rm scripts/task-tear-detached-patch.py
-          rm .github/workflows/task-tear-detached-patch.yml
+          git checkout -- .github/workflows/repository-validation.yml
           git diff --check
       - name: Commit production changes
         run: |
