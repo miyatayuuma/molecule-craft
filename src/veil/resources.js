@@ -2,7 +2,8 @@ import { nextOxygenUpgrade } from './tank-upgrades.js';
 import { EXPEDITION } from './config.js';
 import { CHALLENGE_INSIGHT_IDS } from './expedition-challenges.js';
 import { CRITICAL_INSIGHT_IDS,fieldInsightOpportunityEligibility } from './insights.js';
-import { NITROGEN_REGION_AVAILABLE,nitrogenCriticalInsightCandidate,nitrogenElementAccessible } from './nitrogen-progression.js';
+import { NITROGEN_REGION_AVAILABLE,nitrogenChapterState,nitrogenCriticalInsightCandidate,nitrogenElementAccessible,nitrogenFrontierObjective } from './nitrogen-progression.js';
+import { NITROGEN_REGION_ID } from './nitrogen-config.js';
 import { GROWTH,MOLECULE_USES,DRIVES,REGIONS,REGION_ORDER,TANK_USES,tankCapacity,tankUsesFor } from './growth.js';
 import { combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { getFrontierCandidates,loadMoleculeGraph,scoreFrontierCandidates,selectFrontierCandidate } from '../molecule-graph.js';
@@ -134,14 +135,15 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function recordCoolantNeedExperience(){if(blocked||state.recipes.includes('water')||state.progress.coolantNeedExperienced)return false;state.progress.coolantNeedExperienced=true;if(save()||!storage)return true;state.progress.coolantNeedExperienced=false;return false;}
   function beginFrontierRun(region=state.progress.checkpoint,rng=Math.random){
     const launchRegion=Object.hasOwn(REGIONS,region)?region:'veil',base={selectedCandidateId:null,launchRegion,weightingRegion:null,signalObserved:false,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,reason:null};frontierRun=base;lastFrontierRun=null;
+    if(launchRegion===NITROGEN_REGION_ID&&nitrogenChapterState(state).stage==='nitrogen-critical'){base.reason='critical-pending';return;}
     if(api.progressionInsightCandidates().length){base.reason='critical-pending';return;}
     if(!frontierGraph){base.reason='graph-unavailable';return;}
     const discoveredIds=[...state.recipes],knownRecipeIds=[...new Set([...state.hints,...FRONTIER_RESERVED_IDS])],graphCandidates=getFrontierCandidates(frontierGraph,{discoveredIds,knownRecipeIds}),candidates=graphCandidates.filter(candidate=>{const record=records.get(candidate.id);return !!record&&Array.isArray(record.atoms)&&record.atoms.length>0&&record.atoms.every(el=>api.canUseElement(el));});
     if(!candidates.length){base.reason=graphCandidates.length?'element-locked':'no-candidate';return;}
-    const scored=scoreFrontierCandidates(frontierGraph,candidates,{discoveredIds,region:launchRegion}),selected=selectFrontierCandidate(scored,{rng:typeof rng==='function'?rng:Math.random});
+    const priority=launchRegion===NITROGEN_REGION_ID?nitrogenFrontierObjective(frontierGraph,state):null,scored=scoreFrontierCandidates(frontierGraph,candidates,{discoveredIds,region:launchRegion}),selected=priority?candidates.find(candidate=>candidate.id===priority.id)??null:selectFrontierCandidate(scored,{rng:typeof rng==='function'?rng:Math.random});
     if(!selected){base.reason='no-selection';return;}
     if(!records.has(selected.id)){base.reason='candidate-missing-record';return;}
-    base.selectedCandidateId=selected.id;base.weightingRegion=selected.weighting?.regionAffinity?.region??null;
+    base.selectedCandidateId=selected.id;base.weightingRegion=priority?'nitrogen-chapter':selected.weighting?.regionAffinity?.region??null;
   }
   function suppressFrontierInsightForCritical(){
     if(!frontierRun||frontierRun.reason||frontierRun.opportunityCreated)return false;
@@ -176,7 +178,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     if(frontierRun.committed)frontierRun.reason='committed';else if(frontierRun.lost)frontierRun.reason='lost';else if(frontierRun.acquired&&!frontierRun.carried)frontierRun.reason='analysis-incomplete';else if(frontierRun.carried)frontierRun.reason='not-committed';else if(!frontierRun.reason)frontierRun.reason='not-acquired';
     lastFrontierRun=copy(frontierRun);frontierRun=null;return copy(lastFrontierRun);
   }
-  function signalBonus(region,p){const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};}
+  function signalBonus(region,p){const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:region===NITROGEN_REGION_ID?{H:2,N:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};}
   const api={
     get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,oxygenUpgradePlan,upgradeOxygenTank,recordThermalStrain,recordDriveThermalInterruption,recordCoolantNeedExperience,
     canUseElement:el=>progressionElementAccessible(state.progress,el),record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
@@ -209,7 +211,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
       const frontierInsight=finalizeFrontierRun(captured,insights,committedInsights),atoms={};for(const el of elements)atoms[el]=state.elements[el]-before[el];return {captured,rate,kept,lost,atoms,found,completedNow,committedInsights,frontierInsight};
     },
     visit(region){if(blocked||!Object.hasOwn(REGIONS,region))return false;const first=!state.progress.regions.includes(region);if(first)state.progress.regions.push(region);state.progress.checkpoint=region;if(region==='frontier')state.progress.frontier=true;if(region!=='veil')state.progress.cleared=true;return first;},
-    signal(region,roll,choice,{excludeIds=[],runContext={}}={}){if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1))return null;const p=state.progress,last=p.signalLast[region];if(last!==undefined&&p.totalCollected-last<45)return {repeat:true};const frontier=frontierSignal(region,runContext);if(frontier?.managed){if(frontier.recipe){p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:frontier.recipe,frontier:true};}if(frontier.deferred)return {deferred:true,frontier:true};return signalBonus(region,p);}const excluded=excludeIds instanceof Set?excludeIds:new Set(Array.isArray(excludeIds)?excludeIds:[]),candidates=[...records.values()].filter(rec=>signalCandidateEligible(rec,{region,recipes:state.recipes,hints:state.hints,excludeIds:excluded,canUseElement:el=>MANAGED.includes(el)&&api.canUseElement(el)}));if(candidates.length&&(roll<GROWTH.signalChance||p.signalMisses+1>=GROWTH.signalPity)){const rec=candidates[Math.floor(choice*candidates.length)];p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:rec.id};}if(candidates.length)p.signalMisses++;return signalBonus(region,p);},
+    signal(region,roll,choice,{excludeIds=[],runContext={}}={}){if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1))return null;const gate=fieldInsightOpportunityEligibility(runContext),nitrogen=nitrogenCriticalInsightCandidate(state,{fieldContext:region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,foundElements:runContext?.foundElements??[]});if(nitrogen)return {recipe:nitrogen,critical:true};if(region===NITROGEN_REGION_ID&&nitrogenChapterState(state).stage==='nitrogen-critical')return {deferred:true,critical:true};const p=state.progress,last=p.signalLast[region];if(last!==undefined&&p.totalCollected-last<45)return {repeat:true};const frontier=frontierSignal(region,runContext);if(frontier?.managed){if(frontier.recipe){p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:frontier.recipe,frontier:true};}if(frontier.deferred)return {deferred:true,frontier:true};return signalBonus(region,p);}const excluded=excludeIds instanceof Set?excludeIds:new Set(Array.isArray(excludeIds)?excludeIds:[]),candidates=[...records.values()].filter(rec=>signalCandidateEligible(rec,{region,recipes:state.recipes,hints:state.hints,excludeIds:excluded,canUseElement:el=>MANAGED.includes(el)&&api.canUseElement(el)}));if(candidates.length&&(roll<GROWTH.signalChance||p.signalMisses+1>=GROWTH.signalPity)){const rec=candidates[Math.floor(choice*candidates.length)];p.signalMisses=0;p.signalLast[region]=p.totalCollected;save();return {recipe:rec.id};}if(candidates.length)p.signalMisses++;return signalBonus(region,p);},
     workspaceAdapter:{getItem(key){if(key!==WORKSPACE_STORAGE_KEY)return storage?.getItem(key)??null;return state.workspace?JSON.stringify(state.workspace):null;},setItem(key,raw){if(key!==WORKSPACE_STORAGE_KEY)throw Error();if(blocked)throw Error();state.workspace=validateWorkspace(JSON.parse(raw));if(!save())throw Error();}},
   };if(!storage)report('端末保存を利用できません。この画面の間だけ資源を保持します。');return api;
 }
