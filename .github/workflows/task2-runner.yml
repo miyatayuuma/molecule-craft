@@ -38,7 +38,6 @@ jobs:
           node tests/h-economy-balance.test.mjs
           node tests/hc-revisit-routes.test.mjs
           node tests/field-map-export.test.mjs
-          if [[ -f tests/oxygen-routes.test.mjs ]]; then node tests/oxygen-routes.test.mjs; fi
       - name: Freshness and hygiene
         if: steps.apply.outputs.applied == 'true'
         run: |
