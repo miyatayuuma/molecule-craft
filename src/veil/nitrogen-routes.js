@@ -18,7 +18,7 @@ export const NITROGEN_PULSES=freeze([
   freeze({id:'nitrogen-pulse-5',progress:.77,force:520,angle:0}),
   freeze({id:'nitrogen-pulse-6',progress:.91,force:590,angle:Math.PI}),
 ]);
-export const NITROGEN_INSIGHT_AREA=freeze({id:'nitrogen-critical-insight',x:-30,y:-15120,radius:190});
+export const NITROGEN_INSIGHT_AREA=freeze({id:'nitrogen-critical-insight',x:500,y:-15120,radius:190});
 export const NITROGEN_HIGH_DENSITY_POCKET=freeze({id:'nitrogen-high-density',x:620,y:-14920,radius:115,particles:54,value:2});
 
 const pointAt=progress=>NITROGEN_ROUTE.points[Math.min(NITROGEN_ROUTE.points.length-1,Math.max(0,Math.round(progress*(NITROGEN_ROUTE.points.length-1))))];
