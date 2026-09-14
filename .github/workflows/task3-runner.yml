@@ -25,7 +25,8 @@ jobs:
           fi
           python .github/task3.py
           python .github/task3-fix.py
-          rm -f .github/task3.py .github/task3-fix.py
+          python .github/task3-fix2.py
+          rm -f .github/task3.py .github/task3-fix.py .github/task3-fix2.py
           echo "applied=true" >> "$GITHUB_OUTPUT"
       - name: Regenerate developer map and PWA assets
         if: steps.apply.outputs.applied == 'true'
