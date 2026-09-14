@@ -74,8 +74,9 @@ test('Nitrogen pulse corridor remains passable by normal, H2, N2 and combustion 
 
 test('N2 Critical Insight uses existing engagement gate, run-local carry, return commit and forced-return loss',()=>{
   const storage=memory(),value=createResources({storage});value.setCatalog(catalog);value.setFrontierGraph(graph);value.state.progress.choCompleted=true;value.prepareExpedition({region:'nitrogen',rng:()=>.5});
-  const early={time:FIELD_INSIGHT_MIN_SECONDS-1,insightEngagementSatisfied:false,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+200,foundElements:['N']};assert.deepEqual(value.signal('nitrogen',.1,.2,{runContext:early}),{deferred:true,critical:true},'launch/early traversal cannot emit N2');
-  value.findElementForExpedition('N');const engaged={time:FIELD_INSIGHT_MIN_SECONDS+1,insightEngagementSatisfied:true,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+200,foundElements:['N']},opportunity=value.signal('nitrogen',.1,.2,{runContext:engaged});assert.equal(opportunity.recipe,NITROGEN_MOLECULE_ID);
+  const early={time:FIELD_INSIGHT_MIN_SECONDS-1,insightEngagementSatisfied:false,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+200,collectedElements:{N:1}};assert.deepEqual(value.signal('nitrogen',.1,.2,{runContext:early}),{deferred:true,critical:true},'N pickup cannot bypass the engagement gate');
+  value.findElementForExpedition('N');const noPickup={time:FIELD_INSIGHT_MIN_SECONDS+1,insightEngagementSatisfied:true,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+200,collectedElements:{N:0}};assert.deepEqual(value.signal('nitrogen',.1,.2,{runContext:noPickup}),{deferred:true,critical:true},'persistent N discovery cannot substitute for current-run collection');
+  const engaged={...noPickup,collectedElements:{N:1}},opportunity=value.signal('nitrogen',.1,.2,{runContext:engaged});assert.equal(opportunity.recipe,NITROGEN_MOLECULE_ID);
   const carried={captured:false,carriedInsights:[],analysis:null,events:[]};assert.equal(triggerInsight(carried,NITROGEN_MOLECULE_ID,value.state)?.critical,true);assert.deepEqual(carried.carriedInsights,[NITROGEN_MOLECULE_ID]);assert.ok(!value.state.hints.includes(NITROGEN_MOLECULE_ID),'acquisition remains run-local');
   const before=value.state.elements.N,normal=value.settleExpedition({H:0,C:0,N:96,O:0},0,false,{insights:carried.carriedInsights});assert.ok(normal.committedInsights.includes(NITROGEN_MOLECULE_ID));assert.ok(value.state.hints.includes(NITROGEN_MOLECULE_ID));assert.equal(value.state.elements.N-before,96);assert.equal(JSON.parse(storage.raw(RESOURCE_KEY)).schemaVersion,8);
 
@@ -83,10 +84,11 @@ test('N2 Critical Insight uses existing engagement gate, run-local carry, return
   console.log('Nitrogen insight lifecycle',JSON.stringify({timingSeconds:engaged.time,minimumDistance:FIELD_INSIGHT_MIN_DISTANCE,normalCommit:normal.committedInsights,forcedLostN:loss.lost.N}));
 });
 
-test('authored N2 signal area is late enough for distance engagement and early crossings are replayed after the existing gate',()=>{
+test('authored N2 signal geometry stays fixed but cannot be picked before marker claimability',()=>{
   const entry=NITROGEN_ROUTE.points[0],distance=Math.hypot(NITROGEN_INSIGHT_AREA.x-entry.x,NITROGEN_INSIGHT_AREA.y-entry.y);assert.ok(distance>FIELD_INSIGHT_MIN_DISTANCE);assert.ok(nitrogenInsightAreaAt(NITROGEN_INSIGHT_AREA));
-  const run=nitrogenRun();run.insightEngagementOrigin={x:run.player.x,y:run.player.y};run.player.x=NITROGEN_INSIGHT_AREA.x;run.player.y=NITROGEN_INSIGHT_AREA.y;run.time=FIELD_INSIGHT_MIN_SECONDS-2;run.insightEngagementMaxDistance=distance;const signal=run.map.signals.find(item=>item.region==='nitrogen');signal.x=run.player.x;signal.y=run.player.y;
-  const earlyEvents=stepRun(run,{x:0,y:0},1/60);assert.ok(earlyEvents.some(event=>event.type==='signal'&&event.region==='nitrogen'));assert.ok(run.deferredNitrogenSignal,'early signal is retained run-locally');run.time=FIELD_INSIGHT_MIN_SECONDS;run.insightEngagementSatisfied=true;const replay=stepRun(run,{x:0,y:0},1/60);assert.ok(replay.some(event=>event.type==='signal'&&event.region==='nitrogen'),'existing engagement satisfaction replays the authored opportunity');assert.equal(run.deferredNitrogenSignal,null);
+  const run=nitrogenRun();run.insightEngagementOrigin={x:run.player.x,y:run.player.y};run.player.x=NITROGEN_INSIGHT_AREA.x;run.player.y=NITROGEN_INSIGHT_AREA.y;run.time=FIELD_INSIGHT_MIN_SECONDS-2;run.insightEngagementMaxDistance=distance;const signal=run.map.signals.find(item=>item.region==='nitrogen');signal.x=run.player.x;signal.y=run.player.y;signal.claimable=false;
+  const earlyEvents=stepRun(run,{x:0,y:0},1/60);assert.ok(!earlyEvents.some(event=>event.type==='signal'),'hidden/non-claimable geometry cannot be consumed');assert.equal(signal.ready,false);
+  run.collectedElements.N=1;run.foundElements.push('N');run.time=FIELD_INSIGHT_MIN_SECONDS;run.insightEngagementSatisfied=true;signal.claimable=true;const claimed=stepRun(run,{x:0,y:0},1/60);assert.ok(claimed.some(event=>event.type==='signal'&&event.region==='nitrogen'),'claimable marker pickup emits the existing signal event');assert.equal(signal.ready,true);assert.equal(signal.claimable,false);
 });
 
 test('N2 discovery exposes existing LOADOUT roles and Nitrogen launch prioritizes ordinary direct-frontier NH3',()=>{
@@ -102,4 +104,11 @@ test('FIELD HUD exposes N through canonical element authority and has an explici
   const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
   assert.match(uiSource,/\['C','N','O'\].*resources\.canUseElement\(el\)/s);
   assert.match(uiSource,/event\.element==='N'\?'Nを発見/);
+});
+
+
+test('N dust pickup is run-local cargo, settles to BASE STOCK, obeys forced loss and persists after reload',()=>{
+  const run=nitrogenRun(),dust=run.map.dust.find(item=>item.element==='N');assert.ok(dust);Object.assign(run.player,{x:dust.x,y:dust.y,vx:0,vy:0,speed:0});const before=run.collectedElements.N,events=stepRun(run,{x:0,y:0},1/60);assert.ok(run.collectedElements.N>before);assert.ok(run.elementDust.N>0);assert.ok(events.some(event=>event.type==='pickup'&&event.elements.N>0));
+  const storage=memory(),normal=createResources({storage});normal.setCatalog(catalog);normal.state.progress.choCompleted=true;const settled=normal.settleExpedition({H:0,C:0,N:run.elementDust.N,O:0},0,false);assert.equal(settled.atoms.N,run.elementDust.N);const stock=normal.state.elements.N;assert.ok(stock>0);const reloaded=createResources({storage});reloaded.setCatalog(catalog);assert.equal(reloaded.state.elements.N,stock,'N BASE STOCK survives schema-v8 reload');
+  const forced=createResources({storage:memory()});forced.setCatalog(catalog);forced.state.progress.choCompleted=true;const loss=forced.settleExpedition({H:0,C:0,N:100,O:0},0,true);assert.equal(loss.lost.N,15);assert.equal(loss.kept.N,85);assert.equal(forced.state.elements.N,85);
 });

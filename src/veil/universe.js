@@ -189,5 +189,5 @@ export function animateUniverse(run){
     const age=time-cluster.burstAt;if(age<0||age>GROWTH.clusterRespawn)continue;
     for(const d of cluster.particles){const radius=14+GROWTH.clusterSpread*d.spread*(1-Math.exp(-age*2.4));d.x=cluster.x+Math.cos(d.angle+Math.min(age,5)*.08)*radius;d.y=cluster.y+Math.sin(d.angle+Math.min(age,5)*.08)*radius;}
   }
-  for(const signal of map.signals)if(!signal.ready&&Math.hypot(p.x-signal.x,p.y-signal.y)<run.config.suctionRadius+18){signal.ready=true;run.events.push({type:'signal',region:signal.region,roll:signal.roll,choice:signal.choice});}
+  for(const signal of map.signals)if(!signal.ready&&signal.claimable===true&&Math.hypot(p.x-signal.x,p.y-signal.y)<run.config.suctionRadius+18){signal.ready=true;signal.claimable=false;run.events.push({type:'signal',region:signal.region,roll:signal.roll,choice:signal.choice});}
 }

@@ -184,7 +184,7 @@ export function createVeilRenderer(canvas){
           ctx.strokeStyle='#b77ecb';ctx.globalAlpha=.14;for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(cluster.x+Math.cos(cluster.phase+i)*8,cluster.y+Math.sin(cluster.phase+i)*6,radius*(.4+i*.12),radius*(.2+i*.08),cluster.phase+i*.7,0,Math.PI*2);ctx.stroke();}ctx.globalAlpha=1;
         }
       }
-      for(const signal of run.map.signals)if(!signal.ready){
+      for(const signal of run.map.signals)if(!signal.ready&&signal.claimable===true){
         // Signals read as emission: a live core plus paired wavefronts, never an abstract triangle marker.
         const pulse=(run.time*.7)%1,core=ctx.createRadialGradient(signal.x,signal.y,0,signal.x,signal.y,14);core.addColorStop(0,'rgba(241,210,139,.8)');core.addColorStop(.22,'rgba(241,210,139,.3)');core.addColorStop(1,'rgba(241,210,139,0)');ctx.fillStyle=core;ctx.globalAlpha=.8;ctx.fillRect(signal.x-14,signal.y-14,28,28);ctx.fillStyle='#f1d28b';ctx.beginPath();ctx.arc(signal.x,signal.y,2.6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#f1d28b';ctx.lineWidth=1.3;for(let wave=0;wave<3;wave++){const phase=(pulse+wave/3)%1,radius=9+phase*42;ctx.globalAlpha=(1-phase)*.36;ctx.beginPath();ctx.arc(signal.x,signal.y,radius,-.72,.72);ctx.stroke();ctx.beginPath();ctx.arc(signal.x,signal.y,radius,Math.PI-.72,Math.PI+.72);ctx.stroke();}ctx.globalAlpha=1;
       }

@@ -85,9 +85,10 @@ for(const signal of universe.signals){
 for(const id of ['veil','carbon','oxygen-network','oxygen-deep','oxygen-frontier'])assert.ok(byId(universe.signals,id),`${id} signal exists`);
 {
   const signal=byId(universe.signals,'oxygen-deep'),run={map:universe,time:0,player:{x:signal.x,y:signal.y,boost:0,combustion:false},config:{suctionRadius:80},events:[]};
-  animateUniverse(run);const first=[...run.events];animateUniverse(run);
+  animateUniverse(run);assert.equal(run.events.length,0,'non-claimable signal geometry stays collision-inert');assert.equal(signal.ready,false);
+  signal.claimable=true;animateUniverse(run);const first=[...run.events];animateUniverse(run);
   assert.equal(first.length,1);assert.deepEqual(first[0],{type:'signal',region:'oxygen',roll:signal.roll,choice:signal.choice});
-  assert.equal(run.events.length,1,'signal fires once');
+  assert.equal(run.events.length,1,'claimable signal fires once');assert.equal(signal.claimable,false,'pickup consumes marker claimability');
 }
 
 assert.deepEqual([network['oxygen-shortcut'].lanes,network['oxygen-shortcut'].value],[1,2]);

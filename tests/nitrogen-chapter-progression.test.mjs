@@ -42,16 +42,17 @@ test('Task 3 exposes Nitrogen FIELD and N authority only after CHO completion',(
   value.state.progress.choCompleted=true;assert.equal(value.canUseElement('N'),true);assert.equal(nitrogenElementAccessible(value.state.progress),true,'N authority uses the production source capability without a persistent flag');
 });
 
-test('N2 critical candidate requires chapter, Nitrogen FIELD context, N discovery and engagement',()=>{
-  const value=resource();value.findElementForExpedition('N');
-  const context={regionAvailable:true,fieldContext:true,nitrogenEngaged:true};
-  assert.equal(nitrogenCriticalInsightCandidate(value.state,context),null,'pre-CHO progression cannot offer N2');
-  value.state.progress.choCompleted=true;
+test('N2 critical candidate requires chapter, Nitrogen FIELD context, current-run N pickup and engagement',()=>{
+  const value=resource(),empty={regionAvailable:true,fieldContext:true,nitrogenEngaged:true,collectedElements:{N:0}};
+  assert.equal(nitrogenCriticalInsightCandidate(value.state,empty),null,'pre-CHO progression cannot offer N2');
+  value.state.progress.choCompleted=true;value.findElementForExpedition('N');
+  assert.equal(nitrogenCriticalInsightCandidate(value.state,empty),null,'persistent N discovery from an earlier run cannot substitute for current-run pickup');
+  const context={...empty,collectedElements:{N:1}};
   assert.equal(nitrogenCriticalInsightCandidate(value.state,{...context,regionAvailable:false}),null,'eligibility is distinct from destination availability');
   assert.equal(nitrogenCriticalInsightCandidate(value.state,{...context,fieldContext:false}),null,'CHO FIELD cannot emit N2');
-  assert.equal(nitrogenCriticalInsightCandidate(value.state,{...context,nitrogenEngaged:false}),null,'entering Nitrogen FIELD is insufficient without exploration engagement');
+  assert.equal(nitrogenCriticalInsightCandidate(value.state,{...context,nitrogenEngaged:false}),null,'N pickup alone is insufficient without exploration engagement');
   assert.equal(nitrogenCriticalInsightCandidate(value.state,context),NITROGEN_MOLECULE_ID);
-  assert.ok(value.progressionInsightCandidates({nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'production default now enables the Task 3 Nitrogen region capability');
+  assert.ok(value.progressionInsightCandidates({cargo:{N:1},nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'one current-run N pickup is sufficient; no quantity threshold is introduced');
   value.hint(NITROGEN_MOLECULE_ID);assert.equal(nitrogenCriticalInsightCandidate(value.state,context),null,'committed N2 knowledge removes the critical candidate');
 });
 
@@ -65,7 +66,7 @@ test('N2 reuses critical lifecycle and existing role/category profiles unchanged
 
   assert.deepEqual(normal.discoverWithLoadout(NITROGEN_MOLECULE_ID,null),{learned:true,assignedUse:null});assert.equal(nitrogenChapterState(normal.state,{regionAvailable:true}).stage,'ammonia-frontier');assert.ok(normal.tankCatalog('propellant').some(record=>record.id===NITROGEN_MOLECULE_ID));assert.ok(normal.tankCatalog('coolant').some(record=>record.id===NITROGEN_MOLECULE_ID));
 
-  const lost=resource();lost.state.progress.choCompleted=true;lost.findElementForExpedition('N');const lostRun=flight();triggerInsight(lostRun,NITROGEN_MOLECULE_ID,lost.state);const forced=settle(lost,lostRun,true);assert.deepEqual(forced.committedInsights,[]);assert.ok(!lost.state.hints.includes(NITROGEN_MOLECULE_ID));assert.ok(lost.progressionInsightCandidates({nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'forced return leaves N2 eligible for a later run');
+  const lost=resource();lost.state.progress.choCompleted=true;lost.findElementForExpedition('N');const lostRun=flight();triggerInsight(lostRun,NITROGEN_MOLECULE_ID,lost.state);const forced=settle(lost,lostRun,true);assert.deepEqual(forced.committedInsights,[]);assert.ok(!lost.state.hints.includes(NITROGEN_MOLECULE_ID));assert.ok(lost.progressionInsightCandidates({cargo:{N:1},nitrogenFieldContext:true,nitrogenEngaged:true}).includes(NITROGEN_MOLECULE_ID),'forced return leaves N2 eligible after N is collected again on a later run');
 });
 
 test('NH3 chapter priority is a normal direct-neighbor Graph frontier objective',()=>{
@@ -80,9 +81,9 @@ test('NH3 chapter priority is a normal direct-neighbor Graph frontier objective'
 });
 
 test('NH3 uses ordinary analysis, normal-return commit and forced-return loss',()=>{
-  const normal=resource();normal.state.progress.choCompleted=true;normal.discover(NITROGEN_MOLECULE_ID);const run=flight();assert.deepEqual(triggerInsight(run,AMMONIA_MOLECULE_ID,normal.state),{type:'insightAnalysisStart',id:AMMONIA_MOLECULE_ID});advanceInsightAnalysis(run,5);assert.deepEqual(run.carriedInsights,[AMMONIA_MOLECULE_ID]);const committed=settle(normal,run);assert.deepEqual(committed.committedInsights,[AMMONIA_MOLECULE_ID]);assert.ok(normal.state.hints.includes(AMMONIA_MOLECULE_ID));
+  const normal=resource();normal.state.progress.choCompleted=true;normal.findElementForExpedition('N');normal.discover(NITROGEN_MOLECULE_ID);const run=flight();assert.deepEqual(triggerInsight(run,AMMONIA_MOLECULE_ID,normal.state),{type:'insightAnalysisStart',id:AMMONIA_MOLECULE_ID});advanceInsightAnalysis(run,5);assert.deepEqual(run.carriedInsights,[AMMONIA_MOLECULE_ID]);const committed=settle(normal,run);assert.deepEqual(committed.committedInsights,[AMMONIA_MOLECULE_ID]);assert.ok(normal.state.hints.includes(AMMONIA_MOLECULE_ID));
 
-  const lost=resource();lost.state.progress.choCompleted=true;lost.discover(NITROGEN_MOLECULE_ID);const lostRun=flight();triggerInsight(lostRun,AMMONIA_MOLECULE_ID,lost.state);advanceInsightAnalysis(lostRun,5);settle(lost,lostRun,true);assert.ok(!lost.state.hints.includes(AMMONIA_MOLECULE_ID));assert.equal(nitrogenFrontierObjective(graph,lost.state)?.id,AMMONIA_MOLECULE_ID);
+  const lost=resource();lost.state.progress.choCompleted=true;lost.findElementForExpedition('N');lost.discover(NITROGEN_MOLECULE_ID);const lostRun=flight();triggerInsight(lostRun,AMMONIA_MOLECULE_ID,lost.state);advanceInsightAnalysis(lostRun,5);settle(lost,lostRun,true);assert.ok(!lost.state.hints.includes(AMMONIA_MOLECULE_ID));assert.equal(nitrogenFrontierObjective(graph,lost.state)?.id,AMMONIA_MOLECULE_ID);
 });
 
 test('growthGoal follows production Nitrogen player-facing stages and stops before Rare Survey',()=>{

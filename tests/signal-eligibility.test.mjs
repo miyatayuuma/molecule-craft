@@ -120,8 +120,8 @@ assert.equal(GROWTH.signalChance,.38);assert.equal(GROWTH.signalPity,3);
 // insights, and passes it together with current-run engagement context without
 // depending on one exact source-line shape.
 const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
-assert.match(uiSource,/const excludeIds=new Set\(run\.carriedInsights\)/);
-assert.match(uiSource,/run\.analysis\?\.id\)excludeIds\.add\(run\.analysis\.id\)/);
-assert.match(uiSource,/resources\.signal\(event\.region,event\.roll,event\.choice,\{excludeIds,runContext:run\}\)/);
+assert.match(uiSource,/function currentInsightExcludeIds\(\)\{const ids=new Set\(run\?\.carriedInsights\?\?\[\]\)/);
+assert.match(uiSource,/syncFieldInsightMarkerClaimability\(run,signal=>resources\.signalClaimability/);
+assert.match(uiSource,/resources\.signal\(event\.region,event\.roll,event\.choice,\{excludeIds,runContext:run,claimableOnly:true\}\)/);
 
 console.log('Signal eligibility passed: cumulative H/C/O region gating, discovery requirements, Graph-owned challenge molecules, challenge traversal events, run-local exclusions and pity/cooldown semantics.');
