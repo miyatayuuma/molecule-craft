@@ -22,7 +22,9 @@ jobs:
       - name: CHO FIELD integrated production baseline
         run: node tests/cho-field-polish.test.mjs
       - name: Current FIELD developer map
-        run: node tests/field-map-export.test.mjs
+        run: |
+          node tests/field-map-export.test.mjs
+          node tests/nitrogen-field-map.test.mjs
       - name: FIELD expansion proposal map
         run: node tests/field-expansion-proposal.test.mjs
       - name: Molecule graph / frontier
