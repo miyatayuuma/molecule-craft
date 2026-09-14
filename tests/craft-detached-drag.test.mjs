@@ -11,13 +11,14 @@ function graph(elements,bonds){
   const molecule=new Molecule(),ids=elements.map(element=>molecule.addAtom(element).id);for(const[a,b,order=1]of bonds)molecule.setBond(ids[a],ids[b],order);return{molecule,ids};
 }
 function positions(ids,points){const map=new Map(ids.map((id,index)=>[id,{...points[index]}]));return{id:id=>map.get(id),map};}
+function near(actual,expected,message){for(const axis of['x','y','z'])assert.ok(Math.abs(actual[axis]-expected[axis])<1e-9,`${message}: ${axis}`);}
 
 test('single atom stays at the break pose, follows the pointer with its grab offset, then clears',()=>{
   const{molecule,ids}=graph(['C','H'],[[0,1]]),p=positions(ids,[{x:0,y:0,z:0},{x:1,y:.2,z:0}]),candidate=findTearCandidate(molecule,ids[1],{positionFor:p.id,pullVector:{x:1,y:0,z:0}});
   const snapshot=captureDetachedFragment(molecule,candidate,{positionFor:p.id,pointerWorld:{x:1.2,y:.3,z:0}}),drag=createDetachedDrag(snapshot);
-  assert.equal(snapshot.atoms.length,1);assert.deepEqual(drag.anchor,{x:1,y:.2,z:0});
-  assert.deepEqual(drag.update({x:1.2,y:.3,z:0}),{x:1,y:.2,z:0},'break frame does not warp the grabbed atom to pointer center');
-  assert.deepEqual(drag.update({x:2.2,y:1.3,z:0}),{x:2,y:1.2,z:0},'detached atom follows later pointer movement with the same grab offset');
+  assert.equal(snapshot.atoms.length,1);near(drag.anchor,{x:1,y:.2,z:0},'initial anchor');
+  near(drag.update({x:1.2,y:.3,z:0}),{x:1,y:.2,z:0},'break frame does not warp the grabbed atom to pointer center');
+  near(drag.update({x:2.2,y:1.3,z:0}),{x:2,y:1.2,z:0},'detached atom follows later pointer movement with the same grab offset');
   drag.clear();assert.equal(drag.active,false);assert.equal(drag.update({x:3,y:3,z:0}),null,'release cleanup makes the transient drag inert');
 });
 
@@ -26,15 +27,15 @@ test('multi-atom fragment preserves full relative geometry and internal bonds wh
   const snapshot=captureDetachedFragment(molecule,candidate,{positionFor:p.id,pointerWorld:{x:2.15,y:.2,z:0}}),before=detachedAtomPositions(snapshot),drag=createDetachedDrag(snapshot),after=detachedAtomPositions(snapshot,drag.update({x:3.15,y:1.2,z:.5}));
   assert.deepEqual(new Set(snapshot.atoms.map(atom=>atom.id)),new Set([ids[2],ids[3]]));assert.deepEqual(snapshot.bonds,[{a:ids[2],b:ids[3],order:1}]);
   const rel=list=>{const a=list.find(item=>item.id===ids[2]).position,b=list.find(item=>item.id===ids[3]).position;return{x:b.x-a.x,y:b.y-a.y,z:b.z-a.z};};
-  assert.deepEqual(rel(after),rel(before),'OH relative geometry is rigidly preserved during detached drag');
+  near(rel(after),rel(before),'OH relative geometry is rigidly preserved during detached drag');
 });
 
 test('model removal happens at tear time, so detached atoms cannot affect target matching or bond candidates',()=>{
-  const{molecule,ids}=graph(['C','O','H'],[[0,1],[1,2]]),p=positions(ids,[{x:0,y:0,z:0},{x:1,y:0,z:0},{x:1.7,y:.4,z:0}]),candidate=findTearCandidate(molecule,ids[1],{positionFor:p.id,pullVector:{x:1,y:0,z:0}}),snapshot=captureDetachedFragment(molecule,candidate,{positionFor:p.id,pointerWorld:p.id(ids[1])});
-  const placements=new Map(ids.map(id=>[id,{position:{clone(){return this;}}}])),resources={spend(){return true;},refund(){}};createCraftWorkspace({molecule,placements,resources}).removeAtoms(candidate.grabFragment);
-  assert.deepEqual(molecule.atoms.map(atom=>atom.id),[ids[0]]);assert.equal(findTearCandidate(molecule,ids[1]),null,'removed atom is no longer a CRAFT bond/tear candidate');
-  const result=matchCraftTarget({atoms:['C'],bonds:[]},[],molecule);assert.equal(result.unsatisfiedPieces.length,0,'detached presentation is not passed to structural target matching');
-  assert.deepEqual(new Set(snapshot.atoms.map(atom=>atom.id)),new Set([ids[1],ids[2]]),'presentation snapshot can outlive model removal without rejoining it');
+  const{molecule,ids}=graph(['C','C','O','H'],[[0,1],[1,2],[2,3]]),p=positions(ids,[{x:0,y:0,z:0},{x:1,y:0,z:0},{x:2,y:0,z:0},{x:2.7,y:.4,z:0}]),candidate=findTearCandidate(molecule,ids[2],{positionFor:p.id,pullVector:{x:1,y:0,z:0}});assert.ok(candidate);
+  const snapshot=captureDetachedFragment(molecule,candidate,{positionFor:p.id,pointerWorld:p.id(ids[2])}),placements=new Map(ids.map(id=>[id,{position:{clone(){return this;}}}])),resources={spend(){return true;},refund(){}};createCraftWorkspace({molecule,placements,resources}).removeAtoms(candidate.grabFragment);
+  assert.deepEqual(molecule.atoms.map(atom=>atom.id),[ids[0],ids[1]]);assert.equal(findTearCandidate(molecule,ids[2]),null,'removed atom is no longer a CRAFT bond/tear candidate');
+  const result=matchCraftTarget({atoms:['C','C'],bonds:[[0,1,1]]},[],molecule);assert.equal(result.unsatisfiedPieces.length,0,'detached presentation is not passed to target material matching');
+  assert.deepEqual(new Set(snapshot.atoms.map(atom=>atom.id)),new Set([ids[2],ids[3]]),'presentation snapshot can outlive model removal without rejoining it');
 });
 
 test('application keeps detached presentation until release and clears it on all interruption paths',()=>{
