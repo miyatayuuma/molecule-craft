@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import './molecule-graph-series-edges.test.mjs';
 import {access,readFile,readdir} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {createMoleculeGraph} from '../src/molecule-graph.js';
@@ -31,7 +32,7 @@ for(const [id,formula] of addedFormulas){const molecule=molecules.find(item=>ite
 
 assert.equal(graph.schemaVersion,1);
 assert.equal(graph.nodes.length,129,'production graph must contain 129 nodes');
-assert.equal(graph.edges.length,144,'production graph must contain 144 edges');
+assert.equal(graph.edges.length,151,'production graph must contain 151 edges');
 assert(!Object.hasOwn(graph,'status')&&!Object.hasOwn(graph,'basedOnMain')&&!Object.hasOwn(graph,'additions')&&!Object.hasOwn(graph,'existingInventory'),'proposal/audit metadata must not remain in production graph');
 const rowsToObjects=(columns,rows)=>rows.map(row=>Object.fromEntries(columns.map((key,index)=>[key,row[index]])));
 const nodes=rowsToObjects(graph.nodeColumns,graph.nodes),byId=new Map(nodes.map(node=>[node.id,node]));
@@ -50,7 +51,7 @@ const roots=new Set(graph.graphRoots);assert.deepEqual([...roots].sort(),['hydro
 for(const id of roots){const node=byId.get(id);assert(node?.roleCodes.includes('R'),`ROOT role missing: ${id}`);assert.equal(node.depth,0,`ROOT depth must be zero: ${id}`);}
 const distance=new Map([...roots].map(id=>[id,0])),queue=[...roots];for(let cursor=0;cursor<queue.length;cursor++)for(const neighbor of adjacency.get(queue[cursor]))if(!distance.has(neighbor)){distance.set(neighbor,distance.get(queue[cursor])+1);queue.push(neighbor);}
 assert.equal(distance.size,nodes.length,'all production nodes must be ROOT-reachable');for(const node of nodes)assert.equal(node.depth,distance.get(node.id),`stored shortest-path depth drifted: ${node.id}`);
-assert(Math.max(...nodes.map(node=>adjacency.get(node.id).size))<=6,'no production graph node may exceed degree 6');
+for(const node of nodes){const degree=adjacency.get(node.id).size,limit=node.id==='acetic-acid'?7:6;assert(degree<=limit,`production graph degree guardrail exceeded: ${node.id} (${degree} > ${limit})`);}assert.equal(adjacency.get('acetic-acid').size,7,'acetic-acid degree 7 must be explained only by the C1→C2 series completion');
 let longestCorridor=0;const walked=new Set(),edgeKey=(a,b)=>[a,b].sort().join('\0');for(const start of nodes.filter(node=>adjacency.get(node.id).size!==2))for(const first of adjacency.get(start.id)){if(walked.has(edgeKey(start.id,first)))continue;let previous=start.id,current=first,interior=0;walked.add(edgeKey(previous,current));while(adjacency.get(current).size===2){interior++;const next=[...adjacency.get(current)].find(id=>id!==previous);previous=current;current=next;const key=edgeKey(previous,current);if(walked.has(key))break;walked.add(key);}longestCorridor=Math.max(longestCorridor,interior);}assert(longestCorridor<=5,`degree-2 corridor guardrail exceeded: ${longestCorridor}`);
 
 const encyclopediaIds=Object.keys(encyclopedia.molecules??{});assert.deepEqual(encyclopediaIds.sort(),[...moleculeSet].sort(),'encyclopedia entries must match production DB 1:1');for(const [id,description] of rewrittenDescriptions)assert.equal(encyclopedia.molecules[id]?.description,description,`REWRITE description drift: ${id}`);for(const id of addedFormulas.keys())assert((encyclopedia.molecules[id]?.description??'').length>=30,`ADD encyclopedia description missing: ${id}`);

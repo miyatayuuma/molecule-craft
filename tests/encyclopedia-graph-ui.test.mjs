@@ -112,11 +112,12 @@ assert(Math.hypot(incomingB.dx,incomingB.dy)>40,'Incoming focus must preserve a 
 assert(Math.hypot(outgoingA.dx,outgoingA.dy)>40,'Outgoing focus must preserve the inverse directional travel vector');
 
 const maxDegreeNode=production.nodes.map(node=>({id:node.id,degree:production.getNeighbors(node.id).length})).sort((a,b)=>b.degree-a.degree||a.id.localeCompare(b.id))[0];
-assert.equal(maxDegreeNode.degree,6,'Production max-degree regression fixture should exercise six neighbors');
+assert.equal(maxDegreeNode.id,'acetic-acid','C1→C2 acid series completion should make acetic-acid the sole seven-neighbor production hub');
+assert.equal(maxDegreeNode.degree,7,'Production max-degree regression fixture should exercise seven neighbors');
 const mobileLayout=layoutFocusNeighborhood(production,maxDegreeNode.id,{width:320,height:430,nodeDiameter:62,focusDiameter:116});
-assert.equal(mobileLayout.neighbors.length,6);
-assert.equal(mobileLayout.positions.size,7);
-assert.equal(localBoundsOverlap(mobileLayout,{diameter:62,focusDiameter:116}),false,'Enlarged focus thumbnail node and six neighbors must not overlap in representative portrait geometry');
+assert.equal(mobileLayout.neighbors.length,7);
+assert.equal(mobileLayout.positions.size,8);
+assert.equal(localBoundsOverlap(mobileLayout,{diameter:62,focusDiameter:116}),false,'Enlarged focus thumbnail node and seven neighbors must not overlap in representative portrait geometry');
 for(const point of mobileLayout.positions.values()){
   assert(point.x>=31&&point.x<=289,`mobile x tap bound: ${point.x}`);
   assert(point.y>=31&&point.y<=399,`mobile y tap bound: ${point.y}`);
