@@ -1,6 +1,7 @@
 import {ELEMENTS,UNKNOWN_NAME,countElements} from './chemistry.js?v=20';
 import {preferredValence} from './bonding-model.js?v=31';
 import {createPubchemIntroState,pubchemReferenceFor} from './pubchem-reference.js';
+import {createCraftTargetMatchTracker} from './craft-target-match.js?v=1';
 
 export function craftTargetSlots(record,placedAtoms=[]){
   if(!record?.atoms)return[];
@@ -59,6 +60,13 @@ export function createCraftPanel(document){
     structureList:document.querySelector('#structure-list'),structureCount:document.querySelector('#structure-count'),structureFocus:document.querySelector('#structure-focus'),
 target:document.querySelector('#craft-target'),targetName:document.querySelector('#craft-target-name'),targetFormula:document.querySelector('#craft-target-formula'),targetAtoms:document.querySelector('#craft-target-atoms'),
   };
+  const targetMatchTracker=createCraftTargetMatchTracker(),targetMatch=document.createElement('span'),targetTint=document.createElement('span'),targetScale=document.createElement('span'),targetScaleFill=document.createElement('span');
+  targetMatch.className='craft-target-match';targetMatch.setAttribute('aria-hidden','true');Object.assign(targetMatch.style,{display:'block',marginTop:'2px',color:'#b8e7e8',fontSize:'10px',fontWeight:'750',fontVariantNumeric:'tabular-nums',letterSpacing:'.03em',lineHeight:'1.05',whiteSpace:'nowrap'});nodes.targetMatch=targetMatch;
+  nodes.targetFormula?.parentNode?.insertBefore(targetMatch,nodes.targetFormula.nextSibling);
+  targetTint.className='craft-target-match-tint';Object.assign(targetTint.style,{position:'absolute',inset:'0',pointerEvents:'none',background:'radial-gradient(circle at 22% 50%,rgba(103,217,199,.78),rgba(88,154,214,.34) 58%,transparent 100%)',opacity:'0',transition:'opacity .22s ease',zIndex:'0'});
+  targetScale.className='craft-target-match-scale';Object.assign(targetScale.style,{position:'absolute',left:'0',right:'0',bottom:'0',height:'2px',overflow:'hidden',pointerEvents:'none',background:'rgba(143,224,223,.13)',zIndex:'2'});
+  targetScaleFill.className='craft-target-match-scale-fill';Object.assign(targetScaleFill.style,{display:'block',width:'100%',height:'100%',transform:'scaleX(0)',transformOrigin:'left center',transition:'transform .22s ease',background:'linear-gradient(90deg,#69c7db,#8fe0df)',boxShadow:'0 0 8px rgba(143,224,223,.72)'});targetScale.append(targetScaleFill);
+  if(nodes.target){nodes.target.style.position='relative';nodes.target.style.transition='box-shadow .22s ease';nodes.target.prepend(targetTint);nodes.target.append(targetScale);for(const child of nodes.target.children)if(child!==targetTint&&child!==targetScale){child.style.position='relative';child.style.zIndex='1';}}
   const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='PubChem ↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる（外部サイト）');Object.assign(pubchemLink.style,{marginLeft:'0',minWidth:'auto',minHeight:'32px',padding:'4px 6px',borderLeft:'0'});nodes.pubchem=pubchemLink;
   let pubchemStorage=null;try{pubchemStorage=document.defaultView?.localStorage??null;}catch{}const pubchemIntro=createPubchemIntroState(pubchemStorage);
   let clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};
@@ -81,10 +89,15 @@ target:document.querySelector('#craft-target'),targetName:document.querySelector
     }
   }
 
+  function renderTargetMatch(record,match){
+    if(!record||!match){nodes.targetMatch.textContent='';targetScaleFill.style.transform='scaleX(0)';targetTint.style.opacity='0';nodes.target?.style.removeProperty('box-shadow');if(nodes.target)delete nodes.target.dataset.targetMatchState;return 0;}
+    const percent=Math.max(0,Math.min(100,Math.round(Number(match.percent)||0))),ratio=percent/100;nodes.targetMatch.textContent=`${percent}%`;targetScaleFill.style.transform=`scaleX(${ratio})`;targetTint.style.opacity=(ratio*.18).toFixed(3);if(nodes.target){nodes.target.dataset.targetMatchState=match.state??'matching';nodes.target.style.boxShadow=`inset 0 -12px 22px rgba(103,217,199,${(ratio*.075).toFixed(3)}),0 0 ${Math.round(4+ratio*8)}px rgba(103,217,199,${(ratio*.07).toFixed(3)})`;}
+    return percent;
+  }
 
-function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{}}={}){
-  clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;lastTargetKey='';lastTargetFilled={};return;}
-  const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標`);
+function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{},targetMatch=null}={}){
+  clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;renderTargetMatch(null,null);lastTargetKey='';lastTargetFilled={};return;}
+  const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;const matchPercent=renderTargetMatch(record,targetMatch??{percent:0,state:'matching'});nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標 · 接近度 ${matchPercent}%`);
   const rendered=targetParts!==null?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:31,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:31});
   const key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
   for(const {slot,node:chip}of rendered){if(!slot)continue;if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
@@ -93,7 +106,7 @@ function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetP
 
 function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure}){
     veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.formula.append(nodes.pubchem);nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';const reference=focus?.complete&&!focus.record?pubchemReferenceFor(focus):null;nodes.pubchem.hidden=!reference;nodes.pubchem.textContent=pubchemIntro.label(reference?focus.signature:null);if(reference){nodes.pubchem.href=reference.url;nodes.pubchem.dataset.searchMode=reference.mode;}else{nodes.pubchem.removeAttribute('href');delete nodes.pubchem.dataset.searchMode;}
-    renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart});
+    const targetMatchResult=targetMatchTracker.update(target,molecule);renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart,targetMatch:targetMatchResult});
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
     nodes.counts.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)nodes.counts.textContent='—';else for(const symbol of Object.keys(counts).sort()){const chip=document.createElement('span');chip.className='atom-count';chip.textContent=`${symbol} × ${counts[symbol]}`;nodes.counts.appendChild(chip);}
     renderStructureList({structures,focused:focus,disabled:structureListDisabled,onSelect:onSelectStructure});
