@@ -60,6 +60,7 @@ jobs:
           node tests/element-authority-n-foundation.test.mjs
           node tests/nitrogen-chapter-progression.test.mjs
           node tests/nitrogen-field-integration.test.mjs
+          node tests/nitrogen-visual-identity.test.mjs
           node tests/nitrogen-field-pickup-browser.test.mjs
           node tests/inventory-depletion.test.mjs
       - name: CRAFT input recovery
