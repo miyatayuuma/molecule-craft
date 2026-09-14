@@ -186,7 +186,7 @@ function thermalSvg(bounds){
 
 function routeDensitySvg(){
   const tiers={
-    'oxygen-shortcut':'low-medium','oxygen-main':'medium-stable','oxygen-side':'high',
+    'oxygen-shortcut':'low-medium','oxygen-main':'medium-stable','oxygen-side':'medium-long',
     'oxygen-deep-safe':'medium','oxygen-deep-skill':'medium-high','oxygen-deep-thermal':'high-very-high',
   };
   return [...OXYGEN_ROUTES,...DEEP_OXYGEN_ROUTES].map(route=>{

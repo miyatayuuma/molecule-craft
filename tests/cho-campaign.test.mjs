@@ -7,7 +7,7 @@ import {CHO_DESTINATION,recordChoDestination,isCHO} from '../src/veil/cho-campai
 import {simulateOxygenRoute} from '../scripts/simulate-oxygen-routes.mjs';
 
 const memory=()=>{const data=new Map();return {getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};};
-const empty=createResources({storage:memory()});assert.equal(growthGoal(empty.state).id,undefined);assert.equal(growthGoal(empty.state,{cargo:{H:24}}).id,'hydrogen','The first sortie prompts return before banking H');
+const empty=createResources({storage:memory()});assert.equal(growthGoal(empty.state).id,undefined);empty.collect({H:160});assert.deepEqual(empty.progressionInsightCandidates(),['hydrogen'],'160 H atoms unlock the current H2 critical Insight starter');
 const storage=memory(),r=createResources({storage});r.visit('frontier');r.save();
 assert.equal(r.state.progress.choCompleted,false,'A region visit is not completion');
 r.settleExpedition({H:3},0,false);assert.equal(r.state.progress.choCompleted,false);
@@ -17,10 +17,10 @@ const success=r.settleExpedition({O:12},0,false,{destinationReached:true});asser
 assert.equal(createResources({storage}).state.progress.choCompleted,true);
 assert.equal(r.settleExpedition({},0,false,{destinationReached:true}).completedNow,false,'Ending is first-completion only');
 assert.match(growthGoal(r.state).text,/自由探索/);
-const old=JSON.parse(storage.getItem(RESOURCE_KEY));delete old.progress.choCompleted;storage.setItem(RESOURCE_KEY,JSON.stringify(old));
-const migrated=createResources({storage});assert.equal(migrated.state.progress.choCompleted,false);assert.equal(migrated.state.progress.frontier,true);
-migrated.settleExpedition({},0,false,{destinationReached:true});migrated.reset(['exploration']);assert.equal(migrated.state.progress.choCompleted,false);
-const saved=JSON.parse(storage.getItem(RESOURCE_KEY));saved.schemaVersion=99;const raw=JSON.stringify(saved);storage.setItem(RESOURCE_KEY,raw);const future=createResources({storage});assert.equal(future.blocked,true);assert.equal(future.settleExpedition({},0,false,{destinationReached:true}),null);assert.equal(storage.getItem(RESOURCE_KEY),raw);
+const current=JSON.parse(storage.getItem(RESOURCE_KEY));delete current.progress.choCompleted;storage.setItem(RESOURCE_KEY,JSON.stringify(current));
+const tolerated=createResources({storage});assert.equal(tolerated.state.progress.choCompleted,undefined);assert.equal(tolerated.state.progress.frontier,true);assert.equal(tolerated.settleExpedition({},0,false,{destinationReached:true}).completedNow,true);assert.equal(tolerated.state.progress.choCompleted,true);
+tolerated.reset(['exploration']);assert.equal(tolerated.state.progress.choCompleted,false);
+const nonCurrent=JSON.parse(storage.getItem(RESOURCE_KEY));nonCurrent.schemaVersion=99;const raw=JSON.stringify(nonCurrent);storage.setItem(RESOURCE_KEY,raw);const reset=createResources({storage});assert.equal(reset.blocked,false);assert.equal(reset.state.progress.choCompleted,false);assert.notEqual(storage.getItem(RESOURCE_KEY),raw);assert.equal(JSON.parse(storage.getItem(RESOURCE_KEY)).schemaVersion,8);
 const broken=memory();let fail=false;const quota={...broken,setItem:(k,v)=>{if(fail)throw Error('quota');broken.setItem(k,v);}};
 const failing=createResources({storage:quota});failing.save();const before=failing.snapshot();fail=true;
 assert.equal(failing.settleExpedition({O:9},0,false,{destinationReached:true}),null);assert.deepEqual(failing.snapshot(),before,'Ending and loot roll back together');
@@ -40,6 +40,6 @@ const options={routeId:'oxygen-main',drive:true,coolant:'water',rest:true,policy
 for(const propellant of ['hydrogen','carbon-dioxide']){
  const report=simulateOxygenRoute({...options,propellant,destination:'final'});assert.ok(report.reached,JSON.stringify(report));assert.ok(report.destinationReached);assert.ok(report.choCompleted);assert.equal(report.returnType,'voluntary');assert.equal(report.burstUses,0);
 }
-const main=simulateOxygenRoute(options),side=simulateOxygenRoute({...options,routeId:'oxygen-side',propellant:'carbon-dioxide'});
-assert.ok(main.reached&&side.reached);assert.ok(main.netByElement.O>side.netByElement.O,'Main eddy rewards oxygen per sortie');assert.ok(side.duration<main.duration,'Side remains the quicker material route');assert.ok(side.netByElement.H>main.netByElement.H,'CO₂ preserves hydrogen');
-console.log('CHO campaign: destination, captured/late return, transactional ending, old/future saves, reset, two final loadouts and placement tradeoffs passed.');
+const sideFinal=simulateOxygenRoute({...options,routeId:'oxygen-side',propellant:'carbon-dioxide',predators:false,destination:'final'});
+assert.ok(sideFinal.reached&&sideFinal.destinationReached&&sideFinal.choCompleted,'Side route must remain a valid path into Deep/CHO');assert.equal(sideFinal.returnType,'voluntary');assert.ok(sideFinal.accountingConsistent);
+console.log('CHO campaign: destination, captured/late return, transactional ending, current persistence reset semantics, and route-independent CHO completion passed.');

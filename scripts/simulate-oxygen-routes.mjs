@@ -108,12 +108,6 @@ export function evaluateOxygenLoadouts(){
   }
   return {seeds,baseline,controls,sensitivity,fpsChecks};
 }
-export function compareOxygenLayouts(){
-  const variants={original:{sideSpacing:27,eddyAtoms:0},spread:{sideSpacing:90,eddyAtoms:0},eddy:{sideSpacing:27,eddyAtoms:180},combined:{sideSpacing:90,eddyAtoms:180}};
-  return Object.entries(variants).flatMap(([variant,harvestLayout])=>['hydrogen','carbon-dioxide'].flatMap(propellant=>['oxygen-side','oxygen-main'].map(routeId=>{
-    const options={propellant,routeId,harvestLayout,drive:true,coolant:'water',rest:true,policy:'continuous',seed:1};return {variant,options,report:simulateOxygenRoute(options)};
-  })));
-}
 export function evaluateChoDestinations(){
   const rows=[],cases=[{propellant:'hydrogen',routeId:'oxygen-shortcut'},{propellant:'carbon-dioxide',routeId:'oxygen-side'},...['hydrogen','carbon-dioxide'].map(propellant=>({propellant,routeId:'oxygen-main'}))];
   for(const entry of cases)for(const seed of [1,71,2026])for(const fps of [30,60]){
@@ -126,7 +120,7 @@ export function evaluateChoDestinations(){
   return rows;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
-  const arg=process.argv[2],commands={'--matrix':evaluateOxygenLoadouts,'--final-matrix':evaluateChoDestinations,'--compare-layouts':compareOxygenLayouts,'--controls':()=>OXYGEN_SCENARIOS.map(simulateOxygenRoute),'--case':()=>simulateOxygenRoute(JSON.parse(process.argv[3]))};
-  if(arg&&!commands[arg])throw Error('Use --matrix, --final-matrix, --compare-layouts, --controls, or --case JSON');
+  const arg=process.argv[2],commands={'--matrix':evaluateOxygenLoadouts,'--final-matrix':evaluateChoDestinations,'--controls':()=>OXYGEN_SCENARIOS.map(simulateOxygenRoute),'--case':()=>simulateOxygenRoute(JSON.parse(process.argv[3]))};
+  if(arg&&!commands[arg])throw Error('Use --matrix, --final-matrix, --controls, or --case JSON');
   console.log(JSON.stringify((commands[arg]??commands['--controls'])(),null,2));
 }

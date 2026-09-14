@@ -226,7 +226,7 @@
 </g>
 <g id="route-density" inkscape:groupmode="layer" inkscape:label="route density">
 <g data-density-route="oxygen-shortcut" data-density-tier="low-medium" data-spacing="20" data-lanes="1" data-value="2"><text x="-290" y="-10128">oxygen-shortcut · low-medium · spacing 20 / lanes 1 / value 2</text></g>
-<g data-density-route="oxygen-side" data-density-tier="high" data-spacing="20" data-lanes="2" data-value="2"><text x="867.037" y="-10128">oxygen-side · high · spacing 20 / lanes 2 / value 2</text></g>
+<g data-density-route="oxygen-side" data-density-tier="medium-long" data-spacing="20" data-lanes="2" data-value="2"><text x="867.037" y="-10128">oxygen-side · medium-long · spacing 20 / lanes 2 / value 2</text></g>
 <g data-density-route="oxygen-main" data-density-tier="medium-stable" data-spacing="20" data-lanes="2" data-value="2"><text x="298.182" y="-10128">oxygen-main · medium-stable · spacing 20 / lanes 2 / value 2</text></g>
 <g data-density-route="oxygen-deep-safe" data-density-tier="medium" data-spacing="44" data-lanes="2" data-value="2"><text x="-672.889" y="-11368">oxygen-deep-safe · medium · spacing 44 / lanes 2 / value 2</text></g>
 <g data-density-route="oxygen-deep-skill" data-density-tier="medium-high" data-spacing="32" data-lanes="2" data-value="2"><text x="130" y="-11368">oxygen-deep-skill · medium-high · spacing 32 / lanes 2 / value 2</text></g>

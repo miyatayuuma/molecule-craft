@@ -19,6 +19,8 @@ jobs:
         run: |
           node tests/hc-revisit-routes.test.mjs
           node tests/h-economy-balance.test.mjs
+      - name: CHO FIELD integrated production baseline
+        run: node tests/cho-field-polish.test.mjs
       - name: Current FIELD developer map
         run: node tests/field-map-export.test.mjs
       - name: FIELD expansion proposal map
