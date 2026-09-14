@@ -1,10 +1,8 @@
 import {createRoute,smoothCurve,straight,routeFlowAt} from './route-kit.js';
 import {inventoryDepletion,keepDepletedSegment,random} from './map.js';
+import {NITROGEN_ENTRY} from './nitrogen-config.js';
 
 const freeze=value=>Object.freeze(value);
-export const NITROGEN_REGION_BOUNDS=freeze({left:-1100,right:1250,top:-16650,bottom:500});
-export const NITROGEN_ENTRY=freeze({x:280,y:-12920,angle:-Math.PI/2});
-export const NITROGEN_EXIT=freeze({x:120,y:-16080,angle:-Math.PI/2});
 export const NITROGEN_ROUTE=createRoute({
   id:'nitrogen-main',entry:NITROGEN_ENTRY,width:250,spacing:30,
   segments:[
