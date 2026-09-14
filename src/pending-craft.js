@@ -131,7 +131,7 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
   access.addEventListener('animationend',event=>{if(event.animationName==='pending-craft-new-bulb')delete access.dataset.attentionNew;});
   access.addEventListener('click',()=>{const ids=refresh();if(!ids.length)return;renderList(ids);acknowledge(ids);dialog.showModal?.();});
 
-  for(const method of ['setCatalog','hint','discover','learn','reset']){
+  for(const method of ['setCatalog','hint','discover','discoverWithLoadout','learn','reset']){
     const original=resources[method];if(typeof original!=='function'||original.__pendingCraftObserved)continue;
     const wrapped=function(...args){const result=original.apply(this,args);refresh();return result;};wrapped.__pendingCraftObserved=true;resources[method]=wrapped;
   }
