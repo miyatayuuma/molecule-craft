@@ -32,7 +32,7 @@ export function syncElementStocks(root = document, elements = {}) {
 // sole gameplay authority; collection counts and fallback mode cannot unlock atoms.
 export function createElementPalette(root = document, {canUse=()=>true} = {}) {
   const buttons=[...root.querySelectorAll('#element-palette [data-element]')];
-  const extra=root.querySelector('#show-extra-elements'),visible=symbol=>['H','C','O'].includes(symbol)||!!extra?.checked;
+  const extra=root.querySelector('#show-extra-elements'),visible=symbol=>['H','C','N','O'].includes(symbol)||!!extra?.checked;
   function render(){
     for(const button of buttons){
       const item=ELEMENT_PRESENTATION.find(item=>item.symbol===button.dataset.element);
