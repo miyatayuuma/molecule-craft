@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   repository-guardrails:
@@ -138,6 +138,16 @@ jobs:
           path: test-results/pwa-generated
           if-no-files-found: error
           retention-days: 1
+      - name: Commit generated PWA artifacts
+        run: |
+          if git diff --quiet -- sw.js precache-manifest.js; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js precache-manifest.js
+          git commit -m "chore: refresh PWA precache"
+          git push origin "HEAD:${{ github.head_ref }}"
       - name: Generated PWA freshness
         run: node scripts/build-precache.mjs --check
       - name: PWA integrity
