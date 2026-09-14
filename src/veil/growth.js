@@ -1,6 +1,7 @@
 import { oxygenCapacity } from './tank-upgrades.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { activeTankRolesFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
+import {NITROGEN_REGION_AVAILABLE,nitrogenGrowthGoal} from './nitrogen-progression.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
 // need no effect entry; future shared actions can be attached here independently.
 export const MOLECULE_USES = Object.freeze({
@@ -83,9 +84,9 @@ export function propulsionGauge(id,loadout={},driveBuffer=0){
   const ratio=capacity?Math.max(0,Math.min(1,id==='combustion'?seconds/maxSeconds:remaining/capacity)):0;
   return {remaining,capacity,seconds,ratio,state:ratio<=0?'empty':ratio<=.34?'low':'enough'};
 }
-export function growthGoal(state,{cargo={}}={}){
+export function growthGoal(state,{cargo={},nitrogenRegionAvailable=NITROGEN_REGION_AVAILABLE}={}){
   const has=id=>state.recipes.includes(id),hinted=id=>state.hints?.includes(id),found=state.progress.foundElements??['H'];
-  if(state.progress.choCompleted)return {text:'CHO探索クリア · 自由探索で構成を試したり、気になるCHO分子を作ろう。'};
+  if(state.progress.choCompleted)return nitrogenGrowthGoal(state,{regionAvailable:nitrogenRegionAvailable})??{text:'CHO探索クリア · 自由探索で構成を試したり、気になるCHO分子を作ろう。'};
   if(!has('hydrogen'))return hinted('hydrogen')?{id:'hydrogen',text:'得た構造をもとにH₂をCRAFTし、緊急用BURSTを準備しよう。'}:{text:'Hの光を集め、緊急噴射を実用量試せるだけの材料を確保しよう。'};
   if(!found.includes('C'))return {text:'完成したH₂模型の噴射剤ボタンを長押しで充填。H Veilの奥の強流で噴射し、Cを探そう。'};
   if(!has('methane'))return hinted('methane')?{id:'methane',text:'得た構造をもとにCH₄をCRAFTしよう。燃焼にはさらに酸化剤が必要だ。'}:{text:'CとHを集め、燃料として試せるだけの材料を確保しよう。'};
