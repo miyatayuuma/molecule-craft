@@ -10,7 +10,7 @@ import {matchCraftTarget} from '../src/craft-target-satisfaction.js';
 function graph(elements,bonds){
   const molecule=new Molecule(),ids=elements.map(element=>molecule.addAtom(element).id);for(const[a,b,order=1]of bonds)molecule.setBond(ids[a],ids[b],order);return{molecule,ids};
 }
-function positions(ids,points){const map=new Map(ids.map((id,index)=>[id,{...points[index]}]));return{id=>map.get(id),map};}
+function positions(ids,points){const map=new Map(ids.map((id,index)=>[id,{...points[index]}]));return{id:id=>map.get(id),map};}
 
 test('single atom stays at the break pose, follows the pointer with its grab offset, then clears',()=>{
   const{molecule,ids}=graph(['C','H'],[[0,1]]),p=positions(ids,[{x:0,y:0,z:0},{x:1,y:.2,z:0}]),candidate=findTearCandidate(molecule,ids[1],{positionFor:p.id,pullVector:{x:1,y:0,z:0}});
