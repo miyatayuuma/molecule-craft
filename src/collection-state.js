@@ -1,5 +1,5 @@
 import { detectFunctionalGroups, structuralMilestones } from './functional-groups.js?v=21';
-import { availableElements } from './element-progression.js?v=36';
+import { ELEMENT_PRESENTATION } from './element-progression.js?v=38';
 import { CURRENT_COLLECTION_SCHEMA_VERSION } from './collection-migrations.js?v=2';
 import { COLLECTION_STORAGE_KEY,createCollectionPersistence } from './collection-persistence.js?v=1';
 
@@ -14,7 +14,7 @@ export function createCollectionState({records,groups,templates,storage=null,now
   const byId=new Map(records.map(record=>[record.id,record])),byGroup=new Map(groups.map(group=>[group.id,group]));
   const molecules=new Map(),sources=new Map(),unlocked=new Set(),milestones=new Set(),detections=new Map(),legacyElements=new Set();
   const persistence=createCollectionPersistence({storage,records,milestoneIds:Object.keys(MILESTONES)});
-  let elements=new Set(availableElements(0));
+  const elements=new Set(ELEMENT_PRESENTATION.map(item=>item.symbol));
 
   const detectedFor = record => {
     if(!detections.has(record.id))detections.set(record.id,detectFunctionalGroups(record,groups));
@@ -25,7 +25,6 @@ export function createCollectionState({records,groups,templates,storage=null,now
     updateUnlocks();
   }
   function updateUnlocks(){
-    elements=new Set(availableElements(molecules.size,legacyElements));
     for(const template of templates)if(template.atoms.every(element=>elements.has(element)&&elementAccess(element))&&(sources.get(template.unlock.groupId)?.size??0)>=template.unlock.distinctMolecules)unlocked.add(template.id);
   }
   function restore(){
@@ -66,11 +65,11 @@ export function createCollectionState({records,groups,templates,storage=null,now
         if(event.isNew){
           event.isomerOf=records.filter(other=>other.id!==record.id&&other.formula===record.formula&&molecules.has(other.id)).map(other=>other.id);
           if(event.isomerOf.length)milestones.add('isomer');
-          const previousGroups=new Set(sources.keys()),previousUnlocks=new Set(unlocked),previousElements=new Set(elements);
+          const previousGroups=new Set(sources.keys()),previousUnlocks=new Set(unlocked);
           molecules.set(record.id,{id:record.id,at:now(),order:molecules.size+1});learn(record.id);changed=true;
           event.groupDiscoveries=[...sources.keys()].filter(id=>!previousGroups.has(id));
           event.unlockedParts=[...unlocked].filter(id=>!previousUnlocks.has(id));
-          event.unlockedElements=[...elements].filter(id=>!previousElements.has(id));
+          event.unlockedElements=[];
         }
         events.push(event);
       }
