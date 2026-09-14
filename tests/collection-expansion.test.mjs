@@ -14,7 +14,8 @@ const record=id=>records.find(item=>item.id===id),part=id=>templates.find(item=>
 const insert=(model,entry)=>{const ids=entry.atoms.map(element=>model.addAtom(element).id);for(const [a,b,order] of entry.bonds)model.setBond(ids[a],ids[b],order);return ids;};
 const fixture=id=>{const model=new Molecule();insert(model,record(id));return connectedStructures(model)[0];};
 const detect=(id,group)=>detectFunctionalGroups(record(id),groups).some(item=>item.id===group);
-const newGame=storage=>createCollectionState({records,groups,templates,storage});
+const CHO_ACCESS=symbol=>['H','C','O'].includes(symbol);
+const newGame=(storage,elementAccess=CHO_ACCESS)=>createCollectionState({records,groups,templates,storage,elementAccess});
 
 // Independent upstream connectivity, not self-recognition of the builder's own
 // data. These 20 reference SMILES use only neutral atoms, branches and digits.
@@ -49,17 +50,15 @@ for(const ref of references.records){
 }
 for(const id of ['malic-acid','serine','cysteine','methionine'])assert.equal(record(id).stereochemistry,'unspecified');
 
-assert.deepEqual(availableElements(0),['H','C','O']);
+assert.deepEqual(availableElements(0),ELEMENT_UNLOCKS.map(item=>item.symbol));
+assert.equal(nextElementUnlock(0,[]),null,'Collection discovery counts no longer own element access');
 const game=newGame(null);
-for(const item of ELEMENT_UNLOCKS)assert.equal(game.canUseElement(item.symbol),item.discoveries===0);
-assert.equal(nextElementUnlock(0,game.unlockedElements()).remaining,3);
-// The entire gate ladder is achievable using initially available elements.
+for(const item of ELEMENT_UNLOCKS)assert.equal(game.canUseElement(item.symbol),CHO_ACCESS(item.symbol));
 const initial=records.filter(entry=>game.canBuild(entry));assert.ok(initial.length>=15);
 for(let i=0;i<15;i++){
   const result=game.observeStructures([fixture(initial[i].id)]);
-  for(const item of ELEMENT_UNLOCKS)assert.equal(game.canUseElement(item.symbol),item.discoveries<=i+1,`${i+1}: ${item.symbol}`);
-  assert.deepEqual(result.events[0].unlockedElements,ELEMENT_UNLOCKS.filter(item=>item.discoveries===i+1).map(item=>item.symbol));
-  assert.deepEqual(game.observeStructures([fixture(initial[i].id)]).events[0].unlockedElements,[],'Repeats must not reaward gates');
+  for(const symbol of ['N','Cl','S','P','F'])assert.equal(game.canUseElement(symbol),false,`${i+1}: ${symbol} must stay externally locked`);
+  assert.deepEqual(result.events[0].unlockedElements,[],'Molecule discoveries must not award element gates');
 }
 assert.equal(nextElementUnlock(15,game.unlockedElements()),null);
 
@@ -87,7 +86,7 @@ for(const [group,first,second] of [['isopropyl','2-propanol','isobutane'],['n-bu
 // Play loop: methanol teaches OH + methyl; methyl caps an acid part to discover
 // acetic acid; alkyl + ester pieces create new, separately recognized products.
 const loop=newGame(null);loop.observeStructures([fixture('methanol')]);loop.observeStructures([fixture('formic-acid')]);loop.observeStructures([fixture('propionic-acid')]);
-assert.ok(loop.isUnlocked('methyl')&&loop.isUnlocked('carboxyl')&&loop.canUseElement('N'));
+assert.ok(loop.isUnlocked('methyl')&&loop.isUnlocked('carboxyl')&&!loop.canUseElement('N'));
 const field=new Molecule(),methyl=expandCraftStructure(field,part('methyl')),carboxyl=expandCraftStructure(field,part('carboxyl'));
 assert.equal(connectedStructures(field).filter(item=>item.complete).length,0);
 field.setBond(methyl.attachments[0].atomId,carboxyl.attachments[0].atomId,1);
@@ -98,10 +97,10 @@ assert.equal(loop.observeStructures(connectedStructures(field)).events[0].isNew,
 // DOM double complements the public browser integration harness. Give each gate
 // one unit of stock so this test isolates progression visibility from inventory.
 const buttons=ELEMENT_UNLOCKS.map(item=>({dataset:{element:item.symbol,stockCount:'1'},style:{},hidden:false,disabled:false}));
-const extra={checked:false,addEventListener(type,fn){this.change=fn;}},root={querySelectorAll:()=>buttons,querySelector:selector=>selector==='#show-extra-elements'?extra:null},palette=createElementPalette(root);
+const extra={checked:false,addEventListener(type,fn){this.change=fn;}},root={querySelectorAll:()=>buttons,querySelector:selector=>selector==='#show-extra-elements'?extra:null},palette=createElementPalette(root,{canUse:CHO_ACCESS});
 assert.deepEqual(buttons.filter(b=>!b.hidden).map(b=>b.dataset.element),['H','C','O']);assert.equal(palette.canUse('N'),false);
 palette.update(loop);assert.equal(palette.canUse('N'),false,'Normal campaign stays CHO even when the legacy collection unlocks N');
-extra.checked=true;extra.change();palette.update(loop);assert.ok(palette.canUse('N'));
-palette.fallback();assert.ok(buttons.every(button=>!button.hidden&&!button.disabled));assert.ok(palette.canUse('P'));
+extra.checked=true;extra.change();palette.update(loop);assert.equal(palette.canUse('N'),false);
+palette.fallback();assert.equal(palette.canUse('P'),false,'Data fallback cannot bypass canonical element access');
 extra.checked=false;extra.change();palette.fallback();assert.equal(palette.canUse('N'),false,'Data-load fallback preserves the selected CHO scope');
-console.log(`Expansion passed: 20 PubChem topologies, atom gates/migration, 3 named parts, recipe loop and palette failure fallback.`);
+console.log(`Expansion passed: 20 PubChem topologies, external atom authority/migration, 3 named parts, recipe loop and locked palette fallback.`);
