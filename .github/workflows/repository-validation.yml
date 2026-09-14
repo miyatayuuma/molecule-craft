@@ -62,6 +62,8 @@ jobs:
         run: |
           node tests/craft-controls-ui.test.mjs
           node tests/craft-history.test.mjs
+          node tests/craft-tearoff.test.mjs
+          node --test tests/craft-detached-drag.test.mjs
           node tests/craft-input-recovery.test.mjs
           node tests/game-shell-recovery.test.mjs
           node tests/craft-target-colors.test.mjs
