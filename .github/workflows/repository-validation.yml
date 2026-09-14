@@ -49,6 +49,18 @@ jobs:
           node tests/encyclopedia-graph-ui.test.mjs
           node --test tests/encyclopedia-molecule-transition.test.mjs
           node tests/encyclopedia-transition-browser.test.mjs
+      - name: Encyclopedia visible transition frames
+        env:
+          ENCYCLOPEDIA_CAPTURE: '1'
+        run: node tests/encyclopedia-visible-transition-browser.test.mjs
+      - name: Upload Encyclopedia transition frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encyclopedia-transition-frames
+          path: test-results/encyclopedia-transition
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Browser startup
         run: node tests/browser-startup.test.mjs
       - name: Molecule DB v2 persistence
