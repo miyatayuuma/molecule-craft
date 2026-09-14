@@ -22,21 +22,46 @@ jobs:
           node-version: 22
       - name: Target Match and related CRAFT tests
         run: |
-          node --test tests/craft-target-match.test.mjs
-          node tests/craft-target-hint.test.mjs
-          node tests/craft-target-satisfaction.test.mjs
-          node tests/craft-target.test.mjs
-          node tests/unified-craft-target.test.mjs
-          node tests/craft-tearoff.test.mjs
-          node tests/craft-history.test.mjs
-          node tests/craft-target-undo-derived.test.mjs
+          set +e
+          status=0
+          {
+            echo '=== craft-target-match ==='
+            node --test tests/craft-target-match.test.mjs || status=1
+            echo '=== craft-target-hint ==='
+            node tests/craft-target-hint.test.mjs || status=1
+            echo '=== craft-target-satisfaction ==='
+            node tests/craft-target-satisfaction.test.mjs || status=1
+            echo '=== craft-target ==='
+            node tests/craft-target.test.mjs || status=1
+            echo '=== unified-craft-target ==='
+            node tests/unified-craft-target.test.mjs || status=1
+            echo '=== craft-tearoff ==='
+            node tests/craft-tearoff.test.mjs || status=1
+            echo '=== craft-history ==='
+            node tests/craft-history.test.mjs || status=1
+            echo '=== craft-target-undo-derived ==='
+            node tests/craft-target-undo-derived.test.mjs || status=1
+          } > target-match-ci.log 2>&1
+          cat target-match-ci.log
+          exit $status
+      - name: Commit diagnostics on failure
+        if: failure()
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add target-match-ci.log
+          git commit -m "Capture target match CI diagnostics"
+          git push origin HEAD:task/craft-target-match
       - name: Generate PWA precache
+        if: success()
         run: node scripts/build-precache.mjs
       - name: Repository hygiene and diff check
+        if: success()
         run: |
           node tests/repository-hygiene.test.mjs
           git diff --check
       - name: Commit generated precache
+        if: success()
         run: |
           if git diff --quiet -- sw.js precache-manifest.js; then
             exit 0
