@@ -53,6 +53,7 @@ jobs:
       - name: Element authority / nitrogen resource foundation
         run: |
           node tests/element-authority-n-foundation.test.mjs
+          node tests/nitrogen-chapter-progression.test.mjs
           node tests/inventory-depletion.test.mjs
       - name: CRAFT input recovery
         run: |
