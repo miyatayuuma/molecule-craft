@@ -47,7 +47,12 @@ try{
   assert.equal(active.owner,'transition');assert.equal(active.id,'isobutane');assert.equal(active.proxy,true,'selected molecule proxy must remain visible while Graph is replaced');assert.ok(active.rect.width>0);
   await new Promise(r=>setTimeout(r,300));const mid=await evaluate(`(()=>{const r=document.querySelector('.encyclopedia-molecule-transition')?.getBoundingClientRect();return r&&{left:r.left,top:r.top,width:r.width,height:r.height}})()`);
   assert.ok(mid&&Math.hypot(mid.left-initial.rect.left,mid.top-initial.rect.top)>5,'molecule must visibly travel from the measured Graph node instead of crossfading in place');
-  for(let i=0;i<30;i++){await new Promise(r=>setTimeout(r,60));const owner=await evaluate(`document.body.dataset.encyclopediaMoleculeOwner`);if(owner==='detail')break;assert.equal(owner,'transition');assert.equal(await evaluate(`!!document.querySelector('.encyclopedia-molecule-transition')`),true,'transition owner must always have a visible molecule proxy');}
+  for(let i=0;i<30;i++){
+    await new Promise(r=>setTimeout(r,60));
+    const lifecycle=await evaluate(`(()=>({owner:document.body.dataset.encyclopediaMoleculeOwner,proxy:!!document.querySelector('.encyclopedia-molecule-transition')}))()`);
+    if(lifecycle.owner==='detail')break;
+    assert.equal(lifecycle.owner,'transition');assert.equal(lifecycle.proxy,true,'transition owner must always have a visible molecule proxy');
+  }
   assert.equal(await evaluate(`document.body.dataset.encyclopediaMoleculeOwner`),'detail');assert.equal(await evaluate(`document.querySelector('.molecule-detail-return')?.dataset.moleculeId`),'isobutane');
 
   const navigated=await evaluate(`(()=>{const buttons=[...document.querySelectorAll('.molecule-detail-navigation button')].filter(button=>!button.disabled);if(!buttons.length)return false;buttons[0].click();return true;})()`);assert.equal(navigated,true);await new Promise(r=>setTimeout(r,140));
