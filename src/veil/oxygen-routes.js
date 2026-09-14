@@ -90,7 +90,7 @@ const DEEP_OFF_ROUTE_PRESSURE=120;
 export const OXYGEN_THERMAL=Object.freeze({
   routeId:'oxygen-side',coreRadius:150,fadeRadius:260,learningHeat:32,learningExposureSeconds:1.25,
   heatStops:freezeStops([
-    [-8870,1],[-9050,2],[-9200,4],[-9500,12],[-9700,32],[-9800,48],
+    [-8870,1],[-9000,2],[-9075,12],[-9140,32],[-9200,48],
     [-10480,48],[-10510,32],[-10540,8],[-10560,0],[-10670,0],
   ]),
   mergeRecovery:Object.freeze({x:120,y:-10800,radius:330,top:-10640,bottom:-10900}),
