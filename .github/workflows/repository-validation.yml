@@ -50,10 +50,16 @@ jobs:
         run: |
           node tests/collection-persistence.test.mjs
           node tests/resources-persistence.test.mjs
-      - name: Element authority / nitrogen resource foundation
-        run: |
-          node tests/element-authority-n-foundation.test.mjs
-          node tests/inventory-depletion.test.mjs
+      - name: Element authority diagnostic - access authority
+        run: node --test --test-name-pattern="resources.canUseElement" tests/element-authority-n-foundation.test.mjs
+      - name: Element authority diagnostic - discovery count
+        run: node --test --test-name-pattern="collection discovery count" tests/element-authority-n-foundation.test.mjs
+      - name: Element authority diagnostic - N settlement reload
+        run: node --test --test-name-pattern="N collection, expedition settlement" tests/element-authority-n-foundation.test.mjs
+      - name: Element authority diagnostic - N depletion CHO spawn
+        run: node --test --test-name-pattern="N depletion is computable" tests/element-authority-n-foundation.test.mjs
+      - name: Inventory depletion
+        run: node tests/inventory-depletion.test.mjs
       - name: CRAFT input recovery
         run: |
           node tests/craft-controls-ui.test.mjs
