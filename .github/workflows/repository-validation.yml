@@ -126,6 +126,18 @@ jobs:
           node tests/launch-selector.test.mjs
           node tests/launch-pointer-lifecycle.test.mjs
           node tests/ui-symbols.test.mjs
+      - name: Stage generated PWA artifacts
+        run: |
+          node scripts/build-precache.mjs
+          mkdir -p test-results/pwa-generated
+          cp sw.js precache-manifest.js test-results/pwa-generated/
+      - name: Upload generated PWA artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-pwa-artifacts
+          path: test-results/pwa-generated
+          if-no-files-found: error
+          retention-days: 1
       - name: Generated PWA freshness
         run: node scripts/build-precache.mjs --check
       - name: PWA integrity
