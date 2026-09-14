@@ -1,4 +1,4 @@
-import { MOLECULE_USES,REGIONS,TANK_USES } from './growth.js';
+import { MOLECULE_USES,REGIONS,TANK_USES,isExpeditionRegionDestination } from './growth.js';
 import { ACTIVE_TANK_ROLES,performanceFor } from './molecule-roles.js';
 import { drawCollectorShell,drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_JUNCTION } from './oxygen-routes.js';
@@ -8,11 +8,11 @@ import { isExpeditionDestinationAvailable } from './launch-request.js';
 import { syncElementStocks } from '../element-progression.js?v=36';
 
 const USE_ORDER=[...ACTIVE_TANK_ROLES];
-const REGION_CUES=Object.freeze({veil:{glyph:'H',color:'#bfefff'},carbon:{glyph:'C',color:'#aeb8c4'},oxygen:{glyph:'O',color:'#8dbcf4'},frontier:{glyph:'',color:'#f5d584'},nitrogen:{glyph:'N',color:'#a8a8ff'}});
-const availableLaunchRegionIds=progress=>{const ids=[...(progress?.regions??[])];if(progress?.choCompleted===true&&!ids.includes(NITROGEN_REGION_ID))ids.push(NITROGEN_REGION_ID);return ids;};
+const REGION_CUES=Object.freeze({veil:{glyph:'H',color:'#bfefff'},carbon:{glyph:'C',color:'#aeb8c4'},oxygen:{glyph:'O',color:'#8dbcf4'},nitrogen:{glyph:'N',color:'#a8a8ff'}});
+const availableLaunchRegionIds=progress=>{const ids=[...(progress?.regions??[])].filter(isExpeditionRegionDestination);if(progress?.choCompleted===true&&!ids.includes(NITROGEN_REGION_ID))ids.push(NITROGEN_REGION_ID);return ids;};
 
 export function launchDestinationLayout(ids,radius=66){
-  const visible=ids.filter(id=>REGIONS[id]).slice(0,5),count=visible.length;
+  const visible=ids.filter(id=>REGIONS[id]&&isExpeditionRegionDestination(id)).slice(0,5),count=visible.length;
   return visible.map((id,index)=>{const angle=-Math.PI/2+(count===1?0:index*Math.PI*2/count);return {id,x:Math.cos(angle)*radius,y:Math.sin(angle)*radius};});
 }
 

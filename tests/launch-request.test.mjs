@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createDeferredExplorationFacade} from '../src/craft-connections.js';
 import {createExpeditionLaunchRequester,isExpeditionDestinationAvailable} from '../src/veil/launch-request.js';
 
-const state={progress:{checkpoint:'carbon',regions:['veil','carbon','oxygen']}};
+const state={progress:{checkpoint:'carbon',regions:['veil','carbon','oxygen','frontier']}};
 assert.equal(isExpeditionDestinationAvailable(state,'continue'),true);
 assert.equal(isExpeditionDestinationAvailable(state,'oxygen'),true);
 assert.equal(isExpeditionDestinationAvailable(state,'frontier'),false);

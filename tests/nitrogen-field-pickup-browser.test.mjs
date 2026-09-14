@@ -81,3 +81,4 @@ try{
   try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await new Promise(resolveWait=>setTimeout(resolveWait,100));server.close();await rm(profile,{recursive:true,force:true});
 }
 console.log('Nitrogen Chromium regression passed: production launch contains visible FIELD canvas/N dust, overlap collects N into run cargo, N2 marker becomes claimable, and normal return settles final N cargo into BASE STOCK.');
+await import('./legacy-frontier-browser.test.mjs');

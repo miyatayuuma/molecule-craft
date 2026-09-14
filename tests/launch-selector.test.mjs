@@ -15,13 +15,11 @@ assert.doesNotMatch(source,/dispatchEvent\(new window\.Event\('change'/,'Launch 
 assert.doesNotMatch(source,/q\('launch-veil'\)\.click\(\)/,'Launch must not relay application behavior through a pseudo-click');
 assert.match(uiSource,/createExpeditionLaunchRequester/,'EXPLORE must own an application-level launch requester');
 assert.match(uiSource,/q\('launch-veil'\)\.addEventListener\('click',event=>\{event\.preventDefault\(\);requestExpeditionLaunch\(anchor\);\}\)/,'The launch affordance must enter the same application request API');
-const ids=['veil','carbon','oxygen','frontier','veil','carbon'];
-for(let count=1;count<=5;count++){
-  const layout=launchDestinationLayout(ids.slice(0,count));
-  assert.equal(layout.length,count);
-  assert.equal(new Set(layout.map(({x,y})=>`${x.toFixed(6)},${y.toFixed(6)}`)).size,count);
-  for(const point of layout)assert.ok(Math.abs(Math.hypot(point.x,point.y)-66)<1e-8);
-}
-assert.equal(launchDestinationLayout(ids).length,5,'Destination fan stays readable when more regions are added');
-assert.deepEqual(launchDestinationLayout(['unknown','veil']).map(({id})=>id),['veil']);
-console.log('Explorer launch selector passed: radial inputs share the explicit launch request API without DOM event relays.');
+const ids=['veil','carbon','oxygen','frontier','nitrogen'];
+const layout=launchDestinationLayout(ids);
+assert.deepEqual(layout.map(({id})=>id),['veil','carbon','oxygen','nitrogen'],'Legacy Inner Horizon/frontier is not a LOADOUT destination candidate');
+assert.equal(new Set(layout.map(({x,y})=>`${x.toFixed(6)},${y.toFixed(6)}`)).size,layout.length);
+for(const point of layout)assert.ok(Math.abs(Math.hypot(point.x,point.y)-66)<1e-8);
+assert.deepEqual(launchDestinationLayout(['frontier','unknown','veil']).map(({id})=>id),['veil']);
+await import('./legacy-frontier-destination.test.mjs');
+console.log('Explorer launch selector passed: radial inputs share the explicit launch request API without DOM event relays, and legacy frontier is absent.');
