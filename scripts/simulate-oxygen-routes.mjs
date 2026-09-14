@@ -27,8 +27,8 @@ export function simulateOxygenRoute({routeId='oxygen-shortcut',propellant='hydro
   let knots=route.knots;
   if(detour){
     if(routeId!=='oxygen-shortcut')throw Error('Detour is only defined for the shortcut');
-    // Leave the strong gate's width, cross the surrounding 370 current, rejoin.
-    knots=[...route.knots.slice(0,2),[-300,-9020],[-470,-9120],[-470,-9390],[-300,-9530],...route.knots.slice(2)];
+    // Leave both localized gate widths, cross the surrounding 370 current, then rejoin after gate 2.
+    knots=[...route.knots.slice(0,2),[-300,-9020],[-470,-9120],[-470,-10040],[-300,-10130],...route.knots.slice(2)];
   }
   const points=[...knots.slice(start==='oxygen'?0:1).map(([x,y])=>({x:x+lateralOffset,y})),OXYGEN_REWARD,...(destination==='final'?[{x:250,y:-11200},{x:100,y:-11830},{x:0,y:-12200},CHO_DESTINATION]:[])];
   let index=0,resting=false,returning=0,arrivalSeconds=null,replayIndex=0,previousMode='coast',modeTransitions=0,propulsionSwitches=0,lastPropulsion=null;
@@ -57,8 +57,10 @@ export function simulateOxygenRoute({routeId='oxygen-shortcut',propellant='hydro
     const fire=()=>{if(beginBurst(run,(amount,id)=>resources.consumeTank('propellant',id,amount)))actualBurstTimes.push(run.time);};
     if(burstTimes){
       while(replayIndex<burstTimes.length&&run.time+1e-8>=Math.max(0,burstTimes[replayIndex]+timingOffset)){fire();replayIndex++;}
-    }else if(!resting&&Math.abs(p.x-route.x)<route.width/2)for(const gate of route.gates){
-      if(p.y>gate.y&&p.y<gate.y+gate.depth/2+30)fire();
+    }else if(!resting&&Math.abs(p.x-route.x)<route.width/2&&route.gates.length){
+      const nextGate=route.gates[Math.min(actualBurstTimes.length,route.gates.length-1)];
+      const lookahead=route.id==='oxygen-shortcut'?140:nextGate.depth/2+30;
+      if(actualBurstTimes.length<route.gates.length&&p.y>nextGate.y&&p.y<nextGate.y+lookahead)fire();
     }
     tick({x:dx/length*(resting?.2:1),y:dy/length*(resting?.2:1)});
   }

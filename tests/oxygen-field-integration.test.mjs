@@ -59,11 +59,14 @@ for(const [zone,route] of [[pulse,network['oxygen-main']],[curve,deep['oxygen-de
   assert.equal(run.events.some(event=>event.type==='inspiration'&&event.rewards===zone.rewards),false,`${zone.id} adjacent route must not complete`);
 }
 
-const gate=environmentAt({x:-320,y:-9700},.6);
-assert.equal(gate.traversableRoutePressure,600,'route-owned pressure stays in the traversable current channel');
-assert.equal(gate.pressure,600,'pulse overlay must not weaken or add to the 600 pressure gate');
-const pulseOnly=environmentAt({x:-320,y:-9500},.6);
-assert.ok(pulseOnly.pressure>0&&pulseOnly.pressure<=410,'pulse periphery retains dynamic challenge pressure');
+for(const y of [-9480,-9950]){
+  const gate=environmentAt({x:-320,y},.6);
+  assert.equal(gate.traversableRoutePressure,600,`route-owned pressure stays localized at ${y}`);
+  assert.equal(gate.pressure,600,'challenge overlays must not add to a 600 pressure band');
+}
+const pulseOnly=environmentAt({x:-320,y:-9700},.6);
+assert.equal(pulseOnly.traversableRoutePressure,0,'the pulse/shear center is a pressure-free corridor between gate bands');
+assert.ok(pulseOnly.pressure>0&&pulseOnly.pressure<=410,'the existing pulse challenge remains readable without route-pressure stacking');
 
 assert.deepEqual(FIELD_SIGNALS.map(({id,region,complexity,x,y})=>({id,region,complexity,x,y})),[
   {id:'veil',region:'veil',complexity:undefined,x:390,y:-650},
