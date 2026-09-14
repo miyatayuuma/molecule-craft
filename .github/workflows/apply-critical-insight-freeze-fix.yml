@@ -1,0 +1,49 @@
+name: Apply Critical Insight freeze fix
+
+on:
+  push:
+    branches:
+      - fix/critical-insight-field-freeze
+    paths:
+      - .github/workflows/apply-critical-insight-freeze-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: fix/critical-insight-field-freeze
+          fetch-depth: 0
+      - name: Add missing Nitrogen molecule binding
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/veil/resources.js')
+          source = path.read_text()
+          old = "import { NITROGEN_REGION_AVAILABLE,nitrogenChapterState,nitrogenCriticalInsightCandidate,nitrogenElementAccessible,nitrogenFrontierObjective } from './nitrogen-progression.js';"
+          new = "import { NITROGEN_MOLECULE_ID,NITROGEN_REGION_AVAILABLE,nitrogenChapterState,nitrogenCriticalInsightCandidate,nitrogenElementAccessible,nitrogenFrontierObjective } from './nitrogen-progression.js';"
+          if source.count(old) != 1:
+              raise SystemExit('Expected exactly one Nitrogen progression import to update')
+          path.write_text(source.replace(old, new, 1))
+          PY
+      - name: Focused Critical Insight regression
+        run: |
+          node --test tests/critical-insight-freeze.test.mjs
+          node tests/critical-insight-freeze-browser.test.mjs
+      - name: Refresh and validate generated PWA assets
+        run: |
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+      - name: Commit production fix and generated freshness
+        run: |
+          git diff --check
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "fix: restore Critical Insight FIELD continuation"
+          git push origin HEAD:fix/critical-insight-field-freeze
