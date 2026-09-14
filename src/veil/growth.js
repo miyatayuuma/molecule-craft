@@ -2,11 +2,12 @@ import { oxygenCapacity } from './tank-upgrades.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { activeTankRolesFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
 import {NITROGEN_REGION_AVAILABLE,nitrogenGrowthGoal} from './nitrogen-progression.js';
+import {NITROGEN_ENTRY,NITROGEN_REGION_BOUNDS,NITROGEN_REGION_Y} from './nitrogen-config.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
 // need no effect entry; future shared actions can be attached here independently.
 export const MOLECULE_USES = Object.freeze({
   hydrogen:{formula:'H₂',name:'水素',atoms:['H','H'],role:'burst-propellant',tankUses:['propellant'],performance:{propellant:{thrust:.82,load:.25}},hint:'Hを2つ置き、光る電子を1本つなぐ。',use:'原始的な短時間ガス噴射。通常航行には不向きだが、緊急回避と強い流れの突破に使える。',discovery:'H₂ BURSTを発見。一探索に積めるのは少量だけ。危険な瞬間まで残しておこう。'},
-  methane:{formula:'CH₄',name:'メタン',atoms:['C','H','H','H','H'],role:'fuel',tankUses:['fuel'],performance:{fuel:{load:.72,oxygen:.5}},hint:'Cを中心に、4つのHをそれぞれ1本でつなぐ。',use:'高密度な燃料。単独では推進に使えず、O₂と組み合わせて初めて連続航行できる。',discovery:'メタンを発見。燃料はできた。燃焼には、さらに奥にある酸化剤が必要だ。'},
+  methane:{formula:'CH₄',name:'メタン',atoms:['C','H','H','H','H'],role:'fuel',tankUses:['fuel'],performance:{fuel:{load:.72,oxygen:.5}},hint:'Cを中心に、4つのHをそれぞれ1本でつなぐ。',use:'高密度な燃料。単独では推進に使えず、O₂と組み合わせて初めて連続航行できる。',discovery:'メタンを発見。燃料はできた。燃焼には、さらに酸化剤が必要だ。'},
   oxygen:{formula:'O₂',name:'酸素',atoms:['O','O'],role:'oxidizer',tankUses:['oxidizer'],hint:'Oを2つ置く。同じ2原子の電子を2回つなぎ、二重結合にする。',use:'燃料ではなく酸化剤。CH₄ 1個とO₂ 2個で、押している間だけ続くCOMBUSTION DRIVEを動かす。',discovery:'酸化剤ができた。H₂の一瞬の噴射から、CH₄ + O₂による高速航行へ。'},
   water:{formula:'H₂O',name:'水',atoms:['O','H','H'],role:'coolant',tankUses:['coolant'],hint:'Oを中心に、Hを2つそれぞれ1本でつなぐ。',use:'燃焼ドライブの熱を自動的に逃がす冷却剤。短い燃焼では消費せず、連続航行を支える。',discovery:'水を発見。冷却剤タンクに充填すると、燃焼熱を自動制御できる。'},
 });
@@ -26,7 +27,7 @@ export const DRIVES=Object.freeze({
 });
 export const GROWTH=Object.freeze({
   flight:{speed:164,driftSpeed:29,suctionRadius:30,assistRadius:78},
-  dustPerAtom:{H:3,C:3,O:3},bounds:{left:-1100,right:1250,top:-12750,bottom:500},
+  dustPerAtom:{H:3,C:3,N:1,O:3},bounds:{left:-1100,right:1250,top:-12750,bottom:500},
   clusterRadius:64,clusterRespawn:40,clusterParticles:36,clusterSpread:120,clusterValue:3,
   density:{
     carbon:{spacing:25,lanes:2,value:1},
@@ -35,17 +36,18 @@ export const GROWTH=Object.freeze({
     frontier:{spacing:18,lanes:4,value:2},
   },
   signalChance:.38,signalPity:3,
-  carbonY:-4390,oxygenY:-7830,frontierY:-11680,
+  carbonY:-4390,oxygenY:-7830,frontierY:-11680,nitrogenY:NITROGEN_REGION_Y,
 });
 export const REGIONS=Object.freeze({
   veil:{name:'H Veil',subtitle:'水素の帳',element:'H',x:0,y:180,angle:-Math.PI/2},
   carbon:{name:'Carbon Drift',subtitle:'炭素の群れ',element:'C',x:250,y:-4600,angle:-Math.PI/2},
   oxygen:{name:'Oxygen Surge',subtitle:'酸素の奔流',element:'O',x:170,y:-8090,angle:-Math.PI/2},
   frontier:{name:'Inner Horizon',subtitle:'まだ名のない光',element:'O',x:100,y:-11920,angle:-Math.PI/2},
+  nitrogen:{name:'Nitrogen Pulse',subtitle:'窒素の脈動流',element:'N',x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,angle:NITROGEN_ENTRY.angle},
 });
-export const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','frontier']);
-export function regionAt(y){return y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
-export function flightConfig(){return {...VEIL,...GROWTH.flight,bounds:GROWTH.bounds};}
+export const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','frontier','nitrogen']);
+export function regionAt(y){return y<GROWTH.nitrogenY?'nitrogen':y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
+export function flightConfig(state){const nitrogenField=state?.progress?.choCompleted===true,bounds=nitrogenField?NITROGEN_REGION_BOUNDS:GROWTH.bounds;return {...VEIL,...GROWTH.flight,bounds,nitrogenField,nitrogenStock:Math.max(0,Number(state?.elements?.N)||0)};}
 export function propulsionSpeedMax(config=GROWTH.flight){return Math.max(Number(config?.speed)||0,...Object.values(DRIVES).map(drive=>Number(drive.boostSpeed)||0));}
 export function driveAvailable(state,id){
   if(id==='hydrogen')return state.recipes.includes('hydrogen');

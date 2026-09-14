@@ -8,6 +8,9 @@ import {
   DEEP_OXYGEN_ROUTES,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,
   OXYGEN_VORTEX_REWARD,OXYGEN_VORTEX_ROUTE,oxygenPressureAt,oxygenRouteCenterAtY,
 } from '../src/veil/oxygen-routes.js';
+import {
+  NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_AREA,NITROGEN_PULSES,NITROGEN_ROUTE,
+} from '../src/veil/nitrogen-routes.js';
 import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt} from '../src/veil/expedition-challenges.js';
 import {CHO_DESTINATION} from '../src/veil/cho-campaign.js';
 
@@ -48,12 +51,14 @@ const rectPath=cells=>{
 };
 
 function regionBands(bounds){
-  const bands=[
-    {id:'frontier',top:bounds.top,bottom:GROWTH.frontierY},
+  const bands=[];
+  if(bounds.top<GROWTH.nitrogenY)bands.push({id:'nitrogen',top:bounds.top,bottom:GROWTH.nitrogenY});
+  bands.push(
+    {id:'frontier',top:Math.max(bounds.top,GROWTH.nitrogenY),bottom:GROWTH.frontierY},
     {id:'oxygen',top:GROWTH.frontierY,bottom:GROWTH.oxygenY},
     {id:'carbon',top:GROWTH.oxygenY,bottom:GROWTH.carbonY},
     {id:'veil',top:GROWTH.carbonY,bottom:bounds.bottom},
-  ];
+  );
   for(const band of bands){
     const sample=(band.top+band.bottom)/2;
     if(regionAt(sample)!==band.id)throw new Error(`Region boundary mismatch for ${band.id} at y=${sample}`);
@@ -84,7 +89,7 @@ function gridSvg(bounds){
 }
 
 function regionSvg(bounds){
-  const fills={frontier:'#b98bc8',oxygen:'#6fa7c7',carbon:'#c9a36b',veil:'#91a0ad'};
+  const fills={nitrogen:'#7082d6',frontier:'#b98bc8',oxygen:'#6fa7c7',carbon:'#c9a36b',veil:'#91a0ad'};
   return regionBands(bounds).map(band=>{
     const height=band.bottom-band.top;
     return `<g data-region="${band.id}" data-top="${band.top}" data-bottom="${band.bottom}"><rect x="${bounds.left}" y="${band.top}" width="${bounds.right-bounds.left}" height="${height}" fill="${fills[band.id]}"/><text class="region-label" x="${bounds.left+55}" y="${band.top+90}">${band.id.toUpperCase()}</text></g>`;
@@ -124,14 +129,14 @@ function authoredGatesSvg(){
   return parts.join('\n');
 }
 
-function elementLayer(universe,element){
+function elementLayer(universe,element,metadata='deterministic baseline snapshot: createUniverse(1, {H:0,C:0,O:0}); not invariant authored positions'){
   const points=universe.dust.filter(dust=>(dust.element??'H')===element);
-  return `<metadata>deterministic baseline snapshot: createUniverse(1, {H:0,C:0,O:0}); not invariant authored positions</metadata>\n<path class="element element-${element.toLowerCase()}" data-element="${element}" data-count="${points.length}" d="${dustPath(points)}"/>`;
+  return `<metadata>${metadata}</metadata>\n<path class="element element-${element.toLowerCase()}" data-element="${element}" data-count="${points.length}" d="${dustPath(points)}"/>`;
 }
 
 function mapFieldsSvg(universe){
   return universe.fields.map((field,index)=>{
-    const circle=`<circle data-map-field="${index}" data-field-id="${escapeXml(field.id??'')}" data-angle="${fmt(field.angle??0)}" data-force="${fmt(field.force??VEIL.fieldForce)}" cx="${fmt(field.x)}" cy="${fmt(field.y)}" r="${fmt(field.radius)}"/>`;
+    const circle=`<circle data-map-field="${index}" data-field-id="${escapeXml(field.id??'')}" data-field-kind="${escapeXml(field.kind??'')}" data-angle="${fmt(field.angle??0)}" data-force="${fmt(field.force??VEIL.fieldForce)}" cx="${fmt(field.x)}" cy="${fmt(field.y)}" r="${fmt(field.radius)}"/>`;
     if(field.kind!=='burst-advantage')return circle;
     const angle=field.angle??0,length=field.radius*.82,x2=field.x+Math.cos(angle)*length,y2=field.y+Math.sin(angle)*length;
     return `<g data-burst-advantage="${escapeXml(field.id)}" data-route="${escapeXml(field.route)}" data-force="${fmt(field.force)}" data-clean-half-width="${fmt(field.cleanHalfWidth)}">${circle}<line x1="${fmt(field.x)}" y1="${fmt(field.y)}" x2="${fmt(x2)}" y2="${fmt(y2)}"/><text x="${fmt(field.x+field.radius+26)}" y="${fmt(field.y-field.radius-22)}">BURST ADV · ${escapeXml(field.id)} · short shear · clean ±${fmt(field.cleanHalfWidth)}</text></g>`;
@@ -219,14 +224,51 @@ function labelsSvg(universe){
   return universe.labels.map((label,index)=>`<text data-authored-label="${index}" x="${fmt(label.x)}" y="${fmt(label.y)}">${escapeXml(label.text)}</text>`).join('\n');
 }
 
-function legendSvg(bounds,universe){
+function nitrogenFieldSvg(universe,bounds){
+  const route=universe.routes.find(candidate=>candidate.id===NITROGEN_ROUTE.id);
+  if(!route)throw new Error('Nitrogen production route missing from nitrogen-enabled universe');
+  const pulses=universe.fields.filter(field=>field.kind==='nitrogen-pulse');
+  const main=universe.dust.filter(item=>item.element==='N'&&item.route===NITROGEN_ROUTE.id);
+  const pocket=universe.dust.filter(item=>item.element==='N'&&item.route===NITROGEN_HIGH_DENSITY_POCKET.id);
+  const signal=universe.signals.find(item=>item.region==='nitrogen');
+  if(pulses.length!==NITROGEN_PULSES.length)throw new Error('Nitrogen production pulse count mismatch');
+  const routeLayer=[
+    `<path id="route-${escapeXml(route.id)}" data-route="${escapeXml(route.id)}" data-element="N" d="${pointPath(route.points)}"/>`,
+    `<path data-route-width="${escapeXml(route.id)}" data-width="${fmt(route.width)}" d="${pointPath(route.points)}" stroke-width="${fmt(route.width)}"/>`,
+  ].join('\n');
+  const pulseLayer=pulses.map(field=>`<circle data-nitrogen-pulse="${escapeXml(field.id)}" data-force="${fmt(field.force)}" data-angle="${fmt(field.angle)}" cx="${fmt(field.x)}" cy="${fmt(field.y)}" r="${fmt(field.radius)}"/>`).join('\n');
+  const resourceLayer=[
+    `<metadata>production nitrogen-enabled universe; stock N=0; route depletion=${fmt(route.routeDepletion??0)}</metadata>`,
+    `<path class="element element-n" data-element="N" data-resource-area="mainline" data-count="${main.length}" d="${dustPath(main)}"/>`,
+    `<circle data-resource-area="high-density-pocket" data-optional="true" data-particles="${NITROGEN_HIGH_DENSITY_POCKET.particles}" data-value="${NITROGEN_HIGH_DENSITY_POCKET.value}" cx="${fmt(NITROGEN_HIGH_DENSITY_POCKET.x)}" cy="${fmt(NITROGEN_HIGH_DENSITY_POCKET.y)}" r="${fmt(NITROGEN_HIGH_DENSITY_POCKET.radius)}"/>`,
+    `<path class="element element-n" data-element="N" data-resource-area="high-density-pocket-particles" data-count="${pocket.length}" d="${dustPath(pocket)}"/>`,
+  ].join('\n');
+  const insightLayer=[
+    `<circle data-critical-insight-area="${escapeXml(NITROGEN_INSIGHT_AREA.id)}" cx="${fmt(NITROGEN_INSIGHT_AREA.x)}" cy="${fmt(NITROGEN_INSIGHT_AREA.y)}" r="${fmt(NITROGEN_INSIGHT_AREA.radius)}"/>`,
+    signal?`<circle data-signal="${escapeXml(signal.id)}" data-region="nitrogen" cx="${fmt(signal.x)}" cy="${fmt(signal.y)}" r="22"/>`:'',
+  ].join('\n');
+  const dynamicBoundary=`<rect data-progression="post-CHO" data-left="${bounds.left}" data-right="${bounds.right}" data-top="${bounds.top}" data-bottom="${bounds.bottom}" x="${bounds.left}" y="${bounds.top}" width="${bounds.right-bounds.left}" height="${bounds.bottom-bounds.top}"/>`;
+  return [
+    '<metadata>Post-CHO Nitrogen FIELD is derived from flightConfig(state) bounds plus createUniverse(...,{capabilities:{nitrogenField:true}}); no duplicate map geometry.</metadata>',
+    layer('dynamic-boundary','post-CHO dynamic boundary',dynamicBoundary),
+    layer('nitrogen-route','Nitrogen route centerline and width',routeLayer),
+    layer('nitrogen-pulses','Nitrogen pulse/shear zones',pulseLayer),
+    layer('nitrogen-resources','Nitrogen resource areas',resourceLayer),
+    layer('nitrogen-insight','Nitrogen Critical Insight opportunity',insightLayer),
+  ].join('\n');
+}
+
+function legendSvg(bounds,universe,nitrogenUniverse,dynamicBounds){
   const counts=Object.fromEntries(['H','C','O'].map(element=>[element,universe.dust.filter(dust=>(dust.element??'H')===element).length]));
+  const nitrogenCount=nitrogenUniverse.dust.filter(dust=>dust.element==='N').length;
   const lines=[
     'CURRENT FIELD · developer map',
-    `bounds: left ${bounds.left} / right ${bounds.right} / top ${bounds.top} / bottom ${bounds.bottom}`,
+    `CHO bounds: left ${bounds.left} / right ${bounds.right} / top ${bounds.top} / bottom ${bounds.bottom}`,
+    `post-CHO bounds: left ${dynamicBounds.left} / right ${dynamicBounds.right} / top ${dynamicBounds.top} / bottom ${dynamicBounds.bottom}`,
     `baseline: createUniverse(${BASELINE_SEED}, {H:0,C:0,O:0}) · pre-DRIVE`,
     'post-DRIVE H/C revisit geometry is shown only in the dedicated delta layer',
-    `particles: H ${counts.H} · C ${counts.C} · O ${counts.O}`,
+    'post-CHO Nitrogen geometry is shown only in the dedicated production-derived layer',
+    `particles: H ${counts.H} · C ${counts.C} · O ${counts.O} · N ${nitrogenCount} (fresh N stock)`,
     'element positions are deterministic baseline snapshot, not invariant authored positions',
     `thermal: environmentAt() sampled every ${THERMAL_STEP} world units at time=0`,
     'environment heat != player thermal state',
@@ -238,13 +280,15 @@ function legendSvg(bounds,universe){
     'Route density annotations are authored spacing / lanes / value profiles.',
     'No inferred walls/corridor polygons are generated.',
   ];
-  return `<rect class="legend-panel" x="1390" y="${bounds.top+70}" width="1450" height="${lines.length*92+100}" rx="24"/>\n${lines.map((line,index)=>`<text class="legend-text ${index===0?'legend-title':''}" x="1450" y="${bounds.top+150+index*92}">${escapeXml(line)}</text>`).join('\n')}`;
+  return `<rect class="legend-panel" x="1390" y="${dynamicBounds.top+70}" width="1450" height="${lines.length*92+100}" rx="24"/>\n${lines.map((line,index)=>`<text class="legend-text ${index===0?'legend-title':''}" x="1450" y="${dynamicBounds.top+150+index*92}">${escapeXml(line)}</text>`).join('\n')}`;
 }
 
 export function buildFieldMapSvg(){
-  const config=flightConfig(),bounds=GROWTH.bounds,universe=createUniverse(BASELINE_SEED,{...BASELINE_STOCK}),postDriveUniverse=createUniverse(BASELINE_SEED,{...BASELINE_STOCK},{capabilities:{combustionDrive:true}});
+  const config=flightConfig(),bounds=GROWTH.bounds,postChoConfig=flightConfig({progress:{choCompleted:true},elements:{N:0}}),dynamicBounds=postChoConfig.bounds;
+  const universe=createUniverse(BASELINE_SEED,{...BASELINE_STOCK}),postDriveUniverse=createUniverse(BASELINE_SEED,{...BASELINE_STOCK},{capabilities:{combustionDrive:true}}),nitrogenUniverse=createUniverse(BASELINE_SEED,{...BASELINE_STOCK,N:0},{capabilities:{nitrogenField:true}});
   if(config.bounds!==bounds&&JSON.stringify(config.bounds)!==JSON.stringify(bounds))throw new Error('flightConfig bounds diverge from GROWTH.bounds');
-  const view={left:bounds.left-100,top:bounds.top-100,right:2950,bottom:bounds.bottom+100};
+  if(dynamicBounds.top>=bounds.top)throw new Error('post-CHO dynamic bounds must extend beyond CHO bounds');
+  const view={left:dynamicBounds.left-100,top:dynamicBounds.top-100,right:2950,bottom:dynamicBounds.bottom+100};
   const width=view.right-view.left,height=view.bottom-view.top;
   const geometry=[
     layer('playable-bounds','playable bounds',`<rect data-left="${bounds.left}" data-right="${bounds.right}" data-top="${bounds.top}" data-bottom="${bounds.bottom}" x="${bounds.left}" y="${bounds.top}" width="${bounds.right-bounds.left}" height="${bounds.bottom-bounds.top}"/>`),
@@ -253,7 +297,7 @@ export function buildFieldMapSvg(){
     layer('authored-gates','authored gates',authoredGatesSvg()),
   ].join('\n');
   const gameplay=gameplaySvg(universe,config);
-  return `<!-- Generated by scripts/export-field-map.mjs; do not edit. -->\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="${NS}" viewBox="${view.left} ${view.top} ${width} ${height}" width="900" height="${fmt(900*height/width)}" role="img" aria-labelledby="title desc">\n<title id="title">Molecule Craft current FIELD developer map</title>\n<desc id="desc">Coordinate-faithful deterministic developer map generated from current FIELD source.</desc>\n<metadata id="field-map-metadata">baseline-seed=${BASELINE_SEED}; stock=H0,C0,O0; progression=pre-DRIVE baseline + post-DRIVE H/C delta; source-bounds=GROWTH.bounds; procedural element positions are a deterministic baseline snapshot, not invariant authored positions; DUST EATER has no authored map position; RETURN has no fixed world position.</metadata>\n<style>\n.major-grid{stroke:#334151;stroke-width:2;opacity:.34}.grid-labels,.axis-label,.legend-text,.region-label,#layer-labels text,#layer-gameplay text{font:32px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#d9e2ea}.axis{stroke:#91a4b5;stroke-width:5;opacity:.7}.origin{fill:#fff;stroke:#17212b;stroke-width:8}.region-label{font-size:48px;font-weight:700;opacity:.58}.legend-title{font-size:46px;font-weight:800}.legend-panel{fill:#101922;stroke:#617487;stroke-width:4;opacity:.96}\n#layer-regions rect{opacity:.075}#playable-bounds rect{fill:none;stroke:#e7edf2;stroke-width:8}#route-centerlines path{fill:none;stroke:#b7c3ce;stroke-width:5;opacity:.72}#route-centerlines [data-element="H"]{stroke:#8bc8dc}#route-centerlines [data-element="C"]{stroke:#c7a676}#route-centerlines [data-element="O"]{stroke:#d7a4a4}#layer-revisit-post-drive [data-revisit-route]{fill:none;stroke:#a7f0c5;stroke-width:8;stroke-dasharray:24 12}#layer-revisit-post-drive [data-revisit-current]{fill:none;stroke:#6fe3c5;stroke-opacity:.16;stroke-linecap:round}#layer-revisit-post-drive [data-revisit-pocket] path{fill:none;stroke-linecap:round;stroke-width:8}#layer-revisit-post-drive [data-revisit-pocket] [data-element="H"]{stroke:#79d2ee}#layer-revisit-post-drive [data-revisit-pocket] [data-element="C"]{stroke:#c79a62}#route-widths rect{fill:#8db6c7;stroke:#a6cad7;stroke-width:2;opacity:.09}#route-widths path{fill:none;stroke:#a6cad7;stroke-linecap:round;stroke-linejoin:round;opacity:.09}#authored-gates rect{fill:#e1b267;stroke:#f1cb88;stroke-width:5;opacity:.25}#authored-gates line{stroke:#ffdb95;stroke-width:9;stroke-dasharray:24 16}\n.element{fill:none;stroke-linecap:round;opacity:.72}.element-h{stroke:#79d2ee;stroke-width:5}.element-c{stroke:#c79a62;stroke-width:7}.element-o{stroke:#e19090;stroke-width:6}#layer-hazards-fields circle{fill:#9f8fd0;stroke:#c0b4ec;stroke-width:4;opacity:.16}#layer-hazards-fields [data-burst-advantage] circle{fill:#d6a4ff;stroke:#f0d8ff;stroke-width:6;opacity:.3}#layer-hazards-fields [data-burst-advantage] line{stroke:#f3d6ff;stroke-width:8;stroke-linecap:round}#layer-hazards-fields [data-burst-advantage] text{font:28px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#f4e6ff;paint-order:stroke;stroke:#101820;stroke-width:8}#layer-hazards-pressure path{fill:#6f8db7;stroke:none}#layer-hazards-challenges path{fill:#d58a61;stroke:#f0a77e;stroke-width:5;opacity:.17}#layer-hazards-vortex circle{fill:none;stroke:#7ebfca;stroke-width:6;opacity:.42}#layer-hazards-vortex [data-vortex="core"]{fill:#7ebfca;opacity:.18}#layer-thermal path{fill:#e86945;stroke:none}#layer-gameplay circle,#layer-gameplay rect{fill:none;stroke:#f4e1a0;stroke-width:7}#signals circle{stroke:#d5b2ff}#destination circle{stroke:#f2c45b;stroke-width:12}#route-density text{font-size:27px;fill:#d7e6cf;paint-order:stroke;stroke:#101820;stroke-width:8}#layer-labels text{font-size:34px;paint-order:stroke;stroke:#101820;stroke-width:10;stroke-linejoin:round}.annotation{font:30px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#cbd7e1}\n</style>\n${layer('layer-grid','grid',gridSvg(bounds))}\n${layer('layer-regions','regions',regionSvg(bounds),{'data-carbon-y':GROWTH.carbonY,'data-oxygen-y':GROWTH.oxygenY,'data-frontier-y':GROWTH.frontierY})}\n${layer('layer-geometry','geometry',geometry)}\n${layer('layer-revisit-post-drive','post-DRIVE H/C revisit delta',revisitDeltaSvg(postDriveUniverse))}\n${layer('layer-elements-h','elements H',elementLayer(universe,'H'))}\n${layer('layer-elements-c','elements C',elementLayer(universe,'C'))}\n${layer('layer-elements-o','elements O',elementLayer(universe,'O'))}\n${layer('layer-hazards-fields','hazards: map fields',mapFieldsSvg(universe))}\n${layer('layer-hazards-pressure','hazards: oxygen pressure',sampledPressureSvg(bounds))}\n${layer('layer-hazards-challenges','hazards: challenges',challengeSvg())}\n${layer('layer-hazards-vortex','hazards: vortex',vortexSvg())}\n${layer('layer-hazards-dust-eater','hazards: DUST EATER','<metadata>DUST EATER: dynamic pursuit hazard / no authored map position</metadata>')}\n${layer('layer-thermal','thermal',thermalSvg(bounds))}\n${layer('layer-gameplay','gameplay points',gameplay)}\n${layer('layer-labels','labels',labelsSvg(universe))}\n${layer('layer-annotations','annotations',`<text class="annotation" x="${bounds.left+40}" y="${bounds.top+55}">Y increases downward exactly as FIELD source coordinates; no axis inversion.</text>\n${legendSvg(bounds,universe)}`)}\n</svg>\n`;
+  return `<!-- Generated by scripts/export-field-map.mjs; do not edit. -->\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="${NS}" viewBox="${view.left} ${view.top} ${width} ${height}" width="900" height="${fmt(900*height/width)}" role="img" aria-labelledby="title desc">\n<title id="title">Molecule Craft current FIELD developer map</title>\n<desc id="desc">Coordinate-faithful deterministic developer map generated from current FIELD source.</desc>\n<metadata id="field-map-metadata">baseline-seed=${BASELINE_SEED}; stock=H0,C0,O0,N0; progression=pre-DRIVE CHO baseline + post-DRIVE H/C delta + post-CHO Nitrogen FIELD; source-bounds=GROWTH.bounds + flightConfig(post-CHO).bounds; procedural element positions are deterministic baseline snapshots, not invariant authored positions; DUST EATER has no authored map position; RETURN has no fixed world position.</metadata>\n<style>\n.major-grid{stroke:#334151;stroke-width:2;opacity:.34}.grid-labels,.axis-label,.legend-text,.region-label,#layer-labels text,#layer-gameplay text{font:32px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#d9e2ea}.axis{stroke:#91a4b5;stroke-width:5;opacity:.7}.origin{fill:#fff;stroke:#17212b;stroke-width:8}.region-label{font-size:48px;font-weight:700;opacity:.58}.legend-title{font-size:46px;font-weight:800}.legend-panel{fill:#101922;stroke:#617487;stroke-width:4;opacity:.96}\n#layer-regions rect{opacity:.075}#playable-bounds rect{fill:none;stroke:#e7edf2;stroke-width:8}#route-centerlines path{fill:none;stroke:#b7c3ce;stroke-width:5;opacity:.72}#route-centerlines [data-element="H"]{stroke:#8bc8dc}#route-centerlines [data-element="C"]{stroke:#c7a676}#route-centerlines [data-element="O"]{stroke:#d7a4a4}#layer-revisit-post-drive [data-revisit-route]{fill:none;stroke:#a7f0c5;stroke-width:8;stroke-dasharray:24 12}#layer-revisit-post-drive [data-revisit-current]{fill:none;stroke:#6fe3c5;stroke-opacity:.16;stroke-linecap:round}#layer-revisit-post-drive [data-revisit-pocket] path{fill:none;stroke-linecap:round;stroke-width:8}#layer-revisit-post-drive [data-revisit-pocket] [data-element="H"]{stroke:#79d2ee}#layer-revisit-post-drive [data-revisit-pocket] [data-element="C"]{stroke:#c79a62}#route-widths rect{fill:#8db6c7;stroke:#a6cad7;stroke-width:2;opacity:.09}#route-widths path{fill:none;stroke:#a6cad7;stroke-linecap:round;stroke-linejoin:round;opacity:.09}#authored-gates rect{fill:#e1b267;stroke:#f1cb88;stroke-width:5;opacity:.25}#authored-gates line{stroke:#ffdb95;stroke-width:9;stroke-dasharray:24 16}\n.element{fill:none;stroke-linecap:round;opacity:.72}.element-h{stroke:#79d2ee;stroke-width:5}.element-c{stroke:#c79a62;stroke-width:7}.element-o{stroke:#e19090;stroke-width:6}.element-n{stroke:#8da3ff;stroke-width:6}#layer-hazards-fields circle{fill:#9f8fd0;stroke:#c0b4ec;stroke-width:4;opacity:.16}#layer-hazards-fields [data-burst-advantage] circle{fill:#d6a4ff;stroke:#f0d8ff;stroke-width:6;opacity:.3}#layer-hazards-fields [data-burst-advantage] line{stroke:#f3d6ff;stroke-width:8;stroke-linecap:round}#layer-hazards-fields [data-burst-advantage] text{font:28px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#f4e6ff;paint-order:stroke;stroke:#101820;stroke-width:8}#layer-hazards-pressure path{fill:#6f8db7;stroke:none}#layer-hazards-challenges path{fill:#d58a61;stroke:#f0a77e;stroke-width:5;opacity:.17}#layer-hazards-vortex circle{fill:none;stroke:#7ebfca;stroke-width:6;opacity:.42}#layer-hazards-vortex [data-vortex="core"]{fill:#7ebfca;opacity:.18}#layer-thermal path{fill:#e86945;stroke:none}#layer-gameplay circle,#layer-gameplay rect{fill:none;stroke:#f4e1a0;stroke-width:7}#signals circle{stroke:#d5b2ff}#destination circle{stroke:#f2c45b;stroke-width:12}#route-density text{font-size:27px;fill:#d7e6cf;paint-order:stroke;stroke:#101820;stroke-width:8}#layer-labels text{font-size:34px;paint-order:stroke;stroke:#101820;stroke-width:10;stroke-linejoin:round}.annotation{font:30px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#cbd7e1}\n#dynamic-boundary rect{fill:none;stroke:#8097ff;stroke-width:8;stroke-dasharray:28 16}#nitrogen-route [data-route]{fill:none;stroke:#8da3ff;stroke-width:7;opacity:.88}#nitrogen-route [data-route-width]{fill:none;stroke:#7189ef;stroke-linecap:round;stroke-linejoin:round;opacity:.1}#nitrogen-pulses circle{fill:#728cff;stroke:#aebcff;stroke-width:5;opacity:.18}#nitrogen-resources [data-resource-area="high-density-pocket"]{fill:#7d95ff;stroke:#b7c3ff;stroke-width:5;opacity:.12}#nitrogen-insight [data-critical-insight-area]{fill:#c89cff;stroke:#e1c5ff;stroke-width:7;opacity:.18}#nitrogen-insight [data-signal]{fill:none;stroke:#e3c8ff;stroke-width:6}\n</style>\n${layer('layer-grid','grid',gridSvg(dynamicBounds))}\n${layer('layer-regions','regions',regionSvg(dynamicBounds),{'data-carbon-y':GROWTH.carbonY,'data-oxygen-y':GROWTH.oxygenY,'data-frontier-y':GROWTH.frontierY,'data-nitrogen-y':GROWTH.nitrogenY})}\n${layer('layer-geometry','geometry',geometry)}\n${layer('layer-revisit-post-drive','post-DRIVE H/C revisit delta',revisitDeltaSvg(postDriveUniverse))}\n${layer('layer-nitrogen-field','post-CHO Nitrogen FIELD',nitrogenFieldSvg(nitrogenUniverse,dynamicBounds))}\n${layer('layer-elements-h','elements H',elementLayer(universe,'H'))}\n${layer('layer-elements-c','elements C',elementLayer(universe,'C'))}\n${layer('layer-elements-o','elements O',elementLayer(universe,'O'))}\n${layer('layer-hazards-fields','hazards: map fields',mapFieldsSvg(universe))}\n${layer('layer-hazards-pressure','hazards: oxygen pressure',sampledPressureSvg(bounds))}\n${layer('layer-hazards-challenges','hazards: challenges',challengeSvg())}\n${layer('layer-hazards-vortex','hazards: vortex',vortexSvg())}\n${layer('layer-hazards-dust-eater','hazards: DUST EATER','<metadata>DUST EATER: dynamic pursuit hazard / no authored map position</metadata>')}\n${layer('layer-thermal','thermal',thermalSvg(bounds))}\n${layer('layer-gameplay','gameplay points',gameplay)}\n${layer('layer-labels','labels',`${labelsSvg(universe)}\n${labelsSvg({labels:nitrogenUniverse.labels.filter(label=>label.y<GROWTH.nitrogenY)})}`)}\n${layer('layer-annotations','annotations',`<text class="annotation" x="${bounds.left+40}" y="${dynamicBounds.top+55}">Y increases downward exactly as FIELD source coordinates; no axis inversion.</text>\n${legendSvg(bounds,universe,nitrogenUniverse,dynamicBounds)}`)}\n</svg>\n`;
 }
 
 export async function exportFieldMap({check=false}={}){

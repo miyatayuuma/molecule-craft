@@ -4,6 +4,7 @@ import { createMap, sampleAuthoredLine, sampleLine, random, keepDepletedSegment 
 import { routeFlowAt } from './route-kit.js';
 import { GROWTH } from './growth.js';
 import { DEEP_OXYGEN_FRONTIER_RECOVERY,DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_THERMAL,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt } from './oxygen-routes.js';
+import {appendNitrogenField} from './nitrogen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const freezeKnots=knots=>Object.freeze(knots.map(knot=>Object.freeze(knot)));
 export const OXYGEN_ENTRY_KNOTS=Object.freeze([
@@ -57,6 +58,7 @@ function activeLaneCount(lanes,level){return level<.28?lanes:level<.62?Math.max(
 export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,capabilities={}}={}){
   if(!Number.isFinite(harvestLayout.sideSpacing)||harvestLayout.sideSpacing<0||!Number.isInteger(harvestLayout.eddyAtoms)||harvestLayout.eddyAtoms<0||harvestLayout.eddyAtoms>1000)throw Error('Invalid oxygen harvest layout');
   const revisitUnlocked=capabilities.combustionDrive===true,map=createMap(seed,stock,{capabilities}),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];
+  if(capabilities.nitrogenField===true)appendNitrogenField(map,seed,stock);
   // Consume the full shoulder stream even when stock hides a lane. Inventory
   // changes dust presence, never seeded landmarks or the physical currents.
   const shoulders=new Map(),key=d=>`${d.route}:${d.x}:${d.y}`;

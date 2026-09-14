@@ -2,12 +2,14 @@ import { MOLECULE_USES,REGIONS,TANK_USES } from './growth.js';
 import { ACTIVE_TANK_ROLES,performanceFor } from './molecule-roles.js';
 import { drawCollectorShell,drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_JUNCTION } from './oxygen-routes.js';
+import { NITROGEN_REGION_ID } from './nitrogen-config.js';
 import { renderLoadoutPreview } from './loadout-preview.js';
 import { isExpeditionDestinationAvailable } from './launch-request.js';
 import { syncElementStocks } from '../element-progression.js?v=36';
 
 const USE_ORDER=[...ACTIVE_TANK_ROLES];
-const REGION_CUES=Object.freeze({veil:{glyph:'H',color:'#bfefff'},carbon:{glyph:'C',color:'#aeb8c4'},oxygen:{glyph:'O',color:'#8dbcf4'},frontier:{glyph:'◎',color:'#f5d584'}});
+const REGION_CUES=Object.freeze({veil:{glyph:'H',color:'#bfefff'},carbon:{glyph:'C',color:'#aeb8c4'},oxygen:{glyph:'O',color:'#8dbcf4'},frontier:{glyph:'◎',color:'#f5d584'},nitrogen:{glyph:'N',color:'#a8a8ff'}});
+const availableLaunchRegionIds=progress=>{const ids=[...(progress?.regions??[])];if(progress?.choCompleted===true&&!ids.includes(NITROGEN_REGION_ID))ids.push(NITROGEN_REGION_ID);return ids;};
 
 export function launchDestinationLayout(ids,radius=66){
   const visible=ids.filter(id=>REGIONS[id]).slice(0,5),count=visible.length;
@@ -87,7 +89,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     if(!keepDestinations)showLaunchDestinations(false);if(!keepDestinations)resetLaunchPosition();else launchHandle.style.cursor='grab';
   }
   function renderLaunchDestinations(){
-    const checkpoint=resources.state.progress.checkpoint;launchItems=launchDestinationLayout(resources.state.progress.regions).map(point=>{const region=REGIONS[point.id],cue=REGION_CUES[point.id]??{glyph:region.element??'·',color:'#9ad8e5'},button=document.createElement('button'),item={...point,node:button,color:cue.color,checkpoint:point.id===checkpoint};button.type='button';button.dataset.region=point.id;button.dataset.checkpoint=String(item.checkpoint);button.setAttribute('aria-label',`${region.name}へ出発`);Object.assign(button.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'46px',height:'46px',minWidth:'46px',minHeight:'46px',padding:'0',overflow:'hidden',borderRadius:'50%',border:`1px solid ${cue.color}99`,background:`radial-gradient(circle at 50% 50%,${cue.color}22 0 30%,#0b2231ee 31% 64%,#07141f 65%)`,opacity:'0',pointerEvents:'none',transform:destinationTransform(item,.55),transition:reduced?'none':'opacity .14s ease, transform .14s ease, box-shadow .14s ease',touchAction:'none'});decorateDestination(button,cue);button.addEventListener('click',event=>{event.stopPropagation();requestDestinationLaunch(point.id);});launchLayer.append(button);return item;});
+    const checkpoint=resources.state.progress.checkpoint,destinationIds=availableLaunchRegionIds(resources.state.progress);launchItems=launchDestinationLayout(destinationIds).map(point=>{const region=REGIONS[point.id],cue=REGION_CUES[point.id]??{glyph:region.element??'·',color:'#9ad8e5'},button=document.createElement('button'),item={...point,node:button,color:cue.color,checkpoint:point.id===checkpoint};button.type='button';button.dataset.region=point.id;button.dataset.checkpoint=String(item.checkpoint);button.setAttribute('aria-label',`${region.name}へ出発`);Object.assign(button.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'46px',height:'46px',minWidth:'46px',minHeight:'46px',padding:'0',overflow:'hidden',borderRadius:'50%',border:`1px solid ${cue.color}99`,background:`radial-gradient(circle at 50% 50%,${cue.color}22 0 30%,#0b2231ee 31% 64%,#07141f 65%)`,opacity:'0',pointerEvents:'none',transform:destinationTransform(item,.55),transition:reduced?'none':'opacity .14s ease, transform .14s ease, box-shadow .14s ease',touchAction:'none'});decorateDestination(button,cue);button.addEventListener('click',event=>{event.stopPropagation();requestDestinationLaunch(point.id);});launchLayer.append(button);return item;});
     if(launchOpen)showLaunchDestinations(true);
   }
   function setLaunchActive(next){if(launchActive===next)return;launchActive=next;if(launchOpen)showLaunchDestinations(true);}
@@ -160,11 +162,11 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     action.addEventListener('click',()=>{if(!canMake()||onCommit()===false)return;if(resources.upgradeOxygenTank())update();});
   }
   function update(){
-    const state=resources.state;syncElementStocks(document,state.elements);
+    const state=resources.state,destinations=availableLaunchRegionIds(state.progress);syncElementStocks(document,state.elements);
     renderShell();renderTankDetail();renderUpgrades();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
     q('oxygen-route-guide').hidden=!state.progress.foundElements.includes('O');
 
-    const anchors=`${state.progress.regions.join('|')}|${state.progress.checkpoint}`;if(anchors!==anchorsKey){anchorsKey=anchors;const list=q('expedition-anchor'),selected=list.value;list.replaceChildren();for(const [id,text]of [['continue','探索の続き'],...state.progress.regions.map(id=>[id,REGIONS[id].name])]){const option=document.createElement('option');option.value=id;option.textContent=text;list.append(option);}list.value=selected&&[...list.options].some(option=>option.value===selected)?selected:'continue';renderLaunchDestinations();}
+    const anchors=`${destinations.join('|')}|${state.progress.checkpoint}`;if(anchors!==anchorsKey){anchorsKey=anchors;const list=q('expedition-anchor'),selected=list.value;list.replaceChildren();for(const [id,text]of [['continue','探索の続き'],...destinations.map(id=>[id,REGIONS[id].name])]){const option=document.createElement('option');option.value=id;option.textContent=text;list.append(option);}list.value=selected&&[...list.options].some(option=>option.value===selected)?selected:'continue';renderLaunchDestinations();}
   }
   function openMolecule(id,use=null){
     const roles=resources.tankUses(id);if(!canOpen()||!resources.state.recipes.includes(id)||!roles.length)return false;
