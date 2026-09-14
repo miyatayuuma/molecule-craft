@@ -47,18 +47,20 @@ test('Nitrogen geometry is absent pre-CHO and composed only for post-CHO flight 
   assert.ok(NITROGEN_ROUTE.points.every(point=>point.y<=NITROGEN_ENTRY.y+1&&point.y>=NITROGEN_REGION_BOUNDS.top),'Nitrogen route stays within the post-CHO extension');
 });
 
-test('Nitrogen starter yield is bounded and inventory depletion suppresses field density',()=>{
-  const fresh=nitrogenRun(0).map,belowThin=nitrogenRun(250).map,full=nitrogenRun(425).map;
-  const freshMain=mainN(fresh),belowMain=mainN(belowThin),fullMain=mainN(full),freshPocket=pocketN(fresh),belowPocket=pocketN(belowThin),fullPocket=pocketN(full);
+test('Nitrogen starter yield is bounded and inventory depletion gradually suppresses optional farming while retaining mainline supply',()=>{
+  const fresh=nitrogenRun(0).map,mid=nitrogenRun(250).map,full=nitrogenRun(425).map;
+  const freshMain=mainN(fresh),midMain=mainN(mid),fullMain=mainN(full),freshPocket=pocketN(fresh),midPocket=pocketN(mid),fullPocket=pocketN(full);
   assert.ok(freshMain>=80&&freshMain<=130,`fresh mainline starter yield ${freshMain} should stay near 80-120 N`);
   assert.ok(freshPocket>0,'fresh stock exposes the optional high-density pocket');
-  assert.ok(belowThin.depletion.N>0&&belowThin.depletion.N<.58,'250 N is depleted but remains below the shared segment-thinning threshold');
-  assert.equal(belowMain,freshMain,'shared depletion contract does not thin route segments below its threshold');
-  assert.equal(belowPocket,freshPocket,'optional pocket stays intact below the shared thinning threshold');
+  assert.ok(mid.depletion.N>0&&mid.depletion.N<1,'mid stock enters N depletion');
+  assert.ok(midMain>0&&midMain<freshMain,'mainline N thins gradually at mid stock');
+  assert.ok(midPocket>=0&&midPocket<freshPocket,'optional high-density N thins faster than fresh stock');
   assert.equal(full.depletion.N,1,'425 N reaches the existing N depletion ceiling');
   assert.equal(fullPocket,0,'high-density optional pocket disappears at full depletion');
-  assert.ok(fullMain+fullPocket<freshMain+freshPocket,'full inventory materially suppresses Nitrogen FIELD yield');
-  console.log('Nitrogen resource balance',JSON.stringify({fresh:{main:freshMain,pocket:freshPocket,depletion:fresh.depletion.N},belowThin:{main:belowMain,pocket:belowPocket,depletion:belowThin.depletion.N},full:{main:fullMain,pocket:fullPocket,depletion:full.depletion.N}}));
+  assert.ok(fullMain>0,'mainline N never disappears completely');
+  assert.ok(fullMain<midMain,'mainline supply continues thinning toward the depletion ceiling');
+  assert.ok(fullMain+fullPocket<midMain+midPocket&&midMain+midPocket<freshMain+freshPocket,'aggregate N yield decreases monotonically with stock');
+  console.log('Nitrogen resource balance',JSON.stringify({fresh:{main:freshMain,pocket:freshPocket,depletion:fresh.depletion.N},mid:{main:midMain,pocket:midPocket,depletion:mid.depletion.N},full:{main:fullMain,pocket:fullPocket,depletion:full.depletion.N}}));
 });
 
 test('Nitrogen pulse corridor remains passable by normal, H2, N2 and combustion propulsion',()=>{
@@ -94,4 +96,10 @@ test('N2 discovery exposes existing LOADOUT roles and Nitrogen launch prioritize
   const engaged={time:FIELD_INSIGHT_MIN_SECONDS+1,insightEngagementSatisfied:true,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+500,foundElements:['N']},opportunity=value.signal('nitrogen',.9,.9,{runContext:engaged});assert.equal(opportunity.recipe,AMMONIA_MOLECULE_ID);assert.equal(opportunity.frontier,true);
   value.hint(AMMONIA_MOLECULE_ID);value.discover(AMMONIA_MOLECULE_ID);assert.equal(nitrogenChapterState(value.state).stage,'complete');
   console.log('Nitrogen frontier balance',JSON.stringify({selected:diagnostic.selectedCandidateId,weighting:diagnostic.weightingRegion,availableAfterN2:true,chapter:nitrogenChapterState(value.state).stage}));
+});
+
+test('FIELD HUD exposes N through canonical element authority and has an explicit Nitrogen discovery notice',async()=>{
+  const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
+  assert.match(uiSource,/\['C','N','O'\].*resources\.canUseElement\(el\)/s);
+  assert.match(uiSource,/event\.element==='N'\?'Nを発見/);
 });
