@@ -8,7 +8,7 @@ import { isExpeditionDestinationAvailable } from './launch-request.js';
 import { syncElementStocks } from '../element-progression.js?v=36';
 
 const USE_ORDER=[...ACTIVE_TANK_ROLES];
-const REGION_CUES=Object.freeze({veil:{glyph:'H',color:'#bfefff'},carbon:{glyph:'C',color:'#aeb8c4'},oxygen:{glyph:'O',color:'#8dbcf4'},frontier:{glyph:'◎',color:'#f5d584'},nitrogen:{glyph:'N',color:'#a8a8ff'}});
+const REGION_CUES=Object.freeze({veil:{glyph:'H',color:'#bfefff'},carbon:{glyph:'C',color:'#aeb8c4'},oxygen:{glyph:'O',color:'#8dbcf4'},frontier:{glyph:'',color:'#f5d584'},nitrogen:{glyph:'N',color:'#a8a8ff'}});
 const availableLaunchRegionIds=progress=>{const ids=[...(progress?.regions??[])];if(progress?.choCompleted===true&&!ids.includes(NITROGEN_REGION_ID))ids.push(NITROGEN_REGION_ID);return ids;};
 
 export function launchDestinationLayout(ids,radius=66){
