@@ -30,6 +30,7 @@ export function nitrogenEnvironmentAt(p,time=0){
   return {flowX:flowX+guide.x,flowY:flowY+guide.y,intensity:Math.max(intensity,guide.intensity)};
 }
 export function appendNitrogenField(map,seed=1,stock={}){
+  if(map.routes?.some(route=>route.id===NITROGEN_ROUTE.id))return map;
   const depletion=inventoryDepletion(stock,'N'),rng=random(seed^0x6e6974),route={id:NITROGEN_ROUTE.id,label:'Pulse Corridor',element:'N',sourceElement:'N',points:NITROGEN_ROUTE.points,width:NITROGEN_ROUTE.width,spacing:30,lanes:2,authoredLanes:2,value:1,routeDepletion:depletion,nitrogen:true};
   map.routes.push(route);map.depletion.N=depletion;
   for(const [i,p] of NITROGEN_ROUTE.points.entries()){
