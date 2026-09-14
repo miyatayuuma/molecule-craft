@@ -104,19 +104,19 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,cap
   const recoveryRoute=OXYGEN_ROUTES.find(route=>route.id==='oxygen-main'),recovery=recoveryRoute?.restStops?.[0];
   if(!recovery)throw Error('oxygen-main recovery stop is missing');
   for(let i=0;i<harvestLayout.eddyAtoms;i++){
-    if(!keepDepletedSegment(map.depletion.O,seed,'oxygen-rest-harvest',i))continue;
+    if(!keepDepletedSegment(map.depletion.O,seed,'oxygen-rest-harvest',i,{optional:true}))continue;
     const angle=i*2.399963,radius=Math.sqrt((i+.5)/harvestLayout.eddyAtoms)*55,x=recovery.x+Math.cos(angle)*radius,y=recovery.y+Math.sin(angle)*radius;
-    map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:'oxygen-rest-harvest',element:'O',kind:'oxygen',value:3,ready:0});
+    map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:'oxygen-rest-harvest',element:'O',kind:'oxygen',value:2,ready:0});
   }
   for(let i=0;i<54;i++){
     const angle=i*2.399963,radius=Math.sqrt((i+.5)/54)*OXYGEN_VORTEX_REWARD.radius,x=OXYGEN_VORTEX_REWARD.x+Math.cos(angle)*radius,y=OXYGEN_VORTEX_REWARD.y+Math.sin(angle)*radius,element=i%8===0?'C':'O';
     if(!keepDepletedSegment(map.depletion[element],seed^0x62a711,`oxygen-vortex-reward:${element}`,i))continue;
     map.dust.push({id:map.dust.length,x,y,angle:angle-Math.PI/2,route:'oxygen-vortex-reward',element,kind:element==='C'?'carbon':'oxygen',value:3,ready:0});
   }
-  for(let i=0;i<90;i++){
-    const angle=i*2.399963,radius=Math.sqrt((i+.5)/90)*OXYGEN_REWARD.radius,x=OXYGEN_REWARD.x+Math.cos(angle)*radius,y=OXYGEN_REWARD.y+Math.sin(angle)*radius,element=i%6===0?'C':'O';
-    if(!keepDepletedSegment(map.depletion[element],seed,`oxygen-harvest:${element}`,i))continue;
-    map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:'oxygen-harvest',element,kind:element==='C'?'carbon':'oxygen',value:3,ready:0});
+  for(let i=0;i<30;i++){
+    const angle=i*2.399963,radius=Math.sqrt((i+.5)/30)*OXYGEN_REWARD.radius,x=OXYGEN_REWARD.x+Math.cos(angle)*radius,y=OXYGEN_REWARD.y+Math.sin(angle)*radius,element=i%6===0?'C':'O';
+    if(!keepDepletedSegment(map.depletion[element],seed,`oxygen-harvest:${element}`,i,{optional:true}))continue;
+    map.dust.push({id:map.dust.length,x,y,angle:-Math.PI/2,route:'oxygen-harvest',element,kind:element==='C'?'carbon':'oxygen',value:2,ready:0});
   }
   for(const [i,point]of CLUSTERS.entries()){
     const cluster={id:i,x:point[0]+(rng()-.5)*65,y:point[1]+(rng()-.5)*70,radius:GROWTH.clusterRadius,ready:0,burstAt:-100,phase:rng()*Math.PI*2,particles:[]};
@@ -149,7 +149,7 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,cap
   map.labels.push({x:DEEP_OXYGEN_FRONTIER_RECOVERY.x,y:DEEP_OXYGEN_FRONTIER_RECOVERY.y,text:'environment recovery · Frontier approach'});
   const carbonRevisit=map.routes.find(route=>route.id===CARBON_REVISIT_ROUTE.id),carbonAnchor=carbonRevisit?.points[Math.floor((carbonRevisit?.points.length??1)*.48)];
   if(carbonAnchor)map.labels.push({x:carbonAnchor.x,y:carbonAnchor.y,text:`${carbonRevisit.id} · post-DRIVE current ${CARBON_REVISIT_ROUTE.current.force} · local C pocket`});
-  map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · Oの集積'});
+  map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · 少量のO dust'});
   map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:100,y:-11980,text:'最深部へ ↑ · 到達したら正常帰還'});
   return map;
 }

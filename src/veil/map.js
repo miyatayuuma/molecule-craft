@@ -36,7 +36,7 @@ export const HYDROGEN_REVISIT_POCKET=Object.freeze({
   id:'hydrogen-revisit-pocket',x:-900,y:-2700,radius:72,particles:50,value:2,primary:'H',secondary:'C',
 });
 
-const DEPLETION_LIMITS=Object.freeze({H:{start:80,full:800},C:{start:40,full:400},O:{start:40,full:400}});
+const DEPLETION_LIMITS=Object.freeze({H:{start:120,full:700},C:{start:40,full:400},O:{start:60,full:320}});
 const OPTIONAL_H_ROUTES=new Set(['detour','technical',HYDROGEN_REVISIT_ROUTE.id]);
 const clamp01=value=>Math.max(0,Math.min(1,value));
 function hashRoll(seed,key){let h=seed>>>0;for(let i=0;i<key.length;i++){h^=key.charCodeAt(i);h=Math.imul(h,16777619);}h^=h>>>16;return(h>>>0)/4294967296;}

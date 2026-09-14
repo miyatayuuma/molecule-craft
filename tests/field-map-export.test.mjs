@@ -103,7 +103,7 @@ test('Oxygen Network uses the locked three-route geometry and curved membership'
   }
   assert.deepEqual([routes['oxygen-shortcut'].lanes,routes['oxygen-shortcut'].value],[1,2]);
   assert.deepEqual([routes['oxygen-main'].lanes,routes['oxygen-main'].value],[2,2]);
-  assert.deepEqual([routes['oxygen-side'].lanes,routes['oxygen-side'].value],[4,3]);
+  assert.deepEqual([routes['oxygen-side'].lanes,routes['oxygen-side'].value],[2,2]);
 
   const samples=[
     ['oxygen-shortcut',-9700,-320],
@@ -170,8 +170,8 @@ test('Oxygen Network route pressure stays traversable and propulsion keeps a mat
 test('Oxygen main recovery keeps its harvest while Deep routes replace the legacy single path',()=>{
   const universe=createUniverse(1,{H:0,C:0,O:0}),rest=universe.dust.filter(dust=>dust.route==='oxygen-rest-harvest');
   assert.equal(rest.length,OXYGEN_HARVEST.eddyAtoms);
-  assert.equal(rest.length,180);
-  assert.ok(rest.every(dust=>dust.value===3));
+  assert.equal(rest.length,36);
+  assert.ok(rest.every(dust=>dust.value===2));
   assert.ok(rest.every(dust=>Math.hypot(dust.x-300,dust.y+9750)<=56),'rest harvest follows the new recovery center');
   assert.ok(rest.every(dust=>Math.hypot(dust.x-120,dust.y+9700)>100),'rest harvest no longer uses the old hardcoded center');
   assert.deepEqual(OXYGEN_REWARD,{x:120,y:-10720,radius:95},'network merge reward stays unchanged');

@@ -113,11 +113,44 @@ test('normal progression scenarios do not require the H revisit, while heavy use
   assert.ok((D.report.fuelUsed.water??0)>0);assert.ok(elementCost(D.report.fuelUsed,'H')>elementCost(C.report.fuelUsed,'H'),'DRIVE + coolant deliberately raises H spend');
 });
 
-test('C/O economy and route geometry remain outside the H-only balance change',()=>{
+
+test('H/O stock levels monotonically reduce aggregate and optional reward pockets',()=>{
+  const capabilities={combustionDrive:true};
+  const levels=[
+    {name:'low',H:0,O:0},
+    {name:'mid',H:540,O:250},
+    {name:'high',H:700,O:320},
+  ];
+  const report=levels.map(level=>{
+    const field=createUniverse(SEED,{H:level.H,C:0,O:level.O},{capabilities});
+    const units=element=>elementUnits(field,element);
+    return {
+      ...level,
+      H:units('H'),O:units('O'),
+      hRevisit:routeUnits(field,'hydrogen-revisit-pocket','H'),
+      oxygenSide:routeUnits(field,'oxygen-side','O'),
+      recovery:routeUnits(field,'oxygen-rest-harvest','O'),
+      merge:routeUnits(field,'oxygen-harvest','O'),
+    };
+  });
+  assert.ok(report[0].H>report[1].H&&report[1].H>report[2].H,`aggregate H should thin with stock: ${JSON.stringify(report)}`);
+  assert.ok(report[0].O>report[1].O&&report[1].O>report[2].O,`aggregate O should thin with stock: ${JSON.stringify(report)}`);
+  assert.ok(report[0].hRevisit>report[1].hRevisit&&report[2].hRevisit===0,'high H stock removes optional revisit reward only');
+  assert.ok(report[0].oxygenSide>report[1].oxygenSide&&report[2].oxygenSide===0,'high O stock makes side route unattractive as a farm');
+  assert.ok(report[0].recovery>0&&report[0].recovery<=72,'recovery remains a modest low-stock refill');
+  assert.equal(report[2].recovery,0,'high O stock suppresses recovery farm reward');
+  assert.ok(report[0].merge>0&&report[0].merge<60,'merge reward is environmental flavor, not a harvest table');
+  assert.equal(report[2].merge,0,'high O stock suppresses merge farm reward');
+  assert.ok(inventoryDepletion({H:120},'H')===0&&inventoryDepletion({H:700},'H')===1);
+  assert.ok(inventoryDepletion({O:60},'O')===0&&inventoryDepletion({O:320},'O')===1);
+  console.log('Task2 H/O stock economy',JSON.stringify(report,null,2));
+});
+
+test('stock-dependent H/O economy suppresses farming without changing C geometry',()=>{
   assert.equal(CARBON_REVISIT_ROUTE.value,GROWTH.density.carbon.value);
   assert.deepEqual(OXYGEN_ROUTES.map(({id,lanes,value})=>({id,lanes,value})),[
     {id:'oxygen-shortcut',lanes:1,value:2},
-    {id:'oxygen-side',lanes:4,value:3},
+    {id:'oxygen-side',lanes:2,value:2},
     {id:'oxygen-main',lanes:2,value:2},
   ]);
   const universe=createUniverse(SEED,{H:0,C:0,O:0},{capabilities:{combustionDrive:true}}),hRevisit=routeUnits(universe,HYDROGEN_REVISIT_ROUTE.id,'H');

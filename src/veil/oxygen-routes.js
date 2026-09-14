@@ -2,7 +2,7 @@ import {createVortexFlybyRoute,routeFlowAt} from './route-kit.js';
 
 // One authored experiment. Route geometry and local field guidance share one
 // route definition; the vortex remains a reusable area feature layered on top.
-export const OXYGEN_HARVEST=Object.freeze({sideSpacing:90,eddyAtoms:180});
+export const OXYGEN_HARVEST=Object.freeze({sideSpacing:90,eddyAtoms:36});
 export const OXYGEN_JUNCTION=Object.freeze({x:120,y:-8700});
 export const OXYGEN_REWARD=Object.freeze({x:120,y:-10720,radius:95});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -58,9 +58,9 @@ export const OXYGEN_ROUTES=Object.freeze([
     knots:[[120,-8700],[-320,-9000],[-320,-10350],[120,-10670]],
     gates:[{y:-9700,depth:94,pressure:600}],pressure:0,lanes:1,value:2},
   {id:'oxygen-side',label:'低圧の支流',color:'#b4d99c',x:850,width:230,
-    summary:'広い低圧帯でOを多く拾う支流。',
+    summary:'広い低圧帯を通るthermal-oriented支流。採集量ではなく走行特性で選ぶ。',
     knots:[[120,-8700],[780,-9000],[850,-10350],[120,-10670]],
-    gates:[],pressure:0,lanes:4,value:3},
+    gates:[],pressure:0,lanes:2,value:2},
   {id:'oxygen-main',label:'持続流の本道',color:'#f0b28f',x:120,width:230,
     summary:'長い中程度の逆流を進むstandard route。途中の静かな採集帯で区切れる。',
     knots:[[120,-8700],[300,-9100],[350,-9600],[260,-10150],[120,-10670]],
