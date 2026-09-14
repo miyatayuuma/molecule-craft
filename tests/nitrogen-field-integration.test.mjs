@@ -18,7 +18,7 @@ const mainN=map=>map.dust.filter(dust=>dust.route===NITROGEN_ROUTE.id&&dust.elem
 const pocketN=map=>map.dust.filter(dust=>dust.route===NITROGEN_HIGH_DENSITY_POCKET.id&&dust.element==='N').reduce((sum,dust)=>sum+dust.value,0);
 
 function nitrogenRun(stock=0,{fuel={},predators=false}={}){
-  const map=createUniverse(41,{H:0,C:0,N:stock,O:0},{capabilities:{combustionDrive:true}}),config=flightConfig(postChoState(stock)),run=createRun(map,config,{fuel,predators});
+  const map=createUniverse(41,{H:0,C:0,N:stock,O:0},{capabilities:{combustionDrive:true,nitrogenField:true}}),config=flightConfig(postChoState(stock)),run=createRun(map,config,{fuel,predators});
   const start=NITROGEN_ROUTE.points[0];Object.assign(run.player,{x:start.x,y:start.y,angle:start.angle,vx:0,vy:0,speed:config.driftSpeed});run.region='nitrogen';
   return run;
 }
@@ -100,15 +100,17 @@ test('N2 discovery exposes existing LOADOUT roles and Nitrogen launch prioritize
   console.log('Nitrogen frontier balance',JSON.stringify({selected:diagnostic.selectedCandidateId,weighting:diagnostic.weightingRegion,availableAfterN2:true,chapter:nitrogenChapterState(value.state).stage}));
 });
 
-test('FIELD HUD exposes N through canonical element authority and has an explicit Nitrogen discovery notice',async()=>{
+test('FIELD HUD exposes N through canonical element authority and production launch enables Nitrogen FIELD composition',async()=>{
   const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
   assert.match(uiSource,/\['C','N','O'\].*resources\.canUseElement\(el\)/s);
   assert.match(uiSource,/event\.element==='N'\?'Nを発見/);
+  assert.match(uiSource,/nitrogenField:config\.nitrogenField===true/,'production launch must pass post-CHO Nitrogen capability into createUniverse');
 });
 
 
-test('N dust pickup is run-local cargo, settles to BASE STOCK, obeys forced loss and persists after reload',()=>{
+test('N dust pickup is run-local cargo, is single-consume until respawn, settles to BASE STOCK, obeys forced loss and persists after reload',()=>{
   const run=nitrogenRun(),dust=run.map.dust.find(item=>item.element==='N');assert.ok(dust);Object.assign(run.player,{x:dust.x,y:dust.y,vx:0,vy:0,speed:0});const before=run.collectedElements.N,events=stepRun(run,{x:0,y:0},1/60);assert.ok(run.collectedElements.N>before);assert.ok(run.elementDust.N>0);assert.ok(events.some(event=>event.type==='pickup'&&event.elements.N>0));
+  const pickedAtoms=run.collectedElements.N,pickedUnits=run.elementDust.N,readyAfterPickup=dust.ready;assert.ok(readyAfterPickup>run.time);const duplicateEvents=stepRun(run,{x:0,y:0},1/60);assert.equal(run.collectedElements.N,pickedAtoms);assert.equal(run.elementDust.N,pickedUnits);assert.ok(!duplicateEvents.some(event=>event.type==='pickup'&&event.elements.N>0),'same N dust cannot be collected again on later frames before respawn');
   const storage=memory(),normal=createResources({storage});normal.setCatalog(catalog);normal.state.progress.choCompleted=true;const settled=normal.settleExpedition({H:0,C:0,N:run.elementDust.N,O:0},0,false);assert.equal(settled.atoms.N,run.elementDust.N);const stock=normal.state.elements.N;assert.ok(stock>0);const reloaded=createResources({storage});reloaded.setCatalog(catalog);assert.equal(reloaded.state.elements.N,stock,'N BASE STOCK survives schema-v8 reload');
   const forced=createResources({storage:memory()});forced.setCatalog(catalog);forced.state.progress.choCompleted=true;const loss=forced.settleExpedition({H:0,C:0,N:100,O:0},0,true);assert.equal(loss.lost.N,15);assert.equal(loss.kept.N,85);assert.equal(forced.state.elements.N,85);
 });
