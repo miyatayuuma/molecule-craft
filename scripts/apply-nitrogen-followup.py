@@ -11,8 +11,8 @@ def replace_once(path, old, new):
 
 replace_once(
     "src/element-progression.js",
-    "export const BASE_ELEMENTS=Object.freeze(['H','C','O']);\nexport const EXTRA_ELEMENTS=Object.freeze(['N','F','P','S','Cl']);",
-    "export const BASE_ELEMENTS=Object.freeze(['H','C','N','O']);\nexport const EXTRA_ELEMENTS=Object.freeze(['F','P','S','Cl']);",
+    "const extra=root.querySelector('#show-extra-elements'),visible=symbol=>['H','C','O'].includes(symbol)||!!extra?.checked;",
+    "const extra=root.querySelector('#show-extra-elements'),visible=symbol=>['H','C','N','O'].includes(symbol)||!!extra?.checked;",
 )
 
 replace_once("src/app.js", "./element-progression.js?v=38", "./element-progression.js?v=39")
