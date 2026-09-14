@@ -1,0 +1,19 @@
+name: Task 5 branch runner
+
+on:
+  push:
+    branches:
+      - work/task5-cho-field-polish-lock
+
+permissions:
+  contents: write
+
+jobs:
+  integrated-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Integrated CHO metrics
+        run: node scripts/simulate-cho-field-polish.mjs
