@@ -2,6 +2,7 @@ import { oxygenCapacity } from './tank-upgrades.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { activeTankRolesFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
 import {NITROGEN_REGION_AVAILABLE,nitrogenGrowthGoal} from './nitrogen-progression.js';
+import {NITROGEN_ENTRY,NITROGEN_REGION_BOUNDS,NITROGEN_REGION_Y} from './nitrogen-config.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
 // need no effect entry; future shared actions can be attached here independently.
 export const MOLECULE_USES = Object.freeze({
@@ -26,7 +27,7 @@ export const DRIVES=Object.freeze({
 });
 export const GROWTH=Object.freeze({
   flight:{speed:164,driftSpeed:29,suctionRadius:30,assistRadius:78},
-  dustPerAtom:{H:3,C:3,O:3},bounds:{left:-1100,right:1250,top:-12750,bottom:500},
+  dustPerAtom:{H:3,C:3,N:1,O:3},bounds:{left:-1100,right:1250,top:-12750,bottom:500},
   clusterRadius:64,clusterRespawn:40,clusterParticles:36,clusterSpread:120,clusterValue:3,
   density:{
     carbon:{spacing:25,lanes:2,value:1},
@@ -35,17 +36,18 @@ export const GROWTH=Object.freeze({
     frontier:{spacing:18,lanes:4,value:2},
   },
   signalChance:.38,signalPity:3,
-  carbonY:-4390,oxygenY:-7830,frontierY:-11680,
+  carbonY:-4390,oxygenY:-7830,frontierY:-11680,nitrogenY:NITROGEN_REGION_Y,
 });
 export const REGIONS=Object.freeze({
   veil:{name:'H Veil',subtitle:'水素の帳',element:'H',x:0,y:180,angle:-Math.PI/2},
   carbon:{name:'Carbon Drift',subtitle:'炭素の群れ',element:'C',x:250,y:-4600,angle:-Math.PI/2},
   oxygen:{name:'Oxygen Surge',subtitle:'酸素の奔流',element:'O',x:170,y:-8090,angle:-Math.PI/2},
   frontier:{name:'Inner Horizon',subtitle:'まだ名のない光',element:'O',x:100,y:-11920,angle:-Math.PI/2},
+  nitrogen:{name:'Nitrogen Pulse',subtitle:'窒素の脈動流',element:'N',x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,angle:NITROGEN_ENTRY.angle},
 });
-export const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','frontier']);
-export function regionAt(y){return y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
-export function flightConfig(){return {...VEIL,...GROWTH.flight,bounds:GROWTH.bounds};}
+export const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','frontier','nitrogen']);
+export function regionAt(y){return y<GROWTH.nitrogenY?'nitrogen':y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
+export function flightConfig(state){const bounds=state?.progress?.choCompleted===true?NITROGEN_REGION_BOUNDS:GROWTH.bounds;return {...VEIL,...GROWTH.flight,bounds};}
 export function propulsionSpeedMax(config=GROWTH.flight){return Math.max(Number(config?.speed)||0,...Object.values(DRIVES).map(drive=>Number(drive.boostSpeed)||0));}
 export function driveAvailable(state,id){
   if(id==='hydrogen')return state.recipes.includes('hydrogen');
