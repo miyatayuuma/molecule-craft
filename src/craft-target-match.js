@@ -13,7 +13,8 @@ function normalizeGraph(graph){
 }
 
 function bondsOf(graph){
-  const bonds=[];for(let a=0;a<graph.atoms.length;a++)for(const [b,order]of graph.edges[a])if(a<b)bonds.push([a,b,order]);return bonds;
+  const bonds=[];for(let a=0;a<graph.atoms.length;a++)for(const [b,order]of graph.edges[a])if(a<b)bonds.push([a,b,order]);
+  return bonds.sort(([a1,b1],[a2,b2])=>a1-a2||b1-b2);
 }
 function bondUnits(graph){return bondsOf(graph).reduce((sum,bond)=>sum+bond[2],0);}
 function incidentOrder(graph,index){let total=0;for(const order of graph.edges[index].values())total+=order;return total;}
@@ -89,20 +90,19 @@ function targetVariants(target){
   const variants=[target],seen=new Set([graphKey(target)]);for(const cycle of aromaticAlternatingCycles(target)){const variant=toggledVariant(target,cycle),key=graphKey(variant);if(!seen.has(key)){seen.add(key);variants.push(variant);}}
   return variants;
 }
-function prepareTarget(record){const graph=normalizeGraph(record);if(!graph)return null;return{key:targetKey(record,graph),graph,variants:targetVariants(graph),totalUnits:bondUnits(graph)};}
-function workspaceStructuralKey(workspace){const graph=normalizeGraph(workspace);return graph?graphKey(graph,{includeIds:true}):'';}
-function assessComponents(prepared,workspace){
-  const graph=normalizeGraph(workspace);if(!graph)return{graph:null,assessments:[]};const assessments=[];
+function prepareTarget(record,graph=normalizeGraph(record)){if(!graph)return null;return{key:targetKey(record,graph),graph,variants:targetVariants(graph),totalUnits:bondUnits(graph)};}
+function assessNormalizedComponents(prepared,graph){
+  if(!graph)return[];const assessments=[];
   for(const indices of connectedComponents(graph)){
     const fragment=componentGraph(graph,indices),score=bondUnits(fragment),valid=prepared.variants.some(target=>hasEmbedding(target,fragment));
     assessments.push({atomIds:fragment.atoms.map(atom=>atom.id),score,valid,key:graphKey(fragment,{includeIds:true})});
   }
-  return{graph,assessments};
+  return assessments;
 }
 function resultFor(score,totalUnits,state,atomIds=[]){const percent=totalUnits>0?Math.max(0,Math.min(100,Math.round(score/totalUnits*100))):0;return{score,matchedBondOrderUnits:score,targetBondOrderUnits:totalUnits,percent,state,atomIds:[...atomIds]};}
 
 export function evaluateCraftTargetMatch(targetGraph,workspaceGraph){
-  const prepared=prepareTarget(targetGraph);if(!prepared)return null;const {assessments}=assessComponents(prepared,workspaceGraph),valid=assessments.filter(item=>item.valid&&item.score>0).sort((a,b)=>b.score-a.score||String(a.key).localeCompare(String(b.key))),best=valid[0];
+  const prepared=prepareTarget(targetGraph);if(!prepared)return null;const assessments=assessNormalizedComponents(prepared,normalizeGraph(workspaceGraph)),valid=assessments.filter(item=>item.valid&&item.score>0).sort((a,b)=>b.score-a.score||String(a.key).localeCompare(String(b.key))),best=valid[0];
   if(!best)return resultFor(0,prepared.totalUnits,'matching');return resultFor(best.score,prepared.totalUnits,best.score===prepared.totalUnits?'complete':'matching',best.atomIds);
 }
 
@@ -111,10 +111,10 @@ export function createCraftTargetMatchTracker(){
   function reset(){prepared=null;lastTargetKey='';lastWorkspaceKey='';lastResult=null;trackedIds=new Set();deadEnd=false;}
   function update(targetGraph,workspaceGraph){
     if(!targetGraph){reset();return null;}
-    const nextPrepared=prepareTarget(targetGraph);if(!nextPrepared){reset();return null;}
-    if(nextPrepared.key!==lastTargetKey){prepared=nextPrepared;lastTargetKey=nextPrepared.key;lastWorkspaceKey='';lastResult=null;trackedIds=new Set();deadEnd=false;}
-    const nextWorkspaceKey=workspaceStructuralKey(workspaceGraph);if(nextWorkspaceKey===lastWorkspaceKey&&lastResult)return lastResult;lastWorkspaceKey=nextWorkspaceKey;
-    const {assessments}=assessComponents(prepared,workspaceGraph),tracked=trackedIds.size?assessments.find(item=>[...trackedIds].every(id=>item.atomIds.includes(id))):null;
+    const normalizedTarget=normalizeGraph(targetGraph);if(!normalizedTarget){reset();return null;}const nextTargetKey=targetKey(targetGraph,normalizedTarget);
+    if(nextTargetKey!==lastTargetKey){prepared=prepareTarget(targetGraph,normalizedTarget);lastTargetKey=nextTargetKey;lastWorkspaceKey='';lastResult=null;trackedIds=new Set();deadEnd=false;}
+    const normalizedWorkspace=normalizeGraph(workspaceGraph),nextWorkspaceKey=graphKey(normalizedWorkspace,{includeIds:true});if(nextWorkspaceKey===lastWorkspaceKey&&lastResult)return lastResult;lastWorkspaceKey=nextWorkspaceKey;
+    const assessments=assessNormalizedComponents(prepared,normalizedWorkspace),tracked=trackedIds.size?assessments.find(item=>[...trackedIds].every(id=>item.atomIds.includes(id))):null;
     if(tracked&&(!tracked.valid||deadEnd)){
       if(!tracked.valid){deadEnd=true;lastResult=resultFor(0,prepared.totalUnits,'dead-end',tracked.atomIds);return lastResult;}
       deadEnd=false;
