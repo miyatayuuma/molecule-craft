@@ -11,12 +11,12 @@ export const NITROGEN_ROUTE=createRoute({
   ],
 });
 export const NITROGEN_PULSES=freeze([
-  freeze({id:'nitrogen-pulse-1',progress:.14,force:1180,angle:0}),
-  freeze({id:'nitrogen-pulse-2',progress:.29,force:1320,angle:Math.PI}),
-  freeze({id:'nitrogen-pulse-3',progress:.45,force:1240,angle:0}),
-  freeze({id:'nitrogen-pulse-4',progress:.61,force:1360,angle:Math.PI}),
-  freeze({id:'nitrogen-pulse-5',progress:.77,force:1220,angle:0}),
-  freeze({id:'nitrogen-pulse-6',progress:.91,force:1300,angle:Math.PI}),
+  freeze({id:'nitrogen-pulse-1',progress:.14,force:500,angle:0}),
+  freeze({id:'nitrogen-pulse-2',progress:.29,force:570,angle:Math.PI}),
+  freeze({id:'nitrogen-pulse-3',progress:.45,force:530,angle:0}),
+  freeze({id:'nitrogen-pulse-4',progress:.61,force:620,angle:Math.PI}),
+  freeze({id:'nitrogen-pulse-5',progress:.77,force:520,angle:0}),
+  freeze({id:'nitrogen-pulse-6',progress:.91,force:590,angle:Math.PI}),
 ]);
 export const NITROGEN_INSIGHT_AREA=freeze({id:'nitrogen-critical-insight',x:-30,y:-15120,radius:190});
 export const NITROGEN_HIGH_DENSITY_POCKET=freeze({id:'nitrogen-high-density',x:620,y:-14920,radius:115,particles:54,value:2});
