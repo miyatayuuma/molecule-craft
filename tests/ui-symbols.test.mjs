@@ -14,6 +14,10 @@ assert.match(supply,/Math\.floor\(performance\.capacity\/performance\.moleculesP
 assert.match(supply,/styleTankMeter\(q\('veil-coolant-level'\),'coolant',null\)/,'Coolant tank must be normalized to a continuous bar');
 assert.match(supply,/combustionLink\.textContent='🔥'/,'Combustion link should use a flame instead of the heat/bath symbol');
 assert.match(supply,/clipPath=`inset\(0 \$\{\(1-value\)\*100\}% 0 0\)`/,'Segment positions must stay fixed while the propellant level falls');
+assert.match(supply,/frontier:\{glyph:'',color:'#f5d584'\}/,'Frontier destination must not render the ambiguous ◎ glyph');
+assert.doesNotMatch(supply,/frontier:\{glyph:'◎'/,'LOADOUT destination selection must not display ◎');
+assert.match(supply,/item===launchActive\?1\.16:1/,'Destination selection must retain its existing selected-scale highlight');
+assert.match(supply,/return onRequestLaunch\(id\)!==false/,'Destination selection must continue through the existing launch request contract');
 assert.match(craftPanel,/idea=!discovered/,'Undiscovered craft targets should be treated as ideas');
 assert.match(craftPanel,/idea=!!target&&!targetDiscovered/,'The craft summary should carry the idea state until discovery');
 assert.match(craftPanel,/💡/,'Idea state must be visible without tutorial copy');
@@ -22,4 +26,4 @@ assert.match(renderer,/Reward convergence is shown as oxygen-colored motes/,'FIE
 assert.doesNotMatch(renderer,/run\.time\*\.4\+i\*Math\.PI\*2\/3/,'FIELD signals must not render an unexplained triangle glyph');
 assert.doesNotMatch(renderer,/OXYGEN_REWARD\.radius\+15/,'FIELD reward must not render as an unexplained ring marker');
 
-console.log('UI symbol contracts passed: semantic propulsion/idea cues plus behavioral FIELD signal and reward signifiers.');
+console.log('UI symbol contracts passed: semantic propulsion/idea cues, glyph-free frontier destination selection, preserved launch highlighting, and behavioral FIELD signal/reward signifiers.');

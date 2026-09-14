@@ -9,6 +9,12 @@ assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','oxygen','water'],recipes
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','hydrogen','water'],recipes:[]}),['hydrogen','water'],'duplicate hints do not duplicate the route');
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','water'],recipes:['hydrogen']}),['water'],'completion removes only the completed candidate');
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','water'],recipes:['hydrogen','water']}),[],'notification clears after all candidates are completed');
+const liveRecipeState={hints:['hydrogen','water'],recipes:[]};
+assert.equal(unfinishedCraftIds(liveRecipeState).length,2,'two available recipes keep the bulb visible');
+liveRecipeState.recipes.push('hydrogen');
+assert.deepEqual(unfinishedCraftIds(liveRecipeState),['water'],'consuming one of two recipes keeps the remaining recipe visible');
+liveRecipeState.recipes.push('water');
+assert.deepEqual(unfinishedCraftIds(liveRecipeState),[],'consuming the final recipe hides the bulb without requiring a reload or tap');
 
 assert.deepEqual(pendingAttentionTransition({currentIds:[]}),{attention:'none',addedIds:[],acknowledgedIds:[],acknowledgedKey:''},'no pending candidates have no attention');
 assert.deepEqual(pendingAttentionTransition({currentIds:['hydrogen','water']}),{attention:'unseen',addedIds:['hydrogen','water'],acknowledgedIds:[],acknowledgedKey:''},'session startup with pending candidates is unseen and starts as new attention');
@@ -40,6 +46,8 @@ assert.match(pendingSource,/acknowledgedKey=current\.join\('\|'\)/,'acknowledgem
 assert.match(pendingSource,/transition\.addedIds\.length/,'animation re-arm is driven by newly added pending ids rather than any key change');
 assert.match(pendingSource,/renderList\(ids\);acknowledge\(ids\);if\(!ids\.length\)dialog\.close\(\)/,'a dialog-open refresh acknowledges the currently visible candidate set');
 assert.match(pendingSource,/renderList\(ids\);acknowledge\(ids\);dialog\.showModal/,'opening the pending list acknowledges the current set immediately');
+assert.match(pendingSource,/for\(const method of \['setCatalog','hint','discover','discoverWithLoadout','learn','reset'\]\)/,'successful craft discovery and external recipe mutations must share the normal pending-craft refresh path');
+assert.match(pendingSource,/const wrapped=function\(\.\.\.args\)\{const result=original\.apply\(this,args\);refresh\(\);return result;\}/,'observed recipe state changes must refresh the bulb immediately after mutation');
 assert.match(pendingSource,/pending-craft-new-bulb \.92s/,'new pending recipes receive a short one-shot bulb motion');
 assert.match(pendingSource,/pending-craft-reminder-bulb 7\.2s/,'unseen recipes receive a sparse reminder cadence');
 assert.match(pendingSource,/#pending-crafts-dialog\.sheet\{position:fixed;inset:50% auto auto 50%;transform:translate\(-50%,-50%\);margin:0/,'Insight list must open as a centered primary panel instead of a bottom sheet');
@@ -55,4 +63,4 @@ assert.match(veilSource,/resources\.settleExpedition\([\s\S]*insights:captured\?
 assert.doesNotMatch(supplySource,/const hintIds=\{propellant:/,'LOADOUT must not own hardcoded unfinished-molecule candidates');
 assert.doesNotMatch(supplySource,/tank-next-hint'\)\.addEventListener/,'LOADOUT must not own the unfinished-molecule craft route');
 
-console.log('Pending craft passed: centered knowledge panel, session-local unseen/acknowledged attention, sparse/reduced-motion affordance, return integration, category semantics and craft routing.');
+console.log('Pending craft passed: centered knowledge panel, session-local unseen/acknowledged attention, immediate recipe-state synchronization, sparse/reduced-motion affordance, return integration, category semantics and craft routing.');
