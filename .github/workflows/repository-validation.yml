@@ -58,8 +58,16 @@ jobs:
         run: node --test --test-name-pattern="N collection, expedition settlement" tests/element-authority-n-foundation.test.mjs
       - name: Element authority diagnostic - N depletion CHO spawn
         run: node --test --test-name-pattern="N depletion is computable" tests/element-authority-n-foundation.test.mjs
-      - name: Inventory depletion
-        run: node tests/inventory-depletion.test.mjs
+      - name: Inventory diagnostic - smooth ramp
+        run: node --test --test-name-pattern="inventory depletion leaves early stock" tests/inventory-depletion.test.mjs
+      - name: Inventory diagnostic - matching distribution
+        run: node --test --test-name-pattern="high base stock reduces" tests/inventory-depletion.test.mjs
+      - name: Inventory diagnostic - optional branches
+        run: node --test --test-name-pattern="depletion collapses lanes" tests/inventory-depletion.test.mjs
+      - name: Inventory diagnostic - deterministic field
+        run: node --test --test-name-pattern="same seed and stock" tests/inventory-depletion.test.mjs
+      - name: Inventory diagnostic - landmarks currents
+        run: node --test --test-name-pattern="stock changes particle presence" tests/inventory-depletion.test.mjs
       - name: CRAFT input recovery
         run: |
           node tests/craft-controls-ui.test.mjs
