@@ -46,6 +46,9 @@ export const REGIONS=Object.freeze({
   nitrogen:{name:'Nitrogen Pulse',subtitle:'窒素の脈動流',element:'N',x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,angle:NITROGEN_ENTRY.angle},
 });
 export const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','frontier','nitrogen']);
+export const EXPEDITION_DESTINATION_REGION_IDS=Object.freeze(['veil','carbon','oxygen','nitrogen']);
+const EXPEDITION_DESTINATION_REGION_SET=new Set(EXPEDITION_DESTINATION_REGION_IDS);
+export const isExpeditionRegionDestination=id=>EXPEDITION_DESTINATION_REGION_SET.has(id);
 export function regionAt(y){return y<GROWTH.nitrogenY?'nitrogen':y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
 export function flightConfig(state){const nitrogenField=state?.progress?.choCompleted===true,bounds=nitrogenField?NITROGEN_REGION_BOUNDS:GROWTH.bounds;return {...VEIL,...GROWTH.flight,bounds,nitrogenField,nitrogenStock:Math.max(0,Number(state?.elements?.N)||0)};}
 export function propulsionSpeedMax(config=GROWTH.flight){return Math.max(Number(config?.speed)||0,...Object.values(DRIVES).map(drive=>Number(drive.boostSpeed)||0));}

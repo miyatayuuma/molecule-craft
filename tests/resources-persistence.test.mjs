@@ -21,6 +21,13 @@ const serialized=serializeResourcesState(current);assert.deepEqual(JSON.parse(se
 const storage=memory([[RESOURCE_KEY,serialized]]),loaded=loadPersistedResources(storage);assert.deepEqual(loaded.state,current,'current schema direct load round-trips without normalization loss');
 const resources=createResources({storage});assert.equal(resources.blocked,false);assert.deepEqual(resources.state,current,'runtime hydration preserves current save state');assert.equal(resources.save(),true,'current save remains writable');assert.deepEqual(JSON.parse(storage.raw(RESOURCE_KEY)),current,'normal save/reload keeps current state stable');
 
+const legacyFrontier={...current,progress:{...current.progress,regions:['veil','carbon','oxygen','frontier'],checkpoint:'frontier'}};
+const legacyFrontierStorage=memory([[RESOURCE_KEY,serializeResourcesState(legacyFrontier)]]),legacyFrontierLoaded=loadPersistedResources(legacyFrontierStorage);
+assert.equal(legacyFrontierLoaded.state.progress.checkpoint,'oxygen','legacy frontier checkpoint must fall back to the most advanced valid launch region');
+assert.ok(legacyFrontierLoaded.state.progress.regions.includes('frontier'),'historical frontier visit state remains available to progression logic');
+assert.equal(JSON.parse(legacyFrontierStorage.raw(RESOURCE_KEY)).progress.checkpoint,'oxygen','legacy fallback must be persisted without a schema bump');
+assert.equal(migrateResourcesSave(serializeResourcesState(legacyFrontier)).progress.checkpoint,'oxygen','current-schema migration helper normalizes the legacy destination too');
+
 const malformedStorage=memory([[RESOURCE_KEY,'{broken']]);const malformed=createResources({storage:malformedStorage});assert.equal(malformed.blocked,false,'corrupt persisted resource JSON resets rather than blank-screening or write-blocking');assert.deepEqual(malformed.state,initial);assert.equal(malformed.save(),true);
 assert.throws(()=>serializeResourcesState({...current,schemaVersion:7}),/schema/i,'egress rejects old resource schema states');
 
