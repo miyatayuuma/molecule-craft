@@ -57,7 +57,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null)};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,O:0},collectedElements:{H:0,C:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,N:0,O:0},collectedElements:{H:0,C:0,N:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -159,7 +159,7 @@ function stepRunFrame(run,input,dt,systems){
   if(run.departed&&run.time-run.lastLap>c.lapMinSeconds&&Math.hypot(p.x-c.spawn.x,p.y-c.spawn.y)<c.lapRadius){run.lap=true;run.laps++;run.lastLap=run.time;run.departed=false;run.events.push({type:'lap',lap:run.laps});}
   if(run.chainTime>0){run.chainTime-=dt;if(run.chainTime<=0&&run.chain){run.events.push({type:'chainEnd',chain:run.chain});run.chain=0;}}
   const radius=c.suctionRadius+(propelled?(p.drive?.boostRadius??0):0);
-  let gained=0,picked=0;const elements={H:0,C:0,O:0},units={H:0,C:0,O:0};
+  let gained=0,picked=0;const elements={H:0,C:0,N:0,O:0},units={H:0,C:0,N:0,O:0};
   for(const dust of map.dust){
     if(dust.ready>run.time||segmentDistance(dust,old,p)>radius)continue;
     dust.ready=dust.cluster!==undefined?Infinity:run.time+c.respawnSeconds;run.chain++;run.best=Math.max(run.best,run.chain);run.chainTime=c.chainSeconds;
