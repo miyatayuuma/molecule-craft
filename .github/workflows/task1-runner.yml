@@ -24,7 +24,8 @@ jobs:
             exit 0
           fi
           python .github/task1.py
-          rm -f .github/task1.py .github/task1.patch
+          python .github/task1-fix.py
+          rm -f .github/task1.py .github/task1-fix.py .github/task1.patch
           echo "applied=true" >> "$GITHUB_OUTPUT"
       - name: Focused validation
         if: steps.apply.outputs.applied == 'true'
