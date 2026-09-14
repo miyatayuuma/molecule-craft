@@ -76,6 +76,8 @@ jobs:
         run: |
           node tests/expedition-insights.test.mjs
           node tests/signal-eligibility.test.mjs
+          node --test tests/critical-insight-freeze.test.mjs
+          node tests/critical-insight-freeze-browser.test.mjs
       - name: Thermal and expedition regressions
         run: |
           node tests/propulsion-differentiation.test.mjs
