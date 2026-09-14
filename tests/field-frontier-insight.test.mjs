@@ -119,9 +119,10 @@ function expandableChoice(value,region){
 }
 
 // Graph visibility is broader than FIELD insight eligibility. A direct
-// neighbor that requires an element not yet unlocked by registered-molecule
-// progression stays visible in the Encyclopedia but cannot be selected as a
-// FIELD idea until that element unlocks. Regression: CH3F must wait for F.
+// neighbor that requires a gameplay-locked element stays visible in the
+// Encyclopedia but cannot be selected as a FIELD idea. Registered-molecule
+// counts are no longer an element-unlock authority. Regression: CH3F stays
+// locked until a future explicit F progression policy is connected.
 {
   const value=make({discoverRoots:false});
   value.setCatalog([{id:'fluoromethane',formula:'CH3F',atoms:['C','H','H','H','F']}]);
@@ -129,11 +130,11 @@ function expandableChoice(value,region){
   value.state.recipes=['methane'];
   value.state.hints=graph.nodes.map(node=>node.id).filter(id=>id!=='fluoromethane');
   value.prepareExpedition({region:'veil',rng:()=>0});
-  let diag=value.frontierInsightDiagnostics();assert.equal(diag.selectedCandidateId,null);assert.equal(diag.reason,'element-locked','F-containing frontier stays ineligible before the 15-registration F unlock');
+  let diag=value.frontierInsightDiagnostics();assert.equal(diag.selectedCandidateId,null);assert.equal(diag.reason,'element-locked','F-containing frontier stays ineligible while F is gameplay-locked');
   const fillers=graph.nodes.map(node=>node.id).filter(id=>id!=='methane'&&id!=='fluoromethane').slice(0,14);
   value.state.recipes=['methane',...fillers];
   value.prepareExpedition({region:'veil',rng:()=>0});
-  diag=value.frontierInsightDiagnostics();assert.equal(diag.selectedCandidateId,'fluoromethane','the same graph frontier becomes eligible once F is unlocked');
+  diag=value.frontierInsightDiagnostics();assert.equal(diag.selectedCandidateId,null,'discovery count cannot unlock F-containing frontier candidates');assert.equal(diag.reason,'element-locked');assert.equal(value.canUseElement('F'),false);
 }
 
 // Empty frontier is a normal FIELD run: no DB-wide or legacy regional recipe
