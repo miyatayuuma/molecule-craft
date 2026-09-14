@@ -1,10 +1,10 @@
 import {EXPEDITION} from './config.js';
 
 export const INSIGHT_ANALYSIS_SECONDS=5;
-export const CRITICAL_INSIGHT_IDS=Object.freeze(['hydrogen','methane','oxygen','water']);
+export const CRITICAL_INSIGHT_IDS=Object.freeze(['hydrogen','methane','oxygen','water','nitrogen']);
 export const FIELD_INSIGHT_MIN_SECONDS=EXPEDITION.safeSeconds;
 export const FIELD_INSIGHT_MIN_DISTANCE=1200;
-const CRITICAL_INSIGHTS=new Set(CRITICAL_INSIGHT_IDS),FIELD_ACTION_ELEMENTS=Object.freeze(['H','C','O']);
+const CRITICAL_INSIGHTS=new Set(CRITICAL_INSIGHT_IDS),FIELD_ACTION_ELEMENTS=Object.freeze(['H','C','O','N']);
 
 export function fieldInsightRequiredElements(record){
   if(!Array.isArray(record?.atoms)||!record.atoms.length)return [];
