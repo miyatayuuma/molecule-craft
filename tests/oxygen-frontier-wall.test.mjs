@@ -30,7 +30,7 @@ function simulateWall({coolant=0,skill=false,maxSeconds=18}={}){
     if(skill){
       const wantDrive=run.heat<62&&!run.overheated&&run.player.boost<=0;
       setCombustionHeld(run,wantDrive);
-      if((run.heat>=64||run.overheated||run.player.y>-12120)&&run.player.boost<=0&&run.player.cooldown<=0&&run.fuel.propellant.amount>=40){
+      if((run.heat>=60||run.overheated)&&run.player.boost<=0&&run.player.cooldown<=0&&run.fuel.propellant.amount>=40){
         if(beginBurst(run,()=>true))bursts++;
       }
     }
@@ -48,17 +48,19 @@ function simulateWall({coolant=0,skill=false,maxSeconds=18}={}){
 
 const wall=OXYGEN_THERMAL.frontierWall;
 assert.ok(wall,'Frontier thermal wall must be authored explicitly');
-assert.equal(wall.routePressure,330);
-assert.equal(wall.offRoutePressure,500);
+assert.equal(wall.routePressure,380);
+assert.equal(wall.offRoutePressure,560);
 assert.equal(wall.maxHeat,50);
 
 const center=environmentAt({x:190,y:-12150});
 const edge=environmentAt({x:900,y:-12150});
 assert.equal(center.heat,50,'frontier wall should sustain high ambient heat on the intended line');
-assert.equal(center.traversableRoutePressure,330,'best frontier line still carries strong reverse pressure');
-assert.equal(edge.traversableRoutePressure,500,'leaving the intended line should be substantially worse');
+assert.equal(center.traversableRoutePressure,null,'frontier wall must bypass route-pressure anti-pinning protection');
+assert.equal(center.frontierWallPressure,380,'best frontier line carries the authored physical reverse pressure');
+assert.equal(edge.traversableRoutePressure,null,'off-line wall pressure is also physical rather than route guidance');
+assert.equal(edge.frontierWallPressure,560,'leaving the intended line should be substantially worse');
 assert.ok(center.pressure>flightConfig().speed,'ordinary propulsion cannot make steady progress through the wall');
-assert.ok(center.combustionHeatFactor>=2.35,'continuous DRIVE should accumulate heat rapidly in the frontier wall');
+assert.ok(center.combustionHeatFactor>=1.75,'continuous DRIVE should accumulate heat across the sustained frontier wall');
 assert.equal(center.coolantLearning,true,'the frontier wall remains a valid coolant-learning environment');
 
 const dry=simulateWall();

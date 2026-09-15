@@ -174,11 +174,11 @@ assert.ok(aDrive.run.player.y<-10600,'thermal interruption never turns Route A i
 // Scenario F: merge recovery is cool, then Deep Oxygen rises again. The
 // relocated thermal challenge now reinforces the authored Deep Thermal route;
 // Frontier still does not inherit the old broad network band.
-const mergeHeat=environmentAt({x:120,y:-10800}).heat,deepWarm=environmentAt({x:180,y:-11200}).heat,challengeHeat=environmentAt({x:760,y:-11300}).heat,frontierHeat=environmentAt({x:100,y:-11920}).heat;
+const mergeHeat=environmentAt({x:120,y:-10800}).heat,deepWarm=environmentAt({x:180,y:-11200}).heat,challengeHeat=environmentAt({x:760,y:-11300}).heat,frontierHeat=environmentAt({x:140,y:-12020}).heat;
 assert.ok(mergeHeat<1,'network merge has a low-heat recovery transition');
 assert.ok(deepWarm>mergeHeat+10,'Deep Oxygen heat rises after the merge recovery');
 assert.equal(challengeHeat,48,'Deep Thermal challenge supplies heat=48 without additive stacking');
-assert.ok(frontierHeat<5,'Deep thermal handoff fades before Frontier');
+assert.equal(frontierHeat,50,'Frontier approach now carries the shared thermal wall before CHO completion');
 const thermalChallenge=EXPEDITION_CHALLENGES.find(challenge=>challenge.id==='thermal');
 assert.deepEqual(thermalChallenge,{id:'thermal',bottom:-11160,top:-11440,width:260,centerX:760,centerY:-11300,rewards:['ethylene-glycol','n-hexane']});
 

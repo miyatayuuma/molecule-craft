@@ -147,7 +147,7 @@ function stepRunFrame(run,input,dt,systems){
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
   let nearest=null,distance=c.assistRadius;const desired=Math.atan2(input.y,input.x);
   for(const dust of map.dust){if(dust.ready>run.time)continue;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}
-  const routePressure=environment?.traversableRoutePressure,movementEnvironment=Number.isFinite(routePressure)?{...environment,pressure:environment.pressure-routePressure}:environment;
+  const routePressure=environment?.traversableRoutePressure,pulseWallPressure=p.boost>0?(environment?.frontierWallPulsePressure??0):0,movementEnvironment=Number.isFinite(routePressure)?{...environment,pressure:environment.pressure-routePressure+pulseWallPressure}:pulseWallPressure?{...environment,pressure:environment.pressure+pulseWallPressure}:environment;
   const force={x:0,y:Number.isFinite(routePressure)?routePressure:0};
   for(const field of map.fields){
     const phase=(run.time+field.phase)/c.fieldPeriod*Math.PI*2;field.intensity=1-c.fieldPulse+c.fieldPulse*Math.sin(phase);field.active=true;

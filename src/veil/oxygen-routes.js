@@ -98,6 +98,15 @@ export const OXYGEN_THERMAL=Object.freeze({
     heatStops:freezeStops([[-9200,0],[-9350,36],[-10380,36],[-10560,0],[-10670,0]]),
   }),
   mergeRecovery:Object.freeze({x:120,y:-10800,radius:330,top:-10640,bottom:-10900}),
+  // Final CHO approach: a broad heat/reverse-flow wall. H2O makes sustained
+  // DRIVE the intended solution; an expert can still spend PULSE and use short
+  // DRIVE windows on the center line instead of meeting a recipe hard gate.
+  frontierWall:Object.freeze({
+    top:-11880,bottom:-12560,coreHalfWidth:150,fadeHalfWidth:320,
+    routePressure:380,offRoutePressure:560,combustionHeatFactor:.8,maxHeat:50,pulsePressureMultiplier:1.9,
+    centerTop:Object.freeze({x:100,y:-11880}),centerBottom:Object.freeze({x:280,y:-12470}),
+    heatStops:freezeStops([[-11880,0],[-11960,50],[-12490,50],[-12560,0]]),
+  }),
   deepProfiles:Object.freeze({
     'oxygen-deep-safe':Object.freeze({coreRadius:145,fadeRadius:255,heatStops:freezeStops([
       [-10900,0],[-11000,1],[-11200,3],[-11450,5],[-11550,5],[-11620,0],[-11830,0],
@@ -154,6 +163,21 @@ function mergeRecoveryAt(p){
   const recovery=OXYGEN_THERMAL.mergeRecovery;
   return Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.y<=recovery.top&&p.y>=recovery.bottom&&Math.hypot(p.x-recovery.x,p.y-recovery.y)<=recovery.radius;
 }
+function frontierWallCenterXAtY(y){
+  const wall=OXYGEN_THERMAL.frontierWall;if(!Number.isFinite(y)||y>wall.top||y<wall.bottom)return null;
+  const a=wall.centerTop,b=wall.centerBottom;if(y<=b.y)return b.x;
+  const t=clamp((a.y-y)/(a.y-b.y),0,1);return a.x+(b.x-a.x)*t;
+}
+function frontierWallLateral(p){
+  const wall=OXYGEN_THERMAL.frontierWall,center=frontierWallCenterXAtY(p?.y);if(center===null||!Number.isFinite(p?.x))return 0;
+  const distance=Math.abs(p.x-center);if(distance<=wall.coreHalfWidth)return 1;if(distance>=wall.fadeHalfWidth)return 0;
+  return 1-smoothstep((distance-wall.coreHalfWidth)/(wall.fadeHalfWidth-wall.coreHalfWidth));
+}
+function frontierWallPressureAt(p){
+  const wall=OXYGEN_THERMAL.frontierWall,heat=profileAtY(wall.heatStops,p?.y);if(heat<=0)return null;
+  const lateral=frontierWallLateral(p),target=wall.offRoutePressure-(wall.offRoutePressure-wall.routePressure)*lateral;
+  return target*clamp(heat/wall.maxHeat,0,1);
+}
 export function deepOxygenFrontierRecoveryAt(p){
   const recovery=DEEP_OXYGEN_FRONTIER_RECOVERY;
   if(!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return false;
@@ -182,6 +206,7 @@ export function oxygenThermalAt(p){
   const routeHeat=profileAtY(OXYGEN_THERMAL.heatStops,p.y)*routeLateralFactor;
   const belt=OXYGEN_THERMAL.sharedBelt,beltRecovery=beltRecoveryAt(p);
   const beltHeat=beltRecovery?0:profileAtY(belt.heatStops,p.y)*beltLateral(p,belt);
+  const wall=OXYGEN_THERMAL.frontierWall,frontierWallHeat=profileAtY(wall.heatStops,p.y),frontierWallPressure=frontierWallPressureAt(p)??0,frontierWallPulsePressure=frontierWallPressure*Math.max(0,wall.pulsePressureMultiplier-1);
   const mergeRecovery=mergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;
   let deepHeat=0,deepThermalHeat=0;
   if(!recovery){
@@ -192,9 +217,9 @@ export function oxygenThermalAt(p){
       if(deepRoute.id==='oxygen-deep-thermal')deepThermalHeat=local;
     }
   }
-  const heat=Math.max(routeHeat,beltHeat,deepHeat),networkFactor=.71*clamp(routeHeat/48,0,1),beltFactor=routeHeat>0?0:belt.combustionHeatFactor*clamp(beltHeat/belt.maxHeat,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1);
-  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat)>=OXYGEN_THERMAL.learningHeat;
-  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor)};
+  const heat=Math.max(routeHeat,beltHeat,deepHeat,frontierWallHeat),networkFactor=.71*clamp(routeHeat/48,0,1),beltFactor=routeHeat>0?0:belt.combustionHeatFactor*clamp(beltHeat/belt.maxHeat,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1),frontierWallFactor=wall.combustionHeatFactor*clamp(frontierWallHeat/wall.maxHeat,0,1);
+  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat,frontierWallHeat)>=OXYGEN_THERMAL.learningHeat;
+  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,frontierWallHeat,frontierWallPressure,frontierWallPulsePressure,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor,frontierWallFactor)};
 }
 export function oxygenRouteAt(p){
   if(p.y>-8870||p.y<-10480)return null;

@@ -172,9 +172,9 @@ export function environmentAt(p,time=0,map=null){
   const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p),recovering=quiet||thermal.recovery;
   const challenge=challengeEnvironment(p,time),oxygenRoutePressure=oxygenPressureAt(p),challengePressure=recovering?0:challenge?.pressure;
   const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
-  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),revisitCurrent=revisitCurrentAt(map,p);
+  const basePressure=(routePressure??outer*255+pressureBand*310)+(thermal.frontierWallPressure??0),baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),revisitCurrent=revisitCurrentAt(map,p);
   const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));
-  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x+revisitCurrent.x,flowY:revisitCurrent.y,currentIntensity:revisitCurrent.intensity,traversableRoutePressure:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
+  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x+revisitCurrent.x,flowY:revisitCurrent.y,currentIntensity:revisitCurrent.intensity,traversableRoutePressure:oxygenRoutePressure,frontierWallPressure:thermal.frontierWallPressure??0,frontierWallPulsePressure:thermal.frontierWallPulsePressure??0,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;
