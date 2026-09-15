@@ -1,0 +1,38 @@
+name: Refresh LOADOUT transfer PWA
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-and-verify:
+    if: github.head_ref == 'work/loadout-element-transfer-visualization'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Regenerate PWA outputs
+        run: node scripts/build-precache.mjs
+      - name: Verify compatibility and LOADOUT transfer
+        run: |
+          node tests/collection-expansion.test.mjs
+          node tests/loadout-workstation.test.mjs
+          node tests/launch-transaction.test.mjs
+          node tests/loadout-launch-regression.test.mjs
+          node tests/loadout-transfer-browser.test.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit generated outputs
+        run: |
+          git add sw.js precache-manifest.js
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh PWA for LOADOUT transfer visualization"
+          git push origin HEAD:${{ github.head_ref }}
