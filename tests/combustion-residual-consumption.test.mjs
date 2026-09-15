@@ -15,7 +15,7 @@ const expectedWholeOxygen=(fuel,count)=>Math.ceil(count*fuel.oxygenPerFuel-1e-10
 
 function resourcesFor(id,fuelAmount,oxygenAmount){
   const resources=createResources({storage:memory()});resources.setCatalog(database);resources.discover(id);resources.discover('oxygen');
-  resources.state.tanks.fuel={molecule:id,amount:fuelAmount};resources.state.tanks.oxidizer={molecule:'oxygen',amount:oxygenAmount};assert.ok(resources.save());return resources;
+  resources.state.tanks.fuel={molecule:id,amount:fuelAmount};resources.state.tanks.oxidizer={molecule:'oxygen',amount:oxygenAmount};assert.ok(resources.save(),`${id} initial resource state must persist: ${resources.message}`);return resources;
 }
 
 function exhaust(id,fuelAmount,oxygenAmount){
