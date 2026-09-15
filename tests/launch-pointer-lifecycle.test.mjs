@@ -21,9 +21,9 @@ assert.match(source,/launchHandle\.addEventListener\('lostpointercapture',event=
 assert.match(source,/dialog\.addEventListener\('close',[\s\S]*?resetLaunchGesture\(\)/,'Closing LOADOUT mid-drag must clear pointer state and capture');
 assert.match(source,/q\('open-supply'\)\.addEventListener\('click',[\s\S]*?resetLaunchGesture\(\)/,'Reopening LOADOUT must start from an idle launch gesture');
 assert.match(source,/if\(!isExpeditionDestinationAvailable\(resources\.state,destinationId\)\|\|launchBusy\|\|requestedDestinationId!==null\|\|resources\.blocked\|\|!canOpen\(\)\)return false;/,'Canonical destination validity plus pending/busy state must reject duplicate launch requests before transaction handoff');
-assert.match(source,/outcome=await onLaunchReady\(destinationId,\{partial\}\)/,'Confirmed pointer/button launch must hand the explicit destination to the application transaction');
-assert.match(source,/if\(outcome===true\|\|outcome\?\.status==='success'\)\{requestedDestinationId=null;return true;\}[\s\S]*?requestedDestinationId=null;[\s\S]*?if\(!resources\.blocked&&canOpen\(\)&&!dialog\.open\)dialog\.showModal\(\);/,'A failed or blocked downstream transaction must clear the pending destination and restore retryable LOADOUT');
-assert.match(source,/finally\{\s*launchBusy=false;/,'Failed or rejected transaction handoff must release the launch busy lock');
+assert.match(source,/outcome=await onLaunchReady\(destinationId,\{partial,presentSupply:async supply=>\{/,'Confirmed pointer/button launch must hand the explicit destination and committed-supply presenter to the application transaction');
+assert.match(source,/if\(outcome===true\|\|outcome\?\.status==='success'\)\{requestedDestinationId=null;if\(dialog\.open\)dialog\.close\(\);return true;\}[\s\S]*?requestedDestinationId=null;[\s\S]*?if\(!resources\.blocked&&canOpen\(\)&&!dialog\.open\)dialog\.showModal\(\);/,'A successful transaction may close LOADOUT after presentation, while a failed or blocked transaction must clear the pending destination and restore retryable LOADOUT');
+assert.match(source,/finally\{\s*delete dialog\.dataset\.preserveShellClose;launchBusy=false;/,'Transaction handoff cleanup must release the presentation-preservation flag and launch busy lock');
 assert.doesNotMatch(source,/\.dispatchEvent\(new window\.Event\('change'/,'Pointer lifecycle must not synthesize destination change events');
 assert.doesNotMatch(source,/#launch-veil[^\n]*\.click\(|q\('launch-veil'\)\.click\(\)/,'Pointer lifecycle must not pseudo-click the launch affordance');
 
