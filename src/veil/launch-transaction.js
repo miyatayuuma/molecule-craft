@@ -43,7 +43,7 @@ export function stageLaunchSupply(resources,{partial=false}={}){
 export function createLaunchTransaction({validate,beforeLaunch,snapshot,commitSupply,prepareExpedition,createRun,initializeExplore,stageSuccess,persist,rollback}){
   for(const [name,fn]of Object.entries({validate,beforeLaunch,snapshot,commitSupply,prepareExpedition,createRun,initializeExplore,stageSuccess,persist,rollback}))if(typeof fn!=='function')throw new TypeError(`Launch transaction requires ${name}.`);
   let inFlight=false;
-  async function execute(destinationId,{partial=false}={}){
+  async function execute(destinationId,{partial=false,presentSupply=null}={}){
     if(inFlight)return {status:LAUNCH_TRANSACTION_STATUS.BLOCKED,reason:'in-flight'};
     let validation;
     try{validation=validate(destinationId);}catch(error){return {status:LAUNCH_TRANSACTION_STATUS.FAILED,reason:'validate',error};}
@@ -55,6 +55,7 @@ export function createLaunchTransaction({validate,beforeLaunch,snapshot,commitSu
       checkpoint=await snapshot(destinationId);
       stage='supply';supply=await commitSupply({destinationId,partial});
       if(!supply)return {status:LAUNCH_TRANSACTION_STATUS.BLOCKED,reason:'supply-unavailable'};
+      if(typeof presentSupply==='function')try{await presentSupply(supply);}catch(error){console.warn('Launch supply presentation failed; continuing committed transaction.',error);}
       stage='prepare-expedition';prepared=await prepareExpedition({destinationId,supply});
       if(prepared===false||prepared==null)throw new LaunchTransactionError('prepare-expedition');
       stage='create-run';run=await createRun({destinationId,supply,prepared});

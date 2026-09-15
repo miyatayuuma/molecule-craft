@@ -42,12 +42,27 @@ test('LOADOUT PULSE boundary is shifted right and down',()=>{
   );
 });
 
-test('LOADOUT stock preview exposes element state without an explanatory shortage banner',async()=>{
-  const source=await readFile(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8');
-  assert.doesNotMatch(source,/材料不足|loadout-shortage-status/);
-  assert.match(source,/chip\.dataset\.stockState=chip\.dataset\.sufficient==='false'\?'short':'ready'/);
-  assert.match(source,/preview\.setAttribute\('aria-label','必要元素'\)/);
-  assert.match(source,/\[data-sufficient='false'\]/,'insufficient element chips receive direct visual state');
+test('LOADOUT BASE STOCK is read-only, shares the CRAFT atom primitive and owns a machine intake anchor',async()=>{
+  const [source,progression,supply,transaction,shell]=await Promise.all([
+    readFile(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8'),
+    readFile(new URL('../src/element-progression.js',import.meta.url),'utf8'),
+    readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8'),
+    readFile(new URL('../src/veil/launch-transaction.js',import.meta.url),'utf8'),
+    readFile(new URL('../src/game-shell.js',import.meta.url),'utf8'),
+  ]);
+  assert.match(source,/createElement\('div'\);token\.className='loadout-element-token'/,'LOADOUT stock uses non-interactive containers rather than buttons');
+  assert.match(source,/atom\.className='atom-preview'/,'LOADOUT reuses the CRAFT atom visual primitive');
+  assert.match(source,/token\.hidden=!unlocked/,'locked elements are not exposed while zero stock remains representable');
+  assert.match(progression,/symbol:'N'.*color:'#3b82f6'/,'shared element presentation metadata owns atom colour');
+  assert.match(source,/dataset\.launchIntakeAnchor='true'/,'machine visual owns an explicit synthesis intake anchor');
+  assert.match(source,/movement=canvas\?\.style\.transform/,'intake anchor follows the visible collector-shell canvas translation');
+  assert.match(source,/source\?\.getBoundingClientRect\(\)/,'transfer starts from the rendered element atom');
+  assert.match(source,/targetRect\.left\+targetRect\.width\/2/,'transfer ends at the rendered intake anchor');
+  assert.match(supply,/cost:supply\?\.plan\?\.cost/,'presentation consumes the committed supply plan rather than a pre-transaction preview');
+  assert.match(supply,/syncLoadoutElementStock\(resources,document\)/,'LOADOUT stock reads authoritative resource state');
+  assert.match(transaction,/await presentSupply\(supply\)/,'presentation occurs only after supply staging succeeds');
+  assert.match(shell,/preserveShellClose/,'machine remains visible through the committed transfer presentation');
+  assert.doesNotMatch(supply,/24\+\(index%4\)\*18|rect\.width\*\(\.52/,'legacy pseudo-position synthesis animation is removed');
 });
 
 test('LOADOUT owns no direct Encyclopedia navigation affordance or relay',async()=>{

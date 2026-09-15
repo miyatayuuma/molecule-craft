@@ -1,4 +1,5 @@
 import { RESOURCE_KEY } from './resources.js';
+import { ELEMENT_PRESENTATION } from '../element-progression.js?v=39';
 
 const STYLE_ID='molecule-craft-loadout-workstation-style';
 const PULSE_UNIT_URL=new URL('../../assets/loadout-pulse-unit.png',import.meta.url).href;
@@ -187,32 +188,72 @@ function observeMoleculeSlots(map){
   syncMoleculeSlots(map);
 }
 
-function syncStockPreview(preview){
-  if(!preview)return;
-  const chips=[...preview.children].filter(node=>node.dataset?.sufficient!==undefined);
-  if(!chips.length){preview.hidden=true;return;}
-  const insufficient=chips.some(chip=>chip.dataset.sufficient==='false');
-  preview.hidden=!insufficient;
-  for(const chip of chips){chip.hidden=false;chip.dataset.stockState=chip.dataset.sufficient==='false'?'short':'ready';}
-  if(insufficient)preview.setAttribute('aria-label','必要元素');else preview.removeAttribute('aria-label');
+function installLoadoutElementStock(map){
+  if(!map)return null;
+  let stock=document.getElementById('loadout-element-stock');
+  if(stock)return stock;
+  stock=document.createElement('section');stock.id='loadout-element-stock';stock.className='loadout-element-stock';stock.setAttribute('aria-label','BASE STOCK');
+  const heading=document.createElement('span');heading.className='loadout-element-stock-title';heading.textContent='BASE STOCK';
+  const elements=document.createElement('div');elements.className='loadout-stock-elements';
+  for(const item of ELEMENT_PRESENTATION){
+    const token=document.createElement('div');token.className='loadout-element-token';token.dataset.loadoutStockElement=item.symbol;token.dataset.stockCount='0';token.hidden=true;token.style.setProperty('--element-color',item.color);token.setAttribute('role','img');
+    const atom=document.createElement('span');atom.className='atom-preview';atom.setAttribute('aria-hidden','true');
+    const symbol=document.createElement('strong');symbol.textContent=item.symbol;const count=document.createElement('small');count.dataset.loadoutElementStock=item.symbol;count.textContent='0';
+    token.append(atom,symbol,count);elements.append(token);
+  }
+  stock.append(heading,elements);map.after(stock);return stock;
 }
 
-function observeStockPreview(){
-  const attach=()=>{
-    const preview=document.getElementById('loadout-stock-preview');
-    if(!preview||preview._loadoutShortageObserver)return false;
-    const observer=new MutationObserver(()=>queueMicrotask(()=>syncStockPreview(preview)));
-    observer.observe(preview,{childList:true});
-    preview._loadoutShortageObserver=observer;
-    syncStockPreview(preview);
-    return true;
-  };
-  if(attach())return;
-  const root=document.getElementById('supply-dialog');
-  if(!root||root._loadoutShortageWaiter)return;
-  const waiter=new MutationObserver(()=>{if(attach()){waiter.disconnect();root._loadoutShortageWaiter=null;}});
-  waiter.observe(root,{childList:true,subtree:true});
-  root._loadoutShortageWaiter=waiter;
+export function syncLoadoutElementStock(resources,root=document){
+  const stock=root.querySelector?.('#loadout-element-stock');if(!stock||!resources?.state?.elements)return false;let visible=0;
+  for(const token of stock.querySelectorAll('[data-loadout-stock-element]')){
+    const symbol=token.dataset.loadoutStockElement,item=ELEMENT_PRESENTATION.find(candidate=>candidate.symbol===symbol),unlocked=resources.canUseElement?.(symbol)===true,count=Math.max(0,Number(resources.state.elements[symbol]??0));
+    token.hidden=!unlocked;token.dataset.stockCount=String(count);token.querySelector('[data-loadout-element-stock]')?.replaceChildren(String(count));
+    if(item)token.setAttribute('aria-label',`${item.name}（${symbol}） BASE STOCK ${count}`);if(unlocked)visible++;
+  }
+  stock.hidden=visible===0;return true;
+}
+
+function ensureLaunchIntakeAnchor(map){
+  if(!map)return null;let anchor=map.querySelector('[data-launch-intake-anchor]');if(anchor)return anchor;
+  anchor=document.createElement('span');anchor.className='loadout-synthesis-intake';anchor.dataset.launchIntakeAnchor='true';anchor.setAttribute('aria-hidden','true');map.append(anchor);return anchor;
+}
+
+export function syncLaunchIntakeAnchor(map=document.querySelector?.('#supply-dialog .collector-shell-map')){
+  if(!map)return false;const anchor=ensureLaunchIntakeAnchor(map),canvas=map.querySelector('#collector-shell-preview'),movement=canvas?.style.transform?.trim()??'';
+  anchor.style.transform=`translate(-50%,-50%)${movement?` ${movement}`:''}`;return true;
+}
+
+function observeLaunchIntakeAnchor(map){
+  const canvas=map?.querySelector('#collector-shell-preview');if(!canvas||canvas._loadoutIntakeObserver)return;
+  const observer=new MutationObserver(()=>syncLaunchIntakeAnchor(map));observer.observe(canvas,{attributes:true,attributeFilter:['style']});canvas._loadoutIntakeObserver=observer;syncLaunchIntakeAnchor(map);
+}
+
+export async function animateLoadoutElementTransfer({cost={},root=document,reduced=false}={}){
+  const dialog=root.querySelector?.('#supply-dialog'),map=root.querySelector?.('#supply-dialog .collector-shell-map');if(!dialog||!map)return {animated:false,reason:'missing-loadout'};
+  const entries=Object.entries(cost??{}).filter(([,amount])=>Number(amount)>0);if(!entries.length)return {animated:false,reason:'no-cost'};
+  if(reduced)return {animated:false,reason:'reduced-motion'};
+  const canvas=map.querySelector('#collector-shell-preview');for(const animation of canvas?.getAnimations?.()??[])try{await animation.finished;}catch{}
+  syncLaunchIntakeAnchor(map);const intake=map.querySelector('[data-launch-intake-anchor]'),targetRect=intake?.getBoundingClientRect();
+  if(!targetRect||targetRect.width<=0||targetRect.height<=0)return {animated:false,reason:'missing-intake'};
+  const doc=root.ownerDocument??root,layer=doc.createElement('div');layer.className='loadout-transfer-layer';layer.setAttribute('aria-hidden','true');dialog.append(layer);map.dataset.synthesisActive='true';
+  const targetX=targetRect.left+targetRect.width/2,targetY=targetRect.top+targetRect.height/2,finished=[];let sequence=0;
+  try{
+    for(const [element,amount] of entries){
+      const token=map.parentElement?.querySelector(`[data-loadout-stock-element="${element}"]`)??root.querySelector?.(`[data-loadout-stock-element="${element}"]`),source=token?.querySelector('.atom-preview'),sourceRect=source?.getBoundingClientRect();if(token?.hidden||!sourceRect||sourceRect.width<=0||sourceRect.height<=0)continue;
+      const startX=sourceRect.left+sourceRect.width/2,startY=sourceRect.top+sourceRect.height/2,copies=Math.min(4,Math.max(1,Math.floor(Number(amount))));
+      for(let index=0;index<copies;index++){
+        const dot=doc.createElement('span'),meta=ELEMENT_PRESENTATION.find(item=>item.symbol===element),size=22,dx=targetX-startX,dy=targetY-startY,bend=((sequence%3)-1)*14;
+        dot.className='loadout-transfer-atom atom-preview';dot.dataset.element=element;dot.dataset.startX=String(startX);dot.dataset.startY=String(startY);dot.dataset.targetX=String(targetX);dot.dataset.targetY=String(targetY);dot.textContent=element;dot.style.setProperty('--element-color',meta?.color??'#bfefff');Object.assign(dot.style,{left:`${startX-size/2}px`,top:`${startY-size/2}px`});layer.append(dot);
+        const animation=dot.animate?.([
+          {transform:'translate(0px,0px) scale(.72)',opacity:.28},
+          {transform:`translate(${dx*.54+bend}px,${dy*.42}px) scale(1)`,opacity:1,offset:.56},
+          {transform:`translate(${dx}px,${dy}px) scale(.2)`,opacity:0},
+        ],{duration:430,delay:sequence*26,easing:'cubic-bezier(.3,.75,.25,1)',fill:'forwards'});if(animation?.finished)finished.push(animation.finished.catch(()=>{}));sequence++;
+      }
+    }
+    if(!sequence)return {animated:false,reason:'missing-source'};if(finished.length)await Promise.all(finished);return {animated:true,elements:entries.map(([element])=>element),target:{x:targetX,y:targetY}};
+  }finally{delete map.dataset.synthesisActive;layer.remove();}
 }
 
 function installLabels(){
@@ -231,7 +272,7 @@ function installLabels(){
   addSchematic(map);
   applySlotGeometry();
   observeMoleculeSlots(map);
-  observeStockPreview();
+  installLoadoutElementStock(map);ensureLaunchIntakeAnchor(map);observeLaunchIntakeAnchor(map);
   const details=document.querySelector('#supply-dialog .tank-explanation');
   if(details)details.open=true;
 }
@@ -274,11 +315,19 @@ function installStyles(){
 #supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-drive-label,#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-drive-label,#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-drive-label{color:#f0fdff}
 #supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-unit-image,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-schematic-lines,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-slot-overlay,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-callout-label{opacity:.28}
 #supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-slot-path{pointer-events:none}
-#supply-dialog #loadout-stock-preview{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px;width:min(330px,calc(100% - 44px));min-height:0!important;margin:8px auto 0;padding:0!important}
-#supply-dialog #loadout-stock-preview[hidden]{display:none!important}
-#supply-dialog #loadout-stock-preview>[data-sufficient]{min-width:0;padding:6px 8px;border:1px solid #34505d;border-radius:9px;background:#0b202b;color:#c9d8dd;font-variant-numeric:tabular-nums;text-align:center}
-#supply-dialog #loadout-stock-preview>[data-sufficient='true']{opacity:.42}
-#supply-dialog #loadout-stock-preview>[data-sufficient='false']{border-color:#b97856;box-shadow:inset 0 0 0 1px #b9785633,0 0 9px #b9785622;color:#f0d2bf}
+#supply-dialog .loadout-synthesis-intake{position:absolute;z-index:7;left:var(--loadout-ship-x);top:52%;width:10px;height:10px;border-radius:50%;opacity:0;pointer-events:none;box-shadow:0 0 0 0 #bff7ff00;transition:opacity .12s ease,box-shadow .12s ease}
+#supply-dialog .collector-shell-map[data-synthesis-active='true'] .loadout-synthesis-intake{opacity:.92;box-shadow:0 0 6px 2px #d9fbff,0 0 18px 8px #75dbe877}
+#supply-dialog .loadout-element-stock{display:grid;gap:6px;margin:8px 0 0;padding:8px 10px;border:1px solid #294656;border-radius:13px;background:#091b27;pointer-events:none;user-select:none}
+#supply-dialog .loadout-element-stock-title{color:#8ea9b5;font-size:9px;font-weight:800;letter-spacing:.16em}
+#supply-dialog .loadout-stock-elements{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:7px}
+#supply-dialog .loadout-element-token{min-width:0;min-height:50px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr 1fr;align-items:center;column-gap:7px;padding:5px 7px;border:1px solid color-mix(in srgb,var(--element-color) 55%,#294656);border-radius:11px;background:color-mix(in srgb,var(--element-color) 10%,#0b202b);font-variant-numeric:tabular-nums;cursor:default}
+#supply-dialog .loadout-element-token>.atom-preview{grid-row:1 / 3;width:24px;height:24px}
+#supply-dialog .loadout-element-token[data-loadout-stock-element='H']>.atom-preview{width:20px;height:20px}
+#supply-dialog .loadout-element-token>strong{align-self:end;font-size:13px;line-height:1}
+#supply-dialog .loadout-element-token>small{align-self:start;color:#b6c9d8;font-size:10px;font-weight:700;line-height:1.2}
+#supply-dialog .loadout-element-token[data-stock-count='0']>small{opacity:.52}
+#supply-dialog .loadout-transfer-layer{position:fixed;inset:0;z-index:30;pointer-events:none;overflow:visible}
+#supply-dialog .loadout-transfer-atom{position:absolute!important;width:22px!important;height:22px!important;display:grid!important;place-items:center!important;color:#07141f;font-size:8px;font-weight:900;line-height:1;will-change:transform,opacity;text-shadow:0 1px 1px #fff8}
 #supply-dialog .tank-explanation{display:block!important}#supply-dialog .tank-explanation>summary{display:none!important}#supply-dialog .tank-explanation .tank-comparison{margin-top:0!important}#supply-dialog .tank-decision{justify-content:center}#supply-dialog .tank-comparison{gap:7px!important;padding:2px 0}
 #supply-dialog .tank-comparison .loadout-stat{display:grid!important;grid-template-columns:62px 1fr!important;align-items:center;gap:8px!important;min-height:16px;color:#a9c0ca;font-size:9px!important}
 #supply-dialog .tank-comparison .loadout-stat>span{overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important}
@@ -289,8 +338,8 @@ function installStyles(){
 #supply-dialog .loadout-charges>div{display:flex;align-items:center;gap:4px;min-height:11px;flex-wrap:wrap}#supply-dialog .loadout-charges i{display:block;width:8px;height:8px;border-radius:50%;background:#a7e2eb;box-shadow:0 0 5px #71ccd933}#supply-dialog .loadout-charges[data-ghost=true]{opacity:.38}
 #supply-dialog #tank-detail-title{font-size:0}#supply-dialog #tank-detail-title:after{font-size:14px;font-weight:700;letter-spacing:.04em}
 #supply-dialog:has(#shell-propellant[data-active='true']) #tank-detail-title:after{content:'PULSE'}#supply-dialog:has(#shell-fuel[data-active='true']) #tank-detail-title:after{content:'FUEL'}#supply-dialog:has(#shell-oxidizer[data-active='true']) #tank-detail-title:after{content:'O₂'}#supply-dialog:has(#shell-coolant[data-active='true']) #tank-detail-title:after{content:'COOLANT'}
-@media(max-width:370px){#supply-dialog .collector-shell-map{height:194px!important}#supply-dialog #collector-launch-handle{width:70px!important;height:70px!important}#supply-dialog .loadout-molecule-pod{height:50px;transform:translate(-50%,-50%)}#supply-dialog .port-propellant>.loadout-molecule-pod{height:56px;transform:translate(-50%,-50%)}#supply-dialog .loadout-slot-empty>.loadout-molecule-pod{height:24px;transform:translateX(-50%)}#supply-dialog .loadout-callout-label{font-size:10px}#supply-dialog .loadout-drive-label{top:15px;font-size:11px}#supply-dialog .loadout-pulse-label{top:20px}#supply-dialog .loadout-fuel-label,#supply-dialog .loadout-oxidizer-label,#supply-dialog .loadout-coolant-label{top:68.5%}#supply-dialog .tank-comparison .loadout-stat,#supply-dialog .loadout-charges{grid-template-columns:55px 1fr}#supply-dialog #loadout-stock-preview{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-@media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog .loadout-schematic-lines,#supply-dialog .loadout-slot-path,#supply-dialog .loadout-callout-label{transition:none}}
+@media(max-width:370px){#supply-dialog .collector-shell-map{height:194px!important}#supply-dialog #collector-launch-handle{width:70px!important;height:70px!important}#supply-dialog .loadout-molecule-pod{height:50px;transform:translate(-50%,-50%)}#supply-dialog .port-propellant>.loadout-molecule-pod{height:56px;transform:translate(-50%,-50%)}#supply-dialog .loadout-slot-empty>.loadout-molecule-pod{height:24px;transform:translateX(-50%)}#supply-dialog .loadout-callout-label{font-size:10px}#supply-dialog .loadout-drive-label{top:15px;font-size:11px}#supply-dialog .loadout-pulse-label{top:20px}#supply-dialog .loadout-fuel-label,#supply-dialog .loadout-oxidizer-label,#supply-dialog .loadout-coolant-label{top:68.5%}#supply-dialog .tank-comparison .loadout-stat,#supply-dialog .loadout-charges{grid-template-columns:55px 1fr}#supply-dialog .loadout-stock-elements{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog .loadout-schematic-lines,#supply-dialog .loadout-slot-path,#supply-dialog .loadout-callout-label,#supply-dialog .loadout-synthesis-intake{transition:none}}
 `;
   document.head.append(style);
 }
