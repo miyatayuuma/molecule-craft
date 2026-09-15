@@ -98,11 +98,36 @@ const integerRatio=value=>{
   return null;
 };
 
-// Combustion spends whole molecule-count game units. The smallest packet whose
-// O2 cost is integral avoids fractional saved inventory and rounding loss.
+// Combustion spends whole molecule-count game units. The smallest exact packet
+// keeps ordinary burns stoichiometric without fractional saved inventory.
 export function combustionPacketFor(id,{baseSeconds=2}={}){
   const fuel=performanceFor(id,'fuel'),oxygen=integerRatio(fuel?.oxygenPerFuel);
   if(!fuel||!oxygen)return null;
   const fuelAmount=oxygen.denominator,oxygenAmount=oxygen.numerator;
   return Object.freeze({fuel:id,fuelAmount,oxidizer:'oxygen',oxygenAmount,seconds:fuelAmount*baseSeconds*fuel.energy});
+}
+
+// Prefer exact packets. If one no longer fits, spend the largest smaller packet
+// that can be represented with integer molecule inventory. Its O2 cost is the
+// conservative whole-molecule ceiling of the same stoichiometric ratio.
+export function combustionChargeFor(id,{fuelAmount=0,oxygenAmount=0,baseSeconds=2}={}){
+  const fuel=performanceFor(id,'fuel'),oxygen=integerRatio(fuel?.oxygenPerFuel),packet=combustionPacketFor(id,{baseSeconds});
+  if(!fuel||!oxygen||!packet)return null;
+  const availableFuel=Number.isFinite(fuelAmount)?Math.max(0,Math.floor(fuelAmount)):0,availableOxygen=Number.isFinite(oxygenAmount)?Math.max(0,Math.floor(oxygenAmount)):0;
+  if(availableFuel>=packet.fuelAmount&&availableOxygen>=packet.oxygenAmount)return packet;
+  const partialLimit=Math.min(availableFuel,oxygen.denominator-1);
+  for(let partialFuel=partialLimit;partialFuel>=1;partialFuel--){
+    const partialOxygen=Math.ceil(partialFuel*oxygen.numerator/oxygen.denominator);
+    if(availableOxygen>=partialOxygen)return Object.freeze({fuel:id,fuelAmount:partialFuel,oxidizer:'oxygen',oxygenAmount:partialOxygen,seconds:partialFuel*baseSeconds*fuel.energy});
+  }
+  return null;
+}
+
+export function combustionBurnPlanFor(id,{fuelAmount=0,oxygenAmount=0,baseSeconds=2}={}){
+  let fuelRemaining=Number.isFinite(fuelAmount)?Math.max(0,Math.floor(fuelAmount)):0,oxygenRemaining=Number.isFinite(oxygenAmount)?Math.max(0,Math.floor(oxygenAmount)):0,fuelUsed=0,oxygenUsed=0,seconds=0,charges=0;
+  while(fuelRemaining>0){
+    const charge=combustionChargeFor(id,{fuelAmount:fuelRemaining,oxygenAmount:oxygenRemaining,baseSeconds});if(!charge)break;
+    fuelRemaining-=charge.fuelAmount;oxygenRemaining-=charge.oxygenAmount;fuelUsed+=charge.fuelAmount;oxygenUsed+=charge.oxygenAmount;seconds+=charge.seconds;charges++;
+  }
+  return Object.freeze({fuel:id,oxidizer:'oxygen',fuelUsed,oxygenUsed,fuelRemaining,oxygenRemaining,seconds,charges});
 }
