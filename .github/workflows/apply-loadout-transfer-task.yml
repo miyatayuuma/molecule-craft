@@ -43,10 +43,9 @@ jobs:
           node scripts/build-precache.mjs --check
           node tests/pwa.test.mjs
           git diff --check
-      - name: Remove one-shot tooling and commit
+      - name: Commit implementation without workflow changes
         run: |
-          rm .github/workflows/apply-loadout-transfer-task.yml scripts/apply-loadout-transfer-task.py
-          git add -A
+          git add -A -- src tests sw.js precache-manifest.js
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Polish LOADOUT synthesis transfer visualization"
