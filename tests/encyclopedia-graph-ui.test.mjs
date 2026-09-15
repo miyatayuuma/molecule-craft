@@ -15,7 +15,7 @@ import {
   selectInitialGraphFocus,
   transitionGraphFocus,
 } from '../src/encyclopedia-graph.js';
-import {ENCYCLOPEDIA_MOTION,graphNodeMotionStart} from '../src/encyclopedia-graph-view.js';
+import {ENCYCLOPEDIA_MOTION,graphEdgeChevronGeometry,graphEdgeVisualState,graphNodeMotionStart} from '../src/encyclopedia-graph-view.js';
 
 const json=async path=>JSON.parse(await readFile(new URL(path,import.meta.url),'utf8'));
 const [productionRaw,records]=await Promise.all([json('../data/molecule-graph.json'),json('../data/molecules.json')]);
@@ -123,6 +123,25 @@ for(const point of mobileLayout.positions.values()){
   assert(point.y>=31&&point.y<=399,`mobile y tap bound: ${point.y}`);
 }
 
+const productionEdge=(from,to)=>production.edges.find(edge=>edge.from===from&&edge.to===to);
+const chainIntoButane=productionEdge('propane','n-butane'),chainOutOfButane=productionEdge('n-butane','n-pentane'),aromatizationEdge=productionEdge('cyclohexene','benzene'),isomerEdge=productionEdge('n-butane','isobutane'),bridgeEdge=productionEdge('oxygen','water');
+for(const edge of [chainIntoButane,chainOutOfButane,aromatizationEdge,isomerEdge,bridgeEdge])assert.ok(edge,'focus-edge regression fixture must exist in production graph');
+assert.deepEqual(graphEdgeVisualState(production,chainIntoButane,{direct:true}),{relation:'chain-extension',relationClass:'relation-chain-extension',directional:true,from:'propane',to:'n-butane'});
+assert.deepEqual(graphEdgeVisualState(production,chainOutOfButane,{direct:true}),{relation:'chain-extension',relationClass:'relation-chain-extension',directional:true,from:'n-butane',to:'n-pentane'});
+assert.deepEqual(graphEdgeVisualState(production,aromatizationEdge,{direct:true}),{relation:'aromatization',relationClass:'relation-aromatization',directional:true,from:'cyclohexene',to:'benzene'});
+assert.equal(graphEdgeVisualState(production,isomerEdge,{direct:true}).directional,false,'isomer relation must remain non-directional');
+assert.equal(graphEdgeVisualState(production,bridgeEdge,{direct:true}).directional,false,'bridge relation must remain non-directional');
+assert.equal(graphEdgeVisualState(production,chainIntoButane,{direct:false}).relationClass,'','background edges must not receive relation styling');
+assert.equal(graphEdgeVisualState(production,chainIntoButane,{direct:false}).directional,false,'background edges must not create directional motion state');
+const butaneMobile=layoutFocusNeighborhood(production,'n-butane',{width:320,height:430,nodeDiameter:62,focusDiameter:116});
+for(const edge of [chainIntoButane,chainOutOfButane]){
+  const geometry=graphEdgeChevronGeometry(edge,butaneMobile.positions,{focusId:'n-butane',nodeDiameter:62,focusDiameter:116});assert.ok(geometry,`${edge.from} → ${edge.to}: mobile visible-gap chevron geometry`);
+  const from=butaneMobile.positions.get(edge.from),to=butaneMobile.positions.get(edge.to),direction={x:to.x-from.x,y:to.y-from.y},movement={x:geometry.end.x-geometry.start.x,y:geometry.end.y-geometry.start.y};
+  assert(movement.x*direction.x+movement.y*direction.y>0,`${edge.from} → ${edge.to}: Chevron must move along semantic from→to direction even when focus is in the middle`);
+  assert(Math.hypot(geometry.end.x-from.x,geometry.end.y-from.y)>geometry.fromRadius,`${edge.from} → ${edge.to}: Chevron must stay outside source node on mobile`);
+  assert(Math.hypot(geometry.end.x-to.x,geometry.end.y-to.y)>geometry.toRadius,`${edge.from} → ${edge.to}: Chevron must stay outside target node on mobile`);
+}
+
 const entries=new Map([['c',{order:2}],['a',{order:1}]]);
 assert.equal(selectInitialGraphFocus(fixture,{registeredIds:new Set(['a','c']),recipes:new Set(),hints:new Set(),entriesById:entries}),'c','Most recently registered molecule must win when no previous focus exists');
 assert.equal(selectInitialGraphFocus(fixture,{registeredIds:new Set(['a','c']),recipes:new Set(),hints:new Set(),previousId:'a',entriesById:entries}),'a','Previous visible identity must be deterministic priority');
@@ -145,6 +164,11 @@ const [graphViewSource,collectionUISource,stylesSource]=await Promise.all([
 assert.doesNotMatch(graphViewSource,/詳細を見る/,'Graph footer detail button must not return');
 assert.doesNotMatch(collectionUISource,/‹ グラフ/,'Detail Graph back button must not return');
 assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs inside the selected thumbnail');
+assert.match(graphViewSource,/graph-edge\.direct\.relation-chain-extension/,'focused edge relation colors must be scoped to direct edges');
+assert.match(graphViewSource,/graph-edge-chevron/,'directional focus edges must render the compact Chevron affordance');
+assert.match(graphViewSource,/focusChanged&&!reduceMotion&&chevron\.animate/,'Chevron motion must run only for a focus change and respect reduced motion');
+assert.match(graphViewSource,/previousFocusId\?ENCYCLOPEDIA_MOTION\.graphNavigationDuration:80/,'Chevron motion must wait for spatial focus settlement on branch navigation');
+assert.match(graphViewSource,/iterations:1/,'Chevron motion must be one-shot rather than looping');
 assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigation timing must remain deliberately readable');
 assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition must remain longer than branch navigation');
 assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
