@@ -1,0 +1,70 @@
+name: Task Oxygen thermal validation
+
+on:
+  push:
+    branches: [field/oxygen-thermal-belt]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Thermal gameplay regressions
+        run: |
+          node tests/thermal-coolant.test.mjs
+          node tests/oxygen-thermal-progression.test.mjs
+          node tests/expedition-challenges.test.mjs
+      - name: Production Chromium thermal feedback
+        shell: bash
+        run: |
+          cat > /tmp/oxygen-thermal-browser.mjs <<'EOF'
+          import assert from 'node:assert/strict';
+          import {createServer} from 'node:http';
+          import {readFile,mkdtemp,rm} from 'node:fs/promises';
+          import {spawn,spawnSync} from 'node:child_process';
+          import {extname,join,normalize,resolve} from 'node:path';
+          import {tmpdir} from 'node:os';
+          const root=process.cwd(),types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
+          const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),relative=pathname==='/'?'index.html':pathname.replace(/^\/+/,''),file=normalize(join(root,relative));if(!file.startsWith(root)){res.writeHead(403).end();return;}let body=await readFile(file);if(relative==='src/veil/ui.js'){let source=body.toString('utf8');source=source.replace('function frame(now){','function frame(now){globalThis.__thermalBrowserRun=run;globalThis.__thermalBrowserResources=resources;');body=Buffer.from(source);}res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);}catch{res.writeHead(404).end('not found');}});
+          await new Promise(r=>server.listen(0,'127.0.0.1',r));const {port}=server.address(),origin=`http://127.0.0.1:${port}`;
+          let chrome='';for(const c of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[c],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}assert.ok(chrome,'Chromium is required');
+          const profile=await mkdtemp(join(tmpdir(),'molecule-craft-thermal-browser-')),debugPort=9231;let child=null,socket=null;
+          try{
+            child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});let stderr='';child.stderr.setEncoding('utf8');child.stderr.on('data',chunk=>stderr+=chunk);
+            let tabs=null;for(let i=0;i<160;i++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}await new Promise(r=>setTimeout(r,100));}assert.ok(tabs?.length,stderr.slice(-1000));
+            socket=new WebSocket(tabs.find(t=>t.type==='page')?.webSocketDebuggerUrl??tabs[0].webSocketDebuggerUrl);await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(new Error('CDP open timeout')),5000);socket.addEventListener('open',()=>{clearTimeout(timer);ok();},{once:true});socket.addEventListener('error',fail,{once:true});});
+            let sequence=0;const pending=new Map(),exceptions=[];socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(new Error(message.error.message)):task.resolve(message.result);return;}if(message.method==='Runtime.exceptionThrown')exceptions.push(message.params.exceptionDetails);});
+            const send=(method,params={})=>new Promise((ok,fail)=>{const id=++sequence;pending.set(id,{resolve:ok,reject:fail});socket.send(JSON.stringify({id,method,params}));});
+            const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(result.exceptionDetails)throw new Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);return result.result?.value;};
+            const waitFor=async(expression,message,attempts=160)=>{for(let i=0;i<attempts;i++){try{if(await evaluate(expression))return;}catch{}await new Promise(r=>setTimeout(r,100));}throw new Error(message);};
+            await send('Runtime.enable');await send('Page.enable');await send('Page.navigate',{url:`${origin}/`});await waitFor(`document.querySelector('#open-collection')?.textContent?.includes('/129')`,'Application did not initialize');
+            await evaluate(`(async()=>{const {createResources}=await import('/src/veil/resources.js');const records=await fetch('/data/molecules.json').then(r=>r.json()),r=createResources({storage:localStorage});r.setCatalog(records);r.collect({H:3000,C:1500,O:3000});for(const id of ['hydrogen','methane','oxygen','water'])r.discover(id);r.fillTankFromElements('fuel','methane',18);r.fillTankFromElements('oxidizer','oxygen',36);r.visit('oxygen');r.save();return true;})()`);
+            await send('Page.reload',{ignoreCache:true});await waitFor(`document.querySelector('#open-supply')`,'App did not reload');await evaluate(`document.querySelector('#open-supply').click()`);await waitFor(`document.querySelector('#supply-dialog')?.open===true`,'LOADOUT did not open');await evaluate(`document.querySelector('#launch-veil').click()`);await waitFor(`document.querySelector('#veil-view')?.hidden===false&&!!globalThis.__thermalBrowserRun`,'Oxygen FIELD did not launch');
+            await evaluate(`(async()=>{const {setCombustionHeld}=await import('/src/veil/engine.js'),{OXYGEN_ROUTES,oxygenRouteCenterAtY}=await import('/src/veil/oxygen-routes.js');const run=globalThis.__thermalBrowserRun,res=globalThis.__thermalBrowserResources,route=OXYGEN_ROUTES.find(r=>r.id==='oxygen-main'),y=-10050,x=oxygenRouteCenterAtY(route,y);run.heat=40;run.fuel.coolant={molecule:null,amount:0};if(res.state.tanks?.coolant){res.state.tanks.coolant.molecule=null;res.state.tanks.coolant.amount=0;}Object.assign(run.player,{x,y,angle:-Math.PI/2,vx:0,vy:0,speed:0});globalThis.__thermalPin=setInterval(()=>Object.assign(run.player,{x,y,vx:0,vy:0}),16);setCombustionHeld(run,true);return true;})()`);
+            await waitFor(`globalThis.__thermalBrowserResources?.state?.progress?.coolantNeedExperienced===true`,'Route B shared belt did not produce player-facing coolant need');const dry=await evaluate(`(()=>({label:document.querySelector('#veil-message')?.getAttribute('aria-label'),heat:globalThis.__thermalBrowserRun?.heat,thermal:document.querySelector('#veil-thermal')?.textContent}))()`);assert.match(dry.label??'',/THERMAL LIMIT|OVERHEAT/);assert.ok(dry.heat>=40);
+            await evaluate(`(async()=>{clearInterval(globalThis.__thermalPin);const {setCombustionHeld}=await import('/src/veil/engine.js');setCombustionHeld(globalThis.__thermalBrowserRun,false);globalThis.__thermalBrowserResources.fillTankFromElements('coolant','water',8);globalThis.__thermalBrowserResources.save();return true;})()`);await send('Page.reload',{ignoreCache:true});await waitFor(`document.querySelector('#open-supply')`,'App did not reload for coolant pass');await evaluate(`document.querySelector('#open-supply').click()`);await waitFor(`document.querySelector('#supply-dialog')?.open===true`,'LOADOUT did not reopen');await evaluate(`document.querySelector('#launch-veil').click()`);await waitFor(`document.querySelector('#veil-view')?.hidden===false&&!!globalThis.__thermalBrowserRun`,'Cooled Oxygen FIELD did not launch');
+            await evaluate(`(async()=>{const {setCombustionHeld}=await import('/src/veil/engine.js'),{OXYGEN_ROUTES,oxygenRouteCenterAtY}=await import('/src/veil/oxygen-routes.js');const run=globalThis.__thermalBrowserRun,route=OXYGEN_ROUTES.find(r=>r.id==='oxygen-main'),y=-10050,x=oxygenRouteCenterAtY(route,y);run.heat=34;Object.assign(run.player,{x,y,angle:-Math.PI/2,vx:0,vy:0,speed:0});globalThis.__thermalPin=setInterval(()=>Object.assign(run.player,{x,y,vx:0,vy:0}),16);setCombustionHeld(run,true);return true;})()`);
+            await waitFor(`document.querySelector('#veil-message')?.getAttribute('aria-label')?.includes('AUTO COOLING')`,'H2O did not produce AUTO COOLING feedback');await new Promise(r=>setTimeout(r,900));const wet=await evaluate(`(()=>({label:document.querySelector('#veil-message')?.getAttribute('aria-label'),heat:globalThis.__thermalBrowserRun?.heat,coolant:globalThis.__thermalBrowserRun?.fuel?.coolant?.amount,active:globalThis.__thermalBrowserRun?.coolantActive}))()`);assert.match(wet.label??'',/AUTO COOLING/);assert.ok(wet.heat<100);assert.ok(wet.coolant<8);assert.equal(wet.active,true);assert.equal(exceptions.length,0,JSON.stringify(exceptions));console.log('Oxygen thermal Chromium passed',JSON.stringify({dry,wet}));
+          }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await new Promise(r=>setTimeout(r,100));server.close();await rm(profile,{recursive:true,force:true});}
+          EOF
+          node /tmp/oxygen-thermal-browser.mjs
+      - name: Regenerate FIELD map and PWA outputs
+        run: |
+          node scripts/export-field-map.mjs
+          node scripts/build-precache.mjs
+      - name: Commit generated outputs
+        shell: bash
+        run: |
+          if git diff --quiet -- docs/maps/current-field.svg sw.js precache-manifest.js; then
+            echo "Generated outputs already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/maps/current-field.svg sw.js precache-manifest.js
+          git commit -m "Refresh Oxygen thermal generated outputs"
+          git push
