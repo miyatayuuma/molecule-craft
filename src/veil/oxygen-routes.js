@@ -85,14 +85,18 @@ export const DEEP_OXYGEN_FRONTIER_RECOVERY=Object.freeze({x:100,y:-11700,rx:250,
 const DEEP_OFF_ROUTE_PRESSURE=120;
 
 // Thermal values are environmentAt().heat game units, not player heat. Route C
-// owns the network-local field. Deep heat is route-local and converges into a
-// naturally cool Frontier recovery zone rather than a scripted heat reset.
+// keeps the specialist high-heat profile. A later cross-route belt makes heat a
+// normal Oxygen lesson without replacing the three route identities.
 export const OXYGEN_THERMAL=Object.freeze({
   routeId:'oxygen-side',coreRadius:150,fadeRadius:260,learningHeat:32,learningExposureSeconds:1.25,
   heatStops:freezeStops([
     [-8870,1],[-9000,2],[-9075,12],[-9140,32],[-9200,48],
     [-10480,48],[-10510,32],[-10540,8],[-10560,0],[-10670,0],
   ]),
+  sharedBelt:Object.freeze({
+    left:-520,right:1030,edgeFade:140,combustionHeatFactor:1.8,maxHeat:36,
+    heatStops:freezeStops([[-9200,0],[-9350,36],[-10380,36],[-10560,0],[-10670,0]]),
+  }),
   mergeRecovery:Object.freeze({x:120,y:-10800,radius:330,top:-10640,bottom:-10900}),
   deepProfiles:Object.freeze({
     'oxygen-deep-safe':Object.freeze({coreRadius:145,fadeRadius:255,heatStops:freezeStops([
@@ -133,6 +137,19 @@ function routeLateral(route,p,coreRadius,fadeRadius){
   if(distance>=fadeRadius)return 0;
   return 1-smoothstep((distance-coreRadius)/(fadeRadius-coreRadius));
 }
+function beltLateral(p,belt){
+  if(!Number.isFinite(p?.x))return 0;
+  if(p.x>=belt.left&&p.x<=belt.right)return 1;
+  const distance=p.x<belt.left?belt.left-p.x:p.x-belt.right;
+  if(distance>=belt.edgeFade)return 0;
+  return 1-smoothstep(distance/belt.edgeFade);
+}
+function beltRecoveryAt(p){
+  const route=OXYGEN_ROUTES.find(candidate=>candidate.id==='oxygen-main'),stop=route?.restStops?.[0];
+  if(!route||!stop||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return false;
+  const centerX=stop.x??oxygenRouteCenterAtY(route,stop.y)??route.x;
+  return Math.abs(p.y-stop.y)<stop.depth/2&&Math.abs(p.x-centerX)<route.width/2;
+}
 function mergeRecoveryAt(p){
   const recovery=OXYGEN_THERMAL.mergeRecovery;
   return Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.y<=recovery.top&&p.y>=recovery.bottom&&Math.hypot(p.x-recovery.x,p.y-recovery.y)<=recovery.radius;
@@ -163,6 +180,8 @@ export function oxygenThermalAt(p){
   const route=OXYGEN_ROUTES.find(candidate=>candidate.id===OXYGEN_THERMAL.routeId);
   const routeLateralFactor=routeLateral(route,p,OXYGEN_THERMAL.coreRadius,OXYGEN_THERMAL.fadeRadius);
   const routeHeat=profileAtY(OXYGEN_THERMAL.heatStops,p.y)*routeLateralFactor;
+  const belt=OXYGEN_THERMAL.sharedBelt,beltRecovery=beltRecoveryAt(p);
+  const beltHeat=beltRecovery?0:profileAtY(belt.heatStops,p.y)*beltLateral(p,belt);
   const mergeRecovery=mergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;
   let deepHeat=0,deepThermalHeat=0;
   if(!recovery){
@@ -173,9 +192,9 @@ export function oxygenThermalAt(p){
       if(deepRoute.id==='oxygen-deep-thermal')deepThermalHeat=local;
     }
   }
-  const heat=Math.max(routeHeat,deepHeat),networkFactor=.71*clamp(routeHeat/48,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1);
-  const coolantLearning=!recovery&&routeHeat>=OXYGEN_THERMAL.learningHeat;
-  return {heat,routeHeat,deepHeat,deepThermalHeat,recovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,deepFactor)};
+  const heat=Math.max(routeHeat,beltHeat,deepHeat),networkFactor=.71*clamp(routeHeat/48,0,1),beltFactor=routeHeat>0?0:belt.combustionHeatFactor*clamp(beltHeat/belt.maxHeat,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1);
+  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat)>=OXYGEN_THERMAL.learningHeat;
+  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor)};
 }
 export function oxygenRouteAt(p){
   if(p.y>-8870||p.y<-10480)return null;
