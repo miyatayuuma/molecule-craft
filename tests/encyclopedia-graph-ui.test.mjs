@@ -102,6 +102,7 @@ assert.equal(layoutA.positions.get('c').x>layoutA.center.x,true,'E-sector neighb
 
 assert.equal(ENCYCLOPEDIA_MOTION.graphNavigationDuration,560,'Branch traversal must be slow enough to preserve spatial orientation');
 assert.equal(ENCYCLOPEDIA_MOTION.detailZoomDuration,760,'Graph/Detail shared-element zoom should read as a distinct, longer scale transition');
+assert.equal(ENCYCLOPEDIA_MOTION.edgeChevronDuration,760,'Directional cue should travel slowly enough that motion, not arrow shape, communicates direction');
 assert.equal(ENCYCLOPEDIA_MOTION.easing,'cubic-bezier(.4,0,.2,1)');
 const layoutToB=layoutFocusNeighborhood(fixture,'b',{width:360,height:480});
 const incomingB=graphNodeMotionStart(layoutA.positions.get('b'),layoutToB.positions.get('b'),{nodeDiameter:66,focusDiameter:124});
@@ -140,6 +141,8 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   assert(movement.x*direction.x+movement.y*direction.y>0,`${edge.from} → ${edge.to}: Chevron must move along semantic from→to direction even when focus is in the middle`);
   assert(Math.hypot(geometry.end.x-from.x,geometry.end.y-from.y)>geometry.fromRadius,`${edge.from} → ${edge.to}: Chevron must stay outside source node on mobile`);
   assert(Math.hypot(geometry.end.x-to.x,geometry.end.y-to.y)>geometry.toRadius,`${edge.from} → ${edge.to}: Chevron must stay outside target node on mobile`);
+  const points=geometry.points.split(' ').map(pair=>pair.split(',').map(Number)),pairDistances=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)pairDistances.push(Math.hypot(points[i][0]-points[j][0],points[i][1]-points[j][1]));
+  assert(Math.max(...pairDistances)<=2.7,`${edge.from} → ${edge.to}: Chevron glyph should remain a tiny motion marker rather than a visible arrowhead`);
 }
 
 const entries=new Map([['c',{order:2}],['a',{order:1}]]);
@@ -166,6 +169,8 @@ assert.doesNotMatch(collectionUISource,/‹ グラフ/,'Detail Graph back button
 assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs inside the selected thumbnail');
 assert.match(graphViewSource,/graph-edge\.direct\.relation-chain-extension/,'focused edge relation colors must be scoped to direct edges');
 assert.match(graphViewSource,/graph-edge-chevron/,'directional focus edges must render the compact Chevron affordance');
+assert.match(graphViewSource,/graph-edge-chevron\{[^}]*stroke-width:\.9[^}]*opacity:\.72/,'Chevron should stay visually tiny and subordinate to its motion');
+assert.match(graphViewSource,/edgeChevronDuration:760/,'Chevron travel should be substantially slower than the original motion cue');
 assert.match(graphViewSource,/focusChanged&&!reduceMotion&&chevron\.animate/,'Chevron motion must run only for a focus change and respect reduced motion');
 assert.match(graphViewSource,/previousFocusId\?ENCYCLOPEDIA_MOTION\.graphNavigationDuration:80/,'Chevron motion must wait for spatial focus settlement on branch navigation');
 assert.match(graphViewSource,/iterations:1/,'Chevron motion must be one-shot rather than looping');
