@@ -186,7 +186,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     if(api.progressionInsightCandidates().length){setSeedBlocked(true);base.reason='critical-pending';return;}
     const ensured=ensureInsightSeed({rng,legacyRegion:currentInsightSeed()?null:launchRegion}),seed=ensured.seed;
     if(!seed){base.reason=ensured.reason;return;}
-    base.selectedCandidateId=seed.id;base.seedId=seed.id;base.hotDestination=seed.hotDestination;base.activeForRun=launchRegion===seed.hotDestination;base.weightingRegion=ensured.reason==='selected'&&lastSeedSelection?.weighting?.regionAffinity?.region?lastSeedSelection.weighting.regionAffinity.region:'persistent-seed';
+    const legacyLaunchSelection=ensured.reason==='selected'&&!!lastSeedSelection?.weighting?.regionAffinity?.region;base.selectedCandidateId=seed.id;base.seedId=seed.id;base.hotDestination=seed.hotDestination;base.activeForRun=legacyLaunchSelection||launchRegion===seed.hotDestination;base.weightingRegion=legacyLaunchSelection?lastSeedSelection.weighting.regionAffinity.region:'persistent-seed';
   }
   function suppressFrontierInsightForCritical(){
     if(!frontierRun||frontierRun.reason||frontierRun.opportunityCreated)return false;
