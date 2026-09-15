@@ -133,6 +133,7 @@ jobs:
         run: |
           node tests/loadout-shortage-confirmation.test.mjs
           node tests/loadout-workstation.test.mjs
+          node tests/loadout-transfer-browser.test.mjs
           node tests/loadout-launch-regression.test.mjs
           node tests/issue-122-launch-route.test.mjs
           node tests/launch-request.test.mjs
