@@ -72,12 +72,22 @@ assert.equal(dry.run.destinationReached,false,'dry held DRIVE must not brute-for
 assert.ok(dry.minY>-12430,'reverse pressure should erase enough overheated progress to keep the destination out of reach');
 
 const wet=simulateWall({coolant:8,maxSeconds:12});
+console.log('Frontier wall wet diagnostic',JSON.stringify({
+  minY:+wet.minY.toFixed(1),maxHeat:+wet.maxHeat.toFixed(1),overheats:wet.overheats.length,
+  reached:wet.run.destinationReached,time:+wet.time.toFixed(2),drive:+wet.driveSeconds.toFixed(2),
+  water:wet.coolantSpent,finalHeat:+wet.run.heat.toFixed(1),
+}));
 assert.equal(wet.run.destinationReached,true,'H2O starter load should enable continuous DRIVE through the wall');
 assert.equal(wet.overheats.length,0,'cooled DRIVE should cross without thermal shutdown');
 assert.ok(wet.coolantSpent>0&&wet.coolantSpent<=8,'the canonical H2O starter is meaningfully consumed but sufficient');
 assert.ok(wet.time<9,'cooled traversal should feel decisively better than fighting the wall dry');
 
 const skill=simulateWall({skill:true,maxSeconds:18});
+console.log('Frontier wall skill diagnostic',JSON.stringify({
+  minY:+skill.minY.toFixed(1),maxHeat:+skill.maxHeat.toFixed(1),overheats:skill.overheats.length,
+  reached:skill.run.destinationReached,time:+skill.time.toFixed(2),drive:+skill.driveSeconds.toFixed(2),
+  coast:+skill.coastSeconds.toFixed(2),bursts:skill.bursts,finalHeat:+skill.run.heat.toFixed(1),
+}));
 assert.equal(skill.run.destinationReached,true,'expert PULSE plus short DRIVE windows may barely bypass the coolant wall');
 assert.ok(skill.bursts>=2,'the no-coolant skill bypass must spend most of the canonical H2 PULSE reserve');
 assert.ok(skill.driveSeconds>0&&skill.coastSeconds>0,'the bypass should require micro-DRIVE timing rather than pure PULSE or held DRIVE');
