@@ -31,7 +31,7 @@ const settle=(value,{captured=false,insights=[]}={})=>value.settleExpedition({H:
     {id:'sibling-b',depth:1,branchKeys:['b'],regionAffinities:{Hydrogen:1},baseWeight:1,gameplayUtility:1,structuralSimplicity:1,craftableNow:true},
   ];
   const scored=scoreFrontierCandidates(graph,candidates,{discoveredIds:['root'],region:null}),plain=scored.find(row=>row.id==='sibling-a'),favored=scored.find(row=>row.id==='sibling-b');
-  assert(favored.weight>plain.weight);assert.equal(favored.weighting.gameplayUtility.factor,1.55);assert.equal(favored.weighting.structuralSimplicity.factor,1.36);assert.equal(favored.weighting.craftableNow.factor,1.08);
+  assert(favored.weight>plain.weight);assert.equal(favored.weighting.gameplayUtility.factor,1.55);assert.ok(Math.abs(favored.weighting.structuralSimplicity.factor-1.36)<1e-12);assert.equal(favored.weighting.craftableNow.factor,1.08);
 }
 
 // Persistent Seed hard prerequisites and launch/return stability.
