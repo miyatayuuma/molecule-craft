@@ -36,7 +36,7 @@ export function createElementPalette(root = document, {canUse=()=>true} = {}) {
   function render(){
     for(const button of buttons){
       const item=ELEMENT_PRESENTATION.find(item=>item.symbol===button.dataset.element);
-      if(!item)continue;button.style.setProperty('--element-color',item.color);
+      if(!item)continue;button.style?.setProperty?.('--element-color',item.color);
       button.hidden=!visible(item.symbol)||!canUse(item.symbol);button.disabled=button.hidden||Number(button.dataset.stockCount??0)<=0;
       button.style.order=ELEMENT_PRESENTATION.indexOf(item);
       button.title=`${item.name}（${item.symbol}）を追加`;
