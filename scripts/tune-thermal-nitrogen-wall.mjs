@@ -21,4 +21,8 @@ test=replaceOnce(test,'assert.equal(wall.offRoutePressure,500);','assert.equal(w
 test=replaceOnce(test,"assert.equal(center.traversableRoutePressure,330,'best frontier line still carries strong reverse pressure');","assert.equal(center.traversableRoutePressure,null,'frontier wall must bypass route-pressure anti-pinning protection');\nassert.equal(center.frontierWallPressure,380,'best frontier line carries the authored physical reverse pressure');",'center pressure expectation');
 test=replaceOnce(test,"assert.equal(edge.traversableRoutePressure,500,'leaving the intended line should be substantially worse');","assert.equal(edge.traversableRoutePressure,null,'off-line wall pressure is also physical rather than route guidance');\nassert.equal(edge.frontierWallPressure,560,'leaving the intended line should be substantially worse');",'edge pressure expectation');
 test=replaceOnce(test,"assert.ok(center.combustionHeatFactor>=2.35,'continuous DRIVE should accumulate heat rapidly in the frontier wall');","assert.ok(center.combustionHeatFactor>=1.75,'continuous DRIVE should accumulate heat across the sustained frontier wall');",'heat factor expectation');
+test=replaceOnce(test,
+  "if((run.heat>=64||run.overheated||run.player.y>-12120)&&run.player.boost<=0&&run.player.cooldown<=0&&run.fuel.propellant.amount>=40){",
+  "if((run.heat>=60||run.overheated)&&run.player.boost<=0&&run.player.cooldown<=0&&run.fuel.propellant.amount>=40){",
+  'skill pulse timing');
 fs.writeFileSync(testPath,test);
