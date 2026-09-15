@@ -18,7 +18,7 @@ export const createInitialSelectedLoadout=()=>Object.fromEntries(Object.keys(TAN
 const emptyElementStock=()=>Object.fromEntries(STOCKED_ELEMENTS.map(element=>[element,0]));
 export const createInitialResourcesState=()=>({schemaVersion:SCHEMA_VERSION,upgrades:{oxygenTank:0},elements:emptyElementStock(),tanks:createInitialTanks(),recipes:[],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true,tanks:createInitialSelectedLoadout()},progress:createInitialProgress(),workspace:null});
 export const isResourceInteger=x=>Number.isSafeInteger(x)&&x>=0&&x<=MAX_RESOURCE_VALUE;
-export const isValidResourceId=x=>typeof x==='string'&&/^[A-Za-z][A-Za-z0-9-]*$/.test(x)&&!['constructor','prototype','__proto__'].includes(x);
+export const isValidResourceId=x=>typeof x==='string'&&/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(x)&&!['constructor','prototype','__proto__'].includes(x);
 
 const MANAGED=MANAGED_ELEMENTS,DUST=DUST_ELEMENTS,integer=isResourceInteger,validId=isValidResourceId;
 const ids=x=>Array.isArray(x)&&x.every(validId)&&new Set(x).size===x.length;

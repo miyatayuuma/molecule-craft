@@ -2,57 +2,39 @@ TAP version 13
 # Subtest: partial packet tails use every whole fuel molecule supported by integer O2 inventory
 ok 1 - partial packet tails use every whole fuel molecule supported by integer O2 inventory
   ---
-  duration_ms: 2.14581
+  duration_ms: 3.097801
   type: 'test'
   ...
 # Subtest: n-hexane keeps exact packets but can burn the old 4 fuel / 17 O2 dead state
 ok 2 - n-hexane keeps exact packets but can burn the old 4 fuel / 17 O2 dead state
   ---
-  duration_ms: 0.88607
+  duration_ms: 0.875875
   type: 'test'
   ...
 # Subtest: resource transaction accepts the exact tail charge and rejects stale or impossible charges
 ok 3 - resource transaction accepts the exact tail charge and rejects stale or impossible charges
   ---
-  duration_ms: 2.256026
+  duration_ms: 3.048139
   type: 'test'
   ...
 # Subtest: engine ignites from residual n-hexane, then distinguishes resource exhaustion from thermal cutoff and re-input
 ok 4 - engine ignites from residual n-hexane, then distinguishes resource exhaustion from thermal cutoff and re-input
   ---
-  duration_ms: 8.790316
+  duration_ms: 13.517136
   type: 'test'
   ...
 # Subtest: full launch-to-exhaustion consumption matches the integer stoichiometric maximum for every fuel
-not ok 5 - full launch-to-exhaustion consumption matches the integer stoichiometric maximum for every fuel
+ok 5 - full launch-to-exhaustion consumption matches the integer stoichiometric maximum for every fuel
   ---
-  duration_ms: 84.521987
+  duration_ms: 108.667799
   type: 'test'
-  location: '/home/runner/work/molecule-craft/molecule-craft/tests/combustion-residual-consumption.test.mjs:62:1'
-  failureType: 'testCodeFailure'
-  error: '1-butanol initial resource state must persist: 資源を保存できません。この画面を閉じる前に保存設定を確認してください。'
-  code: 'ERR_ASSERTION'
-  name: 'AssertionError'
-  expected: true
-  actual: false
-  operator: '=='
-  stack: |-
-    resourcesFor (file:///home/runner/work/molecule-craft/molecule-craft/tests/combustion-residual-consumption.test.mjs:18:140)
-    exhaust (file:///home/runner/work/molecule-craft/molecule-craft/tests/combustion-residual-consumption.test.mjs:22:19)
-    TestContext.<anonymous> (file:///home/runner/work/molecule-craft/molecule-craft/tests/combustion-residual-consumption.test.mjs:64:132)
-    Test.runInAsyncScope (node:async_hooks:214:14)
-    Test.run (node:internal/test_runner/test:1047:25)
-    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
-    Test.postRun (node:internal/test_runner/test:1173:19)
-    Test.run (node:internal/test_runner/test:1101:12)
-    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
   ...
 1..5
 # tests 5
 # suites 0
-# pass 4
-# fail 1
+# pass 5
+# fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 258.035204
+# duration_ms 240.614274
