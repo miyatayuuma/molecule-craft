@@ -1,4 +1,13 @@
-export const FRONTIER_WEIGHTING=Object.freeze({baseWeight:1,shallowBonus:.16,unexploredBranchBonus:.28,regionAffinityBonus:.25});
+export const FRONTIER_WEIGHTING=Object.freeze({
+  baseWeight:1,
+  shallowBonus:.16,
+  unexploredBranchBonus:.28,
+  regionAffinityBonus:.25,
+  gameplayUtilityBonus:.55,
+  structuralSimplicityBonus:.36,
+  craftableNowBonus:.08,
+});
+
 const REGION_ALIASES=new Map([
   ['h','Hydrogen'],['hydrogen','Hydrogen'],['veil','Hydrogen'],['h veil','Hydrogen'],
   ['c','Carbon'],['carbon','Carbon'],['carbon drift','Carbon'],
@@ -9,6 +18,7 @@ const REGION_ALIASES=new Map([
 function ids(value){if(typeof value==='string')return new Set([value]);if(value==null)return new Set();try{return new Set([...value].filter(id=>typeof id==='string'&&id));}catch{return new Set();}}
 const sorted=value=>[...ids(value)].sort((a,b)=>a.localeCompare(b));
 const decode=(table,code)=>typeof table?.[code]==='string'?table[code]:null;
+const clamp01=value=>Number.isFinite(value)?Math.max(0,Math.min(1,value)):0;
 function branches(graph,node){return Array.isArray(node?.branchCodes)?[...new Set(node.branchCodes.map(code=>decode(graph.branchCodes,code)).filter(Boolean))]:[];}
 function branchProgress(graph,candidates,discovered){
   const visible=[...new Set(candidates.flatMap(candidate=>Array.isArray(candidate?.branchKeys)?candidate.branchKeys:[]).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
@@ -24,12 +34,25 @@ function unexploredFactor(candidate,progress){
   return {factor:1+FRONTIER_WEIGHTING.unexploredBranchBonus*relative,branches:rows};
 }
 function canonicalRegion(region){return typeof region==='string'?REGION_ALIASES.get(region.trim().toLowerCase())??null:null;}
-function regionFactor(candidate,region){const canonical=canonicalRegion(region),raw=canonical?candidate?.regionAffinities?.[canonical]:0,affinity=Number.isFinite(raw)?Math.max(0,Math.min(1,raw)):0;return {factor:1+FRONTIER_WEIGHTING.regionAffinityBonus*affinity,region:canonical,affinity};}
+function regionFactor(candidate,region){const canonical=canonicalRegion(region),raw=canonical?candidate?.regionAffinities?.[canonical]:0,affinity=clamp01(raw);return {factor:1+FRONTIER_WEIGHTING.regionAffinityBonus*affinity,region:canonical,affinity};}
+function scalarFactor(value,bonus){const score=clamp01(value);return {score,factor:1+bonus*score};}
+function craftableFactor(candidate){const active=candidate?.craftableNow===true;return {active,factor:active?1+FRONTIER_WEIGHTING.craftableNowBonus:1};}
+
 export function scoreFrontierCandidates(graph,candidates,{discoveredIds=[],region=null}={}){
   if(!graph||typeof graph.nodeById!=='function'||!Array.isArray(candidates))return Object.freeze([]);
   const discovered=new Set(sorted(discoveredIds).filter(id=>graph.nodeById(id))),valid=candidates.filter(candidate=>candidate&&typeof candidate.id==='string'&&graph.nodeById(candidate.id)).sort((a,b)=>a.id.localeCompare(b.id)),progress=branchProgress(graph,valid,discovered);
   return Object.freeze(valid.map(candidate=>{
-    const baseWeight=Number.isFinite(candidate.baseWeight)&&candidate.baseWeight>0?candidate.baseWeight:FRONTIER_WEIGHTING.baseWeight,shallow=shallowFactor(candidate.depth),unexplored=unexploredFactor(candidate,progress),affinity=regionFactor(candidate,region),product=baseWeight*shallow*unexplored.factor*affinity.factor,weight=Number.isFinite(product)&&product>0?product:baseWeight;
-    return Object.freeze({...candidate,baseWeight,weight,weighting:Object.freeze({baseWeight,shallow:Object.freeze({factor:shallow,depth:candidate.depth}),unexploredBranch:Object.freeze({factor:unexplored.factor,branches:Object.freeze(unexplored.branches.map(row=>Object.freeze(row)))}),regionAffinity:Object.freeze(affinity)})});
+    const baseWeight=Number.isFinite(candidate.baseWeight)&&candidate.baseWeight>0?candidate.baseWeight:FRONTIER_WEIGHTING.baseWeight;
+    const shallow=shallowFactor(candidate.depth),unexplored=unexploredFactor(candidate,progress),affinity=regionFactor(candidate,region),utility=scalarFactor(candidate.gameplayUtility,FRONTIER_WEIGHTING.gameplayUtilityBonus),simplicity=scalarFactor(candidate.structuralSimplicity,FRONTIER_WEIGHTING.structuralSimplicityBonus),craftable=craftableFactor(candidate);
+    const product=baseWeight*shallow*unexplored.factor*affinity.factor*utility.factor*simplicity.factor*craftable.factor,weight=Number.isFinite(product)&&product>0?product:baseWeight;
+    return Object.freeze({...candidate,baseWeight,weight,weighting:Object.freeze({
+      baseWeight,
+      shallow:Object.freeze({factor:shallow,depth:candidate.depth}),
+      unexploredBranch:Object.freeze({factor:unexplored.factor,branches:Object.freeze(unexplored.branches.map(row=>Object.freeze(row)))}),
+      regionAffinity:Object.freeze(affinity),
+      gameplayUtility:Object.freeze(utility),
+      structuralSimplicity:Object.freeze(simplicity),
+      craftableNow:Object.freeze(craftable),
+    })});
   }));
 }
