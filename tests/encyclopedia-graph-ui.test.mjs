@@ -143,7 +143,7 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   assert(Math.hypot(geometry.end.x-from.x,geometry.end.y-from.y)>geometry.fromRadius,`${edge.from} → ${edge.to}: Chevron must stay outside source node on mobile`);
   assert(Math.hypot(geometry.end.x-to.x,geometry.end.y-to.y)>geometry.toRadius,`${edge.from} → ${edge.to}: Chevron must stay outside target node on mobile`);
   const points=geometry.points.split(' ').map(pair=>pair.split(',').map(Number)),pairDistances=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)pairDistances.push(Math.hypot(points[i][0]-points[j][0],points[i][1]-points[j][1]));
-  assert(Math.max(...pairDistances)<=2.7,`${edge.from} → ${edge.to}: Chevron glyph should remain a tiny motion marker rather than a visible arrowhead`);
+  const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should be exactly the requested 1.2x size while remaining a compact motion marker`);
 }
 
 const entries=new Map([['c',{order:2}],['a',{order:1}]]);
@@ -170,7 +170,7 @@ assert.doesNotMatch(collectionUISource,/‹ グラフ/,'Detail Graph back button
 assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs inside the selected thumbnail');
 assert.match(graphViewSource,/graph-edge\.direct\.relation-chain-extension/,'focused edge relation colors must be scoped to direct edges');
 assert.match(graphViewSource,/graph-edge-chevron/,'directional focus edges must render the compact Chevron affordance');
-assert.match(graphViewSource,/graph-edge-chevron\{[^}]*stroke-width:\.9[^}]*opacity:\.72/,'Chevron should stay visually tiny and subordinate to its motion');
+assert.match(graphViewSource,/graph-edge-chevron\{[^}]*stroke-width:\.9[^}]*opacity:\.72/,'Chevron should keep its existing stroke weight while only the glyph size changes');
 assert.match(graphViewSource,/edgeChevronDuration:2000/,'Chevron travel should use the deliberate two-second motion cue');
 assert.match(graphViewSource,/focusChanged&&!reduceMotion&&chevron\.animate/,'Chevron motion must run only for a focus change and respect reduced motion');
 assert.match(graphViewSource,/previousFocusId\?ENCYCLOPEDIA_MOTION\.graphNavigationDuration:80/,'Chevron motion must wait for spatial focus settlement on branch navigation');
