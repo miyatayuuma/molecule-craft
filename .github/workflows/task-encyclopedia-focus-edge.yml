@@ -1,0 +1,32 @@
+name: Task encyclopedia focus-edge audit
+on:
+  push:
+    branches:
+      - task/encyclopedia-focus-edge-relation-motion
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit graph edge renderer and directional relations
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const src=fs.readFileSync('src/encyclopedia-graph-view.js','utf8');
+          for(const needle of ['visibleEdges','graph-edge','renderGraph','focusId','createElementNS']){
+            const i=src.indexOf(needle);
+            if(i>=0){
+              const start=Math.max(0,i-1800),end=Math.min(src.length,i+5000);
+              console.log(`\n===== ${needle} @ ${i} =====\n${src.slice(start,end)}`);
+            }
+          }
+          const raw=JSON.parse(fs.readFileSync('data/molecule-graph.json','utf8'));
+          const rel=raw.relationCodes;
+          const columns=raw.edgeColumns;
+          const idx=Object.fromEntries(columns.map((k,i)=>[k,i]));
+          for(const [code,name] of Object.entries(rel)){
+            const rows=raw.edges.filter(e=>String(e[idx.relationCode])===String(code));
+            console.log(`\n===== relation ${code} ${name} (${rows.length}) =====`);
+            for(const e of rows)console.log(`${e[idx.from]} -> ${e[idx.to]}`);
+          }
+          NODE
