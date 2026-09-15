@@ -185,7 +185,7 @@ export function syncFieldInsightMarkerClaimability(run,evaluate=()=>null){
   const critical=chooseNearest(claims.filter(row=>row.claim?.critical===true&&row.claim?.claimable===true&&typeof row.claim.recipe==='string'));
   if(critical){critical.signal.claimable=true;critical.signal.claimableRecipe=critical.claim.recipe;return critical;}
   const meta=claims.find(row=>row.claim?.managed===true&&row.claim?.frontier===true&&typeof row.claim.seedId==='string')?.claim??null;
-  if(meta?.activeForRun===true){
+  if(meta?.activeForRun===true&&hasInsightSitePool(meta.hotDestination)){
     const stalePlan=!run.frontierInsightPlan||run.frontierInsightPlan.seedId!==meta.seedId||run.frontierInsightPlan.hotDestination!==meta.hotDestination;
     if(stalePlan){run.frontierInsightPlan=makePlan(run,meta);active=updatePlan(run,run.frontierInsightPlan,sites);}
     syncRunFlags(run,run.frontierInsightPlan);
