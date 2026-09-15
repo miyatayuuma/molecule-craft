@@ -14,9 +14,11 @@ assert.match(reset,/resetLaunchPosition\(\);/,'Cleanup must restore the explorer
 assert.ok(reset.indexOf('launchPointer=null')<reset.indexOf('releasePointerCapture(pointer)'),'Pointer identity must be cleared before releasing capture so a later lostpointercapture is harmless');
 
 assert.match(source,/function requestDestinationLaunch\(id\)\{\s*resetLaunchGesture\(\);if\(!canOpen\(\)\|\|resources\.blocked\)return false;/,'Destination launch intent must return to idle before a blocked or failed application request');
-assert.match(source,/function endLaunch\(event,cancel=false\)[\s\S]*?resetLaunchGesture\(\{keepDestinations:!cancel&&!id&&wasTap\}\);/,'pointerup/pointercancel must finish through centralized cleanup without changing tap-open behavior');
+assert.match(source,/function endLaunch\(event,cancel=false\)[\s\S]*?wasOpen=launchTapStartedOpen;resetLaunchGesture\(\{keepDestinations:!cancel&&!id&&wasTap&&!wasOpen\}\);[\s\S]*?if\(wasTap&&wasOpen&&!id\)return;/,'pointerup/pointercancel must preserve drag behavior while a second idle machine tap closes destination mode');
 assert.match(source,/if\(id\)requestDestinationLaunch\(id\);/,'Pointer release on a destination must use the same explicit destination request path as destination buttons');
 assert.match(source,/launchHandle\.addEventListener\('pointercancel',event=>endLaunch\(event,true\)\)/,'pointercancel must cancel the gesture');
+assert.match(source,/if\(launchPointer!==null\|\|launchBusy\|\|requestedDestinationId!==null\|\|resources\.blocked/,'Busy or pending launch state must reject machine pointer toggles');
+assert.match(source,/aria-expanded/,'Destination mode must expose its expanded state to keyboard and assistive technology');
 assert.match(source,/launchHandle\.addEventListener\('lostpointercapture',event=>\{if\(event\.pointerId===launchPointer\)endLaunch\(event,true\);\}\)/,'lostpointercapture must cancel only the active pointer');
 assert.match(source,/dialog\.addEventListener\('close',[\s\S]*?resetLaunchGesture\(\)/,'Closing LOADOUT mid-drag must clear pointer state and capture');
 assert.match(source,/q\('open-supply'\)\.addEventListener\('click',[\s\S]*?resetLaunchGesture\(\)/,'Reopening LOADOUT must start from an idle launch gesture');
