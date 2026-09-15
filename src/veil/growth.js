@@ -98,6 +98,6 @@ export function growthGoal(state,{cargo={},nitrogenRegionAvailable=NITROGEN_REGI
     if(!state.progress.coolantNeedExperienced)return {text:'CH₄とO₂を積み、COMBUSTION DRIVEで酸素後半を進もう。押し続けたときの熱制約を実際に確かめよう。'};
     return hinted('water')?{id:'water',text:'熱制約への対策として得た構造をCRAFTし、冷却剤として試そう。'}:{text:'燃焼の熱制約は見えた。HとOを集め、対策を実用量試せる材料を確保しよう。'};
   }
-  if(!state.progress.frontier)return {text:'CH₄とO₂を充填して酸素の奥へ。水で冷却するか静かな渦で休もう。CO₂は反復噴射の選択肢。'};
+  if(!state.progress.frontier)return {text:'H₂Oを冷却剤に積み、酸素最深部の熱・逆風帯を越えよう。BURSTは緊急突破に残そう。'};
   return {text:'最深部の金色の輪へ進み、正常帰還してCHO探索を完了しよう。噴射・燃焼・休止を組み合わせよう。'};
 }

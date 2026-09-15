@@ -80,7 +80,7 @@ test('developer map is a coherent pre-DRIVE baseline plus post-DRIVE delta',()=>
   assert.match(svg,/data-revisit-current="carbon-revisit-current"/);
   assert.match(svg,/data-pressure-gate="oxygen-shortcut:0"[^>]*data-pressure="600"/);
   assert.match(svg,/data-pressure-gate="oxygen-shortcut:1"[^>]*data-pressure="600"/);
-  assert.match(svg,/max-sampled-heat=48/);
+  assert.match(svg,/max-sampled-heat=50/);
   assert.match(svg,/data-rest-stop="oxygen-main"/);
   assert.match(svg,/data-challenge="pulse"/);
   assert.match(svg,/data-signal="oxygen-network"/);
