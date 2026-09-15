@@ -19,17 +19,21 @@ oxygen=replaceOnce(oxygen,
 'frontier wall helpers');
 oxygen=replaceOnce(oxygen,
 `  const belt=OXYGEN_THERMAL.sharedBelt,beltRecovery=beltRecoveryAt(p);\n  const beltHeat=beltRecovery?0:profileAtY(belt.heatStops,p.y)*beltLateral(p,belt);\n  const mergeRecovery=mergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;`,
-`  const belt=OXYGEN_THERMAL.sharedBelt,beltRecovery=beltRecoveryAt(p);\n  const beltHeat=beltRecovery?0:profileAtY(belt.heatStops,p.y)*beltLateral(p,belt);\n  const wall=OXYGEN_THERMAL.frontierWall,frontierWallHeat=profileAtY(wall.heatStops,p.y);\n  const mergeRecovery=mergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;`,
+`  const belt=OXYGEN_THERMAL.sharedBelt,beltRecovery=beltRecoveryAt(p);\n  const beltHeat=beltRecovery?0:profileAtY(belt.heatStops,p.y)*beltLateral(p,belt);\n  const wall=OXYGEN_THERMAL.frontierWall,frontierWallHeat=profileAtY(wall.heatStops,p.y),frontierWallPressure=frontierWallPressureAt(p)??0;\n  const mergeRecovery=mergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;`,
 'frontier wall heat');
 oxygen=replaceOnce(oxygen,
 `  const heat=Math.max(routeHeat,beltHeat,deepHeat),networkFactor=.71*clamp(routeHeat/48,0,1),beltFactor=routeHeat>0?0:belt.combustionHeatFactor*clamp(beltHeat/belt.maxHeat,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1);\n  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat)>=OXYGEN_THERMAL.learningHeat;\n  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor)};`,
-`  const heat=Math.max(routeHeat,beltHeat,deepHeat,frontierWallHeat),networkFactor=.71*clamp(routeHeat/48,0,1),beltFactor=routeHeat>0?0:belt.combustionHeatFactor*clamp(beltHeat/belt.maxHeat,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1),frontierWallFactor=wall.combustionHeatFactor*clamp(frontierWallHeat/wall.maxHeat,0,1);\n  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat,frontierWallHeat)>=OXYGEN_THERMAL.learningHeat;\n  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,frontierWallHeat,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor,frontierWallFactor)};`,
+`  const heat=Math.max(routeHeat,beltHeat,deepHeat,frontierWallHeat),networkFactor=.71*clamp(routeHeat/48,0,1),beltFactor=routeHeat>0?0:belt.combustionHeatFactor*clamp(beltHeat/belt.maxHeat,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1),frontierWallFactor=wall.combustionHeatFactor*clamp(frontierWallHeat/wall.maxHeat,0,1);\n  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat,frontierWallHeat)>=OXYGEN_THERMAL.learningHeat;\n  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,frontierWallHeat,frontierWallPressure,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor,frontierWallFactor)};`,
 'frontier wall thermal integration');
-oxygen=replaceOnce(oxygen,
-`export function oxygenPressureAt(p){\n  const deepPressure=deepOxygenPressureAt(p);`,
-`export function oxygenPressureAt(p){\n  const frontierPressure=frontierWallPressureAt(p);if(frontierPressure!==null)return frontierPressure;\n  const deepPressure=deepOxygenPressureAt(p);`,
-'frontier wall pressure integration');
 fs.writeFileSync(oxygenPath,oxygen);
+
+const universePath='src/veil/universe.js';
+let universe=fs.readFileSync(universePath,'utf8');
+universe=replaceOnce(universe,
+`  const basePressure=routePressure??outer*255+pressureBand*310,baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),revisitCurrent=revisitCurrentAt(map,p);\n  const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));\n  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x+revisitCurrent.x,flowY:revisitCurrent.y,currentIntensity:revisitCurrent.intensity,traversableRoutePressure:oxygenRoutePressure,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};`,
+`  const basePressure=(routePressure??outer*255+pressureBand*310)+(thermal.frontierWallPressure??0),baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),revisitCurrent=revisitCurrentAt(map,p);\n  const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1));\n  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x+revisitCurrent.x,flowY:revisitCurrent.y,currentIntensity:revisitCurrent.intensity,traversableRoutePressure:oxygenRoutePressure,frontierWallPressure:thermal.frontierWallPressure??0,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity};`,
+'frontier wall physical pressure');
+fs.writeFileSync(universePath,universe);
 
 const growthPath='src/veil/growth.js';
 let growth=fs.readFileSync(growthPath,'utf8');
