@@ -62,6 +62,11 @@ assert.ok(center.combustionHeatFactor>=2.35,'continuous DRIVE should accumulate 
 assert.equal(center.coolantLearning,true,'the frontier wall remains a valid coolant-learning environment');
 
 const dry=simulateWall();
+console.log('Frontier wall dry diagnostic',JSON.stringify({
+  minY:+dry.minY.toFixed(1),maxHeat:+dry.maxHeat.toFixed(1),overheats:dry.overheats.length,
+  reached:dry.run.destinationReached,time:+dry.time.toFixed(2),drive:+dry.driveSeconds.toFixed(2),
+  finalY:+dry.run.player.y.toFixed(1),finalHeat:+dry.run.heat.toFixed(1),overheated:dry.run.overheated,
+}));
 assert.ok(dry.overheats.length>=1,'dry held DRIVE should thermally interrupt inside the wall');
 assert.equal(dry.run.destinationReached,false,'dry held DRIVE must not brute-force the CHO destination');
 assert.ok(dry.minY>-12430,'reverse pressure should erase enough overheated progress to keep the destination out of reach');
