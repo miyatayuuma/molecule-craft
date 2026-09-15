@@ -14,6 +14,7 @@ jobs:
         run: |
           node scripts/task-focus-edge-impl.mjs
           node scripts/task-focus-edge-mobile-circle.mjs
+          node scripts/task-focus-edge-circle-debug.mjs
       - name: Refresh generated PWA assets
         run: node scripts/build-precache.mjs
       - name: Focused validation
