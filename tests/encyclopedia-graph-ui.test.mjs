@@ -102,7 +102,7 @@ assert.equal(layoutA.positions.get('c').x>layoutA.center.x,true,'E-sector neighb
 
 assert.equal(ENCYCLOPEDIA_MOTION.graphNavigationDuration,560,'Branch traversal must be slow enough to preserve spatial orientation');
 assert.equal(ENCYCLOPEDIA_MOTION.detailZoomDuration,760,'Graph/Detail shared-element zoom should read as a distinct, longer scale transition');
-assert.equal(ENCYCLOPEDIA_MOTION.edgeChevronDuration,760,'Directional cue should travel slowly enough that motion, not arrow shape, communicates direction');
+assert.equal(ENCYCLOPEDIA_MOTION.edgeChevronDuration,2000,'Directional cue should use a deliberately long two-second travel so motion, not arrow shape, communicates direction');
 assert.equal(ENCYCLOPEDIA_MOTION.easing,'cubic-bezier(.4,0,.2,1)');
 const layoutToB=layoutFocusNeighborhood(fixture,'b',{width:360,height:480});
 const incomingB=graphNodeMotionStart(layoutA.positions.get('b'),layoutToB.positions.get('b'),{nodeDiameter:66,focusDiameter:124});
@@ -137,8 +137,9 @@ assert.equal(graphEdgeVisualState(production,chainIntoButane,{direct:false}).dir
 const butaneMobile=layoutFocusNeighborhood(production,'n-butane',{width:320,height:430,nodeDiameter:62,focusDiameter:116});
 for(const edge of [chainIntoButane,chainOutOfButane]){
   const geometry=graphEdgeChevronGeometry(edge,butaneMobile.positions,{focusId:'n-butane',nodeDiameter:62,focusDiameter:116});assert.ok(geometry,`${edge.from} → ${edge.to}: mobile visible-gap chevron geometry`);
-  const from=butaneMobile.positions.get(edge.from),to=butaneMobile.positions.get(edge.to),direction={x:to.x-from.x,y:to.y-from.y},movement={x:geometry.end.x-geometry.start.x,y:geometry.end.y-geometry.start.y};
+  const from=butaneMobile.positions.get(edge.from),to=butaneMobile.positions.get(edge.to),direction={x:to.x-from.x,y:to.y-from.y},movement={x:geometry.end.x-geometry.start.x,y:geometry.end.y-geometry.start.y},edgeLength=Math.hypot(direction.x,direction.y),visibleGap=edgeLength-geometry.fromRadius-geometry.toRadius-10;
   assert(movement.x*direction.x+movement.y*direction.y>0,`${edge.from} → ${edge.to}: Chevron must move along semantic from→to direction even when focus is in the middle`);
+  assert(Math.hypot(movement.x,movement.y)>=visibleGap*.99,`${edge.from} → ${edge.to}: Chevron should traverse essentially the full visible edge gap`);
   assert(Math.hypot(geometry.end.x-from.x,geometry.end.y-from.y)>geometry.fromRadius,`${edge.from} → ${edge.to}: Chevron must stay outside source node on mobile`);
   assert(Math.hypot(geometry.end.x-to.x,geometry.end.y-to.y)>geometry.toRadius,`${edge.from} → ${edge.to}: Chevron must stay outside target node on mobile`);
   const points=geometry.points.split(' ').map(pair=>pair.split(',').map(Number)),pairDistances=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)pairDistances.push(Math.hypot(points[i][0]-points[j][0],points[i][1]-points[j][1]));
@@ -170,7 +171,7 @@ assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs insid
 assert.match(graphViewSource,/graph-edge\.direct\.relation-chain-extension/,'focused edge relation colors must be scoped to direct edges');
 assert.match(graphViewSource,/graph-edge-chevron/,'directional focus edges must render the compact Chevron affordance');
 assert.match(graphViewSource,/graph-edge-chevron\{[^}]*stroke-width:\.9[^}]*opacity:\.72/,'Chevron should stay visually tiny and subordinate to its motion');
-assert.match(graphViewSource,/edgeChevronDuration:760/,'Chevron travel should be substantially slower than the original motion cue');
+assert.match(graphViewSource,/edgeChevronDuration:2000/,'Chevron travel should use the deliberate two-second motion cue');
 assert.match(graphViewSource,/focusChanged&&!reduceMotion&&chevron\.animate/,'Chevron motion must run only for a focus change and respect reduced motion');
 assert.match(graphViewSource,/previousFocusId\?ENCYCLOPEDIA_MOTION\.graphNavigationDuration:80/,'Chevron motion must wait for spatial focus settlement on branch navigation');
 assert.match(graphViewSource,/iterations:1/,'Chevron motion must be one-shot rather than looping');

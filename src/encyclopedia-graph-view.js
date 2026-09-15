@@ -3,7 +3,7 @@ import {GRAPH_NODE_STATE,adjacentGraphSectorAnchor,buildVisibleGraphProjection,c
 export const ENCYCLOPEDIA_MOTION=Object.freeze({
   graphNavigationDuration:560,
   detailZoomDuration:760,
-  edgeChevronDuration:760,
+  edgeChevronDuration:2000,
   easing:'cubic-bezier(.4,0,.2,1)',
 });
 
@@ -49,7 +49,7 @@ export function graphEdgeChevronGeometry(edge,positions,{focusId,nodeDiameter=66
   const dx=to.x-from.x,dy=to.y-from.y,length=Math.hypot(dx,dy);if(!Number.isFinite(length)||length<1)return null;
   const fromRadius=(edge.from===focusId?focusDiameter:nodeDiameter)/2,toRadius=(edge.to===focusId?focusDiameter:nodeDiameter)/2;
   const minT=clamp((fromRadius+padding)/length,0,1),maxT=clamp(1-(toRadius+padding)/length,0,1);if(maxT-minT<.025)return null;
-  const span=maxT-minT,startT=minT+span*.1,endT=minT+span*.78,pointAt=t=>({x:from.x+dx*t,y:from.y+dy*t});
+  const startT=minT,endT=maxT,pointAt=t=>({x:from.x+dx*t,y:from.y+dy*t});
   const start=pointAt(startT),end=pointAt(endT),ux=dx/length,uy=dy/length,px=-uy,py=ux,back={x:end.x-ux*1.25,y:end.y-uy*1.25},tip={x:end.x+ux*.7,y:end.y+uy*.7};
   const armA={x:back.x+px*1.25,y:back.y+py*1.25},armB={x:back.x-px*1.25,y:back.y-py*1.25},points=[armA,tip,armB].map(point=>`${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
   return {start,end,delta:{x:start.x-end.x,y:start.y-end.y},points,fromRadius,toRadius};
