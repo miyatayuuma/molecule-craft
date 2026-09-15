@@ -68,7 +68,7 @@ has(supply,"button.addEventListener('click',event=>{event.stopPropagation();requ
 has(supply,'if(id)requestDestinationLaunch(id);','pointer/touch release must use the same destination request path');
 has(supply,"event.key!=='Enter'&&event.key!==' '",'keyboard activation must stay on native destination buttons rather than a launch relay');
 has(supply,'isExpeditionDestinationAvailable(resources.state,destinationId)','LOADOUT must share the canonical destination validity contract');
-has(supply,'onLaunchReady(destinationId,{partial})','confirmed LOADOUT must hand the explicit destination to the transaction');
+has(supply,'onLaunchReady(destinationId,{partial,presentSupply:async supply=>{','confirmed LOADOUT must hand the explicit destination and committed-supply presenter to the transaction');
 lacks(supply,'resources.commitLaunchFill','LOADOUT must not persist supply before transaction commit');
 lacks(supply,"dispatchEvent(new window.Event('change'",'launch must not synthesize destination change events');
 lacks(supply,"q('launch-veil').click()",'launch must not pseudo-click the fallback launch affordance');
