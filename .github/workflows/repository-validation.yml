@@ -47,6 +47,7 @@ jobs:
       - name: Encyclopedia graph UI
         run: |
           node tests/encyclopedia-graph-ui.test.mjs
+          node tests/encyclopedia-graph-thumbnail-label.test.mjs
           node --test tests/encyclopedia-molecule-transition.test.mjs
           node tests/encyclopedia-transition-browser.test.mjs
       - name: Encyclopedia visible transition frames
