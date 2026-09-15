@@ -2,39 +2,35 @@ TAP version 13
 # Subtest: partial packet tails use every whole fuel molecule supported by integer O2 inventory
 ok 1 - partial packet tails use every whole fuel molecule supported by integer O2 inventory
   ---
-  duration_ms: 2.669755
+  duration_ms: 2.14581
   type: 'test'
   ...
 # Subtest: n-hexane keeps exact packets but can burn the old 4 fuel / 17 O2 dead state
 ok 2 - n-hexane keeps exact packets but can burn the old 4 fuel / 17 O2 dead state
   ---
-  duration_ms: 0.883049
+  duration_ms: 0.88607
   type: 'test'
   ...
 # Subtest: resource transaction accepts the exact tail charge and rejects stale or impossible charges
 ok 3 - resource transaction accepts the exact tail charge and rejects stale or impossible charges
   ---
-  duration_ms: 2.374247
+  duration_ms: 2.256026
   type: 'test'
   ...
 # Subtest: engine ignites from residual n-hexane, then distinguishes resource exhaustion from thermal cutoff and re-input
 ok 4 - engine ignites from residual n-hexane, then distinguishes resource exhaustion from thermal cutoff and re-input
   ---
-  duration_ms: 9.603265
+  duration_ms: 8.790316
   type: 'test'
   ...
 # Subtest: full launch-to-exhaustion consumption matches the integer stoichiometric maximum for every fuel
 not ok 5 - full launch-to-exhaustion consumption matches the integer stoichiometric maximum for every fuel
   ---
-  duration_ms: 125.204928
+  duration_ms: 84.521987
   type: 'test'
   location: '/home/runner/work/molecule-craft/molecule-craft/tests/combustion-residual-consumption.test.mjs:62:1'
   failureType: 'testCodeFailure'
-  error: |-
-    The expression evaluated to a falsy value:
-    
-      assert.ok(resources.save())
-    
+  error: '1-butanol initial resource state must persist: 資源を保存できません。この画面を閉じる前に保存設定を確認してください。'
   code: 'ERR_ASSERTION'
   name: 'AssertionError'
   expected: true
@@ -59,4 +55,4 @@ not ok 5 - full launch-to-exhaustion consumption matches the integer stoichiomet
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 249.562505
+# duration_ms 258.035204
