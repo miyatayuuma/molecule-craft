@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main]
+    branches: [main, work/encyclopedia-graph-thumbnail-label-polish]
 
 permissions:
   contents: write
