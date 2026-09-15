@@ -32,9 +32,15 @@ function candidateTargets(target,workspace,workspaceIndex){
 function findEmbedding(target,workspace,{requiredPair=null}={}){
   const candidates=workspace.atoms.map((_,index)=>candidateTargets(target,workspace,index));
   if(candidates.some(list=>!list.length))return null;
-  const order=workspace.atoms.map((_,index)=>index).sort((a,b)=>candidates[a].length-candidates[b].length||workspace.edges[b].size-workspace.edges[a].size||incidentOrder(workspace.edges,b)-incidentOrder(workspace.edges,a)||a-b);
-  const targetForWorkspace=Array(workspace.atoms.length).fill(-1),usedTarget=new Set();
   const [requiredA,requiredB]=requiredPair??[-1,-1];
+  const order=workspace.atoms.map((_,index)=>index).sort((a,b)=>{
+    // requiredPair is a real embedding constraint, just like an existing bond.
+    // Check its endpoints before interchangeable loose atoms so a failed pair
+    // does not enumerate permutations that cannot affect the outcome.
+    const requiredPriority=Number(b===requiredA||b===requiredB)-Number(a===requiredA||a===requiredB);
+    return requiredPriority||candidates[a].length-candidates[b].length||workspace.edges[b].size-workspace.edges[a].size||incidentOrder(workspace.edges,b)-incidentOrder(workspace.edges,a)||a-b;
+  });
+  const targetForWorkspace=Array(workspace.atoms.length).fill(-1),usedTarget=new Set();
   const requiredCurrent=requiredPair?(workspace.edges[requiredA].get(requiredB)??0):0;
 
   function compatible(workspaceIndex,targetIndex){
