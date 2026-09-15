@@ -4,6 +4,7 @@ import { drawCollectorShell,drawCollectorShellPreview,TANK_PRESENTATION } from '
 import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_JUNCTION } from './oxygen-routes.js';
 import { NITROGEN_REGION_ID } from './nitrogen-config.js';
 import { renderLoadoutPreview } from './loadout-preview.js';
+import { animateLoadoutElementTransfer,syncLoadoutElementStock } from './loadout-workstation.js';
 import { isExpeditionDestinationAvailable } from './launch-request.js';
 import { syncElementStocks } from '../element-progression.js?v=36';
 
@@ -42,7 +43,6 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
   const upgrades=document.createElement('div');upgrades.id='oxygen-upgrades';upgrades.className='oxygen-upgrades';q('tank-detail').append(upgrades);
   const partialPanel=document.createElement('div'),partialRows=document.createElement('div'),partialActions=document.createElement('div'),partialGo=document.createElement('button'),partialBack=document.createElement('button');partialPanel.id='partial-fill-confirm';partialPanel.hidden=true;Object.assign(partialPanel.style,{position:'absolute',inset:'auto 10px 10px 10px',zIndex:'9',padding:'12px',maxHeight:'calc(100% - 20px)',overflow:'auto',border:'1px solid #678494',borderRadius:'14px',background:'#071925f2',boxShadow:'0 10px 30px #0008'});Object.assign(partialRows.style,{display:'grid',gap:'8px',marginBottom:'10px'});Object.assign(partialActions.style,{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'flex-end'});partialGo.type='button';partialGo.className='primary';partialGo.textContent='出発';partialBack.type='button';partialBack.textContent='戻る';partialActions.append(partialBack,partialGo);partialPanel.append(partialRows,partialActions);q('supply-dialog').querySelector('.sheet-body').append(partialPanel);
-  const synthesisLayer=document.createElement('div');synthesisLayer.setAttribute('aria-hidden','true');Object.assign(synthesisLayer.style,{position:'absolute',inset:'0',zIndex:'8',pointerEvents:'none',overflow:'hidden'});shellMap.append(synthesisLayer);
   let selectedUse='propellant',selectedId=null,anchorsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false,requestedDestinationId=null;
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const formula=record=>MOLECULE_USES[record?.id]?.formula??record?.formula??'';
@@ -162,7 +162,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     action.addEventListener('click',()=>{if(!canMake()||onCommit()===false)return;if(resources.upgradeOxygenTank())update();});
   }
   function update(){
-    const state=resources.state,destinations=availableLaunchRegionIds(state.progress);syncElementStocks(document,state.elements);
+    const state=resources.state,destinations=availableLaunchRegionIds(state.progress);syncElementStocks(document,state.elements);syncLoadoutElementStock(resources,document);
     renderShell();renderTankDetail();renderUpgrades();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
     q('oxygen-route-guide').hidden=!state.progress.foundElements.includes('O');
 
@@ -192,26 +192,29 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     if(confirmation.shortages.length){const shortages=document.createElement('div');shortages.dataset.launchShortage='true';Object.assign(shortages.style,{display:'flex',gap:'7px',flexWrap:'wrap',margin:'2px 0 0'});for(const item of confirmation.shortages){const chip=document.createElement('span'),element=document.createElement('strong'),amount=document.createElement('b'),track=document.createElement('i'),fill=document.createElement('em');chip.dataset.element=item.element;Object.assign(chip.style,{display:'grid',gridTemplateColumns:'auto auto',alignItems:'center',gap:'6px',padding:'5px 7px',border:'1px solid #b97856',borderRadius:'9px',background:'#1d1817',fontVariantNumeric:'tabular-nums'});element.textContent=item.element;amount.textContent=`${item.have} / ${item.need}`;Object.assign(amount.style,{fontSize:'12px',fontWeight:'800'});Object.assign(track.style,{gridColumn:'1 / -1',display:'block',height:'3px',borderRadius:'3px',background:'#4b3026',overflow:'hidden'});Object.assign(fill.style,{display:'block',height:'100%',transformOrigin:'left',transform:`scaleX(${item.need?Math.min(1,item.have/item.need):0})`,background:'#d9956f'});track.append(fill);chip.append(element,amount,track);shortages.append(chip);}partialRows.append(shortages);}
     partialPanel.hidden=false;queueMicrotask(()=>{partialPanel.scrollIntoView?.({block:'nearest',behavior:reduced?'auto':'smooth'});partialGo.focus?.({preventScroll:true});});
   }
-  async function playSynthesis(plan){
-    if(reduced||!plan||typeof Element==='undefined'){return;}synthesisLayer.replaceChildren();const atoms=[];for(const [el,n]of Object.entries(plan.cost))for(let i=0;i<Math.min(4,n);i++)atoms.push(el);if(!atoms.length)return;const rect=shellMap.getBoundingClientRect();for(const [index,el]of atoms.entries()){const dot=document.createElement('span');dot.textContent=el;Object.assign(dot.style,{position:'absolute',left:`${24+(index%4)*18}%`,bottom:'4px',width:'22px',height:'22px',display:'grid',placeItems:'center',borderRadius:'50%',border:'1px solid #bfefff',background:'#123142ee',fontSize:'10px',fontWeight:'800'});synthesisLayer.append(dot);dot.animate?.([{transform:'translate(0,0) scale(.7)',opacity:.2},{transform:`translate(${rect.width*(.5-(.24+(index%4)*.18))}px,${-rect.height*.32}px) scale(1)`,opacity:1,offset:.58},{transform:`translate(${rect.width*(.52-(.24+(index%4)*.18))}px,${-rect.height*.48}px) scale(.35)`,opacity:0}],{duration:460,index,easing:'ease-in-out',fill:'forwards'});}await new Promise(resolve=>setTimeout(resolve,480));synthesisLayer.replaceChildren();
+  async function playSynthesis(supply){
+    syncElementStocks(document,resources.state.elements);syncLoadoutElementStock(resources,document);
+    return animateLoadoutElementTransfer({cost:supply?.plan?.cost??{},root:document,reduced});
   }
   async function commitAndContinue(partial){
     const destinationId=requestedDestinationId;if(!destinationId||launchBusy||resources.blocked||!canOpen())return false;
-    launchBusy=true;
+    launchBusy=true;dialog.dataset.preserveShellClose='true';
     try{
-      const preview=renderLaunchPlan(),plan=preview.status==='FULL'?preview.full:preview.partial;
+      const preview=renderLaunchPlan();
       if(preview.status==='IMPOSSIBLE'||preview.status==='PARTIAL'&&!partial){requestedDestinationId=null;update();return false;}
-      if(Object.keys(plan.cost).length)await playSynthesis(plan);
-      if(dialog.open)dialog.close();
       let outcome;
-      try{outcome=await onLaunchReady(destinationId,{partial});}catch(error){console.error('Expedition launch transaction failed unexpectedly.',error);outcome={status:'failed',reason:'unexpected',error};}
-      if(outcome===true||outcome?.status==='success'){requestedDestinationId=null;return true;}
+      try{
+        outcome=await onLaunchReady(destinationId,{partial,presentSupply:async supply=>{
+          try{await playSynthesis(supply);}finally{delete dialog.dataset.preserveShellClose;if(dialog.open)dialog.close();}
+        }});
+      }catch(error){console.error('Expedition launch transaction failed unexpectedly.',error);outcome={status:'failed',reason:'unexpected',error};}
+      if(outcome===true||outcome?.status==='success'){requestedDestinationId=null;if(dialog.open)dialog.close();return true;}
       requestedDestinationId=null;
       if(!resources.blocked&&canOpen()&&!dialog.open)dialog.showModal();
       update();
       return false;
     }finally{
-      launchBusy=false;
+      delete dialog.dataset.preserveShellClose;launchBusy=false;
     }
   }
 

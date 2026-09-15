@@ -1,13 +1,13 @@
 // Presentation order and labels only. Gameplay access is owned by resources.canUseElement().
 export const ELEMENT_PRESENTATION = Object.freeze([
-  {symbol:'H', name:'水素'},
-  {symbol:'C', name:'炭素'},
-  {symbol:'O', name:'酸素'},
-  {symbol:'N', name:'窒素'},
-  {symbol:'Cl', name:'塩素'},
-  {symbol:'S', name:'硫黄'},
-  {symbol:'P', name:'リン'},
-  {symbol:'F', name:'フッ素'},
+  {symbol:'H', name:'水素', color:'#f8fafc'},
+  {symbol:'C', name:'炭素', color:'#64748b'},
+  {symbol:'O', name:'酸素', color:'#ef4444'},
+  {symbol:'N', name:'窒素', color:'#3b82f6'},
+  {symbol:'Cl', name:'塩素', color:'#16a34a'},
+  {symbol:'S', name:'硫黄', color:'#eab308'},
+  {symbol:'P', name:'リン', color:'#f97316'},
+  {symbol:'F', name:'フッ素', color:'#22c55e'},
 ].map(Object.freeze));
 
 // Compatibility alias for presentation consumers. There are no discovery-count gates.
@@ -36,7 +36,7 @@ export function createElementPalette(root = document, {canUse=()=>true} = {}) {
   function render(){
     for(const button of buttons){
       const item=ELEMENT_PRESENTATION.find(item=>item.symbol===button.dataset.element);
-      if(!item)continue;
+      if(!item)continue;button.style.setProperty('--element-color',item.color);
       button.hidden=!visible(item.symbol)||!canUse(item.symbol);button.disabled=button.hidden||Number(button.dataset.stockCount??0)<=0;
       button.style.order=ELEMENT_PRESENTATION.indexOf(item);
       button.title=`${item.name}（${item.symbol}）を追加`;

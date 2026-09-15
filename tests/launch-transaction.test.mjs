@@ -78,4 +78,16 @@ for(const failure of ['after-supply','prepare','create-run','initialize','save']
   assert.equal(result.status,LAUNCH_TRANSACTION_STATUS.BLOCKED);assert.equal(result.reason,'invalid-destination');assert.deepEqual(harness.resources.state,before);assert.equal(harness.counts.supply,0);assert.equal(harness.ui.created,0);assert.equal(harness.ui.saves,0);
 }
 
-console.log('Launch transaction passed: bounded supply staging, commit-point save, rollback/retry across injected failures, exact-once success and application-level reentrancy protection.');
+{
+  const harness=createHarness(),seen=[];
+  const result=await harness.transaction.execute('oxygen',{presentSupply:async supply=>{seen.push({stock:harness.resources.state.elements.H,cost:supply.plan.cost.H,prepared:harness.ui.prepared});}});
+  assert.equal(result.status,LAUNCH_TRANSACTION_STATUS.SUCCESS);assert.deepEqual(seen,[{stock:12,cost:8,prepared:0}],'presentation must observe the already-committed supply before expedition preparation');assert.equal(harness.ui.rollbacks,0);
+}
+
+{
+  const harness=createHarness();let warned=false;const originalWarn=console.warn;console.warn=()=>{warned=true;};let result;
+  try{result=await harness.transaction.execute('oxygen',{presentSupply:async()=>{throw new Error('visual-only failure');}});}finally{console.warn=originalWarn;}
+  assert.equal(result.status,LAUNCH_TRANSACTION_STATUS.SUCCESS,'presentation failure must not become a resource/launch failure');assert.equal(warned,true);assert.equal(harness.ui.rollbacks,0);assert.equal(harness.resources.state.elements.H,12);
+}
+
+console.log('Launch transaction passed: bounded supply staging, commit-point save, rollback/retry, post-commit presentation isolation, exact-once success and application-level reentrancy protection.');

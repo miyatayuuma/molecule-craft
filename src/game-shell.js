@@ -35,5 +35,5 @@ export function createGameShell({canOpen=()=>true,onBlockedMenuOpen=()=>{}}={}){
     dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
   }
   q('help-done')?.addEventListener('click',()=>q('help-dialog')?.close());
-  return {close:()=>dialogs.forEach(dialog=>{if(dialog.open)dialog.close();}),isOpen:()=>dialogs.some(dialog=>dialog.open),closeMenu:()=>q('menu-dialog')?.close()};
+  return {close:()=>dialogs.forEach(dialog=>{if(dialog.open&&dialog.dataset.preserveShellClose!=='true')dialog.close();}),isOpen:()=>dialogs.some(dialog=>dialog.open),closeMenu:()=>q('menu-dialog')?.close()};
 }
