@@ -69,3 +69,9 @@ test('large interchangeable loose-atom workspaces stay deterministic without enu
  const target={atoms:Array(40).fill('H'),bonds:[]},workspace=graph(Array(20).fill('H'));
  assert.equal(run(target,workspace),null);
 });
+
+test('required-pair ordering preserves deterministic structural hints across repeated C/H atoms',()=>{
+ const target={atoms:['C','C','C','H','H','H','H','H','H','H','H'],bonds:[[0,1,1],[1,2,1],[0,3,1],[0,4,1],[0,5,1],[1,6,1],[1,7,1],[2,8,1],[2,9,1],[2,10,1]]};
+ const first=run(target,graph(target.atoms)),bonded=graph(target.atoms,[[first.workspaceIndices[0],first.workspaceIndices[1],1]]),next=run(target,bonded),restored=run(target,graph(target.atoms));
+ assert.deepEqual(first.workspaceIndices,[0,1]);assert.equal(first.nextOrder,1);assert.ok(next);assert.deepEqual(restored.workspaceIndices,first.workspaceIndices);assert.deepEqual(restored.targetAtomIndices,first.targetAtomIndices);
+});
