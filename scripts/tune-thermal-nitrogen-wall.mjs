@@ -9,8 +9,8 @@ function replaceOnce(source,from,to,label){
 const oxygenPath='src/veil/oxygen-routes.js';
 let oxygen=fs.readFileSync(oxygenPath,'utf8');
 oxygen=replaceOnce(oxygen,
-  'routePressure:330,offRoutePressure:500,combustionHeatFactor:1.4,maxHeat:50,',
-  'routePressure:380,offRoutePressure:560,combustionHeatFactor:.8,maxHeat:50,',
+  'routePressure:330,offRoutePressure:500,combustionHeatFactor:1.4,maxHeat:50,pulsePressureMultiplier:1.45,',
+  'routePressure:380,offRoutePressure:560,combustionHeatFactor:.8,maxHeat:50,pulsePressureMultiplier:1.8,',
   'frontier wall tuning');
 fs.writeFileSync(oxygenPath,oxygen);
 
