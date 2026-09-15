@@ -1,0 +1,42 @@
+name: Apply LOADOUT transfer task
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    if: github.head_ref == 'work/loadout-element-transfer-visualization'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Apply implementation
+        run: python3 scripts/apply-loadout-transfer-task.py
+      - name: Regenerate PWA outputs
+        run: node scripts/build-precache.mjs
+      - name: LOADOUT focused tests
+        run: |
+          node tests/loadout-workstation.test.mjs
+          node tests/launch-transaction.test.mjs
+          node tests/loadout-launch-regression.test.mjs
+          node tests/loadout-transfer-browser.test.mjs
+      - name: Repository and PWA validation
+        run: |
+          node scripts/check-repository-hygiene.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Remove one-shot tooling and commit
+        run: |
+          rm .github/workflows/apply-loadout-transfer-task.yml scripts/apply-loadout-transfer-task.py
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Polish LOADOUT synthesis transfer visualization"
+          git push origin HEAD:${{ github.head_ref }}
