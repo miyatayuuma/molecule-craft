@@ -177,8 +177,8 @@ export function syncFieldInsightMarkerClaimability(run,evaluate=()=>null){
     const player=run.player,candidates=signals.filter(signal=>!signal.ready).map(signal=>({signal,claim:evaluate(signal)})).filter(row=>row.claim?.claimable&&typeof row.claim.recipe==='string');
     if(!candidates.length)return null;const selected=candidates.map(row=>({...row,distance:finitePoint(player)?Math.hypot(player.x-row.signal.x,player.y-row.signal.y):Infinity})).sort((a,b)=>a.distance-b.distance)[0];selected.signal.claimable=true;selected.signal.claimableRecipe=selected.claim.recipe;return selected;
   }
-  const sites=ensureInsightSites(run),existingPlan=run.frontierInsightPlan;
-  if(existingPlan)updatePlan(run,existingPlan,sites);syncRunFlags(run,existingPlan??null);
+  const sites=ensureInsightSites(run),existingPlan=run.frontierInsightPlan;let active=existingPlan?updatePlan(run,existingPlan,sites):null;
+  syncRunFlags(run,existingPlan??null);
   if(run.captured||run.analysis||Array.isArray(run.carriedInsights)&&run.carriedInsights.length>0)return null;
   const player=run.player,claims=signals.filter(signal=>!signal.ready).map(signal=>({signal,claim:evaluate(signal)}));
   const chooseNearest=rows=>rows.map(row=>({...row,distance:finitePoint(player)?Math.hypot(player.x-row.signal.x,player.y-row.signal.y):Infinity})).sort((a,b)=>a.distance-b.distance)[0]??null;
@@ -186,8 +186,10 @@ export function syncFieldInsightMarkerClaimability(run,evaluate=()=>null){
   if(critical){critical.signal.claimable=true;critical.signal.claimableRecipe=critical.claim.recipe;return critical;}
   const meta=claims.find(row=>row.claim?.managed===true&&row.claim?.frontier===true&&typeof row.claim.seedId==='string')?.claim??null;
   if(meta?.activeForRun===true){
-    if(!run.frontierInsightPlan||run.frontierInsightPlan.seedId!==meta.seedId||run.frontierInsightPlan.hotDestination!==meta.hotDestination)run.frontierInsightPlan=makePlan(run,meta);
-    const active=updatePlan(run,run.frontierInsightPlan,sites);syncRunFlags(run,run.frontierInsightPlan);
+    const stalePlan=!run.frontierInsightPlan||run.frontierInsightPlan.seedId!==meta.seedId||run.frontierInsightPlan.hotDestination!==meta.hotDestination;
+    if(stalePlan){run.frontierInsightPlan=makePlan(run,meta);active=updatePlan(run,run.frontierInsightPlan,sites);}
+    syncRunFlags(run,run.frontierInsightPlan);
+    if(run.frontierInsightPlan.phase==='acquired')return null;
     if(active){const claim=evaluate(active);if(claim?.claimable&&typeof claim.recipe==='string'){active.claimable=true;active.claimableRecipe=claim.recipe;return {signal:active,claim};}}
     return null;
   }
