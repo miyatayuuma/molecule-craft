@@ -43,7 +43,7 @@ for(const id of moleculesForRole('fuel')){
 }
 const butaneFull={fuel:{molecule:'n-butane',amount:9},oxidizer:{molecule:'oxygen',amount:36}};
 assert.equal(propulsionGauge('combustion',butaneFull).ratio,1,'High-energy fuel gauge uses its own packet duration');
-assert.equal(propulsionGauge('combustion',{fuel:{molecule:'n-butane',amount:2},oxidizer:{molecule:'oxygen',amount:13}}).ratio,.5);
+assert.ok(Math.abs(propulsionGauge('combustion',{fuel:{molecule:'n-butane',amount:2},oxidizer:{molecule:'oxygen',amount:13}}).ratio-.4)<1e-12,'Residual fuel gauge represents usable burn duration continuously');
 
 const resources=createResources({storage:memory()});resources.setCatalog(database);
 for(const id of ['hydrogen','ammonia','nitrogen','carbon-dioxide','n-butane','oxygen','water'])resources.discover(id);

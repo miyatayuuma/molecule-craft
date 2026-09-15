@@ -115,6 +115,8 @@ jobs:
           node tests/loadout-preview.test.mjs
           node tests/loadout-card-order.test.mjs
           node tests/generic-propulsion.test.mjs
+          node --test tests/combustion-residual-consumption.test.mjs
+          node tests/combustion-residual-browser.test.mjs
           node tests/coolant-feedback.test.mjs
           node tests/propulsion-hud-source.test.mjs
       - name: UI de-explanation regressions

@@ -1,6 +1,6 @@
 import { oxygenCapacity } from './tank-upgrades.js';
 import { VEIL, EXPEDITION } from './config.js';
-import { activeTankRolesFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
+import { activeTankRolesFor,combustionBurnPlanFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
 import {NITROGEN_REGION_AVAILABLE,nitrogenGrowthGoal} from './nitrogen-progression.js';
 import {NITROGEN_ENTRY,NITROGEN_REGION_BOUNDS,NITROGEN_REGION_Y} from './nitrogen-config.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
@@ -59,11 +59,11 @@ export function driveAvailable(state,id){
 }
 const finiteFuel=value=>Number.isFinite(value)?Math.max(0,value):0;
 const slot=(loadout,use,legacy)=>loadout?.[use]?.molecule?loadout[use]:{molecule:legacy,amount:finiteFuel(loadout?.[legacy])};
-export function combustionPackets(loadout={}){
-  const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen'),packet=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});
-  if(!packet||oxidizer.molecule!=='oxygen')return 0;
-  return Math.max(0,Math.min(Math.floor(finiteFuel(fuel.amount)/packet.fuelAmount),Math.floor(finiteFuel(oxidizer.amount)/packet.oxygenAmount)));
+function combustionPlan(loadout={}){
+  const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen');if(!performanceFor(fuel.molecule,'fuel')||oxidizer.molecule!=='oxygen')return null;
+  return combustionBurnPlanFor(fuel.molecule,{fuelAmount:finiteFuel(fuel.amount),oxygenAmount:finiteFuel(oxidizer.amount),baseSeconds:DRIVES.combustion.packetSeconds});
 }
+export function combustionPackets(loadout={}){return combustionPlan(loadout)?.fuelUsed??0;}
 export function burstDriveFor(id){
   const performance=performanceFor(id,'propellant');if(!performance)return null;
   const base=DRIVES.hydrogen,power=performance.burstPower;
@@ -80,11 +80,8 @@ export function propulsionGauge(id,loadout={},driveBuffer=0){
     const propellant=slot(loadout,'propellant','hydrogen'),performance=performanceFor(propellant.molecule,'propellant');
     capacity=performance?Math.floor(performance.capacity/performance.moleculesPerBurst):0;remaining=performance?Math.min(capacity,Math.floor(finiteFuel(propellant.amount)/performance.moleculesPerBurst)):0;
   }else if(id==='combustion'){
-    const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen'),packet=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});
-    const full={fuel:{molecule:fuel.molecule,amount:tankCapacity('fuel',fuel.molecule)??0},oxidizer:{molecule:oxidizer.molecule,amount:oxidizer.capacity??tankCapacity('oxidizer',oxidizer.molecule)??0}};
-    capacity=packet?combustionPackets(full):0;maxSeconds=capacity*(packet?.seconds??0);
-    seconds=Math.min(maxSeconds,combustionPackets(loadout)*(packet?.seconds??0)+Math.min(packet?.seconds??0,finiteFuel(driveBuffer)));
-    remaining=Math.min(capacity,packet?.seconds?Math.ceil(seconds/packet.seconds):0);
+    const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen'),performance=performanceFor(fuel.molecule,'fuel'),full={fuel:{molecule:fuel.molecule,amount:tankCapacity('fuel',fuel.molecule)??0},oxidizer:{molecule:oxidizer.molecule,amount:oxidizer.capacity??tankCapacity('oxidizer',oxidizer.molecule)??0}},fullPlan=combustionPlan(full),plan=combustionPlan(loadout);
+    capacity=fullPlan?.fuelUsed??0;maxSeconds=fullPlan?.seconds??0;seconds=Math.min(maxSeconds,(plan?.seconds??0)+finiteFuel(driveBuffer));const secondsPerFuel=performance?DRIVES.combustion.packetSeconds*performance.energy:0;remaining=Math.min(capacity,secondsPerFuel?Math.ceil(Math.max(0,seconds-1e-10)/secondsPerFuel):0);
   }
   const ratio=capacity?Math.max(0,Math.min(1,id==='combustion'?seconds/maxSeconds:remaining/capacity)):0;
   return {remaining,capacity,seconds,ratio,state:ratio<=0?'empty':ratio<=.34?'low':'enough'};

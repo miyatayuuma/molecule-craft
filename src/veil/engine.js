@@ -2,7 +2,7 @@ import {recordChallengePassage} from './expedition-challenges.js';
 import {recordChoDestination} from './cho-campaign.js';
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
 import { GROWTH, DRIVES, burstDriveFor, combustionDriveFor, regionAt } from './growth.js';
-import { combustionPacketFor,performanceFor } from './molecule-roles.js';
+import { combustionChargeFor,performanceFor } from './molecule-roles.js';
 import { environmentAt, animateUniverse } from './universe.js';
 import { OXYGEN_THERMAL, recordOxygenPassage } from './oxygen-routes.js';
 import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
@@ -62,16 +62,22 @@ export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
 
+function availableCombustionCharge(run){
+  const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer;if(oxidizer.molecule!=='oxygen')return null;
+  return combustionChargeFor(fuel.molecule,{fuelAmount:fuel.amount,oxygenAmount:oxidizer.amount,baseSeconds:DRIVES.combustion.packetSeconds});
+}
+
 function updateCombustion(run,dt,systems){
   const p=run.player;
   if(!run.driveHeld||p.boost>0||run.captured||run.overheated){p.combustion=false;return;}
-  const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,packet=combustionPacketFor(fuel.molecule,{baseSeconds:DRIVES.combustion.packetSeconds});
+  const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer;
   if(run.driveBuffer<=1e-8){
-    if(!packet||oxidizer.molecule!==packet.oxidizer||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount||!systems.consumeCombustion?.(packet)){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
-    fuel.amount-=packet.fuelAmount;oxidizer.amount-=packet.oxygenAmount;recordFuelUse(run.telemetry,'fuel',fuel.molecule,packet.fuelAmount);recordFuelUse(run.telemetry,'oxidizer',oxidizer.molecule,packet.oxygenAmount);run.driveBuffer=packet.seconds;run.driveEmpty=false;run.events.push({type:'driveIgnition'});
+    const charge=availableCombustionCharge(run);
+    if(!charge||!systems.consumeCombustion?.(charge)){p.combustion=false;if(!run.driveEmpty){run.driveEmpty=true;run.events.push({type:'driveEmpty'});}return;}
+    fuel.amount-=charge.fuelAmount;oxidizer.amount-=charge.oxygenAmount;recordFuelUse(run.telemetry,'fuel',fuel.molecule,charge.fuelAmount);recordFuelUse(run.telemetry,'oxidizer',oxidizer.molecule,charge.oxygenAmount);run.driveBuffer=charge.seconds;run.driveEmpty=false;run.events.push({type:'driveIgnition'});
   }
   p.drive=combustionDriveFor(fuel.molecule)??DRIVES.combustion;p.combustion=true;run.driveBuffer=Math.max(0,run.driveBuffer-dt);
-  if(run.driveBuffer<=0&&(!packet||fuel.amount<packet.fuelAmount||oxidizer.amount<packet.oxygenAmount))p.combustion=false;
+  if(run.driveBuffer<=0&&!availableCombustionCharge(run))p.combustion=false;
 }
 
 function updateThermal(run,dt,systems){
