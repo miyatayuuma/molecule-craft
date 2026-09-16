@@ -1,0 +1,140 @@
+{
+  "hydrogen": {
+    "number": 1,
+    "description": "もっとも軽い元素からできた気体。燃料電池では酸素と反応して電気と水を生み、燃料としても利用される。",
+    "details": [{"title":"結合","body":"H₂では2個のH原子が1組の電子対を共有し、H–H単結合をつくる。小さく無極性の分子で、常温では気体として存在する。"}],
+    "concepts": ["bond-order"]
+  },
+  "oxygen": {
+    "number": 2,
+    "description": "空気の約2割を占める気体。呼吸や燃焼を支え、医療や工業でも広く使われる。",
+    "details": [{"title":"結合と反応性","body":"O₂はO原子どうしが二重結合した分子で、結合次数がH₂やN₂と異なる。多くの物質を酸化するため、呼吸や燃焼の反応で重要な役割を持つ。"}],
+    "concepts": ["bond-order","redox"]
+  },
+  "nitrogen": {
+    "number": 3,
+    "description": "空気の約8割を占める、反応しにくい気体。食品の酸化を抑えるため袋の中を窒素で満たすこともある。",
+    "details": [{"title":"三重結合","body":"N₂では2個のN原子が三重結合で強く結ばれている。この結合が切れにくいため、常温では多くの物質と反応しにくい。"}],
+    "concepts": ["bond-order"]
+  },
+  "water": {
+    "number": 4,
+    "description": "生命に欠かせない液体で、塩や糖など多くの物質を溶かす。氷・液体・水蒸気として地球上を循環している。",
+    "details": [{"title":"形と極性","body":"H₂OはOを中心とした折れ曲がった形をとる。Oが電子を強く引きつけるためO側が部分的に負、H側が部分的に正となり、分子全体に極性が生じる。"},{"title":"水素結合","body":"分子どうしは水素結合で引き合う。この相互作用が、同程度の大きさの分子に比べて高い沸点や、優れた溶媒としての性質に関わる。"}],
+    "concepts": ["geometry","polarity","hydrogen-bond"]
+  },
+  "carbon-dioxide": {
+    "number": 5,
+    "description": "炭酸飲料の泡や呼気に含まれる気体。植物は光合成で二酸化炭素を取り込み、有機物をつくる。",
+    "details": [{"title":"形と極性","body":"CO₂はO=C=Oがほぼ直線形になる。各C=O結合は極性を持つが、左右対称なので結合の向きが打ち消し合い、分子全体としては無極性に近い。"}],
+    "concepts": ["geometry","polarity","bond-order"]
+  },
+  "carbon-monoxide": {
+    "number": 6,
+    "description": "燃料が不完全燃焼すると生じることがある、色もにおいもない有毒な気体。血液のヘモグロビンに強く結びつき、酸素運搬を妨げる。",
+    "details": [{"title":"Lewis構造と形式電荷","body":"代表的なLewis構造はC⁻≡O⁺と表せ、CとOの間には三重結合がある。形式電荷は電子の割り当てを数えるための表記で、実際の電荷分布そのものではない。"},{"title":"結合の特徴","body":"CとOは強く結ばれた短い結合を持つ。金属へC側から配位する性質もあり、単純な『酸素を含むから酸化物』という見方だけでは捉えにくい分子である。"}],
+    "concepts": ["bond-order","formal-charge","polarity"]
+  },
+  "ammonia": {
+    "number": 7,
+    "description": "刺激臭のある気体で、水によく溶ける。肥料の原料として大量に使われ、窒素を農作物へ届ける重要な物質。",
+    "details": [{"title":"形と塩基性","body":"NH₃ではNに1組の孤立電子対があり、分子は三角錐形になる。この孤立電子対でH⁺を受け取れるため、アンモニアは塩基として働く。"},{"title":"水素結合","body":"N–H結合とNの孤立電子対により、分子間で水素結合をつくれる。このため水に非常によく溶ける。"}],
+    "concepts": ["geometry","hybridization","acid-base","hydrogen-bond"]
+  },
+  "hydrogen-sulfide": {
+    "number": 8,
+    "description": "腐った卵のようなにおいで知られる有毒な気体。温泉や火山ガス、酸素の少ない環境での分解でも生じる。",
+    "details": [{"title":"構造と性質","body":"H₂Sは折れ曲がった分子で、H₂Oと同じ16族元素の水素化物だが、水ほど強い水素結合をつくらない。その違いが沸点などの性質に表れる。"}],
+    "concepts": ["geometry","polarity"]
+  },
+  "hydrogen-chloride": {
+    "number": 9,
+    "description": "刺激の強い気体で、水に溶けると塩酸になる。塩化物の製造や酸性度の調整などに使われる。",
+    "details": [{"title":"極性と酸","body":"H–Cl結合ではClが電子を強く引きつけるため大きな極性を持つ。水中ではほぼ完全にH⁺を水へ渡し、Cl⁻となるため強酸として働く。"}],
+    "concepts": ["polarity","acid-base"]
+  },
+  "hydrogen-fluoride": {
+    "number": 10,
+    "description": "強い刺激性を持ち、ガラスやシリカを侵すことで知られる物質。半導体加工などで厳重に管理して使われる。",
+    "details": [{"title":"結合と水素結合","body":"H–F結合は非常に強く極性も大きい。HF分子どうしは強い水素結合をつくるため、同族のHClなどとは物性が大きく異なる。"},{"title":"酸としての特徴","body":"水溶液は危険な酸だが、酸の強さは単純な結合極性だけでは決まらない。強いH–F結合のため、希薄水溶液での酸解離はHClより小さい。"}],
+    "concepts": ["polarity","hydrogen-bond","acid-base"]
+  },
+  "chlorine": {
+    "number": 11,
+    "description": "黄緑色で刺激臭のある有毒な気体。水の消毒や、塩化ビニルをはじめ多くの化学製品の製造に使われる。",
+    "details": [{"title":"結合と酸化力","body":"Cl₂は2個のCl原子が単結合した無極性分子だが、電子を受け取ってCl⁻になりやすく、酸化剤として働く。水との反応では次亜塩素酸などが生じる。"}],
+    "concepts": ["bond-order","redox"]
+  },
+  "sulfur-dioxide": {
+    "number": 12,
+    "description": "火山ガスや燃料中の硫黄の燃焼で生じる刺激性の気体。大気中で酸化されると酸性雨の原因物質の一つになる。",
+    "details": [{"title":"形と電子配置","body":"SO₂は直線ではなく折れ曲がった形をとる。S–O結合は単純な一本のLewis式だけでは表し切れず、複数の寄与構造を考えると2本の結合が似た性質を持つことを説明しやすい。"}],
+    "concepts": ["geometry","polarity","resonance"]
+  },
+  "sulfur-trioxide": {
+    "number": 13,
+    "description": "硫酸を製造する途中でつくられる反応性の高い物質。水と激しく反応して硫酸になる。",
+    "details": [{"title":"形と結合","body":"気体のSO₃単量体では3本のS–O結合が等価な三角平面形として扱える。Lewis構造には複数の描き方があり、実際の電子分布は一つの局在構造だけでは表し切れない。"}],
+    "concepts": ["geometry","resonance"]
+  },
+  "phosphine": {
+    "number": 14,
+    "description": "リンと水素からなる有毒な気体。半導体材料への微量添加など、厳重に管理された用途で使われる。",
+    "details": [{"title":"形と孤立電子対","body":"PH₃はPに孤立電子対を持つ三角錐形の分子で、NH₃と同じ原子数でも結合角や塩基性が大きく異なる。P–H結合の性質と軌道の混ざり方がその違いに関わる。"}],
+    "concepts": ["geometry","acid-base"]
+  },
+  "phosphorus-trichloride": {
+    "number": 15,
+    "description": "ほかのリン化合物をつくる重要な原料。水と反応して刺激性の物質を生じるため、湿気を避けて扱う。",
+    "details": [{"title":"構造と反応性","body":"PCl₃はPに孤立電子対を持つ三角錐形の分子で、P原子が反応中心になりやすい。水やアルコールなどの求核剤と反応し、多くのリン化合物へ変換できる。"}],
+    "concepts": ["geometry","functional-group"]
+  },
+  "phosphorus-pentachloride": {
+    "number": 16,
+    "description": "有機化合物などへ塩素を導入する反応に使われるリン化合物。湿気と反応するため乾燥条件で扱う。",
+    "details": [{"title":"五配位構造","body":"孤立したPCl₅分子は気相では三方両錐形をとり、平面内の3本と軸方向の2本のP–Cl結合は同じ環境ではない。固体ではイオン性の構造をとるため、相によって描像が変わる。"}],
+    "concepts": ["geometry"]
+  },
+  "carbon-disulfide": {
+    "number": 17,
+    "description": "無色で揮発しやすく、硫黄や油を溶かす液体。レーヨン製造などに使われるが、有毒で非常に燃えやすい。",
+    "details": [{"title":"形と極性","body":"CS₂はS=C=Sの直線形で、左右対称なので分子全体の双極子は打ち消し合う。CO₂と似た骨格だが、Sの大きさと分極しやすさの違いで物性は大きく異なる。"}],
+    "concepts": ["geometry","polarity"]
+  },
+  "carbonyl-sulfide": {
+    "number": 18,
+    "description": "大気中にごく少量存在する気体で、海洋や火山などから放出される。地球規模の硫黄循環にも関わる。",
+    "details": [{"title":"非対称な直線分子","body":"OCSはO=C=Sの直線形だが、両端の原子が異なるためCO₂のように結合の極性が完全には打ち消し合わず、分子全体に双極子を持つ。"}],
+    "concepts": ["geometry","polarity"]
+  },
+  "phosphoric-acid": {
+    "number": 19,
+    "description": "肥料の原料や食品・飲料の酸味調整に使われる酸。リン酸塩は骨や歯、細胞のエネルギー利用にも重要。",
+    "details": [{"title":"多段階の酸解離","body":"H₃PO₄は3個の酸性Hを持ち、水中で段階的にH⁺を失う。最初の解離が最も起こりやすく、pHに応じて主なリン酸種が変わる。"}],
+    "concepts": ["acid-base","functional-group"]
+  },
+  "sulfuric-acid": {
+    "number": 20,
+    "description": "肥料、鉛蓄電池、化学製品の製造に広く使われる強い酸。濃硫酸は水を強く引きつける性質も持つ。",
+    "details": [{"title":"酸としての性質","body":"H₂SO₄は二価の酸で、最初のH⁺は水中でほぼ完全に放出される。2段目の解離はそれより弱く、硫酸水素イオンHSO₄⁻との平衡になる。"},{"title":"S–O結合","body":"硫酸や硫酸イオンのS–O結合は、単純な『二重結合が固定された2本』というLewis図だけでは電子分布を十分に表せない。形式電荷と共鳴は電子の割り当てを整理する道具として使われる。"}],
+    "concepts": ["acid-base","resonance","formal-charge"]
+  },
+  "hydrogen-peroxide": {
+    "number": 21,
+    "description": "水より酸素が1個多い液体で、漂白や消毒に使われる。分解すると水と酸素になる。",
+    "details": [{"title":"O–O単結合","body":"H₂O₂にはO–O単結合があり、分子は平面ではなくねじれた立体配座をとる。O–O結合は比較的切れやすく、酸化剤にも還元剤にもなり得る。"}],
+    "concepts": ["geometry","redox","bond-order"]
+  },
+  "hypochlorous-acid": {
+    "number": 22,
+    "description": "水の消毒で重要な弱酸。細菌などを酸化して働きを弱め、pHによって存在する形が変わる。",
+    "details": [{"title":"酸塩基平衡","body":"HOClは水中でH⁺を放出してOCl⁻と平衡になる。一般にHOClの方が消毒作用が強いため、pHは有効な化学種の割合に影響する。"},{"title":"酸化作用","body":"Clの酸化数が高く、ほかの物質から電子を受け取る酸化剤として働く。"}],
+    "concepts": ["acid-base","redox"]
+  },
+  "carbonic-acid": {
+    "number": 23,
+    "description": "二酸化炭素が水に溶けると一部が生じる弱い酸。炭酸飲料、血液のpH調節、雨水などに関わる。",
+    "details": [{"title":"CO₂との平衡","body":"水中ではCO₂(aq)とH₂CO₃が平衡にあり、H₂CO₃はさらにHCO₃⁻やCO₃²⁻へ段階的に解離する。この平衡が炭酸緩衝系の基礎になる。"}],
+    "concepts": ["acid-base"]
+  }
+}
