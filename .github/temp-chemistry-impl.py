@@ -1,0 +1,136 @@
+from pathlib import Path
+import json
+
+
+def replace(path, old, new, *, optional_if_new=True):
+    p=Path(path); s=p.read_text()
+    if new in s and optional_if_new:
+        return
+    if old not in s:
+        raise SystemExit(f'missing replacement in {path}: {old[:120]!r}')
+    p.write_text(s.replace(old,new))
+
+# Encyclopedia viewer: display-only resonance mode.
+replace('src/collection-viewer.js', "import { createPreviewModel } from './preview-model.js?v=31';", "import { createPreviewModel } from './preview-model.js?v=32';")
+replace('src/collection-viewer.js', "from './special-bonds.js?v=30';", "from './special-bonds.js?v=31';")
+replace('src/collection-viewer.js', "for(const shared of layout.sharedGroups??[]){const visual=createSharedBonds(THREE,own);updateSharedBonds(THREE,visual,shared,id=>layout.atoms[id].point);group.add(visual);}", "for(const shared of layout.sharedGroups??[]){const visual=createSharedBonds(THREE,own,{mode:'encyclopedia'});updateSharedBonds(THREE,visual,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'});group.add(visual);}")
+replace('src/collection-viewer.js', "for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point)){", "for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){")
+
+# Chemistry Detail: validate declarative data and render concept diagrams after prose.
+p=Path('src/collection-ui.js'); s=p.read_text()
+anchor="import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';\n"
+addition="import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=1';\n"
+if addition not in s:
+    if anchor not in s: raise SystemExit('collection-ui import anchor missing')
+    s=s.replace(anchor,anchor+addition)
+s=s.replace("load('../data/encyclopedia.json?v=30')","load('../data/encyclopedia.json?v=31')")
+if 'validateChemistryVisualSpecs(data.encyclopedia,records);' not in s:
+    s=s.replace("const data=await loadCollectionData();\n  if(storage===undefined)","const data=await loadCollectionData();\n  validateChemistryVisualSpecs(data.encyclopedia,records);\n  if(storage===undefined)")
+s=s.replace("import('./collection-viewer.js?v=31')","import('./collection-viewer.js?v=32')")
+old="if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');chemistry.append(el('h4','化学のポイント'));for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(el('h5',item.title),el('p',item.body));chemistry.append(sectionNode);}extra.append(chemistry);}"
+new="if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');chemistry.append(el('h4','化学のポイント'));for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(el('h5',item.title),el('p',item.body));chemistry.append(sectionNode);}for(const visual of renderChemistryVisuals(document,catalogEntry,record))chemistry.append(visual);extra.append(chemistry);}"
+if new not in s:
+    if old not in s: raise SystemExit('collection-ui detail render anchor missing')
+    s=s.replace(old,new)
+p.write_text(s)
+
+# Static molecule assets share the Encyclopedia display grammar.
+p=Path('scripts/build-collection-assets.mjs'); s=p.read_text()
+s=s.replace('../src/preview-model.js?v=31','../src/preview-model.js?v=32').replace('../src/special-bonds.js?v=30','../src/special-bonds.js?v=31')
+old='shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path d="${points.map((p,i)=>`${i?\'L\':\'M\'}${n(p.x)} ${n(p.y)}`).join(\'\')}Z" fill="none" stroke="#66d8dc" stroke-width="1.7"/>`});'
+new='shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path data-aromatic-ring="true" d="${points.map((p,i)=>`${i?\'L\':\'M\'}${n(p.x)} ${n(p.y)}`).join(\'\')}Z" fill="none" stroke="#66d8dc" stroke-width="1.7"/>`});'
+if 'data-aromatic-ring="true"' not in s:
+    if old not in s: raise SystemExit('asset aromatic path anchor missing')
+    s=s.replace(old,new)
+old="""for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point)){
+    const points=curve.map(p=>project(p.applyQuaternion(rotation)));
+    shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="#8ce7ee" stroke-opacity=".65" stroke-width="1.2"/>`});
+  }"""
+new="""for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){
+    const points=curve.map(p=>project(p.applyQuaternion(rotation))),marker=['nitro','ozone'].includes(shared.kind)?' data-resonance-three-center="true"':'';
+    shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path${marker} d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="#8ce7ee" stroke-opacity=".82" stroke-width="1.6" stroke-linecap="round"/>`});
+  }"""
+if 'data-resonance-three-center' not in s:
+    if old not in s: raise SystemExit('asset shared path anchor missing')
+    s=s.replace(old,new)
+p.write_text(s)
+
+# Declarative curated specs. Aromaticity itself is derived from the concept tag.
+p=Path('data/encyclopedia.json'); data=json.loads(p.read_text()); m=data['molecules']
+def resonance(mid,motif,target): m[mid]['visuals']=[{'type':'resonance','motif':motif,'target':target,'formalCharges':{'center':1,'terminal':-1}}]
+resonance('ozone','ozone','ozone-chain')
+for mid in ['nitromethane','nitrobenzene','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene']: resonance(mid,'nitro','nitro-group')
+if 'formal-charge' not in m['2-nitrotoluene']['concepts']: m['2-nitrotoluene']['concepts'].append('formal-charge')
+m['carbon-monoxide']['visuals']=[{'type':'formal-charge','motif':'carbon-monoxide','target':'co-bond','formalCharges':{'left':-1,'right':1}}]
+m['water']['visuals']=[{'type':'polarity','motif':'water','target':'molecule','partialCharges':{'oxygen':'δ−','hydrogens':'δ+'}}]
+m['hydrogen-chloride']['visuals']=[{'type':'polarity','motif':'hydrogen-chloride','target':'h-cl-bond','partialCharges':{'hydrogen':'δ+','chlorine':'δ−'}}]
+m['ethanol']['visuals']=[{'type':'polarity','motif':'alcohol','target':'hydroxyl-group','partialCharges':{'oxygen':'δ−','hydroxylHydrogen':'δ+'}}]
+m['acetone']['visuals']=[{'type':'polarity','motif':'carbonyl','target':'carbonyl-group','partialCharges':{'carbonylCarbon':'δ+','oxygen':'δ−'}}]
+p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+
+# Styling: symbols/text carry semantics in addition to color.
+p=Path('styles.css'); s=p.read_text(); marker='/* Chemistry Detail visual grammar */'
+if marker not in s:
+    s += '''\n/* Chemistry Detail visual grammar */\n.chemistry-concept-visual{margin:16px 0 0;padding:12px;border:1px solid #315166;border-radius:16px;background:#0d1f2d;overflow:hidden}.chemistry-concept-visual h6{margin:0 0 8px;font-size:13px;color:#dff7f8}.chemistry-concept-visual figcaption{margin-top:8px;color:#a9c0cf;font-size:12px;line-height:1.65}.chemistry-concept-svg{display:block;width:100%;height:auto;max-height:260px;overflow:visible}.chemistry-concept-svg .chemistry-svg-label{fill:#d7e6ee;font-size:12px;font-weight:650}.chemistry-concept-svg .chemistry-svg-caption{fill:#aac2d0}.chemistry-concept-svg .resonance-arrow,.chemistry-concept-svg .concept-flow-arrow{fill:#dff7f8}.chemistry-concept-svg .atom-label{fill:#edf5fb}.chemistry-concept-svg .formal-charge{fill:#f3f7fa}.chemistry-concept-svg .partial-charge{fill:#bfeeed;font-style:italic}.chemistry-concept-visual[data-visual-type="formal-charge"]{border-style:solid}.chemistry-concept-visual[data-visual-type="polarity"]{border-style:dashed}\n@media(max-width:650px){.chemistry-concept-visual{padding:9px;margin-top:13px}.chemistry-concept-svg{max-height:235px}.chemistry-concept-visual figcaption{font-size:11px}}\n'''
+p.write_text(s)
+
+# Fix browser test source typo.
+p=Path('tests/encyclopedia-chemistry-visual-browser.test.mjs'); s=p.read_text().replace("const indexHtml=await readFile(join(root,'index.html'),'utf8';","const indexHtml=await readFile(join(root,'index.html'),'utf8');"); p.write_text(s)
+
+# Existing foundation test: CRAFT charges remain, Encyclopedia hybrid assets are neutral.
+p=Path('tests/resonance-formal-charge.test.mjs'); s=p.read_text()
+old="""for(const id of ['ozone','nitromethane','nitrobenzene','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene']){
+  const svg=await readFile(new URL(`assets/models/molecule-${id}.svg`,root),'utf8');
+  assert.match(svg,/[+−]/,`${id}: generated Encyclopedia asset must show formal charge`);
+}
+console.log('Resonance/formal-charge foundation passed: equivalence, validation, Target Match/hint, Graph reachability and charged assets.');
+"""
+new="""for(const id of ['ozone','nitromethane','nitrobenzene','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene']){
+  const svg=await readFile(new URL(`assets/models/molecule-${id}.svg`,root),'utf8');
+  assert.match(svg,/data-resonance-three-center=\"true\"/,`${id}: Encyclopedia hybrid asset must use the three-center resonance grammar`);
+  assert.doesNotMatch(svg,/<text[^>]*>[+−]<\\/text>/,`${id}: Encyclopedia hybrid asset must not pin one Lewis contributor's formal charge`);
+}
+const coSvg=await readFile(new URL('assets/models/molecule-carbon-monoxide.svg',root),'utf8');
+assert.match(coSvg,/<text[^>]*>[+−]<\\/text>/,'CO keeps representative C−≡O+ formal charges outside resonance-hybrid context');
+const benzeneSvg=await readFile(new URL('assets/models/molecule-benzene.svg',root),'utf8');
+assert.match(benzeneSvg,/data-aromatic-ring=\"true\"/,'Benzene keeps the aromatic inner-circle visual contract');
+console.log('Resonance/formal-charge foundation passed: equivalence, validation, Target Match/hint, Graph reachability, neutral hybrid assets and CO formal charge.');
+"""
+if new not in s:
+    if old not in s: raise SystemExit('resonance asset expectation anchor missing')
+    s=s.replace(old,new)
+p.write_text(s)
+
+# Geometry primitive regression coverage.
+p=Path('tests/special-bonds-check.mjs'); s=p.read_text().replace("import {createPreviewModel} from '../src/preview-model.js?v=31';","import {createPreviewModel} from '../src/preview-model.js?v=32';").replace("import {sharedBondCurves,createSharedBonds,updateSharedBonds} from '../src/special-bonds.js?v=30';","import {sharedBondCurves,createSharedBonds,updateSharedBonds} from '../src/special-bonds.js?v=31';")
+block="""
+
+// Encyclopedia-only three-center resonance primitive: endpoints remain on
+// center-terminal bond interiors and never create a terminal-terminal edge.
+for(const record of records.filter(record=>['nitromethane','ozone'].includes(record.id))){
+  const model=createPreviewModel(THREE,record);for(let i=0;i<220;i++)model.step();const layout=model.snapshot(),group=layout.sharedGroups.find(item=>['nitro','ozone'].includes(item.kind));
+  assert(group,`${record.id}: supported resonance group`);const point=id=>layout.atoms[id].point,curves=sharedBondCurves(THREE,group,point,{mode:'encyclopedia'});assert.equal(curves.length,1,`${record.id}: one continuous three-center arc`);
+  const curve=curves[0],center=point(group.center),ends=group.ends.map(point);assert(curve.every(p=>[p.x,p.y,p.z].every(Number.isFinite)),`${record.id}: finite three-center coordinates`);
+  const expectedStart=center.clone().lerp(ends[0],.56),expectedEnd=center.clone().lerp(ends[1],.56);assert(curve[0].distanceTo(expectedStart)<1e-9,`${record.id}: arc starts on first bond midpoint region`);assert(curve.at(-1).distanceTo(expectedEnd)<1e-9,`${record.id}: arc ends on second bond midpoint region`);
+  assert(curve[0].distanceTo(ends[0])>center.distanceTo(ends[0])*.3,`${record.id}: arc must not attach to first terminal O`);assert(curve.at(-1).distanceTo(ends[1])>center.distanceTo(ends[1])*.3,`${record.id}: arc must not attach to second terminal O`);
+  assert(curve[0].distanceTo(ends[1])>1e-3&&curve.at(-1).distanceTo(ends[0])>1e-3,`${record.id}: arc is not a terminal-terminal direct edge`);
+  assert.equal(layout.atoms.filter(atom=>[group.center,...group.ends].includes(atom.id)).some(atom=>atom.charge!==0),false,`${record.id}: Encyclopedia resonance hybrid carries no contributor-specific formal charge`);
+  assert.equal(sharedBondCurves(THREE,group,point).length,4,`${record.id}: default CRAFT visual contract remains two curves per bond`);
+  const alternate=structuredClone(record);for(const resonanceGroup of alternate.resonanceGroups??[]){const edges=alternate.bonds.filter(([a,b])=>(a===resonanceGroup.center&&resonanceGroup.ends.includes(b))||(b===resonanceGroup.center&&resonanceGroup.ends.includes(a)));[edges[0][2],edges[1][2]]=[edges[1][2],edges[0][2]];}
+  const altModel=createPreviewModel(THREE,alternate);for(let i=0;i<220;i++)altModel.step();const alt=altModel.snapshot(),altGroup=alt.sharedGroups.find(item=>item.kind===group.kind),altCurves=sharedBondCurves(THREE,altGroup,id=>alt.atoms[id].point,{mode:'encyclopedia'});assert.equal(altCurves.length,1,`${record.id}: reversed contributor keeps same hybrid primitive`);assert(altCurves[0].every(p=>[p.x,p.y,p.z].every(Number.isFinite)),`${record.id}: reversed contributor remains finite`);
+}
+"""
+if 'Encyclopedia-only three-center resonance primitive' not in s: s += block
+p.write_text(s)
+
+# Production CI coverage and screenshot artifact.
+p=Path('.github/workflows/repository-validation.yml'); s=p.read_text(); anchor='          node tests/encyclopedia-content-browser.test.mjs\n'; addition='          node tests/encyclopedia-chemistry-visuals.test.mjs\n          node tests/encyclopedia-chemistry-visual-browser.test.mjs\n'
+if addition not in s:
+    if anchor not in s: raise SystemExit('repository validation encyclopedia anchor missing')
+    s=s.replace(anchor,anchor+addition)
+upload='''      - name: Upload Encyclopedia chemistry visual frames\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: encyclopedia-chemistry-visuals\n          path: test-results/encyclopedia-chemistry-visuals\n          if-no-files-found: ignore\n          retention-days: 7\n'''
+marker='      - name: Upload Encyclopedia Graph thumbnail frames\n'
+if upload not in s:
+    if marker not in s: raise SystemExit('artifact upload anchor missing')
+    s=s.replace(marker,upload+marker)
+p.write_text(s)
