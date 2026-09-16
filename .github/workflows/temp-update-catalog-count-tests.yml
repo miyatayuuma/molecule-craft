@@ -1,0 +1,36 @@
+name: Temporary update catalog-count test guards
+on:
+  push:
+    branches:
+      - task/encyclopedia-content-architecture-review
+permissions:
+  contents: write
+jobs:
+  update:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Update stale 129-molecule browser guards
+        run: |
+          grep -R -n -E "0/129|includes\('/129'\)|includes\(\"/129\"\)" tests || true
+          find tests -type f \( -name '*.mjs' -o -name '*.js' \) -print0 | xargs -0 sed -i \
+            -e 's/0\/129/0\/135/g' \
+            -e "s/includes('\/129')/includes('\/135')/g" \
+            -e 's/includes("\/129")/includes("\/135")/g'
+          if grep -R -n -E "0/129|includes\('/129'\)|includes\(\"/129\"\)" tests; then
+            echo "stale 129-molecule guard remains"
+            exit 1
+          fi
+          git diff --check
+      - name: Commit test updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests
+          if git diff --cached --quiet; then
+            echo "No stale test guards found"
+            exit 0
+          fi
+          git commit -m "Update stale 129-molecule browser guards"
+          git push
