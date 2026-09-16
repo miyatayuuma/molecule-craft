@@ -1,545 +1,2176 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "noteDefinitions": {
+    "model": "模型は結合情報から生成した教材用の配置で、実測構造そのものではありません。",
+    "aromatic": "芳香環に表示される水色の内円は、環全体に広がるπ電子を表す教材上の記号です。",
+    "resonance": "水色の共鳴補助表示は、複数のLewis構造で表される電子の非局在化を示します。二重結合が実際に往復しているという意味ではありません。",
+    "stereochemistry": "この図鑑ではcis/transや鏡像異性体を個別の収集対象にしていません。"
+  },
   "molecules": {
     "hydrogen": {
       "number": 1,
-      "description": "とても軽い気体。燃料電池では酸素と反応して、電気と水を生み出す。"
+      "description": "もっとも軽い元素からできた気体。燃料電池では酸素と反応して電気と水を生み、燃料としても利用される。",
+      "details": [
+        {
+          "title": "結合",
+          "body": "H₂では2個のH原子が1組の電子対を共有し、H–H単結合をつくる。小さく無極性の分子で、常温では気体として存在する。"
+        }
+      ],
+      "concepts": [
+        "bond-order"
+      ]
     },
     "oxygen": {
       "number": 2,
-      "description": "空気に含まれ、体が食べ物からエネルギーを取り出すのを助ける。火が燃え続けるためにも必要。"
+      "description": "空気の約2割を占める気体。呼吸や燃焼を支え、医療や工業でも広く使われる。",
+      "details": [
+        {
+          "title": "結合と反応性",
+          "body": "O₂はO原子どうしが二重結合した分子で、結合次数がH₂やN₂と異なる。多くの物質を酸化するため、呼吸や燃焼の反応で重要な役割を持つ。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "redox"
+      ]
     },
     "nitrogen": {
       "number": 3,
-      "description": "空気の体積の約8割を占める、反応しにくい気体。お菓子の袋の中で、油が傷むのを防ぐこともある。"
+      "description": "空気の約8割を占める、反応しにくい気体。食品の酸化を抑えるため袋の中を窒素で満たすこともある。",
+      "details": [
+        {
+          "title": "三重結合",
+          "body": "N₂では2個のN原子が三重結合で強く結ばれている。この結合が切れにくいため、常温では多くの物質と反応しにくい。"
+        }
+      ],
+      "concepts": [
+        "bond-order"
+      ]
     },
     "water": {
       "number": 4,
-      "description": "砂糖や塩を溶かし、体の中で栄養を運ぶ。油とは混ざりにくく、冷えると氷になる。"
+      "description": "生命に欠かせない液体で、塩や糖など多くの物質を溶かす。氷・液体・水蒸気として地球上を循環している。",
+      "details": [
+        {
+          "title": "形と極性",
+          "body": "H₂OはOを中心とした折れ曲がった形をとる。Oが電子を強く引きつけるためO側が部分的に負、H側が部分的に正となり、分子全体に極性が生じる。"
+        },
+        {
+          "title": "水素結合",
+          "body": "分子どうしは水素結合で引き合う。この相互作用が、同程度の大きさの分子に比べて高い沸点や、優れた溶媒としての性質に関わる。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity",
+        "hydrogen-bond"
+      ]
     },
     "carbon-dioxide": {
       "number": 5,
-      "description": "炭酸飲料の泡の正体。植物は光を使って、この気体から育つための材料をつくる。"
+      "description": "炭酸飲料の泡や呼気に含まれる気体。植物は光合成で二酸化炭素を取り込み、有機物をつくる。",
+      "details": [
+        {
+          "title": "形と極性",
+          "body": "CO₂はO=C=Oがほぼ直線形になる。各C=O結合は極性を持つが、左右対称なので結合の向きが打ち消し合い、分子全体としては無極性に近い。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity",
+        "bond-order"
+      ]
     },
     "carbon-monoxide": {
       "number": 6,
-      "description": "燃料が十分に燃えないときに生まれることがある。色もにおいもなく、血液が酸素を運ぶのを妨げる危険な気体。"
+      "description": "燃料が不完全燃焼すると生じることがある、色もにおいもない有毒な気体。血液のヘモグロビンに強く結びつき、酸素運搬を妨げる。",
+      "details": [
+        {
+          "title": "Lewis構造と形式電荷",
+          "body": "代表的なLewis構造はC⁻≡O⁺と表せ、CとOの間には三重結合がある。形式電荷は電子の割り当てを数えるための表記で、実際の電荷分布そのものではない。"
+        },
+        {
+          "title": "結合の特徴",
+          "body": "CとOは強く結ばれた短い結合を持つ。金属へC側から配位する性質もあり、単純な『酸素を含むから酸化物』という見方だけでは捉えにくい分子である。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "formal-charge",
+        "polarity"
+      ]
     },
     "ammonia": {
       "number": 7,
-      "description": "鼻をつくにおいを持ち、水によく溶ける。植物を育てる窒素肥料の大切な出発材料。"
+      "description": "刺激臭のある気体で、水によく溶ける。肥料の原料として大量に使われ、窒素を農作物へ届ける重要な物質。",
+      "details": [
+        {
+          "title": "形と塩基性",
+          "body": "NH₃ではNに1組の孤立電子対があり、分子は三角錐形になる。この孤立電子対でH⁺を受け取れるため、アンモニアは塩基として働く。"
+        },
+        {
+          "title": "水素結合",
+          "body": "N–H結合とNの孤立電子対により、分子間で水素結合をつくれる。このため水に非常によく溶ける。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "hybridization",
+        "acid-base",
+        "hydrogen-bond"
+      ]
     },
     "hydrogen-sulfide": {
       "number": 8,
-      "description": "腐った卵のようなにおいを持つ気体。温泉でも見られるが有毒で、においだけで安全かは判断できない。"
+      "description": "腐った卵のようなにおいで知られる有毒な気体。温泉や火山ガス、酸素の少ない環境での分解でも生じる。",
+      "details": [
+        {
+          "title": "構造と性質",
+          "body": "H₂Sは折れ曲がった分子で、H₂Oと同じ16族元素の水素化物だが、水ほど強い水素結合をつくらない。その違いが沸点などの性質に表れる。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity"
+      ]
     },
     "hydrogen-chloride": {
       "number": 9,
-      "description": "水に溶けると塩酸になる気体。胃の中の酸にも関係するが、濃いものは皮膚を傷つける。"
+      "description": "刺激の強い気体で、水に溶けると塩酸になる。塩化物の製造や酸性度の調整などに使われる。",
+      "details": [
+        {
+          "title": "極性と酸",
+          "body": "H–Cl結合ではClが電子を強く引きつけるため大きな極性を持つ。水中ではほぼ完全にH⁺を水へ渡し、Cl⁻となるため強酸として働く。"
+        }
+      ],
+      "concepts": [
+        "polarity",
+        "acid-base"
+      ]
     },
     "hydrogen-fluoride": {
       "number": 10,
-      "description": "ガラスを傷めるほど反応性が強い。半導体の加工にも使われる、扱いが難しい物質。"
+      "description": "強い刺激性を持ち、ガラスやシリカを侵すことで知られる物質。半導体加工などで厳重に管理して使われる。",
+      "details": [
+        {
+          "title": "結合と水素結合",
+          "body": "H–F結合は非常に強く極性も大きい。HF分子どうしは強い水素結合をつくるため、同族のHClなどとは物性が大きく異なる。"
+        },
+        {
+          "title": "酸としての特徴",
+          "body": "水溶液は危険な酸だが、酸の強さは単純な結合極性だけでは決まらない。強いH–F結合のため、希薄水溶液での酸解離はHClより小さい。"
+        }
+      ],
+      "concepts": [
+        "polarity",
+        "hydrogen-bond",
+        "acid-base"
+      ]
     },
     "chlorine": {
       "number": 11,
-      "description": "黄緑色をした、刺激の強い有毒な気体。水の消毒や、塩化ビニルなどの製造に関わる。"
+      "description": "黄緑色で刺激臭のある有毒な気体。水の消毒や、塩化ビニルをはじめ多くの化学製品の製造に使われる。",
+      "details": [
+        {
+          "title": "結合と酸化力",
+          "body": "Cl₂は2個のCl原子が単結合した無極性分子だが、電子を受け取ってCl⁻になりやすく、酸化剤として働く。水との反応では次亜塩素酸などが生じる。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "redox"
+      ]
     },
     "sulfur-dioxide": {
       "number": 12,
-      "description": "火山のガスにも含まれる、刺激のある気体。空気中で変化し、酸性雨の原因になることがある。"
+      "description": "火山ガスや燃料中の硫黄の燃焼で生じる刺激性の気体。大気中で酸化されると酸性雨の原因物質の一つになる。",
+      "details": [
+        {
+          "title": "形と電子配置",
+          "body": "SO₂は直線ではなく折れ曲がった形をとる。S–O結合は単純な一本のLewis式だけでは表し切れず、複数の寄与構造を考えると2本の結合が似た性質を持つことを説明しやすい。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity",
+        "resonance"
+      ]
     },
     "sulfur-trioxide": {
       "number": 13,
-      "description": "水と激しく反応して硫酸になる。工場では硫酸をつくる途中に登場する。"
+      "description": "硫酸を製造する途中でつくられる反応性の高い物質。水と激しく反応して硫酸になる。",
+      "details": [
+        {
+          "title": "形と結合",
+          "body": "気体のSO₃単量体では3本のS–O結合が等価な三角平面形として扱える。Lewis構造には複数の描き方があり、実際の電子分布は一つの局在構造だけでは表し切れない。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "resonance"
+      ]
     },
     "phosphine": {
       "number": 14,
-      "description": "リンを含む有毒な気体。半導体の性質を調整するため、厳重に管理された工場でも使われる。"
+      "description": "リンと水素からなる有毒な気体。半導体材料への微量添加など、厳重に管理された用途で使われる。",
+      "details": [
+        {
+          "title": "形と孤立電子対",
+          "body": "PH₃はPに孤立電子対を持つ三角錐形の分子で、NH₃と同じ原子数でも結合角や塩基性が大きく異なる。P–H結合の性質と軌道の混ざり方がその違いに関わる。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "acid-base"
+      ]
     },
     "phosphorus-trichloride": {
       "number": 15,
-      "description": "ほかのリン化合物をつくる出発材料。水に触れると反応して、刺激の強い気体を生じる。"
+      "description": "ほかのリン化合物をつくる重要な原料。水と反応して刺激性の物質を生じるため、湿気を避けて扱う。",
+      "details": [
+        {
+          "title": "構造と反応性",
+          "body": "PCl₃はPに孤立電子対を持つ三角錐形の分子で、P原子が反応中心になりやすい。水やアルコールなどの求核剤と反応し、多くのリン化合物へ変換できる。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "functional-group"
+      ]
     },
     "phosphorus-pentachloride": {
       "number": 16,
-      "description": "ほかの分子に塩素を取り入れる反応に使われる。湿気とも反応するため、乾いた状態で扱われる。"
+      "description": "有機化合物などへ塩素を導入する反応に使われるリン化合物。湿気と反応するため乾燥条件で扱う。",
+      "details": [
+        {
+          "title": "五配位構造",
+          "body": "孤立したPCl₅分子は気相では三方両錐形をとり、平面内の3本と軸方向の2本のP–Cl結合は同じ環境ではない。固体ではイオン性の構造をとるため、相によって描像が変わる。"
+        }
+      ],
+      "concepts": [
+        "geometry"
+      ]
     },
     "carbon-disulfide": {
       "number": 17,
-      "description": "水に溶けにくく、硫黄をよく溶かす液体。レーヨンをつくる工程に使われるが、有毒で燃えやすい。"
+      "description": "無色で揮発しやすく、硫黄や油を溶かす液体。レーヨン製造などに使われるが、有毒で非常に燃えやすい。",
+      "details": [
+        {
+          "title": "形と極性",
+          "body": "CS₂はS=C=Sの直線形で、左右対称なので分子全体の双極子は打ち消し合う。CO₂と似た骨格だが、Sの大きさと分極しやすさの違いで物性は大きく異なる。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity"
+      ]
     },
     "carbonyl-sulfide": {
       "number": 18,
-      "description": "大気にごく少量含まれる気体。海や火山などから放出され、硫黄が地球を巡る流れに関わる。"
+      "description": "大気中にごく少量存在する気体で、海洋や火山などから放出される。地球規模の硫黄循環にも関わる。",
+      "details": [
+        {
+          "title": "非対称な直線分子",
+          "body": "OCSはO=C=Sの直線形だが、両端の原子が異なるためCO₂のように結合の極性が完全には打ち消し合わず、分子全体に双極子を持つ。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity"
+      ]
     },
     "phosphoric-acid": {
       "number": 19,
-      "description": "肥料をつくる材料で、飲料の酸味調整にも使われる。リンは骨や歯、細胞の働きにも欠かせない。"
+      "description": "肥料の原料や食品・飲料の酸味調整に使われる酸。リン酸塩は骨や歯、細胞のエネルギー利用にも重要。",
+      "details": [
+        {
+          "title": "多段階の酸解離",
+          "body": "H₃PO₄は3個の酸性Hを持ち、水中で段階的にH⁺を失う。最初の解離が最も起こりやすく、pHに応じて主なリン酸種が変わる。"
+        }
+      ],
+      "concepts": [
+        "acid-base",
+        "functional-group"
+      ]
     },
     "sulfuric-acid": {
       "number": 20,
-      "description": "肥料や自動車用の鉛蓄電池などに使われる。工業を支える強い酸で、濃いものは水分を強く引きつける。"
+      "description": "肥料、鉛蓄電池、化学製品の製造に広く使われる強い酸。濃硫酸は水を強く引きつける性質も持つ。",
+      "details": [
+        {
+          "title": "酸としての性質",
+          "body": "H₂SO₄は二価の酸で、最初のH⁺は水中でほぼ完全に放出される。2段目の解離はそれより弱く、硫酸水素イオンHSO₄⁻との平衡になる。"
+        },
+        {
+          "title": "S–O結合",
+          "body": "硫酸や硫酸イオンのS–O結合は、単純な『二重結合が固定された2本』というLewis図だけでは電子分布を十分に表せない。形式電荷と共鳴は電子の割り当てを整理する道具として使われる。"
+        }
+      ],
+      "concepts": [
+        "acid-base",
+        "resonance",
+        "formal-charge"
+      ]
     },
     "hydrogen-peroxide": {
       "number": 21,
-      "description": "時間とともに水と酸素に変わる。薄めたものは消毒に、漂白にも使われる。"
+      "description": "水より酸素が1個多い液体で、漂白や消毒に使われる。分解すると水と酸素になる。",
+      "details": [
+        {
+          "title": "O–O単結合",
+          "body": "H₂O₂にはO–O単結合があり、分子は平面ではなくねじれた立体配座をとる。O–O結合は比較的切れやすく、酸化剤にも還元剤にもなり得る。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "redox",
+        "bond-order"
+      ]
     },
     "hypochlorous-acid": {
       "number": 22,
-      "description": "細菌などの働きを弱める性質を持つ。水の消毒でも活躍し、酸性度によって存在する割合が変わる。"
+      "description": "水の消毒で重要な弱酸。細菌などを酸化して働きを弱め、pHによって存在する形が変わる。",
+      "details": [
+        {
+          "title": "酸塩基平衡",
+          "body": "HOClは水中でH⁺を放出してOCl⁻と平衡になる。一般にHOClの方が消毒作用が強いため、pHは有効な化学種の割合に影響する。"
+        },
+        {
+          "title": "酸化作用",
+          "body": "Clの酸化数が高く、ほかの物質から電子を受け取る酸化剤として働く。"
+        }
+      ],
+      "concepts": [
+        "acid-base",
+        "redox"
+      ]
     },
     "carbonic-acid": {
       "number": 23,
-      "description": "二酸化炭素が水に溶けると、一部がこの弱い酸になる。炭酸飲料や雨水にも関わる。"
+      "description": "二酸化炭素が水に溶けると一部が生じる弱い酸。炭酸飲料、血液のpH調節、雨水などに関わる。",
+      "details": [
+        {
+          "title": "CO₂との平衡",
+          "body": "水中ではCO₂(aq)とH₂CO₃が平衡にあり、H₂CO₃はさらにHCO₃⁻やCO₃²⁻へ段階的に解離する。この平衡が炭酸緩衝系の基礎になる。"
+        }
+      ],
+      "concepts": [
+        "acid-base"
+      ]
     },
     "methane": {
       "number": 24,
-      "description": "都市ガスや天然ガスの主役。湿地や動物のおなかで微生物がつくることもあり、よく燃える。"
+      "description": "天然ガスの主成分で、都市ガスや発電の燃料になる。湿地や反すう動物の体内などでも微生物によって生じる。",
+      "details": [
+        {
+          "title": "正四面体構造",
+          "body": "CH₄ではCの周りに4本の等価なC–H結合が広がり、結合角は約109.5°の正四面体形になる。炭素のsp³混成を考える代表例である。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "hybridization"
+      ]
     },
     "ethane": {
       "number": 25,
-      "description": "天然ガスに含まれる気体。工場でエチレンに変えられ、プラスチックづくりの入口になる。"
+      "description": "天然ガスに含まれる気体。工業では高温で分解してエチレンへ変え、プラスチック原料につなげる。",
+      "details": [
+        {
+          "title": "単結合の回転",
+          "body": "C–C単結合の周りでは回転が可能で、H同士が重なりにくいねじれ形が安定する。二重結合を持つエチレンとは、回転の自由度が大きく異なる。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "hybridization"
+      ]
     },
     "propane": {
       "number": 26,
-      "description": "ガスボンベに詰められ、料理や暖房に使われる。圧力をかけると液体になり、運びやすくなる。"
+      "description": "LPガスとして料理や暖房に使われる燃料。圧力をかけると液化しやすく、ボンベで運べる。",
+      "details": [
+        {
+          "title": "アルカンの骨格",
+          "body": "3個のCはいずれも主にsp³型の四面体環境をとり、C–C単結合の回転で多くの配座をとれる。炭素鎖が長くなると分子間力が増え、沸点も上がる傾向がある。"
+        }
+      ],
+      "concepts": [
+        "hybridization",
+        "geometry"
+      ]
     },
     "n-butane": {
       "number": 27,
-      "description": "カセットこんろの燃料に使われる気体。寒い場所では気体になりにくく、火力が弱くなることがある。"
+      "description": "カセットこんろなどの燃料に使われる気体。イソブタンと同じ分子式C₄H₁₀だが、炭素骨格の形が異なる。",
+      "details": [
+        {
+          "title": "構造異性体",
+          "body": "n-ブタンは4個のCが直鎖状につながる。一方イソブタンは枝分かれしており、同じ分子式でも結合のつながり方が違う構造異性体である。"
+        }
+      ],
+      "concepts": [
+        "structural-isomerism",
+        "geometry"
+      ]
     },
     "isobutane": {
       "number": 28,
-      "description": "冷蔵庫の冷媒やガス燃料に使われる。n-ブタンと同じ分子式でも、沸騰する温度は違う。"
+      "description": "冷媒やガス燃料に使われる。n-ブタンと同じ分子式C₄H₁₀でも枝分かれした構造を持ち、沸点などが異なる。",
+      "details": [
+        {
+          "title": "枝分かれと物性",
+          "body": "イソブタンは中心Cから3本のメチル基が伸びる枝分かれ構造で、n-ブタンより表面接触が小さくなりやすい。そのため分子間力と沸点に差が生じる。"
+        }
+      ],
+      "concepts": [
+        "structural-isomerism",
+        "geometry"
+      ]
     },
     "n-pentane": {
       "number": 29,
-      "description": "すぐに蒸発する、燃えやすい液体。発泡スチロールに細かな泡をつくる材料にもなる。"
+      "description": "揮発しやすく燃えやすい液体。発泡材の泡をつくる発泡剤や溶媒として使われる。",
+      "details": [
+        {
+          "title": "鎖長と物性",
+          "body": "直鎖アルカンでは炭素数が増えるほど分子間の分散力が大きくなり、メタンやブタンより沸点が高くなる。C–C単結合の回転により多くの配座をとる。"
+        }
+      ],
+      "concepts": [
+        "geometry"
+      ]
     },
     "n-hexane": {
       "number": 30,
-      "description": "水に溶けにくく、油を溶かすのが得意。植物の種から油を取り出す工程でも使われる。"
+      "description": "水に溶けにくく油をよく溶かす液体。植物油の抽出などに使われるが、蒸気の長期曝露には注意が必要。",
+      "details": [
+        {
+          "title": "無極性溶媒",
+          "body": "C–CとC–H結合が中心で分子全体の極性が小さいため、水とは混ざりにくく、油脂など無極性に近い物質をよく溶かす。"
+        }
+      ],
+      "concepts": [
+        "polarity"
+      ]
     },
     "ethene": {
       "number": 31,
-      "description": "果物の熟成を進める植物ホルモンとしても働く。たくさんつながると、ポリエチレンになる。"
+      "description": "果物の成熟を進める植物ホルモンとして働く気体。重合するとポリエチレンになり、身近なプラスチックになる。",
+      "details": [
+        {
+          "title": "C=C二重結合",
+          "body": "各Cはほぼsp²混成で、周囲は平面に近い。σ結合に加えてπ結合があるためC=Cの自由回転は難しく、単結合のエタンより反応性が高い。"
+        },
+        {
+          "title": "重合",
+          "body": "π結合を開いてC–C単結合を次々につなぐ付加重合により、ポリエチレンの長い鎖ができる。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "hybridization",
+        "geometry",
+        "polymerization"
+      ]
     },
     "propene": {
       "number": 32,
-      "description": "たくさんつなげるとポリプロピレンになる。食品容器やロープ、自動車部品へと姿を変える材料。"
+      "description": "ポリプロピレンの原料になる気体。食品容器、繊維、自動車部品など多くの製品につながる。",
+      "details": [
+        {
+          "title": "二重結合の反応性",
+          "body": "C=C部分はsp²型で平面に近く、π結合が付加反応の反応点になる。重合すると側鎖にCH₃を持つポリプロピレンになる。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "hybridization",
+        "polymerization"
+      ]
     },
     "1-butene": {
       "number": 33,
-      "description": "ポリエチレンの性質を調整する材料として使われる。少し混ぜることで、やわらかさなどを変えられる。"
+      "description": "ポリエチレンの性質を調整する共重合原料などに使われる。二重結合が炭素鎖の端にあるC₄アルケン。",
+      "details": [
+        {
+          "title": "位置異性",
+          "body": "1-ブテンはC=Cが鎖の端にあり、2-ブテンとは二重結合の位置が違う。結合位置の違いだけでも反応生成物や物性が変わる。"
+        }
+      ],
+      "concepts": [
+        "positional-isomerism",
+        "bond-order"
+      ]
     },
     "2-butene": {
       "number": 34,
-      "description": "燃料や化学製品をつくる工程に登場する気体。原子の並ぶ向きの違いでも性質が変わる。"
+      "description": "燃料や化学製品の原料になるC₄アルケン。二重結合の周りの並び方によりcis型とtrans型が存在する。",
+      "details": [
+        {
+          "title": "cis/trans異性",
+          "body": "C=Cは自由に回転できないため、両側のCH₃基が同じ側にあるcis-2-ブテンと反対側にあるtrans-2-ブテンを区別できる。これらは同じ結合順序でも空間配置が異なる立体異性体である。"
+        }
+      ],
+      "concepts": [
+        "cis-trans",
+        "bond-order",
+        "geometry"
+      ],
+      "notes": [
+        "stereochemistry"
+      ]
     },
     "isobutene": {
       "number": 35,
-      "description": "空気を通しにくいブチルゴムをつくる材料。タイヤの内側など、空気を閉じ込めたい場所で役立つ。"
+      "description": "ブチルゴムなどの原料になる、枝分かれしたC₄アルケン。タイヤの内側など空気を通しにくい材料につながる。",
+      "details": [
+        {
+          "title": "骨格と二重結合",
+          "body": "2-メチルプロペンとも呼ばれ、C=Cの一方の炭素に2つのCH₃基が結合する。直鎖の1-ブテンや2-ブテンと同じC₄H₈でも結合骨格が異なる構造異性体である。"
+        }
+      ],
+      "concepts": [
+        "structural-isomerism",
+        "bond-order"
+      ]
     },
     "ethyne": {
       "number": 36,
-      "description": "酸素と一緒に燃やすと高温の炎になる。金属の溶接や切断にも使われてきた気体。"
+      "description": "アセチレンとも呼ばれる気体。酸素と燃やすと高温になり、金属の溶接や切断に使われてきた。",
+      "details": [
+        {
+          "title": "C≡C三重結合",
+          "body": "各Cはほぼsp混成で、H–C≡C–Hは直線形になる。三重結合は1本のσ結合と2本のπ結合からなり、エタンやエチレンより結合次数が高い。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "hybridization",
+        "geometry"
+      ]
     },
     "propyne": {
       "number": 37,
-      "description": "端に三重結合を持つ小さなアルキン。三重結合部分はほぼ直線形で、末端水素を手がかりにC–C結合形成へ展開できる。propane/propeneとの結合次数比較にも向く。"
+      "description": "炭素鎖の端に三重結合を持つ小さなアルキン。燃料混合物の成分や有機合成の原料として扱われる。",
+      "details": [
+        {
+          "title": "末端アルキン",
+          "body": "C≡C部分はほぼ直線形でsp混成をとる。末端の≡C–Hの水素はアルカンのC–Hより外れやすく、塩基で引き抜いて新しいC–C結合をつくる反応に利用できる。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "hybridization",
+        "acid-base"
+      ]
     },
     "1-butyne": {
       "number": 38,
-      "description": "鎖の端に三重結合を持つC4アルキン。2-butyneと比べ、三重結合が端か内部かで反応点が変わる。"
+      "description": "炭素鎖の端に三重結合を持つC₄アルキン。有機合成の中間体として利用される。",
+      "details": [
+        {
+          "title": "位置異性と末端水素",
+          "body": "1-ブチンは末端にC≡C–Hを持つため、2-ブチンにはない酸性の末端水素を利用できる。三重結合の位置の違いが反応性の違いにつながる。"
+        }
+      ],
+      "concepts": [
+        "positional-isomerism",
+        "bond-order",
+        "acid-base"
+      ]
     },
     "2-butyne": {
       "number": 39,
-      "description": "鎖中央に三重結合を持つ対称なC4アルキン。末端水素を持たず、1-butyneとの位置異性比較に向く。"
+      "description": "炭素鎖の中央に三重結合を持つC₄アルキン。1-ブチンと同じ分子式でも三重結合の位置が異なる。",
+      "details": [
+        {
+          "title": "内部アルキン",
+          "body": "CH₃–C≡C–CH₃は対称性が高く、末端アルキンの≡C–Hを持たない。1-ブチンとの比較で、位置異性と末端水素の有無が反応性を変えることが分かる。"
+        }
+      ],
+      "concepts": [
+        "positional-isomerism",
+        "bond-order"
+      ]
     },
     "cyclopropane": {
       "number": 40,
-      "description": "小さな輪にひずみを抱えた、燃えやすい気体。輪が開く反応を起こしやすい。"
+      "description": "3個の炭素が小さな輪をつくる、燃えやすい気体。環が強くひずんでいるため、通常のシクロアルカンより反応しやすい。",
+      "details": [
+        {
+          "title": "環ひずみ",
+          "body": "sp³炭素の理想結合角は約109.5°だが、3員環ではC–C–C角が約60°に押し縮められる。角ひずみとねじれひずみが大きく、開環反応を起こしやすい。"
+        }
+      ],
+      "concepts": [
+        "ring-strain",
+        "geometry",
+        "hybridization"
+      ]
     },
     "cyclobutane": {
       "number": 41,
-      "description": "4員環はsp3炭素の理想結合角から大きく外れるため環ひずみが大きい。完全な平面を避けて少し折れ曲がるがひずみは残り、シクロプロパン・シクロペンタン・シクロヘキサンとの比較で環サイズと安定性の違いが見える。"
+      "description": "4個の炭素が輪になったシクロアルカン。小さな環のためひずみが大きく、平面から少し折れ曲がった形をとる。",
+      "details": [
+        {
+          "title": "環ひずみと折れ曲がり",
+          "body": "4員環の結合角はsp³炭素の理想値よりかなり小さく、角ひずみが残る。完全な平面を避けて少し折れ曲がることで、重なり合うC–H結合によるねじれひずみを減らす。"
+        }
+      ],
+      "concepts": [
+        "ring-strain",
+        "geometry"
+      ]
     },
     "cyclopentane": {
       "number": 42,
-      "description": "冷蔵庫などの断熱材に泡をつくる用途がある。輪は平らなままではなく、少し曲がった形をとる。"
+      "description": "5個の炭素が輪になった液体で、発泡材の製造にも使われる。環は平面ではなく、折れ曲がった形をとる。",
+      "details": [
+        {
+          "title": "配座",
+          "body": "5員環は3員環や4員環より角ひずみが小さいが、平面になるとC–H結合が重なりやすい。エンベロープ形などに折れ曲がることでねじれひずみを減らす。"
+        }
+      ],
+      "concepts": [
+        "ring-strain",
+        "geometry"
+      ]
     },
     "cyclohexane": {
       "number": 43,
-      "description": "ナイロンの原料づくりに使われる液体。輪は椅子に似た立体的な形をとると安定する。"
+      "description": "ナイロン原料の製造に使われる液体。6員環は椅子形をとるとひずみが小さく、安定になる。",
+      "details": [
+        {
+          "title": "椅子形配座",
+          "body": "シクロヘキサンの椅子形ではC–C–C角がsp³炭素の理想値に近く、隣接結合もほぼ互い違いになる。そのため角ひずみとねじれひずみが小さい。"
+        },
+        {
+          "title": "アキシアルとエクアトリアル",
+          "body": "置換基が付くと、環の軸方向より外側へ張り出すエクアトリアル位置の方が立体反発を避けやすい場合が多い。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "ring-strain"
+      ]
     },
     "methylcyclohexane": {
       "number": 44,
-      "description": "水に混ざりにくく、油や樹脂を溶かす液体。水素を運ぶ技術でも利用が研究されている。"
+      "description": "水に混ざりにくい炭化水素で、溶媒などに使われる。シクロヘキサン環にメチル基が1つ付いた構造を持つ。",
+      "details": [
+        {
+          "title": "置換シクロヘキサン",
+          "body": "椅子形ではCH₃基がエクアトリアル位置にある配座の方が、アキシアル位置より1,3-ジアキシアル反発が小さく安定である。環反転で位置は入れ替わるが、結合のつながりは変わらない。"
+        }
+      ],
+      "concepts": [
+        "geometry"
+      ]
     },
     "benzene": {
       "number": 45,
-      "description": "いろいろな化学製品の出発点になる液体。輪全体で電子が広がる性質を持つが、有毒で発がん性がある。"
+      "description": "多くの樹脂、繊維、医薬品などの原料につながる芳香族化合物。環全体にπ電子が広がった安定な構造を持つが、有毒で発がん性がある。",
+      "details": [
+        {
+          "title": "芳香族性",
+          "body": "6個のCはほぼsp²混成で平面六角形をつくり、6個のπ電子が環全体へ非局在化している。そのため6本のC–C結合は単結合と二重結合を固定して交互に並べたものではなく、互いに近い長さを持つ。"
+        },
+        {
+          "title": "反応性",
+          "body": "孤立したアルケンのような付加反応より、芳香族性を保つ置換反応が起こりやすい。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "resonance",
+        "hybridization",
+        "bond-order"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "toluene": {
       "number": 46,
-      "description": "塗料や接着剤の樹脂を溶かす用途がある。水に混ざりにくく、蒸発しやすい液体。"
+      "description": "ベンゼン環にメチル基が付いた芳香族化合物。塗料や接着剤の溶媒、化学製品の原料として使われる。",
+      "details": [
+        {
+          "title": "ベンゼン環とメチル基",
+          "body": "芳香環のπ電子系は保たれたまま、CH₃基が環の電子密度や反応性へ影響する。側鎖の炭素は酸化されると安息香酸へ変わり得る。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "redox"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "ethylbenzene": {
       "number": 47,
-      "description": "主にスチレンをつくる材料になる。そこから発泡スチロールなど、身近なプラスチックにつながる。"
+      "description": "主にスチレンの原料として使われる芳香族化合物。そこからポリスチレンや発泡材などにつながる。",
+      "details": [
+        {
+          "title": "側鎖の変換",
+          "body": "ベンゼン環にエチル基が結合しており、工業では側鎖からH₂を除く脱水素でスチレンへ変換する。芳香環自体はこの変換で保たれる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "redox",
+        "functional-group"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "p-xylene": {
       "number": 48,
-      "description": "ペットボトルの材料づくりにつながる液体。酸化すると、PETの原料であるテレフタル酸になる。"
+      "description": "PETボトルやポリエステル繊維の原料につながる芳香族化合物。ベンゼン環の向かい合う位置に2つのメチル基を持つ。",
+      "details": [
+        {
+          "title": "置換位置",
+          "body": "p-キシレンでは2つのCH₃基が1,4位にあり、o-キシレンやm-キシレンとは位置異性体の関係にある。両側鎖を酸化するとテレフタル酸へ変換できる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "positional-isomerism",
+        "redox"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "styrene": {
       "number": 49,
-      "description": "たくさんつながるとポリスチレンになる。硬い容器にも、軽い発泡スチロールにも姿を変える。"
+      "description": "ポリスチレンの原料になる芳香族液体。ベンゼン環にC=Cを含むビニル基が結合している。",
+      "details": [
+        {
+          "title": "共役と重合",
+          "body": "ビニル基のC=Cはベンゼン環のπ系と共役できる。重合ではビニル基の二重結合が開いて長い炭素鎖になり、芳香環は側鎖として残る。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "polymerization",
+        "bond-order"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "chloromethane": {
       "number": 50,
-      "description": "シリコーンの製造に使われる気体。自然界でも、海や植物などから少量放出される。"
+      "description": "シリコーン製造などに使われる塩素化メタン。自然界でも海洋や植物などから少量放出される。",
+      "details": [
+        {
+          "title": "C–Cl結合の極性",
+          "body": "ClがCより電子を強く引きつけるためC–Cl結合は極性を持つ。メタンのHをClへ置換すると、無極性に近いCH₄から分子全体に双極子を持つCH₃Clへ変わる。"
+        }
+      ],
+      "concepts": [
+        "polarity",
+        "functional-group"
+      ]
     },
     "dichloromethane": {
       "number": 51,
-      "description": "油脂や樹脂を溶かす、揮発しやすい液体。蒸気を吸い込まないよう管理が必要。"
+      "description": "油脂や樹脂を溶かす、揮発しやすい液体。工業や実験室で溶媒として使われる。",
+      "details": [
+        {
+          "title": "形と極性",
+          "body": "CH₂Cl₂は四面体型の炭素を持ち、2本のC–Cl結合の双極子が完全には打ち消し合わない。そのため一定の極性を持つ溶媒として働く。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity"
+      ]
     },
     "chloroform": {
       "number": 52,
-      "description": "昔は麻酔薬に使われたが、体への害が問題になった。現在は主に化学製品の材料などに使われる。"
+      "description": "揮発性の高い塩素化液体。かつて麻酔に使われたが安全性の問題から現在は主に工業用途で扱われる。",
+      "details": [
+        {
+          "title": "置換による物性変化",
+          "body": "CHCl₃はメタンのHを3個Clへ置換した骨格を持つ。C–Cl結合によって分極しやすさと分子量が増え、低級炭化水素とは沸点や溶解性が大きく変わる。"
+        }
+      ],
+      "concepts": [
+        "polarity",
+        "functional-group"
+      ]
     },
     "carbon-tetrachloride": {
       "number": 53,
-      "description": "昔は消火剤や洗浄に使われた。人体やオゾン層への影響から、用途が厳しく制限されている。"
+      "description": "かつて洗浄剤や消火剤に使われた塩素化液体。人体やオゾン層への影響から現在は用途が厳しく制限されている。",
+      "details": [
+        {
+          "title": "対称性と極性",
+          "body": "CCl₄は四面体形で4本のC–Cl結合は強く分極しているが、対称配置のため双極子が打ち消し合い、分子全体は無極性になる。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity"
+      ]
     },
     "fluoromethane": {
       "number": 54,
-      "description": "常温では気体で、低い温度で沸騰する。半導体の加工など、特殊な工業用途で使われる。"
+      "description": "常温では気体のフッ素化メタン。半導体加工などの特殊な工業用途で使われる。",
+      "details": [
+        {
+          "title": "C–F結合",
+          "body": "Fは非常に電気陰性度が高く、C–F結合は強く分極する。一方で結合自体は強く、単純に『極性が大きいほど反応しやすい』とは限らない。"
+        }
+      ],
+      "concepts": [
+        "polarity",
+        "functional-group"
+      ]
     },
     "difluoromethane": {
       "number": 55,
-      "description": "エアコンの冷媒R32として使われる。液体と気体を行き来しながら、熱を運ぶ。"
+      "description": "R32として知られる冷媒で、エアコンなどの熱輸送に使われる。常温では気体で、圧縮と膨張を利用する。",
+      "details": [
+        {
+          "title": "分子の極性",
+          "body": "CH₂F₂は四面体形で2本のC–F結合を持ち、その双極子は完全に打ち消し合わないため分子全体に極性がある。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "polarity"
+      ]
     },
     "1-2-dichloroethane": {
       "number": 56,
-      "description": "主に塩化ビニルをつくる出発材料。配管などに使われる樹脂へとつながる。"
+      "description": "主に塩化ビニルをつくるための原料として使われる液体。PVC製品へつながる重要な工業中間体。",
+      "details": [
+        {
+          "title": "単結合と配座",
+          "body": "ClCH₂–CH₂ClではC–C単結合の周りを回転でき、Cl原子同士の距離が異なる配座をとる。工業ではHClを除く反応で塩化ビニルへ変換される。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "functional-group"
+      ]
     },
     "vinyl-chloride": {
       "number": 57,
-      "description": "たくさんつながると塩化ビニル樹脂になる。配管などの材料になるが、この気体自体は有毒。"
+      "description": "PVC（塩化ビニル樹脂）の原料になる気体。配管や建材などに使われる樹脂へ変わるが、単量体自体は有害。",
+      "details": [
+        {
+          "title": "C=Cと重合",
+          "body": "CH₂=CHClの二重結合が付加重合で開き、–CH₂–CHCl–が繰り返すPVC鎖になる。Cl置換基がポリマーの極性や性質に大きく影響する。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "polymerization",
+        "polarity"
+      ]
     },
     "chlorobenzene": {
       "number": 58,
-      "description": "染料やほかの化学製品をつくる材料。水には溶けにくく、樹脂を溶かす用途もある。"
+      "description": "ベンゼン環に塩素が1つ付いた芳香族液体。化学製品の原料や溶媒として使われる。",
+      "details": [
+        {
+          "title": "芳香環上のC–Cl",
+          "body": "Clの孤立電子対と芳香環のπ系には相互作用があり、アルキル塩化物のC–Clとは反応性が異なる。芳香環は置換反応でも芳香族性を保とうとする。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "methanol": {
       "number": 59,
-      "description": "燃料や樹脂の材料になるアルコール。飲むと失明や命の危険があり、お酒のアルコールとは別物。"
+      "description": "燃料、溶媒、樹脂原料などに使われる最も小さなアルコール。飲用すると重い中毒を起こすため、エタノールとは区別が必要。",
+      "details": [
+        {
+          "title": "OH基と水素結合",
+          "body": "CH₃OHはOH基を持ち、水分子と水素結合できるため水とよく混ざる。炭化水素部分が短いので、より長鎖のアルコールより親水性が高い。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "hydrogen-bond",
+        "polarity"
+      ]
     },
     "ethanol": {
       "number": 60,
-      "description": "発酵でつくられる、お酒のアルコール。消毒や燃料にも使われ、水ともよく混ざる。"
+      "description": "発酵でつくられるお酒のアルコール。消毒、溶媒、燃料にも使われ、水とよく混ざる。",
+      "details": [
+        {
+          "title": "両親媒的な構造",
+          "body": "OH基は極性が高く水素結合をつくる一方、エチル基は無極性に近い。炭素鎖が短いため全体として水と任意の割合で混ざる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "hydrogen-bond",
+        "polarity"
+      ]
     },
     "2-propanol": {
       "number": 61,
-      "description": "イソプロピルアルコールとも呼ばれる。油汚れの洗浄や消毒に使われ、電子部品の清掃にも登場する。"
+      "description": "イソプロピルアルコールとも呼ばれ、消毒や脱脂洗浄に広く使われる。水とよく混ざり、揮発しやすい。",
+      "details": [
+        {
+          "title": "第二級アルコール",
+          "body": "OHが結合する炭素に2つの炭素置換基が付くため第二級アルコールに分類される。酸化するとケトンであるアセトンになる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "redox",
+        "hydrogen-bond"
+      ]
     },
     "1-butanol": {
       "number": 62,
-      "description": "塗料や樹脂を扱う工場で使われる。エタノールより水と混ざりにくく、蒸発もゆっくり。"
+      "description": "塗料や樹脂の溶媒、化学製品の原料として使われるアルコール。エタノールより水に溶けにくい。",
+      "details": [
+        {
+          "title": "炭素鎖と溶解性",
+          "body": "OH基は水素結合できるが、4炭素の無極性鎖が大きくなるためエタノールより水との混和性が低下する。末端OHを持つ第一級アルコールである。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "hydrogen-bond",
+        "polarity",
+        "positional-isomerism"
+      ]
     },
     "2-butanol": {
       "number": 63,
-      "description": "塗料などに使う2-ブタノンの原料になる。1-ブタノールと同じ分子式でも、変化してできる物質が違う。"
+      "description": "溶媒や2-ブタノンの原料として使われる第二級アルコール。1-ブタノールと同じ分子式でもOHの位置が異なる。",
+      "details": [
+        {
+          "title": "位置とキラリティ",
+          "body": "OHが2番炭素に結合しており、その炭素にはH、OH、CH₃、C₂H₅の4種がつくため不斉炭素になる。酸化すると2-ブタノンになる。"
+        }
+      ],
+      "concepts": [
+        "positional-isomerism",
+        "chirality",
+        "redox",
+        "functional-group"
+      ],
+      "notes": [
+        "stereochemistry"
+      ]
     },
     "tert-butanol": {
       "number": 64,
-      "description": "涼しい室内では固まることがあるアルコール。ブタノールの仲間でも、融ける温度が大きく違う。"
+      "description": "室温付近で固体にも液体にもなり得る、枝分かれしたアルコール。溶媒や化学原料として使われる。",
+      "details": [
+        {
+          "title": "第三級アルコール",
+          "body": "OHが結合する炭素に3つのCH₃基がつく第三級アルコールである。対応する炭素にHがないため、第一級・第二級アルコールのような単純な酸化でカルボニル化合物にはなりにくい。"
+        }
+      ],
+      "concepts": [
+        "structural-isomerism",
+        "functional-group",
+        "redox"
+      ]
     },
     "ethylene-glycol": {
       "number": 65,
-      "description": "水に混ぜると凍りにくくなり、不凍液に使われる。PETの原料にもなるが、飲むと有毒。"
+      "description": "自動車の不凍液やPETの原料に使われる、甘味のある有毒な液体。2つのOH基を持ち、水とよく混ざる。",
+      "details": [
+        {
+          "title": "2つのOH基",
+          "body": "両端にOH基を持つジオールで、多数の水素結合をつくれる。そのため同程度の大きさの炭化水素より沸点が高く、水への溶解性も大きい。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "hydrogen-bond",
+        "polarity"
+      ]
     },
     "glycerol": {
       "number": 66,
-      "description": "水分を引きつける、とろりとした液体。化粧品やせっけんなどで、しっとり感を保つ役目を持つ。"
+      "description": "化粧品、食品、医薬品などに使われる、とろりとした液体。3つのOH基を持ち、水分を引きつけやすい。",
+      "details": [
+        {
+          "title": "多価アルコール",
+          "body": "3個のOH基が多数の水素結合を形成するため、水によく溶け、粘度が高く、吸湿性も大きい。構造中のOH数と物性の関係が分かりやすい分子である。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "hydrogen-bond",
+        "polarity"
+      ]
     },
     "cyclohexanol": {
       "number": 67,
-      "description": "ナイロンの原料づくりにつながる。融点が室温に近く、温度によって固体にも液体にもなる。"
+      "description": "ナイロン原料の製造に使われる環状アルコール。シクロヘキサン環にOH基が1つ付いている。",
+      "details": [
+        {
+          "title": "環配座とOH",
+          "body": "椅子形配座ではOH基がエクアトリアル位置にある方が立体反発が小さく安定である。酸化するとシクロヘキサノンへ変わり、アルコールとケトンの関係を示す。"
+        }
+      ],
+      "concepts": [
+        "geometry",
+        "functional-group",
+        "redox"
+      ]
     },
     "dimethyl-ether": {
       "number": 68,
-      "description": "スプレー缶で中身を押し出す気体として使われる。燃料としての利用も研究されている。"
+      "description": "スプレー缶の噴射剤や燃料として使われる気体。2つのメチル基がO原子をはさんだエーテル構造を持つ。",
+      "details": [
+        {
+          "title": "エーテルの極性",
+          "body": "C–O–C部分は折れ曲がり、C–O結合が極性を持つため分子全体にも双極子がある。ただしO–H結合がないので、自分同士ではアルコールほど強い水素結合をつくらない。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polarity",
+        "geometry"
+      ]
     },
     "methyl-ethyl-ether": {
       "number": 69,
-      "description": "Oを挟んでmethyl/ethyl基を持つ非対称ether。dimethyl ether→diethyl etherを1 carbon stepでつなぐ。"
+      "description": "メチル基とエチル基がO原子をはさんだエーテル。揮発性の高い有機溶媒として扱われる。",
+      "details": [
+        {
+          "title": "非対称エーテル",
+          "body": "CH₃–O–CH₂CH₃のOには孤立電子対があり、分子は極性を持つ。ジメチルエーテルやジエチルエーテルと比べると、炭素数の増加に伴う沸点や疎水性の変化を追える。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polarity"
+      ]
     },
     "diethyl-ether": {
       "number": 70,
-      "description": "すぐに蒸発し、非常に燃えやすい液体。昔は麻酔薬に使われ、実験では物質を分ける操作にも登場する。"
+      "description": "非常に揮発しやすく燃えやすい液体。実験室では抽出溶媒として使われ、かつては麻酔にも利用された。",
+      "details": [
+        {
+          "title": "エーテルとアルコールの違い",
+          "body": "Oに2つのエチル基が結合しO–Hを持たないため、同程度の分子量のアルコールより自己水素結合が弱く、沸点が低い。Oの孤立電子対は水素結合の受容体にはなれる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "hydrogen-bond",
+        "polarity"
+      ]
     },
     "tetrahydrofuran": {
       "number": 71,
-      "description": "樹脂を溶かすのが得意な液体。化学反応を進めるための液体としてもよく使われる。"
+      "description": "樹脂をよく溶かす、環状エーテルの液体。化学反応の溶媒として広く使われる。",
+      "details": [
+        {
+          "title": "5員環エーテル",
+          "body": "5員環の1か所をOが占め、Oの孤立電子対によって極性を持つ。環は完全な平面ではなく、ねじれた配座をとる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "geometry",
+        "polarity"
+      ]
     },
     "ethylene-oxide": {
       "number": 72,
-      "description": "熱に弱い医療器具の滅菌に使われる気体。反応しやすく、有毒なので厳重な管理が必要。"
+      "description": "医療器具の低温滅菌や化学原料に使われる反応性の高い気体。有毒で可燃性があるため厳重に管理される。",
+      "details": [
+        {
+          "title": "3員環のひずみ",
+          "body": "2個のCと1個のOからなる3員環では結合角が小さく、環ひずみが大きい。このため求核剤による開環反応を起こしやすく、多くの化学製品の原料になる。"
+        }
+      ],
+      "concepts": [
+        "ring-strain",
+        "functional-group",
+        "geometry"
+      ]
     },
     "methanethiol": {
       "number": 73,
-      "description": "ごく少量でも強いにおいを感じる気体。口臭や、食品が変化するときのにおいにも関わる。"
+      "description": "ごく少量でも強いにおいを感じる硫黄化合物。生物の分解や食品の香りなど、自然界の硫黄化学にも関わる。",
+      "details": [
+        {
+          "title": "チオール基",
+          "body": "CH₃SHはアルコールのOをSへ置き換えたような構造だが、S–HはO–Hほど強い水素結合をつくらない。チオールは酸化されるとS–S結合を持つジスルフィドをつくることがある。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "redox"
+      ]
     },
     "dimethyl-sulfide": {
       "number": 74,
-      "description": "海のにおいに関わる物質のひとつ。海の微生物が生み出し、空気中の硫黄の流れにも関わる。"
+      "description": "海のようなにおいに関わる揮発性の硫黄化合物。海洋生物由来で大気中へ放出され、硫黄循環にも関わる。",
+      "details": [
+        {
+          "title": "スルフィドと酸化",
+          "body": "Sに2つのメチル基が結合したチオエーテルで、Sの孤立電子対を持つ。酸化するとジメチルスルホキシドなど、S–O結合を持つ化合物へ変わる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "redox"
+      ]
     },
     "formaldehyde": {
       "number": 75,
-      "description": "樹脂や接着剤の原料になる。建材から放出されると、室内の空気や健康に影響することがある。"
+      "description": "樹脂や接着剤の原料になる最も小さなアルデヒド。刺激性があり、室内空気中の濃度が問題になることがある。",
+      "details": [
+        {
+          "title": "カルボニル基",
+          "body": "H₂C=OのCとOはsp²型で、カルボニル周辺はほぼ平面である。Oが電子を引くためCは部分的に正となり、求核剤の攻撃を受けやすい。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polarity",
+        "hybridization"
+      ]
     },
     "acetaldehyde": {
       "number": 76,
-      "description": "体内でお酒のアルコールが分解される途中にできる。顔が赤くなる、気分が悪くなる原因のひとつ。"
+      "description": "エタノールが体内で分解される途中にも生じるアルデヒド。化学原料としても使われる。",
+      "details": [
+        {
+          "title": "酸化とカルボニル",
+          "body": "CH₃CHOは末端カルボニルを持つアルデヒドで、さらに酸化されると酢酸になる。アセトンのようなケトンとはカルボニル炭素にHが付く点が異なる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "redox",
+        "polarity"
+      ]
     },
     "propionaldehyde": {
       "number": 77,
-      "description": "propanalとも呼ばれるC3 aldehyde。酸化でpropionic acidへつながり、同式のacetoneとのaldehyde/ketone比較BRIDGEになる。"
+      "description": "プロパナールとも呼ばれるC₃のアルデヒド。樹脂や医薬品などの化学原料として使われる。",
+      "details": [
+        {
+          "title": "アルデヒドとケトン",
+          "body": "プロパナールとも呼ばれ、末端に–CHOを持つ。酸化するとプロピオン酸になる。同じC₃H₆Oのアセトンはカルボニルが鎖の内部にあるケトンで、結合のつながり方が異なる構造異性体である。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "redox",
+        "structural-isomerism"
+      ]
     },
     "benzaldehyde": {
       "number": 78,
-      "description": "アーモンドを思わせる香りを持つ。香料に使われ、杏仁の香りにも関係する。"
+      "description": "アーモンドを思わせる香りを持つ芳香族アルデヒド。香料や化学製品の原料として使われる。",
+      "details": [
+        {
+          "title": "芳香環とカルボニル",
+          "body": "–CHOのカルボニル基はベンゼン環と共役でき、電子分布が互いに影響する。脂肪族アルデヒドと同様に酸化されると安息香酸になる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "redox"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "acetone": {
       "number": 79,
-      "description": "マニキュアの樹脂を溶かし、除光液に使われる。水ともよく混ざり、すばやく蒸発する。"
+      "description": "除光液などにも使われる、揮発性の高いケトン。水とよく混ざり、多くの有機物を溶かす。",
+      "details": [
+        {
+          "title": "ケトンのカルボニル",
+          "body": "C=O結合は強く分極してO側が部分的に負、カルボニル炭素が部分的に正となる。両側がCH₃基なのでアルデヒドとは異なり、通常の穏やかな酸化でカルボン酸へは変わりにくい。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polarity"
+      ]
     },
     "2-butanone": {
       "number": 80,
-      "description": "塗料や接着剤の樹脂を溶かす液体。工場ではMEKという名前でも呼ばれる。"
+      "description": "MEKとも呼ばれ、塗料や接着剤などの溶媒に使われるケトン。アセトンより炭素鎖が1個長い。",
+      "details": [
+        {
+          "title": "ケトンの極性",
+          "body": "C=Oの強い結合双極子により分子全体に極性がある。一方でO–Hを持たないため、自分同士では水素結合の供与体にならない。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polarity"
+      ]
     },
     "cyclohexanone": {
       "number": 81,
-      "description": "ナイロンの原料をつくる大切な中間材料。塗料や樹脂を溶かす用途もある。"
+      "description": "ナイロン原料をつくる重要な中間体で、溶媒にも使われる。6員環の一つの炭素がカルボニルになったケトン。",
+      "details": [
+        {
+          "title": "環状ケトン",
+          "body": "カルボニル炭素はsp²型で局所的に平面に近く、残りの環炭素は主にsp³型である。シクロヘキサノールの酸化で得られ、官能基変換と環配座が同時に見える。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "hybridization",
+        "redox",
+        "geometry"
+      ]
     },
     "formic-acid": {
       "number": 82,
-      "description": "一部のアリが身を守るために使う酸。皮革の加工などにも使われる。"
+      "description": "最も小さなカルボン酸で、一部のアリの防御物質にも含まれる。皮革加工などに使われる。",
+      "details": [
+        {
+          "title": "カルボキシ基と酸性",
+          "body": "–COOHではO–HからH⁺が外れるとギ酸イオンになり、負電荷が2個のOへ共鳴で分散する。この安定化がアルコールより高い酸性の一因になる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "resonance"
+      ]
     },
     "acetic-acid": {
       "number": 83,
-      "description": "お酢の酸っぱさと、つんとしたにおいの主役。接着剤や繊維の材料づくりにも使われる。"
+      "description": "お酢の酸味と刺激臭の主成分。食品だけでなく、樹脂、繊維、接着剤などの原料にも使われる。",
+      "details": [
+        {
+          "title": "カルボキシ基",
+          "body": "H⁺を失った酢酸イオンでは2本のC–O結合が共鳴により等価に近づく。この共役塩基の安定化が酢酸の酸性を支える。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "resonance"
+      ]
     },
     "propionic-acid": {
       "number": 84,
-      "description": "かびの増殖を抑える性質がある。塩の形でパンなどの保存料に使われる。"
+      "description": "食品のかびを抑える保存料の原料などに使われるカルボン酸。塩の形でパンなどに利用される。",
+      "details": [
+        {
+          "title": "同族体と酸性",
+          "body": "–COOHが酸性の中心で、炭素鎖が伸びても基本的な酸解離の仕組みは酢酸と同じ。疎水性の炭化水素部分が長くなることで溶解性などの物性は変わる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base"
+      ]
     },
     "butyric-acid": {
       "number": 85,
-      "description": "傷んだバターの強いにおいに関わる。腸内では微生物がつくり、大腸の細胞のエネルギーにもなる。"
+      "description": "傷んだバターのような強いにおいを持つカルボン酸。腸内細菌もつくり、大腸細胞のエネルギー源になる。",
+      "details": [
+        {
+          "title": "炭素鎖と性質",
+          "body": "–COOHは水素結合と酸解離を担う一方、3炭素のアルキル部分は疎水性を増す。低級カルボン酸系列で炭素鎖の長さとにおい・溶解性の変化を示す。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "polarity"
+      ]
     },
     "oxalic-acid": {
       "number": 86,
-      "description": "ほうれん草などの植物にも含まれる。カルシウムと結びつきやすく、尿路結石に関わることがある。"
+      "description": "ほうれん草などにも含まれる、2個のカルボキシ基を持つ酸。カルシウム塩は尿路結石の主成分の一つになる。",
+      "details": [
+        {
+          "title": "二価の酸",
+          "body": "HOOC–COOHには2個の酸性Hがあり、段階的にH⁺を失う。隣接する2つのカルボキシ基が互いの電子状態へ影響するため、単純なモノカルボン酸とは酸解離が異なる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base"
+      ]
     },
     "lactic-acid": {
       "number": 87,
-      "description": "乳酸菌が糖からつくり、発酵食品の酸味になる。運動中の体でもつくられ、再びエネルギーとして使われる。"
+      "description": "乳酸菌の発酵や体内の代謝で生じる有機酸。食品の酸味、化粧品、ポリ乳酸の原料などにも使われる。",
+      "details": [
+        {
+          "title": "ヒドロキシ酸とキラリティ",
+          "body": "同じ炭素に近接してOH基とCOOH基を持つα-ヒドロキシ酸で、中央炭素は4種類の置換基を持つ不斉中心になる。生体では主にL-乳酸イオンとして扱われる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "chirality",
+        "acid-base"
+      ],
+      "notes": [
+        "stereochemistry"
+      ]
     },
     "benzoic-acid": {
       "number": 88,
-      "description": "水には溶けにくい白い固体。塩の形で、飲料などの保存料にも使われる。"
+      "description": "芳香族カルボン酸の一つで、白色の固体。塩の形は食品や飲料の保存料として使われる。",
+      "details": [
+        {
+          "title": "芳香環とカルボキシ基",
+          "body": "ベンゼン環に–COOHが直接結合しており、カルボキシ基の電子求引性が芳香環の反応性にも影響する。脱プロトン化すると安息香酸イオンの負電荷は主にカルボキシ基の2個のOへ分散する。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "acid-base",
+        "resonance"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "ethyl-acetate": {
       "number": 89,
-      "description": "果物のような香りを持ち、接着剤やインクにも使われる。酢酸とエタノールからつくれる。"
+      "description": "果物のような香りを持つ揮発性の液体。接着剤、インク、塗料などの溶媒として広く使われる。",
+      "details": [
+        {
+          "title": "エステル結合",
+          "body": "酢酸の–OHが–OCH₂CH₃に置き換わったエステルで、カルボニルと隣接Oの電子が共役する。アルコールやカルボン酸のようなO–Hを持たないため、自己水素結合は弱い。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "resonance",
+        "polarity"
+      ]
     },
     "acrylic-acid": {
       "number": 90,
-      "description": "水を吸う樹脂や接着剤の原料になる。紙おむつの吸水材にもつながる出発材料。"
+      "description": "吸水性樹脂、塗料、接着剤などの原料になる不飽和カルボン酸。C=CとCOOHを隣り合わせに持つ。",
+      "details": [
+        {
+          "title": "共役した官能基",
+          "body": "CH₂=CH–COOHではC=Cとカルボニルが共役しており、単純なアルケンとカルボン酸の性質が互いに影響する。二重結合は重合反応の入口にもなる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "bond-order",
+        "polymerization",
+        "resonance"
+      ]
     },
     "acetic-anhydride": {
       "number": 91,
-      "description": "ほかの分子を加工する反応に使われる。アスピリンや、アセテート繊維の製造にも登場する。"
+      "description": "アスピリンやアセテート繊維などをつくるアセチル化剤。水と反応して酢酸になる。",
+      "details": [
+        {
+          "title": "酸無水物",
+          "body": "2つのアセチル基がOを介してつながる構造を持つ。カルボニル炭素が求核攻撃を受けやすく、アルコールやアミンへアセチル基を移す反応に使われる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polarity"
+      ]
     },
     "methylamine": {
       "number": 92,
-      "description": "医薬品や農薬などの材料になる気体。魚を思わせるにおいがあり、水によく溶ける。"
+      "description": "医薬品、農薬、界面活性剤などの原料になる、小さなアミン。魚のような刺激臭があり、水によく溶ける。",
+      "details": [
+        {
+          "title": "塩基性",
+          "body": "Nの孤立電子対でH⁺を受け取りメチルアンモニウムイオンになれる。CH₃基の電子供与性のため、気相・水溶液での塩基性はNH₃とは少し異なる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "hydrogen-bond"
+      ]
     },
     "dimethylamine": {
       "number": 93,
-      "description": "工業製品をつくるための原料になる。強いにおいを持ち、自然界でも少量生じることがある。"
+      "description": "ゴム薬品、農薬、溶媒など多くの化学製品の原料になるアミン。強いにおいを持ち、水によく溶ける。",
+      "details": [
+        {
+          "title": "第二級アミン",
+          "body": "Nに2つのCH₃基と1つのH、1組の孤立電子対がある。H⁺を受け取る塩基性を持ち、N–Hがあるため水素結合の供与体にもなれる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "hydrogen-bond"
+      ]
     },
     "trimethylamine": {
       "number": 94,
-      "description": "魚の生臭いにおいの原因のひとつ。魚に含まれる物質を微生物が変化させると生まれる。"
+      "description": "魚の生臭いにおいの原因の一つとして知られるアミン。海産物中の成分が微生物によって変化すると生じる。",
+      "details": [
+        {
+          "title": "第三級アミン",
+          "body": "Nに3つのCH₃基と孤立電子対があり、N–H結合はない。H⁺を受け取る塩基として働くが、自分自身は水素結合の供与体にはならない。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "hydrogen-bond"
+      ]
     },
     "aniline": {
       "number": 95,
-      "description": "染料やウレタン材料づくりに使われる。昔の合成染料の発展にも関わった物質。"
+      "description": "染料、医薬品、ポリウレタン原料などの製造に使われる芳香族アミン。ベンゼン環にアミノ基が直接結合している。",
+      "details": [
+        {
+          "title": "芳香環と塩基性",
+          "body": "Nの孤立電子対がベンゼン環のπ系へ非局在化できるため、脂肪族アミンよりH⁺を受け取る能力が弱くなる。構造上の共役が塩基性を変える代表例である。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "resonance",
+        "acid-base"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "acetamide": {
       "number": 96,
-      "description": "acetic acidのOHがNH2へ置換されたamide。水素結合とacid→amideの官能基変換を比較できる。"
+      "description": "酢酸由来の小さなアミドで、水に溶ける白色固体。アミド結合の基本的な性質を持つ。",
+      "details": [
+        {
+          "title": "アミドの共鳴",
+          "body": "Nの孤立電子対が隣のC=Oへ非局在化するため、C–N結合は通常の単結合より二重結合性を帯び、カルボニル周辺は平面に近くなる。この共鳴はアミンよりNの塩基性を弱める。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "resonance",
+        "geometry",
+        "acid-base"
+      ]
     },
     "urea": {
       "number": 97,
-      "description": "体が余分な窒素を尿として出すためにつくる。肥料や、肌を保湿する製品にも使われる。"
+      "description": "体が余分な窒素を尿として排出するためにつくる物質。窒素肥料や保湿剤、樹脂原料にも使われる。",
+      "details": [
+        {
+          "title": "2つのアミドN",
+          "body": "O=C(NH₂)₂では両方のNの孤立電子対がカルボニルと共役し、中心部分は平面に近い。複数のN–HとカルボニルOにより、分子間で多くの水素結合をつくる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "resonance",
+        "hydrogen-bond",
+        "geometry"
+      ]
     },
     "hydrogen-cyanide": {
       "number": 98,
-      "description": "細胞が酸素を利用する働きを妨げる、非常に有毒な物質。化学工場では厳重に管理して扱われる。"
+      "description": "非常に有毒な揮発性物質で、細胞が酸素を利用する働きを妨げる。工業では厳重に管理して化学原料として使われる。",
+      "details": [
+        {
+          "title": "C≡Nと酸性",
+          "body": "H–C≡Nはほぼ直線形で、C≡Nは三重結合を持つ。H⁺を失うとCN⁻になる弱酸で、シアン化物イオンは金属へ強く配位できる。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "geometry",
+        "acid-base"
+      ]
     },
     "acetonitrile": {
       "number": 99,
-      "description": "物質を細かく分けて調べる分析でよく使われる。水と混ざる液体で、化学反応にも利用される。"
+      "description": "分析や有機合成でよく使われる、無色で水と混ざる溶媒。メチル基とニトリル基からなる。",
+      "details": [
+        {
+          "title": "ニトリル基",
+          "body": "C≡Nの炭素と窒素はsp型でほぼ直線的に並ぶ。結合は強く極性が大きいため、分子全体に双極子を持つ一方、O–HやN–Hがなく水素結合の供与体にはならない。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "bond-order",
+        "hybridization",
+        "polarity"
+      ]
     },
     "acrylonitrile": {
       "number": 100,
-      "description": "アクリル繊維や丈夫な樹脂の原料。衣類や家電の材料につながるが、この液体自体は有毒。"
+      "description": "アクリル繊維、ABS樹脂などの原料になる反応性の高い液体。ビニル基とニトリル基を併せ持つ。",
+      "details": [
+        {
+          "title": "共役と重合",
+          "body": "CH₂=CH–C≡NではC=Cとニトリルのπ系が共役している。C=Cは付加重合の反応点となり、強く極性を持つ–CN基がポリマーの性質へ影響する。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polymerization",
+        "polarity",
+        "bond-order"
+      ]
     },
     "pyridine": {
       "number": 101,
-      "description": "benzeneのCHを1つNへ置換した6員芳香族heterocycle。芳香族性を保ちつつNの孤立電子対が塩基性・配位性を与える。"
+      "description": "薬や農薬など多くの化合物に見られる、窒素を1個含む6員芳香族環。独特のにおいを持つ液体。",
+      "details": [
+        {
+          "title": "芳香族N",
+          "body": "ベンゼンのCHを1つNへ置き換えたような環で、6π電子による芳香族性を保つ。Nの孤立電子対は芳香族π電子に含まれないため、H⁺を受け取って塩基として働ける。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "acid-base",
+        "functional-group"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "acrolein": {
       "number": 102,
-      "description": "油を高温にすると生じることがある。煙の刺激に関わり、目や呼吸器を強く刺激する。"
+      "description": "油脂や有機物を高温にしたとき生じることがある、強い刺激臭の液体。目や呼吸器を刺激する。",
+      "details": [
+        {
+          "title": "共役アルデヒド",
+          "body": "CH₂=CH–CHOではC=Cとカルボニルが共役しているため、単純なアルケンやアルデヒドより広い範囲で電子が非局在化する。この構造が高い反応性に関わる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "resonance",
+        "polarity"
+      ]
     },
     "glycine": {
       "number": 103,
-      "description": "体のたんぱく質をつくるアミノ酸。コラーゲンに多く含まれ、甘みも持っている。"
+      "description": "タンパク質をつくる最も小さなアミノ酸。コラーゲンに多く含まれ、食品では甘味を感じることもある。",
+      "details": [
+        {
+          "title": "双性イオン",
+          "body": "NH₂基とCOOH基を持ち、水中や固体ではNH₃⁺とCOO⁻を同時に持つ双性イオンとして存在しやすい。側鎖がHなので不斉炭素を持たない唯一の標準アミノ酸である。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "formal-charge"
+      ]
     },
     "alanine": {
       "number": 104,
-      "description": "体のたんぱく質をつくるアミノ酸。筋肉と肝臓の間で、エネルギーや窒素をやり取りする働きにも関わる。"
+      "description": "タンパク質をつくるアミノ酸の一つ。筋肉と肝臓の間で炭素骨格と窒素を運ぶ代謝にも関わる。",
+      "details": [
+        {
+          "title": "双性イオンとキラリティ",
+          "body": "水中ではアミノ基がNH₃⁺、カルボキシ基がCOO⁻になった双性イオンとして存在しやすい。α炭素に4種類の置換基があり、グリシンと違ってキラルである。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "formal-charge",
+        "chirality"
+      ],
+      "notes": [
+        "stereochemistry"
+      ]
     },
     "ethylenediamine": {
       "number": 105,
-      "description": "金属イオンをつかまえる化合物の原料になる。樹脂などの製造にも使われる。"
+      "description": "金属イオンと安定なキレートをつくるジアミン。樹脂や薬品の製造にも使われる。",
+      "details": [
+        {
+          "title": "二座配位",
+          "body": "両端の2個のNがそれぞれ孤立電子対を持ち、同じ金属イオンへ同時に配位して環状の錯体をつくれる。この二座配位が単座アミンとの大きな違いである。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base"
+      ]
     },
     "phenol": {
       "number": 106,
-      "description": "樹脂の材料として広く使われる。昔は消毒にも使われたが、皮膚を傷める有害な物質。"
+      "description": "樹脂などの原料として使われる芳香族化合物。ベンゼン環にOH基が直接結合し、皮膚を傷める有害性もある。",
+      "details": [
+        {
+          "title": "芳香環上のOH",
+          "body": "Oの孤立電子対が芳香環と共役するため、脂肪族アルコールとは電子状態が異なる。H⁺を失ったフェノキシドイオンも共鳴で安定化されるため、フェノールは通常のアルコールより酸性が強い。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "resonance",
+        "acid-base"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "anisole": {
       "number": 107,
-      "description": "アニスを思わせる香りを持つ液体。香料や、ほかの有機化合物をつくる材料になる。"
+      "description": "アニスを思わせる香りを持つ芳香族エーテル。香料や有機合成の原料として使われる。",
+      "details": [
+        {
+          "title": "メトキシ基と芳香環",
+          "body": "Oの孤立電子対がベンゼン環へ電子を与える共鳴効果を持ち、芳香族置換反応の位置選択性へ影響する。O–Hを持たないためフェノールほど酸性ではない。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "resonance"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "acetophenone": {
       "number": 108,
-      "description": "花を思わせる甘い香りを持つ。香料や、医薬品などをつくる中間材料に使われる。"
+      "description": "甘い香りを持つ芳香族ケトン。香料や医薬品などの化学原料として使われる。",
+      "details": [
+        {
+          "title": "芳香環とカルボニルの共役",
+          "body": "ベンゼン環にC(=O)CH₃が直接結合し、π系が共役する。カルボニル基は電子を引くため、芳香環の電子密度や置換反応性にも影響する。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "resonance",
+        "polarity"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "catechol": {
       "number": 109,
-      "description": "植物に関わる物質の中にも見られる。空気中で酸化されやすく、色の変化を起こす。"
+      "description": "ベンゼン環の隣り合う位置に2つのOH基を持つ物質。植物由来成分にも見られ、酸化されやすい。",
+      "details": [
+        {
+          "title": "隣接するOH基",
+          "body": "1,2-ジヒドロキシベンゼンで、2つのOH基が芳香環の電子密度を高める。酸化されるとo-キノン型構造へ変わりやすく、酸化還元化学の代表的な骨格になる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "positional-isomerism",
+        "redox",
+        "functional-group"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "hydroquinone": {
       "number": 110,
-      "description": "酸化されやすい性質を利用する物質。写真の現像や、望まない重合を防ぐ用途がある。"
+      "description": "ベンゼン環の向かい合う位置に2つのOH基を持つ物質。写真現像や重合防止剤などに使われる。",
+      "details": [
+        {
+          "title": "パラ配置と酸化還元",
+          "body": "1,4-ジヒドロキシベンゼンで、酸化されるとp-ベンゾキノンへ変換される。カテコールとはOHの位置が異なる位置異性体である。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "positional-isomerism",
+        "redox",
+        "functional-group"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "salicylic-acid": {
       "number": 111,
-      "description": "植物が病気に対抗する仕組みに関わる。角質をやわらかくする性質があり、医薬品にも使われる。"
+      "description": "植物の防御シグナルにも関わる芳香族酸。医薬品や角質ケア製品の原料として使われる。",
+      "details": [
+        {
+          "title": "オルト配置",
+          "body": "ベンゼン環の隣り合う位置にOHとCOOHを持つ。近接した官能基どうしで分子内水素結合をつくれるため、位置異性体とは酸性や溶解性が異なる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "hydrogen-bond",
+        "acid-base"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "terephthalic-acid": {
       "number": 112,
-      "description": "PETをつくる主な原料。ペットボトルやポリエステルの服につながる白い固体。"
+      "description": "PETボトルやポリエステル繊維をつくる主要原料。ベンゼン環の向かい合う位置に2つのCOOH基を持つ。",
+      "details": [
+        {
+          "title": "1,4-ジカルボン酸",
+          "body": "対称なパラ配置で2個のカルボキシ基を持つ。エチレングリコールと縮合してエステル結合を繰り返し形成するとPETの長いポリマー鎖になる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "polymerization",
+        "acid-base"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "aspirin": {
       "number": 113,
-      "description": "痛みや熱を抑える薬の成分。少量で血小板の働きを抑える用途もある。"
+      "description": "アセチルサリチル酸とも呼ばれ、痛みや熱を抑える薬の成分。少量では血小板の働きを抑える目的にも使われる。",
+      "details": [
+        {
+          "title": "エステルとカルボキシ基",
+          "body": "サリチル酸のフェノール性OHがアセチル化され、エステルとカルボキシ基を同時に持つ。体内ではエステル結合が加水分解されてサリチル酸イオンを生じる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "acid-base"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "malonic-acid": {
       "number": 114,
-      "description": "ほかの炭素のつながりをつくる反応に使われる。医薬品などの材料づくりに登場する。"
+      "description": "2個のカルボキシ基を持つジカルボン酸。医薬品や有機合成で炭素骨格を組み立てる原料として使われる。",
+      "details": [
+        {
+          "title": "活性メチレン",
+          "body": "2つのカルボニルにはさまれたCH₂のHは、通常のアルカンより外れやすい。脱プロトン化で生じる負電荷が両側のカルボニルへ共鳴で分散できるためである。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "resonance"
+      ]
     },
     "succinic-acid": {
       "number": 115,
-      "description": "貝のうまみに関わる成分のひとつ。体の中でエネルギーを取り出す仕組みにも登場する。"
+      "description": "貝類などのうま味に関わる成分の一つで、体内のクエン酸回路にも登場するジカルボン酸。",
+      "details": [
+        {
+          "title": "二つのカルボキシ基",
+          "body": "HOOC–CH₂–CH₂–COOHは両端に同じ官能基を持ち、段階的に2個のH⁺を失う。体内ではコハク酸イオンとして酸化還元反応の中間体になる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "redox"
+      ]
     },
     "adipic-acid": {
       "number": 116,
-      "description": "ナイロン66の原料になる白い固体。丈夫な繊維や、自動車部品などの材料につながる。"
+      "description": "ナイロン66をつくる主要原料の一つ。両端にCOOH基を持つ白色固体。",
+      "details": [
+        {
+          "title": "ポリアミド原料",
+          "body": "6炭素鎖の両端にカルボキシ基があり、ジアミンと縮合してアミド結合を繰り返し形成できる。この二官能性が長いポリマー鎖をつくる鍵になる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polymerization"
+      ]
     },
     "malic-acid": {
       "number": 117,
-      "description": "リンゴなどの果物に含まれ、酸っぱさを生む。飲料やお菓子の酸味調整にも使われる。"
+      "description": "リンゴなどの果物に含まれ、酸味をつくる有機酸。飲料や菓子の酸味調整にも使われる。",
+      "details": [
+        {
+          "title": "ヒドロキシジカルボン酸",
+          "body": "OH基と2個のCOOH基を持ち、酸塩基性と水素結合の両方に関わる。OHが付く炭素は不斉中心となり、天然では主にL体が見られる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "chirality",
+        "hydrogen-bond"
+      ],
+      "notes": [
+        "stereochemistry"
+      ]
     },
     "citric-acid": {
       "number": 118,
-      "description": "レモンなどに多い、酸っぱさの主役。水あかの成分を溶かし、掃除でも活躍する。"
+      "description": "レモンなどの柑橘類に多く、食品の酸味やpH調整に使われる。金属イオンをつかむ性質も持つ。",
+      "details": [
+        {
+          "title": "3個のカルボキシ基",
+          "body": "3個のCOOH基を持つためH⁺を段階的に放出する多価酸である。さらにOH基とカルボキシラートOが金属イオンへ配位でき、キレート作用を示す。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base"
+      ]
     },
     "glycolic-acid": {
       "number": 119,
-      "description": "化粧品や洗浄剤などに使われる酸。生分解性のある樹脂をつくる材料にもなる。"
+      "description": "化粧品の角質ケアや洗浄剤などに使われる最も小さなα-ヒドロキシ酸。生分解性ポリマーの原料にもなる。",
+      "details": [
+        {
+          "title": "OHとCOOH",
+          "body": "隣接するOH基とCOOH基により水素結合をつくりやすく、水への親和性が高い。乳酸とはメチル基の有無が異なり、グリコール酸には不斉中心がない。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "hydrogen-bond"
+      ]
     },
     "methyl-salicylate": {
       "number": 120,
-      "description": "湿布を思わせる独特のにおいを持つ。外用薬や香料に使われるが、飲むためのものではない。"
+      "description": "ウィンターグリーン油の主成分として知られ、湿布を思わせる香りを持つ芳香族エステル。外用製品や香料に使われる。",
+      "details": [
+        {
+          "title": "分子内水素結合",
+          "body": "サリチル酸のCOOHがメチルエステルになった構造で、オルト位のOHとエステルのカルボニルOの間に分子内水素結合をつくれる。これが分子の形や揮発性へ影響する。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "hydrogen-bond"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "isoamyl-acetate": {
       "number": 121,
-      "description": "バナナを思わせる香りで知られる。果物の香りを再現する材料に使われる。"
+      "description": "バナナを思わせる香りで知られるエステル。香料や溶媒として使われる。",
+      "details": [
+        {
+          "title": "エステルと香り",
+          "body": "酢酸由来のアセチル部分と枝分かれしたイソアミル基を持つ。エステルは水素結合の受容体にはなるが供与体にはならず、疎水性の炭素鎖が大きいため水には溶けにくい。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polarity"
+      ]
     },
     "benzyl-alcohol": {
       "number": 122,
-      "description": "花の香りにも含まれる液体。香料や、製品を保存しやすくする成分として使われる。"
+      "description": "花の香りにも含まれ、香料、溶媒、保存補助成分などに使われる芳香族アルコール。",
+      "details": [
+        {
+          "title": "ベンジル位のOH",
+          "body": "OHは芳香環へ直接ではなくCH₂を介して結合するため、フェノールとは酸性や共鳴の関係が異なる。ベンジル位は酸化されるとベンズアルデヒド、さらに安息香酸へ変わり得る。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "redox"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "serine": {
       "number": 123,
-      "description": "体のたんぱく質をつくるアミノ酸。細胞の膜や、ほかの大切な物質をつくる材料にもなる。"
+      "description": "タンパク質をつくるアミノ酸の一つ。細胞膜成分やほかの生体分子をつくる代謝にも使われる。",
+      "details": [
+        {
+          "title": "OHを持つアミノ酸",
+          "body": "側鎖に–CH₂OHを持ち、水素結合しやすい。α炭素は不斉中心で、水中ではほかのアミノ酸同様に双性イオンとして存在しやすい。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "hydrogen-bond",
+        "chirality",
+        "acid-base"
+      ],
+      "notes": [
+        "stereochemistry"
+      ]
     },
     "cysteine": {
       "number": 124,
-      "description": "髪や爪のたんぱく質を支えるアミノ酸。硫黄どうしの橋をつくり、たんぱく質の形を保つ。"
+      "description": "硫黄を含むアミノ酸。タンパク質中でS–S結合をつくり、立体構造を安定させることがある。",
+      "details": [
+        {
+          "title": "チオールの酸化還元",
+          "body": "側鎖–SHは酸化されると別のシステインとジスルフィド結合–S–S–をつくれる。この可逆的な酸化還元がタンパク質の構造安定化に重要である。"
+        },
+        {
+          "title": "立体化学",
+          "body": "α炭素は不斉中心を持ち、水中では双性イオンとして存在する。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "redox",
+        "chirality",
+        "acid-base"
+      ],
+      "notes": [
+        "stereochemistry"
+      ]
     },
     "methionine": {
       "number": 125,
-      "description": "食べ物から取る必要があるアミノ酸。体がたんぱく質をつくり始める合図にも関わる。"
+      "description": "食事から取る必要がある必須アミノ酸の一つ。タンパク質合成の開始や、メチル基を移す代謝にも関わる。",
+      "details": [
+        {
+          "title": "チオエーテル側鎖",
+          "body": "側鎖に–S–を含むがチオールのS–Hは持たない。Sは酸化されてスルホキシドになり得るほか、代謝ではS-アデノシルメチオニンとしてメチル基移動に使われる。"
+        },
+        {
+          "title": "立体化学",
+          "body": "α炭素は不斉中心で、生体のタンパク質では主にL体が使われる。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "redox",
+        "chirality"
+      ],
+      "notes": [
+        "stereochemistry"
+      ]
     },
     "cyclohexene": {
       "number": 126,
-      "description": "6員環に1本のC=C二重結合を持つシクロアルケン。水素化するとシクロヘキサンになり、さらに不飽和化したベンゼンと比べると環状炭化水素の結合次数と反応性の違いが見える。"
+      "description": "6員環に1本のC=C二重結合を持つシクロアルケン。化学合成の原料として使われる。",
+      "details": [
+        {
+          "title": "sp²とsp³が同居する環",
+          "body": "二重結合をつくる2個のCはsp²型で局所的に平面に近く、残りの環炭素は主にsp³型である。シクロヘキサンより環の自由度が減り、ベンゼンほど全環が共役していない。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "hybridization",
+        "geometry"
+      ]
     },
     "pyruvic-acid": {
       "number": 127,
-      "description": "ピルビン酸はカルボキシ基とケトン基を同時に持つα-ケト酸。解糖系でグルコース分解の要所に現れ、乳酸やアラニンへ変換されるため、生体化学とカルボニル化学をつなぐ。"
+      "description": "糖が分解される途中に生じる重要な代謝物。乳酸、アラニン、アセチルCoAなどへ変換される分岐点になる。",
+      "details": [
+        {
+          "title": "α-ケト酸",
+          "body": "COOHの隣にケトンのカルボニルを持つため、酸塩基性とカルボニル反応性を同時に示す。生体では主にピルビン酸イオンとして存在し、酸化還元やC–C結合切断を伴う代謝へ入る。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "acid-base",
+        "redox",
+        "polarity"
+      ]
     },
     "furan": {
       "number": 128,
-      "description": "酸素1個を含む5員芳香族複素環。テトラヒドロフランとは同じO含有環でも芳香族性と不飽和度が異なり、バイオマス由来原料から得られるフラン化合物の基本骨格でもある。"
+      "description": "O原子を1個含む5員芳香族環。医薬品や樹脂、バイオマス由来化学品の基本骨格として現れる。",
+      "details": [
+        {
+          "title": "5員芳香族複素環",
+          "body": "2本のC=Cから4個、Oの孤立電子対の一組から2個のπ電子が供給され、合計6π電子で芳香族性を持つ。Oのもう一組の孤立電子対はπ系の外にある。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "resonance",
+        "functional-group"
+      ],
+      "notes": [
+        "aromatic"
+      ]
     },
     "dimethyl-sulfoxide": {
       "number": 129,
-      "description": "硫黄に酸素が結合したスルホキシドで、強い極性を持つ非プロトン性溶媒。硫化ジメチルの酸化体にあたり、有機反応の溶媒や生体試料の凍結保護などに広く使われる。"
+      "description": "DMSOと呼ばれる、強い極性を持つ液体。実験溶媒や生体試料の凍結保護などに広く使われる。",
+      "details": [
+        {
+          "title": "S–O結合と極性",
+          "body": "S–O結合は強く分極し、Lewis構造ではS⁺–O⁻の電荷分離した寄与も用いて表せる。DMSOは大きな双極子を持ち、Oは水素結合の受容体になれるがO–Hを持たないため、極性非プロトン性溶媒に分類される。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "polarity",
+        "formal-charge"
+      ]
     },
     "ozone": {
       "number": 130,
-      "description": "3個の酸素原子からなる分子。中央と末端に形式電荷を持つ2つの等価なLewis構造で表せ、結合は共鳴によって平均化している。"
+      "description": "3個の酸素原子からなる反応性の高い気体。成層圏では紫外線を吸収し、地表付近では大気汚染物質にもなる。",
+      "details": [
+        {
+          "title": "共鳴と形式電荷",
+          "body": "O₃はO=O⁺–O⁻と⁻O–O⁺=Oの2つの等価なLewis寄与構造で表せる。これらは同じ電子状態を別々に表した寄与構造で、実在構造ではπ電子と電荷が3個のOにまたがって非局在化し、2本のO–O結合は等価に近い。"
+        },
+        {
+          "title": "形と反応性",
+          "body": "中央Oの周りは折れ曲がった形で、分子全体に極性がある。O₂より強い酸化剤として働く。"
+        }
+      ],
+      "concepts": [
+        "resonance",
+        "formal-charge",
+        "bond-order",
+        "geometry",
+        "redox"
+      ],
+      "notes": [
+        "resonance"
+      ]
     },
     "nitromethane": {
       "number": 131,
-      "description": "最小のニトロ化合物。N⁺とO⁻を持つ2つの等価なLewis構造があり、どちらのOを二重結合として描いても同じ分子。"
+      "description": "最も小さなニトロ化合物。燃料や化学製品の原料として使われ、ニトロ基に特徴的な共鳴構造を持つ。",
+      "details": [
+        {
+          "title": "ニトロ基の共鳴",
+          "body": "CH₃–N⁺(=O)–O⁻ ↔ CH₃–N⁺(–O⁻)=Oという2つの等価なLewis寄与構造で表せる。実際には二重結合が往復するのではなく、電子密度がO–N–O全体へ非局在化し、2本のN–O結合は等価に近い。"
+        },
+        {
+          "title": "形式電荷",
+          "body": "代表的Lewis式ではNに+1、一方のOに−1の形式電荷を置く。形式電荷は電子を形式的に割り当てる帳簿であり、各原子の実際の部分電荷と同じ意味ではない。"
+        }
+      ],
+      "concepts": [
+        "functional-group",
+        "resonance",
+        "formal-charge",
+        "bond-order"
+      ],
+      "notes": [
+        "resonance"
+      ]
     },
     "nitrobenzene": {
       "number": 132,
-      "description": "ベンゼン環にニトロ基が1つ付いた分子。芳香環とニトロ基という2種類の共鳴表現を同時に観察できる。"
+      "description": "ベンゼン環にニトロ基が1つ付いた芳香族化合物。アニリンなど多くの化学製品の原料になる。",
+      "details": [
+        {
+          "title": "ニトロ基と芳香環",
+          "body": "ニトロ基内部では共鳴により電子密度がO–N–O全体へ非局在化し、2本のN–O結合は等価に近づく。さらにニトロ基は芳香環から電子密度を引くため、ベンゼンより芳香族置換反応が起こりにくくなり、位置選択性も変わる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "resonance",
+        "formal-charge"
+      ],
+      "notes": [
+        "aromatic",
+        "resonance"
+      ]
     },
     "2-nitrotoluene": {
       "number": 133,
-      "description": "トルエンのメチル基の隣にニトロ基が1つ付いた分子。ニトロ置換を段階的に増やす系列の出発点。"
+      "description": "トルエンのメチル基の隣にニトロ基が付いた芳香族化合物。染料や化学製品の中間原料として使われる。",
+      "details": [
+        {
+          "title": "オルト置換",
+          "body": "CH₃基とNO₂基が隣接する1,2置換ベンゼンで、2つの置換基の電子効果と立体反発が分子の形と反応性へ影響する。ニトロ基内部では共鳴により電子密度がO–N–O領域へ非局在化し、2本のN–O結合は等価に近い。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "resonance",
+        "positional-isomerism"
+      ],
+      "notes": [
+        "aromatic",
+        "resonance"
+      ]
     },
     "2-4-dinitrotoluene": {
       "number": 134,
-      "description": "トルエン環の2位と4位にニトロ基を持つ。2つのニトロ基それぞれでN⁺/O⁻と等価な共鳴結合を確認できる。"
+      "description": "トルエン環の2位と4位に2つのニトロ基を持つ芳香族化合物。ポリウレタン原料へつながる工業中間体として扱われる。",
+      "details": [
+        {
+          "title": "2つのニトロ基",
+          "body": "各NO₂基はそれぞれ2つの等価なLewis寄与構造で表せ、N–Oの電子は各O–N–O領域へ非局在化している。2つの強い電子求引基によって芳香環の電子密度はトルエンより低くなる。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "resonance",
+        "formal-charge"
+      ],
+      "notes": [
+        "aromatic",
+        "resonance"
+      ]
     },
     "2-4-6-trinitrotoluene": {
       "number": 135,
-      "description": "TNTとして知られる2,4,6-トリニトロトルエン。ここでは用途ではなく、3段階のニトロ置換と各ニトロ基の共鳴構造を扱う。"
+      "description": "TNTとして知られる、トルエン環に3つのニトロ基を持つ芳香族化合物。黄色の固体で、爆薬として歴史的に広く使われてきた。",
+      "details": [
+        {
+          "title": "三つのニトロ基",
+          "body": "2,4,6位の各NO₂基はN⁺/O⁻を含む等価なLewis寄与構造で表せる。これらは同じ電子状態を別々に表した寄与構造で、実在構造では電子密度が各O–N–O領域へ非局在化している。"
+        },
+        {
+          "title": "置換と電子効果",
+          "body": "3つのニトロ基は強く電子を引き、メチル基との組み合わせでベンゼン環の電子状態を大きく変える。オルト位のニトロ基では立体反発により環と完全な共平面からずれることもある。"
+        }
+      ],
+      "concepts": [
+        "aromaticity",
+        "functional-group",
+        "resonance",
+        "formal-charge"
+      ],
+      "notes": [
+        "aromatic",
+        "resonance"
+      ]
     }
   },
   "parts": {
