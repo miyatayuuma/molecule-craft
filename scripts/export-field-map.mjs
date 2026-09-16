@@ -9,7 +9,8 @@ import {
   OXYGEN_VORTEX_REWARD,OXYGEN_VORTEX_ROUTE,oxygenPressureAt,oxygenRouteCenterAtY,
 } from '../src/veil/oxygen-routes.js';
 import {
-  NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_AREA,NITROGEN_PULSES,NITROGEN_ROUTE,
+  NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_AREA,NITROGEN_PULSES,NITROGEN_RARE_CL_SITE,
+  NITROGEN_RECOVERY_AREA,NITROGEN_ROUTE,NITROGEN_ZONES,
 } from '../src/veil/nitrogen-routes.js';
 import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt} from '../src/veil/expedition-challenges.js';
 import {CHO_DESTINATION} from '../src/veil/cho-campaign.js';
@@ -227,34 +228,35 @@ function labelsSvg(universe){
 function nitrogenFieldSvg(universe,bounds){
   const route=universe.routes.find(candidate=>candidate.id===NITROGEN_ROUTE.id);
   if(!route)throw new Error('Nitrogen production route missing from nitrogen-enabled universe');
-  const pulses=universe.fields.filter(field=>field.kind==='nitrogen-pulse');
-  const main=universe.dust.filter(item=>item.element==='N'&&item.route===NITROGEN_ROUTE.id);
-  const pocket=universe.dust.filter(item=>item.element==='N'&&item.route===NITROGEN_HIGH_DENSITY_POCKET.id);
-  const signal=universe.signals.find(item=>item.region==='nitrogen');
+  const zones=universe.nitrogenZones??[],pulses=universe.fields.filter(field=>field.kind==='nitrogen-pulse');
+  const main=universe.dust.filter(item=>item.element==='N'&&item.route===NITROGEN_ROUTE.id),pocket=universe.dust.filter(item=>item.element==='N'&&item.route===NITROGEN_HIGH_DENSITY_POCKET.id),signal=universe.signals.find(item=>item.region==='nitrogen');
+  if(zones.length!==NITROGEN_ZONES.length)throw new Error('Nitrogen production zone count mismatch');
   if(pulses.length!==NITROGEN_PULSES.length)throw new Error('Nitrogen production pulse count mismatch');
   const routeLayer=[
+    ...zones.map(zone=>`<path data-nitrogen-zone="${escapeXml(zone.id)}" data-zone-kind="${escapeXml(zone.kind)}" data-zone-width="${fmt(zone.width)}" d="${pointPath(zone.points)}" fill="none" stroke="#7189ef" stroke-width="${fmt(zone.width)}" stroke-linecap="round" opacity=".08"/>`),
     `<path id="route-${escapeXml(route.id)}" data-route="${escapeXml(route.id)}" data-element="N" d="${pointPath(route.points)}"/>`,
-    `<path data-route-width="${escapeXml(route.id)}" data-width="${fmt(route.width)}" d="${pointPath(route.points)}" stroke-width="${fmt(route.width)}"/>`,
   ].join('\n');
-  const pulseLayer=pulses.map(field=>`<circle data-nitrogen-pulse="${escapeXml(field.id)}" data-force="${fmt(field.force)}" data-angle="${fmt(field.angle)}" cx="${fmt(field.x)}" cy="${fmt(field.y)}" r="${fmt(field.radius)}"/>`).join('\n');
+  const pulseLayer=pulses.map(field=>`<circle data-nitrogen-pulse="${escapeXml(field.id)}" data-force="${fmt(field.force)}" data-angle="${fmt(field.angle)}" data-optional="${field.optional===true}" cx="${fmt(field.x)}" cy="${fmt(field.y)}" r="${fmt(field.radius)}"/>`).join('\n');
   const resourceLayer=[
     `<metadata>production nitrogen-enabled universe; stock N=0; route depletion=${fmt(route.routeDepletion??0)}</metadata>`,
     `<path class="element element-n" data-element="N" data-resource-area="mainline" data-count="${main.length}" d="${dustPath(main)}"/>`,
     `<circle data-resource-area="high-density-pocket" data-optional="true" data-particles="${NITROGEN_HIGH_DENSITY_POCKET.particles}" data-value="${NITROGEN_HIGH_DENSITY_POCKET.value}" cx="${fmt(NITROGEN_HIGH_DENSITY_POCKET.x)}" cy="${fmt(NITROGEN_HIGH_DENSITY_POCKET.y)}" r="${fmt(NITROGEN_HIGH_DENSITY_POCKET.radius)}"/>`,
     `<path class="element element-n" data-element="N" data-resource-area="high-density-pocket-particles" data-count="${pocket.length}" d="${dustPath(pocket)}"/>`,
+    `<circle data-recovery-area="${escapeXml(NITROGEN_RECOVERY_AREA.id)}" cx="${fmt(NITROGEN_RECOVERY_AREA.x)}" cy="${fmt(NITROGEN_RECOVERY_AREA.y)}" r="${fmt(NITROGEN_RECOVERY_AREA.radius)}"/>`,
   ].join('\n');
   const insightLayer=[
     `<circle data-critical-insight-area="${escapeXml(NITROGEN_INSIGHT_AREA.id)}" cx="${fmt(NITROGEN_INSIGHT_AREA.x)}" cy="${fmt(NITROGEN_INSIGHT_AREA.y)}" r="${fmt(NITROGEN_INSIGHT_AREA.radius)}"/>`,
     signal?`<circle data-signal="${escapeXml(signal.id)}" data-region="nitrogen" cx="${fmt(signal.x)}" cy="${fmt(signal.y)}" r="22"/>`:'',
+    `<circle data-rare-anomaly="${escapeXml(NITROGEN_RARE_CL_SITE.id)}" data-element="Cl" cx="${fmt(NITROGEN_RARE_CL_SITE.x)}" cy="${fmt(NITROGEN_RARE_CL_SITE.y)}" r="18"/>`,
   ].join('\n');
   const dynamicBoundary=`<rect data-progression="post-CHO" data-left="${bounds.left}" data-right="${bounds.right}" data-top="${bounds.top}" data-bottom="${bounds.bottom}" x="${bounds.left}" y="${bounds.top}" width="${bounds.right-bounds.left}" height="${bounds.bottom-bounds.top}"/>`;
   return [
     '<metadata>Post-CHO Nitrogen FIELD is derived from flightConfig(state) bounds plus createUniverse(...,{capabilities:{nitrogenField:true}}); no duplicate map geometry.</metadata>',
     layer('dynamic-boundary','post-CHO dynamic boundary',dynamicBoundary),
-    layer('nitrogen-route','Nitrogen route centerline and width',routeLayer),
+    layer('nitrogen-route','Nitrogen chapter zones and centerline',routeLayer),
     layer('nitrogen-pulses','Nitrogen pulse/shear zones',pulseLayer),
-    layer('nitrogen-resources','Nitrogen resource areas',resourceLayer),
-    layer('nitrogen-insight','Nitrogen Critical Insight opportunity',insightLayer),
+    layer('nitrogen-resources','Nitrogen resource and recovery areas',resourceLayer),
+    layer('nitrogen-insight','Nitrogen Critical Insight and Rare Cl sites',insightLayer),
   ].join('\n');
 }
 

@@ -82,9 +82,10 @@ export function createVeilRenderer(canvas){
     ctx.globalAlpha=1;ctx.lineWidth=1;ctx.lineCap='butt';
     ctx.drawImage(cloudLayer,-w*.15-Math.sin(camera.x*.0004)*w*.06,-h*.15-Math.sin(camera.y*.00025)*h*.06);
     if(run.map.universe){
-      const carbon=clamp((-p.y-3300)/4700,0,1),oxygen=clamp((-p.y-7600)/4000,0,1);
+      const carbon=clamp((-p.y-3300)/4700,0,1),oxygen=clamp((-p.y-7600)/4000,0,1),nitrogen=clamp((-p.y-12650)/2100,0,1);
       ctx.fillStyle=`rgba(71,31,91,${carbon*(1-oxygen)*.18})`;ctx.fillRect(0,0,w,h);
-      ctx.fillStyle=`rgba(103,38,30,${oxygen*.22})`;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle=`rgba(103,38,30,${oxygen*(1-nitrogen*.72)*.22})`;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle=`rgba(34,66,142,${nitrogen*.20})`;ctx.fillRect(0,0,w,h);
       const visibleHeat=Math.max(run.ambientHeat??0,run.heat??0);if(visibleHeat>0){ctx.fillStyle=`rgba(255,77,38,${Math.min(visibleHeat/100*.12,.12)})`;ctx.fillRect(0,0,w,h);}
     }
     ctx.fillStyle='#aac5d6';
@@ -136,6 +137,21 @@ export function createVeilRenderer(canvas){
       }
       // Reward convergence is shown as oxygen-colored motes physically streaming inward, not a marker glyph.
       const rewardGlow=ctx.createRadialGradient(OXYGEN_REWARD.x,OXYGEN_REWARD.y,0,OXYGEN_REWARD.x,OXYGEN_REWARD.y,OXYGEN_REWARD.radius*1.2);rewardGlow.addColorStop(0,'rgba(255,148,77,.16)');rewardGlow.addColorStop(1,'rgba(255,148,77,0)');ctx.fillStyle=rewardGlow;ctx.fillRect(OXYGEN_REWARD.x-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.y-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.radius*2.4,OXYGEN_REWARD.radius*2.4);for(let i=0;i<9;i++){const phase=(run.time*.18+i/9)%1,r=OXYGEN_REWARD.radius*(1.05-phase*.82),a=i*2.399+run.time*.12;ctx.globalAlpha=.16+phase*.48;ctx.fillStyle='#ff944d';ctx.beginPath();ctx.arc(OXYGEN_REWARD.x+Math.cos(a)*r,OXYGEN_REWARD.y+Math.sin(a)*r,1.5+phase*2.1,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
+    }
+    if(run.map.universe&&run.map.nitrogenZones?.length){
+      // Nitrogen stays one continuous route, but authored zone width and landmark
+      // silhouettes make its encounter cadence visible without adding a new mechanic.
+      const zoneColors={entry:'#6d8fe8',movement:'#5579d0',collection:'#789dff',recovery:'#75b7dc',approach:'#7e82e8'};
+      for(const zone of run.map.nitrogenZones){
+        const points=zone.points??[];if(points.length<2)continue;const color=zoneColors[zone.kind]??'#6687dd';
+        ctx.save();ctx.strokeStyle=color;ctx.lineCap='round';ctx.lineJoin='round';ctx.globalAlpha=zone.kind==='recovery'?.055:zone.kind==='collection'?.075:.06;ctx.lineWidth=zone.width*.78;ctx.beginPath();points.forEach((point,index)=>index?ctx.lineTo(point.x,point.y):ctx.moveTo(point.x,point.y));ctx.stroke();
+        ctx.globalAlpha=zone.kind==='recovery'?.16:.20;ctx.lineWidth=zone.kind==='movement'?2.2:1.5;ctx.beginPath();points.forEach((point,index)=>index?ctx.lineTo(point.x,point.y):ctx.moveTo(point.x,point.y));ctx.stroke();ctx.restore();
+      }
+      for(const landmark of run.map.nitrogenLandmarks??[]){
+        const radius=landmark.radius??150,harvest=landmark.kind==='harvest',recovery=landmark.kind==='recovery',insight=landmark.kind==='insight',core=harvest?'112,151,255':recovery?'106,190,215':insight?'151,129,238':'89,120,220',glow=ctx.createRadialGradient(landmark.x,landmark.y,0,landmark.x,landmark.y,radius);
+        glow.addColorStop(0,`rgba(${core},${recovery?.09:harvest?.12:.10})`);glow.addColorStop(1,`rgba(${core},0)`);ctx.fillStyle=glow;ctx.fillRect(landmark.x-radius,landmark.y-radius,radius*2,radius*2);
+        ctx.strokeStyle=recovery?'#7bc2db':harvest?'#8dadff':insight?'#a69cf0':'#708bd8';ctx.globalAlpha=recovery?.12:.09;ctx.lineWidth=1;const rings=recovery?3:2;for(let i=0;i<rings;i++){ctx.beginPath();ctx.ellipse(landmark.x,landmark.y,radius*(.28+i*.18),radius*(.10+i*.055),run.time*(recovery?.05:.09)+i*.75,0,Math.PI*1.8);ctx.stroke();}ctx.globalAlpha=1;
+      }
     }
     if(run.map.universe){
       const d=CHO_DESTINATION,pulse=1+Math.sin(run.time*1.7)*.035,radius=d.radius*pulse;ctx.save();
