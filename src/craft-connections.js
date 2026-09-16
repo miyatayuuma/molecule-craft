@@ -110,7 +110,7 @@ export function connectExploration(options){
 }
 
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
-  const {createCollectionUI}=await import('./collection-ui.js?v=40');
+  const {createCollectionUI}=await import('./collection-ui.js?v=41');
   return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
 }
 

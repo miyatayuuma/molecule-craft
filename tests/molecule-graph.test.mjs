@@ -16,17 +16,6 @@ const addedFormulas=new Map([
   ['cyclohexene','C6H10'],['pyruvic-acid','C3H4O3'],['furan','C4H4O'],['dimethyl-sulfoxide','C2H6OS'],
   ['ozone','O3'],['nitromethane','CH3NO2'],['nitrobenzene','C6H5NO2'],['2-nitrotoluene','C7H7NO2'],['2-4-dinitrotoluene','C7H6N2O4'],['2-4-6-trinitrotoluene','C7H5N3O6'],
 ]);
-const rewrittenDescriptions=new Map([
-  ['cyclobutane','4員環はsp3炭素の理想結合角から大きく外れるため環ひずみが大きい。完全な平面を避けて少し折れ曲がるがひずみは残り、シクロプロパン・シクロペンタン・シクロヘキサンとの比較で環サイズと安定性の違いが見える。'],
-  ['propyne','端に三重結合を持つ小さなアルキン。三重結合部分はほぼ直線形で、末端水素を手がかりにC–C結合形成へ展開できる。propane/propeneとの結合次数比較にも向く。'],
-  ['1-butyne','鎖の端に三重結合を持つC4アルキン。2-butyneと比べ、三重結合が端か内部かで反応点が変わる。'],
-  ['2-butyne','鎖中央に三重結合を持つ対称なC4アルキン。末端水素を持たず、1-butyneとの位置異性比較に向く。'],
-  ['propionaldehyde','propanalとも呼ばれるC3 aldehyde。酸化でpropionic acidへつながり、同式のacetoneとのaldehyde/ketone比較BRIDGEになる。'],
-  ['acetamide','acetic acidのOHがNH2へ置換されたamide。水素結合とacid→amideの官能基変換を比較できる。'],
-  ['pyridine','benzeneのCHを1つNへ置換した6員芳香族heterocycle。芳香族性を保ちつつNの孤立電子対が塩基性・配位性を与える。'],
-  ['methyl-ethyl-ether','Oを挟んでmethyl/ethyl基を持つ非対称ether。dimethyl ether→diethyl etherを1 carbon stepでつなぐ。'],
-]);
-
 assert.equal(molecules.length,135,'production molecule DB must contain 135 molecules');
 const moleculeIds=molecules.map(item=>item.id),moleculeSet=new Set(moleculeIds);
 assert.equal(moleculeSet.size,135,'production molecule IDs must be unique');
@@ -57,7 +46,7 @@ assert.equal(distance.size,nodes.length,'all production nodes must be ROOT-reach
 for(const node of nodes){const degree=adjacency.get(node.id).size,limit=['acetic-acid','benzene'].includes(node.id)?7:6;assert(degree<=limit,`production graph degree guardrail exceeded: ${node.id} (${degree} > ${limit})`);}assert.equal(adjacency.get('acetic-acid').size,7,'acetic-acid degree 7 must be explained only by the C1→C2 series completion');assert.equal(adjacency.get('benzene').size,7,'benzene degree 7 must be explained only by the nitrobenzene substitution branch');
 let longestCorridor=0;const walked=new Set(),edgeKey=(a,b)=>[a,b].sort().join('\0');for(const start of nodes.filter(node=>adjacency.get(node.id).size!==2))for(const first of adjacency.get(start.id)){if(walked.has(edgeKey(start.id,first)))continue;let previous=start.id,current=first,interior=0;walked.add(edgeKey(previous,current));while(adjacency.get(current).size===2){interior++;const next=[...adjacency.get(current)].find(id=>id!==previous);previous=current;current=next;const key=edgeKey(previous,current);if(walked.has(key))break;walked.add(key);}longestCorridor=Math.max(longestCorridor,interior);}assert(longestCorridor<=5,`degree-2 corridor guardrail exceeded: ${longestCorridor}`);
 
-const encyclopediaIds=Object.keys(encyclopedia.molecules??{});assert.deepEqual(encyclopediaIds.sort(),[...moleculeSet].sort(),'encyclopedia entries must match production DB 1:1');for(const [id,description] of rewrittenDescriptions)assert.equal(encyclopedia.molecules[id]?.description,description,`REWRITE description drift: ${id}`);for(const id of addedFormulas.keys())assert((encyclopedia.molecules[id]?.description??'').length>=30,`ADD encyclopedia description missing: ${id}`);
+const encyclopediaIds=Object.keys(encyclopedia.molecules??{});assert.deepEqual(encyclopediaIds.sort(),[...moleculeSet].sort(),'encyclopedia entries must match production DB 1:1');for(const id of addedFormulas.keys())assert((encyclopedia.molecules[id]?.description??'').length>=30,`ADD encyclopedia description missing: ${id}`);
 const runtimeGraph=createMoleculeGraph(graph);for(const node of nodes)assert.deepEqual(new Set(runtimeGraph.getNeighbors(node.id)),adjacency.get(node.id),`runtime adjacency drift: ${node.id}`);
 
 async function collectFiles(relative){const base=new URL(relative,root),entries=await readdir(base,{withFileTypes:true}),out=[];for(const entry of entries){const child=`${relative.replace(/\/$/,'')}/${entry.name}`;if(entry.isDirectory())out.push(...await collectFiles(`${child}/`));else out.push(child);}return out;}

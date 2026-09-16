@@ -14,7 +14,7 @@ export async function loadCollectionData(){
   const [groups,templates,encyclopedia,graph]=await Promise.all([
     load('../data/functional-groups.json?v=25'),
     load('../data/craft-structures.json?v=25'),
-    load('../data/encyclopedia.json?v=29').catch(()=>({molecules:{},parts:{}})),
+    load('../data/encyclopedia.json?v=30').catch(()=>({molecules:{},parts:{},noteDefinitions:{}})),
     loadMoleculeGraph({url:new URL('../data/molecule-graph.json',import.meta.url).href}),
   ]);
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph};
@@ -205,14 +205,17 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const record=recordById(id);if(!record||!state.hasMolecule(id)){currentDetail=null;renderBook();return;}
     const matches=collectibleMatches(record);heading(kind,id,moleculeDisplayName(record),record.formula);
     preview(record,moleculeDisplayName(record),{graphReturn:true});
-    detail.append(el('p',entry(kind,id)?.description??record.learningNote??'この分子を図鑑に登録しました。','dex-description'));
+    const catalogEntry=entry(kind,id)??{};
+    detail.append(el('p',catalogEntry.description??'この分子を図鑑に登録しました。','dex-description'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
-    if(record.learningNote)extra.append(el('p',record.learningNote));
-    const discovered=state.moleculeEntry(id);extra.append(el('p',`発見 ${discovered.order}番目${discovered.at?` · ${new Date(discovered.at).toLocaleDateString('ja-JP')}`:''}`));
+    const detailSections=Array.isArray(catalogEntry.details)?catalogEntry.details:[];
+    if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');chemistry.append(el('h4','化学のポイント'));for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(el('h5',item.title),el('p',item.body));chemistry.append(sectionNode);}extra.append(chemistry);}
+    const discovered=state.moleculeEntry(id);extra.append(el('h4','発見'),el('p',`発見 ${discovered.order}番目${discovered.at?` · ${new Date(discovered.at).toLocaleDateString('ja-JP')}`:''}`));
     const tags=el('div',null,'collection-tags');for(const match of matches)tags.append(button(groupById(match.id).nameJa,()=>showDetail('groups',match.id),'collection-tag'));if(matches.length){extra.append(el('h4','見つかる部品'),tags);}
     const relatives=state.isomersOf(record);if(relatives.length){extra.append(el('h4','同じ分子式の仲間'));for(const item of relatives)extra.append(button(state.hasMolecule(item.id)?moleculeDisplayName(item):'???',()=>state.hasMolecule(item.id)&&showDetail('molecules',item.id),'collection-tag'));}
-    extra.append(el('p','模型は結合情報からつくった教材用の配置です。実測構造ではありません。水色の内円は芳香環に広がるπ電子を表す記号です。cis/transや鏡像異性体は分けて収集していません。'));
+    const noteKeys=['model',...(Array.isArray(catalogEntry.notes)?catalogEntry.notes:[])],noteTexts=noteKeys.map(key=>data.encyclopedia.noteDefinitions?.[key]).filter(Boolean);
+    if(noteTexts.length){const noteHost=el('div',null,'model-collection-notes');noteHost.append(el('h4','模型・収録について'));for(const text of noteTexts)noteHost.append(el('p',text));extra.append(noteHost);}
   }
   function heading(kind,id,name,formula=''){
     const host=el('div',null,'detail-heading'),left=el('div');left.append(el('span',numberLabel(kind,id),'dex-number'),el('h3',name));host.append(left);if(formula)host.append(el('p',formula,'detail-formula'));detail.append(host);
