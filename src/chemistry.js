@@ -1,3 +1,5 @@
+import {supportedAtomState} from './resonance-model.js?v=1';
+
 export const ELEMENTS = {
   H:  { name: '水素',   color: '#f8fafc', radius: 0.32, valences: [1] },
   C:  { name: '炭素',   color: '#64748b', radius: 0.46, valences: [4] },
@@ -73,13 +75,13 @@ export class Molecule {
     for (const atom of this.atoms) {
       const used = this.bondOrderForAtom(atom.id);
       const max = Math.max(...ELEMENTS[atom.element].valences);
-      if (used > max && !isCarbonMonoxideException(this, used)) {
+      if (used > max && !isCarbonMonoxideException(this, used) && !supportedAtomState(this, atom.id)) {
         return { level: 'error', message: `${atom.element} の結合価 ${used} は、このモデルで扱う上限 ${max} を超えています。` };
       }
     }
     const openAtoms = this.atoms.filter(atom => {
       const used = this.bondOrderForAtom(atom.id);
-      return !ELEMENTS[atom.element].valences.includes(used) && !isCarbonMonoxideException(this, used);
+      return !ELEMENTS[atom.element].valences.includes(used) && !isCarbonMonoxideException(this, used) && !supportedAtomState(this, atom.id);
     });
     if (openAtoms.length) return { level: 'warn', message: `未充足の原子が ${openAtoms.length} 個あります。制作途中として保持できます。` };
     return { level: 'ok', message: '典型原子価の範囲で結合が満たされています。' };

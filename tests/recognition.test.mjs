@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const source = await readFile(new URL('../src/chemistry.js', import.meta.url), 'utf8');
-const chemistry = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const chemistry = await import(new URL('../src/chemistry.js?recognition-test=1', import.meta.url));
 const records = JSON.parse(await readFile(new URL('../data/molecules.json', import.meta.url), 'utf8'));
 chemistry.setMoleculeDatabase(records);
 assert.ok(records.length >= 100, `Expected at least 100 molecule records, got ${records.length}`);

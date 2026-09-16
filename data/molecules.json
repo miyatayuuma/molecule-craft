@@ -9351,5 +9351,697 @@
     "commonNameJa": "ジメチルスルホキシド",
     "commonNameEn": "Dimethyl sulfoxide",
     "learningNote": "硫黄に酸素が結合したスルホキシドで、強い極性を持つ非プロトン性溶媒。硫化ジメチルの酸化体にあたり、有機反応の溶媒や生体試料の凍結保護などに広く使われる。"
+  },
+  {
+    "id": "ozone",
+    "nameJa": "オゾン",
+    "nameEn": "Ozone",
+    "aliases": [
+      "trioxygen"
+    ],
+    "atoms": [
+      "O",
+      "O",
+      "O"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ]
+    ],
+    "formula": "O3",
+    "category": "basic-inorganic",
+    "formalCharges": {
+      "1": 1,
+      "2": -1
+    },
+    "resonanceGroups": [
+      {
+        "kind": "ozone",
+        "center": 1,
+        "ends": [
+          0,
+          2
+        ]
+      }
+    ],
+    "iupacNameEn": "Trioxygen",
+    "commonNameJa": "オゾン",
+    "commonNameEn": "Ozone",
+    "learningNote": "3個の酸素原子からなる分子。2本のO–O結合は等価な共鳴として表せ、中央Oと末端Oに形式電荷を持つLewis構造で扱う。"
+  },
+  {
+    "id": "nitromethane",
+    "nameJa": "ニトロメタン",
+    "nameEn": "Nitromethane",
+    "atoms": [
+      "C",
+      "N",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        2
+      ],
+      [
+        1,
+        3,
+        1
+      ],
+      [
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        5,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ]
+    ],
+    "formula": "CH3NO2",
+    "category": "nitrogen-compounds",
+    "formalCharges": {
+      "1": 1,
+      "3": -1
+    },
+    "resonanceGroups": [
+      {
+        "kind": "nitro",
+        "center": 1,
+        "ends": [
+          2,
+          3
+        ]
+      }
+    ],
+    "iupacNameEn": "Nitromethane",
+    "commonNameJa": "ニトロメタン",
+    "commonNameEn": "Nitromethane",
+    "learningNote": "最小のニトロ化合物。N⁺とO⁻を含む2つの等価なLewis構造でニトロ基の共鳴を比べられる。"
+  },
+  {
+    "id": "nitrobenzene",
+    "nameJa": "ニトロベンゼン",
+    "nameEn": "Nitrobenzene",
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "N",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        5,
+        0,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        6,
+        7,
+        2
+      ],
+      [
+        6,
+        8,
+        1
+      ],
+      [
+        1,
+        9,
+        1
+      ],
+      [
+        2,
+        10,
+        1
+      ],
+      [
+        3,
+        11,
+        1
+      ],
+      [
+        4,
+        12,
+        1
+      ],
+      [
+        5,
+        13,
+        1
+      ]
+    ],
+    "formula": "C6H5NO2",
+    "category": "nitrogen-compounds",
+    "formalCharges": {
+      "6": 1,
+      "8": -1
+    },
+    "resonanceGroups": [
+      {
+        "kind": "nitro",
+        "center": 6,
+        "ends": [
+          7,
+          8
+        ]
+      }
+    ],
+    "iupacNameEn": "Nitrobenzene",
+    "commonNameJa": "ニトロベンゼン",
+    "commonNameEn": "Nitrobenzene",
+    "learningNote": "ベンゼン環にニトロ基が1つ結合した芳香族化合物。芳香環の共鳴とニトロ基内部の共鳴を同じ構造上で観察できる。"
+  },
+  {
+    "id": "2-nitrotoluene",
+    "nameJa": "2-ニトロトルエン",
+    "nameEn": "2-Nitrotoluene",
+    "aliases": [
+      "o-nitrotoluene"
+    ],
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "N",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        5,
+        0,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        7,
+        8,
+        2
+      ],
+      [
+        7,
+        9,
+        1
+      ],
+      [
+        2,
+        10,
+        1
+      ],
+      [
+        3,
+        11,
+        1
+      ],
+      [
+        4,
+        12,
+        1
+      ],
+      [
+        5,
+        13,
+        1
+      ],
+      [
+        6,
+        14,
+        1
+      ],
+      [
+        6,
+        15,
+        1
+      ],
+      [
+        6,
+        16,
+        1
+      ]
+    ],
+    "formula": "C7H7NO2",
+    "category": "nitrogen-compounds",
+    "formalCharges": {
+      "7": 1,
+      "9": -1
+    },
+    "resonanceGroups": [
+      {
+        "kind": "nitro",
+        "center": 7,
+        "ends": [
+          8,
+          9
+        ]
+      }
+    ],
+    "iupacNameEn": "1-Methyl-2-nitrobenzene",
+    "commonNameJa": "2-ニトロトルエン",
+    "commonNameEn": "2-Nitrotoluene",
+    "learningNote": "トルエンのメチル基に隣接してニトロ基を持つ。ニトロ置換を1段ずつ増やす系列の入口。"
+  },
+  {
+    "id": "2-4-dinitrotoluene",
+    "nameJa": "2,4-ジニトロトルエン",
+    "nameEn": "2,4-Dinitrotoluene",
+    "aliases": [
+      "2,4-DNT"
+    ],
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "N",
+      "O",
+      "O",
+      "N",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        5,
+        0,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        7,
+        8,
+        2
+      ],
+      [
+        7,
+        9,
+        1
+      ],
+      [
+        3,
+        10,
+        1
+      ],
+      [
+        10,
+        11,
+        2
+      ],
+      [
+        10,
+        12,
+        1
+      ],
+      [
+        2,
+        13,
+        1
+      ],
+      [
+        4,
+        14,
+        1
+      ],
+      [
+        5,
+        15,
+        1
+      ],
+      [
+        6,
+        16,
+        1
+      ],
+      [
+        6,
+        17,
+        1
+      ],
+      [
+        6,
+        18,
+        1
+      ]
+    ],
+    "formula": "C7H6N2O4",
+    "category": "nitrogen-compounds",
+    "formalCharges": {
+      "7": 1,
+      "9": -1,
+      "10": 1,
+      "12": -1
+    },
+    "resonanceGroups": [
+      {
+        "kind": "nitro",
+        "center": 7,
+        "ends": [
+          8,
+          9
+        ]
+      },
+      {
+        "kind": "nitro",
+        "center": 10,
+        "ends": [
+          11,
+          12
+        ]
+      }
+    ],
+    "iupacNameEn": "1-Methyl-2,4-dinitrobenzene",
+    "commonNameJa": "2,4-ジニトロトルエン",
+    "commonNameEn": "2,4-Dinitrotoluene",
+    "learningNote": "トルエン環にニトロ基が2つ入った化合物。各ニトロ基はそれぞれ等価な2つの共鳴Lewis構造を持つ。"
+  },
+  {
+    "id": "2-4-6-trinitrotoluene",
+    "nameJa": "2,4,6-トリニトロトルエン",
+    "nameEn": "2,4,6-Trinitrotoluene",
+    "aliases": [
+      "TNT"
+    ],
+    "atoms": [
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "C",
+      "N",
+      "O",
+      "O",
+      "N",
+      "O",
+      "O",
+      "N",
+      "O",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        3,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        5,
+        0,
+        1
+      ],
+      [
+        0,
+        6,
+        1
+      ],
+      [
+        1,
+        7,
+        1
+      ],
+      [
+        7,
+        8,
+        2
+      ],
+      [
+        7,
+        9,
+        1
+      ],
+      [
+        3,
+        10,
+        1
+      ],
+      [
+        10,
+        11,
+        2
+      ],
+      [
+        10,
+        12,
+        1
+      ],
+      [
+        5,
+        13,
+        1
+      ],
+      [
+        13,
+        14,
+        2
+      ],
+      [
+        13,
+        15,
+        1
+      ],
+      [
+        2,
+        16,
+        1
+      ],
+      [
+        4,
+        17,
+        1
+      ],
+      [
+        6,
+        18,
+        1
+      ],
+      [
+        6,
+        19,
+        1
+      ],
+      [
+        6,
+        20,
+        1
+      ]
+    ],
+    "formula": "C7H5N3O6",
+    "category": "nitrogen-compounds",
+    "formalCharges": {
+      "7": 1,
+      "9": -1,
+      "10": 1,
+      "12": -1,
+      "13": 1,
+      "15": -1
+    },
+    "resonanceGroups": [
+      {
+        "kind": "nitro",
+        "center": 7,
+        "ends": [
+          8,
+          9
+        ]
+      },
+      {
+        "kind": "nitro",
+        "center": 10,
+        "ends": [
+          11,
+          12
+        ]
+      },
+      {
+        "kind": "nitro",
+        "center": 13,
+        "ends": [
+          14,
+          15
+        ]
+      }
+    ],
+    "iupacNameEn": "1-Methyl-2,4,6-trinitrobenzene",
+    "commonNameJa": "2,4,6-トリニトロトルエン",
+    "commonNameEn": "2,4,6-Trinitrotoluene",
+    "learningNote": "TNTとして知られる芳香族ニトロ化合物。この図鑑では用途ではなく、段階的なニトロ置換と複数ニトロ基の共鳴構造を扱う。"
   }
 ]

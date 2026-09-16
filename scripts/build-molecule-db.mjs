@@ -43,7 +43,7 @@ function formulaFor(atoms) {
   return symbols.map(symbol => `${symbol}${counts[symbol] > 1 ? counts[symbol] : ''}`).join('');
 }
 
-function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valences = {}, iupacNameEn, learningNote, stereochemistry }) {
+function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valences = {}, formalCharges = null, resonanceGroups = null, iupacNameEn, learningNote, stereochemistry }) {
   const expandedAtoms = [...atoms];
   const expandedBonds = bonds.map(bond => [...bond]);
   const used = atoms.map(() => 0);
@@ -59,7 +59,7 @@ function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valence
       expandedAtoms.push('H');
     }
   });
-  molecules.push({ id, nameJa, nameEn, ...(aliases.length ? { aliases } : {}), atoms: expandedAtoms, bonds: expandedBonds, formula: formulaFor(expandedAtoms), category, ...(iupacNameEn?{iupacNameEn,commonNameJa:nameJa,commonNameEn:nameEn}:{}), ...(learningNote?{learningNote}:{}), ...(stereochemistry?{stereochemistry}:{}) });
+  molecules.push({ id, nameJa, nameEn, ...(aliases.length ? { aliases } : {}), atoms: expandedAtoms, bonds: expandedBonds, formula: formulaFor(expandedAtoms), category, ...(formalCharges?{formalCharges}:{}), ...(resonanceGroups?.length?{resonanceGroups}:{}), ...(iupacNameEn?{iupacNameEn,commonNameJa:nameJa,commonNameEn:nameEn}:{}), ...(learningNote?{learningNote}:{}), ...(stereochemistry?{stereochemistry}:{}) });
 }
 
 function raw(def) {
@@ -442,7 +442,23 @@ add({ id: 'dimethyl-sulfoxide', nameJa: 'ジメチルスルホキシド', nameEn
 for (let index = molecules.length - 1; index >= 0; index--) {
   if (PRODUCTION_EXCLUDED_MOLECULE_IDS.has(molecules[index].id)) molecules.splice(index, 1);
 }
-if (molecules.length !== 129) throw new Error(`Production molecule inventory drifted: ${molecules.length}`);
+
+// Supported formal-charge / resonance molecules. Canonical DB forms use one
+// valid Lewis contributor; runtime recognition accepts the equivalent placement.
+add({ id:'ozone', nameJa:'オゾン', nameEn:'Ozone', aliases:['trioxygen'], atoms:['O','O','O'], bonds:[[0,1,2],[1,2,1]], valences:{0:2,1:3,2:1}, formalCharges:{1:1,2:-1}, resonanceGroups:[{kind:'ozone',center:1,ends:[0,2]}], category:'basic-inorganic', iupacNameEn:'Trioxygen', learningNote:'3個の酸素原子からなる分子。2本のO–O結合は等価な共鳴として表せ、中央Oと末端Oに形式電荷を持つLewis構造で扱う。' });
+add({ id:'nitromethane', nameJa:'ニトロメタン', nameEn:'Nitromethane', atoms:['C','N','O','O'], bonds:[[0,1,1],[1,2,2],[1,3,1]], valences:{1:4,3:1}, formalCharges:{1:1,3:-1}, resonanceGroups:[{kind:'nitro',center:1,ends:[2,3]}], category:'nitrogen-compounds', iupacNameEn:'Nitromethane', learningNote:'最小のニトロ化合物。N⁺とO⁻を含む2つの等価なLewis構造でニトロ基の共鳴を比べられる。' });
+function nitroAromatic(nitroPositions,{methyl=false}={}){
+  const graph=aromatic(),valences={},formalCharges={},resonanceGroups=[];
+  if(methyl){const methylIndex=graph.atoms.length;graph.atoms.push('C');graph.bonds.push([0,methylIndex,1]);}
+  for(const ringIndex of nitroPositions){const n=graph.atoms.length;graph.atoms.push('N','O','O');graph.bonds.push([ringIndex,n,1],[n,n+1,2],[n,n+2,1]);valences[n]=4;valences[n+2]=1;formalCharges[n]=1;formalCharges[n+2]=-1;resonanceGroups.push({kind:'nitro',center:n,ends:[n+1,n+2]});}
+  return{...graph,valences,formalCharges,resonanceGroups};
+}
+add({ id:'nitrobenzene', nameJa:'ニトロベンゼン', nameEn:'Nitrobenzene', ...nitroAromatic([0]), category:'nitrogen-compounds', iupacNameEn:'Nitrobenzene', learningNote:'ベンゼン環にニトロ基が1つ結合した芳香族化合物。芳香環の共鳴とニトロ基内部の共鳴を同じ構造上で観察できる。' });
+add({ id:'2-nitrotoluene', nameJa:'2-ニトロトルエン', nameEn:'2-Nitrotoluene', aliases:['o-nitrotoluene'], ...nitroAromatic([1],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2-nitrobenzene', learningNote:'トルエンのメチル基に隣接してニトロ基を持つ。ニトロ置換を1段ずつ増やす系列の入口。' });
+add({ id:'2-4-dinitrotoluene', nameJa:'2,4-ジニトロトルエン', nameEn:'2,4-Dinitrotoluene', aliases:['2,4-DNT'], ...nitroAromatic([1,3],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4-dinitrobenzene', learningNote:'トルエン環にニトロ基が2つ入った化合物。各ニトロ基はそれぞれ等価な2つの共鳴Lewis構造を持つ。' });
+add({ id:'2-4-6-trinitrotoluene', nameJa:'2,4,6-トリニトロトルエン', nameEn:'2,4,6-Trinitrotoluene', aliases:['TNT'], ...nitroAromatic([1,3,5],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4,6-trinitrobenzene', learningNote:'TNTとして知られる芳香族ニトロ化合物。この図鑑では用途ではなく、段階的なニトロ置換と複数ニトロ基の共鳴構造を扱う。' });
+
+if (molecules.length !== 135) throw new Error(`Production molecule inventory drifted: ${molecules.length}`);
 
 const ids = new Set();
 for (const molecule of molecules) {
