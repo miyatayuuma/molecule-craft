@@ -1,4 +1,5 @@
 import {nitrogenChapterState} from './nitrogen-progression.js';
+import {NITROGEN_RARE_CL_SITE} from './nitrogen-routes.js';
 
 export const RARE_SURVEY_ELEMENTS=Object.freeze(['P','S','F','Cl']);
 export const RARE_SURVEY_SCAN_SECONDS=.85;
@@ -17,7 +18,7 @@ export const RARE_ANOMALIES=Object.freeze([
   freezeSite({id:'rare-p-veil-bend',element:'P',quantity:1,region:'veil',x:-520,y:-2200,label:'phosphorus specimen'}),
   freezeSite({id:'rare-s-carbon-revisit',element:'S',quantity:1,region:'carbon',x:980,y:-6300,label:'sulfur specimen'}),
   freezeSite({id:'rare-f-oxygen-thermal',element:'F',quantity:1,region:'oxygen',x:850,y:-10350,label:'fluorine specimen'}),
-  freezeSite({id:'rare-cl-nitrogen-pocket',element:'Cl',quantity:1,region:'nitrogen',x:620,y:-14920,label:'chlorine specimen'}),
+  freezeSite({id:'rare-cl-nitrogen-pocket',element:'Cl',quantity:1,region:'nitrogen',x:NITROGEN_RARE_CL_SITE.x,y:NITROGEN_RARE_CL_SITE.y,label:'chlorine specimen'}),
 ]);
 const BY_ID=new Map(RARE_ANOMALIES.map(site=>[site.id,site]));
 const cloneSite=site=>({...site});
