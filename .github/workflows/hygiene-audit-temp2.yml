@@ -22,7 +22,11 @@ jobs:
           git grep -n -Ei '\b(legacy|compat|obsolete|deprecated|warp)\b' -- src || true
           echo '=== LAUNCH DOM ==='
           git grep -n -E 'expedition-anchor|launch-veil|\.click\(\)|dispatchEvent\(' -- src index.html tests || true
+          echo '=== LEGACY HINT BUTTON ==='
+          git grep -n -E 'tank-next-hint|supply-footer|anchor-select|shell-launch' -- src index.html '*.css' tests || true
           echo '=== RESONANCE OLD NAMING ==='
           git grep -n -E 'legacySharedBond|sharedBondCurves|distributedResonanceBondLines|resonance.*arc|arc.*resonance' -- src scripts tests || true
           echo '=== LEARNING NOTE OUTSIDE DB ==='
           git grep -n 'learningNote' -- . ':(exclude)data/molecules.json' || true
+      - name: Current graph metrics
+        run: node tests/molecule-graph.test.mjs
