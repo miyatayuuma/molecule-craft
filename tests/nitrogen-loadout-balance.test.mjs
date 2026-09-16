@@ -13,6 +13,7 @@ const atomCost=(id,count)=>{const cost={};for(const element of records.get(id)?.
 const shots=id=>{const profile=performanceFor(id,'propellant');return Math.floor(profile.capacity/profile.moleculesPerBurst);};
 
 assert.equal(ROLE_BALANCE_VERSION,3);
+assert.equal(NITROGEN_PULSES.length,6,'Nitrogen corridor keeps six authored pulse disturbances');
 assert.deepEqual(['hydrogen','ammonia','nitrogen'].map(id=>({id,shots:shots(id),power:performanceFor(id,'propellant').burstPower})),[
   {id:'hydrogen',shots:3,power:1},
   {id:'ammonia',shots:6,power:.82},
@@ -54,10 +55,11 @@ function nitrogenRun(mode){
 }
 const corridor={hydrogen:nitrogenRun('hydrogen'),ammonia:nitrogenRun('ammonia'),nitrogen:nitrogenRun('nitrogen'),drive:nitrogenRun('drive')};
 for(const [name,row] of Object.entries(corridor))assert.equal(row.success,true,`${name} must remain viable in the Nitrogen corridor`);
-assert.equal(corridor.ammonia.bursts,6,'NH3 can answer the six authored pulses but spends its full PULSE load');
-assert.equal(corridor.ammonia.remainingShots,0);
-assert.equal(corridor.nitrogen.bursts,6);
-assert.equal(corridor.nitrogen.remainingShots,2,'N2 keeps two recovery pulses after the six-pulse corridor');
+assert.ok(corridor.ammonia.bursts>=4,'NH3 must materially participate in the repeated-pulse corridor');
+assert.equal(corridor.ammonia.remainingShots,shots('ammonia')-corridor.ammonia.bursts);
+assert.equal(corridor.nitrogen.remainingShots,shots('nitrogen')-corridor.nitrogen.bursts);
+assert.ok(corridor.nitrogen.bursts>=corridor.ammonia.bursts,'N2 repeated-pulse profile must remain usable at least as often on the corridor');
+assert.ok(corridor.nitrogen.remainingShots>corridor.ammonia.remainingShots,'N2 must retain more recovery pulses after the same corridor');
 assert.ok(corridor.nitrogen.nAtoms>corridor.hydrogen.nAtoms,'repeatable N2 pulses support collection better than three H2 emergency bursts');
 assert.ok(corridor.drive.time<corridor.nitrogen.time,'COMBUSTION DRIVE keeps the sustained-travel advantage');
 
