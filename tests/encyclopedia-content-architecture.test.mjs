@@ -73,8 +73,8 @@ assert.match(entries['sulfuric-acid'].details.map(section=>section.body).join(' 
 assert.match(source,/encyclopedia\.json\?v=31/,'Collection UI must load the v2 catalog with the current cache key');
 assert.doesNotMatch(source,/record\.learningNote/,'legacy learningNote must not remain a rendered content authority');
 assert.match(source,/chemistry-detail/);
-assert.match(source,/model-collection-notes/);
-assert.match(source,/noteDefinitions/);
+assert.doesNotMatch(source,/model-collection-notes|模型・収録について/,'Repeated model/collection notes must not remain in the player-facing detail renderer');
+assert.match(source,/noteDefinitions/,'Internal note metadata may remain loaded for data compatibility');
 assert.doesNotMatch(source,/水色の内円は芳香環に広がるπ電子を表す記号です。cis\/transや鏡像異性体は分けて収集していません。/,'legacy monolithic note must be removed');
 
-console.log('Encyclopedia content architecture passed: 135/135 reviewed summaries/details, controlled concepts, conditional model notes, Nitro/Ozone resonance semantics and CO formal-charge coverage.');
+console.log('Encyclopedia content architecture passed: 135/135 reviewed summaries/details, controlled concepts, player-facing repeated-note removal, Nitro/Ozone resonance semantics and CO formal-charge coverage.');
