@@ -73,7 +73,7 @@ assert.match(craftConnections, /createCompletionSideEffectGate\(\)/,'Completion 
 assert.match(craftConnections, /completionGate\.suppressNextSync\(\)/,'Restore/Undo must establish a passive completion baseline');
 assert.doesNotMatch(craftConnections, /checkedRevision!==revision/,'Legacy level-triggered collection revision scan must stay removed');
 assert.match(craftWorkspace, /expandCraftStructure\(staged,template\)/);
-assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=39'\)/);
+assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=40'\)/);
 assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations belong to craft-workspace.js');
 assert.match(app, /!elementPalette.canUse\(symbol\)/);
 assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
