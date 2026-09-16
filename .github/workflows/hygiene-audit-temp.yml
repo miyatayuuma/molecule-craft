@@ -15,90 +15,35 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Existing hygiene guardrail
-        run: node tests/repository-hygiene.test.mjs
-      - name: Focused migration and stale contract scan
+      - name: Concise hygiene candidate report
         shell: bash
         run: |
-          echo '=== learningNote references ==='
-          git grep -n 'learningNote' -- . || true
-          echo '=== catalog count literals ==='
-          git grep -n -E '(^|[^0-9])(129|130|135)([^0-9]|$)' -- '*.js' '*.mjs' '*.json' '*.md' '*.yml' '*.yaml' || true
-          echo '=== launch relay / legacy frontier / warp terms ==='
-          git grep -n -Ei 'synthetic.{0,20}(change|click)|dispatchEvent\([^\n]*(change|click)|\.click\(\)|warp|legacy.{0,30}frontier|frontier.{0,30}destination|launch-veil' -- src index.html tests || true
-          echo '=== temporary/debug residue terms ==='
-          git grep -n -Ei '\b(TODO|FIXME|TEMPORARY|TEMP|DEBUG)\b|console\.log\(' -- src scripts tests .github docs README.md AGENTS.md || true
-          echo '=== resonance / formal charge implementation references ==='
-          git grep -n -Ei 'resonance|formal.?charge|nitro|ozone|arc' -- src tests data/encyclopedia.json data/molecules.json || true
-          echo '=== tracked suspicious filenames ==='
-          git ls-files | grep -Ei '(^|/)(tmp|temp|debug|scratch|handoff|progress)(/|\.|$)|screenshot|test-results|\.bak$|\.old$' || true
-      - name: Structural authority and orphan candidate scan
+          echo '=== CATALOG LITERALS ==='
+          git grep -n -E '(^|[^0-9])(129|130|135)([^0-9]|$)' -- '*.js' '*.mjs' '*.json' '*.md' '*.yml' '*.yaml' | grep -v '^data/molecules.json:' | head -200 || true
+          echo '=== LEGACY / COMPAT / FALLBACK IN SRC ==='
+          git grep -n -Ei '\b(legacy|compat|fallback|obsolete|deprecated|warp)\b' -- src | head -240 || true
+          echo '=== LAUNCH / FRONTIER DOM CONTRACT ==='
+          git grep -n -E 'expedition-anchor|launch-veil|synthetic|\.click\(\)|dispatchEvent\(' -- src index.html tests | head -260 || true
+          echo '=== RESONANCE OLD-NAMING CANDIDATES ==='
+          git grep -n -E 'legacySharedBond|sharedBondCurves|distributedResonanceBondLines|resonance.*arc|arc.*resonance' -- src scripts tests | head -220 || true
+          echo '=== LEARNING NOTE OUTSIDE DB ==='
+          git grep -n 'learningNote' -- . ':(exclude)data/molecules.json' || true
+          echo '=== TEMP / DEBUG PROD TERMS ==='
+          git grep -n -Ei '\b(TODO|FIXME|TEMPORARY|DEBUG)\b|console\.log\(' -- src scripts .github | head -220 || true
+      - name: Production data and asset authority summary
         run: |
           node <<'NODE'
           const fs=require('fs'),path=require('path');
-          const root=process.cwd();
-          const all=[];
-          function walk(dir='.'){
-            for(const e of fs.readdirSync(dir,{withFileTypes:true})){
-              if(e.name==='.git'||e.name==='node_modules')continue;
-              const p=path.join(dir,e.name).replaceAll('\\','/');
-              if(e.isDirectory())walk(p); else all.push(p.replace(/^\.\//,''));
-            }
-          }
-          walk();
-          const textFiles=all.filter(p=>/\.(?:js|mjs|cjs|html|css|json|md|ya?ml|webmanifest)$/.test(p));
-          const texts=new Map(textFiles.map(p=>[p,fs.readFileSync(p,'utf8')]));
-          const molecules=JSON.parse(texts.get('data/molecules.json'));
-          const encyclopedia=JSON.parse(texts.get('data/encyclopedia.json'));
-          const learning=molecules.filter(m=>Object.hasOwn(m,'learningNote'));
-          const learningConsumers=[...texts].filter(([p,t])=>p!=='data/molecules.json'&&t.includes('learningNote')).map(([p])=>p);
-          console.log('CATALOG_COUNT',molecules.length);
-          console.log('ENCYCLOPEDIA_ENTRIES',Array.isArray(encyclopedia)?encyclopedia.length:Object.keys(encyclopedia).length);
-          console.log('LEARNING_NOTE_COUNT',learning.length,'CONSUMERS',learningConsumers);
-
-          const modelFiles=all.filter(p=>p.startsWith('assets/models/molecule-')&&p.endsWith('.svg'));
-          const expected=new Set(molecules.map(m=>`assets/models/molecule-${m.id}.svg`));
-          console.log('MODEL_ASSET_COUNT',modelFiles.length);
-          console.log('ORPHAN_MODEL_ASSETS',modelFiles.filter(p=>!expected.has(p)));
-          console.log('MISSING_MODEL_ASSETS',[...expected].filter(p=>!modelFiles.includes(p)));
-
-          const jsFiles=all.filter(p=>/^src\/.*\.js$/.test(p));
-          const outsideSource=[...texts].filter(([p])=>!p.startsWith('src/'));
-          const sourceTexts=new Map(jsFiles.map(p=>[p,texts.get(p)]));
-          const exported=[];
-          for(const [p,t] of sourceTexts){
-            for(const m of t.matchAll(/\bexport\s+(?:async\s+)?(?:function|class|const|let|var)\s+([A-Za-z_$][\w$]*)/g))exported.push([p,m[1]]);
-            for(const m of t.matchAll(/\bexport\s*\{([^}]+)\}/g))for(const bit of m[1].split(',')){const name=bit.trim().split(/\s+as\s+/)[0];if(/^[A-Za-z_$][\w$]*$/.test(name))exported.push([p,name]);}
-          }
-          const exportCandidates=[];
-          for(const [p,name] of exported){
-            const re=new RegExp(`\\b${name.replace(/[$]/g,'\\$&')}\\b`,'g');
-            let refs=0;
-            for(const [q,t] of texts){if(q===p)continue;refs+=(t.match(re)||[]).length;}
-            if(refs===0)exportCandidates.push(`${p}:${name}`);
-          }
-          console.log('EXPORTED_IDENTIFIERS_WITH_ZERO_OTHER_TEXT_REFS',exportCandidates);
-
-          const cssFiles=all.filter(p=>p.endsWith('.css'));
-          const nonCss=[...texts].filter(([p])=>!p.endsWith('.css'));
-          const cssClassCandidates=[];
-          const cssIdCandidates=[];
-          for(const p of cssFiles){
-            const t=texts.get(p);
-            const classes=new Set([...t.matchAll(/\.([A-Za-z_-][\w-]*)/g)].map(m=>m[1]));
-            const ids=new Set([...t.matchAll(/#([A-Za-z_-][\w-]*)/g)].map(m=>m[1]));
-            for(const c of classes)if(!nonCss.some(([,s])=>s.includes(c)))cssClassCandidates.push(`${p}:.${c}`);
-            for(const id of ids)if(!nonCss.some(([,s])=>s.includes(id)))cssIdCandidates.push(`${p}:#${id}`);
-          }
-          console.log('CSS_CLASS_ZERO_TEXT_REF_CANDIDATES',cssClassCandidates);
-          console.log('CSS_ID_ZERO_TEXT_REF_CANDIDATES',cssIdCandidates);
-
-          const html=texts.get('index.html')||'';
-          const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
-          const outsideHtml=[...texts].filter(([p])=>p!=='index.html');
-          console.log('HTML_IDS_WITH_ZERO_OTHER_TEXT_REF',ids.filter(id=>!outsideHtml.some(([,t])=>t.includes(id))));
+          const molecules=JSON.parse(fs.readFileSync('data/molecules.json','utf8'));
+          const encyclopedia=JSON.parse(fs.readFileSync('data/encyclopedia.json','utf8'));
+          const entries=encyclopedia.molecules??encyclopedia;
+          console.log('catalog',molecules.length,'encyclopedia',Object.keys(entries).length,'learningNote',molecules.filter(x=>Object.hasOwn(x,'learningNote')).length);
+          const models=fs.readdirSync('assets/models').filter(x=>/^molecule-.*\.svg$/.test(x));
+          const expected=new Set(molecules.map(x=>`molecule-${x.id}.svg`));
+          console.log('models',models.length,'orphan',models.filter(x=>!expected.has(x)),'missing',[...expected].filter(x=>!models.includes(x)));
           NODE
-      - name: Generated asset and PWA authority checks
+      - name: Existing hygiene and generated asset guardrails
         run: |
+          node tests/repository-hygiene.test.mjs
           node scripts/build-precache.mjs --check
           node tests/pwa.test.mjs
