@@ -17,6 +17,8 @@ const nitrobenzene=molecules.nitrobenzene;
 if(nitrobenzene?.details?.[0])nitrobenzene.details[0].body='ニトロ基内部では共鳴により電子密度がO–N–O全体へ非局在化し、2本のN–O結合は等価に近づく。さらにニトロ基は芳香環から電子密度を引くため、ベンゼンより芳香族置換反応が起こりにくくなり、位置選択性も変わる。';
 const orthoNitrotoluene=molecules['2-nitrotoluene'];
 if(orthoNitrotoluene?.details?.[0])orthoNitrotoluene.details[0].body='CH₃基とNO₂基が隣接する1,2置換ベンゼンで、2つの置換基の電子効果と立体反発が分子の形と反応性へ影響する。ニトロ基内部では共鳴により電子密度がO–N–O領域へ非局在化し、2本のN–O結合は等価に近い。';
+const ozone=molecules.ozone;
+if(ozone?.details?.[0])ozone.details[0].body='O₃はO=O⁺–O⁻と⁻O–O⁺=Oの2つの等価なLewis寄与構造で表せる。これらは同じ電子状態を別々に表した寄与構造で、実在構造ではπ電子と電荷が3個のOにまたがって非局在化し、2本のO–O結合は等価に近い。';
 const sourceIds=Object.keys(source.molecules??{}),reviewIds=Object.keys(molecules);
 if(sourceIds.length!==135||reviewIds.length!==135)throw new Error(`expected 135 molecules, source=${sourceIds.length}, review=${reviewIds.length}`);
 const missing=sourceIds.filter(id=>!molecules[id]),extra=reviewIds.filter(id=>!source.molecules[id]);
