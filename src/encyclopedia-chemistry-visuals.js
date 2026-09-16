@@ -46,21 +46,24 @@ function atomLabel(owner,svg,x,y,symbol,charge=null,{partial=false}={}){
   addText(owner,svg,x,y,symbol,{'font-size':24,'font-weight':700,class:'atom-label'});
   if(charge){addText(owner,svg,x+18,y-17,charge,{'font-size':partial?14:18,'font-weight':700,class:partial?'partial-charge':'formal-charge','data-charge-kind':partial?'partial':'formal'});}
 }
-function drawDoubleBond(owner,svg,x1,y1,x2,y2){
+function drawDoubleBond(owner,svg,x1,y1,x2,y2,attrs={}){
   const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy)||1,ox=-dy/len*3.2,oy=dx/len*3.2;
-  line(owner,svg,x1+ox,y1+oy,x2+ox,y2+oy,{stroke:'#9eafc5','stroke-width':2.4,'stroke-linecap':'round'});
-  line(owner,svg,x1-ox,y1-oy,x2-ox,y2-oy,{stroke:'#9eafc5','stroke-width':2.4,'stroke-linecap':'round'});
+  line(owner,svg,x1+ox,y1+oy,x2+ox,y2+oy,{stroke:'#9eafc5','stroke-width':2.4,'stroke-linecap':'round',...attrs});
+  line(owner,svg,x1-ox,y1-oy,x2-ox,y2-oy,{stroke:'#9eafc5','stroke-width':2.4,'stroke-linecap':'round',...attrs});
 }
-function drawSingleBond(owner,svg,x1,y1,x2,y2){line(owner,svg,x1,y1,x2,y2,{stroke:'#9eafc5','stroke-width':3,'stroke-linecap':'round'});}
+function drawSingleBond(owner,svg,x1,y1,x2,y2,attrs={}){line(owner,svg,x1,y1,x2,y2,{stroke:'#9eafc5','stroke-width':3,'stroke-linecap':'round',...attrs});}
 function drawNitroContributor(owner,svg,cx,cy,flip=false){
-  const n={x:cx,y:cy},r={x:cx-47,y:cy},top={x:cx+43,y:cy-29},bottom={x:cx+43,y:cy+29};
-  drawSingleBond(owner,svg,r.x+13,r.y,n.x-14,n.y);flip?drawSingleBond(owner,svg,n.x+14,n.y+7,bottom.x-15,bottom.y-7):drawDoubleBond(owner,svg,n.x+13,n.y-7,top.x-14,top.y+7);
-  flip?drawDoubleBond(owner,svg,n.x+13,n.y-7,top.x-14,top.y+7):drawSingleBond(owner,svg,n.x+14,n.y+7,bottom.x-15,bottom.y-7);
+  const n={x:cx,y:cy},r={x:cx-47,y:cy},top={x:cx+43,y:cy-29},bottom={x:cx+43,y:cy+29},contributor=flip?'B':'A';
+  const attrs=branch=>({'data-resonance-contributor':contributor,'data-resonance-branch':branch});
+  drawSingleBond(owner,svg,r.x+13,r.y,n.x-14,n.y);
+  if(flip){drawSingleBond(owner,svg,n.x+13,n.y-7,top.x-14,top.y+7,attrs('top'));drawDoubleBond(owner,svg,n.x+14,n.y+7,bottom.x-15,bottom.y-7,attrs('bottom'));}
+  else{drawDoubleBond(owner,svg,n.x+13,n.y-7,top.x-14,top.y+7,attrs('top'));drawSingleBond(owner,svg,n.x+14,n.y+7,bottom.x-15,bottom.y-7,attrs('bottom'));}
   atomLabel(owner,svg,r.x,r.y+7,'R');atomLabel(owner,svg,n.x,n.y+7,'N','+');atomLabel(owner,svg,top.x,top.y+7,'O',flip?'−':null);atomLabel(owner,svg,bottom.x,bottom.y+7,'O',flip?null:'−');
 }
 function drawOzoneContributor(owner,svg,cx,cy,flip=false){
-  const left={x:cx-52,y:cy},mid={x:cx,y:cy},right={x:cx+52,y:cy};
-  if(flip){drawDoubleBond(owner,svg,left.x+14,left.y,mid.x-14,mid.y);drawSingleBond(owner,svg,mid.x+14,mid.y,right.x-14,right.y);}else{drawSingleBond(owner,svg,left.x+14,left.y,mid.x-14,mid.y);drawDoubleBond(owner,svg,mid.x+14,mid.y,right.x-14,right.y);}
+  const left={x:cx-52,y:cy},mid={x:cx,y:cy},right={x:cx+52,y:cy},contributor=flip?'B':'A';
+  const attrs=branch=>({'data-resonance-contributor':contributor,'data-resonance-branch':branch});
+  if(flip){drawDoubleBond(owner,svg,left.x+14,left.y,mid.x-14,mid.y,attrs('left'));drawSingleBond(owner,svg,mid.x+14,mid.y,right.x-14,right.y,attrs('right'));}else{drawSingleBond(owner,svg,left.x+14,left.y,mid.x-14,mid.y,attrs('left'));drawDoubleBond(owner,svg,mid.x+14,mid.y,right.x-14,right.y,attrs('right'));}
   atomLabel(owner,svg,left.x,left.y+7,'O',flip?null:'−');atomLabel(owner,svg,mid.x,mid.y+7,'O','+');atomLabel(owner,svg,right.x,right.y+7,'O',flip?'−':null);
 }
 function drawNitroHybrid(owner,svg,cx,cy){
