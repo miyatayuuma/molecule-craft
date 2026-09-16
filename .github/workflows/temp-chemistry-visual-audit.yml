@@ -1,0 +1,28 @@
+name: Temporary chemistry visual audit
+on:
+  push:
+    branches:
+      - task/encyclopedia-chemistry-detail-visual-grammar-work
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Audit target metadata and ids
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const enc=JSON.parse(fs.readFileSync('data/encyclopedia.json','utf8'));
+          const mols=JSON.parse(fs.readFileSync('data/molecules.json','utf8'));
+          const targets=['benzene','toluene','nitrobenzene','ozone','nitromethane','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene','carbon-monoxide','water','hydrogen-chloride','ethanol','acetone','acetaldehyde','sulfur-dioxide','sulfur-trioxide','sulfuric-acid'];
+          for(const id of targets){
+            const r=mols.find(x=>x.id===id), e=enc.molecules[id];
+            console.log('TARGET',id,!!r,r?.formula,e?.concepts,e?.notes,e?.visuals);
+          }
+          for(const concept of ['aromaticity','resonance','formal-charge','polarity']){
+            console.log('\nCONCEPT',concept,Object.entries(enc.molecules).filter(([,e])=>e.concepts?.includes(concept)).map(([id])=>id).join(','));
+          }
+          NODE
+      - name: Audit rendering seams
+        run: |
+          grep -R -n -E "sharedBondCurves|sharedGroups|createChargeLabel|atomBondState|chemistry-detail|noteDefinitions|aromaticRing" src tests styles.css | head -220
