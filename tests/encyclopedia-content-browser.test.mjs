@@ -27,7 +27,7 @@ try{
   const screenshot=async name=>{const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await mkdir(outputDir,{recursive:true});await writeFile(join(outputDir,name),Buffer.from(shot.data,'base64'));};
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await send('Page.navigate',{url:`http://127.0.0.1:${port}/__encyclopedia_content_fixture__`});await pause(150);
   const targetIds=['water','carbon-monoxide','benzene','cyclopropane','nitromethane','nitrobenzene','ozone','sulfuric-acid','n-butane','isobutane'];
-  const initialized=await evaluate(`(async()=>{const chemistry=await import('/src/chemistry.js?v=20'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return{ok:false};const records=chemistry.moleculeCatalog(),ids=${JSON.stringify(targetIds)},save={schemaVersion:3,discoveredMolecules:ids.map((id,index)=>({id,at:1700000000000+index,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]},data=new Map([['molecule-craft.collection.v1',JSON.stringify(save)]]),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};const {createCollectionUI}=await import('/src/collection-ui.js?content-architecture=1');window.__collection=await createCollectionUI({records,storage,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:ids,hints:[]})});return{ok:true};})()`);assert.deepEqual(initialized,{ok:true});
+  const initialized=await evaluate(`(async()=>{const chemistry=await import('/src/chemistry.js?v=20'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return{ok:false};const records=chemistry.moleculeCatalog(),ids=${JSON.stringify(['water','carbon-monoxide','benzene','cyclopropane','nitromethane','nitrobenzene','ozone','sulfuric-acid','n-butane','isobutane'])},save={schemaVersion:3,discoveredMolecules:ids.map((id,index)=>({id,at:1700000000000+index,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]},data=new Map([['molecule-craft.collection.v1',JSON.stringify(save)]]),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};const {createCollectionUI}=await import('/src/collection-ui.js?content-architecture=1');window.__collection=await createCollectionUI({records,storage,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:ids,hints:[]})});return{ok:true};})()`);assert.deepEqual(initialized,{ok:true});
 
   const expected={
     'water':[],
@@ -54,8 +54,14 @@ try{
     if(id==='n-butane')assert(inspected.buttons.some(text=>/イソブタン/.test(text)),`${id}: structural-isomer link must remain available`);
     if(id==='isobutane')assert(inspected.buttons.some(text=>/n-ブタン|ブタン/.test(text)),`${id}: structural-isomer link must remain available`);
     if(['water','nitrobenzene','ozone'].includes(id))await screenshot(`${id}-detail-mobile.png`);
-    await evaluate(`document.querySelector('.molecule-detail-return').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`);for(let i=0;i<30;i++){await pause(50);if(await evaluate(`!!document.querySelector('.graph-node.focus[data-graph-id=${JSON.stringify(id)}]')`))break;}
-    assert.equal(await evaluate(`!!document.querySelector('.graph-node.focus[data-graph-id=${JSON.stringify(id)}]')`),true,`${id}: Detail → Graph must return to the current molecule`);
+    await evaluate(`document.querySelector('.molecule-detail-return').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`);
+    let settled=false;
+    for(let i=0;i<45;i++){
+      await pause(50);
+      settled=await evaluate(`document.body.dataset.encyclopediaMoleculeOwner==='graph'&&document.querySelector('.graph-node.focus')?.dataset.graphId===${JSON.stringify(id)}&&!document.querySelector('.encyclopedia-molecule-transition')`);
+      if(settled)break;
+    }
+    assert.equal(settled,true,`${id}: Detail → Graph transition must fully settle on the current molecule before the next open`);
   }
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
 console.log('Encyclopedia content browser validation passed: 10 representative molecules, mobile Summary → Chemistry Detail → conditional notes → Graph return, including structural-isomer navigation.');
