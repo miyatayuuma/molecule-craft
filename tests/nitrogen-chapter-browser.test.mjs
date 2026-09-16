@@ -66,7 +66,7 @@ try{
 
   // Visit the late Critical Insight alcove and verify the live signal remains spatially
   // attached to it. The lifecycle itself is covered by the dedicated Critical browser test.
-  const insight=await evaluate(`(()=>{const run=globalThis.__nitrogenChapterRun,s=run.map.signals.find(s=>s.region==='nitrogen');return {distance:Math.hypot(s.x-${NITROGEN_INSIGHT_AREA.x},s.y-${NITROGEN_INSIGHT_AREA.y}),x:s.x,y:s.y};})()`);assert.ok(insight.distance<1);
+  const insight=await evaluate(`(()=>{const run=globalThis.__nitrogenChapterRun,s=run.map.signals.find(s=>s.region==='nitrogen');return {distance:Math.hypot(s.x-(${NITROGEN_INSIGHT_AREA.x}),s.y-(${NITROGEN_INSIGHT_AREA.y})),x:s.x,y:s.y};})()`);assert.ok(insight.distance<1);
   const basinDistance=Math.hypot(NITROGEN_RARE_CL_SITE.x-NITROGEN_HIGH_DENSITY_POCKET.x,NITROGEN_RARE_CL_SITE.y-NITROGEN_HIGH_DENSITY_POCKET.y);assert.ok(basinDistance>150,'Cl should reward deeper side exploration beyond the N pocket');
   await evaluate(`(()=>{const run=globalThis.__nitrogenChapterRun;Object.assign(run.player,{x:${NITROGEN_RARE_CL_SITE.x},y:${NITROGEN_RARE_CL_SITE.y},vx:0,vy:0,speed:0});return true;})()`);await waitFor(`globalThis.__nitrogenChapterRun?.rareSpecimens?.some(s=>s.id==='rare-cl-nitrogen-pocket')===true`,'Cl anomaly scan did not complete in production browser',40);
   const clCarry=await evaluate(`(()=>({cargo:globalThis.__nitrogenChapterRun.rareCargo.Cl,message:document.querySelector('#veil-message')?.getAttribute('aria-label')??'',hud:document.querySelector('#veil-minerals')?.textContent??''}))()`);assert.equal(clCarry.cargo,1);assert.match(clCarry.message,/SPECIMEN SECURED · Cl ×1/);assert.match(clCarry.hud,/RARE Cl 1/);
