@@ -1,0 +1,60 @@
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {spawn,spawnSync} from 'node:child_process';
+import {extname,join,normalize,resolve} from 'node:path';
+import {tmpdir} from 'node:os';
+import {fileURLToPath} from 'node:url';
+
+const root=resolve(fileURLToPath(new URL('..',import.meta.url))),outputDir=join(root,'test-results','encyclopedia-chemistry-visuals');
+const indexHtml=await readFile(join(root,'index.html'),'utf8';
+const fixtureHtml=indexHtml.replace(/\s*<script type="module" src="\.\/src\/(?:app|pwa)\.js[^\"]*"><\/script>/g,'');
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
+const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);if(pathname==='/__chemistry_visual_fixture__'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});res.end(fixtureHtml);return;}const relative=pathname==='/'?'index.html':pathname.replace(/^\/+/,''),file=normalize(join(root,relative));if(!file.startsWith(root)){res.writeHead(403).end();return;}const body=await readFile(file);res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);}catch{res.writeHead(404).end('not found');}});
+await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address();
+let chrome='';for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
+assert.ok(chrome,'Chromium is required for Encyclopedia chemistry visual validation');
+const profile=await mkdtemp(join(tmpdir(),'molecule-craft-chemistry-visual-')),debugPort=9244;let child=null,socket=null;const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+try{
+  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});let tabs=null;
+  for(let attempt=0;attempt<120;attempt++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}await pause(100);}assert.ok(tabs?.length,'DevTools endpoint did not become ready');
+  socket=new WebSocket(tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl??tabs[0].webSocketDebuggerUrl);await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(new Error('DevTools websocket timeout')),5000);socket.addEventListener('open',()=>{clearTimeout(timer);ok();},{once:true});socket.addEventListener('error',fail,{once:true});});
+  let sequence=0;const pending=new Map();socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(new Error(message.error.message)):task.resolve(message.result);}});
+  const send=(method,params={})=>new Promise((ok,fail)=>{const id=++sequence;pending.set(id,{resolve:ok,reject:fail});socket.send(JSON.stringify({id,method,params}));});
+  const evaluate=async expression=>{const response=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(response.exceptionDetails)throw new Error(response.exceptionDetails.exception?.description??response.exceptionDetails.text);return response.result?.value;};
+  const waitFor=async(expression,message,attempts=100)=>{for(let i=0;i<attempts;i++){try{if(await evaluate(expression))return;}catch{}await pause(100);}throw new Error(message);};
+  const screenshot=async name=>{const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await mkdir(outputDir,{recursive:true});await writeFile(join(outputDir,name),Buffer.from(shot.data,'base64'));};
+  await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await send('Page.navigate',{url:`http://127.0.0.1:${port}/__chemistry_visual_fixture__`});await pause(150);
+  const ids=['benzene','toluene','water','hydrogen-chloride','ethanol','acetone','carbon-monoxide','nitromethane','ozone','nitrobenzene','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene','sulfur-dioxide','sulfur-trioxide','sulfuric-acid'];
+  const initialized=await evaluate(`(async()=>{const chemistry=await import('/src/chemistry.js?v=20'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return{ok:false};const records=chemistry.moleculeCatalog(),ids=${JSON.stringify(['benzene','toluene','water','hydrogen-chloride','ethanol','acetone','carbon-monoxide','nitromethane','ozone','nitrobenzene','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene','sulfur-dioxide','sulfur-trioxide','sulfuric-acid'])},save={schemaVersion:3,discoveredMolecules:ids.map((id,index)=>({id,at:1700000000000+index,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]},data=new Map([['molecule-craft.collection.v1',JSON.stringify(save)]]),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};const {createCollectionUI}=await import('/src/collection-ui.js?chemistry-visual-browser=1');window.__collection=await createCollectionUI({records,storage,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:ids,hints:[]})});return{ok:true};})()`);assert.deepEqual(initialized,{ok:true});
+
+  async function inspect(id,{normalShot=false,detailShot=false}={}){
+    assert.equal(await evaluate(`window.__collection.openMolecule(${JSON.stringify(id)})`),true,`${id}: open`);
+    await waitFor(`document.querySelector('.molecule-detail-return')?.dataset.viewerReady==='true'`,`${id}: live 3D viewer did not become ready`,120);
+    if(normalShot)await screenshot(`${id}-normal-mobile.png`);
+    await evaluate(`document.querySelector('.detail-extras > summary').click()`);await pause(80);
+    const result=await evaluate(`(()=>{const visuals=[...document.querySelectorAll('.chemistry-concept-visual')].map(node=>({type:node.dataset.visualType,text:node.textContent,aromatic:!!node.querySelector('[data-aromatic-circle="true"]'),arc:!!node.querySelector('[data-delocalization="three-center"]'),formal:[...node.querySelectorAll('[data-charge-kind="formal"]')].map(n=>n.textContent),partial:[...node.querySelectorAll('[data-charge-kind="partial"]')].map(n=>n.textContent),arrow:node.querySelector('[data-resonance-arrow="true"]')?.textContent??''})),detail=document.querySelector('#collection-detail');return{visuals,width:detail.clientWidth,scrollWidth:detail.scrollWidth,docWidth:document.documentElement.clientWidth,docScrollWidth:document.documentElement.scrollWidth};})()`);
+    assert(result.scrollWidth<=result.width+1,`${id}: Chemistry visual must not overflow detail on mobile`);assert(result.docScrollWidth<=result.docWidth+1,`${id}: Chemistry visual must not overflow page on mobile`);
+    if(detailShot){await evaluate(`document.querySelector('.chemistry-concept-visual:last-of-type')?.scrollIntoView({block:'center'})`);await pause(60);await screenshot(`${id}-detail-mobile.png`);}
+    return result;
+  }
+
+  const benzene=await inspect('benzene',{detailShot:true});assert.deepEqual(benzene.visuals.map(v=>v.type),['aromaticity']);assert(benzene.visuals[0].aromatic);assert.equal(benzene.visuals[0].arrow,'↔');
+  const water=await inspect('water',{detailShot:true});assert.deepEqual(water.visuals.map(v=>v.type),['polarity']);assert.match(water.visuals[0].text,/δ\+/);assert.match(water.visuals[0].text,/δ−/);assert.equal(water.visuals[0].formal.length,0);
+  for(const id of ['hydrogen-chloride','ethanol','acetone']){const result=await inspect(id);assert.deepEqual(result.visuals.map(v=>v.type),['polarity'],`${id}: one curated polarity diagram`);assert(result.visuals[0].partial.length>0,`${id}: δ annotations`);}
+  const co=await inspect('carbon-monoxide',{detailShot:true});assert.deepEqual(co.visuals.map(v=>v.type),['formal-charge']);assert.match(co.visuals[0].text,/C|形式電荷/);assert.match(co.visuals[0].text,/−/);assert.match(co.visuals[0].text,/\+/);assert.equal(co.visuals[0].partial.length,0);
+  const nitro=await inspect('nitromethane',{normalShot:true,detailShot:true});assert.deepEqual(nitro.visuals.map(v=>v.type),['resonance']);assert(nitro.visuals[0].arc);assert.equal(nitro.visuals[0].arrow,'↔');assert.match(nitro.visuals[0].text,/N|形式|Lewis/);
+  const ozone=await inspect('ozone',{normalShot:true,detailShot:true});assert.deepEqual(ozone.visuals.map(v=>v.type),['resonance']);assert(ozone.visuals[0].arc);assert.equal(ozone.visuals[0].arrow,'↔');
+  const nitrobenzene=await inspect('nitrobenzene',{normalShot:true,detailShot:true});assert.deepEqual(nitrobenzene.visuals.map(v=>v.type),['aromaticity','resonance']);assert(nitrobenzene.visuals[0].aromatic&&nitrobenzene.visuals[1].arc,'nitrobenzene must combine aromatic circle grammar and nitro three-center resonance grammar');
+  for(const id of ['2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene']){const result=await inspect(id);assert(result.visuals.some(v=>v.type==='aromaticity')&&result.visuals.some(v=>v.type==='resonance'),`${id}: aromatic + nitro resonance visuals`);}
+  for(const id of ['sulfur-dioxide','sulfur-trioxide','sulfuric-acid']){const result=await inspect(id);assert.equal(result.visuals.some(v=>v.type==='resonance'),false,`${id}: sulfur oxo must keep existing visual contract, not the new nitro/ozone diagram`);}
+  const toluene=await inspect('toluene');assert.deepEqual(toluene.visuals.map(v=>v.type),['aromaticity']);assert.equal(toluene.visuals.some(v=>v.partial.length),false);
+
+  const assets=await evaluate(`(async()=>Object.fromEntries(await Promise.all(${JSON.stringify(['nitromethane','ozone','nitrobenzene','sulfur-dioxide','carbon-monoxide'])}.map(async id=>[id,await fetch('/assets/models/molecule-'+id+'.svg').then(r=>r.text())]))))()`);
+  for(const id of ['nitromethane','ozone','nitrobenzene']){assert.match(assets[id],/data-resonance-three-center="true"/,`${id}: generated Encyclopedia structure must use one three-center resonance arc`);assert.doesNotMatch(assets[id],/<text[^>]*>[+−]<\/text>/,`${id}: resonance hybrid asset must not pin a formal charge to one contributor`);}
+  assert.doesNotMatch(assets['sulfur-dioxide'],/data-resonance-three-center="true"/,'sulfur oxo must not adopt nitro/ozone primitive');assert.match(assets['carbon-monoxide'],/<text[^>]*>[+−]<\/text>/,'CO may retain its representative formal charges outside resonance-hybrid context');
+
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});const reduced=await inspect('nitromethane');assert(reduced.visuals[0].arc&&reduced.visuals[0].arrow==='↔','reduced motion must preserve resonance meaning without animation');
+  await evaluate(`document.querySelector('.molecule-detail-return').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`);await waitFor(`document.body.dataset.encyclopediaMoleculeOwner==='graph'&&document.querySelector('.graph-node.focus')?.dataset.graphId==='nitromethane'`,'Detail → Graph transition did not settle after chemistry visuals',80);
+}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
+console.log('Encyclopedia chemistry visual browser passed: mobile aromaticity, polarity, formal-charge and three-center resonance grammar; nitrobenzene coexistence; sulfur isolation; reduced-motion and Graph return.');
