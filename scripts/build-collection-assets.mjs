@@ -30,8 +30,8 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
   }
   for(const cycle of layout.aromaticCycles){const frame=aromaticRingFrame(THREE,cycle.map(i=>layout.atoms[i].point));if(!frame)continue;const points=aromaticRingPoints(frame).map(p=>project(p.clone().applyQuaternion(rotation)));shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path data-aromatic-ring="true" d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}Z" fill="none" stroke="#66d8dc" stroke-width="1.7"/>`});}
   for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){
-    const points=curve.map(p=>project(p.applyQuaternion(rotation))),marker=['nitro','ozone'].includes(shared.kind)?' data-resonance-three-center="true"':'';
-    shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path${marker} d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="#8ce7ee" stroke-opacity=".82" stroke-width="1.6" stroke-linecap="round"/>`});
+    const points=curve.map(p=>project(p.applyQuaternion(rotation))),threeCenter=['nitro','ozone'].includes(shared.kind),marker=threeCenter?' data-resonance-three-center="true"':'',opacity=threeCenter?'.82':'.65',width=threeCenter?'1.6':'1.2',cap=threeCenter?' stroke-linecap="round"':'';
+    shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path${marker} d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="#8ce7ee" stroke-opacity="${opacity}" stroke-width="${width}"${cap}/>`});
   }
   const defs=new Set();
   atoms.forEach((atom,i)=>{const {x,y,z}=projected[i],r=radii[i];defs.add(atom.element);shapes.push({z,svg:`<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#${atom.element})"/>`});});
