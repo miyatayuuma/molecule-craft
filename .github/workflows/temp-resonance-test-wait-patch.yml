@@ -11,28 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Wait for production interaction lifecycle
+      - name: Distinguish settlement from discovery UI lock
         run: |
           python - <<'PY'
           from pathlib import Path
           p=Path('tests/resonance-craft-interaction-browser.test.mjs')
           s=p.read_text()
-          marker="validation:molecule.validation().level,"
-          assert s.count(marker)==1, s.count(marker)
-          at=s.index(marker)+len(marker)
-          s=s[:at]+"\\n    locked:interactionLocked(),"+s[at:]
-          old="const next=await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot();return s.atoms.length===${before+1}?s.atoms[s.atoms.length-1]:null;})()`,`${symbol}: palette click did not add atom`);return next.id;"
-          new="const next=await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot();return s.atoms.length===${before+1}?s.atoms[s.atoms.length-1]:null;})()`,`${symbol}: palette click did not add atom`);await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${symbol}: CRAFT did not unlock after atom placement`,{attempts:220});return next.id;"
+          old="    locked:interactionLocked(),\\n    shared:sharedVisuals.length,"
+          new="    locked:interactionLocked(),\\n    settling:!!relaxation||!!bondTransition||!!frameTransition,\\n    shared:sharedVisuals.length,"
           assert s.count(old)==1, s.count(old)
           s=s.replace(old,new,1)
-          old="await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot(),b=s.bonds.find(item=>(item.a===${source.atomId}&&item.b===${target.atomId})||(item.a===${target.atomId}&&item.b===${source.atomId}));return b?.order===${expectedOrder};})()`,`${source.atomId}-${target.atomId}: pointer drag did not reach order ${expectedOrder}`,{attempts:220});await new Promise(r=>setTimeout(r,120));"
-          new="await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot(),b=s.bonds.find(item=>(item.a===${source.atomId}&&item.b===${target.atomId})||(item.a===${target.atomId}&&item.b===${source.atomId}));return b?.order===${expectedOrder};})()`,`${source.atomId}-${target.atomId}: pointer drag did not reach order ${expectedOrder}`,{attempts:220});await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${source.atomId}-${target.atomId}: CRAFT did not unlock after bond formation`,{attempts:220});"
+          old="await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${source.atomId}-${target.atomId}: CRAFT did not unlock after bond formation`,{attempts:220});};"
+          new="if(expectedOrder===2)await waitFor(`globalThis.__resonanceCraftDebug.snapshot().settling===false`,`${source.atomId}-${target.atomId}: resonance settlement did not finish`,{attempts:220});else await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${source.atomId}-${target.atomId}: CRAFT did not unlock after bond formation`,{attempts:220});};"
           assert s.count(old)==1, s.count(old)
           s=s.replace(old,new,1)
-          old="await waitFor(`globalThis.__resonanceCraftDebug.snapshot().atoms.length===0`,'CRAFT workspace was not empty');exceptions.length=0;"
-          new="await waitFor(`globalThis.__resonanceCraftDebug.snapshot().atoms.length===0`,'CRAFT workspace was not empty');await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,'CRAFT did not become interactive after empty-workspace load',{attempts:220});exceptions.length=0;"
-          assert s.count(old)==1, s.count(old)
-          p.write_text(s.replace(old,new,1))
+          p.write_text(s)
           PY
           node --check tests/resonance-craft-interaction-browser.test.mjs
           git diff --check
@@ -41,5 +34,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tests/resonance-craft-interaction-browser.test.mjs
-          git commit -m "Wait for CRAFT interaction lifecycle in resonance browser test"
+          git commit -m "Separate resonance settlement from discovery UI lock"
           git push
