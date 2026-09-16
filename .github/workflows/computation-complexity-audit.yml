@@ -1,0 +1,19 @@
+name: Computation complexity audit
+
+on:
+  push:
+    branches:
+      - audit/computation-complexity
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  complexity-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Node scaling audit
+        run: node tests/complexity-audit.mjs
