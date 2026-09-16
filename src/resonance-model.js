@@ -37,6 +37,21 @@ export function supportedResonanceGroups(source){
   return groups;
 }
 
+// CRAFT connection handles may expose one extra bond only while the current
+// graph is the exact all-single precursor of a supported resonance motif.
+// Returning partner ids (rather than widening N/O valence) keeps this authority
+// local to nitro and ozone completion.
+export function supportedResonanceCompletionPartners(source,id){
+  const graph=graphOf(source),center=graph.byId.get(id);if(!center)return[];
+  const ns=graph.adjacency.get(id)??[];
+  if(center.element==='N'&&ns.length===3){
+    const oxo=ns.filter(n=>terminalO(graph,n.id)),other=ns.filter(n=>!oxo.includes(n));
+    if(oxo.length===2&&other.length===1&&graph.byId.get(other[0].id)?.element==='C'&&other[0].order===1&&oxo.every(n=>n.order===1))return oxo.map(n=>n.id);
+  }
+  if(center.element==='O'&&ns.length===2&&ns.every(n=>terminalO(graph,n.id)&&n.order===1))return ns.map(n=>n.id);
+  return[];
+}
+
 export function supportedAtomState(source,id){
   for(const group of supportedResonanceGroups(source)){
     if(group.center===id)return group.kind==='ozone'?{charge:1,singles:0,pairs:1,kind:group.kind}:{charge:1,singles:0,pairs:0,kind:group.kind};
