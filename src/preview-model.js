@@ -1,6 +1,6 @@
 import { ELEMENTS } from './chemistry.js?v=20';
 import { ATOMIC_MODEL, bondLengthScale, geometryForAtom, atomBondState, nonbondedDistance } from './bonding-model.js?v=31';
-import { sharedOxoGroups } from './special-bonds.js?v=30';
+import { sharedOxoGroups } from './special-bonds.js?v=31';
 import { seedCraftCoordinates } from './craft-structures.js?v=31';
 import { createStructureSolver } from './structure-relaxation.js?v=32';
 
@@ -37,7 +37,8 @@ export function createPreviewModel(THREE, record) {
         const direction=choices[0];used.push(direction);ports.push({atom:port.atom,start:origin.clone().addScaledVector(direction,ELEMENTS[atoms[port.atom].element].radius*.72+.012),point:origin.clone().addScaledVector(direction,.95)});
       }
     }
-    return {atoms:atoms.map((atom,id)=>({...atom,charge:atomBondState(molecule,atom.id).charge,point:points[id]})),bonds:bonds.map(b=>({...b})),ports,aromaticCycles:solver.snapshot().aromaticCycles,sharedGroups:sharedOxoGroups(molecule)};
+    const sharedGroups=sharedOxoGroups(molecule),hybridChargeAtoms=new Set(sharedGroups.filter(group=>['nitro','ozone'].includes(group.kind)).flatMap(group=>[group.center,...group.ends]));
+    return {atoms:atoms.map((atom,id)=>({...atom,charge:hybridChargeAtoms.has(atom.id)?0:atomBondState(molecule,atom.id).charge,point:points[id]})),bonds:bonds.map(b=>({...b})),ports,aromaticCycles:solver.snapshot().aromaticCycles,sharedGroups};
   }
   return {step:()=>solver.step(.65,2),snapshot};
 }

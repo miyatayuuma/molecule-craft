@@ -64,6 +64,17 @@
         "geometry",
         "polarity",
         "hydrogen-bond"
+      ],
+      "visuals": [
+        {
+          "type": "polarity",
+          "motif": "water",
+          "target": "molecule",
+          "partialCharges": {
+            "oxygen": "δ−",
+            "hydrogens": "δ+"
+          }
+        }
       ]
     },
     "carbon-dioxide": {
@@ -98,6 +109,17 @@
         "bond-order",
         "formal-charge",
         "polarity"
+      ],
+      "visuals": [
+        {
+          "type": "formal-charge",
+          "motif": "carbon-monoxide",
+          "target": "co-bond",
+          "formalCharges": {
+            "left": -1,
+            "right": 1
+          }
+        }
       ]
     },
     "ammonia": {
@@ -146,6 +168,17 @@
       "concepts": [
         "polarity",
         "acid-base"
+      ],
+      "visuals": [
+        {
+          "type": "polarity",
+          "motif": "hydrogen-chloride",
+          "target": "h-cl-bond",
+          "partialCharges": {
+            "hydrogen": "δ+",
+            "chlorine": "δ−"
+          }
+        }
       ]
     },
     "hydrogen-fluoride": {
@@ -921,6 +954,17 @@
         "functional-group",
         "hydrogen-bond",
         "polarity"
+      ],
+      "visuals": [
+        {
+          "type": "polarity",
+          "motif": "alcohol",
+          "target": "hydroxyl-group",
+          "partialCharges": {
+            "oxygen": "δ−",
+            "hydroxylHydrogen": "δ+"
+          }
+        }
       ]
     },
     "2-propanol": {
@@ -1210,6 +1254,17 @@
       "concepts": [
         "functional-group",
         "polarity"
+      ],
+      "visuals": [
+        {
+          "type": "polarity",
+          "motif": "carbonyl",
+          "target": "carbonyl-group",
+          "partialCharges": {
+            "carbonylCarbon": "δ+",
+            "oxygen": "δ−"
+          }
+        }
       ]
     },
     "2-butanone": {
@@ -2063,6 +2118,17 @@
       ],
       "notes": [
         "resonance"
+      ],
+      "visuals": [
+        {
+          "type": "resonance",
+          "motif": "ozone",
+          "target": "ozone-chain",
+          "formalCharges": {
+            "center": 1,
+            "terminal": -1
+          }
+        }
       ]
     },
     "nitromethane": {
@@ -2086,6 +2152,17 @@
       ],
       "notes": [
         "resonance"
+      ],
+      "visuals": [
+        {
+          "type": "resonance",
+          "motif": "nitro",
+          "target": "nitro-group",
+          "formalCharges": {
+            "center": 1,
+            "terminal": -1
+          }
+        }
       ]
     },
     "nitrobenzene": {
@@ -2106,6 +2183,17 @@
       "notes": [
         "aromatic",
         "resonance"
+      ],
+      "visuals": [
+        {
+          "type": "resonance",
+          "motif": "nitro",
+          "target": "nitro-group",
+          "formalCharges": {
+            "center": 1,
+            "terminal": -1
+          }
+        }
       ]
     },
     "2-nitrotoluene": {
@@ -2121,11 +2209,23 @@
         "aromaticity",
         "functional-group",
         "resonance",
-        "positional-isomerism"
+        "positional-isomerism",
+        "formal-charge"
       ],
       "notes": [
         "aromatic",
         "resonance"
+      ],
+      "visuals": [
+        {
+          "type": "resonance",
+          "motif": "nitro",
+          "target": "nitro-group",
+          "formalCharges": {
+            "center": 1,
+            "terminal": -1
+          }
+        }
       ]
     },
     "2-4-dinitrotoluene": {
@@ -2146,6 +2246,17 @@
       "notes": [
         "aromatic",
         "resonance"
+      ],
+      "visuals": [
+        {
+          "type": "resonance",
+          "motif": "nitro",
+          "target": "nitro-group",
+          "formalCharges": {
+            "center": 1,
+            "terminal": -1
+          }
+        }
       ]
     },
     "2-4-6-trinitrotoluene": {
@@ -2170,6 +2281,17 @@
       "notes": [
         "aromatic",
         "resonance"
+      ],
+      "visuals": [
+        {
+          "type": "resonance",
+          "motif": "nitro",
+          "target": "nitro-group",
+          "formalCharges": {
+            "center": 1,
+            "terminal": -1
+          }
+        }
       ]
     }
   },

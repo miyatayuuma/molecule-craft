@@ -1,10 +1,10 @@
 // Build-time projections; the list never starts a renderer or solver.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createPreviewModel} from '../src/preview-model.js?v=31';
+import {createPreviewModel} from '../src/preview-model.js?v=32';
 import {ELEMENTS} from '../src/chemistry.js';
 import {aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js';
-import {specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=30';
+import {specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=31';
 import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8').then(JSON.parse);
 const records=await read('data/molecules.json'),parts=await read('data/craft-structures.json');
@@ -28,10 +28,10 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
       shapes.push({z:(a.z+b.z)/2-.03,svg:`<path d="M${n(a.x+ux*start+dx*offset)} ${n(a.y+uy*start+dy*offset)}L${n(b.x-ux*end+dx*offset)} ${n(b.y-uy*end+dy*offset)}" stroke="#90acbc" stroke-width="${n(Math.max(1.6,scale*.09))}" stroke-linecap="round"/>`});
     }
   }
-  for(const cycle of layout.aromaticCycles){const frame=aromaticRingFrame(THREE,cycle.map(i=>layout.atoms[i].point));if(!frame)continue;const points=aromaticRingPoints(frame).map(p=>project(p.clone().applyQuaternion(rotation)));shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}Z" fill="none" stroke="#66d8dc" stroke-width="1.7"/>`});}
-  for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point)){
-    const points=curve.map(p=>project(p.applyQuaternion(rotation)));
-    shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="#8ce7ee" stroke-opacity=".65" stroke-width="1.2"/>`});
+  for(const cycle of layout.aromaticCycles){const frame=aromaticRingFrame(THREE,cycle.map(i=>layout.atoms[i].point));if(!frame)continue;const points=aromaticRingPoints(frame).map(p=>project(p.clone().applyQuaternion(rotation)));shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path data-aromatic-ring="true" d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}Z" fill="none" stroke="#66d8dc" stroke-width="1.7"/>`});}
+  for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){
+    const points=curve.map(p=>project(p.applyQuaternion(rotation))),threeCenter=['nitro','ozone'].includes(shared.kind),marker=threeCenter?' data-resonance-three-center="true"':'',opacity=threeCenter?'.82':'.65',width=threeCenter?'1.6':'1.2',cap=threeCenter?' stroke-linecap="round"':'';
+    shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path${marker} d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="#8ce7ee" stroke-opacity="${opacity}" stroke-width="${width}"${cap}/>`});
   }
   const defs=new Set();
   atoms.forEach((atom,i)=>{const {x,y,z}=projected[i],r=radii[i];defs.add(atom.element);shapes.push({z,svg:`<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#${atom.element})"/>`});});

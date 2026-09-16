@@ -48,11 +48,21 @@ jobs:
         run: |
           node tests/encyclopedia-content-architecture.test.mjs
           node tests/encyclopedia-content-browser.test.mjs
+          node tests/encyclopedia-chemistry-visuals.test.mjs
+          node tests/encyclopedia-chemistry-visual-browser.test.mjs
           node tests/encyclopedia-graph-ui.test.mjs
           node tests/encyclopedia-graph-thumbnail-label.test.mjs
           node tests/encyclopedia-graph-thumbnail-label-browser.test.mjs
           node --test tests/encyclopedia-molecule-transition.test.mjs
           node tests/encyclopedia-transition-browser.test.mjs
+      - name: Upload Encyclopedia chemistry visual frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encyclopedia-chemistry-visuals
+          path: test-results/encyclopedia-chemistry-visuals
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload Encyclopedia Graph thumbnail frames
         if: always()
         uses: actions/upload-artifact@v4

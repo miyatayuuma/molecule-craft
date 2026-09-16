@@ -90,6 +90,11 @@ assert.equal(seen.size,graph.nodes.length,'All Graph nodes must remain reachable
 
 for(const id of ['ozone','nitromethane','nitrobenzene','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene']){
   const svg=await readFile(new URL(`assets/models/molecule-${id}.svg`,root),'utf8');
-  assert.match(svg,/[+−]/,`${id}: generated Encyclopedia asset must show formal charge`);
+  assert.match(svg,/data-resonance-three-center="true"/,`${id}: Encyclopedia hybrid asset must use the three-center resonance grammar`);
+  assert.doesNotMatch(svg,/<text[^>]*>[+−]<\/text>/,`${id}: Encyclopedia hybrid asset must not pin one Lewis contributor's formal charge`);
 }
-console.log('Resonance/formal-charge foundation passed: equivalence, validation, Target Match/hint, Graph reachability and charged assets.');
+const coSvg=await readFile(new URL('assets/models/molecule-carbon-monoxide.svg',root),'utf8');
+assert.match(coSvg,/<text[^>]*>[+−]<\/text>/,'CO keeps representative C−≡O+ formal charges outside resonance-hybrid context');
+const benzeneSvg=await readFile(new URL('assets/models/molecule-benzene.svg',root),'utf8');
+assert.match(benzeneSvg,/data-aromatic-ring="true"/,'Benzene keeps the aromatic inner-circle visual contract');
+console.log('Resonance/formal-charge foundation passed: equivalence, validation, Target Match/hint, Graph reachability, neutral hybrid assets and CO formal charge.');
