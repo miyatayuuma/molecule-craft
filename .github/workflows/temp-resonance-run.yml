@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Apply production changes
         run: |
-          python scripts/temp-resonance-implement.py
+          python scripts/temp-resonance-run2.py
           node scripts/build-molecule-db.mjs
           node scripts/build-collection-assets.mjs
           node scripts/export-molecule-graph.mjs
