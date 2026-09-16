@@ -46,6 +46,8 @@ jobs:
           node tests/capability-unlock.test.mjs
       - name: Encyclopedia graph UI
         run: |
+          node tests/encyclopedia-content-architecture.test.mjs
+          node tests/encyclopedia-content-browser.test.mjs
           node tests/encyclopedia-graph-ui.test.mjs
           node tests/encyclopedia-graph-thumbnail-label.test.mjs
           node tests/encyclopedia-graph-thumbnail-label-browser.test.mjs
