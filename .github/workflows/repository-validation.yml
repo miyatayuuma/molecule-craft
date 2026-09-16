@@ -77,6 +77,7 @@ jobs:
         run: |
           node tests/collection-persistence.test.mjs
           node tests/resources-persistence.test.mjs
+          node tests/tank-upgrades.test.mjs
       - name: Element authority / nitrogen chapter and FIELD
         run: |
           node tests/element-authority-n-foundation.test.mjs
