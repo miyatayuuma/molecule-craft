@@ -16,7 +16,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Apply readability and note cleanup patch
-        run: node scripts/patch-resonance-readability-followup.mjs
+        run: |
+          perl -0pi -e "s/  const noteKeys=/    const noteKeys=/; s/  if\(noteTexts\.length\)/    if(noteTexts.length)/" scripts/patch-resonance-readability-followup.mjs
+          node scripts/patch-resonance-readability-followup.mjs
       - name: Regenerate molecule thumbnails
         run: node scripts/build-collection-assets.mjs
       - name: Refresh PWA precache
