@@ -1,5 +1,5 @@
 // Display only: the graph keeps its integer bond orders for crafting/recognition.
-export const AROMATIC_STYLE = Object.freeze({color:0x67e8f9,cssColor:'#67e8f9',opacity:.9,glowOpacity:.12,tube:.025,glowTube:.065,segments:64});
+export const AROMATIC_STYLE = Object.freeze({color:0x67e8f9,cssColor:'#67e8f9',assetCssColor:'#66d8dc',opacity:.9,glowOpacity:.12,tube:.025,glowTube:.065,segments:64});
 const edgeKey=(a,b)=>`${Math.min(a,b)}:${Math.max(a,b)}`;
 
 export function aromaticBondKeys(cycles){
