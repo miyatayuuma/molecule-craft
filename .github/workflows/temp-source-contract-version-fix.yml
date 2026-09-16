@@ -1,0 +1,34 @@
+name: Temporary source contract version fix
+on:
+  push:
+    branches:
+      - fix/nitro-ozone-craft-resonance-reachability
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Update app cache-buster source contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/source-contracts.test.mjs')
+          s=p.read_text()
+          old='src\\/app\\.js\\?v=53'
+          new='src\\/app\\.js\\?v=54'
+          assert s.count(old)==1, s.count(old)
+          p.write_text(s.replace(old,new,1))
+          PY
+          node tests/source-contracts.test.mjs
+          node tests/persistence-boundary-source-contract.test.mjs
+          git diff --check
+      - name: Commit source contract update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/source-contracts.test.mjs
+          git commit -m "Update app version source contract"
+          git push
