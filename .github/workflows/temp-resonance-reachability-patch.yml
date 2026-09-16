@@ -22,7 +22,6 @@ jobs:
               assert actual==count, f'{path}: expected {count} occurrences, found {actual}: {old[:100]!r}'
               p.write_text(s.replace(old,new,count))
 
-          # Repair the preceding direct edit typo and keep supported resonance sites out of generic valence expansion.
           p=Path('src/bonding-model.js'); s=p.read_text()
           s=s.replace("return Math.max(2, Math.min(7, Math.round(energy / 165));", "return Math.max(2, Math.min(7, Math.round(energy / 165)));", 1)
           p.write_text(s)
@@ -74,7 +73,7 @@ jobs:
           node tests/resonance-formal-charge.test.mjs
           node tests/bond-state.test.mjs
           node tests/special-bonds-check.mjs
-          node tests/aromatic-rendering-check.mjs
+          node tests/aromatic-rendering-check.mjs vendor/three/three.module.min.js
           node --test tests/craft-target-match.test.mjs
           node --test tests/craft-target-hint.test.mjs
           node scripts/build-precache.mjs
