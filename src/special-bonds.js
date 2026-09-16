@@ -1,13 +1,17 @@
+import {supportedResonanceGroups} from './resonance-model.js?v=1';
+
 // Qualitative resonance notation, not an electron trajectory or orbital density.
-// Only equivalent terminal oxo bonds are grouped; S–OH is never included.
-export function sharedOxoGroups(molecule) {
+// Existing sulfur oxo groups keep their visual contract; nitro and ozone share
+// the same display primitive while formal charges are derived separately.
+function sulfurOxoGroups(molecule) {
   return molecule.atoms.filter(a => a.element === 'S').flatMap(atom => {
     const ns = molecule.neighbors(atom.id), used = molecule.bondOrderForAtom(atom.id);
     if (![4,6].includes(used)) return [];
     const ends = ns.filter(n => n.order === 2 && molecule.atoms.find(a => a.id === n.atomId)?.element === 'O' && molecule.neighbors(n.atomId).length === 1).map(n => n.atomId);
-    return ends.length >= 2 ? [{ center: atom.id, ends }] : [];
+    return ends.length >= 2 ? [{ kind:'sulfur-oxo', center: atom.id, ends }] : [];
   });
 }
+export function sharedOxoGroups(molecule) { return [...sulfurOxoGroups(molecule),...supportedResonanceGroups(molecule)]; }
 export const specialEdgeKeys = groups => new Set(groups.flatMap(g => g.ends.map(id => `${Math.min(g.center,id)}:${Math.max(g.center,id)}`)));
 
 export function sharedBondCurves(THREE, group, positionFor) {

@@ -4,7 +4,7 @@ import * as THREE from '../vendor/three/three.module.min.js';
 import {createPreviewModel} from '../src/preview-model.js?v=31';
 import {sharedBondCurves,createSharedBonds,updateSharedBonds} from '../src/special-bonds.js?v=30';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
-const cases=[['sulfur-dioxide',[117]],['sulfur-trioxide',[120,120,120]],['phosphoric-acid',Array(6).fill(109.47)],['sulfuric-acid',Array(6).fill(109.47)],['phosphorus-pentachloride',[...Array(6).fill(90),120,120,120,180]],['sulfur-hexafluoride',[...Array(12).fill(90),180,180,180]]];
+const cases=[['sulfur-dioxide',[117]],['sulfur-trioxide',[120,120,120]],['phosphoric-acid',Array(6).fill(109.47)],['sulfuric-acid',Array(6).fill(109.47)],['phosphorus-pentachloride',[...Array(6).fill(90),120,120,120,180]]];
 for(const[id,expected]of cases){
   const record=records.find(r=>r.id===id),model=createPreviewModel(THREE,record);
   for(let i=0;i<220;i++)model.step();const layout=model.snapshot(),center=layout.atoms[0].point;
@@ -23,4 +23,5 @@ for(const[id,expected]of cases){
     let disposed=0;resources.forEach(r=>{r.addEventListener('dispose',()=>disposed++);r.dispose();});assert.equal(disposed,12);
   }
 }
-console.log('Special geometry/display passed: all pair angles, SO3 plane, rotation, immutable bonds and graphics disposal.');
+assert.equal(records.some(record=>record.id==='sulfur-hexafluoride'),false,'Production-excluded SF6 must not be required by the production visual regression');
+console.log('Special geometry/display passed: production S/P geometry, SO3 plane, rotation, immutable bonds and graphics disposal.');

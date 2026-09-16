@@ -1,3 +1,5 @@
+import {supportedAtomState,supportsResonanceBondUpgrade} from './resonance-model.js?v=1';
+
 export const ATOMIC_MODEL = {
   H:  { valenceElectrons: 1, shell: 2,  preferredValences: [1],     electronegativity: 2.20, covalentRadius: 0.31 },
   C:  { valenceElectrons: 4, shell: 8,  preferredValences: [4],     electronegativity: 2.55, covalentRadius: 0.76 },
@@ -73,6 +75,7 @@ export function atomBondState(molecule, id, ports = 0) {
   if (!atom) return { singles: 0, pairs: 0, charge: 0, sites: [] };
   const used = molecule.bondOrderForAtom(id) + ports, model = ATOMIC_MODEL[atom.element];
   if (carbonMonoxidePartner(molecule, id)) return { singles: 0, pairs: 1, charge: atom.element === 'C' ? -1 : 1, sites: [] };
+  const supported=supportedAtomState(molecule,id);if(supported)return{singles:supported.singles,pairs:supported.pairs,charge:supported.charge,sites:[]};
   const singles = unpairedElectronCount(atom.element, used), pairs = lonePairCount(atom.element, used);
   const sites = Array.from({ length: singles }, () => 'electron');
   if (!singles && used < Math.max(...model.preferredValences)) sites.push('extension');
@@ -86,6 +89,7 @@ export function bondAddition(molecule, a, b) {
   if (!left || !right || a === b || order >= 3) return { allowed: false, reason: 'この接続はできません' };
   const donor = carbonMonoxidePartner(molecule, a, 2)?.id === b;
   if (donor) return { allowed: true, order: 3, kind: 'pair', donorId: left.element === 'O' ? a : b };
+  if(order===1&&supportsResonanceBondUpgrade(molecule,a,b))return{allowed:true,order:2,kind:'extension'};
   const allowed = [left, right].every(atom => atomBondState(molecule, atom.id).sites.some(site => site !== 'pair')
     && molecule.bondOrderForAtom(atom.id) < Math.max(...ATOMIC_MODEL[atom.element].preferredValences));
   const extended = [left, right].some(atom => atomBondState(molecule, atom.id).sites.includes('extension'));
@@ -154,9 +158,9 @@ export function structurePenalty(molecule, atomIds = null) {
   for (const atom of molecule.atoms) {
     if (!scope.has(atom.id)) continue;
     const used = molecule.bondOrderForAtom(atom.id);
-    const allowed = ATOMIC_MODEL[atom.element]?.preferredValences ?? [1];
-    const nearest = Math.min(...allowed.map(v => Math.abs(v - used)));
-    const excess = Math.max(0, used - Math.max(...allowed));
+    const allowed = ATOMIC_MODEL[atom.element]?.preferredValences ?? [1],supported=supportedAtomState(molecule,atom.id);
+    const nearest = supported?0:Math.min(...allowed.map(v => Math.abs(v - used)));
+    const excess = supported?0:Math.max(0, used - Math.max(...allowed));
     penalty += nearest * nearest * 6 + excess * excess * 40;
     if (used === 0 && molecule.atoms.length > 1) penalty += 0.6;
   }

@@ -45,13 +45,13 @@ for(const [a,b] of expectedSeriesEdges){
 const frontierIds=discoveredIds=>new Set(getFrontierCandidates(graph,{discoveredIds}).map(candidate=>candidate.id));
 assert.deepEqual(
   [...frontierIds(['methane','ethane'])].sort(),
-  ['1-2-dichloroethane','chloromethane','ethanol','ethene','fluoromethane','methanol','propane'].sort(),
-  'methane / ethane frontier must remain limited to its existing direct neighbors',
+  ['1-2-dichloroethane','chloromethane','ethanol','ethene','fluoromethane','methanol','nitromethane','propane'].sort(),
+  'methane / ethane frontier may add only the explicit nitromethane substitution branch',
 );
 assert.deepEqual(
   [...frontierIds(['benzene'])].sort(),
-  ['aniline','chlorobenzene','cyclohexene','phenol','pyridine','toluene'].sort(),
-  'benzene frontier must remain unchanged by series-edge completion',
+  ['aniline','chlorobenzene','cyclohexene','nitrobenzene','phenol','pyridine','toluene'].sort(),
+  'benzene frontier may add only the explicit nitrobenzene substitution branch',
 );
 const formaldehydeFrontier=frontierIds(['formaldehyde']);
 assert(formaldehydeFrontier.has('acetaldehyde'),'formaldehyde must expose the immediate C2 aldehyde');
@@ -60,4 +60,4 @@ const formicAcidFrontier=frontierIds(['formic-acid']);
 assert(formicAcidFrontier.has('acetic-acid'),'formic acid must expose the immediate C2 carboxylic acid');
 assert(!formicAcidFrontier.has('propionic-acid'),'formic acid must not skip directly to the C3 carboxylic acid');
 
-console.log(`Molecule graph series-edge completion passed: ${expectedSeriesEdges.length} chain-extension edges.`);
+console.log(`Molecule graph series-edge completion passed: ${expectedSeriesEdges.length} legacy chain-extension edges plus explicit nitro branches.`);
