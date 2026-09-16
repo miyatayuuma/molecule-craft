@@ -3,7 +3,7 @@
 // with compressed game units. They do not change active tank/runtime behavior
 // until the owning propulsion or thermal system explicitly consumes them.
 
-export const ROLE_BALANCE_VERSION=2;
+export const ROLE_BALANCE_VERSION=3;
 
 const profile=(roles,performance,primaryRole=roles.length===1?roles[0]:null)=>{
   if(!primaryRole||!roles.includes(primaryRole))throw new TypeError(`Multi-role molecule profile requires an explicit primary role: ${roles.join(',')}`);
@@ -16,7 +16,7 @@ export const MOLECULE_ROLE_PROFILES=Object.freeze({
     fuel:Object.freeze({capacity:28,oxygenPerFuel:.50,energy:.30,heatFactor:.75,response:1.55}),
   },'propellant'),
   ammonia:profile(['propellant','fuel','coolant'],{
-    propellant:Object.freeze({capacity:96,moleculesPerBurst:12,burstPower:.82}),
+    propellant:Object.freeze({capacity:96,moleculesPerBurst:16,burstPower:.82}),
     fuel:Object.freeze({capacity:24,oxygenPerFuel:.75,energy:.40,heatFactor:.70,response:.78}),
     coolant:Object.freeze({capacity:60,coolingPower:1.50,durationFactor:.65,environmentTolerance:.85}),
   },'propellant'),

@@ -82,6 +82,7 @@ jobs:
           node tests/element-authority-n-foundation.test.mjs
           node tests/nitrogen-chapter-progression.test.mjs
           node tests/nitrogen-field-integration.test.mjs
+          node tests/nitrogen-loadout-balance.test.mjs
           node tests/nitrogen-visual-identity.test.mjs
           node tests/nitrogen-field-pickup-browser.test.mjs
           node tests/inventory-depletion.test.mjs
@@ -123,6 +124,7 @@ jobs:
       - name: Propulsion HUD regressions
         run: |
           node tests/loadout-preview.test.mjs
+          node tests/nitrogen-loadout-balance-browser.test.mjs
           node tests/loadout-card-order.test.mjs
           node tests/generic-propulsion.test.mjs
           node --test tests/combustion-residual-consumption.test.mjs

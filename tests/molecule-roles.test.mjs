@@ -16,7 +16,7 @@ const database=JSON.parse(await readFile(new URL('../data/molecules.json',import
 const records=new Map(database.map(record=>[record.id,record]));
 const countAtoms=record=>record.atoms.reduce((counts,element)=>(counts[element]=(counts[element]??0)+1,counts),{});
 
-assert.equal(ROLE_BALANCE_VERSION,2);
+assert.equal(ROLE_BALANCE_VERSION,3);
 assert.equal(moleculesForRole('propellant').length,5);
 assert.equal(moleculesForRole('fuel').length,14);
 assert.equal(moleculesForRole('coolant').length,7);
@@ -46,7 +46,7 @@ assert.ok(performanceFor('hydrogen','fuel').response>performanceFor('methane','f
 assert.ok(performanceFor('methane','fuel').response>performanceFor('n-hexane','fuel').response);
 assert.ok(performanceFor('ethyne','fuel').heatFactor>performanceFor('methanol','fuel').heatFactor);
 
-const burstTargets={hydrogen:3,ammonia:8,nitrogen:8,'carbon-dioxide':9,'n-butane':10};
+const burstTargets={hydrogen:3,ammonia:6,nitrogen:8,'carbon-dioxide':9,'n-butane':10};
 for(const [id,bursts] of Object.entries(burstTargets)){
   const propellant=performanceFor(id,'propellant');
   assert.equal(Math.floor(propellant.capacity/propellant.moleculesPerBurst),bursts,`${id} full tank burst count`);
