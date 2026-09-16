@@ -33,7 +33,7 @@ jobs:
         run: |
           node scripts/build-precache.mjs
           node scripts/build-precache.mjs --check
-          node tests/pwa-integrity.test.mjs
+          node tests/pwa.test.mjs
           git diff --check
       - name: Commit integrated Encyclopedia review
         run: |
