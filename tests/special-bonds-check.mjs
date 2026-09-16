@@ -24,20 +24,37 @@ for(const[id,expected]of cases){
   }
 }
 assert.equal(records.some(record=>record.id==='sulfur-hexafluoride'),false,'Production-excluded SF6 must not be required by the production visual regression');
-console.log('Special geometry/display passed: production S/P geometry, SO3 plane, rotation, immutable bonds and graphics disposal.');
 
-
-// Encyclopedia-only three-center resonance primitive: endpoints remain on
-// center-terminal bond interiors and never create a terminal-terminal edge.
+// Nitro / ozone resonance hybrids use two weak second-bond components. Each
+// component belongs to exactly one center-terminal bond; there is no terminal-
+// terminal path and the geometry is contributor-order independent in meaning.
+function assertDistributedBondContract(label,curves,center,ends){
+  assert.equal(curves.length,2,`${label}: exactly one auxiliary line per center-terminal bond`);
+  curves.forEach((curve,index)=>{
+    assert(curve.length>=2,`${label}: branch ${index} has drawable geometry`);
+    const axis=ends[index].clone().sub(center),length=axis.length(),lengthSq=axis.lengthSq();
+    for(const point of curve){
+      assert([point.x,point.y,point.z].every(Number.isFinite),`${label}: finite distributed-bond coordinates`);
+      const relative=point.clone().sub(center),t=relative.dot(axis)/lengthSq,closest=center.clone().addScaledVector(axis,t),offset=point.distanceTo(closest);
+      assert(t>.18&&t<.82,`${label}: branch ${index} remains inside its center-terminal bond span`);
+      assert(offset>length*.02&&offset<length*.18,`${label}: branch ${index} is a parallel auxiliary line, not the main bond`);
+    }
+    assert(curve[0].distanceTo(ends[index])>length*.3&&curve.at(-1).distanceTo(ends[index])>length*.2,`${label}: branch ${index} does not attach to terminal O`);
+  });
+}
 for(const record of records.filter(record=>['nitromethane','ozone'].includes(record.id))){
   const model=createPreviewModel(THREE,record);for(let i=0;i<220;i++)model.step();const layout=model.snapshot(),group=layout.sharedGroups.find(item=>['nitro','ozone'].includes(item.kind));
-  assert(group,`${record.id}: supported resonance group`);const point=id=>layout.atoms[id].point,curves=sharedBondCurves(THREE,group,point,{mode:'encyclopedia'});assert.equal(curves.length,1,`${record.id}: one continuous three-center arc`);
-  const curve=curves[0],center=point(group.center),ends=group.ends.map(point);assert(curve.every(p=>[p.x,p.y,p.z].every(Number.isFinite)),`${record.id}: finite three-center coordinates`);
-  const expectedStart=center.clone().lerp(ends[0],.56),expectedEnd=center.clone().lerp(ends[1],.56);assert(curve[0].distanceTo(expectedStart)<1e-9,`${record.id}: arc starts on first bond midpoint region`);assert(curve.at(-1).distanceTo(expectedEnd)<1e-9,`${record.id}: arc ends on second bond midpoint region`);
-  assert(curve[0].distanceTo(ends[0])>center.distanceTo(ends[0])*.3,`${record.id}: arc must not attach to first terminal O`);assert(curve.at(-1).distanceTo(ends[1])>center.distanceTo(ends[1])*.3,`${record.id}: arc must not attach to second terminal O`);
-  assert(curve[0].distanceTo(ends[1])>1e-3&&curve.at(-1).distanceTo(ends[0])>1e-3,`${record.id}: arc is not a terminal-terminal direct edge`);
-  assert.equal(layout.atoms.filter(atom=>[group.center,...group.ends].includes(atom.id)).some(atom=>atom.charge!==0),false,`${record.id}: Encyclopedia resonance hybrid carries no contributor-specific formal charge`);
-  assert.equal(sharedBondCurves(THREE,group,point).length,4,`${record.id}: default CRAFT visual contract remains two curves per bond`);
+  assert(group,`${record.id}: supported resonance group`);const point=id=>layout.atoms[id].point,center=point(group.center),ends=group.ends.map(point);
+  const encyclopedia=sharedBondCurves(THREE,group,point,{mode:'encyclopedia'}),craft=sharedBondCurves(THREE,group,point,{mode:'craft'});
+  assertDistributedBondContract(`${record.id} Encyclopedia`,encyclopedia,center,ends);assertDistributedBondContract(`${record.id} CRAFT`,craft,center,ends);
+  encyclopedia.forEach((curve,i)=>curve.forEach((point,j)=>assert(point.distanceTo(craft[i][j])<1e-9,`${record.id}: CRAFT and Encyclopedia share the same resonance geometry`)));
+  assert.equal(layout.atoms.filter(atom=>[group.center,...group.ends].includes(atom.id)).some(atom=>atom.charge!==0),false,`${record.id}: normal resonance hybrid carries no contributor-specific formal charge`);
+  const resources=[],visual=createSharedBonds(THREE,x=>{resources.push(x);return x;},{mode:'encyclopedia'});updateSharedBonds(THREE,visual,group,point,{mode:'encyclopedia'});
+  const visible=visual.children.filter(line=>line.visible);assert.equal(visible.length,2,`${record.id}: renderer exposes two auxiliary lines`);
+  visible.forEach((line,index)=>{assert.equal(line.userData.resonanceVisual,'distributed-bond-component');assert.equal(line.userData.resonanceBranch,index);assert.equal(line.material.color.getHex(),0x9eafc5);assert(line.material.opacity<.7,`${record.id}: auxiliary line remains visually weaker than the main bond`);});
+  let disposed=0;resources.forEach(resource=>{resource.addEventListener('dispose',()=>disposed++);resource.dispose();});assert.equal(disposed,12);
   const alternate=structuredClone(record);for(const resonanceGroup of alternate.resonanceGroups??[]){const edges=alternate.bonds.filter(([a,b])=>(a===resonanceGroup.center&&resonanceGroup.ends.includes(b))||(b===resonanceGroup.center&&resonanceGroup.ends.includes(a)));[edges[0][2],edges[1][2]]=[edges[1][2],edges[0][2]];}
-  const altModel=createPreviewModel(THREE,alternate);for(let i=0;i<220;i++)altModel.step();const alt=altModel.snapshot(),altGroup=alt.sharedGroups.find(item=>item.kind===group.kind),altCurves=sharedBondCurves(THREE,altGroup,id=>alt.atoms[id].point,{mode:'encyclopedia'});assert.equal(altCurves.length,1,`${record.id}: reversed contributor keeps same hybrid primitive`);assert(altCurves[0].every(p=>[p.x,p.y,p.z].every(Number.isFinite)),`${record.id}: reversed contributor remains finite`);
+  const altModel=createPreviewModel(THREE,alternate);for(let i=0;i<220;i++)altModel.step();const alt=altModel.snapshot(),altGroup=alt.sharedGroups.find(item=>item.kind===group.kind),altPoint=id=>alt.atoms[id].point;
+  const altCurves=sharedBondCurves(THREE,altGroup,altPoint,{mode:'encyclopedia'});assertDistributedBondContract(`${record.id} reversed contributor`,altCurves,altPoint(altGroup.center),altGroup.ends.map(altPoint));
 }
+console.log('Special geometry/display passed: sulfur oxo contract preserved; nitro/ozone use two bond-local distributed resonance components with no terminal-terminal edge.');

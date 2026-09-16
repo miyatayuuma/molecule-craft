@@ -90,7 +90,7 @@ assert.equal(seen.size,graph.nodes.length,'All Graph nodes must remain reachable
 
 for(const id of ['ozone','nitromethane','nitrobenzene','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene']){
   const svg=await readFile(new URL(`assets/models/molecule-${id}.svg`,root),'utf8');
-  assert.match(svg,/data-resonance-three-center="true"/,`${id}: Encyclopedia hybrid asset must use the three-center resonance grammar`);
+  const expectedComponents=2*(byId(id).resonanceGroups?.length??0);assert.equal((svg.match(/data-resonance-distributed-bond=\"true\"/g)??[]).length,expectedComponents,`${id}: Encyclopedia hybrid asset needs two distributed bond components per resonance group`);assert.doesNotMatch(svg,/data-resonance-three-center=\"true\"/,`${id}: legacy three-center resonance arc must be absent`);
   assert.doesNotMatch(svg,/<text[^>]*>[+−]<\/text>/,`${id}: Encyclopedia hybrid asset must not pin one Lewis contributor's formal charge`);
 }
 const coSvg=await readFile(new URL('assets/models/molecule-carbon-monoxide.svg',root),'utf8');
