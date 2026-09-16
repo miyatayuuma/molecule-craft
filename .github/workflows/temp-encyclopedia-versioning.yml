@@ -1,0 +1,45 @@
+name: Temporary Encyclopedia version refresh
+on:
+  push:
+    branches:
+      - task/encyclopedia-content-architecture-review
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Refresh Encyclopedia module versions and PWA
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'src/craft-connections.js': [('./collection-ui.js?v=40','./collection-ui.js?v=41')],
+              'src/app.js': [('./craft-connections.js?v=5','./craft-connections.js?v=6')],
+              'index.html': [('./src/app.js?v=54','./src/app.js?v=55'),('図鑑 <small>0/129</small>','図鑑 <small>0/135</small>')],
+              'tests/source-contracts.test.mjs': [('app\\.js\\?v=54','app\\.js\\?v=55'),('collection-ui\\.js\\?v=40','collection-ui\\.js\\?v=41')],
+          }
+          for path,pairs in replacements.items():
+              p=Path(path); s=p.read_text()
+              for old,new in pairs:
+                  count=s.count(old)
+                  assert count==1,(path,old,count)
+                  s=s.replace(old,new,1)
+              p.write_text(s)
+          PY
+          node tests/source-contracts.test.mjs
+          node tests/encyclopedia-content-architecture.test.mjs
+          node tests/encyclopedia-content-browser.test.mjs
+          node scripts/build-precache.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit version refresh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/craft-connections.js src/app.js index.html tests/source-contracts.test.mjs sw.js
+          git commit -m "Refresh Encyclopedia content cache versions"
+          git push
