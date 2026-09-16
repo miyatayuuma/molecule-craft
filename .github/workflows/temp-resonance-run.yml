@@ -1,26 +1,19 @@
-name: Temporary resonance runner
+name: Temporary resonance validation
 on:
   push:
     branches:
       - feature/resonance-formal-charge-nitro-ozone
 permissions:
-  contents: write
+  contents: read
 jobs:
-  implement:
-    if: ${{ github.actor != 'github-actions[bot]' }}
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Apply production changes
-        run: |
-          python scripts/temp-resonance-run2.py
-          node scripts/build-molecule-db.mjs
-          node scripts/build-collection-assets.mjs
-          node scripts/export-molecule-graph.mjs
-          node scripts/build-precache.mjs
-      - name: Run targeted regressions
+      - name: Run resonance and compatibility regressions
         run: |
           node tests/resonance-formal-charge.test.mjs
+          node tests/resonance-frontier-eligibility.test.mjs
           node tests/recognition.test.mjs
           node tests/special-bonds-check.mjs
           node tests/craft-target-match.test.mjs
@@ -28,10 +21,12 @@ jobs:
           node tests/molecule-graph.test.mjs
           node tests/collection.test.mjs
           node scripts/build-precache.mjs --check
-      - name: Commit generated implementation
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/resonance-model.js src/special-bonds.js src/chemistry.js src/bonding-model.js scripts/build-molecule-db.mjs data/molecules.json data/molecule-graph.json data/encyclopedia.json assets/models docs/maps tests/recognition.test.mjs tests/resonance-formal-charge.test.mjs tests/special-bonds-check.mjs precache-manifest.js sw.js
-          git commit -m "Add resonance and formal charge foundation"
-          git push
+      - name: Run real-browser resonance visuals
+        run: node tests/resonance-visual-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resonance-visual
+          path: test-results/resonance-visual
+          if-no-files-found: ignore
+          retention-days: 7
