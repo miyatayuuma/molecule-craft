@@ -12,7 +12,10 @@ const [graph,molecules,encyclopedia]=await Promise.all([
   read('data/encyclopedia.json').then(JSON.parse),
 ]);
 const deletedIds=['sulfur-hexafluoride','isopentane','neopentane','1-pentene','2-pentene','o-xylene','m-xylene','chloroethane','1-propanol','isobutanol','propylene-glycol','1-4-dioxane','ethanethiol','butyraldehyde','isobutyraldehyde','2-pentanone','3-pentanone','isobutyric-acid','valeric-acid','methyl-formate','ethyl-formate','methyl-acetate','methyl-propionate','ethyl-propionate','ethylamine','formamide','propionamide','resorcinol','acetanilide','o-cresol','m-cresol','p-cresol','methyl-benzoate','ethyl-benzoate','n-butyl-acetate','isopropyl-acetate','cumene'];
-const addedFormulas=new Map([['cyclohexene','C6H10'],['pyruvic-acid','C3H4O3'],['furan','C4H4O'],['dimethyl-sulfoxide','C2H6OS']]);
+const addedFormulas=new Map([
+  ['cyclohexene','C6H10'],['pyruvic-acid','C3H4O3'],['furan','C4H4O'],['dimethyl-sulfoxide','C2H6OS'],
+  ['ozone','O3'],['nitromethane','CH3NO2'],['nitrobenzene','C6H5NO2'],['2-nitrotoluene','C7H7NO2'],['2-4-dinitrotoluene','C7H6N2O4'],['2-4-6-trinitrotoluene','C7H5N3O6'],
+]);
 const rewrittenDescriptions=new Map([
   ['cyclobutane','4員環はsp3炭素の理想結合角から大きく外れるため環ひずみが大きい。完全な平面を避けて少し折れ曲がるがひずみは残り、シクロプロパン・シクロペンタン・シクロヘキサンとの比較で環サイズと安定性の違いが見える。'],
   ['propyne','端に三重結合を持つ小さなアルキン。三重結合部分はほぼ直線形で、末端水素を手がかりにC–C結合形成へ展開できる。propane/propeneとの結合次数比較にも向く。'],
@@ -24,19 +27,19 @@ const rewrittenDescriptions=new Map([
   ['methyl-ethyl-ether','Oを挟んでmethyl/ethyl基を持つ非対称ether。dimethyl ether→diethyl etherを1 carbon stepでつなぐ。'],
 ]);
 
-assert.equal(molecules.length,129,'production molecule DB must contain 129 molecules');
+assert.equal(molecules.length,135,'production molecule DB must contain 135 molecules');
 const moleculeIds=molecules.map(item=>item.id),moleculeSet=new Set(moleculeIds);
-assert.equal(moleculeSet.size,129,'production molecule IDs must be unique');
+assert.equal(moleculeSet.size,135,'production molecule IDs must be unique');
 for(const id of deletedIds)assert(!moleculeSet.has(id),`deleted molecule remains in production DB: ${id}`);
 for(const [id,formula] of addedFormulas){const molecule=molecules.find(item=>item.id===id);assert(molecule,`missing ADD molecule: ${id}`);assert.equal(molecule.formula,formula,`formula drift: ${id}`);assert(molecule.atoms.length>0&&molecule.bonds.length>0,`missing structural definition: ${id}`);assert.equal(typeof molecule.category,'string',`missing category: ${id}`);}
 
 assert.equal(graph.schemaVersion,1);
-assert.equal(graph.nodes.length,129,'production graph must contain 129 nodes');
-assert.equal(graph.edges.length,151,'production graph must contain 151 edges');
+assert.equal(graph.nodes.length,135,'production graph must contain 135 nodes');
+assert.equal(graph.edges.length,157,'production graph must contain 157 edges');
 assert(!Object.hasOwn(graph,'status')&&!Object.hasOwn(graph,'basedOnMain')&&!Object.hasOwn(graph,'additions')&&!Object.hasOwn(graph,'existingInventory'),'proposal/audit metadata must not remain in production graph');
 const rowsToObjects=(columns,rows)=>rows.map(row=>Object.fromEntries(columns.map((key,index)=>[key,row[index]])));
 const nodes=rowsToObjects(graph.nodeColumns,graph.nodes),byId=new Map(nodes.map(node=>[node.id,node]));
-assert.equal(byId.size,129,'graph node IDs must be unique');
+assert.equal(byId.size,135,'graph node IDs must be unique');
 assert.deepEqual([...byId.keys()].sort(),[...moleculeSet].sort(),'production molecule DB and graph IDs must match 1:1');
 const endpointId=value=>Number.isInteger(value)?nodes[value]?.id:value;
 const rawEdges=rowsToObjects(graph.edgeColumns,graph.edges),edges=rawEdges.map(edge=>({...edge,from:endpointId(edge.from),to:endpointId(edge.to)}));
@@ -51,7 +54,7 @@ const roots=new Set(graph.graphRoots);assert.deepEqual([...roots].sort(),['hydro
 for(const id of roots){const node=byId.get(id);assert(node?.roleCodes.includes('R'),`ROOT role missing: ${id}`);assert.equal(node.depth,0,`ROOT depth must be zero: ${id}`);}
 const distance=new Map([...roots].map(id=>[id,0])),queue=[...roots];for(let cursor=0;cursor<queue.length;cursor++)for(const neighbor of adjacency.get(queue[cursor]))if(!distance.has(neighbor)){distance.set(neighbor,distance.get(queue[cursor])+1);queue.push(neighbor);}
 assert.equal(distance.size,nodes.length,'all production nodes must be ROOT-reachable');for(const node of nodes)assert.equal(node.depth,distance.get(node.id),`stored shortest-path depth drifted: ${node.id}`);
-for(const node of nodes){const degree=adjacency.get(node.id).size,limit=node.id==='acetic-acid'?7:6;assert(degree<=limit,`production graph degree guardrail exceeded: ${node.id} (${degree} > ${limit})`);}assert.equal(adjacency.get('acetic-acid').size,7,'acetic-acid degree 7 must be explained only by the C1→C2 series completion');
+for(const node of nodes){const degree=adjacency.get(node.id).size,limit=['acetic-acid','benzene'].includes(node.id)?7:6;assert(degree<=limit,`production graph degree guardrail exceeded: ${node.id} (${degree} > ${limit})`);}assert.equal(adjacency.get('acetic-acid').size,7,'acetic-acid degree 7 must be explained only by the C1→C2 series completion');assert.equal(adjacency.get('benzene').size,7,'benzene degree 7 must be explained only by the nitrobenzene substitution branch');
 let longestCorridor=0;const walked=new Set(),edgeKey=(a,b)=>[a,b].sort().join('\0');for(const start of nodes.filter(node=>adjacency.get(node.id).size!==2))for(const first of adjacency.get(start.id)){if(walked.has(edgeKey(start.id,first)))continue;let previous=start.id,current=first,interior=0;walked.add(edgeKey(previous,current));while(adjacency.get(current).size===2){interior++;const next=[...adjacency.get(current)].find(id=>id!==previous);previous=current;current=next;const key=edgeKey(previous,current);if(walked.has(key))break;walked.add(key);}longestCorridor=Math.max(longestCorridor,interior);}assert(longestCorridor<=5,`degree-2 corridor guardrail exceeded: ${longestCorridor}`);
 
 const encyclopediaIds=Object.keys(encyclopedia.molecules??{});assert.deepEqual(encyclopediaIds.sort(),[...moleculeSet].sort(),'encyclopedia entries must match production DB 1:1');for(const [id,description] of rewrittenDescriptions)assert.equal(encyclopedia.molecules[id]?.description,description,`REWRITE description drift: ${id}`);for(const id of addedFormulas.keys())assert((encyclopedia.molecules[id]?.description??'').length>=30,`ADD encyclopedia description missing: ${id}`);
