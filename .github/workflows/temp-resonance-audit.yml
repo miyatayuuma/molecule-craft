@@ -9,22 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Audit molecule DB and graph
+      - name: Decode graph and generator contracts
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const db=JSON.parse(fs.readFileSync('data/molecules.json','utf8'));
-          const graph=JSON.parse(fs.readFileSync('data/molecule-graph.json','utf8'));
-          console.log('DB_COUNT',db.length);
-          for(const id of ['oxygen','methane','benzene','toluene','sulfur-dioxide','sulfur-trioxide','sulfuric-acid','carbon-monoxide']){
-            console.log('RECORD',id,JSON.stringify(db.find(r=>r.id===id)));
-            console.log('GRAPH_NODE',id,JSON.stringify(graph.nodes?.find(n=>n.id===id)));
+          import {createMoleculeGraph} from './src/molecule-graph.js';
+          const raw=JSON.parse(fs.readFileSync('data/molecule-graph.json','utf8')),g=createMoleculeGraph(raw);
+          console.log('COUNTS',JSON.stringify({nodes:g.nodes.length,edges:g.edges.length,db:JSON.parse(fs.readFileSync('data/molecules.json')).length}));
+          console.log('EDGE_COLUMNS',raw.edgeColumns);
+          console.log('RELATIONS',g.relationCodes);
+          for(const id of ['oxygen','methane','benzene','toluene','nitrogen','ammonia']){
+            console.log('NODE',id,JSON.stringify(g.nodeById(id)));
+            console.log('EDGES',id,JSON.stringify(g.edges.filter(e=>e.from===id||e.to===id)));
           }
-          console.log('GRAPH_SHAPE',Object.keys(graph), 'nodes',graph.nodes?.length,'edges',graph.edges?.length);
-          console.log('RELATIONS',[...new Set((graph.edges??[]).map(e=>e.relation))].sort());
-          console.log('TOLUENE_EDGES',JSON.stringify((graph.edges??[]).filter(e=>e.from==='toluene'||e.to==='toluene')));
-          console.log('OXYGEN_EDGES',JSON.stringify((graph.edges??[]).filter(e=>e.from==='oxygen'||e.to==='oxygen')));
+          console.log('ENC_LAST',Object.entries(JSON.parse(fs.readFileSync('data/encyclopedia.json')).molecules).slice(-5));
           NODE
-      - name: Audit generation and validation contracts
-        run: |
-          grep -nE "molecules\.json|encyclopedia\.json|formal|charge|valence|sharedOxo|special-bonds|molecule-graph" scripts/build-molecule-db.mjs scripts/build-collection-assets.mjs tests/recognition.test.mjs tests/special-bonds-check.mjs tests/molecule-graph.test.mjs | head -n 220
+          sed -n '1,90p' scripts/build-molecule-db.mjs
+          sed -n '1,120p' tests/recognition.test.mjs
+          sed -n '1,150p' tests/special-bonds-check.mjs
