@@ -16,4 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Node scaling audit
-        run: node tests/complexity-audit.mjs
+        run: |
+          node tests/complexity-audit.mjs
+          node tests/hint-complexity-stats.mjs
