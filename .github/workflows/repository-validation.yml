@@ -87,6 +87,10 @@ jobs:
           node tests/nitrogen-visual-identity.test.mjs
           node tests/nitrogen-field-pickup-browser.test.mjs
           node tests/inventory-depletion.test.mjs
+      - name: Rare Survey finite anomaly foundation
+        run: |
+          node tests/rare-survey.test.mjs
+          node tests/rare-survey-browser.test.mjs
       - name: CRAFT input recovery
         run: |
           node tests/craft-controls-ui.test.mjs
@@ -98,8 +102,8 @@ jobs:
           node tests/craft-target-colors.test.mjs
           node tests/craft-target-satisfaction.test.mjs
           node --test tests/craft-target-hint.test.mjs
-          node tests/craft-target-hint-browser.test.mjs
           node --test tests/craft-target-match.test.mjs
+          node tests/craft-target-hint-browser.test.mjs
       - name: Expedition insights
         run: |
           node tests/expedition-insights.test.mjs
