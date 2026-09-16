@@ -11,28 +11,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Distinguish settlement from discovery UI lock
+      - name: Reset production resource workspace between browser scenarios
         run: |
           python - <<'PY'
           from pathlib import Path
           p=Path('tests/resonance-craft-interaction-browser.test.mjs')
           s=p.read_text()
-          old="    locked:interactionLocked(),\\n    shared:sharedVisuals.length,"
-          new="    locked:interactionLocked(),\\n    settling:!!relaxation||!!bondTransition||!!frameTransition,\\n    shared:sharedVisuals.length,"
+          old="const openEmptyCraft=async()=>{await openSeed();await evaluate(`localStorage.removeItem('molecule-craft.workspace.v1');true`);await send('Page.navigate',{url:`${origin}/__resonance_craft__`});"
+          seed="""const openEmptyCraft=async()=>{await openSeed();const reset=await evaluate(`(async()=>{localStorage.clear();const {createResources}=await import('/src/veil/resources.js');const records=await fetch('/data/molecules.json').then(r=>r.json());const r=createResources({storage:localStorage});r.setCatalog(records);r.state.progress.choCompleted=true;r.state.progress.regions=['veil','carbon','oxygen','frontier','nitrogen'];r.state.progress.checkpoint='nitrogen';r.state.progress.foundElements=['H','C','O','N'];Object.assign(r.state.elements,{H:500,C:500,O:500,N:500});r.state.workspace=null;return r.save();})()`);assert.equal(reset,true,'Fresh resource/workspace seed failed');await send('Page.navigate',{url:`${origin}/__resonance_craft__`});"""
           assert s.count(old)==1, s.count(old)
-          s=s.replace(old,new,1)
-          old="await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${source.atomId}-${target.atomId}: CRAFT did not unlock after bond formation`,{attempts:220});};"
-          new="if(expectedOrder===2)await waitFor(`globalThis.__resonanceCraftDebug.snapshot().settling===false`,`${source.atomId}-${target.atomId}: resonance settlement did not finish`,{attempts:220});else await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${source.atomId}-${target.atomId}: CRAFT did not unlock after bond formation`,{attempts:220});};"
-          assert s.count(old)==1, s.count(old)
-          s=s.replace(old,new,1)
+          s=s.replace(old,seed,1)
           p.write_text(s)
           PY
           node --check tests/resonance-craft-interaction-browser.test.mjs
           git diff --check
-      - name: Commit sequencing fix
+      - name: Commit browser reset fix
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tests/resonance-craft-interaction-browser.test.mjs
-          git commit -m "Separate resonance settlement from discovery UI lock"
+          git commit -m "Reset CRAFT resource workspace between resonance scenarios"
           git push
