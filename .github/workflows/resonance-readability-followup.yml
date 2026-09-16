@@ -28,6 +28,7 @@ jobs:
           source=source.replace(line,"assert.match(visualSource,/AROMATIC_STYLE\\.cssColor/,'Chemistry detail visuals use the aromatic accent authority');");
           await writeFile(path,source);
           NODE
+          sed -i 's/[[:space:]]\+$//' src/collection-viewer.js
       - name: Regenerate molecule thumbnails
         run: node scripts/build-collection-assets.mjs
       - name: Refresh PWA precache
