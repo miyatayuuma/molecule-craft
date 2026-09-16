@@ -18,8 +18,8 @@ jobs:
           from pathlib import Path
           p=Path('.github/workflows/repository-validation.yml')
           s=p.read_text()
-          old='''      - name: Encyclopedia graph UI\n        run: |\n          node tests/encyclopedia-graph-ui.test.mjs\n          node tests/encyclopedia-graph-thumbnail-label.test.mjs\n          node --test tests/encyclopedia-molecule-transition.test.mjs\n          node tests/encyclopedia-transition-browser.test.mjs\n'''
-          new='''      - name: Encyclopedia graph UI\n        run: |\n          node tests/encyclopedia-content-architecture.test.mjs\n          node tests/encyclopedia-content-browser.test.mjs\n          node tests/encyclopedia-graph-ui.test.mjs\n          node tests/encyclopedia-graph-thumbnail-label.test.mjs\n          node --test tests/encyclopedia-molecule-transition.test.mjs\n          node tests/encyclopedia-transition-browser.test.mjs\n'''
+          old='''      - name: Encyclopedia graph UI\n        run: |\n          node tests/encyclopedia-graph-ui.test.mjs\n          node tests/encyclopedia-graph-thumbnail-label.test.mjs\n          node tests/encyclopedia-graph-thumbnail-label-browser.test.mjs\n          node --test tests/encyclopedia-molecule-transition.test.mjs\n          node tests/encyclopedia-transition-browser.test.mjs\n'''
+          new='''      - name: Encyclopedia graph UI\n        run: |\n          node tests/encyclopedia-content-architecture.test.mjs\n          node tests/encyclopedia-content-browser.test.mjs\n          node tests/encyclopedia-graph-ui.test.mjs\n          node tests/encyclopedia-graph-thumbnail-label.test.mjs\n          node tests/encyclopedia-graph-thumbnail-label-browser.test.mjs\n          node --test tests/encyclopedia-molecule-transition.test.mjs\n          node tests/encyclopedia-transition-browser.test.mjs\n'''
           assert s.count(old)==1, s.count(old)
           p.write_text(s.replace(old,new,1))
           PY
