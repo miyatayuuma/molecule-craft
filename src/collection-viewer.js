@@ -1,11 +1,11 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=31';
+import { createPreviewModel } from './preview-model.js?v=32';
 import { createPreviewControls } from './preview-controls.js?v=21';
 import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=31';
 import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=26';
 
-import { specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=30';
+import { specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=31';
 
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
@@ -93,7 +93,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         mesh.scale.set(.045,a.distanceTo(b),.045);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),axis);group.add(mesh);
       }
     }
-    for(const shared of layout.sharedGroups??[]){const visual=createSharedBonds(THREE,own);updateSharedBonds(THREE,visual,shared,id=>layout.atoms[id].point);group.add(visual);}
+    for(const shared of layout.sharedGroups??[]){const visual=createSharedBonds(THREE,own,{mode:'encyclopedia'});updateSharedBonds(THREE,visual,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'});group.add(visual);}
     for(const frame of aromaticFrames){const ring=createAromaticRing(THREE,own);updateAromaticRing(THREE,ring,frame);group.add(ring);}
     for(const port of layout.ports){
       group.add(createAttachmentMarker(THREE,port,own));
@@ -153,7 +153,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         }});
       }
     }
-    for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point)){
+    for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){
       const points=curve.map(p=>p.applyQuaternion(group.quaternion));
       for(let i=1;i<points.length;i++){
         const a=points[i-1],b=points[i];if(Math.max(a.z,b.z)>=camera.position.z)continue;
