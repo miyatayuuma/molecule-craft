@@ -135,7 +135,7 @@ function continuityState(document,win){
 }
 
 export function renderEncyclopediaGraph({
-  host,graph,records,stateOptions,focusId,highlightId=null,onFocus=()=>{},onDetail=()=>{},onCraft=()=>{},previousPositions=new Map(),previousVisibleIds=new Set(),win=globalThis.window,
+  host,graph,records,stateOptions,focusId,highlightId=null,onFocus=()=>{},onDetail=()=>{},onCraft=()=>{},previousPositions=new Map(),previousVisibleIds=new Set(),suppressMotion=false,win=globalThis.window,
 }={}){
   if(!host||!graph)throw Error('Graph host and graph are required');
   const document=host.ownerDocument??globalThis.document;ensureStyles(document);const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,graphMotion=graphMotionState(host,win);host.className='encyclopedia-graph-host';host.replaceChildren();
@@ -189,9 +189,9 @@ export function renderEncyclopediaGraph({
       }else appendLabels();
     }
     node.dataset.graphId=id;node.addEventListener('click',()=>{if(selected&&presentation.canOpenDetail)onDetail(id,node);else onFocus(id);});stage.append(node);
-    if(previous&&!reduceMotion&&node.animate){const start=graphNodeMotionStart(previous,point,{nodeDiameter,focusDiameter});if(start&&(Math.hypot(start.dx,start.dy)>1||Math.abs(start.scale-1)>.01)){const animation=node.animate([{transform:`translate(calc(-50% + ${start.dx}px),calc(-50% + ${start.dy}px)) scale(${start.scale})`},{transform:'translate(-50%,-50%) scale(1)'}],{duration:ENCYCLOPEDIA_MOTION.graphNavigationDuration,easing:ENCYCLOPEDIA_MOTION.easing,fill:'both'});if(animation){graphMotion.animations.add(animation);animation.finished.catch(()=>{}).then(()=>graphMotion.animations.delete(animation));}}}
+    if(previous&&!reduceMotion&&!suppressMotion&&node.animate){const start=graphNodeMotionStart(previous,point,{nodeDiameter,focusDiameter});if(start&&(Math.hypot(start.dx,start.dy)>1||Math.abs(start.scale-1)>.01)){const animation=node.animate([{transform:`translate(calc(-50% + ${start.dx}px),calc(-50% + ${start.dy}px)) scale(${start.scale})`},{transform:'translate(-50%,-50%) scale(1)'}],{duration:ENCYCLOPEDIA_MOTION.graphNavigationDuration,easing:ENCYCLOPEDIA_MOTION.easing,fill:'both'});if(animation){graphMotion.animations.add(animation);animation.finished.catch(()=>{}).then(()=>graphMotion.animations.delete(animation));}}}
   }
-  if(!reduceMotion)runGraphGeometryMotion(graphMotion,geometryTweens,{win});
+  if(!reduceMotion&&!suppressMotion)runGraphGeometryMotion(graphMotion,geometryTweens,{win});
   const focusedState=projection.stateFor(focusId),focusedPresentation=graphNodePresentation(recordById.get(focusId),focusedState,{selected:true}),card=document.createElement('div');card.className='graph-focus-card';
   if(focusedState!==GRAPH_NODE_STATE.UNKNOWN){const identity=document.createElement('div');identity.className='graph-focus-identity graph-focus-label';const name=document.createElement('strong');name.textContent=focusedPresentation.name;identity.append(name);if(focusedPresentation.formula){const formula=document.createElement('small');formula.textContent=focusedPresentation.formula;identity.append(formula);}card.append(identity);if(focusedPresentation.canCraft){const action=document.createElement('button');action.type='button';action.textContent='クラフト';action.addEventListener('click',()=>onCraft(focusId));card.append(action);}}
   if(card.childElementCount)wrapper.append(card);host.append(wrapper);

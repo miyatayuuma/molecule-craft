@@ -6,8 +6,8 @@ import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
 import {loadMoleculeGraph} from './molecule-graph.js?v=2';
 import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=2';
-import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=3';
-import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=1';
+import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=4';
+import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -26,7 +26,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const state=createCollectionState({records,...data,storage,elementAccess});
   const q=id=>root.querySelector(`#${id}`),dialog=q('collection-dialog'),list=q('collection-list'),detail=q('collection-detail');
   let tab='molecules',category='all',filter='available',scope='cho',currentDetail=null,detailViewer=null,detailGeneration=0,listScroll=0,detailTransitionHandle=null;
-  let graphFocusId=null,graphHighlightId=null,lastGraphPositions=new Map(),lastGraphVisibleIds=new Set();
+  let graphFocusId=null,graphHighlightId=null,lastGraphPositions=new Map(),lastGraphVisibleIds=new Set(),suppressNextGraphMotion=false;
   q('collection-scope')?.addEventListener('change',()=>{if(moleculeTransition?.busy)return;scope=q('collection-scope').value;currentDetail=null;renderBook();});
   const collectibleGroups=data.groups.filter(group=>group.collectible!==false);
   const groupById=id=>data.groups.find(group=>group.id===id),recordById=id=>records.find(record=>record.id===id);
@@ -58,17 +58,17 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   async function showMoleculeDetailFromGraph(id,sourceNode){
     const record=recordById(id);if(!record||!state.hasMolecule(id)||moleculeTransition.busy)return false;
     const source=sourceNode?.querySelector?.('.graph-focus-thumbnail')??sourceNode,from=encyclopediaVisualRect(source);if(!from)return showDetail('molecules',id);
-    const handle=moleculeTransition.begin({id,direction:'to-detail',sourceVisual:source,sourceRect:from,sourceImage:moleculeAsset(id),sourceSurface:sourceNode?.closest?.('.graph-stage')});if(!handle)return showDetail('molecules',id);detailTransitionHandle=handle;
+    const handle=moleculeTransition.begin({id,direction:'to-detail',sourceVisual:source,sourceRect:from,sourceImage:moleculeAsset(id),sourceSurface:sourceNode?.closest?.('.graph-stage'),sourceFit:'cover',sourceRadius:'50%'});if(!handle)return showDetail('molecules',id);detailTransitionHandle=handle;
     if(!currentDetail)listScroll=dialog.scrollTop;tab='molecules';currentDetail={kind:'molecules',id};renderBook();dialog.scrollTop=0;
     const host=detail.querySelector(`.molecule-detail-return[data-molecule-id="${id}"]`),to=encyclopediaDetailVisualRect(host);if(!host||!to){detailTransitionHandle=null;moleculeTransition.cancel({owner:'detail'});return true;}hideDetailChrome(host);
-    const completed=await moleculeTransition.attach(handle,{targetVisual:host,targetRect:to,targetImage:detailViewer?.snapshot?.()??null});if(detailTransitionHandle===handle)detailTransitionHandle=null;if(completed)revealDetailChrome(host);host?.focus?.({preventScroll:true});return completed;
+    const completed=await moleculeTransition.attach(handle,{targetVisual:host,targetRect:to,targetImage:detailViewer?.snapshot?.()??null,targetFit:'contain',targetRadius:'0px'});if(detailTransitionHandle===handle)detailTransitionHandle=null;if(completed)revealDetailChrome(host);host?.focus?.({preventScroll:true});return completed;
   }
   async function returnMoleculeDetailToGraph(id,modelHost){
     const currentId=currentMoleculeId()??id,record=recordById(currentId);if(!record||moleculeTransition.busy)return false;const from=encyclopediaDetailVisualRect(modelHost);if(!from)return false;
-    const handle=moleculeTransition.begin({id:currentId,direction:'to-graph',sourceVisual:modelHost,sourceRect:from,sourceImage:detailViewer?.snapshot?.()??moleculeAsset(currentId)});if(!handle)return false;detailTransitionHandle=handle;await fadeDetailChrome(modelHost);
-    currentDetail=null;graphFocusId=currentId;graphHighlightId=null;renderBook();dialog.scrollTop=listScroll;
+    const handle=moleculeTransition.begin({id:currentId,direction:'to-graph',sourceVisual:modelHost,sourceRect:from,sourceImage:detailViewer?.snapshot?.()??moleculeAsset(currentId),sourceFit:'contain',sourceRadius:'0px'});if(!handle)return false;detailTransitionHandle=handle;await fadeDetailChrome(modelHost);
+    currentDetail=null;graphFocusId=currentId;graphHighlightId=null;suppressNextGraphMotion=true;renderBook();dialog.scrollTop=listScroll;
     const targetNode=list.querySelector(`[data-graph-id="${currentId}"]`),target=targetNode?.querySelector?.('.graph-focus-thumbnail')??targetNode,to=encyclopediaVisualRect(target),targetSurface=targetNode?.closest?.('.graph-stage');if(!target||!to){detailTransitionHandle=null;moleculeTransition.cancel({owner:'graph'});return false;}
-    const completed=await moleculeTransition.attach(handle,{targetVisual:target,targetRect:to,targetImage:moleculeAsset(currentId),targetSurface});if(detailTransitionHandle===handle)detailTransitionHandle=null;if(completed)targetNode?.focus?.({preventScroll:true});return completed;
+    const completed=await moleculeTransition.attach(handle,{targetVisual:target,targetRect:to,targetImage:moleculeAsset(currentId),targetSurface,targetFit:'cover',targetRadius:'50%'});if(detailTransitionHandle===handle)detailTransitionHandle=null;if(completed)targetNode?.focus?.({preventScroll:true});return completed;
   }
   function installDetailGraphReturn(host,record,name){
     host.classList.add('molecule-detail-return');host.dataset.moleculeId=record.id;host.tabIndex=0;host.setAttribute('role','button');host.setAttribute('aria-label',`${name}からグラフへ戻る`);let press=null;
@@ -162,9 +162,10 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function renderGraph(){
     ensureGraphFocus();
+    const suppressMotion=suppressNextGraphMotion;suppressNextGraphMotion=false;
     const result=renderEncyclopediaGraph({
       host:list,graph:data.graph,records,stateOptions:graphStateOptions(),focusId:graphFocusId,highlightId:graphHighlightId,
-      previousPositions:lastGraphPositions,previousVisibleIds:lastGraphVisibleIds,
+      previousPositions:lastGraphPositions,previousVisibleIds:lastGraphVisibleIds,suppressMotion,
       onFocus:id=>focusGraph(id),onDetail:(id,node)=>showMoleculeDetailFromGraph(id,node),
       onCraft:id=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();},
     });
