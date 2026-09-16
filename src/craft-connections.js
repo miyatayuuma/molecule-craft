@@ -7,6 +7,8 @@ import {loadMoleculeGraph} from './molecule-graph.js';
 import {CRITICAL_INSIGHT_IDS} from './veil/insights.js';
 import {primaryRoleFor} from './veil/molecule-roles.js';
 import {installTankCapabilityPresentation} from './veil/capability-unlock.js?v=1';
+import {installRareSurvey} from './veil/rare-survey.js';
+import {installRareSurveyPresentation} from './veil/rare-survey-presentation.js';
 import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=1';
 
 function normalizeExplorationMode(){
@@ -63,7 +65,7 @@ export async function prepareExplorationCatalog(resources){
 }
 
 function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
-  installEmptyDeparturePolicy(resources);
+  installRareSurvey(resources);installRareSurveyPresentation();installEmptyDeparturePolicy(resources);
   const pendingCraft=installPendingCraftAccess({resources});
   const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft:(...args)=>{pendingCraft.refresh();return onCraft(...args);},onCommit});
   const capabilityPresentation=installTankCapabilityPresentation({resources}),forwardDiscovery=veilUI.discovered?.bind(veilUI);
