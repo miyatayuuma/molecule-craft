@@ -3,8 +3,8 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {createPreviewModel} from '../src/preview-model.js?v=32';
 import {ELEMENTS} from '../src/chemistry.js';
-import {aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js';
-import {specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=31';
+import {AROMATIC_STYLE,aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js?v=27';
+import {RESONANCE_STYLE,specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=32';
 import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8').then(JSON.parse);
 const records=await read('data/molecules.json'),parts=await read('data/craft-structures.json');
@@ -15,7 +15,7 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
   const model=createPreviewModel(THREE,record);for(let i=0;i<220;i++)model.step();const layout=model.snapshot();
   const rotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(.32,.48,-.14));
   const atoms=layout.atoms.map(atom=>({...atom,point:atom.point.clone().applyQuaternion(rotation)}));
-  const radius=Math.max(1,...atoms.map(a=>a.point.length()+ELEMENTS[a.element].radius));const scale=52/radius;
+  const radius=Math.max(1,...atoms.map(a=>a.point.length()+ELEMENTS[a.element].radius));const scale=52/radius,bondStrokeWidth=n(Math.max(1.6,scale*.09));
   const project=p=>({x:96+p.x*scale,y:64-p.y*scale,z:p.z});
   const radii=atoms.map(atom=>Math.max(2,ELEMENTS[atom.element].radius*scale*.72));
   const projected=atoms.map(a=>project(a.point)),edges=new Set([...aromaticBondKeys(layout.aromaticCycles),...specialEdgeKeys(layout.sharedGroups??[])]),shapes=[];
@@ -25,15 +25,15 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
       const offset=(i-(order-1)/2)*3,start=Math.sqrt(Math.max(0,radii[bond.a]**2-offset**2)),end=Math.sqrt(Math.max(0,radii[bond.b]**2-offset**2));
       if(start+end>=len)continue;
       const ux=(b.x-a.x)/len,uy=(b.y-a.y)/len;
-      shapes.push({z:(a.z+b.z)/2-.03,svg:`<path d="M${n(a.x+ux*start+dx*offset)} ${n(a.y+uy*start+dy*offset)}L${n(b.x-ux*end+dx*offset)} ${n(b.y-uy*end+dy*offset)}" stroke="#90acbc" stroke-width="${n(Math.max(1.6,scale*.09))}" stroke-linecap="round"/>`});
+      shapes.push({z:(a.z+b.z)/2-.03,svg:`<path d="M${n(a.x+ux*start+dx*offset)} ${n(a.y+uy*start+dy*offset)}L${n(b.x-ux*end+dx*offset)} ${n(b.y-uy*end+dy*offset)}" stroke="#90acbc" stroke-width="${bondStrokeWidth}" stroke-linecap="round"/>`});
     }
   }
-  for(const cycle of layout.aromaticCycles){const frame=aromaticRingFrame(THREE,cycle.map(i=>layout.atoms[i].point));if(!frame)continue;const points=aromaticRingPoints(frame).map(p=>project(p.clone().applyQuaternion(rotation)));shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path data-aromatic-ring="true" d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}Z" fill="none" stroke="#66d8dc" stroke-width="1.7"/>`});}
+  for(const cycle of layout.aromaticCycles){const frame=aromaticRingFrame(THREE,cycle.map(i=>layout.atoms[i].point));if(!frame)continue;const points=aromaticRingPoints(frame).map(p=>project(p.clone().applyQuaternion(rotation)));shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path data-aromatic-ring="true" d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}Z" fill="none" stroke="${AROMATIC_STYLE.assetCssColor}" stroke-width="1.7"/>`});}
   for(const shared of layout.sharedGroups??[]){
     const curves=sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'}),distributed=['nitro','ozone'].includes(shared.kind);
     curves.forEach((curve,index)=>{
-      const points=curve.map(p=>project(p.applyQuaternion(rotation))),marker=distributed?` data-resonance-distributed-bond="true" data-resonance-branch="${index}"`:'',opacity=distributed?'.56':'.65',width=distributed?'1.25':'1.2',cap=distributed?' stroke-linecap="round"':'',stroke=distributed?'#90acbc':'#8ce7ee';
-      shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path${marker} d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="${stroke}" stroke-opacity="${opacity}" stroke-width="${width}"${cap}/>`});
+      const points=curve.map(p=>project(p.applyQuaternion(rotation))),marker=distributed?` data-resonance-distributed-bond="true" data-resonance-style="distributed-dashed" data-resonance-branch="${index}"`:'',opacity=distributed?String(RESONANCE_STYLE.opacity):'.65',width=distributed?bondStrokeWidth:'1.2',cap=distributed?' stroke-linecap="round"':'',stroke=distributed?RESONANCE_STYLE.assetCssColor:'#8ce7ee',dash=distributed?` stroke-dasharray="${n(bondStrokeWidth*3.2)} ${n(bondStrokeWidth*2.2)}"`:'';
+      shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path${marker} d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="${stroke}" stroke-opacity="${opacity}" stroke-width="${width}"${dash}${cap}/>`});
     });
   }
   const defs=new Set();

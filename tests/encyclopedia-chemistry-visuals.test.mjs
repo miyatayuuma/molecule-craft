@@ -1,12 +1,19 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {chemistryVisualSpecs,validateChemistryVisualSpecs} from '../src/encyclopedia-chemistry-visuals.js';
+import {AROMATIC_STYLE} from '../src/aromatic-rendering.js?v=27';
 
 const root=new URL('../',import.meta.url);
 const encyclopedia=JSON.parse(await readFile(new URL('data/encyclopedia.json',root),'utf8'));
 const records=JSON.parse(await readFile(new URL('data/molecules.json',root),'utf8'));
+const collectionUiSource=await readFile(new URL('src/collection-ui.js',root),'utf8'),pubchemSource=await readFile(new URL('src/pubchem-reference.js',root),'utf8'),visualSource=await readFile(new URL('src/encyclopedia-chemistry-visuals.js',root),'utf8');
 assert.equal(records.length,135,'Chemistry visual grammar must not change the 135-molecule production catalog');
 assert.equal(validateChemistryVisualSpecs(encyclopedia,records),true);
+assert.doesNotMatch(collectionUiSource,/模型・収録について|model-collection-notes/,'Repeated model/collection note section must not be rendered');
+assert(encyclopedia.noteDefinitions?.model,'Internal model-note metadata may remain available for non-player-facing uses');
+assert.match(pubchemSource,/PubChem ↗/,'PubChem reference affordance remains intact');
+assert.match(visualSource,/AROMATIC_STYLE\.cssColor/,'Chemistry detail visuals use the aromatic accent authority');
+assert.doesNotMatch(visualSource,/薄い2本目線/,'Line-style prose must not compete with the resonance diagram');
 
 const visuals=id=>chemistryVisualSpecs(encyclopedia.molecules[id]);
 for(const [id,entry] of Object.entries(encyclopedia.molecules)){

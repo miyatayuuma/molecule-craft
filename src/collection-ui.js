@@ -8,7 +8,7 @@ import {loadMoleculeGraph} from './molecule-graph.js?v=2';
 import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=2';
 import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=4';
 import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';
-import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=2';
+import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=3';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -213,11 +213,11 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
     const detailSections=Array.isArray(catalogEntry.details)?catalogEntry.details:[];
     if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');chemistry.append(el('h4','化学のポイント'));for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(el('h5',item.title),el('p',item.body));chemistry.append(sectionNode);}for(const visual of renderChemistryVisuals(document,catalogEntry,record))chemistry.append(visual);extra.append(chemistry);}
+    const playerNoteKeys=(Array.isArray(catalogEntry.notes)?catalogEntry.notes:[]).filter(key=>key==='stereochemistry');
+    for(const key of playerNoteKeys){const text=data.encyclopedia.noteDefinitions?.[key];if(!text)continue;const note=el('p',text,'collection-note');note.dataset.encyclopediaNote=key;extra.append(note);}
     const discovered=state.moleculeEntry(id);extra.append(el('h4','発見'),el('p',`発見 ${discovered.order}番目${discovered.at?` · ${new Date(discovered.at).toLocaleDateString('ja-JP')}`:''}`));
     const tags=el('div',null,'collection-tags');for(const match of matches)tags.append(button(groupById(match.id).nameJa,()=>showDetail('groups',match.id),'collection-tag'));if(matches.length){extra.append(el('h4','見つかる部品'),tags);}
     const relatives=state.isomersOf(record);if(relatives.length){extra.append(el('h4','同じ分子式の仲間'));for(const item of relatives)extra.append(button(state.hasMolecule(item.id)?moleculeDisplayName(item):'???',()=>state.hasMolecule(item.id)&&showDetail('molecules',item.id),'collection-tag'));}
-    const noteKeys=['model',...(Array.isArray(catalogEntry.notes)?catalogEntry.notes:[])],noteTexts=noteKeys.map(key=>data.encyclopedia.noteDefinitions?.[key]).filter(Boolean);
-    if(noteTexts.length){const noteHost=el('div',null,'model-collection-notes');noteHost.append(el('h4','模型・収録について'));for(const text of noteTexts)noteHost.append(el('p',text));extra.append(noteHost);}
   }
   function heading(kind,id,name,formula=''){
     const host=el('div',null,'detail-heading'),left=el('div');left.append(el('span',numberLabel(kind,id),'dex-number'),el('h3',name));host.append(left);if(formula)host.append(el('p',formula,'detail-formula'));detail.append(host);

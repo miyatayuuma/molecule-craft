@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {createPreviewModel} from '../src/preview-model.js?v=32';
-import {sharedBondCurves,createSharedBonds,updateSharedBonds} from '../src/special-bonds.js?v=31';
+import {RESONANCE_STYLE,sharedBondCurves,createSharedBonds,updateSharedBonds} from '../src/special-bonds.js?v=32';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
 const cases=[['sulfur-dioxide',[117]],['sulfur-trioxide',[120,120,120]],['phosphoric-acid',Array(6).fill(109.47)],['sulfuric-acid',Array(6).fill(109.47)],['phosphorus-pentachloride',[...Array(6).fill(90),120,120,120,180]]];
 for(const[id,expected]of cases){
@@ -18,9 +18,9 @@ for(const[id,expected]of cases){
     const rotated=sharedBondCurves(THREE,group,id=>point(id).clone().applyQuaternion(q));
     curves.forEach((curve,i)=>curve.forEach((p,j)=>assert.ok(p.clone().applyQuaternion(q).distanceTo(rotated[i][j])<1e-9,'Shared display must follow molecule, not camera')));
     const resources=[],visual=createSharedBonds(THREE,x=>{resources.push(x);return x;});updateSharedBonds(THREE,visual,group,point);
-    assert.equal(visual.children.filter(l=>l.visible).length,6);
+    assert.equal(visual.children.filter(l=>l.userData.sharedOxoLine&&l.visible).length,6);
     assert.equal(JSON.stringify(layout.bonds),original,'Special rendering must not mutate chemistry');
-    let disposed=0;resources.forEach(r=>{r.addEventListener('dispose',()=>disposed++);r.dispose();});assert.equal(disposed,12);
+    let disposed=0;resources.forEach(r=>{r.addEventListener('dispose',()=>disposed++);r.dispose();});assert.equal(disposed,28);
   }
 }
 assert.equal(records.some(record=>record.id==='sulfur-hexafluoride'),false,'Production-excluded SF6 must not be required by the production visual regression');
@@ -50,9 +50,10 @@ for(const record of records.filter(record=>['nitromethane','ozone'].includes(rec
   encyclopedia.forEach((curve,i)=>curve.forEach((point,j)=>assert(point.distanceTo(craft[i][j])<1e-9,`${record.id}: CRAFT and Encyclopedia share the same resonance geometry`)));
   assert.equal(layout.atoms.filter(atom=>[group.center,...group.ends].includes(atom.id)).some(atom=>atom.charge!==0),false,`${record.id}: normal resonance hybrid carries no contributor-specific formal charge`);
   const resources=[],visual=createSharedBonds(THREE,x=>{resources.push(x);return x;},{mode:'encyclopedia'});updateSharedBonds(THREE,visual,group,point,{mode:'encyclopedia'});
-  const visible=visual.children.filter(line=>line.visible);assert.equal(visible.length,2,`${record.id}: renderer exposes two auxiliary lines`);
-  visible.forEach((line,index)=>{assert.equal(line.userData.resonanceVisual,'distributed-bond-component');assert.equal(line.userData.resonanceBranch,index);assert.equal(line.material.color.getHex(),0x9eafc5);assert(line.material.opacity<.7,`${record.id}: auxiliary line remains visually weaker than the main bond`);});
-  let disposed=0;resources.forEach(resource=>{resource.addEventListener('dispose',()=>disposed++);resource.dispose();});assert.equal(disposed,12);
+  const visible=visual.children.filter(mesh=>mesh.userData.resonanceVisual==='distributed-bond-component'&&mesh.visible);assert.equal(visible.length,RESONANCE_STYLE.dashCount*2,`${record.id}: renderer exposes thick dash segments on both auxiliary bonds`);
+  for(const branch of [0,1])assert.equal(visible.filter(mesh=>mesh.userData.resonanceBranch===branch).length,RESONANCE_STYLE.dashCount,`${record.id}: each branch has a complete dash sequence`);
+  visible.forEach(mesh=>{assert.equal(mesh.userData.resonanceStyle,'distributed-dashed');assert.equal(mesh.userData.resonanceLineWidth,'bond');assert.equal(mesh.material.color.getHex(),RESONANCE_STYLE.color);assert.equal(mesh.material.opacity,RESONANCE_STYLE.opacity);assert.equal(mesh.scale.x,RESONANCE_STYLE.encyclopediaRadius);assert(mesh.scale.y>0&&Number.isFinite(mesh.scale.y),`${record.id}: finite visible dash length`);});
+  let disposed=0;resources.forEach(resource=>{resource.addEventListener('dispose',()=>disposed++);resource.dispose();});assert.equal(disposed,28);
   const alternate=structuredClone(record);for(const resonanceGroup of alternate.resonanceGroups??[]){const edges=alternate.bonds.filter(([a,b])=>(a===resonanceGroup.center&&resonanceGroup.ends.includes(b))||(b===resonanceGroup.center&&resonanceGroup.ends.includes(a)));[edges[0][2],edges[1][2]]=[edges[1][2],edges[0][2]];}
   const altModel=createPreviewModel(THREE,alternate);for(let i=0;i<220;i++)altModel.step();const alt=altModel.snapshot(),altGroup=alt.sharedGroups.find(item=>item.kind===group.kind),altPoint=id=>alt.atoms[id].point;
   const altCurves=sharedBondCurves(THREE,altGroup,altPoint,{mode:'encyclopedia'});assertDistributedBondContract(`${record.id} reversed contributor`,altCurves,altPoint(altGroup.center),altGroup.ends.map(altPoint));

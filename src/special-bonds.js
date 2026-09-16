@@ -1,8 +1,23 @@
 import {supportedResonanceGroups} from './resonance-model.js?v=2';
+import {AROMATIC_STYLE} from './aromatic-rendering.js?v=27';
 
 // Qualitative resonance notation, not an electron trajectory or orbital density.
 // Sulfur oxo groups keep their established curved-band contract. Nitro and ozone
-// instead use one weak auxiliary bond-order component on each center-terminal bond.
+// use one bond-local distributed component on each center-terminal bond.
+export const RESONANCE_STYLE=Object.freeze({
+  color:AROMATIC_STYLE.color,
+  cssColor:AROMATIC_STYLE.cssColor,
+  assetCssColor:AROMATIC_STYLE.assetCssColor,
+  opacity:.68,
+  offset:.13,
+  start:.20,
+  end:.80,
+  dashCount:4,
+  dashGapRatio:.65,
+  craftRadius:.022,
+  encyclopediaRadius:.045,
+});
+
 function sulfurOxoGroups(molecule) {
   return molecule.atoms.filter(a => a.element === 'S').flatMap(atom => {
     const ns = molecule.neighbors(atom.id), used = molecule.bondOrderForAtom(atom.id);
@@ -30,9 +45,10 @@ function legacySharedBondCurves(THREE, group, positionFor) {
   });
 }
 
-// Nitro / ozone resonance hybrid grammar. Each returned line stays parallel to
-// exactly one center-terminal bond and is offset toward the inside of the
-// three-atom region. The two terminal atoms are never connected to each other.
+// Nitro / ozone resonance hybrid grammar. Each line is exactly parallel to one
+// center-terminal bond, shifted toward the inside of the three-atom region.
+// Returning only its endpoints also lets software/SVG renderers apply one clean
+// dash pattern instead of restarting a dash on many tiny polyline segments.
 export function distributedResonanceBondLines(THREE, group, positionFor) {
   if(!['nitro','ozone'].includes(group?.kind)||group.ends?.length!==2)return [];
   const center=positionFor(group.center),ends=group.ends.map(positionFor);
@@ -47,14 +63,11 @@ export function distributedResonanceBondLines(THREE, group, positionFor) {
     if(normal.lengthSq()<1e-9)normal.crossVectors(axis,new THREE.Vector3(1,0,0));
   }
   normal.normalize();
-  const offset=Math.min(...lengths)*.095;
+  const offset=Math.min(RESONANCE_STYLE.offset,Math.min(...lengths)*.10);
   return vectors.map((axis,index)=>{
     const inside=new THREE.Vector3().crossVectors(normal,directions[index]).normalize(),other=directions[1-index];
     if(inside.dot(other)<0)inside.negate();
-    return Array.from({length:25},(_,i)=>{
-      const t=.24+.52*i/24;
-      return center.clone().addScaledVector(axis,t).addScaledVector(inside,offset);
-    });
+    return [RESONANCE_STYLE.start,RESONANCE_STYLE.end].map(t=>center.clone().addScaledVector(axis,t).addScaledVector(inside,offset));
   });
 }
 
@@ -63,23 +76,47 @@ export function sharedBondCurves(THREE, group, positionFor, {mode='craft'}={}) {
   return legacySharedBondCurves(THREE,group,positionFor);
 }
 
+function placeDash(THREE,mesh,a,b,radius){
+  const delta=b.clone().sub(a),length=delta.length();mesh.visible=length>1e-6;if(!mesh.visible)return;
+  mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.scale.set(radius,length,radius);
+}
+
 export function createSharedBonds(THREE, own = x => x, {mode='craft'}={}) {
   const group = new THREE.Group();group.userData.sharedBondDisplayMode=mode;
   for (let i=0;i<6;i++) {
     const geometry = own(new THREE.BufferGeometry());
     geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(111),3));
     const material = own(new THREE.LineBasicMaterial({color:0x8ce7ee,transparent:true,opacity:mode==='encyclopedia'?.82:.65,depthWrite:false}));
-    const line = new THREE.Line(geometry,material);line.frustumCulled=false;group.add(line);
+    const line = new THREE.Line(geometry,material);line.frustumCulled=false;line.userData.sharedOxoLine=true;line.visible=false;group.add(line);
+  }
+  for(let branch=0;branch<2;branch++)for(let dash=0;dash<RESONANCE_STYLE.dashCount;dash++){
+    const geometry=own(new THREE.CylinderGeometry(1,1,1,8));
+    const material=own(new THREE.MeshBasicMaterial({color:RESONANCE_STYLE.color,transparent:true,opacity:RESONANCE_STYLE.opacity,depthWrite:false}));
+    const mesh=new THREE.Mesh(geometry,material);mesh.visible=false;mesh.userData.resonanceVisual='distributed-bond-component';mesh.userData.resonanceStyle='distributed-dashed';mesh.userData.resonanceBranch=branch;mesh.userData.resonanceDash=dash;mesh.userData.resonanceLineWidth='bond';group.add(mesh);
   }
   return group;
 }
 export function updateSharedBonds(THREE, visual, group, positionFor, options={}) {
-  const mode=options.mode??visual?.userData?.sharedBondDisplayMode??'craft',curves = sharedBondCurves(THREE,group,positionFor,{mode}),distributed=['nitro','ozone'].includes(group?.kind);
-  visual.children.forEach((line,i) => {
+  const mode=options.mode??visual?.userData?.sharedBondDisplayMode??'craft',curves=sharedBondCurves(THREE,group,positionFor,{mode}),distributed=['nitro','ozone'].includes(group?.kind);
+  const oxoLines=visual.children.filter(item=>item.userData.sharedOxoLine),dashMeshes=visual.children.filter(item=>item.userData.resonanceVisual==='distributed-bond-component');
+  if(distributed){
+    oxoLines.forEach(line=>{line.visible=false;});dashMeshes.forEach(mesh=>{mesh.visible=false;mesh.material.color.setHex(RESONANCE_STYLE.color);mesh.material.opacity=RESONANCE_STYLE.opacity;});
+    const radius=mode==='encyclopedia'?RESONANCE_STYLE.encyclopediaRadius:RESONANCE_STYLE.craftRadius;
+    curves.forEach((curve,branch)=>{
+      if(curve.length<2)return;const start=curve[0],end=curve.at(-1),axis=end.clone().sub(start),length=axis.length();if(length<1e-6)return;axis.normalize();
+      const denominator=RESONANCE_STYLE.dashCount+(RESONANCE_STYLE.dashCount-1)*RESONANCE_STYLE.dashGapRatio,dashLength=length/denominator,gap=dashLength*RESONANCE_STYLE.dashGapRatio;
+      for(let index=0;index<RESONANCE_STYLE.dashCount;index++){
+        const mesh=dashMeshes.find(item=>item.userData.resonanceBranch===branch&&item.userData.resonanceDash===index);if(!mesh)continue;
+        const from=start.clone().addScaledVector(axis,index*(dashLength+gap)),to=from.clone().addScaledVector(axis,dashLength);placeDash(THREE,mesh,from,to,radius);
+      }
+    });
+    return;
+  }
+  dashMeshes.forEach(mesh=>{mesh.visible=false;});
+  oxoLines.forEach((line,i) => {
     line.visible=!!curves[i];if (!curves[i]) return;
-    if(line.material?.color){line.material.color.setHex(distributed?0x9eafc5:0x8ce7ee);line.material.opacity=distributed?(mode==='encyclopedia'?.56:.5):(mode==='encyclopedia'?.82:.65);}
-    line.userData.resonanceVisual=distributed?'distributed-bond-component':'shared-oxo-band';
-    line.userData.resonanceBranch=distributed?i:null;
+    line.material.color.setHex(0x8ce7ee);line.material.opacity=mode==='encyclopedia'?.82:.65;
+    line.userData.resonanceVisual='shared-oxo-band';line.userData.resonanceBranch=null;
     const positions=line.geometry.attributes.position;
     for(let j=0;j<positions.count;j++){
       const point=curves[i][Math.min(j,curves[i].length-1)];positions.setXYZ(j,point.x,point.y,point.z);

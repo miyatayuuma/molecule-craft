@@ -3,9 +3,9 @@ import { ELEMENTS } from './chemistry.js?v=20';
 import { createPreviewModel } from './preview-model.js?v=32';
 import { createPreviewControls } from './preview-controls.js?v=21';
 import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=31';
-import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=26';
+import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=27';
 
-import { specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=31';
+import { RESONANCE_STYLE, specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=32';
 
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
@@ -153,13 +153,13 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         }});
       }
     }
-    for(const shared of layout.sharedGroups??[])for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){
+    for(const shared of layout.sharedGroups??[]){const distributed=['nitro','ozone'].includes(shared.kind);for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){
       const points=curve.map(p=>p.applyQuaternion(group.quaternion));
       for(let i=1;i<points.length;i++){
-        const a=points[i-1],b=points[i];if(Math.max(a.z,b.z)>=camera.position.z)continue;
-        commands.push({z:(a.z+b.z)/2,draw:()=>{const p=project(a),q=project(b);context.save();context.strokeStyle='#8ce7ee';context.globalAlpha=.65;context.lineWidth=1.5;context.beginPath();context.moveTo(p.x,p.y);context.lineTo(q.x,q.y);context.stroke();context.restore();}});
+        const a=points[i-1],b=points[i];if(Math.max(a.z,b.z)>=camera.position.z)continue;const z=(a.z+b.z)/2;
+        commands.push({z,draw:()=>{const p=project(a),q=project(b),scale=height/(2*Math.tan(19*Math.PI/180)*(camera.position.z-z));context.save();context.strokeStyle=distributed?AROMATIC_STYLE.cssColor:'#8ce7ee';context.globalAlpha=distributed?RESONANCE_STYLE.opacity:.65;context.lineWidth=distributed?Math.max(2,scale*.07):1.5;context.lineCap='round';if(distributed)context.setLineDash([Math.max(5,scale*.11),Math.max(3,scale*.07)]);context.beginPath();context.moveTo(p.x,p.y);context.lineTo(q.x,q.y);context.stroke();context.restore();}});
       }
-    }
+    }}
     for(const atom of rotated){
       const depth=camera.position.z-atom.world.z;if(depth<=.01)continue;
       commands.push({z:atom.world.z+ELEMENTS[atom.element].radius*.72,draw:()=>{
