@@ -1,9 +1,8 @@
 import {supportedResonanceGroups} from './resonance-model.js?v=2';
 
 // Qualitative resonance notation, not an electron trajectory or orbital density.
-// Existing sulfur oxo groups keep their visual contract. Nitro and ozone can use
-// an Encyclopedia-only three-center primitive while CRAFT retains its current
-// interaction feedback and display contract.
+// Sulfur oxo groups keep their established curved-band contract. Nitro and ozone
+// instead use one weak auxiliary bond-order component on each center-terminal bond.
 function sulfurOxoGroups(molecule) {
   return molecule.atoms.filter(a => a.element === 'S').flatMap(atom => {
     const ns = molecule.neighbors(atom.id), used = molecule.bondOrderForAtom(atom.id);
@@ -31,33 +30,36 @@ function legacySharedBondCurves(THREE, group, positionFor) {
   });
 }
 
-// Encyclopedia three-center resonance grammar. The endpoints live on the two
-// center-terminal bonds, never on the terminal atoms themselves, so the curve
-// cannot read as a new terminal-terminal bond. The path depends only on the
-// three atom positions, not on which Lewis contributor owns the double bond.
-export function threeCenterResonanceCurve(THREE, group, positionFor) {
-  if(!['nitro','ozone'].includes(group?.kind)||group.ends?.length!==2)return null;
+// Nitro / ozone resonance hybrid grammar. Each returned line stays parallel to
+// exactly one center-terminal bond and is offset toward the inside of the
+// three-atom region. The two terminal atoms are never connected to each other.
+export function distributedResonanceBondLines(THREE, group, positionFor) {
+  if(!['nitro','ozone'].includes(group?.kind)||group.ends?.length!==2)return [];
   const center=positionFor(group.center),ends=group.ends.map(positionFor);
-  if(!center||ends.some(p=>!p||![p.x,p.y,p.z].every(Number.isFinite)))return null;
-  const vectors=ends.map(end=>end.clone().sub(center)),lengths=vectors.map(v=>v.length());
-  if(lengths.some(length=>length<1e-6))return null;
-  const start=center.clone().addScaledVector(vectors[0],.56),finish=center.clone().addScaledVector(vectors[1],.56);
-  const directions=vectors.map(v=>v.clone().normalize()),bisector=directions[0].clone().add(directions[1]);
-  if(bisector.lengthSq()<1e-8){
+  if(!center||ends.some(p=>!p||![p.x,p.y,p.z].every(Number.isFinite)))return [];
+  const vectors=ends.map(end=>end.clone().sub(center)),lengths=vectors.map(vector=>vector.length());
+  if(lengths.some(length=>length<1e-6))return [];
+  const directions=vectors.map(vector=>vector.clone().normalize());
+  const normal=new THREE.Vector3().crossVectors(vectors[0],vectors[1]);
+  if(normal.lengthSq()<1e-9){
     const axis=directions[0],reference=Math.abs(axis.z)<.8?new THREE.Vector3(0,0,1):new THREE.Vector3(0,1,0);
-    bisector.crossVectors(reference,axis).normalize();
-  }else bisector.normalize();
-  const control=center.clone().addScaledVector(bisector,(lengths[0]+lengths[1])*.16);
-  return Array.from({length:37},(_,index)=>{
-    const t=index/36,u=1-t;
-    return start.clone().multiplyScalar(u*u).addScaledVector(control,2*u*t).addScaledVector(finish,t*t);
+    normal.crossVectors(axis,reference);
+    if(normal.lengthSq()<1e-9)normal.crossVectors(axis,new THREE.Vector3(1,0,0));
+  }
+  normal.normalize();
+  const offset=Math.min(...lengths)*.095;
+  return vectors.map((axis,index)=>{
+    const inside=new THREE.Vector3().crossVectors(normal,directions[index]).normalize(),other=directions[1-index];
+    if(inside.dot(other)<0)inside.negate();
+    return Array.from({length:25},(_,i)=>{
+      const t=.24+.52*i/24;
+      return center.clone().addScaledVector(axis,t).addScaledVector(inside,offset);
+    });
   });
 }
 
 export function sharedBondCurves(THREE, group, positionFor, {mode='craft'}={}) {
-  if(mode==='encyclopedia'&&['nitro','ozone'].includes(group?.kind)){
-    const curve=threeCenterResonanceCurve(THREE,group,positionFor);return curve?[curve]:[];
-  }
+  if(['nitro','ozone'].includes(group?.kind))return distributedResonanceBondLines(THREE,group,positionFor);
   return legacySharedBondCurves(THREE,group,positionFor);
 }
 
@@ -72,9 +74,12 @@ export function createSharedBonds(THREE, own = x => x, {mode='craft'}={}) {
   return group;
 }
 export function updateSharedBonds(THREE, visual, group, positionFor, options={}) {
-  const mode=options.mode??visual?.userData?.sharedBondDisplayMode??'craft',curves = sharedBondCurves(THREE,group,positionFor,{mode});
+  const mode=options.mode??visual?.userData?.sharedBondDisplayMode??'craft',curves = sharedBondCurves(THREE,group,positionFor,{mode}),distributed=['nitro','ozone'].includes(group?.kind);
   visual.children.forEach((line,i) => {
     line.visible=!!curves[i];if (!curves[i]) return;
+    if(line.material?.color){line.material.color.setHex(distributed?0x9eafc5:0x8ce7ee);line.material.opacity=distributed?(mode==='encyclopedia'?.56:.5):(mode==='encyclopedia'?.82:.65);}
+    line.userData.resonanceVisual=distributed?'distributed-bond-component':'shared-oxo-band';
+    line.userData.resonanceBranch=distributed?i:null;
     const positions=line.geometry.attributes.position;
     for(let j=0;j<positions.count;j++){
       const point=curves[i][Math.min(j,curves[i].length-1)];positions.setXYZ(j,point.x,point.y,point.z);
