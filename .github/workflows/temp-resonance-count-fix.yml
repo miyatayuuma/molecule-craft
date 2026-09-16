@@ -1,0 +1,31 @@
+name: Temporary resonance count fix
+on:
+  push:
+    branches:
+      - feature/resonance-formal-charge-nitro-ozone
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Update transition fixture count
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/encyclopedia-transition-browser.test.mjs')
+          s=p.read_text()
+          old="図鑑 4/129"
+          assert s.count(old)==1, f'expected one stale count, found {s.count(old)}'
+          p.write_text(s.replace(old,"図鑑 4/135"))
+          PY
+          git diff --check
+      - name: Commit fixture update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/encyclopedia-transition-browser.test.mjs
+          git commit -m "Update Encyclopedia transition count for 135 molecules"
+          git push
