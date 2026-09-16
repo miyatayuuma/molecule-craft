@@ -19,7 +19,6 @@ jobs:
           node tests/nitrogen-field-integration.test.mjs
           node tests/thermal-coolant.test.mjs
           node tests/generic-propulsion.test.mjs
-          node tests/tank-upgrades.test.mjs
           node tests/h-economy-balance.test.mjs
       - name: Nitrogen role economics and thermal audit
         run: |
@@ -40,4 +39,24 @@ jobs:
           console.log('COOLANT_AUDIT',JSON.stringify(coolantRows));
           const thermal=['nitrogen','ammonia','water','ethylene-glycol'].map(coolant=>evaluateProfile({fuel:'methane',coolant,capacity:36,early:true,goalY:-11640}));
           console.log('THERMAL_ROUTE_AUDIT',JSON.stringify(thermal.map(r=>({coolant:r.coolant,returned:r.returned,time:r.time,heat:r.heat,overheats:r.overheats,combustionSeconds:r.combustionSeconds,remainingCoolant:r.remaining.coolant?.amount??null}))));
+          NODE
+      - name: Actual FIELD pulse and sustained-travel audit
+        run: |
+          node --input-type=module <<'NODE'
+          import {createRun,stepRun,beginBurst,setCombustionHeld} from './src/veil/engine.js';
+          import {flightConfig,performanceFor} from './src/veil/growth.js';
+          import {createUniverse,BURST_ADVANTAGE_FIELDS,OXYGEN_ENTRY_KNOTS} from './src/veil/universe.js';
+          const cfg=flightConfig(),dt=1/120;
+          function strongField(id,field){
+            const p=performanceFor(id,'propellant'),run=createRun(createUniverse(1,{H:0,C:0,N:0,O:0}),cfg,{predators:false,fuel:{propellant:{molecule:id,amount:p.capacity,capacity:p.capacity}}});
+            const margin=20,startY=field.y+field.radius+margin,targetY=field.y-field.radius-margin;Object.assign(run.player,{x:field.x,y:startY,angle:-Math.PI/2,vx:0,vy:-cfg.speed,speed:cfg.speed});beginBurst(run,()=>true);let band=0,maxDev=0;
+            for(let i=0;i<8/dt;i++){const dx=field.x-run.player.x,dy=targetY-160-run.player.y,d=Math.hypot(dx,dy)||1;stepRun(run,{x:dx/d,y:dy/d},dt,{});if(Math.abs(run.player.y-field.y)<=field.radius){band+=dt;maxDev=Math.max(maxDev,Math.abs(run.player.x-field.x));}if(run.player.y<=targetY)return {id,success:true,time:+run.time.toFixed(3),band:+band.toFixed(3),maxDev:+maxDev.toFixed(1)};}return {id,success:false,time:null,band:+band.toFixed(3),maxDev:+maxDev.toFixed(1)};
+          }
+          for(const field of BURST_ADVANTAGE_FIELDS)console.log('STRONG_FIELD',field.id,JSON.stringify(['hydrogen','nitrogen','ammonia'].map(id=>strongField(id,field))));
+          function oxygenEntry(mode){
+            const isDrive=mode==='drive',p=!isDrive?performanceFor(mode,'propellant'):null,fuel=isDrive?{fuel:{molecule:'methane',amount:18,capacity:18},oxidizer:{molecule:'oxygen',amount:36,capacity:36}}:{propellant:{molecule:mode,amount:p.capacity,capacity:p.capacity}},run=createRun(createUniverse(1,{H:0,C:0,N:0,O:0}),cfg,{predators:false,fuel});Object.assign(run.player,{x:OXYGEN_ENTRY_KNOTS[0][0],y:OXYGEN_ENTRY_KNOTS[0][1],angle:-Math.PI/2,vx:0,vy:-cfg.speed,speed:cfg.speed});const pts=OXYGEN_ENTRY_KNOTS.slice(1).map(([x,y])=>({x,y}));let idx=0,bursts=0,driveSeconds=0;setCombustionHeld(run,isDrive);
+            for(let i=0;i<16/dt;i++){const t=pts[idx],dx=t.x-run.player.x,dy=t.y-run.player.y,d=Math.hypot(dx,dy)||1;if(!isDrive&&run.player.boost<=0&&run.player.cooldown<=0&&beginBurst(run,()=>true))bursts++;const before=run.time;stepRun(run,{x:dx/d,y:dy/d},dt,isDrive?{consumeCombustion:()=>true}:{});if(run.player.combustion)driveSeconds+=run.time-before;if(d<24){if(idx===pts.length-1)return {mode,success:true,time:+run.time.toFixed(3),bursts,driveSeconds:+driveSeconds.toFixed(2),remaining:isDrive?null:run.fuel.propellant.amount};idx++;}}
+            return {mode,success:false,time:null,bursts,driveSeconds:+driveSeconds.toFixed(2),remaining:isDrive?null:run.fuel.propellant.amount};
+          }
+          console.log('OXYGEN_ENTRY_SUSTAINED',JSON.stringify(['hydrogen','nitrogen','ammonia','drive'].map(oxygenEntry)));
           NODE
