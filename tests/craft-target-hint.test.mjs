@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {craftHintElectronKeys,nextCraftBondHint as hint,requestCraftHintHighlight} from '../src/craft-target-hint.js';
 const graph=(atoms,bonds=[],ids=atoms.map((_,i)=>100+i))=>({atoms:atoms.map((element,i)=>({id:ids[i],element})),bonds:bonds.map(([a,b,order])=>({a:ids[a],b:ids[b],order}))});
 const run=(target,workspace)=>{const before=JSON.stringify([target,workspace]),result=hint(target,workspace);assert.equal(JSON.stringify([target,workspace]),before);return result;};
+const alkaneTarget=n=>{const atoms=Array(n).fill('C'),bonds=[];for(let i=0;i<n-1;i++)bonds.push([i,i+1,1]);let h=n;for(let i=0;i<n;i++){const count=i===0||i===n-1?3:2;for(let j=0;j<count;j++){atoms.push('H');bonds.push([i,h++,1]);}}return{atoms,bonds};};
 
 test('H2 derives its only available electron pair',()=>{
  const target={atoms:['H','H'],bonds:[[0,1,1]]},r=run(target,graph(['H','H']));assert.deepEqual(r.atomIds,[100,101]);assert.equal(r.nextOrder,1);
@@ -74,4 +75,15 @@ test('required-pair ordering preserves deterministic structural hints across rep
  const target={atoms:['C','C','C','H','H','H','H','H','H','H','H'],bonds:[[0,1,1],[1,2,1],[0,3,1],[0,4,1],[0,5,1],[1,6,1],[1,7,1],[2,8,1],[2,9,1],[2,10,1]]};
  const first=run(target,graph(target.atoms)),bonded=graph(target.atoms,[[first.workspaceIndices[0],first.workspaceIndices[1],1]]),next=run(target,bonded),restored=run(target,graph(target.atoms));
  assert.deepEqual(first.workspaceIndices,[0,1]);assert.equal(first.nextOrder,1);assert.ok(next);assert.deepEqual(restored.workspaceIndices,first.workspaceIndices);assert.deepEqual(restored.targetAtomIndices,first.targetAtomIndices);
+});
+
+test('saturated repeated-element endpoints are pruned before constrained embedding',()=>{
+ const target=alkaneTarget(14),workspace=graph(target.atoms,target.bonds.slice(0,-1)),stats={};
+ const result=hint(target,workspace,{stats});
+ assert.ok(result);assert.equal(result.currentOrder,0);assert.equal(result.nextOrder,1);
+ assert.deepEqual(result.workspaceIndices,[13,43]);
+ assert.equal(stats.pairEmbeddingCalls,1,'only the one structurally growable pair should need a constrained embedding');
+ assert.ok(stats.recursiveVisits<500,`recursive visits regressed: ${stats.recursiveVisits}`);
+ assert.ok(stats.candidateAssignments<5000,`candidate assignments regressed: ${stats.candidateAssignments}`);
+ assert.ok(stats.capacityPrunes>=400,`expected saturated endpoint pruning, got ${stats.capacityPrunes}`);
 });
