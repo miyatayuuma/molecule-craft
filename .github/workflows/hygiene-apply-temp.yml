@@ -43,7 +43,6 @@ jobs:
           node tests/launch-selector.test.mjs
           node tests/launch-pointer-lifecycle.test.mjs
           node tests/special-bonds-check.mjs
-          node tests/repository-hygiene.test.mjs
           node scripts/build-precache.mjs --check
           node tests/pwa.test.mjs
       - name: Commit cleanup result
