@@ -73,7 +73,7 @@
       document.querySelector('#release-metrics').textContent=`${result.releaseCases} rigid drag cases · max pair-distance error ${result.maxDistanceError.toExponential(2)} (390 × 430 viewport)`;
     });
     run('collection models: isolated geometry, ports and correct sp/sp2/sp3 shapes',()=>{
-      checkPreviewModels(THREE,records.filter(record=>record.learningNote||['methane','ethene','ethyne','benzene','anisole','phenol'].includes(record.id)),collectionData.templates);
+      checkPreviewModels(THREE,records,collectionData.templates);
     });
     run('aromatic display: uniform sticks, ring break/restore, plane tracking and unchanged topology',()=>{
       checkAromaticRendering(THREE,records,collectionData.templates);

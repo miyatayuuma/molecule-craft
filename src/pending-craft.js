@@ -40,9 +40,6 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
   if(!actions||!collection)return noop;
   ensureInsightCategoryStyles(root);
 
-  const legacy=root.getElementById?.('tank-next-hint');
-  if(legacy){legacy.hidden=true;legacy.style.display='none';legacy.setAttribute('aria-hidden','true');legacy.tabIndex=-1;}
-
   let access=root.getElementById?.('open-pending-crafts'),dialog=root.getElementById?.('pending-crafts-dialog'),list=null,count=null,previousIds=[],acknowledgedIds=new Set(),acknowledgedKey='';
   if(!access){
     access=root.createElement('button');access.id='open-pending-crafts';access.type='button';access.className='icon-button pending-craft-access';access.innerHTML='<span aria-hidden="true">💡</span><small></small>';count=access.querySelector('small');

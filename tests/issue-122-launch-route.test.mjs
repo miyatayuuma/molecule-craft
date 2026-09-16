@@ -53,6 +53,7 @@ const supply=await readFile(new URL('../src/veil/supply.js',import.meta.url),'ut
 const veil=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
 const connections=await readFile(new URL('../src/craft-connections.js',import.meta.url),'utf8');
 const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+const index=await readFile(new URL('../index.html',import.meta.url),'utf8');
 const has=(source,text,message)=>assert.ok(source.includes(text),message??('Missing source contract: '+text));
 const lacks=(source,text,message)=>assert.equal(source.includes(text),false,message??('Legacy source remains: '+text));
 
@@ -78,9 +79,11 @@ has(veil,"return destinationAvailable(id)||'invalid-destination';");
 has(veil,'isAvailable:id=>!active&&!launchTransaction.inFlight&&!supply.launchPending&&!resources.blocked&&destinationAvailable(id)','layer-specific active/in-flight/pending guards remain without duplicating destination policy');
 has(veil,'function selectLaunchDestination(id){');
 has(veil,'if(!destinationAvailable(id))return false;','selection must use the canonical destination policy');
-has(veil,"q('launch-veil').addEventListener('click',event=>{event.preventDefault();requestExpeditionLaunch(anchor);});",'normal launch button is a direct application request path, not a relay');
 lacks(veil,'function launch(){return requestExpeditionLaunch(anchor);}','legacy launch wrapper must be removed');
-assert.equal(veil.split("q('launch-veil').addEventListener").length-1,1,'launch handler is installed once per UI instance');
+lacks(veil,'launch-veil','retired hidden launch button must not remain in EXPLORE UI');
+lacks(supply,'expedition-anchor','retired destination select must not remain in LOADOUT');
+lacks(index,'id="launch-veil"','retired hidden launch button must not remain in production DOM');
+lacks(index,'id="expedition-anchor"','retired hidden destination select must not remain in production DOM');
 assert.equal(veil.split('audio=createVeilAudio()').length-1,1,'audio session is created once per UI instance');
 has(veil,'renderer??=createVeilRenderer(canvas)','renderer must be reused across same-session relaunches');
 has(veil,'if(!active||!run)return;active=false;cancelAnimationFrame(raf);raf=0;resetInput();audio.pause();','normal return must release the active RAF handle');

@@ -60,16 +60,16 @@ Graph affinity値 `0..1` に対し、
 
 ## Deterministic production simulation
 
-`tests/molecule-frontier.test.mjs` は unit cases に加えproduction 129-node graphをsimulationします。Graph-only simulationなので、engineとは別にROOT 3件を初期discoveredとして明示し、seed `7, 19, 43, 101, 313` ごとに frontier選択→discovered追加を繰り返します。
+`tests/molecule-frontier.test.mjs` は unit cases に加えproduction 135-node graphをsimulationします。Graph-only simulationなので、engineとは別にROOT 3件を初期discoveredとして明示し、seed `7, 19, 43, 101, 313` ごとに frontier選択→discovered追加を繰り返します。
 
 - 25 discoveries: 4 branch以上、4 family以上、最大branch占有率80%未満、平均depth 3.5未満
 - 50 discoveries: branch/family diversityが25時点から縮まない
 - 100 discoveries: depth 4以上（graph maxが4未満ならそのmax）へ到達
-- completion: 5 seedすべてでROOTからreachableな129 nodeを完走し、production graphの最大depthへ到達
+- completion: 5 seedすべてでROOTからreachableな135 nodeを完走し、production graphの最大depthへ到達
 - region bias: 同一frontier・同一seedの4000 deterministic drawsで、Carbon/Oxygen regionが対応affinity candidateの選択頻度を増やす
 
 これらは確率的pass/failではなく固定seedのregressionです。
 
 ## Known limitations
 
-unexplored評価はbranchKey単位の相対進行数であり、「直前HUB」を推定する局所topology modelではありません。現状の129-node graphでは説明可能性とbalance調整容易性を優先しています。またdifficulty、utility unlock、FIELD距離、元素所持量、1 expedition / 1 insight、carried/commit/lossはscoreへ入れていません。それらはFIELD integration側の責務です。
+unexplored評価はbranchKey単位の相対進行数であり、「直前HUB」を推定する局所topology modelではありません。現状の135-node graphでは説明可能性とbalance調整容易性を優先しています。またdifficulty、utility unlock、FIELD距離、元素所持量、1 expedition / 1 insight、carried/commit/lossはscoreへ入れていません。それらはFIELD integration側の責務です。

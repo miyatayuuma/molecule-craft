@@ -43,7 +43,7 @@ function formulaFor(atoms) {
   return symbols.map(symbol => `${symbol}${counts[symbol] > 1 ? counts[symbol] : ''}`).join('');
 }
 
-function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valences = {}, formalCharges = null, resonanceGroups = null, iupacNameEn, learningNote, stereochemistry }) {
+function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valences = {}, formalCharges = null, resonanceGroups = null, iupacNameEn, stereochemistry }) {
   const expandedAtoms = [...atoms];
   const expandedBonds = bonds.map(bond => [...bond]);
   const used = atoms.map(() => 0);
@@ -59,7 +59,7 @@ function add({ id, nameJa, nameEn, aliases = [], category, atoms, bonds, valence
       expandedAtoms.push('H');
     }
   });
-  molecules.push({ id, nameJa, nameEn, ...(aliases.length ? { aliases } : {}), atoms: expandedAtoms, bonds: expandedBonds, formula: formulaFor(expandedAtoms), category, ...(formalCharges?{formalCharges}:{}), ...(resonanceGroups?.length?{resonanceGroups}:{}), ...(iupacNameEn?{iupacNameEn,commonNameJa:nameJa,commonNameEn:nameEn}:{}), ...(learningNote?{learningNote}:{}), ...(stereochemistry?{stereochemistry}:{}) });
+  molecules.push({ id, nameJa, nameEn, ...(aliases.length ? { aliases } : {}), atoms: expandedAtoms, bonds: expandedBonds, formula: formulaFor(expandedAtoms), category, ...(formalCharges?{formalCharges}:{}), ...(resonanceGroups?.length?{resonanceGroups}:{}), ...(iupacNameEn?{iupacNameEn,commonNameJa:nameJa,commonNameEn:nameEn}:{}), ...(stereochemistry?{stereochemistry}:{}) });
 }
 
 function raw(def) {
@@ -370,62 +370,62 @@ function diacid(count) {
   attach(graph,0,['O'],[]);
   return graph;
 }
-for(const [id,nameJa,nameEn,count,iupacNameEn,learningNote] of [
-  ['malonic-acid','マロン酸','Malonic acid',3,'Propanedioic acid','カルボキシ基2個を、1個のCH₂がつなぐジカルボン酸。'],
-  ['succinic-acid','コハク酸','Succinic acid',4,'Butanedioic acid','生体の代謝にも登場するジカルボン酸。両端にカルボキシ基を持ちます。'],
-  ['adipic-acid','アジピン酸','Adipic acid',6,'Hexanedioic acid','ナイロン66の原料になるジカルボン酸。両端の官能基と炭素鎖に注目。'],
-]) add({id,nameJa,nameEn,iupacNameEn,learningNote,...diacid(count),category:'dicarboxylic-acid'});
+for(const [id,nameJa,nameEn,count,iupacNameEn] of [
+  ['malonic-acid','マロン酸','Malonic acid',3,'Propanedioic acid'],
+  ['succinic-acid','コハク酸','Succinic acid',4,'Butanedioic acid'],
+  ['adipic-acid','アジピン酸','Adipic acid',6,'Hexanedioic acid'],
+]) add({id,nameJa,nameEn,iupacNameEn,...diacid(count),category:'dicarboxylic-acid'});
 {
   const graph=diacid(4);attach(graph,1,['O'],[]);
-  add({id:'malic-acid',nameJa:'リンゴ酸',nameEn:'Malic acid',iupacNameEn:'2-Hydroxybutanedioic acid',learningNote:'リンゴなどに含まれる有機酸。カルボキシ基2個とヒドロキシ基1個を組み合わせます。',stereochemistry:'unspecified',...graph,category:'hydroxy-acid'});
+  add({id:'malic-acid',nameJa:'リンゴ酸',nameEn:'Malic acid',iupacNameEn:'2-Hydroxybutanedioic acid',stereochemistry:'unspecified',...graph,category:'hydroxy-acid'});
 }
 {
   const graph=diacid(5);attach(graph,2,['C','O','O'],[[0,1,2],[0,2,1]]);attach(graph,2,['O'],[]);
-  add({id:'citric-acid',nameJa:'クエン酸',nameEn:'Citric acid',iupacNameEn:'2-Hydroxypropane-1,2,3-tricarboxylic acid',learningNote:'柑橘類などに含まれる有機酸。中央の炭素から枝分かれし、カルボキシ基を3個持ちます。',...graph,category:'hydroxy-acid'});
+  add({id:'citric-acid',nameJa:'クエン酸',nameEn:'Citric acid',iupacNameEn:'2-Hydroxypropane-1,2,3-tricarboxylic acid',...graph,category:'hydroxy-acid'});
 }
 {
   const graph=acid(2);attach(graph,0,['O'],[]);
-  add({id:'glycolic-acid',nameJa:'グリコール酸',nameEn:'Glycolic acid',iupacNameEn:'2-Hydroxyethanoic acid',learningNote:'ヒドロキシ酸の小さな例。CH₂にヒドロキシ基とカルボキシ基がつながります。',...graph,category:'hydroxy-acid'});
+  add({id:'glycolic-acid',nameJa:'グリコール酸',nameEn:'Glycolic acid',iupacNameEn:'2-Hydroxyethanoic acid',...graph,category:'hydroxy-acid'});
 }
 for(const [id,nameJa,nameEn,position] of [['o-cresol','o-クレゾール','o-Cresol',1],['m-cresol','m-クレゾール','m-Cresol',2],['p-cresol','p-クレゾール','p-Cresol',3]]){
   const graph=aromatic([g=>attach(g,0,['O'],[]),g=>attach(g,position,['C'],[])]);
-  add({id,nameJa,nameEn,iupacNameEn:`${position+1}-Methylphenol`,learningNote:'フェノールの環にメチル基を1個追加した構造。置換位置が違う3種類を別々に収集できます。',...graph,category:'aromatic-alcohol'});
+  add({id,nameJa,nameEn,iupacNameEn:`${position+1}-Methylphenol`,...graph,category:'aromatic-alcohol'});
 }
 {
   const graph=aromatic([g=>attach(g,0,['C','O','O','C'],[[0,1,2],[0,2,1],[2,3,1]]),g=>attach(g,1,['O'],[])]);
-  add({id:'methyl-salicylate',nameJa:'サリチル酸メチル',nameEn:'Methyl salicylate',iupacNameEn:'Methyl 2-hydroxybenzoate',learningNote:'ウィンターグリーンの香りに関係するエステル。芳香環・ヒドロキシ基・エステル結合を組み合わせます。',...graph,category:'aromatic-ester'});
+  add({id:'methyl-salicylate',nameJa:'サリチル酸メチル',nameEn:'Methyl salicylate',iupacNameEn:'Methyl 2-hydroxybenzoate',...graph,category:'aromatic-ester'});
 }
 for(const [id,nameJa,nameEn,carbonCount,iupacNameEn] of [
   ['methyl-benzoate','安息香酸メチル','Methyl benzoate',1,'Methyl benzoate'],
   ['ethyl-benzoate','安息香酸エチル','Ethyl benzoate',2,'Ethyl benzoate'],
 ]){
   const graph=aromatic([g=>attach(g,0,['C','O','O',...Array(carbonCount).fill('C')],[[0,1,2],[0,2,1],[2,3,1],...(carbonCount===2?[[3,4,1]]:[])])]);
-  add({id,nameJa,nameEn,iupacNameEn,learningNote:'香料にも使われる芳香族エステル。酸素側の炭素鎖を替えると別の分子になります。',...graph,category:'aromatic-ester'});
+  add({id,nameJa,nameEn,iupacNameEn,...graph,category:'aromatic-ester'});
 }
-add({id:'n-butyl-acetate',nameJa:'酢酸n-ブチル',nameEn:'n-Butyl acetate',aliases:['酢酸ブチル','butyl acetate'],iupacNameEn:'Butyl ethanoate',learningNote:'塗料などの溶剤に使われるエステル。n-ブチル基を長い炭素鎖として活用できます。',...ester(2,4),category:'ester'});
+add({id:'n-butyl-acetate',nameJa:'酢酸n-ブチル',nameEn:'n-Butyl acetate',aliases:['酢酸ブチル','butyl acetate'],iupacNameEn:'Butyl ethanoate',...ester(2,4),category:'ester'});
 {
   const graph=ester(2,4);attach(graph,6,['C'],[]);
-  add({id:'isoamyl-acetate',nameJa:'酢酸イソアミル',nameEn:'Isoamyl acetate',aliases:['isopentyl acetate'],iupacNameEn:'3-Methylbutyl ethanoate',learningNote:'バナナ様の香りで知られるエステル。直鎖の酢酸エステルとは異なり、末端近くで枝分かれします。',...graph,category:'ester'});
+  add({id:'isoamyl-acetate',nameJa:'酢酸イソアミル',nameEn:'Isoamyl acetate',aliases:['isopentyl acetate'],iupacNameEn:'3-Methylbutyl ethanoate',...graph,category:'ester'});
 }
 {
   const graph=ester(2,2);attach(graph,4,['C'],[]);
-  add({id:'isopropyl-acetate',nameJa:'酢酸イソプロピル',nameEn:'Isopropyl acetate',iupacNameEn:'Propan-2-yl ethanoate',learningNote:'溶剤に使われるエステル。イソプロピル基の中央のCHが酸素につながります。',...graph,category:'ester'});
+  add({id:'isopropyl-acetate',nameJa:'酢酸イソプロピル',nameEn:'Isopropyl acetate',iupacNameEn:'Propan-2-yl ethanoate',...graph,category:'ester'});
 }
 {
   const graph=aromatic([g=>attach(g,0,['C','C','C'],[[0,1,1],[0,2,1]])]);
-  add({id:'cumene',nameJa:'クメン',nameEn:'Cumene',aliases:['イソプロピルベンゼン','isopropylbenzene'],iupacNameEn:'Propan-2-ylbenzene',learningNote:'フェノール製造の原料となる芳香族炭化水素。フェニル基とイソプロピル基を接続した骨格です。',...graph,category:'aromatic'});
+  add({id:'cumene',nameJa:'クメン',nameEn:'Cumene',aliases:['イソプロピルベンゼン','isopropylbenzene'],iupacNameEn:'Propan-2-ylbenzene',...graph,category:'aromatic'});
 }
 {
   const graph=aromatic([g=>attach(g,0,['C','O'],[[0,1,1]])]);
-  add({id:'benzyl-alcohol',nameJa:'ベンジルアルコール',nameEn:'Benzyl alcohol',iupacNameEn:'Phenylmethanol',learningNote:'芳香環にCH₂OHがつながるアルコール。酸素が環に直接つながるフェノールとは異なります。',...graph,category:'aromatic-alcohol'});
+  add({id:'benzyl-alcohol',nameJa:'ベンジルアルコール',nameEn:'Benzyl alcohol',iupacNameEn:'Phenylmethanol',...graph,category:'aromatic-alcohol'});
 }
-for(const [id,nameJa,nameEn,side,iupacNameEn,learningNote] of [
-  ['serine','セリン','Serine',['O'],'2-Amino-3-hydroxypropanoic acid','側鎖にヒドロキシ基を持つアミノ酸。アミノ基・カルボキシ基との組み合わせを学べます。'],
-  ['cysteine','システイン','Cysteine',['S'],'2-Amino-3-sulfanylpropanoic acid','側鎖にチオール基を持つアミノ酸。硫黄の解放で作れる生体分子が広がります。'],
-  ['methionine','メチオニン','Methionine',['C','S','C'],'2-Amino-4-methylsulfanylbutanoic acid','側鎖の途中に硫黄を含むアミノ酸。システインのSHとは異なるC–S–Cを持ちます。'],
+for(const [id,nameJa,nameEn,side,iupacNameEn] of [
+  ['serine','セリン','Serine',['O'],'2-Amino-3-hydroxypropanoic acid'],
+  ['cysteine','システイン','Cysteine',['S'],'2-Amino-3-sulfanylpropanoic acid'],
+  ['methionine','メチオニン','Methionine',['C','S','C'],'2-Amino-4-methylsulfanylbutanoic acid'],
 ]){
   const graph=acid(3);attach(graph,1,['N'],[]);attach(graph,0,side,side.slice(1).map((_,i)=>[i,i+1,1]));
-  add({id,nameJa,nameEn,iupacNameEn,learningNote,stereochemistry:'unspecified',...graph,category:'amino-acid'});
+  add({id,nameJa,nameEn,iupacNameEn,stereochemistry:'unspecified',...graph,category:'amino-acid'});
 }
 
 const PRODUCTION_EXCLUDED_MOLECULE_IDS = new Set(["sulfur-hexafluoride","isopentane","neopentane","1-pentene","2-pentene","o-xylene","m-xylene","chloroethane","1-propanol","isobutanol","propylene-glycol","1-4-dioxane","ethanethiol","butyraldehyde","isobutyraldehyde","2-pentanone","3-pentanone","isobutyric-acid","valeric-acid","methyl-formate","ethyl-formate","methyl-acetate","methyl-propionate","ethyl-propionate","ethylamine","formamide","propionamide","resorcinol","acetanilide","o-cresol","m-cresol","p-cresol","methyl-benzoate","ethyl-benzoate","n-butyl-acetate","isopropyl-acetate","cumene"]);
@@ -433,11 +433,11 @@ const PRODUCTION_EXCLUDED_MOLECULE_IDS = new Set(["sulfur-hexafluoride","isopent
 {
   const graph = ring(6);
   graph.bonds[0][2] = 2;
-  add({ id: 'cyclohexene', nameJa: 'シクロヘキセン', nameEn: 'Cyclohexene', category: 'cyclic-hydrocarbon', ...graph, iupacNameEn: 'Cyclohex-1-ene', learningNote: "6員環に1本のC=C二重結合を持つシクロアルケン。水素化するとシクロヘキサンになり、さらに不飽和化したベンゼンと比べると環状炭化水素の結合次数と反応性の違いが見える。" });
+  add({ id: 'cyclohexene', nameJa: 'シクロヘキセン', nameEn: 'Cyclohexene', category: 'cyclic-hydrocarbon', ...graph, iupacNameEn: 'Cyclohex-1-ene' });
 }
-add({ id: 'pyruvic-acid', nameJa: 'ピルビン酸', nameEn: 'Pyruvic acid', category: 'carboxylic-acid', atoms: ['C','C','C','O','O','O'], bonds: [[0,1,1],[1,2,1],[1,3,2],[2,4,2],[2,5,1]], iupacNameEn: '2-Oxopropanoic acid', learningNote: "ピルビン酸はカルボキシ基とケトン基を同時に持つα-ケト酸。解糖系でグルコース分解の要所に現れ、乳酸やアラニンへ変換されるため、生体化学とカルボニル化学をつなぐ。" });
-add({ id: 'furan', nameJa: 'フラン', nameEn: 'Furan', category: 'ether-cyclic-ether', atoms: ['O','C','C','C','C'], bonds: [[0,1,1],[1,2,2],[2,3,1],[3,4,2],[4,0,1]], valences: {0:2}, iupacNameEn: 'Furan', learningNote: "酸素1個を含む5員芳香族複素環。テトラヒドロフランとは同じO含有環でも芳香族性と不飽和度が異なり、バイオマス由来原料から得られるフラン化合物の基本骨格でもある。" });
-add({ id: 'dimethyl-sulfoxide', nameJa: 'ジメチルスルホキシド', nameEn: 'Dimethyl sulfoxide', aliases: ['DMSO'], category: 'sulfur-compounds', atoms: ['C','S','C','O'], bonds: [[0,1,1],[1,2,1],[1,3,2]], valences: {1:4}, iupacNameEn: 'Dimethyl sulfoxide', learningNote: "硫黄に酸素が結合したスルホキシドで、強い極性を持つ非プロトン性溶媒。硫化ジメチルの酸化体にあたり、有機反応の溶媒や生体試料の凍結保護などに広く使われる。" });
+add({ id: 'pyruvic-acid', nameJa: 'ピルビン酸', nameEn: 'Pyruvic acid', category: 'carboxylic-acid', atoms: ['C','C','C','O','O','O'], bonds: [[0,1,1],[1,2,1],[1,3,2],[2,4,2],[2,5,1]], iupacNameEn: '2-Oxopropanoic acid' });
+add({ id: 'furan', nameJa: 'フラン', nameEn: 'Furan', category: 'ether-cyclic-ether', atoms: ['O','C','C','C','C'], bonds: [[0,1,1],[1,2,2],[2,3,1],[3,4,2],[4,0,1]], valences: {0:2}, iupacNameEn: 'Furan' });
+add({ id: 'dimethyl-sulfoxide', nameJa: 'ジメチルスルホキシド', nameEn: 'Dimethyl sulfoxide', aliases: ['DMSO'], category: 'sulfur-compounds', atoms: ['C','S','C','O'], bonds: [[0,1,1],[1,2,1],[1,3,2]], valences: {1:4}, iupacNameEn: 'Dimethyl sulfoxide' });
 
 for (let index = molecules.length - 1; index >= 0; index--) {
   if (PRODUCTION_EXCLUDED_MOLECULE_IDS.has(molecules[index].id)) molecules.splice(index, 1);
@@ -445,18 +445,18 @@ for (let index = molecules.length - 1; index >= 0; index--) {
 
 // Supported formal-charge / resonance molecules. Canonical DB forms use one
 // valid Lewis contributor; runtime recognition accepts the equivalent placement.
-add({ id:'ozone', nameJa:'オゾン', nameEn:'Ozone', aliases:['trioxygen'], atoms:['O','O','O'], bonds:[[0,1,2],[1,2,1]], valences:{0:2,1:3,2:1}, formalCharges:{1:1,2:-1}, resonanceGroups:[{kind:'ozone',center:1,ends:[0,2]}], category:'basic-inorganic', iupacNameEn:'Trioxygen', learningNote:'3個の酸素原子からなる分子。2本のO–O結合は等価な共鳴として表せ、中央Oと末端Oに形式電荷を持つLewis構造で扱う。' });
-add({ id:'nitromethane', nameJa:'ニトロメタン', nameEn:'Nitromethane', atoms:['C','N','O','O'], bonds:[[0,1,1],[1,2,2],[1,3,1]], valences:{1:4,3:1}, formalCharges:{1:1,3:-1}, resonanceGroups:[{kind:'nitro',center:1,ends:[2,3]}], category:'nitrogen-compounds', iupacNameEn:'Nitromethane', learningNote:'最小のニトロ化合物。N⁺とO⁻を含む2つの等価なLewis構造でニトロ基の共鳴を比べられる。' });
+add({ id:'ozone', nameJa:'オゾン', nameEn:'Ozone', aliases:['trioxygen'], atoms:['O','O','O'], bonds:[[0,1,2],[1,2,1]], valences:{0:2,1:3,2:1}, formalCharges:{1:1,2:-1}, resonanceGroups:[{kind:'ozone',center:1,ends:[0,2]}], category:'basic-inorganic', iupacNameEn:'Trioxygen' });
+add({ id:'nitromethane', nameJa:'ニトロメタン', nameEn:'Nitromethane', atoms:['C','N','O','O'], bonds:[[0,1,1],[1,2,2],[1,3,1]], valences:{1:4,3:1}, formalCharges:{1:1,3:-1}, resonanceGroups:[{kind:'nitro',center:1,ends:[2,3]}], category:'nitrogen-compounds', iupacNameEn:'Nitromethane' });
 function nitroAromatic(nitroPositions,{methyl=false}={}){
   const graph=aromatic(),valences={},formalCharges={},resonanceGroups=[];
   if(methyl){const methylIndex=graph.atoms.length;graph.atoms.push('C');graph.bonds.push([0,methylIndex,1]);}
   for(const ringIndex of nitroPositions){const n=graph.atoms.length;graph.atoms.push('N','O','O');graph.bonds.push([ringIndex,n,1],[n,n+1,2],[n,n+2,1]);valences[n]=4;valences[n+2]=1;formalCharges[n]=1;formalCharges[n+2]=-1;resonanceGroups.push({kind:'nitro',center:n,ends:[n+1,n+2]});}
   return{...graph,valences,formalCharges,resonanceGroups};
 }
-add({ id:'nitrobenzene', nameJa:'ニトロベンゼン', nameEn:'Nitrobenzene', ...nitroAromatic([0]), category:'nitrogen-compounds', iupacNameEn:'Nitrobenzene', learningNote:'ベンゼン環にニトロ基が1つ結合した芳香族化合物。芳香環の共鳴とニトロ基内部の共鳴を同じ構造上で観察できる。' });
-add({ id:'2-nitrotoluene', nameJa:'2-ニトロトルエン', nameEn:'2-Nitrotoluene', aliases:['o-nitrotoluene'], ...nitroAromatic([1],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2-nitrobenzene', learningNote:'トルエンのメチル基に隣接してニトロ基を持つ。ニトロ置換を1段ずつ増やす系列の入口。' });
-add({ id:'2-4-dinitrotoluene', nameJa:'2,4-ジニトロトルエン', nameEn:'2,4-Dinitrotoluene', aliases:['2,4-DNT'], ...nitroAromatic([1,3],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4-dinitrobenzene', learningNote:'トルエン環にニトロ基が2つ入った化合物。各ニトロ基はそれぞれ等価な2つの共鳴Lewis構造を持つ。' });
-add({ id:'2-4-6-trinitrotoluene', nameJa:'2,4,6-トリニトロトルエン', nameEn:'2,4,6-Trinitrotoluene', aliases:['TNT'], ...nitroAromatic([1,3,5],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4,6-trinitrobenzene', learningNote:'TNTとして知られる芳香族ニトロ化合物。この図鑑では用途ではなく、段階的なニトロ置換と複数ニトロ基の共鳴構造を扱う。' });
+add({ id:'nitrobenzene', nameJa:'ニトロベンゼン', nameEn:'Nitrobenzene', ...nitroAromatic([0]), category:'nitrogen-compounds', iupacNameEn:'Nitrobenzene' });
+add({ id:'2-nitrotoluene', nameJa:'2-ニトロトルエン', nameEn:'2-Nitrotoluene', aliases:['o-nitrotoluene'], ...nitroAromatic([1],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2-nitrobenzene' });
+add({ id:'2-4-dinitrotoluene', nameJa:'2,4-ジニトロトルエン', nameEn:'2,4-Dinitrotoluene', aliases:['2,4-DNT'], ...nitroAromatic([1,3],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4-dinitrobenzene' });
+add({ id:'2-4-6-trinitrotoluene', nameJa:'2,4,6-トリニトロトルエン', nameEn:'2,4,6-Trinitrotoluene', aliases:['TNT'], ...nitroAromatic([1,3,5],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4,6-trinitrobenzene' });
 
 if (molecules.length !== 135) throw new Error(`Production molecule inventory drifted: ${molecules.length}`);
 
