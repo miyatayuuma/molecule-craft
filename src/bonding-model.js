@@ -201,7 +201,7 @@ export function bondEnergyKJ(elementA, elementB, order) {
 
 export function tapsToWeakenBond(elementA, elementB, order) {
   const energy = bondEnergyKJ(elementA, elementB, order);
-  return Math.max(2, Math.min(7, Math.round(energy / 165));
+  return Math.max(2, Math.min(7, Math.round(energy / 165)));
 }
 
 export function bondLengthScale(order) {

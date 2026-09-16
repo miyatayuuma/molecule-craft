@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {performance} from 'node:perf_hooks';
 import {Molecule,setMoleculeDatabase} from '../src/chemistry.js?resonance-test=1';
-import {supportedResonanceGroups} from '../src/resonance-model.js?v=1';
-import {bondAddition,atomBondState} from '../src/bonding-model.js?v=31';
+import {supportedResonanceGroups,supportedResonanceCompletionPartners} from '../src/resonance-model.js?v=2';
+import {bondAddition,atomBondState} from '../src/bonding-model.js?v=32';
 import {evaluateCraftTargetMatch} from '../src/craft-target-match.js';
 import {nextCraftBondHint} from '../src/craft-target-hint.js?v=1';
 import {createMoleculeGraph} from '../src/molecule-graph.js';
@@ -53,10 +53,19 @@ for(const id of ['ozone','nitromethane']){
 
 const nitromethane=byId('nitromethane'),nitroPre=precursor(nitromethane),builtPre=build(nitroPre),nitroGroup=nitromethane.resonanceGroups[0];
 const nId=builtPre.ids[nitroGroup.center],oId=builtPre.ids[nitroGroup.ends[0]];
-assert.deepEqual(bondAddition(builtPre.molecule,nId,oId),{allowed:true,order:2,kind:'extension'},'Supported nitro completion may cross the ordinary N valence ceiling without widening N chemistry globally');
+assert.deepEqual(bondAddition(builtPre.molecule,nId,oId),{allowed:true,order:2,kind:'resonance'},'Supported nitro completion may cross the ordinary N valence ceiling without widening N chemistry globally');
 
 const ozone=byId('ozone'),ozonePre=precursor(ozone),builtOzonePre=build(ozonePre),ozoneGroup=ozone.resonanceGroups[0];
-assert.deepEqual(bondAddition(builtOzonePre.molecule,builtOzonePre.ids[ozoneGroup.center],builtOzonePre.ids[ozoneGroup.ends[0]]),{allowed:true,order:2,kind:'extension'},'Supported ozone completion may cross the ordinary O valence ceiling only for the recognized motif');
+assert.deepEqual(bondAddition(builtOzonePre.molecule,builtOzonePre.ids[ozoneGroup.center],builtOzonePre.ids[ozoneGroup.ends[0]]),{allowed:true,order:2,kind:'resonance'},'Supported ozone completion may cross the ordinary O valence ceiling only for the recognized motif');
+const nitroSites=atomBondState(builtPre.molecule,nId).sites.filter(site=>site?.kind==='resonance');
+assert.equal(nitroSites.length,2,'Nitro all-single precursor exposes exactly two resonance completion handles on central N');
+assert.deepEqual(new Set(nitroSites.map(site=>site.partnerId)),new Set(nitroGroup.ends.map(index=>builtPre.ids[index])),'Nitro completion handles are restricted to the two terminal O atoms');
+assert.deepEqual(new Set(supportedResonanceCompletionPartners(builtPre.molecule,nId)),new Set(nitroGroup.ends.map(index=>builtPre.ids[index])),'Nitro precursor authority should expose only terminal O partners');
+const ozoneCenter=builtOzonePre.ids[ozoneGroup.center],ozoneSites=atomBondState(builtOzonePre.molecule,ozoneCenter).sites.filter(site=>site?.kind==='resonance');
+assert.equal(ozoneSites.length,2,'Ozone all-single precursor exposes exactly two resonance completion handles on central O');
+assert.deepEqual(new Set(ozoneSites.map(site=>site.partnerId)),new Set(ozoneGroup.ends.map(index=>builtOzonePre.ids[index])),'Ozone completion handles are restricted to terminal O atoms');
+for(const id of ['ammonia','water']){const record=byId(id),built=build(record),center=built.ids[record.atoms.findIndex(element=>element===('ammonia'===id?'N':'O'))];assert.equal(atomBondState(built.molecule,center).sites.some(site=>site?.kind==='resonance'),false,`${id}: ordinary N/O chemistry must not expose a resonance completion handle`);}
+
 
 const nitrobenzene=byId('nitrobenzene');
 assert.equal(build(nitrobenzene).molecule.recognizedMolecule()?.id,'nitrobenzene','Nitrobenzene canonical recognition');
