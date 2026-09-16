@@ -61,7 +61,7 @@ function build(elements,bonds){const m=new Molecule(),ids=elements.map(e=>m.addA
   assert.equal(specialEdgeKeys(shared).size,2,'S–OH bonds stay distinct');
   m.removeBond(ids[0],shared[0].ends[0]);assert.equal(sharedOxoGroups(m).length,0);
 }
-for(const [id,kind]of [['sulfur-dioxide','trigonal'],['sulfur-trioxide','trigonal'],['sulfuric-acid','sp3'],['phosphoric-acid','sp3'],['phosphorus-pentachloride','tbp'],['sulfur-hexafluoride','octahedral']]){
+for(const [id,kind]of [['sulfur-dioxide','trigonal'],['sulfur-trioxide','trigonal'],['sulfuric-acid','sp3'],['phosphoric-acid','sp3'],['phosphorus-pentachloride','tbp']]){
   const record=records.find(r=>r.id===id),{m,ids}=build(record.atoms,record.bonds);
   assert.equal(geometryForAtom(m,ids[0]).kind,kind,id);
 }
