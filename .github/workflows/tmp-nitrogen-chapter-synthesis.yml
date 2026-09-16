@@ -13,16 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Apply presentation and validation integration
-        run: node scripts/tmp-nitrogen-chapter-synthesis.mjs
+      - name: Apply presentation and map integration
+        run: |
+          node scripts/tmp-nitrogen-chapter-synthesis.mjs
+          git checkout -- .github/workflows/repository-validation.yml
       - name: Regenerate current FIELD developer map
         run: node scripts/export-field-map.mjs
       - name: Regenerate verified PWA release
         run: node scripts/build-precache.mjs
-      - name: Remove branch-only synthesis tooling
-        run: |
-          rm scripts/tmp-nitrogen-chapter-synthesis.mjs
-          rm .github/workflows/tmp-nitrogen-chapter-synthesis.yml
+      - name: Remove non-workflow branch tooling
+        run: rm scripts/tmp-nitrogen-chapter-synthesis.mjs
       - name: Commit generated chapter completion
         run: |
           git config user.name "github-actions[bot]"
