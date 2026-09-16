@@ -1,4 +1,4 @@
-import {supportedAtomState,supportsResonanceBondUpgrade} from './resonance-model.js?v=1';
+import {supportedAtomState,supportedResonanceCompletionPartners,supportsResonanceBondUpgrade} from './resonance-model.js?v=2';
 
 export const ATOMIC_MODEL = {
   H:  { valenceElectrons: 1, shell: 2,  preferredValences: [1],     electronegativity: 2.20, covalentRadius: 0.31 },
@@ -80,6 +80,7 @@ export function atomBondState(molecule, id, ports = 0) {
   const sites = Array.from({ length: singles }, () => 'electron');
   if (!singles && used < Math.max(...model.preferredValences)) sites.push('extension');
   if (atom.element === 'O' && carbonMonoxidePartner(molecule, id, 2)) sites.push('pair');
+  for(const partnerId of supportedResonanceCompletionPartners(molecule,id))sites.push({kind:'resonance',partnerId});
   return { singles, pairs, charge: 0, sites };
 }
 
@@ -89,8 +90,9 @@ export function bondAddition(molecule, a, b) {
   if (!left || !right || a === b || order >= 3) return { allowed: false, reason: 'この接続はできません' };
   const donor = carbonMonoxidePartner(molecule, a, 2)?.id === b;
   if (donor) return { allowed: true, order: 3, kind: 'pair', donorId: left.element === 'O' ? a : b };
-  if(order===1&&supportsResonanceBondUpgrade(molecule,a,b))return{allowed:true,order:2,kind:'extension'};
-  const allowed = [left, right].every(atom => atomBondState(molecule, atom.id).sites.some(site => site !== 'pair')
+  if(order===1&&supportsResonanceBondUpgrade(molecule,a,b))return{allowed:true,order:2,kind:'resonance'};
+  const hasGenericSite=atom=>atomBondState(molecule,atom.id).sites.some(site=>typeof site==='string'&&site!=='pair');
+  const allowed = [left, right].every(atom => hasGenericSite(atom)
     && molecule.bondOrderForAtom(atom.id) < Math.max(...ATOMIC_MODEL[atom.element].preferredValences));
   const extended = [left, right].some(atom => atomBondState(molecule, atom.id).sites.includes('extension'));
   return { allowed, order: order + 1, kind: extended ? 'extension' : 'electron', reason: allowed ? '' : '結合ルールに合わない接続です' };
@@ -199,7 +201,7 @@ export function bondEnergyKJ(elementA, elementB, order) {
 
 export function tapsToWeakenBond(elementA, elementB, order) {
   const energy = bondEnergyKJ(elementA, elementB, order);
-  return Math.max(2, Math.min(7, Math.round(energy / 165)));
+  return Math.max(2, Math.min(7, Math.round(energy / 165));
 }
 
 export function bondLengthScale(order) {
