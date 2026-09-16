@@ -43,6 +43,7 @@ await update('tests/oxygen-routes-browser-check.mjs',text=>{
 await update('tests/veil-ui-check.mjs',source=>{
   let text=source.replaceAll("q('launch-veil').click();","game.run(\"veilUI.requestExpeditionLaunch('continue')\");");
   text=text.replace("q('expedition-anchor').value='oxygen';q('expedition-anchor').dispatchEvent(new game.window.Event('change',{bubbles:true}));game.run(\"veilUI.requestExpeditionLaunch('continue')\");","game.run(\"veilUI.requestExpeditionLaunch('oxygen')\");");
+  text=text.replace("starterGame.document.getElementById('open-supply').click();starterGame.document.getElementById('launch-veil').click();","starterGame.document.getElementById('open-supply').click();starterGame.run(\"veilUI.requestExpeditionLaunch('continue')\");");
   if(/launch-veil|expedition-anchor/.test(text))throw new Error('veil UI check legacy launch fixture remains');return text;
 });
 
