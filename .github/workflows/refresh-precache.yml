@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main, work/resonance-readability-note-cleanup]
+    branches: [main]
 
 permissions:
   contents: write
