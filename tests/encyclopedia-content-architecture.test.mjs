@@ -67,7 +67,7 @@ assert.match(coText,/C⁻≡O⁺/,'CO should include the representative formal-c
 assert(entries['carbon-monoxide'].concepts.includes('formal-charge'));
 assert.match(entries.water.details.map(section=>section.body).join(' '),/部分的に負.*部分的に正|極性/);
 assert.match(entries.cyclopropane.details.map(section=>section.body).join(' '),/60°.*109\.5°|109\.5°.*60°/);
-assert.match(entries.benzene.details.map(section=>section.body).join(' '),/6π電子.*非局在化|非局在化.*6π電子/);
+assert.match(entries.benzene.details.map(section=>section.body).join(' '),/6(?:個の)?π電子.*非局在化|非局在化.*6(?:個の)?π電子/);
 assert.match(entries['sulfuric-acid'].details.map(section=>section.body).join(' '),/2段目|二価/);
 
 assert.match(source,/encyclopedia\.json\?v=30/,'Collection UI must load the v2 catalog with a fresh cache key');
