@@ -32,4 +32,4 @@ jobs:
           path: test-results/resonance-craft-interaction
           if-no-files-found: ignore
           retention-days: 7
-# Manual retrigger after transient Chromium startup failure.
+# Manual retrigger after separating settlement from registration UI lock.
