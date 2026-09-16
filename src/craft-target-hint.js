@@ -24,15 +24,21 @@ function graphSignature(graph,{includeIds=false}={}){
   for(let a=0;a<graph.edges.length;a++)for(const [b,order]of graph.edges[a])if(a<b)bonds.push([a,b,order]);
   return JSON.stringify([atoms,bonds]);
 }
-function candidateTargets(target,workspace,workspaceIndex){
-  const atom=workspace.atoms[workspaceIndex],used=incidentOrder(workspace.edges,workspaceIndex);
-  return target.atoms.filter(targetAtom=>targetAtom.element===atom.element&&incidentOrder(target.edges,targetAtom.index)>=used).map(targetAtom=>targetAtom.index);
+function candidateTargets(target,workspace,workspaceIndex,{extraOrder=0,extraDegree=0}={}){
+  const atom=workspace.atoms[workspaceIndex],used=incidentOrder(workspace.edges,workspaceIndex),degree=workspace.edges[workspaceIndex].size;
+  return target.atoms.filter(targetAtom=>targetAtom.element===atom.element&&target.edges[targetAtom.index].size>=degree+extraDegree&&incidentOrder(target.edges,targetAtom.index)>=used+extraOrder).map(targetAtom=>targetAtom.index);
 }
+const bump=(stats,key,amount=1)=>{if(stats)stats[key]=(stats[key]??0)+amount;};
 
-function findEmbedding(target,workspace,{requiredPair=null}={}){
-  const candidates=workspace.atoms.map((_,index)=>candidateTargets(target,workspace,index));
-  if(candidates.some(list=>!list.length))return null;
-  const [requiredA,requiredB]=requiredPair??[-1,-1];
+function findEmbedding(target,workspace,{requiredPair=null,stats=null}={}){
+  bump(stats,'embeddingCalls');
+  const [requiredA,requiredB]=requiredPair??[-1,-1],requiredCurrent=requiredPair?(workspace.edges[requiredA].get(requiredB)??0):0;
+  const candidates=workspace.atoms.map((_,index)=>{
+    const requiredEndpoint=index===requiredA||index===requiredB;
+    return candidateTargets(target,workspace,index,{extraOrder:requiredEndpoint?1:0,extraDegree:requiredEndpoint&&requiredCurrent===0?1:0});
+  });
+  bump(stats,'candidateTargets',candidates.reduce((sum,list)=>sum+list.length,0));
+  if(candidates.some(list=>!list.length)){bump(stats,'emptyCandidatePrunes');return null;}
   const order=workspace.atoms.map((_,index)=>index).sort((a,b)=>{
     // requiredPair is a real embedding constraint, just like an existing bond.
     // Check its endpoints before interchangeable loose atoms so a failed pair
@@ -41,12 +47,12 @@ function findEmbedding(target,workspace,{requiredPair=null}={}){
     return requiredPriority||candidates[a].length-candidates[b].length||workspace.edges[b].size-workspace.edges[a].size||incidentOrder(workspace.edges,b)-incidentOrder(workspace.edges,a)||a-b;
   });
   const targetForWorkspace=Array(workspace.atoms.length).fill(-1),usedTarget=new Set();
-  const requiredCurrent=requiredPair?(workspace.edges[requiredA].get(requiredB)??0):0;
 
   function compatible(workspaceIndex,targetIndex){
-    for(let other=0;other<targetForWorkspace.length;other++){
+    // Subgraph matching only constrains existing workspace edges. Iterating the
+    // actual neighbors keeps compatibility O(degree) instead of O(atom count).
+    for(const [other,workspaceOrder]of workspace.edges[workspaceIndex]){
       const mappedTarget=targetForWorkspace[other];if(mappedTarget<0)continue;
-      const workspaceOrder=workspace.edges[workspaceIndex].get(other)??0;
       const targetOrder=target.edges[targetIndex].get(mappedTarget)??0;
       if(workspaceOrder>targetOrder)return false;
     }
@@ -58,9 +64,11 @@ function findEmbedding(target,workspace,{requiredPair=null}={}){
   }
 
   function visit(depth){
+    bump(stats,'recursiveVisits');
     if(depth===order.length)return targetForWorkspace.slice();
     const workspaceIndex=order[depth];
     for(const targetIndex of candidates[workspaceIndex]){
+      bump(stats,'candidateAssignments');
       if(usedTarget.has(targetIndex)||!compatible(workspaceIndex,targetIndex))continue;
       targetForWorkspace[workspaceIndex]=targetIndex;usedTarget.add(targetIndex);
       const result=visit(depth+1);if(result)return result;
@@ -71,23 +79,40 @@ function findEmbedding(target,workspace,{requiredPair=null}={}){
   return visit(0);
 }
 
-export function nextCraftBondHint(targetGraph,workspaceGraph){
+function targetCapacityByElement(target){
+  const capacity=new Map();
+  for(const atom of target.atoms){
+    const current=capacity.get(atom.element)??{degree:0,order:0};
+    current.degree=Math.max(current.degree,target.edges[atom.index].size);current.order=Math.max(current.order,incidentOrder(target.edges,atom.index));capacity.set(atom.element,current);
+  }
+  return capacity;
+}
+function canGrowEndpoint(workspace,index,currentOrder,capacity){
+  const max=capacity.get(workspace.atoms[index].element);if(!max)return false;
+  if(max.order<incidentOrder(workspace.edges,index)+1)return false;
+  return currentOrder>0||max.degree>=workspace.edges[index].size+1;
+}
+
+export function nextCraftBondHint(targetGraph,workspaceGraph,{stats=null}={}){
   const target=normalizeAtoms(targetGraph),workspace=normalizeAtoms(workspaceGraph);
   if(!target||!workspace||workspace.atoms.length<2||workspace.atoms.length>target.atoms.length)return null;
   const targetCounts=elementCounts(target.atoms),workspaceCounts=elementCounts(workspace.atoms);
   for(const [element,count] of workspaceCounts)if(count>(targetCounts.get(element)??0))return null;
-  if(!findEmbedding(target,workspace))return null;
+  if(!findEmbedding(target,workspace,{stats}))return null;
 
-  const maxTargetOrderByElements=new Map();
+  const maxTargetOrderByElements=new Map(),capacity=targetCapacityByElement(target);
   for(let a=0;a<target.atoms.length;a++)for(const [b,order] of target.edges[a])if(a<b){
     const pair=[target.atoms[a].element,target.atoms[b].element].sort().join('\0');
     maxTargetOrderByElements.set(pair,Math.max(maxTargetOrderByElements.get(pair)??0,order));
   }
   const candidates=[];
   for(let a=0;a<workspace.atoms.length;a++)for(let b=a+1;b<workspace.atoms.length;b++){
+    bump(stats,'pairChecks');
     const currentOrder=workspace.edges[a].get(b)??0,elementPair=[workspace.atoms[a].element,workspace.atoms[b].element].sort().join('\0');
     if((maxTargetOrderByElements.get(elementPair)??0)<=currentOrder)continue;
-    const embedding=findEmbedding(target,workspace,{requiredPair:[a,b]});if(!embedding)continue;
+    if(!canGrowEndpoint(workspace,a,currentOrder,capacity)||!canGrowEndpoint(workspace,b,currentOrder,capacity)){bump(stats,'capacityPrunes');continue;}
+    bump(stats,'pairEmbeddingCalls');
+    const embedding=findEmbedding(target,workspace,{requiredPair:[a,b],stats});if(!embedding)continue;
     const targetOrder=target.edges[embedding[a]].get(embedding[b])??0;
     if(targetOrder<=currentOrder)continue;
     candidates.push({atomIds:[workspace.atoms[a].id,workspace.atoms[b].id],workspaceIndices:[a,b],currentOrder,nextOrder:currentOrder+1,targetOrder,targetAtomIndices:[embedding[a],embedding[b]]});
