@@ -14,6 +14,7 @@ jobs:
       - name: Apply contributor fix
         run: |
           python .github/temp-fix-nitro-contributor.py
+          python .github/temp-fix-browser-selector.py
           sed -i "s/encyclopedia-chemistry-visuals.js?v=1/encyclopedia-chemistry-visuals.js?v=2/" src/collection-ui.js
       - name: Validate chemistry diagrams
         run: |
