@@ -1,3 +1,5 @@
+import {AROMATIC_STYLE} from './aromatic-rendering.js?v=27';
+
 const SVG_NS='http://www.w3.org/2000/svg';
 const VISUAL_CONCEPT={aromaticity:'aromaticity',resonance:'resonance','formal-charge':'formal-charge',polarity:'polarity'};
 const RESONANCE_MOTIFS=new Set(['nitro','ozone']);
@@ -26,7 +28,7 @@ function figure(owner,type,title,caption,svg){
 function ringPoints(cx,cy,r){return Array.from({length:6},(_,i)=>{const a=(-90+i*60)*Math.PI/180;return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r};});}
 function drawRing(owner,svg,cx,cy,r,{doubleOffset=0,aromatic=false}={}){
   const points=ringPoints(cx,cy,r);svg.append(svgNode(owner,'polygon',{points:points.map(p=>`${p.x},${p.y}`).join(' '),fill:'none',stroke:'#9eafc5','stroke-width':3,'stroke-linejoin':'round'}));
-  if(aromatic){circle(owner,svg,cx,cy,r*.53,{fill:'none',stroke:'#67e8f9','stroke-width':4,'data-aromatic-circle':'true'});return;}
+  if(aromatic){circle(owner,svg,cx,cy,r*.53,{fill:'none',stroke:AROMATIC_STYLE.cssColor,'stroke-width':4,'data-aromatic-circle':'true'});return;}
   for(const edgeIndex of [doubleOffset%2,(doubleOffset+2)%6,(doubleOffset+4)%6]){
     const a=points[edgeIndex],b=points[(edgeIndex+1)%6],toward=point=>({x:point.x+(cx-point.x)*.16,y:point.y+(cy-point.y)*.16});
     const aa=toward(a),bb=toward(b);line(owner,svg,aa.x,aa.y,bb.x,bb.y,{stroke:'#d6e5ee','stroke-width':2.4,'stroke-linecap':'round'});
@@ -56,11 +58,11 @@ function drawDoubleBond(owner,svg,x1,y1,x2,y2,attrs={}){
   line(owner,svg,x1-ox,y1-oy,x2-ox,y2-oy,{stroke:'#9eafc5','stroke-width':2.4,'stroke-linecap':'round',...attrs});
 }
 function drawSingleBond(owner,svg,x1,y1,x2,y2,attrs={}){line(owner,svg,x1,y1,x2,y2,{stroke:'#9eafc5','stroke-width':3,'stroke-linecap':'round',...attrs});}
-function drawDistributedBondComponent(owner,svg,center,end,other,branch){
-  const dx=end.x-center.x,dy=end.y-center.y,len=Math.hypot(dx,dy)||1,otherX=other.x-center.x,otherY=other.y-center.y;
-  let ix=-dy/len,iy=dx/len;if(ix*otherX+iy*otherY<0){ix=-ix;iy=-iy;}
-  const offset=5.2,start=.29,finish=.71;
-  line(owner,svg,center.x+dx*start+ix*offset,center.y+dy*start+iy*offset,center.x+dx*finish+ix*offset,center.y+dy*finish+iy*offset,{stroke:'#9eafc5','stroke-width':1.8,'stroke-opacity':.55,'stroke-linecap':'round','data-delocalization':'distributed-bond','data-resonance-branch':branch,'data-center-role':'center','data-terminal-role':'terminal'});
+function drawDistributedBondComponent(owner,svg,start,end,insideTarget,branch){
+  const dx=end.x-start.x,dy=end.y-start.y,len=Math.hypot(dx,dy)||1,mx=(start.x+end.x)/2,my=(start.y+end.y)/2;
+  let ix=-dy/len,iy=dx/len;if(ix*(insideTarget.x-mx)+iy*(insideTarget.y-my)<0){ix=-ix;iy=-iy;}
+  const offset=5.2;
+  line(owner,svg,start.x+ix*offset,start.y+iy*offset,end.x+ix*offset,end.y+iy*offset,{stroke:AROMATIC_STYLE.cssColor,'stroke-width':3,'stroke-opacity':.68,'stroke-dasharray':'9 6','stroke-linecap':'round','data-delocalization':'distributed-bond','data-resonance-style':'distributed-dashed','data-resonance-branch':branch,'data-center-role':'center','data-terminal-role':'terminal'});
 }
 function drawNitroContributor(owner,svg,cx,cy,flip=false){
   const n={x:cx,y:cy},r={x:cx-47,y:cy},top={x:cx+43,y:cy-29},bottom={x:cx+43,y:cy+29},contributor=flip?'B':'A';
@@ -78,26 +80,27 @@ function drawOzoneContributor(owner,svg,cx,cy,flip=false){
 }
 function drawNitroHybrid(owner,svg,cx,cy){
   const n={x:cx,y:cy},r={x:cx-52,y:cy},top={x:cx+48,y:cy-31},bottom={x:cx+48,y:cy+31};
-  drawSingleBond(owner,svg,r.x+14,r.y,n.x-14,n.y);drawSingleBond(owner,svg,n.x+14,n.y-6,top.x-15,top.y+7);drawSingleBond(owner,svg,n.x+14,n.y+6,bottom.x-15,bottom.y-7);
-  drawDistributedBondComponent(owner,svg,n,top,bottom,'top');drawDistributedBondComponent(owner,svg,n,bottom,top,'bottom');
+  const topStart={x:n.x+14,y:n.y-6},topEnd={x:top.x-15,y:top.y+7},bottomStart={x:n.x+14,y:n.y+6},bottomEnd={x:bottom.x-15,y:bottom.y-7};
+  drawSingleBond(owner,svg,r.x+14,r.y,n.x-14,n.y);drawSingleBond(owner,svg,topStart.x,topStart.y,topEnd.x,topEnd.y);drawSingleBond(owner,svg,bottomStart.x,bottomStart.y,bottomEnd.x,bottomEnd.y);
+  drawDistributedBondComponent(owner,svg,topStart,topEnd,bottom,'top');drawDistributedBondComponent(owner,svg,bottomStart,bottomEnd,top,'bottom');
   atomLabel(owner,svg,r.x,r.y+7,'R');atomLabel(owner,svg,n.x,n.y+7,'N');atomLabel(owner,svg,top.x,top.y+7,'O');atomLabel(owner,svg,bottom.x,bottom.y+7,'O');
 }
 function drawOzoneHybrid(owner,svg,cx,cy){
   const left={x:cx-58,y:cy+16},mid={x:cx,y:cy-8},right={x:cx+58,y:cy+16};
-  drawSingleBond(owner,svg,left.x+14,left.y-6,mid.x-14,mid.y+6);drawSingleBond(owner,svg,mid.x+14,mid.y+6,right.x-14,right.y-6);
-  drawDistributedBondComponent(owner,svg,mid,left,right,'left');drawDistributedBondComponent(owner,svg,mid,right,left,'right');
+  const leftStart={x:left.x+14,y:left.y-6},leftEnd={x:mid.x-14,y:mid.y+6},rightStart={x:mid.x+14,y:mid.y+6},rightEnd={x:right.x-14,y:right.y-6};
+  drawSingleBond(owner,svg,leftStart.x,leftStart.y,leftEnd.x,leftEnd.y);drawSingleBond(owner,svg,rightStart.x,rightStart.y,rightEnd.x,rightEnd.y);
+  drawDistributedBondComponent(owner,svg,leftStart,leftEnd,right,'left');drawDistributedBondComponent(owner,svg,rightStart,rightEnd,left,'right');
   atomLabel(owner,svg,left.x,left.y+7,'O');atomLabel(owner,svg,mid.x,mid.y+7,'O');atomLabel(owner,svg,right.x,right.y+7,'O');
 }
 function renderResonance(owner,motif){
   const isNitro=motif==='nitro',label=isNitro?'ニトロ基':'オゾン';
-  const svg=baseSvg(owner,`${label}の2つのLewis共鳴寄与構造と、2本の中心-末端結合へ分散したπ結合成分のhybrid表現`,'0 0 440 250');
+  const svg=baseSvg(owner,`${label}の2つのLewis共鳴寄与構造と、2本の中心-末端結合へ分散したresonance hybrid`,'0 0 440 235');
   addText(owner,svg,110,20,'Lewis contributor A',{class:'chemistry-svg-label'});addText(owner,svg,330,20,'Lewis contributor B',{class:'chemistry-svg-label'});
   if(isNitro){drawNitroContributor(owner,svg,110,72,false);drawNitroContributor(owner,svg,330,72,true);}else{drawOzoneContributor(owner,svg,110,72,false);drawOzoneContributor(owner,svg,330,72,true);}
   addText(owner,svg,220,80,'↔',{'font-size':34,class:'resonance-arrow','data-resonance-arrow':'true'});
-  addText(owner,svg,220,130,'実際には一方へ固定されない',{class:'chemistry-svg-label'});addText(owner,svg,220,151,'↓',{'font-size':22,class:'concept-flow-arrow'});
-  if(isNitro)drawNitroHybrid(owner,svg,220,199);else drawOzoneHybrid(owner,svg,220,199);
-  addText(owner,svg,220,240,'薄い2本目線 = 2本のbondへ分散したπ結合成分',{'font-size':12,class:'chemistry-svg-caption'});
-  return figure(owner,'resonance','Resonance / 共鳴','↔は反応矢印ではありません。上はLewis共鳴寄与構造、下の薄い2本目線は追加のπ結合成分が2本のcenter–terminal bondへ分散したhybridを表します。',svg);
+  addText(owner,svg,220,130,'Resonance hybrid / 共鳴混成体',{class:'chemistry-svg-label'});addText(owner,svg,220,151,'↓',{'font-size':22,class:'concept-flow-arrow'});
+  if(isNitro)drawNitroHybrid(owner,svg,220,190);else drawOzoneHybrid(owner,svg,220,190);
+  return figure(owner,'resonance','Resonance / 共鳴','↔は反応矢印ではなく、等価なLewis共鳴寄与構造を表します。',svg);
 }
 function renderFormalCharge(owner){
   const svg=baseSvg(owner,'一酸化炭素の代表的Lewis構造 C−≡O+ と、整数の形式電荷','0 0 420 135');

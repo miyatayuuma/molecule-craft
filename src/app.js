@@ -14,8 +14,8 @@ import { connectedStructures, chooseMainStructure, createDebrisTracker, DEBRIS_P
 import { createPreviewModel } from './preview-model.js?v=31';
 import { planSpawn } from './spawn-layout.js?v=28';
 import { createElementPalette, syncElementStocks } from './element-progression.js?v=39';
-import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=26';
-import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=30';
+import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=27';
+import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=32';
 
 import { createGameShell } from './game-shell.js?v=31';
 import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
