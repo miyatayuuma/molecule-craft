@@ -17,22 +17,22 @@ jobs:
           from pathlib import Path
           p=Path('tests/resonance-craft-interaction-browser.test.mjs')
           s=p.read_text()
-          old="""    validation:molecule.validation().level,\n    shared:sharedVisuals.length,"""
-          new="""    validation:molecule.validation().level,\n    locked:interactionLocked(),\n    shared:sharedVisuals.length,"""
+          marker="validation:molecule.validation().level,"
+          assert s.count(marker)==1, s.count(marker)
+          at=s.index(marker)+len(marker)
+          s=s[:at]+"\\n    locked:interactionLocked(),"+s[at:]
+          old="const next=await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot();return s.atoms.length===${before+1}?s.atoms[s.atoms.length-1]:null;})()`,`${symbol}: palette click did not add atom`);return next.id;"
+          new="const next=await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot();return s.atoms.length===${before+1}?s.atoms[s.atoms.length-1]:null;})()`,`${symbol}: palette click did not add atom`);await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${symbol}: CRAFT did not unlock after atom placement`,{attempts:220});return next.id;"
           assert s.count(old)==1, s.count(old)
-          s=s.replace(old,new)
-          old="""const next=await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot();return s.atoms.length===${before+1}?s.atoms[s.atoms.length-1]:null;})()`,`${symbol}: palette click did not add atom`);return next.id;"""
-          new="""const next=await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot();return s.atoms.length===${before+1}?s.atoms[s.atoms.length-1]:null;})()`,`${symbol}: palette click did not add atom`);await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${symbol}: CRAFT did not unlock after atom placement`,{attempts:220});return next.id;"""
+          s=s.replace(old,new,1)
+          old="await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot(),b=s.bonds.find(item=>(item.a===${source.atomId}&&item.b===${target.atomId})||(item.a===${target.atomId}&&item.b===${source.atomId}));return b?.order===${expectedOrder};})()`,`${source.atomId}-${target.atomId}: pointer drag did not reach order ${expectedOrder}`,{attempts:220});await new Promise(r=>setTimeout(r,120));"
+          new="await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot(),b=s.bonds.find(item=>(item.a===${source.atomId}&&item.b===${target.atomId})||(item.a===${target.atomId}&&item.b===${source.atomId}));return b?.order===${expectedOrder};})()`,`${source.atomId}-${target.atomId}: pointer drag did not reach order ${expectedOrder}`,{attempts:220});await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${source.atomId}-${target.atomId}: CRAFT did not unlock after bond formation`,{attempts:220});"
           assert s.count(old)==1, s.count(old)
-          s=s.replace(old,new)
-          old="""await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot(),b=s.bonds.find(item=>(item.a===${source.atomId}&&item.b===${target.atomId})||(item.a===${target.atomId}&&item.b===${source.atomId}));return b?.order===${expectedOrder};})()`,`${source.atomId}-${target.atomId}: pointer drag did not reach order ${expectedOrder}`,{attempts:220});await new Promise(r=>setTimeout(r,120));"""
-          new="""await waitFor(`(()=>{const s=globalThis.__resonanceCraftDebug.snapshot(),b=s.bonds.find(item=>(item.a===${source.atomId}&&item.b===${target.atomId})||(item.a===${target.atomId}&&item.b===${source.atomId}));return b?.order===${expectedOrder};})()`,`${source.atomId}-${target.atomId}: pointer drag did not reach order ${expectedOrder}`,{attempts:220});await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,`${source.atomId}-${target.atomId}: CRAFT did not unlock after bond formation`,{attempts:220});"""
+          s=s.replace(old,new,1)
+          old="await waitFor(`globalThis.__resonanceCraftDebug.snapshot().atoms.length===0`,'CRAFT workspace was not empty');exceptions.length=0;"
+          new="await waitFor(`globalThis.__resonanceCraftDebug.snapshot().atoms.length===0`,'CRAFT workspace was not empty');await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,'CRAFT did not become interactive after empty-workspace load',{attempts:220});exceptions.length=0;"
           assert s.count(old)==1, s.count(old)
-          s=s.replace(old,new)
-          old="""await waitFor(`globalThis.__resonanceCraftDebug.snapshot().atoms.length===0`,'CRAFT workspace was not empty');exceptions.length=0;"""
-          new="""await waitFor(`globalThis.__resonanceCraftDebug.snapshot().atoms.length===0`,'CRAFT workspace was not empty');await waitFor(`globalThis.__resonanceCraftDebug.snapshot().locked===false`,'CRAFT did not become interactive after empty-workspace load',{attempts:220});exceptions.length=0;"""
-          assert s.count(old)==1, s.count(old)
-          p.write_text(s.replace(old,new))
+          p.write_text(s.replace(old,new,1))
           PY
           node --check tests/resonance-craft-interaction-browser.test.mjs
           git diff --check
