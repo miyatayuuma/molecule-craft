@@ -12,10 +12,30 @@ permissions:
 jobs:
   complexity-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Node scaling audit
         run: |
           node tests/complexity-audit.mjs
           node tests/hint-complexity-stats.mjs
+      - name: Baseline semantic equivalence
+        run: node tests/hint-semantics-audit.mjs
+      - name: CRAFT matching regressions
+        run: |
+          node --test tests/craft-target-hint.test.mjs
+          node --test tests/craft-target-match.test.mjs
+          node tests/recognition.test.mjs
+      - name: CRAFT browser and large conformation regressions
+        run: |
+          node tests/craft-target-hint-browser.test.mjs
+          node tests/conformation-performance-check.mjs
+      - name: Graph FIELD and LOADOUT focused regressions
+        run: |
+          node tests/molecule-graph.test.mjs
+          node tests/molecule-frontier.test.mjs
+          node tests/route-kit.test.mjs
+          node tests/expedition-core.test.mjs
+          node tests/loadout-launch-regression.test.mjs
