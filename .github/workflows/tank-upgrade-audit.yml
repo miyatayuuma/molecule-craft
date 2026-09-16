@@ -1,0 +1,17 @@
+name: Tank upgrade audit
+
+on:
+  push:
+    branches:
+      - fix/tank-upgrade-stale-test
+
+permissions:
+  contents: read
+
+jobs:
+  tank-upgrade-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tank upgrade regression
+        run: node tests/tank-upgrades.test.mjs
