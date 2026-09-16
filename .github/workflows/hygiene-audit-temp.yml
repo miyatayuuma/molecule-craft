@@ -1,0 +1,104 @@
+name: Temporary repository hygiene audit
+
+on:
+  push:
+    branches:
+      - chore/repository-hygiene-audit
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Existing hygiene guardrail
+        run: node tests/repository-hygiene.test.mjs
+      - name: Focused migration and stale contract scan
+        shell: bash
+        run: |
+          echo '=== learningNote references ==='
+          git grep -n 'learningNote' -- . || true
+          echo '=== catalog count literals ==='
+          git grep -n -E '(^|[^0-9])(129|130|135)([^0-9]|$)' -- '*.js' '*.mjs' '*.json' '*.md' '*.yml' '*.yaml' || true
+          echo '=== launch relay / legacy frontier / warp terms ==='
+          git grep -n -Ei 'synthetic.{0,20}(change|click)|dispatchEvent\([^\n]*(change|click)|\.click\(\)|warp|legacy.{0,30}frontier|frontier.{0,30}destination|launch-veil' -- src index.html tests || true
+          echo '=== temporary/debug residue terms ==='
+          git grep -n -Ei '\b(TODO|FIXME|TEMPORARY|TEMP|DEBUG)\b|console\.log\(' -- src scripts tests .github docs README.md AGENTS.md || true
+          echo '=== resonance / formal charge implementation references ==='
+          git grep -n -Ei 'resonance|formal.?charge|nitro|ozone|arc' -- src tests data/encyclopedia.json data/molecules.json || true
+          echo '=== tracked suspicious filenames ==='
+          git ls-files | grep -Ei '(^|/)(tmp|temp|debug|scratch|handoff|progress)(/|\.|$)|screenshot|test-results|\.bak$|\.old$' || true
+      - name: Structural authority and orphan candidate scan
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),path=require('path');
+          const root=process.cwd();
+          const all=[];
+          function walk(dir='.'){
+            for(const e of fs.readdirSync(dir,{withFileTypes:true})){
+              if(e.name==='.git'||e.name==='node_modules')continue;
+              const p=path.join(dir,e.name).replaceAll('\\','/');
+              if(e.isDirectory())walk(p); else all.push(p.replace(/^\.\//,''));
+            }
+          }
+          walk();
+          const textFiles=all.filter(p=>/\.(?:js|mjs|cjs|html|css|json|md|ya?ml|webmanifest)$/.test(p));
+          const texts=new Map(textFiles.map(p=>[p,fs.readFileSync(p,'utf8')]));
+          const molecules=JSON.parse(texts.get('data/molecules.json'));
+          const encyclopedia=JSON.parse(texts.get('data/encyclopedia.json'));
+          const learning=molecules.filter(m=>Object.hasOwn(m,'learningNote'));
+          const learningConsumers=[...texts].filter(([p,t])=>p!=='data/molecules.json'&&t.includes('learningNote')).map(([p])=>p);
+          console.log('CATALOG_COUNT',molecules.length);
+          console.log('ENCYCLOPEDIA_ENTRIES',Array.isArray(encyclopedia)?encyclopedia.length:Object.keys(encyclopedia).length);
+          console.log('LEARNING_NOTE_COUNT',learning.length,'CONSUMERS',learningConsumers);
+
+          const modelFiles=all.filter(p=>p.startsWith('assets/models/molecule-')&&p.endsWith('.svg'));
+          const expected=new Set(molecules.map(m=>`assets/models/molecule-${m.id}.svg`));
+          console.log('MODEL_ASSET_COUNT',modelFiles.length);
+          console.log('ORPHAN_MODEL_ASSETS',modelFiles.filter(p=>!expected.has(p)));
+          console.log('MISSING_MODEL_ASSETS',[...expected].filter(p=>!modelFiles.includes(p)));
+
+          const jsFiles=all.filter(p=>/^src\/.*\.js$/.test(p));
+          const outsideSource=[...texts].filter(([p])=>!p.startsWith('src/'));
+          const sourceTexts=new Map(jsFiles.map(p=>[p,texts.get(p)]));
+          const exported=[];
+          for(const [p,t] of sourceTexts){
+            for(const m of t.matchAll(/\bexport\s+(?:async\s+)?(?:function|class|const|let|var)\s+([A-Za-z_$][\w$]*)/g))exported.push([p,m[1]]);
+            for(const m of t.matchAll(/\bexport\s*\{([^}]+)\}/g))for(const bit of m[1].split(',')){const name=bit.trim().split(/\s+as\s+/)[0];if(/^[A-Za-z_$][\w$]*$/.test(name))exported.push([p,name]);}
+          }
+          const exportCandidates=[];
+          for(const [p,name] of exported){
+            const re=new RegExp(`\\b${name.replace(/[$]/g,'\\$&')}\\b`,'g');
+            let refs=0;
+            for(const [q,t] of texts){if(q===p)continue;refs+=(t.match(re)||[]).length;}
+            if(refs===0)exportCandidates.push(`${p}:${name}`);
+          }
+          console.log('EXPORTED_IDENTIFIERS_WITH_ZERO_OTHER_TEXT_REFS',exportCandidates);
+
+          const cssFiles=all.filter(p=>p.endsWith('.css'));
+          const nonCss=[...texts].filter(([p])=>!p.endsWith('.css'));
+          const cssClassCandidates=[];
+          const cssIdCandidates=[];
+          for(const p of cssFiles){
+            const t=texts.get(p);
+            const classes=new Set([...t.matchAll(/\.([A-Za-z_-][\w-]*)/g)].map(m=>m[1]));
+            const ids=new Set([...t.matchAll(/#([A-Za-z_-][\w-]*)/g)].map(m=>m[1]));
+            for(const c of classes)if(!nonCss.some(([,s])=>s.includes(c)))cssClassCandidates.push(`${p}:.${c}`);
+            for(const id of ids)if(!nonCss.some(([,s])=>s.includes(id)))cssIdCandidates.push(`${p}:#${id}`);
+          }
+          console.log('CSS_CLASS_ZERO_TEXT_REF_CANDIDATES',cssClassCandidates);
+          console.log('CSS_ID_ZERO_TEXT_REF_CANDIDATES',cssIdCandidates);
+
+          const html=texts.get('index.html')||'';
+          const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
+          const outsideHtml=[...texts].filter(([p])=>p!=='index.html');
+          console.log('HTML_IDS_WITH_ZERO_OTHER_TEXT_REF',ids.filter(id=>!outsideHtml.some(([,t])=>t.includes(id))));
+          NODE
+      - name: Generated asset and PWA authority checks
+        run: |
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
