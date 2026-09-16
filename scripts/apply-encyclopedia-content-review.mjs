@@ -13,6 +13,10 @@ for(const chunk of chunks)for(const [id,entry] of Object.entries(chunk)){
 }
 const tnt=molecules['2-4-6-trinitrotoluene'];
 if(tnt?.details?.[0])tnt.details[0].body='2,4,6位の各NO₂基はN⁺/O⁻を含む等価なLewis寄与構造で表せる。これらは同じ電子状態を別々に表した寄与構造で、実在構造では電子密度が各O–N–O領域へ非局在化している。';
+const nitrobenzene=molecules.nitrobenzene;
+if(nitrobenzene?.details?.[0])nitrobenzene.details[0].body='ニトロ基内部では共鳴により電子密度がO–N–O全体へ非局在化し、2本のN–O結合は等価に近づく。さらにニトロ基は芳香環から電子密度を引くため、ベンゼンより芳香族置換反応が起こりにくくなり、位置選択性も変わる。';
+const orthoNitrotoluene=molecules['2-nitrotoluene'];
+if(orthoNitrotoluene?.details?.[0])orthoNitrotoluene.details[0].body='CH₃基とNO₂基が隣接する1,2置換ベンゼンで、2つの置換基の電子効果と立体反発が分子の形と反応性へ影響する。ニトロ基内部では共鳴により電子密度がO–N–O領域へ非局在化し、2本のN–O結合は等価に近い。';
 const sourceIds=Object.keys(source.molecules??{}),reviewIds=Object.keys(molecules);
 if(sourceIds.length!==135||reviewIds.length!==135)throw new Error(`expected 135 molecules, source=${sourceIds.length}, review=${reviewIds.length}`);
 const missing=sourceIds.filter(id=>!molecules[id]),extra=reviewIds.filter(id=>!source.molecules[id]);
