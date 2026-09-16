@@ -17,3 +17,13 @@ const lines=source.split('\n').map(line=>{
 source=lines.join('\n');
 if(source.includes("assert(nitro.visuals[0].arc)")||source.includes("assert(ozone.visuals[0].arc)"))throw new Error('Legacy detail arc assertion remained');
 await writeFile(url,source);
+
+const formalUrl=new URL('../tests/resonance-formal-charge.test.mjs',import.meta.url);
+let formal=await readFile(formalUrl,'utf8');
+const formalLines=formal.split('\n').map(line=>{
+  if(line.includes('assert.match(svg,/data-resonance-three-center='))return "  const expectedComponents=2*(byId(id).resonanceGroups?.length??0);assert.equal((svg.match(/data-resonance-distributed-bond=\\\"true\\\"/g)??[]).length,expectedComponents,`${id}: Encyclopedia hybrid asset needs two distributed bond components per resonance group`);assert.doesNotMatch(svg,/data-resonance-three-center=\\\"true\\\"/,`${id}: legacy three-center resonance arc must be absent`);";
+  return line;
+});
+formal=formalLines.join('\n');
+if(formal.includes('Encyclopedia hybrid asset must use the three-center resonance grammar'))throw new Error('Legacy resonance asset assertion remained');
+await writeFile(formalUrl,formal);
