@@ -28,9 +28,12 @@ function candidateTargets(target,workspace,workspaceIndex){
   const atom=workspace.atoms[workspaceIndex],used=incidentOrder(workspace.edges,workspaceIndex);
   return target.atoms.filter(targetAtom=>targetAtom.element===atom.element&&incidentOrder(target.edges,targetAtom.index)>=used).map(targetAtom=>targetAtom.index);
 }
+const bump=(stats,key,amount=1)=>{if(stats)stats[key]=(stats[key]??0)+amount;};
 
-function findEmbedding(target,workspace,{requiredPair=null}={}){
+function findEmbedding(target,workspace,{requiredPair=null,stats=null}={}){
+  bump(stats,'embeddingCalls');
   const candidates=workspace.atoms.map((_,index)=>candidateTargets(target,workspace,index));
+  bump(stats,'candidateTargets',candidates.reduce((sum,list)=>sum+list.length,0));
   if(candidates.some(list=>!list.length))return null;
   const [requiredA,requiredB]=requiredPair??[-1,-1];
   const order=workspace.atoms.map((_,index)=>index).sort((a,b)=>{
@@ -58,9 +61,11 @@ function findEmbedding(target,workspace,{requiredPair=null}={}){
   }
 
   function visit(depth){
+    bump(stats,'recursiveVisits');
     if(depth===order.length)return targetForWorkspace.slice();
     const workspaceIndex=order[depth];
     for(const targetIndex of candidates[workspaceIndex]){
+      bump(stats,'candidateAssignments');
       if(usedTarget.has(targetIndex)||!compatible(workspaceIndex,targetIndex))continue;
       targetForWorkspace[workspaceIndex]=targetIndex;usedTarget.add(targetIndex);
       const result=visit(depth+1);if(result)return result;
@@ -71,12 +76,12 @@ function findEmbedding(target,workspace,{requiredPair=null}={}){
   return visit(0);
 }
 
-export function nextCraftBondHint(targetGraph,workspaceGraph){
+export function nextCraftBondHint(targetGraph,workspaceGraph,{stats=null}={}){
   const target=normalizeAtoms(targetGraph),workspace=normalizeAtoms(workspaceGraph);
   if(!target||!workspace||workspace.atoms.length<2||workspace.atoms.length>target.atoms.length)return null;
   const targetCounts=elementCounts(target.atoms),workspaceCounts=elementCounts(workspace.atoms);
   for(const [element,count] of workspaceCounts)if(count>(targetCounts.get(element)??0))return null;
-  if(!findEmbedding(target,workspace))return null;
+  if(!findEmbedding(target,workspace,{stats}))return null;
 
   const maxTargetOrderByElements=new Map();
   for(let a=0;a<target.atoms.length;a++)for(const [b,order] of target.edges[a])if(a<b){
@@ -85,9 +90,11 @@ export function nextCraftBondHint(targetGraph,workspaceGraph){
   }
   const candidates=[];
   for(let a=0;a<workspace.atoms.length;a++)for(let b=a+1;b<workspace.atoms.length;b++){
+    bump(stats,'pairChecks');
     const currentOrder=workspace.edges[a].get(b)??0,elementPair=[workspace.atoms[a].element,workspace.atoms[b].element].sort().join('\0');
     if((maxTargetOrderByElements.get(elementPair)??0)<=currentOrder)continue;
-    const embedding=findEmbedding(target,workspace,{requiredPair:[a,b]});if(!embedding)continue;
+    bump(stats,'pairEmbeddingCalls');
+    const embedding=findEmbedding(target,workspace,{requiredPair:[a,b],stats});if(!embedding)continue;
     const targetOrder=target.edges[embedding[a]].get(embedding[b])??0;
     if(targetOrder<=currentOrder)continue;
     candidates.push({atomIds:[workspace.atoms[a].id,workspace.atoms[b].id],workspaceIndices:[a,b],currentOrder,nextOrder:currentOrder+1,targetOrder,targetAtomIndices:[embedding[a],embedding[b]]});
