@@ -3,6 +3,7 @@ import {nitrogenChapterState} from './nitrogen-progression.js';
 export const RARE_SURVEY_ELEMENTS=Object.freeze(['P','S','F','Cl']);
 export const RARE_SURVEY_SCAN_SECONDS=.85;
 export const RARE_SURVEY_SCAN_RADIUS=68;
+export const RARE_SURVEY_EVENT='molecule-craft:rare-survey';
 export const RARE_SURVEY_RUN_CONFIG=Symbol('molecule-craft.rare-survey-run-config');
 export const RARE_SURVEY_CARGO=Symbol('molecule-craft.rare-survey-cargo');
 const RARE_SET=new Set(RARE_SURVEY_ELEMENTS);
@@ -81,6 +82,11 @@ export function installRareSurvey(resources){
 }
 
 function anomalyVisual(map,site,index){return {id:map.dust.length+index,x:site.x,y:site.y,baseX:site.x,baseY:site.y,angle:0,kind:'rare',element:site.element,value:0,ready:0,rareAnomaly:site.id};}
+function presentRareSurvey(detail){
+  const target=typeof globalThis==='object'?globalThis:null,CustomEventCtor=target?.CustomEvent;
+  if(typeof target?.dispatchEvent!=='function'||typeof CustomEventCtor!=='function')return;
+  target.dispatchEvent(new CustomEventCtor(RARE_SURVEY_EVENT,{detail}));
+}
 export function initializeRareSurveyRun(run,config={unlocked:false,anomalies:[]}){
   const definitions=config?.unlocked===true&&Array.isArray(config.anomalies)?config.anomalies.filter(site=>BY_ID.has(site?.id)&&!run?.map?.dust?.some(dust=>dust.rareAnomaly===site.id)):[];
   const anomalies=definitions.map((definition,index)=>{const site=cloneSite(BY_ID.get(definition.id)),visual=anomalyVisual(run.map,site,index);run.map.dust.push(visual);return {...site,visual,collected:false};});
@@ -102,9 +108,9 @@ export function advanceRareSurvey(run,seconds,events=[]){
   const survey=run?.rareSurvey;if(!survey?.unlocked||run.captured||!Number.isFinite(seconds)||seconds<=0)return events;
   const open=survey.anomalies.filter(item=>!item.collected),nearest=open.map(item=>({item,distance:Math.hypot(run.player.x-item.x,run.player.y-item.y)})).filter(row=>row.distance<=RARE_SURVEY_SCAN_RADIUS).sort((a,b)=>a.distance-b.distance||a.item.id.localeCompare(b.item.id))[0]?.item??null;
   if(!nearest){survey.activeScanId=null;survey.scanElapsed=0;return events;}
-  if(survey.activeScanId!==nearest.id){survey.activeScanId=nearest.id;survey.scanElapsed=0;events.push({type:'rareAnomalyScanStart',id:nearest.id,element:nearest.element,quantity:nearest.quantity});}
+  if(survey.activeScanId!==nearest.id){survey.activeScanId=nearest.id;survey.scanElapsed=0;const event={type:'rareAnomalyScanStart',id:nearest.id,element:nearest.element,quantity:nearest.quantity};events.push(event);presentRareSurvey({phase:'scan',...event});}
   survey.scanElapsed+=seconds;
   if(survey.scanElapsed+1e-9<RARE_SURVEY_SCAN_SECONDS)return events;
-  nearest.collected=true;nearest.visual.ready=Infinity;survey.activeScanId=null;survey.scanElapsed=0;const specimen={id:nearest.id,element:nearest.element,quantity:nearest.quantity};run.rareSpecimens.push(specimen);run.rareCargo[nearest.element]+=nearest.quantity;addPickupEffect(run,nearest);events.push({type:'rareAnomalyCollected',...specimen});return events;
+  nearest.collected=true;nearest.visual.ready=Infinity;survey.activeScanId=null;survey.scanElapsed=0;const specimen={id:nearest.id,element:nearest.element,quantity:nearest.quantity};run.rareSpecimens.push(specimen);run.rareCargo[nearest.element]+=nearest.quantity;addPickupEffect(run,nearest);const event={type:'rareAnomalyCollected',...specimen};events.push(event);presentRareSurvey({phase:'collected',...event});return events;
 }
 export function rareSurveyDiagnostics(run){const survey=run?.rareSurvey;return {unlocked:!!survey?.unlocked,activeScanId:survey?.activeScanId??null,scanElapsed:survey?.scanElapsed??0,available:(survey?.anomalies??[]).filter(item=>!item.collected).map(({id,element,quantity,region,x,y})=>({id,element,quantity,region,x,y})),specimens:(run?.rareSpecimens??[]).map(item=>({...item})),cargo:{...(run?.rareCargo??{})}};}
