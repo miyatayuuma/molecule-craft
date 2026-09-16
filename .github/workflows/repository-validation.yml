@@ -106,6 +106,12 @@ jobs:
           node --test tests/craft-target-hint.test.mjs
           node --test tests/craft-target-match.test.mjs
           node tests/craft-target-hint-browser.test.mjs
+          node tests/resonance-formal-charge.test.mjs
+          node tests/bond-state.test.mjs
+          node tests/resonance-craft-interaction-browser.test.mjs
+          node tests/resonance-visual-browser.test.mjs
+          node tests/special-bonds-check.mjs
+          node tests/aromatic-rendering-check.mjs vendor/three/three.module.min.js
       - name: Expedition insights
         run: |
           node tests/expedition-insights.test.mjs

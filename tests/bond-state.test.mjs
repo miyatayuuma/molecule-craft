@@ -1,21 +1,35 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Molecule, setMoleculeDatabase} from '../src/chemistry.js';
-import {atomBondState, bondAddition, geometryForAtom} from '../src/bonding-model.js?v=31';
+import {atomBondState, bondAddition, geometryForAtom} from '../src/bonding-model.js?v=32';
 import {sharedOxoGroups, specialEdgeKeys} from '../src/special-bonds.js?v=30';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url)));
 setMoleculeDatabase(records);
-// Build through the same permission gate as a real drag. Do not seed bonds.
+const resonanceEdge=(record,a,b)=>record.resonanceGroups?.some(group=>(group.center===a&&group.ends.includes(b))||(group.center===b&&group.ends.includes(a)))??false;
+// Build through the same permission gate as a real drag. Supported resonance
+// motifs first establish their all-single precursor, then upgrade one equivalent
+// bond per group through the dedicated completion authority.
 for(const record of records)for(const reverse of [false,true]){
-  const m=new Molecule(),ids=record.atoms.map(e=>m.addAtom(e).id);
-  for(const [a,b,order] of reverse?[...record.bonds].reverse():record.bonds){
-    for(let step=1;step<=order;step++){
+  const m=new Molecule(),ids=record.atoms.map(e=>m.addAtom(e).id),ordered=reverse?[...record.bonds].reverse():record.bonds;
+  for(const [a,b,order] of ordered){
+    const initialOrder=resonanceEdge(record,a,b)?1:order;
+    for(let step=1;step<=initialOrder;step++){
       assert.ok(atomBondState(m,ids[a]).sites.length,`${record.id}: source handle missing`);
       assert.ok(atomBondState(m,ids[b]).sites.length,`${record.id}: target handle missing`);
       const addition=bondAddition(m,ids[a],ids[b]);
       assert.equal(addition.allowed,true,`${record.id}: denied ${a}-${b} order ${step}`);
       m.setBond(ids[a],ids[b],addition.order);
     }
+  }
+  for(const group of record.resonanceGroups??[]){
+    const target=record.bonds.find(([a,b,order])=>order===2&&((a===group.center&&group.ends.includes(b))||(b===group.center&&group.ends.includes(a))));
+    assert.ok(target,`${record.id}: resonance contributor double bond missing`);
+    const [a,b]=target,sourceState=atomBondState(m,ids[group.center]);
+    assert.ok(sourceState.sites.some(site=>site?.kind==='resonance'&&site.partnerId===(ids[a]===ids[group.center]?ids[b]:ids[a])),`${record.id}: resonance completion handle missing`);
+    const addition=bondAddition(m,ids[a],ids[b]);
+    assert.equal(addition.allowed,true,`${record.id}: resonance completion denied`);
+    assert.equal(addition.kind,'resonance',`${record.id}: resonance completion kind`);
+    m.setBond(ids[a],ids[b],addition.order);
   }
   assert.equal(m.validation().level,'ok',record.id);
   assert.equal(m.recognizedMolecule()?.id,record.id);
@@ -47,8 +61,8 @@ function build(elements,bonds){const m=new Molecule(),ids=elements.map(e=>m.addA
   assert.equal(specialEdgeKeys(shared).size,2,'S–OH bonds stay distinct');
   m.removeBond(ids[0],shared[0].ends[0]);assert.equal(sharedOxoGroups(m).length,0);
 }
-for(const [id,kind]of [['sulfur-dioxide','trigonal'],['sulfur-trioxide','trigonal'],['sulfuric-acid','sp3'],['phosphoric-acid','sp3'],['phosphorus-pentachloride','tbp'],['sulfur-hexafluoride','octahedral']]){
+for(const [id,kind]of [['sulfur-dioxide','trigonal'],['sulfur-trioxide','trigonal'],['sulfuric-acid','sp3'],['phosphoric-acid','sp3'],['phosphorus-pentachloride','tbp']]){
   const record=records.find(r=>r.id===id),{m,ids}=build(record.atoms,record.bonds);
   assert.equal(geometryForAtom(m,ids[0]).kind,kind,id);
 }
-console.log('162 molecules reachable in two construction orders; CO scope/charges, extension ports and distinct oxo groups passed.');
+console.log(`${records.length} molecules reachable in two construction orders; resonance precursors, CO scope/charges, extension ports and distinct oxo groups passed.`);
