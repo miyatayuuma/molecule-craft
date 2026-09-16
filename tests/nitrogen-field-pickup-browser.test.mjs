@@ -43,7 +43,7 @@ try{
   const waitFor=async(expression,message,attempts=120)=>{for(let attempt=0;attempt<attempts;attempt++){try{if(await evaluate(expression))return true;}catch{}await new Promise(resolveWait=>setTimeout(resolveWait,100));}throw new Error(message);};
 
   await send('Runtime.enable');await send('Page.enable');await send('Page.navigate',{url:`${origin}/`});
-  await waitFor(`document.querySelector('#open-collection')?.textContent?.includes('0/129')`,'Application did not initialize');
+  await waitFor(`document.querySelector('#open-collection')?.textContent?.includes('0/135')`,'Application did not initialize');
   const seeded=await evaluate(`(async()=>{const {createResources}=await import('/src/veil/resources.js');const records=await fetch('/data/molecules.json').then(r=>r.json());const r=createResources({storage:localStorage});r.setCatalog(records);r.state.progress.choCompleted=true;r.state.progress.regions=['veil','carbon','oxygen','frontier'];r.state.progress.checkpoint='frontier';r.state.progress.foundElements=['H','C','O'];r.state.recipes=['hydrogen','methane','oxygen','water'];Object.assign(r.state.elements,{H:1000,C:1000,O:1000,N:0});return r.save();})()`);assert.equal(seeded,true,'post-CHO browser fixture must persist');
   await send('Page.reload',{ignoreCache:true});
   await waitFor(`document.querySelector('#expedition-anchor')?.querySelector('option[value="nitrogen"]')!==null`,'Nitrogen destination did not become available');
