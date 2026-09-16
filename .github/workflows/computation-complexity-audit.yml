@@ -21,6 +21,7 @@ jobs:
         run: |
           node tests/complexity-audit.mjs
           node tests/hint-complexity-stats.mjs
+          node tests/decomposition-complexity-audit.mjs
       - name: Baseline semantic equivalence
         run: node tests/hint-semantics-audit.mjs
       - name: CRAFT matching regressions
@@ -28,6 +29,7 @@ jobs:
           node --test tests/craft-target-hint.test.mjs
           node --test tests/craft-target-match.test.mjs
           node tests/recognition.test.mjs
+          node --test tests/craft-decomposition.test.mjs
       - name: CRAFT browser and large conformation regressions
         run: |
           node tests/craft-target-hint-browser.test.mjs
