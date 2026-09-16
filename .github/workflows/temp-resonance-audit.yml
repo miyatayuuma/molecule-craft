@@ -1,0 +1,30 @@
+name: Temporary resonance audit
+on:
+  push:
+    branches: [feature/resonance-formal-charge-nitro-ozone]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Audit molecule DB and graph
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const db=JSON.parse(fs.readFileSync('data/molecules.json','utf8'));
+          const graph=JSON.parse(fs.readFileSync('data/molecule-graph.json','utf8'));
+          console.log('DB_COUNT',db.length);
+          for(const id of ['oxygen','methane','benzene','toluene','sulfur-dioxide','sulfur-trioxide','sulfuric-acid','carbon-monoxide']){
+            console.log('RECORD',id,JSON.stringify(db.find(r=>r.id===id)));
+            console.log('GRAPH_NODE',id,JSON.stringify(graph.nodes?.find(n=>n.id===id)));
+          }
+          console.log('GRAPH_SHAPE',Object.keys(graph), 'nodes',graph.nodes?.length,'edges',graph.edges?.length);
+          console.log('RELATIONS',[...new Set((graph.edges??[]).map(e=>e.relation))].sort());
+          console.log('TOLUENE_EDGES',JSON.stringify((graph.edges??[]).filter(e=>e.from==='toluene'||e.to==='toluene')));
+          console.log('OXYGEN_EDGES',JSON.stringify((graph.edges??[]).filter(e=>e.from==='oxygen'||e.to==='oxygen')));
+          NODE
+      - name: Audit generation and validation contracts
+        run: |
+          grep -nE "molecules\.json|encyclopedia\.json|formal|charge|valence|sharedOxo|special-bonds|molecule-graph" scripts/build-molecule-db.mjs scripts/build-collection-assets.mjs tests/recognition.test.mjs tests/special-bonds-check.mjs tests/molecule-graph.test.mjs | head -n 220
