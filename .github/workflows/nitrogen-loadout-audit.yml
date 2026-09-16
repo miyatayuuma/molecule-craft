@@ -1,0 +1,43 @@
+name: Nitrogen LOADOUT role audit
+
+on:
+  push:
+    branches: [work/nitrogen-loadout-role-balance]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Existing role and FIELD regressions
+        run: |
+          node tests/loadout-preview.test.mjs
+          node tests/propulsion-differentiation.test.mjs
+          node tests/nitrogen-field-integration.test.mjs
+          node tests/thermal-coolant.test.mjs
+          node tests/generic-propulsion.test.mjs
+          node tests/tank-upgrades.test.mjs
+          node tests/h-economy-balance.test.mjs
+      - name: Nitrogen role economics and thermal audit
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          import {performanceFor} from './src/veil/molecule-roles.js';
+          import {burstDriveFor} from './src/veil/growth.js';
+          import {THERMAL} from './src/veil/config.js';
+          import {evaluateProfile} from './scripts/evaluate-propulsion-profiles.mjs';
+          const catalog=JSON.parse(await readFile('./data/molecules.json','utf8'));
+          const byId=new Map(catalog.map(record=>[record.id,record]));
+          const atomCost=(id,count)=>{const atoms=byId.get(id)?.atoms??[];const cost={};for(const atom of atoms)cost[atom]=(cost[atom]??0)+count;return cost;};
+          const propellants=['hydrogen','nitrogen','ammonia','carbon-dioxide','n-butane'];
+          const propellantRows=propellants.map(id=>{const p=performanceFor(id,'propellant'),drive=burstDriveFor(id);return {id,capacity:p.capacity,perBurst:p.moleculesPerBurst,shots:Math.floor(p.capacity/p.moleculesPerBurst),power:p.burstPower,speed:Math.round(drive.boostSpeed),fullCost:atomCost(id,p.capacity),costPerShot:atomCost(id,p.moleculesPerBurst)};});
+          console.log('PROPELLANT_AUDIT',JSON.stringify(propellantRows));
+          const coolants=['nitrogen','ammonia','water','ethylene-glycol','methanol','ethanol','carbon-dioxide'];
+          const coolantRows=coolants.map(id=>{const p=performanceFor(id,'coolant');if(!p)return null;const effective=ambient=>{const exposure=1+.8*(ambient/100)/Math.max(.1,p.environmentTolerance),seconds=THERMAL.coolantSecondsPerMolecule*p.durationFactor/exposure;return +(THERMAL.coolantCoolingPerSecond*p.coolingPower*seconds).toFixed(2);};return {id,capacity:p.capacity,cooling:p.coolingPower,duration:p.durationFactor,tolerance:p.environmentTolerance,heatRemovedPerMolecule:{ambient0:effective(0),ambient48:effective(48),ambient100:effective(100)},fullCost:atomCost(id,p.capacity)};}).filter(Boolean);
+          console.log('COOLANT_AUDIT',JSON.stringify(coolantRows));
+          const thermal=['nitrogen','ammonia','water','ethylene-glycol'].map(coolant=>evaluateProfile({fuel:'methane',coolant,capacity:36,early:true,goalY:-11640}));
+          console.log('THERMAL_ROUTE_AUDIT',JSON.stringify(thermal.map(r=>({coolant:r.coolant,returned:r.returned,time:r.time,heat:r.heat,overheats:r.overheats,combustionSeconds:r.combustionSeconds,remainingCoolant:r.remaining.coolant?.amount??null}))));
+          NODE
