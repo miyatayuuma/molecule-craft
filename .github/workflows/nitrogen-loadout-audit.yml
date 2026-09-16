@@ -44,7 +44,8 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import {createRun,stepRun,beginBurst,setCombustionHeld} from './src/veil/engine.js';
-          import {flightConfig,performanceFor} from './src/veil/growth.js';
+          import {flightConfig} from './src/veil/growth.js';
+          import {performanceFor} from './src/veil/molecule-roles.js';
           import {createUniverse,BURST_ADVANTAGE_FIELDS,OXYGEN_ENTRY_KNOTS} from './src/veil/universe.js';
           const cfg=flightConfig(),dt=1/120;
           function strongField(id,field){
