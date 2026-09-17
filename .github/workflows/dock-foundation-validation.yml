@@ -1,0 +1,29 @@
+name: DOCK foundation validation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dock-foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: State and migration contract
+        run: |
+          node tests/dock-foundation.test.mjs
+          node tests/tank-upgrades.test.mjs
+      - name: Mobile player-facing flow
+        run: node tests/dock-foundation-browser.test.mjs
+      - name: Existing LOADOUT and launch integration
+        run: |
+          node tests/loadout-workstation.test.mjs
+          node tests/loadout-mobile-fit-toggle-browser.test.mjs
+          node tests/launch-transaction.test.mjs
+          node tests/loadout-launch-regression.test.mjs
+      - name: Generated PWA freshness
+        run: node scripts/build-precache.mjs --check
+      - name: Whitespace errors
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
