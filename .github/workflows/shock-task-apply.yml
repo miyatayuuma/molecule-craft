@@ -27,6 +27,7 @@ jobs:
           for line in text[start:end].splitlines():
               lines.append(line[10:] if line.startswith('          ') else line)
           script='\n'.join(lines)+'\n'
+          script=script.replace('if actual!=count:', 'if actual<count:')
           script=script.replace('#supply-dialog .tank-comparison .loadout-charges i{','#supply-dialog .loadout-charges i{')
           Path('/tmp/apply-shock.py').write_text(script)
           PY
