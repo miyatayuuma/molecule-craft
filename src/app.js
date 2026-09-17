@@ -522,14 +522,14 @@ function ensureMoleculeMeshes(){
 }
 function rebuildMoleculeMeshes(){
   disposeGroup(moleculeGroup);atomVisuals.clear();bondVisuals.clear();electronVisuals=[];aromaticVisuals=[];sharedVisuals=[];
-  const structural=solver.snapshot(),shared=sharedOxoGroups(molecule),aromaticEdges=new Set([...aromaticBondKeys(structural.aromaticCycles),...specialEdgeKeys(shared)]);
+  const structural=solver.snapshot(),shared=sharedOxoGroups(molecule),resonanceHybridAtomIds=new Set(shared.filter(group=>group.kind==='nitro'||group.kind==='ozone').flatMap(group=>[group.center,...group.ends])),aromaticEdges=new Set([...aromaticBondKeys(structural.aromaticCycles),...specialEdgeKeys(shared)]);
   for(const group of shared){const visual=createSharedBonds(THREE);moleculeGroup.add(visual);sharedVisuals.push({group,visual});}
   for(const bond of molecule.bonds)createBondVisual(bond,aromaticEdges);
   for(const cycle of structural.aromaticCycles)createAromaticVisual(cycle);
-  for(const atom of molecule.atoms)createAtomVisual(atom);
+  for(const atom of molecule.atoms)createAtomVisual(atom,{suppressFormalCharge:resonanceHybridAtomIds.has(atom.id)});
   renderTopologyDirty=false;updateMoleculeTransforms();
 }
-function createAtomVisual(atom){
+function createAtomVisual(atom,{suppressFormalCharge=false}={}){
   const cfg=ELEMENTS[atom.element],mesh=new THREE.Mesh(new THREE.SphereGeometry(cfg.radius*1.04,30,22),new THREE.MeshStandardMaterial({color:cfg.color,roughness:.24,metalness:0}));
   mesh.userData.atomId=atom.id;moleculeGroup.add(mesh);
   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:selectionHaloTexture(),color:0xe6fbff,transparent:true,opacity:0,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending}));
@@ -546,7 +546,7 @@ function createAtomVisual(atom){
     for(const sign of[-1,1]){const electron=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),new THREE.MeshStandardMaterial({color:0x64748b,emissive:0x334155,emissiveIntensity:.18,roughness:.5}));electron.userData.lonePairAtomId=atom.id;moleculeGroup.add(electron);meshes.push({electron,sign});}
     lonePairs.push({index,meshes});
   }
-  const charge=state.charge?createChargeLabel(THREE,state.charge):null;if(charge)moleculeGroup.add(charge);
+  const charge=!suppressFormalCharge&&state.charge?createChargeLabel(THREE,state.charge):null;if(charge)moleculeGroup.add(charge);
   atomVisuals.set(atom.id,{mesh,halo,cfg,lonePairs,singles,shell,charge});
 }
 function renderUnpairedElectron(atomId,index,dir,shell,kind='electron',partnerId=null){
