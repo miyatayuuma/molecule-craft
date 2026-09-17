@@ -29,6 +29,7 @@ jobs:
           script='\n'.join(lines)+'\n'
           script=script.replace('if actual!=count:', 'if actual<count:')
           script=script.replace('#supply-dialog .tank-comparison .loadout-charges i{','#supply-dialog .loadout-charges i{')
+          script=script.replace("assert.equal(canShock(run),false);stepRun(run,{x:0,y:0},.2);assert.equal(run.eaters.length,1,'interrupted Dust Eater remains a live encounter');", "assert.equal(canShock(run),false);assert.equal(run.eaters.length,1,'interrupted Dust Eater remains a live encounter');")
           Path('/tmp/apply-shock.py').write_text(script)
           PY
           python3 /tmp/apply-shock.py
