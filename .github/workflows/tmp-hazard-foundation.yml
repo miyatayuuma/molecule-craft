@@ -1,0 +1,350 @@
+name: Hazard foundation implementation
+
+on:
+  push:
+    branches: [field/hazard-taxonomy-organic-boundary]
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Apply FIELD hazard authority integration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p=Path(path); s=p.read_text()
+              if old not in s: raise SystemExit(f'missing replacement target in {path}: {old[:120]!r}')
+              p.write_text(s.replace(old,new,1))
+
+          def replace_between(path, start, end, new):
+              p=Path(path); s=p.read_text(); a=s.find(start); b=s.find(end,a)
+              if a<0 or b<0: raise SystemExit(f'missing block markers in {path}: {start!r} .. {end!r}')
+              p.write_text(s[:a]+new+s[b:])
+
+          # map.js: annotate generic fields and revisit currents with stable hazard metadata.
+          replace('src/veil/map.js',"import { VEIL } from './config.js';", "import { VEIL } from './config.js';\nimport {defineHazard,HAZARD_TYPES} from './hazards.js';")
+          replace('src/veil/map.js',"current:Object.freeze({width:180,force:90}),", "current:Object.freeze({width:180,force:90,hazard:defineHazard('hydrogen-revisit-current',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'route-current'})}),")
+          replace('src/veil/map.js',"currents.push({id:'hydrogen-revisit-current',route:revisit,width:HYDROGEN_REVISIT_ROUTE.current.width,force:HYDROGEN_REVISIT_ROUTE.current.force,speed:-HYDROGEN_REVISIT_ROUTE.current.force});", "currents.push({id:'hydrogen-revisit-current',route:revisit,width:HYDROGEN_REVISIT_ROUTE.current.width,force:HYDROGEN_REVISIT_ROUTE.current.force,speed:-HYDROGEN_REVISIT_ROUTE.current.force,hazard:HYDROGEN_REVISIT_ROUTE.current.hazard});")
+          replace('src/veil/map.js',"return {seed,routes,dust,depletion,currents,capabilities:{combustionDrive:revisitUnlocked},fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels};", "return {seed,routes,dust,depletion,currents,capabilities:{combustionDrive:revisitUnlocked},fields:[{id:'veil-ambient-flow',x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15,kind:'ambient-turbulence',hazard:defineHazard('veil-ambient-flow',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'map.fields'})}],labels};")
+
+          # expedition-challenges.js: one seeded organic envelope shared by gameplay and visuals.
+          replace('src/veil/expedition-challenges.js',"import {OXYGEN_VORTEX_ROUTE} from './oxygen-routes.js';", "import {OXYGEN_VORTEX_ROUTE} from './oxygen-routes.js';\nimport {appendHazard,defineHazard,HAZARD_TYPES,organicCorridorInfluence,organicCorridorProfile,softExtentInfluence} from './hazards.js';")
+          replace('src/veil/expedition-challenges.js',"export const EXPEDITION_CHALLENGES=Object.freeze([", "const CHALLENGE_HAZARDS=Object.freeze({\n  pulse:Object.freeze({pressure:defineHazard('challenge-pulse-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'expedition-challenge'})}),\n  curve:Object.freeze({pressure:defineHazard('challenge-curve-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'expedition-challenge'}),shear:defineHazard('challenge-curve-shear',HAZARD_TYPES.MECHANICAL,'shear',{source:'expedition-challenge'})}),\n  thermal:Object.freeze({pressure:defineHazard('challenge-thermal-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'expedition-challenge'}),thermal:defineHazard('challenge-thermal-heat',HAZARD_TYPES.THERMAL,'hot-zone',{source:'expedition-challenge'})}),\n});\nexport const EXPEDITION_CHALLENGES=Object.freeze([")
+          replace_between('src/veil/expedition-challenges.js',"export const challengeCenter=", "export function recordChallengePassage", """export const challengeCenter=(zone,y)=>zone.id==='curve'?zone.centerX+170*Math.sin((y-zone.bottom)/500*Math.PI):zone.centerX;
+export const challengeWidthAt=(zone,y)=>{
+  if(zone.id!=='curve')return zone.width;
+  const taperStart=zone.top+200;
+  if(y>=taperStart)return zone.width;
+  const t=Math.max(0,Math.min(1,(taperStart-y)/(taperStart-zone.top)));
+  return zone.width+(100-zone.width)*t;
+};
+export function challengeProfileAt(zone,y,seed=1){
+  return organicCorridorProfile(seed,`challenge:${zone.id}`,y,challengeCenter(zone,y),challengeWidthAt(zone,y),{centerJitter:0,widthJitter:.09,scale:175});
+}
+export function challengeInfluenceAt(zone,p,seed=1){
+  if(!zone||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return {center:zone?.centerX??0,halfWidth:zone?.width??1,nominalHalfWidth:zone?.width??1,lateral:0,longitudinal:0,intensity:0};
+  return organicCorridorInfluence({seed,id:`challenge:${zone.id}`,x:p.x,y:p.y,centerX:challengeCenter(zone,p.y),centerY:(zone.top+zone.bottom)/2,halfWidth:challengeWidthAt(zone,p.y),halfLength:(zone.bottom-zone.top)/2,edgeFade:36,centerJitter:0,widthJitter:.09,scale:175});
+}
+export function challengeEnvironment(p,time,seed=1){
+  let match=null;
+  for(const zone of EXPEDITION_CHALLENGES){const envelope=challengeInfluenceAt(zone,p,seed);if(envelope.intensity>1e-5&&(!match||envelope.intensity>match.envelope.intensity))match={zone,envelope};}
+  if(!match)return null;
+  const z=match.zone,strength=match.envelope.intensity,pulse=(1+Math.sin(time*2*Math.PI/2.4))/2,pressureBase=z.id==='pulse'?130+280*pulse:z.id==='curve'?330:280,pressure=pressureBase*strength,flowX=z.id==='curve'?Math.cos((p.y-z.bottom)/500*Math.PI)*-65*strength:0,heat=z.id==='thermal'?48*strength:0,hazards=[],defs=CHALLENGE_HAZARDS[z.id];
+  appendHazard(hazards,defs.pressure,pressure/600,{severity:pressure,vector:{x:0,y:pressure}});
+  if(defs.shear)appendHazard(hazards,defs.shear,Math.abs(flowX)/65,{severity:Math.abs(flowX),vector:{x:flowX,y:0}});
+  if(defs.thermal)appendHazard(hazards,defs.thermal,heat/48,{severity:heat,heat});
+  return {pressure,flowX,heat,hazards,hazardEnvelope:match.envelope};
+}
+""")
+          replace_between('src/veil/expedition-challenges.js',"export function drawChallengeCurrents", "", "") if False else None
+          p=Path('src/veil/expedition-challenges.js'); s=p.read_text(); start=s.find('export function drawChallengeCurrents')
+          if start<0: raise SystemExit('missing drawChallengeCurrents')
+          s=s[:start]+"""export function drawChallengeCurrents(ctx,time,seed=1){
+  ctx.save();
+  for(const z of EXPEDITION_CHALLENGES){
+    ctx.strokeStyle=z.id==='thermal'?'#cf7451':'#8ba6c7';ctx.lineWidth=1.5;
+    const fade=36,visualTop=z.top-fade,visualBottom=z.bottom+fade,centerY=(z.top+z.bottom)/2,halfLength=(z.bottom-z.top)/2;
+    for(let i=0;i<16;i++){
+      const y=visualTop+((i/16+time*.13)%1)*(visualBottom-visualTop),profile=challengeProfileAt(z,y,seed),longitudinal=softExtentInfluence(y,centerY,halfLength,fade),x=profile.center+(i%3-1)*profile.halfWidth*.45;
+      if(longitudinal<=1e-4)continue;
+      ctx.globalAlpha=(z.id==='pulse'?.12+.12*(1+Math.sin(time*2*Math.PI/2.4))/2:.16)*longitudinal;ctx.beginPath();ctx.moveTo(x,y-22);ctx.quadraticCurveTo(x+10,y,x,y+22);ctx.stroke();
+    }
+  }
+  // Vortex route visualises the same geometry that guides dust and local flow.
+  // It stays faint: the player reads a field, not a painted road.
+  const route=OXYGEN_VORTEX_ROUTE,lines=route.fieldLines;
+  ctx.strokeStyle='#8fc8d5';ctx.lineCap='round';
+  for(const [index,line]of lines.entries()){
+    const center=index===(lines.length-1)/2;ctx.globalAlpha=center?.12:.055;ctx.lineWidth=center?1.05:.7;ctx.beginPath();
+    line.forEach((point,i)=>i?ctx.lineTo(point.x,point.y):ctx.moveTo(point.x,point.y));ctx.stroke();
+  }
+  const points=route.points,grainCount=12;ctx.fillStyle='#b5e7ec';
+  for(let i=0;i<grainCount;i++){
+    const phase=((time*.18+i/grainCount)%1)*(points.length-1),index=Math.floor(phase),t=phase-index,a=points[index],b=points[Math.min(points.length-1,index+1)],x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t,angle=Math.atan2(b.y-a.y,b.x-a.x);
+    ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.globalAlpha=.12+.09*Math.sin((i/grainCount+time*.18)*Math.PI*2)**2;ctx.beginPath();ctx.ellipse(0,0,4.2,1.05,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  ctx.globalAlpha=1;ctx.lineCap='butt';ctx.restore();
+}
+"""
+          p.write_text(s)
+
+          # oxygen-routes.js: classify pressure/vortex/thermal and soften localized gate envelope.
+          replace('src/veil/oxygen-routes.js',"import {createVortexFlybyRoute,routeFlowAt} from './route-kit.js';", "import {createVortexFlybyRoute,routeFlowAt} from './route-kit.js';\nimport {appendHazard,defineHazard,hazardSample,HAZARD_TYPES,organicCorridorInfluence} from './hazards.js';")
+          replace('src/veil/oxygen-routes.js',"export const OXYGEN_ROUTES=Object.freeze([", "export const OXYGEN_ROUTES=Object.freeze([")
+          marker="// Deep Oxygen remains physically open: these values describe authored route\n"
+          insert="""const OXYGEN_ROUTE_PRESSURE_HAZARD=defineHazard('oxygen-route-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'oxygen-pressure'});
+const OXYGEN_VORTEX_HAZARD=defineHazard('oxygen-vortex',HAZARD_TYPES.MECHANICAL,'vortex',{source:'oxygen-vortex'});
+const OXYGEN_THERMAL_HAZARD=defineHazard('oxygen-thermal',HAZARD_TYPES.THERMAL,'hot-zone',{source:'oxygen-thermal'});
+const OXYGEN_FRONTIER_PRESSURE_HAZARD=defineHazard('oxygen-frontier-wall-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'oxygen-thermal'});
+const OXYGEN_GATE_HAZARDS=Object.freeze(Object.fromEntries(OXYGEN_ROUTES.flatMap(route=>(route.gates??[]).map((gate,index)=>[`${route.id}:${index}`,defineHazard(`oxygen-pressure-gate:${route.id}:${index}`,HAZARD_TYPES.MECHANICAL,'pressure',{source:'oxygen-pressure-gate'})]))));
+
+"""
+          replace('src/veil/oxygen-routes.js',marker,insert+marker)
+          replace('src/veil/oxygen-routes.js',"export const OXYGEN_ROUTES=Object.freeze([", "export const OXYGEN_ROUTES=Object.freeze([")
+          vortex_marker="export const OXYGEN_ROUTES=Object.freeze(["
+          vortex_fn="""export function oxygenVortexHazardAt(p){
+  const flow=oxygenVortexFlowAt(p),severity=Math.hypot(flow.x,flow.y);
+  return hazardSample(OXYGEN_VORTEX_HAZARD,flow.intensity,{severity,vector:{x:flow.x,y:flow.y}});
+}
+"""
+          replace('src/veil/oxygen-routes.js',vortex_marker,vortex_fn+vortex_marker)
+          gate_marker="export function deepOxygenFrontierRecoveryAt(p){"
+          gate_helpers="""export function oxygenGateEnvelopeAt(route,gate,p,seed=1,index=(route?.gates??[]).indexOf(gate)){
+  if(!route||!gate||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return {center:route?.x??0,halfWidth:(route?.width??1)/2,nominalHalfWidth:(route?.width??1)/2,lateral:0,longitudinal:0,intensity:0};
+  const centerX=oxygenRouteCenterAtY(route,p.y)??route.x,halfLength=Math.max(1,gate.depth/2-6),edgeFade=Math.min(12,gate.depth/4);
+  return organicCorridorInfluence({seed,id:`oxygen-gate:${route.id}:${index}`,x:p.x,y:p.y,centerX,centerY:gate.y,halfWidth:route.width/2+12,halfLength,edgeFade,centerJitter:0,widthJitter:.06,scale:95});
+}
+function localizedGatePressureAt(p,seed=1){
+  let best=null;
+  for(const route of OXYGEN_ROUTES)for(const [index,gate]of (route.gates??[]).entries()){
+    const envelope=oxygenGateEnvelopeAt(route,gate,p,seed,index),pressure=gate.pressure*envelope.intensity;
+    if(pressure>1e-6&&(!best||pressure>best.pressure))best={route,gate,index,envelope,pressure};
+  }
+  return best;
+}
+"""
+          replace('src/veil/oxygen-routes.js',gate_marker,gate_helpers+gate_marker)
+          replace_between('src/veil/oxygen-routes.js',"export function oxygenThermalAt(p){", "export function oxygenRouteAt(p){", """export function oxygenThermalAt(p,seed=1){
+  const route=OXYGEN_ROUTES.find(candidate=>candidate.id===OXYGEN_THERMAL.routeId);
+  const routeLateralFactor=routeLateral(route,p,OXYGEN_THERMAL.coreRadius,OXYGEN_THERMAL.fadeRadius);
+  const routeHeat=profileAtY(OXYGEN_THERMAL.heatStops,p.y)*routeLateralFactor;
+  const belt=OXYGEN_THERMAL.sharedBelt,beltRecovery=beltRecoveryAt(p);
+  const beltHeat=beltRecovery?0:profileAtY(belt.heatStops,p.y)*beltLateral(p,belt);
+  const wall=OXYGEN_THERMAL.frontierWall,frontierWallHeat=profileAtY(wall.heatStops,p.y),frontierWallPressure=frontierWallPressureAt(p)??0,frontierWallPulsePressure=frontierWallPressure*Math.max(0,wall.pulsePressureMultiplier-1);
+  const mergeRecovery=mergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;
+  let deepHeat=0,deepThermalHeat=0;
+  if(!recovery){
+    for(const deepRoute of DEEP_OXYGEN_ROUTES){
+      const profile=OXYGEN_THERMAL.deepProfiles[deepRoute.id];
+      const local=profileAtY(profile.heatStops,p.y)*routeLateral(deepRoute,p,profile.coreRadius,profile.fadeRadius);
+      deepHeat=Math.max(deepHeat,local);
+      if(deepRoute.id==='oxygen-deep-thermal')deepThermalHeat=local;
+    }
+  }
+  const heat=Math.max(routeHeat,beltHeat,deepHeat,frontierWallHeat),networkFactor=.71*clamp(routeHeat/48,0,1),beltFactor=routeHeat>0?0:belt.combustionHeatFactor*clamp(beltHeat/belt.maxHeat,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1),frontierWallFactor=wall.combustionHeatFactor*clamp(frontierWallHeat/wall.maxHeat,0,1);
+  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat,frontierWallHeat)>=OXYGEN_THERMAL.learningHeat,hazards=[];
+  appendHazard(hazards,OXYGEN_THERMAL_HAZARD,heat/50,{severity:heat,heat});
+  appendHazard(hazards,OXYGEN_FRONTIER_PRESSURE_HAZARD,frontierWallPressure/wall.offRoutePressure,{severity:frontierWallPressure,vector:{x:0,y:frontierWallPressure}});
+  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,frontierWallHeat,frontierWallPressure,frontierWallPulsePressure,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor,frontierWallFactor),hazards};
+}
+""")
+          replace_between('src/veil/oxygen-routes.js',"export function oxygenPressureAt(p){", "export function recordOxygenPassage", """export function oxygenPressureAt(p,seed=1){
+  const deepPressure=deepOxygenPressureAt(p);
+  if(deepPressure!==null)return deepPressure;
+  if(p.y>-8700||p.y<-10850)return null;
+  if(p.y>-8870||p.y<-10480)return 0; // approach, merge and shared harvest pocket
+  const route=oxygenRouteAt(p),localized=localizedGatePressureAt(p,seed);
+  if(!route)return Math.max(370,localized?.pressure??0); // leaving a route is possible, but still costs thrust
+  if(oxygenRestStopAt(p,route))return localized?.pressure??0;
+  return Math.max(route.pressure,localized?.pressure??0);
+}
+export function oxygenPressureHazardAt(p,seed=1){
+  const pressure=oxygenPressureAt(p,seed);if(!(pressure>0))return null;
+  const localized=localizedGatePressureAt(p,seed),definition=localized&&localized.pressure>=pressure-1e-6?OXYGEN_GATE_HAZARDS[`${localized.route.id}:${localized.index}`]:OXYGEN_ROUTE_PRESSURE_HAZARD;
+  return hazardSample(definition,pressure/600,{severity:pressure,vector:{x:0,y:pressure}});
+}
+
+""")
+
+          # universe.js: propagate map/current metadata and expose composed local hazards.
+          replace('src/veil/universe.js',"import { GROWTH } from './growth.js';", "import { GROWTH } from './growth.js';\nimport {appendHazard,defineHazard,HAZARD_TYPES} from './hazards.js';")
+          replace('src/veil/universe.js',"oxygenPressureAt,oxygenRestStopAt", "oxygenPressureAt,oxygenPressureHazardAt,oxygenRestStopAt")
+          replace('src/veil/universe.js',"oxygenThermalAt,oxygenVortexFlowAt }", "oxygenThermalAt,oxygenVortexFlowAt,oxygenVortexHazardAt }")
+          replace('src/veil/universe.js',"current:Object.freeze({width:180,force:90}),", "current:Object.freeze({width:180,force:90,hazard:defineHazard('carbon-revisit-current',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'route-current'})}),")
+          replace('src/veil/universe.js',"Object.freeze({id:'carbon-sweep-shear',x:840,y:-5540,radius:105,phase:1.75,angle:0,force:2600,cleanHalfWidth:40,route:'carbon-sweep',kind:'burst-advantage'}),", "Object.freeze({id:'carbon-sweep-shear',x:840,y:-5540,radius:105,phase:1.75,angle:0,force:2600,cleanHalfWidth:40,route:'carbon-sweep',kind:'burst-advantage',hazard:defineHazard('carbon-sweep-shear',HAZARD_TYPES.MECHANICAL,'shear',{source:'map.fields'})}),")
+          replace('src/veil/universe.js',"Object.freeze({id:'oxygen-shortcut-shear',x:-320,y:-9700,radius:105,phase:1.75,angle:0,force:2600,cleanHalfWidth:40,route:'oxygen-shortcut',kind:'burst-advantage'}),", "Object.freeze({id:'oxygen-shortcut-shear',x:-320,y:-9700,radius:105,phase:1.75,angle:0,force:2600,cleanHalfWidth:40,route:'oxygen-shortcut',kind:'burst-advantage',hazard:defineHazard('oxygen-shortcut-shear',HAZARD_TYPES.MECHANICAL,'shear',{source:'map.fields'})}),")
+          replace('src/veil/universe.js',"Object.freeze({id:'deep-skill-shear',x:100,y:-11450,radius:105,phase:1.75,angle:Math.PI,force:2600,cleanHalfWidth:40,route:'oxygen-deep-skill',kind:'burst-advantage'}),", "Object.freeze({id:'deep-skill-shear',x:100,y:-11450,radius:105,phase:1.75,angle:Math.PI,force:2600,cleanHalfWidth:40,route:'oxygen-deep-skill',kind:'burst-advantage',hazard:defineHazard('deep-skill-shear',HAZARD_TYPES.MECHANICAL,'shear',{source:'map.fields'})}),")
+          replace('src/veil/universe.js',"map.currents.push({id:'carbon-revisit-current',route,width:CARBON_REVISIT_ROUTE.current.width,force:CARBON_REVISIT_ROUTE.current.force,speed:-CARBON_REVISIT_ROUTE.current.force});", "map.currents.push({id:'carbon-revisit-current',route,width:CARBON_REVISIT_ROUTE.current.width,force:CARBON_REVISIT_ROUTE.current.force,speed:-CARBON_REVISIT_ROUTE.current.force,hazard:CARBON_REVISIT_ROUTE.current.hazard});")
+          env_start="// Flow/pressure strata remain global where authored; thermal exposure is now"
+          env_end="export function animateUniverse(run){"
+          env_block="""// Flow/pressure strata remain global where authored; thermal exposure is now
+// composed from low Oxygen ambience and route-local thermal fields. Recovery
+// only changes that environment; DUST EATER state remains owned by engine.js.
+const GLOBAL_PRESSURE_HAZARD=defineHazard('field-pressure-strata',HAZARD_TYPES.MECHANICAL,'pressure',{source:'universe-environment'});
+const OXYGEN_CROSSFLOW_HAZARD=defineHazard('oxygen-crossflow',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'universe-environment'});
+function band(y,top,bottom,fade){return clamp(Math.min((y-top)/fade,(bottom-y)/fade),0,1);}
+function revisitCurrentAt(map,p){
+  let x=0,y=0,intensity=0;const hazards=[];
+  for(const current of map?.currents??[]){
+    const flow=routeFlowAt(current.route,p,{speed:current.speed,radius:current.width/2});x+=flow.x;y+=flow.y;intensity=Math.max(intensity,flow.intensity);
+    if(current.hazard)appendHazard(hazards,current.hazard,flow.intensity,{severity:Math.hypot(flow.x,flow.y),vector:{x:flow.x,y:flow.y}});
+  }
+  return {x,y,intensity,hazards};
+}
+export function environmentAt(p,time=0,map=null){
+  const seed=map?.seed??1,outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
+  const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
+  const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p,seed),recovering=quiet||thermal.recovery;
+  const challenge=challengeEnvironment(p,time,seed),oxygenRoutePressure=oxygenPressureAt(p,seed),challengePressure=recovering?0:challenge?.pressure;
+  const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
+  const strataPressure=outer*255+pressureBand*310,basePressure=(routePressure??strataPressure)+(thermal.frontierWallPressure??0),baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),revisitCurrent=revisitCurrentAt(map,p);
+  const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1)),hazards=[...(challenge?.hazards??[]),...(thermal.hazards??[]),...revisitCurrent.hazards];
+  const pressureHazard=oxygenPressureHazardAt(p,seed);if(pressureHazard)hazards.push(pressureHazard);else if(!challenge)appendHazard(hazards,GLOBAL_PRESSURE_HAZARD,strataPressure/310,{severity:strataPressure,vector:{x:0,y:strataPressure}});
+  const vortexHazard=oxygenVortexHazardAt(p);if(vortexHazard)hazards.push(vortexHazard);
+  if(!recovering&&!challenge&&oxygenRoutePressure===null)appendHazard(hazards,OXYGEN_CROSSFLOW_HAZARD,Math.abs(baseFlowX)/48,{severity:Math.abs(baseFlowX),vector:{x:baseFlowX,y:0}});
+  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x+revisitCurrent.x,flowY:revisitCurrent.y,currentIntensity:revisitCurrent.intensity,traversableRoutePressure:oxygenRoutePressure,frontierWallPressure:thermal.frontierWallPressure??0,frontierWallPulsePressure:thermal.frontierWallPulsePressure??0,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity,hazards};
+}
+"""
+          replace_between('src/veil/universe.js',env_start,env_end,env_block)
+
+          # nitrogen-routes.js: classify directional pulses without changing their mechanics.
+          replace('src/veil/nitrogen-routes.js',"import {NITROGEN_ENTRY} from './nitrogen-config.js';", "import {NITROGEN_ENTRY} from './nitrogen-config.js';\nimport {defineHazard,HAZARD_TYPES} from './hazards.js';")
+          replace('src/veil/nitrogen-routes.js',"const p=offsetAt(progress,offset);return freeze({id,progress,x:p.x,y:p.y,force,radius,angle:p.angle+angleOffset,optional});", "const p=offsetAt(progress,offset);return freeze({id,progress,x:p.x,y:p.y,force,radius,angle:p.angle+angleOffset,optional,hazard:defineHazard(id,HAZARD_TYPES.MECHANICAL,'shear',{source:'map.fields'})});")
+          replace('src/veil/nitrogen-routes.js',"map.fields.push({id:pulse.id,x:pulse.x,y:pulse.y,radius:pulse.radius,phase:pulse.progress*1.7,angle:pulse.angle,force:pulse.force,kind:'nitrogen-pulse',route:NITROGEN_ROUTE.id,optional:pulse.optional});", "map.fields.push({id:pulse.id,x:pulse.x,y:pulse.y,radius:pulse.radius,phase:pulse.progress*1.7,angle:pulse.angle,force:pulse.force,kind:'nitrogen-pulse',route:NITROGEN_ROUTE.id,optional:pulse.optional,hazard:pulse.hazard});")
+
+          # engine.js: expose per-frame currentHazards and soften the Veil boundary current.
+          replace('src/veil/engine.js',"import { environmentAt, animateUniverse } from './universe.js';", "import { environmentAt, animateUniverse } from './universe.js';\nimport {appendHazard,defineHazard,HAZARD_TYPES,organicCorridorInfluence} from './hazards.js';")
+          replace('src/veil/engine.js',"export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));", "export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));\nconst VEIL_BOUNDARY_HAZARD=defineHazard('veil-boundary-current',HAZARD_TYPES.MECHANICAL,'pressure',{source:'veil-boundary'});")
+          replace('src/veil/engine.js',"danger:'clear',nextEaterSpawn:0,captured:false", "danger:'clear',currentHazards:[],nextEaterSpawn:0,captured:false")
+          replace('src/veil/engine.js',"const environment=map.universe?environmentAt(p,run.time,map):null;", "const environment=map.universe?environmentAt(p,run.time,map):null,currentHazards=environment?.hazards?[...environment.hazards]:[];")
+          old_fields="""  for(const field of map.fields){
+    const phase=(run.time+field.phase)/c.fieldPeriod*Math.PI*2;field.intensity=1-c.fieldPulse+c.fieldPulse*Math.sin(phase);field.active=true;
+    const dx=p.x-field.x,dy=p.y-field.y,d=Math.hypot(dx,dy);if(d<field.radius){const fieldForce=Number.isFinite(field.force)?Math.max(0,field.force):c.fieldForce,strength=fieldForce*(1-(d/field.radius)**2)*field.intensity;force.x+=Math.cos(field.angle??.12)*strength;force.y+=Math.sin(field.angle??.12)*strength;}
+  }
+"""
+          new_fields="""  for(const field of map.fields){
+    const phase=(run.time+field.phase)/c.fieldPeriod*Math.PI*2;field.intensity=1-c.fieldPulse+c.fieldPulse*Math.sin(phase);field.active=true;
+    const dx=p.x-field.x,dy=p.y-field.y,d=Math.hypot(dx,dy);if(d<field.radius){const fieldForce=Number.isFinite(field.force)?Math.max(0,field.force):c.fieldForce,spatial=1-(d/field.radius)**2,strength=fieldForce*spatial*field.intensity,angle=field.angle??.12;force.x+=Math.cos(angle)*strength;force.y+=Math.sin(angle)*strength;if(field.hazard)appendHazard(currentHazards,field.hazard,spatial*field.intensity,{severity:strength,vector:{x:Math.cos(angle)*strength,y:Math.sin(angle)*strength}});}
+  }
+"""
+          replace('src/veil/engine.js',old_fields,new_fields)
+          old_gate="""  const g=c.gate;
+  // The boundary is a physical current. A short H₂ burst or the later
+  // combustion drive can cross it; merely owning a recipe cannot.
+  if(Math.abs(p.x-g.x)<g.width/2&&Math.abs(p.y-g.y)<g.height&&!propelled){const strength=c.gateDeflection*(1-Math.abs(p.x-g.x)/(g.width/2));force.x+=strength;force.y+=strength*.25;}
+  moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:movementEnvironment});
+"""
+          new_gate="""  const g=c.gate,gateEnvelope=organicCorridorInfluence({seed:map.seed??1,id:'veil-boundary-current',x:p.x,y:p.y,centerX:g.x,centerY:g.y,halfWidth:g.width/2,halfLength:g.height,edgeFade:24,centerJitter:0,widthJitter:.06,scale:110});
+  // The boundary is a physical current. A short H₂ burst or the later
+  // combustion drive can cross it; merely owning a recipe cannot. The authored
+  // core stays fixed while the envelope now has deterministic organic falloff.
+  if(gateEnvelope.intensity>0&&!propelled){const strength=c.gateDeflection*gateEnvelope.intensity;force.x+=strength;force.y+=strength*.25;appendHazard(currentHazards,VEIL_BOUNDARY_HAZARD,gateEnvelope.intensity,{severity:strength,vector:{x:strength,y:strength*.25}});}
+  run.currentHazards=currentHazards;
+  moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:movementEnvironment});
+"""
+          replace('src/veil/engine.js',old_gate,new_gate)
+
+          # renderer.js: visual challenge/gate envelopes follow the same seeded profiles.
+          replace('src/veil/renderer.js',"import { OXYGEN_ROUTES,OXYGEN_REWARD } from './oxygen-routes.js';", "import { OXYGEN_ROUTES,OXYGEN_REWARD,oxygenGateEnvelopeAt } from './oxygen-routes.js';")
+          replace('src/veil/renderer.js',"drawChallengeCurrents(ctx,run.time);", "drawChallengeCurrents(ctx,run.time,run.map.seed??1);")
+          old_visual="""          const left=route.x-route.width/2,pressure=clamp((gate.pressure??route.pressure)/600,0,1),depth=Math.max(28,gate.depth*1.45),strands=reduced?4:7;
+          ctx.save();ctx.beginPath();ctx.rect(left-12,gate.y-depth/2,route.width+24,depth);ctx.clip();ctx.strokeStyle=route.color;ctx.lineCap='round';
+          for(let i=0;i<strands;i++){
+            const lane=(i+.5)/strands,x=left+lane*route.width,sway=Math.sin(run.time*.9+i*1.7+gate.y*.013)*8,phase=reduced?0:((run.time*(34+pressure*24)+bandIndex*17+i*11)%depth)-depth/2;
+"""
+          new_visual="""          const localized=route.gates.length?oxygenGateEnvelopeAt(route,gate,{x:route.x,y:gate.y},run.map.seed??1,bandIndex):null,visualHalfWidth=localized?.halfWidth??route.width/2,visualCenter=localized?.center??route.x,left=visualCenter-visualHalfWidth,visualWidth=visualHalfWidth*2,pressure=clamp((gate.pressure??route.pressure)/600,0,1),depth=Math.max(28,gate.depth*1.45),strands=reduced?4:7;
+          ctx.save();ctx.beginPath();ctx.rect(left-12,gate.y-depth/2,visualWidth+24,depth);ctx.clip();ctx.strokeStyle=route.color;ctx.lineCap='round';
+          for(let i=0;i<strands;i++){
+            const lane=(i+.5)/strands,x=left+lane*visualWidth,sway=Math.sin(run.time*.9+i*1.7+gate.y*.013)*8,phase=reduced?0:((run.time*(34+pressure*24)+bandIndex*17+i*11)%depth)-depth/2;
+"""
+          replace('src/veil/renderer.js',old_visual,new_visual)
+          replace('src/veil/renderer.js',"const phase=(run.time*(.64+pressure*.5)+i*.173+bandIndex*.097)%1,x=left+route.width*(.1+((i*.31+bandIndex*.19)%1)*.8)+Math.sin(run.time*1.3+i)*5,y=gate.y-depth*.55+phase*depth*1.1;", "const phase=(run.time*(.64+pressure*.5)+i*.173+bandIndex*.097)%1,x=left+visualWidth*(.1+((i*.31+bandIndex*.19)%1)*.8)+Math.sin(run.time*1.3+i)*5,y=gate.y-depth*.55+phase*depth*1.1;")
+
+          # Developer map: keep authored geometry, add organic falloff envelopes, and move Dust Eater to agent layer.
+          replace('scripts/export-field-map.mjs',"OXYGEN_VORTEX_REWARD,OXYGEN_VORTEX_ROUTE,oxygenPressureAt,oxygenRouteCenterAtY,", "OXYGEN_VORTEX_REWARD,OXYGEN_VORTEX_ROUTE,oxygenGateEnvelopeAt,oxygenPressureAt,oxygenRouteCenterAtY,")
+          replace('scripts/export-field-map.mjs',"import {EXPEDITION_CHALLENGES,challengeCenter,challengeWidthAt} from '../src/veil/expedition-challenges.js';", "import {EXPEDITION_CHALLENGES,challengeCenter,challengeProfileAt,challengeWidthAt} from '../src/veil/expedition-challenges.js';")
+          old_gate_export="""  for(const route of OXYGEN_ROUTES)for(const [index,gate] of (route.gates??[]).entries()){
+    const centerX=oxygenRouteCenterAtY(route,gate.y)??route.x;
+    parts.push(`<rect data-pressure-gate="${route.id}:${index}" data-pressure="${gate.pressure}" x="${fmt(centerX-route.width/2)}" y="${fmt(gate.y-gate.depth/2)}" width="${fmt(route.width)}" height="${fmt(gate.depth)}"/>`);
+  }
+"""
+          new_gate_export="""  for(const route of OXYGEN_ROUTES)for(const [index,gate] of (route.gates??[]).entries()){
+    const centerX=oxygenRouteCenterAtY(route,gate.y)??route.x,envelope=oxygenGateEnvelopeAt(route,gate,{x:centerX,y:gate.y},BASELINE_SEED,index),outerHalfLength=gate.depth/2+6;
+    parts.push(`<rect data-pressure-gate="${route.id}:${index}" data-pressure="${gate.pressure}" x="${fmt(centerX-route.width/2)}" y="${fmt(gate.y-gate.depth/2)}" width="${fmt(route.width)}" height="${fmt(gate.depth)}"/>`);
+    parts.push(`<rect data-pressure-gate-falloff="${route.id}:${index}" data-hazard-type="mechanical" data-hazard-subtype="pressure" x="${fmt(envelope.center-envelope.halfWidth)}" y="${fmt(gate.y-outerHalfLength)}" width="${fmt(envelope.halfWidth*2)}" height="${fmt(outerHalfLength*2)}"/>`);
+  }
+"""
+          replace('scripts/export-field-map.mjs',old_gate_export,new_gate_export)
+          old_challenge="""function challengeSvg(){
+  return EXPEDITION_CHALLENGES.map(zone=>{
+    const ys=[];for(let y=zone.top;y<zone.bottom;y+=25)ys.push(y);ys.push(zone.bottom);
+    const left=ys.map(y=>({x:challengeCenter(zone,y)-challengeWidthAt(zone,y),y}));
+    const right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+challengeWidthAt(zone,y),y}));
+    const polygon=[...left,...right];
+    return `<path data-challenge="${zone.id}" data-anchor-x="${zone.centerX}" data-anchor-y="${zone.centerY}" data-half-width="${zone.width}" data-full-width="${zone.width*2}" d="${pointPath(polygon)} Z"/>`;
+  }).join('\\n');
+}
+"""
+          new_challenge="""function challengeSvg(){
+  return EXPEDITION_CHALLENGES.map(zone=>{
+    const ys=[];for(let y=zone.top;y<zone.bottom;y+=25)ys.push(y);ys.push(zone.bottom);
+    const left=ys.map(y=>({x:challengeCenter(zone,y)-challengeWidthAt(zone,y),y})),right=[...ys].reverse().map(y=>({x:challengeCenter(zone,y)+challengeWidthAt(zone,y),y})),polygon=[...left,...right];
+    const fade=36,organicYs=[];for(let y=zone.top-fade;y<zone.bottom+fade;y+=25)organicYs.push(y);organicYs.push(zone.bottom+fade);
+    const organicLeft=organicYs.map(y=>{const profile=challengeProfileAt(zone,y,BASELINE_SEED);return {x:profile.center-profile.halfWidth,y};}),organicRight=[...organicYs].reverse().map(y=>{const profile=challengeProfileAt(zone,y,BASELINE_SEED);return {x:profile.center+profile.halfWidth,y};}),organic=[...organicLeft,...organicRight],types=zone.id==='thermal'?'mechanical thermal':'mechanical';
+    return `<g data-challenge-envelope="${zone.id}"><path data-challenge="${zone.id}" data-anchor-x="${zone.centerX}" data-anchor-y="${zone.centerY}" data-half-width="${zone.width}" data-full-width="${zone.width*2}" d="${pointPath(polygon)} Z"/><path data-challenge-falloff="${zone.id}" data-hazard-types="${types}" d="${pointPath(organic)} Z"/></g>`;
+  }).join('\\n');
+}
+"""
+          replace('scripts/export-field-map.mjs',old_challenge,new_challenge)
+          replace('scripts/export-field-map.mjs',"const circle=`<circle data-map-field=\"${index}\" data-field-id=\"${escapeXml(field.id??'')}\" data-field-kind=\"${escapeXml(field.kind??'')}\" data-angle=\"${fmt(field.angle??0)}\" data-force=\"${fmt(field.force??VEIL.fieldForce)}\"", "const circle=`<circle data-map-field=\"${index}\" data-field-id=\"${escapeXml(field.id??'')}\" data-field-kind=\"${escapeXml(field.kind??'')}\" data-hazard-type=\"${escapeXml(field.hazard?.type??'')}\" data-hazard-subtype=\"${escapeXml(field.hazard?.subtype??'')}\" data-angle=\"${fmt(field.angle??0)}\" data-force=\"${fmt(field.force??VEIL.fieldForce)}\"")
+          replace('scripts/export-field-map.mjs',"'DUST EATER: dynamic pursuit hazard / no authored map position',", "'DUST EATER: dynamic pursuit agent / no authored map position',")
+          replace('scripts/export-field-map.mjs',"DUST EATER has no authored map position; RETURN has no fixed world position.", "DUST EATER is an agent with no authored map position; RETURN has no fixed world position.")
+          replace('scripts/export-field-map.mjs',"#authored-gates rect{fill:#e1b267;stroke:#f1cb88;stroke-width:5;opacity:.25}#authored-gates line", "#authored-gates rect{fill:#e1b267;stroke:#f1cb88;stroke-width:5;opacity:.25}#authored-gates [data-pressure-gate-falloff]{fill:#e8c78f;stroke:#ffe1aa;stroke-width:3;stroke-dasharray:14 10;opacity:.08}#authored-gates line")
+          replace('scripts/export-field-map.mjs',"#layer-hazards-challenges path{fill:#d58a61;stroke:#f0a77e;stroke-width:5;opacity:.17}", "#layer-hazards-challenges path{fill:#d58a61;stroke:#f0a77e;stroke-width:5;opacity:.17}#layer-hazards-challenges [data-challenge-falloff]{fill:#d9a17e;stroke:#ffd0aa;stroke-width:3;stroke-dasharray:16 12;opacity:.08}")
+          replace('scripts/export-field-map.mjs',"${layer('layer-hazards-dust-eater','hazards: DUST EATER','<metadata>DUST EATER: dynamic pursuit hazard / no authored map position</metadata>')}", "${layer('layer-agents-dust-eater','agents: DUST EATER','<metadata>DUST EATER: dynamic pursuit agent / no authored map position; excluded from environmental hazard taxonomy</metadata>')}")
+
+          # Map test follows the responsibility split and verifies nominal + falloff layers coexist.
+          replace('tests/field-map-export.test.mjs',"'layer-hazards-challenges','layer-hazards-vortex','layer-hazards-dust-eater','layer-thermal','layer-gameplay',", "'layer-hazards-challenges','layer-hazards-vortex','layer-agents-dust-eater','layer-thermal','layer-gameplay',")
+          replace('tests/field-map-export.test.mjs',"assert.match(first,/environment heat != player thermal state/);", "assert.match(first,/environment heat != player thermal state/);\n  assert.match(first,/agents: DUST EATER|dynamic pursuit agent/);assert.doesNotMatch(first,/layer-hazards-dust-eater/);")
+          replace('tests/field-map-export.test.mjs',"assert.match(svg,/data-pressure-gate=\"oxygen-shortcut:0\" data-pressure=\"600\" x=\"-435\" y=\"-9516\" width=\"230\" height=\"72\"/);", "assert.match(svg,/data-pressure-gate=\"oxygen-shortcut:0\" data-pressure=\"600\" x=\"-435\" y=\"-9516\" width=\"230\" height=\"72\"/);\n  assert.match(svg,/data-pressure-gate-falloff=\"oxygen-shortcut:0\" data-hazard-type=\"mechanical\" data-hazard-subtype=\"pressure\"/);\n  assert.match(svg,/data-challenge-falloff=\"pulse\" data-hazard-types=\"mechanical\"/);")
+
+          # Repository validation keeps the new authority permanently covered.
+          replace('.github/workflows/repository-validation.yml',"      - name: FIELD expansion proposal map\n        run: node tests/field-expansion-proposal.test.mjs", "      - name: FIELD hazard authority\n        run: node tests/field-hazard-taxonomy.test.mjs\n      - name: FIELD expansion proposal map\n        run: node tests/field-expansion-proposal.test.mjs")
+          PY
+      - name: Regenerate FIELD developer map
+        run: node scripts/export-field-map.mjs
+      - name: Run hazard and FIELD regressions
+        run: |
+          node tests/field-hazard-taxonomy.test.mjs
+          node tests/expedition-challenges.test.mjs
+          node tests/oxygen-routes.test.mjs
+          node tests/oxygen-field-integration.test.mjs
+          node tests/oxygen-thermal-progression.test.mjs
+          node tests/thermal-coolant.test.mjs
+          node tests/hc-revisit-routes.test.mjs
+          node tests/cho-field-polish.test.mjs
+          node tests/nitrogen-chapter-completion.test.mjs
+          node tests/rare-survey.test.mjs
+          node tests/field-map-export.test.mjs
+          node scripts/export-field-map.mjs --check
+      - name: Refresh PWA artifacts
+        run: node scripts/build-precache.mjs
+      - name: Verify generated artifacts
+        run: |
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+          git diff --check
+      - name: Commit implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/veil/hazards.js src/veil/map.js src/veil/universe.js src/veil/expedition-challenges.js src/veil/oxygen-routes.js src/veil/nitrogen-routes.js src/veil/engine.js src/veil/renderer.js scripts/export-field-map.mjs docs/field-hazard-authority.md docs/maps/current-field.svg tests/field-hazard-taxonomy.test.mjs tests/field-map-export.test.mjs .github/workflows/repository-validation.yml sw.js precache-manifest.js
+          git commit -m "Add FIELD hazard taxonomy and organic boundaries"
+          git push
