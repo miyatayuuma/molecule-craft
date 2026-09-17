@@ -17,6 +17,7 @@ export function resetCollectorShellScreenAnchor(){fieldScreenAnchor=null;}
 
 export const TANK_PRESENTATION=Object.freeze({
   propellant:Object.freeze({icon:'↗',color:'#78d5e7'}),
+  shock:Object.freeze({icon:'◎',color:'#9fe8ee'}),
   fuel:Object.freeze({icon:'◆',color:'#f1a36f'}),
   oxidizer:Object.freeze({icon:'O₂',color:'#8dbcf4'}),
   coolant:Object.freeze({icon:'✦',color:'#91ddd4'}),

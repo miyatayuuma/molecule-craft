@@ -102,7 +102,7 @@ assert.match(index, /EXPEDITION CARGO/);
 assert.match(index, /COLLECTOR SHELL · ANCHOR FIELD/);
 assert.match(index, /id="veil-anchor-meter"/);
 assert.match(veilCss, /\.veil-actions #veil-sound\{position:absolute/);
-assert.match(veilCss, /@media\(max-width:370px\)\{\.veil-chain-block\{display:none\}/);
+assert.match(veilCss, /@media\(max-width:370px\)\{[^@]*?\.veil-chain-block\{display:none\}/,'Narrow FIELD HUD must keep chain block hidden inside the 370px media contract');
 assert.match(index, /id="veil-thermal"/);
 assert.doesNotMatch(index, /id="drive-select"|id="auto-cooling"/,'Thermal control is automatic and adds no flight input');
 assert.doesNotMatch(app, /localStorage\.setItem/);

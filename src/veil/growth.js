@@ -16,6 +16,7 @@ export const TANK_USES=Object.freeze({
   fuel:{label:'燃料'},
   oxidizer:{label:'酸化剤'},
   coolant:{label:'冷却剤'},
+  shock:{label:'SHOCK'},
 });
 export const tankUsesFor=id=>activeTankRolesFor(id);
 export const tankCapacity=(use,id,upgrades={})=>use==='oxidizer'&&id==='oxygen'?oxygenCapacity(upgrades.oxygenTank):tankCapacityFor(use,id);

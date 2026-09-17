@@ -3,6 +3,7 @@ import {recordChoDestination} from './cho-campaign.js';
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
 import { GROWTH, DRIVES, burstDriveFor, combustionDriveFor, regionAt } from './growth.js';
 import { combustionChargeFor,performanceFor } from './molecule-roles.js';
+import {consumeShockCharge,shockStrength} from './shock.js';
 import { environmentAt, animateUniverse } from './universe.js';
 import {appendHazard,defineHazard,HAZARD_TYPES,organicCorridorInfluence} from './hazards.js';
 import { OXYGEN_THERMAL, recordOxygenPassage } from './oxygen-routes.js';
@@ -54,12 +55,19 @@ export function beginBurst(run,consume){
   slot.amount-=performance.moleculesPerBurst;run.telemetry.burstUses++;run.burstStallRecorded=false;recordFuelUse(run.telemetry,'propellant',slot.molecule,performance.moleculesPerBurst);p.drive=drive;p.boost=drive.boostSeconds;p.cooldown=drive.boostSeconds+drive.boostCooldown;return true;
 }
 
+export function beginShock(run,consume){
+  const spent=consumeShockCharge(run,consume);if(!spent)return false;const {material,remaining,strength}=spent,p=run.player;let affected=0;
+  for(const eater of run.eaters??[]){const dx=eater.x-p.x,dy=eater.y-p.y,distance=Math.hypot(dx,dy);if(distance>strength.radius)continue;const angle=distance>1e-6?Math.atan2(dy,dx):(eater.phase??0),falloff=.55+.45*(1-Math.min(1,distance/strength.radius)),nx=Math.cos(angle),ny=Math.sin(angle),impulse=strength.knockback*falloff;eater.vx=(eater.vx??0)+nx*impulse;eater.vy=(eater.vy??0)+ny*impulse;eater.x+=nx*impulse*.12;eater.y+=ny*impulse*.12;eater.interrupt=Math.max(eater.interrupt??0,strength.interruptSeconds*falloff);affected++;}
+  run.shockWaves.push({x:p.x,y:p.y,life:0,duration:.44,radius:strength.radius,material,strength});if(run.telemetry){run.telemetry.shockUses=(run.telemetry.shockUses??0)+1;recordFuelUse(run.telemetry,'shock',material,1);}
+  const event={type:'shock',material,remaining,affected,radius:strength.radius,knockback:strength.knockback,interruptSeconds:strength.interruptSeconds};run.events.push(event);return event;
+}
+
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
 
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
-  const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null)};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,N:0,O:0},collectedElements:{H:0,C:0,N:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
+  const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,N:0,O:0},collectedElements:{H:0,C:0,N:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -122,6 +130,7 @@ function updateEaters(run,dt){
   if(run.eaters.length<target&&run.time>=run.nextEaterSpawn)spawnEater(run);
   const p=run.player;
   for(const eater of run.eaters){
+    if((eater.interrupt??0)>0){eater.interrupt=Math.max(0,eater.interrupt-dt);const drag=Math.exp(-dt*1.15),margin=EXPEDITION.eaterSpawnDistance+100;eater.vx=(eater.vx??0)*drag;eater.vy=(eater.vy??0)*drag;eater.x=clamp(eater.x+eater.vx*dt,run.config.bounds.left-margin,run.config.bounds.right+margin);eater.y=clamp(eater.y+eater.vy*dt,run.config.bounds.top-margin,run.config.bounds.bottom+margin);eater.trail.push({x:eater.x,y:eater.y});if(eater.trail.length>20)eater.trail.shift();continue;}
     let sx=0,sy=0;
     for(const other of run.eaters){if(other===eater)continue;const dx=eater.x-other.x,dy=eater.y-other.y,d=Math.hypot(dx,dy)||1;if(d<EXPEDITION.eaterSeparationRadius){const f=(1-d/EXPEDITION.eaterSeparationRadius)*EXPEDITION.eaterSeparationForce;sx+=dx/d*f;sy+=dy/d*f;}}
     const distance=Math.hypot(p.x-eater.x,p.y-eater.y),lead=Math.min(EXPEDITION.eaterLeadSeconds,distance/650)*(eater.lead??1),heading=Math.atan2(p.vy??Math.sin(p.angle),p.vx??Math.cos(p.angle)),spread=clamp((distance-EXPEDITION.eaterContactRadius)/(EXPEDITION.eaterWarningRadius-EXPEDITION.eaterContactRadius),.12,1),flank=(eater.flank??0)*EXPEDITION.eaterFlankOffset*spread+Math.sin(run.time*.55+eater.phase)*18;
@@ -186,7 +195,7 @@ function stepRunFrame(run,input,dt,systems){
     const bend=e.side*c.suctionBend*(1+Math.min(run.chain/c.feverChain,1)*.5),cx=(e.startX+p.x)/2-dy/length*bend,cy=(e.startY+p.y)/2+dx/length*bend;
     e.x=(1-t)**2*e.startX+2*(1-t)*t*cx+t*t*p.x;e.y=(1-t)**2*e.startY+2*(1-t)*t*cy+t*t*p.y;e.trail.push({x:e.x,y:e.y});if(e.trail.length>7)e.trail.shift();
   }
-  run.effects=run.effects.filter(e=>e.life<e.duration);p.trail.push({x:p.x,y:p.y});if(p.trail.length>28)p.trail.shift();updateEaters(run,dt);recordExpeditionFrame(run,dt);return run.events;
+  run.effects=run.effects.filter(e=>e.life<e.duration);for(const wave of run.shockWaves)wave.life+=dt;run.shockWaves=run.shockWaves.filter(wave=>wave.life<wave.duration);p.trail.push({x:p.x,y:p.y});if(p.trail.length>28)p.trail.shift();updateEaters(run,dt);recordExpeditionFrame(run,dt);return run.events;
 }
 
 // Advance in fixed small slices so 15/30/60fps use the same pickup, pursuit,

@@ -12,7 +12,7 @@ const records=new Map(catalog.map(record=>[record.id,record]));
 const atomCost=(id,count)=>{const cost={};for(const element of records.get(id)?.atoms??[])cost[element]=(cost[element]??0)+count;return cost;};
 const shots=id=>{const profile=performanceFor(id,'propellant');return Math.floor(profile.capacity/profile.moleculesPerBurst);};
 
-assert.equal(ROLE_BALANCE_VERSION,3);
+assert.equal(ROLE_BALANCE_VERSION,4);
 assert.equal(NITROGEN_PULSES.length,6,'Nitrogen corridor keeps six authored pulse disturbances');
 assert.deepEqual(['hydrogen','ammonia','nitrogen'].map(id=>({id,shots:shots(id),power:performanceFor(id,'propellant').burstPower})),[
   {id:'hydrogen',shots:3,power:1},

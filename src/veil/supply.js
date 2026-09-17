@@ -18,7 +18,7 @@ export function launchDestinationLayout(ids,radius=66){
 }
 
 export function tankMeterSegments(use,moleculeId){
-  if(use!=='propellant')return 0;const performance=performanceFor(moleculeId,'propellant');return performance?.moleculesPerBurst?Math.floor(performance.capacity/performance.moleculesPerBurst):0;
+  if(use==='shock')return performanceFor(moleculeId,'shock')?.capacity??0;if(use!=='propellant')return 0;const performance=performanceFor(moleculeId,'propellant');return performance?.moleculesPerBurst?Math.floor(performance.capacity/performance.moleculesPerBurst):0;
 }
 
 export function loadoutCandidateCards(list,{loadoutId=null,loadedId=null}={}){

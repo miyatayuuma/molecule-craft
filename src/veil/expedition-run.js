@@ -3,7 +3,7 @@ import {advanceInsightAnalysis,createInsightRunState,ensureInsightEngagementOrig
 import {appendNitrogenField} from './nitrogen-routes.js';
 import {RARE_SURVEY_RUN_CONFIG,advanceRareSurvey,initializeRareSurveyRun,suspendRareAnomalyVisuals} from './rare-survey.js';
 
-export {beginBurst,setCombustionHeld} from './engine.js';
+export {beginBurst,beginShock,setCombustionHeld} from './engine.js';
 export {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_DISTANCE,FIELD_INSIGHT_MIN_SECONDS,INSIGHT_ANALYSIS_SECONDS,discardActiveInsight,discardRunInsights,ensureInsightEngagementOrigin,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,triggerInsight,updateInsightEngagement} from './insights.js';
 
 export function createRun(map,config,...args){

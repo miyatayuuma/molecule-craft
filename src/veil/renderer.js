@@ -215,6 +215,7 @@ export function createVeilRenderer(canvas){
       else{ctx.fillStyle=rare?'#ffe2a1':element==='N'?'#93c5fd':element==='O'?'#ffd2bd':'#d1f5ff';ctx.beginPath();ctx.arc(q.x,q.y,(rare?4:element==='N'?3.2:element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}
       if(rare){ctx.strokeStyle='#c7ab76';ctx.beginPath();ctx.arc(q.x,q.y,12*scale,0,Math.PI*2);ctx.stroke();}
     }
+    for(const wave of run.shockWaves??[]){const at=screen(wave.x,wave.y),progress=clamp(wave.life/wave.duration,0,1),radius=wave.radius*scale*smoothstep(progress),alpha=(1-progress)*.72,tnt=wave.material==='2-4-6-trinitrotoluene';ctx.save();ctx.strokeStyle=tnt?'#ffd5a6':'#a7eff5';ctx.globalAlpha=alpha;ctx.lineWidth=(tnt?2.6:1.8)*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha*.42;ctx.lineWidth=1*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius*.78,0,Math.PI*2);ctx.stroke();ctx.restore();}
     // Dust eaters are self-organising particle vortices: a light-swallowing
     // core, orbiting grains and a wake, never a face or biological silhouette.
     for(const eater of run.eaters??[]){

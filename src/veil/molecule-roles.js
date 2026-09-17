@@ -3,7 +3,7 @@
 // with compressed game units. They do not change active tank/runtime behavior
 // until the owning propulsion or thermal system explicitly consumes them.
 
-export const ROLE_BALANCE_VERSION=3;
+export const ROLE_BALANCE_VERSION=4;
 
 const profile=(roles,performance,primaryRole=roles.length===1?roles[0]:null)=>{
   if(!primaryRole||!roles.includes(primaryRole))throw new TypeError(`Multi-role molecule profile requires an explicit primary role: ${roles.join(',')}`);
@@ -73,6 +73,12 @@ export const MOLECULE_ROLE_PROFILES=Object.freeze({
   'ethylene-glycol':profile(['coolant'],{
     coolant:Object.freeze({capacity:32,coolingPower:.65,durationFactor:2.80,environmentTolerance:1.65}),
   }),
+  nitromethane:profile(['shock'],{
+    shock:Object.freeze({capacity:3,radiusScale:1.00,knockbackScale:1.00,interruptScale:1.00}),
+  }),
+  '2-4-6-trinitrotoluene':profile(['shock'],{
+    shock:Object.freeze({capacity:2,radiusScale:1.45,knockbackScale:1.60,interruptScale:1.45}),
+  }),
   oxygen:profile(['oxidizer'],{
     oxidizer:Object.freeze({capacity:36,oxidizingPower:1.00}),
   }),
@@ -85,7 +91,7 @@ export const performanceFor=(id,role)=>roleProfileFor(id)?.performance?.[role]??
 export const moleculesForRole=role=>Object.entries(MOLECULE_ROLE_PROFILES).filter(([,entry])=>entry.roles.includes(role)).map(([id])=>id);
 
 // Runtime roles are the subset exposed by the Collector Shell and expedition.
-export const ACTIVE_TANK_ROLES=Object.freeze(['propellant','fuel','oxidizer','coolant']);
+export const ACTIVE_TANK_ROLES=Object.freeze(['propellant','fuel','oxidizer','coolant','shock']);
 export const activeTankRolesFor=id=>rolesFor(id).filter(role=>ACTIVE_TANK_ROLES.includes(role));
 export const tankCapacityFor=(role,id)=>performanceFor(id,role)?.capacity??null;
 
