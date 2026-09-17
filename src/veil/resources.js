@@ -85,7 +85,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     const result={committed:true,added:count,discarded:plan.discarded,current:tank.amount,capacity:plan.capacity};
     if(save()||!storage)return result;state=snapshot;return false;
   }
-  function selectedLoadout(){const selected={...initialSelectedLoadout(),...(state.loadout?.tanks??{})};for(const use of Object.keys(TANK_USES)){const id=selected[use];if(id!==null&&(!state.recipes.includes(id)||!fitsTank(id,use)))selected[use]=null;}return selected;}
+  function selectedLoadout(){return {...initialSelectedLoadout(),...(state.loadout?.tanks??{})};}
   function selectLoadoutState(use,id){state.loadout={drive:state.loadout?.drive??'hydrogen',cooling:state.loadout?.cooling??true,tanks:selectedLoadout()};state.loadout.tanks[use]=id;}
   function setLoadoutTank(use,id){
     if(blocked||!Object.hasOwn(TANK_USES,use)||id!==null&&(!validId(id)||!state.recipes.includes(id)||!fitsTank(id,use)))return false;

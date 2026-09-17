@@ -39,9 +39,9 @@ function readyResources(recipes=['nitromethane']){const storage=memoryStorage(),
 {
   const legacy=createInitialResourcesState();delete legacy.tanks.shock;delete legacy.loadout.tanks.shock;legacy.recipes=['hydrogen'];legacy.progress.runs=7;const storage=memoryStorage(JSON.stringify(legacy)),r=createResources({storage});r.setCatalog(molecules);assert.equal(r.state.progress.runs,7);assert.deepEqual(r.state.tanks.shock,{molecule:null,amount:0});assert.equal(r.selectedLoadout().shock,null);
 }
-// Persisted unsupported selections fail closed at the application authority.
+// Persisted unsupported selections fail closed instead of silently falling back.
 {
-  const state=createInitialResourcesState();state.recipes=['hydrogen'];state.loadout.tanks.shock='hydrogen';const storage=memoryStorage(JSON.stringify(state)),r=createResources({storage});r.setCatalog(molecules);assert.equal(r.selectedLoadout().shock,null);
+  const state=createInitialResourcesState();state.recipes=['hydrogen'];state.loadout.tanks.shock='hydrogen';const storage=memoryStorage(JSON.stringify(state)),r=createResources({storage});r.setCatalog(molecules);assert.equal(r.selectedLoadout().shock,'hydrogen');assert.equal(r.launchFillPlan({includeWorkspace:false}).status,'IMPOSSIBLE');assert.deepEqual(r.tankCatalog('shock'),[]);
 }
 
 function shockRun(id,amount){return createRun({seed:1},{...VEIL,bounds:{left:-2000,right:2000,top:-2000,bottom:2000}},{fuel:{propellant:{molecule:'hydrogen',amount:120},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:{molecule:'water',amount:80},shock:{molecule:id,amount}},predators:false});}
