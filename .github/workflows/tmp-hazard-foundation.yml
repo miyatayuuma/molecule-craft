@@ -24,6 +24,7 @@ jobs:
           python -c "from pathlib import Path; p=Path('/tmp/apply-hazard-foundation.py'); s=p.read_text(); s=s.replace(\"replace('src/veil/renderer.js',old_visual,new_visual)\", \"replace('src/veil/renderer.js',old_visual.replace('\\\\n','\\\\n          '),new_visual.replace('\\\\n','\\\\n          '))\"); p.write_text(s)"
           python /tmp/apply-hazard-foundation.py
           python -c "from pathlib import Path; p=Path('tests/field-hazard-taxonomy.test.mjs'); s=p.read_text(); old=\"const curve=EXPEDITION_CHALLENGES.find(item=>item.id==='curve'),curvePoint={x:challengeCenter(curve,curve.centerY),y:curve.centerY};\"; new=\"const curve=EXPEDITION_CHALLENGES.find(item=>item.id==='curve'),curveY=curve.bottom-125,curvePoint={x:challengeCenter(curve,curveY),y:curveY};\"; assert old in s; p.write_text(s.replace(old,new,1))"
+          python -c "from pathlib import Path; p=Path('tests/field-map-export.test.mjs'); s=p.read_text(); s=s.replace('layer-hazards-dust-eater','layer-agents-dust-eater').replace('dynamic pursuit hazard \\\\/ no authored map position','dynamic pursuit agent \\\\/ no authored map position'); p.write_text(s)"
       - name: Regenerate FIELD developer map
         run: node scripts/export-field-map.mjs
       - name: Run hazard and FIELD regressions
