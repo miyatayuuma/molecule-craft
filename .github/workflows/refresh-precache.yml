@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main]
+    branches: [main, work/basic-dock-foundation]
 
 permissions:
   contents: write
