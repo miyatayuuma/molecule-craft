@@ -24,7 +24,7 @@ jobs:
           python -c "from pathlib import Path; p=Path('/tmp/apply-hazard-foundation.py'); s=p.read_text(); s=s.replace(\"replace('src/veil/renderer.js',old_visual,new_visual)\", \"replace('src/veil/renderer.js',old_visual.replace('\\\\n','\\\\n          '),new_visual.replace('\\\\n','\\\\n          '))\"); p.write_text(s)"
           python /tmp/apply-hazard-foundation.py
           python -c "from pathlib import Path; p=Path('tests/field-hazard-taxonomy.test.mjs'); s=p.read_text(); old=\"const curve=EXPEDITION_CHALLENGES.find(item=>item.id==='curve'),curvePoint={x:challengeCenter(curve,curve.centerY),y:curve.centerY};\"; new=\"const curve=EXPEDITION_CHALLENGES.find(item=>item.id==='curve'),curveY=curve.bottom-125,curvePoint={x:challengeCenter(curve,curveY),y:curveY};\"; assert old in s; p.write_text(s.replace(old,new,1))"
-          python -c "from pathlib import Path; p=Path('tests/field-map-export.test.mjs'); s=p.read_text(); s=s.replace('layer-hazards-dust-eater','layer-agents-dust-eater').replace('dynamic pursuit hazard \\\\/ no authored map position','dynamic pursuit agent \\\\/ no authored map position'); p.write_text(s)"
+          python -c "from pathlib import Path; p=Path('tests/field-map-export.test.mjs'); s=p.read_text(); s=s.replace('layer-hazards-dust-eater','layer-agents-dust-eater').replace('dynamic pursuit hazard \\\\/ no authored map position','dynamic pursuit agent \\\\/ no authored map position'); s=s.replace('assert.doesNotMatch(first,/layer-agents-dust-eater/);','assert.doesNotMatch(first,/layer-hazards-dust-eater/);'); p.write_text(s)"
       - name: Regenerate FIELD developer map
         run: node scripts/export-field-map.mjs
       - name: Hazard taxonomy
@@ -48,20 +48,7 @@ jobs:
       - name: Rare Survey
         run: node tests/rare-survey.test.mjs
       - name: FIELD map contract test
-        run: |
-          set +e
-          node tests/field-map-export.test.mjs > /tmp/field-map-test.log 2>&1
-          status=$?
-          cat /tmp/field-map-test.log
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/field-map-test.log docs/tmp-field-map-test.log
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add docs/tmp-field-map-test.log
-            git commit -m "Capture FIELD map test diagnostics"
-            git push
-            exit "$status"
-          fi
+        run: node tests/field-map-export.test.mjs
       - name: FIELD map generated check
         run: node scripts/export-field-map.mjs --check
       - name: Refresh PWA artifacts
@@ -75,6 +62,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f docs/tmp-field-map-test.log || true
           git add src/veil/hazards.js src/veil/map.js src/veil/universe.js src/veil/expedition-challenges.js src/veil/oxygen-routes.js src/veil/nitrogen-routes.js src/veil/engine.js src/veil/renderer.js scripts/export-field-map.mjs docs/field-hazard-authority.md docs/maps/current-field.svg tests/field-hazard-taxonomy.test.mjs tests/field-map-export.test.mjs .github/workflows/repository-validation.yml sw.js precache-manifest.js
           git commit -m "Add FIELD hazard taxonomy and organic boundaries"
           git push
