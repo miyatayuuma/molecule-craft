@@ -1,3 +1,5 @@
+import './dock-preflight.js';
+
 // Permanent processing, not polymer inventory or per-expedition maintenance.
 // These are compressed engineering models for gameplay: discovered chemistry
 // unlocks a fabrication process, while the permanent O2 tank authority remains
