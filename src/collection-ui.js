@@ -212,7 +212,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
     const detailSections=Array.isArray(catalogEntry.details)?catalogEntry.details:[];
-    if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');chemistry.append(el('h4','化学のポイント'));for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(el('h5',item.title),el('p',item.body));chemistry.append(sectionNode);}for(const visual of renderChemistryVisuals(document,catalogEntry,record))chemistry.append(visual);extra.append(chemistry);}
+    if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(el('h5',item.title),el('p',item.body));chemistry.append(sectionNode);}for(const visual of renderChemistryVisuals(document,catalogEntry,record))chemistry.append(visual);extra.append(chemistry);}
     const playerNoteKeys=(Array.isArray(catalogEntry.notes)?catalogEntry.notes:[]).filter(key=>key==='stereochemistry');
     for(const key of playerNoteKeys){const text=data.encyclopedia.noteDefinitions?.[key];if(!text)continue;const note=el('p',text,'collection-note');note.dataset.encyclopediaNote=key;extra.append(note);}
     const discovered=state.moleculeEntry(id);extra.append(el('h4','発見'),el('p',`発見 ${discovered.order}番目${discovered.at?` · ${new Date(discovered.at).toLocaleDateString('ja-JP')}`:''}`));
