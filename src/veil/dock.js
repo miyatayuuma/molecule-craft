@@ -1,5 +1,5 @@
 import {RESOURCE_KEY} from './resources-persistence.js';
-import {OXYGEN_UPGRADES,oxygenCapacity,oxygenUpgradeProcesses} from './tank-upgrades.js';
+import {oxygenCapacity,oxygenUpgradeProcesses} from './tank-upgrades.js';
 
 const CHEMISTRY_LABELS=Object.freeze({
   ethene:{formula:'C₂H₄',name:'Ethene'},propene:{formula:'C₃H₆',name:'Propene'},
@@ -30,9 +30,9 @@ function installStyle(){
 }
 
 function ensureShell(){
-  installStyle();let open=q('open-dock');if(!open){open=document.createElement('button');open.id='open-dock';open.type='button';open.textContent='DOCK';open.setAttribute('aria-label','DOCKを開く');q('open-supply')?.after(open);}
+  installStyle();let open=q('open-dock');if(!open){open=document.createElement('button');open.id='open-dock';open.type='button';open.textContent='DOCK';open.setAttribute('aria-label','DOCKを開く');q('open-supply')?.after(open);open.addEventListener('click',()=>{statusText='';render();const current=q('dock-dialog');if(current&&!current.open)current.showModal();});}
   let dialog=q('dock-dialog');if(!dialog){dialog=document.createElement('dialog');dialog.id='dock-dialog';dialog.className='sheet dock-sheet';dialog.setAttribute('aria-labelledby','dock-title');dialog.innerHTML=`<header class="sheet-header"><div><h2 id="dock-title">DOCK</h2><p class="dock-kind">PERMANENT MODIFICATION</p></div><button type="button" data-dock-close aria-label="DOCKを閉じる">×</button></header><div class="dock-body"><nav id="dock-process-list" class="dock-process-list" aria-label="加工プロセス"></nav><section id="dock-process-detail" class="dock-detail"></section></div>`;document.body.append(dialog);dialog.querySelector('[data-dock-close]').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});}
-  open.addEventListener('click',()=>{render();if(!dialog.open)dialog.showModal();});return dialog;
+  return dialog;
 }
 
 function requirementNode(id,found){const info=CHEMISTRY_LABELS[id]??{formula:id,name:id},node=document.createElement('span');node.className='dock-molecule';node.dataset.found=String(found);node.innerHTML=`<strong>${info.formula}</strong><b>${found?'✓':'—'}</b><small>${info.name}</small>`;return node;}
@@ -41,7 +41,7 @@ function statusLabel(status){return {COMPLETE:'施工済み',LOCKED:'前工程�
 function render(){
   const dialog=ensureShell(),state=readState(),processes=oxygenUpgradeProcesses(state),list=q('dock-process-list'),detail=q('dock-process-detail');if(!list||!detail)return;
   if(!processes.some(process=>process.id===selectedId))selectedId=processes.find(process=>!process.completed)?.id??processes[0]?.id;
-  list.replaceChildren();for(const process of processes){const status=processStatus(state,process),button=document.createElement('button');button.type='button';button.className='dock-process-card';button.dataset.process=process.id;button.dataset.status=status;button.setAttribute('aria-pressed',String(process.id===selectedId));button.innerHTML=`<b>${statusLabel(status)}</b><span>${process.name}</span><small>${process.effect}</small>`;button.addEventListener('click',()=>{selectedId=process.id;render();});list.append(button);}
+  list.replaceChildren();for(const process of processes){const status=processStatus(state,process),button=document.createElement('button');button.type='button';button.className='dock-process-card';button.dataset.process=process.id;button.dataset.status=status;button.setAttribute('aria-pressed',String(process.id===selectedId));button.innerHTML=`<b>${statusLabel(status)}</b><span>${process.name}</span><small>${process.effect}</small>`;button.addEventListener('click',()=>{selectedId=process.id;statusText='';render();});list.append(button);}
   const process=processes.find(item=>item.id===selectedId)??processes[0];if(!process)return;const status=processStatus(state,process),affordable=canAfford(state,process.cost),current=oxygenCapacity(state.upgrades?.oxygenTank??0);detail.replaceChildren();
   const header=document.createElement('header');header.innerHTML=`<div><h3>${process.icon} ${process.name}</h3><p class="dock-status">${statusLabel(status)}</p></div><strong class="dock-capacity">O₂ ${current} → ${process.completed?current:process.capacity}</strong>`;detail.append(header);
   const requirements=document.createElement('div');requirements.className='dock-requirements';requirements.setAttribute('aria-label','Required chemistry');for(const id of process.requires)requirements.append(requirementNode(id,state.recipes?.includes(id)));detail.append(requirements);
@@ -58,5 +58,3 @@ async function execute(id){
 }
 
 ensureShell();render();
-const observer=new MutationObserver(()=>{const dialog=q('dock-dialog');if(dialog?.open&&!busy)render();});observer.observe(document.body,{subtree:true,childList:true});
-window.addEventListener('storage',()=>{if(q('dock-dialog')?.open)render();});
