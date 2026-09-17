@@ -151,6 +151,7 @@ jobs:
       - name: Propulsion HUD regressions
         run: |
           node tests/loadout-preview.test.mjs
+          node tests/shock-unit.test.mjs
           node tests/nitrogen-loadout-balance-browser.test.mjs
           node tests/loadout-card-order.test.mjs
           node tests/generic-propulsion.test.mjs
