@@ -26,7 +26,9 @@ jobs:
           lines=[]
           for line in text[start:end].splitlines():
               lines.append(line[10:] if line.startswith('          ') else line)
-          Path('/tmp/apply-shock.py').write_text('\n'.join(lines)+'\n')
+          script='\n'.join(lines)+'\n'
+          script=script.replace('#supply-dialog .tank-comparison .loadout-charges i{','#supply-dialog .loadout-charges i{')
+          Path('/tmp/apply-shock.py').write_text(script)
           PY
           python3 /tmp/apply-shock.py
       - name: Regenerate PWA
