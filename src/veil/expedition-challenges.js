@@ -1,4 +1,5 @@
 import {OXYGEN_VORTEX_ROUTE} from './oxygen-routes.js';
+import {appendHazard,defineHazard,HAZARD_TYPES,organicCorridorInfluence,organicCorridorProfile,softExtentInfluence} from './hazards.js';
 
 // Optional currents share physics, visual geometry and traversal landmarks.
 // rewards preserve the authored molecule associations for map/design tooling,
@@ -8,6 +9,11 @@ import {OXYGEN_VORTEX_ROUTE} from './oxygen-routes.js';
 // centerX/centerY are the authored route-alignment anchors; curve keeps its
 // existing sinusoidal centerline around that baseline. The nominal width stays
 // 240 while its Frontier-side tail tapers before the three Deep routes merge.
+const CHALLENGE_HAZARDS=Object.freeze({
+  pulse:Object.freeze({pressure:defineHazard('challenge-pulse-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'expedition-challenge'})}),
+  curve:Object.freeze({pressure:defineHazard('challenge-curve-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'expedition-challenge'}),shear:defineHazard('challenge-curve-shear',HAZARD_TYPES.MECHANICAL,'shear',{source:'expedition-challenge'})}),
+  thermal:Object.freeze({pressure:defineHazard('challenge-thermal-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'expedition-challenge'}),thermal:defineHazard('challenge-thermal-heat',HAZARD_TYPES.THERMAL,'hot-zone',{source:'expedition-challenge'})}),
+});
 export const EXPEDITION_CHALLENGES=Object.freeze([
   {id:'pulse',bottom:-9450,top:-9850,width:220,centerX:-320,centerY:-9650,rewards:['dimethyl-ether','ethene','propene']},
   {id:'curve',bottom:-11200,top:-11700,width:240,centerX:100,centerY:-11450,rewards:['propane','phenol','formaldehyde']},
@@ -24,11 +30,22 @@ export const challengeWidthAt=(zone,y)=>{
   const t=Math.max(0,Math.min(1,(taperStart-y)/(taperStart-zone.top)));
   return zone.width+(100-zone.width)*t;
 };
-export function challengeEnvironment(p,time){
-  const z=EXPEDITION_CHALLENGES.find(z=>p.y<=z.bottom&&p.y>=z.top&&Math.abs(p.x-challengeCenter(z,p.y))<challengeWidthAt(z,p.y));
-  if(!z)return null;
-  const width=challengeWidthAt(z,p.y),strength=Math.max(0,1-Math.abs(p.x-challengeCenter(z,p.y))/width),pulse=(1+Math.sin(time*2*Math.PI/2.4))/2;
-  return {pressure:(z.id==='pulse'?130+280*pulse:z.id==='curve'?330:280)*strength,flowX:z.id==='curve'?Math.cos((p.y-z.bottom)/500*Math.PI)*-65*strength:0,heat:z.id==='thermal'?48:0};
+export function challengeProfileAt(zone,y,seed=1){
+  return organicCorridorProfile(seed,`challenge:${zone.id}`,y,challengeCenter(zone,y),challengeWidthAt(zone,y),{centerJitter:0,widthJitter:.09,scale:175});
+}
+export function challengeInfluenceAt(zone,p,seed=1){
+  if(!zone||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return {center:zone?.centerX??0,halfWidth:zone?.width??1,nominalHalfWidth:zone?.width??1,lateral:0,longitudinal:0,intensity:0};
+  return organicCorridorInfluence({seed,id:`challenge:${zone.id}`,x:p.x,y:p.y,centerX:challengeCenter(zone,p.y),centerY:(zone.top+zone.bottom)/2,halfWidth:challengeWidthAt(zone,p.y),halfLength:(zone.bottom-zone.top)/2,edgeFade:36,centerJitter:0,widthJitter:.09,scale:175});
+}
+export function challengeEnvironment(p,time,seed=1){
+  let match=null;
+  for(const zone of EXPEDITION_CHALLENGES){const envelope=challengeInfluenceAt(zone,p,seed);if(envelope.intensity>1e-5&&(!match||envelope.intensity>match.envelope.intensity))match={zone,envelope};}
+  if(!match)return null;
+  const z=match.zone,strength=match.envelope.intensity,pulse=(1+Math.sin(time*2*Math.PI/2.4))/2,pressureBase=z.id==='pulse'?130+280*pulse:z.id==='curve'?330:280,pressure=pressureBase*strength,flowX=z.id==='curve'?Math.cos((p.y-z.bottom)/500*Math.PI)*-65*strength:0,heat=z.id==='thermal'?48*strength:0,hazards=[],defs=CHALLENGE_HAZARDS[z.id];
+  appendHazard(hazards,defs.pressure,pressure/600,{severity:pressure,vector:{x:0,y:pressure}});
+  if(defs.shear)appendHazard(hazards,defs.shear,Math.abs(flowX)/65,{severity:Math.abs(flowX),vector:{x:flowX,y:0}});
+  if(defs.thermal)appendHazard(hazards,defs.thermal,heat/48,{severity:heat,heat});
+  return {pressure,flowX,heat,hazards,hazardEnvelope:match.envelope};
 }
 export function recordChallengePassage(run,old){
   if(!run.map.universe)return;run.challengeProgress??={};
@@ -40,12 +57,15 @@ export function recordChallengePassage(run,old){
     if(old.y>=z.top&&p.y<z.top&&inside&&progress.distance>=(z.bottom-z.top)*.7){progress.complete=true;run.events.push({type:'inspiration',rewards:[]});}
   }
 }
-export function drawChallengeCurrents(ctx,time){
+export function drawChallengeCurrents(ctx,time,seed=1){
   ctx.save();
   for(const z of EXPEDITION_CHALLENGES){
     ctx.strokeStyle=z.id==='thermal'?'#cf7451':'#8ba6c7';ctx.lineWidth=1.5;
-    for(let i=0;i<16;i++){const y=z.top+((i/16+time*.13)%1)*(z.bottom-z.top),width=challengeWidthAt(z,y),x=challengeCenter(z,y)+(i%3-1)*width*.45;
-      ctx.globalAlpha=z.id==='pulse'?.12+.12*(1+Math.sin(time*2*Math.PI/2.4))/2:.16;ctx.beginPath();ctx.moveTo(x,y-22);ctx.quadraticCurveTo(x+10,y,x,y+22);ctx.stroke();
+    const fade=36,visualTop=z.top-fade,visualBottom=z.bottom+fade,centerY=(z.top+z.bottom)/2,halfLength=(z.bottom-z.top)/2;
+    for(let i=0;i<16;i++){
+      const y=visualTop+((i/16+time*.13)%1)*(visualBottom-visualTop),profile=challengeProfileAt(z,y,seed),longitudinal=softExtentInfluence(y,centerY,halfLength,fade),x=profile.center+(i%3-1)*profile.halfWidth*.45;
+      if(longitudinal<=1e-4)continue;
+      ctx.globalAlpha=(z.id==='pulse'?.12+.12*(1+Math.sin(time*2*Math.PI/2.4))/2:.16)*longitudinal;ctx.beginPath();ctx.moveTo(x,y-22);ctx.quadraticCurveTo(x+10,y,x,y+22);ctx.stroke();
     }
   }
   // Vortex route visualises the same geometry that guides dust and local flow.

@@ -1,4 +1,5 @@
 import {createVortexFlybyRoute,routeFlowAt} from './route-kit.js';
+import {appendHazard,defineHazard,hazardSample,HAZARD_TYPES,organicCorridorInfluence} from './hazards.js';
 
 // One authored experiment. Route geometry and local field guidance share one
 // route definition; the vortex remains a reusable area feature layered on top.
@@ -52,6 +53,10 @@ export function oxygenVortexFlowAt(p){
   const radial=escape-baseInward-inwardAssist,guideWeight=coreFade*(1-edge*.7);
   return {x:tx*tangential+rx*radial+guide.x*guideWeight,y:ty*tangential+ry*radial+guide.y*guideWeight,intensity:Math.max(edge*coreFade,guide.intensity*.55*coreFade),radius,radial,tangential,guideIntensity:guide.intensity*coreFade};
 }
+export function oxygenVortexHazardAt(p){
+  const flow=oxygenVortexFlowAt(p),severity=Math.hypot(flow.x,flow.y);
+  return hazardSample(OXYGEN_VORTEX_HAZARD,flow.intensity,{severity,vector:{x:flow.x,y:flow.y}});
+}
 export const OXYGEN_ROUTES=Object.freeze([
   {id:'oxygen-shortcut',label:'BURSTの近道',color:'#a8d8f0',x:-300,width:230,
     summary:'最短経路。中央の短い強流はBURSTで明確に楽になるが、能力必須にはしない。',
@@ -66,6 +71,12 @@ export const OXYGEN_ROUTES=Object.freeze([
     knots:[[120,-8700],[300,-9100],[350,-9600],[260,-10150],[120,-10670]],
     gates:[],restStops:[{x:300,y:-9750,depth:180}],pressure:370,lanes:2,value:2},
 ]);
+
+const OXYGEN_ROUTE_PRESSURE_HAZARD=defineHazard('oxygen-route-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'oxygen-pressure'});
+const OXYGEN_VORTEX_HAZARD=defineHazard('oxygen-vortex',HAZARD_TYPES.MECHANICAL,'vortex',{source:'oxygen-vortex'});
+const OXYGEN_THERMAL_HAZARD=defineHazard('oxygen-thermal',HAZARD_TYPES.THERMAL,'hot-zone',{source:'oxygen-thermal'});
+const OXYGEN_FRONTIER_PRESSURE_HAZARD=defineHazard('oxygen-frontier-wall-pressure',HAZARD_TYPES.MECHANICAL,'pressure',{source:'oxygen-thermal'});
+const OXYGEN_GATE_HAZARDS=Object.freeze(Object.fromEntries(OXYGEN_ROUTES.flatMap(route=>(route.gates??[]).map((gate,index)=>[`${route.id}:${index}`,defineHazard(`oxygen-pressure-gate:${route.id}:${index}`,HAZARD_TYPES.MECHANICAL,'pressure',{source:'oxygen-pressure-gate'})]))));
 
 // Deep Oxygen remains physically open: these values describe authored route
 // advantages, not capability gates. Task 6 differentiates reward efficiency
@@ -178,6 +189,19 @@ function frontierWallPressureAt(p){
   const lateral=frontierWallLateral(p),target=wall.offRoutePressure-(wall.offRoutePressure-wall.routePressure)*lateral;
   return target*clamp(heat/wall.maxHeat,0,1);
 }
+export function oxygenGateEnvelopeAt(route,gate,p,seed=1,index=(route?.gates??[]).indexOf(gate)){
+  if(!route||!gate||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return {center:route?.x??0,halfWidth:(route?.width??1)/2,nominalHalfWidth:(route?.width??1)/2,lateral:0,longitudinal:0,intensity:0};
+  const centerX=oxygenRouteCenterAtY(route,p.y)??route.x,halfLength=Math.max(1,gate.depth/2-6),edgeFade=Math.min(12,gate.depth/4);
+  return organicCorridorInfluence({seed,id:`oxygen-gate:${route.id}:${index}`,x:p.x,y:p.y,centerX,centerY:gate.y,halfWidth:route.width/2+12,halfLength,edgeFade,centerJitter:0,widthJitter:.06,scale:95});
+}
+function localizedGatePressureAt(p,seed=1){
+  let best=null;
+  for(const route of OXYGEN_ROUTES)for(const [index,gate]of (route.gates??[]).entries()){
+    const envelope=oxygenGateEnvelopeAt(route,gate,p,seed,index),pressure=gate.pressure*envelope.intensity;
+    if(pressure>1e-6&&(!best||pressure>best.pressure))best={route,gate,index,envelope,pressure};
+  }
+  return best;
+}
 export function deepOxygenFrontierRecoveryAt(p){
   const recovery=DEEP_OXYGEN_FRONTIER_RECOVERY;
   if(!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return false;
@@ -200,7 +224,7 @@ export function deepOxygenPressureAt(p){
   if(mergeRecoveryAt(p)||deepOxygenFrontierRecoveryAt(p))return 0;
   return deepOxygenRouteAt(p)?.pressure??DEEP_OFF_ROUTE_PRESSURE;
 }
-export function oxygenThermalAt(p){
+export function oxygenThermalAt(p,seed=1){
   const route=OXYGEN_ROUTES.find(candidate=>candidate.id===OXYGEN_THERMAL.routeId);
   const routeLateralFactor=routeLateral(route,p,OXYGEN_THERMAL.coreRadius,OXYGEN_THERMAL.fadeRadius);
   const routeHeat=profileAtY(OXYGEN_THERMAL.heatStops,p.y)*routeLateralFactor;
@@ -218,8 +242,10 @@ export function oxygenThermalAt(p){
     }
   }
   const heat=Math.max(routeHeat,beltHeat,deepHeat,frontierWallHeat),networkFactor=.71*clamp(routeHeat/48,0,1),beltFactor=routeHeat>0?0:belt.combustionHeatFactor*clamp(beltHeat/belt.maxHeat,0,1),deepFactor=3*clamp(deepThermalHeat/48,0,1),frontierWallFactor=wall.combustionHeatFactor*clamp(frontierWallHeat/wall.maxHeat,0,1);
-  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat,frontierWallHeat)>=OXYGEN_THERMAL.learningHeat;
-  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,frontierWallHeat,frontierWallPressure,frontierWallPulsePressure,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor,frontierWallFactor)};
+  const coolantLearning=!recovery&&Math.max(routeHeat,beltHeat,frontierWallHeat)>=OXYGEN_THERMAL.learningHeat,hazards=[];
+  appendHazard(hazards,OXYGEN_THERMAL_HAZARD,heat/50,{severity:heat,heat});
+  appendHazard(hazards,OXYGEN_FRONTIER_PRESSURE_HAZARD,frontierWallPressure/wall.offRoutePressure,{severity:frontierWallPressure,vector:{x:0,y:frontierWallPressure}});
+  return {heat,routeHeat,beltHeat,deepHeat,deepThermalHeat,frontierWallHeat,frontierWallPressure,frontierWallPulsePressure,recovery,beltRecovery,mergeRecovery,frontierRecovery,coolantLearning,intensity:clamp(heat/48,0,1),combustionHeatFactor:1+Math.max(networkFactor,beltFactor,deepFactor,frontierWallFactor),hazards};
 }
 export function oxygenRouteAt(p){
   if(p.y>-8870||p.y<-10480)return null;
@@ -235,20 +261,20 @@ export function oxygenRestStopAt(p,route=oxygenRouteAt(p)){
     return Math.abs(p.y-stop.y)<stop.depth/2&&Math.abs(p.x-centerX)<route.width/2;
   })??null;
 }
-export function oxygenPressureAt(p){
+export function oxygenPressureAt(p,seed=1){
   const deepPressure=deepOxygenPressureAt(p);
   if(deepPressure!==null)return deepPressure;
   if(p.y>-8700||p.y<-10850)return null;
   if(p.y>-8870||p.y<-10480)return 0; // approach, merge and shared harvest pocket
-  const route=oxygenRouteAt(p);
-  if(!route)return 370; // leaving a route is possible, but still costs thrust
-  if(oxygenRestStopAt(p,route))return 0;
-  let pressure=route.pressure;
-  for(const gate of route.gates){
-    const edge=gate.depth/2-Math.abs(p.y-gate.y);
-    pressure=Math.max(pressure,gate.pressure*clamp(edge/Math.min(12,gate.depth/4),0,1));
-  }
-  return pressure;
+  const route=oxygenRouteAt(p),localized=localizedGatePressureAt(p,seed);
+  if(!route)return Math.max(370,localized?.pressure??0); // leaving a route is possible, but still costs thrust
+  if(oxygenRestStopAt(p,route))return localized?.pressure??0;
+  return Math.max(route.pressure,localized?.pressure??0);
+}
+export function oxygenPressureHazardAt(p,seed=1){
+  const pressure=oxygenPressureAt(p,seed);if(!(pressure>0))return null;
+  const localized=localizedGatePressureAt(p,seed),definition=localized&&localized.pressure>=pressure-1e-6?OXYGEN_GATE_HAZARDS[`${localized.route.id}:${localized.index}`]:OXYGEN_ROUTE_PRESSURE_HAZARD;
+  return hazardSample(definition,pressure/600,{severity:pressure,vector:{x:0,y:pressure}});
 }
 
 export function recordOxygenPassage(run,old,dt){

@@ -25,6 +25,8 @@ jobs:
         run: |
           node tests/field-map-export.test.mjs
           node tests/nitrogen-field-map.test.mjs
+      - name: FIELD hazard authority
+        run: node tests/field-hazard-taxonomy.test.mjs
       - name: FIELD expansion proposal map
         run: node tests/field-expansion-proposal.test.mjs
       - name: Molecule graph / frontier

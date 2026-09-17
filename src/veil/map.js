@@ -1,4 +1,5 @@
 import { VEIL } from './config.js';
+import {defineHazard,HAZARD_TYPES} from './hazards.js';
 export function random(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 // Authored knots, never random scatter. Uniform arc-length sampling keeps pickup rhythm.
 export function sampleLine(knots,spacing=VEIL.dustSpacing){
@@ -30,7 +31,7 @@ const freezeKnots=knots=>Object.freeze(knots.map(knot=>Object.freeze(knot)));
 export const HYDROGEN_REVISIT_ROUTE=Object.freeze({
   id:'hydrogen-revisit',label:'H revisit loop',classification:'G0 / G1',densityTier:'local-pocket',revisit:true,
   knots:freezeKnots([[-520,-2200],[-930,-2450],[-850,-2950],[-800,-3090]]),spacing:30,lanes:1,value:VEIL.dustValue,
-  current:Object.freeze({width:180,force:90}),
+  current:Object.freeze({width:180,force:90,hazard:defineHazard('hydrogen-revisit-current',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'route-current'})}),
 });
 export const HYDROGEN_REVISIT_POCKET=Object.freeze({
   id:'hydrogen-revisit-pocket',x:-900,y:-2700,radius:72,particles:50,value:2,primary:'H',secondary:'C',
@@ -97,7 +98,7 @@ export function createMap(seed=1,stock={},{capabilities={}}={}){
   }
   const revisit=routes.find(route=>route.id===HYDROGEN_REVISIT_ROUTE.id),currents=[];
   if(revisit){
-    currents.push({id:'hydrogen-revisit-current',route:revisit,width:HYDROGEN_REVISIT_ROUTE.current.width,force:HYDROGEN_REVISIT_ROUTE.current.force,speed:-HYDROGEN_REVISIT_ROUTE.current.force});
+    currents.push({id:'hydrogen-revisit-current',route:revisit,width:HYDROGEN_REVISIT_ROUTE.current.width,force:HYDROGEN_REVISIT_ROUTE.current.force,speed:-HYDROGEN_REVISIT_ROUTE.current.force,hazard:HYDROGEN_REVISIT_ROUTE.current.hazard});
     const pocket=HYDROGEN_REVISIT_POCKET;
     for(let i=0;i<pocket.particles;i++){
       const element=i%5===0?pocket.secondary:pocket.primary;
@@ -110,5 +111,5 @@ export function createMap(seed=1,stock={},{capabilities={}}={}){
   const labels=[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'静かな切れ目'},{x:530,y:-3660,text:'外縁の強流 ↑ H₂ BURST'}];
   const anchor=revisit?.points[Math.floor((revisit?.points.length??1)*.55)];
   if(anchor)labels.push({x:anchor.x,y:anchor.y,text:`${revisit.id} · post-DRIVE current ${HYDROGEN_REVISIT_ROUTE.current.force} · local H pocket`});
-  return {seed,routes,dust,depletion,currents,capabilities:{combustionDrive:revisitUnlocked},fields:[{x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15}],labels};
+  return {seed,routes,dust,depletion,currents,capabilities:{combustionDrive:revisitUnlocked},fields:[{id:'veil-ambient-flow',x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15,kind:'ambient-turbulence',hazard:defineHazard('veil-ambient-flow',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'map.fields'})}],labels};
 }
