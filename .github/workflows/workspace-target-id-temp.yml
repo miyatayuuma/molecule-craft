@@ -21,7 +21,7 @@ jobs:
       - name: Workspace persistence regressions
         run: |
           node tests/workspace-save.test.mjs
-          node tests/workspace-persistence.test.mjs
+          node --test --test-name-pattern='v1 -> current|v2 -> current|empty legacy workspace|malformed JSON|legacy read returns|invalid and future raw saves|resources legacy workspace bridge' tests/workspace-persistence.test.mjs
       - name: Refresh generated PWA if source hash changed
         run: |
           if ! node scripts/build-precache.mjs --check; then
