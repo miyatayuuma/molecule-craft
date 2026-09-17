@@ -1,6 +1,12 @@
+import { normalizeMoleculeId } from './chemistry.js?v=20';
+
 export const WORKSPACE_SCHEMA=2;
 const ELEMENTS=new Set(['H','C','N','O','F','P','S','Cl']);
 const point=value=>Array.isArray(value)&&value.length===3&&value.every(n=>Number.isFinite(n)&&Math.abs(n)<=10000);
+const canonicalMoleculeId=value=>{
+  if(typeof value!=='string')return false;
+  try{return normalizeMoleculeId(value)===value;}catch{return false;}
+};
 
 // Runtime code accepts only the canonical current workspace. Persisted legacy
 // schemas are normalized before they cross the persistence ingress boundary.
@@ -18,7 +24,7 @@ export function validateWorkspace(value){
   const cross=[direction[1]*camera.up[2]-direction[2]*camera.up[1],direction[2]*camera.up[0]-direction[0]*camera.up[2],direction[0]*camera.up[1]-direction[1]*camera.up[0]];
   if(Math.hypot(...cross)<distance*.001)throw new Error('Invalid camera up');
   if((selected!==null&&!index(selected))||(focus!==null&&!index(focus))||(pivot!==null&&!point(pivot)))throw new Error('Invalid focus');
-  if(targetMoleculeId!==null&&(typeof targetMoleculeId!=='string'||!/^[A-Za-z][A-Za-z0-9-]*$/.test(targetMoleculeId)))throw new Error('Invalid target');
+  if(targetMoleculeId!==null&&!canonicalMoleculeId(targetMoleculeId))throw new Error('Invalid target');
   return value;
 }
 
