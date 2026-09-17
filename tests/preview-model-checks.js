@@ -13,7 +13,7 @@ export function checkPreviewModels(THREE,records,templates){
     assert(result.atoms.every(atom=>Number.isFinite(atom.point.x+atom.point.y+atom.point.z)),`${record.id}: invalid geometry`);
     assert(result.ports.length===(record.attachments??[]).reduce((sum,port)=>sum+port.slots,0),`${record.id}: incorrect ports`);
     assert(result.ports.every(port=>Number.isFinite(port.point.x+port.point.y+port.point.z)),`${record.id}: invalid port`);
-    if(record.learningNote||['methyl','isopropyl','n-butyl'].includes(record.id))for(const bond of result.bonds){
+    if(!record.attachments||['methyl','isopropyl','n-butyl'].includes(record.id))for(const bond of result.bonds){
       const a=result.atoms[bond.a],b=result.atoms[bond.b];
       const target=(ATOMIC_MODEL[a.element].covalentRadius+ATOMIC_MODEL[b.element].covalentRadius)*.78*bondLengthScale(bond.order);
       assert(Math.abs(a.point.distanceTo(b.point)-target)/target<.035,`${record.id}: stretched bond in new collection model`);

@@ -20,7 +20,7 @@ try{
   await page.locator('[data-upgrade=seal]').click();assert.equal(await page.locator('#shell-oxidizer [role=meter]').getAttribute('aria-valuemax'),'48');
   await page.locator('[data-upgrade=overwrap]').click();assert.equal(await page.locator('#shell-oxidizer [role=meter]').getAttribute('aria-valuemax'),'72');
   if(fuel==='methane')await page.screenshot({path:'/tmp/fuel-profile-upgrades.png'});
-  await page.evaluate(()=>document.querySelector('#launch-veil').click());await page.waitForFunction(()=>window.__profileRun);
+  await page.locator('#collector-launch-handle').press('Enter');await page.locator('#expedition-destinations [data-region=oxygen]').click();await page.waitForFunction(()=>window.__profileRun);
   assert.equal(await page.evaluate(()=>window.__profileRun.fuel.oxidizer.capacity),72);
   await page.evaluate(()=>Object.assign(window.__profileRun.player,{x:0,y:0,speed:29,vx:0,vy:0,angle:-Math.PI/2}));
   await page.keyboard.down('ArrowUp');await page.keyboard.down('Shift');await page.waitForTimeout(450);

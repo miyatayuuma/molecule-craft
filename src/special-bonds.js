@@ -29,7 +29,7 @@ function sulfurOxoGroups(molecule) {
 export function sharedOxoGroups(molecule) { return [...sulfurOxoGroups(molecule),...supportedResonanceGroups(molecule)]; }
 export const specialEdgeKeys = groups => new Set(groups.flatMap(g => g.ends.map(id => `${Math.min(g.center,id)}:${Math.max(g.center,id)}`)));
 
-function legacySharedBondCurves(THREE, group, positionFor) {
+function sulfurOxoBondCurves(THREE, group, positionFor) {
   const center = positionFor(group.center), points = group.ends.map(positionFor);
   if (!center || points.some(p => !p || ![p.x,p.y,p.z].every(Number.isFinite))) return [];
   const first = points[0].clone().sub(center), second = points[1].clone().sub(center);
@@ -73,7 +73,7 @@ export function distributedResonanceBondLines(THREE, group, positionFor) {
 
 export function sharedBondCurves(THREE, group, positionFor, {mode='craft'}={}) {
   if(['nitro','ozone'].includes(group?.kind))return distributedResonanceBondLines(THREE,group,positionFor);
-  return legacySharedBondCurves(THREE,group,positionFor);
+  return sulfurOxoBondCurves(THREE,group,positionFor);
 }
 
 function placeDash(THREE,mesh,a,b,radius){

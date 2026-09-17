@@ -27,6 +27,6 @@ assert.match(source,/outcome=await onLaunchReady\(destinationId,\{partial,presen
 assert.match(source,/if\(outcome===true\|\|outcome\?\.status==='success'\)\{requestedDestinationId=null;if\(dialog\.open\)dialog\.close\(\);return true;\}[\s\S]*?requestedDestinationId=null;[\s\S]*?if\(!resources\.blocked&&canOpen\(\)&&!dialog\.open\)dialog\.showModal\(\);/,'A successful transaction may close LOADOUT after presentation, while a failed or blocked transaction must clear the pending destination and restore retryable LOADOUT');
 assert.match(source,/finally\{\s*delete dialog\.dataset\.preserveShellClose;launchBusy=false;/,'Transaction handoff cleanup must release the presentation-preservation flag and launch busy lock');
 assert.doesNotMatch(source,/\.dispatchEvent\(new window\.Event\('change'/,'Pointer lifecycle must not synthesize destination change events');
-assert.doesNotMatch(source,/#launch-veil[^\n]*\.click\(|q\('launch-veil'\)\.click\(\)/,'Pointer lifecycle must not pseudo-click the launch affordance');
+assert.doesNotMatch(source,/launch-veil|expedition-anchor/,'Pointer lifecycle must not retain the retired fallback launch DOM contract');
 
 console.log('LOADOUT launch pointer lifecycle passed: pointer, cancellation, retry, dedupe, and explicit transaction handoff are guarded without DOM relay.');

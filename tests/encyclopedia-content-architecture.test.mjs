@@ -12,6 +12,7 @@ const controlledNotes=new Set(['aromatic','resonance','stereochemistry']);
 const recordIds=new Set(records.map(record=>record.id)),entryIds=new Set(Object.keys(entries));
 
 assert.equal(records.length,135,'production molecule count must remain 135');
+assert.ok(records.every(record=>!Object.hasOwn(record,'learningNote')),'retired learningNote compatibility payload must not remain in the production molecule DB');
 assert.equal(entryIds.size,135,'Encyclopedia must review all 135 production molecules');
 assert.deepEqual([...entryIds].sort(),[...recordIds].sort(),'Encyclopedia IDs must exactly match the production molecule catalog');
 assert.equal(encyclopedia.schemaVersion,2,'content architecture schema must be v2');

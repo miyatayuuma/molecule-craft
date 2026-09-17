@@ -42,7 +42,7 @@ const references=await json('./fixtures/collection-expansion-reference.json');
 assert.equal(references.records.length,12);
 for(const ref of references.records){
   const model=parseReference(ref.connectivitySMILES),entry=record(ref.id);
-  assert.ok(entry?.learningNote&&entry.iupacNameEn&&entry.commonNameJa,ref.id);
+  assert.ok(entry?.iupacNameEn&&entry.commonNameJa,ref.id);
   assert.equal(entry.formula,ref.formula,`${ref.id}: upstream formula`);
   assert.equal(model.recognizedMolecule()?.id,ref.id,`${ref.id}: upstream topology`);
   assert.deepEqual(countElements(model.atoms),countElements(entry.atoms),ref.id);

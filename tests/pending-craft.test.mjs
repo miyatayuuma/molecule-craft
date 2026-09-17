@@ -61,6 +61,6 @@ assert.match(pendingSource,/insight-category\.css/,'pending rows load the shared
 assert.match(connectionsSource,/onCraft:\(\.\.\.args\)=>\{pendingCraft\.refresh\(\);return onCraft\(\.\.\.args\);\}/,'normal return refreshes pending attention before handing control back to CRAFT');
 assert.match(veilSource,/resources\.settleExpedition\([\s\S]*insights:captured\?\[\]:completed\.carriedInsights\}[\s\S]*onCraft\(\)/,'normal returns commit carried insight ids before the pending refresh while capture commits none');
 assert.doesNotMatch(supplySource,/const hintIds=\{propellant:/,'LOADOUT must not own hardcoded unfinished-molecule candidates');
-assert.doesNotMatch(supplySource,/tank-next-hint'\)\.addEventListener/,'LOADOUT must not own the unfinished-molecule craft route');
+assert.doesNotMatch(pendingSource,/tank-next-hint/,'retired LOADOUT hint-button compatibility DOM must not return');
 
 console.log('Pending craft passed: centered knowledge panel, session-local unseen/acknowledged attention, immediate recipe-state synchronization, sparse/reduced-motion affordance, return integration, category semantics and craft routing.');

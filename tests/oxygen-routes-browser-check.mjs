@@ -41,7 +41,7 @@ try{
   await page.waitForSelector('#supply-dialog[open]');assert.match(await page.locator('#tank-model-name').innerText(),/CO[₂2]/);
   await page.locator('#tank-craft-molecule').click();await page.waitForSelector('#craft-target:not([hidden])');
   assert.match(await page.locator('#craft-target').innerText(),/二酸化炭素|CO₂/);
-  await page.locator('#open-supply').click();await page.locator('#launch-veil').click();
+  await page.locator('#open-supply').click();await page.locator('#collector-launch-handle').press('Enter');await page.locator('#expedition-destinations [data-region=oxygen]').click();
   await page.waitForSelector('#veil-view:not([hidden])');
   await page.keyboard.down('Shift');await page.waitForTimeout(300);
   assert.equal(await page.locator('#veil-combustion').getAttribute('aria-pressed'),'true');
@@ -60,7 +60,7 @@ try{
   await page.reload();await page.waitForSelector('#open-supply');
   assert.equal(await page.locator('#cho-completion').count(),0);
   assert.equal(await page.locator('#element-palette [data-element="N"]').isVisible(),false);
-  await page.locator('#open-supply').click();await page.locator('#launch-veil').click();
+  await page.locator('#open-supply').click();await page.locator('#collector-launch-handle').press('Enter');await page.locator('#expedition-destinations [data-region=oxygen]').click();
   await page.keyboard.down('ArrowUp');await page.waitForTimeout(2600);
   await page.keyboard.down('ArrowRight');await page.waitForTimeout(1500);
   await page.keyboard.up('ArrowRight');await page.keyboard.up('ArrowUp');
