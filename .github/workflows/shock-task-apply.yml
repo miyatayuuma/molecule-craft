@@ -33,6 +33,14 @@ jobs:
           Path('/tmp/apply-shock.py').write_text(script)
           PY
           python3 /tmp/apply-shock.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/expedition-core.test.mjs')
+          text=p.read_text()
+          text=text.replace("const fullLoadout={propellant:{molecule:'hydrogen',amount:H2.capacity},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:emptyCoolant};","const fullLoadout={propellant:{molecule:'hydrogen',amount:H2.capacity},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:emptyCoolant,shock:{molecule:null,amount:0}};")
+          text=text.replace("assert.deepEqual(resources.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:emptyCoolant});","assert.deepEqual(resources.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:emptyCoolant,shock:{molecule:null,amount:0}});")
+          p.write_text(text)
+          PY
       - name: Regenerate PWA
         run: node scripts/build-precache.mjs
       - name: Focused SHOCK validation
