@@ -1,0 +1,75 @@
+name: Temporary final hygiene integration validation
+
+on:
+  push:
+    branches:
+      - chore/repository-hygiene-audit
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Refresh generated PWA only if cleanup made it stale
+        run: |
+          if ! node scripts/build-precache.mjs --check; then
+            node scripts/build-precache.mjs
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git add precache-manifest.js sw.js
+            git diff --cached --check
+            if ! git diff --cached --quiet; then
+              git commit -m "Refresh PWA after repository cleanup"
+              git push origin HEAD:chore/repository-hygiene-audit
+            fi
+          fi
+      - name: Repository hygiene and catalog graph
+        run: |
+          node tests/repository-hygiene.test.mjs
+          node tests/molecule-graph.test.mjs
+          node tests/molecule-frontier.test.mjs
+          node tests/collection.test.mjs
+          node tests/collection-expansion.test.mjs
+          node tests/resonance-formal-charge.test.mjs
+          node tests/encyclopedia-content-architecture.test.mjs
+      - name: CRAFT and launch regressions
+        run: |
+          node --test tests/craft-target-hint.test.mjs
+          node --test tests/craft-target-match.test.mjs
+          node tests/craft-target-hint-browser.test.mjs
+          node tests/special-bonds-check.mjs
+          node tests/launch-request.test.mjs
+          node tests/launch-transaction.test.mjs
+          node tests/loadout-launch-regression.test.mjs
+          node tests/issue-122-launch-route.test.mjs
+          node tests/launch-selector.test.mjs
+          node tests/launch-pointer-lifecycle.test.mjs
+      - name: FIELD progression and migrated launch fixtures
+        run: |
+          node tests/field-frontier-insight.test.mjs
+          node tests/nitrogen-field-integration.test.mjs
+          node tests/nitrogen-chapter-browser.test.mjs
+          node tests/nitrogen-field-pickup-browser.test.mjs
+          node tests/rare-survey-browser.test.mjs
+          node tests/critical-insight-freeze-browser.test.mjs
+      - name: Encyclopedia mobile and Graph Detail transition
+        run: |
+          node tests/browser-startup.test.mjs
+          node tests/encyclopedia-content-browser.test.mjs
+          node tests/encyclopedia-chemistry-visual-browser.test.mjs
+          node tests/encyclopedia-transition-browser.test.mjs
+          node tests/encyclopedia-visible-transition-browser.test.mjs
+      - name: Generated PWA freshness and integrity
+        run: |
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+      - name: Diff whitespace
+        run: git diff --check origin/main...HEAD
