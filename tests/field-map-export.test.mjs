@@ -18,7 +18,7 @@ const output=new URL('../docs/maps/current-field.svg',import.meta.url);
 const requiredLayers=[
   'layer-grid','layer-regions','layer-geometry','layer-revisit-post-drive','playable-bounds','route-centerlines','route-widths','authored-gates',
   'layer-elements-h','layer-elements-c','layer-elements-o','layer-hazards-fields','layer-hazards-pressure',
-  'layer-hazards-challenges','layer-hazards-vortex','layer-hazards-dust-eater','layer-thermal','layer-gameplay',
+  'layer-hazards-challenges','layer-hazards-vortex','layer-agents-dust-eater','layer-thermal','layer-gameplay',
   'spawn','checkpoints','gates','junctions','rest-stops','rewards','signals','destination','layer-labels',
 ];
 
@@ -32,6 +32,7 @@ test('FIELD map exporter is deterministic and required layers are present',async
   assert.match(first,/data-carbon-y="-4390" data-oxygen-y="-7830" data-frontier-y="-11680"/);
   assert.match(first,/element positions are deterministic baseline snapshot, not invariant authored positions/);
   assert.match(first,/environment heat != player thermal state/);
+  assert.match(first,/agents: DUST EATER|dynamic pursuit agent/);assert.doesNotMatch(first,/layer-hazards-dust-eater/);
   assert.match(first,/id="h-boundary-current" data-gate="h-boundary" x="300" y="-3940" width="460" height="280"/);
   assert.match(first,/id="h-boundary-gate-marker"[^>]*cx="530" cy="-3800"/);
   assert.match(first,/id="cho-destination" data-radius="95" cx="280" cy="-12470" r="95"/);
@@ -192,6 +193,8 @@ test('FIELD map renders existing network widths and all Deep production centerli
   assert.match(svg,/data-route-width="oxygen-main" d="M 120 -8700 L 300 -9100 L 350 -9600 L 260 -10150 L 120 -10670" stroke-width="230"/);
   assert.match(svg,/data-route-width="oxygen-side" d="M 120 -8700 L 780 -9000 L 850 -10350 L 120 -10670" stroke-width="230"/);
   assert.match(svg,/data-pressure-gate="oxygen-shortcut:0" data-pressure="600" x="-435" y="-9516" width="230" height="72"/);
+  assert.match(svg,/data-pressure-gate-falloff="oxygen-shortcut:0" data-hazard-type="mechanical" data-hazard-subtype="pressure"/);
+  assert.match(svg,/data-challenge-falloff="pulse" data-hazard-types="mechanical"/);
   assert.match(svg,/data-pressure-gate="oxygen-shortcut:1" data-pressure="600" x="-435" y="-9986" width="230" height="72"/);
   assert.doesNotMatch(svg,/data-pressure-gate="oxygen-side:/);
   assert.match(svg,/data-rest-stop="oxygen-main" x="185" y="-9840" width="230" height="180"/);
@@ -200,8 +203,8 @@ test('FIELD map renders existing network widths and all Deep production centerli
 
 test('DUST EATER and RETURN remain dynamic/global instead of authored points',()=>{
   const svg=buildFieldMapSvg();
-  const eaterLayer=svg.match(/<g id="layer-hazards-dust-eater"[\s\S]*?<\/g>/)?.[0]??'';
-  assert.match(eaterLayer,/dynamic pursuit hazard \/ no authored map position/);
+  const eaterLayer=svg.match(/<g id="layer-agents-dust-eater"[\s\S]*?<\/g>/)?.[0]??'';
+  assert.match(eaterLayer,/dynamic pursuit agent \/ no authored map position/);
   assert.doesNotMatch(eaterLayer,/<(?:circle|rect|path|line|polyline|polygon)\b/);
   assert.match(svg,/RETURN: global player action \/ no fixed world position/);
   assert.doesNotMatch(svg,/id="return-(?:point|marker|destination)"/);

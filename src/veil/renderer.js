@@ -1,7 +1,7 @@
 import {drawChallengeCurrents} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { VEIL, EXPEDITION } from './config.js';
-import { OXYGEN_ROUTES,OXYGEN_REWARD } from './oxygen-routes.js';
+import { OXYGEN_ROUTES,OXYGEN_REWARD,oxygenGateEnvelopeAt } from './oxygen-routes.js';
 import { random } from './map.js';
 import { clamp } from './engine.js';
 import { drawCollectorShell } from './collector-shell.js';
@@ -109,23 +109,23 @@ export function createVeilRenderer(canvas){
       }ctx.globalAlpha=1;
     }
     if(run.map.universe){
-      drawChallengeCurrents(ctx,run.time);
+      drawChallengeCurrents(ctx,run.time,run.map.seed??1);
       for(const route of OXYGEN_ROUTES){
         ctx.strokeStyle=route.color;ctx.lineWidth=2;ctx.globalAlpha=.22;
         ctx.beginPath();route.knots.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();
         const bands=route.gates.length?route.gates:Array.from({length:14},(_,i)=>({y:-8910-i*110,depth:60,pressure:route.pressure}));
         for(const [bandIndex,gate] of bands.entries()){
           if(route.restStops?.some(stop=>Math.abs(gate.y-stop.y)<stop.depth/2+gate.depth/2))continue;
-          const left=route.x-route.width/2,pressure=clamp((gate.pressure??route.pressure)/600,0,1),depth=Math.max(28,gate.depth*1.45),strands=reduced?4:7;
-          ctx.save();ctx.beginPath();ctx.rect(left-12,gate.y-depth/2,route.width+24,depth);ctx.clip();ctx.strokeStyle=route.color;ctx.lineCap='round';
+          const localized=route.gates.length?oxygenGateEnvelopeAt(route,gate,{x:route.x,y:gate.y},run.map.seed??1,bandIndex):null,visualHalfWidth=localized?.halfWidth??route.width/2,visualCenter=localized?.center??route.x,left=visualCenter-visualHalfWidth,visualWidth=visualHalfWidth*2,pressure=clamp((gate.pressure??route.pressure)/600,0,1),depth=Math.max(28,gate.depth*1.45),strands=reduced?4:7;
+          ctx.save();ctx.beginPath();ctx.rect(left-12,gate.y-depth/2,visualWidth+24,depth);ctx.clip();ctx.strokeStyle=route.color;ctx.lineCap='round';
           for(let i=0;i<strands;i++){
-            const lane=(i+.5)/strands,x=left+lane*route.width,sway=Math.sin(run.time*.9+i*1.7+gate.y*.013)*8,phase=reduced?0:((run.time*(34+pressure*24)+bandIndex*17+i*11)%depth)-depth/2;
+            const lane=(i+.5)/strands,x=left+lane*visualWidth,sway=Math.sin(run.time*.9+i*1.7+gate.y*.013)*8,phase=reduced?0:((run.time*(34+pressure*24)+bandIndex*17+i*11)%depth)-depth/2;
             ctx.globalAlpha=.07+pressure*.11+(i%3===0?.045:0);ctx.lineWidth=.8+pressure*.9;
             ctx.beginPath();ctx.moveTo(x+sway-7,gate.y-depth*.7+phase*.18);ctx.bezierCurveTo(x-sway*.35+5,gate.y-depth*.2,x+sway*.45-4,gate.y+depth*.18,x-sway+7,gate.y+depth*.7+phase*.18);ctx.stroke();
           }
           const grains=reduced?3:6;ctx.fillStyle=route.color;
           for(let i=0;i<grains;i++){
-            const phase=(run.time*(.64+pressure*.5)+i*.173+bandIndex*.097)%1,x=left+route.width*(.1+((i*.31+bandIndex*.19)%1)*.8)+Math.sin(run.time*1.3+i)*5,y=gate.y-depth*.55+phase*depth*1.1;
+            const phase=(run.time*(.64+pressure*.5)+i*.173+bandIndex*.097)%1,x=left+visualWidth*(.1+((i*.31+bandIndex*.19)%1)*.8)+Math.sin(run.time*1.3+i)*5,y=gate.y-depth*.55+phase*depth*1.1;
             ctx.globalAlpha=Math.sin(phase*Math.PI)*(.12+pressure*.24);ctx.beginPath();ctx.ellipse(x,y,.8+pressure*.55,3+pressure*3,0,0,Math.PI*2);ctx.fill();
           }
           ctx.restore();

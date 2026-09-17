@@ -43,7 +43,7 @@ assert.equal(universe.dust.some(dust=>dust.hazard),false,'resource particles rem
 const pulse=EXPEDITION_CHALLENGES.find(item=>item.id==='pulse'),pulseY=(pulse.top+pulse.bottom)/2,pulsePoint={x:challengeCenter(pulse,pulseY),y:pulseY};
 const pulseEnv=challengeEnvironment(pulsePoint,0,73);
 assert.ok(pulseEnv.hazards.some(hazard=>hazard.type==='mechanical'&&hazard.subtype==='pressure'));
-const curve=EXPEDITION_CHALLENGES.find(item=>item.id==='curve'),curvePoint={x:challengeCenter(curve,curve.centerY),y:curve.centerY};
+const curve=EXPEDITION_CHALLENGES.find(item=>item.id==='curve'),curveY=curve.bottom-125,curvePoint={x:challengeCenter(curve,curveY),y:curveY};
 const curveEnv=challengeEnvironment(curvePoint,0,73);
 assert.ok(curveEnv.hazards.some(hazard=>hazard.subtype==='shear'));
 const thermalChallenge=EXPEDITION_CHALLENGES.find(item=>item.id==='thermal'),thermalPoint={x:challengeCenter(thermalChallenge,thermalChallenge.centerY),y:thermalChallenge.centerY};

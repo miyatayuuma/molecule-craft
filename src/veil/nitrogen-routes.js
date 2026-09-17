@@ -1,6 +1,7 @@
 import {createRoute,smoothCurve,straight,routeFlowAt} from './route-kit.js';
 import {inventoryDepletion,random} from './map.js';
 import {NITROGEN_ENTRY} from './nitrogen-config.js';
+import {defineHazard,HAZARD_TYPES} from './hazards.js';
 
 const freeze=value=>Object.freeze(value);
 const freezeList=values=>Object.freeze(values.map(value=>Object.freeze(value)));
@@ -52,7 +53,7 @@ export const NITROGEN_INSIGHT_AREA=freeze({...offsetAt(.84,-140),id:'nitrogen-cr
 export const NITROGEN_RARE_CL_SITE=freeze({...offsetAt(.59,470),id:'rare-cl-nitrogen-pocket'});
 
 function pulseAt(id,progress,{force,radius,offset=0,angleOffset=Math.PI/2,optional=false}={}){
-  const p=offsetAt(progress,offset);return freeze({id,progress,x:p.x,y:p.y,force,radius,angle:p.angle+angleOffset,optional});
+  const p=offsetAt(progress,offset);return freeze({id,progress,x:p.x,y:p.y,force,radius,angle:p.angle+angleOffset,optional,hazard:defineHazard(id,HAZARD_TYPES.MECHANICAL,'shear',{source:'map.fields'})});
 }
 // Five disturbances shape the mainline; the fourth pulse is an optional shear
 // protecting the richer collection side.  Irregular spacing/radius/direction
@@ -106,7 +107,7 @@ export function appendNitrogenField(map,seed=1,stock={}){
     if(!keepNitrogenSample(depletion,seed^0x91a7,i,NITROGEN_HIGH_DENSITY_POCKET.particles,{optional:true}))continue;
     const a=i*2.399963,r=Math.sqrt((i+.5)/NITROGEN_HIGH_DENSITY_POCKET.particles)*NITROGEN_HIGH_DENSITY_POCKET.radius,x=NITROGEN_HIGH_DENSITY_POCKET.x+Math.cos(a)*r,y=NITROGEN_HIGH_DENSITY_POCKET.y+Math.sin(a)*r;map.dust.push({id:map.dust.length,x,y,angle:NITROGEN_HIGH_DENSITY_POCKET.angle,route:NITROGEN_HIGH_DENSITY_POCKET.id,element:'N',kind:'nitrogen',value:NITROGEN_HIGH_DENSITY_POCKET.value,ready:0,pocket:NITROGEN_HIGH_DENSITY_POCKET.id});
   }
-  for(const pulse of NITROGEN_PULSES)map.fields.push({id:pulse.id,x:pulse.x,y:pulse.y,radius:pulse.radius,phase:pulse.progress*1.7,angle:pulse.angle,force:pulse.force,kind:'nitrogen-pulse',route:NITROGEN_ROUTE.id,optional:pulse.optional});
+  for(const pulse of NITROGEN_PULSES)map.fields.push({id:pulse.id,x:pulse.x,y:pulse.y,radius:pulse.radius,phase:pulse.progress*1.7,angle:pulse.angle,force:pulse.force,kind:'nitrogen-pulse',route:NITROGEN_ROUTE.id,optional:pulse.optional,hazard:pulse.hazard});
   map.signals?.push({id:'nitrogen-insight',region:'nitrogen',x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y,anchorX:NITROGEN_INSIGHT_AREA.x,anchorY:NITROGEN_INSIGHT_AREA.y,ready:false,roll:.11,choice:.23,nitrogenCritical:true});
   map.labels.push({x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,text:'NITROGEN FIELD · threshold fan'});
   for(const zone of NITROGEN_ZONE_GEOMETRY){const center=zone.points[Math.floor(zone.points.length/2)];map.labels.push({x:center.x,y:center.y,text:`${zone.label} · width ${zone.width}`});}

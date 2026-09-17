@@ -4,11 +4,13 @@ import { VEIL, EXPEDITION, THERMAL } from './config.js';
 import { GROWTH, DRIVES, burstDriveFor, combustionDriveFor, regionAt } from './growth.js';
 import { combustionChargeFor,performanceFor } from './molecule-roles.js';
 import { environmentAt, animateUniverse } from './universe.js';
+import {appendHazard,defineHazard,HAZARD_TYPES,organicCorridorInfluence} from './hazards.js';
 import { OXYGEN_THERMAL, recordOxygenPassage } from './oxygen-routes.js';
 import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
+const VEIL_BOUNDARY_HAZARD=defineHazard('veil-boundary-current',HAZARD_TYPES.MECHANICAL,'pressure',{source:'veil-boundary'});
 
 export function createFlight(config=VEIL){
   return {...config.spawn,speed:config.driftSpeed,vx:0,vy:0,boost:0,cooldown:0,combustion:false,drive:null,bank:0,trail:[]};
@@ -57,7 +59,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null)};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,N:0,O:0},collectedElements:{H:0,C:0,N:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,N:0,O:0},collectedElements:{H:0,C:0,N:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],nextEaterSpawn:0,captured:false,captureAt:0,telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -141,7 +143,7 @@ function stepRunFrame(run,input,dt,systems){
   const {player:p,map,config:c}=run;dt=clamp(dt,0,c.maxFrame);run.time+=dt;run.events.length=0;
   if(run.captured)return run.events;
   animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
-  const environment=map.universe?environmentAt(p,run.time,map):null;
+  const environment=map.universe?environmentAt(p,run.time,map):null,currentHazards=environment?.hazards?[...environment.hazards]:[];
   const targetHeat=environment?clamp(environment.heat/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?.combustionHeatFactor??1;
   const coolantLearning=!!environment?.coolantLearning&&p.combustion&&!run.fuel.coolant?.molecule;run.coolantNeedExposure=coolantLearning?run.coolantNeedExposure+dt:0;if(!run.coolantNeedEmitted&&run.coolantNeedExposure>=OXYGEN_THERMAL.learningExposureSeconds){run.coolantNeedEmitted=true;run.events.push({type:'coolantNeed',exposure:run.coolantNeedExposure});}
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
@@ -151,12 +153,14 @@ function stepRunFrame(run,input,dt,systems){
   const force={x:0,y:Number.isFinite(routePressure)?routePressure:0};
   for(const field of map.fields){
     const phase=(run.time+field.phase)/c.fieldPeriod*Math.PI*2;field.intensity=1-c.fieldPulse+c.fieldPulse*Math.sin(phase);field.active=true;
-    const dx=p.x-field.x,dy=p.y-field.y,d=Math.hypot(dx,dy);if(d<field.radius){const fieldForce=Number.isFinite(field.force)?Math.max(0,field.force):c.fieldForce,strength=fieldForce*(1-(d/field.radius)**2)*field.intensity;force.x+=Math.cos(field.angle??.12)*strength;force.y+=Math.sin(field.angle??.12)*strength;}
+    const dx=p.x-field.x,dy=p.y-field.y,d=Math.hypot(dx,dy);if(d<field.radius){const fieldForce=Number.isFinite(field.force)?Math.max(0,field.force):c.fieldForce,spatial=1-(d/field.radius)**2,strength=fieldForce*spatial*field.intensity,angle=field.angle??.12;force.x+=Math.cos(angle)*strength;force.y+=Math.sin(angle)*strength;if(field.hazard)appendHazard(currentHazards,field.hazard,spatial*field.intensity,{severity:strength,vector:{x:Math.cos(angle)*strength,y:Math.sin(angle)*strength}});}
   }
-  const g=c.gate;
+  const g=c.gate,gateEnvelope=organicCorridorInfluence({seed:map.seed??1,id:'veil-boundary-current',x:p.x,y:p.y,centerX:g.x,centerY:g.y,halfWidth:g.width/2,halfLength:g.height,edgeFade:24,centerJitter:0,widthJitter:.06,scale:110});
   // The boundary is a physical current. A short H₂ burst or the later
-  // combustion drive can cross it; merely owning a recipe cannot.
-  if(Math.abs(p.x-g.x)<g.width/2&&Math.abs(p.y-g.y)<g.height&&!propelled){const strength=c.gateDeflection*(1-Math.abs(p.x-g.x)/(g.width/2));force.x+=strength;force.y+=strength*.25;}
+  // combustion drive can cross it; merely owning a recipe cannot. The authored
+  // core stays fixed while the envelope now has deterministic organic falloff.
+  if(gateEnvelope.intensity>0&&!propelled){const strength=c.gateDeflection*gateEnvelope.intensity;force.x+=strength;force.y+=strength*.25;appendHazard(currentHazards,VEIL_BOUNDARY_HAZARD,gateEnvelope.intensity,{severity:strength,vector:{x:strength,y:strength*.25}});}
+  run.currentHazards=currentHazards;
   moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:movementEnvironment});
   recordChallengePassage(run,old);recordOxygenPassage(run,old,dt);recordChoDestination(run,old);
   if(map.universe){const region=regionAt(p.y);if(region!==run.region){run.region=region;run.events.push({type:'region',region});}}
