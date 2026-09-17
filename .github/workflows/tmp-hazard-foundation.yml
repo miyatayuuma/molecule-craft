@@ -63,6 +63,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm -f docs/tmp-field-map-test.log || true
-          git add src/veil/hazards.js src/veil/map.js src/veil/universe.js src/veil/expedition-challenges.js src/veil/oxygen-routes.js src/veil/nitrogen-routes.js src/veil/engine.js src/veil/renderer.js scripts/export-field-map.mjs docs/field-hazard-authority.md docs/maps/current-field.svg tests/field-hazard-taxonomy.test.mjs tests/field-map-export.test.mjs .github/workflows/repository-validation.yml sw.js precache-manifest.js
+          git add src/veil/hazards.js src/veil/map.js src/veil/universe.js src/veil/expedition-challenges.js src/veil/oxygen-routes.js src/veil/nitrogen-routes.js src/veil/engine.js src/veil/renderer.js scripts/export-field-map.mjs docs/field-hazard-authority.md docs/maps/current-field.svg tests/field-hazard-taxonomy.test.mjs tests/field-map-export.test.mjs sw.js precache-manifest.js
           git commit -m "Add FIELD hazard taxonomy and organic boundaries"
           git push
