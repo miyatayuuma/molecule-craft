@@ -27,18 +27,28 @@ jobs:
           python -c "from pathlib import Path; p=Path('tests/field-map-export.test.mjs'); s=p.read_text(); s=s.replace('layer-hazards-dust-eater','layer-agents-dust-eater').replace('dynamic pursuit hazard \\\\/ no authored map position','dynamic pursuit agent \\\\/ no authored map position'); p.write_text(s)"
       - name: Regenerate FIELD developer map
         run: node scripts/export-field-map.mjs
-      - name: Run hazard and FIELD regressions
+      - name: Hazard taxonomy
+        run: node tests/field-hazard-taxonomy.test.mjs
+      - name: Expedition challenges
+        run: node tests/expedition-challenges.test.mjs
+      - name: Oxygen routes
+        run: node tests/oxygen-routes.test.mjs
+      - name: Oxygen FIELD integration
+        run: node tests/oxygen-field-integration.test.mjs
+      - name: Oxygen thermal progression
+        run: node tests/oxygen-thermal-progression.test.mjs
+      - name: Thermal coolant
+        run: node tests/thermal-coolant.test.mjs
+      - name: H C revisit routes
+        run: node tests/hc-revisit-routes.test.mjs
+      - name: CHO FIELD polish
+        run: node tests/cho-field-polish.test.mjs
+      - name: Nitrogen completion
+        run: node tests/nitrogen-chapter-completion.test.mjs
+      - name: Rare Survey
+        run: node tests/rare-survey.test.mjs
+      - name: FIELD map export
         run: |
-          node tests/field-hazard-taxonomy.test.mjs
-          node tests/expedition-challenges.test.mjs
-          node tests/oxygen-routes.test.mjs
-          node tests/oxygen-field-integration.test.mjs
-          node tests/oxygen-thermal-progression.test.mjs
-          node tests/thermal-coolant.test.mjs
-          node tests/hc-revisit-routes.test.mjs
-          node tests/cho-field-polish.test.mjs
-          node tests/nitrogen-chapter-completion.test.mjs
-          node tests/rare-survey.test.mjs
           node tests/field-map-export.test.mjs
           node scripts/export-field-map.mjs --check
       - name: Refresh PWA artifacts
