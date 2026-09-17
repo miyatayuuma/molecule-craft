@@ -39,6 +39,7 @@ function readyResources(recipes=['nitromethane']){const storage=memoryStorage(),
 {
   const legacy=createInitialResourcesState();delete legacy.tanks.shock;delete legacy.loadout.tanks.shock;legacy.recipes=['hydrogen'];legacy.progress.runs=7;const storage=memoryStorage(JSON.stringify(legacy)),r=createResources({storage});r.setCatalog(molecules);assert.equal(r.state.progress.runs,7);assert.deepEqual(r.state.tanks.shock,{molecule:null,amount:0});assert.equal(r.selectedLoadout().shock,null);
 }
+// Keep the global LOADOUT contract fail-closed: persisted invalid choices are observable and block launch rather than mutating silently.
 // Persisted unsupported selections fail closed instead of silently falling back.
 {
   const state=createInitialResourcesState();state.recipes=['hydrogen'];state.loadout.tanks.shock='hydrogen';const storage=memoryStorage(JSON.stringify(state)),r=createResources({storage});r.setCatalog(molecules);assert.equal(r.selectedLoadout().shock,'hydrogen');assert.equal(r.launchFillPlan({includeWorkspace:false}).status,'IMPOSSIBLE');assert.deepEqual(r.tankCatalog('shock'),[]);
