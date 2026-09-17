@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
-import {SCHEMA_VERSION} from '../src/veil/resources-persistence.js';
+import {SCHEMA_VERSION,createInitialResourcesState} from '../src/veil/resources-persistence.js';
+import {migrateDockStorage} from '../src/veil/dock-migration.js';
 import {propulsionGauge} from '../src/veil/growth.js';
 import {createRun} from '../src/veil/engine.js';
 const records=[{id:'ethene',atoms:['C','C','H','H','H','H']},{id:'propene',atoms:['C','C','C',...Array(6).fill('H')]},{id:'phenol',atoms:[...Array(6).fill('C'),...Array(6).fill('H'),'O']},{id:'formaldehyde',atoms:['C','O','H','H']},{id:'n-hexane',atoms:[...Array(6).fill('C'),...Array(14).fill('H')]}];
@@ -11,8 +12,8 @@ const before={...r.state.elements};assert.ok(r.upgradeOxygenTank());assert.equal
 for(const id of ['phenol','formaldehyde'])r.discover(id);assert.equal(r.oxygenUpgradePlan().available,true);assert.ok(r.upgradeOxygenTank());r.fillTankFromElements('oxidizer','oxygen',36);r.fillTankFromElements('fuel','n-hexane',6);assert.ok(r.setLoadoutTank('oxidizer','oxygen'));assert.ok(r.setLoadoutTank('fuel','n-hexane'));const launchPlan=r.launchFillPlan({includeWorkspace:false}),launchOxidizer=launchPlan.full.entries.find(entry=>entry.use==='oxidizer');assert.equal(launchOxidizer.capacity,72);
 const saved=r.snapshot(),reload=createResources({storage});assert.equal(reload.blocked,false);assert.equal(reload.state.upgrades.oxygenTank,2);assert.deepEqual(reload.snapshot(),saved);assert.equal(reload.upgradeOxygenTank(),false);
 const load=reload.prepareExpedition(),run=createRun({dust:[],fields:[],routes:[],labels:[]},undefined,{fuel:load});assert.equal(run.fuel.oxidizer.capacity,72);assert.equal(propulsionGauge('combustion',run.fuel).capacity,6);assert.equal(reload.tankStatus('oxidizer').loadedCapacity,72);
-const old={...saved,schemaVersion:7};storage.setItem(RESOURCE_KEY,JSON.stringify(old));const migrated=createResources({storage});assert.equal(migrated.state.schemaVersion,SCHEMA_VERSION);assert.equal(migrated.state.upgrades.oxygenTank,0);assert.deepEqual(migrated.state.tanks.oxidizer,{molecule:null,amount:0});
+const old={...saved,schemaVersion:7};storage.setItem(RESOURCE_KEY,JSON.stringify(old));assert.equal(migrateDockStorage(storage).changed,true);const migrated=createResources({storage}),expectedLegacy=createInitialResourcesState();expectedLegacy.upgrades.oxygenTank=2;assert.equal(migrated.state.schemaVersion,SCHEMA_VERSION);assert.deepEqual(migrated.state,expectedLegacy,'pre-v8 saves must reset incompatible runtime/progression state while preserving the permanent O2 upgrade');assert.equal(migrated.tankStatus('oxidizer','oxygen').capacity,72);
 const corrupt={...saved,upgrades:{oxygenTank:3}};storage.setItem(RESOURCE_KEY,JSON.stringify(corrupt));assert.equal(createResources({storage}).blocked,true);
 let fail=false;const broken={getItem:()=>null,setItem(){if(fail)throw Error('quota');}},b=createResources({storage:broken});b.setCatalog(records);b.collect({H:100,C:100,O:100});b.discover('ethene');b.discover('propene');const snapshot=b.snapshot();fail=true;assert.equal(b.upgradeOxygenTank(),false);assert.deepEqual(b.snapshot(),snapshot);
 const poor=createResources({storage:null});poor.setCatalog(records);poor.discover('ethene');poor.discover('propene');const untouched=poor.snapshot();assert.equal(poor.upgradeOxygenTank(),false);assert.deepEqual(poor.snapshot(),untouched);
-console.log('Tank upgrades: atomic fabrication, prerequisite/order gating, 36→48→72 capacity, LOADOUT/launch propagation, persistence, schema reset and protected saves passed.');
+console.log('Tank upgrades: atomic fabrication, prerequisite/order gating, 36→48→72 capacity, LOADOUT/launch propagation, persistence, upgrade-only legacy preservation and protected saves passed.');
