@@ -47,10 +47,10 @@ jobs:
         run: node tests/nitrogen-chapter-completion.test.mjs
       - name: Rare Survey
         run: node tests/rare-survey.test.mjs
-      - name: FIELD map export
-        run: |
-          node tests/field-map-export.test.mjs
-          node scripts/export-field-map.mjs --check
+      - name: FIELD map contract test
+        run: node tests/field-map-export.test.mjs
+      - name: FIELD map generated check
+        run: node scripts/export-field-map.mjs --check
       - name: Refresh PWA artifacts
         run: node scripts/build-precache.mjs
       - name: Verify generated artifacts
