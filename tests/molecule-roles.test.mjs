@@ -16,11 +16,12 @@ const database=JSON.parse(await readFile(new URL('../data/molecules.json',import
 const records=new Map(database.map(record=>[record.id,record]));
 const countAtoms=record=>record.atoms.reduce((counts,element)=>(counts[element]=(counts[element]??0)+1,counts),{});
 
-assert.equal(ROLE_BALANCE_VERSION,3);
+assert.equal(ROLE_BALANCE_VERSION,4);
 assert.equal(moleculesForRole('propellant').length,5);
 assert.equal(moleculesForRole('fuel').length,14);
 assert.equal(moleculesForRole('coolant').length,7);
 assert.deepEqual(moleculesForRole('oxidizer'),['oxygen']);
+assert.deepEqual(moleculesForRole('shock'),['nitromethane','2-4-6-trinitrotoluene']);
 
 for(const [id,profile] of Object.entries(MOLECULE_ROLE_PROFILES)){
   assert.ok(records.has(id),`${id} must exist in the chemistry database`);

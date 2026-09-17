@@ -27,7 +27,7 @@ test('LOADOUT DRIVE boundaries use the tuned horizontal positions',()=>{
 });
 
 test('LOADOUT slot rectangles stay centered on their schematic anchors',()=>{
-  for(const use of ['propellant',...DRIVE_USES]){
+  for(const use of ['propellant','shock',...DRIVE_USES]){
     const slot=LOADOUT_SLOT_GEOMETRY[use];
     assert.equal(Number((slot.left+slot.width/2).toFixed(2)),slot.centerX);
     assert.equal(slot.labelX,slot.centerX);

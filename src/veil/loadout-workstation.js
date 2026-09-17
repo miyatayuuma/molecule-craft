@@ -5,8 +5,9 @@ const STYLE_ID='molecule-craft-loadout-workstation-style';
 const PULSE_UNIT_URL=new URL('../../assets/loadout-pulse-unit.png',import.meta.url).href;
 const DRIVE_UNIT_URL=new URL('../../assets/loadout-drive-unit.png',import.meta.url).href;
 const MODEL_URL=id=>new URL(`../../assets/models/molecule-${id}.svg`,import.meta.url).href;
-const SLOT_USES=['propellant','fuel','oxidizer','coolant'];
+const SLOT_USES=['propellant','shock','fuel','oxidizer','coolant'];
 const PULSE_SLOT_FRAME=Object.freeze({width:10.9,top:38.5,height:27.0});
+const SHOCK_SLOT_FRAME=Object.freeze({width:15.0,top:11.0,height:18.0});
 const DRIVE_SLOT_FRAME=Object.freeze({width:10.0,top:38.0,height:27.0});
 
 const slotGeometry=(centerX,frame)=>Object.freeze({
@@ -18,9 +19,10 @@ const slotGeometry=(centerX,frame)=>Object.freeze({
   labelX:centerX,
 });
 
-export const LOADOUT_LABELS=Object.freeze({propellant:'PULSE',fuel:'FUEL',oxidizer:'O₂',coolant:'COOLANT'});
+export const LOADOUT_LABELS=Object.freeze({propellant:'PULSE',shock:'SHOCK',fuel:'FUEL',oxidizer:'O₂',coolant:'COOLANT'});
 export const LOADOUT_SLOT_GEOMETRY=Object.freeze({
   propellant:slotGeometry(16.05,PULSE_SLOT_FRAME),
+  shock:slotGeometry(39.00,SHOCK_SLOT_FRAME),
   fuel:slotGeometry(65.10,DRIVE_SLOT_FRAME),
   oxidizer:slotGeometry(77.20,DRIVE_SLOT_FRAME),
   coolant:slotGeometry(88.80,DRIVE_SLOT_FRAME),
@@ -59,13 +61,14 @@ function svgElement(name,attributes={}){
 
 function addSchematic(map){
   if(!map||map.querySelector('.loadout-schematic-lines'))return;
-  const fuelX=Math.round(centerX('fuel')*10),oxidizerX=Math.round(centerX('oxidizer')*10),coolantX=Math.round(centerX('coolant')*10),pulseX=Math.round(centerX('propellant')*10);
+  const fuelX=Math.round(centerX('fuel')*10),oxidizerX=Math.round(centerX('oxidizer')*10),coolantX=Math.round(centerX('coolant')*10),pulseX=Math.round(centerX('propellant')*10),shockX=Math.round(centerX('shock')*10);
   const svg=svgElement('svg',{class:'loadout-schematic-lines',viewBox:'0 0 1000 200',preserveAspectRatio:'none','aria-hidden':'true'});
   const pulse=svgElement('path',{class:'loadout-schematic-path',d:`M325 104 H286 V54 H${pulseX} V73`});
   const drive=svgElement('path',{class:'loadout-schematic-path',d:`M455 104 H493 V54 H${coolantX}`});
+  const shock=svgElement('path',{class:'loadout-schematic-path',d:`M390 74 V58`});
   const branches=svgElement('path',{class:'loadout-schematic-path',d:`M${fuelX} 54 V73 M${oxidizerX} 54 V73 M${coolantX} 54 V73`});
-  svg.append(pulse,drive,branches);
-  for(const [cx,cy] of [[325,104],[pulseX,73],[455,104],[493,54],[fuelX,73],[oxidizerX,73],[coolantX,73]]){
+  svg.append(pulse,drive,shock,branches);
+  for(const [cx,cy] of [[325,104],[pulseX,73],[390,74],[shockX,58],[455,104],[493,54],[fuelX,73],[oxidizerX,73],[coolantX,73]]){
     svg.append(svgElement('circle',{class:'loadout-schematic-node',cx,cy,r:cx===493?4.2:3.1}));
   }
   map.append(svg);
@@ -80,6 +83,7 @@ function addSchematic(map){
 
   for(const [className,text] of [
     ['loadout-callout-label loadout-pulse-label','PULSE'],
+    ['loadout-callout-label loadout-shock-label','SHOCK'],
     ['loadout-callout-label loadout-drive-label','DRIVE'],
     ['loadout-callout-label loadout-fuel-label','FUEL'],
     ['loadout-callout-label loadout-oxidizer-label','O₂'],
@@ -102,7 +106,7 @@ function applySlotGeometry(){
     button.style.setProperty('--slot-top',pct(geometry.top));
     button.style.setProperty('--slot-height',pct(geometry.height));
   }
-  for(const [use,className] of [['propellant','loadout-pulse-label'],['fuel','loadout-fuel-label'],['oxidizer','loadout-oxidizer-label'],['coolant','loadout-coolant-label']]){
+  for(const [use,className] of [['propellant','loadout-pulse-label'],['shock','loadout-shock-label'],['fuel','loadout-fuel-label'],['oxidizer','loadout-oxidizer-label'],['coolant','loadout-coolant-label']]){
     document.querySelector(`.${className}`)?.style.setProperty('--slot-label-x',pct(LOADOUT_SLOT_GEOMETRY[use].labelX));
   }
 }
@@ -292,9 +296,10 @@ function installStyles(){
 #supply-dialog .loadout-schematic-node{fill:#d9f5f8;stroke:#6dbbc7;stroke-width:1.2;vector-effect:non-scaling-stroke;opacity:.9}
 #supply-dialog .loadout-slot-overlay{position:absolute;inset:0;z-index:5;width:100%;height:100%;overflow:visible;pointer-events:none}
 #supply-dialog .loadout-slot-path{fill:#a9f1f5;fill-opacity:.001;stroke:transparent;stroke-width:1.6;vector-effect:non-scaling-stroke;pointer-events:visibleFill;cursor:pointer;touch-action:manipulation;transition:fill-opacity .12s ease,stroke .12s ease,filter .12s ease}
-#supply-dialog .collector-shell-map:has(#shell-propellant[data-active=true]) .loadout-slot-path[data-use='propellant'],#supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-slot-path[data-use='fuel'],#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-slot-path[data-use='oxidizer'],#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-slot-path[data-use='coolant']{fill-opacity:.12;stroke:#a8edf5d6;filter:drop-shadow(0 0 5px #74d6e177)}
+#supply-dialog .collector-shell-map:has(#shell-propellant[data-active=true]) .loadout-slot-path[data-use='propellant'],#supply-dialog .collector-shell-map:has(#shell-shock[data-active=true]) .loadout-slot-path[data-use='shock'],#supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-slot-path[data-use='fuel'],#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-slot-path[data-use='oxidizer'],#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-slot-path[data-use='coolant']{fill-opacity:.12;stroke:#a8edf5d6;filter:drop-shadow(0 0 5px #74d6e177)}
 #supply-dialog .loadout-callout-label{position:absolute;z-index:6;color:#d8e8ed;font-size:11px;font-weight:800;line-height:1;letter-spacing:.09em;pointer-events:none;user-select:none;text-shadow:0 1px 4px #000,0 0 7px #6dc8d044;transition:opacity .14s ease,color .12s ease}
 #supply-dialog .loadout-pulse-label{left:var(--slot-label-x,15.05%);top:22px;transform:translateX(-50%)}
+#supply-dialog .loadout-shock-label{left:var(--slot-label-x,39%);top:3px;transform:translateX(-50%);font-size:10px;letter-spacing:.12em}
 #supply-dialog .loadout-drive-label{left:75.50%;top:17px;transform:translateX(-50%);font-size:12px;letter-spacing:.14em}
 #supply-dialog .loadout-fuel-label,#supply-dialog .loadout-oxidizer-label,#supply-dialog .loadout-coolant-label{left:var(--slot-label-x);top:69%;transform:translateX(-50%)}
 #supply-dialog #collector-shell-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:1!important}
@@ -303,6 +308,9 @@ function installStyles(){
 #supply-dialog .shell-port{z-index:0!important;min-width:0!important;min-height:0!important;margin:0!important;box-sizing:border-box;left:var(--slot-left)!important;right:auto!important;top:var(--slot-top)!important;bottom:auto!important;width:var(--slot-width)!important;height:var(--slot-height)!important;transform:none!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#d9e8ed;overflow:visible;pointer-events:none;transition:opacity .14s ease}
 #supply-dialog .shell-port>i,#supply-dialog .shell-port>span:not(.loadout-molecule-pod):not(.tank-scale),#supply-dialog .shell-port>small{display:none!important}
 #supply-dialog .shell-port .tank-scale{display:none!important}
+#supply-dialog #shell-shock{border:1px solid #75cbd6a8!important;border-radius:50%!important;background:radial-gradient(circle,#28586655 0 28%,#112b3888 31% 55%,transparent 58%)!important;box-shadow:0 0 10px #66dce42c!important}
+#supply-dialog #shell-shock:before,#supply-dialog #shell-shock:after{content:'';position:absolute;border:1px solid #8de5eb75;border-radius:50%;pointer-events:none}#supply-dialog #shell-shock:before{inset:16%}#supply-dialog #shell-shock:after{inset:31%;border-color:#c9f5f7aa}
+#supply-dialog #shell-shock>.loadout-molecule-pod{top:50%;width:76%;height:34px;transform:translate(-50%,-50%)}
 #supply-dialog .loadout-molecule-pod{position:absolute;z-index:0;left:50%;top:calc(100% + 28px);width:145%;height:54px;transform:translate(-50%,-50%);display:grid;place-items:center;padding:0;box-sizing:border-box;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none;user-select:none}
 #supply-dialog .loadout-molecule-thumb{width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;filter:drop-shadow(0 1px 3px #000b) drop-shadow(0 0 5px #9ce9f044)}
 #supply-dialog .loadout-pod-formula{display:none!important}
@@ -335,7 +343,8 @@ function installStyles(){
 #supply-dialog .tank-comparison .loadout-stat>i>b{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;transform-origin:left;background:#a7e2eb}
 #supply-dialog .tank-comparison .loadout-stat>i>em{position:absolute;z-index:2;top:-2px;width:2px;height:11px;background:#f3dc8d;box-shadow:0 0 4px #061018;transform:translateX(-1px)}
 #supply-dialog .loadout-charges{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:8px;padding:0;min-height:16px;color:#a9c0ca;font-size:9px}
-#supply-dialog .loadout-charges>div{display:flex;align-items:center;gap:4px;min-height:11px;flex-wrap:wrap}#supply-dialog .loadout-charges i{display:block;width:8px;height:8px;border-radius:50%;background:#a7e2eb;box-shadow:0 0 5px #71ccd933}#supply-dialog .loadout-charges[data-ghost=true]{opacity:.38}
+#supply-dialog .loadout-charges>div{display:flex;align-items:center;gap:4px;min-height:11px;flex-wrap:wrap}#supply-dialog .tank-comparison .loadout-role-cue{margin:5px 0 0;color:#79aab8;font-size:9px;letter-spacing:.06em}
+#supply-dialog .loadout-charges i{display:block;width:8px;height:8px;border-radius:50%;background:#a7e2eb;box-shadow:0 0 5px #71ccd933}#supply-dialog .loadout-charges[data-ghost=true]{opacity:.38}
 #supply-dialog #tank-detail-title{font-size:0}#supply-dialog #tank-detail-title:after{font-size:14px;font-weight:700;letter-spacing:.04em}
 #supply-dialog:has(#shell-propellant[data-active='true']) #tank-detail-title:after{content:'PULSE'}#supply-dialog:has(#shell-fuel[data-active='true']) #tank-detail-title:after{content:'FUEL'}#supply-dialog:has(#shell-oxidizer[data-active='true']) #tank-detail-title:after{content:'O₂'}#supply-dialog:has(#shell-coolant[data-active='true']) #tank-detail-title:after{content:'COOLANT'}
 @media(max-width:520px) and (orientation:portrait){#supply-dialog .sheet-header{padding:11px 16px}#supply-dialog .sheet-body{padding:12px 14px 14px;gap:8px}#supply-dialog .collector-shell-map{height:184px!important}#supply-dialog .loadout-element-stock{grid-template-columns:54px minmax(0,1fr);align-items:center;gap:6px;margin:2px 0 0;padding:5px 7px;border-radius:11px}#supply-dialog .loadout-element-stock-title{font-size:8px;line-height:1.05;letter-spacing:.08em;white-space:nowrap}#supply-dialog .loadout-stock-elements{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}#supply-dialog .loadout-element-token{min-height:42px;column-gap:4px;padding:3px 4px;border-radius:9px}#supply-dialog .loadout-element-token>.atom-preview{width:20px;height:20px}#supply-dialog .loadout-element-token[data-loadout-stock-element='H']>.atom-preview{width:17px;height:17px}#supply-dialog .loadout-element-token>strong{font-size:12px}#supply-dialog .loadout-element-token>small{font-size:9px}#supply-dialog .tank-detail{gap:7px;padding:9px 10px}#supply-dialog .tank-molecules{gap:6px;padding-bottom:3px}#supply-dialog .tank-molecules button{grid-template-rows:46px auto 10px;min-height:96px;padding:4px 5px}#supply-dialog .tank-molecules button img{width:68px;height:46px}#supply-dialog .tank-inspector{gap:7px;min-height:142px}#supply-dialog .tank-model #tank-model-host .model-stage{height:108px}}

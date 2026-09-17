@@ -10,13 +10,13 @@ const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,
 const emptyMap=()=>({seed:17,dust:[],fields:[],labels:[],routes:[]});
 const H2=performanceFor('hydrogen','propellant');
 const emptyCoolant={molecule:null,amount:0};
-const fullLoadout={propellant:{molecule:'hydrogen',amount:H2.capacity},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:emptyCoolant};
+const fullLoadout={propellant:{molecule:'hydrogen',amount:H2.capacity},fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:emptyCoolant,shock:{molecule:null,amount:0}};
 
 // Expedition tanks are filled directly from BASE STOCK before launch.
 const storage=memory(),resources=createResources({storage});
 for(const id of ['hydrogen','methane','oxygen'])resources.discover(id);
 Object.assign(resources.state.elements,{H:312,C:18,O:72});resources.save();
-assert.deepEqual(resources.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:emptyCoolant});
+assert.deepEqual(resources.prepareExpedition(),{propellant:{molecule:null,amount:0},fuel:{molecule:null,amount:0},oxidizer:{molecule:null,amount:0},coolant:emptyCoolant,shock:{molecule:null,amount:0}});
 assert.ok(resources.fillTankFromElements('propellant','hydrogen',120));assert.ok(resources.fillTankFromElements('fuel','methane',18));assert.ok(resources.fillTankFromElements('oxidizer','oxygen',36));
 assert.deepEqual(resources.prepareExpedition(),fullLoadout);
 assert.deepEqual(resources.state.elements,{H:0,C:0,N:0,O:0,F:0,P:0,S:0,Cl:0},'Direct filling consumes only the required atoms');
