@@ -5,6 +5,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {extname,join,normalize,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
+import {NITROGEN_HIGH_DENSITY_POCKET} from '../src/veil/nitrogen-routes.js';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
@@ -51,7 +52,7 @@ try{
   await waitFor(`document.querySelector('#veil-view')?.hidden===false&&!!globalThis.__nitrogenPickupRun`,'Nitrogen FIELD did not launch');
   exceptions.length=0;
 
-  const mapState=await evaluate(`(()=>{const run=globalThis.__nitrogenPickupRun,n=run.map.dust.filter(d=>d.element==='N'),main=n.filter(d=>d.route==='nitrogen-main'),pocket=n.filter(d=>d.route==='nitrogen-high-density');return {n:n.length,main:main.length,pocket:pocket.length,route:run.map.routes.some(r=>r.id==='nitrogen-main'),signal:run.map.signals.some(s=>s.region==='nitrogen'),boundsTop:run.config.bounds.top};})()`);
+  const mapState=await evaluate(`(()=>{const run=globalThis.__nitrogenPickupRun,n=run.map.dust.filter(d=>d.element==='N'),main=n.filter(d=>d.route==='nitrogen-main'),pocket=n.filter(d=>d.route==='${NITROGEN_HIGH_DENSITY_POCKET.id}');return {n:n.length,main:main.length,pocket:pocket.length,route:run.map.routes.some(r=>r.id==='nitrogen-main'),signal:run.map.signals.some(s=>s.region==='nitrogen'),boundsTop:run.config.bounds.top};})()`);
   assert.ok(mapState.n>0,'production active run must contain N dust');assert.ok(mapState.main>0,'Nitrogen mainline must contain N dust');assert.ok(mapState.pocket>0,'fresh stock must expose the optional N pocket');assert.equal(mapState.route,true);assert.equal(mapState.signal,true);assert.ok(mapState.boundsTop<-12750,'post-CHO flight bounds must include Nitrogen FIELD');
 
   const visualPair=await evaluate(`(()=>{const run=globalThis.__nitrogenPickupRun,n=run.map.dust.find(d=>d.element==='N'&&d.route==='nitrogen-main');if(!n)return null;const id=Math.max(...run.map.dust.map(d=>d.id))+1000,h={...n,id,x:n.x+90,baseX:n.x+90,element:'H',kind:'normal',route:'test-h-visual'};run.map.dust.push(h);run.predators=false;Object.assign(run.player,{x:n.x,y:n.y+150,angle:n.angle,vx:0,vy:0,speed:0});globalThis.__nitrogenVisualH=id;return {n:n.id,h:id};})()`);assert.ok(visualPair,'visual regression requires an authored N dust sample');
