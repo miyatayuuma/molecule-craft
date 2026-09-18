@@ -6,6 +6,7 @@ import {defineHazard,deterministicNoise1D,effectiveHazardScale,hazardSample,HAZA
 const freeze=value=>Object.freeze(value);
 const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
 const smoothstep=value=>{const t=clamp01(value);return t*t*(3-2*t);};
+export const NITROGEN_WORLD_SEED=0x4e325632;
 
 export const NITROGEN_ROUTE=createRoute({
   id:'nitrogen-main',entry:NITROGEN_ENTRY,width:820,spacing:30,
@@ -95,14 +96,15 @@ function buildNitrogenVisuals(seed){const visuals=[],rng=random(seed^0x6e697472)
 
 export function appendNitrogenField(map,seed=1,stock={},options={}){
   if(!map||map.routes?.some(route=>route.id===NITROGEN_ROUTE.id)){if(map?.nitrogenCore&&options.coreFractured===true)map.nitrogenCore.fractured=true;return map;}
-  map.depletion??={};map.depletion.N=inventoryDepletion(stock,'N');const depletion=map.depletion.N,route={...NITROGEN_ROUTE,element:null,sourceElement:'N',kind:'nitrogen-field',nitrogen:true,routeDepletion:depletion,lanes:1,authoredLanes:1,value:1};
-  map.routes.push(route);map.nitrogenZones=NITROGEN_ZONES;map.nitrogenHazards=NITROGEN_HAZARDS;map.nitrogenRecoveryAreas=NITROGEN_RECOVERY_AREAS;map.nitrogenVisuals=buildNitrogenVisuals(seed);map.nitrogenCore={...NITROGEN_CORE,fractured:options.coreFractured===true};
+  const worldSeed=Number.isFinite(options.worldSeed)?options.worldSeed>>>0:NITROGEN_WORLD_SEED;
+  map.nitrogenEnvironmentSeed=worldSeed;map.depletion??={};map.depletion.N=inventoryDepletion(stock,'N');const depletion=map.depletion.N,route={...NITROGEN_ROUTE,element:null,sourceElement:'N',kind:'nitrogen-field',nitrogen:true,routeDepletion:depletion,lanes:1,authoredLanes:1,value:1};
+  map.routes.push(route);map.nitrogenZones=NITROGEN_ZONES;map.nitrogenHazards=NITROGEN_HAZARDS;map.nitrogenRecoveryAreas=NITROGEN_RECOVERY_AREAS;map.nitrogenVisuals=buildNitrogenVisuals(worldSeed);map.nitrogenCore={...NITROGEN_CORE,fractured:options.coreFractured===true};
   for(const [i,p] of route.points.entries()){
-    if(i%3===0){if(keepNitrogenSample(depletion,seed^0x4e32,i,Math.ceil(route.points.length/3)))addDust(map,{x:p.x,y:p.y,angle:p.angle,route:route.id,element:'N',kind:'nitrogen',value:1});continue;}
+    if(i%3===0){if(keepNitrogenSample(depletion,worldSeed^0x4e32,i,Math.ceil(route.points.length/3)))addDust(map,{x:p.x,y:p.y,angle:p.angle,route:route.id,element:'N',kind:'nitrogen',value:1});continue;}
     const mixed=i%41===0?'C':i%23===0?'O':i%17===0?'H':null;if(!mixed)continue;const mixedDepletion=map.depletion[mixed]??0;if(!keepDepletedSegment(mixedDepletion,seed^0x316d,`${route.id}:${mixed}`,i,{optional:true}))continue;
     addDust(map,{x:p.x+(i%2?34:-34)*Math.cos(p.angle),y:p.y+(i%2?34:-34)*Math.sin(p.angle),angle:p.angle,route:`nitrogen-ambient-${mixed.toLowerCase()}`,element:mixed,kind:mixed==='C'?'carbon':mixed==='O'?'oxygen':'normal',value:1,ambient:true});
   }
-  for(let i=0;i<NITROGEN_HIGH_DENSITY_POCKET.particles;i++){if(!keepNitrogenSample(depletion,seed^0x91a7,i,NITROGEN_HIGH_DENSITY_POCKET.particles,{optional:true}))continue;const a=i*2.399963,r=Math.sqrt((i+.5)/NITROGEN_HIGH_DENSITY_POCKET.particles)*NITROGEN_HIGH_DENSITY_POCKET.radius;addDust(map,{x:NITROGEN_HIGH_DENSITY_POCKET.x+Math.cos(a)*r,y:NITROGEN_HIGH_DENSITY_POCKET.y+Math.sin(a)*r,angle:NITROGEN_HIGH_DENSITY_POCKET.angle,route:NITROGEN_HIGH_DENSITY_POCKET.id,element:'N',kind:'nitrogen',value:NITROGEN_HIGH_DENSITY_POCKET.value,pocket:NITROGEN_HIGH_DENSITY_POCKET.id});}
+  for(let i=0;i<NITROGEN_HIGH_DENSITY_POCKET.particles;i++){if(!keepNitrogenSample(depletion,worldSeed^0x91a7,i,NITROGEN_HIGH_DENSITY_POCKET.particles,{optional:true}))continue;const a=i*2.399963,r=Math.sqrt((i+.5)/NITROGEN_HIGH_DENSITY_POCKET.particles)*NITROGEN_HIGH_DENSITY_POCKET.radius;addDust(map,{x:NITROGEN_HIGH_DENSITY_POCKET.x+Math.cos(a)*r,y:NITROGEN_HIGH_DENSITY_POCKET.y+Math.sin(a)*r,angle:NITROGEN_HIGH_DENSITY_POCKET.angle,route:NITROGEN_HIGH_DENSITY_POCKET.id,element:'N',kind:'nitrogen',value:NITROGEN_HIGH_DENSITY_POCKET.value,pocket:NITROGEN_HIGH_DENSITY_POCKET.id});}
   map.signals?.push({id:'nitrogen-insight',region:'nitrogen',x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y,anchorX:NITROGEN_INSIGHT_AREA.x,anchorY:NITROGEN_INSIGHT_AREA.y,ready:false,roll:.11,choice:.23,nitrogenCritical:true});
   map.labels.push({x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,text:'NITROGEN FIELD · open entry'},{x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y,text:'N₂ Critical pocket'});for(const area of NITROGEN_RECOVERY_AREAS)map.labels.push({x:area.x,y:area.y,text:'environment recovery'});map.labels.push({x:NITROGEN_CORE.x,y:NITROGEN_CORE.y,text:'CORE · rare-bearing inclusion'});return map;
 }
