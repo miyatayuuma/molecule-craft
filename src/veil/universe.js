@@ -82,7 +82,7 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,cap
       const keep=keepDepletedSegment(routeDepletion,seed^0x29d41,id,i,{optional:route.optional})&&keepDepletedSegment(map.depletion[el]??0,seed^0x7f4a7c15,`${id}:${el}`,i);
       for(let lane=0;lane<profile.lanes;lane++){
         const jitter=(routeRng()-.5)*8,flow=(deep||frontier)?{speed:165+routeRng()*60,span:210,phase:routeRng()}:null;
-        const spacing=id==='oxygen-side'&&p.y<-9000&&p.y>-10400?harvestLayout.sideSpacing:27,stableOffset=(lane-(profile.lanes-1)/2)*spacing,socketX=p.x-Math.sin(p.angle)*stableOffset,socketY=p.y+Math.cos(p.angle)*stableOffset,ecologyArea=element==='C'?'carbon':element==='O'?'oxygen':null,socket=ecologyArea&&el===element?registerResourceSocket(map,{area:ecologyArea,route:id,index:i,lane,x:socketX,y:socketY,angle:p.angle,element}):null;
+        const spacing=id==='oxygen-side'&&p.y<-9000&&p.y>-10400?harvestLayout.sideSpacing:27,stableOffset=(lane-(profile.lanes-1)/2)*spacing,socketX=p.x-Math.sin(p.angle)*stableOffset,socketY=p.y+Math.cos(p.angle)*stableOffset,ecologyArea=element==='C'?'carbon':element==='O'&&!frontier?'oxygen':null,socket=ecologyArea&&el===element?registerResourceSocket(map,{area:ecologyArea,route:id,index:i,lane,x:socketX,y:socketY,angle:p.angle,element}):null;
         if(!keep||lane>=lanes)continue;
         const offset=(lane-(lanes-1)/2)*spacing+jitter,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
         map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,lane:lane-(lanes-1)/2,flow,resourceSocketKey:socket?.key});
