@@ -131,6 +131,13 @@ export function createResources({storage,onStatus=()=>{}}={}){
     const before=copy(state);if(!spend(plan.cost))return false;state.upgrades.oxygenTank++;
     if(save())return true;state=before;return false;
   }
+  function treatmentPlan(id){return hazardTreatmentPlan(state,id);}
+  function applyHazardTreatment(id){
+    const plan=treatmentPlan(id);if(blocked||!plan?.ready)return false;
+    const before=copy(state);if(!spend(plan.cost)){state=before;return false;}state.treatments[id]=1;
+    const result={committed:true,id,charge:1,cost:copy(plan.cost),recipeId:plan.recipeId,hazardType:plan.hazardType};
+    if(save()||!storage)return result;state=before;return false;
+  }
   function discover(id){if(blocked||!records.has(id)||state.recipes.includes(id))return false;state.recipes.push(id);hint(id);return true;}
   function discoverWithLoadout(id,use=null){
     if(use!==null&&(!Object.hasOwn(TANK_USES,use)||!fitsTank(id,use)))return false;
