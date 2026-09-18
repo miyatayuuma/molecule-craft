@@ -1,0 +1,17 @@
+name: Temporary Rare ecology core validation
+on:
+  push:
+    branches: [field/post-core-rare-ecology-foundation]
+jobs:
+  test:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          node tests/rare-ecology.test.mjs
+          node tests/field-runtime-allowlist.test.mjs
+          node tests/element-authority-n-foundation.test.mjs
+          node tests/nitrogen-world-awakening.test.mjs
+          node tests/inventory-depletion.test.mjs
+          node tests/repository-hygiene.test.mjs
