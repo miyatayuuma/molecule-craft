@@ -13,6 +13,7 @@ import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from 
 import {MANAGED_ELEMENTS} from './resources-persistence.js';
 import {rareEcologySocketState} from './rare-ecology.js';
 import {createHazardTreatmentExposureState,expiredHazardTreatmentIds,hazardTreatmentMultiplier,updateHazardTreatmentExposure} from './hazard-treatments.js';
+import {ABRASIVE_MOVEMENT_DRAG_PER_INTENSITY} from './abrasive-field.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
@@ -39,7 +40,7 @@ export function moveFlight(p,input,dt,{config:c=VEIL,assist=null,force={x:0,y:0}
     p.bank+=(clamp(turn/rate,-1,1)-p.bank)*(1-Math.exp(-dt*8));
   }else p.bank*=Math.exp(-dt*5);
   const corner=1-(1-c.cornerSpeed)*Math.min(Math.abs(delta)/Math.PI,1);
-  const target=propelled?propulsion.boostSpeed*corner:steering?c.speed*magnitude*corner:c.driftSpeed;
+  const surfaceDrag=clamp(environment?.surfaceDrag??0,0,.48),target=(propelled?propulsion.boostSpeed*corner:steering?c.speed*magnitude*corner:c.driftSpeed)*(1-surfaceDrag);
   const acceleration=propelled?(propulsion.boostAcceleration??c.boostAcceleration):steering?c.acceleration:c.releaseDrag;
   p.speed+=(target-p.speed)*(1-Math.exp(-dt*acceleration));
   const grip=1-Math.exp(-dt*(propelled?(propulsion.boostGrip??c.boostGrip):c.velocityGrip));
@@ -176,10 +177,10 @@ function stepRunFrame(run,input,dt,systems){
   if(gateEnvelope.intensity>0&&!propelled){const effectiveScale=effectiveHazardScale(gateEnvelope.intensity,1,HAZARD_TYPES.MECHANICAL,map.worldState??'base'),strength=c.gateDeflection*effectiveScale;force.x+=strength;force.y+=strength*.25;appendHazard(currentHazards,VEIL_BOUNDARY_HAZARD,Math.min(1,effectiveScale),{effectiveIntensity:effectiveScale,severity:strength,vector:{x:strength,y:strength*.25}});}
   const exposure=updateHazardTreatmentExposure(run.treatments,currentHazards,dt,run.treatmentExposure);if(exposure.changedMask)run.treatmentRevision++;
   if(exposure.expiredMask)for(const id of expiredHazardTreatmentIds(exposure.expiredMask))run.events.push({type:'treatmentExpired',id,hazardType:id});
-  const mechanicalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.MECHANICAL),abrasiveMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.ABRASIVE),thermalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.THERMAL);
+  const mechanicalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.MECHANICAL),abrasiveMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.ABRASIVE),thermalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.THERMAL),abrasiveIntensity=currentHazards.reduce((max,hazard)=>hazard.type===HAZARD_TYPES.ABRASIVE?Math.max(max,Number(hazard.effectiveIntensity??hazard.intensity)||0):max,0),abrasiveDrag=clamp(abrasiveIntensity*ABRASIVE_MOVEMENT_DRAG_PER_INTENSITY*abrasiveMultiplier,0,.48);
   run.hazardEffectMultipliers.mechanical=mechanicalMultiplier;run.hazardEffectMultipliers.abrasive=abrasiveMultiplier;run.hazardEffectMultipliers.thermal=thermalMultiplier;
   force.x*=mechanicalMultiplier;force.y*=mechanicalMultiplier;
-  const treatedMovement=movementEnvironment?{...movementEnvironment,pressure:(movementEnvironment.pressure??0)*mechanicalMultiplier,flowX:(movementEnvironment.flowX??0)*mechanicalMultiplier,flowY:(movementEnvironment.flowY??0)*mechanicalMultiplier}:movementEnvironment;
+  const treatedMovement=movementEnvironment?{...movementEnvironment,pressure:(movementEnvironment.pressure??0)*mechanicalMultiplier,flowX:(movementEnvironment.flowX??0)*mechanicalMultiplier,flowY:(movementEnvironment.flowY??0)*mechanicalMultiplier,surfaceDrag:abrasiveDrag}:abrasiveDrag>0?{surfaceDrag:abrasiveDrag}:movementEnvironment;
   const targetHeat=environment?clamp(environment.heat*thermalMultiplier/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?1+((environment.combustionHeatFactor??1)-1)*thermalMultiplier:1;
   run.currentHazards=currentHazards;
   moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:treatedMovement});
