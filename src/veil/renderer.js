@@ -7,6 +7,7 @@ import { random } from './map.js';
 import { clamp } from './engine.js';
 import { drawCollectorShell } from './collector-shell.js';
 import {RARE_ECOLOGY_ELEMENTS,RARE_ECOLOGY_VISUALS} from './rare-ecology.js';
+import {ABRASIVE_PLUME,ABRASIVE_VISUAL_SAMPLES,abrasiveEffectiveAt} from './abrasive-field.js';
 export const LOST_CARGO_PARTICLE_CAP=36;
 export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:EXPEDITION.anchorLockSeconds}),emergency:Object.freeze({duration:.65})});
 const LOST_CARGO_ELEMENTS=['H','C','N','O',...RARE_ECOLOGY_ELEMENTS];
