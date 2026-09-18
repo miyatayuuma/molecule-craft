@@ -56,7 +56,7 @@ test('depletion uses resolved pre-mitigation effective intensity, max-overlap by
 });
 
 test('engine applies mechanical mitigation without changing raw local hazard authority',()=>{
-  const def=defineHazard('test-field',HAZARD_TYPES.MECHANICAL,'pressure'),field={x:0,y:0,radius:400,strength:90,hazard:def},map={seed:1,dust:[],fields:[field],currents:[],labels:[],routes:[],worldState:'base'};
+  const def=defineHazard('test-field',HAZARD_TYPES.MECHANICAL,'pressure'),field={x:0,y:0,radius:400,strength:90,phase:0,hazard:def},map={seed:1,dust:[],fields:[field],currents:[],labels:[],routes:[],worldState:'base'};
   const untreated=createRun(map,VEIL,{predators:false}),treatedState={mechanical:1,abrasive:0,thermal:0},treated=createRun(map,VEIL,{predators:false,treatments:treatedState});for(const run of [untreated,treated])Object.assign(run.player,{x:120,y:0,vx:0,vy:0,speed:0});
   stepRun(untreated,{x:0,y:0},1/60,{});stepRun(treated,{x:0,y:0},1/60,{});
   assert.equal(treated.hazardEffectMultipliers.mechanical,.55);assert.equal(untreated.hazardEffectMultipliers.mechanical,1);assert.ok(treated.currentHazards.some(item=>item.type==='mechanical'&&item.effectiveIntensity>0));
