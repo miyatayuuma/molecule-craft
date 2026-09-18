@@ -175,7 +175,7 @@ export function environmentAt(p,time=0,map=null){
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
   const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p,seed),recovering=quiet||thermal.recovery;
   const challenge=challengeEnvironment(p,time,seed),oxygenRoutePressure=oxygenPressureAt(p,seed),challengePressure=recovering?0:challenge?.pressure;
-  const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p),nitrogen=nitrogenEnvironmentAt(p,time,seed,{worldState:'base'});
+  const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p),nitrogen=nitrogenEnvironmentAt(p,time,map?.nitrogenEnvironmentSeed??seed,{worldState:'base'});
   const strataPressure=outer*255+pressureBand*310,basePressure=(routePressure??strataPressure)+(thermal.frontierWallPressure??0)+nitrogen.pressure,baseFlowX=(recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48))+nitrogen.flowX,revisitCurrent=revisitCurrentAt(map,p);
   const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1),nitrogen.heat),hazards=[...(challenge?.hazards??[]),...(thermal.hazards??[]),...revisitCurrent.hazards,...nitrogen.hazards];
   const pressureHazard=oxygenPressureHazardAt(p,seed);if(pressureHazard)hazards.push(pressureHazard);else if(!challenge)appendHazard(hazards,GLOBAL_PRESSURE_HAZARD,strataPressure/310,{severity:strataPressure,vector:{x:0,y:strataPressure}});
