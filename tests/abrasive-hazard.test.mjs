@@ -43,8 +43,8 @@ test('Abrasive charge consumption uses pre-mitigation effective intensity and pe
   let raw=null;const storage={getItem:key=>key===RESOURCE_KEY?raw:null,setItem:(key,value)=>{if(key===RESOURCE_KEY)raw=String(value);},removeItem:()=>{}},resources=createResources({storage});
   Object.assign(resources.state.progress,{choCompleted:true,coreFractured:true,worldAwakened:true,rareEcologyEligible:true});resources.state.treatments.abrasive=1;resources.save();
   const config=flightConfig(resources.state),map=createUniverse(73,resources.state.elements,{capabilities}),run=createRun(map,config,{predators:false,treatments:resources.state.treatments});Object.assign(run.player,{x:center.x,y:center.y,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});
-  const first=environmentAt(center,0,map).hazards.find(item=>item.type==='abrasive').effectiveIntensity;stepRun(run,{x:0,y:-1},1,{});
-  const expected=1-first/100;assert.ok(Math.abs(resources.state.treatments.abrasive-expected)<.004,'charge follows pre-mitigation effective intensity');
+  const first=environmentAt(center,0,map).hazards.find(item=>item.type==='abrasive').effectiveIntensity,dt=1/60;stepRun(run,{x:0,y:-1},dt,{});
+  const expected=1-first*dt/100;assert.ok(Math.abs(resources.state.treatments.abrasive-expected)<.0002,'charge follows pre-mitigation effective intensity');
   const residual=resources.state.treatments.abrasive;resources.settleExpedition({H:0,C:0,N:0,O:0,P:0,S:0,F:0,Cl:0},0,true);
   assert.ok(Math.abs(resources.state.treatments.abrasive-residual)<1e-10);
   const reloaded=createResources({storage});assert.ok(Math.abs(reloaded.state.treatments.abrasive-residual)<1e-10);
