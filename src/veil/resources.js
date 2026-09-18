@@ -15,14 +15,13 @@ import {commitWorldAwakening,markCoreFractured,worldAwakeningState} from './worl
 import { RESOURCE_KEY,MAX_RESOURCE_VALUE,MANAGED_ELEMENTS,DUST_ELEMENTS,STOCKED_ELEMENTS,createInitialProgress,createInitialTanks,createInitialSelectedLoadout,createInitialResourcesState,isResourceInteger,isValidResourceId,loadPersistedResources,serializeResourcesState,finishPendingResourcesReset } from './resources-persistence.js';
 export { RESOURCE_KEY };
 const COLLECTION_KEY='molecule-craft.collection.v1',MANAGED=MANAGED_ELEMENTS,DUST=DUST_ELEMENTS,STOCKED=STOCKED_ELEMENTS,MAX=MAX_RESOURCE_VALUE;
-const PLAYER_ACCESS_ELEMENTS=Object.freeze(['H','C','O']),PLAYER_ACCESS=new Set(PLAYER_ACCESS_ELEMENTS);
+const PROGRESSION_ELEMENTS=Object.freeze(['H','C','N','O']),PROGRESSION_ELEMENT_SET=new Set(PROGRESSION_ELEMENTS),PLAYER_ACCESS_ELEMENTS=Object.freeze(['H','C','O']),PLAYER_ACCESS=new Set(PLAYER_ACCESS_ELEMENTS),RARE_STOCK_ACCESS=new Set(['P','S','F','Cl']);
 export function progressionElementAccessible(progress,element){
   if(!STOCKED.includes(element)||!Array.isArray(progress?.foundElements)||!progress.foundElements.includes(element))return false;
   return PLAYER_ACCESS.has(element)||element==='N'&&nitrogenElementAccessible(progress);
 }
-const STOCK_ONLY_ACCESS=new Set(STOCKED.filter(element=>!MANAGED.includes(element)));
 export function playerElementAccessible(state,element){
-  return progressionElementAccessible(state?.progress,element)||STOCK_ONLY_ACCESS.has(element)&&(state?.elements?.[element]??0)>0;
+  return progressionElementAccessible(state?.progress,element)||RARE_STOCK_ACCESS.has(element)&&(state?.elements?.[element]??0)>0;
 }
 const expeditionElements=units=>MANAGED.filter(el=>DUST.includes(el)||Object.hasOwn(units??{},el));
 export const RESET_CATEGORIES=Object.freeze(['collection','recipes','elements','tanks','exploration','records','workspace']);
@@ -227,7 +226,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
   }
   function normalizedExcludeIds(excludeIds){return excludeIds instanceof Set?excludeIds:new Set(Array.isArray(excludeIds)?excludeIds:[]);}
   function runInsightOccupied(runContext={}){return !!runContext?.analysis||Array.isArray(runContext?.carriedInsights)&&runContext.carriedInsights.length>0;}
-  function fallbackSignalCandidates(region,excludeIds){return [...records.values()].filter(rec=>signalCandidateEligible(rec,{region,recipes:state.recipes,hints:state.hints,excludeIds,canUseElement:el=>MANAGED.includes(el)&&api.canUseElement(el)}));}
+  function fallbackSignalCandidates(region,excludeIds){return [...records.values()].filter(rec=>signalCandidateEligible(rec,{region,recipes:state.recipes,hints:state.hints,excludeIds,canUseElement:el=>PROGRESSION_ELEMENT_SET.has(el)&&api.canUseElement(el)}));}
   function frontierSignalClaimability(region,roll,choice,runContext={}){
     if(!frontierRun)return null;
     const id=frontierRun.selectedCandidateId,meta={managed:true,claimable:false,recipe:null,frontier:true,seedId:frontierRun.seedId,hotDestination:frontierRun.hotDestination,activeForRun:frontierRun.activeForRun};
