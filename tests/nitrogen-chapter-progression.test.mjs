@@ -86,7 +86,7 @@ test('NH3 uses ordinary analysis, normal-return commit and forced-return loss',(
   const lost=resource();lost.state.progress.choCompleted=true;lost.findElementForExpedition('N');lost.discover(NITROGEN_MOLECULE_ID);const lostRun=flight();triggerInsight(lostRun,AMMONIA_MOLECULE_ID,lost.state);advanceInsightAnalysis(lostRun,5);settle(lost,lostRun,true);assert.ok(!lost.state.hints.includes(AMMONIA_MOLECULE_ID));assert.equal(nitrogenFrontierObjective(graph,lost.state)?.id,AMMONIA_MOLECULE_ID);
 });
 
-test('growthGoal follows production Nitrogen player-facing stages and stops before Rare Survey',()=>{
+test('growthGoal follows production Nitrogen player-facing stages and ends at chapter completion',()=>{
   const state={progress:{choCompleted:true,foundElements:['H','C','O','N']},recipes:[],hints:[]};assert.match(growthGoal(state).text,/Nitrogen FIELD|N₂/);
   state.hints.push(NITROGEN_MOLECULE_ID);assert.equal(growthGoal(state).id,NITROGEN_MOLECULE_ID);
   state.recipes.push(NITROGEN_MOLECULE_ID);assert.match(growthGoal(state).text,/NH₃/);

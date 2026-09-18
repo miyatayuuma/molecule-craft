@@ -99,10 +99,10 @@ export const FIELD_RESPONSIBILITY_AUDIT=Object.freeze({
   structures:Object.freeze([
     Object.freeze({source:'route geometry / authored landmark',reason:'world structure only'}),
     Object.freeze({source:'resource dust / carbon cluster',reason:'collectible or world object; particulate appearance alone is not abrasive hazard'}),
-    Object.freeze({source:'Rare Survey anomaly',reason:'finite authored collectible; not a hazard'}),
   ]),
   progressionMechanisms:Object.freeze([
     Object.freeze({source:'Normal/Critical Insight signal',reason:'knowledge/progression marker'}),
+    Object.freeze({source:'Core / World Awakening trigger',reason:'current progression landmark and state transition'}),
     Object.freeze({source:'route unlock / destination / challenge passage',reason:'progression state and telemetry'}),
     Object.freeze({source:'pickup / return settlement',reason:'resource lifecycle'}),
   ]),

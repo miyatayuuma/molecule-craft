@@ -31,7 +31,6 @@ export const NITROGEN_HIGH_DENSITY_POCKET=freeze({...offsetAt(.36,300),id:'nitro
 export const NITROGEN_RECOVERY_AREAS=Object.freeze([freeze({...offsetAt(.57,-275),id:'nitrogen-recovery-shelf',radius:235}),freeze({...offsetAt(.76,285),id:'deep-nitrogen-recovery',radius:220})]);
 export const NITROGEN_RECOVERY_AREA=NITROGEN_RECOVERY_AREAS[0];
 export const NITROGEN_INSIGHT_AREA=freeze({...offsetAt(.49,-315),id:'nitrogen-critical-pocket',radius:155});
-export const NITROGEN_RARE_CL_SITE=freeze({...offsetAt(.63,470),id:'rare-cl-nitrogen-pocket'});
 export const NITROGEN_CORE=freeze({...offsetAt(.965,0),id:'nitrogen-core',radius:155,fractureRadius:245});
 
 const hazard=(id,progress,{offset=0,radius=360,type=HAZARD_TYPES.MECHANICAL,subtype='turbulence',baseIntensity=.5,force=0,heat=0,angle=null,pulse=.16,phase=0}={})=>{

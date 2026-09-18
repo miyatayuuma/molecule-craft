@@ -8,10 +8,9 @@ import {createUniverse} from '../src/veil/universe.js';
 import {NITROGEN_REGION_BOUNDS} from '../src/veil/nitrogen-config.js';
 import {
   NITROGEN_CORE,NITROGEN_HAZARDS,NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_AREA,NITROGEN_PULSES,
-  NITROGEN_RARE_CL_SITE,NITROGEN_RECOVERY_AREAS,NITROGEN_ROUTE,NITROGEN_ZONES,
+  NITROGEN_RECOVERY_AREAS,NITROGEN_ROUTE,NITROGEN_ZONES,
   nitrogenHazardSpatialAt,nitrogenZoneAtPoint,
 } from '../src/veil/nitrogen-routes.js';
-import {RARE_ANOMALIES,installRareSurvey} from '../src/veil/rare-survey.js';
 
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,String(value)),removeItem:key=>data.delete(key)};};
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -47,15 +46,6 @@ test('hazard composition, recovery and resources replace the old pulse-belt gram
   assert.ok(n.length>=80&&n.length<=220);assert.ok(ambient.some(dust=>dust.element!=='N'),'Nitrogen remains primary without becoming an artificial N-only particle belt');
 });
 
-test('Rare Survey compatibility remains deterministic beyond the Nitrogen resource line',()=>{
-  const storage=memory(),resources=installRareSurvey(createResources({storage}));resources.state.progress.choCompleted=true;resources.state.recipes.push('nitrogen','ammonia');resources.save();
-  const cl=RARE_ANOMALIES.find(site=>site.id==='rare-cl-nitrogen-pocket');assert.ok(cl);assert.deepEqual({x:cl.x,y:cl.y},{x:NITROGEN_RARE_CL_SITE.x,y:NITROGEN_RARE_CL_SITE.y});
-  const launch=seed=>{const fuel=resources.prepareExpedition({region:'nitrogen',rng:()=>.37}),map=createUniverse(seed,resources.state.elements,{capabilities:{combustionDrive:true,nitrogenField:true}});return createRun(map,flightConfig(resources.state),{fuel,predators:false});};
-  const collect=(run,id)=>{const site=run.rareSurvey.anomalies.find(item=>item.id===id);assert.ok(site);for(let i=0;i<8&&!site.collected;i++){Object.assign(run.player,{x:site.x,y:site.y,vx:0,vy:0,speed:0,angle:-Math.PI/2});stepRun(run,{x:0,y:0},.15,{})}assert.equal(site.collected,true);};
-  const first=launch(71);collect(first,cl.id);const forced=resources.settleExpedition(first.elementDust,first.best,true,{insights:[]});assert.equal(forced.rareSurvey.committed.length,0);assert.deepEqual(forced.rareSurvey.lost.map(item=>item.id),[cl.id]);assert.equal(resources.state.elements.Cl,0);
-  const retry=launch(72),same=retry.rareSurvey.anomalies.find(site=>site.id===cl.id);assert.deepEqual({x:same.x,y:same.y},{x:cl.x,y:cl.y});collect(retry,cl.id);const normal=resources.settleExpedition(retry.elementDust,retry.best,false,{insights:[]});assert.deepEqual(normal.rareSurvey.committed.map(item=>item.id),[cl.id]);assert.equal(resources.state.elements.Cl,1);
-});
-
 test('Dust Eater remains the global agent lifecycle and stays bounded in expanded Nitrogen space',()=>{
   const config=flightConfig(postCho),map=createUniverse(41,postCho.elements,{capabilities:{combustionDrive:true,nitrogenField:true}}),run=createRun(map,config,{predators:true}),start=NITROGEN_ROUTE.points[0];Object.assign(run.player,{x:start.x,y:start.y,vx:0,vy:0,angle:start.angle});
   run.time=EXPEDITION.safeSeconds+.2;run.elementDust.N=1000;stepRun(run,{x:0,y:-1},.15,{});
@@ -63,4 +53,4 @@ test('Dust Eater remains the global agent lifecycle and stays bounded in expande
   const margin=EXPEDITION.eaterSpawnDistance+100;for(const eater of run.eaters){assert.ok(Number.isFinite(eater.x)&&Number.isFinite(eater.y));assert.ok(eater.x>=run.config.bounds.left-margin&&eater.x<=run.config.bounds.right+margin);assert.ok(eater.y>=run.config.bounds.top-margin&&eater.y<=run.config.bounds.bottom+margin);}
 });
 
-console.log('Nitrogen chapter completion passed: long open v2 geometry, hazard-composition difficulty, natural N2/resource side choices, Rare Survey compatibility and bounded DUST EATER lifecycle.');
+console.log('Nitrogen chapter completion passed: long open v2 geometry, hazard-composition difficulty, natural N2/resource side choices, Core depth and bounded DUST EATER lifecycle.');
