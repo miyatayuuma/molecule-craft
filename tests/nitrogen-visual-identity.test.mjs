@@ -23,5 +23,5 @@ test('H-only cargo in Nitrogen FIELD can never satisfy N2 Critical Insight picku
 });
 
 test('FIELD renderer removes the legacy Nitrogen belt and uses environmental haze plus a Core landmark',async()=>{
-  const source=await readFile(new URL('../src/veil/renderer.js',import.meta.url),'utf8');assert.match(source,/nitrogenVisuals/);assert.match(source,/nitrogenCore/);assert.match(source,/if\(route\.nitrogen===true\)continue/);assert.doesNotMatch(source,/lineWidth=zone\.width\*\.78/);assert.match(source,/element==='N'\?'nitrogen'/);
+  const source=await readFile(new URL('../src/veil/renderer.js',import.meta.url),'utf8');assert.match(source,/nitrogenVisuals/);assert.match(source,/nitrogenVisualEffectiveAt/,'visual hazard density must use the same effective intensity authority as gameplay');assert.match(source,/nitrogenCore/);assert.match(source,/if\(route\.nitrogen===true\)continue/);assert.doesNotMatch(source,/lineWidth=zone\.width\*\.78/);assert.doesNotMatch(source,/worldMultiplier=run\.map\.worldState/,'renderer must not duplicate world hazard multipliers');assert.match(source,/element==='N'\?'nitrogen'/);
 });
