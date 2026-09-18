@@ -86,8 +86,9 @@ export function organicCorridorInfluence({seed=1,id='hazard',x=0,y=0,centerX=0,c
 
 export const FIELD_RESPONSIBILITY_AUDIT=Object.freeze({
   environmentalHazards:Object.freeze([
-    Object.freeze({source:'map.fields',types:Object.freeze(['mechanical']),examples:Object.freeze(['ambient flow field','BURST shear','Nitrogen pulse'])}),
+    Object.freeze({source:'map.fields',types:Object.freeze(['mechanical']),examples:Object.freeze(['ambient flow field','BURST shear'])}),
     Object.freeze({source:'route pressure / localized gate',types:Object.freeze(['mechanical']),examples:Object.freeze(['Oxygen route pressure','Veil boundary current'])}),
+    Object.freeze({source:'Nitrogen environment field',types:Object.freeze(['mechanical','thermal']),examples:Object.freeze(['pressure pocket','shear pocket','turbulence pocket','thermal pocket'])}),
     Object.freeze({source:'expedition challenge environment',types:Object.freeze(['mechanical','thermal']),examples:Object.freeze(['pulse pressure','curve shear','thermal challenge'])}),
     Object.freeze({source:'route current / vortex',types:Object.freeze(['mechanical']),examples:Object.freeze(['H/C revisit current','Oxygen vortex'])}),
     Object.freeze({source:'thermal environment',types:Object.freeze(['thermal']),examples:Object.freeze(['Oxygen thermal route','shared thermal belt','frontier thermal wall'])}),
@@ -114,3 +115,14 @@ export const PRODUCTION_HAZARD_FAMILIES=Object.freeze([
   Object.freeze({family:'vortex',type:HAZARD_TYPES.MECHANICAL,subtype:'vortex'}),
   Object.freeze({family:'heat',type:HAZARD_TYPES.THERMAL,subtype:'hot-zone'}),
 ]);
+
+
+export const HAZARD_WORLD_STATES=Object.freeze({BASE:'base',AWAKENED:'awakened'});
+export const HAZARD_WORLD_MULTIPLIERS=Object.freeze({
+  base:Object.freeze({mechanical:1,thermal:1,abrasive:1,electrical:1}),
+  awakened:Object.freeze({mechanical:1.22,thermal:1.16,abrasive:1.12,electrical:1.14}),
+});
+export const hazardWorldStateFor=worldAwakened=>worldAwakened===true?HAZARD_WORLD_STATES.AWAKENED:HAZARD_WORLD_STATES.BASE;
+export function hazardWorldMultiplier(type,worldState=HAZARD_WORLD_STATES.BASE){if(!VALID_TYPES.has(type))throw new TypeError(`Unknown hazard type: ${type}`);return HAZARD_WORLD_MULTIPLIERS[worldState]?.[type]??1;}
+export function effectiveHazardScale(spatial=1,baseIntensity=1,type=HAZARD_TYPES.MECHANICAL,worldState=HAZARD_WORLD_STATES.BASE){return Math.max(0,Number(spatial)||0)*Math.max(0,Number(baseIntensity)||0)*hazardWorldMultiplier(type,worldState);}
+export function scaleHazardSampleForWorld(sample,worldState=HAZARD_WORLD_STATES.BASE){if(!sample)return null;const multiplier=hazardWorldMultiplier(sample.type,worldState),scaled={...sample,intensity:clamp01(sample.intensity*multiplier),severity:(sample.severity??0)*multiplier};if(sample.vector)scaled.vector={x:sample.vector.x*multiplier,y:sample.vector.y*multiplier};if(Number.isFinite(sample.heat))scaled.heat=sample.heat*multiplier;return scaled;}

@@ -98,6 +98,7 @@ jobs:
           node tests/nitrogen-chapter-progression.test.mjs
           node tests/nitrogen-field-integration.test.mjs
           node tests/nitrogen-chapter-completion.test.mjs
+          node tests/nitrogen-world-awakening.test.mjs
           node tests/nitrogen-chapter-browser.test.mjs
           node tests/nitrogen-loadout-balance.test.mjs
           node tests/nitrogen-visual-identity.test.mjs

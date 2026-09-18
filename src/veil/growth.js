@@ -3,6 +3,8 @@ import { VEIL, EXPEDITION } from './config.js';
 import { activeTankRolesFor,combustionBurnPlanFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
 import {NITROGEN_REGION_AVAILABLE,nitrogenGrowthGoal} from './nitrogen-progression.js';
 import {NITROGEN_ENTRY,NITROGEN_REGION_BOUNDS,NITROGEN_REGION_Y} from './nitrogen-config.js';
+import {hazardWorldStateFor} from './hazards.js';
+import {worldAwakeningState} from './world-awakening.js';
 // Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
 // need no effect entry; future shared actions can be attached here independently.
 export const MOLECULE_USES = Object.freeze({
@@ -51,7 +53,7 @@ export const EXPEDITION_DESTINATION_REGION_IDS=Object.freeze(['veil','carbon','o
 const EXPEDITION_DESTINATION_REGION_SET=new Set(EXPEDITION_DESTINATION_REGION_IDS);
 export const isExpeditionRegionDestination=id=>EXPEDITION_DESTINATION_REGION_SET.has(id);
 export function regionAt(y){return y<GROWTH.nitrogenY?'nitrogen':y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
-export function flightConfig(state){const nitrogenField=state?.progress?.choCompleted===true,bounds=nitrogenField?NITROGEN_REGION_BOUNDS:GROWTH.bounds;return {...VEIL,...GROWTH.flight,bounds,nitrogenField,nitrogenStock:Math.max(0,Number(state?.elements?.N)||0)};}
+export function flightConfig(state){const nitrogenField=state?.progress?.choCompleted===true,bounds=nitrogenField?NITROGEN_REGION_BOUNDS:GROWTH.bounds,world=worldAwakeningState(state?.progress);return {...VEIL,...GROWTH.flight,bounds,nitrogenField,nitrogenStock:Math.max(0,Number(state?.elements?.N)||0),coreFractured:world.coreFractured,worldAwakeningPending:world.worldAwakeningPending,worldAwakened:world.worldAwakened,rareEcologyEligible:world.rareEcologyEligible,hazardWorldState:hazardWorldStateFor(world.worldAwakened)};}
 export function propulsionSpeedMax(config=GROWTH.flight){return Math.max(Number(config?.speed)||0,...Object.values(DRIVES).map(drive=>Number(drive.boostSpeed)||0));}
 export function driveAvailable(state,id){
   if(id==='hydrogen')return state.recipes.includes('hydrogen');

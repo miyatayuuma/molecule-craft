@@ -119,7 +119,8 @@ test('recovery is environmental only and DUST EATER remains global pursuit',asyn
   for(const point of recoveryPoints){const env=environmentAt(point,0);assert.ok(Math.abs(env.pressure)<1,`${point.label} recovery pressure`);assert.ok(env.heat<5,`${point.label} recovery heat`);}
   const engine=await readFile(new URL('../src/veil/engine.js',import.meta.url),'utf8');
   assert.doesNotMatch(engine,/ENVIRONMENT_RECOVERY_CONTRACT|oxygenRestStopAt|deepOxygenFrontierRecoveryAt|environment-recovery/,'predator engine must not become recovery-aware');
-  assert.match(engine,/run\.threat=Math\.max\(0,run\.time-EXPEDITION\.safeSeconds\)\*EXPEDITION\.threatPerSecond\+dust\*EXPEDITION\.threatPerDustUnit/,'global threat calculation remains present');
+  assert.match(engine,/safeSeconds=EXPEDITION\.safeSeconds\*tuning\.safeSecondsMultiplier/,'global pursuit may use centralized world tuning but not recovery-local state');
+  assert.match(engine,/run\.threat=Math\.max\(0,run\.time-safeSeconds\)\*EXPEDITION\.threatPerSecond\*tuning\.threatPerSecondMultiplier\+dust\*EXPEDITION\.threatPerDustUnit\*tuning\.threatPerDustMultiplier/,'global threat calculation remains present through centralized tuning');
   assert.match(engine,/if\(run\.nearestEater<=EXPEDITION\.eaterContactRadius\)\{run\.captured=true/,'global capture remains present');
 });
 

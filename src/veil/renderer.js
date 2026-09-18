@@ -2,6 +2,7 @@ import {drawChallengeCurrents} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,oxygenGateEnvelopeAt } from './oxygen-routes.js';
+import {nitrogenVisualEffectiveAt} from './nitrogen-routes.js';
 import { random } from './map.js';
 import { clamp } from './engine.js';
 import { drawCollectorShell } from './collector-shell.js';
@@ -138,19 +139,28 @@ export function createVeilRenderer(canvas){
       // Reward convergence is shown as oxygen-colored motes physically streaming inward, not a marker glyph.
       const rewardGlow=ctx.createRadialGradient(OXYGEN_REWARD.x,OXYGEN_REWARD.y,0,OXYGEN_REWARD.x,OXYGEN_REWARD.y,OXYGEN_REWARD.radius*1.2);rewardGlow.addColorStop(0,'rgba(255,148,77,.16)');rewardGlow.addColorStop(1,'rgba(255,148,77,0)');ctx.fillStyle=rewardGlow;ctx.fillRect(OXYGEN_REWARD.x-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.y-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.radius*2.4,OXYGEN_REWARD.radius*2.4);for(let i=0;i<9;i++){const phase=(run.time*.18+i/9)%1,r=OXYGEN_REWARD.radius*(1.05-phase*.82),a=i*2.399+run.time*.12;ctx.globalAlpha=.16+phase*.48;ctx.fillStyle='#ff944d';ctx.beginPath();ctx.arc(OXYGEN_REWARD.x+Math.cos(a)*r,OXYGEN_REWARD.y+Math.sin(a)*r,1.5+phase*2.1,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
     }
-    if(run.map.universe&&run.map.nitrogenZones?.length){
-      // Nitrogen stays one continuous route, but authored zone width and landmark
-      // silhouettes make its encounter cadence visible without adding a new mechanic.
-      const zoneColors={entry:'#6d8fe8',movement:'#5579d0',collection:'#789dff',recovery:'#75b7dc',approach:'#7e82e8'};
-      for(const zone of run.map.nitrogenZones){
-        const points=zone.points??[];if(points.length<2)continue;const color=zoneColors[zone.kind]??'#6687dd';
-        ctx.save();ctx.strokeStyle=color;ctx.lineCap='round';ctx.lineJoin='round';ctx.globalAlpha=zone.kind==='recovery'?.055:zone.kind==='collection'?.075:.06;ctx.lineWidth=zone.width*.78;ctx.beginPath();points.forEach((point,index)=>index?ctx.lineTo(point.x,point.y):ctx.moveTo(point.x,point.y));ctx.stroke();
-        ctx.globalAlpha=zone.kind==='recovery'?.16:.20;ctx.lineWidth=zone.kind==='movement'?2.2:1.5;ctx.beginPath();points.forEach((point,index)=>index?ctx.lineTo(point.x,point.y):ctx.moveTo(point.x,point.y));ctx.stroke();ctx.restore();
+    if(run.map.universe&&run.map.nitrogenHazards?.length){
+      // Nitrogen FIELD v2: deterministic environment samples replace the old
+      // continuous route/belt fill. Visual density follows the same base/world intensity.
+      for(const visual of run.map.nitrogenVisuals??[]){
+        const item=run.map.nitrogenHazards.find(hazard=>hazard.id===visual.hazardId);if(!item)continue;
+        const effective=Math.min(1.25,nitrogenVisualEffectiveAt(item,visual,run.time,{worldState:run.map.worldState}).scale),at=screen(visual.x,visual.y),pulse=.82+.18*Math.sin(run.time*.7+visual.phase),alpha=effective*pulse;
+        if(alpha<.035||at.x<-120||at.x>w+120||at.y<-120||at.y>h+120)continue;
+        const radius=(item.type==='thermal'?42:34)*scale*(.75+effective*.55),fog=ctx.createRadialGradient(at.x,at.y,1,at.x,at.y,radius);
+        if(item.type==='thermal'){fog.addColorStop(0,`rgba(235,116,80,${.11*alpha})`);fog.addColorStop(1,'rgba(200,83,56,0)');}
+        else{fog.addColorStop(0,`rgba(124,147,225,${.12*alpha})`);fog.addColorStop(1,'rgba(72,98,160,0)');}
+        ctx.fillStyle=fog;ctx.fillRect(at.x-radius,at.y-radius,radius*2,radius*2);
+        if(!reduced&&item.type!=='thermal'){ctx.save();ctx.translate(at.x,at.y);ctx.rotate(item.angle??0);ctx.strokeStyle='#91a9df';ctx.globalAlpha=.08+.16*alpha;ctx.lineWidth=(.7+effective)*scale;ctx.beginPath();ctx.moveTo(-13*scale,0);ctx.quadraticCurveTo(0,Math.sin(run.time+visual.phase)*4*scale,13*scale,0);ctx.stroke();ctx.restore();ctx.globalAlpha=1;}
       }
-      for(const landmark of run.map.nitrogenLandmarks??[]){
-        const radius=landmark.radius??150,harvest=landmark.kind==='harvest',recovery=landmark.kind==='recovery',insight=landmark.kind==='insight',core=harvest?'112,151,255':recovery?'106,190,215':insight?'151,129,238':'89,120,220',glow=ctx.createRadialGradient(landmark.x,landmark.y,0,landmark.x,landmark.y,radius);
-        glow.addColorStop(0,`rgba(${core},${recovery?.09:harvest?.12:.10})`);glow.addColorStop(1,`rgba(${core},0)`);ctx.fillStyle=glow;ctx.fillRect(landmark.x-radius,landmark.y-radius,radius*2,radius*2);
-        ctx.strokeStyle=recovery?'#7bc2db':harvest?'#8dadff':insight?'#a69cf0':'#708bd8';ctx.globalAlpha=recovery?.12:.09;ctx.lineWidth=1;const rings=recovery?3:2;for(let i=0;i<rings;i++){ctx.beginPath();ctx.ellipse(landmark.x,landmark.y,radius*(.28+i*.18),radius*(.10+i*.055),run.time*(recovery?.05:.09)+i*.75,0,Math.PI*1.8);ctx.stroke();}ctx.globalAlpha=1;
+      const core=run.map.nitrogenCore;
+      if(core){
+        const at=screen(core.x,core.y),pulse=.5+.5*Math.sin(run.time*1.3),r=core.radius*scale;
+        if(at.x>-r*1.5&&at.x<w+r*1.5&&at.y>-r*1.5&&at.y<h+r*1.5){
+          const halo=ctx.createRadialGradient(at.x,at.y,r*.08,at.x,at.y,r*1.18);halo.addColorStop(0,core.fractured?'rgba(232,214,255,.16)':'rgba(230,222,255,.35)');halo.addColorStop(.45,core.fractured?'rgba(118,91,151,.07)':'rgba(144,121,190,.16)');halo.addColorStop(1,'rgba(86,62,118,0)');ctx.fillStyle=halo;ctx.fillRect(at.x-r*1.2,at.y-r*1.2,r*2.4,r*2.4);
+          ctx.save();ctx.translate(at.x,at.y);ctx.strokeStyle=core.fractured?'#806d91':'#d8c9f1';ctx.globalAlpha=core.fractured?.34:.48+pulse*.12;ctx.lineWidth=1.5*scale;
+          for(let i=0;i<7;i++){const a=i*2.399+(run.map.seed??1)*.013,inner=r*(.16+(i%3)*.07),outer=r*(.55+(i%4)*.08);ctx.beginPath();ctx.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);ctx.lineTo(Math.cos(a+.15*(i%2?1:-1))*outer,Math.sin(a+.15*(i%2?1:-1))*outer);ctx.stroke();}
+          ctx.restore();ctx.globalAlpha=1;
+        }
       }
     }
     if(run.map.universe){
@@ -160,11 +170,11 @@ export function createVeilRenderer(canvas){
       ctx.globalAlpha=run.destinationReached?.6:.38;ctx.fillStyle=run.destinationReached?'#d9ffe3':'#ffe8b3';ctx.beginPath();ctx.arc(d.x,d.y,4.5+Math.sin(run.time*2.4)*1.2,0,Math.PI*2);ctx.fill();ctx.restore();
     }
     // Route lines remain as environmental structure; symbolic arrows and labels are intentionally omitted.
-    for(const route of run.map.routes){const element=route.element??'H',color=element==='C'?'#54345f':element==='N'?'#315c9f':element==='O'?'#70433d':route.kind==='dense'?'#214f62':'#142e40';ctx.beginPath();route.points.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.strokeStyle=color;ctx.lineWidth=element==='O'?1.8:1.2;ctx.globalAlpha=element==='O'?.8:1;ctx.stroke();ctx.globalAlpha=1;}
+    for(const route of run.map.routes){if(route.nitrogen===true)continue;const element=route.element??'H',color=element==='C'?'#54345f':element==='N'?'#315c9f':element==='O'?'#70433d':route.kind==='dense'?'#214f62':'#142e40';ctx.beginPath();route.points.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.strokeStyle=color;ctx.lineWidth=element==='O'?1.8:1.2;ctx.globalAlpha=element==='O'?.8:1;ctx.stroke();ctx.globalAlpha=1;}
     // Wisps travel in the direction of the force: no collision outlines or debug rings.
     for(const f of run.map.fields){
       const at=screen(f.x,f.y),r=f.radius;if(at.x<-r*scale||at.x>w+r*scale||at.y<-r*scale||at.y>h+r*scale)continue;
-      const intensity=f.intensity??.7,forceCue=clamp(Math.sqrt((f.force??VEIL.fieldForce)/VEIL.fieldForce),1,1.8);
+      const intensity=f.effectiveIntensity??f.intensity??.7,forceCue=clamp(Math.sqrt((f.effectiveForce??f.force??VEIL.fieldForce)/VEIL.fieldForce),1,1.9);
       const fog=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,r);
       fog.addColorStop(0,`rgba(136,136,220,${.09+intensity*.06})`);fog.addColorStop(1,'rgba(88,117,169,0)');
       ctx.fillStyle=fog;ctx.fillRect(f.x-r,f.y-r,r*2,r*2);
@@ -215,7 +225,7 @@ export function createVeilRenderer(canvas){
       else{ctx.fillStyle=rare?'#ffe2a1':element==='N'?'#93c5fd':element==='O'?'#ffd2bd':'#d1f5ff';ctx.beginPath();ctx.arc(q.x,q.y,(rare?4:element==='N'?3.2:element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}
       if(rare){ctx.strokeStyle='#c7ab76';ctx.beginPath();ctx.arc(q.x,q.y,12*scale,0,Math.PI*2);ctx.stroke();}
     }
-    for(const wave of run.shockWaves??[]){const at=screen(wave.x,wave.y),progress=clamp(wave.life/wave.duration,0,1),radius=wave.radius*scale*smoothstep(progress),alpha=(1-progress)*.72,tnt=wave.material==='2-4-6-trinitrotoluene';ctx.save();ctx.strokeStyle=tnt?'#ffd5a6':'#a7eff5';ctx.globalAlpha=alpha;ctx.lineWidth=(tnt?2.6:1.8)*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha*.42;ctx.lineWidth=1*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius*.78,0,Math.PI*2);ctx.stroke();ctx.restore();}
+    for(const wave of run.shockWaves??[]){const at=screen(wave.x,wave.y),progress=clamp(wave.life/wave.duration,0,1),radius=wave.radius*scale*smoothstep(progress),alpha=(1-progress)*(wave.coreFracture?.9:.72),tnt=wave.material==='2-4-6-trinitrotoluene';ctx.save();ctx.strokeStyle=wave.coreFracture?'#e3d2ff':tnt?'#ffd5a6':'#a7eff5';ctx.globalAlpha=alpha;ctx.lineWidth=(wave.coreFracture?3.2:tnt?2.6:1.8)*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha*.42;ctx.lineWidth=1*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius*.78,0,Math.PI*2);ctx.stroke();ctx.restore();}
     // Dust eaters are self-organising particle vortices: a light-swallowing
     // core, orbiting grains and a wake, never a face or biological silhouette.
     for(const eater of run.eaters??[]){

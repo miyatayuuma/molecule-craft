@@ -3,9 +3,9 @@ import {CHO_DESTINATION} from './cho-campaign.js';
 import { createMap, sampleAuthoredLine, sampleLine, random, keepDepletedSegment } from './map.js';
 import { routeFlowAt } from './route-kit.js';
 import { GROWTH } from './growth.js';
-import {appendHazard,defineHazard,HAZARD_TYPES} from './hazards.js';
+import {appendHazard,defineHazard,hazardWorldMultiplier,HAZARD_TYPES,scaleHazardSampleForWorld} from './hazards.js';
 import { DEEP_OXYGEN_FRONTIER_RECOVERY,DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_THERMAL,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenPressureHazardAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt,oxygenVortexHazardAt } from './oxygen-routes.js';
-import {appendNitrogenField} from './nitrogen-routes.js';
+import {appendNitrogenField,nitrogenEnvironmentAt} from './nitrogen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const freezeKnots=knots=>Object.freeze(knots.map(knot=>Object.freeze(knot)));
 export const OXYGEN_ENTRY_KNOTS=Object.freeze([
@@ -58,8 +58,8 @@ const CLUSTERS=[[-120,-4990],[-410,-5350],[-160,-5680],[350,-6020],[230,-6400],[
 function activeLaneCount(lanes,level){return level<.28?lanes:level<.62?Math.max(1,Math.ceil(lanes/2)):1;}
 export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,capabilities={}}={}){
   if(!Number.isFinite(harvestLayout.sideSpacing)||harvestLayout.sideSpacing<0||!Number.isInteger(harvestLayout.eddyAtoms)||harvestLayout.eddyAtoms<0||harvestLayout.eddyAtoms>1000)throw Error('Invalid oxygen harvest layout');
-  const revisitUnlocked=capabilities.combustionDrive===true,map=createMap(seed,stock,{capabilities}),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];
-  if(capabilities.nitrogenField===true)appendNitrogenField(map,seed,stock);
+  const revisitUnlocked=capabilities.combustionDrive===true,map=createMap(seed,stock,{capabilities}),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];map.worldState=capabilities.worldAwakened===true?'awakened':'base';
+  if(capabilities.nitrogenField===true)appendNitrogenField(map,seed,stock,{coreFractured:capabilities.coreFractured===true,worldState:map.worldState});
   // Consume the full shoulder stream even when stock hides a lane. Inventory
   // changes dust presence, never seeded landmarks or the physical currents.
   const shoulders=new Map(),key=d=>`${d.route}:${d.x}:${d.y}`;
@@ -171,17 +171,18 @@ function revisitCurrentAt(map,p){
   return {x,y,intensity,hazards};
 }
 export function environmentAt(p,time=0,map=null){
-  const seed=map?.seed??1,outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
+  const seed=map?.seed??1,worldState=map?.worldState??'base',outer=band(p.y,-4100,-3690,105),pressureBand=band(p.y,-11780,-8830,170),oxygen=band(p.y,-11780,-8150,300);
   const coolEddy=Math.exp(-(((p.x+510)/240)**2+((p.y+8380)/300)**2));
   const quiet=!!oxygenRestStopAt(p),thermal=oxygenThermalAt(p,seed),recovering=quiet||thermal.recovery;
   const challenge=challengeEnvironment(p,time,seed),oxygenRoutePressure=oxygenPressureAt(p,seed),challengePressure=recovering?0:challenge?.pressure;
-  const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p);
-  const strataPressure=outer*255+pressureBand*310,basePressure=(routePressure??strataPressure)+(thermal.frontierWallPressure??0),baseFlowX=recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48),revisitCurrent=revisitCurrentAt(map,p);
-  const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1)),hazards=[...(challenge?.hazards??[]),...(thermal.hazards??[]),...revisitCurrent.hazards];
+  const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p),nitrogen=nitrogenEnvironmentAt(p,time,map?.nitrogenEnvironmentSeed??seed,{worldState:'base'});
+  const strataPressure=outer*255+pressureBand*310,basePressure=(routePressure??strataPressure)+(thermal.frontierWallPressure??0)+nitrogen.pressure,baseFlowX=(recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48))+nitrogen.flowX,revisitCurrent=revisitCurrentAt(map,p);
+  const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1),nitrogen.heat),hazards=[...(challenge?.hazards??[]),...(thermal.hazards??[]),...revisitCurrent.hazards,...nitrogen.hazards];
   const pressureHazard=oxygenPressureHazardAt(p,seed);if(pressureHazard)hazards.push(pressureHazard);else if(!challenge)appendHazard(hazards,GLOBAL_PRESSURE_HAZARD,strataPressure/310,{severity:strataPressure,vector:{x:0,y:strataPressure}});
   const vortexHazard=oxygenVortexHazardAt(p);if(vortexHazard)hazards.push(vortexHazard);
   if(!recovering&&!challenge&&oxygenRoutePressure===null)appendHazard(hazards,OXYGEN_CROSSFLOW_HAZARD,Math.abs(baseFlowX)/48,{severity:Math.abs(baseFlowX),vector:{x:baseFlowX,y:0}});
-  return {pressure:basePressure+vortex.y,flowX:baseFlowX+vortex.x+revisitCurrent.x,flowY:revisitCurrent.y,currentIntensity:revisitCurrent.intensity,traversableRoutePressure:oxygenRoutePressure,frontierWallPressure:thermal.frontierWallPressure??0,frontierWallPulsePressure:thermal.frontierWallPulsePressure??0,heat:Math.max(challenge?.heat??0,environmentHeat),combustionHeatFactor:thermal.combustionHeatFactor,coolantLearning:thermal.coolantLearning,intensity:thermal.intensity,eddy:coolEddy,vortex:vortex.intensity,hazards};
+  const mechanical=hazardWorldMultiplier(HAZARD_TYPES.MECHANICAL,worldState),thermalMultiplier=hazardWorldMultiplier(HAZARD_TYPES.THERMAL,worldState),scaledRoutePressure=Number.isFinite(oxygenRoutePressure)?oxygenRoutePressure*mechanical:oxygenRoutePressure;
+  return {pressure:(basePressure+vortex.y)*mechanical,flowX:(baseFlowX+vortex.x+revisitCurrent.x)*mechanical,flowY:(revisitCurrent.y+nitrogen.flowY)*mechanical,currentIntensity:revisitCurrent.intensity,traversableRoutePressure:scaledRoutePressure,frontierWallPressure:(thermal.frontierWallPressure??0)*mechanical,frontierWallPulsePressure:(thermal.frontierWallPulsePressure??0)*mechanical,heat:Math.max(challenge?.heat??0,environmentHeat)*thermalMultiplier,combustionHeatFactor:1+((Math.max(thermal.combustionHeatFactor,nitrogen.combustionHeatFactor??1))-1)*thermalMultiplier,coolantLearning:thermal.coolantLearning,intensity:Math.max(thermal.intensity??0,Math.min(1,nitrogen.heat/48))*thermalMultiplier,eddy:coolEddy,vortex:vortex.intensity,hazards:hazards.map(sample=>scaleHazardSampleForWorld(sample,worldState))};
 }
 export function animateUniverse(run){
   if(!run.map.universe)return;const {time,player:p,map}=run;

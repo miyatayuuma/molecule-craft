@@ -24,7 +24,7 @@ function makeResources(){
 }
 function makeCriticalRun(){
   const map=createUniverse(71,{H:0,C:0,N:0,O:0},{capabilities:{combustionDrive:true}}),config=flightConfig({progress:{choCompleted:true},elements:{N:0}}),run=createRun(map,config,{predators:false});
-  run.region='nitrogen';run.time=FIELD_INSIGHT_MIN_SECONDS+.5;run.insightEngagementOrigin={x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y+FIELD_INSIGHT_MIN_DISTANCE+100};run.insightEngagementMaxDistance=FIELD_INSIGHT_MIN_DISTANCE+100;run.insightEngagementSatisfied=true;run.collectedElements.N=1;run.foundElements.push('N');
+  run.region='nitrogen';run.time=FIELD_INSIGHT_MIN_SECONDS+.5;run.insightEngagementOrigin={x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y+FIELD_INSIGHT_MIN_DISTANCE+100};run.insightEngagementMaxDistance=FIELD_INSIGHT_MIN_DISTANCE+100;run.insightEngagementSatisfied=true;run.elementDust.N=1;run.collectedElements.N=1;run.foundElements.push('N');
   Object.assign(run.player,{x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y,angle:0,vx:0,vy:0,speed:config.driftSpeed});
   return run;
 }

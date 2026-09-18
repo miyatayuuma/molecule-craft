@@ -47,7 +47,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       return {nextRun,start,seed,fuel:resources.prepareExpedition({region:start})};
     },
     createRun:({prepared})=>{
-      const config=flightConfig(resources.state),capabilities={combustionDrive:driveAvailable(resources.state,'combustion'),nitrogenField:config.nitrogenField===true};
+      const config=flightConfig(resources.state),capabilities={combustionDrive:driveAvailable(resources.state,'combustion'),nitrogenField:config.nitrogenField===true,coreFractured:config.coreFractured===true,worldAwakened:config.worldAwakened===true};
       return createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities}),config,{fuel:prepared.fuel});
     },
     initializeExplore:({prepared,run:nextRun})=>initializeExploreLaunch(prepared,nextRun),
@@ -115,7 +115,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(!active||!run)return;active=false;cancelAnimationFrame(raf);raf=0;resetInput();audio.pause();
     const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached,insights:captured?[]:completed.carriedInsights});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);discardRunInsights(completed);insightPresentation.clear();root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
     const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
-    q('craft-last-run').textContent=result?`${result.completedNow?'◎ CHO ✓ · ':''}${captured?'⚠':'↩'} ${parts||'—'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
+    q('craft-last-run').textContent=result?`${result.worldAwakenedNow?'WORLD AWAKENED · ':''}${result.completedNow?'◎ CHO ✓ · ':''}${captured?'⚠':'↩'} ${parts||'—'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
     const pending=pendingCraftId;pendingCraftId=null;run=null;anchorLock=null;returnState=null;thermalNotice=null;thermalNoticeUntil=0;onCraft();updateCraft();q('open-supply')?.focus();if(pending)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:pending,source:'field'}}));
   }
   function beginReturn(captured=false){
@@ -131,9 +131,9 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(run.player.boost<=0)notice(!slot.molecule?'噴射剤を搭載すると緊急噴射が使える':slot.amount<(performance?.moleculesPerBurst??Infinity)?`搭載した${label}ではBURSTできない · 帰還して補給しよう`:`${label}が不足している`,2);
   }
   function shock(){
-    if(!active||paused||anchorLock||returnState||run.captured)return false;audio.start();const event=beginShock(run,(material,amount)=>resources.consumeTank('shock',material,amount));
-    if(event){shockButton.classList.add('shocking');setTimeout(()=>shockButton.classList.remove('shocking'),180);vibrate(event.material==='2-4-6-trinitrotoluene'?30:18);hud();return true;}
-    const slot=run.fuel.shock;if(slot?.molecule&&slot.amount<=0)notice('SHOCK CHARGE EMPTY · 帰還して補給',2,'○');return false;
+    if(!active||paused||anchorLock||returnState||run.captured)return false;const core=run.map?.nitrogenCore,nearIntactCore=!!core&&!core.fractured&&Math.hypot(run.player.x-core.x,run.player.y-core.y)<=core.fractureRadius;audio.start();const event=beginShock(run,(material,amount)=>resources.consumeTank('shock',material,amount));
+    if(event){shockButton.classList.add('shocking');setTimeout(()=>shockButton.classList.remove('shocking'),180);vibrate(event.material==='2-4-6-trinitrotoluene'?30:18);if(event.coreFractured){const world=resources.recordCoreFracture();notice(world?'CORE FRACTURED · WORLD AWAKENING PENDING · 安全帰還で確定':'CORE FRACTURED · 保存を確認して帰還',4,'◉');}hud();return true;}
+    const slot=run.fuel.shock;if(nearIntactCore)notice('CORE intact · SHOCK CHARGEが必要 · ANCHOR RETURNで帰還可能',3,'○');else if(slot?.molecule&&slot.amount<=0)notice('SHOCK CHARGE EMPTY · 帰還して補給',2,'○');return false;
   }
   function startCombustion(event=null){
     if(!active||paused||anchorLock||returnState||run.captured)return;const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,charge=oxidizer.molecule==='oxygen'?combustionChargeFor(fuel.molecule,{fuelAmount:fuel.amount,oxygenAmount:oxidizer.amount,baseSeconds:DRIVES.combustion.packetSeconds}):null;
@@ -189,6 +189,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='eaterSpawn'){notice(event.count===1?'DUST EATER · 採集殻の保持場を崩す粒子現象':`DUST EATERS × ${event.count} · 保持場が破綻する前にANCHOR RETURNを`,4);vibrate(18);}
       if(event.type==='danger'&&event.level==='warning')notice('保持場への干渉が近い · H₂ BURSTで距離を作るか帰還',3,'⚠');
       if(event.type==='danger'&&event.level==='danger'){notice('保持場の破綻間近 · H₂ BURST',2,'⚠');vibrate(28);}
+      if(event.type==='coreApproach'){notice(event.shockAvailable?'CORE · SHOCK 1 CHARGEでfracture':'CORE intact · SHOCK CHARGEが必要 · ANCHOR RETURNで安全に帰還可能',4,event.shockAvailable?'◉':'○');vibrate(event.shockAvailable?20:10);}
       if(event.type==='driveIgnition'){hud();vibrate(12);}
       if(event.type==='driveEmpty'){notice('COMBUSTION DRIVEの燃焼可能分を使い切った',2);stopCombustion();}
       if(event.type==='thermalStrain'){resources.recordThermalStrain();updatePrompt();}
