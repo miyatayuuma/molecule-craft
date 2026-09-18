@@ -22,7 +22,7 @@ assert.deepEqual(HAZARD_SUBTYPES.abrasive,['particle-stream']);
 assert.deepEqual(HAZARD_SUBTYPES.electrical,['arc','charged-region']);
 assert.throws(()=>defineHazard('bad','chemical','acid'),/Unknown hazard type/);
 assert.equal(PRODUCTION_HAZARD_FAMILIES.some(item=>item.type==='abrasive'),true,'production Abrasive particle stream is registered');
-assert.equal(PRODUCTION_HAZARD_FAMILIES.some(item=>item.type==='electrical'),false,'no dummy electrical production zone is added');
+assert.equal(PRODUCTION_HAZARD_FAMILIES.some(item=>item.type==='electrical'),true,'production Electrical charged region is registered');
 
 const audit=FIELD_RESPONSIBILITY_AUDIT;
 assert.ok(audit.agents.some(item=>item.source==='Dust Eater'));
@@ -99,6 +99,6 @@ assert.match(rendererSource,/drawChallengeCurrents\(ctx,run\.time,run\.map\.seed
 assert.match(rendererSource,/oxygenGateEnvelopeAt/,'localized gate visuals use the same organic pressure envelope as gameplay');
 
 const hazardSource=await readFile(new URL('../src/veil/hazards.js',import.meta.url),'utf8');
-assert.doesNotMatch(hazardSource,/H3PO4|H2SO4|CH2F2|upgrade/i,'FIELD hazard authority contains no chemistry-specific mitigation knowledge');
+assert.doesNotMatch(hazardSource,/H3PO4|H2SO4|CH2F2|CTFE|C2ClF3|upgrade/i,'FIELD hazard authority contains no chemistry-specific mitigation knowledge');
 
-console.log('FIELD hazard taxonomy passed: stable four-type contract, production mechanical/thermal authority, non-hazard responsibility split, deterministic organic falloff, no launch reroll and future mitigation-ready currentHazards.');
+console.log('FIELD hazard taxonomy passed: stable four-type contract, production Mechanical/Thermal/Abrasive/Electrical authority, non-hazard responsibility split, deterministic organic falloff and mitigation-ready currentHazards.');

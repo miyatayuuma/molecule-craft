@@ -14,6 +14,7 @@ import {MANAGED_ELEMENTS} from './resources-persistence.js';
 import {rareEcologySocketState} from './rare-ecology.js';
 import {createHazardTreatmentExposureState,expiredHazardTreatmentIds,hazardTreatmentMultiplier,updateHazardTreatmentExposure} from './hazard-treatments.js';
 import {ABRASIVE_MOVEMENT_DRAG_PER_INTENSITY} from './abrasive-field.js';
+import {electricalResponseFor} from './electrical-field.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
@@ -29,21 +30,21 @@ function activePropulsion(p){return p.boost>0?p.drive:p.combustion?(p.drive??DRI
 // CHAIN intentionally does not enter movement or suction calculations. It is
 // retained as audiovisual phrasing only.
 export function moveFlight(p,input,dt,{config:c=VEIL,assist=null,force={x:0,y:0},environment=null}={}){
-  dt=clamp(dt,0,c.maxFrame);const magnitude=Math.min(1,Math.hypot(input.x,input.y)),steering=magnitude>.09,propulsion=activePropulsion(p),propelled=!!propulsion;
+  dt=clamp(dt,0,c.maxFrame);const magnitude=Math.min(1,Math.hypot(input.x,input.y)),steering=magnitude>.09,propulsion=activePropulsion(p),propelled=!!propulsion,controlAuthority=clamp(environment?.controlAuthority??1,.6,1),propulsionAuthority=clamp(environment?.propulsionAuthority??1,.76,1);
   let delta=0;
   if(steering){
     let desired=Math.atan2(input.y,input.x);
     if(assist&&Math.abs(angleDelta(desired,assist.angle))<.8)desired+=angleDelta(desired,assist.angle)*c.assistStrength;
     delta=angleDelta(p.angle,desired);
-    const rate=(propelled?c.boostTurnRate:c.turnRate)*(Math.abs(delta)>1.8?c.reverseAssist:1);
+    const rate=(propelled?c.boostTurnRate:c.turnRate)*(Math.abs(delta)>1.8?c.reverseAssist:1)*controlAuthority;
     const turn=clamp(delta*c.turnResponse,-rate,rate);p.angle+=turn*dt;
     p.bank+=(clamp(turn/rate,-1,1)-p.bank)*(1-Math.exp(-dt*8));
   }else p.bank*=Math.exp(-dt*5);
   const corner=1-(1-c.cornerSpeed)*Math.min(Math.abs(delta)/Math.PI,1);
   const surfaceDrag=clamp(environment?.surfaceDrag??0,0,.48),target=(propelled?propulsion.boostSpeed*corner:steering?c.speed*magnitude*corner:c.driftSpeed)*(1-surfaceDrag);
-  const acceleration=propelled?(propulsion.boostAcceleration??c.boostAcceleration):steering?c.acceleration:c.releaseDrag;
+  const baseAcceleration=propelled?(propulsion.boostAcceleration??c.boostAcceleration):steering?c.acceleration:c.releaseDrag,acceleration=baseAcceleration*(propelled||steering?propulsionAuthority:1);
   p.speed+=(target-p.speed)*(1-Math.exp(-dt*acceleration));
-  const grip=1-Math.exp(-dt*(propelled?(propulsion.boostGrip??c.boostGrip):c.velocityGrip));
+  const grip=1-Math.exp(-dt*(propelled?(propulsion.boostGrip??c.boostGrip):c.velocityGrip)*controlAuthority);
   p.vx=(p.vx??Math.cos(p.angle)*p.speed)+(Math.cos(p.angle)*p.speed-(p.vx??Math.cos(p.angle)*p.speed))*grip;
   p.vy=(p.vy??Math.sin(p.angle)*p.speed)+(Math.sin(p.angle)*p.speed-(p.vy??Math.sin(p.angle)*p.speed))*grip;
   // A current may bend a route, but cannot pin the ship or reverse its thrust.
@@ -74,7 +75,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 export function createRun(map,config=VEIL,{fuel={},predators=true,treatments=null}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)},treatmentState=treatments&&typeof treatments==='object'?treatments:{mechanical:0,abrasive:0,thermal:0};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],treatments:treatmentState,treatmentExposure:createHazardTreatmentExposureState(),treatmentRevision:0,hazardEffectMultipliers:{mechanical:1,abrasive:1,thermal:1},nextEaterSpawn:0,captured:false,captureAt:0,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],treatments:treatmentState,treatmentExposure:createHazardTreatmentExposureState(),treatmentRevision:0,hazardEffectMultipliers:{mechanical:1,abrasive:1,thermal:1,electrical:1},electricalControlAuthority:1,electricalPropulsionAuthority:1,nextEaterSpawn:0,captured:false,captureAt:0,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -177,10 +178,10 @@ function stepRunFrame(run,input,dt,systems){
   if(gateEnvelope.intensity>0&&!propelled){const effectiveScale=effectiveHazardScale(gateEnvelope.intensity,1,HAZARD_TYPES.MECHANICAL,map.worldState??'base'),strength=c.gateDeflection*effectiveScale;force.x+=strength;force.y+=strength*.25;appendHazard(currentHazards,VEIL_BOUNDARY_HAZARD,Math.min(1,effectiveScale),{effectiveIntensity:effectiveScale,severity:strength,vector:{x:strength,y:strength*.25}});}
   const exposure=updateHazardTreatmentExposure(run.treatments,currentHazards,dt,run.treatmentExposure);if(exposure.changedMask)run.treatmentRevision++;
   if(exposure.expiredMask)for(const id of expiredHazardTreatmentIds(exposure.expiredMask))run.events.push({type:'treatmentExpired',id,hazardType:id});
-  const mechanicalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.MECHANICAL),abrasiveMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.ABRASIVE),thermalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.THERMAL),abrasiveIntensity=currentHazards.reduce((max,hazard)=>hazard.type===HAZARD_TYPES.ABRASIVE?Math.max(max,Number(hazard.effectiveIntensity??hazard.intensity)||0):max,0),abrasiveDrag=clamp(abrasiveIntensity*ABRASIVE_MOVEMENT_DRAG_PER_INTENSITY*abrasiveMultiplier,0,.48);
-  run.hazardEffectMultipliers.mechanical=mechanicalMultiplier;run.hazardEffectMultipliers.abrasive=abrasiveMultiplier;run.hazardEffectMultipliers.thermal=thermalMultiplier;
+  const mechanicalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.MECHANICAL),abrasiveMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.ABRASIVE),thermalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.THERMAL),electricalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.ELECTRICAL),abrasiveIntensity=currentHazards.reduce((max,hazard)=>hazard.type===HAZARD_TYPES.ABRASIVE?Math.max(max,Number(hazard.effectiveIntensity??hazard.intensity)||0):max,0),electricalIntensity=currentHazards.reduce((max,hazard)=>hazard.type===HAZARD_TYPES.ELECTRICAL?Math.max(max,Number(hazard.effectiveIntensity??hazard.intensity)||0):max,0),abrasiveDrag=clamp(abrasiveIntensity*ABRASIVE_MOVEMENT_DRAG_PER_INTENSITY*abrasiveMultiplier,0,.48),electricalResponse=electricalResponseFor(electricalIntensity,electricalMultiplier);
+  run.hazardEffectMultipliers.mechanical=mechanicalMultiplier;run.hazardEffectMultipliers.abrasive=abrasiveMultiplier;run.hazardEffectMultipliers.thermal=thermalMultiplier;run.hazardEffectMultipliers.electrical=electricalMultiplier;run.electricalControlAuthority=electricalResponse.controlAuthority;run.electricalPropulsionAuthority=electricalResponse.propulsionAuthority;
   force.x*=mechanicalMultiplier;force.y*=mechanicalMultiplier;
-  const treatedMovement=movementEnvironment?{...movementEnvironment,pressure:(movementEnvironment.pressure??0)*mechanicalMultiplier,flowX:(movementEnvironment.flowX??0)*mechanicalMultiplier,flowY:(movementEnvironment.flowY??0)*mechanicalMultiplier,surfaceDrag:abrasiveDrag}:abrasiveDrag>0?{surfaceDrag:abrasiveDrag}:movementEnvironment;
+  const treatedMovement=movementEnvironment?{...movementEnvironment,pressure:(movementEnvironment.pressure??0)*mechanicalMultiplier,flowX:(movementEnvironment.flowX??0)*mechanicalMultiplier,flowY:(movementEnvironment.flowY??0)*mechanicalMultiplier,surfaceDrag:abrasiveDrag,controlAuthority:electricalResponse.controlAuthority,propulsionAuthority:electricalResponse.propulsionAuthority}:{surfaceDrag:abrasiveDrag,controlAuthority:electricalResponse.controlAuthority,propulsionAuthority:electricalResponse.propulsionAuthority};
   const targetHeat=environment?clamp(environment.heat*thermalMultiplier/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?1+((environment.combustionHeatFactor??1)-1)*thermalMultiplier:1;
   run.currentHazards=currentHazards;
   moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:treatedMovement});
