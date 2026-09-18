@@ -3,7 +3,7 @@ import {recordChoDestination} from './cho-campaign.js';
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
 import { GROWTH, DRIVES, burstDriveFor, combustionDriveFor, regionAt } from './growth.js';
 import { combustionChargeFor,performanceFor } from './molecule-roles.js';
-import {consumeShockCharge,shockStrength} from './shock.js';
+import {canShock,consumeShockCharge,shockStrength} from './shock.js';
 import { environmentAt, animateUniverse } from './universe.js';
 import {appendHazard,defineHazard,effectiveHazardScale,HAZARD_TYPES,organicCorridorInfluence} from './hazards.js';
 import {nitrogenCoreInRange} from './nitrogen-routes.js';
