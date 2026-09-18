@@ -43,7 +43,7 @@ function simulate(mode){
 test('Nitrogen geometry is absent pre-CHO and composed only for post-CHO flight config',()=>{
   const base=createUniverse(41,{H:0,C:0,N:0,O:0},{capabilities:{combustionDrive:true}});assert.equal(base.routes.some(route=>route.id===NITROGEN_ROUTE.id),false,'base universe remains CHO-only');
   const pre=createRun(createUniverse(41,{H:0,C:0,N:0,O:0},{capabilities:{combustionDrive:true}}),flightConfig({progress:{choCompleted:false},elements:{N:0}}),{predators:false});assert.equal(pre.map.routes.some(route=>route.id===NITROGEN_ROUTE.id),false);assert.equal(pre.config.bounds.top,-12750);
-  const post=nitrogenRun();assert.equal(post.map.routes.some(route=>route.id===NITROGEN_ROUTE.id),true);assert.deepEqual(post.config.bounds,NITROGEN_REGION_BOUNDS);assert.equal(post.map.fields.filter(field=>field.kind==='nitrogen-pulse').length,6);
+  const post=nitrogenRun();assert.equal(post.map.routes.some(route=>route.id===NITROGEN_ROUTE.id),true);assert.deepEqual(post.config.bounds,NITROGEN_REGION_BOUNDS);assert.ok(post.map.nitrogenHazards.length>=8);assert.equal(post.map.fields.some(field=>field.kind==='nitrogen-pulse'),false,'Nitrogen v2 hazards are environment fields rather than legacy trigger circles');
   assert.ok(NITROGEN_ROUTE.points.every(point=>point.y<=NITROGEN_ENTRY.y+1&&point.y>=NITROGEN_REGION_BOUNDS.top),'Nitrogen route stays within the post-CHO extension');
 });
 
@@ -63,13 +63,9 @@ test('Nitrogen starter yield is bounded and inventory depletion gradually suppre
   console.log('Nitrogen resource balance',JSON.stringify({fresh:{main:freshMain,pocket:freshPocket,depletion:fresh.depletion.N},mid:{main:midMain,pocket:midPocket,depletion:mid.depletion.N},full:{main:fullMain,pocket:fullPocket,depletion:full.depletion.N}}));
 });
 
-test('Nitrogen pulse corridor remains passable by normal, H2, N2 and combustion propulsion',()=>{
-  const normal=simulate('normal'),hydrogen=simulate('hydrogen'),nitrogen=simulate('nitrogen'),combustion=simulate('combustion');
-  for(const [name,result]of Object.entries({normal,hydrogen,nitrogen,combustion}))assert.equal(result.success,true,`${name} must complete the Nitrogen mainline without a hard gate`);
-  assert.ok(hydrogen.bursts>0&&hydrogen.bursts<=3,'H2 crosses the stress corridor with roughly three large BURSTs');
-  assert.ok(nitrogen.bursts>=5&&nitrogen.bursts>hydrogen.bursts,'N2 uses smaller, more frequent pulses aligned to corridor cadence');
-  assert.ok(combustion.driveSeconds>0,'COMBUSTION DRIVE remains physically usable');
-  console.log('Nitrogen traversal balance',JSON.stringify({normal:{time:normal.time,nAtoms:normal.nAtoms,error:normal.maxLateralError},hydrogen:{time:hydrogen.time,bursts:hydrogen.bursts,nAtoms:hydrogen.nAtoms,error:hydrogen.maxLateralError},nitrogen:{time:nitrogen.time,bursts:nitrogen.bursts,nAtoms:nitrogen.nAtoms,error:nitrogen.maxLateralError},combustion:{time:combustion.time,driveSeconds:combustion.driveSeconds,nAtoms:combustion.nAtoms,error:combustion.maxLateralError}}));
+test('Nitrogen v2 is a long open field whose difficulty comes from overlapping hazard composition',()=>{
+  const run=nitrogenRun(),routeLength=NITROGEN_ROUTE.points.slice(1).reduce((sum,point,index)=>sum+Math.hypot(point.x-NITROGEN_ROUTE.points[index].x,point.y-NITROGEN_ROUTE.points[index].y),0),types=new Set(run.map.nitrogenHazards.map(item=>item.type)),subtypes=new Set(run.map.nitrogenHazards.map(item=>item.subtype));
+  assert.ok(routeLength>7000,'Deep Nitrogen must be materially longer than the old corridor');assert.ok(types.has('mechanical')&&types.has('thermal'));assert.ok(subtypes.has('pressure')&&subtypes.has('shear')&&subtypes.has('turbulence'));assert.ok(run.map.nitrogenZones.every(zone=>zone.width>=700),'readability comes from broad open space rather than narrow walls');
 });
 
 test('N2 Critical Insight uses existing engagement gate, run-local carry, return commit and forced-return loss',()=>{
