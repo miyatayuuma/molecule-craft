@@ -43,6 +43,9 @@ jobs:
         run: node tests/field-expansion-proposal.test.mjs
       - name: Molecule graph / frontier
         run: |
+          node scripts/build-molecule-db.mjs
+          git diff --exit-code -- data/molecules.json
+          node tests/ctfe-electrical-treatment.test.mjs
           node tests/molecule-graph.test.mjs
           node tests/molecule-frontier.test.mjs
           node tests/field-frontier-insight.test.mjs
