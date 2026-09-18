@@ -21,7 +21,7 @@ assert.deepEqual(HAZARD_SUBTYPES.thermal,['hot-zone','gradient']);
 assert.deepEqual(HAZARD_SUBTYPES.abrasive,['particle-stream']);
 assert.deepEqual(HAZARD_SUBTYPES.electrical,['arc','charged-region']);
 assert.throws(()=>defineHazard('bad','chemical','acid'),/Unknown hazard type/);
-assert.equal(PRODUCTION_HAZARD_FAMILIES.some(item=>item.type==='abrasive'),false,'no dummy abrasive production zone is added');
+assert.equal(PRODUCTION_HAZARD_FAMILIES.some(item=>item.type==='abrasive'),true,'production Abrasive particle stream is registered');
 assert.equal(PRODUCTION_HAZARD_FAMILIES.some(item=>item.type==='electrical'),false,'no dummy electrical production zone is added');
 
 const audit=FIELD_RESPONSIBILITY_AUDIT;

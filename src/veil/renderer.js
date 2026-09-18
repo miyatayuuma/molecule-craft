@@ -7,6 +7,7 @@ import { random } from './map.js';
 import { clamp } from './engine.js';
 import { drawCollectorShell } from './collector-shell.js';
 import {RARE_ECOLOGY_ELEMENTS,RARE_ECOLOGY_VISUALS} from './rare-ecology.js';
+import {ABRASIVE_PLUME,ABRASIVE_VISUAL_SAMPLES,abrasiveEffectiveAt} from './abrasive-field.js';
 export const LOST_CARGO_PARTICLE_CAP=36;
 export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:EXPEDITION.anchorLockSeconds}),emergency:Object.freeze({duration:.65})});
 const LOST_CARGO_ELEMENTS=['H','C','N','O',...RARE_ECOLOGY_ELEMENTS];
@@ -140,6 +141,15 @@ export function createVeilRenderer(canvas){
       }
       // Reward convergence is shown as oxygen-colored motes physically streaming inward, not a marker glyph.
       const rewardGlow=ctx.createRadialGradient(OXYGEN_REWARD.x,OXYGEN_REWARD.y,0,OXYGEN_REWARD.x,OXYGEN_REWARD.y,OXYGEN_REWARD.radius*1.2);rewardGlow.addColorStop(0,'rgba(255,148,77,.16)');rewardGlow.addColorStop(1,'rgba(255,148,77,0)');ctx.fillStyle=rewardGlow;ctx.fillRect(OXYGEN_REWARD.x-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.y-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.radius*2.4,OXYGEN_REWARD.radius*2.4);for(let i=0;i<9;i++){const phase=(run.time*.18+i/9)%1,r=OXYGEN_REWARD.radius*(1.05-phase*.82),a=i*2.399+run.time*.12;ctx.globalAlpha=.16+phase*.48;ctx.fillStyle='#ff944d';ctx.beginPath();ctx.arc(OXYGEN_REWARD.x+Math.cos(a)*r,OXYGEN_REWARD.y+Math.sin(a)*r,1.5+phase*2.1,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
+    }
+    if(run.map.universe&&run.map.worldState===ABRASIVE_PLUME.worldState){
+      const direction=ABRASIVE_PLUME.direction;
+      for(const sample of ABRASIVE_VISUAL_SAMPLES){
+        const effective=abrasiveEffectiveAt(sample,run.map.worldState),density=clamp(effective*(reduced?.7:1.1),0,1);if(effective<=0||sample.threshold>density)continue;
+        const offset=Math.sin(run.time*(1.2+effective)+sample.phase*Math.PI*2)*(10+effective*18),x=sample.x+direction.x*offset,y=sample.y+direction.y*offset,at=screen(x,y);if(at.x<-40||at.x>w+40||at.y<-40||at.y>h+40)continue;
+        const length=5+effective*13;ctx.strokeStyle='#b8b19d';ctx.globalAlpha=.045+effective*.23;ctx.lineWidth=.7+effective*.75;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-direction.x*length,y-direction.y*length);ctx.lineTo(x,y);ctx.stroke();
+      }
+      ctx.globalAlpha=1;
     }
     if(run.map.universe&&run.map.nitrogenHazards?.length){
       // Nitrogen FIELD v2: deterministic environment samples replace the old

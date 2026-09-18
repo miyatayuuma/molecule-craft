@@ -34,6 +34,7 @@ jobs:
           node tests/rare-ecology.test.mjs
           node tests/rare-ecology-browser.test.mjs
           node tests/hazard-treatments.test.mjs
+          node tests/abrasive-hazard.test.mjs
           node tests/hazard-treatments-browser.test.mjs
       - name: FIELD expansion proposal map
         run: node tests/field-expansion-proposal.test.mjs
