@@ -224,10 +224,9 @@
 <circle data-recovery-area="nitrogen-recovery-shelf" cx="535.462" cy="-17999.451" r="235"/>
 <circle data-recovery-area="deep-nitrogen-recovery" cx="1157.145" cy="-19667.651" r="220"/>
 </g>
-<g id="nitrogen-insight" inkscape:groupmode="layer" inkscape:label="Nitrogen Critical Insight, Core and Rare Cl sites">
+<g id="nitrogen-insight" inkscape:groupmode="layer" inkscape:label="Nitrogen Critical Insight and Core sites">
 <circle data-critical-insight-area="nitrogen-critical-pocket" cx="283.43" cy="-17264.219" r="155"/>
 <circle data-signal="nitrogen-insight" data-region="nitrogen" cx="283.43" cy="-17264.219" r="22"/>
-<circle data-rare-anomaly="rare-cl-nitrogen-pocket" data-element="Cl" cx="1417.722" cy="-18312.707" r="18"/>
 <circle data-nitrogen-core="nitrogen-core" data-fracture-radius="245" data-fractured="false" cx="890.049" cy="-21420.268" r="155"/>
 </g>
 </g>
