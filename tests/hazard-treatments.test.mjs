@@ -60,7 +60,7 @@ test('engine applies mechanical mitigation without changing raw local hazard aut
   const untreated=createRun(map,VEIL,{predators:false}),treatedState={mechanical:1,abrasive:0,thermal:0},treated=createRun(map,VEIL,{predators:false,treatments:treatedState});for(const run of [untreated,treated])Object.assign(run.player,{x:120,y:0,vx:0,vy:0,speed:0});
   stepRun(untreated,{x:0,y:0},1/60,{});stepRun(treated,{x:0,y:0},1/60,{});
   assert.equal(treated.hazardEffectMultipliers.mechanical,.55);assert.equal(untreated.hazardEffectMultipliers.mechanical,1);assert.ok(treated.currentHazards.some(item=>item.type==='mechanical'&&item.effectiveIntensity>0));
-  assert.ok(Math.hypot(treated.player.vx,treated.player.vy)<Math.hypot(untreated.player.vx,untreated.player.vy),'treatment reduces player-facing mechanical force while preserving hazard samples');
+  assert.ok(Math.abs(treated.player.x-120)<Math.abs(untreated.player.x-120),'treatment reduces player-facing mechanical displacement while preserving hazard samples');
   assert.ok(treatedState.mechanical<1,'matching exposure consumes persistent treatment state');
 });
 
