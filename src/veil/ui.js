@@ -13,7 +13,8 @@ import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry
 import { combustionChargeFor,combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { renderCraftTargetAtoms } from '../craft-panel.js?v=3';
 import { MANAGED_ELEMENTS } from './resources-persistence.js';
-import {RARE_ECOLOGY_ELEMENTS} from './rare-ecology.js';\nimport {HAZARD_TREATMENT_IDS,HAZARD_TREATMENTS} from './hazard-treatments.js';
+import {RARE_ECOLOGY_ELEMENTS} from './rare-ecology.js';
+import {HAZARD_TREATMENT_IDS,HAZARD_TREATMENTS} from './hazard-treatments.js';
 
 const LOST_CARGO_ELEMENTS=MANAGED_ELEMENTS;
 function previewCaptureLoss(units){
