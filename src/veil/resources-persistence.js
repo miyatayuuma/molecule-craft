@@ -33,7 +33,8 @@ export function normalizeCurrentTankRoles(state){
 }
 export function normalizeCurrentWorldProgress(state){return !!state?.progress&&normalizeWorldAwakeningProgress(state.progress);}
 export function normalizeCurrentElementStocks(state){if(!state?.elements||typeof state.elements!=='object')return false;let changed=false;for(const element of STOCKED_ELEMENTS)if(!Object.hasOwn(state.elements,element)){state.elements[element]=0;changed=true;}return changed;}
-function normalizeCurrentResourcesState(state){return !!(normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state)|normalizeCurrentElementStocks(state));}
+export function normalizeCurrentTreatments(state){if(!state||state.schemaVersion!==SCHEMA_VERSION)return false;const normalized=normalizeHazardTreatments(state.treatments);state.treatments=normalized.value;return normalized.changed;}
+function normalizeCurrentResourcesState(state){return !!(normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state)|normalizeCurrentElementStocks(state)|normalizeCurrentTreatments(state));}
 
 export function finishPendingResourcesReset(storage,state){const p=state.pendingReset;if(!p)return;if(p.collection)storage.setItem(COLLECTION_KEY,JSON.stringify(emptyCollection()));if(p.legacy)storage.removeItem(WORKSPACE_STORAGE_KEY);if(p.help)storage.removeItem(HELP_KEY);const done={...state};delete done.pendingReset;storage.setItem(RESOURCE_KEY,JSON.stringify(done));delete state.pendingReset;}
 
