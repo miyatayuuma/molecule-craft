@@ -14,21 +14,21 @@ const [graph,molecules,encyclopedia]=await Promise.all([
 const deletedIds=['sulfur-hexafluoride','isopentane','neopentane','1-pentene','2-pentene','o-xylene','m-xylene','chloroethane','1-propanol','isobutanol','propylene-glycol','1-4-dioxane','ethanethiol','butyraldehyde','isobutyraldehyde','2-pentanone','3-pentanone','isobutyric-acid','valeric-acid','methyl-formate','ethyl-formate','methyl-acetate','methyl-propionate','ethyl-propionate','ethylamine','formamide','propionamide','resorcinol','acetanilide','o-cresol','m-cresol','p-cresol','methyl-benzoate','ethyl-benzoate','n-butyl-acetate','isopropyl-acetate','cumene'];
 const addedFormulas=new Map([
   ['cyclohexene','C6H10'],['pyruvic-acid','C3H4O3'],['furan','C4H4O'],['dimethyl-sulfoxide','C2H6OS'],
-  ['ozone','O3'],['nitromethane','CH3NO2'],['nitrobenzene','C6H5NO2'],['2-nitrotoluene','C7H7NO2'],['2-4-dinitrotoluene','C7H6N2O4'],['2-4-6-trinitrotoluene','C7H5N3O6'],
+  ['ozone','O3'],['nitromethane','CH3NO2'],['nitrobenzene','C6H5NO2'],['2-nitrotoluene','C7H7NO2'],['2-4-dinitrotoluene','C7H6N2O4'],['2-4-6-trinitrotoluene','C7H5N3O6'],['chlorotrifluoroethylene','C2ClF3'],
 ]);
-assert.equal(molecules.length,135,'production molecule DB must contain 135 molecules');
+assert.equal(molecules.length,136,'production molecule DB must contain 136 molecules');
 const moleculeIds=molecules.map(item=>item.id),moleculeSet=new Set(moleculeIds);
-assert.equal(moleculeSet.size,135,'production molecule IDs must be unique');
+assert.equal(moleculeSet.size,136,'production molecule IDs must be unique');
 for(const id of deletedIds)assert(!moleculeSet.has(id),`deleted molecule remains in production DB: ${id}`);
 for(const [id,formula] of addedFormulas){const molecule=molecules.find(item=>item.id===id);assert(molecule,`missing ADD molecule: ${id}`);assert.equal(molecule.formula,formula,`formula drift: ${id}`);assert(molecule.atoms.length>0&&molecule.bonds.length>0,`missing structural definition: ${id}`);assert.equal(typeof molecule.category,'string',`missing category: ${id}`);}
 
 assert.equal(graph.schemaVersion,1);
-assert.equal(graph.nodes.length,135,'production graph must contain 135 nodes');
-assert.equal(graph.edges.length,157,'production graph must contain 157 edges');
+assert.equal(graph.nodes.length,136,'production graph must contain 136 nodes');
+assert.equal(graph.edges.length,158,'production graph must contain 158 edges');
 assert(!Object.hasOwn(graph,'status')&&!Object.hasOwn(graph,'basedOnMain')&&!Object.hasOwn(graph,'additions')&&!Object.hasOwn(graph,'existingInventory'),'proposal/audit metadata must not remain in production graph');
 const rowsToObjects=(columns,rows)=>rows.map(row=>Object.fromEntries(columns.map((key,index)=>[key,row[index]])));
 const nodes=rowsToObjects(graph.nodeColumns,graph.nodes),byId=new Map(nodes.map(node=>[node.id,node]));
-assert.equal(byId.size,135,'graph node IDs must be unique');
+assert.equal(byId.size,136,'graph node IDs must be unique');
 assert.deepEqual([...byId.keys()].sort(),[...moleculeSet].sort(),'production molecule DB and graph IDs must match 1:1');
 const endpointId=value=>Number.isInteger(value)?nodes[value]?.id:value;
 const rawEdges=rowsToObjects(graph.edgeColumns,graph.edges),edges=rawEdges.map(edge=>({...edge,from:endpointId(edge.from),to:endpointId(edge.to)}));
