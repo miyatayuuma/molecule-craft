@@ -8,7 +8,7 @@ export const FIELD_RUNTIME_ALLOWLIST=Object.freeze({
   }),
   managedResources:freeze({
     id:'managed-resources',
-    elements:Object.freeze(['H','C','N','O']),
+    elements:Object.freeze(['H','C','N','O','P','S','F','Cl']),
   }),
   environmentalHazards:freeze({
     id:'environmental-hazards',
