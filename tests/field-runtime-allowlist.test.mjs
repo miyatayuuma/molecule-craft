@@ -10,7 +10,7 @@ import {flightConfig} from '../src/veil/growth.js';
 
 const RARE_ELEMENTS=Object.freeze(['P','S','F','Cl']);
 const memory=raw=>{let value=raw??null;return{getItem:key=>key===RESOURCE_KEY?value:null,setItem:(key,next)=>{if(key===RESOURCE_KEY)value=next;},removeItem:key=>{if(key===RESOURCE_KEY)value=null;},raw:()=>value};};
-const rareRuntimeDust=map=>(map?.dust??[]).filter(item=>item.rareAnomaly||item.kind==='rare'||RARE_ELEMENTS.includes(item.element));
+const rareRuntimeDust=map=>(map?.dust??[]).filter(item=>item.rareAnomaly||RARE_ELEMENTS.includes(item.element));
 const assertNoLegacyRare=(run,map=run?.map)=>{
   assert.equal(Object.hasOwn(run??{},'rareSurvey'),false);
   assert.equal(Object.hasOwn(run??{},'rareSpecimens'),false);
