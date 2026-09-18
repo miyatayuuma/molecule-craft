@@ -71,7 +71,7 @@ export function nitrogenHazardEffectiveAt(item,p,time=0,seed=1,{worldState='base
   return {spatial,recovery,...nitrogenHazardScale(item,spatial,time,worldState,recoveryScale)};
 }
 export function nitrogenVisualEffectiveAt(item,visual,time=0,{worldState='base'}={}){
-  const spatial=clamp01(visual?.spatial),recoveryScale=visual?.recoveryScale===.22?.22:1;
+  const spatial=clamp01(visual?.spatial),recoveryScale=visual?.recoveryScale===0.22?0.22:1;
   return {spatial,...nitrogenHazardScale(item,spatial,time,worldState,recoveryScale)};
 }
 export function nitrogenEnvironmentAt(p,time=0,seed=1,{worldState='base'}={}){
@@ -85,7 +85,7 @@ export function nitrogenEnvironmentAt(p,time=0,seed=1,{worldState='base'}={}){
 }
 const keepNitrogenSample=(depletion,seed,index,id,{optional=false}={})=>keepDepletedSegment(depletion,seed,id,index,{optional});
 function addDust(map,{x,y,angle,route,element,kind,value=1,ready=0,...extra}){map.dust.push({id:map.dust.length,x,y,angle,route,element,kind,value,ready,...extra});}
-function buildNitrogenVisuals(seed){const visuals=[],rng=random(seed^0x6e697472);for(const item of NITROGEN_HAZARDS)for(let i=0;i<12;i++){const angle=i*2.399963+rng()*.34,radius=Math.sqrt((i+.4)/12)*item.radius*.91,x=item.x+Math.cos(angle)*radius,y=item.y+Math.sin(angle)*radius,spatial=nitrogenHazardSpatialAt(item,{x,y},seed);if(spatial>.04)visuals.push({id:`${item.id}:${i}`,hazardId:item.id,x,y,spatial,recoveryScale:nitrogenRecoveryAt({x,y})?.id?.length?.22:1,phase:rng()*Math.PI*2,type:item.type,subtype:item.subtype,baseIntensity:item.baseIntensity,angle:item.angle});}return visuals;}
+function buildNitrogenVisuals(seed){const visuals=[],rng=random(seed^0x6e697472);for(const item of NITROGEN_HAZARDS)for(let i=0;i<12;i++){const angle=i*2.399963+rng()*.34,radius=Math.sqrt((i+.4)/12)*item.radius*.91,x=item.x+Math.cos(angle)*radius,y=item.y+Math.sin(angle)*radius,spatial=nitrogenHazardSpatialAt(item,{x,y},seed);if(spatial>.04)visuals.push({id:`${item.id}:${i}`,hazardId:item.id,x,y,spatial,recoveryScale:nitrogenRecoveryAt({x,y})?.id?0.22:1,phase:rng()*Math.PI*2,type:item.type,subtype:item.subtype,baseIntensity:item.baseIntensity,angle:item.angle});}return visuals;}
 
 export function appendNitrogenField(map,seed=1,stock={},options={}){
   if(!map||map.routes?.some(route=>route.id===NITROGEN_ROUTE.id)){if(map?.nitrogenCore&&options.coreFractured===true)map.nitrogenCore.fractured=true;return map;}
