@@ -11,7 +11,8 @@ import {dustEaterWorldTuning} from './world-awakening.js';
 import { OXYGEN_THERMAL, recordOxygenPassage } from './oxygen-routes.js';
 import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
 import {MANAGED_ELEMENTS} from './resources-persistence.js';
-import {rareEcologySocketState} from './rare-ecology.js';\nimport {createHazardTreatmentExposureState,expiredHazardTreatmentIds,hazardTreatmentMultiplier,updateHazardTreatmentExposure} from './hazard-treatments.js';
+import {rareEcologySocketState} from './rare-ecology.js';
+import {createHazardTreatmentExposureState,expiredHazardTreatmentIds,hazardTreatmentMultiplier,updateHazardTreatmentExposure} from './hazard-treatments.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
