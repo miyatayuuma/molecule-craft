@@ -25,6 +25,11 @@ export const HAZARD_TREATMENTS=Object.freeze({
     cost:freeze({C:2,H:4,F:4}),chemistry:'Difluoromethane',process:'Thermal Loop Charge',component:'Heat Transport',property:'Thermal Load Resistance',
     label:'THERMAL',icon:'T',productionHazard:productionType(HAZARD_TYPES.THERMAL),
   }),
+  electrical:freeze({
+    id:'electrical',hazardType:HAZARD_TYPES.ELECTRICAL,recipeId:'chlorotrifluoroethylene',formula:'C₂ClF₃',rareElement:'Cl',
+    cost:freeze({Cl:2}),chemistry:'CTFE',process:'Insulation Processing',component:'CTFE-based Fluoropolymer Insulation',property:'Dielectric Integrity',
+    label:'ELECTRICAL',icon:'E',productionHazard:productionType(HAZARD_TYPES.ELECTRICAL),
+  }),
 });
 export const HAZARD_TREATMENT_IDS=Object.freeze(Object.keys(HAZARD_TREATMENTS));
 export const HAZARD_TREATMENT_BY_TYPE=Object.freeze(Object.fromEntries(Object.values(HAZARD_TREATMENTS).map(item=>[item.hazardType,item])));
@@ -51,7 +56,7 @@ export function hazardTreatmentMultiplier(treatments,hazardType){
   const treatment=HAZARD_TREATMENT_BY_TYPE[hazardType];return treatment&&clamp01(treatments?.[treatment.id])>0?HAZARD_TREATMENT_EFFECT_MULTIPLIER:1;
 }
 export function createHazardTreatmentExposureState(){
-  return {mechanical:0,abrasive:0,thermal:0,changedMask:0,expiredMask:0};
+  return {mechanical:0,abrasive:0,thermal:0,electrical:0,changedMask:0,expiredMask:0};
 }
 export function updateHazardTreatmentExposure(treatments,hazards,dt,resolved=createHazardTreatmentExposureState()){
   for(const id of HAZARD_TREATMENT_IDS)resolved[id]=0;resolved.changedMask=0;resolved.expiredMask=0;
