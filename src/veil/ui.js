@@ -201,6 +201,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='coolantEmpty'){thermalNotice='❄ EMPTY';thermalNoticeUntil=run.time+2.5;hud();notice('冷却剤が空になった · 燃焼熱に注意',2.5,'❄ ∅');vibrate(14);}
       if(event.type==='overheat'){if(event.driveInterrupted){resources.recordDriveThermalInterruption();offerProgressionInsights();updatePrompt();}notice('OVERHEAT · 安全温度まで燃焼停止',2.5,'♨ !');vibrate(38);}
       if(event.type==='heatRecovered'){notice(run.driveHeld?'THERMAL READY · 燃焼を自動再開':'THERMAL READY',1.5);vibrate(10);}
+      if(event.type==='treatmentExpired'){const label=HAZARD_TREATMENTS[event.id]?.label??'HAZARD';notice(`${label} TREATMENT · EXPIRED`,2,'△');vibrate(12);hud();}
       if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));beginReturn(true);notice(`保持場破綻 · 回収塵${Math.round(EXPEDITION.captureLoss*100)}%がこぼれ、緊急RETRACT`,2);vibrate(55);}
     }
     offerProgressionInsights();const deferredFrontier=resources.pollFrontierInsight(run);if(deferredFrontier?.recipe)offerInsight(deferredFrontier.recipe);
