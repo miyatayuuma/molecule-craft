@@ -7,7 +7,7 @@ export {beginBurst,beginShock,setCombustionHeld} from './engine.js';
 export {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_DISTANCE,FIELD_INSIGHT_MIN_SECONDS,INSIGHT_ANALYSIS_SECONDS,discardActiveInsight,discardRunInsights,ensureInsightEngagementOrigin,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,triggerInsight,updateInsightEngagement} from './insights.js';
 
 export function createRun(map,config,...args){
-  if(config?.nitrogenField===true)appendNitrogenField(map,map?.seed??1,{N:config.nitrogenStock??0});
+  if(config?.nitrogenField===true)appendNitrogenField(map,map?.seed??1,{N:config.nitrogenStock??0},{coreFractured:config.coreFractured===true,worldState:config.hazardWorldState??'base'});
   const run=Object.assign(createBaseRun(map,config,...args),createInsightRunState(),{deferredNitrogenSignal:null}),rareConfig=args[0]?.fuel?.[RARE_SURVEY_RUN_CONFIG];
   return initializeRareSurveyRun(run,rareConfig);
 }
