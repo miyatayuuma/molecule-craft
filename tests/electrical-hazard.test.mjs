@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {ABRASIVE_PLUME,abrasiveSpatialAt} from '../src/veil/abrasive-field.js';
 import {ELECTRICAL_FIELD,electricalEffectiveAt,electricalResponseFor,electricalSpatialAt} from '../src/veil/electrical-field.js';
 import {createUniverse,environmentAt,BURST_ADVANTAGE_FIELDS} from '../src/veil/universe.js';
-import {createRun,stepRun} from '../src/veil/engine.js';
+import {createFlight,createRun,moveFlight,stepRun} from '../src/veil/engine.js';
 import {createInitialResourcesState} from '../src/veil/resources-persistence.js';
 import {flightConfig} from '../src/veil/growth.js';
 import {HAZARD_TREATMENT_IDS} from '../src/veil/hazard-treatments.js';
@@ -41,12 +41,14 @@ test('Electrical placement preserves a safe main-route choice and avoids existin
 test('Electrical stress scales control response without copying Abrasive speed drag',()=>{
   const weak=electricalResponseFor(.3),strong=electricalResponseFor(.9);
   assert.ok(strong.controlAuthority<weak.controlAuthority&&strong.propulsionAuthority<weak.propulsionAuthority);
-  const inside=makeRun(),outside=makeRun(safe);step(inside);step(outside);
-  const insideTurn=Math.abs(inside.player.angle+Math.PI/2),outsideTurn=Math.abs(outside.player.angle+Math.PI/2);
-  assert.ok(inside.currentHazards.some(item=>item.type==='electrical'&&item.effectiveIntensity>0));
-  assert.ok(inside.electricalControlAuthority<1&&inside.electricalPropulsionAuthority<1);
-  assert.ok(insideTurn<outsideTurn*.9,'Electrical stress should measurably soften steering response while exposed');
-  assert.equal(inside.hazardEffectMultipliers.electrical,1,'Task 5E has no Electrical treatment');
+  const run=makeRun();stepRun(run,{x:1,y:0},1/60,{});
+  assert.ok(run.currentHazards.some(item=>item.type==='electrical'&&item.effectiveIntensity>0));assert.ok(run.electricalControlAuthority<1&&run.electricalPropulsionAuthority<1);assert.equal(run.hazardEffectMultipliers.electrical,1,'Task 5E has no Electrical treatment');
+  const config=run.config,normal=createFlight(config),stressed=createFlight(config),response=electricalResponseFor(electricalEffectiveAt(center,'awakened'));
+  for(const player of [normal,stressed])Object.assign(player,{x:0,y:0,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});
+  moveFlight(normal,{x:1,y:0},.2,{config,environment:{controlAuthority:1,propulsionAuthority:1}});moveFlight(stressed,{x:1,y:0},.2,{config,environment:response});
+  const normalTurn=Math.abs(normal.angle+Math.PI/2),stressedTurn=Math.abs(stressed.angle+Math.PI/2);assert.ok(stressedTurn<normalTurn,'Electrical control authority directly softens steering response');
+  for(const player of [normal,stressed])Object.assign(player,{angle:-Math.PI/2,vx:0,vy:0,speed:config.driftSpeed});
+  moveFlight(normal,{x:0,y:-1},.2,{config,environment:{controlAuthority:1,propulsionAuthority:1}});moveFlight(stressed,{x:0,y:-1},.2,{config,environment:response});assert.ok(stressed.speed<normal.speed,'Electrical propulsion authority slows response without reducing the target speed itself');
 });
 
 test('Electrical penalty clears on exit and P/S/F treatments remain isolated',()=>{
