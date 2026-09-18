@@ -1,5 +1,6 @@
 import { VEIL } from './config.js';
 import {defineHazard,HAZARD_TYPES} from './hazards.js';
+import {registerResourceSocket} from './rare-ecology.js';
 export function random(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 // Authored knots, never random scatter. Uniform arc-length sampling keeps pickup rhythm.
 export function sampleLine(knots,spacing=VEIL.dustSpacing){
@@ -74,19 +75,20 @@ export function createMap(seed=1,stock={},{capabilities={}}={}){
     const revisit=id===HYDROGEN_REVISIT_ROUTE.id,profile=revisit?HYDROGEN_REVISIT_ROUTE:null;
     return {id,label,kind,points:revisit?sampleAuthoredLine(knots,profile.spacing):sampleLine(knots,kind==='dense'?VEIL.denseSpacing:VEIL.dustSpacing),revisit,densityTier:profile?.densityTier,classification:profile?.classification,spacing:profile?.spacing,lanes:profile?.lanes,value:profile?.value,width:profile?.current?.width};
   });
-  const dust=[],denseSideCount=hDepletion<.3?2:hDepletion<.58?1:0,shoulderLaneCount=hDepletion<.2?VEIL.shoulderLanes:hDepletion<.45?Math.max(1,Math.ceil(VEIL.shoulderLanes/2)):0;
+  const dust=[],resourceSockets=[],socketRegistry={resourceSockets},denseSideCount=hDepletion<.3?2:hDepletion<.58?1:0,shoulderLaneCount=hDepletion<.2?VEIL.shoulderLanes:hDepletion<.45?Math.max(1,Math.ceil(VEIL.shoulderLanes/2)):0;
   for(const route of routes)for(const [i,p]of route.points.entries()){
     const optional=OPTIONAL_H_ROUTES.has(route.id),keepCenter=keepDepletedSegment(hDepletion,seed,route.id,i,{optional});
     if(route.revisit){
-      if(!keepCenter)continue;
       const lanes=hDepletion<.28?route.lanes:hDepletion<.62?Math.max(1,Math.ceil(route.lanes/2)):1;
-      for(let lane=0;lane<lanes;lane++){
-        const signedLane=lane-(lanes-1)/2,offset=signedLane*VEIL.denseLaneOffset;
-        dust.push({...p,x:p.x-Math.sin(p.angle)*offset,y:p.y+Math.cos(p.angle)*offset,id:dust.length,route:route.id,kind:signedLane?'dense':'normal',value:route.value,ready:0,lane:signedLane});
+      for(let lane=0;lane<route.lanes;lane++){
+        const signedLane=lane-(route.lanes-1)/2,offset=signedLane*VEIL.denseLaneOffset,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset,socket=registerResourceSocket(socketRegistry,{area:'veil',route:route.id,index:i,lane,x,y,angle:p.angle,element:'H'});
+        if(!keepCenter||lane>=lanes)continue;
+        dust.push({...p,x,y,id:dust.length,route:route.id,kind:signedLane?'dense':'normal',value:route.value,ready:0,lane:signedLane,resourceSocketKey:socket?.key});
       }
       continue;
     }
-    if(keepCenter)dust.push({...p,id:dust.length,route:route.id,kind:route.kind??'normal',value:VEIL.dustValue,ready:0});
+    const socket=registerResourceSocket(socketRegistry,{area:'veil',route:route.id,index:i,lane:0,x:p.x,y:p.y,angle:p.angle,element:'H'});
+    if(keepCenter)dust.push({...p,id:dust.length,route:route.id,kind:route.kind??'normal',value:VEIL.dustValue,ready:0,resourceSocketKey:socket?.key});
     if(keepCenter&&(route.kind==='dense'||(['safe','return','technical'][denseChoice]===route.id&&i%VEIL.bandPeriod<VEIL.bandLength))){
       const sides=denseSideCount===2?[-1,1]:denseSideCount===1?[-1]:[];
       for(const side of sides)dust.push({...p,x:p.x-Math.sin(p.angle)*side*VEIL.denseLaneOffset,y:p.y+Math.cos(p.angle)*side*VEIL.denseLaneOffset,id:dust.length,route:route.id,kind:'dense',value:VEIL.dustValue,ready:0,lane:side});
@@ -111,5 +113,5 @@ export function createMap(seed=1,stock={},{capabilities={}}={}){
   const labels=[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'静かな切れ目'},{x:530,y:-3660,text:'外縁の強流 ↑ H₂ BURST'}];
   const anchor=revisit?.points[Math.floor((revisit?.points.length??1)*.55)];
   if(anchor)labels.push({x:anchor.x,y:anchor.y,text:`${revisit.id} · post-DRIVE current ${HYDROGEN_REVISIT_ROUTE.current.force} · local H pocket`});
-  return {seed,routes,dust,depletion,currents,capabilities:{combustionDrive:revisitUnlocked},fields:[{id:'veil-ambient-flow',x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15,kind:'ambient-turbulence',hazard:defineHazard('veil-ambient-flow',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'map.fields'})}],labels};
+  return {seed,routes,dust,resourceSockets,depletion,currents,capabilities:{combustionDrive:revisitUnlocked},fields:[{id:'veil-ambient-flow',x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15,kind:'ambient-turbulence',hazard:defineHazard('veil-ambient-flow',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'map.fields'})}],labels};
 }
