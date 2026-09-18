@@ -26,7 +26,10 @@ jobs:
           node tests/field-map-export.test.mjs
           node tests/nitrogen-field-map.test.mjs
       - name: FIELD hazard authority
-        run: node tests/field-hazard-taxonomy.test.mjs
+        run: |
+          node tests/field-hazard-taxonomy.test.mjs
+          node tests/electrical-hazard.test.mjs
+          node tests/electrical-hazard-browser.test.mjs
       - name: FIELD runtime allowlist
         run: node tests/field-runtime-allowlist.test.mjs
       - name: Post-Core Rare ecology and hazard treatments
