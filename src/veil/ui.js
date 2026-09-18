@@ -13,6 +13,7 @@ import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry
 import { combustionChargeFor,combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { renderCraftTargetAtoms } from '../craft-panel.js?v=3';
 import { MANAGED_ELEMENTS } from './resources-persistence.js';
+import {RARE_ECOLOGY_ELEMENTS} from './rare-ecology.js';
 
 const LOST_CARGO_ELEMENTS=MANAGED_ELEMENTS;
 function previewCaptureLoss(units){
@@ -47,7 +48,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       return {nextRun,start,seed,fuel:resources.prepareExpedition({region:start})};
     },
     createRun:({prepared})=>{
-      const config=flightConfig(resources.state),capabilities={combustionDrive:driveAvailable(resources.state,'combustion'),nitrogenField:config.nitrogenField===true,coreFractured:config.coreFractured===true,worldAwakened:config.worldAwakened===true};
+      const config=flightConfig(resources.state),capabilities={combustionDrive:driveAvailable(resources.state,'combustion'),nitrogenField:config.nitrogenField===true,coreFractured:config.coreFractured===true,worldAwakened:config.worldAwakened===true,rareEcologyEligible:config.rareEcologyEligible===true};
       return createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities}),config,{fuel:prepared.fuel});
     },
     initializeExplore:({prepared,run:nextRun})=>initializeExploreLaunch(prepared,nextRun),
@@ -149,7 +150,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   function hud(){
     if(!run)return;const state=resources.state,region=REGIONS[run.region]??REGIONS.veil;
     q('veil-h').textContent=`H ${run.collectedElements.H}`;q('veil-gained').textContent=`BASE STOCK H ${state.elements.H}`;
-    q('veil-minerals').textContent=['C','N','O'].map(el=>[el,run.collectedElements[el]??0]).filter(([el])=>resources.canUseElement(el)||run.foundElements.includes(el)).map(([el,n])=>`${el} ${n}`).join(' · ');
+    q('veil-minerals').textContent=['C','N','O',...RARE_ECOLOGY_ELEMENTS].map(el=>[el,run.collectedElements[el]??0]).filter(([el])=>resources.canUseElement(el)||run.foundElements.includes(el)).map(([el,n])=>`${el} ${n}`).join(' · ');
     q('veil-chain').textContent=run.chain;q('veil-chain-block').dataset.fever=String(run.chain>=40);q('veil-chain-meter').style.transform=`scaleX(${Math.max(0,run.chainTime/run.config.chainSeconds)})`;
     const propellant=run.fuel.propellant,burstPerformance=performanceFor(propellant.molecule,'propellant'),burstGauge=propulsionGauge('hydrogen',run.fuel),boostButton=q('veil-boost');boostButton.querySelector('strong').textContent=propellant.molecule?formula(propellant.molecule):'—';q('veil-fuel').textContent='';q('veil-boost').setAttribute('aria-description',`残り噴射 ${burstGauge.remaining}回`);q('veil-burst-meter').style.transform=`scaleX(${burstGauge.ratio})`;boostButton.dataset.fuelState=burstGauge.state;boostButton.classList.toggle('boosting',run.player.boost>0);boostButton.setAttribute('aria-disabled',String(!propellant.molecule||propellant.amount<(burstPerformance?.moleculesPerBurst??Infinity)||run.player.cooldown>0));
     const shockSlot=run.fuel.shock,shockPerformance=performanceFor(shockSlot.molecule,'shock'),shockCapacity=shockSlot.capacity||shockPerformance?.capacity||0;shockButton.hidden=!shockSlot.molecule;shockButton.querySelector('strong').textContent=shockSlot.molecule?formula(shockSlot.molecule):'—';q('veil-shock-count').textContent=`${shockSlot.amount} / ${shockCapacity}`;shockButton.dataset.material=shockSlot.molecule??'';shockButton.setAttribute('aria-disabled',String(!shockSlot.molecule||shockSlot.amount<1));shockButton.setAttribute('aria-description',shockSlot.molecule?`${formula(shockSlot.molecule)} pressure pulse。残り${shockSlot.amount}回`:'SHOCK charge未搭載');
@@ -175,7 +176,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='choDestination'){notice('CHOの最深部に到達 · 帰還ボタンで記録を持ち帰ろう',8,'◎ ✓ ↩');vibrate(35);}
       if(event.type==='oxygenJunction')notice('酸素の分岐',6,'↖ ↑ ↗');
       if(event.type==='element'){
-        const first=resources.findElementForExpedition(event.element);offerProgressionInsights();if(first&&event.element!=='H'){const message=event.element==='C'?'Cを発見 · 点の列ではなく、炭素塊へ飛び込もう':event.element==='N'?'Nを発見 · Nitrogen FIELDの主要資源を回収した':'Oを発見 · CH₄と組み合わせる酸化剤が作れる';notice(message,5);vibrate(24);resources.save();}updatePrompt();
+        const first=resources.findElementForExpedition(event.element);offerProgressionInsights();if(first&&event.element!=='H'){const rare=RARE_ECOLOGY_ELEMENTS.includes(event.element),message=event.element==='C'?'Cを発見 · 点の列ではなく、炭素塊へ飛び込もう':event.element==='N'?'Nを発見 · Nitrogen FIELDの主要資源を回収した':event.element==='O'?'Oを発見 · CH₄と組み合わせる酸化剤が作れる':rare?`${event.element} trace resourceを発見`:`${event.element}を発見`;notice(message,rare?3:5);vibrate(rare?16:24);resources.save();}updatePrompt();
       }
       if(event.type==='dense')vibrate(10);
       if(event.type==='cluster'){notice('炭素塊がほどけた · 散るC塵をまとめて吸おう',2.5);vibrate(18);}
