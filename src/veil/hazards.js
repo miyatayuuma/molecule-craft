@@ -93,6 +93,7 @@ export const FIELD_RESPONSIBILITY_AUDIT=Object.freeze({
     Object.freeze({source:'route current / vortex',types:Object.freeze(['mechanical']),examples:Object.freeze(['H/C revisit current','Oxygen vortex'])}),
     Object.freeze({source:'thermal environment',types:Object.freeze(['thermal']),examples:Object.freeze(['Oxygen thermal route','shared thermal belt','frontier thermal wall'])}),
     Object.freeze({source:'post-Awakening particulate plume',types:Object.freeze(['abrasive']),examples:Object.freeze(['Carbon lower particulate stream'])}),
+    Object.freeze({source:'post-Awakening charged region',types:Object.freeze(['electrical']),examples:Object.freeze(['Carbon sweep high-field pocket'])}),
   ]),
   agents:Object.freeze([
     Object.freeze({source:'Dust Eater',owner:'engine.js',reason:'autonomous pursuing agent; never an environmental hazard'}),
@@ -116,6 +117,7 @@ export const PRODUCTION_HAZARD_FAMILIES=Object.freeze([
   Object.freeze({family:'vortex',type:HAZARD_TYPES.MECHANICAL,subtype:'vortex'}),
   Object.freeze({family:'heat',type:HAZARD_TYPES.THERMAL,subtype:'hot-zone'}),
   Object.freeze({family:'particle-stream',type:HAZARD_TYPES.ABRASIVE,subtype:'particle-stream'}),
+  Object.freeze({family:'charged-region',type:HAZARD_TYPES.ELECTRICAL,subtype:'charged-region'}),
 ]);
 
 
