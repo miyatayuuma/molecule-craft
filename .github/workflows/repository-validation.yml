@@ -29,10 +29,12 @@ jobs:
         run: node tests/field-hazard-taxonomy.test.mjs
       - name: FIELD runtime allowlist
         run: node tests/field-runtime-allowlist.test.mjs
-      - name: Post-Core Rare ecology
+      - name: Post-Core Rare ecology and hazard treatments
         run: |
           node tests/rare-ecology.test.mjs
           node tests/rare-ecology-browser.test.mjs
+          node tests/hazard-treatments.test.mjs
+          node tests/hazard-treatments-browser.test.mjs
       - name: FIELD expansion proposal map
         run: node tests/field-expansion-proposal.test.mjs
       - name: Molecule graph / frontier
