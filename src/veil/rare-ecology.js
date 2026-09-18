@@ -7,9 +7,9 @@ const ELEMENT_COLOR=Object.fromEntries(ELEMENT_PRESENTATION.map(item=>[item.symb
 export const RARE_ECOLOGY_WORLD_SEED=0x5245434f;
 export const RARE_ECOLOGY_ELEMENTS=Object.freeze(['P','S','F','Cl']);
 export const RARE_ECOLOGY_AREA_CONFIG=Object.freeze({
-  veil:freeze({element:'P',primaryElement:'H',baseDensity:.014,maxReplacementFraction:.04}),
-  carbon:freeze({element:'S',primaryElement:'C',baseDensity:.065,maxReplacementFraction:.09}),
-  oxygen:freeze({element:'F',primaryElement:'O',baseDensity:.014,maxReplacementFraction:.04}),
+  veil:freeze({element:'P',primaryElement:'H',baseDensity:.0095,maxReplacementFraction:.04}),
+  carbon:freeze({element:'S',primaryElement:'C',baseDensity:.05,maxReplacementFraction:.09}),
+  oxygen:freeze({element:'F',primaryElement:'O',baseDensity:.012,maxReplacementFraction:.04}),
   nitrogen:freeze({element:'Cl',primaryElement:'N',baseDensity:.045,maxReplacementFraction:.07}),
 });
 export const RARE_ECOLOGY_SUPPRESSION=Object.freeze({
