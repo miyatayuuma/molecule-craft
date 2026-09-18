@@ -16,9 +16,12 @@ jobs:
       - name: State and migration contract
         run: |
           node tests/dock-foundation.test.mjs
-          node tests/tank-upgrades.test.mjs\n          node tests/hazard-treatments.test.mjs
+          node tests/tank-upgrades.test.mjs
+          node tests/hazard-treatments.test.mjs
       - name: Mobile player-facing flow
-        run: |\n          node tests/dock-foundation-browser.test.mjs\n          node tests/hazard-treatments-browser.test.mjs
+        run: |
+          node tests/dock-foundation-browser.test.mjs
+          node tests/hazard-treatments-browser.test.mjs
       - name: Existing LOADOUT and launch integration
         run: |
           node tests/loadout-workstation.test.mjs
