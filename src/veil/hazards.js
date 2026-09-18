@@ -86,8 +86,9 @@ export function organicCorridorInfluence({seed=1,id='hazard',x=0,y=0,centerX=0,c
 
 export const FIELD_RESPONSIBILITY_AUDIT=Object.freeze({
   environmentalHazards:Object.freeze([
-    Object.freeze({source:'map.fields',types:Object.freeze(['mechanical']),examples:Object.freeze(['ambient flow field','BURST shear','Nitrogen pulse'])}),
+    Object.freeze({source:'map.fields',types:Object.freeze(['mechanical']),examples:Object.freeze(['ambient flow field','BURST shear'])}),
     Object.freeze({source:'route pressure / localized gate',types:Object.freeze(['mechanical']),examples:Object.freeze(['Oxygen route pressure','Veil boundary current'])}),
+    Object.freeze({source:'Nitrogen environment field',types:Object.freeze(['mechanical','thermal']),examples:Object.freeze(['pressure pocket','shear pocket','turbulence pocket','thermal pocket'])}),
     Object.freeze({source:'expedition challenge environment',types:Object.freeze(['mechanical','thermal']),examples:Object.freeze(['pulse pressure','curve shear','thermal challenge'])}),
     Object.freeze({source:'route current / vortex',types:Object.freeze(['mechanical']),examples:Object.freeze(['H/C revisit current','Oxygen vortex'])}),
     Object.freeze({source:'thermal environment',types:Object.freeze(['thermal']),examples:Object.freeze(['Oxygen thermal route','shared thermal belt','frontier thermal wall'])}),
