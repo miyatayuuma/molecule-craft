@@ -7,7 +7,7 @@ import {normalizeWorldAwakeningProgress} from './world-awakening.js';
 export const RESOURCE_KEY='molecule-craft.resources.v1';
 export const SCHEMA_VERSION=8;
 const COLLECTION_KEY='molecule-craft.collection.v1',HELP_KEY='molecule-craft.help.v1';
-export const MANAGED_ELEMENTS=['H','C','N','O'];
+export const MANAGED_ELEMENTS=['H','C','N','O','P','S','F','Cl'];
 export const DUST_ELEMENTS=['H','C','O'];
 export const STOCKED_ELEMENTS=['H','C','N','O','F','P','S','Cl'];
 export const MAX_RESOURCE_VALUE=1e9;
@@ -31,7 +31,8 @@ export function normalizeCurrentTankRoles(state){
   return changed;
 }
 export function normalizeCurrentWorldProgress(state){return !!state?.progress&&normalizeWorldAwakeningProgress(state.progress);}
-function normalizeCurrentResourcesState(state){return !!(normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state));}
+export function normalizeCurrentElementStocks(state){if(!state?.elements||typeof state.elements!=='object')return false;let changed=false;for(const element of STOCKED_ELEMENTS)if(!Object.hasOwn(state.elements,element)){state.elements[element]=0;changed=true;}return changed;}
+function normalizeCurrentResourcesState(state){return !!(normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state)|normalizeCurrentElementStocks(state));}
 
 export function finishPendingResourcesReset(storage,state){const p=state.pendingReset;if(!p)return;if(p.collection)storage.setItem(COLLECTION_KEY,JSON.stringify(emptyCollection()));if(p.legacy)storage.removeItem(WORKSPACE_STORAGE_KEY);if(p.help)storage.removeItem(HELP_KEY);const done={...state};delete done.pendingReset;storage.setItem(RESOURCE_KEY,JSON.stringify(done));delete state.pendingReset;}
 

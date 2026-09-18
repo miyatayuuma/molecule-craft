@@ -4,6 +4,7 @@ import { createMap, sampleAuthoredLine, sampleLine, random, keepDepletedSegment 
 import { routeFlowAt } from './route-kit.js';
 import { GROWTH } from './growth.js';
 import {appendHazard,defineHazard,hazardWorldMultiplier,HAZARD_TYPES,scaleHazardSampleForWorld} from './hazards.js';
+import {applyRareEcology,registerResourceSocket} from './rare-ecology.js';
 import { DEEP_OXYGEN_FRONTIER_RECOVERY,DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_THERMAL,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenPressureHazardAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt,oxygenVortexHazardAt } from './oxygen-routes.js';
 import {appendNitrogenField,nitrogenEnvironmentAt} from './nitrogen-routes.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -81,10 +82,10 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,cap
       const keep=keepDepletedSegment(routeDepletion,seed^0x29d41,id,i,{optional:route.optional})&&keepDepletedSegment(map.depletion[el]??0,seed^0x7f4a7c15,`${id}:${el}`,i);
       for(let lane=0;lane<profile.lanes;lane++){
         const jitter=(routeRng()-.5)*8,flow=(deep||frontier)?{speed:165+routeRng()*60,span:210,phase:routeRng()}:null;
+        const spacing=id==='oxygen-side'&&p.y<-9000&&p.y>-10400?harvestLayout.sideSpacing:27,stableOffset=(lane-(profile.lanes-1)/2)*spacing,socketX=p.x-Math.sin(p.angle)*stableOffset,socketY=p.y+Math.cos(p.angle)*stableOffset,ecologyArea=element==='C'?'carbon':element==='O'&&!frontier?'oxygen':null,socket=ecologyArea&&el===element?registerResourceSocket(map,{area:ecologyArea,route:id,index:i,lane,x:socketX,y:socketY,angle:p.angle,element}):null;
         if(!keep||lane>=lanes)continue;
-        const spacing=id==='oxygen-side'&&p.y<-9000&&p.y>-10400?harvestLayout.sideSpacing:27;
         const offset=(lane-(lanes-1)/2)*spacing+jitter,x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
-        map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,lane:lane-(lanes-1)/2,flow});
+        map.dust.push({id:map.dust.length,x,y,baseX:x,baseY:y,angle:p.angle,route:id,element:el,kind:el==='H'?'normal':el==='C'?'carbon':'oxygen',value:profile.value,ready:0,lane:lane-(lanes-1)/2,flow,resourceSocketKey:socket?.key});
       }
     }
   }
@@ -154,6 +155,7 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,cap
   if(carbonAnchor)map.labels.push({x:carbonAnchor.x,y:carbonAnchor.y,text:`${carbonRevisit.id} · post-DRIVE current ${CARBON_REVISIT_ROUTE.current.force} · local C pocket`});
   map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · 少量のO dust'});
   map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:100,y:-11980,text:'最深部へ ↑ · 到達したら正常帰還'});
+  applyRareEcology(map,stock,{eligible:capabilities.worldAwakened===true&&capabilities.rareEcologyEligible===true});
   return map;
 }
 // Flow/pressure strata remain global where authored; thermal exposure is now

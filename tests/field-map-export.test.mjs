@@ -16,7 +16,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const script=fileURLToPath(new URL('../scripts/export-field-map.mjs',import.meta.url));
 const output=new URL('../docs/maps/current-field.svg',import.meta.url);
 const requiredLayers=[
-  'layer-grid','layer-regions','layer-geometry','layer-revisit-post-drive','playable-bounds','route-centerlines','route-widths','authored-gates',
+  'layer-grid','layer-regions','layer-geometry','layer-revisit-post-drive','layer-managed-rare-ecology','playable-bounds','route-centerlines','route-widths','authored-gates',
   'layer-elements-h','layer-elements-c','layer-elements-o','layer-hazards-fields','layer-hazards-pressure',
   'layer-hazards-challenges','layer-hazards-vortex','layer-agents-dust-eater','layer-thermal','layer-gameplay',
   'spawn','checkpoints','gates','junctions','rest-stops','rewards','signals','destination','layer-labels',
@@ -32,6 +32,8 @@ test('FIELD map exporter is deterministic and required layers are present',async
   assert.match(first,/data-carbon-y="-4390" data-oxygen-y="-7830" data-frontier-y="-11680"/);
   assert.match(first,/element positions are deterministic baseline snapshot, not invariant authored positions/);
   assert.match(first,/environment heat != player thermal state/);
+  for(const [area,element] of Object.entries({veil:'P',carbon:'S',oxygen:'F',nitrogen:'Cl'}))assert.match(first,new RegExp(`data-rare-ecology-area="${area}" data-element="${element}"`));
+  assert.match(first,/Rare ecology overlay shows eligible areas\/density only; exact trace particle coordinates are intentionally hidden/);
   assert.match(first,/agents: DUST EATER|dynamic pursuit agent/);assert.doesNotMatch(first,/layer-hazards-dust-eater/);
   assert.match(first,/id="h-boundary-current" data-gate="h-boundary" x="300" y="-3940" width="460" height="280"/);
   assert.match(first,/id="h-boundary-gate-marker"[^>]*cx="530" cy="-3800"/);

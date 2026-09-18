@@ -10,12 +10,12 @@ import {flightConfig} from '../src/veil/growth.js';
 
 const RARE_ELEMENTS=Object.freeze(['P','S','F','Cl']);
 const memory=raw=>{let value=raw??null;return{getItem:key=>key===RESOURCE_KEY?value:null,setItem:(key,next)=>{if(key===RESOURCE_KEY)value=next;},removeItem:key=>{if(key===RESOURCE_KEY)value=null;},raw:()=>value};};
-const rareRuntimeDust=map=>(map?.dust??[]).filter(item=>item.rareAnomaly||RARE_ELEMENTS.includes(item.element));
+const legacyRareRuntimeDust=map=>(map?.dust??[]).filter(item=>item.rareAnomaly);
 const assertNoLegacyRare=(run,map=run?.map)=>{
   assert.equal(Object.hasOwn(run??{},'rareSurvey'),false);
   assert.equal(Object.hasOwn(run??{},'rareSpecimens'),false);
   assert.equal(Object.hasOwn(run??{},'rareCargo'),false);
-  assert.deepEqual(rareRuntimeDust(map),[]);
+  assert.deepEqual(legacyRareRuntimeDust(map),[]);
 };
 
 test('FIELD runtime allowlist is explicit and Rare Survey is retired',()=>{
@@ -23,14 +23,14 @@ test('FIELD runtime allowlist is explicit and Rare Survey is retired',()=>{
   assert.deepEqual(Object.keys(FIELD_RUNTIME_ALLOWLIST),[
     'environmentGeometry','managedResources','environmentalHazards','activeAgents','currentProgressionObjects','navigationRecoveryInfrastructure',
   ]);
-  assert.deepEqual(FIELD_RUNTIME_ALLOWLIST.managedResources.elements,['H','C','N','O']);
+  assert.deepEqual(FIELD_RUNTIME_ALLOWLIST.managedResources.elements,['H','C','N','O','P','S','F','Cl']);
   assert.deepEqual(FIELD_RUNTIME_ALLOWLIST.environmentalHazards.types,['mechanical','thermal','abrasive','electrical']);
   assert.ok(FIELD_RUNTIME_ALLOWLIST.activeAgents.examples.includes('Dust Eater'));
   assert.ok(FIELD_RUNTIME_ALLOWLIST.currentProgressionObjects.examples.includes('Core'));
   assert.deepEqual(RETIRED_FIELD_RUNTIME,['finite-rare-survey']);
 });
 
-test('fresh, pre-Core and awakened FIELD runtime never spawns finite Rare Survey objects or new Rare ecology',()=>{
+test('fresh and pre-Core exclude Rare ecology while awakened FIELD enables managed trace resources without Rare Survey runtime',()=>{
   const freshState=createInitialResourcesState(),freshConfig=flightConfig(freshState),freshMap=createUniverse(11,{H:0,C:0,N:0,O:0}),freshRun=createRun(freshMap,freshConfig,{predators:false});
   assertNoLegacyRare(freshRun,freshMap);
 
@@ -39,8 +39,8 @@ test('fresh, pre-Core and awakened FIELD runtime never spawns finite Rare Survey
   assert.ok(preMap.nitrogenCore&&!preMap.nitrogenCore.fractured);assert.ok(preMap.signals.some(signal=>signal.region==='nitrogen'));assertNoLegacyRare(preRun,preMap);
 
   const awakened=createInitialResourcesState();awakened.progress.choCompleted=true;awakened.progress.coreFractured=true;awakened.progress.worldAwakened=true;awakened.progress.rareEcologyEligible=true;
-  const awakenedConfig=flightConfig(awakened),awakenedMap=createUniverse(13,awakened.elements,{capabilities:{nitrogenField:true,coreFractured:true,worldAwakened:true}}),awakenedRun=createRun(awakenedMap,awakenedConfig,{predators:true});
-  assert.equal(awakenedConfig.rareEcologyEligible,true);assertNoLegacyRare(awakenedRun,awakenedMap);
+  const awakenedConfig=flightConfig(awakened),awakenedMap=createUniverse(13,awakened.elements,{capabilities:{nitrogenField:true,coreFractured:true,worldAwakened:true,rareEcologyEligible:true}}),awakenedRun=createRun(awakenedMap,awakenedConfig,{predators:true});
+  assert.equal(awakenedConfig.rareEcologyEligible,true);assertNoLegacyRare(awakenedRun,awakenedMap);assert.deepEqual(new Set(awakenedMap.dust.filter(item=>item.rareEcology).map(item=>item.element)),new Set(RARE_ELEMENTS));
   for(let frame=0;frame<8*60;frame++)stepRun(awakenedRun,{x:0,y:-1},1/60,{});
   assert.ok(awakenedRun.eaters.length>=1,'Dust Eater remains the active-agent authority after cleanup');
 });
@@ -53,9 +53,9 @@ test('legacy Rare Survey save metadata is inert while acquired Rare stock and po
   assert.deepEqual(resources.state.rareSurvey,legacy.rareSurvey,'deprecated metadata may round-trip but owns no runtime');
   assert.equal(resources.state.progress.rareEcologyEligible,true);
   for(const element of RARE_ELEMENTS)assert.equal(resources.canUseElement(element),true,element+' stock remains usable after Survey retirement');
-  const config=flightConfig(resources.state),map=createUniverse(14,resources.state.elements,{capabilities:{nitrogenField:true,coreFractured:true,worldAwakened:true}}),run=createRun(map,config,{fuel:resources.prepareExpedition({region:'nitrogen'}),predators:false});
+  const config=flightConfig(resources.state),map=createUniverse(14,resources.state.elements,{capabilities:{nitrogenField:true,coreFractured:true,worldAwakened:true,rareEcologyEligible:true}}),run=createRun(map,config,{fuel:resources.prepareExpedition({region:'nitrogen'}),predators:false});
   assertNoLegacyRare(run,map);
-  const settled=resources.settleExpedition({H:0,C:0,N:0,O:0},0,false);assert.ok(settled);assert.equal(resources.state.progress.rareEcologyEligible,true);
+  const settled=resources.settleExpedition({H:0,C:0,N:0,O:0,P:0,S:0,F:0,Cl:0},0,false);assert.ok(settled);assert.equal(resources.state.progress.rareEcologyEligible,true);
   assert.deepEqual(RARE_ELEMENTS.map(element=>resources.state.elements[element]),[2,3,4,5],'normal return cannot erase previously acquired Rare stock');
 });
 

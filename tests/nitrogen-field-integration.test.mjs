@@ -113,7 +113,7 @@ test('N2 discovery exposes existing LOADOUT roles and Nitrogen launch prioritize
 
 test('FIELD HUD exposes N through canonical element authority and production launch enables Nitrogen FIELD composition',async()=>{
   const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
-  assert.match(uiSource,/\['C','N','O'\].*resources\.canUseElement\(el\)/s);
+  assert.match(uiSource,/\['C','N','O',\.\.\.RARE_ECOLOGY_ELEMENTS\].*resources\.canUseElement\(el\)/s);
   assert.match(uiSource,/event\.element==='N'\?'Nを発見/);
   assert.match(uiSource,/nitrogenField:config\.nitrogenField===true/,'production launch must pass post-CHO Nitrogen capability into createUniverse');
 });

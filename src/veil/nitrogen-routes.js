@@ -2,6 +2,7 @@ import {createRoute,smoothCurve,straight} from './route-kit.js';
 import {inventoryDepletion,keepDepletedSegment,random} from './map.js';
 import {NITROGEN_ENTRY} from './nitrogen-config.js';
 import {defineHazard,deterministicNoise1D,effectiveHazardScale,hazardSample,HAZARD_TYPES} from './hazards.js';
+import {registerResourceSocket} from './rare-ecology.js';
 
 const freeze=value=>Object.freeze(value);
 const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
@@ -99,7 +100,7 @@ export function appendNitrogenField(map,seed=1,stock={},options={}){
   map.nitrogenEnvironmentSeed=worldSeed;map.depletion??={};map.depletion.N=inventoryDepletion(stock,'N');const depletion=map.depletion.N,route={...NITROGEN_ROUTE,element:null,sourceElement:'N',kind:'nitrogen-field',nitrogen:true,routeDepletion:depletion,lanes:1,authoredLanes:1,value:1};
   map.routes.push(route);map.nitrogenZones=NITROGEN_ZONES;map.nitrogenHazards=NITROGEN_HAZARDS;map.nitrogenRecoveryAreas=NITROGEN_RECOVERY_AREAS;map.nitrogenVisuals=buildNitrogenVisuals(worldSeed);map.nitrogenCore={...NITROGEN_CORE,fractured:options.coreFractured===true};
   for(const [i,p] of route.points.entries()){
-    if(i%3===0){if(keepNitrogenSample(depletion,worldSeed^0x4e32,i,Math.ceil(route.points.length/3)))addDust(map,{x:p.x,y:p.y,angle:p.angle,route:route.id,element:'N',kind:'nitrogen',value:1});continue;}
+    if(i%3===0){const socket=registerResourceSocket(map,{area:'nitrogen',route:route.id,index:i,lane:0,x:p.x,y:p.y,angle:p.angle,element:'N'});if(keepNitrogenSample(depletion,worldSeed^0x4e32,i,Math.ceil(route.points.length/3)))addDust(map,{x:p.x,y:p.y,angle:p.angle,route:route.id,element:'N',kind:'nitrogen',value:1,resourceSocketKey:socket?.key});continue;}
     const mixed=i%41===0?'C':i%23===0?'O':i%17===0?'H':null;if(!mixed)continue;const mixedDepletion=map.depletion[mixed]??0;if(!keepDepletedSegment(mixedDepletion,worldSeed^0x316d,`${route.id}:${mixed}`,i))continue;
     addDust(map,{x:p.x+(i%2?34:-34)*Math.cos(p.angle),y:p.y+(i%2?34:-34)*Math.sin(p.angle),angle:p.angle,route:`nitrogen-ambient-${mixed.toLowerCase()}`,element:mixed,kind:mixed==='C'?'carbon':mixed==='O'?'oxygen':'normal',value:1,ambient:true});
   }
