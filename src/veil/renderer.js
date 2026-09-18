@@ -8,6 +8,7 @@ import { clamp } from './engine.js';
 import { drawCollectorShell } from './collector-shell.js';
 import {RARE_ECOLOGY_ELEMENTS,RARE_ECOLOGY_VISUALS} from './rare-ecology.js';
 import {ABRASIVE_PLUME,ABRASIVE_VISUAL_SAMPLES,abrasiveEffectiveAt} from './abrasive-field.js';
+import {ELECTRICAL_FIELD,ELECTRICAL_VISUAL_SAMPLES,electricalEffectiveAt} from './electrical-field.js';
 export const LOST_CARGO_PARTICLE_CAP=36;
 export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:EXPEDITION.anchorLockSeconds}),emergency:Object.freeze({duration:.65})});
 const LOST_CARGO_ELEMENTS=['H','C','N','O',...RARE_ECOLOGY_ELEMENTS];
@@ -141,6 +142,18 @@ export function createVeilRenderer(canvas){
       }
       // Reward convergence is shown as oxygen-colored motes physically streaming inward, not a marker glyph.
       const rewardGlow=ctx.createRadialGradient(OXYGEN_REWARD.x,OXYGEN_REWARD.y,0,OXYGEN_REWARD.x,OXYGEN_REWARD.y,OXYGEN_REWARD.radius*1.2);rewardGlow.addColorStop(0,'rgba(255,148,77,.16)');rewardGlow.addColorStop(1,'rgba(255,148,77,0)');ctx.fillStyle=rewardGlow;ctx.fillRect(OXYGEN_REWARD.x-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.y-OXYGEN_REWARD.radius*1.2,OXYGEN_REWARD.radius*2.4,OXYGEN_REWARD.radius*2.4);for(let i=0;i<9;i++){const phase=(run.time*.18+i/9)%1,r=OXYGEN_REWARD.radius*(1.05-phase*.82),a=i*2.399+run.time*.12;ctx.globalAlpha=.16+phase*.48;ctx.fillStyle='#ff944d';ctx.beginPath();ctx.arc(OXYGEN_REWARD.x+Math.cos(a)*r,OXYGEN_REWARD.y+Math.sin(a)*r,1.5+phase*2.1,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
+    }
+    if(run.map.universe&&run.map.worldState===ELECTRICAL_FIELD.worldState){
+      for(const sample of ELECTRICAL_VISUAL_SAMPLES){
+        const effective=electricalEffectiveAt(sample,run.map.worldState),density=clamp(effective*(reduced?.58:1.05),0,1);if(effective<=0||sample.threshold>density)continue;
+        const at=screen(sample.x,sample.y);if(at.x<-55||at.x>w+55||at.y<-55||at.y>h+55)continue;
+        const radius=9+effective*18,corona=ctx.createRadialGradient(sample.x,sample.y,0,sample.x,sample.y,radius);corona.addColorStop(0,`rgba(168,205,255,${.035+effective*.075})`);corona.addColorStop(1,'rgba(134,157,226,0)');ctx.fillStyle=corona;ctx.fillRect(sample.x-radius,sample.y-radius,radius*2,radius*2);
+        const cycle=(run.time*(.58+effective*.9)+sample.phase)%1,window=.035+effective*.085;if(reduced||cycle>window)continue;
+        const flash=1-cycle/window,length=7+effective*15,a=sample.angle+Math.sin(run.time*.7+sample.phase*6.28)*.18,dx=Math.cos(a)*length,dy=Math.sin(a)*length,mx=sample.x+dx*.48+Math.sin(sample.phase*17)*3,my=sample.y+dy*.48+Math.cos(sample.phase*13)*3;
+        ctx.strokeStyle='#bed7ff';ctx.globalAlpha=(.09+effective*.35)*flash;ctx.lineWidth=.55+effective*.55;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sample.x-dx*.18,sample.y-dy*.18);ctx.lineTo(mx,my);ctx.lineTo(sample.x+dx,sample.y+dy);ctx.stroke();
+        if(sample.threshold<effective*.42){ctx.globalAlpha*=.72;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx-Math.sin(a)*(4+effective*5)+dx*.18,my+Math.cos(a)*(4+effective*5)+dy*.18);ctx.stroke();}
+      }
+      ctx.globalAlpha=1;
     }
     if(run.map.universe&&run.map.worldState===ABRASIVE_PLUME.worldState){
       const direction=ABRASIVE_PLUME.direction;
