@@ -70,9 +70,9 @@ export function beginShock(run,consume){
 }
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
 
-export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
+export function createRun(map,config=VEIL,{fuel={},predators=true,treatments=null}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
-  const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)};
+  const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)},treatmentState=treatments&&typeof treatments==='object'?treatments:{mechanical:0,abrasive:0,thermal:0};
   return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],treatments:treatmentState,treatmentExposure:createHazardTreatmentExposureState(),treatmentRevision:0,hazardEffectMultipliers:{mechanical:1,abrasive:1,thermal:1},nextEaterSpawn:0,captured:false,captureAt:0,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
 }
 
@@ -159,7 +159,6 @@ function stepRunFrame(run,input,dt,systems){
   if(run.captured)return run.events;
   animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
   const environment=map.universe?environmentAt(p,run.time,map):null,currentHazards=environment?.hazards?[...environment.hazards]:[];
-  const targetHeat=environment?clamp(environment.heat/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?.combustionHeatFactor??1;
   const coolantLearning=!!environment?.coolantLearning&&p.combustion&&!run.fuel.coolant?.molecule;run.coolantNeedExposure=coolantLearning?run.coolantNeedExposure+dt:0;if(!run.coolantNeedEmitted&&run.coolantNeedExposure>=OXYGEN_THERMAL.learningExposureSeconds){run.coolantNeedEmitted=true;run.events.push({type:'coolantNeed',exposure:run.coolantNeedExposure});}
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
   let nearest=null,distance=c.assistRadius;const desired=Math.atan2(input.y,input.x);
@@ -175,8 +174,15 @@ function stepRunFrame(run,input,dt,systems){
   // combustion drive can cross it; merely owning a recipe cannot. The authored
   // core stays fixed while the envelope now has deterministic organic falloff.
   if(gateEnvelope.intensity>0&&!propelled){const effectiveScale=effectiveHazardScale(gateEnvelope.intensity,1,HAZARD_TYPES.MECHANICAL,map.worldState??'base'),strength=c.gateDeflection*effectiveScale;force.x+=strength;force.y+=strength*.25;appendHazard(currentHazards,VEIL_BOUNDARY_HAZARD,Math.min(1,effectiveScale),{effectiveIntensity:effectiveScale,severity:strength,vector:{x:strength,y:strength*.25}});}
+  const exposure=updateHazardTreatmentExposure(run.treatments,currentHazards,dt,run.treatmentExposure);if(exposure.changedMask)run.treatmentRevision++;
+  if(exposure.expiredMask)for(const id of expiredHazardTreatmentIds(exposure.expiredMask))run.events.push({type:'treatmentExpired',id,hazardType:id});
+  const mechanicalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.MECHANICAL),abrasiveMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.ABRASIVE),thermalMultiplier=hazardTreatmentMultiplier(run.treatments,HAZARD_TYPES.THERMAL);
+  run.hazardEffectMultipliers.mechanical=mechanicalMultiplier;run.hazardEffectMultipliers.abrasive=abrasiveMultiplier;run.hazardEffectMultipliers.thermal=thermalMultiplier;
+  force.x*=mechanicalMultiplier;force.y*=mechanicalMultiplier;
+  const treatedMovement=movementEnvironment?{...movementEnvironment,pressure:(movementEnvironment.pressure??0)*mechanicalMultiplier,flowX:(movementEnvironment.flowX??0)*mechanicalMultiplier,flowY:(movementEnvironment.flowY??0)*mechanicalMultiplier}:movementEnvironment;
+  const targetHeat=environment?clamp(environment.heat*thermalMultiplier/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?1+((environment.combustionHeatFactor??1)-1)*thermalMultiplier:1;
   run.currentHazards=currentHazards;
-  moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:movementEnvironment});
+  moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:treatedMovement});
   const nitrogenCore=map.nitrogenCore;if(nitrogenCore&&!nitrogenCore.fractured&&!run.coreApproachNotified&&Math.hypot(p.x-nitrogenCore.x,p.y-nitrogenCore.y)<=nitrogenCore.fractureRadius*1.55){run.coreApproachNotified=true;run.events.push({type:'coreApproach',shockAvailable:canShock(run),shockCharges:run.fuel.shock?.amount??0});}
   recordChallengePassage(run,old);recordOxygenPassage(run,old,dt);recordChoDestination(run,old);
   if(map.universe){const region=regionAt(p.y);if(region!==run.region){run.region=region;run.events.push({type:'region',region});}}
