@@ -20,6 +20,10 @@ export function progressionElementAccessible(progress,element){
   if(!STOCKED.includes(element)||!Array.isArray(progress?.foundElements)||!progress.foundElements.includes(element))return false;
   return PLAYER_ACCESS.has(element)||element==='N'&&nitrogenElementAccessible(progress);
 }
+const STOCK_ONLY_ACCESS=new Set(STOCKED.filter(element=>!MANAGED.includes(element)));
+export function playerElementAccessible(state,element){
+  return progressionElementAccessible(state?.progress,element)||STOCK_ONLY_ACCESS.has(element)&&(state?.elements?.[element]??0)>0;
+}
 const expeditionElements=units=>MANAGED.filter(el=>DUST.includes(el)||Object.hasOwn(units??{},el));
 export const RESET_CATEGORIES=Object.freeze(['collection','recipes','elements','tanks','exploration','records','workspace']);
 export const CRITICAL_INSIGHT_STARTER_COUNTS=Object.freeze({hydrogen:80,methane:4,oxygen:8,water:8});
@@ -257,7 +261,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function signalBonus(region,p){const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:region===NITROGEN_REGION_ID?{H:2,N:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};}
   api={
     get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,oxygenUpgradePlan,upgradeOxygenTank,recordThermalStrain,recordDriveThermalInterruption,recordCoolantNeedExperience,worldAwakeningState:()=>worldAwakeningState(state.progress),recordCoreFracture(){if(blocked)return null;const snapshot=copy(state);markCoreFractured(state.progress);if(save()||!storage)return worldAwakeningState(state.progress);state=snapshot;return null;},
-    canUseElement:el=>progressionElementAccessible(state.progress,el),insightRecipeEligible,signalClaimability,record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
+    canUseElement:el=>playerElementAccessible(state,el),insightRecipeEligible,signalClaimability,record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
     setCatalog(catalog){
       for(const rec of catalog)if(validId(rec.id)&&Array.isArray(rec.atoms))records.set(rec.id,rec);
       const accessibleHints=state.hints.filter(id=>state.recipes.includes(id)||recipeElementEligible(id));let dirty=accessibleHints.length!==state.hints.length;if(dirty)state.hints=accessibleHints;
