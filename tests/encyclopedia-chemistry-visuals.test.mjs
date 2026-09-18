@@ -7,7 +7,7 @@ const root=new URL('../',import.meta.url);
 const encyclopedia=JSON.parse(await readFile(new URL('data/encyclopedia.json',root),'utf8'));
 const records=JSON.parse(await readFile(new URL('data/molecules.json',root),'utf8'));
 const collectionUiSource=await readFile(new URL('src/collection-ui.js',root),'utf8'),pubchemSource=await readFile(new URL('src/pubchem-reference.js',root),'utf8'),visualSource=await readFile(new URL('src/encyclopedia-chemistry-visuals.js',root),'utf8');
-assert.equal(records.length,135,'Chemistry visual grammar must not change the 135-molecule production catalog');
+assert.equal(records.length,136,'Chemistry visual grammar must not change the 136-molecule production catalog');
 assert.equal(validateChemistryVisualSpecs(encyclopedia,records),true);
 assert.doesNotMatch(collectionUiSource,/模型・収録について|model-collection-notes/,'Repeated model/collection note section must not be rendered');
 assert(encyclopedia.noteDefinitions?.model,'Internal model-note metadata may remain available for non-player-facing uses');
@@ -41,4 +41,4 @@ for(const [id,entry] of Object.entries(encyclopedia.molecules)){
   assert.equal(typeof entry.description,'string',`${id}: Summary preserved`);assert(entry.description.length>=12,`${id}: Summary remains substantive`);
   assert(Array.isArray(entry.details)&&entry.details.length,`${id}: Chemistry Detail preserved`);
 }
-console.log('Encyclopedia chemistry visual grammar passed: aromaticity derives from concepts; resonance/formal-charge/polarity are curated and schema-validated across 135 molecules.');
+console.log('Encyclopedia chemistry visual grammar passed: aromaticity derives from concepts; resonance/formal-charge/polarity are curated and schema-validated across 136 molecules.');
