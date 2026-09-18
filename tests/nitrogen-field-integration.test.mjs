@@ -7,7 +7,7 @@ import {createRun,stepRun,beginBurst,setCombustionHeld,FIELD_INSIGHT_MIN_DISTANC
 import {flightConfig} from '../src/veil/growth.js';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 import {NITROGEN_ENTRY,NITROGEN_REGION_BOUNDS} from '../src/veil/nitrogen-config.js';
-import {NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_AREA,NITROGEN_PULSES,NITROGEN_ROUTE,nitrogenInsightAreaAt} from '../src/veil/nitrogen-routes.js';
+import {NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_AREA,NITROGEN_PULSES,NITROGEN_ROUTE,NITROGEN_WORLD_SEED,nitrogenInsightAreaAt} from '../src/veil/nitrogen-routes.js';
 import {AMMONIA_MOLECULE_ID,NITROGEN_MOLECULE_ID,nitrogenChapterState} from '../src/veil/nitrogen-progression.js';
 
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key),raw:key=>data.get(key)??null};};
@@ -45,6 +45,15 @@ test('Nitrogen geometry is absent pre-CHO and composed only for post-CHO flight 
   const pre=createRun(createUniverse(41,{H:0,C:0,N:0,O:0},{capabilities:{combustionDrive:true}}),flightConfig({progress:{choCompleted:false},elements:{N:0}}),{predators:false});assert.equal(pre.map.routes.some(route=>route.id===NITROGEN_ROUTE.id),false);assert.equal(pre.config.bounds.top,-12750);
   const post=nitrogenRun();assert.equal(post.map.routes.some(route=>route.id===NITROGEN_ROUTE.id),true);assert.deepEqual(post.config.bounds,NITROGEN_REGION_BOUNDS);assert.ok(post.map.nitrogenHazards.length>=8);assert.equal(post.map.fields.some(field=>field.kind==='nitrogen-pulse'),false,'Nitrogen v2 hazards are environment fields rather than legacy trigger circles');
   assert.ok(NITROGEN_ROUTE.points.every(point=>point.y<=NITROGEN_ENTRY.y+1&&point.y>=NITROGEN_REGION_BOUNDS.top),'Nitrogen route stays within the post-CHO extension');
+});
+
+test('Nitrogen environment and depletion layout do not reroll when launch seed changes',()=>{
+  const stock={H:0,C:0,N:250,O:0},a=createUniverse(41,stock,{capabilities:{combustionDrive:true,nitrogenField:true}}),b=createUniverse(987654,stock,{capabilities:{combustionDrive:true,nitrogenField:true}});
+  assert.equal(a.nitrogenEnvironmentSeed,NITROGEN_WORLD_SEED);assert.equal(b.nitrogenEnvironmentSeed,NITROGEN_WORLD_SEED);
+  const visuals=map=>map.nitrogenVisuals.map(item=>[item.hazardId,item.x,item.y,item.spatial,item.recoveryScale]);
+  assert.deepEqual(visuals(a),visuals(b),'organic hazard samples must be stable across return/relaunch');
+  const nLayout=map=>map.dust.filter(item=>item.element==='N'&&(item.route===NITROGEN_ROUTE.id||item.route===NITROGEN_HIGH_DENSITY_POCKET.id)).map(item=>[item.route,item.x,item.y,item.value]);
+  assert.deepEqual(nLayout(a),nLayout(b),'N depletion must not offer launch-seed reroll farming');
 });
 
 test('Nitrogen starter yield is bounded and inventory depletion gradually suppresses optional farming while retaining mainline supply',()=>{
