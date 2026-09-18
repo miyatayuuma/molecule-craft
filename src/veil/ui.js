@@ -189,6 +189,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='eaterSpawn'){notice(event.count===1?'DUST EATER · 採集殻の保持場を崩す粒子現象':`DUST EATERS × ${event.count} · 保持場が破綻する前にANCHOR RETURNを`,4);vibrate(18);}
       if(event.type==='danger'&&event.level==='warning')notice('保持場への干渉が近い · H₂ BURSTで距離を作るか帰還',3,'⚠');
       if(event.type==='danger'&&event.level==='danger'){notice('保持場の破綻間近 · H₂ BURST',2,'⚠');vibrate(28);}
+      if(event.type==='coreApproach'){notice(event.shockAvailable?'CORE · SHOCK 1 CHARGEでfracture':'CORE intact · SHOCK CHARGEが必要 · ANCHOR RETURNで安全に帰還可能',4,event.shockAvailable?'◉':'○');vibrate(event.shockAvailable?20:10);}
       if(event.type==='driveIgnition'){hud();vibrate(12);}
       if(event.type==='driveEmpty'){notice('COMBUSTION DRIVEの燃焼可能分を使い切った',2);stopCombustion();}
       if(event.type==='thermalStrain'){resources.recordThermalStrain();updatePrompt();}
