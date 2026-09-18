@@ -46,11 +46,11 @@ export function defineHazard(id,type,subtype,{source='field-environment'}={}){
   return Object.freeze({id,type,subtype,source});
 }
 
-export function hazardSample(definition,intensity,{severity=intensity,vector=null,heat=null,spatial=true}={}){
+export function hazardSample(definition,intensity,{severity=intensity,vector=null,heat=null,spatial=true,effectiveIntensity=intensity}={}){
   if(!definition||!VALID_TYPES.has(definition.type))throw new TypeError('Hazard sample requires a valid definition');
-  const normalized=clamp01(intensity);
-  if(normalized<=1e-6)return null;
-  const sample={id:definition.id,type:definition.type,subtype:definition.subtype,source:definition.source,intensity:normalized,severity:Number.isFinite(severity)?Math.max(0,severity):normalized,spatial:spatial!==false};
+  const effective=Math.max(0,Number(effectiveIntensity)||0),normalized=clamp01(intensity);
+  if(effective<=1e-6&&normalized<=1e-6)return null;
+  const sample={id:definition.id,type:definition.type,subtype:definition.subtype,source:definition.source,intensity:normalized,effectiveIntensity:effective,severity:Number.isFinite(severity)?Math.max(0,severity):normalized,spatial:spatial!==false};
   if(vector&&Number.isFinite(vector.x)&&Number.isFinite(vector.y))sample.vector={x:vector.x,y:vector.y};
   if(Number.isFinite(heat))sample.heat=Math.max(0,heat);
   return sample;
@@ -125,4 +125,4 @@ export const HAZARD_WORLD_MULTIPLIERS=Object.freeze({
 export const hazardWorldStateFor=worldAwakened=>worldAwakened===true?HAZARD_WORLD_STATES.AWAKENED:HAZARD_WORLD_STATES.BASE;
 export function hazardWorldMultiplier(type,worldState=HAZARD_WORLD_STATES.BASE){if(!VALID_TYPES.has(type))throw new TypeError(`Unknown hazard type: ${type}`);return HAZARD_WORLD_MULTIPLIERS[worldState]?.[type]??1;}
 export function effectiveHazardScale(spatial=1,baseIntensity=1,type=HAZARD_TYPES.MECHANICAL,worldState=HAZARD_WORLD_STATES.BASE){return Math.max(0,Number(spatial)||0)*Math.max(0,Number(baseIntensity)||0)*hazardWorldMultiplier(type,worldState);}
-export function scaleHazardSampleForWorld(sample,worldState=HAZARD_WORLD_STATES.BASE){if(!sample)return null;const multiplier=hazardWorldMultiplier(sample.type,worldState),scaled={...sample,intensity:clamp01(sample.intensity*multiplier),severity:(sample.severity??0)*multiplier};if(sample.vector)scaled.vector={x:sample.vector.x*multiplier,y:sample.vector.y*multiplier};if(Number.isFinite(sample.heat))scaled.heat=sample.heat*multiplier;return scaled;}
+export function scaleHazardSampleForWorld(sample,worldState=HAZARD_WORLD_STATES.BASE){if(!sample)return null;const multiplier=hazardWorldMultiplier(sample.type,worldState),scaled={...sample,intensity:clamp01(sample.intensity*multiplier),effectiveIntensity:Math.max(0,Number(sample.effectiveIntensity??sample.intensity)||0)*multiplier,severity:(sample.severity??0)*multiplier};if(sample.vector)scaled.vector={x:sample.vector.x*multiplier,y:sample.vector.y*multiplier};if(Number.isFinite(sample.heat))scaled.heat=sample.heat*multiplier;return scaled;}

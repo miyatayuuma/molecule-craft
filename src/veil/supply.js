@@ -217,6 +217,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     }
   }
 
+  globalThis.addEventListener?.('molecule-craft:dock-treatment-request',event=>{const detail=event?.detail;if(!detail||typeof detail.id!=='string')return;if(!canMake()||onCommit()===false){detail.result=false;return;}detail.result=resources.applyHazardTreatment(detail.id);if(detail.result){announcement='';update();}});
   q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';requestedDestinationId=null;partialPanel.hidden=true;dialog.showModal();update();resetLaunchGesture();});
   for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{resetLaunchGesture();selectedUse=use;selectedId=null;update();});
   partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;if(!launchBusy)requestedDestinationId=null;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});

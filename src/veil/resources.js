@@ -12,6 +12,7 @@ import { validateWorkspace } from '../workspace-save.js?v=31';
 import { WORKSPACE_STORAGE_KEY,parseWorkspaceSave } from '../workspace-persistence.js?v=1';
 import { chooseInsightHotDestination,hasInsightSitePool } from './signal-claimability.js';
 import {commitWorldAwakening,markCoreFractured,worldAwakeningState} from './world-awakening.js';
+import {HAZARD_TREATMENTS,hazardTreatmentPlan} from './hazard-treatments.js';
 import { RESOURCE_KEY,MAX_RESOURCE_VALUE,MANAGED_ELEMENTS,DUST_ELEMENTS,STOCKED_ELEMENTS,createInitialProgress,createInitialTanks,createInitialSelectedLoadout,createInitialResourcesState,isResourceInteger,isValidResourceId,loadPersistedResources,serializeResourcesState,finishPendingResourcesReset } from './resources-persistence.js';
 export { RESOURCE_KEY };
 const COLLECTION_KEY='molecule-craft.collection.v1',MANAGED=MANAGED_ELEMENTS,DUST=DUST_ELEMENTS,STOCKED=STOCKED_ELEMENTS,MAX=MAX_RESOURCE_VALUE;
@@ -129,6 +130,13 @@ export function createResources({storage,onStatus=()=>{}}={}){
     const plan=oxygenUpgradePlan();if(blocked||!plan?.available||!plan.affordable)return false;
     const before=copy(state);if(!spend(plan.cost))return false;state.upgrades.oxygenTank++;
     if(save())return true;state=before;return false;
+  }
+  function treatmentPlan(id){return hazardTreatmentPlan(state,id);}
+  function applyHazardTreatment(id){
+    const plan=treatmentPlan(id);if(blocked||!plan?.ready)return false;
+    const before=copy(state);if(!spend(plan.cost)){state=before;return false;}state.treatments[id]=1;
+    const result={committed:true,id,charge:1,cost:copy(plan.cost),recipeId:plan.recipeId,hazardType:plan.hazardType};
+    if(save()||!storage)return result;state=before;return false;
   }
   function discover(id){if(blocked||!records.has(id)||state.recipes.includes(id))return false;state.recipes.push(id);hint(id);return true;}
   function discoverWithLoadout(id,use=null){
@@ -259,7 +267,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
   }
   function signalBonus(region,p){const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:region===NITROGEN_REGION_ID?{H:2,N:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};}
   api={
-    get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,oxygenUpgradePlan,upgradeOxygenTank,recordThermalStrain,recordDriveThermalInterruption,recordCoolantNeedExperience,worldAwakeningState:()=>worldAwakeningState(state.progress),recordCoreFracture(){if(blocked)return null;const snapshot=copy(state);markCoreFractured(state.progress);if(save()||!storage)return worldAwakeningState(state.progress);state=snapshot;return null;},
+    get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,oxygenUpgradePlan,upgradeOxygenTank,treatmentPlan,applyHazardTreatment,recordThermalStrain,recordDriveThermalInterruption,recordCoolantNeedExperience,worldAwakeningState:()=>worldAwakeningState(state.progress),recordCoreFracture(){if(blocked)return null;const snapshot=copy(state);markCoreFractured(state.progress);if(save()||!storage)return worldAwakeningState(state.progress);state=snapshot;return null;},
     canUseElement:el=>playerElementAccessible(state,el),insightRecipeEligible,signalClaimability,record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
     setCatalog(catalog){
       for(const rec of catalog)if(validId(rec.id)&&Array.isArray(rec.atoms))records.set(rec.id,rec);
