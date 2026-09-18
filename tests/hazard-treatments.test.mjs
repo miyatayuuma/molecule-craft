@@ -26,7 +26,7 @@ test('treatment authority uses only the three approved Utility molecules and exa
   for(const treatment of Object.values(HAZARD_TREATMENTS)){const atoms=records.get(treatment.recipeId)?.atoms??[],derived={};for(const atom of atoms)derived[atom]=(derived[atom]??0)+2;assert.deepEqual(derived,treatment.cost);}
   assert.equal(JSON.stringify(HAZARD_TREATMENTS).includes('Cl'),false);assert.equal(JSON.stringify(HAZARD_TREATMENTS).includes('PVC'),false);
   assert.equal(HAZARD_TREATMENT_EFFECT_MULTIPLIER,.55);assert.equal(HAZARD_TREATMENT_ENDURANCE_INTENSITY_SECONDS,100);
-  assert.equal(HAZARD_TREATMENTS.abrasive.productionHazard,false,'abrasive treatment must not invent a production hazard');
+  assert.equal(HAZARD_TREATMENTS.abrasive.productionHazard,true,'abrasive treatment is contextual once the production particle stream exists');
 });
 
 test('DOCK treatment requires Awakening, recipe knowledge and complete BASE stock, then spends atomically',()=>{
