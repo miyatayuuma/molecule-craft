@@ -46,11 +46,11 @@ export function defineHazard(id,type,subtype,{source='field-environment'}={}){
   return Object.freeze({id,type,subtype,source});
 }
 
-export function hazardSample(definition,intensity,{severity=intensity,vector=null,heat=null,spatial=true}={}){
+export function hazardSample(definition,intensity,{severity=intensity,vector=null,heat=null,spatial=true,effectiveIntensity=intensity}={}){
   if(!definition||!VALID_TYPES.has(definition.type))throw new TypeError('Hazard sample requires a valid definition');
-  const normalized=clamp01(intensity);
-  if(normalized<=1e-6)return null;
-  const sample={id:definition.id,type:definition.type,subtype:definition.subtype,source:definition.source,intensity:normalized,severity:Number.isFinite(severity)?Math.max(0,severity):normalized,spatial:spatial!==false};
+  const effective=Math.max(0,Number(effectiveIntensity)||0),normalized=clamp01(intensity);
+  if(effective<=1e-6&&normalized<=1e-6)return null;
+  const sample={id:definition.id,type:definition.type,subtype:definition.subtype,source:definition.source,intensity:normalized,effectiveIntensity:effective,severity:Number.isFinite(severity)?Math.max(0,severity):normalized,spatial:spatial!==false};
   if(vector&&Number.isFinite(vector.x)&&Number.isFinite(vector.y))sample.vector={x:vector.x,y:vector.y};
   if(Number.isFinite(heat))sample.heat=Math.max(0,heat);
   return sample;
