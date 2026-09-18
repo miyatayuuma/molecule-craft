@@ -18,6 +18,7 @@ jobs:
           node tests/dock-foundation.test.mjs
           node tests/tank-upgrades.test.mjs
           node tests/hazard-treatments.test.mjs
+          node tests/ctfe-electrical-treatment.test.mjs
       - name: Mobile player-facing flow
         run: |
           node tests/dock-foundation-browser.test.mjs
