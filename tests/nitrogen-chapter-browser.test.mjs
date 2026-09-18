@@ -5,7 +5,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {extname,join,normalize,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {NITROGEN_ROUTE,NITROGEN_ZONES,NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_AREA,NITROGEN_RARE_CL_SITE} from '../src/veil/nitrogen-routes.js';
+import {NITROGEN_ROUTE,NITROGEN_ZONES,NITROGEN_INSIGHT_AREA} from '../src/veil/nitrogen-routes.js';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
@@ -17,7 +17,6 @@ const server=createServer(async(req,res)=>{
     if(relative==='src/veil/ui.js'){
       let source=body.toString('utf8');
       source=source.replace('function frame(now){',"function frame(now){globalThis.__nitrogenChapterRun=run;globalThis.__nitrogenChapterResources=resources;globalThis.__nitrogenChapterRenderer=renderer;globalThis.__nitrogenChapterKeys=keys;");
-      source=source.replace('const completed=run,result=',"const completed=run;globalThis.__nitrogenChapterReturned={N:completed.elementDust.N,rare:[...completed.rareSpecimens]};const result=");
       body=Buffer.from(source);
     }
     res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);
