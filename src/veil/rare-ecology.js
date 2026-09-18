@@ -12,10 +12,11 @@ export const RARE_ECOLOGY_AREA_CONFIG=Object.freeze({
   oxygen:freeze({element:'F',primaryElement:'O',baseDensity:.012,maxReplacementFraction:.04}),
   nitrogen:freeze({element:'Cl',primaryElement:'N',baseDensity:.045,maxReplacementFraction:.07}),
 });
+const TREATMENT_RESERVE_BANDS=Object.freeze([freeze({below:1,multiplier:1}),freeze({below:2,multiplier:.85}),freeze({below:3,multiplier:.55}),freeze({below:4,multiplier:.20}),freeze({below:Infinity,multiplier:.05})]);
 export const RARE_ECOLOGY_SUPPRESSION=Object.freeze({
-  P:freeze({reserveTarget:6,suppressionOnset:4,densityFloor:.07,curve:2.2}),
-  S:freeze({reserveTarget:6,suppressionOnset:4,densityFloor:.07,curve:2.2}),
-  F:freeze({reserveTarget:12,suppressionOnset:8,densityFloor:.06,curve:2.15}),
+  P:freeze({atomsPerTreatment:2,densityFloor:.05,bands:TREATMENT_RESERVE_BANDS}),
+  S:freeze({atomsPerTreatment:2,densityFloor:.05,bands:TREATMENT_RESERVE_BANDS}),
+  F:freeze({atomsPerTreatment:4,densityFloor:.05,bands:TREATMENT_RESERVE_BANDS}),
   Cl:freeze({reserveTarget:8,suppressionOnset:5,densityFloor:.07,curve:2.0}),
 });
 export const RARE_ECOLOGY_VISUALS=Object.freeze({
@@ -31,9 +32,12 @@ function hashUnit(key,seed=RARE_ECOLOGY_WORLD_SEED){
   let h=seed>>>0;for(let i=0;i<key.length;i++){h^=key.charCodeAt(i);h=Math.imul(h,16777619);}h^=h>>>16;return(h>>>0)/4294967296;
 }
 export function rareEcologyAreaForElement(element){return AREA_BY_ELEMENT[element]??null;}
+export function rareEcologyTreatmentReserve(element,held=0){const config=RARE_ECOLOGY_SUPPRESSION[element],amount=Math.max(0,Number(held)||0);return config?.atomsPerTreatment?amount/config.atomsPerTreatment:null;}
 export function rareEcologyInventoryMultiplier(element,held=0){
   const config=RARE_ECOLOGY_SUPPRESSION[element];if(!config)return 0;
-  const amount=Math.max(0,Number(held)||0);if(amount<=config.suppressionOnset)return 1;
+  const amount=Math.max(0,Number(held)||0);
+  if(config.atomsPerTreatment){const reserve=amount/config.atomsPerTreatment,band=config.bands.find(item=>reserve<item.below)??config.bands.at(-1);return Math.max(config.densityFloor,band?.multiplier??config.densityFloor);}
+  if(amount<=config.suppressionOnset)return 1;
   const span=Math.max(1,config.reserveTarget-config.suppressionOnset),excess=(amount-config.suppressionOnset)/span;
   return config.densityFloor+(1-config.densityFloor)/(1+excess**config.curve);
 }
