@@ -30,7 +30,7 @@ export const DRIVES=Object.freeze({
 });
 export const GROWTH=Object.freeze({
   flight:{speed:164,driftSpeed:29,suctionRadius:30,assistRadius:78},
-  dustPerAtom:{H:3,C:3,N:1,O:3},bounds:{left:-1100,right:1250,top:-12750,bottom:500},
+  dustPerAtom:{H:3,C:3,N:1,O:3,P:1,S:1,F:1,Cl:1},bounds:{left:-1100,right:1250,top:-12750,bottom:500},
   clusterRadius:64,clusterRespawn:40,clusterParticles:36,clusterSpread:120,clusterValue:3,
   density:{
     carbon:{spacing:25,lanes:2,value:1},
