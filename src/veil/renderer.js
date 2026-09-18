@@ -41,7 +41,7 @@ export function createVeilRenderer(canvas){
   let w=1,h=1,scale=1,baseScale=1,camera={x:0,y:0},fresh=true;
   const rng=random(17),stars=Array.from({length:170},()=>({x:rng(),y:rng(),r:.3+rng()*1.1,z:.05+rng()*.2}));
   const sprites={},cloudLayer=document.createElement('canvas');
-  for(const [name,color]of Object.entries({normal:'147,225,255',dense:'186,245,255',anchor:'255,220,152',carbon:'207,154,255',nitrogen:'59,130,246',oxygen:'255,157,119',signal:'255,230,155',horizon:'230,204,255',player:'163,235,255'})){
+  for(const [name,color]of Object.entries({normal:'147,225,255',dense:'186,245,255',rare:'255,220,152',carbon:'207,154,255',nitrogen:'59,130,246',oxygen:'255,157,119',signal:'255,230,155',horizon:'230,204,255',player:'163,235,255'})){
     const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gradient=g.createRadialGradient(32,32,0,32,32,32);gradient.addColorStop(0,`rgba(${color},1)`);gradient.addColorStop(.12,`rgba(${color},.95)`);gradient.addColorStop(.3,`rgba(${color},.23)`);gradient.addColorStop(1,`rgba(${color},0)`);g.fillStyle=gradient;g.fillRect(0,0,64,64);sprites[name]=c;
   }
   function resize(){
@@ -60,7 +60,7 @@ export function createVeilRenderer(canvas){
   function drawReturnEffect(effect,center,reduced){
     const frame=returnEffectFrame(effect),p=frame.progress,collapse=frame.collapse,maxRadius=Math.hypot(w,h)*.62;
     if(frame.mode==='stable'){
-      if(!reduced)for(let i=0;i<18;i++){const delay=(i%6)*.025,local=easeOutCubic(clamp((p-delay)/(1-delay),0,1)),angle=i*2.399+(1-local)*.32,radius=maxRadius*(.34+(i%5)*.055)*(1-local)+5;glow(center.x+Math.cos(angle)*radius,center.y+Math.sin(angle)*radius,12+(i%3)*3,i%5===0?'anchor':'normal',Math.sin(local*Math.PI)*.72);}
+      if(!reduced)for(let i=0;i<18;i++){const delay=(i%6)*.025,local=easeOutCubic(clamp((p-delay)/(1-delay),0,1)),angle=i*2.399+(1-local)*.32,radius=maxRadius*(.34+(i%5)*.055)*(1-local)+5;glow(center.x+Math.cos(angle)*radius,center.y+Math.sin(angle)*radius,12+(i%3)*3,i%5===0?'rare':'normal',Math.sin(local*Math.PI)*.72);}
       for(let i=0;i<3;i++){const local=easeOutCubic(clamp((p-i*.06)/(1-i*.06),0,1)),radius=Math.max(4,maxRadius*(.52+i*.1)*(1-local));ctx.strokeStyle=i===1?'#e1fbff':'#8fdae9';ctx.globalAlpha=Math.sin(local*Math.PI)*(.34+i*.08);ctx.lineWidth=(1.2+i*.45)*scale;ctx.beginPath();ctx.arc(center.x,center.y,radius,0,Math.PI*2);ctx.stroke();}
       const aperture=Math.max(2,maxRadius*(1-collapse)),shade=ctx.createRadialGradient(center.x,center.y,Math.max(0,aperture*.32),center.x,center.y,Math.max(3,aperture));shade.addColorStop(0,'rgba(3,12,22,0)');shade.addColorStop(.62,`rgba(3,12,22,${p*.2})`);shade.addColorStop(1,`rgba(2,8,15,${Math.min(.96,p*1.12)})`);ctx.fillStyle=shade;ctx.fillRect(0,0,w,h);
       if(p>.84){ctx.fillStyle=`rgba(2,8,15,${(p-.84)/.16*.88})`;ctx.fillRect(0,0,w,h);}
@@ -218,11 +218,12 @@ export function createVeilRenderer(canvas){
     }
     ctx.restore();
     for(const dust of run.map.dust){
-      if(dust.ready>run.time)continue;const q=screen(dust.x,dust.y);if(q.x<-35||q.x>w+35||q.y<-35||q.y>h+35)continue;const element=dust.element??'H',kind=element==='C'?'carbon':element==='N'?'nitrogen':element==='O'?'oxygen':dust.kind;
+      if(dust.ready>run.time)continue;const q=screen(dust.x,dust.y);if(q.x<-35||q.x>w+35||q.y<-35||q.y>h+35)continue;const rare=dust.kind==='rare',element=dust.element??'H',kind=rare?'rare':element==='C'?'carbon':element==='N'?'nitrogen':element==='O'?'oxygen':dust.kind;
       if(dust.flow&&!reduced){ctx.strokeStyle=element==='O'?'#d86d58':'#679caf';ctx.globalAlpha=.25;ctx.lineWidth=1.2*scale;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-Math.cos(dust.angle)*18*scale,q.y-Math.sin(dust.angle)*18*scale);ctx.stroke();ctx.globalAlpha=1;}
-      glow(q.x,q.y,(element==='C'?28:element==='N'?27:element==='O'?25:22)*scale,kind);
+      glow(q.x,q.y,(rare?38:element==='C'?28:element==='N'?27:element==='O'?25:22)*scale,kind);
       if(element==='C'){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(dust.angle+dust.id*.7);ctx.fillStyle='#e7c8ff';ctx.beginPath();ctx.moveTo(4*scale,0);ctx.lineTo(-3*scale,-3*scale);ctx.lineTo(-2*scale,3*scale);ctx.closePath();ctx.fill();ctx.restore();}
-      else{ctx.fillStyle=element==='N'?'#93c5fd':element==='O'?'#ffd2bd':'#d1f5ff';ctx.beginPath();ctx.arc(q.x,q.y,(element==='N'?3.2:element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}
+      else{ctx.fillStyle=rare?'#ffe2a1':element==='N'?'#93c5fd':element==='O'?'#ffd2bd':'#d1f5ff';ctx.beginPath();ctx.arc(q.x,q.y,(rare?4:element==='N'?3.2:element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}
+      if(rare){ctx.strokeStyle='#c7ab76';ctx.beginPath();ctx.arc(q.x,q.y,12*scale,0,Math.PI*2);ctx.stroke();}
     }
     for(const wave of run.shockWaves??[]){const at=screen(wave.x,wave.y),progress=clamp(wave.life/wave.duration,0,1),radius=wave.radius*scale*smoothstep(progress),alpha=(1-progress)*(wave.coreFracture?.9:.72),tnt=wave.material==='2-4-6-trinitrotoluene';ctx.save();ctx.strokeStyle=wave.coreFracture?'#e3d2ff':tnt?'#ffd5a6':'#a7eff5';ctx.globalAlpha=alpha;ctx.lineWidth=(wave.coreFracture?3.2:tnt?2.6:1.8)*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha*.42;ctx.lineWidth=1*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius*.78,0,Math.PI*2);ctx.stroke();ctx.restore();}
     // Dust eaters are self-organising particle vortices: a light-swallowing
@@ -235,7 +236,7 @@ export function createVeilRenderer(canvas){
       ctx.save();ctx.translate(at.x,at.y);ctx.rotate(run.time*.55+eater.phase);for(let i=0;i<16;i++){const a=i*2.399+Math.sin(run.time*.7+i)*.08,r=radius*(.7+(i%5)*.22);ctx.fillStyle=i%4===0?'#9872a5':'#5e526f';ctx.globalAlpha=.24+(i%3)*.12;ctx.beginPath();ctx.ellipse(Math.cos(a)*r,Math.sin(a)*r*.72,2.2*scale,1*scale,a,0,Math.PI*2);ctx.fill();}ctx.strokeStyle='#80628c';ctx.globalAlpha=.26;ctx.lineWidth=1.2*scale;for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(0,0,radius*(1+i*.34),radius*(.48+i*.2),i*.8,0,Math.PI*1.72);ctx.stroke();}ctx.restore();ctx.globalAlpha=1;
     }
     for(const e of run.effects){
-      const q=screen(e.x,e.y);ctx.strokeStyle=e.kind==='carbon'?'#d7a9ef':e.kind==='nitrogen'?'#60a5fa':e.kind==='oxygen'?'#ffad8f':'#9eeaff';ctx.globalAlpha=(1-e.life/e.duration)*.7;ctx.lineWidth=(1+fever*.7)*scale;
+      const q=screen(e.x,e.y);ctx.strokeStyle=e.kind==='rare'?'#edd099':e.kind==='carbon'?'#d7a9ef':e.kind==='nitrogen'?'#60a5fa':e.kind==='oxygen'?'#ffad8f':'#9eeaff';ctx.globalAlpha=(1-e.life/e.duration)*.7;ctx.lineWidth=(1+fever*.7)*scale;
       ctx.beginPath();(e.trail??[]).forEach((point,i)=>{const at=screen(point.x,point.y);i?ctx.lineTo(at.x,at.y):ctx.moveTo(at.x,at.y);});ctx.lineTo(q.x,q.y);ctx.stroke();ctx.globalAlpha=1;glow(q.x,q.y,20*scale,e.kind);
     }
     for(const particle of run.lostCargoEffects??[]){
