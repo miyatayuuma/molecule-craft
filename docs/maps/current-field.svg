@@ -233,9 +233,9 @@
 <g id="layer-managed-rare-ecology" inkscape:groupmode="layer" inkscape:label="post-Awakening managed Rare ecology eligibility">
 <metadata>Developer eligibility overlay only; exact Rare particle positions are intentionally omitted.</metadata>
 <rect data-rare-ecology-area="nitrogen" data-element="Cl" data-base-density="0.045" data-selected="5" data-candidates="101" x="-1550" y="-22250" width="3250" height="9400"/>
-<rect data-rare-ecology-area="oxygen" data-element="F" data-base-density="0.014" data-selected="14" data-candidates="1012" x="-1550" y="-11680" width="3250" height="3850"/>
-<rect data-rare-ecology-area="carbon" data-element="S" data-base-density="0.065" data-selected="8" data-candidates="122" x="-1550" y="-7830" width="3250" height="3440"/>
-<rect data-rare-ecology-area="veil" data-element="P" data-base-density="0.014" data-selected="9" data-candidates="667" x="-1550" y="-4390" width="3250" height="4890"/>
+<rect data-rare-ecology-area="oxygen" data-element="F" data-base-density="0.012" data-selected="12" data-candidates="1012" x="-1550" y="-11680" width="3250" height="3850"/>
+<rect data-rare-ecology-area="carbon" data-element="S" data-base-density="0.05" data-selected="6" data-candidates="122" x="-1550" y="-7830" width="3250" height="3440"/>
+<rect data-rare-ecology-area="veil" data-element="P" data-base-density="0.01" data-selected="6" data-candidates="667" x="-1550" y="-4390" width="3250" height="4890"/>
 </g>
 <g id="layer-elements-h" inkscape:groupmode="layer" inkscape:label="elements H">
 <metadata>deterministic baseline snapshot: createUniverse(1, {H:0,C:0,O:0}); not invariant authored positions</metadata>
@@ -375,7 +375,7 @@
 <text class="legend-text " x="1450" y="-21824">baseline: createUniverse(1, {H:0,C:0,O:0}) · pre-DRIVE</text>
 <text class="legend-text " x="1450" y="-21732">post-DRIVE H/C revisit geometry is shown only in the dedicated delta layer</text>
 <text class="legend-text " x="1450" y="-21640">post-CHO Nitrogen geometry is shown only in the dedicated production-derived layer</text>
-<text class="legend-text " x="1450" y="-21548">post-Awakening Rare ecology: veil→P 0.014 · carbon→S 0.065 · oxygen→F 0.014 · nitrogen→Cl 0.045</text>
+<text class="legend-text " x="1450" y="-21548">post-Awakening Rare ecology: veil→P 0.0095 · carbon→S 0.05 · oxygen→F 0.012 · nitrogen→Cl 0.045</text>
 <text class="legend-text " x="1450" y="-21456">Rare ecology overlay shows eligible areas/density only; exact trace particle coordinates are intentionally hidden</text>
 <text class="legend-text " x="1450" y="-21364">particles: H 2328 · C 559 · O 1380 · N 149 (fresh N stock)</text>
 <text class="legend-text " x="1450" y="-21272">element positions are deterministic baseline snapshot, not invariant authored positions</text>
