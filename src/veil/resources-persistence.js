@@ -2,7 +2,7 @@ import { EXPEDITION } from './config.js';
 import { GROWTH,DRIVES,REGIONS,EXPEDITION_DESTINATION_REGION_IDS,TANK_USES,tankCapacity } from './growth.js';
 import { validatePersistedWorkspace } from '../workspace-migrations.js?v=1';
 import { WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';
-import {normalizeWorldAwakeningProgress} from './world-awakening.js';
+import {normalizeWorldAwakeningProgress} from './world-awakening.js';\nimport {createInitialHazardTreatments,normalizeHazardTreatments,validHazardTreatments} from './hazard-treatments.js';
 
 export const RESOURCE_KEY='molecule-craft.resources.v1';
 export const SCHEMA_VERSION=8;
@@ -17,7 +17,7 @@ export const createInitialProgress=()=>({bestChain:0,runs:0,cleared:false,craftP
 export const createInitialTanks=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,{molecule:null,amount:0}]));
 export const createInitialSelectedLoadout=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,null]));
 const emptyElementStock=()=>Object.fromEntries(STOCKED_ELEMENTS.map(element=>[element,0]));
-export const createInitialResourcesState=()=>({schemaVersion:SCHEMA_VERSION,upgrades:{oxygenTank:0},elements:emptyElementStock(),tanks:createInitialTanks(),recipes:[],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true,tanks:createInitialSelectedLoadout()},progress:createInitialProgress(),workspace:null});
+export const createInitialResourcesState=()=>({schemaVersion:SCHEMA_VERSION,upgrades:{oxygenTank:0},treatments:createInitialHazardTreatments(),elements:emptyElementStock(),tanks:createInitialTanks(),recipes:[],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true,tanks:createInitialSelectedLoadout()},progress:createInitialProgress(),workspace:null});
 export const isResourceInteger=x=>Number.isSafeInteger(x)&&x>=0&&x<=MAX_RESOURCE_VALUE;
 export const isValidResourceId=x=>typeof x==='string'&&/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(x)&&!['constructor','prototype','__proto__'].includes(x);
 
@@ -72,7 +72,7 @@ function validatePersistedState(s){
     for(const el of MANAGED)if(!integer(s.elements[el]))throw Error('Invalid atom balance');for(const el of DUST)if(!integer(s.dust[el])||s.dust[el]>=GROWTH.dustPerAtom[el])throw Error('Invalid atom balance');
     const p=s.progress;if(!Array.isArray(p.foundElements)||!p.foundElements.includes('H')||!p.foundElements.every(e=>MANAGED.includes(e))||!Array.isArray(p.regions)||!p.regions.includes('veil')||!p.regions.every(id=>Object.hasOwn(REGIONS,id))||!p.regions.includes(p.checkpoint)||typeof p.frontier!=='boolean'||!integer(p.totalCollected)||!integer(p.signalMisses)||!p.signalLast||Object.entries(p.signalLast).some(([id,n])=>!Object.hasOwn(REGIONS,id)||!integer(n)))throw Error('Invalid expedition');
   }
-  if(s.schemaVersion>=7&&(!s.upgrades||![0,1,2].includes(s.upgrades.oxygenTank)))throw Error('Invalid tank upgrades');
+  if(s.schemaVersion>=7&&(!s.upgrades||![0,1,2].includes(s.upgrades.oxygenTank)))throw Error('Invalid tank upgrades');\n  if(!validHazardTreatments(s.treatments))throw Error('Invalid hazard treatments');
   if(s.schemaVersion>=6){
     if(!ids(s.hints)||!s.dust||!s.loadout||!Object.hasOwn(DRIVES,s.loadout.drive)||typeof s.loadout.cooling!=='boolean'||s.loadout.tanks!==undefined&&!validSelectedLoadout(s.loadout.tanks)||!s.tanks||Object.hasOwn(s,'molecules'))throw Error('Invalid systems');
     for(const use of Object.keys(TANK_USES)){const tank=s.tanks[use];if(!tank||tank.molecule!==null&&!validId(tank.molecule)||!integer(tank.amount)||tank.amount>0&&!tank.molecule)throw Error('Invalid tank');const capacity=tank.molecule?tankCapacity(use,tank.molecule,s.schemaVersion>=7?s.upgrades:{}):0;if(tank.molecule&&capacity===null||tank.amount>(capacity??0))throw Error('Invalid tank capacity');}
