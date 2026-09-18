@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createUniverse} from '../src/veil/universe.js';
 import {createRun,stepRun} from '../src/veil/expedition-run.js';
-import {createResources} from '../src/veil/resources.js';
+import {createResources,progressionElementAccessible} from '../src/veil/resources.js';
 import {createInitialResourcesState,MANAGED_ELEMENTS} from '../src/veil/resources-persistence.js';
 import {flightConfig} from '../src/veil/growth.js';
 import {
@@ -69,5 +69,5 @@ test('Rare trace pickup uses ordinary run cargo, normal settlement and forced-re
 test('Rare element management does not unlock Rare-containing Graph progression by stock alone',()=>{
   const resources=createResources({storage:null});resources.collect({P:3,S:3,F:3,Cl:3});
   for(const element of RARE_ECOLOGY_ELEMENTS){assert.ok(resources.state.progress.foundElements.includes(element));assert.equal(resources.canUseElement(element),true);}
-  assert.equal(resources.insightRecipeEligible('phosphoric-acid'),false);
+  for(const element of RARE_ECOLOGY_ELEMENTS)assert.equal(progressionElementAccessible(resources.state.progress,element),false,element+' resource discovery stays outside current Graph progression authority');
 });
