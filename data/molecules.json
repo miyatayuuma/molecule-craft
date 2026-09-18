@@ -3241,6 +3241,54 @@
     "commonNameEn": "Vinyl chloride"
   },
   {
+    "id": "chlorotrifluoroethylene",
+    "nameJa": "クロロトリフルオロエチレン",
+    "nameEn": "Chlorotrifluoroethylene",
+    "aliases": [
+      "CTFE"
+    ],
+    "atoms": [
+      "C",
+      "C",
+      "F",
+      "F",
+      "Cl",
+      "F"
+    ],
+    "bonds": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        0,
+        2,
+        1
+      ],
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        1,
+        4,
+        1
+      ],
+      [
+        1,
+        5,
+        1
+      ]
+    ],
+    "formula": "C2ClF3",
+    "category": "halogenated-hydrocarbon",
+    "iupacNameEn": "1-Chloro-1,2,2-trifluoroethene",
+    "commonNameJa": "クロロトリフルオロエチレン",
+    "commonNameEn": "Chlorotrifluoroethylene"
+  },
+  {
     "id": "chlorobenzene",
     "nameJa": "クロロベンゼン",
     "nameEn": "Chlorobenzene",
@@ -10021,53 +10069,5 @@
     "iupacNameEn": "1-Methyl-2,4,6-trinitrobenzene",
     "commonNameJa": "2,4,6-トリニトロトルエン",
     "commonNameEn": "2,4,6-Trinitrotoluene"
-  },
-  {
-    "id": "chlorotrifluoroethylene",
-    "nameJa": "クロロトリフルオロエチレン",
-    "nameEn": "Chlorotrifluoroethylene",
-    "aliases": [
-      "CTFE"
-    ],
-    "atoms": [
-      "C",
-      "C",
-      "F",
-      "F",
-      "Cl",
-      "F"
-    ],
-    "bonds": [
-      [
-        0,
-        1,
-        2
-      ],
-      [
-        0,
-        2,
-        1
-      ],
-      [
-        0,
-        3,
-        1
-      ],
-      [
-        1,
-        4,
-        1
-      ],
-      [
-        1,
-        5,
-        1
-      ]
-    ],
-    "formula": "C2ClF3",
-    "category": "halogenated-hydrocarbon",
-    "iupacNameEn": "1-Chloro-1,2,2-trifluoroethene",
-    "commonNameJa": "クロロトリフルオロエチレン",
-    "commonNameEn": "Chlorotrifluoroethylene"
   }
 ]
