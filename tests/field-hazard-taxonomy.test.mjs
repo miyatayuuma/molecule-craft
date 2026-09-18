@@ -26,9 +26,10 @@ assert.equal(PRODUCTION_HAZARD_FAMILIES.some(item=>item.type==='electrical'),fal
 
 const audit=FIELD_RESPONSIBILITY_AUDIT;
 assert.ok(audit.agents.some(item=>item.source==='Dust Eater'));
-assert.ok(audit.structures.some(item=>item.source.includes('Rare Survey')));
 assert.ok(audit.structures.some(item=>item.source.includes('resource dust')));
 assert.ok(audit.progressionMechanisms.some(item=>item.source.includes('Insight')));
+assert.ok(audit.progressionMechanisms.some(item=>item.source.includes('Core')));
+assert.equal(JSON.stringify(audit).includes('Rare Survey'),false,'retired Rare Survey is absent from FIELD responsibility authority');
 assert.ok(audit.environmentalHazards.every(item=>!item.source.includes('Dust Eater')));
 
 const map=createMap(73,{H:0,C:0,O:0},{capabilities:{combustionDrive:true}});
