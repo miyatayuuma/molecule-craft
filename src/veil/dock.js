@@ -5,7 +5,7 @@ import {HAZARD_TREATMENT_IDS,HAZARD_TREATMENTS,HAZARD_TREATMENT_MITIGATION,hazar
 const CHEMISTRY_LABELS=Object.freeze({
   ethene:{formula:'C₂H₄',name:'Ethene'},propene:{formula:'C₃H₆',name:'Propene'},
   phenol:{formula:'C₆H₆O',name:'Phenol'},formaldehyde:{formula:'CH₂O',name:'Formaldehyde'},
-  'phosphoric-acid':{formula:'H₃PO₄',name:'Phosphoric Acid'},'sulfuric-acid':{formula:'H₂SO₄',name:'Sulfuric Acid'},difluoromethane:{formula:'CH₂F₂',name:'Difluoromethane'},
+  'phosphoric-acid':{formula:'H₃PO₄',name:'Phosphoric Acid'},'sulfuric-acid':{formula:'H₂SO₄',name:'Sulfuric Acid'},difluoromethane:{formula:'CH₂F₂',name:'Difluoromethane'},'chlorotrifluoroethylene':{formula:'C₂ClF₃',name:'CTFE · Chlorotrifluoroethylene'},
 });
 const q=id=>document.getElementById(id),pause=()=>new Promise(resolve=>(globalThis.requestAnimationFrame??(fn=>setTimeout(fn,0)))(resolve));
 let selectedId='seal',busy=false,statusText='';
@@ -59,7 +59,7 @@ function renderTreatmentDetail(state,id,detail){
   const requirements=document.createElement('div');requirements.className='dock-requirements';requirements.setAttribute('aria-label','Required chemistry');requirements.append(requirementNode(plan.recipeId,plan.discovered));detail.append(requirements);
   const flow=document.createElement('div');flow.className='dock-flow';for(const [label,value] of [['CHEMISTRY',plan.chemistry],['PROCESS',plan.process],['COMPONENT',plan.component],['PROPERTY',plan.property],['HAZARD',`${plan.label} −${mitigation}%`]]){const cell=document.createElement('div');cell.innerHTML=`<span>${label}</span><strong>${value}</strong>`;flow.append(cell);}detail.append(flow);
   const charge=document.createElement('div');charge.className='dock-charge';charge.innerHTML=`<span><b>TREATMENT CHARGE</b><strong>${percent}%</strong></span><i><b style="transform:scaleX(${plan.charge})"></b></i>`;detail.append(charge);
-  const cost=document.createElement('p');cost.className='dock-cost';cost.textContent=`2 molecules相当 · ${Object.entries(plan.cost).map(([element,count])=>`${element} ×${count}`).join(' · ')}`;detail.append(cost);
+  const cost=document.createElement('p');cost.className='dock-cost';cost.textContent=`${plan.id==='electrical'?'絶縁加工素材':'2 molecules相当'} · ${Object.entries(plan.cost).map(([element,count])=>`${element} ×${count}`).join(' · ')}`;detail.append(cost);
   const actions=document.createElement('div');actions.className='dock-actions';const note=document.createElement('p');note.className='dock-status';note.textContent=statusText||(!plan.productionHazard?'現在のFIELDにABRASIVE sourceは未観測。処理authorityのみ準備されます。':plan.charge>0?'chargeが0%になるまで再施工できません':!plan.worldAwakened?'World Awakening後に施工可能':!plan.discovered?'Utility moleculeをdiscoverすると解放':!plan.affordable?'BASE STOCKを補給':'Rare chemistry → 機体処理 → hazard mitigation');const action=document.createElement('button');action.type='button';action.className='primary';action.dataset.dockTreatmentExecute=id;action.textContent=plan.charge>0?`ACTIVE ${percent}%`:'処理を施工';action.disabled=busy||!plan.ready;action.addEventListener('click',()=>executeTreatment(id));actions.append(note,action);detail.append(actions);
 }
 
