@@ -2,6 +2,7 @@ import {drawChallengeCurrents} from './expedition-challenges.js';
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,oxygenGateEnvelopeAt } from './oxygen-routes.js';
+import {nitrogenVisualEffectiveAt} from './nitrogen-routes.js';
 import { random } from './map.js';
 import { clamp } from './engine.js';
 import { drawCollectorShell } from './collector-shell.js';
@@ -143,7 +144,7 @@ export function createVeilRenderer(canvas){
       // continuous route/belt fill. Visual density follows the same base/world intensity.
       for(const visual of run.map.nitrogenVisuals??[]){
         const item=run.map.nitrogenHazards.find(hazard=>hazard.id===visual.hazardId);if(!item)continue;
-        const worldMultiplier=run.map.worldState==='awakened'?(item.type==='thermal'?1.16:1.22):1,effective=Math.min(1.25,visual.spatial*item.baseIntensity*worldMultiplier),at=screen(visual.x,visual.y),pulse=.82+.18*Math.sin(run.time*.7+visual.phase),alpha=effective*pulse;
+        const effective=Math.min(1.25,nitrogenVisualEffectiveAt(item,visual,run.time,{worldState:run.map.worldState}).scale),at=screen(visual.x,visual.y),pulse=.82+.18*Math.sin(run.time*.7+visual.phase),alpha=effective*pulse;
         if(alpha<.035||at.x<-120||at.x>w+120||at.y<-120||at.y>h+120)continue;
         const radius=(item.type==='thermal'?42:34)*scale*(.75+effective*.55),fog=ctx.createRadialGradient(at.x,at.y,1,at.x,at.y,radius);
         if(item.type==='thermal'){fog.addColorStop(0,`rgba(235,116,80,${.11*alpha})`);fog.addColorStop(1,'rgba(200,83,56,0)');}
