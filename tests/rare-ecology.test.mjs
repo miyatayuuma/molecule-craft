@@ -23,7 +23,7 @@ test('Rare ecology authority maps one trace element to each FIELD area and uses 
     assert.equal(rareEcologyTreatmentReserve(element,atomsPerTreatment*3),3);
     assert.deepEqual([0,atomsPerTreatment,atomsPerTreatment*2,atomsPerTreatment*3,atomsPerTreatment*4].map(held=>rareEcologyInventoryMultiplier(element,held)),[1,.85,.55,.20,.05]);
   }
-  const cl=RARE_ECOLOGY_SUPPRESSION.Cl;assert.equal(rareEcologyTreatmentReserve('Cl',20),null);assert.equal(rareEcologyInventoryMultiplier('Cl',0),1);assert.ok(rareEcologyInventoryMultiplier('Cl',cl.reserveTarget)<1);assert.ok(rareEcologyInventoryMultiplier('Cl',cl.reserveTarget*20)>=cl.densityFloor);
+  const cl=RARE_ECOLOGY_SUPPRESSION.Cl;assert.equal(rareEcologyTreatmentReserve('Cl',20),10);assert.equal(cl.reserveUnit,2);assert.equal(rareEcologyInventoryMultiplier('Cl',0),1);assert.ok(rareEcologyInventoryMultiplier('Cl',cl.reserveTarget)<1);assert.ok(rareEcologyInventoryMultiplier('Cl',cl.reserveTarget*20)>=cl.densityFloor);
 });
 
 test('Rare ecology is absent before committed Awakening and activates only on a later awakened expedition',()=>{
