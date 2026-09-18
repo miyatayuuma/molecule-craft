@@ -56,6 +56,12 @@ test('Nitrogen environment and depletion layout do not reroll when launch seed c
   assert.deepEqual(nLayout(a),nLayout(b),'N depletion must not offer launch-seed reroll farming');
 });
 
+test('Nitrogen ambient composition remains visible at saturated CHO stock without becoming a reroll target',()=>{
+  const saturated={H:1200,C:1200,N:1200,O:1200},a=createUniverse(41,saturated,{capabilities:{combustionDrive:true,nitrogenField:true}}),b=createUniverse(987654,saturated,{capabilities:{combustionDrive:true,nitrogenField:true}});
+  const ambient=map=>map.dust.filter(item=>String(item.route??'').startsWith('nitrogen-ambient-')).map(item=>[item.route,item.x,item.y,item.element]);
+  assert.ok(ambient(a).length>0,'mixed H/C/O traces must remain visible even when CHO stock is saturated');assert.ok(new Set(ambient(a).map(item=>item[3])).size>=2,'Nitrogen should not collapse visually into an N-only particle belt');assert.deepEqual(ambient(a),ambient(b),'ambient composition uses the persistent Nitrogen world seed, not launch RNG');
+});
+
 test('Nitrogen starter yield is bounded and inventory depletion gradually suppresses optional farming while retaining mainline supply',()=>{
   const fresh=nitrogenRun(0).map,mid=nitrogenRun(250).map,full=nitrogenRun(425).map;
   const freshMain=mainN(fresh),midMain=mainN(mid),fullMain=mainN(full),freshPocket=pocketN(fresh),midPocket=pocketN(mid),fullPocket=pocketN(full);
