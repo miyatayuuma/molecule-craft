@@ -1,116 +1,94 @@
-import {createRoute,smoothCurve,straight,routeFlowAt} from './route-kit.js';
-import {inventoryDepletion,random} from './map.js';
+import {createRoute,smoothCurve,straight} from './route-kit.js';
+import {inventoryDepletion,keepDepletedSegment,random} from './map.js';
 import {NITROGEN_ENTRY} from './nitrogen-config.js';
-import {defineHazard,HAZARD_TYPES} from './hazards.js';
+import {defineHazard,deterministicNoise1D,effectiveHazardScale,hazardSample,HAZARD_TYPES} from './hazards.js';
 
 const freeze=value=>Object.freeze(value);
-const freezeList=values=>Object.freeze(values.map(value=>Object.freeze(value)));
-const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
+const smoothstep=value=>{const t=clamp01(value);return t*t*(3-2*t);};
 
-// Nitrogen is intentionally one continuous chapter rather than a route-choice
-// network.  The route changes shape and encounter grammar several times so the
-// player reads distinct spaces instead of six copies of the same pulse corridor.
 export const NITROGEN_ROUTE=createRoute({
-  id:'nitrogen-main',entry:NITROGEN_ENTRY,width:300,spacing:30,
+  id:'nitrogen-main',entry:NITROGEN_ENTRY,width:820,spacing:30,
   segments:[
-    straight({length:320}),
-    smoothCurve({length:520,turn:.60}),straight({length:360}),
-    smoothCurve({length:520,turn:-1.00}),straight({length:260}),
-    smoothCurve({length:620,turn:1.05}),straight({length:300}),
-    smoothCurve({length:500,turn:-.75}),straight({length:360}),
+    straight({length:720}),smoothCurve({length:760,turn:.42}),straight({length:760}),smoothCurve({length:900,turn:-.68}),
+    straight({length:720}),smoothCurve({length:860,turn:.58}),straight({length:860}),smoothCurve({length:820,turn:-.52}),
+    straight({length:900}),smoothCurve({length:760,turn:.36}),straight({length:980}),
   ],
 });
+const pointAt=progress=>NITROGEN_ROUTE.points[Math.max(0,Math.min(NITROGEN_ROUTE.points.length-1,Math.round(progress*(NITROGEN_ROUTE.points.length-1))))];
+const offsetAt=(progress,offset=0)=>{const p=pointAt(progress);return {x:p.x-Math.sin(p.angle)*offset,y:p.y+Math.cos(p.angle)*offset,angle:p.angle};};
+const sectionPoints=(start,end)=>NITROGEN_ROUTE.points.slice(Math.floor(start*(NITROGEN_ROUTE.points.length-1)),Math.ceil(end*(NITROGEN_ROUTE.points.length-1))+1);
 
-export const NITROGEN_ZONES=freezeList([
-  {id:'nitrogen-entry',label:'Threshold Fan',kind:'entry',start:0,end:.17,width:360,resourceStride:1,laneOffsets:[0]},
-  {id:'nitrogen-crosswind',label:'Crosswind Weave',kind:'movement',start:.17,end:.46,width:220,resourceStride:1,laneOffsets:[0]},
-  {id:'nitrogen-harvest-basin',label:'Harvest Basin',kind:'collection',start:.46,end:.67,width:480,resourceStride:2,laneOffsets:[-80,80]},
-  {id:'nitrogen-recovery-shelf',label:'Recovery Shelf',kind:'recovery',start:.67,end:.79,width:540,resourceStride:3,laneOffsets:[0]},
-  {id:'nitrogen-critical-approach',label:'Critical Approach',kind:'approach',start:.79,end:1,width:260,resourceStride:1,laneOffsets:[0]},
-].map(zone=>({...zone,laneOffsets:Object.freeze(zone.laneOffsets)})));
+export const NITROGEN_ZONES=Object.freeze([
+  freeze({id:'nitrogen-entry-expanse',kind:'entry',start:0,end:.20,width:920,points:sectionPoints(0,.20)}),
+  freeze({id:'nitrogen-mid-field',kind:'mid',start:.20,end:.46,width:800,points:sectionPoints(.20,.46)}),
+  freeze({id:'nitrogen-critical-reach',kind:'critical',start:.46,end:.58,width:880,points:sectionPoints(.46,.58)}),
+  freeze({id:'deep-nitrogen',kind:'deep',start:.58,end:.86,width:780,points:sectionPoints(.58,.86)}),
+  freeze({id:'core-approach',kind:'core',start:.86,end:1,width:900,points:sectionPoints(.86,1)}),
+]);
+export const NITROGEN_HIGH_DENSITY_POCKET=freeze({...offsetAt(.36,300),id:'nitrogen-high-density-pocket',radius:170,particles:48,value:2});
+export const NITROGEN_RECOVERY_AREAS=Object.freeze([freeze({...offsetAt(.57,-275),id:'nitrogen-recovery-shelf',radius:235}),freeze({...offsetAt(.76,285),id:'deep-nitrogen-recovery',radius:220})]);
+export const NITROGEN_RECOVERY_AREA=NITROGEN_RECOVERY_AREAS[0];
+export const NITROGEN_INSIGHT_AREA=freeze({...offsetAt(.49,-315),id:'nitrogen-critical-pocket',radius:155});
+export const NITROGEN_RARE_CL_SITE=freeze({...offsetAt(.63,470),id:'rare-cl-nitrogen-pocket'});
+export const NITROGEN_CORE=freeze({...offsetAt(.965,0),id:'nitrogen-core',radius:155,fractureRadius:245});
 
-const pointAt=progress=>NITROGEN_ROUTE.points[Math.min(NITROGEN_ROUTE.points.length-1,Math.max(0,Math.round(clamp(progress,0,1)*(NITROGEN_ROUTE.points.length-1))))];
-const offsetAt=(progress,lateral=0)=>{const p=pointAt(progress);return freeze({x:p.x-Math.sin(p.angle)*lateral,y:p.y+Math.cos(p.angle)*lateral,angle:p.angle,progress:clamp(progress,0,1)});};
-const zonePoints=zone=>{
-  const last=NITROGEN_ROUTE.points.length-1,start=Math.max(0,Math.floor(zone.start*last)),end=Math.min(last,Math.ceil(zone.end*last));
-  return Object.freeze(NITROGEN_ROUTE.points.slice(start,end+1));
+const hazard=(id,progress,{offset=0,radius=360,type=HAZARD_TYPES.MECHANICAL,subtype='turbulence',baseIntensity=.5,force=0,heat=0,angle=null,pulse=.16,phase=0}={})=>{
+  const p=offsetAt(progress,offset);return freeze({id,progress,x:p.x,y:p.y,radius,type,subtype,baseIntensity,force,heat,angle:angle??p.angle+Math.PI/2,pulse,phase,hazard:defineHazard(id,type,subtype,{source:'nitrogen-field'})});
 };
-export const NITROGEN_ZONE_GEOMETRY=Object.freeze(NITROGEN_ZONES.map(zone=>freeze({...zone,points:zonePoints(zone)})));
-export function nitrogenZoneAtProgress(progress){const t=clamp(Number(progress)||0,0,1);return NITROGEN_ZONES.find((zone,index)=>t>=zone.start&&(index===NITROGEN_ZONES.length-1?t<=zone.end:t<zone.end))??NITROGEN_ZONES.at(-1);}
-
-function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy,t=l2?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l2,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
-function polylineDistance(points,p){let best=Infinity;for(let i=0;i<points.length-1;i++)best=Math.min(best,segmentDistance(p,points[i],points[i+1]));return best;}
-export function nitrogenZoneAtPoint(p){
-  if(!p)return null;
-  let best=null;
-  for(const zone of NITROGEN_ZONE_GEOMETRY){const distance=polylineDistance(zone.points,p);if(distance<=zone.width/2&&(!best||distance<best.distance))best={zone,distance};}
-  return best?.zone??null;
-}
-
-export const NITROGEN_HIGH_DENSITY_POCKET=freeze({...offsetAt(.57,260),id:'nitrogen-high-density',radius:125,particles:54,value:2});
-export const NITROGEN_RECOVERY_AREA=freeze({...offsetAt(.73,0),id:'nitrogen-recovery',radius:190});
-export const NITROGEN_INSIGHT_AREA=freeze({...offsetAt(.84,-140),id:'nitrogen-critical-insight',radius:165});
-export const NITROGEN_RARE_CL_SITE=freeze({...offsetAt(.59,470),id:'rare-cl-nitrogen-pocket'});
-
-function pulseAt(id,progress,{force,radius,offset=0,angleOffset=Math.PI/2,optional=false}={}){
-  const p=offsetAt(progress,offset);return freeze({id,progress,x:p.x,y:p.y,force,radius,angle:p.angle+angleOffset,optional,hazard:defineHazard(id,HAZARD_TYPES.MECHANICAL,'shear',{source:'map.fields'})});
-}
-// Five disturbances shape the mainline; the fourth pulse is an optional shear
-// protecting the richer collection side.  Irregular spacing/radius/direction
-// avoids a metronomic obstacle sequence while preserving the existing PULSE roles.
-export const NITROGEN_PULSES=Object.freeze([
-  pulseAt('nitrogen-pulse-entry',.16,{force:360,radius:210,angleOffset:Math.PI/2}),
-  pulseAt('nitrogen-pulse-weave-a',.27,{force:610,radius:125,angleOffset:-Math.PI/2}),
-  pulseAt('nitrogen-pulse-weave-b',.36,{force:540,radius:145,angleOffset:Math.PI/2}),
-  pulseAt('nitrogen-pulse-pocket',.57,{force:500,radius:140,offset:165,angleOffset:-Math.PI/2,optional:true}),
-  pulseAt('nitrogen-pulse-approach',.83,{force:420,radius:185,angleOffset:Math.PI}),
-  pulseAt('nitrogen-pulse-final',.94,{force:600,radius:130,angleOffset:Math.PI/2}),
+export const NITROGEN_HAZARDS=Object.freeze([
+  hazard('nitrogen-entry-turbulence',.12,{offset:-120,radius:410,subtype:'turbulence',baseIntensity:.34,force:54,pulse:.12,phase:.3}),
+  hazard('nitrogen-entry-shear',.21,{offset:250,radius:350,subtype:'shear',baseIntensity:.44,force:105,angle:0,pulse:.14,phase:1.2}),
+  hazard('nitrogen-mid-pressure',.29,{offset:-170,radius:430,subtype:'pressure',baseIntensity:.58,force:155,angle:Math.PI/2,pulse:.10,phase:2.1}),
+  hazard('nitrogen-mid-shear',.39,{offset:260,radius:390,subtype:'shear',baseIntensity:.68,force:170,angle:Math.PI,pulse:.18,phase:.7}),
+  hazard('nitrogen-critical-turbulence',.50,{offset:175,radius:360,subtype:'turbulence',baseIntensity:.52,force:78,pulse:.17,phase:2.7}),
+  hazard('deep-nitrogen-pressure-a',.62,{offset:-235,radius:465,subtype:'pressure',baseIntensity:.72,force:190,angle:Math.PI/2,pulse:.13,phase:1.4}),
+  hazard('deep-nitrogen-thermal',.69,{offset:225,radius:500,type:HAZARD_TYPES.THERMAL,subtype:'hot-zone',baseIntensity:.72,heat:32,pulse:.08,phase:.2}),
+  hazard('deep-nitrogen-shear',.77,{offset:-250,radius:430,subtype:'shear',baseIntensity:.80,force:205,angle:0,pulse:.18,phase:2.4}),
+  hazard('deep-nitrogen-turbulence',.84,{offset:185,radius:470,subtype:'turbulence',baseIntensity:.82,force:112,pulse:.20,phase:1}),
+  hazard('core-approach-thermal',.90,{offset:-180,radius:500,type:HAZARD_TYPES.THERMAL,subtype:'hot-zone',baseIntensity:.84,heat:38,pulse:.08,phase:1.8}),
+  hazard('core-approach-pressure',.935,{offset:205,radius:450,subtype:'pressure',baseIntensity:.90,force:225,angle:Math.PI/2,pulse:.15,phase:.5}),
 ]);
-export const NITROGEN_MAINLINE_PULSES=Object.freeze(NITROGEN_PULSES.filter(pulse=>!pulse.optional));
-export const NITROGEN_LANDMARKS=freezeList([
-  {...offsetAt(.08),id:'nitrogen-threshold-fan',kind:'threshold',radius:180},
-  {x:NITROGEN_HIGH_DENSITY_POCKET.x,y:NITROGEN_HIGH_DENSITY_POCKET.y,id:'nitrogen-harvest-basin-landmark',kind:'harvest',radius:220},
-  {x:NITROGEN_RECOVERY_AREA.x,y:NITROGEN_RECOVERY_AREA.y,id:'nitrogen-recovery-landmark',kind:'recovery',radius:NITROGEN_RECOVERY_AREA.radius},
-  {x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y,id:'nitrogen-insight-alcove-landmark',kind:'insight',radius:175},
-]);
+export const NITROGEN_PULSES=Object.freeze(NITROGEN_HAZARDS.filter(item=>item.type===HAZARD_TYPES.MECHANICAL));
 
-const nitrogenRetention=(level,{optional=false}={})=>optional?Math.max(0,1-level):Math.max(.3,1-level*.7);
-function keepNitrogenSample(level,seed,index,count,{optional=false}={}){
-  const retention=nitrogenRetention(level,{optional}),keepCount=Math.max(optional?0:1,Math.round(count*retention));
-  if(keepCount>=count)return true;if(keepCount<=0)return false;
-  const phase=Math.floor(random(seed)()*count);
-  return (Math.imul(index,37)+phase)%count<keepCount;
-}
-export function nitrogenInsightAreaAt(p){return !!p&&Math.hypot(p.x-NITROGEN_INSIGHT_AREA.x,p.y-NITROGEN_INSIGHT_AREA.y)<=NITROGEN_INSIGHT_AREA.radius;}
-export function nitrogenEnvironmentAt(p,time=0){
-  let flowX=0,flowY=0,intensity=0;
-  for(const pulse of NITROGEN_PULSES){const dx=p.x-pulse.x,dy=p.y-pulse.y,d=Math.hypot(dx,dy),radius=pulse.radius;if(d>=radius)continue;const spatial=(1-d/radius)**2,beat=.76+.24*Math.sin(time*3.1+pulse.progress*11),strength=pulse.force*spatial*beat;flowX+=Math.cos(pulse.angle)*strength;flowY+=Math.sin(pulse.angle)*strength*.08;intensity=Math.max(intensity,spatial);}
-  let guide={x:0,y:0,intensity:0};
-  for(const zone of NITROGEN_ZONE_GEOMETRY){const next=routeFlowAt({points:zone.points,width:zone.width},p,{speed:zone.kind==='recovery'?6:11,radius:zone.width*.48});if(next.intensity>guide.intensity)guide=next;}
-  return {flowX:flowX+guide.x,flowY:flowY+guide.y,intensity:Math.max(intensity,guide.intensity)};
-}
-export function appendNitrogenField(map,seed=1,stock={}){
-  if(map.routes?.some(route=>route.id===NITROGEN_ROUTE.id))return map;
-  const depletion=inventoryDepletion(stock,'N'),rng=random(seed^0x6e6974),route={id:NITROGEN_ROUTE.id,label:'Nitrogen Chapter',element:'N',sourceElement:'N',points:NITROGEN_ROUTE.points,width:NITROGEN_ROUTE.width,spacing:30,lanes:1,authoredLanes:1,value:1,routeDepletion:depletion,nitrogen:true,nitrogenZones:NITROGEN_ZONE_GEOMETRY};
-  map.routes.push(route);map.depletion.N=depletion;map.nitrogenZones=NITROGEN_ZONE_GEOMETRY.map(zone=>({...zone,points:[...zone.points]}));map.nitrogenLandmarks=NITROGEN_LANDMARKS.map(item=>({...item}));
+export const nitrogenZoneAtProgress=progress=>NITROGEN_ZONES.find(zone=>progress>=zone.start&&progress<zone.end)??NITROGEN_ZONES.at(-1);
+export function nitrogenZoneAtPoint(p){if(!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return null;let best=null;for(const zone of NITROGEN_ZONES)for(const point of zone.points){const d=Math.hypot(p.x-point.x,p.y-point.y);if(d<zone.width/2&&(!best||d<best.distance))best={zone,distance:d};}return best?.zone??null;}
+export const nitrogenRecoveryAt=p=>NITROGEN_RECOVERY_AREAS.find(area=>Math.hypot(p.x-area.x,p.y-area.y)<=area.radius)??null;
+export const nitrogenInsightAreaAt=p=>Math.hypot((p?.x??Infinity)-NITROGEN_INSIGHT_AREA.x,(p?.y??Infinity)-NITROGEN_INSIGHT_AREA.y)<=NITROGEN_INSIGHT_AREA.radius;
+export const nitrogenCoreInRange=(run,p=run?.player)=>{const core=run?.map?.nitrogenCore;return !!core&&!core.fractured&&Number.isFinite(p?.x)&&Math.hypot(p.x-core.x,p.y-core.y)<=core.fractureRadius;};
 
-  const candidates=[];
-  for(const [i,p] of NITROGEN_ROUTE.points.entries()){
-    const progress=i/Math.max(1,NITROGEN_ROUTE.points.length-1),zone=nitrogenZoneAtProgress(progress);if(i%zone.resourceStride!==0)continue;
-    for(const laneOffset of zone.laneOffsets){const lateral=laneOffset+(rng()-.5)*8,x=p.x-Math.sin(p.angle)*lateral,y=p.y+Math.cos(p.angle)*lateral;candidates.push({x,y,angle:p.angle,zone:zone.id,laneOffset});}
+export function nitrogenHazardSpatialAt(item,p,seed=1){
+  if(!item||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return 0;
+  const dx=p.x-item.x,dy=p.y-item.y,distance=Math.hypot(dx,dy),angle=Math.atan2(dy,dx),edgeNoise=deterministicNoise1D(seed,`nitrogen:${item.id}:edge`,angle*item.radius,item.radius*.72),effectiveRadius=item.radius*(1+edgeNoise*.095),core=effectiveRadius*.22;
+  if(distance>=effectiveRadius)return 0;const falloff=distance<=core?1:1-smoothstep((distance-core)/(effectiveRadius-core)),densityNoise=deterministicNoise1D(seed,`nitrogen:${item.id}:density`,p.x*.31+p.y*.69,260);return clamp01(falloff*(.93+densityNoise*.07));
+}
+export function nitrogenHazardEffectiveAt(item,p,time=0,seed=1,{worldState='base'}={}){
+  const spatial=nitrogenHazardSpatialAt(item,p,seed),recovery=nitrogenRecoveryAt(p),recoveryScale=recovery?.id?0.22:1,temporal=1-(item.pulse??0)+(item.pulse??0)*(.5+.5*Math.sin(time*1.35+item.phase)),scale=effectiveHazardScale(spatial*temporal*recoveryScale,item.baseIntensity,item.type,worldState);
+  return {spatial,temporal,recovery,scale,intensity:clamp01(scale)};
+}
+export function nitrogenEnvironmentAt(p,time=0,seed=1,{worldState='base'}={}){
+  let pressure=0,flowX=0,flowY=0,heat=0;const hazards=[];
+  for(const item of NITROGEN_HAZARDS){const sample=nitrogenHazardEffectiveAt(item,p,time,seed,{worldState});if(sample.scale<=1e-6)continue;
+    if(item.type===HAZARD_TYPES.THERMAL){const localHeat=item.heat*sample.scale;heat=Math.max(heat,localHeat);const h=hazardSample(item.hazard,sample.intensity,{severity:localHeat,heat:localHeat});if(h)hazards.push(h);continue;}
+    const angle=item.subtype==='turbulence'?item.angle+Math.sin(time*.72+item.phase)*.55:item.angle,force=item.force*sample.scale,vx=Math.cos(angle)*force,vy=Math.sin(angle)*force;
+    if(item.subtype==='pressure')pressure+=Math.max(0,vy||force);else{flowX+=vx;flowY+=vy;}const h=hazardSample(item.hazard,sample.intensity,{severity:force,vector:{x:vx,y:vy}});if(h)hazards.push(h);
   }
-  for(const [i,candidate] of candidates.entries()){
-    if(!keepNitrogenSample(depletion,seed^0x4e32,i,candidates.length))continue;
-    map.dust.push({id:map.dust.length,x:candidate.x,y:candidate.y,baseX:candidate.x,baseY:candidate.y,angle:candidate.angle,route:NITROGEN_ROUTE.id,element:'N',kind:'nitrogen',value:1,ready:0,lane:candidate.laneOffset,zone:candidate.zone});
+  return {pressure,flowX,flowY,heat,hazards,recovery:nitrogenRecoveryAt(p),combustionHeatFactor:1+Math.min(.7,heat/85)};
+}
+const keepNitrogenSample=(depletion,seed,index,id,{optional=false}={})=>keepDepletedSegment(depletion,seed,id,index,{optional});
+function addDust(map,{x,y,angle,route,element,kind,value=1,ready=0,...extra}){map.dust.push({id:map.dust.length,x,y,angle,route,element,kind,value,ready,...extra});}
+function buildNitrogenVisuals(seed){const visuals=[],rng=random(seed^0x6e697472);for(const item of NITROGEN_HAZARDS)for(let i=0;i<12;i++){const angle=i*2.399963+rng()*.34,radius=Math.sqrt((i+.4)/12)*item.radius*.91,x=item.x+Math.cos(angle)*radius,y=item.y+Math.sin(angle)*radius,spatial=nitrogenHazardSpatialAt(item,{x,y},seed);if(spatial>.04)visuals.push({id:`${item.id}:${i}`,hazardId:item.id,x,y,spatial,phase:rng()*Math.PI*2,type:item.type,subtype:item.subtype,baseIntensity:item.baseIntensity,angle:item.angle});}return visuals;}
+
+export function appendNitrogenField(map,seed=1,stock={},options={}){
+  if(!map||map.routes?.some(route=>route.id===NITROGEN_ROUTE.id)){if(map?.nitrogenCore&&options.coreFractured===true)map.nitrogenCore.fractured=true;return map;}
+  map.depletion??={};map.depletion.N=inventoryDepletion(stock.N??0);const depletion=map.depletion.N,route={...NITROGEN_ROUTE,element:null,sourceElement:'N',kind:'nitrogen-field',nitrogen:true,routeDepletion:depletion,lanes:1,authoredLanes:1,value:1};
+  map.routes.push(route);map.nitrogenZones=NITROGEN_ZONES;map.nitrogenHazards=NITROGEN_HAZARDS;map.nitrogenRecoveryAreas=NITROGEN_RECOVERY_AREAS;map.nitrogenVisuals=buildNitrogenVisuals(seed);map.nitrogenCore={...NITROGEN_CORE,fractured:options.coreFractured===true};
+  for(const [i,p] of route.points.entries()){
+    if(i%3===0){if(keepNitrogenSample(depletion,seed^0x4e32,i,`${route.id}:N`))addDust(map,{x:p.x,y:p.y,angle:p.angle,route:route.id,element:'N',kind:'nitrogen',value:1});continue;}
+    const mixed=i%41===0?'C':i%23===0?'O':i%17===0?'H':null;if(!mixed)continue;const mixedDepletion=map.depletion[mixed]??0;if(!keepDepletedSegment(mixedDepletion,seed^0x316d,`${route.id}:${mixed}`,i,{optional:true}))continue;
+    addDust(map,{x:p.x+(i%2?34:-34)*Math.cos(p.angle),y:p.y+(i%2?34:-34)*Math.sin(p.angle),angle:p.angle,route:`nitrogen-ambient-${mixed.toLowerCase()}`,element:mixed,kind:mixed==='C'?'carbon':mixed==='O'?'oxygen':'normal',value:1,ambient:true});
   }
-  for(let i=0;i<NITROGEN_HIGH_DENSITY_POCKET.particles;i++){
-    if(!keepNitrogenSample(depletion,seed^0x91a7,i,NITROGEN_HIGH_DENSITY_POCKET.particles,{optional:true}))continue;
-    const a=i*2.399963,r=Math.sqrt((i+.5)/NITROGEN_HIGH_DENSITY_POCKET.particles)*NITROGEN_HIGH_DENSITY_POCKET.radius,x=NITROGEN_HIGH_DENSITY_POCKET.x+Math.cos(a)*r,y=NITROGEN_HIGH_DENSITY_POCKET.y+Math.sin(a)*r;map.dust.push({id:map.dust.length,x,y,angle:NITROGEN_HIGH_DENSITY_POCKET.angle,route:NITROGEN_HIGH_DENSITY_POCKET.id,element:'N',kind:'nitrogen',value:NITROGEN_HIGH_DENSITY_POCKET.value,ready:0,pocket:NITROGEN_HIGH_DENSITY_POCKET.id});
-  }
-  for(const pulse of NITROGEN_PULSES)map.fields.push({id:pulse.id,x:pulse.x,y:pulse.y,radius:pulse.radius,phase:pulse.progress*1.7,angle:pulse.angle,force:pulse.force,kind:'nitrogen-pulse',route:NITROGEN_ROUTE.id,optional:pulse.optional,hazard:pulse.hazard});
+  for(let i=0;i<NITROGEN_HIGH_DENSITY_POCKET.particles;i++){if(!keepNitrogenSample(depletion,seed^0x91a7,i,NITROGEN_HIGH_DENSITY_POCKET.id,{optional:true}))continue;const a=i*2.399963,r=Math.sqrt((i+.5)/NITROGEN_HIGH_DENSITY_POCKET.particles)*NITROGEN_HIGH_DENSITY_POCKET.radius;addDust(map,{x:NITROGEN_HIGH_DENSITY_POCKET.x+Math.cos(a)*r,y:NITROGEN_HIGH_DENSITY_POCKET.y+Math.sin(a)*r,angle:NITROGEN_HIGH_DENSITY_POCKET.angle,route:NITROGEN_HIGH_DENSITY_POCKET.id,element:'N',kind:'nitrogen',value:NITROGEN_HIGH_DENSITY_POCKET.value,pocket:NITROGEN_HIGH_DENSITY_POCKET.id});}
   map.signals?.push({id:'nitrogen-insight',region:'nitrogen',x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y,anchorX:NITROGEN_INSIGHT_AREA.x,anchorY:NITROGEN_INSIGHT_AREA.y,ready:false,roll:.11,choice:.23,nitrogenCritical:true});
-  map.labels.push({x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,text:'NITROGEN FIELD · threshold fan'});
-  for(const zone of NITROGEN_ZONE_GEOMETRY){const center=zone.points[Math.floor(zone.points.length/2)];map.labels.push({x:center.x,y:center.y,text:`${zone.label} · width ${zone.width}`});}
-  map.labels.push({x:NITROGEN_HIGH_DENSITY_POCKET.x,y:NITROGEN_HIGH_DENSITY_POCKET.y,text:'optional high-density N pocket'},{x:NITROGEN_RECOVERY_AREA.x,y:NITROGEN_RECOVERY_AREA.y,text:'environment recovery · reorient'},{x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y,text:'N₂ Critical Insight alcove'});
-  return map;
+  map.labels.push({x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,text:'NITROGEN FIELD · open entry'},{x:NITROGEN_INSIGHT_AREA.x,y:NITROGEN_INSIGHT_AREA.y,text:'N₂ Critical pocket'});for(const area of NITROGEN_RECOVERY_AREAS)map.labels.push({x:area.x,y:area.y,text:'environment recovery'});map.labels.push({x:NITROGEN_CORE.x,y:NITROGEN_CORE.y,text:'CORE · rare-bearing inclusion'});return map;
 }
