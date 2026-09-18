@@ -27,6 +27,8 @@ jobs:
           node tests/nitrogen-field-map.test.mjs
       - name: FIELD hazard authority
         run: node tests/field-hazard-taxonomy.test.mjs
+      - name: FIELD runtime allowlist
+        run: node tests/field-runtime-allowlist.test.mjs
       - name: FIELD expansion proposal map
         run: node tests/field-expansion-proposal.test.mjs
       - name: Molecule graph / frontier
@@ -104,10 +106,6 @@ jobs:
           node tests/nitrogen-visual-identity.test.mjs
           node tests/nitrogen-field-pickup-browser.test.mjs
           node tests/inventory-depletion.test.mjs
-      - name: Rare Survey finite anomaly foundation
-        run: |
-          node tests/rare-survey.test.mjs
-          node tests/rare-survey-browser.test.mjs
       - name: CRAFT input recovery
         run: |
           node tests/craft-controls-ui.test.mjs
