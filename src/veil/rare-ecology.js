@@ -65,7 +65,7 @@ export function applyRareEcology(map,stock={},{eligible=false}={}){
   for(const [area,config] of Object.entries(RARE_ECOLOGY_AREA_CONFIG)){
     const candidates=sockets.filter(socket=>socket.area===area&&socket.element===config.primaryElement).map(socket=>({...socket,roll:hashUnit(socket.key)})).sort((a,b)=>a.roll-b.roll||a.key.localeCompare(b.key));
     const held=Math.max(0,Number(stock?.[config.element])||0),multiplier=rareEcologyInventoryMultiplier(config.element,held),target=eligible?rareEcologyTargetCount(config.element,candidates.length,held):0;
-    diagnostics.areas[area]={element:config.element,primaryElement:config.primaryElement,candidates:candidates.length,selected:target,baseDensity:config.baseDensity,maxReplacementFraction:config.maxReplacementFraction,held,multiplier};
+    diagnostics.areas[area]={element:config.element,primaryElement:config.primaryElement,candidates:candidates.length,selected:target,baseDensity:config.baseDensity,maxReplacementFraction:config.maxReplacementFraction,held,treatmentReserve:rareEcologyTreatmentReserve(config.element,held),multiplier};
     if(!eligible)continue;for(let rank=0;rank<target;rank++)replaceSocketDust(map,candidates[rank],config.element,rank,candidates.length,held);
   }
   map.rareEcology=diagnostics;return map;
