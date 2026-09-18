@@ -66,6 +66,12 @@ test('Rare trace pickup uses ordinary run cargo, normal settlement and forced-re
   const forced=resources.settleExpedition({H:0,C:0,N:0,O:0,P:20,S:0,F:0,Cl:0},0,true);assert.equal(forced.lost.P,3);assert.equal(forced.kept.P,17);
 });
 
+test('schema-v8 saves from before managed Rare promotion normalize missing Rare stocks without losing progression',()=>{
+  const legacy=createInitialResourcesState();legacy.progress.choCompleted=true;legacy.progress.worldAwakened=true;legacy.progress.rareEcologyEligible=true;for(const element of RARE_ECOLOGY_ELEMENTS)delete legacy.elements[element];
+  let raw=JSON.stringify(legacy);const storage={getItem:()=>raw,setItem:(_key,value)=>{raw=String(value);},removeItem:()=>{}},resources=createResources({storage});
+  assert.deepEqual(RARE_ECOLOGY_ELEMENTS.map(element=>resources.state.elements[element]),[0,0,0,0]);assert.equal(resources.state.progress.worldAwakened,true);assert.equal(resources.state.progress.rareEcologyEligible,true);
+});
+
 test('Rare element management does not unlock Rare-containing Graph progression by stock alone',()=>{
   const resources=createResources({storage:null});resources.collect({P:3,S:3,F:3,Cl:3});
   for(const element of RARE_ECOLOGY_ELEMENTS){assert.ok(resources.state.progress.foundElements.includes(element));assert.equal(resources.canUseElement(element),true);}
