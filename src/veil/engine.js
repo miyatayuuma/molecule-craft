@@ -10,10 +10,13 @@ import {nitrogenCoreInRange} from './nitrogen-routes.js';
 import {dustEaterWorldTuning} from './world-awakening.js';
 import { OXYGEN_THERMAL, recordOxygenPassage } from './oxygen-routes.js';
 import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
+import {MANAGED_ELEMENTS} from './resources-persistence.js';
+import {rareEcologySocketState} from './rare-ecology.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 const VEIL_BOUNDARY_HAZARD=defineHazard('veil-boundary-current',HAZARD_TYPES.MECHANICAL,'pressure',{source:'veil-boundary'});
+const managedZero=()=>Object.fromEntries(MANAGED_ELEMENTS.map(element=>[element,0]));
 
 export function createFlight(config=VEIL){
   return {...config.spawn,speed:config.driftSpeed,vx:0,vy:0,boost:0,cooldown:0,combustion:false,drive:null,bank:0,trail:[]};
@@ -69,7 +72,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:{H:0,C:0,N:0,O:0},collectedElements:{H:0,C:0,N:0,O:0},foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],nextEaterSpawn:0,captured:false,captureAt:0,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],nextEaterSpawn:0,captured:false,captureAt:0,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -181,7 +184,7 @@ function stepRunFrame(run,input,dt,systems){
   if(run.departed&&run.time-run.lastLap>c.lapMinSeconds&&Math.hypot(p.x-c.spawn.x,p.y-c.spawn.y)<c.lapRadius){run.lap=true;run.laps++;run.lastLap=run.time;run.departed=false;run.events.push({type:'lap',lap:run.laps});}
   if(run.chainTime>0){run.chainTime-=dt;if(run.chainTime<=0&&run.chain){run.events.push({type:'chainEnd',chain:run.chain});run.chain=0;}}
   const radius=c.suctionRadius+(propelled?(p.drive?.boostRadius??0):0);
-  let gained=0,picked=0;const elements={H:0,C:0,N:0,O:0},units={H:0,C:0,N:0,O:0};
+  let gained=0,picked=0;const elements=managedZero(),units=managedZero();
   for(const dust of map.dust){
     if(dust.ready>run.time||segmentDistance(dust,old,p)>radius)continue;
     dust.ready=dust.cluster!==undefined?Infinity:run.time+c.respawnSeconds;run.chain++;run.best=Math.max(run.best,run.chain);run.chainTime=c.chainSeconds;
@@ -189,8 +192,9 @@ function stepRunFrame(run,input,dt,systems){
     const total=Math.floor(run.elementDust[el]/(GROWTH.dustPerAtom[el]??c.dustPerH));elements[el]+=total-run.collectedElements[el];run.collectedElements[el]=total;
     if(elements[el]>0&&!run.foundElements.includes(el)){run.foundElements.push(el);run.events.push({type:'element',element:el});}
     run.dustUnits=run.elementDust.H;run.collected=run.collectedElements.H;gained=elements.H;picked++;
-    if(run.effects.length<c.maxEffects)run.effects.push({x:dust.x,y:dust.y,startX:dust.x,startY:dust.y,life:0,duration:c.suctionSeconds-(c.suctionSeconds-c.feverSuctionSeconds)*Math.min(run.chain/c.feverChain,1),kind:dust.kind,side:dust.id%2?1:-1,trail:[{x:dust.x,y:dust.y}]});
-    if(dust.kind==='dense'){if(run.time>run.denseUntil)run.events.push({type:'dense'});run.denseUntil=run.time+1.4;}if(dust.kind==='rare')run.events.push({type:'rare',id:'pure-h'});
+    if(run.effects.length<c.maxEffects)run.effects.push({x:dust.x,y:dust.y,startX:dust.x,startY:dust.y,life:0,duration:c.suctionSeconds-(c.suctionSeconds-c.feverSuctionSeconds)*Math.min(run.chain/c.feverChain,1),kind:dust.kind,element:el,rareEcology:dust.rareEcology===true,side:dust.id%2?1:-1,trail:[{x:dust.x,y:dust.y}]});
+    if(dust.rareEcology===true){const ecology=rareEcologySocketState(dust,run.collectedElements,c.respawnSeconds);dust.ready=ecology?.active?run.time+ecology.respawnSeconds:Infinity;run.events.push({type:'rareElement',element:el,held:ecology?.held??run.collectedElements[el]??0});}
+    if(dust.kind==='dense'){if(run.time>run.denseUntil)run.events.push({type:'dense'});run.denseUntil=run.time+1.4;}if(el==='H'&&dust.kind==='rare')run.events.push({type:'rare',id:'pure-h'});
   }
   if(picked)run.events.push({type:'pickup',amount:gained,elements,units,chain:run.chain,count:picked});
   for(const e of run.effects){
