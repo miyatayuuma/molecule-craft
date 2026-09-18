@@ -24,7 +24,7 @@ The taxonomy also defines `abrasive / particle-stream` and `electrical / arc|cha
 | Responsibility | Production examples | Reason |
 | --- | --- | --- |
 | Agent | Dust Eater | Autonomous pursuit/capture behavior is owned by the expedition agent system. |
-| Static/world structure | route geometry, landmarks, carbon clusters, Rare Survey anomalies | Geometry/collectibles do not become hazards merely because they occupy FIELD space. |
+| Static/world structure | route geometry, landmarks, carbon clusters | Geometry/collectibles do not become hazards merely because they occupy FIELD space. |
 | Resource | H/C/N/O dust | Collectible particles are not abrasive hazard authority. |
 | Progression mechanism | Normal Insight, Critical Insight, route unlock, destination, challenge completion | These own progression/telemetry, not local physical environment. |
 | Settlement | pickup/return/forced-loss lifecycle | Resource persistence is separate from hazard physics. |
