@@ -2293,6 +2293,26 @@
           }
         }
       ]
+    },
+    "chlorotrifluoroethylene": {
+      "number": 136,
+      "description": "CTFE（クロロトリフルオロエチレン）はCF₂=CClF構造を持つ含フッ素アルケン。二重結合を起点に工業加工され、電気絶縁に使うフッ素系ポリマー材料の原料になる。",
+      "details": [
+        {
+          "title": "sp²平面骨格",
+          "body": "C=Cを作る2個の炭素はsp²型で、それぞれの置換基は二重結合のまわりにほぼ平面状に並ぶ。Fが3個、Clが1個結合した非対称なアルケンである。"
+        },
+        {
+          "title": "絶縁材料への加工",
+          "body": "CTFEは単量体そのものを完成材料として使うのではなく、重合・成形などの工業工程を経てフッ素系絶縁材料へ変換される。Molecule Craftではこの加工工程をDOCK内で抽象化する。"
+        }
+      ],
+      "concepts": [
+        "bond-order",
+        "geometry",
+        "polymerization",
+        "polarity"
+      ]
     }
   },
   "parts": {
