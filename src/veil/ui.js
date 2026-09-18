@@ -13,7 +13,7 @@ import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry
 import { combustionChargeFor,combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { renderCraftTargetAtoms } from '../craft-panel.js?v=3';
 import { MANAGED_ELEMENTS } from './resources-persistence.js';
-import {RARE_ECOLOGY_ELEMENTS} from './rare-ecology.js';
+import {RARE_ECOLOGY_ELEMENTS} from './rare-ecology.js';\nimport {HAZARD_TREATMENT_IDS,HAZARD_TREATMENTS} from './hazard-treatments.js';
 
 const LOST_CARGO_ELEMENTS=MANAGED_ELEMENTS;
 function previewCaptureLoss(units){
@@ -27,7 +27,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),shockButton=q('veil-shock'),combustionButton=q('veil-combustion'),thermal=q('veil-thermal'),outputMeterFill=q('veil-heat-meter'),outputMeter=outputMeterFill?.parentElement,audio=createVeilAudio(),appShell=document.querySelector('.app-shell');
   if(outputMeter){outputMeter.id='veil-output-meter';outputMeter.removeAttribute('aria-hidden');outputMeter.setAttribute('role','meter');outputMeter.setAttribute('aria-label','推進出力');outputMeter.setAttribute('aria-valuemin','0');outputMeter.setAttribute('aria-valuemax','100');}
   if(outputMeterFill)outputMeterFill.id='veil-output-meter-fill';
-  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,thermalNotice=null,thermalNoticeUntil=0,anchorLock=null,returnState=null,pendingCraftId=null,requestExpeditionLaunch=()=>false,launchTransaction=null;
+  let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,treatmentSavedRevision=0,treatmentPersistAt=0,pointer=null,drivePointer=null,origin=null,messageUntil=0,thermalNotice=null,thermalNoticeUntil=0,anchorLock=null,returnState=null,pendingCraftId=null,requestExpeditionLaunch=()=>false,launchTransaction=null;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const has=id=>resources.state.recipes.includes(id);
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
@@ -49,7 +49,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     },
     createRun:({prepared})=>{
       const config=flightConfig(resources.state),capabilities={combustionDrive:driveAvailable(resources.state,'combustion'),nitrogenField:config.nitrogenField===true,coreFractured:config.coreFractured===true,worldAwakened:config.worldAwakened===true,rareEcologyEligible:config.rareEcologyEligible===true};
-      return createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities}),config,{fuel:prepared.fuel});
+      return createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities}),config,{fuel:prepared.fuel,treatments:resources.state.treatments});
     },
     initializeExplore:({prepared,run:nextRun})=>initializeExploreLaunch(prepared,nextRun),
     stageSuccess:({prepared})=>{resources.state.progress.runs=prepared.nextRun;raf=requestAnimationFrame(frame);return true;},
@@ -99,7 +99,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();offerProgressionInsights();syncInsightMarkers();
     const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,propellant=run.fuel.propellant;
     const first=prepared.nextRun===1?'採集殻を展開 · ANCHOR RETURNで回収':fuel.molecule&&oxidizer.molecule?'COMBUSTION DRIVE · 長押しで継続航行':propellant.molecule?`${formula(propellant.molecule)} BURST · ANCHOR LOCK前の緊急離脱に残そう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';
-    notice(first,5);root.focus();last=0;hudAt=0;hud();updatePrompt();return true;
+    notice(first,5);root.focus();last=0;hudAt=0;treatmentSavedRevision=run.treatmentRevision;treatmentPersistAt=run.time;hud();updatePrompt();return true;
   }
   function rollbackLaunchTransaction({checkpoint,error}){
     if(raf)try{cancelAnimationFrame(raf);}catch{}raf=0;
@@ -170,7 +170,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(!active)return;raf=requestAnimationFrame(frame);const dt=last?Math.min((now-last)/1000,.15):0;last=now;if(paused||document.hidden)return;
     if(returnState){returnState.elapsed=Math.min(returnState.duration,returnState.elapsed+dt);audio.update(run.player.speed,run.chain,null);renderer.draw(run,dt,reduced);returnHud();if(returnState.elapsed>=returnState.duration)finish(returnState.captured);return;}
     const input=anchorLock?{x:0,y:0}:{x:stick.x+(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0),y:stick.y+(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0)};
-    syncInsightMarkers();for(const event of stepRun(run,input,dt,{consumeCombustion:packet=>resources.consumeCombustion(packet),consumeCoolant:(amount,molecule)=>resources.consumeTank('coolant',molecule,amount)})){
+    syncInsightMarkers();const frameEvents=stepRun(run,input,dt,{consumeCombustion:packet=>resources.consumeCombustion(packet),consumeCoolant:(amount,molecule)=>resources.consumeTank('coolant',molecule,amount)});if(run.treatmentRevision!==treatmentSavedRevision&&run.time-treatmentPersistAt>=2&&resources.save()){treatmentSavedRevision=run.treatmentRevision;treatmentPersistAt=run.time;}for(const event of frameEvents){
       if(event.type!=='insightReady'&&(event.type!=='danger'||event.level!=='clear'))audio.event(event.type,event.chain,event.count);
       if(event.type==='pickup'){offerProgressionInsights();updatePrompt();}
       if(event.type==='choDestination'){notice('CHOの最深部に到達 · 帰還ボタンで記録を持ち帰ろう',8,'◎ ✓ ↩');vibrate(35);}
