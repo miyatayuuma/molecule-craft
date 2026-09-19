@@ -17,6 +17,8 @@ jobs:
           git diff --exit-code -- assets/models/molecule-benzene.svg assets/models/molecule-pyridine.svg assets/models/molecule-furan.svg assets/models/molecule-tetrahydrofuran.svg
           node tests/aromatic-heterocycle-geometry.test.mjs
           node tests/aromatic-rendering-check.mjs vendor/three/three.module.min.js
+          node scripts/build-precache.mjs
+          git diff --exit-code -- sw.js precache-manifest.js
 
   repository-guardrails:
     runs-on: ubuntu-latest
