@@ -91,6 +91,7 @@ jobs:
         run: |
           node scripts/build-molecule-db.mjs
           git diff --exit-code -- data/molecules.json
+          node tests/recognition.test.mjs
           node tests/ctfe-electrical-treatment.test.mjs
           node tests/molecule-graph.test.mjs
           node tests/molecule-frontier.test.mjs
