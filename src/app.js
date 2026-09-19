@@ -1,6 +1,6 @@
 // Stable application entrypoint. Version history belongs in Git, not copied source files.
 import * as THREE from '../vendor/three/three.module.min.js';
-import { ELEMENTS, Molecule, loadMoleculeDatabase, moleculeCatalog } from './chemistry.js?v=20';
+import { ELEMENTS, Molecule, loadMoleculeDatabase, moleculeCatalog, modelAtomRadius } from './chemistry.js?v=20';
 import { ATOMIC_MODEL, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, atomBondState, bondAddition, geometryForAtom, nonbondedDistance } from './bonding-model.js?v=32';
 import { createStructureSolver } from './structure-relaxation.js?v=32';
 import { planBondDocking } from './structure-motion.js?v=30';
@@ -249,7 +249,7 @@ function advanceTearDrag(now=performance.now()){
 function createDetachedTearVisual(snapshot){
   const group=new THREE.Group(),offsets=new Map(snapshot.atoms.map(atom=>[atom.id,new THREE.Vector3(atom.offset.x,atom.offset.y,atom.offset.z)]));
   for(const atom of snapshot.atoms){
-    const cfg=ELEMENTS[atom.element],mesh=new THREE.Mesh(new THREE.SphereGeometry(cfg.radius*1.04,30,22),new THREE.MeshStandardMaterial({color:cfg.color,roughness:.24,metalness:0}));
+    const cfg=ELEMENTS[atom.element],mesh=new THREE.Mesh(new THREE.SphereGeometry(modelAtomRadius(atom.element),30,22),new THREE.MeshStandardMaterial({color:cfg.color,roughness:.24,metalness:0}));
     mesh.position.copy(offsets.get(atom.id));group.add(mesh);
   }
   for(const bond of snapshot.bonds){
@@ -530,11 +530,11 @@ function rebuildMoleculeMeshes(){
   renderTopologyDirty=false;updateMoleculeTransforms();
 }
 function createAtomVisual(atom,{suppressFormalCharge=false}={}){
-  const cfg=ELEMENTS[atom.element],mesh=new THREE.Mesh(new THREE.SphereGeometry(cfg.radius*1.04,30,22),new THREE.MeshStandardMaterial({color:cfg.color,roughness:.24,metalness:0}));
+  const cfg=ELEMENTS[atom.element],displayRadius=modelAtomRadius(atom.element),mesh=new THREE.Mesh(new THREE.SphereGeometry(displayRadius,30,22),new THREE.MeshStandardMaterial({color:cfg.color,roughness:.24,metalness:0}));
   mesh.userData.atomId=atom.id;moleculeGroup.add(mesh);
   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:selectionHaloTexture(),color:0xe6fbff,transparent:true,opacity:0,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending}));
   halo.visible=false;halo.renderOrder=30;moleculeGroup.add(halo);
-  const state=stateFor(atom.id),singles=state.sites.length,dirs=freeDirections(atom.id),shell=valenceShellRadius(atom.element,cfg.radius*1.02),lonePairs=[];
+  const state=stateFor(atom.id),singles=state.sites.length,dirs=freeDirections(atom.id),shell=valenceShellRadius(atom.element,displayRadius),lonePairs=[];
   for(let index=0;index<singles;index++){
     const rawSite=state.sites[index],kind=typeof rawSite==='string'?rawSite:(rawSite?.kind??'electron'),partnerId=typeof rawSite==='object'?rawSite?.partnerId??null:null;
     const direction=kind==='resonance'&&partnerId!=null?pos(partnerId)?.clone().sub(pos(atom.id)).normalize():dirs[index];
@@ -547,7 +547,7 @@ function createAtomVisual(atom,{suppressFormalCharge=false}={}){
     lonePairs.push({index,meshes});
   }
   const charge=!suppressFormalCharge&&state.charge?createChargeLabel(THREE,state.charge):null;if(charge)moleculeGroup.add(charge);
-  atomVisuals.set(atom.id,{mesh,halo,cfg,lonePairs,singles,shell,charge});
+  atomVisuals.set(atom.id,{mesh,halo,cfg,displayRadius,lonePairs,singles,shell,charge});
 }
 function renderUnpairedElectron(atomId,index,dir,shell,kind='electron',partnerId=null){
   const visible=new THREE.Mesh(kind==='electron'?new THREE.SphereGeometry(.054,12,10):new THREE.TorusGeometry(.08,.016,6,20),new THREE.MeshStandardMaterial({color:kind==='extension'?0xc4b5fd:0x67e8f9,emissive:kind==='extension'?0x8b5cf6:0x06b6d4,emissiveIntensity:1.45,roughness:.12}));
@@ -576,7 +576,7 @@ function updateMoleculeTransforms(){
   for(const atom of molecule.atoms){
     const visual=atomVisuals.get(atom.id),point=pos(atom.id);if(!visual||!point)continue;
     visual.mesh.position.copy(point);visual.halo.position.copy(point);
-    if(visual.charge)visual.charge.position.copy(point).addScaledVector(cameraUp(),visual.cfg.radius+.12);
+    if(visual.charge)visual.charge.position.copy(point).addScaledVector(cameraUp(),visual.displayRadius+.12);
     const dirs=freeDirections(atom.id);
     for(const electron of electronVisuals.filter(item=>item.atomId===atom.id))electron.dir.copy(dirs[electron.index]??electron.dir);
     visual.lonePairs.forEach((pair,pairIndex)=>{
@@ -656,7 +656,7 @@ function unstableElectronPosition(ev,now){
 }
 function electronRestPosition(ev){const p=pos(ev.atomId);return p?p.clone().addScaledVector(ev.dir.clone().normalize(),ev.shell):new THREE.Vector3();}
 function electronHomePosition(atomId,index,now){
-  const atom=atomById(atomId),p=pos(atomId);if(!atom||!p)return new THREE.Vector3();const cfg=ELEMENTS[atom.element],dirs=freeDirections(atomId),visual=electronVisuals.find(item=>item.atomId===atomId&&item.index===index),dir=visual?.dir??dirs[index]??dirs[0]??new THREE.Vector3(1,0,0),shell=valenceShellRadius(atom.element,cfg.radius*1.02),base=dir.clone().normalize(),t1=perpendicular(base),t2=new THREE.Vector3().crossVectors(base,t1).normalize(),phase=(atomId*1.71+index*2.37)%6.28,a=.13*shell,s=now*.0021+phase;
+  const atom=atomById(atomId),p=pos(atomId);if(!atom||!p)return new THREE.Vector3();const dirs=freeDirections(atomId),visual=electronVisuals.find(item=>item.atomId===atomId&&item.index===index),dir=visual?.dir??dirs[index]??dirs[0]??new THREE.Vector3(1,0,0),shell=valenceShellRadius(atom.element,modelAtomRadius(atom.element)),base=dir.clone().normalize(),t1=perpendicular(base),t2=new THREE.Vector3().crossVectors(base,t1).normalize(),phase=(atomId*1.71+index*2.37)%6.28,a=.13*shell,s=now*.0021+phase;
   return p.clone().addScaledVector(base,shell).addScaledVector(t1,Math.sin(s*1.7)*a).addScaledVector(t2,Math.sin(s*2.3+1.4)*a*.75);
 }
 function findNearestCompatibleElectron(clientX,clientY,sourceAtomId,sourceIndex){
