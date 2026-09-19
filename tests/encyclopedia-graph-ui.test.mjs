@@ -101,8 +101,9 @@ assert.equal(layoutA.positions.get('b').y<layoutA.center.y,true,'N-sector neighb
 assert.equal(layoutA.positions.get('c').x>layoutA.center.x,true,'E-sector neighbor should remain east-biased');
 
 assert.equal(ENCYCLOPEDIA_MOTION.graphNavigationDuration,560,'Branch traversal must be slow enough to preserve spatial orientation');
+assert.equal(ENCYCLOPEDIA_MOTION.graphEdgeDelay,48,'Edges may trail node motion only by a short readable stagger');
+assert.ok(ENCYCLOPEDIA_MOTION.graphEdgeDelay<ENCYCLOPEDIA_MOTION.graphNavigationDuration*.12,'Edge stagger must remain a small fraction of reroot motion');
 assert.equal(ENCYCLOPEDIA_MOTION.detailZoomDuration,760,'Graph/Detail shared-element zoom should read as a distinct, longer scale transition');
-assert.equal(ENCYCLOPEDIA_MOTION.edgeChevronDuration,2000,'Directional cue should use a deliberately long two-second travel so motion, not arrow shape, communicates direction');
 assert.equal(ENCYCLOPEDIA_MOTION.easing,'cubic-bezier(.4,0,.2,1)');
 const layoutToB=layoutFocusNeighborhood(fixture,'b',{width:360,height:480});
 const incomingB=graphNodeMotionStart(layoutA.positions.get('b'),layoutToB.positions.get('b'),{nodeDiameter:66,focusDiameter:124});
@@ -142,8 +143,10 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   assert(Math.hypot(movement.x,movement.y)>=visibleGap*.99,`${edge.from} → ${edge.to}: Chevron should traverse essentially the full visible edge gap`);
   assert(Math.hypot(geometry.end.x-from.x,geometry.end.y-from.y)>geometry.fromRadius,`${edge.from} → ${edge.to}: Chevron must stay outside source node on mobile`);
   assert(Math.hypot(geometry.end.x-to.x,geometry.end.y-to.y)>geometry.toRadius,`${edge.from} → ${edge.to}: Chevron must stay outside target node on mobile`);
+  const expectedAnchor={x:(geometry.start.x+geometry.end.x)/2,y:(geometry.start.y+geometry.end.y)/2};assert(Math.hypot(geometry.anchor.x-expectedAnchor.x,geometry.anchor.y-expectedAnchor.y)<.01,`${edge.from} → ${edge.to}: Chevron anchor must be derived from the current visible edge midpoint`);
   const points=geometry.points.split(' ').map(pair=>pair.split(',').map(Number)),pairDistances=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)pairDistances.push(Math.hypot(points[i][0]-points[j][0],points[i][1]-points[j][1]));
-  const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should be exactly the requested 1.2x size while remaining a compact motion marker`);
+  const lineDistance=point=>Math.abs(direction.x*(from.y-point[1])-direction.y*(from.x-point[0]))/edgeLength;assert(points.every(point=>lineDistance(point)<=1.55),`${edge.from} → ${edge.to}: every Chevron vertex must stay on the current edge geometry within glyph width`);
+  const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should remain compact while direction is encoded by tangent orientation`);
 }
 
 const entries=new Map([['c',{order:2}],['a',{order:1}]]);
@@ -171,15 +174,16 @@ assert.match(graphViewSource,/graph-focus-label/,'focused identity belongs insid
 assert.match(graphViewSource,/graph-edge\.direct\.relation-chain-extension/,'focused edge relation colors must be scoped to direct edges');
 assert.match(graphViewSource,/graph-edge-chevron/,'directional focus edges must render the compact Chevron affordance');
 assert.match(graphViewSource,/graph-edge-chevron\{[^}]*stroke-width:\.9[^}]*opacity:\.72/,'Chevron should keep its existing stroke weight while only the glyph size changes');
-assert.match(graphViewSource,/edgeChevronDuration:2000/,'Chevron travel should use the deliberate two-second motion cue');
-assert.match(graphViewSource,/focusChanged&&!reduceMotion&&chevron\.animate/,'Chevron motion must run only for a focus change and respect reduced motion');
-assert.match(graphViewSource,/previousFocusId\?ENCYCLOPEDIA_MOTION\.graphNavigationDuration:80/,'Chevron motion must wait for spatial focus settlement on branch navigation');
-assert.match(graphViewSource,/iterations:1/,'Chevron motion must be one-shot rather than looping');
+assert.match(graphViewSource,/graphEdgeDelay:48/,'Graph edge follow-up must use only a short node→edge stagger');
+assert.doesNotMatch(graphViewSource,/chevron\.animate/,'Chevron must not own an independent transition animation');
+assert.match(graphViewSource,/graphEdgeChevronGeometryFromPoints/,'Chevron geometry must derive from the same current edge endpoints');
+assert.match(graphViewSource,/applyGraphEdgeTween\(tween,edgeEased\)/,'Edge and Chevron must update together from one shared reroot tween');
+assert.match(graphViewSource,/if\(!reduceMotion&&!suppressMotion\)[\s\S]*previousPositions\.get\(edge\.from\)/,'suppressed or reduced reroots must not initialize edges from stale previous geometry');
 assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigation timing must remain deliberately readable');
 assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition must remain longer than branch navigation');
 assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
-assert.match(graphViewSource,/runGraphGeometryMotion\(graphMotion,geometryTweens/,'Edges, teaser/context marks, and nodes must move as one spatial graph rather than redraw independently');
-assert.match(graphViewSource,/previousPositions\.get\(edge\.from\)[\s\S]*previousPositions\.get\(edge\.to\)[\s\S]*geometryTween\(line/,'Graph edges must interpolate from their previous endpoints');
+assert.match(graphViewSource,/runGraphGeometryMotion\(graphMotion,geometryTweens,edgeTweens/,'Edges and Chevron markers must share the graph reroot motion authority');
+assert.match(graphViewSource,/previousFrom:pa,previousTo:pb,nextFrom:a,nextTo:b/,'Graph edges must interpolate from one previous endpoint snapshot to one next endpoint snapshot');
 assert.match(graphViewSource,/presentation\.canOpenDetail\)onDetail\(id,node\)/,'Graph view must delegate the measured selected node to the single collection transition owner');
 assert.match(collectionUISource,/returnMoleculeDetailToGraph\(currentMoleculeId\(\)\?\?record\.id,host\)/,'Detail return must use the current Detail molecule ID after navigation');
 assert.match(collectionUISource,/host\.dataset\.moleculeId=record\.id/,'Detail return surface must expose the currently rendered molecule ID');
