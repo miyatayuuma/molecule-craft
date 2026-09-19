@@ -32,7 +32,7 @@ function graphNavigationEase(progress){
   return sampleY(t);
 }
 export function graphEdgeMotionProgress(elapsed,{duration=ENCYCLOPEDIA_MOTION.graphNavigationDuration,delay=ENCYCLOPEDIA_MOTION.graphEdgeDelay}={}){
-  if(elapsed<=delay)return 0;return graphNavigationEase(Math.min(1,(elapsed-delay)/Math.max(1,duration-delay)));
+  if(elapsed<=delay)return 0;return graphNavigationEase(Math.min(1,elapsed/Math.max(1,duration)));
 }
 const continuityStates=new WeakMap(),graphMotionStates=new WeakMap();
 const rectOf=node=>{const rect=node?.getBoundingClientRect?.();return rect&&Number.isFinite(rect.width)&&Number.isFinite(rect.height)&&rect.width>0&&rect.height>0?{left:rect.left??rect.x??0,top:rect.top??rect.y??0,width:rect.width,height:rect.height}:null;};
@@ -105,8 +105,13 @@ function graphMotionState(host,win){
 }
 function graphNodeCircleInSvg(node,svg,width,height){
   const nodeRect=rectOf(node),svgRect=rectOf(svg);if(!nodeRect||!svgRect)return null;
+  const screenX=nodeRect.left+nodeRect.width/2,screenY=nodeRect.top+nodeRect.height/2,screenRadius=Math.min(nodeRect.width,nodeRect.height)/2,matrix=svg?.getScreenCTM?.();
+  if(matrix?.inverse){
+    const inverse=matrix.inverse(),map=(x,y)=>({x:inverse.a*x+inverse.c*y+inverse.e,y:inverse.b*x+inverse.d*y+inverse.f}),center=map(screenX,screenY),xEdge=map(screenX+screenRadius,screenY),yEdge=map(screenX,screenY+screenRadius);
+    return {x:center.x,y:center.y,radius:Math.max(Math.hypot(xEdge.x-center.x,xEdge.y-center.y),Math.hypot(yEdge.x-center.x,yEdge.y-center.y))};
+  }
   const scaleX=width/svgRect.width,scaleY=height/svgRect.height;
-  return {x:(nodeRect.left+nodeRect.width/2-svgRect.left)*scaleX,y:(nodeRect.top+nodeRect.height/2-svgRect.top)*scaleY,radius:Math.min(nodeRect.width*scaleX,nodeRect.height*scaleY)/2};
+  return {x:(screenX-svgRect.left)*scaleX,y:(screenY-svgRect.top)*scaleY,radius:Math.max(screenRadius*scaleX,screenRadius*scaleY)};
 }
 export function graphEdgeMotionStart(previousPositions,edge){
   const previousFrom=previousPositions?.get?.(edge?.from)??null,previousTo=previousPositions?.get?.(edge?.to)??null;
