@@ -74,7 +74,7 @@ function assertHealthy(item,{angleTolerance=13}={}){
     const expected=item.geometryFor(cycle[i]).angle*180/Math.PI;
     assert.ok(Math.abs(ringAngle(item,cycle,i)-expected)<angleTolerance,`${item.id}: ring angle at ${i} outside local geometry`);
   }
-  assert.ok((errors.overlapRelative??0)<.20,`${item.id}: severe nonbonded overlap`);
+  assert.ok((errors.overlapRelative??0)<.20,`${item.id}: severe nonbonded overlap ${errors.overlapRelative}`);
   assert.equal(errors.ringPenetrations,0,`${item.id}: ring penetration introduced`);
   assert.equal(errors.bondIntersections,0,`${item.id}: bond intersection introduced`);
   assert.ok((errors.sixMemberConformationRelative??Infinity)<.08,`${item.id}: ring conformation authority did not converge`);
