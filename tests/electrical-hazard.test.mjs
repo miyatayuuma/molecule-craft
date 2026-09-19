@@ -14,7 +14,7 @@ const capabilities=Object.freeze({combustionDrive:true,nitrogenField:true,coreFr
 const center={x:ELECTRICAL_FIELD.lobes[1].x,y:ELECTRICAL_FIELD.lobes[1].y};
 const safe={x:250,y:center.y};
 const awakenedState=()=>{const state=createInitialResourcesState();Object.assign(state.progress,{choCompleted:true,coreFractured:true,worldAwakened:true,rareEcologyEligible:true});return state;};
-const makeRun=(position=center,treatments={mechanical:0,abrasive:0,thermal:0})=>{const state=awakenedState(),config=flightConfig(state),map=createUniverse(73,state.elements,{capabilities}),run=createRun(map,config,{predators:false,treatments});Object.assign(run.player,{x:position.x,y:position.y,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});return run;};
+const makeRun=(position=center,treatments={mechanical:0,abrasive:0,thermal:0,electrical:0})=>{const state=awakenedState(),config=flightConfig(state),map=createUniverse(73,state.elements,{capabilities}),run=createRun(map,config,{predators:false,treatments});Object.assign(run.player,{x:position.x,y:position.y,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});return run;};
 const step=(run,input={x:1,y:0},seconds=.4)=>{for(let i=0;i<Math.round(seconds*60);i++)stepRun(run,input,1/60,{});return run;};
 
 test('Electrical production field is post-Awakening only, deterministic and organic',()=>{
@@ -42,7 +42,7 @@ test('Electrical stress scales control response without copying Abrasive speed d
   const weak=electricalResponseFor(.3),strong=electricalResponseFor(.9);
   assert.ok(strong.controlAuthority<weak.controlAuthority&&strong.propulsionAuthority<weak.propulsionAuthority);
   const run=makeRun();stepRun(run,{x:1,y:0},1/60,{});
-  assert.ok(run.currentHazards.some(item=>item.type==='electrical'&&item.effectiveIntensity>0));assert.ok(run.electricalControlAuthority<1&&run.electricalPropulsionAuthority<1);assert.equal(run.hazardEffectMultipliers.electrical,1,'Task 5E has no Electrical treatment');
+  assert.ok(run.currentHazards.some(item=>item.type==='electrical'&&item.effectiveIntensity>0));assert.ok(run.electricalControlAuthority<1&&run.electricalPropulsionAuthority<1);assert.equal(run.hazardEffectMultipliers.electrical,1,'inactive Electrical treatment preserves Task 5E semantics');
   const config=run.config,normal=createFlight(config),stressed=createFlight(config),response=electricalResponseFor(electricalEffectiveAt(center,'awakened'));
   for(const player of [normal,stressed])Object.assign(player,{x:0,y:0,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});
   moveFlight(normal,{x:1,y:0},.2,{config,environment:{controlAuthority:1,propulsionAuthority:1}});moveFlight(stressed,{x:1,y:0},.2,{config,environment:response});
@@ -54,9 +54,18 @@ test('Electrical stress scales control response without copying Abrasive speed d
 test('Electrical penalty clears on exit and P/S/F treatments remain isolated',()=>{
   const treatments={mechanical:1,abrasive:1,thermal:1},run=makeRun(center,treatments);stepRun(run,{x:1,y:0},1/60,{});
   assert.ok(run.electricalControlAuthority<1);assert.deepEqual(treatments,{mechanical:1,abrasive:1,thermal:1},'existing treatment charges cannot be consumed by Electrical exposure');
-  assert.equal(run.hazardEffectMultipliers.electrical,1);assert.deepEqual(HAZARD_TREATMENT_IDS,['mechanical','abrasive','thermal']);
+  assert.equal(run.hazardEffectMultipliers.electrical,1);assert.deepEqual(HAZARD_TREATMENT_IDS,['mechanical','abrasive','thermal','electrical']);
   Object.assign(run.player,{x:safe.x,y:safe.y,vx:0,vy:-run.config.speed,speed:run.config.speed});stepRun(run,{x:0,y:-1},1/60,{});
   assert.equal(run.currentHazards.some(item=>item.type==='electrical'),false);assert.equal(run.electricalControlAuthority,1);assert.equal(run.electricalPropulsionAuthority,1);
+});
+
+test('Electrical Treatment mitigates steering and propulsion response by 45% without changing hazard intensity or other treatment families',()=>{
+  const untreated=makeRun(center,{mechanical:0,abrasive:0,thermal:0,electrical:0}),treatedState={mechanical:1,abrasive:1,thermal:1,electrical:1},treated=makeRun(center,treatedState);
+  stepRun(untreated,{x:1,y:0},1/60,{});stepRun(treated,{x:1,y:0},1/60,{});
+  const rawUntreated=untreated.currentHazards.find(item=>item.type==='electrical')?.effectiveIntensity,rawTreated=treated.currentHazards.find(item=>item.type==='electrical')?.effectiveIntensity;
+  assert.equal(rawTreated,rawUntreated,'ship protection does not alter world-side Electrical intensity');
+  assert.equal(treated.hazardEffectMultipliers.electrical,.55);assert.ok(treated.electricalControlAuthority>untreated.electricalControlAuthority);assert.ok(treated.electricalPropulsionAuthority>untreated.electricalPropulsionAuthority);
+  assert.ok(treatedState.electrical<1,'pre-mitigation effective intensity consumes Electrical charge');assert.equal(treatedState.mechanical,1);assert.equal(treatedState.abrasive,1);assert.equal(treatedState.thermal,1);
 });
 
 test('Electrical visuals and developer map derive from the same effective-intensity authority',async()=>{

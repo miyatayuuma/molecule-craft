@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2600 2600" role="img" aria-labelledby="title desc">
 <title id="title">Molecule Graph developer map</title>
-<desc id="desc">Developer-only overview of 135 production molecule nodes and 157 undirected structural-neighbor edges.</desc>
+<desc id="desc">Developer-only overview of 136 production molecule nodes and 158 undirected structural-neighbor edges.</desc>
 <style>
 :root{color-scheme:dark}.bg{fill:#081018}.ring{fill:none;stroke:#26394a;stroke-width:1;stroke-dasharray:7 11}.axis{stroke:#31495d;stroke-width:1}.edge{stroke:#60778a;stroke-width:1.2;stroke-opacity:.48}.node circle{fill:#25394a;stroke:#9bb4c8;stroke-width:1.4}.node text{fill:#d9e6ef;font:10px ui-monospace,SFMono-Regular,Menlo,monospace;text-anchor:middle}.node.root circle{fill:#245468;stroke:#c6f1ff;stroke-width:3}.node.hub circle{fill:#5a4530;stroke:#ffd59c;stroke-width:2.5}.node.bridge circle{fill:#3c465f;stroke:#b9c8ff;stroke-width:2}.node.leaf circle{fill:#29343d;stroke:#7d919e}.sector{fill:#7890a3;font:700 18px ui-monospace,SFMono-Regular,Menlo,monospace;text-anchor:middle}.meta{fill:#cfe0ea;font:16px ui-monospace,SFMono-Regular,Menlo,monospace}.legend{fill:#9db1bf;font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
 </style>
@@ -169,7 +169,8 @@
 <line x1="765.0" y1="693.2" x2="577.5" y2="782.0" class="edge" data-relation="substitution"/>
 <line x1="759.9" y1="655.4" x2="434.6" y2="1465.1" class="edge" data-relation="substitution"/>
 <line x1="434.6" y1="1465.1" x2="306.8" y2="1375.0" class="edge" data-relation="substitution"/>
-<line x1="306.8" y1="1375.0" x2="258.1" y2="1471.7" class="edge" data-relation="substitution"/></g>
+<line x1="306.8" y1="1375.0" x2="258.1" y2="1471.7" class="edge" data-relation="substitution"/>
+<line x1="990.7" y1="1579.7" x2="909.1" y2="1595.4" class="edge" data-relation="substitution"/></g>
 <g class="nodes"><g class="node root" data-id="hydrogen" data-family="elemental-diatomic" data-roles="ROOT"><circle cx="1239.3" cy="1356.6" r="17"/><text x="1239.3" y="1334.6">hydrogen</text><title>hydrogen · elemental-diatomic · ROOT · depth 0 · degree 2</title></g>
 <g class="node root" data-id="oxygen" data-family="elemental-diatomic" data-roles="ROOT"><circle cx="1387.5" cy="1348.5" r="17"/><text x="1387.5" y="1326.5">oxygen</text><title>oxygen · elemental-diatomic · ROOT · depth 0 · degree 3</title></g>
 <g class="node root" data-id="methane" data-family="alkane" data-roles="ROOT,HUB"><circle cx="1332.5" cy="1158.7" r="17"/><text x="1332.5" y="1136.7">methane</text><title>methane · alkane · ROOT,HUB · depth 0 · degree 5</title></g>
@@ -208,7 +209,7 @@
 <g class="node bridge" data-id="dimethyl-ether" data-family="ether-cyclic-ether" data-roles="BRIDGE,BRANCH"><circle cx="1629.4" cy="1562.2" r="10"/><text x="1629.4" y="1547.2">dimethyl-ether</text><title>dimethyl-ether · ether-cyclic-ether · BRIDGE,BRANCH · depth 3 · degree 3</title></g>
 <g class="node bridge" data-id="ethylene-oxide" data-family="ether-cyclic-ether" data-roles="BRIDGE,BRANCH"><circle cx="1627.5" cy="1522.6" r="10"/><text x="1627.5" y="1507.6">ethylene-oxide</text><title>ethylene-oxide · ether-cyclic-ether · BRIDGE,BRANCH · depth 3 · degree 3</title></g>
 <g class="node branch" data-id="chloroform" data-family="halogen-compounds" data-roles="BRANCH"><circle cx="959.4" cy="1519.2" r="10"/><text x="959.4" y="1504.2">chloroform</text><title>chloroform · halogen-compounds · BRANCH · depth 3 · degree 2</title></g>
-<g class="node branch" data-id="vinyl-chloride" data-family="halogen-compounds" data-roles="BRANCH"><circle cx="990.7" cy="1579.7" r="10"/><text x="990.7" y="1564.7">vinyl-chloride</text><title>vinyl-chloride · halogen-compounds · BRANCH · depth 3 · degree 2</title></g>
+<g class="node branch" data-id="vinyl-chloride" data-family="halogen-compounds" data-roles="BRANCH"><circle cx="990.7" cy="1579.7" r="10"/><text x="990.7" y="1564.7">vinyl-chloride</text><title>vinyl-chloride · halogen-compounds · BRANCH · depth 3 · degree 3</title></g>
 <g class="node leaf" data-id="cyclopropane" data-family="cyclic-hydrocarbon" data-roles="LEAF"><circle cx="911.0" cy="1295.1" r="10"/><text x="911.0" y="1280.1">cyclopropane</text><title>cyclopropane · cyclic-hydrocarbon · LEAF · depth 3 · degree 2</title></g>
 <g class="node branch" data-id="1-butanol" data-family="alcohol-polyol" data-roles="BRANCH"><circle cx="1762.2" cy="1199.7" r="10"/><text x="1762.2" y="1184.7">1-butanol</text><title>1-butanol · alcohol-polyol · BRANCH · depth 4 · degree 2</title></g>
 <g class="node hub" data-id="acetic-acid" data-family="carboxylic-acid" data-roles="HUB"><circle cx="1714.7" cy="1315.6" r="14"/><text x="1714.7" y="1296.6">acetic-acid</text><title>acetic-acid · carboxylic-acid · HUB · depth 3 · degree 7</title></g>
@@ -304,6 +305,7 @@
 <g class="node branch" data-id="nitrobenzene" data-family="nitrogen-compounds" data-roles="BRANCH"><circle cx="577.5" cy="782.0" r="10"/><text x="577.5" y="767.0">nitrobenzene</text><title>nitrobenzene · nitrogen-compounds · BRANCH · depth 9 · degree 1</title></g>
 <g class="node branch" data-id="2-nitrotoluene" data-family="nitrogen-compounds" data-roles="BRANCH"><circle cx="434.6" cy="1465.1" r="10"/><text x="434.6" y="1450.1">2-nitrotoluene</text><title>2-nitrotoluene · nitrogen-compounds · BRANCH · depth 9 · degree 2</title></g>
 <g class="node branch" data-id="2-4-dinitrotoluene" data-family="nitrogen-compounds" data-roles="BRANCH"><circle cx="306.8" cy="1375.0" r="10"/><text x="306.8" y="1360.0">2-4-dinitrotoluene</text><title>2-4-dinitrotoluene · nitrogen-compounds · BRANCH · depth 10 · degree 2</title></g>
-<g class="node leaf" data-id="2-4-6-trinitrotoluene" data-family="nitrogen-compounds" data-roles="LEAF"><circle cx="258.1" cy="1471.7" r="10"/><text x="258.1" y="1456.7">2-4-6-trinitrotoluene</text><title>2-4-6-trinitrotoluene · nitrogen-compounds · LEAF · depth 11 · degree 1</title></g></g>
-<g transform="translate(42 52)"><text class="meta">Molecule Graph · 135 nodes · 157 edges</text><text class="legend" y="24">ROOT cyan · HUB amber · BRIDGE blue · LEAF gray · radial distance ≈ graph depth · sector = weak family bias</text><text class="legend" y="44">Production graph source of truth for encyclopedia discovery relationships.</text></g>
+<g class="node leaf" data-id="2-4-6-trinitrotoluene" data-family="nitrogen-compounds" data-roles="LEAF"><circle cx="258.1" cy="1471.7" r="10"/><text x="258.1" y="1456.7">2-4-6-trinitrotoluene</text><title>2-4-6-trinitrotoluene · nitrogen-compounds · LEAF · depth 11 · degree 1</title></g>
+<g class="node leaf" data-id="chlorotrifluoroethylene" data-family="halogen-compounds" data-roles="LEAF"><circle cx="909.1" cy="1595.4" r="10"/><text x="909.1" y="1580.4">chlorotrifluoroethylene</text><title>chlorotrifluoroethylene · halogen-compounds · LEAF · depth 4 · degree 1</title></g></g>
+<g transform="translate(42 52)"><text class="meta">Molecule Graph · 136 nodes · 158 edges</text><text class="legend" y="24">ROOT cyan · HUB amber · BRIDGE blue · LEAF gray · radial distance ≈ graph depth · sector = weak family bias</text><text class="legend" y="44">Production graph source of truth for encyclopedia discovery relationships.</text></g>
 </svg>

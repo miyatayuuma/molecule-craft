@@ -225,6 +225,7 @@ for (const [id, nameJa, nameEn, halogens] of [
 add({ id: 'chloroethane', nameJa: 'クロロエタン', nameEn: 'Chloroethane', atoms: ['C', 'C', 'Cl'], bonds: [[0, 1, 1], [1, 2, 1]], category: 'halogenated-hydrocarbon' });
 add({ id: '1-2-dichloroethane', nameJa: '1,2-ジクロロエタン', nameEn: '1,2-Dichloroethane', atoms: ['C', 'C', 'Cl', 'Cl'], bonds: [[0, 1, 1], [0, 2, 1], [1, 3, 1]], category: 'halogenated-hydrocarbon' });
 add({ id: 'vinyl-chloride', nameJa: '塩化ビニル', nameEn: 'Vinyl chloride', atoms: ['C', 'C', 'Cl'], bonds: [[0, 1, 2], [1, 2, 1]], category: 'halogenated-hydrocarbon' });
+add({ id: 'chlorotrifluoroethylene', nameJa: 'クロロトリフルオロエチレン', nameEn: 'Chlorotrifluoroethylene', aliases: ['CTFE'], atoms: ['C', 'C', 'F', 'F', 'Cl', 'F'], bonds: [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]], category: 'halogenated-hydrocarbon', iupacNameEn: '1-Chloro-1,2,2-trifluoroethene' });
 {
   const graph = aromatic([g => attach(g, 0, ['Cl'], [])]);
   add({ id: 'chlorobenzene', nameJa: 'クロロベンゼン', nameEn: 'Chlorobenzene', ...graph, category: 'halogenated-aromatic' });
@@ -458,7 +459,7 @@ add({ id:'2-nitrotoluene', nameJa:'2-ニトロトルエン', nameEn:'2-Nitrotolu
 add({ id:'2-4-dinitrotoluene', nameJa:'2,4-ジニトロトルエン', nameEn:'2,4-Dinitrotoluene', aliases:['2,4-DNT'], ...nitroAromatic([1,3],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4-dinitrobenzene' });
 add({ id:'2-4-6-trinitrotoluene', nameJa:'2,4,6-トリニトロトルエン', nameEn:'2,4,6-Trinitrotoluene', aliases:['TNT'], ...nitroAromatic([1,3,5],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4,6-trinitrobenzene' });
 
-if (molecules.length !== 135) throw new Error(`Production molecule inventory drifted: ${molecules.length}`);
+if (molecules.length !== 136) throw new Error(`Production molecule inventory drifted: ${molecules.length}`);
 
 const ids = new Set();
 for (const molecule of molecules) {
