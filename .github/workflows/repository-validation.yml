@@ -39,6 +39,19 @@ jobs:
       - name: Ring geometry and visual calibration
         run: |
           node tests/ring-visual-calibration.test.mjs
+          node scripts/build-collection-assets.mjs
+          git diff --exit-code -- assets/models/molecule-cyclopentane.svg assets/models/molecule-tetrahydrofuran.svg assets/models/molecule-cyclobutane.svg assets/models/molecule-cyclohexane.svg assets/models/molecule-benzene.svg assets/models/molecule-pyridine.svg assets/models/molecule-furan.svg
+          node tests/ring-visual-calibration-browser.test.mjs
+          node scripts/build-precache.mjs
+          git diff --exit-code -- sw.js precache-manifest.js
+      - name: Upload ring visual calibration frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ring-visual-calibration
+          path: test-results/ring-visual-calibration
+          if-no-files-found: ignore
+          retention-days: 7
 
   repository-guardrails:
     runs-on: ubuntu-latest
