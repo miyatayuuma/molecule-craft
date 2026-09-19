@@ -189,6 +189,8 @@ jobs:
           node --test tests/craft-target-match.test.mjs
           node tests/recognition.test.mjs
           node --test tests/alkene-relative-side.test.mjs
+          node --test tests/craft-stereo-observation.test.mjs
+          node tests/craft-stereo-observation-browser.test.mjs
           node tests/craft-target-hint-browser.test.mjs
           node tests/resonance-formal-charge.test.mjs
           node tests/bond-state.test.mjs
@@ -196,6 +198,14 @@ jobs:
           node tests/resonance-visual-browser.test.mjs
           node tests/special-bonds-check.mjs
           node tests/aromatic-rendering-check.mjs vendor/three/three.module.min.js
+      - name: Upload CRAFT stereo observation frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: craft-stereo-observation
+          path: test-results/craft-stereo-observation
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Expedition insights
         run: |
           node tests/expedition-insights.test.mjs

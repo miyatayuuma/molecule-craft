@@ -28,6 +28,7 @@ import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 import { matchCraftTarget } from './craft-target-satisfaction.js';
 import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js?v=1';
+import { observeCraftStereo } from './stereo-observation.js?v=1';
 import { createTearGesture, findTearCandidate, projectedTearPull } from './craft-tearoff.js?v=1';
 import { captureDetachedFragment, createDetachedDrag } from './craft-detached-drag.js?v=1';
 
@@ -694,11 +695,15 @@ function placeTargetPart(item){
   if(item.partId)return addCraftPart(item.partId);
   return addElement(item.element);
 }
+function craftStereoObservationFor(focus){
+  if(relaxation||bondTransition||!focus?.complete||!focus.record||[...focus.ids].some(id=>unresolvedAtoms.has(id)))return null;
+  return observeCraftStereo({record:focus.record,molecule:focus.graph,positions:pos});
+}
 function refreshInfo(keep=false){
   try{
     const targetAvailable={...resources.state.elements};for(const atom of molecule.atoms)targetAvailable[atom.element]=(targetAvailable[atom.element]??0)+1;
-    const target=resources.record(craftTargetId);craftBondHint=nextCraftBondHint(target,molecule);
-    craftPanel.renderInfo({keep,veilUI,focus:focusedStructure(),structures,selected:atomById(selectedAtomId),molecule,target,targetParts:targetPartsFor(target),onPlaceTargetPart:placeTargetPart,targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:true,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
+    const target=resources.record(craftTargetId);craftBondHint=nextCraftBondHint(target,molecule),focus=focusedStructure();
+    craftPanel.renderInfo({keep,veilUI,focus,structures,selected:atomById(selectedAtomId),molecule,target,targetParts:targetPartsFor(target),onPlaceTargetPart:placeTargetPart,targetDiscovered:resources.state.recipes.includes(craftTargetId),targetAvailable,onClearTarget:clearCraftTarget,unresolvedAtoms,stateFor,stereoObservation:craftStereoObservationFor(focus),structureListDisabled:interactionLocked()||!!dragState||activePointers.size>0,cleanupAvailable:true,onSelectStructure:item=>{if(relaxation||bondTransition||frameTransition||dragState||activePointers.size)return;selectAtom(item.graph.atoms[0].id);lastBackgroundTap=null;gameShell.close();refresh();repairSavedGeometry();}});
     setUndoAvailable(craftHistory.canUndo);refreshInfoFault='';return true;
   }catch(error){const detail=String(error?.stack??error);if(detail!==refreshInfoFault){refreshInfoFault=detail;console.error('Craft information refresh failed; 3D workspace remains active.',error);}return false;}
 }
