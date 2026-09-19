@@ -148,6 +148,11 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   const lineDistance=point=>Math.abs(direction.x*(from.y-point[1])-direction.y*(from.x-point[0]))/edgeLength;assert(points.every(point=>lineDistance(point)<=1.55),`${edge.from} → ${edge.to}: every Chevron vertex must stay on the current edge geometry within glyph width`);
   const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should remain compact while direction is encoded by tangent orientation`);
 }
+const movingVisibleGap=graphVisibleEdgeInterval({x:0,y:0},{x:100,y:0},{circles:[{x:18,y:0,radius:28},{x:88,y:0,radius:18}],padding:3,chevronExtent:2.4,minGap:7});
+assert.ok(movingVisibleGap,'motion-time visible gap should be derived from displayed node circles, not only endpoint radii');
+const movingAnchor=(movingVisibleGap.startT+movingVisibleGap.endT)/2*100;
+assert.ok(movingAnchor>51.4&&movingAnchor<64.6,'motion-time anchor must remain between actual displayed source/target circle boundaries with glyph clearance');
+assert.equal(graphVisibleEdgeInterval({x:0,y:0},{x:54,y:0},{circles:[{x:0,y:0,radius:24},{x:54,y:0,radius:24}],padding:3,chevronExtent:2.4,minGap:7}),null,'unsafe short visible gaps must hide the Chevron instead of pushing it into a node');
 
 const laggedVisible=graphVisibleEdgeInterval({x:0,y:0},{x:100,y:0},{circles:[{x:15,y:0,radius:20},{x:85,y:0,radius:20}],padding:1.5,chevronExtent:2.2,minGap:1.5});
 assert.ok(laggedVisible,'current edge must retain a safe interval while endpoint nodes visually lead the staggered edge');
@@ -196,6 +201,8 @@ assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition m
 assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
 assert.match(graphViewSource,/runGraphGeometryMotion\(graphMotion,geometryTweens,edgeTweens/,'Edges and Chevron markers must share the graph reroot motion authority');
 assert.match(graphViewSource,/previousFrom:pa,previousTo:pb,nextFrom:a,nextTo:b/,'Graph edges must interpolate from one previous endpoint snapshot to one next endpoint snapshot');
+assert.match(graphViewSource,/graphVisibleEdgeInterval\(from,to,\{circles:\[sourceCircle,targetCircle\]/,'Chevron anchor must come from the current edge interval remaining outside displayed endpoint circles');
+assert.match(graphViewSource,/else tween\.chevron\.setAttribute\('visibility','hidden'\)/,'unsafe short edge gaps must hide the Chevron rather than place it inside a node');
 assert.match(graphViewSource,/presentation\.canOpenDetail\)onDetail\(id,node\)/,'Graph view must delegate the measured selected node to the single collection transition owner');
 assert.match(collectionUISource,/returnMoleculeDetailToGraph\(currentMoleculeId\(\)\?\?record\.id,host\)/,'Detail return must use the current Detail molecule ID after navigation');
 assert.match(collectionUISource,/host\.dataset\.moleculeId=record\.id/,'Detail return surface must expose the currently rendered molecule ID');
