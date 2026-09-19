@@ -17,6 +17,14 @@ export function modelAtomRadius(element) {
 }
 
 export const UNKNOWN_NAME = '未知 / 未登録の構造';
+
+// Primary molecule identity is constitutional: element identity, connectivity,
+// and bond order. Concrete 3D coordinates are conformation/representation data,
+// not stereochemical identity. Preview geometry is therefore a representative
+// pose only. Future stereo descriptors must live at stereogenic atom/bond scope
+// rather than overloading this molecule-level legacy field.
+export const MOLECULE_IDENTITY_SCOPE = 'constitutional';
+export const LEGACY_STEREOCHEMISTRY_UNSPECIFIED = 'unspecified';
 let nextAtomId = 1;
 let knownMolecules = [];
 let knownFingerprints = new Map();
@@ -93,6 +101,8 @@ export class Molecule {
   }
 
   recognizedMolecule() {
+    // Deliberately graph-only. Coordinate pose, alkene side arrangement and
+    // tetrahedral handedness remain orthogonal observations at this stage.
     if (!this.atoms.length || databaseState.status !== 'ready') return null;
     const fingerprint = moleculeFingerprint(this.atoms, this.bonds);
     const candidates = knownFingerprints.get(fingerprint) ?? [];
@@ -214,6 +224,8 @@ export function countElements(atoms) {
   }, {});
 }
 
+// Constitutional identity fingerprint: intentionally excludes coordinates and
+// any future stereo observation while retaining element/connectivity/bond order.
 export function moleculeFingerprint(atoms, bonds) {
   const graph = normalizedGraph(atoms, bonds);
   const ids = graph.atoms.map(atom => atom.id);
@@ -241,6 +253,10 @@ function validateMoleculeRecord(record, ids) {
   for (const key of ['nameJa', 'nameEn', 'iupacNameEn']) if (typeof record[key] !== 'string' || !record[key]) throw new Error(`Missing ${key}.`);
   if (record.commonNameJa != null && (typeof record.commonNameJa !== 'string' || !record.commonNameJa)) throw new Error(`Invalid commonNameJa in ${id}.`);
   if (record.commonNameEn != null && (typeof record.commonNameEn !== 'string' || !record.commonNameEn)) throw new Error(`Invalid commonNameEn in ${id}.`);
+  // Legacy identity-scope metadata only: "unspecified" means this record does
+  // not select a particular stereo configuration. It does not mean racemate,
+  // mixture, natural-major stereoisomer, R/S or E/Z.
+  if (record.stereochemistry != null && record.stereochemistry !== LEGACY_STEREOCHEMISTRY_UNSPECIFIED) throw new Error(`Invalid legacy stereochemistry in ${id}.`);
   if (ids.has(id)) throw new Error(`Duplicate molecule id: ${id}`);
   ids.add(id);
   if (!Array.isArray(record.atoms) || !record.atoms.length || record.atoms.some(element => !ELEMENTS[element])) throw new Error(`Invalid atoms in ${id}.`);
