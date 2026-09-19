@@ -61,6 +61,22 @@ function ringAngle(item,cycle,index){
   return item.placements.get(cycle[(index-1+6)%6]).position.clone().sub(center)
     .angleTo(item.placements.get(cycle[(index+1)%6]).position.clone().sub(center))*180/Math.PI;
 }
+function worstOverlap(item){
+  let worst={relative:0,a:null,b:null,distance:null,minimum:null};
+  const shortest=(start,target)=>{
+    const queue=[[start,0]],seen=new Set([start]);
+    for(let i=0;i<queue.length;i++){const [id,depth]=queue[i];if(id===target)return depth;if(depth>=3)continue;
+      for(const n of item.molecule.neighbors(id))if(!seen.has(n.atomId)){seen.add(n.atomId);queue.push([n.atomId,depth+1]);}}
+    return Infinity;
+  };
+  for(let a=0;a<item.atoms.length;a++)for(let b=a+1;b<item.atoms.length;b++){
+    const graphDistance=shortest(a,b);if(graphDistance<=2)continue;
+    const minimum=nonbondedDistance(item.atoms[a].element,item.atoms[b].element)*(graphDistance===3?.84:1);
+    const distance=item.placements.get(a).position.distanceTo(item.placements.get(b).position),relative=1-distance/minimum;
+    if(relative>worst.relative)worst={relative,a,b,distance,minimum};
+  }
+  return worst;
+}
 function conformation(item){
   const frames=item.solver.snapshot().sixMemberConformations;
   assert.equal(frames.length,1,`${item.id}: expected one supported six-member conformation`);
@@ -74,7 +90,7 @@ function assertHealthy(item,{angleTolerance=13}={}){
     const expected=item.geometryFor(cycle[i]).angle*180/Math.PI;
     assert.ok(Math.abs(ringAngle(item,cycle,i)-expected)<angleTolerance,`${item.id}: ring angle at ${i} outside local geometry`);
   }
-  assert.ok((errors.overlapRelative??0)<.20,`${item.id}: severe nonbonded overlap ${errors.overlapRelative}`);
+  const overlap=worstOverlap(item);assert.ok((errors.overlapRelative??0)<.20,`${item.id}: severe nonbonded overlap ${errors.overlapRelative}; pair ${overlap.a}-${overlap.b} d=${overlap.distance} min=${overlap.minimum}`);
   assert.equal(errors.ringPenetrations,0,`${item.id}: ring penetration introduced`);
   assert.equal(errors.bondIntersections,0,`${item.id}: bond intersection introduced`);
   assert.ok((errors.sixMemberConformationRelative??Infinity)<.08,`${item.id}: ring conformation authority did not converge`);
