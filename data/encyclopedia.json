@@ -552,7 +552,23 @@
       ],
       "notes": [
         "stereochemistry"
-      ]
+      ],
+      "stereoComparison": {
+        "kind": "alkene-relative-side",
+        "defaultRelation": "opposite-side",
+        "ariaLabel": "2-ブテンの立体配置",
+        "message": "C=Cでは自由回転できないため、同じつながりでも2つの配置があります。",
+        "states": [
+          {
+            "relation": "same-side",
+            "label": "cis (Z)"
+          },
+          {
+            "relation": "opposite-side",
+            "label": "trans (E)"
+          }
+        ]
+      }
     },
     "isobutene": {
       "number": 35,
