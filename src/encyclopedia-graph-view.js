@@ -71,11 +71,11 @@ export function graphVisibleEdgeInterval(from,to,{circles=[],padding=1.5,chevron
   return {startT:selected[0],endT:selected[1],length:(selected[1]-selected[0])*length};
 }
 
-function graphEdgeChevronGeometryFromPoints(edge,from,to,{focusId,nodeDiameter=66,focusDiameter=124,padding=1.5,chevronExtent=2.2,minGap=1.5,fromRadius=null,toRadius=null,fromCircle=null,toCircle=null}={}){
+function graphEdgeChevronGeometryFromPoints(edge,from,to,{focusId,nodeDiameter=66,focusDiameter=124,padding=1.5,chevronExtent=2.2,minGap=1.5,fromRadius=null,toRadius=null,fromCircle=null,toCircle=null,blockingCircles=null}={}){
   if(!from||!to)return null;
   const dx=to.x-from.x,dy=to.y-from.y,length=Math.hypot(dx,dy);if(!Number.isFinite(length)||length<1)return null;
   const sourceRadius=Number.isFinite(fromRadius)?fromRadius:(edge.from===focusId?focusDiameter:nodeDiameter)/2,targetRadius=Number.isFinite(toRadius)?toRadius:(edge.to===focusId?focusDiameter:nodeDiameter)/2;
-  const sourceCircle=fromCircle??{x:from.x,y:from.y,radius:sourceRadius},targetCircle=toCircle??{x:to.x,y:to.y,radius:targetRadius},visible=graphVisibleEdgeInterval(from,to,{circles:[sourceCircle,targetCircle],padding,chevronExtent,minGap});if(!visible)return null;
+  const sourceCircle=fromCircle??{x:from.x,y:from.y,radius:sourceRadius},targetCircle=toCircle??{x:to.x,y:to.y,radius:targetRadius},circles=Array.isArray(blockingCircles)&&blockingCircles.length?blockingCircles:[sourceCircle,targetCircle],visible=graphVisibleEdgeInterval(from,to,{circles,padding,chevronExtent,minGap});if(!visible)return null;
   const pointAt=t=>({x:from.x+dx*t,y:from.y+dy*t}),start=pointAt(visible.startT),end=pointAt(visible.endT),anchor=pointAt((visible.startT+visible.endT)/2),ux=dx/length,uy=dy/length,px=-uy,py=ux;
   const back={x:anchor.x-ux*1.5,y:anchor.y-uy*1.5},tip={x:anchor.x+ux*.84,y:anchor.y+uy*.84},armA={x:back.x+px*1.5,y:back.y+py*1.5},armB={x:back.x-px*1.5,y:back.y-py*1.5};
   const points=[armA,tip,armB].map(point=>`${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
@@ -96,23 +96,26 @@ function graphNodeCircleInSvg(node,svg,width,height){
   const scaleX=width/svgRect.width,scaleY=height/svgRect.height;
   return {x:(nodeRect.left+nodeRect.width/2-svgRect.left)*scaleX,y:(nodeRect.top+nodeRect.height/2-svgRect.top)*scaleY,radius:Math.min(nodeRect.width*scaleX,nodeRect.height*scaleY)/2};
 }
-function applyGraphEdgeTween(tween,progress,nodeCircleForId=null){
+function applyGraphChevronRecord(record,from,to,{fromRadius=record.fromRadius,toRadius=record.toRadius,blockingCircles=null}={}){
+  if(!record.chevron)return;
+  const geometry=graphEdgeChevronGeometryFromPoints(record.edge,from,to,{...record.geometryOptions,fromRadius,toRadius,blockingCircles});
+  if(geometry){record.chevron.setAttribute('points',geometry.points);record.chevron.removeAttribute('visibility');}
+  else record.chevron.setAttribute('visibility','hidden');
+}
+function applyGraphEdgeTween(tween,progress,blockingCircles=null){
   const point=(from,to)=>({x:from.x+(to.x-from.x)*progress,y:from.y+(to.y-from.y)*progress});
   const from=point(tween.previousFrom,tween.nextFrom),to=point(tween.previousTo,tween.nextTo);
   tween.line.setAttribute('x1',String(from.x));tween.line.setAttribute('y1',String(from.y));tween.line.setAttribute('x2',String(to.x));tween.line.setAttribute('y2',String(to.y));
-  if(!tween.chevron)return;
-  const fromRadius=tween.previousFromRadius+(tween.nextFromRadius-tween.previousFromRadius)*progress,toRadius=tween.previousToRadius+(tween.nextToRadius-tween.previousToRadius)*progress,fromCircle=nodeCircleForId?.(tween.edge.from)??null,toCircle=nodeCircleForId?.(tween.edge.to)??null;
-  const geometry=graphEdgeChevronGeometryFromPoints(tween.edge,from,to,{...tween.geometryOptions,fromRadius,toRadius,fromCircle,toCircle});
-  if(geometry){tween.chevron.setAttribute('points',geometry.points);tween.chevron.removeAttribute('visibility');}
-  else tween.chevron.setAttribute('visibility','hidden');
+  const fromRadius=tween.previousFromRadius+(tween.nextFromRadius-tween.previousFromRadius)*progress,toRadius=tween.previousToRadius+(tween.nextToRadius-tween.previousToRadius)*progress;
+  applyGraphChevronRecord(tween,from,to,{fromRadius,toRadius,blockingCircles});
 }
-function runGraphGeometryMotion(state,tweens,edgeTweens,{duration=ENCYCLOPEDIA_MOTION.graphNavigationDuration,edgeDelay=ENCYCLOPEDIA_MOTION.graphEdgeDelay,nodeCircleForId=null,win=globalThis.window}={}){
+function runGraphGeometryMotion(state,tweens,edgeTweens,{duration=ENCYCLOPEDIA_MOTION.graphNavigationDuration,edgeDelay=ENCYCLOPEDIA_MOTION.graphEdgeDelay,nodeCircles=null,win=globalThis.window}={}){
   if(!tweens.length&&!edgeTweens.length)return;
   const token=state.token,now=()=>win?.performance?.now?.()??Date.now(),started=now(),edgeDuration=Math.max(1,duration-edgeDelay),raf=win?.requestAnimationFrame?.bind(win)??(fn=>setTimeout(()=>fn(now()),16));
   const step=()=>{
-    if(state.token!==token)return;const elapsed=now()-started,progress=Math.min(1,elapsed/duration),eased=easeInOutCubic(progress),edgeProgress=elapsed<=edgeDelay?0:Math.min(1,(elapsed-edgeDelay)/edgeDuration),edgeEased=easeInOutCubic(edgeProgress);
+    if(state.token!==token)return;const elapsed=now()-started,progress=Math.min(1,elapsed/duration),eased=easeInOutCubic(progress),edgeProgress=elapsed<=edgeDelay?0:Math.min(1,(elapsed-edgeDelay)/edgeDuration),edgeEased=easeInOutCubic(edgeProgress),blockingCircles=nodeCircles?.()??null;
     for(const {element,attrs} of tweens)for(const [name,from,to] of attrs)element.setAttribute(name,String(from+(to-from)*eased));
-    for(const tween of edgeTweens)applyGraphEdgeTween(tween,edgeEased,nodeCircleForId);
+    for(const tween of edgeTweens)applyGraphEdgeTween(tween,edgeEased,blockingCircles);
     if(progress<1)state.rafId=raf(step);else state.rafId=null;
   };
   state.rafId=raf(step);
@@ -206,14 +209,14 @@ export function renderEncyclopediaGraph({
     return {x:clamp(x,18,width-18),y:clamp(y,22,height-22),kind:projection.twoHop.includes(id)?'teaser':'distant'};
   };
   for(const id of [...projection.twoHop,...projection.distant])positions.set(id,contextPosition(id));
-  const svg=svgEl(document,'svg',{viewBox:`0 0 ${width} ${height}`,'aria-hidden':'true'});stage.append(svg);const geometryTweens=[],edgeTweens=[],interactiveNodeById=new Map();
+  const svg=svgEl(document,'svg',{viewBox:`0 0 ${width} ${height}`,'aria-hidden':'true'});stage.append(svg);const geometryTweens=[],edgeTweens=[],chevronEdges=[],interactiveNodeById=new Map();
   const oneHopSet=new Set(projection.oneHop),twoHopSet=new Set(projection.twoHop);
   const pointRadius=point=>(point?.kind==='focus'?focusDiameter:nodeDiameter)/2;
   const addEdge=(edge,className,visual=null)=>{
     const a=positions.get(edge.from)??contextPosition(edge.from),b=positions.get(edge.to)??contextPosition(edge.to);if(!a||!b)return null;
     const line=svgEl(document,'line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:className});line.dataset.edgeSource=edge.from;line.dataset.edgeTarget=edge.to;svg.append(line);
     let chevron=null;
-    if(visual?.directional){const geometry=graphEdgeChevronGeometryFromPoints(edge,a,b,{focusId,nodeDiameter,focusDiameter});if(geometry){chevron=svgEl(document,'polyline',{points:geometry.points,class:`graph-edge-chevron ${visual.relationClass}`});chevron.dataset.edgeSource=edge.from;chevron.dataset.edgeTarget=edge.to;chevron.dataset.relation=visual.relation;svg.append(chevron);}}
+    if(visual?.directional){const geometry=graphEdgeChevronGeometryFromPoints(edge,a,b,{focusId,nodeDiameter,focusDiameter});if(geometry){chevron=svgEl(document,'polyline',{points:geometry.points,class:`graph-edge-chevron ${visual.relationClass}`});chevron.dataset.edgeSource=edge.from;chevron.dataset.edgeTarget=edge.to;chevron.dataset.relation=visual.relation;svg.append(chevron);chevronEdges.push({line,chevron,edge,fromRadius:pointRadius(a),toRadius:pointRadius(b),geometryOptions:{focusId,nodeDiameter,focusDiameter}});}}
     if(!reduceMotion&&!suppressMotion){
       const pa=previousPositions.get(edge.from),pb=previousPositions.get(edge.to);
       if(pa&&pb){
@@ -245,7 +248,7 @@ export function renderEncyclopediaGraph({
     node.dataset.graphId=id;node.addEventListener('click',()=>{if(selected&&presentation.canOpenDetail)onDetail(id,node);else onFocus(id);});stage.append(node);interactiveNodeById.set(id,node);
     if(previous&&!reduceMotion&&!suppressMotion&&node.animate){const start=graphNodeMotionStart(previous,point,{nodeDiameter,focusDiameter});if(start&&(Math.hypot(start.dx,start.dy)>1||Math.abs(start.scale-1)>.01)){const animation=node.animate([{transform:`translate(calc(-50% + ${start.dx}px),calc(-50% + ${start.dy}px)) scale(${start.scale})`},{transform:'translate(-50%,-50%) scale(1)'}],{duration:ENCYCLOPEDIA_MOTION.graphNavigationDuration,easing:ENCYCLOPEDIA_MOTION.easing,fill:'both'});if(animation){graphMotion.animations.add(animation);animation.finished.catch(()=>{}).then(()=>graphMotion.animations.delete(animation));}}}
   }
-  if(!reduceMotion&&!suppressMotion){const nodeCircleForId=id=>graphNodeCircleInSvg(interactiveNodeById.get(id),svg,width,height);runGraphGeometryMotion(graphMotion,geometryTweens,edgeTweens,{win,nodeCircleForId});}
+  const nodeCircles=()=>[...interactiveNodeById.values()].map(node=>graphNodeCircleInSvg(node,svg,width,height)).filter(Boolean);const initialBlockingCircles=nodeCircles();for(const record of chevronEdges){const from={x:Number(record.line.getAttribute('x1')),y:Number(record.line.getAttribute('y1'))},to={x:Number(record.line.getAttribute('x2')),y:Number(record.line.getAttribute('y2'))};applyGraphChevronRecord(record,from,to,{blockingCircles:initialBlockingCircles});}if(!reduceMotion&&!suppressMotion)runGraphGeometryMotion(graphMotion,geometryTweens,edgeTweens,{win,nodeCircles});
   const focusedState=projection.stateFor(focusId),focusedPresentation=graphNodePresentation(recordById.get(focusId),focusedState,{selected:true}),card=document.createElement('div');card.className='graph-focus-card';
   if(focusedState!==GRAPH_NODE_STATE.UNKNOWN){const identity=document.createElement('div');identity.className='graph-focus-identity graph-focus-label';const name=document.createElement('strong');name.textContent=focusedPresentation.name;identity.append(name);if(focusedPresentation.formula){const formula=document.createElement('small');formula.textContent=focusedPresentation.formula;identity.append(formula);}card.append(identity);if(focusedPresentation.canCraft){const action=document.createElement('button');action.type='button';action.textContent='クラフト';action.addEventListener('click',()=>onCraft(focusId));card.append(action);}}
   if(card.childElementCount)wrapper.append(card);host.append(wrapper);
