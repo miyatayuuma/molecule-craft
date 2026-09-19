@@ -232,6 +232,6 @@ function stepRunFrame(run,input,dt,systems){
 // and steering path.
 export function stepRun(run,input,elapsed,systems={}){
   const events=[];let remaining=clamp(elapsed,0,.15);
-  while(remaining>1e-8){const dt=Math.min(1/60,remaining);events.push(...stepRunFrame(run,input,dt,systems));remaining-=dt;}
+  while(remaining>1e-8){const dt=Math.min(1/60,remaining),capturedAtStart=run.captured;events.push(...stepRunFrame(run,input,dt,systems));remaining-=dt;if(!capturedAtStart&&run.captured)break;}
   return events;
 }
