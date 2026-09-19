@@ -6,6 +6,8 @@ import { createStructureSolver } from './structure-relaxation.js?v=32';
 
 // A private graph, not a Molecule instance: opening the book cannot even consume
 // the field's atom-id sequence. DB topology and player placements are read-only.
+// The deterministic coordinates generated here are a representative pose only;
+// an E/Z-like side choice or tetrahedral handedness is not molecule identity.
 export function createPreviewModel(THREE, record) {
   const atoms=record.atoms.map((element,id)=>({id,element}));
   const bonds=record.bonds.map(([a,b,order])=>({a,b,order}));
