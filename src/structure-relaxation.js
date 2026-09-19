@@ -179,7 +179,7 @@ export function createStructureSolver({
       for(const bond of activeBonds)enforceBondLength(bond,.12*scale,locked);
       // Stage D: local electron-domain geometry remains a soft correction.
       relaxLocalGeometry(scale,locked,activeAtoms);
-      enforceFiveMemberConformations(.10*scale,locked,activeAtoms);
+      enforceFiveMemberConformations(.16*scale,locked,activeAtoms);
       enforceSixMemberConformations(.12*scale,locked,activeAtoms);
       projectRigidConstraints(scale,locked,activeAtoms);
       // Stage C: non-bonded collisions and explicit topology penetration.
@@ -962,7 +962,7 @@ export function createStructureSolver({
   function fiveMemberReference(frame){
     const points=frame.cycle.map(pos);if(points.some(point=>!point))return null;
     const center=points.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/points.length);
-    const normal=cycleNormal(frame.cycle).normalize(),amplitude=frame.targetLength*.14;
+    const normal=cycleNormal(frame.cycle).normalize(),amplitude=frame.targetLength*.12;
     return {center,normal,amplitude};
   }
 
