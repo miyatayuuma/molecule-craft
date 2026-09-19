@@ -1,4 +1,4 @@
-import { ELEMENTS } from './chemistry.js?v=20';
+import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
 import { ATOMIC_MODEL, bondLengthScale, geometryForAtom, atomBondState, nonbondedDistance } from './bonding-model.js?v=31';
 import { sharedOxoGroups } from './special-bonds.js?v=31';
 import { seedCraftCoordinates } from './craft-structures.js?v=31';
@@ -34,7 +34,7 @@ export function createPreviewModel(THREE, record) {
         const choices=[];if(preferred.lengthSq()>1e-6)choices.push(preferred.normalize());
         for(let i=0;i<64;i++){const y=1-2*(i+.5)/64,r=Math.sqrt(1-y*y),a=i*2.3999632297;choices.push(new THREE.Vector3(r*Math.cos(a),y,r*Math.sin(a)));}
         choices.sort((a,b)=>Math.min(...used.map(v=>1-b.dot(v)))-Math.min(...used.map(v=>1-a.dot(v))));
-        const direction=choices[0];used.push(direction);ports.push({atom:port.atom,start:origin.clone().addScaledVector(direction,ELEMENTS[atoms[port.atom].element].radius*.72+.012),point:origin.clone().addScaledVector(direction,.95)});
+        const direction=choices[0];used.push(direction);ports.push({atom:port.atom,start:origin.clone().addScaledVector(direction,modelAtomRadius(atoms[port.atom].element)+.012),point:origin.clone().addScaledVector(direction,.95)});
       }
     }
     const sharedGroups=sharedOxoGroups(molecule),hybridChargeAtoms=new Set(sharedGroups.filter(group=>['nitro','ozone'].includes(group.kind)).flatMap(group=>[group.center,...group.ends]));
