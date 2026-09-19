@@ -121,9 +121,15 @@ export function createStructureSolver({
           const index = cycle.indexOf(atom.id);
           if (index < 0) continue;
           const ends = [cycle[(index + cycle.length - 1) % cycle.length], cycle[(index + 1) % cycle.length]];
-          if (ends.includes(a) && ends.includes(b)) {
-            const ringTarget = (cycle.length - 2) * Math.PI / cycle.length;
-            target = aromaticCycleKeys.has(canonicalCycleKey(cycle)) ? ringTarget : Math.min(target, ringTarget);
+          const aInRing = ends.includes(a), bInRing = ends.includes(b);
+          const ringTarget = (cycle.length - 2) * Math.PI / cycle.length;
+          const aromatic = aromaticCycleKeys.has(canonicalCycleKey(cycle));
+          if (aInRing && bInRing) target = aromatic ? ringTarget : Math.min(target, ringTarget);
+          else if (aromatic && neighbors.length === 3 && aInRing !== bInRing) {
+            // A planar three-coordinate ring member must distribute the
+            // remainder around its external substituent. For a 5-ring this is
+            // 126° + 108° + 126°; a 6-ring naturally remains 120° throughout.
+            target = (2 * Math.PI - ringTarget) / 2;
           }
         }
         // Conjugated O/N followers use the same 120-degree target as their
