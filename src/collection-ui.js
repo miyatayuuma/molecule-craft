@@ -112,7 +112,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const defaultRelation=relations.has(spec.defaultRelation)?spec.defaultRelation:spec.states[0].relation;
     const host=el('section',null,'stereo-comparison'),toggle=el('div',null,'stereo-state-toggle');toggle.setAttribute('role','group');toggle.setAttribute('aria-label',spec.ariaLabel??'立体配置の比較');
     if(spec.message)host.append(el('p',spec.message,'stereo-comparison-note'));host.append(toggle);
-    const buttons=new Map(),sync=relation=>{for(const [key,node]of buttons){const active=key===relation;node.setAttribute('aria-pressed',String(active));node.classList.toggle('selected',active);node.tabIndex=active?0:-1;}host.dataset.relation=relation;};
+    const buttons=new Map(),sync=relation=>{for(const [key,node]of buttons){const active=key===relation;node.setAttribute('aria-pressed',String(active));node.classList.toggle('selected',active);}host.dataset.relation=relation;};
     let request=0;
     for(const state of spec.states){const node=button(state.label,async()=>{if(node.getAttribute('aria-pressed')==='true')return;const token=++request;host.setAttribute('aria-busy','true');const result=await previewHandle.setPresentation(state.relation,spec.kind);if(token!==request)return;host.removeAttribute('aria-busy');if(result?.relation===state.relation)sync(result.relation);},'stereo-state-button');node.dataset.relation=state.relation;node.setAttribute('aria-pressed','false');buttons.set(state.relation,node);toggle.append(node);}
     sync(defaultRelation);previewHandle.ready.then(result=>{if(result?.relation)sync(result.relation);});detail.append(host);
