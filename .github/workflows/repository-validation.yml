@@ -119,6 +119,11 @@ jobs:
           node tests/nitrogen-visual-identity.test.mjs
           node tests/nitrogen-field-pickup-browser.test.mjs
           node tests/inventory-depletion.test.mjs
+      - name: Aromatic geometry authority
+        run: |
+          node scripts/build-collection-assets.mjs
+          git diff --exit-code -- assets/models/molecule-benzene.svg assets/models/molecule-pyridine.svg assets/models/molecule-furan.svg assets/models/molecule-tetrahydrofuran.svg
+          node tests/aromatic-heterocycle-geometry.test.mjs
       - name: CRAFT input recovery
         run: |
           node tests/craft-controls-ui.test.mjs
