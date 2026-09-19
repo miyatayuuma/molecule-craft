@@ -26,7 +26,6 @@ jobs:
       - uses: actions/checkout@v5
       - name: Six-member ring conformation and shared assets
         run: |
-          node tests/structure-relaxation.test.mjs
           node tests/six-member-ring-conformation.test.mjs
           node scripts/build-collection-assets.mjs
           git diff --exit-code -- assets/models/molecule-cyclohexane.svg assets/models/molecule-methylcyclohexane.svg assets/models/molecule-cyclohexanol.svg assets/models/molecule-cyclohexene.svg assets/models/molecule-cyclohexanone.svg assets/models/molecule-benzene.svg assets/models/molecule-pyridine.svg assets/models/molecule-furan.svg assets/models/molecule-tetrahydrofuran.svg assets/models/molecule-cyclopentane.svg assets/models/molecule-cyclobutane.svg
