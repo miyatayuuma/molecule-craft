@@ -104,7 +104,8 @@ assert.equal(ENCYCLOPEDIA_MOTION.graphNavigationDuration,560,'Branch traversal m
 assert.equal(ENCYCLOPEDIA_MOTION.graphEdgeDelay,48,'Edges may trail node motion only by a short readable stagger');
 assert.ok(ENCYCLOPEDIA_MOTION.graphEdgeDelay<ENCYCLOPEDIA_MOTION.graphNavigationDuration*.12,'Edge stagger must remain a small fraction of reroot motion');
 assert.equal(graphEdgeMotionProgress(48),0,'edge geometry must remain at its start snapshot through the 48 ms stagger');
-assert.ok(graphEdgeMotionProgress(200)>.3&&graphEdgeMotionProgress(200)<.5,'edge RAF must follow the same material cubic-bezier response as node WAAPI after the stagger');
+assert.equal(graphEdgeMotionProgress(200),graphEdgeMotionProgress(200,{delay:0}),'after the stagger, edge RAF must rejoin the node WAAPI absolute 560 ms phase instead of stretching the remaining time');
+assert.ok(graphEdgeMotionProgress(200)>.45&&graphEdgeMotionProgress(200)<.6,'phase-locked edge RAF must already reflect the node cubic-bezier travel by 200 ms');
 assert.equal(graphEdgeMotionProgress(560),1,'edge geometry must settle by the unchanged 560 ms reroot duration');
 assert.equal(ENCYCLOPEDIA_MOTION.detailZoomDuration,760,'Graph/Detail shared-element zoom should read as a distinct, longer scale transition');
 assert.equal(ENCYCLOPEDIA_MOTION.easing,'cubic-bezier(.4,0,.2,1)');
@@ -199,10 +200,12 @@ assert.match(graphViewSource,/graph-edge-chevron/,'directional focus edges must 
 assert.match(graphViewSource,/graph-edge-chevron\{[^}]*stroke-width:\.9[^}]*opacity:\.72/,'Chevron should keep its existing stroke weight while only the glyph size changes');
 assert.match(graphViewSource,/graphEdgeDelay:48/,'Graph edge follow-up must use only a short node→edge stagger');
 assert.match(graphViewSource,/graphEdgeMotionProgress\(elapsed,\{duration,delay:edgeDelay\}\)/,'edge RAF must share the node cubic-bezier response after the 48 ms stagger instead of a separate slow easing');
+assert.match(graphViewSource,/if\(elapsed<=delay\)return 0;return graphNavigationEase\(Math\.min\(1,elapsed\/Math\.max\(1,duration\)\)\)/,'48 ms must remain only an onset stagger; once started, edge geometry must use the node animation absolute phase');
 assert.doesNotMatch(graphViewSource,/chevron\.animate/,'Chevron must not own an independent transition animation');
 assert.match(graphViewSource,/graphEdgeChevronGeometryFromPoints/,'Chevron geometry must derive from the same current edge endpoints');
 assert.match(graphViewSource,/graphVisibleEdgeInterval/,'Chevron anchor must be constrained to the currently visible edge interval');
 assert.match(graphViewSource,/graphNodeCircleInSvg/,'reroot clipping must use displayed node circles without changing edge motion authority');
+assert.match(graphViewSource,/svg\?\.getScreenCTM\?\.\(\)[\s\S]*matrix\.inverse/,'motion clipping must map displayed node circles through the actual SVG screen transform rather than approximate independent x\/y scales');
 assert.match(graphViewSource,/const nodeCircles=\(\)=>\[\.\.\.interactiveNodeById\.values\(\)\]/,'visible-gap clipping must consider every displayed graph node, not a mobile-specific pair or layout hack');
 assert.match(graphViewSource,/GRAPH_MOTION_CHEVRON_CLEARANCE=4/,'motion-time Chevron clipping must reserve one-frame compositor clearance without changing static geometry');
 assert.match(graphViewSource,/motionNodeCircles=edgeProgress=>\{const settle=clamp\(\(\(edgeProgress\?\?0\)-\.9\)\/\.1,0,1\),extra=GRAPH_MOTION_CHEVRON_CLEARANCE\*\(1-settle\)/,'motion-time Chevron clearance must stay conservative through active travel and taper only as the shared edge tween settles');
