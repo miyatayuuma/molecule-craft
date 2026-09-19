@@ -15,7 +15,7 @@ export async function loadCollectionData(){
   const [groups,templates,encyclopedia,graph]=await Promise.all([
     load('../data/functional-groups.json?v=25'),
     load('../data/craft-structures.json?v=25'),
-    load('../data/encyclopedia.json?v=31').catch(()=>({molecules:{},parts:{},noteDefinitions:{}})),
+    load('../data/encyclopedia.json?v=32').catch(()=>({molecules:{},parts:{},noteDefinitions:{}})),
     loadMoleculeGraph({url:new URL('../data/molecule-graph.json',import.meta.url).href}),
   ]);
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph};
@@ -78,15 +78,44 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     host.addEventListener('pointerup',event=>{if(!press||press.id!==event.pointerId)return;const start=press;press=null;if(Date.now()-start.at>650||Math.hypot(event.clientX-start.x,event.clientY-start.y)>8)return;void returnMoleculeDetailToGraph(currentMoleculeId()??record.id,host);},true);
     host.addEventListener('pointercancel',()=>{press=null;},true);host.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();void returnMoleculeDetailToGraph(currentMoleculeId()??record.id,host);});
   }
-  function preview(record,name,{graphReturn=false}={}){
-    const host=el('div',null,'collection-model');if(graphReturn)installDetailGraphReturn(host,record,name);detail.appendChild(host);let placeholder=null;if(graphReturn){placeholder=el('img',null,'molecule-detail-continuity-placeholder');placeholder.src=moleculeAsset(record.id);placeholder.alt='';host.appendChild(placeholder);}host.appendChild(el('p','模型を準備しています…','model-status'));
-    const generation=detailGeneration;
-    import('./collection-viewer.js?v=32').then(({createCollectionViewer})=>{
-      if(generation!==detailGeneration||!dialog.open||!host.isConnected)return;
-      host.querySelector(':scope > .model-status')?.remove();detailViewer=createCollectionViewer({host,record,name,onReady:({snapshot})=>{
-        if(generation!==detailGeneration||!host.isConnected)return;host.dataset.viewerReady='true';if(detailTransitionHandle?.id===record.id&&snapshot)moleculeTransition.updateDestinationImage(detailTransitionHandle,snapshot);const finish=()=>placeholder?.remove?.();if(!placeholder)return;if(prefersReducedMotion()){finish();return;}const animation=placeholder.animate?.([{opacity:1},{opacity:0}],{duration:150,easing:'ease-out',fill:'forwards'});animation?.finished?.catch(()=>{}).then(finish);
-      }});
-    }).catch(error=>{if(generation===detailGeneration){host.replaceChildren(el('p','模型を読み込めませんでした。','model-status'));console.warn('Collection viewer unavailable',error);}});
+  function preview(record,name,{graphReturn=false,presentation=null}={}){
+    const host=el('div',null,'collection-model');if(graphReturn)installDetailGraphReturn(host,record,name);detail.appendChild(host);
+    const generation=detailGeneration;let mountGeneration=0;
+    const continuity=graphReturn?el('img',null,'molecule-detail-continuity-placeholder'):null;
+    if(continuity){continuity.src=moleculeAsset(record.id);continuity.alt='';}
+    const fadeOut=node=>{if(!node)return;if(prefersReducedMotion()){node.remove();return;}const animation=node.animate?.([{opacity:1},{opacity:0}],{duration:150,easing:'ease-out',fill:'forwards'});animation?.finished?.catch(()=>{}).then(()=>node.remove());};
+    const mount=(nextPresentation,{crossfade=false}={})=>{
+      const request=++mountGeneration,previousView=detailViewer?.view?.()??null,previousSnapshot=crossfade?detailViewer?.snapshot?.():null;
+      detailViewer?.dispose();detailViewer=null;host.replaceChildren();host.dataset.viewerReady='false';host.dataset.stereoRelation='';
+      let overlay=null;if(previousSnapshot){overlay=el('img',null,'stereo-configuration-transition');overlay.src=previousSnapshot;overlay.alt='';host.append(overlay);}else if(request===1&&continuity)host.append(continuity);
+      host.append(el('p','模型を準備しています…','model-status'));
+      return import('./collection-viewer.js?v=33').then(({createCollectionViewer})=>new Promise(resolve=>{
+        if(request!==mountGeneration||generation!==detailGeneration||!dialog.open||!host.isConnected){resolve(null);return;}
+        host.querySelector(':scope > .model-status')?.remove();
+        detailViewer=createCollectionViewer({host,record,name,presentation:nextPresentation,initialView:previousView,
+          onViewChange:view=>{if(request===mountGeneration&&host.isConnected)host.dataset.viewerView=JSON.stringify(view);},
+          onReady:({snapshot,view,stereoDescriptor})=>{
+            if(request!==mountGeneration||generation!==detailGeneration||!host.isConnected){resolve(null);return;}
+            host.dataset.viewerReady='true';host.dataset.viewerView=JSON.stringify(view);host.dataset.stereoRelation=stereoDescriptor?.relation??'';
+            if(detailTransitionHandle?.id===record.id&&snapshot)moleculeTransition.updateDestinationImage(detailTransitionHandle,snapshot);
+            if(overlay)fadeOut(overlay);else if(request===1)fadeOut(continuity);
+            resolve({relation:stereoDescriptor?.relation??null,view});
+          }});
+      })).catch(error=>{if(request===mountGeneration&&generation===detailGeneration&&host.isConnected){host.replaceChildren(el('p','模型を読み込めませんでした。','model-status'));console.warn('Collection viewer unavailable',error);}return null;});
+    };
+    const ready=mount(presentation);
+    return{host,ready,setPresentation:(relation,kind='alkene-relative-side')=>mount({kind,relation},{crossfade:true}),view:()=>detailViewer?.view?.()??null};
+  }
+  function stereoComparisonControl(spec,previewHandle){
+    if(!spec||spec.kind!=='alkene-relative-side'||!Array.isArray(spec.states)||spec.states.length!==2)return;
+    const relations=new Set(spec.states.map(state=>state.relation));if(!relations.has('same-side')||!relations.has('opposite-side'))return;
+    const defaultRelation=relations.has(spec.defaultRelation)?spec.defaultRelation:spec.states[0].relation;
+    const host=el('section',null,'stereo-comparison'),toggle=el('div',null,'stereo-state-toggle');toggle.setAttribute('role','group');toggle.setAttribute('aria-label',spec.ariaLabel??'立体配置の比較');
+    if(spec.message)host.append(el('p',spec.message,'stereo-comparison-note'));host.append(toggle);
+    const buttons=new Map(),sync=relation=>{for(const [key,node]of buttons){const active=key===relation;node.setAttribute('aria-pressed',String(active));node.classList.toggle('selected',active);}host.dataset.relation=relation;};
+    let request=0;
+    for(const state of spec.states){const node=button(state.label,async()=>{if(node.getAttribute('aria-pressed')==='true')return;const token=++request;host.setAttribute('aria-busy','true');const result=await previewHandle.setPresentation(state.relation,spec.kind);if(token!==request)return;host.removeAttribute('aria-busy');if(result?.relation===state.relation)sync(result.relation);},'stereo-state-button');node.dataset.relation=state.relation;node.setAttribute('aria-pressed','false');buttons.set(state.relation,node);toggle.append(node);}
+    sync(defaultRelation);previewHandle.ready.then(result=>{if(result?.relation)sync(result.relation);});detail.append(host);
   }
   function thumbnail(card,kind,id){
     const record=kind==='molecules'?recordById(id):data.templates.find(item=>item.unlock.groupId===id);
@@ -205,9 +234,10 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     for(const [label,delta]of [['‹',-1],['›',1]]){const next=items[index+delta],node=button(label,()=>{if(next)showDetail(kind,next.id);});node.setAttribute('aria-label',delta<0?'前の項目':'次の項目');node.disabled=index<0||!next;nav.append(node);}detail.append(nav);
     if(kind==='groups'){renderGroup(id);return;}
     const record=recordById(id);if(!record||!state.hasMolecule(id)){currentDetail=null;renderBook();return;}
-    const matches=collectibleMatches(record);heading(kind,id,moleculeDisplayName(record),record.formula);
-    preview(record,moleculeDisplayName(record),{graphReturn:true});
-    const catalogEntry=entry(kind,id)??{};
+    const matches=collectibleMatches(record),catalogEntry=entry(kind,id)??{},stereoSpec=catalogEntry.stereoComparison??null;heading(kind,id,moleculeDisplayName(record),record.formula);
+    const defaultStereo=stereoSpec?{kind:stereoSpec.kind,relation:stereoSpec.defaultRelation??stereoSpec.states?.[0]?.relation}:null;
+    const previewHandle=preview(record,moleculeDisplayName(record),{graphReturn:true,presentation:defaultStereo});
+    if(stereoSpec)stereoComparisonControl(stereoSpec,previewHandle);
     detail.append(el('p',catalogEntry.description??'この分子を図鑑に登録しました。','dex-description'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));

@@ -1,7 +1,7 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=32';
-import { createPreviewControls } from './preview-controls.js?v=21';
+import { createPreviewModel } from './preview-model.js?v=33';
+import { createPreviewControls } from './preview-controls.js?v=22';
 import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=31';
 import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=27';
 
@@ -10,7 +10,7 @@ import { RESONANCE_STYLE, specialEdgeKeys, sharedBondCurves, createSharedBonds, 
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
 
-export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onReady=()=>{},showGestureHint=true}) {
+export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onReady=()=>{},showGestureHint=true,presentation=null,initialView=null,onViewChange=()=>{}}) {
   let disposed=false,frame=0,renderer=null,observer=null,model=null,layout=null;
   let scene=null,camera=null,group=null,width=1,height=1,radius=1,ready=false;
   let canvas=null,context=null,steps=0,stable=0,thumbnailSent=false,readyNotified=false;
@@ -21,8 +21,8 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
   status.setAttribute('role','status');
   host.append(stage,status);host.classList.add('collection-model');
   const listen=(node,type,handler,options)=>{node.addEventListener(type,handler,options);listeners.push(()=>node.removeEventListener(type,handler,options));};
-  const controls=createPreviewControls(view=>{Object.assign(viewState,view);requestDraw();});
-  Object.assign(viewState,controls.snapshot());
+  const controls=createPreviewControls(view=>{Object.assign(viewState,view);try{onViewChange({...viewState});}catch{}requestDraw();},initialView);
+  Object.assign(viewState,controls.snapshot());try{onViewChange({...viewState});}catch{}
 
   if(record.attachments?.length)host.append(make('p','金色の輪が接続点','model-port-key'));
 
@@ -34,20 +34,22 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         const started=performance.now();
         do{const movement=model.step();steps++;stable=movement<.001?stable+1:0;}while(steps<220&&stable<10&&performance.now()-started<5);
         if(steps<220&&stable<10){requestDraw();return;}
-        layout=model.snapshot();model=null;layouts.set(key,layout);
+        layout=model.snapshot();model=null;
+        if(presentation?.kind==='alkene-relative-side'&&layout.stereoDescriptor?.relation!==presentation.relation){status.textContent='この立体配置を表示できませんでした。';return;}
+        layouts.set(key,layout);
         while(layouts.size>8)layouts.delete(layouts.keys().next().value);
       }
       try{initialize();ready=true;}catch(error){status.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';console.warn('Collection preview unavailable',error);releaseGraphics();return;}
     }
     draw();
-    if(!readyNotified){readyNotified=true;try{onReady({snapshot:snapshotImage(),view:{...viewState}});}catch{}}
+    if(!readyNotified){readyNotified=true;host.dataset.stereoRelation=layout.stereoDescriptor?.relation??'';try{onReady({snapshot:snapshotImage(),view:{...viewState},stereoDescriptor:layout.stereoDescriptor??null});}catch{}}
     if(!thumbnailSent){
       thumbnailSent=true;
       try{const small=make('canvas');small.width=96;small.height=80;const scale=Math.min(96/canvas.width,80/canvas.height),w=canvas.width*scale,h=canvas.height*scale;small.getContext('2d').drawImage(canvas,(96-w)/2,(80-h)/2,w,h);onThumbnail(small.toDataURL('image/png'));}catch{}
     }
   }
-  const key=JSON.stringify([record.atoms,record.bonds,record.attachments??[]]);
-  layout=layouts.get(key)??null;if(!layout)model=createPreviewModel(THREE,record);
+  const key=JSON.stringify([record.atoms,record.bonds,record.attachments??[],presentation?.kind??null,presentation?.relation??null]);
+  layout=layouts.get(key)??null;if(!layout)model=createPreviewModel(THREE,record,{presentation});
 
   function initialize(){
     aromaticEdges=new Set([...aromaticBondKeys(layout.aromaticCycles),...specialEdgeKeys(layout.sharedGroups??[])]);
