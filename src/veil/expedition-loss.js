@@ -1,7 +1,7 @@
 const LOSS_ELEMENTS=Object.freeze(['H','C','N','O','P','S','F','Cl']);
 const BASE_DUST_ELEMENTS=new Set(['H','C','O']);
 
-const expeditionElements=units=>LOSS_ELEMENTS.filter(element=>BASE_DUST_ELEMENTS.has(element)||Object.hasOwn(units??{},element));
+export const expeditionElements=units=>LOSS_ELEMENTS.filter(element=>BASE_DUST_ELEMENTS.has(element)||Object.hasOwn(units??{},element));
 
 export function expeditionLoss(units,rate){
   const elements=expeditionElements(units),exact=elements.map((el,index)=>({el,index,value:(units?.[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
