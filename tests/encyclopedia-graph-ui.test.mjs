@@ -15,7 +15,7 @@ import {
   selectInitialGraphFocus,
   transitionGraphFocus,
 } from '../src/encyclopedia-graph.js';
-import {ENCYCLOPEDIA_MOTION,graphEdgeChevronGeometry,graphEdgeVisualState,graphNodeMotionStart} from '../src/encyclopedia-graph-view.js';
+import {ENCYCLOPEDIA_MOTION,graphEdgeChevronGeometry,graphEdgeVisualState,graphNodeMotionStart,graphVisibleEdgeInterval} from '../src/encyclopedia-graph-view.js';
 
 const json=async path=>JSON.parse(await readFile(new URL(path,import.meta.url),'utf8'));
 const [productionRaw,records]=await Promise.all([json('../data/molecule-graph.json'),json('../data/molecules.json')]);
@@ -138,9 +138,9 @@ assert.equal(graphEdgeVisualState(production,chainIntoButane,{direct:false}).dir
 const butaneMobile=layoutFocusNeighborhood(production,'n-butane',{width:320,height:430,nodeDiameter:62,focusDiameter:116});
 for(const edge of [chainIntoButane,chainOutOfButane]){
   const geometry=graphEdgeChevronGeometry(edge,butaneMobile.positions,{focusId:'n-butane',nodeDiameter:62,focusDiameter:116});assert.ok(geometry,`${edge.from} → ${edge.to}: mobile visible-gap chevron geometry`);
-  const from=butaneMobile.positions.get(edge.from),to=butaneMobile.positions.get(edge.to),direction={x:to.x-from.x,y:to.y-from.y},movement={x:geometry.end.x-geometry.start.x,y:geometry.end.y-geometry.start.y},edgeLength=Math.hypot(direction.x,direction.y),visibleGap=edgeLength-geometry.fromRadius-geometry.toRadius-10;
+  const from=butaneMobile.positions.get(edge.from),to=butaneMobile.positions.get(edge.to),direction={x:to.x-from.x,y:to.y-from.y},movement={x:geometry.end.x-geometry.start.x,y:geometry.end.y-geometry.start.y},edgeLength=Math.hypot(direction.x,direction.y),visibleGap=geometry.visibleGap;
   assert(movement.x*direction.x+movement.y*direction.y>0,`${edge.from} → ${edge.to}: Chevron must move along semantic from→to direction even when focus is in the middle`);
-  assert(Math.hypot(movement.x,movement.y)>=visibleGap*.99,`${edge.from} → ${edge.to}: Chevron should traverse essentially the full visible edge gap`);
+  assert(Math.abs(Math.hypot(movement.x,movement.y)-visibleGap)<.02,`${edge.from} → ${edge.to}: Chevron interval must equal the safe visible edge gap`);
   assert(Math.hypot(geometry.end.x-from.x,geometry.end.y-from.y)>geometry.fromRadius,`${edge.from} → ${edge.to}: Chevron must stay outside source node on mobile`);
   assert(Math.hypot(geometry.end.x-to.x,geometry.end.y-to.y)>geometry.toRadius,`${edge.from} → ${edge.to}: Chevron must stay outside target node on mobile`);
   const expectedAnchor={x:(geometry.start.x+geometry.end.x)/2,y:(geometry.start.y+geometry.end.y)/2};assert(Math.hypot(geometry.anchor.x-expectedAnchor.x,geometry.anchor.y-expectedAnchor.y)<.01,`${edge.from} → ${edge.to}: Chevron anchor must be derived from the current visible edge midpoint`);
@@ -148,6 +148,12 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   const lineDistance=point=>Math.abs(direction.x*(from.y-point[1])-direction.y*(from.x-point[0]))/edgeLength;assert(points.every(point=>lineDistance(point)<=1.55),`${edge.from} → ${edge.to}: every Chevron vertex must stay on the current edge geometry within glyph width`);
   const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should remain compact while direction is encoded by tangent orientation`);
 }
+
+const laggedVisible=graphVisibleEdgeInterval({x:0,y:0},{x:100,y:0},{circles:[{x:15,y:0,radius:20},{x:85,y:0,radius:20}],padding:3,chevronExtent:2.4,minGap:7});
+assert.ok(laggedVisible,'current edge must retain a safe interval while endpoint nodes visually lead the staggered edge');
+assert.ok(laggedVisible.startT>.39&&laggedVisible.endT<.61,'visible interval must be clipped by the actual displayed node circles, not ideal endpoint centers');
+const unsafeShort=graphVisibleEdgeInterval({x:0,y:0},{x:70,y:0},{circles:[{x:0,y:0,radius:31},{x:70,y:0,radius:31}],padding:3,chevronExtent:2.4,minGap:7});
+assert.equal(unsafeShort,null,'short edges with no safe visible gap must hide the Chevron rather than place it inside a node');
 
 const entries=new Map([['c',{order:2}],['a',{order:1}]]);
 assert.equal(selectInitialGraphFocus(fixture,{registeredIds:new Set(['a','c']),recipes:new Set(),hints:new Set(),entriesById:entries}),'c','Most recently registered molecule must win when no previous focus exists');
@@ -177,7 +183,9 @@ assert.match(graphViewSource,/graph-edge-chevron\{[^}]*stroke-width:\.9[^}]*opac
 assert.match(graphViewSource,/graphEdgeDelay:48/,'Graph edge follow-up must use only a short node→edge stagger');
 assert.doesNotMatch(graphViewSource,/chevron\.animate/,'Chevron must not own an independent transition animation');
 assert.match(graphViewSource,/graphEdgeChevronGeometryFromPoints/,'Chevron geometry must derive from the same current edge endpoints');
-assert.match(graphViewSource,/applyGraphEdgeTween\(tween,edgeEased\)/,'Edge and Chevron must update together from one shared reroot tween');
+assert.match(graphViewSource,/graphVisibleEdgeInterval/,'Chevron anchor must be constrained to the currently visible edge interval');
+assert.match(graphViewSource,/graphNodeCircleInSvg/,'reroot clipping must use the displayed endpoint-node circles without changing edge motion authority');
+assert.match(graphViewSource,/applyGraphEdgeTween\(tween,edgeEased,nodeCircleForId\)/,'Edge and Chevron must update together from one shared reroot tween while clipping against displayed node circles');
 assert.match(graphViewSource,/if\(!reduceMotion&&!suppressMotion\)[\s\S]*previousPositions\.get\(edge\.from\)/,'suppressed or reduced reroots must not initialize edges from stale previous geometry');
 assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigation timing must remain deliberately readable');
 assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition must remain longer than branch navigation');
