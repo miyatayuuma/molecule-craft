@@ -200,6 +200,9 @@ assert.match(graphViewSource,/graphEdgeChevronGeometryFromPoints/,'Chevron geome
 assert.match(graphViewSource,/graphVisibleEdgeInterval/,'Chevron anchor must be constrained to the currently visible edge interval');
 assert.match(graphViewSource,/graphNodeCircleInSvg/,'reroot clipping must use displayed node circles without changing edge motion authority');
 assert.match(graphViewSource,/const nodeCircles=\(\)=>\[\.\.\.interactiveNodeById\.values\(\)\]/,'visible-gap clipping must consider every displayed graph node, not a mobile-specific pair or layout hack');
+assert.match(graphViewSource,/GRAPH_MOTION_CHEVRON_CLEARANCE=4/,'motion-time Chevron clipping must reserve one-frame compositor clearance without changing static geometry');
+assert.match(graphViewSource,/motionNodeCircles=\(\)=>nodeCircles\(\)\.map\(circle=>\(\{\.\.\.circle,radius:circle\.radius\+GRAPH_MOTION_CHEVRON_CLEARANCE\}\)\)/,'normal reroot must inflate displayed blocking circles only for motion-time Chevron safety');
+assert.match(graphViewSource,/nodeCircles:motionNodeCircles/,'Graph RAF must use the motion safety circles while reduced/suppressed rendering commits against exact final circles');
 assert.match(graphViewSource,/for\(const tween of edgeTweens\)applyGraphEdgeTween\(tween,edgeEased\);[\s\S]*updateGraphChevrons\(chevronRecords,nodeCircles\?\.\(\)\?\?null\)/,'Every RAF must update edge geometry first and derive every Chevron from those current line endpoints in the same frame');
 assert.match(graphViewSource,/if\(!reduceMotion&&!suppressMotion\)[\s\S]*graphEdgeMotionStart\(previousPositions,edge\)/,'suppressed or reduced reroots must not initialize edge motion from stale previous geometry');
 assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigation timing must remain deliberately readable');
