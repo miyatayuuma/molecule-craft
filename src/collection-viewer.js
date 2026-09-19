@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three/three.module.min.js';
-import { ELEMENTS } from './chemistry.js?v=20';
+import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
 import { createPreviewModel } from './preview-model.js?v=32';
 import { createPreviewControls } from './preview-controls.js?v=21';
 import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=31';
@@ -52,7 +52,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
   function initialize(){
     aromaticEdges=new Set([...aromaticBondKeys(layout.aromaticCycles),...specialEdgeKeys(layout.sharedGroups??[])]);
     aromaticFrames=layout.aromaticCycles.map(cycle=>aromaticRingFrame(THREE,cycle.map(id=>layout.atoms[id].point))).filter(Boolean);
-    radius=Math.max(.6,...layout.atoms.map(atom=>atom.point.length()+ELEMENTS[atom.element].radius*.72),...layout.ports.map(port=>port.point.length()+.18));
+    radius=Math.max(.6,...layout.atoms.map(atom=>atom.point.length()+modelAtomRadius(atom.element)),...layout.ports.map(port=>port.point.length()+.18));
     scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.01,200);group=new THREE.Group();scene.add(group);
     scene.add(new THREE.HemisphereLight(0xffffff,0x24304a,2.5));
     const light=new THREE.DirectionalLight(0xffffff,3);light.position.set(3,5,7);scene.add(light);
@@ -79,8 +79,8 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
     const materials=new Map();
     for(const atom of layout.atoms){
       if(!materials.has(atom.element))materials.set(atom.element,own(new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element].color,roughness:.32,metalness:.06})));
-      const mesh=new THREE.Mesh(sphere,materials.get(atom.element));mesh.position.copy(atom.point);mesh.scale.setScalar(ELEMENTS[atom.element].radius*.72);group.add(mesh);
-      if(atom.charge){const label=createChargeLabel(THREE,atom.charge,owner,own);label.position.copy(atom.point);label.position.y+=ELEMENTS[atom.element].radius*.72+.12;group.add(label);}
+      const mesh=new THREE.Mesh(sphere,materials.get(atom.element));mesh.position.copy(atom.point);mesh.scale.setScalar(modelAtomRadius(atom.element));group.add(mesh);
+      if(atom.charge){const label=createChargeLabel(THREE,atom.charge,owner,own);label.position.copy(atom.point);label.position.y+=modelAtomRadius(atom.element)+.12;group.add(label);}
     }
     const bondMaterial=own(new THREE.MeshStandardMaterial({color:0x9eafc5,roughness:.4}));
     for(const bond of layout.bonds){
@@ -125,8 +125,8 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
       const start=rotated[bond.a],end=rotated[bond.b],axis=end.world.clone().sub(start.world).normalize();
       // Stop sticks at sphere surfaces; drawing center-to-center would paint
       // spokes over the foreground atom in the software depth-sorted renderer.
-      const a=start.world.clone().addScaledVector(axis,ELEMENTS[start.element].radius*.72);
-      const b=end.world.clone().addScaledVector(axis,-ELEMENTS[end.element].radius*.72);
+      const a=start.world.clone().addScaledVector(axis,modelAtomRadius(start.element));
+      const b=end.world.clone().addScaledVector(axis,-modelAtomRadius(end.element));
       if(a.z>=camera.position.z||b.z>=camera.position.z)continue;
       commands.push({z:(a.z+b.z)/2,draw:()=>{
         const p=project(a),q=project(b),length=Math.max(1,Math.hypot(q.x-p.x,q.y-p.y)),dx=-(q.y-p.y)/length,dy=(q.x-p.x)/length;
@@ -162,8 +162,8 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
     }}
     for(const atom of rotated){
       const depth=camera.position.z-atom.world.z;if(depth<=.01)continue;
-      commands.push({z:atom.world.z+ELEMENTS[atom.element].radius*.72,draw:()=>{
-        const p=project(atom.world),r=ELEMENTS[atom.element].radius*.72*height/(2*Math.tan(19*Math.PI/180)*depth);
+      commands.push({z:atom.world.z+modelAtomRadius(atom.element),draw:()=>{
+        const p=project(atom.world),r=modelAtomRadius(atom.element)*height/(2*Math.tan(19*Math.PI/180)*depth);
         const gradient=context.createRadialGradient(p.x-r*.3,p.y-r*.35,r*.07,p.x,p.y,r);
         gradient.addColorStop(0,'#ffffff');gradient.addColorStop(.25,ELEMENTS[atom.element].color);gradient.addColorStop(1,'#182337');
         context.fillStyle=gradient;context.beginPath();context.arc(p.x,p.y,r,0,Math.PI*2);context.fill();
@@ -172,7 +172,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
     for(const port of layout.ports){
       const a=layout.atoms[port.atom].point.clone().applyQuaternion(group.quaternion),b=port.point.clone().applyQuaternion(group.quaternion);
       if(a.z>=camera.position.z||b.z>=camera.position.z)continue;
-      const r=ELEMENTS[layout.atoms[port.atom].element].radius*.72*height/(2*Math.tan(19*Math.PI/180)*(camera.position.z-a.z));
+      const r=modelAtomRadius(layout.atoms[port.atom].element)*height/(2*Math.tan(19*Math.PI/180)*(camera.position.z-a.z));
       const segment=attachmentProjection(project(a),project(b),r+1);if(!segment)continue;
       const {start:p,end:q}=segment;
       // Small dashes sort individually against the atoms, including another

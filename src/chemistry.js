@@ -11,6 +11,11 @@ export const ELEMENTS = {
   Cl: { name: '塩素',   color: '#16a34a', radius: 0.48, valences: [1] },
 };
 
+export const MODEL_ATOM_RADIUS_SCALE = 0.72;
+export function modelAtomRadius(element) {
+  return (ELEMENTS[element]?.radius ?? 0.42) * MODEL_ATOM_RADIUS_SCALE;
+}
+
 export const UNKNOWN_NAME = '未知 / 未登録の構造';
 let nextAtomId = 1;
 let knownMolecules = [];

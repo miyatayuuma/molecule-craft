@@ -18,6 +18,7 @@ export function createStructureSolver({
   let trigonalFrames = new Map();
   let aromaticFrames = new Map();
   let sixMemberFrames = [];
+  let fiveMemberFrames = [];
   let stericExclusions = new Set();
   let stericRelations = new Map();
   let ringFrames = [];
@@ -94,6 +95,7 @@ export function createStructureSolver({
     }
     aromaticFrames = nextAromaticFrames;
     sixMemberFrames = cycles.map(classifySixMemberConformation).filter(Boolean);
+    fiveMemberFrames = cycles.map(classifyFiveMemberConformation).filter(Boolean);
     ({excluded:stericExclusions,relations:stericRelations}=buildStericRelations());
     ringFrames = cycles.map(cycle => ({cycle:[...cycle],key:canonicalCycleKey(cycle),aromatic:aromaticCycles.some(item=>sameMembers(item,cycle))}));
     rigidFragments = buildRigidFragments();
@@ -177,6 +179,7 @@ export function createStructureSolver({
       for(const bond of activeBonds)enforceBondLength(bond,.12*scale,locked);
       // Stage D: local electron-domain geometry remains a soft correction.
       relaxLocalGeometry(scale,locked,activeAtoms);
+      enforceFiveMemberConformations(.16*scale,locked,activeAtoms);
       enforceSixMemberConformations(.12*scale,locked,activeAtoms);
       projectRigidConstraints(scale,locked,activeAtoms);
       // Stage C: non-bonded collisions and explicit topology penetration.
@@ -352,9 +355,10 @@ export function createStructureSolver({
     const ringIssues=measureRingPenetrations(includes);
     const bondIntersections=measureBondIntersections(includes);
     const rigidRelative=measureRigidDeviation(rigidReference,includes);
+    const fiveMemberConformationRelative=measureFiveMemberConformationDeviation(includes);
     const sixMemberConformationRelative=measureSixMemberConformationDeviation(includes);
-    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative, rigidRelative, sixMemberConformationRelative].every(Number.isFinite);
-    return {finite,bondRelative,angleRadians,planeDistance,overlapRelative,sixMemberConformationRelative,
+    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative, rigidRelative, fiveMemberConformationRelative, sixMemberConformationRelative].every(Number.isFinite);
+    return {finite,bondRelative,angleRadians,planeDistance,overlapRelative,fiveMemberConformationRelative,sixMemberConformationRelative,
       ringPenetrations:ringIssues.atomCount+ringIssues.bondCount,ringAtomPenetrations:ringIssues.atomCount,
       ringBondPenetrations:ringIssues.bondCount,bondIntersections,rigidRelative,topologyLimited};
   }
@@ -527,11 +531,11 @@ export function createStructureSolver({
   function validateConformation({ids=null,rigidReference=null,mode='release'}={}){
     const errors=measureError({ids,rigidReference}),drag=mode==='drag';
     const limits={bondRelative:drag ? .10 : .07,angleRadians:(drag ? 26 : 20)*Math.PI/180,planeDistance:drag ? .10 : .075,
-      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035,sixMemberConformationRelative:drag ? .10 : .065};
+      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035,fiveMemberConformationRelative:drag ? .16 : .12,sixMemberConformationRelative:drag ? .10 : .065};
     const reasons=[];
     if(!errors.finite)reasons.push('nonfinite');
     if(errors.topologyLimited)reasons.push('topology');
-    for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative','sixMemberConformationRelative'])if(errors[key]>limits[key])reasons.push(key);
+    for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative','fiveMemberConformationRelative','sixMemberConformationRelative'])if(errors[key]>limits[key])reasons.push(key);
     if(errors.ringPenetrations)reasons.push('ring-penetration');
     if(errors.bondIntersections)reasons.push('bond-intersection');
     return{valid:reasons.length===0,reasons,errors,limits};
@@ -935,6 +939,63 @@ export function createStructureSolver({
     });
   }
 
+  function classifyFiveMemberConformation(cycle){
+    if(cycle.length!==5||aromaticCycleKeys.has(canonicalCycleKey(cycle)))return null;
+    const ringOrders=cycle.map((id,index)=>bondBetween(id,cycle[(index+1)%cycle.length])?.order??0);
+    if(ringOrders.some(order=>order!==1)||cycle.some(id=>geometryFor(id).kind!=='sp3'))return null;
+    let candidates=cycleVariants(cycle);
+    // A unique heteroatom is the least ambiguous topology-derived anchor for a
+    // saturated heterocycle. Homocyclic rings fall back to canonical id order.
+    const hetero=cycle.filter(id=>atomById(id)?.element!=='C');
+    if(hetero.length===1)candidates=candidates.filter(sequence=>sequence[0]===hetero[0]);
+    candidates.sort(compareIdSequence);
+    const ordered=candidates[0];
+    return {
+      mode:'distributed-pucker',
+      cycle:ordered,
+      signature:[0,1,-.65,-.65,.30],
+      targetLength:ringTargetLength(ordered),
+      motionGroups:ringMotionGroups(ordered),
+    };
+  }
+
+  function fiveMemberReference(frame){
+    const points=frame.cycle.map(pos);if(points.some(point=>!point))return null;
+    const center=points.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/points.length);
+    const normal=cycleNormal(frame.cycle).normalize(),amplitude=frame.targetLength*.12;
+    return {center,normal,amplitude};
+  }
+
+  function enforceFiveMemberConformations(strength,locked,activeAtoms){
+    if(!fiveMemberFrames.length)return;
+    const activeIds=new Set(activeAtoms.map(atom=>atom.id));
+    for(const frame of fiveMemberFrames){
+      if(!frame.cycle.every(id=>activeIds.has(id)))continue;
+      const reference=fiveMemberReference(frame);if(!reference)continue;
+      for(let index=0;index<frame.cycle.length;index++){
+        const group=frame.motionGroups[index];if(group.some(member=>locked.has(member)))continue;
+        const point=pos(frame.cycle[index]);if(!point)continue;
+        const current=point.clone().sub(reference.center).dot(reference.normal),target=frame.signature[index]*reference.amplitude;
+        const delta=(target-current)*strength;if(Math.abs(delta)<1e-5)continue;
+        for(const member of group)pos(member)?.addScaledVector(reference.normal,delta);
+      }
+    }
+  }
+
+  function measureFiveMemberConformationDeviation(includes){
+    let relative=0;
+    for(const frame of fiveMemberFrames){
+      if(!frame.cycle.every(includes))continue;
+      const reference=fiveMemberReference(frame);if(!reference)continue;
+      for(let index=0;index<frame.cycle.length;index++){
+        const point=pos(frame.cycle[index]);if(!point)continue;
+        const current=point.clone().sub(reference.center).dot(reference.normal),target=frame.signature[index]*reference.amplitude;
+        relative=Math.max(relative,Math.abs(current-target)/Math.max(frame.targetLength,1e-8));
+      }
+    }
+    return relative;
+  }
+
   function classifySixMemberConformation(cycle){
     if(cycle.length!==6||aromaticCycleKeys.has(canonicalCycleKey(cycle)))return null;
     if(!cycle.every(id=>atomById(id)?.element==='C'))return null;
@@ -1139,6 +1200,7 @@ export function createStructureSolver({
       aromaticCycles: aromaticCycles.map(cycle => [...cycle]),
       doublePlanarGroups: [...doubleFrames.values()].map(frame => [...frame.atomIds]),
       aromaticPlanarGroups: [...aromaticFrames.values()].map(frame => [...frame.atomIds]),
+      fiveMemberConformations: fiveMemberFrames.map(frame=>({mode:frame.mode,cycle:[...frame.cycle],signature:[...frame.signature]})),
       sixMemberConformations: sixMemberFrames.map(frame=>({mode:frame.mode,cycle:[...frame.cycle],signature:[...frame.signature]})),
       rigidFragments: rigidFragments.map(fragment=>({id:fragment.id,atomIds:[...fragment.atomIds],kinds:[...fragment.kinds]})),
       ringExclusionVolumes: ringFrames.map(frame=>({key:frame.key,atomIds:[...frame.cycle],aromatic:frame.aromatic,thickness:ringGeometry(frame)?.thickness??0})),
