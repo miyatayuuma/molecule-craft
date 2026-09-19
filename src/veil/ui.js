@@ -117,7 +117,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(captured){
       const lossSnapshot={lost:expeditionLoss(run.elementDust,EXPEDITION.captureLoss),insights:runInsightLossSnapshot(run)};
       resetInput();anchorLock=null;const duration=renderer.beginForcedReturn(run,lossSnapshot);if(!duration)return false;
-      discardRunInsights(run);insightPresentation.clear();returnState={captured:true,duration,elapsed:0,lossSnapshot};audio.start();hud();return true;
+      discardRunInsights(run);insightPresentation.clear({showLoss:false});returnState={captured:true,duration,elapsed:0,lossSnapshot};audio.start();hud();return true;
     }
     if(anchorLock||run.captured)return false;discardActiveInsight(run);insightPresentation.sync(run);resetInput();renderer.beginReturn(run,'stable');anchorLock={duration:EXPEDITION.anchorLockSeconds,elapsed:0};audio.start();audio.event('returnSafe');notice('ANCHOR LOCK · 保持場を安定収縮',1);hud();
     return true;
