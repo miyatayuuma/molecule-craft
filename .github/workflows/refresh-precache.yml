@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main, task-5g-dust-eater-forced-return-loss]
+    branches: [main]
 
 permissions:
   contents: write
