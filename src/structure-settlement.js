@@ -15,7 +15,8 @@ export function createStructureSettlement({THREE,molecule,placements,ids,lockedI
     atomById:id=>atoms.find(atom=>atom.id===id),bondBetween:(a,b)=>bonds.find(bond=>bond.a===a&&bond.b===b||bond.a===b&&bond.b===a)});
   const copy=()=>new Map([...working].map(([id,item])=>[id,item.position.clone()]));
   const score=e=>e.finite&&!e.topologyLimited?Math.max(e.bondRelative/.025,e.angleRadians/(8*Math.PI/180),e.planeDistance/.035,
-    (e.overlapRelative??0)/.15,(e.rigidRelative??0)/.025,e.ringPenetrations?20+e.ringPenetrations:0,e.bondIntersections?20+e.bondIntersections:0):Infinity;
+    (e.overlapRelative??0)/.15,(e.rigidRelative??0)/.025,(e.sixMemberConformationRelative??0)/.05,
+    e.ringPenetrations?20+e.ringPenetrations:0,e.bondIntersections?20+e.bondIntersections:0):Infinity;
   let errors=solver.measureError({rigidReference}),bestErrors=errors,bestScore=score(errors),best=copy();
   let lastValid=solver.validateConformation({rigidReference}).valid?copy():null,rolledBack=false;
   let previous=now,elapsed=0,steps=0,blendAt=null,done=false;
