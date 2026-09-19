@@ -153,4 +153,42 @@ const relaxLikeApp=(solver,duration=1380)=>{for(let elapsed=0;elapsed<=duration;
   assert.ok(angles.every(value=>Math.abs(value-109.47)<3.5),`Methane angles: ${Math.min(...angles)}–${Math.max(...angles)}`);
 }
 
+
+{
+  const elements=['N','C','C','C','C','C',...Array(5).fill('H')],bonds=[],coordinates=[];
+  for(let index=0;index<6;index++)bonds.push([index,(index+1)%6,index%2===0?2:1]);
+  for(let index=1;index<6;index++)bonds.push([index,index+5,1]);
+  for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),index===0?.42:0]);
+  for(let index=1;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*1.65,Math.sin(index*Math.PI/3)*1.65,0]);
+  const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+  const snapshot=item.solver.snapshot();
+  assert.equal(snapshot.aromaticCycles.length,1,'Pyridine ring was not classified as aromatic');
+  assert.equal(snapshot.aromaticCycles[0].length,6,'Pyridine aromatic cycle size changed');
+  relaxLikeApp(item.solver);
+  assert.ok(planeSpread([...Array(6)].map((_,index)=>item.pos(index)),item.solver.captureConformation?new Vector3(0,0,1):new Vector3(0,0,1))<.035,'Pyridine ring did not return to a plane');
+}
+
+{
+  const elements=['O','C','C','C','C',...Array(4).fill('H')];
+  const bonds=[[0,1,1],[1,2,2],[2,3,1],[3,4,2],[4,0,1],[1,5,1],[2,6,1],[3,7,1],[4,8,1]];
+  const coordinates=[
+    [1,0,.4],[.31,.95,0],[-.81,.59,0],[-.81,-.59,0],[.31,-.95,0],
+    [.55,1.65,0],[-1.45,1.08,0],[-1.45,-1.08,0],[.55,-1.65,0],
+  ];
+  const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+  const snapshot=item.solver.snapshot();
+  assert.equal(snapshot.aromaticCycles.length,1,'Furan ring was not classified as aromatic');
+  assert.equal(snapshot.aromaticCycles[0].length,5,'Furan aromatic cycle size changed');
+  relaxLikeApp(item.solver);
+  assert.ok(planeSpread([...Array(5)].map((_,index)=>item.pos(index)))<.035,'Furan ring did not return to a plane');
+}
+
+{
+  const elements=['C','C','C','C','C','C'];
+  const bonds=[[0,1,1],[1,2,1],[2,3,1],[3,4,1],[4,5,1],[5,0,1]];
+  const coordinates=elements.map((_,index)=>[Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),0]);
+  const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+  assert.equal(item.solver.snapshot().aromaticCycles.length,0,'Cyclohexane was incorrectly classified as aromatic');
+}
+
 console.log('Structure relaxation tests passed.');
