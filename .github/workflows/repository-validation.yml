@@ -157,6 +157,7 @@ jobs:
           node tests/veil-return-effects.test.mjs
           node tests/dust-eater-forced-return.test.mjs
           node tests/dust-eater-forced-return-browser.test.mjs
+          node tests/dust-eater-forced-return-ui-browser.test.mjs
       - name: Upload Dust Eater forced-return frame
         if: always()
         uses: actions/upload-artifact@v4
