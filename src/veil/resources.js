@@ -1,6 +1,6 @@
 import { OXYGEN_UPGRADES,nextOxygenUpgrade } from './tank-upgrades.js';
 import { EXPEDITION } from './config.js';
-import { expeditionLoss } from './expedition-loss.js';
+import { expeditionElements,expeditionLoss } from './expedition-loss.js';
 export { expeditionLoss } from './expedition-loss.js';
 import { CHALLENGE_INSIGHT_IDS } from './expedition-challenges.js';
 import { CRITICAL_INSIGHT_IDS,fieldInsightOpportunityEligibility } from './insights.js';
