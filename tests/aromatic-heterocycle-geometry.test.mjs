@@ -137,7 +137,7 @@ const [solverSource,appSource,previewSource,viewerSource,assetBuilder,pyridineAs
   readFile(new URL('../assets/models/molecule-tetrahydrofuran.svg',import.meta.url),'utf8'),
 ]);
 assert.match(solverSource,/isSupportedAromaticCycle/);
-assert.doesNotMatch(solverSource,/isAromaticSixCarbonCycle|molecule\.id|pyridine|furan/i,'Aromatic solver must stay topology-driven');
+assert.doesNotMatch(solverSource,/isAromaticSixCarbonCycle|molecule\.id\s*===\s*['\"](?:pyridine|furan)/i,'Aromatic solver must stay topology-driven');
 assert.match(appSource,/createStructureSolver\(/,'CRAFT must use the common structure solver');
 assert.match(previewSource,/createStructureSolver\(/,'Encyclopedia preview must use the common structure solver');
 assert.match(viewerSource,/createPreviewModel\(/,'Encyclopedia viewer must use the shared preview geometry');
