@@ -42,7 +42,7 @@ export function createStructureSolver({
     topologyLimited = false;
     cycles = findCycles(8);
     if (topologyLimited) cycles = []; // Keep the graph; do not optimize a partial set of rings.
-    aromaticCycles = cycles.filter(isAromaticSixCarbonCycle);
+    aromaticCycles = cycles.filter(isSupportedAromaticCycle);
     aromaticEdges = new Set();
     for (const cycle of aromaticCycles) cycle.forEach((id, index) => aromaticEdges.add(pairKey(id, cycle[(index + 1) % cycle.length])));
 
@@ -931,11 +931,27 @@ export function createStructureSolver({
     return [...found.values()];
   }
 
-  function isAromaticSixCarbonCycle(cycle) {
-    if (cycle.length !== 6 || !cycle.every(id => atomById(id)?.element === 'C')) return false;
-    const orders = cycle.map((id, index) => bondBetween(id, cycle[(index + 1) % 6])?.order ?? 0);
-    return orders.filter(order => order === 2).length === 3
-      && orders.every((order, index) => (order === 1 || order === 2) && order !== orders[(index + 1) % 6]);
+  function isSupportedAromaticCycle(cycle) {
+    if (![5, 6].includes(cycle.length)) return false;
+    const orders = cycle.map((id, index) => bondBetween(id, cycle[(index + 1) % cycle.length])?.order ?? 0);
+    if (orders.some(order => order !== 1 && order !== 2)) return false;
+
+    let piElectrons = 0;
+    for (let index = 0; index < cycle.length; index++) {
+      const element = atomById(cycle[index])?.element;
+      const previousOrder = orders[(index - 1 + cycle.length) % cycle.length];
+      const nextOrder = orders[index];
+      const doubleBonds = Number(previousOrder === 2) + Number(nextOrder === 2);
+      if (doubleBonds > 1) return false;
+      if (doubleBonds === 1) {
+        if (!['C', 'N', 'O', 'S'].includes(element)) return false;
+        piElectrons += 1;
+        continue;
+      }
+      if (!['N', 'O', 'S'].includes(element) || previousOrder !== 1 || nextOrder !== 1) return false;
+      piElectrons += 2;
+    }
+    return piElectrons === 6;
   }
 
   function sameMembers(left, right) {
