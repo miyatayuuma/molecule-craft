@@ -12,6 +12,7 @@ export function createStructureSolver({
   let dirty = true;
   let cycles = [];
   let aromaticCycles = [];
+  let aromaticCycleKeys = new Set();
   let aromaticEdges = new Set();
   let doubleFrames = new Map();
   let trigonalFrames = new Map();
@@ -42,7 +43,8 @@ export function createStructureSolver({
     topologyLimited = false;
     cycles = findCycles(8);
     if (topologyLimited) cycles = []; // Keep the graph; do not optimize a partial set of rings.
-    aromaticCycles = cycles.filter(isAromaticSixCarbonCycle);
+    aromaticCycles = cycles.filter(isSupportedAromaticCycle);
+    aromaticCycleKeys = new Set(aromaticCycles.map(canonicalCycleKey));
     aromaticEdges = new Set();
     for (const cycle of aromaticCycles) cycle.forEach((id, index) => aromaticEdges.add(pairKey(id, cycle[(index + 1) % cycle.length])));
 
@@ -119,7 +121,10 @@ export function createStructureSolver({
           const index = cycle.indexOf(atom.id);
           if (index < 0) continue;
           const ends = [cycle[(index + cycle.length - 1) % cycle.length], cycle[(index + 1) % cycle.length]];
-          if (ends.includes(a) && ends.includes(b)) target = Math.min(target, (cycle.length - 2) * Math.PI / cycle.length);
+          if (ends.includes(a) && ends.includes(b)) {
+            const ringTarget = (cycle.length - 2) * Math.PI / cycle.length;
+            target = aromaticCycleKeys.has(canonicalCycleKey(cycle)) ? ringTarget : Math.min(target, ringTarget);
+          }
         }
         // Conjugated O/N followers use the same 120-degree target as their
         // aromatic constraint; competing target angles must not stall convergence.
@@ -931,11 +936,49 @@ export function createStructureSolver({
     return [...found.values()];
   }
 
-  function isAromaticSixCarbonCycle(cycle) {
-    if (cycle.length !== 6 || !cycle.every(id => atomById(id)?.element === 'C')) return false;
-    const orders = cycle.map((id, index) => bondBetween(id, cycle[(index + 1) % 6])?.order ?? 0);
-    return orders.filter(order => order === 2).length === 3
-      && orders.every((order, index) => (order === 1 || order === 2) && order !== orders[(index + 1) % 6]);
+  function isSupportedAromaticCycle(cycle) {
+    if (cycle.length !== 5 && cycle.length !== 6) return false;
+    const orders = cycle.map((id, index) => bondBetween(id, cycle[(index + 1) % cycle.length])?.order ?? 0);
+    if (orders.some(order => order !== 1 && order !== 2)) return false;
+    const doubleCount = orders.filter(order => order === 2).length;
+    const totalBondOrder = id => neighborsFor(id).reduce((sum, neighbor) => sum + neighbor.order, 0);
+    const isPiCenter = id => {
+      const atom = atomById(id), total = totalBondOrder(id);
+      if (atom?.element === 'C') return total <= 4 && geometryFor(id).kind === 'sp2';
+      if (atom?.element === 'N') return total <= 3 && geometryFor(id).kind === 'sp2';
+      return false;
+    };
+
+    // Six-membered supported aromatics use a benzene/pyridine-like alternating
+    // pi system. C/N membership plus the local sp2 state keeps saturated or
+    // over-valent heterocycles out without molecule-id metadata.
+    if (cycle.length === 6) {
+      return doubleCount === 3
+        && orders.every((order, index) => order !== orders[(index + 1) % cycle.length])
+        && cycle.every(isPiCenter);
+    }
+
+    // Five-membered support currently covers the furan topology: two
+    // non-adjacent pi bonds and one neutral divalent O whose lone pair closes
+    // the conjugated loop. The donor predicate is deliberately narrow and can
+    // be extended for pyrrole/thiophene when those atom-state models exist.
+    if (doubleCount !== 2) return false;
+    let lonePairContributors = 0;
+    for (let index = 0; index < cycle.length; index++) {
+      const id = cycle[index], atom = atomById(id);
+      const previous = orders[(index + cycle.length - 1) % cycle.length], next = orders[index];
+      const incidentDoubleCount = (previous === 2 ? 1 : 0) + (next === 2 ? 1 : 0);
+      if (incidentDoubleCount === 1) {
+        if (!isPiCenter(id)) return false;
+        continue;
+      }
+      if (incidentDoubleCount === 0 && atom?.element === 'O' && totalBondOrder(id) === 2) {
+        lonePairContributors++;
+        continue;
+      }
+      return false;
+    }
+    return lonePairContributors === 1;
   }
 
   function sameMembers(left, right) {
