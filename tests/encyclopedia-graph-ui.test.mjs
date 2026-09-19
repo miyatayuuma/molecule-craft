@@ -191,8 +191,8 @@ assert.match(graphViewSource,/state\.ghost\?\.remove\?\.\(\);state\.surface\?\.r
 assert.match(graphViewSource,/graphMotionState\(host,win\)/,'Graph rerender must cancel stale node/geometry motion before starting the next focus move');
 assert.match(collectionUISource,/showMoleculeDetailFromGraph/);
 assert.match(collectionUISource,/returnMoleculeDetailToGraph/);
-assert.match(collectionUISource,/function preview\(record,name,\{graphReturn=false\}=\{\}\)/,'shared preview defaults to no Graph return');
-assert.match(collectionUISource,/preview\(record,moleculeDisplayName\(record\),\{graphReturn:true\}\)/,'only molecule Detail opts into Graph return');
+assert.match(collectionUISource,/function preview\(record,name,\{graphReturn=false,presentation=null\}=\{\}\)/,'shared preview defaults to no Graph return while presentation remains optional');
+assert.match(collectionUISource,/preview\(record,moleculeDisplayName\(record\),\{graphReturn:true,presentation:defaultStereo\}\)/,'molecule Detail keeps Graph return while optionally supplying presentation state');
 assert.match(collectionUISource,/Math\.hypot\(event\.clientX-start\.x,event\.clientY-start\.y\)>8/,'Detail tap return must distinguish tap from model drag');
 assert.match(stylesSource,/molecule-shared-transition/,'shared-element ghost must render above both Graph and Detail');
 
