@@ -15,7 +15,7 @@ import {
   selectInitialGraphFocus,
   transitionGraphFocus,
 } from '../src/encyclopedia-graph.js';
-import {ENCYCLOPEDIA_MOTION,graphEdgeChevronGeometry,graphEdgeMotionStart,graphEdgeVisualState,graphNodeMotionStart,graphVisibleEdgeInterval} from '../src/encyclopedia-graph-view.js';
+import {ENCYCLOPEDIA_MOTION,graphEdgeChevronGeometry,graphEdgeMotionProgress,graphEdgeMotionStart,graphEdgeVisualState,graphNodeMotionStart,graphVisibleEdgeInterval} from '../src/encyclopedia-graph-view.js';
 
 const json=async path=>JSON.parse(await readFile(new URL(path,import.meta.url),'utf8'));
 const [productionRaw,records]=await Promise.all([json('../data/molecule-graph.json'),json('../data/molecules.json')]);
@@ -103,6 +103,9 @@ assert.equal(layoutA.positions.get('c').x>layoutA.center.x,true,'E-sector neighb
 assert.equal(ENCYCLOPEDIA_MOTION.graphNavigationDuration,560,'Branch traversal must be slow enough to preserve spatial orientation');
 assert.equal(ENCYCLOPEDIA_MOTION.graphEdgeDelay,48,'Edges may trail node motion only by a short readable stagger');
 assert.ok(ENCYCLOPEDIA_MOTION.graphEdgeDelay<ENCYCLOPEDIA_MOTION.graphNavigationDuration*.12,'Edge stagger must remain a small fraction of reroot motion');
+assert.equal(graphEdgeMotionProgress(48),0,'edge geometry must remain at its start snapshot through the 48 ms stagger');
+assert.ok(graphEdgeMotionProgress(200)>.3&&graphEdgeMotionProgress(200)<.5,'edge RAF must follow the same material cubic-bezier response as node WAAPI after the stagger');
+assert.equal(graphEdgeMotionProgress(560),1,'edge geometry must settle by the unchanged 560 ms reroot duration');
 assert.equal(ENCYCLOPEDIA_MOTION.detailZoomDuration,760,'Graph/Detail shared-element zoom should read as a distinct, longer scale transition');
 assert.equal(ENCYCLOPEDIA_MOTION.easing,'cubic-bezier(.4,0,.2,1)');
 const layoutToB=layoutFocusNeighborhood(fixture,'b',{width:360,height:480});
@@ -195,6 +198,7 @@ assert.match(graphViewSource,/graph-edge\.direct\.relation-chain-extension/,'foc
 assert.match(graphViewSource,/graph-edge-chevron/,'directional focus edges must render the compact Chevron affordance');
 assert.match(graphViewSource,/graph-edge-chevron\{[^}]*stroke-width:\.9[^}]*opacity:\.72/,'Chevron should keep its existing stroke weight while only the glyph size changes');
 assert.match(graphViewSource,/graphEdgeDelay:48/,'Graph edge follow-up must use only a short node→edge stagger');
+assert.match(graphViewSource,/graphEdgeMotionProgress\(elapsed,\{duration,delay:edgeDelay\}\)/,'edge RAF must share the node cubic-bezier response after the 48 ms stagger instead of a separate slow easing');
 assert.doesNotMatch(graphViewSource,/chevron\.animate/,'Chevron must not own an independent transition animation');
 assert.match(graphViewSource,/graphEdgeChevronGeometryFromPoints/,'Chevron geometry must derive from the same current edge endpoints');
 assert.match(graphViewSource,/graphVisibleEdgeInterval/,'Chevron anchor must be constrained to the currently visible edge interval');
