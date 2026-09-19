@@ -17,6 +17,7 @@ export function createStructureSolver({
   let doubleFrames = new Map();
   let trigonalFrames = new Map();
   let aromaticFrames = new Map();
+  let sixMemberFrames = [];
   let stericExclusions = new Set();
   let stericRelations = new Map();
   let ringFrames = [];
@@ -92,6 +93,7 @@ export function createStructureSolver({
       nextAromaticFrames.set(key, frame);
     }
     aromaticFrames = nextAromaticFrames;
+    sixMemberFrames = cycles.map(classifySixMemberConformation).filter(Boolean);
     ({excluded:stericExclusions,relations:stericRelations}=buildStericRelations());
     ringFrames = cycles.map(cycle => ({cycle:[...cycle],key:canonicalCycleKey(cycle),aromatic:aromaticCycles.some(item=>sameMembers(item,cycle))}));
     rigidFragments = buildRigidFragments();
@@ -175,11 +177,13 @@ export function createStructureSolver({
       for(const bond of activeBonds)enforceBondLength(bond,.12*scale,locked);
       // Stage D: local electron-domain geometry remains a soft correction.
       relaxLocalGeometry(scale,locked,activeAtoms);
+      enforceSixMemberConformations(.12*scale,locked,activeAtoms);
       projectRigidConstraints(scale,locked,activeAtoms);
       // Stage C: non-bonded collisions and explicit topology penetration.
       // It runs after local geometry so collision response cannot become the
       // source of a large angular correction in the same iteration.
       relaxStericIntersections(scale,locked,options.activeIds);
+      relaxSixMemberSterics(.055*scale,locked,options.activeIds);
       for(const bond of activeBonds)enforceBondLength(bond,.35*scale,locked);
 
       for (const atom of activeAtoms) {
@@ -203,6 +207,27 @@ export function createStructureSolver({
       enforceRegularAromaticCycle(frame,.045*scale,locked);
       enforceAromaticSubstituentDirections(frame,.28*scale,locked);
       enforceConjugatedSubstituentGeometry(frame,.30*scale,locked);
+    }
+  }
+
+  function relaxSixMemberSterics(strength,locked,activeIds=null){
+    if(!sixMemberFrames.length)return;
+    const eligible=new Set();
+    for(const frame of sixMemberFrames){
+      if(activeIds&&!frame.cycle.every(id=>activeIds.has(id)))continue;
+      for(const group of frame.motionGroups)for(const id of group)eligible.add(id);
+    }
+    if(!eligible.size)return;
+    const atoms=molecule.atoms.filter(atom=>eligible.has(atom.id)&&(!activeIds||activeIds.has(atom.id)));
+    for(const [left,right] of spatialAtomPairs(atoms)){
+      const aId=left.id,bId=right.id;
+      if(stericExclusions.has(pairKey(aId,bId)))continue;
+      const a=pos(aId),b=pos(bId);if(!a||!b)continue;
+      const delta=b.clone().sub(a),length=delta.length(),minimum=stericMinimum(aId,bId);
+      if(length>=minimum)continue;
+      if(length<.0001)delta.set(1,.37,-.21);
+      const correction=delta.normalize().multiplyScalar((minimum-length)*strength);
+      displacePair(aId,bId,correction.clone().multiplyScalar(-1),locked);
     }
   }
 
@@ -327,8 +352,9 @@ export function createStructureSolver({
     const ringIssues=measureRingPenetrations(includes);
     const bondIntersections=measureBondIntersections(includes);
     const rigidRelative=measureRigidDeviation(rigidReference,includes);
-    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative, rigidRelative].every(Number.isFinite);
-    return {finite,bondRelative,angleRadians,planeDistance,overlapRelative,
+    const sixMemberConformationRelative=measureSixMemberConformationDeviation(includes);
+    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative, rigidRelative, sixMemberConformationRelative].every(Number.isFinite);
+    return {finite,bondRelative,angleRadians,planeDistance,overlapRelative,sixMemberConformationRelative,
       ringPenetrations:ringIssues.atomCount+ringIssues.bondCount,ringAtomPenetrations:ringIssues.atomCount,
       ringBondPenetrations:ringIssues.bondCount,bondIntersections,rigidRelative,topologyLimited};
   }
@@ -501,11 +527,11 @@ export function createStructureSolver({
   function validateConformation({ids=null,rigidReference=null,mode='release'}={}){
     const errors=measureError({ids,rigidReference}),drag=mode==='drag';
     const limits={bondRelative:drag ? .10 : .07,angleRadians:(drag ? 26 : 20)*Math.PI/180,planeDistance:drag ? .10 : .075,
-      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035};
+      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035,sixMemberConformationRelative:drag ? .10 : .065};
     const reasons=[];
     if(!errors.finite)reasons.push('nonfinite');
     if(errors.topologyLimited)reasons.push('topology');
-    for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative'])if(errors[key]>limits[key])reasons.push(key);
+    for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative','sixMemberConformationRelative'])if(errors[key]>limits[key])reasons.push(key);
     if(errors.ringPenetrations)reasons.push('ring-penetration');
     if(errors.bondIntersections)reasons.push('bond-intersection');
     return{valid:reasons.length===0,reasons,errors,limits};
@@ -878,6 +904,108 @@ export function createStructureSolver({
     return normal.lengthSq() < 1e-8 ? new THREE.Vector3(0, 0, 1) : normal.normalize();
   }
 
+  function cycleVariants(cycle) {
+    const variants=[];
+    for(const sequence of [cycle,[...cycle].reverse()])for(let index=0;index<sequence.length;index++)variants.push([...sequence.slice(index),...sequence.slice(0,index)]);
+    return variants;
+  }
+
+  function compareIdSequence(left,right){
+    for(let index=0;index<Math.min(left.length,right.length);index++)if(left[index]!==right[index])return left[index]-right[index];
+    return left.length-right.length;
+  }
+
+  function ringTargetLength(cycle){
+    return cycle.reduce((sum,id,index)=>{
+      const next=cycle[(index+1)%cycle.length],bond=bondBetween(id,next);
+      return sum+bondLengthFor(id,next,bond?.order??1);
+    },0)/cycle.length;
+  }
+
+  function ringMotionGroups(cycle){
+    const ringIds=new Set(cycle);
+    return cycle.map(ringId=>{
+      const atomIds=new Set([ringId]);
+      for(const neighbor of neighborsFor(ringId)){
+        if(ringIds.has(neighbor.atomId))continue;
+        const branch=branchFromBond(ringId,neighbor.atomId,ringIds);
+        for(const id of branch??[])atomIds.add(id);
+      }
+      return [...atomIds];
+    });
+  }
+
+  function classifySixMemberConformation(cycle){
+    if(cycle.length!==6||aromaticCycleKeys.has(canonicalCycleKey(cycle)))return null;
+    if(!cycle.every(id=>atomById(id)?.element==='C'))return null;
+    const variants=cycleVariants(cycle),kinds=new Map(cycle.map(id=>[id,geometryFor(id).kind]));
+    const ringOrder=(sequence,index)=>bondBetween(sequence[index],sequence[(index+1)%6])?.order??0;
+    const ringOrders=cycle.map((id,index)=>bondBetween(id,cycle[(index+1)%6])?.order??0);
+    if(ringOrders.some(order=>order!==1&&order!==2))return null;
+    const sp2=cycle.filter(id=>kinds.get(id)==='sp2'),sp3=cycle.filter(id=>kinds.get(id)==='sp3');
+    let mode=null,signature=null,candidates=[];
+    if(sp2.length===0&&sp3.length===6&&ringOrders.every(order=>order===1)){
+      mode='chair';signature=[1,-1,1,-1,1,-1];candidates=variants;
+    }else if(sp2.length===1&&sp3.length===5&&ringOrders.every(order=>order===1)){
+      mode='half-chair-sp2-center';signature=[0,0,1,-1,1,0];
+      candidates=variants.filter(sequence=>sequence[0]===sp2[0]);
+    }else if(sp2.length===2&&sp3.length===4){
+      candidates=variants.filter(sequence=>sp2.includes(sequence[0])&&sp2.includes(sequence[1])&&ringOrder(sequence,0)===2);
+      if(candidates.length&&[1,2,3,4,5].every(index=>ringOrder(candidates[0],index)===1)){
+        mode='half-chair-ring-double';signature=[0,0,0,1,-1,0];
+      }
+    }
+    if(!mode||!candidates.length)return null;
+    candidates.sort(compareIdSequence);
+    const ordered=candidates[0],planarFrame=mode==='half-chair-ring-double'
+      ? doubleFrames.get(pairKey(ordered[0],ordered[1]))
+      : mode==='half-chair-sp2-center'
+        ? [...doubleFrames.values()].find(frame=>frame.bond.a===ordered[0]||frame.bond.b===ordered[0])
+        : null;
+    return {mode,cycle:ordered,signature,targetLength:ringTargetLength(ordered),motionGroups:ringMotionGroups(ordered),planarFrame};
+  }
+
+  function sixMemberReference(frame){
+    const points=frame.cycle.map(pos);if(points.some(point=>!point))return null;
+    const normal=(frame.planarFrame?.normal?.clone()??cycleNormal(frame.cycle)).normalize();
+    const zeroIds=frame.cycle.filter((_,index)=>frame.signature[index]===0),anchors=(zeroIds.length?zeroIds:frame.cycle).map(pos);
+    const center=anchors.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/anchors.length);
+    const amplitude=frame.targetLength*(frame.mode==='chair'?1/6:.24);
+    return {center,normal,amplitude};
+  }
+
+  function enforceSixMemberConformations(strength,locked,activeAtoms){
+    if(!sixMemberFrames.length)return;
+    const activeIds=new Set(activeAtoms.map(atom=>atom.id));
+    for(const frame of sixMemberFrames){
+      if(!frame.cycle.every(id=>activeIds.has(id)))continue;
+      const reference=sixMemberReference(frame);if(!reference)continue;
+      for(let index=0;index<frame.cycle.length;index++){
+        const id=frame.cycle[index],group=frame.motionGroups[index];
+        if(group.some(member=>locked.has(member)))continue;
+        const point=pos(id);if(!point)continue;
+        const current=point.clone().sub(reference.center).dot(reference.normal),target=frame.signature[index]*reference.amplitude;
+        const delta=(target-current)*strength;
+        if(Math.abs(delta)<1e-5)continue;
+        for(const member of group)pos(member)?.addScaledVector(reference.normal,delta);
+      }
+    }
+  }
+
+  function measureSixMemberConformationDeviation(includes){
+    let relative=0;
+    for(const frame of sixMemberFrames){
+      if(!frame.cycle.every(includes))continue;
+      const reference=sixMemberReference(frame);if(!reference)continue;
+      for(let index=0;index<frame.cycle.length;index++){
+        const point=pos(frame.cycle[index]);if(!point)continue;
+        const current=point.clone().sub(reference.center).dot(reference.normal),target=frame.signature[index]*reference.amplitude;
+        relative=Math.max(relative,Math.abs(current-target)/Math.max(frame.targetLength,1e-8));
+      }
+    }
+    return relative;
+  }
+
   function buildStericRelations() {
     const excluded = new Set(), relations = new Map();
     for (const atom of molecule.atoms) {
@@ -1011,6 +1139,7 @@ export function createStructureSolver({
       aromaticCycles: aromaticCycles.map(cycle => [...cycle]),
       doublePlanarGroups: [...doubleFrames.values()].map(frame => [...frame.atomIds]),
       aromaticPlanarGroups: [...aromaticFrames.values()].map(frame => [...frame.atomIds]),
+      sixMemberConformations: sixMemberFrames.map(frame=>({mode:frame.mode,cycle:[...frame.cycle],signature:[...frame.signature]})),
       rigidFragments: rigidFragments.map(fragment=>({id:fragment.id,atomIds:[...fragment.atomIds],kinds:[...fragment.kinds]})),
       ringExclusionVolumes: ringFrames.map(frame=>({key:frame.key,atomIds:[...frame.cycle],aromatic:frame.aromatic,thickness:ringGeometry(frame)?.thickness??0})),
       stericClasses: {
