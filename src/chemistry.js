@@ -1,4 +1,5 @@
 import {supportedAtomState} from './resonance-model.js?v=1';
+export {describeAlkeneRelativeSide} from './stereo-descriptor.js?v=1';
 
 export const ELEMENTS = {
   H:  { name: '水素',   color: '#f8fafc', radius: 0.32, valences: [1] },
