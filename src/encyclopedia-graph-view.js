@@ -23,6 +23,17 @@ function ensureStyles(root){
 const svgEl=(document,tag,attrs={})=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [key,value]of Object.entries(attrs))node.setAttribute(key,String(value));return node;};
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const easeInOutCubic=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function graphNavigationEase(progress){
+  const x=clamp(progress,0,1);if(x===0||x===1)return x;
+  const x1=.4,x2=.2,sampleX=t=>3*(1-t)*(1-t)*t*x1+3*(1-t)*t*t*x2+t*t*t,sampleY=t=>3*(1-t)*t*t+t*t*t,slopeX=t=>3*(1-t)*(1-t)*x1+6*(1-t)*t*(x2-x1)+3*t*t*(1-x2);
+  let t=x;
+  for(let i=0;i<6;i++){const slope=slopeX(t);if(Math.abs(slope)<1e-6)break;t=clamp(t-(sampleX(t)-x)/slope,0,1);}
+  let lo=0,hi=1;for(let i=0;i<8;i++){const value=sampleX(t);if(Math.abs(value-x)<1e-6)break;if(value<x)lo=t;else hi=t;t=(lo+hi)/2;}
+  return sampleY(t);
+}
+export function graphEdgeMotionProgress(elapsed,{duration=ENCYCLOPEDIA_MOTION.graphNavigationDuration,delay=ENCYCLOPEDIA_MOTION.graphEdgeDelay}={}){
+  if(elapsed<=delay)return 0;return graphNavigationEase(Math.min(1,(elapsed-delay)/Math.max(1,duration-delay)));
+}
 const continuityStates=new WeakMap(),graphMotionStates=new WeakMap();
 const rectOf=node=>{const rect=node?.getBoundingClientRect?.();return rect&&Number.isFinite(rect.width)&&Number.isFinite(rect.height)&&rect.width>0&&rect.height>0?{left:rect.left??rect.x??0,top:rect.top??rect.y??0,width:rect.width,height:rect.height}:null;};
 const detailVisualRect=host=>{const rect=rectOf(host);if(!rect)return null;const width=Math.min(240,Math.max(140,rect.width*.58)),height=width*78/96;return {left:rect.left+(rect.width-width)/2,top:rect.top+(rect.height-height)/2,width,height};};
@@ -123,9 +134,9 @@ function updateGraphChevrons(records,blockingCircles){
 }
 function runGraphGeometryMotion(state,tweens,edgeTweens,chevronRecords,{duration=ENCYCLOPEDIA_MOTION.graphNavigationDuration,edgeDelay=ENCYCLOPEDIA_MOTION.graphEdgeDelay,nodeCircles=null,win=globalThis.window}={}){
   if(!tweens.length&&!edgeTweens.length&&!chevronRecords.length)return;
-  const token=state.token,now=()=>win?.performance?.now?.()??Date.now(),started=now(),edgeDuration=Math.max(1,duration-edgeDelay),raf=win?.requestAnimationFrame?.bind(win)??(fn=>setTimeout(()=>fn(now()),16));
+  const token=state.token,now=()=>win?.performance?.now?.()??Date.now(),started=now(),raf=win?.requestAnimationFrame?.bind(win)??(fn=>setTimeout(()=>fn(now()),16));
   const step=()=>{
-    if(state.token!==token)return;const elapsed=now()-started,progress=Math.min(1,elapsed/duration),eased=easeInOutCubic(progress),edgeProgress=elapsed<=edgeDelay?0:Math.min(1,(elapsed-edgeDelay)/edgeDuration),edgeEased=easeInOutCubic(edgeProgress);
+    if(state.token!==token)return;const elapsed=now()-started,progress=Math.min(1,elapsed/duration),eased=easeInOutCubic(progress),edgeEased=graphEdgeMotionProgress(elapsed,{duration,delay:edgeDelay});
     for(const {element,attrs} of tweens)for(const [name,from,to] of attrs)element.setAttribute(name,String(from+(to-from)*eased));
     for(const tween of edgeTweens)applyGraphEdgeTween(tween,edgeEased);
     updateGraphChevrons(chevronRecords,nodeCircles?.(edgeEased)??null);
