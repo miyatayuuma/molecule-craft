@@ -1,5 +1,5 @@
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
-import { createRun, stepRun, beginBurst, beginShock, setCombustionHeld, triggerInsight, discardActiveInsight, discardRunInsights } from './expedition-run.js';
+import { createRun, stepRun, beginBurst, beginShock, setCombustionHeld, triggerInsight, discardActiveInsight, discardRunInsights, runInsightLossSnapshot } from './expedition-run.js';
 import { createUniverse } from './universe.js';
 import { DRIVES, MOLECULE_USES, REGIONS, driveAvailable, flightConfig, growthGoal, propulsionGauge, propulsionSpeedMax } from './growth.js';
 import { createSupplyUI } from './supply.js';
@@ -12,17 +12,9 @@ import { syncFieldInsightMarkerClaimability } from './signal-claimability.js';
 import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry.js';
 import { combustionChargeFor,combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { renderCraftTargetAtoms } from '../craft-panel.js?v=3';
-import { MANAGED_ELEMENTS } from './resources-persistence.js';
+import { expeditionLoss } from './expedition-loss.js';
 import {RARE_ECOLOGY_ELEMENTS} from './rare-ecology.js';
 import {HAZARD_TREATMENT_IDS,HAZARD_TREATMENTS} from './hazard-treatments.js';
-
-const LOST_CARGO_ELEMENTS=MANAGED_ELEMENTS;
-function previewCaptureLoss(units){
-  const rate=EXPEDITION.captureLoss,exact=LOST_CARGO_ELEMENTS.map((el,index)=>({el,index,value:(units[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
-  let remaining=Math.floor(LOST_CARGO_ELEMENTS.reduce((sum,el)=>sum+(units[el]??0),0)*rate)-LOST_CARGO_ELEMENTS.reduce((sum,el)=>sum+lost[el],0);
-  for(const item of exact.sort((a,b)=>(b.value-Math.floor(b.value))-(a.value-Math.floor(a.value))||a.index-b.index)){if(remaining<=0)break;if(lost[item.el]<(units[item.el]??0)){lost[item.el]++;remaining--;}}
-  return lost;
-}
 
 export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onBeforeLaunch=()=>true,onCraft=()=>{},onCommit=()=>{}}){
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),shockButton=q('veil-shock'),combustionButton=q('veil-combustion'),thermal=q('veil-thermal'),outputMeterFill=q('veil-heat-meter'),outputMeter=outputMeterFill?.parentElement,audio=createVeilAudio(),appShell=document.querySelector('.app-shell');
@@ -122,7 +114,11 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   function beginReturn(captured=false){
     if(!active||!run||paused||returnState)return false;
-    if(captured){discardRunInsights(run);insightPresentation.clear();resetInput();anchorLock=null;const duration=renderer.beginReturn(run,'emergency');returnState={captured:true,duration,elapsed:0};audio.start();hud();return true;}
+    if(captured){
+      const lossSnapshot={lost:expeditionLoss(run.elementDust,EXPEDITION.captureLoss),insights:runInsightLossSnapshot(run)};
+      resetInput();anchorLock=null;const duration=renderer.beginForcedReturn(run,lossSnapshot);if(!duration)return false;
+      discardRunInsights(run);insightPresentation.clear({showLoss:false});returnState={captured:true,duration,elapsed:0,lossSnapshot};audio.start();hud();return true;
+    }
     if(anchorLock||run.captured)return false;discardActiveInsight(run);insightPresentation.sync(run);resetInput();renderer.beginReturn(run,'stable');anchorLock={duration:EXPEDITION.anchorLockSeconds,elapsed:0};audio.start();audio.event('returnSafe');notice('ANCHOR LOCK · 保持場を安定収縮',1);hud();
     return true;
   }
@@ -170,7 +166,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   function frame(now){
     if(!active)return;raf=requestAnimationFrame(frame);const dt=last?Math.min((now-last)/1000,.15):0;last=now;if(paused||document.hidden)return;
-    if(returnState){returnState.elapsed=Math.min(returnState.duration,returnState.elapsed+dt);audio.update(run.player.speed,run.chain,null);renderer.draw(run,dt,reduced);returnHud();if(returnState.elapsed>=returnState.duration)finish(returnState.captured);return;}
+    if(returnState){if(returnState.captured)stepRun(run,{x:0,y:0},dt);returnState.elapsed=Math.min(returnState.duration,returnState.elapsed+dt);audio.update(run.player.speed,run.chain,null);renderer.draw(run,dt,reduced);returnHud();if(returnState.elapsed>=returnState.duration)finish(returnState.captured);return;}
     const input=anchorLock?{x:0,y:0}:{x:stick.x+(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0),y:stick.y+(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0)};
     syncInsightMarkers();const frameEvents=stepRun(run,input,dt,{consumeCombustion:packet=>resources.consumeCombustion(packet),consumeCoolant:(amount,molecule)=>resources.consumeTank('coolant',molecule,amount)});if(run.treatmentRevision!==treatmentSavedRevision&&run.time-treatmentPersistAt>=2&&resources.save()){treatmentSavedRevision=run.treatmentRevision;treatmentPersistAt=run.time;}for(const event of frameEvents){
       if(event.type!=='insightReady'&&(event.type!=='danger'||event.level!=='clear'))audio.event(event.type,event.chain,event.count);
@@ -202,10 +198,12 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='overheat'){if(event.driveInterrupted){resources.recordDriveThermalInterruption();offerProgressionInsights();updatePrompt();}notice('OVERHEAT · 安全温度まで燃焼停止',2.5,'♨ !');vibrate(38);}
       if(event.type==='heatRecovered'){notice(run.driveHeld?'THERMAL READY · 燃焼を自動再開':'THERMAL READY',1.5);vibrate(10);}
       if(event.type==='treatmentExpired'){const label=HAZARD_TREATMENTS[event.id]?.label??'HAZARD';notice(`${label} TREATMENT · EXPIRED`,2,'△');vibrate(12);hud();}
-      if(event.type==='capture'){renderer.scatterLostCargo(run,previewCaptureLoss(run.elementDust));beginReturn(true);notice(`保持場破綻 · 回収塵${Math.round(EXPEDITION.captureLoss*100)}%がこぼれ、緊急RETRACT`,2);vibrate(55);}
+      if(event.type==='capture'){beginReturn(true);vibrate(55);}
     }
-    offerProgressionInsights();const deferredFrontier=resources.pollFrontierInsight(run);if(deferredFrontier?.recipe)offerInsight(deferredFrontier.recipe);
-    insightPresentation.sync(run);syncInsightMarkers();
+    if(!run.captured){
+      offerProgressionInsights();const deferredFrontier=resources.pollFrontierInsight(run);if(deferredFrontier?.recipe)offerInsight(deferredFrontier.recipe);
+      insightPresentation.sync(run);syncInsightMarkers();
+    }
     const lockComplete=!!anchorLock&&(anchorLock.elapsed=Math.min(anchorLock.duration,anchorLock.elapsed+dt))>=anchorLock.duration;
     if(run.time>messageUntil)q('veil-message').hidden=true;
     const propulsion=run.player.boost>0?'burst':run.player.combustion?'combustion':null;audio.update(run.player.speed,run.chain,propulsion);renderer.draw(run,dt,reduced);

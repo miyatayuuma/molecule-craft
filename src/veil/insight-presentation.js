@@ -115,8 +115,8 @@ export function createInsightPresentation({root,resources,formula=id=>resources?
     for(const model of lost.critical??[]){const marker=make(doc,'span','veil-insight-loss-critical');marker.dataset.insightCategory=model.category;const bulb=make(doc,'i','insight-bulb'),copy=make(doc,'b','',`CRAFT ${model.formula}`);marker.append(bulb,copy);lossLayer.append(marker);}
     lossLayer.hidden=false;lossLayer.dataset.active=String((Number(lossLayer.dataset.active)||0)+1);updateVisibility();return true;
   }
-  function clear(){
-    const lost=lastSnapshot,shouldLose=lost.normal.length||lost.critical.length;lastSnapshot={normal:[],critical:[]};analysisKey=null;startUntil=readyUntil=-Infinity;readyNormalId=null;delete ready.dataset.insightCategory;ready.removeAttribute?.('aria-label');analysis.setAttribute('aria-valuenow','0');setProgress(analysisRing,0);
+  function clear({showLoss:allowLoss=true}={}){
+    const lost=lastSnapshot,shouldLose=allowLoss&&(lost.normal.length||lost.critical.length);lastSnapshot={normal:[],critical:[]};analysisKey=null;startUntil=readyUntil=-Infinity;readyNormalId=null;delete ready.dataset.insightCategory;ready.removeAttribute?.('aria-label');analysis.setAttribute('aria-valuenow','0');setProgress(analysisRing,0);
     if(shouldLose){showLoss(lost);return;}
     analysis.hidden=start.hidden=ready.hidden=normal.hidden=lossLayer.hidden=true;normalKey=criticalKey='';normal.replaceChildren();critical.replaceChildren();lossLayer.replaceChildren();lastAnchor=lastViewport=null;group.hidden=true;
   }

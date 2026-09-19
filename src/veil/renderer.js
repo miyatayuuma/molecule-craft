@@ -10,6 +10,7 @@ import {RARE_ECOLOGY_ELEMENTS,RARE_ECOLOGY_VISUALS} from './rare-ecology.js';
 import {ABRASIVE_PLUME,ABRASIVE_VISUAL_SAMPLES,abrasiveEffectiveAt} from './abrasive-field.js';
 import {ELECTRICAL_FIELD,ELECTRICAL_VISUAL_SAMPLES,electricalEffectiveAt} from './electrical-field.js';
 export const LOST_CARGO_PARTICLE_CAP=36;
+export const LOST_INSIGHT_PARTICLE_CAP=4;
 export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:EXPEDITION.anchorLockSeconds}),emergency:Object.freeze({duration:.65})});
 const LOST_CARGO_ELEMENTS=['H','C','N','O',...RARE_ECOLOGY_ELEMENTS];
 const easeOutCubic=t=>1-(1-t)**3;
@@ -24,20 +25,39 @@ export function returnEffectFrame(effect){
 export function lostCargoParticleCounts(lost,cap=LOST_CARGO_PARTICLE_CAP){
   const weights=LOST_CARGO_ELEMENTS.map(element=>({element,amount:Number.isSafeInteger(lost?.[element])&&lost[element]>0?lost[element]:0})).filter(item=>item.amount>0);
   const total=weights.reduce((sum,item)=>sum+item.amount,0),target=Math.min(Math.max(0,Math.floor(cap)),total);if(!target)return {H:0,C:0,O:0};
-  if(total<=target)return Object.fromEntries(LOST_CARGO_ELEMENTS.map(element=>[element,lost[element]??0]));
-  const counts={H:0,C:0,O:0},reserved=Math.min(target,weights.length);for(let i=0;i<reserved;i++)counts[weights[i].element]=1;
+  if(total<=target)return Object.fromEntries(weights.map(({element,amount})=>[element,amount]));
+  const counts=Object.fromEntries(weights.map(({element})=>[element,0])),reserved=Math.min(target,weights.length);for(let i=0;i<reserved;i++)counts[weights[i].element]=1;
   const remaining=target-reserved,shares=weights.map(item=>{const exact=item.amount/total*remaining,floor=Math.floor(exact);counts[item.element]+=floor;return {...item,remainder:exact-floor};});
   let unassigned=target-Object.values(counts).reduce((sum,n)=>sum+n,0);shares.sort((a,b)=>b.remainder-a.remainder||b.amount-a.amount||LOST_CARGO_ELEMENTS.indexOf(a.element)-LOST_CARGO_ELEMENTS.indexOf(b.element));
   for(let i=0;i<unassigned;i++)counts[shares[i%shares.length].element]++;
   return counts;
 }
+function createForcedLossParticle(origin,rng,details={}){
+  const angle=rng()*Math.PI*2,speed=105+rng()*90,offset=4+rng()*10;
+  return {...details,x:origin.x+Math.cos(angle)*offset,y:origin.y+Math.sin(angle)*offset,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:0,duration:.56+rng()*.06,spin:(rng()-.5)*7};
+}
 export function createLostCargoParticles(lost,origin,rng=Math.random){
   const counts=lostCargoParticleCounts(lost),particles=[];
-  for(const element of LOST_CARGO_ELEMENTS)for(let i=0;i<counts[element];i++){
-    const angle=rng()*Math.PI*2,speed=150+rng()*135,offset=4+rng()*10;
-    particles.push({element,x:origin.x+Math.cos(angle)*offset,y:origin.y+Math.sin(angle)*offset,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:0,duration:.48+rng()*.14,spin:(rng()-.5)*9});
-  }
+  for(const element of LOST_CARGO_ELEMENTS)for(let i=0;i<counts[element];i++)particles.push(createForcedLossParticle(origin,rng,{element}));
   return particles;
+}
+export function createLostInsightParticles(insights,origin,rng=Math.random){
+  const ids=[...new Set((Array.isArray(insights)?insights:[]).filter(id=>typeof id==='string'&&id))].slice(0,LOST_INSIGHT_PARTICLE_CAP);
+  return ids.map(id=>createForcedLossParticle(origin,rng,{insightId:id,icon:'💡'}));
+}
+export function advanceForcedLossParticle(particle,target,dt,reduced=false){
+  const elapsed=clamp(dt,0,.15);particle.life=Math.min(particle.duration,particle.life+elapsed);
+  const scatterEnd=reduced?.05:.15,drag=Math.exp(-elapsed*(particle.life<scatterEnd?3.2:5.6));
+  particle.x+=particle.vx*elapsed;particle.y+=particle.vy*elapsed;particle.vx*=drag;particle.vy*=drag;
+  if(target&&particle.life>=scatterEnd){
+    const progress=clamp((particle.life-scatterEnd)/Math.max(.01,particle.duration-scatterEnd),0,1),pull=1-Math.exp(-elapsed*((reduced?18:8)+progress*(reduced?14:18)));
+    particle.x+=(target.x-particle.x)*pull;particle.y+=(target.y-particle.y)*pull;
+  }
+  return particle;
+}
+export function forcedLossParticleAlpha(particle){
+  const progress=clamp((particle?.life??0)/(particle?.duration||1),0,1);
+  return 1-smoothstep(clamp((progress-.5)/.5,0,1));
 }
 export function createVeilRenderer(canvas){
   const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw new Error('Canvas 2D unavailable');
@@ -264,13 +284,19 @@ export function createVeilRenderer(canvas){
       const q=screen(e.x,e.y),ecology=e.rareEcology?RARE_ECOLOGY_VISUALS[e.element]:null;ctx.strokeStyle=ecology?.color??(e.kind==='rare'?'#edd099':e.kind==='carbon'?'#d7a9ef':e.kind==='nitrogen'?'#60a5fa':e.kind==='oxygen'?'#ffad8f':'#9eeaff');ctx.globalAlpha=(1-e.life/e.duration)*.7;ctx.lineWidth=(1+fever*.7)*scale;
       ctx.beginPath();(e.trail??[]).forEach((point,i)=>{const at=screen(point.x,point.y);i?ctx.lineTo(at.x,at.y):ctx.moveTo(at.x,at.y);});ctx.lineTo(q.x,q.y);ctx.stroke();ctx.globalAlpha=1;glow(q.x,q.y,(ecology?26:20)*scale,ecology?.sprite??e.kind);
     }
+    const captureTarget=run.eaters?.find(eater=>eater.id===run.forcedReturn?.eaterId)??null;
     for(const particle of run.lostCargoEffects??[]){
-      particle.life+=dt;const drag=Math.exp(-dt*2.4);particle.x+=particle.vx*dt;particle.y+=particle.vy*dt;particle.vx*=drag;particle.vy*=drag;
-      const ecology=RARE_ECOLOGY_VISUALS[particle.element],alpha=Math.max(0,1-particle.life/particle.duration)**1.35,at=screen(particle.x,particle.y),kind=ecology?.sprite??(particle.element==='C'?'carbon':particle.element==='N'?'nitrogen':particle.element==='O'?'oxygen':'normal'),color=ecology?.color??(particle.element==='C'?'#e7c8ff':particle.element==='N'?'#93c5fd':particle.element==='O'?'#ffd2bd':'#d1f5ff');
+      advanceForcedLossParticle(particle,captureTarget,dt,reduced);
+      const ecology=RARE_ECOLOGY_VISUALS[particle.element],alpha=forcedLossParticleAlpha(particle),at=screen(particle.x,particle.y),kind=ecology?.sprite??(particle.element==='C'?'carbon':particle.element==='N'?'nitrogen':particle.element==='O'?'oxygen':'normal'),color=ecology?.color??(particle.element==='C'?'#e7c8ff':particle.element==='N'?'#93c5fd':particle.element==='O'?'#ffd2bd':'#d1f5ff');
       if(!reduced){ctx.strokeStyle=color;ctx.globalAlpha=alpha*.38;ctx.lineWidth=1.4*scale;ctx.beginPath();ctx.moveTo(at.x-particle.vx*.045*scale,at.y-particle.vy*.045*scale);ctx.lineTo(at.x,at.y);ctx.stroke();}
       glow(at.x,at.y,(particle.element==='C'?28:24)*scale,kind,alpha*.82);ctx.save();ctx.translate(at.x,at.y);ctx.rotate(particle.spin*particle.life);ctx.fillStyle=color;ctx.globalAlpha=alpha;if(particle.element==='C'){ctx.beginPath();ctx.moveTo(4*scale,0);ctx.lineTo(-3*scale,-3*scale);ctx.lineTo(-2*scale,3*scale);ctx.closePath();ctx.fill();}else{ctx.beginPath();ctx.arc(0,0,(particle.element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;
     }
     if(run.lostCargoEffects)run.lostCargoEffects=run.lostCargoEffects.filter(particle=>particle.life<particle.duration);
+    for(const particle of run.lostInsightEffects??[]){
+      advanceForcedLossParticle(particle,captureTarget,dt,reduced);const alpha=forcedLossParticleAlpha(particle),at=screen(particle.x,particle.y);
+      ctx.save();ctx.translate(at.x,at.y);ctx.rotate(reduced?0:particle.spin*particle.life*.22);ctx.globalAlpha=alpha;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(17,24*scale)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;ctx.fillText('💡',0,0);ctx.restore();ctx.globalAlpha=1;
+    }
+    if(run.lostInsightEffects)run.lostInsightEffects=run.lostInsightEffects.filter(particle=>particle.life<particle.duration);
     const q=screen(p.x,p.y);
     if(!reduced)for(let i=1;i<p.trail.length;i++){const a=screen(p.trail[i-1].x,p.trail[i-1].y),b=screen(p.trail[i].x,p.trail[i].y);ctx.strokeStyle=combustion?'#ffb27d':boost?'#baf5ff':'#70aec7';ctx.globalAlpha=i/p.trail.length*(boost?.7:.3);ctx.lineWidth=(boost?9:4)*scale*i/p.trail.length;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}ctx.globalAlpha=1;
     if(boost&&!reduced){
@@ -287,5 +313,13 @@ export function createVeilRenderer(canvas){
     if(run.danger!=='clear'){const alpha=run.danger==='danger'?.18:.08,vignette=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.22,w/2,h/2,Math.max(w,h)*.72);vignette.addColorStop(0,'rgba(45,10,35,0)');vignette.addColorStop(1,`rgba(74,18,48,${alpha})`);ctx.fillStyle=vignette;ctx.fillRect(0,0,w,h);}
     ctx.restore();if(run.returnEffect)drawReturnEffect(run.returnEffect,returnCenter,reduced);
   }
-  resize();return {draw,resize,screen,beginReturn(run,mode){run.returnEffect=createReturnEffect(mode);return run.returnEffect?.duration??0;},scatterLostCargo(run,lost){run.lostCargoEffects=createLostCargoParticles(lost,run.player,rng);return run.lostCargoEffects.length;},reset(){fresh=true;},get size(){return {w,h,scale};}};
+  resize();return {draw,resize,screen,
+    beginReturn(run,mode){run.returnEffect=createReturnEffect(mode);return run.returnEffect?.duration??0;},
+    beginForcedReturn(run,{lost={},insights=[]}={}){
+      if(!run?.forcedReturn)return 0;
+      if(run.forcedReturn.presentationStarted)return run.returnEffect?.duration??RETURN_EFFECTS.emergency.duration;
+      run.forcedReturn.presentationStarted=true;run.lostCargoEffects=createLostCargoParticles(lost,run.player,rng);run.lostInsightEffects=createLostInsightParticles(insights,run.player,rng);run.returnEffect=createReturnEffect('emergency');return run.returnEffect.duration;
+    },
+    scatterLostCargo(run,lost){run.lostCargoEffects=createLostCargoParticles(lost,run.player,rng);return run.lostCargoEffects.length;},
+    reset(){fresh=true;},get size(){return {w,h,scale};}};
 }

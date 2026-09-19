@@ -1,5 +1,7 @@
 import { OXYGEN_UPGRADES,nextOxygenUpgrade } from './tank-upgrades.js';
 import { EXPEDITION } from './config.js';
+import { expeditionElements,expeditionLoss } from './expedition-loss.js';
+export { expeditionLoss } from './expedition-loss.js';
 import { CHALLENGE_INSIGHT_IDS } from './expedition-challenges.js';
 import { CRITICAL_INSIGHT_IDS,fieldInsightOpportunityEligibility } from './insights.js';
 import { NITROGEN_MOLECULE_ID,NITROGEN_REGION_AVAILABLE,nitrogenChapterState,nitrogenCriticalInsightCandidate,nitrogenElementAccessible,nitrogenFrontierObjective } from './nitrogen-progression.js';
@@ -24,7 +26,6 @@ export function progressionElementAccessible(progress,element){
 export function playerElementAccessible(state,element){
   return progressionElementAccessible(state?.progress,element)||RARE_STOCK_ACCESS.has(element)&&(state?.elements?.[element]??0)>0;
 }
-const expeditionElements=units=>MANAGED.filter(el=>DUST.includes(el)||Object.hasOwn(units??{},el));
 export const RESET_CATEGORIES=Object.freeze(['collection','recipes','elements','tanks','exploration','records','workspace']);
 export const CRITICAL_INSIGHT_STARTER_COUNTS=Object.freeze({hydrogen:80,methane:4,oxygen:8,water:8});
 export const WATER_THERMAL_INTERRUPTION_REQUIREMENT=2;
@@ -45,12 +46,6 @@ export function insightRecipeElementEligible(record,{canUseElement=()=>false}={}
 export function signalCandidateEligible(record,{region,recipes=[],hints=[],excludeIds=new Set(),canUseElement=()=>false}={}){
   const minimum=minimumSignalRegionFor(record),currentRank=regionRank(region),minimumRank=regionRank(minimum);
   return minimum!==null&&currentRank>=minimumRank&&!CRITICAL_SIGNAL_IDS.has(record.id)&&!CHALLENGE_SIGNAL_IDS.has(record.id)&&!recipes.includes(record.id)&&!hints.includes(record.id)&&!excludeIds.has(record.id)&&record.atoms.length<=12&&insightRecipeElementEligible(record,{canUseElement});
-}
-function expeditionLoss(units,rate){
-  const elements=expeditionElements(units),exact=elements.map((el,index)=>({el,index,value:(units[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
-  let remaining=Math.floor(elements.reduce((sum,el)=>sum+(units[el]??0),0)*rate)-elements.reduce((sum,el)=>sum+lost[el],0);
-  for(const item of exact.sort((a,b)=>(b.value-Math.floor(b.value))-(a.value-Math.floor(a.value))||a.index-b.index)){if(remaining<=0)break;if(lost[item.el]<(units[item.el]??0)){lost[item.el]++;remaining--;}}
-  return lost;
 }
 export function createResources({storage,onStatus=()=>{}}={}){
   if(storage===undefined)try{storage=window.localStorage;}catch{storage=null;}
