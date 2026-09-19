@@ -15,7 +15,7 @@ import {
   selectInitialGraphFocus,
   transitionGraphFocus,
 } from '../src/encyclopedia-graph.js';
-import {ENCYCLOPEDIA_MOTION,graphEdgeChevronGeometry,graphEdgeVisualState,graphNodeMotionStart,graphVisibleEdgeInterval} from '../src/encyclopedia-graph-view.js';
+import {ENCYCLOPEDIA_MOTION,graphEdgeChevronGeometry,graphEdgeMotionStart,graphEdgeVisualState,graphNodeMotionStart,graphVisibleEdgeInterval} from '../src/encyclopedia-graph-view.js';
 
 const json=async path=>JSON.parse(await readFile(new URL(path,import.meta.url),'utf8'));
 const [productionRaw,records]=await Promise.all([json('../data/molecule-graph.json'),json('../data/molecules.json')]);
@@ -143,7 +143,7 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   assert(Math.abs(Math.hypot(movement.x,movement.y)-visibleGap)<.02,`${edge.from} → ${edge.to}: Chevron interval must equal the safe visible edge gap`);
   assert(Math.hypot(geometry.end.x-from.x,geometry.end.y-from.y)>geometry.fromRadius,`${edge.from} → ${edge.to}: Chevron must stay outside source node on mobile`);
   assert(Math.hypot(geometry.end.x-to.x,geometry.end.y-to.y)>geometry.toRadius,`${edge.from} → ${edge.to}: Chevron must stay outside target node on mobile`);
-  const expectedAnchor={x:(geometry.start.x+geometry.end.x)/2,y:(geometry.start.y+geometry.end.y)/2};assert(Math.hypot(geometry.anchor.x-expectedAnchor.x,geometry.anchor.y-expectedAnchor.y)<.01,`${edge.from} → ${edge.to}: Chevron anchor must be derived from the current visible edge midpoint`);
+  const expectedAnchor={x:geometry.start.x+(geometry.end.x-geometry.start.x)*.62,y:geometry.start.y+(geometry.end.y-geometry.start.y)*.62};assert(Math.hypot(geometry.anchor.x-expectedAnchor.x,geometry.anchor.y-expectedAnchor.y)<.01,`${edge.from} → ${edge.to}: directional Chevron anchor must stay inside the current visible gap while avoiding an invariant midpoint`);
   const points=geometry.points.split(' ').map(pair=>pair.split(',').map(Number)),pairDistances=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)pairDistances.push(Math.hypot(points[i][0]-points[j][0],points[i][1]-points[j][1]));
   const lineDistance=point=>Math.abs(direction.x*(from.y-point[1])-direction.y*(from.x-point[0]))/edgeLength;assert(points.every(point=>lineDistance(point)<=1.55),`${edge.from} → ${edge.to}: every Chevron vertex must stay on the current edge geometry within glyph width`);
   const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should remain compact while direction is encoded by tangent orientation`);
@@ -162,6 +162,12 @@ assert.equal(unsafeShort,null,'short edges with no safe visible gap must hide th
 const thirdNodeBlock=graphVisibleEdgeInterval({x:0,y:0},{x:120,y:0},{circles:[{x:0,y:0,radius:20},{x:120,y:0,radius:20},{x:60,y:0,radius:12}],padding:1.5,chevronExtent:2.2,minGap:1.5});
 assert.ok(thirdNodeBlock,'a crossing node should split, not necessarily eliminate, the visible edge interval');
 assert.ok(thirdNodeBlock.endT<.5||thirdNodeBlock.startT>.5,'Chevron anchor interval must avoid a third displayed node that occludes the edge midpoint');
+
+const previousEdgePositions=new Map([['source',{x:20,y:30,kind:'neighbor'}],['target',{x:90,y:30,kind:'focus'}]]);
+assert.deepEqual(graphEdgeMotionStart(previousEdgePositions,{from:'source',to:'target'}),{from:previousEdgePositions.get('source'),to:previousEdgePositions.get('target'),mode:'pair'},'existing edges retain their real previous endpoint pair');
+assert.deepEqual(graphEdgeMotionStart(new Map([['source',{x:20,y:30,kind:'neighbor'}]]),{from:'source',to:'target'}),{from:{x:20,y:30,kind:'neighbor'},to:{x:20,y:30,kind:'neighbor'},mode:'source-collapse'},'new edge with only source history must grow from the shared previous source position');
+assert.deepEqual(graphEdgeMotionStart(new Map([['target',{x:90,y:30,kind:'focus'}]]),{from:'source',to:'target'}),{from:{x:90,y:30,kind:'focus'},to:{x:90,y:30,kind:'focus'},mode:'target-collapse'},'new edge with only target history must grow from the shared previous target position');
+assert.equal(graphEdgeMotionStart(new Map(),{from:'source',to:'target'}),null,'edge motion must not invent a start geometry when neither previous endpoint exists');
 
 const entries=new Map([['c',{order:2}],['a',{order:1}]]);
 assert.equal(selectInitialGraphFocus(fixture,{registeredIds:new Set(['a','c']),recipes:new Set(),hints:new Set(),entriesById:entries}),'c','Most recently registered molecule must win when no previous focus exists');
@@ -192,6 +198,7 @@ assert.match(graphViewSource,/graphEdgeDelay:48/,'Graph edge follow-up must use 
 assert.doesNotMatch(graphViewSource,/chevron\.animate/,'Chevron must not own an independent transition animation');
 assert.match(graphViewSource,/graphEdgeChevronGeometryFromPoints/,'Chevron geometry must derive from the same current edge endpoints');
 assert.match(graphViewSource,/graphVisibleEdgeInterval/,'Chevron anchor must be constrained to the currently visible edge interval');
+assert.match(graphViewSource,/anchorT=visible\.startT\+\(visible\.endT-visible\.startT\)\*\.62/,'Directional Chevron anchor must use a safe target-biased point instead of an invariant midpoint');
 assert.match(graphViewSource,/graphNodeCircleInSvg/,'reroot clipping must use displayed node circles without changing edge motion authority');
 assert.match(graphViewSource,/const nodeCircles=\(\)=>\[\.\.\.interactiveNodeById\.values\(\)\]/,'visible-gap clipping must consider every displayed graph node, not a mobile-specific pair or layout hack');
 assert.match(graphViewSource,/applyGraphEdgeTween\(tween,edgeEased,blockingCircles\)/,'Edge and Chevron must update together from one shared reroot tween while clipping against displayed node circles');
@@ -200,7 +207,8 @@ assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigat
 assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition must remain longer than branch navigation');
 assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
 assert.match(graphViewSource,/runGraphGeometryMotion\(graphMotion,geometryTweens,edgeTweens/,'Edges and Chevron markers must share the graph reroot motion authority');
-assert.match(graphViewSource,/previousFrom:pa,previousTo:pb,nextFrom:a,nextTo:b/,'Graph edges must interpolate from one previous endpoint snapshot to one next endpoint snapshot');
+assert.match(graphViewSource,/graphEdgeMotionStart\(previousPositions,edge\)/,'Graph edges must derive a real previous-pair or shared-endpoint start geometry before entering the reroot tween');
+assert.match(graphViewSource,/previousFrom:start\.from,previousTo:start\.to,nextFrom:a,nextTo:b/,'Graph edges and Chevrons must share the same derived start/end geometry');
 assert.match(graphViewSource,/circles=Array\.isArray\(blockingCircles\)[\s\S]*visible=graphVisibleEdgeInterval\(from,to,\{circles,padding,chevronExtent,minGap\}\)/,'Chevron anchor must come from the current edge interval remaining outside displayed blocking node circles');
 assert.match(graphViewSource,/else record\.chevron\.setAttribute\('visibility','hidden'\)/,'unsafe short edge gaps must hide the Chevron rather than place it inside a node');
 assert.match(graphViewSource,/presentation\.canOpenDetail\)onDetail\(id,node\)/,'Graph view must delegate the measured selected node to the single collection transition owner');
