@@ -2,7 +2,7 @@ name: Refresh PWA precache
 
 on:
   push:
-    branches: [main, task-6d1-stereo-identity-contract]
+    branches: [main]
 
 permissions:
   contents: write
