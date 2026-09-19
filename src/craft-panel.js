@@ -60,6 +60,10 @@ export function createCraftPanel(document){
     structureList:document.querySelector('#structure-list'),structureCount:document.querySelector('#structure-count'),structureFocus:document.querySelector('#structure-focus'),
 target:document.querySelector('#craft-target'),targetName:document.querySelector('#craft-target-name'),targetFormula:document.querySelector('#craft-target-formula'),targetAtoms:document.querySelector('#craft-target-atoms'),
   };
+  const stereoObservation=document.createElement('div'),stereoLabel=document.createElement('span'),stereoDetail=document.createElement('span');
+  stereoObservation.className='craft-stereo-observation';stereoObservation.hidden=true;stereoObservation.setAttribute('role','status');stereoObservation.setAttribute('aria-live','polite');
+  stereoLabel.className='craft-stereo-label';stereoDetail.className='craft-stereo-detail';stereoObservation.append(stereoLabel,stereoDetail);nodes.formula?.after(stereoObservation);
+  nodes.stereoObservation=stereoObservation;nodes.stereoLabel=stereoLabel;nodes.stereoDetail=stereoDetail;
   const targetMatchTracker=createCraftTargetMatchTracker(),targetMatch=document.createElement('span'),targetTint=document.createElement('span'),targetScale=document.createElement('span'),targetScaleFill=document.createElement('span');
   targetMatch.className='craft-target-match';targetMatch.setAttribute('aria-hidden','true');Object.assign(targetMatch.style,{display:'block',marginTop:'2px',color:'#b8e7e8',fontSize:'10px',fontWeight:'750',fontVariantNumeric:'tabular-nums',letterSpacing:'.03em',lineHeight:'1.05',whiteSpace:'nowrap'});nodes.targetMatch=targetMatch;
   nodes.targetFormula?.parentNode?.insertBefore(targetMatch,nodes.targetFormula.nextSibling);
@@ -104,8 +108,15 @@ function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetP
   lastTargetKey=key;lastTargetFilled=filledNow;
 }
 
-function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,structureListDisabled,onSelectStructure}){
-    veilUI?.updateCraft();const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.formula.append(nodes.pubchem);nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';const reference=focus?.complete&&!focus.record?pubchemReferenceFor(focus):null;nodes.pubchem.hidden=!reference;nodes.pubchem.textContent=pubchemIntro.label(reference?focus.signature:null);if(reference){nodes.pubchem.href=reference.url;nodes.pubchem.dataset.searchMode=reference.mode;}else{nodes.pubchem.removeAttribute('href');delete nodes.pubchem.dataset.searchMode;}
+function renderStereoObservation(observation){
+    const visible=!!observation?.label;nodes.stereoObservation.hidden=!visible;
+    nodes.stereoLabel.textContent=visible?observation.label:'';nodes.stereoDetail.textContent=visible?observation.detail??'':'';
+    if(visible){nodes.stereoObservation.dataset.relation=observation.relation;nodes.stereoObservation.setAttribute('aria-label',observation.detail?`${observation.label}。 ${observation.detail}`:observation.label);}
+    else{delete nodes.stereoObservation.dataset.relation;nodes.stereoObservation.removeAttribute('aria-label');}
+  }
+
+function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,stereoObservation=null,structureListDisabled,onSelectStructure}){
+    veilUI?.updateCraft();renderStereoObservation(stereoObservation);const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.formula.append(nodes.pubchem);nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';const reference=focus?.complete&&!focus.record?pubchemReferenceFor(focus):null;nodes.pubchem.hidden=!reference;nodes.pubchem.textContent=pubchemIntro.label(reference?focus.signature:null);if(reference){nodes.pubchem.href=reference.url;nodes.pubchem.dataset.searchMode=reference.mode;}else{nodes.pubchem.removeAttribute('href');delete nodes.pubchem.dataset.searchMode;}
     const targetMatchResult=targetMatchTracker.update(target,molecule);renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart,targetMatch:targetMatchResult});
     const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
     nodes.counts.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)nodes.counts.textContent='—';else for(const symbol of Object.keys(counts).sort()){const chip=document.createElement('span');chip.className='atom-count';chip.textContent=`${symbol} × ${counts[symbol]}`;nodes.counts.appendChild(chip);}
