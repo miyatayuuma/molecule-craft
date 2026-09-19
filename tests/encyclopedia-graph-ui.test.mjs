@@ -143,7 +143,7 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   assert(Math.abs(Math.hypot(movement.x,movement.y)-visibleGap)<.02,`${edge.from} → ${edge.to}: Chevron interval must equal the safe visible edge gap`);
   assert(Math.hypot(geometry.end.x-from.x,geometry.end.y-from.y)>geometry.fromRadius,`${edge.from} → ${edge.to}: Chevron must stay outside source node on mobile`);
   assert(Math.hypot(geometry.end.x-to.x,geometry.end.y-to.y)>geometry.toRadius,`${edge.from} → ${edge.to}: Chevron must stay outside target node on mobile`);
-  const expectedAnchor={x:geometry.start.x+(geometry.end.x-geometry.start.x)*.62,y:geometry.start.y+(geometry.end.y-geometry.start.y)*.62};assert(Math.hypot(geometry.anchor.x-expectedAnchor.x,geometry.anchor.y-expectedAnchor.y)<.01,`${edge.from} → ${edge.to}: directional Chevron anchor must stay inside the current visible gap while avoiding an invariant midpoint`);
+  const expectedAnchor={x:geometry.start.x+(geometry.end.x-geometry.start.x)*.56,y:geometry.start.y+(geometry.end.y-geometry.start.y)*.56};assert(Math.hypot(geometry.anchor.x-expectedAnchor.x,geometry.anchor.y-expectedAnchor.y)<.01,`${edge.from} → ${edge.to}: directional Chevron anchor must stay inside the current visible gap while avoiding an invariant midpoint`);
   const points=geometry.points.split(' ').map(pair=>pair.split(',').map(Number)),pairDistances=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)pairDistances.push(Math.hypot(points[i][0]-points[j][0],points[i][1]-points[j][1]));
   const lineDistance=point=>Math.abs(direction.x*(from.y-point[1])-direction.y*(from.x-point[0]))/edgeLength;assert(points.every(point=>lineDistance(point)<=1.55),`${edge.from} → ${edge.to}: every Chevron vertex must stay on the current edge geometry within glyph width`);
   const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should remain compact while direction is encoded by tangent orientation`);
@@ -198,7 +198,7 @@ assert.match(graphViewSource,/graphEdgeDelay:48/,'Graph edge follow-up must use 
 assert.doesNotMatch(graphViewSource,/chevron\.animate/,'Chevron must not own an independent transition animation');
 assert.match(graphViewSource,/graphEdgeChevronGeometryFromPoints/,'Chevron geometry must derive from the same current edge endpoints');
 assert.match(graphViewSource,/graphVisibleEdgeInterval/,'Chevron anchor must be constrained to the currently visible edge interval');
-assert.match(graphViewSource,/anchorT=visible\.startT\+\(visible\.endT-visible\.startT\)\*\.62/,'Directional Chevron anchor must use a safe target-biased point instead of an invariant midpoint');
+assert.match(graphViewSource,/anchorT=visible\.startT\+\(visible\.endT-visible\.startT\)\*\.56/,'Directional Chevron anchor must use a safe target-biased point instead of an invariant midpoint');
 assert.match(graphViewSource,/graphNodeCircleInSvg/,'reroot clipping must use displayed node circles without changing edge motion authority');
 assert.match(graphViewSource,/const nodeCircles=\(\)=>\[\.\.\.interactiveNodeById\.values\(\)\]/,'visible-gap clipping must consider every displayed graph node, not a mobile-specific pair or layout hack');
 assert.match(graphViewSource,/applyGraphEdgeTween\(tween,edgeEased,blockingCircles\)/,'Edge and Chevron must update together from one shared reroot tween while clipping against displayed node circles');
