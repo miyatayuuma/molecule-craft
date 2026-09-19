@@ -26,7 +26,7 @@ function presentationDescriptor(molecule,placements,bonds){
 }
 
 function flipSupportedAlkeneSide(THREE,molecule,placements,descriptor){
-  const [centerId,partnerId]=descriptor.bondAtomIds,[,referenceId]=descriptor.referenceSubstituentIds;
+  const [partnerId,centerId]=descriptor.bondAtomIds,[,referenceId]=descriptor.referenceSubstituentIds;
   const center=placements.get(centerId)?.position,partner=placements.get(partnerId)?.position,reference=placements.get(referenceId)?.position;
   if(!center||!partner||!reference)return false;
   const axis=partner.clone().sub(center);if(axis.lengthSq()<1e-10)return false;axis.normalize();
