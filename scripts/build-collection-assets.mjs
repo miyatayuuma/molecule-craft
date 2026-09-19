@@ -2,7 +2,7 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {createPreviewModel} from '../src/preview-model.js?v=32';
-import {ELEMENTS} from '../src/chemistry.js';
+import {ELEMENTS,modelAtomRadius} from '../src/chemistry.js';
 import {AROMATIC_STYLE,aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js?v=27';
 import {RESONANCE_STYLE,specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=32';
 import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
@@ -17,7 +17,7 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
   const atoms=layout.atoms.map(atom=>({...atom,point:atom.point.clone().applyQuaternion(rotation)}));
   const radius=Math.max(1,...atoms.map(a=>a.point.length()+ELEMENTS[a.element].radius));const scale=52/radius,bondStrokeWidth=n(Math.max(1.6,scale*.09));
   const project=p=>({x:96+p.x*scale,y:64-p.y*scale,z:p.z});
-  const radii=atoms.map(atom=>Math.max(2,ELEMENTS[atom.element].radius*scale*.72));
+  const radii=atoms.map(atom=>Math.max(2,modelAtomRadius(atom.element)*scale));
   const projected=atoms.map(a=>project(a.point)),edges=new Set([...aromaticBondKeys(layout.aromaticCycles),...specialEdgeKeys(layout.sharedGroups??[])]),shapes=[];
   for(const bond of layout.bonds){
     const a=projected[bond.a],b=projected[bond.b],order=displayedBondOrder(bond,edges),len=Math.hypot(b.x-a.x,b.y-a.y)||1,dx=-(b.y-a.y)/len,dy=(b.x-a.x)/len;
