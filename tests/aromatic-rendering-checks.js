@@ -7,16 +7,20 @@ export function checkAromaticRendering(THREE,records,parts){
   const layout=record=>{const model=createPreviewModel(THREE,record);for(let i=0;i<220;i++)model.step();return model.snapshot();};
   const record=id=>{const found=[...records,...parts].find(item=>item.id===id);assert(!!found,`Missing fixture ${id}`);return found;};
   let aromaticCount=0;
-  for(const id of ['benzene','toluene','phenol','anisole','benzaldehyde','phenyl','cyclohexane','ethene','ethyne']){
+  const fixtures=[
+    ['benzene',true,6,3],['toluene',true,6,3],['phenol',true,6,3],['anisole',true,6,3],['benzaldehyde',true,6,3],['phenyl',true,6,3],
+    ['pyridine',true,6,3],['furan',true,5,2],
+    ['cyclohexane',false,0,0],['cyclohexene',false,0,0],['tetrahydrofuran',false,0,0],['ethene',false,0,0],['ethyne',false,0,0],
+  ];
+  for(const [id,expected,ringSize,doubleCount] of fixtures){
     const source=record(id),before=JSON.stringify(source),view=layout(source),edges=aromaticBondKeys(view.aromaticCycles);
-    const expected=!['cyclohexane','ethene','ethyne'].includes(id);
     assert(view.aromaticCycles.length===(expected?1:0),`${id}: wrong aromatic ring count`);
     if(expected){
       aromaticCount++;
       const ringBonds=view.bonds.filter(b=>edges.has(`${Math.min(b.a,b.b)}:${Math.max(b.a,b.b)}`));
-      assert(ringBonds.length===6,`${id}: missing ring edges`);
+      assert(ringBonds.length===ringSize,`${id}: missing ring edges`);
       assert(ringBonds.every(b=>displayedBondOrder(b,edges)===1),`${id}: duplicate double sticks`);
-      assert(ringBonds.filter(b=>b.order===2).length===3,`${id}: changed chemical orders`);
+      assert(ringBonds.filter(b=>b.order===2).length===doubleCount,`${id}: changed chemical orders`);
       const frame=aromaticRingFrame(THREE,view.aromaticCycles[0].map(id=>view.atoms[id].point));
       assert(!!frame,`${id}: no ring frame`);
       const samples=aromaticRingPoints(frame);
@@ -58,5 +62,5 @@ export function checkAromaticRendering(THREE,records,parts){
   updateAromaticRing(THREE,ring,frame);assert(ring.visible,'Ring did not recover from collapse');
   let disposed=0;for(const resource of resources){resource.addEventListener('dispose',()=>disposed++);resource.dispose();}
   assert(disposed===4,'Ring resources not owned/disposable');
-  return `${checks} aromatic display checks passed (${aromaticCount} benzene/derivative/part fixtures; break, restore, rotation, depth, disposal)`;
+  return `${checks} aromatic display checks passed (${aromaticCount} supported aromatic fixtures; break, restore, rotation, depth, disposal)`;
 }
