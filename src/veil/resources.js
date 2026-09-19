@@ -46,7 +46,7 @@ export function signalCandidateEligible(record,{region,recipes=[],hints=[],exclu
   const minimum=minimumSignalRegionFor(record),currentRank=regionRank(region),minimumRank=regionRank(minimum);
   return minimum!==null&&currentRank>=minimumRank&&!CRITICAL_SIGNAL_IDS.has(record.id)&&!CHALLENGE_SIGNAL_IDS.has(record.id)&&!recipes.includes(record.id)&&!hints.includes(record.id)&&!excludeIds.has(record.id)&&record.atoms.length<=12&&insightRecipeElementEligible(record,{canUseElement});
 }
-function expeditionLoss(units,rate){
+export function expeditionLoss(units,rate){
   const elements=expeditionElements(units),exact=elements.map((el,index)=>({el,index,value:(units[el]??0)*rate})),lost=Object.fromEntries(exact.map(({el,value})=>[el,Math.floor(value)]));
   let remaining=Math.floor(elements.reduce((sum,el)=>sum+(units[el]??0),0)*rate)-elements.reduce((sum,el)=>sum+lost[el],0);
   for(const item of exact.sort((a,b)=>(b.value-Math.floor(b.value))-(a.value-Math.floor(a.value))||a.index-b.index)){if(remaining<=0)break;if(lost[item.el]<(units[item.el]??0)){lost[item.el]++;remaining--;}}
