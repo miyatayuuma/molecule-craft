@@ -121,7 +121,7 @@ test('recovery is environmental only and DUST EATER remains global pursuit',asyn
   assert.doesNotMatch(engine,/ENVIRONMENT_RECOVERY_CONTRACT|oxygenRestStopAt|deepOxygenFrontierRecoveryAt|environment-recovery/,'predator engine must not become recovery-aware');
   assert.match(engine,/safeSeconds=EXPEDITION\.safeSeconds\*tuning\.safeSecondsMultiplier/,'global pursuit may use centralized world tuning but not recovery-local state');
   assert.match(engine,/run\.threat=Math\.max\(0,run\.time-safeSeconds\)\*EXPEDITION\.threatPerSecond\*tuning\.threatPerSecondMultiplier\+dust\*EXPEDITION\.threatPerDustUnit\*tuning\.threatPerDustMultiplier/,'global threat calculation remains present through centralized tuning');
-  assert.match(engine,/if\(run\.nearestEater<=EXPEDITION\.eaterContactRadius\)\{run\.captured=true/,'global capture remains present');
+  assert.match(engine,/if\(run\.nearestEater<=EXPEDITION\.eaterContactRadius&&\!run\.forcedReturn\)\{\s*run\.captured=true/,'global capture remains present with a single-entry forced-return guard');
 });
 
 test('Task 6 signals/challenges stay unchanged and developer map exposes revisit/recovery semantics',()=>{
