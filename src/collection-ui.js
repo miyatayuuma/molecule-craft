@@ -110,7 +110,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(!spec||spec.kind!=='alkene-relative-side'||!Array.isArray(spec.states)||spec.states.length!==2)return;
     const relations=new Set(spec.states.map(state=>state.relation));if(!relations.has('same-side')||!relations.has('opposite-side'))return;
     const defaultRelation=relations.has(spec.defaultRelation)?spec.defaultRelation:spec.states[0].relation;
-    const host=el('section',null,'stereo-comparison'),toggle=el('div',null,'stereo-state-toggle');toggle.setAttribute('role','group');toggle.setAttribute('aria-label','2-ブテンの立体配置');
+    const host=el('section',null,'stereo-comparison'),toggle=el('div',null,'stereo-state-toggle');toggle.setAttribute('role','group');toggle.setAttribute('aria-label',spec.ariaLabel??'立体配置の比較');
     if(spec.message)host.append(el('p',spec.message,'stereo-comparison-note'));host.append(toggle);
     const buttons=new Map(),sync=relation=>{for(const [key,node]of buttons){const active=key===relation;node.setAttribute('aria-pressed',String(active));node.classList.toggle('selected',active);node.tabIndex=active?0:-1;}host.dataset.relation=relation;};
     let request=0;
