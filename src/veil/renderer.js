@@ -25,8 +25,8 @@ export function returnEffectFrame(effect){
 export function lostCargoParticleCounts(lost,cap=LOST_CARGO_PARTICLE_CAP){
   const weights=LOST_CARGO_ELEMENTS.map(element=>({element,amount:Number.isSafeInteger(lost?.[element])&&lost[element]>0?lost[element]:0})).filter(item=>item.amount>0);
   const total=weights.reduce((sum,item)=>sum+item.amount,0),target=Math.min(Math.max(0,Math.floor(cap)),total);if(!target)return {H:0,C:0,O:0};
-  if(total<=target)return Object.fromEntries(LOST_CARGO_ELEMENTS.map(element=>[element,lost[element]??0]));
-  const counts={H:0,C:0,O:0},reserved=Math.min(target,weights.length);for(let i=0;i<reserved;i++)counts[weights[i].element]=1;
+  if(total<=target)return Object.fromEntries(weights.map(({element,amount})=>[element,amount]));
+  const counts=Object.fromEntries(weights.map(({element})=>[element,0])),reserved=Math.min(target,weights.length);for(let i=0;i<reserved;i++)counts[weights[i].element]=1;
   const remaining=target-reserved,shares=weights.map(item=>{const exact=item.amount/total*remaining,floor=Math.floor(exact);counts[item.element]+=floor;return {...item,remainder:exact-floor};});
   let unassigned=target-Object.values(counts).reduce((sum,n)=>sum+n,0);shares.sort((a,b)=>b.remainder-a.remainder||b.amount-a.amount||LOST_CARGO_ELEMENTS.indexOf(a.element)-LOST_CARGO_ELEMENTS.indexOf(b.element));
   for(let i=0;i<unassigned;i++)counts[shares[i%shares.length].element]++;
