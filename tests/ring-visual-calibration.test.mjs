@@ -53,7 +53,7 @@ function dihedral(a,b,c,d){
 function metrics(id,size){
   const item=preview(id),cycle=findCycle(item.source,size),p=i=>item.view.atoms[i].point,pts=cycle.map(p),distances=planeDistances(pts);
   const bonds=cycle.map((a,i)=>{const b=cycle[(i+1)%size],bond=item.g.bonds.find(x=>pair(x.a,x.b)===pair(a,b)),target=(ATOMIC_MODEL[item.g.atoms[a].element].covalentRadius+ATOMIC_MODEL[item.g.atoms[b].element].covalentRadius)*.78*bondLengthScale(bond.order);return {actual:p(a).distanceTo(p(b)),target};});
-  const angles=cycle.map((center,i)=>p(cycle[(i-1+size)%size]).clone().sub(p(center)).angleTo(p(cycle[(i+1)%size]).clone().sub(p(center))*180/Math.PI);
+  const angles=cycle.map((center,i)=>p(cycle[(i-1+size)%size]).clone().sub(p(center)).angleTo(p(cycle[(i+1)%size]).clone().sub(p(center)))*180/Math.PI);
   const local=cycle.map(id=>geometryForAtom(item.g,id).angle*180/Math.PI);
   const torsions=cycle.map((_,i)=>dihedral(p(cycle[i]),p(cycle[(i+1)%size]),p(cycle[(i+2)%size]),p(cycle[(i+3)%size])));
   const graphDistance=(start,target)=>{const q=[[start,0]],seen=new Set([start]);for(let i=0;i<q.length;i++){const [id,d]=q[i];if(id===target)return d;if(d>=4)continue;for(const n of item.g.adj[id])if(!seen.has(n.atomId)){seen.add(n.atomId);q.push([n.atomId,d+1]);}}return Infinity;};
