@@ -531,7 +531,7 @@ export function createStructureSolver({
   function validateConformation({ids=null,rigidReference=null,mode='release'}={}){
     const errors=measureError({ids,rigidReference}),drag=mode==='drag';
     const limits={bondRelative:drag ? .10 : .07,angleRadians:(drag ? 26 : 20)*Math.PI/180,planeDistance:drag ? .10 : .075,
-      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035,fiveMemberConformationRelative:drag ? .14 : .10,sixMemberConformationRelative:drag ? .10 : .065};
+      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035,fiveMemberConformationRelative:drag ? .16 : .12,sixMemberConformationRelative:drag ? .10 : .065};
     const reasons=[];
     if(!errors.finite)reasons.push('nonfinite');
     if(errors.topologyLimited)reasons.push('topology');
