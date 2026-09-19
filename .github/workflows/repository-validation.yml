@@ -153,6 +153,18 @@ jobs:
           node tests/oxygen-thermal-progression.test.mjs
           node tests/thermal-coolant.test.mjs
           node tests/expedition-core.test.mjs
+          node tests/veil-loss-particles.test.mjs
+          node tests/veil-return-effects.test.mjs
+          node tests/dust-eater-forced-return.test.mjs
+          node tests/dust-eater-forced-return-browser.test.mjs
+      - name: Upload Dust Eater forced-return frame
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dust-eater-forced-return
+          path: test-results/forced-return-presentation
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Insight taxonomy and presentation
         run: |
           node tests/insight-category.test.mjs
