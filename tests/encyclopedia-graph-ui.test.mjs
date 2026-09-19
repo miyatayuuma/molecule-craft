@@ -202,7 +202,7 @@ assert.match(graphViewSource,/anchorT=visible\.startT\+\(visible\.endT-visible\.
 assert.match(graphViewSource,/graphNodeCircleInSvg/,'reroot clipping must use displayed node circles without changing edge motion authority');
 assert.match(graphViewSource,/const nodeCircles=\(\)=>\[\.\.\.interactiveNodeById\.values\(\)\]/,'visible-gap clipping must consider every displayed graph node, not a mobile-specific pair or layout hack');
 assert.match(graphViewSource,/applyGraphEdgeTween\(tween,edgeEased,blockingCircles\)/,'Edge and Chevron must update together from one shared reroot tween while clipping against displayed node circles');
-assert.match(graphViewSource,/if\(!reduceMotion&&!suppressMotion\)[\s\S]*previousPositions\.get\(edge\.from\)/,'suppressed or reduced reroots must not initialize edges from stale previous geometry');
+assert.match(graphViewSource,/if\(!reduceMotion&&!suppressMotion\)[\s\S]*graphEdgeMotionStart\(previousPositions,edge\)/,'suppressed or reduced reroots must not initialize edge motion from stale previous geometry');
 assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigation timing must remain deliberately readable');
 assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition must remain longer than branch navigation');
 assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
