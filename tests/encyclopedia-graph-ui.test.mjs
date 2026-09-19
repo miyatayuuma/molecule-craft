@@ -154,6 +154,9 @@ assert.ok(laggedVisible,'current edge must retain a safe interval while endpoint
 assert.ok(laggedVisible.startT>.38&&laggedVisible.endT<.62,'visible interval must be clipped by the actual displayed node circles, not ideal endpoint centers');
 const unsafeShort=graphVisibleEdgeInterval({x:0,y:0},{x:70,y:0},{circles:[{x:0,y:0,radius:31},{x:70,y:0,radius:31}],padding:3,chevronExtent:2.4,minGap:7});
 assert.equal(unsafeShort,null,'short edges with no safe visible gap must hide the Chevron rather than place it inside a node');
+const thirdNodeBlock=graphVisibleEdgeInterval({x:0,y:0},{x:120,y:0},{circles:[{x:0,y:0,radius:20},{x:120,y:0,radius:20},{x:60,y:0,radius:12}],padding:1.5,chevronExtent:2.2,minGap:1.5});
+assert.ok(thirdNodeBlock,'a crossing node should split, not necessarily eliminate, the visible edge interval');
+assert.ok(thirdNodeBlock.endT<.5||thirdNodeBlock.startT>.5,'Chevron anchor interval must avoid a third displayed node that occludes the edge midpoint');
 
 const entries=new Map([['c',{order:2}],['a',{order:1}]]);
 assert.equal(selectInitialGraphFocus(fixture,{registeredIds:new Set(['a','c']),recipes:new Set(),hints:new Set(),entriesById:entries}),'c','Most recently registered molecule must win when no previous focus exists');
@@ -184,8 +187,9 @@ assert.match(graphViewSource,/graphEdgeDelay:48/,'Graph edge follow-up must use 
 assert.doesNotMatch(graphViewSource,/chevron\.animate/,'Chevron must not own an independent transition animation');
 assert.match(graphViewSource,/graphEdgeChevronGeometryFromPoints/,'Chevron geometry must derive from the same current edge endpoints');
 assert.match(graphViewSource,/graphVisibleEdgeInterval/,'Chevron anchor must be constrained to the currently visible edge interval');
-assert.match(graphViewSource,/graphNodeCircleInSvg/,'reroot clipping must use the displayed endpoint-node circles without changing edge motion authority');
-assert.match(graphViewSource,/applyGraphEdgeTween\(tween,edgeEased,nodeCircleForId\)/,'Edge and Chevron must update together from one shared reroot tween while clipping against displayed node circles');
+assert.match(graphViewSource,/graphNodeCircleInSvg/,'reroot clipping must use displayed node circles without changing edge motion authority');
+assert.match(graphViewSource,/const nodeCircles=\(\)=>\[\.\.\.interactiveNodeById\.values\(\)\]/,'visible-gap clipping must consider every displayed graph node, not a mobile-specific pair or layout hack');
+assert.match(graphViewSource,/applyGraphEdgeTween\(tween,edgeEased,blockingCircles\)/,'Edge and Chevron must update together from one shared reroot tween while clipping against displayed node circles');
 assert.match(graphViewSource,/if\(!reduceMotion&&!suppressMotion\)[\s\S]*previousPositions\.get\(edge\.from\)/,'suppressed or reduced reroots must not initialize edges from stale previous geometry');
 assert.match(graphViewSource,/graphNavigationDuration:560/,'Graph branch navigation timing must remain deliberately readable');
 assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition must remain longer than branch navigation');
