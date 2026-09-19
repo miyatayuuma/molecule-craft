@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
-import {Molecule,setMoleculeDatabase,ELEMENTS} from '../src/chemistry.js';
+import {Molecule,setMoleculeDatabase,ELEMENTS} from '../src/chemistry.js?v=20';
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '../src/bonding-model.js';
 import {createStructureSettlement} from '../src/structure-settlement.js';
 import {connectedStructures} from '../src/workspace-model.js';
