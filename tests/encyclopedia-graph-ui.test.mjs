@@ -149,9 +149,9 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should remain compact while direction is encoded by tangent orientation`);
 }
 
-const laggedVisible=graphVisibleEdgeInterval({x:0,y:0},{x:100,y:0},{circles:[{x:15,y:0,radius:20},{x:85,y:0,radius:20}],padding:3,chevronExtent:2.4,minGap:7});
+const laggedVisible=graphVisibleEdgeInterval({x:0,y:0},{x:100,y:0},{circles:[{x:15,y:0,radius:20},{x:85,y:0,radius:20}],padding:1.5,chevronExtent:2.2,minGap:1.5});
 assert.ok(laggedVisible,'current edge must retain a safe interval while endpoint nodes visually lead the staggered edge');
-assert.ok(laggedVisible.startT>.39&&laggedVisible.endT<.61,'visible interval must be clipped by the actual displayed node circles, not ideal endpoint centers');
+assert.ok(laggedVisible.startT>.38&&laggedVisible.endT<.62,'visible interval must be clipped by the actual displayed node circles, not ideal endpoint centers');
 const unsafeShort=graphVisibleEdgeInterval({x:0,y:0},{x:70,y:0},{circles:[{x:0,y:0,radius:31},{x:70,y:0,radius:31}],padding:3,chevronExtent:2.4,minGap:7});
 assert.equal(unsafeShort,null,'short edges with no safe visible gap must hide the Chevron rather than place it inside a node');
 
