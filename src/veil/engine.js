@@ -75,7 +75,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 export function createRun(map,config=VEIL,{fuel={},predators=true,treatments=null}={}){
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)},treatmentState=treatments&&typeof treatments==='object'?treatments:{mechanical:0,abrasive:0,thermal:0,electrical:0};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],treatments:treatmentState,treatmentExposure:createHazardTreatmentExposureState(),treatmentRevision:0,hazardEffectMultipliers:{mechanical:1,abrasive:1,thermal:1,electrical:1},electricalControlAuthority:1,electricalPropulsionAuthority:1,nextEaterSpawn:0,captured:false,captureAt:0,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
+  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],treatments:treatmentState,treatmentExposure:createHazardTreatmentExposureState(),treatmentRevision:0,hazardEffectMultipliers:{mechanical:1,abrasive:1,thermal:1,electrical:1},electricalControlAuthority:1,electricalPropulsionAuthority:1,nextEaterSpawn:0,captured:false,captureAt:0,forcedReturn:null,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -131,12 +131,14 @@ function spawnEater(run){
 }
 
 function updateEaters(run,dt){
-  if(!run.predators||run.captured)return;
-  const tuning=run.eaterTuning??dustEaterWorldTuning(false),dust=Object.values(run.elementDust).reduce((sum,n)=>sum+n,0),safeSeconds=EXPEDITION.safeSeconds*tuning.safeSecondsMultiplier;
-  run.threat=Math.max(0,run.time-safeSeconds)*EXPEDITION.threatPerSecond*tuning.threatPerSecondMultiplier+dust*EXPEDITION.threatPerDustUnit*tuning.threatPerDustMultiplier;
-  const thresholds=EXPEDITION.eaterThresholds.map(level=>level*tuning.thresholdMultiplier),thresholdTarget=run.time<safeSeconds?0:thresholds.filter(level=>run.threat>=level).length,earlyTarget=run.time>=tuning.earlyEncounterSeconds?tuning.earlyEncounterCount:0,target=Math.min(tuning.maxPursuers,Math.max(thresholdTarget,earlyTarget));
-  if(run.eaters.length<target&&run.time>=run.nextEaterSpawn)spawnEater(run);
-  const p=run.player;
+  if(!run.predators)return;
+  const presenting=run.captured===true,tuning=run.eaterTuning??dustEaterWorldTuning(false),p=run.player;
+  if(!presenting){
+    const dust=Object.values(run.elementDust).reduce((sum,n)=>sum+n,0),safeSeconds=EXPEDITION.safeSeconds*tuning.safeSecondsMultiplier;
+    run.threat=Math.max(0,run.time-safeSeconds)*EXPEDITION.threatPerSecond*tuning.threatPerSecondMultiplier+dust*EXPEDITION.threatPerDustUnit*tuning.threatPerDustMultiplier;
+    const thresholds=EXPEDITION.eaterThresholds.map(level=>level*tuning.thresholdMultiplier),thresholdTarget=run.time<safeSeconds?0:thresholds.filter(level=>run.threat>=level).length,earlyTarget=run.time>=tuning.earlyEncounterSeconds?tuning.earlyEncounterCount:0,target=Math.min(tuning.maxPursuers,Math.max(thresholdTarget,earlyTarget));
+    if(run.eaters.length<target&&run.time>=run.nextEaterSpawn)spawnEater(run);
+  }
   for(const eater of run.eaters){
     if((eater.interrupt??0)>0){eater.interrupt=Math.max(0,eater.interrupt-dt);const drag=Math.exp(-dt*1.15),margin=EXPEDITION.eaterSpawnDistance+100;eater.vx=(eater.vx??0)*drag;eater.vy=(eater.vy??0)*drag;eater.x=clamp(eater.x+eater.vx*dt,run.config.bounds.left-margin,run.config.bounds.right+margin);eater.y=clamp(eater.y+eater.vy*dt,run.config.bounds.top-margin,run.config.bounds.bottom+margin);eater.trail.push({x:eater.x,y:eater.y});if(eater.trail.length>20)eater.trail.shift();continue;}
     let sx=0,sy=0;
@@ -150,15 +152,32 @@ function updateEaters(run,dt){
     const margin=EXPEDITION.eaterSpawnDistance+100;eater.x=clamp(eater.x+eater.vx*dt,run.config.bounds.left-margin,run.config.bounds.right+margin);eater.y=clamp(eater.y+eater.vy*dt,run.config.bounds.top-margin,run.config.bounds.bottom+margin);
     eater.trail.push({x:eater.x,y:eater.y});if(eater.trail.length>20)eater.trail.shift();
   }
-  run.nearestEater=run.eaters.reduce((best,eater)=>Math.min(best,Math.hypot(eater.x-p.x,eater.y-p.y)),Infinity);
+  let captor=null;
+  run.nearestEater=Infinity;
+  for(const eater of run.eaters){const distance=Math.hypot(eater.x-p.x,eater.y-p.y);if(distance<run.nearestEater){run.nearestEater=distance;captor=eater;}}
+  if(presenting)return;
   const danger=run.nearestEater<EXPEDITION.eaterDangerRadius?'danger':run.nearestEater<EXPEDITION.eaterWarningRadius?'warning':'clear';
   if(danger!==run.danger){run.danger=danger;if(danger==='danger')run.telemetry.dangerContacts++;run.events.push({type:'danger',level:danger,distance:run.nearestEater});}
-  if(run.nearestEater<=EXPEDITION.eaterContactRadius){run.captured=true;run.captureAt=run.time;run.driveHeld=false;p.combustion=false;p.boost=0;run.events.push({type:'capture'});}
+  if(run.nearestEater<=EXPEDITION.eaterContactRadius&&!run.forcedReturn){
+    run.captured=true;run.captureAt=run.time;run.forcedReturn={triggeredAt:run.time,eaterId:captor?.id??null,presentationStarted:false};run.driveHeld=false;p.combustion=false;p.boost=0;run.events.push({type:'capture',eaterId:captor?.id??null});
+  }
+}
+
+function advanceTransientEffects(run,dt){
+  const {player:p,config:c}=run;
+  for(const e of run.effects){
+    e.life+=dt;const t=clamp(e.life/e.duration,0,1)**1.5,dx=p.x-e.startX,dy=p.y-e.startY,length=Math.hypot(dx,dy)||1;
+    const bend=e.side*c.suctionBend*(1+Math.min(run.chain/c.feverChain,1)*.5),cx=(e.startX+p.x)/2-dy/length*bend,cy=(e.startY+p.y)/2+dx/length*bend;
+    e.x=(1-t)**2*e.startX+2*(1-t)*t*cx+t*t*p.x;e.y=(1-t)**2*e.startY+2*(1-t)*t*cy+t*t*p.y;e.trail.push({x:e.x,y:e.y});if(e.trail.length>7)e.trail.shift();
+  }
+  run.effects=run.effects.filter(e=>e.life<e.duration);
+  for(const wave of run.shockWaves)wave.life+=dt;
+  run.shockWaves=run.shockWaves.filter(wave=>wave.life<wave.duration);
 }
 
 function stepRunFrame(run,input,dt,systems){
   const {player:p,map,config:c}=run;dt=clamp(dt,0,c.maxFrame);run.time+=dt;run.events.length=0;
-  if(run.captured)return run.events;
+  if(run.captured){animateUniverse(run);advanceTransientEffects(run,dt);updateEaters(run,dt);return run.events;}
   animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
   const environment=map.universe?environmentAt(p,run.time,map):null,currentHazards=environment?.hazards?[...environment.hazards]:[];
   const coolantLearning=!!environment?.coolantLearning&&p.combustion&&!run.fuel.coolant?.molecule;run.coolantNeedExposure=coolantLearning?run.coolantNeedExposure+dt:0;if(!run.coolantNeedEmitted&&run.coolantNeedExposure>=OXYGEN_THERMAL.learningExposureSeconds){run.coolantNeedEmitted=true;run.events.push({type:'coolantNeed',exposure:run.coolantNeedExposure});}
@@ -206,18 +225,13 @@ function stepRunFrame(run,input,dt,systems){
     if(dust.kind==='dense'){if(run.time>run.denseUntil)run.events.push({type:'dense'});run.denseUntil=run.time+1.4;}if(el==='H'&&dust.kind==='rare')run.events.push({type:'rare',id:'pure-h'});
   }
   if(picked)run.events.push({type:'pickup',amount:gained,elements,units,chain:run.chain,count:picked});
-  for(const e of run.effects){
-    e.life+=dt;const t=clamp(e.life/e.duration,0,1)**1.5,dx=p.x-e.startX,dy=p.y-e.startY,length=Math.hypot(dx,dy)||1;
-    const bend=e.side*c.suctionBend*(1+Math.min(run.chain/c.feverChain,1)*.5),cx=(e.startX+p.x)/2-dy/length*bend,cy=(e.startY+p.y)/2+dx/length*bend;
-    e.x=(1-t)**2*e.startX+2*(1-t)*t*cx+t*t*p.x;e.y=(1-t)**2*e.startY+2*(1-t)*t*cy+t*t*p.y;e.trail.push({x:e.x,y:e.y});if(e.trail.length>7)e.trail.shift();
-  }
-  run.effects=run.effects.filter(e=>e.life<e.duration);for(const wave of run.shockWaves)wave.life+=dt;run.shockWaves=run.shockWaves.filter(wave=>wave.life<wave.duration);p.trail.push({x:p.x,y:p.y});if(p.trail.length>28)p.trail.shift();updateEaters(run,dt);recordExpeditionFrame(run,dt);return run.events;
+  advanceTransientEffects(run,dt);p.trail.push({x:p.x,y:p.y});if(p.trail.length>28)p.trail.shift();updateEaters(run,dt);recordExpeditionFrame(run,dt);return run.events;
 }
 
 // Advance in fixed small slices so 15/30/60fps use the same pickup, pursuit,
 // and steering path.
 export function stepRun(run,input,elapsed,systems={}){
   const events=[];let remaining=clamp(elapsed,0,.15);
-  while(remaining>1e-8){const dt=Math.min(1/60,remaining);events.push(...stepRunFrame(run,input,dt,systems));remaining-=dt;if(run.captured)break;}
+  while(remaining>1e-8){const dt=Math.min(1/60,remaining);events.push(...stepRunFrame(run,input,dt,systems));remaining-=dt;}
   return events;
 }
