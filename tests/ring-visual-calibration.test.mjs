@@ -5,6 +5,7 @@ import {ELEMENTS,MODEL_ATOM_RADIUS_SCALE,modelAtomRadius} from '../src/chemistry
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '../src/bonding-model.js';
 import {createPreviewModel} from '../src/preview-model.js';
 import {createStructureSolver} from '../src/structure-relaxation.js';
+import {createStructureSettlement} from '../src/structure-settlement.js';
 import {seedCraftCoordinates} from '../src/craft-structures.js';
 
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
@@ -146,12 +147,18 @@ for(const id of ['cyclopentane','tetrahydrofuran']){
   assert.ok(initial.overlapRelative<.18,`${id}: baseline pucker created overlap (${initial.overlapRelative})`);
   const cycle=snap.fiveMemberConformations[0].cycle;
   item.placements.get(cycle[2]).position.add(new THREE.Vector3(.16,-.11,.31));
-  item.solver.rebuildTopology({resetFrames:true});settleFixture(item,700);
-  const errors=item.solver.measureError();
+  item.solver.rebuildTopology({resetFrames:true});
+  const ids=new Set(item.g.atoms.map(atom=>atom.id)),session=createStructureSettlement({THREE,molecule:item.g,placements:item.placements,ids,
+    bondLengthFor:item.bondLengthFor,geometryFor:item.geometryFor,radiusFor:id=>ELEMENTS[item.g.atoms[id].element].radius,
+    nonbondedDistanceFor:(a,b)=>nonbondedDistance(item.g.atoms[a].element,item.g.atoms[b].element),now:0,duration:1});
+  let result=null,time=0;
+  for(let step=0;step<120&&!result?.done;step++){time+=16;result=session.advance(time,{clock:()=>0,budgetMs:999});}
+  assert.ok(result?.done,`${id}: CRAFT settlement did not complete after perturbation`);
+  item.solver.rebuildTopology({resetFrames:true});const errors=item.solver.measureError();
   assert.ok(errors.finite,`${id}: perturbation recovery became non-finite`);
   assert.ok(errors.fiveMemberConformationRelative<.075,`${id}: pucker authority did not recover after perturbation (${errors.fiveMemberConformationRelative})`);
   assert.ok(errors.bondRelative<.08,`${id}: bond length did not recover after perturbation (${errors.bondRelative})`);
-  assert.ok(errors.overlapRelative<.18,`${id}: perturbation recovery created overlap (${errors.overlapRelative})`);
+  assert.ok(errors.overlapRelative<.18,`${id}: settlement recovery created overlap (${errors.overlapRelative})`);
 }
 {
   const item=settleFixture(solverFixture('cyclobutane')),snap=item.solver.snapshot();
