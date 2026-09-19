@@ -183,6 +183,7 @@ export function createStructureSolver({
       // It runs after local geometry so collision response cannot become the
       // source of a large angular correction in the same iteration.
       relaxStericIntersections(scale,locked,options.activeIds);
+      relaxSixMemberSterics(.055*scale,locked,options.activeIds);
       for(const bond of activeBonds)enforceBondLength(bond,.35*scale,locked);
 
       for (const atom of activeAtoms) {
@@ -206,6 +207,27 @@ export function createStructureSolver({
       enforceRegularAromaticCycle(frame,.045*scale,locked);
       enforceAromaticSubstituentDirections(frame,.28*scale,locked);
       enforceConjugatedSubstituentGeometry(frame,.30*scale,locked);
+    }
+  }
+
+  function relaxSixMemberSterics(strength,locked,activeIds=null){
+    if(!sixMemberFrames.length)return;
+    const eligible=new Set();
+    for(const frame of sixMemberFrames){
+      if(activeIds&&!frame.cycle.every(id=>activeIds.has(id)))continue;
+      for(const group of frame.motionGroups)for(const id of group)eligible.add(id);
+    }
+    if(!eligible.size)return;
+    const atoms=molecule.atoms.filter(atom=>eligible.has(atom.id)&&(!activeIds||activeIds.has(atom.id)));
+    for(const [left,right] of spatialAtomPairs(atoms)){
+      const aId=left.id,bId=right.id;
+      if(stericExclusions.has(pairKey(aId,bId)))continue;
+      const a=pos(aId),b=pos(bId);if(!a||!b)continue;
+      const delta=b.clone().sub(a),length=delta.length(),minimum=stericMinimum(aId,bId);
+      if(length>=minimum)continue;
+      if(length<.0001)delta.set(1,.37,-.21);
+      const correction=delta.normalize().multiplyScalar((minimum-length)*strength);
+      displacePair(aId,bId,correction.clone().multiplyScalar(-1),locked);
     }
   }
 
