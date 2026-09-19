@@ -12,7 +12,7 @@ import { syncFieldInsightMarkerClaimability } from './signal-claimability.js';
 import { completeExpeditionTelemetry, logExpeditionTelemetry } from './telemetry.js';
 import { combustionChargeFor,combustionPacketFor,performanceFor } from './molecule-roles.js';
 import { renderCraftTargetAtoms } from '../craft-panel.js?v=3';
-import { expeditionLoss } from './resources.js';
+import { expeditionLoss } from './expedition-loss.js';
 import {RARE_ECOLOGY_ELEMENTS} from './rare-ecology.js';
 import {HAZARD_TREATMENT_IDS,HAZARD_TREATMENTS} from './hazard-treatments.js';
 
