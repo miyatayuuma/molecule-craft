@@ -58,7 +58,7 @@ function edgeCircleBlockedInterval(from,to,circle,clearance){
   const root=Math.sqrt(discriminant),t0=(-b-root)/(2*a),t1=(-b+root)/(2*a),start=clamp(Math.min(t0,t1),0,1),end=clamp(Math.max(t0,t1),0,1);
   return end-start>.0001?[start,end]:null;
 }
-export function graphVisibleEdgeInterval(from,to,{circles=[],padding=3,chevronExtent=2.4,minGap=7}={}){
+export function graphVisibleEdgeInterval(from,to,{circles=[],padding=1.5,chevronExtent=2.2,minGap=1.5}={}){
   if(!from||!to)return null;
   const length=Math.hypot(to.x-from.x,to.y-from.y);if(!Number.isFinite(length)||length<1)return null;
   const clearance=Math.max(0,padding)+Math.max(0,chevronExtent),blocked=circles.map(circle=>edgeCircleBlockedInterval(from,to,circle,clearance)).filter(Boolean).sort((a,b)=>a[0]-b[0]),merged=[];
@@ -71,7 +71,7 @@ export function graphVisibleEdgeInterval(from,to,{circles=[],padding=3,chevronEx
   return {startT:selected[0],endT:selected[1],length:(selected[1]-selected[0])*length};
 }
 
-function graphEdgeChevronGeometryFromPoints(edge,from,to,{focusId,nodeDiameter=66,focusDiameter=124,padding=3,chevronExtent=2.4,minGap=7,fromRadius=null,toRadius=null,fromCircle=null,toCircle=null}={}){
+function graphEdgeChevronGeometryFromPoints(edge,from,to,{focusId,nodeDiameter=66,focusDiameter=124,padding=1.5,chevronExtent=2.2,minGap=1.5,fromRadius=null,toRadius=null,fromCircle=null,toCircle=null}={}){
   if(!from||!to)return null;
   const dx=to.x-from.x,dy=to.y-from.y,length=Math.hypot(dx,dy);if(!Number.isFinite(length)||length<1)return null;
   const sourceRadius=Number.isFinite(fromRadius)?fromRadius:(edge.from===focusId?focusDiameter:nodeDiameter)/2,targetRadius=Number.isFinite(toRadius)?toRadius:(edge.to===focusId?focusDiameter:nodeDiameter)/2;
