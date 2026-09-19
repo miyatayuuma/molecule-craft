@@ -16,6 +16,19 @@ export function modelAtomRadius(element) {
   return (ELEMENTS[element]?.radius ?? 0.42) * MODEL_ATOM_RADIUS_SCALE;
 }
 
+// Public molecule/discovery identity is intentionally constitutional: element
+// identity, connectivity and bond order. A concrete 3D pose may carry an
+// E/Z-like or handed arrangement, but that pose is not part of molecule ID,
+// discovery identity, Graph identity or CRAFT recognition.
+export const MOLECULE_IDENTITY_SCOPE = 'constitutional';
+
+// Legacy molecule-level identity-scope metadata only. "unspecified" means this
+// record does not select a stereochemical configuration as identity. It does
+// not mean racemate, mixture, natural-major stereoisomer, R/S or E/Z.
+// Future stereo descriptors must be atom/bond-scoped metadata rather than new
+// values of this single molecule-level string.
+export const LEGACY_STEREOCHEMISTRY_UNSPECIFIED = 'unspecified';
+
 export const UNKNOWN_NAME = '未知 / 未登録の構造';
 let nextAtomId = 1;
 let knownMolecules = [];
@@ -93,6 +106,8 @@ export class Molecule {
   }
 
   recognizedMolecule() {
+    // Deliberately graph-only. Coordinates and stereochemical pose are
+    // orthogonal observations and must not silently become chemical identity.
     if (!this.atoms.length || databaseState.status !== 'ready') return null;
     const fingerprint = moleculeFingerprint(this.atoms, this.bonds);
     const candidates = knownFingerprints.get(fingerprint) ?? [];
@@ -241,6 +256,7 @@ function validateMoleculeRecord(record, ids) {
   for (const key of ['nameJa', 'nameEn', 'iupacNameEn']) if (typeof record[key] !== 'string' || !record[key]) throw new Error(`Missing ${key}.`);
   if (record.commonNameJa != null && (typeof record.commonNameJa !== 'string' || !record.commonNameJa)) throw new Error(`Invalid commonNameJa in ${id}.`);
   if (record.commonNameEn != null && (typeof record.commonNameEn !== 'string' || !record.commonNameEn)) throw new Error(`Invalid commonNameEn in ${id}.`);
+  if (record.stereochemistry != null && record.stereochemistry !== LEGACY_STEREOCHEMISTRY_UNSPECIFIED) throw new Error(`Invalid legacy stereochemistry in ${id}.`);
   if (ids.has(id)) throw new Error(`Duplicate molecule id: ${id}`);
   ids.add(id);
   if (!Array.isArray(record.atoms) || !record.atoms.length || record.atoms.some(element => !ELEMENTS[element])) throw new Error(`Invalid atoms in ${id}.`);
