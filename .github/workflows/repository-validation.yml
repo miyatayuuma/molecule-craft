@@ -32,6 +32,14 @@ jobs:
           node scripts/build-precache.mjs
           git diff --exit-code -- sw.js precache-manifest.js
 
+  ring-visual-calibration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Ring geometry and visual calibration
+        run: |
+          node tests/ring-visual-calibration.test.mjs
+
   repository-guardrails:
     runs-on: ubuntu-latest
     steps:
