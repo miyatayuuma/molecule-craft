@@ -116,7 +116,7 @@ try{
   assert.equal(same.label,'cis (Z)');
   assert.match(same.detail,/\u540c\u3058\u5074/);
   assert.match(same.aria,/cis \(Z\)/);
-  assert.match(same.molecule,/2-Butene|butene/i);
+  assert.match(same.molecule,/2-ブテン|2-Butene|butene/i);
   assert(same.viewerWidth>=350,'mobile completion viewer must not shrink');
   assert(same.docScrollWidth<=same.docWidth+1,'same-side completion must not overflow horizontally');
   await screenshot('2-butene-cis-z-craft-mobile.png');
