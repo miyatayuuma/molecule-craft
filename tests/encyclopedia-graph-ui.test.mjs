@@ -201,7 +201,7 @@ assert.match(graphViewSource,/detailZoomDuration:760/,'Graph/Detail transition m
 assert.match(graphViewSource,/graphNodeMotionStart\(previous,point,\{nodeDiameter,focusDiameter\}\)/,'Interactive nodes must derive motion from the previous spatial layout');
 assert.match(graphViewSource,/runGraphGeometryMotion\(graphMotion,geometryTweens,edgeTweens/,'Edges and Chevron markers must share the graph reroot motion authority');
 assert.match(graphViewSource,/previousFrom:pa,previousTo:pb,nextFrom:a,nextTo:b/,'Graph edges must interpolate from one previous endpoint snapshot to one next endpoint snapshot');
-assert.match(graphViewSource,/graphVisibleEdgeInterval\(from,to,\{circles:\[sourceCircle,targetCircle\]/,'Chevron anchor must come from the current edge interval remaining outside displayed endpoint circles');
+assert.match(graphViewSource,/circles=Array\.isArray\(blockingCircles\)[\s\S]*visible=graphVisibleEdgeInterval\(from,to,\{circles,padding,chevronExtent,minGap\}\)/,'Chevron anchor must come from the current edge interval remaining outside displayed blocking node circles');
 assert.match(graphViewSource,/else tween\.chevron\.setAttribute\('visibility','hidden'\)/,'unsafe short edge gaps must hide the Chevron rather than place it inside a node');
 assert.match(graphViewSource,/presentation\.canOpenDetail\)onDetail\(id,node\)/,'Graph view must delegate the measured selected node to the single collection transition owner');
 assert.match(collectionUISource,/returnMoleculeDetailToGraph\(currentMoleculeId\(\)\?\?record\.id,host\)/,'Detail return must use the current Detail molecule ID after navigation');
