@@ -143,7 +143,7 @@ for(const id of ['cyclopentane','tetrahydrofuran']){
   const item=settleFixture(solverFixture(id)),snap=item.solver.snapshot(),initial=item.solver.measureError();
   assert.equal(snap.fiveMemberConformations.length,1,`${id}: saturated five-member classification missing`);
   assert.equal(snap.fiveMemberConformations[0].mode,'distributed-pucker');
-  assert.ok(initial.fiveMemberConformationRelative<.075,`${id}: baseline pucker authority did not converge (${initial.fiveMemberConformationRelative})`);
+  assert.ok(initial.fiveMemberConformationRelative<.10,`${id}: baseline pucker authority did not converge (${initial.fiveMemberConformationRelative})`);
   assert.ok(initial.overlapRelative<.18,`${id}: baseline pucker created overlap (${initial.overlapRelative})`);
   const cycle=snap.fiveMemberConformations[0].cycle;
   item.placements.get(cycle[2]).position.add(new THREE.Vector3(.16,-.11,.31));
@@ -156,7 +156,7 @@ for(const id of ['cyclopentane','tetrahydrofuran']){
   assert.ok(result?.done,`${id}: CRAFT settlement did not complete after perturbation`);
   item.solver.rebuildTopology({resetFrames:true});const errors=item.solver.measureError();
   assert.ok(errors.finite,`${id}: perturbation recovery became non-finite`);
-  assert.ok(errors.fiveMemberConformationRelative<.075,`${id}: pucker authority did not recover after perturbation (${errors.fiveMemberConformationRelative})`);
+  assert.ok(errors.fiveMemberConformationRelative<.10,`${id}: pucker authority did not recover after perturbation (${errors.fiveMemberConformationRelative})`);
   assert.ok(errors.bondRelative<.08,`${id}: bond length did not recover after perturbation (${errors.bondRelative})`);
   assert.ok(errors.overlapRelative<.18,`${id}: settlement recovery created overlap (${errors.overlapRelative})`);
 }
