@@ -40,6 +40,17 @@ function signedPlaneDistances(points){
   const {center,normal}=planeFrame(points);return points.map(point=>point.clone().sub(center).dot(normal));
 }
 const planeSpread=points=>Math.max(...signedPlaneDistances(points).map(Math.abs));
+const unorderedPlaneSpread=points=>{
+  const center=points.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/points.length);
+  let normal=null,best=0;
+  for(let a=0;a<points.length;a++)for(let b=a+1;b<points.length;b++)for(let d=b+1;d<points.length;d++){
+    const candidate=new THREE.Vector3().crossVectors(points[b].clone().sub(points[a]),points[d].clone().sub(points[a])),size=candidate.lengthSq();
+    if(size>best){best=size;normal=candidate;}
+  }
+  if(!normal||best<1e-10)return 0;
+  normal.normalize();
+  return Math.max(...points.map(point=>Math.abs(point.clone().sub(center).dot(normal))));
+};
 function dihedral(a,b,c,d){
   const b0=b.clone().sub(a),b1=c.clone().sub(b),b2=d.clone().sub(c),n0=new THREE.Vector3().crossVectors(b0,b1),n1=new THREE.Vector3().crossVectors(b1,b2);
   if(n0.lengthSq()<1e-10||n1.lengthSq()<1e-10)return 0;
@@ -132,7 +143,7 @@ for(const id of ['cyclohexane','methylcyclohexane','cyclohexanol']){
   assert.ok(planeSpread(ringPoints)>.075*average,'cyclohexene: ring remained planar');
   const doubleBond=item.bonds.find(b=>b.order===2&&frame.cycle.includes(b.a)&&frame.cycle.includes(b.b));assert.ok(doubleBond,'cyclohexene: ring C=C missing');
   const planar=item.solver.snapshot().doublePlanarGroups.find(group=>group.includes(doubleBond.a)&&group.includes(doubleBond.b));assert.ok(planar,'cyclohexene: C=C planar group missing');
-  assert.ok(planeSpread(pointsFor(item,planar))<.055,'cyclohexene: C=C neighborhood lost planarity');
+  assert.ok(unorderedPlaneSpread(pointsFor(item,planar))<.055,'cyclohexene: C=C neighborhood lost planarity');
 }
 {
   const item=relax(fixture('cyclohexanone')),frame=assertHealthy(item,{angleTolerance:15});
@@ -141,7 +152,7 @@ for(const id of ['cyclohexane','methylcyclohexane','cyclohexanol']){
   assert.ok(planeSpread(ringPoints)>.075*average,'cyclohexanone: ring remained planar');
   const carbonyl=item.bonds.find(b=>b.order===2&&[item.atoms[b.a].element,item.atoms[b.b].element].includes('O'));assert.ok(carbonyl,'cyclohexanone: C=O missing');
   const planar=item.solver.snapshot().doublePlanarGroups.find(group=>group.includes(carbonyl.a)&&group.includes(carbonyl.b));assert.ok(planar,'cyclohexanone: carbonyl planar group missing');
-  assert.ok(planeSpread(pointsFor(item,planar))<.055,'cyclohexanone: carbonyl neighborhood lost planarity');
+  assert.ok(unorderedPlaneSpread(pointsFor(item,planar))<.055,'cyclohexanone: carbonyl neighborhood lost planarity');
 }
 for(const id of ['benzene','pyridine','furan']){
   const item=relax(fixture(id));
