@@ -111,6 +111,8 @@ jobs:
         run: |
           node tests/encyclopedia-content-architecture.test.mjs
           node tests/encyclopedia-content-browser.test.mjs
+          node --test tests/encyclopedia-stereo-comparison.test.mjs
+          node tests/encyclopedia-stereo-comparison-browser.test.mjs
           node tests/encyclopedia-chemistry-visuals.test.mjs
           node tests/encyclopedia-chemistry-visual-browser.test.mjs
           node tests/encyclopedia-graph-ui.test.mjs
@@ -118,6 +120,14 @@ jobs:
           node tests/encyclopedia-graph-thumbnail-label-browser.test.mjs
           node --test tests/encyclopedia-molecule-transition.test.mjs
           node tests/encyclopedia-transition-browser.test.mjs
+      - name: Upload Encyclopedia stereo comparison frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encyclopedia-stereo-comparison
+          path: test-results/encyclopedia-stereo-comparison
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload Encyclopedia chemistry visual frames
         if: always()
         uses: actions/upload-artifact@v4
