@@ -76,7 +76,7 @@ function graphEdgeChevronGeometryFromPoints(edge,from,to,{focusId,nodeDiameter=6
   const dx=to.x-from.x,dy=to.y-from.y,length=Math.hypot(dx,dy);if(!Number.isFinite(length)||length<1)return null;
   const sourceRadius=Number.isFinite(fromRadius)?fromRadius:(edge.from===focusId?focusDiameter:nodeDiameter)/2,targetRadius=Number.isFinite(toRadius)?toRadius:(edge.to===focusId?focusDiameter:nodeDiameter)/2;
   const sourceCircle=fromCircle??{x:from.x,y:from.y,radius:sourceRadius},targetCircle=toCircle??{x:to.x,y:to.y,radius:targetRadius},circles=Array.isArray(blockingCircles)&&blockingCircles.length?blockingCircles:[sourceCircle,targetCircle],visible=graphVisibleEdgeInterval(from,to,{circles,padding,chevronExtent,minGap});if(!visible)return null;
-  const pointAt=t=>({x:from.x+dx*t,y:from.y+dy*t}),start=pointAt(visible.startT),end=pointAt(visible.endT),anchor=pointAt((visible.startT+visible.endT)/2),ux=dx/length,uy=dy/length,px=-uy,py=ux;
+  const pointAt=t=>({x:from.x+dx*t,y:from.y+dy*t}),start=pointAt(visible.startT),end=pointAt(visible.endT),anchorT=visible.startT+(visible.endT-visible.startT)*.62,anchor=pointAt(anchorT),ux=dx/length,uy=dy/length,px=-uy,py=ux;
   const back={x:anchor.x-ux*1.5,y:anchor.y-uy*1.5},tip={x:anchor.x+ux*.84,y:anchor.y+uy*.84},armA={x:back.x+px*1.5,y:back.y+py*1.5},armB={x:back.x-px*1.5,y:back.y-py*1.5};
   const points=[armA,tip,armB].map(point=>`${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
   return {start,end,anchor,points,fromRadius:sourceRadius,toRadius:targetRadius,visibleGap:visible.length};
@@ -95,6 +95,13 @@ function graphNodeCircleInSvg(node,svg,width,height){
   const nodeRect=rectOf(node),svgRect=rectOf(svg);if(!nodeRect||!svgRect)return null;
   const scaleX=width/svgRect.width,scaleY=height/svgRect.height;
   return {x:(nodeRect.left+nodeRect.width/2-svgRect.left)*scaleX,y:(nodeRect.top+nodeRect.height/2-svgRect.top)*scaleY,radius:Math.min(nodeRect.width*scaleX,nodeRect.height*scaleY)/2};
+}
+export function graphEdgeMotionStart(previousPositions,edge){
+  const previousFrom=previousPositions?.get?.(edge?.from)??null,previousTo=previousPositions?.get?.(edge?.to)??null;
+  if(previousFrom&&previousTo)return {from:previousFrom,to:previousTo,mode:'pair'};
+  if(previousFrom)return {from:previousFrom,to:previousFrom,mode:'source-collapse'};
+  if(previousTo)return {from:previousTo,to:previousTo,mode:'target-collapse'};
+  return null;
 }
 function applyGraphChevronRecord(record,from,to,{fromRadius=record.fromRadius,toRadius=record.toRadius,blockingCircles=null}={}){
   if(!record.chevron)return;
@@ -218,9 +225,9 @@ export function renderEncyclopediaGraph({
     let chevron=null;
     if(visual?.directional){const geometry=graphEdgeChevronGeometryFromPoints(edge,a,b,{focusId,nodeDiameter,focusDiameter});if(geometry){chevron=svgEl(document,'polyline',{points:geometry.points,class:`graph-edge-chevron ${visual.relationClass}`});chevron.dataset.edgeSource=edge.from;chevron.dataset.edgeTarget=edge.to;chevron.dataset.relation=visual.relation;svg.append(chevron);chevronEdges.push({line,chevron,edge,fromRadius:pointRadius(a),toRadius:pointRadius(b),geometryOptions:{focusId,nodeDiameter,focusDiameter}});}}
     if(!reduceMotion&&!suppressMotion){
-      const pa=previousPositions.get(edge.from),pb=previousPositions.get(edge.to);
-      if(pa&&pb){
-        const tween={line,chevron,edge,previousFrom:pa,previousTo:pb,nextFrom:a,nextTo:b,previousFromRadius:pointRadius(pa),previousToRadius:pointRadius(pb),nextFromRadius:pointRadius(a),nextToRadius:pointRadius(b),geometryOptions:{focusId,nodeDiameter,focusDiameter}};
+      const start=graphEdgeMotionStart(previousPositions,edge);
+      if(start){
+        const tween={line,chevron,edge,previousFrom:start.from,previousTo:start.to,nextFrom:a,nextTo:b,previousFromRadius:pointRadius(start.from),previousToRadius:pointRadius(start.to),nextFromRadius:pointRadius(a),nextToRadius:pointRadius(b),geometryOptions:{focusId,nodeDiameter,focusDiameter}};
         applyGraphEdgeTween(tween,0);edgeTweens.push(tween);
       }
     }
