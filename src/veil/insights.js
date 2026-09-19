@@ -56,5 +56,9 @@ export function advanceInsightAnalysis(run,dt,events=run?.events){
   const event={type:'insightReady',id,critical:false};events?.push(event);return event;
 }
 
+export function runInsightLossSnapshot(run){
+  if(!run)return [];
+  return [...new Set([...(Array.isArray(run.carriedInsights)?run.carriedInsights:[]),run.analysis?.id].filter(id=>typeof id==='string'&&id))];
+}
 export function discardActiveInsight(run){if(!run)return null;const id=run.analysis?.id??null;run.analysis=null;return id;}
 export function discardRunInsights(run){if(!run)return;run.analysis=null;run.carriedInsights.length=0;}
