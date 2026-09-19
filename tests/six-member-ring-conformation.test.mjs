@@ -106,7 +106,7 @@ for(const id of ['cyclohexane','methylcyclohexane','cyclohexanol']){
 }
 {
   const item=relax(fixture('cyclohexanol')),frame=conformation(item),ring=new Set(frame.cycle),oxygen=item.atoms.find(atom=>atom.element==='O');
-  const nearest=Math.min(...frame.cycle.map(id=>item.placements.get(oxygen.id).position.distanceTo(item.placements.get(id).position));
+  const nearest=Math.min(...frame.cycle.map(id=>item.placements.get(oxygen.id).position.distanceTo(item.placements.get(id).position)));
   assert.ok(nearest>.55,'cyclohexanol: OH oxygen collapsed into ring');
 }
 {
