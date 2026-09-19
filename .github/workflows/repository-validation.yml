@@ -177,6 +177,7 @@ jobs:
           node tests/craft-target-satisfaction.test.mjs
           node --test tests/craft-target-hint.test.mjs
           node --test tests/craft-target-match.test.mjs
+          node tests/recognition.test.mjs
           node tests/craft-target-hint-browser.test.mjs
           node tests/resonance-formal-charge.test.mjs
           node tests/bond-state.test.mjs
