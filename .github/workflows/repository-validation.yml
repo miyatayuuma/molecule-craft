@@ -220,14 +220,7 @@ jobs:
           node tests/deep-oxygen-routes.test.mjs
           node tests/oxygen-thermal-progression.test.mjs
           node tests/thermal-coolant.test.mjs
-          node tests/expedition-core.test.mjs
-          node tests/safe-extraction-site.test.mjs
-          node tests/safe-extraction-browser.test.mjs
           node tests/veil-loss-particles.test.mjs
-          node tests/veil-return-effects.test.mjs
-          node tests/dust-eater-forced-return.test.mjs
-          node tests/dust-eater-forced-return-browser.test.mjs
-          node tests/dust-eater-forced-return-ui-browser.test.mjs
       - name: Upload Dust Eater forced-return frame
         if: always()
         uses: actions/upload-artifact@v4
@@ -273,3 +266,19 @@ jobs:
         run: node tests/pwa.test.mjs
       - name: Whitespace errors in pull request diff
         run: git diff --check "origin/${{ github.base_ref }}...HEAD"
+
+  field-return-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: FIELD return lifecycle and PWA regressions
+        run: |
+          node tests/expedition-core.test.mjs
+          node tests/safe-extraction-site.test.mjs
+          node tests/safe-extraction-browser.test.mjs
+          node tests/veil-return-effects.test.mjs
+          node tests/dust-eater-forced-return.test.mjs
+          node tests/dust-eater-forced-return-browser.test.mjs
+          node tests/dust-eater-forced-return-ui-browser.test.mjs
+          node tests/pwa.test.mjs
+          node scripts/build-precache.mjs --check
