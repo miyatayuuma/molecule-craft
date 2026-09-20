@@ -8,13 +8,14 @@ export class LaunchTransactionError extends Error{
 
 export function captureLaunchRollbackState(resources){
   const state=resources?.state;if(!state)return null;
-  return {elements:copy(state.elements),tanks:copy(state.tanks),runs:state.progress?.runs??0};
+  return {elements:copy(state.elements),tanks:copy(state.tanks),progress:state.progress?copy(state.progress):null,expeditionRunState:resources.captureExpeditionRunState?.()??null,runs:state.progress?.runs??0};
 }
 
 export function restoreLaunchRollbackState(resources,snapshot){
   const state=resources?.state;if(!state||!snapshot)return false;
   state.elements=copy(snapshot.elements);state.tanks=copy(snapshot.tanks);
-  if(state.progress)state.progress.runs=snapshot.runs;
+  if(snapshot.progress)state.progress=copy(snapshot.progress);else if(state.progress)state.progress.runs=snapshot.runs;
+  resources.restoreExpeditionRunState?.(snapshot.expeditionRunState);
   return true;
 }
 
