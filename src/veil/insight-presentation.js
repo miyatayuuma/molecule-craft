@@ -55,14 +55,14 @@ function ensureStyles(doc){
 function atomText(atoms){return atoms.map(([element,count])=>`${element} ×${count}`).join(' · ');}
 function setProgress(node,progress){const value=`${progress*360}deg`;if(typeof node.style.setProperty==='function')node.style.setProperty('--insight-progress',value);else node.style['--insight-progress']=value;}
 
-export function createInsightPresentation({root,resources,formula=id=>resources?.record?.(id)?.formula??id,audio,onExtract=()=>{},reduced=false,document:doc=root?.ownerDocument??globalThis.document}={}){
+export function createInsightPresentation({root,resources,formula=id=>resources?.record?.(id)?.formula??id,audio,reduced=false,document:doc=root?.ownerDocument??globalThis.document}={}){
   if(!root||!doc)return {sync:()=>{},ready:()=>false,snapshot:()=>({normal:[],critical:[]}),loss:()=>false,clear:()=>{}};
   ensureStyles(doc);
   const group=make(doc,'div','veil-insight-hud');group.id='veil-insight-hud';group.dataset.reduced=String(!!reduced);group.dataset.anchorSide='above';group.hidden=true;group.setAttribute('aria-label','分子アイデア');
   const start=make(doc,'div','veil-insight-start');start.id='veil-insight-start';start.hidden=true;start.setAttribute('aria-hidden','true');start.append(make(doc,'i'),make(doc,'i'));
   const analysis=make(doc,'div','veil-insight-analysis');analysis.id='veil-insight-analysis';analysis.hidden=true;analysis.setAttribute('role','progressbar');analysis.setAttribute('aria-label','分子アイデア解析');analysis.setAttribute('aria-valuemin','0');analysis.setAttribute('aria-valuemax','100');
   const analysisRing=make(doc,'span','veil-insight-analysis-ring'),analysisSymbol=make(doc,'span','veil-insight-analysis-symbol','⌁');analysisRing.setAttribute('aria-hidden','true');analysisSymbol.setAttribute('aria-hidden','true');analysis.append(analysisRing,analysisSymbol);
-  const ready=make(doc,'button','veil-insight-ready');ready.id='veil-insight-ready';ready.type='button';ready.hidden=true;ready.setAttribute('aria-live','polite');const readySymbol=make(doc,'span','veil-insight-ready-symbol insight-bulb');readySymbol.setAttribute('aria-hidden','true');ready.append(readySymbol);ready.addEventListener('click',event=>{event.stopPropagation();onExtract();});
+  const ready=make(doc,'span','veil-insight-ready');ready.id='veil-insight-ready';ready.hidden=true;ready.setAttribute('aria-hidden','true');const readySymbol=make(doc,'span','veil-insight-ready-symbol insight-bulb');readySymbol.setAttribute('aria-hidden','true');ready.append(readySymbol);
   const normal=make(doc,'div','veil-normal-insights');normal.id='veil-normal-insights';normal.hidden=true;
   const critical=make(doc,'div','veil-critical-insights');critical.id='veil-critical-insights';critical.setAttribute('aria-label','持ち帰る重要な分子アイデア');
   const lossLayer=make(doc,'div','veil-insight-loss');lossLayer.id='veil-insight-loss';lossLayer.hidden=true;lossLayer.setAttribute('aria-hidden','true');
@@ -71,22 +71,22 @@ export function createInsightPresentation({root,resources,formula=id=>resources?
 
   function concealNormalFieldIdentity(run,models){
     const target=run?.inspiration;if(!target||!models.some(model=>model.id===target))return;
-    const prompt=doc.getElementById?.('veil-craft-prompt'),action=doc.getElementById?.('veil-to-craft'),label=doc.getElementById?.('veil-to-craft-label'),atoms=doc.getElementById?.('veil-to-craft-atoms'),goal=doc.getElementById?.('cho-goal-action'),goalLabel=doc.getElementById?.('cho-goal-label'),goalAtoms=doc.getElementById?.('cho-goal-atoms');
-    if(prompt)prompt.hidden=true;if(action)action.removeAttribute?.('aria-label');if(label)label.textContent='';atoms?.replaceChildren?.();if(goal)goal.removeAttribute?.('aria-label');if(goalLabel)goalLabel.textContent='';goalAtoms?.replaceChildren?.();
+    const goal=doc.getElementById?.('cho-goal-action'),goalLabel=doc.getElementById?.('cho-goal-label'),goalAtoms=doc.getElementById?.('cho-goal-atoms');
+    if(goal)goal.removeAttribute?.('aria-label');if(goalLabel)goalLabel.textContent='';goalAtoms?.replaceChildren?.();
   }
   function renderNormal(run){
     const models=normalInsightModels(run,resources),visible=models.filter(model=>!(model.id===readyNormalId&&!ready.hidden)),key=visible.map(model=>`${model.id}:${model.category}`).join('|');if(key===normalKey)return models;normalKey=key;normal.replaceChildren();
-    for(const model of visible.slice(0,NORMAL_VISIBLE_LIMIT)){const bulb=make(doc,'button','veil-normal-insight insight-bulb');bulb.type='button';bulb.dataset.insightCategory=model.category;bulb.dataset.extractionAffordance='true';bulb.setAttribute('aria-label','💡 Insightを持ち帰って帰還する');bulb.addEventListener('click',event=>{event.stopPropagation();onExtract();});normal.append(bulb);}
+    for(const model of visible.slice(0,NORMAL_VISIBLE_LIMIT)){const bulb=make(doc,'span','veil-normal-insight insight-bulb');bulb.dataset.insightCategory=model.category;bulb.setAttribute('aria-hidden','true');normal.append(bulb);}
     if(visible.length>NORMAL_VISIBLE_LIMIT){const overflow=make(doc,'small','veil-normal-insight-overflow',`+${visible.length-NORMAL_VISIBLE_LIMIT}`);overflow.setAttribute('aria-hidden','true');normal.append(overflow);}
     normal.hidden=!visible.length;
-    if(visible.length)normal.setAttribute('aria-label',`持ち帰る未確定アイデア ${visible.length}件。用途 ${visible.map(model=>model.categoryLabel).join('、')}`);else normal.removeAttribute?.('aria-label');
+    if(visible.length){normal.setAttribute('role','img');normal.setAttribute('aria-label',`保持中のInsight ${visible.length}件。機体tapで持ち帰る。用途 ${visible.map(model=>model.categoryLabel).join('、')}`);}else{normal.removeAttribute?.('role');normal.removeAttribute?.('aria-label');}
     return models;
   }
   function renderCritical(run){
     const models=criticalInsightModels(run,resources,formula),key=models.map(model=>`${model.id}:${model.category}:${atomText(model.atoms)}`).join('|');if(key===criticalKey)return models;criticalKey=key;critical.replaceChildren();
     for(const model of models){
       const chip=make(doc,'div','veil-critical-insight');chip.dataset.insightId=model.id;chip.dataset.insightCategory=model.category;chip.setAttribute('aria-label',`CRAFT ${model.formula}。用途 ${model.categoryLabel}。必要原子 ${atomText(model.atoms)}`);
-      const symbol=make(doc,'button','veil-critical-insight-symbol insight-bulb');symbol.type='button';symbol.dataset.extractionAffordance='true';symbol.setAttribute('aria-label','💡 Insightを持ち帰って帰還する');symbol.addEventListener('click',event=>{event.stopPropagation();onExtract();});const label=make(doc,'strong','',`CRAFT ${model.formula}`),atoms=make(doc,'small','',atomText(model.atoms));chip.append(symbol,label,atoms);critical.append(chip);
+      const symbol=make(doc,'span','veil-critical-insight-symbol insight-bulb');symbol.setAttribute('aria-hidden','true');const label=make(doc,'strong','',`CRAFT ${model.formula}`),atoms=make(doc,'small','',atomText(model.atoms));chip.append(symbol,label,atoms);critical.append(chip);
     }
     return models;
   }
@@ -106,7 +106,7 @@ export function createInsightPresentation({root,resources,formula=id=>resources?
   }
   function showReady(event,run){
     if(!event?.id||event.type!=='insightReady')return false;
-    const category=insightCategoryFor(event.id),label=insightCategoryLabel(category),isCritical=!!event.critical;ready.dataset.critical=String(isCritical);ready.dataset.fromAnalysis=String(!isCritical);ready.dataset.insightCategory=category;ready.setAttribute('aria-label',isCritical?`分子アイデア ${formula(event.id)}。用途 ${label}。タップして帰還`:`分子アイデアを獲得。用途 ${label}。タップして帰還`);ready.hidden=false;readyUntil=(run?.time??0)+READY_SECONDS;readyNormalId=isCritical?null:event.id;start.hidden=true;audio?.event?.('insight');const normalModels=renderNormal(run);renderCritical(run);concealNormalFieldIdentity(run,normalModels);updateVisibility();return true;
+    const category=insightCategoryFor(event.id);ready.dataset.critical=String(!!event.critical);ready.dataset.fromAnalysis=String(!event.critical);ready.dataset.insightCategory=category;ready.hidden=false;readyUntil=(run?.time??0)+READY_SECONDS;readyNormalId=event.critical?null:event.id;start.hidden=true;audio?.event?.('insight');const normalModels=renderNormal(run);renderCritical(run);concealNormalFieldIdentity(run,normalModels);updateVisibility();return true;
   }
   function snapshot(run){return {normal:normalInsightModels(run,resources),critical:criticalInsightModels(run,resources,formula)};}
   function showLoss(snapshotValue){
@@ -121,6 +121,5 @@ export function createInsightPresentation({root,resources,formula=id=>resources?
     analysis.hidden=start.hidden=ready.hidden=normal.hidden=lossLayer.hidden=true;normalKey=criticalKey='';normal.replaceChildren();critical.replaceChildren();lossLayer.replaceChildren();lastAnchor=lastViewport=null;group.hidden=true;
   }
   subscribeCollectorShellScreenAnchor(anchor=>{lastAnchor={x:anchor.x,y:anchor.y};lastViewport={w:anchor.w,h:anchor.h,scale:anchor.scale};place();updateVisibility();});
-  function setExtractionEnabled(enabled){for(const button of group.querySelectorAll('[data-extraction-affordance],.veil-insight-ready'))button.disabled=!enabled;}
-  return {sync,ready:showReady,snapshot,loss:showLoss,clear,setExtractionEnabled,nodes:{group,start,analysis,analysisRing,analysisSymbol,ready,readySymbol,normal,critical,lossLayer}};
+  return {sync,ready:showReady,snapshot,loss:showLoss,clear,nodes:{group,start,analysis,analysisRing,analysisSymbol,ready,readySymbol,normal,critical,lossLayer}};
 }

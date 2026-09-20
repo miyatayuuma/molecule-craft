@@ -275,6 +275,7 @@ jobs:
         run: |
           node tests/expedition-core.test.mjs
           node tests/safe-extraction-site.test.mjs
+          node tests/return-ux-contract.test.mjs
           node tests/safe-extraction-browser.test.mjs
           node tests/veil-return-effects.test.mjs
           node tests/dust-eater-forced-return.test.mjs

@@ -38,7 +38,9 @@ test('FIELD map exporter is deterministic and required layers are present',async
   assert.match(first,/id="h-boundary-current" data-gate="h-boundary" x="300" y="-3940" width="460" height="280"/);
   assert.match(first,/id="h-boundary-gate-marker"[^>]*cx="530" cy="-3800"/);
   assert.match(first,/id="cho-destination" data-radius="95" cx="280" cy="-12470" r="95"/);
-  assert.match(first,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe"><circle cx="-520" cy="-2200" r="120"/);
+  assert.match(first,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe" data-source-landmark="hydrogen-safe-route"><circle cx="-520" cy="-2200" r="120"/);
+  assert.match(first,/data-safe-extraction-site="oxygen-network-merge-extraction" data-route="oxygen-main" data-source-landmark="oxygen-network-merge-recovery"><circle cx="120" cy="-10800" r="330"/);
+  assert.match(first,/data-safe-extraction-site="nitrogen-recovery-shelf-extraction" data-route="nitrogen-main" data-source-landmark="nitrogen-recovery-shelf"><circle cx="535\.462" cy="-17999\.451" r="235"/);
   for(const route of DEEP_OXYGEN_ROUTES)assert.match(first,new RegExp(`id="route-${route.id}"`),`${route.id} current-map centerline`);
   assert.doesNotMatch(first,/id="route-oxygen-depth"/,'legacy Deep route must not remain as a fourth field route');
   const committed=await readFile(output,'utf8');
@@ -209,8 +211,8 @@ test('DUST EATER stays dynamic and Safe Extraction Site stays an authored point'
   const eaterLayer=svg.match(/<g id="layer-agents-dust-eater"[\s\S]*?<\/g>/)?.[0]??'';
   assert.match(eaterLayer,/dynamic pursuit agent \/ no authored map position/);
   assert.doesNotMatch(eaterLayer,/<(?:circle|rect|path|line|polyline|polygon)\b/);
-  assert.match(svg,/RETURN: Safe Extraction Site at \(-520,-2200\); Insight may extract anywhere/);
-  assert.match(svg,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe"><circle cx="-520" cy="-2200" r="120"/);
+  assert.match(svg,/RETURN: 3 authored Safe Extraction Sites; Insight may extract anywhere/);
+  assert.match(svg,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe" data-source-landmark="hydrogen-safe-route"><circle cx="-520" cy="-2200" r="120"/);
   assert.doesNotMatch(svg,/RETURN has no fixed world position/);
   assert.doesNotMatch(svg,/id="return-(?:point|marker|destination)"/);
 });

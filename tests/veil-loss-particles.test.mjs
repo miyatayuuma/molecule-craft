@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {LOST_CARGO_PARTICLE_CAP,createLostCargoParticles,lostCargoParticleCounts} from '../src/veil/renderer.js';
+import {INSIGHT_CATEGORY_COLORS} from '../src/insight-category.js';
+import {LOST_CARGO_PARTICLE_CAP,createLostCargoParticles,createLostInsightParticles,lostCargoParticleCounts} from '../src/veil/renderer.js';
 
 assert.deepEqual(lostCargoParticleCounts({H:3,C:1,O:2}),{H:3,C:1,O:2},'Small losses keep one visual particle per lost dust unit');
 const compressed=lostCargoParticleCounts({H:100,C:50,O:25});
@@ -11,5 +12,8 @@ assert.equal(particles.length,LOST_CARGO_PARTICLE_CAP);
 assert.deepEqual(Object.fromEntries(Object.entries(byElement).map(([element,list])=>[element,list.length])),compressed,'Visual mix follows the compressed H/C/O loss ratio');
 assert.ok(particles.every(particle=>Number.isFinite(particle.vx)&&Number.isFinite(particle.vy)&&particle.duration<=.62),'Lost cargo particles are finite-lived visual objects');
 assert.equal(createLostCargoParticles({H:0,C:0,O:0},{x:0,y:0}).length,0);
+
+const insightLoss=createLostInsightParticles(['methane','water'],{x:12,y:-8},()=>.5);
+assert.deepEqual(insightLoss.map(particle=>[particle.icon,particle.category,particle.color]),[['💡','fuel',INSIGHT_CATEGORY_COLORS.fuel],['💡','coolant',INSIGHT_CATEGORY_COLORS.coolant]],'Forced-return Insight keeps its carried bulb identity and color through loss motion');
 
 console.log('Lost cargo particles passed: H/C/O correspondence, proportional compression, finite lifetime and mobile object cap.');

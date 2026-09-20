@@ -19,7 +19,6 @@ test('all craft entry points use the molecule emblem instead of hammer glyphs',(
   assert.equal((index+source).includes('⚒'),false);
   assert.match(index,/id="tank-craft-molecule"[^>]*craft-emblem-action/);
   assert.match(index,/id="cho-goal-action"[^>]*craft-emblem-action/);
-  assert.match(index,/id="veil-to-craft"[^>]*craft-emblem-action/);
   assert.match(index,/id="cho-goal-label"/);
-  assert.match(index,/id="veil-to-craft-label"/);
+  assert.doesNotMatch(index,/id="veil-to-craft"/,'FIELD craft return affordance is removed; the ship is the sole extraction target');
 });
