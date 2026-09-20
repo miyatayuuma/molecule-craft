@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {propellantPreviewValues,fuelPreviewValues,coolantPreviewValues,oxidizerPreviewValues,loadoutPreviewValues,renderLoadoutPreview} from '../src/veil/loadout-preview.js';
+import {combustionBurnPlanFor,performanceFor} from '../src/veil/molecule-roles.js';
 
 const h2=propellantPreviewValues('hydrogen');
 const co2=propellantPreviewValues('carbon-dioxide');
@@ -16,6 +17,28 @@ assert.ok(hydrogen.responseVisual>methane.responseVisual,'Fast-response fuels ra
 assert.ok(methane.endurance>hydrogen.endurance,'Longer-running fuel loadouts rank higher on endurance');
 assert.ok(methaneStrongCooling.thermalMargin>methane.thermalMargin,'Stronger coolant increases thermal margin');
 assert.ok(methane.thermalMargin>=0&&methane.thermalMargin<=1);
+
+function assertFuelPreviewMatchesRuntime(id,fuelAmount,oxygenAmount){
+  const burnPlan=combustionBurnPlanFor(id,{fuelAmount,oxygenAmount}),preview=fuelPreviewValues(id,{fuelAmount,oxygenAmount,coolantId:'water'});
+  assert.equal(preview.limitingSeconds,burnPlan.seconds,`${id} LOADOUT endurance uses the production combustion burn plan`);
+  return burnPlan;
+}
+const propaneAudit=assertFuelPreviewMatchesRuntime('propane',5,18);
+assert.equal(propaneAudit.fuelUsed,3);
+assert.equal(propaneAudit.oxygenUsed,15);
+assert.ok(Math.abs(propaneAudit.seconds-15.3)<1e-9);
+const hexaneAudit=assertFuelPreviewMatchesRuntime('n-hexane',6,36);
+assert.equal(hexaneAudit.fuelUsed,3);
+assert.equal(hexaneAudit.oxygenUsed,29);
+assert.ok(Math.abs(hexaneAudit.seconds-31.14)<1e-9);
+assert.equal(fuelPreviewValues('propane',{fuelAmount:0,oxygenAmount:18}).limitingSeconds,0,'Explicit zero fuel does not fall back to capacity');
+assert.equal(fuelPreviewValues('propane',{fuelAmount:5,oxygenAmount:0}).limitingSeconds,0,'Explicit zero O₂ does not fall back to 36');
+const belowCapacityOxygen=assertFuelPreviewMatchesRuntime('methane',5,4);
+assert.equal(belowCapacityOxygen.seconds,4,'Actual partial O₂ below 36 limits the runtime plan');
+const methaneCapacity=performanceFor('methane','fuel').capacity;
+assert.equal(assertFuelPreviewMatchesRuntime('methane',methaneCapacity,48).seconds,36,'FULL fuel amount uses runtime packets with actual planned O₂');
+for(const id of ['methane','propane','n-hexane'])assertFuelPreviewMatchesRuntime(id,performanceFor(id,'fuel').capacity,36);
+
 
 const nitrogen=coolantPreviewValues('nitrogen');
 const water=coolantPreviewValues('water');
@@ -74,6 +97,21 @@ try{
   assert.equal(changed.children[1].children.length,1);
   assert.equal(changed.children[1].children[0].children[1].children.length,9,'Molecule changes follow canonical propellant performance');
 
+  const fuelHost=new FakeNode();
+  const fuelRendered=renderLoadoutPreview(fuelHost,{use:'fuel',candidateId:'propane',currentId:'propane',candidateAmount:5,currentAmount:2,oxygenAmount:18,currentOxygenAmount:36,coolantId:'water'});
+  assert.ok(Math.abs(fuelRendered.candidate.limitingSeconds-15.3)<1e-9,'Candidate uses launch-planned fuel and O₂');
+  assert.ok(Math.abs(fuelRendered.current.limitingSeconds-10.2)<1e-9,'Current marker uses current fuel and current O₂');
+  const zeroFuelHost=new FakeNode();
+  const zeroFuel=renderLoadoutPreview(zeroFuelHost,{use:'fuel',candidateId:'propane',candidateAmount:0,oxygenAmount:36});
+  assert.equal(zeroFuel.candidate.limitingSeconds,0,'Rendered candidate preserves explicit zero fuel');
+  const zeroOxygenHost=new FakeNode();
+  const zeroOxygen=renderLoadoutPreview(zeroOxygenHost,{use:'fuel',candidateId:'propane',candidateAmount:5,oxygenAmount:0});
+  assert.equal(zeroOxygen.candidate.limitingSeconds,0,'Rendered candidate preserves explicit zero O₂');
+  const fullFuelHost=new FakeNode();
+  const fullFuel=renderLoadoutPreview(fullFuelHost,{use:'fuel',candidateId:'methane',candidateAmount:methaneCapacity,oxygenAmount:48});
+  assert.equal(fullFuel.candidate.limitingSeconds,36,'Rendered FULL load uses tank capacity and planned O₂');
+
+
   const oxygenHost=new FakeNode();
   const shown=renderLoadoutPreview(oxygenHost,{use:'oxidizer',candidateId:'oxygen',oxygenTankCapacity:{capacity:48,level:1,nextCapacity:72}});
   assert.equal(oxygenHost.dataset.previewKind,'oxidizer');
@@ -95,4 +133,4 @@ try{
   if(originalDocument===undefined)delete globalThis.document;else globalThis.document=originalDocument;
 }
 
-console.log('Loadout preview passed: PULSE max-capability dots, empty selection, no ghost comparison row, and role-specific DRIVE metrics.');
+console.log('Loadout preview passed: runtime combustion endurance, planned/current amounts, explicit zero, and role-specific DRIVE metrics.');
