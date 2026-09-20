@@ -93,6 +93,19 @@ export function createStructureSolver({
       frame.substituentRootIds = new Set(frame.substituents.map(substituent => substituent.rootId));
       nextAromaticFrames.set(key, frame);
     }
+    // A directly conjugated C=C/C=O substituent shares the aromatic plane.
+    // Its independent double-bond frame may have been created while the ring
+    // was still open, so retain the topology-derived aromatic normal once the
+    // cycle becomes authoritative instead of preserving that pre-closure pose.
+    for(const frame of nextDoubleFrames.values()){
+      const parent=[...nextAromaticFrames.values()].find(aromatic=>aromatic.substituents.some(substituent=>
+        substituent.rootId===frame.bond.a||substituent.rootId===frame.bond.b));
+      if(parent){
+        frame.normal.copy(parent.normal);
+        frame.substituentSlots=doubleSubstituentSlots(frame);
+        frame.slottedRootIds=new Set(frame.substituentSlots.flatMap(endpoint=>endpoint.branches.map(branch=>branch.rootId)));
+      }
+    }
     aromaticFrames = nextAromaticFrames;
     sixMemberFrames = cycles.map(classifySixMemberConformation).filter(Boolean);
     fiveMemberFrames = cycles.map(classifyFiveMemberConformation).filter(Boolean);
@@ -357,10 +370,35 @@ export function createStructureSolver({
     const rigidRelative=measureRigidDeviation(rigidReference,includes);
     const fiveMemberConformationRelative=measureFiveMemberConformationDeviation(includes);
     const sixMemberConformationRelative=measureSixMemberConformationDeviation(includes);
-    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative, rigidRelative, fiveMemberConformationRelative, sixMemberConformationRelative].every(Number.isFinite);
+    const aromaticGeometry=measureAromaticGeometry(includes);
+    finite &&= [bondRelative, angleRadians, planeDistance, overlapRelative, rigidRelative, fiveMemberConformationRelative, sixMemberConformationRelative,
+      aromaticGeometry.radiusRelative,aromaticGeometry.angleRadians,aromaticGeometry.planeDistance].every(Number.isFinite);
     return {finite,bondRelative,angleRadians,planeDistance,overlapRelative,fiveMemberConformationRelative,sixMemberConformationRelative,
+      aromaticRadiusRelative:aromaticGeometry.radiusRelative,aromaticAngleRadians:aromaticGeometry.angleRadians,aromaticPlaneDistance:aromaticGeometry.planeDistance,
       ringPenetrations:ringIssues.atomCount+ringIssues.bondCount,ringAtomPenetrations:ringIssues.atomCount,
       ringBondPenetrations:ringIssues.bondCount,bondIntersections,rigidRelative,topologyLimited};
+  }
+
+  function measureAromaticGeometry(includes){
+    let radiusRelative=0,angleRadians=0,planeDistance=0;
+    for(const frame of aromaticFrames.values()){
+      if(!frame.cycle.every(includes))continue;
+      const points=frame.cycle.map(pos);if(points.some(point=>!point)){radiusRelative=angleRadians=Infinity;continue;}
+      const center=points.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/points.length);
+      for(const id of frame.atomIds)if(includes(id)&&pos(id))planeDistance=Math.max(planeDistance,Math.abs(pos(id).clone().sub(center).dot(frame.normal)));
+      const radii=points.map(point=>point.distanceTo(center)),mean=radii.reduce((sum,value)=>sum+value,0)/radii.length;
+      if(mean<1e-8){radiusRelative=Infinity;continue;}
+      for(const radius of radii)radiusRelative=Math.max(radiusRelative,Math.abs(radius/mean-1));
+      for(const id of frame.cycle){
+        const neighbors=neighborsFor(id).map(neighbor=>neighbor.atomId);
+        for(let left=0;left<neighbors.length;left++)for(let right=left+1;right<neighbors.length;right++){
+          const target=angleTargets.get(`${id}/${pairKey(neighbors[left],neighbors[right])}`),a=pos(neighbors[left])?.clone().sub(pos(id)),b=pos(neighbors[right])?.clone().sub(pos(id));
+          if(!a||!b){angleRadians=Infinity;continue;}
+          angleRadians=Math.max(angleRadians,Math.abs(a.angleTo(b)-target));
+        }
+      }
+    }
+    return{radiusRelative,angleRadians,planeDistance};
   }
 
   function stericMinimum(a,b){
@@ -531,11 +569,12 @@ export function createStructureSolver({
   function validateConformation({ids=null,rigidReference=null,mode='release'}={}){
     const errors=measureError({ids,rigidReference}),drag=mode==='drag';
     const limits={bondRelative:drag ? .10 : .07,angleRadians:(drag ? 26 : 20)*Math.PI/180,planeDistance:drag ? .10 : .075,
-      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035,fiveMemberConformationRelative:drag ? .16 : .12,sixMemberConformationRelative:drag ? .10 : .065};
+      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035,fiveMemberConformationRelative:drag ? .16 : .12,sixMemberConformationRelative:drag ? .10 : .065,
+      aromaticRadiusRelative:drag ? .025 : .015,aromaticAngleRadians:(drag ? 4 : 2.5)*Math.PI/180,aromaticPlaneDistance:drag ? .10 : .075};
     const reasons=[];
     if(!errors.finite)reasons.push('nonfinite');
     if(errors.topologyLimited)reasons.push('topology');
-    for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative','fiveMemberConformationRelative','sixMemberConformationRelative'])if(errors[key]>limits[key])reasons.push(key);
+    for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative','fiveMemberConformationRelative','sixMemberConformationRelative','aromaticRadiusRelative','aromaticAngleRadians','aromaticPlaneDistance'])if(errors[key]>limits[key])reasons.push(key);
     if(errors.ringPenetrations)reasons.push('ring-penetration');
     if(errors.bondIntersections)reasons.push('bond-intersection');
     return{valid:reasons.length===0,reasons,errors,limits};
