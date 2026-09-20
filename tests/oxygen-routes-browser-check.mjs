@@ -6,7 +6,9 @@ const {chromium}=await import(pathToFileURL(process.argv[2]));
 const browser=await chromium.launch({headless:true,executablePath:process.env.OXYGEN_CHROMIUM_PATH||undefined,args:['--no-sandbox']}),base=process.argv[3]??'http://127.0.0.1:8000';
 try{
   const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
+  await page.route('**/src/veil/ui.js*',async route=>{const response=await route.fetch(),source=await response.text();await route.fulfill({response,body:source.replace('return createRun(createUniverse(','return window.__oxygenRun=createRun(createUniverse(').replace('function frame(now){','function frame(now){window.__oxygenRenderer=renderer;')});});
   page.on('pageerror',error=>errors.push(error.message));
+  const tapShip=async()=>{const point=await page.evaluate(()=>{const run=window.__oxygenRun,renderer=window.__oxygenRenderer,canvas=document.querySelector('#veil-canvas'),rect=canvas.getBoundingClientRect(),screen=renderer.screen(run.player.x,run.player.y);return{x:rect.left+screen.x,y:rect.top+screen.y};});await page.touchscreen.tap(point.x,point.y);};
   await page.goto(base);await page.waitForSelector('#element-palette [data-element="H"]');
   // Fixture storage exists only in this disposable browser context.
   await page.evaluate(async()=>{
@@ -51,8 +53,10 @@ try{
   await page.keyboard.down('ArrowUp');await page.waitForTimeout(4200);await page.keyboard.up('ArrowUp');
   await page.screenshot({path:'/tmp/molecule-craft-oxygen-junction.png'});
   assert.match(await page.locator('#veil-message').innerText(),/↖ ↑ ↗/);
-  await page.locator('#veil-return').click();await page.waitForSelector('#veil-view',{state:'hidden'});
-  assert.match(await page.locator('#craft-last-run').innerText(),/↩/);
+  await page.evaluate(()=>{const run=window.__oxygenRun;run.carriedInsights=[];run.eaters=[];run.captured=false;});
+  assert.equal(await page.locator('#veil-return').count(),0);
+  await tapShip();await page.waitForTimeout(160);assert.equal(await page.locator('#veil-view').isVisible(),true,'A ship tap away from both Insight and Safe Site cannot return');
+  await page.reload();await page.waitForSelector('#open-supply');
   // No region visit or legacy checkpoint may grant the new ending.
   await page.evaluate(async()=>{
     const {createResources}=await import('/src/veil/resources.js');const r=createResources({storage:localStorage});r.visit('frontier');r.save();
@@ -66,7 +70,9 @@ try{
   await page.keyboard.up('ArrowRight');await page.keyboard.up('ArrowUp');
   await page.waitForFunction(()=>document.querySelector('#veil-goal').dataset.reached==='true');
   await page.screenshot({path:'/tmp/molecule-craft-cho-destination.png'});
-  await page.locator('#veil-return').click();await page.waitForSelector('#veil-view',{state:'hidden'});
+  await page.evaluate(()=>{const run=window.__oxygenRun,site=run.map.safeExtractionSites.find(site=>site.id==='oxygen-network-merge-extraction');Object.assign(run.player,{x:site.x,y:site.y,vx:0,vy:0,speed:0,boost:0,combustion:false});run.carriedInsights=[];run.eaters=[];run.captured=false;window.__oxygenRenderer.reset();});
+  await page.waitForFunction(()=>document.querySelector('#veil-status-panel')?.dataset.state==='site-ready');
+  await tapShip();await page.waitForSelector('#veil-view',{state:'hidden'});
   assert.match(await page.locator('#craft-last-run').innerText(),/CHO ✓/);
   assert.equal(await page.locator('#cho-completion').count(),0);
   await page.screenshot({path:'/tmp/molecule-craft-cho-ending.png'});

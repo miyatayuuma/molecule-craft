@@ -9,6 +9,7 @@ import {electricalBaseHazardsAt} from './electrical-field.js';
 import {applyRareEcology,registerResourceSocket} from './rare-ecology.js';
 import { DEEP_OXYGEN_FRONTIER_RECOVERY,DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_THERMAL,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenPressureHazardAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt,oxygenVortexHazardAt } from './oxygen-routes.js';
 import {appendNitrogenField,nitrogenEnvironmentAt} from './nitrogen-routes.js';
+import {resolveSafeExtractionSites} from './safe-extraction-sites.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const freezeKnots=knots=>Object.freeze(knots.map(knot=>Object.freeze(knot)));
 export const OXYGEN_ENTRY_KNOTS=Object.freeze([
@@ -158,6 +159,7 @@ export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,cap
   map.labels.push({x:OXYGEN_REWARD.x,y:OXYGEN_REWARD.y,text:'流れの合流点 · 少量のO dust'});
   map.labels.push({x:250,y:-4500,text:'炭素の群れ ↑'},{x:-120,y:-4890,text:'塊へ進入 → Cがほどける'},{x:170,y:-7590,text:'酸素の奔流 ↑'},{x:-490,y:-8050,text:'流れの縁 · H / C / O'},{x:100,y:-11980,text:'最深部へ ↑ · 到達したら正常帰還'});
   applyRareEcology(map,stock,{eligible:capabilities.worldAwakened===true&&capabilities.rareEcologyEligible===true});
+  map.safeExtractionSites=resolveSafeExtractionSites(map);
   return map;
 }
 // Flow/pressure strata remain global where authored; thermal exposure is now

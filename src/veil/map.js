@@ -46,7 +46,7 @@ const clamp01=value=>Math.max(0,Math.min(1,value));
 // ambient turbulence field. Its geometry is fixed across every run seed.
 export const SAFE_EXTRACTION_SITE=Object.freeze({id:'hydrogen-safe-extraction',x:-520,y:-2200,radius:120,route:'safe'});
 function hashRoll(seed,key){let h=seed>>>0;for(let i=0;i<key.length;i++){h^=key.charCodeAt(i);h=Math.imul(h,16777619);}h^=h>>>16;return(h>>>0)/4294967296;}
-export function isInsideSafeExtractionSite(point,site=SAFE_EXTRACTION_SITE){return !!point&&!!site&&Number.isFinite(point.x)&&Number.isFinite(point.y)&&Math.hypot(point.x-site.x,point.y-site.y)<=site.radius;}
+export function isInsideSafeExtractionSite(point,site=SAFE_EXTRACTION_SITE){const sites=Array.isArray(site)?site:site?[site]:[];return !!point&&sites.some(candidate=>candidate?.contains?candidate.contains(point):Number.isFinite(point.x)&&Number.isFinite(point.y)&&Math.hypot(point.x-(candidate.center?.x??candidate.x),point.y-(candidate.center?.y??candidate.y))<=candidate.radius);}
 export function inventoryDepletion(stock={},element){
   const limits=DEPLETION_LIMITS[element];if(!limits)return 0;
   const amount=Number.isFinite(stock?.[element])?Math.max(0,stock[element]):0,t=clamp01((amount-limits.start)/(limits.full-limits.start));
@@ -117,5 +117,5 @@ export function createMap(seed=1,stock={},{capabilities={}}={}){
   const labels=[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'静かな切れ目'},{x:530,y:-3660,text:'外縁の強流 ↑ H₂ BURST'}];
   const anchor=revisit?.points[Math.floor((revisit?.points.length??1)*.55)];
   if(anchor)labels.push({x:anchor.x,y:anchor.y,text:`${revisit.id} · post-DRIVE current ${HYDROGEN_REVISIT_ROUTE.current.force} · local H pocket`});
-  return {seed,routes,dust,resourceSockets,depletion,currents,safeExtractionSite:SAFE_EXTRACTION_SITE,capabilities:{combustionDrive:revisitUnlocked},fields:[{id:'veil-ambient-flow',x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15,kind:'ambient-turbulence',hazard:defineHazard('veil-ambient-flow',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'map.fields'})}],labels};
+  return {seed,routes,dust,resourceSockets,depletion,currents,safeExtractionSites:[SAFE_EXTRACTION_SITE],capabilities:{combustionDrive:revisitUnlocked},fields:[{id:'veil-ambient-flow',x:470+(rng()-.5)*80,y:-1700+(rng()-.5)*100,radius:VEIL.fieldRadius,phase:rng()*4,angle:.15,kind:'ambient-turbulence',hazard:defineHazard('veil-ambient-flow',HAZARD_TYPES.MECHANICAL,'turbulence',{source:'map.fields'})}],labels};
 }

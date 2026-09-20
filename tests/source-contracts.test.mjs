@@ -100,7 +100,8 @@ await assert.rejects(readFile(new URL('src/tank-charge.js',root),'utf8'),error=>
 assert.doesNotMatch(index, /id="molecule-select"|id="fill-hydrogen"|id="make-h2"/);
 assert.match(index, /EXPEDITION CARGO/);
 assert.match(index, /COLLECTOR SHELL · ANCHOR FIELD/);
-assert.match(index, /id="veil-extraction-meter"/);
+assert.match(index,/id="veil-status-panel"[^>]*role="status"/,'FIELD top-right HUD remains a status panel after extraction controls are removed');
+assert.doesNotMatch(index,/id="veil-extraction-meter"/,'FIELD has no return meter or persistent return control');
 assert.match(veilCss, /\.veil-actions #veil-sound\{position:absolute/);
 assert.match(veilCss, /@media\(max-width:370px\)\{[^@]*?\.veil-chain-block\{display:none\}/,'Narrow FIELD HUD must keep chain block hidden inside the 370px media contract');
 assert.match(index, /id="veil-thermal"/);

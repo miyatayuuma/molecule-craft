@@ -12,23 +12,19 @@ const [index,app,panel,veilUi,styles,veilCss]=await Promise.all([
   readFile(new URL('veil.css',root),'utf8'),
 ]);
 
-assert.match(index,/id="craft-target"[^>]*>[\s\S]*?class="craft-emblem"[\s\S]*?id="craft-target-formula"[\s\S]*?id="craft-target-atoms"[\s\S]*?id="craft-target-name" hidden/,'Active target must read emblem → formula → atom models → optional name');
+assert.match(index,/id="craft-target"[^>]*>[\s\S]*?class="craft-emblem"[\s\S]*?id="craft-target-formula"[\s\S]*?id="craft-target-name" hidden[\s\S]*?id="craft-target-atoms"/);
 assert.match(index,/id="cho-goal-atoms"/);
-assert.match(index,/id="veil-to-craft-atoms"/);
-assert.match(app,/resources\.state\.recipes\.includes\(id\)\|\|resources\.state\.hints\.includes\(id\)/,'Hinted undiscovered molecules must be targetable');
-assert.match(app,/targetDiscovered:resources\.state\.recipes\.includes\(craftTargetId\)/,'Discovery state must be explicit when rendering the target');
-assert.match(panel,/nodes\.targetName\.hidden=!discovered/,'Undiscovered target names must stay hidden');
-assert.match(panel,/export function renderCraftTargetAtoms/,'Atom previews must share one renderer');
-assert.match(veilUi,/import \{ renderCraftTargetAtoms \} from '\.\.\/craft-panel\.js\?v=3'/,'Field UI must import the shared atom renderer');
-assert.match(veilUi,/returnState=null,pendingCraftId=null/,'Field UI must declare pending target state');
-assert.equal((veilUi.match(/const pending=pendingCraftId/g)??[]).length,1,'Return must carry the pending target exactly once');
-assert.equal((veilUi.match(/source:'field'/g)??[]).length,1,'Field target dispatch must occur exactly once');
-assert.match(veilUi,/renderCraftTargetAtoms\(q\('cho-goal-atoms'\)/);
-assert.match(veilUi,/renderCraftTargetAtoms\(q\('veil-to-craft-atoms'\)/);
-assert.match(veilUi,/pendingCraftId=id/);
-assert.match(veilUi,/source:'field'/,'Field-return hint must become the same craft target after return');
+assert.doesNotMatch(index,/id="veil-to-craft(?:-atoms|-label)?"/,'FIELD has no separate return or craft button');
+assert.match(app,/resources\.state\.recipes\.includes\(id\)\|\|resources\.state\.hints\.includes\(id\)/);
+assert.match(app,/targetDiscovered:resources\.state\.recipes\.includes\(craftTargetId\)/);
+assert.match(panel,/nodes\.targetName\.hidden=!discovered/);
+assert.match(panel,/export function renderCraftTargetAtoms/);
+assert.match(veilUi,/import \{ renderCraftTargetAtoms \} from '\.\.\/craft-panel\.js\?v=3'/);
+assert.match(veilUi,/returnState=null/);
+assert.match(veilUi,/renderCraftTargetAtoms\(q\('cho-goal-atoms'/);
+assert.doesNotMatch(veilUi,/pendingCraftId|source:'field'|veil-to-craft/,'Extraction has no separate field craft or return action');
 assert.match(styles,/Unified craft target strip/);
-assert.match(veilCss,/#craft-target:not\(\[hidden\]\)~#cho-goal-action/,'Campaign shortcut must not duplicate an active target');
+assert.match(veilCss,/#craft-target:not\(\[hidden\]\)~#cho-goal-action/);
 assert.deepEqual(craftTargetSlots({atoms:['C','H','H','H','H']},[]).map(x=>x.symbol),['C','H','H','H','H']);
 
 console.log('Unified craft target tests passed.');

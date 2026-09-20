@@ -170,7 +170,7 @@ function beltRecoveryAt(p){
   const centerX=stop.x??oxygenRouteCenterAtY(route,stop.y)??route.x;
   return Math.abs(p.y-stop.y)<stop.depth/2&&Math.abs(p.x-centerX)<route.width/2;
 }
-function mergeRecoveryAt(p){
+export function oxygenMergeRecoveryAt(p){
   const recovery=OXYGEN_THERMAL.mergeRecovery;
   return Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.y<=recovery.top&&p.y>=recovery.bottom&&Math.hypot(p.x-recovery.x,p.y-recovery.y)<=recovery.radius;
 }
@@ -221,7 +221,7 @@ export function deepOxygenRouteAt(p){
 }
 export function deepOxygenPressureAt(p){
   if(!Number.isFinite(p?.y)||p.y>-10800||p.y<-11830)return null;
-  if(mergeRecoveryAt(p)||deepOxygenFrontierRecoveryAt(p))return 0;
+  if(oxygenMergeRecoveryAt(p)||deepOxygenFrontierRecoveryAt(p))return 0;
   return deepOxygenRouteAt(p)?.pressure??DEEP_OFF_ROUTE_PRESSURE;
 }
 export function oxygenThermalAt(p,seed=1){
@@ -231,7 +231,7 @@ export function oxygenThermalAt(p,seed=1){
   const belt=OXYGEN_THERMAL.sharedBelt,beltRecovery=beltRecoveryAt(p);
   const beltHeat=beltRecovery?0:profileAtY(belt.heatStops,p.y)*beltLateral(p,belt);
   const wall=OXYGEN_THERMAL.frontierWall,frontierWallHeat=profileAtY(wall.heatStops,p.y),frontierWallPressure=frontierWallPressureAt(p)??0,frontierWallPulsePressure=frontierWallPressure*Math.max(0,wall.pulsePressureMultiplier-1);
-  const mergeRecovery=mergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;
+  const mergeRecovery=oxygenMergeRecoveryAt(p),frontierRecovery=deepOxygenFrontierRecoveryAt(p),recovery=mergeRecovery||frontierRecovery;
   let deepHeat=0,deepThermalHeat=0;
   if(!recovery){
     for(const deepRoute of DEEP_OXYGEN_ROUTES){

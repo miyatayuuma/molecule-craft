@@ -28,13 +28,14 @@ try{
   await page.keyboard.up('Shift');const buffer=await page.evaluate(()=>window.__profileRun.driveBuffer);await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>window.__profileRun.driveBuffer),buffer);assert.equal(await page.evaluate(()=>window.__profileRun.player.combustion),false);
   await page.keyboard.up('ArrowUp');if(fuel==='n-hexane'){
    await page.screenshot({path:'/tmp/fuel-profile-flight.png'});
-   await page.evaluate(()=>{Object.assign(window.__profileRun.player,{x:120,y:-8340,speed:29,vx:0,vy:0,angle:-Math.PI/2});window.__craftReward=null;window.addEventListener('molecule-craft:craft-molecule',e=>window.__craftReward=e.detail.id);});
+   await page.evaluate(()=>Object.assign(window.__profileRun.player,{x:120,y:-8340,speed:29,vx:0,vy:0,angle:-Math.PI/2}));
    await page.keyboard.down('ArrowUp');await page.keyboard.down('Shift');
    await page.waitForFunction(()=>window.__profileRun.inspiration==='dimethyl-ether',{},{timeout:10000});
    await page.keyboard.up('Shift');await page.keyboard.up('ArrowUp');
-   assert.equal(await page.locator('#veil-craft-prompt').isVisible(),true);
-   await page.locator('#veil-to-craft').click();
-   await page.waitForFunction(()=>window.__craftReward==='dimethyl-ether');
+   await page.waitForFunction(()=>document.querySelector('#veil-status-panel')?.dataset.state==='insight-ready'&&window.__profileRun.carriedInsights.includes('dimethyl-ether'),{},{timeout:10000});
+   assert.equal(await page.locator('#veil-return').count(),0);
+   await page.locator('#veil-canvas').click({position:{x:195,y:422}});await page.waitForSelector('#veil-view',{state:'hidden'});
+   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('molecule-craft.resources.v1')).hints.includes('dimethyl-ether')),true,'Ship tap returns with and commits the carried Insight');
   }
  }
  assert.deepEqual(errors,[]);assert.ok(results.every(r=>r.drive.boostSpeed===470));console.log(JSON.stringify(results,null,2));

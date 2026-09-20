@@ -2,6 +2,7 @@ import {ACTIVE_TANK_ROLES,primaryRoleFor} from './veil/molecule-roles.js';
 import {OXYGEN_UPGRADES} from './veil/tank-upgrades.js';
 
 export const INSIGHT_CATEGORIES=Object.freeze(['propellant','fuel','oxidizer','coolant','utility','general']);
+export const INSIGHT_CATEGORY_COLORS=Object.freeze({propellant:'#5ee7ff',fuel:'#ffb454',oxidizer:'#ff6f73',coolant:'#8fb9ff',utility:'#c793ff',general:'#c6d0d8'});
 export const INSIGHT_CATEGORY_LABELS=Object.freeze({
   propellant:'PULSE',
   fuel:'FUEL',

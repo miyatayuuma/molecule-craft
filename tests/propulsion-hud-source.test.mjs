@@ -21,7 +21,7 @@ assert.match(ui,/outputMax=propulsionSpeedMax\(run\.config\)/,'FIELD OUTPUT scal
 assert.match(ui,/outputMeter\.id='veil-output-meter'/);
 assert.match(ui,/outputMeter\.setAttribute\('role','meter'\)/);
 assert.match(ui,/outputMeter\.setAttribute\('aria-label','推進出力'\)/);assert.match(ui,/outputMeter\.setAttribute\('aria-valuemax','100'\)/);assert.match(ui,/aria-valuenow/);
-assert.match(ui,/q\('veil-heat'\)\.textContent='OUTPUT'/,'Primary quantitative bar is explicitly labeled OUTPUT');
+assert.match(ui,/q\('veil-heat'\)\.textContent='POWER'/,'Primary quantitative bar is explicitly labeled POWER');
 assert.doesNotMatch(ui,/textContent='SPEED'|aria-label','現在速度'|veil-speed-meter/,'FIELD HUD must not present propulsion state as actual speed');
 assert.match(ui,/heatRatio=Math\.max\(0,Math\.min\(1,run\.heat\/THERMAL\.overheatThreshold\)\)/,'Thermal presentation follows continuous canonical heat load');
 assert.match(ui,/thermalHue=Math\.round\(190-185\*heatRatio\)/,'Thermal hue changes continuously with heat load');
@@ -57,4 +57,4 @@ assert.match(veilCss,/@media\(max-width:370px\)\{\.veil-thermal\{width:110px/);
 assert.match(veilCss,/@media\(max-height:500px\)\{\.veil-thermal\{width:90px/);
 assert.match(veilCss,/@media\(max-width:370px\).*#veil-combustion\{width:110px/);
 
-console.log('Propulsion HUD source contract passed: max PULSE dots, propulsion OUTPUT meter, continuous thermal load, coolant feedback, DRIVE/BURST bindings, and responsive bounds.');
+console.log('Propulsion HUD source contract passed: max PULSE dots, relative POWER meter, continuous thermal load, coolant feedback, DRIVE/BURST bindings, and responsive bounds.');
