@@ -11,13 +11,16 @@ export function createStructureSettlement({THREE,molecule,placements,ids,lockedI
   const graph={atoms,bonds,neighbors:id=>adjacency.get(id)??[]};
   const from=new Map(atoms.map(atom=>[atom.id,placements.get(atom.id).position.clone()]));
   const working=new Map([...from].map(([id,point])=>[id,{position:point.clone()}]));
-  const solver=createStructureSolver({THREE,molecule:graph,placements:working,bondLengthFor,geometryFor,radiusFor,nonbondedDistanceFor,
+  const solver=createStructureSolver({THREE,molecule:graph,placements:working,bondLengthFor,geometryFor,radiusFor,nonbondedDistanceFor,enforceAromaticGeometryContract:true,
     atomById:id=>atoms.find(atom=>atom.id===id),bondBetween:(a,b)=>bonds.find(bond=>bond.a===a&&bond.b===b||bond.a===b&&bond.b===a)});
   const copy=()=>new Map([...working].map(([id,item])=>[id,item.position.clone()]));
   const score=e=>e.finite&&!e.topologyLimited?Math.max(e.bondRelative/.025,e.angleRadians/(8*Math.PI/180),e.planeDistance/.035,
     (e.overlapRelative??0)/.15,(e.rigidRelative??0)/.025,(e.fiveMemberConformationRelative??0)/.11,(e.sixMemberConformationRelative??0)/.05,
+    (e.aromaticRadiusRelative??0)/.015,(e.aromaticAngleRadians??0)/(2.5*Math.PI/180),(e.aromaticPlaneDistance??0)/.035,
     e.ringPenetrations?20+e.ringPenetrations:0,e.bondIntersections?20+e.bondIntersections:0):Infinity;
-  let errors=solver.measureError({rigidReference}),bestErrors=errors,bestScore=score(errors),best=copy();
+  // Keep a better aromatic pose when an unrelated maximum error is still flat.
+  const poseScore=e=>score(e)+Math.max((e.aromaticRadiusRelative??0)/.015,(e.aromaticAngleRadians??0)/(2.5*Math.PI/180),(e.aromaticPlaneDistance??0)/.035)*.25;
+  let errors=solver.measureError({rigidReference}),bestErrors=errors,bestScore=score(errors),bestPoseScore=poseScore(errors),best=copy();
   let lastValid=solver.validateConformation({rigidReference}).valid?copy():null,rolledBack=false;
   let previous=now,elapsed=0,steps=0,blendAt=null,done=false;
   // Keep each independent component in place. Unconnected fragments must not
@@ -58,14 +61,16 @@ export function createStructureSettlement({THREE,molecule,placements,ids,lockedI
               if(lastValid){solver.restoreConformation(lastValid);solver.rebuildTopology({resetFrames:true});}
               rolledBack=true;errors=solver.measureError({rigidReference});
             }else if(validation.valid)lastValid=copy();
-            const next=score(errors);if(next<bestScore){bestScore=next;best=copy();bestErrors=errors;}
+            const next=score(errors),nextPose=poseScore(errors);
+            if(nextPose<bestPoseScore){bestPoseScore=nextPose;bestScore=next;best=copy();bestErrors=errors;}
           }
         }
         errors=solver.measureError({rigidReference});const validation=solver.validateConformation({rigidReference});
         if(validation.valid)lastValid=copy();else if(!errors.finite&&lastValid){
           solver.restoreConformation(lastValid);solver.rebuildTopology({resetFrames:true});rolledBack=true;errors=solver.measureError({rigidReference});
         }
-        const next=score(errors);if(next<bestScore){bestScore=next;best=copy();bestErrors=errors;}
+        const next=score(errors),nextPose=poseScore(errors);
+        if(nextPose<bestPoseScore){bestPoseScore=nextPose;bestScore=next;best=copy();bestErrors=errors;}
         if(bestScore<=1||steps>=768||elapsed>=480||!errors.finite||errors.topologyLimited){centerTarget();blendAt=time;}
       }
       if(blendAt!==null){
