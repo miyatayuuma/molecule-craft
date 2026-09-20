@@ -38,7 +38,7 @@ try{
   await waitFor(`document.body.dataset.mode==='craft'&&document.querySelector('#veil-view')?.hidden===true`,'Safe Site extraction did not return to BASE');
   const afterSite=await evaluate(`(async()=>{const {GROWTH}=await import('/src/veil/growth.js'),state=globalThis.__returnFlowResources.state;return{settlements:globalThis.__returnFlowSettlements,hydrogen:state.elements.H,dustH:state.dust.H,unitsPerAtom:GROWTH.dustPerAtom.H,before:globalThis.__returnFlowStartingStock};})()`);assert.equal(afterSite.settlements,1);const settledUnits=afterSite.before.dustH+12;assert.equal(afterSite.hydrogen,afterSite.before.hydrogen+Math.floor(settledUnits/afterSite.unitsPerAtom),'Normal extraction settles all cargo without loss');assert.equal(afterSite.dustH,settledUnits%afterSite.unitsPerAtom,'Any remainder follows the existing dust settlement authority');
 
-  await launchVeil();await evaluate(`(()=>{globalThis.__returnFlowProbe().run.carriedInsights=['ethane'];})()`);
+  await launchVeil();await evaluate(`(()=>{const run=globalThis.__returnFlowProbe().run;run.carriedInsights=['ethane'];run.elementDust={H:12,C:0,O:0};})()`);
   await waitFor(`document.querySelector('.veil-normal-insight')&&document.querySelector('#veil-return')?.dataset.returnState==='insight-ready'`,'Carried Insight did not enable extraction away from the site');
   const bulb=await evaluate(`(()=>{const b=document.querySelector('.veil-normal-insight'),r=b.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2,button:b.tagName,disabled:b.disabled,width:r.width,height:r.height};})()`);
   assert.equal(bulb.button,'BUTTON');assert.equal(bulb.disabled,false);assert.ok(bulb.width>=32&&bulb.height>=32,'Insight touch affordance has a mobile-sized target');
@@ -46,8 +46,8 @@ try{
   await waitFor(`globalThis.__returnFlowProbe()?.returnState?.phase==='normal-extraction-pending'`,'Touching the ship Insight bulb did not start extraction');
   assert.equal(await evaluate(`document.querySelector('#veil-return').disabled`),true,'Pending extraction blocks another return input');
   await send('Page.reload',{ignoreCache:true});await waitFor(`!!document.querySelector('#collector-launch-handle')&&!document.querySelector('#open-supply')?.disabled`,'App did not recover after a pending normal extraction reload');
-  const afterReload=await evaluate(`(async()=>{const {createResources}=await import('/src/veil/resources.js');const r=createResources({storage:localStorage});return{hydrogen:r.state.elements.H,active:!!document.querySelector('#veil-view')&&!document.querySelector('#veil-view').hidden};})()`);
-  assert.equal(afterReload.hydrogen,12,'Reload during pending extraction does not settle transient cargo twice');assert.equal(afterReload.active,false);
+  const afterReload=await evaluate(`(async()=>{const {createResources}=await import('/src/veil/resources.js');const r=createResources({storage:localStorage});return{hydrogen:r.state.elements.H,dustH:r.state.dust.H,active:!!document.querySelector('#veil-view')&&!document.querySelector('#veil-view').hidden};})()`);
+  assert.equal(afterReload.hydrogen,afterSite.hydrogen,'Reload during pending extraction cannot settle transient cargo twice');assert.equal(afterReload.dustH,afterSite.dustH,'Pending cargo is not partially saved as dust residue');assert.equal(afterReload.active,false);
   await launchVeil();assert.equal(await evaluate(`globalThis.__returnFlowProbe().run.carriedInsights.includes('ethane')`),false,'Previous run Insight does not enter the next sortie');assert.equal(await evaluate(`document.querySelector('#veil-return').disabled`),true,'Fresh sortie starts locked outside the site');
   assert.equal(exceptions.length,0,`Safe Extraction mobile UI must not throw: ${JSON.stringify(exceptions)}`);
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
