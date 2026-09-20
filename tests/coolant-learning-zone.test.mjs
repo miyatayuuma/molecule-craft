@@ -22,14 +22,14 @@ function runPinned({x,y,seconds,combustion=true,coolant=null}){
   return {run,events};
 }
 
-test('Route C high-thermal core is the authored coolant-learning area',()=>{
+test('Route C high-thermal core and shared Route B belt teach coolant need',()=>{
   const side=route('oxygen-side'),main=route('oxygen-main'),y=-10050;
   const sideX=oxygenRouteCenterAtY(side,y),mainX=oxygenRouteCenterAtY(main,y);
   const sideEnv=environmentAt({x:sideX,y}),mainEnv=environmentAt({x:mainX,y});
   assert.ok(sideEnv.coolantLearning,'Route C core must expose coolant-learning semantics');
   assert.ok(sideEnv.heat>=OXYGEN_THERMAL.learningHeat);
-  assert.equal(mainEnv.coolantLearning,false,'Route B must not teach coolant need');
-  assert.ok(mainEnv.heat<5);
+  assert.ok(mainEnv.coolantLearning,'the shared Oxygen thermal belt also exposes coolant-learning semantics on Route B');
+  assert.ok(mainEnv.heat>=OXYGEN_THERMAL.learningHeat);
 });
 
 test('coolant need requires sustained active COMBUSTION inside the authored high-thermal core',()=>{
@@ -45,11 +45,11 @@ test('coolant need requires sustained active COMBUSTION inside the authored high
   assert.equal(coast.events.some(event=>event.type==='coolantNeed'),false,'ambient heat without COMBUSTION must not teach coolant need');
 });
 
-test('generic overheat and non-thermal DRIVE routes cannot unlock coolant-learning semantics',()=>{
+test('generic overheat cannot unlock coolant learning, while the shared Route B belt can',()=>{
   const threshold=OXYGEN_THERMAL.learningExposureSeconds;
   const generic=runPinned({x:0,y:-6000,seconds:22});
   assert.ok(generic.events.some(event=>event.type==='overheat'),'generic sustained DRIVE can still overheat');
   assert.equal(generic.events.some(event=>event.type==='coolantNeed'),false,'generic overheat is no longer a coolant-insight shortcut');
   const y=-10050,x=oxygenRouteCenterAtY(route('oxygen-main'),y),main=runPinned({x,y,seconds:threshold+2});
-  assert.equal(main.events.some(event=>event.type==='coolantNeed'),false,'Route B sustained DRIVE keeps its non-thermal role');
+  assert.equal(main.events.some(event=>event.type==='coolantNeed'),true,'sustained DRIVE in the shared Route B belt teaches coolant need');
 });
