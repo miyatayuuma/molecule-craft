@@ -24,16 +24,28 @@ assert.ok(nitrogen.cooling>glycol.cooling,'N2 keeps the stronger initial cooling
 assert.ok(glycol.endurance>water.endurance,'Glycol exposes its longer coolant endurance');
 assert.ok(glycol.thermalMargin>nitrogen.thermalMargin,'Glycol keeps the larger high-temperature margin');
 
-const oxygen=oxidizerPreviewValues('oxygen');
-assert.equal(oxygen.oxidizingPower,1);
-assert.deepEqual(loadoutPreviewValues('oxidizer','oxygen'),oxygen);
+assert.equal(oxidizerPreviewValues('oxygen'),null,'O₂ capacity must never fall back to its normalized molecule-role profile');
+assert.equal(loadoutPreviewValues('oxidizer','oxygen'),null,'oxidizer preview requires the permanent tank-capacity authority');
+const oxygen36=oxidizerPreviewValues('oxygen',{capacity:36,level:0,nextCapacity:48});
+const oxygen48=oxidizerPreviewValues('oxygen',{capacity:48,level:1,nextCapacity:72});
+const oxygen72=oxidizerPreviewValues('oxygen',{capacity:72,level:2,nextCapacity:null});
+assert.deepEqual(oxygen36.stages.map(stage=>stage.capacity),[36,48,72]);
+assert.deepEqual(oxygen36.stages.map(stage=>stage.state),['current','next','upcoming']);
+assert.equal(oxygen36.nextCapacity,48);
+assert.deepEqual(oxygen48.stages.map(stage=>stage.state),['complete','current','next']);
+assert.equal(oxygen48.nextCapacity,72);
+assert.deepEqual(oxygen72.stages.map(stage=>stage.state),['complete','complete','current']);
+assert.equal(oxygen72.isMax,true);
+assert.equal(Object.hasOwn(oxygen48,'oxidizingPower'),false,'O₂ capacity is not represented as molecule performance');
+assert.equal(oxidizerPreviewValues('oxygen',{capacity:36,level:1,nextCapacity:72}),null,'capacity, level and next-upgrade state must agree');
 assert.equal(loadoutPreviewValues('fuel','oxygen'),null);
 
 class FakeNode{
-  constructor(tag='div'){this.tag=tag;this.children=[];this.style={};this.dataset={};this.hidden=false;this.className='';this.textContent='';}
+  constructor(tag='div'){this.tag=tag;this.children=[];this.style={};this.dataset={};this.attributes={};this.hidden=false;this.className='';this.textContent='';}
   append(...items){this.children.push(...items);}
   replaceChildren(...items){this.children=[...items];}
   closest(){return null;}
+  setAttribute(name,value){this.attributes[name]=String(value);}
 }
 const originalDocument=globalThis.document;
 try{
@@ -61,6 +73,24 @@ try{
   renderLoadoutPreview(changed,{use:'propellant',candidateId:'carbon-dioxide',currentId:'hydrogen',currentAmount:0});
   assert.equal(changed.children[1].children.length,1);
   assert.equal(changed.children[1].children[0].children[1].children.length,9,'Molecule changes follow canonical propellant performance');
+
+  const oxygenHost=new FakeNode();
+  const shown=renderLoadoutPreview(oxygenHost,{use:'oxidizer',candidateId:'oxygen',oxygenTankCapacity:{capacity:48,level:1,nextCapacity:72}});
+  assert.equal(oxygenHost.dataset.previewKind,'oxidizer');
+  assert.equal(oxygenHost.children.length,1,'O₂ uses a capacity panel, not a normalized performance row');
+  const capacityPanel=oxygenHost.children[0];
+  assert.equal(capacityPanel.className,'loadout-oxygen-capacity');
+  assert.equal(capacityPanel.dataset.capacity,'48');
+  assert.equal(capacityPanel.children[0].children[1].textContent,'48');
+  assert.deepEqual(capacityPanel.children[1].children.map(stage=>stage.dataset.state),['complete','current','next']);
+  assert.deepEqual(capacityPanel.children[1].children.map(stage=>stage.children[0].textContent),['36','48','72']);
+  assert.equal(capacityPanel.children[1].children[1].attributes['aria-current'],'step');
+  assert.equal(capacityPanel.children[2].textContent,'NEXT 48 → 72  (+24)');
+  assert.equal(shown.candidate.capacity,48);
+  const maxHost=new FakeNode();
+  renderLoadoutPreview(maxHost,{use:'oxidizer',candidateId:'oxygen',oxygenTankCapacity:{capacity:72,level:2,nextCapacity:null}});
+  assert.equal(maxHost.children[0].children[1].children[2].children[1].textContent,'MAX');
+  assert.equal(maxHost.children[0].children[2].textContent,'MAXIMUM CAPACITY');
 }finally{
   if(originalDocument===undefined)delete globalThis.document;else globalThis.document=originalDocument;
 }
