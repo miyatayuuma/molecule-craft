@@ -86,7 +86,7 @@ lacks(index,'id="launch-veil"','retired hidden launch button must not remain in 
 lacks(index,'id="expedition-anchor"','retired hidden destination select must not remain in production DOM');
 assert.equal(veil.split('audio=createVeilAudio()').length-1,1,'audio session is created once per UI instance');
 has(veil,'renderer??=createVeilRenderer(canvas)','renderer must be reused across same-session relaunches');
-has(veil,"const expected=captured?'forced-return-pending':'normal-extraction-pending';if(!active||!run||returnState?.phase!==expected)return false;returnState.phase='settling/returning';active=false;cancelAnimationFrame(raf);raf=0;resetInput();audio.pause();",'single-entry normal and forced settlement must release the active RAF handle');
+has(veil,"const expected=captured?'forced-warp-pending':'normal-warp-pending';if(!active||!run||returnState?.phase!==expected)return false;returnState.phase='settling/returning';active=false;cancelAnimationFrame(raf);raf=0;resetInput();shipTap=null;audio.pause();",'single-entry normal and forced settlement must release the active RAF handle after their warp phases');
 const rollbackStart=veil.indexOf('function rollbackLaunchTransaction');
 assert.ok(rollbackStart>=0&&veil.indexOf('cancelAnimationFrame(raf);',rollbackStart)>rollbackStart&&veil.indexOf('raf=0;',rollbackStart)>rollbackStart,'failed launch rollback must release the active RAF handle');
 has(veil,"document.body.dataset.mode='veil'");
