@@ -179,8 +179,8 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   function frame(now){
     if(!active)return;raf=requestAnimationFrame(frame);const dt=last?Math.min((now-last)/1000,.15):0;last=now;if(paused||document.hidden)return;
     if(returnState?.phase?.endsWith('-pending')){
-      const forced=returnState.phase==='forced-return-pending',warp=returnState.phase==='normal-warp-pending'||returnState.phase==='forced-warp-pending';
-      if(forced)stepRun(run,{x:0,y:0},dt);else if(!warp)stepNormalExtractionPending(run,dt);else run.time+=dt;
+      const warp=returnState.phase==='normal-warp-pending'||returnState.phase==='forced-warp-pending',forced=returnState.phase==='forced-return-pending'||returnState.phase==='forced-warp-pending';
+      if(forced&&!warp)stepRun(run,{x:0,y:0},dt);else if(!warp)stepNormalExtractionPending(run,dt);else run.time+=dt;
       returnState.elapsed=Math.min(returnState.duration,returnState.elapsed+dt);audio.update(run.player.speed,run.chain,null);renderer.draw(run,dt,reduced);returnHud();
       if(returnState.elapsed>=returnState.duration){if(warp)finish(forced);else{const duration=renderer.beginWarp(run,forced?'emergency':'stable');returnState={phase:forced?'forced-warp-pending':'normal-warp-pending',duration,elapsed:0};returnHud();}}
       return;

@@ -25,6 +25,7 @@ assert.match(ui,/canvas\.addEventListener\('pointerup',[\s\S]*shipHitRadius[\s\S
 assert.match(ui,/document\.activeElement===canvas/,'Keyboard activation belongs to the focused ship control');
 assert.match(ui,/phase:'normal-extraction-pending',source:method,duration:EXPEDITION\.normalExtractionSeconds/);
 assert.match(ui,/captured\?'forced-warp-pending':'normal-warp-pending'/,'Settlements wait for the terminal warp phase');
+assert.match(ui,/forced-warp-pending',forced=returnState\.phase==='forced-return-pending'\|\|returnState\.phase==='forced-warp-pending'/,'Forced warp keeps forced settlement authority through its terminal phase');
 assert.match(ui,/q\('veil-heat'\)\.textContent='POWER'/);
 
 assert.match(insight,/make\(doc,'span','veil-insight-ready'\)/);
