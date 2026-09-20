@@ -5,7 +5,7 @@ import {connectedStructures} from '../src/workspace-model.js';
 import {installEmptyDeparturePolicy} from '../src/craft-connections.js?v=1';
 import {createResources} from '../src/veil/resources.js';
 import {createUniverse} from '../src/veil/universe.js';
-import {createRun,stepRun,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
+import {createRun,stepRun,stepNormalExtractionPending,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
 import {REGIONS,flightConfig} from '../src/veil/growth.js';
 import {CHO_DESTINATION} from '../src/veil/cho-campaign.js';
 import {EXPEDITION} from '../src/veil/config.js';
@@ -36,13 +36,13 @@ export async function simulateChoCampaign({seed=1,propellant='hydrogen',fps=60}=
   function sortie({name,start='veil',routes=[],seconds=65,burn=false,stop=()=>false,final=false}){
     const launch=prepareLaunch();
     const run=createRun(createUniverse(seed+sorties.length,resources.state.elements),flightConfig(),{fuel:resources.prepareExpedition()});Object.assign(run.player,REGIONS[start],{vx:0,vy:0});run.region=start;
-    const points=routes.flatMap(id=>run.map.routes.find(r=>r.id===id).points);if(final)points.push(CHO_DESTINATION);
+    const points=routes.flatMap(id=>{const route=run.map.routes.find(r=>r.id===id);if(!route)throw Error(`Unknown production FIELD route: ${id}`);return route.points;});if(final)points.push(CHO_DESTINATION);
     let index=0;for(let i=1;i<points.length;i++)if(Math.hypot(points[i].x-run.player.x,points[i].y-run.player.y)<Math.hypot(points[index].x-run.player.x,points[index].y-run.player.y))index=i;
     let lock=0,returning=false;
     const systems={consumeCombustion:()=>resources.consumeCombustion(),consumeCoolant:(amount,id)=>resources.consumeTank('coolant',id,amount)};
     for(let frame=0;frame<seconds*fps&&!run.captured;frame++){
       const p=run.player;
-      if(!returning&&(stop(run)||final&&run.destinationReached||!final&&frame>=(seconds-EXPEDITION.anchorLockSeconds-1/fps)*fps))returning=true;
+      if(!returning&&(stop(run)||final&&run.destinationReached||!final&&frame>=(seconds-EXPEDITION.normalExtractionSeconds-1/fps)*fps))returning=true;
       let input={x:0,y:0};
       if(!returning){
         while(index<points.length-1&&Math.hypot(points[index].x-p.x,points[index].y-p.y)<60)index++;
@@ -51,13 +51,13 @@ export async function simulateChoCampaign({seed=1,propellant='hydrogen',fps=60}=
         if(start==='oxygen'&&Math.abs(p.x-850)<115)for(const y of [-9150,-9500,-9850,-10200])if(p.y>y&&p.y<y+42)beginBurst(run,(amount,id)=>resources.consumeTank('propellant',id,amount));
       }
       setCombustionHeld(run,burn&&!returning);
+      if(returning){stepNormalExtractionPending(run,1/fps);lock+=1/fps;if(lock+1e-8>=EXPEDITION.normalExtractionSeconds)break;continue;}
       for(const e of stepRun(run,input,1/fps,systems)){
         if(e.type==='element')resources.findElement(e.element);
         if(e.type==='region')resources.visit(e.region);
       }
-      if(returning){lock+=1/fps;if(lock+1e-8>=EXPEDITION.anchorLockSeconds)break;}
     }
-    const returned=lock+1e-8>=EXPEDITION.anchorLockSeconds&&!run.captured;
+    const returned=lock+1e-8>=EXPEDITION.normalExtractionSeconds&&!run.captured;
     const result=returned||run.captured?resources.settleExpedition(run.elementDust,run.best,run.captured,{destinationReached:run.destinationReached}):null;
     sorties.push({name,seconds:+run.time.toFixed(2),returned,captured:run.captured,destinationReached:run.destinationReached,result,launchStatus:launch.status,stock:{...resources.state.elements},remaining:structuredClone(resources.state.tanks)});
     if(!result)throw Error(`Unsettled timeout: ${name}`);return run;
@@ -71,7 +71,7 @@ export async function simulateChoCampaign({seed=1,propellant='hydrogen',fps=60}=
   if(!resources.canUseElement('O'))throw Error('O not discovered');
   craft('oxygen');craft('water');if(propellant==='carbon-dioxide')craft('carbon-dioxide');
   // Replenish through real no-fuel sorties; no initial stock or scripted atom gifts.
-  for(let i=0;i<8&&resources.state.elements.O<90;i++)sortie({name:'O supply',start:'oxygen',routes:['oxygen-entry','oxygen-eddy'],seconds:20});
+  for(let i=0;i<8&&resources.state.elements.O<90;i++)sortie({name:'O supply',start:'oxygen',routes:['oxygen-entry','oxygen-side'],seconds:20});
   for(let i=0;i<8&&resources.state.elements.H<180;i++)sortie({name:'H refill',routes:['entry','safe'],seconds:25});
   for(let i=0;i<8&&resources.state.elements.C<18+(propellant==='carbon-dioxide'?72:0);i++)sortie({name:'C refill',start:'carbon',routes:['carbon-entry','carbon-main'],seconds:20});
   select('fuel','methane');select('oxidizer','oxygen');select('coolant','water');select('propellant',propellant);
@@ -79,7 +79,7 @@ export async function simulateChoCampaign({seed=1,propellant='hydrogen',fps=60}=
   const planned=preview.status==='FULL'?preview.full:preview.partial,amount=use=>planned.entries.find(entry=>entry.use===use)?.target??0;
   const burnSeconds=Math.min(amount('fuel'),amount('oxidizer')/2)*2;
   if(burnSeconds<26)throw Error(`Insufficient collected fuel: ${burnSeconds}s`);
-  sortie({name:'final',start:'oxygen',routes:['oxygen-main','oxygen-depth','horizon'],burn:true,final:true});
+  sortie({name:'final',start:'oxygen',routes:['oxygen-main','oxygen-deep-safe','horizon'],burn:true,final:true});
   const restored=createResources({storage});
   return {seed,propellant,fps,crafts,sorties,flightSeconds:+sorties.reduce((n,r)=>n+r.seconds,0).toFixed(2),completed:resources.state.progress.choCompleted,persisted:restored.state.progress.choCompleted};
 }

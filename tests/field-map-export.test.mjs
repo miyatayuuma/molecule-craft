@@ -19,7 +19,7 @@ const requiredLayers=[
   'layer-grid','layer-regions','layer-geometry','layer-revisit-post-drive','layer-managed-rare-ecology','playable-bounds','route-centerlines','route-widths','authored-gates',
   'layer-elements-h','layer-elements-c','layer-elements-o','layer-hazards-fields','layer-hazards-pressure',
   'layer-hazards-challenges','layer-hazards-vortex','layer-agents-dust-eater','layer-thermal','layer-gameplay',
-  'spawn','checkpoints','gates','junctions','rest-stops','rewards','signals','destination','layer-labels',
+  'spawn','checkpoints','gates','junctions','rest-stops','rewards','signals','safe-extraction-site','destination','layer-labels',
 ];
 
 const run=(...args)=>spawnSync(process.execPath,[script,...args],{cwd:root,encoding:'utf8'});
@@ -38,6 +38,7 @@ test('FIELD map exporter is deterministic and required layers are present',async
   assert.match(first,/id="h-boundary-current" data-gate="h-boundary" x="300" y="-3940" width="460" height="280"/);
   assert.match(first,/id="h-boundary-gate-marker"[^>]*cx="530" cy="-3800"/);
   assert.match(first,/id="cho-destination" data-radius="95" cx="280" cy="-12470" r="95"/);
+  assert.match(first,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe"><circle cx="-520" cy="-2200" r="120"/);
   for(const route of DEEP_OXYGEN_ROUTES)assert.match(first,new RegExp(`id="route-${route.id}"`),`${route.id} current-map centerline`);
   assert.doesNotMatch(first,/id="route-oxygen-depth"/,'legacy Deep route must not remain as a fourth field route');
   const committed=await readFile(output,'utf8');
@@ -203,12 +204,14 @@ test('FIELD map renders existing network widths and all Deep production centerli
   for(const route of DEEP_OXYGEN_ROUTES)assert.match(svg,new RegExp(`id="route-${route.id}"`),route.id);
 });
 
-test('DUST EATER and RETURN remain dynamic/global instead of authored points',()=>{
+test('DUST EATER stays dynamic and Safe Extraction Site stays an authored point',()=>{
   const svg=buildFieldMapSvg();
   const eaterLayer=svg.match(/<g id="layer-agents-dust-eater"[\s\S]*?<\/g>/)?.[0]??'';
   assert.match(eaterLayer,/dynamic pursuit agent \/ no authored map position/);
   assert.doesNotMatch(eaterLayer,/<(?:circle|rect|path|line|polyline|polygon)\b/);
-  assert.match(svg,/RETURN: global player action \/ no fixed world position/);
+  assert.match(svg,/RETURN: Safe Extraction Site at \(-520,-2200\); Insight may extract anywhere/);
+  assert.match(svg,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe"><circle cx="-520" cy="-2200" r="120"/);
+  assert.doesNotMatch(svg,/RETURN has no fixed world position/);
   assert.doesNotMatch(svg,/id="return-(?:point|marker|destination)"/);
 });
 

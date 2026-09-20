@@ -27,6 +27,8 @@ test('FIELD runtime allowlist is explicit and Rare Survey is retired',()=>{
   assert.deepEqual(FIELD_RUNTIME_ALLOWLIST.environmentalHazards.types,['mechanical','thermal','abrasive','electrical']);
   assert.ok(FIELD_RUNTIME_ALLOWLIST.activeAgents.examples.includes('Dust Eater'));
   assert.ok(FIELD_RUNTIME_ALLOWLIST.currentProgressionObjects.examples.includes('Core'));
+  assert.ok(FIELD_RUNTIME_ALLOWLIST.navigationRecoveryInfrastructure.examples.includes('Insight Extraction'));
+  assert.ok(FIELD_RUNTIME_ALLOWLIST.navigationRecoveryInfrastructure.examples.includes('Safe Extraction Site'));
   assert.deepEqual(RETIRED_FIELD_RUNTIME,['finite-rare-survey']);
 });
 

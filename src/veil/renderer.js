@@ -11,7 +11,7 @@ import {ABRASIVE_PLUME,ABRASIVE_VISUAL_SAMPLES,abrasiveEffectiveAt} from './abra
 import {ELECTRICAL_FIELD,ELECTRICAL_VISUAL_SAMPLES,electricalEffectiveAt} from './electrical-field.js';
 export const LOST_CARGO_PARTICLE_CAP=36;
 export const LOST_INSIGHT_PARTICLE_CAP=4;
-export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:EXPEDITION.anchorLockSeconds}),emergency:Object.freeze({duration:.65})});
+export const RETURN_EFFECTS=Object.freeze({stable:Object.freeze({duration:EXPEDITION.normalExtractionSeconds}),emergency:Object.freeze({duration:.65})});
 const LOST_CARGO_ELEMENTS=['H','C','N','O',...RARE_ECOLOGY_ELEMENTS];
 const easeOutCubic=t=>1-(1-t)**3;
 const smoothstep=t=>t*t*(3-2*t);
@@ -97,6 +97,22 @@ export function createVeilRenderer(canvas){
     }
     ctx.globalAlpha=1;
   }
+  function drawSafeExtractionSite(site,time,reduced,returnAvailable){
+    if(!site)return;const center=screen(site.x,site.y),radius=site.radius*scale;
+    if(returnAvailable&&(center.x<24||center.x>w-24||center.y<24||center.y>h-24)){
+      const target={x:clamp(center.x,24,w-24),y:clamp(center.y,24,h-24)},angle=Math.atan2(center.y-target.y,center.x-target.x);
+      ctx.save();ctx.translate(target.x,target.y);ctx.rotate(angle);ctx.fillStyle='#9adbe7';ctx.strokeStyle='#d2f6fa';ctx.globalAlpha=.82;
+      ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-7,-7);ctx.lineTo(-4,0);ctx.lineTo(-7,7);ctx.closePath();ctx.fill();ctx.globalAlpha=.9;ctx.font='600 8px system-ui';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('SAFE SITE',0,10);ctx.restore();ctx.globalAlpha=1;return;
+    }
+    if(center.x<-radius-52||center.x>w+radius+52||center.y<-radius-52||center.y>h+radius+52)return;
+    const pulse=reduced?0:Math.sin(time*1.5)*.06;
+    ctx.save();ctx.translate(center.x,center.y);ctx.strokeStyle='#9adbe7';ctx.lineWidth=1;ctx.globalAlpha=.19+pulse;
+    ctx.beginPath();ctx.arc(0,0,Math.max(13,radius),0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=.34+pulse;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,0,Math.max(10,radius*.56),-.5,Math.PI*1.42);ctx.stroke();
+    ctx.globalAlpha=.48;ctx.beginPath();ctx.arc(0,0,Math.max(8,radius*.26),0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#d2f6fa';ctx.globalAlpha=.86;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='600 11px system-ui';ctx.fillText('SAFE SITE',0,0);
+    ctx.globalAlpha=.78;ctx.font='600 8px system-ui';ctx.fillText('EXTRACTION',0,13);ctx.restore();ctx.globalAlpha=1;
+  }
   function draw(run,dt,reduced=false){
     const p=run.player,burst=p.boost>0,combustion=p.combustion===true,boost=burst||combustion,fever=Math.min(run.chain/VEIL.feverChain,1),lead=Math.min(p.speed*VEIL.cameraLead,VEIL.cameraMaxLead);
     if(run.returnEffect)run.returnEffect.life=Math.min(run.returnEffect.duration,run.returnEffect.life+dt);
@@ -120,6 +136,7 @@ export function createVeilRenderer(canvas){
       const g=ctx.createRadialGradient(glimpse.x,glimpse.y,0,glimpse.x,glimpse.y,radius);g.addColorStop(0,`rgba(173,134,211,${fade*.3})`);g.addColorStop(.45,`rgba(105,109,176,${fade*.18})`);g.addColorStop(1,'rgba(83,102,157,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
       for(let i=0;i<48;i++){const a=i*2.399,r=Math.sqrt(i/48)*radius*.7;glow(glimpse.x+Math.cos(a)*r,glimpse.y+Math.sin(a)*r*.48,12*scale,'rare',fade*.7);}
     }
+    drawSafeExtractionSite(run.map.safeExtractionSite,run.time,reduced,(run.carriedInsights?.length??0)===0&&!run.captured);
     ctx.save();ctx.translate(w/2-camera.x*scale,h/2-camera.y*scale);ctx.scale(scale,scale);
     if(run.map.universe){
       // Broad moving strata make Oxygen Surge a hot, fast environment rather

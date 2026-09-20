@@ -6,11 +6,11 @@
 
 1. 基地からANCHOR FIELDで採集殻（Collector Shell）を原子宇宙へ展開する。
 2. H/C/OをCARGOとして集め、発見した噴射剤のBURSTまたは燃料 + O₂のCOMBUSTION DRIVEを消費して奥へ進む。連続燃焼の熱は冷却剤タンクが自動制御する。
-3. 0.8秒のANCHOR LOCKを通して安定回収し、帰還した元素から分子を手作業で発見する。
+3. run中Insightを持っていれば機体上の💡から、持っていなければ固定Safe Extraction Siteに到達してから、0.8秒の抽出待機を経て帰還する。通常帰還は積荷を失わずsettleし、Site到着だけでは帰還しない。
 4. LOADOUTで発見済みの対応分子を各タンクへ選び、出発確定時に不足分をBASE STOCKから自動錬成して搭載する。材料不足時は現行のFULL / PARTIAL / IMPOSSIBLE判定に従う。
 5. DUST EATERの保持場干渉が迫ったら、BURSTやDRIVEで距離を作って安全な回収時間を確保する。
 
-ANCHOR LOCK完了後の安定回収は今回の積荷を100%確保します。完了前にDUST EATERが保持場を崩した場合、安全装置が緊急回収し、保持場からこぼれた今回の積荷15%だけを失います。BASE STOCK、タンク内容、図鑑、レシピ、恒久進行は安全です。
+抽出待機中は機体操作と新規回収が止まります。Insightのない探索機はSafe Extraction Siteの外から通常帰還できません。DUST EATERは別の強制帰還として動き、保持場からこぼれた今回の積荷15%だけを失います。BASE STOCK、タンク内容、図鑑、レシピ、恒久進行は安全です。
 
 ## 起動
 
