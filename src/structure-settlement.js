@@ -11,7 +11,7 @@ export function createStructureSettlement({THREE,molecule,placements,ids,lockedI
   const graph={atoms,bonds,neighbors:id=>adjacency.get(id)??[]};
   const from=new Map(atoms.map(atom=>[atom.id,placements.get(atom.id).position.clone()]));
   const working=new Map([...from].map(([id,point])=>[id,{position:point.clone()}]));
-  const solver=createStructureSolver({THREE,molecule:graph,placements:working,bondLengthFor,geometryFor,radiusFor,nonbondedDistanceFor,
+  const solver=createStructureSolver({THREE,molecule:graph,placements:working,bondLengthFor,geometryFor,radiusFor,nonbondedDistanceFor,enforceAromaticGeometryContract:true,
     atomById:id=>atoms.find(atom=>atom.id===id),bondBetween:(a,b)=>bonds.find(bond=>bond.a===a&&bond.b===b||bond.a===b&&bond.b===a)});
   const copy=()=>new Map([...working].map(([id,item])=>[id,item.position.clone()]));
   const score=e=>e.finite&&!e.topologyLimited?Math.max(e.bondRelative/.025,e.angleRadians/(8*Math.PI/180),e.planeDistance/.035,
