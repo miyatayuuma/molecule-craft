@@ -32,7 +32,7 @@ const sixty=simulateOxygenRoute(options),thirty=simulateOxygenRoute({...options,
 for(const report of [sixty,thirty]){
   assert.ok(report.reached);assert.equal(report.returnType,'voluntary');
   assert.ok(report.burstUses>0&&report.combustionSeconds>0&&report.propulsionSwitches>0);
-  assert.ok(report.returnLockSeconds>=EXPEDITION.anchorLockSeconds-1e-8);
+  assert.ok(report.returnPendingSeconds>=EXPEDITION.normalExtractionSeconds-1e-8);
   assert.ok(report.duration-report.arrivalSeconds>=.79);
   assert.ok(report.accountingConsistent);
   for(const el of ['H','C','O'])assert.equal(report.netByElement[el],report.returnedAtoms[el]-report.consumedAtoms[el]);

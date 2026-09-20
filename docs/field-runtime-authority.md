@@ -9,7 +9,7 @@ Production FIELD runtime is allowlist-based. A spawned, rendered, or interactive
 | Environmental Hazards | Hazard taxonomy authority: mechanical, thermal, abrasive, electrical and their subtypes/intensity fields. |
 | Active Agents | Dust Eater and other explicitly autonomous FIELD agents. Agents are not hazards. |
 | Current Progression Objects | Normal Insight, Critical Insight, Core, and current chapter markers. |
-| Navigation / Recovery Infrastructure | ANCHOR RETURN, recovery points, checkpoints, and launch/return lifecycle infrastructure. |
+| Navigation / Recovery Infrastructure | Insight Extraction, the authored Safe Extraction Site, checkpoints, and separate normal/forced return lifecycle infrastructure. |
 
 ## Retired runtime
 

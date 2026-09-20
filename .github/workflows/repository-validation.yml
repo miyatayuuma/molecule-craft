@@ -221,6 +221,8 @@ jobs:
           node tests/oxygen-thermal-progression.test.mjs
           node tests/thermal-coolant.test.mjs
           node tests/expedition-core.test.mjs
+          node tests/safe-extraction-site.test.mjs
+          node tests/safe-extraction-browser.test.mjs
           node tests/veil-loss-particles.test.mjs
           node tests/veil-return-effects.test.mjs
           node tests/dust-eater-forced-return.test.mjs

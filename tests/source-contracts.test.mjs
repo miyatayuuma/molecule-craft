@@ -35,7 +35,7 @@ assert.match(pubchemReference,/pubchem\.ncbi\.nlm\.nih\.gov\/\#query=/);
 assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
 assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=56"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=57"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-settlement\.js\?v=32'/);
@@ -100,7 +100,7 @@ await assert.rejects(readFile(new URL('src/tank-charge.js',root),'utf8'),error=>
 assert.doesNotMatch(index, /id="molecule-select"|id="fill-hydrogen"|id="make-h2"/);
 assert.match(index, /EXPEDITION CARGO/);
 assert.match(index, /COLLECTOR SHELL · ANCHOR FIELD/);
-assert.match(index, /id="veil-anchor-meter"/);
+assert.match(index, /id="veil-extraction-meter"/);
 assert.match(veilCss, /\.veil-actions #veil-sound\{position:absolute/);
 assert.match(veilCss, /@media\(max-width:370px\)\{[^@]*?\.veil-chain-block\{display:none\}/,'Narrow FIELD HUD must keep chain block hidden inside the 370px media contract');
 assert.match(index, /id="veil-thermal"/);

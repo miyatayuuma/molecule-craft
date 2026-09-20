@@ -8,7 +8,7 @@ const facade=createDeferredExplorationFacade(()=>current,ready);
 assert.equal(facade.active,false);
 assert.equal(facade.run,null);
 assert.equal(facade.returning,null);
-assert.equal(facade.anchorLock,null);
+assert.equal(facade.returnPhase,null);
 assert.equal(facade.lastTelemetry,null);
 assert.equal(facade.ready,ready);
 assert.equal(facade.requestExpeditionLaunch('oxygen'),false,'DB-not-ready facade must reject launch requests');
@@ -19,10 +19,10 @@ assert.equal(facade.tankStatus('propellant','hydrogen'),null);
 assert.equal(facade.fillPlan('propellant','hydrogen'),null);
 assert.equal(facade.commitFill('propellant','hydrogen',1),false);
 
-const run={id:'run'},anchorLock={elapsed:0.2},telemetry={id:'last'};
+const run={id:'run'},telemetry={id:'last'};
 const calls=[];
 current={
-  active:true,run,returning:'locking',anchorLock,lastTelemetry:telemetry,
+  active:true,run,returnPhase:'normal-extraction-pending',returning:'normal-extraction-pending',lastTelemetry:telemetry,
   updateCraft:(...args)=>calls.push(['updateCraft',...args]),
   requestExpeditionLaunch:(...args)=>{calls.push(['requestExpeditionLaunch',...args]);return true;},
   pause:(...args)=>{calls.push(['pause',...args]);return 'paused';},
@@ -35,8 +35,8 @@ current={
 };
 assert.equal(facade.active,true);
 assert.equal(facade.run,run);
-assert.equal(facade.returning,'locking');
-assert.equal(facade.anchorLock,anchorLock);
+assert.equal(facade.returnPhase,'normal-extraction-pending');
+assert.equal(facade.returning,'normal-extraction-pending');
 assert.equal(facade.lastTelemetry,telemetry);
 assert.equal(facade.requestExpeditionLaunch('oxygen'),true);
 assert.equal(facade.pause(),'paused');
@@ -86,7 +86,7 @@ lacks(index,'id="launch-veil"','retired hidden launch button must not remain in 
 lacks(index,'id="expedition-anchor"','retired hidden destination select must not remain in production DOM');
 assert.equal(veil.split('audio=createVeilAudio()').length-1,1,'audio session is created once per UI instance');
 has(veil,'renderer??=createVeilRenderer(canvas)','renderer must be reused across same-session relaunches');
-has(veil,'if(!active||!run)return;active=false;cancelAnimationFrame(raf);raf=0;resetInput();audio.pause();','normal return must release the active RAF handle');
+has(veil,"const expected=captured?'forced-return-pending':'normal-extraction-pending';if(!active||!run||returnState?.phase!==expected)return false;returnState.phase='settling/returning';active=false;cancelAnimationFrame(raf);raf=0;resetInput();audio.pause();",'single-entry normal and forced settlement must release the active RAF handle');
 const rollbackStart=veil.indexOf('function rollbackLaunchTransaction');
 assert.ok(rollbackStart>=0&&veil.indexOf('cancelAnimationFrame(raf);',rollbackStart)>rollbackStart&&veil.indexOf('raf=0;',rollbackStart)>rollbackStart,'failed launch rollback must release the active RAF handle');
 has(veil,"document.body.dataset.mode='veil'");

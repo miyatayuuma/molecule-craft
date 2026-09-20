@@ -1,4 +1,4 @@
-import {createVeilUI} from './veil/ui.js?v=4';
+import {createVeilUI} from './veil/ui.js?v=5';
 import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionSideEffectGate} from './completion-side-effects.js?v=1';
 import {installPendingCraftAccess} from './pending-craft.js?v=1';
@@ -80,8 +80,8 @@ export function createDeferredExplorationFacade(getCurrent,ready){
   return{
     get active(){return current()?.active??false;},
     get run(){return current()?.run??null;},
+    get returnPhase(){return current()?.returnPhase??null;},
     get returning(){return current()?.returning??null;},
-    get anchorLock(){return current()?.anchorLock??null;},
     get lastTelemetry(){return current()?.lastTelemetry??null;},
     get ready(){return ready;},
     updateCraft(...args){return current()?.updateCraft?.(...args);},

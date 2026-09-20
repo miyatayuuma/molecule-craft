@@ -7,7 +7,7 @@
 CHO campaignの終点は `(280, -12470)`、到達半径95です。
 
 - 終点到達はその遠征だけの `destinationReached` として扱います。
-- **同じ遠征で通常の0.8秒ANCHOR LOCKを完了し、voluntary returnした時だけ** `progress.choCompleted` を保存します。
+- **同じ遠征でnormal extractionを完了した時だけ** `progress.choCompleted` を保存します。
 - 終点到達後に捕獲された場合は完了しません。
 - 別遠征の安全帰還へ到達状態を持ち越しません。
 - 完了後も既存のクラフト・探索・アンカーは利用できます。
@@ -113,19 +113,22 @@ O₂ tankの恒久容量は次の3段階です。
 
 DUST EATERは生物型のcombat enemyではなく、Collector Shellのholding fieldを不安定化する追跡現象です。pressureは遠征時間と採集で増え、複数個体が退路を狭めます。
 
-### Voluntary return
+### Normal extraction
 
 ```text
-ANCHOR LOCK 0.8s
+carried Insight: ship bulb tap from anywhere
+no carried Insight: reach the authored Safe Extraction Site on the H safe route
+→ explicit extraction input
+→ pending 0.8s, with no movement, pickup, new Insight, or hazard consequence
 → stable RETRACT
 → current-sortie cargo 100% retained
 ```
 
-lock中も物理と接触判定は有効です。
+Safe Extraction Site is fixed at `(-520, -2200)` within the existing low-pressure `safe` route. Arriving does not return the player automatically. DUST EATER keeps moving during the normal extraction wait, but cannot start a second return or cause a new hazard consequence after extraction has begun.
 
 ### Forced return
 
-DUST EATER接触では、現在遠征cargoの15%だけを失ってemergency RETRACTします。
+DUST EATER接触時のforced returnは、normal extractionとは別のemergency RETRACTを行い、現在遠征cargoの15%だけを失います。
 
 失わないもの：
 

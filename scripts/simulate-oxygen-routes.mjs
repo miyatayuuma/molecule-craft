@@ -1,5 +1,5 @@
 import {pathToFileURL} from 'node:url';
-import {createRun,stepRun,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
+import {createRun,stepRun,stepNormalExtractionPending,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
 import {createUniverse} from '../src/veil/universe.js';
 import {CHO_DESTINATION} from '../src/veil/cho-campaign.js';
 import {EXPEDITION} from '../src/veil/config.js';
@@ -33,8 +33,8 @@ export function simulateOxygenRoute({routeId='oxygen-shortcut',propellant='hydro
   const points=[...knots.slice(start==='oxygen'?0:1).map(([x,y])=>({x:x+lateralOffset,y})),OXYGEN_REWARD,...(destination==='final'?[{x:250,y:-11200},{x:100,y:-11830},{x:0,y:-12200},CHO_DESTINATION]:[])];
   let index=0,resting=false,returning=0,arrivalSeconds=null,replayIndex=0,previousMode='coast',modeTransitions=0,propulsionSwitches=0,lastPropulsion=null;
   const actualBurstTimes=[];
-  const tick=input=>{
-    stepRun(run,input,1/fps,systems);
+  const tick=(input,extractionPending=false)=>{
+    if(extractionPending)stepNormalExtractionPending(run,1/fps);else stepRun(run,input,1/fps,systems);
     const mode=run.player.boost>0?'burst':run.player.combustion?'combustion':'coast';
     if(mode!==previousMode)modeTransitions++;
     if(mode!=='coast'&&mode!==lastPropulsion){if(lastPropulsion)propulsionSwitches++;lastPropulsion=mode;}
@@ -44,7 +44,7 @@ export function simulateOxygenRoute({routeId='oxygen-shortcut',propellant='hydro
   const systems={consumeCombustion:packet=>resources.consumeCombustion(packet),consumeCoolant:(amount,molecule)=>resources.consumeTank('coolant',molecule,amount)};
   for(let frame=0;frame<maxSeconds*fps&&!run.captured;frame++){
     if(destination==='final'?run.destinationReached:run.telemetry.harvestReached){
-      setCombustionHeld(run,false);tick({x:0,y:0});returning+=1/fps;if(returning+1e-8>=EXPEDITION.anchorLockSeconds)break;continue;
+      setCombustionHeld(run,false);tick({x:0,y:0},true);returning+=1/fps;if(returning+1e-8>=EXPEDITION.normalExtractionSeconds)break;continue;
     }
     if(destination==='final'&&run.telemetry.harvestReached&&index<=knots.length)index=knots.length+1;
     const p=run.player,target=points[index],atRest=rest&&route.restStops?.some(stop=>target.y===stop.y)&&Math.hypot(p.x-target.x,p.y-target.y)<30;
@@ -64,7 +64,7 @@ export function simulateOxygenRoute({routeId='oxygen-shortcut',propellant='hydro
     }
     tick({x:dx/length*(resting?.2:1),y:dy/length*(resting?.2:1)});
   }
-  const reached=arrivalSeconds!==null&&returning+1e-8>=EXPEDITION.anchorLockSeconds&&!run.captured;
+  const reached=arrivalSeconds!==null&&returning+1e-8>=EXPEDITION.normalExtractionSeconds&&!run.captured;
   const remainingTanks=structuredClone(resources.state.tanks),remainingAtoms=atomsFor(remainingTanks);
   const consumedAtoms=Object.fromEntries(elements.map(el=>[el,initialFillAtoms[el]-remainingAtoms[el]]));
   // A timeout is unreturned cargo, not an implicit voluntary settlement.
@@ -76,7 +76,7 @@ export function simulateOxygenRoute({routeId='oxygen-shortcut',propellant='hydro
   return {...report,returnType:run.captured?'forced':reached?'voluntary':'timeout',routeId,policy,seed,fps,detour,destination,stock,lateralOffset,timingOffset,
     grossAtoms:total(report.collected),fuelAtomCost:total(consumedAtoms),netAtoms:netByElement?total(netByElement):null,
     initialFillAtoms,consumedAtoms,returnedAtoms,netByElement,remainingTanks,remainingDust:result?{...resources.state.dust}:null,
-    cargoDust:{...run.elementDust},arrivalSeconds,reached,returnLockSeconds:returning,actualBurstTimes,propulsionSwitches,modeTransitions,
+    cargoDust:{...run.elementDust},arrivalSeconds,reached,returnPendingSeconds:returning,actualBurstTimes,propulsionSwitches,modeTransitions,
     driveBuffer:run.driveBuffer,accountingConsistent,position:{x:Math.round(run.player.x),y:Math.round(run.player.y)}};
 }
 export const OXYGEN_SCENARIOS=[

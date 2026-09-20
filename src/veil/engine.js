@@ -130,10 +130,10 @@ function spawnEater(run){
   run.nextEaterSpawn=run.time+EXPEDITION.eaterSpawnDelay*tuning.spawnDelayMultiplier;run.events.push({type:'eaterSpawn',count:run.eaters.length});
 }
 
-function updateEaters(run,dt){
+function updateEaters(run,dt,{presentationOnly=false}={}){
   if(!run.predators)return;
   const presenting=run.captured===true,tuning=run.eaterTuning??dustEaterWorldTuning(false),p=run.player;
-  if(!presenting){
+  if(!presenting&&!presentationOnly){
     const dust=Object.values(run.elementDust).reduce((sum,n)=>sum+n,0),safeSeconds=EXPEDITION.safeSeconds*tuning.safeSecondsMultiplier;
     run.threat=Math.max(0,run.time-safeSeconds)*EXPEDITION.threatPerSecond*tuning.threatPerSecondMultiplier+dust*EXPEDITION.threatPerDustUnit*tuning.threatPerDustMultiplier;
     const thresholds=EXPEDITION.eaterThresholds.map(level=>level*tuning.thresholdMultiplier),thresholdTarget=run.time<safeSeconds?0:thresholds.filter(level=>run.threat>=level).length,earlyTarget=run.time>=tuning.earlyEncounterSeconds?tuning.earlyEncounterCount:0,target=Math.min(tuning.maxPursuers,Math.max(thresholdTarget,earlyTarget));
@@ -155,7 +155,7 @@ function updateEaters(run,dt){
   let captor=null;
   run.nearestEater=Infinity;
   for(const eater of run.eaters){const distance=Math.hypot(eater.x-p.x,eater.y-p.y);if(distance<run.nearestEater){run.nearestEater=distance;captor=eater;}}
-  if(presenting)return;
+  if(presenting||presentationOnly)return;
   const danger=run.nearestEater<EXPEDITION.eaterDangerRadius?'danger':run.nearestEater<EXPEDITION.eaterWarningRadius?'warning':'clear';
   if(danger!==run.danger){run.danger=danger;if(danger==='danger')run.telemetry.dangerContacts++;run.events.push({type:'danger',level:danger,distance:run.nearestEater});}
   if(run.nearestEater<=EXPEDITION.eaterContactRadius&&!run.forcedReturn){
@@ -234,4 +234,16 @@ export function stepRun(run,input,elapsed,systems={}){
   const events=[];let remaining=clamp(elapsed,0,.15);
   while(remaining>1e-8){const dt=Math.min(1/60,remaining),capturedAtStart=run.captured;events.push(...stepRunFrame(run,input,dt,systems));remaining-=dt;if(!capturedAtStart&&run.captured)break;}
   return events;
+}
+
+// Keep authored field animation and moving Dust Eaters alive during voluntary
+// extraction while suppressing every gameplay consequence for this short phase.
+export function stepNormalExtractionPending(run,elapsed){
+  if(!run||run.captured)return false;
+  let remaining=clamp(elapsed,0,.15);
+  while(remaining>1e-8){
+    const dt=Math.min(1/60,remaining);remaining-=dt;run.time+=dt;run.events.length=0;
+    animateUniverse(run);advanceTransientEffects(run,dt);updateEaters(run,dt,{presentationOnly:true});
+  }
+  return true;
 }

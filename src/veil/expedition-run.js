@@ -3,6 +3,7 @@ import {advanceInsightAnalysis,createInsightRunState,ensureInsightEngagementOrig
 import {appendNitrogenField} from './nitrogen-routes.js';
 
 export {beginBurst,beginShock,setCombustionHeld} from './engine.js';
+export {stepNormalExtractionPending} from './engine.js';
 export {FIELD_RUNTIME_ALLOWLIST,FIELD_RUNTIME_ALLOWLIST_VERSION,RETIRED_FIELD_RUNTIME} from './field-runtime-authority.js';
 export {CRITICAL_INSIGHT_IDS,FIELD_INSIGHT_MIN_DISTANCE,FIELD_INSIGHT_MIN_SECONDS,INSIGHT_ANALYSIS_SECONDS,discardActiveInsight,discardRunInsights,ensureInsightEngagementOrigin,fieldInsightOpportunityEligibility,fieldInsightRequiredElements,runInsightLossSnapshot,triggerInsight,updateInsightEngagement} from './insights.js';
 

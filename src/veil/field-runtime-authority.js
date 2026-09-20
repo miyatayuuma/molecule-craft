@@ -24,7 +24,7 @@ export const FIELD_RUNTIME_ALLOWLIST=Object.freeze({
   }),
   navigationRecoveryInfrastructure:freeze({
     id:'navigation-recovery-infrastructure',
-    examples:Object.freeze(['ANCHOR RETURN','recovery point','checkpoint','launch / return lifecycle']),
+    examples:Object.freeze(['Insight Extraction','Safe Extraction Site','checkpoint','normal / forced return lifecycle']),
   }),
 });
 
