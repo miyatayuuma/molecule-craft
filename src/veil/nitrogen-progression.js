@@ -51,7 +51,7 @@ export function nitrogenGrowthGoal(state,{regionAvailable=NITROGEN_REGION_AVAILA
   if(!chapter.eligible)return null;
   switch(chapter.playerStage){
     case 'eligible-waiting-field':return {text:'CHO探索クリア · 次の探索領域を準備中。自由探索でCHO分子や装備構成を試そう。'};
-    case 'nitrogen-critical':return {text:'Nitrogen FIELDへ出発し、Nを採集しながらpulse corridorを進んでN₂のInsightを見つけよう。'};
+    case 'nitrogen-critical':return {text:'Nitrogen FIELDでNを集め、DRIVEで持続逆流を抜けよう。必要なら資源とSafe Siteのside pocketへ寄り、短いPULSE shearの先でN₂のInsightを探そう。'};
     case 'nitrogen-craft':return {id:NITROGEN_MOLECULE_ID,text:'得た構造をもとにN₂をCRAFTし、窒素系の噴射剤・冷却剤を使えるようにしよう。'};
     case 'ammonia-frontier':return {text:'N₂から図鑑Graphの直接隣接branchを辿り、Nitrogen FIELDでNH₃のInsightを探そう。'};
     case 'ammonia-craft':return {id:AMMONIA_MOLECULE_ID,text:'得た構造をもとにNH₃をCRAFTし、Nitrogen chapterの中核を完成させよう。'};

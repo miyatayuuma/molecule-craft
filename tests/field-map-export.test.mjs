@@ -40,7 +40,7 @@ test('FIELD map exporter is deterministic and required layers are present',async
   assert.match(first,/id="cho-destination" data-radius="95" cx="280" cy="-12470" r="95"/);
   assert.match(first,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe" data-source-landmark="hydrogen-safe-route"><circle cx="-520" cy="-2200" r="120"/);
   assert.match(first,/data-safe-extraction-site="oxygen-network-merge-extraction" data-route="oxygen-main" data-source-landmark="oxygen-network-merge-recovery"><circle cx="120" cy="-10800" r="330"/);
-  assert.match(first,/data-safe-extraction-site="nitrogen-recovery-shelf-extraction" data-route="nitrogen-main" data-source-landmark="nitrogen-recovery-shelf"><circle cx="535\.462" cy="-17999\.451" r="235"/);
+  assert.match(first,/data-safe-extraction-site="nitrogen-side-recovery-extraction" data-route="nitrogen-side-pocket" data-source-landmark="nitrogen-side-recovery"><circle cx="-500" cy="-15380" r="220"/);
   for(const route of DEEP_OXYGEN_ROUTES)assert.match(first,new RegExp(`id="route-${route.id}"`),`${route.id} current-map centerline`);
   assert.doesNotMatch(first,/id="route-oxygen-depth"/,'legacy Deep route must not remain as a fourth field route');
   const committed=await readFile(output,'utf8');

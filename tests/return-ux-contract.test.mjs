@@ -37,7 +37,7 @@ assert.match(categoryCss,/\.insight-bulb\{[^}]*background:var\(--insight-categor
 for(const color of Object.values(INSIGHT_CATEGORY_COLORS))assert.ok(categoryCss.includes(color),`CSS keeps category color ${color}`);
 assert.match(renderer,/category,color:INSIGHT_CATEGORY_COLORS\[category\]/,'Released Insight preserves its held category color');
 assert.match(renderer,/drawInsightBulb\(at\.x,at\.y,size,particle\.color/,'Loss fades and moves the same bulb instead of recoloring it');
-assert.match(renderer,/nearestSite=!carryingInsight\?\[\.\.\.sites\]\.sort/,'The nearest authored site is discoverable before extraction becomes available');
+assert.match(renderer,/nearestSite=!carryingInsight&&!nitrogenField\?\[\.\.\.sites\]\.sort/,'Other regions indicate the nearest authored site while Nitrogen keeps landmark-led navigation');
 assert.match(renderer,/if\(arrowTarget&&\(/,'An offscreen Safe Site remains indicated while the player is seeking extraction');
 
 console.log('FIELD return UX contract passed: ship-only extraction, noninteractive status, POWER HUD, persistent category-colored Insight and phased settlement.');

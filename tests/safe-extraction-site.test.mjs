@@ -4,11 +4,11 @@ import {createMap,SAFE_EXTRACTION_SITE} from '../src/veil/map.js';
 import {flightConfig} from '../src/veil/growth.js';
 import {createUniverse,environmentAt} from '../src/veil/universe.js';
 import {OXYGEN_ROUTES,OXYGEN_THERMAL,oxygenMergeRecoveryAt} from '../src/veil/oxygen-routes.js';
-import {NITROGEN_RECOVERY_AREA,nitrogenRecoveryAt} from '../src/veil/nitrogen-routes.js';
+import {NITROGEN_RECOVERY_AREA,NITROGEN_SIDE_ROUTE,nitrogenRecoveryAt} from '../src/veil/nitrogen-routes.js';
 import {isInsideSafeExtractionSite} from '../src/veil/safe-extraction-sites.js';
 
 const productionMap=seed=>createUniverse(seed,{H:0,C:0,N:0,O:0},{capabilities:{nitrogenField:true}});
-const ids=['hydrogen-safe-extraction','oxygen-network-merge-extraction','nitrogen-recovery-shelf-extraction'];
+const ids=['hydrogen-safe-extraction','oxygen-network-merge-extraction','nitrogen-side-recovery-extraction'];
 
 test('production Safe Extraction Sites reuse fixed, traversable recovery geometry',()=>{
   const maps=[1,2,17,987654].map(productionMap),baseline=maps[0].safeExtractionSites;
@@ -17,7 +17,7 @@ test('production Safe Extraction Sites reuse fixed, traversable recovery geometr
   const hydrogen=baseline[0],oxygen=baseline[1],nitrogen=baseline[2];
   assert.equal(hydrogen.x,SAFE_EXTRACTION_SITE.x);assert.equal(hydrogen.y,SAFE_EXTRACTION_SITE.y);assert.equal(hydrogen.route,'safe');
   assert.equal(oxygen.geometry,OXYGEN_THERMAL.mergeRecovery,'Oxygen shares the existing network-merge recovery authority');assert.equal(oxygenMergeRecoveryAt(oxygen.center),true);
-  assert.equal(nitrogen.geometry,NITROGEN_RECOVERY_AREA,'Nitrogen site shares the authored shelf object');assert.equal(nitrogenRecoveryAt(nitrogen.center),NITROGEN_RECOVERY_AREA);
+  assert.equal(nitrogen.geometry,NITROGEN_RECOVERY_AREA,'Nitrogen site shares the authored side-pocket recovery object');assert.equal(nitrogenRecoveryAt(nitrogen.center),NITROGEN_RECOVERY_AREA);
   for(const map of maps){
     assert.equal(map.safeExtractionSites.length,3);
     for(const site of map.safeExtractionSites){
@@ -30,7 +30,7 @@ test('production Safe Extraction Sites reuse fixed, traversable recovery geometr
     }
   }
   for(const route of OXYGEN_ROUTES)assert.ok(Math.min(...route.knots.map(([x,y])=>Math.hypot(x-oxygen.x,y-oxygen.y)))<oxygen.radius,`${route.id} reaches the shared merge site`);
-  assert.ok(Math.min(...maps[0].routes.find(route=>route.id==='nitrogen-main').points.map(point=>Math.hypot(point.x-nitrogen.x,point.y-nitrogen.y)))<nitrogen.radius+50,'Nitrogen recovery shelf stays one short maneuver off the main route');
+  assert.ok(Math.min(...maps[0].routes.find(route=>route.id===NITROGEN_SIDE_ROUTE.id).points.map(point=>Math.hypot(point.x-nitrogen.x,point.y-nitrogen.y)))<20,'Nitrogen Safe Site sits on the optional resource/recovery pocket');
   assert.equal(isInsideSafeExtractionSite(flightConfig().spawn,baseline),false,'spawn remains outside every Safe Site');
   assert.equal(isInsideSafeExtractionSite({x:hydrogen.x+hydrogen.radius+1,y:hydrogen.y},hydrogen),false);
   assert.equal(isInsideSafeExtractionSite({x:oxygen.x,y:oxygen.geometry.top+1},oxygen),false,'Oxygen extraction respects the existing clipped merge geometry');

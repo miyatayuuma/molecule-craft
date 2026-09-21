@@ -16,7 +16,7 @@ r.settleExpedition({O:3},0,false);assert.equal(r.state.progress.choCompleted,fal
 const success=r.settleExpedition({O:12},0,false,{destinationReached:true});assert.equal(success.completedNow,true);assert.equal(r.state.progress.choCompleted,true);
 assert.equal(createResources({storage}).state.progress.choCompleted,true);
 assert.equal(r.settleExpedition({},0,false,{destinationReached:true}).completedNow,false,'Ending is first-completion only');
-assert.match(growthGoal(r.state).text,/Nitrogen FIELDへ出発/);
+assert.match(growthGoal(r.state).text,/Nitrogen FIELDでNを集め/);
 const current=JSON.parse(storage.getItem(RESOURCE_KEY));delete current.progress.choCompleted;storage.setItem(RESOURCE_KEY,JSON.stringify(current));
 const tolerated=createResources({storage});assert.equal(tolerated.state.progress.choCompleted,undefined);assert.equal(tolerated.state.progress.frontier,true);assert.equal(tolerated.settleExpedition({},0,false,{destinationReached:true}).completedNow,true);assert.equal(tolerated.state.progress.choCompleted,true);
 tolerated.reset(['exploration']);assert.equal(tolerated.state.progress.choCompleted,false);

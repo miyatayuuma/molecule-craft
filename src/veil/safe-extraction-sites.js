@@ -27,10 +27,10 @@ const SITE_AUTHORITY=Object.freeze([
     contains:oxygenMergeRecoveryAt,
   }),
   Object.freeze({
-    id:'nitrogen-recovery-shelf-extraction',
+    id:'nitrogen-side-recovery-extraction',
     center:pointAt(NITROGEN_RECOVERY_AREA.x,NITROGEN_RECOVERY_AREA.y),
     radius:NITROGEN_RECOVERY_AREA.radius,
-    route:'nitrogen-main',
+    route:'nitrogen-side-pocket',
     sourceLandmark:NITROGEN_RECOVERY_AREA.id,
     geometry:NITROGEN_RECOVERY_AREA,
     activeOn:map=>map.nitrogenRecoveryAreas?.some(area=>area===NITROGEN_RECOVERY_AREA)===true,
