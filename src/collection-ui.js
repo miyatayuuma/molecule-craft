@@ -9,6 +9,7 @@ import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphF
 import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=4';
 import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';
 import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=3';
+import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -37,6 +38,17 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const number=(kind,id)=>entry(kind,id)?.number??((kind==='molecules'?records:collectibleGroups).findIndex(item=>item.id===id)+1);
   const numberLabel=(kind,id)=>`No. ${String(number(kind,id)).padStart(3,'0')}`;
   const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node;};
+  const appendChemistryText=(host,text)=>{
+    const fragment=document.createDocumentFragment();
+    for(const segment of hamajimaTermSegments(text)){
+      if(segment.kind==='term'){
+        const link=document.createElement('a');link.href=segment.reference.url;link.target='_blank';link.rel='noopener noreferrer external';link.textContent=segment.text;fragment.append(link);
+      }else fragment.append(document.createTextNode(segment.text));
+    }
+    host.append(fragment);return host;
+  };
+  const chemistryParagraph=(text,className)=>appendChemistryText(el('p',null,className),text);
+  const chemistryHeading=(text)=>appendChemistryText(el('h5'),text);
   const button=(text,handler,className)=>{const node=el('button',text,className);node.type='button';node.addEventListener('click',handler);return node;};
   const section=(title)=>{const node=el('details',null,'detail-extras');node.append(el('summary',title));detail.append(node);return node;};
   const registeredIds=()=>new Set(records.filter(record=>state.hasMolecule(record.id)).map(record=>record.id));
@@ -238,11 +250,11 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const defaultStereo=stereoSpec?{kind:stereoSpec.kind,relation:stereoSpec.defaultRelation??stereoSpec.states?.[0]?.relation}:null;
     const previewHandle=preview(record,moleculeDisplayName(record),{graphReturn:true,presentation:defaultStereo});
     if(stereoSpec)stereoComparisonControl(stereoSpec,previewHandle);
-    detail.append(el('p',catalogEntry.description??'この分子を図鑑に登録しました。','dex-description'));
+    detail.append(chemistryParagraph(catalogEntry.description??'この分子を図鑑に登録しました。','dex-description'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
     const detailSections=Array.isArray(catalogEntry.details)?catalogEntry.details:[];
-    if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(el('h5',item.title),el('p',item.body));chemistry.append(sectionNode);}for(const visual of renderChemistryVisuals(document,catalogEntry,record))chemistry.append(visual);extra.append(chemistry);}
+    if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(chemistryHeading(item.title),chemistryParagraph(item.body));chemistry.append(sectionNode);}for(const visual of renderChemistryVisuals(document,catalogEntry,record))chemistry.append(visual);extra.append(chemistry);}
     const playerNoteKeys=(Array.isArray(catalogEntry.notes)?catalogEntry.notes:[]).filter(key=>key==='stereochemistry');
     for(const key of playerNoteKeys){const text=data.encyclopedia.noteDefinitions?.[key];if(!text)continue;const note=el('p',text,'collection-note');note.dataset.encyclopediaNote=key;extra.append(note);}
     const discovered=state.moleculeEntry(id);extra.append(el('h4','発見'),el('p',`発見 ${discovered.order}番目${discovered.at?` · ${new Date(discovered.at).toLocaleDateString('ja-JP')}`:''}`));
@@ -257,12 +269,12 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     heading('groups',id,known?group.nameJa:'???');
     if(!known){const box=el('div',null,'unknown-detail');box.append(el('div','','unknown-model'),el('p','分子を完成させると、その中の部品も見つかります。'));detail.append(box);return;}
     if(part)preview(part,group.nameJa);
-    detail.append(el('p',entry('groups',id)?.description??group.description,'dex-description'));
+    detail.append(chemistryParagraph(entry('groups',id)?.description??group.description,'dex-description'));
     for(const template of data.templates.filter(item=>item.unlock.groupId===id)){
       const unlocked=state.isUnlocked(template.id);detail.append(el('p',unlocked?'✓ この部品は使えます':`解放まで：異なる分子 ${sources.length}/${template.unlock.distinctMolecules}種類で発見`,'unlock-condition'));
       if(unlocked)detail.append(button('部品トレーへ',()=>{paletteTab('structures');dialog.close();},'collection-primary'));
     }
-    const extra=section('くわしく');extra.append(el('p',`${group.nameEn} · ${group.notation}`),el('p',group.description));
+    const extra=section('くわしく');extra.append(el('p',`${group.nameEn} · ${group.notation}`),chemistryParagraph(group.description));
     if(group.aliases?.length)extra.append(el('p',`別名：${group.aliases.join('、')}`));
     if(part)extra.append(el('p',`接続点：${part.attachments.map(port=>`${part.atoms[port.atom]}に単結合${port.slots}本分`).join('、')}`));
     extra.append(el('h4','見つかった分子'));for(const sourceId of sources)extra.append(button(moleculeDisplayName(recordById(sourceId)),()=>showDetail('molecules',sourceId),'collection-tag'));
