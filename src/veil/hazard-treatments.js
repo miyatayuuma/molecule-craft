@@ -6,29 +6,30 @@ const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
 export const HAZARD_TREATMENT_VERSION=1;
 export const HAZARD_TREATMENT_MITIGATION=.45;
 export const HAZARD_TREATMENT_EFFECT_MULTIPLIER=1-HAZARD_TREATMENT_MITIGATION;
-export const HAZARD_TREATMENT_ENDURANCE_INTENSITY_SECONDS=100;
+export const HAZARD_TREATMENT_DEFAULT_ENDURANCE_INTENSITY_SECONDS=100;
+export const HAZARD_TREATMENT_ENDURANCE_INTENSITY_SECONDS=HAZARD_TREATMENT_DEFAULT_ENDURANCE_INTENSITY_SECONDS;
 
 const productionType=type=>PRODUCTION_HAZARD_FAMILIES.some(item=>item.type===type);
 export const HAZARD_TREATMENTS=Object.freeze({
   mechanical:freeze({
     id:'mechanical',hazardType:HAZARD_TYPES.MECHANICAL,recipeId:'phosphoric-acid',formula:'H₃PO₄',rareElement:'P',moleculesPerBatch:2,
     cost:freeze({H:6,P:2,O:8}),chemistry:'Phosphoric Acid',process:'Surface Pretreatment',component:'Bonded Reinforcement',property:'Mechanical Load Resistance',
-    label:'MECHANICAL',icon:'M',productionHazard:productionType(HAZARD_TYPES.MECHANICAL),
+    label:'MECHANICAL',icon:'M',productionHazard:productionType(HAZARD_TYPES.MECHANICAL),enduranceIntensitySeconds:100,
   }),
   abrasive:freeze({
     id:'abrasive',hazardType:HAZARD_TYPES.ABRASIVE,recipeId:'sulfuric-acid',formula:'H₂SO₄',rareElement:'S',moleculesPerBatch:2,
     cost:freeze({H:4,S:2,O:8}),chemistry:'Sulfuric Acid',process:'Hard Anodize',component:'Hardened Surface',property:'Particle Erosion Resistance',
-    label:'ABRASIVE',icon:'A',productionHazard:productionType(HAZARD_TYPES.ABRASIVE),
+    label:'ABRASIVE',icon:'A',productionHazard:productionType(HAZARD_TYPES.ABRASIVE),enduranceIntensitySeconds:100,
   }),
   thermal:freeze({
     id:'thermal',hazardType:HAZARD_TYPES.THERMAL,recipeId:'difluoromethane',formula:'CH₂F₂',rareElement:'F',moleculesPerBatch:2,
     cost:freeze({C:2,H:4,F:4}),chemistry:'Difluoromethane',process:'Thermal Loop Charge',component:'Heat Transport',property:'Thermal Load Resistance',
-    label:'THERMAL',icon:'T',productionHazard:productionType(HAZARD_TYPES.THERMAL),
+    label:'THERMAL',icon:'T',productionHazard:productionType(HAZARD_TYPES.THERMAL),enduranceIntensitySeconds:100,
   }),
   electrical:freeze({
     id:'electrical',hazardType:HAZARD_TYPES.ELECTRICAL,recipeId:'chlorotrifluoroethylene',formula:'C₂ClF₃',rareElement:'Cl',
     cost:freeze({Cl:2}),chemistry:'CTFE',process:'Insulation Processing',component:'CTFE-based Fluoropolymer Insulation',property:'Dielectric Integrity',
-    label:'ELECTRICAL',icon:'E',productionHazard:productionType(HAZARD_TYPES.ELECTRICAL),
+    label:'ELECTRICAL',icon:'E',productionHazard:productionType(HAZARD_TYPES.ELECTRICAL),enduranceIntensitySeconds:10,
   }),
 });
 export const HAZARD_TREATMENT_IDS=Object.freeze(Object.keys(HAZARD_TREATMENTS));
@@ -63,8 +64,8 @@ export function updateHazardTreatmentExposure(treatments,hazards,dt,resolved=cre
   for(const hazard of hazards??[]){const treatment=HAZARD_TREATMENT_BY_TYPE[hazard?.type];if(!treatment)continue;const intensity=Math.max(0,Number(hazard.effectiveIntensity??hazard.intensity)||0);if(intensity>resolved[treatment.id])resolved[treatment.id]=intensity;}
   const elapsed=Math.max(0,Number(dt)||0);if(elapsed<=0)return resolved;
   for(let index=0;index<HAZARD_TREATMENT_IDS.length;index++){
-    const id=HAZARD_TREATMENT_IDS[index],charge=clamp01(treatments?.[id]),intensity=resolved[id];if(charge<=0||intensity<=0)continue;
-    const next=Math.max(0,charge-intensity*elapsed/HAZARD_TREATMENT_ENDURANCE_INTENSITY_SECONDS);if(next===charge)continue;
+    const id=HAZARD_TREATMENT_IDS[index],treatment=HAZARD_TREATMENTS[id],charge=clamp01(treatments?.[id]),intensity=resolved[id];if(charge<=0||intensity<=0)continue;
+    const endurance=Math.max(1e-9,Number(treatment.enduranceIntensitySeconds)||HAZARD_TREATMENT_ENDURANCE_INTENSITY_SECONDS),next=Math.max(0,charge-intensity*elapsed/endurance);if(next===charge)continue;
     treatments[id]=next;resolved.changedMask|=1<<index;if(next<=0)resolved.expiredMask|=1<<index;
   }
   return resolved;

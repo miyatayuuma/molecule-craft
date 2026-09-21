@@ -28,8 +28,24 @@ test('treatment authority registers four isolated Utility treatments while CTFE 
   const ctfe=records.get('chlorotrifluoroethylene');assert.equal(ctfe.formula,'C2ClF3');assert.deepEqual(ctfe.atoms.reduce((out,atom)=>(out[atom]=(out[atom]??0)+1,out),{}),{C:2,F:3,Cl:1});
   assert.equal(JSON.stringify(HAZARD_TREATMENTS).includes('PCTFE'),false,'PCTFE is not a player-facing game object');
   assert.equal(HAZARD_TREATMENT_EFFECT_MULTIPLIER,.55);assert.equal(HAZARD_TREATMENT_ENDURANCE_INTENSITY_SECONDS,100);
+  assert.deepEqual(Object.fromEntries(HAZARD_TREATMENT_IDS.map(id=>[id,HAZARD_TREATMENTS[id].enduranceIntensitySeconds])),{mechanical:100,abrasive:100,thermal:100,electrical:10});
   assert.equal(HAZARD_TREATMENTS.abrasive.productionHazard,true);assert.equal(HAZARD_TREATMENTS.electrical.productionHazard,true);
 });
+
+test('treatment-specific endurance consumes one second of unit pre-mitigation exposure at the family rate',()=>{
+  const definitions={
+    mechanical:defineHazard('unit-mechanical',HAZARD_TYPES.MECHANICAL,'pressure'),
+    abrasive:defineHazard('unit-abrasive',HAZARD_TYPES.ABRASIVE,'particle-stream'),
+    thermal:defineHazard('unit-thermal',HAZARD_TYPES.THERMAL,'hot-zone'),
+    electrical:defineHazard('unit-electrical',HAZARD_TYPES.ELECTRICAL,'charged-region'),
+  };
+  for(const [id,expected] of Object.entries({mechanical:.99,abrasive:.99,thermal:.99,electrical:.90})){
+    const treatments={mechanical:1,abrasive:1,thermal:1,electrical:1};
+    updateHazardTreatmentExposure(treatments,[hazardSample(definitions[id],1,{effectiveIntensity:1})],1,createHazardTreatmentExposureState());
+    assert.ok(Math.abs(treatments[id]-expected)<1e-10,`${id} endurance must remain family-specific`);
+  }
+});
+
 test('DOCK treatment requires Awakening, recipe knowledge and complete BASE stock, then spends atomically',()=>{
   const store=memory(),r=createResources({storage:store});r.setCatalog(catalog);r.discover('phosphoric-acid');Object.assign(r.state.elements,{H:6,P:2,O:8});
   assert.equal(r.treatmentPlan('mechanical').worldAwakened,false);assert.equal(r.applyHazardTreatment('mechanical'),false);assert.deepEqual({H:r.state.elements.H,P:r.state.elements.P,O:r.state.elements.O},{H:6,P:2,O:8});
@@ -61,7 +77,7 @@ test('depletion uses resolved pre-mitigation effective intensity, max-overlap by
   const treatments={mechanical:1,abrasive:1,thermal:1,electrical:1},resolved=createHazardTreatmentExposureState(),hazards=[
     hazardSample(mechanical,1,{effectiveIntensity:1.25}),hazardSample(mechanical,.8,{effectiveIntensity:.8}),hazardSample(thermal,.5,{effectiveIntensity:.5}),hazardSample(electrical,.9,{effectiveIntensity:.9}),
   ];
-  updateHazardTreatmentExposure(treatments,hazards,10,resolved);assert.equal(resolved.mechanical,1.25);assert.equal(resolved.thermal,.5);assert.ok(Math.abs(treatments.mechanical-.875)<1e-10);assert.ok(Math.abs(treatments.thermal-.95)<1e-10);assert.ok(Math.abs(treatments.electrical-.91)<1e-10);assert.equal(treatments.abrasive,1);
+  updateHazardTreatmentExposure(treatments,hazards,10,resolved);assert.equal(resolved.mechanical,1.25);assert.equal(resolved.thermal,.5);assert.ok(Math.abs(treatments.mechanical-.875)<1e-10);assert.ok(Math.abs(treatments.thermal-.95)<1e-10);assert.ok(Math.abs(treatments.electrical-.1)<1e-10);assert.equal(treatments.abrasive,1);
   assert.equal(hazardTreatmentMultiplier(treatments,HAZARD_TYPES.MECHANICAL),.55);assert.equal(hazardTreatmentMultiplier({mechanical:0},HAZARD_TYPES.MECHANICAL),1);
   updateHazardTreatmentExposure(treatments,[hazardSample(mechanical,1,{effectiveIntensity:1.25})],70,resolved);assert.equal(treatments.mechanical,0,'1.25 effective intensity consumes a full charge in about 80 total seconds');assert.equal(hazardTreatmentMultiplier(treatments,HAZARD_TYPES.MECHANICAL),1);
 });
@@ -82,10 +98,20 @@ test('treatment charge persists across settlement/reload including forced return
   const legacy=createInitialResourcesState();delete legacy.treatments;let raw=JSON.stringify(legacy);const legacyStore={getItem:()=>raw,setItem:(_k,v)=>{raw=String(v);},removeItem:()=>{}};const normalized=createResources({storage:legacyStore});assert.deepEqual(normalized.state.treatments,{mechanical:0,abrasive:0,thermal:0,electrical:0});
 });
 
+test('Electrical partial charge persists through normal return, forced return and reload',()=>{
+  const store=memory(),r=createResources({storage:store});seedTreatment(r,'electrical',{Cl:6});assert.equal(r.applyHazardTreatment('electrical').committed,true);
+  const def=defineHazard('persist-electrical',HAZARD_TYPES.ELECTRICAL,'charged-region'),sample=hazardSample(def,1,{effectiveIntensity:1});
+  updateHazardTreatmentExposure(r.state.treatments,[sample],1,createHazardTreatmentExposureState());assert.ok(Math.abs(r.state.treatments.electrical-.9)<1e-10);
+  assert.ok(r.settleExpedition({H:0,C:0,N:0,O:0},0,false));const afterNormal=createResources({storage:store});assert.ok(Math.abs(afterNormal.state.treatments.electrical-.9)<1e-10);
+  updateHazardTreatmentExposure(afterNormal.state.treatments,[sample],1,createHazardTreatmentExposureState());assert.ok(Math.abs(afterNormal.state.treatments.electrical-.8)<1e-10);
+  assert.ok(afterNormal.settleExpedition({H:0,C:0,N:0,O:0},0,true));const afterForced=createResources({storage:store});assert.ok(Math.abs(afterForced.state.treatments.electrical-.8)<1e-10);
+});
+
 test('Rare ecology suppression follows treatment-equivalent reserve and recovers after DOCK spend while Cl remains independent',()=>{
   assert.deepEqual([0,2,4,6,8].map(n=>rareEcologyInventoryMultiplier('P',n)),[1,.85,.55,.20,.05]);assert.deepEqual([0,4,8,12,16].map(n=>rareEcologyInventoryMultiplier('F',n)),[1,.85,.55,.20,.05]);
   assert.equal(rareEcologyTreatmentReserve('P',6),3);assert.equal(rareEcologyTreatmentReserve('S',6),3);assert.equal(rareEcologyTreatmentReserve('F',12),3);assert.equal(rareEcologyTreatmentReserve('Cl',12),6);
   const r=createResources({storage:null});seedTreatment(r,'mechanical',{H:20,P:8,O:20});const before=rareEcologyInventoryMultiplier('P',r.state.elements.P);assert.equal(before,.05);r.applyHazardTreatment('mechanical');assert.equal(r.state.elements.P,6);assert.equal(rareEcologyInventoryMultiplier('P',r.state.elements.P),.20);
+  const electrical=createResources({storage:null});seedTreatment(electrical,'electrical',{Cl:6});const clBefore=rareEcologyInventoryMultiplier('Cl',electrical.state.elements.Cl);const applied=electrical.applyHazardTreatment('electrical');assert.equal(applied.committed,true);assert.equal(electrical.state.elements.Cl,4);const clAfter=rareEcologyInventoryMultiplier('Cl',electrical.state.elements.Cl);assert.ok(clAfter>clBefore);assert.equal(clAfter,1,'stock-based Cl availability recovers naturally after Cl ×2 DOCK spend');
 });
 
-console.log('Advanced hazard treatments passed: transactional Rare chemistry, persistent charges, pre-mitigation exposure, 45% mitigation, expiry/reapply and treatment-equivalent ecology.');
+console.log('Advanced hazard treatments passed: family-specific endurance, transactional Rare chemistry, persistent charges, pre-mitigation exposure, 45% mitigation, expiry/reapply and treatment-equivalent ecology.');
