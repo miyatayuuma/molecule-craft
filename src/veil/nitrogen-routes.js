@@ -62,6 +62,22 @@ export const NITROGEN_INSIGHT_ANCHORS=freeze([
 ]);
 export const NITROGEN_INSIGHT_AREA=freeze({id:'nitrogen-insight-basin',x:-180,y:-16680,radius:160,anchors:NITROGEN_INSIGHT_ANCHORS});
 export const NITROGEN_CORE=freeze({id:'nitrogen-core',x:0,y:-17700,radius:210,fractureRadius:260});
+export const NITROGEN_CORE_COLLISION_RADIUS=210;
+export const NITROGEN_CORE_REPULSION_RADIUS=330;
+export const NITROGEN_CORE_FRACTURE_DURATION=.9;
+const NITROGEN_CORE_MAX_REPULSION=300;
+const CORE_COLLISION_EPSILON=.01;
+
+export function nitrogenCoreLifecycle(core,time=0){
+  if(!core)return 'gone';
+  if(core.fractured!==true)return 'intact';
+  if(!Number.isFinite(core.fracturedAt)||!Number.isFinite(time))return 'gone';
+  const elapsed=time-core.fracturedAt;
+  return elapsed>=0&&elapsed+1e-9<NITROGEN_CORE_FRACTURE_DURATION?'fracturing':'gone';
+}
+export const nitrogenCoreIsIntact=(core,time=0)=>nitrogenCoreLifecycle(core,time)==='intact';
+export const nitrogenCoreIsFracturing=(core,time=0)=>nitrogenCoreLifecycle(core,time)==='fracturing';
+export const nitrogenCoreIsGone=(core,time=0)=>nitrogenCoreLifecycle(core,time)==='gone';
 
 const hazard=(id,x,y,{radius,type=HAZARD_TYPES.MECHANICAL,subtype='turbulence',baseIntensity=.5,force=0,heat=0,angle=0,pulse=.16,phase=0}={})=>freeze({id,x,y,radius,type,subtype,baseIntensity,force,heat,angle,pulse,phase,hazard:defineHazard(id,type,subtype,{source:'nitrogen-field'})});
 export const NITROGEN_HAZARDS=freeze([
@@ -82,7 +98,52 @@ export function nitrogenZoneAtPoint(p){
 }
 export const nitrogenRecoveryAt=p=>p?(NITROGEN_RECOVERY_AREAS.find(area=>Math.hypot(p.x-area.x,p.y-area.y)<=area.radius)??null):null;
 export const nitrogenInsightAreaAt=p=>Math.hypot((p?.x??Infinity)-NITROGEN_INSIGHT_AREA.x,(p?.y??Infinity)-NITROGEN_INSIGHT_AREA.y)<=NITROGEN_INSIGHT_AREA.radius;
-export const nitrogenCoreInRange=(run,p=run?.player)=>{const core=run?.map?.nitrogenCore;return !!core&&!core.fractured&&Number.isFinite(p?.x)&&Math.hypot(p.x-core.x,p.y-core.y)<=core.fractureRadius;};
+export const nitrogenCoreInRange=(run,p=run?.player)=>{const core=run?.map?.nitrogenCore;return nitrogenCoreIsIntact(core,run?.time??0)&&Number.isFinite(p?.x)&&Number.isFinite(p?.y)&&Math.hypot(p.x-core.x,p.y-core.y)<=core.fractureRadius;};
+
+export function nitrogenCoreRepulsionAt(core,p){
+  if(!nitrogenCoreIsIntact(core)||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return {x:0,y:0,magnitude:0,distance:Infinity};
+  const dx=p.x-core.x,dy=p.y-core.y,distance=Math.hypot(dx,dy);
+  if(distance>=NITROGEN_CORE_REPULSION_RADIUS||distance<=NITROGEN_CORE_COLLISION_RADIUS)return {x:0,y:0,magnitude:0,distance};
+  const pressure=(NITROGEN_CORE_REPULSION_RADIUS-distance)/(NITROGEN_CORE_REPULSION_RADIUS-NITROGEN_CORE_COLLISION_RADIUS),magnitude=NITROGEN_CORE_MAX_REPULSION*pressure*pressure;
+  return {x:dx/distance*magnitude,y:dy/distance*magnitude,magnitude,distance};
+}
+
+export function resolveNitrogenCoreCollision(core,from,to,velocity={x:0,y:0}){
+  const unchanged={x:to?.x,y:to?.y,vx:velocity?.x??0,vy:velocity?.y??0,collided:false};
+  if(!nitrogenCoreIsIntact(core)||![from?.x,from?.y,to?.x,to?.y].every(Number.isFinite))return unchanged;
+  const radius=NITROGEN_CORE_COLLISION_RADIUS,dx=to.x-from.x,dy=to.y-from.y,travelSquared=dx*dx+dy*dy;
+  const startX=from.x-core.x,startY=from.y-core.y,startDistance=Math.hypot(startX,startY),endX=to.x-core.x,endY=to.y-core.y,endDistance=Math.hypot(endX,endY);
+  let contactT=null;
+  if(startDistance<radius){
+    contactT=0;
+  }else if(travelSquared>1e-12){
+    const closestT=-(startX*dx+startY*dy)/travelSquared,closestX=startX+dx*closestT,closestY=startY+dy*closestT,closestSquared=closestX*closestX+closestY*closestY;
+    if(closestT>=0&&closestT<=1&&closestSquared<radius*radius){
+      const discriminant=travelSquared*(radius*radius-closestSquared),root=Math.sqrt(Math.max(0,discriminant));
+      contactT=Math.max(0,Math.min(1,(-startX*dx-startY*dy-root)/travelSquared));
+    }else if(endDistance<radius){
+      const b=2*(startX*dx+startY*dy),c=startX*startX+startY*startY-radius*radius,discriminant=Math.max(0,b*b-4*travelSquared*c);
+      contactT=Math.max(0,Math.min(1,(-b-Math.sqrt(discriminant))/(2*travelSquared)));
+    }
+  }else if(endDistance<radius){
+    contactT=0;
+  }
+  if(contactT===null)return unchanged;
+  let nx,ny,contactX,contactY;
+  if(startDistance<radius){
+    const direction=startDistance>1e-8?{x:startX/startDistance,y:startY/startDistance}:travelSquared>1e-8?{x:-dx/Math.sqrt(travelSquared),y:-dy/Math.sqrt(travelSquared)}:{x:1,y:0};
+    nx=direction.x;ny=direction.y;contactX=core.x+nx*radius;contactY=core.y+ny*radius;
+  }else{
+    contactX=from.x+dx*contactT;contactY=from.y+dy*contactT;
+    const length=Math.hypot(contactX-core.x,contactY-core.y)||1;nx=(contactX-core.x)/length;ny=(contactY-core.y)/length;
+  }
+  const remainingX=to.x-contactX,remainingY=to.y-contactY,inwardMove=Math.min(0,remainingX*nx+remainingY*ny),slideX=remainingX-inwardMove*nx,slideY=remainingY-inwardMove*ny;
+  let x=contactX+slideX+nx*CORE_COLLISION_EPSILON,y=contactY+slideY+ny*CORE_COLLISION_EPSILON;
+  const finalX=x-core.x,finalY=y-core.y,finalDistance=Math.hypot(finalX,finalY);
+  if(finalDistance<radius+CORE_COLLISION_EPSILON){const length=finalDistance||1;x=core.x+finalX/length*(radius+CORE_COLLISION_EPSILON);y=core.y+finalY/length*(radius+CORE_COLLISION_EPSILON);}
+  const resolvedDistance=Math.hypot(x-core.x,y-core.y)||1,vx=velocity?.x??0,vy=velocity?.y??0,vn=(vx*(x-core.x)+vy*(y-core.y))/resolvedDistance,removeInward=Math.min(0,vn);
+  return {x,y,vx:vx-removeInward*(x-core.x)/resolvedDistance,vy:vy-removeInward*(y-core.y)/resolvedDistance,collided:true};
+}
 
 export function nitrogenHazardSpatialAt(item,p,seed=1){
   if(!item||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return 0;
