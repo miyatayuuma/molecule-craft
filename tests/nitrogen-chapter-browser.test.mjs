@@ -61,7 +61,7 @@ try{
   // Exercise the Core's production renderer at both acceptance viewports. The
   // map metadata remains present after fracture; only the player-facing object
   // disappears when fracturedAt reaches the end of its animation.
-  const savedCoreView=await evaluate(`(()=>{const run=globalThis.__nitrogenChapterRun,core=run.map.nitrogenCore;return {time:run.time,player:{x:run.player.x,y:run.player.y,angle:run.player.angle,vx:run.player.vx,vy:run.player.vy,speed:run.player.speed},fractured:core.fractured,fracturedAt:core.fracturedAt};})()`);
+  const savedCoreView=await evaluate(`(()=>{const run=globalThis.__nitrogenChapterRun,core=run.map.nitrogenCore;return {captured:run.captured,time:run.time,player:{x:run.player.x,y:run.player.y,angle:run.player.angle,vx:run.player.vx,vy:run.player.vy,speed:run.player.speed},fractured:core.fractured,fracturedAt:core.fracturedAt};})()`);
   async function coreViewportAcceptance(width,height,mobile){
     await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile,screenWidth:width,screenHeight:height});
     await evaluate(`new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))`);
@@ -76,7 +76,9 @@ try{
     await evaluate(`(()=>{const run=globalThis.__nitrogenChapterRun,core=run.map.nitrogenCore;core.fractured=${savedCoreView.fractured};${savedCoreView.fracturedAt===undefined?'delete core.fracturedAt;':`core.fracturedAt=${savedCoreView.fracturedAt};`}run.time=${savedCoreView.time};Object.assign(run.player,${JSON.stringify(savedCoreView.player)});globalThis.__nitrogenChapterRenderer.reset();})()`);
     return result;
   }
+  await evaluate(`globalThis.__nitrogenChapterRun.captured=true`);
   const mobileCoreAcceptance=await coreViewportAcceptance(390,844,true),desktopCoreAcceptance=await coreViewportAcceptance(1280,800,false);console.log('Nitrogen Core renderer acceptance',JSON.stringify({mobile:mobileCoreAcceptance,desktop:desktopCoreAcceptance}));
+  await evaluate(`globalThis.__nitrogenChapterRun.captured=${savedCoreView.captured}`);
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true,screenWidth:390,screenHeight:844});await evaluate(`window.dispatchEvent(new Event('resize'))`);
 
   // Player-facing phase identity: render the production canvas from each authored
