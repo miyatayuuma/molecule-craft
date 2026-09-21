@@ -6,7 +6,7 @@ import { combustionChargeFor,performanceFor } from './molecule-roles.js';
 import {canShock,consumeShockCharge,shockStrength} from './shock.js';
 import { environmentAt, animateUniverse } from './universe.js';
 import {appendHazard,defineHazard,effectiveHazardScale,HAZARD_TYPES,organicCorridorInfluence} from './hazards.js';
-import {nitrogenCoreInRange} from './nitrogen-routes.js';
+import {nitrogenCoreInRange,nitrogenCoreIsIntact,nitrogenCoreRepulsionAt,resolveNitrogenCoreCollision} from './nitrogen-routes.js';
 import {dustEaterWorldTuning} from './world-awakening.js';
 import { OXYGEN_THERMAL, recordOxygenPassage } from './oxygen-routes.js';
 import { createExpeditionTelemetry, recordExpeditionFrame, recordFuelUse } from './telemetry.js';
@@ -203,8 +203,11 @@ function stepRunFrame(run,input,dt,systems){
   const treatedMovement=movementEnvironment?{...movementEnvironment,pressure:(movementEnvironment.pressure??0)*mechanicalMultiplier,flowX:(movementEnvironment.flowX??0)*mechanicalMultiplier,flowY:(movementEnvironment.flowY??0)*mechanicalMultiplier,surfaceDrag:abrasiveDrag,controlAuthority:electricalResponse.controlAuthority,propulsionAuthority:electricalResponse.propulsionAuthority}:{surfaceDrag:abrasiveDrag,controlAuthority:electricalResponse.controlAuthority,propulsionAuthority:electricalResponse.propulsionAuthority};
   const targetHeat=environment?clamp(environment.heat*thermalMultiplier/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?1+((environment.combustionHeatFactor??1)-1)*thermalMultiplier:1;
   run.currentHazards=currentHazards;
-  moveFlight(p,input,dt,{config:c,assist:nearest,force,environment:treatedMovement});
-  const nitrogenCore=map.nitrogenCore;if(nitrogenCore&&!nitrogenCore.fractured&&!run.coreApproachNotified&&Math.hypot(p.x-nitrogenCore.x,p.y-nitrogenCore.y)<=nitrogenCore.fractureRadius*1.55){run.coreApproachNotified=true;run.events.push({type:'coreApproach',shockAvailable:canShock(run),shockCharges:run.fuel.shock?.amount??0});}
+  const nitrogenCore=map.nitrogenCore,coreRepulsion=nitrogenCoreRepulsionAt(nitrogenCore,p);
+  moveFlight(p,input,dt,{config:c,assist:nearest,force:{x:force.x+coreRepulsion.x,y:force.y+coreRepulsion.y},environment:treatedMovement});
+  const resolvedCoreMove=resolveNitrogenCoreCollision(nitrogenCore,old,{x:p.x,y:p.y},{x:p.vx,y:p.vy});
+  if(resolvedCoreMove.collided){p.x=resolvedCoreMove.x;p.y=resolvedCoreMove.y;p.vx=resolvedCoreMove.vx;p.vy=resolvedCoreMove.vy;p.speed=Math.hypot(p.vx,p.vy);if(p.speed>1)p.angle=Math.atan2(p.vy,p.vx);}
+  if(nitrogenCoreIsIntact(nitrogenCore,run.time)&&!run.coreApproachNotified&&Math.hypot(p.x-nitrogenCore.x,p.y-nitrogenCore.y)<=nitrogenCore.fractureRadius*1.55){run.coreApproachNotified=true;run.events.push({type:'coreApproach',shockAvailable:canShock(run),shockCharges:run.fuel.shock?.amount??0});}
   recordChallengePassage(run,old);recordOxygenPassage(run,old,dt);recordChoDestination(run,old);
   if(map.universe){const region=regionAt(p.y);if(region!==run.region){run.region=region;run.events.push({type:'region',region});}}
   if(!run.gatePassed&&propelled&&old.y>=g.y-50&&p.y<g.y-50&&Math.abs(p.x-g.x)<g.width/2){run.gatePassed=true;run.events.push({type:'gate'});}
