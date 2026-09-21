@@ -112,6 +112,33 @@ export function createVeilRenderer(canvas){
     ctx.fillStyle='#d2f6fa';ctx.globalAlpha=.86;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='600 11px system-ui';ctx.fillText('SAFE SITE',0,0);
     ctx.globalAlpha=.78;ctx.font='600 8px system-ui';ctx.fillText('EXTRACTION',0,13);ctx.restore();ctx.globalAlpha=1;
   }
+  function drawDistantNitrogenCore(run,core,distance,reduced){
+    if(!core||distance>4800||distance<900)return;
+    const dx=core.x-run.player.x,dy=core.y-run.player.y,length=Math.hypot(dx,dy)||1,ux=dx/length,uy=dy/length;
+    const edge=Math.min(Math.abs(ux)>1e-5?w*.45/Math.abs(ux):Infinity,Math.abs(uy)>1e-5?h*.45/Math.abs(uy):Infinity),offset=Math.min(distance*scale,edge);
+    const x=w/2+ux*offset,y=h/2+uy*offset,progress=clamp((4800-distance)/(4800-900),0,1),fade=smoothstep((distance-900)/500),size=12+36*progress,activity=.22+.7*progress,pulse=.5+.5*Math.sin(run.time*1.35);
+    ctx.save();ctx.globalAlpha=fade;
+    const glowRadius=size*(1.7+pulse*.25),glow=ctx.createRadialGradient(x,y,0,x,y,glowRadius);glow.addColorStop(0,`rgba(206,156,255,${.28*activity})`);glow.addColorStop(.34,`rgba(151,91,220,${.18*activity})`);glow.addColorStop(1,'rgba(92,55,157,0)');ctx.fillStyle=glow;ctx.fillRect(x-glowRadius,y-glowRadius,glowRadius*2,glowRadius*2);
+    ctx.strokeStyle='#d4b3ff';ctx.lineWidth=1+progress;ctx.globalAlpha=fade*(.2+.42*activity);
+    for(let i=0;i<3;i++){const r=size*(.48+i*.34)+pulse*size*.09;ctx.beginPath();ctx.ellipse(x,y,r,r*(.58+i*.09),run.time*.09+i*.55,0,Math.PI*2);ctx.stroke();}
+    const emission=(run.time*.31)%1;if(!reduced&&emission<.24){const t=emission/.24,r=size*(.65+t*2.8);ctx.globalAlpha=fade*(1-t)*(.16+.3*activity);ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();}
+    ctx.fillStyle='#dfc6ff';ctx.globalAlpha=fade*(.52+.4*activity);ctx.beginPath();ctx.arc(x,y,Math.max(2,size*.11),0,Math.PI*2);ctx.fill();ctx.restore();ctx.globalAlpha=1;
+  }
+  function drawNitrogenCore(run,core,distance){
+    if(!core||distance>1400)return;
+    const alpha=smoothstep((1400-distance)/500),near=1-distance/1400,pulse=.5+.5*Math.sin(run.time*1.3),r=core.radius;
+    ctx.save();ctx.globalAlpha=alpha;
+    const halo=ctx.createRadialGradient(core.x,core.y,r*.12,core.x,core.y,r*2.02);
+    halo.addColorStop(0,core.fractured?'rgba(232,214,255,.3)':'rgba(205,172,239,.4)');halo.addColorStop(.36,core.fractured?'rgba(132,99,163,.2)':'rgba(126,87,171,.25)');halo.addColorStop(1,'rgba(68,43,96,0)');ctx.fillStyle=halo;ctx.fillRect(core.x-r*2.05,core.y-r*2.05,r*4.1,r*4.1);
+    ctx.strokeStyle=core.fractured?'#c9afe4':'#d8c1f5';ctx.globalAlpha=alpha*(.28+near*.44+pulse*.14);ctx.lineWidth=1.2+near*1.4;
+    for(let ring=0;ring<3;ring++){ctx.beginPath();ctx.ellipse(core.x,core.y,r*(1.12+ring*.22),r*(.85+ring*.18),ring*.61+run.time*.07,run.time*.17+ring*1.7,run.time*.17+ring*1.7+Math.PI*(1.1+ring*.1));ctx.stroke();}
+    ctx.beginPath();const vertices=28;for(let i=0;i<=vertices;i++){const a=i/vertices*Math.PI*2,rough=1+.045*Math.sin(i*2.7+1.1)+.025*Math.cos(i*4.1),x=core.x+Math.cos(a)*r*rough,y=core.y+Math.sin(a)*r*rough;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();
+    const mass=ctx.createRadialGradient(core.x-r*.18,core.y-r*.25,r*.06,core.x,core.y,r*1.08);mass.addColorStop(0,core.fractured?'#30253d':'#261c34');mass.addColorStop(.65,core.fractured?'#17121f':'#110e1a');mass.addColorStop(1,'#05050a');ctx.fillStyle=mass;ctx.globalAlpha=alpha*.98;ctx.fill();ctx.strokeStyle=core.fractured?'#bd9fdd':'#d5c1ec';ctx.globalAlpha=alpha*(.55+near*.35);ctx.lineWidth=2+near*2;ctx.stroke();
+    ctx.strokeStyle=core.fractured?'#ead8ff':'#cdb4ec';ctx.globalAlpha=alpha*(core.fractured?.9:.28+near*.45);ctx.lineWidth=1.3+near*1.8;
+    for(let i=0;i<9;i++){const a=i*2.399+(run.map.seed??1)*.013,inner=r*(.12+(i%3)*.055),outer=r*(.55+(i%4)*.105),bend=.11*Math.sin(i*3.7);ctx.beginPath();ctx.moveTo(core.x+Math.cos(a)*inner,core.y+Math.sin(a)*inner);ctx.lineTo(core.x+Math.cos(a+bend)*outer*.58,core.y+Math.sin(a+bend)*outer*.58);ctx.lineTo(core.x+Math.cos(a+.15*(i%2?1:-1))*outer,core.y+Math.sin(a+.15*(i%2?1:-1))*outer);ctx.stroke();}
+    for(let i=0;i<18;i++){const a=i*2.399+run.time*.035,d=r*(1.18+(i%5)*.13),x=core.x+Math.cos(a)*d,y=core.y+Math.sin(a)*d*.78,size=1.8+(i%4)*.7;ctx.fillStyle=i%3===0?'#d7c2ef':'#9d80bb';ctx.globalAlpha=alpha*(.22+near*.2)*(i%2?.72:1);ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fill();}
+    ctx.restore();ctx.globalAlpha=1;
+  }
   function draw(run,dt,reduced=false){
     const p=run.player,burst=p.boost>0,combustion=p.combustion===true,boost=burst||combustion,fever=Math.min(run.chain/VEIL.feverChain,1),lead=Math.min(p.speed*VEIL.cameraLead,VEIL.cameraMaxLead);
     if(run.returnEffect)run.returnEffect.life=Math.min(run.returnEffect.duration,run.returnEffect.life+dt);
@@ -135,8 +162,10 @@ export function createVeilRenderer(canvas){
       const g=ctx.createRadialGradient(glimpse.x,glimpse.y,0,glimpse.x,glimpse.y,radius);g.addColorStop(0,`rgba(173,134,211,${fade*.3})`);g.addColorStop(.45,`rgba(105,109,176,${fade*.18})`);g.addColorStop(1,'rgba(83,102,157,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
       for(let i=0;i<48;i++){const a=i*2.399,r=Math.sqrt(i/48)*radius*.7;glow(glimpse.x+Math.cos(a)*r,glimpse.y+Math.sin(a)*r*.48,12*scale,'rare',fade*.7);}
     }
-    const sites=run.map.safeExtractionSites??[],carryingInsight=(run.carriedInsights?.length??0)>0,returnAvailable=!run.captured&&!run.returnEffect&&(carryingInsight||isInsideSafeExtractionSite(p,sites)),nearestSite=!carryingInsight?[...sites].sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(p.x-b.x,p.y-b.y))[0]:null;
+    const sites=run.map.safeExtractionSites??[],carryingInsight=(run.carriedInsights?.length??0)>0,nitrogenField=!!run.map.nitrogenCore,returnAvailable=!run.captured&&!run.returnEffect&&(carryingInsight||isInsideSafeExtractionSite(p,sites)),nearestSite=!carryingInsight&&!nitrogenField?[...sites].sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(p.x-b.x,p.y-b.y))[0]:null;
     for(const site of sites)drawSafeExtractionSite(site,run.time,reduced,site.id===nearestSite?.id);
+    const distantCore=run.map.nitrogenCore,coreDistance=distantCore?Math.hypot(distantCore.x-p.x,distantCore.y-p.y):Infinity;
+    drawDistantNitrogenCore(run,distantCore,coreDistance,reduced);
     ctx.save();ctx.translate(w/2-camera.x*scale,h/2-camera.y*scale);ctx.scale(scale,scale);
     if(run.map.universe){
       // Broad moving strata make Oxygen Surge a hot, fast environment rather
@@ -202,28 +231,20 @@ export function createVeilRenderer(canvas){
       ctx.globalAlpha=1;
     }
     if(run.map.universe&&run.map.nitrogenHazards?.length){
-      // Nitrogen FIELD v2: deterministic environment samples replace the old
-      // continuous route/belt fill. Visual density follows the same base/world intensity.
+      // Local hazard wisps use the same spatial and post-Awakening authority as gameplay.
       for(const visual of run.map.nitrogenVisuals??[]){
         const item=run.map.nitrogenHazards.find(hazard=>hazard.id===visual.hazardId);if(!item)continue;
-        const effective=Math.min(1.25,nitrogenVisualEffectiveAt(item,visual,run.time,{worldState:run.map.worldState}).scale),at=screen(visual.x,visual.y),pulse=.82+.18*Math.sin(run.time*.7+visual.phase),alpha=effective*pulse;
-        if(alpha<.035||at.x<-120||at.x>w+120||at.y<-120||at.y>h+120)continue;
-        const radius=(item.type==='thermal'?42:34)*scale*(.75+effective*.55),fog=ctx.createRadialGradient(at.x,at.y,1,at.x,at.y,radius);
+        const effective=Math.min(1.25,nitrogenVisualEffectiveAt(item,visual,run.time,{worldState:run.map.worldState}).scale),pulse=.82+.18*Math.sin(run.time*.7+visual.phase),alpha=effective*pulse,radius=(item.type==='thermal'?145:118)*(.75+effective*.55);
+        if(alpha<.035)continue;
+        if(visual.x+radius<camera.x-w/(2*scale)||visual.x-radius>camera.x+w/(2*scale)||visual.y+radius<camera.y-h/(2*scale)||visual.y-radius>camera.y+h/(2*scale))continue;
+        const fog=ctx.createRadialGradient(visual.x,visual.y,1,visual.x,visual.y,radius);
         if(item.type==='thermal'){fog.addColorStop(0,`rgba(235,116,80,${.11*alpha})`);fog.addColorStop(1,'rgba(200,83,56,0)');}
         else{fog.addColorStop(0,`rgba(124,147,225,${.12*alpha})`);fog.addColorStop(1,'rgba(72,98,160,0)');}
-        ctx.fillStyle=fog;ctx.fillRect(at.x-radius,at.y-radius,radius*2,radius*2);
-        if(!reduced&&item.type!=='thermal'){ctx.save();ctx.translate(at.x,at.y);ctx.rotate(item.angle??0);ctx.strokeStyle='#91a9df';ctx.globalAlpha=.08+.16*alpha;ctx.lineWidth=(.7+effective)*scale;ctx.beginPath();ctx.moveTo(-13*scale,0);ctx.quadraticCurveTo(0,Math.sin(run.time+visual.phase)*4*scale,13*scale,0);ctx.stroke();ctx.restore();ctx.globalAlpha=1;}
+        ctx.fillStyle=fog;ctx.fillRect(visual.x-radius,visual.y-radius,radius*2,radius*2);
+        if(!reduced&&item.type!=='thermal'){ctx.save();ctx.translate(visual.x,visual.y);ctx.rotate(item.angle??0);ctx.strokeStyle='#91a9df';ctx.globalAlpha=.08+.16*alpha;ctx.lineWidth=.7+effective;ctx.beginPath();ctx.moveTo(-45,0);ctx.quadraticCurveTo(0,Math.sin(run.time+visual.phase)*16,45,0);ctx.stroke();ctx.restore();ctx.globalAlpha=1;}
       }
       const core=run.map.nitrogenCore;
-      if(core){
-        const at=screen(core.x,core.y),pulse=.5+.5*Math.sin(run.time*1.3),r=core.radius*scale;
-        if(at.x>-r*1.5&&at.x<w+r*1.5&&at.y>-r*1.5&&at.y<h+r*1.5){
-          const halo=ctx.createRadialGradient(at.x,at.y,r*.08,at.x,at.y,r*1.18);halo.addColorStop(0,core.fractured?'rgba(232,214,255,.16)':'rgba(230,222,255,.35)');halo.addColorStop(.45,core.fractured?'rgba(118,91,151,.07)':'rgba(144,121,190,.16)');halo.addColorStop(1,'rgba(86,62,118,0)');ctx.fillStyle=halo;ctx.fillRect(at.x-r*1.2,at.y-r*1.2,r*2.4,r*2.4);
-          ctx.save();ctx.translate(at.x,at.y);ctx.strokeStyle=core.fractured?'#806d91':'#d8c9f1';ctx.globalAlpha=core.fractured?.34:.48+pulse*.12;ctx.lineWidth=1.5*scale;
-          for(let i=0;i<7;i++){const a=i*2.399+(run.map.seed??1)*.013,inner=r*(.16+(i%3)*.07),outer=r*(.55+(i%4)*.08);ctx.beginPath();ctx.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);ctx.lineTo(Math.cos(a+.15*(i%2?1:-1))*outer,Math.sin(a+.15*(i%2?1:-1))*outer);ctx.stroke();}
-          ctx.restore();ctx.globalAlpha=1;
-        }
-      }
+      drawNitrogenCore(run,core,coreDistance);
     }
     if(run.map.universe){
       const d=CHO_DESTINATION,pulse=1+Math.sin(run.time*1.7)*.035,radius=d.radius*pulse;ctx.save();
@@ -235,20 +256,21 @@ export function createVeilRenderer(canvas){
     for(const route of run.map.routes){if(route.nitrogen===true)continue;const element=route.element??'H',color=element==='C'?'#54345f':element==='N'?'#315c9f':element==='O'?'#70433d':route.kind==='dense'?'#214f62':'#142e40';ctx.beginPath();route.points.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.strokeStyle=color;ctx.lineWidth=element==='O'?1.8:1.2;ctx.globalAlpha=element==='O'?.8:1;ctx.stroke();ctx.globalAlpha=1;}
     // Wisps travel in the direction of the force: no collision outlines or debug rings.
     for(const f of run.map.fields){
-      const at=screen(f.x,f.y),r=f.radius;if(at.x<-r*scale||at.x>w+r*scale||at.y<-r*scale||at.y>h+r*scale)continue;
+      const r=f.radius;if(f.x+r<camera.x-w/(2*scale)||f.x-r>camera.x+w/(2*scale)||f.y+r<camera.y-h/(2*scale)||f.y-r>camera.y+h/(2*scale))continue;
       const intensity=f.effectiveIntensity??f.intensity??.7,forceCue=clamp(Math.sqrt((f.effectiveForce??f.force??VEIL.fieldForce)/VEIL.fieldForce),1,1.9);
       const fog=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,r);
-      fog.addColorStop(0,`rgba(136,136,220,${.09+intensity*.06})`);fog.addColorStop(1,'rgba(88,117,169,0)');
+      const burstField=f.kind==='burst-advantage';fog.addColorStop(0,burstField?`rgba(205,151,255,${.14+intensity*.12})`:`rgba(136,136,220,${.09+intensity*.06})`);fog.addColorStop(1,burstField?'rgba(138,84,206,0)':'rgba(88,117,169,0)');
       ctx.fillStyle=fog;ctx.fillRect(f.x-r,f.y-r,r*2,r*2);
       ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.angle??.15);
       for(let i=0;i<13;i++){
         const band=(i-6)*r/9,span=Math.sqrt(Math.max(0,r*r-band*band));
-        const wave=(x)=>band+Math.sin(x/r*3+i*.65-run.time*.65)*13*Math.sin((x/span+1)*Math.PI/2);
-        ctx.strokeStyle='#889bc3';ctx.lineWidth=(i%3===0?2:1)*forceCue;ctx.globalAlpha=Math.min(.42,(.09+intensity*.12)*forceCue)*(1-Math.abs(band)/r);
+        const wave=(x)=>band+Math.sin(x/r*3+i*.65-run.time*.65)*r*.065*Math.sin((x/span+1)*Math.PI/2);
+        ctx.strokeStyle=burstField?'#d7b2ff':'#889bc3';ctx.lineWidth=(i%3===0?2:1)*forceCue;ctx.globalAlpha=Math.min(.5,(burstField?.16:.09)+intensity*.12)*forceCue*(1-Math.abs(band)/r);
         ctx.beginPath();for(let j=0;j<=28;j++){const x=-span+j/28*span*2;j?ctx.lineTo(x,wave(x)):ctx.moveTo(x,wave(x));}ctx.stroke();
         for(let j=0;j<3;j++){const phase=(run.time*(.16+intensity*.08)+i*.073+j/3)%1,x=(phase*2-1)*span,y=wave(x);
-          ctx.globalAlpha=Math.sin(phase*Math.PI)*(.24+intensity*.22);ctx.fillStyle='#a2b9e0';ctx.beginPath();ctx.ellipse(x,y,3.8,1.2,0,0,Math.PI*2);ctx.fill();}
+          ctx.globalAlpha=Math.sin(phase*Math.PI)*(.24+intensity*.22);ctx.fillStyle=burstField?'#efdcff':'#a2b9e0';ctx.beginPath();ctx.ellipse(x,y,3.8,1.2,0,0,Math.PI*2);ctx.fill();}
       }
+      if(burstField){ctx.strokeStyle='#f0d8ff';ctx.globalAlpha=.42;ctx.lineWidth=1.4;for(let i=0;i<3;i++){const radius=r*(.34+i*.24),phase=run.time*.48+i*2.09;ctx.beginPath();ctx.ellipse(0,0,radius,radius*.7,phase,0,Math.PI*1.62);ctx.stroke();}}
       ctx.globalAlpha=1;ctx.restore();
     }
     const gate=VEIL.gate;

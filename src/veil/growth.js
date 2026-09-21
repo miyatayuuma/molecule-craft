@@ -46,7 +46,7 @@ export const REGIONS=Object.freeze({
   carbon:{name:'Carbon Drift',subtitle:'炭素の群れ',element:'C',x:250,y:-4600,angle:-Math.PI/2},
   oxygen:{name:'Oxygen Surge',subtitle:'酸素の奔流',element:'O',x:170,y:-8090,angle:-Math.PI/2},
   frontier:{name:'Inner Horizon',subtitle:'まだ名のない光',element:'O',x:100,y:-11920,angle:-Math.PI/2},
-  nitrogen:{name:'Nitrogen Pulse',subtitle:'窒素の脈動流',element:'N',x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,angle:NITROGEN_ENTRY.angle},
+  nitrogen:{name:'Nitrogen FIELD',subtitle:'窒素の深部試験場',element:'N',x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,angle:NITROGEN_ENTRY.angle},
 });
 export const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','frontier','nitrogen']);
 export const EXPEDITION_DESTINATION_REGION_IDS=Object.freeze(['veil','carbon','oxygen','nitrogen']);

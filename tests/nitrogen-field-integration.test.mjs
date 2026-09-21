@@ -6,8 +6,9 @@ import {createUniverse} from '../src/veil/universe.js';
 import {createRun,stepRun,beginBurst,setCombustionHeld,FIELD_INSIGHT_MIN_DISTANCE,FIELD_INSIGHT_MIN_SECONDS,triggerInsight} from '../src/veil/expedition-run.js';
 import {flightConfig} from '../src/veil/growth.js';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
+import {syncFieldInsightMarkerClaimability} from '../src/veil/signal-claimability.js';
 import {NITROGEN_ENTRY,NITROGEN_REGION_BOUNDS} from '../src/veil/nitrogen-config.js';
-import {NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_AREA,NITROGEN_PULSES,NITROGEN_ROUTE,NITROGEN_WORLD_SEED,nitrogenInsightAreaAt} from '../src/veil/nitrogen-routes.js';
+import {NITROGEN_HIGH_DENSITY_POCKET,NITROGEN_INSIGHT_ANCHORS,NITROGEN_INSIGHT_AREA,NITROGEN_PULSE_FIELD,NITROGEN_ROUTE,NITROGEN_SIDE_ROUTE,NITROGEN_WORLD_SEED,NITROGEN_ZONES,nitrogenInsightAreaAt} from '../src/veil/nitrogen-routes.js';
 import {AMMONIA_MOLECULE_ID,NITROGEN_MOLECULE_ID,nitrogenChapterState} from '../src/veil/nitrogen-progression.js';
 
 const memory=()=>{const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key),raw:key=>data.get(key)??null};};
@@ -23,27 +24,10 @@ function nitrogenRun(stock=0,{fuel={},predators=false}={}){
   return run;
 }
 
-function simulate(mode){
-  const fuel=mode==='hydrogen'?{propellant:{molecule:'hydrogen',amount:120}}:mode==='nitrogen'?{propellant:{molecule:'nitrogen',amount:80}}:mode==='combustion'?{fuel:{molecule:'methane',amount:18},oxidizer:{molecule:'oxygen',amount:36},coolant:{molecule:'water',amount:80}}:{};
-  const run=nitrogenRun(0,{fuel}),points=NITROGEN_ROUTE.points,last=points.at(-1),burstSchedule=mode==='hydrogen'?[.18,.50,.81]:mode==='nitrogen'?NITROGEN_PULSES.map(pulse=>pulse.progress):[],systems={consumeCombustion:()=>true,consumeCoolant:()=>true};
-  if(mode==='combustion')setCombustionHeld(run,true);
-  let targetIndex=2,nextBurst=0,driveSeconds=0,maxLateralError=0;
-  while(run.time<70){
-    const target=points[Math.min(points.length-1,targetIndex)],dx=target.x-run.player.x,dy=target.y-run.player.y,distance=Math.hypot(dx,dy)||1,progress=targetIndex/(points.length-1);
-    if(distance<85&&targetIndex<points.length-1)targetIndex=Math.min(points.length-1,targetIndex+2);
-    if(nextBurst<burstSchedule.length&&progress>=burstSchedule[nextBurst]&&run.player.boost<=0&&run.player.cooldown<=0){if(beginBurst(run,()=>true))nextBurst++;}
-    const before=run.time,events=stepRun(run,{x:dx/distance,y:dy/distance},1/30,systems);driveSeconds+=run.player.combustion?run.time-before:0;
-    const nearest=points.slice(Math.max(0,targetIndex-8),Math.min(points.length,targetIndex+9)).reduce((best,point)=>Math.min(best,Math.hypot(run.player.x-point.x,run.player.y-point.y)),Infinity);maxLateralError=Math.max(maxLateralError,nearest);
-    if(events.some(event=>event.type==='capture'))break;
-    if(Math.hypot(run.player.x-last.x,run.player.y-last.y)<115&&targetIndex>=points.length-3)break;
-  }
-  return {success:Math.hypot(run.player.x-last.x,run.player.y-last.y)<150,time:Number(run.time.toFixed(2)),bursts:run.telemetry.burstUses,driveSeconds:Number(driveSeconds.toFixed(2)),nAtoms:run.collectedElements.N,maxLateralError:Number(maxLateralError.toFixed(1)),run};
-}
-
 test('Nitrogen geometry is absent pre-CHO and composed only for post-CHO flight config',()=>{
   const base=createUniverse(41,{H:0,C:0,N:0,O:0},{capabilities:{combustionDrive:true}});assert.equal(base.routes.some(route=>route.id===NITROGEN_ROUTE.id),false,'base universe remains CHO-only');
   const pre=createRun(createUniverse(41,{H:0,C:0,N:0,O:0},{capabilities:{combustionDrive:true}}),flightConfig({progress:{choCompleted:false},elements:{N:0}}),{predators:false});assert.equal(pre.map.routes.some(route=>route.id===NITROGEN_ROUTE.id),false);assert.equal(pre.config.bounds.top,-12750);
-  const post=nitrogenRun();assert.equal(post.map.routes.some(route=>route.id===NITROGEN_ROUTE.id),true);assert.deepEqual(post.config.bounds,NITROGEN_REGION_BOUNDS);assert.ok(post.map.nitrogenHazards.length>=8);assert.equal(post.map.fields.some(field=>field.kind==='nitrogen-pulse'),false,'Nitrogen v2 hazards are environment fields rather than legacy trigger circles');
+  const post=nitrogenRun();assert.equal(post.map.routes.some(route=>route.id===NITROGEN_ROUTE.id),true);assert.deepEqual(post.config.bounds,NITROGEN_REGION_BOUNDS);assert.equal(post.map.nitrogenHazards.length,6);assert.equal(post.map.fields.some(field=>field.kind==='nitrogen-pulse'),false);assert.equal(post.map.fields.find(field=>field.id===NITROGEN_PULSE_FIELD.id)?.kind,'burst-advantage');assert.ok(post.map.routes.some(route=>route.id===NITROGEN_SIDE_ROUTE.id&&route.optional));
   assert.ok(NITROGEN_ROUTE.points.every(point=>point.y<=NITROGEN_ENTRY.y+1&&point.y>=NITROGEN_REGION_BOUNDS.top),'Nitrogen route stays within the post-CHO extension');
 });
 
@@ -65,12 +49,11 @@ test('Nitrogen ambient composition remains visible at saturated CHO stock withou
 test('Nitrogen starter yield is bounded and inventory depletion gradually suppresses optional farming while retaining mainline supply',()=>{
   const fresh=nitrogenRun(0).map,mid=nitrogenRun(250).map,full=nitrogenRun(425).map;
   const freshMain=mainN(fresh),midMain=mainN(mid),fullMain=mainN(full),freshPocket=pocketN(fresh),midPocket=pocketN(mid),fullPocket=pocketN(full);
-  assert.ok(freshMain>=80&&freshMain<=130,`fresh mainline starter yield ${freshMain} should stay near 80-120 N`);
-  assert.ok(freshPocket>0,'fresh stock exposes the optional high-density pocket');
+  assert.equal(freshMain,96);assert.equal(freshPocket,72,'fresh stock exposes the full optional high-density pocket');
   assert.ok(mid.depletion.N>0&&mid.depletion.N<1,'mid stock enters N depletion');
-  assert.ok(midMain>0&&midMain<freshMain,'mainline N thins gradually at mid stock');
-  assert.ok(midPocket>=0&&midPocket<freshPocket,'optional high-density N thins faster than fresh stock');
-  assert.equal(full.depletion.N,1,'425 N reaches the existing N depletion ceiling');
+  assert.ok(midMain>=68&&midMain<=72&&midMain<freshMain,'mainline N thins gradually at mid stock');
+  assert.ok(midPocket>=42&&midPocket<=46&&midPocket<freshPocket,'optional high-density N thins faster than fresh stock');
+  assert.equal(full.depletion.N,1,'425 N reaches the existing N depletion ceiling');assert.ok(fullMain>=27&&fullMain<=31);
   assert.equal(fullPocket,0,'high-density optional pocket disappears at full depletion');
   assert.ok(fullMain>0,'mainline N never disappears completely');
   assert.ok(fullMain<midMain,'mainline supply continues thinning toward the depletion ceiling');
@@ -78,9 +61,9 @@ test('Nitrogen starter yield is bounded and inventory depletion gradually suppre
   console.log('Nitrogen resource balance',JSON.stringify({fresh:{main:freshMain,pocket:freshPocket,depletion:fresh.depletion.N},mid:{main:midMain,pocket:midPocket,depletion:mid.depletion.N},full:{main:fullMain,pocket:fullPocket,depletion:full.depletion.N}}));
 });
 
-test('Nitrogen v2 is a long open field whose difficulty comes from overlapping hazard composition',()=>{
-  const run=nitrogenRun(),routeLength=NITROGEN_ROUTE.points.slice(1).reduce((sum,point,index)=>sum+Math.hypot(point.x-NITROGEN_ROUTE.points[index].x,point.y-NITROGEN_ROUTE.points[index].y),0),types=new Set(run.map.nitrogenHazards.map(item=>item.type)),subtypes=new Set(run.map.nitrogenHazards.map(item=>item.subtype));
-  assert.ok(routeLength>7000,'Deep Nitrogen must be materially longer than the old corridor');assert.ok(types.has('mechanical')&&types.has('thermal'));assert.ok(subtypes.has('pressure')&&subtypes.has('shear')&&subtypes.has('turbulence'));assert.ok(run.map.nitrogenZones.every(zone=>zone.width>=700),'readability comes from broad open space rather than narrow walls');
+test('Nitrogen v3 uses compact gameplay sections with a short, bounded main route',()=>{
+  const run=nitrogenRun(),routeLength=NITROGEN_ROUTE.length,types=new Set(run.map.nitrogenHazards.map(item=>item.type)),subtypes=new Set(run.map.nitrogenHazards.map(item=>item.subtype));
+  assert.ok(routeLength>=5300&&routeLength<=5400,`v3 main route length ${routeLength}`);assert.equal(run.map.nitrogenZones.length,6);assert.deepEqual(NITROGEN_ZONES.map(zone=>zone.id),['entry-pocket','drive-channel','choice-shelf','pulse-lip','insight-basin','core-approach']);assert.ok(types.has('mechanical')&&types.has('thermal'));assert.ok(subtypes.has('pressure')&&subtypes.has('shear')&&subtypes.has('turbulence'));assert.ok(NITROGEN_ROUTE.points.every(point=>point.y>=NITROGEN_REGION_BOUNDS.top&&point.y<=NITROGEN_REGION_BOUNDS.bottom));
 });
 
 test('N2 Critical Insight uses existing engagement gate, run-local carry, return commit and forced-return loss',()=>{
@@ -97,9 +80,22 @@ test('N2 Critical Insight uses existing engagement gate, run-local carry, return
 
 test('authored N2 signal geometry stays fixed but cannot be picked before marker claimability',()=>{
   const entry=NITROGEN_ROUTE.points[0],distance=Math.hypot(NITROGEN_INSIGHT_AREA.x-entry.x,NITROGEN_INSIGHT_AREA.y-entry.y);assert.ok(distance>FIELD_INSIGHT_MIN_DISTANCE);assert.ok(nitrogenInsightAreaAt(NITROGEN_INSIGHT_AREA));
-  const run=nitrogenRun();run.insightEngagementOrigin={x:run.player.x,y:run.player.y};run.player.x=NITROGEN_INSIGHT_AREA.x;run.player.y=NITROGEN_INSIGHT_AREA.y;run.time=FIELD_INSIGHT_MIN_SECONDS-2;run.insightEngagementMaxDistance=distance;const signal=run.map.signals.find(item=>item.region==='nitrogen');signal.x=run.player.x;signal.y=run.player.y;signal.claimable=false;
+  const run=nitrogenRun();run.insightEngagementOrigin={x:run.player.x,y:run.player.y};run.player.x=NITROGEN_INSIGHT_AREA.x;run.player.y=NITROGEN_INSIGHT_AREA.y;run.time=FIELD_INSIGHT_MIN_SECONDS-2;run.insightEngagementMaxDistance=distance;const signal=run.map.signals.find(item=>item.region==='nitrogen'&&item.id===NITROGEN_INSIGHT_ANCHORS[0].id);signal.x=run.player.x;signal.y=run.player.y;signal.claimable=false;
   const earlyEvents=stepRun(run,{x:0,y:0},1/60);assert.ok(!earlyEvents.some(event=>event.type==='signal'),'hidden/non-claimable geometry cannot be consumed');assert.equal(signal.ready,false);
   run.collectedElements.N=1;run.foundElements.push('N');run.time=FIELD_INSIGHT_MIN_SECONDS;run.insightEngagementSatisfied=true;signal.claimable=true;const claimed=stepRun(run,{x:0,y:0},1/60);assert.ok(claimed.some(event=>event.type==='signal'&&event.region==='nitrogen'),'claimable marker pickup emits the existing signal event');assert.equal(signal.ready,true);assert.equal(signal.claimable,false);
+});
+
+test('three N2 resonance anchors keep the 20s, 1200-distance and current-run-N gates and expose only the nearest once',()=>{
+  const value=createResources({storage:memory()});value.setCatalog(catalog);value.setFrontierGraph(graph);value.state.progress.choCompleted=true;value.prepareExpedition({region:'nitrogen'});
+  const run=nitrogenRun(),anchors=run.map.signals.filter(signal=>signal.nitrogenCritical),evaluate=signal=>value.signalClaimability(signal.region,signal.roll,signal.choice,{runContext:run});
+  assert.equal(anchors.length,3);run.player.x=80;run.player.y=-16980;run.insightEngagementOrigin={x:280,y:-12920};run.insightEngagementMaxDistance=1300;run.time=FIELD_INSIGHT_MIN_SECONDS-1;
+  syncFieldInsightMarkerClaimability(run,evaluate);assert.equal(anchors.filter(signal=>signal.claimable).length,0,'elapsed-time gate blocks every resonance anchor');
+  run.time=FIELD_INSIGHT_MIN_SECONDS;run.insightEngagementMaxDistance=FIELD_INSIGHT_MIN_DISTANCE-1;syncFieldInsightMarkerClaimability(run,evaluate);assert.equal(anchors.filter(signal=>signal.claimable).length,0,'distance gate blocks every resonance anchor');
+  run.insightEngagementMaxDistance=FIELD_INSIGHT_MIN_DISTANCE;run.insightEngagementSatisfied=true;syncFieldInsightMarkerClaimability(run,evaluate);assert.equal(anchors.filter(signal=>signal.claimable).length,0,'persistent N knowledge cannot replace current-run cargo');
+  run.collectedElements.N=1;run.foundElements.push('N');const selected=syncFieldInsightMarkerClaimability(run,evaluate);assert.equal(selected.signal.id,NITROGEN_INSIGHT_ANCHORS[1].id);assert.deepEqual(anchors.filter(signal=>signal.claimable).map(signal=>signal.id),[NITROGEN_INSIGHT_ANCHORS[1].id]);
+  const events=stepRun(run,{x:0,y:0},1/60);assert.ok(events.some(event=>event.type==='signal'&&event.region==='nitrogen'));assert.equal(selected.signal.ready,true);
+  const opportunity=value.signal('nitrogen',selected.signal.roll,selected.signal.choice,{runContext:run,claimableOnly:true});assert.equal(opportunity.recipe,NITROGEN_MOLECULE_ID);assert.equal(triggerInsight(run,opportunity.recipe,value.state)?.critical,true);
+  syncFieldInsightMarkerClaimability(run,evaluate);assert.equal(anchors.filter(signal=>signal.claimable).length,0,'one anchor claim consumes the run’s single N₂ opportunity');assert.deepEqual(run.carriedInsights,[NITROGEN_MOLECULE_ID]);
 });
 
 test('N2 discovery exposes existing LOADOUT roles and Nitrogen launch prioritizes ordinary direct-frontier NH3',()=>{

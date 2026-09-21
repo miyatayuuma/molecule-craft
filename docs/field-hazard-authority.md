@@ -15,7 +15,9 @@ This document records the production responsibility split used by `src/veil/haza
 | Oxygen vortex | mechanical | vortex | Autonomous FIELD environment, not an agent. |
 | Oxygen thermal route / belt / frontier wall | thermal | hot-zone | Existing coolant/heat behavior remains the gameplay authority. |
 | Thermal challenge | thermal + mechanical | hot-zone + pressure | Heat and pressure coexist in the same authored region. |
-| Nitrogen pulse fields | mechanical | shear | Existing directional pulse mechanics remain unchanged. |
+| Nitrogen DRIVE channel | mechanical | pressure + shear | Two overlapping opposing flows and a localized steering shear use spatial falloff. |
+| Nitrogen PULSE lip | mechanical | shear | One compact burst-advantage field; ordinary movement can skirt its edge. |
+| Nitrogen Core approach | thermal + mechanical | hot-zone + pressure + turbulence | Heat and pressure overlap before the fixed Core landmark. |
 
 The taxonomy also defines `abrasive / particle-stream` and `electrical / arc|charged-region`. No production zone is created for those types in this foundation task.
 

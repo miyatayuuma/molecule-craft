@@ -37,7 +37,7 @@ assert.ok(map.fields.length>0&&map.fields.every(field=>field.hazard?.type==='mec
 assert.ok(map.currents.length>0&&map.currents.every(current=>current.hazard?.type==='mechanical'),'revisit currents expose mechanical hazard authority');
 const universe=createUniverse(73,{H:0,C:0,O:0,N:0},{capabilities:{combustionDrive:true,nitrogenField:true}});
 for(const field of BURST_ADVANTAGE_FIELDS)assert.equal(field.hazard?.subtype,'shear');
-assert.ok(universe.fields.filter(field=>field.kind==='nitrogen-pulse').every(field=>field.hazard?.subtype==='shear'));
+const nitrogenPulse=universe.fields.find(field=>field.id==='nitrogen-pulse-lip');assert.equal(nitrogenPulse?.kind,'burst-advantage');assert.equal(nitrogenPulse?.type,'mechanical');assert.equal(nitrogenPulse?.subtype,'shear');assert.equal(nitrogenPulse?.hazard?.subtype,'shear');
 assert.ok(universe.currents.every(current=>current.hazard?.type==='mechanical'));
 assert.equal(universe.dust.some(dust=>dust.hazard),false,'resource particles remain resources rather than abrasive hazards');
 
