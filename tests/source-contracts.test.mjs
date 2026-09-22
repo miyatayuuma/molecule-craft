@@ -6,8 +6,8 @@ const [index, app, chemistry, solver, conformation, electronInteraction, gesture
   readFile(new URL('index.html', root), 'utf8'),
   readFile(new URL('src/app.js?v=50', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
-  readFile(new URL('src/structure-relaxation.js?v=32', root), 'utf8'),
-  readFile(new URL('src/conformation-engine.js?v=2', root), 'utf8'),
+  readFile(new URL('src/structure-relaxation.js?v=33', root), 'utf8'),
+  readFile(new URL('src/conformation-engine.js?v=3', root), 'utf8'),
   readFile(new URL('src/electron-interaction.js', root), 'utf8'),
   readFile(new URL('src/gesture-arbitration.js', root), 'utf8'),
   readFile(new URL('veil.css', root), 'utf8'),
@@ -36,11 +36,11 @@ assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gestu
 assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
 
 assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=57"><\/script>/);
-assert.match(app, /from '\.\/structure-relaxation\.js\?v=32'/);
+assert.match(app, /from '\.\/structure-relaxation\.js\?v=33'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
-assert.match(app, /from '\.\/structure-settlement\.js\?v=32'/);
-assert.match(app, /from '\.\/torsion-model\.js\?v=34'/);
-assert.match(app, /from '\.\/conformation-engine\.js\?v=2'/);
+assert.match(app, /from '\.\/structure-settlement\.js\?v=33'/);
+assert.match(app, /from '\.\/torsion-model\.js\?v=35'/);
+assert.match(app, /from '\.\/conformation-engine\.js\?v=3'/);
 assert.match(app, /from '\.\/workspace-view\.js\?v=23'/);
 assert.doesNotMatch(app, /stableFrames|maxDuration/);
 assert.doesNotMatch(app, /pendingFrame|followDraggedBranch|function structurePlan|interruptRelaxation|panCamera/);

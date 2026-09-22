@@ -6,7 +6,7 @@ import {checkSpawnLayouts} from './spawn-layout-checks.js';
 import {planSpawn} from '../src/spawn-layout.js';
 import {ELEMENTS,Molecule,countElements} from '../src/chemistry.js';
 import {unpairedElectronCount,lonePairCount,valenceShellRadius} from '../src/bonding-model.js?v=31';
-import {createPreviewModel} from '../src/preview-model.js?v=31';
+import {createPreviewModel} from '../src/preview-model.js?v=32';
 import {expandCraftStructure} from '../src/craft-structures.js?v=31';
 import {createCraftWorkspace} from '../src/craft-workspace.js?v=1';
 import {createResources} from '../src/veil/resources.js';

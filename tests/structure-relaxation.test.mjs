@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import {Molecule,ELEMENTS} from '../src/chemistry.js?v=20';
+import {ATOMIC_MODEL,bondLengthScale,geometryForAtom} from '../src/bonding-model.js?v=31';
+import {createStructureSolver} from '../src/structure-relaxation.js?v=33';
 
 class Vector3 {
   constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
@@ -30,20 +32,15 @@ class Vector3 {
 }
 
 const THREE = { Vector3, MathUtils: { clamp: (value,min,max) => Math.min(max,Math.max(min,value)), degToRad: degrees => degrees*Math.PI/180 } };
-const importSource = async path => import(`data:text/javascript;base64,${Buffer.from(await readFile(path,'utf8')).toString('base64')}`);
-const chemistry = await importSource(new URL('../src/chemistry.js', import.meta.url));
-const bonding = await importSource(new URL('../src/bonding-model.js?v=31', import.meta.url));
-const { createStructureSolver } = await importSource(new URL('../src/structure-relaxation.js?v=32', import.meta.url));
-
 function fixture(elements, bonds, coordinates) {
-  const molecule = new chemistry.Molecule(), ids = elements.map(element => molecule.addAtom(element).id);
+  const molecule = new Molecule(), ids = elements.map(element => molecule.addAtom(element).id);
   bonds.forEach(([a,b,order]) => molecule.setBond(ids[a],ids[b],order));
   const placements = new Map(ids.map((id,index) => [id,{position:new Vector3(...coordinates[index])}]));
   const atomById = id => molecule.atoms.find(atom => atom.id === id);
   const bondBetween = (a,b) => molecule.bonds.find(bond => (bond.a===a&&bond.b===b)||(bond.a===b&&bond.b===a));
-  const bondLengthFor = (a,b,order) => ((bonding.ATOMIC_MODEL[atomById(a).element]?.covalentRadius??.75)+(bonding.ATOMIC_MODEL[atomById(b).element]?.covalentRadius??.75))*.78*bonding.bondLengthScale(order);
-  const geometryFor = id => bonding.geometryForAtom(molecule,id);
-  const solver=createStructureSolver({THREE,molecule,placements,atomById,bondBetween,bondLengthFor,geometryFor,radiusFor:id=>chemistry.ELEMENTS[atomById(id).element].radius});
+  const bondLengthFor = (a,b,order) => ((ATOMIC_MODEL[atomById(a).element]?.covalentRadius??.75)+(ATOMIC_MODEL[atomById(b).element]?.covalentRadius??.75))*.78*bondLengthScale(order);
+  const geometryFor = id => geometryForAtom(molecule,id);
+  const solver=createStructureSolver({THREE,molecule,placements,atomById,bondBetween,bondLengthFor,geometryFor,radiusFor:id=>ELEMENTS[atomById(id).element].radius});
   return{molecule,ids,placements,solver,pos:index=>placements.get(ids[index]).position};
 }
 

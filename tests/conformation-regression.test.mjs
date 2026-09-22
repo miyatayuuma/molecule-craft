@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {Molecule,ELEMENTS} from '../src/chemistry.js?v=20';
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '../src/bonding-model.js?v=31';
-import {createStructureSolver} from '../src/structure-relaxation.js?v=32';
-import {createTorsionModel} from '../src/torsion-model.js?v=34';
-import {createConformationEngine} from '../src/conformation-engine.js?v=2';
-import {createStructureSettlement} from '../src/structure-settlement.js?v=32';
+import {createStructureSolver} from '../src/structure-relaxation.js?v=33';
+import {createTorsionModel} from '../src/torsion-model.js?v=35';
+import {createConformationEngine} from '../src/conformation-engine.js?v=3';
+import {createStructureSettlement} from '../src/structure-settlement.js?v=33';
 
 const pairKey=(a,b)=>`${Math.min(a,b)}:${Math.max(a,b)}`;
 

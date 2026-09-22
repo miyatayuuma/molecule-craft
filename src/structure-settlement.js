@@ -1,4 +1,4 @@
-import { createStructureSolver } from './structure-relaxation.js?v=32';
+import { createStructureSolver } from './structure-relaxation.js?v=33';
 
 // Work on a private pose in small time slices. The field sees one short blend,
 // never the solver's trial steps. Rotation is allowed throughout; topology edits

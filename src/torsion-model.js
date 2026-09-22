@@ -1,4 +1,4 @@
-const keyFor=(a,b)=>`${Math.min(a,b)}:${Math.max(a,b)}`;
+import {createConjugationModel,conjugatedBondKey as keyFor} from './conjugation-model.js?v=1';
 
 // A topology-only index, rebuilt on graph changes, not on each pointer move.
 // 'restricted' means this teaching model keeps the conjugated part planar; it
@@ -12,7 +12,7 @@ export function createTorsionModel(molecule,{aromaticCycles=[]}={}) {
     for(let i=0;i<queue.length;i++)for(const n of neighbors(queue[i]))if(!ids.has(n.atomId)&&keyFor(queue[i],n.atomId)!==skip){ids.add(n.atomId);queue.push(n.atomId);}
     return ids;
   }
-  const aromatic=new Set(aromaticCycles.flat()),pi=id=>neighbors(id).some(n=>n.order===2);
+  const conjugation=createConjugationModel(molecule,{aromaticCycles});
   const heavy=ids=>[...ids].filter(id=>atoms.get(id).element!=='H').length;
   const bonds=new Map();
   for(const bond of molecule.bonds){
@@ -21,16 +21,8 @@ export function createTorsionModel(molecule,{aromaticCycles=[]}={}) {
     if(sides.a.has(bond.b)){reason='環の中は、この結合だけでは回せません';kind='ring';}
     else if(bond.order!==1){reason=bond.order===2?'二重結合は軸回転できません':'三重結合は軸回転の対象外です';kind='multiple';}
     else if([bond.a,bond.b].some(id=>atoms.get(id).element==='H'||neighbors(id).length<2)){reason='この軸では枝の形が変わりません';kind='terminal';}
-    else {
-      const donor=(a,b)=>['N','O','S'].includes(atoms.get(a).element)&&atoms.get(b).element==='C'&&pi(b);
-      // Match the existing aromatic-planarity constraints for exocyclic pi
-      // groups. A single bond joining two non-biaryl pi centers belongs to one
-      // conjugated rigid island and is not a normal free-torsion axis.
-      const planarFollower=(a,b)=>aromatic.has(a)&&!aromatic.has(b)&&(pi(b)||['N','O'].includes(atoms.get(b).element));
-      const conjugated=pi(bond.a)&&pi(bond.b)&&!(aromatic.has(bond.a)&&aromatic.has(bond.b));
-      if(conjugated||donor(bond.a,bond.b)||donor(bond.b,bond.a)||planarFollower(bond.a,bond.b)||planarFollower(bond.b,bond.a)){
-        reason='共鳴する部分は、この模型では平面に保ちます';kind='restricted';
-      }
+    else if(conjugation.isRestrictedConjugatedBond(bond.a,bond.b)){
+      reason='共鳴する部分は、この模型では平面に保ちます';kind='restricted';
     }
     const allowed=!reason;
     const classification=allowed?'ROTATABLE':kind==='restricted'?'RESTRICTED':'LOCKED';
