@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import {createStructureSolver} from '../src/structure-relaxation.js?v=33';
 
 class Vector3 {
   constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
@@ -33,7 +34,6 @@ const THREE = { Vector3, MathUtils: { clamp: (value,min,max) => Math.min(max,Mat
 const importSource = async path => import(`data:text/javascript;base64,${Buffer.from(await readFile(path,'utf8')).toString('base64')}`);
 const chemistry = await importSource(new URL('../src/chemistry.js', import.meta.url));
 const bonding = await importSource(new URL('../src/bonding-model.js?v=31', import.meta.url));
-const { createStructureSolver } = await importSource(new URL('../src/structure-relaxation.js?v=32', import.meta.url));
 
 function fixture(elements, bonds, coordinates) {
   const molecule = new chemistry.Molecule(), ids = elements.map(element => molecule.addAtom(element).id);
