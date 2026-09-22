@@ -72,6 +72,8 @@ function addSchematic(map){
   if(!map||map.querySelector('[data-loadout-label="propellant"]'))return;
   for(const [use,slot] of Object.entries(LOADOUT_HARDWARE_LAYOUT.slots)){
     const label=document.createElement('span');label.className='loadout-callout-label';label.dataset.loadoutLabel=use;label.textContent=slot.label;label.setAttribute('aria-hidden','true');map.append(label);
+    const button=document.getElementById(`shell-${use}`);
+    if(button){button.classList.add('loadout-slot-path');button.dataset.use=use;}
   }
   for(const kind of ['pulse','shock','drive']){
     const label=document.createElement('span');label.className='loadout-module-label';label.dataset.loadoutModuleLabel=kind;label.textContent=kind.toUpperCase();label.setAttribute('aria-hidden','true');map.append(label);
