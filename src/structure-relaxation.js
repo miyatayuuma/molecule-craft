@@ -1150,7 +1150,7 @@ export function createStructureSolver({
     }
     const descriptors=[
       ...[...doubleFrames.values()].map(frame=>({key:`double:${frame.key}`,kind:'double',frame,centerIds:[frame.bond.a,frame.bond.b]})),
-      ...[...trigonalFrames.values()].map(([centerId,frame])=>({key:`trigonal:${centerId}`,kind:'trigonal',frame,centerIds:[centerId]})),
+      ...[...trigonalFrames.entries()].map(([centerId,frame])=>({key:`trigonal:${centerId}`,kind:'trigonal',frame,centerIds:[centerId]})),
       ...[...aromaticFrames.values()].map(frame=>({key:`aromatic:${frame.key}`,kind:'aromatic',frame,centerIds:[...frame.cycle]})),
     ];
     const fragments=[];
