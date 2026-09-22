@@ -12,7 +12,8 @@ import { createSeededFrontierRng,getFrontierCandidates,loadMoleculeGraph,scoreFr
 import { availableElements } from '../element-progression.js?v=37';
 import { validateWorkspace } from '../workspace-save.js?v=31';
 import { WORKSPACE_STORAGE_KEY,parseWorkspaceSave } from '../workspace-persistence.js?v=1';
-import { chooseInsightHotDestination,hasInsightSitePool } from './signal-claimability.js';
+import { hasInsightSitePool } from './signal-claimability.js';
+import {INSIGHT_DESTINATION_BALANCE_UNIT,recordInsightDestination,scoreInsightDestinations} from './insight-destination.js';
 import {commitWorldAwakening,markCoreFractured,worldAwakeningState} from './world-awakening.js';
 import {HAZARD_TREATMENTS,hazardTreatmentPlan} from './hazard-treatments.js';
 import { RESOURCE_KEY,MAX_RESOURCE_VALUE,MANAGED_ELEMENTS,DUST_ELEMENTS,STOCKED_ELEMENTS,createInitialProgress,createInitialTanks,createInitialSelectedLoadout,createInitialResourcesState,isResourceInteger,isValidResourceId,loadPersistedResources,serializeResourcesState,finishPendingResourcesReset } from './resources-persistence.js';
@@ -148,52 +149,57 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function recordCoolantNeedExperience(){if(blocked||state.recipes.includes('water')||state.progress.coolantNeedExperienced)return false;state.progress.coolantNeedExperienced=true;if(save()||!storage)return true;state.progress.coolantNeedExperienced=false;return false;}
 
   function insightDestinationIds(){
-    const ids=[...(state.progress.regions??[])].filter(id=>isExpeditionRegionDestination(id)&&hasInsightSitePool(id));
+    const ids=[...(state.progress.regions??[])].filter(id=>isExpeditionRegionDestination(id)&&hasInsightSitePool(id)&&(id!==NITROGEN_REGION_ID||state.progress.choCompleted===true));
     if(state.progress.choCompleted===true&&hasInsightSitePool(NITROGEN_REGION_ID)&&!ids.includes(NITROGEN_REGION_ID))ids.push(NITROGEN_REGION_ID);
     return [...new Set(ids)];
   }
-  function seedSignature(){return `${state.recipes.slice().sort().join(',')}|${state.hints.slice().sort().join(',')}|${state.progress.runs??0}|${state.progress.totalCollected??0}`;}
+  function seedSignature(){return `${state.recipes.slice().sort().join(',')}|${state.hints.slice().sort().join(',')}|${state.progress.runs??0}`;}
   function seedRng(){let h=2166136261;for(const char of seedSignature()){h^=char.charCodeAt(0);h=Math.imul(h,16777619);}return createSeededFrontierRng(h>>>0);}
   function currentInsightSeed(){
     const seed=state.progress.insightSeed,nitrogenLegacyDestination=seed?.hotDestination===NITROGEN_REGION_ID&&state.progress.choCompleted===true;if(!seed||!validId(seed.id)||typeof seed.hotDestination!=='string'||!hasInsightSitePool(seed.hotDestination)&&!nitrogenLegacyDestination)return null;
-    if(state.recipes.includes(seed.id)||state.hints.includes(seed.id)||FRONTIER_RESERVED_IDS.includes(seed.id)||!records.has(seed.id))return null;
+    const knownRecipe=records.has(seed.id)||frontierGraph?.nodeById?.(seed.id);if(state.recipes.includes(seed.id)||state.hints.includes(seed.id)||FRONTIER_RESERVED_IDS.includes(seed.id)||frontierGraph&&!knownRecipe)return null;
     return seed;
   }
   function clearInsightSeed(){const had=!!state.progress.insightSeed||state.progress.insightSeedBlocked===true;delete state.progress.insightSeed;delete state.progress.insightSeedBlocked;lastSeedSelection=null;return had;}
   function notifyInsightSeed(){if(typeof window==='undefined'||typeof window.dispatchEvent!=='function')return;try{window.dispatchEvent(new CustomEvent('molecule-craft:insight-seed',{detail:insightSeedDiagnostics()}));}catch{}}
   function setSeedBlocked(value){const next=value===true;if(state.progress.insightSeedBlocked===next)return false;state.progress.insightSeedBlocked=next;return true;}
-  function candidateFeatures(candidate,forcedHotDestination=null){
+  function candidateFeatures(candidate){
     const record=records.get(candidate.id),atomCount=record?.atoms?.length??0,parentCounts=(candidate.directDiscoveredNeighbors??[]).map(id=>records.get(id)?.atoms?.length).filter(Number.isFinite),delta=parentCounts.length?Math.min(...parentCounts.map(count=>Math.abs(atomCount-count))):atomCount;
     const atomScore=1/(1+Math.max(0,atomCount-2)*.12),deltaScore=1/(1+delta*.4),branchScore=1/(1+Math.max(0,(candidate.branchKeys?.length??0)-1)*.35),structuralSimplicity=.35*atomScore+.45*deltaScore+.2*branchScore;
-    const gameplayUtility=usesFor(candidate.id).length?1:UPGRADE_UTILITY_IDS.has(candidate.id) ? .85 : 0,cost=costFor(candidate.id),craftableNow=!!cost&&affordableCost(cost,state.elements),hotDestination=forcedHotDestination??chooseInsightHotDestination(candidate,{availableRegions:insightDestinationIds(),record});
-    return {...candidate,gameplayUtility,structuralSimplicity,craftableNow,hotDestination};
+    const gameplayUtility=usesFor(candidate.id).length?1:UPGRADE_UTILITY_IDS.has(candidate.id) ? .85 : 0,cost=costFor(candidate.id),craftableNow=!!cost&&affordableCost(cost,state.elements);
+    return {...candidate,gameplayUtility,structuralSimplicity,craftableNow};
   }
-  function seedCandidates({legacyRegion=null}={}){
+  function seedCandidates(){
     if(!frontierGraph)return {graphCandidates:[],candidates:[],scored:[]};
-    const discoveredIds=[...state.recipes],knownRecipeIds=[...new Set([...state.hints,...FRONTIER_RESERVED_IDS])],graphCandidates=getFrontierCandidates(frontierGraph,{discoveredIds,knownRecipeIds}),nitrogenPriorityId=nitrogenFrontierObjective(frontierGraph,state)?.id??null,candidates=graphCandidates.filter(candidate=>recipeElementEligible(candidate.id)).map(candidate=>candidateFeatures(candidate,candidate.id===nitrogenPriorityId?NITROGEN_REGION_ID:null)).filter(candidate=>candidate.hotDestination),scoreInputs=legacyRegion?candidates.map(({gameplayUtility,structuralSimplicity,craftableNow,...candidate})=>candidate):candidates,scored=scoreFrontierCandidates(frontierGraph,scoreInputs,{discoveredIds,region:legacyRegion});
+    const discoveredIds=[...state.recipes],knownRecipeIds=[...new Set([...state.hints,...FRONTIER_RESERVED_IDS])],graphCandidates=getFrontierCandidates(frontierGraph,{discoveredIds,knownRecipeIds}),nitrogenPriorityId=nitrogenFrontierObjective(frontierGraph,state)?.id??null,candidates=graphCandidates.filter(candidate=>recipeElementEligible(candidate.id)).map(candidate=>candidateFeatures(candidate)),scored=scoreFrontierCandidates(frontierGraph,candidates,{discoveredIds});
     return {discoveredIds,graphCandidates,candidates,scored,nitrogenPriorityId};
   }
-  function ensureInsightSeed({rng=null,legacyRegion=null}={}){
+  function destinationScoring(){
+    return scoreInsightDestinations({availableDestinations:insightDestinationIds(),history:state.progress.insightDestinationHistory,stocks:state.elements});
+  }
+  function ensureInsightSeed({rng=null}={}){
     const existing=currentInsightSeed();if(existing){const changed=setSeedBlocked(false);lastSeedSelection={reason:'maintained',seed:copy(existing)};return {seed:existing,changed,reason:'maintained'};}
     let changed=false;if(state.progress.insightSeed)changed=clearInsightSeed()||changed;
     if(!frontierGraph){lastSeedSelection={reason:'graph-unavailable',seed:null};return {seed:null,changed,reason:'graph-unavailable'};}
     if(api?.progressionInsightCandidates().length){changed=setSeedBlocked(true)||changed;lastSeedSelection={reason:'critical-pending',seed:null};return {seed:null,changed,reason:'critical-pending'};}
-    const {graphCandidates,candidates,scored,nitrogenPriorityId}=seedCandidates({legacyRegion});
+    const {graphCandidates,candidates,scored,nitrogenPriorityId}=seedCandidates();
     if(!candidates.length){changed=setSeedBlocked(false)||changed;const reason=graphCandidates.length?'element-locked':'no-candidate';lastSeedSelection={reason,seed:null};return {seed:null,changed,reason};}
     const selected=scored.find(candidate=>candidate.id===nitrogenPriorityId)??selectFrontierCandidate(scored,{rng:typeof rng==='function'?rng:seedRng()});if(!selected){lastSeedSelection={reason:'no-selection',seed:null};return {seed:null,changed,reason:'no-selection'};}
-    const seed={id:selected.id,hotDestination:selected.hotDestination};state.progress.insightSeed=seed;changed=true;changed=setSeedBlocked(false)||changed;lastSeedSelection={reason:'selected',seed:copy(seed),weight:selected.weight,weighting:copy(selected.weighting)};return {seed,changed,reason:'selected'};
+    const destination=destinationScoring(),hotDestination=destination.selectedDestination;if(!hotDestination){changed=setSeedBlocked(false)||changed;lastSeedSelection={reason:'no-destination',seed:null};return {seed:null,changed,reason:'no-destination'};}
+    const seed={id:selected.id,hotDestination};state.progress.insightSeed=seed;state.progress.insightDestinationHistory=recordInsightDestination(state.progress.insightDestinationHistory,hotDestination);changed=true;changed=setSeedBlocked(false)||changed;lastSeedSelection={reason:'selected',seed:copy(seed),weight:selected.weight,weighting:copy(selected.weighting),destination:copy(destination)};return {seed,changed,reason:'selected'};
   }
   function insightSeedDiagnostics(){
     const seed=currentInsightSeed()??null,rows=seed?seedCandidates().scored:[],row=seed?rows.find(candidate=>candidate.id===seed.id):null;
-    return {seedId:seed?.id??null,hotDestination:seed?.hotDestination??null,blocked:state.progress.insightSeedBlocked===true,selection:lastSeedSelection?copy(lastSeedSelection):null,weight:row?.weight??lastSeedSelection?.weight??null,weighting:row?.weighting?copy(row.weighting):lastSeedSelection?.weighting?copy(lastSeedSelection.weighting):null};
+    const destination=lastSeedSelection?.reason==='selected'&&lastSeedSelection.seed?.id===seed?.id?copy(lastSeedSelection.destination):destinationScoring();
+    return {seedId:seed?.id??null,hotDestination:seed?.hotDestination??null,blocked:state.progress.insightSeedBlocked===true,selection:lastSeedSelection?copy(lastSeedSelection):null,weight:row?.weight??lastSeedSelection?.weight??null,weighting:row?.weighting?copy(row.weighting):lastSeedSelection?.weighting?copy(lastSeedSelection.weighting):null,destinationHistory:[...(state.progress.insightDestinationHistory??[])],availableDestinations:destination.availableDestinations,rawStock:{...destination.rawStock},balanceUnits:{...INSIGHT_DESTINATION_BALANCE_UNIT},normalizedStock:{...destination.normalizedStock},medianCoverage:destination.medianCoverage,destinationScores:destination.destinations.map(item=>({...item,selected:item.destination===seed?.hotDestination})),selectedDestination:seed?.hotDestination??null};
   }
   function beginFrontierRun(region=state.progress.checkpoint,rng=Math.random){
     const launchRegion=Object.hasOwn(REGIONS,region)?region:'veil',base={selectedCandidateId:null,seedId:null,hotDestination:null,activeForRun:false,launchRegion,weightingRegion:null,signalObserved:false,opportunityCreated:false,acquired:false,acquiredTime:null,carried:false,committed:false,lost:false,seedMaintained:false,seedAdvanced:false,reason:null};frontierRun=base;lastFrontierRun=null;
     if(launchRegion===NITROGEN_REGION_ID&&nitrogenChapterState(state).stage==='nitrogen-critical'){base.reason='critical-pending';return;}
     if(api.progressionInsightCandidates().length){setSeedBlocked(true);base.reason='critical-pending';return;}
-    const ensured=ensureInsightSeed({rng,legacyRegion:currentInsightSeed()?null:launchRegion}),seed=ensured.seed;
+    const ensured=ensureInsightSeed({rng}),seed=ensured.seed;
     if(!seed){base.reason=ensured.reason;return;}
-    const legacyLaunchSelection=ensured.reason==='selected'&&!!lastSeedSelection?.weighting?.regionAffinity?.region,nitrogenChapterSeed=launchRegion===NITROGEN_REGION_ID&&nitrogenFrontierObjective(frontierGraph,state)?.id===seed.id;base.selectedCandidateId=seed.id;base.seedId=seed.id;base.hotDestination=seed.hotDestination;base.activeForRun=nitrogenChapterSeed||legacyLaunchSelection||launchRegion===seed.hotDestination;base.weightingRegion=nitrogenChapterSeed?'nitrogen-chapter':legacyLaunchSelection?lastSeedSelection.weighting.regionAffinity.region:'persistent-seed';
+    base.selectedCandidateId=seed.id;base.seedId=seed.id;base.hotDestination=seed.hotDestination;base.activeForRun=launchRegion===seed.hotDestination;base.weightingRegion=null;
   }
   function suppressFrontierInsightForCritical(){
     if(!frontierRun||frontierRun.reason||frontierRun.opportunityCreated)return false;
@@ -241,7 +247,9 @@ export function createResources({storage,onStatus=()=>{}}={}){
   }
   function signalClaimability(region,roll,choice,{excludeIds=[],runContext={}}={}){
     if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1)||runInsightOccupied(runContext))return {claimable:false,recipe:null};
-    const gate=fieldInsightOpportunityEligibility(runContext),nitrogen=nitrogenCriticalInsightCandidate(state,{fieldContext:region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:runContext?.collectedElements??{}});
+    // N₂ eligibility follows the live expedition cargo; elementDust covers the
+    // overlap window before the atom counter is flushed to collectedElements.
+    const gate=fieldInsightOpportunityEligibility(runContext),nitrogenCargo={...(runContext?.elementDust??{}),...(runContext?.collectedElements??{})},nitrogen=nitrogenCriticalInsightCandidate(state,{fieldContext:region===NITROGEN_REGION_ID||runContext?.region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:nitrogenCargo});
     if(nitrogen)return {claimable:true,recipe:nitrogen,critical:true};
     if(region===NITROGEN_REGION_ID&&nitrogenChapterState(state).stage==='nitrogen-critical')return {claimable:false,recipe:null,critical:true};
     const frontier=frontierSignalClaimability(region,roll,choice,runContext);if(frontier?.managed)return frontier;
@@ -251,7 +259,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     return record?{claimable:true,recipe:record.id}:{claimable:false,recipe:null};
   }
   function insightRecipeEligible(id,{runContext={}}={}){
-    if(id===NITROGEN_MOLECULE_ID){const gate=fieldInsightOpportunityEligibility(runContext);return nitrogenCriticalInsightCandidate(state,{fieldContext:runContext?.region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:runContext?.collectedElements??{}})===id;}
+    if(id===NITROGEN_MOLECULE_ID){const gate=fieldInsightOpportunityEligibility(runContext),nitrogenCargo={...(runContext?.elementDust??{}),...(runContext?.collectedElements??{})};return nitrogenCriticalInsightCandidate(state,{fieldContext:runContext?.region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:nitrogenCargo})===id;}
     return recipeElementEligible(id);
   }
   function finalizeFrontierRun(captured,insights,committedInsights,{seedBefore=null,seedAfter=null}={}){
@@ -276,7 +284,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     suppressFrontierInsightForCritical,frontierInsightEligibility,pollFrontierInsight,insightSeedDiagnostics,frontierInsightDiagnostics:()=>copy(frontierRun??lastFrontierRun??{selectedCandidateId:null,seedId:currentInsightSeed()?.id??null,hotDestination:currentInsightSeed()?.hotDestination??null,launchRegion:null,weightingRegion:null,signalObserved:false,opportunityCreated:false,acquired:false,carried:false,committed:false,lost:false,seedMaintained:false,seedAdvanced:false,reason:'no-run'}),
     reset(categories){
       const selected=new Set(categories),full=RESET_CATEGORIES.every(k=>selected.has(k));if(!selected.size||[...selected].some(k=>!RESET_CATEGORIES.includes(k))||blocked&&!full)return {committed:false};let next;
-      try{if(!storage||storage.getItem(RESOURCE_KEY)!==previous)throw Error();next=full?initialState():copy(state);next.progress.sound=state.progress.sound;const clear=full||['workspace','elements','collection','recipes'].some(k=>selected.has(k));if(clear){if(!full&&!selected.has('elements'))for(const a of next.workspace?.atoms??[])if(STOCKED.includes(a.element))next.elements[a.element]=Math.min(MAX,(next.elements[a.element]??0)+1);next.workspace=null;}if(selected.has('recipes')){next.recipes=[];next.hints=[];next.loadout={drive:'hydrogen',cooling:true,tanks:initialSelectedLoadout()};delete next.migrateDiscoveries;delete next.progress.insightSeed;delete next.progress.insightSeedBlocked;}if(full||selected.has('tanks')){next.tanks=initialTanks();next.upgrades={oxygenTank:0};}if(selected.has('elements')){for(const symbol of Object.keys(next.elements))next.elements[symbol]=0;next.dust={H:0,C:0,O:0};delete next.progress.insightSeed;delete next.progress.insightSeedBlocked;}if(selected.has('exploration')){const {bestChain,sound}=next.progress;next.progress={...initialProgress(),bestChain,sound};for(const el of MANAGED)if(next.elements[el]>0||next.workspace?.atoms.some(a=>a.element===el))next.progress.foundElements.push(el);next.progress.foundElements=[...new Set(next.progress.foundElements)];}if(selected.has('records'))next.progress.bestChain=0;next.resetEpoch=(state.resetEpoch??0)+1;next.pendingReset={collection:selected.has('collection'),legacy:clear,help:full};const raw=serializeResourcesState(next);storage.setItem(RESOURCE_KEY,raw);previous=raw;state=next;}catch{report('初期化できませんでした。保存は変更していません。再読み込みして確認してください。');return {committed:false};}blocked=true;try{finishPendingResourcesReset(storage,state);previous=storage.getItem(RESOURCE_KEY);report('初期化しました。再読み込みします。');return {committed:true,complete:true};}catch{report('初期化を記録しました。再読み込み時に残りを安全に完了します。');return {committed:true,complete:false};}
+      try{if(!storage||storage.getItem(RESOURCE_KEY)!==previous)throw Error();next=full?initialState():copy(state);next.progress.sound=state.progress.sound;const clear=full||['workspace','elements','collection','recipes'].some(k=>selected.has(k));if(clear){if(!full&&!selected.has('elements'))for(const a of next.workspace?.atoms??[])if(STOCKED.includes(a.element))next.elements[a.element]=Math.min(MAX,(next.elements[a.element]??0)+1);next.workspace=null;}if(selected.has('recipes')){next.recipes=[];next.hints=[];next.loadout={drive:'hydrogen',cooling:true,tanks:initialSelectedLoadout()};delete next.migrateDiscoveries;delete next.progress.insightSeed;delete next.progress.insightSeedBlocked;next.progress.insightDestinationHistory=[];}if(full||selected.has('tanks')){next.tanks=initialTanks();next.upgrades={oxygenTank:0};}if(selected.has('elements')){for(const symbol of Object.keys(next.elements))next.elements[symbol]=0;next.dust={H:0,C:0,O:0};delete next.progress.insightSeed;delete next.progress.insightSeedBlocked;next.progress.insightDestinationHistory=[];}if(selected.has('exploration')){const {bestChain,sound}=next.progress;next.progress={...initialProgress(),bestChain,sound};for(const el of MANAGED)if(next.elements[el]>0||next.workspace?.atoms.some(a=>a.element===el))next.progress.foundElements.push(el);next.progress.foundElements=[...new Set(next.progress.foundElements)];}if(selected.has('records'))next.progress.bestChain=0;next.resetEpoch=(state.resetEpoch??0)+1;next.pendingReset={collection:selected.has('collection'),legacy:clear,help:full};const raw=serializeResourcesState(next);storage.setItem(RESOURCE_KEY,raw);previous=raw;state=next;}catch{report('初期化できませんでした。保存は変更していません。再読み込みして確認してください。');return {committed:false};}blocked=true;try{finishPendingResourcesReset(storage,state);previous=storage.getItem(RESOURCE_KEY);report('初期化しました。再読み込みします。');return {committed:true,complete:true};}catch{report('初期化を記録しました。再読み込み時に残りを安全に完了します。');return {committed:true,complete:false};}
     },
     hint,learn:discover,discover,discoverWithLoadout,
     consumeTank(use,id,amount){const tank=state.tanks[use];if(blocked||!state.recipes.includes(id)||!fitsTank(id,use)||!integer(amount)||amount<1||tank?.molecule!==id||tank.amount<amount)return false;const snapshot=copy(state);tank.amount-=amount;if(save()||!storage)return true;state=snapshot;return false;},

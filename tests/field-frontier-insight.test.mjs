@@ -18,7 +18,7 @@ const settle=(value,flight,captured=false)=>value.settleExpedition({H:0,C:0,O:0}
 function make({discoverRoots=true}={}){const value=createResources({storage:memory()});value.setCatalog(catalog);value.setFrontierGraph(graph);if(discoverRoots)for(const id of roots)value.discover(id);return value;}
 function frontierRows(value,region){const discoveredIds=[...value.state.recipes],knownRecipeIds=[...new Set([...value.state.hints,...reserved])],candidates=getFrontierCandidates(graph,{discoveredIds,knownRecipeIds}),scored=scoreFrontierCandidates(graph,candidates,{discoveredIds,region});return {candidates,scored};}
 function expandableChoice(value,region){
-  const {candidates,scored}=frontierRows(value,region),frontierIds=new Set(candidates.map(row=>row.id));
+  const {candidates,scored}=frontierRows(value,null),frontierIds=new Set(candidates.map(row=>row.id));
   const target=scored.find(row=>row.directUndiscoveredNeighbors.some(id=>!reserved.has(id)&&!frontierIds.has(id)));
   assert.ok(target,`production graph needs an expandable ${region} frontier candidate for the integration regression`);
   const eligible=scored.filter(row=>Number.isFinite(row.weight)&&row.weight>0).sort((a,b)=>a.id.localeCompare(b.id)),total=eligible.reduce((sum,row)=>sum+row.weight,0),index=eligible.findIndex(row=>row.id===target.id),before=eligible.slice(0,index).reduce((sum,row)=>sum+row.weight,0),roll=(before+target.weight/2)/total;
@@ -42,14 +42,13 @@ function expandableChoice(value,region){
 // to the production graph frontier API, uses the canonical FIELD region and
 // excludes critical/challenge-owned progression from ordinary graph insights.
 {
-  const value=make(),{target,roll}=expandableChoice(value,'oxygen');
-  value.prepareExpedition({region:'oxygen',rng:()=>roll});
+  const value=make();value.prepareExpedition({region:'veil'});const selected=value.frontierInsightDiagnostics().selectedCandidateId,destination=value.insightSeedDiagnostics().hotDestination,unrelated=destination==='veil'?'oxygen':'veil';
+  value.prepareExpedition({region:unrelated});
   const before=value.frontierInsightDiagnostics();
-  assert.equal(before.selectedCandidateId,target.id);assert.equal(before.launchRegion,'oxygen');assert.equal(before.weightingRegion,'Oxygen');assert.ok(!reserved.has(before.selectedCandidateId));
-  value.state.hints.push(target.id);
-  assert.equal(value.frontierInsightDiagnostics().selectedCandidateId,target.id,'external knowledge changes must not redraw the run snapshot');
-  const wrongRegion=value.signal('veil',0,0);assert.ok(wrongRegion.bonus);assert.equal(value.frontierInsightDiagnostics().opportunityCreated,false);
-  const opportunity=value.signal('oxygen',.999,.999,{runContext:engaged});assert.deepEqual(opportunity,{recipe:target.id,frontier:true},'frontier selection must not be weighted a second time by regional signal choice/chance');assert.equal(value.frontierInsightDiagnostics().opportunityCreated,true);
+  assert.equal(before.selectedCandidateId,selected);assert.equal(before.launchRegion,unrelated);assert.equal(before.weightingRegion,null,'persistent recipe weighting has no launch-region authority');assert.equal(before.activeForRun,false,'a seed is inactive outside its persisted hot destination');assert.ok(!reserved.has(before.selectedCandidateId));
+  const wrongRegion=value.signal(unrelated,0,0);assert.ok(wrongRegion.bonus);assert.equal(value.frontierInsightDiagnostics().opportunityCreated,false);
+  value.prepareExpedition({region:destination});assert.equal(value.frontierInsightDiagnostics().activeForRun,true);
+  const opportunity=value.signal(destination,.999,.999,{runContext:engaged});assert.deepEqual(opportunity,{recipe:selected,frontier:true},'frontier selection must not be weighted a second time by regional signal choice/chance');assert.equal(value.frontierInsightDiagnostics().opportunityCreated,true);
 }
 
 // Crossing the authored signal before the gate opens records the observation but

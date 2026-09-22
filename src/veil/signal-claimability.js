@@ -44,33 +44,18 @@ export const INSIGHT_SITE_POOLS=Object.freeze({
     site('oxygen-network-merge','oxygen',120,-10670),
     site('oxygen-horizon-entry','oxygen',80,-12020),
   ]),
-  nitrogen:Object.freeze([]),
+  nitrogen:Object.freeze([
+    site('nitrogen-entry-pocket','nitrogen',260,-13280),
+    site('nitrogen-drive-channel','nitrogen',-240,-14600),
+    site('nitrogen-side-pocket','nitrogen',-760,-15700),
+    site('nitrogen-core-traces','nitrogen',0,-17420),
+  ]),
 });
 
-const REGION_AFFINITY=Object.freeze({veil:'Hydrogen',carbon:'Carbon',oxygen:'Oxygen',nitrogen:'Nitrogen'});
-const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','nitrogen']);
 const clamp01=value=>Math.max(0,Math.min(1,Number.isFinite(value)?value:0));
 const finitePoint=point=>point&&Number.isFinite(point.x)&&Number.isFinite(point.y);
 const groupForRegion=region=>region==='frontier'?'oxygen':region;
 export const hasInsightSitePool=region=>Array.isArray(INSIGHT_SITE_POOLS[region])&&INSIGHT_SITE_POOLS[region].length>0;
-
-function minimumRegionForRecord(record){
-  const atoms=Array.isArray(record?.atoms)?record.atoms:[];
-  if(atoms.includes('N'))return 'nitrogen';
-  if(atoms.includes('O'))return 'oxygen';
-  if(atoms.includes('C'))return 'carbon';
-  return atoms.length&&atoms.every(element=>element==='H')?'veil':null;
-}
-
-export function chooseInsightHotDestination(candidate,{availableRegions=[],record=null}={}){
-  const available=[...new Set(availableRegions)].filter(hasInsightSitePool),minimum=minimumRegionForRecord(record);
-  if(!available.length)return null;
-  const minimumRank=REGION_ORDER.indexOf(minimum),rows=available.map((region,index)=>{
-    const affinity=clamp01(candidate?.regionAffinities?.[REGION_AFFINITY[region]]),rank=REGION_ORDER.indexOf(region),meetsMinimum=minimumRank<0||rank>=minimumRank;
-    return {region,index,score:affinity*4+(region===minimum?1.1:0)+(meetsMinimum?.2:-1.5)};
-  }).sort((a,b)=>b.score-a.score||a.index-b.index||a.region.localeCompare(b.region));
-  return rows[0]?.region??null;
-}
 
 function hash32(value){let h=2166136261;for(const char of String(value)){h^=char.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>16;return h>>>0;}
 function seededRng(seed){let state=seed>>>0;return()=>{state=state+0x6D2B79F5|0;let t=Math.imul(state^state>>>15,1|state);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
@@ -78,17 +63,23 @@ const deterministicNoise=(seed,key)=>hash32(`${seed}:${key}`)/4294967296;
 
 function ensureInsightSites(run){
   const map=run?.map;if(!map||!Array.isArray(map.signals))return [];
-  if(map._insightSitePoolReady)return map.signals.filter(signal=>signal.insightSite===true);
-  map._insightSitePoolReady=true;const seedValue=(map.seed??1)>>>0;
-  for(const definitions of Object.values(INSIGHT_SITE_POOLS))for(const definition of definitions){
-    let signal=definition.canonicalSignalId?map.signals.find(row=>row.id===definition.canonicalSignalId):null;
-    if(!signal){
-      const rng=seededRng(hash32(`${seedValue}:${definition.id}`)),jitter=22;
-      signal={id:`insight-site:${definition.id}`,region:definition.group,anchorX:definition.x,anchorY:definition.y,x:definition.x+(rng()-.5)*jitter*2,y:definition.y+(rng()-.5)*jitter*2,ready:false,roll:rng(),choice:rng()};
-      map.signals.push(signal);
+  const includeNitrogen=arguments[1]?.includeNitrogen!==false;
+  if(map._insightSitePoolReady&&(!includeNitrogen||map._nitrogenInsightSitePoolReady))return map.signals.filter(signal=>signal.insightSite===true);
+  const seedValue=(map.seed??1)>>>0;
+  for(const [group,definitions]of Object.entries(INSIGHT_SITE_POOLS)){
+    if(group==='nitrogen'&&(!includeNitrogen||!map.nitrogenCore||map._nitrogenInsightSitePoolReady))continue;
+    if(group!=='nitrogen'&&map._insightSitePoolReady)continue;
+    for(const definition of definitions){
+      let signal=definition.canonicalSignalId?map.signals.find(row=>row.id===definition.canonicalSignalId):null;
+      if(!signal){
+        const rng=seededRng(hash32(`${seedValue}:${definition.id}`)),jitter=22;
+        signal={id:`insight-site:${definition.id}`,region:definition.group,anchorX:definition.x,anchorY:definition.y,x:definition.x+(rng()-.5)*jitter*2,y:definition.y+(rng()-.5)*jitter*2,ready:false,roll:rng(),choice:rng()};
+        map.signals.push(signal);
+      }
+      signal.insightSite=true;signal.insightSiteId=definition.id;signal.insightSiteGroup=definition.group;signal.insightCanonical=!!definition.canonicalSignalId;
     }
-    signal.insightSite=true;signal.insightSiteId=definition.id;signal.insightSiteGroup=definition.group;signal.insightCanonical=!!definition.canonicalSignalId;
   }
+  map._insightSitePoolReady=true;if(includeNitrogen)map._nitrogenInsightSitePoolReady=true;
   return map.signals.filter(signal=>signal.insightSite===true);
 }
 
@@ -177,17 +168,18 @@ export function syncFieldInsightMarkerClaimability(run,evaluate=()=>null){
     const player=run.player,candidates=signals.filter(signal=>!signal.ready).map(signal=>({signal,claim:evaluate(signal)})).filter(row=>row.claim?.claimable&&typeof row.claim.recipe==='string');
     if(!candidates.length)return null;const selected=candidates.map(row=>({...row,distance:finitePoint(player)?Math.hypot(player.x-row.signal.x,player.y-row.signal.y):Infinity})).sort((a,b)=>a.distance-b.distance)[0];selected.signal.claimable=true;selected.signal.claimableRecipe=selected.claim.recipe;return selected;
   }
-  const sites=ensureInsightSites(run),existingPlan=run.frontierInsightPlan;let active=existingPlan?updatePlan(run,existingPlan,sites):null;
+  ensureInsightSites(run,{includeNitrogen:false});const existingPlan=run.frontierInsightPlan;let active=null;
   syncRunFlags(run,existingPlan??null);
   if(run.captured||run.analysis||Array.isArray(run.carriedInsights)&&run.carriedInsights.length>0)return null;
   const player=run.player,claims=signals.filter(signal=>!signal.ready).map(signal=>({signal,claim:evaluate(signal)}));
   const chooseNearest=rows=>rows.map(row=>({...row,distance:finitePoint(player)?Math.hypot(player.x-row.signal.x,player.y-row.signal.y):Infinity})).sort((a,b)=>a.distance-b.distance)[0]??null;
   const critical=chooseNearest(claims.filter(row=>row.claim?.critical===true&&row.claim?.claimable===true&&typeof row.claim.recipe==='string'));
   if(critical){critical.signal.claimable=true;critical.signal.claimableRecipe=critical.claim.recipe;return critical;}
+  const allSites=ensureInsightSites(run),siteList=allSites;active=existingPlan?updatePlan(run,existingPlan,siteList):null;
   const meta=claims.find(row=>row.claim?.managed===true&&row.claim?.frontier===true&&typeof row.claim.seedId==='string')?.claim??null;
   if(meta?.activeForRun===true&&hasInsightSitePool(meta.hotDestination)){
     const stalePlan=!run.frontierInsightPlan||run.frontierInsightPlan.seedId!==meta.seedId||run.frontierInsightPlan.hotDestination!==meta.hotDestination;
-    if(stalePlan){run.frontierInsightPlan=makePlan(run,meta);active=updatePlan(run,run.frontierInsightPlan,sites);}
+    if(stalePlan){run.frontierInsightPlan=makePlan(run,meta);active=updatePlan(run,run.frontierInsightPlan,siteList);}
     syncRunFlags(run,run.frontierInsightPlan);
     if(run.frontierInsightPlan.phase==='acquired')return null;
     if(active){const claim=evaluate(active);if(claim?.claimable&&typeof claim.recipe==='string'){active.claimable=true;active.claimableRecipe=claim.recipe;return {signal:active,claim};}}
