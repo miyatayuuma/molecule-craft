@@ -247,6 +247,8 @@ export function createResources({storage,onStatus=()=>{}}={}){
   }
   function signalClaimability(region,roll,choice,{excludeIds=[],runContext={}}={}){
     if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1)||runInsightOccupied(runContext))return {claimable:false,recipe:null};
+    // N₂ eligibility follows the live expedition cargo; elementDust covers the
+    // overlap window before the atom counter is flushed to collectedElements.
     const gate=fieldInsightOpportunityEligibility(runContext),nitrogenCargo={...(runContext?.elementDust??{}),...(runContext?.collectedElements??{})},nitrogen=nitrogenCriticalInsightCandidate(state,{fieldContext:region===NITROGEN_REGION_ID||runContext?.region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:nitrogenCargo});
     if(nitrogen)return {claimable:true,recipe:nitrogen,critical:true};
     if(region===NITROGEN_REGION_ID&&nitrogenChapterState(state).stage==='nitrogen-critical')return {claimable:false,recipe:null,critical:true};
