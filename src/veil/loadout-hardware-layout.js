@@ -9,7 +9,7 @@ export const LOADOUT_HARDWARE_LAYOUT=Object.freeze({
   design:LOADOUT_DESIGN,
   modules:Object.freeze({
     pulse:Object.freeze({rect:rect(8.5,228.0,304.0,189.6),asset:'loadout-pulse-unit.png',labelAnchor:point(151,214),connectors:Object.freeze({moduleSide:Object.freeze(['right']),craftSide:Object.freeze([])})}),
-    craft:Object.freeze({rect:rect(285.2,246.2,253.9,176.6),asset:'loadout-craft.png',labelAnchor:point(412,468),intakeAnchor:point(410,325),connectors:Object.freeze({moduleSide:Object.freeze([]),receivingSockets:Object.freeze(['left','right','upper'])})}),
+    craft:Object.freeze({rect:rect(285.2,246.2,253.9,176.6),asset:'loadout-craft.png',labelAnchor:point(412,468),intakeAnchor:point(390,312),connectors:Object.freeze({moduleSide:Object.freeze([]),receivingSockets:Object.freeze(['left','right','upper'])})}),
     shock:Object.freeze({rect:rect(321.6,80.2,153.0,194.8),asset:'loadout-shock-unit.png',labelAnchor:point(398,65),connectors:Object.freeze({moduleSide:Object.freeze(['lower']),craftSide:Object.freeze([])})}),
     drive:Object.freeze({rect:rect(516.3,202.0,474.8,247.7),asset:'loadout-drive-unit.png',labelAnchor:point(754,179),connectors:Object.freeze({moduleSide:Object.freeze(['left']),craftSide:Object.freeze([])})}),
   }),
