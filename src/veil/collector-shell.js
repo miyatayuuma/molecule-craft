@@ -68,8 +68,8 @@ export function drawCollectorShell(ctx,{x=0,y=0,angle=0,scale=1,bank=0}={}){
   ctx.restore();ctx.globalAlpha=1;
 }
 
-export function drawCollectorShellPreview(canvas){
+export function drawCollectorShellPreview(canvas,{x,y,scale}={}){
   const rect=canvas.getBoundingClientRect(),ratio=Math.min(globalThis.devicePixelRatio??1,2),width=Math.max(1,Math.round(rect.width*ratio)),height=Math.max(1,Math.round(rect.height*ratio));
   if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
-  const ctx=canvas.getContext('2d');if(!ctx)return;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,rect.width,rect.height);drawCollectorShell(ctx,{x:rect.width*.39,y:rect.height*.52,angle:-Math.PI/2,scale:Math.min(rect.width/150,rect.height/90)});
+  const ctx=canvas.getContext('2d');if(!ctx)return;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,rect.width,rect.height);drawCollectorShell(ctx,{x:Number.isFinite(x)?x:rect.width*.39,y:Number.isFinite(y)?y:rect.height*.52,angle:-Math.PI/2,scale:Number.isFinite(scale)?scale:Math.min(rect.width/150,rect.height/90)});
 }

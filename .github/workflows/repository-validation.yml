@@ -278,6 +278,10 @@ jobs:
         env:
           LOADOUT_CAPTURE: '1'
         run: node tests/loadout-optical-alignment-browser.test.mjs
+      - name: LOADOUT reduced-motion acceptance
+        env:
+          LOADOUT_REDUCED_MOTION: '1'
+        run: node tests/loadout-optical-alignment-browser.test.mjs
       - name: Upload LOADOUT optical acceptance frames
         if: always()
         uses: actions/upload-artifact@v4
