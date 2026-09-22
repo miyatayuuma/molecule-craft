@@ -200,7 +200,8 @@ function ensureLaunchIntakeAnchor(map){
 }
 
 export function syncLaunchIntakeAnchor(map=document.querySelector?.('#supply-dialog .collector-shell-map')){
-  if(!map)return false;const anchor=ensureLaunchIntakeAnchor(map),canvas=map.querySelector('#collector-shell-preview'),movement=canvas?.style.transform?.trim()??'';
+  if(!map)return false;const layout=layoutStage(map),anchor=ensureLaunchIntakeAnchor(map),canvas=map.querySelector('#collector-shell-preview'),movement=canvas?.style.transform?.trim()??'';
+  if(layout){const point=designPointToMap(LOADOUT_HARDWARE_LAYOUT.modules.craft.intakeAnchor,layout.scale,layout.offsetX,layout.offsetY);anchor.style.left=`${point.x}px`;anchor.style.top=`${point.y}px`;anchor.style.width='10px';anchor.style.height='10px';}
   anchor.style.transform=`translate(-50%,-50%)${movement?` ${movement}`:''}`;return true;
 }
 
