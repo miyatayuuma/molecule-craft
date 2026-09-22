@@ -6,7 +6,7 @@ import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '..
 import {createStructureSolver} from '../src/structure-relaxation.js?v=33';
 import {createTorsionModel} from '../src/torsion-model.js?v=35';
 import {createConformationEngine} from '../src/conformation-engine.js?v=3';
-import {createStructureSettlement} from '../src/structure-settlement.js?v=32';
+import {createStructureSettlement} from '../src/structure-settlement.js?v=33';
 
 const pairKey=(a,b)=>`${Math.min(a,b)}:${Math.max(a,b)}`;
 

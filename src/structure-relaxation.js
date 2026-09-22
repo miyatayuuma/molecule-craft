@@ -98,12 +98,26 @@ export function createStructureSolver({
       frame.substituentRootIds = new Set(frame.substituents.map(substituent => substituent.rootId));
       nextAromaticFrames.set(key, frame);
     }
+    conjugationModel=createConjugationModel(molecule,{aromaticCycles});
+    // Preserve the existing aromatic authority while the shared
+    // conjugation fragment also records the relationship. The aromatic ring
+    // remains the reference normal for any directly attached exocyclic pi
+    // frame.
+    for(const frame of nextDoubleFrames.values()){
+      const parent=[...nextAromaticFrames.values()].find(aromatic=>aromatic.substituents.some(substituent=>
+        (substituent.rootId===frame.bond.a||substituent.rootId===frame.bond.b)
+        && conjugationModel.isRestrictedConjugatedBond(substituent.ringId,substituent.rootId)));
+      if(parent){
+        frame.normal.copy(parent.normal);
+        frame.substituentSlots=doubleSubstituentSlots(frame);
+        frame.slottedRootIds=new Set(frame.substituentSlots.flatMap(endpoint=>endpoint.branches.map(branch=>branch.rootId)));
+      }
+    }
     aromaticFrames = nextAromaticFrames;
     // One shared topology authority now joins acyclic pi frames, resonance
     // donors and aromatic followers into common planar islands. This replaces
     // the old aromatic-only normal handoff and also repairs stale independent
     // frame normals when conjugation appears after a topology edit.
-    conjugationModel=createConjugationModel(molecule,{aromaticCycles});
     conjugatedPlanarFragments=buildConjugatedPlanarFragments();
     sixMemberFrames = cycles.map(classifySixMemberConformation).filter(Boolean);
     fiveMemberFrames = cycles.map(classifyFiveMemberConformation).filter(Boolean);
@@ -210,7 +224,12 @@ export function createStructureSolver({
   }
 
   function projectRigidConstraints(scale,locked,activeAtoms){
-    for(const fragment of conjugatedPlanarFragments)enforcePlane(fragment.atomIds,fragment.normal,fragment.anchorIds,.28*scale,locked);
+    // Aromatic frames already own the ring-plane projection and regular-cycle
+    // correction below. The shared fragment still synchronizes their normal
+    // with the exocyclic pi frames, but must not add a second plane projection
+    // through a connector midpoint, which would fight aromatic radius/angle
+    // authority during incremental ring closure.
+    for(const fragment of conjugatedPlanarFragments)if(!fragment.aromatic)enforcePlane(fragment.atomIds,fragment.normal,fragment.anchorIds,.28*scale,locked);
     for(const frame of doubleFrames.values()){
       enforcePlane(frame.atomIds,frame.normal,[frame.bond.a,frame.bond.b],.22*scale,locked,frame.bond,frame.slottedRootIds);
       enforceDoubleSubstituentDirections(frame,.24*scale,locked);
@@ -1153,11 +1172,36 @@ export function createStructureSolver({
       ...[...trigonalFrames.entries()].map(([centerId,frame])=>({key:`trigonal:${centerId}`,kind:'trigonal',frame,centerIds:[centerId]})),
       ...[...aromaticFrames.values()].map(frame=>({key:`aromatic:${frame.key}`,kind:'aromatic',frame,centerIds:[...frame.cycle]})),
     ];
+    // A restricted-bond component can meet another component through the
+    // same double/trigonal frame (for example an open alternating chain whose
+    // middle pi frame is adjacent to two restricted connectors). Merge those
+    // components before choosing normals; otherwise one frame would receive
+    // two competing plane authorities and settlement could oscillate.
+    let merged=true;
+    while(merged){
+      merged=false;
+      for(let left=0;left<components.length&&!merged;left++){
+        const leftFrames=new Set(descriptors.filter(item=>item.centerIds.some(id=>components[left].has(id))).map(item=>item.key));
+        for(let right=left+1;right<components.length;right++){
+          const shares=descriptors.some(item=>leftFrames.has(item.key)&&item.centerIds.some(id=>components[right].has(id)));
+          if(!shares)continue;
+          for(const id of components[right])components[left].add(id);
+          components.splice(right,1);merged=true;break;
+        }
+      }
+    }
     const fragments=[];
     for(const component of components){
       const frames=descriptors.filter(item=>item.centerIds.some(id=>component.has(id)));
       if(!frames.length)continue;
       const reference=(frames.find(item=>item.kind==='aromatic')??frames[0]).frame.normal.clone().normalize();
+      const aromaticFrame=frames.find(item=>item.kind==='aromatic')?.frame;
+      // Aromatic frames retain their established ring/substituent authority.
+      // The shared model still classifies the connector for torsion and the
+      // existing aromatic handoff aligns its exocyclic pi frame. A second
+      // fragment solver here would duplicate the ring projection and make
+      // incremental closure order-sensitive.
+      if(aromaticFrame)continue;
       let normal;
       if(frames.some(item=>item.kind==='aromatic'))normal=reference;
       else{
@@ -1179,14 +1223,30 @@ export function createStructureSolver({
         if(item.donorId!=null)for(const neighbor of neighborsFor(item.donorId))atomIds.add(neighbor.atomId);
       }
       for(const item of frames)for(const id of item.frame.atomIds)atomIds.add(id);
-      for(const item of frames)item.frame.normal.copy(normal);
+      for(const item of frames){
+        // An aromatic frame remains the geometry authority for the ring. The
+        // shared fragment only projects the connected acyclic/resonance frames
+        // onto that authority; it never replaces the ring normal with a
+        // competing independently seeded normal.
+        if(!aromaticFrame||item.kind!=='aromatic')item.frame.normal.copy(normal);
+        if(item.kind==='double')item.frame.substituentSlots=doubleSubstituentSlots(item.frame,item.frame.substituentSlots);
+        item.frame.slottedRootIds=new Set(item.frame.substituentSlots?.flatMap(endpoint=>endpoint.branches.map(branch=>branch.rootId))??[]);
+      }
+      // An aromatic frame is already the authoritative plane reference. Using
+      // only the restricted connector as the plane anchor would create a
+      // parallel plane halfway between the ring and its exocyclic partner,
+      // which can move the ring away from its regular aromatic geometry.
+      // Acyclic fragments use all participating pi-frame atoms so no world
+      // axis or molecule-specific coordinate is introduced.
+      const anchorIds=aromaticFrame?[...aromaticFrame.cycle]:[...new Set(frames.flatMap(item=>item.frame.atomIds))];
       fragments.push({
         id:`conjugated-${fragments.length}`,
         atomIds:[...atomIds],
-        anchorIds:[...component],
+        anchorIds,
         frameKeys:frames.map(item=>item.key),
         restrictedBondKeys:restrictedBondKeys.sort(),
         frames:frames.map(item=>item.frame),
+        aromatic:Boolean(aromaticFrame),
         normal,
       });
     }
@@ -1194,7 +1254,12 @@ export function createStructureSolver({
   }
 
   function syncConjugatedFrameNormals(){
-    for(const fragment of conjugatedPlanarFragments)for(const frame of fragment.frames)frame.normal.copy(fragment.normal);
+    for(const fragment of conjugatedPlanarFragments){
+      const aromatic=fragment.frames.find(frame=>frame.key&&fragment.frameKeys.includes(`aromatic:${frame.key}`));
+      const authority=aromatic?.normal??fragment.normal;
+      fragment.normal.copy(authority);
+      for(const frame of fragment.frames)if(frame!==aromatic)frame.normal.copy(authority);
+    }
   }
 
   function buildRigidFragments(){

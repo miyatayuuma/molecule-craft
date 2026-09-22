@@ -4,8 +4,8 @@ import {pathToFileURL} from 'node:url';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {Molecule,ELEMENTS} from '../src/chemistry.js?v=20';
 import {ATOMIC_MODEL,bondLengthScale,geometryForAtom,nonbondedDistance} from '../src/bonding-model.js?v=31';
-import {createPreviewModel} from '../src/preview-model.js?v=31';
-import {createStructureSolver} from '../src/structure-relaxation.js?v=32';
+import {createPreviewModel} from '../src/preview-model.js?v=32';
+import {createStructureSolver} from '../src/structure-relaxation.js?v=33';
 
 if(!process.argv[2]||!process.argv[3])throw new Error('Pass playwright/index.mjs and the local app URL');
 const {chromium}=await import(pathToFileURL(process.argv[2])),baseURL=process.argv[3],screenshotDir=process.argv[4]??null,browserExecutable=process.argv[5]??null;

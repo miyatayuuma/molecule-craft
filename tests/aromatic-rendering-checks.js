@@ -1,4 +1,4 @@
-import {createPreviewModel} from '../src/preview-model.js?v=31';
+import {createPreviewModel} from '../src/preview-model.js?v=32';
 import {aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints,createAromaticRing,updateAromaticRing,setAromaticOpacity} from '../src/aromatic-rendering.js?v=26';
 
 export function checkAromaticRendering(THREE,records,parts){

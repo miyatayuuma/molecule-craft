@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { Molecule, ELEMENTS } from '../src/chemistry.js?v=20';
 import * as bonding from '../src/bonding-model.js?v=31';
-import { createStructureSolver } from '../src/structure-relaxation.js?v=32';
+import { createStructureSolver } from '../src/structure-relaxation.js?v=33';
 
 class Vector3 {
   constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }

@@ -5,7 +5,7 @@ import { ELEMENTS, Molecule, loadMoleculeDatabase, moleculeCatalog, modelAtomRad
 import { ATOMIC_MODEL, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, atomBondState, bondAddition, geometryForAtom, nonbondedDistance } from './bonding-model.js?v=32';
 import { createStructureSolver } from './structure-relaxation.js?v=33';
 import { planBondDocking } from './structure-motion.js?v=30';
-import { createStructureSettlement } from './structure-settlement.js?v=32';
+import { createStructureSettlement } from './structure-settlement.js?v=33';
 import { createTorsionModel } from './torsion-model.js?v=35';
 import { createConformationEngine } from './conformation-engine.js?v=3';
 import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
