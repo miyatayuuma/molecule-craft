@@ -42,9 +42,10 @@ for(const element of ['Cl','S','P','F']){
 // A production Graph marker becomes visible only after engagement; pickup through claimableOnly always yields a recipe and a valid analysis transition.
 {
   const value=make();value.state.recipes=['methane'];value.findElementForExpedition('C');value.prepareExpedition({region:'carbon',rng:()=>0});const selected=value.frontierInsightDiagnostics().selectedCandidateId;assert.ok(selected,'carbon run needs an eligible ordinary frontier candidate');
-  const signal={id:'ordinary',region:'carbon',x:0,y:0,ready:false,roll:.1,choice:.1},early=engagedRun({time:1,insightEngagementSatisfied:false,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+10,map:{signals:[signal]}});
+  const destination=value.insightSeedDiagnostics().hotDestination;value.prepareExpedition({region:destination});
+  const signal={id:'ordinary',region:destination,x:0,y:0,ready:false,roll:.1,choice:.1},early=engagedRun({region:destination,time:1,insightEngagementSatisfied:false,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+10,map:{signals:[signal]}});
   syncFieldInsightMarkerClaimability(early,item=>value.signalClaimability(item.region,item.roll,item.choice,{runContext:early}));assert.equal(signal.claimable,false);
-  const run=engagedRun({map:{signals:[signal]}});const marker=syncFieldInsightMarkerClaimability(run,item=>value.signalClaimability(item.region,item.roll,item.choice,{runContext:run}));assert.equal(marker?.claim.recipe,selected);assert.equal(signal.claimable,true);
+  const run=engagedRun({region:destination,map:{signals:[signal]}});const marker=syncFieldInsightMarkerClaimability(run,item=>value.signalClaimability(item.region,item.roll,item.choice,{runContext:run}));assert.equal(marker?.claim.recipe,selected);assert.equal(signal.claimable,true);
   const result=value.signal(signal.region,signal.roll,signal.choice,{runContext:run,claimableOnly:true});assert.equal(result.recipe,selected);const event=triggerInsight(run,result.recipe,value.state);assert.deepEqual(event,{type:'insightAnalysisStart',id:selected});syncFieldInsightMarkerClaimability(run,item=>value.signalClaimability(item.region,item.roll,item.choice,{runContext:run}));assert.equal(signal.claimable,false,'one active Insight prevents a second active marker');
 }
 
