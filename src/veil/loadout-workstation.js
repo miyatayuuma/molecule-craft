@@ -1,47 +1,61 @@
 import { RESOURCE_KEY } from './resources.js';
 import { ELEMENT_PRESENTATION } from '../element-progression.js?v=39';
+import { LOADOUT_DESIGN, LOADOUT_HARDWARE_LAYOUT, LOADOUT_LABELS, LOADOUT_SLOT_GEOMETRY, LOADOUT_SLOT_USES, designPointToMap, designRectToMap } from './loadout-hardware-layout.js';
 
 const STYLE_ID='molecule-craft-loadout-workstation-style';
-const PULSE_UNIT_URL=new URL('../../assets/loadout-pulse-unit.png',import.meta.url).href;
-const DRIVE_UNIT_URL=new URL('../../assets/loadout-drive-unit.png',import.meta.url).href;
+const ASSET_URL=name=>new URL(`../../assets/loadout-v2/${name}`,import.meta.url).href;
 const MODEL_URL=id=>new URL(`../../assets/models/molecule-${id}.svg`,import.meta.url).href;
-const SLOT_USES=['propellant','shock','fuel','oxidizer','coolant'];
-const PULSE_SLOT_FRAME=Object.freeze({width:10.9,top:38.5,height:27.0});
-const SHOCK_SLOT_FRAME=Object.freeze({width:15.0,top:11.0,height:18.0});
-const DRIVE_SLOT_FRAME=Object.freeze({width:10.0,top:38.0,height:27.0});
+const SLOT_USES=LOADOUT_SLOT_USES;
+const MODULE_USES=Object.freeze(['pulse','craft','shock','drive']);
 
-const slotGeometry=(centerX,frame)=>Object.freeze({
-  centerX,
-  left:Number((centerX-frame.width/2).toFixed(2)),
-  width:frame.width,
-  top:frame.top,
-  height:frame.height,
-  labelX:centerX,
-});
+export { LOADOUT_HARDWARE_LAYOUT, LOADOUT_LABELS, LOADOUT_SLOT_GEOMETRY };
 
-export const LOADOUT_LABELS=Object.freeze({propellant:'PULSE',shock:'SHOCK',fuel:'FUEL',oxidizer:'O₂',coolant:'COOLANT'});
-export const LOADOUT_SLOT_GEOMETRY=Object.freeze({
-  propellant:slotGeometry(16.05,PULSE_SLOT_FRAME),
-  shock:slotGeometry(39.00,SHOCK_SLOT_FRAME),
-  fuel:slotGeometry(65.10,DRIVE_SLOT_FRAME),
-  oxidizer:slotGeometry(77.20,DRIVE_SLOT_FRAME),
-  coolant:slotGeometry(88.80,DRIVE_SLOT_FRAME),
-});
+function designScaleFor(map){
+  if(!map)return 1;
+  const width=map.clientWidth||map.getBoundingClientRect?.().width||0;
+  const height=map.clientHeight||map.getBoundingClientRect?.().height||0;
+  return Math.max(.01,Math.min(width/LOADOUT_DESIGN.width,height/LOADOUT_DESIGN.height));
+}
 
-const centerX=use=>LOADOUT_SLOT_GEOMETRY[use].centerX;
-const pct=value=>`${value}%`;
-const svgRectGeometry=geometry=>({
-  x:Math.round(geometry.left*10),
-  y:Math.round(geometry.top*2),
-  width:Math.round(geometry.width*10),
-  height:Math.round(geometry.height*2),
-  rx:9,
-  ry:7,
-});
+function layoutStage(map){
+  if(!map)return null;
+  const scale=designScaleFor(map),width=LOADOUT_DESIGN.width*scale,height=LOADOUT_DESIGN.height*scale,offsetX=Math.max(0,(map.clientWidth-width)/2),offsetY=Math.max(0,(map.clientHeight-height)/2);
+  map._loadoutDesignScale=scale;map._loadoutDesignOffset={x:offsetX,y:offsetY};
+  let design=map.querySelector('.loadout-design-layer');
+  if(!design){design=document.createElement('div');design.className='loadout-design-layer';design.setAttribute('aria-hidden','true');map.append(design);}
+  design.style.width=`${LOADOUT_DESIGN.width}px`;design.style.height=`${LOADOUT_DESIGN.height}px`;design.style.left=`${offsetX}px`;design.style.top=`${offsetY}px`;design.style.transform=`scale(${scale})`;
+  return {scale,offsetX,offsetY,design};
+}
+
+function applyRectStyle(node,prefix,rectangle,layout){
+  const mapped=designRectToMap(rectangle,layout.scale,layout.offsetX,layout.offsetY);
+  node.style.setProperty(`--${prefix}-left`,`${mapped.left}px`);node.style.setProperty(`--${prefix}-top`,`${mapped.top}px`);node.style.setProperty(`--${prefix}-width`,`${mapped.width}px`);node.style.setProperty(`--${prefix}-height`,`${mapped.height}px`);
+}
+
+function applyDesignRectStyle(node,prefix,rectangle){
+  node.style.setProperty(`--${prefix}-left`,`${rectangle.x}px`);node.style.setProperty(`--${prefix}-top`,`${rectangle.y}px`);node.style.setProperty(`--${prefix}-width`,`${rectangle.width}px`);node.style.setProperty(`--${prefix}-height`,`${rectangle.height}px`);
+}
+
+function applyLoadoutHardwareLayout(map){
+  const layout=layoutStage(map);if(!layout)return false;
+  for(const kind of MODULE_USES){const image=map.querySelector(`.loadout-${kind}-image`),module=LOADOUT_HARDWARE_LAYOUT.modules[kind];if(image&&module)applyDesignRectStyle(image,'module',module.rect);}
+  for(const use of SLOT_USES){const button=map.querySelector(`#shell-${use}`),slot=LOADOUT_HARDWARE_LAYOUT.slots[use];if(!button||!slot)continue;const hitLocal=designRectToMap(slot.hitRect,layout.scale);applyRectStyle(button,'slot-hit',slot.hitRect,layout);applyRectStyle(button,'slot-visual',slot.visualRect,layout);const thumbnail=designRectToMap(slot.thumbnailRect,layout.scale),meter=designRectToMap(slot.meterRect,layout.scale);button.style.setProperty('--thumb-left',`${thumbnail.left-hitLocal.left}px`);button.style.setProperty('--thumb-top',`${thumbnail.top-hitLocal.top}px`);button.style.setProperty('--thumb-width',`${thumbnail.width}px`);button.style.setProperty('--thumb-height',`${thumbnail.height}px`);button.style.setProperty('--meter-left',`${meter.left-hitLocal.left}px`);button.style.setProperty('--meter-top',`${meter.top-hitLocal.top}px`);button.style.setProperty('--meter-width',`${meter.width}px`);button.style.setProperty('--meter-height',`${meter.height}px`);const label=document.querySelector(`[data-loadout-label="${use}"]`);if(label){const point=designPointToMap(slot.labelAnchor,layout.scale,layout.offsetX,layout.offsetY);label.style.left=`${point.x}px`;label.style.top=`${point.y}px`;}}
+  const intake=designPointToMap(LOADOUT_HARDWARE_LAYOUT.modules.craft.intakeAnchor,layout.scale,layout.offsetX,layout.offsetY);map.style.setProperty('--loadout-craft-anchor-left',`${intake.x}px`);map.style.setProperty('--loadout-craft-anchor-top',`${intake.y}px`);map.style.setProperty('--loadout-craft-translation-scale',String(1/layout.scale));
+  const moduleLabels=map.querySelectorAll('[data-loadout-module-label]');for(const label of moduleLabels){const point=LOADOUT_HARDWARE_LAYOUT.modules[label.dataset.loadoutModuleLabel]?.labelAnchor;if(point){const mapped=designPointToMap(point,layout.scale,layout.offsetX,layout.offsetY);label.style.left=`${mapped.x}px`;label.style.top=`${mapped.y}px`;}}
+  const craft=map._loadoutCraftTranslation??{x:0,y:0};setLoadoutCraftTranslation(map,craft.x,craft.y);return true;
+}
+
+export function syncLoadoutHardwareLayout(map=document.querySelector?.('#supply-dialog .collector-shell-map')){return applyLoadoutHardwareLayout(map);}
+
+export function setLoadoutCraftTranslation(map,dx=0,dy=0){
+  if(!map)return false;const x=Number(dx)||0,y=Number(dy)||0;map._loadoutCraftTranslation={x,y};const image=map.querySelector('.loadout-craft-image'),scale=map._loadoutDesignScale||1;if(image)image.style.transform=`translate(${x/scale}px,${y/scale}px)`;return true;
+}
 
 function addUnitImages(map){
   if(!map)return;
-  for(const [kind,url] of [['pulse',PULSE_UNIT_URL],['drive',DRIVE_UNIT_URL]]){
+  const layout=layoutStage(map);
+  for(const kind of MODULE_USES){
+    const url=ASSET_URL(LOADOUT_HARDWARE_LAYOUT.modules[kind].asset);
     if(map.querySelector(`.loadout-${kind}-image`))continue;
     const img=document.createElement('img');
     img.className=`loadout-unit-image loadout-${kind}-image`;
@@ -49,65 +63,18 @@ function addUnitImages(map){
     img.alt='';
     img.draggable=false;
     img.setAttribute('aria-hidden','true');
-    map.append(img);
+    layout.design.append(img);
   }
-}
-
-function svgElement(name,attributes={}){
-  const node=document.createElementNS('http://www.w3.org/2000/svg',name);
-  for(const [key,value] of Object.entries(attributes))node.setAttribute(key,String(value));
-  return node;
+  applyLoadoutHardwareLayout(map);
 }
 
 function addSchematic(map){
-  if(!map||map.querySelector('.loadout-schematic-lines'))return;
-  const fuelX=Math.round(centerX('fuel')*10),oxidizerX=Math.round(centerX('oxidizer')*10),coolantX=Math.round(centerX('coolant')*10),pulseX=Math.round(centerX('propellant')*10),shockX=Math.round(centerX('shock')*10);
-  const svg=svgElement('svg',{class:'loadout-schematic-lines',viewBox:'0 0 1000 200',preserveAspectRatio:'none','aria-hidden':'true'});
-  const pulse=svgElement('path',{class:'loadout-schematic-path',d:`M325 104 H286 V54 H${pulseX} V73`});
-  const drive=svgElement('path',{class:'loadout-schematic-path',d:`M455 104 H493 V54 H${coolantX}`});
-  const shock=svgElement('path',{class:'loadout-schematic-path',d:`M390 74 V58`});
-  const branches=svgElement('path',{class:'loadout-schematic-path',d:`M${fuelX} 54 V73 M${oxidizerX} 54 V73 M${coolantX} 54 V73`});
-  svg.append(pulse,drive,shock,branches);
-  for(const [cx,cy] of [[325,104],[pulseX,73],[390,74],[shockX,58],[455,104],[493,54],[fuelX,73],[oxidizerX,73],[coolantX,73]]){
-    svg.append(svgElement('circle',{class:'loadout-schematic-node',cx,cy,r:cx===493?4.2:3.1}));
+  if(!map||map.querySelector('[data-loadout-label="propellant"]'))return;
+  for(const [use,slot] of Object.entries(LOADOUT_HARDWARE_LAYOUT.slots)){
+    const label=document.createElement('span');label.className='loadout-callout-label';label.dataset.loadoutLabel=use;label.textContent=slot.label;label.setAttribute('aria-hidden','true');map.append(label);
   }
-  map.append(svg);
-
-  const hitSvg=svgElement('svg',{class:'loadout-slot-overlay',viewBox:'0 0 1000 200',preserveAspectRatio:'none','aria-hidden':'true'});
-  for(const use of SLOT_USES){
-    const rect=svgElement('rect',{class:'loadout-slot-path','data-use':use,...svgRectGeometry(LOADOUT_SLOT_GEOMETRY[use])});
-    rect.addEventListener('click',event=>{event.stopPropagation();document.getElementById(`shell-${use}`)?.click();});
-    hitSvg.append(rect);
-  }
-  map.append(hitSvg);
-
-  for(const [className,text] of [
-    ['loadout-callout-label loadout-pulse-label','PULSE'],
-    ['loadout-callout-label loadout-shock-label','SHOCK'],
-    ['loadout-callout-label loadout-drive-label','DRIVE'],
-    ['loadout-callout-label loadout-fuel-label','FUEL'],
-    ['loadout-callout-label loadout-oxidizer-label','O₂'],
-    ['loadout-callout-label loadout-coolant-label','COOLANT'],
-  ]){
-    const label=document.createElement('span');
-    label.className=className;
-    label.textContent=text;
-    label.setAttribute('aria-hidden','true');
-    map.append(label);
-  }
-}
-
-function applySlotGeometry(){
-  for(const use of SLOT_USES){
-    const button=document.getElementById(`shell-${use}`),geometry=LOADOUT_SLOT_GEOMETRY[use];
-    if(!button||!geometry)continue;
-    button.style.setProperty('--slot-left',pct(geometry.left));
-    button.style.setProperty('--slot-width',pct(geometry.width));
-    button.style.setProperty('--slot-top',pct(geometry.top));
-    button.style.setProperty('--slot-height',pct(geometry.height));
-  }
-  for(const [use,className] of [['propellant','loadout-pulse-label'],['shock','loadout-shock-label'],['fuel','loadout-fuel-label'],['oxidizer','loadout-oxidizer-label'],['coolant','loadout-coolant-label']]){
-    document.querySelector(`.${className}`)?.style.setProperty('--slot-label-x',pct(LOADOUT_SLOT_GEOMETRY[use].labelX));
+  for(const kind of ['pulse','shock','drive']){
+    const label=document.createElement('span');label.className='loadout-module-label';label.dataset.loadoutModuleLabel=kind;label.textContent=kind.toUpperCase();label.setAttribute('aria-hidden','true');map.append(label);
   }
 }
 
@@ -141,7 +108,7 @@ function syncMoleculeSlot(button,id){
       image.alt='';
       image.draggable=false;
       image.decoding='async';
-      image.addEventListener('error',()=>image.remove());
+      image.addEventListener('error',()=>{image.remove();const failure=document.createElement('span');failure.className='loadout-thumb-error';failure.textContent='?';pod.append(failure);},{once:true});
       pod.append(image);
     }
     if(image.dataset.moleculeId!==id){
@@ -190,6 +157,13 @@ function observeMoleculeSlots(map){
   document.getElementById('tank-molecules')?.addEventListener('click',schedule);
   globalThis.addEventListener?.('storage',event=>{if(event.key===RESOURCE_KEY)schedule();});
   syncMoleculeSlots(map);
+}
+
+function observeHardwareLayout(map){
+  if(!map||map._loadoutLayoutObserver)return;
+  const refresh=()=>syncLoadoutHardwareLayout(map);
+  if(globalThis.ResizeObserver){const observer=new ResizeObserver(refresh);observer.observe(map);map._loadoutLayoutObserver=observer;}
+  refresh();
 }
 
 function installLoadoutElementStock(map){
@@ -274,7 +248,8 @@ function installLabels(){
   const map=document.querySelector('#supply-dialog .collector-shell-map');
   addUnitImages(map);
   addSchematic(map);
-  applySlotGeometry();
+  syncLoadoutHardwareLayout(map);
+  observeHardwareLayout(map);
   observeMoleculeSlots(map);
   installLoadoutElementStock(map);ensureLaunchIntakeAnchor(map);observeLaunchIntakeAnchor(map);
   const details=document.querySelector('#supply-dialog .tank-explanation');
@@ -286,44 +261,30 @@ function installStyles(){
   const style=document.createElement('style');
   style.id=STYLE_ID;
   style.textContent=`
-#supply-dialog .collector-shell-map{--loadout-pulse-left:2.5%;--loadout-pulse-width:24%;--loadout-ship-x:39%;--loadout-drive-left:51.5%;--loadout-drive-width:46%;height:202px!important;border-color:#294656;background:radial-gradient(circle at var(--loadout-ship-x) 52%,#173c4d 0 17%,#0a1a27 37%,#071520 78%);overflow:hidden}
+#supply-dialog .collector-shell-map{height:clamp(205px,60vw,240px)!important;border-color:#294656;background:#071520;overflow:hidden}
 #supply-dialog .collector-shell-map:before,#supply-dialog .collector-shell-map:after,#supply-dialog .collector-core{display:none!important}
-#supply-dialog .loadout-unit-image{position:absolute;z-index:2;display:block;object-fit:contain;pointer-events:none;user-select:none;transition:opacity .14s ease,filter .14s ease}
-#supply-dialog .loadout-pulse-image{left:var(--loadout-pulse-left);top:52%;width:var(--loadout-pulse-width);height:64px;transform:translateY(-50%)}
-#supply-dialog .loadout-drive-image{left:var(--loadout-drive-left);top:52%;width:var(--loadout-drive-width);height:auto;aspect-ratio:320/113;transform:translateY(-50%)}
-#supply-dialog .loadout-schematic-lines{position:absolute;inset:0;z-index:3;width:100%;height:100%;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 3px #76d8e445);transition:opacity .14s ease}
-#supply-dialog .loadout-schematic-path{fill:none;stroke:#a9dce4;stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linecap:square;stroke-linejoin:miter;opacity:.72}
-#supply-dialog .loadout-schematic-node{fill:#d9f5f8;stroke:#6dbbc7;stroke-width:1.2;vector-effect:non-scaling-stroke;opacity:.9}
-#supply-dialog .loadout-slot-overlay{position:absolute;inset:0;z-index:5;width:100%;height:100%;overflow:visible;pointer-events:none}
-#supply-dialog .loadout-slot-path{fill:#a9f1f5;fill-opacity:.001;stroke:transparent;stroke-width:1.6;vector-effect:non-scaling-stroke;pointer-events:visibleFill;cursor:pointer;touch-action:manipulation;transition:fill-opacity .12s ease,stroke .12s ease,filter .12s ease}
-#supply-dialog .collector-shell-map:has(#shell-propellant[data-active=true]) .loadout-slot-path[data-use='propellant'],#supply-dialog .collector-shell-map:has(#shell-shock[data-active=true]) .loadout-slot-path[data-use='shock'],#supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-slot-path[data-use='fuel'],#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-slot-path[data-use='oxidizer'],#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-slot-path[data-use='coolant']{fill-opacity:.12;stroke:#a8edf5d6;filter:drop-shadow(0 0 5px #74d6e177)}
-#supply-dialog .loadout-callout-label{position:absolute;z-index:6;color:#d8e8ed;font-size:11px;font-weight:800;line-height:1;letter-spacing:.09em;pointer-events:none;user-select:none;text-shadow:0 1px 4px #000,0 0 7px #6dc8d044;transition:opacity .14s ease,color .12s ease}
-#supply-dialog .loadout-pulse-label{left:var(--slot-label-x,15.05%);top:22px;transform:translateX(-50%)}
-#supply-dialog .loadout-shock-label{left:var(--slot-label-x,39%);top:3px;transform:translateX(-50%);font-size:10px;letter-spacing:.12em}
-#supply-dialog .loadout-drive-label{left:75.50%;top:17px;transform:translateX(-50%);font-size:12px;letter-spacing:.14em}
-#supply-dialog .loadout-fuel-label,#supply-dialog .loadout-oxidizer-label,#supply-dialog .loadout-coolant-label{left:var(--slot-label-x);top:69%;transform:translateX(-50%)}
-#supply-dialog #collector-shell-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:1!important}
-#supply-dialog #collector-launch-handle{left:var(--loadout-ship-x)!important;top:52%!important;width:76px!important;height:76px!important}
-#supply-dialog #expedition-destinations button{left:var(--loadout-ship-x)!important;top:52%!important}
-#supply-dialog .shell-port{z-index:0!important;min-width:0!important;min-height:0!important;margin:0!important;box-sizing:border-box;left:var(--slot-left)!important;right:auto!important;top:var(--slot-top)!important;bottom:auto!important;width:var(--slot-width)!important;height:var(--slot-height)!important;transform:none!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#d9e8ed;overflow:visible;pointer-events:none;transition:opacity .14s ease}
+#supply-dialog .loadout-design-layer{position:absolute;z-index:2;transform-origin:top left;pointer-events:none}
+#supply-dialog .loadout-unit-image{position:absolute;left:var(--module-left);top:var(--module-top);width:var(--module-width);height:var(--module-height);display:block;object-fit:fill;pointer-events:none;user-select:none;transition:filter .14s ease,opacity .14s ease}
+#supply-dialog .loadout-craft-image{z-index:4;transform-origin:center;transition:transform .16s ease,filter .14s ease,opacity .14s ease}
+#supply-dialog .loadout-pulse-image,#supply-dialog .loadout-shock-image,#supply-dialog .loadout-drive-image{z-index:2}
+#supply-dialog #collector-shell-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:1!important;opacity:0!important;pointer-events:none!important}
+#supply-dialog #collector-launch-handle{left:var(--loadout-craft-anchor-left)!important;top:var(--loadout-craft-anchor-top)!important;width:76px!important;height:76px!important}
+#supply-dialog #expedition-destinations button{left:var(--loadout-craft-anchor-left)!important;top:var(--loadout-craft-anchor-top)!important}
+#supply-dialog .shell-port{position:absolute!important;z-index:6!important;min-width:0!important;min-height:0!important;margin:0!important;box-sizing:border-box;left:var(--slot-hit-left)!important;right:auto!important;top:var(--slot-hit-top)!important;bottom:auto!important;width:var(--slot-hit-width)!important;height:var(--slot-hit-height)!important;transform:none!important;padding:0!important;border:0!important;border-radius:12px!important;background:transparent!important;box-shadow:none!important;color:#d9e8ed;overflow:visible;pointer-events:auto;cursor:pointer;touch-action:manipulation;transition:opacity .14s ease,filter .12s ease}
+#supply-dialog .shell-port:before{content:'';position:absolute;z-index:-1;left:calc(var(--slot-visual-left) - var(--slot-hit-left));top:calc(var(--slot-visual-top) - var(--slot-hit-top));width:var(--slot-visual-width);height:var(--slot-visual-height);border:1px solid transparent;border-radius:10px;pointer-events:none;transition:border-color .12s ease,box-shadow .12s ease,background .12s ease}
+#supply-dialog .shell-port[data-active=true]:before{border-color:#a8edf5d6;background:#a9f1f51c;box-shadow:0 0 12px #74d6e177,inset 0 0 10px #74d6e133}
 #supply-dialog .shell-port>i,#supply-dialog .shell-port>span:not(.loadout-molecule-pod):not(.tank-scale),#supply-dialog .shell-port>small{display:none!important}
-#supply-dialog .shell-port .tank-scale{display:none!important}
-#supply-dialog #shell-shock{border:1px solid #75cbd6a8!important;border-radius:50%!important;background:radial-gradient(circle,#28586655 0 28%,#112b3888 31% 55%,transparent 58%)!important;box-shadow:0 0 10px #66dce42c!important}
-#supply-dialog #shell-shock:before,#supply-dialog #shell-shock:after{content:'';position:absolute;border:1px solid #8de5eb75;border-radius:50%;pointer-events:none}#supply-dialog #shell-shock:before{inset:16%}#supply-dialog #shell-shock:after{inset:31%;border-color:#c9f5f7aa}
-#supply-dialog #shell-shock>.loadout-molecule-pod{top:50%;width:76%;height:34px;transform:translate(-50%,-50%)}
-#supply-dialog .loadout-molecule-pod{position:absolute;z-index:0;left:50%;top:calc(100% + 28px);width:145%;height:54px;transform:translate(-50%,-50%);display:grid;place-items:center;padding:0;box-sizing:border-box;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none;user-select:none}
+#supply-dialog .shell-port .tank-scale{position:absolute;left:var(--meter-left);top:var(--meter-top);width:var(--meter-width);height:var(--meter-height);display:block!important;margin:0;z-index:4}
+#supply-dialog #shell-shock:before{border-radius:50%}
+#supply-dialog .loadout-molecule-pod{position:absolute;z-index:3;left:var(--thumb-left);top:var(--thumb-top);width:var(--thumb-width);height:var(--thumb-height);display:grid;place-items:center;padding:0;box-sizing:border-box;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none;user-select:none}
 #supply-dialog .loadout-molecule-thumb{width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;filter:drop-shadow(0 1px 3px #000b) drop-shadow(0 0 5px #9ce9f044)}
 #supply-dialog .loadout-pod-formula{display:none!important}
-#supply-dialog .loadout-pod-empty{align-self:center;color:#c7e7ed;font-size:18px;font-weight:700;opacity:.62}
-#supply-dialog #shell-fuel:not(.loadout-slot-empty)>.loadout-molecule-pod{left:18%}
-#supply-dialog #shell-coolant:not(.loadout-slot-empty)>.loadout-molecule-pod{left:82%}
-#supply-dialog .port-propellant>.loadout-molecule-pod{width:175%;height:62px;top:calc(100% + 28px);transform:translate(-50%,-50%)}
-#supply-dialog .loadout-slot-empty>.loadout-molecule-pod{left:50%;top:calc(100% + 16px);width:100%;height:24px;transform:translateX(-50%)}
-#supply-dialog .collector-shell-map:has(#shell-propellant[data-active=true]) .loadout-pulse-label,#supply-dialog .collector-shell-map:has(#shell-shock[data-active=true]) .loadout-shock-label,#supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-fuel-label,#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-oxidizer-label,#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-coolant-label{color:#f0fdff;text-shadow:0 1px 4px #000,0 0 9px #83dbe477}
-#supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) .loadout-drive-label,#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) .loadout-drive-label,#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) .loadout-drive-label{color:#f0fdff}
-#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-unit-image,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-schematic-lines,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-slot-overlay,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-callout-label{opacity:.28}
-#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-slot-path{pointer-events:none}
-#supply-dialog .loadout-synthesis-intake{position:absolute;z-index:7;left:var(--loadout-ship-x);top:52%;width:10px;height:10px;border-radius:50%;opacity:0;pointer-events:none;box-shadow:0 0 0 0 #bff7ff00;transition:opacity .12s ease,box-shadow .12s ease}
+#supply-dialog .loadout-pod-empty,#supply-dialog .loadout-thumb-error{align-self:center;color:#c7e7ed;font-size:18px;font-weight:700;opacity:.62}
+#supply-dialog .loadout-callout-label,#supply-dialog .loadout-module-label{position:absolute;z-index:7;transform:translate(-50%,-50%);color:#d8e8ed;font-size:10px;font-weight:800;line-height:1;letter-spacing:.09em;pointer-events:none;user-select:none;text-shadow:0 1px 4px #000,0 0 7px #6dc8d044;transition:opacity .14s ease,color .12s ease}
+#supply-dialog .loadout-module-label{font-size:11px;letter-spacing:.13em;color:#9fbac5}
+#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-unit-image,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-callout-label,#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .loadout-module-label{opacity:.28}
+#supply-dialog .collector-shell-map:has(#expedition-destinations[aria-hidden='false']) .shell-port{pointer-events:none}
+#supply-dialog .loadout-synthesis-intake{position:absolute;z-index:7;left:var(--loadout-craft-anchor-left);top:var(--loadout-craft-anchor-top);width:10px;height:10px;border-radius:50%;opacity:0;pointer-events:none;box-shadow:0 0 0 0 #bff7ff00;transition:opacity .12s ease,box-shadow .12s ease}
 #supply-dialog .collector-shell-map[data-synthesis-active='true'] .loadout-synthesis-intake{opacity:.92;box-shadow:0 0 6px 2px #d9fbff,0 0 18px 8px #75dbe877}
 #supply-dialog .loadout-element-stock{display:grid;gap:6px;margin:8px 0 0;padding:8px 10px;border:1px solid #294656;border-radius:13px;background:#091b27;pointer-events:none;user-select:none}
 #supply-dialog .loadout-element-stock-title{color:#8ea9b5;font-size:9px;font-weight:800;letter-spacing:.16em}
@@ -360,11 +321,11 @@ function installStyles(){
 #supply-dialog .loadout-oxygen-next{margin:0;color:#b9cbd1;font-size:9px;font-weight:750;letter-spacing:.04em;text-align:right}
 #supply-dialog #tank-detail-title{font-size:0}#supply-dialog #tank-detail-title:after{font-size:14px;font-weight:700;letter-spacing:.04em}
 #supply-dialog:has(#shell-propellant[data-active='true']) #tank-detail-title:after{content:'PULSE'}#supply-dialog:has(#shell-shock[data-active='true']) #tank-detail-title:after{content:'SHOCK'}#supply-dialog:has(#shell-fuel[data-active='true']) #tank-detail-title:after{content:'FUEL'}#supply-dialog:has(#shell-oxidizer[data-active='true']) #tank-detail-title:after{content:'O₂'}#supply-dialog:has(#shell-coolant[data-active='true']) #tank-detail-title:after{content:'COOLANT'}
-@media(max-width:520px) and (orientation:portrait){#supply-dialog .sheet-header{padding:11px 16px}#supply-dialog .sheet-body{padding:12px 14px 14px;gap:8px}#supply-dialog .collector-shell-map{height:184px!important}#supply-dialog .loadout-element-stock{grid-template-columns:54px minmax(0,1fr);align-items:center;gap:6px;margin:2px 0 0;padding:5px 7px;border-radius:11px}#supply-dialog .loadout-element-stock-title{font-size:8px;line-height:1.05;letter-spacing:.08em;white-space:nowrap}#supply-dialog .loadout-stock-elements{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}#supply-dialog .loadout-element-token{min-height:42px;column-gap:4px;padding:3px 4px;border-radius:9px}#supply-dialog .loadout-element-token>.atom-preview{width:20px;height:20px}#supply-dialog .loadout-element-token[data-loadout-stock-element='H']>.atom-preview{width:17px;height:17px}#supply-dialog .loadout-element-token>strong{font-size:12px}#supply-dialog .loadout-element-token>small{font-size:9px}#supply-dialog .tank-detail{gap:7px;padding:9px 10px}#supply-dialog .tank-molecules{gap:6px;padding-bottom:3px}#supply-dialog .tank-molecules button{grid-template-rows:46px auto 10px;min-height:96px;padding:4px 5px}#supply-dialog .tank-molecules button img{width:68px;height:46px}#supply-dialog .tank-inspector{gap:7px;min-height:142px}#supply-dialog .tank-model #tank-model-host .model-stage{height:108px}}
-@media(max-width:370px){#supply-dialog .collector-shell-map{height:176px!important}#supply-dialog #collector-launch-handle{width:70px!important;height:70px!important}#supply-dialog .loadout-molecule-pod{height:50px;transform:translate(-50%,-50%)}#supply-dialog .port-propellant>.loadout-molecule-pod{height:56px;transform:translate(-50%,-50%)}#supply-dialog .loadout-slot-empty>.loadout-molecule-pod{height:24px;transform:translateX(-50%)}#supply-dialog .loadout-callout-label{font-size:10px}#supply-dialog .loadout-drive-label{top:15px;font-size:11px}#supply-dialog .loadout-pulse-label{top:20px}#supply-dialog .loadout-fuel-label,#supply-dialog .loadout-oxidizer-label,#supply-dialog .loadout-coolant-label{top:68.5%}#supply-dialog .tank-comparison .loadout-stat,#supply-dialog .loadout-charges{grid-template-columns:55px 1fr}#supply-dialog .loadout-stock-elements{grid-template-columns:repeat(4,minmax(0,1fr))!important}#supply-dialog .sheet-body{padding:9px 10px 10px;gap:6px}#supply-dialog .loadout-element-stock{grid-template-columns:50px minmax(0,1fr);padding:4px 6px;gap:5px}#supply-dialog .tank-molecules button{grid-template-rows:42px auto 10px;min-height:90px}#supply-dialog .tank-molecules button img{height:42px}#supply-dialog .tank-inspector{min-height:132px}#supply-dialog .tank-model #tank-model-host .model-stage{height:96px}}
+@media(max-width:520px) and (orientation:portrait){#supply-dialog .sheet-header{padding:11px 16px}#supply-dialog .sheet-body{padding:12px 14px 14px;gap:8px}#supply-dialog .loadout-element-stock{grid-template-columns:54px minmax(0,1fr);align-items:center;gap:6px;margin:2px 0 0;padding:5px 7px;border-radius:11px}#supply-dialog .loadout-element-stock-title{font-size:8px;line-height:1.05;letter-spacing:.08em;white-space:nowrap}#supply-dialog .loadout-stock-elements{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}#supply-dialog .loadout-element-token{min-height:42px;column-gap:4px;padding:3px 4px;border-radius:9px}#supply-dialog .loadout-element-token>.atom-preview{width:20px;height:20px}#supply-dialog .loadout-element-token[data-loadout-stock-element='H']>.atom-preview{width:17px;height:17px}#supply-dialog .loadout-element-token>strong{font-size:12px}#supply-dialog .loadout-element-token>small{font-size:9px}#supply-dialog .tank-detail{gap:7px;padding:9px 10px}#supply-dialog .tank-molecules{gap:6px;padding-bottom:3px}#supply-dialog .tank-molecules button{grid-template-rows:46px auto 10px;min-height:96px;padding:4px 5px}#supply-dialog .tank-molecules button img{width:68px;height:46px}#supply-dialog .tank-inspector{gap:7px;min-height:142px}#supply-dialog .tank-model #tank-model-host .model-stage{height:108px}}
+@media(max-width:370px){#supply-dialog #collector-launch-handle{width:70px!important;height:70px!important}#supply-dialog .loadout-callout-label{font-size:9px}#supply-dialog .loadout-module-label{font-size:10px}#supply-dialog .tank-comparison .loadout-stat,#supply-dialog .loadout-charges{grid-template-columns:55px 1fr}#supply-dialog .loadout-stock-elements{grid-template-columns:repeat(4,minmax(0,1fr))!important}#supply-dialog .sheet-body{padding:9px 10px 10px;gap:6px}#supply-dialog .loadout-element-stock{grid-template-columns:50px minmax(0,1fr);padding:4px 6px;gap:5px}#supply-dialog .tank-molecules button{grid-template-rows:42px auto 10px;min-height:90px}#supply-dialog .tank-molecules button img{width:68px;height:42px}#supply-dialog .tank-inspector{min-height:132px}#supply-dialog .tank-model #tank-model-host .model-stage{height:96px}}
 @media(max-width:340px) and (max-height:680px){#supply-dialog .collector-shell-map{height:164px!important}#supply-dialog .sheet-header{padding:8px 10px}#supply-dialog .sheet-body{padding:7px 8px 8px;gap:5px}#supply-dialog .loadout-element-stock{grid-template-columns:48px minmax(0,1fr);padding:4px 5px;gap:4px}#supply-dialog .loadout-element-token{min-height:38px;padding:2px 3px}#supply-dialog .loadout-element-token>.atom-preview{width:18px;height:18px}#supply-dialog .loadout-element-token[data-loadout-stock-element='H']>.atom-preview{width:16px;height:16px}#supply-dialog .tank-detail{gap:5px;padding:7px 8px}#supply-dialog .tank-molecules button{grid-template-rows:40px auto 9px;min-height:86px}#supply-dialog .tank-molecules button img{height:40px}#supply-dialog .tank-inspector{min-height:120px;gap:5px}#supply-dialog .tank-model #tank-model-host .model-stage{height:88px}}
 @media(max-width:370px){#supply-dialog .loadout-oxygen-capacity{gap:5px;padding:6px 7px}#supply-dialog .loadout-oxygen-capacity>header>span{font-size:8px}#supply-dialog .loadout-oxygen-capacity>header>strong{font-size:22px}#supply-dialog .loadout-oxygen-stages{gap:3px}#supply-dialog .loadout-oxygen-stages>li{min-height:35px;padding:3px 1px}#supply-dialog .loadout-oxygen-stages>li>strong{font-size:12px}#supply-dialog .loadout-oxygen-next{font-size:8px}}
-@media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog .loadout-schematic-lines,#supply-dialog .loadout-slot-path,#supply-dialog .loadout-callout-label,#supply-dialog .loadout-synthesis-intake{transition:none}}
+@media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog .loadout-callout-label,#supply-dialog .loadout-module-label,#supply-dialog .loadout-synthesis-intake{transition:none}}
 `;
   document.head.append(style);
 }
