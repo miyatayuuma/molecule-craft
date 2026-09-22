@@ -162,6 +162,19 @@ export function createVeilRenderer(canvas){
     ctx.restore();
     ctx.restore();ctx.globalAlpha=1;
   }
+  function drawCarbonChargedAnchor(run,anchor,reduced=false){
+    if(anchor?.active!==true)return;
+    const distance=Math.hypot(anchor.x-run.player.x,anchor.y-run.player.y),r=anchor.radius;
+    if(distance>920||anchor.x+r*2<camera.x-w/(2*scale)||anchor.x-r*2>camera.x+w/(2*scale)||anchor.y+r*2<camera.y-h/(2*scale)||anchor.y-r*2>camera.y+h/(2*scale))return;
+    const fractured=anchor.fractured===true,progress=fractured?clamp((run.time-(anchor.fracturedAt??run.time))/anchor.fractureDuration,0,1):0,flash=fractured&&!reduced?1-smoothstep(clamp(progress/.36,0,1)):0;
+    ctx.save();ctx.translate(anchor.x,anchor.y);
+    if(flash>.01){const glow=ctx.createRadialGradient(0,0,0,0,0,r*(1.15+flash*.5));glow.addColorStop(0,`rgba(229,202,255,${.22*flash})`);glow.addColorStop(1,'rgba(144,92,202,0)');ctx.fillStyle=glow;ctx.fillRect(-r*1.8,-r*1.8,r*3.6,r*3.6);}
+    const drawBody=(offsetX,offsetY,rotation,alpha)=>{ctx.save();ctx.translate(offsetX,offsetY);ctx.rotate(rotation);ctx.globalAlpha=alpha;ctx.beginPath();const vertices=10;for(let i=0;i<=vertices;i++){const a=i/vertices*Math.PI*2,rough=1+.09*Math.sin(a*3+1.7)+.05*Math.cos(a*5),radius=r*rough*(fractured?.72:1);const x=Math.cos(a)*radius,y=Math.sin(a)*radius;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();const body=ctx.createRadialGradient(-r*.2,-r*.3,2,0,0,r*1.2);body.addColorStop(0,'#4d4a58');body.addColorStop(.3,'#252833');body.addColorStop(1,'#080b12');ctx.fillStyle=body;ctx.fill();ctx.strokeStyle=fractured?'#8f739f':'#a88bc4';ctx.lineWidth=fractured?1.3:1.7;ctx.stroke();ctx.restore();};
+    if(!fractured)drawBody(0,0,0,Math.min(1,.58+distance/900*.24));
+    else{const separation=r*.25*progress;drawBody(-separation*.62,0,-.08,.74);drawBody(separation*.62,0,.08,.74);ctx.strokeStyle='#d6b3f2';ctx.globalAlpha=.7;ctx.lineWidth=1.25;ctx.beginPath();ctx.moveTo(-r*.62,-r*.32);ctx.lineTo(-r*.18,r*.06);ctx.lineTo(-r*.52,r*.46);ctx.moveTo(r*.58,-r*.38);ctx.lineTo(r*.12,r*.02);ctx.lineTo(r*.48,r*.5);ctx.stroke();if(!reduced&&progress<1){ctx.fillStyle='#d9b8f6';for(let i=0;i<4;i++){const a=i*2.4+1.1,d=r*(.9+progress*.7),x=Math.cos(a)*d,y=Math.sin(a)*d;ctx.globalAlpha=(1-progress)*.65;ctx.fillRect(x-1.2,y-1.2,2.4,2.4);}}}
+    if(!fractured){ctx.strokeStyle='#c7a1e7';ctx.globalAlpha=.62;ctx.lineWidth=1;for(let i=0;i<3;i++){const a=i*2.1+.3;ctx.beginPath();ctx.moveTo(Math.cos(a)*r*.16,Math.sin(a)*r*.16);ctx.lineTo(Math.cos(a+.18)*r*.78,Math.sin(a+.18)*r*.78);ctx.stroke();}}
+    ctx.restore();ctx.globalAlpha=1;
+  }
   function draw(run,dt,reduced=false){
     const p=run.player,burst=p.boost>0,combustion=p.combustion===true,boost=burst||combustion,fever=Math.min(run.chain/VEIL.feverChain,1),lead=Math.min(p.speed*VEIL.cameraLead,VEIL.cameraMaxLead);
     if(run.returnEffect)run.returnEffect.life=Math.min(run.returnEffect.duration,run.returnEffect.life+dt);
@@ -234,7 +247,7 @@ export function createVeilRenderer(canvas){
     }
     if(run.map.universe&&run.map.worldState===ELECTRICAL_FIELD.worldState){
       for(const sample of ELECTRICAL_VISUAL_SAMPLES){
-        const effective=electricalEffectiveAt(sample,run.map.worldState),density=clamp(effective*(reduced?.58:1.05),0,1);if(effective<=0||sample.threshold>density)continue;
+        const effective=electricalEffectiveAt(sample,run.map.worldState,{shockStructures:run.map.shockStructures}),density=clamp(effective*(reduced?.58:1.05),0,1);if(effective<=0||sample.threshold>density)continue;
         const at=screen(sample.x,sample.y);if(at.x<-55||at.x>w+55||at.y<-55||at.y>h+55)continue;
         const radius=9+effective*18,corona=ctx.createRadialGradient(sample.x,sample.y,0,sample.x,sample.y,radius);corona.addColorStop(0,`rgba(168,205,255,${.035+effective*.075})`);corona.addColorStop(1,'rgba(134,157,226,0)');ctx.fillStyle=corona;ctx.fillRect(sample.x-radius,sample.y-radius,radius*2,radius*2);
         const cycle=(run.time*(.58+effective*.9)+sample.phase)%1,window=.035+effective*.085;if(reduced||cycle>window)continue;
@@ -244,6 +257,7 @@ export function createVeilRenderer(canvas){
       }
       ctx.globalAlpha=1;
     }
+    if(run.map.universe&&run.map.worldState===ELECTRICAL_FIELD.worldState)drawCarbonChargedAnchor(run,(run.map.shockStructures??[]).find(structure=>structure.id==='carbon-charged-anchor'),reduced);
     if(run.map.universe&&run.map.worldState===ABRASIVE_PLUME.worldState){
       const direction=ABRASIVE_PLUME.direction;
       for(const sample of ABRASIVE_VISUAL_SAMPLES){
@@ -332,7 +346,7 @@ export function createVeilRenderer(canvas){
       else{ctx.fillStyle=ecology?.color??(pureH?'#ffe2a1':element==='N'?'#93c5fd':element==='O'?'#ffd2bd':'#d1f5ff');ctx.beginPath();ctx.arc(q.x,q.y,(ecology?3.8:pureH?4:element==='N'?3.2:element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}
       if(pureH||ecology){ctx.strokeStyle=ecology?.color??'#c7ab76';ctx.globalAlpha=ecology?.72:1;ctx.lineWidth=ecology?1.2*scale:1;ctx.beginPath();ctx.arc(q.x,q.y,(ecology?11:12)*scale,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
     }
-    for(const wave of run.shockWaves??[]){const at=screen(wave.x,wave.y),progress=clamp(wave.life/wave.duration,0,1),radius=wave.radius*scale*smoothstep(progress),alpha=(1-progress)*(wave.coreFracture?.9:.72),tnt=wave.material==='2-4-6-trinitrotoluene';ctx.save();ctx.strokeStyle=wave.coreFracture?'#e3d2ff':tnt?'#ffd5a6':'#a7eff5';ctx.globalAlpha=alpha;ctx.lineWidth=(wave.coreFracture?3.2:tnt?2.6:1.8)*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha*.42;ctx.lineWidth=1*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius*.78,0,Math.PI*2);ctx.stroke();ctx.restore();}
+    for(const wave of run.shockWaves??[]){const at=screen(wave.x,wave.y),progress=clamp(wave.life/wave.duration,0,1),radius=wave.radius*scale*smoothstep(progress),alpha=(1-progress)*(wave.coreFracture?.9:wave.structuresFractured?.length?.82:.72),tnt=wave.material==='2-4-6-trinitrotoluene';ctx.save();ctx.strokeStyle=wave.coreFracture?'#e3d2ff':wave.structuresFractured?.length?'#d6b7f4':tnt?'#ffd5a6':'#a7eff5';ctx.globalAlpha=alpha;ctx.lineWidth=(wave.coreFracture?3.2:wave.structuresFractured?.length?2.4:tnt?2.6:1.8)*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha*.42;ctx.lineWidth=1*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius*.78,0,Math.PI*2);ctx.stroke();ctx.restore();}
     // Dust eaters are self-organising particle vortices: a light-swallowing
     // core, orbiting grains and a wake, never a face or biological silhouette.
     for(const eater of run.eaters??[]){

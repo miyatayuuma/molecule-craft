@@ -1,4 +1,5 @@
 import {appendHazard,defineHazard,effectiveHazardScale,HAZARD_TYPES} from './hazards.js';
+import {shockStructureScaleFor} from './shock-structures.js';
 
 const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
 const smoothstep=value=>{const t=clamp01(value);return t*t*(3-2*t);};
@@ -33,17 +34,19 @@ export function electricalSpatialAt(point){
   return clamp01(1-remaining);
 }
 
-export function electricalBaseHazardsAt(point,{active=true}={}){
+export function electricalBaseHazardsAt(point,{active=true,shockStructures=[]}={}){
   if(!active)return [];
   const spatial=electricalSpatialAt(point);if(spatial<=1e-6)return [];
-  const effective=spatial*ELECTRICAL_FIELD.baseIntensity,hazards=[];
+  const sourceScale=shockStructureScaleFor(shockStructures,ELECTRICAL_FIELD.id);
+  const effective=spatial*ELECTRICAL_FIELD.baseIntensity*sourceScale,hazards=[];
   appendHazard(hazards,ELECTRICAL_HAZARD,Math.min(1,effective),{effectiveIntensity:effective,severity:effective});
   return hazards;
 }
 
-export function electricalEffectiveAt(point,worldState='base'){
+export function electricalEffectiveAt(point,worldState='base',{shockStructures=[]}={}){
   if(worldState!==ELECTRICAL_FIELD.worldState)return 0;
-  return effectiveHazardScale(electricalSpatialAt(point),ELECTRICAL_FIELD.baseIntensity,HAZARD_TYPES.ELECTRICAL,worldState);
+  const sourceScale=shockStructureScaleFor(shockStructures,ELECTRICAL_FIELD.id);
+  return effectiveHazardScale(electricalSpatialAt(point),ELECTRICAL_FIELD.baseIntensity*sourceScale,HAZARD_TYPES.ELECTRICAL,worldState);
 }
 
 export function electricalResponseFor(effectiveIntensity,mitigationMultiplier=1){

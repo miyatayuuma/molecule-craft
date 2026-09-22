@@ -15,6 +15,7 @@ import {rareEcologySocketState} from './rare-ecology.js';
 import {createHazardTreatmentExposureState,expiredHazardTreatmentIds,hazardTreatmentMultiplier,updateHazardTreatmentExposure} from './hazard-treatments.js';
 import {ABRASIVE_MOVEMENT_DRAG_PER_INTENSITY} from './abrasive-field.js';
 import {electricalResponseFor} from './electrical-field.js';
+import {fractureShockStructures} from './shock-structures.js';
 
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
@@ -66,9 +67,15 @@ export function beginBurst(run,consume){
 export function beginShock(run,consume){
   const spent=consumeShockCharge(run,consume);if(!spent)return false;const {material,remaining,strength}=spent,p=run.player;let affected=0,coreFractured=false;
   if(nitrogenCoreInRange(run,p)){run.map.nitrogenCore.fractured=true;run.map.nitrogenCore.fracturedAt=run.time;run.coreFracturedThisRun=true;coreFractured=true;}
-  for(const eater of run.eaters??[]){const dx=eater.x-p.x,dy=eater.y-p.y,distance=Math.hypot(dx,dy);if(distance>strength.radius)continue;const angle=distance>1e-6?Math.atan2(dy,dx):(eater.phase??0),falloff=.55+.45*(1-Math.min(1,distance/strength.radius)),nx=Math.cos(angle),ny=Math.sin(angle),impulse=strength.knockback*falloff;eater.vx=(eater.vx??0)+nx*impulse;eater.vy=(eater.vy??0)+ny*impulse;eater.x+=nx*impulse*.12;eater.y+=ny*impulse*.12;eater.interrupt=Math.max(eater.interrupt??0,strength.interruptSeconds*falloff);affected++;}
-  run.shockWaves.push({x:p.x,y:p.y,life:0,duration:coreFractured?.62:.44,radius:strength.radius,material,strength,coreFracture:coreFractured});if(run.telemetry){run.telemetry.shockUses=(run.telemetry.shockUses??0)+1;recordFuelUse(run.telemetry,'shock',material,1);}
-  const event={type:'shock',material,remaining,affected,radius:strength.radius,knockback:strength.knockback,interruptSeconds:strength.interruptSeconds,coreFractured};run.events.push(event);if(coreFractured)run.events.push({type:'coreFracture',material,x:run.map.nitrogenCore.x,y:run.map.nitrogenCore.y});return event;
+  for(const eater of run.eaters??[]){const dx=eater.x-p.x,dy=eater.y-p.y,distance=Math.hypot(dx,dy);if(distance>strength.radius)continue;const angle=distance>1e-6?Math.atan2(dy,dx):(eater.phase??0),falloff=.55+.45*(1-Math.min(1,distance/strength.radius)),nx=Math.cos(angle),ny=Math.sin(angle),radial=(eater.vx??0)*nx+(eater.vy??0)*ny;
+    // Cancel only the approach component. Tangential motion and an existing
+    // outward drift remain part of the autonomous agent's motion.
+    if(radial<0){eater.vx=(eater.vx??0)-nx*radial;eater.vy=(eater.vy??0)-ny*radial;}
+    const impulse=strength.knockback*falloff;eater.vx=(eater.vx??0)+nx*impulse;eater.vy=(eater.vy??0)+ny*impulse;eater.x+=nx*impulse*.12;eater.y+=ny*impulse*.12;eater.interrupt=Math.max(eater.interrupt??0,strength.interruptSeconds*falloff);affected++;
+  }
+  const structuresFractured=fractureShockStructures(run.map,p,strength.radius,run.time),anchorFractured=structuresFractured.some(structure=>structure.id==='carbon-charged-anchor');
+  run.shockWaves.push({x:p.x,y:p.y,life:0,duration:coreFractured?.62:anchorFractured?.52:.44,radius:strength.radius,material,strength,coreFracture:coreFractured,structuresFractured:structuresFractured.map(structure=>structure.id)});if(run.telemetry){run.telemetry.shockUses=(run.telemetry.shockUses??0)+1;recordFuelUse(run.telemetry,'shock',material,1);}
+  const event={type:'shock',material,remaining,affected,radius:strength.radius,knockback:strength.knockback,interruptSeconds:strength.interruptSeconds,coreFractured,structuresFractured:structuresFractured.map(structure=>structure.id),anchorFractured};run.events.push(event);if(coreFractured)run.events.push({type:'coreFracture',material,x:run.map.nitrogenCore.x,y:run.map.nitrogenCore.y});if(structuresFractured.length)for(const structure of structuresFractured)run.events.push({type:'shockStructureFracture',id:structure.id,x:structure.x,y:structure.y,targetHazard:structure.targetHazard});return event;
 }
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
 

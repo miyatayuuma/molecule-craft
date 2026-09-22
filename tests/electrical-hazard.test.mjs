@@ -105,7 +105,7 @@ test('Electrical Treatment mitigates steering and propulsion response by 45% wit
 
 test('Electrical visuals and developer map derive from the same effective-intensity authority',async()=>{
   const rendererSource=await readFile(new URL('../src/veil/renderer.js',import.meta.url),'utf8');
-  assert.match(rendererSource,/electricalEffectiveAt\(sample,run\.map\.worldState\)/,'renderer samples production Electrical effective intensity directly');
+  assert.match(rendererSource,/electricalEffectiveAt\(sample,run\.map\.worldState,\{shockStructures:run\.map\.shockStructures\}\)/,'renderer samples production Electrical effective intensity directly');
   assert.match(rendererSource,/run\.time.*sample\.phase/s,'arc timing is presentation-only and deterministic from run time / fixed phase');
   const svg=buildFieldMapSvg(),lobeCount=(svg.match(/data-electrical-lobe=/g)??[]).length;
   assert.equal(lobeCount,ELECTRICAL_FIELD.lobes.length);assert.match(svg,/data-hazard-type="electrical"/);assert.match(svg,/data-hazard-subtype="charged-region"/);

@@ -19,7 +19,7 @@ assert.ok(neighbors('nitromethane').includes('methane'),'Nitromethane must remai
 assert.ok((byId.get('2-4-6-trinitrotoluene')?.depth??0)>byId.get('nitromethane').depth,'TNT must remain the later optional Graph reward');
 
 assert.equal(ROLE_BALANCE_VERSION,4);
-assert.deepEqual(performanceFor('nitromethane','shock'),{capacity:3,radiusScale:1,knockbackScale:1,interruptScale:1});
+assert.deepEqual(performanceFor('nitromethane','shock'),{capacity:3,radiusScale:1,knockbackScale:1.42,interruptScale:1.2});
 assert.deepEqual(performanceFor('2-4-6-trinitrotoluene','shock'),{capacity:2,radiusScale:1.45,knockbackScale:1.6,interruptScale:1.45});
 for(const id of ['nitrobenzene','hydrogen-peroxide','ozone','ethyne'])assert.equal(performanceFor(id,'shock'),null,`${id} must not become a SHOCK material`);
 const nitro=shockProfileFor('nitromethane'),tnt=shockProfileFor('2-4-6-trinitrotoluene');

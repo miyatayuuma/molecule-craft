@@ -6,6 +6,7 @@ import { GROWTH } from './growth.js';
 import {appendHazard,defineHazard,hazardWorldMultiplier,HAZARD_TYPES,scaleHazardSampleForWorld} from './hazards.js';
 import {abrasiveBaseHazardsAt} from './abrasive-field.js';
 import {electricalBaseHazardsAt} from './electrical-field.js';
+import {createShockStructures} from './shock-structures.js';
 import {applyRareEcology,registerResourceSocket} from './rare-ecology.js';
 import { DEEP_OXYGEN_FRONTIER_RECOVERY,DEEP_OXYGEN_ROUTES,OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_HARVEST,OXYGEN_THERMAL,OXYGEN_VORTEX,OXYGEN_VORTEX_ROUTE,OXYGEN_VORTEX_REWARD,oxygenPressureAt,oxygenPressureHazardAt,oxygenRestStopAt,oxygenRouteCenterAtY,oxygenThermalAt,oxygenVortexFlowAt,oxygenVortexHazardAt } from './oxygen-routes.js';
 import {appendNitrogenField,nitrogenEnvironmentAt} from './nitrogen-routes.js';
@@ -62,7 +63,7 @@ const CLUSTERS=[[-120,-4990],[-410,-5350],[-160,-5680],[350,-6020],[230,-6400],[
 function activeLaneCount(lanes,level){return level<.28?lanes:level<.62?Math.max(1,Math.ceil(lanes/2)):1;}
 export function createUniverse(seed=1,stock={},{harvestLayout=OXYGEN_HARVEST,capabilities={}}={}){
   if(!Number.isFinite(harvestLayout.sideSpacing)||harvestLayout.sideSpacing<0||!Number.isInteger(harvestLayout.eddyAtoms)||harvestLayout.eddyAtoms<0||harvestLayout.eddyAtoms>1000)throw Error('Invalid oxygen harvest layout');
-  const revisitUnlocked=capabilities.combustionDrive===true,map=createMap(seed,stock,{capabilities}),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];map.worldState=capabilities.worldAwakened===true?'awakened':'base';
+  const revisitUnlocked=capabilities.combustionDrive===true,map=createMap(seed,stock,{capabilities}),rng=random(seed^0x5ca1ab1e);map.universe=true;map.clusters=[];map.signals=[];map.worldState=capabilities.worldAwakened===true?'awakened':'base';map.shockStructures=createShockStructures(map.worldState);
   if(capabilities.nitrogenField===true)appendNitrogenField(map,seed,stock,{coreFractured:capabilities.coreFractured===true,worldState:map.worldState});
   // Consume the full shoulder stream even when stock hides a lane. Inventory
   // changes dust presence, never seeded landmarks or the physical currents.
@@ -183,7 +184,7 @@ export function environmentAt(p,time=0,map=null){
   const challenge=challengeEnvironment(p,time,seed),oxygenRoutePressure=oxygenPressureAt(p,seed),challengePressure=recovering?0:challenge?.pressure;
   const routePressure=challenge?Number.isFinite(oxygenRoutePressure)?Math.max(oxygenRoutePressure,challengePressure):challengePressure:oxygenRoutePressure,vortex=oxygenVortexFlowAt(p),nitrogen=nitrogenEnvironmentAt(p,time,map?.nitrogenEnvironmentSeed??seed,{worldState:'base'});
   const strataPressure=outer*255+pressureBand*310,basePressure=(routePressure??strataPressure)+(thermal.frontierWallPressure??0)+nitrogen.pressure,baseFlowX=(recovering?0:challenge?.flowX??(oxygenRoutePressure!==null?0:oxygen*(1-coolEddy)*Math.sin(time*1.7+p.y*.008)*48))+nitrogen.flowX,revisitCurrent=revisitCurrentAt(map,p);
-  const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1),nitrogen.heat),awakened=worldState==='awakened',abrasiveHazards=abrasiveBaseHazardsAt(p,{active:awakened}),electricalHazards=electricalBaseHazardsAt(p,{active:awakened}),hazards=[...(challenge?.hazards??[]),...(thermal.hazards??[]),...revisitCurrent.hazards,...nitrogen.hazards,...abrasiveHazards,...electricalHazards];
+  const oxygenAmbient=oxygen*(1-coolEddy)*3,environmentHeat=Math.max(thermal.heat,oxygenAmbient*(recovering?.2:1),nitrogen.heat),awakened=worldState==='awakened',abrasiveHazards=abrasiveBaseHazardsAt(p,{active:awakened}),electricalHazards=electricalBaseHazardsAt(p,{active:awakened,shockStructures:map?.shockStructures}),hazards=[...(challenge?.hazards??[]),...(thermal.hazards??[]),...revisitCurrent.hazards,...nitrogen.hazards,...abrasiveHazards,...electricalHazards];
   const pressureHazard=oxygenPressureHazardAt(p,seed);if(pressureHazard)hazards.push(pressureHazard);else if(!challenge)appendHazard(hazards,GLOBAL_PRESSURE_HAZARD,strataPressure/310,{severity:strataPressure,vector:{x:0,y:strataPressure}});
   const vortexHazard=oxygenVortexHazardAt(p);if(vortexHazard)hazards.push(vortexHazard);
   if(!recovering&&!challenge&&oxygenRoutePressure===null)appendHazard(hazards,OXYGEN_CROSSFLOW_HAZARD,Math.abs(baseFlowX)/48,{severity:Math.abs(baseFlowX),vector:{x:baseFlowX,y:0}});
