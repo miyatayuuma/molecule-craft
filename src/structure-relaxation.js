@@ -1,3 +1,5 @@
+import {createConjugationModel} from './conjugation-model.js?v=1';
+
 export function createStructureSolver({
   THREE,
   molecule,
@@ -18,6 +20,8 @@ export function createStructureSolver({
   let doubleFrames = new Map();
   let trigonalFrames = new Map();
   let aromaticFrames = new Map();
+  let conjugationModel = null;
+  let conjugatedPlanarFragments = [];
   let sixMemberFrames = [];
   let fiveMemberFrames = [];
   let stericExclusions = new Set();
@@ -94,20 +98,13 @@ export function createStructureSolver({
       frame.substituentRootIds = new Set(frame.substituents.map(substituent => substituent.rootId));
       nextAromaticFrames.set(key, frame);
     }
-    // A directly conjugated C=C/C=O substituent shares the aromatic plane.
-    // Its independent double-bond frame may have been created while the ring
-    // was still open, so retain the topology-derived aromatic normal once the
-    // cycle becomes authoritative instead of preserving that pre-closure pose.
-    if(enforceAromaticGeometryContract)for(const frame of nextDoubleFrames.values()){
-      const parent=[...nextAromaticFrames.values()].find(aromatic=>aromatic.substituents.some(substituent=>
-        substituent.rootId===frame.bond.a||substituent.rootId===frame.bond.b));
-      if(parent){
-        frame.normal.copy(parent.normal);
-        frame.substituentSlots=doubleSubstituentSlots(frame);
-        frame.slottedRootIds=new Set(frame.substituentSlots.flatMap(endpoint=>endpoint.branches.map(branch=>branch.rootId)));
-      }
-    }
     aromaticFrames = nextAromaticFrames;
+    // One shared topology authority now joins acyclic pi frames, resonance
+    // donors and aromatic followers into common planar islands. This replaces
+    // the old aromatic-only normal handoff and also repairs stale independent
+    // frame normals when conjugation appears after a topology edit.
+    conjugationModel=createConjugationModel(molecule,{aromaticCycles});
+    conjugatedPlanarFragments=buildConjugatedPlanarFragments();
     sixMemberFrames = cycles.map(classifySixMemberConformation).filter(Boolean);
     fiveMemberFrames = cycles.map(classifyFiveMemberConformation).filter(Boolean);
     ({excluded:stericExclusions,relations:stericRelations}=buildStericRelations());
@@ -213,6 +210,7 @@ export function createStructureSolver({
   }
 
   function projectRigidConstraints(scale,locked,activeAtoms){
+    for(const fragment of conjugatedPlanarFragments)enforcePlane(fragment.atomIds,fragment.normal,fragment.anchorIds,.28*scale,locked);
     for(const frame of doubleFrames.values()){
       enforcePlane(frame.atomIds,frame.normal,[frame.bond.a,frame.bond.b],.22*scale,locked,frame.bond,frame.slottedRootIds);
       enforceDoubleSubstituentDirections(frame,.24*scale,locked);
@@ -262,9 +260,11 @@ export function createStructureSolver({
   function rotateReferenceFrames(quaternion, affectedIds = null) {
     if (dirty) rebuildTopology();
     const shouldRotate = frame => !affectedIds || frame.atomIds.every(id => affectedIds.has(id));
+    for(const fragment of conjugatedPlanarFragments)if(!affectedIds||fragment.atomIds.every(id=>affectedIds.has(id)))fragment.normal.applyQuaternion(quaternion).normalize();
     for (const frame of trigonalFrames.values()) if (shouldRotate(frame)) frame.normal.applyQuaternion(quaternion).normalize();
     for (const frame of doubleFrames.values()) if (shouldRotate(frame)) frame.normal.applyQuaternion(quaternion).normalize();
     for (const frame of aromaticFrames.values()) if (shouldRotate(frame)) frame.normal.applyQuaternion(quaternion).normalize();
+    syncConjugatedFrameNormals();
   }
 
   function enforceBondLength(bond, strength, locked) {
@@ -359,6 +359,12 @@ export function createStructureSolver({
       if (anchors.some(p => !p)) { finite = false; continue; }
       const center = anchors.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / anchors.length);
       for (const id of frame.atomIds) if (includes(id) && pos(id)) planeDistance = Math.max(planeDistance, Math.abs(pos(id).clone().sub(center).dot(frame.normal)));
+    }
+    for(const fragment of conjugatedPlanarFragments){
+      const anchors=fragment.anchorIds.map(pos);
+      if(anchors.some(point=>!point)){finite=false;continue;}
+      const center=anchors.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/anchors.length);
+      for(const id of fragment.atomIds)if(includes(id)&&pos(id))planeDistance=Math.max(planeDistance,Math.abs(pos(id).clone().sub(center).dot(fragment.normal)));
     }
     const atoms=molecule.atoms.filter(atom=>includes(atom.id));
     if (nonbondedDistanceFor) for(const [left,right] of spatialAtomPairs(atoms)){
@@ -617,9 +623,12 @@ export function createStructureSolver({
   function rotateAngleBranch(ids, center, axis, angle) {
     // A rigidly rotated planar fragment carries its reference plane with it.
     // Partial plane edits remain constrained (e.g. dragging one ethene H).
+    const moved=new Set(ids);
+    for(const fragment of conjugatedPlanarFragments)if(fragment.atomIds.every(id=>moved.has(id)))fragment.normal.applyAxisAngle(axis,angle).normalize();
     for (const frame of [...doubleFrames.values(), ...aromaticFrames.values(), ...trigonalFrames.values()]) {
-      if (frame.atomIds.every(id => ids.includes(id))) frame.normal.applyAxisAngle(axis, angle).normalize();
+      if (frame.atomIds.every(id => moved.has(id))) frame.normal.applyAxisAngle(axis, angle).normalize();
     }
+    syncConjugatedFrameNormals();
     for (const id of ids) pos(id)?.sub(center).applyAxisAngle(axis, angle).add(center);
   }
 
@@ -1126,6 +1135,68 @@ export function createStructureSolver({
     return {excluded,relations};
   }
 
+  function buildConjugatedPlanarFragments(){
+    if(!conjugationModel?.restrictedBonds?.size)return [];
+    const restricted=[...conjugationModel.restrictedBonds.values()];
+    const links=new Map();
+    const connect=(a,b)=>{if(!links.has(a))links.set(a,new Set());links.get(a).add(b);};
+    for(const item of restricted){connect(item.bond.a,item.bond.b);connect(item.bond.b,item.bond.a);}
+    const components=[],seen=new Set();
+    for(const start of links.keys()){
+      if(seen.has(start))continue;
+      const ids=new Set([start]),queue=[start];seen.add(start);
+      for(let index=0;index<queue.length;index++)for(const next of links.get(queue[index])??[])if(!seen.has(next)){seen.add(next);ids.add(next);queue.push(next);}
+      components.push(ids);
+    }
+    const descriptors=[
+      ...[...doubleFrames.values()].map(frame=>({key:`double:${frame.key}`,kind:'double',frame,centerIds:[frame.bond.a,frame.bond.b]})),
+      ...[...trigonalFrames.values()].map(([centerId,frame])=>({key:`trigonal:${centerId}`,kind:'trigonal',frame,centerIds:[centerId]})),
+      ...[...aromaticFrames.values()].map(frame=>({key:`aromatic:${frame.key}`,kind:'aromatic',frame,centerIds:[...frame.cycle]})),
+    ];
+    const fragments=[];
+    for(const component of components){
+      const frames=descriptors.filter(item=>item.centerIds.some(id=>component.has(id)));
+      if(!frames.length)continue;
+      const reference=(frames.find(item=>item.kind==='aromatic')??frames[0]).frame.normal.clone().normalize();
+      let normal;
+      if(frames.some(item=>item.kind==='aromatic'))normal=reference;
+      else{
+        normal=new THREE.Vector3();
+        for(const item of frames){
+          const candidate=item.frame.normal.clone().normalize();
+          if(candidate.dot(reference)<0)candidate.multiplyScalar(-1);
+          normal.add(candidate);
+        }
+        if(normal.lengthSq()<1e-8)normal.copy(reference);else normal.normalize();
+      }
+      const atomIds=new Set(component),restrictedBondKeys=[];
+      for(const item of restricted){
+        if(!component.has(item.bond.a)||!component.has(item.bond.b))continue;
+        restrictedBondKeys.push(item.key);
+        // Donor/follower substituents define the dihedral around C(=O)-N/O/S
+        // and Ar-N/O. Include only the directly attached roots, not an entire
+        // downstream sp3 branch.
+        if(item.donorId!=null)for(const neighbor of neighborsFor(item.donorId))atomIds.add(neighbor.atomId);
+      }
+      for(const item of frames)for(const id of item.frame.atomIds)atomIds.add(id);
+      for(const item of frames)item.frame.normal.copy(normal);
+      fragments.push({
+        id:`conjugated-${fragments.length}`,
+        atomIds:[...atomIds],
+        anchorIds:[...component],
+        frameKeys:frames.map(item=>item.key),
+        restrictedBondKeys:restrictedBondKeys.sort(),
+        frames:frames.map(item=>item.frame),
+        normal,
+      });
+    }
+    return fragments;
+  }
+
+  function syncConjugatedFrameNormals(){
+    for(const fragment of conjugatedPlanarFragments)for(const frame of fragment.frames)frame.normal.copy(fragment.normal);
+  }
+
   function buildRigidFragments(){
     const seeds=[];
     for(const cycle of cycles)seeds.push({atomIds:new Set(cycle),kinds:new Set(aromaticCycles.some(item=>sameMembers(item,cycle))?['AROMATIC','RING']:['RING'])});
@@ -1240,6 +1311,9 @@ export function createStructureSolver({
       aromaticCycles: aromaticCycles.map(cycle => [...cycle]),
       doublePlanarGroups: [...doubleFrames.values()].map(frame => [...frame.atomIds]),
       aromaticPlanarGroups: [...aromaticFrames.values()].map(frame => [...frame.atomIds]),
+      restrictedConjugatedBondKeys: [...(conjugationModel?.restrictedBonds?.keys()??[])].sort(),
+      conjugatedPlanarFragmentCount: conjugatedPlanarFragments.length,
+      conjugatedPlanarFragments: conjugatedPlanarFragments.map(fragment=>({id:fragment.id,atomIds:[...fragment.atomIds],frameKeys:[...fragment.frameKeys],restrictedBondKeys:[...fragment.restrictedBondKeys]})),
       fiveMemberConformations: fiveMemberFrames.map(frame=>({mode:frame.mode,cycle:[...frame.cycle],signature:[...frame.signature]})),
       sixMemberConformations: sixMemberFrames.map(frame=>({mode:frame.mode,cycle:[...frame.cycle],signature:[...frame.signature]})),
       rigidFragments: rigidFragments.map(fragment=>({id:fragment.id,atomIds:[...fragment.atomIds],kinds:[...fragment.kinds]})),
