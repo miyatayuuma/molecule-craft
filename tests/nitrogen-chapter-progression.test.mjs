@@ -7,6 +7,7 @@ import {isExpeditionDestinationAvailable} from '../src/veil/launch-request.js';
 import {CRITICAL_INSIGHT_IDS,advanceInsightAnalysis,createInsightRunState,fieldInsightRequiredElements,triggerInsight} from '../src/veil/insights.js';
 import {performanceFor} from '../src/veil/molecule-roles.js';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
+import {INSIGHT_DESTINATION_BALANCE_UNIT as DESTINATION_UNIT} from '../src/veil/insight-destination.js';
 import {insightCategoryFor} from '../src/insight-category.js';
 import {AMMONIA_MOLECULE_ID,NITROGEN_MOLECULE_ID,NITROGEN_REGION_AVAILABLE,nitrogenChapterEligible,nitrogenChapterState,nitrogenCriticalInsightCandidate,nitrogenElementAccessible,nitrogenFrontierObjective} from '../src/veil/nitrogen-progression.js';
 
@@ -78,6 +79,14 @@ test('NH3 chapter priority is a normal direct-neighbor Graph frontier objective'
 
   state.hints.push(AMMONIA_MOLECULE_ID);assert.equal(nitrogenFrontierObjective(graph,state),null,'known NH3 recipe leaves the frontier and becomes a craft objective');assert.equal(nitrogenChapterState(state,{regionAvailable:true}).stage,'ammonia-craft');
   state.recipes.push(AMMONIA_MOLECULE_ID);assert.equal(nitrogenChapterState(state,{regionAvailable:true}).stage,'complete');assert.equal(nitrogenFrontierObjective(graph,state),null);
+});
+
+test('NH3 keeps chapter recipe priority but follows ordinary destination rotation',()=>{
+  const value=resource(),units=DESTINATION_UNIT;Object.assign(value.state.progress,{choCompleted:true,regions:['veil','carbon','oxygen','nitrogen'],foundElements:['H','C','O','N'],insightDestinationHistory:['veil','carbon','oxygen','nitrogen']});
+  value.state.recipes=['hydrogen','methane','oxygen','water',NITROGEN_MOLECULE_ID];Object.assign(value.state.elements,{H:units.H*10,C:units.C*10,O:units.O*10,N:units.N*10});value.setFrontierGraph(graph);
+  const seed=value.insightSeedDiagnostics();assert.equal(seed.seedId,AMMONIA_MOLECULE_ID,'NH₃ remains the ordinary direct-neighbor chapter objective');assert.equal(seed.hotDestination,'veil','the balanced stock rotation selects the oldest FIELD instead of forcing Nitrogen');
+  value.prepareExpedition({region:'nitrogen'});assert.equal(value.frontierInsightDiagnostics().selectedCandidateId,AMMONIA_MOLECULE_ID);assert.equal(value.frontierInsightDiagnostics().activeForRun,false,'launching Nitrogen cannot bypass the persistent hot destination');
+  value.prepareExpedition({region:'veil'});assert.equal(value.frontierInsightDiagnostics().activeForRun,true,'NH₃ opportunity activates at the independently selected destination');
 });
 
 test('NH3 uses ordinary analysis, normal-return commit and forced-return loss',()=>{
