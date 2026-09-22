@@ -98,13 +98,13 @@ test('three N2 resonance anchors keep the 20s, 1200-distance and current-run-N g
   syncFieldInsightMarkerClaimability(run,evaluate);assert.equal(anchors.filter(signal=>signal.claimable).length,0,'one anchor claim consumes the run’s single N₂ opportunity');assert.deepEqual(run.carriedInsights,[NITROGEN_MOLECULE_ID]);
 });
 
-test('N2 discovery exposes existing LOADOUT roles and Nitrogen launch prioritizes ordinary direct-frontier NH3',()=>{
+test('N2 discovery exposes existing LOADOUT roles and NH3 follows generic destination rotation',()=>{
   const value=createResources({storage:memory()});value.setCatalog(catalog);value.setFrontierGraph(graph);value.state.progress.choCompleted=true;value.findElementForExpedition('N');value.hint(NITROGEN_MOLECULE_ID);assert.deepEqual(value.discoverWithLoadout(NITROGEN_MOLECULE_ID,null),{learned:true,assignedUse:null});
   assert.ok(value.tankCatalog('propellant').some(record=>record.id===NITROGEN_MOLECULE_ID));assert.ok(value.tankCatalog('coolant').some(record=>record.id===NITROGEN_MOLECULE_ID));
-  value.prepareExpedition({region:'nitrogen',rng:()=>.99});const diagnostic=value.frontierInsightDiagnostics();assert.equal(diagnostic.selectedCandidateId,AMMONIA_MOLECULE_ID);assert.equal(diagnostic.weightingRegion,'nitrogen-chapter');
-  const engaged={time:FIELD_INSIGHT_MIN_SECONDS+1,insightEngagementSatisfied:true,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+500,foundElements:['N']},opportunity=value.signal('nitrogen',.9,.9,{runContext:engaged});assert.equal(opportunity.recipe,AMMONIA_MOLECULE_ID);assert.equal(opportunity.frontier,true);
+  value.prepareExpedition({region:'nitrogen',rng:()=>.99});const diagnostic=value.frontierInsightDiagnostics();assert.equal(diagnostic.selectedCandidateId,AMMONIA_MOLECULE_ID);assert.equal(diagnostic.weightingRegion,null);assert.notEqual(diagnostic.hotDestination,'nitrogen','NH3 destination comes from generic stock rotation, not chapter identity');assert.equal(diagnostic.activeForRun,false,'Nitrogen launch cannot bypass a different persisted destination');
+  value.prepareExpedition({region:diagnostic.hotDestination});const engaged={region:diagnostic.hotDestination,time:FIELD_INSIGHT_MIN_SECONDS+1,insightEngagementSatisfied:true,insightEngagementMaxDistance:FIELD_INSIGHT_MIN_DISTANCE+500,foundElements:['N']},opportunity=value.signal(diagnostic.hotDestination,.9,.9,{runContext:engaged});assert.equal(opportunity.recipe,AMMONIA_MOLECULE_ID);assert.equal(opportunity.frontier,true);
   value.hint(AMMONIA_MOLECULE_ID);value.discover(AMMONIA_MOLECULE_ID);assert.equal(nitrogenChapterState(value.state).stage,'complete');
-  console.log('Nitrogen frontier balance',JSON.stringify({selected:diagnostic.selectedCandidateId,weighting:diagnostic.weightingRegion,availableAfterN2:true,chapter:nitrogenChapterState(value.state).stage}));
+  console.log('Nitrogen frontier balance',JSON.stringify({selected:diagnostic.selectedCandidateId,weighting:diagnostic.weightingRegion,destination:diagnostic.hotDestination,availableAfterN2:true,chapter:nitrogenChapterState(value.state).stage}));
 });
 
 test('FIELD HUD exposes N through canonical element authority and production launch enables Nitrogen FIELD composition',async()=>{
