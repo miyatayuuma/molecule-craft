@@ -66,9 +66,9 @@ const evaluator=run=>signalRow=>{
   return {managed:true,frontier:true,seedId:'sibling-a',hotDestination:'veil',activeForRun:true,claimable:active,recipe:active?'sibling-a':null};
 };
 
-// Site pools preserve authored canonical points, add reusable CHO geography, and leave N empty for later registration.
+// Site pools preserve authored canonical points, reuse CHO geography, and keep Nitrogen ordinary sites separate from its Critical anchors.
 {
-  assert.equal(INSIGHT_SITE_POOLS.veil.find(row=>row.canonicalSignalId==='veil').x,390);assert.equal(INSIGHT_SITE_POOLS.carbon.find(row=>row.canonicalSignalId==='carbon').y,-5660);assert.equal(INSIGHT_SITE_POOLS.oxygen.filter(row=>row.canonicalSignalId).length,3);assert.deepEqual(INSIGHT_SITE_POOLS.nitrogen,[]);
+  assert.equal(INSIGHT_SITE_POOLS.veil.find(row=>row.canonicalSignalId==='veil').x,390);assert.equal(INSIGHT_SITE_POOLS.carbon.find(row=>row.canonicalSignalId==='carbon').y,-5660);assert.equal(INSIGHT_SITE_POOLS.oxygen.filter(row=>row.canonicalSignalId).length,3);assert.equal(INSIGHT_SITE_POOLS.nitrogen.length,4,'Nitrogen receives ordinary Insight sites after CHO unlock while Critical N₂ signals remain separate');
 }
 
 // Early activation is seeded at run start, never available at launch, and deterministic for identical run/seed.
@@ -76,6 +76,12 @@ const evaluator=run=>signalRow=>{
   const a=fakeRun(400),b=fakeRun(400),c=fakeRun(401);syncFieldInsightMarkerClaimability(a,evaluator(a));syncFieldInsightMarkerClaimability(b,evaluator(b));syncFieldInsightMarkerClaimability(c,evaluator(c));
   const da=fieldInsightSiteDiagnostics(a),db=fieldInsightSiteDiagnostics(b),dc=fieldInsightSiteDiagnostics(c);assert.equal(a.map.signals.some(row=>row.claimable),false);assert.deepEqual({earlyEnabled:da.earlyEnabled,earlyActivationTime:da.earlyActivationTime,earlyMinimumTravel:da.earlyMinimumTravel},{earlyEnabled:db.earlyEnabled,earlyActivationTime:db.earlyActivationTime,earlyMinimumTravel:db.earlyMinimumTravel});assert.notDeepEqual({earlyEnabled:da.earlyEnabled,earlyActivationTime:da.earlyActivationTime,earlyMinimumTravel:da.earlyMinimumTravel},{earlyEnabled:dc.earlyEnabled,earlyActivationTime:dc.earlyActivationTime,earlyMinimumTravel:dc.earlyMinimumTravel});
   a.frontierInsightPlan.earlyEnabled=true;a.time=a.frontierInsightPlan.earlyActivationTime;a.insightEngagementMaxDistance=a.frontierInsightPlan.earlyMinimumTravel;syncFieldInsightMarkerClaimability(a,evaluator(a));assert.equal(a.map.signals.filter(row=>row.claimable).length,1);assert.equal(fieldInsightSiteDiagnostics(a).phase,'early');
+}
+
+// Destination-specific generic sites stay within their production FIELD.
+{
+  const cho=fakeRun(401);syncFieldInsightMarkerClaimability(cho,evaluator(cho));assert.equal(cho.map.signals.some(signal=>signal.insightSiteGroup==='nitrogen'),false);
+  const nitrogen=fakeRun(402);nitrogen.map.nitrogenCore={};syncFieldInsightMarkerClaimability(nitrogen,evaluator(nitrogen));assert.equal(nitrogen.map.signals.filter(signal=>signal.insightSiteGroup==='nitrogen').length,4);
 }
 
 // Rescue begins from the first actual Eater spawn + grace, not warning/threat state, and re-arms geographically after a miss.
