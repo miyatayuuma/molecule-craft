@@ -157,7 +157,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function seedRng(){let h=2166136261;for(const char of seedSignature()){h^=char.charCodeAt(0);h=Math.imul(h,16777619);}return createSeededFrontierRng(h>>>0);}
   function currentInsightSeed(){
     const seed=state.progress.insightSeed,nitrogenLegacyDestination=seed?.hotDestination===NITROGEN_REGION_ID&&state.progress.choCompleted===true;if(!seed||!validId(seed.id)||typeof seed.hotDestination!=='string'||!hasInsightSitePool(seed.hotDestination)&&!nitrogenLegacyDestination)return null;
-    if(state.recipes.includes(seed.id)||state.hints.includes(seed.id)||FRONTIER_RESERVED_IDS.includes(seed.id)||!records.has(seed.id))return null;
+    const knownRecipe=records.has(seed.id)||frontierGraph?.nodeById?.(seed.id);if(state.recipes.includes(seed.id)||state.hints.includes(seed.id)||FRONTIER_RESERVED_IDS.includes(seed.id)||frontierGraph&&!knownRecipe)return null;
     return seed;
   }
   function clearInsightSeed(){const had=!!state.progress.insightSeed||state.progress.insightSeedBlocked===true;delete state.progress.insightSeed;delete state.progress.insightSeedBlocked;lastSeedSelection=null;return had;}
