@@ -29,17 +29,29 @@ assert.deepEqual(design,{width:1000,height:600,sourceWidth:1536,sourceHeight:921
 const inside=rect=>rect.x>=0&&rect.y>=0&&rect.x+rect.width<=design.width&&rect.y+rect.height<=design.height&&rect.width>0&&rect.height>0;
 for(const module of Object.values(modules))assert.ok(inside(module.rect),'module rect must stay inside design space');
 const overlap=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+const center=rectangle=>({x:rectangle.x+rectangle.width/2,y:rectangle.y+rectangle.height/2});
 for(const [use,slot] of Object.entries(slots)){
-  for(const key of ['visualRect','hitRect','thumbnailRect','meterRect'])assert.ok(inside(slot[key]),`${use}.${key} must stay inside design space`);
+  for(const key of ['panelRect','visualRect','hitRect','thumbnailRect','meterRect'])assert.ok(inside(slot[key]),`${use}.${key} must stay inside design space`);
+  const panelCenter=center(slot.panelRect),visualCenter=center(slot.visualRect);assert.ok(Math.abs(visualCenter.x-panelCenter.x)<0.01&&Math.abs(visualCenter.y-panelCenter.y)<0.01,`${use} visualRect must remain centered on panelRect`);
+  const thumbnailCenter=center(slot.thumbnailRect);assert.ok(Math.abs(thumbnailCenter.x-panelCenter.x)<0.01&&Math.abs(thumbnailCenter.y-panelCenter.y)<0.01,`${use} thumbnailRect must remain centered on panelRect`);
+  assert.ok(slot.thumbnailRect.x>=slot.panelRect.x&&slot.thumbnailRect.y>=slot.panelRect.y&&slot.thumbnailRect.x+slot.thumbnailRect.width<=slot.panelRect.x+slot.panelRect.width&&slot.thumbnailRect.y+slot.thumbnailRect.height<=slot.panelRect.y+slot.panelRect.height,`${use} thumbnail must remain inside measured panel`);
+  const meterCenter=center(slot.meterRect);assert.ok(Math.abs(meterCenter.x-panelCenter.x)<0.01,`${use} meter must share panel center`);assert.ok(slot.meterRect.y<slot.panelRect.y+slot.panelRect.height+1,`${use} meter must remain tied to panel bottom`);
   assert.ok(slot.thumbnailRect.x>=slot.visualRect.x&&slot.thumbnailRect.y>=slot.visualRect.y&&slot.thumbnailRect.x+slot.thumbnailRect.width<=slot.visualRect.x+slot.visualRect.width&&slot.thumbnailRect.y+slot.thumbnailRect.height<=slot.visualRect.y+slot.visualRect.height,`${use} thumbnail must remain inside visual panel`);
   assert.ok(slot.labelAnchor.x>=0&&slot.labelAnchor.x<=design.width&&slot.labelAnchor.y>=0&&slot.labelAnchor.y<=design.height,`${use} label anchor`);
 }
+const measured=LOADOUT_HARDWARE_LAYOUT.measuredPanelSourceRects;
+assert.deepEqual(Object.keys(measured).sort(),['coolant','fuel','oxidizer','propellant','shock']);
+assert.notDeepEqual(measured.fuel.rect,measured.oxidizer.rect,'DRIVE FUEL and O₂ panels must be independently measured');
+assert.notDeepEqual(measured.oxidizer.rect,measured.coolant.rect,'DRIVE O₂ and COOLANT panels must be independently measured');
+const driveCenters=['fuel','oxidizer','coolant'].map(use=>center(slots[use]));
+assert.ok(driveCenters[1].x-driveCenters[0].x!==driveCenters[2].x-driveCenters[1].x,'DRIVE panel centers must not be generated from equal spacing');
 for(let i=0;i<LOADOUT_SLOT_USES.length;i++)for(let j=i+1;j<LOADOUT_SLOT_USES.length;j++)assert.equal(overlap(slots[LOADOUT_SLOT_USES[i]].hitRect,slots[LOADOUT_SLOT_USES[j]].hitRect),false,`${LOADOUT_SLOT_USES[i]} and ${LOADOUT_SLOT_USES[j]} hit areas must not overlap`);
 assert.ok(modules.craft.intakeAnchor.x>=0&&modules.craft.intakeAnchor.y>=0&&modules.craft.intakeAnchor.x<=design.width&&modules.craft.intakeAnchor.y<=design.height);
+assert.deepEqual(modules.craft.dragAnchor,{x:412,y:334.5});assert.ok(modules.craft.dragHitRect.width>=160&&modules.craft.dragHitRect.height>=160,'CRAFT drag target must cover the visible body');
 assert.deepEqual(modules.craft.connectors.receivingSockets,['left','right','upper']);assert.deepEqual(modules.pulse.connectors.moduleSide,['right']);assert.deepEqual(modules.shock.connectors.moduleSide,['lower']);assert.deepEqual(modules.drive.connectors.moduleSide,['left']);
 
 const workstation=await readFile(new URL('src/veil/loadout-workstation.js',root),'utf8');
-assert.match(workstation,/assets\/loadout-v2/);assert.match(workstation,/loadout-craft-image/);assert.match(workstation,/syncLoadoutHardwareLayout/);assert.match(workstation,/setLoadoutCraftTranslation/);assert.doesNotMatch(workstation,/width:145%|width:175%/);
+assert.match(workstation,/assets\/loadout-v2/);assert.match(workstation,/loadout-craft-image/);assert.match(workstation,/syncLoadoutHardwareLayout/);assert.match(workstation,/setLoadoutCraftTranslation/);assert.doesNotMatch(workstation,/width:145%|width:175%/);assert.match(workstation,/loadout-craft-drag-left/,'launch handle must follow the visible CRAFT body anchor');assert.match(workstation,/for\(const kind of \['drive'\]\)/,'PULSE and SHOCK must not receive duplicate module labels');assert.match(workstation,/background:#a7e2eb!important/,'DRIVE meters must use the shared cyan accent');
 for(const id of Object.keys(MOLECULE_ROLE_PROFILES))await access(new URL(`assets/models/molecule-${id}.svg`,root),constants.R_OK);
 for(const id of ['nitromethane','2-4-6-trinitrotoluene'])await access(new URL(`assets/models/molecule-${id}.svg`,root),constants.R_OK);
 console.log('LOADOUT v2 assets, metadata, connector ownership, alpha matte and active tank thumbnails passed.');

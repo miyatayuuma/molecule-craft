@@ -40,7 +40,7 @@ function applyLoadoutHardwareLayout(map){
   const layout=layoutStage(map);if(!layout)return false;
   for(const kind of MODULE_USES){const image=map.querySelector(`.loadout-${kind}-image`),module=LOADOUT_HARDWARE_LAYOUT.modules[kind];if(image&&module)applyDesignRectStyle(image,'module',module.rect);}
   for(const use of SLOT_USES){const button=map.querySelector(`#shell-${use}`),slot=LOADOUT_HARDWARE_LAYOUT.slots[use];if(!button||!slot)continue;const hitLocal=designRectToMap(slot.hitRect,layout.scale);applyRectStyle(button,'slot-hit',slot.hitRect,layout);applyRectStyle(button,'slot-visual',slot.visualRect,layout);const thumbnail=designRectToMap(slot.thumbnailRect,layout.scale),meter=designRectToMap(slot.meterRect,layout.scale);button.style.setProperty('--thumb-left',`${thumbnail.left-hitLocal.left}px`);button.style.setProperty('--thumb-top',`${thumbnail.top-hitLocal.top}px`);button.style.setProperty('--thumb-width',`${thumbnail.width}px`);button.style.setProperty('--thumb-height',`${thumbnail.height}px`);button.style.setProperty('--meter-left',`${meter.left-hitLocal.left}px`);button.style.setProperty('--meter-top',`${meter.top-hitLocal.top}px`);button.style.setProperty('--meter-width',`${meter.width}px`);button.style.setProperty('--meter-height',`${meter.height}px`);const label=document.querySelector(`[data-loadout-label="${use}"]`);if(label){const point=designPointToMap(slot.labelAnchor,layout.scale,layout.offsetX,layout.offsetY);label.style.left=`${point.x}px`;label.style.top=`${point.y}px`;}}
-  const intake=designPointToMap(LOADOUT_HARDWARE_LAYOUT.modules.craft.intakeAnchor,layout.scale,layout.offsetX,layout.offsetY);map.style.setProperty('--loadout-craft-anchor-left',`${intake.x}px`);map.style.setProperty('--loadout-craft-anchor-top',`${intake.y}px`);map.style.setProperty('--loadout-craft-translation-scale',String(1/layout.scale));
+  const craftModule=LOADOUT_HARDWARE_LAYOUT.modules.craft,intake=designPointToMap(craftModule.intakeAnchor,layout.scale,layout.offsetX,layout.offsetY),drag=designPointToMap(craftModule.dragAnchor,layout.scale,layout.offsetX,layout.offsetY),dragHit=designRectToMap(craftModule.dragHitRect,layout.scale,layout.offsetX,layout.offsetY);map.style.setProperty('--loadout-craft-anchor-left',`${intake.x}px`);map.style.setProperty('--loadout-craft-anchor-top',`${intake.y}px`);map.style.setProperty('--loadout-craft-drag-left',`${drag.x}px`);map.style.setProperty('--loadout-craft-drag-top',`${drag.y}px`);map.style.setProperty('--loadout-craft-drag-width',`${dragHit.width}px`);map.style.setProperty('--loadout-craft-drag-height',`${dragHit.height}px`);map.style.setProperty('--loadout-craft-translation-scale',String(1/layout.scale));
   const moduleLabels=map.querySelectorAll('[data-loadout-module-label]');for(const label of moduleLabels){const point=LOADOUT_HARDWARE_LAYOUT.modules[label.dataset.loadoutModuleLabel]?.labelAnchor;if(point){const mapped=designPointToMap(point,layout.scale,layout.offsetX,layout.offsetY);label.style.left=`${mapped.x}px`;label.style.top=`${mapped.y}px`;}}
   const craft=map._loadoutCraftTranslation??{x:0,y:0};setLoadoutCraftTranslation(map,craft.x,craft.y);return true;
 }
@@ -75,7 +75,9 @@ function addSchematic(map){
     const button=document.getElementById(`shell-${use}`);
     if(button){button.classList.add('loadout-slot-path');button.dataset.use=use;}
   }
-  for(const kind of ['pulse','shock','drive']){
+  // PULSE and SHOCK already have one canonical slot label. DRIVE is the only
+  // module-level label because its three child cells own FUEL/O₂/COOLANT.
+  for(const kind of ['drive']){
     const label=document.createElement('span');label.className='loadout-module-label';label.dataset.loadoutModuleLabel=kind;label.textContent=kind.toUpperCase();label.setAttribute('aria-hidden','true');map.append(label);
   }
 }
@@ -271,16 +273,18 @@ function installStyles(){
 #supply-dialog .loadout-craft-image{z-index:4;transform-origin:center;transition:transform .16s ease,filter .14s ease,opacity .14s ease}
 #supply-dialog .loadout-pulse-image,#supply-dialog .loadout-shock-image,#supply-dialog .loadout-drive-image{z-index:2}
 #supply-dialog #collector-shell-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:1!important;opacity:0!important;pointer-events:none!important}
-#supply-dialog #collector-launch-handle{left:var(--loadout-craft-anchor-left)!important;top:var(--loadout-craft-anchor-top)!important;width:76px!important;height:76px!important}
-#supply-dialog #expedition-destinations button{left:var(--loadout-craft-anchor-left)!important;top:var(--loadout-craft-anchor-top)!important}
+#supply-dialog #collector-launch-handle{left:var(--loadout-craft-drag-left)!important;top:var(--loadout-craft-drag-top)!important;width:max(76px,var(--loadout-craft-drag-width))!important;height:max(76px,var(--loadout-craft-drag-height))!important;border-radius:22%!important}
+#supply-dialog #expedition-destinations button{left:var(--loadout-craft-drag-left)!important;top:var(--loadout-craft-drag-top)!important}
 #supply-dialog .shell-port{position:absolute!important;z-index:6!important;min-width:0!important;min-height:0!important;margin:0!important;box-sizing:border-box;left:var(--slot-hit-left)!important;right:auto!important;top:var(--slot-hit-top)!important;bottom:auto!important;width:var(--slot-hit-width)!important;height:var(--slot-hit-height)!important;transform:none!important;padding:0!important;border:0!important;border-radius:12px!important;background:transparent!important;box-shadow:none!important;color:#d9e8ed;overflow:visible;pointer-events:auto;cursor:pointer;touch-action:manipulation;transition:opacity .14s ease,filter .12s ease}
 #supply-dialog .shell-port:before{content:'';position:absolute;z-index:-1;left:calc(var(--slot-visual-left) - var(--slot-hit-left));top:calc(var(--slot-visual-top) - var(--slot-hit-top));width:var(--slot-visual-width);height:var(--slot-visual-height);border:1px solid transparent;border-radius:10px;pointer-events:none;transition:border-color .12s ease,box-shadow .12s ease,background .12s ease}
 #supply-dialog .shell-port[data-active=true]:before{border-color:#a8edf5d6;background:#a9f1f51c;box-shadow:0 0 12px #74d6e177,inset 0 0 10px #74d6e133}
 #supply-dialog .shell-port>i,#supply-dialog .shell-port>span:not(.loadout-molecule-pod):not(.tank-scale),#supply-dialog .shell-port>small{display:none!important}
 #supply-dialog .shell-port .tank-scale{position:absolute;left:var(--meter-left);top:var(--meter-top);width:var(--meter-width);height:var(--meter-height);display:block!important;margin:0;z-index:4}
+#supply-dialog .shell-port .tank-scale{background:#304553!important;box-shadow:0 0 5px #06101899}
+#supply-dialog .shell-port .tank-scale>b{background:#a7e2eb!important;box-shadow:0 0 6px #8ce9f055}
 #supply-dialog #shell-shock:before{border-radius:50%}
 #supply-dialog .loadout-molecule-pod{position:absolute;z-index:3;left:var(--thumb-left);top:var(--thumb-top);width:var(--thumb-width);height:var(--thumb-height);display:grid;place-items:center;padding:0;box-sizing:border-box;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none;user-select:none}
-#supply-dialog .loadout-molecule-thumb{width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;filter:drop-shadow(0 1px 3px #000b) drop-shadow(0 0 5px #9ce9f044)}
+#supply-dialog .loadout-molecule-thumb{width:100%;height:100%;object-fit:contain;transform:scale(1.16);transform-origin:center;pointer-events:none;user-select:none;filter:drop-shadow(0 1px 3px #000b) drop-shadow(0 0 5px #9ce9f044)}
 #supply-dialog .loadout-pod-formula{display:none!important}
 #supply-dialog .loadout-pod-empty,#supply-dialog .loadout-thumb-error{align-self:center;color:#c7e7ed;font-size:18px;font-weight:700;opacity:.62}
 #supply-dialog .loadout-callout-label,#supply-dialog .loadout-module-label{position:absolute;z-index:7;transform:translate(-50%,-50%);color:#d8e8ed;font-size:10px;font-weight:800;line-height:1;letter-spacing:.09em;pointer-events:none;user-select:none;text-shadow:0 1px 4px #000,0 0 7px #6dc8d044;transition:opacity .14s ease,color .12s ease}
