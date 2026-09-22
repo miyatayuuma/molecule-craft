@@ -55,7 +55,7 @@ test('LOADOUT BASE STOCK is read-only, shares the CRAFT atom primitive and owns 
   assert.match(source,/token\.hidden=!unlocked/,'locked elements are not exposed while zero stock remains representable');
   assert.match(progression,/symbol:'N'.*color:'#3b82f6'/,'shared element presentation metadata owns atom colour');
   assert.match(source,/dataset\.launchIntakeAnchor='true'/,'machine visual owns an explicit synthesis intake anchor');
-  assert.match(source,/movement=canvas\?\.style\.transform/,'intake anchor follows the visible collector-shell canvas translation');
+  assert.match(source,/canvasRect=canvas\?\.getBoundingClientRect\(\)/,'intake anchor follows the visible collector-shell canvas translation');
   assert.match(source,/source\?\.getBoundingClientRect\(\)/,'transfer starts from the rendered element atom');
   assert.match(source,/targetRect\.left\+targetRect\.width\/2/,'transfer ends at the rendered intake anchor');
   assert.match(supply,/cost:supply\?\.plan\?\.cost/,'presentation consumes the committed supply plan rather than a pre-transaction preview');

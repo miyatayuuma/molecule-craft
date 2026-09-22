@@ -40,16 +40,20 @@ function applyLoadoutHardwareLayout(map){
   const layout=layoutStage(map);if(!layout)return false;
   for(const kind of MODULE_USES){const image=map.querySelector(`.loadout-${kind}-image`),module=LOADOUT_HARDWARE_LAYOUT.modules[kind];if(image&&module)applyDesignRectStyle(image,'module',module.rect);}
   for(const use of SLOT_USES){const button=map.querySelector(`#shell-${use}`),slot=LOADOUT_HARDWARE_LAYOUT.slots[use];if(!button||!slot)continue;const hitLocal=designRectToMap(slot.hitRect,layout.scale);applyRectStyle(button,'slot-hit',slot.hitRect,layout);applyRectStyle(button,'slot-visual',slot.visualRect,layout);const thumbnail=designRectToMap(slot.thumbnailRect,layout.scale),meter=designRectToMap(slot.meterRect,layout.scale);button.style.setProperty('--thumb-left',`${thumbnail.left-hitLocal.left}px`);button.style.setProperty('--thumb-top',`${thumbnail.top-hitLocal.top}px`);button.style.setProperty('--thumb-width',`${thumbnail.width}px`);button.style.setProperty('--thumb-height',`${thumbnail.height}px`);button.style.setProperty('--meter-left',`${meter.left-hitLocal.left}px`);button.style.setProperty('--meter-top',`${meter.top-hitLocal.top}px`);button.style.setProperty('--meter-width',`${meter.width}px`);button.style.setProperty('--meter-height',`${meter.height}px`);const label=document.querySelector(`[data-loadout-label="${use}"]`);if(label){const point=designPointToMap(slot.labelAnchor,layout.scale,layout.offsetX,layout.offsetY);label.style.left=`${point.x}px`;label.style.top=`${point.y}px`;}}
-  const craftModule=LOADOUT_HARDWARE_LAYOUT.modules.craft,intake=designPointToMap(craftModule.intakeAnchor,layout.scale,layout.offsetX,layout.offsetY),drag=designPointToMap(craftModule.dragAnchor,layout.scale,layout.offsetX,layout.offsetY),dragHit=designRectToMap(craftModule.dragHitRect,layout.scale,layout.offsetX,layout.offsetY);map.style.setProperty('--loadout-craft-anchor-left',`${intake.x}px`);map.style.setProperty('--loadout-craft-anchor-top',`${intake.y}px`);map.style.setProperty('--loadout-craft-drag-left',`${drag.x}px`);map.style.setProperty('--loadout-craft-drag-top',`${drag.y}px`);map.style.setProperty('--loadout-craft-drag-width',`${dragHit.width}px`);map.style.setProperty('--loadout-craft-drag-height',`${dragHit.height}px`);map.style.setProperty('--loadout-craft-translation-scale',String(1/layout.scale));
+  const craftModule=LOADOUT_HARDWARE_LAYOUT.modules.craft,intake=designPointToMap(craftModule.intakeAnchor,layout.scale,layout.offsetX,layout.offsetY),drag=designPointToMap(craftModule.dragAnchor,layout.scale,layout.offsetX,layout.offsetY),dragHit=designRectToMap(craftModule.dragHitRect,layout.scale,layout.offsetX,layout.offsetY);map.style.setProperty('--loadout-craft-anchor-left',`${intake.x}px`);map.style.setProperty('--loadout-craft-anchor-top',`${intake.y}px`);map.style.setProperty('--loadout-craft-drag-left',`${drag.x}px`);map.style.setProperty('--loadout-craft-drag-top',`${drag.y}px`);map.style.setProperty('--loadout-craft-drag-width',`${dragHit.width}px`);map.style.setProperty('--loadout-craft-drag-height',`${dragHit.height}px`);map.style.setProperty('--loadout-craft-translation-scale',String(1/layout.scale));map._loadoutFlightCraftPreview={x:drag.x,y:drag.y,scale:Math.min((map.clientWidth||1)/130,(map.clientHeight||1)/76)};
   const moduleLabels=map.querySelectorAll('[data-loadout-module-label]');for(const label of moduleLabels){const point=LOADOUT_HARDWARE_LAYOUT.modules[label.dataset.loadoutModuleLabel]?.labelAnchor;if(point){const mapped=designPointToMap(point,layout.scale,layout.offsetX,layout.offsetY);label.style.left=`${mapped.x}px`;label.style.top=`${mapped.y}px`;}}
-  const craft=map._loadoutCraftTranslation??{x:0,y:0};setLoadoutCraftTranslation(map,craft.x,craft.y);return true;
+  const craft=map._loadoutFlightCraftTranslation??{x:0,y:0};setLoadoutFlightCraftTranslation(map,craft.x,craft.y);return true;
 }
 
 export function syncLoadoutHardwareLayout(map=document.querySelector?.('#supply-dialog .collector-shell-map')){return applyLoadoutHardwareLayout(map);}
 
-export function setLoadoutCraftTranslation(map,dx=0,dy=0){
-  if(!map)return false;const x=Number(dx)||0,y=Number(dy)||0;map._loadoutCraftTranslation={x,y};const image=map.querySelector('.loadout-craft-image'),scale=map._loadoutDesignScale||1;if(image)image.style.transform=`translate(${x/scale}px,${y/scale}px)`;return true;
+export function setLoadoutFlightCraftTranslation(map,dx=0,dy=0){
+  if(!map)return false;const x=Number(dx)||0,y=Number(dy)||0;map._loadoutFlightCraftTranslation={x,y};const canvas=map.querySelector('#collector-shell-preview');if(canvas)canvas.style.transform=`translate(${x}px,${y}px)`;return true;
 }
+
+// Kept as a compatibility alias for callers that used the pre-S2-P3 name.
+// The fixed dock image is never translated; only the visible flight sprite is.
+export function setLoadoutCraftTranslation(map,dx=0,dy=0){return setLoadoutFlightCraftTranslation(map,dx,dy);}
 
 function addUnitImages(map){
   if(!map)return;
@@ -59,6 +63,7 @@ function addUnitImages(map){
     if(map.querySelector(`.loadout-${kind}-image`))continue;
     const img=document.createElement('img');
     img.className=`loadout-unit-image loadout-${kind}-image`;
+    if(kind==='craft')img.classList.add('loadout-fixed-dock-image'),img.dataset.loadoutFixedDock='true';
     img.src=url;
     img.alt='';
     img.draggable=false;
@@ -202,9 +207,9 @@ function ensureLaunchIntakeAnchor(map){
 }
 
 export function syncLaunchIntakeAnchor(map=document.querySelector?.('#supply-dialog .collector-shell-map')){
-  if(!map)return false;const layout=layoutStage(map),anchor=ensureLaunchIntakeAnchor(map),canvas=map.querySelector('#collector-shell-preview'),movement=canvas?.style.transform?.trim()??'';
-  if(layout){const intake=LOADOUT_HARDWARE_LAYOUT.modules.craft.intakeAnchor,mapRect=map.getBoundingClientRect(),canvasRect=canvas?.getBoundingClientRect();if(canvasRect?.width&&canvasRect?.height){anchor.style.left=`${canvasRect.left-mapRect.left+canvasRect.width*intake.x/LOADOUT_DESIGN.width}px`;anchor.style.top=`${canvasRect.top-mapRect.top+canvasRect.height*intake.y/LOADOUT_DESIGN.height}px`;}else{const point=designPointToMap(intake,layout.scale,layout.offsetX,layout.offsetY);anchor.style.left=`${point.x}px`;anchor.style.top=`${point.y}px`;}anchor.style.width='10px';anchor.style.height='10px';}
-  anchor.style.transform=`translate(-50%,-50%)${movement?` ${movement}`:''}`;return true;
+  if(!map)return false;const layout=layoutStage(map),anchor=ensureLaunchIntakeAnchor(map),canvas=map.querySelector('#collector-shell-preview');
+  if(layout){const intake=LOADOUT_HARDWARE_LAYOUT.modules.craft.intakeAnchor,mapRect=map.getBoundingClientRect(),canvasRect=canvas?.getBoundingClientRect(),point=designPointToMap(intake,layout.scale,layout.offsetX,layout.offsetY);if(canvasRect?.width&&canvasRect?.height){anchor.style.left=`${canvasRect.left-mapRect.left+point.x}px`;anchor.style.top=`${canvasRect.top-mapRect.top+point.y}px`;}else{anchor.style.left=`${point.x}px`;anchor.style.top=`${point.y}px`;}anchor.style.width='10px';anchor.style.height='10px';}
+  anchor.style.transform='translate(-50%,-50%)';return true;
 }
 
 function observeLaunchIntakeAnchor(map){
@@ -270,10 +275,11 @@ function installStyles(){
 #supply-dialog .collector-shell-map:before,#supply-dialog .collector-shell-map:after,#supply-dialog .collector-core{display:none!important}
 #supply-dialog .loadout-design-layer{position:absolute;z-index:2;transform-origin:top left;pointer-events:none}
 #supply-dialog .loadout-unit-image{position:absolute;left:var(--module-left);top:var(--module-top);width:var(--module-width);height:var(--module-height);display:block;object-fit:fill;pointer-events:none;user-select:none;transition:filter .14s ease,opacity .14s ease}
-#supply-dialog .loadout-craft-image{z-index:4;transform-origin:center;transition:transform .16s ease,filter .14s ease,opacity .14s ease}
+#supply-dialog .loadout-craft-image{z-index:2;transform-origin:center;transition:filter .14s ease,opacity .14s ease}
 #supply-dialog .loadout-pulse-image,#supply-dialog .loadout-shock-image,#supply-dialog .loadout-drive-image{z-index:2}
-#supply-dialog #collector-shell-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:1!important;opacity:0!important;pointer-events:none!important}
-#supply-dialog #collector-launch-handle{left:var(--loadout-craft-drag-left)!important;top:var(--loadout-craft-drag-top)!important;width:max(76px,var(--loadout-craft-drag-width))!important;height:max(76px,var(--loadout-craft-drag-height))!important;border-radius:22%!important}
+#supply-dialog #collector-shell-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:5!important;opacity:1!important;transform-origin:top left;pointer-events:none!important;transition:transform .16s ease,opacity .14s ease}
+#supply-dialog #collector-launch-handle{left:var(--loadout-craft-drag-left)!important;top:var(--loadout-craft-drag-top)!important;width:max(76px,var(--loadout-craft-drag-width))!important;height:max(76px,var(--loadout-craft-drag-height))!important;border-radius:22%!important;z-index:9!important}
+#supply-dialog #expedition-destinations{z-index:8!important}
 #supply-dialog #expedition-destinations button{left:var(--loadout-craft-drag-left)!important;top:var(--loadout-craft-drag-top)!important}
 #supply-dialog .shell-port{position:absolute!important;z-index:6!important;min-width:0!important;min-height:0!important;margin:0!important;box-sizing:border-box;left:var(--slot-hit-left)!important;right:auto!important;top:var(--slot-hit-top)!important;bottom:auto!important;width:var(--slot-hit-width)!important;height:var(--slot-hit-height)!important;transform:none!important;padding:0!important;border:0!important;border-radius:12px!important;background:transparent!important;box-shadow:none!important;color:#d9e8ed;overflow:visible;pointer-events:auto;cursor:pointer;touch-action:manipulation;transition:opacity .14s ease,filter .12s ease}
 #supply-dialog .shell-port:before{content:'';position:absolute;z-index:-1;left:calc(var(--slot-visual-left) - var(--slot-hit-left));top:calc(var(--slot-visual-top) - var(--slot-hit-top));width:var(--slot-visual-width);height:var(--slot-visual-height);border:1px solid transparent;border-radius:10px;pointer-events:none;transition:border-color .12s ease,box-shadow .12s ease,background .12s ease}
@@ -332,7 +338,7 @@ function installStyles(){
 @media(max-width:370px){#supply-dialog #collector-launch-handle{width:70px!important;height:70px!important}#supply-dialog .loadout-callout-label{font-size:9px}#supply-dialog .loadout-module-label{font-size:10px}#supply-dialog .tank-comparison .loadout-stat,#supply-dialog .loadout-charges{grid-template-columns:55px 1fr}#supply-dialog .loadout-stock-elements{grid-template-columns:repeat(4,minmax(0,1fr))!important}#supply-dialog .sheet-body{padding:9px 10px 10px;gap:6px}#supply-dialog .loadout-element-stock{grid-template-columns:50px minmax(0,1fr);padding:4px 6px;gap:5px}#supply-dialog .tank-molecules button{grid-template-rows:42px auto 10px;min-height:90px}#supply-dialog .tank-molecules button img{width:68px;height:42px}#supply-dialog .tank-inspector{min-height:132px}#supply-dialog .tank-model #tank-model-host .model-stage{height:96px}}
 @media(max-width:340px) and (max-height:680px){#supply-dialog .collector-shell-map{height:164px!important}#supply-dialog .sheet-header{padding:8px 10px}#supply-dialog .sheet-body{padding:7px 8px 8px;gap:5px}#supply-dialog .loadout-element-stock{grid-template-columns:48px minmax(0,1fr);padding:4px 5px;gap:4px}#supply-dialog .loadout-element-token{min-height:38px;padding:2px 3px}#supply-dialog .loadout-element-token>.atom-preview{width:18px;height:18px}#supply-dialog .loadout-element-token[data-loadout-stock-element='H']>.atom-preview{width:16px;height:16px}#supply-dialog .tank-detail{gap:5px;padding:7px 8px}#supply-dialog .tank-molecules button{grid-template-rows:40px auto 9px;min-height:86px}#supply-dialog .tank-molecules button img{height:40px}#supply-dialog .tank-inspector{min-height:120px;gap:5px}#supply-dialog .tank-model #tank-model-host .model-stage{height:88px}}
 @media(max-width:370px){#supply-dialog .loadout-oxygen-capacity{gap:5px;padding:6px 7px}#supply-dialog .loadout-oxygen-capacity>header>span{font-size:8px}#supply-dialog .loadout-oxygen-capacity>header>strong{font-size:22px}#supply-dialog .loadout-oxygen-stages{gap:3px}#supply-dialog .loadout-oxygen-stages>li{min-height:35px;padding:3px 1px}#supply-dialog .loadout-oxygen-stages>li>strong{font-size:12px}#supply-dialog .loadout-oxygen-next{font-size:8px}}
-@media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog .loadout-callout-label,#supply-dialog .loadout-module-label,#supply-dialog .loadout-synthesis-intake{transition:none}}
+@media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog #collector-shell-preview,#supply-dialog .loadout-callout-label,#supply-dialog .loadout-module-label,#supply-dialog .loadout-synthesis-intake{transition:none}}
 `;
   document.head.append(style);
 }
