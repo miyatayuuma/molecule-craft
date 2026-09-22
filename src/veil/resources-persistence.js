@@ -4,6 +4,7 @@ import { validatePersistedWorkspace } from '../workspace-migrations.js?v=1';
 import { WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';
 import {normalizeWorldAwakeningProgress} from './world-awakening.js';
 import {createInitialHazardTreatments,normalizeHazardTreatments,validHazardTreatments} from './hazard-treatments.js';
+import {INSIGHT_DESTINATION_HISTORY_LIMIT,INSIGHT_DESTINATION_ORDER,normalizeInsightDestinationHistory} from './insight-destination.js';
 
 export const RESOURCE_KEY='molecule-craft.resources.v1';
 export const SCHEMA_VERSION=8;
@@ -14,7 +15,7 @@ export const STOCKED_ELEMENTS=['H','C','N','O','F','P','S','Cl'];
 export const MAX_RESOURCE_VALUE=1e9;
 
 const emptyCollection=()=>({schemaVersion:3,discoveredMolecules:[],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]});
-export const createInitialProgress=()=>({bestChain:0,runs:0,cleared:false,craftPrompt:false,sound:true,foundElements:['H'],regions:['veil'],checkpoint:'veil',frontier:false,choCompleted:false,totalCollected:0,signalMisses:0,signalLast:{},thermalStrainExperienced:false,driveThermalInterruptions:0,coolantNeedExperienced:false,coreFractured:false,worldAwakeningPending:false,worldAwakened:false,rareEcologyEligible:false});
+export const createInitialProgress=()=>({bestChain:0,runs:0,cleared:false,craftPrompt:false,sound:true,foundElements:['H'],regions:['veil'],checkpoint:'veil',frontier:false,choCompleted:false,totalCollected:0,signalMisses:0,signalLast:{},insightDestinationHistory:[],thermalStrainExperienced:false,driveThermalInterruptions:0,coolantNeedExperienced:false,coreFractured:false,worldAwakeningPending:false,worldAwakened:false,rareEcologyEligible:false});
 export const createInitialTanks=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,{molecule:null,amount:0}]));
 export const createInitialSelectedLoadout=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,null]));
 const emptyElementStock=()=>Object.fromEntries(STOCKED_ELEMENTS.map(element=>[element,0]));
@@ -32,9 +33,10 @@ export function normalizeCurrentTankRoles(state){
   return changed;
 }
 export function normalizeCurrentWorldProgress(state){return !!state?.progress&&normalizeWorldAwakeningProgress(state.progress);}
+export function normalizeCurrentInsightDestinationHistory(state){const progress=state?.progress;if(!progress)return false;const normalized=normalizeInsightDestinationHistory(progress.insightDestinationHistory);if(Array.isArray(progress.insightDestinationHistory)&&JSON.stringify(progress.insightDestinationHistory)===JSON.stringify(normalized))return false;progress.insightDestinationHistory=normalized;return true;}
 export function normalizeCurrentElementStocks(state){if(!state?.elements||typeof state.elements!=='object')return false;let changed=false;for(const element of STOCKED_ELEMENTS)if(!Object.hasOwn(state.elements,element)){state.elements[element]=0;changed=true;}return changed;}
 export function normalizeCurrentTreatments(state){if(!state||state.schemaVersion!==SCHEMA_VERSION)return false;const normalized=normalizeHazardTreatments(state.treatments);state.treatments=normalized.value;return normalized.changed;}
-function normalizeCurrentResourcesState(state){return !!(normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state)|normalizeCurrentElementStocks(state)|normalizeCurrentTreatments(state));}
+function normalizeCurrentResourcesState(state){return !!(normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state)|normalizeCurrentInsightDestinationHistory(state)|normalizeCurrentElementStocks(state)|normalizeCurrentTreatments(state));}
 
 export function finishPendingResourcesReset(storage,state){const p=state.pendingReset;if(!p)return;if(p.collection)storage.setItem(COLLECTION_KEY,JSON.stringify(emptyCollection()));if(p.legacy)storage.removeItem(WORKSPACE_STORAGE_KEY);if(p.help)storage.removeItem(HELP_KEY);const done={...state};delete done.pendingReset;storage.setItem(RESOURCE_KEY,JSON.stringify(done));delete state.pendingReset;}
 
@@ -48,6 +50,7 @@ function validatePersistedState(s){
   if(s.progress.driveThermalInterruptions!==undefined&&!integer(s.progress.driveThermalInterruptions))throw Error('Invalid thermal progression');
   if(s.progress.coolantNeedExperienced!==undefined&&typeof s.progress.coolantNeedExperienced!=='boolean')throw Error('Invalid thermal progression');
   if(['coreFractured','worldAwakeningPending','worldAwakened','rareEcologyEligible'].some(key=>typeof s.progress[key]!=='boolean'))throw Error('Invalid world awakening progression');
+  if(!Array.isArray(s.progress.insightDestinationHistory)||s.progress.insightDestinationHistory.length>INSIGHT_DESTINATION_HISTORY_LIMIT||s.progress.insightDestinationHistory.some(destination=>!INSIGHT_DESTINATION_ORDER.includes(destination)))throw Error('Invalid Insight destination history');
   if(s.resetEpoch!==undefined&&!integer(s.resetEpoch))throw Error('Invalid reset epoch');
   if(s.pendingReset!==undefined&&(!s.pendingReset||['collection','legacy','help'].some(k=>typeof s.pendingReset[k]!=='boolean')))throw Error('Invalid reset journal');
   if(s.workspace!==null)validatePersistedWorkspace(s.workspace);
