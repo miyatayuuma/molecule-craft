@@ -1,4 +1,4 @@
-import {createTorsionModel} from './torsion-model.js?v=34';
+import {createTorsionModel} from './torsion-model.js?v=35';
 
 export const CONFORMATION_POLICY=Object.freeze({
   maxAxes:8,
