@@ -196,7 +196,6 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       }
       if(event.type==='dense')vibrate(10);
       if(event.type==='cluster'){notice('炭素塊がほどけた · 散るC塵をまとめて吸おう',2.5);vibrate(18);}
-      if(event.type==='rare'){resources.state.progress.special='pure-h';notice(`高純度H塵 +${VEIL.rareValue}`,3);vibrate(16);}
       if(event.type==='gate'){resources.state.progress.cleared=true;run.gateTime=run.time;resources.save();notice('Hの帳を抜けた · BURSTを使うべき瞬間だった',4);}
       if(event.type==='region'){const first=resources.visit(event.region);if(first)notice(event.region==='carbon'?'CARBON DRIFT · 粒子列の先に、塊が脈打つ':event.region==='oxygen'?'OXYGEN SURGE · 高速流と熱の領域':event.region==='frontier'?'INNER HORIZON · 金色の輪が最終地点。到達後は正常帰還を':`${REGIONS[event.region].name}へ戻った`,6);resources.save();}
       if(event.type==='inspiration')for(const id of event.rewards)offerInsight(id);
