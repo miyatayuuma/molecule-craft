@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+// Browser acceptance keeps the persistent seed contract observable at both viewports.
 import {createServer} from 'node:http';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {spawn,spawnSync} from 'node:child_process';
