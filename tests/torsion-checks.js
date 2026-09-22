@@ -1,5 +1,5 @@
 import {Molecule} from '../src/chemistry.js?v=20';
-import {createTorsionModel} from '../src/torsion-model.js?v=34';
+import {createTorsionModel} from '../src/torsion-model.js?v=35';
 import {planStructureEdit,editRelaxationOptions} from '../src/structure-edit.js?v=33';
 
 // Pure topology checks, shared by Node and the public browser harness.
