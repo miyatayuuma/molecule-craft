@@ -63,10 +63,12 @@ const deterministicNoise=(seed,key)=>hash32(`${seed}:${key}`)/4294967296;
 
 function ensureInsightSites(run){
   const map=run?.map;if(!map||!Array.isArray(map.signals))return [];
-  if(map._insightSitePoolReady)return map.signals.filter(signal=>signal.insightSite===true);
-  map._insightSitePoolReady=true;const seedValue=(map.seed??1)>>>0;
+  const includeNitrogen=arguments[1]?.includeNitrogen!==false;
+  if(map._insightSitePoolReady&&(!includeNitrogen||map._nitrogenInsightSitePoolReady))return map.signals.filter(signal=>signal.insightSite===true);
+  const seedValue=(map.seed??1)>>>0;
   for(const [group,definitions]of Object.entries(INSIGHT_SITE_POOLS)){
-    if(group==='nitrogen'&&!map.nitrogenCore)continue;
+    if(group==='nitrogen'&&(!includeNitrogen||!map.nitrogenCore||map._nitrogenInsightSitePoolReady))continue;
+    if(group!=='nitrogen'&&map._insightSitePoolReady)continue;
     for(const definition of definitions){
       let signal=definition.canonicalSignalId?map.signals.find(row=>row.id===definition.canonicalSignalId):null;
       if(!signal){
@@ -77,6 +79,7 @@ function ensureInsightSites(run){
       signal.insightSite=true;signal.insightSiteId=definition.id;signal.insightSiteGroup=definition.group;signal.insightCanonical=!!definition.canonicalSignalId;
     }
   }
+  map._insightSitePoolReady=true;if(includeNitrogen)map._nitrogenInsightSitePoolReady=true;
   return map.signals.filter(signal=>signal.insightSite===true);
 }
 
@@ -165,17 +168,18 @@ export function syncFieldInsightMarkerClaimability(run,evaluate=()=>null){
     const player=run.player,candidates=signals.filter(signal=>!signal.ready).map(signal=>({signal,claim:evaluate(signal)})).filter(row=>row.claim?.claimable&&typeof row.claim.recipe==='string');
     if(!candidates.length)return null;const selected=candidates.map(row=>({...row,distance:finitePoint(player)?Math.hypot(player.x-row.signal.x,player.y-row.signal.y):Infinity})).sort((a,b)=>a.distance-b.distance)[0];selected.signal.claimable=true;selected.signal.claimableRecipe=selected.claim.recipe;return selected;
   }
-  const sites=ensureInsightSites(run),existingPlan=run.frontierInsightPlan;let active=existingPlan?updatePlan(run,existingPlan,sites):null;
+  ensureInsightSites(run,{includeNitrogen:false});const existingPlan=run.frontierInsightPlan;let active=null;
   syncRunFlags(run,existingPlan??null);
   if(run.captured||run.analysis||Array.isArray(run.carriedInsights)&&run.carriedInsights.length>0)return null;
   const player=run.player,claims=signals.filter(signal=>!signal.ready).map(signal=>({signal,claim:evaluate(signal)}));
   const chooseNearest=rows=>rows.map(row=>({...row,distance:finitePoint(player)?Math.hypot(player.x-row.signal.x,player.y-row.signal.y):Infinity})).sort((a,b)=>a.distance-b.distance)[0]??null;
   const critical=chooseNearest(claims.filter(row=>row.claim?.critical===true&&row.claim?.claimable===true&&typeof row.claim.recipe==='string'));
   if(critical){critical.signal.claimable=true;critical.signal.claimableRecipe=critical.claim.recipe;return critical;}
+  const allSites=ensureInsightSites(run),siteList=allSites;active=existingPlan?updatePlan(run,existingPlan,siteList):null;
   const meta=claims.find(row=>row.claim?.managed===true&&row.claim?.frontier===true&&typeof row.claim.seedId==='string')?.claim??null;
   if(meta?.activeForRun===true&&hasInsightSitePool(meta.hotDestination)){
     const stalePlan=!run.frontierInsightPlan||run.frontierInsightPlan.seedId!==meta.seedId||run.frontierInsightPlan.hotDestination!==meta.hotDestination;
-    if(stalePlan){run.frontierInsightPlan=makePlan(run,meta);active=updatePlan(run,run.frontierInsightPlan,sites);}
+    if(stalePlan){run.frontierInsightPlan=makePlan(run,meta);active=updatePlan(run,run.frontierInsightPlan,siteList);}
     syncRunFlags(run,run.frontierInsightPlan);
     if(run.frontierInsightPlan.phase==='acquired')return null;
     if(active){const claim=evaluate(active);if(claim?.claimable&&typeof claim.recipe==='string'){active.claimable=true;active.claimableRecipe=claim.recipe;return {signal:active,claim};}}
