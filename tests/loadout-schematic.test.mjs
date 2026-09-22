@@ -1,117 +1,45 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-import test from 'node:test';
-import {LOADOUT_SLOT_GEOMETRY} from '../src/veil/loadout-workstation.js';
+import {createHash} from 'node:crypto';
+import {inflateSync} from 'node:zlib';
+import {readFile,access} from 'node:fs/promises';
+import {constants} from 'node:fs';
+import {LOADOUT_DESIGN,LOADOUT_HARDWARE_LAYOUT,LOADOUT_SLOT_USES} from '../src/veil/loadout-hardware-layout.js';
+import {MOLECULE_ROLE_PROFILES} from '../src/veil/molecule-roles.js';
 
-const source=readFileSync(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8');
-const SLOT_USES=['propellant','fuel','oxidizer','coolant'];
-const EXPECTED_GEOMETRY=Object.freeze({
-  propellant:Object.freeze({centerX:16.05,left:10.6,width:10.9,top:38.5,height:27,labelX:16.05}),
-  fuel:Object.freeze({centerX:65.1,left:60.1,width:10,top:38,height:27,labelX:65.1}),
-  oxidizer:Object.freeze({centerX:77.2,left:72.2,width:10,top:38,height:27,labelX:77.2}),
-  coolant:Object.freeze({centerX:88.8,left:83.8,width:10,top:38,height:27,labelX:88.8}),
-});
-const frameOf=({width,top,height})=>({width,top,height});
-const rightOf=geometry=>geometry.left+geometry.width;
+const root=new URL('../',import.meta.url),source=await readFile(new URL('assets/loadout-v2/loadout-hardware-master.jpg',root));
+const sha=createHash('sha256').update(source).digest('hex');
+assert.equal(sha,'03c2350c664d23c1446293e35fd504e3724a732e792f79adbf65d6040ec086ea','approved LOADOUT master must remain byte-identical');
 
-function assertClose(actual,expected,message){
-  assert.ok(Math.abs(actual-expected)<1e-9,`${message}: expected ${expected}, got ${actual}`);
+function pngInfo(bytes){
+  assert.deepEqual([...bytes.subarray(0,8)],[137,80,78,71,13,10,26,10]);let offset=8,width=0,height=0,colorType=0,compressed=[];
+  while(offset<bytes.length){const length=bytes.readUInt32BE(offset);const type=bytes.toString('ascii',offset+4,offset+8),data=bytes.subarray(offset+8,offset+8+length);offset+=12+length;if(type==='IHDR'){width=data.readUInt32BE(0);height=data.readUInt32BE(4);colorType=data[9];}if(type==='IDAT')compressed.push(data);if(type==='IEND')break;}
+  const raw=inflateSync(Buffer.concat(compressed)),bpp=colorType===6?4:colorType===2?3:0;assert.ok(bpp,'assets must use RGB/RGBA PNGs');const stride=width*bpp,alpha=[];let cursor=0,previous=Buffer.alloc(stride);
+  for(let y=0;y<height;y++){const filter=raw[cursor++],row=Buffer.from(raw.subarray(cursor,cursor+stride));cursor+=stride;for(let x=0;x<stride;x++){const left=x>=bpp?row[x-bpp]:0,up=previous[x],upleft=x>=bpp?previous[x-bpp]:0;if(filter===1)row[x]=(row[x]+left)&255;else if(filter===2)row[x]=(row[x]+up)&255;else if(filter===3)row[x]=(row[x]+Math.floor((left+up)/2))&255;else if(filter===4){const p=left+up-upleft,pa=Math.abs(p-left),pb=Math.abs(p-up),pc=Math.abs(p-upleft);row[x]=(row[x]+(pa<=pb&&pa<=pc?left:pb<=pc?up:upleft))&255;}}if(colorType===6)for(let x=3;x<stride;x+=4)alpha.push(row[x]);previous=row;}
+  return {width,height,colorType,alpha};
 }
 
-test('LOADOUT slot geometry matches the approved current contract',()=>{
-  assert.deepEqual(Object.keys(LOADOUT_SLOT_GEOMETRY),SLOT_USES);
-  for(const use of SLOT_USES){
-    const geometry=LOADOUT_SLOT_GEOMETRY[use],expected=EXPECTED_GEOMETRY[use];
-    assert.deepEqual(geometry,expected,`${use} geometry`);
-    assertClose(geometry.left,geometry.centerX-geometry.width/2,`${use} left edge derives from center and width`);
-    assert.equal(geometry.labelX,geometry.centerX,`${use} label stays centered`);
-  }
-});
+const expected={'loadout-pulse-unit.png':[467,291],'loadout-craft.png':[390,271],'loadout-shock-unit.png':[235,299],'loadout-drive-unit.png':[729,380]};
+for(const [name,[width,height]] of Object.entries(expected)){
+  const info=pngInfo(await readFile(new URL(`assets/loadout-v2/${name}`,root)));
+  assert.deepEqual([info.width,info.height],[width,height],name);assert.equal(info.colorType,6,`${name} must retain an alpha channel`);assert.ok(info.alpha.some(value=>value===0),`${name} must have transparent background`);assert.ok(info.alpha.some(value=>value>0),`${name} must not be empty`);
+}
 
-test('PULSE and DRIVE slots retain their shared frame contracts',()=>{
-  assert.deepEqual(frameOf(LOADOUT_SLOT_GEOMETRY.propellant),{width:10.9,top:38.5,height:27});
-  const driveFrame={width:10,top:38,height:27};
-  for(const use of ['fuel','oxidizer','coolant'])assert.deepEqual(frameOf(LOADOUT_SLOT_GEOMETRY[use]),driveFrame,`${use} DRIVE frame`);
-});
+const {design,modules,slots}=LOADOUT_HARDWARE_LAYOUT;
+assert.deepEqual(design,{width:1000,height:600,sourceWidth:1536,sourceHeight:921});
+const inside=rect=>rect.x>=0&&rect.y>=0&&rect.x+rect.width<=design.width&&rect.y+rect.height<=design.height&&rect.width>0&&rect.height>0;
+for(const module of Object.values(modules))assert.ok(inside(module.rect),'module rect must stay inside design space');
+const overlap=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+for(const [use,slot] of Object.entries(slots)){
+  for(const key of ['visualRect','hitRect','thumbnailRect','meterRect'])assert.ok(inside(slot[key]),`${use}.${key} must stay inside design space`);
+  assert.ok(slot.thumbnailRect.x>=slot.visualRect.x&&slot.thumbnailRect.y>=slot.visualRect.y&&slot.thumbnailRect.x+slot.thumbnailRect.width<=slot.visualRect.x+slot.visualRect.width&&slot.thumbnailRect.y+slot.thumbnailRect.height<=slot.visualRect.y+slot.visualRect.height,`${use} thumbnail must remain inside visual panel`);
+  assert.ok(slot.labelAnchor.x>=0&&slot.labelAnchor.x<=design.width&&slot.labelAnchor.y>=0&&slot.labelAnchor.y<=design.height,`${use} label anchor`);
+}
+for(let i=0;i<LOADOUT_SLOT_USES.length;i++)for(let j=i+1;j<LOADOUT_SLOT_USES.length;j++)assert.equal(overlap(slots[LOADOUT_SLOT_USES[i]].hitRect,slots[LOADOUT_SLOT_USES[j]].hitRect),false,`${LOADOUT_SLOT_USES[i]} and ${LOADOUT_SLOT_USES[j]} hit areas must not overlap`);
+assert.ok(modules.craft.intakeAnchor.x>=0&&modules.craft.intakeAnchor.y>=0&&modules.craft.intakeAnchor.x<=design.width&&modules.craft.intakeAnchor.y<=design.height);
+assert.deepEqual(modules.craft.connectors.receivingSockets,['left','right','upper']);assert.deepEqual(modules.pulse.connectors.moduleSide,['right']);assert.deepEqual(modules.shock.connectors.moduleSide,['lower']);assert.deepEqual(modules.drive.connectors.moduleSide,['left']);
 
-test('DRIVE slot rectangles do not overlap',()=>{
-  const driveUses=['fuel','oxidizer','coolant'];
-  for(let i=0;i<driveUses.length-1;i++){
-    const leftUse=driveUses[i],rightUse=driveUses[i+1];
-    assert.ok(rightOf(LOADOUT_SLOT_GEOMETRY[leftUse])<=LOADOUT_SLOT_GEOMETRY[rightUse].left,`${leftUse} must not overlap ${rightUse}`);
-  }
-});
-
-test('SVG hit overlay derives rectangular tap bounds from LOADOUT_SLOT_GEOMETRY',()=>{
-  assert.match(source,/loadout-slot-overlay/);
-  assert.match(source,/class:'loadout-slot-path'/);
-  assert.match(source,/'data-use':use/);
-  assert.match(source,/svgElement\('rect',\{class:'loadout-slot-path','data-use':use,\.\.\.svgRectGeometry\(LOADOUT_SLOT_GEOMETRY\[use\]\)\}\)/);
-  assert.match(source,/document\.getElementById\(`shell-\$\{use\}`\)\?\.click\(\)/);
-  assert.match(source,/\.loadout-slot-path\{[^}]*pointer-events:visibleFill/);
-  assert.match(source,/\.shell-port\{[^}]*pointer-events:none/);
-});
-
-test('schematic, labels, pods, and hit areas stay wired to shared geometry',()=>{
-  assert.match(source,/const centerX=use=>LOADOUT_SLOT_GEOMETRY\[use\]\.centerX/);
-  assert.match(source,/button\.style\.setProperty\('--slot-left',pct\(geometry\.left\)\)/);
-  assert.match(source,/button\.style\.setProperty\('--slot-width',pct\(geometry\.width\)\)/);
-  assert.match(source,/button\.style\.setProperty\('--slot-top',pct\(geometry\.top\)\)/);
-  assert.match(source,/button\.style\.setProperty\('--slot-height',pct\(geometry\.height\)\)/);
-  assert.match(source,/LOADOUT_SLOT_GEOMETRY\[use\]\.labelX/);
-  assert.match(source,/left:var\(--slot-left\)!important/);
-  assert.match(source,/width:var\(--slot-width\)!important/);
-  assert.match(source,/top:var\(--slot-top\)!important/);
-  assert.match(source,/height:var\(--slot-height\)!important/);
-});
-
-test('selection highlight uses the same rectangular tank overlay',()=>{
-  assert.match(source,/loadout-slot-path\[data-use='propellant'\]/);
-  assert.match(source,/loadout-slot-path\[data-use='fuel'\]/);
-  assert.match(source,/loadout-slot-path\[data-use='oxidizer'\]/);
-  assert.match(source,/loadout-slot-path\[data-use='coolant'\]/);
-  assert.match(source,/stroke:#a8edf5d6/);
-  assert.match(source,/fill-opacity:\.12/);
-  assert.doesNotMatch(source,/\.shell-port\[data-active=true\]:before/);
-  assert.doesNotMatch(source,/\.port-propellant\[data-active=true\]:before/);
-});
-
-test('current molecule display is frameless, separated, and sits behind tank art',()=>{
-  assert.match(source,/loadout-molecule-pod/);
-  assert.match(source,/\.loadout-unit-image\{[^}]*z-index:2/);
-  assert.match(source,/\.shell-port\{z-index:0!important/);
-  assert.match(source,/\.loadout-molecule-pod\{[^}]*top:calc\(100% \+ 28px\)[^}]*width:145%;height:54px[^}]*transform:translate\(-50%,-50%\)[^}]*border:0[^}]*background:none[^}]*box-shadow:none[^}]*pointer-events:none/);
-  assert.match(source,/\.loadout-molecule-thumb\{width:100%;height:100%/);
-  assert.match(source,/#shell-fuel:not\(\.loadout-slot-empty\)>\.loadout-molecule-pod\{left:18%\}/);
-  assert.match(source,/#shell-coolant:not\(\.loadout-slot-empty\)>\.loadout-molecule-pod\{left:82%\}/);
-  assert.match(source,/\.port-propellant>\.loadout-molecule-pod\{width:175%;height:62px;top:calc\(100% \+ 28px\)/);
-  assert.match(source,/\.loadout-slot-empty>\.loadout-molecule-pod\{left:50%;top:calc\(100% \+ 16px\);width:100%;height:24px/);
-  assert.match(source,/\.loadout-pod-formula\{display:none!important\}/);
-  assert.doesNotMatch(source,/background:linear-gradient\(180deg,#102b3be8,#081923ee\)/);
-  assert.match(source,/assets\/models\/molecule-\$\{id\}\.svg/);
-});
-
-test('stock preview reuses existing shortage chips and hides when fully affordable',()=>{
-  assert.match(source,/syncStockPreview/);
-  assert.doesNotMatch(source,/材料不足|loadout-shortage-status/,'the removed explanatory shortage banner must not be restored');
-  assert.ok(source.includes('node.dataset?.sufficient!==undefined'));
-  assert.match(source,/chip.dataset.sufficient==='false'/);
-  assert.match(source,/preview.hidden=!insufficient/);
-  assert.ok(source.includes("chip.dataset.stockState=chip.dataset.sufficient==='false'?'short':'ready'"));
-  assert.ok(source.includes("preview.setAttribute('aria-label','必要元素')"));
-});
-
-test('launch gestures stay on the existing ship anchor and overlay disables during destination selection',()=>{
-  assert.match(source,/--loadout-ship-x:39%/);
-  assert.match(source,/#supply-dialog #collector-launch-handle\{[^}]*left:var\(--loadout-ship-x\)!important/);
-  assert.match(source,/expedition-destinations\[aria-hidden='false'\][^\n]*\.loadout-slot-path\{pointer-events:none\}/);
-});
-
-test('responsive layout keeps one-piece DRIVE and molecule pods readable',()=>{
-  assert.match(source,/loadout-drive-unit\.png/);
-  assert.match(source,/@media\(max-width:370px\)/);
-  assert.match(source,/loadout-molecule-pod\{height:50px;transform:translate\(-50%,-50%\)/);
-  assert.match(source,/port-propellant>\.loadout-molecule-pod\{height:56px;transform:translate\(-50%,-50%\)/);
-  assert.match(source,/loadout-slot-empty>\.loadout-molecule-pod\{height:24px;transform:translateX\(-50%\)/);
-  assert.doesNotMatch(source,/loadout-drive-fuel-image|loadout-drive-oxidizer-image|loadout-drive-coolant-image/);
-});
+const workstation=await readFile(new URL('src/veil/loadout-workstation.js',root),'utf8');
+assert.match(workstation,/assets\/loadout-v2/);assert.match(workstation,/loadout-craft-image/);assert.match(workstation,/syncLoadoutHardwareLayout/);assert.match(workstation,/setLoadoutCraftTranslation/);assert.doesNotMatch(workstation,/width:145%|width:175%/);
+for(const id of Object.keys(MOLECULE_ROLE_PROFILES))await access(new URL(`assets/models/molecule-${id}.svg`,root),constants.R_OK);
+for(const id of ['nitromethane','2-4-6-trinitrotoluene'])await access(new URL(`assets/models/molecule-${id}.svg`,root),constants.R_OK);
+console.log('LOADOUT v2 assets, metadata, connector ownership, alpha matte and active tank thumbnails passed.');
