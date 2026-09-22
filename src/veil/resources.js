@@ -247,7 +247,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
   }
   function signalClaimability(region,roll,choice,{excludeIds=[],runContext={}}={}){
     if(blocked||!Object.hasOwn(REGIONS,region)||![roll,choice].every(n=>Number.isFinite(n)&&n>=0&&n<1)||runInsightOccupied(runContext))return {claimable:false,recipe:null};
-    const gate=fieldInsightOpportunityEligibility(runContext),nitrogen=nitrogenCriticalInsightCandidate(state,{fieldContext:region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:runContext?.collectedElements??{}});
+    const gate=fieldInsightOpportunityEligibility(runContext),nitrogenCargo={...(runContext?.elementDust??{}),...(runContext?.collectedElements??{})},nitrogen=nitrogenCriticalInsightCandidate(state,{fieldContext:region===NITROGEN_REGION_ID||runContext?.region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:nitrogenCargo});
     if(nitrogen)return {claimable:true,recipe:nitrogen,critical:true};
     if(region===NITROGEN_REGION_ID&&nitrogenChapterState(state).stage==='nitrogen-critical')return {claimable:false,recipe:null,critical:true};
     const frontier=frontierSignalClaimability(region,roll,choice,runContext);if(frontier?.managed)return frontier;
@@ -257,7 +257,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
     return record?{claimable:true,recipe:record.id}:{claimable:false,recipe:null};
   }
   function insightRecipeEligible(id,{runContext={}}={}){
-    if(id===NITROGEN_MOLECULE_ID){const gate=fieldInsightOpportunityEligibility(runContext);return nitrogenCriticalInsightCandidate(state,{fieldContext:runContext?.region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:runContext?.collectedElements??{}})===id;}
+    if(id===NITROGEN_MOLECULE_ID){const gate=fieldInsightOpportunityEligibility(runContext),nitrogenCargo={...(runContext?.elementDust??{}),...(runContext?.collectedElements??{})};return nitrogenCriticalInsightCandidate(state,{fieldContext:runContext?.region===NITROGEN_REGION_ID,nitrogenEngaged:gate.ready,collectedElements:nitrogenCargo})===id;}
     return recipeElementEligible(id);
   }
   function finalizeFrontierRun(captured,insights,committedInsights,{seedBefore=null,seedAfter=null}={}){
