@@ -113,7 +113,9 @@ export function createMap(seed=1,stock={},{capabilities={}}={}){
       dust.push({id:dust.length,x,y,angle:-Math.PI/2,route:pocket.id,element,kind:element==='C'?'carbon':'normal',value:pocket.value,ready:0,pocket:pocket.id});
     }
   }
-  if(rng()<VEIL.rareChance){const route=routes.find(r=>r.id==='technical'),p=route.points[Math.floor(route.points.length*.6)];dust.push({...p,id:dust.length,route:route.id,kind:'rare',value:VEIL.rareValue*VEIL.dustPerH,ready:0});}
+  // Preserve the authored supplemental H position and probability, but make it
+  // an ordinary H particle. The former high-value / ringed H concept is retired.
+  if(rng()<VEIL.normalHSupplementChance){const route=routes.find(r=>r.id==='technical'),p=route.points[Math.floor(route.points.length*.6)];dust.push({...p,id:dust.length,route:route.id,element:'H',kind:'normal',value:VEIL.dustValue,ready:0});}
   const labels=[{x:-390,y:-1280,text:'ゆるやかな流れ'},{x:410,y:-1310,text:'濃い流れ'},{x:500,y:-2760,text:'静かな切れ目'},{x:530,y:-3660,text:'外縁の強流 ↑ H₂ BURST'}];
   const anchor=revisit?.points[Math.floor((revisit?.points.length??1)*.55)];
   if(anchor)labels.push({x:anchor.x,y:anchor.y,text:`${revisit.id} · post-DRIVE current ${HYDROGEN_REVISIT_ROUTE.current.force} · local H pocket`});

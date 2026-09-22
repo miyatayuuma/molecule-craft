@@ -29,4 +29,4 @@ These values are FIELD balance parameters only. They do not define future DOCK t
 
 P/S/F/Cl are part of `MANAGED_ELEMENTS`. They use the standard particle contact, `elementDust`, normal-return settlement, capture-loss and BASE STOCK authorities. Rare-containing Graph/Insight progression remains separate: resource ownership alone does not enable late-game molecule progression.
 
-The existing high-value H particle with `kind:'rare'` remains a separate historical H resource contract. Rare Element Ecology uses `kind:'rare-element'` plus `rareEcology:true` and must not be interpreted as the H mechanic.
+Rare Element Ecology uses `kind:'rare-element'` plus `rareEcology:true`. The former high-value/ringed H particle is retired; any supplemental H position is an ordinary `element:'H'`, `kind:'normal'` resource with normal value and settlement behavior.

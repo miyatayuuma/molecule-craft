@@ -339,12 +339,11 @@ export function createVeilRenderer(canvas){
     }
     ctx.restore();
     for(const dust of run.map.dust){
-      if(dust.ready>run.time)continue;const q=screen(dust.x,dust.y);if(q.x<-35||q.x>w+35||q.y<-35||q.y>h+35)continue;const pureH=dust.kind==='rare'&&(dust.element??'H')==='H',element=dust.element??'H',ecology=dust.rareEcology===true?RARE_ECOLOGY_VISUALS[element]:null,kind=ecology?.sprite??(pureH?'rare':element==='C'?'carbon':element==='N'?'nitrogen':element==='O'?'oxygen':dust.kind);
+      if(dust.ready>run.time)continue;const q=screen(dust.x,dust.y);if(q.x<-35||q.x>w+35||q.y<-35||q.y>h+35)continue;const element=dust.element??'H',ecology=dust.rareEcology===true?RARE_ECOLOGY_VISUALS[element]:null,kind=ecology?.sprite??(element==='C'?'carbon':element==='N'?'nitrogen':element==='O'?'oxygen':dust.kind);
       if(dust.flow&&!reduced){ctx.strokeStyle=element==='O'?'#d86d58':'#679caf';ctx.globalAlpha=.25;ctx.lineWidth=1.2*scale;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-Math.cos(dust.angle)*18*scale,q.y-Math.sin(dust.angle)*18*scale);ctx.stroke();ctx.globalAlpha=1;}
-      glow(q.x,q.y,(ecology?44:pureH?38:element==='C'?28:element==='N'?27:element==='O'?25:22)*scale,kind);
+      glow(q.x,q.y,(element==='C'?28:element==='N'?27:element==='O'?25:22)*scale,kind);
       if(element==='C'&&!ecology){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(dust.angle+dust.id*.7);ctx.fillStyle='#e7c8ff';ctx.beginPath();ctx.moveTo(4*scale,0);ctx.lineTo(-3*scale,-3*scale);ctx.lineTo(-2*scale,3*scale);ctx.closePath();ctx.fill();ctx.restore();}
-      else{ctx.fillStyle=ecology?.color??(pureH?'#ffe2a1':element==='N'?'#93c5fd':element==='O'?'#ffd2bd':'#d1f5ff');ctx.beginPath();ctx.arc(q.x,q.y,(ecology?3.8:pureH?4:element==='N'?3.2:element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}
-      if(pureH||ecology){ctx.strokeStyle=ecology?.color??'#c7ab76';ctx.globalAlpha=ecology?.72:1;ctx.lineWidth=ecology?1.2*scale:1;ctx.beginPath();ctx.arc(q.x,q.y,(ecology?11:12)*scale,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
+      else{ctx.fillStyle=ecology?.color??(element==='N'?'#93c5fd':element==='O'?'#ffd2bd':'#d1f5ff');ctx.beginPath();ctx.arc(q.x,q.y,(element==='N'?3.2:element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}
     }
     for(const wave of run.shockWaves??[]){const at=screen(wave.x,wave.y),progress=clamp(wave.life/wave.duration,0,1),radius=wave.radius*scale*smoothstep(progress),alpha=(1-progress)*(wave.coreFracture?.9:wave.structuresFractured?.length?.82:.72),tnt=wave.material==='2-4-6-trinitrotoluene';ctx.save();ctx.strokeStyle=wave.coreFracture?'#e3d2ff':wave.structuresFractured?.length?'#d6b7f4':tnt?'#ffd5a6':'#a7eff5';ctx.globalAlpha=alpha;ctx.lineWidth=(wave.coreFracture?3.2:wave.structuresFractured?.length?2.4:tnt?2.6:1.8)*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha*.42;ctx.lineWidth=1*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius*.78,0,Math.PI*2);ctx.stroke();ctx.restore();}
     // Dust eaters are self-organising particle vortices: a light-swallowing

@@ -4,6 +4,7 @@ import {createUniverse} from '../src/veil/universe.js';
 import {createRun,stepRun} from '../src/veil/expedition-run.js';
 import {createResources,progressionElementAccessible} from '../src/veil/resources.js';
 import {createInitialResourcesState,MANAGED_ELEMENTS} from '../src/veil/resources-persistence.js';
+import {VEIL} from '../src/veil/config.js';
 import {flightConfig} from '../src/veil/growth.js';
 import {
   RARE_ECOLOGY_AREA_CONFIG,RARE_ECOLOGY_ELEMENTS,RARE_ECOLOGY_SUPPRESSION,
@@ -57,6 +58,20 @@ test('BASE plus current-run Rare cargo feeds the same suppression authority with
   assert.ok(p);const low=rareEcologySocketState(p,{P:0},45),high=rareEcologySocketState(p,{P:80},45);
   assert.equal(low.held,0);assert.equal(high.held,80);assert.ok(high.multiplier<low.multiplier);assert.ok(high.target<=low.target);assert.ok(high.respawnSeconds>low.respawnSeconds);
   assert.ok(map.dust.includes(p),'suppression recalculation does not remove an already materialized particle');
+});
+
+test('legacy H particle is retired and the supplemental position is ordinary H',()=>{
+  assert.equal(VEIL.rareChance,undefined);
+  assert.equal(VEIL.rareValue,undefined);
+  let observedSupplement=false;
+  for(const seed of [1,7,41,987654]){
+    const map=createUniverse(seed,zeroStock(),{capabilities:{combustionDrive:true}});
+    assert.equal(map.dust.some(item=>item.kind==='rare'&&(item.element??'H')==='H'),false);
+    const supplemental=map.dust.filter(item=>item.route==='technical'&&item.kind==='normal'&&item.element==='H');
+    observedSupplement ||= supplemental.length>0;
+    assert.ok(supplemental.every(item=>item.value===VEIL.dustValue));
+  }
+  assert.equal(observedSupplement,true);
 });
 
 test('Rare trace pickup uses ordinary run cargo, normal settlement and forced-return loss',()=>{

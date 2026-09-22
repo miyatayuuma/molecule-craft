@@ -232,7 +232,7 @@ function stepRunFrame(run,input,dt,systems){
     run.dustUnits=run.elementDust.H;run.collected=run.collectedElements.H;gained=elements.H;picked++;
     if(run.effects.length<c.maxEffects)run.effects.push({x:dust.x,y:dust.y,startX:dust.x,startY:dust.y,life:0,duration:c.suctionSeconds-(c.suctionSeconds-c.feverSuctionSeconds)*Math.min(run.chain/c.feverChain,1),kind:dust.kind,element:el,rareEcology:dust.rareEcology===true,side:dust.id%2?1:-1,trail:[{x:dust.x,y:dust.y}]});
     if(dust.rareEcology===true){const ecology=rareEcologySocketState(dust,run.collectedElements,c.respawnSeconds);dust.ready=ecology?.active?run.time+ecology.respawnSeconds:Infinity;run.events.push({type:'rareElement',element:el,held:ecology?.held??run.collectedElements[el]??0});}
-    if(dust.kind==='dense'){if(run.time>run.denseUntil)run.events.push({type:'dense'});run.denseUntil=run.time+1.4;}if(el==='H'&&dust.kind==='rare')run.events.push({type:'rare',id:'pure-h'});
+    if(dust.kind==='dense'){if(run.time>run.denseUntil)run.events.push({type:'dense'});run.denseUntil=run.time+1.4;}
   }
   if(picked)run.events.push({type:'pickup',amount:gained,elements,units,chain:run.chain,count:picked});
   advanceTransientEffects(run,dt);p.trail.push({x:p.x,y:p.y});if(p.trail.length>28)p.trail.shift();updateEaters(run,dt);recordExpeditionFrame(run,dt);return run.events;
