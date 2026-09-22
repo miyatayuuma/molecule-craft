@@ -330,6 +330,10 @@
 <g data-safe-extraction-site="oxygen-network-merge-extraction" data-route="oxygen-main" data-source-landmark="oxygen-network-merge-recovery"><circle cx="120" cy="-10800" r="330"/><text x="482" y="-10820">SAFE EXTRACTION SITE · oxygen-network-merge-extraction (120,-10800)</text></g>
 <g data-safe-extraction-site="nitrogen-side-recovery-extraction" data-route="nitrogen-side-pocket" data-source-landmark="nitrogen-side-recovery"><circle cx="-500" cy="-15380" r="220"/><text x="-248" y="-15400">SAFE EXTRACTION SITE · nitrogen-side-recovery-extraction (-500,-15380)</text></g>
 </g>
+<g id="shock-structures" inkscape:groupmode="layer" inkscape:label="post-Awakening SHOCK-reactive structures">
+<metadata>post-Awakening-only run-local SHOCK-reactive structures; no persistent fracture state is exported</metadata>
+<g data-shock-structure="carbon-charged-anchor" data-structure-kind="hazard-anchor" data-target-hazard="carbon-sweep-charged-region" data-post-fracture-scale="0.6" data-post-awakening-only="true" data-active-world-state="awakened" data-route="carbon-sweep"><circle cx="660" cy="-5370" r="44"/></g>
+</g>
 <g id="route-density" inkscape:groupmode="layer" inkscape:label="route density">
 <g data-density-route="oxygen-shortcut" data-density-tier="low-medium" data-spacing="20" data-lanes="1" data-value="2"><text x="-290" y="-10128">oxygen-shortcut · low-medium · spacing 20 / lanes 1 / value 2</text></g>
 <g data-density-route="oxygen-side" data-density-tier="medium-long" data-spacing="20" data-lanes="2" data-value="2"><text x="867.037" y="-10128">oxygen-side · medium-long · spacing 20 / lanes 2 / value 2</text></g>

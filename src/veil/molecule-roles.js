@@ -74,7 +74,7 @@ export const MOLECULE_ROLE_PROFILES=Object.freeze({
     coolant:Object.freeze({capacity:32,coolingPower:.65,durationFactor:2.80,environmentTolerance:1.65}),
   }),
   nitromethane:profile(['shock'],{
-    shock:Object.freeze({capacity:3,radiusScale:1.00,knockbackScale:1.00,interruptScale:1.00}),
+    shock:Object.freeze({capacity:3,radiusScale:1.00,knockbackScale:1.42,interruptScale:1.20}),
   }),
   '2-4-6-trinitrotoluene':profile(['shock'],{
     shock:Object.freeze({capacity:2,radiusScale:1.45,knockbackScale:1.60,interruptScale:1.45}),

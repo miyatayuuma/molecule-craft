@@ -35,6 +35,8 @@ test('FIELD map exporter is deterministic and required layers are present',async
   for(const [area,element] of Object.entries({veil:'P',carbon:'S',oxygen:'F',nitrogen:'Cl'}))assert.match(first,new RegExp(`data-rare-ecology-area="${area}" data-element="${element}"`));
   assert.match(first,/Rare ecology overlay shows eligible areas\/density only; exact trace particle coordinates are intentionally hidden/);
   assert.match(first,/agents: DUST EATER|dynamic pursuit agent/);assert.doesNotMatch(first,/layer-hazards-dust-eater/);
+  assert.match(first,/data-shock-structure="carbon-charged-anchor" data-structure-kind="hazard-anchor" data-target-hazard="carbon-sweep-charged-region" data-post-fracture-scale="0.6" data-post-awakening-only="true"/);
+  assert.match(first,/post-Awakening-only run-local SHOCK-reactive structures/);
   assert.match(first,/id="h-boundary-current" data-gate="h-boundary" x="300" y="-3940" width="460" height="280"/);
   assert.match(first,/id="h-boundary-gate-marker"[^>]*cx="530" cy="-3800"/);
   assert.match(first,/id="cho-destination" data-radius="95" cx="280" cy="-12470" r="95"/);

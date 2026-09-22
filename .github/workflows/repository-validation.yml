@@ -77,6 +77,8 @@ jobs:
           node tests/field-hazard-taxonomy.test.mjs
           node tests/electrical-hazard.test.mjs
           node tests/electrical-hazard-browser.test.mjs
+          node --test tests/shock-utility.test.mjs
+          node tests/shock-utility-browser.test.mjs
       - name: FIELD runtime allowlist
         run: node tests/field-runtime-allowlist.test.mjs
       - name: Post-Core Rare ecology and hazard treatments
