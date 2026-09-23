@@ -1,12 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {makeGraph} from './molecule-frontier-fixtures.mjs';
-import {simulate,SCENARIOS} from '../scripts/simulate-expedition.mjs';
-import {createUniverse} from '../src/veil/universe.js';
-import {createRun,stepRun,beginBurst,setCombustionHeld} from '../src/veil/engine.js';
-import {REGIONS,flightConfig} from '../src/veil/growth.js';
-import {NITROGEN_ROUTE} from '../src/veil/nitrogen-routes.js';
-import {performanceFor} from '../src/veil/molecule-roles.js';
+import {simulate,simulateNitrogenRepresentative,SCENARIOS} from '../scripts/simulate-expedition.mjs';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 import {createInitialResourcesState,loadPersistedResources,SCHEMA_VERSION} from '../src/veil/resources-persistence.js';
 import {
@@ -29,20 +24,10 @@ function configured({history=[],stocks=balanceStocks(),destinations=DESTINATIONS
   Object.assign(value.state.elements,stocks);value.state.recipes=['hydrogen','root'];value.state.hints=[];value.setFrontierGraph(graph);
   return {value,storage};
 }
-function nitrogenRepresentativeYield(seed){
-  const state={progress:{choCompleted:true,foundElements:['H','N']},elements:{H:0,C:0,O:0,N:0}},map=createUniverse(seed,state.elements,{capabilities:{combustionDrive:true,nitrogenField:true}}),run=createRun(map,flightConfig(state),{predators:false,fuel:{propellant:{molecule:'hydrogen',amount:performanceFor('hydrogen','propellant').capacity},fuel:{molecule:'methane',amount:performanceFor('methane','fuel').capacity},oxidizer:{molecule:'oxygen',amount:performanceFor('oxygen','oxidizer').capacity},coolant:{molecule:'water',amount:performanceFor('water','coolant').capacity}}});
-  Object.assign(run.player,REGIONS.nitrogen,{vx:0,vy:0});let target=0;
-  for(let frame=0;frame<20*60;frame++){
-    while(target<NITROGEN_ROUTE.points.length-1&&Math.hypot(NITROGEN_ROUTE.points[target].x-run.player.x,NITROGEN_ROUTE.points[target].y-run.player.y)<100)target++;
-    const p=run.player,t=NITROGEN_ROUTE.points[target],dx=t.x-p.x,dy=t.y-p.y,distance=Math.hypot(dx,dy)||1;setCombustionHeld(run,true);if(p.cooldown<=0&&target>50&&target<200)beginBurst(run,()=>true);
-    stepRun(run,{x:dx/distance,y:dy/distance},1/60,{consumeCombustion:()=>true,consumeCoolant:()=>true});
-  }
-  return run.collectedElements.N;
-}
 function measuredRepresentativeYields(){
   const samples={veil:[],carbon:[],oxygen:[],nitrogen:[]},scenario={veil:SCENARIOS.find(row=>row.name==='saving'),carbon:SCENARIOS.find(row=>row.name==='normal'),oxygen:SCENARIOS.find(row=>row.name==='deep')};
   for(let seed=1;seed<=32;seed++){
-    samples.veil.push(simulate({...scenario.veil,seed}).collected.H??0);samples.carbon.push(simulate({...scenario.carbon,seed}).collected.C??0);samples.oxygen.push(simulate({...scenario.oxygen,seed}).collected.O??0);samples.nitrogen.push(nitrogenRepresentativeYield(seed));
+    samples.veil.push(simulate({...scenario.veil,seed}).collected.H??0);samples.carbon.push(simulate({...scenario.carbon,seed}).collected.C??0);samples.oxygen.push(simulate({...scenario.oxygen,seed}).collected.O??0);samples.nitrogen.push(simulateNitrogenRepresentative(seed));
   }
   return Object.fromEntries(Object.entries(samples).map(([destination,values])=>{values.sort((a,b)=>a-b);const middle=values.length/2;return[destination,Math.round((values[middle-1]+values[middle])/2)];}));
 }

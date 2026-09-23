@@ -62,6 +62,10 @@ node --test tests/*.test.mjs
 node scripts/check-repository-hygiene.mjs
 ```
 
+Post-Awakening progression/economy can be remeasured deterministically with
+`node scripts/audit-post-awakening-economy.mjs --compact`; its regression entry
+point is `node tests/post-awakening-economy.test.mjs`.
+
 PRでは依存install不要の軽量guardrailとして、repository hygiene、source contract、PWA生成物freshness / integrity、差分whitespaceを自動検証します。precacheを更新すべき変更かだけ確認する場合は、生成物を書き換えずに次を実行できます。
 
 ```sh
