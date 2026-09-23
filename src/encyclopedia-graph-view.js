@@ -135,6 +135,18 @@ function updateGraphChevrons(records,blockingCircles){
   for(const record of records){
     const from={x:Number(record.line.getAttribute('x1')),y:Number(record.line.getAttribute('y1'))},to={x:Number(record.line.getAttribute('x2')),y:Number(record.line.getAttribute('y2'))};
     applyGraphChevronRecord(record,from,to,{blockingCircles});
+    // Validate the final painted coordinates against the DOM nodes as well as
+    // the SVG-space circles. This catches fractional viewBox / transformed-node
+    // differences during a reroot, when the old edge can temporarily cross a
+    // node that is already moving to its new position.
+    if(record.chevron.getAttribute('visibility')!=='hidden'){
+      const matrix=record.chevron.getScreenCTM?.(),points=(record.chevron.getAttribute('points')??'').trim().split(/\s+/).map(value=>value.split(',').map(Number));
+      if(matrix&&points.length===3){
+        const screen=points.map(([x,y])=>new DOMPoint(x,y).matrixTransform(matrix)),base={x:(screen[0].x+screen[2].x)/2,y:(screen[0].y+screen[2].y)/2},tip=screen[1],length=Math.hypot(tip.x-base.x,tip.y-base.y),center=length?{x:base.x+(tip.x-base.x)*1.5/length,y:base.y+(tip.y-base.y)*1.5/length}:base;
+        const collides=[...(record.line.ownerSVGElement?.parentElement?.querySelectorAll('.graph-node')??[])].some(node=>{const rect=node.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,radius=Math.min(rect.width,rect.height)/2;return [center,...screen].some(point=>Math.hypot(point.x-x,point.y-y)<radius+1);});
+        if(collides)record.chevron.setAttribute('visibility','hidden');
+      }
+    }
   }
 }
 function runGraphGeometryMotion(state,tweens,edgeTweens,chevronRecords,{duration=ENCYCLOPEDIA_MOTION.graphNavigationDuration,edgeDelay=ENCYCLOPEDIA_MOTION.graphEdgeDelay,nodeCircles=null,win=globalThis.window}={}){
