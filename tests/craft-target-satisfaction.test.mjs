@@ -67,3 +67,39 @@ test('many interchangeable atoms remain deterministic and bounded',()=>{
   const t={atoms:Array(40).fill('H'),bonds:[]},workspace=graph(Array(20).fill('H')),p=decompose(t,[]),result=run(workspace,t,p);
   assert.equal(result.assignments.length,20);assert.equal(result.unsatisfiedPieces.length,20);assert.deepEqual(run(workspace,t,p),result);
 });
+
+test('three piece occurrences stay whole whichever structural component is spawned first',()=>{
+  const t={atoms:['C','O','C','O','C','N'],bonds:[[0,1,1],[2,3,2],[4,5,1]]},templates=[
+    {id:'part-a',atoms:['C','O'],bonds:[[0,1,1]]},
+    {id:'part-b',atoms:['C','O'],bonds:[[0,1,2]]},
+    {id:'part-c',atoms:['C','N'],bonds:[[0,1,1]]},
+  ],decomposed=decompose(t,templates);
+  assert.deepEqual(decomposed.map(piece=>piece.partId),['part-a','part-b','part-c']);
+  const spawn=(piece,workspace)=>{
+    const atoms=piece.atomIndices.map(index=>t.atoms[index]),ids=atoms.map((_,i)=>1000+workspace.atoms.length+i),bonds=[];
+    for(let a=0;a<piece.atomIndices.length;a++)for(let b=a+1;b<piece.atomIndices.length;b++){const order=t.bonds.find(([x,y])=>(x===piece.atomIndices[a]&&y===piece.atomIndices[b])||(x===piece.atomIndices[b]&&y===piece.atomIndices[a]))?.[2];if(order)bonds.push([ids[a],ids[b],order]);}
+    return{atoms:[...workspace.atoms,...atoms.map((element,i)=>({id:ids[i],element}))],bonds:[...workspace.bonds,...bonds.map(([a,b,order])=>({a,b,order}))]};
+  };
+  for(const sequence of [['part-a','part-b','part-c'],['part-b','part-a','part-c'],['part-c','part-b','part-a']]){
+    let workspace=graph();
+    for(let step=0;step<sequence.length;step++){
+      const selected=decomposed.find(piece=>piece.partId===sequence[step]),firstNewId=1000+workspace.atoms.length;workspace=spawn(selected,workspace);
+      const result=run(workspace,t,decomposed),satisfiedIds=result.satisfiedPieces.map(piece=>piece.partId),pending=result.unsatisfiedPieces.filter(piece=>piece.partId).map(piece=>piece.partId);
+      assert.ok(satisfiedIds.includes(sequence[step]),`${sequence.slice(0,step+1)}: spawned occurrence must be structurally satisfied`);
+      assert.deepEqual(pending,[...new Set(sequence.slice(step+1).length?decomposed.filter(piece=>!satisfiedIds.includes(piece.partId)).map(piece=>piece.partId):[])],`${sequence.slice(0,step+1)}: other occurrences remain whole hint parts`);
+      assert.equal(result.unsatisfiedPieces.some(piece=>piece.partId===null),false,'unrelated occurrences must not collapse into atoms');
+      const spawnedIds=new Set(selected.atomIndices.map((_,index)=>firstNewId+index)),connected=workspace.bonds.filter(bond=>spawnedIds.has(bond.a)&&spawnedIds.has(bond.b));
+      assert.equal(connected.length,1,'spawned component bond remains present');
+    }
+  }
+});
+
+test('atom shortage still falls back to only the missing atom',()=>{
+  const t={atoms:['C','O','H'],bonds:[[0,1,1],[1,2,1]]},piece={partId:'co',atomIndices:[0,1]},result=run(graph(['C']),t,[piece,{partId:null,element:'H',atomIndices:[2]}]);
+  assert.deepEqual(result.unsatisfiedPieces,[{partId:null,element:'O',atomIndices:[1]},{partId:null,element:'H',atomIndices:[2]}]);
+});
+
+test('repeated equivalent piece occurrences are independently structural matches',()=>{
+  const t={atoms:['C','C','C','C'],bonds:[[0,1,1],[2,3,1]]},part={id:'ethane-fragment',atoms:['C','C'],bonds:[[0,1,1]]},repeated=decompose(t,[part]),result=run(graph(t.atoms,[[0,1,1],[2,3,1]]),t,repeated);
+  assert.equal(repeated.length,2);assert.deepEqual(result.satisfiedPieces,repeated);assert.deepEqual(result.unsatisfiedPieces,[]);assert.equal(new Set(result.assignments.map(item=>item.targetIndex)).size,4);
+});
