@@ -1,30 +1,49 @@
-// Target material reservation is composition-based, not structure-based.
-// Every workspace atom of a required element secures at most one target atom,
-// regardless of the atom's current bonds or which partial component contains it.
-// Larger target pieces are reserved whole when their complete composition is
-// already present; partially covered pieces fall back to exact missing atoms.
+// Match complete workspace components to exact target-piece occurrences first.
+// Remaining loose/partial material is then reserved compositionally, so the
+// presentation order of the hint row cannot steal atoms from a spawned part.
 const atomOf=(atom,index)=>typeof atom==='string'?{id:index,element:atom}:{id:atom?.id??index,element:atom?.element};
 const compare=(a,b)=>a<b?-1:a>b?1:0;
 
+function normalize(graph){
+  const atoms=(graph?.atoms??[]).map(atomOf),ids=new Map(atoms.map((atom,index)=>[atom.id,index])),edges=atoms.map(()=>Array(atoms.length).fill(0));
+  for(const bond of graph?.bonds??[]){let a,b,order;if(Array.isArray(bond))[a,b,order]=bond;else{a=ids.get(bond.a)??bond.a;b=ids.get(bond.b)??bond.b;order=bond.order;}if(Number.isInteger(a)&&Number.isInteger(b)&&edges[a]&&edges[b]&&a!==b)edges[a][b]=edges[b][a]=order||1;}
+  return{atoms,edges};
+}
+function components(graph){
+  const seen=new Set(),result=[];
+  for(let start=0;start<graph.atoms.length;start++){if(seen.has(start))continue;const indices=[],stack=[start];seen.add(start);while(stack.length){const i=stack.pop();indices.push(i);for(let j=0;j<graph.atoms.length;j++)if(graph.edges[i][j]&&!seen.has(j)){seen.add(j);stack.push(j);}}indices.sort((a,b)=>a-b);result.push(indices);}
+  return result;
+}
+function exactMapping(target,indices,workspace,component){
+  if(indices.length!==component.length)return null;
+  const order=indices.map((_,i)=>i).sort((a,b)=>indices.filter(j=>target.edges[indices[a]][indices[j]]).length-indices.filter(j=>target.edges[indices[b]][indices[j]]).length||a-b),mapped=Array(indices.length).fill(-1),used=new Set();
+  function visit(depth){if(depth===order.length)return [...mapped];const local=order[depth],targetIndex=indices[local],expected=target.atoms[targetIndex].element;
+    for(const workspaceIndex of component){if(used.has(workspaceIndex)||workspace.atoms[workspaceIndex].element!==expected)continue;let ok=true;for(let other=0;other<mapped.length;other++){if(mapped[other]<0)continue;if(target.edges[targetIndex][indices[other]]!==workspace.edges[workspaceIndex][mapped[other]]){ok=false;break;}}if(!ok)continue;mapped[local]=workspaceIndex;used.add(workspaceIndex);const result=visit(depth+1);if(result)return result;used.delete(workspaceIndex);mapped[local]=-1;}return null;}
+  return visit(0);
+}
+
 export function matchCraftTarget(target,pieces,workspace){
-  const targetAtoms=(target?.atoms??[]).map(atomOf),workspaceAtoms=(workspace?.atoms??[]).map(atomOf).filter(atom=>typeof atom.element==='string').sort((a,b)=>compare(a.id,b.id));
-  const available=new Map();
-  for(const atom of workspaceAtoms){if(!available.has(atom.element))available.set(atom.element,[]);available.get(atom.element).push(atom);}
-  const assignments=[],satisfiedPieces=[],unsatisfiedPieces=[];
-  const reserve=index=>{
-    const element=targetAtoms[index]?.element,queue=available.get(element);if(!queue?.length)return false;
-    assignments.push({targetIndex:index,workspaceAtomId:queue.shift().id});return true;
-  };
-  for(const piece of pieces??[]){
-    const indices=Array.isArray(piece?.atomIndices)?piece.atomIndices:[],needed=new Map();
-    for(const index of indices){const element=targetAtoms[index]?.element;if(element)needed.set(element,(needed.get(element)??0)+1);}
-    const full=[...needed].every(([element,count])=>(available.get(element)?.length??0)>=count);
-    if(full){for(const index of indices)reserve(index);satisfiedPieces.push(piece);continue;}
-    const missing=[];let secured=0;
-    for(const index of indices){if(reserve(index))secured++;else missing.push(index);}
-    if(!secured){unsatisfiedPieces.push(piece);continue;}
+  const targetGraph=normalize(target),workspaceGraph=normalize(workspace),targetAtoms=targetGraph.atoms,workspaceAtoms=workspaceGraph.atoms;
+  const available=new Map();for(const atom of workspaceAtoms){if(typeof atom.element!=='string')continue;if(!available.has(atom.element))available.set(atom.element,[]);available.get(atom.element).push(atom);}
+  for(const queue of available.values())queue.sort((a,b)=>compare(a.id,b.id));
+  const assignments=[],satisfiedPieces=[],unsatisfiedPieces=[],satisfiedOccurrences=new Set(),claimedComponents=new Set(),claimedWorkspace=new Set(),claimedTargets=new Set();
+  const occurrences=(pieces??[]).map((piece,index)=>({piece,index,indices:Array.isArray(piece?.atomIndices)?piece.atomIndices:[]}));
+  const workspaceComponents=components(workspaceGraph);
+  // Exact connected structure wins over composition, across every occurrence.
+  for(const occurrence of occurrences){if(!occurrence.piece?.partId||!occurrence.indices.length)continue;
+    const match=workspaceComponents.map((component,index)=>({component,index,mapping:claimedComponents.has(index)?null:exactMapping(targetGraph,occurrence.indices,workspaceGraph,component)})).find(candidate=>candidate.mapping);
+    if(!match)continue;claimedComponents.add(match.index);satisfiedOccurrences.add(occurrence.index);satisfiedPieces.push(occurrence.piece);
+    occurrence.indices.forEach((targetIndex,local)=>{const workspaceIndex=match.mapping[local],atom=workspaceAtoms[workspaceIndex];claimedWorkspace.add(workspaceIndex);claimedTargets.add(targetIndex);assignments.push({targetIndex,workspaceAtomId:atom.id});});
+  }
+  // Reserve already present material for remaining pieces in a stable order.
+  for(const occurrence of occurrences){if(satisfiedOccurrences.has(occurrence.index))continue;const missing=[],secured=[];let overlapsClaimedTarget=false;
+    for(const index of occurrence.indices){if(claimedTargets.has(index)){overlapsClaimedTarget=true;continue;}const element=targetAtoms[index]?.element,queue=available.get(element),atom=queue?.find(candidate=>!claimedWorkspace.has(workspaceAtoms.indexOf(candidate)));
+      if(atom){const workspaceIndex=workspaceAtoms.indexOf(atom);claimedWorkspace.add(workspaceIndex);claimedTargets.add(index);assignments.push({targetIndex:index,workspaceAtomId:atom.id});secured.push(index);}else missing.push(index);
+    }
+    if(!missing.length){if(occurrence.piece.partId&&!overlapsClaimedTarget)satisfiedPieces.push(occurrence.piece);else if(overlapsClaimedTarget)unsatisfiedPieces.push(occurrence.piece);continue;}
+    if(!secured.length){unsatisfiedPieces.push(occurrence.piece);continue;}
     for(const index of missing){const element=targetAtoms[index]?.element;if(element)unsatisfiedPieces.push({partId:null,element,atomIndices:[index]});}
   }
   assignments.sort((a,b)=>a.targetIndex-b.targetIndex||compare(a.workspaceAtomId,b.workspaceAtomId));
-  return {satisfiedPieces,unsatisfiedPieces,assignments};
+  return{satisfiedPieces,unsatisfiedPieces,assignments};
 }
