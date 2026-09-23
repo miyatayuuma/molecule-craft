@@ -26,21 +26,21 @@ export function matchCraftTarget(target,pieces,workspace){
   const targetGraph=normalize(target),workspaceGraph=normalize(workspace),targetAtoms=targetGraph.atoms,workspaceAtoms=workspaceGraph.atoms;
   const available=new Map();for(const atom of workspaceAtoms){if(typeof atom.element!=='string')continue;if(!available.has(atom.element))available.set(atom.element,[]);available.get(atom.element).push(atom);}
   for(const queue of available.values())queue.sort((a,b)=>compare(a.id,b.id));
-  const assignments=[],satisfiedPieces=[],unsatisfiedPieces=[],claimedComponents=new Set(),claimedWorkspace=new Set(),claimedTargets=new Set();
+  const assignments=[],satisfiedPieces=[],unsatisfiedPieces=[],satisfiedOccurrences=new Set(),claimedComponents=new Set(),claimedWorkspace=new Set(),claimedTargets=new Set();
   const occurrences=(pieces??[]).map((piece,index)=>({piece,index,indices:Array.isArray(piece?.atomIndices)?piece.atomIndices:[]}));
   const workspaceComponents=components(workspaceGraph);
   // Exact connected structure wins over composition, across every occurrence.
   for(const occurrence of occurrences){if(!occurrence.piece?.partId||!occurrence.indices.length)continue;
     const match=workspaceComponents.map((component,index)=>({component,index,mapping:claimedComponents.has(index)?null:exactMapping(targetGraph,occurrence.indices,workspaceGraph,component)})).find(candidate=>candidate.mapping);
-    if(!match)continue;claimedComponents.add(match.index);satisfiedPieces.push(occurrence.piece);
+    if(!match)continue;claimedComponents.add(match.index);satisfiedOccurrences.add(occurrence.index);satisfiedPieces.push(occurrence.piece);
     occurrence.indices.forEach((targetIndex,local)=>{const workspaceIndex=match.mapping[local],atom=workspaceAtoms[workspaceIndex];claimedWorkspace.add(workspaceIndex);claimedTargets.add(targetIndex);assignments.push({targetIndex,workspaceAtomId:atom.id});});
   }
   // Reserve already present material for remaining pieces in a stable order.
-  for(const occurrence of occurrences){if(satisfiedPieces.includes(occurrence.piece))continue;const missing=[],secured=[];
-    for(const index of occurrence.indices){if(claimedTargets.has(index))continue;const element=targetAtoms[index]?.element,queue=available.get(element),atom=queue?.find(candidate=>!claimedWorkspace.has(workspaceAtoms.indexOf(candidate)));
+  for(const occurrence of occurrences){if(satisfiedOccurrences.has(occurrence.index))continue;const missing=[],secured=[];let overlapsClaimedTarget=false;
+    for(const index of occurrence.indices){if(claimedTargets.has(index)){overlapsClaimedTarget=true;continue;}const element=targetAtoms[index]?.element,queue=available.get(element),atom=queue?.find(candidate=>!claimedWorkspace.has(workspaceAtoms.indexOf(candidate)));
       if(atom){const workspaceIndex=workspaceAtoms.indexOf(atom);claimedWorkspace.add(workspaceIndex);claimedTargets.add(index);assignments.push({targetIndex:index,workspaceAtomId:atom.id});secured.push(index);}else missing.push(index);
     }
-    if(!missing.length){if(occurrence.piece.partId)satisfiedPieces.push(occurrence.piece);continue;}
+    if(!missing.length){if(occurrence.piece.partId&&!overlapsClaimedTarget)satisfiedPieces.push(occurrence.piece);else if(overlapsClaimedTarget)unsatisfiedPieces.push(occurrence.piece);continue;}
     if(!secured.length){unsatisfiedPieces.push(occurrence.piece);continue;}
     for(const index of missing){const element=targetAtoms[index]?.element;if(element)unsatisfiedPieces.push({partId:null,element,atomIndices:[index]});}
   }

@@ -103,3 +103,8 @@ test('repeated equivalent piece occurrences are independently structural matches
   const t={atoms:['C','C','C','C'],bonds:[[0,1,1],[2,3,1]]},part={id:'ethane-fragment',atoms:['C','C'],bonds:[[0,1,1]]},repeated=decompose(t,[part]),result=run(graph(t.atoms,[[0,1,1],[2,3,1]]),t,repeated);
   assert.equal(repeated.length,2);assert.deepEqual(result.satisfiedPieces,repeated);assert.deepEqual(result.unsatisfiedPieces,[]);assert.equal(new Set(result.assignments.map(item=>item.targetIndex)).size,4);
 });
+
+test('same object repeated twice still tracks target-piece occurrences independently',()=>{
+  const t={atoms:['C','O','C','O'],bonds:[[0,1,1],[2,3,1]]},piece={partId:'co',atomIndices:[0,1]},workspace=graph(['C','O'],[[0,1,1]]),result=run(workspace,t,[piece,piece]);
+  assert.deepEqual(result.satisfiedPieces,[piece]);assert.deepEqual(result.unsatisfiedPieces,[piece]);
+});
