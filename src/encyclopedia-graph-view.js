@@ -262,7 +262,7 @@ export function renderEncyclopediaGraph({
       const start=graphEdgeMotionStart(previousPositions,edge);
       if(start){
         const tween={line,chevron,edge,previousFrom:start.from,previousTo:start.to,nextFrom:a,nextTo:b,previousFromRadius:pointRadius(start.from),previousToRadius:pointRadius(start.to),nextFromRadius:pointRadius(a),nextToRadius:pointRadius(b),geometryOptions:{focusId,nodeDiameter,focusDiameter}};
-        applyGraphEdgeTween(tween,0);edgeTweens.push(tween);
+        applyGraphEdgeTween(tween,0);if(chevron)chevron.setAttribute('visibility','hidden');edgeTweens.push(tween);
       }
     }
     return {line,chevron};
