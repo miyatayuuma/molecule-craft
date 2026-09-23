@@ -196,6 +196,7 @@ jobs:
           node --test tests/craft-stereo-observation.test.mjs
           node tests/craft-stereo-observation-browser.test.mjs
           node tests/craft-target-hint-browser.test.mjs
+          node tests/craft-target-order-browser.test.mjs
           node tests/resonance-formal-charge.test.mjs
           node tests/bond-state.test.mjs
           node tests/resonance-craft-interaction-browser.test.mjs
