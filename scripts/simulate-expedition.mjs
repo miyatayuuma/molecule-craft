@@ -2,6 +2,7 @@ import { createRun, stepRun, beginBurst, setCombustionHeld } from '../src/veil/e
 import { createUniverse } from '../src/veil/universe.js';
 import { EXPEDITION } from '../src/veil/config.js';
 import { DRIVES, REGIONS, flightConfig, regionAt } from '../src/veil/growth.js';
+import { NITROGEN_ROUTE } from '../src/veil/nitrogen-routes.js';
 import { createResources } from '../src/veil/resources.js';
 import { completeExpeditionTelemetry } from '../src/veil/telemetry.js';
 import { performanceFor } from '../src/veil/molecule-roles.js';
@@ -38,6 +39,19 @@ export function simulate({name,start,routes,seconds,drive='off',burst='off',cool
   const resources=createResources({storage:memory()}),settlement=resources.settleExpedition(run.elementDust,run.best,run.captured),report=completeExpeditionTelemetry(run,{captured:run.captured,result:settlement});
   const fuelAtoms=(report.fuelUsed.hydrogen??0)*2+(report.fuelUsed.methane??0)*5+(report.fuelUsed.oxygen??0)*2+(report.fuelUsed.water??0)*3,gross=total(report.collected),minutes=Math.max(report.duration/60,1/60);
   return {name,...report,grossAtoms:gross,fuelAtomCost:fuelAtoms,netAtoms:gross-fuelAtoms,grossPerMinute:Math.round(gross/minutes),netPerMinute:Math.round((gross-fuelAtoms)/minutes),timeline,encounters};
+}
+
+// Shared production-equivalent Nitrogen calibration fixture. Keep this route
+// traversal in audit tooling rather than duplicating a second FIELD model.
+export function simulateNitrogenRepresentative(seed=1){
+  const state={progress:{choCompleted:true,foundElements:['H','N']},elements:{H:0,C:0,O:0,N:0}},map=createUniverse(seed,state.elements,{capabilities:{combustionDrive:true,nitrogenField:true}}),run=createRun(map,flightConfig(state),{predators:false,fuel:{propellant:{molecule:'hydrogen',amount:performanceFor('hydrogen','propellant').capacity},fuel:{molecule:'methane',amount:performanceFor('methane','fuel').capacity},oxidizer:{molecule:'oxygen',amount:performanceFor('oxygen','oxidizer').capacity},coolant:{molecule:'water',amount:performanceFor('water','coolant').capacity}}});
+  Object.assign(run.player,REGIONS.nitrogen,{vx:0,vy:0});let target=0;
+  for(let frame=0;frame<20*60;frame++){
+    while(target<NITROGEN_ROUTE.points.length-1&&Math.hypot(NITROGEN_ROUTE.points[target].x-run.player.x,NITROGEN_ROUTE.points[target].y-run.player.y)<100)target++;
+    const p=run.player,t=NITROGEN_ROUTE.points[target],dx=t.x-p.x,dy=t.y-p.y,distance=Math.hypot(dx,dy)||1;setCombustionHeld(run,true);if(p.cooldown<=0&&target>50&&target<200)beginBurst(run,()=>true);
+    stepRun(run,{x:dx/distance,y:dy/distance},1/60,{consumeCombustion:()=>true,consumeCoolant:()=>true});
+  }
+  return run.collectedElements.N;
 }
 
 export function density(seed=20260901){
