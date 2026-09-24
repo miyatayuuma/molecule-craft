@@ -31,7 +31,7 @@ for(const [element,cases] of Object.entries(thresholds))for(const [stock,expecte
 assert.equal(rareEcologyInventoryMultiplier('Cl',4),1,'Cl keeps its existing generic stock curve');
 assert.equal(polymerCatalog.length,25,'Polymer Foundation is unaffected');
 
-const production=[ 'src/app.js','src/reaction-lab.js','src/veil/resources.js','src/veil/resources-persistence.js','src/veil/supply.js','src/veil/engine.js','src/veil/ui.js','index.html','veil.css'].map(path=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8')).join('\n');
+const production=[ 'src/app.js','src/veil/resources.js','src/veil/resources-persistence.js','src/veil/supply.js','src/veil/engine.js','src/veil/ui.js','index.html','veil.css'].map(path=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8')).join('\n');
 for(const token of ['#open-dock','#dock-dialog','dock-preflight','dock-migration','tank-upgrades','hazard-treatments','oxygenUpgradePlan','upgradeOxygenTank','HAZARD_TREATMENT_','hazardTreatmentPlan','applyHazardTreatment','veil-treatments','molecule-craft:dock-treatment-request'])assert.equal(production.includes(token),false,`retired source reference remains: ${token}`);
-assert.match(production,/open-reaction-lab/,'Reaction Lab remains available');
+assert.doesNotMatch(production,/reaction-lab|open-reaction-lab|REACTIONS OFF/i,'temporary reaction interface must not be present in production shell sources');
 console.log('Legacy retirement regression passed: schema v8 migration, preserved progression/workspace/collection, 36 O₂, neutral Rare stock curves, Polymer Foundation and retired-runtime absence.');
