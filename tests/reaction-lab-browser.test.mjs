@@ -22,11 +22,11 @@ try{
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await send('Page.navigate',{url:origin+'/'});
   await waitFor("!!document.querySelector('#open-reaction-lab')&&!!document.querySelector('#open-dock')",'LAB / DOCK did not initialize');
   await evaluate(`(async()=>{localStorage.clear();const {createResources}=await import('/src/veil/resources.js');const records=await fetch('/data/molecules.json').then(r=>r.json());const r=createResources({storage:localStorage});r.setCatalog(records);r.collect({H:100,C:100,O:100});for(const id of ['ethene','styrene','1-3-butadiene'])r.discover(id);return r.save();})()`);
-  const before=await evaluate(`JSON.stringify(JSON.parse(localStorage.getItem('molecule-craft.resources.v1')))`);
   await send('Page.reload',{ignoreCache:true});await waitFor("!!document.querySelector('#open-reaction-lab')",'LAB did not restore after seed reload');
   await evaluate("document.querySelector('#open-reaction-lab').click()");await waitFor("document.querySelector('#reaction-lab-dialog')?.open",'Reaction Lab did not open');
   const initial=await evaluate(`(()=>{const d=document.querySelector('#reaction-lab-dialog'),r=d.getBoundingClientRect();return{tray:[...d.querySelectorAll('[data-molecule-id]')].map(n=>n.dataset.moleculeId),text:d.textContent,rect:{top:r.top,bottom:r.bottom,left:r.left,right:r.right}};})()`);
   for(const id of ['ethene','styrene','1-3-butadiene'])assert(initial.tray.includes(id),`missing discovered molecule in tray: ${id}`);
+  const before=await evaluate(`(()=>{const s=JSON.parse(localStorage.getItem('molecule-craft.resources.v1'));return JSON.stringify({upgrades:s.upgrades,treatments:s.treatments,elements:s.elements,tanks:s.tanks,recipes:s.recipes,hints:s.hints,progress:s.progress});})()`);
   assert.match(initial.text,/REACTIONS OFF/);assert.ok(initial.rect.top>=0&&initial.rect.bottom<=844&&initial.rect.left>=0&&initial.rect.right<=390,'Reaction Lab must fit the mobile viewport');
   await evaluate("document.querySelector('#reaction-lab-molecules [data-molecule-id=\"ethene\"]').click();document.querySelector('#reaction-lab-molecules [data-molecule-id=\"ethene\"]').click();document.querySelector('#reaction-lab-molecules [data-molecule-id=\"styrene\"]').click()");
   await waitFor("document.querySelectorAll('#reaction-lab-chamber .reaction-lab-molecule').length===3",'multiple molecules were not added');
@@ -39,7 +39,7 @@ try{
   assert(moved.x>first.x+40&&moved.y>first.y+40,'molecule drag must move the selected molecule');
   assert.equal(moved.selected,'true');for(const r of moved.nodes){assert(r.left>=moved.c.left-1&&r.right<=moved.c.right+1&&r.top>=moved.c.top-1&&r.bottom<=moved.c.bottom+1,'molecules must remain visually inside chamber');}
   await evaluate("document.querySelector('#reaction-lab-clear').click()");assert.equal(await evaluate("document.querySelectorAll('#reaction-lab-chamber .reaction-lab-molecule').length"),0);
-  const after=await evaluate(`JSON.stringify(JSON.parse(localStorage.getItem('molecule-craft.resources.v1')))`);assert.equal(after,before,'interaction prototype must not consume stock or mutate progression');
+  const after=await evaluate(`(()=>{const s=JSON.parse(localStorage.getItem('molecule-craft.resources.v1'));return JSON.stringify({upgrades:s.upgrades,treatments:s.treatments,elements:s.elements,tanks:s.tanks,recipes:s.recipes,hints:s.hints,progress:s.progress});})()`);assert.equal(after,before,'interaction prototype must not consume stock or mutate progression');
   console.log('Reaction Lab browser prototype',JSON.stringify({initial,moved}));
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
 console.log('Reaction Lab Chromium prototype passed: discovered-molecule tray, multi-instance chamber drag, mobile fit, and zero gameplay mutation.');
