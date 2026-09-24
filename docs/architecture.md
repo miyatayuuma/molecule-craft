@@ -68,6 +68,8 @@
 
 Production Reaction Lab RL-1は `src/reaction-lab-viewer.js` の独立3D sandboxと `src/reaction-lab-core.js` のdeterministic pairwise reaction authorityで構成されます。species pickerはdiscovery stateをauthorityとし、contact dwell後にruleのatom mapでreactant graphをproduct graphへ変換してから、既存graph isomorphism authorityでDB productを解決します。registered product graphだけをruntime instance化します。Polymer chemistryは `data/polymers.json`、説明contentは `data/polymer-encyclopedia.json` が所有し、通常の分子図鑑・graphとは分離されています。
 
+RL-1Rではreaction candidateはrule/species/instance/site IDだけを運び、viewerがinstance IDから3D objectを解決します。分子移動はcamera-facing planeのray intersectionで行います。intermolecular electrostaticsにはatomごとに一値のneutralized interaction chargeを使い、formal chargeとoptional net ionic chargeは別fieldです。Hydrogen bondはdonor-Hからacceptor atomへのstateful spring interactionで、formation/break hysteresisと独立network stateを持ちます。`reaction-lab-browser.test.mjs` は390×844 browser上でcanvas dragによる両seed reactionとhydrogen-bond follow/breakを検証します。
+
 Current FIELD developer map は `scripts/export-field-map.mjs` が現行 `src/veil/` 実装から `docs/maps/current-field.svg` を生成するdeveloper-only資料です。再生成は `node scripts/export-field-map.mjs`、freshness確認は `node scripts/export-field-map.mjs --check`。FIELD runtime / PWA配信物ではありません。
 
 FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が座標・gate・density・thermal・challenge・signalのdeveloper-only design intentを所有し、`scripts/export-field-expansion-proposal.mjs` が `docs/maps/field-expansion-proposal.svg` を生成します。`current-field.svg` を同一viewBoxの薄いCURRENT referenceとして重ねるだけでproduction `src/`からはimportしません。再生成は `node scripts/export-field-expansion-proposal.mjs`、freshness確認は `node scripts/export-field-expansion-proposal.mjs --check`。このSVGとdataは後続FIELD実装のdesign sourceであり、現在のgameplay実装を示すものではありません。
