@@ -1,0 +1,278 @@
+[
+  {
+    "id": "polyethylene",
+    "nameJa": "ポリエチレン",
+    "nameEn": "Polyethylene",
+    "family": "polyolefin",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH₂–",
+    "summaryJa": "エチレンのC=C結合が開き、炭素鎖が連続して伸びる代表的な付加重合体。"
+  },
+  {
+    "id": "polypropylene",
+    "nameJa": "ポリプロピレン",
+    "nameEn": "Polypropylene",
+    "family": "polyolefin",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "propene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH(CH₃)–",
+    "summaryJa": "プロピレンの付加重合体。主鎖にメチル置換基を持つ。"
+  },
+  {
+    "id": "ethylene-propylene-copolymer",
+    "nameJa": "エチレン-プロピレン共重合体",
+    "nameEn": "Ethylene-propylene copolymer",
+    "family": "polyolefin-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "ethene",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "propene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null,
+    "summaryJa": "エチレンとプロピレンを同じ鎖へ取り込む共重合体。組成によって鎖の性格が変わる。"
+  },
+  {
+    "id": "polyisobutylene",
+    "nameJa": "ポリイソブチレン",
+    "nameEn": "Polyisobutylene",
+    "family": "polyolefin",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "isobutene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–C(CH₃)₂–",
+    "summaryJa": "イソブテンの付加重合体。置換基を多く持つ炭素鎖を形成する。"
+  },
+  {
+    "id": "polystyrene",
+    "nameJa": "ポリスチレン",
+    "nameEn": "Polystyrene",
+    "family": "vinyl-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "styrene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH(C₆H₅)–",
+    "summaryJa": "スチレンのC=C結合が開いてつながる付加重合体。各繰り返し単位にフェニル基を持つ。"
+  },
+  {
+    "id": "polyvinyl-chloride",
+    "nameJa": "ポリ塩化ビニル",
+    "nameEn": "Poly(vinyl chloride)",
+    "family": "vinyl-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "vinyl-chloride",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CHCl–",
+    "summaryJa": "塩化ビニルの付加重合体。主鎖に沿って塩素置換基を持つ。"
+  },
+  {
+    "id": "polychlorotrifluoroethylene",
+    "nameJa": "ポリクロロトリフルオロエチレン",
+    "nameEn": "Polychlorotrifluoroethylene",
+    "family": "fluoropolymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "chlorotrifluoroethylene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CF₂–CFCl–",
+    "summaryJa": "CTFEの付加重合体。炭素鎖の水素がフッ素や塩素に置き換わったフッ素系高分子。"
+  },
+  {
+    "id": "polyacrylonitrile",
+    "nameJa": "ポリアクリロニトリル",
+    "nameEn": "Polyacrylonitrile",
+    "family": "vinyl-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "acrylonitrile",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH(CN)–",
+    "summaryJa": "アクリロニトリルの付加重合体。各繰り返し単位にニトリル基を持つ。"
+  },
+  {
+    "id": "polyacrylic-acid",
+    "nameJa": "ポリアクリル酸",
+    "nameEn": "Poly(acrylic acid)",
+    "family": "vinyl-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "acrylic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH(COOH)–",
+    "summaryJa": "アクリル酸のC=C結合を使って鎖を伸ばす付加重合体。側鎖にカルボキシ基を持つ。"
+  },
+  {
+    "id": "polyethylene-oxide",
+    "nameJa": "ポリエチレンオキシド",
+    "nameEn": "Poly(ethylene oxide)",
+    "family": "polyether",
+    "formation": "ring-opening",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethylene-oxide",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH₂–O–",
+    "summaryJa": "エチレンオキシドの三員環を開いてつながる開環重合体。主鎖にエーテル酸素を含む。"
+  },
+  {
+    "id": "polyethylene-terephthalate",
+    "nameJa": "ポリエチレンテレフタラート",
+    "nameEn": "Poly(ethylene terephthalate)",
+    "family": "polyester",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethylene-glycol",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "terephthalic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–O–CH₂–CH₂–O–CO–C₆H₄–CO–",
+    "summaryJa": "二価アルコールと二価カルボン酸が縮合を繰り返してできる芳香族ポリエステル。"
+  },
+  {
+    "id": "polyethylene-adipate",
+    "nameJa": "ポリエチレンアジペート",
+    "nameEn": "Poly(ethylene adipate)",
+    "family": "polyester",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethylene-glycol",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "adipic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–O–CH₂–CH₂–O–CO–(CH₂)₄–CO–",
+    "summaryJa": "エチレングリコールとアジピン酸の縮合でできる脂肪族ポリエステル。"
+  },
+  {
+    "id": "polylactic-acid",
+    "nameJa": "ポリ乳酸",
+    "nameEn": "Polylactic acid",
+    "family": "polyester",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "lactic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–O–CH(CH₃)–CO–",
+    "summaryJa": "ヒドロキシ基とカルボキシ基を同じ分子に持つ乳酸が連続してエステル結合を作る高分子。"
+  },
+  {
+    "id": "polyglycolic-acid",
+    "nameJa": "ポリグリコール酸",
+    "nameEn": "Polyglycolic acid",
+    "family": "polyester",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "glycolic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–O–CH₂–CO–",
+    "summaryJa": "グリコール酸が縮合を繰り返してできるポリエステル。"
+  },
+  {
+    "id": "phenol-formaldehyde-resin",
+    "nameJa": "フェノール-ホルムアルデヒド樹脂",
+    "nameEn": "Phenol-formaldehyde resin",
+    "family": "phenolic",
+    "formation": "condensation-network",
+    "topology": "network",
+    "reactants": [
+      {
+        "moleculeId": "phenol",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "formaldehyde",
+        "role": "crosslinker"
+      }
+    ],
+    "repeatUnit": null,
+    "summaryJa": "フェノール環同士をホルムアルデヒド由来の結合でつなぎ、条件により網目構造へ成長する縮合系高分子。"
+  },
+  {
+    "id": "polyethylene-adipamide",
+    "nameJa": "ポリエチレンアジパミド",
+    "nameEn": "Poly(ethylene adipamide)",
+    "family": "polyamide",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethylenediamine",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "adipic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–NH–CH₂–CH₂–NH–CO–(CH₂)₄–CO–",
+    "summaryJa": "ジアミンとジカルボン酸が縮合を繰り返してできるポリアミド。"
+  }
+]

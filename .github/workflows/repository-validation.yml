@@ -111,6 +111,8 @@ jobs:
           node tests/collection.test.mjs
           node tests/collection-expansion.test.mjs
           node tests/capability-unlock.test.mjs
+      - name: Polymer catalog foundation
+        run: node tests/polymer-catalog.test.mjs
       - name: Encyclopedia graph UI
         run: |
           node tests/encyclopedia-content-architecture.test.mjs

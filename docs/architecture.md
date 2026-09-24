@@ -19,7 +19,7 @@
 | 3D配置・補正 | `src/conformation-engine.js`, `src/structure-relaxation.js`, `src/structure-motion.js`, `src/structure-settlement.js` | `conformation-regression.test.mjs`, `structure-relaxation.test.mjs` |
 | 分子変形・単結合回転 | `src/conformation-engine.js`, `src/torsion-model.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
 | 制作フィールド保存 | `src/workspace-save.js`, `src/workspace-persistence.js`, `src/workspace-migrations.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `workspace-persistence.test.mjs`, `veil-reset.test.mjs` |
-| 図鑑・発見・解放 | `src/collection-ui.js`, `src/collection-state.js`, `src/element-progression.js`, `src/encyclopedia-molecule-transition.js` | `collection.test.mjs`, `collection-expansion.test.mjs` |
+| 図鑑・発見・解放 | `src/collection-ui.js`, `src/collection-state.js`, `src/element-progression.js`, `src/encyclopedia-molecule-transition.js` | `collection.test.mjs`, `collection-expansion.test.mjs` |\n| 高分子DB・独立高分子図鑑model | `src/polymer-catalog.js`, `src/polymer-encyclopedia.js`, `data/polymers.json` | `polymer-catalog.test.mjs` |
 | PWA・更新 | `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs` | `pwa.test.mjs` |
 
 ## アプリ入口
@@ -101,14 +101,14 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 - `src/element-progression.js`：元素解放。
 - `src/veil/molecule-roles.js`：fuel / propellant / oxidizer / coolant候補とゲーム用性能値。化学的事実DBへゲーム性能を混在させない。
 
-現行データは次の4ファイルです。
+現行データは次の5ファイルです。
 
 | ファイル | 内容 |
 |---|---|
 | `data/molecules.json` | 162分子の構造DB。通常タスクでは全文を読まない |
 | `data/encyclopedia.json` | 162分子・17部品の番号と図鑑文 |
 | `data/functional-groups.json` | 24官能基パターン |
-| `data/craft-structures.json` | 17部品 |
+| `data/craft-structures.json` | 17部品 |\n| `data/polymers.json` | Reaction Lab向け高分子routeの化学catalog。seal/O₂/utility性能は含めない |
 
 `assets/models/` の179 SVGは図鑑用ゲーム資産です。個別の表示不具合か生成処理の変更でない限り、一覧や中身を読みません。
 
@@ -137,7 +137,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | 機能 | テスト |
 |---|---|
 | 分子認識・結合・特殊結合 | `recognition.test.mjs`, `bond-state.test.mjs`, `special-bonds-check.mjs` |
-| 図鑑・部品・元素解放 | `collection.test.mjs`, `collection-expansion.test.mjs` |
+| 図鑑・部品・元素解放 | `collection.test.mjs`, `collection-expansion.test.mjs` |\n| 高分子DB・高分子図鑑model | `polymer-catalog.test.mjs` |
 | 分子のゲーム用役割・性能値 | `molecule-roles.test.mjs` |
 | 入力・長押し | `electron-interaction.test.mjs`, `gesture-arbitration.test.mjs`, `hold-action.test.mjs` |
 | 配置・補正・torsion | `conformation-regression.test.mjs`, `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |
