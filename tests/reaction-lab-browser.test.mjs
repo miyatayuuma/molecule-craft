@@ -80,7 +80,8 @@ try{
   assert.ok(follow>.015,`The partner should follow a slow donor drag; projected movement was ${follow}`);
   const fastPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${hbond.donorId}',0,[${axis.map(value=>(-2.4*value).toFixed(8)).join(',')}])`);
   await drag(fastPlan,{steps:2,stepDelay:8,hold:0});await new Promise(resolve=>setTimeout(resolve,120));
-  assert.equal((await snapshot()).bonds.length,0,'Fast pulling breaks the H bond');
+  const fastState=await snapshot();
+  assert.equal(fastState.bonds.length,0,`Fast pulling breaks the H bond; plan=${JSON.stringify(fastPlan)} state=${JSON.stringify(fastState)}`);
   const donorAfter=waterState.instances.find(item=>item.id===hbond.donorId).position;
   assert.ok(Math.abs(donorAfter[2]-donorBefore[2])>.001,'Camera-facing drag after orbit must retain depth-aware world motion');
 

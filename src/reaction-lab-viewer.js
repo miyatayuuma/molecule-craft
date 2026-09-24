@@ -62,7 +62,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const item={id:`${record.id}-${crypto.randomUUID?.()??Math.random().toString(36).slice(2)}`,species:record.id,record:{...record,atoms:model.atoms,bonds:model.bonds},group,
       interactionCharges:interaction.atoms.map(atom=>atom.interactionCharge),formalCharges:interaction.atoms.map(atom=>atom.formalCharge),netIonicCharge:interaction.netIonicCharge,donors:interaction.donors,acceptors:interaction.acceptors,
       interactionRadius,
-      velocity:new THREE.Vector3((Math.random()-.5)*.003,(Math.random()-.5)*.003,(Math.random()-.5)*.003),angularVelocity:new THREE.Vector3((Math.random()-.5)*.01,(Math.random()-.5)*.01,(Math.random()-.5)*.006),busy:false};
+      velocity:new THREE.Vector3((Math.random()-.5)*.003,(Math.random()-.5)*.003,(Math.random()-.5)*.003),angularVelocity:new THREE.Vector3((Math.random()-.5)*.01,(Math.random()-.5)*.01,(Math.random()-.5)*.006),dragSpeed:0,lastDragAt:0,busy:false};
     instances.push(item);return item;
   }
 
@@ -104,7 +104,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(mode==='move'){
         const point=positionOnMovePlane(event,down);if(!point)return;
         const next=point.sub(down.grabOffset);next.clamp(new THREE.Vector3(-5,-3,-2.5),new THREE.Vector3(5,3,2.5));
-        const now=performance.now(),elapsed=Math.max(8,now-down.lastTime);down.group.velocity.copy(next).sub(down.lastPosition).multiplyScalar(16/elapsed);
+        const now=performance.now(),elapsed=Math.max(8,now-down.lastTime),dragDelta=next.clone().sub(down.lastPosition);down.group.velocity.copy(dragDelta).multiplyScalar(16/elapsed);
+        down.group.dragSpeed=dragDelta.length()*16/elapsed;down.group.lastDragAt=now;
         down.group.group.position.copy(next);down.lastPosition.copy(next);down.lastTime=now;
       } else if(mode==='rotate'){
         down.group.group.rotation.set(down.rotation.x+dy*.01,down.rotation.y+dx*.01,down.rotation.z);
@@ -159,7 +160,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const current=byKey.get(bond.key);
       if(!current){hydrogenBonds.delete(bond.key);removeBondVisual(bond.key);continue;}
       const elapsed=Math.max(1,now-(bond.lastSampleAt??now));
-      const relativeSpeed=Math.abs(current.distance-(bond.lastDistance??current.distance))/(elapsed/16);
+      const sampledSpeed=Math.abs(current.distance-(bond.lastDistance??current.distance))/(elapsed/16);
+      const recentDragSpeed=[current.donorItem,current.acceptorItem].reduce((speed,item)=>now-item.lastDragAt<140?Math.max(speed,item.dragSpeed):speed,0);
+      const relativeSpeed=Math.max(sampledSpeed,recentDragSpeed);
       const tensileLoad=Math.max(0,current.distance-bond.restLength)*.028;
       const result=hydrogenBonds.update(bond.key,bond,{distance:current.distance,alignment:current.alignment,relativeSpeed,tensileLoad},now);
       if(result.broken)removeBondVisual(bond.key);else Object.assign(bond,{lastDistance:current.distance,lastSampleAt:now});
@@ -274,7 +277,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   if(new URLSearchParams(location.search).get('reactionLabTest')==='1'&&['localhost','127.0.0.1'].includes(location.hostname)){
     const project=point=>{camera.updateMatrixWorld();const projected=point.clone().project(camera),rect=canvas.getBoundingClientRect();return{x:rect.left+(projected.x+1)*.5*rect.width,y:rect.top+(1-projected.y)*.5*rect.height};};
     window.__reactionLabProbe={
-      snapshot:()=>({instances:instances.map(item=>({id:item.id,species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),charges:[...item.interactionCharges]})),bonds:hydrogenBonds.values().map(bond=>({key:bond.key,endpoints:hydrogenBondVisualEndpoints(bond),distance:bond.distance})),camera:{distance,azimuth,elevation},dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
+      snapshot:()=>({instances:instances.map(item=>({id:item.id,species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),dragSpeed:item.dragSpeed,charges:[...item.interactionCharges]})),bonds:hydrogenBonds.values().map(bond=>({key:bond.key,endpoints:hydrogenBondVisualEndpoints(bond),distance:bond.distance})),camera:{distance,azimuth,elevation},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
       prepareContact(ruleId,startDistance=2.25){
         const candidate=instances.flatMap((left,index)=>instances.slice(index+1).flatMap(right=>reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],records))).find(item=>item.ruleId===ruleId);
         if(!candidate)throw Error(`No live instance pair for ${ruleId}`);
