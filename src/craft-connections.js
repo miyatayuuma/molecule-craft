@@ -8,6 +8,8 @@ import {CRITICAL_INSIGHT_IDS} from './veil/insights.js';
 import {primaryRoleFor} from './veil/molecule-roles.js';
 import {installTankCapabilityPresentation} from './veil/capability-unlock.js?v=1';
 import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=1';
+import {loadPolymerCatalog,polymerCatalog} from './polymer-catalog.js?v=1';
+import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 
 function normalizeExplorationMode(){
   const veil=document.querySelector('#veil-view'),appShell=document.querySelector('.app-shell');
@@ -110,6 +112,12 @@ export function connectExploration(options){
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
   const {createCollectionUI}=await import('./collection-ui.js?v=41');
   return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
+}
+
+export async function preparePolymerEncyclopedia({records=moleculeCatalog(),knownIds=[]}={}){
+  const moleculeIds=new Set(records.map(record=>record.id));
+  const result=await loadPolymerCatalog({moleculeIds});
+  return {result,model:result.ok?createPolymerEncyclopediaModel(polymerCatalog(),{knownIds}):null};
 }
 
 export function bindSaveLifecycle({window,document,onPageHide,onHidden,onPrepareUpdate}){
