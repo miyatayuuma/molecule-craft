@@ -152,6 +152,11 @@ for(const edge of [chainIntoButane,chainOutOfButane]){
   const lineDistance=point=>Math.abs(direction.x*(from.y-point[1])-direction.y*(from.x-point[0]))/edgeLength;assert(points.every(point=>lineDistance(point)<=1.55),`${edge.from} → ${edge.to}: every Chevron vertex must stay on the current edge geometry within glyph width`);
   const chevronSize=Math.max(...pairDistances);assert(chevronSize>=2.95&&chevronSize<=3.05,`${edge.from} → ${edge.to}: Chevron glyph should remain compact while direction is encoded by tangent orientation`);
 }
+for(const id of ['ethene','propene','tetrafluoroethylene','1-3-butadiene','isoprene']){
+  const layout=layoutFocusNeighborhood(production,id,{width:320,height:430,nodeDiameter:62,focusDiameter:116});
+  assert.equal(localBoundsOverlap(layout,{diameter:62,focusDiameter:116}),false,`${id}: 390×844-class mobile focus layout has separated tap targets`);
+  assert.ok(layout.neighbors.length<=8,`${id}: local focus neighborhood fits the eight available radial slots`);
+}
 const movingVisibleGap=graphVisibleEdgeInterval({x:0,y:0},{x:100,y:0},{circles:[{x:18,y:0,radius:28},{x:88,y:0,radius:18}],padding:3,chevronExtent:2.4,minGap:7});
 assert.ok(movingVisibleGap,'motion-time visible gap should be derived from displayed node circles, not only endpoint radii');
 const movingAnchor=(movingVisibleGap.startT+movingVisibleGap.endT)/2*100;

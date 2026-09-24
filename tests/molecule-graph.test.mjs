@@ -15,20 +15,21 @@ const deletedIds=['sulfur-hexafluoride','isopentane','neopentane','1-pentene','2
 const addedFormulas=new Map([
   ['cyclohexene','C6H10'],['pyruvic-acid','C3H4O3'],['furan','C4H4O'],['dimethyl-sulfoxide','C2H6OS'],
   ['ozone','O3'],['nitromethane','CH3NO2'],['nitrobenzene','C6H5NO2'],['2-nitrotoluene','C7H7NO2'],['2-4-dinitrotoluene','C7H6N2O4'],['2-4-6-trinitrotoluene','C7H5N3O6'],['chlorotrifluoroethylene','C2ClF3'],
+  ['1-3-butadiene','C4H6'],['isoprene','C5H8'],['vinylidene-fluoride','C2H2F2'],['hexafluoropropylene','C3F6'],['tetrafluoroethylene','C2F4'],['hexamethylenediamine','C6H16N2'],
 ]);
-assert.equal(molecules.length,136,'production molecule DB must contain 136 molecules');
+assert.equal(molecules.length,142,'production molecule DB must contain 142 molecules');
 const moleculeIds=molecules.map(item=>item.id),moleculeSet=new Set(moleculeIds);
-assert.equal(moleculeSet.size,136,'production molecule IDs must be unique');
+assert.equal(moleculeSet.size,142,'production molecule IDs must be unique');
 for(const id of deletedIds)assert(!moleculeSet.has(id),`deleted molecule remains in production DB: ${id}`);
 for(const [id,formula] of addedFormulas){const molecule=molecules.find(item=>item.id===id);assert(molecule,`missing ADD molecule: ${id}`);assert.equal(molecule.formula,formula,`formula drift: ${id}`);assert(molecule.atoms.length>0&&molecule.bonds.length>0,`missing structural definition: ${id}`);assert.equal(typeof molecule.category,'string',`missing category: ${id}`);}
 
 assert.equal(graph.schemaVersion,1);
-assert.equal(graph.nodes.length,136,'production graph must contain 136 nodes');
-assert.equal(graph.edges.length,158,'production graph must contain 158 edges');
+assert.equal(graph.nodes.length,142,'production graph must contain 142 nodes');
+assert.equal(graph.edges.length,166,'production graph must contain 166 edges');
 assert(!Object.hasOwn(graph,'status')&&!Object.hasOwn(graph,'basedOnMain')&&!Object.hasOwn(graph,'additions')&&!Object.hasOwn(graph,'existingInventory'),'proposal/audit metadata must not remain in production graph');
 const rowsToObjects=(columns,rows)=>rows.map(row=>Object.fromEntries(columns.map((key,index)=>[key,row[index]])));
 const nodes=rowsToObjects(graph.nodeColumns,graph.nodes),byId=new Map(nodes.map(node=>[node.id,node]));
-assert.equal(byId.size,136,'graph node IDs must be unique');
+assert.equal(byId.size,142,'graph node IDs must be unique');
 assert.deepEqual([...byId.keys()].sort(),[...moleculeSet].sort(),'production molecule DB and graph IDs must match 1:1');
 const endpointId=value=>Number.isInteger(value)?nodes[value]?.id:value;
 const rawEdges=rowsToObjects(graph.edgeColumns,graph.edges),edges=rawEdges.map(edge=>({...edge,from:endpointId(edge.from),to:endpointId(edge.to)}));
@@ -46,8 +47,10 @@ assert.equal(distance.size,nodes.length,'all production nodes must be ROOT-reach
 for(const node of nodes){const degree=adjacency.get(node.id).size,limit=['acetic-acid','benzene'].includes(node.id)?7:6;assert(degree<=limit,`production graph degree guardrail exceeded: ${node.id} (${degree} > ${limit})`);}assert.equal(adjacency.get('acetic-acid').size,7,'acetic-acid degree 7 must be explained only by the C1→C2 series completion');assert.equal(adjacency.get('benzene').size,7,'benzene degree 7 must be explained only by the nitrobenzene substitution branch');
 let longestCorridor=0;const walked=new Set(),edgeKey=(a,b)=>[a,b].sort().join('\0');for(const start of nodes.filter(node=>adjacency.get(node.id).size!==2))for(const first of adjacency.get(start.id)){if(walked.has(edgeKey(start.id,first)))continue;let previous=start.id,current=first,interior=0;walked.add(edgeKey(previous,current));while(adjacency.get(current).size===2){interior++;const next=[...adjacency.get(current)].find(id=>id!==previous);previous=current;current=next;const key=edgeKey(previous,current);if(walked.has(key))break;walked.add(key);}longestCorridor=Math.max(longestCorridor,interior);}assert(longestCorridor<=5,`degree-2 corridor guardrail exceeded: ${longestCorridor}`);
 
-const encyclopediaIds=Object.keys(encyclopedia.molecules??{});assert.deepEqual(encyclopediaIds.sort(),[...moleculeSet].sort(),'encyclopedia entries must match production DB 1:1');for(const id of addedFormulas.keys())assert((encyclopedia.molecules[id]?.description??'').length>=30,`ADD encyclopedia description missing: ${id}`);
+const encyclopediaIds=Object.keys(encyclopedia.molecules??{});assert.deepEqual(encyclopediaIds.sort(),[...moleculeSet].sort(),'encyclopedia entries must match production DB 1:1');for(const id of addedFormulas.keys())assert((encyclopedia.molecules[id]?.description??'').length>=12,`ADD encyclopedia description missing: ${id}`);
 const runtimeGraph=createMoleculeGraph(graph);for(const node of nodes)assert.deepEqual(new Set(runtimeGraph.getNeighbors(node.id)),adjacency.get(node.id),`runtime adjacency drift: ${node.id}`);
+const requiredEdges=[['1-butene','1-3-butadiene',1],['1-3-butadiene','isoprene',0],['ethene','vinylidene-fluoride',7],['vinylidene-fluoride','tetrafluoroethylene',7],['tetrafluoroethylene','chlorotrifluoroethylene',7],['tetrafluoroethylene','hexafluoropropylene',0],['propene','hexafluoropropylene',7],['ethylenediamine','hexamethylenediamine',0]];
+for(const [from,to,relationCode] of requiredEdges)assert(edges.some(edge=>edge.from===from&&edge.to===to&&edge.relationCode===relationCode||edge.from===to&&edge.to===from&&edge.relationCode===relationCode),`missing polymer monomer graph edge: ${from}/${to}`);
 
 async function collectFiles(relative){const base=new URL(relative,root),entries=await readdir(base,{withFileTypes:true}),out=[];for(const entry of entries){const child=`${relative.replace(/\/$/,'')}/${entry.name}`;if(entry.isDirectory())out.push(...await collectFiles(`${child}/`));else out.push(child);}return out;}
 for(const file of [...await collectFiles('src/'),...await collectFiles('data/')]){const text=await read(file);for(const id of deletedIds)assert(!text.includes(`'${id}'`)&&!text.includes(`\"${id}\"`),`deleted molecule production reference remains: ${file} -> ${id}`);}

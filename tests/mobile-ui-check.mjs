@@ -39,7 +39,7 @@ async function setup(saved=null,initialH=1000){
 }
 const savedOf=app=>JSON.stringify(JSON.parse(app.window.localStorage.getItem('molecule-craft.resources.v1')).workspace);
 const app=await setup();
-assert.ok(app.document.querySelector('#open-collection').textContent.includes('0/162'));
+assert.ok(app.document.querySelector('#open-collection').textContent.includes('0/142'));
 app.run("addElement('C');addElement('H');");
 assert.equal(app.run('molecule.atoms.length'),2);assert.equal(app.document.querySelector('#selection-actions').hidden,false);assert.equal(app.run('saveWorkspace(true)'),true);
 const raw=savedOf(app),snapshot=JSON.parse(raw);assert.equal(snapshot.atoms.length,2);

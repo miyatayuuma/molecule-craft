@@ -53,7 +53,7 @@ try{
   const screenshot=async name=>{if(!captureEnabled)return;const shot=await send('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:false});await writeFile(join(captureDir,name),Buffer.from(shot.data,'base64'));};
 
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setEmulatedMedia',{features:reducedMotion?[{name:'prefers-reduced-motion',value:'reduce'}]:[]});await viewport(390,844,true);await send('Page.navigate',{url:`${origin}/`});
-  await waitFor("document.querySelector('#open-collection')?.textContent?.includes('0/136')",'Application did not initialize');
+  await waitFor("document.querySelector('#open-collection')?.textContent?.includes('0/142')",'Application did not initialize');
   const seeded=await evaluate(`(async()=>{const {createResources}=await import('/src/veil/resources.js');const records=await fetch('/data/molecules.json').then(r=>r.json());const r=createResources({storage:localStorage});r.setCatalog(records);r.state.progress.regions=['veil','carbon','oxygen'];r.state.progress.checkpoint='oxygen';r.state.progress.choCompleted=true;r.state.progress.foundElements=['H','C','O','N'];r.state.recipes=['hydrogen','methane','oxygen','water','nitromethane'];Object.assign(r.state.elements,{H:1200,C:600,O:900,N:300});for(const [use,id] of [['propellant','hydrogen'],['shock','nitromethane'],['fuel','methane'],['oxidizer','oxygen'],['coolant','water']])if(!r.setLoadoutTank(use,id))return false;return r.save();})()`);
   assert.equal(seeded,true,'LOADOUT acceptance seed failed');
   await send('Page.reload',{ignoreCache:true});await waitFor("!!document.querySelector('#collector-launch-handle')&&!document.querySelector('#open-supply')?.disabled",'LOADOUT UI did not become ready');

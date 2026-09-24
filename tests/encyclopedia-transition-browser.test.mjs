@@ -41,7 +41,7 @@ try{
     const records=chemistry.moleculeCatalog(),save={schemaVersion:3,discoveredMolecules:['hydrogen','oxygen','n-butane','isobutane'].map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]},data=new Map([['molecule-craft.collection.v1',JSON.stringify(save)]]),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};
     const {createCollectionUI}=await import('/src/collection-ui.js?v=39');window.__collection=await createCollectionUI({records,storage,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:['ethane','propane','n-pentane'],hints:[]})});return{ok:true,count:window.__collection.state.discoveredCount,text:document.querySelector('#open-collection')?.textContent??''};
   })()`);
-  assert.deepEqual(initialized,{ok:true,count:4,text:'図鑑 4/136'});
+  assert.deepEqual(initialized,{ok:true,count:4,text:'図鑑 4/142'});
   await evaluate(`document.querySelector('#open-collection').click()`);for(let i=0;i<40;i++){await new Promise(r=>setTimeout(r,50));if(await evaluate(`!!document.querySelector('.graph-node.focus.registered .graph-focus-thumbnail')`))break;}
   let initial=await evaluate(`(()=>{const node=document.querySelector('.graph-node.focus.registered'),visual=node?.querySelector('.graph-focus-thumbnail'),r=visual?.getBoundingClientRect();return{id:node?.dataset.graphId,rect:r&&{left:r.left,top:r.top,width:r.width,height:r.height}}})()`);
   assert.equal(initial.id,'isobutane','latest registered molecule is the Graph focus');assert.ok(initial.rect?.width>0);

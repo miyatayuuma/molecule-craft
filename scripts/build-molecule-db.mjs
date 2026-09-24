@@ -181,6 +181,16 @@ add({ id: 'propene', nameJa: 'プロピレン', nameEn: 'Propene', aliases: ['pr
 add({ id: '1-butene', nameJa: '1-ブテン', nameEn: '1-Butene', ...chain(4, { 0: 2 }), category: 'hydrocarbon' });
 add({ id: '2-butene', nameJa: '2-ブテン', nameEn: '2-Butene', ...chain(4, { 1: 2 }), category: 'hydrocarbon' });
 add({ id: 'isobutene', nameJa: 'イソブテン', nameEn: 'Isobutene', aliases: ['2-methylpropene'], atoms: ['C', 'C', 'C', 'C'], bonds: [[0, 1, 2], [0, 2, 1], [0, 3, 1]], category: 'hydrocarbon' });
+
+add({ id:'1-3-butadiene', nameJa:'1,3-ブタジエン', nameEn:'1,3-Butadiene', aliases:['butadiene'], atoms:['C','C','C','C'], bonds:[[0,1,2],[1,2,1],[2,3,2]], category:'hydrocarbon', iupacNameEn:'Buta-1,3-diene' });
+add({ id:'isoprene', nameJa:'イソプレン', nameEn:'Isoprene', aliases:['2-methyl-1,3-butadiene'], atoms:['C','C','C','C','C'], bonds:[[0,1,2],[1,2,1],[2,3,2],[1,4,1]], category:'hydrocarbon', iupacNameEn:'2-Methylbuta-1,3-diene' });
+add({ id:'vinylidene-fluoride', nameJa:'フッ化ビニリデン', nameEn:'Vinylidene fluoride', aliases:['VDF','VF2'], atoms:['C','C','F','F'], bonds:[[0,1,2],[1,2,1],[1,3,1]], category:'halogenated-hydrocarbon', iupacNameEn:'1,1-Difluoroethene' });
+add({ id:'hexafluoropropylene', nameJa:'ヘキサフルオロプロピレン', nameEn:'Hexafluoropropylene', aliases:['HFP'], atoms:['C','C','C','F','F','F','F','F','F'], bonds:[[0,1,2],[1,2,1],[0,3,1],[0,4,1],[1,5,1],[2,6,1],[2,7,1],[2,8,1]], category:'halogenated-hydrocarbon', iupacNameEn:'1,1,2,3,3,3-Hexafluoroprop-1-ene' });
+add({ id:'tetrafluoroethylene', nameJa:'テトラフルオロエチレン', nameEn:'Tetrafluoroethylene', aliases:['TFE'], atoms:['C','C','F','F','F','F'], bonds:[[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]], category:'halogenated-hydrocarbon', iupacNameEn:'1,1,2,2-Tetrafluoroethene' });
+add({ id:'hexamethylenediamine', nameJa:'ヘキサメチレンジアミン', nameEn:'Hexamethylenediamine', aliases:['HMDA','1,6-hexanediamine'], atoms:['N','C','C','C','C','C','C','N'], bonds:[[0,1,1],[1,2,1],[2,3,1],[3,4,1],[4,5,1],[5,6,1],[6,7,1]], category:'diamine', iupacNameEn:'Hexane-1,6-diamine' });
+
+
+
 add({ id: '1-pentene', nameJa: '1-ペンテン', nameEn: '1-Pentene', ...chain(5, { 0: 2 }), category: 'hydrocarbon' });
 add({ id: '2-pentene', nameJa: '2-ペンテン', nameEn: '2-Pentene', ...chain(5, { 1: 2 }), category: 'hydrocarbon' });
 add({ id: 'ethyne', nameJa: 'アセチレン', nameEn: 'Ethyne', aliases: ['acetylene'], ...chain(2, { 0: 3 }), category: 'hydrocarbon' });
@@ -459,7 +469,7 @@ add({ id:'2-nitrotoluene', nameJa:'2-ニトロトルエン', nameEn:'2-Nitrotolu
 add({ id:'2-4-dinitrotoluene', nameJa:'2,4-ジニトロトルエン', nameEn:'2,4-Dinitrotoluene', aliases:['2,4-DNT'], ...nitroAromatic([1,3],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4-dinitrobenzene' });
 add({ id:'2-4-6-trinitrotoluene', nameJa:'2,4,6-トリニトロトルエン', nameEn:'2,4,6-Trinitrotoluene', aliases:['TNT'], ...nitroAromatic([1,3,5],{methyl:true}), category:'nitrogen-compounds', iupacNameEn:'1-Methyl-2,4,6-trinitrobenzene' });
 
-if (molecules.length !== 136) throw new Error(`Production molecule inventory drifted: ${molecules.length}`);
+if (molecules.length !== 142) throw new Error(`Production molecule inventory drifted: ${molecules.length}`);
 
 const ids = new Set();
 for (const molecule of molecules) {

@@ -1,0 +1,470 @@
+[
+  {
+    "id": "polyethylene",
+    "number": 1,
+    "description": "エチレンのC=C結合が開き、炭素鎖が連続して伸びる代表的な付加重合体。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "エチレンのC=C結合が反応し、炭素間の単結合へ変化して鎖がつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "分類はlinearで、代表的な繰り返し構造は–CH₂–CH₂–。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polypropylene",
+    "number": 2,
+    "description": "プロピレンの付加重合体。主鎖にメチル置換基を持つ。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "プロピレンのC=C結合が反応し、炭素間の単結合へ変化して鎖がつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "分類はlinearで、代表的な繰り返し構造は–CH₂–CH(CH₃)–。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "ethylene-propylene-copolymer",
+    "number": 3,
+    "description": "エチレンとプロピレンを同じ鎖へ取り込む共重合体。組成によって鎖の性格が変わる。",
+    "details": [
+      {
+        "title": "共重合",
+        "body": "エチレン、プロピレンに由来する単位が同じ高分子鎖へ取り込まれる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "共重合体の単位配列や組成は一つに固定されず、同一組成でも微細構造が異なる場合がある。"
+      }
+    ],
+    "concepts": [
+      "copolymerization"
+    ]
+  },
+  {
+    "id": "polyisobutylene",
+    "number": 4,
+    "description": "イソブテンの付加重合体。置換基を多く持つ炭素鎖を形成する。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "イソブテンのC=C結合が反応し、炭素間の単結合へ変化して鎖がつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "分類はlinearで、代表的な繰り返し構造は–CH₂–C(CH₃)₂–。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polystyrene",
+    "number": 5,
+    "description": "スチレンのC=C結合が開いてつながる付加重合体。各繰り返し単位にフェニル基を持つ。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "スチレンのC=C結合が反応し、炭素間の単結合へ変化して鎖がつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "分類はlinearで、代表的な繰り返し構造は–CH₂–CH(C₆H₅)–。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polyvinyl-chloride",
+    "number": 6,
+    "description": "ポリ塩化ビニルは塩化ビニルの付加重合体で、塩素を持つ炭素鎖からなる。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "塩化ビニルのC=C結合が反応し、炭素間の単結合へ変化して鎖がつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "分類はlinearで、代表的な繰り返し構造は–CH₂–CHCl–。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polychlorotrifluoroethylene",
+    "number": 7,
+    "description": "CTFEの付加重合体。炭素鎖の水素がフッ素や塩素に置き換わったフッ素系高分子。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "クロロトリフルオロエチレンのC=C結合が反応し、炭素間の単結合へ変化して鎖がつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "分類はlinearで、代表的な繰り返し構造は–CF₂–CFCl–。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polyacrylonitrile",
+    "number": 8,
+    "description": "アクリロニトリルの付加重合体。各繰り返し単位にニトリル基を持つ。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "アクリロニトリルのC=C結合が反応し、炭素間の単結合へ変化して鎖がつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "分類はlinearで、代表的な繰り返し構造は–CH₂–CH(CN)–。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polyacrylic-acid",
+    "number": 9,
+    "description": "アクリル酸のC=C結合を使って鎖を伸ばす付加重合体。側鎖にカルボキシ基を持つ。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "アクリル酸のC=C結合が反応し、炭素間の単結合へ変化して鎖がつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "分類はlinearで、代表的な繰り返し構造は–CH₂–CH(COOH)–。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polyethylene-oxide",
+    "number": 10,
+    "description": "エチレンオキシドの三員環を開いてつながる開環重合体。主鎖にエーテル酸素を含む。",
+    "details": [
+      {
+        "title": "開環重合",
+        "body": "エチレンオキシドの環結合が開いて鎖へつながる。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "代表的な繰り返し構造は–CH₂–CH₂–O–で、環に含まれていた原子が主鎖に入る。"
+      }
+    ],
+    "concepts": [
+      "ring-opening-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polyethylene-terephthalate",
+    "number": 11,
+    "description": "二価アルコールと二価カルボン酸が縮合を繰り返してできる芳香族ポリエステル。",
+    "details": [
+      {
+        "title": "縮合重合",
+        "body": "エチレングリコール、テレフタル酸の官能基どうしが反応して新しい結合をつくり、小分子を失いながら鎖を伸ばす。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "主鎖の分類はpolyesterで、代表的な繰り返し構造は–O–CH₂–CH₂–O–CO–C₆H₄–CO–。"
+      }
+    ],
+    "concepts": [
+      "polycondensation",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polyethylene-adipate",
+    "number": 12,
+    "description": "エチレングリコールとアジピン酸の縮合でできる脂肪族ポリエステル。",
+    "details": [
+      {
+        "title": "縮合重合",
+        "body": "エチレングリコール、アジピン酸の官能基どうしが反応して新しい結合をつくり、小分子を失いながら鎖を伸ばす。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "主鎖の分類はpolyesterで、代表的な繰り返し構造は–O–CH₂–CH₂–O–CO–(CH₂)₄–CO–。"
+      }
+    ],
+    "concepts": [
+      "polycondensation",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polylactic-acid",
+    "number": 13,
+    "description": "ヒドロキシ基とカルボキシ基を同じ分子に持つ乳酸が連続してエステル結合を作る高分子。",
+    "details": [
+      {
+        "title": "縮合重合",
+        "body": "乳酸の官能基どうしが反応して新しい結合をつくり、小分子を失いながら鎖を伸ばす。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "主鎖の分類はpolyesterで、代表的な繰り返し構造は–O–CH(CH₃)–CO–。"
+      }
+    ],
+    "concepts": [
+      "polycondensation",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polyglycolic-acid",
+    "number": 14,
+    "description": "グリコール酸が縮合を繰り返してできるポリエステル。",
+    "details": [
+      {
+        "title": "縮合重合",
+        "body": "グリコール酸の官能基どうしが反応して新しい結合をつくり、小分子を失いながら鎖を伸ばす。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "主鎖の分類はpolyesterで、代表的な繰り返し構造は–O–CH₂–CO–。"
+      }
+    ],
+    "concepts": [
+      "polycondensation",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "phenol-formaldehyde-resin",
+    "number": 15,
+    "description": "フェノール環同士をホルムアルデヒド由来の結合でつなぎ、条件により網目構造へ成長する縮合系高分子。",
+    "details": [
+      {
+        "title": "網目形成",
+        "body": "フェノール、ホルムアルデヒドの反応可能な官能基が複数方向へ結合し、鎖どうしをつないで網目を形成する。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "網目高分子は独立した一本鎖だけでなく、鎖間の結合を含む三次元構造を持つ。"
+      }
+    ],
+    "concepts": [
+      "polycondensation",
+      "network-polymerization"
+    ]
+  },
+  {
+    "id": "polyethylene-adipamide",
+    "number": 16,
+    "description": "ジアミンとジカルボン酸が縮合を繰り返してできるポリアミド。",
+    "details": [
+      {
+        "title": "縮合重合",
+        "body": "エチレンジアミン、アジピン酸の官能基どうしが反応して新しい結合をつくり、小分子を失いながら鎖を伸ばす。"
+      },
+      {
+        "title": "高分子構造",
+        "body": "主鎖の分類はpolyamideで、代表的な繰り返し構造は–NH–CH₂–CH₂–NH–CO–(CH₂)₄–CO–。"
+      }
+    ],
+    "concepts": [
+      "polycondensation",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "polybutadiene",
+    "number": 17,
+    "description": "ブタジエンの付加重合でできる共役ジエン系高分子。鎖の微細構造は重合様式で異なる。",
+    "details": [
+      {
+        "title": "ブタジエンの付加重合",
+        "body": "1,3-ブタジエンの二重結合を含むπ系が反応し、モノマー由来の炭素骨格が連なる。"
+      },
+      {
+        "title": "鎖の微細構造",
+        "body": "1,4付加や1,2付加などがあり、二重結合の位置や立体配置は一つのrepeat unitだけでは代表できない。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization"
+    ]
+  },
+  {
+    "id": "styrene-butadiene-copolymer",
+    "number": 18,
+    "description": "スチレンと1,3-ブタジエンを共重合した高分子で、代表例にSBRがある。",
+    "details": [
+      {
+        "title": "共重合",
+        "body": "スチレンと1,3-ブタジエンのC=Cを反応させ、両モノマー由来の単位を同じ高分子鎖に取り込む。"
+      },
+      {
+        "title": "鎖の構造",
+        "body": "スチレン単位とブタジエン由来単位の比率や配列は一定ではなく、ブタジエン単位の微細構造にも幅がある。"
+      }
+    ],
+    "concepts": [
+      "copolymerization"
+    ]
+  },
+  {
+    "id": "nitrile-butadiene-rubber",
+    "number": 19,
+    "description": "アクリロニトリルと1,3-ブタジエンを共重合したニトリル系高分子。",
+    "details": [
+      {
+        "title": "共重合",
+        "body": "アクリロニトリルと1,3-ブタジエンの二重結合が反応し、両者に由来する単位を鎖へ取り込む。"
+      },
+      {
+        "title": "共重合体の構造",
+        "body": "単位の割合や並び方は一つに定まらない。ブタジエン由来の単位にも複数の結合様式がある。"
+      }
+    ],
+    "concepts": [
+      "copolymerization"
+    ]
+  },
+  {
+    "id": "polyisoprene",
+    "number": 20,
+    "description": "イソプレンの重合体。cis-1,4型は天然ゴムの主成分として知られる。",
+    "details": [
+      {
+        "title": "イソプレンの重合",
+        "body": "イソプレンの共役二重結合系が反応し、モノマー由来の単位が鎖へつながる。"
+      },
+      {
+        "title": "微細構造",
+        "body": "1,4付加のcis型・trans型や1,2付加などがあり、ポリイソプレン全体を単一立体構造には固定できない。天然ゴムの主成分はcis-1,4型である。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization"
+    ]
+  },
+  {
+    "id": "butyl-rubber",
+    "number": 21,
+    "description": "主にイソブテンと少量のイソプレンからなる共重合体。",
+    "details": [
+      {
+        "title": "共重合",
+        "body": "イソブテンとイソプレンを共重合し、異なるモノマー由来の単位を一つの鎖に導入する。"
+      },
+      {
+        "title": "鎖の構造",
+        "body": "組成と単位配列は一定の交互構造とは限らず、イソプレン由来の不飽和部位を含む。"
+      }
+    ],
+    "concepts": [
+      "copolymerization"
+    ]
+  },
+  {
+    "id": "polyvinylidene-fluoride",
+    "number": 22,
+    "description": "フッ化ビニリデンの付加重合体で、繰り返し単位にCF₂基を持つ。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "フッ化ビニリデンのC=Cが開き、炭素間の単結合へ変わって主鎖が伸びる。"
+      },
+      {
+        "title": "繰り返し構造",
+        "body": "主鎖上で–CH₂–CF₂–が繰り返され、各単位に結合したフッ素原子が側方に並ぶ。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "vinylidene-fluoride-hexafluoropropylene-copolymer",
+    "number": 23,
+    "description": "フッ化ビニリデンとヘキサフルオロプロピレンを共重合したフッ素系高分子。",
+    "details": [
+      {
+        "title": "共重合",
+        "body": "フッ化ビニリデンとヘキサフルオロプロピレンのC=Cが反応し、それぞれに由来する単位が鎖に入る。"
+      },
+      {
+        "title": "共重合体の構造",
+        "body": "2種類の単位の組成や配列は変わりうるため、単一の固定repeat unitでは表せない。"
+      }
+    ],
+    "concepts": [
+      "copolymerization"
+    ]
+  },
+  {
+    "id": "polytetrafluoroethylene",
+    "number": 24,
+    "description": "テトラフルオロエチレンの付加重合体で、主鎖にCF₂単位が並ぶ。",
+    "details": [
+      {
+        "title": "付加重合",
+        "body": "テトラフルオロエチレンのC=Cが開き、新しいC–C単結合でモノマーがつながる。"
+      },
+      {
+        "title": "繰り返し構造",
+        "body": "主鎖は–CF₂–CF₂–の繰り返しで構成され、各炭素に2個ずつフッ素原子が結合する。"
+      }
+    ],
+    "concepts": [
+      "addition-polymerization",
+      "repeat-unit"
+    ]
+  },
+  {
+    "id": "nylon-6-6",
+    "number": 25,
+    "description": "ヘキサメチレンジアミンとアジピン酸の縮合でできるポリアミド。",
+    "details": [
+      {
+        "title": "縮合重合",
+        "body": "ヘキサメチレンジアミンとアジピン酸が反応して水を失い、アミド結合を形成しながら鎖を伸ばす。"
+      },
+      {
+        "title": "繰り返し構造",
+        "body": "代表repeat unitは–NH–(CH₂)₆–NH–CO–(CH₂)₄–CO–。原料分子と、生成した高分子の構造は異なる。"
+      }
+    ],
+    "concepts": [
+      "polycondensation",
+      "repeat-unit"
+    ]
+  }
+]

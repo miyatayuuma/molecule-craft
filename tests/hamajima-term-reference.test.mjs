@@ -14,6 +14,12 @@ const expected=Object.freeze({
   '二重結合':'42222202',
   '三重結合':'42222203',
   '孤立電子対':'42222105',
+  'モノマー':'42227005',
+  '縮合重合':'42227010',
+  'ポリエステル':'54213201',
+  'ナイロン':'54213103',
+  'ポリエチレン':'54214103',
+  'ポリ塩化ビニル':'54214106',
 });
 
 for(const [term,pageId]of Object.entries(expected)){
@@ -47,11 +53,16 @@ for(const term of ['キラリティ','芳香族性','位置異性','位置異性
 }
 
 const encyclopedia=JSON.parse(await readFile(new URL('../data/encyclopedia.json',import.meta.url),'utf8'));
+const polymerEncyclopedia=JSON.parse(await readFile(new URL('../data/polymer-encyclopedia.json',import.meta.url),'utf8'));
 const functionalGroups=JSON.parse(await readFile(new URL('../data/functional-groups.json',import.meta.url),'utf8'));
 const allProse=[];
 for(const entry of Object.values(encyclopedia.molecules??{})){
   if(typeof entry.description==='string')allProse.push(entry.description);
   for(const detail of entry.details??[])for(const field of ['title','body'])if(typeof detail[field]==='string')allProse.push(detail[field]);
+}
+for(const entry of polymerEncyclopedia){
+  if(typeof entry.description==='string')allProse.push(entry.description);
+  for(const detail of entry.details??[])for(const value of [detail.title,detail.body])if(typeof value==='string')allProse.push(value);
 }
 for(const entry of Object.values(encyclopedia.parts??{}))if(typeof entry.description==='string')allProse.push(entry.description);
 for(const entry of functionalGroups)if(typeof entry.description==='string')allProse.push(entry.description);

@@ -47,12 +47,12 @@ try{
     try{
       const result=await send('Runtime.evaluate',{expression:`({text:document.querySelector('#open-collection')?.textContent??'',disabled:document.querySelector('#open-collection')?.disabled??null,body:document.body?.innerText??''})`,returnByValue:true});
       snapshot=result.result?.value??null;
-      if(snapshot?.body?.includes('図鑑を読み込めませんでした。原子からの制作は続けられます。')||snapshot?.text?.includes('0/136'))break;
+      if(snapshot?.body?.includes('図鑑を読み込めませんでした。原子からの制作は続けられます。')||snapshot?.text?.includes('0/142'))break;
     }catch{}
   }
   assert.ok(snapshot,'Application DOM did not become readable');
   assert.ok(!snapshot.body.includes('図鑑を読み込めませんでした。原子からの制作は続けられます。'),'Collection startup must not fall back to the unavailable state');
-  assert.match(snapshot.text,/図鑑\s*0\/136/,'Encyclopedia startup denominator must resolve to the 136-molecule production DB');
+  assert.match(snapshot.text,/図鑑\s*0\/142/,'Encyclopedia startup denominator must resolve to the 142-molecule production DB');
   assert.ok(!exceptions.some(item=>item.exception?.className==='SyntaxError'||item.text?.includes('SyntaxError')),`Browser startup must not contain module syntax errors: ${JSON.stringify(exceptions)}`);
 }finally{
   try{socket?.close();}catch{}
@@ -60,4 +60,4 @@ try{
   await new Promise(resolveWait=>setTimeout(resolveWait,100));
   server.close();await rm(profile,{recursive:true,force:true});
 }
-console.log('Browser startup passed: Encyclopedia initializes against the 136-molecule production catalog without module parse failures.');
+console.log('Browser startup passed: Encyclopedia initializes against the 142-molecule production catalog without module parse failures.');

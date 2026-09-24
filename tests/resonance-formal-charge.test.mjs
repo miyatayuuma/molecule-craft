@@ -11,7 +11,7 @@ import {createMoleculeGraph} from '../src/molecule-graph.js';
 const root=new URL('../',import.meta.url);
 const records=JSON.parse(await readFile(new URL('data/molecules.json',root),'utf8'));
 setMoleculeDatabase(records);
-assert.equal(records.length,136,'Resonance extension should bring the production DB to 136 molecules');
+assert.equal(records.length,142,'Resonance extension should bring the production DB to 142 molecules');
 const byId=id=>records.find(record=>record.id===id);
 
 function build(record){
@@ -79,7 +79,7 @@ assert.ok((stats.recursiveVisits??0)<200000,`TNT hint search exploded: ${JSON.st
 console.log('TNT_HINT_PROFILE',JSON.stringify({elapsedMs:Number(elapsed.toFixed(2)),...stats}));
 
 const rawGraph=JSON.parse(await readFile(new URL('data/molecule-graph.json',root),'utf8')),graph=createMoleculeGraph(rawGraph);
-assert.equal(graph.nodes.length,136,'Graph should contain all 136 production molecules');
+assert.equal(graph.nodes.length,142,'Graph should contain all 142 production molecules');
 const relation=(a,b)=>graph.edges.find(edge=>(edge.from===a&&edge.to===b)||(edge.from===b&&edge.to===a));
 for(const[a,b]of [['oxygen','ozone'],['methane','nitromethane'],['benzene','nitrobenzene'],['toluene','2-nitrotoluene'],['2-nitrotoluene','2-4-dinitrotoluene'],['2-4-dinitrotoluene','2-4-6-trinitrotoluene']])assert.ok(relation(a,b),`Missing Graph edge ${a} -> ${b}`);
 assert.equal(graph.relationCodes[relation('oxygen','ozone').relationCode],'oxygenation');

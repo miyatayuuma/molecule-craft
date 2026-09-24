@@ -30,9 +30,9 @@ test('CTFE uses the shared alkene sp2 planar authority with no molecule-specific
   assert.doesNotMatch(solverSource,/chlorotrifluoroethylene|\bCTFE\b/);
 });
 
-test('CTFE is a minimal substitution leaf off vinyl chloride and remains ordinary Graph frontier data',()=>{
+test('CTFE retains its vinyl-chloride branch and joins the fluorinated substitution series',()=>{
   const graph=createMoleculeGraph(rawGraph),neighbors=new Set(graph.getNeighbors('vinyl-chloride'));
-  assert(neighbors.has('chlorotrifluoroethylene'));assert.deepEqual(graph.getNeighbors('chlorotrifluoroethylene'),['vinyl-chloride']);
+  assert(neighbors.has('chlorotrifluoroethylene'));assert.deepEqual(new Set(graph.getNeighbors('chlorotrifluoroethylene')),new Set(['vinyl-chloride','tetrafluoroethylene']));
   const columns=rawGraph.edgeColumns,rows=rawGraph.edges.map(row=>Object.fromEntries(columns.map((key,index)=>[key,row[index]]))),nodes=rawGraph.nodes.map(row=>Object.fromEntries(rawGraph.nodeColumns.map((key,index)=>[key,row[index]]))),id=value=>Number.isInteger(value)?nodes[value]?.id:value;
   const edge=rows.find(row=>new Set([id(row.from),id(row.to)]).has('chlorotrifluoroethylene'));assert(edge);assert.equal(rawGraph.relationCodes[String(edge.relationCode)],'substitution');
   const frontier=getFrontierCandidates(graph,{discoveredIds:['vinyl-chloride']});assert(frontier.some(candidate=>candidate.id==='chlorotrifluoroethylene'));
@@ -40,7 +40,7 @@ test('CTFE is a minimal substitution leaf off vinyl chloride and remains ordinar
 
 test('Encyclopedia and build authority include CTFE but no independent PCTFE game object',()=>{
   assert.ok(encyclopedia.molecules.chlorotrifluoroethylene);assert.match(encyclopedia.molecules.chlorotrifluoroethylene.description,/CF₂=CClF/);
-  assert.match(buildSource,/chlorotrifluoroethylene/);assert.match(buildSource,/molecules\.length !== 136/);
+  assert.match(buildSource,/chlorotrifluoroethylene/);assert.match(buildSource,/molecules\.length !== 142/);
   assert.equal(catalog.some(record=>/pctfe/i.test(record.id)||/^PCTFE$/i.test(record.nameEn??'')),false);
   assert.equal(Object.keys(encyclopedia.molecules).some(id=>/pctfe/i.test(id)),false);
 });
