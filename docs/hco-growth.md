@@ -93,19 +93,9 @@ COMBUSTION DRIVEには独立した0–100のpropulsion heatがあります。
 
 Coolant候補は厳密なupgrade chainではなく、強い短時間冷却、基準型、弱い長時間型等の用途差を持ちます。
 
-## Permanent O₂ processing
+## O₂ tank capacity
 
-O₂ tankの恒久容量は次の3段階です。
-
-| 段階 | 容量 | 解禁条件 | BASE STOCK加工費 |
-|---|---:|---|---|
-| initial | 36 | — | — |
-| Elastomer Seal Repair | 48 | ethene + propeneを発見 | C24 H48 |
-| Composite Overwrap | 72 | phenol + formaldehydeを発見 | C96 H48 O16 |
-
-設計上の意味は、1段階目が劣化sealとmicro-leakの修復、2段階目が樹脂matrix／carbon-fibre overwrapによる圧力容器補強です。これは巨大高分子在庫や工業反応式を直接シミュレートせず、発見済み小分子を加工技術の入口として扱う抽象化です。
-
-強化は容量だけを増やし、O₂そのものを無料生成しません。追加容量は通常のLOADOUT錬成で補充します。tank resetでは強化段階もresetします。
+O₂ oxidizer capacity is currently fixed at 36. LOADOUT displays the selected tank amount within `0..36`. Future seal qualification is a separate design task.
 
 ## Collector Shell, Dust Eater and return
 

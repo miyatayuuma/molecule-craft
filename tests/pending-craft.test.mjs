@@ -26,7 +26,7 @@ assert.equal(pendingAttentionTransition({currentIds:['water']}).attention,'unsee
 
 const records={methane:{formula:'CH₄',commonNameJa:'メタン'},ethene:{formula:'C₂H₄',commonNameJa:'エチレン'},benzene:{formula:'C₆H₆',commonNameJa:'ベンゼン'}},resources={record:id=>records[id]};
 assert.deepEqual(pendingCraftRowModel(resources,'methane'),{id:'methane',formula:'CH₄',name:'メタン',category:'fuel',categoryLabel:'FUEL'});
-assert.deepEqual(pendingCraftRowModel(resources,'ethene'),{id:'ethene',formula:'C₂H₄',name:'エチレン',category:'utility',categoryLabel:'UTILITY'});
+assert.deepEqual(pendingCraftRowModel(resources,'ethene'),{id:'ethene',formula:'C₂H₄',name:'エチレン',category:'general',categoryLabel:'GENERAL'});
 assert.deepEqual(pendingCraftRowModel(resources,'benzene'),{id:'benzene',formula:'C₆H₆',name:'ベンゼン',category:'general',categoryLabel:'GENERAL'});
 
 const pendingSource=await readFile(new URL('../src/pending-craft.js',import.meta.url),'utf8');

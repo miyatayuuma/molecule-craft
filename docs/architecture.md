@@ -56,11 +56,15 @@
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |
 | 収集殻・用途別タンク選択・3D模型・図鑑導線 | `src/veil/supply.js` |
 | タンク用途・汎用推進計算 | `src/veil/growth.js`, `src/veil/molecule-roles.js` |
-| タンク内容・ロードアウト自動錬成・旧在庫移行・恒久強化 | `src/veil/resources.js`, `src/veil/supply.js`, `tank-upgrades.js` |
+| タンク内容・ロードアウト自動錬成・旧在庫移行 | `src/veil/resources.js`, `src/veil/supply.js` |
 | 収集殻の共通描画 | `src/veil/collector-shell.js` |
 | 全体／カテゴリ初期化 | `src/veil/reset-ui.js`, `src/veil/resources.js` |
 
 探索の現行ルールと意図は `docs/hco-growth.md` にあります。探索だけの変更では、分子DBや生成済みSVGを読む必要はありません。
+
+## Reaction Lab / Polymer Foundation
+
+Reaction LabはPR #292で導入した複数分子の配置・ドラッグを行うinteraction prototypeです。化学反応やpolymer formationの判定authorityはまだありません。Polymer chemistryは `data/polymers.json`、説明contentは `data/polymer-encyclopedia.json` が所有し、通常の分子図鑑・graphとは分離されています。
 
 Current FIELD developer map は `scripts/export-field-map.mjs` が現行 `src/veil/` 実装から `docs/maps/current-field.svg` を生成するdeveloper-only資料です。再生成は `node scripts/export-field-map.mjs`、freshness確認は `node scripts/export-field-map.mjs --check`。FIELD runtime / PWA配信物ではありません。
 
@@ -116,7 +120,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 
 ## 保存
 
-- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v7は恒久O₂強化に加えて次回ロードアウトを保存し、完成分子の中間在庫を持たない。出発確定時にBASE STOCKから不足分だけ自動錬成し、タンク交換・破棄・保存を一括処理する。旧schemaのタンク内容は維持し、旧完成分子在庫は変換・返金せず破棄する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。runtimeの資源・タンク・LOADOUT状態管理は `src/veil/resources.js`、resources schema v1〜v7のvalidation / migrationと破損・未来版保護、current-schema書き出しは `src/veil/resources-persistence.js`。
+- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v9は次回ロードアウトを保存し、O₂ oxidizer容量は36固定。schema v8からの移行では原子・レシピ・ヒント・タンク・LOADOUT・進行・Rare在庫・workspaceを維持し、旧utility stateを除いて酸素量を36以下へ正規化する。完成分子の中間在庫は持たない。出発確定時にBASE STOCKから不足分だけ自動錬成し、タンク交換・破棄・保存を一括処理する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。runtimeの資源・タンク・LOADOUT状態管理は `src/veil/resources.js`、resources schema v1〜v9のvalidation / migrationと破損・未来版保護、current-schema書き出しは `src/veil/resources-persistence.js`。
 - `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部current schemaはv2。v1/v2判定・normalize・破損/未来版保護とcurrent-only writeは `src/workspace-migrations.js`, `src/workspace-persistence.js`、runtimeのcanonical capture / restoreは `src/workspace-save.js`。resources初回移行に必要な旧workspace bridgeもこのmigration境界を利用する。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。

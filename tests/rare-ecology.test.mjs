@@ -8,7 +8,7 @@ import {VEIL} from '../src/veil/config.js';
 import {flightConfig} from '../src/veil/growth.js';
 import {
   RARE_ECOLOGY_AREA_CONFIG,RARE_ECOLOGY_ELEMENTS,RARE_ECOLOGY_SUPPRESSION,
-  rareEcologyInventoryMultiplier,rareEcologySocketState,rareEcologyTreatmentReserve,
+  rareEcologyInventoryMultiplier,rareEcologySocketState,
 } from '../src/veil/rare-ecology.js';
 
 const awakenedCapabilities=Object.freeze({combustionDrive:true,nitrogenField:true,coreFractured:true,worldAwakened:true,rareEcologyEligible:true});
@@ -19,12 +19,11 @@ const signature=map=>rareParticles(map).map(item=>[item.rareEcologyKey,item.rare
 test('Rare ecology authority maps one trace element to each FIELD area and uses soft independent suppression',()=>{
   assert.deepEqual(RARE_ECOLOGY_ELEMENTS,['P','S','F','Cl']);
   assert.deepEqual(Object.fromEntries(Object.entries(RARE_ECOLOGY_AREA_CONFIG).map(([area,config])=>[area,config.element])),{veil:'P',carbon:'S',oxygen:'F',nitrogen:'Cl'});
-  for(const [element,atomsPerTreatment] of [['P',2],['S',2],['F',4]]){
-    const config=RARE_ECOLOGY_SUPPRESSION[element];assert.equal(config.atomsPerTreatment,atomsPerTreatment);assert.equal(config.densityFloor,.05);
-    assert.equal(rareEcologyTreatmentReserve(element,atomsPerTreatment*3),3);
-    assert.deepEqual([0,atomsPerTreatment,atomsPerTreatment*2,atomsPerTreatment*3,atomsPerTreatment*4].map(held=>rareEcologyInventoryMultiplier(element,held)),[1,.85,.55,.20,.05]);
+  for(const [element,unit] of [['P',2],['S',2],['F',4]]){
+    const config=RARE_ECOLOGY_SUPPRESSION[element];assert.equal(config.densityFloor,.05);
+    assert.deepEqual([0,unit,unit*2,unit*3,unit*4].map(held=>rareEcologyInventoryMultiplier(element,held)),[1,.85,.55,.20,.05]);
   }
-  const cl=RARE_ECOLOGY_SUPPRESSION.Cl;assert.equal(rareEcologyTreatmentReserve('Cl',20),10);assert.equal(cl.reserveUnit,2);assert.equal(rareEcologyInventoryMultiplier('Cl',0),1);assert.ok(rareEcologyInventoryMultiplier('Cl',cl.reserveTarget)<1);assert.ok(rareEcologyInventoryMultiplier('Cl',cl.reserveTarget*20)>=cl.densityFloor);
+  const cl=RARE_ECOLOGY_SUPPRESSION.Cl;assert.equal(rareEcologyInventoryMultiplier('Cl',0),1);assert.ok(rareEcologyInventoryMultiplier('Cl',cl.stockTarget)<1);assert.ok(rareEcologyInventoryMultiplier('Cl',cl.stockTarget*20)>=cl.densityFloor);
 });
 
 test('Rare ecology is absent before committed Awakening and activates only on a later awakened expedition',()=>{

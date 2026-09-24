@@ -41,7 +41,6 @@ export function launchConfirmationState(plan){
 
 export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaunch=()=>false,onLaunchReady=()=>false}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
-  const upgrades=document.createElement('div');upgrades.id='oxygen-upgrades';upgrades.className='oxygen-upgrades';q('tank-detail').append(upgrades);
   const partialPanel=document.createElement('div'),partialRows=document.createElement('div'),partialActions=document.createElement('div'),partialGo=document.createElement('button'),partialBack=document.createElement('button');partialPanel.id='partial-fill-confirm';partialPanel.hidden=true;Object.assign(partialPanel.style,{position:'absolute',inset:'auto 10px 10px 10px',zIndex:'9',padding:'12px',maxHeight:'calc(100% - 20px)',overflow:'auto',border:'1px solid #678494',borderRadius:'14px',background:'#071925f2',boxShadow:'0 10px 30px #0008'});Object.assign(partialRows.style,{display:'grid',gap:'8px',marginBottom:'10px'});Object.assign(partialActions.style,{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'flex-end'});partialGo.type='button';partialGo.className='primary';partialGo.textContent='出発';partialBack.type='button';partialBack.textContent='戻る';partialActions.append(partialBack,partialGo);partialPanel.append(partialRows,partialActions);q('supply-dialog').querySelector('.sheet-body').append(partialPanel);
   let selectedUse='propellant',selectedId=null,destinationsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchTapStartedOpen=false,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false,requestedDestinationId=null;
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
@@ -121,8 +120,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   function renderComparison(record){
     const host=q('tank-comparison');if(!record){host.replaceChildren();host.hidden=true;return;}
     const tank=resources.state.tanks[selectedUse],plan=resources.launchFillPlan(),preview=plan.status==='FULL'?plan.full:plan.partial,entry=preview.entries.find(item=>item.use===selectedUse&&item.molecule===record.id),loadout=resources.selectedLoadout(),oxygenEntry=preview.entries.find(item=>item.use==='oxidizer'),candidateAmount=entry?.target??resources.tankFillPlan(selectedUse,record.id)?.target??null,oxygenAmount=oxygenEntry?.target??resources.state.tanks.oxidizer.amount??0,coolantId=selectedUse==='coolant'?record.id:(loadout.coolant??resources.state.tanks.coolant.molecule);
-    const oxygenStatus=selectedUse==='oxidizer'?resources.tankStatus('oxidizer','oxygen'):null,oxygenUpgrade=selectedUse==='oxidizer'?resources.oxygenUpgradePlan():null,oxygenTankCapacity=oxygenStatus?{capacity:oxygenStatus.capacity,level:resources.state.upgrades.oxygenTank,nextCapacity:oxygenUpgrade?.capacity??null}:null;
-    renderLoadoutPreview(host,{use:selectedUse,candidateId:record.id,currentId:tank.molecule,currentAmount:tank.amount,candidateAmount,oxygenAmount,currentOxygenAmount:resources.state.tanks.oxidizer.amount??0,coolantId,reduced,oxygenTankCapacity});
+    renderLoadoutPreview(host,{use:selectedUse,candidateId:record.id,currentId:tank.molecule,currentAmount:tank.amount,candidateAmount,oxygenAmount,currentOxygenAmount:resources.state.tanks.oxidizer.amount??0,coolantId,reduced});
   }
   function thumbnail(button,record){
     const img=document.createElement('img');img.src=new URL(`../../assets/models/molecule-${record.id}.svg`,import.meta.url).href;img.alt='';img.width=76;img.height=56;img.loading='lazy';img.decoding='async';img.addEventListener('error',()=>img.remove(),{once:true});button.append(img);
@@ -154,18 +152,9 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     const plan=resources.launchFillPlan(),preview=plan.status==='FULL'?plan.full:plan.partial,selected=resources.selectedLoadout();for(const use of USE_ORDER){const button=q(`shell-${use}`),id=selected[use],record=id?resources.record(id):null,entry=preview.entries.find(item=>item.use===use),presentation=TANK_PRESENTATION[use],capacity=entry?.capacity??0,amount=entry?.target??0;button.style.setProperty('--tank-color',presentation.color);button.querySelector('i').textContent=presentation.icon;button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?formula(record):'∅';let track=button.querySelector('.tank-scale');if(!track){track=document.createElement('span');track.className='tank-scale';track.append(document.createElement('b'));button.append(track);}styleTankMeter(track,use,id);track.setAttribute('role','meter');track.setAttribute('aria-label',`${TANK_USES[use].label}の出発時プレビュー`);track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax',String(capacity||1));track.setAttribute('aria-valuenow',String(amount));setTankMeterLevel(track,capacity?amount/capacity:0);}
     syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();drawAccessIcon();
   }
-  function renderUpgrades(){
-    upgrades.hidden=selectedUse!=='oxidizer';upgrades.replaceChildren();if(upgrades.hidden)return;
-    const plan=resources.oxygenUpgradePlan(),level=resources.state.upgrades.oxygenTank;
-    const action=document.createElement('button');action.type='button';action.dataset.upgrade=plan?.id??'complete';action.textContent=plan?`${plan.icon} O₂ → ${plan.capacity}`:'▧ O₂ 72 ✓';action.setAttribute('aria-label',plan?`${plan.name}。恒久加工。${Object.entries(plan.cost).map(([el,n])=>`${el} ${n}`).join('、')}`:'Composite Overwrap 完了');action.disabled=!plan?.available||!plan?.affordable||resources.blocked;upgrades.append(action);upgrades.dataset.level=String(level);
-    if(!plan)return;
-    for(const id of plan.requires){const button=document.createElement('button'),record=resources.record(id);button.type='button';button.dataset.material=id;button.disabled=!resources.state.hints.includes(id)&&!resources.state.recipes.includes(id);thumbnail(button,record??{id});button.setAttribute('aria-label',name(record)||id);button.append(Object.assign(document.createElement('span'),{textContent:`${formula(record)||id}${resources.state.recipes.includes(id)?' ✓':''}`}));button.addEventListener('click',()=>{dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));});upgrades.append(button);}
-    const cost=document.createElement('small');cost.textContent=Object.entries(plan.cost).map(([el,n])=>`${el} ×${n}`).join(' · ');upgrades.append(cost);
-    action.addEventListener('click',()=>{if(!canMake()||onCommit()===false)return;if(resources.upgradeOxygenTank())update();});
-  }
   function update(){
     const state=resources.state,destinations=availableLaunchRegionIds(state.progress);syncElementStocks(document,state.elements);syncLoadoutElementStock(resources,document);
-    renderShell();renderTankDetail();renderUpgrades();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
+    renderShell();renderTankDetail();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
     q('oxygen-route-guide').hidden=!state.progress.foundElements.includes('O');
 
     const destinationKey=`${destinations.join('|')}|${state.progress.checkpoint}`;if(destinationKey!==destinationsKey){destinationsKey=destinationKey;renderLaunchDestinations();}
@@ -220,7 +209,6 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     }
   }
 
-  globalThis.addEventListener?.('molecule-craft:dock-treatment-request',event=>{const detail=event?.detail;if(!detail||typeof detail.id!=='string')return;if(!canMake()||onCommit()===false){detail.result=false;return;}detail.result=resources.applyHazardTreatment(detail.id);if(detail.result){announcement='';update();}});
   q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';requestedDestinationId=null;partialPanel.hidden=true;dialog.showModal();update();resetLaunchGesture();});
   for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{resetLaunchGesture();selectedUse=use;selectedId=null;update();});
   partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;if(!launchBusy)requestedDestinationId=null;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});

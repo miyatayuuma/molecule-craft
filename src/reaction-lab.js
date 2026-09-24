@@ -57,7 +57,7 @@ function ensureShell(){
   let open=q('open-reaction-lab');
   if(!open){
     open=document.createElement('button');open.id='open-reaction-lab';open.type='button';open.textContent='LAB';open.setAttribute('aria-label','Reaction Labを開く');
-    (q('open-dock')??q('open-supply'))?.after(open);
+    q('open-supply')?.after(open);
     open.addEventListener('click',openLab);
   }
   let dialog=q('reaction-lab-dialog');

@@ -1,4 +1,3 @@
-import { oxygenCapacity } from './tank-upgrades.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { activeTankRolesFor,combustionBurnPlanFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
 import {NITROGEN_REGION_AVAILABLE,nitrogenGrowthGoal} from './nitrogen-progression.js';
@@ -21,7 +20,7 @@ export const TANK_USES=Object.freeze({
   shock:{label:'SHOCK'},
 });
 export const tankUsesFor=id=>activeTankRolesFor(id);
-export const tankCapacity=(use,id,upgrades={})=>use==='oxidizer'&&id==='oxygen'?oxygenCapacity(upgrades.oxygenTank):tankCapacityFor(use,id);
+export const tankCapacity=(use,id)=>tankCapacityFor(use,id);
 // Input chooses an action, not its physics. A later cruise controller can use
 // these same actions without changing resources or adding HUD buttons.
 export const DRIVES=Object.freeze({

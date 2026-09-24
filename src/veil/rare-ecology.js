@@ -12,12 +12,12 @@ export const RARE_ECOLOGY_AREA_CONFIG=Object.freeze({
   oxygen:freeze({element:'F',primaryElement:'O',baseDensity:.012,maxReplacementFraction:.04}),
   nitrogen:freeze({element:'Cl',primaryElement:'N',baseDensity:.045,maxReplacementFraction:.07}),
 });
-const TREATMENT_RESERVE_BANDS=Object.freeze([freeze({below:1,multiplier:1}),freeze({below:2,multiplier:.85}),freeze({below:3,multiplier:.55}),freeze({below:4,multiplier:.20}),freeze({below:Infinity,multiplier:.05})]);
+const TRACE_STOCK_BANDS=Object.freeze([freeze({below:2,multiplier:1}),freeze({below:4,multiplier:.85}),freeze({below:6,multiplier:.55}),freeze({below:8,multiplier:.20}),freeze({below:Infinity,multiplier:.05})]);
 export const RARE_ECOLOGY_SUPPRESSION=Object.freeze({
-  P:freeze({atomsPerTreatment:2,densityFloor:.05,bands:TREATMENT_RESERVE_BANDS}),
-  S:freeze({atomsPerTreatment:2,densityFloor:.05,bands:TREATMENT_RESERVE_BANDS}),
-  F:freeze({atomsPerTreatment:4,densityFloor:.05,bands:TREATMENT_RESERVE_BANDS}),
-  Cl:freeze({reserveUnit:2,reserveTarget:8,suppressionOnset:5,densityFloor:.07,curve:2.0}),
+  P:freeze({densityFloor:.05,bands:TRACE_STOCK_BANDS}),
+  S:freeze({densityFloor:.05,bands:TRACE_STOCK_BANDS}),
+  F:freeze({densityFloor:.05,bands:Object.freeze([freeze({below:4,multiplier:1}),freeze({below:8,multiplier:.85}),freeze({below:12,multiplier:.55}),freeze({below:16,multiplier:.20}),freeze({below:Infinity,multiplier:.05})])}),
+  Cl:freeze({stockTarget:8,suppressionOnset:5,densityFloor:.07,curve:2.0}),
 });
 export const RARE_ECOLOGY_VISUALS=Object.freeze({
   P:freeze({sprite:'rare-p',color:ELEMENT_COLOR.P,rgb:'249,115,22'}),
@@ -32,13 +32,12 @@ function hashUnit(key,seed=RARE_ECOLOGY_WORLD_SEED){
   let h=seed>>>0;for(let i=0;i<key.length;i++){h^=key.charCodeAt(i);h=Math.imul(h,16777619);}h^=h>>>16;return(h>>>0)/4294967296;
 }
 export function rareEcologyAreaForElement(element){return AREA_BY_ELEMENT[element]??null;}
-export function rareEcologyTreatmentReserve(element,held=0){const config=RARE_ECOLOGY_SUPPRESSION[element],amount=Math.max(0,Number(held)||0),unit=config?.reserveUnit??config?.atomsPerTreatment;return unit?amount/unit:null;}
 export function rareEcologyInventoryMultiplier(element,held=0){
   const config=RARE_ECOLOGY_SUPPRESSION[element];if(!config)return 0;
   const amount=Math.max(0,Number(held)||0);
-  if(config.atomsPerTreatment){const reserve=amount/config.atomsPerTreatment,band=config.bands.find(item=>reserve<item.below)??config.bands.at(-1);return Math.max(config.densityFloor,band?.multiplier??config.densityFloor);}
+  if(config.bands){const band=config.bands.find(item=>amount<item.below)??config.bands.at(-1);return Math.max(config.densityFloor,band?.multiplier??config.densityFloor);}
   if(amount<=config.suppressionOnset)return 1;
-  const span=Math.max(1,config.reserveTarget-config.suppressionOnset),excess=(amount-config.suppressionOnset)/span;
+  const span=Math.max(1,config.stockTarget-config.suppressionOnset),excess=(amount-config.suppressionOnset)/span;
   return config.densityFloor+(1-config.densityFloor)/(1+excess**config.curve);
 }
 export function rareEcologyAvailability(element,held=0){
@@ -69,7 +68,7 @@ export function applyRareEcology(map,stock={},{eligible=false}={}){
   for(const [area,config] of Object.entries(RARE_ECOLOGY_AREA_CONFIG)){
     const candidates=sockets.filter(socket=>socket.area===area&&socket.element===config.primaryElement).map(socket=>({...socket,roll:hashUnit(socket.key)})).sort((a,b)=>a.roll-b.roll||a.key.localeCompare(b.key));
     const held=Math.max(0,Number(stock?.[config.element])||0),multiplier=rareEcologyInventoryMultiplier(config.element,held),target=eligible?rareEcologyTargetCount(config.element,candidates.length,held):0;
-    diagnostics.areas[area]={element:config.element,primaryElement:config.primaryElement,candidates:candidates.length,selected:target,baseDensity:config.baseDensity,maxReplacementFraction:config.maxReplacementFraction,held,treatmentReserve:rareEcologyTreatmentReserve(config.element,held),multiplier};
+    diagnostics.areas[area]={element:config.element,primaryElement:config.primaryElement,candidates:candidates.length,selected:target,baseDensity:config.baseDensity,maxReplacementFraction:config.maxReplacementFraction,held,multiplier};
     if(!eligible)continue;for(let rank=0;rank<target;rank++)replaceSocketDust(map,candidates[rank],config.element,rank,candidates.length,held);
   }
   map.rareEcology=diagnostics;return map;

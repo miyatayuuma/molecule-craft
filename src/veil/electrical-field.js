@@ -49,8 +49,8 @@ export function electricalEffectiveAt(point,worldState='base',{shockStructures=[
   return effectiveHazardScale(electricalSpatialAt(point),ELECTRICAL_FIELD.baseIntensity*sourceScale,HAZARD_TYPES.ELECTRICAL,worldState);
 }
 
-export function electricalResponseFor(effectiveIntensity,mitigationMultiplier=1){
-  const intensity=Math.max(0,Number(effectiveIntensity)||0)*Math.max(0,Number(mitigationMultiplier)||0);
+export function electricalResponseFor(effectiveIntensity){
+  const intensity=Math.max(0,Number(effectiveIntensity)||0);
   return {
     controlAuthority:Math.max(.6,1-intensity*ELECTRICAL_CONTROL_LOSS_PER_INTENSITY),
     propulsionAuthority:Math.max(.76,1-intensity*ELECTRICAL_PROPULSION_RESPONSE_LOSS_PER_INTENSITY),

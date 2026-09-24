@@ -98,11 +98,11 @@ test('One SHOCK wave can reset an Eater and fracture the Anchor for one charge',
   const event=beginShock(run,()=>true);assert.equal(event.affected,1);assert.equal(event.anchorFractured,true);assert.equal(run.fuel.shock.amount,0);assert.equal(run.map.shockStructures[0].fractured,true);
 });
 
-test('Anchor changes only world Electrical intensity and stacks before ship Treatment',()=>{
+test('Anchor fracture reduces raw world Electrical intensity without changing its nonzero residual',()=>{
   const center={x:ELECTRICAL_FIELD.lobes[1].x,y:ELECTRICAL_FIELD.lobes[1].y},intactMap=createUniverse(17,zeroStock(),{capabilities:awakenedCapabilities}),anchor=intactMap.shockStructures[0],intact=electricalEffectiveAt(center,'awakened',{shockStructures:intactMap.shockStructures});anchor.fractured=true;anchor.fracturedAt=0;const fractured=electricalEffectiveAt(center,'awakened',{shockStructures:intactMap.shockStructures});assert.ok(Math.abs(fractured-intact*.6)<1e-12);assert.equal(intactMap.shockStructures.length,1);
-  const makeTreatmentRun=(electrical,fracture)=>{const state=stateFor(true),map=createUniverse(17,zeroStock(),{capabilities:awakenedCapabilities}),run=createRun(map,flightConfig(state),{predators:false,treatments:{mechanical:0,abrasive:0,thermal:0,electrical},fuel:{shock:{molecule:'nitromethane',amount:0}}});if(fracture){map.shockStructures[0].fractured=true;map.shockStructures[0].fracturedAt=0;}Object.assign(run.player,{x:center.x,y:center.y,vx:0,vy:0,speed:0});return run;};
-  const treatmentOnly=makeTreatmentRun(1,false),anchorOnly=makeTreatmentRun(0,false),both=makeTreatmentRun(1,true);stepRun(treatmentOnly,{x:0,y:0},1/60,{});stepRun(anchorOnly,{x:0,y:0},1/60,{});stepRun(both,{x:0,y:0},1/60,{});
-  const raw=run=>run.currentHazards.find(hazard=>hazard.id===ELECTRICAL_FIELD.id)?.effectiveIntensity??0;assert.ok(raw(anchorOnly)>raw(both));assert.ok(Math.abs(raw(both)/raw(anchorOnly)-.6)<.02);assert.equal(raw(treatmentOnly),raw(anchorOnly));assert.ok(treatmentOnly.treatments.electrical<1);assert.ok(both.treatments.electrical>treatmentOnly.treatments.electrical,'post-Anchor intensity must reduce Treatment consumption');
+  const makeRun=fracture=>{const state=stateFor(true),map=createUniverse(17,zeroStock(),{capabilities:awakenedCapabilities}),run=createRun(map,flightConfig(state),{predators:false,fuel:{shock:{molecule:'nitromethane',amount:0}}});if(fracture){map.shockStructures[0].fractured=true;map.shockStructures[0].fracturedAt=0;}Object.assign(run.player,{x:center.x,y:center.y,vx:0,vy:0,speed:0});return run;};
+  const intactRun=makeRun(false),fracturedRun=makeRun(true);stepRun(intactRun,{x:0,y:0},1/60,{});stepRun(fracturedRun,{x:0,y:0},1/60,{});
+  const raw=run=>run.currentHazards.find(hazard=>hazard.id===ELECTRICAL_FIELD.id)?.effectiveIntensity??0;assert.ok(raw(intactRun)>raw(fracturedRun));assert.ok(Math.abs(raw(fracturedRun)/raw(intactRun)-.6)<.02);assert.ok(raw(fracturedRun)>0,'fractured source retains nonzero electrical intensity');
 });
 
 test('A new awakened expedition starts with an intact Anchor after either return path',()=>{

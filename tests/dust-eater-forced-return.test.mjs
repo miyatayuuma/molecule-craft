@@ -13,8 +13,7 @@ const fuel={
   coolant:{molecule:null,amount:0,capacity:0},
   shock:{molecule:'nitromethane',amount:1,capacity:1},
 };
-const treatments={mechanical:.72,abrasive:.64,thermal:.58,electrical:.51};
-const run=createRun(emptyMap(),VEIL,{fuel,predators:true,treatments});
+const run=createRun(emptyMap(),VEIL,{fuel,predators:true});
 Object.assign(run.player,{x:0,y:0,angle:0,vx:0,vy:0,speed:VEIL.driftSpeed});
 run.eaters=[{id:7,x:EXPEDITION.eaterContactRadius*.42,y:0,angle:Math.PI,speed:EXPEDITION.eaterSpeed*.8,targetSpeed:EXPEDITION.eaterSpeed,vx:-12,vy:0,phase:.4,flank:0,lead:0,trail:[]}];
 Object.assign(run.elementDust,{H:101,C:17,O:9,P:3});
@@ -28,7 +27,7 @@ assert.equal(run.captured,true);
 assert.equal(run.forcedReturn?.eaterId,7);
 assert.equal(run.forcedReturn?.presentationStarted,false);
 const captureAt=run.captureAt,forcedState=run.forcedReturn,eaterAtCapture={x:run.eaters[0].x,y:run.eaters[0].y};
-const playerAtCapture={x:run.player.x,y:run.player.y},cargoAtCapture={...run.elementDust},treatmentsAtCapture={...run.treatments};
+const playerAtCapture={x:run.player.x,y:run.player.y},cargoAtCapture={...run.elementDust};
 
 run.map.dust.push(
   {id:901,x:run.player.x,y:run.player.y,value:20,kind:'normal',ready:0,angle:0,element:'H'},
@@ -43,7 +42,7 @@ assert.equal(run.forcedReturn,forcedState,'Repeated collision preserves the sing
 assert.notDeepEqual({x:run.eaters[0].x,y:run.eaters[0].y},eaterAtCapture,'Dust Eater movement continues during presentation');
 assert.deepEqual({x:run.player.x,y:run.player.y},playerAtCapture,'Ship movement stays locked during presentation');
 assert.deepEqual(run.elementDust,cargoAtCapture,'Resource pickup is locked during presentation');
-assert.deepEqual(run.treatments,treatmentsAtCapture,'Hazard treatments do not drain during presentation');
+assert.equal(Object.hasOwn(run,'treatments'),false,'Legacy hazard charge state is absent during forced return');
 assert.ok(run.effects[0]?.life>0,'Existing cosmetic pickup effects continue during presentation');
 assert.equal(run.map.dust[0].ready,0);
 assert.equal(run.map.dust[1].ready,0);
