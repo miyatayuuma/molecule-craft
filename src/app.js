@@ -118,6 +118,7 @@ loadMoleculeDatabase().then(async result=>{
       const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=1');
       reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,onLockChange:locked=>{reactionLabOpen=locked;}});
       document.querySelector('#open-reaction-lab').addEventListener('click',()=>{if(gameShell.isOpen()||collectionOpen||veilUI?.active||!reactionLabViewer)return;reactionLabViewer.open();});
+      document.querySelector('#open-reaction-lab').disabled=false;
       document.querySelector('#reaction-lab-dialog').addEventListener('close',()=>{reactionLabOpen=false;});
     }catch(error){console.error('Reaction Lab could not start.',error);document.querySelector('#open-reaction-lab').disabled=true;}
     discoveryConnection.collectionReady();if(renderer){checkDiscovery();refreshInfo();}

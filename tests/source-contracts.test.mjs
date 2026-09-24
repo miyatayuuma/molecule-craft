@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, craftWorkspace, craftControls, craftConnections, craftPanel] = await Promise.all([
   readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app.js?v=58', root), 'utf8'),
+  readFile(new URL('src/app.js?v=59', root), 'utf8'),
   readFile(new URL('src/chemistry.js', root), 'utf8'),
   readFile(new URL('src/structure-relaxation.js?v=33', root), 'utf8'),
   readFile(new URL('src/conformation-engine.js?v=3', root), 'utf8'),
@@ -35,7 +35,7 @@ assert.match(pubchemReference,/pubchem\.ncbi\.nlm\.nih\.gov\/\#query=/);
 assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
 assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
 
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=58"><\/script>/);
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=59"><\/script>/);
 assert.match(app, /from '\.\/structure-relaxation\.js\?v=33'/);
 assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
 assert.match(app, /from '\.\/structure-settlement\.js\?v=33'/);
