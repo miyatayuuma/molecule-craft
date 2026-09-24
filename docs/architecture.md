@@ -62,9 +62,9 @@
 
 探索の現行ルールと意図は `docs/hco-growth.md` にあります。探索だけの変更では、分子DBや生成済みSVGを読む必要はありません。
 
-## Reaction Lab / Polymer Foundation
+## Polymer Foundation and future reaction design
 
-Reaction LabはPR #292で導入した複数分子の配置・ドラッグを行うinteraction prototypeです。化学反応やpolymer formationの判定authorityはまだありません。Polymer chemistryは `data/polymers.json`、説明contentは `data/polymer-encyclopedia.json` が所有し、通常の分子図鑑・graphとは分離されています。
+現在のproductionには反応操作UIや反応判定authorityはありません。将来の反応操作はCRAFTとの操作言語や反応の見せ方を含めて設計します。Polymer chemistryは `data/polymers.json`、説明contentは `data/polymer-encyclopedia.json` が所有し、通常の分子図鑑・graphとは分離されています。
 
 Current FIELD developer map は `scripts/export-field-map.mjs` が現行 `src/veil/` 実装から `docs/maps/current-field.svg` を生成するdeveloper-only資料です。再生成は `node scripts/export-field-map.mjs`、freshness確認は `node scripts/export-field-map.mjs --check`。FIELD runtime / PWA配信物ではありません。
 
