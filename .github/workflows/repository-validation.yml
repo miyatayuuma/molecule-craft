@@ -61,7 +61,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Repository hygiene
-        run: node tests/repository-hygiene.test.mjs
+        run: |
+          node tests/repository-hygiene.test.mjs
+          node --test tests/reaction-lab-core.test.mjs
       - name: H / C revisit routes and H economy
         run: |
           node tests/hc-revisit-routes.test.mjs
@@ -257,6 +259,7 @@ jobs:
           node tests/loadout-workstation.test.mjs
           node tests/loadout-transfer-browser.test.mjs
           node tests/loadout-mobile-fit-toggle-browser.test.mjs
+          node tests/reaction-lab-browser.test.mjs
           node tests/loadout-launch-regression.test.mjs
           node tests/issue-122-launch-route.test.mjs
           node tests/launch-request.test.mjs
