@@ -1,5 +1,4 @@
 // Stable application entrypoint. Version history belongs in Git, not copied source files.
-import './reaction-lab-preflight.js';
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, Molecule, loadMoleculeDatabase, moleculeCatalog, modelAtomRadius } from './chemistry.js?v=20';
 import { ATOMIC_MODEL, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, atomBondState, bondAddition, geometryForAtom, nonbondedDistance } from './bonding-model.js?v=32';
