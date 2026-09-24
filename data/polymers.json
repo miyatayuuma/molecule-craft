@@ -35,7 +35,7 @@
     "id": "ethylene-propylene-copolymer",
     "nameJa": "エチレン-プロピレン共重合体",
     "nameEn": "Ethylene-propylene copolymer",
-    "family": "polyolefin-copolyolymer",
+    "family": "polyolefin-copolymer",
     "formation": "copolymerization",
     "topology": "copolymer",
     "reactants": [
