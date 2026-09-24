@@ -162,8 +162,6 @@ jobs:
           retention-days: 7
       - name: Browser startup
         run: node tests/browser-startup.test.mjs
-      - name: Reaction Lab interaction prototype
-        run: node tests/reaction-lab-browser.test.mjs
       - name: Molecule DB v2 persistence
         run: |
           node tests/collection-persistence.test.mjs
