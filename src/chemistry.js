@@ -326,7 +326,7 @@ function aromaticCarbonEdges(atoms, bonds, adjacency, byId) {
   return result;
 }
 
-function graphsAreIsomorphic(actualAtoms, actualBonds, templateAtoms, templateBonds) {
+export function graphsAreIsomorphic(actualAtoms, actualBonds, templateAtoms, templateBonds) {
   if (actualAtoms.length !== templateAtoms.length || actualBonds.length !== templateBonds.length) return false;
   const left = normalizedGraph(actualAtoms, actualBonds);
   const right = normalizedGraph(

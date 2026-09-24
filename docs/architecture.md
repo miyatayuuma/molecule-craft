@@ -12,6 +12,8 @@
 | 探索資源・タンク・帰還・保存 | `src/veil/resources.js`, `src/veil/supply.js`, `src/veil/growth.js` | `supply-tanks.test.mjs`, `expedition-core.test.mjs`, `veil-reset.test.mjs` |
 | 分子のゲーム用役割・性能バランス | `src/veil/molecule-roles.js` | `molecule-roles.test.mjs` |
 | BASE STOCK入出庫・原子追加/削除/片付け | `src/craft-workspace.js` | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
+| Reaction Lab 3D scene / species slots / population | `src/reaction-lab-viewer.js`, `src/reaction-lab-core.js` | `reaction-lab-core.test.mjs`, `reaction-lab-browser.test.mjs` |
+| Pairwise reaction rules / contact / DB product resolution | `src/reaction-lab-core.js` | `reaction-lab-core.test.mjs` |
 | クラフトのボタン・パレット操作 | `src/craft-controls.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
 | クラフト情報・構造一覧・完成表示 | `src/craft-panel.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
 | クラフトと図鑑・探索の接続 | `src/craft-connections.js` | `source-contracts.test.mjs`, `veil-ui-check.mjs` |
@@ -64,7 +66,7 @@
 
 ## Polymer Foundation and future reaction design
 
-現在のproductionには反応操作UIや反応判定authorityはありません。将来の反応操作はCRAFTとの操作言語や反応の見せ方を含めて設計します。Polymer chemistryは `data/polymers.json`、説明contentは `data/polymer-encyclopedia.json` が所有し、通常の分子図鑑・graphとは分離されています。
+Production Reaction Lab RL-1は `src/reaction-lab-viewer.js` の独立3D sandboxと `src/reaction-lab-core.js` のdeterministic pairwise reaction authorityで構成されます。species pickerはdiscovery stateをauthorityとし、contact dwell後にruleのatom mapでreactant graphをproduct graphへ変換してから、既存graph isomorphism authorityでDB productを解決します。registered product graphだけをruntime instance化します。Polymer chemistryは `data/polymers.json`、説明contentは `data/polymer-encyclopedia.json` が所有し、通常の分子図鑑・graphとは分離されています。
 
 Current FIELD developer map は `scripts/export-field-map.mjs` が現行 `src/veil/` 実装から `docs/maps/current-field.svg` を生成するdeveloper-only資料です。再生成は `node scripts/export-field-map.mjs`、freshness確認は `node scripts/export-field-map.mjs --check`。FIELD runtime / PWA配信物ではありません。
 
