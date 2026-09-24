@@ -84,7 +84,7 @@ function ensureShell(){
     q('reaction-lab-chamber').addEventListener('pointerdown',event=>{if(event.target===q('reaction-lab-chamber')){selectedId=null;renderInspector();}});
     q('reaction-lab-chamber').addEventListener('keydown',event=>{
       const item=selected();if(!item)return;
-      const delta=event.shiftKey?.06:.025,move={ArrowLeft:[-delta,0],ArrowRight:[delta,0],ArrowUp:[0,-delta],ArrowDown:[0,delta]}[event.key];
+      const delta=event.shiftKey ? 0.06 : 0.025,move={ArrowLeft:[-delta,0],ArrowRight:[delta,0],ArrowUp:[0,-delta],ArrowDown:[0,delta]}[event.key];
       if(!move)return;event.preventDefault();item.x=clamp(item.x+move[0],.08,.92);item.y=clamp(item.y+move[1],.09,.91);renderInstances();statusText='選択中の分子を移動しました';renderStatus();
     });
   }
