@@ -19,11 +19,11 @@ Resource sockets have stable authored/derived keys. Rare selection uses a fixed 
 
 ## Inventory suppression
 
-Each element owns centralized parameters in `src/veil/rare-ecology.js`: base density, replacement ceiling, reserve target, suppression onset, density floor and curve. Availability is computed independently per element.
+Each element owns centralized parameters in `src/veil/rare-ecology.js`: base density, replacement ceiling, stock thresholds or target, suppression onset, density floor and curve. Availability is computed independently per element.
 
 Effective held amount is BASE stock plus current-run cargo. Materialized particles are not removed when cargo rises; after pickup, the same suppression authority determines whether that socket can respawn and how long its respawn takes. Lowering BASE stock on a later expedition restores density.
 
-These values are FIELD balance parameters only. They do not define future DOCK treatment chemistry or treatment cost.
+These values are FIELD inventory-balance parameters only. They do not define molecule chemistry or utility qualification.
 
 ## Lifecycle
 

@@ -1,3 +1,5 @@
+import {tankCapacityFor} from './molecule-roles.js';
+
 // World units / seconds. Tune feel here; resource units are not individual atoms.
 export const VEIL = Object.freeze({
   speed: 164, driftSpeed: 29, acceleration: 7.5, releaseDrag: 3.2,
@@ -26,7 +28,7 @@ export const VEIL = Object.freeze({
 export const EXPEDITION = Object.freeze({
   hydrogenCapacity: 3,
   methaneCapacity: 18,
-  oxygenCapacity: 36,
+  oxygenCapacity: tankCapacityFor('oxidizer','oxygen'),
   normalExtractionSeconds: .8,
   captureLoss: .15,
   safeSeconds: 20,

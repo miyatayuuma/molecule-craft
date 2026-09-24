@@ -1,5 +1,4 @@
 // Stable application entrypoint. Version history belongs in Git, not copied source files.
-import './veil/dock-preflight.js';
 import './reaction-lab-preflight.js';
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, Molecule, loadMoleculeDatabase, moleculeCatalog, modelAtomRadius } from './chemistry.js?v=20';

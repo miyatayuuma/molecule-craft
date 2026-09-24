@@ -47,12 +47,12 @@ function traverse({fuelId='methane',propellant='hydrogen',oxygen=36,coolant='wat
 }
 
 test('Baseline, mid and late LOADOUTs reach the Core within the compact FIELD run budget',()=>{
-  const baseline30=traverse({fps:30}),baseline60=traverse({fps:60}),mid=traverse({fuelId:'ethane',oxygen:48,fps:30}),late=traverse({fuelId:'n-hexane',oxygen:72,coolant:'ethylene-glycol',propellant:'ammonia',fps:30});
+  const baseline30=traverse({fps:30}),baseline60=traverse({fps:60}),mid=traverse({fuelId:'ethane',oxygen:36,fps:30}),late=traverse({fuelId:'n-hexane',oxygen:36,coolant:'ethylene-glycol',propellant:'ammonia',fps:30});
   for(const [name,result]of Object.entries({baseline30,baseline60,mid,late})){assert.equal(result.reached,true,`${name} must reach Nitrogen Core`);assert.ok(result.time>=27&&result.time<=34,`${name} took ${result.time.toFixed(2)} s`);}
   assert.ok(Math.abs(baseline30.time-baseline60.time)<.3,'30fps and 60fps movement agree within one simulation frame');
   assert.ok(baseline30.driveSeconds>=12&&baseline30.driveSeconds<=16);assert.ok(baseline30.fuelUsed>=6&&baseline30.fuelUsed<=8);assert.equal(baseline30.oxidizerUsed,14);assert.ok(baseline30.waterUsed>=6&&baseline30.waterUsed<=10);assert.equal(baseline30.pulseUses,1);assert.ok(baseline30.oxygenRemaining>=20);assert.ok(baseline30.propellantRemaining>=80,'the baseline retains two H₂ BURST uses after one pulse crossing');
-  assert.ok(mid.fuelUsed===4&&mid.oxidizerUsed===14&&mid.oxygenRemaining>=32,'ethane/O₂ 48 keeps a larger reserve');
-  assert.ok(late.fuelUsed===2&&late.oxidizerUsed===19&&late.oxygenRemaining>=50,'n-hexane/O₂ 72 is optional reserve and error margin');
+  assert.ok(mid.fuelUsed===4&&mid.oxidizerUsed===14&&mid.oxygenRemaining>=22,'ethane uses the fixed O₂ 36 capacity');
+  assert.ok(late.fuelUsed===2&&late.oxidizerUsed===19&&late.oxygenRemaining>=17,'late LOADOUT also uses the fixed O₂ 36 capacity');
   console.log('Compact Nitrogen LOADOUT simulations',JSON.stringify({baseline30:{time:+baseline30.time.toFixed(2),drive:+baseline30.driveSeconds.toFixed(2),fuel:baseline30.fuelUsed,O2:baseline30.oxidizerUsed,water:baseline30.waterUsed,reserveO2:baseline30.oxygenRemaining,H2:baseline30.propellantRemaining},baseline60:{time:+baseline60.time.toFixed(2),drive:+baseline60.driveSeconds.toFixed(2)},mid:{time:+mid.time.toFixed(2),fuel:mid.fuelUsed,O2:mid.oxidizerUsed,reserveO2:mid.oxygenRemaining},late:{time:+late.time.toFixed(2),fuel:late.fuelUsed,O2:late.oxidizerUsed,reserveO2:late.oxygenRemaining}}));
 });
 

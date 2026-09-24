@@ -29,13 +29,13 @@ test('collection discovery count cannot unlock N or rare elements',async()=>{
   for(const symbol of ['N','Cl','S','P','F'])assert.equal(collection.canUseElement(symbol),false,symbol+' cannot unlock from discoveries');
 });
 
-test('N collection, expedition settlement and schema-v8 reload preserve BASE STOCK while N stays locked',()=>{
+test('N collection, expedition settlement and schema-v9 reload preserve BASE STOCK while N stays locked',()=>{
   const storage=memory(),resources=createResources({storage});
   resources.collect({N:7});assert.equal(resources.state.elements.N,7);assert.equal(resources.canUseElement('N'),false);assert.equal(resources.save(),true);
   const reloaded=createResources({storage});assert.equal(reloaded.state.elements.N,7);assert.equal(reloaded.canUseElement('N'),false);
   const settled=reloaded.settleExpedition({H:0,C:0,O:0,N:11},0,false);
   assert.equal(settled.atoms.N,11);assert.equal(reloaded.state.elements.N,18);assert.equal(reloaded.canUseElement('N'),false);assert.equal(reloaded.save(),true);
-  const again=createResources({storage});assert.equal(again.state.elements.N,18);assert.equal(JSON.parse(storage.raw(RESOURCE_KEY)).schemaVersion,8);
+  const again=createResources({storage});assert.equal(again.state.elements.N,18);assert.equal(JSON.parse(storage.raw(RESOURCE_KEY)).schemaVersion,9);
 });
 
 test('N depletion is computable without spawning N in the current CHO FIELD',()=>{

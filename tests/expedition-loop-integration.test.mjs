@@ -7,8 +7,6 @@ import {flightConfig} from '../src/veil/growth.js';
 import {createResources} from '../src/veil/resources.js';
 import {createUniverse} from '../src/veil/universe.js';
 import {expeditionLoss} from '../src/veil/expedition-loss.js';
-import {defineHazard,hazardSample,HAZARD_TYPES} from '../src/veil/hazards.js';
-import {createHazardTreatmentExposureState,updateHazardTreatmentExposure} from '../src/veil/hazard-treatments.js';
 import {performanceFor} from '../src/veil/molecule-roles.js';
 import {LAUNCH_TRANSACTION_STATUS,captureLaunchRollbackState,createLaunchTransaction,restoreLaunchRollbackState,stageLaunchSupply} from '../src/veil/launch-transaction.js';
 import {createMoleculeGraph} from '../src/molecule-graph.js';
@@ -38,7 +36,7 @@ function makeHarness(resources,{fault=null}={}){
     snapshot:()=>({resources:captureLaunchRollbackState(resources),app:{run:app.run,active:app.active}}),
     commitSupply:options=>{const supply=stageLaunchSupply(resources,options);if(fault==='after-supply'&&supply)throw Error('after supply');return supply;},
     prepareExpedition:({destinationId})=>{const start=destinationId,nextRun=resources.state.progress.runs+1,fuel=resources.prepareExpedition({region:start,rng:()=>0});preparedSnapshot=resources.frontierInsightDiagnostics();preparedFuel=clone(fuel);if(fault==='prepare')throw Error('prepare');return {start,nextRun,seed:0xA2026,fuel};},
-    createRun:({prepared})=>{const config=flightConfig(resources.state),capabilities={combustionDrive:true,nitrogenField:config.nitrogenField===true,coreFractured:config.coreFractured===true,worldAwakened:config.worldAwakened===true,rareEcologyEligible:config.rareEcologyEligible===true};const run=createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities}),config,{fuel:prepared.fuel,treatments:resources.state.treatments});if(fault==='create-run')return null;run.destination=prepared.start;return run;},
+    createRun:({prepared})=>{const config=flightConfig(resources.state),capabilities={combustionDrive:true,nitrogenField:config.nitrogenField===true,coreFractured:config.coreFractured===true,worldAwakened:config.worldAwakened===true,rareEcologyEligible:config.rareEcologyEligible===true};const run=createRun(createUniverse(prepared.seed,resources.state.elements,{capabilities}),config,{fuel:prepared.fuel});if(fault==='create-run')return null;run.destination=prepared.start;return run;},
     initializeExplore:({run})=>{app.run=run;app.active=true;return fault!=='initialize';},
     stageSuccess:({prepared})=>{resources.state.progress.runs=prepared.nextRun;return fault!=='stage-success';},
     persist:()=>fault==='save'?false:resources.save(),
@@ -55,11 +53,11 @@ function addFieldDust(run,items){
   return events;
 }
 
-// FULL LOADOUT -> production run -> acquisition/Insight/Treatment/tank runtime
+// FULL LOADOUT -> production run -> acquisition/Insight/tank runtime
 // -> voluntary settlement -> reload -> residual-supply relaunch.
 {
   const storage=memory(),resources=makeResources(storage),harness=makeHarness(resources);
-  resources.discover('phosphoric-acid');assert.equal(resources.applyHazardTreatment('mechanical').committed,true,'active Treatment charge starts from the BASE authority');resources.state.upgrades.oxygenTank=1;assert.equal(resources.save(),true);const before=clone(resources.state.elements);
+  const before=clone(resources.state.elements);
   const plan=resources.launchFillPlan({includeWorkspace:false});assert.equal(plan.status,'FULL');
   const launched=await harness.transaction.execute('veil');assert.equal(launched.status,LAUNCH_TRANSACTION_STATUS.SUCCESS);
   for(const [el,cost]of Object.entries(plan.full.cost))assert.equal(resources.state.elements[el],before[el]-cost,'launch auto-synthesis spends its plan once');
@@ -73,10 +71,6 @@ function addFieldDust(run,items){
   for(const use of ['propellant','fuel','oxidizer','coolant','shock'])assert.equal(run.fuel[use].amount,resources.state.tanks[use].amount,`${use} persistent/runtime amounts stay in sync after successful consumption`);
   assert.equal(resources.state.tanks.propellant.amount,plan.full.entries.find(entry=>entry.use==='propellant').target-pulseUse);
 
-  const treatment=defineHazard('a2-treatment-exposure',HAZARD_TYPES.MECHANICAL,'pressure');
-  updateHazardTreatmentExposure(run.treatments,[hazardSample(treatment,1,{effectiveIntensity:1})],12,createHazardTreatmentExposureState());
-  assert.equal(run.treatments,resources.state.treatments,'FIELD run receives the persistent Treatment charge authority');
-  assert.ok(resources.state.treatments.mechanical<1);assert.equal(resources.save(),true);
 
   const cargoBefore=clone(resources.state.elements);
   addFieldDust(run,[{element:'H',value:24},{element:'P',value:5,rare:true},{element:'S',value:3,rare:true},{element:'F',value:2,rare:true},{element:'Cl',value:4,rare:true}]);
@@ -90,10 +84,10 @@ function addFieldDust(run,items){
   advanceInsightAnalysis(run,2);assert.equal(discardActiveInsight(run),'propane','incomplete analysis is discarded at normal extraction');
   const committedCargo=clone(run.elementDust),settled=resources.settleExpedition(run.elementDust,run.best,false,{insights:run.carriedInsights});assert.ok(settled);
   assert.deepEqual(settled.kept,committedCargo);assert.deepEqual(settled.committedInsights,['ethane','nitrogen']);assert.deepEqual(resources.state.hints.filter(id=>id==='ethane'),['ethane']);assert.deepEqual(resources.state.hints.filter(id=>id==='nitrogen'),['nitrogen']);assert.ok(!resources.state.hints.includes('propane'));
-  assert.equal(resources.state.progress.runs,1);assert.equal(resources.state.treatments.mechanical,run.treatments.mechanical);
+  assert.equal(resources.state.progress.runs,1);
 
-  const settledStock=clone(resources.state.elements),settledTanks=clone(resources.state.tanks),savedLoadout=resources.selectedLoadout(),savedOxygenUpgrade=resources.state.upgrades.oxygenTank;
-  const reloaded=createResources({storage});reloaded.setCatalog(catalog);assert.deepEqual(reloaded.state.elements,settledStock);assert.deepEqual(reloaded.state.tanks,settledTanks);assert.deepEqual(reloaded.selectedLoadout(),savedLoadout);assert.equal(savedOxygenUpgrade,1);assert.equal(reloaded.state.upgrades.oxygenTank,savedOxygenUpgrade);assert.equal(reloaded.state.treatments.mechanical,run.treatments.mechanical);assert.deepEqual(reloaded.state.hints,resources.state.hints);assert.deepEqual(reloaded.state.recipes,resources.state.recipes);assert.deepEqual(reloaded.state.progress,resources.state.progress);assert.equal(reloaded.state.progress.runs,1);
+  const settledStock=clone(resources.state.elements),settledTanks=clone(resources.state.tanks),savedLoadout=resources.selectedLoadout();
+  const reloaded=createResources({storage});reloaded.setCatalog(catalog);assert.deepEqual(reloaded.state.elements,settledStock);assert.deepEqual(reloaded.state.tanks,settledTanks);assert.deepEqual(reloaded.selectedLoadout(),savedLoadout);assert.deepEqual(reloaded.state.hints,resources.state.hints);assert.deepEqual(reloaded.state.recipes,resources.state.recipes);assert.deepEqual(reloaded.state.progress,resources.state.progress);assert.equal(reloaded.state.progress.runs,1);
   const refill=reloaded.launchFillPlan({includeWorkspace:false}),stockBeforeRelaunch=clone(reloaded.state.elements),relaunch=await makeHarness(reloaded).transaction.execute('veil');assert.equal(relaunch.status,LAUNCH_TRANSACTION_STATUS.SUCCESS);assert.equal(reloaded.state.progress.runs,2);assert.deepEqual(relaunch.supply.plan.cost,refill.full.cost,'relaunch synthesizes only the residual tank deficit');
   for(const [el,cost]of Object.entries(refill.full.cost))assert.equal(reloaded.state.elements[el],stockBeforeRelaunch[el]-cost,'relaunch applies only the previewed refill cost');
   for(const use of Object.keys(loadout))assert.equal(relaunch.run.fuel[use].amount,reloaded.state.tanks[use].amount);assert.equal(relaunch.run.elementDust.H,0);assert.equal(reloaded.state.hints.filter(id=>id==='ethane').length,1,'relaunch does not duplicate the previous Insight commit');
@@ -118,17 +112,15 @@ function addFieldDust(run,items){
 }
 
 // Forced return applies the same loss calculation to Rare and normal cargo,
-// loses carried Insight, stops engine consumption and preserves already-spent
-// Treatment charge through the saved BASE state.
+// loses carried Insight and stops engine consumption.
 {
   const storage=memory(),resources=makeResources(storage),h=makeHarness(resources),launched=await h.transaction.execute('veil');assert.equal(launched.status,LAUNCH_TRANSACTION_STATUS.SUCCESS);resources.state.progress.choCompleted=false;assert.equal(resources.save(),true);const run=launched.run;
-  run.map.dust=[];resources.state.treatments.mechanical=.5;assert.equal(resources.save(),true);
+  run.map.dust=[];
   addFieldDust(run,[{element:'H',value:15},{element:'P',value:11,rare:true},{element:'S',value:7,rare:true},{element:'F',value:5,rare:true},{element:'Cl',value:9,rare:true}]);
   assert.deepEqual(triggerInsight(run,'ethane',resources.state),{type:'insightAnalysisStart',id:'ethane'});advanceInsightAnalysis(run,5);assert.deepEqual(run.carriedInsights,['ethane']);
   assert.deepEqual(triggerInsight(run,'nitrogen',resources.state),{type:'insightReady',id:'nitrogen',critical:true});
-  const exposure=defineHazard('a2-forced-return-exposure',HAZARD_TYPES.MECHANICAL,'pressure');updateHazardTreatmentExposure(run.treatments,[hazardSample(exposure,1,{effectiveIntensity:1})],10,createHazardTreatmentExposureState());assert.equal(resources.save(),true);const treatmentAtCapture=resources.state.treatments.mechanical;
   run.captured=true;run.forcedReturn={triggeredAt:run.time,eaterId:2,presentationStarted:false};const lossSnapshot={lost:expeditionLoss(run.elementDust,EXPEDITION.captureLoss),insights:runInsightLossSnapshot(run)};
-  assert.deepEqual(lossSnapshot.insights,['ethane','nitrogen']);const remainingPropellant=run.fuel.propellant.amount;assert.equal(beginBurst(run,()=>resources.consumeBoost()),false);assert.equal(run.fuel.propellant.amount,remainingPropellant);stepRun(run,{x:0,y:0},1/60);assert.equal(resources.state.treatments.mechanical,treatmentAtCapture,'forced-return presentation does not drain Treatment again');
+  assert.deepEqual(lossSnapshot.insights,['ethane','nitrogen']);const remainingPropellant=run.fuel.propellant.amount;assert.equal(beginBurst(run,()=>resources.consumeBoost()),false);assert.equal(run.fuel.propellant.amount,remainingPropellant);stepRun(run,{x:0,y:0},1/60);
   const returned=resources.settleExpedition(run.elementDust,run.best,true,{destinationReached:true,insights:[]});assert.ok(returned);assert.deepEqual(returned.lost,lossSnapshot.lost);assert.equal(returned.captured,true);assert.ok(!resources.state.hints.includes('ethane'));assert.equal(resources.state.progress.choCompleted,false,'forced return does not commit destination completion');
   for(const el of ['P','S','F','Cl'])assert.equal(returned.kept[el]+returned.lost[el],run.elementDust[el],`${el} Rare cargo follows shared settlement loss authority`);
   const after=createResources({storage});assert.equal(after.state.progress.runs,1);assert.deepEqual(after.state.tanks,resources.state.tanks);
@@ -142,4 +134,4 @@ for(const fault of ['after-supply','prepare','create-run','initialize','stage-su
   assert.deepEqual(resources.snapshot(),baseline,`${fault} restores stock, tanks and all progression state`);assert.deepEqual(resources.frontierInsightDiagnostics(),frontierBefore,`${fault} does not leave the failed run's Insight/frontier bookkeeping`);assert.equal(h.app.active,false);assert.equal(h.app.run,null);
 }
 
-console.log('Expedition loop integration passed: production FULL/PARTIAL launch, packet/tank sync, FIELD cargo and Insight authority, Rare settlement, Treatment/reload, residual relaunch and full launch rollback including frontier bookkeeping.');
+console.log('Expedition loop integration passed: production FULL/PARTIAL launch, packet/tank sync, FIELD cargo and Insight authority, Rare settlement, reload, residual relaunch and full launch rollback including frontier bookkeeping.');

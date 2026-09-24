@@ -81,13 +81,12 @@ jobs:
           node tests/shock-utility-browser.test.mjs
       - name: FIELD runtime allowlist
         run: node tests/field-runtime-allowlist.test.mjs
-      - name: Post-Core Rare ecology and hazard treatments
+      - name: Post-Core Rare ecology and hazard authority
         run: |
           node tests/rare-ecology.test.mjs
           node tests/rare-ecology-browser.test.mjs
-          node tests/hazard-treatments.test.mjs
           node tests/abrasive-hazard.test.mjs
-          node tests/hazard-treatments-browser.test.mjs
+          node tests/legacy-dock-retirement.test.mjs
           node tests/post-awakening-economy.test.mjs
       - name: FIELD expansion proposal map
         run: node tests/field-expansion-proposal.test.mjs
@@ -95,7 +94,6 @@ jobs:
         run: |
           node scripts/build-molecule-db.mjs
           git diff --exit-code -- data/molecules.json
-          node tests/ctfe-electrical-treatment.test.mjs
           node tests/molecule-graph.test.mjs
           node tests/molecule-frontier.test.mjs
           node tests/field-frontier-insight.test.mjs
@@ -170,7 +168,6 @@ jobs:
         run: |
           node tests/collection-persistence.test.mjs
           node tests/resources-persistence.test.mjs
-          node tests/tank-upgrades.test.mjs
       - name: Element authority / nitrogen chapter and FIELD
         run: |
           node tests/element-authority-n-foundation.test.mjs

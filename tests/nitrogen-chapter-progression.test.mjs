@@ -104,6 +104,6 @@ test('growthGoal follows production Nitrogen player-facing stages and ends at ch
 });
 
 test('Nitrogen progression persists through existing schema without a new save flag',()=>{
-  const storage=memory(),value=resource(storage);value.state.progress.choCompleted=true;value.findElementForExpedition('N');const run=flight();triggerInsight(run,NITROGEN_MOLECULE_ID,value.state);settle(value,run);assert.equal(JSON.parse(storage.raw(RESOURCE_KEY)).schemaVersion,8);
+  const storage=memory(),value=resource(storage);value.state.progress.choCompleted=true;value.findElementForExpedition('N');const run=flight();triggerInsight(run,NITROGEN_MOLECULE_ID,value.state);settle(value,run);assert.equal(JSON.parse(storage.raw(RESOURCE_KEY)).schemaVersion,9);
   const reloaded=resource(storage),chapter=nitrogenChapterState(reloaded.state,{regionAvailable:true});assert.equal(chapter.eligible,true);assert.equal(chapter.stage,'nitrogen-craft');assert.ok(reloaded.state.hints.includes(NITROGEN_MOLECULE_ID));assert.equal(Object.hasOwn(reloaded.state.progress,'nitrogenEligible'),false);assert.equal(Object.hasOwn(reloaded.state.progress,'nitrogenRegionAvailable'),false);assert.equal(Object.hasOwn(reloaded.state.progress,'rareSurveyUnlocked'),false);
 });

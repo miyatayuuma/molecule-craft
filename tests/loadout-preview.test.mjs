@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {propellantPreviewValues,fuelPreviewValues,coolantPreviewValues,oxidizerPreviewValues,loadoutPreviewValues,renderLoadoutPreview} from '../src/veil/loadout-preview.js';
+import {propellantPreviewValues,fuelPreviewValues,coolantPreviewValues,loadoutPreviewValues,renderLoadoutPreview} from '../src/veil/loadout-preview.js';
 import {combustionBurnPlanFor,performanceFor} from '../src/veil/molecule-roles.js';
 
 const h2=propellantPreviewValues('hydrogen');
@@ -36,7 +36,7 @@ assert.equal(fuelPreviewValues('propane',{fuelAmount:5,oxygenAmount:0}).limiting
 const belowCapacityOxygen=assertFuelPreviewMatchesRuntime('methane',5,4);
 assert.equal(belowCapacityOxygen.seconds,4,'Actual partial O₂ below 36 limits the runtime plan');
 const methaneCapacity=performanceFor('methane','fuel').capacity;
-assert.equal(assertFuelPreviewMatchesRuntime('methane',methaneCapacity,48).seconds,36,'FULL fuel amount uses runtime packets with actual planned O₂');
+assert.equal(assertFuelPreviewMatchesRuntime('methane',methaneCapacity,36).seconds,36,'FULL fuel amount uses runtime packets with the fixed planned O₂ capacity');
 for(const id of ['methane','propane','n-hexane'])assertFuelPreviewMatchesRuntime(id,performanceFor(id,'fuel').capacity,36);
 
 
@@ -47,20 +47,7 @@ assert.ok(nitrogen.cooling>glycol.cooling,'N2 keeps the stronger initial cooling
 assert.ok(glycol.endurance>water.endurance,'Glycol exposes its longer coolant endurance');
 assert.ok(glycol.thermalMargin>nitrogen.thermalMargin,'Glycol keeps the larger high-temperature margin');
 
-assert.equal(oxidizerPreviewValues('oxygen'),null,'O₂ capacity must never fall back to its normalized molecule-role profile');
-assert.equal(loadoutPreviewValues('oxidizer','oxygen'),null,'oxidizer preview requires the permanent tank-capacity authority');
-const oxygen36=oxidizerPreviewValues('oxygen',{capacity:36,level:0,nextCapacity:48});
-const oxygen48=oxidizerPreviewValues('oxygen',{capacity:48,level:1,nextCapacity:72});
-const oxygen72=oxidizerPreviewValues('oxygen',{capacity:72,level:2,nextCapacity:null});
-assert.deepEqual(oxygen36.stages.map(stage=>stage.capacity),[36,48,72]);
-assert.deepEqual(oxygen36.stages.map(stage=>stage.state),['current','next','upcoming']);
-assert.equal(oxygen36.nextCapacity,48);
-assert.deepEqual(oxygen48.stages.map(stage=>stage.state),['complete','current','next']);
-assert.equal(oxygen48.nextCapacity,72);
-assert.deepEqual(oxygen72.stages.map(stage=>stage.state),['complete','complete','current']);
-assert.equal(oxygen72.isMax,true);
-assert.equal(Object.hasOwn(oxygen48,'oxidizingPower'),false,'O₂ capacity is not represented as molecule performance');
-assert.equal(oxidizerPreviewValues('oxygen',{capacity:36,level:1,nextCapacity:72}),null,'capacity, level and next-upgrade state must agree');
+assert.equal(loadoutPreviewValues('oxidizer','oxygen'),null,'LOADOUT exposes O₂ stock without an upgrade preview');
 assert.equal(loadoutPreviewValues('fuel','oxygen'),null);
 
 class FakeNode{
@@ -108,29 +95,12 @@ try{
   const zeroOxygen=renderLoadoutPreview(zeroOxygenHost,{use:'fuel',candidateId:'propane',candidateAmount:5,oxygenAmount:0});
   assert.equal(zeroOxygen.candidate.limitingSeconds,0,'Rendered candidate preserves explicit zero O₂');
   const fullFuelHost=new FakeNode();
-  const fullFuel=renderLoadoutPreview(fullFuelHost,{use:'fuel',candidateId:'methane',candidateAmount:methaneCapacity,oxygenAmount:48});
+  const fullFuel=renderLoadoutPreview(fullFuelHost,{use:'fuel',candidateId:'methane',candidateAmount:methaneCapacity,oxygenAmount:36});
   assert.equal(fullFuel.candidate.limitingSeconds,36,'Rendered FULL load uses tank capacity and planned O₂');
 
 
-  const oxygenHost=new FakeNode();
-  const shown=renderLoadoutPreview(oxygenHost,{use:'oxidizer',candidateId:'oxygen',oxygenTankCapacity:{capacity:48,level:1,nextCapacity:72}});
-  assert.equal(oxygenHost.dataset.previewKind,'oxidizer');
-  assert.equal(oxygenHost.children.length,1,'O₂ uses a capacity panel, not a normalized performance row');
-  const capacityPanel=oxygenHost.children[0];
-  assert.equal(capacityPanel.className,'loadout-oxygen-capacity');
-  assert.equal(capacityPanel.dataset.capacity,'48');
-  assert.equal(capacityPanel.children[0].children[1].textContent,'48');
-  assert.deepEqual(capacityPanel.children[1].children.map(stage=>stage.dataset.state),['complete','current','next']);
-  assert.deepEqual(capacityPanel.children[1].children.map(stage=>stage.children[0].textContent),['36','48','72']);
-  assert.equal(capacityPanel.children[1].children[1].attributes['aria-current'],'step');
-  assert.equal(capacityPanel.children[2].textContent,'NEXT 48 → 72  (+24)');
-  assert.equal(shown.candidate.capacity,48);
-  const maxHost=new FakeNode();
-  renderLoadoutPreview(maxHost,{use:'oxidizer',candidateId:'oxygen',oxygenTankCapacity:{capacity:72,level:2,nextCapacity:null}});
-  assert.equal(maxHost.children[0].children[1].children[2].children[1].textContent,'MAX');
-  assert.equal(maxHost.children[0].children[2].textContent,'MAXIMUM CAPACITY');
 }finally{
   if(originalDocument===undefined)delete globalThis.document;else globalThis.document=originalDocument;
 }
 
-console.log('Loadout preview passed: runtime combustion endurance, planned/current amounts, explicit zero, and role-specific DRIVE metrics.');
+console.log('Loadout preview passed: runtime combustion endurance, planned/current amounts, explicit zero, and role-specific DRIVE metrics; O₂ has no upgrade panel.');
