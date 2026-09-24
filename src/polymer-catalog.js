@@ -20,12 +20,13 @@ export function validatePolymerCatalog(input,{moleculeIds=null}={}){
     if(!record||typeof record!=='object'||typeof record.id!=='string'||!ID.test(record.id))throw new Error('Invalid polymer id.');
     if(seen.has(record.id))throw new Error(`Duplicate polymer id: ${record.id}`);
     seen.add(record.id);
-    for(const key of ['nameJa','nameEn','family','formation','topology','summaryJa'])requireText(record,key);
+    for(const key of ['nameJa','nameEn','family','formation','topology'])requireText(record,key);
+    if(Object.hasOwn(record,'summaryJa')||Object.hasOwn(record,'description')||Object.hasOwn(record,'details'))throw new Error(`Player-facing prose does not belong in polymer chemistry data: ${record.id}`);
     if(!FORMATIONS.has(record.formation))throw new Error(`Invalid formation in ${record.id}.`);
     if(!TOPOLOGIES.has(record.topology))throw new Error(`Invalid topology in ${record.id}.`);
     if(!Array.isArray(record.reactants)||!record.reactants.length)throw new Error(`Missing reactants in ${record.id}.`);
     if(record.repeatUnit!==null&&(typeof record.repeatUnit!=='string'||!record.repeatUnit.trim()))throw new Error(`Invalid repeatUnit in ${record.id}.`);
-    for(const forbidden of ['seal','sealQualification','oxygenCapacity','utility','score'])if(Object.hasOwn(record,forbidden))throw new Error(`Gameplay field ${forbidden} does not belong in polymer chemistry data.`);
+    for(const field of Object.keys(record))if(/seal|oxygen|utility|score|unlock|qualification|capacity|gameplay|ranking/i.test(field))throw new Error(`Gameplay field ${field} does not belong in polymer chemistry data.`);
     return Object.freeze({...record,reactants:Object.freeze(record.reactants.map(item=>normalizeReactant(item,record.id,moleculeIds)))});
   });
 }

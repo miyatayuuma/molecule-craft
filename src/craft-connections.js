@@ -117,7 +117,12 @@ export async function connectCollection({records,elementPalette,elementAccess,on
 export async function preparePolymerEncyclopedia({records=moleculeCatalog(),knownIds=[]}={}){
   const moleculeIds=new Set(records.map(record=>record.id));
   const result=await loadPolymerCatalog({moleculeIds});
-  return {result,model:result.ok?createPolymerEncyclopediaModel(polymerCatalog(),{knownIds}):null};
+  if(!result.ok)return {result,model:null};
+  try{
+    const response=await fetch(new URL('../data/polymer-encyclopedia.json',import.meta.url),{cache:'no-store'});
+    if(!response?.ok)throw new Error(`HTTP ${response?.status??'unknown'}`);
+    return {result,model:createPolymerEncyclopediaModel(polymerCatalog(),await response.json(),{knownIds})};
+  }catch(error){return {result:{ok:false,count:0,error:String(error?.message??error)},model:null};}
 }
 
 export function bindSaveLifecycle({window,document,onPageHide,onHidden,onPrepareUpdate}){

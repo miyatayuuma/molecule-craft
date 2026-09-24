@@ -101,16 +101,18 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 - `src/element-progression.js`：元素解放。
 - `src/veil/molecule-roles.js`：fuel / propellant / oxidizer / coolant候補とゲーム用性能値。化学的事実DBへゲーム性能を混在させない。
 
-現行データは次の5ファイルです。
+現行データは次の6ファイルです。
 
 | ファイル | 内容 |
 |---|---|
-| `data/molecules.json` | 162分子の構造DB。通常タスクでは全文を読まない |
-| `data/encyclopedia.json` | 162分子・17部品の番号と図鑑文 |
+| `data/molecules.json` | 142分子の構造DB。通常タスクでは全文を読まない |
+| `data/encyclopedia.json` | 142分子・17部品の番号と図鑑文 |
 | `data/functional-groups.json` | 24官能基パターン |
-| `data/craft-structures.json` | 17部品 |\n| `data/polymers.json` | Reaction Lab向け高分子routeの化学catalog。seal/O₂/utility性能は含めない |
+| `data/craft-structures.json` | 17部品 |
+| `data/polymers.json` | 25 routeの高分子化学catalog。材料性能やgameplay qualificationは含めない |
+| `data/polymer-encyclopedia.json` | 高分子25件の独立した一般説明・Chemistry Detail・concepts |
 
-`assets/models/` の179 SVGは図鑑用ゲーム資産です。個別の表示不具合か生成処理の変更でない限り、一覧や中身を読みません。
+`assets/models/` の159 SVGは図鑑用ゲーム資産です。個別の表示不具合か生成処理の変更でない限り、一覧や中身を読みません。
 
 ## 保存
 
@@ -137,7 +139,8 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | 機能 | テスト |
 |---|---|
 | 分子認識・結合・特殊結合 | `recognition.test.mjs`, `bond-state.test.mjs`, `special-bonds-check.mjs` |
-| 図鑑・部品・元素解放 | `collection.test.mjs`, `collection-expansion.test.mjs` |\n| 高分子DB・高分子図鑑model | `polymer-catalog.test.mjs` |
+| 図鑑・部品・元素解放 | `collection.test.mjs`, `collection-expansion.test.mjs` |
+| 高分子DB・高分子図鑑model | `polymer-catalog.test.mjs`, `polymer-progression-geometry.test.mjs` |
 | 分子のゲーム用役割・性能値 | `molecule-roles.test.mjs` |
 | 入力・長押し | `electron-interaction.test.mjs`, `gesture-arbitration.test.mjs`, `hold-action.test.mjs` |
 | 配置・補正・torsion | `conformation-regression.test.mjs`, `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |

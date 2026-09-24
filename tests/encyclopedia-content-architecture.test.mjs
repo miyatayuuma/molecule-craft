@@ -11,14 +11,17 @@ const controlledConcepts=new Set(['aromaticity','resonance','formal-charge','pol
 const controlledNotes=new Set(['aromatic','resonance','stereochemistry']);
 const recordIds=new Set(records.map(record=>record.id)),entryIds=new Set(Object.keys(entries));
 
-assert.equal(records.length,136,'production molecule count must remain 136');
+assert.equal(records.length,142,'production molecule count must remain 142');
 assert.ok(records.every(record=>!Object.hasOwn(record,'learningNote')),'retired learningNote compatibility payload must not remain in the production molecule DB');
-assert.equal(entryIds.size,136,'Encyclopedia must review all 136 production molecules');
+assert.equal(entryIds.size,142,'Encyclopedia must review all 142 production molecules');
 assert.deepEqual([...entryIds].sort(),[...recordIds].sort(),'Encyclopedia IDs must exactly match the production molecule catalog');
 assert.equal(encyclopedia.schemaVersion,2,'content architecture schema must be v2');
 assert.deepEqual(Object.keys(encyclopedia.noteDefinitions??{}).sort(),['aromatic','model','resonance','stereochemistry']);
 const numbers=Object.values(entries).map(entry=>entry.number).sort((a,b)=>a-b);
-assert.deepEqual(numbers,Array.from({length:136},(_,index)=>index+1),'Encyclopedia numbering must stay 1..136');
+assert.deepEqual(numbers,Array.from({length:142},(_,index)=>index+1),'Encyclopedia numbering must stay 1..142');
+for(const [id,number] of [['1-3-butadiene',137],['isoprene',138],['vinylidene-fluoride',139],['hexafluoropropylene',140],['tetrafluoroethylene',141],['hexamethylenediamine',142]])assert.equal(entries[id]?.number,number,`${id}: fixed new Encyclopedia number`);
+const allMoleculeProse=Object.values(entries).flatMap(entry=>[entry.description,...(entry.details??[]).flatMap(detail=>[detail.title,detail.body])]).join('\n');
+assert.doesNotMatch(allMoleculeProse,/\bDOCK\b|\bTreatment\b|旧加工画面|このゲームでは|Molecule Craftでは/,'Encyclopedia chemistry prose must not depend on retired player workflows');
 
 const placeholder=/TODO|TBD|placeholder|未記入|準備中|この分子を図鑑に登録しました/i;
 const developerVoice=/比較教材|教材に向く|この分子で学|反応点が変わる|末端水素を手がかり|BRIDGE/i;
@@ -78,4 +81,4 @@ assert.doesNotMatch(source,/model-collection-notes|模型・収録について/,
 assert.match(source,/noteDefinitions/,'Internal note metadata may remain loaded for data compatibility');
 assert.doesNotMatch(source,/水色の内円は芳香環に広がるπ電子を表す記号です。cis\/transや鏡像異性体は分けて収集していません。/,'legacy monolithic note must be removed');
 
-console.log('Encyclopedia content architecture passed: 136/136 reviewed summaries/details, controlled concepts, player-facing repeated-note removal, Nitro/Ozone resonance semantics and CO formal-charge coverage.');
+console.log('Encyclopedia content architecture passed: 142/142 reviewed summaries/details, controlled concepts, player-facing repeated-note removal, Nitro/Ozone resonance semantics and CO formal-charge coverage.');

@@ -12,8 +12,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CH₂–CH₂–",
-    "summaryJa": "エチレンのC=C結合が開き、炭素鎖が連続して伸びる代表的な付加重合体。"
+    "repeatUnit": "–CH₂–CH₂–"
   },
   {
     "id": "polypropylene",
@@ -28,8 +27,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CH₂–CH(CH₃)–",
-    "summaryJa": "プロピレンの付加重合体。主鎖にメチル置換基を持つ。"
+    "repeatUnit": "–CH₂–CH(CH₃)–"
   },
   {
     "id": "ethylene-propylene-copolymer",
@@ -48,8 +46,7 @@
         "role": "comonomer"
       }
     ],
-    "repeatUnit": null,
-    "summaryJa": "エチレンとプロピレンを同じ鎖へ取り込む共重合体。組成によって鎖の性格が変わる。"
+    "repeatUnit": null
   },
   {
     "id": "polyisobutylene",
@@ -64,8 +61,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CH₂–C(CH₃)₂–",
-    "summaryJa": "イソブテンの付加重合体。置換基を多く持つ炭素鎖を形成する。"
+    "repeatUnit": "–CH₂–C(CH₃)₂–"
   },
   {
     "id": "polystyrene",
@@ -80,8 +76,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CH₂–CH(C₆H₅)–",
-    "summaryJa": "スチレンのC=C結合が開いてつながる付加重合体。各繰り返し単位にフェニル基を持つ。"
+    "repeatUnit": "–CH₂–CH(C₆H₅)–"
   },
   {
     "id": "polyvinyl-chloride",
@@ -96,8 +91,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CH₂–CHCl–",
-    "summaryJa": "塩化ビニルの付加重合体。主鎖に沿って塩素置換基を持つ。"
+    "repeatUnit": "–CH₂–CHCl–"
   },
   {
     "id": "polychlorotrifluoroethylene",
@@ -112,8 +106,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CF₂–CFCl–",
-    "summaryJa": "CTFEの付加重合体。炭素鎖の水素がフッ素や塩素に置き換わったフッ素系高分子。"
+    "repeatUnit": "–CF₂–CFCl–"
   },
   {
     "id": "polyacrylonitrile",
@@ -128,8 +121,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CH₂–CH(CN)–",
-    "summaryJa": "アクリロニトリルの付加重合体。各繰り返し単位にニトリル基を持つ。"
+    "repeatUnit": "–CH₂–CH(CN)–"
   },
   {
     "id": "polyacrylic-acid",
@@ -144,8 +136,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CH₂–CH(COOH)–",
-    "summaryJa": "アクリル酸のC=C結合を使って鎖を伸ばす付加重合体。側鎖にカルボキシ基を持つ。"
+    "repeatUnit": "–CH₂–CH(COOH)–"
   },
   {
     "id": "polyethylene-oxide",
@@ -160,8 +151,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–CH₂–CH₂–O–",
-    "summaryJa": "エチレンオキシドの三員環を開いてつながる開環重合体。主鎖にエーテル酸素を含む。"
+    "repeatUnit": "–CH₂–CH₂–O–"
   },
   {
     "id": "polyethylene-terephthalate",
@@ -180,8 +170,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–O–CH₂–CH₂–O–CO–C₆H₄–CO–",
-    "summaryJa": "二価アルコールと二価カルボン酸が縮合を繰り返してできる芳香族ポリエステル。"
+    "repeatUnit": "–O–CH₂–CH₂–O–CO–C₆H₄–CO–"
   },
   {
     "id": "polyethylene-adipate",
@@ -200,8 +189,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–O–CH₂–CH₂–O–CO–(CH₂)₄–CO–",
-    "summaryJa": "エチレングリコールとアジピン酸の縮合でできる脂肪族ポリエステル。"
+    "repeatUnit": "–O–CH₂–CH₂–O–CO–(CH₂)₄–CO–"
   },
   {
     "id": "polylactic-acid",
@@ -216,8 +204,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–O–CH(CH₃)–CO–",
-    "summaryJa": "ヒドロキシ基とカルボキシ基を同じ分子に持つ乳酸が連続してエステル結合を作る高分子。"
+    "repeatUnit": "–O–CH(CH₃)–CO–"
   },
   {
     "id": "polyglycolic-acid",
@@ -232,8 +219,7 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–O–CH₂–CO–",
-    "summaryJa": "グリコール酸が縮合を繰り返してできるポリエステル。"
+    "repeatUnit": "–O–CH₂–CO–"
   },
   {
     "id": "phenol-formaldehyde-resin",
@@ -252,8 +238,7 @@
         "role": "crosslinker"
       }
     ],
-    "repeatUnit": null,
-    "summaryJa": "フェノール環同士をホルムアルデヒド由来の結合でつなぎ、条件により網目構造へ成長する縮合系高分子。"
+    "repeatUnit": null
   },
   {
     "id": "polyethylene-adipamide",
@@ -272,7 +257,161 @@
         "role": "monomer"
       }
     ],
-    "repeatUnit": "–NH–CH₂–CH₂–NH–CO–(CH₂)₄–CO–",
-    "summaryJa": "ジアミンとジカルボン酸が縮合を繰り返してできるポリアミド。"
+    "repeatUnit": "–NH–CH₂–CH₂–NH–CO–(CH₂)₄–CO–"
+  },
+  {
+    "id": "polybutadiene",
+    "nameJa": "ポリブタジエン",
+    "nameEn": "Polybutadiene",
+    "family": "diene-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "1-3-butadiene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "styrene-butadiene-copolymer",
+    "nameJa": "スチレン-ブタジエン共重合体",
+    "nameEn": "Styrene-butadiene copolymer",
+    "family": "diene-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "styrene",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "1-3-butadiene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "nitrile-butadiene-rubber",
+    "nameJa": "ニトリル-ブタジエンゴム",
+    "nameEn": "Nitrile-butadiene rubber",
+    "family": "diene-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "acrylonitrile",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "1-3-butadiene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "polyisoprene",
+    "nameJa": "ポリイソプレン",
+    "nameEn": "Polyisoprene",
+    "family": "diene-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "isoprene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "butyl-rubber",
+    "nameJa": "ブチルゴム",
+    "nameEn": "Butyl rubber",
+    "family": "diene-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "isobutene",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "isoprene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "polyvinylidene-fluoride",
+    "nameJa": "ポリフッ化ビニリデン",
+    "nameEn": "Poly(vinylidene fluoride)",
+    "family": "fluoropolymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "vinylidene-fluoride",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CF₂–"
+  },
+  {
+    "id": "vinylidene-fluoride-hexafluoropropylene-copolymer",
+    "nameJa": "フッ化ビニリデン-ヘキサフルオロプロピレン共重合体",
+    "nameEn": "Vinylidene fluoride-hexafluoropropylene copolymer",
+    "family": "fluoropolymer-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "vinylidene-fluoride",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "hexafluoropropylene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "polytetrafluoroethylene",
+    "nameJa": "ポリテトラフルオロエチレン",
+    "nameEn": "Polytetrafluoroethylene",
+    "family": "fluoropolymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "tetrafluoroethylene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CF₂–CF₂–"
+  },
+  {
+    "id": "nylon-6-6",
+    "nameJa": "ナイロン66",
+    "nameEn": "Nylon 6,6",
+    "family": "polyamide",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "hexamethylenediamine",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "adipic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–NH–(CH₂)₆–NH–CO–(CH₂)₄–CO–"
   }
 ]

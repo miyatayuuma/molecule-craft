@@ -1,22 +1,26 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createMoleculeGraph,getFrontierCandidates,scoreFrontierCandidates} from '../src/molecule-graph.js';
+import {FIELD_PROGRESSION_RESERVED_MOLECULE_IDS} from '../src/veil/progression-reserved-molecules.js';
 import {expandGraph,expansionSummary,sampleIds} from './molecule-frontier-fixtures.mjs';
 
 const raw=JSON.parse(await readFile(new URL('../data/molecule-graph.json',import.meta.url),'utf8')),graph=createMoleculeGraph(raw),seeds=[7,19,43,101,313],reports=[];
+const reserved=new Set(FIELD_PROGRESSION_RESERVED_MOLECULE_IDS),automaticReachable=new Set(graph.roots),queue=[...graph.roots];
+for(let cursor=0;cursor<queue.length;cursor++)for(const id of graph.getNeighbors(queue[cursor]))if(!reserved.has(id)&&!automaticReachable.has(id)){automaticReachable.add(id);queue.push(id);}
+const automaticRoots=graph.roots.filter(id=>!reserved.has(id)).length,automaticDepth=Math.max(...graph.nodes.filter(node=>automaticReachable.has(node.id)).map(node=>node.depth));
 function dominantBranchShare(rows,count){const counts=new Map();for(const row of rows.slice(0,count))for(const branch of row.branchKeys)counts.set(branch,(counts.get(branch)??0)+1);return counts.size?Math.max(...counts.values())/count:0;}
-const graphMaxDepth=Math.max(...graph.nodes.map(node=>node.depth));
 for(const seed of seeds){
   const run=expandGraph(graph,{initial:graph.roots,seed}),at25=expansionSummary(run.selected,25),at50=expansionSummary(run.selected,50),at100=expansionSummary(run.selected,100),dominant25=dominantBranchShare(run.selected,25);
-  assert.equal(run.discovered.size,graph.nodes.length,`seed ${seed}: all ROOT-reachable production nodes must complete`);
-  assert.equal(run.selected.length,graph.nodes.length-graph.roots.length,`seed ${seed}: expansion must not stall or duplicate discoveries`);
+  assert.equal(run.discovered.size,automaticReachable.size,`seed ${seed}: all automatically reachable production nodes must complete`);
+  assert.equal(run.selected.length,automaticReachable.size-automaticRoots,`seed ${seed}: expansion must not stall or duplicate discoveries`);
+  for(const id of reserved)assert(!run.discovered.has(id),`seed ${seed}: reserved molecules stay out of automatic delivery`);
   assert(at25.branchCount>=4,`seed ${seed}: early expansion collapsed below four branches`);
   assert(at25.familyCount>=4,`seed ${seed}: early expansion collapsed below four families`);
   assert(dominant25<.8,`seed ${seed}: one branch dominates more than 80% of first 25 selections`);
   assert(at25.meanDepth<3.5,`seed ${seed}: early expansion is too deep on average`);
   assert(at50.branchCount>=at25.branchCount&&at50.familyCount>=at25.familyCount,`seed ${seed}: diversity must not shrink at 50 discoveries`);
-  assert(at100.maxDepth>=Math.min(4,graphMaxDepth),`seed ${seed}: deep nodes must remain reachable by 100 discoveries`);
-  assert.equal(Math.max(...run.selected.map(row=>row.depth)),graphMaxDepth,`seed ${seed}: deepest production depth must be reachable`);
+  assert(at100.maxDepth>=Math.min(4,automaticDepth),`seed ${seed}: deep nodes must remain reachable by 100 discoveries`);
+  assert.equal(Math.max(...run.selected.map(row=>row.depth)),automaticDepth,`seed ${seed}: deepest automatically reachable production depth must be reachable`);
   reports.push({seed,at25,at50,at100,dominant25:Number(dominant25.toFixed(3))});
 }
 
@@ -32,5 +36,5 @@ const carbonPicks=sampleIds(carbonScores,{seed:20260913,count:4000}),oxygenPicks
 assert((carbonPicks.get(carbonNode.id)??0)>(oxygenPicks.get(carbonNode.id)??0),'Carbon region must increase deterministic carbon-affinity selection frequency');
 assert((oxygenPicks.get(oxygenNode.id)??0)>(carbonPicks.get(oxygenNode.id)??0),'Oxygen region must increase deterministic oxygen-affinity selection frequency');
 
-console.log(`Frontier simulation passed: ${graph.nodes.length} nodes, max depth ${graphMaxDepth}, seeds ${seeds.join(', ')}.`);
+console.log(`Frontier simulation passed: ${automaticReachable.size} automatically reachable of ${graph.nodes.length} nodes, max depth ${automaticDepth}, seeds ${seeds.join(', ')}.`);
 console.log(JSON.stringify(reports));

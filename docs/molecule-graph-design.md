@@ -1,10 +1,10 @@
 # Molecule Graph production design
 
-> Production source of truth: `data/molecule-graph.json`, paired 1:1 with `data/molecules.json`. The 162-entry legacy inventory was replaced by the audited Molecule DB v2 graph, which has since expanded to 135 production nodes.
+> Production source of truth: `data/molecule-graph.json`, paired 1:1 with `data/molecules.json`. The 162-entry legacy inventory was replaced by the audited Molecule DB v2 graph, which has since expanded to 142 production nodes.
 
 ## 1. Decision summary
 
-The production database and discovery graph now contain **135 molecules / nodes** connected by **157 edges**. The original Molecule DB v2 migration applied the PR #176 audit outcome: RETAIN 117, REWRITE 8, DELETE 37, and ADD 4; subsequent reviewed extensions added the current resonance/nitro series. The graph remains one connected component with no isolated nodes, a maximum direct-neighbor count of **7**, and a longest degree-2 corridor of **4**.
+The production database and discovery graph now contain **142 molecules / nodes** connected by **166 edges**. The original Molecule DB v2 migration applied the PR #176 audit outcome: RETAIN 117, REWRITE 8, DELETE 37, and ADD 4; subsequent reviewed extensions added the current resonance/nitro series. The graph remains one connected component with no isolated nodes, a maximum direct-neighbor count of **7**, and a longest degree-2 corridor of **4**.
 
 The main reduction is not “remove obscure chemistry.” It is “remove repeated homolog/isomer cards when they do not open a new branch.” This keeps characteristic leaves such as `carbon-tetrachloride`, `aspirin`, `methionine`, and `dimethyl-sulfoxide`, while removing repeated C5 alkene/ketone/ester/cresol/xylene variants whose graph role is already represented nearby.
 

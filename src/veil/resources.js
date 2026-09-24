@@ -14,6 +14,7 @@ import { validateWorkspace } from '../workspace-save.js?v=31';
 import { WORKSPACE_STORAGE_KEY,parseWorkspaceSave } from '../workspace-persistence.js?v=1';
 import { hasInsightSitePool } from './signal-claimability.js';
 import {INSIGHT_DESTINATION_BALANCE_UNIT,recordInsightDestination,scoreInsightDestinations} from './insight-destination.js';
+import {isFieldProgressionReserved} from './progression-reserved-molecules.js';
 import {commitWorldAwakening,markCoreFractured,worldAwakeningState} from './world-awakening.js';
 import {HAZARD_TREATMENTS,hazardTreatmentPlan} from './hazard-treatments.js';
 import { RESOURCE_KEY,MAX_RESOURCE_VALUE,MANAGED_ELEMENTS,DUST_ELEMENTS,STOCKED_ELEMENTS,createInitialProgress,createInitialTanks,createInitialSelectedLoadout,createInitialResourcesState,isResourceInteger,isValidResourceId,loadPersistedResources,serializeResourcesState,finishPendingResourcesReset } from './resources-persistence.js';
@@ -46,7 +47,7 @@ export function insightRecipeElementEligible(record,{canUseElement=()=>false}={}
 }
 export function signalCandidateEligible(record,{region,recipes=[],hints=[],excludeIds=new Set(),canUseElement=()=>false}={}){
   const minimum=minimumSignalRegionFor(record),currentRank=regionRank(region),minimumRank=regionRank(minimum);
-  return minimum!==null&&currentRank>=minimumRank&&!CRITICAL_SIGNAL_IDS.has(record.id)&&!CHALLENGE_SIGNAL_IDS.has(record.id)&&!recipes.includes(record.id)&&!hints.includes(record.id)&&!excludeIds.has(record.id)&&record.atoms.length<=12&&insightRecipeElementEligible(record,{canUseElement});
+  return minimum!==null&&currentRank>=minimumRank&&!isFieldProgressionReserved(record.id)&&!CRITICAL_SIGNAL_IDS.has(record.id)&&!CHALLENGE_SIGNAL_IDS.has(record.id)&&!recipes.includes(record.id)&&!hints.includes(record.id)&&!excludeIds.has(record.id)&&record.atoms.length<=12&&insightRecipeElementEligible(record,{canUseElement});
 }
 export function createResources({storage,onStatus=()=>{}}={}){
   if(storage===undefined)try{storage=window.localStorage;}catch{storage=null;}
