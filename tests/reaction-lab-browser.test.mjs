@@ -56,7 +56,7 @@ try{
 
   await send('Runtime.enable');await send('Page.enable');
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await send('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({schemaVersion:3,discoveredMolecules:${JSON.stringify(['water','ethanol','acetic-anhydride','acetic-acid','ethyl-acetate','oxygen','hydrogen','acetone','methane'].map((id,index)=>({id,at:index+1,order:index+1})))},discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]}));`});
+  await send('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({schemaVersion:3,discoveredMolecules:${JSON.stringify(['water','ethanol','acetic-anhydride','acetic-acid','ethyl-acetate','oxygen','hydrogen','acetone','methane','hexamethylenediamine','isoamyl-acetate','methylcyclohexane'].map((id,index)=>({id,at:index+1,order:index+1})))},discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]}));`});
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1`});
   await waitFor("document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled&&window.__reactionLabProbe",'Reaction Lab entry did not initialize');
   await evaluate("window.__labReactionEvents=[];window.addEventListener('molecule-craft:reaction-lab-product',event=>window.__labReactionEvents.push(event.detail));document.querySelector('#open-reaction-lab').click()");
@@ -101,5 +101,15 @@ try{
     assert.equal(await evaluate('window.__labReactionEvents.length'),0,`${ids.join('+')} must not create a reaction`);
     assert.equal((await snapshot()).instances.length,snapshotBefore.instances.length,'Negative controls leave the scene population unchanged');
   }
-  console.log('Reaction Lab 390x844 browser regression passed: camera-plane drag after orbit, tracked H···O formation/follow/break, both registered reactions from canvas dragging, and O2/H2 negative controls.');
+  await setSlots(['hexamethylenediamine','isoamyl-acetate','methylcyclohexane']);
+  await waitFor("document.querySelector('[data-lab-status]').textContent.includes('6 個')",'Three-species scene did not create six molecules');
+  const largeScene=await snapshot();assert.equal(largeScene.instances.length,6);assert.ok(Math.max(...largeScene.instances.map(item=>item.atomCount))>=24,'Large DB molecules participate in the six-particle performance case');
+  const frameSample=await evaluate(`new Promise(resolve=>{let first=0,last=0,count=0,maxGap=0;function frame(now){if(!first)first=now;if(last)maxGap=Math.max(maxGap,now-last);last=now;count++;if(now-first>=900)resolve({count,elapsed:now-first,maxGap,mean:(now-first)/Math.max(1,count-1)});else requestAnimationFrame(frame)}requestAnimationFrame(frame)})`);
+  assert.ok(frameSample.count>=10,`Six-molecule interaction scene stalled: ${JSON.stringify(frameSample)}`);assert.ok(frameSample.maxGap<260,`Six-molecule interaction caused a visible frame stall: ${JSON.stringify(frameSample)}`);
+  await evaluate("document.querySelector('[data-lab-mode=view]').click()");
+  const canvasRect=await evaluate("(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}})()");
+  const orbitStart={x:canvasRect.x+8,y:canvasRect.y+canvasRect.height*.5},orbitEnd={x:orbitStart.x+42,y:orbitStart.y+18};
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:orbitStart.x,y:orbitStart.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:orbitStart.x,y:orbitStart.y,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:orbitEnd.x,y:orbitEnd.y,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:orbitEnd.x,y:orbitEnd.y,button:'left',buttons:0});
+  assert.notEqual((await snapshot()).camera.azimuth,largeScene.camera.azimuth,'Camera orbit remains responsive with six large molecules');
+  console.log('Reaction Lab 390x844 browser regression passed: camera-plane drag after orbit, tracked H···O formation/follow/break, both registered reactions from canvas dragging, O₂/H₂ negative controls, and six-large-molecule interaction performance.');
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();}

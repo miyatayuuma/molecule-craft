@@ -69,9 +69,10 @@ test('hydrogen bond state forms, persists through hysteresis, and breaks by stre
  assert.equal(tracker.update('hbond',identity,{distance:3,alignment:.8},0).formed,true);
  assert.ok(tracker.update('hbond',identity,{distance:3.7,alignment:.3},100).bond,'bond persists between formation and break thresholds');
  assert.equal(tracker.update('hbond',identity,{distance:4.2,alignment:.8},200).broken,true);
- tracker.update('hbond',identity,{distance:2.4,alignment:.8},300);assert.equal(tracker.update('hbond',identity,{distance:2.5,alignment:.8,relativeSpeed:.2},400).broken,true);
- tracker.update('hbond',identity,{distance:2.4,alignment:.8},500);assert.equal(tracker.update('hbond',identity,{distance:2.4,alignment:.05},600).broken,true);
- tracker.update('hbond',identity,{distance:2.4,alignment:.8},700);assert.equal(tracker.update('hbond',identity,{distance:2.5,alignment:.8,tensileLoad:.2},800).broken,true);
+ assert.equal(tracker.update('hbond',identity,{distance:2.4,alignment:.8},300).formed,false,'A broken bond does not reform during its short cooldown');
+ tracker.update('hbond',identity,{distance:2.4,alignment:.8},500);assert.equal(tracker.update('hbond',identity,{distance:2.5,alignment:.8,relativeSpeed:.2},600).broken,true);
+ tracker.update('hbond',identity,{distance:2.4,alignment:.8},900);assert.equal(tracker.update('hbond',identity,{distance:2.4,alignment:.05},1000).broken,true);
+ tracker.update('hbond',identity,{distance:2.4,alignment:.8},1300);assert.equal(tracker.update('hbond',identity,{distance:2.5,alignment:.8,tensileLoad:.2},1400).broken,true);
  assert.deepEqual(hydrogenBondVisualEndpoints(identity),{from:{instanceId:'w1',atom:1},to:{instanceId:'w2',atom:0}});
 });
 test('stoichiometric supply requires every species to be selected in slots',()=>{assert.equal(planStoichiometricSupply(['water','water'],['water','','']).ok,true);assert.equal(planStoichiometricSupply(['water','ethanol'],['water','','']).reason,'required-species-not-in-slots');});

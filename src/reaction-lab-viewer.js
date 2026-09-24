@@ -219,6 +219,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function physicalInteractions(dtScale,now){
     const accumulators=new Map(instances.map(item=>[item,{force:new THREE.Vector3(),torque:new THREE.Vector3(),inertia:Math.max(.8,item.record.atoms.reduce((sum,atom)=>sum+atom.point.lengthSq(),0))}]));
+    const atomWorldPositions=new Map(instances.map(item=>{item.group.updateWorldMatrix(true,false);return [item,item.record.atoms.map(atom=>vector(THREE,atom.point).applyMatrix4(item.group.matrixWorld))];}));
     const activePairs=[];
     for(let i=0;i<instances.length;i++)for(let j=i+1;j<instances.length;j++){
       const a=instances[i],b=instances[j];if(a.busy||b.busy)continue;
@@ -226,7 +227,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const centerDelta=b.group.position.clone().sub(a.group.position),centerDistance=centerDelta.length();if(centerDistance>4.25+a.interactionRadius+b.interactionRadius)continue;
       activePairs.push([a,b]);
       for(let ai=0;ai<a.record.atoms.length;ai++)for(let bi=0;bi<b.record.atoms.length;bi++){
-        const atomA=a.record.atoms[ai],atomB=b.record.atoms[bi],pointA=atomWorld(a,ai),pointB=atomWorld(b,bi),delta=pointB.clone().sub(pointA),separation=delta.length();if(separation<1e-5)continue;
+        const atomA=a.record.atoms[ai],atomB=b.record.atoms[bi],pointA=atomWorldPositions.get(a)[ai],pointB=atomWorldPositions.get(b)[bi],delta=pointB.clone().sub(pointA),separation=delta.length();if(separation<1e-5)continue;
         const minimum=(modelAtomRadius(atomA.element)+modelAtomRadius(atomB.element))*.92;
         if(separation<minimum){const magnitude=Math.min(.075,(minimum-separation)*.045),push=delta.normalize().multiplyScalar(-magnitude);applyForce(accumulators,a,push,pointA);applyForce(accumulators,b,push.clone().negate(),pointB);}
         if(separation<4.25&&Math.abs(a.interactionCharges[ai])>.004&&Math.abs(b.interactionCharges[bi])>.004){
@@ -273,7 +274,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   if(new URLSearchParams(location.search).get('reactionLabTest')==='1'&&['localhost','127.0.0.1'].includes(location.hostname)){
     const project=point=>{camera.updateMatrixWorld();const projected=point.clone().project(camera),rect=canvas.getBoundingClientRect();return{x:rect.left+(projected.x+1)*.5*rect.width,y:rect.top+(1-projected.y)*.5*rect.height};};
     window.__reactionLabProbe={
-      snapshot:()=>({instances:instances.map(item=>({id:item.id,species:item.species,busy:item.busy,position:item.group.position.toArray(),charges:[...item.interactionCharges]})),bonds:hydrogenBonds.values().map(bond=>({key:bond.key,endpoints:hydrogenBondVisualEndpoints(bond),distance:bond.distance})),dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
+      snapshot:()=>({instances:instances.map(item=>({id:item.id,species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),charges:[...item.interactionCharges]})),bonds:hydrogenBonds.values().map(bond=>({key:bond.key,endpoints:hydrogenBondVisualEndpoints(bond),distance:bond.distance})),camera:{distance,azimuth,elevation},dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
       prepareContact(ruleId,startDistance=2.25){
         const candidate=instances.flatMap((left,index)=>instances.slice(index+1).flatMap(right=>reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],records))).find(item=>item.ruleId===ruleId);
         if(!candidate)throw Error(`No live instance pair for ${ruleId}`);

@@ -111,23 +111,24 @@ export function hydrogenBondEligibility(donor,acceptor,{distance,alignment=1}={}
 }
 export function chargeInteractionSign(chargeA,chargeB){const product=(Number(chargeA)||0)*(Number(chargeB)||0);return product===0?0:Math.sign(product);}
 
-export function createHydrogenBondTracker({formationDistance=3.35,breakDistance=4.05,formationAlignment=.35,breakAlignment=.12,breakRelativeSpeed=.11,breakTensileLoad=.12}={}){
-  const active=new Map();
+export function createHydrogenBondTracker({formationDistance=3.35,breakDistance=4.05,formationAlignment=.35,breakAlignment=.12,breakRelativeSpeed=.11,breakTensileLoad=.12,reformCooldownMs=260}={}){
+  const active=new Map(),cooldowns=new Map();
   return {
     update(key,identity,metrics,now){
       const previous=active.get(key),distance=metrics.distance,alignment=metrics.alignment??1;
       if(!previous){
+        const cooldownUntil=cooldowns.get(key)??0;if(now<cooldownUntil)return {formed:false,bond:null,broken:false};cooldowns.delete(key);
         if(!identity||distance>formationDistance||distance<1.15||alignment<formationAlignment)return {formed:false,bond:null,broken:false};
         const bond={...identity,key,formedAt:now,restLength:Math.min(2.45,Math.max(1.8,distance)),distance,alignment};active.set(key,bond);return {formed:true,bond,broken:false};
       }
       const broken=distance>breakDistance||distance<1.15||alignment<breakAlignment||(metrics.relativeSpeed??0)>breakRelativeSpeed||(metrics.tensileLoad??0)>breakTensileLoad;
-      if(broken){active.delete(key);return {formed:false,bond:null,broken:true};}
+      if(broken){active.delete(key);cooldowns.set(key,now+reformCooldownMs);return {formed:false,bond:null,broken:true};}
       Object.assign(previous,{distance,alignment,relativeSpeed:metrics.relativeSpeed??0,tensileLoad:metrics.tensileLoad??0});return {formed:false,bond:previous,broken:false};
     },
     get(key){return active.get(key)??null;},
     values(){return [...active.values()];},
     delete(key){return active.delete(key);},
-    reset(){active.clear();},
+    reset(){active.clear();cooldowns.clear();},
   };
 }
 
