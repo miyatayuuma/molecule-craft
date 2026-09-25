@@ -5,4 +5,8 @@ const shell=await readFile(new URL('../src/game-shell.js',import.meta.url),'utf8
 assert.ok(shell.includes("isOpen:()=>dialogs.some(dialog=>dialog.open)"),'Game shell treats the supply dialog itself as an open dialog');
 assert.ok(app.includes("canLeave:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen())&&(saveWorkspace(true)||!resources.blocked)"),'Expedition launch must remain allowed while the supply dialog itself is open');
 assert.ok(!app.includes("canLeave:()=>!resources.blocked&&!interactionLocked()"),'Launch must not reuse the craft interaction lock that includes the supply dialog');
+assert.match(app,/reactionLabDialogOpen=false,reactionLabPointerLocked=false/,'Dialog exclusion and active-pointer lock have separate app state');
+assert.match(app,/!reactionLabDialogOpen/,'Other dialogs use Reaction Lab dialog state, not pointer-up state');
+assert.match(app,/\|\|reactionLabPointerLocked/,'Craft mutation lock reads only the Reaction Lab pointer/gesture lock');
+assert.doesNotMatch(app,/onLockChange:locked=>\{reactionLab/,'One callback must not own both Reaction Lab states');
 console.log('Explorer launch dialog lock passed.');
