@@ -44,7 +44,8 @@ try{
     assert.ok(plan.initialDistance>1.18&&plan.initialDistance<3,`contact setup starts outside the reaction threshold: ${JSON.stringify(plan)}`);
     await drag(plan,{duringHold:async()=>{await new Promise(resolve=>setTimeout(resolve,900));const committed=await snapshot();assert.equal(committed.dialogOpen,true,'Reaction commit must not close the Lab');assert.equal(committed.pointerActive,false,'Reaction commitment clears its stale drag/pointer state');}});
     await waitFor("document.querySelector('[data-lab-status]').textContent.startsWith('反応完了')",`${ruleId} did not complete from a real canvas drag`,10000);
-    const result=await waitFor(`window.__labReactionEvents.at(-1)?.ruleId==='${ruleId}'`,'Reaction product event was not emitted',2000);
+    await waitFor(`window.__labReactionEvents.at(-1)?.ruleId==='${ruleId}'`,'Reaction product event was not emitted',2000);
+    const result=await evaluate('window.__labReactionEvents.at(-1)');
     assert.deepEqual(result.products,products);
     const remaining=await snapshot();for(const product of products)assert.ok(remaining.instances.some(item=>item.species===product),`3D product instance missing: ${product}`);
     assert.equal(remaining.instances.filter(item=>products.includes(item.species)).length,products.length,'Reaction must spawn the correct product instance count');
