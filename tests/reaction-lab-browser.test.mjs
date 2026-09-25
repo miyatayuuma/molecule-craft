@@ -69,9 +69,13 @@ try{
   const modes=await evaluate("[...document.querySelectorAll('[data-lab-mode]')].map(button=>button.getAttribute('aria-pressed'))");assert.deepEqual(modes,['false','false','true']);
   await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:145,y:370});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:145,y:370,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:205,y:405,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:205,y:405,button:'left',buttons:0});
   await evaluate("document.querySelector('[data-lab-mode=move]').click()");
-  const hbond=await evaluate('window.__reactionLabProbe.arrangeHydrogenBond()');
-  assert.equal(hbond.bonds,1,`Aligned water geometry must form a tracked H bond: ${JSON.stringify(hbond)}`);assert.ok(hbond.alignment>.6);
-  let waterState=await snapshot();assert.deepEqual(waterState.bonds[0].endpoints,{from:{instanceId:hbond.donorId,atom:1},to:{instanceId:hbond.acceptorId,atom:0}},'Displayed interaction connects donor H to acceptor O');
+  const hbond=await evaluate('window.__reactionLabProbe.arrangeHydrogenBond(22)');
+  assert.equal(hbond.bonds,1,`Directional water geometry must form a tracked H bond: ${JSON.stringify(hbond)}`);assert.ok(hbond.angle>=140);
+  let waterState=await snapshot();assert.deepEqual(waterState.bonds[0].endpoints,{from:{instanceId:hbond.donorId,atom:1},to:{instanceId:hbond.acceptorId,atom:0}},'Debug authority resolves donor H to acceptor O');
+  assert.equal(waterState.hydrogenBondVisualCount,0,'Production interaction state must not render a dashed-line overlay');
+  const initialBondDiagnostic=await evaluate(`window.__reactionLabProbe.hydrogenBondDiagnostics('${hbond.donorId}','${hbond.acceptorId}')`);
+  assert.ok(initialBondDiagnostic.bonds[0].distance>initialBondDiagnostic.bonds[0].equilibriumDistance);assert.ok(initialBondDiagnostic.bonds[0].radialForce>0,'Captured bond has meaningful radial attraction immediately');assert.ok(initialBondDiagnostic.bonds[0].angularTorque>0,'Misaligned captured bond has explicit angular restoring authority');
+  const settle=await evaluate('window.__reactionLabProbe.advanceDeterministic(28)'),settledBond=settle.bonds[0];assert.ok(settledBond.distance<hbond.distance,`Bond distance should move toward canonical equilibrium: ${JSON.stringify({hbond,settledBond})}`);assert.ok(settledBond.angle>=140);
   const donorBefore=waterState.instances.find(item=>item.id===hbond.donorId).position,acceptorBefore=waterState.instances.find(item=>item.id===hbond.acceptorId).position;
   const axis=hbond.axis,slowPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${hbond.donorId}',0,[${axis.map(value=>(-.45*value).toFixed(8)).join(',')}])`);
   assert.ok(Math.hypot(slowPlan.end.x-slowPlan.start.x,slowPlan.end.y-slowPlan.start.y)>4,'Slow drag plan must produce visible camera-plane translation');
@@ -85,10 +89,18 @@ try{
   await drag(fastPlan,{steps:2,stepDelay:8,hold:0});await new Promise(resolve=>setTimeout(resolve,120));
   const fastState=await snapshot();
   assert.equal(fastState.bonds.length,0,`Fast pulling breaks the H bond; plan=${JSON.stringify(fastPlan)} state=${JSON.stringify(fastState)}`);
+  const rebound=await evaluate('window.__reactionLabProbe.rebindDifferentPartner()');assert.deepEqual(rebound.formedWith,[rebound.oldPartnerId]);assert.equal(rebound.afterBreak,0);assert.equal(rebound.final[0].acceptor,rebound.newPartnerId,'A donor rebinds to a different water partner');assert.notEqual(rebound.final[0].acceptor,rebound.oldPartnerId);assert.ok(rebound.final[0].angle>=140);
   const donorAfter=waterState.instances.find(item=>item.id===hbond.donorId).position;
   assert.ok(Math.abs(donorAfter[2]-donorBefore[2])>.001,'Camera-facing drag after orbit must retain depth-aware world motion');
 
   await evaluate("document.querySelector('[data-lab-mode=move]').click()" );
+  await setSlots(['water','carbon-dioxide','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/CO₂ pair did not initialize');
+  const co2Bond=await evaluate("window.__reactionLabProbe.arrangeHydrogenBondPair('water','carbon-dioxide',0,1,1)");assert.equal(co2Bond.bondCount,1,`Water donor must form H···O with CO₂: ${JSON.stringify(co2Bond)}`);assert.ok(co2Bond.angle>=140);assert.ok(co2Bond.diagnostics.bonds[0].radialForce>0);
+  assert.equal((await snapshot()).hydrogenBondVisualCount,0);
+  await setSlots(['water','acetone','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/acetone pair did not initialize');
+  const acetoneBond=await evaluate("window.__reactionLabProbe.arrangeHydrogenBondPair('water','acetone',0,1,3)");assert.equal(acetoneBond.bondCount,1,`Water H points toward acetone carbonyl O: ${JSON.stringify(acetoneBond)}`);assert.ok(acetoneBond.angle>=140);
+  await setSlots(['water','methane','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/methane negative pair did not initialize');await evaluate("window.__reactionLabProbe.placeSpeciesPair('water','methane',.82)");await new Promise(resolve=>setTimeout(resolve,180));assert.equal((await snapshot()).bonds.length,0,'Methane does not enter the donor/acceptor network');
+
   await setSlots(['acetic-anhydride','water','']);
   await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Hydrolysis reactant population did not initialize');
   await runReaction('anhydride-hydrolysis',['acetic-acid','acetic-acid']);
