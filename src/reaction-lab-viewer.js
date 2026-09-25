@@ -149,6 +149,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     });
     lastHydrogenBondLifecycle=hydrogenBonds.updateAll(candidates,now);
     for(const bond of hydrogenBonds.values()){bond.lastDistance=bond.distance;bond.lastSampleAt=now;}
+    return lastHydrogenBondLifecycle;
   }
 
   function reactionStep(now){
@@ -299,8 +300,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         acceptor.group.quaternion.setFromUnitVectors(acceptorVector,axis);
         const donorH=atomWorld(donor,1),acceptorO=atomWorld(acceptor,0),offset=axis.clone().multiplyScalar(Math.cos(angleOffsetDegrees*Math.PI/180)).add(new THREE.Vector3(0,1,0).multiplyScalar(Math.sin(angleOffsetDegrees*Math.PI/180))).normalize();acceptor.group.position.add(donorH.clone().addScaledVector(offset,2.3).sub(acceptorO));
         const others=waters.slice(2);others.forEach((item,index)=>item.group.position.set(index%2?4.8:-4.8,index<2?2.65:-2.65,0));
-        updateHydrogenBondStates(performance.now());
-        return {donorId:donor.id,acceptorId:acceptor.id,axis:axis.toArray(),bonds:hydrogenBonds.values().length,angle:hydrogenBondGeometry(donor,0,1,acceptor,0).angle,distance:atomWorld(donor,1).distanceTo(atomWorld(acceptor,0)),geometry:{from:atomWorld(donor,1).toArray(),to:atomWorld(acceptor,0).toArray()}};
+        const lifecycle=updateHydrogenBondStates(performance.now()),candidates=collectHydrogenBondCandidates().map(candidate=>({key:candidate.key,distance:candidate.distance,angle:candidate.angle,acceptorOpenness:candidate.acceptorOpenness,acceptorCapacity:candidate.identity.acceptorCapacity}));
+        return {donorId:donor.id,acceptorId:acceptor.id,axis:axis.toArray(),bonds:hydrogenBonds.values().length,angle:hydrogenBondGeometry(donor,0,1,acceptor,0).angle,distance:atomWorld(donor,1).distanceTo(atomWorld(acceptor,0)),lifecycle,candidates,geometry:{from:atomWorld(donor,1).toArray(),to:atomWorld(acceptor,0).toArray()}};
       },
       rebindDifferentPartner(){
         const waters=instances.filter(item=>item.species==='water');if(waters.length<3)throw Error('Water-only population with three instances is required');
