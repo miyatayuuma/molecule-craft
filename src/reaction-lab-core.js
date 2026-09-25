@@ -43,15 +43,44 @@ function bondPolarityScale(a,b){
   if(key==='H-N')return .17;
   if(key==='C-F')return .23;
   if(key==='C-Cl')return .105;
+  if(key==='F-H')return .25;
+  if(key==='Cl-H')return .20;
+  if(key==='Cl-P')return .17;
+  if(key==='H-P')return .045;
   if(key==='O-S')return .21;
   return .14;
+}
+function contextualBondPolarityScale(record,a,b,order){
+  const elementA=atomElement(record,a),elementB=atomElement(record,b),elements=pairKey(elementA,elementB);
+  if(elements==='H-O'){
+    const oxygen=elementA==='O'?a:b;
+    if(neighbors(record,oxygen).some(([carbon])=>atomElement(record,carbon)==='C'&&neighbors(record,carbon).some(([other,bondOrder])=>other!==oxygen&&atomElement(record,other)==='O'&&bondOrder>=2)))return .235;
+  }
+  if(elements==='C-O'){
+    const oxygen=elementA==='O'?a:b,carbon=elementA==='C'?a:b,oxygenHasHydrogen=neighbors(record,oxygen).some(([other])=>atomElement(record,other)==='H');
+    if(Number(order)>=2){
+      const adjacent=neighbors(record,carbon).filter(([other])=>other!==oxygen).map(([other,bondOrder])=>({element:atomElement(record,other),order:bondOrder}));
+      if(adjacent.some(item=>item.element==='N'&&item.order===1))return .175;
+      if(adjacent.some(item=>item.element==='O'&&item.order===1))return .185;
+      return .205;
+    }
+    const carbonylCarbon=neighbors(record,carbon).some(([other,bondOrder])=>other!==oxygen&&atomElement(record,other)==='O'&&bondOrder>=2);
+    if(oxygenHasHydrogen)return carbonylCarbon ? .19 : .285;
+    if(carbonylCarbon)return .105;
+    return .15;
+  }
+  if(elements==='C-N'){
+    const nitrogen=elementA==='N'?a:b;
+    if(neighbors(record,nitrogen).some(([carbon,bondOrder])=>atomElement(record,carbon)==='C'&&neighbors(record,carbon).some(([other,otherOrder])=>other!==nitrogen&&atomElement(record,other)==='O'&&otherOrder>=2)))return .09;
+  }
+  return bondPolarityScale(elementA,elementB);
 }
 export function deriveInteractionCharges(record,{overrides={}}={}){
   const charges=record.atoms.map(()=>0);
   for(const [a,b,order=1] of record.bonds){
     const elementA=atomElement(record,a),elementB=atomElement(record,b),difference=(ELECTRONEGATIVITY[elementA]??2.5)-(ELECTRONEGATIVITY[elementB]??2.5);
     if(!difference)continue;
-    const scale=bondPolarityScale(elementA,elementB)*Math.sqrt(Math.max(1,Number(order)||1));
+    const scale=contextualBondPolarityScale(record,a,b,order)*Math.sqrt(Math.max(1,Number(order)||1));
     const transfer=Math.max(-.42,Math.min(.42,difference*scale));
     charges[a]-=transfer;charges[b]+=transfer;
   }
@@ -59,8 +88,68 @@ export function deriveInteractionCharges(record,{overrides={}}={}){
   // Bond dipoles are neutral by construction. The tiny correction also keeps
   // optional data overrides from accidentally creating a net molecular charge.
   const mean=charges.length?charges.reduce((sum,value)=>sum+value,0)/charges.length:0;
-  const centered=charges.map(value=>value-mean),maximum=Math.max(0,...centered.map(Math.abs)),scale=maximum>.8 ? .8/maximum : 1;
+  const centered=charges.map(value=>value-mean),maximum=Math.max(0,...centered.map(Math.abs)),scale=maximum>.42 ? .42/maximum : 1;
   return centered.map(value=>value*scale);
+}
+
+const SUPPORTED_BOND_ENVIRONMENTS=new Set(['C-H','C-C','C-N','C-O','C-F','C-Cl','C-Br','C-I','C-P','C-S','Cl-Cl','Cl-H','Cl-O','Cl-P','F-H','F-S','H-H','H-N','H-O','H-P','H-S','N-N','N-O','N-S','O-O','O-P','O-S','P-S','S-S']);
+export function auditInteractionEnvironment(record){
+  const unsupported=[];
+  for(const [a,b,order=1] of record.bonds){const left=atomElement(record,a),right=atomElement(record,b),key=pairKey(left,right);if(!SUPPORTED_BOND_ENVIRONMENTS.has(key))unsupported.push({kind:'bond',atoms:[a,b],elements:[left,right],order});}
+  for(let atom=0;atom<record.atoms.length;atom++)if(!ELECTRONEGATIVITY[atomElement(record,atom)])unsupported.push({kind:'element',atom,element:atomElement(record,atom)});
+  return {moleculeId:record.id??null,unsupported};
+}
+export function auditInteractionDatabase(records){
+  const findings=[];
+  for(const record of records){const charges=deriveInteractionCharges(record),environment=auditInteractionEnvironment(record),sum=charges.reduce((total,value)=>total+value,0);
+    if(charges.some(value=>!Number.isFinite(value)||Math.abs(value)>.4200001))findings.push({kind:'invalid-charge',moleculeId:record.id});
+    if(Math.abs(sum)>1e-8)findings.push({kind:'non-neutral-interaction-charge',moleculeId:record.id,sum});
+    findings.push(...environment.unsupported.map(item=>({...item,moleculeId:record.id})));
+    let labels=record.atoms.map((raw,index)=>`${atomElement(record,index)}:${Number(record.formalCharges?.[String(index)]??raw?.charge??0)}:${neighbors(record,index).length}`);
+    for(let round=0;round<3;round++)labels=labels.map((label,index)=>`${label}[${neighbors(record,index).map(([other,order])=>`${order}:${labels[other]}`).sort().join(',')}]`);
+    const groups=new Map();labels.forEach((label,index)=>{const members=groups.get(label)??[];members.push(index);groups.set(label,members);});
+    for(const members of groups.values())if(members.length>1&&Math.max(...members.map(index=>charges[index]))-Math.min(...members.map(index=>charges[index]))>1e-8)findings.push({kind:'symmetry-equivalent-charge-mismatch',moleculeId:record.id,atoms:members});
+  }
+  return findings;
+}
+export function interactionDipole(charges,positions,center={x:0,y:0,z:0}){
+  return charges.reduce((sum,charge,index)=>add(sum,scale(sub(positions[index],center),charge)),vec());
+}
+
+const vec=(x=0,y=0,z=0)=>({x,y,z});
+const add=(a,b)=>vec(a.x+b.x,a.y+b.y,a.z+b.z);
+const sub=(a,b)=>vec(a.x-b.x,a.y-b.y,a.z-b.z);
+const scale=(a,k)=>vec(a.x*k,a.y*k,a.z*k);
+const cross=(a,b)=>vec(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x);
+function atomInteractionForce(atomA,atomB,delta,{chargeOptions={},stericOptions={}}={}){
+  const distance=Math.hypot(delta.x,delta.y,delta.z),coulomb=coulombPairForce(atomA.interactionCharge,atomB.interactionCharge,delta,chargeOptions);
+  const minimum=atomA.excludedRadius+atomB.excludedRadius,overlap=Math.max(0,minimum-distance),stericMagnitude=overlap>0?Math.min(stericOptions.maxForce??.24,(stericOptions.stiffness??4.5)*overlap*overlap/Math.max(.08,distance)):0;
+  const stericDirection=distance>1e-8?scale(delta,1/distance):vec(1,0,0),steric=scale(stericDirection,-stericMagnitude);
+  return {coulomb:vec(coulomb.x,coulomb.y,coulomb.z),steric,distance,coulombMagnitude:coulomb.magnitude,stericMagnitude,minimumSeparation:minimum};
+}
+export function decomposeMoleculePairInteraction(instanceA,instanceB,{hbonds=[],chargeOptions={strength:.42,softening:.85,cutoff:4.25,maxForce:.025},stericOptions={},includeCoulomb=true,includeSteric=true,includeHBond=true,includePairs=true}={}){
+  const molecule=()=>({coulombForce:vec(),stericForce:vec(),hbondForce:vec(),totalForce:vec(),torque:vec()});
+  const aggregateA=molecule(),aggregateB=molecule(),pairs=[];
+  for(let ai=0;ai<instanceA.atoms.length;ai++)for(let bi=0;bi<instanceB.atoms.length;bi++){
+    const a=instanceA.atoms[ai],b=instanceB.atoms[bi],delta=sub(b.position,a.position),terms=atomInteractionForce(a,b,delta,{chargeOptions,stericOptions});
+    const cx=includeCoulomb?terms.coulomb.x:0,cy=includeCoulomb?terms.coulomb.y:0,cz=includeCoulomb?terms.coulomb.z:0,sx=includeSteric?terms.steric.x:0,sy=includeSteric?terms.steric.y:0,sz=includeSteric?terms.steric.z:0,fx=cx+sx,fy=cy+sy,fz=cz+sz;
+    aggregateA.coulombForce.x+=cx;aggregateA.coulombForce.y+=cy;aggregateA.coulombForce.z+=cz;aggregateB.coulombForce.x-=cx;aggregateB.coulombForce.y-=cy;aggregateB.coulombForce.z-=cz;
+    aggregateA.stericForce.x+=sx;aggregateA.stericForce.y+=sy;aggregateA.stericForce.z+=sz;aggregateB.stericForce.x-=sx;aggregateB.stericForce.y-=sy;aggregateB.stericForce.z-=sz;
+    aggregateA.totalForce.x+=fx;aggregateA.totalForce.y+=fy;aggregateA.totalForce.z+=fz;aggregateB.totalForce.x-=fx;aggregateB.totalForce.y-=fy;aggregateB.totalForce.z-=fz;
+    const ax=a.position.x-instanceA.center.x,ay=a.position.y-instanceA.center.y,az=a.position.z-instanceA.center.z,bx=b.position.x-instanceB.center.x,by=b.position.y-instanceB.center.y,bz=b.position.z-instanceB.center.z;
+    aggregateA.torque.x+=ay*fz-az*fy;aggregateA.torque.y+=az*fx-ax*fz;aggregateA.torque.z+=ax*fy-ay*fx;aggregateB.torque.x-=by*fz-bz*fy;aggregateB.torque.y-=bz*fx-bx*fz;aggregateB.torque.z-=bx*fy-by*fx;
+    if(includePairs)pairs.push({instanceAId:instanceA.id,atomA:ai,elementA:a.element,chargeA:a.interactionCharge,instanceBId:instanceB.id,atomB:bi,elementB:b.element,chargeB:b.interactionCharge,distance:terms.distance,coulombForce:includeCoulomb?terms.coulomb:vec(),coulombMagnitude:includeCoulomb?terms.coulombMagnitude:0,stericForce:includeSteric?terms.steric:vec(),stericMagnitude:includeSteric?terms.stericMagnitude:0,minimumSeparation:terms.minimumSeparation,hbondForce:false});
+  }
+  for(const bond of hbonds){if(!includeHBond)continue;const aSide=bond.donorInstanceId===instanceA.id?instanceA:bond.donorInstanceId===instanceB.id?instanceB:null,bSide=bond.acceptorInstanceId===instanceA.id?instanceA:bond.acceptorInstanceId===instanceB.id?instanceB:null;if(!aSide||!bSide||aSide===bSide)continue;
+    const donorAtom=bond.donorHydrogenAtom,acceptorAtom=bond.acceptorAtom,donor=aSide.atoms[donorAtom],acceptor=bSide.atoms[acceptorAtom];if(!donor||!acceptor)continue;
+    const delta=sub(acceptor.position,donor.position),relative=bond.relativeSeparationSpeed??0,forces=hydrogenBondSpringForces(delta,bond.restLength,relative),donorForce=forces.onDonor,acceptorForce=forces.onAcceptor;
+    const donorAggregate=aSide===instanceA?aggregateA:aggregateB,acceptorAggregate=bSide===instanceA?aggregateA:aggregateB;
+    donorAggregate.hbondForce=add(donorAggregate.hbondForce,donorForce);acceptorAggregate.hbondForce=add(acceptorAggregate.hbondForce,acceptorForce);
+    donorAggregate.totalForce=add(donorAggregate.totalForce,donorForce);acceptorAggregate.totalForce=add(acceptorAggregate.totalForce,acceptorForce);
+    donorAggregate.torque=add(donorAggregate.torque,cross(sub(donor.position,aSide.center),donorForce));acceptorAggregate.torque=add(acceptorAggregate.torque,cross(sub(acceptor.position,bSide.center),acceptorForce));
+    const row=includePairs&&(pairs.find(item=>item.instanceAId===aSide.id&&item.atomA===donorAtom&&item.instanceBId===bSide.id&&item.atomB===acceptorAtom)||pairs.find(item=>item.instanceAId===bSide.id&&item.atomA===acceptorAtom&&item.instanceBId===aSide.id&&item.atomB===donorAtom));if(row){row.hbondForce=true;row.hbondMagnitude=forces.magnitude;}
+  }
+  return {pairs,molecules:{[instanceA.id]:aggregateA,[instanceB.id]:aggregateB}};
 }
 
 function isAmideNitrogen(record,atom){return atomElement(record,atom)==='N'&&neighbors(record,atom).some(([carbon])=>atomElement(record,carbon)==='C'&&neighbors(record,carbon).some(([other,order])=>other!==atom&&atomElement(record,other)==='O'&&order>=2));}
@@ -91,8 +180,8 @@ export function deriveInteractionModel(record,options){
 export function coulombPairForce(chargeA,chargeB,delta,{strength=.42,softening=.8,cutoff=4,maxForce=.035}={}){
   const distance=Math.hypot(delta.x,delta.y,delta.z);
   if(!distance||distance>=cutoff||!chargeA||!chargeB)return {x:0,y:0,z:0,magnitude:0};
-  const product=chargeA*chargeB,denominator=Math.pow(distance*distance+softening*softening,1.5),scale=Math.max(-maxForce,Math.min(maxForce,-strength*product/denominator));
-  return {x:delta.x*scale,y:delta.y*scale,z:delta.z*scale,magnitude:Math.abs(scale)};
+  const product=chargeA*chargeB,denominator=Math.pow(distance*distance+softening*softening,1.5),rawScale=-strength*product/denominator,rawMagnitude=Math.abs(rawScale)*distance,scale=rawMagnitude>maxForce?rawScale*maxForce/rawMagnitude:rawScale;
+  return {x:delta.x*scale,y:delta.y*scale,z:delta.z*scale,magnitude:Math.min(maxForce,rawMagnitude)};
 }
 export function coulombPairForces(chargeA,chargeB,delta,options){
   const onA=coulombPairForce(chargeA,chargeB,delta,options);
@@ -111,7 +200,7 @@ export function hydrogenBondEligibility(donor,acceptor,{distance,alignment=1}={}
 }
 export function chargeInteractionSign(chargeA,chargeB){const product=(Number(chargeA)||0)*(Number(chargeB)||0);return product===0?0:Math.sign(product);}
 
-export function createHydrogenBondTracker({formationDistance=3.35,breakDistance=4.05,formationAlignment=.35,breakAlignment=.12,breakRelativeSpeed=.11,breakTensileLoad=.12,reformCooldownMs=260}={}){
+export function createHydrogenBondTracker({formationDistance=3.35,breakDistance=4.05,formationAlignment=.35,breakAlignment=.12,breakRelativeSpeed=.11,breakTensileLoad=.12,reformCooldownMs=260,acceptorCapacity=1,maxPerMoleculePair=1}={}){
   const active=new Map(),cooldowns=new Map();
   return {
     update(key,identity,metrics,now){
@@ -119,6 +208,10 @@ export function createHydrogenBondTracker({formationDistance=3.35,breakDistance=
       if(!previous){
         const cooldownUntil=cooldowns.get(key)??0;if(now<cooldownUntil)return {formed:false,bond:null,broken:false};cooldowns.delete(key);
         if(!identity||distance>formationDistance||distance<1.15||alignment<formationAlignment)return {formed:false,bond:null,broken:false};
+        const occupied=[...active.values()];
+        if(occupied.some(bond=>bond.donorInstanceId===identity.donorInstanceId&&bond.donorHydrogenAtom===identity.donorHydrogenAtom))return {formed:false,bond:null,broken:false,blocked:'donor-occupied'};
+        if(occupied.filter(bond=>bond.acceptorInstanceId===identity.acceptorInstanceId&&bond.acceptorAtom===identity.acceptorAtom).length>=acceptorCapacity)return {formed:false,bond:null,broken:false,blocked:'acceptor-capacity'};
+        if(occupied.filter(bond=>[bond.donorInstanceId,bond.acceptorInstanceId].sort().join('|')===[identity.donorInstanceId,identity.acceptorInstanceId].sort().join('|')).length>=maxPerMoleculePair)return {formed:false,bond:null,broken:false,blocked:'pair-capacity'};
         const bond={...identity,key,formedAt:now,restLength:Math.min(2.45,Math.max(1.8,distance)),distance,alignment};active.set(key,bond);return {formed:true,bond,broken:false};
       }
       const broken=distance>breakDistance||distance<1.15||alignment<breakAlignment||(metrics.relativeSpeed??0)>breakRelativeSpeed||(metrics.tensileLoad??0)>breakTensileLoad;

@@ -57,7 +57,7 @@ try{
 
   await send('Runtime.enable');await send('Page.enable');
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await send('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({schemaVersion:3,discoveredMolecules:${JSON.stringify(['water','ethanol','acetic-anhydride','acetic-acid','ethyl-acetate','oxygen','hydrogen','acetone','methane','hexamethylenediamine','isoamyl-acetate','methylcyclohexane'].map((id,index)=>({id,at:index+1,order:index+1})))},discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]}));`});
+  await send('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({schemaVersion:3,discoveredMolecules:${JSON.stringify(['water','ethanol','acetic-anhydride','acetic-acid','ethyl-acetate','oxygen','hydrogen','acetone','methane','carbon-dioxide','carbonic-acid','hexamethylenediamine','isoamyl-acetate','methylcyclohexane'].map((id,index)=>({id,at:index+1,order:index+1})))},discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]}));`});
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1`});
   await waitFor("document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled&&window.__reactionLabProbe",'Reaction Lab entry did not initialize');
   await evaluate("window.__labReactionEvents=[];window.addEventListener('molecule-craft:reaction-lab-product',event=>window.__labReactionEvents.push(event.detail));document.querySelector('#open-reaction-lab').click()");
@@ -105,6 +105,23 @@ try{
     assert.equal(await evaluate('window.__labReactionEvents.length'),0,`${ids.join('+')} must not create a reaction`);
     assert.equal((await snapshot()).instances.length,snapshotBefore.instances.length,'Negative controls leave the scene population unchanged');
   }
+  const forceFixture=async(speciesA,atomA,speciesB,atomB,sameSign)=>{
+    await setSlots(speciesA===speciesB?[speciesA,'','']:[speciesA,speciesB,'']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",`${speciesA}/${speciesB} force fixture did not initialize`);
+    const instances=(await snapshot()).instances,left=instances.filter(item=>item.species===speciesA),right=instances.filter(item=>item.species===speciesB),a=left[0],b=speciesA===speciesB?left[1]:right[0];assert.ok(a&&b,`Fixture instances missing for ${speciesA}/${speciesB}`);
+    const pose=await evaluate(`window.__reactionLabProbe.positionPairOnAtoms('${a.id}',${atomA},'${b.id}',${atomB},.45)`),decomposition=await evaluate(`window.__reactionLabProbe.decomposePair('${a.id}','${b.id}',{includeHBond:false})`),pair=decomposition.pairs.find(item=>item.atomA===atomA&&item.atomB===atomB);
+    assert.ok(Math.abs(pose.distance-.45)<1e-8);assert.ok(pair,`Pairwise diagnostic missing for ${speciesA}[${atomA}]/${speciesB}[${atomB}]`);
+    const projection=pair.coulombForce.x*.45;assert.ok(sameSign?projection<0:projection>0,`Direct Coulomb sign invariant failed: ${JSON.stringify(pair)}`);
+    assert.ok(pair.stericMagnitude>pair.coulombMagnitude,`Close-range excluded volume must dominate the direct Coulomb term: ${JSON.stringify(pair)}`);
+    const relaxed=await evaluate('window.__reactionLabProbe.advanceDeterministic(90)'),final=await evaluate(`window.__reactionLabProbe.decomposePair('${a.id}','${b.id}',{includeHBond:false})`);
+    assert.ok(relaxed.instances.every(item=>item.position.every(Number.isFinite)),`Deterministic no-thermal fixture diverged: ${JSON.stringify(relaxed)}`);assert.ok(Math.min(...final.pairs.map(item=>item.distance))>.12,`Deterministic fixture collapsed atom centers: ${speciesA}/${speciesB}`);
+    return pair;
+  };
+  await forceFixture('water',0,'water',0,true);
+  await forceFixture('water',0,'carbon-dioxide',1,true);
+  await forceFixture('water',1,'carbon-dioxide',1,false);
+  await forceFixture('water',0,'carbon-dioxide',0,false);
+  await forceFixture('carbonic-acid',0,'carbon-dioxide',0,true);
+  await forceFixture('carbonic-acid',2,'carbon-dioxide',1,true);
   await setSlots(['hexamethylenediamine','isoamyl-acetate','methylcyclohexane']);
   await waitFor("document.querySelector('[data-lab-status]').textContent.includes('6 個')",'Three-species scene did not create six molecules');
   const largeScene=await snapshot();assert.equal(largeScene.instances.length,6);assert.ok(Math.max(...largeScene.instances.map(item=>item.atomCount))>=24,'Large DB molecules participate in the six-particle performance case');
@@ -115,5 +132,5 @@ try{
   const orbitStart={x:canvasRect.x+8,y:canvasRect.y+canvasRect.height*.5},orbitEnd={x:orbitStart.x+42,y:orbitStart.y+18};
   await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:orbitStart.x,y:orbitStart.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:orbitStart.x,y:orbitStart.y,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:orbitEnd.x,y:orbitEnd.y,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:orbitEnd.x,y:orbitEnd.y,button:'left',buttons:0});
   assert.notEqual((await snapshot()).camera.azimuth,largeScene.camera.azimuth,'Camera orbit remains responsive with six large molecules');
-  console.log('Reaction Lab 390x844 browser regression passed: camera-plane drag after orbit, tracked H···O formation/follow/break, both registered reactions from canvas dragging, O₂/H₂ negative controls, and six-large-molecule interaction performance.');
+  console.log('Reaction Lab 390x844 browser regression passed: camera-plane drag after orbit, tracked H···O formation/follow/break, both registered reactions from canvas dragging, O₂/H₂ negative controls, A/B/C atom-pair force decomposition, and six-large-molecule interaction performance.');
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();}
