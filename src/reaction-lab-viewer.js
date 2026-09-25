@@ -23,7 +23,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const keyLight=new THREE.DirectionalLight(0xffffff,3);keyLight.position.set(3,6,7);scene.add(keyLight);
   const world=new THREE.Group();scene.add(world);
 
-  let slotValues=['','',''],instances=[],mode='move',selected=null,down=null,testIsolation=null;
+  let slotValues=['','',''],instances=[],mode='move',selected=null,down=null,testIsolation=null,reactionContactPairs=new Set();
   let azimuth=0,elevation=0,distance=15,last=performance.now(),disposed=false,reactionAnimation=null;
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher(),hydrogenBonds=createHydrogenBondTracker();
@@ -38,7 +38,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function atomWorld(item,index){const atom=item.record.atoms[index];return item.group.localToWorld(vector(THREE,atom.point));}
   function instanceById(id){return instances.find(item=>item.id===id)??null;}
   function clearBonds(){for(const [key,line] of bondVisuals){world.remove(line);line.geometry.dispose();line.material.dispose();bondVisuals.delete(key);}hydrogenBonds.reset();}
-  function clear(){for(const item of instances){world.remove(item.group);item.group.traverse(object=>{object.geometry?.dispose?.();object.material?.dispose?.();});}instances=[];clearBonds();contactMatcher.reset();selected=null;testIsolation=null;}
+  function clear(){for(const item of instances){world.remove(item.group);item.group.traverse(object=>{object.geometry?.dispose?.();object.material?.dispose?.();});}instances=[];clearBonds();contactMatcher.reset();reactionContactPairs.clear();selected=null;testIsolation=null;}
 
   function alignmentFor(donorItem,donorAtom,hydrogenAtom,acceptorItem,acceptorAtom){
     const donor=atomWorld(donorItem,donorAtom),hydrogen=atomWorld(donorItem,hydrogenAtom),acceptor=atomWorld(acceptorItem,acceptorAtom);
@@ -176,6 +176,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
 
   function reactionStep(now){
+    const touchingPairs=new Set();
     for(let first=0;first<instances.length;first++)for(let second=first+1;second<instances.length;second++){
       const left=instances[first],right=instances[second];if(left.busy||right.busy)continue;
       if(testIsolation&&!(testIsolation.has(left.id)&&testIsolation.has(right.id)))continue;
@@ -184,9 +185,11 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         const [reactantA,reactantB]=resolvedIds.map(instanceById);if(!reactantA||!reactantB)continue;
         const [siteA,siteB]=candidate.siteAtomIndices,distance=atomWorld(reactantA,siteA).distanceTo(atomWorld(reactantB,siteB));
         const key=`${candidate.ruleId}:${[...resolvedIds].sort().join('|')}:${siteA}-${siteB}`;
+        if(distance<candidate.rule.maxDistance)touchingPairs.add([...resolvedIds].sort().join('|'));
         if(contactMatcher.update(key,distance<candidate.rule.maxDistance,now)){commit(candidate);return;}
       }
     }
+    reactionContactPairs=touchingPairs;
   }
   function cancelPointerFor(item){
     if(selected===item)selected=null;
@@ -197,7 +200,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const ids=resolveCandidateInstanceIds(candidate,instances.map(item=>item.id));if(!ids)return;
     const reactants=ids.map(instanceById);if(reactants.some(item=>!item||item.busy))return;
     const execution=planReactionExecution(candidate,records,slotValues);if(!execution.ok){status.textContent='登録済みreactant/productを解決できず反応を中断しました。';return;}
-    const [left,right]=reactants;left.busy=right.busy=true;cancelPointerFor(left);cancelPointerFor(right);
+    const [left,right]=reactants;reactionContactPairs.delete([...ids].sort().join('|'));left.busy=right.busy=true;cancelPointerFor(left);cancelPointerFor(right);
     for(const [key,bond] of bondVisuals)if(key.includes(left.id)||key.includes(right.id))removeBondVisual(key);
     for(const bond of hydrogenBonds.values())if(ids.includes(bond.donorInstanceId)||ids.includes(bond.acceptorInstanceId)){hydrogenBonds.delete(bond.key);removeBondVisual(bond.key);}
     slots.forEach(slot=>slot.disabled=true);status.textContent='接触が続き、反応中心へ分子が集まっています。';
@@ -223,6 +226,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     for(let i=0;i<instances.length;i++)for(let j=i+1;j<instances.length;j++){
       const a=instances[i],b=instances[j];if(a.busy||b.busy)continue;
       if(testIsolation&&!(testIsolation.has(a.id)&&testIsolation.has(b.id)))continue;
+      if(reactionContactPairs.has([a.id,b.id].sort().join('|')))continue;
       const centerDelta=b.group.position.clone().sub(a.group.position),centerDistance=centerDelta.length();if(centerDistance>4.25+a.interactionRadius+b.interactionRadius)continue;
       activePairs.push([a,b]);
       const pairBonds=hydrogenBonds.values().filter(bond=>[bond.donorInstanceId,bond.acceptorInstanceId].includes(a.id)&&[bond.donorInstanceId,bond.acceptorInstanceId].includes(b.id)).map(bond=>({...bond,relativeSeparationSpeed:bond.donorInstanceId===a.id?b.velocity.clone().sub(a.velocity).dot(atomWorld(b,bond.acceptorAtom).sub(atomWorld(a,bond.donorHydrogenAtom)).normalize()):a.velocity.clone().sub(b.velocity).dot(atomWorld(a,bond.acceptorAtom).sub(atomWorld(b,bond.donorHydrogenAtom)).normalize())}));
@@ -249,7 +253,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const dt=Math.min(40,now-last);last=now;const scale=dt/16;
     const activePairs=physicalInteractions(scale,now);
     updateHydrogenBondStates(now);
-    if(Math.floor(now/160)!==Math.floor((now-dt)/160)){drawHBonds();reactionStep(now);}
+    if(Math.floor(now/160)!==Math.floor((now-dt)/160))drawHBonds();
+    reactionStep(now);
     if(reactionAnimation){const progress=clamp((now-reactionAnimation.started)/CONTACT_DWELL_MS,0,1);for(const item of [reactionAnimation.left,reactionAnimation.right]){item.group.position.lerp(reactionAnimation.center,progress*.18);item.group.scale.setScalar(1-progress*.12);}}
     renderer.render(scene,camera);
   }
