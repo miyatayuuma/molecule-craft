@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { normalizeSpeciesSlots, planVisiblePopulation, deriveInteractionSites, deriveInteractionModel, deriveInteractionCharges, classifyHydrogenBondSites, hydrogenBondEligibility, createHydrogenBondTracker, hydrogenBondVisualEndpoints, coulombPairForce, coulombPairForces, hydrogenBondSpringForces, torqueFromForce, chargeInteractionSign, reactionCandidates, resolveCandidateInstanceIds, createContactMatcher, planStoichiometricSupply, planReactionExecution, resolveRegisteredProducts, matchDatabaseProduct } from '../src/reaction-lab-core.js';
+import { normalizeSpeciesSlots, planVisiblePopulation, deriveInteractionSites, deriveInteractionModel, deriveInteractionCharges, classifyHydrogenBondSites, hydrogenBondEligibility, createHydrogenBondTracker, hydrogenBondVisualEndpoints, coulombPairForce, coulombPairForces, hydrogenBondSpringForces, torqueFromForce, chargeInteractionSign, reactionCandidates, resolveCandidateInstanceIds, createContactMatcher, planStoichiometricSupply, planReactionExecution, resolveRegisteredProducts, matchDatabaseProduct, auditInteractionDatabase, interactionDipole, decomposeMoleculePairInteraction } from '../src/reaction-lab-core.js';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
 const byId=new Map(records.map(r=>[r.id,r]));
 
@@ -25,6 +25,19 @@ test('bond-order aware charge derivation recognizes carbonyls and keeps methane 
  assert.ok(Math.max(...methane.map(atom=>Math.abs(atom.interactionCharge)))<.04);
  assert.ok(Math.abs(methane.reduce((sum,atom)=>sum+atom.interactionCharge,0))<1e-10);
 });
+test('interaction charge authority preserves polarity, symmetry, neutrality, and a bounded magnitude',()=>{
+ const close=(a,b,tolerance=1e-8)=>assert.ok(Math.abs(a-b)<=tolerance,`${a} differs from ${b}`);
+ for(const id of ['water','carbon-dioxide','carbonic-acid','ethanol','acetone','methane','oxygen']){const charges=deriveInteractionCharges(byId.get(id));assert.ok(charges.every(Number.isFinite));assert.ok(Math.max(...charges.map(Math.abs))<=.42);close(charges.reduce((sum,value)=>sum+value,0),0);}
+ const co2=deriveInteractionCharges(byId.get('carbon-dioxide'));assert.ok(co2[0]>0&&co2[1]<0);close(co2[1],co2[2]);
+ const co2Dipole=interactionDipole(co2,[{x:0,y:0,z:0},{x:-1.16,y:0,z:0},{x:1.16,y:0,z:0}]);assert.ok(Math.hypot(co2Dipole.x,co2Dipole.y,co2Dipole.z)<1e-8);
+ const water=deriveInteractionCharges(byId.get('water')),waterDipole=interactionDipole(water,[{x:0,y:0,z:0},{x:.76,y:.59,z:0},{x:-.76,y:.59,z:0}]);assert.ok(Math.hypot(waterDipole.x,waterDipole.y,waterDipole.z)>.1);assert.ok(waterDipole.y>0,'water dipole points from negative O toward its positive H side');
+ const methane=deriveInteractionCharges(byId.get('methane'));assert.ok(Math.max(...methane.map(Math.abs))<.04);const methaneDipole=interactionDipole(methane,[{x:0,y:0,z:0},{x:1,y:1,z:1},{x:1,y:-1,z:-1},{x:-1,y:1,z:-1},{x:-1,y:-1,z:1}]);assert.ok(Math.hypot(methaneDipole.x,methaneDipole.y,methaneDipole.z)<1e-8);
+ const acetone=deriveInteractionCharges(byId.get('acetone')),acetoneDipole=interactionDipole(acetone,[{x:-1,y:0,z:0},{x:0,y:0,z:0},{x:-1,y:0,z:0},{x:1.2,y:0,z:0},{x:-1,y:1,z:0},{x:-1,y:-1,z:0},{x:-1,y:0,z:1},{x:-1,y:0,z:-1},{x:-1,y:.7,z:.7},{x:-1,y:-.7,z:-.7}]);assert.ok(Math.hypot(acetoneDipole.x,acetoneDipole.y,acetoneDipole.z)>.1,'acetone retains a carbonyl-directed polar tendency');
+ const acid=deriveInteractionCharges(byId.get('acetic-acid')),ethanol=deriveInteractionCharges(byId.get('ethanol'));assert.ok(acid[3]<0&&acid[7]>0);assert.notEqual(acid[7],ethanol[8],'carboxylic OH and alcohol O-H receive environment-aware charge distributions');
+});
+test('whole molecule database interaction audit reports no unsupported bond environments or invalid charges',()=>{
+ const findings=auditInteractionDatabase(records);assert.deepEqual(findings,[]);
+});
 test('representative polar bond families receive the expected charge direction',()=>{
  const cases=[['O-H',['O','H'],[0,1,1],0],['N-H',['N','H'],[0,1,1],0],['C-O',['C','O'],[0,1,1],1],['C=O',['C','O'],[0,1,2],1],['C-N',['C','N'],[0,1,1],1],['C≡N',['C','N'],[0,1,3],1],['C-F',['C','F'],[0,1,1],1],['C-Cl',['C','Cl'],[0,1,1],1],['S=O',['S','O'],[0,1,2],1]];
  for(const [name,atoms,bond,negativeIndex] of cases){const charges=deriveInteractionCharges({atoms,bonds:[bond]});assert.ok(charges[negativeIndex]<0,`${name} should place the negative tendency on its more electronegative atom`);assert.ok(charges[1-negativeIndex]>0);}
@@ -46,7 +59,20 @@ test('formal charge interaction sign distinguishes attraction and repulsion',()=
 test('softened atom force has opposite-charge attraction, same-charge repulsion, and a finite cap',()=>{
  const toward=coulombPairForce(.3,-.3,{x:1,y:0,z:0}),away=coulombPairForce(.3,.3,{x:1,y:0,z:0}),capped=coulombPairForce(.65,.65,{x:.001,y:0,z:0});
  assert.ok(toward.x>0);assert.ok(away.x<0);assert.ok(Math.abs(capped.x)<=.035);assert.deepEqual(coulombPairForce(.2,.2,{x:5,y:0,z:0}),{x:0,y:0,z:0,magnitude:0});
+ const longRange=coulombPairForce(.65,-.65,{x:3.9,y:0,z:0},{strength:100,softening:.01,cutoff:4,maxForce:.035});assert.ok(Math.hypot(longRange.x,longRange.y,longRange.z)<=.035+1e-12);assert.ok(Math.abs(Math.hypot(longRange.x,longRange.y,longRange.z)-longRange.magnitude)<1e-12,'reported magnitude equals vector length');
  const pair=coulombPairForces(.3,-.3,{x:1,y:0,z:0});assert.equal(pair.onA.x+pair.onB.x,0);assert.equal(pair.onA.y+pair.onB.y,0);
+});
+test('atom-pair Coulomb sign and Newton pair hold independently of element identity',()=>{
+ for(const [qa,qb,sign] of [[.2,.3,-1],[-.2,-.3,-1],[.2,-.3,1],[-.2,.3,1]]){const delta={x:1.3,y:-.4,z:.2},force=coulombPairForce(qa,qb,delta);assert.ok(force.x*delta.x+force.y*delta.y+force.z*delta.z<0=== (sign<0));const pair=coulombPairForces(qa,qb,delta);assert.ok(Math.hypot(pair.onA.x+pair.onB.x,pair.onA.y+pair.onB.y,pair.onA.z+pair.onB.z)<1e-12);}
+});
+test('pair decomposition exposes Coulomb, steric, H-bond, net force, and torque with close-range steric dominance',()=>{
+ const atom=(charge,position,element='O',excludedRadius=.3)=>({interactionCharge:charge,position,element,excludedRadius}),left={id:'w1',center:{x:0,y:0,z:0},atoms:[atom(-.42,{x:0,y:0,z:0}),atom(.21,{x:.8,y:.6,z:0},'H',.23)]},right={id:'w2',center:{x:0,y:0,z:0},atoms:[atom(-.42,{x:.3,y:0,z:0}),atom(.21,{x:1.1,y:.6,z:0},'H',.23)]};
+ const closePair=decomposeMoleculePairInteraction(left,right,{chargeOptions:{strength:.42,softening:.85,cutoff:4.25,maxForce:.025},stericOptions:{stiffness:4.5,maxForce:.24}}),oo=closePair.pairs.find(pair=>pair.atomA===0&&pair.atomB===0);
+ assert.ok(oo.coulombForce.x<0,'same-sign O/O Coulomb component repels');assert.ok(oo.stericMagnitude>Math.abs(oo.coulombForce.x),'excluded volume dominates the overlapped attractive/repulsive pair');assert.ok(closePair.pairs.every(pair=>Number.isFinite(pair.coulombMagnitude)&&Number.isFinite(pair.stericMagnitude)));
+ const severe=decomposeMoleculePairInteraction({id:'a',center:{x:0,y:0,z:0},atoms:[atom(.4,{x:0,y:0,z:0})]},{id:'b',center:{x:.08,y:0,z:0},atoms:[atom(-.4,{x:.08,y:0,z:0})]},{stericOptions:{stiffness:4.5,maxForce:.24}}).pairs[0];assert.ok(severe.stericMagnitude>severe.coulombMagnitude,'short-range steric wall beats opposite-charge attraction');assert.ok(Number.isFinite(severe.stericMagnitude));
+ const coincident=decomposeMoleculePairInteraction({id:'x',center:{x:0,y:0,z:0},atoms:[atom(.4,{x:0,y:0,z:0})]},{id:'y',center:{x:0,y:0,z:0},atoms:[atom(-.4,{x:0,y:0,z:0})]}).pairs[0];assert.ok(coincident.stericMagnitude>0&&Number.isFinite(coincident.stericForce.x),'exactly coincident atoms receive a finite deterministic separation direction');
+ const offCenter=decomposeMoleculePairInteraction({id:'off',center:{x:0,y:0,z:0},atoms:[atom(.3,{x:0,y:1,z:0})]},{id:'other',center:{x:2,y:1,z:0},atoms:[atom(-.3,{x:2,y:1,z:0})]},{includeSteric:false});assert.ok(Math.abs(offCenter.molecules.off.torque.z)>0,'atom-site force produces molecular torque');
+ const hbond=decomposeMoleculePairInteraction(left,right,{includeCoulomb:false,includeSteric:false,hbonds:[{donorInstanceId:'w1',donorHydrogenAtom:1,acceptorInstanceId:'w2',acceptorAtom:0,restLength:1.8}]});assert.ok(Math.hypot(...Object.values(hbond.molecules.w1.hbondForce))>0);assert.ok(hbond.molecules.w1.hbondForce.x===-hbond.molecules.w2.hbondForce.x);assert.ok(hbond.pairs.find(pair=>pair.atomA===1&&pair.atomB===0).hbondForce);assert.equal(hbond.pairs.find(pair=>pair.atomA===0&&pair.atomB===0).hbondForce,false);
 });
 test('hydrogen-bond spring pulls partners together with equal and opposite forces',()=>{
  const pair=hydrogenBondSpringForces({x:3,y:0,z:0},2,0),capped=hydrogenBondSpringForces({x:40,y:0,z:0},2,0);
@@ -74,6 +100,11 @@ test('hydrogen bond state forms, persists through hysteresis, and breaks by stre
  tracker.update('hbond',identity,{distance:2.4,alignment:.8},900);assert.equal(tracker.update('hbond',identity,{distance:2.4,alignment:.05},1000).broken,true);
  tracker.update('hbond',identity,{distance:2.4,alignment:.8},1300);assert.equal(tracker.update('hbond',identity,{distance:2.5,alignment:.8,tensileLoad:.2},1400).broken,true);
  assert.deepEqual(hydrogenBondVisualEndpoints(identity),{from:{instanceId:'w1',atom:1},to:{instanceId:'w2',atom:0}});
+});
+test('hydrogen-bond occupancy permits one donor-H and one bond per molecule pair',()=>{
+ const tracker=createHydrogenBondTracker(),metrics={distance:2.5,alignment:.9},identity=(donorHydrogenAtom,acceptorAtom=0)=>({donorInstanceId:'water-A',donorAtom:0,donorHydrogenAtom,acceptorInstanceId:'water-B',acceptorAtom});
+ assert.equal(tracker.update('h1-a',identity(1),metrics,10).formed,true);assert.equal(tracker.update('h1-b',identity(1,2),metrics,11).blocked,'donor-occupied');assert.equal(tracker.update('h2-a',identity(2,2),metrics,12).blocked,'pair-capacity');assert.equal(tracker.values().length,1);
+ const capacity=createHydrogenBondTracker(),make=(donor,acceptor)=>({donorInstanceId:donor,donorAtom:0,donorHydrogenAtom:1,acceptorInstanceId:'shared-acceptor',acceptorAtom:0});assert.equal(capacity.update('first',make('donor-1'),metrics,10).formed,true);assert.equal(capacity.update('second',make('donor-2'),metrics,11).blocked,'acceptor-capacity');
 });
 test('stoichiometric supply requires every species to be selected in slots',()=>{assert.equal(planStoichiometricSupply(['water','water'],['water','','']).ok,true);assert.equal(planStoichiometricSupply(['water','ethanol'],['water','','']).reason,'required-species-not-in-slots');});
 test('registered reactions consume a pair and return the correct database product instance count',()=>{
