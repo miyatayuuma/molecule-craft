@@ -73,12 +73,14 @@ try{
   let waterState=await snapshot();assert.deepEqual(waterState.bonds[0].endpoints,{from:{instanceId:hbond.donorId,atom:1},to:{instanceId:hbond.acceptorId,atom:0}},'Displayed interaction connects donor H to acceptor O');
   const donorBefore=waterState.instances.find(item=>item.id===hbond.donorId).position,acceptorBefore=waterState.instances.find(item=>item.id===hbond.acceptorId).position;
   const axis=hbond.axis,slowPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${hbond.donorId}',0,[${axis.map(value=>(-.45*value).toFixed(8)).join(',')}])`);
+  assert.ok(Math.hypot(slowPlan.end.x-slowPlan.start.x,slowPlan.end.y-slowPlan.start.y)>4,'Slow drag plan must produce visible camera-plane translation');
   await drag(slowPlan,{steps:24,stepDelay:55,hold:0});await new Promise(resolve=>setTimeout(resolve,300));waterState=await snapshot();
   assert.ok(waterState.bonds.length>0,'Slow motion retains the temporary interaction');
   const acceptorAfter=waterState.instances.find(item=>item.id===hbond.acceptorId).position;
   const follow=acceptorAfter.map((value,index)=>value-acceptorBefore[index]).reduce((sum,value,index)=>sum+value*(-axis[index]),0);
   assert.ok(follow>.015,`The partner should follow a slow donor drag; projected movement was ${follow}`);
   const fastPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${hbond.donorId}',0,[${axis.map(value=>(-2.4*value).toFixed(8)).join(',')}])`);
+  assert.ok(Math.hypot(fastPlan.end.x-fastPlan.start.x,fastPlan.end.y-fastPlan.start.y)>18,'Fast drag plan must produce visible camera-plane translation');
   await drag(fastPlan,{steps:2,stepDelay:8,hold:0});await new Promise(resolve=>setTimeout(resolve,120));
   const fastState=await snapshot();
   assert.equal(fastState.bonds.length,0,`Fast pulling breaks the H bond; plan=${JSON.stringify(fastPlan)} state=${JSON.stringify(fastState)}`);

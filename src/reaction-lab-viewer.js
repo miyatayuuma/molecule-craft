@@ -7,7 +7,7 @@ import {
   CONTACT_DWELL_MS,
 } from './reaction-lab-core.js?v=2';
 
-const vector=(THREE,point)=>new THREE.Vector3(point.x,point.y,point.z);
+const vector=(THREE,point)=>Array.isArray(point)?new THREE.Vector3(point[0],point[1],point[2]):new THREE.Vector3(point.x,point.y,point.z);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
 export function createReactionLabViewer({THREE,dialog,root,records,collectionState,onDialogStateChange=()=>{},onPointerLockChange=()=>{}}){
