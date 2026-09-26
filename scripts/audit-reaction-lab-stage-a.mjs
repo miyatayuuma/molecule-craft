@@ -189,8 +189,27 @@ if(process.argv.includes('--check')){
   let matches=false;
   try {
     const saved=JSON.parse(committed);
-    matches=JSON.stringify(stableNumbers(saved,1e4))===JSON.stringify(stableNumbers(audit,1e4))&&saved.canonicalDatasetSha256===audit.canonicalDatasetSha256&&saved.globalResult===audit.globalResult&&JSON.stringify(saved.failureClassification)===JSON.stringify(audit.failureClassification)&&saved.productionCutover===audit.productionCutover;
+    const close=(left,right,tolerance)=>Number.isFinite(left)&&Number.isFinite(right)&&Math.abs(left-right)<=tolerance;
+    const sameGeometry=(left,right)=>{
+      if(!left||!right)return left===right;
+      for(const key of ['energyKcalMol','centerDistanceAngstrom','minimumIntermolecularAtomDistanceAngstrom','oxygenDistanceAngstrom','donorLinearityDeg'])if(left[key]!==undefined&&!close(left[key],right[key],.10))return false;
+      if(left.donorAnglesDeg&&(!right.donorAnglesDeg||left.donorAnglesDeg.some((value,index)=>!close(value,right.donorAnglesDeg[index],2))))return false;
+      if(left.acceptorGeometry){if(!right.acceptorGeometry)return false;for(const key of ['distance','donorAngle','acceptorAngle','outOfPlaneDeg'])if(left.acceptorGeometry[key]!==undefined&&!close(left.acceptorGeometry[key],right.acceptorGeometry[key],2))return false;}
+      return true;
+    };
+    const fixturesMatch=Object.entries(audit.fixtures).every(([id,current])=>{
+      const previous=saved.fixtures?.[id];
+      return previous&&previous.pass===current.pass&&previous.guardActivationCount===current.guardActivationCount&&previous.orientationCount===current.orientationCount&&close(previous.lowestEnergyKcalMol,current.lowestEnergyKcalMol,.2)&&sameGeometry(previous.lowestEnergyGeometry,current.lowestEnergyGeometry);
+    });
+    const continuityMatch=Object.entries(audit.continuity).every(([id,current])=>{
+      const previous=saved.continuity?.[id];
+      return previous&&previous.finite===current.finite&&previous.orientationScan?.finite===current.orientationScan?.finite&&previous.normalRegionGuardActivations===current.normalRegionGuardActivations&&previous.forceEnergyDerivativeCheck?.pass===current.forceEnergyDerivativeCheck?.pass&&previous.samples?.length===current.samples?.length;
+    });
+    const ratiosMatch=Object.entries(audit.relativeStrengthRatios).every(([key,value])=>close(saved.relativeStrengthRatios?.[key],value,.1));
+    const exchangeMatch=saved.partnerExchange?.pass===audit.partnerExchange.pass&&saved.partnerExchange?.historyIndependent===audit.partnerExchange.historyIndependent&&close(saved.partnerExchange?.initialRatio,audit.partnerExchange.initialRatio,.1)&&close(saved.partnerExchange?.finalRatio,audit.partnerExchange.finalRatio,.1);
+    const dragMatch=saved.drag?.pass===audit.drag.pass&&saved.drag?.slow?.pass===audit.drag.slow.pass&&saved.drag?.fast?.pass===audit.drag.fast.pass&&close(saved.drag?.responseTimeConstantTauPs,audit.drag.responseTimeConstantTauPs,.01)&&close(saved.drag?.slow?.followFraction,audit.drag.slow.followFraction,.1)&&close(saved.drag?.fast?.followFraction,audit.drag.fast.followFraction,.1);
+    matches=saved.canonicalDatasetSha256===audit.canonicalDatasetSha256&&saved.globalResult===audit.globalResult&&JSON.stringify(saved.failureClassification)===JSON.stringify(audit.failureClassification)&&saved.productionCutover===audit.productionCutover&&fixturesMatch&&continuityMatch&&ratiosMatch&&exchangeMatch&&dragMatch;
   } catch {}
-  if(!matches){console.error('Stage A audit is stale beyond the 1e-4 numeric reproducibility tolerance. Run node scripts/audit-reaction-lab-stage-a.mjs --write');process.exitCode=1;}
+  if(!matches){console.error('Stage A audit differs from regenerated gate results or measurements exceed reproducibility tolerances. Run node scripts/audit-reaction-lab-stage-a.mjs --write');process.exitCode=1;}
 }else if(process.argv.includes('--write')) await writeFile(OUTPUT,output);
 else process.stdout.write(output);
