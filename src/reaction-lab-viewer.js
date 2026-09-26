@@ -325,10 +325,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         left.group.position.copy(screenRight.clone().multiplyScalar(-1));
         right.group.position.copy(left.group.position).addScaledVector(screenRight,startDistance).add(vector(THREE,pointA)).sub(vector(THREE,pointB));
         for(const item of instances)if(item!==left&&item!==right)item.group.position.set(4.8,2.65,0);
-        const startWorld=atomWorld(left,atomA),endWorld=startWorld.clone().addScaledVector(screenRight,startDistance-.82),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(cameraNormal(),left.group.position);
+        const startWorld=atomWorld(left,atomA),endCenter=left.group.position.clone().addScaledVector(screenRight,startDistance-.82),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(cameraNormal(),left.group.position);
         const rect=canvas.getBoundingClientRect();pointer.set((project(startWorld).x-rect.left)/rect.width*2-1,-(project(startWorld).y-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);
         const hit=raycaster.ray.intersectPlane(plane,new THREE.Vector3()),offset=hit?hit.sub(left.group.position):new THREE.Vector3();
-        return {instanceId:left.id,start:project(startWorld),end:project(endWorld.clone().add(offset)),initialDistance:atomWorld(left,atomA).distanceTo(atomWorld(right,atomB)),expectedDistance:.82};
+        return {instanceId:left.id,start:project(startWorld),end:project(endCenter.add(offset)),initialDistance:atomWorld(left,atomA).distanceTo(atomWorld(right,atomB)),expectedDistance:.82};
       },
       arrangeHydrogenBond(angleOffsetDegrees=0){
         const waters=instances.filter(item=>item.species==='water');if(waters.length<2)throw Error('Water-only population is required');
