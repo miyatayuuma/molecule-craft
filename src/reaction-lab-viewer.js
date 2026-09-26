@@ -270,9 +270,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function tick(now){
     if(disposed)return;requestAnimationFrame(tick);if(!dialog.open){last=now;return;}
     const elapsed=Math.max(0,now-last);last=now;
-    if(stageAPhysicsEnabled){const timing=stageAStepper.advance(elapsed/1000);stageAPerformance.lastFrameStepCount=timing.steps;stageAPerformance.lastDroppedGameSeconds=timing.droppedGameSeconds;}
-    else {const dt=Math.min(40,elapsed),scale=dt/16;physicalInteractions(scale,now);updateHydrogenBondStates(now);}
-    reactionStep(now);
+    if(stageAPhysicsEnabled){reactionStep(now);const timing=stageAStepper.advance(elapsed/1000);stageAPerformance.lastFrameStepCount=timing.steps;stageAPerformance.lastDroppedGameSeconds=timing.droppedGameSeconds;}
+    else {const dt=Math.min(40,elapsed),scale=dt/16;physicalInteractions(scale,now);updateHydrogenBondStates(now);reactionStep(now);}
     if(reactionAnimation){const progress=clamp((now-reactionAnimation.started)/CONTACT_DWELL_MS,0,1);for(const item of [reactionAnimation.left,reactionAnimation.right]){item.group.position.lerp(reactionAnimation.center,progress*.18);item.group.scale.setScalar(1-progress*.12);}}
     renderer.render(scene,camera);
   }
