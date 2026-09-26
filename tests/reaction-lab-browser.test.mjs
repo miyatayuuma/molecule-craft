@@ -70,11 +70,10 @@ try{
   const modes=await evaluate("[...document.querySelectorAll('[data-lab-mode]')].map(button=>button.getAttribute('aria-pressed'))");assert.deepEqual(modes,['false','false','true']);
   await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:145,y:370});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:145,y:370,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:205,y:405,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:205,y:405,button:'left',buttons:0});
   await evaluate("document.querySelector('[data-lab-mode=move]').click()");
-  const hbond=await evaluate('window.__reactionLabProbe.arrangeHydrogenBond(22)');
+  let {hbond,waterState,initialBondDiagnostic}=await evaluate(`(()=>{const hbond=window.__reactionLabProbe.arrangeHydrogenBond(22),waterState=window.__reactionLabProbe.snapshot(),initialBondDiagnostic=window.__reactionLabProbe.hydrogenBondDiagnostics(hbond.donorId,hbond.acceptorId);return{hbond,waterState,initialBondDiagnostic};})()`);
   assert.equal(hbond.bonds,1,`Directional water geometry must form a tracked H bond: ${JSON.stringify(hbond)}`);assert.ok(hbond.angle>=140);
-  let waterState=await snapshot();assert.deepEqual(waterState.bonds[0].endpoints,{from:{instanceId:hbond.donorId,atom:1},to:{instanceId:hbond.acceptorId,atom:0}},'Debug authority resolves donor H to acceptor O');
+  assert.deepEqual(waterState.bonds[0].endpoints,{from:{instanceId:hbond.donorId,atom:1},to:{instanceId:hbond.acceptorId,atom:0}},'Debug authority resolves donor H to acceptor O');
   assert.equal(waterState.hydrogenBondVisualCount,0,'Production interaction state must not render a dashed-line overlay');
-  const initialBondDiagnostic=await evaluate(`window.__reactionLabProbe.hydrogenBondDiagnostics('${hbond.donorId}','${hbond.acceptorId}')`);
   assert.ok(initialBondDiagnostic.bonds[0].distance>initialBondDiagnostic.bonds[0].equilibriumDistance);assert.ok(initialBondDiagnostic.bonds[0].radialForce>0,'Captured bond has meaningful radial attraction immediately');assert.ok(initialBondDiagnostic.bonds[0].angularTorque>0,'Misaligned captured bond has explicit angular restoring authority');
   const settle=await evaluate('window.__reactionLabProbe.advanceDeterministic(28)'),settledBond=settle.bonds[0];assert.ok(settledBond.distance<hbond.distance,`Bond distance should move toward canonical equilibrium: ${JSON.stringify({hbond,settledBond})}`);assert.ok(settledBond.angle>=140);
   const donorBefore=waterState.instances.find(item=>item.id===hbond.donorId).position,acceptorBefore=waterState.instances.find(item=>item.id===hbond.acceptorId).position;
