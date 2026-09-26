@@ -7,6 +7,7 @@ export const STAGE_A_PHYSICAL_PS_PER_GAME_SECOND = 0.10;
 export const STAGE_A_GAME_STEP_SECONDS = 1 / 120;
 export const STAGE_A_MAX_CATCH_UP_STEPS = 8;
 export const OVERLAP_GUARD_RADIUS_ANGSTROM = 0.35;
+export const OVERLAP_GUARD_SIGMA_FRACTION = 0.75;
 
 export const STANDARD_ATOMIC_MASS_AMU = Object.freeze({
   H: 1.008, C: 12.011, N: 14.007, O: 15.999,
@@ -68,7 +69,7 @@ export function rigidBodyMassProperties(atoms) {
 function guardedRadius(radius, boundary = OVERLAP_GUARD_RADIUS_ANGSTROM) {
   if (radius >= boundary) return { effectiveRadius: radius, derivative: 1, active: false };
   const ratio = Math.max(0, radius / boundary);
-  return { effectiveRadius: boundary * (0.5 + 0.5 * ratio * ratio), derivative: ratio, active: true };
+  return { effectiveRadius: boundary * (0.75 + 0.25 * ratio ** 4), derivative: ratio ** 3, active: true };
 }
 
 function radialForceVector(forceMagnitude, delta, radius, fallbackDirection) {
@@ -93,10 +94,10 @@ export function lorentzBerthelot(sigmaA, epsilonA, sigmaB, epsilonB) {
   return { sigmaAngstrom: (sigmaA + sigmaB) / 2, epsilonKcalMol: Math.sqrt(epsilonA * epsilonB) };
 }
 
-export function lennardJonesPairEnergyForce(sigmaA, epsilonA, sigmaB, epsilonB, deltaAngstrom, { guardRadiusAngstrom = OVERLAP_GUARD_RADIUS_ANGSTROM, fallbackDirection } = {}) {
+export function lennardJonesPairEnergyForce(sigmaA, epsilonA, sigmaB, epsilonB, deltaAngstrom, { guardRadiusAngstrom = null, fallbackDirection } = {}) {
   const radius = norm(deltaAngstrom), mixed = lorentzBerthelot(sigmaA, epsilonA, sigmaB, epsilonB);
   if (!Number.isFinite(radius) || mixed.epsilonKcalMol === 0) return { ...mixed, energyKcalMol: 0, forceOnA: vec(), guarded: false };
-  const guard = guardedRadius(radius, guardRadiusAngstrom), ratio = mixed.sigmaAngstrom / guard.effectiveRadius;
+  const guard = guardedRadius(radius, guardRadiusAngstrom ?? mixed.sigmaAngstrom * OVERLAP_GUARD_SIGMA_FRACTION), ratio = mixed.sigmaAngstrom / guard.effectiveRadius;
   const sixth = ratio ** 6, twelfth = sixth * sixth;
   const energyKcalMol = 4 * mixed.epsilonKcalMol * (twelfth - sixth);
   const derivative = 24 * mixed.epsilonKcalMol * (sixth - 2 * twelfth) / guard.effectiveRadius * guard.derivative;

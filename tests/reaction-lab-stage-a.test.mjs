@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import {
   COULOMB_KCAL_ANGSTROM_PER_MOL_E2,
   OVERLAP_GUARD_RADIUS_ANGSTROM,
+  OVERLAP_GUARD_SIGMA_FRACTION,
   REACTION_LAB_WORLD_UNITS_PER_ANGSTROM,
   STAGE_A_GAME_STEP_SECONDS,
   STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,
@@ -101,15 +102,19 @@ test('linear molecule pseudo-inverse safely ignores its singular principal axis'
 });
 
 test('overlap guard stays finite, is continuous at its boundary, and reports activations', () => {
-  const r = OVERLAP_GUARD_RADIUS_ANGSTROM, h = 1e-8;
-  const justInside = lennardJonesPairEnergyForce(3.4, 0.1, 3.4, 0.1, [r - h, 0, 0]);
-  const justOutside = lennardJonesPairEnergyForce(3.4, 0.1, 3.4, 0.1, [r + h, 0, 0]);
+  const sigma = 3.4, r = sigma * OVERLAP_GUARD_SIGMA_FRACTION, h = 1e-8;
+  const justInside = lennardJonesPairEnergyForce(sigma, 0.1, sigma, 0.1, [r - h, 0, 0]);
+  const justOutside = lennardJonesPairEnergyForce(sigma, 0.1, sigma, 0.1, [r + h, 0, 0]);
   closeRelative(justInside.energyKcalMol, justOutside.energyKcalMol, 1e-6);
   closeRelative(justInside.forceOnA[0], justOutside.forceOnA[0], 1e-6);
   assert.ok(justInside.forceOnA[0] < 0);
   const severe = evaluateStageAForces([body('a', 0, [atom()]), body('b', 0.1, [atom()])]);
   assert.ok(severe.overlapGuardActivationCount > 0);
   assert.ok(severe.pairDiagnostics.every(pair => pair.forceOnA.every(Number.isFinite) && Number.isFinite(pair.totalEnergyKcalMol)));
+  const overlappingBodies=[body('overlap-a',0,[atom('C',[0,0,0],0,3.4,0.1)]),body('overlap-b',0.1,[atom('C',[0,0,0],0,3.4,0.1)])];
+  integrateStageA(overlappingBodies,STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);
+  assert.ok(overlappingBodies.every(item=>item.positionAngstrom.every(Number.isFinite)&&item.velocityAngstromPerPs.every(Number.isFinite)));
+  assert.ok(overlappingBodies.every(item=>Math.hypot(...item.positionAngstrom)<1),'Severe overlap guard keeps a fixed Stage A step bounded');
   const acceptance = evaluateStageAForces([body('far-a', 0, [atom()]), body('far-b', 5, [atom()])]);
   assert.equal(acceptance.overlapGuardActivationCount, 0);
 });
