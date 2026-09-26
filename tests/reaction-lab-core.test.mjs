@@ -93,7 +93,7 @@ test('contact matcher debounces brief threshold crossings',()=>{const matcher=cr
 test('capture range is separate from equilibrium and active H-bonds pull while correcting angle',()=>{
  assert.equal(hydrogenBondEquilibriumDistance('O','O'),1.95);assert.equal(hydrogenBondEquilibriumDistance('N','O'),2.05);
  const geometry={donorPosition:{x:0,y:1,z:0},hydrogenPosition:{x:0,y:0,z:0},acceptorPosition:{x:2.8,y:0,z:0},acceptorOpenDirection:{x:1,y:0,z:0},targetDistance:1.95};
- const force=hydrogenBondDirectionalForces(geometry);assert.ok(force.magnitude>0,'capture at 2.8 Å still attracts toward canonical equilibrium');assert.ok(force.onDonor.x>0);assert.ok(force.donorTorque.z<0,'donor torque rotates O-H toward the acceptor ray');assert.ok(force.angularTorqueMagnitude>0,'bent donor/acceptor geometry gets restoring torque');
+ const force=hydrogenBondDirectionalForces(geometry);assert.ok(force.magnitude>0,'capture at 2.8 Å still attracts toward canonical equilibrium');assert.ok(force.onDonor.x>0);assert.ok(force.donorTorque.z>0,'donor D→H axis rotates toward H→A, increasing the conventional D-H-A angle toward 180°');assert.ok(force.angularTorqueMagnitude>0,'bent donor/acceptor geometry gets restoring torque');
  assert.equal(hydrogenBondAngleDegrees(geometry.donorPosition,geometry.hydrogenPosition,geometry.acceptorPosition),90);
  assert.equal(hydrogenBondAngleDegrees({x:-1,y:0,z:0},{x:0,y:0,z:0},{x:1,y:0,z:0}),180,'D-H-A reports the conventional angle, with linear bonding at 180 degrees');
  const equilibrium=hydrogenBondDirectionalForces({...geometry,acceptorPosition:{x:1.95,y:0,z:0}});assert.ok(equilibrium.magnitude<1e-12);
@@ -109,6 +109,15 @@ test('hard break releases occupancy, permits a different rebinding partner, and 
  tracker.updateAll([ab],0);assert.equal(tracker.values()[0].equilibriumDistance,1.95);tracker.updateAll([{...ab,distance:4.2}],50);assert.equal(tracker.values().length,0);
  const ac={...base,key:'A-C',acceptorInstanceId:'C'};tracker.updateAll([ac],80);assert.equal(tracker.values()[0].key,'A-C','old partner cooldown cannot block the new partner');
  const replace=createHydrogenBondTracker(),incumbent={key:'A-B',...base,acceptorInstanceId:'B',distance:2.45,angle:160},degraded={...incumbent,angle:125},challenger={key:'A-C',...base,acceptorInstanceId:'C',distance:1.95,angle:178};replace.updateAll([incumbent],0);replace.updateAll([degraded,challenger],100);assert.equal(replace.values()[0].key,'A-B');replace.updateAll([degraded,challenger],300);assert.equal(replace.values()[0].key,'A-B');replace.updateAll([degraded,challenger],440);assert.equal(replace.values()[0].key,'A-C');
+});
+test('challenger dwell is continuous and replacement clears every occupancy conflict',()=>{
+ const tracker=createHydrogenBondTracker({replacementDwellMs:100,replacementAdvantage:.1}),candidate=(key,donor,hydrogen,acceptor,atom,distance,angle,capacity=2)=>({key,donorInstanceId:donor,donorAtom:0,donorHydrogenAtom:hydrogen,acceptorInstanceId:acceptor,acceptorAtom:atom,acceptorCapacity:capacity,distance,angle});
+ const first=candidate('old-donor','A',1,'X',0,2.8,150),second=candidate('old-acceptor','B',2,'W',1,2.8,150,1),challenger=candidate('new','A',1,'W',1,1.95,180,1);
+ tracker.updateAll([first,second],0);assert.equal(tracker.values().length,2);
+ tracker.updateAll([first,second,challenger],10);assert.equal(tracker.values().length,2);
+ tracker.updateAll([first,second,{...challenger,distance:3.3,angle:140}],70);assert.equal(tracker.values().length,2);
+ tracker.updateAll([first,second,challenger],90);assert.equal(tracker.values().length,2,'advantage must remain continuous for the full dwell');
+ tracker.updateAll([first,second,challenger],191);assert.deepEqual(tracker.values().map(bond=>bond.key),['new'],'replacement releases donor and acceptor conflicts together');
 });
 test('acceptor occupancy is site-aware while donor and molecule-pair limits remain enforced',()=>{
  const candidate=(key,donor,hydrogen,acceptor,capacity,approach={x:1,y:0,z:0})=>({key,donorInstanceId:donor,donorAtom:0,donorHydrogenAtom:hydrogen,acceptorInstanceId:acceptor,acceptorAtom:0,acceptorCapacity:capacity,acceptorApproachDirection:approach,distance:2.1,angle:175});

@@ -208,7 +208,10 @@ export function hydrogenBondDirectionalForces({donorPosition,hydrogenPosition,ac
   const onDonor=scale(delta,magnitude/distance),onAcceptor=scale(onDonor,-1);
   const donorAxis=sub(hydrogenPosition,donorPosition),donorLength=Math.hypot(donorAxis.x,donorAxis.y,donorAxis.z),toAcceptor=scale(delta,1/distance);
   let donorTorque=vec(),acceptorTorque=vec();
-  if(donorLength>1e-8){const toward=scale(donorAxis,-1/donorLength);donorTorque=scale(cross(toward,toAcceptor),angularStiffness);}
+  // Conventional D–H–A linearity means the donor D→H bond axis and H→A
+  // approach vector point in the same direction. Their cross product rotates
+  // the donor bond toward 180°; using H→D here would bend it the wrong way.
+  if(donorLength>1e-8){const donorBondAxis=scale(donorAxis,1/donorLength);donorTorque=scale(cross(donorBondAxis,toAcceptor),angularStiffness);}
   if(acceptorOpenDirection){const openLength=Math.hypot(acceptorOpenDirection.x,acceptorOpenDirection.y,acceptorOpenDirection.z);if(openLength>1e-8){const incoming=scale(delta,-1/distance);acceptorTorque=scale(cross(scale(acceptorOpenDirection,1/openLength),incoming),angularStiffness*.65);}}
   const angularTorqueMagnitude=Math.hypot(donorTorque.x,donorTorque.y,donorTorque.z)+Math.hypot(acceptorTorque.x,acceptorTorque.y,acceptorTorque.z);
   return {onDonor,onAcceptor,donorTorque,acceptorTorque,magnitude:Math.abs(magnitude),angularTorqueMagnitude,equilibriumDistance:targetDistance};
@@ -240,11 +243,12 @@ export function createHydrogenBondTracker({formationDistance=3.35,breakDistance=
       if(current.distance>breakDistance||current.distance<1.15||current.angle<breakAngle||speed>breakRelativeSpeed||load>breakTensileLoad){active.delete(key);cooldowns.set(key,now+reformCooldownMs);challengers.delete(key);const reason=current.distance>breakDistance?'extension':current.distance<1.15?'compression':current.angle<breakAngle?'angle':speed>breakRelativeSpeed?'relative-speed':'tensile-load';broken.push({key,reason});continue;}
       Object.assign(bond,current,{lastDistance:current.distance,lastAngle:current.angle,relativeSpeed:speed,tensileLoad:load,score:scoreHydrogenBondCandidate(current,{incumbent:true})});
     }
-    const eligible=[...byKey.values()].filter(item=>item.distance<=formationDistance&&item.distance>=1.15&&item.angle>=formationAngle&&(item.acceptorOpenness??1)>=.2&&!(now<(cooldowns.get(item.key)??0))).sort((a,b)=>scoreHydrogenBondCandidate(b,{incumbent:active.has(b.key)})-scoreHydrogenBondCandidate(a,{incumbent:active.has(a.key)})||a.key.localeCompare(b.key));
-    for(const candidate of eligible){const incumbent=active.get(candidate.key);if(incumbent){Object.assign(incumbent,{...candidate,score:scoreHydrogenBondCandidate(candidate,{incumbent:true})});continue;}
-      const occupied=[...active.values()],acceptorCapacity=candidate.acceptorCapacity??2,acceptorBonds=occupied.filter(bond=>bond.acceptorInstanceId===candidate.acceptorInstanceId&&bond.acceptorAtom===candidate.acceptorAtom),conflictsNow=occupied.filter(bond=>conflicts(candidate,bond));if(acceptorBonds.length>=acceptorCapacity)conflictsNow.push(...acceptorBonds.filter(bond=>!conflictsNow.includes(bond)));
-      if(conflictsNow.length){const weakest=conflictsNow.sort((a,b)=>(a.score??scoreHydrogenBondCandidate(a,{incumbent:true}))-(b.score??scoreHydrogenBondCandidate(b,{incumbent:true}))||a.key.localeCompare(b.key))[0],challengerScore=scoreHydrogenBondCandidate(candidate),incumbentScore=weakest.score??scoreHydrogenBondCandidate(weakest,{incumbent:true}),since=challengers.get(candidate.key);
-        if(challengerScore>=incumbentScore+replacementAdvantage){if(since===undefined){challengers.set(candidate.key,now);continue;}if(now-since<replacementDwellMs)continue;active.delete(weakest.key);cooldowns.set(weakest.key,now+reformCooldownMs);challengers.delete(candidate.key);form(candidate,now);}
+    const eligible=[...byKey.values()].filter(item=>item.distance<=formationDistance&&item.distance>=1.15&&item.angle>=formationAngle&&(item.acceptorOpenness??1)>=.2&&!(now<(cooldowns.get(item.key)??0))).sort((a,b)=>scoreHydrogenBondCandidate(b,{incumbent:active.has(b.key)})-scoreHydrogenBondCandidate(a,{incumbent:active.has(a.key)})||a.key.localeCompare(b.key)),suppressed=new Set();
+    for(const candidate of eligible){if(suppressed.has(candidate.key))continue;const incumbent=active.get(candidate.key);if(incumbent){Object.assign(incumbent,{...candidate,score:scoreHydrogenBondCandidate(candidate,{incumbent:true})});continue;}
+      const occupied=[...active.values()],acceptorCapacity=candidate.acceptorCapacity??2,acceptorBonds=occupied.filter(bond=>bond.acceptorInstanceId===candidate.acceptorInstanceId&&bond.acceptorAtom===candidate.acceptorAtom),conflictsNow=[...new Map([...occupied.filter(bond=>conflicts(candidate,bond)),...acceptorBonds.slice(Math.max(0,acceptorCapacity-1))].map(bond=>[bond.key,bond])).values()];
+      if(conflictsNow.length){const challengerScore=scoreHydrogenBondCandidate(candidate),beatsEveryConflict=conflictsNow.every(bond=>challengerScore>=(bond.score??scoreHydrogenBondCandidate(bond,{incumbent:true}))+replacementAdvantage),since=challengers.get(candidate.key);
+        if(beatsEveryConflict){if(since===undefined){challengers.set(candidate.key,now);continue;}if(now-since<replacementDwellMs)continue;for(const conflict of conflictsNow){active.delete(conflict.key);cooldowns.set(conflict.key,now+reformCooldownMs);suppressed.add(conflict.key);}challengers.delete(candidate.key);form(candidate,now);}
+        else challengers.delete(candidate.key);
         continue;
       }
       challengers.delete(candidate.key);form(candidate,now);
