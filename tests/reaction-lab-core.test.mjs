@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { normalizeSpeciesSlots, planVisiblePopulation, deriveInteractionSites, deriveInteractionModel, deriveInteractionCharges, classifyHydrogenBondSites, hydrogenBondEligibility, createHydrogenBondTracker, hydrogenBondVisualEndpoints, coulombPairForce, coulombPairForces, hydrogenBondSpringForces, torqueFromForce, chargeInteractionSign, reactionCandidates, resolveCandidateInstanceIds, createContactMatcher, planStoichiometricSupply, planReactionExecution, resolveRegisteredProducts, matchDatabaseProduct, auditInteractionDatabase, interactionDipole, decomposeMoleculePairInteraction } from '../src/reaction-lab-core.js';
+import { normalizeSpeciesSlots, planVisiblePopulation, deriveInteractionSites, deriveInteractionModel, deriveInteractionCharges, classifyHydrogenBondSites, hydrogenBondEligibility, createHydrogenBondTracker, hydrogenBondVisualEndpoints, hydrogenBondEquilibriumDistance, hydrogenBondAngleDegrees, hydrogenBondDirectionalForces, scoreHydrogenBondCandidate, coulombPairForce, coulombPairForces, hydrogenBondSpringForces, torqueFromForce, chargeInteractionSign, reactionCandidates, resolveCandidateInstanceIds, createContactMatcher, planStoichiometricSupply, planReactionExecution, resolveRegisteredProducts, matchDatabaseProduct, auditInteractionDatabase, interactionDipole, decomposeMoleculePairInteraction } from '../src/reaction-lab-core.js';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
 const byId=new Map(records.map(r=>[r.id,r]));
 
@@ -53,7 +53,7 @@ test('donor and acceptor sites use functional-group context',()=>{
  assert.ok(amine.acceptors.some(site=>site.atom===1));assert.deepEqual(organicFluoride.acceptors,[]);
 });
 test('hydrogen bonding requires donor, acceptor, plausible distance, and rough alignment',()=>{
- const donor={kind:'donor'},acceptor={kind:'acceptor'};assert.equal(hydrogenBondEligibility(donor,acceptor,{distance:2.4,alignment:.7}),true);assert.equal(hydrogenBondEligibility(donor,acceptor,{distance:2.4,alignment:.1}),false);assert.equal(hydrogenBondEligibility(donor,acceptor,{distance:4,alignment:1}),false);
+ const donor={kind:'donor'},acceptor={kind:'acceptor'};assert.equal(hydrogenBondEligibility(donor,acceptor,{distance:2.4,angle:180}),true);assert.equal(hydrogenBondEligibility(donor,acceptor,{distance:2.4,angle:139}),false);assert.equal(hydrogenBondEligibility(donor,acceptor,{distance:2.4,alignment:.7}),true);assert.equal(hydrogenBondEligibility(donor,acceptor,{distance:2.4,alignment:.1}),false);assert.equal(hydrogenBondEligibility(donor,acceptor,{distance:4,alignment:1}),false);
 });
 test('formal charge interaction sign distinguishes attraction and repulsion',()=>{assert.equal(chargeInteractionSign(1,-1),-1);assert.equal(chargeInteractionSign(1,1),1);assert.equal(chargeInteractionSign(0,-1),0);});
 test('softened atom force has opposite-charge attraction, same-charge repulsion, and a finite cap',()=>{
@@ -90,16 +90,42 @@ test('runtime candidate IDs resolve to present instances without Three.js object
  assert.equal('group' in candidate,false);assert.equal('record' in candidate,false);
 });
 test('contact matcher debounces brief threshold crossings',()=>{const matcher=createContactMatcher({dwellMs:500});assert.equal(matcher.update('pair',true,10),false);assert.equal(matcher.update('pair',false,300),false);assert.equal(matcher.update('pair',true,400),false);assert.equal(matcher.update('pair',true,900),true);});
-test('hydrogen bond state forms, persists through hysteresis, and breaks by stretch, speed, or misalignment',()=>{
- const tracker=createHydrogenBondTracker(),identity={donorInstanceId:'w1',donorAtom:0,donorHydrogenAtom:1,acceptorInstanceId:'w2',acceptorAtom:0};
- assert.equal(tracker.update('hbond',identity,{distance:3,alignment:.8},0).formed,true);
- assert.ok(tracker.update('hbond',identity,{distance:3.7,alignment:.3},100).bond,'bond persists between formation and break thresholds');
- assert.equal(tracker.update('hbond',identity,{distance:4.2,alignment:.8},200).broken,true);
- assert.equal(tracker.update('hbond',identity,{distance:2.4,alignment:.8},300).formed,false,'A broken bond does not reform during its short cooldown');
- tracker.update('hbond',identity,{distance:2.4,alignment:.8},500);assert.equal(tracker.update('hbond',identity,{distance:2.5,alignment:.8,relativeSpeed:.2},600).broken,true);
- tracker.update('hbond',identity,{distance:2.4,alignment:.8},900);assert.equal(tracker.update('hbond',identity,{distance:2.4,alignment:.05},1000).broken,true);
- tracker.update('hbond',identity,{distance:2.4,alignment:.8},1300);assert.equal(tracker.update('hbond',identity,{distance:2.5,alignment:.8,tensileLoad:.2},1400).broken,true);
- assert.deepEqual(hydrogenBondVisualEndpoints(identity),{from:{instanceId:'w1',atom:1},to:{instanceId:'w2',atom:0}});
+test('capture range is separate from equilibrium and active H-bonds pull while correcting angle',()=>{
+ assert.equal(hydrogenBondEquilibriumDistance('O','O'),1.95);assert.equal(hydrogenBondEquilibriumDistance('N','O'),2.05);
+ const geometry={donorPosition:{x:0,y:1,z:0},hydrogenPosition:{x:0,y:0,z:0},acceptorPosition:{x:2.8,y:0,z:0},acceptorOpenDirection:{x:1,y:0,z:0},targetDistance:1.95};
+ const force=hydrogenBondDirectionalForces(geometry);assert.ok(force.magnitude>0,'capture at 2.8 Å still attracts toward canonical equilibrium');assert.ok(force.onDonor.x>0);assert.ok(force.donorTorque.z>0,'donor D→H axis rotates toward H→A, increasing the conventional D-H-A angle toward 180°');assert.ok(force.angularTorqueMagnitude>0,'bent donor/acceptor geometry gets restoring torque');
+ assert.equal(hydrogenBondAngleDegrees(geometry.donorPosition,geometry.hydrogenPosition,geometry.acceptorPosition),90);
+ assert.equal(hydrogenBondAngleDegrees({x:-1,y:0,z:0},{x:0,y:0,z:0},{x:1,y:0,z:0}),180,'D-H-A reports the conventional angle, with linear bonding at 180 degrees');
+ const equilibrium=hydrogenBondDirectionalForces({...geometry,acceptorPosition:{x:1.95,y:0,z:0}});assert.ok(equilibrium.magnitude<1e-12);
+ const compressed=hydrogenBondDirectionalForces({...geometry,acceptorPosition:{x:1.4,y:0,z:0}});assert.ok(compressed.onDonor.x<0,'close-range wall resists H···A collapse');
+ const identity={donorInstanceId:'w1',donorAtom:0,donorHydrogenAtom:1,acceptorInstanceId:'w2',acceptorAtom:0};assert.deepEqual(hydrogenBondVisualEndpoints(identity),{from:{instanceId:'w1',atom:1},to:{instanceId:'w2',atom:0}});
+});
+test('global assignment prefers directional geometry over a nearer sideways candidate and ignores input order',()=>{
+ const candidates=[{key:'sideways',donorInstanceId:'A',donorAtom:0,donorHydrogenAtom:1,acceptorInstanceId:'B',acceptorAtom:0,acceptorCapacity:2,distance:2,angle:142,acceptorOpenness:.2},{key:'linear',donorInstanceId:'A',donorAtom:0,donorHydrogenAtom:1,acceptorInstanceId:'C',acceptorAtom:0,acceptorCapacity:2,distance:2.25,angle:178,acceptorOpenness:1}];
+ const one=createHydrogenBondTracker(),two=createHydrogenBondTracker();one.updateAll(candidates,0);two.updateAll([...candidates].reverse(),0);assert.equal(one.values()[0].key,'linear');assert.equal(two.values()[0].key,'linear');assert.ok(scoreHydrogenBondCandidate(candidates[1])>scoreHydrogenBondCandidate(candidates[0]));
+});
+test('hard break releases occupancy, permits a different rebinding partner, and challenger replaces after dwell',()=>{
+ const tracker=createHydrogenBondTracker(),base={donorInstanceId:'A',donorAtom:0,donorHydrogenAtom:1,acceptorAtom:0,acceptorCapacity:2,angle:170,distance:2.1},ab={...base,key:'A-B',acceptorInstanceId:'B'};
+ tracker.updateAll([ab],0);assert.equal(tracker.values()[0].equilibriumDistance,1.95);tracker.updateAll([{...ab,distance:4.2}],50);assert.equal(tracker.values().length,0);
+ const ac={...base,key:'A-C',acceptorInstanceId:'C'};tracker.updateAll([ac],80);assert.equal(tracker.values()[0].key,'A-C','old partner cooldown cannot block the new partner');
+ const replace=createHydrogenBondTracker(),incumbent={key:'A-B',...base,acceptorInstanceId:'B',distance:2.45,angle:160},degraded={...incumbent,angle:125},challenger={key:'A-C',...base,acceptorInstanceId:'C',distance:1.95,angle:178};replace.updateAll([incumbent],0);replace.updateAll([degraded,challenger],100);assert.equal(replace.values()[0].key,'A-B');replace.updateAll([degraded,challenger],300);assert.equal(replace.values()[0].key,'A-B');replace.updateAll([degraded,challenger],440);assert.equal(replace.values()[0].key,'A-C');
+});
+test('challenger dwell is continuous and replacement clears every occupancy conflict',()=>{
+ const tracker=createHydrogenBondTracker({replacementDwellMs:100,replacementAdvantage:.1}),candidate=(key,donor,hydrogen,acceptor,atom,distance,angle,capacity=2)=>({key,donorInstanceId:donor,donorAtom:0,donorHydrogenAtom:hydrogen,acceptorInstanceId:acceptor,acceptorAtom:atom,acceptorCapacity:capacity,distance,angle});
+ const first=candidate('old-donor','A',1,'X',0,2.8,150),second=candidate('old-acceptor','B',2,'W',1,2.8,150,1),challenger=candidate('new','A',1,'W',1,1.95,180,1);
+ tracker.updateAll([first,second],0);assert.equal(tracker.values().length,2);
+ tracker.updateAll([first,second,challenger],10);assert.equal(tracker.values().length,2);
+ tracker.updateAll([first,second,{...challenger,distance:3.3,angle:140}],70);assert.equal(tracker.values().length,2);
+ tracker.updateAll([first,second,challenger],90);assert.equal(tracker.values().length,2,'advantage must remain continuous for the full dwell');
+ tracker.updateAll([first,second,challenger],191);assert.deepEqual(tracker.values().map(bond=>bond.key),['new'],'replacement releases donor and acceptor conflicts together');
+});
+test('acceptor occupancy is site-aware while donor and molecule-pair limits remain enforced',()=>{
+ const candidate=(key,donor,hydrogen,acceptor,capacity,approach={x:1,y:0,z:0})=>({key,donorInstanceId:donor,donorAtom:0,donorHydrogenAtom:hydrogen,acceptorInstanceId:acceptor,acceptorAtom:0,acceptorCapacity:capacity,acceptorApproachDirection:approach,distance:2.1,angle:175});
+ const water=createHydrogenBondTracker();water.updateAll([candidate('d1','A',1,'W',2)],0);water.updateAll([candidate('d1','A',1,'W',2),candidate('d2','B',1,'W',2,{x:0,y:1,z:0})],20);assert.equal(water.values().length,2);
+ const crowded=createHydrogenBondTracker();crowded.updateAll([candidate('d1','A',1,'W',2)],0);crowded.updateAll([candidate('d1','A',1,'W',2),candidate('d2','B',1,'W',2)],20);assert.equal(crowded.values().length,1,'two donors cannot occupy the same approach sector');
+ const donorSite=createHydrogenBondTracker();donorSite.updateAll([candidate('d1','A',1,'W',2)],0);donorSite.updateAll([candidate('d1','A',1,'W',2),candidate('d1-alt','A',1,'C',2,{x:0,y:1,z:0})],20);assert.equal(donorSite.values().length,1,'one donor hydrogen cannot bind two sites');
+ const amine=createHydrogenBondTracker();amine.updateAll([candidate('d1','A',1,'N',1)],0);amine.updateAll([candidate('d1','A',1,'N',1),candidate('d2','B',1,'N',1)],20);assert.equal(amine.values().length,1);
+ const pair=createHydrogenBondTracker();pair.updateAll([candidate('d1','A',1,'B',2),candidate('d2','B',1,'A',2)],0);assert.equal(pair.values().length,1);
 });
 test('hydrogen-bond occupancy permits one donor-H and one bond per molecule pair',()=>{
  const tracker=createHydrogenBondTracker(),metrics={distance:2.5,alignment:.9},identity=(donorHydrogenAtom,acceptorAtom=0)=>({donorInstanceId:'water-A',donorAtom:0,donorHydrogenAtom,acceptorInstanceId:'water-B',acceptorAtom});

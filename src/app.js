@@ -115,7 +115,7 @@ loadMoleculeDatabase().then(async result=>{
   try{
     collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
     try{
-      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=4');
+      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=5');
       reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,
         onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
       document.querySelector('#open-reaction-lab').addEventListener('click',()=>{if(gameShell.isOpen()||collectionOpen||veilUI?.active||!reactionLabViewer)return;reactionLabViewer.open();});

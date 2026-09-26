@@ -142,12 +142,14 @@ export function decomposeMoleculePairInteraction(instanceA,instanceB,{hbonds=[],
   }
   for(const bond of hbonds){if(!includeHBond)continue;const aSide=bond.donorInstanceId===instanceA.id?instanceA:bond.donorInstanceId===instanceB.id?instanceB:null,bSide=bond.acceptorInstanceId===instanceA.id?instanceA:bond.acceptorInstanceId===instanceB.id?instanceB:null;if(!aSide||!bSide||aSide===bSide)continue;
     const donorAtom=bond.donorHydrogenAtom,acceptorAtom=bond.acceptorAtom,donor=aSide.atoms[donorAtom],acceptor=bSide.atoms[acceptorAtom];if(!donor||!acceptor)continue;
-    const delta=sub(acceptor.position,donor.position),relative=bond.relativeSeparationSpeed??0,forces=hydrogenBondSpringForces(delta,bond.restLength,relative),donorForce=forces.onDonor,acceptorForce=forces.onAcceptor;
+    const relative=bond.relativeSeparationSpeed??0;
+    const forces=hydrogenBondDirectionalForces({donorPosition:aSide.atoms[bond.donorAtom]?.position??donor.position,hydrogenPosition:donor.position,acceptorPosition:acceptor.position,acceptorOpenDirection:bond.acceptorOpenDirection,targetDistance:bond.equilibriumDistance??1.95,relativeSeparationSpeed:relative});
+    const donorForce=forces.onDonor,acceptorForce=forces.onAcceptor;
     const donorAggregate=aSide===instanceA?aggregateA:aggregateB,acceptorAggregate=bSide===instanceA?aggregateA:aggregateB;
     donorAggregate.hbondForce=add(donorAggregate.hbondForce,donorForce);acceptorAggregate.hbondForce=add(acceptorAggregate.hbondForce,acceptorForce);
     donorAggregate.totalForce=add(donorAggregate.totalForce,donorForce);acceptorAggregate.totalForce=add(acceptorAggregate.totalForce,acceptorForce);
-    donorAggregate.torque=add(donorAggregate.torque,cross(sub(donor.position,aSide.center),donorForce));acceptorAggregate.torque=add(acceptorAggregate.torque,cross(sub(acceptor.position,bSide.center),acceptorForce));
-    const row=includePairs&&(pairs.find(item=>item.instanceAId===aSide.id&&item.atomA===donorAtom&&item.instanceBId===bSide.id&&item.atomB===acceptorAtom)||pairs.find(item=>item.instanceAId===bSide.id&&item.atomA===acceptorAtom&&item.instanceBId===aSide.id&&item.atomB===donorAtom));if(row){row.hbondForce=true;row.hbondMagnitude=forces.magnitude;}
+    donorAggregate.torque=add(donorAggregate.torque,add(cross(sub(donor.position,aSide.center),donorForce),forces.donorTorque));acceptorAggregate.torque=add(acceptorAggregate.torque,add(cross(sub(acceptor.position,bSide.center),acceptorForce),forces.acceptorTorque));
+    const row=includePairs&&(pairs.find(item=>item.instanceAId===aSide.id&&item.atomA===donorAtom&&item.instanceBId===bSide.id&&item.atomB===acceptorAtom)||pairs.find(item=>item.instanceAId===bSide.id&&item.atomA===acceptorAtom&&item.instanceBId===aSide.id&&item.atomB===donorAtom));if(row){row.hbondForce=true;row.hbondMagnitude=forces.magnitude;row.hbondTorqueMagnitude=forces.angularTorqueMagnitude;}
   }
   return {pairs,molecules:{[instanceA.id]:aggregateA,[instanceB.id]:aggregateB}};
 }
@@ -163,10 +165,10 @@ export function classifyHydrogenBondSites(record){
       const carbonNeighbors=bonded.filter(([other])=>atomElement(record,other)==='C');
       const acidicHydroxyl=hasHydrogen&&carbonNeighbors.some(([carbon])=>neighbors(record,carbon).some(([other,order])=>other!==atom&&atomElement(record,other)==='O'&&order>=2));
       const nitroO=bonded.some(([other])=>atomElement(record,other)==='N'&&neighbors(record,other).filter(([n])=>atomElement(record,n)==='O').length>=2);
-      if(!acidicHydroxyl&&(bonded.length<=2||nitroO))acceptors.push({atom});
+      if(!acidicHydroxyl&&(bonded.length<=2||nitroO))acceptors.push({atom,capacity:2,kind:carbonNeighbors.some(([carbon])=>neighbors(record,carbon).some(([other,order])=>other!==atom&&atomElement(record,other)==='O'&&order>=2))?'carbonyl-oxygen':'oxygen'});
     } else if(element==='N'&&!isAmideNitrogen(record,atom)){
       const formalCharge=Number(record.formalCharges?.[String(atom)]??record.atoms[atom]?.charge??0);
-      if(formalCharge<=0&&bonded.length<=3)acceptors.push({atom});
+      if(formalCharge<=0&&bonded.length<=3)acceptors.push({atom,capacity:1,kind:'amine-nitrogen'});
     }
   }
   return {donors,acceptors};
@@ -187,42 +189,79 @@ export function coulombPairForces(chargeA,chargeB,delta,options){
   const onA=coulombPairForce(chargeA,chargeB,delta,options);
   return {onA:{x:onA.x,y:onA.y,z:onA.z},onB:{x:-onA.x,y:-onA.y,z:-onA.z},magnitude:onA.magnitude};
 }
-export function hydrogenBondSpringForces(delta,restLength,relativeSeparationSpeed=0,{stiffness=.032,damping=.018,maxForce=.055}={}){
-  const distance=Math.hypot(delta.x,delta.y,delta.z);if(!distance)return {onDonor:{x:0,y:0,z:0},onAcceptor:{x:0,y:0,z:0},magnitude:0};
-  const magnitude=Math.max(-maxForce,Math.min(maxForce,(distance-restLength)*stiffness+relativeSeparationSpeed*damping));
-  const onDonor={x:delta.x/distance*magnitude,y:delta.y/distance*magnitude,z:delta.z/distance*magnitude};
-  return {onDonor,onAcceptor:{x:-onDonor.x,y:-onDonor.y,z:-onDonor.z},magnitude:Math.abs(magnitude)};
+export function hydrogenBondEquilibriumDistance(donorElement='O',acceptorElement='O'){
+  if(donorElement==='N')return acceptorElement==='N'?2.15:2.05;
+  return acceptorElement==='N'?2.05:1.95;
+}
+export function hydrogenBondAngleDegrees(donor,hydrogen,acceptor){
+  const u=sub(donor,hydrogen),v=sub(acceptor,hydrogen),denominator=Math.hypot(u.x,u.y,u.z)*Math.hypot(v.x,v.y,v.z);
+  if(!denominator)return 0;
+  const cosine=Math.max(-1,Math.min(1,(u.x*v.x+u.y*v.y+u.z*v.z)/denominator));
+  return Math.acos(cosine)*180/Math.PI;
+}
+export function hydrogenBondDirectionalForces({donorPosition,hydrogenPosition,acceptorPosition,acceptorOpenDirection=null,targetDistance=1.95,relativeSeparationSpeed=0},{stiffness=.075,damping=.012,maxForce=.055,angularStiffness=.07}={}){
+  const delta=sub(acceptorPosition,hydrogenPosition),distance=Math.hypot(delta.x,delta.y,delta.z);if(!distance)return {onDonor:vec(),onAcceptor:vec(),donorTorque:vec(),acceptorTorque:vec(),magnitude:0,angularTorqueMagnitude:0,equilibriumDistance:targetDistance};
+  const radialError=distance-targetDistance;
+  // A quadratic well around a generic equilibrium, with an independent steep
+  // inner wall. Capture distance never becomes the equilibrium distance.
+  const magnitude=Math.max(-maxForce,Math.min(maxForce,radialError*stiffness+relativeSeparationSpeed*damping));
+  const onDonor=scale(delta,magnitude/distance),onAcceptor=scale(onDonor,-1);
+  const donorAxis=sub(hydrogenPosition,donorPosition),donorLength=Math.hypot(donorAxis.x,donorAxis.y,donorAxis.z),toAcceptor=scale(delta,1/distance);
+  let donorTorque=vec(),acceptorTorque=vec();
+  // Conventional D–H–A linearity means the donor D→H bond axis and H→A
+  // approach vector point in the same direction. Their cross product rotates
+  // the donor bond toward 180°; using H→D here would bend it the wrong way.
+  if(donorLength>1e-8){const donorBondAxis=scale(donorAxis,1/donorLength);donorTorque=scale(cross(donorBondAxis,toAcceptor),angularStiffness);}
+  if(acceptorOpenDirection){const openLength=Math.hypot(acceptorOpenDirection.x,acceptorOpenDirection.y,acceptorOpenDirection.z);if(openLength>1e-8){const incoming=scale(delta,-1/distance);acceptorTorque=scale(cross(scale(acceptorOpenDirection,1/openLength),incoming),angularStiffness*.65);}}
+  const angularTorqueMagnitude=Math.hypot(donorTorque.x,donorTorque.y,donorTorque.z)+Math.hypot(acceptorTorque.x,acceptorTorque.y,acceptorTorque.z);
+  return {onDonor,onAcceptor,donorTorque,acceptorTorque,magnitude:Math.abs(magnitude),angularTorqueMagnitude,equilibriumDistance:targetDistance};
+}
+export function hydrogenBondSpringForces(delta,restLength,relativeSeparationSpeed=0,options={}){
+  const forces=hydrogenBondDirectionalForces({donorPosition:vec(),hydrogenPosition:vec(),acceptorPosition:delta,targetDistance:restLength,relativeSeparationSpeed},options);
+  return {onDonor:forces.onDonor,onAcceptor:forces.onAcceptor,magnitude:forces.magnitude};
 }
 export function torqueFromForce(offset,force){return {x:offset.y*force.z-offset.z*force.y,y:offset.z*force.x-offset.x*force.z,z:offset.x*force.y-offset.y*force.x};}
 
-export function hydrogenBondEligibility(donor,acceptor,{distance,alignment=1}={}) {
-  return donor?.kind==='donor'&&acceptor?.kind==='acceptor'&&Number.isFinite(distance)&&distance<=3.35&&distance>=1.15&&alignment>=.35;
+export function hydrogenBondEligibility(donor,acceptor,{distance,alignment=1,angle}={}) {
+  return donor?.kind==='donor'&&acceptor?.kind==='acceptor'&&Number.isFinite(distance)&&distance<=3.35&&distance>=1.15&&(Number.isFinite(angle)?angle>=140:alignment>=.35);
 }
 export function chargeInteractionSign(chargeA,chargeB){const product=(Number(chargeA)||0)*(Number(chargeB)||0);return product===0?0:Math.sign(product);}
 
-export function createHydrogenBondTracker({formationDistance=3.35,breakDistance=4.05,formationAlignment=.35,breakAlignment=.12,breakRelativeSpeed=.11,breakTensileLoad=.12,reformCooldownMs=260,acceptorCapacity=1,maxPerMoleculePair=1}={}){
-  const active=new Map(),cooldowns=new Map();
-  return {
-    update(key,identity,metrics,now){
-      const previous=active.get(key),distance=metrics.distance,alignment=metrics.alignment??1;
-      if(!previous){
-        const cooldownUntil=cooldowns.get(key)??0;if(now<cooldownUntil)return {formed:false,bond:null,broken:false};cooldowns.delete(key);
-        if(!identity||distance>formationDistance||distance<1.15||alignment<formationAlignment)return {formed:false,bond:null,broken:false};
-        const occupied=[...active.values()];
-        if(occupied.some(bond=>bond.donorInstanceId===identity.donorInstanceId&&bond.donorHydrogenAtom===identity.donorHydrogenAtom))return {formed:false,bond:null,broken:false,blocked:'donor-occupied'};
-        if(occupied.filter(bond=>bond.acceptorInstanceId===identity.acceptorInstanceId&&bond.acceptorAtom===identity.acceptorAtom).length>=acceptorCapacity)return {formed:false,bond:null,broken:false,blocked:'acceptor-capacity'};
-        if(occupied.filter(bond=>[bond.donorInstanceId,bond.acceptorInstanceId].sort().join('|')===[identity.donorInstanceId,identity.acceptorInstanceId].sort().join('|')).length>=maxPerMoleculePair)return {formed:false,bond:null,broken:false,blocked:'pair-capacity'};
-        const bond={...identity,key,formedAt:now,restLength:Math.min(2.45,Math.max(1.8,distance)),distance,alignment};active.set(key,bond);return {formed:true,bond,broken:false};
+export function scoreHydrogenBondCandidate({distance,angle=180,acceptorOpenness=1,equilibriumDistance=1.95},{incumbent=false}={}){
+  return -(Math.abs(distance-equilibriumDistance)*.52+Math.max(0,180-angle)/70*.78+(1-Math.max(0,Math.min(1,acceptorOpenness)))*.38)+(incumbent?.12:0);
+}
+export function createHydrogenBondTracker({formationDistance=3.35,breakDistance=4.05,formationAngle=140,breakAngle=105,breakRelativeSpeed=.11,breakTensileLoad=.12,reformCooldownMs=90,replacementAdvantage=.34,replacementDwellMs=320,maxPerMoleculePair=1}={}){
+  const active=new Map(),cooldowns=new Map(),challengers=new Map();
+  const pairKey=identity=>[identity.donorInstanceId,identity.acceptorInstanceId].sort().join('|');
+  function metricsFor(candidate){const legacy=candidate.alignment,angle=candidate.angle??(legacy===undefined?180:105+Math.max(0,Math.min(1,(legacy-.12)/.88))*75);return {...candidate,angle,equilibriumDistance:candidate.equilibriumDistance??hydrogenBondEquilibriumDistance(candidate.donorElement??'O',candidate.acceptorElement??'O'),score:scoreHydrogenBondCandidate({...candidate,angle,equilibriumDistance:candidate.equilibriumDistance??hydrogenBondEquilibriumDistance(candidate.donorElement??'O',candidate.acceptorElement??'O')})};}
+  function conflicts(candidate,bond){const x=candidate.acceptorApproachDirection,y=bond.acceptorApproachDirection,overlappingSector=x&&y&&(x.x*y.x+x.y*y.y+x.z*y.z)>.7;return (candidate.donorInstanceId===bond.donorInstanceId&&candidate.donorHydrogenAtom===bond.donorHydrogenAtom)||(pairKey(candidate)===pairKey(bond)&&maxPerMoleculePair<=1)||(candidate.acceptorInstanceId===bond.acceptorInstanceId&&candidate.acceptorAtom===bond.acceptorAtom&&overlappingSector);}
+  function form(candidate,now){const {key,...data}=candidate,bond={...data,key,formedAt:now,lastDistance:data.distance,lastAngle:data.angle,incumbentSince:now,restLength:data.equilibriumDistance};active.set(key,bond);return bond;}
+  function updateAll(rawCandidates,now){
+    const byKey=new Map(rawCandidates.map(item=>{const value=metricsFor(item);return [value.key,value];})),broken=[];
+    for(const [key,bond] of active){const current=byKey.get(key);if(!current){active.delete(key);cooldowns.set(key,now+reformCooldownMs);broken.push({key,reason:'candidate-lost'});continue;}
+      const speed=current.relativeSpeed??0,load=current.tensileLoad??Math.max(0,current.distance-bond.equilibriumDistance)*.028;
+      if(current.distance>breakDistance||current.distance<1.15||current.angle<breakAngle||speed>breakRelativeSpeed||load>breakTensileLoad){active.delete(key);cooldowns.set(key,now+reformCooldownMs);challengers.delete(key);const reason=current.distance>breakDistance?'extension':current.distance<1.15?'compression':current.angle<breakAngle?'angle':speed>breakRelativeSpeed?'relative-speed':'tensile-load';broken.push({key,reason});continue;}
+      Object.assign(bond,current,{lastDistance:current.distance,lastAngle:current.angle,relativeSpeed:speed,tensileLoad:load,score:scoreHydrogenBondCandidate(current,{incumbent:true})});
+    }
+    const eligible=[...byKey.values()].filter(item=>item.distance<=formationDistance&&item.distance>=1.15&&item.angle>=formationAngle&&(item.acceptorOpenness??1)>=.2&&!(now<(cooldowns.get(item.key)??0))).sort((a,b)=>scoreHydrogenBondCandidate(b,{incumbent:active.has(b.key)})-scoreHydrogenBondCandidate(a,{incumbent:active.has(a.key)})||a.key.localeCompare(b.key)),suppressed=new Set();
+    for(const candidate of eligible){if(suppressed.has(candidate.key))continue;const incumbent=active.get(candidate.key);if(incumbent){Object.assign(incumbent,{...candidate,score:scoreHydrogenBondCandidate(candidate,{incumbent:true})});continue;}
+      const occupied=[...active.values()],acceptorCapacity=candidate.acceptorCapacity??2,acceptorBonds=occupied.filter(bond=>bond.acceptorInstanceId===candidate.acceptorInstanceId&&bond.acceptorAtom===candidate.acceptorAtom),conflictsNow=[...new Map([...occupied.filter(bond=>conflicts(candidate,bond)),...acceptorBonds.slice(Math.max(0,acceptorCapacity-1))].map(bond=>[bond.key,bond])).values()];
+      if(conflictsNow.length){const challengerScore=scoreHydrogenBondCandidate(candidate),beatsEveryConflict=conflictsNow.every(bond=>challengerScore>=(bond.score??scoreHydrogenBondCandidate(bond,{incumbent:true}))+replacementAdvantage),since=challengers.get(candidate.key);
+        if(beatsEveryConflict){if(since===undefined){challengers.set(candidate.key,now);continue;}if(now-since<replacementDwellMs)continue;for(const conflict of conflictsNow){active.delete(conflict.key);cooldowns.set(conflict.key,now+reformCooldownMs);suppressed.add(conflict.key);}challengers.delete(candidate.key);form(candidate,now);}
+        else challengers.delete(candidate.key);
+        continue;
       }
-      const broken=distance>breakDistance||distance<1.15||alignment<breakAlignment||(metrics.relativeSpeed??0)>breakRelativeSpeed||(metrics.tensileLoad??0)>breakTensileLoad;
-      if(broken){active.delete(key);cooldowns.set(key,now+reformCooldownMs);return {formed:false,bond:null,broken:true};}
-      Object.assign(previous,{distance,alignment,relativeSpeed:metrics.relativeSpeed??0,tensileLoad:metrics.tensileLoad??0});return {formed:false,bond:previous,broken:false};
-    },
-    get(key){return active.get(key)??null;},
-    values(){return [...active.values()];},
-    delete(key){return active.delete(key);},
-    reset(){active.clear();cooldowns.clear();},
+      challengers.delete(candidate.key);form(candidate,now);
+    }
+    for(const key of challengers.keys())if(!byKey.has(key))challengers.delete(key);
+    return {active:[...active.values()],broken,challengers:[...challengers].map(([key,since])=>({key,since}))};
+  }
+  return {
+    updateAll,
+    update(key,identity,metrics,now){const candidate={...identity,...metrics,key,acceptorCapacity:identity?.acceptorCapacity??1},before=active.has(key);if(!before&&candidate.distance<formationDistance&&candidate.distance>=1.15&&metricsFor(candidate).angle>=formationAngle){const bonds=[...active.values()];if(bonds.some(bond=>bond.donorInstanceId===identity.donorInstanceId&&bond.donorHydrogenAtom===identity.donorHydrogenAtom))return {formed:false,bond:null,broken:false,blocked:'donor-occupied'};if(bonds.filter(bond=>bond.acceptorInstanceId===identity.acceptorInstanceId&&bond.acceptorAtom===identity.acceptorAtom).length>=candidate.acceptorCapacity)return {formed:false,bond:null,broken:false,blocked:'acceptor-capacity'};if(bonds.some(bond=>pairKey(bond)===pairKey(identity))&&maxPerMoleculePair<=1)return {formed:false,bond:null,broken:false,blocked:'pair-capacity'};}const result=updateAll([...byKeyCurrent(),candidate],now);const bond=active.get(key)??null;return {formed:!before&&!!bond,bond,broken:result.broken.some(item=>item.key===key)};},
+    get(key){return active.get(key)??null;},values(){return [...active.values()];},diagnostics(){return [...challengers].map(([key,since])=>({key,since,reason:'challenger-score-dwell'}));},delete(key){challengers.delete(key);return active.delete(key);},reset(){active.clear();cooldowns.clear();challengers.clear();},
   };
+  function byKeyCurrent(){return [...active.values()];}
 }
 
 function siteMatches(record,siteName,atomId){

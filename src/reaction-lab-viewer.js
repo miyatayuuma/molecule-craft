@@ -5,7 +5,7 @@ import {
   planVisiblePopulation, reactionCandidates, planReactionExecution, resolveCandidateInstanceIds,
   hydrogenBondVisualEndpoints, createHydrogenBondTracker, createContactMatcher,
   CONTACT_DWELL_MS,
-} from './reaction-lab-core.js?v=4';
+} from './reaction-lab-core.js?v=6';
 
 const vector=(THREE,point)=>Array.isArray(point)?new THREE.Vector3(point[0],point[1],point[2]):new THREE.Vector3(point.x,point.y,point.z);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -26,8 +26,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let slotValues=['','',''],instances=[],mode='move',selected=null,down=null,testIsolation=null,reactionContactPairs=new Set();
   let azimuth=0,elevation=0,distance=15,last=performance.now(),disposed=false,reactionAnimation=null;
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
-  const contactMatcher=createContactMatcher(),hydrogenBonds=createHydrogenBondTracker();
-  const bondVisuals=new Map(),activePointers=new Set();
+  const contactMatcher=createContactMatcher(),hydrogenBonds=createHydrogenBondTracker();let lastHydrogenBondLifecycle={active:[],broken:[],challengers:[]};
+  const activePointers=new Set();
 
   function resize(){const rect=canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;renderer.setSize(rect.width,rect.height,false);camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix();}
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);resize();
@@ -37,18 +37,20 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function rayForEvent(event){const rect=canvas.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);}
   function atomWorld(item,index){const atom=item.record.atoms[index];return item.group.localToWorld(vector(THREE,atom.point));}
   function instanceById(id){return instances.find(item=>item.id===id)??null;}
-  function clearBonds(){for(const [key,line] of bondVisuals){world.remove(line);line.geometry.dispose();line.material.dispose();bondVisuals.delete(key);}hydrogenBonds.reset();}
+  function clearBonds(){hydrogenBonds.reset();lastHydrogenBondLifecycle={active:[],broken:[],challengers:[]};}
   function clear(){for(const item of instances){world.remove(item.group);item.group.traverse(object=>{object.geometry?.dispose?.();object.material?.dispose?.();});}instances=[];clearBonds();contactMatcher.reset();reactionContactPairs.clear();selected=null;testIsolation=null;}
 
-  function alignmentFor(donorItem,donorAtom,hydrogenAtom,acceptorItem,acceptorAtom){
+  function hydrogenBondGeometry(donorItem,donorAtom,hydrogenAtom,acceptorItem,acceptorAtom){
     const donor=atomWorld(donorItem,donorAtom),hydrogen=atomWorld(donorItem,hydrogenAtom),acceptor=atomWorld(acceptorItem,acceptorAtom);
-    const donorDirection=hydrogen.clone().sub(donor).normalize(),hydrogenDirection=acceptor.clone().sub(hydrogen).normalize();
-    const donorScore=Math.max(0,donorDirection.dot(hydrogenDirection));
+    const donorDirection=donor.clone().sub(hydrogen).normalize(),hydrogenDirection=acceptor.clone().sub(hydrogen).normalize();
+    const angle=Math.acos(clamp(donorDirection.dot(hydrogenDirection),-1,1))*180/Math.PI;
     const bonded=acceptorItem.record.bonds.filter(bond=>bond.a===acceptorAtom||bond.b===acceptorAtom);
     const neighborDirection=new THREE.Vector3();
     for(const bond of bonded){const other=bond.a===acceptorAtom?bond.b:bond.a;neighborDirection.add(atomWorld(acceptorItem,other).sub(acceptor).normalize());}
-    const acceptorScore=neighborDirection.lengthSq()<1e-6?1:Math.max(0,neighborDirection.negate().normalize().dot(hydrogen.clone().sub(acceptor).normalize()));
-    return donorScore*.7+acceptorScore*.3;
+    const acceptorOpenDirection=neighborDirection.lengthSq()<1e-6?new THREE.Vector3():neighborDirection.negate().normalize();
+    const acceptorOpenness=acceptorOpenDirection.lengthSq()<1e-6?1:clamp((acceptorOpenDirection.dot(hydrogen.clone().sub(acceptor).normalize())+.25)/1.25,0,1);
+    const approach=hydrogen.clone().sub(acceptor).normalize();
+    return {angle,acceptorOpenness,acceptorOpenDirection:{x:acceptorOpenDirection.x,y:acceptorOpenDirection.y,z:acceptorOpenDirection.z},acceptorApproachDirection:{x:approach.x,y:approach.y,z:approach.z}};
   }
 
   function createInstance(record,position){
@@ -121,24 +123,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   canvas.addEventListener('touchstart',event=>{if(event.touches.length===2)pinchDistance=Math.hypot(event.touches[0].clientX-event.touches[1].clientX,event.touches[0].clientY-event.touches[1].clientY);},{passive:true});
   canvas.addEventListener('touchmove',event=>{if(event.touches.length===2&&pinchDistance){const next=Math.hypot(event.touches[0].clientX-event.touches[1].clientX,event.touches[0].clientY-event.touches[1].clientY);distance=clamp(distance*pinchDistance/Math.max(1,next),7,24);pinchDistance=next;updateCamera();}},{passive:true});
 
-  function removeBondVisual(key){const line=bondVisuals.get(key);if(!line)return;world.remove(line);line.geometry.dispose();line.material.dispose();bondVisuals.delete(key);}
   function bondKey(identity){return `${identity.donorInstanceId}:${identity.donorAtom}:${identity.donorHydrogenAtom}:${identity.acceptorInstanceId}:${identity.acceptorAtom}`;}
-  function bondGeometry(bond){
-    const donor=instanceById(bond.donorInstanceId),acceptor=instanceById(bond.acceptorInstanceId);
-    if(!donor||!acceptor)return null;
-    const endpoints=hydrogenBondVisualEndpoints(bond);return {from:atomWorld(donor,endpoints.from.atom),to:atomWorld(acceptor,endpoints.to.atom)};
-  }
-  function drawHBonds(){
-    const live=new Set();
-    for(const bond of hydrogenBonds.values()){
-      const endpoints=bondGeometry(bond);if(!endpoints)continue;live.add(bond.key);
-      let line=bondVisuals.get(bond.key);
-      if(!line){const geometry=new THREE.BufferGeometry().setFromPoints([endpoints.from,endpoints.to]),material=new THREE.LineDashedMaterial({color:'#63d9dc',dashSize:.12,gapSize:.09,transparent:true,opacity:.72,depthWrite:false});line=new THREE.Line(geometry,material);line.computeLineDistances();world.add(line);bondVisuals.set(bond.key,line);}
-      line.geometry.setFromPoints([endpoints.from,endpoints.to]);line.computeLineDistances();
-      const strain=clamp((bond.distance-bond.restLength)/Math.max(.1,4.05-bond.restLength),0,1);line.material.opacity=.72*(1-strain*.72);line.material.dashSize=.12+strain*.08;line.material.gapSize=.09+strain*.07;
-    }
-    for(const key of bondVisuals.keys())if(!live.has(key))removeBondVisual(key);
-  }
+  // Internal interaction state is exposed to deterministic probes only;
+  // production shows hydrogen bonding through molecular motion, without lines.
   function collectHydrogenBondCandidates(){
     const candidates=[];
     for(let i=0;i<instances.length;i++)for(let j=i+1;j<instances.length;j++){
@@ -146,33 +133,23 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(testIsolation&&!(testIsolation.has(left.id)&&testIsolation.has(right.id)))continue;
       for(const [donorItem,acceptorItem] of [[left,right],[right,left]])for(const donor of donorItem.donors)for(const hydrogen of donor.hydrogens)for(const acceptor of acceptorItem.acceptors){
         const donorPoint=atomWorld(donorItem,donor.atom),hydrogenPoint=atomWorld(donorItem,hydrogen),acceptorPoint=atomWorld(acceptorItem,acceptor.atom);
-        const distance=hydrogenPoint.distanceTo(acceptorPoint),alignment=alignmentFor(donorItem,donor.atom,hydrogen,acceptorItem,acceptor.atom);
-        const identity={donorInstanceId:donorItem.id,donorAtom:donor.atom,donorHydrogenAtom:hydrogen,acceptorInstanceId:acceptorItem.id,acceptorAtom:acceptor.atom};
+        const distance=hydrogenPoint.distanceTo(acceptorPoint),geometry=hydrogenBondGeometry(donorItem,donor.atom,hydrogen,acceptorItem,acceptor.atom);
+        const identity={donorInstanceId:donorItem.id,donorAtom:donor.atom,donorHydrogenAtom:hydrogen,acceptorInstanceId:acceptorItem.id,acceptorAtom:acceptor.atom,acceptorCapacity:acceptor.capacity,donorElement:donorItem.record.atoms[donor.atom].element,acceptorElement:acceptorItem.record.atoms[acceptor.atom].element,acceptorOpenDirection:geometry.acceptorOpenDirection};
         const key=bondKey(identity),tracked=hydrogenBonds.get(key);
-        if(tracked||hydrogenBondEligibility({kind:'donor',...donor},{kind:'acceptor',...acceptor},{distance,alignment}))candidates.push({identity,key,donorItem,acceptorItem,donorPoint,hydrogenPoint,acceptorPoint,distance,alignment});
+        if(distance<=4.35&&(tracked||hydrogenBondEligibility({...donor,kind:'donor'},{...acceptor,kind:'acceptor'},{distance,angle:geometry.angle})))candidates.push({identity,key,donorItem,acceptorItem,donorPoint,hydrogenPoint,acceptorPoint,distance,...geometry});
       }
     }
     return candidates;
   }
   function updateHydrogenBondStates(now){
-    const candidates=collectHydrogenBondCandidates(),byKey=new Map(candidates.map(candidate=>[candidate.key,candidate]));
-    for(const bond of hydrogenBonds.values()){
-      const current=byKey.get(bond.key);
-      if(!current){hydrogenBonds.delete(bond.key);removeBondVisual(bond.key);continue;}
-      const elapsed=Math.max(1,now-(bond.lastSampleAt??now));
-      const sampledSpeed=Math.abs(current.distance-(bond.lastDistance??current.distance))/(elapsed/16);
-      const recentDragSpeed=[current.donorItem,current.acceptorItem].reduce((speed,item)=>now-item.lastDragAt<140?Math.max(speed,item.dragSpeed):speed,0);
-      const relativeSpeed=Math.max(sampledSpeed,recentDragSpeed);
-      const tensileLoad=Math.max(0,current.distance-bond.restLength)*.028;
-      const result=hydrogenBonds.update(bond.key,bond,{distance:current.distance,alignment:current.alignment,relativeSpeed,tensileLoad},now);
-      if(result.broken)removeBondVisual(bond.key);else Object.assign(bond,{lastDistance:current.distance,lastSampleAt:now});
-    }
-    candidates.sort((a,b)=>a.distance-b.distance||b.alignment-a.alignment);
-    for(const candidate of candidates){
-      if(hydrogenBonds.get(candidate.key))continue;
-      const result=hydrogenBonds.update(candidate.key,candidate.identity,{distance:candidate.distance,alignment:candidate.alignment},now);
-      if(result.formed)Object.assign(result.bond,{lastDistance:candidate.distance,lastSampleAt:now});
-    }
+    const candidates=collectHydrogenBondCandidates().map(candidate=>{
+      const previous=hydrogenBonds.get(candidate.key),elapsed=Math.max(1,now-(previous?.lastSampleAt??now)),sampledSpeed=previous?Math.abs(candidate.distance-(previous.lastDistance??candidate.distance))/(elapsed/16):0;
+      const recentDragSpeed=[candidate.donorItem,candidate.acceptorItem].reduce((speed,item)=>now-item.lastDragAt<140?Math.max(speed,item.dragSpeed):speed,0);
+      return {...candidate,...candidate.identity,relativeSpeed:Math.max(sampledSpeed,recentDragSpeed),tensileLoad:Math.max(0,candidate.distance-(previous?.equilibriumDistance??1.95))*.028};
+    });
+    lastHydrogenBondLifecycle=hydrogenBonds.updateAll(candidates,now);
+    for(const bond of hydrogenBonds.values()){bond.lastDistance=bond.distance;bond.lastSampleAt=now;}
+    return lastHydrogenBondLifecycle;
   }
 
   function reactionStep(now){
@@ -201,8 +178,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const reactants=ids.map(instanceById);if(reactants.some(item=>!item||item.busy))return;
     const execution=planReactionExecution(candidate,records,slotValues);if(!execution.ok){status.textContent='登録済みreactant/productを解決できず反応を中断しました。';return;}
     const [left,right]=reactants;reactionContactPairs.delete([...ids].sort().join('|'));left.busy=right.busy=true;cancelPointerFor(left);cancelPointerFor(right);
-    for(const [key,bond] of bondVisuals)if(key.includes(left.id)||key.includes(right.id))removeBondVisual(key);
-    for(const bond of hydrogenBonds.values())if(ids.includes(bond.donorInstanceId)||ids.includes(bond.acceptorInstanceId)){hydrogenBonds.delete(bond.key);removeBondVisual(bond.key);}
+    for(const bond of hydrogenBonds.values())if(ids.includes(bond.donorInstanceId)||ids.includes(bond.acceptorInstanceId))hydrogenBonds.delete(bond.key);
     slots.forEach(slot=>slot.disabled=true);status.textContent='接触が続き、反応中心へ分子が集まっています。';
     const center=left.group.position.clone().add(right.group.position).multiplyScalar(.5);
     reactionAnimation={left,right,center,started:performance.now()};
@@ -253,7 +229,6 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const dt=Math.min(40,now-last);last=now;const scale=dt/16;
     const activePairs=physicalInteractions(scale,now);
     updateHydrogenBondStates(now);
-    if(Math.floor(now/160)!==Math.floor((now-dt)/160))drawHBonds();
     reactionStep(now);
     if(reactionAnimation){const progress=clamp((now-reactionAnimation.started)/CONTACT_DWELL_MS,0,1);for(const item of [reactionAnimation.left,reactionAnimation.right]){item.group.position.lerp(reactionAnimation.center,progress*.18);item.group.scale.setScalar(1-progress*.12);}}
     renderer.render(scene,camera);
@@ -268,12 +243,21 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   if(new URLSearchParams(location.search).get('reactionLabTest')==='1'&&['localhost','127.0.0.1'].includes(location.hostname)){
     const project=point=>{camera.updateMatrixWorld();const projected=point.clone().project(camera),rect=canvas.getBoundingClientRect();return{x:rect.left+(projected.x+1)*.5*rect.width,y:rect.top+(1-projected.y)*.5*rect.height};};
     window.__reactionLabProbe={
-      snapshot:()=>({instances:instances.map(item=>({id:item.id,species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),dragSpeed:item.dragSpeed,charges:[...item.interactionCharges]})),bonds:hydrogenBonds.values().map(bond=>({key:bond.key,endpoints:hydrogenBondVisualEndpoints(bond),distance:bond.distance})),camera:{distance,azimuth,elevation},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
+      snapshot:()=>({instances:instances.map(item=>({id:item.id,species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),dragSpeed:item.dragSpeed,charges:[...item.interactionCharges]})),bonds:hydrogenBonds.values().map(bond=>({key:bond.key,endpoints:hydrogenBondVisualEndpoints(bond),distance:bond.distance,angle:bond.angle,equilibriumDistance:bond.equilibriumDistance,score:bond.score,acceptorCapacity:bond.acceptorCapacity})),hydrogenBondVisualCount:0,camera:{distance,azimuth,elevation},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
       decomposePair(instanceAId,instanceBId,options={}){
         const a=instanceById(instanceAId),b=instanceById(instanceBId);if(!a||!b)throw Error('Missing molecule instance for force decomposition');
         const descriptor=item=>({id:item.id,species:item.species,center:{x:item.group.position.x,y:item.group.position.y,z:item.group.position.z},atoms:item.record.atoms.map((atom,index)=>{const point=atomWorld(item,index);return {element:atom.element,interactionCharge:item.interactionCharges[index],position:{x:point.x,y:point.y,z:point.z},excludedRadius:modelAtomRadius(atom.element)};})});
         const hbonds=hydrogenBonds.values().filter(bond=>[bond.donorInstanceId,bond.acceptorInstanceId].includes(a.id)&&[bond.donorInstanceId,bond.acceptorInstanceId].includes(b.id));
         return decomposeMoleculePairInteraction(descriptor(a),descriptor(b),{stericOptions:{stiffness:4.5,maxForce:.24},hbonds,...options});
+      },
+      hydrogenBondDiagnostics(instanceAId,instanceBId){
+        const a=instanceById(instanceAId),b=instanceById(instanceBId);if(!a||!b)throw Error('Missing molecule instance for H-bond diagnostics');
+        const bonds=hydrogenBonds.values().filter(bond=>new Set([bond.donorInstanceId,bond.acceptorInstanceId]).has(a.id)&&new Set([bond.donorInstanceId,bond.acceptorInstanceId]).has(b.id)).map(bond=>{
+          const donor=instanceById(bond.donorInstanceId),acceptor=instanceById(bond.acceptorInstanceId),geometry=hydrogenBondGeometry(donor,bond.donorAtom,bond.donorHydrogenAtom,acceptor,bond.acceptorAtom),decomposition=this.decomposePair(donor.id,acceptor.id,{includeCoulomb:false,includeSteric:false});
+          const row=decomposition.pairs.find(pair=>pair.instanceAId===donor.id&&pair.atomA===bond.donorHydrogenAtom&&pair.instanceBId===acceptor.id&&pair.atomB===bond.acceptorAtom);
+          return {key:bond.key,donor:bond.donorInstanceId,donorAtom:bond.donorAtom,donorHydrogenAtom:bond.donorHydrogenAtom,acceptor:bond.acceptorInstanceId,acceptorAtom:bond.acceptorAtom,distance:atomWorld(donor,bond.donorHydrogenAtom).distanceTo(atomWorld(acceptor,bond.acceptorAtom)),angle:geometry.angle,equilibriumDistance:bond.equilibriumDistance,radialForce:row?.hbondMagnitude??0,angularTorque:row?.hbondTorqueMagnitude??0,score:bond.score,occupancy:{acceptorCapacity:bond.acceptorCapacity},replacementPending:lastHydrogenBondLifecycle.challengers.some(item=>item.key===bond.key)};
+        });
+        return {bonds,challengers:hydrogenBonds.diagnostics(),broken:lastHydrogenBondLifecycle.broken};
       },
       positionPairOnAtoms(instanceAId,atomA,instanceBId,atomB,targetDistance=.45){
         const a=instanceById(instanceAId),b=instanceById(instanceBId);if(!a||!b)throw Error('Missing molecule instance for deterministic force fixture');
@@ -286,7 +270,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       advanceDeterministic(frames=45){
         const count=Math.max(0,Math.min(600,Math.floor(frames))),start=performance.now();
         for(let frame=0;frame<count;frame++){const now=start+frame*16;physicalInteractions(1,now,false);updateHydrogenBondStates(now);}
-        drawHBonds();return this.snapshot();
+        return this.snapshot();
       },
       prepareContact(ruleId,startDistance=2.25){
         const candidate=instances.flatMap((left,index)=>instances.slice(index+1).flatMap(right=>reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],records))).find(item=>item.ruleId===ruleId);
@@ -304,7 +288,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         const hit=raycaster.ray.intersectPlane(plane,new THREE.Vector3()),offset=hit?hit.sub(left.group.position):new THREE.Vector3();
         return {instanceId:left.id,start:project(startWorld),end:project(endWorld.clone().add(offset)),initialDistance:atomWorld(left,atomA).distanceTo(atomWorld(right,atomB)),expectedDistance:.82};
       },
-      arrangeHydrogenBond(){
+      arrangeHydrogenBond(angleOffsetDegrees=0){
         const waters=instances.filter(item=>item.species==='water');if(waters.length<2)throw Error('Water-only population is required');
         const [donor,acceptor]=waters,axis=cameraRight();
         testIsolation=new Set([donor.id,acceptor.id]);
@@ -314,10 +298,33 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         donor.group.quaternion.setFromUnitVectors(donorVector,axis);donor.group.position.set(0,0,0);
         const acceptorVector=vector(THREE,acceptor.record.atoms[1].point).sub(vector(THREE,acceptor.record.atoms[0].point)).normalize().add(vector(THREE,acceptor.record.atoms[2].point).sub(vector(THREE,acceptor.record.atoms[0].point)).normalize()).normalize();
         acceptor.group.quaternion.setFromUnitVectors(acceptorVector,axis);
-        const donorH=atomWorld(donor,1),acceptorO=atomWorld(acceptor,0);acceptor.group.position.add(donorH.clone().addScaledVector(axis,2.3).sub(acceptorO));
+        const donorH=atomWorld(donor,1),acceptorO=atomWorld(acceptor,0),offset=axis.clone().multiplyScalar(Math.cos(angleOffsetDegrees*Math.PI/180)).add(new THREE.Vector3(0,1,0).multiplyScalar(Math.sin(angleOffsetDegrees*Math.PI/180))).normalize();acceptor.group.position.add(donorH.clone().addScaledVector(offset,2.3).sub(acceptorO));
         const others=waters.slice(2);others.forEach((item,index)=>item.group.position.set(index%2?4.8:-4.8,index<2?2.65:-2.65,0));
-        const started=updateHydrogenBondStates(performance.now());drawHBonds();
-        return {donorId:donor.id,acceptorId:acceptor.id,axis:axis.toArray(),bonds:hydrogenBonds.values().length,alignment:alignmentFor(donor,0,1,acceptor,0),geometry:{from:atomWorld(donor,1).toArray(),to:atomWorld(acceptor,0).toArray()}};
+        const lifecycle=updateHydrogenBondStates(performance.now()),candidates=collectHydrogenBondCandidates().map(candidate=>({key:candidate.key,distance:candidate.distance,angle:candidate.angle,acceptorOpenness:candidate.acceptorOpenness,acceptorCapacity:candidate.identity.acceptorCapacity}));
+        const lifecycleSummary={active:lifecycle.active.map(bond=>({key:bond.key,distance:bond.distance,angle:bond.angle,equilibriumDistance:bond.equilibriumDistance,score:bond.score})),broken:lifecycle.broken.map(bond=>({key:bond.key,reason:bond.reason})),challengers:lifecycle.challengers};
+        return {donorId:donor.id,acceptorId:acceptor.id,axis:axis.toArray(),bonds:hydrogenBonds.values().length,angle:hydrogenBondGeometry(donor,0,1,acceptor,0).angle,distance:atomWorld(donor,1).distanceTo(atomWorld(acceptor,0)),lifecycle:lifecycleSummary,candidates,geometry:{from:atomWorld(donor,1).toArray(),to:atomWorld(acceptor,0).toArray()}};
+      },
+      rebindDifferentPartner(){
+        const waters=instances.filter(item=>item.species==='water');if(waters.length<3)throw Error('Water-only population with three instances is required');
+        const [donor,oldPartner,newPartner]=waters,axis=cameraRight(),now=performance.now();testIsolation=new Set([donor.id,oldPartner.id,newPartner.id]);clearBonds();contactMatcher.reset();
+        waters.forEach((item,index)=>{item.velocity.set(0,0,0);item.angularVelocity.set(0,0,0);item.group.rotation.set(0,0,0);if(index>2)item.group.position.set(4.8,2.65,0);});
+        const donorVector=vector(THREE,donor.record.atoms[1].point).sub(vector(THREE,donor.record.atoms[0].point)).normalize();donor.group.quaternion.setFromUnitVectors(donorVector,axis);donor.group.position.set(0,0,0);
+        const placeAcceptor=(item,oxygenPosition)=>{const oxygen=vector(THREE,item.record.atoms[0].point),bisector=vector(THREE,item.record.atoms[1].point).sub(oxygen).normalize().add(vector(THREE,item.record.atoms[2].point).sub(oxygen).normalize()).normalize();item.group.quaternion.setFromUnitVectors(bisector,axis);item.group.position.copy(oxygenPosition).sub(oxygen.applyQuaternion(item.group.quaternion));};
+        placeAcceptor(oldPartner,atomWorld(donor,1).addScaledVector(axis,2.3));placeAcceptor(newPartner,new THREE.Vector3(4.8,2.65,0));
+        updateHydrogenBondStates(now);const formedWith=hydrogenBonds.values().map(bond=>bond.acceptorInstanceId);
+        oldPartner.group.position.addScaledVector(axis,6);updateHydrogenBondStates(now+24);const afterBreak=hydrogenBonds.values().length;
+        placeAcceptor(newPartner,atomWorld(donor,1).addScaledVector(axis,2.3));updateHydrogenBondStates(now+48);
+        return {formedWith,oldPartnerId:oldPartner.id,newPartnerId:newPartner.id,afterBreak,final:hydrogenBonds.values().map(bond=>({donor:bond.donorInstanceId,acceptor:bond.acceptorInstanceId,angle:bond.angle,distance:bond.distance}))};
+      },
+      arrangeHydrogenBondPair(donorSpecies,acceptorSpecies,donorAtom,hydrogenAtom,acceptorAtom,angleOffsetDegrees=0){
+        const donor=instances.find(item=>item.species===donorSpecies),acceptor=instances.find(item=>item.species===acceptorSpecies);if(!donor||!acceptor)throw Error('Requested H-bond pair is not present');
+        const axis=cameraRight();testIsolation=new Set([donor.id,acceptor.id]);clearBonds();contactMatcher.reset();
+        for(const item of instances){item.velocity.set(0,0,0);item.angularVelocity.set(0,0,0);item.group.rotation.set(0,0,0);if(item!==donor&&item!==acceptor)item.group.position.set(4.8,2.65,0);}
+        const localDonor=vector(THREE,donor.record.atoms[hydrogenAtom].point).sub(vector(THREE,donor.record.atoms[donorAtom].point)).normalize();donor.group.quaternion.setFromUnitVectors(localDonor,axis);donor.group.position.set(0,0,0);
+        const acceptorO=vector(THREE,acceptor.record.atoms[acceptorAtom].point),neighbors=acceptor.record.bonds.filter(bond=>bond.a===acceptorAtom||bond.b===acceptorAtom).map(bond=>vector(THREE,acceptor.record.atoms[bond.a===acceptorAtom?bond.b:bond.a].point).sub(acceptorO).normalize()),open=neighbors.reduce((sum,item)=>sum.sub(item),new THREE.Vector3()).normalize();
+        acceptor.group.quaternion.setFromUnitVectors(open,axis.clone().negate());const donorH=atomWorld(donor,hydrogenAtom),offset=axis.clone().multiplyScalar(Math.cos(angleOffsetDegrees*Math.PI/180)).add(new THREE.Vector3(0,1,0).multiplyScalar(Math.sin(angleOffsetDegrees*Math.PI/180))).normalize();acceptor.group.position.copy(donorH).addScaledVector(offset,2.3).sub(acceptorO.applyQuaternion(acceptor.group.quaternion));
+        updateHydrogenBondStates(performance.now());const bond=hydrogenBonds.values()[0]??null;
+        return {donorId:donor.id,acceptorId:acceptor.id,bondCount:hydrogenBonds.values().length,angle:bond?.angle??hydrogenBondGeometry(donor,donorAtom,hydrogenAtom,acceptor,acceptorAtom).angle,distance:bond?.distance??atomWorld(donor,hydrogenAtom).distanceTo(atomWorld(acceptor,acceptorAtom)),diagnostics:bond?this.hydrogenBondDiagnostics(donor.id,acceptor.id):null};
       },
       placeSpeciesPair(speciesA,speciesB,targetDistance=.82){
         const left=instances.find(item=>item.species===speciesA),right=instances.find(item=>item.species===speciesB);if(!left||!right)throw Error('Requested pair is not present');
@@ -335,7 +342,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         const delta=vector(THREE,displacement),endCenter=item.group.position.clone().add(delta);
         return {instanceId,start,end:project(endCenter.add(offset)),before:item.group.position.toArray(),target:endCenter.toArray()};
       },
-      refresh(){updateHydrogenBondStates(performance.now());drawHBonds();return this.snapshot();},
+      refresh(){updateHydrogenBondStates(performance.now());return this.snapshot();},
     };
   }
   return {open,dispose(){disposed=true;resizeObserver.disconnect();clear();renderer.dispose();}};
