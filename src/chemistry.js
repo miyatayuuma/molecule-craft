@@ -126,7 +126,7 @@ export function normalizeMoleculeId(value) {
 function publishMoleculeDatabase(records, source = 'direct') {
   if (!Array.isArray(records)) throw new Error('Molecule database must be an array.');
   const ids = new Set();
-  const validated = records.map(record => validateMoleculeRecord(record, ids));
+  const validated = records.map(record => validateMoleculeRecord(record, ids, source !== 'direct'));
   const fingerprints = new Map();
   const byId = new Map();
   for (const record of validated) {
@@ -248,7 +248,7 @@ export function moleculeFingerprint(atoms, bonds) {
   return `${graph.atoms.length};${graph.bonds.length};${atomPart};${edgePart}`;
 }
 
-function validateMoleculeRecord(record, ids) {
+function validateMoleculeRecord(record, ids, requireNonbonded = false) {
   if (!record || typeof record !== 'object') throw new Error('Invalid molecule record.');
   const id = normalizeMoleculeId(record.id);
   for (const key of ['nameJa', 'nameEn', 'iupacNameEn']) if (typeof record[key] !== 'string' || !record[key]) throw new Error(`Missing ${key}.`);
@@ -271,7 +271,36 @@ function validateMoleculeRecord(record, ids) {
     if (pairs.has(key)) throw new Error(`Duplicate bond in ${id}.`);
     pairs.add(key);
   }
-  return Object.freeze({ ...record, id, atoms: Object.freeze([...record.atoms]), bonds: Object.freeze(record.bonds.map(bond => Object.freeze([...bond]))) });
+  const nonbonded = record.nonbonded;
+  if (requireNonbonded && !nonbonded) throw new Error(`Missing canonical nonbonded parameters in ${id}.`);
+  if (nonbonded) {
+    const chargeModels = new Set(['ashgc-1.0', 'symmetry-zero', 'tip3p-library', 'ambertools-am1bcc']);
+    const arrays = ['atomicChargesE', 'sigmaAngstrom', 'epsilonKcalMol', 'vdwParameterIds', 'atomMap'];
+    if (nonbonded.schemaVersion !== 1 || nonbonded.parameterSet !== 'reaction-lab-nonbonded-v1') throw new Error(`Invalid nonbonded schema in ${id}.`);
+    if (!chargeModels.has(nonbonded.chargeModel) || nonbonded.vdwModel !== 'openff-sage-2.3.0') throw new Error(`Unknown nonbonded model in ${id}.`);
+    for (const field of arrays) if (!Array.isArray(nonbonded[field]) || nonbonded[field].length !== record.atoms.length) throw new Error(`Invalid nonbonded ${field} length in ${id}.`);
+    if (nonbonded.atomicChargesE.some(value => !Number.isFinite(value))) throw new Error(`Non-finite canonical charge in ${id}.`);
+    if (Math.abs(nonbonded.atomicChargesE.reduce((sum, value) => sum + value, 0)) > 1e-6) throw new Error(`Non-neutral canonical charges in ${id}.`);
+    if (nonbonded.sigmaAngstrom.some(value => !Number.isFinite(value) || value <= 0)) throw new Error(`Invalid canonical sigma in ${id}.`);
+    if (nonbonded.epsilonKcalMol.some(value => !Number.isFinite(value) || value < 0)) throw new Error(`Invalid canonical epsilon in ${id}.`);
+    if (nonbonded.vdwParameterIds.some(value => typeof value !== 'string' || !value)) throw new Error(`Invalid canonical vdW parameter id in ${id}.`);
+    if (nonbonded.atomMap.some((value, index) => value !== index)) throw new Error(`Nonbonded atom map is not an identity bijection in ${id}.`);
+    if (!Array.isArray(nonbonded.virtualChargeSites) || nonbonded.virtualChargeSites.length !== 0) throw new Error(`Unsupported v1 virtual charge sites in ${id}.`);
+    if (!nonbonded.provenance || nonbonded.provenance.chargeModelId !== nonbonded.chargeModel || typeof nonbonded.provenance.moleculeGraphSha256 !== 'string') throw new Error(`Missing nonbonded provenance in ${id}.`);
+    if (id === 'water' && (nonbonded.chargeModel !== 'tip3p-library' || JSON.stringify(nonbonded.atomicChargesE) !== JSON.stringify([-0.834, 0.417, 0.417]))) throw new Error('Water must use exact Sage TIP3P library charges.');
+    if (['hydrogen', 'oxygen', 'nitrogen', 'chlorine'].includes(id) && (nonbonded.chargeModel !== 'symmetry-zero' || nonbonded.atomicChargesE.some(value => value !== 0))) throw new Error(`Invalid symmetry-zero charges in ${id}.`);
+  }
+  const frozenNonbonded = nonbonded ? Object.freeze({
+    ...nonbonded,
+    atomicChargesE: Object.freeze([...nonbonded.atomicChargesE]),
+    sigmaAngstrom: Object.freeze([...nonbonded.sigmaAngstrom]),
+    epsilonKcalMol: Object.freeze([...nonbonded.epsilonKcalMol]),
+    vdwParameterIds: Object.freeze([...nonbonded.vdwParameterIds]),
+    atomMap: Object.freeze([...nonbonded.atomMap]),
+    virtualChargeSites: Object.freeze([...nonbonded.virtualChargeSites]),
+    provenance: Object.freeze({ ...nonbonded.provenance }),
+  }) : undefined;
+  return Object.freeze({ ...record, ...(frozenNonbonded ? { nonbonded: frozenNonbonded } : {}), id, atoms: Object.freeze([...record.atoms]), bonds: Object.freeze(record.bonds.map(bond => Object.freeze([...bond]))) });
 }
 
 function normalizedGraph(atoms, bonds) {

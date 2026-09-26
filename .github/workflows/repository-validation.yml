@@ -64,6 +64,8 @@ jobs:
         run: |
           node tests/repository-hygiene.test.mjs
           node --test tests/reaction-lab-core.test.mjs
+          node tests/reaction-lab-nonbonded.test.mjs
+          python3 scripts/generate-reaction-lab-nonbonded.py --mode check
       - name: H / C revisit routes and H economy
         run: |
           node tests/hc-revisit-routes.test.mjs

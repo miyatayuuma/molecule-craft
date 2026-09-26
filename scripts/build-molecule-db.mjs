@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const molecules = [];
 const defaultValence = { C: 4, N: 3, O: 2, F: 1, P: 3, S: 2, Cl: 1 };
@@ -488,6 +488,23 @@ for (const molecule of molecules) {
   });
 }
 
+const outputUrl = new URL('../data/molecules.json', import.meta.url);
+let previousRecords = [];
+try {
+  previousRecords = JSON.parse(await readFile(outputUrl, 'utf8'));
+} catch (error) {
+  if (error?.code !== 'ENOENT') throw error;
+}
+const previousById = new Map(previousRecords.map(record => [record.id, record]));
+for (const molecule of molecules) {
+  const previous = previousById.get(molecule.id);
+  if (!previous?.nonbonded) continue;
+  if (JSON.stringify(previous.atoms) !== JSON.stringify(molecule.atoms) || JSON.stringify(previous.bonds) !== JSON.stringify(molecule.bonds)) {
+    throw new Error(`Refusing to carry canonical nonbonded parameters across a changed molecular graph: ${molecule.id}`);
+  }
+  molecule.nonbonded = previous.nonbonded;
+}
+
 await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-await writeFile(new URL('../data/molecules.json', import.meta.url), `${JSON.stringify(molecules, null, 2)}\n`);
+await writeFile(outputUrl, `${JSON.stringify(molecules, null, 2)}\n`);
 console.log(`Wrote ${molecules.length} validated molecule records.`);
