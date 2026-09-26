@@ -12,7 +12,7 @@
 | 探索資源・タンク・帰還・保存 | `src/veil/resources.js`, `src/veil/supply.js`, `src/veil/growth.js` | `supply-tanks.test.mjs`, `expedition-core.test.mjs`, `veil-reset.test.mjs` |
 | 分子のゲーム用役割・性能バランス | `src/veil/molecule-roles.js` | `molecule-roles.test.mjs` |
 | BASE STOCK入出庫・原子追加/削除/片付け | `src/craft-workspace.js` | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
-| Reaction Lab 3D scene / species slots / population | `src/reaction-lab-viewer.js`, `src/reaction-lab-core.js` | `reaction-lab-core.test.mjs`, `reaction-lab-browser.test.mjs` |
+| Reaction Lab 3D scene / species slots / population | `src/reaction-lab-viewer.js`, `src/reaction-lab-core.js`, `src/reaction-lab-stage-a.js` | `reaction-lab-core.test.mjs`, `reaction-lab-stage-a.test.mjs`, `reaction-lab-browser.test.mjs` |
 | Pairwise reaction rules / contact / DB product resolution | `src/reaction-lab-core.js` | `reaction-lab-core.test.mjs` |
 | クラフトのボタン・パレット操作 | `src/craft-controls.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
 | クラフト情報・構造一覧・完成表示 | `src/craft-panel.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
@@ -67,6 +67,8 @@
 ## Polymer Foundation and future reaction design
 
 Production Reaction Lab RL-1は `src/reaction-lab-viewer.js` の独立3D sandboxと `src/reaction-lab-core.js` のdeterministic pairwise reaction authorityで構成されます。species pickerはdiscovery stateをauthorityとし、contact dwell後にruleのatom mapでreactant graphをproduct graphへ変換してから、既存graph isomorphism authorityでDB productを解決します。registered product graphだけをruntime instance化します。Polymer chemistryは `data/polymers.json`、説明contentは `data/polymer-encyclopedia.json` が所有し、通常の分子図鑑・graphとは分離されています。
+
+RL-NB2 adds an opt-in localhost test path in `src/reaction-lab-stage-a.js`. It consumes only the canonical per-atom q/σ/ε database, evaluates intermolecular Coulomb and Lennard-Jones pairs, and integrates COM-based rigid bodies with fixed physical timesteps. It is enabled only by `?reactionLabTest=1&reactionLabPhysics=stage-a` on localhost; the regular Reaction Lab continues to use RL-1H until a later production activation task.
 
 RL-1Rではreaction candidateはrule/species/instance/site IDだけを運び、viewerがinstance IDから3D objectを解決します。分子移動はcamera-facing planeのray intersectionで行います。RL-1Eではatomごとのbounded / neutralized interaction chargeをfunctional-group contextから導出し、formal chargeとoptional net ionic chargeから分離します。`decomposeMoleculePairInteraction()`がproductionとtestで同一のatom-pair Coulomb、visual-radius-based excluded volume、molecule force / torque authorityを提供し、debug用途ではpairwise force termsも返します。RL-1HではH-bond capture distanceとgeneric equilibrium distanceを分離し、D–H···A angleおよびacceptor open-sideへ向けたrestoring torque、global candidate arbitration、site-aware occupancy、controlled partner replacementを持つtemporary potentialとして扱います。ProductionではH-bond線を表示せず、分子motionをinteractionの表示authorityとします。`reaction-lab-browser.test.mjs` は390×844 browser上でcanvas drag reaction、H-bond attraction/follow/break/rebind、water/CO₂およびwater/acetone directional geometry、water/water・water/CO₂・carbonic-acid/CO₂ force probesを検証します。
 
