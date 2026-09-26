@@ -268,9 +268,6 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         return {instanceAId:a.id,instanceBId:b.id,atomA,atomB,distance:atomWorld(a,atomA).distanceTo(atomWorld(b,atomB))};
       },
       advanceDeterministic(frames=45){
-Warning: truncated output (original token count: 1521)
-Total output lines: 45
-
         const count=Math.max(0,Math.min(600,Math.floor(frames))),start=performance.now();
         for(let frame=0;frame<count;frame++){const now=start+frame*16;physicalInteractions(1,now,false);updateHydrogenBondStates(now);}
         return this.snapshot();
@@ -299,7 +296,7 @@ Total output lines: 45
         clearBonds();contactMatcher.reset();
         const donorVector=vector(THREE,donor.record.atoms[1].point).sub(vector(THREE,donor.record.atoms[0].point)).normalize();
         donor.group.quaternion.setFromUnitVectors(donorVector,axis);donor.group.position.set(0,0,0);
-        const acceptorVector=vector(THREE,acceptor.r…21 tokens truncated…).add(vector(THREE,acceptor.record.atoms[2].point).sub(vector(THREE,acceptor.record.atoms[0].point)).normalize()).normalize();
+        const acceptorVector=vector(THREE,acceptor.record.atoms[1].point).sub(vector(THREE,acceptor.record.atoms[0].point)).normalize().add(vector(THREE,acceptor.record.atoms[2].point).sub(vector(THREE,acceptor.record.atoms[0].point)).normalize()).normalize();
         acceptor.group.quaternion.setFromUnitVectors(acceptorVector,axis);
         const donorH=atomWorld(donor,1),acceptorO=atomWorld(acceptor,0),offset=axis.clone().multiplyScalar(Math.cos(angleOffsetDegrees*Math.PI/180)).add(new THREE.Vector3(0,1,0).multiplyScalar(Math.sin(angleOffsetDegrees*Math.PI/180))).normalize();acceptor.group.position.add(donorH.clone().addScaledVector(offset,2.3).sub(acceptorO));
         const others=waters.slice(2);others.forEach((item,index)=>item.group.position.set(index%2?4.8:-4.8,index<2?2.65:-2.65,0));

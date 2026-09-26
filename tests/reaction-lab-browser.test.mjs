@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 1654)
-Total output lines: 50
-
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -30,7 +27,9 @@ try{
   await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
   let sequence=0;const pending=new Map(),browserErrors=[];
   socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(Error(message.error.message)):task.resolve(message.result);}});
-  socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.method==='Runtime.exceptionThrown')browserErrors.push({type:'exception',text:message.params.exceptionDetails.exception?.description??message.params.exceptionDetails.text});else if(…154 tokens truncated…t.exceptionDetails)throw Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);return result.result?.value;};
+  socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.method==='Runtime.exceptionThrown')browserErrors.push({type:'exception',text:message.params.exceptionDetails.exception?.description??message.params.exceptionDetails.text});else if(message.method==='Runtime.consoleAPICalled'&&message.params.type==='error')browserErrors.push({type:'console',text:message.params.args?.map(arg=>arg.value??arg.description).join(' ')});else if(message.method==='Network.loadingFailed')browserErrors.push({type:'network',error:message.params.errorText});});
+  const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+  const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);return result.result?.value;};
   const waitFor=async(expression,label,timeout=8000)=>{for(let index=0;index<timeout/40;index++){const value=await evaluate(expression);if(value)return value;await new Promise(resolve=>setTimeout(resolve,40));}const state=await evaluate("({readyState:document.readyState,button:!!document.querySelector('#open-reaction-lab'),disabled:document.querySelector('#open-reaction-lab')?.disabled,dialog:!!document.querySelector('#reaction-lab-dialog'),probe:!!window.__reactionLabProbe,appScripts:[...document.scripts].map(script=>script.src)})");throw Error(`${label}: ${JSON.stringify({state,browserErrors})}`);};
   const setSlots=async ids=>evaluate(`(()=>{const slots=[...document.querySelectorAll('[data-lab-slot]')];${JSON.stringify(ids)}.forEach((id,index)=>{slots[index].value=id;slots[index].dispatchEvent(new Event('change',{bubbles:true}));});return document.querySelector('[data-lab-status]').textContent;})()`);
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()');
@@ -49,9 +48,6 @@ try{
     await waitFor(`window.__labReactionEvents.at(-1)?.ruleId==='${ruleId}'`,'Reaction product event was not emitted',2000);
     const result=await evaluate('window.__labReactionEvents.at(-1)');
     assert.deepEqual(result.products,products);
-Warning: truncated output (original token count: 1977)
-Total output lines: 50
-
     const remaining=await snapshot();for(const product of products)assert.ok(remaining.instances.some(item=>item.species===product),`3D product instance missing: ${product}`);
     assert.equal(remaining.instances.filter(item=>products.includes(item.species)).length,products.length,'Reaction must spawn the correct product instance count');
     assert.equal(remaining.instances.some(item=>item.busy),false,'products and remaining species become manipulable after commitment');
@@ -70,7 +66,17 @@ Total output lines: 50
   const initial=await evaluate("(()=>{const d=document.querySelector('#reaction-lab-dialog').getBoundingClientRect(),c=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{dialog:[d.width,d.height],canvas:[c.width,c.height],slots:document.querySelectorAll('[data-lab-slot]').length}})()");
   assert.equal(initial.slots,3);assert.ok(initial.dialog[0]>=389&&initial.dialog[1]>=843,`390x844 scene did not fill the mobile viewport: ${JSON.stringify(initial)}`);
   await setSlots(['water','','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water-only population did not create four molecules');
-  await evaluate("document.querySelector('[data-lab-mode=rotate]'…477 tokens truncated…e,`Bond distance should move toward canonical equilibrium: ${JSON.stringify({hbond,settledBond})}`);assert.ok(settledBond.angle>=140);
+  await evaluate("document.querySelector('[data-lab-mode=rotate]').click();document.querySelector('[data-lab-mode=view]').click()");
+  const modes=await evaluate("[...document.querySelectorAll('[data-lab-mode]')].map(button=>button.getAttribute('aria-pressed'))");assert.deepEqual(modes,['false','false','true']);
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:145,y:370});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:145,y:370,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:205,y:405,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:205,y:405,button:'left',buttons:0});
+  await evaluate("document.querySelector('[data-lab-mode=move]').click()");
+  const hbond=await evaluate('window.__reactionLabProbe.arrangeHydrogenBond(22)');
+  assert.equal(hbond.bonds,1,`Directional water geometry must form a tracked H bond: ${JSON.stringify(hbond)}`);assert.ok(hbond.angle>=140);
+  let waterState=await snapshot();assert.deepEqual(waterState.bonds[0].endpoints,{from:{instanceId:hbond.donorId,atom:1},to:{instanceId:hbond.acceptorId,atom:0}},'Debug authority resolves donor H to acceptor O');
+  assert.equal(waterState.hydrogenBondVisualCount,0,'Production interaction state must not render a dashed-line overlay');
+  const initialBondDiagnostic=await evaluate(`window.__reactionLabProbe.hydrogenBondDiagnostics('${hbond.donorId}','${hbond.acceptorId}')`);
+  assert.ok(initialBondDiagnostic.bonds[0].distance>initialBondDiagnostic.bonds[0].equilibriumDistance);assert.ok(initialBondDiagnostic.bonds[0].radialForce>0,'Captured bond has meaningful radial attraction immediately');assert.ok(initialBondDiagnostic.bonds[0].angularTorque>0,'Misaligned captured bond has explicit angular restoring authority');
+  const settle=await evaluate('window.__reactionLabProbe.advanceDeterministic(28)'),settledBond=settle.bonds[0];assert.ok(settledBond.distance<hbond.distance,`Bond distance should move toward canonical equilibrium: ${JSON.stringify({hbond,settledBond})}`);assert.ok(settledBond.angle>=140);
   const donorBefore=waterState.instances.find(item=>item.id===hbond.donorId).position,acceptorBefore=waterState.instances.find(item=>item.id===hbond.acceptorId).position;
   const axis=hbond.axis,slowPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${hbond.donorId}',0,[${axis.map(value=>(-.45*value).toFixed(8)).join(',')}])`);
   assert.ok(Math.hypot(slowPlan.end.x-slowPlan.start.x,slowPlan.end.y-slowPlan.start.y)>4,'Slow drag plan must produce visible camera-plane translation');
@@ -92,9 +98,6 @@ Total output lines: 50
   await setSlots(['water','carbon-dioxide','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/CO₂ pair did not initialize');
   const co2Bond=await evaluate("window.__reactionLabProbe.arrangeHydrogenBondPair('water','carbon-dioxide',0,1,1)");assert.equal(co2Bond.bondCount,1,`Water donor must form H···O with CO₂: ${JSON.stringify(co2Bond)}`);assert.ok(co2Bond.angle>=140);assert.ok(co2Bond.diagnostics.bonds[0].radialForce>0);
   assert.equal((await snapshot()).hydrogenBondVisualCount,0);
-Warning: truncated output (original token count: 1699)
-Total output lines: 49
-
   await setSlots(['water','acetone','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/acetone pair did not initialize');
   const acetoneBond=await evaluate("window.__reactionLabProbe.arrangeHydrogenBondPair('water','acetone',0,1,3)");assert.equal(acetoneBond.bondCount,1,`Water H points toward acetone carbonyl O: ${JSON.stringify(acetoneBond)}`);assert.ok(acetoneBond.angle>=140);
   await setSlots(['water','methane','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/methane negative pair did not initialize');await evaluate("window.__reactionLabProbe.placeSpeciesPair('water','methane',.82)");await new Promise(resolve=>setTimeout(resolve,180));assert.equal((await snapshot()).bonds.length,0,'Methane does not enter the donor/acceptor network');
@@ -118,7 +121,12 @@ Total output lines: 49
   const forceFixture=async(speciesA,atomA,speciesB,atomB,sameSign)=>{
     await setSlots(speciesA===speciesB?[speciesA,'','']:[speciesA,speciesB,'']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",`${speciesA}/${speciesB} force fixture did not initialize`);
     const instances=(await snapshot()).instances,left=instances.filter(item=>item.species===speciesA),right=instances.filter(item=>item.species===speciesB),a=left[0],b=speciesA===speciesB?left[1]:right[0];assert.ok(a&&b,`Fixture instances missing for ${speciesA}/${speciesB}`);
-    const pose=await evaluate(`window.__reactionLabProbe.positionPairOnAtoms('${a.id}',${atomA},'${b.id}',${atomB},.45)`),decomposition=await evaluate(`window.__reactionLabProbe.decomposePair('${a.id}','${b.id}',{inc…199 tokens truncated…sition.every(Number.isFinite)),`Deterministic no-thermal fixture diverged: ${JSON.stringify(relaxed)}`);assert.ok(Math.min(...final.pairs.map(item=>item.distance))>.12,`Deterministic fixture collapsed atom centers: ${speciesA}/${speciesB}`);
+    const pose=await evaluate(`window.__reactionLabProbe.positionPairOnAtoms('${a.id}',${atomA},'${b.id}',${atomB},.45)`),decomposition=await evaluate(`window.__reactionLabProbe.decomposePair('${a.id}','${b.id}',{includeHBond:false})`),pair=decomposition.pairs.find(item=>item.atomA===atomA&&item.atomB===atomB);
+    assert.ok(Math.abs(pose.distance-.45)<1e-8);assert.ok(pair,`Pairwise diagnostic missing for ${speciesA}[${atomA}]/${speciesB}[${atomB}]`);
+    const projection=pair.coulombForce.x*.45;assert.ok(sameSign?projection<0:projection>0,`Direct Coulomb sign invariant failed: ${JSON.stringify(pair)}`);
+    assert.ok(pair.stericMagnitude>pair.coulombMagnitude,`Close-range excluded volume must dominate the direct Coulomb term: ${JSON.stringify(pair)}`);
+    const relaxed=await evaluate('window.__reactionLabProbe.advanceDeterministic(90)'),final=await evaluate(`window.__reactionLabProbe.decomposePair('${a.id}','${b.id}',{includeHBond:false})`);
+    assert.ok(relaxed.instances.every(item=>item.position.every(Number.isFinite)),`Deterministic no-thermal fixture diverged: ${JSON.stringify(relaxed)}`);assert.ok(Math.min(...final.pairs.map(item=>item.distance))>.12,`Deterministic fixture collapsed atom centers: ${speciesA}/${speciesB}`);
     return pair;
   };
   await forceFixture('water',0,'water',0,true);
