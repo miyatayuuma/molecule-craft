@@ -52,9 +52,10 @@ try{
     await waitFor(`window.__labReactionEvents.at(-1)?.ruleId==='${ruleId}'`,'Reaction product event was not emitted',2000);
     const result=await evaluate('window.__labReactionEvents.at(-1)');
     assert.deepEqual(result.products,products);
-    const remaining=await snapshot();assert.equal(remaining.pointerActive,false,'Reaction completion clears stale drag/pointer state');for(const product of products)assert.ok(remaining.instances.some(item=>item.species===product),`3D product instance missing: ${product}`);
+    let remaining=await snapshot();assert.equal(remaining.pointerActive,false,'Reaction completion clears stale drag/pointer state');for(const product of products)assert.ok(remaining.instances.some(item=>item.species===product),`3D product instance missing: ${product}`);
     assert.equal(remaining.instances.filter(item=>products.includes(item.species)).length,products.length,'Reaction must spawn the correct product instance count');
     assert.equal(remaining.instances.some(item=>item.busy),false,'products and remaining species become manipulable after commitment');
+    const productInstances=remaining.instances.filter(item=>products.includes(item.species));await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(productInstances.map((item,index)=>({id:item.id,positionAngstrom:[index?2:-2,0,0],orientation:[0,0,0,1]})))})`);remaining=await snapshot();
     const product=remaining.instances.find(item=>products.includes(item.species)),movePlan=await evaluate(`window.__reactionLabProbe.dragPlan('${product.id}',0,[0.32,0,0])`),before=product.position;
     await drag(movePlan,{steps:4,stepDelay:16,hold:0});const moved=await snapshot(),after=moved.instances.find(item=>item.id===product.id).position;
     assert.ok(Math.hypot(...after.map((value,index)=>value-before[index]))>.15,'Generated products remain individually movable');
