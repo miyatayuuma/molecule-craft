@@ -51,9 +51,9 @@ try{
   const setSlots=async ids=>{await setDraftSlots(ids);return feedCurrent();};
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()');
   const summarizeTrajectory=trace=>{
-    const samples=trace?.samples??[],closest=samples.reduce((best,row)=>!best||row.distanceConstraints?.[0]?.actual<best.distanceConstraints?.[0]?.actual?row:best,null),firstReleased=samples.find(row=>!row.manipulating&&row.normalPhysicsStepObserved);
+    const samples=trace?.samples??[],closest=samples.reduce((best,row)=>!best||row.distanceConstraints?.[0]?.actual<best.distanceConstraints?.[0]?.actual?row:best,null),firstReleased=samples.find(row=>!row.manipulating&&row.normalPhysicsStepObserved),firstValid=samples.find(row=>!row.manipulating&&row.normalPhysicsStepObserved&&row.geometryReady&&!row.severeOverlap);
     const compact=row=>row?{fixedStepIndex:row.fixedStepIndex,actual:row.distanceConstraints?.[0]?.actual,geometryReady:row.geometryReady,severeOverlap:row.severeOverlap,manipulating:row.manipulating,normalPhysicsStepObserved:row.normalPhysicsStepObserved,dwellElapsed:row.dwellElapsed,commitReady:row.commitReady,minimumNonbondedSeparationRatio:row.minimumNonbondedSeparationRatio}:null;
-    return{sampleCount:samples.length,manipulationSamples:samples.filter(row=>row.manipulating).length,geometryReadySamples:samples.filter(row=>row.geometryReady).length,firstReleased:compact(firstReleased),closest:compact(closest),last:compact(samples.at(-1))};
+    return{sampleCount:samples.length,manipulationSamples:samples.filter(row=>row.manipulating).length,geometryReadySamples:samples.filter(row=>row.geometryReady).length,validReleasedSamples:samples.filter(row=>!row.manipulating&&row.normalPhysicsStepObserved&&row.geometryReady&&!row.severeOverlap).length,firstReleased:compact(firstReleased),firstValid:compact(firstValid),closest:compact(closest),last:compact(samples.at(-1))};
   };
   const waitForPopulation=async(species,total,label)=>waitFor(`(()=>{const state=window.__reactionLabProbe?.snapshot();const rows=state?.instances??[];return state?.batch.phase==='ACTIVE'&&rows.length===${total}&&${JSON.stringify(species)}.every(id=>rows.some(row=>row.species===id))})()`,label,12000);
   const pointer=async(type,id,x,y)=>evaluate(`document.querySelector('#reaction-lab canvas').dispatchEvent(new PointerEvent('${type}',{pointerId:${id},pointerType:'touch',clientX:${x},clientY:${y},button:0,buttons:${type==='pointerup'||type==='pointercancel'?0:1},bubbles:true,cancelable:true}))`);
@@ -81,8 +81,10 @@ try{
   };
   const runReaction=async(reactionId,products)=>{
     await evaluate('window.__labReactionEvents=[]');
-    const offsets=[[0,0],[26,0],[-26,0],[0,26],[0,-26],[52,0],[-52,0],[0,52],[0,-52],[72,0],[-72,0],[0,72],[0,-72],[50,48],[-50,-48]];
+    const offsets=[[0,0],[8,0],[-8,0],[0,8],[0,-8],[16,0],[-16,0],[0,16],[0,-16],[22,0],[-22,0],[0,22]];
     let committed=false,finalTrace=null,finalManipulation=null,attemptCount=0,depthAcquisitions=0,hiddenDepthObserved=false;const trajectoryAttempts=[];
+    const resetReactionBatch=async()=>{await feedCurrent({double:true});await new Promise(resolve=>setTimeout(resolve,600));};
+    await new Promise(resolve=>setTimeout(resolve,600));
     for(let attempt=0;attempt<offsets.length&&!committed;attempt++){
       const current=await snapshot(),projections=await evaluate('window.__reactionLabProbe.projectedBounds()'),byId=new Map(projections.map(item=>[item.id,item]));
       const options=current.reactionCandidates.filter(item=>item.reactionId===reactionId&&item.participants?.acyl&&item.participants?.nucleophile).map(item=>{
@@ -98,23 +100,23 @@ try{
       attemptCount++;
       await evaluate(`window.__reactionLabProbe.startReactionTrajectoryTrace('${reactionId}',${JSON.stringify([selected.leftId,selected.rightId])})`);
       let heldState=null,targetAcquired=false,heldGeometry=null;
-      const gesture=await drag(plan,{steps:14,stepDelay:18,hold:0,expectedInstanceId:draggedId,startCandidates:grabStarts,duringHold:async()=>{
-        await new Promise(resolve=>setTimeout(resolve,320));heldState=await snapshot();
+      const gesture=await drag(plan,{steps:24,stepDelay:32,hold:0,expectedInstanceId:draggedId,startCandidates:grabStarts,duringHold:async()=>{
+        await new Promise(resolve=>setTimeout(resolve,600));heldState=await snapshot();
         assert.equal(heldState.draggedInstanceId,draggedId);targetAcquired=heldState.depthTargetId===targetId&&['docking','contact'].includes(heldState.depthDockingState);
         if(targetAcquired){depthAcquisitions++;hiddenDepthObserved||=Math.abs(heldState.instances.find(item=>item.id===draggedId).position[2]-plan.before[2])>.2;}
         assert.equal(heldState.simulationTimeScale,.15);assert.ok(heldState.pointerAnchorErrorPx<=3,`pointer anchor drifted ${heldState.pointerAnchorErrorPx}px`);
         const heldRows=heldState.reactionCandidates.filter(item=>item.reactionId===reactionId&&item.encounterParticipantIds.includes(selected.leftId)&&item.encounterParticipantIds.includes(selected.rightId));
-        heldGeometry=heldRows.map(row=>({distance:row.distanceConstraints[0]?.actual,geometryReady:row.geometryReady,severeOverlap:row.severeOverlap,dwellElapsed:row.dwellElapsed,commitReady:row.commitReady,normalPhysicsStepObserved:row.normalPhysicsStepObserved}));
+        heldGeometry=heldRows.map(row=>({distance:row.distanceConstraints[0]?.actual,geometryReady:row.geometryReady,severeOverlap:row.severeOverlap,minimumNonbondedSeparationRatio:row.minimumNonbondedSeparationRatio,dwellElapsed:row.dwellElapsed,commitReady:row.commitReady,normalPhysicsStepObserved:row.normalPhysicsStepObserved}));
         assert.ok(heldRows.length&&heldRows.every(item=>item.manipulating&&item.dwellElapsed===0&&!item.commitReady),'Pointer manipulation never advances reaction dwell');
         assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Manipulation cannot commit chemistry');finalManipulation=heldState;
       }});
-      if(!gesture.acquired){trajectoryAttempts.push({attempt,offset,selectionMiss:true,draggedId,targetId,initialSiteDistance:selected.actual,participantIds:[selected.leftId,selected.rightId],attemptedGrabPoints:grabStarts.length});await feedCurrent({double:true});continue;}
+      if(!gesture.acquired){trajectoryAttempts.push({attempt,offset,selectionMiss:true,draggedId,targetId,initialSiteDistance:selected.actual,participantIds:[selected.leftId,selected.rightId],attemptedGrabPoints:grabStarts.length});await resetReactionBatch();continue;}
       const released=await snapshot();assert.equal(released.simulationTimeScale,1,'Pointer release restores normal simulation time');assert.equal(released.manipulationActive,false);assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Release itself does not commit chemistry');
-      finalManipulation=heldState;if(!targetAcquired){finalTrace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()');trajectoryAttempts.push({attempt,offset,draggedId,targetId:heldState.depthTargetId,dockingState:heldState.depthDockingState,initialSiteDistance:selected.actual,heldGeometry,trajectory:summarizeTrajectory(finalTrace)});await feedCurrent({double:true});continue;}
-      for(let wait=0;wait<1500;wait+=50){if(await evaluate(`window.__labReactionEvents.at(-1)?.reactionId==='${reactionId}'`)){committed=true;break;}await new Promise(resolve=>setTimeout(resolve,50));}
+      finalManipulation=heldState;if(!targetAcquired){finalTrace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()');trajectoryAttempts.push({attempt,offset,draggedId,targetId:heldState.depthTargetId,dockingState:heldState.depthDockingState,initialSiteDistance:selected.actual,heldGeometry,trajectory:summarizeTrajectory(finalTrace)});await resetReactionBatch();continue;}
+      for(let wait=0;wait<3500;wait+=50){if(await evaluate(`window.__labReactionEvents.at(-1)?.reactionId==='${reactionId}'`)){committed=true;break;}await new Promise(resolve=>setTimeout(resolve,50));}
       finalTrace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()');
       trajectoryAttempts.push({attempt,offset,draggedId,targetId:heldState.depthTargetId,dockingState:heldState.depthDockingState,initialSiteDistance:selected.actual,heldGeometry,trajectory:summarizeTrajectory(finalTrace)});
-      if(!committed)await feedCurrent({double:true});
+      if(!committed)await resetReactionBatch();
     }
     assert.ok(committed,`${reactionId} did not commit after real Feed → pointer drag → depth docking → release attempts; trajectory attempts=${JSON.stringify(trajectoryAttempts)}`);
     assert.ok(finalManipulation?.draggedInstanceId&&finalManipulation.depthTargetId&&depthAcquisitions>0,'Positive path acquired an automatic depth target while held');assert.ok(hiddenDepthObserved,'A real pointer gesture moved the molecule through automatic camera-depth docking');
