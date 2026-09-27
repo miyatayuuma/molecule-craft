@@ -15,6 +15,9 @@ import {
 } from '../src/reaction-lab-stage-b.js';
 import { MAX_DOCK_RELEASE_SEPARATION_ACCELERATION, minimumMoleculeSurfaceGap, solveDepthDocking, solveSafeDepthDocking } from '../src/reaction-lab-manipulation.js';
 
+const MAX_RELEASE_SEPARATION_INCREASE_3_STEPS_ANGSTROM=0.05;
+const MAX_RELEASE_SEPARATION_INCREASE_8_STEPS_ANGSTROM=0.12;
+
 const records = JSON.parse(await readFile(new URL('../data/molecules.json', import.meta.url), 'utf8'));
 const byId = new Map(records.map(record => [record.id, record]));
 const catalog = compileReactionCatalog(records);
@@ -50,9 +53,13 @@ function cloneBody(body) { return {...body,positionAngstrom:[...body.positionAng
 function releaseTrajectory(a,b,normal=axis) {
   return [3,8,16].map(steps=>{
     const left=cloneBody(a),right=cloneBody(b),initial=Math.abs(dot(sub(left.positionAngstrom,right.positionAngstrom),normal));
-    for(let step=0;step<steps;step++)integrateStageB([left,right],dt,{collectPairDiagnostics:false});
+    let overlapGuardActivationCount=0,finite=true;
+    for(let step=0;step<steps;step++){
+      const result=integrateStageB([left,right],dt,{collectPairDiagnostics:false});overlapGuardActivationCount+=result.overlapGuardActivationCount??0;
+      finite&&=[left,right].every(body=>[...body.positionAngstrom,...body.orientation,...body.velocityAngstromPerPs,...body.angularVelocityRadPerPs].every(Number.isFinite));
+    }
     const separation=Math.abs(dot(sub(left.positionAngstrom,right.positionAngstrom),normal));
-    return {steps,centerDepthSeparationAngstrom:+separation.toFixed(6),increaseAngstrom:+(separation-initial).toFixed(6),minimumRealAtomDistanceAngstrom:+minAtomDistance(left,right).toFixed(6)};
+    return {steps,centerDepthSeparationAngstrom:+separation.toFixed(6),increaseAngstrom:+(separation-initial).toFixed(6),minimumRealAtomDistanceAngstrom:+minAtomDistance(left,right).toFixed(6),overlapGuardActivationCount,finite};
   });
 }
 function contactAndSafe(speciesA,speciesB) {
@@ -100,6 +107,9 @@ const reactions=[reactionReady('water',0,88,'anhydride-hydrolysis',3.174),reacti
 const globalSafetyThreshold=MAX_DOCK_RELEASE_SEPARATION_ACCELERATION;
 assert.ok(pairs.every(row=>row.report.oldVisualContact.outwardRelativeAcceleration>globalSafetyThreshold),'all visual-contact controls must be unsafe');
 assert.ok(pairs.every(row=>row.report.newSafeEndpoint.outwardRelativeAcceleration<=globalSafetyThreshold),'all new endpoints must meet the global limit');
+assert.ok(pairs.every(row=>row.report.oldVisualContact.release[0].increaseAngstrom>=MAX_RELEASE_SEPARATION_INCREASE_3_STEPS_ANGSTROM&&row.report.newSafeEndpoint.release[0].increaseAngstrom<MAX_RELEASE_SEPARATION_INCREASE_3_STEPS_ANGSTROM),'new endpoints stay below the global 3-step release gate while visual-contact controls exceed it');
+assert.ok(pairs.every(row=>row.report.oldVisualContact.release[1].increaseAngstrom>=MAX_RELEASE_SEPARATION_INCREASE_8_STEPS_ANGSTROM&&row.report.newSafeEndpoint.release[1].increaseAngstrom<MAX_RELEASE_SEPARATION_INCREASE_8_STEPS_ANGSTROM),'new endpoints stay below the global 8-step release gate while visual-contact controls exceed it');
+assert.ok(pairs.every(row=>row.report.newSafeEndpoint.release.every(step=>step.finite&&step.overlapGuardActivationCount===0)),'new endpoint trajectories stay finite without overlap-guard activation');
 assert.ok(settled.every(row=>row.outwardRelativeAcceleration<=globalSafetyThreshold),'representative naturally settled poses must be safe');
 assert.ok(reactions.every(row=>row.geometryReady&&!row.severeOverlap&&row.outwardRelativeAcceleration<=globalSafetyThreshold),'PR #308 reaction-ready non-overlap poses must be safe');
-console.log(JSON.stringify({schemaVersion:1,physics:'production Stage B, qA=0.15, fixed step 1/120 game s × 0.10 physical ps/game s',globalSafetyThreshold,globalSafetyThresholdBasis:{calibrationRule:'round upward to 150 Å/ps², giving 28% margin over the largest measured PR #308 non-overlap reaction-ready pose',oldVisualContactUnsafe:true,settledOutwardAccelerationRange:[Math.min(...settled.map(row=>row.outwardRelativeAcceleration)),Math.max(...settled.map(row=>row.outwardRelativeAcceleration))],reactionReadyOutwardAccelerationRange:[Math.min(...reactions.map(row=>row.outwardRelativeAcceleration)),Math.max(...reactions.map(row=>row.outwardRelativeAcceleration))]},pairs:pairs.map(row=>row.report),settled,reactionReady:reactions},null,2));
+console.log(JSON.stringify({schemaVersion:1,physics:'production Stage B, qA=0.15, fixed step 1/120 game s × 0.10 physical ps/game s',globalSafetyThreshold,releaseTrajectoryGateAngstrom:{steps3:MAX_RELEASE_SEPARATION_INCREASE_3_STEPS_ANGSTROM,steps8:MAX_RELEASE_SEPARATION_INCREASE_8_STEPS_ANGSTROM,calibrationBasis:'below maximum old visual-contact release increase measured across the same control pairs'},globalSafetyThresholdBasis:{calibrationRule:'round upward to 150 Å/ps², giving 28% margin over the largest measured PR #308 non-overlap reaction-ready pose',oldVisualContactUnsafe:true,settledOutwardAccelerationRange:[Math.min(...settled.map(row=>row.outwardRelativeAcceleration)),Math.max(...settled.map(row=>row.outwardRelativeAcceleration))],reactionReadyOutwardAccelerationRange:[Math.min(...reactions.map(row=>row.outwardRelativeAcceleration)),Math.max(...reactions.map(row=>row.outwardRelativeAcceleration))]},pairs:pairs.map(row=>row.report),settled,reactionReady:reactions},null,2));
