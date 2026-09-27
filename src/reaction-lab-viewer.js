@@ -99,7 +99,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(mode==='view'){selected=null;down={pointerId:event.pointerId,x:event.clientX,y:event.clientY,azimuth,elevation,group:null};}
     else {const group=raycast(event);selected=instances.find(item=>item.group===group&&!item.busy)??null;}
     const gesture={pointerId:event.pointerId,x:event.clientX,y:event.clientY,group:selected,azimuth,elevation};
-    if(selected){gesture.position=selected.group.position.clone();gesture.rotation=selected.group.rotation.clone();gesture.plane=new THREE.Plane().setFromNormalAndCoplanarPoint(cameraNormal(),gesture.position);rayForEvent(event);const hit=raycaster.ray.intersectPlane(gesture.plane,new THREE.Vector3());gesture.grabOffset=hit?hit.sub(gesture.position):new THREE.Vector3();gesture.lastPosition=gesture.position.clone();gesture.lastTime=performance.now();}
+    if(selected){gesture.position=selected.group.position.clone();gesture.rotation=selected.group.rotation.clone();gesture.plane=new THREE.Plane().setFromNormalAndCoplanarPoint(cameraNormal(),gesture.position);rayForEvent(event);const hit=raycaster.ray.intersectPlane(gesture.plane,new THREE.Vector3());gesture.grabOffset=hit?hit.sub(gesture.position):new THREE.Vector3();}
     else if(mode!=='view')gesture.group=null;
     down=gesture;activePointers.add(event.pointerId);try{canvas.setPointerCapture(event.pointerId);}catch{}onPointerLockChange(true);
   });
@@ -111,9 +111,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(mode==='move'){
         const point=positionOnMovePlane(event,down);if(!point)return;
         const next=point.sub(down.grabOffset);next.clamp(new THREE.Vector3(-5,-3,-2.5),new THREE.Vector3(5,3,2.5));
-        const now=performance.now(),elapsed=Math.max(8,now-down.lastTime),dragDelta=next.clone().sub(down.lastPosition);down.group.velocity.copy(dragDelta).multiplyScalar(16/elapsed);
-        down.group.dragSpeed=dragDelta.length()*16/elapsed;down.group.lastDragAt=now;
-        down.group.group.position.copy(next);down.lastPosition.copy(next);down.lastTime=now;
+        down.group.group.position.copy(next);
       } else if(mode==='rotate'){
         down.group.group.rotation.set(down.rotation.x+dy*.01,down.rotation.y+dx*.01,down.rotation.z);
       }
