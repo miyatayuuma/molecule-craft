@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 3673)
-Total output lines: 326
-
 name: Repository validation
 
 on:
@@ -130,7 +127,67 @@ jobs:
           node tests/encyclopedia-content-architecture.test.mjs
           node tests/encyclopedia-content-browser.test.mjs
           node --test tests/encyclopedia-stereo-comparison.test.mjs
-  …673 tokens truncated…ode tests/nitrogen-field-pickup-browser.test.mjs
+          node tests/encyclopedia-stereo-comparison-browser.test.mjs
+          node tests/encyclopedia-chemistry-visuals.test.mjs
+          node tests/encyclopedia-chemistry-visual-browser.test.mjs
+          node tests/encyclopedia-graph-ui.test.mjs
+          node tests/encyclopedia-graph-thumbnail-label.test.mjs
+          node tests/encyclopedia-graph-thumbnail-label-browser.test.mjs
+          node --test tests/encyclopedia-molecule-transition.test.mjs
+          node tests/encyclopedia-transition-browser.test.mjs
+      - name: Upload Encyclopedia stereo comparison frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encyclopedia-stereo-comparison
+          path: test-results/encyclopedia-stereo-comparison
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload Encyclopedia chemistry visual frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encyclopedia-chemistry-visuals
+          path: test-results/encyclopedia-chemistry-visuals
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload Encyclopedia Graph thumbnail frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encyclopedia-graph-thumbnail-label
+          path: test-results/encyclopedia-graph-thumbnail-label
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Encyclopedia visible transition frames
+        env:
+          ENCYCLOPEDIA_CAPTURE: '1'
+        run: node tests/encyclopedia-visible-transition-browser.test.mjs
+      - name: Upload Encyclopedia transition frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encyclopedia-transition-frames
+          path: test-results/encyclopedia-transition
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Browser startup
+        run: node tests/browser-startup.test.mjs
+      - name: Molecule DB v2 persistence
+        run: |
+          node tests/collection-persistence.test.mjs
+          node tests/resources-persistence.test.mjs
+      - name: Element authority / nitrogen chapter and FIELD
+        run: |
+          node tests/element-authority-n-foundation.test.mjs
+          node tests/nitrogen-chapter-progression.test.mjs
+          node tests/nitrogen-field-integration.test.mjs
+          node tests/nitrogen-chapter-completion.test.mjs
+          node tests/nitrogen-world-awakening.test.mjs
+          node tests/nitrogen-chapter-browser.test.mjs
+          node tests/nitrogen-loadout-balance.test.mjs
+          node tests/nitrogen-visual-identity.test.mjs
+          node tests/nitrogen-field-pickup-browser.test.mjs
           node tests/inventory-depletion.test.mjs
       - name: CRAFT input recovery
         run: |
