@@ -94,6 +94,20 @@ export function lorentzBerthelot(sigmaA, epsilonA, sigmaB, epsilonB) {
   return { sigmaAngstrom: (sigmaA + sigmaB) / 2, epsilonKcalMol: Math.sqrt(epsilonA * epsilonB) };
 }
 
+/** Read-only canonical pair geometry used by reaction eligibility diagnostics. */
+export function canonicalNonbondedPairGeometry(atomA, atomB, distanceAngstrom) {
+  if (!Number.isFinite(distanceAngstrom) || distanceAngstrom < 0) throw new Error('Invalid real-atom separation.');
+  const mixed = lorentzBerthelot(atomA?.sigmaAngstrom, atomA?.epsilonKcalMol, atomB?.sigmaAngstrom, atomB?.epsilonKcalMol);
+  const softCoreBoundaryAngstrom = mixed.sigmaAngstrom * OVERLAP_GUARD_SIGMA_FRACTION;
+  const minimumNonbondedSeparationRatio = distanceAngstrom / mixed.sigmaAngstrom;
+  return {
+    sigmaPairAngstrom: mixed.sigmaAngstrom,
+    softCoreBoundaryAngstrom,
+    minimumNonbondedSeparationRatio,
+    severeOverlap: distanceAngstrom < softCoreBoundaryAngstrom,
+  };
+}
+
 export function lennardJonesPairEnergyForce(sigmaA, epsilonA, sigmaB, epsilonB, deltaAngstrom, { guardRadiusAngstrom = null, fallbackDirection } = {}) {
   const radius = norm(deltaAngstrom), mixed = lorentzBerthelot(sigmaA, epsilonA, sigmaB, epsilonB);
   if (!Number.isFinite(radius) || mixed.epsilonKcalMol === 0) return { ...mixed, energyKcalMol: 0, forceOnA: vec(), guarded: false };
