@@ -12,14 +12,14 @@ import {
   createFixedStepAccumulator, createStageABody, evaluateStageAForces,
   integrateStageA, rigidBodyMassProperties, stageABodySnapshot, canonicalNonbondedPairGeometry,
 } from './reaction-lab-stage-a.js?v=4';
-import { STAGE_B_TEST_QA_E, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, integrateStageB, stageBCarbonylDiagnostics } from './reaction-lab-stage-b.js?v=2';
+import { STAGE_B_TEST_QA_E, createStageBPairSafetyOracle, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, integrateStageB, stageBCarbonylDiagnostics } from './reaction-lab-stage-b.js?v=3';
 import {
   chooseDepthTarget, CHAMBER_TIME_MODES, createChamberTimeAuthority,
   DEPTH_DOCKING_TIME_CONSTANT_MS, DEPTH_TARGET_ACQUIRE_PADDING_PX,
   DEPTH_TARGET_RELEASE_PADDING_PX, GRAB_FALLBACK_RADIUS_PX,
-  MAX_DOCKING_COMPRESSION_WORLD, minimumMoleculeSurfaceGap, projectedSurfaceGap,
-  scaleSimulationElapsed, solveDepthDocking,
-} from './reaction-lab-manipulation.js?v=2';
+  MAX_DOCKING_COMPRESSION_WORLD, projectedSurfaceGap,
+  scaleSimulationElapsed, solveSafeDepthDocking,
+} from './reaction-lab-manipulation.js?v=3';
 
 const vector=(THREE,point)=>Array.isArray(point)?new THREE.Vector3(point[0],point[1],point[2]):new THREE.Vector3(point.x,point.y,point.z);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -78,7 +78,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
   const activePointers=new Map();
   const chamberTime=createChamberTimeAuthority(),isManipulating=()=>chamberTime.mode===CHAMBER_TIME_MODES.MANIPULATING;
-  let pinchActive=false,pinchDistance=0,depthTarget=null,depthDockingState='none',pointerAnchorErrorPx=0;
+  let pinchActive=false,pinchDistance=0,depthTarget=null,depthDockingState='none',pointerAnchorErrorPx=0,depthSafetyOracle=null,depthSafetyPairKey=null,depthOutwardAcceleration=Infinity,depthSafetySampleCount=0;
   const chamber=root.querySelector('.reaction-lab-space');
   let targetIndicator=root.querySelector('[data-depth-target-indicator]');
   if(!targetIndicator){targetIndicator=document.createElement('div');targetIndicator.className='reaction-lab-target-indicator';targetIndicator.dataset.depthTargetIndicator='';targetIndicator.setAttribute('aria-hidden','true');targetIndicator.hidden=true;chamber.append(targetIndicator);}
@@ -104,7 +104,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }).filter(Boolean);
   }
   function shapeFor(item,center=item.group.position){return{center:center.toArray(),orientation:[item.group.quaternion.x,item.group.quaternion.y,item.group.quaternion.z,item.group.quaternion.w],atoms:item.record.atoms.map(atom=>({position:atom.point.toArray(),radius:modelAtomRadius(atom.element)}))};}
-  function clearDepthTarget(){depthTarget=null;depthDockingState='none';pointerAnchorErrorPx=0;targetIndicator.hidden=true;}
+  function clearDepthTarget(){depthTarget=null;depthDockingState='none';pointerAnchorErrorPx=0;depthSafetyOracle=null;depthSafetyPairKey=null;depthOutwardAcceleration=Infinity;depthSafetySampleCount=0;targetIndicator.hidden=true;}
   function endManipulation(){
     const item=selected;
     if(item){syncStageABodyFromGroup(item);item.stageBody.velocityAngstromPerPs=[0,0,0];}
@@ -346,12 +346,18 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     item.group.position.copy(baseCenter);item.group.updateMatrixWorld(true);
     const candidates=projectedTargetRows(item),nextId=chooseDepthTarget(depthTarget,candidates,{acquirePaddingPx:DEPTH_TARGET_ACQUIRE_PADDING_PX,releasePaddingPx:DEPTH_TARGET_RELEASE_PADDING_PX});
     depthTarget=nextId;const target=instanceById(depthTarget);updateTargetIndicator(target);
+    const previousOffset=previousCenter.clone().sub(baseCenter).dot(normal);
     let desiredDepthOffset=0,solution=null;
-    if(target){solution=solveDepthDocking({dragged:shapeFor(item,baseCenter),target:shapeFor(target),cameraNormal:normal.toArray(),previousCenter:previousCenter.toArray(),maxCompression:MAX_DOCKING_COMPRESSION_WORLD});
-      if(solution){desiredDepthOffset=solution.offset;depthDockingState='docking';}else depthDockingState='acquired-no-solution';}
-    const previousOffset=previousCenter.clone().sub(baseCenter).dot(normal),alpha=1-Math.exp(-Math.max(0,elapsedMs)/DEPTH_DOCKING_TIME_CONSTANT_MS),currentOffset=previousOffset+(desiredDepthOffset-previousOffset)*alpha;
+    if(target){
+      const pairKey=`${item.id}|${target.id}`;
+      if(depthSafetyPairKey!==pairKey){depthSafetyPairKey=pairKey;depthSafetyOracle=createStageBPairSafetyOracle(item.stageBody,target.stageBody);}
+      solution=solveSafeDepthDocking({dragged:shapeFor(item,baseCenter),target:shapeFor(target),cameraNormal:normal.toArray(),previousCenter:previousCenter.toArray(),maxCompression:MAX_DOCKING_COMPRESSION_WORLD,outwardAccelerationAt:(center,_offset,branchSign)=>depthSafetyOracle({draggedPositionAngstrom:center.map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),targetPositionAngstrom:target.group.position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),cameraNormal:normal.toArray(),branchSign}).outwardRelativeAcceleration,worldUnitsPerAngstrom:REACTION_LAB_WORLD_UNITS_PER_ANGSTROM});
+      if(solution){desiredDepthOffset=solution.offset;depthOutwardAcceleration=solution.acceleration;depthSafetySampleCount=solution.safetySampleCount;depthDockingState='docking';}
+      else{desiredDepthOffset=previousOffset;depthOutwardAcceleration=Infinity;depthSafetySampleCount=0;depthDockingState='acquired-no-safe-solution';}
+    }
+    const alpha=1-Math.exp(-Math.max(0,elapsedMs)/DEPTH_DOCKING_TIME_CONSTANT_MS),currentOffset=previousOffset+(desiredDepthOffset-previousOffset)*alpha;
     item.group.position.copy(baseCenter).addScaledVector(normal,currentOffset);correctPointerAnchor(item,down.localAnchor,down.clientX,down.clientY);
-    if(target&&solution){const actualGap=minimumMoleculeSurfaceGap({dragged:shapeFor(item),target:shapeFor(target)});depthDockingState=Math.abs(currentOffset-desiredDepthOffset)<.025&&actualGap>=-MAX_DOCKING_COMPRESSION_WORLD-.01?'contact':'docking';}
+    if(target&&solution)depthDockingState=Math.abs(currentOffset-desiredDepthOffset)<.025?'safe':'docking';
     else if(!target)depthDockingState=Math.abs(currentOffset)<.025?'none':'returning';
   }
   function currentPinchDistance(){const points=[...activePointers.values()];return points.length<2?0:Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
@@ -549,7 +555,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         const current=probeForces(),state=batch.snapshot();
         return{
           physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,fixedGameStepSeconds:STAGE_A_GAME_STEP_SECONDS,qA:stageBPhysicsEnabled?stageBChargeE:null,
-          simulationTimeMode:chamberTime.mode,simulationTimeScale:chamberTime.scale,simulationClockSeconds,simulationSuspended:pickerOpen||!dialog.open,pickerOpen,manipulationActive:isManipulating(),draggedInstanceId:selected?.id??null,depthTargetId:depthTarget,depthDockingState,pointerAnchorErrorPx,
+          simulationTimeMode:chamberTime.mode,simulationTimeScale:chamberTime.scale,simulationClockSeconds,simulationSuspended:pickerOpen||!dialog.open,pickerOpen,manipulationActive:isManipulating(),draggedInstanceId:selected?.id??null,depthTargetId:depthTarget,depthDockingState,pointerAnchorErrorPx,depthOutwardAcceleration,depthSafetySampleCount,
           batch:{...state,transitionKind:batchTransition?.kind??null,transitionGeneration:batchTransition?.generation??null,feedEntryCount:batchTransition?.entries?.length??0,feedEntriesHandedOff:batchTransition?.entries?.filter(row=>row.item?.feedHandoff).length??0,reactionEnabled:state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE&&!reactionAnimation,reactionPresentationActive:!!reactionAnimation},
           instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),initialPositionAtSpawn:item.initialPositionAtSpawn?[...item.initialPositionAtSpawn]:null,batchGeneration:item.batchGeneration,originPortIndex:item.feedOriginPortIndex,feedPhase:item.feedPhase,feedHandoff:item.feedHandoff,kinematic:!!item.stageBody.kinematic,charges:[...item.record.nonbonded.atomicChargesE],carbonylSites:stageBPhysicsEnabled?stageBCarbonylDiagnostics(item.stageBody):[],renderedObjectCount:stageBPhysicsEnabled?item.group.children.length:null,expectedRealObjectCount:stageBPhysicsEnabled?item.record.atoms.length+item.record.bonds.length:null})),
           purging:purgeItems.map(item=>({id:item.id,species:item.species,position:item.group.position.toArray()})),pairs:current.pairDiagnostics.map(pair=>({...pair})),
@@ -561,6 +567,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       setGeometry(poses){const ids=new Set(poses.map(pose=>pose.id));if(ids.size!==poses.length)throw Error('Stage A geometry fixture contains duplicate molecule IDs');endManipulation();activePointers.clear();pinchActive=false;pinchDistance=0;onPointerLockChange(false);testIsolation=ids.size?ids:null;contactMatcher.reset();reactionDiagnostics=[];for(const pose of poses){const item=instanceById(pose.id);if(!item)throw Error(`Missing fixture molecule ${pose.id}`);if(pose.positionAngstrom)item.stageBody.positionAngstrom=[...pose.positionAngstrom];if(pose.orientation)item.stageBody.orientation=[...pose.orientation];item.stageBody.velocityAngstromPerPs=[...(pose.velocityAngstromPerPs??[0,0,0])];item.stageBody.angularVelocityRadPerPs=[...(pose.angularVelocityRadPerPs??[0,0,0])];syncGroupFromStageABody(item);}clearDepthTarget();updateCommandBar();return this.snapshot();},
       advanceDeterministic(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps)));stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;}return this.snapshot();},
       decomposePair(aId,bId){const a=instanceById(aId),b=instanceById(bId);if(!a||!b)throw Error('Missing Reaction Lab molecule instance');const result=stageBPhysicsEnabled?evaluateStageBForces([a.stageBody,b.stageBody]):evaluateStageAForces([a.stageBody,b.stageBody]);return{pairs:result.pairDiagnostics,bodies:Object.fromEntries([...result.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:result.overlapGuardActivationCount};},
+      measurePairReleaseTrajectory(aId,bId){
+        if(!stageBPhysicsEnabled)throw Error('Release handoff measurement requires production Stage B');
+        const source=[instanceById(aId),instanceById(bId)];if(source.some(item=>!item)||source[0]===source[1])throw Error('Missing distinct Reaction Lab molecule pair');
+        const bodies=source.map(item=>({...item.stageBody,positionAngstrom:[...item.stageBody.positionAngstrom],orientation:[...item.stageBody.orientation],velocityAngstromPerPs:[...item.stageBody.velocityAngstromPerPs],angularVelocityRadPerPs:[...item.stageBody.angularVelocityRadPerPs]})),normal=cameraNormal().toArray();
+        const rotate=(point,q)=>{const[x,y,z,w]=q,[px,py,pz]=point,tx=2*(y*pz-z*py),ty=2*(z*px-x*pz),tz=2*(x*py-y*px);return[px+w*tx+(y*tz-z*ty),py+w*ty+(z*tx-x*tz),pz+w*tz+(x*ty-y*tx)];};
+        const measure=()=>{const separation=Math.abs(bodies[0].positionAngstrom.reduce((sum,value,index)=>sum+(value-bodies[1].positionAngstrom[index])*normal[index],0)),left=[],right=[];for(const atom of bodies[0].atoms)left.push(rotate(atom.positionAngstrom,bodies[0].orientation).map((value,index)=>value+bodies[0].positionAngstrom[index]));for(const atom of bodies[1].atoms)right.push(rotate(atom.positionAngstrom,bodies[1].orientation).map((value,index)=>value+bodies[1].positionAngstrom[index]));let minimumAtomDistance=Infinity;for(const a of left)for(const b of right)minimumAtomDistance=Math.min(minimumAtomDistance,Math.hypot(...a.map((value,index)=>value-b[index])));return{centerDepthSeparationAngstrom:separation,minimumAtomDistanceAngstrom:minimumAtomDistance};};
+        const initial=measure(),rows=[];let completed=0,overlapGuardActivationCount=0;
+        for(const steps of [3,8,16]){for(;completed<steps;completed++)overlapGuardActivationCount+=integrateStageB(bodies,STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,{collectPairDiagnostics:false}).overlapGuardActivationCount??0;const current=measure();rows.push({steps,centerDepthSeparationAngstrom:current.centerDepthSeparationAngstrom,separationIncreaseAngstrom:current.centerDepthSeparationAngstrom-initial.centerDepthSeparationAngstrom,minimumAtomDistanceAngstrom:current.minimumAtomDistanceAngstrom,overlapGuardActivationCount,finite:[current.centerDepthSeparationAngstrom,current.minimumAtomDistanceAngstrom].every(Number.isFinite)});}
+        return{pairIds:[aId,bId],initial,rows};
+      },
       reactionContactDiagnostics(reactionId){return reactionDiagnostics.filter(item=>item.reactionId===reactionId);},
       startReactionTrajectoryTrace(reactionId,participantIds){if(!localhostPhysicsTest)throw Error('Reaction trajectory tracing is localhost-only');reactionTrajectoryTrace={reactionId,participantIds:participantIds?[...participantIds].sort():null,samples:[]};return{reactionId,participantIds:reactionTrajectoryTrace.participantIds};},
       reactionTrajectoryTrace(){return reactionTrajectoryTrace?{reactionId:reactionTrajectoryTrace.reactionId,participantIds:reactionTrajectoryTrace.participantIds,samples:reactionTrajectoryTrace.samples.map(sample=>({...sample}))}:null;},

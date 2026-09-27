@@ -1,7 +1,7 @@
 // Stateless carbonyl-local electrostatic anisotropy for the RL-NB4 test path.
 // Sites are derived once from canonical graph + local geometry and rotate with
 // the rigid body. No lifecycle, donor/acceptor state, LJ, or real-atom edits.
-import { evaluateStageAForces, integrateStageA } from './reaction-lab-stage-a.js';
+import { evaluateStageAForces, integrateStageA, KCAL_MOL_AMU_TO_ANGSTROM_PS2 } from './reaction-lab-stage-a.js';
 
 const add=(a,b)=>a.map((value,index)=>value+b[index]);
 const sub=(a,b)=>a.map((value,index)=>value-b[index]);
@@ -64,6 +64,36 @@ export function evaluateStageBForces(bodies,{excludedMoleculePairs=new Set(),col
   const augmentedBodies=bodies.map(body=>({...body,virtualChargeSites:[...(body.virtualChargeSites??[]),...(body.stageBVirtualChargeSites??[])]}));
   const total=evaluateStageAForces(augmentedBodies,{excludedMoleculePairs,collectPairDiagnostics:true});
   return stageBForceReport(bodies,baseline,total,collectPairDiagnostics);
+}
+
+/**
+ * Production Stage B force oracle for a single read-only rigid-body pair.
+ * It deliberately uses the optimized production Stage A evaluator with the
+ * graph-derived Stage B virtual charge sites enabled, while omitting pair
+ * diagnostics and never integrating or changing either supplied body.
+ */
+export function evaluateStageBPairForcesReadOnly(bodies){
+  if(!Array.isArray(bodies)||bodies.length!==2||bodies[0]===bodies[1])throw new Error('A Stage B safety query needs exactly two distinct bodies.');
+  return evaluateStageAForces(bodies,{collectPairDiagnostics:false,includeStageBVirtualSites:true});
+}
+
+/** Reusable pair oracle that evaluates candidate centers on private body views. */
+export function createStageBPairSafetyOracle(draggedBody,targetBody){
+  if(!draggedBody||!targetBody||draggedBody===targetBody)throw new Error('A Stage B safety oracle needs two distinct bodies.');
+  const dragged={...draggedBody,positionAngstrom:[...draggedBody.positionAngstrom]},target={...targetBody,positionAngstrom:[...targetBody.positionAngstrom]},bodies=[dragged,target];
+  return ({draggedPositionAngstrom,targetPositionAngstrom=targetBody.positionAngstrom,cameraNormal,branchSign=1}={})=>{
+    if(!Array.isArray(draggedPositionAngstrom)||draggedPositionAngstrom.length!==3||!draggedPositionAngstrom.every(Number.isFinite)||!Array.isArray(targetPositionAngstrom)||targetPositionAngstrom.length!==3||!targetPositionAngstrom.every(Number.isFinite)||!Array.isArray(cameraNormal)||cameraNormal.length!==3||!cameraNormal.every(Number.isFinite)||![1,-1].includes(branchSign))throw new Error('Invalid Stage B depth safety query pose.');
+    for(let axis=0;axis<3;axis++){dragged.positionAngstrom[axis]=draggedPositionAngstrom[axis];target.positionAngstrom[axis]=targetPositionAngstrom[axis];}
+    dragged.orientation=draggedBody.orientation;target.orientation=targetBody.orientation;
+    dragged.atoms=draggedBody.atoms;target.atoms=targetBody.atoms;
+    dragged.virtualChargeSites=draggedBody.virtualChargeSites;target.virtualChargeSites=targetBody.virtualChargeSites;
+    dragged.stageBVirtualChargeSites=draggedBody.stageBVirtualChargeSites;target.stageBVirtualChargeSites=targetBody.stageBVirtualChargeSites;
+    const result=evaluateStageBPairForcesReadOnly(bodies),forceDragged=result.bodies.get(dragged.id).forceKcalMolAngstrom,forceTarget=result.bodies.get(target.id).forceKcalMolAngstrom;
+    const relativeAcceleration=cameraNormal.map((_,axis)=>KCAL_MOL_AMU_TO_ANGSTROM_PS2*(forceDragged[axis]/dragged.massAmu-forceTarget[axis]/target.massAmu));
+    const axisLength=Math.hypot(...cameraNormal);if(!(axisLength>1e-12))throw new Error('Camera depth axis must be non-zero.');
+    const signedOutward=branchSign*relativeAcceleration.reduce((sum,value,axis)=>sum+value*cameraNormal[axis]/axisLength,0);
+    return{outwardRelativeAcceleration:Math.max(0,signedOutward),relativeAcceleration,forceDraggedKcalMolAngstrom:[...forceDragged],forceTargetKcalMolAngstrom:[...forceTarget],overlapGuardActivationCount:result.overlapGuardActivationCount};
+  };
 }
 
 function stageBForceReport(bodies,baseline,total,collectPairDiagnostics=true){
