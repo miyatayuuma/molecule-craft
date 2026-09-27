@@ -162,6 +162,7 @@ export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set()
     if (excludedMoleculePairs.has(pairName)) continue;
     const leftResult = results.get(left.id), rightResult = results.get(right.id), sitePairs = new Map();
     const getPair = (siteA, siteB, positionA, positionB) => {
+      if (!collectPairDiagnostics) return null;
       const key = `${siteA.kind}:${siteA.index}|${siteB.kind}:${siteB.index}`;
       if (!sitePairs.has(key)) sitePairs.set(key, { bodyAId: left.id, siteA: { kind: siteA.kind, index: siteA.index }, bodyBId: right.id, siteB: { kind: siteB.kind, index: siteB.index }, positionA, positionB, coulombEnergyKcalMol: 0, ljEnergyKcalMol: 0, coulombForceOnA: vec(), ljForceOnA: vec(), forceOnA: vec(), torqueOnA: vec(), torqueOnB: vec(), overlapGuarded: false });
       return sitePairs.get(key);
@@ -171,12 +172,12 @@ export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set()
       if (!siteA.chargeE || !siteB.chargeE) continue;
       const positionA = bodySitePosition(left, siteA.localPositionAngstrom), positionB = bodySitePosition(right, siteB.localPositionAngstrom), delta = sub(positionB, positionA), fallbackDirection = stableFallback(siteA, siteB);
       const term = coulombPairEnergyForce(siteA.chargeE, siteB.chargeE, delta, { fallbackDirection }), pair = getPair(siteA, siteB, positionA, positionB);
-      pair.coulombEnergyKcalMol += term.energyKcalMol; pair.coulombForceOnA = add(pair.coulombForceOnA, term.forceOnA); pair.forceOnA = add(pair.forceOnA, term.forceOnA); pair.overlapGuarded ||= term.guarded;
+      if(pair){pair.coulombEnergyKcalMol += term.energyKcalMol; pair.coulombForceOnA = add(pair.coulombForceOnA, term.forceOnA); pair.forceOnA = add(pair.forceOnA, term.forceOnA); pair.overlapGuarded ||= term.guarded;}
       leftResult.energyKcalMol += term.energyKcalMol / 2; rightResult.energyKcalMol += term.energyKcalMol / 2;
       leftResult.forceKcalMolAngstrom = add(leftResult.forceKcalMolAngstrom, term.forceOnA); rightResult.forceKcalMolAngstrom = sub(rightResult.forceKcalMolAngstrom, term.forceOnA);
       const torqueA = cross(sub(positionA, left.positionAngstrom), term.forceOnA), torqueB = cross(sub(positionB, right.positionAngstrom), scale(term.forceOnA, -1));
       leftResult.torqueKcalMolAngstrom = add(leftResult.torqueKcalMolAngstrom, torqueA); rightResult.torqueKcalMolAngstrom = add(rightResult.torqueKcalMolAngstrom, torqueB);
-      pair.torqueOnA = add(pair.torqueOnA, torqueA); pair.torqueOnB = add(pair.torqueOnB, torqueB);
+      if(pair){pair.torqueOnA = add(pair.torqueOnA, torqueA); pair.torqueOnB = add(pair.torqueOnB, torqueB);}
       if (term.guarded) overlapGuardActivationCount++;
     }
     for (const siteA of leftSites) {
@@ -188,13 +189,13 @@ export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set()
         const atomA = siteA.atom, atomB = siteB.atom;
         const term = lennardJonesPairEnergyForce(atomA.sigmaAngstrom, atomA.epsilonKcalMol, atomB.sigmaAngstrom, atomB.epsilonKcalMol, delta, { fallbackDirection });
         const pair = getPair(siteA, siteB, positionA, positionB);
-        const guardAlreadyCounted = pair.overlapGuarded;
-        pair.ljEnergyKcalMol += term.energyKcalMol; pair.ljForceOnA = add(pair.ljForceOnA, term.forceOnA); pair.forceOnA = add(pair.forceOnA, term.forceOnA); pair.overlapGuarded ||= term.guarded;
+        const guardAlreadyCounted = pair?.overlapGuarded??false;
+        if(pair){pair.ljEnergyKcalMol += term.energyKcalMol; pair.ljForceOnA = add(pair.ljForceOnA, term.forceOnA); pair.forceOnA = add(pair.forceOnA, term.forceOnA); pair.overlapGuarded ||= term.guarded;}
         leftResult.energyKcalMol += term.energyKcalMol / 2; rightResult.energyKcalMol += term.energyKcalMol / 2;
         leftResult.forceKcalMolAngstrom = add(leftResult.forceKcalMolAngstrom, term.forceOnA); rightResult.forceKcalMolAngstrom = sub(rightResult.forceKcalMolAngstrom, term.forceOnA);
         const torqueA = cross(sub(positionA, left.positionAngstrom), term.forceOnA), torqueB = cross(sub(positionB, right.positionAngstrom), scale(term.forceOnA, -1));
         leftResult.torqueKcalMolAngstrom = add(leftResult.torqueKcalMolAngstrom, torqueA); rightResult.torqueKcalMolAngstrom = add(rightResult.torqueKcalMolAngstrom, torqueB);
-        pair.torqueOnA = add(pair.torqueOnA, torqueA); pair.torqueOnB = add(pair.torqueOnB, torqueB);
+        if(pair){pair.torqueOnA = add(pair.torqueOnA, torqueA); pair.torqueOnB = add(pair.torqueOnB, torqueB);}
         if (term.guarded && !guardAlreadyCounted) overlapGuardActivationCount++;
       }
     }
@@ -208,9 +209,9 @@ export function createStageABody({ id, positionAngstrom, orientation = [0, 0, 0,
   return { id, positionAngstrom: [...positionAngstrom], orientation: quaternionNormalize(orientation), velocityAngstromPerPs: [...velocityAngstromPerPs], angularVelocityRadPerPs: [...angularVelocityRadPerPs], atoms: atoms.map((atom, index) => ({ ...atom, positionAngstrom: [...(properties.centeredPositionsAngstrom?.[index] ?? atom.positionAngstrom)], massAmu: STANDARD_ATOMIC_MASS_AMU[atom.element] })), virtualChargeSites: virtualChargeSites.map(site => ({ ...site, positionAngstrom: [...site.positionAngstrom] })), massAmu: properties.totalMassAmu, inertiaTensorAmuAngstrom2: properties.inertiaTensorAmuAngstrom2.map(row => [...row]) };
 }
 
-export function integrateStageA(bodies, physicalDeltaPs, { excludedMoleculePairs = new Set(), linearDampingPerPs = 9.08, angularDampingPerPs = 37.1 } = {}) {
+export function integrateStageA(bodies, physicalDeltaPs, { excludedMoleculePairs = new Set(), linearDampingPerPs = 9.08, angularDampingPerPs = 37.1, collectPairDiagnostics = true } = {}) {
   if (!Number.isFinite(physicalDeltaPs) || physicalDeltaPs < 0) throw new Error('Physical timestep must be finite and non-negative.');
-  const forces = evaluateStageAForces(bodies, { excludedMoleculePairs, collectPairDiagnostics: true });
+  const forces = evaluateStageAForces(bodies, { excludedMoleculePairs, collectPairDiagnostics });
   for (const body of bodies) {
     if (body.kinematic) continue;
     const state = forces.bodies.get(body.id), acceleration = scale(state.forceKcalMolAngstrom, KCAL_MOL_AMU_TO_ANGSTROM_PS2 / body.massAmu);

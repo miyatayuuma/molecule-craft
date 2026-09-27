@@ -12,6 +12,7 @@ import {
   createFixedStepAccumulator, createStageABody, evaluateStageAForces,
   integrateStageA, rigidBodyMassProperties, stageABodySnapshot,
 } from './reaction-lab-stage-a.js?v=1';
+import { STAGE_B_TEST_QA_E, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, integrateStageB, stageBCarbonylDiagnostics } from './reaction-lab-stage-b.js?v=1';
 
 const vector=(THREE,point)=>Array.isArray(point)?new THREE.Vector3(point[0],point[1],point[2]):new THREE.Vector3(point.x,point.y,point.z);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -19,6 +20,9 @@ const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 export function createReactionLabViewer({THREE,dialog,root,records,collectionState,onDialogStateChange=()=>{},onPointerLockChange=()=>{}}){
   const query=new URLSearchParams(location.search);
   const stageAPhysicsEnabled=query.get('reactionLabTest')==='1'&&query.get('reactionLabPhysics')==='stage-a'&&['localhost','127.0.0.1'].includes(location.hostname);
+  const stageBPhysicsEnabled=query.get('reactionLabTest')==='1'&&query.get('reactionLabPhysics')==='stage-b'&&['localhost','127.0.0.1'].includes(location.hostname);
+  const canonicalStagePhysicsEnabled=stageAPhysicsEnabled||stageBPhysicsEnabled;
+  const stageBChargeE=STAGE_B_TEST_QA_E;
   const canvas=root.querySelector('canvas');
   const status=root.querySelector('[data-lab-status]');
   const slots=[...root.querySelectorAll('[data-lab-slot]')];
@@ -34,7 +38,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let slotValues=['','',''],instances=[],mode='move',selected=null,down=null,testIsolation=null,reactionContactPairs=new Set();
   let azimuth=0,elevation=0,distance=15,last=performance.now(),disposed=false,reactionAnimation=null;
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
-  const contactMatcher=createContactMatcher(),hydrogenBonds=stageAPhysicsEnabled?null:createHydrogenBondTracker();let lastHydrogenBondLifecycle={active:[],broken:[],challengers:[]};
+  const contactMatcher=createContactMatcher(),hydrogenBonds=canonicalStagePhysicsEnabled?null:createHydrogenBondTracker();let lastHydrogenBondLifecycle={active:[],broken:[],challengers:[]};
   let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
   const activePointers=new Set();
 
@@ -64,10 +68,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
 
   function createInstance(record,position){
     const preview=createPreviewModel(THREE,record);for(let index=0;index<190;index++)preview.step();
-    const model=preview.snapshot(),group=new THREE.Group(),id=stageAPhysicsEnabled?`${record.id}-${++instanceSequence}`:`${record.id}-${crypto.randomUUID?.()??Math.random().toString(36).slice(2)}`;
+    const model=preview.snapshot(),group=new THREE.Group(),id=canonicalStagePhysicsEnabled?`${record.id}-${++instanceSequence}`:`${record.id}-${crypto.randomUUID?.()??Math.random().toString(36).slice(2)}`;
     let massProperties=null,renderAtoms=model.atoms;
-    if(stageAPhysicsEnabled){
-      if(!record.nonbonded)throw new Error(`Stage A requires canonical nonbonded data for ${record.id}.`);
+    if(canonicalStagePhysicsEnabled){
+      if(!record.nonbonded)throw new Error(`Canonical nonbonded data is required for ${record.id}.`);
       massProperties=rigidBodyMassProperties(model.atoms.map(atom=>({element:atom.element,positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})));
       renderAtoms=model.atoms.map((atom,index)=>({...atom,point:vector(THREE,massProperties.centeredPositionsAngstrom[index].map(value=>value*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM))}));
     }
@@ -75,14 +79,19 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     for(const atom of renderAtoms){const geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),16,12),material=new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element]?.color??'#cbd5e1',roughness:.32,metalness:.08}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(atom.point);mesh.userData.atomIndex=atom.id;group.add(mesh);}
     for(const bond of model.bonds){const a=vector(THREE,renderAtoms[bond.a].point),b=vector(THREE,renderAtoms[bond.b].point),direction=b.clone().sub(a),length=direction.length(),geometry=new THREE.CylinderGeometry(.055,.055,length,8),material=new THREE.MeshStandardMaterial({color:'#c3d2dc',roughness:.6}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(a.add(b).multiplyScalar(.5));mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction.normalize());group.add(mesh);}
     world.add(group);
-    const interaction=stageAPhysicsEnabled?null:deriveInteractionModel(record);
+    const interaction=canonicalStagePhysicsEnabled?null:deriveInteractionModel(record);
     const interactionRadius=Math.max(...renderAtoms.map(atom=>atom.point.length()+modelAtomRadius(atom.element)));
     const item={id,species:record.id,record:{...record,atoms:renderAtoms,bonds:model.bonds},group,
-      interactionCharges:stageAPhysicsEnabled?[...record.nonbonded.atomicChargesE]:interaction.atoms.map(atom=>atom.interactionCharge),formalCharges:stageAPhysicsEnabled?[]:interaction.atoms.map(atom=>atom.formalCharge),netIonicCharge:stageAPhysicsEnabled?0:interaction.netIonicCharge,donors:stageAPhysicsEnabled?[]:interaction.donors,acceptors:stageAPhysicsEnabled?[]:interaction.acceptors,
+      interactionCharges:canonicalStagePhysicsEnabled?[...record.nonbonded.atomicChargesE]:interaction.atoms.map(atom=>atom.interactionCharge),formalCharges:canonicalStagePhysicsEnabled?[]:interaction.atoms.map(atom=>atom.formalCharge),netIonicCharge:canonicalStagePhysicsEnabled?0:interaction.netIonicCharge,donors:canonicalStagePhysicsEnabled?[]:interaction.donors,acceptors:canonicalStagePhysicsEnabled?[]:interaction.acceptors,
       interactionRadius,
-      velocity:new THREE.Vector3(...(stageAPhysicsEnabled?[0,0,0]:[(Math.random()-.5)*.003,(Math.random()-.5)*.003,(Math.random()-.5)*.003])),angularVelocity:new THREE.Vector3(...(stageAPhysicsEnabled?[0,0,0]:[(Math.random()-.5)*.01,(Math.random()-.5)*.01,(Math.random()-.5)*.006])),dragSpeed:0,lastDragAt:0,busy:false};
-    if(stageAPhysicsEnabled){
+      velocity:new THREE.Vector3(...(canonicalStagePhysicsEnabled?[0,0,0]:[(Math.random()-.5)*.003,(Math.random()-.5)*.003,(Math.random()-.5)*.003])),angularVelocity:new THREE.Vector3(...(canonicalStagePhysicsEnabled?[0,0,0]:[(Math.random()-.5)*.01,(Math.random()-.5)*.01,(Math.random()-.5)*.006])),dragSpeed:0,lastDragAt:0,busy:false};
+    if(canonicalStagePhysicsEnabled){
       item.stageBody=createStageABody({id,positionAngstrom:position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),orientation:[group.quaternion.x,group.quaternion.y,group.quaternion.z,group.quaternion.w],atoms:renderAtoms.map((atom,index)=>({element:atom.element,chargeE:record.nonbonded.atomicChargesE[index],sigmaAngstrom:record.nonbonded.sigmaAngstrom[index],epsilonKcalMol:record.nonbonded.epsilonKcalMol[index],positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})),virtualChargeSites:record.nonbonded.virtualChargeSites.map(site=>({chargeE:site.chargeE,positionAngstrom:site.positionAngstromAngstrom??site.positionAngstrom})),massProperties});
+      if(stageBPhysicsEnabled){
+        const geometryAtoms=renderAtoms.map((atom,index)=>({element:atom.element,positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)}));
+        item.stageBody.carbonylAnisotropySites=detectCarbonylAnisotropySites(geometryAtoms,record.bonds,{qA:stageBChargeE});
+        item.stageBody.stageBVirtualChargeSites=createStageBVirtualSites(geometryAtoms,record.bonds,{qA:stageBChargeE});
+      }else{item.stageBody.carbonylAnisotropySites=[];item.stageBody.stageBVirtualChargeSites=[];}
     }
     instances.push(item);return item;
   }
@@ -99,7 +108,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const speciesIndex=slotValues.filter(Boolean).indexOf(entry.species),angle=2*Math.PI*offset/same,radius=2.05;
       const originX=selectedCount===1?0:(speciesIndex-(selectedCount-1)/2)*3.7;
       const x=selectedCount===1?originX+radius*Math.cos(angle):originX+(offset%2 ? .35 : -.35),y=selectedCount===1?radius*Math.sin(angle):(offset%2 ? .9 : -.9);
-      createInstance(record,new THREE.Vector3(x,y,stageAPhysicsEnabled?0:(Math.random()-.5)*.6));
+      createInstance(record,new THREE.Vector3(x,y,canonicalStagePhysicsEnabled?0:(Math.random()-.5)*.6));
     }
     renderSlotOptions();status.textContent=instances.length?`${instances.length} 個の代表的な分子が空間にあります。移動・回転・視点を切り替えて観察します。`:'空のslotから分子を選んでください。';
   }
@@ -260,17 +269,17 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       return body;
     });
     const started=performance.now();
-    stageAForces=integrateStageA(active,physicalDeltaPs,{excludedMoleculePairs:reactionContactPairs});
+    stageAForces=stageBPhysicsEnabled?integrateStageB(active,physicalDeltaPs,{excludedMoleculePairs:reactionContactPairs}):integrateStageA(active,physicalDeltaPs,{excludedMoleculePairs:reactionContactPairs});
     stageAPerformance.lastPhysicsDurationMs=performance.now()-started;
     stageAPerformance.lastInteractionPairCount=stageAForces.pairDiagnostics.length;
     stageAPerformance.fixedSteps++;
     for(const item of instances)if(!item.busy&&!(item===selected&&down?.group===item))syncGroupFromStageABody(item);
   }
-  const stageAStepper=stageAPhysicsEnabled?createFixedStepAccumulator(integrateStageAStep,{gameStepSeconds:STAGE_A_GAME_STEP_SECONDS,physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,maxCatchUpSteps:STAGE_A_MAX_CATCH_UP_STEPS}):null;
+  const stageAStepper=canonicalStagePhysicsEnabled?createFixedStepAccumulator(integrateStageAStep,{gameStepSeconds:STAGE_A_GAME_STEP_SECONDS,physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,maxCatchUpSteps:STAGE_A_MAX_CATCH_UP_STEPS}):null;
   function tick(now){
     if(disposed)return;requestAnimationFrame(tick);if(!dialog.open){last=now;return;}
     const elapsed=Math.max(0,now-last);last=now;
-    if(stageAPhysicsEnabled){reactionStep(now);const timing=stageAStepper.advance(elapsed/1000);stageAPerformance.lastFrameStepCount=timing.steps;stageAPerformance.lastDroppedGameSeconds=timing.droppedGameSeconds;}
+    if(canonicalStagePhysicsEnabled){reactionStep(now);const timing=stageAStepper.advance(elapsed/1000);stageAPerformance.lastFrameStepCount=timing.steps;stageAPerformance.lastDroppedGameSeconds=timing.droppedGameSeconds;}
     else {const dt=Math.min(40,elapsed),scale=dt/16;physicalInteractions(scale,now);updateHydrogenBondStates(now);reactionStep(now);}
     if(reactionAnimation){const progress=clamp((now-reactionAnimation.started)/CONTACT_DWELL_MS,0,1);for(const item of [reactionAnimation.left,reactionAnimation.right]){item.group.position.lerp(reactionAnimation.center,progress*.18);item.group.scale.setScalar(1-progress*.12);}}
     renderer.render(scene,camera);
@@ -386,11 +395,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       },
       refresh(){updateHydrogenBondStates(performance.now());return this.snapshot();},
     };
-    if(stageAPhysicsEnabled){
+    if(canonicalStagePhysicsEnabled){
       window.__reactionLabProbe={
-        physicsMode:'stage-a',
+        physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',
         physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,
-        snapshot:()=>({physicsMode:'stage-a',physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),charges:[...item.interactionCharges]})),pairs:stageAForces.pairDiagnostics.map(pair=>({...pair})),diagnostics:{overlapGuardActivationCount:stageAForces.overlapGuardActivationCount,...stageAPerformance},camera:{distance,azimuth,elevation},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
+        qA:stageBPhysicsEnabled?stageBChargeE:null,
+        snapshot:()=>({physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,qA:stageBPhysicsEnabled?stageBChargeE:null,instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),charges:[...item.interactionCharges],carbonylSites:stageBPhysicsEnabled?stageBCarbonylDiagnostics(item.stageBody):[],renderedObjectCount:stageBPhysicsEnabled?item.group.children.length:null,expectedRealObjectCount:stageBPhysicsEnabled?item.record.atoms.length+item.record.bonds.length:null})),pairs:stageAForces.pairDiagnostics.map(pair=>({...pair})),diagnostics:{overlapGuardActivationCount:stageAForces.overlapGuardActivationCount,carbonylSiteCount:instances.reduce((sum,item)=>sum+(item.stageBody?.carbonylAnisotropySites?.length??0),0),...stageAPerformance},camera:{distance,azimuth,elevation},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
         setGeometry(poses){
           const requestedIds=new Set(poses.map(pose=>pose.id));if(requestedIds.size!==poses.length)throw Error('Stage A geometry fixture contains duplicate molecule IDs');
           testIsolation=requestedIds.size?requestedIds:null;reactionContactPairs.clear();contactMatcher.reset();
@@ -398,7 +408,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
           selected=null;down=null;return this.snapshot();
         },
         advanceDeterministic(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps)));stageAStepper.reset();for(let index=0;index<count;index++)integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);return this.snapshot();},
-        decomposePair(instanceAId,instanceBId){const a=instanceById(instanceAId),b=instanceById(instanceBId);if(!a||!b)throw Error('Missing Stage A molecule instance');const evaluated=evaluateStageAForces([a.stageBody,b.stageBody]);return {pairs:evaluated.pairDiagnostics,bodies:Object.fromEntries([...evaluated.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:evaluated.overlapGuardActivationCount};},
+        decomposePair(instanceAId,instanceBId){const a=instanceById(instanceAId),b=instanceById(instanceBId);if(!a||!b)throw Error('Missing Stage A molecule instance');const evaluated=stageBPhysicsEnabled?evaluateStageBForces([a.stageBody,b.stageBody]):evaluateStageAForces([a.stageBody,b.stageBody]);return {pairs:evaluated.pairDiagnostics,bodies:Object.fromEntries([...evaluated.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:evaluated.overlapGuardActivationCount};},
         reactionContactDiagnostics(ruleId){const matches=[];for(let i=0;i<instances.length;i++)for(let j=i+1;j<instances.length;j++)for(const candidate of reactionCandidates([{species:instances[i].species,id:instances[i].id},{species:instances[j].species,id:instances[j].id}],records)){if(candidate.ruleId!==ruleId)continue;const ids=resolveCandidateInstanceIds(candidate,instances.map(item=>item.id)),[a,b]=ids.map(instanceById),[atomA,atomB]=candidate.siteAtomIndices,key=`${candidate.ruleId}:${[...ids].sort().join('|')}:${atomA}-${atomB}`;matches.push({ids,atomA,atomB,distance:atomWorld(a,atomA).distanceTo(atomWorld(b,atomB)),maxDistance:candidate.rule.maxDistance,contactPairActive:reactionContactPairs.has([...ids].sort().join('|')),busy:[a.busy,b.busy],isolationEligible:!testIsolation||ids.every(id=>testIsolation.has(id)),status:status.textContent,key});}return matches;},
         setStageAPair(instanceAId,positionA,instanceBId,positionB){return this.setGeometry([{id:instanceAId,positionAngstrom:positionA},{id:instanceBId,positionAngstrom:positionB}]);},
         prepareContact(ruleId,startDistance=2.25){const result=legacyProbe.prepareContact(ruleId,startDistance);for(const item of instances){syncStageABodyFromGroup(item);item.stageBody.velocityAngstromPerPs=[0,0,0];item.stageBody.angularVelocityRadPerPs=[0,0,0];}return result;},
