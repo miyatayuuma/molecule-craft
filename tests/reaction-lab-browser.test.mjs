@@ -95,7 +95,7 @@ try{
   for(const ids of [['oxygen','ethanol',''],['hydrogen','acetic-acid','']]){
     await setSlots(ids);await waitForPopulation(ids.slice(0,2),4,`Negative control scene did not spawn: ${ids.join('+')}`);
     await evaluate('window.__labReactionEvents=[]');
-    const arranged=await evaluate(`window.__reactionLabProbe.placeSpeciesPair('${ids[0]}','${ids[1]}')`);assert.ok(arranged.distance<1.18,`Negative control pair should be in reactive-site contact: ${JSON.stringify(arranged)}`);
+    const arranged=await evaluate(`window.__reactionLabProbe.placeSpeciesPair('${ids[0]}','${ids[1]}',.82)`);assert.ok(arranged.distance<1.18,`Negative control pair should be in reactive-site contact: ${JSON.stringify(arranged)}`);
     const snapshotBefore=await snapshot();
     await new Promise(resolve=>setTimeout(resolve,900));
     assert.equal(await evaluate('window.__labReactionEvents.length'),0,`${ids.join('+')} must not create a reaction`);
