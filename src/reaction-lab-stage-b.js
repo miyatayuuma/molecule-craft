@@ -15,7 +15,7 @@ export const STAGE_B_SITE_DISTANCE_ANGSTROM=0.47;
 export const STAGE_B_ENGINE_VERSION='reaction-lab-stage-b-v1';
 // Candidate qA is set from the committed audit when one passes; otherwise the
 // localhost-only probe uses the scan ceiling to expose the best attempted correction.
-export const STAGE_B_TEST_QA_E=0.20;
+export const STAGE_B_TEST_QA_E=0.15;
 
 function bondRows(bonds){return bonds.map((bond,index)=>Array.isArray(bond)?{a:bond[0],b:bond[1],order:bond[2],index}:{...bond,index});}
 const elementOf=atom=>typeof atom==='string'?atom:atom?.element;
@@ -56,7 +56,7 @@ export function createStageBVirtualSites(atoms,bonds,{qA=0.0}={}){
   return detectCarbonylAnisotropySites(atoms,bonds,{qA}).flatMap(site=>site.chargeSites.map(chargeSite=>({...chargeSite,carbonylOxygenAtomIndex:site.oxygenAtomIndex,carbonylCarbonAtomIndex:site.carbonAtomIndex,parameterization:'carbonyl-local-anisotropy',massless:true,lj:false})));
 }
 
-function quatRotate(q,p){const [x,y,z,w]=q,[px,py,pz]=p,tx=2*(y*pz-z*py),ty=2*(z*px-x*pz),tz=2*(x*py-y*px);return [px+w*tx+(y*tz-z*ty),py+w*ty+(z*tx-x*tz),pz+w*ty+(x*tz-y*tx)];}
+function quatRotate(q,p){const [x,y,z,w]=q,[px,py,pz]=p,tx=2*(y*pz-z*py),ty=2*(z*px-x*pz),tz=2*(x*py-y*px);return [px+w*tx+(y*tz-z*ty),py+w*ty+(z*tx-x*tz),pz+w*tz+(x*ty-y*tx)];}
 
 /** Evaluate baseline and added site terms, retaining Stage A's force authority. */
 export function evaluateStageBForces(bodies,{excludedMoleculePairs=new Set(),collectPairDiagnostics=true}={}){

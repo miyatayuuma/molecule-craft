@@ -23,7 +23,8 @@
         "distance": 1.8209256,
         "donorAngle": 176.12986819,
         "carbonylAngle": 126.08181516,
-        "outOfPlane": 75.73818738,
+        "outOfPlane": 47.98136506,
+        "legacyWorldAxisAngle": 75.73818738,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.74514632,
@@ -37,7 +38,8 @@
         "distance": 1.82413451,
         "donorAngle": 176.12759209,
         "carbonylAngle": 126.57006707,
-        "outOfPlane": 76.83529579,
+        "outOfPlane": 46.67764002,
+        "legacyWorldAxisAngle": 76.83529579,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.70287309,
@@ -51,7 +53,8 @@
         "distance": 1.82704912,
         "donorAngle": 176.15099659,
         "carbonylAngle": 127.32020011,
-        "outOfPlane": 78.03955306,
+        "outOfPlane": 45.06430136,
+        "legacyWorldAxisAngle": 78.03955306,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.66355583,
@@ -65,7 +68,8 @@
         "distance": 1.8269079,
         "donorAngle": 175.18623511,
         "carbonylAngle": 151.53046097,
-        "outOfPlane": 77.83500233,
+        "outOfPlane": 5.913628,
+        "legacyWorldAxisAngle": 77.83500233,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.62811244,
@@ -79,7 +83,8 @@
         "distance": 1.82922991,
         "donorAngle": 174.69481367,
         "carbonylAngle": 150.98906572,
-        "outOfPlane": 77.45979864,
+        "outOfPlane": 4.33025163,
+        "legacyWorldAxisAngle": 77.45979864,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.6071144,
@@ -93,7 +98,8 @@
         "distance": 1.83131615,
         "donorAngle": 174.19848084,
         "carbonylAngle": 150.381454,
-        "outOfPlane": 77.07562548,
+        "outOfPlane": 3.14830893,
+        "legacyWorldAxisAngle": 77.07562548,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.58931855,
@@ -107,7 +113,8 @@
         "distance": 1.83319073,
         "donorAngle": 173.69717278,
         "carbonylAngle": 149.75801388,
-        "outOfPlane": 76.68446296,
+        "outOfPlane": 2.28201569,
+        "legacyWorldAxisAngle": 76.68446296,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.57437466,
@@ -121,10 +128,56 @@
         "distance": 1.83487176,
         "donorAngle": 173.19167185,
         "carbonylAngle": 149.14531788,
-        "outOfPlane": 76.29059776,
+        "outOfPlane": 1.65504458,
+        "legacyWorldAxisAngle": 76.29059776,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.5620392,
+      "guardActivationCount": 0
+    },
+    {
+      "qA": 0.145,
+      "orientationCount": 12,
+      "lowestEnergyGeometry": {
+        "energyKcalMol": -6.55934067,
+        "distance": 1.83526349,
+        "donorAngle": 173.06480576,
+        "carbonylAngle": 148.99547079,
+        "outOfPlane": 1.52809306,
+        "legacyWorldAxisAngle": 76.1922439,
+        "overlapGuardActivationCount": 0
+      },
+      "lowestEnergyKcalMol": -6.55934067,
+      "guardActivationCount": 0
+    },
+    {
+      "qA": 0.15,
+      "orientationCount": 12,
+      "lowestEnergyGeometry": {
+        "energyKcalMol": -6.55852069,
+        "distance": 1.87022519,
+        "donorAngle": 162.89960258,
+        "carbonylAngle": 130.25733723,
+        "outOfPlane": 7.57534091,
+        "legacyWorldAxisAngle": 81.7380358,
+        "overlapGuardActivationCount": 0
+      },
+      "lowestEnergyKcalMol": -6.55852069,
+      "guardActivationCount": 0
+    },
+    {
+      "qA": 0.155,
+      "orientationCount": 12,
+      "lowestEnergyGeometry": {
+        "energyKcalMol": -6.57115612,
+        "distance": 1.87006044,
+        "donorAngle": 162.77095897,
+        "carbonylAngle": 130.14211709,
+        "outOfPlane": 7.22391447,
+        "legacyWorldAxisAngle": 81.68854553,
+        "overlapGuardActivationCount": 0
+      },
+      "lowestEnergyKcalMol": -6.57115612,
       "guardActivationCount": 0
     },
     {
@@ -135,7 +188,8 @@
         "distance": 1.86984206,
         "donorAngle": 162.65408909,
         "carbonylAngle": 130.02836969,
-        "outOfPlane": 81.63885143,
+        "outOfPlane": 6.90916365,
+        "legacyWorldAxisAngle": 81.63885143,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.58394797,
@@ -149,7 +203,8 @@
         "distance": 1.86855328,
         "donorAngle": 162.27208354,
         "carbonylAngle": 129.59147949,
-        "outOfPlane": 81.43934462,
+        "outOfPlane": 5.92143411,
+        "legacyWorldAxisAngle": 81.43934462,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.636508,
@@ -163,28 +218,60 @@
         "distance": 1.86677929,
         "donorAngle": 161.98108403,
         "carbonylAngle": 129.18649284,
-        "outOfPlane": 81.24258701,
+        "outOfPlane": 5.22282563,
+        "legacyWorldAxisAngle": 81.24258701,
         "overlapGuardActivationCount": 0
       },
       "lowestEnergyKcalMol": -6.69101514,
       "guardActivationCount": 0
     }
   ],
-  "selectedQA": null,
-  "testModeQA": 0.2,
-  "selectionReason": "No qA <= 0.20 e met every stated calibration gate; test mode uses the scan ceiling for diagnostic inspection only.",
+  "selectedQA": 0.15,
+  "testModeQA": 0.15,
+  "productionPhysicsMode": "RL-1H",
+  "productionCutover": false,
+  "stageAReproduction": {
+    "matchesNB3Baseline": true,
+    "computed": {
+      "energyKcalMol": -6.74514632,
+      "distance": 1.8209256,
+      "donorAngle": 176.12986819,
+      "carbonylAngle": 126.08181516,
+      "outOfPlane": 47.98136506,
+      "legacyWorldAxisAngle": 75.73818738,
+      "overlapGuardActivationCount": 0,
+      "correctedLocalPlaneOutOfPlaneDeg": 47.98136506
+    },
+    "nb3": {
+      "distance": 1.8209256,
+      "donorAngle": 176.12986819,
+      "acceptorAngle": 126.08181516,
+      "outOfPlaneDeg": 75.73818738
+    },
+    "metricNote": "NB3 outOfPlaneDeg was the angle to world +Z and is retained above as legacyWorldAxisAngle; Stage B calibration uses the rotation-invariant deviation from the carbonyl plane."
+  },
+  "selectionReason": "lowest qA satisfying all hard geometry, energy and radial preservation gates",
   "waterAcetone": {
     "stageAMetrics": {
       "energyKcalMol": -6.74514632,
       "distance": 1.8209256,
       "donorAngle": 176.12986819,
       "carbonylAngle": 126.08181516,
-      "outOfPlane": 75.73818738,
+      "outOfPlane": 47.98136506,
+      "legacyWorldAxisAngle": 75.73818738,
       "overlapGuardActivationCount": 0
     },
-    "stageBMetrics": null,
-    "energyDeltaKcalMol": null,
-    "distanceDeltaAngstrom": null
+    "stageBMetrics": {
+      "energyKcalMol": -6.55852069,
+      "distance": 1.87022519,
+      "donorAngle": 162.89960258,
+      "carbonylAngle": 130.25733723,
+      "outOfPlane": 7.57534091,
+      "legacyWorldAxisAngle": 81.7380358,
+      "overlapGuardActivationCount": 0
+    },
+    "energyDeltaKcalMol": 0.18662564,
+    "distanceDeltaAngstrom": 0.04929959
   },
   "carbonylFamilyFixtures": {
     "formaldehyde": {
@@ -193,14 +280,14 @@
       "carbonylCarbonAtomIndex": 0,
       "initialCondition": "water donor H aligned with the carbonyl LP+ lobe; carbonyl-directed fixed pose; deterministic zero-velocity relax",
       "settleSteps": 6000,
-      "energyKcalMol": -6.2452233,
+      "energyKcalMol": -6.006815,
       "hydrogenIndex": 1,
-      "distance": 1.78939346,
-      "donorAngle": 176.48776815,
-      "carbonylAngle": 114.64921161,
-      "outOfPlane": 90,
+      "distance": 1.80379634,
+      "donorAngle": 176.62442923,
+      "carbonylAngle": 116.31250692,
+      "outOfPlane": 0,
       "overlapGuardActivationCount": 0,
-      "pass": false
+      "pass": true
     },
     "acetone": {
       "moleculeId": "acetone",
@@ -208,14 +295,14 @@
       "carbonylCarbonAtomIndex": 1,
       "initialCondition": "water donor H aligned with the carbonyl LP+ lobe; carbonyl-directed fixed pose; deterministic zero-velocity relax",
       "settleSteps": 6000,
-      "energyKcalMol": -7.17283868,
+      "energyKcalMol": -6.94048615,
       "hydrogenIndex": 1,
-      "distance": 1.77856512,
-      "donorAngle": 179.39318987,
-      "carbonylAngle": 118.01194461,
-      "outOfPlane": 91.4140989,
+      "distance": 1.79133325,
+      "donorAngle": 179.88006986,
+      "carbonylAngle": 118.77251829,
+      "outOfPlane": 1.37358039,
       "overlapGuardActivationCount": 0,
-      "pass": false
+      "pass": true
     },
     "acetic-acid": {
       "moleculeId": "acetic-acid",
@@ -223,14 +310,14 @@
       "carbonylCarbonAtomIndex": 1,
       "initialCondition": "water donor H aligned with the carbonyl LP+ lobe; carbonyl-directed fixed pose; deterministic zero-velocity relax",
       "settleSteps": 6000,
-      "energyKcalMol": -7.18324623,
+      "energyKcalMol": -6.96288186,
       "hydrogenIndex": 1,
-      "distance": 1.83685897,
-      "donorAngle": 162.42676503,
-      "carbonylAngle": 115.43769985,
-      "outOfPlane": 90.05144359,
+      "distance": 1.85211696,
+      "donorAngle": 161.86942092,
+      "carbonylAngle": 116.55108786,
+      "outOfPlane": 0.05648742,
       "overlapGuardActivationCount": 0,
-      "pass": false
+      "pass": true
     },
     "ethyl-acetate": {
       "moleculeId": "ethyl-acetate",
@@ -238,14 +325,14 @@
       "carbonylCarbonAtomIndex": 1,
       "initialCondition": "water donor H aligned with the carbonyl LP+ lobe; carbonyl-directed fixed pose; deterministic zero-velocity relax",
       "settleSteps": 6000,
-      "energyKcalMol": -6.89014892,
+      "energyKcalMol": -6.67568517,
       "hydrogenIndex": 1,
-      "distance": 1.83941768,
-      "donorAngle": 163.06676195,
-      "carbonylAngle": 116.48657517,
-      "outOfPlane": 90.90619528,
+      "distance": 1.8546047,
+      "donorAngle": 162.5317892,
+      "carbonylAngle": 117.9267151,
+      "outOfPlane": 1.19359779,
       "overlapGuardActivationCount": 0,
-      "pass": false
+      "pass": true
     },
     "acetamide": {
       "moleculeId": "acetamide",
@@ -253,14 +340,14 @@
       "carbonylCarbonAtomIndex": 1,
       "initialCondition": "water donor H aligned with the carbonyl LP+ lobe; carbonyl-directed fixed pose; deterministic zero-velocity relax",
       "settleSteps": 6000,
-      "energyKcalMol": -7.13294571,
+      "energyKcalMol": -6.91451574,
       "hydrogenIndex": 1,
-      "distance": 1.747924,
-      "donorAngle": 166.58290437,
-      "carbonylAngle": 120.39019246,
-      "outOfPlane": 89.98798519,
+      "distance": 1.76188097,
+      "donorAngle": 165.97023288,
+      "carbonylAngle": 121.39722912,
+      "outOfPlane": 0.015796,
       "overlapGuardActivationCount": 0,
-      "pass": false
+      "pass": true
     },
     "benzaldehyde": {
       "moleculeId": "benzaldehyde",
@@ -268,14 +355,14 @@
       "carbonylCarbonAtomIndex": 6,
       "initialCondition": "water donor H aligned with the carbonyl LP+ lobe; carbonyl-directed fixed pose; deterministic zero-velocity relax",
       "settleSteps": 6000,
-      "energyKcalMol": -6.4683203,
+      "energyKcalMol": -6.22286674,
       "hydrogenIndex": 1,
-      "distance": 1.78513421,
-      "donorAngle": 176.46540171,
-      "carbonylAngle": 113.69121104,
-      "outOfPlane": 90.00000119,
+      "distance": 1.79939231,
+      "donorAngle": 176.54593514,
+      "carbonylAngle": 115.12362741,
+      "outOfPlane": 0.00006115,
       "overlapGuardActivationCount": 0,
-      "pass": false
+      "pass": true
     }
   },
   "structuralAudit": {
@@ -320,2793 +407,2793 @@
       "distance": {
         "samples": [
           {
-            "energyKcalMol": 72.14643715,
+            "energyKcalMol": 72.15152898,
             "forceOnWater": [
-              -297.8466991,
-              14.33987784,
-              -3.88215464
+              -297.84946319,
+              14.32911254,
+              -3.86221037
             ],
             "forceOnAcetone": [
-              297.8466991,
-              -14.33987784,
-              3.88215464
+              297.84946319,
+              -14.32911254,
+              3.86221037
             ],
             "torqueOnWater": [
-              -1.74994084,
-              18.03967945,
-              1.6774939
+              -1.72726123,
+              18.00366723,
+              1.6565755
             ],
             "torqueOnAcetone": [
-              1.74994084,
-              -3.67570727,
-              51.38005411
+              1.72726123,
+              -3.71348885,
+              51.36114088
             ],
             "overlapGuardActivationCount": 4
           },
           {
-            "energyKcalMol": 58.3364634,
+            "energyKcalMol": 58.34141522,
             "forceOnWater": [
-              -255.05553853,
-              10.07792521,
-              -3.05709265
+              -255.05837002,
+              10.06790935,
+              -3.03833284
             ],
             "forceOnAcetone": [
-              255.05553853,
-              -10.07792521,
-              3.05709265
+              255.05837002,
+              -10.06790935,
+              3.03833284
             ],
             "torqueOnWater": [
-              -1.94662767,
-              15.09081537,
-              1.62828197
+              -1.92529326,
+              15.05639206,
+              1.60872098
             ],
             "torqueOnAcetone": [
-              1.94662767,
-              -3.62671792,
-              36.16393757
+              1.92529326,
+              -3.66264392,
+              36.14593908
             ],
             "overlapGuardActivationCount": 4
           },
           {
-            "energyKcalMol": 46.58620769,
+            "energyKcalMol": 46.59101683,
             "forceOnWater": [
-              -215.53898284,
-              6.7568483,
-              -2.35547183
+              -215.54185436,
+              6.74752682,
+              -2.33781671
             ],
             "forceOnAcetone": [
-              215.53898284,
-              -6.7568483,
-              2.35547183
+              215.54185436,
+              -6.74752682,
+              2.33781671
             ],
             "torqueOnWater": [
-              -2.08207333,
-              12.39162307,
-              1.57733518
+              -2.0619936,
+              12.35871301,
+              1.5590347
             ],
             "torqueOnAcetone": [
-              2.08207333,
-              -3.4408301,
-              24.09868835
+              2.0619936,
+              -3.47500952,
+              24.08156722
             ],
             "overlapGuardActivationCount": 4
           },
           {
-            "energyKcalMol": 36.75560005,
+            "energyKcalMol": 36.7602651,
             "forceOnWater": [
-              -177.25665795,
-              3.70917878,
-              -1.35694556
+              -177.25954656,
+              3.70050067,
+              -1.34032118
             ],
             "forceOnAcetone": [
-              177.25665795,
-              -3.70917878,
-              1.35694556
+              177.25954656,
+              -3.70050067,
+              1.34032118
             ],
             "torqueOnWater": [
-              -2.20054948,
-              9.80242729,
-              1.52541504
+              -2.18164051,
+              9.77095798,
+              1.50828548
             ],
             "torqueOnAcetone": [
-              2.20054948,
-              -4.57818688,
-              12.75492327
+              2.18164051,
+              -4.61072146,
+              12.7386421
             ],
             "overlapGuardActivationCount": 2
           },
           {
-            "energyKcalMol": 28.79481038,
+            "energyKcalMol": 28.79933097,
             "forceOnWater": [
-              -142.13832664,
-              1.12299907,
-              -0.9564775
+              -142.14121319,
+              1.11491707,
+              -0.94081529
             ],
             "forceOnAcetone": [
-              142.13832664,
-              -1.12299907,
-              0.9564775
+              142.14121319,
+              -1.11491707,
+              0.94081529
             ],
             "torqueOnWater": [
-              -2.2901212,
-              7.44475983,
-              1.47313244
+              -2.27230518,
+              7.41466193,
+              1.45709097
             ],
             "torqueOnAcetone": [
-              2.2901212,
-              -3.71449758,
-              2.90656394
+              2.27230518,
+              -3.74548231,
+              2.89108561
             ],
             "overlapGuardActivationCount": 1
           },
           {
-            "energyKcalMol": 22.4311669,
+            "energyKcalMol": 22.43554356,
             "forceOnWater": [
-              -113.41781697,
-              -0.34927533,
-              -0.74181952
+              -113.42068559,
+              -0.35680494,
+              -0.72705588
             ],
             "forceOnAcetone": [
-              113.41781697,
-              0.34927533,
-              0.74181952
+              113.42068559,
+              0.35680494,
+              0.72705588
             ],
             "torqueOnWater": [
-              -2.30831731,
-              5.52643533,
-              1.42097423
+              -2.29152207,
+              5.49764261,
+              1.40594426
             ],
             "torqueOnAcetone": [
-              2.30831731,
-              -2.59624824,
-              -2.80061177
+              2.29152207,
+              -2.62577188,
+              -2.81532377
             ],
             "overlapGuardActivationCount": 1
           },
           {
-            "energyKcalMol": 17.36238469,
+            "energyKcalMol": 17.36661865,
             "forceOnWater": [
-              -90.14679856,
-              -0.98877097,
-              -0.53539064
+              -90.14963618,
+              -0.99578864,
+              -0.52146659
             ],
             "forceOnAcetone": [
-              90.14679856,
-              0.98877097,
-              0.53539064
+              90.14963618,
+              0.99578864,
+              0.52146659
             ],
             "torqueOnWater": [
-              -2.27379757,
-              3.98173952,
-              1.3693253
+              -2.25795615,
+              3.95418882,
+              1.35523601
             ],
             "torqueOnAcetone": [
-              2.27379757,
-              -1.84017694,
-              -5.32440917
+              2.25795615,
+              -1.86832246,
+              -5.33839058
             ],
             "overlapGuardActivationCount": 1
           },
           {
-            "energyKcalMol": 13.3430986,
+            "energyKcalMol": 13.34719167,
             "forceOnWater": [
-              -71.28671555,
-              -1.12553404,
-              -0.34696524
+              -71.2895115,
+              -1.13207718,
+              -0.33382603
             ],
             "forceOnAcetone": [
-              71.28671555,
-              1.12553404,
-              0.34696524
+              71.2895115,
+              1.13207718,
+              0.33382603
             ],
             "torqueOnWater": [
-              -2.20836733,
-              2.73961211,
-              1.31848674
+              -2.19341761,
+              2.71324325,
+              1.30527264
             ],
             "torqueOnAcetone": [
-              2.20836733,
-              -1.33440288,
-              -5.8768996
+              2.19341761,
+              -1.36124783,
+              -5.89018523
             ],
             "overlapGuardActivationCount": 1
           },
           {
-            "energyKcalMol": 10.17658483,
+            "energyKcalMol": 10.18053933,
             "forceOnWater": [
-              -55.61552713,
-              -0.84287942,
-              -0.17165689
+              -55.61827279,
+              -0.8489826,
+              -0.15925171
             ],
             "forceOnAcetone": [
-              55.61552713,
-              0.84287942,
-              0.17165689
+              55.61827279,
+              0.8489826,
+              0.15925171
             ],
             "torqueOnWater": [
-              -2.11760509,
-              1.71744502,
-              1.2686909
+              -2.1034894,
+              1.69220073,
+              1.25629139
             ],
             "torqueOnAcetone": [
-              2.11760509,
-              -1.01365179,
-              -4.7244965
+              2.1034894,
+              -1.03926872,
+              -4.73712007
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 7.73979283,
+            "energyKcalMol": 7.74361145,
             "forceOnWater": [
-              -42.46569978,
-              -0.29099959,
-              -0.01146591
+              -42.46838829,
+              -0.29669478,
+              0.00025242
             ],
             "forceOnAcetone": [
-              42.46569978,
-              0.29099959,
-              0.01146591
+              42.46838829,
+              0.29669478,
+              -0.00025242
             ],
             "torqueOnWater": [
-              -2.01143338,
-              0.86939285,
-              1.22011375
+              -1.99809816,
+              0.84521863,
+              1.20847278
             ],
             "torqueOnAcetone": [
-              2.01143338,
-              -0.82180934,
-              -2.42776205
+              1.99809816,
+              -0.84626618,
+              -2.43975612
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 5.87720195,
+            "energyKcalMol": 5.88088769,
             "forceOnWater": [
-              -32.49401762,
-              0.04196485,
-              0.10604451
+              -32.49664363,
+              0.03664811,
+              0.11711981
             ],
             "forceOnAcetone": [
-              32.49401762,
-              -0.04196485,
-              -0.10604451
+              32.49664363,
+              -0.03664811,
+              -0.11711981
             ],
             "torqueOnWater": [
-              -1.92189906,
-              0.23678029,
-              1.17288516
+              -1.90929458,
+              0.21362435,
+              1.16195084
             ],
             "torqueOnAcetone": [
-              1.92189906,
-              -0.68216723,
-              -0.9966328
+              1.90929458,
+              -0.70552755,
+              -1.00802876
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 4.45078822,
+            "energyKcalMol": 4.45434431,
             "forceOnWater": [
-              -24.90531127,
-              0.23508375,
-              0.19194761
+              -24.90787069,
+              0.23011819,
+              0.20242061
             ],
             "forceOnAcetone": [
-              24.90531127,
-              -0.23508375,
-              -0.19194761
+              24.90787069,
+              -0.23011819,
+              -0.20242061
             ],
             "torqueOnWater": [
-              -1.84383403,
-              -0.23397574,
-              1.12709732
+              -1.83191405,
+              -0.25616261,
+              1.11682161
             ],
             "torqueOnAcetone": [
-              1.84383403,
-              -0.58180161,
-              -0.12799136
+              1.83191405,
+              -0.60412499,
+              -0.13881932
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 3.35684451,
+            "energyKcalMol": 3.36027435,
             "forceOnWater": [
-              -19.11115191,
-              0.33975031,
-              0.25426658
+              -19.11364173,
+              0.33511068,
+              0.26417514
             ],
             "forceOnAcetone": [
-              19.11115191,
-              -0.33975031,
-              -0.25426658
+              19.11364173,
+              -0.33511068,
+              -0.26417514
             ],
             "torqueOnWater": [
-              -1.77386363,
-              -0.58266185,
-              1.08281176
+              -1.76258517,
+              -0.60392635,
+              1.07315018
             ],
             "torqueOnAcetone": [
-              1.77386363,
-              -0.51068446,
-              0.37811457
+              1.76258517,
+              -0.53202675,
+              0.36782574
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 2.51711729,
+            "energyKcalMol": 2.52042443,
             "forceOnWater": [
-              -14.67398309,
-              0.38927813,
-              0.29887173
+              -14.67640121,
+              0.38494113,
+              0.30825104
             ],
             "forceOnAcetone": [
-              14.67398309,
-              -0.38927813,
-              -0.29887173
+              14.67640121,
+              -0.38494113,
+              -0.30825104
             ],
             "torqueOnWater": [
-              -1.70978181,
-              -0.83897004,
-              1.04006513
+              -1.69910492,
+              -0.85935652,
+              1.03097647
             ],
             "torqueOnAcetone": [
-              1.70978181,
-              -0.46112198,
-              0.65329472
+              1.69910492,
+              -0.48153552,
+              0.64351744
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 1.87232251,
+            "energyKcalMol": 1.87551056,
             "forceOnWater": [
-              -11.26692477,
-              0.40516615,
-              0.33009813
+              -11.26926988,
+              0.40111023,
+              0.33898096
             ],
             "forceOnAcetone": [
-              11.26692477,
-              -0.40516615,
-              -0.33009813
+              11.26926988,
+              -0.40111023,
+              -0.33898096
             ],
             "torqueOnWater": [
-              -1.65014401,
-              -1.02516594,
-              0.998874
+              -1.64003149,
+              -1.04471648,
+              0.99032006
             ],
             "torqueOnAcetone": [
-              1.65014401,
-              -0.42726582,
-              0.78385704
+              1.64003149,
+              -0.44679974,
+              0.77456496
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 1.37737756,
+            "energyKcalMol": 1.3804502,
             "forceOnWater": [
-              -8.64469436,
-              0.40119654,
-              0.3511751
+              -8.64696579,
+              0.39740179,
+              0.35959194
             ],
             "forceOnAcetone": [
-              8.64469436,
-              -0.40119654,
-              -0.3511751
+              8.64696579,
+              -0.39740179,
+              -0.35959194
             ],
             "torqueOnWater": [
-              -1.59400141,
-              -1.15802283,
-              0.95923881
+              -1.58441864,
+              -1.17677735,
+              0.95118418
             ],
             "torqueOnAcetone": [
-              1.59400141,
-              -0.40470637,
-              0.82608578
+              1.58441864,
+              -0.4234068,
+              0.81725378
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.99787789,
+            "energyKcalMol": 1.00083881,
             "forceOnWater": [
-              -6.62245832,
-              0.38611922,
-              0.36452783
+              -6.62465593,
+              0.38256723,
+              0.37250708
             ],
             "forceOnAcetone": [
-              6.62245832,
-              -0.38611922,
-              -0.36452783
+              6.62465593,
+              -0.38256723,
+              -0.37250708
             ],
             "torqueOnWater": [
-              -1.54072736,
-              -1.25023131,
-              0.92114717
+              -1.53164211,
+              -1.26822767,
+              0.91355902
             ],
             "torqueOnAcetone": [
-              1.54072736,
-              -0.39014395,
-              0.81638934
+              1.53164211,
+              -0.40805419,
+              0.80799351
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.70748104,
+            "energyKcalMol": 0.71033392,
             "forceOnWater": [
-              -5.06037271,
-              0.36541199,
-              0.37199125
+              -5.06249682,
+              0.36208571,
+              0.37955935
             ],
             "forceOnAcetone": [
-              5.06037271,
-              -0.36541199,
-              -0.37199125
+              5.06249682,
+              -0.36208571,
+              -0.37955935
             ],
             "torqueOnWater": [
-              -1.48990403,
-              -1.31143225,
-              0.88457658
+              -1.48128625,
+              -1.32870637,
+              0.87742443
             ],
             "torqueOnAcetone": [
-              1.48990403,
-              -0.38112794,
-              0.77804795
+              1.48128625,
+              -0.39828868,
+              0.77006557
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.48595552,
+            "energyKcalMol": 0.48870401,
             "forceOnWater": [
-              -3.85222647,
-              0.34243463,
-              0.37496316
+              -3.85427777,
+              0.33931833,
+              0.38214478
             ],
             "forceOnAcetone": [
-              3.85222647,
-              -0.34243463,
-              -0.37496316
+              3.85427777,
+              -0.33931833,
+              -0.38214478
             ],
             "torqueOnWater": [
-              -1.44124833,
-              -1.34897758,
-              0.84949667
+              -1.43307002,
+              -1.36556352,
+              0.84275223
             ],
             "torqueOnAcetone": [
-              1.44124833,
-              -0.37585294,
-              0.72570263
+              1.43307002,
+              -0.39230245,
+              0.71811209
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.31771922,
+            "energyKcalMol": 0.32036695,
             "forceOnWater": [
-              -2.91705887,
-              0.31918529,
-              0.37451494
+              -2.91903837,
+              0.31626439,
+              0.38133307
             ],
             "forceOnAcetone": [
-              2.91705887,
-              -0.31918529,
-              -0.37451494
+              2.91903837,
+              -0.31626439,
+              -0.38133307
             ],
             "torqueOnWater": [
-              -1.39456369,
-              -1.36849352,
-              0.81587105
+              -1.38679873,
+              -1.38442358,
+              0.80950806
             ],
             "torqueOnAcetone": [
-              1.39456369,
-              -0.37300093,
-              0.66834056
+              1.38679873,
+              -0.38877518,
+              0.66112136
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.19074001,
+            "energyKcalMol": 0.19329054,
             "forceOnWater": [
-              -2.19294379,
-              0.29679512,
-              0.37147224
+              -2.19485271,
+              0.29405613,
+              0.37794834
             ],
             "forceOnAcetone": [
-              2.19294379,
-              -0.29679512,
-              -0.37147224
+              2.19485271,
+              -0.29405613,
+              -0.37794834
             ],
             "torqueOnWater": [
-              -1.3497087,
-              -1.37429948,
-              0.78365884
+              -1.34233272,
+              -1.38960428,
+              0.77765289
             ],
             "torqueOnAcetone": [
-              1.3497087,
-              -0.37162004,
-              0.61127824
+              1.34233272,
+              -0.3867529,
+              0.60441094
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.09570534,
+            "energyKcalMol": 0.09816215,
             "forceOnWater": [
-              -1.63236027,
-              0.27585089,
-              0.36647436
+              -1.63420007,
+              0.27328133,
+              0.37262846
             ],
             "forceOnAcetone": [
-              1.63236027,
-              -0.27585089,
-              -0.36647436
+              1.63420007,
+              -0.27328133,
+              -0.37262846
             ],
             "torqueOnWater": [
-              -1.30657687,
-              -1.36972115,
-              0.75281594
+              -1.29956712,
+              -1.38442975,
+              0.74714435
             ],
             "torqueOnAcetone": [
-              1.30657687,
-              -0.37103207,
-              0.55747579
+              1.29956712,
+              -0.38555543,
+              0.55094194
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.02539269,
+            "energyKcalMol": 0.02775921,
             "forceOnWater": [
-              -1.19872999,
-              0.25660433,
-              0.3600183
+              -1.20050225,
+              0.25419263,
+              0.3658691
             ],
             "forceOnAcetone": [
-              1.19872999,
-              -0.25660433,
-              -0.3600183
+              1.20050225,
+              -0.25419263,
+              -0.3658691
             ],
             "torqueOnWater": [
-              -1.26508358,
-              -1.35732559,
-              0.72329605
+              -1.25841883,
+              -1.37146553,
+              0.71793774
             ],
             "torqueOnAcetone": [
-              1.26508358,
-              -0.37076227,
-              0.50840473
+              1.25841883,
+              -0.38470614,
+              0.50218688
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.02580943,
+            "energyKcalMol": -0.02352987,
             "forceOnWater": [
-              -0.86381669,
-              0.23910712,
-              0.35249166
+              -0.86552313,
+              0.23684257,
+              0.35805663
             ],
             "forceOnAcetone": [
-              0.86381669,
-              -0.23910712,
-              -0.35249166
+              0.86552313,
+              -0.23684257,
+              -0.35805663
             ],
             "torqueOnWater": [
-              -1.22515785,
-              -1.3390984,
-              0.69505151
+              -1.21881823,
+              -1.35269581,
+              0.68998684
             ],
             "torqueOnAcetone": [
-              1.22515785,
-              -0.37048615,
-              0.46461802
+              1.21881823,
+              -0.38387884,
+              0.45869962
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.06226731,
+            "energyKcalMol": -0.06007147,
             "forceOnWater": [
-              -0.60576544,
-              0.22329701,
-              0.34419746
+              -0.60740787,
+              0.22116969,
+              0.34949294
             ],
             "forceOnAcetone": [
-              0.60576544,
-              -0.22329701,
-              -0.34419746
+              0.60740787,
+              -0.22116969,
+              -0.34949294
             ],
             "torqueOnWater": [
-              -1.18673708,
-              -1.316578,
-              0.66803397
+              -1.18070403,
+              -1.32965768,
+              0.66324469
             ],
             "torqueOnAcetone": [
-              1.18673708,
-              -0.36998953,
-              0.42612139
+              1.18070403,
+              -0.38285774,
+              0.42048678
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.0873823,
+            "energyKcalMol": -0.08526702,
             "forceOnWater": [
-              -0.40761866,
-              0.20905207,
-              0.33537296
+              -0.40919894,
+              0.20705277,
+              0.34041424
             ],
             "forceOnAcetone": [
-              0.40761866,
-              -0.20905207,
-              -0.33537296
+              0.40919894,
+              -0.20705277,
+              -0.34041424
             ],
             "torqueOnWater": [
-              -1.14976389,
-              -1.29095767,
-              0.64219495
+              -1.14402006,
+              -1.30354313,
+              0.63766405
             ],
             "torqueOnAcetone": [
-              1.14976389,
-              -0.36913848,
-              0.3926128
+              1.14402006,
+              -0.38150736,
+              0.38724716
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.10380619,
+            "energyKcalMol": -0.10176841,
             "forceOnWater": [
-              -0.25618882,
-              0.19622413,
-              0.32620406
+              -0.25770886,
+              0.19434433,
+              0.33100543
             ],
             "forceOnAcetone": [
-              0.25618882,
-              -0.19622413,
-              -0.32620406
+              0.25770886,
+              -0.19434433,
+              -0.33100543
             ],
             "torqueOnWater": [
-              -1.11418419,
-              -1.26316345,
-              0.61748628
+              -1.10871332,
+              -1.275277,
+              0.61319792
             ],
             "torqueOnAcetone": [
-              1.11418419,
-              -0.36785685,
-              0.36363439
+              1.10871332,
+              -0.37975016,
+              0.35852371
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.11360728,
+            "energyKcalMol": -0.11164403,
             "forceOnWater": [
-              -0.14119921,
-              0.18465886,
-              0.31683631
+              -0.14266095,
+              0.18289063,
+              0.32141116
             ],
             "forceOnAcetone": [
-              0.14119921,
-              -0.18465886,
-              -0.31683631
+              0.14266095,
+              -0.18289063,
+              -0.32141116
             ],
             "torqueOnWater": [
-              -1.07994603,
-              -1.23391384,
-              0.59386044
+              -1.07473291,
+              -1.24557667,
+              0.58979986
             ],
             "torqueOnAcetone": [
-              1.07994603,
-              -0.36610952,
-              0.3386668
+              1.07473291,
+              -0.3775497,
+              0.33379781
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.11839877,
+            "energyKcalMol": -0.11650719,
             "forceOnWater": [
-              -0.05462672,
-              0.17420718,
-              0.30738349
+              -0.0560321,
+              0.17254318,
+              0.31174436
             ],
             "forceOnAcetone": [
-              0.05462672,
-              -0.17420718,
-              -0.30738349
+              0.0560321,
+              -0.17254318,
+              -0.31174436
             ],
             "torqueOnWater": [
-              -1.04699905,
-              -1.20376575,
-              0.57127084
+              -1.04202944,
+              -1.21499795,
+              0.56742428
             ],
             "torqueOnAcetone": [
-              1.04699905,
-              -0.36389004,
-              0.31718579
+              1.04202944,
+              -0.37489828,
+              0.31254595
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.11943826,
+            "energyKcalMol": -0.11761558,
             "forceOnWater": [
-              0.00980238,
-              0.16473135,
-              0.29793424
+              0.00845144,
+              0.16316476,
+              0.30209288
             ],
             "forceOnAcetone": [
-              -0.00980238,
-              -0.16473135,
-              -0.29793424
+              -0.00845144,
+              -0.16316476,
+              -0.30209288
             ],
             "torqueOnWater": [
-              -1.01529415,
-              -1.17314991,
-              0.54967202
+              -1.01055469,
+              -1.18397058,
+              0.54602664
             ],
             "torqueOnAcetone": [
-              1.01529415,
-              -0.36121143,
-              0.29869445
+              1.01055469,
+              -0.37180776,
+              0.2942719
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.11770512,
+            "energyKcalMol": -0.11594867,
             "forceOnWater": [
-              0.05700058,
-              0.15610764,
-              0.28855728
+              0.05570215,
+              0.15463212,
+              0.2925247
             ],
             "forceOnAcetone": [
-              -0.05700058,
-              -0.15610764,
-              -0.28855728
+              -0.05570215,
+              -0.15463212,
+              -0.2925247
             ],
             "torqueOnWater": [
-              -0.98478339,
-              -1.14239835,
-              0.52901981
+              -0.98026154,
+              -1.15282561,
+              0.52556362
             ],
             "torqueOnAcetone": [
-              0.98478339,
-              -0.35809948,
-              0.2827399
+              0.98026154,
+              -0.36830284,
+              0.27852342
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.11396074,
+            "energyKcalMol": -0.11226794,
             "forceOnWater": [
-              0.09081866,
-              0.14822698,
-              0.27930545
+              0.08957085,
+              0.14683665,
+              0.283092
             ],
             "forceOnAcetone": [
-              -0.09081866,
-              -0.14822698,
-              -0.27930545
+              -0.08957085,
+              -0.14683665,
+              -0.283092
             ],
             "torqueOnWater": [
-              -0.95541994,
-              -1.11176574,
-              0.50927144
+              -0.95110398,
+              -1.12181681,
+              0.50599325
             ],
             "torqueOnAcetone": [
-              0.95541994,
-              -0.35458787,
-              0.26892018
+              0.95110398,
+              -0.36441617,
+              0.26489916
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.10879555,
+            "energyKcalMol": -0.10716391,
             "forceOnWater": [
-              0.1142776,
-              0.14099452,
-              0.27021899
+              0.11307854,
+              0.13968391,
+              0.27383435
             ],
             "forceOnAcetone": [
-              -0.1142776,
-              -0.14099452,
-              -0.27021899
+              -0.11307854,
+              -0.13968391,
+              -0.27383435
             ],
             "torqueOnWater": [
-              -0.92715821,
-              -1.08144599,
-              0.49038563
+              -0.9230371,
+              -1.09113723,
+              0.48727499
             ],
             "torqueOnAcetone": [
-              0.92715821,
-              -0.35071466,
-              0.25688531
+              0.9230371,
+              -0.36018484,
+              0.25304974
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.10266584,
+            "energyKcalMol": -0.10109297,
             "forceOnWater": [
-              0.12974858,
-              0.13432852,
-              0.26132804
+              0.12859646,
+              0.13309255,
+              0.26478132
             ],
             "forceOnAcetone": [
-              -0.12974858,
-              -0.13432852,
-              -0.26132804
+              -0.12859646,
+              -0.13309255,
+              -0.26478132
             ],
             "torqueOnWater": [
-              -0.89995381,
-              -1.05158525,
-              0.47232263
+              -0.8960172,
+              -1.0609322,
+              0.46936976
             ],
             "torqueOnAcetone": [
-              0.89995381,
-              -0.34651975,
-              0.24633498
+              0.8960172,
+              -0.35564789,
+              0.24267537
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.09592258,
+            "energyKcalMol": -0.09440619,
             "forceOnWater": [
-              0.13909302,
-              0.128159,
-              0.25265469
+              0.13798604,
+              0.12699292,
+              0.25595446
             ],
             "forceOnAcetone": [
-              -0.13909302,
-              -0.128159,
-              -0.25265469
+              -0.13798604,
+              -0.12699292,
+              -0.25595446
             ],
             "torqueOnWater": [
-              -0.87376366,
-              -1.02229212,
-              0.45504422
+              -0.87000184,
+              -1.03130956,
+              0.45224
             ],
             "torqueOnAcetone": [
-              0.87376366,
-              -0.34204321,
-              0.23701438
+              0.87000184,
+              -0.3508445,
+              0.23352178
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.08883412,
+            "energyKcalMol": -0.08737198,
             "forceOnWater": [
-              0.14377181,
-              0.12242626,
-              0.24421462
+              0.14270823,
+              0.12132567,
+              0.2473689
             ],
             "forceOnAcetone": [
-              -0.14377181,
-              -0.12242626,
-              -0.24421462
+              -0.14270823,
+              -0.12132567,
+              -0.2473689
             ],
             "torqueOnWater": [
-              -0.84854607,
-              -0.99364565,
-              0.43851378
+              -0.84494988,
+              -1.00234763,
+              0.43584966
             ],
             "torqueOnAcetone": [
-              0.84854607,
-              -0.33732403,
-              0.22870932
+              0.84494988,
+              -0.34581287,
+              0.22537525
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.08160393,
+            "energyKcalMol": -0.08019392,
             "forceOnWater": [
-              0.14493069,
-              0.11707952,
-              0.23601837
+              0.14390883,
+              0.11604032,
+              0.23903472
             ],
             "forceOnAcetone": [
-              -0.14493069,
-              -0.11707952,
-              -0.23601837
+              -0.14390883,
+              -0.11604032,
+              -0.23903472
             ],
             "torqueOnWater": [
-              -0.82426072,
-              -0.96570164,
-              0.42269622
+              -0.82082158,
+              -0.97410151,
+              0.4201642
             ],
             "torqueOnAcetone": [
-              0.82426072,
-              -0.33239937,
-              0.22124111
+              0.82082158,
+              -0.34058943,
+              0.21805756
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.07438465,
+            "energyKcalMol": -0.07302472,
             "forceOnWater": [
-              0.1434672,
-              0.11207562,
-              0.22807237
+              0.14248541,
+              0.11109399,
+              0.23095791
             ],
             "forceOnAcetone": [
-              -0.1434672,
-              -0.11207562,
-              -0.22807237
+              -0.14248541,
+              -0.11109399,
+              -0.23095791
             ],
             "torqueOnWater": [
-              -0.80086875,
-              -0.93849762,
-              0.40755799
+              -0.79757858,
+              -0.9466081,
+              0.40515059
             ],
             "torqueOnAcetone": [
-              0.80086875,
-              -0.32730406,
-              0.21446168
+              0.79757858,
+              -0.33520829,
+              0.21142107
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.06728913,
+            "energyKcalMol": -0.06597733,
             "forceOnWater": [
-              0.14008315,
-              0.10737787,
-              0.22037985
+              0.13913984,
+              0.10645026,
+              0.22314126
             ],
             "forceOnAcetone": [
-              -0.14008315,
-              -0.10737787,
-              -0.22037985
+              -0.13913984,
+              -0.10645026,
+              -0.22314126
             ],
             "torqueOnWater": [
-              -0.77833275,
-              -0.91205681,
-              0.39306706
+              -0.77518392,
+              -0.91988999,
+              0.39077726
             ],
             "torqueOnAcetone": [
-              0.77833275,
-              -0.32207036,
-              0.20824901
+              0.77518392,
+              -0.32970107,
+              0.20534418
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.06039915,
+            "energyKcalMol": -0.05913358,
             "forceOnWater": [
-              0.13532595,
-              0.10295504,
-              0.21294143
+              0.13441958,
+              0.10207812,
+              0.21558501
             ],
             "forceOnAcetone": [
-              -0.13532595,
-              -0.10295504,
-              -0.21294143
+              -0.13441958,
+              -0.10207812,
+              -0.21558501
             ],
             "torqueOnWater": [
-              -0.75661674,
-              -0.88639121,
-              0.37919284
+              -0.7536021,
+              -0.8939586,
+              0.37701407
             ],
             "torqueOnAcetone": [
-              0.75661674,
-              -0.31672786,
-              0.20250312
+              0.7536021,
+              -0.3240967,
+              0.19972728
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.05377228,
+            "energyKcalMol": -0.05255114,
             "forceOnWater": [
-              0.1296211,
-              0.09878046,
-              0.2057557
+              0.1287502,
+              0.09795114,
+              0.20828739
             ],
             "forceOnAcetone": [
-              -0.1296211,
-              -0.09878046,
-              -0.2057557
+              -0.1287502,
+              -0.09795114,
+              -0.20828739
             ],
             "torqueOnWater": [
-              -0.73568621,
-              -0.86150412,
-              0.36590618
+              -0.732799,
+              -0.86881667,
+              0.36383229
             ],
             "torqueOnAcetone": [
-              0.73568621,
-              -0.3113034,
-              0.19714245
+              0.732799,
+              -0.31842146,
+              0.1944892
             ],
             "overlapGuardActivationCount": 0
           }
         ],
         "finite": true,
-        "maximumAdjacentEnergyChangeKcalMol": 13.80997375,
-        "maximumAdjacentForceChangeKcalMolAngstrom": 43.01079388,
-        "maximumAdjacentTorqueChangeKcalMolAngstrom": 15.21746655,
+        "maximumAdjacentEnergyChangeKcalMol": 13.81011376,
+        "maximumAdjacentForceChangeKcalMolAngstrom": 43.01062986,
+        "maximumAdjacentTorqueChangeKcalMolAngstrom": 15.21657543,
         "overlapGuardActivations": 18
       },
       "rotation": {
         "samples": [
           {
-            "energyKcalMol": -0.10380619,
+            "energyKcalMol": -0.10176841,
             "forceOnWater": [
-              -0.25618882,
-              0.19622413,
-              0.32620406
+              -0.25770886,
+              0.19434433,
+              0.33100543
             ],
             "forceOnAcetone": [
-              0.25618882,
-              -0.19622413,
-              -0.32620406
+              0.25770886,
+              -0.19434433,
+              -0.33100543
             ],
             "torqueOnWater": [
-              -1.11418419,
-              -1.26316345,
-              0.61748628
+              -1.10871332,
+              -1.275277,
+              0.61319792
             ],
             "torqueOnAcetone": [
-              1.11418419,
-              -0.36785685,
-              0.36363439
+              1.10871332,
+              -0.37975016,
+              0.35852371
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.06682603,
+            "energyKcalMol": -0.06377574,
             "forceOnWater": [
-              -0.26974336,
-              0.17389365,
-              0.34830683
+              -0.27205416,
+              0.17177164,
+              0.35290873
             ],
             "forceOnAcetone": [
-              0.26974336,
-              -0.17389365,
-              -0.34830683
+              0.27205416,
+              -0.17177164,
+              -0.35290873
             ],
             "torqueOnWater": [
-              -1.10007341,
-              -1.25170726,
-              0.5987611
+              -1.09452142,
+              -1.26345957,
+              0.59438117
             ],
             "torqueOnAcetone": [
-              1.10007341,
-              -0.48982689,
-              0.27070712
+              1.09452142,
+              -0.50108408,
+              0.26447703
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.01715389,
+            "energyKcalMol": -0.0131606,
             "forceOnWater": [
-              -0.31002559,
-              0.18742498,
-              0.37957674
+              -0.31307396,
+              0.18509944,
+              0.3838617
             ],
             "forceOnAcetone": [
-              0.31002559,
-              -0.18742498,
-              -0.37957674
+              0.31307396,
+              -0.18509944,
+              -0.3838617
             ],
             "torqueOnWater": [
-              -1.10114597,
-              -1.24749803,
-              0.59986818
+              -1.09561392,
+              -1.25861925,
+              0.59547629
             ],
             "torqueOnAcetone": [
-              1.10114597,
-              -0.65038568,
-              0.33725673
+              1.09561392,
+              -0.66068927,
+              0.33002093
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.04591129,
+            "energyKcalMol": 0.05075136,
             "forceOnWater": [
-              -0.37292591,
-              0.23061965,
-              0.4055042
+              -0.37663791,
+              0.22813511,
+              0.40936296
             ],
             "forceOnAcetone": [
-              0.37292591,
-              -0.23061965,
-              -0.4055042
+              0.37663791,
+              -0.22813511,
+              -0.40936296
             ],
             "torqueOnWater": [
-              -1.11752377,
-              -1.24345286,
-              0.62075753
+              -1.11211252,
+              -1.2536897,
+              0.61643394
             ],
             "torqueOnAcetone": [
-              1.11752377,
-              -0.78406815,
-              0.53234071
+              1.11211252,
+              -0.79312509,
+              0.52424159
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.11688586,
+            "energyKcalMol": 0.12245231,
             "forceOnWater": [
-              -0.43459644,
-              0.28609676,
-              0.41060402
+              -0.43887932,
+              0.28350239,
+              0.41393858
             ],
             "forceOnAcetone": [
-              0.43459644,
-              -0.28609676,
-              -0.41060402
+              0.43887932,
+              -0.28350239,
+              -0.41393858
             ],
             "torqueOnWater": [
-              -1.14501773,
-              -1.22992551,
-              0.65551541
+              -1.1398251,
+              -1.23904838,
+              0.65133878
             ],
             "torqueOnAcetone": [
-              1.14501773,
-              -0.8230946,
-              0.77496841
+              1.1398251,
+              -0.83064452,
+              0.76617315
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.18618963,
+            "energyKcalMol": 0.192341,
             "forceOnWater": [
-              -0.46292061,
-              0.33316359,
-              0.38909885
+              -0.46766523,
+              0.33051184,
+              0.39182522
             ],
             "forceOnAcetone": [
-              0.46292061,
-              -0.33316359,
-              -0.38909885
+              0.46766523,
+              -0.33051184,
+              -0.39182522
             ],
             "torqueOnWater": [
-              -1.17633214,
-              -1.19722192,
-              0.69431091
+              -1.17145016,
+              -1.2050314,
+              0.6903561
             ],
             "torqueOnAcetone": [
-              1.17633214,
-              -0.74827231,
-              0.97150703
+              1.17145016,
+              -0.75409469,
+              0.9622031
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.245372,
+            "energyKcalMol": 0.25194956,
             "forceOnWater": [
-              -0.44147637,
-              0.35841083,
-              0.34804488
+              -0.44656013,
+              0.35575602,
+              0.35009545
             ],
             "forceOnAcetone": [
-              0.44147637,
-              -0.35841083,
-              -0.34804488
+              0.44656013,
+              -0.35575602,
+              -0.35009545
             ],
             "torqueOnWater": [
-              -1.2032772,
-              -1.13870431,
-              0.72678372
+              -1.19878949,
+              -1.14503687,
+              0.72311964
             ],
             "torqueOnAcetone": [
-              1.2032772,
-              -0.60152009,
-              1.06527042
+              1.19878949,
+              -0.60544039,
+              1.05566048
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.29091881,
+            "energyKcalMol": 0.29775078,
             "forceOnWater": [
-              -0.3809779,
-              0.36073027,
-              0.29977675
+              -0.38626799,
+              0.35812709,
+              0.30110216
             ],
             "forceOnAcetone": [
-              0.3809779,
-              -0.36073027,
-              -0.29977675
+              0.38626799,
+              -0.35812709,
+              -0.30110216
             ],
             "torqueOnWater": [
-              -1.21945116,
-              -1.05391176,
-              0.74560187
+              -1.21543054,
+              -1.05864448,
+              0.74228957
             ],
             "torqueOnAcetone": [
-              1.21945116,
-              -0.44497197,
-              1.05804947
+              1.21543054,
+              -0.44686634,
+              1.04834588
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.32388666,
+            "energyKcalMol": 0.33079281,
             "forceOnWater": [
-              -0.30741342,
-              0.34750606,
-              0.25318545
+              -0.31277033,
+              0.34500806,
+              0.25375602
             ],
             "forceOnAcetone": [
-              0.30741342,
-              -0.34750606,
-              -0.25318545
+              0.31277033,
+              -0.34500806,
+              -0.25375602
             ],
             "torqueOnWater": [
-              -1.22221669,
-              -0.9493514,
-              0.74850178
+              -1.21872309,
+              -0.95240566,
+              0.74559267
             ],
             "torqueOnAcetone": [
-              1.22221669,
-              -0.31657585,
-              0.98902854
+              1.21872309,
+              -0.31637444,
+              0.97944764
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.34719275,
+            "energyKcalMol": 0.35398917,
             "forceOnWater": [
-              -0.24288465,
-              0.32747827,
-              0.21168269
+              -0.24816586,
+              0.32513644,
+              0.21148926
             ],
             "forceOnAcetone": [
-              0.24288465,
-              -0.32747827,
-              -0.21168269
+              0.24816586,
+              -0.32513644,
+              -0.21148926
             ],
             "torqueOnWater": [
-              -1.21284238,
-              -0.83557849,
-              0.73785549
+              -1.20992108,
+              -0.83692246,
+              0.73538989
             ],
             "torqueOnAcetone": [
-              1.21284238,
-              -0.22283494,
-              0.89953589
+              1.20992108,
+              -0.22052386,
+              0.89029232
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.36355875,
+            "energyKcalMol": 0.37006278,
             "forceOnWater": [
-              -0.19689878,
-              0.30655494,
-              0.17569438
+              -0.20196244,
+              0.30441635,
+              0.17474873
             ],
             "forceOnAcetone": [
-              0.19689878,
-              -0.30655494,
-              -0.17569438
+              0.20196244,
+              -0.30441635,
+              -0.17474873
             ],
             "torqueOnWater": [
-              -1.19495491,
-              -0.7225242,
-              0.71844672
+              -1.19263515,
+              -0.72217412,
+              0.71645268
             ],
             "torqueOnAcetone": [
-              1.19495491,
-              -0.1559477,
-              0.81432799
+              1.19263515,
+              -0.15156953,
+              0.80562907
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.37495034,
+            "energyKcalMol": 0.38098549,
             "forceOnWater": [
-              -0.16900005,
-              0.28746209,
-              0.14480869
+              -0.1737087,
+              0.28556863,
+              0.14314337
             ],
             "forceOnAcetone": [
-              0.16900005,
-              -0.28746209,
-              -0.14480869
+              0.1737087,
+              -0.28556863,
+              -0.14314337
             ],
             "torqueOnWater": [
-              -1.17258593,
-              -0.61632144,
-              0.6951078
+              -1.17087994,
+              -0.61434174,
+              0.69360019
             ],
             "torqueOnAcetone": [
-              1.17258593,
-              -0.10772203,
-              0.74220265
+              1.17087994,
+              -0.10137512,
+              0.73424298
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.38274695,
+            "energyKcalMol": 0.38814767,
             "forceOnWater": [
-              -0.15464067,
-              0.27096628,
-              0.11834547
+              -0.15886476,
+              0.26935357,
+              0.11601322
             ],
             "forceOnAcetone": [
-              0.15464067,
-              -0.27096628,
-              -0.11834547
+              0.15886476,
+              -0.26935357,
+              -0.11601322
             ],
             "torqueOnWater": [
-              -1.14891652,
-              -0.51887419,
-              0.67137308
+              -1.14781897,
+              -0.51537635,
+              0.67035306
             ],
             "torqueOnAcetone": [
-              1.14891652,
-              -0.07285315,
-              0.6834583
+              1.14781897,
+              -0.06468976,
+              0.6764148
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.38794414,
+            "energyKcalMol": 0.39256042,
             "forceOnWater": [
-              -0.1490639,
-              0.25697104,
-              0.09534766
+              -0.15268522,
+              0.25566744,
+              0.09242039
             ],
             "forceOnAcetone": [
-              0.1490639,
-              -0.25697104,
-              -0.09534766
+              0.15268522,
+              -0.25566744,
+              -0.09242039
             ],
             "torqueOnWater": [
-              -1.12592927,
-              -0.42917107,
-              0.64923463
+              -1.12541717,
+              -0.42431135,
+              0.64868943
             ],
             "torqueOnAcetone": [
-              1.12592927,
-              -0.04756723,
-              0.63562055
+              1.12541717,
+              -0.03779058,
+              0.62964776
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.39122878,
+            "energyKcalMol": 0.39493044,
             "forceOnWater": [
-              -0.14867618,
-              0.24510221,
-              0.07467067
+              -0.15159106,
+              0.244128,
+              0.07123796
             ],
             "forceOnAcetone": [
-              0.14867618,
-              -0.24510221,
-              -0.07467067
+              0.15159106,
+              -0.244128,
+              -0.07123796
             ],
             "torqueOnWater": [
-              -1.10461082,
-              -0.34488517,
-              0.62950198
+              -1.10464385,
+              -0.33886122,
+              0.62940503
             ],
             "torqueOnAcetone": [
-              1.10461082,
-              -0.02846817,
-              0.59600909
+              1.10464385,
+              -0.0173286,
+              0.59123497
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.39299978,
+            "energyKcalMol": 0.39568036,
             "forceOnWater": [
-              -0.15109343,
-              0.23495089,
-              0.05517141
+              -0.15321567,
+              0.23431759,
+              0.05133872
             ],
             "forceOnAcetone": [
-              0.15109343,
-              -0.23495089,
-              -0.05517141
+              0.15321567,
+              -0.23431759,
+              -0.05133872
             ],
             "torqueOnWater": [
-              -1.08531053,
-              -0.26348362,
-              0.61228854
+              -1.08583177,
+              -0.25652997,
+              0.61259988
             ],
             "torqueOnAcetone": [
-              1.08531053,
-              -0.01237341,
-              0.56246592
+              1.08583177,
+              -0.00016361,
+              0.55898809
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.39339357,
+            "energyKcalMol": 0.3949738,
             "forceOnWater": [
-              -0.15480393,
-              0.22615982,
-              0.0358442
+              -0.15606745,
+              0.22586971,
+              0.03173059
             ],
             "forceOnAcetone": [
-              0.15480393,
-              -0.22615982,
-              -0.0358442
+              0.15606745,
+              -0.22586971,
+              -0.03173059
             ],
             "torqueOnWater": [
-              -1.06804348,
-              -0.18274891,
-              0.59738912
+              -1.06898062,
+              -0.17513152,
+              0.59805611
             ],
             "torqueOnAcetone": [
-              1.06804348,
-              0.00352791,
-              0.53340996
+              1.06898062,
+              0.01647856,
+              0.53129244
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.39231938,
+            "energyKcalMol": 0.39275011,
             "forceOnWater": [
-              -0.15883836,
-              0.2184459,
-              0.01585199
+              -0.15919954,
+              0.21849168,
+              0.01158755
             ],
             "forceOnAcetone": [
-              0.15883836,
-              -0.2184459,
-              -0.01585199
+              0.15919954,
+              -0.21849168,
+              -0.01158755
             ],
             "torqueOnWater": [
-              -1.0526824,
-              -0.10090314,
-              0.58450178
+              -1.05394929,
+              -0.09291294,
+              0.58546021
             ],
             "torqueOnAcetone": [
-              1.0526824,
-              0.0216432,
-              0.50772772
+              1.05394929,
+              0.03497519,
+              0.50699816
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.38948926,
+            "energyKcalMol": 0.38875375,
             "forceOnWater": [
-              -0.16253101,
-              0.21159487,
-              -0.00551453
+              -0.16197069,
+              0.21195945,
+              -0.00979164
             ],
             "forceOnAcetone": [
-              0.16253101,
-              -0.21159487,
-              0.00551453
+              0.16197069,
+              -0.21195945,
+              0.00979164
             ],
             "torqueOnWater": [
-              -1.0390563,
-              -0.01654512,
-              0.57332948
+              -1.04055492,
+              -0.00849072,
+              0.5745049
             ],
             "torqueOnAcetone": [
-              1.0390563,
-              0.04411776,
-              0.48464489
+              1.04055492,
+              0.05744892,
+              0.48529236
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.38443191,
+            "energyKcalMol": 0.38254745,
             "forceOnWater": [
-              -0.16535786,
-              0.20544334,
-              -0.02890061
+              -0.16388282,
+              0.20609989,
+              -0.03304752
             ],
             "forceOnAcetone": [
-              0.16535786,
-              -0.20544334,
-              0.02890061
+              0.16388282,
+              -0.20609989,
+              0.03304752
             ],
             "torqueOnWater": [
-              -1.02699048,
-              0.07146185,
-              0.56361086
+              -1.02861332,
+              0.0792623,
+              0.56492019
             ],
             "torqueOnAcetone": [
-              1.02699048,
-              0.0730412,
-              0.46360583
+              1.02861332,
+              0.08597532,
+              0.46557925
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.37648963,
+            "energyKcalMol": 0.37350835,
             "forceOnWater": [
-              -0.16682636,
-              0.19985671,
-              -0.05494055
+              -0.16447044,
+              0.20076888,
+              -0.05881337
             ],
             "forceOnAcetone": [
-              0.16682636,
-              -0.19985671,
-              0.05494055
+              0.16447044,
+              -0.20076888,
+              0.05881337
             ],
             "torqueOnWater": [
-              -1.01631707,
-              0.16408391,
-              0.55511796
+              -1.01794979,
+              0.17131149,
+              0.5564715
             ],
             "torqueOnAcetone": [
-              1.01631707,
-              0.11061884,
-              0.44416557
+              1.01794979,
+              0.12275535,
+              0.44737289
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.36480383,
+            "energyKcalMol": 0.36081262,
             "forceOnWater": [
-              -0.16640272,
-              0.19470831,
-              -0.08428425
+              -0.16322721,
+              0.19583069,
+              -0.08774208
             ],
             "forceOnAcetone": [
-              0.16640272,
-              -0.19470831,
-              0.08428425
+              0.16322721,
+              -0.19583069,
+              0.08774208
             ],
             "torqueOnWater": [
-              -1.00687415,
-              0.26216792,
-              0.54764357
+              -1.00839864,
+              0.26851227,
+              0.54894718
             ],
             "torqueOnAcetone": [
-              1.00687415,
-              0.15925331,
-              0.42589797
+              1.00839864,
+              0.17019813,
+              0.43020626
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.34829845,
+            "energyKcalMol": 0.34341788,
             "forceOnWater": [
-              -0.16347338,
-              0.18986259,
-              -0.11759115
+              -0.15956681,
+              0.19114143,
+              -0.12050047
             ],
             "forceOnAcetone": [
-              0.16347338,
-              -0.18986259,
-              0.11759115
+              0.15956681,
+              -0.19114143,
+              0.12050047
             ],
             "torqueOnWater": [
-              -0.99850362,
-              0.36644603,
-              0.54098898
+              -0.99980128,
+              0.37161507,
+              0.54214661
             ],
             "torqueOnAcetone": [
-              0.99850362,
-              0.22150973,
-              0.40832396
+              0.99980128,
+              0.23088727,
+              0.41356056
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.32567216,
+            "energyKcalMol": 0.32005429,
             "forceOnWater": [
-              -0.15734657,
-              0.18516425,
-              -0.15548794
+              -0.15282363,
+              0.18653853,
+              -0.15772712
             ],
             "forceOnAcetone": [
-              0.15734657,
-              -0.18516425,
-              0.15548794
+              0.15282363,
+              -0.18653853,
+              0.15772712
             ],
             "torqueOnWater": [
-              -0.99105219,
-              0.4774949,
-              0.53495703
+              -0.9920075,
+              0.48122464,
+              0.53587346
             ],
             "torqueOnAcetone": [
-              0.99105219,
-              0.29994479,
-              0.39086422
+              0.9920075,
+              0.30741094,
+              0.39681921
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.29541222,
+            "energyKcalMol": 0.28923727,
             "forceOnWater": [
-              -0.14730589,
-              0.18043495,
-              -0.19848557
+              -0.1423054,
+              0.18183773,
+              -0.19994958
             ],
             "forceOnAcetone": [
-              0.14730589,
-              -0.18043495,
-              0.19848557
+              0.1423054,
+              -0.18183773,
+              0.19994958
             ],
             "torqueOnWater": [
-              -0.98437789,
-              0.59564922,
-              0.52935206
+              -0.9848821,
+              0.59771348,
+              0.52993585
             ],
             "torqueOnAcetone": [
-              0.98437789,
-              0.39677863,
-              0.37282269
+              0.9848821,
+              0.40203443,
+              0.37925282
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.25584427,
+            "energyKcalMol": 0.24931608,
             "forceOnWater": [
-              -0.13272927,
-              0.17547956,
-              -0.24685257
+              -0.1274112,
+              0.17683974,
+              -0.24745758
             ],
             "forceOnAcetone": [
-              0.13272927,
-              -0.17547956,
-              0.24685257
+              0.1274112,
+              -0.17683974,
+              0.24745758
             ],
             "torqueOnWater": [
-              -0.97836322,
-              0.72086488,
-              0.52398803
+              -0.97831813,
+              0.72108444,
+              0.52415466
             ],
             "torqueOnAcetone": [
-              0.97836322,
-              0.51339796,
-              0.35340976
+              0.97831813,
+              0.51620347,
+              0.36004402
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.20523217,
+            "energyKcalMol": 0.19857246,
             "forceOnWater": [
-              -0.11327611,
-              0.17010419,
-              -0.30044835
+              -0.10781739,
+              0.17134859,
+              -0.30013606
             ],
             "forceOnAcetone": [
-              0.11327611,
-              -0.17010419,
-              0.30044835
+              0.10781739,
+              -0.17134859,
+              0.30013606
             ],
             "torqueOnWater": [
-              -0.97293656,
-              0.85252278,
-              0.51870679
+              -0.97225824,
+              0.85077361,
+              0.51838178
             ],
             "torqueOnAcetone": [
-              0.97293656,
-              0.64971897,
-              0.33181415
+              0.97225824,
+              0.64990669,
+              0.33836115
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.14193594,
+            "energyKcalMol": 0.13537741,
             "forceOnWater": [
-              -0.08910981,
-              0.16414676,
-              -0.35853563
+              -0.08369909,
+              0.16520257,
+              -0.35727706
             ],
             "forceOnAcetone": [
-              0.08910981,
-              -0.16414676,
-              0.35853563
+              0.08369909,
+              -0.16520257,
+              0.35727706
             ],
             "torqueOnWater": [
-              -0.96810378,
-              0.98916182,
-              0.51340935
+              -0.96672604,
+              0.98538198,
+              0.51253139
             ],
             "torqueOnAcetone": [
-              0.96810378,
-              0.80351635,
-              0.30732444
+              0.96672604,
+              0.8010033,
+              0.31348146
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": 0.0646228,
+            "energyKcalMol": 0.05840137,
             "forceOnWater": [
-              -0.06105423,
-              0.15751706,
-              -0.41960962
+              -0.05588563,
+              0.15831457,
+              -0.41740807
             ],
             "forceOnAcetone": [
-              0.06105423,
-              -0.15751706,
-              0.41960962
+              0.05588563,
+              -0.15831457,
+              0.41740807
             ],
             "torqueOnWater": [
-              -0.96399257,
-              1.12813305,
-              0.50810461
+              -0.96187014,
+              1.12232773,
+              0.50662845
             ],
             "torqueOnAcetone": [
-              0.96399257,
-              0.96991502,
-              0.27948067
+              0.96187014,
+              0.9647126,
+              0.2849444
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.02749201,
+            "energyKcalMol": -0.0331458,
             "forceOnWater": [
-              -0.03049508,
-              0.15023883,
-              -0.48128414
+              -0.02576099,
+              0.15071432,
+              -0.47817706
             ],
             "forceOnAcetone": [
-              0.03049508,
-              -0.15023883,
-              0.48128414
+              0.02576099,
+              -0.15071432,
+              0.47817706
             ],
             "torqueOnWater": [
-              -0.96091161,
-              1.26518133,
-              0.50297949
+              -0.95802271,
+              1.25742554,
+              0.50087849
             ],
             "torqueOnAcetone": [
-              0.96091161,
-              1.14123939,
-              0.24821466
+              0.95802271,
+              1.13345975,
+              0.25269313
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.13440587,
+            "energyKcalMol": -0.13927576,
             "forceOnWater": [
-              0.00118764,
-              0.14249107,
-              -0.54022687
+              0.00530429,
+              0.14258977,
+              -0.53628623
             ],
             "forceOnAcetone": [
-              -0.00118764,
-              -0.14249107,
-              0.54022687
+              -0.00530429,
+              -0.14258977,
+              0.53628623
             ],
             "torqueOnWater": [
-              -0.95942342,
-              1.39399891,
-              0.49849293
+              -0.95577158,
+              1.38443756,
+              0.49576102
             ],
             "torqueOnAcetone": [
-              0.95942342,
-              1.30713543,
-              0.21396242
+              0.95577158,
+              1.2969936,
+              0.21718782
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.25508718,
+            "energyKcalMol": -0.25898005,
             "forceOnWater": [
-              0.0336537,
-              0.13468064,
-              -0.59201405
+              0.03698743,
+              0.13435953,
+              -0.58734518
             ],
             "forceOnAcetone": [
-              -0.0336537,
-              -0.13468064,
-              0.59201405
+              -0.03698743,
+              -0.13435953,
+              0.58734518
             ],
             "torqueOnWater": [
-              -0.96042137,
-              1.5058727,
-              0.49548923
+              -0.95603642,
+              1.49471761,
+              0.49214223
             ],
             "torqueOnAcetone": [
-              0.96042137,
-              1.45419754,
-              0.17791396
+              0.95603642,
+              1.44200829,
+              0.17965544
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.38712587,
+            "energyKcalMol": -0.38988014,
             "forceOnWater": [
-              0.06844951,
-              0.12766817,
-              -0.63065291
+              0.07086005,
+              0.12689852,
+              -0.62539148
             ],
             "forceOnAcetone": [
-              -0.06844951,
-              -0.12766817,
-              0.63065291
+              -0.07086005,
+              -0.12689852,
+              0.62539148
             ],
             "torqueOnWater": [
-              -0.965184,
-              1.58967014,
-              0.49531341
+              -0.96012189,
+              1.57719396,
+              0.49138939
             ],
             "torqueOnAcetone": [
-              0.965184,
-              1.56359441,
-              0.14302746
+              0.96012189,
+              1.54976347,
+              0.14310321
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.52604612,
+            "energyKcalMol": -0.52753908,
             "forceOnWater": [
-              0.10804206,
-              0.12339436,
-              -0.64765565
+              0.1094213,
+              0.12216363,
+              -0.64196296
             ],
             "forceOnAcetone": [
-              -0.10804206,
-              -0.12339436,
-              0.64765565
+              -0.1094213,
+              -0.12216363,
+              0.64196296
             ],
             "torqueOnWater": [
-              -0.97535426,
-              1.63254616,
-              0.49988918
+              -0.96969583,
+              1.61907326,
+              0.49544786
             ],
             "torqueOnAcetone": [
-              0.97535426,
-              1.6057321,
-              0.11708261
+              0.96969583,
+              1.59074155,
+              0.11537027
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.66410548,
+            "energyKcalMol": -0.66425911,
             "forceOnWater": [
-              0.15107044,
-              0.12615286,
-              -0.63132855
+              0.15134818,
+              0.12446599,
+              -0.62538518
             ],
             "forceOnAcetone": [
-              -0.15107044,
-              -0.12615286,
-              0.63132855
+              -0.15134818,
+              -0.12446599,
+              0.62538518
             ],
             "torqueOnWater": [
-              -0.99276971,
-              1.62178945,
-              0.5116898
+              -0.98661822,
+              1.60768407,
+              0.50681087
             ],
             "torqueOnAcetone": [
-              0.99276971,
-              1.53485328,
-              0.11907453
+              0.98661822,
+              1.51924183,
+              0.11551906
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.78896922,
+            "energyKcalMol": -0.78775411,
             "forceOnWater": [
-              0.18403555,
-              0.14423502,
-              -0.56839219
+              0.18318349,
+              0.14211474,
+              -0.56239037
             ],
             "forceOnAcetone": [
-              -0.18403555,
-              -0.14423502,
-              0.56839219
+              -0.18318349,
+              -0.14211474,
+              0.56239037
             ],
             "torqueOnWater": [
-              -1.01908314,
-              1.54796266,
-              0.53349923
+              -1.01256072,
+              1.53361472,
+              0.52827965
             ],
             "torqueOnAcetone": [
-              1.01908314,
-              1.29399828,
-              0.18767585
+              1.01256072,
+              1.27833715,
+              0.18229405
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.88384374,
+            "energyKcalMol": -0.8812808,
             "forceOnWater": [
-              0.17577503,
-              0.1901822,
-              -0.45092215
+              0.17380862,
+              0.1876685,
+              -0.4450573
             ],
             "forceOnAcetone": [
-              -0.17577503,
-              -0.1901822,
-              0.45092215
+              -0.17380862,
+              -0.1876685,
+              0.4450573
             ],
             "torqueOnWater": [
-              -1.05520302,
-              1.40877715,
-              0.56783818
+              -1.04844609,
+              1.39458669,
+              0.56238846
             ],
             "torqueOnAcetone": [
-              1.05520302,
-              0.84583358,
-              0.38307282
+              1.04844609,
+              0.83069981,
+              0.37595402
             ],
             "overlapGuardActivationCount": 0
           }
         ],
         "finite": true,
-        "maximumAdjacentEnergyChangeKcalMol": 0.13892026,
-        "maximumAdjacentForceChangeKcalMolAngstrom": 0.12640645,
-        "maximumAdjacentTorqueChangeKcalMolAngstrom": 0.49024098,
+        "maximumAdjacentEnergyChangeKcalMol": 0.13765894,
+        "maximumAdjacentForceChangeKcalMolAngstrom": 0.12621443,
+        "maximumAdjacentTorqueChangeKcalMolAngstrom": 0.48905126,
         "overlapGuardActivations": 0
       },
       "outOfPlane": {
         "samples": [
           {
-            "energyKcalMol": -0.10380619,
+            "energyKcalMol": -0.10176841,
             "forceOnWater": [
-              -0.25618882,
-              0.19622413,
-              0.32620406
+              -0.25770886,
+              0.19434433,
+              0.33100543
             ],
             "forceOnAcetone": [
-              0.25618882,
-              -0.19622413,
-              -0.32620406
+              0.25770886,
+              -0.19434433,
+              -0.33100543
             ],
             "torqueOnWater": [
-              -1.11418419,
-              -1.26316345,
-              0.61748628
+              -1.10871332,
+              -1.275277,
+              0.61319792
             ],
             "torqueOnAcetone": [
-              1.11418419,
-              -0.36785685,
-              0.36363439
+              1.10871332,
+              -0.37975016,
+              0.35852371
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.20101321,
+            "energyKcalMol": -0.1984945,
             "forceOnWater": [
-              -0.19544002,
-              0.19748978,
-              0.34194529
+              -0.19742803,
+              0.19543011,
+              0.34664609
             ],
             "forceOnAcetone": [
-              0.19544002,
-              -0.19748978,
-              -0.34194529
+              0.19742803,
+              -0.19543011,
+              -0.34664609
             ],
             "torqueOnWater": [
-              -1.11211531,
-              -1.28895845,
-              0.61519053
+              -1.10657084,
+              -1.30095506,
+              0.61081655
             ],
             "torqueOnAcetone": [
-              1.11211531,
-              -0.420768,
-              0.37225838
+              1.10657084,
+              -0.43227538,
+              0.36633402
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.29764264,
+            "energyKcalMol": -0.29463838,
             "forceOnWater": [
-              -0.13541001,
-              0.19604618,
-              0.3576613
+              -0.13787395,
+              0.19382201,
+              0.36223133
             ],
             "forceOnAcetone": [
-              0.13541001,
-              -0.19604618,
-              -0.3576613
+              0.13787395,
+              -0.19382201,
+              -0.36223133
             ],
             "torqueOnWater": [
-              -1.1009644,
-              -1.31449153,
-              0.60742049
+              -1.09538818,
+              -1.32636169,
+              0.60299353
             ],
             "torqueOnAcetone": [
-              1.1009644,
-              -0.47381495,
-              0.37281041
+              1.09538818,
+              -0.48479494,
+              0.36611652
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.39290805,
+            "energyKcalMol": -0.38941739,
             "forceOnWater": [
-              -0.07666356,
-              0.19202684,
-              0.37297674
+              -0.07960777,
+              0.1896591,
+              0.37738678
             ],
             "forceOnAcetone": [
-              0.07666356,
-              -0.19202684,
-              -0.37297674
+              0.07960777,
+              -0.1896591,
+              -0.37738678
             ],
             "torqueOnWater": [
-              -1.08088907,
-              -1.33946063,
-              0.59436014
+              -1.07532527,
+              -1.35119564,
+              0.58991553
             ],
             "torqueOnAcetone": [
-              1.08088907,
-              -0.52542305,
-              0.36577405
+              1.07532527,
+              -0.53573826,
+              0.35837997
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.48604109,
+            "energyKcalMol": -0.48206711,
             "forceOnWater": [
-              -0.01972873,
-              0.18564156,
-              0.38756333
+              -0.02315362,
+              0.18315662,
+              0.3917861
             ],
             "forceOnAcetone": [
-              0.01972873,
-              -0.18564156,
-              -0.38756333
+              0.02315362,
+              -0.18315662,
+              -0.3917861
             ],
             "torqueOnWater": [
-              -1.05214371,
-              -1.36359113,
-              0.57626969
+              -1.0466385,
+              -1.37518345,
+              0.57184522
             ],
             "torqueOnAcetone": [
-              1.05214371,
-              -0.5742255,
-              0.35193809
+              1.0466385,
+              -0.58374705,
+              0.34393787
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.57629941,
+            "energyKcalMol": -0.5718493,
             "forceOnWater": [
-              0.03491106,
-              0.17715877,
-              0.40115135
+              0.03100925,
+              0.17458812,
+              0.40516247
             ],
             "forceOnAcetone": [
-              -0.03491106,
-              -0.17715877,
-              -0.40115135
+              -0.03100925,
+              -0.17458812,
+              -0.40516247
             ],
             "torqueOnWater": [
-              -1.01506896,
-              -1.38664129,
-              0.55347132
+              -1.00967011,
+              -1.39808484,
+              0.54910693
             ],
             "torqueOnAcetone": [
-              1.01506896,
-              -0.61911547,
-              0.33232253
+              1.00967011,
+              -0.62772749,
+              0.32383366
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.66297377,
+            "energyKcalMol": -0.65805893,
             "forceOnWater": [
-              0.0868225,
-              0.16688653,
-              0.41353665
+              0.08245201,
+              0.16426627,
+              0.41731554
             ],
             "forceOnAcetone": [
-              -0.0868225,
-              -0.16688653,
-              -0.41353665
+              -0.08245201,
+              -0.16426627,
+              -0.41731554
             ],
             "torqueOnWater": [
-              -0.97008006,
-              -1.40840547,
-              0.52633409
+              -0.96483645,
+              -1.41969595,
+              0.52207148
             ],
             "torqueOnAcetone": [
-              0.97008006,
-              -0.65927776,
-              0.30809854
+              0.96483645,
+              -0.66688175,
+              0.29925986
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.74539395,
+            "energyKcalMol": -0.7400301,
             "forceOnWater": [
-              0.13562569,
-              0.15515331,
-              0.42458317
+              0.13079933,
+              0.15252345,
+              0.42811397
             ],
             "forceOnAcetone": [
-              -0.13562569,
-              -0.15515331,
-              -0.42458317
+              -0.13079933,
+              -0.15252345,
+              -0.42811397
             ],
             "torqueOnWater": [
-              -0.91765478,
-              -1.42871538,
-              0.49525883
+              -0.91261585,
+              -1.43985056,
+              0.49114087
             ],
             "torqueOnAcetone": [
-              0.91765478,
-              -0.69420048,
-              0.28050772
+              0.91261585,
+              -0.70071927,
+              0.2714764
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.82293375,
+            "energyKcalMol": -0.8171409,
             "forceOnWater": [
-              0.180995,
-              0.14228972,
-              0.43422156
+              0.17573033,
+              0.13969333,
+              0.43749383
             ],
             "forceOnAcetone": [
-              -0.180995,
-              -0.14228972,
-              -0.43422156
+              -0.17573033,
+              -0.13969333,
+              -0.43749383
             ],
             "torqueOnWater": [
-              -0.85832137,
-              -1.44743938,
-              0.46066366
+              -0.85353646,
+              -1.45841941,
+              0.45673383
             ],
             "torqueOnAcetone": [
-              0.85832137,
-              -0.72366842,
-              0.25078495
+              0.85353646,
+              -0.72904974,
+              0.2417328
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.89501482,
+            "energyKcalMol": -0.88881726,
             "forceOnWater": [
-              0.22265815,
-              0.12861192,
-              0.44244418
+              0.21697754,
+              0.12609405,
+              0.44545355
             ],
             "forceOnAcetone": [
-              -0.22265815,
-              -0.12861192,
-              -0.44244418
+              -0.21697754,
+              -0.12609405,
+              -0.44545355
             ],
             "torqueOnWater": [
-              -0.79264716,
-              -1.46448043,
-              0.42297091
+              -0.78816483,
+              -1.47530801,
+              0.41927259
             ],
             "torqueOnAcetone": [
-              0.79264716,
-              -0.74774045,
-              0.22008868
+              0.78816483,
+              -0.75195976,
+              0.21119766
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.96110965,
+            "energyKcalMol": -0.95453585,
             "forceOnWater": [
-              0.26039349,
-              0.11440742,
-              0.44929723
+              0.25432405,
+              0.112014,
+              0.45204584
             ],
             "forceOnAcetone": [
-              -0.26039349,
-              -0.11440742,
-              -0.44929723
+              -0.25432405,
+              -0.112014,
+              -0.45204584
             ],
             "torqueOnWater": [
-              -0.72122811,
-              -1.47977265,
-              0.38259575
+              -0.71709532,
+              -1.49045319,
+              0.37917145
             ],
             "torqueOnAcetone": [
-              0.72122811,
-              -0.7667135,
-              0.18944135
+              0.71709532,
+              -0.76977601,
+              0.18089856
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.02074365,
+            "energyKcalMol": -1.01382607,
             "forceOnWater": [
-              0.29402581,
-              0.09992384,
-              0.45487062
+              0.2875993,
+              0.09770038,
+              0.45736733
             ],
             "forceOnAcetone": [
-              -0.29402581,
-              -0.09992384,
-              -0.45487062
+              -0.2875993,
+              -0.09770038,
+              -0.45736733
             ],
             "torqueOnWater": [
-              -0.64467945,
-              -1.49327702,
-              0.3399369
+              -0.64094083,
+              -1.50381875,
+              0.33682741
             ],
             "torqueOnAcetone": [
-              0.64467945,
-              -0.78107607,
-              0.15968229
+              0.64094083,
+              -0.7830179,
+              0.15167449
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.07349645,
+            "energyKcalMol": -1.06627134,
             "forceOnWater": [
-              0.3234212,
-              0.08536081,
-              0.45928617
+              0.31667379,
+              0.08335111,
+              0.4615466
             ],
             "forceOnAcetone": [
-              -0.3234212,
-              -0.08536081,
-              -0.45928617
+              -0.31667379,
+              -0.08335111,
+              -0.4615466
             ],
             "torqueOnWater": [
-              -0.56362792,
-              -1.50497645,
-              0.29536961
+              -0.5603249,
+              -1.51539038,
+              0.29261321
             ],
             "torqueOnAcetone": [
-              0.56362792,
-              -0.79145442,
-              0.13143442
+              0.5603249,
+              -0.79234264,
+              0.12414237
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.11900267,
+            "energyKcalMol": -1.11150971,
             "forceOnWater": [
-              0.34848114,
-              0.0708654,
-              0.46268498
+              0.34145312,
+              0.06911025,
+              0.46473128
             ],
             "forceOnAcetone": [
-              -0.34848114,
-              -0.0708654,
-              -0.46268498
+              -0.34145312,
+              -0.06911025,
+              -0.46473128
             ],
             "torqueOnWater": [
-              -0.47870542,
-              -1.5148705,
-              0.24924117
+              -0.47587548,
+              -1.52517034,
+              0.24687273
             ],
             "torqueOnAcetone": [
-              0.47870542,
-              -0.79855442,
-              0.10508581
+              0.47587548,
+              -0.79848607,
+              0.0986785
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.15695211,
+            "energyKcalMol": -1.14923403,
             "forceOnWater": [
-              0.36913628,
-              0.05653101,
-              0.46521448
+              0.36187164,
+              0.05506689,
+              0.46707486
             ],
             "forceOnAcetone": [
-              -0.36913628,
-              -0.05653101,
-              -0.46521448
+              -0.36187164,
+              -0.05506689,
+              -0.46707486
             ],
             "torqueOnWater": [
-              -0.39054438,
-              -1.52297002,
-              0.20186881
+              -0.38822027,
+              -1.53317197,
+              0.19991904
             ],
             "torqueOnAcetone": [
-              0.39054438,
-              -0.8031024,
-              0.08078622
+              0.38822027,
+              -0.80220234,
+              0.07541541
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.18708965,
+            "energyKcalMol": -1.17919184,
             "forceOnWater": [
-              0.3853403,
-              0.04239969,
-              0.467016
+              0.3778862,
+              0.04125765,
+              0.46872405
             ],
             "forceOnAcetone": [
-              -0.3853403,
-              -0.04239969,
-              -0.467016
+              -0.3778862,
+              -0.04125765,
+              -0.46872405
             ],
             "torqueOnWater": [
-              -0.29977464,
-              -1.52929203,
-              0.15354005
+              -0.29798371,
+              -1.53941451,
+              0.15203472
             ],
             "torqueOnAcetone": [
-              0.29977464,
-              -0.80578798,
-              0.05845842
+              0.29798371,
+              -0.80420576,
+              0.05425353
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.20921497,
+            "energyKcalMol": -1.20118494,
             "forceOnWater": [
-              0.39706418,
-              0.0284677,
-              0.46821341
+              0.3894704,
+              0.02767231,
+              0.4698072
             ],
             "forceOnAcetone": [
-              -0.39706418,
-              -0.0284677,
-              -0.46821341
+              -0.3894704,
+              -0.02767231,
+              -0.4698072
             ],
             "torqueOnWater": [
-              -0.2070219,
-              -1.53385507,
-              0.10451529
+              -0.2057855,
+              -1.54391834,
+              0.10347461
             ],
             "torqueOnAcetone": [
-              0.2070219,
-              -0.80721196,
-              0.03782321
+              0.2057855,
+              -0.80511768,
+              0.03488695
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.22318218,
+            "energyKcalMol": -1.21506901,
             "forceOnWater": [
-              0.40429129,
-              0.01469382,
-              0.46890346
+              0.39660956,
+              0.01426239,
+              0.47042447
             ],
             "forceOnAcetone": [
-              -0.40429129,
-              -0.01469382,
-              -0.46890346
+              -0.39660956,
+              -0.01426239,
+              -0.47042447
             ],
             "torqueOnWater": [
-              -0.11290751,
-              -1.53667525,
-              0.05503243
+              -0.11224052,
+              -1.54670096,
+              0.05447054
             ],
             "torqueOnAcetone": [
-              0.11290751,
-              -0.80784205,
-              0.01843667
+              0.11224052,
+              -0.8054214,
+              0.01684143
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.22889942,
+            "energyKcalMol": -1.22075321,
             "forceOnWater": [
-              0.40701354,
-              0.00101005,
-              0.46914841
+              0.39929682,
+              0.00095203,
+              0.47064029
             ],
             "forceOnAcetone": [
-              -0.40701354,
-              -0.00101005,
-              -0.46914841
+              -0.39929682,
+              -0.00095203,
+              -0.47064029
             ],
             "torqueOnWater": [
-              -0.01804932,
-              -1.5377632,
-              0.00531306
+              -0.01795982,
+              -1.54777392,
+              0.00523764
             ],
             "torqueOnAcetone": [
-              0.01804932,
-              -0.80797885,
-              -0.0002628
+              0.01795982,
+              -0.80542754,
+              -0.00047746
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.22632866,
+            "energyKcalMol": -1.21819991,
             "forceOnWater": [
-              0.40522885,
-              -0.01266606,
-              0.46897121
+              0.39753061,
+              -0.0123494,
+              0.4704785
             ],
             "forceOnAcetone": [
-              -0.40522885,
-              0.01266606,
-              -0.46897121
+              -0.39753061,
+              0.0123494,
+              -0.4704785
             ],
             "torqueOnWater": [
-              0.07693658,
-              -1.53712215,
-              -0.04443012
+              0.07644751,
+              -1.5471408,
+              -0.04401805
             ],
             "torqueOnAcetone": [
-              -0.07693658,
-              -0.80773392,
-              -0.01890019
+              -0.07644751,
+              -0.80525168,
+              -0.01772893
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.21548566,
+            "energyKcalMol": -1.20742464,
             "forceOnWater": [
-              0.39894018,
-              -0.02641817,
-              0.46835371
+              0.39131363,
+              -0.02573376,
+              0.46992046
             ],
             "forceOnAcetone": [
-              -0.39894018,
-              0.02641817,
-              -0.46835371
+              -0.39131363,
+              0.02573376,
+              -0.46992046
             ],
             "torqueOnWater": [
-              0.17143382,
-              -1.53474718,
-              -0.09398526
+              0.1703721,
+              -1.54479648,
+              -0.09309132
             ],
             "torqueOnAcetone": [
-              -0.17143382,
-              -0.80702137,
-              -0.0381056
+              -0.1703721,
+              -0.80480582,
+              -0.0355775
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.19644003,
+            "energyKcalMol": -1.18849621,
             "forceOnWater": [
-              0.38815607,
-              -0.04031773,
-              0.46723781
+              0.38065338,
+              -0.03928051,
+              0.46890631
             ],
             "forceOnAcetone": [
-              -0.38815607,
-              0.04031773,
-              -0.46723781
+              -0.38065338,
+              0.03928051,
+              -0.46890631
             ],
             "torqueOnWater": [
-              0.26482347,
-              -1.53062568,
-              -0.14313315
+              0.26320191,
+              -1.54072763,
+              -0.14176952
             ],
             "torqueOnAcetone": [
-              -0.26482347,
-              -0.80556338,
-              -0.05845549
+              -0.26320191,
+              -0.80380393,
+              -0.05463303
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.16931559,
+            "energyKcalMol": -1.16153702,
             "forceOnWater": [
-              0.3728927,
-              -0.05441128,
-              0.46552973
+              0.36556433,
+              -0.05304366,
+              0.46733922
             ],
             "forceOnAcetone": [
-              -0.3728927,
-              0.05441128,
-              -0.46552973
+              -0.36556433,
+              0.05304366,
+              -0.46733922
             ],
             "torqueOnWater": [
-              0.35648223,
-              -1.52473912,
-              -0.19163957
+              0.35432023,
+              -1.53491445,
+              -0.18982463
             ],
             "torqueOnAcetone": [
-              -0.35648223,
-              -0.80290953,
-              -0.08041683
+              -0.35432023,
+              -0.80178166,
+              -0.07539366
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.13429078,
+            "energyKcalMol": -1.12672356,
             "forceOnWater": [
-              0.35317743,
-              -0.06870923,
-              0.46310696
+              0.34607143,
+              -0.06704035,
+              0.46509252
             ],
             "forceOnAcetone": [
-              -0.35317743,
-              0.06870923,
-              -0.46310696
+              -0.34607143,
+              0.06704035,
+              -0.46509252
             ],
             "torqueOnWater": [
-              0.44578128,
-              -1.51706587,
-              -0.2392486
+              0.44310439,
+              -1.52733362,
+              -0.23700648
             ],
             "torqueOnAcetone": [
-              -0.44578128,
-              -0.79846891,
-              -0.10429756
+              -0.44310439,
+              -0.79812898,
+              -0.09819529
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.09159917,
+            "energyKcalMol": -1.0842869,
             "forceOnWater": [
-              0.32905348,
-              -0.08317679,
-              0.4598277
+              0.32221487,
+              -0.08124158,
+              0.4620193
             ],
             "forceOnAcetone": [
-              -0.32905348,
-              0.08317679,
-              -0.4598277
+              -0.32221487,
+              0.08124158,
+              -0.4620193
             ],
             "torqueOnWater": [
-              0.53208614,
-              -1.50758517,
-              -0.28567749
+              0.52892552,
+              -1.51796226,
+              -0.28303743
             ],
             "torqueOnAcetone": [
-              -0.53208614,
-              -0.79155332,
-              -0.13020645
+              -0.52892552,
+              -0.79213423,
+              -0.12317046
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -1.04152991,
+            "energyKcalMol": -1.03451327,
             "forceOnWater": [
-              0.30058558,
-              -0.09772765,
-              0.45554222
+              0.29405584,
+              -0.09556569,
+              0.45796394
             ],
             "forceOnAcetone": [
-              -0.30058558,
-              0.09772765,
-              -0.45554222
+              -0.29405584,
+              0.09556569,
+              -0.45796394
             ],
             "torqueOnWater": [
-              0.61475794,
-              -1.49628173,
-              -0.33061341
+              0.61114968,
+              -1.50678267,
+              -0.32760909
             ],
             "torqueOnAcetone": [
-              -0.61475794,
-              -0.78142936,
-              -0.15802484
+              -0.61114968,
+              -0.78303702,
+              -0.15021936
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.98442799,
+            "energyKcalMol": -0.9777443,
             "forceOnWater": [
-              0.26786612,
-              -0.11222096,
-              0.45010552
+              0.26168274,
+              -0.10987526,
+              0.45277503
             ],
             "forceOnAcetone": [
-              -0.26786612,
-              0.11222096,
-              -0.45010552
+              -0.26168274,
+              0.10987526,
+              -0.45277503
             ],
             "torqueOnWater": [
-              0.69315615,
-              -1.48315109,
-              -0.37371258
+              0.68914054,
+              -1.49378773,
+              -0.3703813
             ],
             "torqueOnAcetone": [
-              -0.69315615,
-              -0.76737653,
-              -0.18739223
+              -0.68914054,
+              -0.77008742,
+              -0.17899499
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.92069421,
+            "energyKcalMol": -0.91437715,
             "forceOnWater": [
-              0.23102158,
-              -0.12646178,
-              0.44339068
+              0.2252177,
+              -0.12397747,
+              0.44631893
             ],
             "forceOnAcetone": [
-              -0.23102158,
-              0.12646178,
-              -0.44339068
+              -0.2252177,
+              0.12397747,
+              -0.44631893
             ],
             "torqueOnWater": [
-              0.766643,
-              -1.46820513,
-              -0.41460177
+              0.76226376,
+              -1.47898656,
+              -0.41098366
             ],
             "torqueOnAcetone": [
-              -0.766643,
-              -0.74874825,
-              -0.21770715
+              -0.76226376,
+              -0.75260809,
+              -0.20890367
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.85078472,
+            "energyKcalMol": -0.84486401,
             "forceOnWater": [
-              0.19021863,
-              -0.14020526,
-              0.43530204
+              0.18482282,
+              -0.13762826,
+              0.43849325
             ],
             "forceOnAcetone": [
-              -0.19021863,
-              0.14020526,
-              -0.43530204
+              -0.18482282,
+              0.13762826,
+              -0.43849325
             ],
             "torqueOnWater": [
-              0.83458963,
-              -1.45147771,
-              -0.45288251
+              0.82989311,
+              -1.46241021,
+              -0.44901962
             ],
             "torqueOnAcetone": [
-              -0.83458963,
-              -0.72503251,
-              -0.24814381
+              -0.82989311,
+              -0.73005602,
+              -0.23912168
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.77520983,
+            "energyKcalMol": -0.76971107,
             "forceOnWater": [
-              0.14566972,
-              -0.15316446,
-              0.42578774
+              0.14070582,
+              -0.15054023,
+              0.42923949
             ],
             "forceOnAcetone": [
-              -0.14566972,
-              0.15316446,
-              -0.42578774
+              -0.14070582,
+              0.15054023,
+              -0.42923949
             ],
             "torqueOnWater": [
-              0.89638397,
-              -1.43302994,
-              -0.48813784
+              0.8914183,
+              -1.44411705,
+              -0.48407336
             ],
             "torqueOnAcetone": [
-              -0.89638397,
-              -0.69590875,
-              -0.27768447
+              -0.8914183,
+              -0.70208038,
+              -0.2686278
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.69453224,
+            "energyKcalMol": -0.68947678,
             "forceOnWater": [
-              0.09763757,
-              -0.16502169,
-              0.41485043
+              0.09312462,
+              -0.16239403,
+              0.4185541
             ],
             "forceOnAcetone": [
-              -0.09763757,
-              0.16502169,
-              -0.41485043
+              -0.09312462,
+              0.16239403,
+              -0.4185541
             ],
             "torqueOnWater": [
-              0.95144007,
-              -1.41295487,
-              -0.51994156
+              0.94625443,
+              -1.42419749,
+              -0.51571903
             ],
             "torqueOnAcetone": [
-              -0.95144007,
-              -0.66129726,
-              -0.30516688
+              -0.94625443,
+              -0.66857304,
+              -0.29625112
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.60936424,
+            "energyKcalMol": -0.6047691,
             "forceOnWater": [
-              0.04643826,
-              -0.17544299,
-              0.40255583
+              0.04239053,
+              -0.17285295,
+              0.40649718
             ],
             "forceOnAcetone": [
-              -0.04643826,
-              0.17544299,
-              -0.40255583
+              -0.04239053,
+              0.17285295,
+              -0.40649718
             ],
             "torqueOnWater": [
-              0.99920893,
-              -1.39138115,
-              -0.54786984
+              0.99385279,
+              -1.40277776,
+              -0.54353239
             ],
             "torqueOnAcetone": [
-              -0.99920893,
-              -0.62139802,
-              -0.32934509
+              -0.99385279,
+              -0.62970813,
+              -0.32073237
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.52036398,
+            "energyKcalMol": -0.5162419,
             "forceOnWater": [
-              -0.00755742,
-              -0.18409522,
-              0.38903818
+              -0.01113029,
+              -0.18158021,
+              0.39319799
             ],
             "forceOnAcetone": [
-              0.00755742,
-              0.18409522,
-              -0.38903818
+              0.01113029,
+              0.18158021,
+              -0.39319799
             ],
             "torqueOnWater": [
-              1.03919026,
-              -1.36847546,
-              -0.57151466
+              1.03371276,
+              -1.38002238,
+              -0.5671044
             ],
             "torqueOnAcetone": [
-              -1.03919026,
-              -0.57671544,
-              -0.34896145
+              -1.03371276,
+              -0.58596757,
+              -0.34079663
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.42823069,
+            "energyKcalMol": -0.42459016,
             "forceOnWater": [
-              -0.06392464,
-              -0.19066508,
-              0.37450189
+              -0.06701754,
+              -0.18825806,
+              0.37885686
             ],
             "forceOnAcetone": [
-              0.06392464,
-              0.19066508,
-              -0.37450189
+              0.06701754,
+              0.18825806,
+              -0.37885686
             ],
             "torqueOnWater": [
-              1.07094505,
-              -1.34444325,
-              -0.59049868
+              1.06539435,
+              -1.35613491,
+              -0.58605615
             ],
             "torqueOnAcetone": [
-              -1.07094505,
-              -0.52806622,
-              -0.3628267
+              -1.06539435,
+              -0.53814941,
+              -0.35523414
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.33369881,
+            "energyKcalMol": -0.33054415,
             "forceOnWater": [
-              -0.12218759,
-              -0.19487902,
-              0.35921906
+              -0.12479966,
+              -0.192608,
+              0.3637427
             ],
             "forceOnAcetone": [
-              0.12218759,
-              0.19487902,
-              -0.35921906
+              0.12479966,
+              0.192608,
+              -0.3637427
             ],
             "torqueOnWater": [
-              1.09410817,
-              -1.31952758,
-              -0.60449104
+              1.08853098,
+              -1.33135685,
+              -0.60005473
             ],
             "torqueOnAcetone": [
-              -1.09410817,
-              -0.47656771,
-              -0.36990408
+              -1.08853098,
+              -0.48735663,
+              -0.36298525
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.23753093,
+            "energyKcalMol": -0.23486249,
             "forceOnWater": [
-              -0.18182492,
-              -0.19652312,
-              0.34352219
+              -0.18395931,
+              -0.19441072,
+              0.34818577
             ],
             "forceOnAcetone": [
-              0.18182492,
-              0.19652312,
-              -0.34352219
+              0.18395931,
+              0.19441072,
+              -0.34818577
             ],
             "torqueOnWater": [
-              1.10840059,
-              -1.29400571,
-              -0.61322297
+              1.10284173,
+              -1.30596422,
+              -0.60882901
             ],
             "torqueOnAcetone": [
-              -1.10840059,
-              -0.42360523,
-              -0.36939265
+              -1.10284173,
+              -0.43496463,
+              -0.36322459
             ],
             "overlapGuardActivationCount": 0
           },
           {
-            "energyKcalMol": -0.14050984,
+            "energyKcalMol": -0.13832415,
             "forceOnWater": [
-              -0.24227762,
-              -0.19546135,
-              0.3277922
+              -0.24394122,
+              -0.19352466,
+              0.33256574
             ],
             "forceOnAcetone": [
-              0.24227762,
-              0.19546135,
-              -0.3277922
+              0.24394122,
+              0.19352466,
+              -0.33256574
             ],
             "torqueOnWater": [
-              1.11364045,
-              -1.26818345,
-              -0.6165026
+              1.10814251,
+              -1.28026191,
+              -0.61218448
             ],
             "torqueOnAcetone": [
-              -1.11364045,
-              -0.37077756,
-              -0.36080416
+              -1.10814251,
+              -0.38256678,
+              -0.35543882
             ],
             "overlapGuardActivationCount": 0
           }
         ],
         "finite": true,
-        "maximumAdjacentEnergyChangeKcalMol": 0.09720702,
-        "maximumAdjacentForceChangeKcalMolAngstrom": 0.06276787,
-        "maximumAdjacentTorqueChangeKcalMolAngstrom": 0.10722461,
+        "maximumAdjacentEnergyChangeKcalMol": 0.09672609,
+        "maximumAdjacentForceChangeKcalMolAngstrom": 0.06228634,
+        "maximumAdjacentTorqueChangeKcalMolAngstrom": 0.106486,
         "overlapGuardActivations": 0
       }
     }
   },
-  "calibrationResult": "stage-b-model-insufficient",
+  "calibrationResult": "candidate",
   "protocol": {
     "thermalNoise": 0,
     "seedProtocol": "LCG32 1664525/1013904223",
@@ -3129,24 +3216,5 @@
     "physicalPsPerGameSecond": 0.1,
     "scan": "qA 0.00 through 0.20 e inclusive in 0.02 e increments; 0.005 e refinement around first candidate",
     "atomModel": "canonical nonbonded q/sigma/epsilon unchanged; Stage B adds only three charge sites per eligible carbonyl O"
-  },
-  "stageAReproduction": {
-    "matchesNB3Baseline": true,
-    "computed": {
-      "energyKcalMol": -6.74514632,
-      "distance": 1.8209256,
-      "donorAngle": 176.12986819,
-      "carbonylAngle": 126.08181516,
-      "outOfPlane": 75.73818738,
-      "overlapGuardActivationCount": 0
-    },
-    "nb3": {
-      "distance": 1.8209256,
-      "donorAngle": 176.12986819,
-      "acceptorAngle": 126.08181516,
-      "outOfPlaneDeg": 75.73818738
-    }
-  },
-  "productionPhysicsMode": "RL-1H",
-  "productionCutover": false
+  }
 }

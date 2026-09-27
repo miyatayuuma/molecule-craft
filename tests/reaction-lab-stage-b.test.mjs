@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { carbonylCorrectionMoments, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, STAGE_B_SITE_DISTANCE_ANGSTROM } from '../src/reaction-lab-stage-b.js';
+import { carbonylCorrectionMoments, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, stageBCarbonylDiagnostics, STAGE_B_SITE_DISTANCE_ANGSTROM } from '../src/reaction-lab-stage-b.js';
 import { createStageABody, evaluateStageAForces } from '../src/reaction-lab-stage-a.js';
 
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
@@ -27,6 +27,8 @@ test('virtual correction has zero charge and dipole, and symmetric lobes',()=>{
   const atoms=structure('acetone',[[-1.5,0,0],[0,0,0],[1.5,0,0],[0,1.22,0],[-2.13,-.51,.89],[-2.13,-.51,-.89],[-2.13,1.02,0],[-.87,-.51,.89],[-.87,-.51,-.89],[2.13,-.51,.89]]);
   const [site]=detectCarbonylAnisotropySites(atoms,record('acetone').bonds,{qA:.075});
   const moments=carbonylCorrectionMoments(site);close(moments.chargeE,0);for(const value of moments.dipoleEAngstrom)close(value,0);
+  assert.deepEqual(site.chargeSites.map(item=>item.chargeE),[-.075,-.075,.15]);
+  for(let axis=0;axis<3;axis++)close(site.compensationPositionAngstrom[axis],(site.lpPlusPositionAngstrom[axis]+site.lpMinusPositionAngstrom[axis])/2);
   close(Math.hypot(...site.lpPlusPositionAngstrom.map((x,i)=>x-atoms[3].positionAngstrom[i])),STAGE_B_SITE_DISTANCE_ANGSTROM);
   close(Math.hypot(...site.lpMinusPositionAngstrom.map((x,i)=>x-atoms[3].positionAngstrom[i])),STAGE_B_SITE_DISTANCE_ANGSTROM);
   for(const position of [site.lpPlusPositionAngstrom,site.lpMinusPositionAngstrom,site.compensationPositionAngstrom])assert.ok(position.every(Number.isFinite));
@@ -43,6 +45,11 @@ test('carbonyl local frame is permutation independent and covariant under rigid 
   assert.deepEqual(sortPoints([rotated.lpPlusPositionAngstrom,rotated.lpMinusPositionAngstrom]),sortPoints([rotate(original.lpPlusPositionAngstrom,quaternion),rotate(original.lpMinusPositionAngstrom,quaternion)]));
 });
 
+test('world-space carbonyl virtual-site diagnostics use the same quaternion transform as the physics',()=>{
+  const acetone=record('acetone'),atoms=structure('acetone',[[-1.5,0,0],[0,0,0],[1.5,0,0],[0,1.22,0],[-2.13,-.51,.89],[-2.13,-.51,-.89],[-2.13,1.02,0],[-.87,-.51,.89],[-.87,-.51,-.89],[2.13,-.51,.89]]),position=[2,-1,.5],orientation=[0,0,Math.SQRT1_2,Math.SQRT1_2],body={id:'rotated-acetone',positionAngstrom:position,orientation,atoms,carbonylAnisotropySites:detectCarbonylAnisotropySites(atoms,acetone.bonds,{qA:.1})},diagnostic=stageBCarbonylDiagnostics(body)[0],site=body.carbonylAnisotropySites[0],expected=rotate(site.lpPlusPositionAngstrom,orientation).map((value,index)=>value+position[index]);
+  for(let index=0;index<3;index++)close(diagnostic.lpPlusWorldPositionAngstrom[index],expected[index]);
+});
+
 test('Stage B augmentation is stateless, adds only Coulomb, and preserves Stage A base',()=>{
   const atoms=[{element:'C',positionAngstrom:[-.6,0,0],chargeE:.4,sigmaAngstrom:3.5,epsilonKcalMol:.1},{element:'O',positionAngstrom:[.6,0,0],chargeE:-.4,sigmaAngstrom:3,epsilonKcalMol:.15}];
   const base=createStageABody({id:'a',positionAngstrom:[0,0,0],atoms}),other=createStageABody({id:'b',positionAngstrom:[4,0,0],atoms});
@@ -51,6 +58,7 @@ test('Stage B augmentation is stateless, adds only Coulomb, and preserves Stage 
   close(stageB.bodies.get('a').baselineEnergyKcalMol,stageA.bodies.get('a').energyKcalMol);
   assert.ok(stageB.pairDiagnostics.some(pair=>Math.abs(pair.stageBAnisotropyCoulombEnergyKcalMol)>0));
   assert.ok(stageB.bodies.get('a').stageBCorrectionTorqueKcalMolAngstrom.every(Number.isFinite));
+  for(let axis=0;axis<3;axis++)close(stageB.bodies.get('a').forceKcalMolAngstrom[axis]+stageB.bodies.get('b').forceKcalMolAngstrom[axis],0,1e-9);
 });
 
 test('all database trigonal carbonyl frames build finite, with no hardcoded site-count assumption',()=>{
