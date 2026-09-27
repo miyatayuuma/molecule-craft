@@ -101,7 +101,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       detailViewer?.dispose();detailViewer=null;host.replaceChildren();host.dataset.viewerReady='false';host.dataset.stereoRelation='';
       let overlay=null;if(previousSnapshot){overlay=el('img',null,'stereo-configuration-transition');overlay.src=previousSnapshot;overlay.alt='';host.append(overlay);}else if(request===1&&continuity)host.append(continuity);
       host.append(el('p','模型を準備しています…','model-status'));
-      return import('./collection-viewer.js?v=34').then(({createCollectionViewer})=>new Promise(resolve=>{
+      return import('./collection-viewer.js?v=35').then(({createCollectionViewer})=>new Promise(resolve=>{
         if(request!==mountGeneration||generation!==detailGeneration||!dialog.open||!host.isConnected){resolve(null);return;}
         host.querySelector(':scope > .model-status')?.remove();
         detailViewer=createCollectionViewer({host,record,name,presentation:nextPresentation,initialView:previousView,

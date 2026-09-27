@@ -155,7 +155,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         }});
       }
     }
-    for(const shared of layout.sharedGroups??[]){const distributed=['nitro','ozone'].includes(shared.kind);for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){
+    for(const shared of layout.sharedGroups??[]){const curves=sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'}),distributed=curves.length>=2;for(const curve of curves){
       const points=curve.map(p=>p.applyQuaternion(group.quaternion));
       for(let i=1;i<points.length;i++){
         const a=points[i-1],b=points[i];if(Math.max(a.z,b.z)>=camera.position.z)continue;const z=(a.z+b.z)/2;
