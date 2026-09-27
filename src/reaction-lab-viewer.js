@@ -17,7 +17,7 @@ import {
   chooseDepthTarget, CHAMBER_TIME_MODES, createChamberTimeAuthority,
   DEPTH_DOCKING_TIME_CONSTANT_MS, DEPTH_TARGET_ACQUIRE_PADDING_PX,
   DEPTH_TARGET_RELEASE_PADDING_PX, GRAB_FALLBACK_RADIUS_PX,
-  MAX_DOCKING_COMPRESSION_WORLD, projectedSurfaceGap,
+  MAX_DOCKING_COMPRESSION_WORLD, minimumMoleculeSurfaceGap, projectedSurfaceGap,
   scaleSimulationElapsed, solveSafeDepthDocking,
 } from './reaction-lab-manipulation.js?v=3';
 
