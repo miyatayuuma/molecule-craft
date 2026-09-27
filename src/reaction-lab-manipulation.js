@@ -114,11 +114,11 @@ export function solveDepthDocking({ dragged, target, cameraNormal, previousCente
     const relative = subtract(atomA.center, atomB.center);
     const along = dot(relative, axis);
     const perpendicular = subtract(relative, scale(axis, along));
-    const contactRadius = atomA.radius + atomB.radius - maxCompression;
+    const contactRadius = atomA.radius + atomB.radius;
     if (!(contactRadius > 0)) continue;
     const remaining = contactRadius * contactRadius - dot(perpendicular, perpendicular);
-    if (remaining <= 1e-12) continue;
-    const halfWidth = Math.sqrt(remaining);
+    if (remaining < -1e-12) continue;
+    const halfWidth = Math.sqrt(Math.max(0, remaining));
     intervals.push({ min: -along - halfWidth, max: -along + halfWidth });
   }
   if (!intervals.length) return null;

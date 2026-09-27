@@ -32,13 +32,13 @@ test('depth target acquisition is chemistry-independent, order-independent, and 
   assert.equal(chooseDepthTarget(null, [{ id: 'same-b', gapPx: 2 }, { id: 'same-a', gapPx: 2 }]), 'same-a');
 });
 
-test('depth docking solves same-screen geometry at a different depth and chooses the nearest side', () => {
+test('depth docking solves same-screen geometry at surface contact and chooses the nearest side', () => {
   const dragged = sphere([0, 0, 0], 0.5), target = sphere([0, 0, 4], 0.5);
   const beforeOrientation = [...dragged.orientation];
   const solution = solveDepthDocking({ dragged, target, cameraNormal: [0, 0, -1], previousCenter: [0, 0, 0] });
   assert.ok(solution);
-  assert.ok(Math.abs(solution.center[2] - 3.06) < 1e-8);
-  assert.ok(Math.abs(solution.minimumSurfaceGap + MAX_DOCKING_COMPRESSION_WORLD) < 1e-8);
+  assert.ok(Math.abs(solution.center[2] - 3) < 1e-8);
+  assert.ok(Math.abs(solution.minimumSurfaceGap) < 1e-8);
   assert.deepEqual(dragged.orientation, beforeOrientation);
   assert.deepEqual(target.center, [0, 0, 4]);
 
@@ -54,6 +54,7 @@ test('depth docking rejects projected geometry that cannot contact and never acc
   const solution = solveDepthDocking({ dragged: sphere([0, 0, 0]), target: sphere([0, 0, 3]), cameraNormal: [0, 0, -1] });
   assert.ok(solution);
   assert.ok(solution.compression <= MAX_DOCKING_COMPRESSION_WORLD + 1e-8);
+  assert.ok(Math.abs(solution.minimumSurfaceGap) < 1e-8);
   assert.ok(minimumMoleculeSurfaceGap({ dragged: { ...sphere(solution.center), center: solution.center }, target: sphere([0, 0, 3]) }) >= -MAX_DOCKING_COMPRESSION_WORLD - 1e-7);
 });
 

@@ -18,7 +18,7 @@ import {
   DEPTH_TARGET_RELEASE_PADDING_PX, GRAB_FALLBACK_RADIUS_PX,
   MAX_DOCKING_COMPRESSION_WORLD, minimumMoleculeSurfaceGap, projectedSurfaceGap,
   scaleSimulationElapsed, solveDepthDocking,
-} from './reaction-lab-manipulation.js?v=1';
+} from './reaction-lab-manipulation.js?v=2';
 
 const vector=(THREE,point)=>Array.isArray(point)?new THREE.Vector3(point[0],point[1],point[2]):new THREE.Vector3(point.x,point.y,point.z);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
