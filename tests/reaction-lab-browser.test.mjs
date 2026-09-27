@@ -93,7 +93,7 @@ try{
   const runReaction=async(reactionId,products)=>{
     await evaluate('window.__labReactionEvents=[]');
     const offsets=[[0,0],[8,0],[-8,0],[0,8],[0,-8],[16,0],[-16,0],[0,16],[0,-16],[22,0],[-22,0],[0,22]];
-    let committed=false,finalTrace=null,finalManipulation=null,attemptCount=0,depthAcquisitions=0,hiddenDepthObserved=false;const trajectoryAttempts=[];
+    let committed=false,finalTrace=null,finalManipulation=null,attemptCount=0,depthAcquisitions=0,hiddenDepthObserved=false,presentationObserved=false,closePauseVerified=false,visibilityPauseVerified=false;const trajectoryAttempts=[];
     const resetReactionBatch=async()=>{await feedCurrent({double:true});await new Promise(resolve=>setTimeout(resolve,600));};
     await new Promise(resolve=>setTimeout(resolve,600));
     for(let attempt=0;attempt<offsets.length&&!committed;attempt++){
@@ -128,7 +128,6 @@ try{
       const released=await snapshot();assert.equal(released.simulationTimeScale,1,'Pointer release restores normal simulation time');assert.equal(released.manipulationActive,false);assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Release itself does not commit chemistry');
       if(targetAcquired){assert.ok(releaseTrajectory?.rows?.length===3,'The read-only release trajectory is sampled before Stage B reserves reaction participants');assert.ok(releaseTrajectory.rows[0].separationIncreaseAngstrom<MAX_RELEASE_SEPARATION_INCREASE_3_STEPS_ANGSTROM,`${reactionId} first three fixed release steps stay below the global baseline gate: ${JSON.stringify(releaseTrajectory)}`);assert.ok(releaseTrajectory.rows[1].separationIncreaseAngstrom<MAX_RELEASE_SEPARATION_INCREASE_8_STEPS_ANGSTROM);assert.ok(releaseTrajectory.rows.every(row=>row.finite&&row.overlapGuardActivationCount===0));}
       finalManipulation=heldState;if(!targetAcquired){finalTrace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()');trajectoryAttempts.push({attempt,offset,draggedId,targetId:heldState.depthTargetId,dockingState:heldState.depthDockingState,initialSiteDistance:selected.actual,heldGeometry,trajectory:summarizeTrajectory(finalTrace)});await resetReactionBatch();continue;}
-    let presentationObserved=false,closePauseVerified=false,visibilityPauseVerified=false;
     for(let wait=0;wait<5000;wait+=50){
       if(await evaluate(`window.__labReactionEvents.at(-1)?.reactionId==='${reactionId}'`)){committed=true;break;}
       const state=await snapshot(),presentation=state.reactionPresentation;
