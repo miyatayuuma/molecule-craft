@@ -33,6 +33,7 @@ try{
   const waitFor=async(expression,label,timeout=8000)=>{for(let index=0;index<timeout/40;index++){const value=await evaluate(expression);if(value)return value;await new Promise(resolve=>setTimeout(resolve,40));}const state=await evaluate("({readyState:document.readyState,title:document.title,button:!!document.querySelector('#open-reaction-lab'),disabled:document.querySelector('#open-reaction-lab')?.disabled,dialog:!!document.querySelector('#reaction-lab-dialog'),probe:!!window.__reactionLabProbe})");throw Error(`${label}: ${JSON.stringify({state,browserErrors})}`);};
   const setSlots=async ids=>evaluate(`(()=>{const slots=[...document.querySelectorAll('[data-lab-slot]')];${JSON.stringify(ids)}.forEach((id,index)=>{slots[index].value=id;slots[index].dispatchEvent(new Event('change',{bubbles:true}));});return document.querySelector('[data-lab-status]').textContent;})()`);
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()');
+  const waitForPopulation=async(species,total,label)=>waitFor(`(()=>{const rows=window.__reactionLabProbe?.snapshot().instances??[];return rows.length===${total}&&${JSON.stringify(species)}.every(id=>rows.some(row=>row.species===id))})()`,label);
   const drag=async(plan,{steps=12,stepDelay=20,hold=720,duringHold=null}={})=>{
     await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:plan.start.x,y:plan.start.y});
     await send('Input.dispatchMouseEvent',{type:'mousePressed',x:plan.start.x,y:plan.start.y,button:'left',buttons:1,clickCount:1});
@@ -77,19 +78,19 @@ try{
   const waterPair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionWaters[0].id}','${productionWaters[1].id}')`);assert.equal(waterPair.overlapGuardActivationCount,0);assert.ok(waterPair.pairs.every(pair=>[pair.coulombEnergyKcalMol,pair.ljEnergyKcalMol,pair.totalEnergyKcalMol,...pair.forceOnA,...pair.torqueOnA].every(Number.isFinite)));
   await evaluate('window.__reactionLabProbe.advanceDeterministic(2)');await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(waterPairPoses)})`);const sameWaterPair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionWaters[0].id}','${productionWaters[1].id}')`);
   assert.deepEqual(sameWaterPair.bodies,waterPair.bodies,'The same Stage B geometry has the same force and torque independent of prior history');
-  await setSlots(['water','acetone','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Production water/acetone scene did not spawn');
+  await setSlots(['water','acetone','']);await waitForPopulation(['water','acetone'],4,'Production water/acetone scene did not spawn');
   await evaluate("window.__reactionLabProbe.placeSpeciesPair('water','acetone',8)");productionState=await snapshot();const productionWater=productionState.instances.find(item=>item.species==='water'),productionAcetone=productionState.instances.find(item=>item.species==='acetone');
   const productionAcetonePair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionWater.id}','${productionAcetone.id}')`);assert.ok(productionAcetonePair.pairs.some(pair=>Math.abs(pair.stageBAnisotropyCoulombEnergyKcalMol)>0),'Production carbonyl anisotropy contributes through fixed virtual charges');assert.equal(productionAcetonePair.overlapGuardActivationCount,0);
-  await setSlots(['water','pyridine','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Production water/pyridine scene did not spawn');await evaluate("window.__reactionLabProbe.placeSpeciesPair('water','pyridine',8)");productionState=await snapshot();const productionPyridine=productionState.instances.find(item=>item.species==='pyridine'),productionPyridineWater=productionState.instances.find(item=>item.species==='water'),pyridinePair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionPyridineWater.id}','${productionPyridine.id}')`);assert.ok(pyridinePair.pairs.every(pair=>[pair.stageACoulombEnergyKcalMol,pair.stageBAnisotropyCoulombEnergyKcalMol,pair.ljEnergyKcalMol].every(Number.isFinite)));
+  await setSlots(['water','pyridine','']);await waitForPopulation(['water','pyridine'],4,'Production water/pyridine scene did not spawn');await evaluate("window.__reactionLabProbe.placeSpeciesPair('water','pyridine',8)");productionState=await snapshot();const productionPyridine=productionState.instances.find(item=>item.species==='pyridine'),productionPyridineWater=productionState.instances.find(item=>item.species==='water'),pyridinePair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionPyridineWater.id}','${productionPyridine.id}')`);assert.ok(pyridinePair.pairs.every(pair=>[pair.stageACoulombEnergyKcalMol,pair.stageBAnisotropyCoulombEnergyKcalMol,pair.ljEnergyKcalMol].every(Number.isFinite)));
   await setSlots(['acetic-anhydride','water','']);
-  await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Hydrolysis reactant population did not initialize');
+  await waitForPopulation(['acetic-anhydride','water'],4,'Hydrolysis reactant population did not initialize');
   await runReaction('anhydride-hydrolysis',['acetic-acid','acetic-acid']);
   await setSlots(['acetic-anhydride','ethanol','']);
-  await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Alcoholysis reactant population did not initialize');
+  await waitForPopulation(['acetic-anhydride','ethanol'],4,'Alcoholysis reactant population did not initialize');
   await runReaction('anhydride-alcoholysis',['ethyl-acetate','acetic-acid']);
 
   for(const ids of [['oxygen','ethanol',''],['hydrogen','acetic-acid','']]){
-    await setSlots(ids);await new Promise(resolve=>setTimeout(resolve,60));
+    await setSlots(ids);await waitForPopulation(ids.slice(0,2),4,`Negative control scene did not spawn: ${ids.join('+')}`);
     await evaluate('window.__labReactionEvents=[]');
     const arranged=await evaluate(`window.__reactionLabProbe.placeSpeciesPair('${ids[0]}','${ids[1]}')`);assert.ok(arranged.distance<1.18,`Negative control pair should be in reactive-site contact: ${JSON.stringify(arranged)}`);
     const snapshotBefore=await snapshot();
@@ -98,7 +99,7 @@ try{
     assert.equal((await snapshot()).instances.length,snapshotBefore.instances.length,'Negative controls leave the scene population unchanged');
   }
   await setSlots(['hexamethylenediamine','isoamyl-acetate','methylcyclohexane']);
-  await waitFor("document.querySelector('[data-lab-status]').textContent.includes('6 個')",'Three-species scene did not create six molecules');
+  await waitForPopulation(['hexamethylenediamine','isoamyl-acetate','methylcyclohexane'],6,'Three-species scene did not create six molecules');
   const largeScene=await snapshot();assert.equal(largeScene.instances.length,6);assert.ok(Math.max(...largeScene.instances.map(item=>item.atomCount))>=24,'Large DB molecules participate in the six-particle performance case');
   const frameSample=await evaluate(`new Promise(resolve=>{let first=0,last=0,count=0,maxGap=0;function frame(now){if(!first)first=now;if(last)maxGap=Math.max(maxGap,now-last);last=now;count++;if(now-first>=900)resolve({count,elapsed:now-first,maxGap,mean:(now-first)/Math.max(1,count-1)});else requestAnimationFrame(frame)}requestAnimationFrame(frame)})`);
   assert.ok(frameSample.count>=10,`Six-molecule interaction scene stalled: ${JSON.stringify(frameSample)}`);assert.ok(frameSample.maxGap<260,`Six-molecule interaction caused a visible frame stall: ${JSON.stringify(frameSample)}`);
