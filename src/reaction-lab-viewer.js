@@ -347,13 +347,13 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const candidates=projectedTargetRows(item),nextId=chooseDepthTarget(depthTarget,candidates,{acquirePaddingPx:DEPTH_TARGET_ACQUIRE_PADDING_PX,releasePaddingPx:DEPTH_TARGET_RELEASE_PADDING_PX});
     depthTarget=nextId;const target=instanceById(depthTarget);updateTargetIndicator(target);
     const previousOffset=previousCenter.clone().sub(baseCenter).dot(normal);
-    let desiredDepthOffset=0,solution=null;
+    let desiredDepthOffset=0,solution=null,candidateSafetySampleCount=0;
     if(target){
       const pairKey=`${item.id}|${target.id}`;
       if(depthSafetyPairKey!==pairKey){depthSafetyPairKey=pairKey;depthSafetyOracle=createStageBPairSafetyOracle(item.stageBody,target.stageBody);}
-      solution=solveSafeDepthDocking({dragged:shapeFor(item,baseCenter),target:shapeFor(target),cameraNormal:normal.toArray(),previousCenter:previousCenter.toArray(),maxCompression:MAX_DOCKING_COMPRESSION_WORLD,outwardAccelerationAt:(center,_offset,branchSign)=>depthSafetyOracle({draggedPositionAngstrom:center.map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),targetPositionAngstrom:target.group.position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),cameraNormal:normal.toArray(),branchSign}).outwardRelativeAcceleration,worldUnitsPerAngstrom:REACTION_LAB_WORLD_UNITS_PER_ANGSTROM});
+      solution=solveSafeDepthDocking({dragged:shapeFor(item,baseCenter),target:shapeFor(target),cameraNormal:normal.toArray(),previousCenter:previousCenter.toArray(),maxCompression:MAX_DOCKING_COMPRESSION_WORLD,outwardAccelerationAt:(center,_offset,branchSign)=>{candidateSafetySampleCount++;return depthSafetyOracle({draggedPositionAngstrom:center.map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),targetPositionAngstrom:target.group.position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),cameraNormal:normal.toArray(),branchSign}).outwardRelativeAcceleration;},worldUnitsPerAngstrom:REACTION_LAB_WORLD_UNITS_PER_ANGSTROM});
       if(solution){desiredDepthOffset=solution.offset;depthOutwardAcceleration=solution.acceleration;depthSafetySampleCount=solution.safetySampleCount;depthDockingState='docking';}
-      else{desiredDepthOffset=previousOffset;depthOutwardAcceleration=Infinity;depthSafetySampleCount=0;depthDockingState='acquired-no-safe-solution';}
+      else{desiredDepthOffset=previousOffset;depthOutwardAcceleration=Infinity;depthSafetySampleCount=candidateSafetySampleCount;depthDockingState='acquired-no-safe-solution';}
     }
     const alpha=1-Math.exp(-Math.max(0,elapsedMs)/DEPTH_DOCKING_TIME_CONSTANT_MS),currentOffset=previousOffset+(desiredDepthOffset-previousOffset)*alpha;
     item.group.position.copy(baseCenter).addScaledVector(normal,currentOffset);correctPointerAnchor(item,down.localAnchor,down.clientX,down.clientY);
