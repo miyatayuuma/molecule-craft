@@ -25,6 +25,9 @@ const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const FIXED_CAMERA_AZIMUTH=0;
 const FIXED_CAMERA_ELEVATION=0;
 const CHAMBER_PRESENTATION_MS=520;
+const CAMERA_MIN_DISTANCE=7;
+const CAMERA_MAX_DISTANCE=64;
+const POPULATION_LAYOUT_GAP_WORLD=.9;
 
 export function createReactionLabViewer({THREE,dialog,root,records,collectionState,onDialogStateChange=()=>{},onPointerLockChange=()=>{}}){
   const query=new URLSearchParams(location.search);
@@ -113,14 +116,30 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     slots.forEach((select,index)=>{const previous=slotValues[index];select.replaceChildren(new Option('空のslot',''));for(const record of discovered){if(slotValues.includes(record.id)&&record.id!==previous)continue;select.add(new Option(record.nameJa??record.id,record.id));}select.value=previous;});
   }
   function repopulate(){
-    clear();const selectedCount=slotValues.filter(Boolean).length,planned=planVisiblePopulation(slotValues),groupCounts=new Map();
+    clear();const planned=planVisiblePopulation(slotValues);
     for(const entry of planned){
       const record=recordsById.get(entry.species);if(!record)continue;
-      const same=planned.filter(item=>item.species===entry.species).length,offset=groupCounts.get(entry.species)??0;groupCounts.set(entry.species,offset+1);
-      const speciesIndex=slotValues.filter(Boolean).indexOf(entry.species),angle=2*Math.PI*offset/same,radius=2.05;
-      const originX=selectedCount===1?0:(speciesIndex-(selectedCount-1)/2)*1.5;
-      const x=selectedCount===1?originX+radius*Math.cos(angle):originX+(offset%2 ? .32 : -.32),y=selectedCount===1?radius*Math.sin(angle):(offset%2 ? .78 : -.78);
-      createInstance(record,new THREE.Vector3(x,y,0));
+      createInstance(record,new THREE.Vector3(0,0,0));
+    }
+    // Give every selected species its own column and stack same-species copies
+    // using atom-derived bounds. This keeps the initial scene readable without
+    // changing the z=0 spawn contract or constraining subsequent 3D physics.
+    const columns=slotValues.filter(Boolean).map(species=>{
+      const items=instances.filter(item=>item.species===species);
+      const radii=items.map(item=>Math.max(...item.record.atoms.map(atom=>atom.point.length()+modelAtomRadius(atom.element))));
+      return{items,radii,radius:Math.max(0,...radii)};
+    }).filter(column=>column.items.length);
+    const totalWidth=columns.reduce((sum,column)=>sum+2*column.radius,0)+POPULATION_LAYOUT_GAP_WORLD*Math.max(0,columns.length-1);
+    let columnLeft=-totalWidth*.5;
+    for(const column of columns){
+      const x=columnLeft+column.radius;columnLeft+=column.radius*2+POPULATION_LAYOUT_GAP_WORLD;
+      const totalHeight=column.radii.reduce((sum,radius)=>sum+radius*2,0)+POPULATION_LAYOUT_GAP_WORLD*Math.max(0,column.items.length-1);
+      let cursor=totalHeight*.5;
+      column.items.forEach((item,index)=>{
+        const radius=column.radii[index],y=cursor-radius;cursor=y-radius-POPULATION_LAYOUT_GAP_WORLD;
+        item.group.position.set(x,y,0);syncStageABodyFromGroup(item);
+        if(localhostPhysicsTest)item.initialPositionAtSpawn=item.group.position.toArray();
+      });
     }
     fitPopulation();
     renderSlotOptions();status.textContent=instances.length?`${instances.length} 個の分子があります。ドラッグして近づけると、奥行きを自動で調整します。`:'空のslotから分子を選んでください。';
@@ -130,7 +149,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
     for(const item of instances)for(const atom of item.record.atoms){const radius=modelAtomRadius(atom.element),point=atom.point.clone().add(item.group.position);minX=Math.min(minX,point.x-radius);maxX=Math.max(maxX,point.x+radius);minY=Math.min(minY,point.y-radius);maxY=Math.max(maxY,point.y+radius);}
     const rect=canvas.getBoundingClientRect(),aspect=Math.max(.1,rect.width/Math.max(1,rect.height)),tan=Math.tan(THREE.MathUtils.degToRad(camera.fov*.5)),required=Math.max((maxX-minX)/(2*tan*aspect*.88),(maxY-minY)/(2*tan*.88));
-    distance=clamp(Math.max(15,required),7,24);updateCamera();
+    distance=clamp(Math.max(15,required),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();
   }
   slots.forEach((select,index)=>select.addEventListener('change',()=>{const proposed=slotValues.slice();proposed[index]=select.value;if(new Set(proposed.filter(Boolean)).size!==proposed.filter(Boolean).length){select.value=slotValues[index];status.textContent='同じspeciesは複数slotへ設定できません。';return;}slotValues=proposed;repopulate();}));
   function raycastAtoms(event){
@@ -218,7 +237,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   canvas.addEventListener('pointermove',event=>{
     const point=activePointers.get(event.pointerId);if(!point)return;
     point.x=event.clientX;point.y=event.clientY;
-    if(pinchActive){const next=currentPinchDistance();if(next>0&&pinchDistance>0){distance=clamp(distance*pinchDistance/Math.max(1,next),7,24);updateCamera();}pinchDistance=next;return;}
+    if(pinchActive){const next=currentPinchDistance();if(next>0&&pinchDistance>0){distance=clamp(distance*pinchDistance/Math.max(1,next),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();}pinchDistance=next;return;}
     if(down?.pointerId===event.pointerId){down.clientX=event.clientX;down.clientY=event.clientY;}
   });
   function endPointer(event){
@@ -231,7 +250,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     onPointerLockChange(activePointers.size>0);
   }
   canvas.addEventListener('pointerup',endPointer);canvas.addEventListener('pointercancel',endPointer);
-  canvas.addEventListener('wheel',event=>{event.preventDefault();distance=clamp(distance*Math.exp(event.deltaY*.001),7,24);updateCamera();},{passive:false});
+  canvas.addEventListener('wheel',event=>{event.preventDefault();distance=clamp(distance*Math.exp(event.deltaY*.001),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();},{passive:false});
 
   function reactionStep(simulationTimeMs){
     const touchingPairs=new Set();
