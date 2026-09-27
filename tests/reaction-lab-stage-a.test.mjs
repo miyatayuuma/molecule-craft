@@ -119,6 +119,15 @@ test('overlap guard stays finite, is continuous at its boundary, and reports act
   assert.equal(acceptance.overlapGuardActivationCount, 0);
 });
 
+test('allocation-free overlap fallback matches the diagnostic evaluator only at zero separation',()=>{
+ const a=body('fallback-a',0,[atom('C',[0,0,0],.4,3.4,.1)]),b=body('fallback-b',0,[atom('O',[0,0,0],-.3,3.1,.12)]);
+ const diagnostic=evaluateStageAForces([a,b]),fast=evaluateStageAForces([a,b],{collectPairDiagnostics:false});
+ assert.equal(fast.overlapGuardActivationCount,diagnostic.overlapGuardActivationCount);
+ for(const id of ['fallback-a','fallback-b'])for(const key of ['forceKcalMolAngstrom','torqueKcalMolAngstrom','energyKcalMol'])for(let i=0;i<(Array.isArray(diagnostic.bodies.get(id)[key])?3:1);i++)close(fast.bodies.get(id)[key][i]??fast.bodies.get(id)[key],diagnostic.bodies.get(id)[key][i]??diagnostic.bodies.get(id)[key],1e-10);
+ const profile={},normal=evaluateStageAForces([body('normal-a',0,[atom('C',[0,0,0],.4)]),body('normal-b',4,[atom('O',[0,0,0],-.3)])],{collectPairDiagnostics:false,profile});
+ assert.equal(normal.pairDiagnostics.length,0);assert.equal(profile.allocationCounters.pairDiagnosticMaps,0);assert.equal(profile.allocationCounters.temporaryVectorArraysPerPair,0);
+});
+
 test('fixed-step accumulator is deterministic across render-frame subdivision and bounds catch-up', () => {
   const make = () => [body('a', 0, [atom('C', [0, 0, 0], 0, 3.4, 0.1)]), body('b', 4.5, [atom('C', [0, 0, 0], 0, 3.4, 0.1)])];
   const oneFrame = make(), splitFrames = make();
