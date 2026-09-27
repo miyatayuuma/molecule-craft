@@ -52,12 +52,27 @@ try{
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()');
   const waitForPopulation=async(species,total,label)=>waitFor(`(()=>{const state=window.__reactionLabProbe?.snapshot();const rows=state?.instances??[];return state?.batch.phase==='ACTIVE'&&rows.length===${total}&&${JSON.stringify(species)}.every(id=>rows.some(row=>row.species===id))})()`,label,12000);
   const pointer=async(type,id,x,y)=>evaluate(`document.querySelector('#reaction-lab canvas').dispatchEvent(new PointerEvent('${type}',{pointerId:${id},pointerType:'touch',clientX:${x},clientY:${y},button:0,buttons:${type==='pointerup'||type==='pointercancel'?0:1},bubbles:true,cancelable:true}))`);
-  const drag=async(plan,{steps=12,stepDelay=20,hold=720,duringHold=null}={})=>{
-    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:plan.start.x,y:plan.start.y});
-    await send('Input.dispatchMouseEvent',{type:'mousePressed',x:plan.start.x,y:plan.start.y,button:'left',buttons:1,clickCount:1});
-    for(let step=1;step<=steps;step++){const progress=step/steps;await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:plan.start.x+(plan.end.x-plan.start.x)*progress,y:plan.start.y+(plan.end.y-plan.start.y)*progress,button:'left',buttons:1});await new Promise(resolve=>setTimeout(resolve,stepDelay));}
+  const drag=async(plan,{steps=12,stepDelay=20,hold=720,duringHold=null,expectedInstanceId=null,startCandidates=null}={})=>{
+    let start=plan.start;
+    if(expectedInstanceId){
+      let acquired=false;
+      for(const point of startCandidates??[plan.start]){
+        await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
+        await send('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',buttons:1,clickCount:1});
+        await new Promise(resolve=>setTimeout(resolve,45));
+        if((await snapshot()).draggedInstanceId===expectedInstanceId){start=point;acquired=true;break;}
+        await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',buttons:0});
+        await new Promise(resolve=>setTimeout(resolve,35));
+      }
+      if(!acquired)return{acquired:false};
+    }else{
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:start.x,y:start.y});
+      await send('Input.dispatchMouseEvent',{type:'mousePressed',x:start.x,y:start.y,button:'left',buttons:1,clickCount:1});
+    }
+    for(let step=1;step<=steps;step++){const progress=step/steps;await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:start.x+(plan.end.x-start.x)*progress,y:start.y+(plan.end.y-start.y)*progress,button:'left',buttons:1});await new Promise(resolve=>setTimeout(resolve,stepDelay));}
     if(duringHold)await duringHold();else if(hold)await new Promise(resolve=>setTimeout(resolve,hold));
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:plan.end.x,y:plan.end.y,button:'left',buttons:0});
+    return{acquired:true,start};
   };
   const runReaction=async(reactionId,products)=>{
     await evaluate('window.__labReactionEvents=[]');
@@ -68,14 +83,16 @@ try{
       const options=current.reactionCandidates.filter(item=>item.reactionId===reactionId&&item.participants?.acyl&&item.participants?.nucleophile).map(item=>{
         const leftId=item.participants.acyl,rightId=item.participants.nucleophile,left=byId.get(leftId),right=byId.get(rightId),siteA=item.matchedSites.acyl.atomBindings.acylC,siteB=item.matchedSites.nucleophile.atomBindings.oxygen;
         if(!left?.atoms[siteA]||!right?.atoms[siteB])return null;
-        const a=left.atoms[siteA],b=right.atoms[siteB];return{item,leftId,rightId,siteA,siteB,start:{x:a.x,y:a.y},end:{x:b.x,y:b.y},actual:item.distanceConstraints[0]?.actual??Infinity};
+        const a=left.atoms[siteA],b=right.atoms[siteB],canvas=left.atoms.length?{width:390,height:844}:null;
+        const grabStarts=left.atoms.map(atom=>({x:atom.x,y:atom.y,z:atom.z,radius:atom.radius})).filter(point=>point.x>=0&&point.x<=canvas.width&&point.y>=0&&point.y<=canvas.height&&point.z>=-1&&point.z<=1&&point.radius>0).sort((first,second)=>Math.hypot(first.x-a.x,first.y-a.y)-Math.hypot(second.x-a.x,second.y-a.y)||first.z-second.z);
+        return{item,leftId,rightId,siteA,siteB,start:{x:a.x,y:a.y},grabStarts,end:{x:b.x,y:b.y},actual:item.distanceConstraints[0]?.actual??Infinity};
       }).filter(Boolean).sort((a,b)=>a.actual-b.actual||a.leftId.localeCompare(b.leftId)||a.rightId.localeCompare(b.rightId));
       if(!options.length){await new Promise(resolve=>setTimeout(resolve,50));continue;}
       const selected=options[attempt%Math.min(4,options.length)],offset=offsets[attempt],plan={instanceId:selected.leftId,start:selected.start,end:{x:selected.end.x+offset[0],y:selected.end.y+offset[1]},before:current.instances.find(item=>item.id===selected.leftId).position};
       attemptCount++;
       await evaluate(`window.__reactionLabProbe.startReactionTrajectoryTrace('${reactionId}',${JSON.stringify([selected.leftId,selected.rightId])})`);
       let heldState=null,targetAcquired=false;
-      await drag(plan,{steps:14,stepDelay:18,hold:0,duringHold:async()=>{
+      const gesture=await drag(plan,{steps:14,stepDelay:18,hold:0,expectedInstanceId:selected.leftId,startCandidates:selected.grabStarts,duringHold:async()=>{
         await new Promise(resolve=>setTimeout(resolve,320));heldState=await snapshot();
         assert.equal(heldState.draggedInstanceId,selected.leftId);targetAcquired=heldState.depthTargetId===selected.rightId&&['docking','contact'].includes(heldState.depthDockingState);
         if(targetAcquired){depthAcquisitions++;hiddenDepthObserved||=Math.abs(heldState.instances.find(item=>item.id===selected.leftId).position[2]-plan.before[2])>.2;}
@@ -84,6 +101,7 @@ try{
         assert.ok(heldRows.length&&heldRows.every(item=>item.manipulating&&item.dwellElapsed===0&&!item.commitReady),'Pointer manipulation never advances reaction dwell');
         assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Manipulation cannot commit chemistry');finalManipulation=heldState;
       }});
+      if(!gesture.acquired){trajectoryAttempts.push({attempt,offset,selectionMiss:true,participantIds:[selected.leftId,selected.rightId],attemptedGrabPoints:selected.grabStarts.length});continue;}
       const released=await snapshot();assert.equal(released.simulationTimeScale,1,'Pointer release restores normal simulation time');assert.equal(released.manipulationActive,false);assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Release itself does not commit chemistry');
       finalManipulation=heldState;if(!targetAcquired){finalTrace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()');trajectoryAttempts.push({attempt,offset,targetId:heldState.depthTargetId,dockingState:heldState.depthDockingState,samples:finalTrace?.samples?.slice(-6)??[]});continue;}
       for(let wait=0;wait<1500;wait+=50){if(await evaluate(`window.__labReactionEvents.at(-1)?.reactionId==='${reactionId}'`)){committed=true;break;}await new Promise(resolve=>setTimeout(resolve,50));}
