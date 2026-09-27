@@ -77,8 +77,7 @@
   <dialog id="reaction-lab-dialog" aria-labelledby="reaction-lab-title"><section id="reaction-lab" class="reaction-lab">
     <header><div><small>REACTION LAB · SANDBOX</small><h2 id="reaction-lab-title">分子の相互作用</h2></div><button type="button" data-lab-close aria-label="Reaction Labを閉じる">×</button></header>
     <div class="reaction-lab-slots" aria-label="Species slots"><label>SPECIES A<select data-lab-slot aria-label="Species slot A"><option value="">空のslot</option></select></label><label>SPECIES B<select data-lab-slot aria-label="Species slot B"><option value="">空のslot</option></select></label><label>SPECIES C<select data-lab-slot aria-label="Species slot C"><option value="">空のslot</option></select></label></div>
-    <div class="reaction-lab-modes"><button type="button" data-lab-mode="move" aria-pressed="true">移動</button><button type="button" data-lab-mode="rotate" aria-pressed="false">回転</button><button type="button" data-lab-mode="view" aria-pressed="false">視点</button></div>
-    <div class="reaction-lab-space"><canvas aria-label="分子を動かして相互作用を観察する3D空間"></canvas><p>分子をdragして移動。回転/視点モードで操作を切替。pinch・wheelでzoom。</p></div>
+    <div class="reaction-lab-space"><canvas aria-label="分子をドラッグして相互作用を観察する3D空間"></canvas><p>分子をドラッグして近づけます。pinch・wheelでzoom。</p></div>
     <p data-lab-status class="reaction-lab-status" role="status">発見済み分子をslotへ設定します。</p>
   </section></dialog>
   <dialog id="help-dialog" class="sheet" aria-labelledby="help-title"><header class="sheet-header"><h2 id="help-title">あそびかた</h2><button type="button" data-close-dialog aria-label="あそびかたを閉じる">×</button></header><div class="sheet-body help-steps">
