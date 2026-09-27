@@ -16,6 +16,13 @@ test('committed Stage B evidence has consistent fixed-parameter PASS/FAIL decisi
   assert.deepEqual(audit.failureClassification,audit.globalResult==='PASS'?[]:assertAllowedFailure(audit.failureClassification));
   assert.equal(audit.acceptanceGates.waterAcetoneRadialPreservation,true);
   assert.equal(audit.acceptanceGates.continuity,true);
+  assert.equal(audit.performance.optimization.beforeOptimization.stageA.p95StepMs,28.019801);
+  assert.equal(audit.performance.optimization.beforeOptimization.stageB.p95StepMs,30.438217);
+  assert.ok(audit.performance.optimization.speedup.stageAP95>10);
+  assert.ok(audit.performance.optimization.speedup.stageBP95>10);
+  assert.ok(audit.performance.stageB.p95StepMs<=audit.performance.budgetPerPhysicsStepMs);
+  assert.equal(audit.performance.optimization.hotPathProfile.stageBAugmentedBodyCopies,0);
+  assert.equal(audit.performance.optimization.allocationCounters.temporaryVectorArraysPerPair,0);
 });
 
 test('Stage B evidence contains complete gates and no null or non-finite measurement',()=>{

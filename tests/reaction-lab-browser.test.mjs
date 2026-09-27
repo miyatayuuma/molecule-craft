@@ -70,37 +70,17 @@ try{
   const modes=await evaluate("[...document.querySelectorAll('[data-lab-mode]')].map(button=>button.getAttribute('aria-pressed'))");assert.deepEqual(modes,['false','false','true']);
   await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:145,y:370});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:145,y:370,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:205,y:405,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:205,y:405,button:'left',buttons:0});
   await evaluate("document.querySelector('[data-lab-mode=move]').click()");
-  let {hbond,waterState,initialBondDiagnostic}=await evaluate(`(()=>{const hbond=window.__reactionLabProbe.arrangeHydrogenBond(22),waterState=window.__reactionLabProbe.snapshot(),initialBondDiagnostic=window.__reactionLabProbe.hydrogenBondDiagnostics(hbond.donorId,hbond.acceptorId);return{hbond,waterState,initialBondDiagnostic};})()`);
-  assert.equal(hbond.bonds,1,`Directional water geometry must form a tracked H bond: ${JSON.stringify(hbond)}`);assert.ok(hbond.angle>=140);
-  assert.deepEqual(waterState.bonds[0].endpoints,{from:{instanceId:hbond.donorId,atom:1},to:{instanceId:hbond.acceptorId,atom:0}},'Debug authority resolves donor H to acceptor O');
-  assert.equal(waterState.hydrogenBondVisualCount,0,'Production interaction state must not render a dashed-line overlay');
-  assert.ok(initialBondDiagnostic.bonds[0].distance>initialBondDiagnostic.bonds[0].equilibriumDistance);assert.ok(initialBondDiagnostic.bonds[0].radialForce>0,'Captured bond has meaningful radial attraction immediately');assert.ok(initialBondDiagnostic.bonds[0].angularTorque>0,'Misaligned captured bond has explicit angular restoring authority');
-  const settle=await evaluate('window.__reactionLabProbe.advanceDeterministic(28)'),settledBond=settle.bonds[0];assert.ok(settledBond.distance<hbond.distance,`Bond distance should move toward canonical equilibrium: ${JSON.stringify({hbond,settledBond})}`);assert.ok(settledBond.angle>=140);
-  const donorBefore=waterState.instances.find(item=>item.id===hbond.donorId).position,acceptorBefore=waterState.instances.find(item=>item.id===hbond.acceptorId).position;
-  const axis=hbond.axis,slowPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${hbond.donorId}',0,[${axis.map(value=>(-.45*value).toFixed(8)).join(',')}])`);
-  assert.ok(Math.hypot(slowPlan.end.x-slowPlan.start.x,slowPlan.end.y-slowPlan.start.y)>4,'Slow drag plan must produce visible camera-plane translation');
-  await drag(slowPlan,{steps:24,stepDelay:55,hold:0});await new Promise(resolve=>setTimeout(resolve,300));waterState=await snapshot();
-  assert.ok(waterState.bonds.length>0,'Slow motion retains the temporary interaction');
-  const acceptorAfter=waterState.instances.find(item=>item.id===hbond.acceptorId).position;
-  const follow=acceptorAfter.map((value,index)=>value-acceptorBefore[index]).reduce((sum,value,index)=>sum+value*(-axis[index]),0);
-  assert.ok(follow>.015,`The partner should follow a slow donor drag; projected movement was ${follow}`);
-  const fastPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${hbond.donorId}',0,[${axis.map(value=>(-2.4*value).toFixed(8)).join(',')}])`);
-  assert.ok(Math.hypot(fastPlan.end.x-fastPlan.start.x,fastPlan.end.y-fastPlan.start.y)>18,'Fast drag plan must produce visible camera-plane translation');
-  await drag(fastPlan,{steps:2,stepDelay:8,hold:0});await new Promise(resolve=>setTimeout(resolve,120));
-  const fastState=await snapshot();
-  assert.equal(fastState.bonds.length,0,`Fast pulling breaks the H bond; plan=${JSON.stringify(fastPlan)} state=${JSON.stringify(fastState)}`);
-  const rebound=await evaluate('window.__reactionLabProbe.rebindDifferentPartner()');assert.deepEqual(rebound.formedWith,[rebound.oldPartnerId]);assert.equal(rebound.afterBreak,0);assert.equal(rebound.final[0].acceptor,rebound.newPartnerId,'A donor rebinds to a different water partner');assert.notEqual(rebound.final[0].acceptor,rebound.oldPartnerId);assert.ok(rebound.final[0].angle>=140);
-  const donorAfter=waterState.instances.find(item=>item.id===hbond.donorId).position;
-  assert.ok(Math.abs(donorAfter[2]-donorBefore[2])>.001,'Camera-facing drag after orbit must retain depth-aware world motion');
-
-  await evaluate("document.querySelector('[data-lab-mode=move]').click()" );
-  await setSlots(['water','carbon-dioxide','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/CO₂ pair did not initialize');
-  const co2Bond=await evaluate("window.__reactionLabProbe.arrangeHydrogenBondPair('water','carbon-dioxide',0,1,1)");assert.equal(co2Bond.bondCount,1,`Water donor must form H···O with CO₂: ${JSON.stringify(co2Bond)}`);assert.ok(co2Bond.angle>=140);assert.ok(co2Bond.diagnostics.bonds[0].radialForce>0);
-  assert.equal((await snapshot()).hydrogenBondVisualCount,0);
-  await setSlots(['water','acetone','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/acetone pair did not initialize');
-  const acetoneBond=await evaluate("window.__reactionLabProbe.arrangeHydrogenBondPair('water','acetone',0,1,3)");assert.equal(acetoneBond.bondCount,1,`Water H points toward acetone carbonyl O: ${JSON.stringify(acetoneBond)}`);assert.ok(acetoneBond.angle>=140);
-  await setSlots(['water','methane','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Water/methane negative pair did not initialize');await evaluate("window.__reactionLabProbe.placeSpeciesPair('water','methane',.82)");await new Promise(resolve=>setTimeout(resolve,180));assert.equal((await snapshot()).bonds.length,0,'Methane does not enter the donor/acceptor network');
-
+  let productionState=await snapshot();assert.equal(productionState.physicsMode,'stage-b');assert.equal(productionState.qA,.15);assert.equal('bonds' in productionState,false,'Production has no H-bond lifecycle state');assert.equal(productionState.instances.every(item=>item.renderedObjectCount===item.expectedRealObjectCount),true,'Stage B sites remain invisible');
+  const productionWaters=productionState.instances.filter(item=>item.species==='water');assert.equal(productionWaters.length,4);
+  const waterPairPoses=[{id:productionWaters[0].id,positionAngstrom:[0,0,0],orientation:[0,0,0,1]},{id:productionWaters[1].id,positionAngstrom:[8,0,0],orientation:[0,0,0,1]}];
+  await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(waterPairPoses)})`);
+  const waterPair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionWaters[0].id}','${productionWaters[1].id}')`);assert.equal(waterPair.overlapGuardActivationCount,0);assert.ok(waterPair.pairs.every(pair=>[pair.coulombEnergyKcalMol,pair.ljEnergyKcalMol,pair.totalEnergyKcalMol,...pair.forceOnA,...pair.torqueOnA].every(Number.isFinite)));
+  await evaluate('window.__reactionLabProbe.advanceDeterministic(2)');await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(waterPairPoses)})`);const sameWaterPair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionWaters[0].id}','${productionWaters[1].id}')`);
+  assert.deepEqual(sameWaterPair.bodies,waterPair.bodies,'The same Stage B geometry has the same force and torque independent of prior history');
+  await setSlots(['water','acetone','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Production water/acetone scene did not spawn');
+  await evaluate("window.__reactionLabProbe.placeSpeciesPair('water','acetone',8)");productionState=await snapshot();const productionWater=productionState.instances.find(item=>item.species==='water'),productionAcetone=productionState.instances.find(item=>item.species==='acetone');
+  const productionAcetonePair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionWater.id}','${productionAcetone.id}')`);assert.ok(productionAcetonePair.pairs.some(pair=>Math.abs(pair.stageBAnisotropyCoulombEnergyKcalMol)>0),'Production carbonyl anisotropy contributes through fixed virtual charges');assert.equal(productionAcetonePair.overlapGuardActivationCount,0);
+  await setSlots(['water','pyridine','']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Production water/pyridine scene did not spawn');await evaluate("window.__reactionLabProbe.placeSpeciesPair('water','pyridine',8)");productionState=await snapshot();const productionPyridine=productionState.instances.find(item=>item.species==='pyridine'),productionPyridineWater=productionState.instances.find(item=>item.species==='water'),pyridinePair=await evaluate(`window.__reactionLabProbe.decomposePair('${productionPyridineWater.id}','${productionPyridine.id}')`);assert.ok(pyridinePair.pairs.every(pair=>[pair.stageACoulombEnergyKcalMol,pair.stageBAnisotropyCoulombEnergyKcalMol,pair.ljEnergyKcalMol].every(Number.isFinite)));
   await setSlots(['acetic-anhydride','water','']);
   await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",'Hydrolysis reactant population did not initialize');
   await runReaction('anhydride-hydrolysis',['acetic-acid','acetic-acid']);
@@ -117,23 +97,6 @@ try{
     assert.equal(await evaluate('window.__labReactionEvents.length'),0,`${ids.join('+')} must not create a reaction`);
     assert.equal((await snapshot()).instances.length,snapshotBefore.instances.length,'Negative controls leave the scene population unchanged');
   }
-  const forceFixture=async(speciesA,atomA,speciesB,atomB,sameSign)=>{
-    await setSlots(speciesA===speciesB?[speciesA,'','']:[speciesA,speciesB,'']);await waitFor("document.querySelector('[data-lab-status]').textContent.includes('4 個')",`${speciesA}/${speciesB} force fixture did not initialize`);
-    const instances=(await snapshot()).instances,left=instances.filter(item=>item.species===speciesA),right=instances.filter(item=>item.species===speciesB),a=left[0],b=speciesA===speciesB?left[1]:right[0];assert.ok(a&&b,`Fixture instances missing for ${speciesA}/${speciesB}`);
-    const pose=await evaluate(`window.__reactionLabProbe.positionPairOnAtoms('${a.id}',${atomA},'${b.id}',${atomB},.45)`),decomposition=await evaluate(`window.__reactionLabProbe.decomposePair('${a.id}','${b.id}',{includeHBond:false})`),pair=decomposition.pairs.find(item=>item.atomA===atomA&&item.atomB===atomB);
-    assert.ok(Math.abs(pose.distance-.45)<1e-8);assert.ok(pair,`Pairwise diagnostic missing for ${speciesA}[${atomA}]/${speciesB}[${atomB}]`);
-    const projection=pair.coulombForce.x*.45;assert.ok(sameSign?projection<0:projection>0,`Direct Coulomb sign invariant failed: ${JSON.stringify(pair)}`);
-    assert.ok(pair.stericMagnitude>pair.coulombMagnitude,`Close-range excluded volume must dominate the direct Coulomb term: ${JSON.stringify(pair)}`);
-    const relaxed=await evaluate('window.__reactionLabProbe.advanceDeterministic(90)'),final=await evaluate(`window.__reactionLabProbe.decomposePair('${a.id}','${b.id}',{includeHBond:false})`);
-    assert.ok(relaxed.instances.every(item=>item.position.every(Number.isFinite)),`Deterministic no-thermal fixture diverged: ${JSON.stringify(relaxed)}`);assert.ok(Math.min(...final.pairs.map(item=>item.distance))>.12,`Deterministic fixture collapsed atom centers: ${speciesA}/${speciesB}`);
-    return pair;
-  };
-  await forceFixture('water',0,'water',0,true);
-  await forceFixture('water',0,'carbon-dioxide',1,true);
-  await forceFixture('water',1,'carbon-dioxide',1,false);
-  await forceFixture('water',0,'carbon-dioxide',0,false);
-  await forceFixture('carbonic-acid',0,'carbon-dioxide',0,true);
-  await forceFixture('carbonic-acid',2,'carbon-dioxide',1,true);
   await setSlots(['hexamethylenediamine','isoamyl-acetate','methylcyclohexane']);
   await waitFor("document.querySelector('[data-lab-status]').textContent.includes('6 個')",'Three-species scene did not create six molecules');
   const largeScene=await snapshot();assert.equal(largeScene.instances.length,6);assert.ok(Math.max(...largeScene.instances.map(item=>item.atomCount))>=24,'Large DB molecules participate in the six-particle performance case');
@@ -188,5 +151,5 @@ try{
   const stageBCanvas=await evaluate("(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}})()"),stageBCameraBefore=stageBState.camera.azimuth,stageBOrbitStart={x:stageBCanvas.x+8,y:stageBCanvas.y+stageBCanvas.height*.5},stageBOrbitEnd={x:stageBOrbitStart.x+25,y:stageBOrbitStart.y+10};
   await evaluate("document.querySelector('[data-lab-mode=view]').click()");await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:stageBOrbitStart.x,y:stageBOrbitStart.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:stageBOrbitStart.x,y:stageBOrbitStart.y,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:stageBOrbitEnd.x,y:stageBOrbitEnd.y,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:stageBOrbitEnd.x,y:stageBOrbitEnd.y,button:'left',buttons:0});assert.notEqual((await snapshot()).camera.azimuth,stageBCameraBefore,'Stage B camera orbit remains responsive');
   assert.equal(browserErrors.length,0,`Browser reported errors: ${JSON.stringify(browserErrors)}`);
-  console.log('Reaction Lab 390×844 browser regression passed: RL-1H production, Stage A unchanged, Stage B opt-in carbonyl sites, drag/rotation/camera, and reaction contact.');
+  console.log('Reaction Lab 390×844 browser regression passed: stateless Stage B production, Stage A localhost mode, invisible anisotropy sites, drag/rotation/camera, and reaction contact.');
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();}

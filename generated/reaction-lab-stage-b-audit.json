@@ -6,8 +6,8 @@
   "stageBEngineVersion": "reaction-lab-stage-b-v1",
   "qA": 0.15,
   "virtualSiteDistanceAngstrom": 0.47,
-  "globalResult": "FAIL",
-  "productionCutover": false,
+  "globalResult": "PASS",
+  "productionCutover": true,
   "fixtures": {
     "water-acetone": {
       "orientationCount": 12,
@@ -55,14 +55,14 @@
       "lowestEnergyGeometry": {
         "energyKcalMol": -6.53915815,
         "overlapGuardActivationCount": 0,
-        "centerDistanceAngstrom": 2.76550702,
-        "minimumIntermolecularAtomDistanceAngstrom": 1.79333889,
-        "oxygenDistanceAngstrom": 2.74712844,
+        "centerDistanceAngstrom": 2.76550703,
+        "minimumIntermolecularAtomDistanceAngstrom": 1.79333891,
+        "oxygenDistanceAngstrom": 2.74712845,
         "donorAnglesDeg": [
-          174.01066884,
-          61.54641532
+          61.54641532,
+          174.01066899
         ],
-        "donorLinearityDeg": 174.01066884
+        "donorLinearityDeg": 174.01066899
       },
       "guardActivationCount": 0,
       "guardFreeFinalCount": 24,
@@ -74,8 +74,8 @@
       },
       "deltas": {
         "energyKcalMol": 0,
-        "oxygenDistanceAngstrom": 0,
-        "donorLinearityDeg": 0
+        "oxygenDistanceAngstrom": 1e-8,
+        "donorLinearityDeg": 1.5e-7
       },
       "pass": true
     },
@@ -10738,23 +10738,94 @@
     "eligibleCarbonylSiteCount": 10,
     "addedVirtualChargeSiteCount": 30,
     "baselineStageA": {
-      "medianStepMs": 19.18475,
-      "p95StepMs": 28.019801,
-      "maxStepMs": 33.803937,
+      "medianStepMs": 1.443105,
+      "p95StepMs": 2.159604,
+      "maxStepMs": 2.362683,
       "stepCount": 60,
       "pairDiagnostics": false
     },
     "stageB": {
-      "medianStepMs": 23.920132,
-      "p95StepMs": 30.438217,
-      "maxStepMs": 33.257626,
+      "medianStepMs": 1.922049,
+      "p95StepMs": 2.541704,
+      "maxStepMs": 3.068211,
       "stepCount": 60,
       "pairDiagnostics": false
     },
-    "medianOverheadRatio": 1.24683053,
-    "p95WithinFixedStepBudget": false,
+    "medianOverheadRatio": 1.33188437,
+    "p95WithinFixedStepBudget": true,
     "budgetPerPhysicsStepMs": 8.33333333,
-    "pass": false
+    "pass": true,
+    "optimization": {
+      "beforeOptimization": {
+        "stageA": {
+          "medianStepMs": 19.18475,
+          "p95StepMs": 28.019801
+        },
+        "stageB": {
+          "medianStepMs": 23.920132,
+          "p95StepMs": 30.438217
+        },
+        "source": "committed RL-NB5 audit; same 12 warm-up / 60-sample protocol"
+      },
+      "afterOptimization": {
+        "stageA": {
+          "medianStepMs": 1.443105,
+          "p95StepMs": 2.159604,
+          "maxStepMs": 2.362683,
+          "stepCount": 60,
+          "pairDiagnostics": false
+        },
+        "stageB": {
+          "medianStepMs": 1.922049,
+          "p95StepMs": 2.541704,
+          "maxStepMs": 3.068211,
+          "stepCount": 60,
+          "pairDiagnostics": false
+        }
+      },
+      "speedup": {
+        "stageAMedian": 13.2940777,
+        "stageAP95": 12.97450875,
+        "stageBMedian": 12.44512081,
+        "stageBP95": 11.97551603
+      },
+      "pairCounts": {
+        "realRealPairEvaluations": 6402,
+        "stageBVirtualChargePairEvaluations": 3459
+      },
+      "hotPathProfile": {
+        "worldSiteTransformationMs": 0.059854,
+        "coulombPairEvaluationMs": 1.707939,
+        "ljPairEvaluationMs": 1.408879,
+        "torqueAccumulationMs": 2.618947,
+        "stageBAugmentationMs": 0,
+        "stageBAugmentedBodyCopies": 0,
+        "realRealPairEvaluations": 6402,
+        "virtualChargePairEvaluations": 3459,
+        "staticSiteDescriptorsRebuilt": 6,
+        "allocationCounters": {
+          "pairDiagnosticMaps": 0,
+          "pairDiagnosticObjects": 0,
+          "temporaryVectorArraysPerPair": 0,
+          "bodyResultRecords": 6
+        },
+        "transformedWorldSiteCount": 154,
+        "inertiaAngularAccelerationMs": 0.019934,
+        "angularStateUpdateMs": 0.045521,
+        "scope": "one instrumented fixed step; timing calls enabled only for this sample"
+      },
+      "allocationCounters": {
+        "pairDiagnosticMaps": 0,
+        "pairDiagnosticObjects": 0,
+        "temporaryVectorArraysPerPair": 0,
+        "bodyResultRecords": 6,
+        "estimatedTemporaryVectorArraysPerPair": 0,
+        "stageBPerStepBodyCopies": 0,
+        "allocationTracking": "structural counters; heap/GC allocation sampling is runtime-dependent"
+      },
+      "overheadGatePass": true,
+      "performanceBudgetPass": true
+    }
   },
   "acceptanceGates": {
     "pairFixtures": true,
@@ -10769,14 +10840,10 @@
     "partnerExchange": true,
     "slowFastDrag": true,
     "multipoleInvariants": true,
-    "performance": false
+    "performance": true
   },
-  "failedGates": [
-    "performance"
-  ],
-  "failureClassification": [
-    "implementation-bug"
-  ],
+  "failedGates": [],
+  "failureClassification": [],
   "protocol": {
     "fixtureSeeds": {
       "waterWater": "20260927..20260950 (24)",

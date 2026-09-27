@@ -104,14 +104,6 @@ export function lennardJonesPairEnergyForce(sigmaA, epsilonA, sigmaB, epsilonB, 
   return { ...mixed, energyKcalMol, forceOnA: radialForceVector(derivative, deltaAngstrom, radius, fallbackDirection), guarded: guard.active };
 }
 
-function rotateTensor(tensor, quaternion) {
-  const basis = [quaternionRotate(quaternion, [1, 0, 0]), quaternionRotate(quaternion, [0, 1, 0]), quaternionRotate(quaternion, [0, 0, 1])];
-  const rotation = [[basis[0][0], basis[1][0], basis[2][0]], [basis[0][1], basis[1][1], basis[2][1]], [basis[0][2], basis[1][2], basis[2][2]]];
-  const multiply = (a, b) => a.map(row => b[0].map((_, column) => row.reduce((sum, value, index) => sum + value * b[index][column], 0)));
-  const transpose = matrix => matrix[0].map((_, column) => matrix.map(row => row[column]));
-  return multiply(multiply(rotation, tensor), transpose(rotation));
-}
-
 function symmetricPseudoInverseMultiply(matrixValue, vectorValue) {
   // Jacobi eigen decomposition yields a stable Moore-Penrose inverse for the
   // zero principal moment of linear molecules without amplifying that axis.
@@ -149,7 +141,8 @@ function stableFallback(a, b) {
   return axis === 0 ? [sign, 0, 0] : axis === 1 ? [0, sign, 0] : [0, 0, sign];
 }
 
-export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set(), collectPairDiagnostics = true } = {}) {
+export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set(), collectPairDiagnostics = true, profile = null, includeStageBVirtualSites = false } = {}) {
+  if (!collectPairDiagnostics) return evaluateStageAForcesFast(bodies, { excludedMoleculePairs, profile, includeStageBVirtualSites });
   const results = new Map(bodies.map(body => [body.id, { forceKcalMolAngstrom: vec(), torqueKcalMolAngstrom: vec(), energyKcalMol: 0 }]));
   const pairDiagnostics = [];
   let overlapGuardActivationCount = 0;
@@ -206,24 +199,167 @@ export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set()
   return { bodies: results, pairDiagnostics, overlapGuardActivationCount };
 }
 
-export function createStageABody({ id, positionAngstrom, orientation = [0, 0, 0, 1], velocityAngstromPerPs = [0, 0, 0], angularVelocityRadPerPs = [0, 0, 0], atoms, virtualChargeSites = [], massProperties = null }) {
-  const properties = massProperties ?? rigidBodyMassProperties(atoms);
-  return { id, positionAngstrom: [...positionAngstrom], orientation: quaternionNormalize(orientation), velocityAngstromPerPs: [...velocityAngstromPerPs], angularVelocityRadPerPs: [...angularVelocityRadPerPs], atoms: atoms.map((atom, index) => ({ ...atom, positionAngstrom: [...(properties.centeredPositionsAngstrom?.[index] ?? atom.positionAngstrom)], massAmu: STANDARD_ATOMIC_MASS_AMU[atom.element] })), virtualChargeSites: virtualChargeSites.map(site => ({ ...site, positionAngstrom: [...site.positionAngstrom] })), massAmu: properties.totalMassAmu, inertiaTensorAmuAngstrom2: properties.inertiaTensorAmuAngstrom2.map(row => [...row]) };
+// Allocation-light evaluator used by the viewer's production step. Diagnostics
+// intentionally stay on the rich path above; this path only returns body state
+// and the overlap count, and uses one real-real traversal for both potentials.
+const descriptorByBody = new WeakMap();
+const ljMixByBody = new WeakMap();
+const EMPTY_SITES = Object.freeze([]);
+
+function staticDescriptor(body, includeStageBVirtualSites) {
+  const stageB = includeStageBVirtualSites ? (body.stageBVirtualChargeSites ?? EMPTY_SITES) : EMPTY_SITES;
+  const cached = descriptorByBody.get(body);
+  if (cached && cached.atomsRef === body.atoms && cached.virtualRef === body.virtualChargeSites && cached.stageBRef === stageB) return cached;
+  const atoms = body.atoms ?? [], canonicalVirtual = body.virtualChargeSites ?? [];
+  const virtualCount = canonicalVirtual.length + stageB.length, realCount = atoms.length;
+  const localX = new Float64Array(realCount + virtualCount), localY = new Float64Array(realCount + virtualCount), localZ = new Float64Array(realCount + virtualCount);
+  const charge = new Float64Array(realCount + virtualCount), sigma = new Float64Array(realCount), epsilon = new Float64Array(realCount);
+  for (let i = 0; i < realCount; i++) {
+    const atom = atoms[i], p = atom.positionAngstrom;
+    localX[i] = p[0]; localY[i] = p[1]; localZ[i] = p[2]; charge[i] = atom.chargeE ?? 0;
+    sigma[i] = atom.sigmaAngstrom; epsilon[i] = atom.epsilonKcalMol;
+  }
+  let out = realCount;
+  for (const sites of [canonicalVirtual, stageB]) for (let i = 0; i < sites.length; i++, out++) {
+    const p = sites[i].positionAngstrom;
+    localX[out] = p[0]; localY[out] = p[1]; localZ[out] = p[2]; charge[out] = sites[i].chargeE;
+  }
+  const worldX = new Float64Array(realCount + virtualCount), worldY = new Float64Array(realCount + virtualCount), worldZ = new Float64Array(realCount + virtualCount);
+  const result = { atomsRef: body.atoms, virtualRef: body.virtualChargeSites, stageBRef: stageB, realCount, virtualCount, localX, localY, localZ, charge, sigma, epsilon, worldX, worldY, worldZ, stageBCount: stageB.length };
+  descriptorByBody.set(body, result);
+  return result;
 }
 
-export function integrateStageA(bodies, physicalDeltaPs, { excludedMoleculePairs = new Set(), linearDampingPerPs = 9.08, angularDampingPerPs = 37.1, collectPairDiagnostics = true } = {}) {
+function transformDescriptor(body, d) {
+  const q = body.orientation, qx=q[0], qy=q[1], qz=q[2], qw=q[3];
+  // Same unit-quaternion rotation used by quaternionRotate, expressed directly
+  // so each site creates no vectors or intermediate arrays.
+  const xx=qx*qx, yy=qy*qy, zz=qz*qz, xy=qx*qy, xz=qx*qz, yz=qy*qz, wx=qw*qx, wy=qw*qy, wz=qw*qz;
+  const m00=1-2*(yy+zz), m01=2*(xy-wz), m02=2*(xz+wy);
+  const m10=2*(xy+wz), m11=1-2*(xx+zz), m12=2*(yz-wx);
+  const m20=2*(xz-wy), m21=2*(yz+wx), m22=1-2*(xx+yy), px=body.positionAngstrom[0], py=body.positionAngstrom[1], pz=body.positionAngstrom[2];
+  for (let i=0, n=d.realCount+d.virtualCount; i<n; i++) {
+    const x=d.localX[i], y=d.localY[i], z=d.localZ[i];
+    d.worldX[i]=px+m00*x+m01*y+m02*z; d.worldY[i]=py+m10*x+m11*y+m12*z; d.worldZ[i]=pz+m20*x+m21*y+m22*z;
+  }
+}
+
+function bodyPairMix(left, right) {
+  let rightMap = ljMixByBody.get(left);
+  if (!rightMap) { rightMap = new WeakMap(); ljMixByBody.set(left, rightMap); }
+  const cached = rightMap.get(right);
+  if (cached && cached.leftAtoms === left.atoms && cached.rightAtoms === right.atoms) return cached;
+  const a = left.atoms ?? [], b = right.atoms ?? [], sigma = new Float64Array(a.length*b.length), epsilon = new Float64Array(a.length*b.length);
+  for (let i=0;i<a.length;i++) for(let j=0;j<b.length;j++) {
+    const k=i*b.length+j; sigma[k]=(a[i].sigmaAngstrom+b[j].sigmaAngstrom)/2; epsilon[k]=Math.sqrt(a[i].epsilonKcalMol*b[j].epsilonKcalMol);
+  }
+  const result={leftAtoms:left.atoms,rightAtoms:right.atoms,sigma,epsilon,rightCount:b.length}; rightMap.set(right,result); return result;
+}
+
+function hashFallbackAxis(leftId,leftKind,leftIndex,rightId,rightKind,rightIndex) {
+  const seed = `${leftId}:${leftKind}:${leftIndex}|${rightId}:${rightKind}:${rightIndex}`;
+  let hash=2166136261; for(let i=0;i<seed.length;i++) hash=Math.imul(hash^seed.charCodeAt(i),16777619);
+  return [Math.abs(hash%3), (hash&4)?-1:1];
+}
+
+const clockNow=()=>globalThis.performance?.now?.()??Date.now();
+function evaluateStageAForcesFast(bodies, { excludedMoleculePairs = new Set(), includeStageBVirtualSites = false, profile = null } = {}) {
+  if(profile){profile.worldSiteTransformationMs??=0;profile.coulombPairEvaluationMs??=0;profile.ljPairEvaluationMs??=0;profile.torqueAccumulationMs??=0;profile.stageBAugmentationMs=0;profile.stageBAugmentedBodyCopies=0;profile.realRealPairEvaluations??=0;profile.virtualChargePairEvaluations??=0;profile.staticSiteDescriptorsRebuilt=0;profile.allocationCounters??={pairDiagnosticMaps:0,pairDiagnosticObjects:0,temporaryVectorArraysPerPair:0,bodyResultRecords:0};}
+  const count=bodies.length, forceX=new Float64Array(count),forceY=new Float64Array(count),forceZ=new Float64Array(count),torqueX=new Float64Array(count),torqueY=new Float64Array(count),torqueZ=new Float64Array(count),energy=new Float64Array(count);
+  const descriptors=new Array(count); let guardCount=0;
+  for(let i=0;i<count;i++){const body=bodies[i],stageB=includeStageBVirtualSites?(body.stageBVirtualChargeSites??EMPTY_SITES):EMPTY_SITES,cached=descriptorByBody.get(body),rebuild=!(cached&&cached.atomsRef===body.atoms&&cached.virtualRef===body.virtualChargeSites&&cached.stageBRef===stageB),d=staticDescriptor(body,includeStageBVirtualSites);descriptors[i]=d;if(profile&&rebuild)profile.staticSiteDescriptorsRebuilt++;const started=profile?clockNow():0;transformDescriptor(body,d);if(profile){profile.worldSiteTransformationMs+=clockNow()-started;profile.transformedWorldSiteCount=(profile.transformedWorldSiteCount??0)+d.realCount+d.virtualCount;}}
+  const pairName=(a,b)=>a<b?`${a}|${b}`:`${b}|${a}`;
+  const apply=(ai,bi,sa,sb,fx,fy,fz,e,guarded)=>{
+    forceX[ai]+=fx;forceY[ai]+=fy;forceZ[ai]+=fz;forceX[bi]-=fx;forceY[bi]-=fy;forceZ[bi]-=fz;energy[ai]+=e*0.5;energy[bi]+=e*0.5;
+    const a=bodies[ai],b=bodies[bi],da=descriptors[ai],db=descriptors[bi];
+    torqueX[ai]+=(da.worldY[sa]-a.positionAngstrom[1])*fz-(da.worldZ[sa]-a.positionAngstrom[2])*fy;
+    torqueY[ai]+=(da.worldZ[sa]-a.positionAngstrom[2])*fx-(da.worldX[sa]-a.positionAngstrom[0])*fz;
+    torqueZ[ai]+=(da.worldX[sa]-a.positionAngstrom[0])*fy-(da.worldY[sa]-a.positionAngstrom[1])*fx;
+    torqueX[bi]-=(db.worldY[sb]-b.positionAngstrom[1])*fz-(db.worldZ[sb]-b.positionAngstrom[2])*fy;
+    torqueY[bi]-=(db.worldZ[sb]-b.positionAngstrom[2])*fx-(db.worldX[sb]-b.positionAngstrom[0])*fz;
+    torqueZ[bi]-=(db.worldX[sb]-b.positionAngstrom[0])*fy-(db.worldY[sb]-b.positionAngstrom[1])*fx;
+    if(guarded)guardCount++;
+  };
+  const interaction=(ai,bi,sa,sb,chargeA,chargeB,sigma,epsilon,ljGuardBoundary)=>{
+    const a=descriptors[ai],b=descriptors[bi],dx=b.worldX[sb]-a.worldX[sa],dy=b.worldY[sb]-a.worldY[sa],dz=b.worldZ[sb]-a.worldZ[sa],r2=dx*dx+dy*dy+dz*dz,r=Math.sqrt(r2);
+    if(!Number.isFinite(r))return;
+    let e=0,derivative=0,guarded=false;
+    if(chargeA&&chargeB){
+      const profileStart=profile?clockNow():0;
+      const g=r<OVERLAP_GUARD_RADIUS_ANGSTROM,ratio=g?Math.max(0,r/OVERLAP_GUARD_RADIUS_ANGSTROM):1,eff=g?OVERLAP_GUARD_RADIUS_ANGSTROM*(.75+.25*ratio**4):r,gd=g?ratio**3:1,product=COULOMB_KCAL_ANGSTROM_PER_MOL_E2*chargeA*chargeB;
+      e=product/eff;derivative=-product/(eff*eff)*gd;guarded=g;
+      if(profile)profile.coulombPairEvaluationMs+=clockNow()-profileStart;
+    }
+    if(epsilon!==0){
+      const profileStart=profile?clockNow():0;
+      const g=r<ljGuardBoundary,ratioGuard=g?Math.max(0,r/ljGuardBoundary):1,eff=g?ljGuardBoundary*(.75+.25*ratioGuard**4):r,gd=g?ratioGuard**3:1,ratio=sigma/eff,sixth=ratio**6,twelfth=sixth*sixth;
+      e+=4*epsilon*(twelfth-sixth);derivative+=24*epsilon*(sixth-2*twelfth)/eff*gd;guarded ||= g;
+      if(profile)profile.ljPairEvaluationMs+=clockNow()-profileStart;
+    }
+    let fx=0,fy=0,fz=0;
+    if(r>1e-14){const factor=derivative/r;fx=dx*factor;fy=dy*factor;fz=dz*factor;}
+    else if(derivative!==0){const [axis,sign]=hashFallbackAxis(bodies[ai].id,sa<a.realCount?'atom':'virtual',sa<a.realCount?sa:sa-a.realCount,bodies[bi].id,sb<b.realCount?'atom':'virtual',sb<b.realCount?sb:sb-b.realCount);if(axis===0)fx=sign*derivative;else if(axis===1)fy=sign*derivative;else fz=sign*derivative;}
+    if(profile)profile.realRealPairEvaluations++;
+    const torqueStart=profile?clockNow():0;apply(ai,bi,sa,sb,fx,fy,fz,e,guarded);if(profile)profile.torqueAccumulationMs+=clockNow()-torqueStart;
+  };
+  const coulombOnly=(ai,bi,sa,sb)=>{
+    const a=descriptors[ai],b=descriptors[bi],qa=a.charge[sa],qb=b.charge[sb];
+    if(!qa||!qb)return;
+    const dx=b.worldX[sb]-a.worldX[sa],dy=b.worldY[sb]-a.worldY[sa],dz=b.worldZ[sb]-a.worldZ[sa],r=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(!Number.isFinite(r))return;
+    const profileStart=profile?clockNow():0,guarded=r<OVERLAP_GUARD_RADIUS_ANGSTROM,ratio=guarded?Math.max(0,r/OVERLAP_GUARD_RADIUS_ANGSTROM):1,effective=guarded?OVERLAP_GUARD_RADIUS_ANGSTROM*(.75+.25*ratio**4):r,derivative=-(COULOMB_KCAL_ANGSTROM_PER_MOL_E2*qa*qb)/(effective*effective)*(guarded?ratio**3:1),energy=COULOMB_KCAL_ANGSTROM_PER_MOL_E2*qa*qb/effective;
+    let fx=0,fy=0,fz=0;
+    if(r>1e-14){const factor=derivative/r;fx=dx*factor;fy=dy*factor;fz=dz*factor;}
+    else if(derivative!==0){const [axis,sign]=hashFallbackAxis(bodies[ai].id,sa<a.realCount?'atom':'virtual',sa<a.realCount?sa:sa-a.realCount,bodies[bi].id,sb<b.realCount?'atom':'virtual',sb<b.realCount?sb:sb-b.realCount);if(axis===0)fx=sign*derivative;else if(axis===1)fy=sign*derivative;else fz=sign*derivative;}
+    if(profile){profile.coulombPairEvaluationMs+=clockNow()-profileStart;profile.virtualChargePairEvaluations++;}
+    const torqueStart=profile?clockNow():0;apply(ai,bi,sa,sb,fx,fy,fz,energy,guarded);if(profile)profile.torqueAccumulationMs+=clockNow()-torqueStart;
+  };
+  for(let ai=0;ai<count;ai++)for(let bi=ai+1;bi<count;bi++){
+    const left=bodies[ai],right=bodies[bi];if(excludedMoleculePairs.size&&excludedMoleculePairs.has(pairName(left.id,right.id)))continue;
+    const a=descriptors[ai],b=descriptors[bi],mix=bodyPairMix(left,right);
+    // One real-real traversal evaluates both Coulomb and LJ with the same r.
+    for(let i=0;i<a.realCount;i++)for(let j=0;j<b.realCount;j++){
+      const k=i*mix.rightCount+j,sigma=mix.sigma[k],epsilon=mix.epsilon[k];
+      interaction(ai,bi,i,j,a.charge[i],b.charge[j],sigma,epsilon,sigma*OVERLAP_GUARD_SIGMA_FRACTION);
+    }
+    // Only pairs involving canonical or Stage B virtual charges use the extra
+    // Coulomb path; each real-real charge pair above is already accounted for.
+    for(let i=0;i<a.realCount;i++)for(let j=b.realCount;j<b.realCount+b.virtualCount;j++)coulombOnly(ai,bi,i,j);
+    for(let i=a.realCount;i<a.realCount+a.virtualCount;i++)for(let j=0;j<b.realCount;j++)coulombOnly(ai,bi,i,j);
+    for(let i=a.realCount;i<a.realCount+a.virtualCount;i++)for(let j=b.realCount;j<b.realCount+b.virtualCount;j++)coulombOnly(ai,bi,i,j);
+  }
+  const results=new Map();for(let i=0;i<count;i++)results.set(bodies[i].id,{forceKcalMolAngstrom:[forceX[i],forceY[i],forceZ[i]],torqueKcalMolAngstrom:[torqueX[i],torqueY[i],torqueZ[i]],energyKcalMol:energy[i]});if(profile)profile.allocationCounters.bodyResultRecords+=count;
+  return {bodies:results,pairDiagnostics:[],overlapGuardActivationCount:guardCount};
+}
+
+export function createStageABody({ id, positionAngstrom, orientation = [0, 0, 0, 1], velocityAngstromPerPs = [0, 0, 0], angularVelocityRadPerPs = [0, 0, 0], atoms, virtualChargeSites = [], massProperties = null }) {
+  const properties = massProperties ?? rigidBodyMassProperties(atoms);
+  const inertiaTensorAmuAngstrom2 = properties.inertiaTensorAmuAngstrom2.map(row => [...row]);
+  const inertiaTensorInverseAmuAngstromMinus2 = [0,1,2].map(column => {
+    const vector=[0,0,0]; vector[column]=1; return symmetricPseudoInverseMultiply(inertiaTensorAmuAngstrom2,vector);
+  });
+  const inverseRows=[0,1,2].map(row=>[inertiaTensorInverseAmuAngstromMinus2[0][row],inertiaTensorInverseAmuAngstromMinus2[1][row],inertiaTensorInverseAmuAngstromMinus2[2][row]]);
+  return { id, positionAngstrom: [...positionAngstrom], orientation: quaternionNormalize(orientation), velocityAngstromPerPs: [...velocityAngstromPerPs], angularVelocityRadPerPs: [...angularVelocityRadPerPs], atoms: atoms.map((atom, index) => ({ ...atom, positionAngstrom: [...(properties.centeredPositionsAngstrom?.[index] ?? atom.positionAngstrom)], massAmu: STANDARD_ATOMIC_MASS_AMU[atom.element] })), virtualChargeSites: virtualChargeSites.map(site => ({ ...site, positionAngstrom: [...site.positionAngstrom] })), massAmu: properties.totalMassAmu, inertiaTensorAmuAngstrom2, inertiaTensorInverseAmuAngstromMinus2: inverseRows };
+}
+
+export function integrateStageA(bodies, physicalDeltaPs, { excludedMoleculePairs = new Set(), linearDampingPerPs = 9.08, angularDampingPerPs = 37.1, collectPairDiagnostics = true, includeStageBVirtualSites = false, profile = null } = {}) {
   if (!Number.isFinite(physicalDeltaPs) || physicalDeltaPs < 0) throw new Error('Physical timestep must be finite and non-negative.');
-  const forces = evaluateStageAForces(bodies, { excludedMoleculePairs, collectPairDiagnostics });
+  const forces = collectPairDiagnostics
+    ? evaluateStageAForces(bodies, { excludedMoleculePairs, collectPairDiagnostics })
+    : evaluateStageAForcesFast(bodies, { excludedMoleculePairs, includeStageBVirtualSites, profile });
   for (const body of bodies) {
     if (body.kinematic) continue;
+    const angularStart=profile?clockNow():0;
     const state = forces.bodies.get(body.id), acceleration = scale(state.forceKcalMolAngstrom, KCAL_MOL_AMU_TO_ANGSTROM_PS2 / body.massAmu);
     body.velocityAngstromPerPs = scale(add(body.velocityAngstromPerPs, scale(acceleration, physicalDeltaPs)), Math.exp(-linearDampingPerPs * physicalDeltaPs));
     body.positionAngstrom = add(body.positionAngstrom, scale(body.velocityAngstromPerPs, physicalDeltaPs));
-    const worldInertia = rotateTensor(body.inertiaTensorAmuAngstrom2, body.orientation);
-    const angularAcceleration = scale(symmetricPseudoInverseMultiply(worldInertia, state.torqueKcalMolAngstrom), KCAL_MOL_AMU_TO_ANGSTROM_PS2);
+    const profileStart=profile?clockNow():0,conjugate=[-body.orientation[0],-body.orientation[1],-body.orientation[2],body.orientation[3]], torqueBody=quaternionRotate(conjugate,state.torqueKcalMolAngstrom), inverse=body.inertiaTensorInverseAmuAngstromMinus2;
+    const accelerationBody=[inverse[0][0]*torqueBody[0]+inverse[0][1]*torqueBody[1]+inverse[0][2]*torqueBody[2],inverse[1][0]*torqueBody[0]+inverse[1][1]*torqueBody[1]+inverse[1][2]*torqueBody[2],inverse[2][0]*torqueBody[0]+inverse[2][1]*torqueBody[1]+inverse[2][2]*torqueBody[2]];
+    const angularAcceleration = scale(quaternionRotate(body.orientation,accelerationBody), KCAL_MOL_AMU_TO_ANGSTROM_PS2);
+    if(profile){profile.inertiaAngularAccelerationMs=(profile.inertiaAngularAccelerationMs??0)+clockNow()-profileStart;profile.angularStateUpdateMs=(profile.angularStateUpdateMs??0)+clockNow()-angularStart;}
     body.angularVelocityRadPerPs = scale(add(body.angularVelocityRadPerPs, scale(angularAcceleration, physicalDeltaPs)), Math.exp(-angularDampingPerPs * physicalDeltaPs));
-    const omega = body.angularVelocityRadPerPs, omegaQuaternion = [omega[0], omega[1], omega[2], 0];
-    body.orientation = quaternionNormalize(quaternionMultiply(omegaQuaternion, body.orientation).map((value, index) => body.orientation[index] + 0.5 * value * physicalDeltaPs));
+    const omega=body.angularVelocityRadPerPs,omegaQuaternion=[omega[0],omega[1],omega[2],0];
+    body.orientation=quaternionNormalize(quaternionMultiply(omegaQuaternion,body.orientation).map((value,index)=>body.orientation[index]+0.5*value*physicalDeltaPs));
   }
   return forces;
 }
