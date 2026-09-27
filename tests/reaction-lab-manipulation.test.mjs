@@ -81,6 +81,6 @@ test('reaction dwell follows simulation time, so 520 real milliseconds of slow d
   assert.equal(matcher.update('pair', true, simulationMs), false);
   simulationMs += scaleSimulationElapsed(0.52, MANIPULATION_TIME_SCALE) * 1000;
   assert.equal(matcher.update('pair', true, simulationMs), false);
-  simulationMs += scaleSimulationElapsed(CONTACT_DWELL_MS / 1000 / MANIPULATION_TIME_SCALE, MANIPULATION_TIME_SCALE) * 1000;
+  simulationMs += CONTACT_DWELL_MS - simulationMs;
   assert.equal(matcher.update('pair', true, simulationMs), true);
 });
