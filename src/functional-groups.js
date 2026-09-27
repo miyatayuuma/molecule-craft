@@ -1,4 +1,5 @@
 // A small declarative subgraph matcher, deliberately not a SMARTS interpreter.
+import { enumerateSubgraphMappings } from './subgraph-matcher.js?v=1';
 function graphIndex(graph) {
   const atoms = graph.atoms.map((atom,index) => typeof atom === 'string' ? {id:index,element:atom} : atom);
   const bonds = graph.bonds.map(bond => Array.isArray(bond) ? {a:bond[0],b:bond[1],order:bond[2]} : bond);
@@ -22,20 +23,10 @@ function matchesPattern(index, pattern, aromatic = new Set(), limit = 128) {
     return true;
   }).map(atom=>atom.id));
   if(candidates.some(items=>!items.length))return [];
-  const edges=pattern.atoms.map((_,node)=>pattern.bonds.filter(([a,b])=>a===node||b===node));
-  const order=pattern.atoms.map((_,i)=>i).sort((a,b)=>candidates[a].length-candidates[b].length||edges[b].length-edges[a].length);
-  const mapping=new Map(),used=new Set(),matches=new Map();
-  function search(depth){
-    if(matches.size>=limit)return;
-    if(depth===order.length){const ids=pattern.atoms.map((_,i)=>mapping.get(i));matches.set([...ids].sort((a,b)=>a-b).join(','),ids);return;}
-    const node=order[depth];
-    for(const id of candidates[node]){
-      if(used.has(id))continue;
-      if(!edges[node].every(([a,b,bondOrder])=>{const other=a===node?b:a;return !mapping.has(other)||adjacent(id).some(n=>n.id===mapping.get(other)&&n.order===bondOrder);}))continue;
-      used.add(id);mapping.set(node,id);search(depth+1);mapping.delete(node);used.delete(id);
-    }
-  }
-  search(0);return [...matches.values()];
+  const labels=pattern.atoms.map((_,node)=>String(node)),candidateMap=new Map(labels.map((label,node)=>[label,candidates[node]]));
+  const edges=pattern.bonds.map(([a,b,order])=>({a:String(a),b:String(b),order}));
+  return enumerateSubgraphMappings({labels,candidates:candidateMap,edges,adjacency:index.adjacency,limit,overflow:'truncate',identityKey:binding=>Object.values(binding).sort((a,b)=>a-b).join(',')})
+    .map(binding=>labels.map(label=>binding[label]));
 }
 
 export function validateFunctionalGroups(groups) {

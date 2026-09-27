@@ -315,6 +315,15 @@ function normalizedGraph(atoms, bonds) {
   return { atoms: normalizedAtoms, bonds: aromaticBonds, byId, adjacency: adjacencyFor(normalizedAtoms, aromaticBonds) };
 }
 
+// Shared graph authority for callers that need to exclude aromatic sites.
+// Reaction matching deliberately delegates here rather than maintaining a
+// second aromatic-ring heuristic.
+export function molecularAromaticAtomIds(atoms, bonds) {
+  return new Set(normalizedGraph(atoms, bonds).bonds
+    .filter(bond => bond.order === 'a')
+    .flatMap(bond => [bond.a, bond.b]));
+}
+
 function adjacencyFor(atoms, bonds) {
   const adjacency = new Map(atoms.map(atom => [atom.id, []]));
   for (const bond of bonds) {
