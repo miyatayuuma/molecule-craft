@@ -43,6 +43,7 @@ try{
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:plan.end.x,y:plan.end.y,button:'left',buttons:0});
   };
   const runReaction=async(ruleId,products)=>{
+    await evaluate('window.__labReactionEvents=[]');
     const plan=await evaluate(`window.__reactionLabProbe.prepareReactionApproach('${ruleId}',4.2)`);
     assert.ok(plan.initialSiteDistance>1.18&&plan.initialDepthDelta>2,`reactive atoms begin separated in depth and distance: ${JSON.stringify(plan)}`);
     let heldState=null;
