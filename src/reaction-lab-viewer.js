@@ -333,6 +333,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       prepareReactionApproach(ruleId,separationWorld=4.2){
         const candidate=instances.flatMap((left,index)=>instances.slice(index+1).flatMap(right=>reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],records))).find(item=>item.ruleId===ruleId);
         if(!candidate)throw Error(`No live instance pair for ${ruleId}`);
+        distance=15;updateCamera();
         const ids=resolveCandidateInstanceIds(candidate,instances.map(item=>item.id)),[left,right]=ids.map(instanceById),[atomA,atomB]=candidate.siteAtomIndices;
         testIsolation=new Set(ids);contactMatcher.reset();clearDepthTarget();endManipulation();
         for(const item of instances){item.busy=false;item.stageBody.velocityAngstromPerPs=[0,0,0];item.stageBody.angularVelocityRadPerPs=[0,0,0];item.group.quaternion.identity();if(item!==left&&item!==right)item.group.position.set(9,9,0);}
@@ -345,6 +346,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       },
       preparePairApproach(speciesA,speciesB,separationWorld=4.2,depthDeltaWorld=3.4){
         const left=instances.find(item=>item.species===speciesA),right=instances.find(item=>item!==left&&item.species===speciesB);if(!left||!right)throw Error('Requested molecule pair is not present');
+        distance=15;updateCamera();
         testIsolation=new Set([left.id,right.id]);contactMatcher.reset();clearDepthTarget();endManipulation();
         for(const item of instances){item.busy=false;item.stageBody.velocityAngstromPerPs=[0,0,0];item.stageBody.angularVelocityRadPerPs=[0,0,0];item.group.quaternion.identity();if(item!==left&&item!==right)item.group.position.set(9,9,0);}
         const axis=cameraRight(),normal=cameraNormal(),pointA=left.record.atoms[0].point,pointB=right.record.atoms[0].point;
