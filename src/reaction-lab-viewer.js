@@ -183,27 +183,28 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const rect=canvas.getBoundingClientRect(),aspect=Math.max(.1,rect.width/Math.max(1,rect.height)),halfHeight=distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5)),halfWidth=halfHeight*aspect;
     return new THREE.Vector3((slotIndex-1)*halfWidth*(2/3),halfHeight-.55,0);
   }
-  function feedDestination(row,selectedCount){
-    const points=[[-1.35,.45],[1.15,.7],[-.35,-1.05],[1.45,-.65],[.2,1.25],[-1.2,-.45]],index=selectedCount===1?row.waveIndex:(row.slotIndex*2+row.waveIndex*3)%points.length,variation=deterministicFeedVariation(row.slotIndex,row.waveIndex,row.index);
-    return new THREE.Vector3(points[index][0]+variation.lateral*.5,points[index][1]+variation.pitch*.6,0);
+  function createFeedTransition(generation,schedule){
+    const entries=schedule.map(row=>{const variation=deterministicFeedVariation(row.slotIndex,row.waveIndex,row.index),travelMs=reducedMotion?Math.max(150,Math.round(220/variation.speed)):Math.round(FEED_TRAVEL_MS/variation.speed);return{...row,variation,travelMs,startedAt:null,item:null};}).sort((a,b)=>a.startDelayMs-b.startDelayMs||a.slotIndex-b.slotIndex||a.index-b.index);
+    const preparations=[...new Set(entries.map(row=>row.species))].map(species=>({species,preview:null,steps:0,model:null,ready:false}));
+    return{kind:'feed',generation,elapsedMs:0,feedStartedAt:null,entries,preparations,preparationBySpecies:new Map(preparations.map(preparation=>[preparation.species,preparation])),preparationCursor:0,feedLayoutReady:false};
   }
-  function startFeedTransition(generation,schedule){
-    const selectedCount=batch.activeSlots.filter(Boolean).length,entries=schedule.map(row=>{const variation=deterministicFeedVariation(row.slotIndex,row.waveIndex,row.index),travelMs=reducedMotion?Math.max(150,Math.round(220/variation.speed)):Math.round(FEED_TRAVEL_MS/variation.speed);return{...row,variation,travelMs,startedAt:null,item:null,preview:null,previewSteps:0,preparedModel:null,prepared:false};}).sort((a,b)=>a.startDelayMs-b.startDelayMs||a.slotIndex-b.slotIndex||a.index-b.index);
-    batchTransition={kind:'feed',generation,elapsedMs:0,feedStartedAt:null,entries,selectedCount};
+  function startFeedTransition(generation,schedule,preparedTransition=null){
+    batchTransition=preparedTransition??createFeedTransition(generation,schedule);
+    if(preparedTransition)prepareFeedModels(batchTransition);
     status.textContent='FEEDING · 分子をchamberへ投入中';renderSlotTiles();
   }
-  function startPurge(generation,nextSlots){
+  function startPurge(generation,nextSlots,feedSchedule){
     cancelAllPointers();contactMatcher.reset();reactionContactPairs.clear();testIsolation=null;
     purgeItems=instances;instances=[];const durationMs=reducedMotion?360:FLUSH_PRESENTATION_MS;
     for(const item of purgeItems){item.busy=false;item.purgeStart=item.group.position.clone();item.group.scale.setScalar(1);}
-    batchTransition={kind:'flush',generation,elapsedMs:0,durationMs,items:purgeItems,nextSlots:[...nextSlots]};
+    batchTransition={kind:'flush',generation,elapsedMs:0,durationMs,items:purgeItems,nextSlots:[...nextSlots],nextFeed:feedSchedule?.length?createFeedTransition(generation,feedSchedule):null};
     status.textContent='FLUSHING · 旧batchを下部outletへ排出中';renderSlotTiles();
   }
   function beginFeed(){
     if(!canEditRack())return;
     const result=batch.beginFeed({hasCurrentBatch:batch.phase===REACTION_LAB_BATCH_PHASES.ACTIVE});if(!result.ok)return;
     contactMatcher.reset();reactionContactPairs.clear();testIsolation=null;
-    if(result.phase===REACTION_LAB_BATCH_PHASES.FLUSHING)startPurge(result.generation,result.activeSlots);
+    if(result.phase===REACTION_LAB_BATCH_PHASES.FLUSHING)startPurge(result.generation,result.activeSlots,result.feedSchedule);
     else startFeedTransition(result.generation,result.feedSchedule);
     renderSlotTiles();
   }
@@ -213,39 +214,45 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const progress=clamp(transition.elapsedMs/transition.durationMs,0,1),approach=clamp(progress/.78,0,1),eased=approach*approach*(3-2*approach),rect=canvas.getBoundingClientRect(),halfHeight=distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5)),outletY=-halfHeight+.45,crossing=Math.max(0,(progress-.78)/.22);
     for(const item of transition.items){item.group.position.lerpVectors(item.purgeStart,new THREE.Vector3(0,outletY,0),eased);if(progress>.78)item.group.position.y-=crossing*.85;const scale=progress>.66?1-(progress-.66)/.34*.86:1;item.group.scale.setScalar(Math.max(.08,scale));}
     if(progress<1)return;
-    for(const item of transition.items)disposeItem(item);purgeItems=[];batchTransition=null;
+    for(const item of transition.items)disposeItem(item);purgeItems=[];const preparedFeed=transition.nextFeed;batchTransition=null;
     const next=batch.completeFlush(transition.generation);if(!next.ok)return;
-    if(next.phase===REACTION_LAB_BATCH_PHASES.FEEDING)startFeedTransition(next.generation,next.feedSchedule);
+    if(next.phase===REACTION_LAB_BATCH_PHASES.FEEDING)startFeedTransition(next.generation,next.feedSchedule,preparedFeed);
     else{status.textContent='Chamber empty';renderSlotTiles();}
   }
   function spawnFeedEntry(transition,row){
     const record=recordsById.get(row.species);if(!record)return null;
-    const origin=feedOrigin(row.slotIndex),destination=feedDestination(row,transition.selectedCount),item=createInstance(record,origin,{generation:transition.generation,orientation:row.variation,originPortIndex:row.slotIndex,feedPhase:'feeding',preparedModel:row.preparedModel});row.preparedModel=null;
+    const origin=feedOrigin(row.slotIndex),destination=row.destination.clone(),item=createInstance(record,origin,{generation:transition.generation,orientation:row.variation,originPortIndex:row.slotIndex,feedPhase:'feeding',preparedModel:transition.preparationBySpecies.get(row.species)?.model});
     item.feedMotion={generation:transition.generation,origin:origin.clone(),destination:destination.clone(),startedAt:transition.elapsedMs,durationMs:row.travelMs,variation:row.variation};item.stageBody.kinematic=true;row.item=item;row.startedAt=transition.elapsedMs;
     return item;
   }
-  function prepareFeedModels(transition){
-    const entries=transition.entries;if(!entries.length)return;
+  function prepareFeedModels(transition,{fitLayout=true}={}){
+    const preparations=transition.preparations;if(!preparations.length)return;
     const started=performance.now();let cursor=transition.preparationCursor??0,skipped=0;
-    while(performance.now()-started<6&&skipped<entries.length){
-      const row=entries[cursor];cursor=(cursor+1)%entries.length;
-      if(row.prepared||row.item){skipped++;continue;}
+    while(performance.now()-started<6&&skipped<preparations.length){
+      const preparation=preparations[cursor];cursor=(cursor+1)%preparations.length;
+      if(preparation.ready){skipped++;continue;}
       skipped=0;
-      const record=recordsById.get(row.species);if(!record){row.prepared=true;continue;}
-      if(!row.preview)row.preview=createPreviewModel(THREE,record);
-      row.preview.step();row.previewSteps++;
-      if(row.previewSteps>=190){row.preparedModel=row.preview.snapshot();row.preview=null;row.prepared=true;}
+      const record=recordsById.get(preparation.species);if(!record){preparation.ready=true;continue;}
+      if(!preparation.preview)preparation.preview=createPreviewModel(THREE,record);
+      preparation.preview.step();preparation.steps++;
+      if(preparation.steps>=190){preparation.model=preparation.preview.snapshot();preparation.preview=null;preparation.ready=true;}
     }
     transition.preparationCursor=cursor;
+    if(fitLayout&&!transition.feedLayoutReady&&preparations.every(preparation=>preparation.ready)){
+      const maxRadius=Math.max(...preparations.map(preparation=>Math.max(...preparation.model.atoms.map(atom=>atom.point.length()+modelAtomRadius(atom.element))))),spacing=Math.max(2.6,maxRadius*2+.65),positions=transition.entries.length===6?[[-spacing,spacing*.5],[0,spacing*.5],[spacing,spacing*.5],[spacing,-spacing*.5],[0,-spacing*.5],[-spacing,-spacing*.5]]:[[-spacing*.5,spacing*.5],[spacing*.5,spacing*.5],[spacing*.5,-spacing*.5],[-spacing*.5,-spacing*.5]];
+      transition.entries.forEach((row,index)=>{const variation=row.variation,point=positions[index]??[0,0];row.destination=new THREE.Vector3(point[0]+variation.lateral*.25,point[1]+variation.pitch*.25,0);});
+      const minX=Math.min(...transition.entries.map(row=>row.destination.x-maxRadius)),maxX=Math.max(...transition.entries.map(row=>row.destination.x+maxRadius)),minY=Math.min(...transition.entries.map(row=>row.destination.y-maxRadius)),maxY=Math.max(...transition.entries.map(row=>row.destination.y+maxRadius)),rect=canvas.getBoundingClientRect(),aspect=Math.max(.1,rect.width/Math.max(1,rect.height)),tan=Math.tan(THREE.MathUtils.degToRad(camera.fov*.5)),required=Math.max((maxX-minX)/(2*tan*aspect*.88),(maxY-minY)/(2*tan*.88));
+      distance=clamp(Math.max(15,required),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();transition.feedLayoutReady=true;
+    }
   }
   function progressFeed(transition,elapsedMs){
     if(batch.generation!==transition.generation){for(const row of transition.entries)if(row.item){instances=instances.filter(item=>item!==row.item);disposeItem(row.item);}batchTransition=null;return;}
     transition.elapsedMs+=elapsedMs;
     prepareFeedModels(transition);
-    if(transition.feedStartedAt===null&&transition.entries[0]?.prepared)transition.feedStartedAt=transition.elapsedMs;
+    if(transition.feedStartedAt===null&&transition.feedLayoutReady)transition.feedStartedAt=transition.elapsedMs;
     let spawnedThisFrame=false;
     for(const row of transition.entries){
-      if(!row.item&&!spawnedThisFrame&&row.prepared&&transition.feedStartedAt!==null&&transition.elapsedMs>=transition.feedStartedAt+row.startDelayMs){spawnFeedEntry(transition,row);spawnedThisFrame=true;}
+      if(!row.item&&!spawnedThisFrame&&transition.feedLayoutReady&&transition.feedStartedAt!==null&&transition.elapsedMs>=transition.feedStartedAt+row.startDelayMs){spawnFeedEntry(transition,row);spawnedThisFrame=true;}
       const item=row.item;if(!item)continue;
       const motion=item.feedMotion;if(!motion)continue;
       const progress=clamp((transition.elapsedMs-motion.startedAt)/motion.durationMs,0,1),eased=progress*progress*(3-2*progress),arc=Math.sin(Math.PI*progress)*motion.variation.lateral;
@@ -258,7 +265,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function advanceBatchTransition(elapsedMs){
     const transition=batchTransition;if(!transition)return;
-    if(transition.kind==='flush'){transition.elapsedMs+=elapsedMs;progressFlush(transition);}
+    if(transition.kind==='flush'){transition.elapsedMs+=elapsedMs;if(transition.nextFeed)prepareFeedModels(transition.nextFeed,{fitLayout:false});progressFlush(transition);}
     else progressFeed(transition,elapsedMs);
   }
 
