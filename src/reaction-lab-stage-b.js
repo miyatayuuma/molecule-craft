@@ -84,7 +84,7 @@ export function integrateStageB(bodies,physicalDeltaPs,options={}){
   const augmented=bodies.map(body=>({...body,virtualChargeSites:[...(body.virtualChargeSites??[]),...(body.stageBVirtualChargeSites??[])]}));
   const wantDiagnostics=options.collectPairDiagnostics??true,total=integrateStageA(augmented,physicalDeltaPs,{...options,collectPairDiagnostics:wantDiagnostics});
   for(let index=0;index<bodies.length;index++){const source=augmented[index],target=bodies[index];target.positionAngstrom=source.positionAngstrom;target.orientation=source.orientation;target.velocityAngstromPerPs=source.velocityAngstromPerPs;target.angularVelocityRadPerPs=source.angularVelocityRadPerPs;}
-  if(!wantDiagnostics)return total;
+  if(!wantDiagnostics)return {...total,anisotropySiteCount:bodies.reduce((sum,body)=>sum+(body.stageBVirtualChargeSites?.length??0),0)};
   const baseline=evaluateStageAForces(bodies,{excludedMoleculePairs:options.excludedMoleculePairs??new Set(),collectPairDiagnostics:true});
   return stageBForceReport(bodies,baseline,total,wantDiagnostics);
 }

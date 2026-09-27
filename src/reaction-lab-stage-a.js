@@ -153,10 +153,12 @@ export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set()
   const results = new Map(bodies.map(body => [body.id, { forceKcalMolAngstrom: vec(), torqueKcalMolAngstrom: vec(), energyKcalMol: 0 }]));
   const pairDiagnostics = [];
   let overlapGuardActivationCount = 0;
-  const sitesFor = body => [
-    ...(body.atoms ?? []).map((atom, index) => ({ bodyId: body.id, kind: 'atom', index, chargeE: atom.chargeE, localPositionAngstrom: atom.positionAngstrom, atom })),
-    ...(body.virtualChargeSites ?? []).map((site, index) => ({ bodyId: body.id, kind: 'virtual', index, chargeE: site.chargeE, localPositionAngstrom: site.positionAngstrom, atom: null })),
-  ];
+  // A rigid body's orientation is constant throughout this force evaluation.
+  // Cache each transformed site once instead of rotating it for every pair.
+  const prepared = bodies.map(body => ({ body, sites: [
+    ...(body.atoms ?? []).map((atom, index) => ({ bodyId: body.id, kind: 'atom', index, chargeE: atom.chargeE, atom, positionAngstrom: bodySitePosition(body, atom.positionAngstrom) })),
+    ...(body.virtualChargeSites ?? []).map((site, index) => ({ bodyId: body.id, kind: 'virtual', index, chargeE: site.chargeE, atom: null, positionAngstrom: bodySitePosition(body, site.positionAngstrom) })),
+  ] }));
   for (let leftIndex = 0; leftIndex < bodies.length; leftIndex++) for (let rightIndex = leftIndex + 1; rightIndex < bodies.length; rightIndex++) {
     const left = bodies[leftIndex], right = bodies[rightIndex], pairName = [left.id, right.id].sort().join('|');
     if (excludedMoleculePairs.has(pairName)) continue;
@@ -167,10 +169,10 @@ export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set()
       if (!sitePairs.has(key)) sitePairs.set(key, { bodyAId: left.id, siteA: { kind: siteA.kind, index: siteA.index }, bodyBId: right.id, siteB: { kind: siteB.kind, index: siteB.index }, positionA, positionB, coulombEnergyKcalMol: 0, ljEnergyKcalMol: 0, coulombForceOnA: vec(), ljForceOnA: vec(), forceOnA: vec(), torqueOnA: vec(), torqueOnB: vec(), overlapGuarded: false });
       return sitePairs.get(key);
     };
-    const leftSites = sitesFor(left), rightSites = sitesFor(right);
+    const leftSites = prepared[leftIndex].sites, rightSites = prepared[rightIndex].sites;
     for (const siteA of leftSites) for (const siteB of rightSites) {
       if (!siteA.chargeE || !siteB.chargeE) continue;
-      const positionA = bodySitePosition(left, siteA.localPositionAngstrom), positionB = bodySitePosition(right, siteB.localPositionAngstrom), delta = sub(positionB, positionA), fallbackDirection = stableFallback(siteA, siteB);
+      const positionA = siteA.positionAngstrom, positionB = siteB.positionAngstrom, delta = sub(positionB, positionA), fallbackDirection = stableFallback(siteA, siteB);
       const term = coulombPairEnergyForce(siteA.chargeE, siteB.chargeE, delta, { fallbackDirection }), pair = getPair(siteA, siteB, positionA, positionB);
       if(pair){pair.coulombEnergyKcalMol += term.energyKcalMol; pair.coulombForceOnA = add(pair.coulombForceOnA, term.forceOnA); pair.forceOnA = add(pair.forceOnA, term.forceOnA); pair.overlapGuarded ||= term.guarded;}
       leftResult.energyKcalMol += term.energyKcalMol / 2; rightResult.energyKcalMol += term.energyKcalMol / 2;
@@ -182,10 +184,10 @@ export function evaluateStageAForces(bodies, { excludedMoleculePairs = new Set()
     }
     for (const siteA of leftSites) {
       if (!siteA.atom) continue;
-      const positionA = bodySitePosition(left, siteA.localPositionAngstrom);
+      const positionA = siteA.positionAngstrom;
       for (const siteB of rightSites) {
         if (!siteB.atom) continue;
-        const positionB = bodySitePosition(right, siteB.localPositionAngstrom), delta = sub(positionB, positionA), fallbackDirection = stableFallback(siteA, siteB);
+        const positionB = siteB.positionAngstrom, delta = sub(positionB, positionA), fallbackDirection = stableFallback(siteA, siteB);
         const atomA = siteA.atom, atomB = siteB.atom;
         const term = lennardJonesPairEnergyForce(atomA.sigmaAngstrom, atomA.epsilonKcalMol, atomB.sigmaAngstrom, atomB.epsilonKcalMol, delta, { fallbackDirection });
         const pair = getPair(siteA, siteB, positionA, positionB);

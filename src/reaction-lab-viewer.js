@@ -269,7 +269,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       return body;
     });
     const started=performance.now();
-    stageAForces=stageBPhysicsEnabled?integrateStageB(active,physicalDeltaPs,{excludedMoleculePairs:reactionContactPairs}):integrateStageA(active,physicalDeltaPs,{excludedMoleculePairs:reactionContactPairs});
+    stageAForces=stageBPhysicsEnabled?integrateStageB(active,physicalDeltaPs,{excludedMoleculePairs:reactionContactPairs,collectPairDiagnostics:false}):integrateStageA(active,physicalDeltaPs,{excludedMoleculePairs:reactionContactPairs});
     stageAPerformance.lastPhysicsDurationMs=performance.now()-started;
     stageAPerformance.lastInteractionPairCount=stageAForces.pairDiagnostics.length;
     stageAPerformance.fixedSteps++;
@@ -396,11 +396,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       refresh(){updateHydrogenBondStates(performance.now());return this.snapshot();},
     };
     if(canonicalStagePhysicsEnabled){
+      const probeForces=()=>stageBPhysicsEnabled?evaluateStageBForces(instances.filter(item=>!item.busy&&(!testIsolation||testIsolation.has(item.id))).map(item=>item.stageBody),{excludedMoleculePairs:reactionContactPairs}):stageAForces;
       window.__reactionLabProbe={
         physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',
         physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,
         qA:stageBPhysicsEnabled?stageBChargeE:null,
-        snapshot:()=>({physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,qA:stageBPhysicsEnabled?stageBChargeE:null,instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),charges:[...item.interactionCharges],carbonylSites:stageBPhysicsEnabled?stageBCarbonylDiagnostics(item.stageBody):[],renderedObjectCount:stageBPhysicsEnabled?item.group.children.length:null,expectedRealObjectCount:stageBPhysicsEnabled?item.record.atoms.length+item.record.bonds.length:null})),pairs:stageAForces.pairDiagnostics.map(pair=>({...pair})),diagnostics:{overlapGuardActivationCount:stageAForces.overlapGuardActivationCount,carbonylSiteCount:instances.reduce((sum,item)=>sum+(item.stageBody?.carbonylAnisotropySites?.length??0),0),...stageAPerformance},camera:{distance,azimuth,elevation},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0}),
+        snapshot:()=>{const currentForces=probeForces();return{physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,qA:stageBPhysicsEnabled?stageBChargeE:null,instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),charges:[...item.interactionCharges],carbonylSites:stageBPhysicsEnabled?stageBCarbonylDiagnostics(item.stageBody):[],renderedObjectCount:stageBPhysicsEnabled?item.group.children.length:null,expectedRealObjectCount:stageBPhysicsEnabled?item.record.atoms.length+item.record.bonds.length:null})),pairs:currentForces.pairDiagnostics.map(pair=>({...pair})),diagnostics:{overlapGuardActivationCount:currentForces.overlapGuardActivationCount,carbonylSiteCount:instances.reduce((sum,item)=>sum+(item.stageBody?.carbonylAnisotropySites?.length??0),0),...stageAPerformance,lastInteractionPairCount:currentForces.pairDiagnostics.length},camera:{distance,azimuth,elevation},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0};},
         setGeometry(poses){
           const requestedIds=new Set(poses.map(pose=>pose.id));if(requestedIds.size!==poses.length)throw Error('Stage A geometry fixture contains duplicate molecule IDs');
           testIsolation=requestedIds.size?requestedIds:null;reactionContactPairs.clear();contactMatcher.reset();
