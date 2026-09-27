@@ -69,6 +69,8 @@ jobs:
           node scripts/audit-reaction-lab-stage-a.mjs --check
           node --test tests/reaction-lab-stage-b.test.mjs tests/reaction-lab-stage-b-audit.test.mjs
           node scripts/audit-reaction-lab-stage-b.mjs --check
+          node --test tests/reaction-lab-stage-b-gate.test.mjs
+          node scripts/audit-reaction-lab-stage-b-gate.mjs --check
           node tests/reaction-lab-nonbonded.test.mjs
           python3 scripts/generate-reaction-lab-nonbonded.py --mode check
       - name: H / C revisit routes and H economy
