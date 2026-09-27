@@ -43,14 +43,15 @@ function flipSupportedAlkeneSide(THREE,molecule,placements,descriptor){
   return true;
 }
 
-export function createPreviewModel(THREE, record,{presentation=null}={}) {
+export function createPreviewModel(THREE, record,{presentation=null,seedPositions=null}={}) {
   const atoms=record.atoms.map((element,id)=>({id,element}));
   const bonds=record.bonds.map(([a,b,order])=>({a,b,order}));
   const adjacency=atoms.map(()=>[]);
   for(const {a,b,order} of bonds){adjacency[a].push({atomId:b,order});adjacency[b].push({atomId:a,order});}
   const molecule={atoms,bonds,neighbors:id=>adjacency[id],bondOrderForAtom:id=>adjacency[id].reduce((sum,n)=>sum+n.order,0)};
   const structuralBondLength=createStructuralBondLengthResolver(molecule);
-  const seeds=seedCraftCoordinates({...record,attachments:record.attachments??[{atom:0}]});
+  const seeds=seedPositions??seedCraftCoordinates({...record,attachments:record.attachments??[{atom:0}]});
+  if(!Array.isArray(seeds)||seeds.length!==atoms.length||seeds.some(point=>!point||![point.x,point.y,point.z].every(Number.isFinite)))throw new Error('Preview seed positions must provide one finite 3D point per atom.');
   const placements=new Map(seeds.map((p,id)=>[id,{position:new THREE.Vector3(p.x,p.y,p.z)}]));
   const geometryFor=id=>geometryForAtom(molecule,id,record.attachments?.find(port=>port.atom===id)?.slots??0);
   const solver=createStructureSolver({THREE,molecule,placements,geometryFor,
@@ -94,5 +95,9 @@ export function createPreviewModel(THREE, record,{presentation=null}={}) {
     if(presentation?.kind==='alkene-relative-side'&&(!presentationPrepared||stereoDescriptor?.relation!==presentation.relation))throw new Error('Settled alkene pose no longer matches requested relation.');
     return {atoms:atoms.map((atom,id)=>({...atom,charge:hybridChargeAtoms.has(atom.id)?0:atomBondState(molecule,atom.id).charge,point:points[id]})),bonds:bonds.map(b=>({...b})),ports,aromaticCycles:solver.snapshot().aromaticCycles,sharedGroups,stereoDescriptor};
   }
-  return {step:()=>{const movement=solver.step(.65,2);preparePresentationIfReady();return movement;},snapshot};
+  return {
+    step:()=>{const movement=solver.step(.65,2);preparePresentationIfReady();return movement;},
+    snapshot,
+    quality:()=>({errors:solver.measureError(),validation:solver.validateConformation()}),
+  };
 }
