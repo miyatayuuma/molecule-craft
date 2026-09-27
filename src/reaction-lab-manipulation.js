@@ -1,4 +1,5 @@
 // Chemistry-independent input, screen-space acquisition, and visual depth docking.
+import { REACTION_LAB_WORLD_UNITS_PER_ANGSTROM } from './reaction-lab-stage-a.js';
 export const MANIPULATION_TIME_SCALE = 0.15;
 export const CHAMBER_TIME_MODES = Object.freeze({ NORMAL: 'NORMAL', MANIPULATING: 'MANIPULATING' });
 export const DEPTH_TARGET_ACQUIRE_PADDING_PX = 24;
@@ -6,6 +7,10 @@ export const DEPTH_TARGET_RELEASE_PADDING_PX = 40;
 export const GRAB_FALLBACK_RADIUS_PX = 22;
 export const DEPTH_DOCKING_TIME_CONSTANT_MS = 45;
 export const MAX_DOCKING_COMPRESSION_WORLD = 0.06;
+export const MAX_DOCK_RELEASE_SEPARATION_ACCELERATION = 150;
+export const DEPTH_SAFETY_SEARCH_STEP_ANGSTROM = 0.2;
+export const MAX_DEPTH_SAFETY_SEARCH_ANGSTROM = 8;
+export const DEPTH_SAFETY_BOUNDARY_TOLERANCE_ANGSTROM = 0.025;
 
 /** Shared Chamber time authority for direct manipulation and future interactions. */
 export function createChamberTimeAuthority() {
@@ -101,9 +106,9 @@ function surfaceGapAtOffset(atomsA, atomsB, axis, offset) {
 }
 
 /**
- * Find the nearest camera-normal translation that brings actual visual atom
- * spheres to a bounded-contact boundary. No reaction or virtual-site data is
- * accepted by this geometry-only helper.
+ * Find the geometry-first inner candidate at actual visual atom-sphere
+ * contact. This is only a search boundary; production docking must apply the
+ * physics safety veto in solveSafeDepthDocking before using it as an endpoint.
  */
 export function solveDepthDocking({ dragged, target, cameraNormal, previousCenter = dragged?.center,
   maxCompression = MAX_DOCKING_COMPRESSION_WORLD } = {}) {
@@ -146,6 +151,67 @@ export function solveDepthDocking({ dragged, target, cameraNormal, previousCente
     center: add(dragged.center, scale(axis, selected.offset)),
     minimumSurfaceGap: selected.gap,
     compression: Math.max(0, -selected.gap),
+  };
+}
+
+/**
+ * Find the innermost depth on the selected front/back branch whose production
+ * physics handoff is below one global outward-acceleration limit. The ordered
+ * outward scan stops at the first safe interval; it does not seek equilibrium.
+ */
+export function solveSafeDepthDocking({ dragged, target, cameraNormal, previousCenter = dragged?.center,
+  maxCompression = MAX_DOCKING_COMPRESSION_WORLD,
+  outwardAccelerationAt = null,
+  maxOutwardAcceleration = MAX_DOCK_RELEASE_SEPARATION_ACCELERATION,
+  worldUnitsPerAngstrom = REACTION_LAB_WORLD_UNITS_PER_ANGSTROM,
+  searchStepAngstrom = DEPTH_SAFETY_SEARCH_STEP_ANGSTROM,
+  maxSearchDistanceAngstrom = MAX_DEPTH_SAFETY_SEARCH_ANGSTROM,
+  boundaryToleranceAngstrom = DEPTH_SAFETY_BOUNDARY_TOLERANCE_ANGSTROM } = {}) {
+  if (typeof outwardAccelerationAt !== 'function' || !(maxOutwardAcceleration >= 0) || !Number.isFinite(maxOutwardAcceleration) || !(worldUnitsPerAngstrom > 0) || !Number.isFinite(worldUnitsPerAngstrom) || !(searchStepAngstrom > 0) || !Number.isFinite(searchStepAngstrom) || !(maxSearchDistanceAngstrom >= searchStepAngstrom) || !Number.isFinite(maxSearchDistanceAngstrom) || !(boundaryToleranceAngstrom > 0) || !Number.isFinite(boundaryToleranceAngstrom)) return null;
+  const geometry = solveDepthDocking({ dragged, target, cameraNormal, previousCenter, maxCompression });
+  const axis = normalized(cameraNormal);
+  if (!geometry || !axis) return null;
+  const depthSeparation = dot(subtract(geometry.center, target.center), axis);
+  const priorDepthSeparation = finiteVector(previousCenter) ? dot(subtract(previousCenter, target.center), axis) : 0;
+  const branchSign = Math.abs(depthSeparation) > 1e-8 ? Math.sign(depthSeparation) : Math.abs(priorDepthSeparation) > 1e-8 ? Math.sign(priorDepthSeparation) : Math.sign(geometry.offset) || 1;
+  let sampleCount = 0;
+  const evaluate = distanceAngstrom => {
+    const offset = geometry.offset + branchSign * distanceAngstrom * worldUnitsPerAngstrom;
+    const center = add(dragged.center, scale(axis, offset));
+    const value = outwardAccelerationAt(center, offset, branchSign);
+    const acceleration = typeof value === 'number' ? value : value?.outwardRelativeAcceleration;
+    sampleCount++;
+    return { offset, center, acceleration, safe: Number.isFinite(acceleration) && acceleration <= maxOutwardAcceleration };
+  };
+  const inner = evaluate(0);
+  if (inner.safe) return { ...geometry, ...inner, branchSign, safetyThreshold: maxOutwardAcceleration, safetySearchDistanceAngstrom: 0, safetySampleCount: sampleCount };
+
+  let previousDistance = 0, safeCandidate = null;
+  const sampleCountLimit = Math.ceil(maxSearchDistanceAngstrom / searchStepAngstrom);
+  for (let index = 1; index <= sampleCountLimit; index++) {
+    const distance = Math.min(index * searchStepAngstrom, maxSearchDistanceAngstrom);
+    const candidate = evaluate(distance);
+    if (candidate.safe) { safeCandidate = candidate; break; }
+    previousDistance = distance;
+    if (distance >= maxSearchDistanceAngstrom - 1e-10) break;
+  }
+  if (!safeCandidate) return null;
+
+  // Refine only the first safe boundary found while moving out from contact.
+  // A small fixed cap keeps this deterministic and bounded in the animation loop.
+  let unsafeDistance = previousDistance, safeDistance = Math.abs(safeCandidate.offset - geometry.offset) / worldUnitsPerAngstrom;
+  for (let iteration = 0; iteration < 10 && safeDistance - unsafeDistance > boundaryToleranceAngstrom; iteration++) {
+    const midpoint = (unsafeDistance + safeDistance) * 0.5, candidate = evaluate(midpoint);
+    if (candidate.safe) { safeDistance = midpoint; safeCandidate = candidate; }
+    else unsafeDistance = midpoint;
+  }
+  return {
+    ...geometry,
+    ...safeCandidate,
+    branchSign,
+    safetyThreshold: maxOutwardAcceleration,
+    safetySearchDistanceAngstrom: safeDistance,
+    safetySampleCount: sampleCount,
   };
 }
 

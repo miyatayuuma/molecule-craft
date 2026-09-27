@@ -6,7 +6,8 @@ import {
   chooseDepthTarget, CHAMBER_TIME_MODES, createChamberTimeAuthority,
   DEPTH_DOCKING_TIME_CONSTANT_MS, DEPTH_TARGET_ACQUIRE_PADDING_PX,
   DEPTH_TARGET_RELEASE_PADDING_PX, MANIPULATION_TIME_SCALE, MAX_DOCKING_COMPRESSION_WORLD,
-  minimumMoleculeSurfaceGap, projectedSurfaceGap, scaleSimulationElapsed, solveDepthDocking,
+  MAX_DOCK_RELEASE_SEPARATION_ACCELERATION, minimumMoleculeSurfaceGap, projectedSurfaceGap,
+  scaleSimulationElapsed, solveDepthDocking, solveSafeDepthDocking,
 } from '../src/reaction-lab-manipulation.js';
 
 const sphere = (center, radius = 0.5, orientation = [0, 0, 0, 1]) => ({
@@ -58,6 +59,59 @@ test('depth docking rejects projected geometry that cannot contact and never acc
   assert.ok(minimumMoleculeSurfaceGap({ dragged: { ...sphere(solution.center), center: solution.center }, target: sphere([0, 0, 3]) }) >= -MAX_DOCKING_COMPRESSION_WORLD - 1e-7);
 });
 
+test('safe docking keeps the current front/back branch, XY, orientation, and chooses the first safe interval', () => {
+  const dragged = sphere([0, 0, 0], 0.5, [0, Math.SQRT1_2, 0, Math.SQRT1_2]);
+  const target = sphere([0, 0, 4], 0.5, [0, 0, 0, 1]);
+  const beforeDragged = structuredClone(dragged), beforeTarget = structuredClone(target), samples = [];
+  const solution = solveSafeDepthDocking({
+    dragged, target, cameraNormal: [0, 0, -1], previousCenter: [0, 0, 0.2],
+    maxOutwardAcceleration: 10, searchStepAngstrom: 0.1,
+    outwardAccelerationAt(center, offset, branchSign) {
+      const distance = Math.abs(offset - solveDepthDocking({ dragged, target, cameraNormal: [0, 0, -1], previousCenter: [0, 0, 0.2] }).offset) / 0.78;
+      samples.push({ distance, center, branchSign });
+      if (distance >= 0.6 && distance <= 0.85) return 5;
+      if (distance >= 2.2) return 0; // A later safe interval must not win.
+      return 20;
+    },
+  });
+  assert.ok(solution);
+  assert.equal(solution.branchSign, 1, 'the prior positive-depth branch is retained');
+  assert.ok(solution.safetySearchDistanceAngstrom >= 0.6 && solution.safetySearchDistanceAngstrom <= 0.625);
+  assert.ok(solution.acceleration <= 10);
+  assert.deepEqual(solution.center.slice(0, 2), [0, 0], 'only camera depth changes');
+  assert.deepEqual(dragged, beforeDragged, 'docking does not mutate dragged geometry or orientation');
+  assert.deepEqual(target, beforeTarget, 'docking does not mutate target geometry or orientation');
+  assert.ok(samples.every(sample => sample.branchSign === 1));
+  assert.ok(Math.abs(solution.center[2] - (dragged.center[2] + solution.offset * -1)) < 1e-10);
+});
+
+test('safe docking accepts a safe visual candidate and returns no solution instead of falling back to contact', () => {
+  const dragged = sphere([0, 0, 0]), target = sphere([0, 0, 4]);
+  const geometry = solveDepthDocking({ dragged, target, cameraNormal: [0, 0, -1], previousCenter: [0, 0, 0] });
+  const direct = solveSafeDepthDocking({ dragged, target, cameraNormal: [0, 0, -1], previousCenter: [0, 0, 0], outwardAccelerationAt: () => 0 });
+  assert.ok(direct);
+  assert.equal(direct.safetySearchDistanceAngstrom, 0);
+  assert.deepEqual(direct.center, geometry.center);
+  const none = solveSafeDepthDocking({ dragged, target, cameraNormal: [0, 0, -1], previousCenter: [0, 0, 0], maxSearchDistanceAngstrom: 0.4, outwardAccelerationAt: () => MAX_DOCK_RELEASE_SEPARATION_ACCELERATION + 1 });
+  assert.equal(none, null, 'bounded no-solution must not select the visual contact candidate');
+});
+
+test('safe docking refines the nearest safe boundary without seeking zero-force equilibrium', () => {
+  const dragged = sphere([0, 0, 0]), target = sphere([0, 0, 4]);
+  const geometry = solveDepthDocking({ dragged, target, cameraNormal: [0, 0, -1], previousCenter: [0, 0, 0] });
+  const threshold = 100;
+  const acceleration = (_center, offset) => {
+    const distance = Math.abs(offset - geometry.offset) / 0.78;
+    if (distance >= 0.74) return distance < 1.3 ? 80 : distance > 3 ? 0 : 500;
+    return 500;
+  };
+  const result = solveSafeDepthDocking({ dragged, target, cameraNormal: [0, 0, -1], previousCenter: [0, 0, 0], maxOutwardAcceleration: threshold, outwardAccelerationAt: acceleration });
+  assert.ok(result);
+  assert.ok(result.safetySearchDistanceAngstrom >= 0.74 && result.safetySearchDistanceAngstrom < 0.77);
+  assert.ok(result.safetySearchDistanceAngstrom < 3, 'a later zero-force interval is not an equilibrium target');
+  assert.ok(result.safetySampleCount < 20, 'search work is deterministically bounded');
+});
+
 test('manipulation scales simulation elapsed time without changing fixed physics step constants', async () => {
   assert.equal(MANIPULATION_TIME_SCALE, 0.15);
   const chamberTime = createChamberTimeAuthority();
@@ -70,6 +124,7 @@ test('manipulation scales simulation elapsed time without changing fixed physics
   assert.equal(scaleSimulationElapsed(2, 1), 2);
   assert.equal(scaleSimulationElapsed(2, MANIPULATION_TIME_SCALE), 0.3);
   assert.equal(DEPTH_DOCKING_TIME_CONSTANT_MS, 45);
+  assert.equal(MAX_DOCK_RELEASE_SEPARATION_ACCELERATION, 150);
   const source = await readFile(new URL('../src/reaction-lab-stage-a.js', import.meta.url), 'utf8');
   assert.match(source, /STAGE_A_GAME_STEP_SECONDS\s*=\s*1\s*\/\s*120/);
   assert.match(source, /STAGE_A_PHYSICAL_PS_PER_GAME_SECOND\s*=\s*0\.10/);

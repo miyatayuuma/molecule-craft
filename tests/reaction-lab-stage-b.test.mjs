@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { carbonylCorrectionMoments, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, stageBCarbonylDiagnostics, STAGE_B_SITE_DISTANCE_ANGSTROM } from '../src/reaction-lab-stage-b.js';
-import { createStageABody, evaluateStageAForces } from '../src/reaction-lab-stage-a.js';
+import { carbonylCorrectionMoments, createStageBPairSafetyOracle, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, evaluateStageBPairForcesReadOnly, stageBCarbonylDiagnostics, STAGE_B_SITE_DISTANCE_ANGSTROM, STAGE_B_TEST_QA_E } from '../src/reaction-lab-stage-b.js';
+import { createStageABody, evaluateStageAForces, KCAL_MOL_AMU_TO_ANGSTROM_PS2 } from '../src/reaction-lab-stage-a.js';
 
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
 const record=id=>records.find(item=>item.id===id);
@@ -59,6 +59,26 @@ test('Stage B augmentation is stateless, adds only Coulomb, and preserves Stage 
   assert.ok(stageB.pairDiagnostics.some(pair=>Math.abs(pair.stageBAnisotropyCoulombEnergyKcalMol)>0));
   assert.ok(stageB.bodies.get('a').stageBCorrectionTorqueKcalMolAngstrom.every(Number.isFinite));
   for(let axis=0;axis<3;axis++)close(stageB.bodies.get('a').forceKcalMolAngstrom[axis]+stageB.bodies.get('b').forceKcalMolAngstrom[axis],0,1e-9);
+});
+
+test('read-only Stage B pair oracle matches production forces including qA sites without changing either body',()=>{
+  const acetone=record('acetone'),acetoneAtoms=structure('acetone',[[-1.5,0,0],[0,0,0],[1.5,0,0],[0,1.22,0],[-2.13,-.51,.89],[-2.13,-.51,-.89],[-2.13,1.02,0],[-.87,-.51,.89],[-.87,-.51,-.89],[2.13,-.51,.89]]).map((atom,index)=>({...atom,chargeE:acetone.nonbonded.atomicChargesE[index],sigmaAngstrom:acetone.nonbonded.sigmaAngstrom[index],epsilonKcalMol:acetone.nonbonded.epsilonKcalMol[index]}));
+  const water=record('water'),waterAtoms=structure('water',[[0,0,0],[.75695,0,.58588],[-.75695,0,.58588]]).map((atom,index)=>({...atom,chargeE:water.nonbonded.atomicChargesE[index],sigmaAngstrom:water.nonbonded.sigmaAngstrom[index],epsilonKcalMol:water.nonbonded.epsilonKcalMol[index]}));
+  const carbonyl=createStageABody({id:'acetone',positionAngstrom:[0,0,0],orientation:[0,0,0,1],atoms:acetoneAtoms}),donor=createStageABody({id:'water',positionAngstrom:[0,0,0],orientation:[0,0,0,1],atoms:waterAtoms,virtualChargeSites:water.nonbonded.virtualChargeSites.map(site=>({chargeE:site.chargeE,positionAngstrom:site.positionAngstromAngstrom??site.positionAngstrom}))});
+  carbonyl.stageBVirtualChargeSites=createStageBVirtualSites(carbonyl.atoms,acetone.bonds,{qA:STAGE_B_TEST_QA_E});
+  const before=JSON.stringify([carbonyl.positionAngstrom,carbonyl.orientation,carbonyl.velocityAngstromPerPs,carbonyl.angularVelocityRadPerPs,donor.positionAngstrom,donor.orientation,donor.velocityAngstromPerPs,donor.angularVelocityRadPerPs]);
+  const query=createStageBPairSafetyOracle(donor,carbonyl),pose={draggedPositionAngstrom:[2.7,.3,.2],targetPositionAngstrom:[0,0,0],cameraNormal:[1,0,0],branchSign:1};
+  const first=query(pose),again=query(pose),views=[{...donor,positionAngstrom:[...pose.draggedPositionAngstrom]},{...carbonyl,positionAngstrom:[...pose.targetPositionAngstrom]}],production=evaluateStageBForces(views),readOnly=evaluateStageBPairForcesReadOnly(views);
+  assert.deepEqual(first,again,'the same candidate pose gives exactly the same safety result');
+  close(first.forceDraggedKcalMolAngstrom[0],production.bodies.get('water').forceKcalMolAngstrom[0]);
+  close(first.forceTargetKcalMolAngstrom[0],production.bodies.get('acetone').forceKcalMolAngstrom[0]);
+  assert.equal(readOnly.pairDiagnostics.length,0,'the safety oracle does not allocate pair diagnostics');
+  assert.equal(carbonyl.stageBVirtualChargeSites.length,3);
+  assert.deepEqual(JSON.parse(before),[carbonyl.positionAngstrom,carbonyl.orientation,carbonyl.velocityAngstromPerPs,carbonyl.angularVelocityRadPerPs,donor.positionAngstrom,donor.orientation,donor.velocityAngstromPerPs,donor.angularVelocityRadPerPs],'queries do not mutate production body state');
+  const expected=KCAL_MOL_AMU_TO_ANGSTROM_PS2*(first.forceDraggedKcalMolAngstrom[0]/donor.massAmu-first.forceTargetKcalMolAngstrom[0]/carbonyl.massAmu);
+  close(first.outwardRelativeAcceleration,Math.max(0,expected));
+  const reverse=evaluateStageBPairForcesReadOnly(views.slice().reverse());
+  for(const id of ['water','acetone'])for(let axis=0;axis<3;axis++)close(reverse.bodies.get(id).forceKcalMolAngstrom[axis],readOnly.bodies.get(id).forceKcalMolAngstrom[axis],1e-8);
 });
 
 test('all database trigonal carbonyl frames build finite, with no hardcoded site-count assumption',()=>{
