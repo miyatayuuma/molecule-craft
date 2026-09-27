@@ -26,6 +26,7 @@ import {
 } from './reaction-lab-manipulation.js?v=3';
 
 const vector=(THREE,point)=>Array.isArray(point)?new THREE.Vector3(point[0],point[1],point[2]):new THREE.Vector3(point.x,point.y,point.z);
+const recordAtomElement=(record,index)=>typeof record?.atoms?.[index]==='string'?record.atoms[index]:record?.atoms?.[index]?.element;
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const FIXED_CAMERA_AZIMUTH=0;
 const FIXED_CAMERA_ELEVATION=0;
@@ -558,7 +559,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(!product.seedModel&&product.seedPreview){product.seedModel=product.seedPreview.snapshot();product.seedQuality=product.seedPreview.quality();product.seedPreview=null;}
       if(!product.canonicalModel&&product.canonicalPreview){product.canonicalModel=product.canonicalPreview.snapshot();product.canonicalPreview=null;}
       const valid=model=>model?.atoms?.length===product.record.atoms.length&&model.atoms.every(atom=>atom.point&&[atom.point.x,atom.point.y,atom.point.z].every(Number.isFinite));
-      const target=resolveProductTargetGeometry({seededPoints:valid(product.seedModel)?product.seedModel.atoms.map(atom=>atom.point.toArray()):null,seedConverged:!!product.seedQuality?.validation?.valid,canonicalPoints:valid(product.canonicalModel)?product.canonicalModel.atoms.map(atom=>atom.point.toArray()):null,sourcePoints:product.sourcePoints.map(point=>point.toArray()),elements:product.record.atoms.map(atom=>atom.element)});
+      const target=resolveProductTargetGeometry({seededPoints:valid(product.seedModel)?product.seedModel.atoms.map(atom=>atom.point.toArray()):null,seedConverged:!!product.seedQuality?.validation?.valid,canonicalPoints:valid(product.canonicalModel)?product.canonicalModel.atoms.map(atom=>atom.point.toArray()):null,sourcePoints:product.sourcePoints.map(point=>point.toArray()),elements:product.record.atoms.map((_,index)=>recordAtomElement(product.record,index))});
       product.model=withStaticChargeAuthority(target.geometry==='source-seeded'?product.seedModel:product.canonicalModel??product.seedModel??sourceContinuityPreview(product),product.record);
       product.targetPositions=target.points.map(point=>new THREE.Vector3(...point));product.targetGeometry=target.geometry;
       if(!target.ok||!product.model||product.targetPositions.some(point=>![point.x,point.y,point.z].every(Number.isFinite))){product.model=product.canonicalModel??product.seedModel;product.targetPositions=product.sourcePoints.map(point=>point.clone());product.targetGeometry='source-continuity-fallback';animation.targetPreparationFailed=target.reason??'non-finite-target';}
@@ -626,7 +627,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function applyProductShift(product,shift){product.shiftAngstrom=[...shift];product.layout.position.add(new THREE.Vector3(...shift).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM));product.layout.body.positionAngstrom=product.layout.position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM);}
   function makeRuntimeLayout(product,index,generation){
-    const worldPoints=product.targetPositions.map(point=>point.clone()),atomsAngstrom=worldPoints.map((point,atomIndex)=>({element:product.record.atoms[atomIndex].element,positionAngstrom:point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})),massProperties=rigidBodyMassProperties(atomsAngstrom),position=new THREE.Vector3(...massProperties.centerOfMassAngstrom).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),model={...product.model,atoms:product.model.atoms.map((atom,atomIndex)=>({...atom,point:new THREE.Vector3(...massProperties.centeredPositionsAngstrom[atomIndex]).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)}))},record=product.record,orientation=new THREE.Quaternion(),id=`handoff-${generation}-${index}`,atoms=model.atoms.map(atom=>({...atom,point:atom.point.clone()})),body=buildStageBody(id,record,atoms,position,orientation,massProperties);
+    const worldPoints=product.targetPositions.map(point=>point.clone()),atomsAngstrom=worldPoints.map((point,atomIndex)=>({element:recordAtomElement(product.record,atomIndex),positionAngstrom:point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})),massProperties=rigidBodyMassProperties(atomsAngstrom),position=new THREE.Vector3(...massProperties.centerOfMassAngstrom).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),model={...product.model,atoms:product.model.atoms.map((atom,atomIndex)=>({...atom,point:new THREE.Vector3(...massProperties.centeredPositionsAngstrom[atomIndex]).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)}))},record=product.record,orientation=new THREE.Quaternion(),id=`handoff-${generation}-${index}`,atoms=model.atoms.map(atom=>({...atom,point:atom.point.clone()})),body=buildStageBody(id,record,atoms,position,orientation,massProperties);
     return{position,model,massProperties,body,worldPoints};
   }
   function resolveHandoffClearance(animation){
@@ -652,7 +653,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function currentAtomPosition(animation,atomId,morph,settle){
     const start=new THREE.Vector3(...animation.sourcePositions.get(atomId)),product=animation.products.find(item=>item.origins.some(origin=>origin.sourceAtom===atomId)),index=product?.origins.findIndex(origin=>origin.sourceAtom===atomId)??-1;
-    if(!product||index<0)return start;const base=product.targetPositions[index],targetShift=product.shiftAngstrom??[0,0,0],startShift=animation.settleStartShifts?.get(product.productIndex)??[0,0,0],shift=targetShift.map((value,axis)=>startShift[axis]+(value-startShift[axis])*settle),target=base.clone().add(new THREE.Vector3(...shift).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM));
+    if(!product||index<0||!product.targetPositions?.[index])return start;const base=product.targetPositions[index],targetShift=product.shiftAngstrom??[0,0,0],startShift=animation.settleStartShifts?.get(product.productIndex)??[0,0,0],shift=targetShift.map((value,axis)=>startShift[axis]+(value-startShift[axis])*settle),target=base.clone().add(new THREE.Vector3(...shift).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM));
     return start.lerp(target,morph);
   }
   function updatePresentationFrame(animation,morphProgress,settleProgress){
@@ -672,7 +673,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(!animation.clearanceSafe){status.textContent='REACTION · handoff安全配置を確認中';return;}updatePresentationFrame(animation,1,1);const productInstances=[];let maximumError=0;
     for(const product of animation.products){
       product.targetPositions=product.finalTargetPositions.map(point=>point.clone());const layout=makeRuntimeLayout(product,product.productIndex,animation.generation),item=createInstance(product.record,layout.position,{generation:animation.generation,preparedModel:layout.model});item.stageBody=layout.body;item.stageBody.id=item.id;
-      const positions=product.finalTargetPositions.map(point=>point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)),velocities=product.origins.map(origin=>animation.sourceVelocities.get(origin.sourceAtom)??[0,0,0]),massValues=product.record.atoms.map(atom=>STANDARD_ATOMIC_MASS_AMU[atom.element]),fit=fitRigidBodyVelocity(positions,velocities,massValues);
+      const positions=product.finalTargetPositions.map(point=>point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)),velocities=product.origins.map(origin=>animation.sourceVelocities.get(origin.sourceAtom)??[0,0,0]),massValues=product.record.atoms.map((_,index)=>STANDARD_ATOMIC_MASS_AMU[recordAtomElement(product.record,index)]),fit=fitRigidBodyVelocity(positions,velocities,massValues);
       if(fit.finite){item.stageBody.velocityAngstromPerPs=[...fit.linear];item.stageBody.angularVelocityRadPerPs=[...fit.angular];}
       for(let atomIndex=0;atomIndex<product.origins.length;atomIndex++){
         const sourceMesh=animation.sourceMeshes.get(product.origins[atomIndex].sourceAtom),replacement=item.atomMeshes.get(atomIndex);if(!sourceMesh||!replacement)continue;
