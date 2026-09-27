@@ -188,8 +188,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function startFeedTransition(generation,schedule){
     const selectedCount=batch.activeSlots.filter(Boolean).length,entries=schedule.map(row=>{const variation=deterministicFeedVariation(row.slotIndex,row.waveIndex,row.index),travelMs=reducedMotion?Math.max(150,Math.round(220/variation.speed)):Math.round(FEED_TRAVEL_MS/variation.speed);return{...row,variation,travelMs,startedAt:null,item:null};});
-    const durationMs=Math.max(0,...entries.map(row=>row.startDelayMs+row.travelMs));
-    batchTransition={kind:'feed',generation,elapsedMs:0,durationMs,entries,selectedCount};
+    batchTransition={kind:'feed',generation,elapsedMs:0,entries,selectedCount};
     status.textContent='FEEDING · 分子をchamberへ投入中';renderSlotTiles();
   }
   function startPurge(generation,nextSlots){
@@ -235,8 +234,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       item.group.position.lerpVectors(motion.origin,motion.destination,eased);item.group.position.x+=arc;item.group.updateMatrixWorld(true);syncStageABodyFromGroup(item);
       if(progress>=1){item.group.position.copy(motion.destination);syncStageABodyFromGroup(item);item.stageBody.kinematic=false;const ejection=motion.destination.clone().sub(motion.origin).add(new THREE.Vector3(motion.variation.lateral,0,0)).normalize().multiplyScalar(.11*motion.variation.speed/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM);item.stageBody.velocityAngstromPerPs=ejection.toArray();item.stageBody.angularVelocityRadPerPs=motion.variation.angular.map(value=>value*.12);item.feedMotion=null;item.feedPhase='dynamic';item.feedHandoff=true;item.initialPositionAtSpawn=motion.destination.toArray();}
     }
-    if(transition.elapsedMs<transition.durationMs)return;
-    for(const row of transition.entries)if(!row.item&&row.species){const item=spawnFeedEntry(transition,row);if(item){item.group.position.copy(item.feedMotion.destination);syncStageABodyFromGroup(item);item.feedMotion=null;item.stageBody.kinematic=false;item.feedPhase='dynamic';item.feedHandoff=true;item.initialPositionAtSpawn=item.group.position.toArray();}}
+    if(transition.entries.some(row=>row.species&&!row.item?.feedHandoff))return;
     batchTransition=null;contactMatcher.reset();reactionContactPairs.clear();const completed=batch.completeFeed(transition.generation);if(!completed.ok)return;
     instances.forEach(item=>{item.feedPhase='dynamic';});fitPopulation();status.textContent=`ACTIVE · ${instances.length} 個`;renderSlotTiles();
   }
