@@ -96,9 +96,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function disposeItem(item){world.remove(item.group);item.group.traverse(object=>{object.geometry?.dispose?.();object.material?.dispose?.();});}
   function clear(){endManipulation();for(const pointerId of activePointers.keys())try{if(canvas.hasPointerCapture(pointerId))canvas.releasePointerCapture(pointerId);}catch{}activePointers.clear();for(const item of new Set([...instances,...purgeItems,...(batchTransition?.items??[])]))disposeItem(item);instances=[];purgeItems=[];batchTransition=null;reactionAnimation=null;contactMatcher.reset();reactionContactPairs.clear();testIsolation=null;}
 
-  function createInstance(record,position,{generation=batch.generation,orientation=null,originPortIndex=null,feedPhase='chamber'}={}){
-    const preview=createPreviewModel(THREE,record);for(let index=0;index<190;index++)preview.step();
-    const model=preview.snapshot(),group=new THREE.Group(),id=`${record.id}-${++instanceSequence}`;
+  function createInstance(record,position,{generation=batch.generation,orientation=null,originPortIndex=null,feedPhase='chamber',preparedModel=null}={}){
+    let model=preparedModel;
+    if(!model){const preview=createPreviewModel(THREE,record);for(let index=0;index<190;index++)preview.step();model=preview.snapshot();}
+    const group=new THREE.Group(),id=`${record.id}-${++instanceSequence}`;
     if(!record.nonbonded)throw new Error(`Canonical nonbonded data is required for ${record.id}.`);
     const massProperties=rigidBodyMassProperties(model.atoms.map(atom=>({element:atom.element,positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})));
     const renderAtoms=model.atoms.map((atom,index)=>({...atom,point:vector(THREE,massProperties.centeredPositionsAngstrom[index].map(value=>value*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM))}));
@@ -187,8 +188,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     return new THREE.Vector3(points[index][0]+variation.lateral*.5,points[index][1]+variation.pitch*.6,0);
   }
   function startFeedTransition(generation,schedule){
-    const selectedCount=batch.activeSlots.filter(Boolean).length,entries=schedule.map(row=>{const variation=deterministicFeedVariation(row.slotIndex,row.waveIndex,row.index),travelMs=reducedMotion?Math.max(150,Math.round(220/variation.speed)):Math.round(FEED_TRAVEL_MS/variation.speed);return{...row,variation,travelMs,startedAt:null,item:null};});
-    batchTransition={kind:'feed',generation,elapsedMs:0,entries,selectedCount};
+    const selectedCount=batch.activeSlots.filter(Boolean).length,entries=schedule.map(row=>{const variation=deterministicFeedVariation(row.slotIndex,row.waveIndex,row.index),travelMs=reducedMotion?Math.max(150,Math.round(220/variation.speed)):Math.round(FEED_TRAVEL_MS/variation.speed);return{...row,variation,travelMs,startedAt:null,item:null,preview:null,previewSteps:0,preparedModel:null,prepared:false};}).sort((a,b)=>a.startDelayMs-b.startDelayMs||a.slotIndex-b.slotIndex||a.index-b.index);
+    batchTransition={kind:'feed',generation,elapsedMs:0,feedStartedAt:null,entries,selectedCount};
     status.textContent='FEEDING · 分子をchamberへ投入中';renderSlotTiles();
   }
   function startPurge(generation,nextSlots){
@@ -219,15 +220,32 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function spawnFeedEntry(transition,row){
     const record=recordsById.get(row.species);if(!record)return null;
-    const origin=feedOrigin(row.slotIndex),destination=feedDestination(row,transition.selectedCount),item=createInstance(record,origin,{generation:transition.generation,orientation:row.variation,originPortIndex:row.slotIndex,feedPhase:'feeding'});
+    const origin=feedOrigin(row.slotIndex),destination=feedDestination(row,transition.selectedCount),item=createInstance(record,origin,{generation:transition.generation,orientation:row.variation,originPortIndex:row.slotIndex,feedPhase:'feeding',preparedModel:row.preparedModel});row.preparedModel=null;
     item.feedMotion={generation:transition.generation,origin:origin.clone(),destination:destination.clone(),startedAt:transition.elapsedMs,durationMs:row.travelMs,variation:row.variation};item.stageBody.kinematic=true;row.item=item;row.startedAt=transition.elapsedMs;
     return item;
+  }
+  function prepareFeedModels(transition){
+    const entries=transition.entries;if(!entries.length)return;
+    const started=performance.now();let cursor=transition.preparationCursor??0,skipped=0;
+    while(performance.now()-started<6&&skipped<entries.length){
+      const row=entries[cursor];cursor=(cursor+1)%entries.length;
+      if(row.prepared||row.item){skipped++;continue;}
+      skipped=0;
+      const record=recordsById.get(row.species);if(!record){row.prepared=true;continue;}
+      if(!row.preview)row.preview=createPreviewModel(THREE,record);
+      row.preview.step();row.previewSteps++;
+      if(row.previewSteps>=190){row.preparedModel=row.preview.snapshot();row.preview=null;row.prepared=true;}
+    }
+    transition.preparationCursor=cursor;
   }
   function progressFeed(transition,elapsedMs){
     if(batch.generation!==transition.generation){for(const row of transition.entries)if(row.item){instances=instances.filter(item=>item!==row.item);disposeItem(row.item);}batchTransition=null;return;}
     transition.elapsedMs+=elapsedMs;
+    prepareFeedModels(transition);
+    if(transition.feedStartedAt===null&&transition.entries[0]?.prepared)transition.feedStartedAt=transition.elapsedMs;
+    let spawnedThisFrame=false;
     for(const row of transition.entries){
-      if(!row.item&&transition.elapsedMs>=row.startDelayMs)spawnFeedEntry(transition,row);
+      if(!row.item&&!spawnedThisFrame&&row.prepared&&transition.feedStartedAt!==null&&transition.elapsedMs>=transition.feedStartedAt+row.startDelayMs){spawnFeedEntry(transition,row);spawnedThisFrame=true;}
       const item=row.item;if(!item)continue;
       const motion=item.feedMotion;if(!motion)continue;
       const progress=clamp((transition.elapsedMs-motion.startedAt)/motion.durationMs,0,1),eased=progress*progress*(3-2*progress),arc=Math.sin(Math.PI*progress)*motion.variation.lateral;
