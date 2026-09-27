@@ -1,4 +1,4 @@
-import { createPreviewModel } from './preview-model.js?v=32';
+import { createPreviewModel } from './preview-model.js?v=33';
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
 import {
   reactionCandidates, planReactionExecution, resolveCandidateInstanceIds,

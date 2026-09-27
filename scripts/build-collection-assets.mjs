@@ -1,10 +1,10 @@
 // Build-time projections; the list never starts a renderer or solver.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createPreviewModel} from '../src/preview-model.js?v=32';
+import {createPreviewModel} from '../src/preview-model.js?v=33';
 import {ELEMENTS,modelAtomRadius} from '../src/chemistry.js';
 import {AROMATIC_STYLE,aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js?v=27';
-import {RESONANCE_STYLE,specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=32';
+import {RESONANCE_STYLE,specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=33';
 import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8').then(JSON.parse);
 const records=await read('data/molecules.json'),parts=await read('data/craft-structures.json');
@@ -30,9 +30,9 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
   }
   for(const cycle of layout.aromaticCycles){const frame=aromaticRingFrame(THREE,cycle.map(i=>layout.atoms[i].point));if(!frame)continue;const points=aromaticRingPoints(frame).map(p=>project(p.clone().applyQuaternion(rotation)));shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path data-aromatic-ring="true" d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}Z" fill="none" stroke="${AROMATIC_STYLE.assetCssColor}" stroke-width="1.7"/>`});}
   for(const shared of layout.sharedGroups??[]){
-    const curves=sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'}),distributed=['nitro','ozone'].includes(shared.kind);
+    const curves=sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'}),resonance=['nitro','ozone'].includes(shared.kind),distributed=curves.length>=2;
     curves.forEach((curve,index)=>{
-      const points=curve.map(p=>project(p.applyQuaternion(rotation))),marker=distributed?` data-resonance-distributed-bond="true" data-resonance-style="distributed-dashed" data-resonance-branch="${index}"`:'',opacity=distributed?String(RESONANCE_STYLE.opacity):'.65',width=distributed?bondStrokeWidth:'1.2',cap=distributed?' stroke-linecap="round"':'',stroke=distributed?RESONANCE_STYLE.assetCssColor:'#8ce7ee',dash=distributed?` stroke-dasharray="${n(bondStrokeWidth*3.2)} ${n(bondStrokeWidth*2.2)}"`:'';
+      const points=curve.map(p=>project(p.applyQuaternion(rotation))),marker=resonance?` data-resonance-distributed-bond="true" data-resonance-style="distributed-dashed" data-resonance-branch="${index}"`:distributed?` data-distributed-bond="true" data-distributed-style="distributed-dashed" data-distributed-branch="${index}"`:'',opacity=distributed?String(RESONANCE_STYLE.opacity):'.65',width=distributed?bondStrokeWidth:'1.2',cap=distributed?' stroke-linecap="round"':'',stroke=distributed?RESONANCE_STYLE.assetCssColor:'#8ce7ee',dash=distributed?` stroke-dasharray="${n(bondStrokeWidth*3.2)} ${n(bondStrokeWidth*2.2)}"`:'';
       shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path${marker} d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="${stroke}" stroke-opacity="${opacity}" stroke-width="${width}"${dash}${cap}/>`});
     });
   }

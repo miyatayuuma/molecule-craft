@@ -205,5 +205,5 @@ export function tapsToWeakenBond(elementA, elementB, order) {
 }
 
 export function bondLengthScale(order) {
-  return order === 2 ? 0.90 : order === 3 ? 0.84 : 1;
+  return order === 2 ? 0.90 : order === 3 ? 0.79 : 1;
 }

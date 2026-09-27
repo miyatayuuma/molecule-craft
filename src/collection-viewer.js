@@ -1,11 +1,11 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=33';
+import { createPreviewModel } from './preview-model.js?v=34';
 import { createPreviewControls } from './preview-controls.js?v=22';
 import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=31';
 import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=27';
 
-import { RESONANCE_STYLE, specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=32';
+import { RESONANCE_STYLE, specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=33';
 
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
@@ -155,7 +155,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         }});
       }
     }
-    for(const shared of layout.sharedGroups??[]){const distributed=['nitro','ozone'].includes(shared.kind);for(const curve of sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'})){
+    for(const shared of layout.sharedGroups??[]){const curves=sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'}),distributed=curves.length>=2;for(const curve of curves){
       const points=curve.map(p=>p.applyQuaternion(group.quaternion));
       for(let i=1;i<points.length;i++){
         const a=points[i-1],b=points[i];if(Math.max(a.z,b.z)>=camera.position.z)continue;const z=(a.z+b.z)/2;

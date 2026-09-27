@@ -1,5 +1,6 @@
 import { ELEMENTS } from './chemistry.js?v=20';
-import { ATOMIC_MODEL, preferredValence, bondLengthScale } from './bonding-model.js?v=31';
+import { preferredValence } from './bonding-model.js?v=33';
+import { structuralBondLengthAngstrom, STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM } from './bond-geometry.js?v=1';
 
 export function validateCraftStructures(templates, groups) {
   if(!Array.isArray(templates))throw new Error('Invalid structure templates');
@@ -40,7 +41,7 @@ export function expandCraftStructure(molecule, template) {
 export function seedCraftCoordinates(template) {
   const adjacency=template.atoms.map(()=>[]);
   template.bonds.forEach(([a,b,order])=>{adjacency[a].push({id:b,order});adjacency[b].push({id:a,order});});
-  const length=(a,b,order)=>((ATOMIC_MODEL[template.atoms[a]].covalentRadius+ATOMIC_MODEL[template.atoms[b]].covalentRadius)*.78*bondLengthScale(order));
+  const length=(a,b,order)=>structuralBondLengthAngstrom(template,a,b,order)*STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM;
   const points=new Map(),queue=[];
   // A substituent carbon must not hide its parent ring (e.g. toluene).
   let ringOrder=[];

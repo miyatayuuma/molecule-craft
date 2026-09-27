@@ -24,7 +24,7 @@ for(const id of resonanceTargets){
   const spec=visuals(id).find(item=>item.type==='resonance');assert(spec,`${id}: curated non-ring resonance visual required`);
   assert.deepEqual(spec.formalCharges,{center:1,terminal:-1},`${id}: contributor charges`);
 }
-assert.equal(visuals('sulfur-dioxide').some(spec=>spec.type==='resonance'),false,'Sulfur oxo resonance stays outside this task visual grammar');
+assert.equal(visuals('sulfur-dioxide').some(spec=>spec.type==='resonance'),false,'Sulfur keeps no contributor-specific resonance explanation visual');
 assert.deepEqual(visuals('carbon-monoxide').find(spec=>spec.type==='formal-charge')?.formalCharges,{left:-1,right:1},'CO uses C−≡O+ formal-charge grammar');
 for(const [id,motif] of [['water','water'],['hydrogen-chloride','hydrogen-chloride'],['ethanol','alcohol'],['acetone','carbonyl']])assert.equal(visuals(id).find(spec=>spec.type==='polarity')?.motif,motif,`${id}: curated polarity motif`);
 for(const id of ['benzene','toluene','nitrobenzene','carbon-dioxide','methanol','acetaldehyde'])if(!['nitrobenzene'].includes(id))assert.equal(visuals(id).some(spec=>spec.type==='polarity'),false,`${id}: polarity δ visual must not leak without an explicit curated spec`);
