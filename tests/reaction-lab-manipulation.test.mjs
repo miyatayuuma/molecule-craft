@@ -75,11 +75,11 @@ test('manipulation scales simulation elapsed time without changing fixed physics
   assert.match(source, /STAGE_A_PHYSICAL_PS_PER_GAME_SECOND\s*=\s*0\.10/);
 });
 
-test('reaction dwell follows simulation time, so 520 real milliseconds of slow drag is insufficient', () => {
+test('reaction dwell follows simulation time, so 100 real milliseconds of slow drag is insufficient', () => {
   const matcher = createContactMatcher({ dwellMs: CONTACT_DWELL_MS });
   let simulationMs = 0;
   assert.equal(matcher.update('pair', true, simulationMs), false);
-  simulationMs += scaleSimulationElapsed(0.52, MANIPULATION_TIME_SCALE) * 1000;
+  simulationMs += scaleSimulationElapsed(0.1, MANIPULATION_TIME_SCALE) * 1000;
   assert.equal(matcher.update('pair', true, simulationMs), false);
   simulationMs += CONTACT_DWELL_MS - simulationMs;
   assert.equal(matcher.update('pair', true, simulationMs), true);

@@ -47,7 +47,7 @@ function measurePair(a,b,siteA,siteB){
 for(const fixture of [
   {name:'hydrolysis',nucleophile:'water',oxygenIndex:0,rotationSeed:88},
   {name:'alcoholysis',nucleophile:'ethanol',oxygenIndex:2,rotationSeed:35},
-])test(`production Stage B calibration: ${fixture.name} remains reaction-ready for 520ms without exclusion or overlap`,()=>{
+])test(`production Stage B calibration: ${fixture.name} supports the final global dwell without exclusion or overlap`,()=>{
   const candidates=reactionCandidates([{species:'acetic-anhydride',id:'anhydride'},{species:fixture.nucleophile,id:'nucleophile'}],catalog),candidate=candidates.find(item=>item.bindings.acyl.acylC===1&&item.bindings.nucleophile.oxygen===fixture.oxygenIndex);
   assert.ok(candidate,`compiled ${fixture.name} pathway exists`);
   const a=calibratedBody(byId.get('acetic-anhydride'),'anhydride'),b=calibratedBody(byId.get(fixture.nucleophile),'nucleophile'),orientationA=deterministicOrientation(fixture.rotationSeed,180),orientationB=deterministicOrientation((fixture.rotationSeed*73)%180,180,.7);
@@ -64,9 +64,10 @@ for(const fixture of [
     assert.equal(geometryReady,true,`${fixture.name} full-body trajectory leaves the family window at step ${step}: ${JSON.stringify({...diagnostics,window:[constraint.min,constraint.max]})}`);
     ready=matcher.update(key,geometryReady&&!diagnostics.severeOverlap,fixedStepMs);
     if(step===0)firstStepElapsed=matcher.elapsed(key);
-    if(step===62)assert.equal(ready,false,'the first observed NORMAL Stage B fixed step does not count toward dwell');
+    if(step===0||step===1)assert.equal(ready,false,'the first eligible fixed step starts dwell at zero, then measures only completed NORMAL Stage B intervals');
+    if(step===2)assert.equal(ready,true,'the calibrated global dwell is reached after two fixed-step intervals');
   }
   assert.equal(firstStepElapsed,0);assert.equal(ready,true);assert.ok(minimum>=constraint.min);assert.ok(maximum<=constraint.max);
   assert.ok(Number.isFinite(minimumRatio));
-  console.log(`REACTION_CALIBRATION ${JSON.stringify({reaction:candidate.reactionId,family:candidate.familyId,qA:STAGE_B_TEST_QA_E,steps:64,fixedStepMs,windowAngstrom:{min:constraint.min,target:constraint.target,max:constraint.max},siteDistanceRetentionAngstrom:{min:minimum,max:maximum},minimumRealAtomSeparationRatio:minimumRatio,severeOverlap:false,overlapGuardActivations:activationCount,dwellMs:matcher.elapsed(key)})}`);
+  console.log(`REACTION_CALIBRATION ${JSON.stringify({reaction:candidate.reactionId,family:candidate.familyId,qA:STAGE_B_TEST_QA_E,steps:64,fixedStepMs,windowAngstrom:{min:constraint.min,target:constraint.target,max:constraint.max},siteDistanceRetentionAngstrom:{min:minimum,max:maximum},minimumRealAtomSeparationRatio:minimumRatio,severeOverlap:false,overlapGuardActivations:activationCount,requiredDwellMs:CONTACT_DWELL_MS,firstCommitReadyStep:2})}`);
 });

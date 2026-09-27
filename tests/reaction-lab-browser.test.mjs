@@ -52,7 +52,7 @@ try{
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()');
   const summarizeTrajectory=trace=>{
     const samples=trace?.samples??[],closest=samples.reduce((best,row)=>!best||row.distanceConstraints?.[0]?.actual<best.distanceConstraints?.[0]?.actual?row:best,null),firstReleased=samples.find(row=>!row.manipulating&&row.normalPhysicsStepObserved),firstValid=samples.find(row=>!row.manipulating&&row.normalPhysicsStepObserved&&row.geometryReady&&!row.severeOverlap);
-    const compact=row=>row?{pathwayId:row.pathwayId,fixedStepIndex:row.fixedStepIndex,actual:row.distanceConstraints?.[0]?.actual,geometryReady:row.geometryReady,severeOverlap:row.severeOverlap,manipulating:row.manipulating,normalPhysicsStepObserved:row.normalPhysicsStepObserved,dwellElapsed:row.dwellElapsed,commitReady:row.commitReady,minimumNonbondedSeparationRatio:row.minimumNonbondedSeparationRatio}:null;
+    const compact=row=>row?{pathwayId:row.pathwayId,fixedStepIndex:row.fixedStepIndex,actual:row.distanceConstraints?.[0]?.actual,geometryReady:row.geometryReady,severeOverlap:row.severeOverlap,manipulating:row.manipulating,normalPhysicsStepObserved:row.normalPhysicsStepObserved,dwellElapsed:row.dwellElapsed,dwellRequired:row.dwellRequired,commitReady:row.commitReady,minimumNonbondedSeparationRatio:row.minimumNonbondedSeparationRatio}:null;
     const pathwayRuns=[...new Set(samples.map(row=>row.pathwayId))].filter(Boolean).map(pathwayId=>{
       const pathwaySamples=samples.filter(row=>row.pathwayId===pathwayId),valid=pathwaySamples.filter(row=>!row.manipulating&&row.normalPhysicsStepObserved&&row.geometryReady&&!row.severeOverlap).sort((a,b)=>a.fixedStepIndex-b.fixedStepIndex);
       let longest=0,run=0,lastStep=null;for(const row of valid){if(lastStep!==null&&row.fixedStepIndex!==lastStep+1)run=0;run++;longest=Math.max(longest,run);lastStep=row.fixedStepIndex;}
@@ -133,7 +133,7 @@ try{
     assert.ok(pathSamples.some(item=>item.commitReady&&item.geometryReady&&!item.severeOverlap),'The observed user-reachable pathway became commit-ready');
     const dwellSamples=pathSamples.filter(item=>item.geometryReady&&!item.severeOverlap&&!item.manipulating&&item.normalPhysicsStepObserved);
     let longest=0,run=0,lastStep=null;for(const sample of dwellSamples){if(lastStep!==null&&sample.fixedStepIndex!==lastStep+1)run=0;run++;longest=Math.max(longest,run);lastStep=sample.fixedStepIndex;}
-    assert.ok(longest*1000/120>=520,`The production 520ms dwell was continuous on fixed steps (${longest} steps)`);
+    const dwellRequired=pathSamples.find(item=>!item.manipulating&&item.normalPhysicsStepObserved)?.dwellRequired;assert.ok(Number.isFinite(dwellRequired));assert.ok((longest-1)*1000/120>=dwellRequired,`The production ${dwellRequired}ms dwell was continuous on fixed steps (${longest} samples)`);
     console.log('REACTION_POINTER_E2E',JSON.stringify({reactionId,attempts:attemptCount,depthAcquisitions,participantIds:finalTrace.participantIds,stepCount:pathSamples.length,readyStepCount:dwellSamples.length,longestContinuousReadySteps:longest,commitReady:pathSamples.some(item=>item.commitReady),lastTrajectory:pathSamples.slice(-8)}));
     await evaluate('window.__reactionLabProbe.stopReactionTrajectoryTrace()');
     await waitFor(`window.__labReactionEvents.at(-1)?.reactionId==='${reactionId}'`,'Reaction Result event was not emitted',2000);

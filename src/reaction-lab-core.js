@@ -5,7 +5,10 @@ import { canonicalNonbondedPairGeometry } from './reaction-lab-stage-a.js?v=4';
 import { enumerateSubgraphMappings } from './subgraph-matcher.js?v=1';
 
 export const REACTION_LAB_SLOT_COUNT = 3;
-export const CONTACT_DWELL_MS = 520;
+// User-driven Stage B trajectories retain safe acyl-transfer geometry for
+// roughly 2–5 observed 120 Hz steps, so require two complete simulation-time
+// intervals after the first eligible fixed step.
+export const CONTACT_DWELL_MS = 1000/60;
 export const MAX_REACTION_PATTERN_MATCHES = 10000;
 
 export const REACTION_SITE_PATTERNS = Object.freeze([
