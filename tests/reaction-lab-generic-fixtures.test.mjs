@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { compileReactionCatalog, reactionCandidates, planReactionExecution, resolveSupplementalParticipants, environmentMatches } from '../src/reaction-lab-core.js';
+import { compileReactionCatalog, reactionCandidates, planReactionExecution, resolveSupplementalParticipants, environmentMatches, createContactMatcher, matchReactionSitePattern, matchDatabaseProduct } from '../src/reaction-lab-core.js';
+import { formalChargeForRecordAtom, setMoleculeDatabase, moleculeCatalog } from '../src/chemistry.js?v=23';
 
 const productionRecords=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
 const productionById=new Map(productionRecords.map(record=>[record.id,record]));
@@ -111,19 +112,83 @@ test('acidic esterification fixture moves a source hydrogen and never sources at
   assert.equal(rxn.reactants.some(item=>item.species==='hydrogen-ion'),false);
 });
 
-test('2A+B fixture requires a third real instance and excludes busy or implicit supply',()=>{
-  const A=record('fixture-A',['C'],[]),B=record('fixture-B',['O'],[]);
-  const patterns=[pattern('A-center',[atom('center','C',0)]),pattern('B-center',[atom('center','O',0)])];
-  const fam=family('multi-stoich',{a1:familyRole('encounter',['A-center']),a2:familyRole('encounter',['A-center']),b:familyRole('supplemental',['B-center'])},[],geometry('a1.center','a2.center'));
-  const rxn={id:'fixture-2A+B',familyId:fam.id,reactants:[{role:'a1',species:A.id},{role:'a2',species:A.id},{role:'b',species:B.id}],products:[A.id,A.id,B.id],requires:[],forbids:[]};
-  const{records,catalog}=system([A,B],patterns,fam,rxn),candidate=reactionCandidates([{species:A.id,id:'a1'},{species:A.id,id:'a2'}],catalog)[0];
-  assert.ok(candidate);
-  const planMissing=planReactionExecution(candidate,records);assert.equal(planMissing.participants.find(item=>item.role==='b').instanceId,null);
-  const real=[{id:'encounter-1',species:A.id,busy:false},{id:'encounter-2',species:A.id,busy:false},{id:'hidden-busy',species:B.id,busy:true},{id:'z-B',species:B.id,busy:false},{id:'a-B',species:B.id,busy:false}];
+test('2A+B supplemental site is matched, transformed and conserved from a real third instance',()=>{
+  const A=record('fixture-A',['C'],[]),B=record('fixture-B',['O','O'],[[0,1,1]]),product=record('fixture-C2O2',['C','C','O','O'],[[0,1,1],[1,2,1],[2,3,1]]);
+  const patterns=[pattern('A-center',[atom('center','C',0)]),pattern('B-oxygen-pair',[atom('leftO','O',1,{O:1}),atom('rightO','O',1,{O:1})],[['leftO','rightO',1]])];
+  const fam=family('multi-stoich',{a1:familyRole('encounter',['A-center']),a2:familyRole('encounter',['A-center']),b:familyRole('supplemental',['B-oxygen-pair'])},[
+    {op:'formBond',a:'a1.center',b:'a2.center',from:'absent',order:1},
+    {op:'formBond',a:'a2.center',b:'b.leftO',from:'absent',order:1},
+  ],geometry('a1.center','a2.center'));
+  const rxn={id:'fixture-2A+B',familyId:fam.id,reactants:[{role:'a1',species:A.id},{role:'a2',species:A.id},{role:'b',species:B.id}],products:[product.id],requires:[],forbids:[]};
+  const{records,catalog}=system([A,B,product],patterns,fam,rxn),candidates=reactionCandidates([{species:A.id,id:'encounter-1'},{species:A.id,id:'encounter-2'}],catalog);
+  assert.equal(candidates.length,2,'Both labelled supplemental oxygen pathways survive compilation');
+  assert.ok(candidates.every(candidate=>Number.isInteger(candidate.bindings.b.leftO)&&Number.isInteger(candidate.bindings.b.rightO)),'Supplemental roles receive complete labelled site bindings');
+  assert.equal(new Set(candidates.map(candidate=>candidate.symmetryClassId)).size,1,'Supplemental equivalent sites use whole-role automorphism grouping');
+  assert.ok(candidates.every(candidate=>candidate.geometryConstraints.every(constraint=>constraint.from.role!=='b'&&constraint.to.role!=='b')),'Supplemental binding does not add a trigger geometry constraint');
+  const candidate=candidates[0],real=[{id:'encounter-1',species:A.id,busy:false},{id:'encounter-2',species:A.id,busy:false},{id:'busy-B',species:B.id,busy:true},{id:'z-B',species:B.id,busy:false},{id:'a-B',species:B.id,busy:false}];
   const supplemental=resolveSupplementalParticipants(candidate.reaction,candidate,real,item=>item.id.endsWith('-B')?4:1);
   assert.equal(supplemental.ok,true);assert.equal(supplemental.participantInstances.b,'a-B');
-  const execution=planReactionExecution({...candidate,...supplemental},records);assert.deepEqual(execution.consumedInstanceIds,['a1','a2','a-B']);assert.equal(new Set(execution.consumedInstanceIds).size,3);
-  assert.equal(resolveSupplementalParticipants(candidate.reaction,candidate,real.filter(item=>item.id!=='a-B'&&item.id!=='z-B'),()=>1).reason,'missing-stoichiometric-participant');
+  const execution=planReactionExecution({...candidate,...supplemental},records);assert.deepEqual(execution.consumedInstanceIds,['encounter-1','encounter-2','a-B']);assert.equal(new Set(execution.consumedInstanceIds).size,3);
+  assert.equal(execution.products[0].id,product.id);assert.ok(execution.atomOrigins[0].origins.some(origin=>origin.sourceAtom==='b:0'||origin.sourceAtom==='b:1'),'Product atom origins retain the supplemental source atom');
+  assert.ok(execution.graphDiff.formedBonds.some(bond=>bond.a.startsWith('b:')||bond.b.startsWith('b:')),'The declarative edit consumes a supplemental binding');
+  assert.equal(resolveSupplementalParticipants(candidate.reaction,candidate,real.filter(item=>item.id!=='a-B'&&item.id!=='z-B'),()=>1).reason,'missing-stoichiometric-participant','Without a real supplemental instance no plan can be reserved');
+});
+
+test('supplemental participant-set changes clear old fixed-step dwell continuity',()=>{
+  const matcher=createContactMatcher({dwellMs:520}),reaction={id:'fixture-2A+B',reactants:[{role:'a1',species:'A',participation:'encounter'},{role:'a2',species:'A',participation:'encounter'},{role:'b',species:'B',participation:'supplemental'}]},candidate={participantInstances:{a1:'a1',a2:'a2'},reaction},instances=[{id:'B1',species:'B',busy:false},{id:'B2',species:'B',busy:false}];
+  let distances={B1:1,B2:5};
+  const step=()=>{matcher.beginStep();const resolved=resolveSupplementalParticipants(reaction,candidate,instances,item=>distances[item.id]);assert.equal(resolved.ok,true);const ids=Object.values(resolved.participantInstances).sort(),key=`${reaction.id}:path:${ids.join('|')}:g1`;matcher.markActive(key);matcher.update(key,true,100);matcher.endStep();return key;};
+  const b1Key=step();step();step();step();assert.equal(matcher.elapsed(b1Key),300);
+  distances={B1:5,B2:1};assert.match(step(),/B2/);assert.equal(matcher.elapsed(b1Key),0,'B1 dwell state is discarded when B2 becomes nearest');
+  distances={B1:1,B2:5};assert.equal(step(),b1Key);assert.equal(matcher.elapsed(b1Key),0,'Returning to nearest B1 begins a new dwell interval');
+  for(let index=0;index<5;index++)step();assert.equal(matcher.elapsed(b1Key),500);assert.equal(matcher.update(b1Key,true,20),true,'Only a continuous B1 participant set reaches the dwell threshold');
+});
+
+test('production formalCharges reach Reaction Core matching, strict mapping and conservation',()=>{
+  const ozone=productionById.get('ozone');assert.ok(ozone);assert.equal(formalChargeForRecordAtom(ozone,1),1);assert.equal(formalChargeForRecordAtom(ozone,2),-1);
+  const positive=pattern('ozone-positive',[atom('charged','O',2,{}, {formalCharge:1})]);
+  const negative=pattern('ozone-negative',[atom('charged','O',1,{}, {formalCharge:-1})]);
+  assert.deepEqual(matchReactionSitePattern(ozone,positive).map(binding=>binding.charged),[1]);
+  assert.deepEqual(matchReactionSitePattern(ozone,negative).map(binding=>binding.charged),[2]);
+  const graph={atoms:[{id:'p',element:'O',formalCharge:0},{id:'c',element:'O',formalCharge:1},{id:'n',element:'O',formalCharge:-1}],bonds:[{a:'p',b:'c',order:1},{a:'c',b:'n',order:2}]};
+  const exact={id:'fixture-ozone-charge',atoms:['O','O','O'],formalCharges:{1:1,2:-1},bonds:[[0,1,1],[1,2,2]]};
+  const misplaced={id:'fixture-ozone-charge-swapped',atoms:['O','O','O'],formalCharges:{0:-1,1:1},bonds:[[0,1,1],[1,2,2]]};
+  assert.equal(matchDatabaseProduct(graph,[exact]),exact);assert.equal(matchDatabaseProduct(graph,[misplaced]),null,'Strict mapping does not move charge between atom origins');
+  const shifted={...record('fixture-ozone-charge-shift',['O','O','O'],[[0,1,2],[1,2,1]]),formalCharges:{0:1,2:-1}};
+  const patterns=[pattern('charged-ozone',[atom('neutralEnd','O',1,{O:1},{formalCharge:0}),atom('center','O',2,{O:2},{formalCharge:1}),atom('negativeEnd','O',1,{O:1},{formalCharge:-1})],[['neutralEnd','center',2],['center','negativeEnd',1]]),pattern('oxygen-pair',[atom('oA','O',1,{O:1}),atom('oB','O',1,{O:1})],[['oA','oB',2]])];
+  const familyValue=family('production-charge-migration',{ozone:familyRole('encounter',['charged-ozone']),oxygen:familyRole('encounter',['oxygen-pair'])},[
+    {op:'changeFormalCharge',a:'ozone.center',from:1,to:0},{op:'changeFormalCharge',a:'ozone.neutralEnd',from:0,to:1},
+  ],geometry('ozone.center','oxygen.oA'));
+  const reaction={id:'fixture-production-formal-charge-edit',familyId:familyValue.id,reactants:[{role:'ozone',species:'ozone'},{role:'oxygen',species:'oxygen'}],products:[shifted.id,'oxygen'],requires:[],forbids:[]};
+  const{records,catalog}=system([shifted],patterns,familyValue,reaction),candidate=reactionCandidates([{species:'ozone',id:'ozone-instance'},{species:'oxygen',id:'oxygen-instance'}],catalog)[0],plan=planReactionExecution(candidate,records);
+  assert.equal(plan.ok,true);assert.deepEqual(plan.graphDiff.formalChargeChanges,[{atom:'ozone:0',from:0,to:1},{atom:'ozone:1',from:1,to:0}], 'Source state, changeFormalCharge edits and result diff all read production formalCharges');
+});
+
+test('shared aromatic graph authority excludes benzene, pyridine and furan while preserving ethene',()=>{
+  const alkene=pattern('nonaromatic-alkene',[atom('c1','C',undefined,{}, {aromatic:false}),atom('c2','C',undefined,{}, {aromatic:false})],[['c1','c2',2]]);
+  for(const species of ['benzene','pyridine','furan'])assert.equal(matchReactionSitePattern(productionById.get(species),alkene).length,0,`${species} ring pi bonds are aromatic`);
+  assert.ok(matchReactionSitePattern(productionById.get('ethene'),alkene).length>0,'Non-aromatic ethene remains a valid alkene site');
+});
+
+test('production molecule formalCharges validate, freeze and remain readable by the shared helper',()=>{
+  setMoleculeDatabase(productionRecords);
+  const charged=productionRecords.filter(record=>record.formalCharges!=null);assert.equal(charged.length,6,'All six production charge maps are covered');
+  for(const record of charged){
+    const stored=moleculeCatalog().find(item=>item.id===record.id);assert.ok(Object.isFrozen(stored.formalCharges),`${record.id}.formalCharges is frozen`);
+    for(const[index,charge]of Object.entries(record.formalCharges))assert.equal(formalChargeForRecordAtom(stored,Number(index)),charge);
+  }
+  const ozone=moleculeCatalog().find(item=>item.id==='ozone');assert.equal(formalChargeForRecordAtom(ozone,1),1);assert.equal(formalChargeForRecordAtom(ozone,2),-1);
+});
+
+test('molecule database rejects malformed formal charge maps',()=>{
+  const invalid=[
+    ['not-object',null],['array',[]],['noncanonical-key',{'01':1}],['non-numeric-key',{wat:1}],
+    ['out-of-range',{'3':1}],['fractional',{'1':.5}],['non-finite',{'1':Number.POSITIVE_INFINITY}],['string',{'1':'1'}],
+  ];
+  for(const[name,formalCharges]of invalid){
+    const changed=productionRecords.map(record=>record.id==='ozone'?{...record,formalCharges}:record);
+    assert.throws(()=>setMoleculeDatabase(changed),/formalCharges/,name);
+  }
 });
 
 test('charge-edit fixture requires conserved net formal charge and exact charged DB products',()=>{

@@ -74,7 +74,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
-  const reactionEnvironment=new Set();let reactionDiagnostics=[];
+  const reactionEnvironment=new Set();let reactionDiagnostics=[],reactionTrajectoryTrace=null;
   let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
   const activePointers=new Map();
   const chamberTime=createChamberTimeAuthority(),isManipulating=()=>chamberTime.mode===CHAMBER_TIME_MODES.MANIPULATING;
@@ -393,6 +393,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE||reactionAnimation)return;
     const manipulating=isManipulating(),rows=[],ready=[];
     if(manipulating)contactMatcher.reset();
+    contactMatcher.beginStep();
     const active=[...instances].filter(item=>!item.feedMotion&&item.batchGeneration===batch.generation).sort((a,b)=>a.id.localeCompare(b.id));
     function assess(candidate){
       const rejectionReasons=[],encounterIds=candidate.reactantInstanceIds,encounter=encounterIds.map(instanceById);
@@ -425,6 +426,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(!stageBPhysicsEnabled)rejectionReasons.push('non-production-physics');
       const ids=Object.values(participantInstances).filter(Boolean).sort(),dwellKey=`${candidate.reactionId}:${candidate.pathwayId}:${ids.join('|')}:g${batch.generation}`;
       const eligible=!manipulating&&!rejectionReasons.length;
+      if(supplemental.ok)contactMatcher.markActive(dwellKey);
       const elapsed=manipulating?0:(contactMatcher.update(dwellKey,eligible,stepMs),contactMatcher.elapsed(dwellKey));
       if(manipulating)rejectionReasons.push('participant-manipulating');
       const commitReady=eligible&&elapsed>=CONTACT_DWELL_MS;
@@ -444,7 +446,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const candidates=reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],reactionCatalog);
       for(const candidate of candidates)assess(candidate);
     }
+    contactMatcher.endStep();
     reactionDiagnostics=rows;
+    if(reactionTrajectoryTrace){
+      const trace=reactionTrajectoryTrace;
+      for(const diagnostic of rows.filter(item=>item.reactionId===trace.reactionId&&(!trace.participantIds||trace.participantIds.every(id=>Object.values(item.participants??{}).includes(id))))){
+        const bodies=Object.values(diagnostic.participants??{}).map(instanceById).filter(Boolean).map(item=>({id:item.id,positionAngstrom:[...item.stageBody.positionAngstrom],orientation:[...item.stageBody.orientation],velocityAngstromPerPs:[...item.stageBody.velocityAngstromPerPs],angularVelocityRadPerPs:[...item.stageBody.angularVelocityRadPerPs]}));
+        trace.samples.push({fixedStepIndex:stageAPerformance.fixedSteps,fixedStepMs:stepMs,simulationClockSeconds,reactionId:diagnostic.reactionId,familyId:diagnostic.familyId,pathwayId:diagnostic.pathwayId,participantIds:{...diagnostic.participants},matchedSites:diagnostic.matchedSites,distanceConstraints:diagnostic.distanceConstraints.map(({actual,min,target,max,normalizedError})=>({actual,min,target,max,normalizedError})),geometryReady:diagnostic.geometryReady,severeOverlap:diagnostic.severeOverlap,minimumRealAtomDistance:diagnostic.minimumRealAtomDistance,minimumNonbondedSeparationRatio:diagnostic.minimumNonbondedSeparationRatio,manipulating:diagnostic.manipulating,normalPhysicsStepObserved:diagnostic.normalPhysicsStepObserved,environmentMatched:diagnostic.environmentMatched,dwellElapsed:diagnostic.dwellElapsed,dwellRequired:diagnostic.dwellRequired,commitReady:diagnostic.commitReady,rejectionReasons:[...diagnostic.rejectionReasons],bodies});
+        if(trace.samples.length>2400)trace.samples.shift();
+      }
+    }
     if(manipulating||!ready.length)return;
     const arbitration=arbitrateReactionCandidates(ready);
     if(arbitration.selected)commit(arbitration.selected);
@@ -551,9 +562,14 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       advanceDeterministic(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps)));stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;}return this.snapshot();},
       decomposePair(aId,bId){const a=instanceById(aId),b=instanceById(bId);if(!a||!b)throw Error('Missing Reaction Lab molecule instance');const result=stageBPhysicsEnabled?evaluateStageBForces([a.stageBody,b.stageBody]):evaluateStageAForces([a.stageBody,b.stageBody]);return{pairs:result.pairDiagnostics,bodies:Object.fromEntries([...result.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:result.overlapGuardActivationCount};},
       reactionContactDiagnostics(reactionId){return reactionDiagnostics.filter(item=>item.reactionId===reactionId);},
+      startReactionTrajectoryTrace(reactionId,participantIds){if(!localhostPhysicsTest)throw Error('Reaction trajectory tracing is localhost-only');reactionTrajectoryTrace={reactionId,participantIds:participantIds?[...participantIds].sort():null,samples:[]};return{reactionId,participantIds:reactionTrajectoryTrace.participantIds};},
+      reactionTrajectoryTrace(){return reactionTrajectoryTrace?{reactionId:reactionTrajectoryTrace.reactionId,participantIds:reactionTrajectoryTrace.participantIds,samples:reactionTrajectoryTrace.samples.map(sample=>({...sample}))}:null;},
+      stopReactionTrajectoryTrace(){const trace=reactionTrajectoryTrace?{reactionId:reactionTrajectoryTrace.reactionId,participantIds:reactionTrajectoryTrace.participantIds,samples:reactionTrajectoryTrace.samples.map(sample=>({...sample}))}:null;reactionTrajectoryTrace=null;return trace;},
       setEnvironmentConditions(tokens){if(!Array.isArray(tokens)||tokens.some(token=>typeof token!=='string'))throw Error('Environment conditions must be normalized string tokens.');reactionEnvironment.clear();for(const token of tokens)reactionEnvironment.add(token);contactMatcher.reset();return this.snapshot();},
       setStageAPair(aId,positionA,bId,positionB){return this.setGeometry([{id:aId,positionAngstrom:positionA},{id:bId,positionAngstrom:positionB}]);},
       settlePair(aId,bId){for(const id of [aId,bId]){const item=instanceById(id);if(!item)throw Error(`Missing Reaction Lab molecule ${id}`);item.stageBody.velocityAngstromPerPs=[0,0,0];item.stageBody.angularVelocityRadPerPs=[0,0,0];syncGroupFromStageABody(item);}return this.snapshot();},
+      // Localhost deterministic approach fixture for calibration and Stage A
+      // comparison only. User-reachable acceptance uses real pointer events.
       prepareReactionApproach(reactionId,separationWorld=4.2){
         const candidate=instances.flatMap((left,index)=>instances.slice(index+1).flatMap(right=>reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],reactionCatalog))).find(item=>item.reactionId===reactionId);
         if(!candidate)throw Error(`No live instance pair for ${reactionId}`);
