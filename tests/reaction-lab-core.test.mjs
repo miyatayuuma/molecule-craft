@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { normalizeSpeciesSlots, planVisiblePopulation, reactionCandidates, resolveCandidateInstanceIds, createContactMatcher, planStoichiometricSupply, planReactionExecution, resolveRegisteredProducts, matchDatabaseProduct } from '../src/reaction-lab-core.js';
+import { normalizeSpeciesSlots, planVisiblePopulation, reactionCandidates, resolveCandidateInstanceIds, createContactMatcher, planReactionExecution, resolveRegisteredProducts, matchDatabaseProduct } from '../src/reaction-lab-core.js';
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
 const byId=new Map(records.map(r=>[r.id,r]));
 
@@ -22,13 +22,14 @@ test('runtime candidate IDs resolve to present instances without Three.js object
  assert.equal('group' in candidate,false);assert.equal('record' in candidate,false);
 });
 test('contact matcher debounces brief threshold crossings',()=>{const matcher=createContactMatcher({dwellMs:500});assert.equal(matcher.update('pair',true,10),false);assert.equal(matcher.update('pair',false,300),false);assert.equal(matcher.update('pair',true,400),false);assert.equal(matcher.update('pair',true,900),true);});
-test('stoichiometric supply requires every species to be selected in slots',()=>{assert.equal(planStoichiometricSupply(['water','water'],['water','','']).ok,true);assert.equal(planStoichiometricSupply(['water','ethanol'],['water','','']).reason,'required-species-not-in-slots');});
 test('registered reactions consume a pair and return the correct database product instance count',()=>{
- const candidate=reactionCandidates([{species:'water',id:'w-1'},{species:'acetic-anhydride',id:'an-1'}],records).find(item=>item.ruleId==='anhydride-hydrolysis');assert.deepEqual(candidate.reactantInstanceIds,['an-1','w-1']);const plan=planReactionExecution(candidate,records,['acetic-anhydride','water','']);assert.equal(plan.ok,true);assert.deepEqual(plan.consumedInstanceIds,['an-1','w-1']);assert.deepEqual(plan.products.map(item=>item.id),['acetic-acid','acetic-acid']);assert.equal(plan.productInstanceCount,2);assert.ok(plan.graphTransition.brokenBonds.length>0);assert.ok(plan.graphTransition.formedBonds.length>0);
+ const candidate=reactionCandidates([{species:'water',id:'w-1'},{species:'acetic-anhydride',id:'an-1'}],records).find(item=>item.ruleId==='anhydride-hydrolysis');assert.deepEqual(candidate.reactantInstanceIds,['an-1','w-1']);const plan=planReactionExecution(candidate,records);assert.equal(plan.ok,true);assert.deepEqual(plan.consumedInstanceIds,['an-1','w-1']);assert.deepEqual(plan.products.map(item=>item.id),['acetic-acid','acetic-acid']);assert.equal(plan.productInstanceCount,2);assert.equal('temporarySupply' in plan,false);assert.ok(plan.graphTransition.brokenBonds.length>0);assert.ok(plan.graphTransition.formedBonds.length>0);
 });
-test('alcoholysis atom-map transforms into the two distinct registered product graphs',()=>{const candidate=reactionCandidates([{species:'ethanol',id:'e1'},{species:'acetic-anhydride',id:'a1'}],records).find(item=>item.rule.id==='anhydride-alcoholysis');const plan=planReactionExecution(candidate,records,['ethanol','acetic-anhydride','']);assert.equal(plan.ok,true);assert.deepEqual(plan.products.map(item=>item.id),['ethyl-acetate','acetic-acid']);assert.ok(plan.graphTransition.brokenBonds.length>0);assert.ok(plan.graphTransition.formedBonds.length>0);});
-test('stoichiometric supply uses a selected species slot and rejects an absent one',()=>{
- const rule={id:'two-water',activation:'contact',reactants:[{species:'water'},{species:'water'}],products:['water','water'],atomMaps:[[0,1,2],[3,4,5]]},candidate={ruleId:'two-water',rule,reactantInstanceIds:['w1'],speciesIds:['water'],siteAtomIndices:[0,0]};assert.equal(planReactionExecution(candidate,records,['','',''],[rule]).reason,'required-species-not-in-slots');const plan=planReactionExecution(candidate,records,['water','',''],[rule]);assert.equal(plan.ok,true);assert.deepEqual(plan.temporarySupply,['water']);
+test('alcoholysis atom-map transforms into the two distinct registered product graphs',()=>{const candidate=reactionCandidates([{species:'ethanol',id:'e1'},{species:'acetic-anhydride',id:'a1'}],records).find(item=>item.rule.id==='anhydride-alcoholysis');const plan=planReactionExecution(candidate,records);assert.equal(plan.ok,true);assert.deepEqual(plan.products.map(item=>item.id),['ethyl-acetate','acetic-acid']);assert.ok(plan.graphTransition.brokenBonds.length>0);assert.ok(plan.graphTransition.formedBonds.length>0);});
+test('selected slots cannot make up a reactant missing from the actual candidate instances',()=>{
+ const rule={id:'requires-water-and-ethanol',activation:'contact',reactants:[{species:'water'},{species:'ethanol'}],products:['water','ethanol'],atomMaps:[]};
+ const candidate={ruleId:rule.id,rule,reactantInstanceIds:['w1','w2'],speciesIds:['water','water'],siteAtomIndices:[0,0]};
+ assert.equal(planReactionExecution(candidate,records,[rule]).reason,'missing-reactant-instances');
 });
 test('reaction products resolve only to database records and product graph matching is structural',()=>{
  const products=resolveRegisteredProducts(['acetic-acid','acetic-acid'],records);assert.equal(products.products.length,2);assert.equal(resolveRegisteredProducts(['db-external'],records).ok,false);
