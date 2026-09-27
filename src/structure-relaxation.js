@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 18691)
-Total output lines: 1354
-
 import {createConjugationModel} from './conjugation-model.js?v=1';
 import {isSupportedAromaticCycleGraph} from './aromatic-graph.js?v=1';
 
@@ -567,7 +564,204 @@ export function createStructureSolver({
     if(dirty)rebuildTopology();
     return rigidFragments.map(fragment=>{
       const pairs=[];
-   …2691 tokens truncated…ts, not an
+      for(let left=0;left<fragment.atomIds.length;left++)for(let right=left+1;right<fragment.atomIds.length;right++){
+        const a=fragment.atomIds[left],b=fragment.atomIds[right],distance=pos(a)?.distanceTo(pos(b));
+        if(Number.isFinite(distance)&&distance>1e-8)pairs.push({a,b,distance});
+      }
+      return{id:fragment.id,pairs};
+    });
+  }
+
+  function measureRigidDeviation(reference,includes){
+    if(!reference)return 0;let relative=0;
+    for(const fragment of reference)for(const pair of fragment.pairs??[]){
+      if(!includes(pair.a)||!includes(pair.b))continue;
+      const distance=pos(pair.a)?.distanceTo(pos(pair.b));
+      relative=Math.max(relative,Math.abs((distance??Infinity)/pair.distance-1));
+    }
+    return relative;
+  }
+
+  function captureConformation(ids=null){
+    if(dirty)rebuildTopology();const includes=id=>!ids||ids.has(id);
+    return new Map(molecule.atoms.filter(atom=>includes(atom.id)&&pos(atom.id)).map(atom=>[atom.id,pos(atom.id).clone()]));
+  }
+
+  function restoreConformation(snapshot){
+    if(!(snapshot instanceof Map))return false;let restored=false;
+    for(const[id,point]of snapshot){if(!pos(id)||!point)continue;pos(id).copy(point);restored=true;}
+    return restored;
+  }
+
+  function validateConformation({ids=null,rigidReference=null,mode='release'}={}){
+    const errors=measureError({ids,rigidReference}),drag=mode==='drag';
+    const limits={bondRelative:drag ? .10 : .07,angleRadians:(drag ? 26 : 20)*Math.PI/180,planeDistance:drag ? .10 : .075,
+      overlapRelative:drag ? .24 : .18,rigidRelative:drag ? .05 : .035,fiveMemberConformationRelative:drag ? .16 : .12,sixMemberConformationRelative:drag ? .10 : .065,
+      aromaticRadiusRelative:drag ? .025 : .015,aromaticAngleRadians:(drag ? 4 : 2.5)*Math.PI/180,aromaticPlaneDistance:drag ? .10 : .075};
+    const reasons=[];
+    if(!errors.finite)reasons.push('nonfinite');
+    if(errors.topologyLimited)reasons.push('topology');
+    for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative','fiveMemberConformationRelative','sixMemberConformationRelative','aromaticRadiusRelative','aromaticAngleRadians','aromaticPlaneDistance'])if(errors[key]>limits[key])reasons.push(key);
+    if(errors.ringPenetrations)reasons.push('ring-penetration');
+    if(errors.bondIntersections)reasons.push('bond-intersection');
+    return{valid:reasons.length===0,reasons,errors,limits};
+  }
+
+  function angleBranch(centerId, rootId) {
+    const sides = bridgeSides.get(pairKey(centerId, rootId));
+    return sides ? (sides.aId === rootId ? sides.a : sides.b) : [rootId];
+  }
+
+  function enforceAngle(centerId, aId, bId, target, strength, locked) {
+    const center = pos(centerId);
+    const a = pos(aId);
+    const b = pos(bId);
+    if (!a || !b || (locked.has(aId) && locked.has(bId))) return;
+    const va = a.clone().sub(center);
+    const vb = b.clone().sub(center);
+    const la = va.length();
+    const lb = vb.length();
+    if (la < 0.001 || lb < 0.001) return;
+    va.normalize(); vb.normalize();
+    const current = Math.acos(THREE.MathUtils.clamp(va.dot(vb), -1, 1));
+    const difference = target - current;
+    if (Math.abs(difference) < 0.0015) return;
+    let axis = new THREE.Vector3().crossVectors(va, vb);
+    if (axis.lengthSq() < 1e-8) axis = perpendicular(va);
+    else axis.normalize();
+    // Rotate bridge branches rigidly. Moving just a bonded neighbor was
+    // stretching its other bonds and making adjacent angle constraints fight.
+    const aIds = angleBranch(centerId, aId), bIds = angleBranch(centerId, bId);
+    const aLocked = aIds.some(id => locked.has(id)), bLocked = bIds.some(id => locked.has(id));
+    const total = aIds.length + bIds.length;
+    const aWeight = aLocked ? 0 : bLocked ? 1 : bIds.length / total;
+    const bWeight = bLocked ? 0 : aLocked ? 1 : aIds.length / total;
+    if (aWeight) rotateAngleBranch(aIds, center, axis, -difference * strength * aWeight * .7);
+    if (bWeight) rotateAngleBranch(bIds, center, axis, difference * strength * bWeight * .7);
+  }
+
+  function rotateAngleBranch(ids, center, axis, angle) {
+    // A rigidly rotated planar fragment carries its reference plane with it.
+    // Partial plane edits remain constrained (e.g. dragging one ethene H).
+    const moved=new Set(ids);
+    for(const fragment of conjugatedPlanarFragments)if(fragment.atomIds.every(id=>moved.has(id)))fragment.normal.applyAxisAngle(axis,angle).normalize();
+    for (const frame of [...doubleFrames.values(), ...aromaticFrames.values(), ...trigonalFrames.values()]) {
+      if (frame.atomIds.every(id => moved.has(id))) frame.normal.applyAxisAngle(axis, angle).normalize();
+    }
+    syncConjugatedFrameNormals();
+    for (const id of ids) pos(id)?.sub(center).applyAxisAngle(axis, angle).add(center);
+  }
+
+  function enforcePlane(atomIds, normal, anchorIds, strength, locked, centralBond = null, skipIds = null) {
+    const points = atomIds.map(pos).filter(Boolean);
+    if (points.length < 3 || normal.lengthSq() < 1e-8) return;
+    const anchors = anchorIds.map(pos).filter(Boolean);
+    const center = anchors.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / anchors.length);
+    const central = centralBond ? new Set([centralBond.a, centralBond.b]) : new Set();
+    for (const id of atomIds) {
+      const point = pos(id);
+      if (!point || locked.has(id) || skipIds?.has(id)) continue;
+      const offset = point.clone().sub(center).dot(normal);
+      const weight = central.has(id) ? 0.55 : 1;
+      point.addScaledVector(normal, -offset * strength * weight);
+    }
+  }
+
+  function enforceDoubleSubstituentDirections(frame, strength, locked) {
+    for (const endpoint of frame.substituentSlots) {
+      const center = pos(endpoint.centerId);
+      const partner = pos(endpoint.partnerId);
+      if (!center || !partner) continue;
+      const axis = partner.clone().sub(center);
+      if (axis.lengthSq() < 1e-8) continue;
+      axis.normalize();
+      let side = new THREE.Vector3().crossVectors(frame.normal, axis);
+      if (side.lengthSq() < 1e-8) side = perpendicular(axis);
+      else side.normalize();
+      for (const branch of endpoint.branches) {
+        const direction = axis.clone().multiplyScalar(-0.5).addScaledVector(side, branch.sign * Math.sqrt(3) / 2).normalize();
+        moveBranchRootToward(endpoint.centerId, branch, direction, strength, locked);
+      }
+    }
+  }
+
+  function enforceAromaticSubstituentDirections(frame, strength, locked) {
+    const ringPoints = frame.cycle.map(pos);
+    if (ringPoints.some(point => !point)) return;
+    const ringCenter = ringPoints.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / ringPoints.length);
+    for (const substituent of frame.substituents) {
+      const index = frame.cycle.indexOf(substituent.ringId);
+      const center = pos(substituent.ringId);
+      const previous = pos(frame.cycle[(index - 1 + frame.cycle.length) % frame.cycle.length]);
+      const next = pos(frame.cycle[(index + 1) % frame.cycle.length]);
+      if (!center || !previous || !next) continue;
+      let outward = previous.clone().sub(center).add(next.clone().sub(center)).multiplyScalar(-1);
+      outward.addScaledVector(frame.normal, -outward.dot(frame.normal));
+      const radial = center.clone().sub(ringCenter).addScaledVector(frame.normal, -center.clone().sub(ringCenter).dot(frame.normal));
+      if (outward.lengthSq() < 1e-8) outward = radial;
+      if (outward.lengthSq() < 1e-8) outward = perpendicular(frame.normal);
+      outward.normalize();
+      if (radial.lengthSq() > 1e-8 && outward.dot(radial) < 0) outward.multiplyScalar(-1);
+      moveBranchRootToward(substituent.ringId, substituent, outward, strength, locked);
+    }
+  }
+
+  function enforceConjugatedSubstituentGeometry(frame, strength, locked) {
+    const ringPoints = frame.cycle.map(pos);
+    if (ringPoints.some(point => !point)) return;
+    for (const substituent of frame.substituents) {
+      const ring = pos(substituent.ringId), root = pos(substituent.rootId);
+      if (!ring || !root || substituent.planarFollowers.length > 2) continue;
+      const incoming = ring.clone().sub(root);
+      incoming.addScaledVector(frame.normal, -incoming.dot(frame.normal));
+      if (incoming.lengthSq() < 1e-8) continue;
+      incoming.normalize();
+      let side = new THREE.Vector3().crossVectors(frame.normal, incoming);
+      if (side.lengthSq() < 1e-8) side = perpendicular(incoming); else side.normalize();
+      for (const follower of substituent.planarFollowers) {
+        const direction = incoming.clone().multiplyScalar(-0.5).addScaledVector(side, follower.sign * Math.sqrt(3) / 2).normalize();
+        moveBranchRootToward(substituent.rootId, follower, direction, strength, locked);
+      }
+    }
+  }
+
+  function moveBranchRootToward(centerId, branch, direction, strength, locked) {
+    const center = pos(centerId);
+    const root = pos(branch.rootId);
+    if (!center || !root || branch.atomIds.some(id => locked.has(id))) return;
+    const bond = bondBetween(centerId, branch.rootId);
+    if (!bond) return;
+    const target = center.clone().addScaledVector(direction, bondLengthFor(centerId, branch.rootId, bond.order));
+    const correction = target.sub(root).multiplyScalar(Math.min(1, strength));
+    for (const id of branch.atomIds) pos(id)?.add(correction);
+  }
+
+  function enforceRegularAromaticCycle(frame, strength, locked) {
+    const points = frame.cycle.map(pos);
+    if (points.some(point => !point)) return;
+    const center = points.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / points.length);
+    let u = points[0].clone().sub(center);
+    u.addScaledVector(frame.normal, -u.dot(frame.normal));
+    if (u.lengthSq() < 1e-8) u = perpendicular(frame.normal);
+    u.normalize();
+    const v = new THREE.Vector3().crossVectors(frame.normal, u).normalize();
+    const targetSide = frame.cycle.reduce((sum, id, index) => {
+      const next = frame.cycle[(index + 1) % frame.cycle.length];
+      return sum + bondLengthFor(id, next, bondBetween(id, next)?.order ?? 1);
+    }, 0) / frame.cycle.length;
+    const radius = targetSide / (2 * Math.sin(Math.PI / frame.cycle.length));
+    const second = points[1].clone().sub(center);
+    const sign = second.dot(v) >= 0 ? 1 : -1;
+    frame.cycle.forEach((id, index) => {
+      if (locked.has(id)) return;
+      const angle = sign * index * 2 * Math.PI / frame.cycle.length;
+      const target = center.clone().addScaledVector(u, Math.cos(angle) * radius).addScaledVector(v, Math.sin(angle) * radius);
+      pos(id).lerp(target, strength);
+    });
+  }
+
+  function enforceStericSeparation(strength, locked, activeIds = null) {
+    // Separate workspace components are separate craft projects, not an
     // intermolecular dynamics simulation. A nearby model must not repel the
     // focused model during its release animation.
     const atoms = activeIds ? molecule.atoms.filter(atom => activeIds.has(atom.id)) : molecule.atoms;

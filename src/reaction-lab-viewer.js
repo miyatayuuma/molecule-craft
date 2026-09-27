@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 17121)
-Total output lines: 624
-
 import { createPreviewModel } from './preview-model.js?v=32';
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
 import {
@@ -319,7 +316,53 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       item.group.updateMatrixWorld(true);
       const projected=projectPoint(item.group.localToWorld(localAnchor.clone())),errorX=x-projected.x,errorY=y-projected.y;
       pointerAnchorErrorPx=Math.hypot(errorX,errorY);if(pointerAnchorErrorPx<.25)break;
-      const depth=viewDepth(item.group.localToWorld(localAnchor.clone())),worldPerPixel=2*depth*Math.tan(THREE.MathUtils.degToRad…1121 tokens truncated…d){
+      const depth=viewDepth(item.group.localToWorld(localAnchor.clone())),worldPerPixel=2*depth*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/rect.height;
+      item.group.position.addScaledVector(cameraRight(),errorX*worldPerPixel);
+      item.group.position.addScaledVector(cameraUp(),-errorY*worldPerPixel);
+    }
+    item.group.updateMatrixWorld(true);
+    const projected=projectPoint(item.group.localToWorld(localAnchor.clone()));pointerAnchorErrorPx=Math.hypot(x-projected.x,y-projected.y);
+    return pointerAnchorErrorPx;
+  }
+  function updateTargetIndicator(item){
+    if(!item){targetIndicator.hidden=true;return;}
+    const atoms=projectedAtoms(item);if(!atoms.length){targetIndicator.hidden=true;return;}
+    const rect=chamber.getBoundingClientRect(),left=Math.min(...atoms.map(atom=>atom.x-atom.radiusPx)),right=Math.max(...atoms.map(atom=>atom.x+atom.radiusPx)),top=Math.min(...atoms.map(atom=>atom.y-atom.radiusPx)),bottom=Math.max(...atoms.map(atom=>atom.y+atom.radiusPx));
+    const diameter=Math.max(36,Math.hypot(right-left,bottom-top)+14);
+    targetIndicator.style.left=`${(left+right)*.5-rect.left}px`;targetIndicator.style.top=`${(top+bottom)*.5-rect.top}px`;
+    targetIndicator.style.width=`${diameter}px`;targetIndicator.style.height=`${diameter}px`;targetIndicator.hidden=false;
+  }
+  function projectedTargetRows(dragged){
+    const moving=projectedAtoms(dragged),candidates=[];
+    for(const item of instances){if(item===dragged||item.busy)continue;const atoms=projectedAtoms(item);if(!atoms.length)continue;candidates.push({id:item.id,gapPx:projectedSurfaceGap(moving,atoms),busy:item.busy,present:instances.includes(item)});}
+    return candidates;
+  }
+  function updateManipulation(elapsedMs){
+    if(!isManipulating()||!selected||!down||selected.busy){updateTargetIndicator(null);return;}
+    const item=selected,point=pointerPlanePoint(down.clientX,down.clientY,down);if(!point)return;
+    const previousCenter=item.group.position.clone(),normal=cameraNormal(),anchorOffset=down.localAnchor.clone().applyQuaternion(item.group.quaternion);
+    const baseCenter=point.sub(anchorOffset);baseCenter.addScaledVector(normal,down.startDepth-baseCenter.dot(normal));
+    baseCenter.x=clamp(baseCenter.x,-5,5);baseCenter.y=clamp(baseCenter.y,-3,3);
+    item.group.position.copy(baseCenter);item.group.updateMatrixWorld(true);
+    const candidates=projectedTargetRows(item),nextId=chooseDepthTarget(depthTarget,candidates,{acquirePaddingPx:DEPTH_TARGET_ACQUIRE_PADDING_PX,releasePaddingPx:DEPTH_TARGET_RELEASE_PADDING_PX});
+    depthTarget=nextId;const target=instanceById(depthTarget);updateTargetIndicator(target);
+    let desiredDepthOffset=0,solution=null;
+    if(target){solution=solveDepthDocking({dragged:shapeFor(item,baseCenter),target:shapeFor(target),cameraNormal:normal.toArray(),previousCenter:previousCenter.toArray(),maxCompression:MAX_DOCKING_COMPRESSION_WORLD});
+      if(solution){desiredDepthOffset=solution.offset;depthDockingState='docking';}else depthDockingState='acquired-no-solution';}
+    const previousOffset=previousCenter.clone().sub(baseCenter).dot(normal),alpha=1-Math.exp(-Math.max(0,elapsedMs)/DEPTH_DOCKING_TIME_CONSTANT_MS),currentOffset=previousOffset+(desiredDepthOffset-previousOffset)*alpha;
+    item.group.position.copy(baseCenter).addScaledVector(normal,currentOffset);correctPointerAnchor(item,down.localAnchor,down.clientX,down.clientY);
+    if(target&&solution){const actualGap=minimumMoleculeSurfaceGap({dragged:shapeFor(item),target:shapeFor(target)});depthDockingState=Math.abs(currentOffset-desiredDepthOffset)<.025&&actualGap>=-MAX_DOCKING_COMPRESSION_WORLD-.01?'contact':'docking';}
+    else if(!target)depthDockingState=Math.abs(currentOffset)<.025?'none':'returning';
+  }
+  function currentPinchDistance(){const points=[...activePointers.values()];return points.length<2?0:Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
+  function capturePointer(event){try{canvas.setPointerCapture(event.pointerId);}catch{}}
+  canvas.addEventListener('pointerdown',event=>{
+    if(disposed||pickerOpen||isTransitionLocked()||reactionAnimation)return;
+    event.preventDefault();activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});capturePointer(event);
+    if(pinchActive||activePointers.size>1){if(!pinchActive){endManipulation();pinchActive=true;}pinchDistance=currentPinchDistance();onPointerLockChange(true);return;}
+    const hit=raycastAtoms(event)??fallbackGrab(event);selected=hit?.item??null;
+    down={pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY,group:selected};
+    if(selected){
       const center=selected.group.position.clone(),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(cameraNormal(),center);
       const localAnchor=selected.group.worldToLocal(hit.point.clone());
       down.plane=plane;down.localAnchor=localAnchor;down.startDepth=center.dot(cameraNormal());
