@@ -44,7 +44,10 @@ try{
   const runReaction=async(ruleId,products)=>{
     const plan=await evaluate(`window.__reactionLabProbe.prepareContact('${ruleId}')`);
     assert.ok(plan.initialDistance>1.18&&plan.initialDistance<3,`contact setup starts outside the reaction threshold: ${JSON.stringify(plan)}`);
-    await drag(plan,{steps:4,stepDelay:12,duringHold:async()=>{await new Promise(resolve=>setTimeout(resolve,900));const state=await snapshot();assert.equal(state.dialogOpen,true,'Reaction commit must not close the Lab');}});
+    await drag(plan,{steps:4,stepDelay:12,hold:0});
+    const contact=await evaluate(`(()=>{window.__reactionLabProbe.setGeometry(${JSON.stringify(plan.contactPoses)});return window.__reactionLabProbe.reactionContactDiagnostics('${ruleId}').map(({ids,distance,maxDistance,isolationEligible})=>({ids,distance,maxDistance,isolationEligible}))})()`);
+    assert.ok(contact.some(item=>item.isolationEligible&&item.distance<item.maxDistance),`deterministic contact pose must enter the registered reaction range: ${JSON.stringify(contact)}`);
+    await new Promise(resolve=>setTimeout(resolve,900));const state=await snapshot();assert.equal(state.dialogOpen,true,'Reaction commit must not close the Lab');
     try{await waitFor("document.querySelector('[data-lab-status]').textContent.startsWith('反応完了')",`${ruleId} did not complete from a real canvas drag`,10000);}catch(error){const contact=await evaluate(`window.__reactionLabProbe.reactionContactDiagnostics('${ruleId}').map(({ids,distance,maxDistance,contactPairActive,busy,isolationEligible})=>({ids,distance,maxDistance,contactPairActive,busy,isolationEligible}))`);throw Error(`${error.message}; reaction contact=${JSON.stringify(contact)}`);}
     await waitFor(`window.__labReactionEvents.at(-1)?.ruleId==='${ruleId}'`,'Reaction product event was not emitted',2000);
     const result=await evaluate('window.__labReactionEvents.at(-1)');
