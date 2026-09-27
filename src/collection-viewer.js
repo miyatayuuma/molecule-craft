@@ -1,11 +1,11 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=33';
+import { createPreviewModel } from './preview-model.js?v=34';
 import { createPreviewControls } from './preview-controls.js?v=22';
 import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=31';
 import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=27';
 
-import { RESONANCE_STYLE, specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=32';
+import { RESONANCE_STYLE, specialEdgeKeys, sharedBondCurves, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=33';
 
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();

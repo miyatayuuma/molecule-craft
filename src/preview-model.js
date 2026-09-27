@@ -1,7 +1,8 @@
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
-import { ATOMIC_MODEL, bondLengthScale, geometryForAtom, atomBondState, nonbondedDistance } from './bonding-model.js?v=31';
-import { sharedOxoGroups } from './special-bonds.js?v=31';
-import { seedCraftCoordinates } from './craft-structures.js?v=31';
+import { geometryForAtom, atomBondState, nonbondedDistance } from './bonding-model.js?v=33';
+import {createStructuralBondLengthResolver,STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM} from './bond-geometry.js?v=1';
+import { sharedOxoGroups } from './special-bonds.js?v=33';
+import { seedCraftCoordinates } from './craft-structures.js?v=32';
 import { createStructureSolver } from './structure-relaxation.js?v=33';
 import { describeAlkeneRelativeSide } from './stereo-descriptor.js?v=1';
 
@@ -48,12 +49,13 @@ export function createPreviewModel(THREE, record,{presentation=null}={}) {
   const adjacency=atoms.map(()=>[]);
   for(const {a,b,order} of bonds){adjacency[a].push({atomId:b,order});adjacency[b].push({atomId:a,order});}
   const molecule={atoms,bonds,neighbors:id=>adjacency[id],bondOrderForAtom:id=>adjacency[id].reduce((sum,n)=>sum+n.order,0)};
+  const structuralBondLength=createStructuralBondLengthResolver(molecule);
   const seeds=seedCraftCoordinates({...record,attachments:record.attachments??[{atom:0}]});
   const placements=new Map(seeds.map((p,id)=>[id,{position:new THREE.Vector3(p.x,p.y,p.z)}]));
   const geometryFor=id=>geometryForAtom(molecule,id,record.attachments?.find(port=>port.atom===id)?.slots??0);
   const solver=createStructureSolver({THREE,molecule,placements,geometryFor,
     atomById:id=>atoms[id],bondBetween:(a,b)=>bonds.find(bond=>(bond.a===a&&bond.b===b)||(bond.a===b&&bond.b===a)),
-    bondLengthFor:(a,b,order)=>(ATOMIC_MODEL[atoms[a].element].covalentRadius+ATOMIC_MODEL[atoms[b].element].covalentRadius)*.78*bondLengthScale(order),
+    bondLengthFor:(a,b,order)=>structuralBondLength(a,b,order)*STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM,
     radiusFor:id=>ELEMENTS[atoms[id].element].radius,
     nonbondedDistanceFor:(a,b)=>nonbondedDistance(atoms[a].element,atoms[b].element),
   });

@@ -1,7 +1,8 @@
 // Stable application entrypoint. Version history belongs in Git, not copied source files.
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, Molecule, loadMoleculeDatabase, moleculeCatalog, modelAtomRadius } from './chemistry.js?v=20';
-import { ATOMIC_MODEL, unpairedElectronCount, lonePairCount, valenceShellRadius, bondLengthScale, atomBondState, bondAddition, geometryForAtom, nonbondedDistance } from './bonding-model.js?v=32';
+import { ATOMIC_MODEL, unpairedElectronCount, lonePairCount, valenceShellRadius, atomBondState, bondAddition, geometryForAtom, nonbondedDistance } from './bonding-model.js?v=33';
+import { createStructuralBondLengthResolver, STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM } from './bond-geometry.js?v=1';
 import { createStructureSolver } from './structure-relaxation.js?v=33';
 import { planBondDocking } from './structure-motion.js?v=30';
 import { createStructureSettlement } from './structure-settlement.js?v=33';
@@ -11,11 +12,11 @@ import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
 import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=20';
 import { connectedStructures, chooseMainStructure, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=32';
+import { createPreviewModel } from './preview-model.js?v=33';
 import { planSpawn } from './spawn-layout.js?v=28';
 import { createElementPalette, syncElementStocks } from './element-progression.js?v=39';
 import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=27';
-import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=32';
+import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=33';
 
 import { createGameShell } from './game-shell.js?v=31';
 import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
@@ -81,6 +82,7 @@ const interactionOverlay=new THREE.Group();scene.add(interactionOverlay);
 const detachedOverlay=new THREE.Group();scene.add(detachedOverlay);
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
 
+const structuralBondLength=createStructuralBondLengthResolver(molecule);
 const solver=createStructureSolver({
   THREE,molecule,placements,atomById,bondBetween,bondLengthFor,geometryFor,
   radiusFor:id=>ELEMENTS[atomById(id)?.element]?.radius??.42,
@@ -115,7 +117,7 @@ loadMoleculeDatabase().then(async result=>{
   try{
     collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
     try{
-      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=13');
+      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=14');
       reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,
         onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
       document.querySelector('#open-reaction-lab').addEventListener('click',()=>{if(gameShell.isOpen()||collectionOpen||veilUI?.active||!reactionLabViewer)return;reactionLabViewer.open();});
@@ -799,8 +801,7 @@ function screenPointToWorldOnPlane(clientX,clientY,planePoint,planeNormal){
 }
 function worldToScreen(world){const r=renderer.domElement.getBoundingClientRect(),v=world.clone().project(camera);return{x:r.left+(v.x+1)*.5*r.width,y:r.top+(1-v.y)*.5*r.height,depth:v.z};}
 function connectedComponent(start){const seen=new Set([start]),q=[start];while(q.length){const id=q.shift();for(const n of molecule.neighbors(id))if(!seen.has(n.atomId)){seen.add(n.atomId);q.push(n.atomId);}}return seen;}
-function bondLengthFor(a,b,order){return bondLengthByElements(atomById(a)?.element,atomById(b)?.element,order);}
-function bondLengthByElements(a,b,order){return((ATOMIC_MODEL[a]?.covalentRadius??.75)+(ATOMIC_MODEL[b]?.covalentRadius??.75))*.78*bondLengthScale(order);}
+function bondLengthFor(a,b,order){return structuralBondLength(a,b,order)*STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM;}
 function atomById(id){return molecule.atoms.find(a=>a.id===id);}function bondBetween(a,b){return molecule.bonds.find(x=>(x.a===a&&x.b===b)||(x.a===b&&x.b===a));}function bondKey(a,b){return`${Math.min(a,b)}:${Math.max(a,b)}`;}function bondFromKey(key){const[a,b]=key.split(':').map(Number);return bondBetween(a,b);}function pos(id){return placements.get(id)?.position;}
 function cameraRight(){camera.updateMatrixWorld();return new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0).normalize();}function cameraUp(){camera.updateMatrixWorld();return new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1).normalize();}function cameraDirection(){return cameraTarget.clone().sub(camera.position).normalize();}
 function perpendicular(v){const ref=Math.abs(v.y)<.85?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0);return new THREE.Vector3().crossVectors(v,ref).normalize();}
@@ -808,7 +809,7 @@ function vibrateFeedback(duration,pointerType){if(pointerType==='mouse')return;t
 function capture(e){try{renderer.domElement.setPointerCapture(e.pointerId)}catch{}}function release(e){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch{}}
 function selectAtom(id){if(id!==selectedAtomId||id==null)clearTorsionGuide();workspaceView.select(id);if(selectedAtomId!==id){if(selectedAtomId!=null)protectedUntil.set(selectedAtomId,performance.now()+DEBRIS_POLICY.protectionMs);selectedAtomId=id;selectionChangedAt=performance.now();}}
 function interactionLocked(){return resources.blocked||!!veilUI?.active||!!relaxation||!!bondTransition||!!frameTransition||collectionOpen||gameShell.isOpen()||reactionLabPointerLocked;}
-function topologyChanged(){torsionModel=null;conformationEngine.topologyChanged();clearTorsionGuide();stateCache.clear();geometryCache.clear();solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
+function topologyChanged(){structuralBondLength.invalidate();torsionModel=null;conformationEngine.topologyChanged();clearTorsionGuide();stateCache.clear();geometryCache.clear();solver.markTopologyDirty();renderTopologyDirty=true;syncWorkspace();}
 function spawnRadius(element,order){
   const r=ELEMENTS[element].radius;
   return Math.max(r*1.04,(unpairedElectronCount(element,order)||lonePairCount(element,order))?valenceShellRadius(element,r*1.02)+.08:0)+.06;
