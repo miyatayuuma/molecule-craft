@@ -46,7 +46,6 @@ export function resolveCandidateInstanceIds(candidate,availableInstanceIds){
 export function createContactMatcher({dwellMs=CONTACT_DWELL_MS}={}){
   const contacts=new Map();return {update(key,eligible,now){if(!eligible){contacts.delete(key);return false;}const since=contacts.get(key)??now;contacts.set(key,since);return now-since>=dwellMs;},clear(key){contacts.delete(key);},reset(){contacts.clear();}};
 }
-export function planStoichiometricSupply(reactantIds,selectedSlots){const selected=new Set(selectedSlots.filter(Boolean));return reactantIds.every(id=>selected.has(id))?{ok:true,missing:reactantIds.filter(id=>!selected.has(id))}:{ok:false,reason:'required-species-not-in-slots'};}
 export function resolveRegisteredProducts(productIds,records){const byId=new Map(records.map(record=>[record.id,record]));const products=productIds.map(id=>byId.get(id));return products.every(Boolean)?{ok:true,products}:{ok:false,reason:'product-not-in-database'};}
 export function transformReactionGraph(rule,records){
   const byId=new Map(records.map(record=>[record.id,record])),reactants=rule.reactants.map(item=>byId.get(item.species)),resolved=resolveRegisteredProducts(rule.products,records);
@@ -62,16 +61,15 @@ export function transformReactionGraph(rule,records){
   for(const graph of graphs)if(matchDatabaseProduct(graph,records)?.id!==graph.record.id)return {ok:false,reason:'product-graph-unmatched'};
   return {ok:true,reactantGraph:{atoms:sourceAtoms,bonds:sourceBonds},productGraphs:graphs,brokenBonds,formedBonds};
 }
-export function planReactionExecution(candidate,records,selectedSlots,rules=REACTION_RULES){
+export function planReactionExecution(candidate,records,rules=REACTION_RULES){
   const rule=rules.find(item=>item.id===candidate?.rule?.id);if(!rule||rule.activation!=='contact')return {ok:false,reason:'inactive-or-unregistered-rule'};
-  const required=rule.reactants.map(item=>item.species),actualIds=candidate.reactantInstanceIds??[],actualSpecies=candidate.speciesIds??[],consumed=[],supplied=[];
-  if(candidate.ruleId!==rule.id||candidate.siteAtomIndices?.length!==required.length||actualSpecies.length!==actualIds.length)return {ok:false,reason:'invalid-candidate'};
-  for(const species of new Set(required)){const count=required.filter(id=>id===species).length,instances=actualIds.flatMap((id,index)=>actualSpecies[index]===species?[{id,species}]:[]);consumed.push(...instances.slice(0,count));for(let i=instances.length;i<count;i++)supplied.push(species);}
-  if(consumed.length+supplied.length!==required.length)return {ok:false,reason:'reactant-mismatch'};
-  const supply=planStoichiometricSupply(supplied,selectedSlots);if(!supply.ok)return supply;
+  const required=rule.reactants.map(item=>item.species),actualIds=candidate.reactantInstanceIds??[],actualSpecies=candidate.speciesIds??[];
+  if(candidate.ruleId!==rule.id||candidate.siteAtomIndices?.length!==required.length||actualSpecies.length!==actualIds.length||actualIds.length!==required.length||new Set(actualIds).size!==actualIds.length)return {ok:false,reason:'invalid-candidate'};
+  const requiredCounts=new Map(),actualCounts=new Map();for(const species of required)requiredCounts.set(species,(requiredCounts.get(species)??0)+1);for(const species of actualSpecies)actualCounts.set(species,(actualCounts.get(species)??0)+1);
+  if(requiredCounts.size!==actualCounts.size||[...requiredCounts].some(([species,count])=>actualCounts.get(species)!==count))return {ok:false,reason:'missing-reactant-instances'};
   const graphTransition=transformReactionGraph(rule,records);if(!graphTransition.ok)return graphTransition;
   const products=graphTransition.productGraphs.map(graph=>matchDatabaseProduct(graph,records));
-  return {ok:true,rule,consumedInstanceIds:consumed.map(item=>item.id),temporarySupply:supplied,products,productInstanceCount:products.length,graphTransition};
+  return {ok:true,rule,consumedInstanceIds:[...actualIds],products,productInstanceCount:products.length,graphTransition};
 }
 export function matchDatabaseProduct(graph,records){
   for(const record of records){if(graph.atoms.length!==record.atoms.length||graph.bonds.length!==record.bonds.length)continue;
