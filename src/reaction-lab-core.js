@@ -1,6 +1,6 @@
 // Compiled structural reaction authority. This module has no Three.js or
 // viewer dependency; catalog work happens once at startup, never per frame.
-import { molecularAromaticAtomIds } from './chemistry.js?v=22';
+import { formalChargeForRecordAtom, molecularAromaticAtomIds } from './chemistry.js?v=23';
 import { canonicalNonbondedPairGeometry } from './reaction-lab-stage-a.js?v=4';
 import { enumerateSubgraphMappings } from './subgraph-matcher.js?v=1';
 
@@ -65,7 +65,7 @@ export function planVisiblePopulation(slots) {
 }
 
 const atomElement=(record,index)=>typeof record.atoms[index]==='string'?record.atoms[index]:record.atoms[index].element;
-const atomCharge=(record,index)=>typeof record.atoms[index]==='string'?0:(record.atoms[index].formalCharge??0);
+const atomCharge=formalChargeForRecordAtom;
 const normalizedBond=(bond)=>Array.isArray(bond)?{a:bond[0],b:bond[1],order:bond[2]}:bond;
 const edgeKey=(a,b)=>a<b?`${a}|${b}`:`${b}|${a}`;
 const refParts=ref=>{const split=ref.indexOf('.');return split>0?[ref.slice(0,split),ref.slice(split+1)]:[];};
@@ -323,12 +323,12 @@ export function compileReactionCatalog(records,{patterns=REACTION_SITE_PATTERNS,
     if(encounter.length!==2)throw new Error(`invalid-encounter-role-count:${reaction.id}`);
     const roleSpecies=Object.fromEntries(compiledReaction.reactants.map(item=>[item.role,item.species]));
     const matchOptions=new Map();
-    for(const participant of encounter){
+    for(const participant of compiledReaction.reactants){
       const roleDefinition=family.roles[participant.role],options=[];
       for(const patternId of roleDefinition.patterns??[]){const pattern=patternById.get(patternId),matches=matchPattern(byId.get(participant.species),pattern,{limit:maxMatches});for(const binding of matches)options.push({patternId,binding});}
       matchOptions.set(participant.role,options);
     }
-    const roleOrder=encounter.map(item=>item.role);let pathwayCount=0;
+    const roleOrder=compiledReaction.reactants.map(item=>item.role).sort((a,b)=>a.localeCompare(b));let pathwayCount=0;
     const enumerate=(index,bindings,matchedPatterns)=>{
       if(index===roleOrder.length){
         const pathwayId=`${compiledReaction.id}/${Object.entries(bindings).sort(([a],[b])=>a.localeCompare(b)).map(([role,binding])=>`${role}:${matchedPatterns[role]}[${bindingKey(binding)}]`).join('/')}`;
@@ -395,9 +395,12 @@ export function resolveCandidateInstanceIds(candidate,availableInstanceIds){
   return ids.length===2&&ids.every(id=>available.has(id))?[...ids]:null;
 }
 export function createContactMatcher({dwellMs=CONTACT_DWELL_MS}={}){
-  const contacts=new Map();return{
-    update(key,eligible,stepMs=0){if(!eligible){contacts.delete(key);return false;}const elapsed=contacts.get(key);if(elapsed==null){contacts.set(key,0);return false;}const next=elapsed+Math.max(0,stepMs);contacts.set(key,next);return next>=dwellMs;},
-    elapsed(key){return contacts.get(key)??0;},clear(key){contacts.delete(key);},reset(){contacts.clear();},
+  const contacts=new Map();let activeStep=null;return{
+    beginStep(){activeStep=new Set();},
+    markActive(key){activeStep?.add(key);},
+    endStep(){if(activeStep){for(const key of contacts.keys())if(!activeStep.has(key))contacts.delete(key);activeStep=null;}},
+    update(key,eligible,stepMs=0){activeStep?.add(key);if(!eligible){contacts.delete(key);return false;}const elapsed=contacts.get(key);if(elapsed==null){contacts.set(key,0);return false;}const next=elapsed+Math.max(0,stepMs);contacts.set(key,next);return next>=dwellMs;},
+    elapsed(key){return contacts.get(key)??0;},clear(key){contacts.delete(key);},reset(){contacts.clear();activeStep=null;},
   };
 }
 export function resolveRegisteredProducts(productIds,records){const byId=new Map(records.map(record=>[record.id,record]));const products=productIds.map(id=>byId.get(id));return products.every(Boolean)?{ok:true,products}:{ok:false,reason:'product-not-in-database'};}

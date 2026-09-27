@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 17121)
+Total output lines: 624
+
 import { createPreviewModel } from './preview-model.js?v=32';
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
 import {
@@ -74,7 +77,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
-  const reactionEnvironment=new Set();let reactionDiagnostics=[];
+  const reactionEnvironment=new Set();let reactionDiagnostics=[],reactionTrajectoryTrace=null;
   let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
   const activePointers=new Map();
   const chamberTime=createChamberTimeAuthority(),isManipulating=()=>chamberTime.mode===CHAMBER_TIME_MODES.MANIPULATING;
@@ -316,53 +319,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       item.group.updateMatrixWorld(true);
       const projected=projectPoint(item.group.localToWorld(localAnchor.clone())),errorX=x-projected.x,errorY=y-projected.y;
       pointerAnchorErrorPx=Math.hypot(errorX,errorY);if(pointerAnchorErrorPx<.25)break;
-      const depth=viewDepth(item.group.localToWorld(localAnchor.clone())),worldPerPixel=2*depth*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/rect.height;
-      item.group.position.addScaledVector(cameraRight(),errorX*worldPerPixel);
-      item.group.position.addScaledVector(cameraUp(),-errorY*worldPerPixel);
-    }
-    item.group.updateMatrixWorld(true);
-    const projected=projectPoint(item.group.localToWorld(localAnchor.clone()));pointerAnchorErrorPx=Math.hypot(x-projected.x,y-projected.y);
-    return pointerAnchorErrorPx;
-  }
-  function updateTargetIndicator(item){
-    if(!item){targetIndicator.hidden=true;return;}
-    const atoms=projectedAtoms(item);if(!atoms.length){targetIndicator.hidden=true;return;}
-    const rect=chamber.getBoundingClientRect(),left=Math.min(...atoms.map(atom=>atom.x-atom.radiusPx)),right=Math.max(...atoms.map(atom=>atom.x+atom.radiusPx)),top=Math.min(...atoms.map(atom=>atom.y-atom.radiusPx)),bottom=Math.max(...atoms.map(atom=>atom.y+atom.radiusPx));
-    const diameter=Math.max(36,Math.hypot(right-left,bottom-top)+14);
-    targetIndicator.style.left=`${(left+right)*.5-rect.left}px`;targetIndicator.style.top=`${(top+bottom)*.5-rect.top}px`;
-    targetIndicator.style.width=`${diameter}px`;targetIndicator.style.height=`${diameter}px`;targetIndicator.hidden=false;
-  }
-  function projectedTargetRows(dragged){
-    const moving=projectedAtoms(dragged),candidates=[];
-    for(const item of instances){if(item===dragged||item.busy)continue;const atoms=projectedAtoms(item);if(!atoms.length)continue;candidates.push({id:item.id,gapPx:projectedSurfaceGap(moving,atoms),busy:item.busy,present:instances.includes(item)});}
-    return candidates;
-  }
-  function updateManipulation(elapsedMs){
-    if(!isManipulating()||!selected||!down||selected.busy){updateTargetIndicator(null);return;}
-    const item=selected,point=pointerPlanePoint(down.clientX,down.clientY,down);if(!point)return;
-    const previousCenter=item.group.position.clone(),normal=cameraNormal(),anchorOffset=down.localAnchor.clone().applyQuaternion(item.group.quaternion);
-    const baseCenter=point.sub(anchorOffset);baseCenter.addScaledVector(normal,down.startDepth-baseCenter.dot(normal));
-    baseCenter.x=clamp(baseCenter.x,-5,5);baseCenter.y=clamp(baseCenter.y,-3,3);
-    item.group.position.copy(baseCenter);item.group.updateMatrixWorld(true);
-    const candidates=projectedTargetRows(item),nextId=chooseDepthTarget(depthTarget,candidates,{acquirePaddingPx:DEPTH_TARGET_ACQUIRE_PADDING_PX,releasePaddingPx:DEPTH_TARGET_RELEASE_PADDING_PX});
-    depthTarget=nextId;const target=instanceById(depthTarget);updateTargetIndicator(target);
-    let desiredDepthOffset=0,solution=null;
-    if(target){solution=solveDepthDocking({dragged:shapeFor(item,baseCenter),target:shapeFor(target),cameraNormal:normal.toArray(),previousCenter:previousCenter.toArray(),maxCompression:MAX_DOCKING_COMPRESSION_WORLD});
-      if(solution){desiredDepthOffset=solution.offset;depthDockingState='docking';}else depthDockingState='acquired-no-solution';}
-    const previousOffset=previousCenter.clone().sub(baseCenter).dot(normal),alpha=1-Math.exp(-Math.max(0,elapsedMs)/DEPTH_DOCKING_TIME_CONSTANT_MS),currentOffset=previousOffset+(desiredDepthOffset-previousOffset)*alpha;
-    item.group.position.copy(baseCenter).addScaledVector(normal,currentOffset);correctPointerAnchor(item,down.localAnchor,down.clientX,down.clientY);
-    if(target&&solution){const actualGap=minimumMoleculeSurfaceGap({dragged:shapeFor(item),target:shapeFor(target)});depthDockingState=Math.abs(currentOffset-desiredDepthOffset)<.025&&actualGap>=-MAX_DOCKING_COMPRESSION_WORLD-.01?'contact':'docking';}
-    else if(!target)depthDockingState=Math.abs(currentOffset)<.025?'none':'returning';
-  }
-  function currentPinchDistance(){const points=[...activePointers.values()];return points.length<2?0:Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
-  function capturePointer(event){try{canvas.setPointerCapture(event.pointerId);}catch{}}
-  canvas.addEventListener('pointerdown',event=>{
-    if(disposed||pickerOpen||isTransitionLocked()||reactionAnimation)return;
-    event.preventDefault();activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});capturePointer(event);
-    if(pinchActive||activePointers.size>1){if(!pinchActive){endManipulation();pinchActive=true;}pinchDistance=currentPinchDistance();onPointerLockChange(true);return;}
-    const hit=raycastAtoms(event)??fallbackGrab(event);selected=hit?.item??null;
-    down={pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY,group:selected};
-    if(selected){
+      const depth=viewDepth(item.group.localToWorld(localAnchor.clone())),worldPerPixel=2*depth*Math.tan(THREE.MathUtils.degToRad…1121 tokens truncated…d){
       const center=selected.group.position.clone(),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(cameraNormal(),center);
       const localAnchor=selected.group.worldToLocal(hit.point.clone());
       down.plane=plane;down.localAnchor=localAnchor;down.startDepth=center.dot(cameraNormal());
@@ -393,6 +350,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE||reactionAnimation)return;
     const manipulating=isManipulating(),rows=[],ready=[];
     if(manipulating)contactMatcher.reset();
+    contactMatcher.beginStep();
     const active=[...instances].filter(item=>!item.feedMotion&&item.batchGeneration===batch.generation).sort((a,b)=>a.id.localeCompare(b.id));
     function assess(candidate){
       const rejectionReasons=[],encounterIds=candidate.reactantInstanceIds,encounter=encounterIds.map(instanceById);
@@ -425,6 +383,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(!stageBPhysicsEnabled)rejectionReasons.push('non-production-physics');
       const ids=Object.values(participantInstances).filter(Boolean).sort(),dwellKey=`${candidate.reactionId}:${candidate.pathwayId}:${ids.join('|')}:g${batch.generation}`;
       const eligible=!manipulating&&!rejectionReasons.length;
+      if(supplemental.ok)contactMatcher.markActive(dwellKey);
       const elapsed=manipulating?0:(contactMatcher.update(dwellKey,eligible,stepMs),contactMatcher.elapsed(dwellKey));
       if(manipulating)rejectionReasons.push('participant-manipulating');
       const commitReady=eligible&&elapsed>=CONTACT_DWELL_MS;
@@ -444,7 +403,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const candidates=reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],reactionCatalog);
       for(const candidate of candidates)assess(candidate);
     }
+    contactMatcher.endStep();
     reactionDiagnostics=rows;
+    if(reactionTrajectoryTrace){
+      const trace=reactionTrajectoryTrace;
+      for(const diagnostic of rows.filter(item=>item.reactionId===trace.reactionId&&(!trace.participantIds||trace.participantIds.every(id=>Object.values(item.participants??{}).includes(id))))){
+        const bodies=Object.values(diagnostic.participants??{}).map(instanceById).filter(Boolean).map(item=>({id:item.id,positionAngstrom:[...item.stageBody.positionAngstrom],orientation:[...item.stageBody.orientation],velocityAngstromPerPs:[...item.stageBody.velocityAngstromPerPs],angularVelocityRadPerPs:[...item.stageBody.angularVelocityRadPerPs]}));
+        trace.samples.push({fixedStepIndex:stageAPerformance.fixedSteps,fixedStepMs:stepMs,simulationClockSeconds,participantIds:{...diagnostic.participants},matchedSites:diagnostic.matchedSites,distanceConstraints:diagnostic.distanceConstraints.map(({actual,min,target,max,normalizedError})=>({actual,min,target,max,normalizedError})),geometryReady:diagnostic.geometryReady,severeOverlap:diagnostic.severeOverlap,minimumRealAtomDistance:diagnostic.minimumRealAtomDistance,minimumNonbondedSeparationRatio:diagnostic.minimumNonbondedSeparationRatio,manipulating:diagnostic.manipulating,normalPhysicsStepObserved:diagnostic.normalPhysicsStepObserved,environmentMatched:diagnostic.environmentMatched,dwellElapsed:diagnostic.dwellElapsed,commitReady:diagnostic.commitReady,rejectionReasons:[...diagnostic.rejectionReasons],bodies});
+        if(trace.samples.length>2400)trace.samples.shift();
+      }
+    }
     if(manipulating||!ready.length)return;
     const arbitration=arbitrateReactionCandidates(ready);
     if(arbitration.selected)commit(arbitration.selected);
@@ -551,9 +519,14 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       advanceDeterministic(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps)));stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;}return this.snapshot();},
       decomposePair(aId,bId){const a=instanceById(aId),b=instanceById(bId);if(!a||!b)throw Error('Missing Reaction Lab molecule instance');const result=stageBPhysicsEnabled?evaluateStageBForces([a.stageBody,b.stageBody]):evaluateStageAForces([a.stageBody,b.stageBody]);return{pairs:result.pairDiagnostics,bodies:Object.fromEntries([...result.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:result.overlapGuardActivationCount};},
       reactionContactDiagnostics(reactionId){return reactionDiagnostics.filter(item=>item.reactionId===reactionId);},
+      startReactionTrajectoryTrace(reactionId,participantIds){if(!localhostPhysicsTest)throw Error('Reaction trajectory tracing is localhost-only');reactionTrajectoryTrace={reactionId,participantIds:participantIds?[...participantIds].sort():null,samples:[]};return{reactionId,participantIds:reactionTrajectoryTrace.participantIds};},
+      reactionTrajectoryTrace(){return reactionTrajectoryTrace?{reactionId:reactionTrajectoryTrace.reactionId,participantIds:reactionTrajectoryTrace.participantIds,samples:reactionTrajectoryTrace.samples.map(sample=>({...sample}))}:null;},
+      stopReactionTrajectoryTrace(){const trace=reactionTrajectoryTrace?{reactionId:reactionTrajectoryTrace.reactionId,participantIds:reactionTrajectoryTrace.participantIds,samples:reactionTrajectoryTrace.samples.map(sample=>({...sample}))}:null;reactionTrajectoryTrace=null;return trace;},
       setEnvironmentConditions(tokens){if(!Array.isArray(tokens)||tokens.some(token=>typeof token!=='string'))throw Error('Environment conditions must be normalized string tokens.');reactionEnvironment.clear();for(const token of tokens)reactionEnvironment.add(token);contactMatcher.reset();return this.snapshot();},
       setStageAPair(aId,positionA,bId,positionB){return this.setGeometry([{id:aId,positionAngstrom:positionA},{id:bId,positionAngstrom:positionB}]);},
       settlePair(aId,bId){for(const id of [aId,bId]){const item=instanceById(id);if(!item)throw Error(`Missing Reaction Lab molecule ${id}`);item.stageBody.velocityAngstromPerPs=[0,0,0];item.stageBody.angularVelocityRadPerPs=[0,0,0];syncGroupFromStageABody(item);}return this.snapshot();},
+      // Localhost deterministic approach fixture for calibration and Stage A
+      // comparison only. User-reachable acceptance uses real pointer events.
       prepareReactionApproach(reactionId,separationWorld=4.2){
         const candidate=instances.flatMap((left,index)=>instances.slice(index+1).flatMap(right=>reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],reactionCatalog))).find(item=>item.reactionId===reactionId);
         if(!candidate)throw Error(`No live instance pair for ${reactionId}`);

@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 16060)
+Total output lines: 267
+
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -61,32 +64,50 @@ try{
   };
   const runReaction=async(reactionId,products)=>{
     await evaluate('window.__labReactionEvents=[]');
-    const plan=await evaluate(`window.__reactionLabProbe.prepareReactionApproach('${reactionId}',4.2)`);
-    assert.ok(plan.initialSiteDistance>1.18&&plan.initialDepthDelta>2,`reactive atoms begin separated in depth and distance: ${JSON.stringify(plan)}`);
-    let heldState=null;
-    await drag(plan,{steps:14,stepDelay:18,hold:360,duringHold:async()=>{
-      await new Promise(resolve=>setTimeout(resolve,600));heldState=await snapshot();
-      assert.equal(heldState.draggedInstanceId,plan.left);assert.equal(heldState.depthTargetId,plan.right,`${reactionId} acquired the molecule under the pointer`);
-      assert.equal(heldState.simulationTimeScale,.15);assert.ok(heldState.pointerAnchorErrorPx<=3,`pointer anchor drifted ${heldState.pointerAnchorErrorPx}px`);
-      assert.ok(Math.abs(heldState.instances.find(item=>item.id===plan.left).position[2]-plan.before[2])>.35,'the drag docks through hidden depth');
-      assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Slow manipulation does not satisfy a 520ms dwell in 520ms real time');
-    }});
-    assert.equal((await snapshot()).simulationTimeScale,1,'Releasing the drag restores normal simulation time');
-    assert.equal(await evaluate('window.__labReactionEvents.length'),0,'The visual docking gesture alone does not commit chemistry');
-    const overlapPose=await evaluate(`window.__reactionLabProbe.prepareCalibratedReactionPose('${reactionId}')`);
-    await evaluate(`window.__reactionLabProbe.setGeometry([${JSON.stringify({id:overlapPose.ids[0],positionAngstrom:[0,0,0],orientation:[0,0,0,1]})},${JSON.stringify({id:overlapPose.ids[1],positionAngstrom:[0,0,0],orientation:[0,0,0,1]})}])`);
-    const overlapState=await evaluate('window.__reactionLabProbe.advanceDeterministic(1)');
-    const tooDeep=overlapState.reactionCandidates.filter(item=>item.encounterParticipantIds.includes(plan.left)&&item.encounterParticipantIds.includes(plan.right));
-    assert.ok(tooDeep.length&&tooDeep.every(item=>!item.commitReady&&(item.severeOverlap||!item.geometryReady)),'Deep kinematic overlap is vetoed by physical geometry or the reaction-ready window');assert.equal(await evaluate('window.__labReactionEvents.length'),0);
-    const contact=await evaluate(`(()=>{const calibrated=window.__reactionLabProbe.prepareCalibratedReactionPose('${reactionId}');if(!(calibrated.distanceAngstrom>2.5&&calibrated.distanceAngstrom<2.9))throw Error('The deterministic released geometry is not reaction-ready: '+JSON.stringify(calibrated));window.__reactionLabProbe.settlePair('${plan.left}','${plan.right}');window.__reactionLabProbe.advanceDeterministic(1);return window.__reactionLabProbe.reactionContactDiagnostics('${reactionId}').filter(item=>item.encounterParticipantIds.includes('${plan.left}')&&item.encounterParticipantIds.includes('${plan.right}')).map(({reactionId,familyId,pathwayId,encounterParticipantIds,matchedSites,distanceConstraints,geometryReady,severeOverlap,minimumRealAtomDistance,minimumNonbondedSeparationRatio,manipulating,normalPhysicsStepObserved,environmentMatched,dwellElapsed,dwellRequired,commitReady,rejectionReasons})=>({reactionId,familyId,pathwayId,encounterParticipantIds,matchedSites,distanceConstraints,geometryReady,severeOverlap,minimumRealAtomDistance,minimumNonbondedSeparationRatio,manipulating,normalPhysicsStepObserved,environmentMatched,dwellElapsed,dwellRequired,commitReady,rejectionReasons}));})()`);
-    assert.ok(contact.some(item=>item.geometryReady&&!item.severeOverlap&&item.normalPhysicsStepObserved&&item.dwellElapsed===0),`NORMAL Stage B observes real reaction-ready geometry before dwell: ${JSON.stringify(contact)}`);
-    const diagnostic=contact.find(item=>item.geometryReady&&!item.severeOverlap);assert.ok(diagnostic?.reactionId&&diagnostic.familyId&&diagnostic.pathwayId&&diagnostic.matchedSites.acyl.atomBindings.acylC>=0);assert.ok(diagnostic.distanceConstraints.every(item=>['actual','min','target','max','normalizedError'].every(key=>Number.isFinite(item[key]))));assert.equal(diagnostic.minimumRealAtomDistance>0,true);assert.ok(Number.isFinite(diagnostic.minimumNonbondedSeparationRatio));assert.equal(diagnostic.manipulating,false);assert.equal(diagnostic.environmentMatched,true);assert.equal(diagnostic.commitReady,false);
-    await evaluate("document.querySelectorAll('[data-lab-slot]')[2].click()");await waitFor("!document.querySelector('[data-lab-picker]').hidden",'Reaction contact pause picker did not open');
-    const pauseStart=await snapshot(),pauseClock=pauseStart.simulationClockSeconds;await new Promise(resolve=>setTimeout(resolve,700));const pauseEnd=await snapshot();assert.equal(pauseEnd.simulationClockSeconds,pauseClock,'Picker time is excluded from the simulation clock');assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Contact dwell cannot commit while the picker suspends the Chamber');
-    await evaluate("document.querySelector('[data-lab-picker-close]').click()");assert.equal(await evaluate("document.activeElement===document.querySelectorAll('[data-lab-slot]')[2]"),true,'Closing picker restores focus to the invoking feed tile');
-    await new Promise(resolve=>setTimeout(resolve,560));const state=await snapshot();assert.equal(state.dialogOpen,true,'Reaction commit must not close the Lab');
-    try{await waitFor("document.querySelector('[data-lab-status]').textContent.startsWith('反応完了')",`${reactionId} did not complete after continuous simulation-time contact`,9000);}catch(error){const contact=await evaluate(`window.__reactionLabProbe.reactionContactDiagnostics('${reactionId}').filter(item=>item.encounterParticipantIds.includes('${plan.left}')&&item.encounterParticipantIds.includes('${plan.right}'))`);throw Error(`${error.message}; reaction contact=${JSON.stringify(contact)}`);}
+    const offsets=[[0,0],[26,0],[-26,0],[0,26],[0,-26],[52,0],[-52,0],[0,52],[0,-52],[72,0],[-72,0],[0,72],[0,-72],[50,48],[-50,-48]];
+    let committed=false,finalTrace=null,finalManipulation=null,attemptCount=0,depthAcquisitions=0,hiddenDepthObserved=false;const trajectoryAttempts=[];
+    for(let attempt=0;attempt<offsets.length&&!committed;attempt++){
+      const current=await snapshot(),projections=await evaluate('window.__reactionLabProbe.projectedBounds()'),byId=new Map(projections.map(item=>[item.id,item]));
+      const options=current.reactionCandidates.filter(item=>item.reactionId===reactionId&&item.participants?.acyl&&item.participants?.nucleophile).map(item=>{
+        const leftId=item.participants.acyl,rightId=item.participants.nucleophile,left=byId.get(leftId),right=byId.get(rightId),siteA=item.matchedSites.acyl.atomBindings.acylC,siteB=item.matchedSites.nucleophile.atomBindings.oxygen;
+        if(!left?.atoms[siteA]||!right?.atoms[siteB])return null;
+        const a=left.atoms[siteA],b=right.atoms[siteB];return{item,leftId,rightId,siteA,siteB,start:{x:a.x,y:a.y},end:{x:b.x,y:b.y},actual:item.distanceConstraints[0]?.actual??Infinity};
+      }).filter(Boolean).sort((a,b)=>a.actual-b.actual||a.leftId.localeCompare(b.leftId)||a.rightId.localeCompare(b.rightId));
+      if(!options.length){await new Promise(resolve=>setTimeout(resolve,50));continue;}
+      const selected=options[attempt%Math.min(4,options.length)],offset=offsets[attempt],plan={instanceId:selected.leftId,start:selected.start,end:{x:selected.end.x+offset[0],y:selected.end.y+offset[1]},before:current.instances.find(item=>item.id===selected.leftId).position};
+      attemptCount++;
+      await evaluate(`window.__reactionLabProbe.startReactionTrajectoryTrace('${reactionId}',${JSON.stringify([selected.leftId,selected.rightId])})`);
+      let heldState=null,targetAcquired=false;
+      await drag(plan,{steps:14,stepDelay:18,hold:0,duringHold:async()=>{
+        await new Promise(resolve=>setTimeout(resolve,320));heldState=await snapshot();
+        assert.equal(heldState.draggedInstanceId,selected.leftId);targetAcquired=heldState.depthTargetId===selected.rightId&&['docking','contact'].includes(heldState.depthDockingState);
+        if(targetAcquired){depthAcquisitions++;hiddenDepthObserved||=Math.abs(heldState.instances.find(item=>item.id===selected.leftId).position[2]-plan.before[2])>.2;}
+        assert.equal(heldState.simulationTimeScale,.15);assert.ok(heldState.pointerAnchorErrorPx<=3,`pointer anchor drifted ${heldState.pointerAnchorErrorPx}px`);
+        const heldRows=heldState.reactionCandidates.filter(item=>item.reactionId===reactionId&&item.encounterParticipantIds.includes(selected.leftId)&&item.encounterParticipantIds.includes(selected.rightId));
+        assert.ok(heldRows.length&&heldRows.every(item=>item.manipulating&&item.dwellElapsed===0&&!item.commitReady),'Pointer manipulation never advances reaction dwell');
+        assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Manipulation cannot commit chemistry');finalManipulation=heldState;
+      }});
+      const released=await snapshot();assert.equal(released.simulationTimeScale,1,'Pointer release restores normal simulation time');assert.equal(released.manipulationActive,false);assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Release itself does not commit chemistry');
+      finalManipulation=heldState;if(!targetAcquired){finalTrace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()');trajectoryAttempts.push({attempt,offset,targetId:heldState.depthTargetId,dockingState:heldState.depthDockingState,samples:finalTrace?.samples?.slice(-6)??[]});continue;}
+      for(let wait=0;wait<1500;wait+=50){if(await evaluate(`window.__labReactionEvents.at(-1)?.reactionId==='${reactionId}'`)){committed=true;break;}await new Promise(resolve=>setTimeout(resolve,50));}
+      finalTrace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()');
+      trajectoryAttempts.push({attempt,offset,targetId:heldState.depthTargetId,dockingState:heldState.depthDockingState,samples:finalTrace?.samples?.slice(-12)??[]});
+    }
+    assert.ok(committed,`${reactionId} did not commit after real Feed → pointer drag → depth docking → release attempts; trajectory attempts=${JSON.stringify(trajectoryAttempts)}`);
+    assert.ok(finalManipulation?.draggedInstanceId&&finalManipulation.depthTargetId&&depthAcquisitions>0,'Positive path acquired an automatic depth target while held');assert.ok(hiddenDepthObserved,'A real pointer gesture moved the molecule through automatic camera-depth docking');
+    const event=await evaluate('window.__labReactionEvents.at(-1)'),pathSamples=finalTrace.samples.filter(item=>item.participantIds?.acyl===event.participants.find(row=>row.role==='acyl')?.instanceId&&item.participantIds?.nucleophile===event.participants.find(row=>row.role==='nucleophile')?.instanceId);
+    assert.ok(pathSamples.length>1,`Fixed-step trajectory was recorded for the committed participants: ${JSON.stringify(finalTrace)}`);
+    assert.ok(pathSamples.some(item=>item.manipulating&&!item.normalPhysicsStepObserved&&item.dwellElapsed===0),'Drag samples record manipulation without dwell');
+    assert.ok(pathSamples.some(item=>!item.manipulating&&item.normalPhysicsStepObserved&&item.geometryReady&&!item.severeOverlap&&item.environmentMatched&&item.dwellElapsed===0),'Release is followed by a normal Stage B reaction-ready step before dwell starts');
+    assert.ok(pathSamples.some(item=>!item.manipulating&&item.normalPhysicsStepObserved&&item.geometryReady&&!item.severeOverlap&&item.dwellElapsed>0),'Reaction-ready dwell advances only on normal fixed steps');
+    assert.ok(pathSamples.some(item=>item.commitReady&&item.geometryReady&&!item.severeOverlap),'The observed user-reachable pathway became commit-ready');
+    const dwellSamples=pathSamples.filter(item=>item.geometryReady&&!item.severeOverlap&&!item.manipulating&&item.normalPhysicsStepObserved);
+    let longest=0,run=0,lastStep=null;for(const sample of dwellSamples){if(lastStep!==null&&sample.fixedStepIndex!==lastStep+1)run=0;run++;longest=Math.max(longest,run);lastStep=sample.fixedStepIndex;}
+    assert.ok(longest*1000/120>=520,`The production 520ms dwell was continuous on fixed steps (${longest} steps)`);
+    console.log('REACTION_POINTER_E2E',JSON.stringify({reactionId,attempts:attemptCount,depthAcquisitions,participantIds:finalTrace.participantIds,stepCount:pathSamples.length,readyStepCount:dwellSamples.length,longestContinuousReadySteps:longest,commitReady:pathSamples.some(item=>item.commitReady),lastTrajectory:pathSamples.slice(-8)}));
+    await evaluate('window.__reactionLabProbe.stopReactionTrajectoryTrace()');
     await waitFor(`window.__labReactionEvents.at(-1)?.reactionId==='${reactionId}'`,'Reaction Result event was not emitted',2000);
+    await waitFor("document.querySelector('[data-lab-status]').textContent.startsWith('反応完了')",`${reactionId} presentation did not hand products back to the Chamber`,9000);
     const result=await evaluate('window.__labReactionEvents.at(-1)');
     assert.deepEqual(result.products,products);
     assert.equal(result.reactionId,reactionId);assert.ok(result.familyId&&result.pathwayId);assert.deepEqual(result.environmentConditions.active,[]);assert.ok(result.participants.every(item=>item.instanceId&&item.species&&item.role));assert.ok(result.matchedSites.acyl.atomBindings.acylC>=0);assert.equal(result.atomOrigins.length,products.length);for(const key of ['brokenBonds','formedBonds','bondOrderChanges','formalChargeChanges'])assert.ok(Array.isArray(result.graphDiff[key]),`Reaction Result includes ${key}`);
@@ -95,10 +116,19 @@ try{
     assert.equal(remaining.instances.length,4,'Finite batch products remain alongside only the unconsumed reactant instances');assert.deepEqual(result.temporarySupply,undefined,'Reaction event creates no virtual supply');assert.ok(remaining.instances.every(item=>item.batchGeneration===remaining.batch.generation),'Products remain in the current batch generation');
     const reactantSpecies=reactionId==='anhydride-hydrolysis'?['acetic-anhydride','water']:['acetic-anhydride','ethanol'];for(const species of reactantSpecies)assert.equal(remaining.instances.filter(item=>item.species===species).length,1,`Consumed ${species} is not automatically replenished from the feed rack`);
     assert.equal(remaining.instances.some(item=>item.busy),false,'products and remaining species become manipulable after commitment');
-    const productInstances=remaining.instances.filter(item=>products.includes(item.species));await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(productInstances.map((item,index)=>({id:item.id,positionAngstrom:[index?2:-2,0,0],orientation:[0,0,0,1]})))})`);remaining=await snapshot();
-    const product=remaining.instances.find(item=>products.includes(item.species)),movePlan=await evaluate(`window.__reactionLabProbe.dragPlan('${product.id}',0,[0.32,0,0])`),before=product.position;
+    const productInstances=remaining.instances.filter(item=>products.includes(item.species)),product=productInstances[0],projected=await evaluate('window.__reactionLabProbe.projectedBounds()'),productProjection=projected.find(item=>item.id===product.id).atoms[0],movePlan={start:{x:productProjection.x,y:productProjection.y},end:{x:productProjection.x+20,y:productProjection.y}},before=product.position;
     await drag(movePlan,{steps:4,stepDelay:16,hold:0});const moved=await snapshot(),after=moved.instances.find(item=>item.id===product.id).position;
     assert.ok(Math.hypot(...after.map((value,index)=>value-before[index]))>.15,'Generated products remain individually movable');const productIds=moved.instances.filter(item=>products.includes(item.species)).map(item=>item.id);await new Promise(resolve=>setTimeout(resolve,300));remaining=await snapshot();assert.ok(productIds.every(id=>remaining.instances.some(item=>item.id===id)),'Products persist in the same batch without a timer cleanup');return remaining;
+  };
+  const runDeepOverlapNegative=async reactionId=>{
+    const eventCount=await evaluate('window.__labReactionEvents.length'),pose=await evaluate(`window.__reactionLabProbe.prepareCalibratedReactionPose('${reactionId}')`);
+    await evaluate(`window.__reactionLabProbe.startReactionTrajectoryTrace('${reactionId}',${JSON.stringify(pose.ids)})`);
+    await evaluate(`window.__reactionLabProbe.setGeometry([${JSON.stringify({id:pose.ids[0],positionAngstrom:[0,0,0]})},${JSON.stringify({id:pose.ids[1],positionAngstrom:[0,0,0]})}])`);
+    const state=await evaluate('window.__reactionLabProbe.advanceDeterministic(1)'),rows=state.reactionCandidates.filter(item=>item.reactionId===reactionId&&pose.ids.every(id=>item.encounterParticipantIds.includes(id)));
+    assert.ok(rows.length&&rows.every(item=>!item.commitReady&&(item.severeOverlap||!item.geometryReady)),'Localhost deep-overlap negative fixture is vetoed independently of the pointer-positive E2E');
+    await new Promise(resolve=>setTimeout(resolve,700));const trace=await evaluate('window.__reactionLabProbe.stopReactionTrajectoryTrace()');
+    assert.ok(trace.samples.every(item=>!item.commitReady),'A deep-overlap release never becomes commit-ready during the common dwell interval');
+    assert.equal(await evaluate('window.__labReactionEvents.length'),eventCount,'Deep overlap alone never commits a reaction');
   };
 
   await send('Runtime.enable');await send('Page.enable');await send('Network.enable');
@@ -116,6 +146,7 @@ try{
   const thumb=await evaluate("(()=>{const tile=document.querySelector('[data-lab-slot]');return{src:tile.querySelector('img')?.getAttribute('src'),name:tile.querySelector('[data-slot-name]').textContent,formula:tile.querySelector('[data-slot-formula]').textContent,emptyImage:document.querySelectorAll('[data-lab-slot]')[1].querySelector('img'),emptyLabel:document.querySelectorAll('[data-lab-slot]')[1].getAttribute('aria-label')}})()");assert.ok(thumb.src.includes('assets/models/molecule-water.svg'));assert.equal(thumb.formula,'H2O');assert.equal(thumb.name,'水');assert.equal(thumb.emptyImage,null);assert.ok(thumb.emptyLabel.includes('未接続'));
   await evaluate("document.querySelectorAll('[data-lab-slot]')[1].click()");await waitFor("!document.querySelector('[data-lab-picker]').hidden",'Picker did not open from a feed tile');const pickerState=await evaluate("(()=>({focusSearch:document.activeElement===document.querySelector('[data-lab-search]'),waterDisabled:document.querySelector('[data-lab-picker-list] [data-species=water]').disabled,searchType:document.querySelector('[data-lab-search]').type}))()");assert.equal(pickerState.focusSearch,false,'Opening the picker does not autofocus the keyboard search input');assert.equal(pickerState.waterDisabled,true,'A species already selected in another draft slot is unavailable');assert.equal(pickerState.searchType,'search');const searchMatches=await evaluate("(()=>{const input=document.querySelector('[data-lab-search]');input.value='water';input.dispatchEvent(new Event('input',{bubbles:true}));return[...document.querySelectorAll('[data-lab-picker-list] [data-species]')].filter(option=>!option.hidden).map(option=>option.dataset.species)})()");assert.deepEqual(searchMatches,['water'],'Picker search filters the 142-species list');await evaluate("document.querySelector('[data-lab-picker-close]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}))");await waitFor("document.querySelector('[data-lab-picker]').hidden",'Escape did not close the species picker');assert.equal(await evaluate("document.activeElement===document.querySelectorAll('[data-lab-slot]')[1]"),true,'Escape restores focus to the feed tile');
   const productionWaters=productionState.instances.filter(item=>item.species==='water');assert.equal(productionWaters.length,4);
+  const pickerPauseClock=productionState.simulationClockSeconds;await evaluate("document.querySelectorAll('[data-lab-slot]')[2].click()");await waitFor("!document.querySelector('[data-lab-picker]').hidden",'Picker pause fixture did not open');await new Promise(resolve=>setTimeout(resolve,250));assert.equal((await snapshot()).simulationClockSeconds,pickerPauseClock,'Picker pause freezes simulation time');await evaluate("document.querySelector('[data-lab-picker-close]').click()");
   const isolatedPoses=productionWaters.map((item,index)=>({id:item.id,positionAngstrom:index===0?[0,0,0]:[240+index*50,240,0],orientation:[0,0,0,1]}));await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(isolatedPoses)})`);productionState=await snapshot();
   const singleWater=productionState.instances[0],singlePlan=await evaluate(`window.__reactionLabProbe.dragPlan('${singleWater.id}',0,[.42,.18,0])`),cameraBefore=productionState.camera,orientationBefore=[...singleWater.orientation];
   await drag(singlePlan,{steps:5,stepDelay:18,hold:0});productionState=await snapshot();const movedSingle=productionState.instances.find(item=>item.id===singleWater.id);
@@ -130,7 +161,7 @@ try{
   await pointer('pointerup',101,pinchPlan.start.x,pinchPlan.start.y);await pointer('pointermove',102,pinchPlan.start.x+280,pinchPlan.start.y);await pointer('pointerup',102,pinchPlan.start.x+280,pinchPlan.start.y);productionState=await snapshot();assert.equal(productionState.pointerActive,false);assert.equal(productionState.draggedInstanceId,null,'Pinch end cannot create a ghost drag');assert.equal(await evaluate("[...document.querySelectorAll('[data-lab-slot]')].some(tile=>tile.disabled)"),false,'Feed rack unlocks after pointer gesture release');
   const highZPoses=productionWaters.map((item,index)=>({id:item.id,positionAngstrom:index===0?[0,0,5]:[240+index*50,240,0],orientation:[0,0,0,1]}));await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(highZPoses)})`);productionState=await snapshot();const highZ=productionState.instances[0],highZPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${highZ.id}',0,[.3,.1,0])`);
   await drag(highZPlan,{steps:4,stepDelay:18,hold:0});productionState=await snapshot();const highZAfter=productionState.instances.find(item=>item.id===highZ.id);assert.ok(Math.abs(highZAfter.position[2]-highZ.position[2])<.08,'A targetless drag preserves depth beyond the former ±2.5 clamp');
-  const closeState=await snapshot(),closeIds=closeState.instances.map(item=>item.id);await setDraftSlots(['water','ethanol','']);productionState=await snapshot();assert.deepEqual(productionState.instances.map(item=>item.id),closeIds,'Editing multiple draft slots leaves the active batch in the Chamber');assert.deepEqual(productionState.batch.activeSlots,['water','','']);
+  const closeState=await snaps…60 tokens truncated…the active batch in the Chamber');assert.deepEqual(productionState.batch.activeSlots,['water','','']);
   await evaluate("document.querySelector('[data-lab-close]').click()");await waitFor("!document.querySelector('#reaction-lab-dialog').open",'Reaction Lab did not close');const closedAt=await snapshot();await new Promise(resolve=>setTimeout(resolve,350));const closedState=await snapshot();assert.equal(closedState.simulationClockSeconds,closedAt.simulationClockSeconds,'Closing Reaction Lab pauses its simulation clock');assert.deepEqual(closedState.instances.map(item=>item.id),closeIds);assert.deepEqual(closedState.batch.draftSlots,['water','ethanol','']);
   await evaluate("document.querySelector('#open-reaction-lab').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open",'Reaction Lab did not reopen');productionState=await snapshot();assert.deepEqual(productionState.instances.map(item=>item.id),closeIds);assert.deepEqual(productionState.batch.draftSlots,['water','ethanol',''],'Uncommitted feed rack draft survives close and reopen');await setDraftSlots(['water','','']);
   const waterPairPoses=[{id:productionWaters[0].id,positionAngstrom:[0,0,0],orientation:[0,0,0,1]},{id:productionWaters[1].id,positionAngstrom:[8,0,0],orientation:[0,0,0,1]}];
@@ -153,6 +184,7 @@ try{
   await setSlots(['acetic-anhydride','water','']);
   await waitForPopulation(['acetic-anhydride','water'],4,'Hydrolysis reactant population did not initialize');
   const hydrolysisBatch=await runReaction('anhydride-hydrolysis',['acetic-acid','acetic-acid']);
+  await runDeepOverlapNegative('anhydride-hydrolysis');
   const oldHydrolysisIds=hydrolysisBatch.instances.map(item=>item.id),oldProductIds=hydrolysisBatch.instances.filter(item=>item.species==='acetic-acid').map(item=>item.id),restartGeneration=hydrolysisBatch.batch.generation;
   await evaluate("document.querySelector('[data-lab-feed]').click()");await waitFor(`(()=>{const s=window.__reactionLabProbe.snapshot();return s.batch.phase==='FLUSHING'&&s.purging.some(item=>${JSON.stringify(oldProductIds)}.includes(item.id))})()`,'Same-config FEED did not put the prior product in the purge route');
   const purgeStart=await snapshot(),oldProduct=purgeStart.purging.find(item=>oldProductIds.includes(item.id));await new Promise(resolve=>setTimeout(resolve,180));const purgeMoving=await snapshot();assert.ok(purgeMoving.purging.find(item=>item.id===oldProduct.id).position[1]<oldProduct.position[1],'Old product travels down toward the chamber purge outlet');

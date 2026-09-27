@@ -1,4 +1,5 @@
 import {supportedAtomState} from './resonance-model.js?v=1';
+import {aromaticGraphAtomIds} from './aromatic-graph.js?v=1';
 export {describeAlkeneRelativeSide} from './stereo-descriptor.js?v=1';
 
 export const ELEMENTS = {
@@ -262,6 +263,16 @@ function validateMoleculeRecord(record, ids, requireNonbonded = false) {
   ids.add(id);
   if (!Array.isArray(record.atoms) || !record.atoms.length || record.atoms.some(element => !ELEMENTS[element])) throw new Error(`Invalid atoms in ${id}.`);
   if (!Array.isArray(record.bonds)) throw new Error(`Invalid bonds in ${id}.`);
+  let formalCharges;
+  if (Object.hasOwn(record, 'formalCharges')) {
+    const source=record.formalCharges;
+    if (!source || typeof source !== 'object' || Array.isArray(source) || Object.getPrototypeOf(source)!==Object.prototype) throw new Error(`Invalid formalCharges in ${id}.`);
+    formalCharges={};
+    for (const [key,value] of Object.entries(source)) {
+      if (!/^(0|[1-9]\d*)$/.test(key) || !Number.isSafeInteger(Number(key)) || Number(key)>=record.atoms.length || !Number.isFinite(value) || !Number.isInteger(value)) throw new Error(`Invalid formalCharges entry in ${id}.`);
+      formalCharges[key]=value;
+    }
+  }
   const pairs = new Set();
   for (const bond of record.bonds) {
     if (!Array.isArray(bond) || bond.length !== 3) throw new Error(`Invalid bond in ${id}.`);
@@ -300,7 +311,16 @@ function validateMoleculeRecord(record, ids, requireNonbonded = false) {
     virtualChargeSites: Object.freeze([...nonbonded.virtualChargeSites]),
     provenance: Object.freeze({ ...nonbonded.provenance }),
   }) : undefined;
-  return Object.freeze({ ...record, ...(frozenNonbonded ? { nonbonded: frozenNonbonded } : {}), id, atoms: Object.freeze([...record.atoms]), bonds: Object.freeze(record.bonds.map(bond => Object.freeze([...bond]))) });
+  return Object.freeze({ ...record, ...(frozenNonbonded ? { nonbonded: frozenNonbonded } : {}), ...(formalCharges ? { formalCharges:Object.freeze(formalCharges) } : {}), id, atoms: Object.freeze([...record.atoms]), bonds: Object.freeze(record.bonds.map(bond => Object.freeze([...bond]))) });
+}
+
+// Production records store sparse formal charges by atom index. Synthetic
+// graph fixtures may instead carry formalCharge on atom objects.
+export function formalChargeForRecordAtom(record, atomIndex) {
+  if (!Number.isInteger(atomIndex) || atomIndex<0 || atomIndex>=(record?.atoms?.length??0)) return 0;
+  if (Object.hasOwn(record??{},'formalCharges')) return record.formalCharges?.[atomIndex] ?? 0;
+  const atom=record.atoms[atomIndex];
+  return typeof atom==='object' && atom ? atom.formalCharge ?? 0 : 0;
 }
 
 function normalizedGraph(atoms, bonds) {
@@ -319,9 +339,7 @@ function normalizedGraph(atoms, bonds) {
 // Reaction matching deliberately delegates here rather than maintaining a
 // second aromatic-ring heuristic.
 export function molecularAromaticAtomIds(atoms, bonds) {
-  return new Set(normalizedGraph(atoms, bonds).bonds
-    .filter(bond => bond.order === 'a')
-    .flatMap(bond => [bond.a, bond.b]));
+  return aromaticGraphAtomIds(atoms,bonds);
 }
 
 function adjacencyFor(atoms, bonds) {
@@ -333,6 +351,9 @@ function adjacencyFor(atoms, bonds) {
   return adjacency;
 }
 
+// Constitutional identity keeps its established carbon-only Kekule
+// normalization. Runtime aromatic-site recognition uses the shared broader
+// graph authority above without changing global molecule identity semantics.
 function aromaticCarbonEdges(atoms, bonds, adjacency, byId) {
   const result = new Set();
   const found = new Set();
