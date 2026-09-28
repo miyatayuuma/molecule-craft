@@ -71,7 +71,7 @@ try{
   };
   const waitForPopulation=async(species,total,label)=>waitFor(`(()=>{const state=window.__reactionLabProbe?.snapshot();const rows=state?.instances??[];return state?.batch.phase==='ACTIVE'&&rows.length===${total}&&${JSON.stringify(species)}.every(id=>rows.some(row=>row.species===id))})()`,label,12000);
   const pointer=async(type,id,x,y)=>evaluate(`document.querySelector('#reaction-lab canvas').dispatchEvent(new PointerEvent('${type}',{pointerId:${id},pointerType:'touch',clientX:${x},clientY:${y},button:0,buttons:${type==='pointerup'||type==='pointercancel'?0:1},bubbles:true,cancelable:true}))`);
-  const key=async(key,code,keyCode)=>{await send('Input.dispatchKeyEvent',{type:'rawKeyDown',key,code,windowsVirtualKeyCode:keyCode});await send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:keyCode});};
+  const key=async(key,code,keyCode)=>{await send('Input.dispatchKeyEvent',{type:'rawKeyDown',key,code,windowsVirtualKeyCode:keyCode});if(key==='Enter')await send('Input.dispatchKeyEvent',{type:'char',key,code,text:'\r',unmodifiedText:'\r',windowsVirtualKeyCode:keyCode});await send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:keyCode});};
   const drag=async(plan,{steps=12,stepDelay=20,hold=720,duringHold=null,expectedInstanceId=null,startCandidates=null}={})=>{
     let start=plan.start;
     if(expectedInstanceId){
