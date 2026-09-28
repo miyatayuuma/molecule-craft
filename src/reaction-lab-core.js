@@ -3,6 +3,7 @@
 import { formalChargeForRecordAtom, molecularAromaticAtomIds } from './chemistry.js?v=23';
 import { canonicalNonbondedPairGeometry } from './reaction-lab-stage-a.js?v=4';
 import { enumerateSubgraphMappings } from './subgraph-matcher.js?v=1';
+import { REACTION_LAB_ENVIRONMENT_TOKENS, enumerateCanonicalReactionLabEnvironments, environmentTokensFromSnapshot, reactionLabEnvironmentStateFromTokens, validateNormalizedEnvironmentTokens, snapshotReactionLabEnvironment } from './reaction-lab-environment.js?v=1';
 
 export const REACTION_LAB_SLOT_COUNT = 3;
 // User-driven Stage B trajectories retain safe acyl-transfer geometry for
@@ -135,14 +136,16 @@ export function matchReactionSitePattern(record,pattern,{limit=MAX_REACTION_PATT
 
 function validateEnvironment(reaction) {
   const requires=reaction.requires??[],forbids=reaction.forbids??[];
-  if(!Array.isArray(requires)||!Array.isArray(forbids)||requires.some(token=>typeof token!=='string'||!token)||forbids.some(token=>typeof token!=='string'||!token)||new Set(requires).size!==requires.length||new Set(forbids).size!==forbids.length||requires.some(token=>forbids.includes(token)))throw new Error(`invalid-environment-condition:${reaction.id}`);
+  const validList=items=>Array.isArray(items)&&items.every(token=>typeof token==='string'&&REACTION_LAB_ENVIRONMENT_TOKENS.includes(token))&&new Set(items).size===items.length;
+  if(!validList(requires)||!validList(forbids)||requires.some(token=>forbids.includes(token))||requires.includes('acidic')&&requires.includes('basic'))throw new Error(`invalid-environment-condition:${reaction.id}`);
+  if(!enumerateCanonicalReactionLabEnvironments().some(({tokens})=>environmentMatches(reaction,tokens)))throw new Error(`unsatisfiable-environment-condition:${reaction.id}`);
 }
 export function environmentMatches(reaction,environment=new Set()) {
-  const active=environment instanceof Set?environment:new Set(environment??[]);
+  const values=environment??[];validateNormalizedEnvironmentTokens(values);const active=values instanceof Set?values:new Set(values);
   return(reaction.requires??[]).every(token=>active.has(token))&&!(reaction.forbids??[]).some(token=>active.has(token));
 }
 export function environmentsOverlap(a,b) {
-  return!(a.requires??[]).some(token=>(b.forbids??[]).includes(token))&&!(b.requires??[]).some(token=>(a.forbids??[]).includes(token));
+  return enumerateCanonicalReactionLabEnvironments().some(({tokens})=>environmentMatches(a,tokens)&&environmentMatches(b,tokens));
 }
 
 function sourceGraphForReaction(reaction,records,bindings={}) {
@@ -413,10 +416,11 @@ export function transformReactionGraph(pathway,records,bindings){
 export function planReactionExecution(candidate,records){
   if(!candidate?.reaction||!candidate?.family||!candidate.reactionId)return{ok:false,reason:'inactive-or-unregistered-reaction'};
   const execution=candidate.graphTransition??transformReactionGraph(candidate,records,candidate.bindings);if(!execution.ok)return execution;
+  const environmentSnapshot=candidate.environmentSnapshot===undefined?reactionLabEnvironmentStateFromTokens(candidate.environmentConditions??[]):snapshotReactionLabEnvironment(candidate.environmentSnapshot),activeConditions=[...environmentTokensFromSnapshot(environmentSnapshot)].sort();
   const participants=candidate.reaction.reactants.map(row=>({role:row.role,instanceId:candidate.participantInstances?.[row.role]??null,species:row.species,participation:candidate.family.roles[row.role].participation}));
   const products=execution.productGraphs.map(graph=>graph.record);
   const atomOrigins=execution.productGraphs.map(graph=>({species:graph.record.id,origins:Object.entries(graph.sourceToProduct).map(([sourceAtom,productAtom])=>({sourceAtom,productAtom}))}));
-  return{ok:true,reactionId:candidate.reactionId,familyId:candidate.familyId,pathwayId:candidate.pathwayId,reaction:candidate.reaction,environmentConditions:{active:[...(candidate.environmentConditions??[])].sort(),requires:[...(candidate.reaction.requires??[])],forbids:[...(candidate.reaction.forbids??[])]},participants,matchedSites:Object.fromEntries(Object.entries(candidate.bindings??{}).map(([role,atomBindings])=>[role,{patternId:candidate.matchedPatterns?.[role]??null,atomBindings}])),consumedInstanceIds:participants.map(item=>item.instanceId).filter(Boolean),products,productInstanceCount:products.length,atomOrigins,graphTransition:execution,graphDiff:{brokenBonds:execution.brokenBonds,formedBonds:execution.formedBonds,bondOrderChanges:execution.bondOrderChanges,formalChargeChanges:execution.formalChargeChanges}};
+  return{ok:true,reactionId:candidate.reactionId,familyId:candidate.familyId,pathwayId:candidate.pathwayId,reaction:candidate.reaction,environmentSnapshot,environmentConditions:{active:activeConditions,requires:[...(candidate.reaction.requires??[])],forbids:[...(candidate.reaction.forbids??[])]},participants,matchedSites:Object.fromEntries(Object.entries(candidate.bindings??{}).map(([role,atomBindings])=>[role,{patternId:candidate.matchedPatterns?.[role]??null,atomBindings}])),consumedInstanceIds:participants.map(item=>item.instanceId).filter(Boolean),products,productInstanceCount:products.length,atomOrigins,graphTransition:execution,graphDiff:{brokenBonds:execution.brokenBonds,formedBonds:execution.formedBonds,bondOrderChanges:execution.bondOrderChanges,formalChargeChanges:execution.formalChargeChanges}};
 }
 
 export function scoreReactionGeometry(constraints,positionFor){
