@@ -7,6 +7,7 @@ import {
   compileReactionCatalog, createContactMatcher, scoreReactionGeometry,
   arbitrateReactionCandidates, resolveSupplementalParticipants, environmentMatches, CONTACT_DWELL_MS,
 } from './reaction-lab-core.js?v=10';
+import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './reaction-lab-environment.js?v=1';
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=1';
 import {
   REACTION_LAB_WORLD_UNITS_PER_ANGSTROM, STAGE_A_GAME_STEP_SECONDS,
@@ -64,6 +65,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const slots=[...root.querySelectorAll('[data-lab-slot]')];
   const feedButton=root.querySelector('[data-lab-feed]'),commandState=root.querySelector('[data-lab-command-state]');
   const picker=root.querySelector('[data-lab-picker]'),pickerList=root.querySelector('[data-lab-picker-list]'),pickerSearch=root.querySelector('[data-lab-search]');
+  const lightButton=root.querySelector('[data-lab-light]'),heatButton=root.querySelector('[data-lab-heat]'),mediumButton=root.querySelector('[data-lab-medium-port]'),mediumSelector=root.querySelector('[data-lab-medium-selector]'),mediumInputs=[...root.querySelectorAll('[data-lab-medium]')];
+  const activationEnvironment=createReactionLabEnvironment();let mediumSelectorOpen=false;
   const batch=createReactionLabBatch(records),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const reactionCatalog=compileReactionCatalog(records);
   const eventController=new AbortController(),eventOptions={signal:eventController.signal};
@@ -80,7 +83,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,lastReactionPresentation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
-  const reactionEnvironment=new Set();let reactionDiagnostics=[],reactionTrajectoryTrace=null;
+  let reactionDiagnostics=[],reactionTrajectoryTrace=null;
   let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
   const activePointers=new Map();
   const chamberTime=createChamberTimeAuthority(),isManipulating=()=>chamberTime.mode===CHAMBER_TIME_MODES.MANIPULATING;
@@ -170,11 +173,35 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function isTransitionLocked(){return batch.phase===REACTION_LAB_BATCH_PHASES.FLUSHING||batch.phase===REACTION_LAB_BATCH_PHASES.FEEDING;}
   function hasPointerGesture(){return !!selected||activePointers.size>0||pinchActive;}
   function canEditRack(){return !disposed&&!pickerOpen&&!isTransitionLocked()&&!reactionAnimation&&!hasPointerGesture();}
+  function environmentControlsLocked(){return disposed||pickerOpen||isManipulating()||pinchActive||isTransitionLocked()||!!reactionAnimation;}
+  function closeMediumSelector({returnFocus=false}={}){
+    if(!mediumSelectorOpen)return;mediumSelectorOpen=false;mediumSelector.hidden=true;mediumButton?.setAttribute('aria-expanded','false');
+    if(returnFocus){const target=environmentControlsLocked()?root.querySelector('[data-lab-close]'):mediumButton;target?.focus({preventScroll:true});}
+  }
+  function updateEnvironmentControls(){
+    const locked=environmentControlsLocked();if(locked&&mediumSelectorOpen)closeMediumSelector({returnFocus:mediumSelector.contains(document.activeElement)});
+    const state=activationEnvironment.snapshot(),mediumLabels={neutral:'NEUTRAL',acidic:'ACID',basic:'BASE'};
+    if(lightButton){lightButton.disabled=locked;lightButton.setAttribute('aria-pressed',String(state.light));lightButton.setAttribute('aria-label',`LIGHT：${state.light?'ON':'OFF'}`);lightButton.dataset.active=String(state.light);lightButton.querySelector('[data-lab-equipment-state]').textContent=state.light?'ON':'OFF';}
+    if(heatButton){heatButton.disabled=locked;heatButton.setAttribute('aria-pressed',String(state.heat));heatButton.setAttribute('aria-label',`HEAT：${state.heat?'ON':'OFF'}`);heatButton.dataset.active=String(state.heat);heatButton.querySelector('[data-lab-equipment-state]').textContent=state.heat?'ON':'OFF';}
+    if(mediumButton){mediumButton.disabled=locked;mediumButton.setAttribute('aria-label',`pH medium：${mediumLabels[state.medium]}`);mediumButton.dataset.medium=state.medium;mediumButton.querySelector('[data-lab-medium-value]').textContent=mediumLabels[state.medium];}
+    for(const input of mediumInputs){input.disabled=locked;input.checked=input.value===state.medium;}
+  }
+  function setMediumSelectorOpen(open,{returnFocus=false}={}){
+    if(open&&environmentControlsLocked())return false;
+    if(open){mediumSelectorOpen=true;mediumSelector.hidden=false;mediumButton?.setAttribute('aria-expanded','true');updateEnvironmentControls();mediumInputs.find(input=>input.checked)?.focus({preventScroll:true});return true;}
+    closeMediumSelector({returnFocus});updateEnvironmentControls();return true;
+  }
+  lightButton?.addEventListener('click',()=>{if(environmentControlsLocked())return;activationEnvironment.toggleLight();updateEnvironmentControls();},eventOptions);
+  heatButton?.addEventListener('click',()=>{if(environmentControlsLocked())return;activationEnvironment.toggleHeat();updateEnvironmentControls();},eventOptions);
+  mediumButton?.addEventListener('click',()=>setMediumSelectorOpen(!mediumSelectorOpen),eventOptions);
+  for(const input of mediumInputs)input.addEventListener('change',()=>{if(!input.checked)return;if(environmentControlsLocked()){updateEnvironmentControls();return;}activationEnvironment.setMedium(input.value);setMediumSelectorOpen(false,{returnFocus:true});},eventOptions);
+  mediumSelector?.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setMediumSelectorOpen(false,{returnFocus:true});}},eventOptions);
   function updateCommandBar(){
     const state=batch.snapshot(),dirty=state.draftSlots.some((species,index)=>species!==state.activeSlots[index]);
     commandState.textContent=state.phase===REACTION_LAB_BATCH_PHASES.FLUSHING?'FLUSHING':state.phase===REACTION_LAB_BATCH_PHASES.FEEDING?'FEEDING':reactionAnimation?'REACTION':state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE?dirty?'DRAFT READY':'BATCH ACTIVE':'RACK READY';
     slots.forEach((tile,index)=>{tile.disabled=!canEditRack();tile.setAttribute('aria-expanded',String(pickerOpen&&pickerSlotIndex===index));});
     feedButton.disabled=!canEditRack()||(!state.draftSlots.some(Boolean)&&state.phase===REACTION_LAB_BATCH_PHASES.IDLE);
+    updateEnvironmentControls();
   }
   function renderSlotTiles(){
     const active=batch.activeSlots,draft=batch.draftSlots;
@@ -214,7 +241,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   pickerSearch.addEventListener('input',filterPicker,eventOptions);
   root.querySelector('[data-lab-picker-close]')?.addEventListener('click',()=>closePicker(),eventOptions);
   root.querySelector('[data-lab-disconnect]')?.addEventListener('click',()=>{if(!pickerOpen)return;const result=batch.setDraftSlot(pickerSlotIndex,'');if(!result.ok)return;closePicker();renderSlotTiles();status.textContent='feed headを切断しました。FEEDで変更を適用します。';},eventOptions);
-  dialog.addEventListener('cancel',event=>{if(pickerOpen){event.preventDefault();closePicker();}},{signal:eventController.signal});
+  dialog.addEventListener('cancel',event=>{if(mediumSelectorOpen){event.preventDefault();setMediumSelectorOpen(false,{returnFocus:true});return;}if(pickerOpen){event.preventDefault();closePicker();}},{signal:eventController.signal});
   root.addEventListener('keydown',event=>{if(pickerOpen&&event.key==='Escape'){event.preventDefault();event.stopPropagation();closePicker();}},eventOptions);
 
   function fitPopulation(){
@@ -396,7 +423,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   canvas.addEventListener('pointerdown',event=>{
     if(disposed||pickerOpen||isTransitionLocked()||reactionAnimation)return;
     event.preventDefault();activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});capturePointer(event);
-    if(pinchActive||activePointers.size>1){if(!pinchActive){endManipulation();pinchActive=true;}pinchDistance=currentPinchDistance();onPointerLockChange(true);return;}
+    if(pinchActive||activePointers.size>1){if(!pinchActive){endManipulation();pinchActive=true;}pinchDistance=currentPinchDistance();onPointerLockChange(true);updateEnvironmentControls();return;}
     const hit=raycastAtoms(event)??fallbackGrab(event);selected=hit?.item??null;
     down={pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY,group:selected};
     if(selected){
@@ -429,7 +456,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function reactionStep(stepMs){
     if(batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE)return;
     if(reactionAnimation){contactMatcher.reset();reactionDiagnostics=[];return;}
-    const manipulating=isManipulating(),rows=[],ready=[];
+    const manipulating=isManipulating(),rows=[],ready=[],activeConditions=activationEnvironment.conditions();
     if(manipulating)contactMatcher.reset();
     contactMatcher.beginStep();
     const active=[...instances].filter(item=>!item.feedMotion&&item.batchGeneration===batch.generation).sort((a,b)=>a.id.localeCompare(b.id));
@@ -460,7 +487,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         }
       }
       if(severeOverlap)rejectionReasons.push('severe-overlap');
-      const environmentMatched=environmentMatches(candidate.reaction,reactionEnvironment);if(!environmentMatched)rejectionReasons.push('environment-mismatch');
+      const environmentMatched=environmentMatches(candidate.reaction,activeConditions);if(!environmentMatched)rejectionReasons.push('environment-mismatch');
       if(!stageBPhysicsEnabled)rejectionReasons.push('non-production-physics');
       const ids=Object.values(participantInstances).filter(Boolean).sort(),dwellKey=`${candidate.reactionId}:${candidate.pathwayId}:${ids.join('|')}:g${batch.generation}`;
       const eligible=!manipulating&&!rejectionReasons.length;
@@ -471,7 +498,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const diagnostic={reactionId:candidate.reactionId,familyId:candidate.familyId,pathwayId:candidate.pathwayId,encounterParticipantIds:encounterIds,participants:participantInstances,matchedSites:Object.fromEntries(Object.entries(candidate.bindings).map(([role,atomBindings])=>[role,{patternId:candidate.matchedPatterns[role],atomBindings}])),distanceConstraints:geometry.constraints,geometryReady:geometry.geometryReady,geometryQuality:{worstNormalizedDeviation:geometry.worstNormalizedDeviation,meanNormalizedDeviation:geometry.meanNormalizedDeviation},minimumRealAtomDistance,minimumNonbondedSeparationRatio,severeOverlap,manipulating,normalPhysicsStepObserved:stageBPhysicsEnabled&&!manipulating,environmentMatched,stoichiometricRequirement:supplemental.ok?null:{reason:supplemental.reason,species:supplemental.species,count:supplemental.count},dwellElapsed:elapsed,dwellRequired:CONTACT_DWELL_MS,commitReady,rejectionReasons};
       rows.push(diagnostic);
       if(commitReady){
-        const staged={...candidate,participantInstances,environmentConditions:[...reactionEnvironment],geometryQuality:{worstNormalizedDeviation:geometry.worstNormalizedDeviation,meanNormalizedDeviation:geometry.meanNormalizedDeviation}};
+        const staged={...candidate,participantInstances,environmentConditions:[...activeConditions],environmentSnapshot:activationEnvironment.snapshot(),geometryQuality:{worstNormalizedDeviation:geometry.worstNormalizedDeviation,meanNormalizedDeviation:geometry.meanNormalizedDeviation}};
         const participantByRole=new Map(Object.entries(participantInstances).map(([role,id])=>[role,instanceById(id)]));
         const sourcePoint=sourceAtom=>{const split=sourceAtom.indexOf(':'),role=sourceAtom.slice(0,split),index=Number(sourceAtom.slice(split+1)),item=participantByRole.get(role);return item?atomWorldAngstrom(item,index):null;};
         staged.newBondEndpointDistanceSum=(candidate.graphTransition?.formedBonds??[]).reduce((sum,bond)=>{const a=sourcePoint(bond.a),b=sourcePoint(bond.b);return sum+(a&&b?Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]):0);},0);
@@ -513,8 +540,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function commit(candidate){
     if(isManipulating()||reactionAnimation)return;
-    if(!environmentMatches(candidate.reaction,reactionEnvironment))return;
-    const execution=planReactionExecution(candidate,records);if(!execution.ok){status.textContent='反応経路を検証できないため、反応を確定できません。';return;}
+    const environmentSnapshot=activationEnvironment.snapshot(),environmentConditions=[...environmentTokensFromSnapshot(environmentSnapshot)];
+    if(!environmentMatches(candidate.reaction,environmentConditions))return;
+    const execution=planReactionExecution({...candidate,environmentSnapshot,environmentConditions},records);if(!execution.ok){status.textContent='反応経路を検証できないため、反応を確定できません。';return;}
     const reservation=reserveParticipantInstances(candidate.participantInstances,instances,batch.generation,candidate.reaction.reactants.map(row=>row.role));if(!reservation.ok)return;
     const participants=reservation.participants,participantByRole=roleItemsFor(execution),sourcePositions=new Map(),sourceMeshes=new Map(),sourceVelocities=new Map(),sourceCharges=new Map(),sourceElements=new Map(),sourceModels=new Map();
     for(const[role,item]of participantByRole){
@@ -684,7 +712,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }
     animation.handoffMaxAtomError=maximumError;animation.productInstances=productInstances;lastReactionPresentation={active:false,phase:'COMPLETE',elapsedMs:animation.elapsedMs,normalDurationMs:CHAMBER_PRESENTATION_MS,reducedMotionDurationMs:Object.values(REDUCED_PRESENTATION_PHASES).reduce((sum,value)=>sum+value,0),reducedMotion,reactionId:animation.execution.reactionId,pathwayId:animation.execution.pathwayId,participantIds:animation.execution.consumedInstanceIds,productCount:animation.products.length,sourceAtomCount:animation.sourcePositions.size,handoffMaxAtomError:maximumError,clearanceSafe:animation.clearanceSafe,clearanceCorrectionAngstrom:animation.clearanceCorrectionAngstrom,clearanceFallback:animation.clearanceFallback??null,clearancePairResults:animation.clearancePairResults??[],targetGeometry:animation.products.map(product=>product.targetGeometry??null),targetPreparationFailed:animation.targetPreparationFailed??null};world.remove(animation.root);disposeObject(animation.root);reactionAnimation=null;contactMatcher.reset();reactionDiagnostics=[];
     status.textContent=`反応完了 · ${animation.execution.products.map(record=>record.nameJa??record.id).join(' + ')}`;
-    window.dispatchEvent(new CustomEvent('molecule-craft:reaction-lab-product',{detail:{reactionId:animation.execution.reactionId,familyId:animation.execution.familyId,pathwayId:animation.execution.pathwayId,reaction:animation.execution.reaction,environmentConditions:animation.execution.environmentConditions,participants:animation.execution.participants,matchedSites:animation.execution.matchedSites,products:animation.execution.products.map(record=>record.id),productInstances,atomOrigins:animation.execution.atomOrigins,graphDiff:animation.execution.graphDiff,consumed:animation.execution.consumedInstanceIds,batchGeneration:animation.generation}}));updateCommandBar();
+    window.dispatchEvent(new CustomEvent('molecule-craft:reaction-lab-product',{detail:{reactionId:animation.execution.reactionId,familyId:animation.execution.familyId,pathwayId:animation.execution.pathwayId,reaction:animation.execution.reaction,environmentSnapshot:animation.execution.environmentSnapshot,environmentConditions:animation.execution.environmentConditions,participants:animation.execution.participants,matchedSites:animation.execution.matchedSites,products:animation.execution.products.map(record=>record.id),productInstances,atomOrigins:animation.execution.atomOrigins,graphDiff:animation.execution.graphDiff,consumed:animation.execution.consumedInstanceIds,batchGeneration:animation.generation}}));updateCommandBar();
   }
   function advanceReactionAnimation(elapsedMs){
     const animation=reactionAnimation;if(!animation)return;animation.elapsedMs+=elapsedMs;
@@ -744,12 +772,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     renderer.render(scene,camera);
   }
   updateCamera();animationFrameId=requestAnimationFrame(tick);
-  document.addEventListener('visibilitychange',()=>{last=performance.now();},{signal:eventController.signal});
+  document.addEventListener('visibilitychange',()=>{last=performance.now();if(document.hidden)setMediumSelectorOpen(false);},{signal:eventController.signal});
 
   function setDialogOpen(open){onDialogStateChange(open);}
   function open(){renderSlotTiles();if(!dialog.open)dialog.showModal();setDialogOpen(true);last=performance.now();resize();}
   root.querySelector('[data-lab-close]')?.addEventListener('click',()=>dialog.close(),eventOptions);
-  dialog.addEventListener('close',()=>{closePicker({returnFocus:false});cancelAllPointers();last=performance.now();setDialogOpen(false);},{signal:eventController.signal});
+  dialog.addEventListener('close',()=>{closePicker({returnFocus:false});setMediumSelectorOpen(false);cancelAllPointers();last=performance.now();setDialogOpen(false);},{signal:eventController.signal});
 
   if(localhostPhysicsTest){
     const probeForces=()=>stageBPhysicsEnabled?evaluateStageBForces(instances.filter(item=>!item.busy&&!item.feedMotion&&(!testIsolation||testIsolation.has(item.id))).map(item=>item.stageBody)):stageAForces;
@@ -765,7 +793,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
           instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),initialPositionAtSpawn:item.initialPositionAtSpawn?[...item.initialPositionAtSpawn]:null,batchGeneration:item.batchGeneration,originPortIndex:item.feedOriginPortIndex,feedPhase:item.feedPhase,feedHandoff:item.feedHandoff,kinematic:!!item.stageBody.kinematic,charges:[...item.record.nonbonded.atomicChargesE],carbonylSites:stageBPhysicsEnabled?stageBCarbonylDiagnostics(item.stageBody):[],renderedAtomCount:stageBPhysicsEnabled?item.atomMeshes.size:null,expectedRealAtomCount:stageBPhysicsEnabled?item.record.atoms.length:null,renderedGroupChildCount:stageBPhysicsEnabled?item.group.children.length:null})),
           purging:purgeItems.map(item=>({id:item.id,species:item.species,position:item.group.position.toArray()})),pairs:current.pairDiagnostics.map(pair=>({...pair})),
           diagnostics:{overlapGuardActivationCount:current.overlapGuardActivationCount,carbonylSiteCount:instances.reduce((sum,item)=>sum+(item.stageBody?.carbonylAnisotropySites?.length??0),0),...stageAPerformance,lastInteractionPairCount:current.pairDiagnostics.length},
-          reactionCandidates:[...reactionDiagnostics],reactionEnvironment:[...reactionEnvironment].sort(),
+          reactionCandidates:[...reactionDiagnostics],environment:activationEnvironment.snapshot(),reactionEnvironment:[...activationEnvironment.conditions()].sort(),
           camera:{distance,azimuth:FIXED_CAMERA_AZIMUTH,elevation:FIXED_CAMERA_ELEVATION},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0,
         };
       },
@@ -786,7 +814,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       startReactionTrajectoryTrace(reactionId,participantIds){if(!localhostPhysicsTest)throw Error('Reaction trajectory tracing is localhost-only');reactionTrajectoryTrace={reactionId,participantIds:participantIds?[...participantIds].sort():null,samples:[]};return{reactionId,participantIds:reactionTrajectoryTrace.participantIds};},
       reactionTrajectoryTrace(){return reactionTrajectoryTrace?{reactionId:reactionTrajectoryTrace.reactionId,participantIds:reactionTrajectoryTrace.participantIds,samples:reactionTrajectoryTrace.samples.map(sample=>({...sample}))}:null;},
       stopReactionTrajectoryTrace(){const trace=reactionTrajectoryTrace?{reactionId:reactionTrajectoryTrace.reactionId,participantIds:reactionTrajectoryTrace.participantIds,samples:reactionTrajectoryTrace.samples.map(sample=>({...sample}))}:null;reactionTrajectoryTrace=null;return trace;},
-      setEnvironmentConditions(tokens){if(!Array.isArray(tokens)||tokens.some(token=>typeof token!=='string'))throw Error('Environment conditions must be normalized string tokens.');reactionEnvironment.clear();for(const token of tokens)reactionEnvironment.add(token);contactMatcher.reset();return this.snapshot();},
+      setEnvironmentConditions(tokens){if(environmentControlsLocked())throw Error('Environment controls are locked.');activationEnvironment.setFromConditionTokens(tokens);updateEnvironmentControls();return this.snapshot();},
       setStageAPair(aId,positionA,bId,positionB){return this.setGeometry([{id:aId,positionAngstrom:positionA},{id:bId,positionAngstrom:positionB}]);},
       settlePair(aId,bId){for(const id of [aId,bId]){const item=instanceById(id);if(!item)throw Error(`Missing Reaction Lab molecule ${id}`);item.stageBody.velocityAngstromPerPs=[0,0,0];item.stageBody.angularVelocityRadPerPs=[0,0,0];syncGroupFromStageABody(item);}return this.snapshot();},
       // Localhost deterministic approach fixture for calibration and Stage A

@@ -11,7 +11,7 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=45">
+  <link rel="stylesheet" href="./styles.css?v=46">
   <link rel="stylesheet" href="./veil.css?v=43">
 </head>
 <body>
@@ -83,7 +83,16 @@
     </div>
     <div class="reaction-lab-feed-conduits" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="reaction-lab-command-bar"><span data-lab-command-state>RACK READY</span><button type="button" data-lab-feed>FEED <b aria-hidden="true">›</b></button></div>
-    <div class="reaction-lab-space"><canvas aria-label="分子をドラッグして相互作用を観察する3D空間"></canvas><div class="reaction-lab-purge-outlet" aria-hidden="true"><i></i><span>PURGE</span></div><p>ドラッグで近づける · pinch / wheelでzoom</p></div>
+    <div class="reaction-lab-space"><canvas aria-label="分子をドラッグして相互作用を観察する3D空間"></canvas><div class="reaction-lab-purge-outlet" aria-hidden="true"><i></i><span>PURGE</span></div><div class="reaction-lab-environment" role="group" aria-label="Chamber activation environment">
+      <button class="reaction-lab-equipment reaction-lab-light" type="button" data-lab-light aria-label="LIGHT：OFF" aria-pressed="false"><span class="reaction-lab-light-beam" aria-hidden="true"></span><span class="reaction-lab-equipment-glyph" aria-hidden="true">◉</span><span>LIGHT</span><small data-lab-equipment-state>OFF</small></button>
+      <button class="reaction-lab-equipment reaction-lab-heat" type="button" data-lab-heat aria-label="HEAT：OFF" aria-pressed="false"><span class="reaction-lab-equipment-glyph" aria-hidden="true">≋</span><span>HEAT</span><small data-lab-equipment-state>OFF</small></button>
+      <button class="reaction-lab-equipment reaction-lab-medium" type="button" data-lab-medium-port aria-label="pH medium：NEUTRAL" aria-expanded="false" aria-controls="reaction-lab-medium-selector"><small>pH</small><strong data-lab-medium-value>NEUTRAL</strong></button>
+      <div id="reaction-lab-medium-selector" class="reaction-lab-medium-selector" data-lab-medium-selector role="radiogroup" aria-label="pH medium" hidden>
+        <label data-lab-medium-option="neutral"><input type="radio" name="reaction-lab-medium" value="neutral" data-lab-medium checked><span>NEUTRAL</span></label>
+        <label data-lab-medium-option="acidic"><input type="radio" name="reaction-lab-medium" value="acidic" data-lab-medium><span>ACIDIC</span></label>
+        <label data-lab-medium-option="basic"><input type="radio" name="reaction-lab-medium" value="basic" data-lab-medium><span>BASIC</span></label>
+      </div>
+    </div><p>ドラッグで近づける · pinch / wheelでzoom</p></div>
     <p data-lab-status class="reaction-lab-status" role="status" aria-live="polite">feed rackで種を選び、FEEDしてください。</p>
     <div id="reaction-lab-picker" class="reaction-lab-picker" data-lab-picker hidden aria-hidden="true" aria-label="分子picker"><div class="reaction-lab-picker-backdrop" aria-hidden="true"></div><section class="reaction-lab-picker-sheet" aria-labelledby="reaction-lab-picker-title"><header><div><small>DISCOVERED SPECIES</small><h3 id="reaction-lab-picker-title">Feed headを接続</h3></div><button type="button" data-lab-picker-close aria-label="分子pickerを閉じる">×</button></header><button type="button" class="reaction-lab-disconnect" data-lab-disconnect>このfeed headを切断</button><label class="reaction-lab-search-label">分子を検索<input type="search" data-lab-search placeholder="formula・分子名" autocomplete="off"></label><div class="reaction-lab-picker-list" data-lab-picker-list role="listbox" aria-label="発見済み分子"></div></section></div>
   </section></dialog>

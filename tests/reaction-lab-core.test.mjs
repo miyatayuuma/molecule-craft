@@ -6,10 +6,11 @@ import {
   reactionCandidates, resolveCandidateInstanceIds, createContactMatcher,
   planReactionExecution, resolveRegisteredProducts, matchDatabaseProduct,
   scoreReactionGeometry, arbitrateReactionCandidates, resolveSupplementalParticipants,
-  REACTION_SITE_PATTERNS, REACTION_FAMILIES, REACTION_CATALOG,
+  REACTION_SITE_PATTERNS, REACTION_FAMILIES, REACTION_CATALOG, CONTACT_DWELL_MS,
   matchReactionSitePattern, environmentMatches, environmentsOverlap,
 } from '../src/reaction-lab-core.js';
 import { canonicalNonbondedPairGeometry } from '../src/reaction-lab-stage-a.js';
+import { createReactionLabEnvironment, createDefaultReactionLabEnvironmentState, enumerateCanonicalReactionLabEnvironments, environmentTokensFromSnapshot, reactionLabEnvironmentStateFromTokens, validateNormalizedEnvironmentTokens, validateReactionLabEnvironmentState } from '../src/reaction-lab-environment.js';
 
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
 const byId=new Map(records.map(record=>[record.id,record]));
@@ -20,6 +21,9 @@ test('production viewer delegates eligibility and arbitration to compiled Core w
   assert.doesNotMatch(viewer,/reactionContactPairs|excludedMoleculePairs|REACTION_RULES|maxDistance\s*:\s*1\.18/);
   assert.match(viewer,/arbitrateReactionCandidates\(ready\)/);
   assert.match(viewer,/normalPhysicsStepObserved:stageBPhysicsEnabled&&!manipulating/);
+  const probeSetter=viewer.match(/setEnvironmentConditions\(tokens\)\{([\s\S]*?)\},\n\s*setStageAPair/)?.[1]??'';
+  assert.match(probeSetter,/activationEnvironment\.setFromConditionTokens\(tokens\)/,'The localhost probe uses the production Environment authority');
+  assert.doesNotMatch(probeSetter,/contactMatcher\.reset\(\)/,'Condition writes preserve unrelated fixed-step dwell continuity');
 });
 
 test('three equal slots allow zero to three known species and reject duplicates',()=>{
@@ -72,6 +76,15 @@ test('declared edits use the matched acyl binding and auto-map every source atom
   assert.ok(alcoholysis.matchedSites.nucleophile.atomBindings.transferH>=0);
 });
 
+test('reaction execution freezes one canonical environment snapshot with normalized active conditions',()=>{
+  const candidate=reactionCandidates([{species:'acetic-anhydride',id:'a1'},{species:'water',id:'w1'}],production)[0],state=Object.freeze({light:true,heat:true,medium:'acidic'});
+  const plan=planReactionExecution({...candidate,environmentConditions:['light','heat','acidic'],environmentSnapshot:state},records);
+  assert.equal(plan.ok,true);assert.deepEqual(plan.environmentSnapshot,state);assert.equal(Object.isFrozen(plan.environmentSnapshot),true);
+  assert.deepEqual(plan.environmentConditions,{active:['acidic','heat','light'],requires:[],forbids:[]});
+  assert.throws(()=>{plan.environmentSnapshot.medium='basic';},TypeError);
+  const defaultPlan=planReactionExecution(candidate,records);assert.deepEqual(defaultPlan.environmentSnapshot,{light:false,heat:false,medium:'neutral'});assert.deepEqual(defaultPlan.environmentConditions.active,[]);
+});
+
 test('acyl transfer distance windows derive from canonical pair sigma and score target better than deep overlap',()=>{
   const candidate=reactionCandidates([{species:'acetic-anhydride',id:'a'},{species:'water',id:'w'}],production)[0];
   const constraint=candidate.geometryConstraints[0],anhydride=byId.get('acetic-anhydride'),water=byId.get('water');
@@ -91,23 +104,45 @@ test('acyl transfer distance windows derive from canonical pair sigma and score 
   assert.equal(canonicalNonbondedPairGeometry({sigmaAngstrom:3.4,epsilonKcalMol:0},{sigmaAngstrom:3.1,epsilonKcalMol:0},1).severeOverlap,true,'zero epsilon does not hide deep geometric overlap');
 });
 
-test('dwell consumes normal fixed-step time, requires a first observed step, and resets on invalid geometry',()=>{
-  const matcher=createContactMatcher({dwellMs:520});let ready=matcher.update('p',true,1000/120);
-  assert.equal(ready,false);assert.equal(matcher.elapsed('p'),0);
-  for(let index=0;index<62;index++)ready=matcher.update('p',true,1000/120);
-  assert.equal(ready,false);assert.ok(matcher.elapsed('p')<520);
-  ready=matcher.update('p',true,1000/120);assert.equal(ready,true);
-  matcher.update('p',false,1000/120);assert.equal(matcher.elapsed('p'),0);
-  matcher.update('p',true,1000/120);matcher.update('p',false,1000/120);assert.equal(matcher.update('p',true,1000/120),false);
+test('dwell uses current CONTACT_DWELL_MS and resets only when candidate eligibility or identity is lost',()=>{
+  const matcher=createContactMatcher(),stepMs=CONTACT_DWELL_MS/2,lightRequired={requires:['light'],forbids:[]};
+  assert.equal(matcher.update('light-candidate',environmentMatches(lightRequired,[]),stepMs),false);assert.equal(matcher.elapsed('light-candidate'),0,'A condition mismatch cannot start dwell');
+  assert.equal(matcher.update('light-candidate',environmentMatches(lightRequired,['light']),stepMs),false);assert.equal(matcher.elapsed('light-candidate'),0,'The first eligible fixed step starts continuity at zero');
+  assert.equal(matcher.update('light-candidate',environmentMatches(lightRequired,['light']),stepMs),false);assert.equal(matcher.elapsed('light-candidate'),stepMs);
+  assert.equal(matcher.update('light-candidate',environmentMatches(lightRequired,['light','heat','basic']),stepMs),true,'Unrelated active HEAT and basic medium preserve LIGHT dwell');
+  assert.equal(matcher.elapsed('light-candidate'),CONTACT_DWELL_MS);
+  matcher.update('light-candidate',environmentMatches(lightRequired,['heat']),stepMs);assert.equal(matcher.elapsed('light-candidate'),0,'Losing a required condition invalidates elapsed dwell');
+  assert.equal(matcher.update('light-candidate',environmentMatches(lightRequired,['light']),stepMs),false);assert.equal(matcher.elapsed('light-candidate'),0,'A restored condition begins new continuity');
+  matcher.update('light-candidate',true,stepMs);assert.equal(matcher.elapsed('light-candidate'),stepMs);
+  matcher.update('light-candidate',false,stepMs);assert.equal(matcher.elapsed('light-candidate'),0,'Geometry loss, overlap veto, or manipulation clears continuity');
+  matcher.update('light-candidate:other-participant-set',true,stepMs);assert.equal(matcher.elapsed('light-candidate:other-participant-set'),0,'A changed participant set starts an independent continuity');
+  assert.equal(matcher.update('light-candidate:other-participant-set',true,stepMs),false);assert.equal(matcher.elapsed('light-candidate:other-participant-set'),stepMs);
 });
 
-test('environment conditions are independent gates and overlapping domains are explicit',()=>{
-  const ordinary={requires:[],forbids:[]},heated={requires:['heat'],forbids:[]},dark={requires:[],forbids:['light']},lit={requires:['light'],forbids:[]};
-  assert.equal(environmentMatches(ordinary,new Set()),true);
-  assert.equal(environmentMatches(heated,new Set()),false);
-  assert.equal(environmentMatches(heated,new Set(['heat'])),true);
-  assert.equal(environmentsOverlap(ordinary,heated),true);
-  assert.equal(environmentsOverlap(dark,lit),false);
+test('Core environment vocabulary, satisfiability, and subset matching follow the canonical twelve-state domain',()=>{
+  const ordinary={requires:[],forbids:[]},heat={requires:['heat'],forbids:[]},light={requires:['light'],forbids:[]},acidic={requires:['acidic'],forbids:[]},basic={requires:['basic'],forbids:[]},heatAcid={requires:['heat','acidic'],forbids:[]},noLight={requires:[],forbids:['light']};
+  const compileWith=(requires,forbids=[])=>compileReactionCatalog(records,{reactions:[{...REACTION_CATALOG[0],requires,forbids}]});
+  assert.equal(enumerateCanonicalReactionLabEnvironments().length,12);
+  for(const condition of [['light'],['heat'],['acidic'],['basic'],['heat','acidic']])assert.ok(compileWith(condition).pathways.length,`valid requirement ${condition.join('+')} compiles`);
+  assert.ok(compileWith([],['light']).pathways.length);
+  assert.equal(environmentMatches(ordinary,[]),true);assert.equal(environmentMatches(heat,['heat']),true);assert.equal(environmentMatches(light,['light','heat','acidic']),true,'Extra active conditions do not invalidate a matching rule');
+  assert.equal(environmentMatches(light,['light','heat','basic']),true);assert.equal(environmentMatches(noLight,['light']),false);
+  assert.throws(()=>compileWith(['uv']),/invalid-environment-condition/,'Unknown catalog tokens fail compilation');
+  assert.throws(()=>compileWith(['light','light']),/invalid-environment-condition/,'Duplicate required tokens fail compilation');
+  assert.throws(()=>compileWith(['light'],['light']),/invalid-environment-condition/,'A token cannot be both required and forbidden');
+  assert.throws(()=>compileWith(['acidic','basic']),/invalid-environment-condition/,'Mutually exclusive pH media cannot both be required');
+  assert.throws(()=>compileWith(['neutral']),/invalid-environment-condition/,'Neutral is not an environment token');
+  assert.throws(()=>compileWith(['acidic'],['acidic']),/invalid-environment-condition|unsatisfiable-environment-condition/);
+  assert.ok(compileWith([],['acidic','basic']).pathways.length,'Forbidding both pH conditions defines neutral-only eligibility');
+  assert.throws(()=>environmentMatches(light,['light','acidic','basic']),/mutually-exclusive-ph/);
+  assert.throws(()=>environmentMatches(light,['ultraviolet']),/unknown-environment-token/);
+  assert.equal(environmentsOverlap(ordinary,heat),true);
+  assert.equal(environmentsOverlap(heat,{requires:[],forbids:['heat']}),false);
+  assert.equal(environmentsOverlap(acidic,basic),false);
+  assert.equal(environmentsOverlap({requires:[],forbids:['acidic','basic']},acidic),false);
+  assert.equal(environmentsOverlap(acidic,ordinary),true);
+  assert.equal(environmentsOverlap(heatAcid,{requires:['heat','basic'],forbids:[]}),false);
+  assert.deepEqual(REACTION_CATALOG.map(item=>item.id),['anhydride-hydrolysis','anhydride-alcoholysis'],'Production reaction catalog remains unchanged');
 });
 
 test('catalog, pattern and site enumeration order do not change stable pathway identities',()=>{
