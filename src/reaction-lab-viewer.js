@@ -1,5 +1,7 @@
-import { createPreviewModel } from './preview-model.js?v=33';
-import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
+import { createPreviewModel } from './preview-model.js?v=34';
+import { ELEMENTS, formalChargeForRecordAtom, modelAtomRadius } from './chemistry.js?v=20';
+import { aromaticBondKeys, aromaticRingFrame, createAromaticRing, displayedBondOrder, setAromaticOpacity, updateAromaticRing } from './aromatic-rendering.js?v=27';
+import { createChargeLabel, createSharedBonds, sharedOxoGroups, specialEdgeKeys, updateSharedBonds } from './special-bonds.js?v=33';
 import {
   reactionCandidates, planReactionExecution, resolveCandidateInstanceIds,
   compileReactionCatalog, createContactMatcher, scoreReactionGeometry,
@@ -9,23 +11,27 @@ import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, R
 import {
   REACTION_LAB_WORLD_UNITS_PER_ANGSTROM, STAGE_A_GAME_STEP_SECONDS,
   STAGE_A_MAX_CATCH_UP_STEPS, STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,
-  createFixedStepAccumulator, createStageABody, evaluateStageAForces,
+  KCAL_MOL_AMU_TO_ANGSTROM_PS2, STANDARD_ATOMIC_MASS_AMU, createFixedStepAccumulator, createStageABody, evaluateStageAForces,
   integrateStageA, rigidBodyMassProperties, stageABodySnapshot, canonicalNonbondedPairGeometry,
 } from './reaction-lab-stage-a.js?v=4';
-import { STAGE_B_TEST_QA_E, createStageBPairSafetyOracle, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, integrateStageB, stageBCarbonylDiagnostics } from './reaction-lab-stage-b.js?v=3';
+import { STAGE_B_TEST_QA_E, createStageBPairSafetyOracle, createStageBVirtualSites, detectCarbonylAnisotropySites, evaluateStageBForces, evaluateStageBPairForcesReadOnly, integrateStageB, stageBCarbonylDiagnostics } from './reaction-lab-stage-b.js?v=3';
+import { bondLaneSegments, fitRigidBodyVelocity, formalChargeVisualTransition, mapProductAtomOrigins, planBondLaneTransition, REACTION_PRESENTATION_NORMAL_PHASES as NORMAL_PRESENTATION_PHASES, REACTION_PRESENTATION_REDUCED_PHASES as REDUCED_PRESENTATION_PHASES, resolveProductTargetGeometry, resolveStaticFormalCharge, smoothPresentationProgress, staticBondLaneOffsets, transportBondLaneSide } from './reaction-lab-presentation.js?v=1';
 import {
   chooseDepthTarget, CHAMBER_TIME_MODES, createChamberTimeAuthority,
   DEPTH_DOCKING_TIME_CONSTANT_MS, DEPTH_TARGET_ACQUIRE_PADDING_PX,
   DEPTH_TARGET_RELEASE_PADDING_PX, GRAB_FALLBACK_RADIUS_PX,
+  MAX_DOCK_RELEASE_SEPARATION_ACCELERATION,
   MAX_DOCKING_COMPRESSION_WORLD, minimumMoleculeSurfaceGap, projectedSurfaceGap,
   scaleSimulationElapsed, solveSafeDepthDocking,
 } from './reaction-lab-manipulation.js?v=3';
 
 const vector=(THREE,point)=>Array.isArray(point)?new THREE.Vector3(point[0],point[1],point[2]):new THREE.Vector3(point.x,point.y,point.z);
+const recordAtomElement=(record,index)=>typeof record?.atoms?.[index]==='string'?record.atoms[index]:record?.atoms?.[index]?.element;
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const FIXED_CAMERA_AZIMUTH=0;
 const FIXED_CAMERA_ELEVATION=0;
-const CHAMBER_PRESENTATION_MS=520;
+const CHAMBER_PRESENTATION_MS=1200;
+const MAX_HANDOFF_CORRECTION_ANGSTROM=20;
 const FLUSH_PRESENTATION_MS=760;
 const FEED_TRAVEL_MS=330;
 const CAMERA_MIN_DISTANCE=7;
@@ -71,7 +77,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const world=new THREE.Group();scene.add(world);
 
   let instances=[],purgeItems=[],selected=null,down=null,testIsolation=null;
-  let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
+  let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,lastReactionPresentation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
   const reactionEnvironment=new Set();let reactionDiagnostics=[],reactionTrajectoryTrace=null;
@@ -111,28 +117,53 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     selected=null;down=null;chamberTime.setMode(CHAMBER_TIME_MODES.NORMAL);clearDepthTarget();
   }
   function instanceById(id){return instances.find(item=>item.id===id)??null;}
-  function disposeItem(item){world.remove(item.group);item.group.traverse(object=>{object.geometry?.dispose?.();object.material?.dispose?.();});}
-  function clear(){endManipulation();for(const pointerId of activePointers.keys())try{if(canvas.hasPointerCapture(pointerId))canvas.releasePointerCapture(pointerId);}catch{}activePointers.clear();for(const item of new Set([...instances,...purgeItems,...(batchTransition?.items??[])]))disposeItem(item);instances=[];purgeItems=[];batchTransition=null;reactionAnimation=null;contactMatcher.reset();testIsolation=null;reactionDiagnostics=[];}
+  function disposeObject(object){object?.traverse?.(child=>{child.geometry?.dispose?.();if(child.userData?.formalCharge)child.material?.map?.dispose?.();if(Array.isArray(child.material))child.material.forEach(material=>material.dispose?.());else child.material?.dispose?.();});}
+  function disposeItem(item){world.remove(item.group);disposeObject(item.group);}
+  function clear(){endManipulation();for(const pointerId of activePointers.keys())try{if(canvas.hasPointerCapture(pointerId))canvas.releasePointerCapture(pointerId);}catch{}activePointers.clear();for(const item of new Set([...instances,...purgeItems,...(batchTransition?.items??[])]))disposeItem(item);if(reactionAnimation){if(!reactionAnimation.sourceGroupsDisposed)for(const item of reactionAnimation.participants)disposeItem(item);world.remove(reactionAnimation.root);disposeObject(reactionAnimation.root);}instances=[];purgeItems=[];batchTransition=null;reactionAnimation=null;lastReactionPresentation=null;contactMatcher.reset();testIsolation=null;reactionDiagnostics=[];}
+
+  function buildStageBody(id,record,atoms,position,orientation,massProperties){
+    const body=createStageABody({id,positionAngstrom:position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),orientation:[orientation.x,orientation.y,orientation.z,orientation.w],atoms:atoms.map((atom,index)=>({element:atom.element,chargeE:record.nonbonded.atomicChargesE[index],sigmaAngstrom:record.nonbonded.sigmaAngstrom[index],epsilonKcalMol:record.nonbonded.epsilonKcalMol[index],positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})),virtualChargeSites:record.nonbonded.virtualChargeSites.map(site=>({chargeE:site.chargeE,positionAngstrom:site.positionAngstromAngstrom??site.positionAngstrom})),massProperties});
+    if(stageBPhysicsEnabled){const geometryAtoms=atoms.map(atom=>({element:atom.element,positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)}));body.carbonylAnisotropySites=detectCarbonylAnisotropySites(geometryAtoms,record.bonds,{qA:stageBChargeE});body.stageBVirtualChargeSites=createStageBVirtualSites(geometryAtoms,record.bonds,{qA:stageBChargeE});}
+    else{body.carbonylAnisotropySites=[];body.stageBVirtualChargeSites=[];}
+    return body;
+  }
+  function withStaticChargeAuthority(model,record){
+    const suppressed=new Set((model.sharedGroups??[]).filter(group=>['nitro','ozone'].includes(group.kind)).flatMap(group=>[group.center,...group.ends]));
+    return{...model,atoms:model.atoms.map((atom,index)=>({...atom,charge:resolveStaticFormalCharge(atom.charge,Object.hasOwn(record,'formalCharges')?formalChargeForRecordAtom(record,index):null,suppressed.has(index))}))};
+  }
+  function sourceContinuityPreview(product){
+    const atoms=product.record.atoms.map((value,index)=>({id:index,element:typeof value==='string'?value:value.element,charge:formalChargeForRecordAtom(product.record,index),point:product.sourcePoints[index].clone().sub(product.sourceCenter)})),bonds=product.record.bonds.map(([a,b,order])=>({a,b,order}));
+    return withStaticChargeAuthority({atoms,bonds,ports:[],aromaticCycles:[],sharedGroups:sharedOxoGroups(product.record)},product.record);
+  }
 
   function createInstance(record,position,{generation=batch.generation,orientation=null,originPortIndex=null,feedPhase='chamber',preparedModel=null}={}){
     let model=preparedModel;
     if(!model){const preview=createPreviewModel(THREE,record);for(let index=0;index<190;index++)preview.step();model=preview.snapshot();}
+    model=withStaticChargeAuthority(model,record);
     const group=new THREE.Group(),id=`${record.id}-${++instanceSequence}`;
     if(!record.nonbonded)throw new Error(`Canonical nonbonded data is required for ${record.id}.`);
     const massProperties=rigidBodyMassProperties(model.atoms.map(atom=>({element:atom.element,positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})));
     const renderAtoms=model.atoms.map((atom,index)=>({...atom,point:vector(THREE,massProperties.centeredPositionsAngstrom[index].map(value=>value*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM))}));
     group.position.copy(position);if(orientation)group.rotation.set(orientation.pitch,orientation.yaw,orientation.roll);
-    for(const atom of renderAtoms){const geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),16,12),material=new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element]?.color??'#cbd5e1',roughness:.32,metalness:.08}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(atom.point);mesh.userData.atomIndex=atom.id;group.add(mesh);}
-    for(const bond of model.bonds){const a=vector(THREE,renderAtoms[bond.a].point),b=vector(THREE,renderAtoms[bond.b].point),direction=b.clone().sub(a),length=direction.length(),geometry=new THREE.CylinderGeometry(.055,.055,length,8),material=new THREE.MeshStandardMaterial({color:'#c3d2dc',roughness:.6}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(a.add(b).multiplyScalar(.5));mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction.normalize());group.add(mesh);}
+    const atomMeshes=new Map();
+    for(const atom of renderAtoms){const geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),16,12),material=new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element]?.color??'#cbd5e1',roughness:.32,metalness:.08}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(atom.point);mesh.userData.atomIndex=atom.id;atomMeshes.set(atom.id,mesh);group.add(mesh);if(atom.charge){const label=createChargeLabel(THREE,atom.charge,document);label.position.copy(atom.point).add(new THREE.Vector3(0,modelAtomRadius(atom.element)+.12,0));group.add(label);}}
+    const sharedGroups=model.sharedGroups??[],aromaticCycles=model.aromaticCycles??[],specialEdges=specialEdgeKeys(sharedGroups),aromaticEdges=aromaticBondKeys(aromaticCycles),adjacency=renderAtoms.map(()=>[]);
+    for(const bond of model.bonds){adjacency[bond.a].push(bond.b);adjacency[bond.b].push(bond.a);}
+    const bondMaterial=new THREE.MeshStandardMaterial({color:'#c3d2dc',roughness:.6});
+    for(const bond of model.bonds){
+      const order=displayedBondOrder(bond,new Set([...aromaticEdges,...specialEdges])),a=renderAtoms[bond.a].point,b=renderAtoms[bond.b].point,axis=b.clone().sub(a).normalize(),midpoint=a.clone().add(b).multiplyScalar(.5);
+      const neighbor=[...adjacency[bond.a],...adjacency[bond.b]].find(index=>index!==bond.a&&index!==bond.b),reference=neighbor===undefined?new THREE.Vector3(Math.abs(axis.z)<.85?0:1,0,Math.abs(axis.z)<.85?1:0):renderAtoms[neighbor].point.clone().sub(midpoint);
+      const side=new THREE.Vector3().crossVectors(axis,reference).normalize();if(side.lengthSq()<1e-9)side.set(0,1,0);
+      const offsets=staticBondLaneOffsets(order);
+      for(const offset of offsets){const geometry=new THREE.CylinderGeometry(.055,.055,a.distanceTo(b),8),material=bondMaterial.clone(),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(midpoint).addScaledVector(side,offset);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),axis);group.add(mesh);}
+    }
+    for(const cycle of aromaticCycles){const ring=createAromaticRing(THREE);updateAromaticRing(THREE,ring,aromaticRingFrame(THREE,cycle.map(id=>renderAtoms[id].point)));group.add(ring);}
+    const positionFor=id=>renderAtoms[id]?.point??null;
+    for(const shared of sharedGroups){const visual=createSharedBonds(THREE);updateSharedBonds(THREE,visual,shared,positionFor);group.add(visual);}
     world.add(group);
-    const item={id,species:record.id,record:{...record,atoms:renderAtoms,bonds:model.bonds},group,busy:false,batchGeneration:generation,feedOriginPortIndex:originPortIndex,feedPhase,feedHandoff:false};
+    const item={id,species:record.id,record:{...record,atoms:renderAtoms,bonds:model.bonds,aromaticCycles,sharedGroups},atomMeshes,group,busy:false,batchGeneration:generation,feedOriginPortIndex:originPortIndex,feedPhase,feedHandoff:false};
     if(localhostPhysicsTest)item.initialPositionAtSpawn=position.toArray();
-    item.stageBody=createStageABody({id,positionAngstrom:position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),orientation:[group.quaternion.x,group.quaternion.y,group.quaternion.z,group.quaternion.w],atoms:renderAtoms.map((atom,index)=>({element:atom.element,chargeE:record.nonbonded.atomicChargesE[index],sigmaAngstrom:record.nonbonded.sigmaAngstrom[index],epsilonKcalMol:record.nonbonded.epsilonKcalMol[index],positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})),virtualChargeSites:record.nonbonded.virtualChargeSites.map(site=>({chargeE:site.chargeE,positionAngstrom:site.positionAngstromAngstrom??site.positionAngstrom})),massProperties});
-    if(stageBPhysicsEnabled){
-      const geometryAtoms=renderAtoms.map(atom=>({element:atom.element,positionAngstrom:atom.point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)}));
-      item.stageBody.carbonylAnisotropySites=detectCarbonylAnisotropySites(geometryAtoms,record.bonds,{qA:stageBChargeE});
-      item.stageBody.stageBVirtualChargeSites=createStageBVirtualSites(geometryAtoms,record.bonds,{qA:stageBChargeE});
-    }else{item.stageBody.carbonylAnisotropySites=[];item.stageBody.stageBVirtualChargeSites=[];}
+    item.stageBody=buildStageBody(id,record,renderAtoms,group.position,group.quaternion,massProperties);
     instances.push(item);return item;
   }
 
@@ -396,7 +427,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   canvas.addEventListener('wheel',event=>{event.preventDefault();if(pickerOpen||isTransitionLocked()||reactionAnimation)return;distance=clamp(distance*Math.exp(event.deltaY*.001),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();},{passive:false,signal:eventController.signal});
 
   function reactionStep(stepMs){
-    if(batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE||reactionAnimation)return;
+    if(batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE)return;
+    if(reactionAnimation){contactMatcher.reset();reactionDiagnostics=[];return;}
     const manipulating=isManipulating(),rows=[],ready=[];
     if(manipulating)contactMatcher.reset();
     contactMatcher.beginStep();
@@ -472,31 +504,201 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(!down||down.group!==item)return;
     const pointerId=down.pointerId;down=null;activePointers.delete(pointerId);try{if(canvas.hasPointerCapture(pointerId))canvas.releasePointerCapture(pointerId);}catch{}onPointerLockChange(activePointers.size>0);
   }
+  const sourceAtomId=(role,index)=>`${role}:${index}`;
+  const pairKey=(a,b)=>[a,b].sort((left,right)=>left.localeCompare(right)).join('|');
+  function roleItemsFor(execution){return new Map(execution.participants.map(row=>[row.role,instanceById(row.instanceId)]));}
+  function captureAtomVelocity(item,index){
+    const orientation=new THREE.Quaternion(...item.stageBody.orientation),offset=item.record.atoms[index].point.clone().divideScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM).applyQuaternion(orientation),angular=new THREE.Vector3(...item.stageBody.angularVelocityRadPerPs),linear=new THREE.Vector3(...item.stageBody.velocityAngstromPerPs);
+    return linear.add(angular.cross(offset)).toArray();
+  }
   function commit(candidate){
-    if(isManipulating())return;
+    if(isManipulating()||reactionAnimation)return;
     if(!environmentMatches(candidate.reaction,reactionEnvironment))return;
     const execution=planReactionExecution(candidate,records);if(!execution.ok){status.textContent='反応経路を検証できないため、反応を確定できません。';return;}
-    // Reserve all real participants together only after arbitration and the
-    // final liveness/environment checks have succeeded.
     const reservation=reserveParticipantInstances(candidate.participantInstances,instances,batch.generation,candidate.reaction.reactants.map(row=>row.role));if(!reservation.ok)return;
-    const participants=reservation.participants;
-    for(const item of participants)cancelPointerFor(item);
-    status.textContent='REACTION · 反応中心で再構成中';
-    const center=participants.reduce((sum,item)=>sum.add(item.group.position),new THREE.Vector3()).multiplyScalar(1/participants.length);
-    reactionAnimation={generation:batch.generation,participants,center,elapsedMs:0,execution};updateCommandBar();
+    const participants=reservation.participants,participantByRole=roleItemsFor(execution),sourcePositions=new Map(),sourceMeshes=new Map(),sourceVelocities=new Map(),sourceCharges=new Map(),sourceElements=new Map(),sourceModels=new Map();
+    for(const[role,item]of participantByRole){
+      if(!item)continue;item.group.updateMatrixWorld(true);sourceModels.set(role,item);
+      for(let index=0;index<item.record.atoms.length;index++){
+        const atomId=sourceAtomId(role,index),point=atomWorld(item,index);sourcePositions.set(atomId,point.toArray());sourceVelocities.set(atomId,captureAtomVelocity(item,index));sourceCharges.set(atomId,item.record.atoms[index].charge??0);sourceElements.set(atomId,item.record.atoms[index].element);sourceMeshes.set(atomId,item.atomMeshes.get(index));
+      }
+    }
+    const correspondence=mapProductAtomOrigins(execution,sourcePositions,sourceElements),root=new THREE.Group();root.name='reaction-transformation-presentation';world.add(root);
+    for(const[atomId,mesh]of sourceMeshes){if(!mesh)continue;const item=sourceModels.get(atomId.slice(0,atomId.indexOf(':'))),index=Number(atomId.slice(atomId.indexOf(':')+1)),point=sourcePositions.get(atomId);item.group.remove(mesh);root.add(mesh);mesh.position.fromArray(point);mesh.userData.sourceAtomId=atomId;mesh.userData.atomIndex=index;}
+    instances=instances.filter(item=>!participants.includes(item));
+    const center=sourcePositions.size?new THREE.Vector3(...[0,1,2].map(axis=>[...sourcePositions.values()].reduce((sum,point)=>sum+point[axis],0)/sourcePositions.size)):new THREE.Vector3();
+    const sourceBodyStates=new Map(participants.map(item=>[item.id,{positionAngstrom:[...item.stageBody.positionAngstrom],orientation:[...item.stageBody.orientation],linearVelocityAngstromPerPs:[...item.stageBody.velocityAngstromPerPs],angularVelocityRadPerPs:[...item.stageBody.angularVelocityRadPerPs],batchGeneration:item.batchGeneration}]));
+    lastReactionPresentation=null;reactionAnimation={generation:batch.generation,participants,center,elapsedMs:0,phase:'PREPARING',phaseElapsedMs:0,execution,root,sourcePositions,sourceMeshes,sourceVelocities,sourceCharges,sourceElements,sourceModels,sourceBodyStates,sourceGroupsDisposed:false,correspondence,products:[],atomPositionsNow:new Map([...sourcePositions].map(([id,point])=>[id,new THREE.Vector3(...point)])),bondVisuals:[],aromaticVisuals:[],sharedVisuals:[],chargeVisuals:[],productTargetsReady:false,handoffMaxAtomError:null,clearanceSafe:false,clearanceCorrectionAngstrom:0};
+    if(!correspondence.ok){
+      const fallbackProducts=execution.atomOrigins.map((product,index)=>({productIndex:index,record:execution.products[index],origins:(product.origins??[]).map(origin=>({sourceAtom:origin.sourceAtom,position:[...(sourcePositions.get(origin.sourceAtom)??[0,0,0])]}))}));
+      reactionAnimation.correspondence={ok:false,reason:correspondence.reason,products:fallbackProducts};reactionAnimation.targetPreparationFailed=correspondence.reason;
+    }
+    initializeProductPreparations(reactionAnimation);
+    status.textContent='REACTION · 原子配置を準備中';updateCommandBar();
+  }
+  function initializeProductPreparations(animation){
+    const products=animation.correspondence.products;
+    animation.products=products.map(product=>{
+      const source=product.origins.map(origin=>origin.position),center=source.reduce((sum,point)=>sum.add(vector(THREE,point)),new THREE.Vector3()).multiplyScalar(1/source.length),seedPositions=source.map(point=>vector(THREE,point).sub(center));
+      let seedPreview=null,canonicalPreview=null;try{seedPreview=createPreviewModel(THREE,product.record,{seedPositions});}catch{animation.targetPreparationFailed='source-seeded-solver-failure';}try{canonicalPreview=createPreviewModel(THREE,product.record);}catch{animation.targetPreparationFailed='canonical-preview-solver-failure';}
+      return{...product,sourceCenter:center,sourcePoints:source.map(point=>new THREE.Vector3(...point)),seedPositions,seedPreview,canonicalPreview,seedSteps:0,canonicalSteps:0,seedModel:null,canonicalModel:null,shiftAngstrom:[0,0,0],layout:null};
+    });
+  }
+  function advanceProductPreparation(animation,elapsedMs){
+    if(!animation.correspondence.ok)animation.targetPreparationFailed='invalid-core-atom-mapping';
+    const start=performance.now(),taskCount=animation.products.length*2;let cursor=animation.preparationCursor??0,spins=0;
+    while(taskCount&&performance.now()-start<2.5&&spins<taskCount*12){
+      const task=cursor%taskCount,product=animation.products[Math.floor(task/2)],seed=task%2===0;cursor=(cursor+1)%taskCount;spins++;
+      if(seed&&product.seedPreview){product.seedPreview.step();product.seedSteps++;if(product.seedSteps>=190){product.seedModel=product.seedPreview.snapshot();product.seedQuality=product.seedPreview.quality();product.seedPreview=null;}}
+      else if(!seed&&product.canonicalPreview){product.canonicalPreview.step();product.canonicalSteps++;if(product.canonicalSteps>=190){product.canonicalModel=product.canonicalPreview.snapshot();product.canonicalPreview=null;}}
+    }
+    animation.preparationCursor=cursor;animation.phaseElapsedMs+=elapsedMs;
+    const timedOut=animation.phaseElapsedMs>=(reducedMotion?REDUCED_PRESENTATION_PHASES.prepare:NORMAL_PRESENTATION_PHASES.prepare),finished=animation.products.every(product=>product.seedModel&&product.canonicalModel);
+    if(!timedOut&&!finished)return false;
+    for(const product of animation.products){
+      if(!product.seedModel&&product.seedPreview){product.seedModel=product.seedPreview.snapshot();product.seedQuality=product.seedPreview.quality();product.seedPreview=null;}
+      if(!product.canonicalModel&&product.canonicalPreview){product.canonicalModel=product.canonicalPreview.snapshot();product.canonicalPreview=null;}
+      const valid=model=>model?.atoms?.length===product.record.atoms.length&&model.atoms.every(atom=>atom.point&&[atom.point.x,atom.point.y,atom.point.z].every(Number.isFinite));
+      const target=resolveProductTargetGeometry({seededPoints:valid(product.seedModel)?product.seedModel.atoms.map(atom=>atom.point.toArray()):null,seedConverged:!!product.seedQuality?.validation?.valid,canonicalPoints:valid(product.canonicalModel)?product.canonicalModel.atoms.map(atom=>atom.point.toArray()):null,sourcePoints:product.sourcePoints.map(point=>point.toArray()),elements:product.record.atoms.map((_,index)=>recordAtomElement(product.record,index))});
+      product.model=withStaticChargeAuthority(target.geometry==='source-seeded'?product.seedModel:product.canonicalModel??product.seedModel??sourceContinuityPreview(product),product.record);
+      product.targetPositions=target.points.map(point=>new THREE.Vector3(...point));product.targetGeometry=target.geometry;
+      if(!target.ok||!product.model||product.targetPositions.some(point=>![point.x,point.y,point.z].every(Number.isFinite))){product.model=product.canonicalModel??product.seedModel;product.targetPositions=product.sourcePoints.map(point=>point.clone());product.targetGeometry='source-continuity-fallback';animation.targetPreparationFailed=target.reason??'non-finite-target';}
+    }
+    setupPresentationVisuals(animation);animation.productTargetsReady=true;animation.phase='TRANSFORMING';animation.phaseElapsedMs=0;updatePresentationFrame(animation,0,0);return true;
+  }
+  function sourceOrdersAndVisuals(animation){
+    const oldOrders=new Map(),oldAromatic=new Map(),oldShared=new Map(),adjacency=new Map();
+    for(const[role,item]of animation.sourceModels){
+      const idFor=index=>sourceAtomId(role,index);
+      for(const bond of item.record.bonds){const a=idFor(bond.a),b=idFor(bond.b);oldOrders.set(pairKey(a,b),{a,b,order:Number(bond.order)});adjacency.set(a,[...(adjacency.get(a)??[]),b]);adjacency.set(b,[...(adjacency.get(b)??[]),a]);}
+      for(const cycle of item.record.aromaticCycles??[]){const atoms=cycle.map(idFor),key=atoms.slice().sort().join('|');oldAromatic.set(key,{atoms,key});}
+      for(const shared of item.record.sharedGroups??[]){const row={kind:shared.kind,center:idFor(shared.center),ends:shared.ends.map(idFor)},key=`${row.kind}|${[row.center,...row.ends].sort().join('|')}`;oldShared.set(key,{...row,key});}
+    }
+    const newOrders=new Map([...oldOrders].map(([key,row])=>[key,{...row}]));
+    for(const bond of animation.execution.graphDiff.brokenBonds)newOrders.delete(pairKey(bond.a,bond.b));
+    for(const bond of animation.execution.graphDiff.formedBonds)newOrders.set(pairKey(bond.a,bond.b),{a:bond.a,b:bond.b,order:Number(bond.order)});
+    for(const bond of animation.execution.graphDiff.bondOrderChanges)newOrders.set(pairKey(bond.a,bond.b),{a:bond.a,b:bond.b,order:Number(bond.to)});
+    const newAromatic=new Map(),newShared=new Map();
+    for(const product of animation.products){
+      const sourceFor=index=>product.origins[index]?.sourceAtom;
+      for(const cycle of product.model?.aromaticCycles??[]){const atoms=cycle.map(sourceFor);if(atoms.every(Boolean)){const key=atoms.slice().sort().join('|');newAromatic.set(key,{atoms,key});}}
+      for(const shared of product.model?.sharedGroups??[]){const center=sourceFor(shared.center),ends=shared.ends.map(sourceFor);if(center&&ends.every(Boolean)){const row={kind:shared.kind,center,ends},key=`${row.kind}|${[center,...ends].sort().join('|')}`;newShared.set(key,{...row,key});}}
+    }
+    return{oldOrders,newOrders,oldAromatic,newAromatic,oldShared,newShared,adjacency};
+  }
+  function setupPresentationVisuals(animation){
+    const graph=sourceOrdersAndVisuals(animation),oldSpecial=new Set([...graph.oldShared.values()].flatMap(group=>group.ends.map(end=>pairKey(group.center,end)))),newSpecial=new Set([...graph.newShared.values()].flatMap(group=>group.ends.map(end=>pairKey(group.center,end)))),oldAromaticEdges=new Set([...graph.oldAromatic.values()].flatMap(row=>row.atoms.map((id,index)=>pairKey(id,row.atoms[(index+1)%row.atoms.length])))),newAromaticEdges=new Set([...graph.newAromatic.values()].flatMap(row=>row.atoms.map((id,index)=>pairKey(id,row.atoms[(index+1)%row.atoms.length]))));
+    const allKeys=new Set([...graph.oldOrders.keys(),...graph.newOrders.keys()]);
+    for(const key of allKeys){
+      const old=graph.oldOrders.get(key),next=graph.newOrders.get(key);if(!old&&!next)continue;const[a,b]=key.split('|');
+      const wasSpecial=oldSpecial.has(key),isSpecial=newSpecial.has(key),wasAromatic=oldAromaticEdges.has(key),isAromatic=newAromaticEdges.has(key),oldOrder=old?(wasSpecial||wasAromatic?1:old.order):0,newOrder=next?(isSpecial||isAromatic?1:next.order):0,plan=planBondLaneTransition(oldOrder,newOrder),pa=new THREE.Vector3(...animation.sourcePositions.get(a)),pb=new THREE.Vector3(...animation.sourcePositions.get(b)),axis=pb.clone().sub(pa).normalize(),neighbor=(graph.adjacency.get(a)??[]).concat(graph.adjacency.get(b)??[]).find(id=>id!==a&&id!==b);let side;
+      if(neighbor){const reference=new THREE.Vector3(...animation.sourcePositions.get(neighbor)).sub(pa.clone().add(pb).multiplyScalar(.5));side=reference.addScaledVector(axis,-reference.dot(axis));}
+      else side=new THREE.Vector3().crossVectors(axis,Math.abs(axis.y)<.8?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0));
+      if(side.lengthSq()<1e-9)side.set(0,0,1);side.normalize();
+      const lanes=plan.lanes.map(lane=>{const meshes=Array.from({length:lane.kind==='broken'||lane.kind==='formed'?2:1},()=>{const material=new THREE.MeshStandardMaterial({color:'#c3d2dc',roughness:.6,transparent:true,opacity:1,depthWrite:false}),mesh=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,8),material);animation.root.add(mesh);return mesh;});return{...lane,meshes,side:side.clone(),previousAxis:axis.clone(),oldOrder,newOrder};});
+      animation.bondVisuals.push({a,b,oldOrder,newOrder,lanes});
+    }
+    const ringKeys=new Set([...graph.oldAromatic.keys(),...graph.newAromatic.keys()]);
+    for(const key of ringKeys){const row=graph.newAromatic.get(key)??graph.oldAromatic.get(key),ring=createAromaticRing(THREE);animation.root.add(ring);animation.aromaticVisuals.push({atoms:row.atoms,old:graph.oldAromatic.has(key),next:graph.newAromatic.has(key),ring});}
+    const sharedKeys=new Set([...graph.oldShared.keys(),...graph.newShared.keys()]);
+    for(const key of sharedKeys){const row=graph.newShared.get(key)??graph.oldShared.get(key),visual=createSharedBonds(THREE);animation.root.add(visual);animation.sharedVisuals.push({group:row,old:graph.oldShared.has(key),next:graph.newShared.has(key),visual});}
+    for(const product of animation.products)for(let index=0;index<product.origins.length;index++){
+      const atomId=product.origins[index].sourceAtom,hasSharedChargeSuppression=groups=>groups.some(group=>['nitro','ozone'].includes(group.kind)&&[group.center,...group.ends].includes(index)),chargeTransition=formalChargeVisualTransition(animation.execution.graphDiff,atomId,{oldVisualCharge:animation.sourceCharges.get(atomId)??0,newVisualCharge:product.model.atoms[index].charge??0,newSuppressed:hasSharedChargeSuppression(product.model.sharedGroups??[])}),oldCharge=chargeTransition.oldCharge,newCharge=chargeTransition.newCharge;
+      if(oldCharge===newCharge&&oldCharge===0)continue;
+      const oldLabel=oldCharge?createChargeLabel(THREE,oldCharge,document):null,newLabel=newCharge&&newCharge!==oldCharge?createChargeLabel(THREE,newCharge,document):null;
+      for(const label of [oldLabel,newLabel])if(label)animation.root.add(label);
+      animation.chargeVisuals.push({atomId,element:product.model.atoms[index].element,oldCharge,newCharge,oldLabel,newLabel});
+    }
+    for(const item of animation.participants)disposeItem(item);animation.sourceGroupsDisposed=true;
+    animation.graph=graph;
+  }
+  function rotateBodyVector(point,orientation){return new THREE.Vector3(...point).applyQuaternion(new THREE.Quaternion(...orientation));}
+  function bodyAtomWorldPositions(body){return body.atoms.map(atom=>rotateBodyVector(atom.positionAngstrom,body.orientation).add(new THREE.Vector3(...body.positionAngstrom)));}
+  function pairSafety(left,right){
+    const result=evaluateStageBPairForcesReadOnly([left,right]),leftForce=result.bodies.get(left.id)?.forceKcalMolAngstrom??[0,0,0],rightForce=result.bodies.get(right.id)?.forceKcalMolAngstrom??[0,0,0],axis=new THREE.Vector3(...left.positionAngstrom).sub(new THREE.Vector3(...right.positionAngstrom));
+    if(axis.lengthSq()<1e-12){const a=bodyAtomWorldPositions(left),b=bodyAtomWorldPositions(right);let best=null,distance=Infinity;for(const p of a)for(const q of b){const d=p.distanceToSquared(q);if(d<distance){distance=d;best=p.clone().sub(q);}}axis.copy(best??new THREE.Vector3(1,0,0));}
+    axis.normalize();const relative=leftForce.map((force,index)=>KCAL_MOL_AMU_TO_ANGSTROM_PS2*(force/left.massAmu-rightForce[index]/right.massAmu)),outward=Math.max(0,relative.reduce((sum,value,index)=>sum+value*axis.getComponent(index),0));
+    return{safe:result.overlapGuardActivationCount===0&&Number.isFinite(outward)&&outward<=MAX_DOCK_RELEASE_SEPARATION_ACCELERATION,outwardAcceleration:outward,overlapGuardActivationCount:result.overlapGuardActivationCount};
+  }
+  function correctionDirection(product,otherBody){
+    const pointA=new THREE.Vector3(...product.layout.body.positionAngstrom),pointB=new THREE.Vector3(...otherBody.positionAngstrom),direction=pointA.sub(pointB);
+    if(direction.lengthSq()<1e-10){const a=bodyAtomWorldPositions(product.layout.body),b=bodyAtomWorldPositions(otherBody);let nearest=null,best=Infinity;for(const left of a)for(const right of b){const distance=left.distanceToSquared(right);if(distance<best){best=distance;nearest=left.clone().sub(right);}}direction.copy(nearest??new THREE.Vector3());}
+    if(direction.lengthSq()<1e-10)direction.set(1,0,0);return direction.normalize();
+  }
+  function applyProductShift(product,shift){product.shiftAngstrom=[...shift];product.layout.position.add(new THREE.Vector3(...shift).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM));product.layout.body.positionAngstrom=product.layout.position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM);}
+  function makeRuntimeLayout(product,index,generation){
+    const worldPoints=product.targetPositions.map(point=>point.clone()),atomsAngstrom=worldPoints.map((point,atomIndex)=>({element:recordAtomElement(product.record,atomIndex),positionAngstrom:point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)})),massProperties=rigidBodyMassProperties(atomsAngstrom),position=new THREE.Vector3(...massProperties.centerOfMassAngstrom).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),model={...product.model,atoms:product.model.atoms.map((atom,atomIndex)=>({...atom,point:new THREE.Vector3(...massProperties.centeredPositionsAngstrom[atomIndex]).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)}))},record=product.record,orientation=new THREE.Quaternion(),id=`handoff-${generation}-${index}`,atoms=model.atoms.map(atom=>({...atom,point:atom.point.clone()})),body=buildStageBody(id,record,atoms,position,orientation,massProperties);
+    return{position,model,massProperties,body,worldPoints};
+  }
+  function resolveHandoffClearance(animation){
+    const products=animation.products;for(const product of products){const previousShift=[...product.shiftAngstrom];product.layout=makeRuntimeLayout(product,product.productIndex,animation.generation);if(previousShift.some(value=>Math.abs(value)>1e-12))applyProductShift(product,previousShift);}
+    const bystanders=instances.filter(item=>!item.busy&&!item.feedMotion&&item.batchGeneration===animation.generation),safeAgainst=(product,other)=>pairSafety(product.layout.body,other.stageBody??other);
+    const orderedPairs=[];for(let index=0;index<products.length;index++)for(let other=index+1;other<products.length;other++)orderedPairs.push([products[other],products[index].layout.body]);
+    for(const product of products)for(const bystander of bystanders)orderedPairs.push([product,bystander.stageBody]);
+    let maxCorrection=Math.max(0,...products.map(product=>Math.hypot(...product.shiftAngstrom)));
+    for(let pass=0;pass<3;pass++)for(const[product,other]of orderedPairs){
+      if(safeAgainst(product,other).safe)continue;
+      const direction=correctionDirection(product,other),base=[...product.shiftAngstrom];let safe=false;
+      for(let step=1;step<=Math.ceil(MAX_HANDOFF_CORRECTION_ANGSTROM/.05);step++){
+        const shift=base.map((value,axis)=>value+direction.getComponent(axis)*step*.05);product.shiftAngstrom=shift;product.layout.position.add(new THREE.Vector3(...direction.toArray()).multiplyScalar(.05*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM));product.layout.body.positionAngstrom=product.layout.position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM);
+        if(safeAgainst(product,other).safe){safe=true;maxCorrection=Math.max(maxCorrection,Math.hypot(...shift));break;}
+      }
+      if(!safe)maxCorrection=Math.max(maxCorrection,Math.hypot(...product.shiftAngstrom));
+    }
+    animation.clearancePairResults=orderedPairs.map(([product,other])=>({productIndex:product.productIndex,otherId:other.id,...safeAgainst(product,other)}));animation.clearanceSafe=animation.clearancePairResults.every(row=>row.safe);animation.clearanceCorrectionAngstrom=maxCorrection;
+    if(!animation.clearanceSafe){animation.clearanceFallback='geometry-directed-conservative-translation';for(let pass=0;pass<3;pass++)for(const[product,other]of orderedPairs){if(safeAgainst(product,other).safe)continue;const direction=correctionDirection(product,other);for(let step=0;step<128;step++){product.shiftAngstrom=product.shiftAngstrom.map((value,axis)=>value+direction.getComponent(axis));product.layout.position.add(direction.clone().multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM));product.layout.body.positionAngstrom=product.layout.position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM);if(safeAgainst(product,other).safe)break;}}
+      animation.clearancePairResults=orderedPairs.map(([product,other])=>({productIndex:product.productIndex,otherId:other.id,...safeAgainst(product,other)}));animation.clearanceSafe=animation.clearancePairResults.every(row=>row.safe);animation.clearanceCorrectionAngstrom=Math.max(0,...products.map(product=>Math.hypot(...product.shiftAngstrom)));if(!animation.clearanceSafe)animation.clearanceFallback='bounded-geometry-directed-translation-failed';
+    }
+    for(const product of products)product.finalTargetPositions=product.targetPositions.map(point=>point.clone().add(new THREE.Vector3(...product.shiftAngstrom).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)));
+  }
+  function currentAtomPosition(animation,atomId,morph,settle){
+    const start=new THREE.Vector3(...animation.sourcePositions.get(atomId)),product=animation.products.find(item=>item.origins.some(origin=>origin.sourceAtom===atomId)),index=product?.origins.findIndex(origin=>origin.sourceAtom===atomId)??-1;
+    if(!product||index<0||!product.targetPositions?.[index])return start;const base=product.targetPositions[index],targetShift=product.shiftAngstrom??[0,0,0],startShift=animation.settleStartShifts?.get(product.productIndex)??[0,0,0],shift=targetShift.map((value,axis)=>startShift[axis]+(value-startShift[axis])*settle),target=base.clone().add(new THREE.Vector3(...shift).multiplyScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM));
+    return start.lerp(target,morph);
+  }
+  function updatePresentationFrame(animation,morphProgress,settleProgress){
+    const morph=smoothPresentationProgress(morphProgress),settle=smoothPresentationProgress(settleProgress),positions=new Map();
+    for(const atomId of animation.sourcePositions.keys()){const point=currentAtomPosition(animation,atomId,morph,settle);positions.set(atomId,point);animation.atomPositionsNow.set(atomId,point);const mesh=animation.sourceMeshes.get(atomId);if(mesh)mesh.position.copy(point);}
+    for(const row of animation.bondVisuals){const a=positions.get(row.a),b=positions.get(row.b);if(!a||!b)continue;const axis=b.clone().sub(a).normalize();for(const lane of row.lanes){
+      lane.side.fromArray(transportBondLaneSide(lane.side.toArray(),lane.previousAxis.toArray(),axis.toArray()));lane.previousAxis.copy(axis);
+      const oldOffset=lane.oldOrder?staticBondLaneOffsets(lane.oldOrder)[lane.index]:0,newOffset=lane.newOrder?staticBondLaneOffsets(lane.newOrder)[lane.index]:0,offset=lane.oldOrder&&lane.newOrder?oldOffset+(newOffset-oldOffset)*morph:lane.oldOrder?oldOffset:newOffset,segments=bondLaneSegments(lane.kind,morph);
+      lane.meshes.forEach((mesh,index)=>{const segment=segments[index];mesh.visible=!!segment;if(!segment)return;const from=a.clone().lerp(b,segment.from).addScaledVector(lane.side,offset),to=a.clone().lerp(b,segment.to).addScaledVector(lane.side,offset),delta=to.clone().sub(from),length=delta.length();mesh.position.copy(from).add(to).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.scale.set(.045,length,.045);mesh.material.opacity=segment.opacity;});
+    }}
+    for(const row of animation.aromaticVisuals){const points=row.atoms.map(id=>positions.get(id)),opacity=row.old&&row.next?1:row.old?1-morph:morph;updateAromaticRing(THREE,row.ring,aromaticRingFrame(THREE,points));setAromaticOpacity(row.ring,opacity);}
+    for(const row of animation.sharedVisuals){const opacity=row.old&&row.next?1:row.old?1-morph:morph;updateSharedBonds(THREE,row.visual,row.group,id=>positions.get(id));for(const mesh of row.visual.children){mesh.material.opacity=(mesh.userData.baseOpacity??.68)*opacity;mesh.visible&&=opacity>0;}}
+    for(const row of animation.chargeVisuals){const point=positions.get(row.atomId);if(!point)continue;const offset=modelAtomRadius(row.element)+.12;if(row.oldLabel){row.oldLabel.position.copy(point).add(new THREE.Vector3(0,offset,0));row.oldLabel.material.opacity=row.oldCharge===row.newCharge?1:1-morph;}if(row.newLabel){row.newLabel.position.copy(point).add(new THREE.Vector3(0,offset,0));row.newLabel.material.opacity=morph;}}
+    animation.currentProgress=morphProgress;animation.settleProgress=settleProgress;
+  }
+  function finishReactionHandoff(animation){
+    if(!animation.clearanceSafe){status.textContent='REACTION · handoff安全配置を確認中';return;}updatePresentationFrame(animation,1,1);const productInstances=[];let maximumError=0;
+    for(const product of animation.products){
+      product.targetPositions=product.finalTargetPositions.map(point=>point.clone());const layout=makeRuntimeLayout(product,product.productIndex,animation.generation),item=createInstance(product.record,layout.position,{generation:animation.generation,preparedModel:layout.model});item.stageBody=layout.body;item.stageBody.id=item.id;
+      const positions=product.finalTargetPositions.map(point=>point.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM)),velocities=product.origins.map(origin=>animation.sourceVelocities.get(origin.sourceAtom)??[0,0,0]),massValues=product.record.atoms.map((_,index)=>STANDARD_ATOMIC_MASS_AMU[recordAtomElement(product.record,index)]),fit=fitRigidBodyVelocity(positions,velocities,massValues);
+      if(fit.finite){item.stageBody.velocityAngstromPerPs=[...fit.linear];item.stageBody.angularVelocityRadPerPs=[...fit.angular];}
+      for(let atomIndex=0;atomIndex<product.origins.length;atomIndex++){
+        const sourceMesh=animation.sourceMeshes.get(product.origins[atomIndex].sourceAtom),replacement=item.atomMeshes.get(atomIndex);if(!sourceMesh||!replacement)continue;
+        item.group.remove(replacement);replacement.geometry.dispose();replacement.material.dispose();animation.root.remove(sourceMesh);sourceMesh.userData.atomIndex=atomIndex;delete sourceMesh.userData.sourceAtomId;sourceMesh.position.copy(item.record.atoms[atomIndex].point);item.group.add(sourceMesh);item.atomMeshes.set(atomIndex,sourceMesh);
+      }
+      item.group.updateMatrixWorld(true);for(let atomIndex=0;atomIndex<product.origins.length;atomIndex++){const actual=item.group.localToWorld(item.record.atoms[atomIndex].point.clone()),expected=product.finalTargetPositions[atomIndex];maximumError=Math.max(maximumError,actual.distanceTo(expected));}
+      productInstances.push({productIndex:product.productIndex,species:product.record.id,instanceId:item.id});
+    }
+    animation.handoffMaxAtomError=maximumError;animation.productInstances=productInstances;lastReactionPresentation={active:false,phase:'COMPLETE',elapsedMs:animation.elapsedMs,normalDurationMs:CHAMBER_PRESENTATION_MS,reducedMotionDurationMs:Object.values(REDUCED_PRESENTATION_PHASES).reduce((sum,value)=>sum+value,0),reducedMotion,reactionId:animation.execution.reactionId,pathwayId:animation.execution.pathwayId,participantIds:animation.execution.consumedInstanceIds,productCount:animation.products.length,sourceAtomCount:animation.sourcePositions.size,handoffMaxAtomError:maximumError,clearanceSafe:animation.clearanceSafe,clearanceCorrectionAngstrom:animation.clearanceCorrectionAngstrom,clearanceFallback:animation.clearanceFallback??null,clearancePairResults:animation.clearancePairResults??[],targetGeometry:animation.products.map(product=>product.targetGeometry??null),targetPreparationFailed:animation.targetPreparationFailed??null};world.remove(animation.root);disposeObject(animation.root);reactionAnimation=null;contactMatcher.reset();reactionDiagnostics=[];
+    status.textContent=`反応完了 · ${animation.execution.products.map(record=>record.nameJa??record.id).join(' + ')}`;
+    window.dispatchEvent(new CustomEvent('molecule-craft:reaction-lab-product',{detail:{reactionId:animation.execution.reactionId,familyId:animation.execution.familyId,pathwayId:animation.execution.pathwayId,reaction:animation.execution.reaction,environmentConditions:animation.execution.environmentConditions,participants:animation.execution.participants,matchedSites:animation.execution.matchedSites,products:animation.execution.products.map(record=>record.id),productInstances,atomOrigins:animation.execution.atomOrigins,graphDiff:animation.execution.graphDiff,consumed:animation.execution.consumedInstanceIds,batchGeneration:animation.generation}}));updateCommandBar();
   }
   function advanceReactionAnimation(elapsedMs){
-    const animation=reactionAnimation;if(!animation)return;
-    if(animation.generation!==batch.generation||batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE){reactionAnimation=null;updateCommandBar();return;}
-    animation.elapsedMs+=elapsedMs;const progress=clamp(animation.elapsedMs/(reducedMotion?220:CHAMBER_PRESENTATION_MS),0,1);
-    for(const item of animation.participants){item.group.position.lerp(animation.center,progress*.18);item.group.scale.setScalar(1-progress*.12);}
-    if(progress<1)return;
-    const {participants,center,execution}=animation;for(const item of participants)world.remove(item.group);instances=instances.filter(item=>!participants.includes(item));for(const item of participants)disposeItem(item);
-    execution.products.forEach((record,index)=>createInstance(record,center.clone().add(new THREE.Vector3(index?1:-1,0,0)),{generation:animation.generation}));
-    reactionAnimation=null;contactMatcher.reset();reactionDiagnostics=[];
-    status.textContent=`反応完了 · ${execution.products.map(record=>record.nameJa??record.id).join(' + ')}`;
-    window.dispatchEvent(new CustomEvent('molecule-craft:reaction-lab-product',{detail:{reactionId:execution.reactionId,familyId:execution.familyId,pathwayId:execution.pathwayId,reaction:execution.reaction,environmentConditions:execution.environmentConditions,participants:execution.participants,matchedSites:execution.matchedSites,products:execution.products.map(record=>record.id),atomOrigins:execution.atomOrigins,graphDiff:execution.graphDiff,consumed:execution.consumedInstanceIds,batchGeneration:animation.generation}}));
-    updateCommandBar();
+    const animation=reactionAnimation;if(!animation)return;animation.elapsedMs+=elapsedMs;
+    if(animation.phase==='PREPARING'){
+      if(!animation.productTargetsReady){const ready=advanceProductPreparation(animation,elapsedMs);if(!ready){updatePresentationFrame(animation,0,0);return;}}
+      return;
+    }
+    const phases=reducedMotion?REDUCED_PRESENTATION_PHASES:NORMAL_PRESENTATION_PHASES;
+    if(animation.phase==='TRANSFORMING'){
+      animation.phaseElapsedMs+=elapsedMs;const progress=clamp(animation.phaseElapsedMs/phases.transform,0,1);updatePresentationFrame(animation,progress,0);
+      if(progress>=1){const starts=animation.products.map(product=>[product.productIndex,[...product.shiftAngstrom]]);animation.phase='SETTLING';animation.phaseElapsedMs=0;resolveHandoffClearance(animation);animation.settleStartShifts=new Map(starts);}return;
+    }
+    animation.phaseElapsedMs+=elapsedMs;const progress=clamp(animation.phaseElapsedMs/phases.settle,0,1);updatePresentationFrame(animation,1,progress);
+    if(progress>=1){const starts=new Map(animation.products.map(product=>[product.productIndex,[...product.shiftAngstrom]]));resolveHandoffClearance(animation);const changed=animation.products.some(product=>Math.hypot(...product.shiftAngstrom.map((value,axis)=>value-starts.get(product.productIndex)[axis]))>1e-5);if(changed||!animation.clearanceSafe){animation.settleStartShifts=starts;animation.phaseElapsedMs=0;animation.settleRetryCount=(animation.settleRetryCount??0)+1;if(!animation.clearanceSafe&&animation.clearanceRetryDiagnostic!==true){animation.clearanceRetryDiagnostic=true;status.textContent='REACTION · handoff安全配置を確認中';}return;}finishReactionHandoff(animation);}
   }
 
   function syncStageABodyFromGroup(item){
@@ -532,6 +734,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function tick(now){
     if(disposed)return;animationFrameId=requestAnimationFrame(tick);
     const elapsed=Math.max(0,now-last);last=now;
+    if(document.hidden)return;
     if(!dialog.open||pickerOpen){renderer.render(scene,camera);return;}
     updateManipulation(elapsed);
     advanceBatchTransition(elapsed);
@@ -541,6 +744,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     renderer.render(scene,camera);
   }
   updateCamera();animationFrameId=requestAnimationFrame(tick);
+  document.addEventListener('visibilitychange',()=>{last=performance.now();},{signal:eventController.signal});
 
   function setDialogOpen(open){onDialogStateChange(open);}
   function open(){renderSlotTiles();if(!dialog.open)dialog.showModal();setDialogOpen(true);last=performance.now();resize();}
@@ -557,7 +761,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
           physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,fixedGameStepSeconds:STAGE_A_GAME_STEP_SECONDS,qA:stageBPhysicsEnabled?stageBChargeE:null,
           simulationTimeMode:chamberTime.mode,simulationTimeScale:chamberTime.scale,simulationClockSeconds,simulationSuspended:pickerOpen||!dialog.open,pickerOpen,manipulationActive:isManipulating(),draggedInstanceId:selected?.id??null,depthTargetId:depthTarget,depthDockingState,pointerAnchorErrorPx,depthOutwardAcceleration,depthSafetySampleCount,
           batch:{...state,transitionKind:batchTransition?.kind??null,transitionGeneration:batchTransition?.generation??null,feedEntryCount:batchTransition?.entries?.length??0,feedEntriesHandedOff:batchTransition?.entries?.filter(row=>row.item?.feedHandoff).length??0,reactionEnabled:state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE&&!reactionAnimation,reactionPresentationActive:!!reactionAnimation},
-          instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),initialPositionAtSpawn:item.initialPositionAtSpawn?[...item.initialPositionAtSpawn]:null,batchGeneration:item.batchGeneration,originPortIndex:item.feedOriginPortIndex,feedPhase:item.feedPhase,feedHandoff:item.feedHandoff,kinematic:!!item.stageBody.kinematic,charges:[...item.record.nonbonded.atomicChargesE],carbonylSites:stageBPhysicsEnabled?stageBCarbonylDiagnostics(item.stageBody):[],renderedObjectCount:stageBPhysicsEnabled?item.group.children.length:null,expectedRealObjectCount:stageBPhysicsEnabled?item.record.atoms.length+item.record.bonds.length:null})),
+          reactionPresentation:reactionAnimation?{active:true,phase:reactionAnimation.phase,phaseElapsedMs:reactionAnimation.phaseElapsedMs,progress:reactionAnimation.currentProgress??0,settleProgress:reactionAnimation.settleProgress??0,reactionId:reactionAnimation.execution.reactionId,pathwayId:reactionAnimation.execution.pathwayId,participantIds:reactionAnimation.execution.consumedInstanceIds,productTargetsReady:reactionAnimation.productTargetsReady,productCount:reactionAnimation.products.length,sourceAtomCount:reactionAnimation.sourcePositions.size,presentationAtomCount:reactionAnimation.sourceMeshes.size,visiblePresentationAtomCount:[...reactionAnimation.sourceMeshes.values()].filter(mesh=>mesh?.parent===reactionAnimation.root).length,handoffMaxAtomError:reactionAnimation.handoffMaxAtomError,clearanceSafe:reactionAnimation.clearanceSafe,clearanceCorrectionAngstrom:reactionAnimation.clearanceCorrectionAngstrom,clearancePairResults:reactionAnimation.clearancePairResults??[],targetGeometry:reactionAnimation.products.map(product=>product.targetGeometry??null),targetPreparationFailed:reactionAnimation.targetPreparationFailed??null,phaseDurationMs:(reducedMotion?REDUCED_PRESENTATION_PHASES:NORMAL_PRESENTATION_PHASES)[reactionAnimation.phase==='PREPARING'?'prepare':reactionAnimation.phase==='TRANSFORMING'?'transform':'settle']}:lastReactionPresentation,
+          instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,position:item.group.position.toArray(),initialPositionAtSpawn:item.initialPositionAtSpawn?[...item.initialPositionAtSpawn]:null,batchGeneration:item.batchGeneration,originPortIndex:item.feedOriginPortIndex,feedPhase:item.feedPhase,feedHandoff:item.feedHandoff,kinematic:!!item.stageBody.kinematic,charges:[...item.record.nonbonded.atomicChargesE],carbonylSites:stageBPhysicsEnabled?stageBCarbonylDiagnostics(item.stageBody):[],renderedAtomCount:stageBPhysicsEnabled?item.atomMeshes.size:null,expectedRealAtomCount:stageBPhysicsEnabled?item.record.atoms.length:null,renderedGroupChildCount:stageBPhysicsEnabled?item.group.children.length:null})),
           purging:purgeItems.map(item=>({id:item.id,species:item.species,position:item.group.position.toArray()})),pairs:current.pairDiagnostics.map(pair=>({...pair})),
           diagnostics:{overlapGuardActivationCount:current.overlapGuardActivationCount,carbonylSiteCount:instances.reduce((sum,item)=>sum+(item.stageBody?.carbonylAnisotropySites?.length??0),0),...stageAPerformance,lastInteractionPairCount:current.pairDiagnostics.length},
           reactionCandidates:[...reactionDiagnostics],reactionEnvironment:[...reactionEnvironment].sort(),

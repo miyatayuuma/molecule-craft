@@ -37,6 +37,18 @@ test('alkene addition fixture edits three bonds and validates only its declared 
   assert.equal(plan.ok,true);assert.equal(plan.graphDiff.bondOrderChanges.length,1);assert.equal(plan.graphDiff.brokenBonds.length,1);assert.equal(plan.graphDiff.formedBonds.length,2);assert.equal(plan.products[0].id,dce.id);
 });
 
+test('generic cleavage fixture maps one source bond break into three ordered product graphs',()=>{
+  const cn=record('fixture-cn',['C','N'],[[0,1,1]]),oxygen=record('fixture-o2',['O','O'],[[0,1,1]]),carbon=record('fixture-carbon',['C'],[]),nitrogen=record('fixture-nitrogen',['N'],[]),oxygenProduct=record('fixture-oxygen',['O','O'],[[0,1,1]]),patterns=[
+    pattern('fixture-cn-site',[atom('carbon','C',1,{N:1}),atom('nitrogen','N',1,{C:1})],[['carbon','nitrogen',1]]),
+    pattern('fixture-o2-site',[atom('left','O',1,{O:1}),atom('right','O',1,{O:1})],[['left','right',1]]),
+  ],fam=family('fixture-three-product-cleavage',{cn:familyRole('encounter',['fixture-cn-site']),oxygen:familyRole('encounter',['fixture-o2-site'])},[
+    {op:'breakBond',a:'cn.carbon',b:'cn.nitrogen',from:1},
+  ],geometry('cn.carbon','oxygen.left'));
+  const rxn={id:'fixture-three-product-cleavage',familyId:fam.id,reactants:[{role:'cn',species:cn.id},{role:'oxygen',species:oxygen.id}],products:[carbon.id,nitrogen.id,oxygenProduct.id],requires:[],forbids:[]},
+    {records,catalog}=system([cn,oxygen,carbon,nitrogen,oxygenProduct],patterns,fam,rxn),candidate=reactionCandidates([{species:cn.id,id:'cn-1'},{species:oxygen.id,id:'o2-1'}],catalog)[0],execution=planReactionExecution(candidate,records);
+  assert.equal(execution.ok,true);assert.deepEqual(execution.products.map(item=>item.id),[carbon.id,nitrogen.id,oxygenProduct.id]);assert.equal(execution.graphDiff.brokenBonds.length,1);assert.equal(execution.atomOrigins.length,3);assert.deepEqual(execution.atomOrigins.map(product=>product.origins.length),[1,1,2]);assert.equal(execution.atomOrigins.flatMap(product=>product.origins).length,4);
+});
+
 test('oxidation fixture transfers oxygen and explicit hydrogen into multiple registered products',()=>{
   const patterns=[
     pattern('sulfide-site',[atom('sulfur','S',2,{C:2}),atom('methylLeft','C',4,{H:3,S:1}),atom('methylRight','C',4,{H:3,S:1})],[['sulfur','methylLeft',1],['sulfur','methylRight',1]]),
