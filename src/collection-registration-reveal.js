@@ -12,17 +12,18 @@ function animate(node,keyframes,options,animations){
 export function presentFirstRegistration({
   collection,id,root=document,win=globalThis.window,
   observerFactory=callback=>new MutationObserver(callback),
-  setTimer=setTimeout,clearTimer=clearTimeout,
+  setTimer=setTimeout,clearTimer=clearTimeout,onSettled=()=>{},
 }={}){
   const dialog=root?.querySelector?.('#collection-dialog');
+  const notifySettled=result=>{try{onSettled(result);}catch{}};
   dialog?.__moleculeCraftRegistrationRevealCleanup?.();
-  if(!id||!collection?.openMolecule?.(id))return false;
+  if(!id||!collection?.openMolecule?.(id)){notifySettled({status:'failed',reason:'collection-unavailable'});return false;}
   const detail=root.querySelector('#collection-detail'),modelHost=detail?.querySelector?.('.collection-model');
-  if(!dialog||!detail||!modelHost)return true;
+  if(!dialog||!detail||!modelHost){notifySettled({status:'failed',reason:'collection-view-unavailable'});return false;}
 
   const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const timers=new Set(),animations=new Set(),identity=[...detail.querySelectorAll('.detail-heading h3,.detail-heading .detail-formula,.dex-description,.detail-extras')];
-  const originals=new Map(),ariaOriginal=new Map();let observer=null,scan=null,cancelled=false,started=false,announced=false;
+  const originals=new Map(),ariaOriginal=new Map();let observer=null,scan=null,cancelled=false,started=false,announced=false,settled=false;
   const remember=(node,props)=>{if(!node||originals.has(node))return;const saved={};for(const prop of props)saved[prop]=node.style[prop]??'';originals.set(node,saved);};
   remember(modelHost,['filter','opacity','pointerEvents']);for(const node of identity){remember(node,['opacity','transform']);ariaOriginal.set(node,node.getAttribute('aria-hidden'));}
 
@@ -42,13 +43,15 @@ export function presentFirstRegistration({
     for(const [node,styles]of originals)applyStyles(node,styles);
     for(const [node,value]of ariaOriginal){if(value==null)node.removeAttribute('aria-hidden');else node.setAttribute('aria-hidden',value);}
   };
-  const cleanup=()=>{
+  let closeHandler=null;
+  const cleanup=(outcome='dismissed')=>{
     if(cancelled)return;cancelled=true;observer?.disconnect?.();observer=null;
     for(const timer of timers)clearTimer(timer);timers.clear();for(const animation of animations)try{animation.cancel();}catch{}animations.clear();
-    scan?.remove();marker.remove();live.remove();restore();dialog.removeEventListener('close',cleanup);
+    scan?.remove();marker.remove();live.remove();restore();if(closeHandler)dialog.removeEventListener('close',closeHandler);
     if(dialog.__moleculeCraftRegistrationRevealCleanup===cleanup)delete dialog.__moleculeCraftRegistrationRevealCleanup;
+    if(!settled){settled=true;notifySettled({status:outcome});}
   };
-  dialog.__moleculeCraftRegistrationRevealCleanup=cleanup;dialog.addEventListener('close',cleanup,{once:true});
+  closeHandler=()=>cleanup('dismissed');dialog.__moleculeCraftRegistrationRevealCleanup=cleanup;dialog.addEventListener('close',closeHandler,{once:true});
 
   const revealIdentity=()=>{
     if(announced)return;announced=true;
@@ -59,8 +62,9 @@ export function presentFirstRegistration({
     revealIdentity();setMarker('REGISTERED');
     const saved=originals.get(modelHost)??{};applyStyles(modelHost,{filter:saved.filter??'',opacity:saved.opacity??'',pointerEvents:saved.pointerEvents??''});
     if(!reduceMotion)animate(stage,[{boxShadow:'inset 0 0 0 1px #7ce8d633'},{boxShadow:'inset 0 0 28px 3px #7ce8d655'},{boxShadow:'inset 0 0 0 1px #7ce8d600'}],{duration:280,easing:'ease-out'},animations);
+    if(!settled){settled=true;notifySettled({status:'presented'});}
     schedule(()=>{animate(marker,[{opacity:1},{opacity:0}],{duration:180,easing:'ease-out'},animations);schedule(()=>marker.remove(),180);},360);
-    schedule(()=>{observer?.disconnect?.();observer=null;live.remove();restore();if(dialog.__moleculeCraftRegistrationRevealCleanup===cleanup)delete dialog.__moleculeCraftRegistrationRevealCleanup;dialog.removeEventListener('close',cleanup);},620);
+    schedule(()=>cleanup('presented'),620);
   };
   const startReveal=()=>{
     if(cancelled||started)return;
@@ -78,7 +82,8 @@ export function presentFirstRegistration({
   const fallback=()=>{
     if(cancelled||started)return;started=true;observer?.disconnect?.();observer=null;revealIdentity();setMarker('REGISTERED');
     const saved=originals.get(modelHost)??{};applyStyles(modelHost,{filter:saved.filter??'',opacity:saved.opacity??'',pointerEvents:saved.pointerEvents??''});
-    schedule(()=>marker.remove(),320);schedule(()=>{live.remove();restore();if(dialog.__moleculeCraftRegistrationRevealCleanup===cleanup)delete dialog.__moleculeCraftRegistrationRevealCleanup;dialog.removeEventListener('close',cleanup);},360);
+    schedule(()=>{if(!settled){settled=true;notifySettled({status:'presented'});}},reduceMotion?120:220);
+    schedule(()=>marker.remove(),320);schedule(()=>cleanup('presented'),360);
   };
   const inspect=()=>{
     if(cancelled||started)return;

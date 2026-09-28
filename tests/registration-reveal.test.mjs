@@ -29,7 +29,7 @@ function fixture({reduced=false,open=true}={}){
   const run=delay=>{const batch=timers.filter(t=>!t.cancelled&&!t.ran&&t.delay===delay);for(const t of batch){t.ran=true;t.fn();}};
   const collection={openMolecule(){return open;}};
   const observerFactory=callback=>{observerCallback=callback;return{observe(){},disconnect(){observerDisconnected=true;}};};
-  const present=()=>presentFirstRegistration({collection,id:'hydrogen',root,win,observerFactory,setTimer,clearTimer});
+  const present=(options={})=>presentFirstRegistration({collection,id:'hydrogen',root,win,observerFactory,setTimer,clearTimer,...options});
   return{dialog,detail,nav,name,formula,description,extras,host,stage,canvas,collection,present,ready(){canvasReady=true;host.textContent='';observerCallback?.();},fail(){host.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';observerCallback?.();},run,animations:()=>[...(host.animations??[]),...(stage.animations??[]),...stage.children.flatMap(n=>n.animations??[])],get observerDisconnected(){return observerDisconnected;}};
 }
 
@@ -59,6 +59,20 @@ test('closing mid-reveal cleans timers, observer and presentation state without 
 });
 
 test('failed auto-open leaves the canonical discovery queued for a later retry',()=>{const f=fixture({open:false});assert.equal(f.present(),false);});
+
+test('settled callback fires only after the canonical identity reveal is complete',()=>{
+  const f=fixture(),settled=[];f.present({onSettled:result=>settled.push(result)});f.ready();f.run(300);f.run(320);assert.deepEqual(settled,[]);f.run(620);assert.deepEqual(settled,[{status:'presented'}]);
+});
+
+test('reduced-motion and viewer-failure paths settle the same shared reveal callback',()=>{
+  const reduced=fixture({reduced:true}),reducedSettled=[];reduced.present({onSettled:result=>reducedSettled.push(result)});reduced.ready();reduced.run(70);reduced.run(180);assert.deepEqual(reducedSettled,[{status:'presented'}]);
+  const failed=fixture(),failedSettled=[];failed.present({onSettled:result=>failedSettled.push(result)});failed.fail();failed.run(220);assert.deepEqual(failedSettled,[{status:'presented'}]);
+});
+
+test('close and open failures report presentation outcomes without changing registration',()=>{
+  const dismissed=fixture(),dismissedSettled=[];dismissed.present({onSettled:result=>dismissedSettled.push(result)});dismissed.dialog.emit('close');assert.deepEqual(dismissedSettled,[{status:'dismissed'}]);
+  const unavailable=fixture({open:false}),unavailableSettled=[];assert.equal(unavailable.present({onSettled:result=>unavailableSettled.push(result)}),false);assert.deepEqual(unavailableSettled,[{status:'failed',reason:'collection-unavailable'}]);
+});
 
 const craft=await readFile(new URL('../src/craft-connections.js',import.meta.url),'utf8');
 assert.match(craft,/const isNew=!!event\.gameEvent\?\.isNew,recordId=/);

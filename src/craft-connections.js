@@ -7,7 +7,7 @@ import {loadMoleculeGraph} from './molecule-graph.js';
 import {CRITICAL_INSIGHT_IDS} from './veil/insights.js';
 import {primaryRoleFor} from './veil/molecule-roles.js';
 import {installTankCapabilityPresentation} from './veil/capability-unlock.js?v=1';
-import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=1';
+import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=2';
 import {loadPolymerCatalog,polymerCatalog} from './polymer-catalog.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 
@@ -110,7 +110,7 @@ export function connectExploration(options){
 }
 
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
-  const {createCollectionUI}=await import('./collection-ui.js?v=42');
+  const {createCollectionUI}=await import('./collection-ui.js?v=43');
   return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
 }
 

@@ -81,6 +81,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
 
   let instances=[],purgeItems=[],selected=null,down=null,testIsolation=null;
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,lastReactionPresentation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
+  let dialogOpenState=!!dialog.open;const closeWaiters=new Set();
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
   let reactionDiagnostics=[],reactionTrajectoryTrace=null;
@@ -775,9 +776,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   document.addEventListener('visibilitychange',()=>{last=performance.now();if(document.hidden)setMediumSelectorOpen(false);},{signal:eventController.signal});
 
   function setDialogOpen(open){onDialogStateChange(open);}
-  function open(){renderSlotTiles();if(!dialog.open)dialog.showModal();setDialogOpen(true);last=performance.now();resize();}
+  function open(){renderSlotTiles();if(!dialog.open)dialog.showModal();dialogOpenState=true;setDialogOpen(true);last=performance.now();resize();return true;}
+  function closeAndWait(){if(!dialogOpenState&&!dialog.open)return Promise.resolve(false);return new Promise(resolve=>{closeWaiters.add(resolve);if(dialog.open)dialog.close();});}
   root.querySelector('[data-lab-close]')?.addEventListener('click',()=>dialog.close(),eventOptions);
-  dialog.addEventListener('close',()=>{closePicker({returnFocus:false});setMediumSelectorOpen(false);cancelAllPointers();last=performance.now();setDialogOpen(false);},{signal:eventController.signal});
+  dialog.addEventListener('close',()=>{closePicker({returnFocus:false});setMediumSelectorOpen(false);cancelAllPointers();last=performance.now();dialogOpenState=false;setDialogOpen(false);for(const resolve of closeWaiters)resolve(true);closeWaiters.clear();},{signal:eventController.signal});
 
   if(localhostPhysicsTest){
     const probeForces=()=>stageBPhysicsEnabled?evaluateStageBForces(instances.filter(item=>!item.busy&&!item.feedMotion&&(!testIsolation||testIsolation.has(item.id))).map(item=>item.stageBody)):stageAForces;
@@ -869,5 +871,5 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     };
     window.__reactionLabProbe=probe;
   }
-  return {open,dispose(){disposed=true;cancelAnimationFrame(animationFrameId);closePicker({returnFocus:false});eventController.abort();batch.invalidate();resizeObserver.disconnect();clear();renderer.dispose();onPointerLockChange(false);}};
+  return {open,closeAndWait,isOpen:()=>dialog.open,getBatchGeneration:()=>batch.snapshot().generation,dispose(){disposed=true;cancelAnimationFrame(animationFrameId);closePicker({returnFocus:false});eventController.abort();batch.invalidate();resizeObserver.disconnect();clear();renderer.dispose();for(const resolve of closeWaiters)resolve(false);closeWaiters.clear();onPointerLockChange(false);}};
 }
