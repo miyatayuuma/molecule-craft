@@ -32,7 +32,7 @@ import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js
 import { observeCraftStereo } from './stereo-observation.js?v=1';
 import { createTearGesture, findTearCandidate, projectedTearPull } from './craft-tearoff.js?v=1';
 import { captureDetachedFragment, createDetachedDrag } from './craft-detached-drag.js?v=1';
-import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=1';
+import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=2';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;

@@ -128,6 +128,18 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.deepEqual(registrations,['C','D']);assert.deepEqual(failed.snapshot().queue.map(item=>item.status),['failed','failed']);assert.deepEqual([...known],['C','D']);assert.equal(opened,1);assert.equal(diagnostics.some(item=>item.code==='presentation-threw'),false);
 }
 
+// If a connected but non-focusable original target does not accept focus, return focus to the stable Lab close control.
+{
+  const focusTarget={isConnected:true,disabled:false,closest:()=>null,focus(){}},fallback={isConnected:true,disabled:false,focus(){root.activeElement=this;}};
+  const root={activeElement:focusTarget,querySelector:()=>fallback},known=new Set(),view={};let labOpen=true,collectionOpen=false;
+  const collection={registerDiscoveredMolecule(id,{at}){const changed=!known.has(id);if(changed)known.add(id);return {changed,event:{isNew:changed,at}};},setDiscoverySession(value){Object.assign(view,value??{});},isOpen:()=>collectionOpen,closeAndWait(){collectionOpen=false;return Promise.resolve();}};
+  const focusCoordinator=createReactionLabDiscoveryCoordinator({records,collection,root,getFocus:()=>root.activeElement,isLabOpen:()=>labOpen,getBatchGeneration:()=>4,
+    closeLabAndWait(){labOpen=false;root.activeElement=null;},openLab(){labOpen=true;root.activeElement=fallback;return true;},
+    present({onSettled}){collectionOpen=true;onSettled({status:'presented'});return true;},onDiagnostic:()=>{}});
+  focusCoordinator.handleProductEvent(payload(['C']));await flush();view.onReturn();await flush();await flush();
+  assert.equal(root.activeElement,fallback,'A failed focus restoration falls back to the stable Lab control.');
+}
+
 // Invalid instance identity is rejected before any registration.
 {
   const h=harness(),invalid=payload(['C']);invalid.productInstances[0].productIndex=1;

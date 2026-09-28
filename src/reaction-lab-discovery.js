@@ -137,6 +137,7 @@ export function createReactionLabDiscoveryCoordinator({
         const fallback=root?.querySelector?.('#reaction-lab-dialog [data-lab-close]')??root?.querySelector?.('#open-reaction-lab');
         const target=valid?focusTarget:fallback;
         if(target?.isConnected&&!target.disabled)target.focus?.({preventScroll:true});
+        if(valid&&root?.activeElement!==focusTarget&&fallback?.isConnected&&!fallback.disabled)fallback.focus?.({preventScroll:true});
       });
       if(!opened)diagnostic('lab-resume-failed','Reaction Lab could not be reopened after Collection presentation.');
     }catch(error){diagnostic('lab-resume-failed','Reaction Lab could not be reopened after Collection presentation.',{error:String(error?.message??error)});}
