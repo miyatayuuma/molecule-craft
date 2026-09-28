@@ -1,4 +1,4 @@
-import { detectFunctionalGroups, structuralMilestones } from './functional-groups.js?v=21';
+import { detectFunctionalGroups, structuralMilestones } from './functional-groups.js?v=22';
 import { ELEMENT_PRESENTATION } from './element-progression.js?v=38';
 import { CURRENT_COLLECTION_SCHEMA_VERSION } from './collection-migrations.js?v=2';
 import { COLLECTION_STORAGE_KEY,createCollectionPersistence } from './collection-persistence.js?v=1';
@@ -21,11 +21,14 @@ export function createCollectionState({records,groups,templates,storage=null,now
     return detections.get(record.id);
   };
   function learn(id){
-    for(const match of detectedFor(byId.get(id))){if(!sources.has(match.id))sources.set(match.id,new Set());sources.get(match.id).add(id);}
+    for(const match of detectedFor(byId.get(id))){
+      const group=byGroup.get(match.id);if(!group||group.learningRole==='internal')continue;
+      if(!sources.has(match.id))sources.set(match.id,new Set());sources.get(match.id).add(id);
+    }
     updateUnlocks();
   }
   function updateUnlocks(){
-    for(const template of templates)if(template.atoms.every(element=>elements.has(element)&&elementAccess(element))&&(sources.get(template.unlock.groupId)?.size??0)>=template.unlock.distinctMolecules)unlocked.add(template.id);
+    for(const template of templates)if(byGroup.get(template.unlock.groupId)?.learningRole==='part'&&template.atoms.every(element=>elements.has(element)&&elementAccess(element))&&(sources.get(template.unlock.groupId)?.size??0)>=template.unlock.distinctMolecules)unlocked.add(template.id);
   }
   function restore(){
     const saved=persistence.load();
@@ -38,6 +41,21 @@ export function createCollectionState({records,groups,templates,storage=null,now
     return {schemaVersion:CURRENT_COLLECTION_SCHEMA_VERSION,discoveredMolecules:[...molecules.values()],discoveredGroups:[...sources].map(([id,ids])=>({id,sources:[...ids]})),unlockedStructures:[...unlocked],legacyElements:[...legacyElements],milestones:[...milestones]};
   }
   function persist(){persistence.save(snapshot());}
+  function registerDiscoveredMoleculeCore(recordId,{at=now(),shouldPersist=true}={}){
+    const record=byId.get(recordId);if(!record)throw new RangeError(`Unknown molecule record: ${recordId}`);
+    if(!Number.isFinite(at)||at<0)throw new TypeError('Discovery time must be a non-negative finite number');
+    const isNew=!molecules.has(record.id),event={record,isNew,groupDiscoveries:[],unlockedParts:[],unlockedElements:[],isomerOf:[]};
+    if(!isNew)return {changed:false,event};
+    event.isomerOf=records.filter(other=>other.id!==record.id&&other.formula===record.formula&&molecules.has(other.id)).map(other=>other.id);
+    if(event.isomerOf.length)milestones.add('isomer');
+    const previousGroups=new Set(sources.keys()),previousUnlocks=new Set(unlocked);
+    molecules.set(record.id,{id:record.id,at,order:molecules.size+1});learn(record.id);
+    event.groupDiscoveries=[...sources.keys()].filter(id=>!previousGroups.has(id));
+    event.unlockedParts=[...unlocked].filter(id=>!previousUnlocks.has(id));
+    if(shouldPersist)persist();
+    return {changed:true,event};
+  }
+  function registerDiscoveredMolecule(recordId,{at=now()}={}){return registerDiscoveredMoleculeCore(recordId,{at});}
   restore();
   updateUnlocks();
   return {
@@ -48,6 +66,7 @@ export function createCollectionState({records,groups,templates,storage=null,now
     unlockedElements:()=>[...elements].filter(elementAccess), canUseElement:symbol=>elements.has(symbol)&&elementAccess(symbol),
     canBuild:record=>record.atoms.every(element=>elements.has(element)&&elementAccess(element)),
     hasMolecule:id=>molecules.has(id), moleculeEntry:id=>molecules.get(id),
+    registerDiscoveredMolecule,
     groupSources:id=>[...(sources.get(id)??[])], hasGroup:id=>sources.has(id),
     isUnlocked:id=>{const template=templates.find(item=>item.id===id);return unlocked.has(id)&&!!template&&template.atoms.every(elementAccess);}, refreshAccess:updateUnlocks, milestoneIds:()=>[...milestones],
     isomersOf:record=>records.filter(candidate=>candidate.formula===record.formula&&candidate.id!==record.id),
@@ -61,17 +80,9 @@ export function createCollectionState({records,groups,templates,storage=null,now
           if(!milestones.has(id)){milestones.add(id);changed=true;}
         }
         if(!record)continue;
-        const event={signature:item.signature,record,isNew:!molecules.has(record.id),groupDiscoveries:[],unlockedParts:[],unlockedElements:[],isomerOf:[]};
-        if(event.isNew){
-          event.isomerOf=records.filter(other=>other.id!==record.id&&other.formula===record.formula&&molecules.has(other.id)).map(other=>other.id);
-          if(event.isomerOf.length)milestones.add('isomer');
-          const previousGroups=new Set(sources.keys()),previousUnlocks=new Set(unlocked);
-          molecules.set(record.id,{id:record.id,at:now(),order:molecules.size+1});learn(record.id);changed=true;
-          event.groupDiscoveries=[...sources.keys()].filter(id=>!previousGroups.has(id));
-          event.unlockedParts=[...unlocked].filter(id=>!previousUnlocks.has(id));
-          event.unlockedElements=[];
-        }
-        events.push(event);
+        const result=registerDiscoveredMoleculeCore(record.id,{at:now(),shouldPersist:false});
+        if(result.changed)changed=true;
+        events.push({...result.event,signature:item.signature});
       }
       if(changed)persist();
       return {changed,events};

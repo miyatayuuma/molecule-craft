@@ -1,7 +1,8 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
 import { createPreviewModel } from './preview-model.js?v=34';
-import { createPreviewControls } from './preview-controls.js?v=22';
+import { createPreviewControls } from './preview-controls.js?v=23';
+import { canonicalPartView, PART_SETTLEMENT } from './part-presentation.js?v=2';
 import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=31';
 import { AROMATIC_STYLE, aromaticBondKeys, displayedBondOrder, aromaticRingFrame, aromaticRingPoints, createAromaticRing, updateAromaticRing } from './aromatic-rendering.js?v=27';
 
@@ -32,12 +33,16 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
     if(!ready){
       if(!layout){
         const started=performance.now();
-        do{const movement=model.step();steps++;stable=movement<.001?stable+1:0;}while(steps<220&&stable<10&&performance.now()-started<5);
+        do{const movement=model.step();steps++;stable=movement<PART_SETTLEMENT.movementThreshold?stable+1:0;}while(steps<PART_SETTLEMENT.maxSteps&&stable<PART_SETTLEMENT.stableSteps&&performance.now()-started<5);
         if(steps<220&&stable<10){requestDraw();return;}
         layout=model.snapshot();model=null;
         if(presentation?.kind==='alkene-relative-side'&&layout.stereoDescriptor?.relation!==presentation.relation){status.textContent='この立体配置を表示できませんでした。';return;}
         layouts.set(key,layout);
         while(layouts.size>8)layouts.delete(layouts.keys().next().value);
+      }
+      if(record.attachments?.length&&!initialView){
+        layout.canonicalPartView??=canonicalPartView(THREE,layout);
+        controls.setInitialView(layout.canonicalPartView);Object.assign(viewState,controls.snapshot());
       }
       try{initialize();ready=true;}catch(error){status.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';console.warn('Collection preview unavailable',error);releaseGraphics();return;}
     }

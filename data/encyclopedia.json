@@ -220,13 +220,22 @@
       "details": [
         {
           "title": "形と電子配置",
-          "body": "SO₂は直線ではなく折れ曲がった形をとる。S–O結合は単純な一本のLewis式だけでは表し切れず、複数の寄与構造を考えると2本の結合が似た性質を持つことを説明しやすい。"
+          "body": "SO₂分子は折れ曲がった形をとり、2本のS–O結合は同等です。この教材の正準Lewis表記は O=S=O です。模型の水色破線はS–O結合性を補助的に示す記号で、ニトロ基やオゾンのように単結合と二重結合の寄与構造を入れ替える意味ではありません。"
         }
       ],
       "concepts": [
         "geometry",
         "polarity",
-        "resonance"
+        "resonance",
+        "bond-order"
+      ],
+      "visuals": [
+        {
+          "type": "distributed-bond",
+          "motif": "sulfur-oxo",
+          "target": "sulfur-oxo-bonds",
+          "branches": 2
+        }
       ]
     },
     "sulfur-trioxide": {
@@ -235,12 +244,21 @@
       "details": [
         {
           "title": "形と結合",
-          "body": "気体のSO₃単量体では3本のS–O結合が等価な三角平面形として扱える。Lewis構造には複数の描き方があり、実際の電子分布は一つの局在構造だけでは表し切れない。"
+          "body": "気相のSO₃単量体は三角平面形で、3本のS–O結合は同等です。この教材の正準グラフは3本のS=Oを持ちます。模型の水色破線は結合性を補助的に表す記号で、Lewis寄与構造を交換する共鳴矢印ではありません。"
         }
       ],
       "concepts": [
         "geometry",
-        "resonance"
+        "resonance",
+        "bond-order"
+      ],
+      "visuals": [
+        {
+          "type": "distributed-bond",
+          "motif": "sulfur-oxo",
+          "target": "sulfur-oxo-bonds",
+          "branches": 3
+        }
       ]
     },
     "phosphine": {
@@ -319,6 +337,10 @@
         {
           "title": "多段階の酸解離",
           "body": "H₃PO₄は3個の酸性Hを持ち、水中で段階的にH⁺を失う。最初の解離が最も起こりやすく、pHに応じて主なリン酸種が変わる。"
+        },
+        {
+          "title": "P–O結合の表記",
+          "body": "この教材では中性H₃PO₄をP=Oと3本のP–OHからなるLewis表記で示します。末端P–OとP–OHは同じ結合として扱わず、実際の電子分布を唯一に表す図ともみなしません。この模型では特殊な水色の分散記号を使いません。"
         }
       ],
       "concepts": [
@@ -336,13 +358,22 @@
         },
         {
           "title": "S–O結合",
-          "body": "硫酸や硫酸イオンのS–O結合は、単純な『二重結合が固定された2本』というLewis図だけでは電子分布を十分に表せない。形式電荷と共鳴は電子の割り当てを整理する道具として使われる。"
+          "body": "この3D模型が表すのは中性H₂SO₄です。S=Oの末端S–Oが2本、S–OHが2本あり、この模型では両者を非等価に扱います。水色破線は末端S–Oの2本だけを補助表示し、S–OHには付けません。硫酸イオンや硫酸水素イオンの共鳴は別の化学種についての説明です。"
         }
       ],
       "concepts": [
         "acid-base",
         "resonance",
-        "formal-charge"
+        "formal-charge",
+        "bond-order"
+      ],
+      "visuals": [
+        {
+          "type": "distributed-bond",
+          "motif": "sulfur-oxo",
+          "target": "sulfur-oxo-bonds",
+          "branches": 2
+        }
       ]
     },
     "hydrogen-peroxide": {
@@ -1617,7 +1648,7 @@
       "details": [
         {
           "title": "芳香族N",
-          "body": "ベンゼンのCHを1つNへ置き換えたような環で、6π電子による芳香族性を保つ。Nの孤立電子対は芳香族π電子に含まれないため、H⁺を受け取って塩基として働ける。"
+          "body": "ベンゼンのCHを1つNへ置き換えたような6員環で、環状のπ系は6電子を持ちます。Nの孤立電子対は環面内にあり、環に垂直な芳香族π系には含まれません。"
         }
       ],
       "concepts": [
@@ -2103,7 +2134,7 @@
       "details": [
         {
           "title": "S–O結合と極性",
-          "body": "S–O結合は強く分極し、Lewis構造ではS⁺–O⁻の電荷分離した寄与も用いて表せる。DMSOは大きな双極子を持ち、Oは水素結合の受容体になれるがO–Hを持たないため、極性非プロトン性溶媒に分類される。"
+          "body": "この教材ではDMSOをS=OのLewis表記で示します。S⁺–O⁻のような電荷分離表記も、強く分極したS–O結合を表すのに使われます。これはニトロ基のような2本の等価な結合を持つ共鳴表示ではありません。Oは水素結合の受容体になれますがO–Hを持たないため、DMSOは極性非プロトン性溶媒に分類されます。"
         }
       ],
       "concepts": [

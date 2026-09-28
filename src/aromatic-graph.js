@@ -45,14 +45,14 @@ export function isSupportedAromaticCycleGraph(atoms,bonds,cycle){
   return lonePairContributors===1;
 }
 
-export function aromaticGraphAtomIds(atoms,bonds){
+export function aromaticGraphCycles(atoms,bonds){
   const ids=atoms.map((atom,index)=>atom.id??index),adjacency=new Map(ids.map(id=>[id,[]]));
   for(const raw of bonds){
     const a=Array.isArray(raw)?ids[raw[0]]:raw.a,b=Array.isArray(raw)?ids[raw[1]]:raw.b;
     if(!adjacency.has(a)||!adjacency.has(b))continue;
     adjacency.get(a).push(b);adjacency.get(b).push(a);
   }
-  const found=new Set(),result=new Set();
+  const found=new Set(),result=[];
   const canonical=cycle=>{
     const variants=[];
     for(const sequence of [cycle,[...cycle].reverse()])for(let offset=0;offset<sequence.length;offset++)variants.push(JSON.stringify([...sequence.slice(offset),...sequence.slice(0,offset)].map(idKey)));
@@ -64,7 +64,7 @@ export function aromaticGraphAtomIds(atoms,bonds){
       for(const next of adjacency.get(current)??[]){
         if(next===start&&path.length>=5&&path.length<=6){
           const key=canonical(path);if(found.has(key))continue;found.add(key);
-          if(isSupportedAromaticCycleGraph(atoms,bonds,path))path.forEach(id=>result.add(id));
+          if(isSupportedAromaticCycleGraph(atoms,bonds,path))result.push([...path]);
           continue;
         }
         if(visited.has(next)||path.length>=6)continue;
@@ -73,5 +73,9 @@ export function aromaticGraphAtomIds(atoms,bonds){
     };
     walk(start,[start],new Set([start]));
   }
-  return result;
+  return result.sort((a,b)=>canonical(a).localeCompare(canonical(b)));
+}
+
+export function aromaticGraphAtomIds(atoms,bonds){
+  return new Set(aromaticGraphCycles(atoms,bonds).flat());
 }

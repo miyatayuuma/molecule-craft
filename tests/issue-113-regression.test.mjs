@@ -3,6 +3,7 @@ import {access,readFile} from 'node:fs/promises';
 import {Molecule,loadMoleculeDatabase,moleculeCatalog,moleculeDatabaseStatus} from '../src/chemistry.js?v=20';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 import {createCollectionState,COLLECTION_STORAGE_KEY} from '../src/collection-state.js';
+import {CURRENT_COLLECTION_SCHEMA_VERSION} from '../src/collection-migrations.js';
 import {validateFunctionalGroups} from '../src/functional-groups.js';
 import {validateCraftStructures} from '../src/craft-structures.js?v=31';
 import {installEmptyDeparturePolicy} from '../src/craft-connections.js?v=3';
@@ -49,12 +50,13 @@ try{
 function seedSavedProgress(){
   const storage=memory(),resources=createResources({storage});resources.setCatalog(moleculeCatalog());
   for(const id of discovered)assert.equal(resources.discover(id),true,id);
+  resources.state.progress.foundElements=['H','C','O'];
   for(const id of unfinished)assert.equal(resources.hint(id),true,id);
   Object.assign(resources.state.elements,{H:800,C:500,O:800});
   const loadout={propellant:'hydrogen',fuel:'methane',oxidizer:'oxygen',coolant:'water'};
   for(const use of USES)assert.equal(resources.setLoadoutTank(use,loadout[use]),true,use);
   assert.equal(resources.save(),true);
-  storage.setItem(COLLECTION_STORAGE_KEY,JSON.stringify({schemaVersion:2,discoveredMolecules:discovered.map((id,index)=>({id,at:1700000000000+index,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]}));
+  storage.setItem(COLLECTION_STORAGE_KEY,JSON.stringify({schemaVersion:CURRENT_COLLECTION_SCHEMA_VERSION,discoveredMolecules:discovered.map((id,index)=>({id,at:1700000000000+index,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]}));
   return storage.dump();
 }
 const saved=seedSavedProgress();
@@ -76,7 +78,7 @@ for(const withWorkspace of [false,true]){
     assert.deepEqual(actual,expected,`${use} candidates must be the discovered eligible molecules after full catalog hydrate`);
   }
 
-  for(const id of Object.values(resources.selectedLoadout())){
+  for(const id of Object.values(resources.selectedLoadout()).filter(Boolean)){
     const record=resources.record(id);assert.equal(record?.id,id);assert.ok(Array.isArray(record.bonds),`${id} must resolve to the full molecule DB record`);
     await access(new URL(`../assets/models/molecule-${id}.svg`,import.meta.url));
   }

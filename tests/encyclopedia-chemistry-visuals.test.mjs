@@ -15,16 +15,24 @@ assert.match(pubchemSource,/PubChem ↗/,'PubChem reference affordance remains i
 assert.match(visualSource,/AROMATIC_STYLE\.cssColor/,'Chemistry detail visuals use the aromatic accent authority');
 assert.doesNotMatch(visualSource,/薄い2本目線/,'Line-style prose must not compete with the resonance diagram');
 
-const visuals=id=>chemistryVisualSpecs(encyclopedia.molecules[id]);
+const record=id=>records.find(item=>item.id===id);
+const visuals=id=>chemistryVisualSpecs(encyclopedia.molecules[id],record(id));
 for(const [id,entry] of Object.entries(encyclopedia.molecules)){
-  if(entry.concepts?.includes('aromaticity'))assert(visuals(id).some(spec=>spec.type==='aromaticity'),`${id}: aromaticity concept must receive the common aromatic diagram`);
+  if(entry.concepts?.includes('aromaticity'))assert(visuals(id).some(spec=>spec.type==='aromaticity'),`${id}: aromaticity visual must derive from an authoritative molecular cycle`);
 }
 const resonanceTargets=['ozone','nitromethane','nitrobenzene','2-nitrotoluene','2-4-dinitrotoluene','2-4-6-trinitrotoluene'];
 for(const id of resonanceTargets){
   const spec=visuals(id).find(item=>item.type==='resonance');assert(spec,`${id}: curated non-ring resonance visual required`);
   assert.deepEqual(spec.formalCharges,{center:1,terminal:-1},`${id}: contributor charges`);
 }
-assert.equal(visuals('sulfur-dioxide').some(spec=>spec.type==='resonance'),false,'Sulfur keeps no contributor-specific resonance explanation visual');
+for(const [id,branches] of [['sulfur-dioxide',2],['sulfur-trioxide',3],['sulfuric-acid',2]]){
+  const visual=visuals(id).find(spec=>spec.type==='distributed-bond');assert.equal(visual?.motif,'sulfur-oxo');assert.equal(visual.branches,branches);
+  assert.equal(visuals(id).some(spec=>spec.type==='resonance'),false,'Sulfur keeps no contributor-specific resonance explanation visual');
+}
+for(const id of ['dimethyl-sulfoxide','phosphoric-acid'])assert.equal(visuals(id).some(spec=>spec.type==='distributed-bond'),false,`${id}: negative fixture has no sulfur-style distributed visual`);
+assert.equal(visuals('pyridine').find(spec=>spec.type==='aromaticity')?.motif,'six-member-heteroaromatic');
+assert.equal(visuals('furan').find(spec=>spec.type==='aromaticity')?.motif,'five-member-oxygen-heteroaromatic');
+assert.equal(visuals('furan').find(spec=>spec.type==='aromaticity')?.cycle.length,5,'Furan diagram uses the authoritative five-member cycle');
 assert.deepEqual(visuals('carbon-monoxide').find(spec=>spec.type==='formal-charge')?.formalCharges,{left:-1,right:1},'CO uses C−≡O+ formal-charge grammar');
 for(const [id,motif] of [['water','water'],['hydrogen-chloride','hydrogen-chloride'],['ethanol','alcohol'],['acetone','carbonyl']])assert.equal(visuals(id).find(spec=>spec.type==='polarity')?.motif,motif,`${id}: curated polarity motif`);
 for(const id of ['benzene','toluene','nitrobenzene','carbon-dioxide','methanol','acetaldehyde'])if(!['nitrobenzene'].includes(id))assert.equal(visuals(id).some(spec=>spec.type==='polarity'),false,`${id}: polarity δ visual must not leak without an explicit curated spec`);
@@ -36,6 +44,8 @@ assert.throws(()=>validateChemistryVisualSpecs(mutated('water',{type:'polarity',
 assert.throws(()=>validateChemistryVisualSpecs(mutated('water',{type:'polarity',motif:'water',target:'molecule',partialCharges:{oxygen:'-'}}),records),/δ\+ or δ−/);
 assert.throws(()=>validateChemistryVisualSpecs(mutated('carbon-monoxide',{type:'formal-charge',motif:'carbon-monoxide',target:'co-bond',formalCharges:{left:-1,right:1},partialCharges:{left:'δ−'}}),records),/cannot be mixed/);
 assert.throws(()=>validateChemistryVisualSpecs(mutated('nitromethane',{type:'resonance',motif:'ozone',target:'nitro-group',formalCharges:{center:1,terminal:-1}}),records),/does not match molecule topology/);
+const fakeSulfurVisual=mutated('dimethyl-sulfoxide',{type:'distributed-bond',motif:'sulfur-oxo',target:'sulfur-oxo-bonds',branches:2});fakeSulfurVisual.molecules['dimethyl-sulfoxide'].concepts.push('bond-order');
+assert.throws(()=>validateChemistryVisualSpecs(fakeSulfurVisual,records),/branch count does not match|target does not match/);
 
 for(const [id,entry] of Object.entries(encyclopedia.molecules)){
   assert.equal(typeof entry.description,'string',`${id}: Summary preserved`);assert(entry.description.length>=12,`${id}: Summary remains substantive`);

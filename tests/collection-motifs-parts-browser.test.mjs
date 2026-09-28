@@ -1,0 +1,61 @@
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {spawn,spawnSync} from 'node:child_process';
+import {extname,join,normalize,resolve} from 'node:path';
+import {tmpdir} from 'node:os';
+import {fileURLToPath} from 'node:url';
+
+const root=resolve(fileURLToPath(new URL('..',import.meta.url))),indexHtml=await readFile(join(root,'index.html'),'utf8');
+const fixtureHtml=indexHtml.replace(/\s*<script type="module" src="\.\/src\/(?:app|pwa)\.js[^"]*"><\/script>/g,'');
+const contentTypes={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
+const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);if(pathname==='/__collection-motif-parts__'){res.writeHead(200,{'content-type':contentTypes['.html'],'cache-control':'no-store'});res.end(fixtureHtml);return;}const relative=pathname==='/'?'index.html':pathname.replace(/^\/+/,''),file=normalize(join(root,relative));if(!file.startsWith(root)){res.writeHead(403).end();return;}res.writeHead(200,{'content-type':contentTypes[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(await readFile(file));}catch{res.writeHead(404).end('not found');}});
+await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address();
+let chrome='';for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
+assert.ok(chrome,'Chromium is required for mobile collection/part presentation validation');
+const profile=await mkdtemp(join(tmpdir(),'molecule-craft-motif-parts-')),debugPort=9252;let child=null,socket=null;const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+try{
+  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});let tabs=null;
+  for(let attempt=0;attempt<120;attempt++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}await pause(100);}assert.ok(tabs?.length,'DevTools endpoint did not become ready');
+  socket=new WebSocket(tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl??tabs[0].webSocketDebuggerUrl);await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(new Error('DevTools websocket timeout')),5000);socket.addEventListener('open',()=>{clearTimeout(timer);ok();},{once:true});socket.addEventListener('error',fail,{once:true});});
+  let sequence=0;const pending=new Map();socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(new Error(message.error.message)):task.resolve(message.result);}});
+  const send=(method,params={})=>new Promise((ok,fail)=>{const id=++sequence;pending.set(id,{resolve:ok,reject:fail});socket.send(JSON.stringify({id,method,params}));});
+  const evaluate=async expression=>{const response=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(response.exceptionDetails)throw new Error(response.exceptionDetails.exception?.description??response.exceptionDetails.text);return response.result?.value;};
+  const waitFor=async(expression,message,attempts=120)=>{for(let i=0;i<attempts;i++){try{if(await evaluate(expression))return;}catch{}await pause(100);}throw new Error(message);};
+  await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await send('Page.navigate',{url:`http://127.0.0.1:${port}/__collection-motif-parts__`});await pause(150);
+  const initialized=await evaluate(`(async()=>{const chemistry=await import('/src/chemistry.js?v=20'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return{ok:false};const records=chemistry.moleculeCatalog(),save={schemaVersion:3,discoveredMolecules:records.map((record,index)=>({id:record.id,at:1700000000000+index,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]},data=new Map([['molecule-craft.collection.v1',JSON.stringify(save)]]),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key)};const {createCollectionUI}=await import('/src/collection-ui.js?motif-parts-browser=1');window.__collection=await createCollectionUI({records,storage,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:[],hints:[]})});return{ok:true,count:records.length,parts:window.__collection.state.unlockedCount};})()`);
+  assert.deepEqual(initialized,{ok:true,count:142,parts:17});
+  await evaluate(`(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(type==='webgl2')return null;return original.call(this,type,...args);};return true})()`);
+
+  assert.equal(await evaluate(`window.__collection.openMolecule('dimethyl-sulfoxide')`),true);
+  await waitFor(`document.querySelector('#collection-detail [data-motif-id="sulfoxide"]')!==null`,'DMSO detail did not expose its detected contextual motif');
+  const moleculeDetail=await evaluate(`(()=>({parts:document.querySelector('#collection-detail h4')?.textContent,hasMotifSection:[...document.querySelectorAll('#collection-detail h4')].some(node=>node.textContent==='構造モチーフ'),hasSulfoxide:[...document.querySelectorAll('#collection-detail [data-motif-id]')].some(node=>node.dataset.motifId==='sulfoxide'),hasCarbonChain:[...document.querySelectorAll('#collection-detail [data-motif-id]')].some(node=>node.dataset.motifId==='carbon-chain')}))()`);
+  assert.equal(moleculeDetail.hasMotifSection,true);assert.equal(moleculeDetail.hasSulfoxide,true);assert.equal(moleculeDetail.hasCarbonChain,false,'Internal classification is not exposed as a learning item.');
+  await evaluate(`document.querySelector('#collection-detail [data-motif-id="sulfoxide"]').click()`);
+  const motifDetail=await evaluate(`(()=>({kind:document.querySelector('#collection-detail').dataset.detailKind,id:document.querySelector('#collection-detail').dataset.detailId,heading:document.querySelector('#collection-detail h3')?.textContent,number:document.querySelector('#collection-detail .detail-heading .dex-number')?.textContent??null,unlock:!!document.querySelector('#collection-detail .unlock-condition'),place:[...document.querySelectorAll('#collection-detail button')].some(node=>node.textContent.includes('部品トレーへ')),found:[...document.querySelectorAll('#collection-detail button')].some(node=>node.textContent==='ジメチルスルホキシド')}))()`);
+  assert.deepEqual(motifDetail,{kind:'motifs',id:'sulfoxide',heading:'スルホキシド',number:null,unlock:false,place:false,found:true});
+  await evaluate(`document.querySelector('#motif-detail-back').click()`);await waitFor(`document.querySelector('#collection-detail').dataset.detailId==='dimethyl-sulfoxide'`,'Motif detail did not return to its source molecule');
+
+  assert.equal(await evaluate(`window.__collection.openMolecule('chloromethane')`),true);
+  await waitFor(`document.querySelector('#collection-detail [data-motif-id="carbon-halogen"]')!==null`,'C–X motif did not appear on its discovered molecule');
+  await evaluate(`document.querySelector('#collection-detail [data-motif-id="carbon-halogen"]').click()`);
+  const halogenDetail=await evaluate(`(()=>({kind:document.querySelector('#collection-detail').dataset.detailKind,id:document.querySelector('#collection-detail').dataset.detailId,number:document.querySelector('#collection-detail .detail-heading .dex-number')?.textContent??null,unlock:!!document.querySelector('#collection-detail .unlock-condition'),place:[...document.querySelectorAll('#collection-detail button')].some(node=>node.textContent.includes('部品トレーへ')),nextDisabled:document.querySelector('#collection-detail [aria-label="次の項目"]')?.disabled}))()`);
+  assert.deepEqual(halogenDetail,{kind:'motifs',id:'carbon-halogen',number:null,unlock:false,place:false,nextDisabled:false},'Element-disjunction motifs remain learnable contextual details with no Part affordance.');
+
+  await evaluate(`document.querySelector('[data-book-tab="groups"]').click()`);
+  const partsTab=await evaluate(`(()=>({tab:document.querySelector('[data-book-tab="groups"]')?.textContent.trim(),count:document.querySelectorAll('#collection-list [data-entry-id]').length,first:document.querySelector('#collection-list [data-entry-id] .dex-number')?.textContent,progress:document.querySelector('#collection-progress')?.textContent,motifCard:!!document.querySelector('#collection-list [data-entry-id="sulfoxide"]')}))()`);
+  assert.deepEqual(partsTab,{tab:'部品',count:17,first:'No. 001',progress:'17 / 17 解放',motifCard:false});
+
+  for(const partId of ['methyl','n-butyl','isopropyl','ester']){
+    const detail=await evaluate(`(()=>{const node=document.querySelector('#collection-list [data-entry-id=${JSON.stringify(partId)}]');if(!node)return false;node.click();return true})()`);assert.equal(detail,true,`${partId}: Parts catalog detail opens`);
+    await waitFor(`document.querySelector('.collection-model')?.dataset.viewerReady==='true'`,`${partId}: live part view failed to initialize`,180);
+    const live=await evaluate(`(async()=>{const host=document.querySelector('.collection-model'),view=JSON.parse(host.dataset.viewerView),asset=await fetch('/assets/models/part-'+${JSON.stringify(partId)}+'.svg').then(response=>response.text()),get=key=>Number(asset.match(new RegExp('data-part-view-'+key+'="([^"]+)"'))?.[1]),key=document.querySelector('#collection-detail .model-port-key');return{mode:host.dataset.renderMode,view,assetView:{pitch:get('pitch'),yaw:get('yaw'),roll:get('roll')},markerCount:(asset.match(/data-attachment-marker="true"/g)||[]).length,slotCount:(asset.match(/data-attachment-ray="true"/g)||[]).length,portKey:{text:key?.textContent??'',fontSize:key?parseFloat(getComputedStyle(key).fontSize):0,width:key?.getBoundingClientRect().width??0}};})()`);
+    assert.equal(live.mode,'software-3d',`${partId}: fallback viewer is active`);assert.equal(live.markerCount,partId==='ester'?2:1);assert.equal(live.slotCount,live.markerCount);
+    assert.equal(live.portKey.text,'金色の輪が接続点');assert(live.portKey.fontSize>=12&&live.portKey.width>0,`${partId}: attachment marker key stays readable on mobile`);
+    for(const axis of ['pitch','yaw','roll'])assert(Math.abs(live.view[axis]-live.assetView[axis])<0.000001,`${partId}: live ${axis} must match generated SVG canonical view`);
+    await evaluate(`document.querySelector('#detail-back').click()`);await waitFor(`document.querySelector('#collection-list [data-entry-id=${JSON.stringify(partId)}]')!==null`,`${partId}: Parts list return failed`);
+  }
+  const widths=await evaluate(`({detail:document.querySelector('#collection-dialog').clientWidth,detailScroll:document.querySelector('#collection-dialog').scrollWidth,document:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth})`);
+  assert(widths.detailScroll<=widths.detail+1&&widths.documentScroll<=widths.document+1,'390×844 Parts / motif detail has no horizontal overflow');
+}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
+console.log('Mobile collection regression passed: 17 numbered placeable Parts, contextual motif learning without Part CTA/number, source return, and live software-view orientation matches SVG for methyl, n-butyl, isopropyl and both ester ports.');

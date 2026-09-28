@@ -13,11 +13,12 @@ function matchesPattern(index, pattern, aromatic = new Set(), limit = 128) {
   const adjacent = id => index.adjacency.get(id) ?? [];
   const candidates = pattern.atoms.map(spec => index.atoms.filter(atom=>{
     const neighbors=adjacent(atom.id), element=id=>index.byId.get(id)?.element;
-    if(atom.element!==spec.element)return false;
+    if(spec.elementsAny ? !spec.elementsAny.includes(atom.element) : atom.element!==spec.element)return false;
     if(spec.degree!=null && neighbors.length!==spec.degree)return false;
     if(spec.aromatic===false && aromatic.has(atom.id))return false;
     if(spec.singleBondsOnly && neighbors.some(item=>item.order!==1))return false;
     if(spec.notCarbonyl && neighbors.some(item=>item.order===2&&element(item.id)==='O'))return false;
+    if(spec.notCarbonylBound&&neighbors.some(item=>element(item.id)==='C'&&adjacent(item.id).some(other=>other.order===2&&element(other.id)==='O')))return false;
     if(spec.neighborElementsAny && !neighbors.some(item=>spec.neighborElementsAny.includes(element(item.id))))return false;
     if(spec.singleNeighborElementsOnly && neighbors.some(item=>item.order===1&&!spec.singleNeighborElementsOnly.includes(element(item.id))))return false;
     return true;
@@ -33,9 +34,13 @@ export function validateFunctionalGroups(groups) {
   if(!Array.isArray(groups))throw new Error('Invalid functional group database');
   const ids=new Set();
   for(const group of groups){
-    if(!group.id||ids.has(group.id)||!group.nameJa||!group.nameEn||!group.notation||!group.family||!group.pattern?.atoms?.length||!Array.isArray(group.pattern.bonds))throw new Error('Invalid functional group');
+    if(!group.id||ids.has(group.id)||!group.nameJa||!group.nameEn||!group.notation||!group.family||!['part','motif','internal'].includes(group.learningRole)||!group.pattern?.atoms?.length||!Array.isArray(group.pattern.bonds))throw new Error('Invalid functional group');
     ids.add(group.id);
-    if(group.pattern.atoms.some(atom=>!['H','C','N','O','F','P','S','Cl'].includes(atom.element)))throw new Error(`Invalid pattern atom: ${group.id}`);
+    if(group.pattern.atoms.some(atom=>{
+      if(atom.elementsAny!=null&&(!Array.isArray(atom.elementsAny)||!atom.elementsAny.length||atom.element))return true;
+      const elements=atom.elementsAny??(atom.element?[atom.element]:[]);
+      return !elements.length||elements.some(element=>!['H','C','N','O','F','P','S','Cl'].includes(element));
+    }))throw new Error(`Invalid pattern atom: ${group.id}`);
     for(const [a,b,order] of group.pattern.bonds)if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=group.pattern.atoms.length||b>=group.pattern.atoms.length||a===b||![1,2,3].includes(order))throw new Error(`Invalid pattern bond: ${group.id}`);
   }
   return groups;
