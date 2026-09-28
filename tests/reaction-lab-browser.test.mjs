@@ -46,6 +46,10 @@ try{
       await waitFor("document.querySelector('[data-lab-picker]').hidden",'Species picker did not close');
     }
   };
+  const seedCollection=async ids=>{
+    const save=JSON.stringify({schemaVersion:3,discoveredMolecules:ids.map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]});
+    await evaluate(`localStorage.setItem('molecule-craft.collection.v1',${JSON.stringify(save)})`);
+  };
   const feedCurrent=async({double=false}={})=>{
     const before=await snapshot(),next=before.batch.draftSlots,count=next.filter(Boolean).length,expected=count===1?4:count===2?4:count===3?6:0;
     if(expected===0&&before.batch.phase==='IDLE'&&!before.instances.length)return before;
@@ -386,7 +390,7 @@ try{
   assert.equal(browserErrors.length,0,`Browser reported errors: ${JSON.stringify(browserErrors)}`);
   await send('Page.removeScriptToEvaluateOnNewDocument',{identifier:collectionPreload.identifier});
   await send('Emulation.setEmulatedMedia',{media:'',features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
-  await evaluate("localStorage.removeItem('molecule-craft.collection.v1')");await send('Page.reload',{ignoreCache:true});
+  await evaluate("localStorage.removeItem('molecule-craft.collection.v1')");await seedCollection(['acetic-anhydride','ethanol']);await send('Page.reload',{ignoreCache:true});
   await waitFor("!!window.__reactionLabProbe&&!!document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled",'Fresh Collection Discovery fixture did not initialize');
   await evaluate("window.__labReactionEvents=[];window.addEventListener('molecule-craft:reaction-lab-product',event=>window.__labReactionEvents.push(event.detail));document.querySelector('#open-reaction-lab').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open",'Fresh Discovery Reaction Lab did not open');
   await clickAt('[data-lab-light]');await clickAt('[data-lab-heat]');await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="acidic"]');
@@ -403,7 +407,7 @@ try{
   assert.deepEqual(feedCandidates,[{id:'ethyl-acetate',exists:true,disabled:false},{id:'acetic-acid',exists:true,disabled:false}],'Newly registered products become same-session Feed candidates without automatic slot changes');
   await clickAt('[data-lab-picker-close]');assert.equal((await snapshot()).batch.generation,alcoholysis.batch.generation);
 
-  await evaluate("localStorage.removeItem('molecule-craft.collection.v1')");await send('Page.reload',{ignoreCache:true});
+  await evaluate("localStorage.removeItem('molecule-craft.collection.v1')");await seedCollection(['acetic-anhydride','water']);await send('Page.reload',{ignoreCache:true});
   await waitFor("!!window.__reactionLabProbe&&!!document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled",'Fresh duplicate-product Discovery fixture did not initialize');
   await evaluate("window.__labReactionEvents=[];window.addEventListener('molecule-craft:reaction-lab-product',event=>window.__labReactionEvents.push(event.detail));document.querySelector('#open-reaction-lab').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open",'Fresh duplicate-product Reaction Lab did not open');
   await clickAt('[data-lab-light]');await clickAt('[data-lab-heat]');await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="acidic"]');
@@ -412,7 +416,7 @@ try{
   const hydrolysis=await runReaction('anhydride-hydrolysis',['acetic-acid','acetic-acid'],{verifyPausedTransformation:false,verifyDiscovery:'dismiss'});
   assert.deepEqual((await evaluate('window.__labReactionEvents.at(-1).products')),['acetic-acid','acetic-acid'],'Duplicate product multiplicity remains on the committed event');
   assert.deepEqual(await evaluate('window.__dismissDialogCounts'),{labClose:1,labOpen:1,collectionOpen:1,collectionClose:1},'Escape dismisses the single-item Collection session and resumes the Lab exactly once.');
-  const savedHydrolysis=await evaluate("JSON.parse(localStorage.getItem('molecule-craft.collection.v1')||'{}').discoveredMolecules?.map(item=>item.id)||[]");assert.deepEqual(savedHydrolysis,['acetic-acid'],'The duplicate product species is persisted once after dismissal.');
+  const savedHydrolysis=await evaluate("JSON.parse(localStorage.getItem('molecule-craft.collection.v1')||'{}').discoveredMolecules?.map(item=>item.id)||[]");assert.equal(savedHydrolysis.filter(id=>id==='acetic-acid').length,1,'The duplicate product species is persisted once after dismissal.');
   assert.equal(hydrolysis.instances.filter(item=>item.species==='acetic-acid').length,2,'Both normal Chamber product instances remain after discovery dismissal');
   await send('Page.reload',{ignoreCache:true});await waitFor("!!window.__reactionLabProbe&&!!document.querySelector('#open-collection')",'Reload did not restore the Collection after Discovery');
   assert.equal(await evaluate("document.querySelector('#collection-dialog').open||document.querySelector('#reaction-lab-dialog').open"),false,'Reload does not replay a pending Discovery queue or reopen a modal');
