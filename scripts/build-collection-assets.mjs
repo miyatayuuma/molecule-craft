@@ -6,16 +6,18 @@ import {ELEMENTS,modelAtomRadius} from '../src/chemistry.js';
 import {AROMATIC_STYLE,aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js?v=27';
 import {RESONANCE_STYLE,specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=33';
 import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
+import {canonicalPartView,PART_SETTLEMENT} from '../src/part-presentation.js?v=2';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8').then(JSON.parse);
 const records=await read('data/molecules.json'),parts=await read('data/craft-structures.json');
 await mkdir(new URL('assets/models/',root),{recursive:true});
 const n=value=>Number(value.toFixed(2));
 const shade=(hex,factor)=>`#${hex.slice(1).match(/../g).map(channel=>Math.round(parseInt(channel,16)*factor).toString(16).padStart(2,'0')).join('')}`;
 for(const [kind,items]of [['molecule',records],['part',parts]])for(const record of items){
-  const model=createPreviewModel(THREE,record);for(let i=0;i<220;i++)model.step();const layout=model.snapshot();
-  const rotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(.32,.48,-.14));
+  const model=createPreviewModel(THREE,record);let stable=0;for(let i=0;i<PART_SETTLEMENT.maxSteps;i++){const movement=model.step();if(kind==='part'){stable=movement<PART_SETTLEMENT.movementThreshold?stable+1:0;if(stable>=PART_SETTLEMENT.stableSteps)break;}}const layout=model.snapshot();
+  const partView=kind==='part'?canonicalPartView(THREE,layout):null;
+  const rotation=new THREE.Quaternion().setFromEuler(partView?new THREE.Euler(partView.pitch,partView.yaw,partView.roll,'YXZ'):new THREE.Euler(.32,.48,-.14));
   const atoms=layout.atoms.map(atom=>({...atom,point:atom.point.clone().applyQuaternion(rotation)}));
-  const radius=Math.max(1,...atoms.map(a=>a.point.length()+ELEMENTS[a.element].radius));const scale=52/radius,bondStrokeWidth=n(Math.max(1.6,scale*.09));
+  const radius=partView?.fitRadius??Math.max(1,...atoms.map(a=>a.point.length()+ELEMENTS[a.element].radius));const scale=52/radius,bondStrokeWidth=n(Math.max(1.6,scale*.09));
   const project=p=>({x:96+p.x*scale,y:64-p.y*scale,z:p.z});
   const radii=atoms.map(atom=>Math.max(2,modelAtomRadius(atom.element)*scale));
   const projected=atoms.map(a=>project(a.point)),edges=new Set([...aromaticBondKeys(layout.aromaticCycles),...specialEdgeKeys(layout.sharedGroups??[])]),shapes=[];
@@ -37,14 +39,15 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
     });
   }
   const defs=new Set();
-  atoms.forEach((atom,i)=>{const {x,y,z}=projected[i],r=radii[i];defs.add(atom.element);shapes.push({z,svg:`<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#${atom.element})"/>`});});
-  for(const port of layout.ports){
+  atoms.forEach((atom,i)=>{const {x,y,z}=projected[i],r=radii[i],atomIndex=kind==='part'?` data-atom-index="${i}"`:'';defs.add(atom.element);shapes.push({z,svg:`<circle${atomIndex} cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#${atom.element})"/>`});});
+  for(const [portIndex,port]of layout.ports.entries()){
     const a=projected[port.atom],p=project(port.point.clone().applyQuaternion(rotation)),segment=attachmentProjection(a,p,radii[port.atom]+.5);if(!segment)continue;
-    shapes.push({z:(a.z+p.z)/2,svg:`<path d="M${n(segment.start.x)} ${n(segment.start.y)}L${n(p.x)} ${n(p.y)}" stroke="#e9bb69" stroke-dasharray="3 3"/>`});
-    shapes.push({z:p.z,svg:`<circle cx="${n(p.x)}" cy="${n(p.y)}" r="3" fill="none" stroke="#e9bb69"/>`});
+    shapes.push({z:(a.z+p.z)/2,svg:`<path${kind==='part'?` data-attachment-ray="true" data-port-index="${portIndex}"`:''} d="M${n(segment.start.x)} ${n(segment.start.y)}L${n(p.x)} ${n(p.y)}" stroke="#e9bb69" stroke-dasharray="3 3"/>`});
+    shapes.push({z:p.z,svg:`<circle${kind==='part'?` data-attachment-marker="true" data-port-index="${portIndex}"`:''} cx="${n(p.x)}" cy="${n(p.y)}" r="3" fill="none" stroke="#e9bb69"/>`});
   }
   atoms.forEach((atom,i)=>{if(atom.charge){const p=projected[i];shapes.push({z:Infinity,svg:`<text x="${n(p.x+radii[i])}" y="${n(p.y-radii[i])}" fill="#e5f8ff" font-size="12" font-family="sans-serif">${atom.charge>0?'+':'−'}</text>`});}});
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 128"><defs>${[...defs].map(symbol=>`<radialGradient id="${symbol}" cx="30%" cy="25%" r="75%"><stop stop-color="#e6f0f5"/><stop offset=".3" stop-color="${ELEMENTS[symbol].color}"/><stop offset="1" stop-color="${shade(ELEMENTS[symbol].color,.64)}"/></radialGradient>`).join('')}</defs>${shapes.sort((a,b)=>a.z-b.z).map(item=>item.svg).join('')}</svg>\n`;
+  const viewAttributes=partView?` data-canonical-part-view="true" data-part-view-pitch="${partView.pitch.toFixed(6)}" data-part-view-yaw="${partView.yaw.toFixed(6)}" data-part-view-roll="${partView.roll.toFixed(6)}"`:'';
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg"${viewAttributes} viewBox="0 0 192 128"><defs>${[...defs].map(symbol=>`<radialGradient id="${symbol}" cx="30%" cy="25%" r="75%"><stop stop-color="#e6f0f5"/><stop offset=".3" stop-color="${ELEMENTS[symbol].color}"/><stop offset="1" stop-color="${shade(ELEMENTS[symbol].color,.64)}"/></radialGradient>`).join('')}</defs>${shapes.sort((a,b)=>a.z-b.z).map(item=>item.svg).join('')}</svg>\n`;
   await writeFile(new URL(`assets/models/${kind}-${record.id}.svg`,root),svg);
 }
 console.log(`Generated ${records.length} molecule + ${parts.length} part thumbnails`);

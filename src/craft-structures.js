@@ -4,10 +4,12 @@ import { structuralBondLengthAngstrom, STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGST
 
 export function validateCraftStructures(templates, groups) {
   if(!Array.isArray(templates))throw new Error('Invalid structure templates');
-  const groupIds=new Set(groups.map(group=>group.id)),ids=new Set();
+  const groupById=new Map(groups.map(group=>[group.id,group])),ids=new Set(),templateCountByGroup=new Map();
   for(const item of templates){
-    if(!item.id||ids.has(item.id)||!item.nameJa||!item.nameEn||!item.notation||!item.label||!groupIds.has(item.unlock?.groupId)||![1,2].includes(item.unlock.distinctMolecules))throw new Error('Invalid structure unlock');
+    const unlockGroup=groupById.get(item.unlock?.groupId);
+    if(!item.id||ids.has(item.id)||!item.nameJa||!item.nameEn||!item.notation||!item.label||unlockGroup?.learningRole!=='part'||![1,2].includes(item.unlock.distinctMolecules))throw new Error('Invalid structure unlock');
     ids.add(item.id);
+    templateCountByGroup.set(unlockGroup.id,(templateCountByGroup.get(unlockGroup.id)??0)+1);
     if(!Array.isArray(item.atoms)||!item.atoms.length||item.atoms.some(element=>!ELEMENTS[element])||!Array.isArray(item.bonds)||!item.attachments?.length)throw new Error(`Invalid structure: ${item.id}`);
     const used=item.atoms.map(()=>0),pairs=new Set(),adjacency=item.atoms.map(()=>[]);
     for(const [a,b,order] of item.bonds){
@@ -25,6 +27,11 @@ export function validateCraftStructures(templates, groups) {
     item.atoms.forEach((element,index)=>{
       if(used[index]+capacity[index]!==preferredValence(element,used[index]))throw new Error(`Attachment valence mismatch: ${item.id} atom ${index}`);
     });
+  }
+  for(const group of groups){
+    const count=templateCountByGroup.get(group.id)??0;
+    if(group.learningRole==='part'&&count!==1)throw new Error(`Part group must have exactly one CRAFT template: ${group.id}`);
+    if(group.learningRole!=='part'&&count!==0)throw new Error(`Non-part group cannot unlock a CRAFT template: ${group.id}`);
   }
   return templates;
 }

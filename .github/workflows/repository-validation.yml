@@ -123,6 +123,8 @@ jobs:
           node tests/registration-reveal.test.mjs
           node tests/collection.test.mjs
           node tests/collection-expansion.test.mjs
+          node tests/collection-motifs.test.mjs
+          node tests/part-presentation.test.mjs
           node tests/capability-unlock.test.mjs
       - name: Polymer catalog foundation
         run: node tests/polymer-catalog.test.mjs
@@ -134,6 +136,7 @@ jobs:
           node tests/encyclopedia-stereo-comparison-browser.test.mjs
           node tests/encyclopedia-chemistry-visuals.test.mjs
           node tests/encyclopedia-chemistry-visual-browser.test.mjs
+          node tests/collection-motifs-parts-browser.test.mjs
           node tests/encyclopedia-graph-ui.test.mjs
           node tests/encyclopedia-graph-thumbnail-label.test.mjs
           node tests/encyclopedia-graph-thumbnail-label-browser.test.mjs

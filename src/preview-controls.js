@@ -1,6 +1,6 @@
 // View-only state. Never receives a crafting graph, camera or placements.
 export function createPreviewControls(changed=()=>{},initialView=null) {
-  const defaults={yaw:.32,pitch:-.18,roll:0,zoom:1},initial={...defaults};
+  const defaults={yaw:.32,pitch:-.18,roll:0,zoom:1};let initial={...defaults};
   for(const key of ['yaw','pitch','roll','zoom'])if(Number.isFinite(initialView?.[key]))initial[key]=initialView[key];
   initial.zoom=Math.max(.45,Math.min(2.8,initial.zoom));
   const view={...initial},pointers=new Map();
@@ -19,6 +19,7 @@ export function createPreviewControls(changed=()=>{},initialView=null) {
     up:id=>pointers.delete(id),cancel:()=>pointers.clear(),
     zoom(factor){zoom(factor);emit();},
     rotate(yaw,pitch){view.yaw+=yaw;view.pitch+=pitch;emit();},
+    setInitialView(next){initial={...initial,...Object.fromEntries(['yaw','pitch','roll','zoom'].filter(key=>Number.isFinite(next?.[key])).map(key=>[key,next[key]]))};initial.zoom=Math.max(.45,Math.min(2.8,initial.zoom));Object.assign(view,initial);pointers.clear();emit();},
     reset(){Object.assign(view,initial);pointers.clear();emit();},
   };
 }

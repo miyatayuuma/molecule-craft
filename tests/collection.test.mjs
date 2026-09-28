@@ -45,7 +45,7 @@ assert.ok(detected('acetamide').includes('carbamoyl'));
 assert.ok(detected('toluene').includes('phenyl'));
 assert.equal(detectFunctionalGroups(record('glycerol'),groups).find(match=>match.id==='hydroxyl').count,3);
 assert.deepEqual(detectFunctionalGroups({...record('acetic-acid'),id:'renamed',nameJa:'not used'},groups),detectFunctionalGroups(record('acetic-acid'),groups),'Names do not drive functional group matching.');
-for(const group of groups)assert.ok(records.filter(entry=>detectFunctionalGroups(entry,[...groups]).some(match=>match.id===group.id)).length>=2,`Unlock must be achievable without repeating a molecule: ${group.id}`);
+for(const template of templates){const matches=records.filter(entry=>detectFunctionalGroups(entry,groups).some(match=>match.id===template.unlock.groupId));assert.ok(matches.length>=template.unlock.distinctMolecules,`Part unlock must be achievable without repeating a molecule: ${template.unlock.groupId}`);}
 for(const entry of records){assert.ok(COLLECTION_CATEGORIES[collectionCategory(entry)]);assert.ok(graphSummary(entry).nodes.length);}
 
 let saved=null,writes=0;

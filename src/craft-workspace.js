@@ -1,5 +1,5 @@
 import {Molecule,countElements} from './chemistry.js?v=20';
-import {expandCraftStructure} from './craft-structures.js?v=32';
+import {expandCraftStructure} from './craft-structures.js?v=33';
 
 // Owns the atomic boundary between BASE STOCK and the craft workspace.
 // Visual placement and interaction remain in app.js; every graph mutation that

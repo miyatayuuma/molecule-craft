@@ -1,8 +1,10 @@
 import {AROMATIC_STYLE} from './aromatic-rendering.js?v=27';
+import {aromaticGraphCycles} from './aromatic-graph.js?v=1';
 
 const SVG_NS='http://www.w3.org/2000/svg';
-const VISUAL_CONCEPT={aromaticity:'aromaticity',resonance:'resonance','formal-charge':'formal-charge',polarity:'polarity'};
+const VISUAL_CONCEPT={aromaticity:'aromaticity',resonance:'resonance','distributed-bond':'bond-order','formal-charge':'formal-charge',polarity:'polarity'};
 const RESONANCE_MOTIFS=new Set(['nitro','ozone']);
+const DISTRIBUTED_MOTIFS=new Set(['sulfur-oxo']);
 const FORMAL_MOTIFS=new Set(['carbon-monoxide']);
 const POLARITY_MOTIFS=new Set(['water','hydrogen-chloride','alcohol','carbonyl']);
 const PARTIAL_VALUES=new Set(['δ+','δ−']);
@@ -34,7 +36,7 @@ function drawRing(owner,svg,cx,cy,r,{doubleOffset=0,aromatic=false}={}){
     const aa=toward(a),bb=toward(b);line(owner,svg,aa.x,aa.y,bb.x,bb.y,{stroke:'#d6e5ee','stroke-width':2.4,'stroke-linecap':'round'});
   }
 }
-function renderAromaticity(owner){
+function renderBenzeneAromaticity(owner){
   const svg=baseSvg(owner,'芳香族性：2つのKekulé共鳴寄与構造と、環全体へ広がるπ電子を表す芳香環内円','0 0 420 245');
   addText(owner,svg,105,22,'寄与構造 A',{class:'chemistry-svg-label'});addText(owner,svg,315,22,'寄与構造 B',{class:'chemistry-svg-label'});
   drawRing(owner,svg,105,78,42,{doubleOffset:0});drawRing(owner,svg,315,78,42,{doubleOffset:1});
@@ -42,6 +44,47 @@ function renderAromaticity(owner){
   addText(owner,svg,210,137,'↓',{'font-size':24,class:'concept-flow-arrow'});addText(owner,svg,210,158,'実際の電子構造',{class:'chemistry-svg-label'});
   drawRing(owner,svg,210,205,38,{aromatic:true});
   return figure(owner,'aromaticity','Aromaticity / 芳香族性','↔は反応ではなく等価な共鳴寄与構造。水色の内円は、π電子が環全体へ非局在化していることを表します。',svg);
+}
+function cycleMotif(cycle,record){
+  const elements=cycle.map(id=>record?.atoms?.[id]);
+  if(elements.length===6&&elements.every(element=>element==='C'))return 'benzene-like';
+  if(elements.length===6&&elements.every(element=>element==='C'||element==='N')&&elements.includes('N'))return 'six-member-heteroaromatic';
+  if(elements.length===5&&elements.every(element=>element==='C'||element==='O')&&elements.includes('O'))return 'five-member-oxygen-heteroaromatic';
+  return 'supported-aromatic-cycle';
+}
+function renderHeteroaromaticity(owner,spec,record){
+  const cycle=spec.cycle,elements=cycle.map(id=>record.atoms[id]),size=cycle.length,cx=162,cy=126,r=size===5?66:76;
+  const points=cycle.map((_,index)=>{const angle=-Math.PI/2+index*Math.PI*2/size;return{x:cx+Math.cos(angle)*r,y:cy+Math.sin(angle)*r,angle};});
+  const svg=baseSvg(owner,'実際の芳香環の原子と結合、環全体に広がる6π電子を示す模式図','0 0 420 260');
+  addText(owner,svg,162,24,size===5?'5員芳香環':'6員芳香環',{class:'chemistry-svg-label'});
+  for(let index=0;index<size;index++){
+    const next=(index+1)%size,a=points[index],b=points[next],order=record.bonds.find(([left,right])=>(left===cycle[index]&&right===cycle[next])||(left===cycle[next]&&right===cycle[index]))?.[2]??1;
+    const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy)||1,trim=17,from={x:a.x+dx*trim/length,y:a.y+dy*trim/length},to={x:b.x-dx*trim/length,y:b.y-dy*trim/length};
+    if(order===2)drawDoubleBond(owner,svg,from.x,from.y,to.x,to.y);else drawSingleBond(owner,svg,from.x,from.y,to.x,to.y);
+  }
+  circle(owner,svg,cx,cy,r*.48,{fill:'none',stroke:AROMATIC_STYLE.cssColor,'stroke-width':4,'data-aromatic-circle':'true'});
+  cycle.forEach((id,index)=>{
+    const point=points[index],element=elements[index];
+    addText(owner,svg,point.x,point.y+7,element,{'font-size':23,'font-weight':700,class:'atom-label','data-aromatic-atom-index':id,'data-aromatic-atom-element':element});
+    if(size===6&&element==='N'){
+      const x=point.x+Math.cos(point.angle)*21,y=point.y+Math.sin(point.angle)*21;
+      addText(owner,svg,x,y+4,'··',{'font-size':18,'font-weight':700,class:'lone-pair-label','data-lone-pair-role':'in-plane-not-pi'});
+    }
+    if(size===5&&element==='O'){
+      const inner={x:point.x-Math.cos(point.angle)*18,y:point.y-Math.sin(point.angle)*18},outer={x:point.x+Math.cos(point.angle)*20,y:point.y+Math.sin(point.angle)*20};
+      addText(owner,svg,inner.x,inner.y+4,'··',{'font-size':18,'font-weight':700,class:'lone-pair-label pi-contributing','data-lone-pair-role':'pi-contributing'});
+      addText(owner,svg,outer.x,outer.y+4,'··',{'font-size':18,'font-weight':700,class:'lone-pair-label','data-lone-pair-role':'in-plane'});
+    }
+  });
+  addText(owner,svg,329,99,'6π電子',{class:'chemistry-svg-label','data-pi-electron-count':'6'});
+  if(size===6&&elements.includes('N'))addText(owner,svg,329,128,'Nの孤立電子対',{class:'chemistry-svg-label'});
+  if(size===5&&elements.includes('O'))addText(owner,svg,329,128,'Oの孤立電子対1組がπ系へ',{class:'chemistry-svg-label'});
+  addText(owner,svg,210,225,'環原子と結合次数は分子グラフから表示',{class:'chemistry-svg-caption'});
+  const description=size===6&&elements.includes('N')?'Nの孤立電子対は環面内にあり、6π電子の芳香族π系には含まれません。':size===5&&elements.includes('O')?'Oの孤立電子対の一組がπ系へ寄与し、環の6π電子をつくります。':'環全体へ6π電子が非局在化しています。';
+  return figure(owner,'aromaticity','Aromaticity / 芳香族性',description,svg);
+}
+function renderAromaticity(owner,spec,record){
+  return spec.motif==='benzene-like'?renderBenzeneAromaticity(owner):renderHeteroaromaticity(owner,spec,record);
 }
 function atomLabel(owner,svg,x,y,symbol,charge=null,{partial=false,chargeDx=18,chargeDy=-17,chargeRole=null}={}){
   addText(owner,svg,x,y,symbol,{'font-size':24,'font-weight':700,class:'atom-label'});
@@ -102,6 +145,62 @@ function renderResonance(owner,motif){
   if(isNitro)drawNitroHybrid(owner,svg,220,190);else drawOzoneHybrid(owner,svg,220,190);
   return figure(owner,'resonance','Resonance / 共鳴','↔は反応矢印ではなく、等価なLewis共鳴寄与構造を表します。',svg);
 }
+function sulfurOxoTopology(record){
+  if(!record?.atoms||!record?.bonds)return null;
+  const adjacency=record.atoms.map(()=>[]);
+  for(const [a,b,order] of record.bonds){adjacency[a]?.push({id:b,order});adjacency[b]?.push({id:a,order});}
+  const sulfurIds=record.atoms.flatMap((element,id)=>element==='S'?[id]:[]);if(sulfurIds.length!==1)return null;
+  const center=sulfurIds[0],neighbors=adjacency[center]??[];
+  const terminal=neighbors.filter(edge=>edge.order===2&&record.atoms[edge.id]==='O'&&adjacency[edge.id].length===1).map(edge=>edge.id);
+  const hydroxyls=neighbors.filter(edge=>edge.order===1&&record.atoms[edge.id]==='O'&&adjacency[edge.id].some(other=>other.order===1&&record.atoms[other.id]==='H')).map(edge=>edge.id);
+  return terminal.length>=2?{center,terminal,hydroxyls,adjacency}:null;
+}
+function drawSulfurAuxiliary(owner,svg,start,end,insideTarget,branch){
+  const dx=end.x-start.x,dy=end.y-start.y,len=Math.hypot(dx,dy)||1,mx=(start.x+end.x)/2,my=(start.y+end.y)/2;
+  let ix=-dy/len,iy=dx/len;if(ix*(insideTarget.x-mx)+iy*(insideTarget.y-my)<0){ix=-ix;iy=-iy;}
+  const offset=5.2;
+  line(owner,svg,start.x+ix*offset,start.y+iy*offset,end.x+ix*offset,end.y+iy*offset,{stroke:AROMATIC_STYLE.cssColor,'stroke-width':3,'stroke-opacity':.82,'stroke-dasharray':'9 6','stroke-linecap':'round','data-delocalization':'distributed-bond','data-distributed-style':'distributed-dashed','data-distributed-branch':branch,'data-distribution-semantics':'sulfur-oxo','data-sulfur-bond-role':'terminal'});
+}
+function sulfurOxoPositions(topology,cx,cy){
+  const {terminal,hydroxyls}=topology,positions=new Map(),all=[...terminal,...hydroxyls];
+  const place=(ids,angles,radius)=>ids.forEach((id,index)=>{const angle=angles[index];positions.set(id,{x:cx+Math.cos(angle)*radius,y:cy+Math.sin(angle)*radius});});
+  if(terminal.length===3){place(terminal,[-Math.PI/2,Math.PI/6,5*Math.PI/6],61);}
+  else if(hydroxyls.length===2){place(terminal,[-3*Math.PI/4,-Math.PI/4],58);place(hydroxyls,[3*Math.PI/4,Math.PI/4],58);}
+  else if(terminal.length===2){place(terminal,[3*Math.PI/4,Math.PI/4],66);}
+  else place(all,all.map((_,index)=>-Math.PI/2+index*Math.PI*2/all.length),60);
+  return positions;
+}
+function sulfurPanel(owner,svg,record,topology,cx,{model=false}={}){
+  const cy=128,center={x:cx,y:cy},positions=sulfurOxoPositions(topology,cx,cy),terminalSet=new Set(topology.terminal);
+  addText(owner,svg,cx,28,model?'模型での表示':'正準Lewis表記',{class:'chemistry-svg-label','data-sulfur-panel':model?'model':'canonical'});
+  const branchCoords=new Map();
+  for(const id of [...topology.terminal,...topology.hydroxyls]){
+    const point=positions.get(id),dx=point.x-cx,dy=point.y-cy,length=Math.hypot(dx,dy)||1;
+    const start={x:cx+dx*14/length,y:cy+dy*14/length},end={x:point.x-dx*15/length,y:point.y-dy*15/length};
+    const order=terminalSet.has(id)?(model?1:2):1;
+    const bondAttrs={'data-sulfur-bond-panel':model?'model':'canonical','data-sulfur-bond-role':terminalSet.has(id)?'terminal':'s-oh','data-sulfur-bond-order':order};
+    if(order===2)drawDoubleBond(owner,svg,start.x,start.y,end.x,end.y,bondAttrs);else drawSingleBond(owner,svg,start.x,start.y,end.x,end.y,bondAttrs);
+    branchCoords.set(id,{start,end});
+  }
+  if(model)topology.terminal.forEach((id,index)=>{
+    const {start,end}=branchCoords.get(id),inside=positions.get(topology.terminal.find(other=>other!==id))??center;
+    drawSulfurAuxiliary(owner,svg,start,end,inside,index);
+  });
+  if(topology.hydroxyls.length){
+    for(const id of topology.hydroxyls){
+      const point=positions.get(id),dx=point.x-cx,dy=point.y-cy,length=Math.hypot(dx,dy)||1,h={x:point.x+dx/length*27,y:point.y+dy/length*27};
+      drawSingleBond(owner,svg,point.x+dx/length*12,point.y+dy/length*12,h.x-dx/length*10,h.y-dy/length*10,{'data-sulfur-bond-panel':model?'model':'canonical','data-sulfur-bond-role':'o-h','data-sulfur-bond-order':1});
+      addText(owner,svg,h.x,h.y+6,'H',{'font-size':18,'font-weight':700,class:'atom-label'});
+    }
+  }
+  atomLabel(owner,svg,cx,cy+8,'S');
+  for(const id of [...topology.terminal,...topology.hydroxyls]){const point=positions.get(id);atomLabel(owner,svg,point.x,point.y+8,'O');}
+}
+function renderDistributedBond(owner,spec,record){
+  const topology=sulfurOxoTopology(record),svg=baseSvg(owner,'canonical Lewis graph and sulfur-oxo model representation with supplementary cyan dashed terminal S–O components','0 0 520 260');
+  sulfurPanel(owner,svg,record,topology,130);line(owner,svg,260,49,260,211,{stroke:'#53657b','stroke-width':1.5,'data-visual-separator':'true'});sulfurPanel(owner,svg,record,topology,390,{model:true});
+  return figure(owner,'distributed-bond','Distributed Bond / 分散結合の補助表示','水色破線は通常の局在した追加結合線そのものではなく、S–O結合性を補助的に示す模型記号です。ニトロ基やオゾンの図のように、等価なLewis寄与構造の間で単結合と二重結合が交換する意味ではありません。',svg);
+}
 function renderFormalCharge(owner){
   const svg=baseSvg(owner,'一酸化炭素の代表的Lewis構造 C−≡O+ と、整数の形式電荷','0 0 420 135');
   addText(owner,svg,210,25,'代表的なLewis構造',{class:'chemistry-svg-label'});
@@ -127,9 +226,16 @@ function renderPolarity(owner,motif){
   return figure(owner,'polarity','Polarity / 極性','δ+ / δ−は結合内の電子の偏りを表す部分電荷です。整数の形式電荷 + / − とは区別して読みます。',svg);
 }
 
-export function chemistryVisualSpecs(entry={}){
+function recordAromaticCycles(record){
+  if(!record?.atoms||!record?.bonds)return[];
+  const atoms=record.atoms.map((element,id)=>({id,element,formalCharge:Number(record.formalCharges?.[id]??0)}));
+  return aromaticGraphCycles(atoms,record.bonds);
+}
+export function chemistryVisualSpecs(entry={},record=null){
   const explicit=Array.isArray(entry.visuals)?entry.visuals.map(item=>({...item})):[];
-  if(entry.concepts?.includes('aromaticity')&&!explicit.some(item=>item.type==='aromaticity'))explicit.unshift({type:'aromaticity',motif:'benzene-like',target:'aromatic-ring'});
+  if(entry.concepts?.includes('aromaticity')&&!explicit.some(item=>item.type==='aromaticity')){
+    explicit.unshift(...recordAromaticCycles(record).map(cycle=>({type:'aromaticity',motif:cycleMotif(cycle,record),cycle,target:'aromatic-ring'})));
+  }
   return explicit;
 }
 function assertChargeObject(value,label,{partial=false}={}){
@@ -147,13 +253,16 @@ function recordSupportsMotif(record,motif){
     const center=record.atoms?.[group.center],ends=(group.ends??[]).map(index=>record.atoms?.[index]);
     return ends.length===2&&ends.every(element=>element==='O')&&(motif==='nitro'?center==='N':center==='O');
   });
+  if(DISTRIBUTED_MOTIFS.has(motif))return !!sulfurOxoTopology(record);
   return true;
 }
+function sameCycleMembers(a,b){return a.length===b.length&&a.every(id=>b.includes(id));}
 export function validateChemistryVisualSpecs(encyclopedia,records=[]){
   const byId=new Map(records.map(record=>[record.id,record]));
   for(const [id,entry] of Object.entries(encyclopedia?.molecules??{})){
     if(entry.visuals!=null&&!Array.isArray(entry.visuals))throw new Error(`${id}: visuals must be an array`);
-    for(const [index,spec] of chemistryVisualSpecs(entry).entries()){
+    const record=byId.get(id);
+    for(const [index,spec] of chemistryVisualSpecs(entry,record).entries()){
       const label=`${id} visual ${index}`;if(!spec||typeof spec!=='object')throw new Error(`${label}: spec must be an object`);
       if(!VISUAL_CONCEPT[spec.type])throw new Error(`${label}: unsupported visual type ${spec.type}`);
       if(typeof spec.target!=='string'||!spec.target.trim())throw new Error(`${label}: missing target`);
@@ -162,7 +271,9 @@ export function validateChemistryVisualSpecs(encyclopedia,records=[]){
       if(spec.formalCharges)assertChargeObject(spec.formalCharges,label);
       if(spec.partialCharges)assertChargeObject(spec.partialCharges,label,{partial:true});
       if(spec.type==='aromaticity'){
-        if(spec.motif!=='benzene-like')throw new Error(`${label}: unsupported aromaticity motif`);
+        if(!['benzene-like','six-member-heteroaromatic','five-member-oxygen-heteroaromatic','supported-aromatic-cycle'].includes(spec.motif))throw new Error(`${label}: unsupported aromaticity motif`);
+        if(!Array.isArray(spec.cycle)||spec.cycle.length<5||spec.cycle.length>6)throw new Error(`${label}: aromaticity visual requires a topology-derived cycle`);
+        if(records.length&&!recordAromaticCycles(record).some(cycle=>sameCycleMembers(cycle,spec.cycle)))throw new Error(`${label}: aromaticity visual cycle is not authoritative for molecule topology`);
         if(spec.formalCharges||spec.partialCharges)throw new Error(`${label}: aromaticity visual cannot own charge annotations`);
       }
       if(spec.type==='resonance'){
@@ -180,14 +291,22 @@ export function validateChemistryVisualSpecs(encyclopedia,records=[]){
         if(!POLARITY_MOTIFS.has(spec.motif))throw new Error(`${label}: unsupported polarity motif ${spec.motif}`);
         if(!spec.partialCharges)throw new Error(`${label}: polarity visual requires curated partial charges`);
       }
+      if(spec.type==='distributed-bond'){
+        if(!DISTRIBUTED_MOTIFS.has(spec.motif))throw new Error(`${label}: unsupported distributed-bond motif ${spec.motif}`);
+        if(spec.formalCharges||spec.partialCharges)throw new Error(`${label}: distributed-bond visual cannot own charge annotations`);
+        const topology=sulfurOxoTopology(record);
+        if(records.length&&(!topology||topology.terminal.length!==spec.branches))throw new Error(`${label}: sulfur-oxo branch count does not match terminal S=O topology`);
+        if(RESONANCE_MOTIFS.has(spec.motif))throw new Error(`${label}: distributed-bond motif cannot reuse resonance semantics`);
+      }
     }
   }
   return true;
 }
 export function renderChemistryVisuals(owner,entry,record){
-  return chemistryVisualSpecs(entry).map(spec=>{
-    if(spec.type==='aromaticity')return renderAromaticity(owner);
+  return chemistryVisualSpecs(entry,record).map(spec=>{
+    if(spec.type==='aromaticity')return renderAromaticity(owner,spec,record);
     if(spec.type==='resonance')return renderResonance(owner,spec.motif);
+    if(spec.type==='distributed-bond')return renderDistributedBond(owner,spec,record);
     if(spec.type==='formal-charge')return renderFormalCharge(owner);
     if(spec.type==='polarity')return renderPolarity(owner,spec.motif);
     return null;

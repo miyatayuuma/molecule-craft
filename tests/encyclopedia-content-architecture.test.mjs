@@ -73,8 +73,24 @@ assert.match(entries.water.details.map(section=>section.body).join(' '),/部分�
 assert.match(entries.cyclopropane.details.map(section=>section.body).join(' '),/60°.*109\.5°|109\.5°.*60°/);
 assert.match(entries.benzene.details.map(section=>section.body).join(' '),/6(?:個の)?π電子.*非局在化|非局在化.*6(?:個の)?π電子/);
 assert.match(entries['sulfuric-acid'].details.map(section=>section.body).join(' '),/2段目|二価/);
+const so2Text=entries['sulfur-dioxide'].details.map(section=>section.body).join(' ');
+assert.match(so2Text,/折れ曲がった形/);assert.match(so2Text,/2本のS–O結合は同等/);assert.match(so2Text,/O=S=O/);
+assert.match(so2Text,/ニトロ基やオゾン/);assert.match(so2Text,/入れ替える意味ではありません/);
+const so3Text=entries['sulfur-trioxide'].details.map(section=>section.body).join(' ');
+assert.match(so3Text,/三角平面形/);assert.match(so3Text,/3本のS–O結合は同等/);assert.match(so3Text,/3本のS=O/);
+const h2so4Text=entries['sulfuric-acid'].details.map(section=>section.body).join(' ');
+for(const phrase of ['中性H₂SO₄','S=Oの末端S–Oが2本','S–OHが2本','非等価','S–OHには付けません','別の化学種'])assert(h2so4Text.includes(phrase),`Neutral sulfuric-acid detail must distinguish ${phrase}`);
+const dmsoText=entries['dimethyl-sulfoxide'].details.map(section=>section.body).join(' ');
+for(const phrase of ['S=OのLewis表記','S⁺–O⁻','強く分極','2本の等価な結合を持つ共鳴表示ではありません'])assert(dmsoText.includes(phrase),`DMSO detail must explain ${phrase}`);
+const phosphateText=entries['phosphoric-acid'].details.map(section=>section.body).join(' ');
+for(const phrase of ['中性H₃PO₄','P=Oと3本のP–OH','末端P–OとP–OH','実際の電子分布を唯一に表す','特殊な水色の分散記号を使いません'])assert(phosphateText.includes(phrase),`Phosphoric-acid detail must explain ${phrase}`);
+for(const [id,branches] of [['sulfur-dioxide',2],['sulfur-trioxide',3],['sulfuric-acid',2]]){
+  assert.deepEqual(entries[id].visuals?.find(visual=>visual.type==='distributed-bond'),{type:'distributed-bond',motif:'sulfur-oxo',target:'sulfur-oxo-bonds',branches});
+  assert(!entries[id].visuals?.some(visual=>visual.type==='resonance'));
+}
+assert.match(entries.pyridine.details.map(section=>section.body).join(' '),/孤立電子対は環面内/);
 
-assert.match(source,/encyclopedia\.json\?v=32/,'Collection UI must load the v2 catalog with the current cache key');
+assert.match(source,/encyclopedia\.json\?v=33/,'Collection UI must load the v2 catalog with the current cache key');
 assert.doesNotMatch(source,/record\.learningNote/,'legacy learningNote must not remain a rendered content authority');
 assert.match(source,/chemistry-detail/);
 assert.doesNotMatch(source,/model-collection-notes|模型・収録について/,'Repeated model/collection notes must not remain in the player-facing detail renderer');

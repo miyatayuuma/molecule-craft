@@ -5,7 +5,7 @@
 <h2 id="name"></h2><div id="model"></div></main>
 <script type="module">
   import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
-  import {createCollectionViewer} from '../src/collection-viewer.js?v=31';
+  import {createCollectionViewer} from '../src/collection-viewer.js?v=37';
   import {checkAromaticRendering} from './aromatic-rendering-checks.js?v=31';
   const [records,parts]=await Promise.all(['molecules','craft-structures'].map(name=>fetch(`../data/${name}.json`).then(r=>r.json())));
   try{document.querySelector('#summary').textContent=checkAromaticRendering(THREE,records,parts);}catch(error){document.querySelector('#summary').textContent=`FAIL: ${error.message}`;throw error;}
