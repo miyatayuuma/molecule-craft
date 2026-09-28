@@ -64,6 +64,7 @@ jobs:
         run: |
           node tests/repository-hygiene.test.mjs
           node --test tests/reaction-lab-core.test.mjs
+          node --test tests/reaction-lab-discovery.test.mjs tests/reaction-lab-discovery-collection.test.mjs
           node --test tests/reaction-lab-generic-fixtures.test.mjs tests/reaction-lab-calibration.test.mjs
           node --test tests/reaction-lab-viewer-reservation.test.mjs
           node --test tests/reaction-lab-batch.test.mjs

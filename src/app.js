@@ -24,7 +24,7 @@ import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { createCraftHistory } from './craft-history.js?v=2';
 import { bindCraftControls } from './craft-controls.js?v=3';
-import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=7';
+import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=8';
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 import { matchCraftTarget } from './craft-target-satisfaction.js';
@@ -32,6 +32,7 @@ import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js
 import { observeCraftStereo } from './stereo-observation.js?v=1';
 import { createTearGesture, findTearCandidate, projectedTearPull } from './craft-tearoff.js?v=1';
 import { captureDetachedFragment, createDetachedDrag } from './craft-detached-drag.js?v=1';
+import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=2';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
@@ -59,7 +60,7 @@ const protectedUntil=new Map();
 let lastBackgroundTap=null,frameTransition=null;
 let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
 let collectionGame=null,collectionOpen=false,craftTargetId=null,craftBondHint=null;
-let reactionLabViewer=null,reactionLabDialogOpen=false,reactionLabPointerLocked=false;
+let reactionLabViewer=null,reactionLabDiscovery=null,reactionLabDialogOpen=false,reactionLabPointerLocked=false;
 let refreshInfoFault='',animationFault='';
 
 const viewer=document.querySelector('#viewer');
@@ -115,11 +116,15 @@ loadMoleculeDatabase().then(async result=>{
   if(!result.ok){elementPalette.fallback();if(renderer)pulse('分子名DBを読み込めませんでした · 制作機能は利用できます');document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='分子DBを読めないため図鑑は利用できません';return;}
   resources.setCatalog(moleculeCatalog());
   try{
-    collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;}});
+    collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;if(!open)reactionLabDiscovery?.onCollectionClosed();}});
     try{
-      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=17');
+      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=18');
       reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,
         onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
+      reactionLabDiscovery=createReactionLabDiscoveryCoordinator({records:moleculeCatalog(),collection:collectionGame,root:document,
+        closeLabAndWait:()=>reactionLabViewer.closeAndWait(),openLab:()=>reactionLabViewer.open(),isLabOpen:()=>reactionLabViewer.isOpen(),getBatchGeneration:()=>reactionLabViewer.getBatchGeneration(),
+        getFocus:()=>document.activeElement,onVibrate:()=>vibrateFeedback(22,'touch')});
+      window.addEventListener('molecule-craft:reaction-lab-product',event=>reactionLabDiscovery?.handleProductEvent(event));
       document.querySelector('#open-reaction-lab').addEventListener('click',()=>{if(gameShell.isOpen()||collectionOpen||veilUI?.active||!reactionLabViewer)return;reactionLabViewer.open();});
       document.querySelector('#open-reaction-lab').disabled=false;
     }catch(error){console.error('Reaction Lab could not start.',error);document.querySelector('#open-reaction-lab').disabled=true;}
