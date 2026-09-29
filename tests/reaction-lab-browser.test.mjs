@@ -217,7 +217,7 @@ try{
     assert.ok(Math.hypot(...after.map((value,index)=>value-before[index]))>.15,'Generated products remain individually movable');const productIds=moved.instances.filter(item=>products.includes(item.species)).map(item=>item.id);await new Promise(resolve=>setTimeout(resolve,300));remaining=await snapshot();assert.ok(productIds.every(id=>remaining.instances.some(item=>item.id===id)),'Products persist in the same batch without a timer cleanup');return remaining;
   };
   const runDeepOverlapNegative=async reactionId=>{
-    const eventCount=await evaluate('window.__labReactionEvents.length'),pose=await evaluate(`window.__reactionLabProbe.prepareCalibratedReactionPose('${reactionId}')`);
+    const eventCount=await evaluate('window.__labReactionEvents.length'),pose=await evaluate(`window.__reactionLabProbe.prepareGenericReactionPose('${reactionId}')`);
     await evaluate(`window.__reactionLabProbe.startReactionTrajectoryTrace('${reactionId}',${JSON.stringify(pose.ids)})`);
     await evaluate(`window.__reactionLabProbe.setGeometry([${JSON.stringify({id:pose.ids[0],positionAngstrom:[0,0,0]})},${JSON.stringify({id:pose.ids[1],positionAngstrom:[0,0,0]})}])`);
     const state=await evaluate('window.__reactionLabProbe.advanceDeterministic(1)'),rows=state.reactionCandidates.filter(item=>item.reactionId===reactionId&&pose.ids.every(id=>item.encounterParticipantIds.includes(id)));
