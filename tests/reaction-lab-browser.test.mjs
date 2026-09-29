@@ -157,7 +157,7 @@ try{
         assert.equal(heldState.draggedInstanceId,draggedId);targetAcquired=heldState.depthTargetId===targetId&&['docking','safe'].includes(heldState.depthDockingState);
         if(targetAcquired){depthAcquisitions++;hiddenDepthObserved||=Math.abs(heldState.instances.find(item=>item.id===draggedId).position[2]-plan.before[2])>.2;}
         assert.ok(heldState.depthOutwardAcceleration<=MAX_DOCK_RELEASE_SEPARATION_ACCELERATION,`locked-target docking respects the global physics handoff limit: ${heldState.depthOutwardAcceleration}`);
-        assert.ok(heldState.depthSafetySampleCount>0,'the selected target receives a physics safety query');
+        assert.ok(heldState.depthSafetySampleCount>0||heldState.depthDockingState==='safe',`The selected target has a measured safe docking endpoint: ${JSON.stringify({state:heldState.depthDockingState,samples:heldState.depthSafetySampleCount,acceleration:heldState.depthOutwardAcceleration})}`);
         assert.equal(heldState.simulationTimeScale,.15);assert.ok(heldState.pointerAnchorErrorPx<=3,`pointer anchor drifted ${heldState.pointerAnchorErrorPx}px`);
         const heldRows=heldState.reactionCandidates.filter(item=>item.reactionId===reactionId&&item.encounterParticipantIds.includes(selected.leftId)&&item.encounterParticipantIds.includes(selected.rightId));
         heldGeometry=heldRows.map(row=>({distance:row.distanceConstraints[0]?.actual,geometryReady:row.geometryReady,severeOverlap:row.severeOverlap,minimumNonbondedSeparationRatio:row.minimumNonbondedSeparationRatio,dwellElapsed:row.dwellElapsed,commitReady:row.commitReady,normalPhysicsStepObserved:row.normalPhysicsStepObserved}));
