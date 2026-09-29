@@ -489,7 +489,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(severeOverlap)rejectionReasons.push('severe-overlap');
       const environmentMatched=environmentMatches(candidate.reaction,activeConditions);if(!environmentMatched)rejectionReasons.push('environment-mismatch');
       if(!stageBPhysicsEnabled)rejectionReasons.push('non-production-physics');
-      const ids=Object.values(participantInstances).filter(Boolean).sort(),dwellKey=`${candidate.reactionId}:${candidate.pathwayId}:${ids.join('|')}:g${batch.generation}`;
+      const roleAssignments=Object.entries(participantInstances).sort(([a],[b])=>a.localeCompare(b)).map(([role,id])=>`${role}=${id}`),dwellKey=`${candidate.reactionId}:${candidate.pathwayId}:${roleAssignments.join('|')}:g${batch.generation}`;
       const eligible=!manipulating&&!rejectionReasons.length;
       if(supplemental.ok)contactMatcher.markActive(dwellKey);
       const elapsed=manipulating?0:(contactMatcher.update(dwellKey,eligible,stepMs),contactMatcher.elapsed(dwellKey));
