@@ -47,6 +47,7 @@ try{
     }
   };
   const spaceCurrentBatch=async positions=>{const state=await snapshot();assert.equal(state.instances.length,positions.length);await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(state.instances.map((item,index)=>({id:item.id,positionAngstrom:positions[index],velocityAngstromPerPs:[0,0,0],angularVelocityRadPerPs:[0,0,0]})))})`);};
+  const spaceCurrentBatchBySpecies=async layouts=>{const state=await snapshot(),used=new Map();assert.equal(state.instances.length,Object.values(layouts).reduce((sum,positions)=>sum+positions.length,0));const poses=state.instances.map(item=>{const positions=layouts[item.species];assert.ok(positions,`No browser staging layout for ${item.species}`);const index=used.get(item.species)??0;assert.ok(positions[index],`Too many ${item.species} instances for browser staging layout`);used.set(item.species,index+1);return{id:item.id,positionAngstrom:positions[index],velocityAngstromPerPs:[0,0,0],angularVelocityRadPerPs:[0,0,0]};});for(const [species,positions] of Object.entries(layouts))assert.equal(used.get(species),positions.length,`Browser staging layout consumed every ${species} instance`);await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(poses)})`);};
   const seedCollection=async ids=>{
     const save=JSON.stringify({schemaVersion:3,discoveredMolecules:ids.map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]});
     await evaluate(`localStorage.setItem('molecule-craft.collection.v1',${JSON.stringify(save)})`);
@@ -328,7 +329,11 @@ try{
   await runReaction('complete-23-methanol-dehydration',['dimethyl-ether','water'],{verifyPausedTransformation:false});
   await clickAt('[data-lab-heat]');
   await setSlots(['methane','oxygen','2-butene']);await waitForPopulation(['methane','oxygen','2-butene'],6,'Supplemental three-instance production rule feed population did not initialize');
-  await spaceCurrentBatch([[-2.5,-5,0],[2.5,-5,0],[-2.5,0,0],[2.5,0,0],[-2.5,5,0],[2.5,5,0]]);
+  await spaceCurrentBatchBySpecies({methane:[[-.3,0,0],[4.5,2.6,0]],oxygen:[[.3,0,4.2],[-4.5,-2.6,4.2]],'2-butene':[[4.5,-2.7,0],[-4.5,2.7,0]]});
+  const combustionStage=await snapshot(),combustionProjection=await evaluate('window.__reactionLabProbe.projectedBounds()'),byCombustionId=new Map(combustionProjection.map(item=>[item.id,item])),methaneStage=combustionStage.instances.filter(item=>item.species==='methane'),oxygenStage=combustionStage.instances.filter(item=>item.species==='oxygen');
+  const projectedGap=(left,right)=>Math.min(...left.atoms.flatMap(a=>right.atoms.map(b=>Math.hypot(a.x-b.x,a.y-b.y)-a.radius-b.radius)));
+  const stagedPairs=methaneStage.flatMap(methane=>oxygenStage.map(oxygen=>{const constraints=combustionStage.reactionCandidates.filter(item=>item.reactionId==='complete-28-methane-combustion'&&item.participants.methane===methane.id&&item.participants.oxygenA===oxygen.id).flatMap(item=>item.distanceConstraints??[]).sort((a,b)=>a.actual-b.actual);return{methane:methane.id,oxygen:oxygen.id,siteDistance:constraints[0]?.actual,windowMax:constraints[0]?.max,gap:projectedGap(byCombustionId.get(methane.id),byCombustionId.get(oxygen.id))};})).sort((a,b)=>a.siteDistance-b.siteDistance);
+  assert.ok(stagedPairs[0]?.siteDistance>stagedPairs[0].windowMax&&stagedPairs[0].gap<=24,`Methane combustion encounter begins outside the chemistry window while its projected surfaces enter the existing depth-target acquire window: ${JSON.stringify(stagedPairs)}`);
   await clickAt('[data-lab-heat]');
   await runReaction('complete-28-methane-combustion',['carbon-dioxide','water','water'],{verifyPausedTransformation:false});
 
