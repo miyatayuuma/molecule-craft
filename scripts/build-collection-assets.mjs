@@ -1,10 +1,10 @@
 // Build-time projections; the list never starts a renderer or solver.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createPreviewModel} from '../src/preview-model.js?v=33';
+import {createPreviewModel} from '../src/preview-model.js?v=35';
 import {ELEMENTS,modelAtomRadius} from '../src/chemistry.js';
 import {AROMATIC_STYLE,aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js?v=27';
-import {RESONANCE_STYLE,specialEdgeKeys,sharedBondCurves} from '../src/special-bonds.js?v=33';
+import {RESONANCE_STYLE,SULFUR_OXO_STYLE,specialEdgeKeys,sharedBondCurves,sulfurOxoBondAxes} from '../src/special-bonds.js?v=34';
 import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
 import {canonicalPartView,PART_SETTLEMENT} from '../src/part-presentation.js?v=2';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8').then(JSON.parse);
@@ -32,13 +32,20 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
   }
   for(const cycle of layout.aromaticCycles){const frame=aromaticRingFrame(THREE,cycle.map(i=>layout.atoms[i].point));if(!frame)continue;const points=aromaticRingPoints(frame).map(p=>project(p.clone().applyQuaternion(rotation)));shapes.push({z:points.reduce((s,p)=>s+p.z,0)/points.length,svg:`<path data-aromatic-ring="true" d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}Z" fill="none" stroke="${AROMATIC_STYLE.assetCssColor}" stroke-width="1.7"/>`});}
   for(const shared of layout.sharedGroups??[]){
-    const curves=sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'}),resonance=['nitro','ozone'].includes(shared.kind),distributed=curves.length>=2;
+    if(shared.kind==='sulfur-oxo'){
+      sulfurOxoBondAxes(THREE,shared,id=>layout.atoms[id].point).forEach(({start,end,branch})=>{
+        const points=[start,end].map(point=>project(point.applyQuaternion(rotation))),marker=` data-sulfur-oxo-halo="true" data-sulfur-oxo-style="bond-axis-halo" data-sulfur-oxo-branch="${branch}" data-sulfur-bond-role="terminal"`;
+        shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length-.04,svg:`<path${marker} d="M${n(points[0].x)} ${n(points[0].y)}L${n(points[1].x)} ${n(points[1].y)}" fill="none" filter="url(#sulfur-oxo-halo-blur)" stroke="${SULFUR_OXO_STYLE.cssColor}" stroke-opacity=".68" stroke-width="${n(bondStrokeWidth*2.8)}" stroke-linecap="round"/>`});
+      });
+      continue;
+    }
+    const curves=sharedBondCurves(THREE,shared,id=>layout.atoms[id].point,{mode:'encyclopedia'}),resonance=['nitro','ozone'].includes(shared.kind);
     curves.forEach((curve,index)=>{
-      const points=curve.map(p=>project(p.applyQuaternion(rotation))),marker=resonance?` data-resonance-distributed-bond="true" data-resonance-style="distributed-dashed" data-resonance-branch="${index}"`:distributed?` data-distributed-bond="true" data-distributed-style="distributed-dashed" data-distributed-branch="${index}"`:'',opacity=distributed?String(RESONANCE_STYLE.opacity):'.65',width=distributed?bondStrokeWidth:'1.2',cap=distributed?' stroke-linecap="round"':'',stroke=distributed?RESONANCE_STYLE.assetCssColor:'#8ce7ee',dash=distributed?` stroke-dasharray="${n(bondStrokeWidth*3.2)} ${n(bondStrokeWidth*2.2)}"`:'';
+      const points=curve.map(p=>project(p.applyQuaternion(rotation))),marker=resonance?` data-resonance-distributed-bond="true" data-resonance-style="distributed-dashed" data-resonance-branch="${index}"`:'',opacity=String(RESONANCE_STYLE.opacity),width=bondStrokeWidth,cap=' stroke-linecap="round"',stroke=RESONANCE_STYLE.assetCssColor,dash=` stroke-dasharray="${n(bondStrokeWidth*3.2)} ${n(bondStrokeWidth*2.2)}"`;
       shapes.push({z:points.reduce((sum,p)=>sum+p.z,0)/points.length,svg:`<path${marker} d="${points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y)}`).join('')}" fill="none" stroke="${stroke}" stroke-opacity="${opacity}" stroke-width="${width}"${dash}${cap}/>`});
     });
   }
-  const defs=new Set();
+  const defs=new Set(),hasSulfurOxo=(layout.sharedGroups??[]).some(shared=>shared.kind==='sulfur-oxo');
   atoms.forEach((atom,i)=>{const {x,y,z}=projected[i],r=radii[i],atomIndex=kind==='part'?` data-atom-index="${i}"`:'';defs.add(atom.element);shapes.push({z,svg:`<circle${atomIndex} cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#${atom.element})"/>`});});
   for(const [portIndex,port]of layout.ports.entries()){
     const a=projected[port.atom],p=project(port.point.clone().applyQuaternion(rotation)),segment=attachmentProjection(a,p,radii[port.atom]+.5);if(!segment)continue;
@@ -47,7 +54,8 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
   }
   atoms.forEach((atom,i)=>{if(atom.charge){const p=projected[i];shapes.push({z:Infinity,svg:`<text x="${n(p.x+radii[i])}" y="${n(p.y-radii[i])}" fill="#e5f8ff" font-size="12" font-family="sans-serif">${atom.charge>0?'+':'−'}</text>`});}});
   const viewAttributes=partView?` data-canonical-part-view="true" data-part-view-pitch="${partView.pitch.toFixed(6)}" data-part-view-yaw="${partView.yaw.toFixed(6)}" data-part-view-roll="${partView.roll.toFixed(6)}"`:'';
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg"${viewAttributes} viewBox="0 0 192 128"><defs>${[...defs].map(symbol=>`<radialGradient id="${symbol}" cx="30%" cy="25%" r="75%"><stop stop-color="#e6f0f5"/><stop offset=".3" stop-color="${ELEMENTS[symbol].color}"/><stop offset="1" stop-color="${shade(ELEMENTS[symbol].color,.64)}"/></radialGradient>`).join('')}</defs>${shapes.sort((a,b)=>a.z-b.z).map(item=>item.svg).join('')}</svg>\n`;
+  const sulfurFilter=hasSulfurOxo?'<filter id="sulfur-oxo-halo-blur" filterUnits="userSpaceOnUse" x="0" y="0" width="192" height="128"><feGaussianBlur stdDeviation="2.4"/></filter>':'';
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg"${viewAttributes} viewBox="0 0 192 128"><defs>${sulfurFilter}${[...defs].map(symbol=>`<radialGradient id="${symbol}" cx="30%" cy="25%" r="75%"><stop stop-color="#e6f0f5"/><stop offset=".3" stop-color="${ELEMENTS[symbol].color}"/><stop offset="1" stop-color="${shade(ELEMENTS[symbol].color,.64)}"/></radialGradient>`).join('')}</defs>${shapes.sort((a,b)=>a.z-b.z).map(item=>item.svg).join('')}</svg>\n`;
   await writeFile(new URL(`assets/models/${kind}-${record.id}.svg`,root),svg);
 }
 console.log(`Generated ${records.length} molecule + ${parts.length} part thumbnails`);
