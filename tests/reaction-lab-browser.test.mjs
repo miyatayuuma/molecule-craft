@@ -324,7 +324,7 @@ try{
   await runReaction('complete-16-methane-chlorination',['chloromethane','hydrogen-chloride'],{verifyPausedTransformation:false});
   await clickAt('[data-lab-heat]');
   await setSlots(['methanol','','']);await waitForPopulation(['methanol'],4,'Same-species production rule feed population did not initialize');
-  await spaceCurrentBatch([[-3,0,0],[3,0,0]]);
+  await spaceCurrentBatch([[-2.5,-4,0],[2.5,-4,0],[-2.5,4,0],[2.5,4,0]]);
   await clickAt('[data-lab-heat]');
   await runReaction('complete-23-methanol-dehydration',['dimethyl-ether','water'],{verifyPausedTransformation:false});
   await clickAt('[data-lab-heat]');
