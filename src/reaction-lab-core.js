@@ -5,7 +5,9 @@ import { canonicalNonbondedPairGeometry } from './reaction-lab-stage-a.js?v=4';
 import { enumerateSubgraphMappings } from './subgraph-matcher.js?v=1';
 import { REACTION_LAB_ENVIRONMENT_TOKENS, enumerateCanonicalReactionLabEnvironments, environmentTokensFromSnapshot, reactionLabEnvironmentStateFromTokens, validateNormalizedEnvironmentTokens, snapshotReactionLabEnvironment } from './reaction-lab-environment.js?v=1';
 import { REACTION_SITE_PATTERNS, REACTION_FAMILIES } from './reaction-lab-authority.js?v=1';
+import { REACTION_CATALOG } from './reaction-lab-catalog.js?v=1';
 export { REACTION_SITE_PATTERNS, REACTION_FAMILIES };
+export { REACTION_CATALOG };
 
 export const REACTION_LAB_SLOT_COUNT = 3;
 // User-driven Stage B trajectories retain safe acyl-transfer geometry for
@@ -13,15 +15,6 @@ export const REACTION_LAB_SLOT_COUNT = 3;
 // intervals after the first eligible fixed step.
 export const CONTACT_DWELL_MS = 1000/60;
 export const MAX_REACTION_PATTERN_MATCHES = 10000;
-
-export const REACTION_CATALOG = Object.freeze([
-  { id:'anhydride-hydrolysis',familyId:'sigma-cross-exchange',reactants:[
-    {role:'primary',species:'acetic-anhydride'}, {role:'transferPair',species:'water'},
-  ],products:['acetic-acid','acetic-acid'],requires:[],forbids:[] },
-  { id:'anhydride-alcoholysis',familyId:'sigma-cross-exchange',reactants:[
-    {role:'primary',species:'acetic-anhydride'}, {role:'transferPair',species:'ethanol'},
-  ],products:['ethyl-acetate','acetic-acid'],requires:[],forbids:[] },
-]);
 
 export function normalizeSpeciesSlots(values, records) {
   const ids=new Set(records.map(record=>record.id));

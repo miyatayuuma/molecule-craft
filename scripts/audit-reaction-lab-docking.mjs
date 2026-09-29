@@ -93,7 +93,7 @@ function orientation(index,count,phase=0){const y=1-2*(index+.5)/count,r=Math.sq
 function reactionReady(species,oxygenIndex,seed,reactionId,siteDistanceAngstrom){
   const anhydride=buildBody('anhydride','acetic-anhydride'),nucleophile=buildBody('nucleophile',species),aQ=orientation(seed,180),bQ=orientation((seed*73)%180,180,.7);anhydride.orientation=aQ;nucleophile.orientation=bQ;
   const siteA=rotate(anhydride.atoms[1].positionAngstrom,aQ),siteB=rotate(nucleophile.atoms[oxygenIndex].positionAngstrom,bQ);nucleophile.positionAngstrom=siteA.map((value,index)=>value+(index===0?siteDistanceAngstrom:0)-siteB[index]);
-  const candidate=reactionCandidates([{species:'acetic-anhydride',id:anhydride.id},{species,id:nucleophile.id}],catalog).find(row=>row.reactionId===reactionId&&row.bindings.acyl?.acylC===1&&row.bindings.nucleophile?.oxygen===oxygenIndex);
+  const candidate=reactionCandidates([{species:'acetic-anhydride',id:anhydride.id},{species,id:nucleophile.id}],catalog).find(row=>row.reactionId===reactionId&&row.bindings.primary?.center===1&&row.bindings.transferPair?.incoming===oxygenIndex);
   if(!candidate)throw Error(`Missing compiled ${reactionId} calibration candidate`);
   const constraint=candidate.geometryConstraints[0],delta=sub(nucleophile.positionAngstrom,anhydride.positionAngstrom),distance=norm(delta),axis=delta.map(value=>value/(distance||1)),oracle=createStageBPairSafetyOracle(nucleophile,anhydride),safety=oracle({draggedPositionAngstrom:nucleophile.positionAngstrom,targetPositionAngstrom:anhydride.positionAngstrom,cameraNormal:axis,branchSign:1});
   let severeOverlap=false,minimumRatio=Infinity;
@@ -103,7 +103,7 @@ function reactionReady(species,oxygenIndex,seed,reactionId,siteDistanceAngstrom)
 
 const pairs=[contactAndSafe('water','water'),contactAndSafe('water','carbon-dioxide'),contactAndSafe('water','acetone'),contactAndSafe('water','methane')];
 const settled=settledFixtures();
-const reactions=[reactionReady('water',0,88,'anhydride-hydrolysis',3.174),reactionReady('ethanol',2,35,'anhydride-alcoholysis',2.911)];
+const reactions=[reactionReady('water',0,88,'complete-01-anhydride-hydrolysis',3.174),reactionReady('ethanol',2,35,'complete-02-anhydride-alcoholysis',2.911)];
 const globalSafetyThreshold=MAX_DOCK_RELEASE_SEPARATION_ACCELERATION;
 assert.ok(pairs.every(row=>row.report.oldVisualContact.outwardRelativeAcceleration>globalSafetyThreshold),'all visual-contact controls must be unsafe');
 assert.ok(pairs.every(row=>row.report.newSafeEndpoint.outwardRelativeAcceleration<=globalSafetyThreshold),'all new endpoints must meet the global limit');
