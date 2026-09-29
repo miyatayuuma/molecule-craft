@@ -5,18 +5,17 @@ import * as THREE from '../vendor/three/three.module.min.js';
 import { createPreviewModel } from '../src/preview-model.js';
 import {
   compileReactionCatalog, reactionCandidates, resolveSupplementalParticipants,
-  createContactMatcher, CONTACT_DWELL_MS, environmentMatches,
+  createContactMatcher, CONTACT_DWELL_MS, environmentMatches, REACTION_CATALOG,
+  REACTION_FAMILIES,
 } from '../src/reaction-lab-core.js';
 import {
   canonicalNonbondedPairGeometry, createStageABody, rigidBodyMassProperties,
   REACTION_LAB_WORLD_UNITS_PER_ANGSTROM, STAGE_A_GAME_STEP_SECONDS,
 } from '../src/reaction-lab-stage-a.js';
 import { createStageBVirtualSites, integrateStageB, STAGE_B_TEST_QA_E } from '../src/reaction-lab-stage-b.js';
-import { COMPLETE_REACTION_FIXTURE, COMPLETE_REACTION_AUTHORITY } from './fixtures/reaction-lab-complete-catalog.mjs';
-
 const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
 const byId=new Map(records.map(record=>[record.id,record]));
-const catalog=compileReactionCatalog(records,COMPLETE_REACTION_AUTHORITY);
+const catalog=compileReactionCatalog(records);
 const fixedStepMs=STAGE_A_GAME_STEP_SECONDS*1000;
 const physicalStepPs=STAGE_A_GAME_STEP_SECONDS*.10;
 const orientationCount=24;
@@ -83,11 +82,11 @@ function trajectory(rule,candidate,participants,anchor,orientationA,orientationB
 }
 
 function calibrate(rule){
-  const family=COMPLETE_REACTION_AUTHORITY.families.find(item=>item.id===rule.familyId),encounterRows=rule.reactants.filter(item=>family.roles[item.role].participation==='encounter').sort((a,b)=>a.role.localeCompare(b.role));
+  const family=REACTION_FAMILIES.find(item=>item.id===rule.familyId),encounterRows=rule.reactants.filter(item=>family.roles[item.role].participation==='encounter').sort((a,b)=>a.role.localeCompare(b.role));
   assert.equal(encounterRows.length,2,`${rule.id} has two encounter roles`);
   const ids=encounterRows.map((_,index)=>`${rule.id}-encounter-${index}`),pair=encounterRows.map((row,index)=>({species:row.species,id:ids[index]}));
   const candidate=reactionCandidates(pair,catalog).find(item=>item.reactionId===rule.id);
-  assert.ok(candidate,`${rule.id} exposes its matching encounter pathway to the test-only compiled catalog`);
+  assert.ok(candidate,`${rule.id} exposes its matching encounter pathway to the production catalog`);
   const active=[...encounterRows.map((row,index)=>({id:ids[index],species:row.species,busy:false,batchGeneration:1})),...rule.reactants.filter(item=>family.roles[item.role].participation==='supplemental').map((row,index)=>({id:`${rule.id}-supplemental-${index}`,species:row.species,busy:false,batchGeneration:1}))];
   const resolved=resolveSupplementalParticipants(candidate.reaction,candidate,active,item=>0);
   assert.equal(resolved.ok,true,`${rule.id} has all real supplemental instances`);
@@ -108,9 +107,9 @@ function calibrate(rule){
   return{rule,candidate,result:best};
 }
 
-test('all 29 complete-fixture rules reach geometry-ready Stage B dwell with a bounded orientation search',()=>{
+test('all 29 production rules reach geometry-ready Stage B dwell with a bounded orientation search',()=>{
   const results=[];
-  for(const rule of COMPLETE_REACTION_FIXTURE){
+  for(const rule of REACTION_CATALOG){
     // The compiler validated every canonical environment; this runtime check
     // confirms one concrete state satisfies the rule before trajectory work.
     assert.ok(environmentMatches(rule,new Set([...rule.requires])),`${rule.id} has a valid activation subset`);

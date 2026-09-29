@@ -13,7 +13,7 @@ function coordinator(collection,presented=[]){return createReactionLabDiscoveryC
 // Duplicate product instances stay distinct in the event; Collection registers their species once.
 {
   const storage={getItem:()=>null,setItem(){}};const collection=state(storage),shown=[],discovery=coordinator({registerDiscoveredMolecule:(id,options)=>collection.registerDiscoveredMolecule(id,options),...collection},shown);
-  const result=discovery.handleProductEvent(event(['acetic-acid','acetic-acid'],'anhydride-hydrolysis'));
+  const result=discovery.handleProductEvent(event(['acetic-acid','acetic-acid'],'complete-01-anhydride-hydrolysis'));
   assert.deepEqual(result.species,['acetic-acid']);assert.deepEqual(result.newSpecies,['acetic-acid']);
   assert.equal(collection.hasMolecule('acetic-acid'),true);assert.equal(discovery.snapshot().queue.length,1);
   assert.equal(discovery.snapshot().queue[0].productIds.length,2);assert.equal(discovery.snapshot().queue[0].firstProductIndex,0);
@@ -22,14 +22,14 @@ function coordinator(collection,presented=[]){return createReactionLabDiscoveryC
 // Alcoholysis first discovers two unique products in product order, and only an unknown is queued in a mixed case.
 {
   const collection=state({getItem:()=>null,setItem(){}}),wrapped={registerDiscoveredMolecule:(id,options)=>collection.registerDiscoveredMolecule(id,options)};
-  const discovery=coordinator(wrapped),result=discovery.handleProductEvent(event(['ethyl-acetate','acetic-acid'],'anhydride-alcoholysis'));
+  const discovery=coordinator(wrapped),result=discovery.handleProductEvent(event(['ethyl-acetate','acetic-acid'],'complete-02-anhydride-alcoholysis'));
   assert.deepEqual(result.newSpecies,['ethyl-acetate','acetic-acid']);
   assert.deepEqual(discovery.snapshot().queue.map(item=>item.speciesId),['ethyl-acetate','acetic-acid']);
   assert.deepEqual(collection.groupSources('ester'),['ethyl-acetate']);assert.deepEqual(collection.groupSources('carboxyl'),['acetic-acid']);
 
   const mixed=state({getItem:()=>null,setItem(){}});mixed.registerDiscoveredMolecule('acetic-acid',{at:1});
   const mixedCoordinator=coordinator({registerDiscoveredMolecule:(id,options)=>mixed.registerDiscoveredMolecule(id,options)});
-  mixedCoordinator.handleProductEvent(event(['ethyl-acetate','acetic-acid'],'anhydride-alcoholysis'));
+  mixedCoordinator.handleProductEvent(event(['ethyl-acetate','acetic-acid'],'complete-02-anhydride-alcoholysis'));
   assert.deepEqual(mixedCoordinator.snapshot().queue.map(item=>item.speciesId),['ethyl-acetate']);
 }
 

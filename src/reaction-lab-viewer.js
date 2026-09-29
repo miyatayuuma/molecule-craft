@@ -85,7 +85,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
   let reactionDiagnostics=[],reactionTrajectoryTrace=null;
-  let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
+  let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastFixedStepDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
   const activePointers=new Map();
   const chamberTime=createChamberTimeAuthority(),isManipulating=()=>chamberTime.mode===CHAMBER_TIME_MODES.MANIPULATING;
   let pinchActive=false,pinchDistance=0,depthTarget=null,depthDockingState='none',pointerAnchorErrorPx=0,depthSafetyOracle=null,depthSafetyPairKey=null,depthOutwardAcceleration=Infinity,depthSafetySampleCount=0;
@@ -739,6 +739,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     item.group.updateMatrixWorld(true);
   }
   function integrateStageAStep(physicalDeltaPs){
+    const fixedStepStarted=performance.now();
     const active=instances.filter(item=>!item.busy&&!item.feedMotion&&(!testIsolation||testIsolation.has(item.id))).map(item=>{
       const body=item.stageBody,dragged=item===selected&&isManipulating()&&down?.group===item;
       if(dragged){syncStageABodyFromGroup(item);body.velocityAngstromPerPs=[0,0,0];}
@@ -757,6 +758,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       }else syncGroupFromStageABody(item);
     }
     if(batch.phase===REACTION_LAB_BATCH_PHASES.ACTIVE)reactionStep(STAGE_A_GAME_STEP_SECONDS*1000);
+    stageAPerformance.lastFixedStepDurationMs=performance.now()-fixedStepStarted;
   }
   const stageAStepper=createFixedStepAccumulator(integrateStageAStep,{gameStepSeconds:STAGE_A_GAME_STEP_SECONDS,physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,maxCatchUpSteps:STAGE_A_MAX_CATCH_UP_STEPS});
   function tick(now){
@@ -800,6 +802,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       },
       setGeometry(poses){const ids=new Set(poses.map(pose=>pose.id));if(ids.size!==poses.length)throw Error('Stage A geometry fixture contains duplicate molecule IDs');endManipulation();activePointers.clear();pinchActive=false;pinchDistance=0;onPointerLockChange(false);testIsolation=ids.size?ids:null;contactMatcher.reset();reactionDiagnostics=[];for(const pose of poses){const item=instanceById(pose.id);if(!item)throw Error(`Missing fixture molecule ${pose.id}`);if(pose.positionAngstrom)item.stageBody.positionAngstrom=[...pose.positionAngstrom];if(pose.orientation)item.stageBody.orientation=[...pose.orientation];item.stageBody.velocityAngstromPerPs=[...(pose.velocityAngstromPerPs??[0,0,0])];item.stageBody.angularVelocityRadPerPs=[...(pose.angularVelocityRadPerPs??[0,0,0])];syncGroupFromStageABody(item);}clearDepthTarget();updateCommandBar();return this.snapshot();},
       advanceDeterministic(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps)));stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;}return this.snapshot();},
+      measureFixedSteps(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps))),durationsMs=[];stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;durationsMs.push(stageAPerformance.lastFixedStepDurationMs);}return{durationsMs,candidateCount:reactionDiagnostics.length,reactionIds:[...new Set(reactionDiagnostics.map(item=>item.reactionId))].sort()};},
       decomposePair(aId,bId){const a=instanceById(aId),b=instanceById(bId);if(!a||!b)throw Error('Missing Reaction Lab molecule instance');const result=stageBPhysicsEnabled?evaluateStageBForces([a.stageBody,b.stageBody]):evaluateStageAForces([a.stageBody,b.stageBody]);return{pairs:result.pairDiagnostics,bodies:Object.fromEntries([...result.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:result.overlapGuardActivationCount};},
       measurePairReleaseTrajectory(aId,bId){
         if(!stageBPhysicsEnabled)throw Error('Release handoff measurement requires production Stage B');

@@ -36,7 +36,7 @@ test('three equal slots allow zero to three known species and reject duplicates'
   assert.equal(planVisiblePopulation(['water','ethanol','acetic-acid']).length,6);
 });
 
-test('production catalog compiles exhaustive labelled pathways for the two registered reactions',()=>{
+test('production catalog compiles exhaustive labelled pathways for the two existing anhydride reactions',()=>{
   const hydrolysis=reactionCandidates([{species:'water',id:'w1'},{species:'acetic-anhydride',id:'a1'}],production);
   const alcoholysis=reactionCandidates([{species:'ethanol',id:'e1'},{species:'acetic-anhydride',id:'a1'}],production);
   assert.equal(hydrolysis.length,4,'both anhydride carbonyls and both explicit water H atoms remain distinct pathways');
@@ -56,7 +56,7 @@ test('declared edits use the matched acyl binding and auto-map every source atom
   const candidate=reactionCandidates([{species:'acetic-anhydride',id:'a1'},{species:'water',id:'w1'}],production).find(item=>item.bindings.primary.center===3&&item.bindings.transferPair.transfer===1);
   const plan=planReactionExecution(candidate,records);
   assert.equal(plan.ok,true);
-  assert.equal(plan.reactionId,'anhydride-hydrolysis');
+  assert.equal(plan.reactionId,'complete-01-anhydride-hydrolysis');
   assert.equal(plan.familyId,'sigma-cross-exchange');
   assert.equal(plan.pathwayId,candidate.pathwayId);
   assert.deepEqual(plan.products.map(record=>record.id),['acetic-acid','acetic-acid']);
@@ -68,7 +68,7 @@ test('declared edits use the matched acyl binding and auto-map every source atom
   assert.equal('atomMaps' in candidate.reaction,false);
   assert.equal('temporarySupply' in plan,false);
   const brokenGuard={...REACTION_FAMILIES[0],edits:REACTION_FAMILIES[0].edits.map((edit,index)=>index===0?{...edit,from:2}:edit)};
-  assert.throws(()=>compileReactionCatalog(records,{families:[brokenGuard]}),/source-state-guard-failed/,'catalog compilation verifies each declared source-state guard');
+  assert.throws(()=>compileReactionCatalog(records,{families:[brokenGuard],reactions:[REACTION_CATALOG[0]]}),/source-state-guard-failed/,'catalog compilation verifies each declared source-state guard');
   const ethanol=reactionCandidates([{species:'ethanol',id:'e1'},{species:'acetic-anhydride',id:'a1'}],production)[0];
   const alcoholysis=planReactionExecution(ethanol,records);
   assert.deepEqual(alcoholysis.products.map(record=>record.id),['ethyl-acetate','acetic-acid']);
@@ -80,7 +80,7 @@ test('reaction execution freezes one canonical environment snapshot with normali
   const candidate=reactionCandidates([{species:'acetic-anhydride',id:'a1'},{species:'water',id:'w1'}],production)[0],state=Object.freeze({light:true,heat:true,medium:'acidic'});
   const plan=planReactionExecution({...candidate,environmentConditions:['light','heat','acidic'],environmentSnapshot:state},records);
   assert.equal(plan.ok,true);assert.deepEqual(plan.environmentSnapshot,state);assert.equal(Object.isFrozen(plan.environmentSnapshot),true);
-  assert.deepEqual(plan.environmentConditions,{active:['acidic','heat','light'],requires:[],forbids:[]});
+  assert.deepEqual(plan.environmentConditions,{active:['acidic','heat','light'],requires:[],forbids:['basic']});
   assert.throws(()=>{plan.environmentSnapshot.medium='basic';},TypeError);
   const defaultPlan=planReactionExecution(candidate,records);assert.deepEqual(defaultPlan.environmentSnapshot,{light:false,heat:false,medium:'neutral'});assert.deepEqual(defaultPlan.environmentConditions.active,[]);
 });
@@ -142,7 +142,9 @@ test('Core environment vocabulary, satisfiability, and subset matching follow th
   assert.equal(environmentsOverlap({requires:[],forbids:['acidic','basic']},acidic),false);
   assert.equal(environmentsOverlap(acidic,ordinary),true);
   assert.equal(environmentsOverlap(heatAcid,{requires:['heat','basic'],forbids:[]}),false);
-  assert.deepEqual(REACTION_CATALOG.map(item=>item.id),['anhydride-hydrolysis','anhydride-alcoholysis'],'Production reaction catalog remains unchanged');
+  assert.equal(REACTION_CATALOG.length,29,'All ⑦A concrete rules are registered in production');
+  assert.equal(REACTION_CATALOG[0].id,'complete-01-anhydride-hydrolysis');
+  assert.equal(REACTION_CATALOG[1].id,'complete-02-anhydride-alcoholysis');
 });
 
 test('catalog, pattern and site enumeration order do not change stable pathway identities',()=>{
