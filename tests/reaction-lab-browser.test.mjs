@@ -46,6 +46,7 @@ try{
       await waitFor("document.querySelector('[data-lab-picker]').hidden",'Species picker did not close');
     }
   };
+  const spaceCurrentBatch=async positions=>{const state=await snapshot();assert.equal(state.instances.length,positions.length);await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(state.instances.map((item,index)=>({id:item.id,positionAngstrom:positions[index],velocityAngstromPerPs:[0,0,0],angularVelocityRadPerPs:[0,0,0]})))})`);};
   const seedCollection=async ids=>{
     const save=JSON.stringify({schemaVersion:3,discoveredMolecules:ids.map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]});
     await evaluate(`localStorage.setItem('molecule-craft.collection.v1',${JSON.stringify(save)})`);
@@ -309,13 +310,27 @@ try{
   await waitForPopulation(['acetic-anhydride','ethanol'],4,'Alcoholysis reactant population did not initialize');
   await runReaction('complete-02-anhydride-alcoholysis',['ethyl-acetate','acetic-acid']);
 
+  // Keep the reactive rack pose ineligible, then stage separated instances so
+  // this acceptance exercises a real pointer encounter rather than auto-feed.
+  await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="basic"]');
   await setSlots(['ethene','chlorine','']);await waitForPopulation(['ethene','chlorine'],4,'New bimolecular production rule feed population did not initialize');
+  await spaceCurrentBatch([[-2.5,-4,0],[2.5,-4,0],[-2.5,4,0],[2.5,4,0]]);
+  await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="acidic"]');
   await runReaction('complete-06-ethene-halogenation',['1-2-dichloroethane'],{verifyPausedTransformation:false});
+  await clickAt('[data-lab-light]');
   await setSlots(['methane','chlorine','']);await waitForPopulation(['methane','chlorine'],4,'LIGHT-gated production rule feed population did not initialize');
+  await spaceCurrentBatch([[-2.5,-4,0],[2.5,-4,0],[-2.5,4,0],[2.5,4,0]]);
+  await clickAt('[data-lab-light]');
   await runReaction('complete-16-methane-chlorination',['chloromethane','hydrogen-chloride'],{verifyPausedTransformation:false});
+  await clickAt('[data-lab-heat]');
   await setSlots(['methanol','','']);await waitForPopulation(['methanol'],4,'Same-species production rule feed population did not initialize');
+  await spaceCurrentBatch([[-3,0,0],[3,0,0]]);
+  await clickAt('[data-lab-heat]');
   await runReaction('complete-23-methanol-dehydration',['dimethyl-ether','water'],{verifyPausedTransformation:false});
+  await clickAt('[data-lab-heat]');
   await setSlots(['methane','oxygen','2-butene']);await waitForPopulation(['methane','oxygen','2-butene'],6,'Supplemental three-instance production rule feed population did not initialize');
+  await spaceCurrentBatch([[-2.5,-5,0],[2.5,-5,0],[-2.5,0,0],[2.5,0,0],[-2.5,5,0],[2.5,5,0]]);
+  await clickAt('[data-lab-heat]');
   await runReaction('complete-28-methane-combustion',['carbon-dioxide','water','water'],{verifyPausedTransformation:false});
 
   await evaluate('window.__labReactionEvents=[]');
