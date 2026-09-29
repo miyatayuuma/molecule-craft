@@ -5,8 +5,8 @@ import { createChargeLabel, createSharedBonds, sharedOxoGroups, specialEdgeKeys,
 import {
   reactionCandidates, planReactionExecution, resolveCandidateInstanceIds,
   compileReactionCatalog, createContactMatcher, scoreReactionGeometry,
-  arbitrateReactionCandidates, resolveSupplementalParticipants, environmentMatches, CONTACT_DWELL_MS,
-} from './reaction-lab-core.js?v=10';
+  arbitrateReactionCandidates, resolveSupplementalParticipants, supplementalSelectionCenter, environmentMatches, CONTACT_DWELL_MS,
+} from './reaction-lab-core.js?v=11';
 import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './reaction-lab-environment.js?v=1';
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=1';
 import {
@@ -466,11 +466,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(encounter.some(item=>!item))rejectionReasons.push('participant-missing');
       if(encounter.some(item=>item?.busy))rejectionReasons.push('participant-busy');
       if(encounter.some(item=>item&&testIsolation&&!testIsolation.has(item.id)))rejectionReasons.push('outside-test-isolation');
-      const anchor=candidate.geometryConstraints[0];
-      const anchorA=anchor?atomWorldAngstrom(instanceById(candidate.participantInstances[anchor.from.role]),anchor.from.atomIndex):[0,0,0];
-      const anchorB=anchor?atomWorldAngstrom(instanceById(candidate.participantInstances[anchor.to.role]),anchor.to.atomIndex):[0,0,0];
-      const center=anchorA.map((value,index)=>(value+anchorB[index])*.5);
-      const supplemental=resolveSupplementalParticipants(candidate.reaction,candidate,active,item=>Math.hypot(...item.stageBody.positionAngstrom.map((value,index)=>value-center[index])));
+      const center=supplementalSelectionCenter(candidate,(role,atomIndex)=>{
+        const item=instanceById(candidate.participantInstances[role]);return item?atomWorldAngstrom(item,atomIndex):null;
+      });
+      const supplemental=center?resolveSupplementalParticipants(candidate.reaction,candidate,active,item=>Math.hypot(...item.stageBody.positionAngstrom.map((value,index)=>value-center[index]))):{ok:false,reason:'participant-missing'};
       const participantInstances=supplemental.ok?supplemental.participantInstances:{...candidate.participantInstances};
       if(!supplemental.ok)rejectionReasons.push(supplemental.reason);
       const participantItems=Object.values(participantInstances).map(instanceById).filter(Boolean);
@@ -835,20 +834,17 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         const plan=this.dragPlan(left.id,atomA,separationWorld?axis.clone().multiplyScalar(separationWorld):[0,0,0]);
         return{...plan,reactionId,left:left.id,right:right.id,siteA:atomA,siteB:atomB,initialSiteDistance:atomWorld(left,atomA).distanceTo(atomWorld(right,atomB)),initialDepthDelta:Math.abs(left.group.position.clone().sub(right.group.position).dot(normal))};
       },
-      prepareCalibratedReactionPose(reactionId){
-        // Localhost-only deterministic release fixture. User interaction never
-        // calls this chemistry-specific pose utility.
+      prepareGenericReactionPose(reactionId){
+        // Localhost-only geometry probe. It selects a candidate by ID for the
+        // test but uses one family-agnostic target placement and no tuned pose.
         const candidates=instances.flatMap((left,index)=>instances.slice(index+1).flatMap(right=>reactionCandidates([{species:left.species,id:left.id},{species:right.species,id:right.id}],reactionCatalog)));
-        const candidate=candidates.find(item=>item.reactionId===reactionId&&item.bindings.acyl?.acylC===1&&item.bindings.nucleophile?.oxygen=== (item.speciesIds.includes('water')?0:2));
-        if(!candidate)throw Error(`No calibrated production pathway for ${reactionId}`);
+        const candidate=candidates.find(item=>item.reactionId===reactionId);
+        if(!candidate)throw Error(`No production pathway for ${reactionId}`);
         const [leftId,rightId]=candidate.reactantInstanceIds,left=instanceById(leftId),right=instanceById(rightId),anchor=candidate.geometryConstraints[0],siteA=anchor.from.atomIndex,siteB=anchor.to.atomIndex;
-        const seed=item=>{const count=180,y=1-2*(item.seed+.5)/count,r=Math.sqrt(1-y*y),angle=item.seed*2.399963229728653+item.phase,axis=new THREE.Vector3(r*Math.cos(angle),y,r*Math.sin(angle)),turn=(item.seed*.61803398875%1)*Math.PI*2;return new THREE.Quaternion().setFromAxisAngle(axis,turn);};
-        const firstSeed=reactionId==='anhydride-hydrolysis'?88:35,secondSeed=(firstSeed*73)%180,qA=seed({seed:firstSeed,phase:0}),qB=seed({seed:secondSeed,phase:.7});
         testIsolation=new Set([leftId,rightId]);contactMatcher.reset();reactionDiagnostics=[];endManipulation();
-        for(const item of instances){item.busy=false;item.stageBody.velocityAngstromPerPs=[0,0,0];item.stageBody.angularVelocityRadPerPs=[0,0,0];if(item!==left&&item!==right)item.group.position.set(9,9,0);}
-        left.group.position.set(0,0,0);left.group.quaternion.copy(qA);right.group.quaternion.copy(qB);
-        const pointA=left.record.atoms[siteA].point.clone().applyQuaternion(qA),pointB=right.record.atoms[siteB].point.clone().applyQuaternion(qB);
-        right.group.position.copy(pointA).add(new THREE.Vector3(2.7*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM,0,0)).sub(pointB);
+        for(const item of instances){item.busy=false;item.stageBody.velocityAngstromPerPs=[0,0,0];item.stageBody.angularVelocityRadPerPs=[0,0,0];item.group.quaternion.identity();if(item!==left&&item!==right)item.group.position.set(9,9,0);}
+        left.group.position.set(0,0,0);const axis=cameraRight(),pointA=left.record.atoms[siteA].point,pointB=right.record.atoms[siteB].point;
+        right.group.position.copy(pointA).addScaledVector(axis,anchor.target*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM).sub(pointB);
         for(const item of instances)syncStageABodyFromGroup(item);
         clearDepthTarget();return{reactionId,ids:[leftId,rightId],siteA,siteB,distanceAngstrom:atomWorldAngstrom(left,siteA).reduce((sum,value,index)=>sum+(value-atomWorldAngstrom(right,siteB)[index])**2,0)**.5};
       },

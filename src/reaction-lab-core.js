@@ -4,6 +4,8 @@ import { formalChargeForRecordAtom, molecularAromaticAtomIds } from './chemistry
 import { canonicalNonbondedPairGeometry } from './reaction-lab-stage-a.js?v=4';
 import { enumerateSubgraphMappings } from './subgraph-matcher.js?v=1';
 import { REACTION_LAB_ENVIRONMENT_TOKENS, enumerateCanonicalReactionLabEnvironments, environmentTokensFromSnapshot, reactionLabEnvironmentStateFromTokens, validateNormalizedEnvironmentTokens, snapshotReactionLabEnvironment } from './reaction-lab-environment.js?v=1';
+import { REACTION_SITE_PATTERNS, REACTION_FAMILIES } from './reaction-lab-authority.js?v=1';
+export { REACTION_SITE_PATTERNS, REACTION_FAMILIES };
 
 export const REACTION_LAB_SLOT_COUNT = 3;
 // User-driven Stage B trajectories retain safe acyl-transfer geometry for
@@ -12,46 +14,12 @@ export const REACTION_LAB_SLOT_COUNT = 3;
 export const CONTACT_DWELL_MS = 1000/60;
 export const MAX_REACTION_PATTERN_MATCHES = 10000;
 
-export const REACTION_SITE_PATTERNS = Object.freeze([
-  { id:'anhydride-acyl', atoms:[
-    {label:'acylC',element:'C',degree:3,neighborCounts:{O:2,C:1},aromatic:false},
-    {label:'carbonylO',element:'O',degree:1,formalCharge:0},
-    {label:'bridgeO',element:'O',degree:2,formalCharge:0},
-    {label:'otherAcylC',element:'C',degree:3,neighborCounts:{O:2,C:1},aromatic:false},
-  ], bonds:[['acylC','carbonylO',2],['acylC','bridgeO',1],['bridgeO','otherAcylC',1]] },
-  { id:'water-nucleophile', atoms:[
-    {label:'oxygen',element:'O',degree:2,neighborCounts:{H:2},formalCharge:0},
-    {label:'transferH',element:'H',degree:1,formalCharge:0},
-    {label:'otherH',element:'H',degree:1,formalCharge:0},
-  ], bonds:[['oxygen','transferH',1],['oxygen','otherH',1]] },
-  { id:'alcohol-nucleophile', atoms:[
-    {label:'oxygen',element:'O',degree:2,neighborCounts:{C:1,H:1},formalCharge:0},
-    {label:'ethylC',element:'C',degree:4,formalCharge:0},
-    {label:'transferH',element:'H',degree:1,formalCharge:0},
-  ], bonds:[['oxygen','ethylC',1],['oxygen','transferH',1]] },
-]);
-
-export const REACTION_FAMILIES = Object.freeze([
-  { id:'acyl-transfer', roles:{
-    acyl:{participation:'encounter',patterns:['anhydride-acyl']},
-    nucleophile:{participation:'encounter',patterns:['water-nucleophile','alcohol-nucleophile']},
-  }, geometry:{constraints:[{
-    from:'acyl.acylC',to:'nucleophile.oxygen',reference:'canonical-sigma',
-    minRatio:.78,targetRatio:.83,maxRatio:1.04,
-  }]}, edits:[
-    {op:'breakBond',a:'acyl.acylC',b:'acyl.bridgeO',from:1},
-    {op:'formBond',a:'acyl.acylC',b:'nucleophile.oxygen',from:'absent',order:1},
-    {op:'breakBond',a:'nucleophile.oxygen',b:'nucleophile.transferH',from:1},
-    {op:'formBond',a:'acyl.bridgeO',b:'nucleophile.transferH',from:'absent',order:1},
-  ] },
-]);
-
 export const REACTION_CATALOG = Object.freeze([
-  { id:'anhydride-hydrolysis',familyId:'acyl-transfer',reactants:[
-    {role:'acyl',species:'acetic-anhydride'}, {role:'nucleophile',species:'water'},
+  { id:'anhydride-hydrolysis',familyId:'sigma-cross-exchange',reactants:[
+    {role:'primary',species:'acetic-anhydride'}, {role:'transferPair',species:'water'},
   ],products:['acetic-acid','acetic-acid'],requires:[],forbids:[] },
-  { id:'anhydride-alcoholysis',familyId:'acyl-transfer',reactants:[
-    {role:'acyl',species:'acetic-anhydride'}, {role:'nucleophile',species:'ethanol'},
+  { id:'anhydride-alcoholysis',familyId:'sigma-cross-exchange',reactants:[
+    {role:'primary',species:'acetic-anhydride'}, {role:'transferPair',species:'ethanol'},
   ],products:['ethyl-acetate','acetic-acid'],requires:[],forbids:[] },
 ]);
 
@@ -123,7 +91,7 @@ function matchPattern(record,pattern,{limit=MAX_REACTION_PATTERN_MATCHES}={}) {
     if(spec.degree!=null&&ns.length!==spec.degree)return false;
     if(spec.formalCharge!=null&&spec.formalCharge!==graphAtom.formalCharge)return false;
     if(spec.aromatic!=null&&spec.aromatic!==graph.aromatic.has(graphAtom.id))return false;
-    return Object.entries(spec.neighborCounts??{}).every(([element,count])=>typeof count==='number'?elementCounts.get(element)===count:(elementCounts.get(element)??0)>=(count.min??0)&&(count.max==null||(elementCounts.get(element)??0)<=count.max));
+    return Object.entries(spec.neighborCounts??{}).every(([element,count])=>typeof count==='number'?(elementCounts.get(element)??0)===count:(elementCounts.get(element)??0)>=(count.min??0)&&(count.max==null||(elementCounts.get(element)??0)<=count.max));
   }).map(graphAtom=>graphAtom.id)]));
   if([...candidates.values()].some(list=>!list.length))return[];
   const matches=enumerateSubgraphMappings({labels:specs.map(spec=>spec.label),candidates,edges:edgeRows,adjacency:graph.adjacency,limit});
@@ -381,7 +349,10 @@ export function reactionCandidates(pair,catalogOrRecords){
   if(!catalog?.byEncounterSpecies)return[];
   const key=sorted([left.species,right.species]).join('|'),result=[];
   for(const pathway of catalog.byEncounterSpecies.get(key)??[]){
-    const encounter=pathway.reaction.reactants.filter(item=>pathway.family.roles[item.role].participation==='encounter');
+    // Role ordering is authority for an encounter. It is independent of the
+    // concrete reaction's declaration order, so same-species instances can
+    // be assigned deterministically below.
+    const encounter=pathway.reaction.reactants.filter(item=>pathway.family.roles[item.role].participation==='encounter').sort((a,b)=>a.role.localeCompare(b.role));
     const assignments=[];
     for(const[first,second]of [[left,right],[right,left]])if(first.species===pathway.roleSpecies[encounter[0].role]&&second.species===pathway.roleSpecies[encounter[1].role]){
       if(encounter[0].species===encounter[1].species&&first.id.localeCompare(second.id)>0)continue;
@@ -452,12 +423,26 @@ export function arbitrateReactionCandidates(candidates,{deadband=.025}={}){
 
 export function resolveSupplementalParticipants(reaction,candidate,instances,centerFor){
   const chosen={...(candidate.participantInstances??{})},used=new Set(Object.values(chosen));
+  if(used.size!==Object.values(chosen).length)return{ok:false,reason:'duplicate-participant-instance'};
   for(const participant of reaction.reactants.filter(row=>row.participation==='supplemental').sort((a,b)=>a.role.localeCompare(b.role))){
     const match=instances.filter(item=>item.species===participant.species&&!item.busy&&!used.has(item.id)).map(item=>({item,distance:centerFor(item)})).sort((a,b)=>a.distance-b.distance||a.item.id.localeCompare(b.item.id))[0];
     if(!match)return{ok:false,reason:'missing-stoichiometric-participant',species:participant.species,count:1};
     chosen[participant.role]=match.item.id;used.add(match.item.id);
   }
   return{ok:true,participantInstances:chosen,participants:reaction.reactants.map(row=>({role:row.role,instanceId:chosen[row.role]??null,species:row.species,participation:row.participation??'encounter'}))};
+}
+
+export function supplementalSelectionCenter(candidate,positionFor){
+  const endpointByKey=new Map();
+  for(const constraint of candidate?.geometryConstraints??[])for(const endpoint of [constraint.from,constraint.to]){
+    if(!endpoint||typeof endpoint.role!=='string'||!Number.isInteger(endpoint.atomIndex))return null;
+    endpointByKey.set(`${endpoint.role}\u0000${endpoint.atomIndex}`,endpoint);
+  }
+  if(!endpointByKey.size)return null;
+  const endpoints=[...endpointByKey.values()].sort((a,b)=>a.role.localeCompare(b.role)||a.atomIndex-b.atomIndex);
+  const positions=endpoints.map(endpoint=>positionFor(endpoint.role,endpoint.atomIndex));
+  if(positions.some(position=>!Array.isArray(position)||position.length!==3||!position.every(Number.isFinite)))return null;
+  return [0,1,2].map(axis=>positions.reduce((sum,position)=>sum+position[axis],0)/positions.length);
 }
 
 // Retained only as a pure strict product lookup helper for consumers/tests.

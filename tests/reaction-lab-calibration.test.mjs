@@ -48,7 +48,7 @@ for(const fixture of [
   {name:'hydrolysis',nucleophile:'water',oxygenIndex:0,rotationSeed:88},
   {name:'alcoholysis',nucleophile:'ethanol',oxygenIndex:2,rotationSeed:35},
 ])test(`production Stage B calibration: ${fixture.name} supports the final global dwell without exclusion or overlap`,()=>{
-  const candidates=reactionCandidates([{species:'acetic-anhydride',id:'anhydride'},{species:fixture.nucleophile,id:'nucleophile'}],catalog),candidate=candidates.find(item=>item.bindings.acyl.acylC===1&&item.bindings.nucleophile.oxygen===fixture.oxygenIndex);
+  const candidates=reactionCandidates([{species:'acetic-anhydride',id:'anhydride'},{species:fixture.nucleophile,id:'nucleophile'}],catalog),candidate=candidates.find(item=>item.bindings.primary.center===1&&item.bindings.transferPair.incoming===fixture.oxygenIndex);
   assert.ok(candidate,`compiled ${fixture.name} pathway exists`);
   const a=calibratedBody(byId.get('acetic-anhydride'),'anhydride'),b=calibratedBody(byId.get(fixture.nucleophile),'nucleophile'),orientationA=deterministicOrientation(fixture.rotationSeed,180),orientationB=deterministicOrientation((fixture.rotationSeed*73)%180,180,.7);
   alignReactionSites(a,b,1,fixture.oxygenIndex,2.7,orientationA,orientationB);
