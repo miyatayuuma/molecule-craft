@@ -41,7 +41,7 @@ test('production catalog compiles exhaustive labelled pathways for the two regis
   const alcoholysis=reactionCandidates([{species:'ethanol',id:'e1'},{species:'acetic-anhydride',id:'a1'}],production);
   assert.equal(hydrolysis.length,4,'both anhydride carbonyls and both explicit water H atoms remain distinct pathways');
   assert.equal(alcoholysis.length,2,'both anhydride carbonyls remain distinct pathways');
-  assert.ok(hydrolysis.every(item=>item.bindings.acyl.acylC>=0&&item.bindings.nucleophile.transferH>=0));
+  assert.ok(hydrolysis.every(item=>item.bindings.primary.center>=0&&item.bindings.transferPair.transfer>=0));
   assert.ok(new Set(hydrolysis.map(item=>item.symmetryClassId)).size===1);
   assert.ok(new Set(alcoholysis.map(item=>item.symmetryClassId)).size===1);
   const reversed=reactionCandidates([{species:'acetic-anhydride',id:'a1'},{species:'water',id:'w1'}],production);
@@ -53,15 +53,15 @@ test('production catalog compiles exhaustive labelled pathways for the two regis
 });
 
 test('declared edits use the matched acyl binding and auto-map every source atom to strict DB products',()=>{
-  const candidate=reactionCandidates([{species:'acetic-anhydride',id:'a1'},{species:'water',id:'w1'}],production).find(item=>item.bindings.acyl.acylC===3&&item.bindings.nucleophile.transferH===1);
+  const candidate=reactionCandidates([{species:'acetic-anhydride',id:'a1'},{species:'water',id:'w1'}],production).find(item=>item.bindings.primary.center===3&&item.bindings.transferPair.transfer===1);
   const plan=planReactionExecution(candidate,records);
   assert.equal(plan.ok,true);
   assert.equal(plan.reactionId,'anhydride-hydrolysis');
-  assert.equal(plan.familyId,'acyl-transfer');
+  assert.equal(plan.familyId,'sigma-cross-exchange');
   assert.equal(plan.pathwayId,candidate.pathwayId);
   assert.deepEqual(plan.products.map(record=>record.id),['acetic-acid','acetic-acid']);
   assert.ok(plan.graphDiff.brokenBonds.length>0&&plan.graphDiff.formedBonds.length>0);
-  assert.ok(plan.graphDiff.formedBonds.some(bond=>bond.a==='acyl:3'&&bond.b==='nucleophile:0'));
+  assert.ok(plan.graphDiff.formedBonds.some(bond=>bond.a==='primary:3'&&bond.b==='transferPair:0'));
   assert.equal(plan.graphDiff.bondOrderChanges.length,0);
   assert.equal(plan.atomOrigins.reduce((sum,product)=>sum+product.origins.length,0),16);
   assert.equal(new Set(plan.atomOrigins.flatMap(product=>product.origins.map(origin=>origin.sourceAtom))).size,16);
@@ -73,7 +73,7 @@ test('declared edits use the matched acyl binding and auto-map every source atom
   const alcoholysis=planReactionExecution(ethanol,records);
   assert.deepEqual(alcoholysis.products.map(record=>record.id),['ethyl-acetate','acetic-acid']);
   assert.ok(alcoholysis.participants.every(item=>item.instanceId));
-  assert.ok(alcoholysis.matchedSites.nucleophile.atomBindings.transferH>=0);
+  assert.ok(alcoholysis.matchedSites.transferPair.atomBindings.transfer>=0);
 });
 
 test('reaction execution freezes one canonical environment snapshot with normalized active conditions',()=>{
@@ -92,10 +92,10 @@ test('acyl transfer distance windows derive from canonical pair sigma and score 
   assert.ok(Math.abs(constraint.min-constraint.minRatio*reference.sigmaPairAngstrom)<1e-12);
   assert.ok(Math.abs(constraint.target-constraint.targetRatio*reference.sigmaPairAngstrom)<1e-12);
   assert.ok(constraint.min>reference.softCoreBoundaryAngstrom);
-  const positions={acyl:[0,0,0],nucleophile:[constraint.target,0,0]};
+  const positions={primary:[0,0,0],transferPair:[constraint.target,0,0]};
   const atTarget=scoreReactionGeometry(candidate.geometryConstraints,(role)=>positions[role]);
-  const insideButOffTarget=scoreReactionGeometry(candidate.geometryConstraints,(role)=>role==='acyl'?[0,0,0]:[constraint.max-.01,0,0]);
-  const pushedDeep=scoreReactionGeometry(candidate.geometryConstraints,(role)=>role==='acyl'?[0,0,0]:[constraint.min-.4,0,0]);
+  const insideButOffTarget=scoreReactionGeometry(candidate.geometryConstraints,(role)=>role==='primary'?[0,0,0]:[constraint.max-.01,0,0]);
+  const pushedDeep=scoreReactionGeometry(candidate.geometryConstraints,(role)=>role==='primary'?[0,0,0]:[constraint.min-.4,0,0]);
   assert.equal(atTarget.geometryReady,true);assert.equal(atTarget.worstNormalizedDeviation,0);
   assert.equal(insideButOffTarget.geometryReady,true);
   assert.ok(insideButOffTarget.worstNormalizedDeviation>atTarget.worstNormalizedDeviation);
