@@ -330,6 +330,7 @@ try{
   await clickAt('[data-lab-heat]');
   await setSlots(['methane','oxygen','2-butene']);await waitForPopulation(['methane','oxygen','2-butene'],6,'Supplemental three-instance production rule feed population did not initialize');
   await spaceCurrentBatchBySpecies({methane:[[-.3,0,0],[4.5,2.6,0]],oxygen:[[.3,0,4.2],[-4.5,-2.6,4.2]],'2-butene':[[4.5,-2.7,0],[-4.5,2.7,0]]});
+  await evaluate('window.__reactionLabProbe.advanceDeterministic(1)');
   const combustionStage=await snapshot(),combustionProjection=await evaluate('window.__reactionLabProbe.projectedBounds()'),byCombustionId=new Map(combustionProjection.map(item=>[item.id,item])),methaneStage=combustionStage.instances.filter(item=>item.species==='methane'),oxygenStage=combustionStage.instances.filter(item=>item.species==='oxygen');
   const projectedGap=(left,right)=>Math.min(...left.atoms.flatMap(a=>right.atoms.map(b=>Math.hypot(a.x-b.x,a.y-b.y)-a.radius-b.radius)));
   const stagedPairs=methaneStage.flatMap(methane=>oxygenStage.map(oxygen=>{const constraints=combustionStage.reactionCandidates.filter(item=>item.reactionId==='complete-28-methane-combustion'&&item.participants.methane===methane.id&&item.participants.oxygenA===oxygen.id).flatMap(item=>item.distanceConstraints??[]).sort((a,b)=>a.actual-b.actual);return{methane:methane.id,oxygen:oxygen.id,siteDistance:constraints[0]?.actual,windowMax:constraints[0]?.max,gap:projectedGap(byCombustionId.get(methane.id),byCombustionId.get(oxygen.id))};})).sort((a,b)=>a.siteDistance-b.siteDistance);
