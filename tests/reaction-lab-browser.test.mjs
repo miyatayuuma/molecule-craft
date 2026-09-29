@@ -130,11 +130,11 @@ try{
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:plan.end.x,y:plan.end.y,button:'left',buttons:0});
     return{acquired:true,start};
   };
-  const runReaction=async(reactionId,products,{verifyPausedTransformation=true,verifyDiscovery=false}={})=>{
+  const runReaction=async(reactionId,products,{verifyPausedTransformation=true,verifyDiscovery=false,offsetSequence=null,repeatSameCandidate=false,restageAfterRetry=null}={})=>{
     await evaluate('window.__labReactionEvents=[]');
-    const offsets=[[0,0],[8,0],[-8,0],[0,8],[0,-8],[16,0],[-16,0],[0,16],[0,-16],[22,0],[-22,0],[0,22]];
+    const offsets=offsetSequence??[[0,0],[8,0],[-8,0],[0,8],[0,-8],[16,0],[-16,0],[0,16],[0,-16],[22,0],[-22,0],[0,22]];
     let committed=false,finalTrace=null,finalManipulation=null,attemptCount=0,depthAcquisitions=0,hiddenDepthObserved=false,presentationObserved=false,closePauseVerified=false,visibilityPauseVerified=false;const trajectoryAttempts=[];
-    const resetReactionBatch=async()=>{await feedCurrent({double:true});await new Promise(resolve=>setTimeout(resolve,600));};
+    const resetReactionBatch=async()=>{await feedCurrent({double:true});await new Promise(resolve=>setTimeout(resolve,600));if(restageAfterRetry)await restageAfterRetry();};
     await new Promise(resolve=>setTimeout(resolve,600));
     const populationAtStart=(await snapshot()).instances.length;
     for(let attempt=0;attempt<offsets.length&&!committed;attempt++){
@@ -149,7 +149,7 @@ try{
         return{item,leftId,rightId,siteA,siteB,leftStart:{x:a.x,y:a.y},rightStart:{x:b.x,y:b.y},leftGrabStarts,rightGrabStarts,leftEnd:{x:b.x,y:b.y},rightEnd:{x:a.x,y:a.y},actual:item.distanceConstraints[0]?.actual??Infinity};
       }).filter(Boolean).sort((a,b)=>a.actual-b.actual||a.leftId.localeCompare(b.leftId)||a.rightId.localeCompare(b.rightId));
       if(!options.length){await new Promise(resolve=>setTimeout(resolve,50));continue;}
-      const selected=options[attempt%Math.min(4,options.length)],offset=offsets[attempt],moveAcyl=attempt%2===0,draggedId=moveAcyl?selected.leftId:selected.rightId,targetId=moveAcyl?selected.rightId:selected.leftId,start=moveAcyl?selected.leftStart:selected.rightStart,end=moveAcyl?selected.leftEnd:selected.rightEnd,grabStarts=moveAcyl?selected.leftGrabStarts:selected.rightGrabStarts,plan={instanceId:draggedId,start,end:{x:end.x+offset[0],y:end.y+offset[1]},before:current.instances.find(item=>item.id===draggedId).position};
+      const selected=options[repeatSameCandidate?0:attempt%Math.min(4,options.length)],offset=offsets[attempt%offsets.length],moveAcyl=repeatSameCandidate||attempt%2===0,draggedId=moveAcyl?selected.leftId:selected.rightId,targetId=moveAcyl?selected.rightId:selected.leftId,start=moveAcyl?selected.leftStart:selected.rightStart,end=moveAcyl?selected.leftEnd:selected.rightEnd,grabStarts=moveAcyl?selected.leftGrabStarts:selected.rightGrabStarts,plan={instanceId:draggedId,start,end:{x:end.x+offset[0],y:end.y+offset[1]},before:current.instances.find(item=>item.id===draggedId).position};
       attemptCount++;
       await evaluate(`window.__reactionLabProbe.startReactionTrajectoryTrace('${reactionId}',${JSON.stringify([selected.leftId,selected.rightId])})`);
       let heldState=null,targetAcquired=false,heldGeometry=null,releaseTrajectory=null;
@@ -336,7 +336,7 @@ try{
   const stagedPairs=methaneStage.flatMap(methane=>oxygenStage.map(oxygen=>{const constraints=combustionStage.reactionCandidates.filter(item=>item.reactionId==='complete-28-methane-combustion'&&item.participants.methane===methane.id&&item.participants.oxygenA===oxygen.id).flatMap(item=>item.distanceConstraints??[]).sort((a,b)=>a.actual-b.actual);return{methane:methane.id,oxygen:oxygen.id,siteDistance:constraints[0]?.actual,windowMax:constraints[0]?.max,gap:projectedGap(byCombustionId.get(methane.id),byCombustionId.get(oxygen.id))};})).sort((a,b)=>a.siteDistance-b.siteDistance);
   assert.ok(stagedPairs[0]?.siteDistance>stagedPairs[0].windowMax&&stagedPairs[0].gap<=24,`Methane combustion encounter begins outside the chemistry window while its projected surfaces enter the existing depth-target acquire window: ${JSON.stringify(stagedPairs)}`);
   await clickAt('[data-lab-heat]');
-  await runReaction('complete-28-methane-combustion',['carbon-dioxide','water','water'],{verifyPausedTransformation:false});
+  await runReaction('complete-28-methane-combustion',['carbon-dioxide','water','water'],{verifyPausedTransformation:false,offsetSequence:[[-8,0],[8,0],[-12,0],[12,0],[-4,0],[4,0],[0,-8],[0,8],[0,-4],[0,4],[0,-12],[0,12]],repeatSameCandidate:true,restageAfterRetry:async()=>{await spaceCurrentBatchBySpecies({methane:[[-.3,0,0],[4.5,2.6,0]],oxygen:[[.3,0,4.2],[-4.5,-2.6,4.2]],'2-butene':[[4.5,-2.7,0],[-4.5,2.7,0]]});await evaluate('window.__reactionLabProbe.advanceDeterministic(1)');}});
 
   await evaluate('window.__labReactionEvents=[]');
   await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="basic"]');
