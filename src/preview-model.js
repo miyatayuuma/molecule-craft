@@ -1,7 +1,7 @@
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
 import { geometryForAtom, atomBondState, nonbondedDistance } from './bonding-model.js?v=33';
 import {createStructuralBondLengthResolver,STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM} from './bond-geometry.js?v=1';
-import { sharedOxoGroups } from './special-bonds.js?v=33';
+import { sharedOxoGroups } from './special-bonds.js?v=34';
 import { seedCraftCoordinates } from './craft-structures.js?v=32';
 import { createStructureSolver } from './structure-relaxation.js?v=33';
 import { describeAlkeneRelativeSide } from './stereo-descriptor.js?v=1';

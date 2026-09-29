@@ -155,51 +155,69 @@ function sulfurOxoTopology(record){
   const hydroxyls=neighbors.filter(edge=>edge.order===1&&record.atoms[edge.id]==='O'&&adjacency[edge.id].some(other=>other.order===1&&record.atoms[other.id]==='H')).map(edge=>edge.id);
   return terminal.length>=2?{center,terminal,hydroxyls,adjacency}:null;
 }
-function drawSulfurAuxiliary(owner,svg,start,end,insideTarget,branch){
-  const dx=end.x-start.x,dy=end.y-start.y,len=Math.hypot(dx,dy)||1,mx=(start.x+end.x)/2,my=(start.y+end.y)/2;
-  let ix=-dy/len,iy=dx/len;if(ix*(insideTarget.x-mx)+iy*(insideTarget.y-my)<0){ix=-ix;iy=-iy;}
-  const offset=5.2;
-  line(owner,svg,start.x+ix*offset,start.y+iy*offset,end.x+ix*offset,end.y+iy*offset,{stroke:AROMATIC_STYLE.cssColor,'stroke-width':3,'stroke-opacity':.82,'stroke-dasharray':'9 6','stroke-linecap':'round','data-delocalization':'distributed-bond','data-distributed-style':'distributed-dashed','data-distributed-branch':branch,'data-distribution-semantics':'sulfur-oxo','data-sulfur-bond-role':'terminal'});
+function addSulfurHaloFilter(owner,svg){
+  const defs=svgNode(owner,'defs'),filter=svgNode(owner,'filter',{id:'sulfur-oxo-halo-blur',filterUnits:'userSpaceOnUse',x:0,y:0,width:520,height:310});
+  filter.append(svgNode(owner,'feGaussianBlur',{stdDeviation:3.5}));defs.append(filter);svg.append(defs);
 }
-function sulfurOxoPositions(topology,cx,cy){
+function sulfurOxoPositions(topology,cx,cy,radius){
   const {terminal,hydroxyls}=topology,positions=new Map(),all=[...terminal,...hydroxyls];
-  const place=(ids,angles,radius)=>ids.forEach((id,index)=>{const angle=angles[index];positions.set(id,{x:cx+Math.cos(angle)*radius,y:cy+Math.sin(angle)*radius});});
-  if(terminal.length===3){place(terminal,[-Math.PI/2,Math.PI/6,5*Math.PI/6],61);}
-  else if(hydroxyls.length===2){place(terminal,[-3*Math.PI/4,-Math.PI/4],58);place(hydroxyls,[3*Math.PI/4,Math.PI/4],58);}
-  else if(terminal.length===2){place(terminal,[3*Math.PI/4,Math.PI/4],66);}
-  else place(all,all.map((_,index)=>-Math.PI/2+index*Math.PI*2/all.length),60);
+  const place=(ids,angles,r)=>ids.forEach((id,index)=>{const angle=angles[index];positions.set(id,{x:cx+Math.cos(angle)*r,y:cy+Math.sin(angle)*r});});
+  if(terminal.length===3)place(terminal,[-Math.PI/2,Math.PI/6,5*Math.PI/6],radius);
+  else if(hydroxyls.length===2){place(terminal,[-3*Math.PI/4,-Math.PI/4],radius);place(hydroxyls,[3*Math.PI/4,Math.PI/4],radius);}
+  else if(terminal.length===2)place(terminal,[7*Math.PI/6,11*Math.PI/6],radius);
+  else place(all,all.map((_,index)=>-Math.PI/2+index*Math.PI*2/all.length),radius);
   return positions;
 }
-function sulfurPanel(owner,svg,record,topology,cx,{model=false}={}){
-  const cy=128,center={x:cx,y:cy},positions=sulfurOxoPositions(topology,cx,cy),terminalSet=new Set(topology.terminal);
-  addText(owner,svg,cx,28,model?'模型での表示':'正準Lewis表記',{class:'chemistry-svg-label','data-sulfur-panel':model?'model':'canonical'});
-  const branchCoords=new Map();
-  for(const id of [...topology.terminal,...topology.hydroxyls]){
-    const point=positions.get(id),dx=point.x-cx,dy=point.y-cy,length=Math.hypot(dx,dy)||1;
-    const start={x:cx+dx*14/length,y:cy+dy*14/length},end={x:point.x-dx*15/length,y:point.y-dy*15/length};
-    const order=terminalSet.has(id)?(model?1:2):1;
-    const bondAttrs={'data-sulfur-bond-panel':model?'model':'canonical','data-sulfur-bond-role':terminalSet.has(id)?'terminal':'s-oh','data-sulfur-bond-order':order};
-    if(order===2)drawDoubleBond(owner,svg,start.x,start.y,end.x,end.y,bondAttrs);else drawSingleBond(owner,svg,start.x,start.y,end.x,end.y,bondAttrs);
-    branchCoords.set(id,{start,end});
-  }
-  if(model)topology.terminal.forEach((id,index)=>{
-    const {start,end}=branchCoords.get(id),inside=positions.get(topology.terminal.find(other=>other!==id))??center;
-    drawSulfurAuxiliary(owner,svg,start,end,inside,index);
+function sulfurBondEnds(center,point){
+  const dx=point.x-center.x,dy=point.y-center.y,length=Math.hypot(dx,dy)||1;
+  return {start:{x:center.x+dx*14/length,y:center.y+dy*14/length},end:{x:point.x-dx*14/length,y:point.y-dy*14/length},direction:{x:dx/length,y:dy/length}};
+}
+function drawSulfurBond(owner,svg,start,end,{role,halo=false,branch=0}={}){
+  if(halo)line(owner,svg,start.x,start.y,end.x,end.y,{stroke:AROMATIC_STYLE.cssColor,'stroke-width':14,'stroke-opacity':.68,filter:'url(#sulfur-oxo-halo-blur)','stroke-linecap':'round','data-sulfur-oxo-halo':'true','data-sulfur-oxo-style':'bond-axis-halo','data-sulfur-oxo-branch':branch,'data-sulfur-halo-role':'terminal'});
+  drawSingleBond(owner,svg,start.x,start.y,end.x,end.y,{'stroke-width':3,'data-sulfur-bond-role':role,'data-sulfur-bond-order':1});
+}
+function sulfurBondScene(owner,svg,topology,{centerX=260,centerY=208,radius=61,includeHydrogens=true}={}){
+  const center={x:centerX,y:centerY},positions=sulfurOxoPositions(topology,centerX,centerY,radius);
+  topology.terminal.forEach((id,branch)=>{
+    const point=positions.get(id),{start,end}=sulfurBondEnds(center,point);
+    drawSulfurBond(owner,svg,start,end,{role:'terminal',halo:true,branch});
   });
-  if(topology.hydroxyls.length){
-    for(const id of topology.hydroxyls){
-      const point=positions.get(id),dx=point.x-cx,dy=point.y-cy,length=Math.hypot(dx,dy)||1,h={x:point.x+dx/length*27,y:point.y+dy/length*27};
-      drawSingleBond(owner,svg,point.x+dx/length*12,point.y+dy/length*12,h.x-dx/length*10,h.y-dy/length*10,{'data-sulfur-bond-panel':model?'model':'canonical','data-sulfur-bond-role':'o-h','data-sulfur-bond-order':1});
-      addText(owner,svg,h.x,h.y+6,'H',{'font-size':18,'font-weight':700,class:'atom-label'});
-    }
-  }
-  atomLabel(owner,svg,cx,cy+8,'S');
+  topology.hydroxyls.forEach(id=>{
+    const point=positions.get(id),{start,end,direction}=sulfurBondEnds(center,point);
+    drawSulfurBond(owner,svg,start,end,{role:'s-oh'});
+    const h={x:point.x+direction.x*32,y:point.y+direction.y*32};
+    drawSingleBond(owner,svg,point.x+direction.x*13,point.y+direction.y*13,h.x-direction.x*10,h.y-direction.y*10,{'data-sulfur-bond-role':'o-h','data-sulfur-bond-order':1});
+    if(includeHydrogens)addText(owner,svg,h.x,h.y+6,'H',{'font-size':18,'font-weight':700,class:'atom-label'});
+  });
+  atomLabel(owner,svg,centerX,centerY+8,'S');
   for(const id of [...topology.terminal,...topology.hydroxyls]){const point=positions.get(id);atomLabel(owner,svg,point.x,point.y+8,'O');}
 }
 function renderDistributedBond(owner,spec,record){
-  const topology=sulfurOxoTopology(record),svg=baseSvg(owner,'canonical Lewis graph and sulfur-oxo model representation with supplementary cyan dashed terminal S–O components','0 0 520 260');
-  sulfurPanel(owner,svg,record,topology,130);line(owner,svg,260,49,260,211,{stroke:'#53657b','stroke-width':1.5,'data-visual-separator':'true'});sulfurPanel(owner,svg,record,topology,390,{model:true});
-  return figure(owner,'distributed-bond','Distributed Bond / 分散結合の補助表示','水色破線は通常の局在した追加結合線そのものではなく、S–O結合性を補助的に示す模型記号です。ニトロ基やオゾンの図のように、等価なLewis寄与構造の間で単結合と二重結合が交換する意味ではありません。',svg);
+  const topology=sulfurOxoTopology(record),sulfuric=topology.hydroxyls.length===2;
+  const description=sulfuric?'中性硫酸のS–O結合。末端S–Oだけをhaloで示し、S–OHとは分けている':'Lewis式の表現例と、等価な末端S–O結合の模式図';
+  const svg=baseSvg(owner,description,'0 0 520 310');
+  if(sulfuric){
+    addSulfurHaloFilter(owner,svg);
+    addText(owner,svg,260,24,'中性H₂SO₄の結合',{class:'chemistry-svg-label'});
+    sulfurBondScene(owner,svg,topology,{centerY:132,radius:49});
+    line(owner,svg,140,252,185,252,{stroke:AROMATIC_STYLE.cssColor,'stroke-width':10,'stroke-opacity':.23,'stroke-linecap':'round'});
+    line(owner,svg,140,252,185,252,{stroke:'#9eafc5','stroke-width':3,'stroke-linecap':'round'});
+    addText(owner,svg,205,257,'末端S–O：短く、強く分極',{class:'chemistry-svg-label sulfur-oxo-label','text-anchor':'start'});
+    line(owner,svg,140,281,185,281,{stroke:'#9eafc5','stroke-width':3,'stroke-linecap':'round'});
+    addText(owner,svg,205,286,'S–OH：異なる結合性',{class:'chemistry-svg-label sulfur-oxo-label','text-anchor':'start'});
+    return figure(owner,'distributed-bond','S–O結合の性質','中性H₂SO₄では末端S–OとS–OHは異なる結合です。水色のhaloは結合軸に沿う末端側の短く強く分極した結合性を示す模式表現で、追加の結合線や数値的な結合次数、電子軌道そのものを表すものではありません。',svg);
+  }
+  addSulfurHaloFilter(owner,svg);
+  addText(owner,svg,260,24,'Lewis式の表現例',{class:'chemistry-svg-label sulfur-oxo-label'});
+  addText(owner,svg,260,61,topology.terminal.length===3?'O=S(=O)=O':'O=S=O',{'font-size':22,'font-weight':700,class:'atom-label','data-sulfur-lewis-example':'true'});
+  addText(owner,svg,260,99,'↓',{'font-size':23,class:'concept-flow-arrow'});
+  addText(owner,svg,260,123,'分子内のS–O結合',{class:'chemistry-svg-label sulfur-oxo-label'});
+  sulfurBondScene(owner,svg,topology,{centerY:204,radius:59,includeHydrogens:false});
+  addText(owner,svg,260,288,topology.terminal.length===3?'3本とも等価・短く強い':'2本とも等価・短く強い',{class:'chemistry-svg-label sulfur-oxo-label'});
+  const caption=topology.terminal.length===3
+    ?'3本のS–Oは等価で、強く分極し、通常のS–O単結合を超える結合性を持ちます。水色のhaloは結合軸に沿ったこの性質を示し、追加の結合線や数値的な結合次数、電子軌道そのものを表すものではありません。'
+    :'2本のS–Oは等価で、強く分極し、通常のS–O単結合より短く強い結合性を持ちます。水色のhaloは結合軸に沿ったこの性質を示し、追加の結合線や数値的な結合次数、電子軌道そのものを表すものではありません。';
+  return figure(owner,'distributed-bond','S–O結合の性質',caption,svg);
 }
 function renderFormalCharge(owner){
   const svg=baseSvg(owner,'一酸化炭素の代表的Lewis構造 C−≡O+ と、整数の形式電荷','0 0 420 135');

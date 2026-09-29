@@ -12,11 +12,11 @@ import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
 import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=20';
 import { connectedStructures, chooseMainStructure, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=34';
+import { createPreviewModel } from './preview-model.js?v=35';
 import { planSpawn } from './spawn-layout.js?v=28';
 import { createElementPalette, syncElementStocks } from './element-progression.js?v=39';
 import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=27';
-import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=33';
+import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=34';
 
 import { createGameShell } from './game-shell.js?v=31';
 import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
@@ -24,7 +24,7 @@ import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { createCraftHistory } from './craft-history.js?v=2';
 import { bindCraftControls } from './craft-controls.js?v=3';
-import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=8';
+import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=9';
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 import { matchCraftTarget } from './craft-target-satisfaction.js';
@@ -118,7 +118,7 @@ loadMoleculeDatabase().then(async result=>{
   try{
     collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;if(!open)reactionLabDiscovery?.onCollectionClosed();}});
     try{
-      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=19');
+      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=20');
       reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,
         onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
       reactionLabDiscovery=createReactionLabDiscoveryCoordinator({records:moleculeCatalog(),collection:collectionGame,root:document,

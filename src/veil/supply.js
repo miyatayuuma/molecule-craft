@@ -112,7 +112,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   function mountViewer(record){
     const host=q('tank-model-host'),key=record?.id??'';if(!dialog.open||!record||viewerKey===key)return;
     releaseViewer();viewerKey=key;const generation=viewerGeneration,status=document.createElement('p');status.className='model-status';status.textContent='模型を準備しています…';host.append(status);
-    import('../collection-viewer.js?v=37').then(({createCollectionViewer})=>{
+    import('../collection-viewer.js?v=39').then(({createCollectionViewer})=>{
       if(generation!==viewerGeneration||!dialog.open||viewerKey!==key||!host.isConnected)return;
       host.replaceChildren();viewer=createCollectionViewer({host,record,name:name(record),showGestureHint:false});
     }).catch(()=>{if(generation===viewerGeneration){host.replaceChildren();const failed=document.createElement('p');failed.className='model-status';failed.textContent='模型を表示できません';host.append(failed);}});

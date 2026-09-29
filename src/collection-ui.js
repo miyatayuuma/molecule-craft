@@ -8,7 +8,7 @@ import {loadMoleculeGraph} from './molecule-graph.js?v=2';
 import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=2';
 import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=4';
 import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';
-import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=4';
+import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=5';
 import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
 
 export async function loadCollectionData(){
@@ -16,7 +16,7 @@ export async function loadCollectionData(){
   const [groups,templates,encyclopedia,graph]=await Promise.all([
     load('../data/functional-groups.json?v=26'),
     load('../data/craft-structures.json?v=25'),
-    load('../data/encyclopedia.json?v=33').catch(()=>({molecules:{},parts:{},noteDefinitions:{}})),
+    load('../data/encyclopedia.json?v=34').catch(()=>({molecules:{},parts:{},noteDefinitions:{}})),
     loadMoleculeGraph({url:new URL('../data/molecule-graph.json',import.meta.url).href}),
   ]);
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph};
@@ -103,7 +103,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       detailViewer?.dispose();detailViewer=null;host.replaceChildren();host.dataset.viewerReady='false';host.dataset.stereoRelation='';
       let overlay=null;if(previousSnapshot){overlay=el('img',null,'stereo-configuration-transition');overlay.src=previousSnapshot;overlay.alt='';host.append(overlay);}else if(request===1&&continuity)host.append(continuity);
       host.append(el('p','模型を準備しています…','model-status'));
-      return import('./collection-viewer.js?v=38').then(({createCollectionViewer})=>new Promise(resolve=>{
+      return import('./collection-viewer.js?v=39').then(({createCollectionViewer})=>new Promise(resolve=>{
         if(request!==mountGeneration||generation!==detailGeneration||!dialog.open||!host.isConnected){resolve(null);return;}
         host.querySelector(':scope > .model-status')?.remove();
         detailViewer=createCollectionViewer({host,record,name,presentation:nextPresentation,initialView:previousView,

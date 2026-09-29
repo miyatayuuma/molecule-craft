@@ -1,7 +1,7 @@
-import { createPreviewModel } from './preview-model.js?v=34';
+import { createPreviewModel } from './preview-model.js?v=35';
 import { ELEMENTS, formalChargeForRecordAtom, modelAtomRadius } from './chemistry.js?v=20';
 import { aromaticBondKeys, aromaticRingFrame, createAromaticRing, displayedBondOrder, setAromaticOpacity, updateAromaticRing } from './aromatic-rendering.js?v=27';
-import { createChargeLabel, createSharedBonds, sharedOxoGroups, specialEdgeKeys, updateSharedBonds } from './special-bonds.js?v=33';
+import { createChargeLabel, createSharedBonds, sharedOxoGroups, specialEdgeKeys, updateSharedBonds } from './special-bonds.js?v=34';
 import {
   reactionCandidates, planReactionExecution, resolveCandidateInstanceIds,
   compileReactionCatalog, createContactMatcher, scoreReactionGeometry,
