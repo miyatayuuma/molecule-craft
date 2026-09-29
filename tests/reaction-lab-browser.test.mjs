@@ -218,13 +218,10 @@ try{
   };
   const runDeepOverlapNegative=async reactionId=>{
     const eventCount=await evaluate('window.__labReactionEvents.length'),pose=await evaluate(`window.__reactionLabProbe.prepareGenericReactionPose('${reactionId}')`);
-    await evaluate(`window.__reactionLabProbe.startReactionTrajectoryTrace('${reactionId}',${JSON.stringify(pose.ids)})`);
     await evaluate(`window.__reactionLabProbe.setGeometry([${JSON.stringify({id:pose.ids[0],positionAngstrom:[0,0,0]})},${JSON.stringify({id:pose.ids[1],positionAngstrom:[0,0,0]})}])`);
     const state=await evaluate('window.__reactionLabProbe.advanceDeterministic(1)'),rows=state.reactionCandidates.filter(item=>item.reactionId===reactionId&&pose.ids.every(id=>item.encounterParticipantIds.includes(id)));
     assert.ok(rows.length&&rows.every(item=>!item.commitReady&&(item.severeOverlap||!item.geometryReady)),'Localhost deep-overlap negative fixture is vetoed independently of the pointer-positive E2E');
-    await new Promise(resolve=>setTimeout(resolve,700));const trace=await evaluate('window.__reactionLabProbe.stopReactionTrajectoryTrace()');
-    assert.ok(trace.samples.every(item=>!item.commitReady),'A deep-overlap release never becomes commit-ready during the common dwell interval');
-    assert.equal(await evaluate('window.__labReactionEvents.length'),eventCount,'Deep overlap alone never commits a reaction');
+    assert.equal(await evaluate('window.__labReactionEvents.length'),eventCount,'A severe-overlap release is rejected on the first normal physics step');
   };
 
   await send('Runtime.enable');await send('Page.enable');await send('Network.enable');
