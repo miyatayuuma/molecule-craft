@@ -314,7 +314,7 @@ try{
   // this acceptance exercises a real pointer encounter rather than auto-feed.
   await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="basic"]');
   await setSlots(['ethene','chlorine','']);await waitForPopulation(['ethene','chlorine'],4,'New bimolecular production rule feed population did not initialize');
-  await spaceCurrentBatch([[-2.5,-4,0],[2.5,-4,0],[-2.5,4,0],[2.5,4,0]]);
+  await spaceCurrentBatch([[-2.5,0,0],[2.5,0,0],[0,-8,0],[0,8,0]]);
   await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="acidic"]');
   await runReaction('complete-06-ethene-halogenation',['1-2-dichloroethane'],{verifyPausedTransformation:false});
   await clickAt('[data-lab-light]');
@@ -324,7 +324,7 @@ try{
   await runReaction('complete-16-methane-chlorination',['chloromethane','hydrogen-chloride'],{verifyPausedTransformation:false});
   await clickAt('[data-lab-heat]');
   await setSlots(['methanol','','']);await waitForPopulation(['methanol'],4,'Same-species production rule feed population did not initialize');
-  await spaceCurrentBatch([[-2.5,-4,0],[2.5,-4,0],[-2.5,4,0],[2.5,4,0]]);
+  await spaceCurrentBatch([[-2.5,0,0],[2.5,0,0],[0,-8,0],[0,8,0]]);
   await clickAt('[data-lab-heat]');
   await runReaction('complete-23-methanol-dehydration',['dimethyl-ether','water'],{verifyPausedTransformation:false});
   await clickAt('[data-lab-heat]');
