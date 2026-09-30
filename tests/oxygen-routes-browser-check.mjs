@@ -18,7 +18,7 @@ try{
     r.fillTankFromElements('propellant','carbon-dioxide',72);r.fillTankFromElements('fuel','methane',18);r.fillTankFromElements('oxidizer','oxygen',36);r.fillTankFromElements('coolant','water',80);r.visit('oxygen');r.save();
     localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({schemaVersion:2,discoveredMolecules:['hydrogen','carbon-dioxide','methane','oxygen','water']}));
   });
-  await page.reload();await page.waitForFunction(()=>document.querySelector('#open-collection small')?.textContent.startsWith('5/'));
+  await page.reload();await page.waitForFunction(()=>document.querySelector('#collection-progress')?.textContent.includes('分子 5 / 142'));
   await page.screenshot({path:'/tmp/molecule-craft-visual-palette.png'});
   assert.equal(await page.locator('#element-palette .atom-preview').count(),8);
   await page.locator('#parts-tab').click();await page.screenshot({path:'/tmp/molecule-craft-visual-parts.png'});await page.locator('#atoms-tab').click();
