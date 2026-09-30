@@ -289,8 +289,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     poses.sort((a,b)=>a.distanceTo(item.group.position)-b.distanceTo(item.group.position));return poses[0]??null;
   }
   function polymerAutomaticPath(item,interaction,destination){
-    const start=item.group.position.clone(),end=destination.clone(),normal=cameraNormal(),right=cameraRight(),up=cameraUp(),directions=[normal,normal.clone().negate(),right,right.clone().negate(),up,up.clone().negate()],paths=[[start,end]];
-    for(const distance of [.8,1.2,1.8,2.6])for(const direction of directions){const offset=direction.clone().multiplyScalar(distance);paths.push([start,start.clone().add(offset),end.clone().add(offset),end]);}
+    const start=item.group.position.clone(),end=destination.clone(),normal=cameraNormal(),right=cameraRight(),up=cameraUp(),directions=[normal,normal.clone().negate(),right,right.clone().negate(),up,up.clone().negate()],fragmentPoints=[...polymerGraphVisual.atomByGraphIndex.values()].map(mesh=>mesh.getWorldPosition(new THREE.Vector3()));
+    const center=fragmentPoints.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/Math.max(1,fragmentPoints.length)),fragmentRadius=Math.max(0,...fragmentPoints.map(point=>point.distanceTo(center))),incomingRadius=Math.max(...item.record.atoms.map(atom=>modelAtomRadius(atom.element))),clearance=fragmentRadius+incomingRadius+.45;
+    const offsets=[...new Set([.8,1.2,1.8,2.6,clearance,clearance*1.35].map(value=>Math.round(value*1000)/1000))],paths=[[start,end]];
+    for(const distance of offsets)for(const direction of directions){const offset=direction.clone().multiplyScalar(distance);paths.push([start,start.clone().add(offset),end.clone().add(offset),end]);}
     const pathIsSafe=path=>{
       for(let segment=1;segment<path.length;segment++){
         const from=path[segment-1],to=path[segment],steps=Math.max(1,Math.ceil(from.distanceTo(to)/.16));
