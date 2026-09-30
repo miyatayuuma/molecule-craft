@@ -998,9 +998,6 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       }else syncGroupFromStageABody(item);
     }
     if(batch.phase===REACTION_LAB_BATCH_PHASES.ACTIVE){const stepMs=STAGE_A_GAME_STEP_SECONDS*1000;advancePolymerRuntime(stepMs);reactionStep(stepMs);}
-Warning: truncated output (original token count: 4689)
-Total output lines: 100
-
     stageAPerformance.lastFixedStepDurationMs=performance.now()-fixedStepStarted;
   }
   const stageAStepper=createFixedStepAccumulator(integrateStageAStep,{gameStepSeconds:STAGE_A_GAME_STEP_SECONDS,physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,maxCatchUpSteps:STAGE_A_MAX_CATCH_UP_STEPS});
@@ -1042,7 +1039,17 @@ Total output lines: 100
           purging:purgeItems.map(item=>({id:item.id,species:item.species,position:item.group.position.toArray()})),pairs:current.pairDiagnostics.map(pair=>({...pair})),
           diagnostics:{overlapGuardActivationCount:current.overlapGuardActivationCount,carbonylSiteCount:instances.reduce((sum,item)=>sum+(item.stageBody?.carbonylAnisotropySites?.length??0),0),...stageAPerformance,lastInteractionPairCount:current.pairDiagnostics.length},
           reactionCandidates:[...reactionDiagnostics],environment:activationEnvironment.snapshot(),reactionEnvironment:[...activationEnvironment.conditions()].sort(),
-          camera:{distance,azimuth:FIXED_CAMERA_AZ…689 tokens truncated…ionAngstrom],orientation:[...item.stageBody.orientation],velocityAngstromPerPs:[...item.stageBody.velocityAngstromPerPs],angularVelocityRadPerPs:[...item.stageBody.angularVelocityRadPerPs]})),normal=cameraNormal().toArray();
+          camera:{distance,azimuth:FIXED_CAMERA_AZIMUTH,elevation:FIXED_CAMERA_ELEVATION},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0,
+        };
+      },
+      setGeometry(poses){const ids=new Set(poses.map(pose=>pose.id));if(ids.size!==poses.length)throw Error('Stage A geometry fixture contains duplicate molecule IDs');endManipulation();activePointers.clear();pinchActive=false;pinchDistance=0;onPointerLockChange(false);testIsolation=ids.size?ids:null;contactMatcher.reset();reactionDiagnostics=[];for(const pose of poses){const item=instanceById(pose.id);if(!item)throw Error(`Missing fixture molecule ${pose.id}`);if(pose.positionAngstrom)item.stageBody.positionAngstrom=[...pose.positionAngstrom];if(pose.orientation)item.stageBody.orientation=[...pose.orientation];item.stageBody.velocityAngstromPerPs=[...(pose.velocityAngstromPerPs??[0,0,0])];item.stageBody.angularVelocityRadPerPs=[...(pose.angularVelocityRadPerPs??[0,0,0])];syncGroupFromStageABody(item);}clearDepthTarget();updateCommandBar();return this.snapshot();},
+      advanceDeterministic(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps)));stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;}return this.snapshot();},
+      measureFixedSteps(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps))),durationsMs=[];stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;durationsMs.push(stageAPerformance.lastFixedStepDurationMs);}return{durationsMs,candidateCount:reactionDiagnostics.length,reactionIds:[...new Set(reactionDiagnostics.map(item=>item.reactionId))].sort()};},
+      decomposePair(aId,bId){const a=instanceById(aId),b=instanceById(bId);if(!a||!b)throw Error('Missing Reaction Lab molecule instance');const result=stageBPhysicsEnabled?evaluateStageBForces([a.stageBody,b.stageBody]):evaluateStageAForces([a.stageBody,b.stageBody]);return{pairs:result.pairDiagnostics,bodies:Object.fromEntries([...result.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:result.overlapGuardActivationCount};},
+      measurePairReleaseTrajectory(aId,bId){
+        if(!stageBPhysicsEnabled)throw Error('Release handoff measurement requires production Stage B');
+        const source=[instanceById(aId),instanceById(bId)];if(source.some(item=>!item)||source[0]===source[1])throw Error('Missing distinct Reaction Lab molecule pair');
+        const bodies=source.map(item=>({...item.stageBody,positionAngstrom:[...item.stageBody.positionAngstrom],orientation:[...item.stageBody.orientation],velocityAngstromPerPs:[...item.stageBody.velocityAngstromPerPs],angularVelocityRadPerPs:[...item.stageBody.angularVelocityRadPerPs]})),normal=cameraNormal().toArray();
         const rotate=(point,q)=>{const[x,y,z,w]=q,[px,py,pz]=point,tx=2*(y*pz-z*py),ty=2*(z*px-x*pz),tz=2*(x*py-y*px);return[px+w*tx+(y*tz-z*ty),py+w*ty+(z*tx-x*tz),pz+w*tz+(x*ty-y*tx)];};
         const measure=()=>{const separation=Math.abs(bodies[0].positionAngstrom.reduce((sum,value,index)=>sum+(value-bodies[1].positionAngstrom[index])*normal[index],0)),left=[],right=[];for(const atom of bodies[0].atoms)left.push(rotate(atom.positionAngstrom,bodies[0].orientation).map((value,index)=>value+bodies[0].positionAngstrom[index]));for(const atom of bodies[1].atoms)right.push(rotate(atom.positionAngstrom,bodies[1].orientation).map((value,index)=>value+bodies[1].positionAngstrom[index]));let minimumAtomDistance=Infinity;for(const a of left)for(const b of right)minimumAtomDistance=Math.min(minimumAtomDistance,Math.hypot(...a.map((value,index)=>value-b[index])));return{centerDepthSeparationAngstrom:separation,minimumAtomDistanceAngstrom:minimumAtomDistance};};
         const initial=measure(),rows=[];let completed=0,overlapGuardActivationCount=0;
