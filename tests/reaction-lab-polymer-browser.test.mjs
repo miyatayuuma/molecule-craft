@@ -71,6 +71,7 @@ try{
   };
   const runManualSteps=async route=>{
     for(let manualIndex=1;manualIndex<=route.interactionCadence.manualSteps;manualIndex++){
+      await waitFor("!!window.__reactionLabProbe.snapshot().polymerization.siteTarget",`${route.routeId} manual step ${manualIndex}: stable reactive site is presented`);
       const state=await snapshot(),consumed=state.polymerization.consumedInstanceIds,reserved=new Set(state.polymerization.reservedInstanceIds),species=route.representativeSequence[consumed.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!consumed.includes(item.id));
       assert.ok(candidate,`${route.routeId} manual step ${manualIndex}: representative incoming monomer is reserved and draggable`);
       const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,manualIndex);
