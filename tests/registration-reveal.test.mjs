@@ -8,6 +8,7 @@ class FakeNode{
   setAttribute(k,v){this.attrs.set(k,String(v));}
   getAttribute(k){return this.attrs.has(k)?this.attrs.get(k):null;}
   removeAttribute(k){this.attrs.delete(k);}
+  querySelectorAll(){return[];}
   addEventListener(type,fn){this.listeners.set(type,fn);}
   removeEventListener(type,fn){if(this.listeners.get(type)===fn)this.listeners.delete(type);}
   emit(type){this.listeners.get(type)?.();}
@@ -20,17 +21,17 @@ class FakeNode{
 function fixture({reduced=false,open=true}={}){
   const dialog=new FakeNode(),detail=new FakeNode(),nav=new FakeNode(),name=new FakeNode('水素'),formula=new FakeNode('H₂'),description=new FakeNode('説明'),extras=new FakeNode(),number=new FakeNode('No. 001'),host=new FakeNode('模型を準備しています…'),stage=new FakeNode(),canvas=new FakeNode();dialog.open=true;
   let canvasReady=false,observerCallback=null;let observerDisconnected=false;
-  detail.querySelector=selector=>({'.collection-model':host,'.detail-heading h3':name,'.detail-heading .detail-formula':formula,'.detail-heading .dex-number':number,'.detail-navigation':nav}[selector]??null);
+  detail.querySelector=selector=>selector.includes('[data-registration-visual]')||selector==='.collection-model'?host:({'.detail-heading h3':name,'.detail-heading .detail-formula':formula,'.detail-heading .dex-number':number,'.detail-navigation':nav}[selector]??null);
   detail.querySelectorAll=()=>[name,formula,description,extras];
   host.querySelector=selector=>selector==='.model-canvas'?(canvasReady?canvas:null):selector==='.model-stage'?stage:null;
   const root={querySelector:selector=>selector==='#collection-dialog'?dialog:selector==='#collection-detail'?detail:null,createElement:()=>new FakeNode()};
   const win={matchMedia:()=>({matches:reduced})};
   const timers=[];const setTimer=(fn,delay)=>{const token={fn,delay,cancelled:false};timers.push(token);return token;};const clearTimer=token=>{token.cancelled=true;};
   const run=delay=>{const batch=timers.filter(t=>!t.cancelled&&!t.ran&&t.delay===delay);for(const t of batch){t.ran=true;t.fn();}};
-  const collection={openMolecule(){return open;}};
+  const openedEntries=[],collection={openEntry(kind,id){openedEntries.push({kind,id});return open;},openMolecule(){return open;}};
   const observerFactory=callback=>{observerCallback=callback;return{observe(){},disconnect(){observerDisconnected=true;}};};
   const present=(options={})=>presentFirstRegistration({collection,id:'hydrogen',root,win,observerFactory,setTimer,clearTimer,...options});
-  return{dialog,detail,nav,name,formula,description,extras,host,stage,canvas,collection,present,ready(){canvasReady=true;host.textContent='';observerCallback?.();},fail(){host.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';observerCallback?.();},run,animations:()=>[...(host.animations??[]),...(stage.animations??[]),...stage.children.flatMap(n=>n.animations??[])],get observerDisconnected(){return observerDisconnected;}};
+  return{dialog,detail,nav,name,formula,description,extras,host,stage,canvas,collection,openedEntries,present,ready(){canvasReady=true;host.textContent='';observerCallback?.();},fail(){host.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';observerCallback?.();},run,animations:()=>[...(host.animations??[]),...(stage.animations??[]),...stage.children.flatMap(n=>n.animations??[])],get observerDisconnected(){return observerDisconnected;}};
 }
 
 test('waits for viewer readiness before silhouette reveal and announces once',()=>{
@@ -43,6 +44,11 @@ test('waits for viewer readiness before silhouette reveal and announces once',()
 
 test('software viewer uses the same canvas-stage reveal contract',()=>{
   const f=fixture();f.host.dataset.renderMode='software-3d';f.present();f.ready();f.run(300);assert.ok(f.host.animations?.some(a=>a.frames.some(frame=>String(frame.filter).includes('grayscale'))));
+});
+
+test('kind-neutral registration opens polymer entries and omits molecular formula',()=>{
+  const f=fixture();assert.equal(f.present({kind:'polymers',id:'polyethylene'}),true);assert.deepEqual(f.openedEntries,[{kind:'polymers',id:'polyethylene'}]);
+  f.ready();f.run(300);f.run(320);assert.equal(f.detail.children.find(node=>node.attrs.get('role')==='status').textContent,'図鑑に 水素を登録しました');
 });
 
 test('viewer failure settles identity without rolling registration back',()=>{

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
 import {SCHEMA_VERSION,createInitialResourcesState,loadPersistedResources,migrateResourcesSave,serializeResourcesState} from '../src/veil/resources-persistence.js';
+import {POLYMER_COLLECTION_STORAGE_KEY} from '../src/polymer-collection-persistence.js';
 
 const memory=(entries=[])=>{const data=new Map(entries);return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value),removeItem:key=>data.delete(key),raw:key=>data.get(key)??null};};
 
@@ -9,11 +10,12 @@ const initial=createInitialResourcesState();
 for(const version of [1,2,3,4,5,6,7]){
   const legacy={...initial,schemaVersion:version,elements:{...initial.elements,H:999,C:500,O:250},recipes:['hydrogen','methane','oxygen','water'],progress:{...initial.progress,bestChain:99,runs:42,foundElements:['H','C','O'],regions:['veil','carbon','oxygen'],checkpoint:'oxygen',frontier:true,thermalStrainExperienced:true,driveThermalInterruptions:2}};
   assert.deepEqual(migrateResourcesSave(JSON.stringify(legacy)),initial,`schema v${version} must reset rather than migrate resource/progression state`);
-  const storage=memory([[RESOURCE_KEY,JSON.stringify(legacy)],['molecule-craft.collection.v1',JSON.stringify({schemaVersion:2,discoveredMolecules:[{id:'water',at:1,order:1}]})]]);
+  const storage=memory([[RESOURCE_KEY,JSON.stringify(legacy)],['molecule-craft.collection.v1',JSON.stringify({schemaVersion:2,discoveredMolecules:[{id:'water',at:1,order:1}]})],[POLYMER_COLLECTION_STORAGE_KEY,JSON.stringify({schemaVersion:1,discoveredPolymers:[{id:'polyethylene',at:1,order:1}]})]]);
   const loaded=loadPersistedResources(storage);
   assert.deepEqual(loaded.state,initial,`schema v${version} load must return clean initial resources without exception`);
   assert.equal(JSON.parse(storage.raw(RESOURCE_KEY)).schemaVersion,SCHEMA_VERSION,`schema v${version} reset must write the current resource schema`);
   assert.equal(storage.raw('molecule-craft.collection.v1'),null,`schema v${version} reset must discard incompatible collection discovery state`);
+  assert.equal(storage.raw(POLYMER_COLLECTION_STORAGE_KEY),null,`schema v${version} reset must discard polymer discovery state too`);
 }
 
 const current={...createInitialResourcesState(),elements:{...initial.elements,H:311,C:144,O:92,N:8},recipes:['hydrogen','methane','oxygen','water'],hints:['water'],dust:{H:1,C:2,O:1},loadout:{drive:'hydrogen',cooling:true,tanks:{propellant:'hydrogen',fuel:'methane',oxidizer:'oxygen',coolant:'water',shock:null}},tanks:{propellant:{molecule:'hydrogen',amount:40},fuel:{molecule:'methane',amount:3},oxidizer:{molecule:'oxygen',amount:4},coolant:{molecule:'water',amount:2},shock:{molecule:null,amount:0}},progress:{...initial.progress,bestChain:7,runs:3,cleared:true,foundElements:['H','C','O'],regions:['veil','carbon','oxygen'],checkpoint:'oxygen',frontier:true,totalCollected:91,thermalStrainExperienced:true,driveThermalInterruptions:2}};
@@ -28,7 +30,12 @@ assert.ok(legacyFrontierLoaded.state.progress.regions.includes('frontier'),'hist
 assert.equal(JSON.parse(legacyFrontierStorage.raw(RESOURCE_KEY)).progress.checkpoint,'oxygen','legacy fallback must be persisted without a schema bump');
 assert.equal(migrateResourcesSave(serializeResourcesState(legacyFrontier)).progress.checkpoint,'oxygen','current-schema migration helper normalizes the legacy destination too');
 
-const malformedStorage=memory([[RESOURCE_KEY,'{broken']]);const malformed=createResources({storage:malformedStorage});assert.equal(malformed.blocked,false,'corrupt persisted resource JSON resets rather than blank-screening or write-blocking');assert.deepEqual(malformed.state,initial);assert.equal(malformed.save(),true);
+const malformedStorage=memory([[RESOURCE_KEY,'{broken'],[POLYMER_COLLECTION_STORAGE_KEY,JSON.stringify({schemaVersion:1,discoveredPolymers:[{id:'polyethylene',at:1,order:1}]})]]);const malformed=createResources({storage:malformedStorage});assert.equal(malformed.blocked,false,'corrupt persisted resource JSON resets rather than blank-screening or write-blocking');assert.deepEqual(malformed.state,initial);assert.equal(malformedStorage.raw(POLYMER_COLLECTION_STORAGE_KEY),null,'corrupt resource recovery clears the current polymer collection save');assert.equal(malformed.save(),true);
+const pendingReset={...createInitialResourcesState(),resetEpoch:9,pendingReset:{collection:true,legacy:false,help:false}};
+const pendingStorage=memory([[RESOURCE_KEY,JSON.stringify(pendingReset)],[POLYMER_COLLECTION_STORAGE_KEY,JSON.stringify({schemaVersion:1,discoveredPolymers:[{id:'polyethylene',at:1,order:1}]})]]);
+const completedReset=loadPersistedResources(pendingStorage);assert.equal(completedReset.state.pendingReset,undefined,'pending collection reset completes on the next load');assert.equal(pendingStorage.raw(POLYMER_COLLECTION_STORAGE_KEY),null,'resumed collection reset clears polymer discovery too');
+const futurePolymer=JSON.stringify({schemaVersion:2,discoveredPolymers:[{id:'future-polymer',at:1,order:1}],futureField:{keep:true}}),futureResetStorage=memory([[RESOURCE_KEY,'{broken'],[POLYMER_COLLECTION_STORAGE_KEY,futurePolymer]]);
+loadPersistedResources(futureResetStorage);assert.equal(futureResetStorage.raw(POLYMER_COLLECTION_STORAGE_KEY),futurePolymer,'resource recovery never overwrites a future polymer schema');
 assert.throws(()=>serializeResourcesState({...current,schemaVersion:7}),/schema/i,'egress rejects old resource schema states');
 
 console.log('Resources persistence v9 passed: v1-v7 reset cleanly and current BASE STOCK/progression/capability state round-trips.');

@@ -7,16 +7,20 @@ import {AROMATIC_STYLE,aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aro
 import {RESONANCE_STYLE,SULFUR_OXO_STYLE,specialEdgeKeys,sharedBondCurves,sulfurOxoBondAxes} from '../src/special-bonds.js?v=34';
 import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
 import {canonicalPartView,PART_SETTLEMENT} from '../src/part-presentation.js?v=2';
+import {createReactionLabPolymerizationCore,POLYMER_COMMIT_DWELL_MS} from '../src/reaction-lab-polymerization.js?v=1';
+import {polymerPresentationSvg} from '../src/reaction-lab-polymer-presentation.js?v=1';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8').then(JSON.parse);
-const records=await read('data/molecules.json'),parts=await read('data/craft-structures.json');
+const records=await read('data/molecules.json'),parts=await read('data/craft-structures.json'),polymers=await read('data/polymers.json'),polymerAuthority=await read('data/polymerization-routes.json');
 await mkdir(new URL('assets/models/',root),{recursive:true});
 const n=value=>Number(value.toFixed(2));
 const shade=(hex,factor)=>`#${hex.slice(1).match(/../g).map(channel=>Math.round(parseInt(channel,16)*factor).toString(16).padStart(2,'0')).join('')}`;
+const presentationRecords=new Map();
 for(const [kind,items]of [['molecule',records],['part',parts]])for(const record of items){
   const model=createPreviewModel(THREE,record);let stable=0;for(let i=0;i<PART_SETTLEMENT.maxSteps;i++){const movement=model.step();if(kind==='part'){stable=movement<PART_SETTLEMENT.movementThreshold?stable+1:0;if(stable>=PART_SETTLEMENT.stableSteps)break;}}const layout=model.snapshot();
   const partView=kind==='part'?canonicalPartView(THREE,layout):null;
   const rotation=new THREE.Quaternion().setFromEuler(partView?new THREE.Euler(partView.pitch,partView.yaw,partView.roll,'YXZ'):new THREE.Euler(.32,.48,-.14));
   const atoms=layout.atoms.map(atom=>({...atom,point:atom.point.clone().applyQuaternion(rotation)}));
+  if(kind==='molecule')presentationRecords.set(record.id,{...record,atoms});
   const radius=partView?.fitRadius??Math.max(1,...atoms.map(a=>a.point.length()+ELEMENTS[a.element].radius));const scale=52/radius,bondStrokeWidth=n(Math.max(1.6,scale*.09));
   const project=p=>({x:96+p.x*scale,y:64-p.y*scale,z:p.z});
   const radii=atoms.map(atom=>Math.max(2,modelAtomRadius(atom.element)*scale));
@@ -58,4 +62,21 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
   const svg=`<svg xmlns="http://www.w3.org/2000/svg"${viewAttributes} viewBox="0 0 192 128"><defs>${sulfurFilter}${[...defs].map(symbol=>`<radialGradient id="${symbol}" cx="30%" cy="25%" r="75%"><stop stop-color="#e6f0f5"/><stop offset=".3" stop-color="${ELEMENTS[symbol].color}"/><stop offset="1" stop-color="${shade(ELEMENTS[symbol].color,.64)}"/></radialGradient>`).join('')}</defs>${shapes.sort((a,b)=>a.z-b.z).map(item=>item.svg).join('')}</svg>\n`;
   await writeFile(new URL(`assets/models/${kind}-${record.id}.svg`,root),svg);
 }
-console.log(`Generated ${records.length} molecule + ${parts.length} part thumbnails`);
+const coreRecords=records.filter(record=>new Set(polymerAuthority.routes.flatMap(route=>[...route.feedSpecies,'water'])).has(record.id));
+for(const route of polymerAuthority.routes){
+  const instances=route.representativeSequence.map((species,index)=>({id:`asset-${route.routeId}-${index+1}`,species,batchGeneration:1})),recordsForRoute={};
+  route.representativeSequence.forEach((species,index)=>{recordsForRoute[instances[index].id]=presentationRecords.get(species);});
+  const core=createReactionLabPolymerizationCore({records:coreRecords,routes:polymerAuthority.routes,sitePatterns:polymerAuthority.sitePatterns});
+  const begun=core.beginBatch({activeSlots:route.feedSpecies,batchGeneration:1,instances,environment:new Set(route.environment.requires)});
+  if(!begun.ok)throw new Error(`Could not build canonical polymer asset for ${route.routeId}: ${begun.reason}`);
+  let result=null;
+  for(let index=1;index<instances.length;index++){
+    const automatic=index>route.interactionCadence.manualSteps,step=automatic?core.beginAutomaticStep(instances[index].id):core.beginManualStep(instances[index].id);
+    if(!step.ok)throw new Error(`Could not transform canonical polymer asset for ${route.routeId}: ${step.reason}`);
+    result=core.advanceFixedStep(POLYMER_COMMIT_DWELL_MS);
+    if(!result.committed)throw new Error(`Could not commit canonical polymer asset for ${route.routeId}: ${result.reason}`);
+  }
+  if(!result?.finished)throw new Error(`Canonical polymer asset did not reach completion: ${route.routeId}`);
+  await writeFile(new URL(`assets/models/polymer-${route.polymerId}.svg`,root),polymerPresentationSvg(result.sample,{sourceRecordsByInstanceId:recordsForRoute,title:`${polymers.find(item=>item.id===route.polymerId)?.nameJa??route.polymerId} representative segment`}));
+}
+console.log(`Generated ${records.length} molecule + ${parts.length} part + ${polymerAuthority.routes.length} polymer thumbnails`);

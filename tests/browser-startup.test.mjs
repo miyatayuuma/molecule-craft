@@ -45,14 +45,14 @@ try{
   for(let attempt=0;attempt<80;attempt++){
     await new Promise(resolveWait=>setTimeout(resolveWait,100));
     try{
-      const result=await send('Runtime.evaluate',{expression:`({text:document.querySelector('#open-collection')?.textContent??'',disabled:document.querySelector('#open-collection')?.disabled??null,body:document.body?.innerText??''})`,returnByValue:true});
+      const result=await send('Runtime.evaluate',{expression:`({text:document.querySelector('#open-collection')?.textContent??'',progress:document.querySelector('#collection-progress')?.textContent??'',disabled:document.querySelector('#open-collection')?.disabled??null,body:document.body?.innerText??''})`,returnByValue:true});
       snapshot=result.result?.value??null;
-      if(snapshot?.body?.includes('図鑑を読み込めませんでした。原子からの制作は続けられます。')||snapshot?.text?.includes('0/142'))break;
+      if(snapshot?.body?.includes('図鑑を読み込めませんでした。原子からの制作は続けられます。')||snapshot?.progress?.includes('/ 142'))break;
     }catch{}
   }
   assert.ok(snapshot,'Application DOM did not become readable');
   assert.ok(!snapshot.body.includes('図鑑を読み込めませんでした。原子からの制作は続けられます。'),'Collection startup must not fall back to the unavailable state');
-  assert.match(snapshot.text,/図鑑\s*0\/142/,'Encyclopedia startup denominator must resolve to the 142-molecule production DB');
+  assert.equal(snapshot.text,'図鑑','The topbar uses the count-free Encyclopedia label');assert.match(snapshot.progress,/分子\s*0\s*\/\s*142/,'Encyclopedia tab progress uses the 142-molecule production DB');
   assert.ok(!exceptions.some(item=>item.exception?.className==='SyntaxError'||item.text?.includes('SyntaxError')),`Browser startup must not contain module syntax errors: ${JSON.stringify(exceptions)}`);
 }finally{
   try{socket?.close();}catch{}

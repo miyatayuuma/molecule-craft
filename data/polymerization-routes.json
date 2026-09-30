@@ -1,0 +1,1534 @@
+{
+  "schemaVersion": 1,
+  "builders": [
+    "chain",
+    "step-growth",
+    "network"
+  ],
+  "transformFamilies": [
+    "vinyl",
+    "diene",
+    "epoxide",
+    "ester-condensation",
+    "amide-condensation",
+    "phenol-methylolation",
+    "phenol-methylene-bridge"
+  ],
+  "processSetupTokens": [
+    "coordination-catalyst",
+    "diene-coordination-catalyst",
+    "radical-initiation",
+    "cationic-initiation",
+    "lewis-acid-catalysis",
+    "active-cooling",
+    "alkoxide-type-initiation",
+    "dry-controlled-medium",
+    "esterification-polycondensation",
+    "amidation-polycondensation",
+    "water-removal",
+    "resole-base-catalysis",
+    "pressure-controlled-process"
+  ],
+  "sitePatterns": [
+    {
+      "id": "polymer-vinyl-alkene",
+      "atoms": [
+        {
+          "label": "C1",
+          "element": "C",
+          "aromatic": false
+        },
+        {
+          "label": "C2",
+          "element": "C",
+          "aromatic": false
+        }
+      ],
+      "bonds": [
+        [
+          "C1",
+          "C2",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "polymer-conjugated-diene-1-4",
+      "atoms": [
+        {
+          "label": "C1",
+          "element": "C",
+          "aromatic": false
+        },
+        {
+          "label": "C2",
+          "element": "C",
+          "aromatic": false
+        },
+        {
+          "label": "C3",
+          "element": "C",
+          "aromatic": false
+        },
+        {
+          "label": "C4",
+          "element": "C",
+          "aromatic": false
+        }
+      ],
+      "bonds": [
+        [
+          "C1",
+          "C2",
+          2
+        ],
+        [
+          "C2",
+          "C3",
+          1
+        ],
+        [
+          "C3",
+          "C4",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "polymer-epoxide-three-member",
+      "atoms": [
+        {
+          "label": "C1",
+          "element": "C",
+          "aromatic": false
+        },
+        {
+          "label": "C2",
+          "element": "C",
+          "aromatic": false
+        },
+        {
+          "label": "O1",
+          "element": "O"
+        }
+      ],
+      "bonds": [
+        [
+          "C1",
+          "C2",
+          1
+        ],
+        [
+          "C2",
+          "O1",
+          1
+        ],
+        [
+          "O1",
+          "C1",
+          1
+        ]
+      ]
+    },
+    {
+      "id": "polymer-carboxylic-acid",
+      "atoms": [
+        {
+          "label": "Cacyl",
+          "element": "C",
+          "aromatic": false
+        },
+        {
+          "label": "Ocarbonyl",
+          "element": "O"
+        },
+        {
+          "label": "Ohydroxyl",
+          "element": "O",
+          "neighborCounts": {
+            "H": 1
+          }
+        }
+      ],
+      "bonds": [
+        [
+          "Cacyl",
+          "Ocarbonyl",
+          2
+        ],
+        [
+          "Cacyl",
+          "Ohydroxyl",
+          1
+        ]
+      ]
+    },
+    {
+      "id": "polymer-alcohol",
+      "atoms": [
+        {
+          "label": "Oalcohol",
+          "element": "O",
+          "neighborCounts": {
+            "H": 1
+          }
+        }
+      ],
+      "bonds": []
+    },
+    {
+      "id": "polymer-amine",
+      "atoms": [
+        {
+          "label": "Namine",
+          "element": "N",
+          "neighborCounts": {
+            "H": {
+              "min": 1
+            }
+          }
+        }
+      ],
+      "bonds": []
+    },
+    {
+      "id": "polymer-phenol-ring-carbon",
+      "atoms": [
+        {
+          "label": "Cipso",
+          "element": "C",
+          "aromatic": true,
+          "degree": 3
+        }
+      ],
+      "bonds": []
+    },
+    {
+      "id": "polymer-formaldehyde-carbonyl",
+      "atoms": [
+        {
+          "label": "Cformal",
+          "element": "C"
+        },
+        {
+          "label": "Oformal",
+          "element": "O"
+        }
+      ],
+      "bonds": [
+        [
+          "Cformal",
+          "Oformal",
+          2
+        ]
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "ethene"
+      ],
+      "representativeSequence": [
+        "ethene",
+        "ethene",
+        "ethene",
+        "ethene"
+      ],
+      "processLabel": "COORDINATION CHAIN-GROWTH",
+      "processSetupTokens": [
+        "coordination-catalyst"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polypropylene-coordination",
+      "polymerId": "polypropylene",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "propene"
+      ],
+      "representativeSequence": [
+        "propene",
+        "propene",
+        "propene",
+        "propene"
+      ],
+      "processLabel": "COORDINATION CHAIN-GROWTH",
+      "processSetupTokens": [
+        "coordination-catalyst"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "ethylene-propylene-coordination",
+      "polymerId": "ethylene-propylene-copolymer",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "ethene",
+        "propene"
+      ],
+      "representativeSequence": [
+        "ethene",
+        "propene",
+        "ethene"
+      ],
+      "processLabel": "COORDINATION COPOLYMERIZATION",
+      "processSetupTokens": [
+        "coordination-catalyst"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 0
+      },
+      "completionEvidence": {
+        "unitCount": 3,
+        "interUnitLinks": 2,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "representative-local-segment",
+        "qualifiers": [
+          "REPRESENTATIVE LOCAL SEGMENT",
+          "BULK COMPOSITION NOT IMPLIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polyisobutylene-cationic",
+      "polymerId": "polyisobutylene",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "isobutene"
+      ],
+      "representativeSequence": [
+        "isobutene",
+        "isobutene",
+        "isobutene",
+        "isobutene"
+      ],
+      "processLabel": "CATIONIC CHAIN-GROWTH · COOLED",
+      "processSetupTokens": [
+        "cationic-initiation",
+        "active-cooling"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": [
+          "heat"
+        ]
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polystyrene-radical",
+      "polymerId": "polystyrene",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "styrene"
+      ],
+      "representativeSequence": [
+        "styrene",
+        "styrene",
+        "styrene",
+        "styrene"
+      ],
+      "processLabel": "RADICAL CHAIN-GROWTH",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polyvinyl-chloride-radical",
+      "polymerId": "polyvinyl-chloride",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "vinyl-chloride"
+      ],
+      "representativeSequence": [
+        "vinyl-chloride",
+        "vinyl-chloride",
+        "vinyl-chloride",
+        "vinyl-chloride"
+      ],
+      "processLabel": "RADICAL CHAIN-GROWTH",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "polymerId": "polychlorotrifluoroethylene",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "chlorotrifluoroethylene"
+      ],
+      "representativeSequence": [
+        "chlorotrifluoroethylene",
+        "chlorotrifluoroethylene",
+        "chlorotrifluoroethylene",
+        "chlorotrifluoroethylene"
+      ],
+      "processLabel": "RADICAL CHAIN-GROWTH",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polyacrylonitrile-radical",
+      "polymerId": "polyacrylonitrile",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "acrylonitrile"
+      ],
+      "representativeSequence": [
+        "acrylonitrile",
+        "acrylonitrile",
+        "acrylonitrile",
+        "acrylonitrile"
+      ],
+      "processLabel": "RADICAL CHAIN-GROWTH",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polyacrylic-acid-radical",
+      "polymerId": "polyacrylic-acid",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "acrylic-acid"
+      ],
+      "representativeSequence": [
+        "acrylic-acid",
+        "acrylic-acid",
+        "acrylic-acid",
+        "acrylic-acid"
+      ],
+      "processLabel": "RADICAL CHAIN-GROWTH",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "polymerId": "polyethylene-oxide",
+      "builder": "chain",
+      "transformFamilies": [
+        "epoxide"
+      ],
+      "feedSpecies": [
+        "ethylene-oxide"
+      ],
+      "representativeSequence": [
+        "ethylene-oxide",
+        "ethylene-oxide",
+        "ethylene-oxide",
+        "ethylene-oxide"
+      ],
+      "processLabel": "ANIONIC RING-OPENING CHAIN-GROWTH",
+      "processSetupTokens": [
+        "alkoxide-type-initiation",
+        "dry-controlled-medium"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 4,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-epoxide-three-member"
+      ]
+    },
+    {
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "polymerId": "polyethylene-terephthalate",
+      "builder": "step-growth",
+      "transformFamilies": [
+        "ester-condensation"
+      ],
+      "feedSpecies": [
+        "ethylene-glycol",
+        "terephthalic-acid"
+      ],
+      "representativeSequence": [
+        "terephthalic-acid",
+        "ethylene-glycol",
+        "terephthalic-acid",
+        "ethylene-glycol"
+      ],
+      "processLabel": "STEP-GROWTH · ESTERIFICATION",
+      "processSetupTokens": [
+        "esterification-polycondensation",
+        "water-removal",
+        "pressure-controlled-process"
+      ],
+      "environment": {
+        "requires": [
+          "heat"
+        ],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 3
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-carboxylic-acid",
+        "polymer-alcohol"
+      ]
+    },
+    {
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "polymerId": "polyethylene-adipate",
+      "builder": "step-growth",
+      "transformFamilies": [
+        "ester-condensation"
+      ],
+      "feedSpecies": [
+        "adipic-acid",
+        "ethylene-glycol"
+      ],
+      "representativeSequence": [
+        "adipic-acid",
+        "ethylene-glycol",
+        "adipic-acid",
+        "ethylene-glycol"
+      ],
+      "processLabel": "STEP-GROWTH · ESTERIFICATION",
+      "processSetupTokens": [
+        "esterification-polycondensation",
+        "water-removal"
+      ],
+      "environment": {
+        "requires": [
+          "heat"
+        ],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 3
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-carboxylic-acid",
+        "polymer-alcohol"
+      ]
+    },
+    {
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "polymerId": "polylactic-acid",
+      "builder": "step-growth",
+      "transformFamilies": [
+        "ester-condensation"
+      ],
+      "feedSpecies": [
+        "lactic-acid"
+      ],
+      "representativeSequence": [
+        "lactic-acid",
+        "lactic-acid",
+        "lactic-acid",
+        "lactic-acid"
+      ],
+      "processLabel": "DIRECT POLYCONDENSATION",
+      "processSetupTokens": [
+        "esterification-polycondensation",
+        "water-removal"
+      ],
+      "environment": {
+        "requires": [
+          "heat"
+        ],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 3
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-carboxylic-acid",
+        "polymer-alcohol"
+      ]
+    },
+    {
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "polymerId": "polyglycolic-acid",
+      "builder": "step-growth",
+      "transformFamilies": [
+        "ester-condensation"
+      ],
+      "feedSpecies": [
+        "glycolic-acid"
+      ],
+      "representativeSequence": [
+        "glycolic-acid",
+        "glycolic-acid",
+        "glycolic-acid",
+        "glycolic-acid"
+      ],
+      "processLabel": "DIRECT POLYCONDENSATION",
+      "processSetupTokens": [
+        "esterification-polycondensation",
+        "water-removal"
+      ],
+      "environment": {
+        "requires": [
+          "heat"
+        ],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 3
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-carboxylic-acid",
+        "polymer-alcohol"
+      ]
+    },
+    {
+      "routeId": "phenol-formaldehyde-resole",
+      "polymerId": "phenol-formaldehyde-resin",
+      "builder": "network",
+      "transformFamilies": [
+        "phenol-methylolation",
+        "phenol-methylene-bridge"
+      ],
+      "feedSpecies": [
+        "formaldehyde",
+        "phenol"
+      ],
+      "representativeSequence": [
+        "phenol",
+        "formaldehyde",
+        "phenol",
+        "formaldehyde"
+      ],
+      "processLabel": "RESOLE-TYPE NETWORK FORMATION",
+      "processSetupTokens": [
+        "resole-base-catalysis",
+        "water-removal"
+      ],
+      "environment": {
+        "requires": [
+          "basic"
+        ],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 1
+        },
+        "requiredFeatures": [
+          "methylene-bridge",
+          "hydroxymethyl-site"
+        ]
+      },
+      "presentation": {
+        "kind": "network",
+        "qualifiers": [
+          "NETWORK CONTINUES"
+        ],
+        "continuationMarkers": [
+          "network-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-phenol-ring-carbon",
+        "polymer-formaldehyde-carbonyl"
+      ]
+    },
+    {
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "polymerId": "polyethylene-adipamide",
+      "builder": "step-growth",
+      "transformFamilies": [
+        "amide-condensation"
+      ],
+      "feedSpecies": [
+        "adipic-acid",
+        "ethylenediamine"
+      ],
+      "representativeSequence": [
+        "adipic-acid",
+        "ethylenediamine",
+        "adipic-acid",
+        "ethylenediamine"
+      ],
+      "processLabel": "STEP-GROWTH · AMIDATION",
+      "processSetupTokens": [
+        "amidation-polycondensation",
+        "water-removal"
+      ],
+      "environment": {
+        "requires": [
+          "heat"
+        ],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 3
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-carboxylic-acid",
+        "polymer-amine"
+      ]
+    },
+    {
+      "routeId": "polybutadiene-coordination-1-4",
+      "polymerId": "polybutadiene",
+      "builder": "chain",
+      "transformFamilies": [
+        "diene"
+      ],
+      "feedSpecies": [
+        "1-3-butadiene"
+      ],
+      "representativeSequence": [
+        "1-3-butadiene",
+        "1-3-butadiene",
+        "1-3-butadiene",
+        "1-3-butadiene"
+      ],
+      "processLabel": "COORDINATION DIENE CHAIN-GROWTH · REPRESENTATIVE 1,4",
+      "processSetupTokens": [
+        "diene-coordination-catalyst"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "representative-local-segment",
+        "qualifiers": [
+          "REPRESENTATIVE LOCAL SEGMENT",
+          "MICROSTRUCTURE VARIES",
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-conjugated-diene-1-4"
+      ]
+    },
+    {
+      "routeId": "styrene-butadiene-radical",
+      "polymerId": "styrene-butadiene-copolymer",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl",
+        "diene"
+      ],
+      "feedSpecies": [
+        "1-3-butadiene",
+        "styrene"
+      ],
+      "representativeSequence": [
+        "1-3-butadiene",
+        "styrene",
+        "1-3-butadiene"
+      ],
+      "processLabel": "RADICAL COPOLYMERIZATION",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 0
+      },
+      "completionEvidence": {
+        "unitCount": 3,
+        "interUnitLinks": 2,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "representative-local-segment",
+        "qualifiers": [
+          "REPRESENTATIVE LOCAL SEGMENT",
+          "BULK COMPOSITION NOT IMPLIED",
+          "MICROSTRUCTURE VARIES",
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene",
+        "polymer-conjugated-diene-1-4"
+      ]
+    },
+    {
+      "routeId": "nitrile-butadiene-radical",
+      "polymerId": "nitrile-butadiene-rubber",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl",
+        "diene"
+      ],
+      "feedSpecies": [
+        "1-3-butadiene",
+        "acrylonitrile"
+      ],
+      "representativeSequence": [
+        "1-3-butadiene",
+        "acrylonitrile",
+        "1-3-butadiene"
+      ],
+      "processLabel": "RADICAL COPOLYMERIZATION",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 0
+      },
+      "completionEvidence": {
+        "unitCount": 3,
+        "interUnitLinks": 2,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "representative-local-segment",
+        "qualifiers": [
+          "REPRESENTATIVE LOCAL SEGMENT",
+          "BULK COMPOSITION NOT IMPLIED",
+          "MICROSTRUCTURE VARIES",
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene",
+        "polymer-conjugated-diene-1-4"
+      ]
+    },
+    {
+      "routeId": "polyisoprene-coordination-1-4",
+      "polymerId": "polyisoprene",
+      "builder": "chain",
+      "transformFamilies": [
+        "diene"
+      ],
+      "feedSpecies": [
+        "isoprene"
+      ],
+      "representativeSequence": [
+        "isoprene",
+        "isoprene",
+        "isoprene",
+        "isoprene"
+      ],
+      "processLabel": "COORDINATION DIENE CHAIN-GROWTH · REPRESENTATIVE 1,4",
+      "processSetupTokens": [
+        "diene-coordination-catalyst"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "representative-local-segment",
+        "qualifiers": [
+          "REPRESENTATIVE LOCAL SEGMENT",
+          "MICROSTRUCTURE VARIES",
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-conjugated-diene-1-4"
+      ]
+    },
+    {
+      "routeId": "butyl-rubber-cationic",
+      "polymerId": "butyl-rubber",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl",
+        "diene"
+      ],
+      "feedSpecies": [
+        "isobutene",
+        "isoprene"
+      ],
+      "representativeSequence": [
+        "isobutene",
+        "isoprene",
+        "isobutene"
+      ],
+      "processLabel": "CATIONIC COPOLYMERIZATION · COOLED",
+      "processSetupTokens": [
+        "cationic-initiation",
+        "active-cooling"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": [
+          "heat"
+        ]
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 0
+      },
+      "completionEvidence": {
+        "unitCount": 3,
+        "interUnitLinks": 2,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "representative-local-segment",
+        "qualifiers": [
+          "REPRESENTATIVE LOCAL SEGMENT",
+          "BULK COMPOSITION NOT IMPLIED",
+          "MICROSTRUCTURE VARIES",
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene",
+        "polymer-conjugated-diene-1-4"
+      ]
+    },
+    {
+      "routeId": "polyvinylidene-fluoride-radical",
+      "polymerId": "polyvinylidene-fluoride",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "vinylidene-fluoride"
+      ],
+      "representativeSequence": [
+        "vinylidene-fluoride",
+        "vinylidene-fluoride",
+        "vinylidene-fluoride",
+        "vinylidene-fluoride"
+      ],
+      "processLabel": "RADICAL CHAIN-GROWTH",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [
+          "REGIOCHEMISTRY VARIES",
+          "STEREOCHEMISTRY NOT SPECIFIED"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "polymerId": "vinylidene-fluoride-hexafluoropropylene-copolymer",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "hexafluoropropylene",
+        "vinylidene-fluoride"
+      ],
+      "representativeSequence": [
+        "vinylidene-fluoride",
+        "hexafluoropropylene",
+        "vinylidene-fluoride"
+      ],
+      "processLabel": "RADICAL COPOLYMERIZATION",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 0
+      },
+      "completionEvidence": {
+        "unitCount": 3,
+        "interUnitLinks": 2,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "representative-local-segment",
+        "qualifiers": [
+          "REPRESENTATIVE LOCAL SEGMENT",
+          "BULK COMPOSITION NOT IMPLIED",
+          "REGIOCHEMISTRY VARIES"
+        ],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "polytetrafluoroethylene-radical",
+      "polymerId": "polytetrafluoroethylene",
+      "builder": "chain",
+      "transformFamilies": [
+        "vinyl"
+      ],
+      "feedSpecies": [
+        "tetrafluoroethylene"
+      ],
+      "representativeSequence": [
+        "tetrafluoroethylene",
+        "tetrafluoroethylene",
+        "tetrafluoroethylene",
+        "tetrafluoroethylene"
+      ],
+      "processLabel": "RADICAL CHAIN-GROWTH",
+      "processSetupTokens": [
+        "radical-initiation"
+      ],
+      "environment": {
+        "requires": [],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 0
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-vinyl-alkene"
+      ]
+    },
+    {
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "polymerId": "nylon-6-6",
+      "builder": "step-growth",
+      "transformFamilies": [
+        "amide-condensation"
+      ],
+      "feedSpecies": [
+        "adipic-acid",
+        "hexamethylenediamine"
+      ],
+      "representativeSequence": [
+        "adipic-acid",
+        "hexamethylenediamine",
+        "adipic-acid",
+        "hexamethylenediamine"
+      ],
+      "processLabel": "STEP-GROWTH · AMIDATION",
+      "processSetupTokens": [
+        "amidation-polycondensation",
+        "water-removal",
+        "pressure-controlled-process"
+      ],
+      "environment": {
+        "requires": [
+          "heat"
+        ],
+        "forbids": []
+      },
+      "interactionCadence": {
+        "manualSteps": 2,
+        "automaticSteps": 1
+      },
+      "completionEvidence": {
+        "unitCount": 4,
+        "interUnitLinks": 3,
+        "ringOpenings": 0,
+        "byproducts": {
+          "water": 3
+        },
+        "requiredFeatures": []
+      },
+      "presentation": {
+        "kind": "finite-segment",
+        "qualifiers": [],
+        "continuationMarkers": [
+          "chain-continuation"
+        ]
+      },
+      "sitePatternIds": [
+        "polymer-carboxylic-acid",
+        "polymer-amine"
+      ]
+    }
+  ]
+}

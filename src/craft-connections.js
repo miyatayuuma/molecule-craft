@@ -7,9 +7,10 @@ import {loadMoleculeGraph} from './molecule-graph.js';
 import {CRITICAL_INSIGHT_IDS} from './veil/insights.js';
 import {primaryRoleFor} from './veil/molecule-roles.js';
 import {installTankCapabilityPresentation} from './veil/capability-unlock.js?v=1';
-import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=2';
+import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=3';
 import {loadPolymerCatalog,polymerCatalog} from './polymer-catalog.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
+import {loadPolymerizationRouteAuthority,polymerizationRoutes,polymerizationSitePatterns} from './polymerization-routes.js?v=1';
 
 function normalizeExplorationMode(){
   const veil=document.querySelector('#veil-view'),appShell=document.querySelector('.app-shell');
@@ -110,8 +111,12 @@ export function connectExploration(options){
 }
 
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
-  const {createCollectionUI}=await import('./collection-ui.js?v=44');
-  return createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
+  const polymerData=await preparePolymerEncyclopedia({records});
+  if(!polymerData.result.ok||!polymerData.model)throw new Error(polymerData.result.error??'Polymer encyclopedia unavailable.');
+  const {createCollectionUI}=await import('./collection-ui.js?v=45');
+  const collection=await createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,polymerRecords:polymerCatalog(),polymerContent:polymerData.content,polymerRoutes:polymerizationRoutes(),recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
+  collection.polymerRoutes=polymerizationRoutes();collection.polymerSitePatterns=polymerizationSitePatterns();
+  return collection;
 }
 
 export async function preparePolymerEncyclopedia({records=moleculeCatalog(),knownIds=[]}={}){
@@ -119,9 +124,12 @@ export async function preparePolymerEncyclopedia({records=moleculeCatalog(),know
   const result=await loadPolymerCatalog({moleculeIds});
   if(!result.ok)return {result,model:null};
   try{
+    const routeResult=await loadPolymerizationRouteAuthority({polymers:polymerCatalog(),molecules:records});
+    if(!routeResult.ok)throw new Error(routeResult.error??'Polymer routes are invalid.');
     const response=await fetch(new URL('../data/polymer-encyclopedia.json',import.meta.url),{cache:'no-store'});
     if(!response?.ok)throw new Error(`HTTP ${response?.status??'unknown'}`);
-    return {result,model:createPolymerEncyclopediaModel(polymerCatalog(),await response.json(),{knownIds})};
+    const content=await response.json();
+    return {result,model:createPolymerEncyclopediaModel(polymerCatalog(),content,{knownIds}),content,routes:polymerizationRoutes(),sitePatterns:polymerizationSitePatterns()};
   }catch(error){return {result:{ok:false,count:0,error:String(error?.message??error)},model:null};}
 }
 
