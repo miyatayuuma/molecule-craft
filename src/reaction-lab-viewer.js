@@ -300,8 +300,18 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       }
       return true;
     };
-    const safe=paths.filter(pathIsSafe).sort((a,b)=>a.slice(1).reduce((sum,point,index)=>sum+point.distanceTo(a[index]),0)-b.slice(1).reduce((sum,point,index)=>sum+point.distanceTo(b[index]),0));
-    return safe[0]??null;
+    const pathLength=path=>path.slice(1).reduce((sum,point,index)=>sum+point.distanceTo(path[index]),0),firstSafe=candidates=>{
+      candidates.sort((a,b)=>pathLength(a)-pathLength(b));
+      for(const path of candidates)if(pathIsSafe(path))return path;
+      return null;
+    };
+    const direct=firstSafe(paths);if(direct)return direct;
+    const expandedDirections=[];
+    for(const [first,second]of [[right,up],[right,normal],[up,normal]])for(const a of [-1,1])for(const b of [-1,1])expandedDirections.push(first.clone().multiplyScalar(a).addScaledVector(second,b).normalize());
+    for(const a of [-1,1])for(const b of [-1,1])for(const c of [-1,1])expandedDirections.push(right.clone().multiplyScalar(a).addScaledVector(up,b).addScaledVector(normal,c).normalize());
+    for(const point of [start,end]){const radial=point.clone().sub(center);if(radial.lengthSq()>1e-9){radial.normalize();expandedDirections.push(radial,radial.clone().negate());}}
+    const expanded=[];for(const distance of [clearance,clearance*1.35])for(const direction of expandedDirections){const offset=direction.clone().multiplyScalar(distance);expanded.push([start,start.clone().add(offset),end.clone().add(offset),end]);}
+    return firstSafe(expanded);
   }
   function samplePolymerPath(path,progress){
     if(path.length<2)return path[0]?.clone()??new THREE.Vector3();
