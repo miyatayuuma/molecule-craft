@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 5016)
+Total output lines: 105
+
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {mkdtemp,readFile,rm} from 'node:fs/promises';
@@ -56,8 +59,7 @@ try{
     await setEnvironment(route);
     await waitFor(`window.__reactionLabProbe.snapshot().polymerization.waitReason!=='conditions'`,`${route.routeId}: route conditions did not become valid`);
   };
-  const pointerDrag=async(plan,instanceId,routeId,manualIndex)=>{
-    const rect=await evaluate(`(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,documentWidth:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth}})()`);
+  const pointerDrag=async(plan,instanceId,rout…16 tokens truncated…=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,documentWidth:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth}})()`);
     assert.ok(plan.start.x>=rect.x&&plan.start.x<=rect.x+rect.width&&plan.start.y>=rect.y&&plan.start.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: reactive site is visible in the 390×844 chamber: ${JSON.stringify(plan)}`);
     assert.ok(plan.end.x>=rect.x&&plan.end.x<=rect.x+rect.width&&plan.end.y>=rect.y&&plan.end.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: projected target remains visible: ${JSON.stringify(plan)}`);
     assert.ok(rect.documentScroll<=rect.documentWidth+1,`${routeId} manual step ${manualIndex}: no horizontal overflow`);
@@ -80,7 +82,7 @@ try{
   };
   const inspectSample=async route=>{
     await waitFor(`(()=>{const p=window.__reactionLabProbe.snapshot().polymerization;return p.state==='SAMPLE'&&!!p.sampleId&&p.sampleReady})()`,`${route.routeId}: finite PolymerSample did not dock and finish its visible hold`,20000);
-    const state=await snapshot(),bay=await evaluate(`(()=>{const node=document.querySelector('[data-polymer-sample-bay]'),r=node.getBoundingClientRect(),e=[...document.querySelectorAll('.reaction-lab-equipment,.reaction-lab-medium-selector:not([hidden]),.reaction-lab-purge-outlet')].filter(n=>!n.hidden).map(n=>{const x=n.getBoundingClientRect();return{left:x.left-12,right:x.right+12,top:x.top-12,bottom:x.bottom+12}});return{hidden:node.hidden,region:node.dataset.region,rect:{left:r.left,right:r.right,top:r.top,bottom:r.bottom},equipment:e}})()`),events=await evaluate('window.__polymerSampleEvents.slice()');
+    const state=await snapshot(),bay=await evaluate(`(()=>{const node=document.querySelector('[data-polymer-sample-bay]'),r=node.getBoundingClientRect(),chamber=document.querySelector('.reaction-lab-space'),c=chamber.getBoundingClientRect(),canvas=document.querySelector('#reaction-lab canvas').getBoundingClientRect(),dialog=document.querySelector('#reaction-lab-dialog').getBoundingClientRect(),e=[...document.querySelectorAll('.reaction-lab-equipment,.reaction-lab-medium-selector:not([hidden]),.reaction-lab-purge-outlet')].filter(n=>!n.hidden).map(n=>{const x=n.getBoundingClientRect();return{left:x.left-12,right:x.right+12,top:x.top-12,bottom:x.bottom+12,display:getComputedStyle(n).display}});return{hidden:node.hidden,region:node.dataset.region,rect:{left:r.left,right:r.right,top:r.top,bottom:r.bottom},style:node.style.cssText,display:getComputedStyle(node).display,chamber:{left:c.left,right:c.right,top:c.top,bottom:c.bottom,display:getComputedStyle(chamber).display},canvas:{left:canvas.left,right:canvas.right,top:canvas.top,bottom:canvas.bottom},dialog:{left:dialog.left,right:dialog.right,top:dialog.top,bottom:dialog.bottom},equipment:e}})()`),events=await evaluate('window.__polymerSampleEvents.slice()');
     assert.equal(bay.hidden,false);assert.ok(['upper-left','upper-right'].includes(bay.region));for(const box of bay.equipment)assert.ok(bay.rect.right<=box.left||bay.rect.left>=box.right||bay.rect.bottom<=box.top||bay.rect.top>=box.bottom,`${route.routeId}: Sample Bay avoids equipment with margin: ${JSON.stringify({bay,box})}`);
     assert.equal(state.polymerization.routeId,route.routeId);assert.equal(state.polymerization.polymerId,route.polymerId);assert.equal(state.polymerization.sampleEvidence.unitCount,route.completionEvidence.unitCount);
     assert.equal(state.polymerization.sampleEvidence.interUnitLinks,route.completionEvidence.interUnitLinks);assert.equal(state.polymerization.sampleEvidence.ringOpenings,route.completionEvidence.ringOpenings);assert.equal(state.instances.some(item=>item.species==='PolymerSample'),false,'PolymerSample is outside Stage B instances');assert.ok(state.polymerization.sourceMeshCount>0,'source atom meshes remain the sample presentation');
