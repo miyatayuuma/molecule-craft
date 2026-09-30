@@ -319,6 +319,18 @@ try{
   await spaceCurrentBatch([[-2.5,0,0],[2.5,0,0],[0,-8,0],[0,8,0]]);
   await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="acidic"]');
   await runReaction('complete-06-ethene-halogenation',['1-2-dichloroethane'],{verifyPausedTransformation:false});
+
+  // ⑦E integrated closure: exercise both disjoint pH-gated production rules
+  // through the same real-pointer / dwell / handoff pipeline.
+  await setSlots(['ethylene-oxide','water','']);await waitForPopulation(['ethylene-oxide','water'],4,'ACIDIC production rule feed population did not initialize');
+  await spaceCurrentBatch([[-2.5,0,0],[2.5,0,0],[0,-8,0],[0,8,0]]);
+  await runReaction('complete-09-ethylene-oxide-acid-cleavage',['ethylene-glycol'],{verifyPausedTransformation:false});
+  await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="basic"]');
+  await setSlots(['ethylene-oxide','water','']);await waitForPopulation(['ethylene-oxide','water'],4,'BASIC production rule feed population did not initialize');
+  await spaceCurrentBatch([[-2.5,0,0],[2.5,0,0],[0,-8,0],[0,8,0]]);
+  await runReaction('complete-10-ethylene-oxide-basic-cleavage',['ethylene-glycol'],{verifyPausedTransformation:false});
+  await clickAt('[data-lab-medium-port]');await clickAt('[data-lab-medium-option="acidic"]');
+
   await clickAt('[data-lab-light]');
   await setSlots(['methane','chlorine','']);await waitForPopulation(['methane','chlorine'],4,'LIGHT-gated production rule feed population did not initialize');
   await spaceCurrentBatch([[-2.5,-4,0],[2.5,-4,0],[-2.5,4,0],[2.5,4,0]]);
