@@ -279,16 +279,17 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }
     return true;
   }
-  function polymerDockPose(item,interaction,{maxDistance=2.8}={}){
+  function polymerDockPoses(item,interaction,{maxDistance=2.8}={}){
     const target=polymerTargetWorld(interaction);if(!target)return null;
     const incoming=atomWorld(item,interaction.incomingAtomIndex),towardIncoming=incoming.clone().sub(target),normal=cameraNormal(),right=cameraRight(),up=cameraUp(),axes=[towardIncoming.lengthSq()>1e-9?towardIncoming.normalize():right,normal,normal.clone().negate(),right,right.clone().negate(),up,up.clone().negate()],directions=[...axes];
     for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])directions.push(right.clone().multiplyScalar(x).addScaledVector(up,y).addScaledVector(normal,z).normalize());
     const unique=[];for(const direction of directions)if(!unique.some(candidate=>candidate.dot(direction)>.999))unique.push(direction);
     const local=item.record.atoms[interaction.incomingAtomIndex].point.clone().applyQuaternion(item.group.quaternion),ideal=POLYMER_DOCK_DISTANCE_ANGSTROM*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM;
     const poses=unique.map(direction=>target.clone().addScaledVector(direction,ideal).sub(local)).filter(position=>position.toArray().every(Number.isFinite)&&position.distanceTo(item.group.position)<=maxDistance&&polymerGeometrySafe(item,interaction,position));
-    poses.sort((a,b)=>a.distanceTo(item.group.position)-b.distanceTo(item.group.position));return poses[0]??null;
+    poses.sort((a,b)=>a.distanceTo(item.group.position)-b.distanceTo(item.group.position));return poses;
   }
-  function polymerAutomaticPath(item,interaction,destination){
+  function polymerDockPose(item,interaction,options={}){return polymerDockPoses(item,interaction,options)?.[0]??null;}
+  function polymerAutomaticPath(item,interaction,destination,{gridFallback=true}={}){
     const start=item.group.position.clone(),end=destination.clone(),normal=cameraNormal(),right=cameraRight(),up=cameraUp(),directions=[normal,normal.clone().negate(),right,right.clone().negate(),up,up.clone().negate()],fragmentPoints=[...polymerGraphVisual.atomByGraphIndex.values()].map(mesh=>mesh.getWorldPosition(new THREE.Vector3()));
     const center=fragmentPoints.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/Math.max(1,fragmentPoints.length)),fragmentRadius=Math.max(0,...fragmentPoints.map(point=>point.distanceTo(center))),incomingRadius=Math.max(...item.record.atoms.map(atom=>modelAtomRadius(atom.element))),clearance=fragmentRadius+incomingRadius+.45;
     const offsets=[...new Set([.8,1.2,1.8,2.6,clearance,clearance*1.35].map(value=>Math.round(value*1000)/1000))],paths=[[start,end]];
@@ -312,6 +313,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     for(const point of [start,end]){const radial=point.clone().sub(center);if(radial.lengthSq()>1e-9){radial.normalize();expandedDirections.push(radial,radial.clone().negate());}}
     const expanded=[];for(const distance of [clearance,clearance*1.35])for(const direction of expandedDirections){const offset=direction.clone().multiplyScalar(distance);expanded.push([start,start.clone().add(offset),end.clone().add(offset),end]);}
     const detour=firstSafe(expanded);if(detour)return detour;
+    if(!gridFallback)return null;
     const margin=Math.max(.8,clearance*1.2),boundsPoints=[...fragmentPoints,start,end],minimum=new THREE.Vector3(...['x','y','z'].map(axis=>Math.min(...boundsPoints.map(point=>point[axis]))-margin)),maximum=new THREE.Vector3(...['x','y','z'].map(axis=>Math.max(...boundsPoints.map(point=>point[axis]))+margin)),maxSpan=Math.max(maximum.x-minimum.x,maximum.y-minimum.y,maximum.z-minimum.z),spacing=Math.max(.4,maxSpan/22),dimensions=[0,1,2].map(axis=>Math.ceil((maximum.getComponent(axis)-minimum.getComponent(axis))/spacing)+1);
     if(dimensions.reduce((product,size)=>product*size,1)>15000)return null;
     const gridPointCache=new Map(),nodeSafetyCache=new Map(),edgeSafetyCache=new Map(),keyFor=coords=>coords.join(','),coordsFor=key=>key.split(',').map(Number),inside=coords=>coords.every((value,axis)=>value>=0&&value<dimensions[axis]),pointFor=coords=>{const key=keyFor(coords);if(!gridPointCache.has(key))gridPointCache.set(key,new THREE.Vector3(minimum.x+coords[0]*spacing,minimum.y+coords[1]*spacing,minimum.z+coords[2]*spacing));return gridPointCache.get(key);};
@@ -328,6 +330,17 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const from=coordsFor(current.id);for(const delta of neighbors){const to=from.map((value,axis)=>value+delta[axis]);if(!inside(to))continue;const next=keyFor(to);if(!nodeSafe(next)||!edgeSafe(from,to))continue;const g=current.g+pointFor(from).distanceTo(pointFor(to));if(g>=(best.get(next)??Infinity))continue;best.set(next,g);previous.set(next,current.id);heapPush({id:next,g,f:g+pointFor(to).distanceTo(end)});}
     }
     return null;
+  }
+  function polymerAutomaticRoute(item,interaction){
+    const poses=polymerDockPoses(item,interaction,{maxDistance:Infinity})??[],attempts=[];
+    if(!poses.length)return{pose:null,path:null,attempts};
+    const tryPose=(index,gridFallback)=>{
+      const pose=poses[index],path=polymerAutomaticPath(item,interaction,pose,{gridFallback});attempts.push({poseIndex:index,gridFallback,found:!!path});return path?{pose,path}:null;
+    };
+    const nearest=tryPose(0,true);if(nearest)return{...nearest,attempts};
+    for(let index=1;index<poses.length;index++){const route=tryPose(index,false);if(route)return{...route,attempts};}
+    if(poses.length>1){const route=tryPose(1,true);if(route)return{...route,attempts};}
+    return{pose:null,path:null,attempts};
   }
   function samplePolymerPath(path,progress){
     if(path.length<2)return path[0]?.clone()??new THREE.Vector3();
@@ -436,9 +449,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const tx=polymerCore.snapshot();if(tx?.state===POLYMERIZATION_STATES.AUTO_PENDING&&!polymerAutoMotion){
       if(polymerGraphVisual?.animation)return;
       const candidates=polymerNextCandidates().map(item=>({item,preview:polymerInteraction(item)})).filter(row=>row.preview.ok).sort((a,b)=>a.item.group.position.distanceTo(polymerTargetWorld(a.preview.interaction))-b.item.group.position.distanceTo(polymerTargetWorld(b.preview.interaction))||a.item.id.localeCompare(b.item.id));
-      const evaluated=candidates.map(row=>{const target=polymerTargetWorld(row.preview.interaction),pose=polymerDockPose(row.item,row.preview.interaction,{maxDistance:Infinity}),path=pose&&polymerGeometrySafe(row.item,row.preview.interaction,pose)?polymerAutomaticPath(row.item,row.preview.interaction,pose):null,geometrySafe=!!pose&&!!path;return{...row,target,pose,path,geometrySafe};});
+      const evaluated=candidates.map(row=>{const target=polymerTargetWorld(row.preview.interaction),planned=polymerAutomaticRoute(row.item,row.preview.interaction),pose=planned.pose,path=planned.path,geometrySafe=!!pose&&!!path;return{...row,target,pose,path,geometrySafe,pathAttempts:planned.attempts};});
       const choice=evaluated.find(row=>row.geometrySafe);
-      if(!choice){if(localhostPhysicsTest)polymerAutoAttempt={stage:'select',reason:'no-safe-candidate',candidates:evaluated.map(row=>({id:row.item.id,position:row.item.group.position.toArray(),target:row.target?.toArray()??null,pose:row.pose?.toArray()??null,displacement:row.pose?.distanceTo(row.item.group.position)??null,geometrySafe:row.geometrySafe,path:row.path?.map(point=>point.toArray())??null}))};polymerCore.autoFallback();status.textContent='POLYMERIZATION PAUSED';updatePolymerSiteIndicator();return;}
+      if(!choice){if(localhostPhysicsTest)polymerAutoAttempt={stage:'select',reason:'no-safe-candidate',candidates:evaluated.map(row=>({id:row.item.id,position:row.item.group.position.toArray(),target:row.target?.toArray()??null,pose:row.pose?.toArray()??null,displacement:row.pose?.distanceTo(row.item.group.position)??null,startGeometrySafe:polymerGeometrySafe(row.item,row.preview.interaction,row.item.group.position,{requireBondDistance:false}),geometrySafe:row.geometrySafe,pathAttempts:row.pathAttempts,path:row.path?.map(point=>point.toArray())??null}))};polymerCore.autoFallback();status.textContent='POLYMERIZATION PAUSED';updatePolymerSiteIndicator();return;}
       polymerAutoMotion={item:choice.item,interaction:choice.preview.interaction,path:choice.path,from:choice.item.group.position.clone(),to:choice.pose,elapsedMs:0,durationMs:reducedMotion?300:POLYMER_DOCK_MS};if(localhostPhysicsTest)polymerAutoAttempt={stage:'motion',instanceId:choice.item.id,from:choice.item.group.position.toArray(),to:choice.pose.toArray(),path:choice.path.map(point=>point.toArray())};choice.item.polymerDocking=true;choice.item.stageBody.kinematic=true;status.textContent='POLYMERIZATION · PROCESS';
     }
   }
