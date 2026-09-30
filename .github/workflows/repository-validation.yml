@@ -62,6 +62,7 @@ jobs:
           fetch-depth: 0
       - name: Repository hygiene
         run: |
+          node scripts/check-repository-hygiene.mjs
           node tests/repository-hygiene.test.mjs
           node --test tests/reaction-lab-coverage-audit.test.mjs
           node --test tests/reaction-lab-core.test.mjs tests/reaction-lab-complete-catalog.test.mjs tests/reaction-lab-catalog-migration.test.mjs
@@ -130,6 +131,14 @@ jobs:
           node tests/capability-unlock.test.mjs
       - name: Polymer catalog foundation
         run: node tests/polymer-catalog.test.mjs
+      - name: Polymerization gameplay closure
+        run: |
+          node --test tests/polymerization-routes.test.mjs tests/reaction-graph-edits.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/polymer-collection-persistence.test.mjs tests/polymer-collection.test.mjs tests/reaction-lab-polymer-discovery.test.mjs
+          node tests/resources-persistence.test.mjs
+          node scripts/build-collection-assets.mjs
+          git diff --exit-code -- assets/models/molecule-*.svg assets/models/part-*.svg assets/models/polymer-*.svg
+          node tests/collection-polymer-browser.test.mjs
+          node tests/reaction-lab-polymer-browser.test.mjs
       - name: Encyclopedia graph UI
         run: |
           node tests/encyclopedia-content-architecture.test.mjs

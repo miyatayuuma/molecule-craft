@@ -10,15 +10,16 @@ function animate(node,keyframes,options,animations){
 }
 
 export function presentFirstRegistration({
-  collection,id,root=document,win=globalThis.window,
+  collection,kind='molecules',id,root=document,win=globalThis.window,
   observerFactory=callback=>new MutationObserver(callback),
   setTimer=setTimeout,clearTimer=clearTimeout,onSettled=()=>{},
 }={}){
   const dialog=root?.querySelector?.('#collection-dialog');
   const notifySettled=result=>{try{onSettled(result);}catch{}};
   dialog?.__moleculeCraftRegistrationRevealCleanup?.();
-  if(!id||!collection?.openMolecule?.(id)){notifySettled({status:'failed',reason:'collection-unavailable'});return false;}
-  const detail=root.querySelector('#collection-detail'),modelHost=detail?.querySelector?.('.collection-model');
+  const opened=collection?.openEntry?.(kind,id)??(kind==='molecules'?collection?.openMolecule?.(id):false);
+  if(!id||!opened){notifySettled({status:'failed',reason:'collection-unavailable'});return false;}
+  const detail=root.querySelector('#collection-detail'),modelHost=detail?.querySelector?.('[data-registration-visual],.collection-model');
   if(!dialog||!detail||!modelHost){notifySettled({status:'failed',reason:'collection-view-unavailable'});return false;}
 
   const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -34,7 +35,7 @@ export function presentFirstRegistration({
   const nav=detail.querySelector('.detail-navigation');if(nav?.after)nav.after(marker);else detail.prepend(marker);
 
   const live=root.createElement('p');live.className='sr-only';live.setAttribute('role','status');live.setAttribute('aria-live','polite');live.setAttribute('aria-atomic','true');detail.append(live);
-  const name=detail.querySelector('.detail-heading h3')?.textContent?.trim()||'',formula=detail.querySelector('.detail-heading .detail-formula')?.textContent?.trim()||'';
+  const name=detail.querySelector('.detail-heading h3')?.textContent?.trim()||'',formula=kind==='molecules'?(detail.querySelector('.detail-heading .detail-formula')?.textContent?.trim()||''):'';
   for(const node of identity){node.setAttribute('aria-hidden','true');applyStyles(node,{opacity:'0',transform:reduceMotion?'none':'translateY(3px)'});}
   applyStyles(modelHost,{filter:SILHOUETTE_FILTER,opacity:'.84',pointerEvents:'none'});
 
@@ -87,9 +88,12 @@ export function presentFirstRegistration({
   };
   const inspect=()=>{
     if(cancelled||started)return;
-    if(modelHost.querySelector('.model-canvas')){startReveal();return;}
+    const image=modelHost.querySelector('img');
+    if(modelHost.querySelector('.model-canvas')||image?.complete&&image.naturalWidth>0){startReveal();return;}
     if(STATUS_FAILURE.test(modelHost.textContent??''))fallback();
   };
   observer=observerFactory(inspect);observer.observe(modelHost,{childList:true,subtree:true,characterData:true});inspect();
+  for(const image of modelHost.querySelectorAll('img'))image.addEventListener('load',inspect,{once:true});
+  for(const image of modelHost.querySelectorAll('img'))image.addEventListener('error',fallback,{once:true});
   return true;
 }

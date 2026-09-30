@@ -6,6 +6,7 @@ import { enumerateSubgraphMappings } from './subgraph-matcher.js?v=1';
 import { REACTION_LAB_ENVIRONMENT_TOKENS, enumerateCanonicalReactionLabEnvironments, environmentTokensFromSnapshot, reactionLabEnvironmentStateFromTokens, validateNormalizedEnvironmentTokens, snapshotReactionLabEnvironment } from './reaction-lab-environment.js?v=1';
 import { REACTION_SITE_PATTERNS, REACTION_FAMILIES } from './reaction-lab-authority.js?v=1';
 import { REACTION_CATALOG } from './reaction-lab-catalog.js?v=1';
+import { applyGuardedGraphEdits, graphConnectedComponents, validateGraphAtomConservation } from './reaction-graph-edits.js?v=1';
 export { REACTION_SITE_PATTERNS, REACTION_FAMILIES };
 export { REACTION_CATALOG };
 
@@ -122,12 +123,7 @@ function resolveRef(ref,bindings){
   const[role,label]=refParts(ref);if(!role||!label||!Number.isInteger(bindings?.[role]?.[label]))throw new Error(`unbound-graph-edit-reference:${ref}`);
   return`${role}:${bindings[role][label]}`;
 }
-function connectedComponents(atoms,bonds){
-  const adjacency=new Map(atoms.map(atom=>[atom.id,[]]));for(const bond of bonds){adjacency.get(bond.a)?.push(bond.b);adjacency.get(bond.b)?.push(bond.a);}
-  const seen=new Set(),components=[];
-  for(const atom of atoms){if(seen.has(atom.id))continue;const ids=[],queue=[atom.id];for(let cursor=0;cursor<queue.length;cursor++){const id=queue[cursor];if(seen.has(id))continue;seen.add(id);ids.push(id);queue.push(...adjacency.get(id));}const set=new Set(ids);components.push({atoms:atoms.filter(item=>set.has(item.id)).sort((a,b)=>a.id.localeCompare(b.id)),bonds:bonds.filter(bond=>set.has(bond.a)&&set.has(bond.b)).sort((a,b)=>edgeKey(a.a,a.b).localeCompare(edgeKey(b.a,b.b)))});}
-  return components.sort((a,b)=>a.atoms[0].id.localeCompare(b.atoms[0].id));
-}
+const connectedComponents=graphConnectedComponents;
 function strictProductMappings(graph,record){
   if(graph.atoms.length!==record.atoms.length||graph.bonds.length!==record.bonds.length)return[];
   const target=graphIndex(record),sourceAdj=new Map(graph.atoms.map(atom=>[atom.id,[]]));
@@ -150,28 +146,10 @@ function strictProductMappings(graph,record){
 function strictGraphMatch(graph,record){return strictProductMappings(graph,record)[0]??null;}
 
 function transformPathway(pathway,records,{bindings=pathway.bindings??{}}={}){
-  const reaction=pathway.reaction??pathway, family=pathway.family??null, source=sourceGraphForReaction(reaction,records,bindings),atoms=source.atoms.map(atom=>({...atom})),bonds=source.bonds.map(bond=>({...bond})),sourceBonds=new Map(source.bonds.map(bond=>[edgeKey(bond.a,bond.b),bond.order])),byAtom=new Map(atoms.map(atom=>[atom.id,atom]));
-  for(const edit of family?.edits??pathway.edits??[]){
-    const a=resolveRef(edit.a,bindings),atomA=byAtom.get(a);if(!atomA)throw new Error(`unknown-source-atom:${a}`);
-    if(edit.op==='changeFormalCharge'){
-      if(atomA.formalCharge!==edit.from)throw new Error(`source-state-guard-failed:${edit.op}:${edit.a}`);atomA.formalCharge=edit.to;continue;
-    }
-    const b=resolveRef(edit.b,bindings),atomB=byAtom.get(b);if(!atomB)throw new Error(`unknown-source-atom:${b}`);
-    const key=edgeKey(a,b),bond=bonds.find(item=>edgeKey(item.a,item.b)===key);
-    if(edit.op==='breakBond'){
-      if(!bond||bond.order!==edit.from)throw new Error(`source-state-guard-failed:${edit.op}:${edit.a}:${edit.b}`);bonds.splice(bonds.indexOf(bond),1);
-    }else if(edit.op==='formBond'){
-      if(edit.from!=='absent'||bond)throw new Error(`source-state-guard-failed:${edit.op}:${edit.a}:${edit.b}`);bonds.push({a,b,order:edit.order});
-    }else if(edit.op==='changeBondOrder'){
-      if(!bond||bond.order!==edit.from)throw new Error(`source-state-guard-failed:${edit.op}:${edit.a}:${edit.b}`);bond.order=edit.to;
-    }else throw new Error(`unsupported-graph-edit:${edit.op}`);
-  }
-  bonds.sort((a,b)=>edgeKey(a.a,a.b).localeCompare(edgeKey(b.a,b.b)));
-  if(atoms.length!==source.atoms.length||new Set(atoms.map(atom=>atom.id)).size!==source.atoms.length)throw new Error('atom-conservation-failed');
-  const sourceElements=multiset(source.atoms.map(atom=>atom.element)),productElements=multiset(atoms.map(atom=>atom.element));
-  const sourceCharge=source.atoms.reduce((sum,atom)=>sum+atom.formalCharge,0),transformedCharge=atoms.reduce((sum,atom)=>sum+atom.formalCharge,0);
-  if(!mapsEqual(sourceElements,productElements))throw new Error('element-conservation-failed');
-  if(sourceCharge!==transformedCharge)throw new Error('formal-charge-conservation-failed');
+  const reaction=pathway.reaction??pathway, family=pathway.family??null, source=sourceGraphForReaction(reaction,records,bindings);
+  const edited=applyGuardedGraphEdits(source,family?.edits??pathway.edits??[],{bindings});
+  const {atoms,bonds}=edited.transformedGraph;
+  validateGraphAtomConservation(source,edited.transformedGraph);
   const components=connectedComponents(atoms,bonds),expected= reaction.products.map(id=>records.find(record=>record.id===id));
   if(expected.some(record=>!record))throw new Error('product-not-in-database');
   if(components.length!==expected.length)throw new Error('product-component-count-mismatch');
@@ -186,12 +164,7 @@ function transformPathway(pathway,records,{bindings=pathway.bindings??{}}={}){
   }
   if(!assign(0))throw new Error(`product-graph-unmatched:${JSON.stringify({components:components.map(component=>({atoms:component.atoms.map(atom=>`${atom.element}:${atom.formalCharge}:${atom.id}`),bonds:component.bonds})),expected:expected.map(record=>({id:record.id,atoms:record.atoms.map((_,index)=>`${atomElement(record,index)}:${atomCharge(record,index)}`),bonds:record.bonds}))})}`);
   const productGraphs=assignments.map(({component,mapping,record})=>({record,atoms:component.atoms,bonds:component.bonds,sourceToProduct:Object.fromEntries([...mapping].sort(([a],[b])=>a.localeCompare(b)))}));
-  const transformedEdges=new Map(bonds.map(bond=>[edgeKey(bond.a,bond.b),bond]));
-  const brokenBonds=[],formedBonds=[],bondOrderChanges=[];
-  for(const[sourceKey,sourceOrder]of sourceBonds){const current=transformedEdges.get(sourceKey);const[atomAId,atomBId]=sourceKey.split('|');if(!current)brokenBonds.push({a:atomAId,b:atomBId,from:sourceOrder});else if(current.order!==sourceOrder)bondOrderChanges.push({a:atomAId,b:atomBId,from:sourceOrder,to:current.order});}
-  for(const bond of bonds)if(!sourceBonds.has(edgeKey(bond.a,bond.b)))formedBonds.push({...bond});
-  const formalChargeChanges=atoms.filter(atom=>atom.formalCharge!==byAtom.get(atom.id)?.formalCharge||atom.formalCharge!==source.atoms.find(item=>item.id===atom.id)?.formalCharge).map(atom=>({atom:atom.id,from:source.atoms.find(item=>item.id===atom.id).formalCharge,to:atom.formalCharge}));
-  return{ok:true,reactantGraph:source,transformedGraph:{atoms,bonds},productGraphs,brokenBonds,formedBonds,bondOrderChanges,formalChargeChanges};
+  return{ok:true,reactantGraph:source,transformedGraph:{atoms,bonds},productGraphs,brokenBonds:edited.brokenBonds,formedBonds:edited.formedBonds,bondOrderChanges:edited.bondOrderChanges,formalChargeChanges:edited.formalChargeChanges};
 }
 
 function validateEditRefs(family,patternById){

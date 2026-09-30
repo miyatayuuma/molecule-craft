@@ -1,4 +1,4 @@
-import {presentFirstRegistration} from './collection-registration-reveal.js?v=2';
+import {presentFirstRegistration} from './collection-registration-reveal.js?v=3';
 
 const isNonEmptyString=value=>typeof value==='string'&&value.trim().length>0;
 
@@ -21,8 +21,29 @@ function validateProductEvent(payload,recordsById){
   return {ok:true,species,firstIndexBySpecies};
 }
 
+export function validatePolymerSampleEvent(payload,{recordsById,polymerIds,routesById}={}){
+  if(!payload||typeof payload!=='object')return{ok:false,code:'invalid-polymer-payload'};
+  const route=routesById?.get(payload.routeId);
+  if(!route||route.polymerId!==payload.polymerId||!polymerIds?.has(payload.polymerId))return{ok:false,code:'unknown-polymer-route'};
+  if(!isNonEmptyString(payload.sampleId)||!Number.isSafeInteger(payload.batchGeneration)||payload.batchGeneration<0)return{ok:false,code:'invalid-polymer-sample-identity'};
+  if(!Array.isArray(payload.sourceInstanceIds)||payload.sourceInstanceIds.length!==route.completionEvidence.unitCount||payload.sourceInstanceIds.some(id=>!isNonEmptyString(id))||new Set(payload.sourceInstanceIds).size!==payload.sourceInstanceIds.length)return{ok:false,code:'invalid-polymer-source-instances'};
+  if(!Array.isArray(payload.byproducts))return{ok:false,code:'invalid-polymer-byproducts'};
+  const instanceIds=new Set(payload.sourceInstanceIds),indices=new Set(),speciesCounts=new Map();
+  for(const item of payload.byproducts){
+    if(!item||!isNonEmptyString(item.species)||!isNonEmptyString(item.instanceId)||!Number.isSafeInteger(item.formationIndex)||item.formationIndex<0||instanceIds.has(item.instanceId)||indices.has(item.formationIndex)||!recordsById.has(item.species))return{ok:false,code:'invalid-polymer-byproducts'};
+    instanceIds.add(item.instanceId);indices.add(item.formationIndex);speciesCounts.set(item.species,(speciesCounts.get(item.species)??0)+1);
+  }
+  if([...indices].sort((a,b)=>a-b).some((value,index)=>value!==index))return{ok:false,code:'invalid-polymer-byproduct-order'};
+  const expected=route.completionEvidence.byproducts??{};
+  for(const[species,count]of Object.entries(expected))if((speciesCounts.get(species)??0)!==count)return{ok:false,code:'polymer-byproduct-evidence-mismatch'};
+  if([...speciesCounts].some(([species,count])=>count!==(expected[species]??0)))return{ok:false,code:'polymer-byproduct-evidence-mismatch'};
+  return{ok:true,route,byproducts:[...payload.byproducts].sort((a,b)=>a.formationIndex-b.formationIndex)};
+}
+
 export function createReactionLabDiscoveryCoordinator({
   records,
+  polymerRoutes=[],
+  polymerIds=[],
   collection,
   root=globalThis.document,
   now=Date.now,
@@ -37,8 +58,10 @@ export function createReactionLabDiscoveryCoordinator({
   defer=callback=>queueMicrotask(callback),
 }={}){
   const recordsById=new Map((records??[]).map(record=>[record.id,record]));
+  const routesById=new Map(polymerRoutes.map(route=>[route.routeId,route])),polymerIdSet=new Set(polymerIds);
   let eventSequence=0,scheduled=false,session=null;
   const queue=[];
+  const polymerSamples=new Map(),dismissedSampleIds=new Set();
 
   function diagnostic(code,message,extra={}){onDiagnostic({code,message,...extra});}
   function sessionItems(){return session?.items??[];}
@@ -50,7 +73,7 @@ export function createReactionLabDiscoveryCoordinator({
     const total=session.items.filter(item=>['pending','active','presented'].includes(item.status)).length;
     const hasNext=session.items.some(item=>item.status==='pending');
     collection?.setDiscoverySession?.({
-      speciesId:current.speciesId,index:session.displayIndex,total:Math.max(total,session.displayIndex),ready:!!ready,hasNext,
+      kind:current.kind??'molecules',id:current.id??current.speciesId,speciesId:current.speciesId,index:session.displayIndex,total:Math.max(total,session.displayIndex),ready:!!ready,hasNext,
       onNext:advance,onReturn:finishSession,
     });
   }
@@ -80,7 +103,7 @@ export function createReactionLabDiscoveryCoordinator({
       item.status='active';session.current=item;session.displayIndex++;
       updateSessionControl(false);
       let started=false;
-      try{started=!!present({collection,id:item.speciesId,root,onSettled:result=>settlePresentation(item,result)});}
+      try{started=!!present({collection,kind:item.kind??'molecules',id:item.id??item.speciesId,root,onSettled:result=>settlePresentation(item,result)});}
       catch(error){diagnostic('presentation-threw','Canonical Collection presentation failed to start.',{speciesId:item.speciesId,error:String(error?.message??error)});}
       if(!started){item.status='failed';item.presentationResult={status:'failed',reason:'collection-unavailable'};session.current=null;abortSession('presentation-failed');return;}
       try{onVibrate();}catch{}
@@ -158,7 +181,7 @@ export function createReactionLabDiscoveryCoordinator({
       if(result?.changed!==true||registrationEvent?.isNew!==true)continue;
       const duplicate=queue.some(item=>item.speciesId===speciesId&&['pending','active','presented','dismissed'].includes(item.status));
       if(duplicate)continue;
-      const item={eventSequence:sequence,status:'pending',speciesId,reactionId:payload.reactionId,pathwayId:payload.pathwayId,batchGeneration:payload.batchGeneration,firstProductIndex:validated.firstIndexBySpecies.get(speciesId),registrationEvent,registrationResult:result,productIds:[...payload.products]};
+      const item={kind:'molecules',id:speciesId,eventSequence:sequence,status:'pending',speciesId,reactionId:payload.reactionId,pathwayId:payload.pathwayId,batchGeneration:payload.batchGeneration,firstProductIndex:validated.firstIndexBySpecies.get(speciesId),registrationEvent,registrationResult:result,productIds:[...payload.products]};
       queue.push(item);newItems.push(item);
       if(session&&['suspending','presenting'].includes(session.state))session.items.push(item);
     }
@@ -168,7 +191,41 @@ export function createReactionLabDiscoveryCoordinator({
     }
     return {accepted:true,eventSequence:sequence,species:[...validated.species],newSpecies:newItems.map(item=>item.speciesId),timestamp:at};
   }
-  function snapshot(){return {eventSequence,sessionState:session?.state??null,queue:queue.map(item=>({...item,productIds:[...item.productIds]}))};}
+  function handlePolymerSampleEvent(event){
+    const payload=event?.detail??event,validated=validatePolymerSampleEvent(payload,{recordsById,polymerIds:polymerIdSet,routesById});
+    if(!validated.ok){diagnostic(validated.code,'Reaction Lab PolymerSample registration was rejected.',{routeId:payload?.routeId??null,polymerId:payload?.polymerId??null});return{accepted:false,reason:validated.code};}
+    const existing=polymerSamples.get(payload.sampleId);
+    if(existing)return existing.batchGeneration===payload.batchGeneration?{accepted:true,duplicate:true,eventSequence:existing.eventSequence,newEntries:[]}:{accepted:false,reason:'sample-generation-mismatch'};
+    const sequence=++eventSequence,at=now(),items=[];
+    try{
+      const polymerResult=collection.registerDiscoveredPolymer(payload.polymerId,{at});
+      if(polymerResult?.changed===true&&polymerResult?.event?.isNew===true)items.push({kind:'polymers',id:payload.polymerId,eventSequence:sequence,status:'awaiting-present',speciesId:payload.polymerId,polymerId:payload.polymerId,routeId:payload.routeId,sampleId:payload.sampleId,batchGeneration:payload.batchGeneration,registrationEvent:polymerResult.event,registrationResult:polymerResult});
+      const registeredByproductSpecies=new Set();for(const byproduct of validated.byproducts){
+        if(registeredByproductSpecies.has(byproduct.species))continue;registeredByproductSpecies.add(byproduct.species);
+        const result=collection.registerDiscoveredMolecule(byproduct.species,{at}),registrationEvent=result?.event??null;
+        if(result?.changed!==true||registrationEvent?.isNew!==true)continue;
+        const duplicate=queue.some(item=>item.kind==='molecules'&&item.speciesId===byproduct.species&&['pending','active','presented','dismissed','awaiting-present'].includes(item.status));
+        if(duplicate)continue;
+        items.push({kind:'molecules',id:byproduct.species,eventSequence:sequence,status:'awaiting-present',speciesId:byproduct.species,routeId:payload.routeId,polymerId:payload.polymerId,sampleId:payload.sampleId,batchGeneration:payload.batchGeneration,firstProductIndex:byproduct.formationIndex,byproduct:{...byproduct},registrationEvent,registrationResult:result});
+      }
+    }catch(error){diagnostic('polymer-registration-failed','PolymerSample registration could not be persisted.',{sampleId:payload.sampleId,error:String(error?.message??error)});return{accepted:false,reason:'registration-failed'};}
+    queue.push(...items);polymerSamples.set(payload.sampleId,{batchGeneration:payload.batchGeneration,eventSequence:sequence,items});
+    return{accepted:true,eventSequence:sequence,newEntries:items.map(item=>({kind:item.kind,id:item.id})),timestamp:at};
+  }
+  function handlePolymerSamplePresent(event){
+    const payload=event?.detail??event;if(!payload||!isNonEmptyString(payload.sampleId)||!Number.isSafeInteger(payload.batchGeneration)||payload.batchGeneration<0)return{accepted:false,reason:'invalid-presentation-identity'};
+    const sample=polymerSamples.get(payload.sampleId);if(!sample||sample.batchGeneration!==payload.batchGeneration||dismissedSampleIds.has(payload.sampleId))return{accepted:false,reason:'stale-or-dismissed-sample'};
+    for(const item of sample.items)if(item.status==='awaiting-present')item.status='pending';
+    if(sample.items.length){if(session?.state==='presenting')updateSessionControl(session.current?.status==='presented');scheduleSession();}
+    return{accepted:true,eventSequence:sample.eventSequence,newEntries:sample.items.filter(item=>item.status==='pending').map(item=>({kind:item.kind,id:item.id}))};
+  }
+  function handlePolymerSampleDismiss(event){
+    const payload=event?.detail??event;if(!payload||!isNonEmptyString(payload.sampleId)||!Number.isSafeInteger(payload.batchGeneration)||payload.batchGeneration<0)return false;
+    const sample=polymerSamples.get(payload.sampleId);if(!sample||sample.batchGeneration!==payload.batchGeneration)return false;
+    dismissedSampleIds.add(payload.sampleId);for(const item of sample.items)if(['awaiting-present','pending'].includes(item.status))item.status='dismissed';
+    return true;
+  }
+  function snapshot(){return {eventSequence,sessionState:session?.state??null,queue:queue.map(item=>({...item,...(item.productIds?{productIds:[...item.productIds]}:{})}))};}
 
-  return {handleProductEvent,onCollectionClosed,snapshot};
+  return {handleProductEvent,handlePolymerSampleEvent,handlePolymerSamplePresent,handlePolymerSampleDismiss,onCollectionClosed,snapshot};
 }
