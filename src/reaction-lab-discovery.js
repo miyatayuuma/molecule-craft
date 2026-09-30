@@ -105,7 +105,10 @@ export function createReactionLabDiscoveryCoordinator({
       let started=false;
       try{started=!!present({collection,kind:item.kind??'molecules',id:item.id??item.speciesId,root,onSettled:result=>settlePresentation(item,result)});}
       catch(error){diagnostic('presentation-threw','Canonical Collection presentation failed to start.',{speciesId:item.speciesId,error:String(error?.message??error)});}
-      if(!started){item.status='failed';item.presentationResult={status:'failed',reason:'collection-unavailable'};session.current=null;abortSession('presentation-failed');return;}
+      if(!started){
+        diagnostic('presentation-start-failed','Canonical Collection presentation did not start.',{kind:item.kind??'molecules',id:item.id??item.speciesId,reason:item.presentationResult?.reason??'collection-unavailable'});
+        item.status='failed';item.presentationResult={status:'failed',reason:item.presentationResult?.reason??'collection-unavailable'};session.current=null;abortSession('presentation-failed');return;
+      }
       try{onVibrate();}catch{}
       return;
     }

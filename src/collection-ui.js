@@ -179,7 +179,9 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');notifyOpen();}dialog.scrollTop=0;return nodeState!==GRAPH_NODE_STATE.UNKNOWN;
   }
   function openRegisteredMoleculeEntry(id){
-    const record=recordById(id);if(!record||!state.hasMolecule(id)||!canOpen())return false;
+    const record=recordById(id);if(!record||!state.hasMolecule(id))return false;
+    if(dialog.open&&currentDetail?.kind==='molecules'&&currentDetail.id===id)return true;
+    if(!canOpen())return false;
     if(moleculeTransition.busy)moleculeTransition.cancel();
     tab='molecules';currentDetail={kind:'molecules',id};listScroll=0;scope=isCHO(record.atoms)?'cho':'all';
     if(data.graph.nodeById(id)){graphFocusId=id;graphHighlightId=null;}
