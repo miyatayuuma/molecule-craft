@@ -1,5 +1,5 @@
 // Structural site-pattern and generic-family authority for the Reaction Lab.
-// Concrete reaction availability remains owned by reaction-lab-core.js.
+// Concrete reaction availability is owned by reaction-lab-catalog.js; this file owns only generic structure.
 
 const atom=(label,element,degree,neighborCounts={},extra={})=>({label,element,degree,neighborCounts,...extra});
 const pattern=(id,atoms,bonds=[])=>({id,atoms,bonds});
