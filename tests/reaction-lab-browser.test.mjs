@@ -68,6 +68,7 @@ try{
   const clickAt=async selector=>{const point=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',buttons:0});};
   const finishDiscoverySession=async(expectedSpecies,{dismiss=false}={})=>{
     await waitFor("!document.querySelector('#reaction-lab-dialog').open&&document.querySelector('#collection-dialog').open",'Discovery did not suspend the Lab before opening Collection');
+    assert.equal(await evaluate("document.querySelectorAll('#collection-detail [role=status][aria-live=polite]').length"),1,'Each canonical reveal provides one polite live announcement');
     const pausedBefore=await snapshot();assert.equal(pausedBefore.dialogOpen,false);assert.ok(expectedSpecies.every(id=>pausedBefore.instances.some(item=>item.species===id)));
     await evaluate("document.querySelector('#open-reaction-lab').click()");assert.equal(await evaluate("document.querySelector('#reaction-lab-dialog').open"),false,'Lab launcher cannot open a nested modal during Discovery');
     await new Promise(resolve=>setTimeout(resolve,320));const pausedAfter=await snapshot();
@@ -75,7 +76,6 @@ try{
     assert.equal(pausedAfter.batch.generation,pausedBefore.batch.generation);assert.deepEqual(pausedAfter.batch.activeSlots,pausedBefore.batch.activeSlots);assert.deepEqual(pausedAfter.batch.draftSlots,pausedBefore.batch.draftSlots);assert.deepEqual(pausedAfter.environment,pausedBefore.environment);
     const physicalState=state=>state.instances.map(({id,species,position,positionAngstrom,orientation,velocityAngstromPerPs,angularVelocityRadPerPs,batchGeneration})=>({id,species,position,positionAngstrom,orientation,velocityAngstromPerPs,angularVelocityRadPerPs,batchGeneration}));
     assert.deepEqual(physicalState(pausedAfter),physicalState(pausedBefore),'Product instances, positions, velocities and orientations survive the Collection session unchanged');
-    assert.equal(await evaluate("document.querySelectorAll('#collection-detail [role=status][aria-live=polite]').length"),1,'Each canonical reveal provides one polite live announcement');
     if(dismiss){
       await waitFor("!!document.querySelector('[data-registration-marker]')",'First-registration reveal did not attach its canonical marker');
       await key('Escape','Escape',27);await waitFor("!document.querySelector('#collection-dialog').open&&document.querySelector('#reaction-lab-dialog').open",'Escape did not dismiss the Discovery session and resume the Lab');
