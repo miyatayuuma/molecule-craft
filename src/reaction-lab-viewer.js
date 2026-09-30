@@ -281,10 +281,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function polymerDockPose(item,interaction,{maxDistance=2.8}={}){
     const target=polymerTargetWorld(interaction);if(!target)return null;
-    const incoming=atomWorld(item,interaction.incomingAtomIndex),direction=incoming.clone().sub(target);if(direction.lengthSq()<1e-9)direction.copy(cameraRight());direction.normalize();
-    const local=item.record.atoms[interaction.incomingAtomIndex].point.clone().applyQuaternion(item.group.quaternion),desiredAtom=target.addScaledVector(direction,POLYMER_DOCK_DISTANCE_ANGSTROM*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),position=desiredAtom.sub(local);
-    if(!position.toArray().every(Number.isFinite)||position.distanceTo(item.group.position)>maxDistance)return null;
-    return position;
+    const incoming=atomWorld(item,interaction.incomingAtomIndex),towardIncoming=incoming.clone().sub(target),normal=cameraNormal(),right=cameraRight(),up=cameraUp(),axes=[towardIncoming.lengthSq()>1e-9?towardIncoming.normalize():right,normal,normal.clone().negate(),right,right.clone().negate(),up,up.clone().negate()],directions=[...axes];
+    for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])directions.push(right.clone().multiplyScalar(x).addScaledVector(up,y).addScaledVector(normal,z).normalize());
+    const unique=[];for(const direction of directions)if(!unique.some(candidate=>candidate.dot(direction)>.999))unique.push(direction);
+    const local=item.record.atoms[interaction.incomingAtomIndex].point.clone().applyQuaternion(item.group.quaternion),ideal=POLYMER_DOCK_DISTANCE_ANGSTROM*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM;
+    const poses=unique.map(direction=>target.clone().addScaledVector(direction,ideal).sub(local)).filter(position=>position.toArray().every(Number.isFinite)&&position.distanceTo(item.group.position)<=maxDistance&&polymerGeometrySafe(item,interaction,position));
+    poses.sort((a,b)=>a.distanceTo(item.group.position)-b.distanceTo(item.group.position));return poses[0]??null;
   }
   function polymerAutomaticPath(item,interaction,destination){
     const start=item.group.position.clone(),end=destination.clone(),normal=cameraNormal(),right=cameraRight(),up=cameraUp(),directions=[normal,normal.clone().negate(),right,right.clone().negate(),up,up.clone().negate()],paths=[[start,end]];
