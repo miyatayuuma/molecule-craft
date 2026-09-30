@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>html,body{margin:0;background:#040d19}canvas{display:block;width:390px;height:844px}</style></head><body><canvas id="field"></canvas><script type="module">
+import {fixture,population,inputAt,COUNTERS} from './helpers/field-particle-fixtures.mjs';
+import {createVeilRenderer} from '../src/veil/renderer.js';
+import {stepRun} from '../src/veil/expedition-run.js';
+const canvas=document.querySelector('canvas'),renderer=createVeilRenderer(canvas);
+const summary=values=>{const a=[...values].sort((x,y)=>x-y);return {median:a[Math.floor(a.length*.5)],p95:a[Math.ceil(a.length*.95)-1],max:a.at(-1)};};
+window.measure=async(name,reduced)=>{
+  // Work diagnostics are captured separately, so timer values exclude instrumentation.
+  const work=fixture(name,{timing:true});renderer.reset();
+  renderer.draw(work,0,reduced);const cameraPopulation=population(work,renderer.screen);work.particleDiagnostics.renderFrames=0;for(const key of COUNTERS)work.particleDiagnostics[key]=0;
+  for(let frame=0;frame<60;frame++){stepRun(work,inputAt(frame),1/60);renderer.draw(work,1/60,reduced);}
+  const counters={...work.particleDiagnostics};delete counters.clock;delete counters.pickups;
+  const repeat=fixture(name);renderer.reset();renderer.draw(repeat,0,reduced);for(const key of COUNTERS)repeat.particleDiagnostics[key]=0;for(let frame=0;frame<60;frame++){stepRun(repeat,inputAt(frame),1/60);renderer.draw(repeat,1/60,reduced);}
+  const stableKeys=COUNTERS.filter(key=>!key.endsWith('Ms'));if(stableKeys.some(key=>repeat.particleDiagnostics[key]!==counters[key]))throw Error('Non-deterministic work fixture');
+  const run=fixture(name,{instrument:false});renderer.reset();for(let i=0;i<60;i++){stepRun(run,inputAt(i),1/60);renderer.draw(run,1/60,reduced);}
+  const samples=[],simulation=[],render=[],intervals=[];let previous=null;
+  for(let frame=0;frame<180;frame++){
+    const raf=await new Promise(requestAnimationFrame);if(previous!==null)intervals.push(raf-previous);previous=raf;
+    const start=performance.now();stepRun(run,inputAt(frame+60),1/60);const mid=performance.now();renderer.draw(run,1/60,reduced);const end=performance.now();simulation.push(mid-start);render.push(end-mid);samples.push(end-start);
+  }
+  return {name,reduced,population:cameraPopulation,counters,frameCpuMs:summary(samples),simulationMs:summary(simulation),renderMs:summary(render),rafIntervalMs:summary(intervals),samples:samples.length,canvas:[canvas.width,canvas.height],devicePixelRatio,finalPopulation:population(run,renderer.screen)};
+};
+window.visual=(name,region,reduced=false)=>{
+  const run=fixture(name),positions={veil:[0,-1200],carbon:[0,-5200],oxygen:[0,-9700],frontier:[0,-12000],nitrogen:[0,-15180]};
+  if(region.startsWith('rare')){const d=run.map.dust.find(d=>d.rareEcology&&d.element===region.split('-')[1]);Object.assign(run.player,{x:d.x,y:d.y});}else{const [x,y]=positions[region];Object.assign(run.player,{x,y});}
+  run.time=2;renderer.reset();renderer.draw(run,0,reduced);return {population:population(run,renderer.screen),counters:run.particleDiagnostics};
+};
+window.ready=true;
+</script></body></html>

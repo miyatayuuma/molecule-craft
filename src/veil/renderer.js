@@ -176,6 +176,7 @@ export function createVeilRenderer(canvas){
     ctx.restore();ctx.globalAlpha=1;
   }
   function draw(run,dt,reduced=false){
+    const diagnostics=run.particleDiagnostics;if(diagnostics)diagnostics.renderFrames++;
     const p=run.player,burst=p.boost>0,combustion=p.combustion===true,boost=burst||combustion,fever=Math.min(run.chain/VEIL.feverChain,1),lead=Math.min(p.speed*VEIL.cameraLead,VEIL.cameraMaxLead);
     if(run.returnEffect)run.returnEffect.life=Math.min(run.returnEffect.duration,run.returnEffect.life+dt);
     scale+=(baseScale*(boost&&!reduced?1-VEIL.boostZoom:1)-scale)*(1-Math.exp(-dt*5));
@@ -338,13 +339,17 @@ export function createVeilRenderer(canvas){
       const horizon=ctx.createRadialGradient(100,-12200,0,100,-12200,470);horizon.addColorStop(0,'rgba(238,218,255,.36)');horizon.addColorStop(.22,'rgba(181,135,215,.15)');horizon.addColorStop(1,'rgba(103,68,143,0)');ctx.fillStyle=horizon;ctx.fillRect(-420,-12720,1040,1040);
     }
     ctx.restore();
+    const dustRenderStart=diagnostics?.clock?.();
     for(const dust of run.map.dust){
-      if(dust.ready>run.time)continue;const q=screen(dust.x,dust.y);if(q.x<-35||q.x>w+35||q.y<-35||q.y>h+35)continue;const element=dust.element??'H',ecology=dust.rareEcology===true?RARE_ECOLOGY_VISUALS[element]:null,kind=ecology?.sprite??(element==='C'?'carbon':element==='N'?'nitrogen':element==='O'?'oxygen':dust.kind);
+      if(diagnostics)diagnostics.renderScanned++;
+      if(dust.ready>run.time){if(diagnostics)diagnostics.renderNotReady++;continue;}const q=screen(dust.x,dust.y);if(q.x<-35||q.x>w+35||q.y<-35||q.y>h+35){if(diagnostics)diagnostics.renderOffscreen++;continue;}
+      if(diagnostics){diagnostics.rendered++;diagnostics.glowDraws++;diagnostics.centerDraws++;if(dust.flow&&!reduced)diagnostics.flowStrokes++;if((dust.element??'H')==='C'&&!dust.rareEcology)diagnostics.carbonDraws++;}const element=dust.element??'H',ecology=dust.rareEcology===true?RARE_ECOLOGY_VISUALS[element]:null,kind=ecology?.sprite??(element==='C'?'carbon':element==='N'?'nitrogen':element==='O'?'oxygen':dust.kind);
       if(dust.flow&&!reduced){ctx.strokeStyle=element==='O'?'#d86d58':'#679caf';ctx.globalAlpha=.25;ctx.lineWidth=1.2*scale;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-Math.cos(dust.angle)*18*scale,q.y-Math.sin(dust.angle)*18*scale);ctx.stroke();ctx.globalAlpha=1;}
       glow(q.x,q.y,(element==='C'?28:element==='N'?27:element==='O'?25:22)*scale,kind);
       if(element==='C'&&!ecology){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(dust.angle+dust.id*.7);ctx.fillStyle='#e7c8ff';ctx.beginPath();ctx.moveTo(4*scale,0);ctx.lineTo(-3*scale,-3*scale);ctx.lineTo(-2*scale,3*scale);ctx.closePath();ctx.fill();ctx.restore();}
       else{ctx.fillStyle=ecology?.color??(element==='N'?'#93c5fd':element==='O'?'#ffd2bd':'#d1f5ff');ctx.beginPath();ctx.arc(q.x,q.y,(element==='N'?3.2:element==='O'?3:2.5)*scale,0,Math.PI*2);ctx.fill();}
     }
+    if(dustRenderStart!==undefined)diagnostics.dustRenderMs+=diagnostics.clock()-dustRenderStart;
     for(const wave of run.shockWaves??[]){const at=screen(wave.x,wave.y),progress=clamp(wave.life/wave.duration,0,1),radius=wave.radius*scale*smoothstep(progress),alpha=(1-progress)*(wave.coreFracture?.9:wave.structuresFractured?.length?.82:.72),tnt=wave.material==='2-4-6-trinitrotoluene';ctx.save();ctx.strokeStyle=wave.coreFracture?'#e3d2ff':wave.structuresFractured?.length?'#d6b7f4':tnt?'#ffd5a6':'#a7eff5';ctx.globalAlpha=alpha;ctx.lineWidth=(wave.coreFracture?3.2:wave.structuresFractured?.length?2.4:tnt?2.6:1.8)*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha*.42;ctx.lineWidth=1*scale;ctx.beginPath();ctx.arc(at.x,at.y,radius*.78,0,Math.PI*2);ctx.stroke();ctx.restore();}
     // Dust eaters are self-organising particle vortices: a light-swallowing
     // core, orbiting grains and a wake, never a face or biological silhouette.

@@ -184,3 +184,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | リポジトリ衛生 | `repository-hygiene.test.mjs` |
 
 通常の回帰は `node --test tests/*.test.mjs`。DOM統合と実Three.jsチェックの実行方法はREADMEと各checkファイル先頭を参照します。
+
+## FIELD particle performance authority
+
+P1 の固定seed・stress fixture・input traceは `tests/helpers/field-particle-fixtures.mjs`、計測追加前mainのgameplay oracleは `tests/fixtures/field-particle-p1/gameplay.json`。`tests/field-particle-performance.test.mjs` が非計測／計測runtimeを独立oracleと比較し、`tests/field-particle-render-counters.test.mjs` がCanvas spyで描画counterと同一command列を検証します。`scripts/benchmark-field-particles.mjs` と `tests/field-particle-performance-harness.html` は390×844、production DPR上限、normal/reduced motionを測定します。実行方法、固定画像、数値の意味と後続最適化contractは `docs/field-particle-performance.md`。時間値にCI閾値はありません。
