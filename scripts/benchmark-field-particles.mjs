@@ -34,4 +34,12 @@ try{
     const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:{x:0,y:0,width:390,height:844,scale:.5}});await writeFile(join(out,file),Buffer.from(shot.data,'base64'));report.visuals.push({region,reduced,file,...r});
   }
   assert.deepEqual(errors,[]);await writeFile(join(out,'browser.json'),JSON.stringify(report,null,2)+'\n');
-}finally{socket?.close();child?.kill('SIGKILL');await new Promise(done=>server.close(done));await rm(profile,{recursive:true,force:true});}
+}finally{
+  socket?.close();
+  if(child&&child.exitCode===null&&child.signalCode===null){
+    await new Promise(done=>{const timer=setTimeout(done,5000);child.once('close',()=>{clearTimeout(timer);done();});child.kill('SIGKILL');});
+  }
+  await new Promise(done=>server.close(done));
+  // Chromium subprocesses may finish writing after the parent exits.
+  await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+}
