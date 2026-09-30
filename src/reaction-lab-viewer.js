@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 35477)
-Total output lines: 1117
-
 import { createPreviewModel } from './preview-model.js?v=35';
 import { ELEMENTS, formalChargeForRecordAtom, modelAtomRadius } from './chemistry.js?v=20';
 import { aromaticBondKeys, aromaticRingFrame, createAromaticRing, displayedBondOrder, setAromaticOpacity, updateAromaticRing } from './aromatic-rendering.js?v=27';
@@ -529,7 +526,221 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   feedButton.addEventListener('click',beginFeed,eventOptions);
   function progressFlush(transition){
     if(batch.generation!==transition.generation){for(const item of transition.items)disposeItem(item);purgeItems=[];batchTransition=null;return;}
-    const progress=clamp(transition.elapsedMs/transition.durationMs,0,1),approach=clamp(progress/.78,0,1),eased=approach*approach*(3-2*approach),rect=canvas.getBoundingClientRect(),halfHeight=distance*Math.tan(THREE.MathUtils.degTo…5477 tokens truncated…m?atomWorldAngstrom(item,index):null;};
+    const progress=clamp(transition.elapsedMs/transition.durationMs,0,1),approach=clamp(progress/.78,0,1),eased=approach*approach*(3-2*approach),rect=canvas.getBoundingClientRect(),halfHeight=distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5)),outletY=-halfHeight+.45,crossing=Math.max(0,(progress-.78)/.22);
+    for(const item of transition.items){item.group.position.lerpVectors(item.purgeStart,new THREE.Vector3(0,outletY,0),eased);if(progress>.78)item.group.position.y-=crossing*.85;const scale=progress>.66?1-(progress-.66)/.34*.86:1;item.group.scale.setScalar(Math.max(.08,scale));}
+    if(progress<1)return;
+    for(const item of transition.items)disposeItem(item);purgeItems=[];const preparedFeed=transition.nextFeed;batchTransition=null;
+    const next=batch.completeFlush(transition.generation);if(!next.ok)return;
+    if(next.phase===REACTION_LAB_BATCH_PHASES.FEEDING)startFeedTransition(next.generation,next.feedSchedule,preparedFeed);
+    else{status.textContent='Chamber empty';renderSlotTiles();}
+  }
+  function spawnFeedEntry(transition,row){
+    const record=recordsById.get(row.species);if(!record)return null;
+    const origin=feedOrigin(row.slotIndex),destination=row.destination.clone(),item=createInstance(record,origin,{generation:transition.generation,orientation:row.variation,originPortIndex:row.slotIndex,feedPhase:'feeding',preparedModel:transition.preparationBySpecies.get(row.species)?.model});
+    item.feedMotion={generation:transition.generation,origin:origin.clone(),destination:destination.clone(),startedAt:transition.elapsedMs,durationMs:row.travelMs,variation:row.variation};item.stageBody.kinematic=true;row.item=item;row.startedAt=transition.elapsedMs;
+    return item;
+  }
+  function prepareFeedModels(transition,{fitLayout=true}={}){
+    const preparations=transition.preparations;if(!preparations.length)return;
+    const started=performance.now();let cursor=transition.preparationCursor??0,skipped=0;
+    while(performance.now()-started<6&&skipped<preparations.length){
+      const preparation=preparations[cursor];cursor=(cursor+1)%preparations.length;
+      if(preparation.ready){skipped++;continue;}
+      skipped=0;
+      const record=recordsById.get(preparation.species);if(!record){preparation.ready=true;continue;}
+      if(!preparation.preview)preparation.preview=createPreviewModel(THREE,record);
+      preparation.preview.step();preparation.steps++;
+      if(preparation.steps>=190){preparation.model=preparation.preview.snapshot();preparation.preview=null;preparation.ready=true;}
+    }
+    transition.preparationCursor=cursor;
+    if(fitLayout&&!transition.feedLayoutReady&&preparations.every(preparation=>preparation.ready)){
+      const maxRadius=Math.max(...preparations.map(preparation=>Math.max(...preparation.model.atoms.map(atom=>atom.point.length()+modelAtomRadius(atom.element))))),spacing=Math.max(2.6,maxRadius*2+.65),positions=transition.entries.length===6?[[-spacing,spacing*.5],[0,spacing*.5],[spacing,spacing*.5],[spacing,-spacing*.5],[0,-spacing*.5],[-spacing,-spacing*.5]]:[[-spacing*.5,spacing*.5],[spacing*.5,spacing*.5],[spacing*.5,-spacing*.5],[-spacing*.5,-spacing*.5]];
+      transition.entries.forEach((row,index)=>{const variation=row.variation,point=positions[index]??[0,0];row.destination=new THREE.Vector3(point[0]+variation.lateral*.25,point[1]+variation.pitch*.25,0);});
+      const minX=Math.min(...transition.entries.map(row=>row.destination.x-maxRadius)),maxX=Math.max(...transition.entries.map(row=>row.destination.x+maxRadius)),minY=Math.min(...transition.entries.map(row=>row.destination.y-maxRadius)),maxY=Math.max(...transition.entries.map(row=>row.destination.y+maxRadius)),rect=canvas.getBoundingClientRect(),aspect=Math.max(.1,rect.width/Math.max(1,rect.height)),tan=Math.tan(THREE.MathUtils.degToRad(camera.fov*.5)),required=Math.max((maxX-minX)/(2*tan*aspect*.88),(maxY-minY)/(2*tan*.88));
+      distance=clamp(Math.max(15,required),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();transition.feedLayoutReady=true;
+    }
+  }
+  function progressFeed(transition,elapsedMs){
+    if(batch.generation!==transition.generation){for(const row of transition.entries)if(row.item){instances=instances.filter(item=>item!==row.item);disposeItem(row.item);}batchTransition=null;return;}
+    transition.elapsedMs+=elapsedMs;
+    prepareFeedModels(transition);
+    if(transition.feedStartedAt===null&&transition.feedLayoutReady)transition.feedStartedAt=transition.elapsedMs;
+    let spawnedThisFrame=false;
+    for(const row of transition.entries){
+      if(!row.item&&!spawnedThisFrame&&transition.feedLayoutReady&&transition.feedStartedAt!==null&&transition.elapsedMs>=transition.feedStartedAt+row.startDelayMs){spawnFeedEntry(transition,row);spawnedThisFrame=true;}
+      const item=row.item;if(!item)continue;
+      const motion=item.feedMotion;if(!motion)continue;
+      const progress=clamp((transition.elapsedMs-motion.startedAt)/motion.durationMs,0,1),eased=progress*progress*(3-2*progress),arc=Math.sin(Math.PI*progress)*motion.variation.lateral;
+      item.group.position.lerpVectors(motion.origin,motion.destination,eased);item.group.position.x+=arc;item.group.updateMatrixWorld(true);syncStageABodyFromGroup(item);
+      if(progress>=1){item.group.position.copy(motion.destination);syncStageABodyFromGroup(item);item.stageBody.kinematic=false;const ejection=motion.destination.clone().sub(motion.origin).add(new THREE.Vector3(motion.variation.lateral,0,0)).normalize().multiplyScalar(.11*motion.variation.speed/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM);item.stageBody.velocityAngstromPerPs=ejection.toArray();item.stageBody.angularVelocityRadPerPs=motion.variation.angular.map(value=>value*.12);item.feedMotion=null;item.feedPhase='dynamic';item.feedHandoff=true;item.initialPositionAtSpawn=motion.destination.toArray();}
+    }
+    if(transition.entries.some(row=>row.species&&!row.item?.feedHandoff))return;
+    batchTransition=null;contactMatcher.reset();reactionDiagnostics=[];const completed=batch.completeFeed(transition.generation);if(!completed.ok)return;
+    instances.forEach(item=>{item.feedPhase='dynamic';});fitPopulation();initializePolymerBatch();if(!polymerRouteOwned)status.textContent=`ACTIVE · ${instances.length} 個`;renderSlotTiles();
+  }
+  function advanceBatchTransition(elapsedMs){
+    const transition=batchTransition;if(!transition)return;
+    if(transition.kind==='flush'){transition.elapsedMs+=elapsedMs;if(transition.nextFeed)prepareFeedModels(transition.nextFeed,{fitLayout:false});progressFlush(transition);}
+    else progressFeed(transition,elapsedMs);
+  }
+
+  function raycastAtoms(event){
+    rayForEvent(event);
+    const hits=raycaster.intersectObjects(instances.filter(item=>!item.busy).map(item=>item.group),true)
+      .filter(hit=>Number.isInteger(hit.object.userData.atomIndex));
+    const rows=hits.map(hit=>{
+      let group=hit.object;while(group&&group.parent!==world)group=group.parent;
+      return{item:instances.find(item=>item.group===group)??null,point:hit.point.clone(),distance:hit.distance};
+    }).filter(hit=>hit.item).sort((a,b)=>a.distance-b.distance||a.item.id.localeCompare(b.item.id));
+    return rows[0]??null;
+  }
+  function fallbackGrab(event){
+    const rows=instances.filter(item=>!item.busy).map(item=>{
+      const atoms=projectedAtoms(item),surfaceGap=Math.min(...atoms.map(atom=>Math.hypot(atom.x-event.clientX,atom.y-event.clientY)-atom.radiusPx));
+      return{item,atoms,surfaceGap,depth:Math.min(...atoms.map(atom=>atom.depth))};
+    }).filter(row=>row.atoms.length&&row.surfaceGap<=GRAB_FALLBACK_RADIUS_PX)
+      .sort((a,b)=>a.surfaceGap-b.surfaceGap||a.depth-b.depth||a.item.id.localeCompare(b.item.id));
+    if(!rows.length)return null;
+    const item=rows[0].item,plane=new THREE.Plane().setFromNormalAndCoplanarPoint(cameraNormal(),item.group.position);
+    rayForEvent(event);const point=raycaster.ray.intersectPlane(plane,new THREE.Vector3());
+    return point?{item,point,distance:Infinity}:null;
+  }
+  function positionOnMovePlane(event,gesture){rayForEvent(event);return raycaster.ray.intersectPlane(gesture.plane,new THREE.Vector3());}
+  function pointerPlanePoint(x,y,gesture){return positionOnMovePlane({clientX:x,clientY:y},gesture);}
+  function correctPointerAnchor(item,localAnchor,x,y){
+    const rect=canvas.getBoundingClientRect();if(rect.height<=0)return Infinity;
+    for(let attempt=0;attempt<2;attempt++){
+      item.group.updateMatrixWorld(true);
+      const projected=projectPoint(item.group.localToWorld(localAnchor.clone())),errorX=x-projected.x,errorY=y-projected.y;
+      pointerAnchorErrorPx=Math.hypot(errorX,errorY);if(pointerAnchorErrorPx<.25)break;
+      const depth=viewDepth(item.group.localToWorld(localAnchor.clone())),worldPerPixel=2*depth*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/rect.height;
+      item.group.position.addScaledVector(cameraRight(),errorX*worldPerPixel);
+      item.group.position.addScaledVector(cameraUp(),-errorY*worldPerPixel);
+    }
+    item.group.updateMatrixWorld(true);
+    const projected=projectPoint(item.group.localToWorld(localAnchor.clone()));pointerAnchorErrorPx=Math.hypot(x-projected.x,y-projected.y);
+    return pointerAnchorErrorPx;
+  }
+  function updateTargetIndicator(item){
+    if(!item){targetIndicator.hidden=true;return;}
+    const atoms=projectedAtoms(item);if(!atoms.length){targetIndicator.hidden=true;return;}
+    const rect=chamber.getBoundingClientRect(),left=Math.min(...atoms.map(atom=>atom.x-atom.radiusPx)),right=Math.max(...atoms.map(atom=>atom.x+atom.radiusPx)),top=Math.min(...atoms.map(atom=>atom.y-atom.radiusPx)),bottom=Math.max(...atoms.map(atom=>atom.y+atom.radiusPx));
+    const diameter=Math.max(36,Math.hypot(right-left,bottom-top)+14);
+    targetIndicator.style.left=`${(left+right)*.5-rect.left}px`;targetIndicator.style.top=`${(top+bottom)*.5-rect.top}px`;
+    targetIndicator.style.width=`${diameter}px`;targetIndicator.style.height=`${diameter}px`;targetIndicator.hidden=false;
+  }
+  function projectedTargetRows(dragged){
+    const moving=projectedAtoms(dragged),candidates=[];
+    for(const item of instances){if(item===dragged||item.busy)continue;const atoms=projectedAtoms(item);if(!atoms.length)continue;candidates.push({id:item.id,gapPx:projectedSurfaceGap(moving,atoms),busy:item.busy,present:instances.includes(item)});}
+    return candidates;
+  }
+  function updateManipulation(elapsedMs){
+    if(!isManipulating()||!selected||!down||selected.busy){updateTargetIndicator(null);return;}
+    const item=selected,point=pointerPlanePoint(down.clientX,down.clientY,down);if(!point)return;
+    const previousCenter=item.group.position.clone(),normal=cameraNormal(),anchorOffset=down.localAnchor.clone().applyQuaternion(item.group.quaternion);
+    const baseCenter=point.sub(anchorOffset);baseCenter.addScaledVector(normal,down.startDepth-baseCenter.dot(normal));
+    baseCenter.x=clamp(baseCenter.x,-5,5);baseCenter.y=clamp(baseCenter.y,-3,3);
+    item.group.position.copy(baseCenter);item.group.updateMatrixWorld(true);
+    const candidates=projectedTargetRows(item),nextId=chooseDepthTarget(depthTarget,candidates,{acquirePaddingPx:DEPTH_TARGET_ACQUIRE_PADDING_PX,releasePaddingPx:DEPTH_TARGET_RELEASE_PADDING_PX});
+    depthTarget=nextId;const target=instanceById(depthTarget);updateTargetIndicator(target);
+    const previousOffset=previousCenter.clone().sub(baseCenter).dot(normal);
+    let desiredDepthOffset=0,solution=null,candidateSafetySampleCount=0;
+    if(target){
+      const pairKey=`${item.id}|${target.id}`;
+      if(depthSafetyPairKey!==pairKey){depthSafetyPairKey=pairKey;depthSafetyOracle=createStageBPairSafetyOracle(item.stageBody,target.stageBody);}
+      solution=solveSafeDepthDocking({dragged:shapeFor(item,baseCenter),target:shapeFor(target),cameraNormal:normal.toArray(),previousCenter:previousCenter.toArray(),maxCompression:MAX_DOCKING_COMPRESSION_WORLD,outwardAccelerationAt:(center,_offset,branchSign)=>{candidateSafetySampleCount++;return depthSafetyOracle({draggedPositionAngstrom:center.map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),targetPositionAngstrom:target.group.position.toArray().map(value=>value/REACTION_LAB_WORLD_UNITS_PER_ANGSTROM),cameraNormal:normal.toArray(),branchSign}).outwardRelativeAcceleration;},worldUnitsPerAngstrom:REACTION_LAB_WORLD_UNITS_PER_ANGSTROM});
+      if(solution){desiredDepthOffset=solution.offset;depthOutwardAcceleration=solution.acceleration;depthSafetySampleCount=solution.safetySampleCount;depthDockingState='docking';}
+      else{desiredDepthOffset=previousOffset;depthOutwardAcceleration=Infinity;depthSafetySampleCount=candidateSafetySampleCount;depthDockingState='acquired-no-safe-solution';}
+    }
+    const alpha=1-Math.exp(-Math.max(0,elapsedMs)/DEPTH_DOCKING_TIME_CONSTANT_MS),currentOffset=previousOffset+(desiredDepthOffset-previousOffset)*alpha;
+    item.group.position.copy(baseCenter).addScaledVector(normal,currentOffset);correctPointerAnchor(item,down.localAnchor,down.clientX,down.clientY);
+    if(target&&solution)depthDockingState=Math.abs(currentOffset-desiredDepthOffset)<.025?'safe':'docking';
+    else if(!target)depthDockingState=Math.abs(currentOffset)<.025?'none':'returning';
+  }
+  function currentPinchDistance(){const points=[...activePointers.values()];return points.length<2?0:Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
+  function capturePointer(event){try{canvas.setPointerCapture(event.pointerId);}catch{}}
+  canvas.addEventListener('pointerdown',event=>{
+    if(disposed||pickerOpen||isTransitionLocked()||reactionAnimation)return;
+    event.preventDefault();activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});capturePointer(event);
+    if(pinchActive||activePointers.size>1){if(!pinchActive){endManipulation();pinchActive=true;}pinchDistance=currentPinchDistance();onPointerLockChange(true);updateEnvironmentControls();return;}
+    const hit=raycastAtoms(event)??fallbackGrab(event);selected=hit?.item??null;
+    down={pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY,group:selected};
+    if(selected){
+      const center=selected.group.position.clone(),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(cameraNormal(),center);
+      const localAnchor=selected.group.worldToLocal(hit.point.clone());
+      down.plane=plane;down.localAnchor=localAnchor;down.startDepth=center.dot(cameraNormal());
+      chamberTime.setMode(CHAMBER_TIME_MODES.MANIPULATING);contactMatcher.reset();syncStageABodyFromGroup(selected);selected.stageBody.velocityAngstromPerPs=[0,0,0];clearDepthTarget();
+    }
+    onPointerLockChange(true);
+    updateCommandBar();
+  },eventOptions);
+  canvas.addEventListener('pointermove',event=>{
+    const point=activePointers.get(event.pointerId);if(!point)return;
+    point.x=event.clientX;point.y=event.clientY;
+    if(pinchActive){const next=currentPinchDistance();if(next>0&&pinchDistance>0){distance=clamp(distance*pinchDistance/Math.max(1,next),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();}pinchDistance=next;return;}
+    if(down?.pointerId===event.pointerId){down.clientX=event.clientX;down.clientY=event.clientY;}
+  },eventOptions);
+  function endPointer(event){
+    const active=activePointers.has(event.pointerId),wasPinching=pinchActive;
+    if(!active)return;
+    if(!wasPinching&&event.type==='pointerup'&&down?.pointerId===event.pointerId&&selected)updateManipulation(16);
+    let polymerCommitted=false;if(!wasPinching&&event.type==='pointerup'&&down?.pointerId===event.pointerId&&selected?.polymerReservation)polymerCommitted=startManualPolymerDock(selected,event);
+    if(down?.pointerId===event.pointerId&&!wasPinching&&!polymerCommitted)endManipulation();
+    activePointers.delete(event.pointerId);try{canvas.releasePointerCapture(event.pointerId);}catch{}
+    if(wasPinching){if(activePointers.size===0){pinchActive=false;pinchDistance=0;clearDepthTarget();}onPointerLockChange(activePointers.size>0);updateCommandBar();return;}
+    onPointerLockChange(activePointers.size>0);updateCommandBar();
+  }
+  canvas.addEventListener('pointerup',endPointer,eventOptions);canvas.addEventListener('pointercancel',endPointer,eventOptions);
+  canvas.addEventListener('wheel',event=>{event.preventDefault();if(pickerOpen||isTransitionLocked()||reactionAnimation)return;distance=clamp(distance*Math.exp(event.deltaY*.001),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();},{passive:false,signal:eventController.signal});
+
+  function reactionStep(stepMs){
+    if(batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE)return;
+    if(polymerRouteOwned){reactionDiagnostics=[];contactMatcher.reset();return;}
+    if(reactionAnimation){contactMatcher.reset();reactionDiagnostics=[];return;}
+    const manipulating=isManipulating(),rows=[],ready=[],activeConditions=activationEnvironment.conditions();
+    if(manipulating)contactMatcher.reset();
+    contactMatcher.beginStep();
+    const active=[...instances].filter(item=>!item.feedMotion&&item.batchGeneration===batch.generation).sort((a,b)=>a.id.localeCompare(b.id));
+    function assess(candidate){
+      const rejectionReasons=[],encounterIds=candidate.reactantInstanceIds,encounter=encounterIds.map(instanceById);
+      if(encounter.some(item=>!item))rejectionReasons.push('participant-missing');
+      if(encounter.some(item=>item?.busy))rejectionReasons.push('participant-busy');
+      if(encounter.some(item=>item&&testIsolation&&!testIsolation.has(item.id)))rejectionReasons.push('outside-test-isolation');
+      const center=supplementalSelectionCenter(candidate,(role,atomIndex)=>{
+        const item=instanceById(candidate.participantInstances[role]);return item?atomWorldAngstrom(item,atomIndex):null;
+      });
+      const supplemental=center?resolveSupplementalParticipants(candidate.reaction,candidate,active,item=>Math.hypot(...item.stageBody.positionAngstrom.map((value,index)=>value-center[index]))):{ok:false,reason:'participant-missing'};
+      const participantInstances=supplemental.ok?supplemental.participantInstances:{...candidate.participantInstances};
+      if(!supplemental.ok)rejectionReasons.push(supplemental.reason);
+      const participantItems=Object.values(participantInstances).map(instanceById).filter(Boolean);
+      if(participantItems.some(item=>item.busy))rejectionReasons.push('participant-busy');
+      const bindingsPosition=(role,index)=>atomWorldAngstrom(instanceById(candidate.participantInstances[role]),index);
+      const geometry=scoreReactionGeometry(candidate.geometryConstraints,bindingsPosition);
+      if(!geometry.geometryReady)rejectionReasons.push('geometry-outside-window');
+      let minimumRealAtomDistance=Infinity,minimumNonbondedSeparationRatio=Infinity,severeOverlap=false;
+      for(let i=0;i<participantItems.length;i++)for(let j=i+1;j<participantItems.length;j++){
+        const left=participantItems[i],right=participantItems[j];
+        for(let a=0;a<left.record.atoms.length;a++)for(let b=0;b<right.record.atoms.length;b++){
+          const pa=atomWorldAngstrom(left,a),pb=atomWorldAngstrom(right,b),distance=Math.hypot(pa[0]-pb[0],pa[1]-pb[1],pa[2]-pb[2]);
+          const physical=canonicalNonbondedPairGeometry({sigmaAngstrom:left.record.nonbonded.sigmaAngstrom[a],epsilonKcalMol:left.record.nonbonded.epsilonKcalMol[a]},{sigmaAngstrom:right.record.nonbonded.sigmaAngstrom[b],epsilonKcalMol:right.record.nonbonded.epsilonKcalMol[b]},distance);
+          minimumRealAtomDistance=Math.min(minimumRealAtomDistance,distance);minimumNonbondedSeparationRatio=Math.min(minimumNonbondedSeparationRatio,physical.minimumNonbondedSeparationRatio);severeOverlap||=physical.severeOverlap;
+        }
+      }
+      if(severeOverlap)rejectionReasons.push('severe-overlap');
+      const environmentMatched=environmentMatches(candidate.reaction,activeConditions);if(!environmentMatched)rejectionReasons.push('environment-mismatch');
+      if(!stageBPhysicsEnabled)rejectionReasons.push('non-production-physics');
+      const roleAssignments=Object.entries(participantInstances).sort(([a],[b])=>a.localeCompare(b)).map(([role,id])=>`${role}=${id}`),dwellKey=`${candidate.reactionId}:${candidate.pathwayId}:${roleAssignments.join('|')}:g${batch.generation}`;
+      const eligible=!manipulating&&!rejectionReasons.length;
+      if(supplemental.ok)contactMatcher.markActive(dwellKey);
+      const elapsed=manipulating?0:(contactMatcher.update(dwellKey,eligible,stepMs),contactMatcher.elapsed(dwellKey));
+      if(manipulating)rejectionReasons.push('participant-manipulating');
+      const commitReady=eligible&&elapsed>=CONTACT_DWELL_MS;
+      const diagnostic={reactionId:candidate.reactionId,familyId:candidate.familyId,pathwayId:candidate.pathwayId,encounterParticipantIds:encounterIds,participants:participantInstances,matchedSites:Object.fromEntries(Object.entries(candidate.bindings).map(([role,atomBindings])=>[role,{patternId:candidate.matchedPatterns[role],atomBindings}])),distanceConstraints:geometry.constraints,geometryReady:geometry.geometryReady,geometryQuality:{worstNormalizedDeviation:geometry.worstNormalizedDeviation,meanNormalizedDeviation:geometry.meanNormalizedDeviation},minimumRealAtomDistance,minimumNonbondedSeparationRatio,severeOverlap,manipulating,normalPhysicsStepObserved:stageBPhysicsEnabled&&!manipulating,environmentMatched,stoichiometricRequirement:supplemental.ok?null:{reason:supplemental.reason,species:supplemental.species,count:supplemental.count},dwellElapsed:elapsed,dwellRequired:CONTACT_DWELL_MS,commitReady,rejectionReasons};
+      rows.push(diagnostic);
+      if(commitReady){
+        const staged={...candidate,participantInstances,environmentConditions:[...activeConditions],environmentSnapshot:activationEnvironment.snapshot(),geometryQuality:{worstNormalizedDeviation:geometry.worstNormalizedDeviation,meanNormalizedDeviation:geometry.meanNormalizedDeviation}};
+        const participantByRole=new Map(Object.entries(participantInstances).map(([role,id])=>[role,instanceById(id)]));
+        const sourcePoint=sourceAtom=>{const split=sourceAtom.indexOf(':'),role=sourceAtom.slice(0,split),index=Number(sourceAtom.slice(split+1)),item=participantByRole.get(role);return item?atomWorldAngstrom(item,index):null;};
         staged.newBondEndpointDistanceSum=(candidate.graphTransition?.formedBonds??[]).reduce((sum,bond)=>{const a=sourcePoint(bond.a),b=sourcePoint(bond.b);return sum+(a&&b?Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]):0);},0);
         ready.push(staged);
       }
@@ -787,6 +998,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       }else syncGroupFromStageABody(item);
     }
     if(batch.phase===REACTION_LAB_BATCH_PHASES.ACTIVE){const stepMs=STAGE_A_GAME_STEP_SECONDS*1000;advancePolymerRuntime(stepMs);reactionStep(stepMs);}
+Warning: truncated output (original token count: 4689)
+Total output lines: 100
+
     stageAPerformance.lastFixedStepDurationMs=performance.now()-fixedStepStarted;
   }
   const stageAStepper=createFixedStepAccumulator(integrateStageAStep,{gameStepSeconds:STAGE_A_GAME_STEP_SECONDS,physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,maxCatchUpSteps:STAGE_A_MAX_CATCH_UP_STEPS});
@@ -828,17 +1042,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
           purging:purgeItems.map(item=>({id:item.id,species:item.species,position:item.group.position.toArray()})),pairs:current.pairDiagnostics.map(pair=>({...pair})),
           diagnostics:{overlapGuardActivationCount:current.overlapGuardActivationCount,carbonylSiteCount:instances.reduce((sum,item)=>sum+(item.stageBody?.carbonylAnisotropySites?.length??0),0),...stageAPerformance,lastInteractionPairCount:current.pairDiagnostics.length},
           reactionCandidates:[...reactionDiagnostics],environment:activationEnvironment.snapshot(),reactionEnvironment:[...activationEnvironment.conditions()].sort(),
-          camera:{distance,azimuth:FIXED_CAMERA_AZIMUTH,elevation:FIXED_CAMERA_ELEVATION},selectedInstanceId:selected?.id??null,downInstanceId:down?.group?.id??null,dialogOpen:dialog.open,pointerActive:activePointers.size>0,
-        };
-      },
-      setGeometry(poses){const ids=new Set(poses.map(pose=>pose.id));if(ids.size!==poses.length)throw Error('Stage A geometry fixture contains duplicate molecule IDs');endManipulation();activePointers.clear();pinchActive=false;pinchDistance=0;onPointerLockChange(false);testIsolation=ids.size?ids:null;contactMatcher.reset();reactionDiagnostics=[];for(const pose of poses){const item=instanceById(pose.id);if(!item)throw Error(`Missing fixture molecule ${pose.id}`);if(pose.positionAngstrom)item.stageBody.positionAngstrom=[...pose.positionAngstrom];if(pose.orientation)item.stageBody.orientation=[...pose.orientation];item.stageBody.velocityAngstromPerPs=[...(pose.velocityAngstromPerPs??[0,0,0])];item.stageBody.angularVelocityRadPerPs=[...(pose.angularVelocityRadPerPs??[0,0,0])];syncGroupFromStageABody(item);}clearDepthTarget();updateCommandBar();return this.snapshot();},
-      advanceDeterministic(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps)));stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;}return this.snapshot();},
-      measureFixedSteps(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps))),durationsMs=[];stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;durationsMs.push(stageAPerformance.lastFixedStepDurationMs);}return{durationsMs,candidateCount:reactionDiagnostics.length,reactionIds:[...new Set(reactionDiagnostics.map(item=>item.reactionId))].sort()};},
-      decomposePair(aId,bId){const a=instanceById(aId),b=instanceById(bId);if(!a||!b)throw Error('Missing Reaction Lab molecule instance');const result=stageBPhysicsEnabled?evaluateStageBForces([a.stageBody,b.stageBody]):evaluateStageAForces([a.stageBody,b.stageBody]);return{pairs:result.pairDiagnostics,bodies:Object.fromEntries([...result.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:result.overlapGuardActivationCount};},
-      measurePairReleaseTrajectory(aId,bId){
-        if(!stageBPhysicsEnabled)throw Error('Release handoff measurement requires production Stage B');
-        const source=[instanceById(aId),instanceById(bId)];if(source.some(item=>!item)||source[0]===source[1])throw Error('Missing distinct Reaction Lab molecule pair');
-        const bodies=source.map(item=>({...item.stageBody,positionAngstrom:[...item.stageBody.positionAngstrom],orientation:[...item.stageBody.orientation],velocityAngstromPerPs:[...item.stageBody.velocityAngstromPerPs],angularVelocityRadPerPs:[...item.stageBody.angularVelocityRadPerPs]})),normal=cameraNormal().toArray();
+          camera:{distance,azimuth:FIXED_CAMERA_AZ…689 tokens truncated…ionAngstrom],orientation:[...item.stageBody.orientation],velocityAngstromPerPs:[...item.stageBody.velocityAngstromPerPs],angularVelocityRadPerPs:[...item.stageBody.angularVelocityRadPerPs]})),normal=cameraNormal().toArray();
         const rotate=(point,q)=>{const[x,y,z,w]=q,[px,py,pz]=point,tx=2*(y*pz-z*py),ty=2*(z*px-x*pz),tz=2*(x*py-y*px);return[px+w*tx+(y*tz-z*ty),py+w*ty+(z*tx-x*tz),pz+w*tz+(x*ty-y*tx)];};
         const measure=()=>{const separation=Math.abs(bodies[0].positionAngstrom.reduce((sum,value,index)=>sum+(value-bodies[1].positionAngstrom[index])*normal[index],0)),left=[],right=[];for(const atom of bodies[0].atoms)left.push(rotate(atom.positionAngstrom,bodies[0].orientation).map((value,index)=>value+bodies[0].positionAngstrom[index]));for(const atom of bodies[1].atoms)right.push(rotate(atom.positionAngstrom,bodies[1].orientation).map((value,index)=>value+bodies[1].positionAngstrom[index]));let minimumAtomDistance=Infinity;for(const a of left)for(const b of right)minimumAtomDistance=Math.min(minimumAtomDistance,Math.hypot(...a.map((value,index)=>value-b[index])));return{centerDepthSeparationAngstrom:separation,minimumAtomDistanceAngstrom:minimumAtomDistance};};
         const initial=measure(),rows=[];let completed=0,overlapGuardActivationCount=0;
