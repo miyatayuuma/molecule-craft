@@ -339,7 +339,7 @@ function defaultCatalog(records){if(!defaultCompiledCatalog)defaultCompiledCatal
 
 export function reactionCandidates(pair,catalogOrRecords){
   const[left,right]=pair,catalog=Array.isArray(catalogOrRecords)?defaultCatalog(catalogOrRecords):catalogOrRecords;
-  if(!catalog?.byEncounterSpecies)return[];
+  if(!catalog?.byEncounterSpecies||!left?.id||!right?.id||left.id===right.id)return[];
   const key=sorted([left.species,right.species]).join('|'),result=[];
   for(const pathway of catalog.byEncounterSpecies.get(key)??[]){
     // Role ordering is authority for an encounter. It is independent of the
@@ -362,7 +362,7 @@ export function reactionCandidates(pair,catalogOrRecords){
 
 export function resolveCandidateInstanceIds(candidate,availableInstanceIds){
   const available=new Set(availableInstanceIds),ids=candidate?.reactantInstanceIds??[];
-  return ids.length===2&&ids.every(id=>available.has(id))?[...ids]:null;
+  return ids.length===2&&new Set(ids).size===ids.length&&ids.every(id=>available.has(id))?[...ids]:null;
 }
 export function createContactMatcher({dwellMs=CONTACT_DWELL_MS}={}){
   const contacts=new Map();let activeStep=null;return{
@@ -412,6 +412,47 @@ export function arbitrateReactionCandidates(candidates,{deadband=.025}={}){
   const geometryLeader=equivalent[0],geometryTie=equivalent.filter(item=>Math.abs(item.geometryQuality.worstNormalizedDeviation-geometryLeader.geometryQuality.worstNormalizedDeviation)<=deadband&&Math.abs(item.geometryQuality.meanNormalizedDeviation-geometryLeader.geometryQuality.meanNormalizedDeviation)<=deadband);
   const selected=geometryTie.sort((a,b)=>(a.newBondEndpointDistanceSum??Infinity)-(b.newBondEndpointDistanceSum??Infinity)||stableKey(a).localeCompare(stableKey(b)))[0];
   return{selected,reason:preferredReactionId===rawBest.reactionId?'selected':'selected-by-fit'};
+}
+
+function stableCandidateKey(item){
+  return`${item.reactionId??''}|${item.pathwayId??''}|${Object.entries(item.participantInstances??{}).sort(([a],[b])=>a.localeCompare(b)).map(([role,id])=>`${role}=${id}`).join('|')}`;
+}
+
+// Independent reactions do not compete geometrically. Only candidates which
+// could consume at least one common runtime instance enter the same arbiter.
+export function partitionReactionCandidatesByParticipantOverlap(candidates){
+  const rows=(candidates??[]).map((candidate,index)=>{
+    const ids=Object.values(candidate.participantInstances??{});
+    const unique=[...new Set(ids)].sort((a,b)=>String(a).localeCompare(String(b)));
+    const valid=ids.length>0&&ids.every(id=>typeof id==='string'&&id.length>0)&&unique.length===ids.length;
+    return{candidate,index,ids:unique,valid};
+  });
+  const parent=rows.map((_,index)=>index);
+  const find=index=>{while(parent[index]!==index){parent[index]=parent[parent[index]];index=parent[index];}return index;};
+  const union=(left,right)=>{const a=find(left),b=find(right);if(a!==b)parent[Math.max(a,b)]=Math.min(a,b);};
+  const firstByParticipant=new Map();
+  for(const row of rows){if(!row.valid)continue;for(const id of row.ids){const first=firstByParticipant.get(id);if(first===undefined)firstByParticipant.set(id,row.index);else union(first,row.index);}}
+  const groups=new Map();
+  for(const row of rows){
+    const groupKey=row.valid?`valid:${find(row.index)}`:`invalid:${row.index}`;
+    if(!groups.has(groupKey))groups.set(groupKey,[]);groups.get(groupKey).push(row);
+  }
+  return[...groups.values()].map(group=>{
+    const sortedRows=[...group].sort((a,b)=>stableCandidateKey(a.candidate).localeCompare(stableCandidateKey(b.candidate)));
+    const valid=sortedRows.every(row=>row.valid),ids=[...new Set(sortedRows.flatMap(row=>row.ids))].sort((a,b)=>String(a).localeCompare(String(b)));
+    const stableKey=valid?JSON.stringify(ids):`invalid:${sortedRows.map(row=>stableCandidateKey(row.candidate)).join('\u0000')}`;
+    return{stableKey,participantIds:ids,candidates:sortedRows.map(row=>row.candidate),invalidReason:valid?null:'duplicate-or-missing-participant-instance'};
+  }).sort((a,b)=>a.stableKey.localeCompare(b.stableKey));
+}
+
+export function arbitrateReactionCandidateComponents(candidates,{deadband=.025}={}){
+  const components=partitionReactionCandidatesByParticipantOverlap(candidates).map(component=>{
+    if(component.invalidReason)return{...component,selected:null,reason:'no-commit-ready-candidate',status:'no-commit-ready'};
+    const arbitration=arbitrateReactionCandidates(component.candidates,{deadband});
+    return{...component,selected:arbitration.selected,reason:arbitration.reason,status:arbitration.selected?'selected':arbitration.reason==='geometry-deadband'?'geometry-deadband':'no-commit-ready',contenders:arbitration.contenders??[]};
+  });
+  const selectedComponent=components.find(component=>component.selected)??null;
+  return{selected:selectedComponent?.selected??null,selectedComponentKey:selectedComponent?.stableKey??null,components};
 }
 
 export function resolveSupplementalParticipants(reaction,candidate,instances,centerFor){

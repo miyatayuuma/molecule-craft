@@ -1,4 +1,4 @@
-import { normalizeSpeciesSlots, planVisiblePopulation } from './reaction-lab-core.js?v=11';
+import { normalizeSpeciesSlots, planVisiblePopulation } from './reaction-lab-core.js?v=12';
 
 export const REACTION_LAB_BATCH_PHASES=Object.freeze({IDLE:'IDLE',FLUSHING:'FLUSHING',FEEDING:'FEEDING',ACTIVE:'ACTIVE'});
 const EMPTY_SLOTS=()=>['','',''];
