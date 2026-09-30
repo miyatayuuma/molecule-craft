@@ -5,7 +5,8 @@ import {
   normalizeSpeciesSlots, planVisiblePopulation, compileReactionCatalog,
   reactionCandidates, resolveCandidateInstanceIds, createContactMatcher,
   planReactionExecution, resolveRegisteredProducts, matchDatabaseProduct,
-  scoreReactionGeometry, arbitrateReactionCandidates, resolveSupplementalParticipants,
+  scoreReactionGeometry, arbitrateReactionCandidates, arbitrateReactionCandidateComponents,
+  partitionReactionCandidatesByParticipantOverlap, resolveSupplementalParticipants,
   REACTION_SITE_PATTERNS, REACTION_FAMILIES, REACTION_CATALOG, CONTACT_DWELL_MS,
   matchReactionSitePattern, environmentMatches, environmentsOverlap,
 } from '../src/reaction-lab-core.js';
@@ -19,7 +20,7 @@ const production=compileReactionCatalog(records);
 test('production viewer delegates eligibility and arbitration to compiled Core without force exclusion',async()=>{
   const viewer=await readFile(new URL('../src/reaction-lab-viewer.js',import.meta.url),'utf8');
   assert.doesNotMatch(viewer,/reactionContactPairs|excludedMoleculePairs|REACTION_RULES|maxDistance\s*:\s*1\.18/);
-  assert.match(viewer,/arbitrateReactionCandidates\(ready\)/);
+  assert.match(viewer,/arbitrateReactionCandidateComponents\(ready\)/);
   assert.match(viewer,/normalPhysicsStepObserved:stageBPhysicsEnabled&&!manipulating/);
   const probeSetter=viewer.match(/setEnvironmentConditions\(tokens\)\{([\s\S]*?)\},\n\s*setStageAPair/)?.[1]??'';
   assert.match(probeSetter,/activationEnvironment\.setFromConditionTokens\(tokens\)/,'The localhost probe uses the production Environment authority');
@@ -167,6 +168,32 @@ test('runtime arbitration waits inside the interaction deadband and uses stable 
   assert.equal(arbitrateReactionCandidates([candidate('a','worse',.4,.4,0),candidate('a','geometry-best',.2,.3,2)]).selected.pathwayId,'geometry-best','formation-distance tie-break cannot override a clearly better geometry fit');
   const samePath=(left,right)=>({...candidate('a','same-path',.2,.3,1),participantInstances:{left,right}});
   assert.deepEqual(arbitrateReactionCandidates([samePath('z-instance','a-instance'),samePath('a-instance','z-instance')]).selected.participantInstances,{left:'a-instance',right:'z-instance'});
+});
+
+test('runtime arbitration partitions only participant-overlapping candidates and schedules independently',()=>{
+  const candidate=(reactionId,pathwayId,ids,worst=.2,mean=.2)=>({reactionId,pathwayId,symmetryClassId:`${reactionId}:sym`,participantInstances:Object.fromEntries(ids.map((id,index)=>[`role${index}`,id])),geometryQuality:{worstNormalizedDeviation:worst,meanNormalizedDeviation:mean},newBondEndpointDistanceSum:1});
+  const sharedX=candidate('X','x-path',['one','shared']),sharedY=candidate('Y','y-path',['shared','two']);
+  assert.equal(arbitrateReactionCandidateComponents([sharedX,sharedY]).selected,null,'distinct outcomes sharing a participant keep the existing deadband');
+  const disjointA=candidate('A','a-path',['a1','a2']),disjointB=candidate('B','b-path',['b1','b2']);
+  const independent=arbitrateReactionCandidateComponents([disjointB,disjointA]);
+  assert.equal(independent.selected.reactionId,'A','equal geometry in independent components uses the stable component key, not a cross-reaction score');
+  assert.equal(arbitrateReactionCandidateComponents([disjointA,disjointB]).selected.pathwayId,independent.selected.pathwayId,'candidate input reversal is invariant');
+  assert.equal(independent.components.filter(component=>component.status==='selected').length,2,'each unambiguous component retains its own arbitration result');
+  assert.equal(independent.selectedComponentKey,independent.components.find(component=>component.participantIds.includes('a1')).stableKey);
+  const transitive=[candidate('A','a',['1','2']),candidate('B','b',['2','3']),candidate('C','c',['3','4'])];
+  assert.equal(partitionReactionCandidatesByParticipantOverlap(transitive).length,1,'A/B/C are connected through transitive participant overlap');
+  const independentValid=candidate('Z','z-path',['free-1','free-2'],.9,.9);
+  const mixed=arbitrateReactionCandidateComponents([sharedX,sharedY,independentValid]);
+  assert.equal(mixed.selected.reactionId,'Z','a deadband component cannot stop an independent valid reaction');
+  assert.ok(mixed.components.some(component=>component.status==='geometry-deadband'));
+  assert.ok(mixed.components.some(component=>component.status==='selected'));
+  const duplicate=candidate('bad','duplicate',['same','same']);
+  assert.equal(arbitrateReactionCandidateComponents([duplicate]).selected,null,'one runtime instance cannot fill two roles');
+  assert.equal(resolveCandidateInstanceIds({reactantInstanceIds:['same','same']},['same']),null);
+  assert.deepEqual(reactionCandidates([{species:'acetic-anhydride',id:'one'},{species:'water',id:'one'}],production),[],'one instance cannot be both sides of an encounter');
+  const many=arbitrateReactionCandidateComponents([disjointB,disjointA,independentValid]);
+  assert.ok(many.selected);
+  assert.equal([many.selected].length,1,'a fixed step commits at most one reaction; remaining components are reevaluated on the next step');
 });
 
 test('supplemental stoichiometry resolves only real free instances by distance then stable ID',()=>{

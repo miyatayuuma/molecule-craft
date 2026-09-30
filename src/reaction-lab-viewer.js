@@ -5,8 +5,8 @@ import { createChargeLabel, createSharedBonds, sharedOxoGroups, specialEdgeKeys,
 import {
   reactionCandidates, planReactionExecution, resolveCandidateInstanceIds,
   compileReactionCatalog, createContactMatcher, scoreReactionGeometry,
-  arbitrateReactionCandidates, resolveSupplementalParticipants, supplementalSelectionCenter, environmentMatches, CONTACT_DWELL_MS,
-} from './reaction-lab-core.js?v=11';
+  arbitrateReactionCandidateComponents, resolveSupplementalParticipants, supplementalSelectionCenter, environmentMatches, CONTACT_DWELL_MS,
+} from './reaction-lab-core.js?v=12';
 import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './reaction-lab-environment.js?v=1';
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=1';
 import {
@@ -522,9 +522,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       }
     }
     if(manipulating||!ready.length)return;
-    const arbitration=arbitrateReactionCandidates(ready);
+    const arbitration=arbitrateReactionCandidateComponents(ready);
     if(arbitration.selected)commit(arbitration.selected);
-    else if(arbitration.reason==='geometry-deadband')for(const contender of arbitration.contenders??[]){const diagnostic=rows.find(row=>row.pathwayId===contender.pathwayId&&row.encounterParticipantIds.join('|')===contender.reactantInstanceIds.join('|'));if(diagnostic){diagnostic.commitReady=false;diagnostic.rejectionReasons.push('geometry-deadband');}}
+    for(const component of arbitration.components.filter(item=>item.status==='geometry-deadband'))for(const contender of component.contenders){const diagnostic=rows.find(row=>row.pathwayId===contender.pathwayId&&row.encounterParticipantIds.join('|')===contender.reactantInstanceIds.join('|'));if(diagnostic){diagnostic.commitReady=false;diagnostic.rejectionReasons.push('geometry-deadband');}}
   }
   function cancelPointerFor(item){
     if(selected===item){const pointerId=down?.pointerId;endManipulation();if(pointerId!==undefined){activePointers.delete(pointerId);try{if(canvas.hasPointerCapture(pointerId))canvas.releasePointerCapture(pointerId);}catch{}}onPointerLockChange(activePointers.size>0);}
