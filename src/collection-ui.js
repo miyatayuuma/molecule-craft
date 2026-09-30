@@ -178,11 +178,18 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     else ensureGraphFocus();
     renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');notifyOpen();}dialog.scrollTop=0;return nodeState!==GRAPH_NODE_STATE.UNKNOWN;
   }
+  function openRegisteredMoleculeEntry(id){
+    const record=recordById(id);if(!record||!state.hasMolecule(id)||!canOpen())return false;
+    if(moleculeTransition.busy)moleculeTransition.cancel();
+    tab='molecules';currentDetail={kind:'molecules',id};listScroll=0;scope=isCHO(record.atoms)?'cho':'all';
+    if(data.graph.nodeById(id)){graphFocusId=id;graphHighlightId=null;}
+    renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');notifyOpen();}dialog.scrollTop=0;return true;
+  }
   function openPolymer(id){
     const record=polymerRecords.find(item=>item.id===id);if(!record||!polymerState.hasPolymer(id)||!canOpen()||moleculeTransition.busy)return false;
     tab='polymers';filter='all';currentDetail={kind:'polymers',id};listScroll=0;renderBook();if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');notifyOpen();}dialog.scrollTop=0;return true;
   }
-  function openEntry(kind,id){return kind==='molecules'?openMolecule(id):kind==='polymers'?openPolymer(id):false;}
+  function openEntry(kind,id){return kind==='molecules'?openRegisteredMoleculeEntry(id):kind==='polymers'?openPolymer(id):false;}
   window.addEventListener('molecule-craft:open-molecule',event=>openMolecule(event.detail?.id));
   root.querySelector('#show-extra-elements')?.addEventListener('change',()=>renderPalette());
   function renderPalette(){
