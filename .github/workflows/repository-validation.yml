@@ -342,3 +342,24 @@ jobs:
           node tests/dust-eater-forced-return-ui-browser.test.mjs
           node tests/pwa.test.mjs
           node scripts/build-precache.mjs --check
+
+  field-particle-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: FIELD deterministic gameplay and Canvas counter authority
+        run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs
+      - name: FIELD mobile work and descriptive timing benchmark
+        run: node scripts/benchmark-field-particles.mjs
+      - name: Upload FIELD measurements and comparison frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: field-particle-performance
+          path: test-results/field-particle-p1
+          if-no-files-found: error
+          retention-days: 14

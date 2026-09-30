@@ -182,14 +182,18 @@ function advanceTransientEffects(run,dt){
 }
 
 function stepRunFrame(run,input,dt,systems){
-  const {player:p,map,config:c}=run;dt=clamp(dt,0,c.maxFrame);run.time+=dt;run.events.length=0;
+  const {player:p,map,config:c}=run,diagnostics=run.particleDiagnostics;
+  if(diagnostics){diagnostics.simulationFrames++;diagnostics.simulationSeconds+=dt;}
+  dt=clamp(dt,0,c.maxFrame);run.time+=dt;run.events.length=0;
   if(run.captured){animateUniverse(run);advanceTransientEffects(run,dt);updateEaters(run,dt);return run.events;}
   animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
   const environment=map.universe?environmentAt(p,run.time,map):null,currentHazards=environment?.hazards?[...environment.hazards]:[];
   const coolantLearning=!!environment?.coolantLearning&&p.combustion&&!run.fuel.coolant?.molecule;run.coolantNeedExposure=coolantLearning?run.coolantNeedExposure+dt:0;if(!run.coolantNeedEmitted&&run.coolantNeedExposure>=OXYGEN_THERMAL.learningExposureSeconds){run.coolantNeedEmitted=true;run.events.push({type:'coolantNeed',exposure:run.coolantNeedExposure});}
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
+  const assistStart=diagnostics?.clock?.();
   let nearest=null,distance=c.assistRadius;const desired=Math.atan2(input.y,input.x);
-  for(const dust of map.dust){if(dust.ready>run.time)continue;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}
+  for(const dust of map.dust){if(diagnostics)diagnostics.assistScanned++;if(dust.ready>run.time)continue;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(diagnostics&&d<c.assistRadius)diagnostics.assistNearby++;if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}
+  if(assistStart!==undefined)diagnostics.assistMs+=diagnostics.clock()-assistStart;
   const routePressure=environment?.traversableRoutePressure,pulseWallPressure=p.boost>0?(environment?.frontierWallPulsePressure??0):0,movementEnvironment=Number.isFinite(routePressure)?{...environment,pressure:environment.pressure-routePressure+pulseWallPressure}:pulseWallPressure?{...environment,pressure:environment.pressure+pulseWallPressure}:environment;
   const force={x:0,y:Number.isFinite(routePressure)?routePressure:0};
   for(const field of map.fields){
@@ -218,9 +222,14 @@ function stepRunFrame(run,input,dt,systems){
   if(run.departed&&run.time-run.lastLap>c.lapMinSeconds&&Math.hypot(p.x-c.spawn.x,p.y-c.spawn.y)<c.lapRadius){run.lap=true;run.laps++;run.lastLap=run.time;run.departed=false;run.events.push({type:'lap',lap:run.laps});}
   if(run.chainTime>0){run.chainTime-=dt;if(run.chainTime<=0&&run.chain){run.events.push({type:'chainEnd',chain:run.chain});run.chain=0;}}
   const radius=c.suctionRadius+(propelled?(p.drive?.boostRadius??0):0);
+  const pickupStart=diagnostics?.clock?.();
   let gained=0,picked=0;const elements=managedZero(),units=managedZero();
   for(const dust of map.dust){
-    if(dust.ready>run.time||segmentDistance(dust,old,p)>radius)continue;
+    if(diagnostics)diagnostics.pickupScanned++;
+    if(dust.ready>run.time)continue;
+    if(diagnostics)diagnostics.pickupDistanceTests++;
+    if(segmentDistance(dust,old,p)>radius)continue;
+    if(diagnostics){diagnostics.pickupHits++;diagnostics.pickups.push({id:dust.id,time:run.time,element:dust.element??'H',value:dust.value,rare:dust.rareEcology===true});}
     dust.ready=dust.cluster!==undefined?Infinity:run.time+c.respawnSeconds;run.chain++;run.best=Math.max(run.best,run.chain);run.chainTime=c.chainSeconds;
     const el=dust.element??'H';units[el]+=dust.value;run.elementDust[el]+=dust.value;
     const total=Math.floor(run.elementDust[el]/(GROWTH.dustPerAtom[el]??c.dustPerH));elements[el]+=total-run.collectedElements[el];run.collectedElements[el]=total;
@@ -230,6 +239,7 @@ function stepRunFrame(run,input,dt,systems){
     if(dust.rareEcology===true){const ecology=rareEcologySocketState(dust,run.collectedElements,c.respawnSeconds);dust.ready=ecology?.active?run.time+ecology.respawnSeconds:Infinity;run.events.push({type:'rareElement',element:el,held:ecology?.held??run.collectedElements[el]??0});}
     if(dust.kind==='dense'){if(run.time>run.denseUntil)run.events.push({type:'dense'});run.denseUntil=run.time+1.4;}
   }
+  if(pickupStart!==undefined)diagnostics.pickupMs+=diagnostics.clock()-pickupStart;
   if(picked)run.events.push({type:'pickup',amount:gained,elements,units,chain:run.chain,count:picked});
   advanceTransientEffects(run,dt);p.trail.push({x:p.x,y:p.y});if(p.trail.length>28)p.trail.shift();updateEaters(run,dt);recordExpeditionFrame(run,dt);return run.events;
 }
