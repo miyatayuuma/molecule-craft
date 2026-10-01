@@ -1,0 +1,130 @@
+[
+  {
+    "cellSize": 32,
+    "name": "normal",
+    "candidates": 2220,
+    "cellMoves": 28026,
+    "medianMs": 0.0614699999999857,
+    "p95Ms": 0.14326099999999542
+  },
+  {
+    "cellSize": 32,
+    "name": "dense",
+    "candidates": 6649,
+    "cellMoves": 84307,
+    "medianMs": 0.1453439999999091,
+    "p95Ms": 0.2801420000000121
+  },
+  {
+    "cellSize": 32,
+    "name": "awakened",
+    "candidates": 505,
+    "cellMoves": 27887,
+    "medianMs": 0.050583999999957996,
+    "p95Ms": 0.09240600000009636
+  },
+  {
+    "cellSize": 32,
+    "name": "dynamic-heavy",
+    "candidates": 10213,
+    "cellMoves": 28198,
+    "medianMs": 0.06380400000000463,
+    "p95Ms": 0.1216989999999214
+  },
+  {
+    "cellSize": 64,
+    "name": "normal",
+    "candidates": 3011,
+    "cellMoves": 15711,
+    "medianMs": 0.037164999999959036,
+    "p95Ms": 0.08535599999993337
+  },
+  {
+    "cellSize": 64,
+    "name": "dense",
+    "candidates": 9087,
+    "cellMoves": 47106,
+    "medianMs": 0.12332100000003265,
+    "p95Ms": 0.1944260000000213
+  },
+  {
+    "cellSize": 64,
+    "name": "awakened",
+    "candidates": 719,
+    "cellMoves": 15633,
+    "medianMs": 0.03858700000000681,
+    "p95Ms": 0.07902599999988524
+  },
+  {
+    "cellSize": 64,
+    "name": "dynamic-heavy",
+    "candidates": 14165,
+    "cellMoves": 15792,
+    "medianMs": 0.043083000000024185,
+    "p95Ms": 0.0825520000000779
+  },
+  {
+    "cellSize": 96,
+    "name": "normal",
+    "candidates": 3677,
+    "cellMoves": 11453,
+    "medianMs": 0.0437050000000454,
+    "p95Ms": 0.06539599999996426
+  },
+  {
+    "cellSize": 96,
+    "name": "dense",
+    "candidates": 11099,
+    "cellMoves": 34474,
+    "medianMs": 0.11225500000000466,
+    "p95Ms": 0.19262400000002344
+  },
+  {
+    "cellSize": 96,
+    "name": "awakened",
+    "candidates": 892,
+    "cellMoves": 11395,
+    "medianMs": 0.03241799999977957,
+    "p95Ms": 0.04976299999998446
+  },
+  {
+    "cellSize": 96,
+    "name": "dynamic-heavy",
+    "candidates": 15835,
+    "cellMoves": 11511,
+    "medianMs": 0.03644299999996292,
+    "p95Ms": 0.05452999999988606
+  },
+  {
+    "cellSize": 128,
+    "name": "normal",
+    "candidates": 4345,
+    "cellMoves": 9405,
+    "medianMs": 0.030364000000190572,
+    "p95Ms": 0.05509100000017497
+  },
+  {
+    "cellSize": 128,
+    "name": "dense",
+    "candidates": 13467,
+    "cellMoves": 28218,
+    "medianMs": 0.1123450000000048,
+    "p95Ms": 0.1711119999999937
+  },
+  {
+    "cellSize": 128,
+    "name": "awakened",
+    "candidates": 1113,
+    "cellMoves": 9369,
+    "medianMs": 0.028381999999965046,
+    "p95Ms": 0.03887800000029529
+  },
+  {
+    "cellSize": 128,
+    "name": "dynamic-heavy",
+    "candidates": 22940,
+    "cellMoves": 9438,
+    "medianMs": 0.03240800000003219,
+    "p95Ms": 0.04869200000030105
+  }
+]

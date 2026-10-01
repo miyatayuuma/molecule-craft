@@ -1,0 +1,96 @@
+{
+  "basis": "da356db2d1f86f1d6b2e0533e07a4af7cad36030",
+  "cellSize": 128,
+  "visuals": [
+    {
+      "file": "veil-normal.png",
+      "sha256": "77e2b1d42bc98e96c744765de83ea410ea9b4a20531d3ca5766e66d8d593b732",
+      "p1Match": true
+    },
+    {
+      "file": "veil-reduced.png",
+      "sha256": "77e2b1d42bc98e96c744765de83ea410ea9b4a20531d3ca5766e66d8d593b732",
+      "p1Match": true
+    },
+    {
+      "file": "carbon-normal.png",
+      "sha256": "f045df877dc6f5e482f0c92cac8ebfef87938d5d9a8105bfe31e528509e6e343",
+      "p1Match": true
+    },
+    {
+      "file": "carbon-reduced.png",
+      "sha256": "f045df877dc6f5e482f0c92cac8ebfef87938d5d9a8105bfe31e528509e6e343",
+      "p1Match": true
+    },
+    {
+      "file": "oxygen-normal.png",
+      "sha256": "0cfbf4462367b6c2c6996a0828a7bb5a2aff8634208c478adc09ae4538b99558",
+      "p1Match": true
+    },
+    {
+      "file": "oxygen-reduced.png",
+      "sha256": "e3352e49c7bc7a9b807d733795f489f1d1d5b8f18647a55733aaa27ddc6a7d24",
+      "p1Match": true
+    },
+    {
+      "file": "frontier-normal.png",
+      "sha256": "874c2cf6bff3535b78c690069ee7f7d0bf10d0486f65a59a268fe8d52337611e",
+      "p1Match": true
+    },
+    {
+      "file": "frontier-reduced.png",
+      "sha256": "e2d318dfa7505d6cd05bcf50c13b6595e48a845c3d0940c74b336467d08584d6",
+      "p1Match": true
+    },
+    {
+      "file": "nitrogen-normal.png",
+      "sha256": "ff54a782bacc263548278911977a7bf0a8876e837a28241327ab2949f9e1c6e0",
+      "p1Match": true
+    },
+    {
+      "file": "nitrogen-reduced.png",
+      "sha256": "cc8480f0a35de687ae76919c6a8fe0985e73f9d793d36e028bcd930f06cc2c5c",
+      "p1Match": true
+    },
+    {
+      "file": "rare-P-normal.png",
+      "sha256": "4c927a0abd3c356756fc04a47ca7208f5ab6423de10639154430173287d7fe64",
+      "p1Match": true
+    },
+    {
+      "file": "rare-P-reduced.png",
+      "sha256": "4c927a0abd3c356756fc04a47ca7208f5ab6423de10639154430173287d7fe64",
+      "p1Match": true
+    },
+    {
+      "file": "rare-S-normal.png",
+      "sha256": "acb31661f975be1f013739fb7e3d89c8a62525ea327e1e5cadcfec7a15420f31",
+      "p1Match": true
+    },
+    {
+      "file": "rare-S-reduced.png",
+      "sha256": "acb31661f975be1f013739fb7e3d89c8a62525ea327e1e5cadcfec7a15420f31",
+      "p1Match": true
+    },
+    {
+      "file": "rare-F-normal.png",
+      "sha256": "398bbe67e6c63a855d38878dbda96d7e32e73b3cfb0bcae783b01ff7ad6aefb6",
+      "p1Match": true
+    },
+    {
+      "file": "rare-F-reduced.png",
+      "sha256": "bcf8e4281c6ce08bfb380c1f5bafa5246fed7a01c70e14286e0364bc9bce8125",
+      "p1Match": true
+    },
+    {
+      "file": "rare-Cl-normal.png",
+      "sha256": "14af54efbfb9e7ab90d3f770755c72c4534acde7e789ad5d46482f45d740eba5",
+      "p1Match": true
+    },
+    {
+      "file": "rare-Cl-reduced.png",
+      "sha256": "653bf4fbc43f7dcf926fc752791d2e28ee188119c8dc8e7709b6a6e409b14d88",
+      "p1Match": true
+    }
+  ]
+}
