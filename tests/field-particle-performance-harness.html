@@ -12,6 +12,7 @@ window.measure=async(name,reduced)=>{
   const counters={...work.particleDiagnostics};delete counters.clock;delete counters.pickups;
   if(counters.assistFullScanEquivalent){counters.fullScanEquivalent=counters.assistFullScanEquivalent+counters.pickupFullScanEquivalent;counters.candidateScans=counters.assistScanned+counters.pickupScanned;counters.candidateReductionRatio=1-counters.candidateScans/counters.fullScanEquivalent;}
   if(counters.dynamicFullScanEquivalent)counters.dynamicReductionRatio=1-counters.dynamicScanned/counters.dynamicFullScanEquivalent;
+  if(counters.renderFullScanEquivalent)counters.renderCandidateReductionRatio=1-counters.renderScanned/counters.renderFullScanEquivalent;
   const repeat=fixture(name);renderer.reset();renderer.draw(repeat,0,reduced);for(const key of COUNTERS)repeat.particleDiagnostics[key]=0;for(let frame=0;frame<60;frame++){stepRun(repeat,inputAt(frame),1/60);renderer.draw(repeat,1/60,reduced);}
   const stableKeys=COUNTERS.filter(key=>!key.endsWith('Ms'));if(stableKeys.some(key=>repeat.particleDiagnostics[key]!==counters[key]))throw Error('Non-deterministic work fixture');
   const run=fixture(name,{instrument:false});renderer.reset();for(let i=0;i<60;i++){stepRun(run,inputAt(i),1/60);renderer.draw(run,1/60,reduced);}
@@ -26,6 +27,26 @@ window.visual=(name,region,reduced=false)=>{
   const run=fixture(name),positions={veil:[0,-1200],carbon:[0,-5200],oxygen:[0,-9700],frontier:[0,-12000],nitrogen:[0,-15180]};
   if(region.startsWith('rare')){const d=run.map.dust.find(d=>d.rareEcology&&d.element===region.split('-')[1]);Object.assign(run.player,{x:d.x,y:d.y});}else{const [x,y]=positions[region];Object.assign(run.player,{x,y});}
   run.time=2;renderer.reset();renderer.draw(run,0,reduced);return {population:population(run,renderer.screen),counters:run.particleDiagnostics};
+};
+// Optional paired timing experiment: same page/Canvas/backend, ABBA order.
+// The injected factory differs only in test-only full-array discovery.
+window.compareRenderer=async oracleFactory=>{
+  const factories={spatial:renderer,fullScan:oracleFactory(canvas)},passes=[];
+  for(const reduced of [false,true])for(const implementation of ['fullScan','spatial','spatial','fullScan','spatial','fullScan','fullScan','spatial']){
+    const run=fixture('normal',{instrument:false}),r=factories[implementation];r.reset();
+    for(let i=0;i<60;i++){stepRun(run,inputAt(i),1/60);r.draw(run,1/60,reduced);}
+    const cpu=[],simulation=[],render=[];
+    for(let frame=0;frame<180;frame++){
+      await new Promise(requestAnimationFrame);const start=performance.now();stepRun(run,inputAt(frame+60),1/60);const mid=performance.now();r.draw(run,1/60,reduced);const end=performance.now();
+      cpu.push(end-start);simulation.push(mid-start);render.push(end-mid);
+    }
+    passes.push({implementation,reduced,frameCpuMs:summary(cpu),simulationMs:summary(simulation),renderMs:summary(render),cpu,simulation,render});
+  }
+  const aggregate=[];for(const reduced of [false,true])for(const implementation of ['fullScan','spatial']){
+    const group=passes.filter(p=>p.reduced===reduced&&p.implementation===implementation);
+    aggregate.push({implementation,reduced,samples:group.length*180,frameCpuMs:summary(group.flatMap(p=>p.cpu)),simulationMs:summary(group.flatMap(p=>p.simulation)),renderMs:summary(group.flatMap(p=>p.render))});
+  }
+  return {order:'ABBA / BAAB per motion setting',passes,aggregate};
 };
 window.ready=true;
 </script></body></html>

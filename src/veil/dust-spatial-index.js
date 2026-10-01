@@ -12,12 +12,13 @@ export function createDustSpatialIndex(dust,{cellSize=DUST_CELL_SIZE}={}){
     const cx=Math.floor(particle.x/cellSize),cy=Math.floor(particle.y/cellSize);if(cx===record.cx&&cy===record.cy)return false;
     const k=key(record.cx,record.cy),bucket=cells.get(k);bucket.delete(record);if(!bucket.size)cells.delete(k);record.cx=cx;record.cy=cy;insert(record);return true;
   }
-  function queryAabb(left,top,right,bottom){
+  function queryAabb(left,top,right,bottom,stats){
     const candidates=[];
     // Include cells touching the closed envelope; exact checks discard extras.
     for(let cy=Math.floor(top/cellSize);cy<=Math.floor(bottom/cellSize);cy++)for(let cx=Math.floor(left/cellSize);cx<=Math.floor(right/cellSize);cx++){
       const bucket=cells.get(key(cx,cy));if(bucket)for(const record of bucket)candidates.push(record);
     }
+    if(stats)stats.cellsVisited+=(Math.floor(bottom/cellSize)-Math.floor(top/cellSize)+1)*(Math.floor(right/cellSize)-Math.floor(left/cellSize)+1);
     candidates.sort((a,b)=>a.ordinal-b.ordinal);return candidates.map(record=>record.particle);
   }
   return {cellSize,update,cellOf:particle=>{const record=records.get(particle);return record?{x:record.cx,y:record.cy}:null;},queryAabb,queryCircle:(x,y,r)=>queryAabb(x-r,y-r,x+r,y+r),querySegment:(a,b,r)=>queryAabb(Math.min(a.x,b.x)-r,Math.min(a.y,b.y)-r,Math.max(a.x,b.x)+r,Math.max(a.y,b.y)+r)};

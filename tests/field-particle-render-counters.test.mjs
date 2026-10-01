@@ -11,7 +11,7 @@ function draw(name,region,reduced,{instrument=true,empty=false}={}){
 }
 for(const name of ['normal','dense','awakened','dynamic-heavy'])for(const reduced of [false,true])for(const region of ['veil','carbon','oxygen','nitrogen']){
   const a=draw(name,region,reduced),b=draw(name,region,reduced,{instrument:false}),empty=draw(name,region,reduced,{empty:true});assert.deepEqual(a.calls,b.calls,'instrumentation preserves Canvas commands');const d=a.d;
-  assert.equal(d.renderScanned,a.p.totalDust);assert.equal(d.renderScanned,d.renderNotReady+d.renderOffscreen+d.rendered);assert.ok(d.rendered>=a.p.visibleReadyDust);
+  assert.equal(d.renderFullScanEquivalent,a.p.totalDust);assert.equal(d.renderCandidatesReturned,d.renderScanned);assert.equal(d.renderSpatialQueries,1);assert.equal(d.renderScanned,d.renderNotReady+d.renderOffscreen+d.rendered);assert.ok(d.rendered>=a.p.visibleReadyDust);
   assert.equal(a.api.drawImage-empty.api.drawImage,d.glowDraws);assert.equal(a.api.fill-empty.api.fill,d.centerDraws);assert.equal(a.api.stroke-empty.api.stroke,d.flowStrokes);assert.equal(a.api.save-empty.api.save,d.carbonDraws);assert.equal(a.api.restore-empty.api.restore,d.carbonDraws);assert.equal(a.api.arc-empty.api.arc,d.centerDraws-d.carbonDraws);
 }
 delete globalThis.document;delete globalThis.window;console.log('FIELD renderer counters independently match Canvas API spy; instrumentation leaves draw commands identical.');

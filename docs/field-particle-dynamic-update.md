@@ -25,7 +25,7 @@ node tests/pwa.test.mjs
 
 ## P4 boundary
 
-Simulation ownership is independent of camera visibility. P4 can query the P2 spatial grid but must not redefine dynamic dust as visible dust. Rendering, visual culling, glow, draw-call style, DPR and reduced-motion semantics are untouched in P3. P4 owns renderer full-dust scan removal and draw-call overhead; no rendering optimization is implemented here.
+Simulation ownership is independent of camera visibility. P4 can query the P2 spatial grid but must not redefine dynamic dust as visible dust. Rendering, visual culling, glow, draw-call style, DPR and reduced-motion semantics are untouched in P3. P4 owns renderer candidate discovery and full-dust scan removal; P5 profiles remaining draw-call costs. No rendering optimization is implemented here.
 
 ## Measured acceptance
 
