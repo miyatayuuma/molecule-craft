@@ -3,7 +3,7 @@ import {createRun,stepRun} from '../../src/veil/expedition-run.js';
 import {OXYGEN_VORTEX} from '../../src/veil/oxygen-routes.js';
 import {flightConfig} from '../../src/veil/growth.js';
 
-export const COUNTERS=['simulationFrames','simulationSeconds','assistScanned','assistNearby','pickupScanned','pickupDistanceTests','pickupHits','dynamicScanned','dynamicUpdated','clusterUpdated','renderFrames','renderScanned','renderNotReady','renderOffscreen','rendered','glowDraws','centerDraws','flowStrokes','carbonDraws','assistMs','pickupMs','dynamicMs','dustRenderMs'];
+export const COUNTERS=['pickupExactChecks','assistSpatialQueries','pickupSpatialQueries','assistExactChecks','assistFullScanEquivalent','pickupFullScanEquivalent','simulationFrames','simulationSeconds','assistScanned','assistNearby','pickupScanned','pickupDistanceTests','pickupHits','dynamicScanned','dynamicUpdated','clusterUpdated','renderFrames','renderScanned','renderNotReady','renderOffscreen','rendered','glowDraws','centerDraws','flowStrokes','carbonDraws','assistMs','pickupMs','dynamicMs','dustRenderMs'];
 export function diagnostics({timing=false}={}){return {...Object.fromEntries(COUNTERS.map(key=>[key,0])),pickups:[],...(timing?{clock:()=>performance.now()}: {})};}
 export const SCENARIOS=Object.freeze(['normal','dense','awakened','dynamic-heavy']);
 export function fixture(name='normal',{instrument=true,timing=false}={}){

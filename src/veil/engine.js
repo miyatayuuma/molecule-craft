@@ -1,3 +1,4 @@
+import {dustSpatialIndex,resetDustSpatialIndex} from './dust-spatial-index.js';
 import {recordChallengePassage} from './expedition-challenges.js';
 import {recordChoDestination} from './cho-campaign.js';
 import { VEIL, EXPEDITION, THERMAL } from './config.js';
@@ -79,6 +80,7 @@ export function beginShock(run,consume){
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
 
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
+  resetDustSpatialIndex(map);
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)};
   return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],electricalControlAuthority:1,electricalPropulsionAuthority:1,nextEaterSpawn:0,captured:false,captureAt:0,forcedReturn:null,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
@@ -186,13 +188,16 @@ function stepRunFrame(run,input,dt,systems){
   if(diagnostics){diagnostics.simulationFrames++;diagnostics.simulationSeconds+=dt;}
   dt=clamp(dt,0,c.maxFrame);run.time+=dt;run.events.length=0;
   if(run.captured){animateUniverse(run);advanceTransientEffects(run,dt);updateEaters(run,dt);return run.events;}
+  const spatial=dustSpatialIndex(map);
   animateUniverse(run);updateCombustion(run,dt,systems);updateThermal(run,dt,systems);
   const environment=map.universe?environmentAt(p,run.time,map):null,currentHazards=environment?.hazards?[...environment.hazards]:[];
   const coolantLearning=!!environment?.coolantLearning&&p.combustion&&!run.fuel.coolant?.molecule;run.coolantNeedExposure=coolantLearning?run.coolantNeedExposure+dt:0;if(!run.coolantNeedEmitted&&run.coolantNeedExposure>=OXYGEN_THERMAL.learningExposureSeconds){run.coolantNeedEmitted=true;run.events.push({type:'coolantNeed',exposure:run.coolantNeedExposure});}
   const old={x:p.x,y:p.y},propelled=p.boost>0||p.combustion;
   const assistStart=diagnostics?.clock?.();
   let nearest=null,distance=c.assistRadius;const desired=Math.atan2(input.y,input.x);
-  for(const dust of map.dust){if(diagnostics)diagnostics.assistScanned++;if(dust.ready>run.time)continue;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(diagnostics&&d<c.assistRadius)diagnostics.assistNearby++;if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}
+  const assistCandidates=spatial.queryCircle(p.x,p.y,c.assistRadius);
+  if(diagnostics){diagnostics.assistSpatialQueries++;diagnostics.assistFullScanEquivalent+=map.dust.length;}
+  for(const dust of assistCandidates){if(diagnostics)diagnostics.assistScanned++;if(dust.ready>run.time)continue;if(diagnostics)diagnostics.assistExactChecks++;const d=Math.hypot(p.x-dust.x,p.y-dust.y);if(diagnostics&&d<c.assistRadius)diagnostics.assistNearby++;if(d<distance){distance=d;const angle=Math.abs(angleDelta(desired,dust.angle))<Math.PI/2?dust.angle:dust.angle+Math.PI;nearest={angle:Math.atan2(dust.y+Math.sin(angle)*100-p.y,dust.x+Math.cos(angle)*100-p.x)};}}
   if(assistStart!==undefined)diagnostics.assistMs+=diagnostics.clock()-assistStart;
   const routePressure=environment?.traversableRoutePressure,pulseWallPressure=p.boost>0?(environment?.frontierWallPulsePressure??0):0,movementEnvironment=Number.isFinite(routePressure)?{...environment,pressure:environment.pressure-routePressure+pulseWallPressure}:pulseWallPressure?{...environment,pressure:environment.pressure+pulseWallPressure}:environment;
   const force={x:0,y:Number.isFinite(routePressure)?routePressure:0};
@@ -224,10 +229,12 @@ function stepRunFrame(run,input,dt,systems){
   const radius=c.suctionRadius+(propelled?(p.drive?.boostRadius??0):0);
   const pickupStart=diagnostics?.clock?.();
   let gained=0,picked=0;const elements=managedZero(),units=managedZero();
-  for(const dust of map.dust){
+  const pickupCandidates=spatial.querySegment(old,p,radius);
+  if(diagnostics){diagnostics.pickupSpatialQueries++;diagnostics.pickupFullScanEquivalent+=map.dust.length;}
+  for(const dust of pickupCandidates){
     if(diagnostics)diagnostics.pickupScanned++;
     if(dust.ready>run.time)continue;
-    if(diagnostics)diagnostics.pickupDistanceTests++;
+    if(diagnostics){diagnostics.pickupDistanceTests++;diagnostics.pickupExactChecks++;}
     if(segmentDistance(dust,old,p)>radius)continue;
     if(diagnostics){diagnostics.pickupHits++;diagnostics.pickups.push({id:dust.id,time:run.time,element:dust.element??'H',value:dust.value,rare:dust.rareEcology===true});}
     dust.ready=dust.cluster!==undefined?Infinity:run.time+c.respawnSeconds;run.chain++;run.best=Math.max(run.best,run.chain);run.chainTime=c.chainSeconds;

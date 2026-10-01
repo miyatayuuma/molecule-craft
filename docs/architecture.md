@@ -188,3 +188,5 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 ## FIELD particle performance authority
 
 P1 の固定seed・stress fixture・input traceは `tests/helpers/field-particle-fixtures.mjs`、計測追加前mainのgameplay oracleは `tests/fixtures/field-particle-p1/gameplay.json`。`tests/field-particle-performance.test.mjs` が非計測／計測runtimeを独立oracleと比較し、`tests/field-particle-render-counters.test.mjs` がCanvas spyで描画counterと同一command列を検証します。`scripts/benchmark-field-particles.mjs` と `tests/field-particle-performance-harness.html` は390×844、production DPR上限、normal/reduced motionを測定します。実行方法、固定画像、数値の意味と後続最適化contractは `docs/field-particle-performance.md`。時間値にCI閾値はありません。
+
+FIELD assist/pickup broadphase is `src/veil/dust-spatial-index.js`; `engine.js` queries stable-order candidates before unchanged exact tests, and `universe.js` updates membership at moving position writes. `docs/field-particle-spatial-query.md` owns the P2 contract and measurements; `tests/dust-spatial-index.test.mjs` owns full-scan oracle/edge equivalence and `scripts/benchmark-dust-grid.mjs` owns cell-size comparison. P1's frozen gameplay/visual oracle remains authoritative.
