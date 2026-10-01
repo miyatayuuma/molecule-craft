@@ -347,24 +347,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
-      CHROME_BIN: /tmp/field-p5-chrome/chrome-headless-shell-linux64/chrome-headless-shell
+      CHROME_BIN: /tmp/chromium
       FIELD_CHROME_ARGS: '["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader","--disable-dev-shm-usage"]'
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Fixed P1-P4 Chromium version
+      - name: Fixed P4 Chromium binary
         run: |
-          mkdir -p /tmp/field-p5-chrome
-          curl --fail --retry 3 -L https://storage.googleapis.com/chrome-for-testing-public/153.0.8010.0/linux64/chrome-headless-shell-linux64.zip -o /tmp/field-p5-chrome/chrome.zip
-          unzip -q /tmp/field-p5-chrome/chrome.zip -d /tmp/field-p5-chrome
+          npm install --prefix /tmp/field-p5-bin --no-audit --no-fund --ignore-scripts @sparticuz/chromium@153.0.0
+          node -e "const m=require('/tmp/field-p5-bin/node_modules/@sparticuz/chromium'),c=m.default??m;c.executablePath().then(p=>console.log(p));"
       - name: FIELD deterministic gameplay and Canvas counter authority
         run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs tests/dust-spatial-index.test.mjs tests/dynamic-dust-registry.test.mjs tests/renderer-spatial-query.test.mjs tests/field-renderer-profile.test.mjs tests/field-profile-authority.test.mjs
       - name: FIELD mobile work and descriptive timing benchmark
         run: |
           node scripts/benchmark-field-particles.mjs
           node scripts/check-field-visual-baseline.mjs
+          node --input-type=module -e "import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';const r=JSON.parse(await readFile('test-results/field-particle-p1/browser.json'));assert.equal(r.browser.revision,'@86cee6df69e0463a839c0cc8435c9d4c259434d3','P4 engine revision authority');"
       - name: FIELD integrated profile and stable raw authority
         run: |
           FIELD_PROFILE_MODE=coarse FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/coarse node scripts/profile-field-particles.mjs
