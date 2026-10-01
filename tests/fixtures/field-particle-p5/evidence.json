@@ -1,0 +1,255 @@
+{
+  "format": 1,
+  "startMain": "eda186afb36a485f9f4becf472c4faa9a95ede9c",
+  "capturedHead": "88ca0dd912940573de5270b69e612d37f6c664b6",
+  "workflowRun": 36828112228,
+  "job": 110258271982,
+  "runtimeSourceSha256": {
+    "src/veil/universe.js": "e1b73f25039ea0b34e0997cc181f45e70ab0a987be624cd1ee12d2652d652c7c",
+    "src/veil/engine.js": "100d77946e7db8fa00cc1f695d02fb616f97d6bc1b5b6872f73e5ac65278f519",
+    "src/veil/dust-spatial-index.js": "7113f563b37620f14edfb25e64eccb119cd819fae51bd9acdc7a4cd93c7be11f",
+    "src/veil/dynamic-dust-registry.js": "d3b7b96fd04b9b39df5336e6c8a6aff69c82426b0f2655bc0f35386882bccc9b",
+    "src/veil/renderer.js": "d0bd3b9fef007f2e099ab5b946fdcab6034e7cbe8236777da02bd3247de18322"
+  },
+  "profileSourceSha256": {
+    "scripts/profile-field-particles.mjs": "33173d8073c319c377647a5e0baeeb20a61bc484b940c365a95816df137ead55",
+    "tests/field-particle-profile-harness.html": "f1cad0bfe1bfb2cedd496a5c65926ec9edcbc69328fbbc461704aeff91208973",
+    "tests/helpers/field-renderer-profile.mjs": "06c1aa0556c279d652f9ee45f5ac7519fa0c9fdfe9f8494476306075bf5c119d"
+  },
+  "decision": {
+    "classification": "C",
+    "triggers": [],
+    "scaling": [
+      {
+        "reduced": false,
+        "growth": 0.21212121218962876,
+        "rendererDelta": 0.49999999990686783,
+        "dustDelta": 0.6899999998509885,
+        "attribution": 1.3799999999590218
+      },
+      {
+        "reduced": true,
+        "growth": 0.09375000025465852,
+        "rendererDelta": 0.5099999998696152,
+        "dustDelta": 0.4300000000745058,
+        "attribution": 0.8431372552636041
+      }
+    ],
+    "dominantSection": "routeFieldGeometry",
+    "dominantShare": 0.5909567848495719
+  },
+  "primary": {
+    "coarse": {
+      "file": "coarse-raw.json.gz",
+      "sha256": "941fe26fbed0fab45be1fd286a447bc7747a11171c78190278c45c53775a1330",
+      "bytes": 187336
+    },
+    "components": {
+      "file": "components-raw.json.gz",
+      "sha256": "db68181c368959f67dead8cfdc10e9e1f81a41f00d43451ba55abce5735c8bdc",
+      "bytes": 273995
+    },
+    "history": {
+      "file": "history-raw.json.gz",
+      "sha256": "78aac2b3ed12210a0fc23a626fbba7e4aecd2fb418c86f82b9224061e01f4369",
+      "bytes": 191131
+    },
+    "browser": {
+      "file": "browser-raw.json.gz",
+      "sha256": "8831f9fc22d7f4938e86d2ba10ca561653958968c9d4b46cccbeeb48deba15f7",
+      "bytes": 4600
+    }
+  },
+  "visuals": [
+    {
+      "file": "veil-normal.png",
+      "baseline": "77e2b1d42bc98e96c744765de83ea410ea9b4a20531d3ca5766e66d8d593b732",
+      "actual": "77e2b1d42bc98e96c744765de83ea410ea9b4a20531d3ca5766e66d8d593b732",
+      "equal": true
+    },
+    {
+      "file": "veil-reduced.png",
+      "baseline": "77e2b1d42bc98e96c744765de83ea410ea9b4a20531d3ca5766e66d8d593b732",
+      "actual": "77e2b1d42bc98e96c744765de83ea410ea9b4a20531d3ca5766e66d8d593b732",
+      "equal": true
+    },
+    {
+      "file": "carbon-normal.png",
+      "baseline": "f045df877dc6f5e482f0c92cac8ebfef87938d5d9a8105bfe31e528509e6e343",
+      "actual": "f045df877dc6f5e482f0c92cac8ebfef87938d5d9a8105bfe31e528509e6e343",
+      "equal": true
+    },
+    {
+      "file": "carbon-reduced.png",
+      "baseline": "f045df877dc6f5e482f0c92cac8ebfef87938d5d9a8105bfe31e528509e6e343",
+      "actual": "f045df877dc6f5e482f0c92cac8ebfef87938d5d9a8105bfe31e528509e6e343",
+      "equal": true
+    },
+    {
+      "file": "oxygen-normal.png",
+      "baseline": "0cfbf4462367b6c2c6996a0828a7bb5a2aff8634208c478adc09ae4538b99558",
+      "actual": "0cfbf4462367b6c2c6996a0828a7bb5a2aff8634208c478adc09ae4538b99558",
+      "equal": true
+    },
+    {
+      "file": "oxygen-reduced.png",
+      "baseline": "e3352e49c7bc7a9b807d733795f489f1d1d5b8f18647a55733aaa27ddc6a7d24",
+      "actual": "e3352e49c7bc7a9b807d733795f489f1d1d5b8f18647a55733aaa27ddc6a7d24",
+      "equal": true
+    },
+    {
+      "file": "frontier-normal.png",
+      "baseline": "874c2cf6bff3535b78c690069ee7f7d0bf10d0486f65a59a268fe8d52337611e",
+      "actual": "874c2cf6bff3535b78c690069ee7f7d0bf10d0486f65a59a268fe8d52337611e",
+      "equal": true
+    },
+    {
+      "file": "frontier-reduced.png",
+      "baseline": "e2d318dfa7505d6cd05bcf50c13b6595e48a845c3d0940c74b336467d08584d6",
+      "actual": "e2d318dfa7505d6cd05bcf50c13b6595e48a845c3d0940c74b336467d08584d6",
+      "equal": true
+    },
+    {
+      "file": "nitrogen-normal.png",
+      "baseline": "ff54a782bacc263548278911977a7bf0a8876e837a28241327ab2949f9e1c6e0",
+      "actual": "ff54a782bacc263548278911977a7bf0a8876e837a28241327ab2949f9e1c6e0",
+      "equal": true
+    },
+    {
+      "file": "nitrogen-reduced.png",
+      "baseline": "cc8480f0a35de687ae76919c6a8fe0985e73f9d793d36e028bcd930f06cc2c5c",
+      "actual": "cc8480f0a35de687ae76919c6a8fe0985e73f9d793d36e028bcd930f06cc2c5c",
+      "equal": true
+    },
+    {
+      "file": "rare-P-normal.png",
+      "baseline": "4c927a0abd3c356756fc04a47ca7208f5ab6423de10639154430173287d7fe64",
+      "actual": "4c927a0abd3c356756fc04a47ca7208f5ab6423de10639154430173287d7fe64",
+      "equal": true
+    },
+    {
+      "file": "rare-P-reduced.png",
+      "baseline": "4c927a0abd3c356756fc04a47ca7208f5ab6423de10639154430173287d7fe64",
+      "actual": "4c927a0abd3c356756fc04a47ca7208f5ab6423de10639154430173287d7fe64",
+      "equal": true
+    },
+    {
+      "file": "rare-S-normal.png",
+      "baseline": "acb31661f975be1f013739fb7e3d89c8a62525ea327e1e5cadcfec7a15420f31",
+      "actual": "acb31661f975be1f013739fb7e3d89c8a62525ea327e1e5cadcfec7a15420f31",
+      "equal": true
+    },
+    {
+      "file": "rare-S-reduced.png",
+      "baseline": "acb31661f975be1f013739fb7e3d89c8a62525ea327e1e5cadcfec7a15420f31",
+      "actual": "acb31661f975be1f013739fb7e3d89c8a62525ea327e1e5cadcfec7a15420f31",
+      "equal": true
+    },
+    {
+      "file": "rare-F-normal.png",
+      "baseline": "398bbe67e6c63a855d38878dbda96d7e32e73b3cfb0bcae783b01ff7ad6aefb6",
+      "actual": "398bbe67e6c63a855d38878dbda96d7e32e73b3cfb0bcae783b01ff7ad6aefb6",
+      "equal": true
+    },
+    {
+      "file": "rare-F-reduced.png",
+      "baseline": "bcf8e4281c6ce08bfb380c1f5bafa5246fed7a01c70e14286e0364bc9bce8125",
+      "actual": "bcf8e4281c6ce08bfb380c1f5bafa5246fed7a01c70e14286e0364bc9bce8125",
+      "equal": true
+    },
+    {
+      "file": "rare-Cl-normal.png",
+      "baseline": "14af54efbfb9e7ab90d3f770755c72c4534acde7e789ad5d46482f45d740eba5",
+      "actual": "14af54efbfb9e7ab90d3f770755c72c4534acde7e789ad5d46482f45d740eba5",
+      "equal": true
+    },
+    {
+      "file": "rare-Cl-reduced.png",
+      "baseline": "653bf4fbc43f7dcf926fc752791d2e28ee188119c8dc8e7709b6a6e409b14d88",
+      "actual": "653bf4fbc43f7dcf926fc752791d2e28ee188119c8dc8e7709b6a6e409b14d88",
+      "equal": true
+    }
+  ],
+  "componentWork": [
+    {
+      "name": "normal",
+      "reduced": false,
+      "frames": 60,
+      "rendered": 6313,
+      "glow": 6313,
+      "centers": 6313,
+      "flow": 0,
+      "carbon": 0
+    },
+    {
+      "name": "dense",
+      "reduced": false,
+      "frames": 60,
+      "rendered": 18711,
+      "glow": 18711,
+      "centers": 18711,
+      "flow": 0,
+      "carbon": 0
+    },
+    {
+      "name": "awakened",
+      "reduced": false,
+      "frames": 60,
+      "rendered": 4932,
+      "glow": 4932,
+      "centers": 4932,
+      "flow": 0,
+      "carbon": 0
+    },
+    {
+      "name": "dynamic-heavy",
+      "reduced": false,
+      "frames": 60,
+      "rendered": 17411,
+      "glow": 17411,
+      "centers": 17411,
+      "flow": 5189,
+      "carbon": 1625
+    },
+    {
+      "name": "normal",
+      "reduced": true,
+      "frames": 60,
+      "rendered": 6313,
+      "glow": 6313,
+      "centers": 6313,
+      "flow": 0,
+      "carbon": 0
+    },
+    {
+      "name": "dense",
+      "reduced": true,
+      "frames": 60,
+      "rendered": 18711,
+      "glow": 18711,
+      "centers": 18711,
+      "flow": 0,
+      "carbon": 0
+    },
+    {
+      "name": "awakened",
+      "reduced": true,
+      "frames": 60,
+      "rendered": 4932,
+      "glow": 4932,
+      "centers": 4932,
+      "flow": 0,
+      "carbon": 0
+    },
+    {
+      "name": "dynamic-heavy",
+      "reduced": true,
+      "frames": 60,
+      "rendered": 17411,
+      "glow": 17411,
+      "centers": 17411,
+      "flow": 0,
+      "carbon": 1625
+    }
+  ]
+}
