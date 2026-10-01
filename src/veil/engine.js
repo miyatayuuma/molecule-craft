@@ -6,6 +6,7 @@ import { GROWTH, DRIVES, burstDriveFor, combustionDriveFor, regionAt } from './g
 import { combustionChargeFor,performanceFor } from './molecule-roles.js';
 import {canShock,consumeShockCharge,shockStrength} from './shock.js';
 import { environmentAt, animateUniverse } from './universe.js';
+import {dynamicDustRegistry,resetDynamicDustRegistry} from './dynamic-dust-registry.js';
 import {appendHazard,defineHazard,effectiveHazardScale,HAZARD_TYPES,organicCorridorInfluence} from './hazards.js';
 import {nitrogenCoreInRange,nitrogenCoreIsIntact,nitrogenCoreRepulsionAt,resolveNitrogenCoreCollision} from './nitrogen-routes.js';
 import {dustEaterWorldTuning} from './world-awakening.js';
@@ -81,6 +82,7 @@ export function setCombustionHeld(run,held){if(!run||run.captured)return false;r
 
 export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
   resetDustSpatialIndex(map);
+  resetDynamicDustRegistry(map);if(map.dust)dynamicDustRegistry(map);
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)};
   return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],electricalControlAuthority:1,electricalPropulsionAuthority:1,nextEaterSpawn:0,captured:false,captureAt:0,forcedReturn:null,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};

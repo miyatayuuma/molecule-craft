@@ -352,7 +352,7 @@ jobs:
         with:
           node-version: 24
       - name: FIELD deterministic gameplay and Canvas counter authority
-        run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs tests/dust-spatial-index.test.mjs
+        run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs tests/dust-spatial-index.test.mjs tests/dynamic-dust-registry.test.mjs
       - name: FIELD mobile work and descriptive timing benchmark
         run: node scripts/benchmark-field-particles.mjs
       - name: Upload FIELD measurements and comparison frames

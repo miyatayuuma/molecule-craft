@@ -3,13 +3,13 @@ import {createRun,stepRun} from '../../src/veil/expedition-run.js';
 import {OXYGEN_VORTEX} from '../../src/veil/oxygen-routes.js';
 import {flightConfig} from '../../src/veil/growth.js';
 
-export const COUNTERS=['pickupExactChecks','assistSpatialQueries','pickupSpatialQueries','assistExactChecks','assistFullScanEquivalent','pickupFullScanEquivalent','simulationFrames','simulationSeconds','assistScanned','assistNearby','pickupScanned','pickupDistanceTests','pickupHits','dynamicScanned','dynamicUpdated','clusterUpdated','renderFrames','renderScanned','renderNotReady','renderOffscreen','rendered','glowDraws','centerDraws','flowStrokes','carbonDraws','assistMs','pickupMs','dynamicMs','dustRenderMs'];
+export const COUNTERS=['dynamicRegistrySize','dynamicFullScanEquivalent','dynamicStaticVisited','vortexUpdated','flowUpdated','dynamicSameCellMoves','dynamicCellRelocations','clusterSameCellMoves','clusterCellRelocations','pickupExactChecks','assistSpatialQueries','pickupSpatialQueries','assistExactChecks','assistFullScanEquivalent','pickupFullScanEquivalent','simulationFrames','simulationSeconds','assistScanned','assistNearby','pickupScanned','pickupDistanceTests','pickupHits','dynamicScanned','dynamicUpdated','clusterUpdated','renderFrames','renderScanned','renderNotReady','renderOffscreen','rendered','glowDraws','centerDraws','flowStrokes','carbonDraws','assistMs','pickupMs','dynamicMs','dustRenderMs'];
 export function diagnostics({timing=false}={}){return {...Object.fromEntries(COUNTERS.map(key=>[key,0])),pickups:[],...(timing?{clock:()=>performance.now()}: {})};}
 export const SCENARIOS=Object.freeze(['normal','dense','awakened','dynamic-heavy']);
-export function fixture(name='normal',{instrument=true,timing=false}={}){
+export function fixture(name='normal',{instrument=true,timing=false,seed=41}={}){
   if(!SCENARIOS.includes(name))throw Error(`Unknown fixture ${name}`);
   const awakened=name==='awakened',capabilities={combustionDrive:true,nitrogenField:true,coreFractured:awakened,worldAwakened:awakened,rareEcologyEligible:awakened};
-  const state={elements:{},progress:{choCompleted:true,...capabilities}},map=createUniverse(41,{}, {capabilities});
+  const state={elements:{},progress:{choCompleted:true,...capabilities}},map=createUniverse(seed,{}, {capabilities});
   // Test-only 3x stress: deep copies preserve authored fields and shared cluster identity.
   // Copies have distinct IDs and deterministic offsets; no production constants change.
   if(name==='dense'){
