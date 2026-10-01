@@ -54,7 +54,7 @@
 | C/O領域・塵・流れ | `src/veil/universe.js`, `expedition-challenges.js`（任意難所・報酬） |
 | Dynamic dust update ownership | `src/veil/dynamic-dust-registry.js`。最終populationでcanonical flow/vortex参照を確定。`tests/dynamic-dust-registry.test.mjs` / `docs/field-particle-dynamic-update.md` |
 | 酸素の分岐・逆流・静かな渦 | `src/veil/oxygen-routes.js`。物理・描画・補給見取り図の共通定義 |
-| Canvas描画 | `src/veil/renderer.js` |
+| Canvas描画 | `src/veil/renderer.js`。P2 gridのviewport broadphaseは `docs/field-particle-renderer-query.md`、oracleは `tests/renderer-spatial-query.test.mjs` |
 | 画面統合・入力・帰還 | `src/veil/ui.js` |
 | 音 | `src/veil/audio.js` |
 | 原子・分子・レシピ・積荷・精算 | `src/veil/resources.js` |

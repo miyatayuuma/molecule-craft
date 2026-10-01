@@ -1,4 +1,18 @@
 import {drawChallengeCurrents} from './expedition-challenges.js';
+import {dustSpatialIndex} from './dust-spatial-index.js';
+export const DUST_CULL_MARGIN=35;
+export function rendererDustCandidates(map,camera,scale,width,height,diagnostics){
+  const queryStart=diagnostics?.clock?.();
+  const halfWidth=(width/2+DUST_CULL_MARGIN)/scale,halfHeight=(height/2+DUST_CULL_MARGIN)/scale;
+  // Include inverse-transform rounding at a closed screen/grid boundary.
+  // This broadphase padding never alters the exact screen-space predicate.
+  const pad=32*Number.EPSILON*Math.max(1,Math.abs(camera.x),Math.abs(camera.y),halfWidth,halfHeight);
+  const stats=diagnostics?{cellsVisited:0}:undefined;
+  const candidates=dustSpatialIndex(map).queryAabb(camera.x-halfWidth-pad,camera.y-halfHeight-pad,camera.x+halfWidth+pad,camera.y+halfHeight+pad,stats);
+  if(diagnostics){diagnostics.renderFullScanEquivalent+=map.dust.length;diagnostics.renderSpatialQueries++;diagnostics.renderGridCellsVisited+=stats.cellsVisited;diagnostics.renderCandidatesReturned+=candidates.length;}
+  if(queryStart!==undefined)diagnostics.renderQueryMs+=diagnostics.clock()-queryStart;
+  return candidates;
+}
 import {CHO_DESTINATION} from './cho-campaign.js';
 import { VEIL, EXPEDITION } from './config.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,oxygenGateEnvelopeAt } from './oxygen-routes.js';
@@ -340,9 +354,9 @@ export function createVeilRenderer(canvas){
     }
     ctx.restore();
     const dustRenderStart=diagnostics?.clock?.();
-    for(const dust of run.map.dust){
+    for(const dust of rendererDustCandidates(run.map,camera,scale,w,h,diagnostics)){
       if(diagnostics)diagnostics.renderScanned++;
-      if(dust.ready>run.time){if(diagnostics)diagnostics.renderNotReady++;continue;}const q=screen(dust.x,dust.y);if(q.x<-35||q.x>w+35||q.y<-35||q.y>h+35){if(diagnostics)diagnostics.renderOffscreen++;continue;}
+      if(dust.ready>run.time){if(diagnostics)diagnostics.renderNotReady++;continue;}const q=screen(dust.x,dust.y);if(q.x<-DUST_CULL_MARGIN||q.x>w+DUST_CULL_MARGIN||q.y<-DUST_CULL_MARGIN||q.y>h+DUST_CULL_MARGIN){if(diagnostics)diagnostics.renderOffscreen++;continue;}
       if(diagnostics){diagnostics.rendered++;diagnostics.glowDraws++;diagnostics.centerDraws++;if(dust.flow&&!reduced)diagnostics.flowStrokes++;if((dust.element??'H')==='C'&&!dust.rareEcology)diagnostics.carbonDraws++;}const element=dust.element??'H',ecology=dust.rareEcology===true?RARE_ECOLOGY_VISUALS[element]:null,kind=ecology?.sprite??(element==='C'?'carbon':element==='N'?'nitrogen':element==='O'?'oxygen':dust.kind);
       if(dust.flow&&!reduced){ctx.strokeStyle=element==='O'?'#d86d58':'#679caf';ctx.globalAlpha=.25;ctx.lineWidth=1.2*scale;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-Math.cos(dust.angle)*18*scale,q.y-Math.sin(dust.angle)*18*scale);ctx.stroke();ctx.globalAlpha=1;}
       glow(q.x,q.y,(element==='C'?28:element==='N'?27:element==='O'?25:22)*scale,kind);
