@@ -360,6 +360,8 @@ jobs:
           node --input-type=module -e "import {createRequire} from 'node:module';const require=createRequire('/tmp/field-p5-bin/package.json'),m=require('@sparticuz/chromium'),c=m.default??m;console.log(await c.executablePath());"
       - name: FIELD deterministic gameplay and Canvas counter authority
         run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs tests/dust-spatial-index.test.mjs tests/dynamic-dust-registry.test.mjs tests/renderer-spatial-query.test.mjs tests/field-renderer-profile.test.mjs tests/field-profile-authority.test.mjs
+      - name: Retained integrated performance authority
+        run: node scripts/check-field-profile-evidence.mjs
       - name: FIELD mobile work and descriptive timing benchmark
         run: |
           node scripts/benchmark-field-particles.mjs
@@ -379,22 +381,3 @@ jobs:
             test-results/field-particle-p5
           if-no-files-found: error
           retention-days: 14
-
-  field-profile-bootstrap-evidence:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - name: Inspect completed matched-engine coarse profile
-        env:
-          FIELD_ARTIFACT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p /tmp/field-p5-primary/coarse
-          curl --fail -sS -L -H "Authorization: Bearer $FIELD_ARTIFACT_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/miyatayuuma/molecule-craft/actions/artifacts/11146368731/zip -o /tmp/field-p5-primary.zip
-          unzip -q /tmp/field-p5-primary.zip -d /tmp/field-p5-primary/coarse
-          node scripts/export-field-profile.mjs /tmp/field-p5-primary/coarse

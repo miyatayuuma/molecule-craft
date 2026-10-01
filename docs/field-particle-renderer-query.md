@@ -71,3 +71,7 @@ Same-page confirmation uses an optional `FIELD_RENDERER_COMPARE=1` benchmark pat
 Normal p95 is unchanged in this controlled confirmation and reduced p95 improves. Query management does not show a recurring p95 increase. Earlier separate-process confirmation is also retained: Normal P3 2.1/2.7/3.3 → P4 2.3/3.4/4.9 ms, reduced 2.0/2.5/4.4 → 2.0/2.6/7.9 ms. Dynamic-heavy confirmation normal is 2.7/5.8/9.0 → 2.9/4.7/10.5 ms and reduced 2.4/3.8/11.6 → 2.3/3.3/9.4 ms. This variation reinforces the use of deterministic work/equivalence plus a controlled comparison, rather than a timing-only CI gate.
 
 Local validation: 89 relevant tests PASS, including 1,536 renderer oracle comparisons, 24-seed × four-fixture frozen animation/membership oracle, P2 assist/pickup oracle and frozen P1 gameplay. All 18 images match bytes. Repository hygiene has zero warnings; generated PWA freshness/integrity verifies 348 assets. Integrated CI remains the delivery gate; existing browser timing failures must be tracked separately from P4 fixture stability.
+
+## Integrated P5 authority
+
+The final P1→P5 profile, residual Class C decision, preserved gameplay/visual authority and retained five-run measurements are consolidated in [FIELD Particle Performance Closure](field-particle-performance-closure.md). P5 preserves this stage’s counter definitions and original oracles; no production draw optimization or quality reduction is added.
