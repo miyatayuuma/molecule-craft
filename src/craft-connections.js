@@ -114,7 +114,7 @@ export async function connectCollection({records,elementPalette,elementAccess,on
   const polymerData=await preparePolymerEncyclopedia({records});
   if(!polymerData.result.ok||!polymerData.model)throw new Error(polymerData.result.error??'Polymer encyclopedia unavailable.');
   const {createCollectionUI}=await import('./collection-ui.js?v=45');
-  const collection=await createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,polymerRecords:polymerCatalog(),polymerContent:polymerData.content,polymerRoutes:polymerizationRoutes(),recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
+  const collection=await createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,engineeringResources:connectedResources,polymerRecords:polymerCatalog(),polymerContent:polymerData.content,polymerRoutes:polymerizationRoutes(),recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
   collection.polymerRoutes=polymerizationRoutes();collection.polymerSitePatterns=polymerizationSitePatterns();
   return collection;
 }

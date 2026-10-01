@@ -1,3 +1,4 @@
+import {compileEngineeringAuthority,fabricationEligibility,normalizeEngineeringState} from '../engineering-fabrication.js';
 import { EXPEDITION } from './config.js';
 import { expeditionElements,expeditionLoss } from './expedition-loss.js';
 export { expeditionLoss } from './expedition-loss.js';
@@ -50,7 +51,20 @@ export function signalCandidateEligible(record,{region,recipes=[],hints=[],exclu
 export function createResources({storage,onStatus=()=>{}}={}){
   if(storage===undefined)try{storage=window.localStorage;}catch{storage=null;}
   let state=initialState(),previous=null,blocked=false,message='',frontierGraph=null,frontierRun=null,lastFrontierRun=null,lastSeedSelection=null;const records=new Map(Object.entries(MOLECULE_USES).map(([id,d])=>[id,{id,...d}])),report=x=>{message=x;onStatus(x);};
-  let api=null;
+  let api=null,engineeringAuthority=null,engineeringInputs=null;
+  const engineeringRecipe=id=>engineeringAuthority?.find(recipe=>recipe.id===id)??null;
+  function engineeringEligibility(id){
+    if(blocked)return{status:'STORAGE_BLOCKED'};
+    return fabricationEligibility({state,recipe:engineeringRecipe(id),hasPolymer:polymerId=>engineeringInputs?.polymerState.hasPolymer(polymerId)===true,hasMolecule:moleculeId=>engineeringInputs?.collectionState.hasMolecule(moleculeId)===true});
+  }
+  function fabricateEngineering(id){
+    const eligibility=engineeringEligibility(id);if(eligibility.status!=='AVAILABLE')return{committed:false,...eligibility};
+    const before=copy(state),recipe=engineeringRecipe(id);
+    for(const [element,amount] of Object.entries(recipe.cost))state.elements[element]-=amount;
+    state.engineering.fabricated[recipe.applicationId]=true;
+    if(!save()){state=before;return{committed:false,status:'SAVE_FAILED'};}
+    return{committed:true,status:'FABRICATED',applicationId:recipe.applicationId,consumed:{...recipe.cost}};
+  }
   const usesFor=id=>tankUsesFor(id),fitsTank=(id,use)=>usesFor(id).includes(use)&&Object.hasOwn(TANK_USES,use);
   try{const loaded=loadPersistedResources(storage);previous=loaded.previous;if(loaded.state)state=loaded.state;else{const legacy=storage?.getItem(WORKSPACE_STORAGE_KEY);if(legacy)state.workspace=parseWorkspaceSave(legacy);if(legacy||storage?.getItem(COLLECTION_KEY))state.migrateDiscoveries=true;for(const a of state.workspace?.atoms??[])if(MANAGED.includes(a.element)&&!state.progress.foundElements.includes(a.element))state.progress.foundElements.push(a.element);}}catch{blocked=true;report('資源または制作の保存を復元できません。元の保存を保護しています。');}
   if(state.migrateDiscoveries&&!blocked)try{const b=JSON.parse(storage?.getItem(COLLECTION_KEY)||'null'),e=b?.discoveredMolecules??b?.discoveredMoleculeIds??[];if(e.some(x=>(typeof x==='string'?x:x.id)==='hydrogen')&&!state.recipes.includes('hydrogen'))state.recipes.push('hydrogen');}catch{}
@@ -256,6 +270,8 @@ export function createResources({storage,onStatus=()=>{}}={}){
   }
   function signalBonus(region,p){const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:region===NITROGEN_REGION_ID?{H:2,N:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};}
   api={
+    configureEngineering(inputs){const compiled=compileEngineeringAuthority({...inputs,elements:STOCKED});engineeringInputs=inputs;engineeringAuthority=compiled;return compiled;},
+    engineeringEligibility,fabricateEngineering,engineeringState:()=>normalizeEngineeringState(state.engineering),
     get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,recordThermalStrain,recordDriveThermalInterruption,recordCoolantNeedExperience,worldAwakeningState:()=>worldAwakeningState(state.progress),recordCoreFracture(){if(blocked)return null;const snapshot=copy(state);markCoreFractured(state.progress);if(save()||!storage)return worldAwakeningState(state.progress);state=snapshot;return null;},
     canUseElement:el=>playerElementAccessible(state,el),insightRecipeEligible,signalClaimability,record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
     setCatalog(catalog){

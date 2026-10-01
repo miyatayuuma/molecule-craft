@@ -24,12 +24,13 @@ export async function loadCollectionData(){
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph};
 }
 
-export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true,recipeState=()=>({recipes:[],hints:[]}),polymerRecords=[],polymerContent=[],polymerRoutes=[]}){
+export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true,recipeState=()=>({recipes:[],hints:[]}),polymerRecords=[],polymerContent=[],polymerRoutes=[],engineeringResources=null}){
   const data=await loadCollectionData();
   validateChemistryVisualSpecs(data.encyclopedia,records);
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
   const state=createCollectionState({records,...data,storage,elementAccess});
   const polymerState=createPolymerCollectionState({records:polymerRecords,storage});
+  const engineeringRecipes=engineeringResources?.configureEngineering({polymers:polymerRecords,routes:polymerRoutes,molecules:records,polymerState,collectionState:state})??[];
   const polymerContentById=new Map(polymerContent.map(item=>[item.id,item])),polymerRouteById=new Map(polymerRoutes.map(item=>[item.polymerId,item]));
   const q=id=>root.querySelector(`#${id}`),dialog=q('collection-dialog'),list=q('collection-list'),detail=q('collection-detail');
   let tab='molecules',category='all',filter='available',scope='cho',currentDetail=null,detailViewer=null,detailGeneration=0,listScroll=0,detailTransitionHandle=null,motifReturnMoleculeId=null,discoverySession=null,collectionDialogOpen=false;
@@ -334,6 +335,25 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(part)extra.append(el('p',`接続点：${part.attachments.map(port=>`${part.atoms[port.atom]}に単結合${port.slots}本分`).join('、')}`));
     extra.append(el('h4','見つかった分子'));for(const sourceId of sources)extra.append(button(moleculeDisplayName(recordById(sourceId)),()=>showDetail('molecules',sourceId),'collection-tag'));
   }
+  function renderEngineering(polymerId){
+    const recipes=engineeringRecipes.filter(recipe=>recipe.inputs.some(input=>input.type==='polymer-discovery'&&input.id===polymerId));
+    if(!recipes.length)return;
+    const surface=section('Engineering fabrication');surface.open=true;surface.dataset.engineeringFabrication='true';
+    const statusLabels={LOCKED_BY_PROGRESSION:'World Awakening後に製作できます',MISSING_INPUT:'材料不足',AVAILABLE:'製作可能',ALREADY_FABRICATED:'製作済み',STORAGE_BLOCKED:'保存を復元するため再読み込みしてください',AUTHORITY_NOT_READY:'製作情報を準備しています'};
+    for(const recipe of recipes){
+      const eligibility=engineeringResources.engineeringEligibility(recipe.id),row=el('div',null,'engineering-recipe');row.dataset.engineeringRecipe=recipe.id;
+      row.append(el('h4',`${recipe.application.nameJa} · ${recipe.label}`));
+      const inputs=recipe.inputs.filter(input=>input.type!=='reagent-from-elements').map(input=>input.type==='polymer-discovery'?`${polymerRecords.find(record=>record.id===input.id)?.nameJa}の発見`:input.type==='molecule-discovery'?`${moleculeDisplayName(recordById(input.id))}の発見`:`${input.id} × ${input.amount}`);
+      if(recipe.inputs.some(input=>input.type==='reagent-from-elements'))inputs.push(`BASE STOCK: ${Object.entries(recipe.cost).map(([id,amount])=>`${id} × ${amount}`).join(' / ')}`);
+      row.append(el('p',inputs.join(' ＋ ')),el('p',statusLabels[eligibility.status]??eligibility.status));
+      const action=button(eligibility.status==='ALREADY_FABRICATED'?'製作済み':'製作する',()=>{
+        const result=engineeringResources.fabricateEngineering(recipe.id);
+        renderDetail();
+        if(!result.committed&&result.status==='SAVE_FAILED')detail.append(el('p','製作を保存できません。材料と製作状態は変更していません。','storage-message'));
+      },'collection-primary');action.dataset.fabricateRecipe=recipe.id;action.disabled=eligibility.status!=='AVAILABLE';row.append(action);surface.append(row);
+    }
+    surface.append(el('p','一度製作すると恒久的に解放されます。高分子の発見と代表Sampleは消費しません。'));
+  }
   function renderPolymerDetail(id){
     const record=polymerRecords.find(item=>item.id===id),content=polymerContentById.get(id),route=polymerRouteById.get(id),model=polymerEntry(id);
     if(!record||!polymerState.hasPolymer(id)||!content||!route||!model?.known){currentDetail=null;renderBook();return;}
@@ -341,6 +361,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const visual=el('div',null,'collection-model');visual.dataset.registrationVisual='true';
     const stage=el('div',null,'model-stage'),image=document.createElement('img');image.className='polymer-detail-visual';image.src=new URL(`../assets/models/polymer-${id}.svg`,import.meta.url).href;image.alt=`${record.nameJa}の代表構造`;image.decoding='async';stage.append(image);visual.append(stage);detail.append(visual);
     detail.append(chemistryParagraph(content.description,'dex-description'));
+    renderEngineering(id);
     const formationName=({addition:'付加重合',copolymerization:'共重合', 'ring-opening':'開環重合',polycondensation:'縮合重合','condensation-network':'縮合による網目形成'})[record.formation]??record.formation;
     const topologyName=({linear:'線状',copolymer:'共重合体',network:'網目状'})[record.topology]??record.topology;
     const sourceRecords=[...new Set(record.reactants.map(item=>item.moleculeId))].map(recordById).filter(Boolean);

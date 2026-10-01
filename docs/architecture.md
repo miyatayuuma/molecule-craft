@@ -22,8 +22,15 @@
 | 分子変形・単結合回転 | `src/conformation-engine.js`, `src/torsion-model.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
 | 制作フィールド保存 | `src/workspace-save.js`, `src/workspace-persistence.js`, `src/workspace-migrations.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `workspace-persistence.test.mjs`, `veil-reset.test.mjs` |
 | 図鑑・発見・解放 | `src/collection-ui.js`, `src/collection-state.js`, `src/element-progression.js`, `src/encyclopedia-molecule-transition.js` | `collection.test.mjs`, `collection-expansion.test.mjs`, `collection-polymer-browser.test.mjs` |
+| Engineering fabrication / material unlock | `src/engineering-fabrication.js`, `src/veil/resources.js`, `src/veil/resources-persistence.js`, `src/collection-ui.js` | `engineering-fabrication.test.mjs`, `collection-polymer-browser.test.mjs` |
 | 高分子catalog・route・独立保存 | `src/polymer-catalog.js`, `src/polymer-encyclopedia.js`, `src/polymerization-routes.js`, `src/polymer-collection-state.js`, `src/polymer-collection-persistence.js`, `data/polymers.json`, `data/polymerization-routes.json` | `polymer-catalog.test.mjs`, `polymerization-routes.test.mjs`, `polymer-collection.test.mjs`, `polymer-collection-persistence.test.mjs` |
 | PWA・更新 | `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs` | `pwa.test.mjs` |
+
+## Engineering fabrication
+
+`src/engineering-fabrication.js` owns three permanent application unlocks and seven alternate recipes. `compileEngineeringAuthority()` checks actual polymer routes, molecule IDs and BASE STOCK elements. Polymer discoveries are retained capability evidence; transient representative Samples are not stock and are never consumed. Nylon / PVC / PVDF / PTFE need no extra consumables; BR / SBR consume S×1; the PAN-derived carbon-fiber / phenolic composite route requires both polymer discoveries and phosphoric-acid discovery, then prepares one H₃PO₄ equivalent from H×3 / P×1 / O×4. Carbonization, forming and conditioning are fabrication process metadata, not new molecule or polymer species. Quantities are game fabrication units, not a simulated bulk-material yield.
+
+`createResources().configureEngineering()` connects the existing Collection authorities. `engineeringEligibility(recipeId)` checks the current World Awakening gate, discovery inputs and stock. `fabricateEngineering(recipeId)` consumes only the compiled recipe cost and sets `state.engineering.fabricated[applicationId]` in one resource-save write, rolling both back on failure. The additive resource-v9 field defaults missing/unknown values safely; the full progress reset clears it. `engineeringState()` returns a copy for ⑩B. No selected/equipped state, FIELD effect, performance tier, durability, charge or maintenance exists. Collection polymer detail hosts the minimal fabrication actions. `engineeringAuthorityReport()` is asserted in the CI domain test.
 
 ## アプリ入口
 
