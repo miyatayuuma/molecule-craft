@@ -1,3 +1,4 @@
+import {createEngineeringState,normalizeEngineeringState} from '../engineering-fabrication.js';
 import { GROWTH,DRIVES,REGIONS,EXPEDITION_DESTINATION_REGION_IDS,TANK_USES,tankCapacity } from './growth.js';
 import { validatePersistedWorkspace } from '../workspace-migrations.js?v=1';
 import { WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';
@@ -18,7 +19,7 @@ export const createInitialProgress=()=>({bestChain:0,runs:0,cleared:false,craftP
 export const createInitialTanks=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,{molecule:null,amount:0}]));
 export const createInitialSelectedLoadout=()=>Object.fromEntries(Object.keys(TANK_USES).map(use=>[use,null]));
 const emptyElementStock=()=>Object.fromEntries(STOCKED_ELEMENTS.map(element=>[element,0]));
-export const createInitialResourcesState=()=>({schemaVersion:SCHEMA_VERSION,elements:emptyElementStock(),tanks:createInitialTanks(),recipes:[],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true,tanks:createInitialSelectedLoadout()},progress:createInitialProgress(),workspace:null});
+export const createInitialResourcesState=()=>({schemaVersion:SCHEMA_VERSION,elements:emptyElementStock(),tanks:createInitialTanks(),recipes:[],hints:[],dust:{H:0,C:0,O:0},loadout:{drive:'hydrogen',cooling:true,tanks:createInitialSelectedLoadout()},progress:createInitialProgress(),engineering:createEngineeringState(),workspace:null});
 export const isResourceInteger=x=>Number.isSafeInteger(x)&&x>=0&&x<=MAX_RESOURCE_VALUE;
 export const isValidResourceId=x=>typeof x==='string'&&/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(x)&&!['constructor','prototype','__proto__'].includes(x);
 
@@ -34,12 +35,14 @@ export function normalizeCurrentTankRoles(state){
 export function normalizeCurrentWorldProgress(state){return !!state?.progress&&normalizeWorldAwakeningProgress(state.progress);}
 export function normalizeCurrentInsightDestinationHistory(state){const progress=state?.progress;if(!progress)return false;const normalized=normalizeInsightDestinationHistory(progress.insightDestinationHistory);if(Array.isArray(progress.insightDestinationHistory)&&JSON.stringify(progress.insightDestinationHistory)===JSON.stringify(normalized))return false;progress.insightDestinationHistory=normalized;return true;}
 export function normalizeCurrentElementStocks(state){if(!state?.elements||typeof state.elements!=='object')return false;let changed=false;for(const element of STOCKED_ELEMENTS)if(!Object.hasOwn(state.elements,element)){state.elements[element]=0;changed=true;}return changed;}
-function normalizeCurrentResourcesState(state){return !!(normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state)|normalizeCurrentInsightDestinationHistory(state)|normalizeCurrentElementStocks(state));}
+function normalizeCurrentEngineering(state){const next=normalizeEngineeringState(state.engineering);if(JSON.stringify(next)===JSON.stringify(state.engineering))return false;state.engineering=next;return true;}
+function normalizeCurrentResourcesState(state){return !!(normalizeCurrentEngineering(state)|normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state)|normalizeCurrentInsightDestinationHistory(state)|normalizeCurrentElementStocks(state));}
 
 export function finishPendingResourcesReset(storage,state){const p=state.pendingReset;if(!p)return;if(p.collection){storage.setItem(COLLECTION_KEY,JSON.stringify(emptyCollection()));clearPolymerCollectionSave(storage);}if(p.legacy)storage.removeItem(WORKSPACE_STORAGE_KEY);if(p.help)storage.removeItem(HELP_KEY);const done={...state};delete done.pendingReset;storage.setItem(RESOURCE_KEY,JSON.stringify(done));delete state.pendingReset;}
 
 function validatePersistedState(s){
   if(!s||s.schemaVersion!==SCHEMA_VERSION||!s.elements||!ids(s.recipes)||!ids(s.hints)||!s.progress||!s.tanks||!s.dust||!s.loadout)throw Error('Invalid resources');
+  if(JSON.stringify(s.engineering)!==JSON.stringify(normalizeEngineeringState(s.engineering)))throw Error('Invalid engineering state');
   if(Object.hasOwn(s,'upgrades')||Object.hasOwn(s,'treatments'))throw Error('Legacy resource fields are not valid in the current schema');
   for(const [key,n]of Object.entries(s.elements))if(!validId(key)||!integer(n))throw Error('Invalid inventory');
   for(const el of MANAGED)if(!integer(s.elements[el]))throw Error('Invalid atom balance');
