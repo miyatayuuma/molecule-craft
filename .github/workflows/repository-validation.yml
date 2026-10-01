@@ -357,7 +357,7 @@ jobs:
       - name: Fixed P4 Chromium binary
         run: |
           npm install --prefix /tmp/field-p5-bin --no-audit --no-fund --ignore-scripts @sparticuz/chromium@153.0.0
-          node -e "const m=require('/tmp/field-p5-bin/node_modules/@sparticuz/chromium'),c=m.default??m;c.executablePath().then(p=>console.log(p));"
+          node --input-type=module -e "import {createRequire} from 'node:module';const require=createRequire('/tmp/field-p5-bin/package.json'),m=require('@sparticuz/chromium'),c=m.default??m;console.log(await c.executablePath());"
       - name: FIELD deterministic gameplay and Canvas counter authority
         run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs tests/dust-spatial-index.test.mjs tests/dynamic-dust-registry.test.mjs tests/renderer-spatial-query.test.mjs tests/field-renderer-profile.test.mjs tests/field-profile-authority.test.mjs
       - name: FIELD mobile work and descriptive timing benchmark
