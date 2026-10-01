@@ -345,9 +345,9 @@ jobs:
 
   field-particle-baseline:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 180
     env:
-      CHROME_BIN: /tmp/field-p5-chrome/chrome-linux64/chrome
+      CHROME_BIN: /tmp/field-p5-chrome/chrome-headless-shell-linux64/chrome-headless-shell
       FIELD_CHROME_ARGS: '["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader","--disable-dev-shm-usage"]'
     steps:
       - uses: actions/checkout@v5
@@ -357,7 +357,7 @@ jobs:
       - name: Fixed P1-P4 Chromium version
         run: |
           mkdir -p /tmp/field-p5-chrome
-          curl --fail --retry 3 -L https://storage.googleapis.com/chrome-for-testing-public/153.0.8010.0/linux64/chrome-linux64.zip -o /tmp/field-p5-chrome/chrome.zip
+          curl --fail --retry 3 -L https://storage.googleapis.com/chrome-for-testing-public/153.0.8010.0/linux64/chrome-headless-shell-linux64.zip -o /tmp/field-p5-chrome/chrome.zip
           unzip -q /tmp/field-p5-chrome/chrome.zip -d /tmp/field-p5-chrome
       - name: FIELD deterministic gameplay and Canvas counter authority
         run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs tests/dust-spatial-index.test.mjs tests/dynamic-dust-registry.test.mjs tests/renderer-spatial-query.test.mjs tests/field-renderer-profile.test.mjs tests/field-profile-authority.test.mjs
@@ -369,8 +369,24 @@ jobs:
         run: |
           FIELD_PROFILE_MODE=coarse FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/coarse node scripts/profile-field-particles.mjs
           node scripts/summarize-field-profile.mjs test-results/field-particle-p5/coarse/raw.json.gz test-results/field-particle-p5/coarse/aggregate.json
+          node scripts/export-field-profile.mjs test-results/field-particle-p5/coarse
+      - name: Preserve coarse profile
+        uses: actions/upload-artifact@v4
+        with:
+          name: field-p5-coarse
+          path: test-results/field-particle-p5/coarse
+          retention-days: 14
+      - name: FIELD dust component aggregate diagnostics
+        run: |
           FIELD_PROFILE_MODE=components FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/components node scripts/profile-field-particles.mjs
           node scripts/summarize-field-profile.mjs test-results/field-particle-p5/components/raw.json.gz test-results/field-particle-p5/components/aggregate.json
+          node scripts/export-field-profile.mjs test-results/field-particle-p5/components
+      - name: Preserve component profile
+        uses: actions/upload-artifact@v4
+        with:
+          name: field-p5-components
+          path: test-results/field-particle-p5/components
+          retention-days: 14
       - name: FIELD historical comparison in the same browser session
         run: |
           git fetch origin da356db2d1f86f1d6b2e0533e07a4af7cad36030 a331c09c52a9579a8f4d7016402aa57028af9b42 53ddf5c0fa766fd0cdf35375a2f7e0679612753f eda186afb36a485f9f4becf472c4faa9a95ede9c
@@ -380,6 +396,8 @@ jobs:
           git worktree add --detach /tmp/field-p5-p4 eda186afb36a485f9f4becf472c4faa9a95ede9c
           FIELD_PROFILE_MODE=history FIELD_PROFILE_ROOTS='{"p1":"/tmp/field-p5-p1","p2":"/tmp/field-p5-p2","p3":"/tmp/field-p5-p3","p4":"/tmp/field-p5-p4"}' FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/history node scripts/profile-field-particles.mjs
           node scripts/summarize-field-profile.mjs test-results/field-particle-p5/history/raw.json.gz test-results/field-particle-p5/history/aggregate.json
+          node scripts/export-field-profile.mjs test-results/field-particle-p5/history
+          node scripts/export-field-profile.mjs test-results/field-particle-p1 --browser
       - name: Upload FIELD measurements and comparison frames
         if: always()
         uses: actions/upload-artifact@v4
@@ -390,3 +408,24 @@ jobs:
             test-results/field-particle-p5
           if-no-files-found: error
           retention-days: 14
+
+  field-profile-bootstrap-evidence:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Inspect retained bootstrap artifact
+        env:
+          FIELD_ARTIFACT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl --fail -sS -L -H "Authorization: Bearer $FIELD_ARTIFACT_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/miyatayuuma/molecule-craft/actions/artifacts/11143979696/zip -o /tmp/field-p5-prior.zip
+          unzip -q /tmp/field-p5-prior.zip -d /tmp/field-p5-prior
+          find /tmp/field-p5-prior -name raw.json.gz -o -name checkpoint.json.gz -o -name browser.json
+          node scripts/export-field-profile.mjs /tmp/field-p5-prior/field-particle-p5/coarse --allow-partial
+          node scripts/export-field-profile.mjs /tmp/field-p5-prior/field-particle-p5/components --allow-partial
+          node scripts/export-field-profile.mjs /tmp/field-p5-prior/field-particle-p1 --browser

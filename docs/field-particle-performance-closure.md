@@ -36,3 +36,6 @@ Condition 1 is dust mean share ≥40% in Dense or Dynamic-heavy. Condition 2 is 
 ## Integrated result
 
 Pending retained CI measurements. Production remains P4 while profiling completes. Measurements lost during execution-environment recovery are excluded from final authority. Local recovery also blocked Chromium Unix socket creation; CI performs the same-version browser measurement rather than substituting a different rendering mode.
+
+
+CI preserves each phase independently before historical comparison. `scripts/export-field-profile.mjs` transfers existing gzip measurements in bounded base64 log chunks plus machine-readable summaries, allowing repository evidence to be recovered when the interactive executor disconnects. It does not time or change production. A bootstrap full-Chrome job exhausted its resource deadline; it is not classified as a known browser flake or a gameplay regression. Final profiling uses the same Chromium revision's headless shell with unchanged SwiftShader/DPR/drawing conditions and a sufficient collection budget.
