@@ -6,9 +6,12 @@ import {dustSpatialIndex} from '../src/veil/dust-spatial-index.js';
 import {animateUniverse} from '../src/veil/universe.js';
 import {createRun} from '../src/veil/expedition-run.js';
 import {VEIL} from '../src/veil/config.js';
+import {createRun as createBaseRun} from '../src/veil/engine.js';
 import {fixture,SCENARIOS,diagnostics,inputAt} from './helpers/field-particle-fixtures.mjs';
 import {stepRun} from '../src/veil/expedition-run.js';
 import {animateUniverse as fullScan} from './helpers/full-scan-animation-oracle.mjs';
+
+assert.doesNotThrow(()=>createBaseRun({seed:1},VEIL,{predators:false}),'minimal non-FIELD constructor remains valid without dust');
 
 // The oracle is a frozen P2 function, not derived from today's implementation.
 const frozen=await readFile(new URL('./helpers/full-scan-animation-oracle.mjs',import.meta.url),'utf8');
