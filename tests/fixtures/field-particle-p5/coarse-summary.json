@@ -1,0 +1,1496 @@
+{
+  "header": {
+    "phase": "coarse",
+    "mode": "coarse",
+    "runs": 5,
+    "smoke": false,
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "HeadlessChrome/153.0.8010.0",
+      "revision": "@86cee6df69e0463a839c0cc8435c9d4c259434d3",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.0 Safari/537.36",
+      "jsVersion": "15.3.76"
+    },
+    "viewport": [
+      390,
+      844
+    ],
+    "runtimeSourceSha256": {
+      "src/veil/universe.js": "e1b73f25039ea0b34e0997cc181f45e70ab0a987be624cd1ee12d2652d652c7c",
+      "src/veil/engine.js": "100d77946e7db8fa00cc1f695d02fb616f97d6bc1b5b6872f73e5ac65278f519",
+      "src/veil/dust-spatial-index.js": "7113f563b37620f14edfb25e64eccb119cd819fae51bd9acdc7a4cd93c7be11f",
+      "src/veil/dynamic-dust-registry.js": "d3b7b96fd04b9b39df5336e6c8a6aff69c82426b0f2655bc0f35386882bccc9b",
+      "src/veil/renderer.js": "d0bd3b9fef007f2e099ab5b946fdcab6034e7cbe8236777da02bd3247de18322"
+    },
+    "profileSourceSha256": {
+      "scripts/profile-field-particles.mjs": "33173d8073c319c377647a5e0baeeb20a61bc484b940c365a95816df137ead55",
+      "tests/field-particle-profile-harness.html": "f1cad0bfe1bfb2cedd496a5c65926ec9edcbc69328fbbc461704aeff91208973",
+      "tests/helpers/field-renderer-profile.mjs": "06c1aa0556c279d652f9ee45f5ac7519fa0c9fdfe9f8494476306075bf5c119d"
+    },
+    "stageSources": {}
+  },
+  "groups": [
+    {
+      "name": "normal",
+      "reduced": false,
+      "stage": "p4-runtime",
+      "variant": "baseline",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.40000000037252903,
+        "p95": 0.599999999627471,
+        "max": 2.1000000005587935,
+        "mean": 0.4416666666356226
+      },
+      "renderer": {
+        "median": 2.6000000005587935,
+        "p95": 3.2999999998137355,
+        "max": 7.5,
+        "mean": 2.658333333271245
+      },
+      "cpu": {
+        "median": 3.099999999627471,
+        "p95": 3.7999999998137355,
+        "max": 8,
+        "mean": 3.0655555555700427
+      },
+      "raf": {
+        "median": 50,
+        "p95": 66.69999999999709,
+        "max": 2583.2,
+        "mean": 61.63631284916206
+      },
+      "sections": null,
+      "query": null,
+      "stableOrder": null,
+      "dustShare": null,
+      "tail": null,
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 75,
+        "visibleReadyDust": 65,
+        "readyDust": 4052,
+        "flowDust": 634,
+        "vortexDust": 128,
+        "dynamicDust": 634,
+        "clusterDust": 468,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.016556291390728478,
+        "viewportOutsideRatio": 0.9834437086092715
+      },
+      "counters": null,
+      "rendered": null
+    },
+    {
+      "name": "normal",
+      "reduced": false,
+      "stage": "p4-runtime",
+      "variant": "complete",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.40000000037252903,
+        "p95": 0.599999999627471,
+        "max": 3.7000000001862645,
+        "mean": 0.4438888888961325
+      },
+      "renderer": {
+        "median": 2.6000000005587935,
+        "p95": 3.300000000745058,
+        "max": 5.7000000001862645,
+        "mean": 2.6822222222263616
+      },
+      "cpu": {
+        "median": 3.099999999627471,
+        "p95": 3.7999999998137355,
+        "max": 6.2000000001862645,
+        "mean": 3.1205555555565905
+      },
+      "raf": {
+        "median": 50,
+        "p95": 66.70000000000073,
+        "max": 1766.6000000000058,
+        "mean": 61.82234636871507
+      },
+      "sections": {
+        "background": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.06444444447341892
+        },
+        "stars": {
+          "median": 0.20000000018626451,
+          "p95": 0.2999999998137355,
+          "mean": 0.1711111110997283
+        },
+        "routeFieldGeometry": {
+          "median": 1.7999999998137355,
+          "p95": 2.300000000745058,
+          "mean": 1.8216666667049544
+        },
+        "hazards": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.05000000001034803
+        },
+        "dust": {
+          "median": 0.40000000037252903,
+          "p95": 0.7999999998137355,
+          "mean": 0.4550000000072436
+        },
+        "pickupEffects": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.004999999996895591
+        },
+        "shockStructures": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0022222222191178136
+        },
+        "dustEaters": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0016666666604578495
+        },
+        "playerTrail": {
+          "median": 0.09999999962747097,
+          "p95": 0.19999999925494194,
+          "mean": 0.06888888890130652
+        },
+        "otherOverlays": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.013888888894062904
+        }
+      },
+      "query": {
+        "median": 0.09999999962747097,
+        "p95": 0.20000000018626451,
+        "max": 1.2999999998137355,
+        "mean": 0.09944444447238412
+      },
+      "stableOrder": {
+        "median": 0,
+        "p95": 0.10000000055879354,
+        "max": 0.8999999994412065,
+        "mean": 0.03333333333850735
+      },
+      "dustShare": 0.16963545982016873,
+      "tail": {
+        "renderer": 3.440000000037253,
+        "dust": 0.6799999999813735
+      },
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 75,
+        "visibleReadyDust": 65,
+        "readyDust": 4052,
+        "flowDust": 634,
+        "vortexDust": 128,
+        "dynamicDust": 634,
+        "clusterDust": 468,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.016556291390728478,
+        "viewportOutsideRatio": 0.9834437086092715
+      },
+      "counters": null,
+      "rendered": {
+        "median": 127,
+        "mean": 136.2
+      }
+    },
+    {
+      "name": "dense",
+      "reduced": false,
+      "stage": "p4-runtime",
+      "variant": "baseline",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.8999999994412065,
+        "p95": 1.1000000005587935,
+        "max": 3.099999999627471,
+        "mean": 0.911111111069719
+      },
+      "renderer": {
+        "median": 3.1000000005587935,
+        "p95": 4,
+        "max": 8.599999999627471,
+        "mean": 3.3322222222315356
+      },
+      "cpu": {
+        "median": 4.099999999627471,
+        "p95": 5.199999999254942,
+        "max": 9.700000000186265,
+        "mean": 4.243333333301255
+      },
+      "raf": {
+        "median": 66.69999999998254,
+        "p95": 83.39999999999418,
+        "max": 2316.600000000006,
+        "mean": 79.0469273743018
+      },
+      "sections": null,
+      "query": null,
+      "stableOrder": null,
+      "dustShare": null,
+      "tail": null,
+      "population": {
+        "totalDust": 13590,
+        "visibleDust": 221,
+        "visibleReadyDust": 192,
+        "readyDust": 12157,
+        "flowDust": 1902,
+        "vortexDust": 384,
+        "dynamicDust": 1902,
+        "clusterDust": 1404,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.01626195732155997,
+        "viewportOutsideRatio": 0.98373804267844
+      },
+      "counters": null,
+      "rendered": null
+    },
+    {
+      "name": "dense",
+      "reduced": false,
+      "stage": "p4-runtime",
+      "variant": "complete",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.900000000372529,
+        "p95": 1.099999999627471,
+        "max": 4.199999999254942,
+        "mean": 0.9077777778005435
+      },
+      "renderer": {
+        "median": 3.2000000001862645,
+        "p95": 3.8999999994412065,
+        "max": 9.599999999627471,
+        "mean": 3.311666666680119
+      },
+      "cpu": {
+        "median": 4.1000000005587935,
+        "p95": 4.8999999994412065,
+        "max": 10.5,
+        "mean": 4.206666666688397
+      },
+      "raf": {
+        "median": 66.69999999998254,
+        "p95": 83.39999999999418,
+        "max": 2316.5999999999767,
+        "mean": 78.86089385474847
+      },
+      "sections": {
+        "background": {
+          "median": 0.09999999962747097,
+          "p95": 0.20000000018626451,
+          "mean": 0.06777777777363857
+        },
+        "stars": {
+          "median": 0.20000000018626451,
+          "p95": 0.2999999998137355,
+          "mean": 0.16722222220463057
+        },
+        "routeFieldGeometry": {
+          "median": 1.7000000001862645,
+          "p95": 2.1000000005587935,
+          "mean": 1.8183333333581686
+        },
+        "hazards": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.055000000022765665
+        },
+        "dust": {
+          "median": 1,
+          "p95": 1.400000000372529,
+          "mean": 1.0855555555627991
+        },
+        "pickupEffects": {
+          "median": 0,
+          "p95": 0.09999999962747097,
+          "mean": 0.0077777777643253405
+        },
+        "shockStructures": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0005555555586599641
+        },
+        "dustEaters": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0005555555534859498
+        },
+        "playerTrail": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.06111111108524104
+        },
+        "otherOverlays": {
+          "median": 0,
+          "p95": 0.09999999962747097,
+          "mean": 0.013888888868192832
+        }
+      },
+      "query": {
+        "median": 0.19999999925494194,
+        "p95": 0.2999999998137355,
+        "max": 3.1000000005587935,
+        "mean": 0.1666666666045785
+      },
+      "stableOrder": {
+        "median": 0.09999999962747097,
+        "p95": 0.20000000018626451,
+        "max": 0.6999999992549419,
+        "mean": 0.09166666665114462
+      },
+      "dustShare": 0.3305022156644173,
+      "tail": {
+        "renderer": 3.9399999999441206,
+        "dust": 1.369999999832362
+      },
+      "population": {
+        "totalDust": 13590,
+        "visibleDust": 221,
+        "visibleReadyDust": 192,
+        "readyDust": 12157,
+        "flowDust": 1902,
+        "vortexDust": 384,
+        "dynamicDust": 1902,
+        "clusterDust": 1404,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.01626195732155997,
+        "viewportOutsideRatio": 0.98373804267844
+      },
+      "counters": null,
+      "rendered": {
+        "median": 369,
+        "mean": 401.60555555555555
+      }
+    },
+    {
+      "name": "awakened",
+      "reduced": false,
+      "stage": "p4-runtime",
+      "variant": "baseline",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.5,
+        "p95": 0.599999999627471,
+        "max": 1.8999999994412065,
+        "mean": 0.4572222222108394
+      },
+      "renderer": {
+        "median": 2.5,
+        "p95": 3.5,
+        "max": 8.200000000186265,
+        "mean": 2.6394444444527227
+      },
+      "cpu": {
+        "median": 3,
+        "p95": 4,
+        "max": 8.700000000186265,
+        "mean": 3.1066666666625276
+      },
+      "raf": {
+        "median": 50,
+        "p95": 66.60000000003492,
+        "max": 1783.3000000000175,
+        "mean": 60.23966480446908
+      },
+      "sections": null,
+      "query": null,
+      "stableOrder": null,
+      "dustShare": null,
+      "tail": null,
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 53,
+        "visibleReadyDust": 50,
+        "readyDust": 4059,
+        "flowDust": 631,
+        "vortexDust": 128,
+        "dynamicDust": 631,
+        "clusterDust": 468,
+        "rareDust": 28,
+        "rareEcologyDust": 28,
+        "viewportInsideRatio": 0.011699779249448124,
+        "viewportOutsideRatio": 0.9883002207505519
+      },
+      "counters": null,
+      "rendered": null
+    },
+    {
+      "name": "awakened",
+      "reduced": false,
+      "stage": "p4-runtime",
+      "variant": "complete",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.5,
+        "p95": 0.6000000005587935,
+        "max": 2.5,
+        "mean": 0.46277777777674295
+      },
+      "renderer": {
+        "median": 2.599999999627471,
+        "p95": 3.5,
+        "max": 10.300000000745058,
+        "mean": 2.7338888889075155
+      },
+      "cpu": {
+        "median": 3.099999999627471,
+        "p95": 4.099999999627471,
+        "max": 10.600000000558794,
+        "mean": 3.1927777777684647
+      },
+      "raf": {
+        "median": 50,
+        "p95": 66.70000000001164,
+        "max": 1766.5999999999767,
+        "mean": 60.239664804469406
+      },
+      "sections": {
+        "background": {
+          "median": 0.09999999962747097,
+          "p95": 0.19999999925494194,
+          "mean": 0.06277777780261305
+        },
+        "stars": {
+          "median": 0.19999999925494194,
+          "p95": 0.2999999998137355,
+          "mean": 0.17166666669978037
+        },
+        "routeFieldGeometry": {
+          "median": 1.6000000005587935,
+          "p95": 2.5,
+          "mean": 1.6961111111152503
+        },
+        "hazards": {
+          "median": 0.20000000018626451,
+          "p95": 0.30000000074505806,
+          "mean": 0.24777777776536014
+        },
+        "dust": {
+          "median": 0.30000000074505806,
+          "p95": 0.900000000372529,
+          "mean": 0.40222222225533594
+        },
+        "pickupEffects": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0011111111069718996
+        },
+        "shockStructures": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.004444444458931685
+        },
+        "dustEaters": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0011111111069718996
+        },
+        "playerTrail": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.06555555559591286
+        },
+        "otherOverlays": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.06500000002173086
+        }
+      },
+      "query": {
+        "median": 0.09999999962747097,
+        "p95": 0.20000000018626451,
+        "max": 1.199999999254942,
+        "mean": 0.10333333334678577
+      },
+      "stableOrder": {
+        "median": 0,
+        "p95": 0.10000000055879354,
+        "max": 1.099999999627471,
+        "mean": 0.03500000000413921
+      },
+      "dustShare": 0.14327607874612397,
+      "tail": {
+        "renderer": 3.610000000055879,
+        "dust": 0.48000000016763805
+      },
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 53,
+        "visibleReadyDust": 50,
+        "readyDust": 4059,
+        "flowDust": 631,
+        "vortexDust": 128,
+        "dynamicDust": 631,
+        "clusterDust": 468,
+        "rareDust": 28,
+        "rareEcologyDust": 28,
+        "viewportInsideRatio": 0.011699779249448124,
+        "viewportOutsideRatio": 0.9883002207505519
+      },
+      "counters": null,
+      "rendered": {
+        "median": 102,
+        "mean": 105.17222222222222
+      }
+    },
+    {
+      "name": "dynamic-heavy",
+      "reduced": false,
+      "stage": "p4-runtime",
+      "variant": "baseline",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.5,
+        "p95": 0.7000000001862645,
+        "max": 3.400000000372529,
+        "mean": 0.5077777777746734
+      },
+      "renderer": {
+        "median": 3.099999999627471,
+        "p95": 4,
+        "max": 12.300000000745058,
+        "mean": 3.0988888889344204
+      },
+      "cpu": {
+        "median": 3.599999999627471,
+        "p95": 4.7000000001862645,
+        "max": 13.100000000558794,
+        "mean": 3.601111111096624
+      },
+      "raf": {
+        "median": 150,
+        "p95": 166.70000000001164,
+        "max": 6949.700000000012,
+        "mean": 184.72290502793308
+      },
+      "sections": null,
+      "query": null,
+      "stableOrder": null,
+      "dustShare": null,
+      "tail": null,
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 349,
+        "visibleReadyDust": 244,
+        "readyDust": 4029,
+        "flowDust": 634,
+        "vortexDust": 128,
+        "dynamicDust": 634,
+        "clusterDust": 468,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.07704194260485651,
+        "viewportOutsideRatio": 0.9229580573951435
+      },
+      "counters": null,
+      "rendered": null
+    },
+    {
+      "name": "dynamic-heavy",
+      "reduced": false,
+      "stage": "p4-runtime",
+      "variant": "complete",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.5,
+        "p95": 0.7000000001862645,
+        "max": 8.299999999813735,
+        "mean": 0.4922222222511967
+      },
+      "renderer": {
+        "median": 3.199999999254942,
+        "p95": 4.099999999627471,
+        "max": 9.799999999813735,
+        "mean": 3.2572222222574054
+      },
+      "cpu": {
+        "median": 3.6000000005587935,
+        "p95": 4.699999999254942,
+        "max": 14.5,
+        "mean": 3.743333333352995
+      },
+      "raf": {
+        "median": 150,
+        "p95": 166.69999999995343,
+        "max": 6949.699999999953,
+        "mean": 185.37430167597765
+      },
+      "sections": {
+        "background": {
+          "median": 0.09999999962747097,
+          "p95": 0.19999999925494194,
+          "mean": 0.07944444441753958
+        },
+        "stars": {
+          "median": 0.20000000018626451,
+          "p95": 0.2999999998137355,
+          "mean": 0.17666666666563186
+        },
+        "routeFieldGeometry": {
+          "median": 1.7999999998137355,
+          "p95": 2.5,
+          "mean": 1.8522222222139437
+        },
+        "hazards": {
+          "median": 0.09999999962747097,
+          "p95": 0.20000000018626451,
+          "mean": 0.07777777776225574
+        },
+        "dust": {
+          "median": 0.900000000372529,
+          "p95": 1.2999999998137355,
+          "mean": 0.9694444444237484
+        },
+        "pickupEffects": {
+          "median": 0,
+          "p95": 0.09999999962747097,
+          "mean": 0.010555555562799175
+        },
+        "shockStructures": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.001666666670805878
+        },
+        "dustEaters": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0005555555586599641
+        },
+        "playerTrail": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.05611111111938953
+        },
+        "otherOverlays": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.013888888899236918
+        }
+      },
+      "query": {
+        "median": 0.10000000055879354,
+        "p95": 0.20000000018626451,
+        "max": 0.900000000372529,
+        "mean": 0.13777777780261305
+      },
+      "stableOrder": {
+        "median": 0.09999999962747097,
+        "p95": 0.20000000018626451,
+        "max": 0.8999999994412065,
+        "mean": 0.06999999996688631
+      },
+      "dustShare": 0.28808066258462,
+      "tail": {
+        "renderer": 4.2000000001862645,
+        "dust": 1.1100000000558794
+      },
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 349,
+        "visibleReadyDust": 244,
+        "readyDust": 4029,
+        "flowDust": 634,
+        "vortexDust": 128,
+        "dynamicDust": 634,
+        "clusterDust": 468,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.07704194260485651,
+        "viewportOutsideRatio": 0.9229580573951435
+      },
+      "counters": null,
+      "rendered": {
+        "median": 250,
+        "mean": 253.7
+      }
+    },
+    {
+      "name": "normal",
+      "reduced": true,
+      "stage": "p4-runtime",
+      "variant": "baseline",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.40000000037252903,
+        "p95": 0.599999999627471,
+        "max": 2.5,
+        "mean": 0.46222222222325704
+      },
+      "renderer": {
+        "median": 2.2000000001862645,
+        "p95": 3.199999999254942,
+        "max": 5.199999999254942,
+        "mean": 2.2944444444392706
+      },
+      "cpu": {
+        "median": 2.7000000001862645,
+        "p95": 3.6000000005587935,
+        "max": 5.599999999627471,
+        "mean": 2.7549999999968957
+      },
+      "raf": {
+        "median": 50,
+        "p95": 66.59999999997672,
+        "max": 1650,
+        "mean": 57.725698324022474
+      },
+      "sections": null,
+      "query": null,
+      "stableOrder": null,
+      "dustShare": null,
+      "tail": null,
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 75,
+        "visibleReadyDust": 65,
+        "readyDust": 4052,
+        "flowDust": 634,
+        "vortexDust": 128,
+        "dynamicDust": 634,
+        "clusterDust": 468,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.016556291390728478,
+        "viewportOutsideRatio": 0.9834437086092715
+      },
+      "counters": null,
+      "rendered": null
+    },
+    {
+      "name": "normal",
+      "reduced": true,
+      "stage": "p4-runtime",
+      "variant": "complete",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.40000000037252903,
+        "p95": 0.599999999627471,
+        "max": 2.2999999998137355,
+        "mean": 0.437777777792265
+      },
+      "renderer": {
+        "median": 2.2999999998137355,
+        "p95": 3.2000000001862645,
+        "max": 5.2999999998137355,
+        "mean": 2.343333333409909
+      },
+      "cpu": {
+        "median": 2.7000000001862645,
+        "p95": 3.7000000001862645,
+        "max": 5.7999999998137355,
+        "mean": 2.7816666666780496
+      },
+      "raf": {
+        "median": 50,
+        "p95": 66.59999999997672,
+        "max": 1666.6999999999534,
+        "mean": 57.81843575418994
+      },
+      "sections": {
+        "background": {
+          "median": 0.09999999962747097,
+          "p95": 0.20000000018626451,
+          "mean": 0.06166666672151122
+        },
+        "stars": {
+          "median": 0.19999999925494194,
+          "p95": 0.2999999998137355,
+          "mean": 0.1594444444299572
+        },
+        "routeFieldGeometry": {
+          "median": 1.5,
+          "p95": 2,
+          "mean": 1.5055555555245115
+        },
+        "hazards": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.060000000055879354
+        },
+        "dust": {
+          "median": 0.40000000037252903,
+          "p95": 1,
+          "mean": 0.47277777777053415
+        },
+        "pickupEffects": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0038888888899236917
+        },
+        "shockStructures": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0027777777881258063
+        },
+        "dustEaters": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0011111111069718996
+        },
+        "playerTrail": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.03611111112145914
+        },
+        "otherOverlays": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.011111111116285126
+        }
+      },
+      "query": {
+        "median": 0.09999999962747097,
+        "p95": 0.20000000018626451,
+        "max": 1.599999999627471,
+        "mean": 0.09833333327745399
+      },
+      "stableOrder": {
+        "median": 0,
+        "p95": 0.10000000055879354,
+        "max": 1.5,
+        "mean": 0.040000000026904875
+      },
+      "dustShare": 0.20612147298653835,
+      "tail": {
+        "renderer": 3.2500000001862643,
+        "dust": 0.8899999997578562
+      },
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 75,
+        "visibleReadyDust": 65,
+        "readyDust": 4052,
+        "flowDust": 634,
+        "vortexDust": 128,
+        "dynamicDust": 634,
+        "clusterDust": 468,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.016556291390728478,
+        "viewportOutsideRatio": 0.9834437086092715
+      },
+      "counters": null,
+      "rendered": {
+        "median": 127,
+        "mean": 136.2
+      }
+    },
+    {
+      "name": "dense",
+      "reduced": true,
+      "stage": "p4-runtime",
+      "variant": "baseline",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 1,
+        "p95": 1.2000000001862645,
+        "max": 6.2999999998137355,
+        "mean": 0.9644444444475488
+      },
+      "renderer": {
+        "median": 2.800000000745058,
+        "p95": 3.5,
+        "max": 11.699999999254942,
+        "mean": 2.9588888888868192
+      },
+      "cpu": {
+        "median": 3.7999999998137355,
+        "p95": 4.599999999627471,
+        "max": 14.799999999813735,
+        "mean": 3.887222222254301
+      },
+      "raf": {
+        "median": 66.59999999997672,
+        "p95": 83.29999999993015,
+        "max": 2183.3000000000466,
+        "mean": 75.13631284916148
+      },
+      "sections": null,
+      "query": null,
+      "stableOrder": null,
+      "dustShare": null,
+      "tail": null,
+      "population": {
+        "totalDust": 13590,
+        "visibleDust": 221,
+        "visibleReadyDust": 192,
+        "readyDust": 12157,
+        "flowDust": 1902,
+        "vortexDust": 384,
+        "dynamicDust": 1902,
+        "clusterDust": 1404,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.01626195732155997,
+        "viewportOutsideRatio": 0.98373804267844
+      },
+      "counters": null,
+      "rendered": null
+    },
+    {
+      "name": "dense",
+      "reduced": true,
+      "stage": "p4-runtime",
+      "variant": "complete",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.900000000372529,
+        "p95": 1.1000000005587935,
+        "max": 3.2999999998137355,
+        "mean": 0.9227777777653602
+      },
+      "renderer": {
+        "median": 2.8999999994412065,
+        "p95": 3.6000000005587935,
+        "max": 10.799999999813735,
+        "mean": 2.950555555589704
+      },
+      "cpu": {
+        "median": 3.7999999998137355,
+        "p95": 4.599999999627471,
+        "max": 11.599999999627471,
+        "mean": 3.8916666666614925
+      },
+      "raf": {
+        "median": 66.60000000009313,
+        "p95": 83.30000000004657,
+        "max": 2199.899999999907,
+        "mean": 75.22960893854736
+      },
+      "sections": {
+        "background": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.06388888886301881
+        },
+        "stars": {
+          "median": 0.19999999925494194,
+          "p95": 0.2999999998137355,
+          "mean": 0.16055555554727713
+        },
+        "routeFieldGeometry": {
+          "median": 1.5,
+          "p95": 1.900000000372529,
+          "mean": 1.5366666666645972
+        },
+        "hazards": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.05222222222429183
+        },
+        "dust": {
+          "median": 1,
+          "p95": 1.5,
+          "mean": 1.062777777766395
+        },
+        "pickupEffects": {
+          "median": 0,
+          "p95": 0.09999999962747097,
+          "mean": 0.007222222210839391
+        },
+        "shockStructures": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.002777777767429749
+        },
+        "dustEaters": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0
+        },
+        "playerTrail": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.036111111095589066
+        },
+        "otherOverlays": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.013333333325054911
+        }
+      },
+      "query": {
+        "median": 0.19999999925494194,
+        "p95": 0.2999999998137355,
+        "max": 2.1000000005587935,
+        "mean": 0.16722222224602268
+      },
+      "stableOrder": {
+        "median": 0.09999999962747097,
+        "p95": 0.20000000018626451,
+        "max": 1.900000000372529,
+        "mean": 0.10000000000517402
+      },
+      "dustShare": 0.36189935678854135,
+      "tail": {
+        "renderer": 3.7600000000558795,
+        "dust": 1.319999999832362
+      },
+      "population": {
+        "totalDust": 13590,
+        "visibleDust": 221,
+        "visibleReadyDust": 192,
+        "readyDust": 12157,
+        "flowDust": 1902,
+        "vortexDust": 384,
+        "dynamicDust": 1902,
+        "clusterDust": 1404,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.01626195732155997,
+        "viewportOutsideRatio": 0.98373804267844
+      },
+      "counters": null,
+      "rendered": {
+        "median": 369,
+        "mean": 401.60555555555555
+      }
+    },
+    {
+      "name": "awakened",
+      "reduced": true,
+      "stage": "p4-runtime",
+      "variant": "baseline",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.40000000037252903,
+        "p95": 0.5,
+        "max": 2.300000000745058,
+        "mean": 0.41666666665631863
+      },
+      "renderer": {
+        "median": 2.400000000372529,
+        "p95": 3.7000000001862645,
+        "max": 7.699999999254942,
+        "mean": 2.6411111111028327
+      },
+      "cpu": {
+        "median": 2.8999999994412065,
+        "p95": 4.1000000005587935,
+        "max": 8.099999999627471,
+        "mean": 3.0777777777570816
+      },
+      "raf": {
+        "median": 50,
+        "p95": 50.10000000009313,
+        "max": 1649.9000000000233,
+        "mean": 56.236312849162275
+      },
+      "sections": null,
+      "query": null,
+      "stableOrder": null,
+      "dustShare": null,
+      "tail": null,
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 53,
+        "visibleReadyDust": 50,
+        "readyDust": 4059,
+        "flowDust": 631,
+        "vortexDust": 128,
+        "dynamicDust": 631,
+        "clusterDust": 468,
+        "rareDust": 28,
+        "rareEcologyDust": 28,
+        "viewportInsideRatio": 0.011699779249448124,
+        "viewportOutsideRatio": 0.9883002207505519
+      },
+      "counters": null,
+      "rendered": null
+    },
+    {
+      "name": "awakened",
+      "reduced": true,
+      "stage": "p4-runtime",
+      "variant": "complete",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.40000000037252903,
+        "p95": 0.5,
+        "max": 2.7000000001862645,
+        "mean": 0.43277777774880327
+      },
+      "renderer": {
+        "median": 2.400000000372529,
+        "p95": 3.6000000005587935,
+        "max": 6.599999999627471,
+        "mean": 2.6533333333778297
+      },
+      "cpu": {
+        "median": 2.8999999994412065,
+        "p95": 4.099999999627471,
+        "max": 7.099999999627471,
+        "mean": 3.0827777778160654
+      },
+      "raf": {
+        "median": 50,
+        "p95": 50.10000000009313,
+        "max": 1666.5,
+        "mean": 56.04972067039054
+      },
+      "sections": {
+        "background": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.06722222220980459
+        },
+        "stars": {
+          "median": 0.19999999925494194,
+          "p95": 0.2999999998137355,
+          "mean": 0.1722222221808301
+        },
+        "routeFieldGeometry": {
+          "median": 1.5,
+          "p95": 2.699999999254942,
+          "mean": 1.626111111158712
+        },
+        "hazards": {
+          "median": 0.20000000018626451,
+          "p95": 0.30000000074505806,
+          "mean": 0.23777777779226503
+        },
+        "dust": {
+          "median": 0.30000000074505806,
+          "p95": 1.199999999254942,
+          "mean": 0.4238888889292462
+        },
+        "pickupEffects": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0005555555534859498
+        },
+        "shockStructures": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.005000000002069606
+        },
+        "dustEaters": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0005555555534859498
+        },
+        "playerTrail": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.046666666648040214
+        },
+        "otherOverlays": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.05944444448687136
+        }
+      },
+      "query": {
+        "median": 0.09999999962747097,
+        "p95": 0.20000000018626451,
+        "max": 1.5,
+        "mean": 0.11666666665631864
+      },
+      "stableOrder": {
+        "median": 0,
+        "p95": 0.10000000055879354,
+        "max": 1.2000000001862645,
+        "mean": 0.04944444443099201
+      },
+      "dustShare": 0.16268844221456702,
+      "tail": {
+        "renderer": 3.6700000001117585,
+        "dust": 0.6399999998509884
+      },
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 53,
+        "visibleReadyDust": 50,
+        "readyDust": 4059,
+        "flowDust": 631,
+        "vortexDust": 128,
+        "dynamicDust": 631,
+        "clusterDust": 468,
+        "rareDust": 28,
+        "rareEcologyDust": 28,
+        "viewportInsideRatio": 0.011699779249448124,
+        "viewportOutsideRatio": 0.9883002207505519
+      },
+      "counters": null,
+      "rendered": {
+        "median": 102,
+        "mean": 105.17222222222222
+      }
+    },
+    {
+      "name": "dynamic-heavy",
+      "reduced": true,
+      "stage": "p4-runtime",
+      "variant": "baseline",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.5,
+        "p95": 0.7000000001862645,
+        "max": 3.7999999998137355,
+        "mean": 0.47499999998447795
+      },
+      "renderer": {
+        "median": 2.7000000001862645,
+        "p95": 3.599999999627471,
+        "max": 5.7000000001862645,
+        "mean": 2.7916666666821888
+      },
+      "cpu": {
+        "median": 3.2000000001862645,
+        "p95": 4.1000000005587935,
+        "max": 6.400000000372529,
+        "mean": 3.268888888865088
+      },
+      "raf": {
+        "median": 133.4000000001397,
+        "p95": 150.10000000009313,
+        "max": 6683.09999999986,
+        "mean": 179.41564245810133
+      },
+      "sections": null,
+      "query": null,
+      "stableOrder": null,
+      "dustShare": null,
+      "tail": null,
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 349,
+        "visibleReadyDust": 244,
+        "readyDust": 4029,
+        "flowDust": 634,
+        "vortexDust": 128,
+        "dynamicDust": 634,
+        "clusterDust": 468,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.07704194260485651,
+        "viewportOutsideRatio": 0.9229580573951435
+      },
+      "counters": null,
+      "rendered": null
+    },
+    {
+      "name": "dynamic-heavy",
+      "reduced": true,
+      "stage": "p4-runtime",
+      "variant": "complete",
+      "dimensions": [
+        390,
+        844
+      ],
+      "runs": 5,
+      "simulation": {
+        "median": 0.5,
+        "p95": 0.6999999992549419,
+        "max": 3.2999999998137355,
+        "mean": 0.4911111111442248
+      },
+      "renderer": {
+        "median": 2.7000000001862645,
+        "p95": 3.900000000372529,
+        "max": 6.7000000001862645,
+        "mean": 2.8350000000041393
+      },
+      "cpu": {
+        "median": 3.2000000001862645,
+        "p95": 4.5,
+        "max": 7.2000000001862645,
+        "mean": 3.326111111148364
+      },
+      "raf": {
+        "median": 149.89999999990687,
+        "p95": 150.10000000009313,
+        "max": 6666.399999999907,
+        "mean": 179.88100558659193
+      },
+      "sections": {
+        "background": {
+          "median": 0.09999999962747097,
+          "p95": 0.20000000018626451,
+          "mean": 0.07833333331574169
+        },
+        "stars": {
+          "median": 0.19999999925494194,
+          "p95": 0.2999999998137355,
+          "mean": 0.1661111110303965
+        },
+        "routeFieldGeometry": {
+          "median": 1.5,
+          "p95": 2.2999999998137355,
+          "mean": 1.5977777777964042
+        },
+        "hazards": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "mean": 0.05555555555038154
+        },
+        "dust": {
+          "median": 0.8000000007450581,
+          "p95": 1.2000000001862645,
+          "mean": 0.8788888888640536
+        },
+        "pickupEffects": {
+          "median": 0,
+          "p95": 0.09999999962747097,
+          "mean": 0.008888888886819284
+        },
+        "shockStructures": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.002222222224291828
+        },
+        "dustEaters": {
+          "median": 0,
+          "p95": 0,
+          "mean": 0.0011111111069718996
+        },
+        "playerTrail": {
+          "median": 0,
+          "p95": 0.10000000055879354,
+          "mean": 0.034444444466175304
+        },
+        "otherOverlays": {
+          "median": 0,
+          "p95": 0.09999999962747097,
+          "mean": 0.011666666669771075
+        }
+      },
+      "query": {
+        "median": 0.10000000055879354,
+        "p95": 0.2999999998137355,
+        "max": 1.400000000372529,
+        "mean": 0.1377777777560469
+      },
+      "stableOrder": {
+        "median": 0.09999999962747097,
+        "p95": 0.20000000018626451,
+        "max": 0.7000000001862645,
+        "mean": 0.06722222222532663
+      },
+      "dustShare": 0.3092463092385584,
+      "tail": {
+        "renderer": 3.900000000093132,
+        "dust": 1.1400000002235173
+      },
+      "population": {
+        "totalDust": 4530,
+        "visibleDust": 349,
+        "visibleReadyDust": 244,
+        "readyDust": 4029,
+        "flowDust": 634,
+        "vortexDust": 128,
+        "dynamicDust": 634,
+        "clusterDust": 468,
+        "rareDust": 0,
+        "rareEcologyDust": 0,
+        "viewportInsideRatio": 0.07704194260485651,
+        "viewportOutsideRatio": 0.9229580573951435
+      },
+      "counters": null,
+      "rendered": {
+        "median": 250,
+        "mean": 253.7
+      }
+    }
+  ],
+  "classification": {
+    "classification": "C",
+    "triggers": [],
+    "scaling": [
+      {
+        "reduced": false,
+        "growth": 0.21212121218962876,
+        "rendererDelta": 0.49999999990686783,
+        "dustDelta": 0.6899999998509885,
+        "attribution": 1.3799999999590218
+      },
+      {
+        "reduced": true,
+        "growth": 0.09375000025465852,
+        "rendererDelta": 0.5099999998696152,
+        "dustDelta": 0.4300000000745058,
+        "attribution": 0.8431372552636041
+      }
+    ],
+    "dominantSection": "routeFieldGeometry",
+    "dominantShare": 0.5909567848495719
+  },
+  "metadata": {
+    "phase": "coarse",
+    "file": "coarse-raw.json.gz",
+    "sha256": "941fe26fbed0fab45be1fd286a447bc7747a11171c78190278c45c53775a1330",
+    "chunks": 32,
+    "bytes": 187336
+  },
+  "status": "Primary coarse complete; components/history/closure pending"
+}
