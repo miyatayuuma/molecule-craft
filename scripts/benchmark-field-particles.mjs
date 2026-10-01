@@ -1,5 +1,6 @@
 // Dependency-free Chromium/CDP benchmark. Timing is descriptive, never a CI threshold.
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {createServer} from 'node:http';
 import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {spawn,spawnSync} from 'node:child_process';
@@ -23,10 +24,11 @@ try{
   await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/tests/field-particle-performance-harness.html`});
   let ready=false;for(let i=0;i<100;i++){ready=await evaluate('!!window.ready');if(ready)break;await new Promise(done=>setTimeout(done,100));}assert.ok(ready,'harness ready');
   const report={basis:spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).stdout.trim(),browser:await send('Browser.getVersion'),gpu:await send('SystemInfo.getInfo').catch(()=>({note:'SystemInfo requires browser target; flags identify raster backend'})),platform:process.platform,arch:process.arch,args,viewport:[390,844],deviceScaleFactor:2,results:[],visuals:[]};
+  report.runtimeSourceSha256={};for(const file of ['src/veil/universe.js','src/veil/engine.js','src/veil/dust-spatial-index.js','src/veil/dynamic-dust-registry.js','src/veil/renderer.js']){try{report.runtimeSourceSha256[file]=createHash('sha256').update(await readFile(join(root,file))).digest('hex');}catch(error){if(error.code!=='ENOENT')throw error;}}
   for(const reduced of (process.env.FIELD_VISUAL_ONLY?[]:[false,true])){
     await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:reduced?'reduce':'no-preference'}]});
     for(const name of (process.env.FIELD_BENCH_SCENARIOS?JSON.parse(process.env.FIELD_BENCH_SCENARIOS):['normal','dense','awakened','dynamic-heavy'])){
-      const r=await evaluate(`measure(${JSON.stringify(name)},${reduced})`);assert.equal(r.counters.renderScanned,r.population.totalDust*60);assert.equal(r.counters.renderScanned,r.counters.renderNotReady+r.counters.renderOffscreen+r.counters.rendered);assert.equal(r.counters.glowDraws,r.counters.rendered);assert.equal(r.counters.centerDraws,r.counters.rendered);assert.equal(r.canvas[0],683);assert.equal(r.canvas[1],1477);if(reduced)assert.equal(r.counters.flowStrokes,0);if(r.counters.fullScanEquivalent){assert.ok(r.counters.candidateScans/r.counters.fullScanEquivalent<=(name==='dense'?.20:.15));}report.results.push(r);console.log(name,reduced?'reduced':'normal',JSON.stringify(r.frameCpuMs));
+      const r=await evaluate(`measure(${JSON.stringify(name)},${reduced})`);assert.equal(r.counters.renderScanned,r.population.totalDust*60);assert.equal(r.counters.renderScanned,r.counters.renderNotReady+r.counters.renderOffscreen+r.counters.rendered);assert.equal(r.counters.glowDraws,r.counters.rendered);assert.equal(r.counters.centerDraws,r.counters.rendered);assert.equal(r.canvas[0],683);assert.equal(r.canvas[1],1477);if(reduced)assert.equal(r.counters.flowStrokes,0);if(r.counters.fullScanEquivalent){assert.ok(r.counters.candidateScans/r.counters.fullScanEquivalent<=(name==='dense'?.20:.15));}if(r.counters.dynamicFullScanEquivalent){assert.equal(r.counters.dynamicStaticVisited,0);assert.equal(r.counters.dynamicScanned,r.counters.dynamicRegistrySize*60);assert.equal(r.counters.dynamicSameCellMoves+r.counters.dynamicCellRelocations,r.counters.dynamicUpdated);if(name==='normal'||name==='dense')assert.ok(r.counters.dynamicScanned/r.counters.dynamicFullScanEquivalent<=.20);}report.results.push(r);console.log(name,reduced?'reduced':'normal',JSON.stringify(r.frameCpuMs));
     }
   }
   for(const region of ['veil','carbon','oxygen','frontier','nitrogen','rare-P','rare-S','rare-F','rare-Cl'])for(const reduced of [false,true]){

@@ -20,7 +20,7 @@ export function createDustSpatialIndex(dust,{cellSize=DUST_CELL_SIZE}={}){
     }
     candidates.sort((a,b)=>a.ordinal-b.ordinal);return candidates.map(record=>record.particle);
   }
-  return {cellSize,update,queryAabb,queryCircle:(x,y,r)=>queryAabb(x-r,y-r,x+r,y+r),querySegment:(a,b,r)=>queryAabb(Math.min(a.x,b.x)-r,Math.min(a.y,b.y)-r,Math.max(a.x,b.x)+r,Math.max(a.y,b.y)+r)};
+  return {cellSize,update,cellOf:particle=>{const record=records.get(particle);return record?{x:record.cx,y:record.cy}:null;},queryAabb,queryCircle:(x,y,r)=>queryAabb(x-r,y-r,x+r,y+r),querySegment:(a,b,r)=>queryAabb(Math.min(a.x,b.x)-r,Math.min(a.y,b.y)-r,Math.max(a.x,b.x)+r,Math.max(a.y,b.y)+r)};
 }
 export function resetDustSpatialIndex(map){indexes.delete(map);}
 export function dustSpatialIndex(map){
@@ -30,4 +30,4 @@ export function dustSpatialIndex(map){
   if(!cached||cached.dust!==map.dust||cached.length!==map.dust.length){cached={dust:map.dust,length:map.dust.length,index:createDustSpatialIndex(map.dust)};indexes.set(map,cached);}
   return cached.index;
 }
-export function updateDustSpatialMembership(map,dust){indexes.get(map)?.index.update(dust);}
+export function updateDustSpatialMembership(map,dust){return indexes.get(map)?.index.update(dust);}

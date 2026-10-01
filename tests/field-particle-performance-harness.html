@@ -11,6 +11,7 @@ window.measure=async(name,reduced)=>{
   for(let frame=0;frame<60;frame++){stepRun(work,inputAt(frame),1/60);renderer.draw(work,1/60,reduced);}
   const counters={...work.particleDiagnostics};delete counters.clock;delete counters.pickups;
   if(counters.assistFullScanEquivalent){counters.fullScanEquivalent=counters.assistFullScanEquivalent+counters.pickupFullScanEquivalent;counters.candidateScans=counters.assistScanned+counters.pickupScanned;counters.candidateReductionRatio=1-counters.candidateScans/counters.fullScanEquivalent;}
+  if(counters.dynamicFullScanEquivalent)counters.dynamicReductionRatio=1-counters.dynamicScanned/counters.dynamicFullScanEquivalent;
   const repeat=fixture(name);renderer.reset();renderer.draw(repeat,0,reduced);for(const key of COUNTERS)repeat.particleDiagnostics[key]=0;for(let frame=0;frame<60;frame++){stepRun(repeat,inputAt(frame),1/60);renderer.draw(repeat,1/60,reduced);}
   const stableKeys=COUNTERS.filter(key=>!key.endsWith('Ms'));if(stableKeys.some(key=>repeat.particleDiagnostics[key]!==counters[key]))throw Error('Non-deterministic work fixture');
   const run=fixture(name,{instrument:false});renderer.reset();for(let i=0;i<60;i++){stepRun(run,inputAt(i),1/60);renderer.draw(run,1/60,reduced);}
