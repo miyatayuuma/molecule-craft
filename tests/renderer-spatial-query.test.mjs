@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {clone,spy} from './helpers/field-canvas-spy.mjs';
 import {readFile} from 'node:fs/promises';
 import {rendererDustCandidates,DUST_CULL_MARGIN} from '../src/veil/renderer.js';
 import {dustSpatialIndex,updateDustSpatialMembership} from '../src/veil/dust-spatial-index.js';
@@ -35,13 +36,6 @@ let source=await readFile(rendererUrl,'utf8');source=source.replace(/from '(\.\.
 source=source.replace('if(diagnostics){diagnostics.rendered++;','globalThis.__renderDust?.(dust);if(diagnostics){diagnostics.rendered++;');
 const load=async code=>import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 const spatial=await load(source),full=await load(source.replace(new URL('./dust-spatial-index.js',rendererUrl).href,new URL('./helpers/full-scan-renderer-oracle.mjs',import.meta.url).href));
-function clone(v,seen=new Map()){if(!v||typeof v!=='object')return v;if(seen.has(v))return seen.get(v);const o=Array.isArray(v)?[]:{};seen.set(v,o);for(const [k,item]of Object.entries(v))o[k]=clone(item,seen);return o;}
-function spy(factory){
-  let id=0,gradientId=0;const calls=[];
-  const normalize=a=>a&&typeof a==='object'?(a.canvasId!==undefined?`canvas:${a.canvasId}`:`gradient:${a.gradientId}`):a;
-  const makeCanvas=()=>{const canvas={canvasId:id++,width:0,height:0,getBoundingClientRect:()=>({width:390,height:844})};const ctx=new Proxy({}, {get:(target,key)=>key in target?target[key]:(...args)=>{if(canvas.canvasId===0)calls.push([key,...args.map(normalize)]);if(key==='createRadialGradient'||key==='createLinearGradient'){const g={gradientId:gradientId++,addColorStop(...args){if(canvas.canvasId===0)calls.push(['addColorStop',g.gradientId,...args]);}};return g;}},set:(target,key,value)=>{target[key]=value;if(canvas.canvasId===0)calls.push(['set',key,normalize(value)]);return true;}});canvas.getContext=()=>ctx;return canvas;};
-  globalThis.document={createElement:makeCanvas};globalThis.window={devicePixelRatio:2};const renderer=factory(makeCanvas());return {renderer,calls,clear(){calls.length=0;}};
-}
 let draws=0;
 for(const name of SCENARIOS)for(let seed=1;seed<=24;seed++)for(const reduced of [false,true]){
   const a=fixture(name,{seed}),b=clone(a),sa=spy(spatial.createVeilRenderer),sb=spy(full.createVeilRenderer);

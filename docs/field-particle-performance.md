@@ -92,3 +92,7 @@ P2–P4 may not change dust placement/count, density, yield, respawn, assist, pi
 Relevant maintained FIELD regressions, deterministic oracle tests, Canvas spy, repository hygiene, PWA hash/dependency closure and the new browser work gate pass. Two additional legacy probes already fail on the unmodified source basis: `tests/veil.test.mjs` imports a removed workspace-key export, and `tests/route-field-render.test.mjs` expects a stale minimum challenge-stroke count despite soft-extent rejection. Neither is a timing flake or caused by P1; they are outside the current workflow's maintained FIELD gates and their runtime code is untouched. Keep those findings separate from P1 regressions.
 
 The first P1 CI browser attempt completed all measurements but exposed a benchmark-owned Chromium profile cleanup race (`ENOTEMPTY`). Cleanup now awaits process termination and uses bounded filesystem retries before declaring success. This was repaired as a fixture lifecycle defect, not dismissed as an existing browser flake.
+
+## Integrated P5 authority
+
+The final P1→P5 profile, residual Class C decision, preserved gameplay/visual authority and retained five-run measurements are consolidated in [FIELD Particle Performance Closure](field-particle-performance-closure.md). P5 preserves this stage’s counter definitions and original oracles; no production draw optimization or quality reduction is added.

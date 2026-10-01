@@ -345,21 +345,39 @@ jobs:
 
   field-particle-baseline:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      CHROME_BIN: /tmp/chromium
+      FIELD_CHROME_ARGS: '["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader","--disable-dev-shm-usage"]'
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Fixed P4 Chromium binary
+        run: |
+          npm install --prefix /tmp/field-p5-bin --no-audit --no-fund --ignore-scripts @sparticuz/chromium@153.0.0
+          node --input-type=module -e "import {createRequire} from 'node:module';const require=createRequire('/tmp/field-p5-bin/package.json'),m=require('@sparticuz/chromium'),c=m.default??m;console.log(await c.executablePath());"
       - name: FIELD deterministic gameplay and Canvas counter authority
-        run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs tests/dust-spatial-index.test.mjs tests/dynamic-dust-registry.test.mjs tests/renderer-spatial-query.test.mjs
+        run: node --test tests/field-particle-performance.test.mjs tests/field-particle-render-counters.test.mjs tests/dust-spatial-index.test.mjs tests/dynamic-dust-registry.test.mjs tests/renderer-spatial-query.test.mjs tests/field-renderer-profile.test.mjs tests/field-profile-authority.test.mjs
+      - name: Retained integrated performance authority
+        run: node scripts/check-field-profile-evidence.mjs
       - name: FIELD mobile work and descriptive timing benchmark
-        run: node scripts/benchmark-field-particles.mjs
+        run: |
+          node scripts/benchmark-field-particles.mjs
+          node scripts/check-field-visual-baseline.mjs
+          node --input-type=module -e "import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';const r=JSON.parse(await readFile('test-results/field-particle-p1/browser.json'));assert.equal(r.browser.revision,'@86cee6df69e0463a839c0cc8435c9d4c259434d3','P4 engine revision authority');"
+      - name: FIELD profile structural and viewport sanity
+        run: |
+          FIELD_PROFILE_MODE=sanity FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/sanity node scripts/profile-field-particles.mjs --smoke
+          node scripts/summarize-field-profile.mjs test-results/field-particle-p5/sanity/raw.json.gz test-results/field-particle-p5/sanity/aggregate.json
       - name: Upload FIELD measurements and comparison frames
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: field-particle-performance
-          path: test-results/field-particle-p1
+          path: |
+            test-results/field-particle-p1
+            test-results/field-particle-p5
           if-no-files-found: error
           retention-days: 14

@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>html,body{margin:0;background:#040d19}canvas{display:block;width:390px;height:844px}</style></head><body><canvas></canvas><script type="module">
+import {fixture,population,inputAt} from './helpers/field-particle-fixtures.mjs';
+import {stepRun} from '../src/veil/expedition-run.js';
+import {profileRendererSource,createFrameProfile,RENDER_SECTIONS,DUST_ABLATIONS} from './helpers/field-renderer-profile.mjs';
+const canvas=document.querySelector('canvas'),url=new URL('../src/veil/renderer.js',import.meta.url),source=await fetch(url).then(r=>r.text()),renderers={},hashes={};
+async function load(name,s){hashes[name]=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,'0')).join('');s=s.replace(/from '(\.\.?\/[^']+)'/g,(_,p)=>`from '${new URL(p,url).href}'`);const m=await import(`data:text/javascript;base64,${btoa(unescape(encodeURIComponent(s)))}`);renderers[name]=m.createVeilRenderer(canvas);}
+await load('baseline',source);for(const ablation of DUST_ABLATIONS)await load(ablation,profileRendererSource(source,{ablation}));
+const summary=values=>{const a=[...values].sort((a,b)=>a-b);return {median:a[Math.floor(a.length*.5)],p95:a[Math.ceil(a.length*.95)-1],max:a.at(-1),mean:a.reduce((a,b)=>a+b,0)/a.length};};
+const originalSort=Array.prototype.sort,profile=createFrameProfile();let drawing=false;
+function sortWithProfile(compare){if(drawing&&compare?.toString()==='(a,b)=>a.ordinal-b.ordinal'){const start=performance.now(),r=originalSort.call(this,compare);profile.sortMs+=performance.now()-start;profile.sortCalls++;return r;}return originalSort.call(this,compare);}
+const draw=(renderer,run,reduced,variant)=>{drawing=variant!=='baseline';try{renderer.draw(run,1/60,reduced);}finally{drawing=false;}};
+window.profileRun=async(name,reduced,variant='baseline',frames=180,dimensions=[390,844])=>{
+  canvas.style.width=dimensions[0]+'px';canvas.style.height=dimensions[1]+'px';globalThis.__fieldProfile=profile;Array.prototype.sort=variant==='baseline'?originalSort:sortWithProfile;
+  const renderer=renderers[variant];if(renderer.size.w!==dimensions[0]||renderer.size.h!==dimensions[1])renderer.resize();renderer.reset();const run=fixture(name,{instrument:false});
+  for(let i=0;i<60;i++){stepRun(run,inputAt(i),1/60);draw(renderer,run,reduced,variant);}
+  const initialPopulation=population(run,renderer.screen,{width:dimensions[0],height:dimensions[1]}),cpu=[],simulation=[],render=[],raf=[],sections=Object.fromEntries(RENDER_SECTIONS.map(k=>[k,[]])),query=[],sort=[],sortCalls=[],candidates=[],rendered=[];let previous;
+  for(let frame=0;frame<frames;frame++){
+    const tick=await new Promise(requestAnimationFrame);if(previous!==undefined)raf.push(tick-previous);previous=tick;
+    const start=performance.now();stepRun(run,inputAt(frame+60),1/60);const mid=performance.now();draw(renderer,run,reduced,variant);const end=performance.now();cpu.push(end-start);simulation.push(mid-start);render.push(end-mid);
+    if(variant!=='baseline'){for(const k of RENDER_SECTIONS)sections[k].push(profile.sections[k]);query.push(profile.queryMs);sort.push(profile.sortMs);sortCalls.push(profile.sortCalls);candidates.push(profile.candidates);rendered.push(profile.rendered);if(profile.sortCalls!==1)throw Error('Sort attribution drift');if(Math.abs(Object.values(profile.sections).reduce((a,b)=>a+b,0)-profile.total)>1e-6)throw Error('Section accounting drift');if(profile.queryMs+1e-6<profile.sortMs)throw Error('Sort outside query');}
+  }
+  Array.prototype.sort=originalSort;
+  return {name,reduced,variant,rendererSourceSha256:hashes[variant],dimensions,frames,initialPopulation,finalPopulation:population(run,renderer.screen,{width:dimensions[0],height:dimensions[1]}),canvas:[canvas.width,canvas.height],frameCpuMs:summary(cpu),simulationMs:summary(simulation),renderMs:summary(render),rafIntervalMs:summary(raf),sections:variant==='baseline'?null:Object.fromEntries(RENDER_SECTIONS.map(k=>[k,summary(sections[k])])),queryMs:query.length?summary(query):null,stableOrderMs:sort.length?summary(sort):null,candidateSummary:candidates.length?summary(candidates):null,renderedSummary:rendered.length?summary(rendered):null,raw:{cpu,simulation,render,raf,sections,query,sort,sortCalls,candidates,rendered}};
+};window.ready=true;
+</script></body></html>

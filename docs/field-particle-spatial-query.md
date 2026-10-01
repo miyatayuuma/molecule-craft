@@ -64,3 +64,7 @@ All 18 paired visual images are byte-identical. Dynamic-heavy normal still has 5
 P3 remaining dynamic scans: Normal/Awakened/Dynamic-heavy 271,800/s; Dense 815,400/s. Updates remain 38,040 / 37,860 / 38,040 / 114,120 respectively. P3 can reuse `updateDustSpatialMembership` without changing query authority or availability.
 
 Validation: P1's original 3,600-frame signatures pass for all four scenarios with instrumentation enabled and disabled, tolerance 1e-8. Full-scan oracle covers 24 seeds, exact per-frame player/events/effects, high-speed swept pickup, active equal/near-equal assist ties, moving/cluster cells and Rare normal respawn/Infinity suppression. Maintained FIELD regressions, independent Canvas spy and PWA/hygiene pass. The two stale supplementary probes recorded by P1 are unchanged and remain separate from maintained gates.
+
+## Integrated P5 authority
+
+The final P1→P5 profile, residual Class C decision, preserved gameplay/visual authority and retained five-run measurements are consolidated in [FIELD Particle Performance Closure](field-particle-performance-closure.md). P5 preserves this stage’s counter definitions and original oracles; no production draw optimization or quality reduction is added.
