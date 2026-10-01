@@ -8,9 +8,10 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const output=resolve(process.argv[2]??join(root,'test-results/field-particle-p1'));
 const manifest=JSON.parse(await readFile(join(root,'tests/fixtures/field-particle-p1/manifest.json')));
 const rows=[];
-for(const {file}of manifest.visuals){
+for(const {file,sha256}of manifest.visuals){
   const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
   const baseline=hash(await readFile(join(root,'tests/fixtures/field-particle-p1',file))),actual=hash(await readFile(join(output,file)));
+  assert.equal(baseline,sha256,`Frozen P1 manifest mismatch: ${file}`);
   rows.push({file,baseline,actual,equal:baseline===actual});
 }
 await writeFile(join(output,'visual-comparison.json'),JSON.stringify(rows,null,2)+'\n');

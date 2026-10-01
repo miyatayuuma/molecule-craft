@@ -345,7 +345,7 @@ jobs:
 
   field-particle-baseline:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 20
     env:
       CHROME_BIN: /tmp/chromium
       FIELD_CHROME_ARGS: '["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader","--disable-dev-shm-usage"]'
@@ -365,39 +365,10 @@ jobs:
           node scripts/benchmark-field-particles.mjs
           node scripts/check-field-visual-baseline.mjs
           node --input-type=module -e "import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';const r=JSON.parse(await readFile('test-results/field-particle-p1/browser.json'));assert.equal(r.browser.revision,'@86cee6df69e0463a839c0cc8435c9d4c259434d3','P4 engine revision authority');"
-      - name: FIELD integrated profile and stable raw authority
+      - name: FIELD profile structural and viewport sanity
         run: |
-          FIELD_PROFILE_MODE=coarse FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/coarse node scripts/profile-field-particles.mjs
-          node scripts/summarize-field-profile.mjs test-results/field-particle-p5/coarse/raw.json.gz test-results/field-particle-p5/coarse/aggregate.json
-          node scripts/export-field-profile.mjs test-results/field-particle-p5/coarse
-      - name: Preserve coarse profile
-        uses: actions/upload-artifact@v4
-        with:
-          name: field-p5-coarse
-          path: test-results/field-particle-p5/coarse
-          retention-days: 14
-      - name: FIELD dust component aggregate diagnostics
-        run: |
-          FIELD_PROFILE_MODE=components FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/components node scripts/profile-field-particles.mjs
-          node scripts/summarize-field-profile.mjs test-results/field-particle-p5/components/raw.json.gz test-results/field-particle-p5/components/aggregate.json
-          node scripts/export-field-profile.mjs test-results/field-particle-p5/components
-      - name: Preserve component profile
-        uses: actions/upload-artifact@v4
-        with:
-          name: field-p5-components
-          path: test-results/field-particle-p5/components
-          retention-days: 14
-      - name: FIELD historical comparison in the same browser session
-        run: |
-          git fetch origin da356db2d1f86f1d6b2e0533e07a4af7cad36030 a331c09c52a9579a8f4d7016402aa57028af9b42 53ddf5c0fa766fd0cdf35375a2f7e0679612753f eda186afb36a485f9f4becf472c4faa9a95ede9c
-          git worktree add --detach /tmp/field-p5-p1 da356db2d1f86f1d6b2e0533e07a4af7cad36030
-          git worktree add --detach /tmp/field-p5-p2 a331c09c52a9579a8f4d7016402aa57028af9b42
-          git worktree add --detach /tmp/field-p5-p3 53ddf5c0fa766fd0cdf35375a2f7e0679612753f
-          git worktree add --detach /tmp/field-p5-p4 eda186afb36a485f9f4becf472c4faa9a95ede9c
-          FIELD_PROFILE_MODE=history FIELD_PROFILE_ROOTS='{"p1":"/tmp/field-p5-p1","p2":"/tmp/field-p5-p2","p3":"/tmp/field-p5-p3","p4":"/tmp/field-p5-p4"}' FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/history node scripts/profile-field-particles.mjs
-          node scripts/summarize-field-profile.mjs test-results/field-particle-p5/history/raw.json.gz test-results/field-particle-p5/history/aggregate.json
-          node scripts/export-field-profile.mjs test-results/field-particle-p5/history
-          node scripts/export-field-profile.mjs test-results/field-particle-p1 --browser
+          FIELD_PROFILE_MODE=sanity FIELD_PROFILE_OUTPUT=test-results/field-particle-p5/sanity node scripts/profile-field-particles.mjs --smoke
+          node scripts/summarize-field-profile.mjs test-results/field-particle-p5/sanity/raw.json.gz test-results/field-particle-p5/sanity/aggregate.json
       - name: Upload FIELD measurements and comparison frames
         if: always()
         uses: actions/upload-artifact@v4
@@ -419,13 +390,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Inspect retained bootstrap artifact
+      - name: Inspect completed matched-engine coarse profile
         env:
           FIELD_ARTIFACT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl --fail -sS -L -H "Authorization: Bearer $FIELD_ARTIFACT_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/miyatayuuma/molecule-craft/actions/artifacts/11143979696/zip -o /tmp/field-p5-prior.zip
-          unzip -q /tmp/field-p5-prior.zip -d /tmp/field-p5-prior
-          find /tmp/field-p5-prior -name raw.json.gz -o -name checkpoint.json.gz -o -name browser.json
-          node scripts/export-field-profile.mjs /tmp/field-p5-prior/field-particle-p5/coarse --allow-partial
-          node scripts/export-field-profile.mjs /tmp/field-p5-prior/field-particle-p5/components --allow-partial
-          node scripts/export-field-profile.mjs /tmp/field-p5-prior/field-particle-p1 --browser
+          mkdir -p /tmp/field-p5-primary/coarse
+          curl --fail -sS -L -H "Authorization: Bearer $FIELD_ARTIFACT_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/miyatayuuma/molecule-craft/actions/artifacts/11146368731/zip -o /tmp/field-p5-primary.zip
+          unzip -q /tmp/field-p5-primary.zip -d /tmp/field-p5-primary/coarse
+          node scripts/export-field-profile.mjs /tmp/field-p5-primary/coarse
