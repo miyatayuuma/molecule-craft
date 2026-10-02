@@ -91,3 +91,11 @@
 .veil-status-panel[data-state=overheat],.veil-status-panel[data-state=warning]{color:#f2d4aa;border-color:#c39865}
 @media(max-width:370px){.veil-status-panel{max-width:130px;padding:5px 6px;font-size:8px}}
 @media(prefers-reduced-motion:reduce){.veil-status-panel{transition:none}}
+
+.collector-applications{margin:auto;border:1px solid #385266;border-radius:24px;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 32px)}
+.collector-applications .sheet-body{display:grid;gap:16px;overflow:auto;padding:18px}
+.collector-applications section{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 10px}
+.collector-applications section p{grid-column:1 / -1;grid-row:2;margin:0;font-size:12px;color:#aabcca}
+.collector-applications section button{min-height:44px;min-width:100px}
+.collector-applications button[aria-pressed="true"],#open-collector-applications[data-active="true"]{border-color:#8bd9c8;color:#a9eee0}
+#open-collector-applications{margin-left:auto;min-height:36px;font-size:13px}

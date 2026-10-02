@@ -1,3 +1,4 @@
+import {collectorMaterialState,materialElectricalResponse} from './collector-applications.js';
 import {dustSpatialIndex,resetDustSpatialIndex} from './dust-spatial-index.js';
 import {recordChallengePassage} from './expedition-challenges.js';
 import {recordChoDestination} from './cho-campaign.js';
@@ -80,12 +81,12 @@ export function beginShock(run,consume){
 }
 export function setCombustionHeld(run,held){if(!run||run.captured)return false;run.driveHeld=!!held;if(!held)run.player.combustion=false;return run.driveHeld;}
 
-export function createRun(map,config=VEIL,{fuel={},predators=true}={}){
+export function createRun(map,config=VEIL,{fuel={},predators=true,collectorShell=null,engineering=null}={}){
   resetDustSpatialIndex(map);
   resetDynamicDustRegistry(map);if(map.dust)dynamicDustRegistry(map);
   const entry=(use,legacy)=>fuel[use]?.molecule!==undefined?{molecule:fuel[use].molecule,amount:fuel[use].amount??0,capacity:fuel[use].capacity??performanceFor(fuel[use].molecule,use)?.capacity??0}:{molecule:legacy,amount:fuel[legacy]??0};
   const loadout={propellant:entry('propellant','hydrogen'),fuel:entry('fuel','methane'),oxidizer:entry('oxidizer','oxygen'),coolant:entry('coolant',null),shock:entry('shock',null)};
-  return {destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],electricalControlAuthority:1,electricalPropulsionAuthority:1,nextEaterSpawn:0,captured:false,captureAt:0,forcedReturn:null,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
+  return {collectorMaterial:collectorMaterialState(collectorShell,engineering),destinationReached:false,map,player:createFlight(config),time:0,chain:0,best:0,chainTime:0,collected:0,dustUnits:0,elementDust:managedZero(),collectedElements:managedZero(),foundElements:[],heat:0,ambientHeat:0,combustionHeatFactor:1,coolantBuffer:0,coolantActive:false,coolantEpisode:false,coolantEmpty:false,coolantNeedExposure:0,coolantNeedEmitted:false,overheated:false,thermalStrainEmitted:false,region:'veil',effects:[],shockWaves:[],events:[],denseUntil:0,gatePassed:false,departed:false,lap:false,laps:0,lastLap:0,config,fuel:loadout,driveHeld:false,driveBuffer:0,predators,threat:0,eaters:[],nearestEater:Infinity,danger:'clear',currentHazards:[],electricalControlAuthority:1,electricalPropulsionAuthority:1,nextEaterSpawn:0,captured:false,captureAt:0,forcedReturn:null,coreFracturedThisRun:false,coreApproachNotified:false,eaterTuning:dustEaterWorldTuning(config?.worldAwakened===true),telemetry:createExpeditionTelemetry(loadout)};
 }
 
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
@@ -212,11 +213,12 @@ function stepRunFrame(run,input,dt,systems){
   // combustion drive can cross it; merely owning a recipe cannot. The authored
   // core stays fixed while the envelope now has deterministic organic falloff.
   if(gateEnvelope.intensity>0&&!propelled){const effectiveScale=effectiveHazardScale(gateEnvelope.intensity,1,HAZARD_TYPES.MECHANICAL,map.worldState??'base'),strength=c.gateDeflection*effectiveScale;force.x+=strength;force.y+=strength*.25;appendHazard(currentHazards,VEIL_BOUNDARY_HAZARD,Math.min(1,effectiveScale),{effectiveIntensity:effectiveScale,severity:strength,vector:{x:strength,y:strength*.25}});}
-  const abrasiveIntensity=currentHazards.reduce((max,hazard)=>hazard.type===HAZARD_TYPES.ABRASIVE?Math.max(max,Number(hazard.effectiveIntensity??hazard.intensity)||0):max,0),electricalIntensity=currentHazards.reduce((max,hazard)=>hazard.type===HAZARD_TYPES.ELECTRICAL?Math.max(max,Number(hazard.effectiveIntensity??hazard.intensity)||0):max,0),abrasiveDrag=clamp(abrasiveIntensity*ABRASIVE_MOVEMENT_DRAG_PER_INTENSITY,0,.48),electricalResponse=electricalResponseFor(electricalIntensity);
+  const abrasiveIntensity=currentHazards.reduce((max,hazard)=>hazard.type===HAZARD_TYPES.ABRASIVE?Math.max(max,Number(hazard.effectiveIntensity??hazard.intensity)||0):max,0),electricalIntensity=currentHazards.reduce((max,hazard)=>hazard.type===HAZARD_TYPES.ELECTRICAL?Math.max(max,Number(hazard.effectiveIntensity??hazard.intensity)||0):max,0),abrasiveDrag=clamp(abrasiveIntensity*ABRASIVE_MOVEMENT_DRAG_PER_INTENSITY,0,.48)*run.collectorMaterial.abrasion,electricalResponse=materialElectricalResponse(electricalResponseFor(electricalIntensity),run.collectorMaterial.electrical);
   run.electricalControlAuthority=electricalResponse.controlAuthority;run.electricalPropulsionAuthority=electricalResponse.propulsionAuthority;
   const rawMovement=movementEnvironment?{...movementEnvironment,surfaceDrag:abrasiveDrag,controlAuthority:electricalResponse.controlAuthority,propulsionAuthority:electricalResponse.propulsionAuthority}:{surfaceDrag:abrasiveDrag,controlAuthority:electricalResponse.controlAuthority,propulsionAuthority:electricalResponse.propulsionAuthority};
-  const targetHeat=environment?clamp(environment.heat/32*100,0,150):0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=environment?.combustionHeatFactor??1;
+  const targetHeat=environment?clamp(environment.heat/32*100,0,150)*run.collectorMaterial.thermal:0;run.ambientHeat+=(targetHeat-run.ambientHeat)*(1-Math.exp(-dt*(targetHeat>run.ambientHeat?1.2:.7)));run.combustionHeatFactor=run.collectorMaterial.thermal===1?(environment?.combustionHeatFactor??1):1+((environment?.combustionHeatFactor??1)-1)*run.collectorMaterial.thermal;
   run.currentHazards=currentHazards;
+  run.materialFeedback=[run.collectorMaterial.abrasion<1&&abrasiveIntensity>0?'摩耗軽減':'',run.collectorMaterial.thermal<1&&targetHeat>0?'熱伝達軽減':'',run.collectorMaterial.electrical<1&&electricalIntensity>0?'制御低下軽減':''].filter(Boolean).join(' · ');
   const nitrogenCore=map.nitrogenCore,coreRepulsion=nitrogenCoreRepulsionAt(nitrogenCore,p);
   moveFlight(p,input,dt,{config:c,assist:nearest,force:{x:force.x+coreRepulsion.x,y:force.y+coreRepulsion.y},environment:rawMovement});
   const resolvedCoreMove=resolveNitrogenCoreCollision(nitrogenCore,old,{x:p.x,y:p.y},{x:p.vx,y:p.vy});

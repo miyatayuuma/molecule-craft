@@ -1,3 +1,4 @@
+import {APPLICATION_IDS,normalizeCollectorShellState} from './collector-applications.js';
 import {compileEngineeringAuthority,fabricationEligibility,normalizeEngineeringState} from '../engineering-fabrication.js';
 import { EXPEDITION } from './config.js';
 import { expeditionElements,expeditionLoss } from './expedition-loss.js';
@@ -65,10 +66,17 @@ export function createResources({storage,onStatus=()=>{}}={}){
     if(!save()){state=before;return{committed:false,status:'SAVE_FAILED'};}
     return{committed:true,status:'FABRICATED',applicationId:recipe.applicationId,consumed:{...recipe.cost}};
   }
+  const collectorShellState=()=>normalizeCollectorShellState(state.collectorShell,state.engineering);
+  const canActivateApplication=id=>!blocked&&APPLICATION_IDS.includes(id)&&state.engineering.fabricated[id]===true;
+  function setApplicationActive(id,active){
+    if(blocked||!APPLICATION_IDS.includes(id)||typeof active!=='boolean'||active&&!canActivateApplication(id))return false;
+    const before=state.collectorShell,next=collectorShellState();next.activeApplications[id]=active;state.collectorShell=next;
+    if(save())return true;state.collectorShell=before;return false;
+  }
   const usesFor=id=>tankUsesFor(id),fitsTank=(id,use)=>usesFor(id).includes(use)&&Object.hasOwn(TANK_USES,use);
   try{const loaded=loadPersistedResources(storage);previous=loaded.previous;if(loaded.state)state=loaded.state;else{const legacy=storage?.getItem(WORKSPACE_STORAGE_KEY);if(legacy)state.workspace=parseWorkspaceSave(legacy);if(legacy||storage?.getItem(COLLECTION_KEY))state.migrateDiscoveries=true;for(const a of state.workspace?.atoms??[])if(MANAGED.includes(a.element)&&!state.progress.foundElements.includes(a.element))state.progress.foundElements.push(a.element);}}catch{blocked=true;report('資源または制作の保存を復元できません。元の保存を保護しています。');}
   if(state.migrateDiscoveries&&!blocked)try{const b=JSON.parse(storage?.getItem(COLLECTION_KEY)||'null'),e=b?.discoveredMolecules??b?.discoveredMoleculeIds??[];if(e.some(x=>(typeof x==='string'?x:x.id)==='hydrogen')&&!state.recipes.includes('hydrogen'))state.recipes.push('hydrogen');}catch{}
-  function save(){if(blocked)return false;if(!storage){report('端末保存を利用できません。この画面の間だけ資源を保持します。');return true;}try{if(storage.getItem(RESOURCE_KEY)!==previous){blocked=true;report('別の画面で資源が更新されました。上書きを止めています。再読み込みしてください。');return false;}const raw=serializeResourcesState(state);if(raw!==previous){storage.setItem(RESOURCE_KEY,raw);previous=raw;}report('');return true;}catch{report('資源を保存できません。この画面を閉じる前に保存設定を確認してください。');return false;}}
+  function save(){if(blocked)return false;if(!storage){report('端末保存を利用できません。この画面の間だけ資源を保持します。');return true;}try{if(storage.getItem(RESOURCE_KEY)!==previous){blocked=true;report('別の画面で資源が更新されました。上書きを止めています。再読み込みしてください。');return false;}state.collectorShell=collectorShellState();const raw=serializeResourcesState(state);if(raw!==previous){storage.setItem(RESOURCE_KEY,raw);previous=raw;}report('');return true;}catch{report('資源を保存できません。この画面を閉じる前に保存設定を確認してください。');return false;}}
   const canAfford=cost=>!!cost&&Object.entries(cost).every(([s,n])=>STOCKED.includes(s)&&integer(n)&&(state.elements[s]??0)>=n);
   function spend(cost){if(blocked||!canAfford(cost))return false;for(const [s,n]of Object.entries(cost))state.elements[s]-=n;return true;}
   function refund(cost){if(blocked)return;for(const [s,n]of Object.entries(cost))if(STOCKED.includes(s)&&integer(n))state.elements[s]=Math.min(MAX,(state.elements[s]??0)+n);}
@@ -271,6 +279,7 @@ export function createResources({storage,onStatus=()=>{}}={}){
   function signalBonus(region,p){const bonus=region==='veil'?{H:10}:region==='carbon'?{H:8,C:4}:region===NITROGEN_REGION_ID?{H:2,N:4}:{H:8,O:4},persistentHints=[...state.hints];api.collect(bonus,0);state.hints.length=0;state.hints.push(...persistentHints);p.signalLast[region]=p.totalCollected;save();return {bonus};}
   api={
     configureEngineering(inputs){const compiled=compileEngineeringAuthority({...inputs,elements:STOCKED});engineeringInputs=inputs;engineeringAuthority=compiled;return compiled;},
+    collectorShellState,canActivateApplication,setApplicationActive,activateApplication:id=>setApplicationActive(id,true),deactivateApplication:id=>setApplicationActive(id,false),toggleApplication:id=>setApplicationActive(id,!collectorShellState().activeApplications[id]),
     engineeringEligibility,fabricateEngineering,engineeringState:()=>normalizeEngineeringState(state.engineering),
     get state(){return state;},get blocked(){return blocked;},get message(){return message;},save,snapshot:()=>copy(state),spend,refund,canAfford,costFor,maxCraftable,tankStatus,tankFillPlan,fillTankFromElements,selectedLoadout,setLoadoutTank,launchFillPlan,commitLaunchFill,recordThermalStrain,recordDriveThermalInterruption,recordCoolantNeedExperience,worldAwakeningState:()=>worldAwakeningState(state.progress),recordCoreFracture(){if(blocked)return null;const snapshot=copy(state);markCoreFractured(state.progress);if(save()||!storage)return worldAwakeningState(state.progress);state=snapshot;return null;},
     canUseElement:el=>playerElementAccessible(state,el),insightRecipeEligible,signalClaimability,record:id=>records.get(id),catalog:()=>[...records.values()],tankCatalog:use=>[...records.values()].filter(record=>state.recipes.includes(record.id)&&fitsTank(record.id,use)),tankUses:id=>usesFor(id),
