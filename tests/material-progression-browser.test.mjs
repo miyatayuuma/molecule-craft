@@ -47,15 +47,25 @@ try{
   await tap('#collector-launch-handle');await waitFor("document.querySelector('#expedition-destinations').getAttribute('aria-hidden')==='false'",'Rare expedition selector');await tap('#expedition-destinations [data-region=veil]');await pause(100);if(await evaluate("!!document.querySelector('#partial-fill-confirm')&&!document.querySelector('#partial-fill-confirm').hidden"))await tap('#partial-fill-confirm .primary');await waitFor("!!window.__materialFieldProbe?.().run&&!document.querySelector('#veil-view').hidden",'Rare FIELD entry');
   assert.equal(await evaluate("window.__materialFieldProbe().run.config.worldAwakened"),true);
   const pad=await evaluate("(()=>{const r=document.querySelector('#veil-pad').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()");
-  const steerTo=async(target,radius)=>{
-    await send('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'Shift',code:'ShiftLeft',windowsVirtualKeyCode:16});
+  const steerTo=async(target,radius,{element=null}={})=>{
+    // Stop at the acquisition event, and slow down before a point target. The
+    // pilot must not orbit an already-collected socket while waiting for one
+    // exact 50 ms position sample on a differently paced CI browser.
     await send('Input.dispatchMouseEvent',{type:'mousePressed',...pad,button:'left',buttons:1,clickCount:1});
-    let reached=false;
-    for(let n=0;n<600;n++){const p=await evaluate("(()=>{const r=window.__materialFieldProbe().run;return{x:r.player.x,y:r.player.y,captured:r.captured}})()");assert.equal(p.captured,false);const dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(d<radius){reached=true;break;}await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:pad.x+dx/d*48,y:pad.y+dy/d*48,button:'left',buttons:1});await pause(50);}
-    await send('Input.dispatchMouseEvent',{type:'mouseReleased',...pad,button:'left',buttons:0});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Shift',code:'ShiftLeft',windowsVirtualKeyCode:16});assert.ok(reached,'normal pointer flight reaches waypoint');
+    let reached=false,driving=false,lastState;
+    for(let n=0;n<600;n++){
+      const p=await evaluate("(()=>{const r=window.__materialFieldProbe().run;return{x:r.player.x,y:r.player.y,vx:r.player.vx,vy:r.player.vy,captured:r.captured,time:r.time,cargo:r.elementDust,fuel:r.fuel,driveHeld:r.driveHeld}})()");lastState=p;
+      const dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);
+      assert.equal(p.captured,false,`pointer pilot captured: ${JSON.stringify({target,radius,d,state:p,pad})}`);
+      if(d<radius||element&&p.cargo[element]>0){reached=true;break;}
+      const shouldDrive=d>400;if(shouldDrive!==driving){await send('Input.dispatchKeyEvent',{type:shouldDrive?'rawKeyDown':'keyUp',key:'Shift',code:'ShiftLeft',windowsVirtualKeyCode:16});driving=shouldDrive;}
+      const magnitude=shouldDrive?1:Math.max(.2,Math.min(1,d/250));
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:pad.x+dx/d*48*magnitude,y:pad.y+dy/d*48*magnitude,button:'left',buttons:1});await pause(50);
+    }
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',...pad,button:'left',buttons:0});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Shift',code:'ShiftLeft',windowsVirtualKeyCode:16});assert.ok(reached,`normal pointer flight reaches waypoint: ${JSON.stringify({target,state:lastState})}`);
   };
   const rare=await evaluate("(()=>{const r=window.__materialFieldProbe().run;const d=r.map.dust.filter(x=>x.rareEcology&&x.element==='P').sort((a,b)=>Math.hypot(a.x-r.player.x,a.y-r.player.y)-Math.hypot(b.x-r.player.x,b.y-r.player.y))[0];return{x:d.x,y:d.y}})()");
-  await steerTo(rare,25);await waitFor("window.__materialFieldProbe().run.elementDust.P>0",'pointer flight collects Rare P');
+  await steerTo(rare,25,{element:'P'});await waitFor("window.__materialFieldProbe().run.elementDust.P>0",'pointer flight collects Rare P');
   const site=await evaluate("(()=>{const r=window.__materialFieldProbe().run;const s=r.map.safeExtractionSites.sort((a,b)=>Math.hypot(a.x-r.player.x,a.y-r.player.y)-Math.hypot(b.x-r.player.x,b.y-r.player.y))[0];return{x:s.x,y:s.y,radius:s.radius}})()");await steerTo(site,site.radius*.7);
   await waitFor("document.querySelector('#veil-status-panel').dataset.state==='site-ready'",'safe return ready');
   const ship=await evaluate("(()=>{const {run,renderer}=window.__materialFieldProbe(),r=document.querySelector('#veil-canvas').getBoundingClientRect(),p=renderer.screen(run.player.x,run.player.y);return{x:r.x+p.x,y:r.y+p.y}})()");await send('Input.dispatchMouseEvent',{type:'mousePressed',...ship,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...ship,button:'left',buttons:0});await waitFor("document.querySelector('#veil-view').hidden",'normal return settles Rare inventory');
