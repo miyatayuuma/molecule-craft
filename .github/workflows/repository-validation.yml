@@ -137,6 +137,8 @@ jobs:
           node tests/engineering-fabrication.test.mjs
           node --test tests/collector-applications.test.mjs
           node tests/collector-applications-browser.test.mjs
+          node --test tests/material-progression-closure.test.mjs
+          node tests/material-progression-browser.test.mjs
           node tests/resources-persistence.test.mjs
           node scripts/build-collection-assets.mjs
           git diff --exit-code -- assets/models/molecule-*.svg assets/models/part-*.svg assets/models/polymer-*.svg
