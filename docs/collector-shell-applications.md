@@ -68,9 +68,10 @@ order baseline/inactive/active/active/inactive/baseline.
 Timings are descriptive host measurements, not new CI thresholds. No material
 frame regression was observed; P5 classification remains unchanged.
 
-## ⑩C boundary
+## Integrated progression
 
-⑩C must reconcile World Awakening → Rare Ecology → resource acquisition →
-Reaction Lab → polymer discovery → fabrication → selection → FIELD response →
-save/reload as one production progression. Fabrication, selection and FIELD
-response authority above are the handoff; ⑩B does not claim this entire E2E closure.
+The [post-Core material progression contract](post-core-material-progression.md)
+connects these authorities with production flight, acquisition, CRAFT, polymer
+gameplay, fabrication, mobile selection and save/reload verification. Its closure
+tests import the same catalogs and controllers; they do not define parallel
+progression or unlock state.
