@@ -135,6 +135,8 @@ jobs:
         run: |
           node --test tests/polymerization-routes.test.mjs tests/reaction-graph-edits.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/polymer-collection-persistence.test.mjs tests/polymer-collection.test.mjs tests/reaction-lab-polymer-discovery.test.mjs
           node tests/engineering-fabrication.test.mjs
+          node --test tests/collector-applications.test.mjs
+          node tests/collector-applications-browser.test.mjs
           node tests/resources-persistence.test.mjs
           node scripts/build-collection-assets.mjs
           git diff --exit-code -- assets/models/molecule-*.svg assets/models/part-*.svg assets/models/polymer-*.svg

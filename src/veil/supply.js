@@ -1,3 +1,4 @@
+import {createCollectorApplicationsUI} from './collector-applications-ui.js';
 import { MOLECULE_USES,REGIONS,TANK_USES,isExpeditionRegionDestination } from './growth.js';
 import { ACTIVE_TANK_ROLES,performanceFor } from './molecule-roles.js';
 import { drawCollectorShell,drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
@@ -41,6 +42,7 @@ export function launchConfirmationState(plan){
 
 export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaunch=()=>false,onLaunchReady=()=>false}){
   const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
+  const applicationsUI=createCollectorApplicationsUI(resources,dialog);
   const partialPanel=document.createElement('div'),partialRows=document.createElement('div'),partialActions=document.createElement('div'),partialGo=document.createElement('button'),partialBack=document.createElement('button');partialPanel.id='partial-fill-confirm';partialPanel.hidden=true;Object.assign(partialPanel.style,{position:'absolute',inset:'auto 10px 10px 10px',zIndex:'9',padding:'12px',maxHeight:'calc(100% - 20px)',overflow:'auto',border:'1px solid #678494',borderRadius:'14px',background:'#071925f2',boxShadow:'0 10px 30px #0008'});Object.assign(partialRows.style,{display:'grid',gap:'8px',marginBottom:'10px'});Object.assign(partialActions.style,{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'flex-end'});partialGo.type='button';partialGo.className='primary';partialGo.textContent='出発';partialBack.type='button';partialBack.textContent='戻る';partialActions.append(partialBack,partialGo);partialPanel.append(partialRows,partialActions);q('supply-dialog').querySelector('.sheet-body').append(partialPanel);
   let selectedUse='propellant',selectedId=null,destinationsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchTapStartedOpen=false,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false,requestedDestinationId=null;
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
@@ -153,6 +155,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();drawAccessIcon();
   }
   function update(){
+    applicationsUI.update();
     const state=resources.state,destinations=availableLaunchRegionIds(state.progress);syncElementStocks(document,state.elements);syncLoadoutElementStock(resources,document);
     renderShell();renderTankDetail();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
     q('oxygen-route-guide').hidden=!state.progress.foundElements.includes('O');
