@@ -11,6 +11,8 @@ test('25 exact profiles, routes and deterministic bounded plans; invalid authori
   for(const p of polymers){const a=createMorphologyPlan(p.id);assert.deepEqual(a,createMorphologyPlan(p.id));assert.ok(a.strands.length<=(p.topology==='network'?MORPHOLOGY_BUDGET.networkMembers:MORPHOLOGY_BUDGET.chains));assert.ok(a.strands.flat(2).every(Number.isFinite));}
   for(const profiles of [POLYMER_VISUAL_PROFILES.slice(1),[...POLYMER_VISUAL_PROFILES,POLYMER_VISUAL_PROFILES[0]],POLYMER_VISUAL_PROFILES.map((p,i)=>i? p:{...p,archetype:'invalid'}),POLYMER_VISUAL_PROFILES.map((p,i)=>i?p:{...p,bulk:3}),POLYMER_VISUAL_PROFILES.map(p=>p.polymerId==='phenol-formaldehyde-resin'?{...p,archetype:'flexible-coils'}:p)])assert.throws(()=>validateMorphologyAuthority(polymers,routes,profiles));
   assert.throws(()=>validateMorphologyAuthority(polymers,[...routes,{polymerId:'unknown'}]));assert.throws(()=>createMorphologyPlan('unknown'));
+  assert.throws(()=>validateMorphologyAuthority(polymers,routes.map((r,i)=>i?r:{...r,builder:'network'})));
+  for(const field of [{stiffness:0},{rhythm:.5}])assert.throws(()=>validateMorphologyAuthority(polymers,routes,POLYMER_VISUAL_PROFILES.map((p,i)=>i?p:{...p,...field})));
 });
 function census(root){const objects=[],geometries=new Set(),materials=new Set();root.traverse(o=>{objects.push(o);if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});return{objects:objects.length,geometries:geometries.size,materials:materials.size,vertices:[...geometries].reduce((n,g)=>n+(g.attributes.position?.count??0),0),indices:[...geometries].reduce((n,g)=>n+(g.index?.count??0),0)};}
 test('real Three resources are bounded for all 25, stable throughout hold and long elapsed time; dispose releases once',()=>{

@@ -34,13 +34,14 @@ export function validateMorphologyAuthority(polymers,routes,profiles=POLYMER_VIS
   for(const p of profiles){
     if(!ids.has(p.polymerId)||seen.has(p.polymerId)||!MORPHOLOGY_ARCHETYPES.includes(p.archetype))throw Error('Invalid morphology mapping: '+p.polymerId);
     for(const [key,max] of [['bulk',1],['stiffness',2],['rhythm',7]])if(!Number.isFinite(p[key])||p[key]<0||p[key]>max)throw Error('Invalid visual domain: '+key);
+    if(p.stiffness===0||!Number.isInteger(p.rhythm))throw Error('Invalid curvature or sequence domain');
     if(!p.signature||!p.qualification)throw Error('Missing scientific qualification');
     const network=polymers.find(item=>item.id===p.polymerId).topology==='network';
     if(network!==(p.archetype==='connected-network'))throw Error('Network morphology mismatch');
     seen.add(p.polymerId);
   }
   if(seen.size!==ids.size)throw Error('Missing morphology profile');
-  for(const r of routes)if(!seen.has(r.polymerId))throw Error('Unmapped route');
+  for(const r of routes){if(!seen.has(r.polymerId))throw Error('Unmapped route');if((r.builder==='network')!==(profiles.find(p=>p.polymerId===r.polymerId).archetype==='connected-network'))throw Error('Route builder morphology mismatch');}
   return seen.size;
 }
 function randomFor(id){let seed=2166136261;for(const c of id)seed=Math.imul(seed^c.charCodeAt(0),16777619);return()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};}
