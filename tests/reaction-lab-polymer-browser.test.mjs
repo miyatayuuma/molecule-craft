@@ -111,11 +111,21 @@ try{
   for(const route of hardRoutes){await evaluate('window.__reactionLabProbe.profileReset?.()');await feedRoute(route,previousSample);await runManualSteps(route);await waitFor(`window.__reactionLabProbe.snapshot().polymerization.state==='SAMPLE'`,`${route.routeId}: automatic final step did not complete`,18000);normalEvidence.push(await inspectSample(route));previousSample=true;}
   const discoveries=await evaluate(`JSON.parse(localStorage.getItem('molecule-craft.polymer-collection.v1')||'{}').discoveredPolymers`);assert.equal(discoveries.length,9);assert.deepEqual(discoveries.map(item=>item.order),[1,2,3,4,5,6,7,8,9]);
   if(!baseline){
-    const pe=hardRoutes[0];await feedRoute(pe,true);await runManualSteps(pe);await waitFor("window.__reactionLabProbe.snapshot().cinematic?.phase==='bulk-feed'",'close lifecycle enters cinematic');
+    // Lifecycle replays test cancellation, not the automatic-cadence gate above.
+    // Existing chemistry may request its supported pointer fallback in a live pose.
+    const finishReplay=async route=>{
+      await waitFor("(()=>{const p=window.__reactionLabProbe.snapshot().polymerization;return p.state==='SAMPLE'||p.waitReason==='auto-fallback'})()",'Replay completes or requests its existing pointer fallback',18000);
+      const state=await snapshot();if(state.polymerization.waitReason==='auto-fallback'){
+        const p=state.polymerization,reserved=new Set(p.reservedInstanceIds),species=route.representativeSequence[p.consumedInstanceIds.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!p.consumedInstanceIds.includes(item.id));
+        assert.ok(candidate,'Replay fallback retains its actual finite Feed monomer');const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,p.manualStepCount+1);
+      }
+      await waitFor("window.__reactionLabProbe.snapshot().cinematic?.objectCount>0&&window.__reactionLabProbe.snapshot().cinematic?.phase==='bulk-feed'",'Replay enters a live cinematic');
+    };
+    const pe=hardRoutes[0];await feedRoute(pe,true);await runManualSteps(pe);await finishReplay(pe);
     const beforeClose=await snapshot();await evaluate("document.querySelector('[data-lab-close]').click()");await waitFor("!document.querySelector('#reaction-lab-dialog').open&&window.__reactionLabProbe.snapshot().cinematic?.objectCount===0",'Lab closes and dispatches cinematic cleanup');
     const closed=await snapshot();assert.equal(closed.cinematic.objectCount,0);assert.equal(closed.cinematic.geometryCount,0);assert.equal(closed.polymerization.sampleId,beforeClose.polymerization.sampleId);
     await openLab();await waitFor("window.__reactionLabProbe.snapshot().polymerization.samplePhase==='hold'",'Cancelled cinematic retains finite Sample Bay');assert.equal(await evaluate("document.querySelector('[data-polymer-sample-bay]').hidden"),false);
-    await feedRoute(pe,true);await runManualSteps(pe);await waitFor("window.__reactionLabProbe.snapshot().cinematic?.phase==='bulk-feed'",'next Feed lifecycle enters cinematic');
+    await feedRoute(pe,true);await runManualSteps(pe);await finishReplay(pe);
     await waitFor("!document.querySelector('[data-lab-feed]').disabled",'Completed chemistry permits next Feed during cinematic');await evaluate("document.querySelector('[data-lab-feed]').click()");await waitFor("window.__reactionLabProbe.snapshot().batch.phase==='FLUSHING'",'Next Feed cancels cinematic');
     const purged=await snapshot();assert.equal(purged.cinematic.objectCount,0);assert.equal(purged.cinematic.geometryCount,0);assert.equal(purged.cinematic.feedVisualActiveCount,0);
   }
@@ -126,4 +136,4 @@ try{
   assert.deepEqual({unitCount:reducedEvidence.unitCount,interUnitLinks:reducedEvidence.interUnitLinks,ringOpenings:reducedEvidence.ringOpenings,byproducts:reducedEvidence.byproducts.map(item=>item.species),features:reducedEvidence.features},{unitCount:reference.unitCount,interUnitLinks:reference.interUnitLinks,ringOpenings:reference.ringOpenings,byproducts:reference.byproducts.map(item=>item.species),features:reference.features},'reduced motion changes only presentation timing, not PolymerSample chemistry');
   assert.equal(reduced.polymerization.sampleReady,true);assert.equal(reduced.instances.some(item=>item.species==='PolymerSample'),false);assert.deepEqual(browserErrors,[],'No browser exception is raised by polymer gameplay');await mkdir(join(root,'test-results/polymer-scale-up'),{recursive:true});await writeFile(join(root,'test-results/polymer-scale-up',baseline?'baseline-'+viewport.width+'.json':'profile-'+viewport.width+'.json'),JSON.stringify(evidence,null,2));
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
-console.log('Reaction Lab polymer pointer browser validation passed: 8/8 390×844 hard routes, 2 real pointer chemistry steps each, sample persistence/purge/Collection return, and matching reduced-motion chemistry.');
+console.log(`Reaction Lab polymer pointer browser validation passed: 8/8 hard routes plus PS at ${viewport.width}×${viewport.height}, actual pointer chemistry, sample persistence/purge/Collection return, and matching reduced-motion chemistry.`);
