@@ -116,7 +116,7 @@ try{
     const closed=await snapshot();assert.equal(closed.cinematic.objectCount,0);assert.equal(closed.cinematic.geometryCount,0);assert.equal(closed.polymerization.sampleId,beforeClose.polymerization.sampleId);
     await openLab();await waitFor("window.__reactionLabProbe.snapshot().polymerization.samplePhase==='hold'",'Cancelled cinematic retains finite Sample Bay');assert.equal(await evaluate("document.querySelector('[data-polymer-sample-bay]').hidden"),false);
     await feedRoute(pe,true);await runManualSteps(pe);await waitFor("window.__reactionLabProbe.snapshot().cinematic?.phase==='bulk-feed'",'next Feed lifecycle enters cinematic');
-    await evaluate("document.querySelector('[data-lab-feed]').click()");await waitFor("window.__reactionLabProbe.snapshot().batch.phase==='FLUSHING'",'Next Feed cancels cinematic');
+    await waitFor("!document.querySelector('[data-lab-feed]').disabled",'Completed chemistry permits next Feed during cinematic');await evaluate("document.querySelector('[data-lab-feed]').click()");await waitFor("window.__reactionLabProbe.snapshot().batch.phase==='FLUSHING'",'Next Feed cancels cinematic');
     const purged=await snapshot();assert.equal(purged.cinematic.objectCount,0);assert.equal(purged.cinematic.geometryCount,0);assert.equal(purged.cinematic.feedVisualActiveCount,0);
   }
   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await send('Page.reload',{ignoreCache:true});

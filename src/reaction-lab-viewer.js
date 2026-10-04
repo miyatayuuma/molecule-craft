@@ -406,7 +406,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const meshes=[...polymerGraphVisual.atomByGraphIndex.values()],anchor=meshes.at(-1)?.getWorldPosition(new THREE.Vector3())??new THREE.Vector3();
     polymerCinematic.entryPosition=anchor.sub(new THREE.Vector3(...polymerCinematic.plan.strands[0][0]).multiplyScalar(.28*cinematicFit).applyQuaternion(camera.quaternion));
     polymerCinematic.root.position.copy(polymerCinematic.entryPosition);
-    polymerSampleBay.hidden=true;updateEnvironmentControls();
+    polymerSampleBay.hidden=true;updateCommandBar();
   }
   function polymerSampleBayLayout(){
     if(!polymerGraphVisual)return null;
