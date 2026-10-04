@@ -13,7 +13,7 @@ export function createPolymerCinematic({THREE,polymerId,sourceRecords=[],reduced
       if(i<strand.length-1)for(let j=0;j<radial;j++){const a=start+i*radial+j,b=start+i*radial+(j+1)%radial,c=a+radial,d=b+radial;indices.push(a,b,c,b,d,c);}
       if(plan.profile.bulk>0&&i%8===4&&(!plan.profile.rhythm||Math.floor(i/8)%plan.profile.rhythm===0)){
         const size=.12+plan.profile.bulk*.28,center=point.clone().addScaledVector(side,size),steps=plan.profile.bulk>=.75?6:3;
-        for(let j=0;j<steps;j++)for(const k of [j,j+1]){const angle=k/steps*Math.PI*2;pendants.push(center.x+size*(side.x*Math.cos(angle)+up.x*Math.sin(angle)),center.y+size*(side.y*Math.cos(angle)+up.y*Math.sin(angle)),center.z+size*(side.z*Math.cos(angle)+up.z*Math.sin(angle)));}
+        if(steps===6){for(let j=0;j<steps;j++)for(const k of [j,j+1]){const angle=k/steps*Math.PI*2;pendants.push(center.x+size*(side.x*Math.cos(angle)+up.x*Math.sin(angle)),center.y+size*(side.y*Math.cos(angle)+up.y*Math.sin(angle)),center.z+size*(side.z*Math.cos(angle)+up.z*Math.sin(angle)));}}else{pendants.push(point.x,point.y,point.z,center.x+side.x*size,center.y+side.y*size,center.z+side.z*size);}
       }
     }
   }
