@@ -48,7 +48,7 @@ export function createMorphologyPlan(polymerId){
   const p=POLYMER_VISUAL_PROFILES.find(p=>p.polymerId===polymerId);if(!p)throw Error('Unknown morphology: '+polymerId);
   const random=randomFor(polymerId),strands=[];
   if(p.archetype==='connected-network'){
-    const nodes=[];for(let z=0;z<4;z++)for(let y=0;y<4;y++)for(let x=0;x<4;x++)nodes.push([(x-1.5)*2.6+(random()-.5)*.8,(y-1.5)*2.6+(random()-.5)*.8,(z-1.5)*2+(random()-.5)*.8]);
+    const nodes=[];for(let z=0;z<4;z++)for(let y=0;y<4;y++)for(let x=0;x<4;x++)nodes.push([(x-1.5)*2.6+(random()-.5)*2,(y-1.5)*2.6+(random()-.5)*2,(z-1.5)*2+(random()-.5)*2]);
     for(let z=0;z<4;z++)for(let y=0;y<4;y++)for(let x=0;x<4;x++){const i=x+y*4+z*16;for(const [valid,d] of [[x<3,1],[y<3,4],[z<3,16]])if(valid){const a=nodes[i],b=nodes[i+d],points=[];for(let k=0;k<=8;k++){const t=k/8;points.push(k==0?[...a]:k==8?[...b]:a.map((v,j)=>v+(b[j]-v)*t+Math.sin(t*Math.PI)*.18*Math.sin(i+j)));}strands.push(points);}}
   }else for(let i=0;i<MORPHOLOGY_BUDGET.chains;i++){
     const phase=random()*Math.PI*2,center=[(random()-.5)*5.5,(random()-.5)*5.5,(random()-.5)*4],points=[];
@@ -61,6 +61,8 @@ export function createMorphologyPlan(polymerId){
       points.push(point);
     }strands.push(points);
   }
+  // Fixed oblique view exposes depth without introducing camera orbit.
+  const angle=.38;for(const strand of strands)for(const point of strand){const [x,y,z]=point;point[0]=x*Math.cos(angle)+z*Math.sin(angle);point[1]=y*Math.cos(.18)-z*Math.sin(.18);point[2]=-x*Math.sin(angle)+z*Math.cos(angle);}
   return{polymerId,profile:p,strands,budget:MORPHOLOGY_BUDGET,representative:true};
 }
 export function cinematicFrame(elapsedMs,reducedMotion=false){

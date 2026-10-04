@@ -391,7 +391,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(!polymerCinematic)return;
     lastCinematicStats={...polymerCinematic.stats,active:false};polymerCinematic.dispose();
     lastCinematicStats.objectCount=0;lastCinematicStats.geometryCount=0;lastCinematicStats.materialCount=0;lastCinematicStats.feedVisualActiveCount=0;
-    polymerCinematic=null;if(cinematicCameraDistance!==null){distance=cinematicCameraDistance;cinematicCameraDistance=null;updateCamera();}setFinitePolymerOpacity(1);updateEnvironmentControls();
+    polymerCinematic=null;if(cinematicCameraDistance!==null){distance=cinematicCameraDistance;cinematicCameraDistance=null;updateCamera();}setFinitePolymerOpacity(1);if(polymerSamplePresentation&&polymerGraphVisual)polymerSampleBay.hidden=false;updateEnvironmentControls();
   }
   function startPolymerCinematic(){
     cancelAllPointers();cinematicCameraDistance=distance;
@@ -399,7 +399,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const sourceRecords=route.feedSpecies.map(id=>[...polymerReservedById.values()].find(item=>item.species===id)?.record).filter(Boolean);
     polymerCinematic=createPolymerCinematic({THREE,polymerId:tx.polymerId,sourceRecords,reducedMotion});
     polymerCinematic.root.quaternion.copy(camera.quaternion);world.add(polymerCinematic.root);
-    const height=2*distance*(reducedMotion?1:1.65)*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5));cinematicFit=Math.min(height*.60/11,height*camera.aspect*.78/11);
+    const height=2*distance*(reducedMotion?1:1.65)*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5));cinematicFit=Math.min(height*.60/11,height*camera.aspect*.62/11);
     // Feed source follows the visible rack port in screen space; not a new inventory.
     const port=slots[0].getBoundingClientRect(),rect=canvas.getBoundingClientRect(),worldPerPixel=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,rect.height);
     polymerCinematic.feedOrigin.set((port.left+port.width*.5-rect.left-rect.width*.5)*worldPerPixel/.28,-(port.bottom-rect.top-rect.height*.5)*worldPerPixel/.28,0);
@@ -494,7 +494,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(presentation.phase==='cinematic'){
         const frame=polymerCinematic.update(elapsedMs);
         distance=cinematicCameraDistance*(1+.65*frame.cameraProgress);updateCamera();polymerCinematic.root.scale.multiplyScalar(cinematicFit);
-        polymerCinematic.root.position.copy(polymerCinematic.entryPosition).multiplyScalar(frame.index===0?1:frame.index===1?1-frame.progress:0);
+        const framing=frame.index===0?0:frame.index===1?frame.progress:frame.index===4?1-frame.progress:frame.done?0:1;
+        polymerCinematic.root.position.copy(polymerCinematic.entryPosition).multiplyScalar(1-framing).addScaledVector(cameraRight(),-distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))*camera.aspect*.18*framing);
         const rect=canvas.getBoundingClientRect(),port=slots[0].getBoundingClientRect(),unit=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,rect.height);
         polymerCinematic.feedOrigin.set((port.left+port.width*.5-rect.left-rect.width*.5)*unit,-(Math.max(rect.top+4,port.bottom)-rect.top-rect.height*.5)*unit,0);
         polymerCinematic.feedOrigin.sub(polymerCinematic.root.position.clone().applyQuaternion(camera.quaternion.clone().invert())).divideScalar(Math.max(.01,polymerCinematic.root.scale.x));

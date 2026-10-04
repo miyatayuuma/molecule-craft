@@ -112,9 +112,9 @@ try{
   const discoveries=await evaluate(`JSON.parse(localStorage.getItem('molecule-craft.polymer-collection.v1')||'{}').discoveredPolymers`);assert.equal(discoveries.length,9);assert.deepEqual(discoveries.map(item=>item.order),[1,2,3,4,5,6,7,8,9]);
   if(!baseline){
     const pe=hardRoutes[0];await feedRoute(pe,true);await runManualSteps(pe);await waitFor("window.__reactionLabProbe.snapshot().cinematic?.phase==='bulk-feed'",'close lifecycle enters cinematic');
-    const beforeClose=await snapshot();await evaluate("document.querySelector('[data-lab-close]').click()");await waitFor("!document.querySelector('#reaction-lab-dialog').open",'Lab closes during cinematic');
+    const beforeClose=await snapshot();await evaluate("document.querySelector('[data-lab-close]').click()");await waitFor("!document.querySelector('#reaction-lab-dialog').open&&window.__reactionLabProbe.snapshot().cinematic?.objectCount===0",'Lab closes and dispatches cinematic cleanup');
     const closed=await snapshot();assert.equal(closed.cinematic.objectCount,0);assert.equal(closed.cinematic.geometryCount,0);assert.equal(closed.polymerization.sampleId,beforeClose.polymerization.sampleId);
-    await openLab();await waitFor("window.__reactionLabProbe.snapshot().polymerization.samplePhase==='hold'",'Cancelled cinematic retains finite Sample Bay');
+    await openLab();await waitFor("window.__reactionLabProbe.snapshot().polymerization.samplePhase==='hold'",'Cancelled cinematic retains finite Sample Bay');assert.equal(await evaluate("document.querySelector('[data-polymer-sample-bay]').hidden"),false);
     await feedRoute(pe,true);await runManualSteps(pe);await waitFor("window.__reactionLabProbe.snapshot().cinematic?.phase==='bulk-feed'",'next Feed lifecycle enters cinematic');
     await evaluate("document.querySelector('[data-lab-feed]').click()");await waitFor("window.__reactionLabProbe.snapshot().batch.phase==='FLUSHING'",'Next Feed cancels cinematic');
     const purged=await snapshot();assert.equal(purged.cinematic.objectCount,0);assert.equal(purged.cinematic.geometryCount,0);assert.equal(purged.cinematic.feedVisualActiveCount,0);

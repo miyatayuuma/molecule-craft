@@ -1,4 +1,4 @@
-import {readFile,writeFile,mkdir,cp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,cp} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
 import {instrumentPolymerViewer} from '../tests/helpers/polymer-profile-instrumentation.mjs';
