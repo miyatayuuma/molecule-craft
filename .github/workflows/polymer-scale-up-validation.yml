@@ -1,0 +1,41 @@
+name: Polymer scale-up validation
+on:
+  push:
+    branches: [polymer-scale-up]
+  pull_request:
+    paths:
+      - 'src/*polymer*'
+      - 'tests/*polymer*'
+      - 'tests/helpers/polymer-profile-instrumentation.mjs'
+      - 'scripts/profile-polymer-scale-up.mjs'
+      - '.github/workflows/polymer-scale-up-validation.yml'
+permissions:
+  contents: read
+jobs:
+  morphology:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Authority, chemistry, discovery, persistence, fabrication
+        run: node --test tests/polymer-morphology.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
+      - name: Paired production pointer/profile validation
+        run: node scripts/profile-polymer-scale-up.mjs b6b48701eca71fdac16bc391efaa48027a4b214c
+      - name: Collection, hygiene, offline integrity
+        run: |
+          node tests/collection-polymer-browser.test.mjs
+          node scripts/check-repository-hygiene.mjs
+          node scripts/build-precache.mjs --check
+          node --test tests/pwa.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: polymer-scale-up-evidence
+          path: test-results/polymer-scale-up
+          if-no-files-found: error
+          retention-days: 14
