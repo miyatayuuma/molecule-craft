@@ -29,6 +29,7 @@ jobs:
       - name: Collection, hygiene, offline integrity
         run: |
           node tests/collection-polymer-browser.test.mjs
+          node scripts/export-polymer-morphology-doc.mjs --check
           node scripts/check-repository-hygiene.mjs
           node scripts/build-precache.mjs --check
           node --test tests/pwa.test.mjs

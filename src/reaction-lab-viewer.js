@@ -399,10 +399,13 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const sourceRecords=route.feedSpecies.map(id=>[...polymerReservedById.values()].find(item=>item.species===id)?.record).filter(Boolean);
     polymerCinematic=createPolymerCinematic({THREE,polymerId:tx.polymerId,sourceRecords,reducedMotion});
     polymerCinematic.root.quaternion.copy(camera.quaternion);world.add(polymerCinematic.root);
-    const height=2*distance*1.65*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5));cinematicFit=Math.min(height*.60/11,height*camera.aspect*.78/11);
+    const height=2*distance*(reducedMotion?1:1.65)*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5));cinematicFit=Math.min(height*.60/11,height*camera.aspect*.78/11);
     // Feed source follows the visible rack port in screen space; not a new inventory.
     const port=slots[0].getBoundingClientRect(),rect=canvas.getBoundingClientRect(),worldPerPixel=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,rect.height);
     polymerCinematic.feedOrigin.set((port.left+port.width*.5-rect.left-rect.width*.5)*worldPerPixel/.28,-(port.bottom-rect.top-rect.height*.5)*worldPerPixel/.28,0);
+    const meshes=[...polymerGraphVisual.atomByGraphIndex.values()],anchor=meshes.at(-1)?.getWorldPosition(new THREE.Vector3())??new THREE.Vector3();
+    polymerCinematic.entryPosition=anchor.sub(new THREE.Vector3(...polymerCinematic.plan.strands[0][0]).multiplyScalar(.28*cinematicFit).applyQuaternion(camera.quaternion));
+    polymerCinematic.root.position.copy(polymerCinematic.entryPosition);
     polymerSampleBay.hidden=true;updateEnvironmentControls();
   }
   function polymerSampleBayLayout(){
@@ -491,6 +494,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(presentation.phase==='cinematic'){
         const frame=polymerCinematic.update(elapsedMs);
         distance=cinematicCameraDistance*(1+.65*frame.cameraProgress);updateCamera();polymerCinematic.root.scale.multiplyScalar(cinematicFit);
+        polymerCinematic.root.position.copy(polymerCinematic.entryPosition).multiplyScalar(frame.index===0?1:frame.index===1?1-frame.progress:0);
+        const rect=canvas.getBoundingClientRect(),port=slots[0].getBoundingClientRect(),unit=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,rect.height);
+        polymerCinematic.feedOrigin.set((port.left+port.width*.5-rect.left-rect.width*.5)*unit,-(Math.max(rect.top+4,port.bottom)-rect.top-rect.height*.5)*unit,0);
+        polymerCinematic.feedOrigin.sub(polymerCinematic.root.position.clone().applyQuaternion(camera.quaternion.clone().invert())).divideScalar(Math.max(.01,polymerCinematic.root.scale.x));
         setFinitePolymerOpacity(frame.atomOpacity);
         status.textContent=frame.phase==='morphology-hold'?'代表的な材料内部構造 · 加工条件により変化':frame.phase==='bulk-feed'?'MONOMER SUPPLY · 分子から長い鎖へ':frame.phase==='scale-out'?'SCALE OUT · 繰り返し単位から高分子鎖へ':frame.phase==='ensemble-growth'?'MATERIAL · 多数の鎖が集合': 'REPRESENTATIVE SAMPLE';
         if(frame.done){cleanupPolymerCinematic();presentation.phase='dock';polymerSampleBay.hidden=false;}

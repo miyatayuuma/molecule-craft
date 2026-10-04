@@ -17,7 +17,7 @@ test('real Three resources are bounded for all 25, stable throughout hold and lo
   for(const p of polymers){const c=createPolymerCinematic({THREE,polymerId:p.id}),initial=census(c.root),matrices=c.root.children.filter(o=>o.isInstancedMesh).map(o=>o.instanceMatrix.array);
     assert.ok(initial.objects<=MORPHOLOGY_BUDGET.objects);assert.ok(initial.vertices<=MORPHOLOGY_BUDGET.vertices);assert.ok(initial.geometries<=MORPHOLOGY_BUDGET.geometries);assert.ok(initial.materials<=MORPHOLOGY_BUDGET.materials);
     for(let i=0;i<1000;i++){c.update(16);assert.deepEqual(census(c.root),initial);}
-    assert.deepEqual(c.root.children.filter(o=>o.isInstancedMesh).map(o=>o.instanceMatrix.array),matrices);
+    c.root.children.filter(o=>o.isInstancedMesh).forEach((o,i)=>assert.equal(o.instanceMatrix.array,matrices[i]));
     assert.equal(c.stats.feedVisualCapacity,24);const disposed=new Map();c.root.traverse(o=>{for(const resource of [o.geometry,o.material])if(resource&&!disposed.has(resource)){disposed.set(resource,0);resource.addEventListener('dispose',()=>disposed.set(resource,disposed.get(resource)+1));}});
     c.dispose();c.dispose();assert.equal(c.root.children.length,0);assert.ok([...disposed.values()].every(n=>n===1));assert.equal(c.stats.objectCount,0);
   }
