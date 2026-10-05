@@ -10,8 +10,8 @@ import {
 import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './reaction-lab-environment.js?v=1';
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=2';
 import {createReactionLabPolymerizationCore,POLYMERIZATION_STATES,POLYMER_COMMIT_DWELL_MS} from './reaction-lab-polymerization.js?v=1';
-import {createPolymerCinematic} from './reaction-lab-polymer-cinematic.js?v=2';
-import {createPolymerGrowthAnchor,largestSafeRect} from './polymer-growth-plan.js?v=1';
+import {createPolymerCinematic} from './reaction-lab-polymer-cinematic.js?v=3';
+import {createPolymerGrowthAnchor,createSafeRectWorkspace,largestSafeRect,POLYMER_VISUAL_AUTHORITY,projectedPolymerPathMetrics} from './polymer-growth-plan.js?v=2';
 import {createPolymerPresentationPlan} from './reaction-lab-polymer-presentation.js?v=1';
 import {polymerMorphologyProfile} from './polymer-morphology-authority.js?v=1';
 import {createPolymerMorphologyPlan} from './polymer-morphology-plan.js?v=1';
@@ -98,6 +98,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let instances=[],purgeItems=[],selected=null,down=null,testIsolation=null,polymerRouteOwned=false,polymerBeginError=null,morphologyPreview=null,lastMorphologyCleanupStats=null;
   let polymerReservedById=new Map(),polymerSourceRecordsById={},polymerGraphVisual=null,polymerDocking=null,polymerAutoMotion=null,polymerSamplePresentation=null,polymerDockAttempt=null,polymerAutoAttempt=null;
   let polymerCinematic=null,cinematicCameraDistance=null,lastCinematicStats=null,polymerGrowthAnchor=null,polymerCinematicStartError=null;
+  const polymerProjectionWorld=new THREE.Vector3(),polymerProjectionNdc=new THREE.Vector3(),polymerProjectionDirection=new THREE.Vector3();
+  const polymerProjectedPoints=Array.from({length:92},()=>({x:0,y:0,z:0}));
+  const polymerReadabilityWorldA=new THREE.Vector3(),polymerReadabilityWorldB=new THREE.Vector3(),polymerReadabilityNdcA=new THREE.Vector3(),polymerReadabilityNdcB=new THREE.Vector3(),polymerReadabilityDepth=new THREE.Vector3();
+  const polymerScreenMetricSnapshot={projectedHeavyAtomDiameterPx:0,projectedBackboneBondLengthPx:0,localUnitsPerCssPixel:0,cameraDistance:0};
+  const polymerPathMetrics={pathLengthPx:0,chordLengthPx:0,pathToChordRatio:0,cumulativeTurnRad:0,maxLocalTurnRad:0},polymerInitialPathMetrics={pathLengthPx:0,chordLengthPx:0,pathToChordRatio:0,cumulativeTurnRad:0,maxLocalTurnRad:0};
+  const polymerCanvasBounds={left:0,right:0,top:0,bottom:0,width:0,height:0},polymerSafeRegionRect={left:0,right:0,top:0,bottom:0,width:0,height:0},polymerSafeRectWorkspace=createSafeRectWorkspace(24);
+  const polymerObstacleBoxes=Array.from({length:24},()=>({left:0,right:0,top:0,bottom:0})),polymerCameraObstacleNodes=[];
+  const polymerProjectedBounds={left:0,right:0,top:0,bottom:0};
+  const polymerFeedWorldPoint=new THREE.Vector3(),polymerFeedRight=new THREE.Vector3(),polymerFeedUp=new THREE.Vector3();
+  const polymerFragmentAtomMeshes=[],polymerFragmentBondMeshes=[];
   const polymerFragmentMaterialState=new Map();
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,lastReactionPresentation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
   let dialogOpenState=!!dialog.open;const closeWaiters=new Set();
@@ -431,10 +441,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     status.textContent='POLYMER SAMPLE · READY FOR NEXT FEED';updatePolymerSiteIndicator();updateCommandBar();
   }
   function setPolymerFragmentMaterialOpacity(material,opacity){
-    const alpha=clamp(opacity,0,1),saved=polymerFragmentMaterialState.get(material),original=saved??{transparent:material.transparent,opacity:material.opacity,depthWrite:material.depthWrite};
-    if(alpha<1&&!saved)polymerFragmentMaterialState.set(material,original);
-    material.transparent=alpha<1?true:original.transparent;material.opacity=original.opacity*alpha;material.depthWrite=alpha<1?false:original.depthWrite;
-    if(alpha>=1)polymerFragmentMaterialState.delete(material);
+    const alpha=clamp(opacity,0,1);let saved=polymerFragmentMaterialState.get(material);
+    if(alpha>=1){if(!saved)return;material.transparent=saved.transparent;material.opacity=saved.opacity;material.depthWrite=saved.depthWrite;polymerFragmentMaterialState.delete(material);return;}
+    if(!saved){saved={transparent:material.transparent,opacity:material.opacity,depthWrite:material.depthWrite};polymerFragmentMaterialState.set(material,saved);}
+    material.transparent=true;material.opacity=saved.opacity*alpha;material.depthWrite=false;
   }
   function setFinitePolymerOpacity(opacity){
     if(!polymerGraphVisual)return;
@@ -445,59 +455,125 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(!polymerCinematic)return;
     lastCinematicStats={...polymerCinematic.stats,active:false};polymerCinematic.dispose();
     lastCinematicStats.objectCount=0;lastCinematicStats.geometryCount=0;lastCinematicStats.materialCount=0;lastCinematicStats.feedVisualActiveCount=0;
-    polymerCinematic=null;polymerGrowthAnchor=null;if(cinematicCameraDistance!==null){distance=cinematicCameraDistance;cinematicCameraDistance=null;updateCamera();}setFinitePolymerOpacity(1);if(polymerSamplePresentation&&polymerGraphVisual)polymerSampleBay.hidden=false;updateEnvironmentControls();updateCommandBar();
+    polymerCameraObstacleNodes.length=0;polymerFragmentAtomMeshes.length=0;polymerFragmentBondMeshes.length=0;polymerCinematic=null;polymerGrowthAnchor=null;if(cinematicCameraDistance!==null){distance=cinematicCameraDistance;cinematicCameraDistance=null;updateCamera();}setFinitePolymerOpacity(1);if(polymerSamplePresentation&&polymerGraphVisual)polymerSampleBay.hidden=false;updateEnvironmentControls();updateCommandBar();
   }
   function startPolymerCinematic(){
     const tx=polymerCore.snapshot();
     polymerCinematicStartError=null;
     if(!tx||tx.polymerId!=='polyethylene'||!polymerGraphVisual){polymerCinematicStartError=!tx?'missing-finite-sample':tx.polymerId!=='polyethylene'?'unsupported-prototype-polymer':'finite-sample-visual-missing';return false;}
-    cancelAllPointers();cinematicCameraDistance=distance;
+    cancelAllPointers();cinematicCameraDistance=distance;polymerCameraObstacleNodes.length=0;
+    const obstacleNodes=chamber.querySelectorAll('.reaction-lab-equipment,.reaction-lab-medium-selector:not([hidden]),.reaction-lab-purge-outlet');
+    for(let index=0;index<obstacleNodes.length&&index<polymerObstacleBoxes.length;index++)polymerCameraObstacleNodes.push(obstacleNodes[index]);
     const route=polymerRoutes.find(r=>r.routeId===tx.routeId);
     const sourceRecords=route.feedSpecies.map(id=>[...polymerReservedById.values()].find(item=>item.species===id)?.record).filter(Boolean);
     const pointsByAtomIndex=polymerGraphVisual.graph.atoms.map((_atom,index)=>polymerGraphVisual.atomByGraphIndex.get(index)?.position.toArray()??null);
     try{
       polymerGrowthAnchor=createPolymerGrowthAnchor({fragment:polymerGraphVisual.graph,pointsByAtomIndex,newestInstanceId:tx.consumedInstanceIds.at(-1)});
+      polymerFragmentAtomMeshes.length=0;polymerGraphVisual.atomByGraphIndex.forEach(mesh=>polymerFragmentAtomMeshes.push(mesh));
+      polymerFragmentBondMeshes.length=0;for(let index=0;index<polymerGraphVisual.bondMeshes.length;index++)polymerFragmentBondMeshes.push(polymerGraphVisual.bondMeshes[index]);
       camera.updateMatrixWorld();
       const cameraUp=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1).normalize(),viewDirection=camera.position.clone().normalize();
       polymerCinematic=createPolymerCinematic({THREE,polymerId:tx.polymerId,anchor:polymerGrowthAnchor,sourceRecords,sampleId:tx.sample?.sampleId??polymerSamplePresentation?.sampleId,reducedMotion,viewPlane:{right:cameraRight().toArray(),up:cameraUp.toArray(),direction:viewDirection.toArray()}});
-    }catch(error){polymerCinematicStartError=error?.stack??String(error);console.error('Polymer hero-chain presentation could not resolve its finite-fragment anchor.',error);polymerGrowthAnchor=null;cinematicCameraDistance=null;return false;}
+    }catch(error){polymerCinematicStartError=error?.stack??String(error);console.error('Polymer hero-chain presentation could not resolve its finite-fragment anchor.',error);polymerCameraObstacleNodes.length=0;polymerFragmentAtomMeshes.length=0;polymerFragmentBondMeshes.length=0;polymerGrowthAnchor=null;cinematicCameraDistance=null;return false;}
     polymerGraphVisual.group.add(polymerCinematic.root);
     updatePolymerFeedOrigin();polymerSampleBay.hidden=true;status.textContent='POLYMERIZATION · CHAIN ANCHOR';updateCommandBar();return true;
   }
   function updatePolymerFeedOrigin(){
     if(!polymerCinematic||!polymerGraphVisual)return;
     const port=slots[0].getBoundingClientRect(),rect=canvas.getBoundingClientRect(),unit=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,rect.height);
-    const worldPoint=cameraRight().multiplyScalar((port.left+port.width*.5-rect.left-rect.width*.5)*unit).addScaledVector(cameraUp(),-(Math.max(rect.top+8,port.bottom-8)-rect.top-rect.height*.5)*unit);
-    polymerGraphVisual.group.updateMatrixWorld(true);polymerCinematic.feedOrigin.copy(polymerGraphVisual.group.worldToLocal(worldPoint));
+    camera.updateMatrixWorld(true);polymerFeedRight.setFromMatrixColumn(camera.matrixWorld,0).normalize();polymerFeedUp.setFromMatrixColumn(camera.matrixWorld,1).normalize();
+    polymerFeedWorldPoint.copy(polymerFeedRight).multiplyScalar((port.left+port.width*.5-rect.left-rect.width*.5)*unit).addScaledVector(polymerFeedUp,-(Math.max(rect.top+8,port.bottom-8)-rect.top-rect.height*.5)*unit);
+    polymerGraphVisual.group.updateMatrixWorld(true);polymerCinematic.feedOrigin.copy(polymerGraphVisual.group.worldToLocal(polymerFeedWorldPoint));
   }
   function polymerSafeScreenRegion(){
-    const rect=canvas.getBoundingClientRect(),canvasBounds={left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,width:rect.width,height:rect.height};
-    const obstacles=[...chamber.querySelectorAll('.reaction-lab-equipment,.reaction-lab-medium-selector:not([hidden]),.reaction-lab-purge-outlet')].filter(node=>!node.hidden).map(node=>{const box=node.getBoundingClientRect();return{left:box.left,right:box.right,top:box.top,bottom:box.bottom};});
-    return largestSafeRect(canvasBounds,obstacles,10);
+    const rect=canvas.getBoundingClientRect(),bounds=polymerCanvasBounds;
+    bounds.left=rect.left;bounds.right=rect.right;bounds.top=rect.top;bounds.bottom=rect.bottom;bounds.width=rect.width;bounds.height=rect.height;
+    let obstacleCount=0;
+    for(let index=0;index<polymerCameraObstacleNodes.length;index++){const node=polymerCameraObstacleNodes[index];if(node.hidden)continue;const box=node.getBoundingClientRect(),target=polymerObstacleBoxes[obstacleCount++];target.left=box.left;target.right=box.right;target.top=box.top;target.bottom=box.bottom;}
+    return largestSafeRect(bounds,polymerObstacleBoxes,10,polymerSafeRegionRect,polymerSafeRectWorkspace,obstacleCount);
+  }
+  function projectPolymerPath(pointCount,canvasRect,group){
+    group.updateMatrixWorld(true);camera.updateMatrixWorld(true);
+    for(let index=0;index<pointCount;index++){
+      polymerProjectionWorld.fromArray(polymerCinematic.plan.points[index]);group.localToWorld(polymerProjectionWorld);
+      polymerProjectionNdc.copy(polymerProjectionWorld).project(camera);
+      const result=polymerProjectedPoints[index];result.x=canvasRect.left+(polymerProjectionNdc.x+1)*.5*canvasRect.width;result.y=canvasRect.top+(1-polymerProjectionNdc.y)*.5*canvasRect.height;result.z=polymerProjectionNdc.z;
+    }
+  }
+  function projectedPolymerBounds(pointCount,result){
+    result.left=Infinity;result.right=-Infinity;result.top=Infinity;result.bottom=-Infinity;
+    for(let index=0;index<pointCount;index++){const point=polymerProjectedPoints[index];result.left=Math.min(result.left,point.x);result.right=Math.max(result.right,point.x);result.top=Math.min(result.top,point.y);result.bottom=Math.max(result.bottom,point.y);}
+    return result;
+  }
+  function polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight){
+    return Math.max((centerX-bounds.left)/fitHalfWidth,(bounds.right-centerX)/fitHalfWidth,(centerY-bounds.top)/fitHalfHeight,(bounds.bottom-centerY)/fitHalfHeight,1);
+  }
+  function polymerPathIsClipped(pointCount,region,padding){
+    for(let index=0;index<pointCount;index++){
+      const point=polymerProjectedPoints[index];
+      if(point.z < -1||point.z>1||point.x<region.left+padding||point.x>region.right-padding||point.y<region.top+padding||point.y>region.bottom-padding)return true;
+    }
+    return false;
   }
   function updatePolymerCameraFraming(elapsedMs){
     if(!polymerCinematic||!polymerGraphVisual)return;
-    const canvasRect=canvas.getBoundingClientRect();
-    const region=polymerSafeScreenRegion(),centerX=(region.left+region.right)*.5,centerY=(region.top+region.bottom)*.5;
-    polymerGraphVisual.group.updateMatrixWorld(true);
-    const projected=polymerCinematic.visiblePoints().map(point=>projectPoint(polymerGraphVisual.group.localToWorld(vector(THREE,point))));
-    const bounds=projected.reduce((result,point)=>({left:Math.min(result.left,point.x),right:Math.max(result.right,point.x),top:Math.min(result.top,point.y),bottom:Math.max(result.bottom,point.y)}),{left:Infinity,right:-Infinity,top:Infinity,bottom:-Infinity});
-    const projectedLength=points=>points.slice(1).reduce((sum,point,index)=>sum+Math.hypot(point.x-points[index].x,point.y-points[index].y),0),initialPath=projected.slice(0,polymerCinematic.plan.basePointCount),initialProjectedLength=projectedLength(initialPath);
-    const halfWidth=Math.max(24,region.width*.44),halfHeight=Math.max(24,region.height*.44),required=Math.max((centerX-bounds.left)/halfWidth,(bounds.right-centerX)/halfWidth,(centerY-bounds.top)/halfHeight,(bounds.bottom-centerY)/halfHeight,1);
-    if(required>1.015&&distance<POLYMER_GROWTH_CAMERA_MAX_DISTANCE){const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.035),responseMs=reducedMotion?120:360,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);distance=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();}
-    const finalProjected=polymerCinematic.visiblePoints().map(point=>projectPoint(polymerGraphVisual.group.localToWorld(vector(THREE,point))));
-    const tip=finalProjected.at(-1),tipInside=!!tip&&tip.z>=-1&&tip.z<=1&&tip.x>=region.left+5&&tip.x<=region.right-5&&tip.y>=region.top+5&&tip.y<=region.bottom-5;
-    polymerCinematic.stats.cameraDistance=distance;polymerCinematic.stats.safeRegion={left:region.left-canvasRect.left,top:region.top-canvasRect.top,width:region.width,height:region.height};
-    polymerCinematic.stats.projectedPathLengthPx=projectedLength(projected);polymerCinematic.stats.initialProjectedLengthPx=initialProjectedLength;polymerCinematic.stats.projectedLengthRatio=projectedLength(projected)/Math.max(1,initialProjectedLength);
-    polymerCinematic.stats.growthTipScreenPosition=tip?{x:tip.x-canvasRect.left,y:tip.y-canvasRect.top,visible:tip.z>=-1&&tip.z<=1}:null;
-    polymerCinematic.stats.growthTipInSafeRegion=tipInside;
-    polymerCinematic.stats.framingClipped=finalProjected.some(point=>point.z < -1||point.z>1||point.x<region.left||point.x>region.right||point.y<region.top||point.y>region.bottom);
+    const canvasRect=canvas.getBoundingClientRect(),region=polymerSafeScreenRegion(),centerX=(region.left+region.right)*.5,centerY=(region.top+region.bottom)*.5;
+    const pointCount=Math.min(polymerProjectedPoints.length,polymerCinematic.stats.visiblePointCount),group=polymerGraphVisual.group;
+    projectPolymerPath(pointCount,canvasRect,group);
+    const bounds=projectedPolymerBounds(pointCount,polymerProjectedBounds);
+    const margin=7,fitHalfWidth=Math.max(24,(region.width-margin*2)*POLYMER_VISUAL_AUTHORITY.compositionTarget*.5),fitHalfHeight=Math.max(24,(region.height-margin*2)*POLYMER_VISUAL_AUTHORITY.compositionTarget*.5);
+    let required=polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight);
+    const beforeDistance=distance;
+    if(polymerCinematic.stats.phase!=='long-chain-hold'&&required>1.01&&distance<POLYMER_GROWTH_CAMERA_MAX_DISTANCE){
+      const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.018),responseMs=reducedMotion?90:220,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
+      distance=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();projectPolymerPath(pointCount,canvasRect,group);projectedPolymerBounds(pointCount,bounds);required=polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight);
+    }
+    const pathMetrics=projectedPolymerPathMetrics(polymerProjectedPoints,pointCount,polymerPathMetrics),initialMetrics=projectedPolymerPathMetrics(polymerProjectedPoints,Math.min(pointCount,polymerCinematic.plan.basePointCount),polymerInitialPathMetrics);
+    const tip=polymerProjectedPoints[pointCount-1],safePadding=5+POLYMER_VISUAL_AUTHORITY.coarseStrandWidthPx*.5;
+    const tipInside=!!tip&&tip.z>=-1&&tip.z<=1&&tip.x>=region.left+safePadding&&tip.x<=region.right-safePadding&&tip.y>=region.top+safePadding&&tip.y<=region.bottom-safePadding;
+    const utilizationX=(bounds.right-bounds.left)/Math.max(1,region.width),utilizationY=(bounds.bottom-bounds.top)/Math.max(1,region.height);
+    const stats=polymerCinematic.stats;
+    stats.cameraDistance=distance;stats.cameraMotionActive=Math.abs(distance-beforeDistance)>.005;stats.cameraFitRequirement=required;stats.cameraFrameSettled=required<=1.015||distance>=POLYMER_GROWTH_CAMERA_MAX_DISTANCE;
+    stats.safeRegion.left=region.left-canvasRect.left;stats.safeRegion.top=region.top-canvasRect.top;stats.safeRegion.width=region.width;stats.safeRegion.height=region.height;
+    stats.projectedPathLengthPx=pathMetrics.pathLengthPx;stats.projectedChordLengthPx=pathMetrics.chordLengthPx;stats.projectedPathToChordRatio=pathMetrics.pathToChordRatio;
+    stats.projectedCumulativeTurnRad=pathMetrics.cumulativeTurnRad;stats.projectedMaximumLocalTurnRad=pathMetrics.maxLocalTurnRad;
+    stats.initialProjectedLengthPx=initialMetrics.pathLengthPx;stats.projectedLengthRatio=pathMetrics.pathLengthPx/Math.max(1,initialMetrics.pathLengthPx);
+    stats.projectedBounds.left=bounds.left-canvasRect.left;stats.projectedBounds.right=bounds.right-canvasRect.left;stats.projectedBounds.top=bounds.top-canvasRect.top;stats.projectedBounds.bottom=bounds.bottom-canvasRect.top;
+    stats.safeRegionUtilizationMajor=Math.max(utilizationX,utilizationY);stats.safeRegionUtilizationMinor=Math.min(utilizationX,utilizationY);
+    stats.growthTipScreenPosition.x=tip?tip.x-canvasRect.left:0;stats.growthTipScreenPosition.y=tip?tip.y-canvasRect.top:0;stats.growthTipScreenPosition.visible=!!tip&&tip.z>=-1&&tip.z<=1;
+    stats.growthTipInSafeRegion=tipInside;stats.framingClipped=polymerPathIsClipped(pointCount,region,safePadding);
     updatePolymerFeedOrigin();
+  }
+  function measurePolymerScreenReadability(){
+    if(!polymerCinematic||!polymerGraphVisual)return polymerScreenMetricSnapshot;
+    const rect=canvas.getBoundingClientRect(),pointCount=polymerCinematic.stats.visiblePointCount;
+    const station=clamp(Math.floor((pointCount-2)*.5),0,Math.max(0,pointCount-2)),points=polymerCinematic.plan.points;
+    polymerReadabilityWorldA.fromArray(points[station]);polymerReadabilityWorldB.fromArray(points[station+1]);
+    polymerGraphVisual.group.localToWorld(polymerReadabilityWorldA);polymerGraphVisual.group.localToWorld(polymerReadabilityWorldB);
+    polymerReadabilityNdcA.copy(polymerReadabilityWorldA).project(camera);polymerReadabilityNdcB.copy(polymerReadabilityWorldB).project(camera);
+    const bondX=(polymerReadabilityNdcB.x-polymerReadabilityNdcA.x)*rect.width*.5,bondY=(polymerReadabilityNdcB.y-polymerReadabilityNdcA.y)*rect.height*.5;
+    camera.getWorldDirection(polymerProjectionDirection);
+    const depth=polymerReadabilityDepth.subVectors(polymerReadabilityWorldA,camera.position).dot(polymerProjectionDirection),tangent=Math.tan(THREE.MathUtils.degToRad(camera.fov*.5));
+    const worldDiameter=2*modelAtomRadius('C')*polymerGraphVisual.group.scale.x;
+    polymerScreenMetricSnapshot.projectedHeavyAtomDiameterPx=worldDiameter*rect.height/(2*tangent*Math.max(camera.near,depth));
+    polymerScreenMetricSnapshot.projectedBackboneBondLengthPx=Math.hypot(bondX,bondY);
+    polymerScreenMetricSnapshot.localUnitsPerCssPixel=2*depth*tangent/(Math.max(1,rect.height)*Math.max(.001,polymerGraphVisual.group.scale.x));
+    polymerScreenMetricSnapshot.cameraDistance=distance;
+    return polymerScreenMetricSnapshot;
   }
   function updatePolymerFragmentDetail(){
     if(!polymerCinematic||!polymerGrowthAnchor||!polymerGraphVisual)return;
-    for(const[index,mesh]of polymerGraphVisual.atomByGraphIndex){const station=polymerGrowthAnchor.stationForAtomIndex[index];if(station==null)continue;const opacity=polymerCinematic.detailOpacityForStation(station);for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material])setPolymerFragmentMaterialOpacity(material,opacity);}
-    for(const mesh of polymerGraphVisual.bondMeshes){const stations=(mesh.userData.polymerAtomIndices??[]).map(index=>polymerGrowthAnchor.stationForAtomIndex[index]).filter(Number.isFinite);if(!stations.length)continue;const opacity=polymerCinematic.detailOpacityForStation(stations.reduce((sum,value)=>sum+value,0)/stations.length);for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material])setPolymerFragmentMaterialOpacity(material,opacity);}
+    const opacity=polymerCinematic.stats.molecularLodWeight;
+    for(let index=0;index<polymerFragmentAtomMeshes.length;index++){
+      const materials=polymerFragmentAtomMeshes[index].material;
+      if(Array.isArray(materials)){for(let materialIndex=0;materialIndex<materials.length;materialIndex++)setPolymerFragmentMaterialOpacity(materials[materialIndex],opacity);}
+      else setPolymerFragmentMaterialOpacity(materials,opacity);
+    }
+    for(let index=0;index<polymerFragmentBondMeshes.length;index++){
+      const materials=polymerFragmentBondMeshes[index].material;
+      if(Array.isArray(materials)){for(let materialIndex=0;materialIndex<materials.length;materialIndex++)setPolymerFragmentMaterialOpacity(materials[materialIndex],opacity);}
+      else setPolymerFragmentMaterialOpacity(materials,opacity);
+    }
   }
   function polymerSampleBayLayout(){
     if(!polymerGraphVisual)return null;
@@ -583,8 +659,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(polymerSamplePresentation){const presentation=polymerSamplePresentation;
       if(presentation.phase==='settle'&&!polymerGraphVisual?.animation){presentation.phase=startPolymerCinematic()?'cinematic':'dock';if(presentation.phase==='dock'){polymerSampleBay.hidden=false;status.textContent='POLYMER SAMPLE · READY FOR NEXT FEED';updateCommandBar();}}
       if(presentation.phase==='cinematic'){
-        const frame=polymerCinematic.update(elapsedMs,{cameraDistance:distance});
-        updatePolymerCameraFraming(elapsedMs);updatePolymerFragmentDetail();
+        const frame=polymerCinematic.advance(elapsedMs);
+        updatePolymerCameraFraming(elapsedMs);
+        polymerCinematic.render(measurePolymerScreenReadability());updatePolymerFragmentDetail();
         status.textContent=frame.phase==='anchored'?'POLYMERIZATION · CHAIN START':frame.phase==='recognizable-incorporation'?'CHAIN GROWTH · MONOMERS INCORPORATING':frame.phase==='extension'?'CHAIN GROWTH · LONG POLYMER':'LONG-CHAIN OBSERVATION';
         if(frame.done){cleanupPolymerCinematic();presentation.phase='dock';polymerSampleBay.hidden=false;status.textContent='POLYMER SAMPLE · READY FOR NEXT FEED';updateCommandBar();}
       }
