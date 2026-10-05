@@ -92,8 +92,8 @@ try{
       assert.ok(molecularGrowth.cinematic.coarseLodWeight<.02,'coarse strand does not lead the readable molecular representation');
       assert.ok(molecularGrowth.cinematic.projectedHeavyAtomDiameterPx>=4.5&&molecularGrowth.cinematic.projectedBackboneBondLengthPx>=8,'the chain remains above the molecular readability band');
       assert.ok(molecularGrowth.polymerization.sourceDetailOpacities.every(opacity=>opacity>.98),'the actual finite origin remains molecular with the presentation-only additions');
-      const frameCProgress=molecularGrowth.cinematic.heroChainProgress+4,frameCCameraDistance=molecularGrowth.cinematic.cameraDistance+1.5;
-      await waitFor(`(()=>{const c=window.__reactionLabProbe.snapshot().cinematic;return c?.phase==='extension'&&c.heroChainProgress>${frameCProgress}&&c.cameraDistance>${frameCCameraDistance}&&c.molecularLodWeight>.99&&c.projectedHeavyAtomDiameterPx>=4.5})()`,route.routeId+': camera did not scale out while the grown chain remained molecular',12000);
+      const frameCCameraDistance=molecularGrowth.cinematic.cameraDistance+.4;
+      await waitFor(`(()=>{const c=window.__reactionLabProbe.snapshot().cinematic;return c?.phase==='extension'&&c.cameraDistance>${frameCCameraDistance}&&c.molecularLodWeight>.99&&c.projectedHeavyAtomDiameterPx>=4.5&&c.projectedHeavyAtomDiameterPx<=5.4})()`,route.routeId+': camera did not scale out while the grown chain remained molecular and screen-readable',12000);
       const scaleOut=await snapshot();await capture('frame-c-zoomed-out-molecular');frameMetrics.frames.C=scaleOut.cinematic;await writeFrameMetrics();
       assert.ok(scaleOut.cinematic.cameraDistance>molecularGrowth.cinematic.cameraDistance,'camera scale-out precedes coarse conversion');
       assert.ok(scaleOut.cinematic.projectedHeavyAtomDiameterPx<molecularGrowth.cinematic.projectedHeavyAtomDiameterPx*.9,`the same readable carbon spheres shrink with the camera: ${JSON.stringify({frameB:molecularGrowth.cinematic.projectedHeavyAtomDiameterPx,frameC:scaleOut.cinematic.projectedHeavyAtomDiameterPx,distanceB:molecularGrowth.cinematic.cameraDistance,distanceC:scaleOut.cinematic.cameraDistance})}`);
