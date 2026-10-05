@@ -539,7 +539,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       polymerCameraPanRight.setFromMatrixColumn(camera.matrixWorld,0).normalize();polymerCameraPanUp.setFromMatrixColumn(camera.matrixWorld,1).normalize();
       const offsetX=(bounds.left+bounds.right)*.5-centerX,offsetY=centerY-(bounds.top+bounds.bottom)*.5;
       polymerCameraDesiredPan.copy(polymerCameraPan).addScaledVector(polymerCameraPanRight,offsetX*worldPerPixel).addScaledVector(polymerCameraPanUp,offsetY*worldPerPixel);
-      const responseMs=reducedMotion?80:180,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
+      const responseMs=reducedMotion?70:110,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
       polymerCameraPan.lerp(polymerCameraDesiredPan,blend);
       if(polymerCameraPan.distanceToSquared(polymerCameraDesiredPan)<.0004)polymerCameraPan.copy(polymerCameraDesiredPan);
       const panChange=Math.hypot(polymerCameraPan.x-beforePanX,polymerCameraPan.y-beforePanY,polymerCameraPan.z-beforePanZ);
@@ -558,7 +558,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const centerErrorPx=Math.hypot((bounds.left+bounds.right)*.5-centerX,(bounds.top+bounds.bottom)*.5-centerY);
     const stats=polymerCinematic.stats;
     const panDelta=Math.hypot(polymerCameraPan.x-beforePanX,polymerCameraPan.y-beforePanY,polymerCameraPan.z-beforePanZ);
-    stats.cameraDistance=distance;stats.cameraPanMagnitude=polymerCameraPan.length();stats.cameraMotionActive=Math.abs(distance-beforeDistance)>.005||panDelta>.0005;stats.cameraFitRequirement=required;stats.safeRegionCenterErrorPx=centerErrorPx;stats.cameraFrameSettled=(required<=1.015&&centerErrorPx<=3.5)||distance>=POLYMER_GROWTH_CAMERA_MAX_DISTANCE;
+    stats.cameraDistance=distance;stats.cameraPanMagnitude=polymerCameraPan.length();stats.cameraMotionActive=Math.abs(distance-beforeDistance)>.005||panDelta>.0005;stats.cameraFitRequirement=required;stats.safeRegionCenterErrorPx=centerErrorPx;stats.cameraFrameSettled=(required<=1.06&&centerErrorPx<=12)||distance>=POLYMER_GROWTH_CAMERA_MAX_DISTANCE;
     stats.safeRegion.left=region.left-canvasRect.left;stats.safeRegion.top=region.top-canvasRect.top;stats.safeRegion.width=region.width;stats.safeRegion.height=region.height;
     stats.projectedPathLengthPx=curveMetrics.pathLengthPx;stats.projectedChordLengthPx=curveMetrics.chordLengthPx;stats.projectedPathToChordRatio=curveMetrics.pathToChordRatio;
     stats.projectedCumulativeTurnRad=curveMetrics.cumulativeTurnRad;stats.projectedMaximumLocalTurnRad=curveMetrics.maxLocalTurnRad;
