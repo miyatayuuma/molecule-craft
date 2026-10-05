@@ -41,6 +41,7 @@ const FLUSH_PRESENTATION_MS=760;
 const FEED_TRAVEL_MS=330;
 const CAMERA_MIN_DISTANCE=7;
 const CAMERA_MAX_DISTANCE=64;
+const POLYMER_GROWTH_CAMERA_MAX_DISTANCE=160;
 const POLYMER_DOCK_ACQUIRE_PX=DEPTH_TARGET_ACQUIRE_PADDING_PX;
 const POLYMER_DOCK_RELEASE_PX=DEPTH_TARGET_RELEASE_PADDING_PX;
 const POLYMER_DOCK_DISTANCE_ANGSTROM=1.48;
@@ -84,7 +85,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const eventController=new AbortController(),eventOptions={signal:eventController.signal};
   const recordsById=new Map(records.map(record=>[record.id,record]));
   const scene=new THREE.Scene();scene.background=new THREE.Color('#0a1724');
-  const camera=new THREE.PerspectiveCamera(42,1,.1,100);
+  const camera=new THREE.PerspectiveCamera(42,1,.1,500);
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
   scene.add(new THREE.HemisphereLight(0xd9efff,0x162231,2.2));
@@ -429,7 +430,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const projected=polymerCinematic.visiblePoints().map(point=>projectPoint(polymerGraphVisual.group.localToWorld(vector(THREE,point))));
     const bounds=projected.reduce((result,point)=>({left:Math.min(result.left,point.x),right:Math.max(result.right,point.x),top:Math.min(result.top,point.y),bottom:Math.max(result.bottom,point.y)}),{left:Infinity,right:-Infinity,top:Infinity,bottom:-Infinity});
     const halfWidth=Math.max(24,region.width*.44),halfHeight=Math.max(24,region.height*.44),required=Math.max((centerX-bounds.left)/halfWidth,(bounds.right-centerX)/halfWidth,(centerY-bounds.top)/halfHeight,(bounds.bottom-centerY)/halfHeight,1);
-    if(required>1.015&&distance<CAMERA_MAX_DISTANCE){const target=Math.min(CAMERA_MAX_DISTANCE,distance*required*1.035),blend=1-Math.exp(-Math.max(0,elapsedMs)/520);distance=Math.min(CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();}
+    if(required>1.015&&distance<POLYMER_GROWTH_CAMERA_MAX_DISTANCE){const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.035),blend=1-Math.exp(-Math.max(0,elapsedMs)/360);distance=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();}
     const finalProjected=polymerCinematic.visiblePoints().map(point=>projectPoint(polymerGraphVisual.group.localToWorld(vector(THREE,point))));
     const tip=finalProjected.at(-1),tipInside=!!tip&&tip.z>=-1&&tip.z<=1&&tip.x>=region.left+5&&tip.x<=region.right-5&&tip.y>=region.top+5&&tip.y<=region.bottom-5;
     polymerCinematic.stats.cameraDistance=distance;polymerCinematic.stats.safeRegion={left:region.left-canvasRect.left,top:region.top-canvasRect.top,width:region.width,height:region.height};
