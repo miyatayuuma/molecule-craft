@@ -539,7 +539,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       polymerCameraPanRight.setFromMatrixColumn(camera.matrixWorld,0).normalize();polymerCameraPanUp.setFromMatrixColumn(camera.matrixWorld,1).normalize();
       const offsetX=(bounds.left+bounds.right)*.5-centerX,offsetY=centerY-(bounds.top+bounds.bottom)*.5;
       polymerCameraDesiredPan.copy(polymerCameraPan).addScaledVector(polymerCameraPanRight,offsetX*worldPerPixel).addScaledVector(polymerCameraPanUp,offsetY*worldPerPixel);
-      const responseMs=reducedMotion?70:110,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
+      const responseMs=reducedMotion?45:70,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
       polymerCameraPan.lerp(polymerCameraDesiredPan,blend);
       if(polymerCameraPan.distanceToSquared(polymerCameraDesiredPan)<.0004)polymerCameraPan.copy(polymerCameraDesiredPan);
       const panChange=Math.hypot(polymerCameraPan.x-beforePanX,polymerCameraPan.y-beforePanY,polymerCameraPan.z-beforePanZ);
@@ -548,7 +548,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     let required=polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight);
     const beforeDistance=distance;
     if(polymerCinematic.stats.phase!=='long-chain-hold'&&required>1.01&&distance<POLYMER_GROWTH_CAMERA_MAX_DISTANCE){
-      const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.018),responseMs=reducedMotion?90:220,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
+      const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.018),responseMs=reducedMotion?60:100,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
       distance=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();projectPolymerPath(pointCount,canvasRect,group);projectedPolymerBounds(pointCount,bounds);required=polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight);
     }
     const pathMetrics=projectedPolymerPathMetrics(polymerProjectedPoints,pointCount,polymerPathMetrics),curveMetrics=polymerPresentationCurveMetrics(pointCount,polymerCurveMetrics),initialMetrics=projectedPolymerPathMetrics(polymerProjectedPoints,Math.min(pointCount,polymerCinematic.plan.basePointCount),polymerInitialPathMetrics);

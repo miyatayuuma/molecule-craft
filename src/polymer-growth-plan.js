@@ -245,7 +245,7 @@ export function projectedPolymerPathMetrics(points, count = points?.length ?? 0,
 }
 
 const NORMAL_DURATIONS = Object.freeze([300, 2100, 3900, 1000]);
-const REDUCED_DURATIONS = Object.freeze([100, 540, 1800, 500]);
+const REDUCED_DURATIONS = Object.freeze([600, 540, 1800, 500]);
 const PHASES = Object.freeze(['anchored', 'recognizable-incorporation', 'extension', 'long-chain-hold']);
 export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultiplier = 1, result = {}) {
   const durations = reducedMotion ? REDUCED_DURATIONS : NORMAL_DURATIONS,scale=Math.max(.1,durationMultiplier);
