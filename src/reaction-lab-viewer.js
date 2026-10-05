@@ -100,9 +100,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let polymerCinematic=null,cinematicCameraDistance=null,lastCinematicStats=null,polymerGrowthAnchor=null,polymerCinematicStartError=null;
   const polymerProjectionWorld=new THREE.Vector3(),polymerProjectionNdc=new THREE.Vector3(),polymerProjectionDirection=new THREE.Vector3();
   const polymerProjectedPoints=Array.from({length:92},()=>({x:0,y:0,z:0}));
+  const polymerCurveMetricPoints=Array.from({length:47},()=>({x:0,y:0}));
   const polymerReadabilityWorldA=new THREE.Vector3(),polymerReadabilityWorldB=new THREE.Vector3(),polymerReadabilityNdcA=new THREE.Vector3(),polymerReadabilityNdcB=new THREE.Vector3(),polymerReadabilityDepth=new THREE.Vector3();
   const polymerScreenMetricSnapshot={projectedHeavyAtomDiameterPx:0,projectedBackboneBondLengthPx:0,localUnitsPerCssPixel:0,cameraDistance:0};
-  const polymerPathMetrics={pathLengthPx:0,chordLengthPx:0,pathToChordRatio:0,cumulativeTurnRad:0,maxLocalTurnRad:0},polymerInitialPathMetrics={pathLengthPx:0,chordLengthPx:0,pathToChordRatio:0,cumulativeTurnRad:0,maxLocalTurnRad:0};
+  const polymerPathMetrics={pathLengthPx:0,chordLengthPx:0,pathToChordRatio:0,cumulativeTurnRad:0,maxLocalTurnRad:0},polymerInitialPathMetrics={pathLengthPx:0,chordLengthPx:0,pathToChordRatio:0,cumulativeTurnRad:0,maxLocalTurnRad:0},polymerCurveMetrics={pathLengthPx:0,chordLengthPx:0,pathToChordRatio:0,cumulativeTurnRad:0,maxLocalTurnRad:0};
   const polymerCanvasBounds={left:0,right:0,top:0,bottom:0,width:0,height:0},polymerSafeRegionRect={left:0,right:0,top:0,bottom:0,width:0,height:0},polymerSafeRectWorkspace=createSafeRectWorkspace(24);
   const polymerObstacleBoxes=Array.from({length:24},()=>({left:0,right:0,top:0,bottom:0})),polymerCameraObstacleNodes=[];
   const polymerProjectedBounds={left:0,right:0,top:0,bottom:0};
@@ -506,6 +507,15 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     for(let index=0;index<pointCount;index++){const point=polymerProjectedPoints[index];result.left=Math.min(result.left,point.x);result.right=Math.max(result.right,point.x);result.top=Math.min(result.top,point.y);result.bottom=Math.max(result.bottom,point.y);}
     return result;
   }
+  function polymerPresentationCurveMetrics(pointCount,result){
+    const plan=polymerCinematic.plan,anchorEnd=plan.basePointCount-1;
+    if(pointCount<=plan.basePointCount)return projectedPolymerPathMetrics(polymerProjectedPoints,pointCount,result);
+    let sampleCount=0;
+    for(let index=anchorEnd;index<pointCount&&sampleCount<polymerCurveMetricPoints.length;index+=2){const source=polymerProjectedPoints[index],sample=polymerCurveMetricPoints[sampleCount++];sample.x=source.x;sample.y=source.y;}
+    const lastIndex=anchorEnd+(sampleCount-1)*2,lastSource=polymerProjectedPoints[pointCount-1];
+    if(lastIndex!==pointCount-1&&sampleCount<polymerCurveMetricPoints.length){const sample=polymerCurveMetricPoints[sampleCount++];sample.x=lastSource.x;sample.y=lastSource.y;}
+    return projectedPolymerPathMetrics(polymerCurveMetricPoints,sampleCount,result);
+  }
   function polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight){
     return Math.max((centerX-bounds.left)/fitHalfWidth,(bounds.right-centerX)/fitHalfWidth,(centerY-bounds.top)/fitHalfHeight,(bounds.bottom-centerY)/fitHalfHeight,1);
   }
@@ -541,7 +551,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.018),responseMs=reducedMotion?90:220,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
       distance=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();projectPolymerPath(pointCount,canvasRect,group);projectedPolymerBounds(pointCount,bounds);required=polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight);
     }
-    const pathMetrics=projectedPolymerPathMetrics(polymerProjectedPoints,pointCount,polymerPathMetrics),initialMetrics=projectedPolymerPathMetrics(polymerProjectedPoints,Math.min(pointCount,polymerCinematic.plan.basePointCount),polymerInitialPathMetrics);
+    const pathMetrics=projectedPolymerPathMetrics(polymerProjectedPoints,pointCount,polymerPathMetrics),curveMetrics=polymerPresentationCurveMetrics(pointCount,polymerCurveMetrics),initialMetrics=projectedPolymerPathMetrics(polymerProjectedPoints,Math.min(pointCount,polymerCinematic.plan.basePointCount),polymerInitialPathMetrics);
     const tip=polymerProjectedPoints[pointCount-1],safePadding=5+POLYMER_VISUAL_AUTHORITY.coarseStrandWidthPx*.5;
     const tipInside=!!tip&&tip.z>=-1&&tip.z<=1&&tip.x>=region.left+safePadding&&tip.x<=region.right-safePadding&&tip.y>=region.top+safePadding&&tip.y<=region.bottom-safePadding;
     const utilizationX=(bounds.right-bounds.left)/Math.max(1,region.width),utilizationY=(bounds.bottom-bounds.top)/Math.max(1,region.height);
@@ -550,8 +560,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const panDelta=Math.hypot(polymerCameraPan.x-beforePanX,polymerCameraPan.y-beforePanY,polymerCameraPan.z-beforePanZ);
     stats.cameraDistance=distance;stats.cameraPanMagnitude=polymerCameraPan.length();stats.cameraMotionActive=Math.abs(distance-beforeDistance)>.005||panDelta>.0005;stats.cameraFitRequirement=required;stats.safeRegionCenterErrorPx=centerErrorPx;stats.cameraFrameSettled=(required<=1.015&&centerErrorPx<=3.5)||distance>=POLYMER_GROWTH_CAMERA_MAX_DISTANCE;
     stats.safeRegion.left=region.left-canvasRect.left;stats.safeRegion.top=region.top-canvasRect.top;stats.safeRegion.width=region.width;stats.safeRegion.height=region.height;
-    stats.projectedPathLengthPx=pathMetrics.pathLengthPx;stats.projectedChordLengthPx=pathMetrics.chordLengthPx;stats.projectedPathToChordRatio=pathMetrics.pathToChordRatio;
-    stats.projectedCumulativeTurnRad=pathMetrics.cumulativeTurnRad;stats.projectedMaximumLocalTurnRad=pathMetrics.maxLocalTurnRad;
+    stats.projectedPathLengthPx=curveMetrics.pathLengthPx;stats.projectedChordLengthPx=curveMetrics.chordLengthPx;stats.projectedPathToChordRatio=curveMetrics.pathToChordRatio;
+    stats.projectedCumulativeTurnRad=curveMetrics.cumulativeTurnRad;stats.projectedMaximumLocalTurnRad=curveMetrics.maxLocalTurnRad;
     stats.initialProjectedLengthPx=initialMetrics.pathLengthPx;stats.projectedLengthRatio=pathMetrics.pathLengthPx/Math.max(1,initialMetrics.pathLengthPx);
     stats.projectedBounds.left=bounds.left-canvasRect.left;stats.projectedBounds.right=bounds.right-canvasRect.left;stats.projectedBounds.top=bounds.top-canvasRect.top;stats.projectedBounds.bottom=bounds.bottom-canvasRect.top;
     stats.safeRegionUtilizationMajor=Math.max(utilizationX,utilizationY);stats.safeRegionUtilizationMinor=Math.min(utilizationX,utilizationY);
