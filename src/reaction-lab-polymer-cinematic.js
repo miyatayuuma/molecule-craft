@@ -1,7 +1,7 @@
 import {
   createHeroChainPlan, heroGrowthFrame, HERO_CHAIN_BUDGET, POLYMER_VISUAL_AUTHORITY,
   sampleHeroPoint, screenSpaceMolecularWeight, visibleHeroPointCount,
-} from './polymer-growth-plan.js?v=2';
+} from './polymer-growth-plan.js?v=3';
 import {modelAtomRadius} from './chemistry.js?v=20';
 
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -84,11 +84,11 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
   const tube=new THREE.Mesh(tubeGeometry,tubeMaterial);tube.name='continuous-polymer-backbone';root.add(tube);
 
   const sphereGeometry=new THREE.SphereGeometry(1,8,6),bondGeometry=new THREE.CylinderGeometry(.038,.038,1,6),particleGeometry=new THREE.SphereGeometry(1,7,5),pulseGeometry=new THREE.SphereGeometry(1,10,7);
-  const chainAtomMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.44,metalness:.02,vertexColors:true,transparent:true,opacity:1});
+  const chainAtomMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.44,metalness:.02,transparent:true,opacity:1});
   const chainBondMaterial=new THREE.MeshStandardMaterial({color:'#c1d7df',roughness:.48,transparent:true,opacity:1});
-  const feedAtomMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.44,metalness:.02,vertexColors:true,transparent:true,opacity:1});
+  const feedAtomMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.44,metalness:.02,transparent:true,opacity:1});
   const feedBondMaterial=new THREE.MeshStandardMaterial({color:'#c1d7df',roughness:.48,transparent:true,opacity:1});
-  const markerAtomMaterial=new THREE.MeshStandardMaterial({color:'#cde5ed',emissive:'#173f48',roughness:.5,vertexColors:true,transparent:true,opacity:0});
+  const markerAtomMaterial=new THREE.MeshStandardMaterial({color:'#cde5ed',emissive:'#173f48',roughness:.5,transparent:true,opacity:0});
   const markerBondMaterial=new THREE.MeshStandardMaterial({color:'#9ebcc5',roughness:.5,transparent:true,opacity:0});
   const particleMaterial=new THREE.MeshStandardMaterial({color:'#cde5ed',emissive:'#1e4e5c',roughness:.5,transparent:true,opacity:0});
   const pulseMaterial=new THREE.MeshBasicMaterial({color:'#a7f0df',transparent:true,opacity:.24,depthWrite:false});
@@ -210,7 +210,7 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
     tubeGeometry.setDrawRange(0,Math.max(0,(stats.visiblePointCount-1)*radial*6));
     tubeMaterial.opacity=coarseWeight;tubeMaterial.visible=coarseWeight>.001;stats.projectedStrandWidthPx=2*radius/Math.max(1e-6,pixelScale);
 
-    const atomOpacity=molecularWeight>.001?molecularWeight:0;
+    const atomOpacity=molecularWeight>.02?molecularWeight:0;
     chainAtomMaterial.opacity=atomOpacity;chainBondMaterial.opacity=atomOpacity;
     chainAtomMaterial.depthWrite=atomOpacity>.99;chainBondMaterial.depthWrite=atomOpacity>.99;
     let chainAtomCount=0,chainBondCount=0,detailUnitCount=0,tipDetailAtomCount=0,tipDetailBondCount=0;

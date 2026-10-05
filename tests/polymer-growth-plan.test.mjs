@@ -115,6 +115,7 @@ test('bounded instanced detail persists while readable, crossfades in place, and
   for(let index=0;index<cinematics.length;index++){
     const cinematic=cinematics[index],baseline=baselines[index];
     assert.equal(baseline.objects,HERO_CHAIN_BUDGET.objects);assert.equal(baseline.geometries,5);assert.equal(baseline.materials,9);
+    for(const name of ['bounded-molecular-chain-atoms','bounded-incoming-monomer-atoms','bounded-incoming-repeat-markers']){const mesh=cinematic.root.children.find(child=>child.name===name);assert.equal(mesh.material.vertexColors,false,`${name} uses instance colors without a missing vertex-color attribute`);assert.ok(mesh.instanceColor,`${name} retains its bounded per-instance element palette`);}
     assert.equal(cinematic.stats.coarseGeometryVertexCapacity,HERO_CHAIN_BUDGET.vertexCapacity);
     assert.equal(cinematic.root.children.find(child=>child.name==='continuous-polymer-backbone').geometry.index.count,HERO_CHAIN_BUDGET.indexCapacity);
     assert.equal(cinematic.stats.chainAtomInstanceCapacity,288);assert.equal(cinematic.stats.chainBondInstanceCapacity,288);
@@ -132,6 +133,8 @@ test('bounded instanced detail persists while readable, crossfades in place, and
     cinematic.render({projectedHeavyAtomDiameterPx:3.5,projectedBackboneBondLengthPx:6,localUnitsPerCssPixel:.01,cameraDistance:22});
     assert.equal(cinematic.stats.molecularLodWeight,.5);assert.equal(cinematic.stats.coarseLodWeight,.5,'both representations overlap during the same-backbone transition');
     assert.equal(cinematic.stats.coarseBackboneAlignmentError,0);
+    cinematic.render({projectedHeavyAtomDiameterPx:3.2,projectedBackboneBondLengthPx:4.33,localUnitsPerCssPixel:.01,cameraDistance:24});
+    assert.ok(cinematic.stats.molecularLodWeight<=.02);assert.equal(cinematic.stats.molecularDetailUnitCount,0,'the final translucent molecular residue is removed below 2% weight');
     cinematic.render({projectedHeavyAtomDiameterPx:2,projectedBackboneBondLengthPx:3,localUnitsPerCssPixel:.01,cameraDistance:25});
     assert.equal(cinematic.stats.molecularLodWeight,0);assert.equal(cinematic.stats.coarseLodWeight,1);
     assert.equal(cinematic.detailOpacityForStation(0),0);assert.equal(cinematic.stats.tipDetailAtomCount,0,'unreadable atomistic tip is removed with the rest of the chain');

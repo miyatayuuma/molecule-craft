@@ -146,7 +146,7 @@ export function createHeroChainPlan({polymerId, anchor, seed = polymerId, viewPl
   const recent = [];
   for (let index = Math.max(1, points.length - 3); index < points.length; index++) recent.push(distance(points[index], points[index - 1]));
   const measuredStep = recent.length ? recent.reduce((sum, value) => sum + value, 0) / recent.length : distance(points.at(-1), points.at(-2));
-  // Keep a real carbon-scale bond spacing while making the bounded 30-unit continuation
+  // Keep a real carbon-scale bond spacing while making the bounded 48-unit continuation
   // large enough to trigger a natural camera pullback before its molecular detail fades.
   const targetStep = clamp(measuredStep * .86, .68, .9);
   const screenRight = finitePoint(viewPlane?.right) ? normalize(viewPlane.right) : null;
