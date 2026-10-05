@@ -1,62 +1,145 @@
-import {createMorphologyPlan,cinematicFrame,MORPHOLOGY_BUDGET} from './polymer-morphology.js?v=1';
+import {createHeroChainPlan, heroGrowthFrame, HERO_CHAIN_BUDGET, sampleHeroPoint, visibleHeroPointCount} from './polymer-growth-plan.js?v=1';
 
-// One batched tube mesh, one batched pendant outline, two fixed instanced feed LODs.
-// All geometry is built once; animation changes draw ranges and fixed matrices only.
-export function createPolymerCinematic({THREE,polymerId,sourceRecords=[],reducedMotion=false}){
-  const plan=createMorphologyPlan(polymerId),root=new THREE.Group(),positions=[],indices=[],colors=[],pendants=[];
-  const radius=.045+plan.profile.bulk*.022,radial=4,baseColor=new THREE.Color('#99e2d6');
-  for(let s=0;s<plan.strands.length;s++){
-    const strand=plan.strands[s],start=positions.length/3,shade=.64+(s%5)*.09;
-    for(let i=0;i<strand.length;i++){
-      const point=new THREE.Vector3(...strand[i]),a=new THREE.Vector3(...strand[Math.max(0,i-1)]),b=new THREE.Vector3(...strand[Math.min(strand.length-1,i+1)]),axis=b.sub(a).normalize(),reference=Math.abs(axis.z)<.9?new THREE.Vector3(0,0,1):new THREE.Vector3(0,1,0),side=new THREE.Vector3().crossVectors(axis,reference).normalize(),up=new THREE.Vector3().crossVectors(axis,side).normalize();
-      for(let j=0;j<radial;j++){const angle=j/radial*Math.PI*2;positions.push(point.x+radius*(side.x*Math.cos(angle)+up.x*Math.sin(angle)),point.y+radius*(side.y*Math.cos(angle)+up.y*Math.sin(angle)),point.z+radius*(side.z*Math.cos(angle)+up.z*Math.sin(angle)));colors.push(baseColor.r*shade,baseColor.g*shade,baseColor.b*shade);}
-      if(i<strand.length-1)for(let j=0;j<radial;j++){const a=start+i*radial+j,b=start+i*radial+(j+1)%radial,c=a+radial,d=b+radial;indices.push(a,b,c,b,d,c);}
-      if(plan.profile.bulk>0&&i%8===4&&(!plan.profile.rhythm||Math.floor(i/8)%plan.profile.rhythm===0)){
-        const size=.12+plan.profile.bulk*.28,center=point.clone().addScaledVector(side,size),steps=plan.profile.bulk>=.75?6:3;
-        if(steps===6){for(let j=0;j<steps;j++)for(const k of [j,j+1]){const angle=k/steps*Math.PI*2;pendants.push(center.x+size*(side.x*Math.cos(angle)+up.x*Math.sin(angle)),center.y+size*(side.y*Math.cos(angle)+up.y*Math.sin(angle)),center.z+size*(side.z*Math.cos(angle)+up.z*Math.sin(angle)));}}else{pendants.push(point.x,point.y,point.z,center.x+side.x*size,center.y+side.y*size,center.z+side.z*size);}
+const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+
+function recordPoint(atom){
+  const point=atom?.point;
+  if(point?.toArray)return point.toArray();
+  if(Array.isArray(point))return point;
+  return [point?.x??0,point?.y??0,point?.z??0];
+}
+
+function makeTemplate(record){
+  if(!record?.atoms?.length)return null;
+  const atoms=record.atoms.map((atom,index)=>({element:typeof atom==='string'?atom:atom.element,point:recordPoint(atom),index}));
+  const bonds=record.bonds.map(bond=>Array.isArray(bond)?{a:bond[0],b:bond[1],order:bond[2]}:bond).filter(bond=>atoms[bond.a]&&atoms[bond.b]);
+  const carbons=atoms.filter(atom=>atom.element==='C');
+  let axis=[1,0,0],span=1;
+  for(let a=0;a<carbons.length;a++)for(let b=a+1;b<carbons.length;b++){
+    const delta=carbons[b].point.map((value,index)=>value-carbons[a].point[index]),length=Math.hypot(...delta);
+    if(length>span*.99){span=length;axis=delta.map(value=>value/length);}
+  }
+  return{atoms,bonds,axis};
+}
+
+function asVector(THREE,point){return new THREE.Vector3(point[0],point[1],point[2]);}
+
+/**
+ * Presentation-only PE scale-up. Its first tube samples are the actual rendered
+ * finite fragment's carbon backbone; the same bounded tube continues from its
+ * active end. It never creates molecule instances or modifies chemistry.
+ */
+export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],sampleId='polymer-sample',reducedMotion=false,durationMultiplier=1,viewPlane=null}){
+  if(polymerId!=='polyethylene')throw new Error('Hero-chain continuity is currently enabled for polyethylene only.');
+  const plan=createHeroChainPlan({polymerId,anchor,seed:sampleId,viewPlane}),root=new THREE.Group();root.name='polymer-hero-chain-presentation';
+  const radial=HERO_CHAIN_BUDGET.radialSegments,vertices=plan.points.length*radial,positions=new Float32Array(vertices*3),colors=new Float32Array(vertices*4),indices=[];
+  const center=asVector(THREE,[0,0,0]),tangent=new THREE.Vector3(),reference=new THREE.Vector3(),side=new THREE.Vector3(),up=new THREE.Vector3();
+  const pathVectors=plan.points.map(point=>asVector(THREE,point));
+  for(let i=0;i<pathVectors.length;i++){
+    tangent.subVectors(pathVectors[Math.min(i+1,pathVectors.length-1)],pathVectors[Math.max(0,i-1)]).normalize();
+    reference.set(Math.abs(tangent.dot(new THREE.Vector3(0,1,0)))<.88?0:0,Math.abs(tangent.dot(new THREE.Vector3(0,1,0)))<.88?1:0,Math.abs(tangent.dot(new THREE.Vector3(0,1,0)))<.88?0:1);
+    side.crossVectors(tangent,reference).normalize();up.crossVectors(tangent,side).normalize();
+    const radius=.078;
+    for(let j=0;j<radial;j++){
+      const angle=j/radial*Math.PI*2,index=(i*radial+j)*3;
+      positions[index]=pathVectors[i].x+radius*(side.x*Math.cos(angle)+up.x*Math.sin(angle));
+      positions[index+1]=pathVectors[i].y+radius*(side.y*Math.cos(angle)+up.y*Math.sin(angle));
+      positions[index+2]=pathVectors[i].z+radius*(side.z*Math.cos(angle)+up.z*Math.sin(angle));
+      const colorIndex=(i*radial+j)*4;colors[colorIndex]=.545;colors[colorIndex+1]=.847;colors[colorIndex+2]=.824;colors[colorIndex+3]=0;
+      if(i<pathVectors.length-1){const a=i*radial+j,b=i*radial+(j+1)%radial,c=a+radial,d=b+radial;indices.push(a,b,c,b,d,c);}
+    }
+  }
+  const tubeGeometry=new THREE.BufferGeometry();tubeGeometry.setAttribute('position',new THREE.BufferAttribute(positions,3));tubeGeometry.setAttribute('color',new THREE.BufferAttribute(colors,4));tubeGeometry.setIndex(indices);tubeGeometry.computeVertexNormals();tubeGeometry.setDrawRange(0,0);
+  const tubeMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',emissive:'#113b43',roughness:.52,metalness:.06,transparent:true,vertexColors:true,opacity:.94});
+  const tube=new THREE.Mesh(tubeGeometry,tubeMaterial);tube.name='continuous-polymer-backbone';root.add(tube);
+
+  const firstRecord=sourceRecords[0],template=makeTemplate(firstRecord),feedCapacity=HERO_CHAIN_BUDGET.feedCapacity,detailCapacity=HERO_CHAIN_BUDGET.detailWindowUnits;
+  const atomCapacity=Math.max(1,template?.atoms.length??0)*(feedCapacity+detailCapacity),bondCapacity=Math.max(1,template?.bonds.length??0)*(feedCapacity+detailCapacity);
+  const sphereGeometry=new THREE.SphereGeometry(1,8,6),atomMaterial=new THREE.MeshStandardMaterial({color:'#e9f6ff',roughness:.43,metalness:.02,vertexColors:true,transparent:true});
+  const atoms=new THREE.InstancedMesh(sphereGeometry,atomMaterial,atomCapacity);atoms.name='bounded-polymer-detail-and-feed-atoms';atoms.instanceMatrix.setUsage(THREE.DynamicDrawUsage);atoms.frustumCulled=false;root.add(atoms);
+  const bondGeometry=new THREE.CylinderGeometry(.035,.035,1,5),bondMaterial=new THREE.MeshStandardMaterial({color:'#c1d7df',roughness:.5,transparent:true});
+  const bonds=new THREE.InstancedMesh(bondGeometry,bondMaterial,bondCapacity);bonds.name='bounded-polymer-detail-and-feed-bonds';bonds.instanceMatrix.setUsage(THREE.DynamicDrawUsage);bonds.frustumCulled=false;root.add(bonds);
+  const particleGeometry=new THREE.SphereGeometry(1,7,5),particleMaterial=new THREE.MeshStandardMaterial({color:'#cde5ed',emissive:'#1e4e5c',roughness:.5,transparent:true});
+  const particles=new THREE.InstancedMesh(particleGeometry,particleMaterial,feedCapacity);particles.name='bounded-polymer-feed-lod';particles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);particles.frustumCulled=false;root.add(particles);
+  const pulseGeometry=new THREE.SphereGeometry(1,10,7),pulseMaterial=new THREE.MeshBasicMaterial({color:'#a7f0df',transparent:true,opacity:.48,depthWrite:false});
+  const tipPulse=new THREE.Mesh(pulseGeometry,pulseMaterial);tipPulse.name='polymer-growth-tip-anchor';root.add(tipPulse);
+
+  const dummy=new THREE.Object3D(),color=new THREE.Color(),yAxis=new THREE.Vector3(0,1,0),fromAxis=new THREE.Vector3(),toAxis=new THREE.Vector3(),atomPosition=new THREE.Vector3(),bondDirection=new THREE.Vector3(),bondMid=new THREE.Vector3(),unitQuaternion=new THREE.Quaternion(),flightPoint=new THREE.Vector3(),feedOrigin=new THREE.Vector3(-4,3.5,0);
+  const sourceElementColors={C:'#c7d6e1',H:'#f2f8fb',O:'#f18177',N:'#8caeff',Cl:'#85cd91',S:'#f0c66f',P:'#f09a59',F:'#a5da9e'};
+  const initialCameraDistance=15,stats={active:true,phase:'anchored',progress:0,heroChainId:sampleId,heroChainProgress:0,heroChainSegmentCount:0,heroChainVertexCount:0,coarseBackboneAlphaMean:0,feedVisualActiveCount:0,feedVisualCapacity:feedCapacity,recognizableFeedUnitCount:0,growthTipScreenPosition:null,cameraDistance:initialCameraDistance,highDetailWindowStart:0,highDetailWindowEnd:0,initialBackbonePointCount:plan.basePointCount,initialBackboneAtomIndices:[...anchor.backboneAtomIndices],growthEndAtomIndex:anchor.growthEndAtomIndex,anchorStart:[...plan.points[0]],anchorTip:[...plan.points[plan.basePointCount-1]],visiblePointCount:plan.basePointCount,objectCount:0,geometryCount:0,materialCount:0,updateCount:0,incorporatedUnits:0,incorporationPulse:0,lod:'molecular'};
+  const objects=[],geometries=new Set(),materials=new Set();root.traverse(object=>{objects.push(object);if(object.geometry)geometries.add(object.geometry);if(object.material)materials.add(object.material);});
+  stats.objectCount=objects.length;stats.geometryCount=geometries.size;stats.materialCount=materials.size;stats.heroChainVertexCount=stats.visiblePointCount*radial;
+  let elapsed=0,disposed=false,cameraDistance=initialCameraDistance;
+
+  function matrixForMolecule({template:sourceTemplate,centerPoint,direction,scale=.5,opacity=1,atomLimit=sourceTemplate?.atoms.length??0,bondLimit=sourceTemplate?.bonds.length??0,atomStart=0,bondStart=0}){
+    if(!sourceTemplate)return{atomCount:atomStart,bondCount:bondStart};
+    fromAxis.set(...sourceTemplate.axis);toAxis.copy(direction).normalize();unitQuaternion.setFromUnitVectors(fromAxis,toAxis);
+    let atomCount=atomStart,bondCount=bondStart;
+    for(let index=0;index<Math.min(atomLimit,sourceTemplate.atoms.length)&&atomCount<atomCapacity;index++){
+      const atom=sourceTemplate.atoms[index],position=atomPosition.fromArray(atom.point).multiplyScalar(scale).applyQuaternion(unitQuaternion).add(centerPoint);
+      const radius=atom.element==='H'?.105:.17;dummy.position.copy(position);dummy.quaternion.copy(unitQuaternion);dummy.scale.setScalar(radius*opacity);dummy.updateMatrix();atoms.setMatrixAt(atomCount,dummy.matrix);
+      color.set(sourceElementColors[atom.element]??'#c7d6e1');atoms.setColorAt(atomCount,color);atomCount++;
+    }
+    for(let index=0;index<Math.min(bondLimit,sourceTemplate.bonds.length)&&bondCount<bondCapacity;index++){
+      const bond=sourceTemplate.bonds[index],a=sourceTemplate.atoms[bond.a],b=sourceTemplate.atoms[bond.b];
+      const pa=atomPosition.fromArray(a.point).multiplyScalar(scale).applyQuaternion(unitQuaternion).add(centerPoint),pb=atomPosition.fromArray(b.point).multiplyScalar(scale).applyQuaternion(unitQuaternion).add(centerPoint);
+      bondDirection.subVectors(pb,pa);const length=bondDirection.length();if(length<1e-5)continue;
+      bondMid.copy(pa).add(pb).multiplyScalar(.5);dummy.position.copy(bondMid);dummy.quaternion.setFromUnitVectors(yAxis,bondDirection.normalize());dummy.scale.set(1,length,1);dummy.updateMatrix();bonds.setMatrixAt(bondCount,dummy.matrix);bondCount++;
+    }
+    return{atomCount,bondCount};
+  }
+
+  function update(deltaMs,{cameraDistance:nextDistance=cameraDistance}={}){
+    if(disposed)return{phase:'disposed',done:true};
+    elapsed+=Math.min(50,Math.max(0,Number.isFinite(deltaMs)?deltaMs:0));cameraDistance=nextDistance;
+    const frame=heroGrowthFrame(elapsed,reducedMotion,durationMultiplier),visiblePointCount=visibleHeroPointCount(plan,frame),tipStation=visiblePointCount-1,tip=sampleHeroPoint(plan.points,tipStation),recognizable=frame.units<HERO_CHAIN_BUDGET.recognizableFeedUnits;
+    stats.phase=frame.phase;stats.progress=frame.progress;stats.updateCount++;stats.visiblePointCount=visiblePointCount;stats.heroChainProgress=frame.units+frame.unitProgress;stats.incorporatedUnits=Math.min(plan.growthUnits,frame.units+(frame.unitProgress>=.82?1:0));stats.heroChainSegmentCount=Math.max(0,visiblePointCount-1);stats.heroChainVertexCount=visiblePointCount*radial;stats.highDetailWindowEnd=tipStation;stats.highDetailWindowStart=Math.max(0,tipStation-HERO_CHAIN_BUDGET.detailWindowUnits*HERO_CHAIN_BUDGET.pointsPerUnit);stats.cameraDistance=cameraDistance;stats.lod=cameraDistance>initialCameraDistance*1.5?'particle':cameraDistance>initialCameraDistance*1.2?'simplified':'molecular';
+    tubeGeometry.setDrawRange(0,Math.max(0,(visiblePointCount-1)*radial*6));
+    let alphaSum=0;
+    for(let station=0;station<visiblePointCount;station++){
+      const age=tipStation-station,alpha=station<plan.basePointCount?1-detailOpacityForStation(station):clamp(age/(HERO_CHAIN_BUDGET.pointsPerUnit*2),.12,1);
+      for(let ring=0;ring<radial;ring++){const colorIndex=(station*radial+ring)*4+3;colors[colorIndex]=alpha;alphaSum+=alpha;}
+    }
+    tubeGeometry.attributes.color.needsUpdate=true;stats.coarseBackboneAlphaMean=alphaSum/Math.max(1,visiblePointCount*radial);
+    const tipVector=asVector(THREE,tip);tipPulse.position.copy(tipVector);const pulse=frame.phase==='anchored'?0:Math.max(0,1-(elapsed%Math.max(1,reducedMotion?180:540))/(reducedMotion?180:540));tipPulse.scale.setScalar(.11+pulse*.055);tipPulse.visible=frame.phase!=='anchored'&&frame.phase!=='long-chain-hold';tipPulse.material.opacity=.22+pulse*.35;
+    let atomCount=0,bondCount=0,particleCount=0,activeFeeds=0,tipDetailAtomCount=0,tipDetailBondCount=0;
+    const totalUnits=frame.units+frame.unitProgress,currentUnit=Math.min(plan.growthUnits-1,Math.floor(totalUnits));
+    // The newest two incorporated repeat units retain molecular detail at the tip.
+    if(template&&visiblePointCount>plan.basePointCount){
+      for(let slot=0;slot<detailCapacity;slot++){
+        const unit=currentUnit-slot;if(unit<0)continue;
+        const start=plan.basePointCount+unit*plan.pointsPerUnit,end=Math.min(visiblePointCount-1,start+plan.pointsPerUnit);
+        if(end<=start)continue;
+        const a=asVector(THREE,sampleHeroPoint(plan.points,start)),b=asVector(THREE,sampleHeroPoint(plan.points,end)),centerPoint=a.clone().add(b).multiplyScalar(.5),direction=b.sub(a);
+        const opacity=frame.phase==='long-chain-hold'?1:clamp((frame.unitProgress>.82?1:(frame.unitProgress+.15)),.45,1);
+        const result=matrixForMolecule({template,centerPoint,direction,opacity,atomStart:atomCount,bondStart:bondCount});tipDetailAtomCount+=result.atomCount-atomCount;tipDetailBondCount+=result.bondCount-bondCount;atomCount=result.atomCount;bondCount=result.bondCount;
       }
     }
-  }
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geometry.setIndex(indices);geometry.computeVertexNormals();geometry.setDrawRange(0,0);
-  const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.45,metalness:.12,transparent:true}),mesh=new THREE.Mesh(geometry,material);root.add(mesh);
-  const pendantGeometry=new THREE.BufferGeometry();pendantGeometry.setAttribute('position',new THREE.Float32BufferAttribute(pendants,3));pendantGeometry.setDrawRange(0,0);
-  const pendantMaterial=new THREE.LineBasicMaterial({color:'#cbe7ed',transparent:true}),outline=new THREE.LineSegments(pendantGeometry,pendantMaterial);root.add(outline);
-  const sphere=new THREE.SphereGeometry(1,6,4),feedMaterial=new THREE.MeshStandardMaterial({color:'#eaf8ff',roughness:.5});
-  const particles=new THREE.InstancedMesh(sphere,feedMaterial,MORPHOLOGY_BUDGET.feedCapacity);particles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);particles.frustumCulled=false;root.add(particles);
-  // At most four recognizable heavy-atom monomer templates. No runtime Molecule/body.
-  const templates=sourceRecords.map(record=>{
-    const selected=record.atoms.map((a,i)=>({a,i})).slice(0,16),map=new Map(selected.map((row,i)=>[row.i,i]));
-    const atoms=selected.map(({a})=>({element:a.element,point:a.point?.toArray?.()??a.point??[a.x??0,a.y??0,a.z??0]}));
-    const bonds=record.bonds.filter(b=>map.has(b.a)&&map.has(b.b)).map(b=>[map.get(b.a),map.get(b.b)]);
-    return{atoms,bonds};
-  }).filter(t=>t.atoms.length);
-  const atomCapacity=64,atoms=new THREE.InstancedMesh(sphere,feedMaterial,atomCapacity);atoms.instanceMatrix.setUsage(THREE.DynamicDrawUsage);atoms.frustumCulled=false;root.add(atoms);
-  const bondGeometry=new THREE.CylinderGeometry(.045,.045,1,4),bonds=new THREE.InstancedMesh(bondGeometry,feedMaterial,64);bonds.instanceMatrix.setUsage(THREE.DynamicDrawUsage);bonds.frustumCulled=false;root.add(bonds);
-  const bondAxis=new THREE.Vector3(),bondMid=new THREE.Vector3(),yAxis=new THREE.Vector3(0,1,0),feedPoint=new THREE.Vector3();
-  const dummy=new THREE.Object3D(),color=new THREE.Color(),feedOrigin=new THREE.Vector3(-7,4,0),target=new THREE.Vector3(),first=plan.strands[0],stats={phase:'bulk-feed',progress:0,feedVisualCapacity:24,feedVisualActiveCount:0,representativeChainCount:plan.strands.length,morphologyPrimitiveCount:indices.length/3,geometryVertexCount:positions.length/3+pendants.length/3+ sphere.attributes.position.count,objectCount:5,geometryCount:3,materialCount:3,morphologyArchetype:plan.profile.archetype,morphologyReady:false,updateCount:0};
-  const objects=[],geometries=new Set(),materials=new Set();root.traverse(o=>{objects.push(o);if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});
-  stats.objectCount=objects.length;stats.geometryCount=geometries.size;stats.materialCount=materials.size;stats.geometryVertexCount=[...geometries].reduce((n,g)=>n+(g.attributes.position?.count??0),0);
-  let elapsed=0,disposed=false;
-  function update(deltaMs){
-    if(disposed)return{done:true};elapsed+=Math.min(50,Math.max(0,deltaMs));const frame=cinematicFrame(elapsed,reducedMotion);stats.phase=frame.phase;stats.progress=frame.progress;stats.updateCount++;
-    const growth=frame.index===0?.025*frame.progress:frame.index===1?.025+.15*frame.progress:frame.index===2?.175+.825*frame.progress:1;
-    geometry.setDrawRange(0,Math.floor(indices.length*growth/24)*24);pendantGeometry.setDrawRange(0,Math.floor(pendants.length/3*growth/2)*2);
-    const collapse=frame.index===4?frame.progress:frame.done?1:0;material.opacity=1-collapse;pendantMaterial.opacity=1-collapse;
-    const scale=frame.index===0?.28:frame.index===1?.28+.72*frame.progress:1;root.scale.setScalar(scale*(1-collapse*.92));
-    const pointIndex=Math.min(first.length-1,Math.floor(Math.min(1,growth*plan.strands.length)*(first.length-1)));target.fromArray(first[pointIndex]);
-    const moving=frame.index<3&&!reducedMotion,atomistic=moving&&frame.index===0&&templates.length>0;particles.visible=moving&&!atomistic;atoms.visible=atomistic;
-    let atomIndex=0,bondIndex=0;dummy.quaternion.identity();bonds.visible=atomistic;
-    if(moving)for(let i=0;i<(atomistic?4:24);i++){
-      const t=(elapsed/(atomistic?650:420)+i/(atomistic?4:24))%1;
-      dummy.position.lerpVectors(feedOrigin,target,t);dummy.position.z+=Math.sin(i*2.4)*(1-t)*1.2;dummy.scale.setScalar(.14+.08*(1-t));dummy.updateMatrix();
-      if(!atomistic)particles.setMatrixAt(i,dummy.matrix);
-      else{const template=templates[i%templates.length];for(const atom of template.atoms){if(atomIndex>=atomCapacity)break;dummy.position.lerpVectors(feedOrigin,target,t);dummy.position.x+=atom.point[0]*.5;dummy.position.y+=atom.point[1]*.5;dummy.position.z+=atom.point[2]*.5;dummy.scale.setScalar(atom.element==='H'?.13:.21);dummy.updateMatrix();atoms.setMatrixAt(atomIndex,dummy.matrix);color.set(atom.element==='O'?'#ee766c':atom.element==='N'?'#88b2ff':atom.element==='Cl'?'#83cd8c':atom.element==='H'?'#ffffff':'#aab7c6');atoms.setColorAt(atomIndex++,color);}
-        feedPoint.lerpVectors(feedOrigin,target,t);
-        for(const [a,b] of template.bonds){if(bondIndex>=64)break;const pa=template.atoms[a].point,pb=template.atoms[b].point;bondAxis.set(pb[0]-pa[0],pb[1]-pa[1],pb[2]-pa[2]).multiplyScalar(.5);bondMid.set((pa[0]+pb[0])*.25,(pa[1]+pb[1])*.25,(pa[2]+pb[2])*.25);dummy.position.copy(feedPoint).add(bondMid);dummy.quaternion.setFromUnitVectors(yAxis,bondAxis.clone().normalize());dummy.scale.set(1,bondAxis.length(),1);dummy.updateMatrix();bonds.setMatrixAt(bondIndex++,dummy.matrix);}dummy.quaternion.identity();}
+    const feedStart=asVector(THREE,feedOrigin),flightCapacity=frame.phase==='recognizable-incorporation'?1:4;
+    for(let slot=0;slot<flightCapacity;slot++){
+      const unit=frame.units+slot;if(unit>=plan.growthUnits)continue;
+      const startFraction=frame.phase==='recognizable-incorporation'?0:slot*.2,duration=frame.phase==='recognizable-incorporation'?.82:.66;
+      const flightProgress=(frame.unitProgress-startFraction)/duration;if(flightProgress<0||flightProgress>=1)continue;
+      const t=flightProgress*(2-flightProgress),targetStation=Math.min(plan.points.length-1,plan.basePointCount-1+unit*plan.pointsPerUnit),targetPoint=asVector(THREE,sampleHeroPoint(plan.points,targetStation));
+      const source=feedStart.clone().add(new THREE.Vector3((slot%3-1)*.42,Math.floor(slot/3)*.28,(slot%2?1:-1)*.22));
+      flightPoint.lerpVectors(source,targetPoint,t);flightPoint.x+=Math.sin(Math.PI*t)*(slot%2?-.6:.6);flightPoint.y+=Math.sin(Math.PI*t*.7)*(slot-1.5)*.16;flightPoint.z+=Math.sin(Math.PI*t)*(slot%2?.34:-.34);
+      const direction=targetPoint.clone().sub(source).normalize(),simple=cameraDistance>initialCameraDistance*1.5||(!recognizable&&cameraDistance>initialCameraDistance*1.2);
+      if(template&&!simple){const atomLimit=recognizable?template.atoms.length:Math.min(template.atoms.length,2),bondLimit=recognizable?template.bonds.length:Math.min(template.bonds.length,1);const result=matrixForMolecule({template,centerPoint:flightPoint,direction,opacity:1,atomLimit,bondLimit,atomStart:atomCount,bondStart:bondCount});atomCount=result.atomCount;bondCount=result.bondCount;}
+      else if(particleCount<feedCapacity){dummy.position.copy(flightPoint);dummy.quaternion.identity();dummy.scale.setScalar(simple ? .082 : .105);dummy.updateMatrix();particles.setMatrixAt(particleCount++,dummy.matrix);}
+      activeFeeds++;
     }
-    bonds.count=bondIndex;if(atomistic)bonds.instanceMatrix.needsUpdate=true;atoms.count=atomIndex;if(atomistic){atoms.instanceMatrix.needsUpdate=true;if(atoms.instanceColor)atoms.instanceColor.needsUpdate=true;}if(moving&&!atomistic)particles.instanceMatrix.needsUpdate=true;
-    stats.feedVisualActiveCount=moving?(atomistic?4:24):0;stats.morphologyReady=frame.index===3;return{...frame,scale,cameraProgress:reducedMotion?0:frame.index===0?0:frame.index===1?frame.progress:frame.index===4?1-frame.progress:frame.done?0:1,atomOpacity:frame.index===0?1:frame.index===1?1-frame.progress:frame.index===4?frame.progress:frame.done?1:0};
+    atoms.count=atomCount;bonds.count=bondCount;particles.count=particleCount;atoms.instanceMatrix.needsUpdate=true;bonds.instanceMatrix.needsUpdate=true;particles.instanceMatrix.needsUpdate=true;
+    if(atoms.instanceColor)atoms.instanceColor.needsUpdate=true;
+    stats.feedVisualActiveCount=activeFeeds;stats.recognizableFeedUnitCount=recognizable?activeFeeds:0;stats.tipDetailAtomCount=tipDetailAtomCount;stats.tipDetailBondCount=tipDetailBondCount;stats.incorporationPulse=frame.unitProgress>=.82?1:0;
+    return{...frame,visiblePointCount,tipStation,tipPosition:tip,atomOpacity:1-detailCapacity};
   }
-  function dispose(){if(disposed)return;disposed=true;root.removeFromParent();geometry.dispose();pendantGeometry.dispose();sphere.dispose();bondGeometry.dispose();material.dispose();pendantMaterial.dispose();feedMaterial.dispose();root.clear();stats.objectCount=0;stats.geometryCount=0;stats.materialCount=0;stats.feedVisualActiveCount=0;}
-  return{root,plan,stats,feedOrigin,update,dispose};
+  function detailOpacityForStation(station){
+    if(stats.phase==='anchored'||stats.incorporatedUnits===0)return 1;
+    const delta=stats.highDetailWindowEnd-station,keep=HERO_CHAIN_BUDGET.detailWindowUnits*HERO_CHAIN_BUDGET.pointsPerUnit;
+    if(delta<=keep)return 1;
+    return clamp(1-(delta-keep)/(HERO_CHAIN_BUDGET.pointsPerUnit*4),0,1);
+  }
+  function visiblePoints(){return plan.points.slice(0,stats.visiblePointCount);}
+  function dispose(){if(disposed)return;disposed=true;root.removeFromParent();for(const geometry of geometries)geometry.dispose();for(const material of materials)material.dispose();root.clear();stats.active=false;stats.objectCount=0;stats.geometryCount=0;stats.materialCount=0;stats.feedVisualActiveCount=0;}
+  return{root,plan,anchor,stats,feedOrigin,update,visiblePoints,detailOpacityForStation,dispose};
 }

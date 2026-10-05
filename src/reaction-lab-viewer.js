@@ -10,7 +10,8 @@ import {
 import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './reaction-lab-environment.js?v=1';
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=2';
 import {createReactionLabPolymerizationCore,POLYMERIZATION_STATES,POLYMER_COMMIT_DWELL_MS} from './reaction-lab-polymerization.js?v=1';
-import {createPolymerCinematic} from './reaction-lab-polymer-cinematic.js?v=1';
+import {createPolymerCinematic} from './reaction-lab-polymer-cinematic.js?v=2';
+import {createPolymerGrowthAnchor,largestSafeRect} from './polymer-growth-plan.js?v=1';
 import {createPolymerPresentationPlan} from './reaction-lab-polymer-presentation.js?v=1';
 import {
   REACTION_LAB_WORLD_UNITS_PER_ANGSTROM, STAGE_A_GAME_STEP_SECONDS,
@@ -40,6 +41,7 @@ const FLUSH_PRESENTATION_MS=760;
 const FEED_TRAVEL_MS=330;
 const CAMERA_MIN_DISTANCE=7;
 const CAMERA_MAX_DISTANCE=64;
+const POLYMER_GROWTH_CAMERA_MAX_DISTANCE=220;
 const POLYMER_DOCK_ACQUIRE_PX=DEPTH_TARGET_ACQUIRE_PADDING_PX;
 const POLYMER_DOCK_RELEASE_PX=DEPTH_TARGET_RELEASE_PADDING_PX;
 const POLYMER_DOCK_DISTANCE_ANGSTROM=1.48;
@@ -83,7 +85,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const eventController=new AbortController(),eventOptions={signal:eventController.signal};
   const recordsById=new Map(records.map(record=>[record.id,record]));
   const scene=new THREE.Scene();scene.background=new THREE.Color('#0a1724');
-  const camera=new THREE.PerspectiveCamera(42,1,.1,100);
+  const camera=new THREE.PerspectiveCamera(42,1,.1,500);
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
   scene.add(new THREE.HemisphereLight(0xd9efff,0x162231,2.2));
@@ -92,13 +94,15 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
 
   let instances=[],purgeItems=[],selected=null,down=null,testIsolation=null,polymerRouteOwned=false,polymerBeginError=null;
   let polymerReservedById=new Map(),polymerSourceRecordsById={},polymerGraphVisual=null,polymerDocking=null,polymerAutoMotion=null,polymerSamplePresentation=null,polymerDockAttempt=null,polymerAutoAttempt=null;
-  let polymerCinematic=null,cinematicCameraDistance=null,lastCinematicStats=null,cinematicFit=1;
+  let polymerCinematic=null,cinematicCameraDistance=null,lastCinematicStats=null,polymerGrowthAnchor=null,polymerCinematicStartError=null;
+  const polymerFragmentMaterialState=new Map();
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,lastReactionPresentation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
   let dialogOpenState=!!dialog.open;const closeWaiters=new Set();
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
   let reactionDiagnostics=[],reactionTrajectoryTrace=null;
   let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastFixedStepDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
+  const polymerFrameProfile=localhostPhysicsTest?{update:new Float64Array(1024),render:new Float64Array(1024),frame:new Float64Array(1024),phase:new Array(1024),count:0}:null;
   const activePointers=new Map();
   const chamberTime=createChamberTimeAuthority(),isManipulating=()=>chamberTime.mode===CHAMBER_TIME_MODES.MANIPULATING;
   let pinchActive=false,pinchDistance=0,depthTarget=null,depthDockingState='none',pointerAnchorErrorPx=0,depthSafetyOracle=null,depthSafetyPairKey=null,depthOutwardAcceleration=Infinity,depthSafetySampleCount=0;
@@ -208,11 +212,11 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const axis=b.position.clone().sub(a.position),length=axis.length();if(!Number.isFinite(length)||length<.001)continue;
       const direction=axis.clone().normalize(),reference=new THREE.Vector3(0,0,1),side=new THREE.Vector3().crossVectors(direction,reference).normalize();if(side.lengthSq()<1e-8)side.set(0,1,0);
       const lanes=bond.order>=2?[-.055,.055]:[0];
-      for(const offset of lanes){const geometry=new THREE.CylinderGeometry(.038,.038,length,8),material=new THREE.MeshStandardMaterial({color:'#b8d1de',roughness:.5}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(a.position).add(b.position).multiplyScalar(.5).addScaledVector(side,offset);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction);visual.group.add(mesh);visual.bondMeshes.push(mesh);}
+      for(const offset of lanes){const geometry=new THREE.CylinderGeometry(.038,.038,length,8),material=new THREE.MeshStandardMaterial({color:'#b8d1de',roughness:.5}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(a.position).add(b.position).multiplyScalar(.5).addScaledVector(side,offset);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction);mesh.userData.polymerAtomIndices=[bond.a,bond.b];visual.group.add(mesh);visual.bondMeshes.push(mesh);}
     }
     if(visual.representation?.continuations?.length){
       for(const item of visual.representation.continuations){const atomIndex=Number.isInteger(item.atomRef)?item.atomRef:Number.parseInt(String(item.atomRef).split(':').at(-1),10),atom=visual.atomByGraphIndex.get(atomIndex);if(!atom)continue;
-        const point=atom.position.clone().add(new THREE.Vector3(0,.82,0)),ring=new THREE.Mesh(new THREE.TorusGeometry(.14,.025,6,18),new THREE.MeshBasicMaterial({color:'#83d7cd'}));ring.position.copy(point);visual.group.add(ring);visual.bondMeshes.push(ring);
+        const point=atom.position.clone().add(new THREE.Vector3(0,.82,0)),ring=new THREE.Mesh(new THREE.TorusGeometry(.14,.025,6,18),new THREE.MeshBasicMaterial({color:'#83d7cd'}));ring.position.copy(point);ring.userData.polymerAtomIndices=[atomIndex];visual.group.add(ring);visual.bondMeshes.push(ring);
       }
     }
   }
@@ -382,31 +386,74 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     polymerSiteIndicator.hidden=true;polymerSampleBay.hidden=false;polymerSampleBay.dataset.polymerId=sample.polymerId;polymerSampleBay.querySelector('[data-polymer-sample-label]').textContent='REPRESENTATIVE SEGMENT';
     status.textContent='POLYMER SAMPLE · READY FOR NEXT FEED';updatePolymerSiteIndicator();updateCommandBar();
   }
+  function setPolymerFragmentMaterialOpacity(material,opacity){
+    const alpha=clamp(opacity,0,1),saved=polymerFragmentMaterialState.get(material),original=saved??{transparent:material.transparent,opacity:material.opacity,depthWrite:material.depthWrite};
+    if(alpha<1&&!saved)polymerFragmentMaterialState.set(material,original);
+    material.transparent=alpha<1?true:original.transparent;material.opacity=original.opacity*alpha;material.depthWrite=alpha<1?false:original.depthWrite;
+    if(alpha>=1)polymerFragmentMaterialState.delete(material);
+  }
   function setFinitePolymerOpacity(opacity){
     if(!polymerGraphVisual)return;
     polymerGraphVisual.group.visible=opacity>0;
-    polymerGraphVisual.group.traverse(node=>{if(node.material){for(const material of Array.isArray(node.material)?node.material:[node.material]){material.transparent=opacity<1;material.opacity=opacity;}}});
+    polymerGraphVisual.group.traverse(node=>{if(node.material){for(const material of Array.isArray(node.material)?node.material:[node.material])setPolymerFragmentMaterialOpacity(material,opacity);}});
   }
   function cleanupPolymerCinematic(){
     if(!polymerCinematic)return;
     lastCinematicStats={...polymerCinematic.stats,active:false};polymerCinematic.dispose();
     lastCinematicStats.objectCount=0;lastCinematicStats.geometryCount=0;lastCinematicStats.materialCount=0;lastCinematicStats.feedVisualActiveCount=0;
-    polymerCinematic=null;if(cinematicCameraDistance!==null){distance=cinematicCameraDistance;cinematicCameraDistance=null;updateCamera();}setFinitePolymerOpacity(1);if(polymerSamplePresentation&&polymerGraphVisual)polymerSampleBay.hidden=false;updateEnvironmentControls();
+    polymerCinematic=null;polymerGrowthAnchor=null;if(cinematicCameraDistance!==null){distance=cinematicCameraDistance;cinematicCameraDistance=null;updateCamera();}setFinitePolymerOpacity(1);if(polymerSamplePresentation&&polymerGraphVisual)polymerSampleBay.hidden=false;updateEnvironmentControls();updateCommandBar();
   }
   function startPolymerCinematic(){
+    const tx=polymerCore.snapshot();
+    polymerCinematicStartError=null;
+    if(!tx||tx.polymerId!=='polyethylene'||!polymerGraphVisual){polymerCinematicStartError=!tx?'missing-finite-sample':tx.polymerId!=='polyethylene'?'unsupported-prototype-polymer':'finite-sample-visual-missing';return false;}
     cancelAllPointers();cinematicCameraDistance=distance;
-    const tx=polymerCore.snapshot(),route=polymerRoutes.find(r=>r.routeId===tx.routeId);
+    const route=polymerRoutes.find(r=>r.routeId===tx.routeId);
     const sourceRecords=route.feedSpecies.map(id=>[...polymerReservedById.values()].find(item=>item.species===id)?.record).filter(Boolean);
-    polymerCinematic=createPolymerCinematic({THREE,polymerId:tx.polymerId,sourceRecords,reducedMotion});
-    polymerCinematic.root.quaternion.copy(camera.quaternion);world.add(polymerCinematic.root);
-    const height=2*distance*(reducedMotion?1:1.65)*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5));cinematicFit=Math.min(height*.60/11,height*camera.aspect*.62/11);
-    // Feed source follows the visible rack port in screen space; not a new inventory.
-    const port=slots[0].getBoundingClientRect(),rect=canvas.getBoundingClientRect(),worldPerPixel=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,rect.height);
-    polymerCinematic.feedOrigin.set((port.left+port.width*.5-rect.left-rect.width*.5)*worldPerPixel/.28,-(port.bottom-rect.top-rect.height*.5)*worldPerPixel/.28,0);
-    const meshes=[...polymerGraphVisual.atomByGraphIndex.values()],anchor=meshes.at(-1)?.getWorldPosition(new THREE.Vector3())??new THREE.Vector3();
-    polymerCinematic.entryPosition=anchor.sub(new THREE.Vector3(...polymerCinematic.plan.strands[0][0]).multiplyScalar(.28*cinematicFit).applyQuaternion(camera.quaternion));
-    polymerCinematic.root.position.copy(polymerCinematic.entryPosition);
-    polymerSampleBay.hidden=true;updateCommandBar();
+    const pointsByAtomIndex=polymerGraphVisual.graph.atoms.map((_atom,index)=>polymerGraphVisual.atomByGraphIndex.get(index)?.position.toArray()??null);
+    try{
+      polymerGrowthAnchor=createPolymerGrowthAnchor({fragment:polymerGraphVisual.graph,pointsByAtomIndex,newestInstanceId:tx.consumedInstanceIds.at(-1)});
+      camera.updateMatrixWorld();
+      const cameraUp=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1).normalize(),viewDirection=camera.position.clone().normalize();
+      polymerCinematic=createPolymerCinematic({THREE,polymerId:tx.polymerId,anchor:polymerGrowthAnchor,sourceRecords,sampleId:tx.sample?.sampleId??polymerSamplePresentation?.sampleId,reducedMotion,viewPlane:{right:cameraRight().toArray(),up:cameraUp.toArray(),direction:viewDirection.toArray()}});
+    }catch(error){polymerCinematicStartError=error?.stack??String(error);console.error('Polymer hero-chain presentation could not resolve its finite-fragment anchor.',error);polymerGrowthAnchor=null;cinematicCameraDistance=null;return false;}
+    polymerGraphVisual.group.add(polymerCinematic.root);
+    updatePolymerFeedOrigin();polymerSampleBay.hidden=true;status.textContent='POLYMERIZATION · CHAIN ANCHOR';updateCommandBar();return true;
+  }
+  function updatePolymerFeedOrigin(){
+    if(!polymerCinematic||!polymerGraphVisual)return;
+    const port=slots[0].getBoundingClientRect(),rect=canvas.getBoundingClientRect(),unit=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,rect.height);
+    const worldPoint=cameraRight().multiplyScalar((port.left+port.width*.5-rect.left-rect.width*.5)*unit).addScaledVector(cameraUp(),-(Math.max(rect.top+8,port.bottom-8)-rect.top-rect.height*.5)*unit);
+    polymerGraphVisual.group.updateMatrixWorld(true);polymerCinematic.feedOrigin.copy(polymerGraphVisual.group.worldToLocal(worldPoint));
+  }
+  function polymerSafeScreenRegion(){
+    const rect=canvas.getBoundingClientRect(),canvasBounds={left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,width:rect.width,height:rect.height};
+    const obstacles=[...chamber.querySelectorAll('.reaction-lab-equipment,.reaction-lab-medium-selector:not([hidden]),.reaction-lab-purge-outlet')].filter(node=>!node.hidden).map(node=>{const box=node.getBoundingClientRect();return{left:box.left,right:box.right,top:box.top,bottom:box.bottom};});
+    return largestSafeRect(canvasBounds,obstacles,10);
+  }
+  function updatePolymerCameraFraming(elapsedMs){
+    if(!polymerCinematic||!polymerGraphVisual)return;
+    const canvasRect=canvas.getBoundingClientRect();
+    const region=polymerSafeScreenRegion(),centerX=(region.left+region.right)*.5,centerY=(region.top+region.bottom)*.5;
+    polymerGraphVisual.group.updateMatrixWorld(true);
+    const projected=polymerCinematic.visiblePoints().map(point=>projectPoint(polymerGraphVisual.group.localToWorld(vector(THREE,point))));
+    const bounds=projected.reduce((result,point)=>({left:Math.min(result.left,point.x),right:Math.max(result.right,point.x),top:Math.min(result.top,point.y),bottom:Math.max(result.bottom,point.y)}),{left:Infinity,right:-Infinity,top:Infinity,bottom:-Infinity});
+    const projectedLength=points=>points.slice(1).reduce((sum,point,index)=>sum+Math.hypot(point.x-points[index].x,point.y-points[index].y),0),initialPath=projected.slice(0,polymerCinematic.plan.basePointCount),initialProjectedLength=projectedLength(initialPath);
+    const halfWidth=Math.max(24,region.width*.44),halfHeight=Math.max(24,region.height*.44),required=Math.max((centerX-bounds.left)/halfWidth,(bounds.right-centerX)/halfWidth,(centerY-bounds.top)/halfHeight,(bounds.bottom-centerY)/halfHeight,1);
+    if(required>1.015&&distance<POLYMER_GROWTH_CAMERA_MAX_DISTANCE){const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.035),responseMs=reducedMotion?120:360,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);distance=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();}
+    const finalProjected=polymerCinematic.visiblePoints().map(point=>projectPoint(polymerGraphVisual.group.localToWorld(vector(THREE,point))));
+    const tip=finalProjected.at(-1),tipInside=!!tip&&tip.z>=-1&&tip.z<=1&&tip.x>=region.left+5&&tip.x<=region.right-5&&tip.y>=region.top+5&&tip.y<=region.bottom-5;
+    polymerCinematic.stats.cameraDistance=distance;polymerCinematic.stats.safeRegion={left:region.left-canvasRect.left,top:region.top-canvasRect.top,width:region.width,height:region.height};
+    polymerCinematic.stats.projectedPathLengthPx=projectedLength(projected);polymerCinematic.stats.initialProjectedLengthPx=initialProjectedLength;polymerCinematic.stats.projectedLengthRatio=projectedLength(projected)/Math.max(1,initialProjectedLength);
+    polymerCinematic.stats.growthTipScreenPosition=tip?{x:tip.x-canvasRect.left,y:tip.y-canvasRect.top,visible:tip.z>=-1&&tip.z<=1}:null;
+    polymerCinematic.stats.growthTipInSafeRegion=tipInside;
+    polymerCinematic.stats.framingClipped=finalProjected.some(point=>point.z < -1||point.z>1||point.x<region.left||point.x>region.right||point.y<region.top||point.y>region.bottom);
+    updatePolymerFeedOrigin();
+  }
+  function updatePolymerFragmentDetail(){
+    if(!polymerCinematic||!polymerGrowthAnchor||!polymerGraphVisual)return;
+    for(const[index,mesh]of polymerGraphVisual.atomByGraphIndex){const station=polymerGrowthAnchor.stationForAtomIndex[index];if(station==null)continue;const opacity=polymerCinematic.detailOpacityForStation(station);for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material])setPolymerFragmentMaterialOpacity(material,opacity);}
+    for(const mesh of polymerGraphVisual.bondMeshes){const stations=(mesh.userData.polymerAtomIndices??[]).map(index=>polymerGrowthAnchor.stationForAtomIndex[index]).filter(Number.isFinite);if(!stations.length)continue;const opacity=polymerCinematic.detailOpacityForStation(stations.reduce((sum,value)=>sum+value,0)/stations.length);for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material])setPolymerFragmentMaterialOpacity(material,opacity);}
   }
   function polymerSampleBayLayout(){
     if(!polymerGraphVisual)return null;
@@ -490,18 +537,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(progress>=1){motion.item.group.position.copy(motion.to);motion.item.group.updateMatrixWorld(true);syncStageABodyFromGroup(motion.item);const valid=polymerGeometrySafe(motion.item,motion.interaction,motion.item.group.position),begun=polymerCore.beginAutomaticStep(motion.item.id,{geometryValid:valid});if(begun.ok){polymerDocking={item:motion.item,interaction:motion.interaction,kind:'automatic'};if(localhostPhysicsTest)polymerAutoAttempt={...polymerAutoAttempt,stage:'dwell',geometryValid:valid};}else{if(localhostPhysicsTest)polymerAutoAttempt={...polymerAutoAttempt,stage:'begin',geometryValid:valid,reason:begun.reason};motion.item.polymerDocking=false;motion.item.stageBody.kinematic=false;polymerCore.autoFallback();status.textContent='POLYMERIZATION PAUSED';}polymerAutoMotion=null;updatePolymerSiteIndicator();}
     }
     if(polymerSamplePresentation){const presentation=polymerSamplePresentation;
-      if(presentation.phase==='settle'&&!polymerGraphVisual?.animation){startPolymerCinematic();presentation.phase='cinematic';}
+      if(presentation.phase==='settle'&&!polymerGraphVisual?.animation){presentation.phase=startPolymerCinematic()?'cinematic':'dock';if(presentation.phase==='dock'){polymerSampleBay.hidden=false;status.textContent='POLYMER SAMPLE · READY FOR NEXT FEED';updateCommandBar();}}
       if(presentation.phase==='cinematic'){
-        const frame=polymerCinematic.update(elapsedMs);
-        distance=cinematicCameraDistance*(1+.65*frame.cameraProgress);updateCamera();polymerCinematic.root.scale.multiplyScalar(cinematicFit);
-        const framing=frame.index===0?0:frame.index===1?frame.progress:frame.index===4?1-frame.progress:frame.done?0:1;
-        polymerCinematic.root.position.copy(polymerCinematic.entryPosition).multiplyScalar(1-framing).addScaledVector(cameraRight(),-distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))*camera.aspect*.18*framing);
-        const rect=canvas.getBoundingClientRect(),port=slots[0].getBoundingClientRect(),unit=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,rect.height);
-        polymerCinematic.feedOrigin.set((port.left+port.width*.5-rect.left-rect.width*.5)*unit,-(Math.max(rect.top+4,port.bottom)-rect.top-rect.height*.5)*unit,0);
-        polymerCinematic.feedOrigin.sub(polymerCinematic.root.position.clone().applyQuaternion(camera.quaternion.clone().invert())).divideScalar(Math.max(.01,polymerCinematic.root.scale.x));
-        setFinitePolymerOpacity(frame.atomOpacity);
-        status.textContent=frame.phase==='morphology-hold'?'代表的な材料内部構造 · 加工条件により変化':frame.phase==='bulk-feed'?'MONOMER SUPPLY · 分子から長い鎖へ':frame.phase==='scale-out'?'SCALE OUT · 繰り返し単位から高分子鎖へ':frame.phase==='ensemble-growth'?'MATERIAL · 多数の鎖が集合': 'REPRESENTATIVE SAMPLE';
-        if(frame.done){cleanupPolymerCinematic();presentation.phase='dock';polymerSampleBay.hidden=false;}
+        const frame=polymerCinematic.update(elapsedMs,{cameraDistance:distance});
+        updatePolymerCameraFraming(elapsedMs);updatePolymerFragmentDetail();
+        status.textContent=frame.phase==='anchored'?'POLYMERIZATION · CHAIN START':frame.phase==='recognizable-incorporation'?'CHAIN GROWTH · MONOMERS INCORPORATING':frame.phase==='extension'?'CHAIN GROWTH · LONG POLYMER':'LONG-CHAIN OBSERVATION';
+        if(frame.done){cleanupPolymerCinematic();presentation.phase='dock';polymerSampleBay.hidden=false;status.textContent='POLYMER SAMPLE · READY FOR NEXT FEED';updateCommandBar();}
       }
       if(presentation.phase==='dock'){presentation.dockElapsedMs+=elapsedMs;const duration=reducedMotion?240:POLYMER_DOCK_PRESENT_MS,progress=clamp(presentation.dockElapsedMs/duration,0,1),eased=progress*progress*(3-2*progress);dockPolymerSample(eased);if(progress>=1){presentation.phase='hold';presentation.elapsedMs=0;}}
       else if(presentation.phase==='hold'&&!presentation.ready){presentation.elapsedMs+=elapsedMs;const hold=reducedMotion?POLYMER_SAMPLE_REDUCED_HOLD_MS:POLYMER_SAMPLE_HOLD_MS;if(presentation.elapsedMs>=hold){presentation.ready=true;if(!presentation.dismissed)dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-present',{sampleId:presentation.sampleId,batchGeneration:presentation.batchGeneration});}}
@@ -513,7 +554,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function isPolymerRackLocked(){const tx=polymerCore.snapshot();return polymerRouteOwned&&!!tx&&tx.state!==POLYMERIZATION_STATES.SAMPLE;}
   function isTransitionLocked(){return batch.phase===REACTION_LAB_BATCH_PHASES.FLUSHING||batch.phase===REACTION_LAB_BATCH_PHASES.FEEDING;}
   function hasPointerGesture(){return !!selected||activePointers.size>0||pinchActive;}
-  function canEditRack(){return !disposed&&!pickerOpen&&!isTransitionLocked()&&!reactionAnimation&&!isPolymerRackLocked()&&!hasPointerGesture();}
+  function canEditRack(){const samplePresentationLocked=polymerSamplePresentation&&['settle','cinematic'].includes(polymerSamplePresentation.phase);return !disposed&&!polymerCinematic&&!samplePresentationLocked&&!pickerOpen&&!isTransitionLocked()&&!reactionAnimation&&!isPolymerRackLocked()&&!hasPointerGesture();}
   function environmentControlsLocked(){const tx=polymerCore.snapshot(),polymerLocked=polymerRouteOwned&&!!tx&&![POLYMERIZATION_STATES.WAITING,POLYMERIZATION_STATES.AUTO_PENDING].includes(tx.state);return disposed||!!polymerCinematic||pickerOpen||isManipulating()||pinchActive||isTransitionLocked()||!!reactionAnimation||polymerLocked;}
   function closeMediumSelector({returnFocus=false}={}){
     if(!mediumSelectorOpen)return;mediumSelectorOpen=false;mediumSelector.hidden=true;mediumButton?.setAttribute('aria-expanded','false');
@@ -544,7 +585,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   mediumSelector?.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setMediumSelectorOpen(false,{returnFocus:true});}},eventOptions);
   function updateCommandBar(){
     const state=batch.snapshot(),dirty=state.draftSlots.some((species,index)=>species!==state.activeSlots[index]);
-    const polymerState=polymerCore.snapshot();commandState.textContent=state.phase===REACTION_LAB_BATCH_PHASES.FLUSHING?'FLUSHING':state.phase===REACTION_LAB_BATCH_PHASES.FEEDING?'FEEDING':reactionAnimation?'REACTION':polymerRouteOwned&&polymerState?.state===POLYMERIZATION_STATES.SAMPLE?'POLYMER SAMPLE':polymerRouteOwned&&polymerState?.waitReason==='conditions'?'POLYMERIZATION PAUSED':polymerRouteOwned?'POLYMERIZATION':state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE?dirty?'DRAFT READY':'BATCH ACTIVE':'RACK READY';
+    const polymerState=polymerCore.snapshot();commandState.textContent=polymerCinematic?'CHAIN GROWTH':state.phase===REACTION_LAB_BATCH_PHASES.FLUSHING?'FLUSHING':state.phase===REACTION_LAB_BATCH_PHASES.FEEDING?'FEEDING':reactionAnimation?'REACTION':polymerRouteOwned&&polymerState?.state===POLYMERIZATION_STATES.SAMPLE?'POLYMER SAMPLE':polymerRouteOwned&&polymerState?.waitReason==='conditions'?'POLYMERIZATION PAUSED':polymerRouteOwned?'POLYMERIZATION':state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE?dirty?'DRAFT READY':'BATCH ACTIVE':'RACK READY';
     slots.forEach((tile,index)=>{tile.disabled=!canEditRack();tile.setAttribute('aria-expanded',String(pickerOpen&&pickerSlotIndex===index));});
     feedButton.disabled=!canEditRack()||(!state.draftSlots.some(Boolean)&&state.phase===REACTION_LAB_BATCH_PHASES.IDLE);
     updateEnvironmentControls();
@@ -1122,8 +1163,11 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const timeScale=chamberTime.scale,scaledElapsed=scaleSimulationElapsed(elapsed/1000,timeScale),acceptedElapsed=Math.min(scaledElapsed,STAGE_A_GAME_STEP_SECONDS*STAGE_A_MAX_CATCH_UP_STEPS);
     const timing=stageAStepper.advance(scaledElapsed);simulationClockSeconds+=acceptedElapsed;stageAPerformance.lastFrameStepCount=timing.steps;stageAPerformance.lastDroppedGameSeconds=timing.droppedGameSeconds;
     advanceReactionAnimation(elapsed);
+    const profileStart=polymerFrameProfile?performance.now():0;
     advancePolymerPresentation(Math.min(elapsed,50));
+    const profileRender=polymerFrameProfile?performance.now():0;
     renderer.render(scene,camera);
+    if(polymerFrameProfile){const profileEnd=performance.now(),index=polymerFrameProfile.count%polymerFrameProfile.frame.length;polymerFrameProfile.update[index]=profileRender-profileStart;polymerFrameProfile.render[index]=profileEnd-profileRender;polymerFrameProfile.frame[index]=elapsed;polymerFrameProfile.phase[index]=polymerCinematic?.stats.phase??polymerSamplePresentation?.phase??'idle';polymerFrameProfile.count=Math.min(polymerFrameProfile.count+1,polymerFrameProfile.frame.length);}
   }
   updateCamera();animationFrameId=requestAnimationFrame(tick);
   document.addEventListener('visibilitychange',()=>{last=performance.now();if(document.hidden)setMediumSelectorOpen(false);},{signal:eventController.signal});
@@ -1137,6 +1181,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   if(localhostPhysicsTest){
     const probeForces=()=>stageBPhysicsEnabled?evaluateStageBForces(instances.filter(item=>!item.busy&&!item.polymerDocking&&!item.feedMotion&&(!testIsolation||testIsolation.has(item.id))).map(item=>item.stageBody)):stageAForces;
     const probe={
+      profileReset(){if(!polymerFrameProfile)return false;polymerFrameProfile.count=0;return true;},
+      profile(){if(!polymerFrameProfile)return null;const count=polymerFrameProfile.count;return{count,update:Array.from(polymerFrameProfile.update.slice(0,count)),render:Array.from(polymerFrameProfile.render.slice(0,count)),frame:Array.from(polymerFrameProfile.frame.slice(0,count)),phase:polymerFrameProfile.phase.slice(0,count)};},
       physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,qA:stageBPhysicsEnabled?stageBChargeE:null,
       snapshot:()=>{
         const current=probeForces(),state=batch.snapshot();
@@ -1145,7 +1191,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
           simulationTimeMode:chamberTime.mode,simulationTimeScale:chamberTime.scale,simulationClockSeconds,simulationSuspended:pickerOpen||!dialog.open,pickerOpen,manipulationActive:isManipulating(),draggedInstanceId:selected?.id??null,depthTargetId:depthTarget,depthDockingState,pointerAnchorErrorPx,depthOutwardAcceleration,depthSafetySampleCount,
           batch:{...state,transitionKind:batchTransition?.kind??null,transitionGeneration:batchTransition?.generation??null,feedEntryCount:batchTransition?.entries?.length??0,feedEntriesHandedOff:batchTransition?.entries?.filter(row=>row.item?.feedHandoff).length??0,reactionEnabled:state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE&&!reactionAnimation&&!polymerRouteOwned,reactionPresentationActive:!!reactionAnimation},
           cinematic:polymerCinematic?{...polymerCinematic.stats,cameraDistance:distance}:lastCinematicStats?{...lastCinematicStats,active:false,cameraDistance:distance}:null,
-          polymerization:(()=>{const tx=polymerCore.snapshot();return{routeOwned:polymerRouteOwned,beginError:polymerBeginError,routeId:tx?.routeId??polymerCore.routeId??null,polymerId:tx?.polymerId??null,state:tx?.state??null,stepKind:tx?.stepKind??null,waitReason:tx?.waitReason??null,manualStepCount:tx?.manualStepCount??0,automaticStepCount:tx?.automaticStepCount??0,reservedInstanceIds:tx?.reservedInstanceIds??[],consumedInstanceIds:tx?.consumedInstanceIds??[],sourceMeshCount:polymerGraphVisual?.atomMeshesByOrigin.size??0,sampleId:polymerSamplePresentation?.sampleId??null,sampleReady:!!polymerSamplePresentation?.ready,samplePhase:polymerSamplePresentation?.phase??null,sampleBayRegion:polymerSamplePresentation?.region??null,sampleEvidence:tx?.sample?.evidence??null,siteTarget:polymerSiteIndicator.hidden?null:{x:Number(polymerSiteIndicator.dataset.targetX),y:Number(polymerSiteIndicator.dataset.targetY),semantic:polymerSiteIndicator.textContent,acquired:polymerSiteIndicator.dataset.acquired==='true'},dockAttempt:polymerDockAttempt,autoAttempt:polymerAutoAttempt};})(),
+          polymerization:(()=>{const tx=polymerCore.snapshot();return{routeOwned:polymerRouteOwned,beginError:polymerBeginError,cinematicStartError:localhostPhysicsTest?polymerCinematicStartError:null,routeId:tx?.routeId??polymerCore.routeId??null,polymerId:tx?.polymerId??null,state:tx?.state??null,stepKind:tx?.stepKind??null,waitReason:tx?.waitReason??null,manualStepCount:tx?.manualStepCount??0,automaticStepCount:tx?.automaticStepCount??0,reservedInstanceIds:tx?.reservedInstanceIds??[],consumedInstanceIds:tx?.consumedInstanceIds??[],sourceMeshCount:polymerGraphVisual?.atomMeshesByOrigin.size??0,heroAnchor:polymerGrowthAnchor?{backboneAtomIndices:[...polymerGrowthAnchor.backboneAtomIndices],backbonePoints:polymerGrowthAnchor.backbonePoints.map(point=>[...point]),growthEndAtomIndex:polymerGrowthAnchor.growthEndAtomIndex}:null,sourceDetailOpacities:polymerGraphVisual?[...polymerGraphVisual.atomByGraphIndex.values()].map(mesh=>(Array.isArray(mesh.material)?mesh.material[0]:mesh.material)?.opacity??1):[],sourceDetailMaterialStates:polymerGraphVisual?[...polymerGraphVisual.atomByGraphIndex.values(),...polymerGraphVisual.bondMeshes].flatMap(mesh=>(Array.isArray(mesh.material)?mesh.material:[mesh.material]).map(material=>({opacity:material.opacity,depthWrite:material.depthWrite}))):[],sampleId:polymerSamplePresentation?.sampleId??null,sampleReady:!!polymerSamplePresentation?.ready,samplePhase:polymerSamplePresentation?.phase??null,sampleBayRegion:polymerSamplePresentation?.region??null,sampleEvidence:tx?.sample?.evidence??null,siteTarget:polymerSiteIndicator.hidden?null:{x:Number(polymerSiteIndicator.dataset.targetX),y:Number(polymerSiteIndicator.dataset.targetY),semantic:polymerSiteIndicator.textContent,acquired:polymerSiteIndicator.dataset.acquired==='true'},dockAttempt:polymerDockAttempt,autoAttempt:polymerAutoAttempt};})(),
           reactionPresentation:reactionAnimation?{active:true,phase:reactionAnimation.phase,phaseElapsedMs:reactionAnimation.phaseElapsedMs,progress:reactionAnimation.currentProgress??0,settleProgress:reactionAnimation.settleProgress??0,reactionId:reactionAnimation.execution.reactionId,pathwayId:reactionAnimation.execution.pathwayId,participantIds:reactionAnimation.execution.consumedInstanceIds,productTargetsReady:reactionAnimation.productTargetsReady,productCount:reactionAnimation.products.length,sourceAtomCount:reactionAnimation.sourcePositions.size,presentationAtomCount:reactionAnimation.sourceMeshes.size,visiblePresentationAtomCount:[...reactionAnimation.sourceMeshes.values()].filter(mesh=>mesh?.parent===reactionAnimation.root).length,handoffMaxAtomError:reactionAnimation.handoffMaxAtomError,clearanceSafe:reactionAnimation.clearanceSafe,clearanceCorrectionAngstrom:reactionAnimation.clearanceCorrectionAngstrom,clearancePairResults:reactionAnimation.clearancePairResults??[],targetGeometry:reactionAnimation.products.map(product=>product.targetGeometry??null),targetPreparationFailed:reactionAnimation.targetPreparationFailed??null,phaseDurationMs:(reducedMotion?REDUCED_PRESENTATION_PHASES:NORMAL_PRESENTATION_PHASES)[reactionAnimation.phase==='PREPARING'?'prepare':reactionAnimation.phase==='TRANSFORMING'?'transform':'settle']}:lastReactionPresentation,
           instances:instances.map(item=>({...stageABodySnapshot(item.stageBody),species:item.species,atomCount:item.record.atoms.length,busy:item.busy,polymerReservation:item.polymerReservation??null,polymerDocking:!!item.polymerDocking,position:item.group.position.toArray(),initialPositionAtSpawn:item.initialPositionAtSpawn?[...item.initialPositionAtSpawn]:null,batchGeneration:item.batchGeneration,originPortIndex:item.feedOriginPortIndex,feedPhase:item.feedPhase,feedHandoff:item.feedHandoff,kinematic:!!item.stageBody.kinematic,charges:[...item.record.nonbonded.atomicChargesE],carbonylSites:stageBPhysicsEnabled?stageBCarbonylDiagnostics(item.stageBody):[],renderedAtomCount:stageBPhysicsEnabled?item.atomMeshes.size:null,expectedRealAtomCount:stageBPhysicsEnabled?item.record.atoms.length:null,renderedGroupChildCount:stageBPhysicsEnabled?item.group.children.length:null})),
           purging:purgeItems.map(item=>({id:item.id,species:item.species,position:item.group.position.toArray()})),pairs:current.pairDiagnostics.map(pair=>({...pair})),
