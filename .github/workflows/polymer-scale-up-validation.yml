@@ -1,18 +1,23 @@
-name: Polymer scale-up validation
+name: Polymer growth continuity validation
 on:
   push:
-    branches: [polymer-scale-up]
+    branches: [main]
   pull_request:
     paths:
       - 'src/*polymer*'
+      - 'src/reaction-lab-viewer.js'
       - 'tests/*polymer*'
-      - 'tests/helpers/polymer-profile-instrumentation.mjs'
-      - 'scripts/profile-polymer-scale-up.mjs'
+      - 'src/polymer-growth-plan.js'
+      - 'scripts/summarize-polymer-growth-profile.mjs'
+      - 'docs/polymer-growth-continuity.md'
+      - 'docs/architecture.md'
+      - 'precache-manifest.js'
+      - 'sw.js'
       - '.github/workflows/polymer-scale-up-validation.yml'
 permissions:
   contents: read
 jobs:
-  morphology:
+  continuity:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -24,23 +29,24 @@ jobs:
           node-version: 22
       - name: Japanese screenshot font
         run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
-      - name: Authority, chemistry, discovery, persistence, fabrication
-        run: node --test tests/polymer-morphology.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
-      - name: Paired production pointer/profile validation
-        run: node scripts/profile-polymer-scale-up.mjs b6b48701eca71fdac16bc391efaa48027a4b214c
-      - name: Summarize repeated performance evidence
-        run: node scripts/summarize-polymer-scale-up.mjs
+      - name: Bounded plan, chemistry and discovery regressions
+        run: node --test tests/polymer-growth-plan.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
+      - name: Production pointer path and 390×844 visual QA
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Production pointer path and representative desktop QA
+        run: POLYMER_DESKTOP=1 node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Summarize measured PE presentation performance
+        run: node scripts/summarize-polymer-growth-profile.mjs
       - name: Collection, hygiene, offline integrity
         run: |
           node tests/collection-polymer-browser.test.mjs
-          node scripts/export-polymer-morphology-doc.mjs --check
           node scripts/check-repository-hygiene.mjs
           node scripts/build-precache.mjs --check
           node --test tests/pwa.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: polymer-scale-up-evidence
-          path: test-results/polymer-scale-up
+          name: polymer-growth-continuity-evidence
+          path: test-results/polymer-growth-continuity
           if-no-files-found: error
           retention-days: 14
