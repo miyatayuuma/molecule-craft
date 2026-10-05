@@ -166,6 +166,6 @@ assert.doesNotMatch(app, /cho-completion|cho-continue/);
 assert.match(app, /Craft information refresh failed; 3D workspace remains active/);
 assert.match(app, /Initial craft refresh failed; continuing runtime startup/);
 assert.match(index, /class=\"craft-target-meta\"/);
-assert.match(index, /styles\.css\?v=48/);
+assert.match(index, /styles\.css\?v=49/);
 
 console.log('Source contract tests passed.');
