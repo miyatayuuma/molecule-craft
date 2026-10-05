@@ -72,6 +72,7 @@ test('LOD follows CSS-pixel atom and bond readability with a smooth retained tra
   const authority=POLYMER_VISUAL_AUTHORITY;
   assert.deepEqual([authority.molecularBondStartPx,authority.molecularBondFullPx],[4,8]);
   assert.deepEqual([authority.molecularAtomStartPx,authority.molecularAtomFullPx],[2.5,4.5]);
+  assert.equal(authority.coarseStrandWorldRadiusMax,.5);
   const readable=screenSpaceMolecularWeight({heavyAtomDiameterPx:5,backboneBondLengthPx:9,previousWeight:1});
   assert.equal(readable.molecularWeight,1);assert.equal(readable.coarseWeight,0);
   const middle=screenSpaceMolecularWeight({heavyAtomDiameterPx:3.5,backboneBondLengthPx:6,previousWeight:1});

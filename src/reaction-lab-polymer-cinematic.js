@@ -205,7 +205,7 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
     stats.coarseBackboneAlphaMean=coarseWeight;stats.cameraDistance=cameraDistance;
 
     const pixelScale=Number.isFinite(metrics.localUnitsPerCssPixel)?metrics.localUnitsPerCssPixel:.025;
-    const radius=clamp(POLYMER_VISUAL_AUTHORITY.coarseStrandWidthPx*pixelScale*.5,.008,.32);
+    const radius=clamp(POLYMER_VISUAL_AUTHORITY.coarseStrandWidthPx*pixelScale*.5,.008,POLYMER_VISUAL_AUTHORITY.coarseStrandWorldRadiusMax);
     setTubeRadius(radius,stats.visiblePointCount);
     tubeGeometry.setDrawRange(0,Math.max(0,(stats.visiblePointCount-1)*radial*6));
     tubeMaterial.opacity=coarseWeight;tubeMaterial.visible=coarseWeight>.001;stats.projectedStrandWidthPx=2*radius/Math.max(1e-6,pixelScale);
