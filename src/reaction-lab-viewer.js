@@ -402,7 +402,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     cancelAllPointers();cinematicCameraDistance=distance;
     const route=polymerRoutes.find(r=>r.routeId===tx.routeId);
     const sourceRecords=route.feedSpecies.map(id=>[...polymerReservedById.values()].find(item=>item.species===id)?.record).filter(Boolean);
-    const positionsByAtomIndex=polymerGraphVisual.graph.atoms.map((_atom,index)=>polymerGraphVisual.atomByGraphIndex.get(index)?.position.toArray()??null);
+    const pointsByAtomIndex=polymerGraphVisual.graph.atoms.map((_atom,index)=>polymerGraphVisual.atomByGraphIndex.get(index)?.position.toArray()??null);
     try{
       polymerGrowthAnchor=createPolymerGrowthAnchor({fragment:polymerGraphVisual.graph,pointsByAtomIndex,newestInstanceId:tx.consumedInstanceIds.at(-1)});
       polymerCinematic=createPolymerCinematic({THREE,polymerId:tx.polymerId,anchor:polymerGrowthAnchor,sourceRecords,sampleId:tx.sample?.sampleId??polymerSamplePresentation?.sampleId,reducedMotion});
