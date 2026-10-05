@@ -2,15 +2,15 @@
 // This module deliberately has no chemistry, DOM, renderer, or Three.js dependency.
 export const HERO_CHAIN_BUDGET = Object.freeze({
   maxBackbonePoints: 32,
-  growthUnits: 30,
+  growthUnits: 48,
   pointsPerUnit: 2,
-  pointCapacity: 92,
+  pointCapacity: 128,
   radialSegments: 8,
-  vertexCapacity: 736,
-  indexCapacity: 4368,
+  vertexCapacity: 1024,
+  indexCapacity: 6096,
   feedCapacity: 6,
   recognizableFeedUnits: 3,
-  molecularUnitCapacity: 30,
+  molecularUnitCapacity: 48,
   objects: 10,
 });
 
@@ -116,7 +116,7 @@ function randomFor(seedText) {
 }
 
 function makeCurveKeys(count, random) {
-  const sign=random()<.5?-1:1,firstAt=22+Math.floor(random()*4),secondAt=firstAt+17+Math.floor(random()*3),thirdAt=Math.min(count-1,secondAt+15+Math.floor(random()*4));
+  const sign=random()<.5?-1:1,firstAt=Math.floor(count*(.22+random()*.04)),secondAt=Math.floor(count*(.53+random()*.05)),thirdAt=Math.min(count-1,Math.floor(count*(.78+random()*.06)));
   const first=sign*(1.05+random()*.2),second=-sign*(.72+random()*.26),third=sign*(.22+random()*.36);
   return[
     {at:8,heading:0,depth:0},

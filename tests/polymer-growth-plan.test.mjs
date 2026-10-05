@@ -117,7 +117,7 @@ test('bounded instanced detail persists while readable, crossfades in place, and
     assert.equal(baseline.objects,HERO_CHAIN_BUDGET.objects);assert.equal(baseline.geometries,5);assert.equal(baseline.materials,9);
     assert.equal(cinematic.stats.coarseGeometryVertexCapacity,HERO_CHAIN_BUDGET.vertexCapacity);
     assert.equal(cinematic.root.children.find(child=>child.name==='continuous-polymer-backbone').geometry.index.count,HERO_CHAIN_BUDGET.indexCapacity);
-    assert.equal(cinematic.stats.chainAtomInstanceCapacity,180);assert.equal(cinematic.stats.chainBondInstanceCapacity,180);
+    assert.equal(cinematic.stats.chainAtomInstanceCapacity,288);assert.equal(cinematic.stats.chainBondInstanceCapacity,288);
     cinematic.advance(16);cinematic.render(readableMetrics);
     assert.equal(cinematic.stats.phase,'anchored');assert.equal(cinematic.stats.molecularLodWeight,1);assert.equal(cinematic.stats.coarseLodWeight,0);
     let incorporated=false;
