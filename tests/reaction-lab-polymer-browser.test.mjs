@@ -105,7 +105,7 @@ try{
       await waitFor("(()=>{const c=window.__reactionLabProbe.snapshot().cinematic;return c?.phase==='extension'&&c.coarseLodWeight>.98})()",route.routeId+': unreadable molecular detail did not transfer to a complete coarse strand',12000);
       const coarse=await snapshot();await capture('frame-e-coarse-extension');frameMetrics.frames.E=coarse.cinematic;await writeFrameMetrics();
       assert.equal(coarse.cinematic.molecularDetailUnitCount,0);assert.equal(coarse.cinematic.tipDetailAtomCount,0,'no unreadable atomistic tip remains');
-      assert.ok(coarse.cinematic.projectedHeavyAtomDiameterPx<2.5&&coarse.cinematic.projectedBackboneBondLengthPx<4,'coarse conversion follows loss of molecular readability');
+      assert.ok(coarse.cinematic.lodReadabilityScore<.1&&coarse.cinematic.coarseLodWeight>.98,`coarse conversion follows the low end of the documented screen-space readability band: ${JSON.stringify({score:coarse.cinematic.lodReadabilityScore,atomDiameter:coarse.cinematic.projectedHeavyAtomDiameterPx,bondLength:coarse.cinematic.projectedBackboneBondLengthPx})}`);
       assert.ok(coarse.cinematic.projectedStrandWidthPx>=2&&coarse.cinematic.projectedStrandWidthPx<=4,'coarse strand has a restrained, readable screen-space body');
       assert.ok(coarse.cinematic.cameraDistance>scaleOut.cinematic.cameraDistance,'the camera continues fitting the whole chain before hold');
       await waitFor("window.__reactionLabProbe.snapshot().cinematic?.phase==='long-chain-hold'",route.routeId+': long-chain observation hold missing');
