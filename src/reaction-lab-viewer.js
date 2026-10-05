@@ -406,7 +406,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const pointsByAtomIndex=polymerGraphVisual.graph.atoms.map((_atom,index)=>polymerGraphVisual.atomByGraphIndex.get(index)?.position.toArray()??null);
     try{
       polymerGrowthAnchor=createPolymerGrowthAnchor({fragment:polymerGraphVisual.graph,pointsByAtomIndex,newestInstanceId:tx.consumedInstanceIds.at(-1)});
-      polymerCinematic=createPolymerCinematic({THREE,polymerId:tx.polymerId,anchor:polymerGrowthAnchor,sourceRecords,sampleId:tx.sample?.sampleId??polymerSamplePresentation?.sampleId,reducedMotion});
+      camera.updateMatrixWorld();
+      const cameraUp=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1).normalize(),viewDirection=camera.position.clone().normalize();
+      polymerCinematic=createPolymerCinematic({THREE,polymerId:tx.polymerId,anchor:polymerGrowthAnchor,sourceRecords,sampleId:tx.sample?.sampleId??polymerSamplePresentation?.sampleId,reducedMotion,viewPlane:{right:cameraRight().toArray(),up:cameraUp.toArray(),direction:viewDirection.toArray()}});
     }catch(error){polymerCinematicStartError=error?.stack??String(error);console.error('Polymer hero-chain presentation could not resolve its finite-fragment anchor.',error);polymerGrowthAnchor=null;cinematicCameraDistance=null;return false;}
     polymerGraphVisual.group.add(polymerCinematic.root);
     updatePolymerFeedOrigin();polymerSampleBay.hidden=true;status.textContent='POLYMERIZATION · CHAIN ANCHOR';updateCommandBar();return true;
@@ -429,11 +431,13 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     polymerGraphVisual.group.updateMatrixWorld(true);
     const projected=polymerCinematic.visiblePoints().map(point=>projectPoint(polymerGraphVisual.group.localToWorld(vector(THREE,point))));
     const bounds=projected.reduce((result,point)=>({left:Math.min(result.left,point.x),right:Math.max(result.right,point.x),top:Math.min(result.top,point.y),bottom:Math.max(result.bottom,point.y)}),{left:Infinity,right:-Infinity,top:Infinity,bottom:-Infinity});
+    const projectedLength=points=>points.slice(1).reduce((sum,point,index)=>sum+Math.hypot(point.x-points[index].x,point.y-points[index].y),0),initialPath=projected.slice(0,polymerCinematic.plan.basePointCount),initialProjectedLength=projectedLength(initialPath);
     const halfWidth=Math.max(24,region.width*.44),halfHeight=Math.max(24,region.height*.44),required=Math.max((centerX-bounds.left)/halfWidth,(bounds.right-centerX)/halfWidth,(centerY-bounds.top)/halfHeight,(bounds.bottom-centerY)/halfHeight,1);
     if(required>1.015&&distance<POLYMER_GROWTH_CAMERA_MAX_DISTANCE){const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.035),responseMs=reducedMotion?120:360,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);distance=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();}
     const finalProjected=polymerCinematic.visiblePoints().map(point=>projectPoint(polymerGraphVisual.group.localToWorld(vector(THREE,point))));
     const tip=finalProjected.at(-1),tipInside=!!tip&&tip.z>=-1&&tip.z<=1&&tip.x>=region.left+5&&tip.x<=region.right-5&&tip.y>=region.top+5&&tip.y<=region.bottom-5;
     polymerCinematic.stats.cameraDistance=distance;polymerCinematic.stats.safeRegion={left:region.left-canvasRect.left,top:region.top-canvasRect.top,width:region.width,height:region.height};
+    polymerCinematic.stats.projectedPathLengthPx=projectedLength(projected);polymerCinematic.stats.initialProjectedLengthPx=initialProjectedLength;polymerCinematic.stats.projectedLengthRatio=projectedLength(projected)/Math.max(1,initialProjectedLength);
     polymerCinematic.stats.growthTipScreenPosition=tip?{x:tip.x-canvasRect.left,y:tip.y-canvasRect.top,visible:tip.z>=-1&&tip.z<=1}:null;
     polymerCinematic.stats.growthTipInSafeRegion=tipInside;
     polymerCinematic.stats.framingClipped=finalProjected.some(point=>point.z < -1||point.z>1||point.x<region.left||point.x>region.right||point.y<region.top||point.y>region.bottom);

@@ -29,9 +29,9 @@ function asVector(THREE,point){return new THREE.Vector3(point[0],point[1],point[
  * finite fragment's carbon backbone; the same bounded tube continues from its
  * active end. It never creates molecule instances or modifies chemistry.
  */
-export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],sampleId='polymer-sample',reducedMotion=false,durationMultiplier=1}){
+export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],sampleId='polymer-sample',reducedMotion=false,durationMultiplier=1,viewPlane=null}){
   if(polymerId!=='polyethylene')throw new Error('Hero-chain continuity is currently enabled for polyethylene only.');
-  const plan=createHeroChainPlan({polymerId,anchor,seed:sampleId}),root=new THREE.Group();root.name='polymer-hero-chain-presentation';
+  const plan=createHeroChainPlan({polymerId,anchor,seed:sampleId,viewPlane}),root=new THREE.Group();root.name='polymer-hero-chain-presentation';
   const radial=HERO_CHAIN_BUDGET.radialSegments,vertices=plan.points.length*radial,positions=new Float32Array(vertices*3),colors=new Float32Array(vertices*4),indices=[];
   const center=asVector(THREE,[0,0,0]),tangent=new THREE.Vector3(),reference=new THREE.Vector3(),side=new THREE.Vector3(),up=new THREE.Vector3();
   const pathVectors=plan.points.map(point=>asVector(THREE,point));

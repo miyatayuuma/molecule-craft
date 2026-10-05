@@ -47,6 +47,20 @@ test('hero-chain plan is deterministic, one continuous trajectory, tangent-align
   assert.ok(minimumPlan.points.every(point=>point.every(Number.isFinite)),'the minimum two-carbon finite anchor still produces a stable continuation');
 });
 
+test('camera-aware continuation keeps depth-directed anchors visibly long without changing the first tangent',()=>{
+  const anchor=anchorForTest(),depthAnchor={...anchor,backbonePoints:[[0,0,0],[0,0,1],[0,0,2],[0,0,3]],growthTip:[0,0,3],tangent:[0,0,1],initialExtent:3};
+  const viewPlane={right:[1,0,0],up:[0,1,0],direction:[0,0,1]},plan=createHeroChainPlan({polymerId:'polyethylene',anchor:depthAnchor,seed:'depth-directed-growth',viewPlane});
+  assert.deepEqual(plan.points.slice(0,depthAnchor.backbonePoints.length),depthAnchor.backbonePoints);
+  const firstDelta=plan.points[depthAnchor.backbonePoints.length].map((value,index)=>value-depthAnchor.growthTip[index]);
+  assert.ok(firstDelta[2]>0&&Math.abs(firstDelta[0])<1e-9&&Math.abs(firstDelta[1])<1e-9,'the initial additions preserve the chemistry-derived tangent');
+  const project=point=>[point[0],point[1]],projectedLength=points=>points.slice(1).reduce((sum,point,index)=>sum+Math.hypot(project(point)[0]-project(points[index])[0],project(point)[1]-project(points[index])[1]),0);
+  const initialLength=projectedLength(plan.points.slice(0,plan.basePointCount)),heroLength=projectedLength(plan.points);
+  assert.ok(heroLength/initialLength>3,'after the tangent-aligned start, extension stays in the visible camera plane and reads as a long chain');
+  const headings=plan.points.slice(depthAnchor.backbonePoints.length).slice(1).map((point,index)=>{const previous=plan.points[depthAnchor.backbonePoints.length+index],delta=point.map((value,axis)=>value-previous[axis]),length=Math.hypot(...delta);return delta.map(value=>value/length);});
+  const bends=headings.slice(1).map((heading,index)=>Math.acos(Math.max(-1,Math.min(1,heading.reduce((sum,value,axis)=>sum+value*headings[index][axis],0)))));
+  assert.ok(Math.max(...bends)<.2,'camera-plane steering remains gradual and keeps local curvature persistent');
+});
+
 test('recognizable incorporation, extension and observation hold preserve one increasing chain in normal and reduced motion',()=>{
   for(const reduced of [false,true]){
     const phases=new Set();let previous=0,final=null;

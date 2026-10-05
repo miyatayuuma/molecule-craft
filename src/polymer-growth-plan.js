@@ -14,6 +14,7 @@ export const HERO_CHAIN_BUDGET = Object.freeze({
 });
 
 const finitePoint = point => Array.isArray(point) && point.length === 3 && point.every(Number.isFinite);
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const distance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const subtract = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -100,7 +101,7 @@ function randomFor(seedText) {
 }
 
 /** Extend the actual backbone with persistent-curvature, nonperiodic continuation. */
-export function createHeroChainPlan({polymerId, anchor, seed = polymerId}) {
+export function createHeroChainPlan({polymerId, anchor, seed = polymerId, viewPlane = null}) {
   if (!anchor?.backbonePoints?.every(finitePoint) || anchor.backbonePoints.length < 2) throw new TypeError('A resolved finite-fragment anchor is required.');
   if (anchor.backbonePoints.length + HERO_CHAIN_BUDGET.growthUnits * HERO_CHAIN_BUDGET.pointsPerUnit > HERO_CHAIN_BUDGET.pointCapacity) throw new Error('Hero-chain point budget exceeded.');
   const points = anchor.backbonePoints.map(point => [...point]), random = randomFor(`${seed}:polymer-growth-v1`);
@@ -111,6 +112,15 @@ export function createHeroChainPlan({polymerId, anchor, seed = polymerId}) {
   for (let index = Math.max(1, points.length - 3); index < points.length; index++) recent.push(distance(points[index], points[index - 1]));
   const measuredStep = recent.length ? recent.reduce((sum, value) => sum + value, 0) / recent.length : distance(points.at(-1), points.at(-2));
   const targetStep = Math.max(.3, Math.min(.43, measuredStep * .42));
+  const screenRight = finitePoint(viewPlane?.right) ? normalize(viewPlane.right) : null;
+  const screenUp = finitePoint(viewPlane?.up) ? normalize(viewPlane.up) : null;
+  const viewDirection = finitePoint(viewPlane?.direction) ? normalize(viewPlane.direction) : null;
+  let screenHeading = null;
+  if (screenRight && screenUp && viewDirection) {
+    const projected = subtract(tangent, viewDirection.map(value => value * dot(tangent, viewDirection)));
+    const projectedLength = Math.hypot(...projected);
+    screenHeading = projectedLength > .12 ? projected.map(value => value / projectedLength) : screenRight.map(value => value * (dot(tangent, screenRight) < 0 ? -1 : 1));
+  }
   let curveA = 0, curveB = 0;
   const extensionPointCount = HERO_CHAIN_BUDGET.growthUnits * HERO_CHAIN_BUDGET.pointsPerUnit;
   for (let index = 0; index < extensionPointCount; index++) {
@@ -120,7 +130,16 @@ export function createHeroChainPlan({polymerId, anchor, seed = polymerId}) {
       curveB = curveB * .94 + (random() - .5) * .075;
       const magnitude = Math.hypot(curveA, curveB);
       if (magnitude > .28) { curveA *= .28 / magnitude; curveB *= .28 / magnitude; }
-      tangent = normalize([tangent[0] + normal[0] * curveA + binormal[0] * curveB, tangent[1] + normal[1] * curveA + binormal[1] * curveB, tangent[2] + normal[2] * curveA + binormal[2] * curveB]);
+      if (screenHeading) {
+        // Preserve the actual growth tangent for the first bonds, then gently
+        // reduce depth-only travel so a long chain remains legible on screen.
+        const depth = dot(tangent, viewDirection), alignment = clamp((index - 1) / 18, 0, 1);
+        const desired = normalize(screenHeading.map((value, axis) => value + viewDirection[axis] * depth * (1 - alignment)));
+        const turn = desired.map((value, axis) => value - tangent[axis] * dot(desired, tangent));
+        tangent = normalize(tangent.map((value, axis) => value + turn[axis] * .18 + screenUp[axis] * curveA * .25 + screenRight[axis] * curveB * .25));
+      } else {
+        tangent = normalize([tangent[0] + normal[0] * curveA + binormal[0] * curveB, tangent[1] + normal[1] * curveA + binormal[1] * curveB, tangent[2] + normal[2] * curveA + binormal[2] * curveB]);
+      }
       normal = normalize(cross(tangent, Math.abs(dot(tangent, [0, 1, 0])) < .88 ? [0, 1, 0] : [0, 0, 1]));
       binormal = normalize(cross(tangent, normal));
     }
@@ -131,6 +150,7 @@ export function createHeroChainPlan({polymerId, anchor, seed = polymerId}) {
     polymerId,
     seed,
     points,
+    viewPlane: screenHeading ? {right: screenRight, up: screenUp, direction: viewDirection} : null,
     basePointCount: anchor.backbonePoints.length,
     growthUnits: HERO_CHAIN_BUDGET.growthUnits,
     pointsPerUnit: HERO_CHAIN_BUDGET.pointsPerUnit,
