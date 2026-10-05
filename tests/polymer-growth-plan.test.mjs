@@ -118,7 +118,7 @@ test('bounded instanced detail persists while readable, crossfades in place, and
     for(const name of ['bounded-molecular-chain-atoms','bounded-incoming-monomer-atoms','bounded-incoming-repeat-markers']){const mesh=cinematic.root.children.find(child=>child.name===name);assert.equal(mesh.material.vertexColors,false,`${name} uses instance colors without a missing vertex-color attribute`);assert.ok(mesh.instanceColor,`${name} retains its bounded per-instance element palette`);}
     assert.equal(cinematic.stats.coarseGeometryVertexCapacity,HERO_CHAIN_BUDGET.vertexCapacity);
     assert.equal(cinematic.root.children.find(child=>child.name==='continuous-polymer-backbone').geometry.index.count,HERO_CHAIN_BUDGET.indexCapacity);
-    assert.equal(cinematic.stats.chainAtomInstanceCapacity,288);assert.equal(cinematic.stats.chainBondInstanceCapacity,288);
+    assert.equal(cinematic.stats.chainAtomInstanceCapacity,432);assert.equal(cinematic.stats.chainBondInstanceCapacity,432);
     cinematic.advance(16);cinematic.render(readableMetrics);
     assert.equal(cinematic.stats.phase,'anchored');assert.equal(cinematic.stats.molecularLodWeight,1);assert.equal(cinematic.stats.coarseLodWeight,0);
     let incorporated=false;

@@ -2,7 +2,7 @@
 
 ## Chemistry boundary
 
-`src/reaction-lab-polymerization.js` remains the finite chemistry authority. After the existing `PolymerSample` graph finishes its normal presentation, the viewer resolves the displayed carbon backbone and newest continuation end from that sample's real atom origins and rendered atom positions. For polyethylene only, `src/polymer-growth-plan.js` keeps those exact points and extends the same backbone for up to 48 presentation-only repeat units. The plan has no DOM, Three.js, Feed, inventory, persistence, or chemistry dependency.
+`src/reaction-lab-polymerization.js` remains the finite chemistry authority. After the existing `PolymerSample` graph finishes its normal presentation, the viewer resolves the displayed carbon backbone and newest continuation end from that sample's real atom origins and rendered atom positions. For polyethylene only, `src/polymer-growth-plan.js` keeps those exact points and extends the same backbone for up to 72 presentation-only repeat units. The plan has no DOM, Three.js, Feed, inventory, persistence, or chemistry dependency.
 
 The continuation is presentation only. It does not create Stage B bodies or actual molecule instances, consume additional monomers, reserve Feed slots, or change `PolymerSample` evidence, discovery, or lifecycle. Incoming ethene uses the same screen scale as the chain: a recognizable molecule when its atoms are readable, a compact repeat marker at intermediate scale, and a particle at small scale. Feed and chain use fixed instance pools.
 
@@ -20,7 +20,7 @@ During growth, the full displayed finite fragment and every readable incorporate
 
 ## Bounded renderer
 
-The maximum PE continuation is 48 units, two backbone points per unit, and 128 total backbone points. The coarse mesh reserves 1,024 vertices and 6,096 indices (8 radial sides); its visible draw range grows along the path. For the ethene template, fixed instanced capacities are 288 chain atoms, 288 chain bonds, 36 Feed atoms, 30 Feed bonds, 12 intermediate marker atoms, 6 marker bonds, and 6 particles. The renderer has 10 scene objects, 5 geometries, and 9 materials. Repeats never allocate individual `Mesh` objects. The coarse tube targets 2.8 CSS px apparent width, remains a lit 3D surface, and has bounded world-space compensation.
+The maximum PE continuation is 72 units, two backbone points per unit, and 176 total backbone points. The coarse mesh reserves 1,408 vertices and 8,400 indices (8 radial sides); its visible draw range grows along the path. For the ethene template, fixed instanced capacities are 432 chain atoms, 432 chain bonds, 36 Feed atoms, 30 Feed bonds, 12 intermediate marker atoms, 6 marker bonds, and 6 particles. The renderer has 10 scene objects, 5 geometries, and 9 materials. Repeats never allocate individual `Mesh` objects. The coarse tube targets 2.8 CSS px apparent width, remains a lit 3D surface, and has bounded world-space compensation.
 
 The temporary pools and tube are disposed on Lab close, tab/lifecycle cancellation, completion handoff, purge, and explicit disposal. Cleanup restores the finite sample's original atom and bond opacity/depth-write state and camera distance. No cinematic projection or LOD measurements run during ordinary idle Reaction Lab frames. Reduced motion shortens the presentation and camera response while retaining the same molecular → smaller molecular → coarse meaning and screen-space thresholds.
 

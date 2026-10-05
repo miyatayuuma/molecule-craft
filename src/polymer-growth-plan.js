@@ -2,15 +2,15 @@
 // This module deliberately has no chemistry, DOM, renderer, or Three.js dependency.
 export const HERO_CHAIN_BUDGET = Object.freeze({
   maxBackbonePoints: 32,
-  growthUnits: 48,
+  growthUnits: 72,
   pointsPerUnit: 2,
-  pointCapacity: 128,
+  pointCapacity: 176,
   radialSegments: 8,
-  vertexCapacity: 1024,
-  indexCapacity: 6096,
+  vertexCapacity: 1408,
+  indexCapacity: 8400,
   feedCapacity: 6,
   recognizableFeedUnits: 3,
-  molecularUnitCapacity: 48,
+  molecularUnitCapacity: 72,
   objects: 10,
 });
 
@@ -146,7 +146,7 @@ export function createHeroChainPlan({polymerId, anchor, seed = polymerId, viewPl
   const recent = [];
   for (let index = Math.max(1, points.length - 3); index < points.length; index++) recent.push(distance(points[index], points[index - 1]));
   const measuredStep = recent.length ? recent.reduce((sum, value) => sum + value, 0) / recent.length : distance(points.at(-1), points.at(-2));
-  // Keep a real carbon-scale bond spacing while making the bounded 48-unit continuation
+  // Keep a real carbon-scale bond spacing while making the bounded 72-unit continuation
   // large enough to trigger a natural camera pullback before its molecular detail fades.
   const targetStep = clamp(measuredStep * .86, .68, .9);
   const screenRight = finitePoint(viewPlane?.right) ? normalize(viewPlane.right) : null;
@@ -244,7 +244,7 @@ export function projectedPolymerPathMetrics(points, count = points?.length ?? 0,
 }
 
 const NORMAL_DURATIONS = Object.freeze([300, 2100, 3900, 1000]);
-const REDUCED_DURATIONS = Object.freeze([100, 540, 700, 500]);
+const REDUCED_DURATIONS = Object.freeze([100, 540, 1800, 500]);
 const PHASES = Object.freeze(['anchored', 'recognizable-incorporation', 'extension', 'long-chain-hold']);
 export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultiplier = 1, result = {}) {
   const durations = reducedMotion ? REDUCED_DURATIONS : NORMAL_DURATIONS,scale=Math.max(.1,durationMultiplier);
