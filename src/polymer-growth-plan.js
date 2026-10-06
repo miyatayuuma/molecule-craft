@@ -2,15 +2,18 @@
 // This module deliberately has no chemistry, DOM, renderer, or Three.js dependency.
 export const HERO_CHAIN_BUDGET = Object.freeze({
   maxBackbonePoints: 32,
-  growthUnits: 72,
+  presentationUnitCapacity: 72,
+  growthUnits: 68,
   pointsPerUnit: 2,
   pointCapacity: 176,
+  centerlinePointCapacity: 72,
+  chunkUnits: 4,
   radialSegments: 8,
-  vertexCapacity: 1408,
-  indexCapacity: 8400,
+  vertexCapacity: 576,
+  indexCapacity: 3408,
   feedCapacity: 6,
-  recognizableFeedUnits: 3,
-  molecularUnitCapacity: 72,
+  recognizableFeedUnits: 4,
+  molecularUnitCapacity: 68,
   objects: 10,
 });
 
@@ -35,6 +38,15 @@ const distance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const subtract = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const median = values => {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b),middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) * .5;
+};
+function rotateAroundAxis(vector, axis, angle) {
+  const unit = normalize(axis),cosine = Math.cos(angle),sine = Math.sin(angle),axial = dot(unit, vector),perpendicular = cross(unit, vector);
+  return vector.map((value, index) => value * cosine + perpendicular[index] * sine + unit[index] * axial * (1 - cosine));
+}
 const normalize = point => {
   const length = Math.hypot(...point);
   if (!Number.isFinite(length) || length < 1e-8) throw new Error('Polymer growth anchor has no stable tangent.');
@@ -55,6 +67,67 @@ function shortestPath(adjacency, start, end) {
   const path = [];
   for (let current = end; current !== null; current = previous.get(current)) path.push(current);
   return path.reverse();
+}
+
+function makeRepeatUnits(fragment, pointsByAtomIndex, backboneAtomIndices) {
+  const station = new Map(backboneAtomIndices.map((atomIndex, index) => [atomIndex, index]));
+  const orderedIds = [];
+  for (const atomIndex of backboneAtomIndices) {
+    const id = fragment.atomOrigins[atomIndex]?.instanceId;
+    if (id !== undefined && !orderedIds.includes(id)) orderedIds.push(id);
+  }
+  const units = [];
+  for (const instanceId of orderedIds) {
+    const atomIndices = fragment.atomOrigins.map((origin, index) => origin?.instanceId === instanceId ? index : -1).filter(index => index >= 0 && finitePoint(pointsByAtomIndex?.[index]));
+    const backbone = atomIndices.filter(index => station.has(index)).sort((a, b) => station.get(a) - station.get(b));
+    if (backbone.length !== 2) continue;
+    const center = pointsByAtomIndex[backbone[0]].map((value, axis) => (value + pointsByAtomIndex[backbone[1]][axis]) * .5);
+    const localIndex = new Map(atomIndices.map((index, local) => [index, local]));
+    const atoms = atomIndices.map(index => ({
+      element: atomElement(fragment.atoms[index]),
+      point: pointsByAtomIndex[index].map((value, axis) => value - center[axis]),
+      sourceAtomIndex: fragment.atomOrigins[index]?.sourceAtomIndex,
+      graphIndex: index,
+    }));
+    const bonds = [];
+    for (const bond of fragment.bonds) {
+      const [a, b, order] = bondParts(bond);
+      if (localIndex.has(a) && localIndex.has(b)) bonds.push({a: localIndex.get(a), b: localIndex.get(b), order: order ?? 1});
+    }
+    units.push({
+      instanceId,
+      backboneAtomIndices: backbone,
+      entryAtomIndex: backbone[0],
+      exitAtomIndex: backbone[1],
+      center,
+      atoms,
+      bonds,
+      axisLength: distance(pointsByAtomIndex[backbone[0]], pointsByAtomIndex[backbone[1]]),
+    });
+  }
+  return units;
+}
+
+function makeMolecularTemplate(units) {
+  const source = units[Math.max(0, Math.floor((units.length - 1) * .6))];
+  if (!source || source.atoms.length < 2 || source.bonds.length < 1) return null;
+  // `makeRepeatUnits` stores atoms in graph order; explicitly put the two backbone
+  // carbons first so the rigid template axis follows the actual chain direction.
+  const localIndexByGraph = new Map(source.atoms.map((atom, index) => [atom.graphIndex, index]));
+  const entry = localIndexByGraph.get(source.backboneAtomIndices[0]);
+  const exit = localIndexByGraph.get(source.backboneAtomIndices[1]);
+  if (!Number.isInteger(entry) || !Number.isInteger(exit)) return null;
+  const order = [entry, exit, ...source.atoms.map((_atom, index) => index).filter(index => index !== entry && index !== exit)];
+  const remap = new Map(order.map((oldIndex, newIndex) => [oldIndex, newIndex]));
+  return {
+    atoms: order.map(index => source.atoms[index]),
+    bonds: source.bonds.map(bond => ({a: remap.get(bond.a), b: remap.get(bond.b), order: bond.order})),
+    axisStartIndex: 0,
+    axisEndIndex: 1,
+    axisLength: distance(source.atoms[entry].point, source.atoms[exit].point),
+    axis: normalize(subtract(source.atoms[exit].point, source.atoms[entry].point)),
+    center: [0, 0, 0],
+  };
 }
 
 /** Resolve the rendered carbon backbone from the actual finite fragment. */
@@ -99,9 +172,35 @@ export function createPolymerGrowthAnchor({fragment, pointsByAtomIndex, newestIn
     for (let station = 0; station < backbonePoints.length; station++) { const d = distance(point, backbonePoints[station]); if (d < nearestDistance) { nearest = station; nearestDistance = d; } }
     return nearest;
   });
+  const repeatUnits = makeRepeatUnits(fragment, pointsByAtomIndex, atomIndices);
+  const backboneBondLengths = backbonePoints.slice(1).map((point, index) => distance(point, backbonePoints[index]));
+  const bondDirections = backbonePoints.slice(1).map((point, index) => normalize(subtract(point, backbonePoints[index])));
+  const turnAngles = bondDirections.slice(1).map((direction, index) => Math.acos(clamp(dot(bondDirections[index], direction), -1, 1)));
+  const rawPlaneNormal = bondDirections.length >= 2 ? cross(bondDirections.at(-2), bondDirections.at(-1)) : [0, 0, 0];
+  const continuationPlaneNormal = Math.hypot(...rawPlaneNormal) > 1e-8
+    ? normalize(rawPlaneNormal)
+    : normalize(cross(tangent, Math.abs(tangent[1]) < .88 ? [0, 1, 0] : [0, 0, 1]));
+  const lastTurn = turnAngles.at(-1) ?? 0;
+  const firstContinuationDirection = bondDirections.length >= 2 && lastTurn > .08
+    ? normalize(rotateAroundAxis(bondDirections.at(-1), continuationPlaneNormal, -lastTurn))
+    : tangent;
+  const secondContinuationDirection = bondDirections.length >= 2 && lastTurn > .08
+    ? normalize(rotateAroundAxis(firstContinuationDirection, continuationPlaneNormal, lastTurn))
+    : tangent;
+  const molecularTemplate = makeMolecularTemplate(repeatUnits);
   return {
     backboneAtomIndices: atomIndices,
     backbonePoints,
+    repeatUnits,
+    repeatUnitCount: repeatUnits.length,
+    repeatUnitCenters: repeatUnits.map(unit => [...unit.center]),
+    molecularTemplate,
+    backboneBondLengths,
+    medianBackboneBondLength: median(backboneBondLengths),
+    medianTurnAngleRad: median(turnAngles),
+    continuationTurnAngleRad: lastTurn,
+    continuationPlaneNormal,
+    continuationSeedDirections: [firstContinuationDirection, secondContinuationDirection],
     growthEndAtomIndex: atomIndices.at(-1),
     growthTip: [...backbonePoints.at(-1)],
     tangent,
@@ -117,14 +216,20 @@ function randomFor(seedText) {
 }
 
 function makeCurveKeys(count, random) {
-  const sign=random()<.5?-1:1,firstAt=Math.floor(count*(.22+random()*.04)),secondAt=Math.floor(count*(.53+random()*.05)),thirdAt=Math.min(count-1,Math.floor(count*(.78+random()*.06)));
-  const first=sign*(1.05+random()*.2),second=-sign*(.72+random()*.26),third=sign*(.22+random()*.36);
-  return[
-    {at:8,heading:0,depth:0},
-    {at:firstAt,heading:first,depth:(random()-.5)*.12},
-    {at:secondAt,heading:second,depth:(random()-.5)*.12},
-    {at:thirdAt,heading:third,depth:(random()-.5)*.12},
-    {at:count-1,heading:third,depth:(random()-.5)*.12},
+  const sign = random() < .5 ? -1 : 1;
+  const first = sign * (1.16 + random() * .2), second = -sign * (.82 + random() * .18), third = sign * (.38 + random() * .14);
+  const firstAt = Math.min(count - 1, Math.floor(count * (.26 + random() * .04)));
+  const secondAt = Math.min(count - 1, Math.floor(count * (.5 + random() * .04)));
+  const thirdAt = Math.min(count - 1, Math.floor(count * (.78 + random() * .035)));
+  const depthA = (random() - .5) * .34, depthB = (random() - .5) * .34, depthC = (random() - .5) * .34;
+  const torsionA = (random() - .5) * .42, torsionB = (random() - .5) * .42, torsionC = (random() - .5) * .42;
+  return [
+    {at:0,heading:0,depth:0,torsion:0},
+    {at:Math.min(4,count - 1),heading:0,depth:0,torsion:0},
+    {at:firstAt,heading:first,depth:depthA,torsion:torsionA},
+    {at:secondAt,heading:second,depth:depthB,torsion:torsionB},
+    {at:thirdAt,heading:third,depth:depthC,torsion:torsionC},
+    {at:count-1,heading:third,depth:depthC,torsion:torsionC},
   ];
 }
 
@@ -136,64 +241,100 @@ function curveValue(keys, index, field) {
   return before[field] + (after[field] - before[field]) * progress;
 }
 
-/** Extend the actual backbone with broad, low-frequency, deterministic curvature. */
+/** Continue the real C–C zigzag inside one shared, slowly bending chain centerline. */
 export function createHeroChainPlan({polymerId, anchor, seed = polymerId, viewPlane = null}) {
   if (!anchor?.backbonePoints?.every(finitePoint) || anchor.backbonePoints.length < 2) throw new TypeError('A resolved finite-fragment anchor is required.');
-  if (anchor.backbonePoints.length + HERO_CHAIN_BUDGET.growthUnits * HERO_CHAIN_BUDGET.pointsPerUnit > HERO_CHAIN_BUDGET.pointCapacity) throw new Error('Hero-chain point budget exceeded.');
-  const points = anchor.backbonePoints.map(point => [...point]), random = randomFor(`${seed}:polymer-growth-v2`);
+  const basePointCount = anchor.backbonePoints.length;
+  const fallbackBaseCenters = [];
+  for (let index = 0; index + 1 < basePointCount; index += HERO_CHAIN_BUDGET.pointsPerUnit) {
+    const a = anchor.backbonePoints[index], b = anchor.backbonePoints[Math.min(index + 1, basePointCount - 1)];
+    fallbackBaseCenters.push(a.map((value, axis) => (value + b[axis]) * .5));
+  }
+  const baseCenters = anchor.repeatUnitCenters?.length >= 2 ? anchor.repeatUnitCenters.map(point => [...point]) : fallbackBaseCenters;
+  const baseUnitCount = Math.max(1, baseCenters.length);
+  const growthUnits = Math.min(HERO_CHAIN_BUDGET.growthUnits, HERO_CHAIN_BUDGET.presentationUnitCapacity - baseUnitCount);
+  if (basePointCount + growthUnits * HERO_CHAIN_BUDGET.pointsPerUnit > HERO_CHAIN_BUDGET.pointCapacity || baseUnitCount + growthUnits > HERO_CHAIN_BUDGET.centerlinePointCapacity) throw new Error('Hero-chain point budget exceeded.');
+
+  const points = anchor.backbonePoints.map(point => [...point]), centerlinePoints = [...baseCenters];
+  const random = randomFor(`${seed}:polymer-growth-v3`), measuredStep = anchor.medianBackboneBondLength || distance(points.at(-1), points.at(-2));
+  if (!Number.isFinite(measuredStep) || measuredStep < .4 || measuredStep > 2.5) throw new Error('Actual PE backbone spacing is outside the visual continuation contract.');
   const initialTangent = normalize(subtract(points.at(-1), points.at(-2)));
-  let reference = Math.abs(dot(initialTangent, [0, 1, 0])) < .88 ? [0, 1, 0] : [0, 0, 1];
-  const normal = normalize(cross(initialTangent, reference)), binormal = normalize(cross(initialTangent, normal));
-  const recent = [];
-  for (let index = Math.max(1, points.length - 3); index < points.length; index++) recent.push(distance(points[index], points[index - 1]));
-  const measuredStep = recent.length ? recent.reduce((sum, value) => sum + value, 0) / recent.length : distance(points.at(-1), points.at(-2));
-  // Keep a real carbon-scale bond spacing while making the bounded 72-unit continuation
-  // large enough to trigger a natural camera pullback before its molecular detail fades.
-  const targetStep = clamp(measuredStep * .86, .68, .9);
+  let firstDirection = anchor.continuationSeedDirections?.[0], secondDirection = anchor.continuationSeedDirections?.[1];
+  if (!finitePoint(firstDirection) || !finitePoint(secondDirection)) firstDirection = secondDirection = initialTangent;
+  firstDirection = normalize(firstDirection);secondDirection = normalize(secondDirection);
+  let baseHeading = normalize(firstDirection.map((value, axis) => value + secondDirection[axis]));
+  let baseLateral = firstDirection.map((value, axis) => value - secondDirection[axis]);
+  if (Math.hypot(...baseLateral) < 1e-6) {
+    const reference = Math.abs(baseHeading[1]) < .88 ? [0, 1, 0] : [0, 0, 1];
+    baseLateral = cross(reference, baseHeading);
+  }
+  baseLateral = normalize(baseLateral);
+  const halfZigzag = Math.atan2(Math.hypot(...firstDirection.map((value, axis) => value - secondDirection[axis])), Math.hypot(...firstDirection.map((value, axis) => value + secondDirection[axis])));
   const screenRight = finitePoint(viewPlane?.right) ? normalize(viewPlane.right) : null;
   const screenUp = finitePoint(viewPlane?.up) ? normalize(viewPlane.up) : null;
   const viewDirection = finitePoint(viewPlane?.direction) ? normalize(viewPlane.direction) : null;
-  const projectedTangent = screenRight && viewDirection
-    ? initialTangent.map((value, axis) => value - viewDirection[axis] * dot(initialTangent, viewDirection))
-    : null;
-  const screenHeading = projectedTangent
-    ? Math.hypot(...projectedTangent) > .12
-      ? normalize(projectedTangent)
-      : screenRight.map(value => value * (dot(initialTangent, screenRight) < 0 ? -1 : 1))
-    : null;
-  const screenLateral = screenHeading && screenUp
-    ? normalize(screenUp.map((value, axis) => value - screenHeading[axis] * dot(screenUp, screenHeading)))
-    : null;
-  const baseHeading = screenHeading ?? initialTangent;
-  const lateral = screenLateral ?? normal;
-  const depthDirection = viewDirection ?? binormal;
-  const extensionPointCount = HERO_CHAIN_BUDGET.growthUnits * HERO_CHAIN_BUDGET.pointsPerUnit;
-  const curveKeys = makeCurveKeys(extensionPointCount, random);
-  for (let index = 0; index < extensionPointCount; index++) {
-    const step = measuredStep + (targetStep - measuredStep) * clamp((index + 1) / 8, 0, 1);
-    let direction;
-    if (index === 0) direction = initialTangent;
-    else {
-      const headingAngle = curveValue(curveKeys, index, 'heading'), depthAngle = curveValue(curveKeys, index, 'depth');
-      const planar = baseHeading.map((value, axis) => value * Math.cos(headingAngle) + lateral[axis] * Math.sin(headingAngle));
-      const bent = normalize(planar.map((value, axis) => value * Math.cos(depthAngle) + depthDirection[axis] * Math.sin(depthAngle)));
-      const initialSteering = clamp(index / 14, 0, 1);
-      direction = normalize(initialTangent.map((value, axis) => value * (1 - initialSteering) + bent[axis] * initialSteering));
-    }
-    const previous = points.at(-1);
-    points.push([previous[0] + direction[0] * step, previous[1] + direction[1] * step, previous[2] + direction[2] * step]);
+  let curveAxis = viewDirection ?? normalize(cross(baseHeading, baseLateral));
+  if (Math.abs(dot(curveAxis, baseHeading)) > .85) {
+    const reference = screenRight ?? (Math.abs(baseHeading[1]) < .88 ? [0, 1, 0] : [1, 0, 0]);
+    const cameraPlaneBendAxis = viewDirection ? cross(viewDirection, reference) : cross(baseHeading, reference);
+    if (Math.hypot(...cameraPlaneBendAxis) > 1e-6) curveAxis = normalize(cameraPlaneBendAxis);
+  }
+  let pitchAxis = cross(curveAxis, baseHeading);
+  if (Math.hypot(...pitchAxis) < 1e-6) pitchAxis = [...baseLateral];
+  pitchAxis = normalize(pitchAxis);
+  const curveKeys = makeCurveKeys(growthUnits, random), unitFrames = [];
+
+  for (let unit = 0; unit < growthUnits; unit++) {
+    const headingAngle = curveValue(curveKeys, unit, 'heading'), depthAngle = curveValue(curveKeys, unit, 'depth'), torsionAngle = curveValue(curveKeys, unit, 'torsion');
+    let heading = rotateAroundAxis(baseHeading, curveAxis, headingAngle);
+    heading = normalize(rotateAroundAxis(heading, pitchAxis, depthAngle));
+    let lateral = rotateAroundAxis(baseLateral, curveAxis, headingAngle);
+    lateral = rotateAroundAxis(lateral, pitchAxis, depthAngle);
+    lateral = rotateAroundAxis(lateral, heading, torsionAngle);
+    lateral = normalize(lateral.map((value, axis) => value - heading[axis] * dot(lateral, heading)));
+    const first = unit === 0
+      ? firstDirection
+      : normalize(heading.map((value, axis) => value * Math.cos(halfZigzag) + lateral[axis] * Math.sin(halfZigzag)));
+    const second = unit === 0
+      ? secondDirection
+      : normalize(heading.map((value, axis) => value * Math.cos(halfZigzag) - lateral[axis] * Math.sin(halfZigzag)));
+    let previous = points.at(-1);
+    const firstCarbon = previous.map((value, axis) => value + first[axis] * measuredStep);points.push(firstCarbon);
+    previous = firstCarbon;
+    const secondCarbon = previous.map((value, axis) => value + second[axis] * measuredStep);points.push(secondCarbon);
+    const center = firstCarbon.map((value, axis) => (value + secondCarbon[axis]) * .5);centerlinePoints.push(center);
+    unitFrames.push({unitIndex:unit,conceptualUnit:baseUnitCount+unit+1,chunkIndex:Math.floor(unit/HERO_CHAIN_BUDGET.chunkUnits),center,heading,lateral,torsionAngle});
+  }
+  const generatedBondDirections=points.slice(1).map((point,index)=>normalize(subtract(point,points[index])));
+  let maximumContinuationTurnDeviationRad=0;
+  for(let directionIndex=basePointCount-1;directionIndex<generatedBondDirections.length;directionIndex++){
+    const turn=Math.acos(clamp(dot(generatedBondDirections[directionIndex-1],generatedBondDirections[directionIndex]),-1,1));
+    maximumContinuationTurnDeviationRad=Math.max(maximumContinuationTurnDeviationRad,Math.abs(turn-(anchor.continuationTurnAngleRad??anchor.medianTurnAngleRad??0)));
+  }
+  const molecularChunks = [{
+    kind:'actual',chunkIndex:0,conceptualStart:1,unitCount:baseUnitCount,
+    centerlineStartIndex:0,centerlineEndIndex:baseUnitCount-1,
+    entryCenter:[...centerlinePoints[0]],exitCenter:[...centerlinePoints[baseUnitCount-1]],
+    entryTangent:baseCenters.length>1?normalize(subtract(baseCenters[1],baseCenters[0])):[...initialTangent],
+    exitTangent:baseCenters.length>1?normalize(subtract(baseCenters.at(-1),baseCenters.at(-2))):[...baseHeading],
+  }];
+  for (let first = 0; first < growthUnits; first += HERO_CHAIN_BUDGET.chunkUnits) {
+    const last = Math.min(growthUnits - 1, first + HERO_CHAIN_BUDGET.chunkUnits - 1),startIndex=baseUnitCount+first,endIndex=baseUnitCount+last;
+    molecularChunks.push({
+      kind:first<4?'full-molecular-continuation':'reusable-molecular-chunk',chunkIndex:molecularChunks.length,
+      conceptualStart:baseUnitCount+first+1,unitCount:last-first+1,
+      centerlineStartIndex:startIndex,centerlineEndIndex:endIndex,
+      entryCenter:[...centerlinePoints[startIndex]],exitCenter:[...centerlinePoints[endIndex]],
+      entryTangent:[...unitFrames[first].heading],exitTangent:[...unitFrames[last].heading],
+      torsionStart:unitFrames[first].torsionAngle,torsionEnd:unitFrames[last].torsionAngle,
+    });
   }
   return {
-    polymerId,
-    seed,
-    points,
-    viewPlane: screenHeading ? {right: screenRight, up: screenUp, direction: viewDirection} : null,
-    basePointCount: anchor.backbonePoints.length,
-    growthUnits: HERO_CHAIN_BUDGET.growthUnits,
-    pointsPerUnit: HERO_CHAIN_BUDGET.pointsPerUnit,
-    targetStep,
-    curveKeys,
-    budget: HERO_CHAIN_BUDGET,
+    polymerId,seed,points,centerlinePoints,basePointCount,baseUnitCount,growthUnits,pointsPerUnit:HERO_CHAIN_BUDGET.pointsPerUnit,
+    targetStep:measuredStep,medianBackboneBondLength:measuredStep,medianTurnAngleRad:anchor.medianTurnAngleRad??0,
+    continuationTurnAngleRad:anchor.continuationTurnAngleRad??anchor.medianTurnAngleRad??0,maximumContinuationTurnDeviationRad,
+    halfZigzagRad:halfZigzag,curveKeys,unitFrames,molecularChunks,molecularTemplate:anchor.molecularTemplate??null,
+    viewPlane:screenRight?{right:screenRight,up:screenUp,direction:viewDirection}:null,budget:HERO_CHAIN_BUDGET,
   };
 }
 
@@ -244,11 +385,12 @@ export function projectedPolymerPathMetrics(points, count = points?.length ?? 0,
   return result;
 }
 
-const NORMAL_DURATIONS = Object.freeze([300, 2100, 3900, 1000]);
-const REDUCED_DURATIONS = Object.freeze([600, 540, 1800, 500]);
+const NORMAL_DURATIONS = Object.freeze([300, 2800, 3900, 1000]);
+const REDUCED_DURATIONS = Object.freeze([600, 2400, 1800, 500]);
 const PHASES = Object.freeze(['anchored', 'recognizable-incorporation', 'extension', 'long-chain-hold']);
-export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultiplier = 1, result = {}) {
+export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultiplier = 1, result = {}, growthUnits = HERO_CHAIN_BUDGET.growthUnits) {
   const durations = reducedMotion ? REDUCED_DURATIONS : NORMAL_DURATIONS,scale=Math.max(.1,durationMultiplier);
+  const boundedGrowthUnits = Math.max(0, Math.min(HERO_CHAIN_BUDGET.growthUnits, Math.floor(growthUnits)));
   const totalDuration=(durations[0]+durations[1]+durations[2]+durations[3])*scale;
   const elapsed = Math.max(0, Math.min(Number.isFinite(elapsedMs) ? elapsedMs : 0, totalDuration + 50));
   let offset = 0;
@@ -256,21 +398,28 @@ export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultip
     const duration = durations[index]*scale, progress = Math.max(0, Math.min(1, (elapsed - offset) / duration));
     if (elapsed < offset + duration || index === durations.length - 1) {
       let units = 0, unitProgress = 0;
-      if (index === 1) { const raw = progress * 3; units = Math.min(2, Math.floor(raw)); unitProgress = raw - units; }
-      else if (index >= 2) { units = index === 2 ? 3 : HERO_CHAIN_BUDGET.growthUnits; unitProgress = index === 2 ? progress * (HERO_CHAIN_BUDGET.growthUnits - 3) : 0; }
-      if (index === 2) { const raw = 3 + unitProgress; units = Math.min(HERO_CHAIN_BUDGET.growthUnits - 1, Math.floor(raw)); unitProgress = raw - units; }
+      if (index === 1) { const raw = progress * HERO_CHAIN_BUDGET.recognizableFeedUnits; units = Math.min(HERO_CHAIN_BUDGET.recognizableFeedUnits - 1, Math.floor(raw)); unitProgress = raw - units; }
+      else if (index >= 2) { units = index === 2 ? HERO_CHAIN_BUDGET.recognizableFeedUnits : boundedGrowthUnits; unitProgress = index === 2 ? progress * (boundedGrowthUnits - HERO_CHAIN_BUDGET.recognizableFeedUnits) : 0; }
+      if (index === 2) { const raw = HERO_CHAIN_BUDGET.recognizableFeedUnits + unitProgress; units = Math.min(boundedGrowthUnits - 1, Math.floor(raw)); unitProgress = raw - units; }
+      if (index === 3) units = boundedGrowthUnits;
       result.phase=PHASES[index];result.index=index;result.progress=progress;result.units=units;result.unitProgress=unitProgress;result.done=index===3&&progress>=1;
       return result;
     }
     offset += duration;
   }
-  result.phase='complete';result.index=4;result.progress=1;result.units=HERO_CHAIN_BUDGET.growthUnits;result.unitProgress=0;result.done=true;
+  result.phase='complete';result.index=4;result.progress=1;result.units=boundedGrowthUnits;result.unitProgress=0;result.done=true;
   return result;
 }
 
 export function visibleHeroPointCount(plan, frame) {
   const units = Math.min(plan.growthUnits, frame.units + (frame.unitProgress >= .82 ? Math.min(1, (frame.unitProgress - .82) / .18) : 0));
   return Math.min(plan.points.length, plan.basePointCount + Math.floor(units) * plan.pointsPerUnit + (units % 1 >= .5 ? 1 : 0));
+}
+
+/** Count shared unit-centerline stations visible for the same molecular growth frame. */
+export function visibleHeroCenterlinePointCount(plan, frame) {
+  const progress = Math.min(plan.growthUnits, frame.units + (frame.unitProgress >= .82 ? Math.min(1, (frame.unitProgress - .82) / .18) : 0));
+  return Math.min(plan.centerlinePoints.length, plan.baseUnitCount + Math.floor(progress));
 }
 
 export function sampleHeroPoint(points, station, result = []) {

@@ -2,70 +2,113 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {
-  createPolymerGrowthAnchor,createHeroChainPlan,heroGrowthFrame,visibleHeroPointCount,
+  createPolymerGrowthAnchor,createHeroChainPlan,heroGrowthFrame,visibleHeroPointCount,visibleHeroCenterlinePointCount,
   largestSafeRect,createSafeRectWorkspace,HERO_CHAIN_BUDGET,POLYMER_VISUAL_AUTHORITY,
   screenSpaceMolecularWeight,projectedPolymerPathMetrics,
 } from '../src/polymer-growth-plan.js';
 import {createPolymerCinematic} from '../src/reaction-lab-polymer-cinematic.js';
 
-function finiteFragment(){
-  return{
-    atoms:['C','C','C','C','H','H'],
-    bonds:[[0,1,1],[1,2,1],[2,3,1],[0,4,1],[3,5,1]],
-    atomOrigins:[
-      {instanceId:'old-a',sourceAtomIndex:0},{instanceId:'old-b',sourceAtomIndex:0},
-      {instanceId:'old-b',sourceAtomIndex:1},{instanceId:'newest',sourceAtomIndex:1},
-      {instanceId:'old-a',sourceAtomIndex:2},{instanceId:'newest',sourceAtomIndex:2},
-    ],
-    continuations:[{atomRef:3,valence:1}],
-  };
-}
-const coordinates=[[0,0,0],[1,0,0],[2,0,0],[3,0,0],[-.25,.7,0],[3.25,.7,0]];
 const viewPlane={right:[1,0,0],up:[0,1,0],direction:[0,0,1]};
-const anchorForTest=()=>createPolymerGrowthAnchor({fragment:finiteFragment(),pointsByAtomIndex:coordinates,newestInstanceId:'newest'});
-const sourceRecord={atoms:[{element:'C',point:[-.5,0,0]},{element:'C',point:[.5,0,0]},{element:'H',point:[-.8,.45,0]},{element:'H',point:[-.8,-.45,0]},{element:'H',point:[.8,.45,0]},{element:'H',point:[.8,-.45,0]}],bonds:[[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]]};
+function finiteFragment(){
+  const fragment={atoms:[],bonds:[],atomOrigins:[],continuations:[]},pointsByAtomIndex=[],bondLength=1.48,halfTurn=34*Math.PI/180;
+  const carbonPoints=[[0,0,0]],directions=[];
+  for(let bond=0;bond<7;bond++){
+    const angle=(bond%2===0?1:-1)*halfTurn,direction=[Math.cos(angle),Math.sin(angle),0];directions.push(direction);
+    const previous=carbonPoints.at(-1);carbonPoints.push(previous.map((value,axis)=>value+direction[axis]*bondLength));
+  }
+  for(let unit=0;unit<4;unit++){
+    const id=`monomer-${unit}`,first=carbonPoints[unit*2],second=carbonPoints[unit*2+1],axis=second.map((value,index)=>(value-first[index])/bondLength),side=[-axis[1],axis[0],0],center=first.map((value,index)=>(value+second[index])*.5),base=fragment.atoms.length;
+    const localPoints=[first,second,
+      first.map((value,index)=>value-center[index]-.22*axis[index]+.58*side[index]+center[index]),
+      first.map((value,index)=>value-center[index]-.22*axis[index]-.58*side[index]+center[index]),
+      second.map((value,index)=>value-center[index]+.22*axis[index]+.58*side[index]+center[index]),
+      second.map((value,index)=>value-center[index]+.22*axis[index]-.58*side[index]+center[index]),
+    ];
+    fragment.atoms.push('C','C','H','H','H','H');
+    fragment.atomOrigins.push(...Array.from({length:6},(_,sourceAtomIndex)=>({instanceId:id,sourceAtomIndex})));
+    pointsByAtomIndex.push(...localPoints);
+    fragment.bonds.push([base,base+1,1],[base,base+2,1],[base,base+3,1],[base+1,base+4,1],[base+1,base+5,1]);
+    if(unit>0)fragment.bonds.push([base-5,base,1]);
+  }
+  fragment.continuations.push({atomRef:19,valence:1});
+  return{fragment,pointsByAtomIndex,carbonPoints,directions,bondLength,halfTurn};
+}
+const anchorForTest=()=>{const sample=finiteFragment();return createPolymerGrowthAnchor({fragment:sample.fragment,pointsByAtomIndex:sample.pointsByAtomIndex,newestInstanceId:'monomer-3'});};
+const sourceRecord={atoms:[{element:'C',point:[-.67,0,0]},{element:'C',point:[.67,0,0]},{element:'H',point:[-.93,.58,0]},{element:'H',point:[-.93,-.58,0]},{element:'H',point:[.93,.58,0]},{element:'H',point:[.93,-.58,0]}],bonds:[[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]]};
 
 test('finite-fragment anchor uses actual rendered carbon coordinates and the newest continuation end',()=>{
   const anchor=anchorForTest();
-  assert.deepEqual(anchor.backboneAtomIndices,[0,1,2,3]);
-  assert.deepEqual(anchor.backbonePoints,coordinates.slice(0,4));
-  assert.equal(anchor.growthEndAtomIndex,3);
-  assert.deepEqual(anchor.growthTip,[3,0,0]);
-  assert.deepEqual(anchor.tangent,[1,0,0]);
-  assert.deepEqual(anchor.stationForAtomIndex,[0,1,2,3,0,3]);
+  const sample=finiteFragment(),expectedIndices=[0,1,6,7,12,13,18,19];
+  assert.deepEqual(anchor.backboneAtomIndices,expectedIndices);
+  assert.deepEqual(anchor.backbonePoints,expectedIndices.map(index=>sample.pointsByAtomIndex[index]));
+  assert.equal(anchor.growthEndAtomIndex,19);
+  assert.deepEqual(anchor.growthTip,sample.carbonPoints.at(-1));
+  assert.ok(Math.hypot(...anchor.tangent.map((value,index)=>value-sample.directions.at(-1)[index]))<1e-12);
+  assert.equal(anchor.repeatUnitCount,4);assert.equal(anchor.repeatUnits.length,4);
+  assert.equal(anchor.molecularTemplate.atoms.length,6);assert.equal(anchor.molecularTemplate.bonds.length,5);
+  assert.ok(Math.abs(anchor.medianBackboneBondLength-sample.bondLength)<1e-9,'continuation uses the displayed fragment bond spacing');
+  assert.ok(Math.abs(anchor.medianTurnAngleRad-2*sample.halfTurn)<1e-9,'continuation calibrates its local zigzag turn from the actual fragment');
+  assert.deepEqual(expectedIndices.map(index=>anchor.stationForAtomIndex[index]),[0,1,2,3,4,5,6,7]);
 });
 
-test('bounded PE continuation is deterministic, tangent-aligned, and broadly curved in screen space',()=>{
+test('actual-to-unit-5 seam, 4-unit chunks, and slow centerline curvature preserve two-scale geometry',()=>{
   const anchor=anchorForTest();
   for(let seed=0;seed<120;seed++){
     const plan=createHeroChainPlan({polymerId:'polyethylene',anchor,seed:`seed-${seed}`,viewPlane});
     assert.deepEqual(plan.points.slice(0,anchor.backbonePoints.length),anchor.backbonePoints);
-    assert.equal(plan.points.length,anchor.backbonePoints.length+HERO_CHAIN_BUDGET.growthUnits*HERO_CHAIN_BUDGET.pointsPerUnit);
+    assert.equal(plan.growthUnits,68);assert.equal(plan.baseUnitCount,4);
+    assert.equal(plan.points.length,anchor.backbonePoints.length+plan.growthUnits*HERO_CHAIN_BUDGET.pointsPerUnit);
+    assert.equal(plan.centerlinePoints.length,HERO_CHAIN_BUDGET.presentationUnitCapacity);
     assert.ok(plan.points.length<=HERO_CHAIN_BUDGET.pointCapacity);
     const firstDelta=plan.points[anchor.backbonePoints.length].map((value,index)=>value-anchor.backbonePoints.at(-1)[index]);
-    assert.ok(firstDelta[0]>0&&Math.abs(firstDelta[1])<1e-9&&Math.abs(firstDelta[2])<1e-9,'first continuation preserves the chemistry-derived tangent');
-    const metrics=projectedPolymerPathMetrics(plan.points.map(point=>[point[0],point[1]]));
+    assert.ok(Math.abs(Math.hypot(...firstDelta)-anchor.medianBackboneBondLength)<1e-9,'4→5 connection has the measured C–C bond length');
+    const oldDirection=anchor.backbonePoints.at(-1).map((value,index)=>value-anchor.backbonePoints.at(-2)[index]);
+    const seamTurn=Math.acos(oldDirection.reduce((sum,value,index)=>sum+value*firstDelta[index],0)/(Math.hypot(...oldDirection)*Math.hypot(...firstDelta)));
+    assert.ok(Math.abs(seamTurn-anchor.medianTurnAngleRad)<1e-6,'4→5 continues the actual alternating backbone angle without tangent inversion');
+    assert.ok(plan.maximumContinuationTurnDeviationRad<.42,`C–C turn grammar remains continuous through every molecular chunk: ${plan.maximumContinuationTurnDeviationRad}`);
+    assert.ok(Math.abs(Math.hypot(...plan.points[9].map((value,index)=>value-plan.points[8][index]))-anchor.medianBackboneBondLength)<1e-9,'unit 5 retains the measured internal C–C bond length');
+    assert.equal(plan.molecularTemplate.atoms.length,6);assert.equal(plan.molecularTemplate.bonds.length,5);
+    assert.deepEqual(plan.molecularChunks.slice(0,3).map(chunk=>[chunk.kind,chunk.conceptualStart,chunk.unitCount]),[['actual',1,4],['full-molecular-continuation',5,4],['reusable-molecular-chunk',9,4]]);
+    assert.ok(plan.molecularChunks.slice(1).every(chunk=>chunk.unitCount===4&&chunk.entryTangent.every(Number.isFinite)&&chunk.exitTangent.every(Number.isFinite)),'continuation is grouped into reusable four-unit molecular chunks with entry/exit frames');
+    for(let chunkIndex=1;chunkIndex<plan.molecularChunks.length;chunkIndex++){
+      const prior=plan.molecularChunks[chunkIndex-1],next=plan.molecularChunks[chunkIndex];
+      assert.equal(next.centerlineStartIndex,prior.centerlineEndIndex+1,'adjacent molecular chunks share consecutive centerline stations without gaps');
+      assert.equal(Math.hypot(...next.entryCenter.map((value,axis)=>value-plan.centerlinePoints[next.centerlineStartIndex][axis])),0,'chunk entry is the same shared molecular/coarse centerline');
+    }
+    for(let unit=0;unit<plan.growthUnits;unit++){
+      const first=plan.points[plan.basePointCount+unit*2],second=plan.points[plan.basePointCount+unit*2+1],center=plan.centerlinePoints[plan.baseUnitCount+unit];
+      assert.ok(Math.hypot(...first.map((value,index)=>value-second[index]))>=anchor.medianBackboneBondLength*.999,'every repeat retains a visible C–C zigzag bond');
+      assert.ok(Math.hypot(...center.map((value,index)=>value-(first[index]+second[index])*.5))<1e-9,'coarse and molecular renderers share the exact per-unit centerline');
+      if(unit>0){const prior=plan.points[plan.basePointCount+unit*2-1];assert.ok(Math.abs(Math.hypot(...first.map((value,index)=>value-prior[index]))-anchor.medianBackboneBondLength)<1e-9,'every chunk connection keeps the measured bond length');}
+    }
+    const metrics=projectedPolymerPathMetrics(plan.centerlinePoints.map(point=>[point[0],point[1]]));
     assert.ok(metrics.pathToChordRatio>1.10&&metrics.pathToChordRatio<1.4,`broad, non-tangled curvature ratio ${metrics.pathToChordRatio}`);
     assert.ok(metrics.cumulativeTurnRad>2.5&&metrics.cumulativeTurnRad<6,`persistent total turn ${metrics.cumulativeTurnRad}`);
-    assert.ok(metrics.maxLocalTurnRad<.22,`gradual local turn ${metrics.maxLocalTurnRad}`);
+    assert.ok(metrics.maxLocalTurnRad<.28,`gradual local turn ${metrics.maxLocalTurnRad}`);
+    const headings=plan.centerlinePoints.slice(1).map((point,index)=>Math.atan2(point[1]-plan.centerlinePoints[index][1],point[0]-plan.centerlinePoints[index][0])),turns=headings.slice(1).map((heading,index)=>heading-headings[index]);
+    const macroHeadings=plan.molecularChunks.slice(1).map(chunk=>Math.atan2(chunk.entryTangent[1],chunk.entryTangent[0])),macroTurns=macroHeadings.slice(1).map((heading,index)=>heading-macroHeadings[index]);
+    let signChanges=0,lastSign=0;for(const turn of macroTurns){const sign=Math.sign(turn);if(sign&&lastSign&&sign!==lastSign)signChanges++;if(sign)lastSign=sign;}
+    assert.ok(signChanges<5,'slow persistent curvature does not turn independently at every chunk');
   }
   const first=createHeroChainPlan({polymerId:'polyethylene',anchor,seed:'stable',viewPlane}),again=createHeroChainPlan({polymerId:'polyethylene',anchor,seed:'stable',viewPlane});
   assert.deepEqual(first,again);
-  assert.ok(new Set(first.points.slice(anchor.backbonePoints.length).map(point=>point.map(value=>value.toFixed(3)).join(','))).size>45,'the trajectory does not repeat a regular wave');
-  const minimumAnchor={...anchor,backbonePoints:anchor.backbonePoints.slice(0,2)},minimum=createHeroChainPlan({polymerId:'polyethylene',anchor:minimumAnchor,seed:'minimum',viewPlane});
+  assert.deepEqual(first.centerlinePoints,again.centerlinePoints,'the coarse representation is derived from the same deterministic molecular plan');
+  assert.ok(new Set(first.centerlinePoints.slice(anchor.repeatUnitCount).map(point=>point.map(value=>value.toFixed(3)).join(','))).size>45,'macro centers do not repeat a regular wave');
+  const minimumAnchor={...anchor,backbonePoints:anchor.backbonePoints.slice(0,2),repeatUnits:[],repeatUnitCenters:[],repeatUnitCount:0,molecularTemplate:null,continuationSeedDirections:[[1,0,0],[1,0,0]],medianBackboneBondLength:1.48},minimum=createHeroChainPlan({polymerId:'polyethylene',anchor:minimumAnchor,seed:'minimum',viewPlane});
   assert.ok(minimum.points.every(point=>point.every(Number.isFinite)),'two-carbon anchors remain supported');
 });
 
 test('depth-directed anchors keep their actual start tangent and steer into the camera plane',()=>{
-  const anchor=anchorForTest(),depthAnchor={...anchor,backbonePoints:[[0,0,0],[0,0,1],[0,0,2],[0,0,3]],growthTip:[0,0,3],tangent:[0,0,1],initialExtent:3};
+  const anchor=anchorForTest(),transform=point=>[point[1],0,point[0]],depthAnchor={...anchor,backbonePoints:anchor.backbonePoints.map(transform),growthTip:transform(anchor.growthTip),tangent:transform(anchor.tangent),repeatUnitCenters:anchor.repeatUnitCenters.map(transform),continuationSeedDirections:anchor.continuationSeedDirections.map(transform),initialExtent:anchor.initialExtent};
   const plan=createHeroChainPlan({polymerId:'polyethylene',anchor:depthAnchor,seed:'depth-directed',viewPlane});
   assert.deepEqual(plan.points.slice(0,depthAnchor.backbonePoints.length),depthAnchor.backbonePoints);
   const firstDelta=plan.points[depthAnchor.backbonePoints.length].map((value,index)=>value-depthAnchor.growthTip[index]);
-  assert.ok(firstDelta[2]>0&&Math.abs(firstDelta[0])<1e-9&&Math.abs(firstDelta[1])<1e-9);
+  assert.ok(firstDelta[2]>1&&Math.abs(firstDelta[0])>.5&&Math.abs(firstDelta[1])<1e-9,'the first new bond preserves the transformed actual zigzag tangent');
   const project=point=>[point[0],point[1]],projectedLength=points=>points.slice(1).reduce((sum,point,index)=>sum+Math.hypot(project(point)[0]-project(points[index])[0],project(point)[1]-project(points[index])[1]),0);
-  assert.ok(projectedLength(plan.points)/projectedLength(plan.points.slice(0,plan.basePointCount))>3,'continuation remains visible after a depth-directed finite anchor');
-  const metrics=projectedPolymerPathMetrics(plan.points.map(project));
-  assert.ok(metrics.pathToChordRatio>1.1&&metrics.maxLocalTurnRad<.24);
+  assert.ok(projectedLength(plan.centerlinePoints)>3,'continuation remains visible after a depth-directed finite anchor');
+  const metrics=projectedPolymerPathMetrics(plan.centerlinePoints.slice(plan.baseUnitCount).map(project));
+  const worldContinuation=plan.centerlinePoints.slice(plan.baseUnitCount-1),worldDirections=worldContinuation.slice(1).map((point,index)=>point.map((value,axis)=>value-worldContinuation[index][axis])),worldTurns=worldDirections.slice(1).map((direction,index)=>Math.acos(Math.max(-1,Math.min(1,direction.reduce((sum,value,axis)=>sum+value*worldDirections[index][axis],0)/(Math.hypot(...direction)*Math.hypot(...worldDirections[index]))))));
+  assert.ok(metrics.pathToChordRatio>1.1&&Math.max(...worldTurns)<.28,JSON.stringify({metrics,maxWorldTurn:Math.max(...worldTurns)}));
 });
 
 test('LOD follows CSS-pixel atom and bond readability with a smooth retained transition',()=>{
@@ -91,7 +134,7 @@ test('molecular growth phases keep one increasing backbone under normal and redu
   for(const reduced of [false,true]){
     const plan=createHeroChainPlan({polymerId:'polyethylene',anchor:anchorForTest(),seed:'timeline',viewPlane});
     const phases=new Set();let previous=0,final=null;
-    for(let elapsed=0;elapsed<20000;elapsed+=25){const frame=heroGrowthFrame(elapsed,reduced),visible=visibleHeroPointCount(plan,frame);phases.add(frame.phase);assert.ok(visible>=previous,'the same path never retracts during growth');previous=visible;if(frame.phase==='long-chain-hold')final=frame;}
+    for(let elapsed=0;elapsed<20000;elapsed+=25){const frame=heroGrowthFrame(elapsed,reduced,1,{},plan.growthUnits),visible=visibleHeroPointCount(plan,frame),centers=visibleHeroCenterlinePointCount(plan,frame);phases.add(frame.phase);assert.ok(visible>=previous,'the same path never retracts during growth');assert.ok(centers>=plan.baseUnitCount&&centers<=plan.centerlinePoints.length);previous=visible;if(frame.phase==='long-chain-hold')final=frame;}
     for(const phase of ['anchored','recognizable-incorporation','extension','long-chain-hold'])assert.ok(phases.has(phase),`missing ${phase}`);
     assert.equal(final.units,HERO_CHAIN_BUDGET.growthUnits);
   }
@@ -119,13 +162,15 @@ test('bounded instanced detail persists while readable, crossfades in place, and
     for(const name of ['bounded-molecular-chain-atoms','bounded-incoming-monomer-atoms','bounded-incoming-repeat-markers']){const mesh=cinematic.root.children.find(child=>child.name===name);assert.equal(mesh.material.vertexColors,false,`${name} uses instance colors without a missing vertex-color attribute`);assert.ok(mesh.instanceColor,`${name} retains its bounded per-instance element palette`);}
     assert.equal(cinematic.stats.coarseGeometryVertexCapacity,HERO_CHAIN_BUDGET.vertexCapacity);
     assert.equal(cinematic.root.children.find(child=>child.name==='continuous-polymer-backbone').geometry.index.count,HERO_CHAIN_BUDGET.indexCapacity);
-    assert.equal(cinematic.stats.chainAtomInstanceCapacity,432);assert.equal(cinematic.stats.chainBondInstanceCapacity,432);
+    assert.equal(cinematic.stats.actualRepeatUnitCount,4);assert.equal(cinematic.stats.presentationUnitCount,4);
+    assert.equal(cinematic.stats.molecularTemplateAtomCount,6);assert.equal(cinematic.stats.molecularTemplateBondCount,5);
+    assert.equal(cinematic.stats.chainAtomInstanceCapacity,408);assert.equal(cinematic.stats.chainBondInstanceCapacity,408);
     cinematic.advance(16);cinematic.render(readableMetrics);
     assert.equal(cinematic.stats.phase,'anchored');assert.equal(cinematic.stats.molecularLodWeight,1);assert.equal(cinematic.stats.coarseLodWeight,0);
     let incorporated=false;
     for(let step=0;step<300&&!incorporated;step++){
       cinematic.advance(50);cinematic.render(readableMetrics);assert.deepEqual(census(cinematic.root),baseline);
-      incorporated=cinematic.stats.phase==='extension'&&cinematic.stats.molecularDetailUnitCount>2;
+      incorporated=cinematic.stats.phase==='extension'&&cinematic.stats.molecularDetailUnitCount>anchor.repeatUnitCount+1;
     }
     assert.ok(incorporated,'more than the tip units are molecular while their projected bonds remain readable');
     assert.equal(cinematic.stats.molecularLodWeight,1);assert.equal(cinematic.stats.coarseLodWeight,0);
@@ -148,4 +193,19 @@ test('bounded instanced detail persists while readable, crossfades in place, and
     assert.equal(cinematic.stats.heroChainVertexCount,HERO_CHAIN_BUDGET.vertexCapacity);assert.equal(cinematic.stats.feedVisualCapacity,HERO_CHAIN_BUDGET.feedCapacity);
     cinematic.dispose();cinematic.dispose();assert.equal(cinematic.root.children.length,0);assert.equal(cinematic.stats.objectCount,0);assert.equal(cinematic.stats.geometryCount,0);assert.equal(cinematic.stats.materialCount,0);
   }
+});
+
+test('Stage B incorporates four recognizable Feed monomers into the same 8-unit molecular chain',()=>{
+  const cinematic=createPolymerCinematic({THREE,polymerId:'polyethylene',anchor:anchorForTest(),sourceRecords:[sourceRecord],sampleId:'stage-b-checkpoint',viewPlane});
+  for(let frame=0;frame<62;frame++){cinematic.advance(50);cinematic.render(readableMetrics);}
+  assert.equal(cinematic.stats.phase,'extension');assert.equal(cinematic.stats.presentationUnitCount,8);
+  assert.equal(cinematic.stats.molecularDetailUnitCount,8);assert.equal(cinematic.stats.recognizableFeedUnitProofMask,15);
+  assert.equal(cinematic.stats.molecularAtomInstanceCount,24);assert.equal(cinematic.stats.molecularBondInstanceCount,24);
+  const chainAtoms=cinematic.root.children.find(child=>child.name==='bounded-molecular-chain-atoms'),matrix=new THREE.Matrix4();
+  for(let atom=0;atom<2;atom++){
+    chainAtoms.getMatrixAt(atom,matrix);
+    const expected=cinematic.plan.points[cinematic.plan.basePointCount+atom],translation=matrix.elements.slice(12,15);
+    assert.ok(Math.hypot(...translation.map((value,axis)=>value-expected[axis]))<1e-5,`unit 5 backbone carbon ${atom+1} uses the continuous molecular plan`);
+  }
+  cinematic.dispose();assert.equal(cinematic.stats.objectCount,0);
 });
