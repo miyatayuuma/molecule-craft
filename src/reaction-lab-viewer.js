@@ -11,7 +11,7 @@ import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './r
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=2';
 import {createReactionLabPolymerizationCore,POLYMERIZATION_STATES,POLYMER_COMMIT_DWELL_MS} from './reaction-lab-polymerization.js?v=1';
 import {createPolymerCinematic} from './reaction-lab-polymer-cinematic.js?v=6';
-import {createPolymerGrowthAnchor,createSafeRectWorkspace,largestSafeRect,POLYMER_VISUAL_AUTHORITY,projectedPolymerPathMetrics} from './polymer-growth-plan.js?v=8';
+import {createPolymerGrowthAnchor,createSafeRectWorkspace,largestSafeRect,POLYMER_VISUAL_AUTHORITY,projectedPolymerPathMetrics} from './polymer-growth-plan.js?v=9';
 import {createPolymerPresentationPlan} from './reaction-lab-polymer-presentation.js?v=1';
 import {polymerMorphologyProfile} from './polymer-morphology-authority.js?v=1';
 import {createPolymerMorphologyPlan} from './polymer-morphology-plan.js?v=1';
@@ -45,6 +45,7 @@ const FEED_TRAVEL_MS=330;
 const CAMERA_MIN_DISTANCE=7;
 const CAMERA_MAX_DISTANCE=64;
 const POLYMER_GROWTH_CAMERA_MAX_DISTANCE=440;
+const POLYMER_GROWTH_READABILITY_TARGET_PX=POLYMER_VISUAL_AUTHORITY.molecularAtomStartPx+.15;
 const POLYMER_DOCK_ACQUIRE_PX=DEPTH_TARGET_ACQUIRE_PADDING_PX;
 const POLYMER_DOCK_RELEASE_PX=DEPTH_TARGET_RELEASE_PADDING_PX;
 const POLYMER_DOCK_DISTANCE_ANGSTROM=1.48;
@@ -551,9 +552,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }
     let required=polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight);
     const beforeDistance=distance;
-    const holdFitSlack=polymerCinematic.stats.phase==='long-chain-hold'?1.12:1.01;
-    if(required>holdFitSlack&&distance<POLYMER_GROWTH_CAMERA_MAX_DISTANCE){
-      const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*required*1.018),responseMs=reducedMotion?60:100,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
+    const holding=polymerCinematic.stats.phase==='long-chain-hold',scaleForReadability=holding||(polymerCinematic.stats.phase==='extension'&&polymerCinematic.stats.coarseLodWeight>.7),holdFitSlack=holding?1.12:1.01;
+    // Very wide viewports can fit the full chain before atom size reaches the coarse end of the existing pixel band.
+    const readabilityScale=scaleForReadability?Math.min(polymerCinematic.stats.projectedHeavyAtomDiameterPx/POLYMER_GROWTH_READABILITY_TARGET_PX,polymerCinematic.stats.safeRegionUtilizationMajor/POLYMER_VISUAL_AUTHORITY.compositionMinimum):1;
+    const fitScale=required>holdFitSlack?required:1,cameraScaleRequest=Math.max(fitScale,readabilityScale,1);
+    if(cameraScaleRequest>1.005&&distance<POLYMER_GROWTH_CAMERA_MAX_DISTANCE){
+      const target=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance*cameraScaleRequest*1.018),responseMs=reducedMotion?60:100,blend=1-Math.exp(-Math.max(0,elapsedMs)/responseMs);
       distance=Math.min(POLYMER_GROWTH_CAMERA_MAX_DISTANCE,distance+(target-distance)*blend);updateCamera();projectPolymerPath(pointCount,canvasRect,group);projectPolymerCenterline(centerlinePointCount,canvasRect,group);projectedPolymerBounds(pointCount,bounds);required=polymerFitRequirement(bounds,centerX,centerY,fitHalfWidth,fitHalfHeight);
     }
     const pathMetrics=polymerPresentationCurveMetrics(centerlinePointCount,polymerPathMetrics),curveMetrics=polymerPresentationCurveMetrics(centerlinePointCount,polymerCurveMetrics),initialMetrics=polymerPresentationCurveMetrics(Math.min(centerlinePointCount,polymerCinematic.plan.baseUnitCount),polymerInitialPathMetrics);
