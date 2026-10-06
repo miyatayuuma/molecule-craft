@@ -539,7 +539,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const bounds=projectedPolymerBounds(pointCount,polymerProjectedBounds);
     const margin=7,fitHalfWidth=Math.max(24,(region.width-margin*2)*POLYMER_VISUAL_AUTHORITY.compositionTarget*.5),fitHalfHeight=Math.max(24,(region.height-margin*2)*POLYMER_VISUAL_AUTHORITY.compositionTarget*.5);
     const beforePanX=polymerCameraPan.x,beforePanY=polymerCameraPan.y,beforePanZ=polymerCameraPan.z;
-    if(polymerCinematic.stats.phase!=='long-chain-hold'){
+    const holdNeedsSafeCenterCorrection=polymerCinematic.stats.phase==='long-chain-hold'&&polymerCinematic.stats.safeRegionCenterErrorPx>10;
+    if(polymerCinematic.stats.phase!=='long-chain-hold'||holdNeedsSafeCenterCorrection){
       const worldPerPixel=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))/Math.max(1,canvasRect.height);
       polymerCameraPanRight.setFromMatrixColumn(camera.matrixWorld,0).normalize();polymerCameraPanUp.setFromMatrixColumn(camera.matrixWorld,1).normalize();
       const offsetX=(bounds.left+bounds.right)*.5-centerX,offsetY=centerY-(bounds.top+bounds.bottom)*.5;
