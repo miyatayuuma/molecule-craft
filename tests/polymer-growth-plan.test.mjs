@@ -85,6 +85,8 @@ test('actual-to-unit-5 seam, 4-unit chunks, and slow centerline curvature preser
     assert.ok(metrics.pathToChordRatio>1.10&&metrics.pathToChordRatio<1.4,`broad, non-tangled curvature ratio ${metrics.pathToChordRatio}`);
     assert.ok(metrics.cumulativeTurnRad>2.5&&metrics.cumulativeTurnRad<6,`persistent total turn ${metrics.cumulativeTurnRad}`);
     assert.ok(metrics.maxLocalTurnRad<.28,`gradual local turn ${metrics.maxLocalTurnRad}`);
+    const earlyChunkCurve=projectedPolymerPathMetrics(plan.centerlinePoints.slice(0,16).map(point=>[point[0],point[1]]));
+    assert.ok(earlyChunkCurve.pathToChordRatio>1.02,'the 12–16 unit molecular chain has already begun its persistent macro bend');
     const headings=plan.centerlinePoints.slice(1).map((point,index)=>Math.atan2(point[1]-plan.centerlinePoints[index][1],point[0]-plan.centerlinePoints[index][0])),turns=headings.slice(1).map((heading,index)=>heading-headings[index]);
     const macroHeadings=plan.molecularChunks.slice(1).map(chunk=>Math.atan2(chunk.entryTangent[1],chunk.entryTangent[0])),macroTurns=macroHeadings.slice(1).map((heading,index)=>heading-macroHeadings[index]);
     let signChanges=0,lastSign=0;for(const turn of macroTurns){const sign=Math.sign(turn);if(sign&&lastSign&&sign!==lastSign)signChanges++;if(sign)lastSign=sign;}

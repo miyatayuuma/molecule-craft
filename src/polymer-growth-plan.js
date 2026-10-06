@@ -217,9 +217,9 @@ function randomFor(seedText) {
 
 function makeCurveKeys(count, random) {
   const sign = random() < .5 ? -1 : 1;
-  const first = sign * (1.16 + random() * .2), second = -sign * (.82 + random() * .18), third = sign * (.38 + random() * .14);
-  const firstAt = Math.min(count - 1, Math.floor(count * (.26 + random() * .04)));
-  const secondAt = Math.min(count - 1, Math.floor(count * (.5 + random() * .04)));
+  const first = sign * (1.34 + random() * .14), second = sign * (.82 + random() * .16), third = -sign * (.2 + random() * .12);
+  const firstAt = Math.min(count - 1, Math.floor(count * (.2 + random() * .04)));
+  const secondAt = Math.min(count - 1, Math.floor(count * (.52 + random() * .04)));
   const thirdAt = Math.min(count - 1, Math.floor(count * (.78 + random() * .035)));
   const depthA = (random() - .5) * .34, depthB = (random() - .5) * .34, depthC = (random() - .5) * .34;
   const torsionA = (random() - .5) * .42, torsionB = (random() - .5) * .42, torsionC = (random() - .5) * .42;
