@@ -1,7 +1,7 @@
 import {
   createHeroChainPlan, heroGrowthFrame, HERO_CHAIN_BUDGET, POLYMER_VISUAL_AUTHORITY,
-  sampleHeroPoint, screenSpaceMolecularWeight, visibleHeroPointCount,
-} from './polymer-growth-plan.js?v=3';
+  sampleHeroPoint, screenSpaceMolecularWeight, visibleHeroPointCount, visibleHeroCenterlinePointCount,
+} from './polymer-growth-plan.js?v=5';
 import {modelAtomRadius} from './chemistry.js?v=20';
 
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -55,16 +55,18 @@ function census(root){
 export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],sampleId='polymer-sample',reducedMotion=false,durationMultiplier=1,viewPlane=null}){
   if(polymerId!=='polyethylene')throw new Error('Hero-chain continuity is currently enabled for polyethylene only.');
   const plan=createHeroChainPlan({polymerId,anchor,seed:sampleId,viewPlane}),root=new THREE.Group();root.name='polymer-hero-chain-presentation';
-  const template=makeTemplate(sourceRecords[0]),radial=HERO_CHAIN_BUDGET.radialSegments;
-  const templateAtomCount=Math.max(1,template?.atoms.length??0),templateBondCount=Math.max(1,template?.bonds.length??0);
-  const chainAtomCapacity=templateAtomCount*HERO_CHAIN_BUDGET.molecularUnitCapacity;
-  const chainBondCapacity=templateBondCount*HERO_CHAIN_BUDGET.molecularUnitCapacity+HERO_CHAIN_BUDGET.molecularUnitCapacity;
-  const feedAtomCapacity=templateAtomCount*HERO_CHAIN_BUDGET.feedCapacity,feedBondCapacity=templateBondCount*HERO_CHAIN_BUDGET.feedCapacity;
+  const chainTemplate=makeTemplate(anchor.molecularTemplate),feedTemplate=makeTemplate(sourceRecords[0]),radial=HERO_CHAIN_BUDGET.radialSegments;
+  if(anchor.repeatUnitCount!==4||chainTemplate?.atoms.length!==6||chainTemplate?.bonds.length!==5)throw new Error('PE continuation requires the actual four-unit fragment to calibrate its six-atom molecular template.');
+  const chainTemplateAtomCount=Math.max(1,chainTemplate?.atoms.length??0),chainTemplateBondCount=Math.max(1,chainTemplate?.bonds.length??0);
+  const feedTemplateAtomCount=Math.max(1,feedTemplate?.atoms.length??0),feedTemplateBondCount=Math.max(1,feedTemplate?.bonds.length??0);
+  const chainAtomCapacity=chainTemplateAtomCount*plan.growthUnits;
+  const chainBondCapacity=chainTemplateBondCount*plan.growthUnits+plan.growthUnits;
+  const feedAtomCapacity=feedTemplateAtomCount*HERO_CHAIN_BUDGET.feedCapacity,feedBondCapacity=feedTemplateBondCount*HERO_CHAIN_BUDGET.feedCapacity;
   const markerAtomCapacity=2*HERO_CHAIN_BUDGET.feedCapacity,markerBondCapacity=HERO_CHAIN_BUDGET.feedCapacity;
   const vertices=HERO_CHAIN_BUDGET.vertexCapacity,positions=new Float32Array(vertices*3),radialDirections=new Float32Array(vertices*3),colors=new Float32Array(vertices*4),indices=[];
-  const pathVectors=plan.points.map(point=>new THREE.Vector3(...point));
-  const extensionDirection=new THREE.Vector3().subVectors(pathVectors.at(-1),pathVectors.at(-2));
-  while(pathVectors.length<HERO_CHAIN_BUDGET.pointCapacity)pathVectors.push(pathVectors.at(-1).clone().add(extensionDirection));
+  const pathVectors=plan.centerlinePoints.map(point=>new THREE.Vector3(...point));
+  const extensionDirection=pathVectors.length>1?new THREE.Vector3().subVectors(pathVectors.at(-1),pathVectors.at(-2)).normalize():new THREE.Vector3(1,0,0);
+  while(pathVectors.length<HERO_CHAIN_BUDGET.centerlinePointCapacity)pathVectors.push(pathVectors.at(-1).clone().addScaledVector(extensionDirection,plan.targetStep*2));
   const tangent=new THREE.Vector3(),reference=new THREE.Vector3(),side=new THREE.Vector3(),up=new THREE.Vector3();
   for(let pointIndex=0;pointIndex<pathVectors.length;pointIndex++){
     tangent.subVectors(pathVectors[Math.min(pointIndex+1,pathVectors.length-1)],pathVectors[Math.max(0,pointIndex-1)]).normalize();
@@ -85,7 +87,7 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
 
   const sphereGeometry=new THREE.SphereGeometry(1,8,6),bondGeometry=new THREE.CylinderGeometry(.038,.038,1,6),particleGeometry=new THREE.SphereGeometry(1,7,5),pulseGeometry=new THREE.SphereGeometry(1,10,7);
   const chainAtomMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.44,metalness:.02,transparent:true,opacity:1});
-  const chainBondMaterial=new THREE.MeshStandardMaterial({color:'#c1d7df',roughness:.48,transparent:true,opacity:1});
+  const chainBondMaterial=new THREE.MeshStandardMaterial({color:'#b8d1de',roughness:.5,transparent:true,opacity:1});
   const feedAtomMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.44,metalness:.02,transparent:true,opacity:1});
   const feedBondMaterial=new THREE.MeshStandardMaterial({color:'#c1d7df',roughness:.48,transparent:true,opacity:1});
   const markerAtomMaterial=new THREE.MeshStandardMaterial({color:'#cde5ed',emissive:'#173f48',roughness:.5,transparent:true,opacity:0});
@@ -108,8 +110,8 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
     if(!atomList?.length)return;
     for(let index=0;index<capacity;index++){const atom=atomList[index%atomList.length];color.set(sourceElementColors[atom?.element]??'#c7d6e1');mesh.setColorAt(index,color);}
   }
-  initializeInstanceColors(chainAtoms,chainAtomCapacity,template?.atoms);
-  initializeInstanceColors(feedAtoms,feedAtomCapacity,template?.atoms);
+  initializeInstanceColors(chainAtoms,chainAtomCapacity,chainTemplate?.atoms);
+  initializeInstanceColors(feedAtoms,feedAtomCapacity,feedTemplate?.atoms);
   initializeInstanceColors(markers,markerAtomCapacity,[{element:'C'},{element:'C'}]);
 
   const dummy=new THREE.Object3D(),fromAxis=new THREE.Vector3(),toAxis=new THREE.Vector3(),axisCenter=new THREE.Vector3(),atomPosition=new THREE.Vector3(),atomCenter=new THREE.Vector3(),bondDirection=new THREE.Vector3(),bondMid=new THREE.Vector3(),bondStart=new THREE.Vector3(),bondEnd=new THREE.Vector3(),yAxis=new THREE.Vector3(0,1,0),unitQuaternion=new THREE.Quaternion();
@@ -130,12 +132,17 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
     growthTipScreenPosition:{x:0,y:0,visible:false},safeRegion:{left:0,top:0,width:0,height:0},projectedBounds:{left:0,right:0,top:0,bottom:0},
     cameraDistance:initialCameraDistance,initialCameraDistance,initialBackbonePointCount:plan.basePointCount,
     initialBackboneAtomIndices:[...anchor.backboneAtomIndices],growthEndAtomIndex:anchor.growthEndAtomIndex,anchorStart:[...plan.points[0]],anchorTip:[...plan.points[plan.basePointCount-1]],
-    visiblePointCount:plan.basePointCount,objectCount:0,geometryCount:0,materialCount:0,updateCount:0,incorporatedUnits:0,incorporationPulse:0,
+    visiblePointCount:plan.basePointCount,centerlinePointCount:plan.baseUnitCount,actualRepeatUnitCount:plan.baseUnitCount,
+    presentationUnitCount:plan.baseUnitCount,extensionUnitCapacity:plan.growthUnits,molecularChunkSizeUnits:HERO_CHAIN_BUDGET.chunkUnits,
+    molecularChunkCount:plan.molecularChunks.length,backboneBondLengthWorld:plan.medianBackboneBondLength,localZigzagTurnRad:plan.medianTurnAngleRad,
+    continuationTurnAngleRad:plan.continuationTurnAngleRad,maximumContinuationTurnDeviationRad:plan.maximumContinuationTurnDeviationRad,
+    molecularTemplateAtomCount:chainTemplate?.atoms.length??0,molecularTemplateBondCount:chainTemplate?.bonds.length??0,
+    recognizableFeedUnitProofMask:0,lastIncomingPresentationUnit:0,objectCount:0,geometryCount:0,materialCount:0,updateCount:0,incorporatedUnits:0,incorporationPulse:0,
     coarseBackboneAlignmentError:0,resourcesDisposed:false,lod:'molecular',
   };
   const resources=census(root);Object.assign(stats,resources);stats.heroChainVertexCount=stats.coarseGeometryVertexCapacity;
   const geometries=new Set(),materials=new Set();root.traverse(object=>{if(object.geometry)geometries.add(object.geometry);if(object.material)for(const material of Array.isArray(object.material)?object.material:[object.material])if(material)materials.add(material);});
-  let elapsed=0,disposed=false,cameraDistance=initialCameraDistance,lastTubeRadius=.15,lastFrame=heroGrowthFrame(0,reducedMotion,durationMultiplier);
+  let elapsed=0,disposed=false,cameraDistance=initialCameraDistance,lastTubeRadius=.15,lastFrame=heroGrowthFrame(0,reducedMotion,durationMultiplier,{},plan.growthUnits);
 
   function writeBond(mesh,index,left,right,thickness=1){
     bondDirection.subVectors(right,left);const length=bondDirection.length();
@@ -143,7 +150,7 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
     bondMid.copy(left).add(right).multiplyScalar(.5);dummy.position.copy(bondMid);dummy.quaternion.setFromUnitVectors(yAxis,bondDirection.multiplyScalar(1/length));dummy.scale.set(thickness,length,thickness);dummy.updateMatrix();mesh.setMatrixAt(index,dummy.matrix);return index+1;
   }
 
-  function writeMolecule(targetAtoms,targetBonds,atomOffset,bondOffset,center,direction,scale,formation=1,includeBoundary=false,boundaryLeft=null,boundaryRight=null){
+  function writeMolecule(template,targetAtoms,targetBonds,atomOffset,bondOffset,center,direction,scale,formation=1,includeBoundary=false,boundaryLeft=null,boundaryRight=null){
     if(!template){moleculeResult.atomEnd=atomOffset;moleculeResult.bondEnd=bondOffset;return moleculeResult;}
     fromAxis.set(...template.axis);toAxis.copy(direction).normalize();unitQuaternion.setFromUnitVectors(fromAxis,toAxis);
     let atomIndex=atomOffset,bondIndex=bondOffset;
@@ -166,11 +173,14 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
   function advance(deltaMs){
     if(disposed)return{phase:'disposed',done:true};
     const delta=Math.min(50,Math.max(0,Number.isFinite(deltaMs)?deltaMs:0));elapsed+=delta;
-    heroGrowthFrame(elapsed,reducedMotion,durationMultiplier,lastFrame);
+    heroGrowthFrame(elapsed,reducedMotion,durationMultiplier,lastFrame,plan.growthUnits);
     const visiblePointCount=visibleHeroPointCount(plan,lastFrame),tipStation=visiblePointCount-1;
+    const centerlinePointCount=visibleHeroCenterlinePointCount(plan,lastFrame);
     sampleHeroPoint(plan.points,tipStation,tipSample);
-    stats.phase=lastFrame.phase;stats.progress=lastFrame.progress;stats.updateCount++;stats.visiblePointCount=visiblePointCount;
-    stats.heroChainProgress=lastFrame.units+lastFrame.unitProgress;stats.incorporatedUnits=Math.min(plan.growthUnits,lastFrame.units+(lastFrame.unitProgress>=.82?1:0));
+    stats.phase=lastFrame.phase;stats.progress=lastFrame.progress;stats.updateCount++;stats.visiblePointCount=visiblePointCount;stats.centerlinePointCount=centerlinePointCount;
+    stats.heroChainProgress=plan.baseUnitCount+lastFrame.units+lastFrame.unitProgress;
+    stats.incorporatedUnits=Math.min(plan.growthUnits,lastFrame.units+(lastFrame.unitProgress>=.82?1:0));
+    stats.presentationUnitCount=plan.baseUnitCount+stats.incorporatedUnits;
     stats.heroChainSegmentCount=Math.max(0,visiblePointCount-1);
     stats.cameraDistance=cameraDistance;stats.heroChainVertexCount=stats.coarseGeometryVertexCapacity;
     stats.incorporationPulse=lastFrame.unitProgress>=.82?1:0;
@@ -181,11 +191,11 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
   }
 
   function setTubeRadius(radius,visiblePointCount){
-    const pointCount=Math.min(plan.points.length,visiblePointCount);
+    const pointCount=Math.min(plan.centerlinePoints.length,visiblePointCount);
     if(Math.abs(radius-lastTubeRadius)<.002&&pointCount===stats.lastTubePointCount)return;
     lastTubeRadius=radius;stats.lastTubePointCount=pointCount;
     for(let pointIndex=0;pointIndex<pointCount;pointIndex++)for(let ring=0;ring<radial;ring++){
-      const vertex=pointIndex*radial+ring,index=vertex*3,point=plan.points[pointIndex];
+      const vertex=pointIndex*radial+ring,index=vertex*3,point=plan.centerlinePoints[pointIndex];
       positions[index]=point[0]+radialDirections[index]*radius;positions[index+1]=point[1]+radialDirections[index+1]*radius;positions[index+2]=point[2]+radialDirections[index+2]*radius;
     }
     tubeGeometry.attributes.position.needsUpdate=true;
@@ -206,37 +216,37 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
 
     const pixelScale=Number.isFinite(metrics.localUnitsPerCssPixel)?metrics.localUnitsPerCssPixel:.025;
     const radius=clamp(POLYMER_VISUAL_AUTHORITY.coarseStrandWidthPx*pixelScale*.5,.008,POLYMER_VISUAL_AUTHORITY.coarseStrandWorldRadiusMax);
-    setTubeRadius(radius,stats.visiblePointCount);
-    tubeGeometry.setDrawRange(0,Math.max(0,(stats.visiblePointCount-1)*radial*6));
+    setTubeRadius(radius,stats.centerlinePointCount);
+    tubeGeometry.setDrawRange(0,Math.max(0,(stats.centerlinePointCount-1)*radial*6));
     tubeMaterial.opacity=coarseWeight;tubeMaterial.visible=coarseWeight>.001;stats.projectedStrandWidthPx=2*radius/Math.max(1e-6,pixelScale);
 
     const atomOpacity=molecularWeight>.02?molecularWeight:0;
     chainAtomMaterial.opacity=atomOpacity;chainBondMaterial.opacity=atomOpacity;
     chainAtomMaterial.depthWrite=atomOpacity>.99;chainBondMaterial.depthWrite=atomOpacity>.99;
     let chainAtomCount=0,chainBondCount=0,detailUnitCount=0,tipDetailAtomCount=0,tipDetailBondCount=0;
-    if(template&&atomOpacity>0){
-      const completeUnits=Math.min(HERO_CHAIN_BUDGET.molecularUnitCapacity,lastFrame.units);
+    if(chainTemplate&&atomOpacity>0){
+      const completeUnits=Math.min(plan.growthUnits,lastFrame.units);
       for(let unit=0;unit<completeUnits;unit++){
         const firstStation=plan.basePointCount+unit*plan.pointsPerUnit,secondStation=firstStation+1;
         if(secondStation>=stats.visiblePointCount)break;
         sampleInto(plan.points,firstStation,pointA);sampleInto(plan.points,secondStation,pointB);
         atomCenter.copy(pointA).add(pointB).multiplyScalar(.5);toAxis.subVectors(pointB,pointA);
-        const scale=toAxis.length()/template.axisLength;
+        const scale=toAxis.length()/chainTemplate.axisLength;
         sampleInto(plan.points,firstStation-1,pointC);
-        const result=writeMolecule(chainAtoms,chainBonds,chainAtomCount,chainBondCount,atomCenter,toAxis,scale,1,true,pointC,pointA);
+        const result=writeMolecule(chainTemplate,chainAtoms,chainBonds,chainAtomCount,chainBondCount,atomCenter,toAxis,scale,1,true,pointC,pointA);
         chainAtomCount=result.atomEnd;chainBondCount=result.bondEnd;detailUnitCount++;
-        if(unit===completeUnits-1){tipDetailAtomCount=templateAtomCount;tipDetailBondCount=templateBondCount+1;}
+        if(unit===completeUnits-1){tipDetailAtomCount=chainTemplateAtomCount;tipDetailBondCount=chainTemplateBondCount+1;}
       }
       const unit=lastFrame.units,progress=lastFrame.unitProgress;
-      if(unit<HERO_CHAIN_BUDGET.molecularUnitCapacity&&progress>.005){
+      if(unit<plan.growthUnits&&progress>.005){
         const previousStation=plan.basePointCount-1+unit*plan.pointsPerUnit;
         sampleInto(plan.points,previousStation+progress,pointA);sampleInto(plan.points,previousStation+2*progress,pointB);sampleInto(plan.points,previousStation,pointC);
         atomCenter.copy(pointA).add(pointB).multiplyScalar(.5);toAxis.subVectors(pointB,pointA);
-        const scale=toAxis.length()/template.axisLength,formation=clamp(progress/.24,0,1);
+        const scale=toAxis.length()/chainTemplate.axisLength,formation=clamp(progress/.24,0,1);
         if(scale>1e-4&&formation>0){
-          const result=writeMolecule(chainAtoms,chainBonds,chainAtomCount,chainBondCount,atomCenter,toAxis,scale,formation,true,pointC,pointA);
+          const result=writeMolecule(chainTemplate,chainAtoms,chainBonds,chainAtomCount,chainBondCount,atomCenter,toAxis,scale,formation,true,pointC,pointA);
           chainAtomCount=result.atomEnd;chainBondCount=result.bondEnd;detailUnitCount++;
-          tipDetailAtomCount=Math.max(tipDetailAtomCount,templateAtomCount);tipDetailBondCount=Math.max(tipDetailBondCount,templateBondCount+1);
+          tipDetailAtomCount=Math.max(tipDetailAtomCount,chainTemplateAtomCount);tipDetailBondCount=Math.max(tipDetailBondCount,chainTemplateBondCount+1);
         }
       }
     }
@@ -251,8 +261,8 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
     feedAtomMaterial.depthWrite=fullFeedWeight>.99;feedBondMaterial.depthWrite=fullFeedWeight>.99;
     markerAtomMaterial.depthWrite=markerWeight>.99;markerBondMaterial.depthWrite=markerWeight>.99;
     let feedAtomCount=0,feedBondCount=0,markerAtomCount=0,markerBondCount=0,particleCount=0,activeFeeds=0;
-    const recognizable=lastFrame.units<HERO_CHAIN_BUDGET.recognizableFeedUnits;
     const flightCapacity=lastFrame.phase==='recognizable-incorporation'?1:lastFrame.phase==='extension'?4:0;
+    let recognizableFeedCount=0,lastIncomingPresentationUnit=0;
     for(let slot=0;slot<flightCapacity;slot++){
       const unit=lastFrame.units+slot;if(unit>=plan.growthUnits)continue;
       const startFraction=lastFrame.phase==='recognizable-incorporation'?0:slot*.2,duration=lastFrame.phase==='recognizable-incorporation'?.82:.66;
@@ -263,25 +273,28 @@ export function createPolymerCinematic({THREE,polymerId,anchor,sourceRecords=[],
       flightSource.copy(feedOrigin).add(feedOffset);flightPoint.lerpVectors(flightSource,pointA,t);
       flightPoint.x+=Math.sin(Math.PI*t)*(slot%2?-.6:.6);flightPoint.y+=Math.sin(Math.PI*t*.7)*(slot-1.5)*.16;flightPoint.z+=Math.sin(Math.PI*t)*(slot%2?.34:-.34);
       bondDirection.subVectors(pointA,flightSource).normalize();
-      if(template&&fullFeedWeight>.001){
-        const result=writeMolecule(feedAtoms,feedBonds,feedAtomCount,feedBondCount,flightPoint,bondDirection,clamp(plan.targetStep/template.axisLength,.35,.9));
+      if(feedTemplate&&fullFeedWeight>.001){
+        const result=writeMolecule(feedTemplate,feedAtoms,feedBonds,feedAtomCount,feedBondCount,flightPoint,bondDirection,clamp(plan.targetStep/feedTemplate.axisLength,.35,.9));
         feedAtomCount=result.atomEnd;feedBondCount=result.bondEnd;
       }
-      if(markerWeight>.001&&template){
+      if(markerWeight>.001&&feedTemplate){
         const length=plan.targetStep*.82;bondDirection.multiplyScalar(length*.5);pointB.copy(flightPoint).sub(bondDirection);pointC.copy(flightPoint).add(bondDirection);
         dummy.position.copy(pointB);dummy.quaternion.identity();dummy.scale.setScalar(.13);dummy.updateMatrix();markers.setMatrixAt(markerAtomCount++,dummy.matrix);
         dummy.position.copy(pointC);dummy.scale.setScalar(.13);dummy.updateMatrix();markers.setMatrixAt(markerAtomCount++,dummy.matrix);
         markerBondCount=writeBond(markerBonds,markerBondCount,pointB,pointC,1);
       }
       if(particleWeight>.001&&particleCount<HERO_CHAIN_BUDGET.feedCapacity){dummy.position.copy(flightPoint);dummy.quaternion.identity();dummy.scale.setScalar(.12);dummy.updateMatrix();particles.setMatrixAt(particleCount++,dummy.matrix);}
+      if(unit<HERO_CHAIN_BUDGET.recognizableFeedUnits&&fullFeedWeight>.95){recognizableFeedCount++;stats.recognizableFeedUnitProofMask|=1<<unit;}
+      lastIncomingPresentationUnit=Math.max(lastIncomingPresentationUnit,plan.baseUnitCount+unit+1);
       activeFeeds++;
     }
     feedAtoms.count=feedAtomCount;feedBonds.count=feedBondCount;markers.count=markerAtomCount;markerBonds.count=markerBondCount;particles.count=particleCount;
     feedAtoms.instanceMatrix.needsUpdate=true;feedBonds.instanceMatrix.needsUpdate=true;markers.instanceMatrix.needsUpdate=true;markerBonds.instanceMatrix.needsUpdate=true;particles.instanceMatrix.needsUpdate=true;
     if(feedAtoms.instanceColor)feedAtoms.instanceColor.needsUpdate=true;if(markers.instanceColor)markers.instanceColor.needsUpdate=true;
     stats.feedFullMoleculeWeight=fullFeedWeight;stats.feedRepeatMarkerWeight=markerWeight;stats.feedParticleWeight=particleWeight;
-    stats.feedVisualActiveCount=activeFeeds;stats.recognizableFeedUnitCount=recognizable?activeFeeds:0;
-    stats.molecularDetailUnitCount=atomOpacity>0?detailUnitCount:0;stats.molecularAtomInstanceCount=chainAtomCount;stats.molecularBondInstanceCount=chainBondCount;
+    stats.feedVisualActiveCount=activeFeeds;stats.recognizableFeedUnitCount=recognizableFeedCount;
+    stats.lastIncomingPresentationUnit=lastIncomingPresentationUnit;
+    stats.molecularDetailUnitCount=atomOpacity>0?plan.baseUnitCount+detailUnitCount:0;stats.molecularAtomInstanceCount=chainAtomCount;stats.molecularBondInstanceCount=chainBondCount;
     stats.tipDetailAtomCount=molecularWeight>.05?tipDetailAtomCount:0;stats.tipDetailBondCount=molecularWeight>.05?tipDetailBondCount:0;
     stats.coarseBackboneAlignmentError=0;stats.objectCount=resources.objectCount;stats.geometryCount=resources.geometryCount;stats.materialCount=resources.materialCount;
     return stats;
