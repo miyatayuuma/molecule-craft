@@ -28,7 +28,7 @@ export const POLYMER_VISUAL_AUTHORITY = Object.freeze({
   compositionMaximum: .85,
   compositionMinorMinimum: .24,
   coarseStrandWidthPx: 2.8,
-  coarseStrandWorldRadiusMax: .5,
+  coarseStrandWorldRadiusMax: .58,
 });
 
 const finitePoint = point => Array.isArray(point) && point.length === 3 && point.every(Number.isFinite);

@@ -117,7 +117,7 @@ test('LOD follows CSS-pixel atom and bond readability with a smooth retained tra
   const authority=POLYMER_VISUAL_AUTHORITY;
   assert.deepEqual([authority.molecularBondStartPx,authority.molecularBondFullPx],[4,8]);
   assert.deepEqual([authority.molecularAtomStartPx,authority.molecularAtomFullPx],[2.5,4.5]);
-  assert.equal(authority.coarseStrandWorldRadiusMax,.5);
+  assert.equal(authority.coarseStrandWorldRadiusMax,.58);
   const readable=screenSpaceMolecularWeight({heavyAtomDiameterPx:5,backboneBondLengthPx:9,previousWeight:1});
   assert.equal(readable.molecularWeight,1);assert.equal(readable.coarseWeight,0);
   const middle=screenSpaceMolecularWeight({heavyAtomDiameterPx:3.5,backboneBondLengthPx:6,previousWeight:1});
@@ -187,6 +187,8 @@ test('bounded instanced detail persists while readable, crossfades in place, and
     assert.equal(cinematic.stats.molecularLodWeight,0);assert.equal(cinematic.stats.coarseLodWeight,1);
     assert.equal(cinematic.detailOpacityForStation(0),0);assert.equal(cinematic.stats.tipDetailAtomCount,0,'unreadable atomistic tip is removed with the rest of the chain');
     assert.equal(cinematic.stats.projectedStrandWidthPx,2.8);assert.equal(cinematic.stats.molecularDetailUnitCount,0);
+    cinematic.render({projectedHeavyAtomDiameterPx:1.2,projectedBackboneBondLengthPx:2.6,localUnitsPerCssPixel:.55,cameraDistance:432});
+    assert.ok(cinematic.stats.projectedStrandWidthPx>=2&&cinematic.stats.projectedStrandWidthPx<=2.8,'the bounded far-camera radius keeps the coarse strand above a 2 px hairline');
     for(let step=0;step<1000&&cinematic.stats.phase!=='long-chain-hold';step++){cinematic.advance(50);cinematic.render({projectedHeavyAtomDiameterPx:2,projectedBackboneBondLengthPx:3,localUnitsPerCssPixel:.01,cameraDistance:25});assert.deepEqual(census(cinematic.root),baseline);}
     assert.equal(cinematic.stats.phase,'long-chain-hold');assert.equal(cinematic.stats.feedVisualActiveCount,0);
     const held={...cinematic.stats};
