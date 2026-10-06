@@ -385,8 +385,8 @@ export function projectedPolymerPathMetrics(points, count = points?.length ?? 0,
   return result;
 }
 
-const NORMAL_DURATIONS = Object.freeze([300, 2800, 450, 3900, 1000]);
-const REDUCED_DURATIONS = Object.freeze([600, 2400, 350, 1800, 500]);
+const NORMAL_DURATIONS = Object.freeze([300, 2800, 1500, 3900, 1000]);
+const REDUCED_DURATIONS = Object.freeze([600, 2400, 800, 1800, 500]);
 const PHASES = Object.freeze(['anchored', 'recognizable-incorporation', 'stage-b-molecular-hold', 'extension', 'long-chain-hold']);
 export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultiplier = 1, result = {}, growthUnits = HERO_CHAIN_BUDGET.growthUnits) {
   const durations = reducedMotion ? REDUCED_DURATIONS : NORMAL_DURATIONS,scale=Math.max(.1,durationMultiplier);

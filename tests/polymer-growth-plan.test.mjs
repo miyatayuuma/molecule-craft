@@ -168,7 +168,7 @@ test('bounded instanced detail persists while readable, crossfades in place, and
     cinematic.advance(16);cinematic.render(readableMetrics);
     assert.equal(cinematic.stats.phase,'anchored');assert.equal(cinematic.stats.molecularLodWeight,1);assert.equal(cinematic.stats.coarseLodWeight,0);
     let incorporated=false;
-    for(let step=0;step<300&&!incorporated;step++){
+    for(let step=0;step<600&&!incorporated;step++){
       cinematic.advance(50);cinematic.render(readableMetrics);assert.deepEqual(census(cinematic.root),baseline);
       incorporated=cinematic.stats.phase==='extension'&&cinematic.stats.molecularDetailUnitCount>anchor.repeatUnitCount+1;
     }
