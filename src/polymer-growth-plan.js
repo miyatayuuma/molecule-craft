@@ -385,13 +385,13 @@ export function projectedPolymerPathMetrics(points, count = points?.length ?? 0,
   return result;
 }
 
-const NORMAL_DURATIONS = Object.freeze([300, 2800, 1500, 3900, 1000]);
-const REDUCED_DURATIONS = Object.freeze([600, 2400, 800, 1800, 500]);
+const NORMAL_DURATIONS = Object.freeze([300, 2800, 1500, 3900, 1500]);
+const REDUCED_DURATIONS = Object.freeze([600, 2400, 800, 1800, 800]);
 const PHASES = Object.freeze(['anchored', 'recognizable-incorporation', 'stage-b-molecular-hold', 'extension', 'long-chain-hold']);
 export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultiplier = 1, result = {}, growthUnits = HERO_CHAIN_BUDGET.growthUnits) {
   const durations = reducedMotion ? REDUCED_DURATIONS : NORMAL_DURATIONS,scale=Math.max(.1,durationMultiplier);
   const boundedGrowthUnits = Math.max(0, Math.min(HERO_CHAIN_BUDGET.growthUnits, Math.floor(growthUnits)));
-  const totalDuration=(durations[0]+durations[1]+durations[2]+durations[3])*scale;
+  const totalDuration=(durations[0]+durations[1]+durations[2]+durations[3]+durations[4])*scale;
   const elapsed = Math.max(0, Math.min(Number.isFinite(elapsedMs) ? elapsedMs : 0, totalDuration + 50));
   let offset = 0;
   for (let index = 0; index < durations.length; index++) {
@@ -402,7 +402,7 @@ export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultip
       else if (index === 2) units = HERO_CHAIN_BUDGET.recognizableFeedUnits;
       else if (index === 3) { const raw = HERO_CHAIN_BUDGET.recognizableFeedUnits + progress * (boundedGrowthUnits - HERO_CHAIN_BUDGET.recognizableFeedUnits); units = Math.min(boundedGrowthUnits - 1, Math.floor(raw)); unitProgress = raw - units; }
       if (index === 4) units = boundedGrowthUnits;
-      result.phase=PHASES[index];result.index=index;result.progress=progress;result.units=units;result.unitProgress=unitProgress;result.done=index===3&&progress>=1;
+      result.phase=PHASES[index];result.index=index;result.progress=progress;result.units=units;result.unitProgress=unitProgress;result.done=index===4&&progress>=1;
       return result;
     }
     offset += duration;

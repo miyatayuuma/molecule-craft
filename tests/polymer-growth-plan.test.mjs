@@ -140,7 +140,11 @@ test('molecular growth phases keep one increasing backbone under normal and redu
     for(const phase of ['anchored','recognizable-incorporation','stage-b-molecular-hold','extension','long-chain-hold'])assert.ok(phases.has(phase),`missing ${phase}`);
     assert.equal(final.units,HERO_CHAIN_BUDGET.growthUnits);
   }
-  assert.equal(heroGrowthFrame(100000,false,4).phase,'long-chain-hold');
+  const holdStart=heroGrowthFrame(8500),held=heroGrowthFrame(9999),completed=heroGrowthFrame(10000);
+  assert.equal(holdStart.phase,'long-chain-hold');assert.equal(holdStart.progress,0);assert.equal(holdStart.done,false);
+  assert.equal(held.phase,'long-chain-hold');assert.equal(held.units,HERO_CHAIN_BUDGET.growthUnits);assert.equal(held.done,false);
+  assert.equal(completed.phase,'long-chain-hold');assert.equal(completed.progress,1);assert.equal(completed.done,true,'the bounded observation hold completes into the existing Sample Bay lifecycle');
+  const longDuration=heroGrowthFrame(100000,false,4);assert.equal(longDuration.phase,'long-chain-hold');assert.equal(longDuration.done,true);
 });
 
 test('camera safe region uses live obstacles and leaves the selected rectangle clear',()=>{
