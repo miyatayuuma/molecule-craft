@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 const directory=process.argv[2]??'test-results/polymer-growth-continuity';
-const phases=new Set(['anchored','recognizable-incorporation','extension','long-chain-hold']);
+const phases=new Set(['anchored','recognizable-incorporation','stage-b-molecular-hold','extension','long-chain-hold']);
 const baseline={commit:'ac34cea7953b6d295acb7c0c035aa87d29045605',normal:{390:{updateP95:2.2,renderP95:2.4},1280:{updateP95:1.7,renderP95:3.5}},reduced:{390:{updateP95:1,renderP95:1.6},1280:{updateP95:2.5,renderP95:5}}};
 function distribution(values){assert.ok(values.length>=8,'Insufficient actual-browser frame samples');const sorted=[...values].sort((a,b)=>a-b);return{n:sorted.length,p50:sorted[Math.floor(sorted.length*.5)],p95:sorted[Math.floor(sorted.length*.95)],peak:sorted.at(-1)};}
 function summarize(profile){assert.ok(profile?.count>0,'Missing localhost-only profile probe');const indices=profile.phase.flatMap((phase,index)=>phases.has(phase)?[index]:[]);return Object.fromEntries(['update','render','frame'].map(key=>[key,distribution(indices.map(index=>profile[key][index]))]));}

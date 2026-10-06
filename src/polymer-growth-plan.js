@@ -385,9 +385,9 @@ export function projectedPolymerPathMetrics(points, count = points?.length ?? 0,
   return result;
 }
 
-const NORMAL_DURATIONS = Object.freeze([300, 2800, 3900, 1000]);
-const REDUCED_DURATIONS = Object.freeze([600, 2400, 1800, 500]);
-const PHASES = Object.freeze(['anchored', 'recognizable-incorporation', 'extension', 'long-chain-hold']);
+const NORMAL_DURATIONS = Object.freeze([300, 2800, 450, 3900, 1000]);
+const REDUCED_DURATIONS = Object.freeze([600, 2400, 350, 1800, 500]);
+const PHASES = Object.freeze(['anchored', 'recognizable-incorporation', 'stage-b-molecular-hold', 'extension', 'long-chain-hold']);
 export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultiplier = 1, result = {}, growthUnits = HERO_CHAIN_BUDGET.growthUnits) {
   const durations = reducedMotion ? REDUCED_DURATIONS : NORMAL_DURATIONS,scale=Math.max(.1,durationMultiplier);
   const boundedGrowthUnits = Math.max(0, Math.min(HERO_CHAIN_BUDGET.growthUnits, Math.floor(growthUnits)));
@@ -399,9 +399,9 @@ export function heroGrowthFrame(elapsedMs, reducedMotion = false, durationMultip
     if (elapsed < offset + duration || index === durations.length - 1) {
       let units = 0, unitProgress = 0;
       if (index === 1) { const raw = progress * HERO_CHAIN_BUDGET.recognizableFeedUnits; units = Math.min(HERO_CHAIN_BUDGET.recognizableFeedUnits - 1, Math.floor(raw)); unitProgress = raw - units; }
-      else if (index >= 2) { units = index === 2 ? HERO_CHAIN_BUDGET.recognizableFeedUnits : boundedGrowthUnits; unitProgress = index === 2 ? progress * (boundedGrowthUnits - HERO_CHAIN_BUDGET.recognizableFeedUnits) : 0; }
-      if (index === 2) { const raw = HERO_CHAIN_BUDGET.recognizableFeedUnits + unitProgress; units = Math.min(boundedGrowthUnits - 1, Math.floor(raw)); unitProgress = raw - units; }
-      if (index === 3) units = boundedGrowthUnits;
+      else if (index === 2) units = HERO_CHAIN_BUDGET.recognizableFeedUnits;
+      else if (index === 3) { const raw = HERO_CHAIN_BUDGET.recognizableFeedUnits + progress * (boundedGrowthUnits - HERO_CHAIN_BUDGET.recognizableFeedUnits); units = Math.min(boundedGrowthUnits - 1, Math.floor(raw)); unitProgress = raw - units; }
+      if (index === 4) units = boundedGrowthUnits;
       result.phase=PHASES[index];result.index=index;result.progress=progress;result.units=units;result.unitProgress=unitProgress;result.done=index===3&&progress>=1;
       return result;
     }

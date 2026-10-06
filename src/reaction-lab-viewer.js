@@ -10,8 +10,8 @@ import {
 import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './reaction-lab-environment.js?v=1';
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=2';
 import {createReactionLabPolymerizationCore,POLYMERIZATION_STATES,POLYMER_COMMIT_DWELL_MS} from './reaction-lab-polymerization.js?v=1';
-import {createPolymerCinematic} from './reaction-lab-polymer-cinematic.js?v=5';
-import {createPolymerGrowthAnchor,createSafeRectWorkspace,largestSafeRect,POLYMER_VISUAL_AUTHORITY,projectedPolymerPathMetrics} from './polymer-growth-plan.js?v=4';
+import {createPolymerCinematic} from './reaction-lab-polymer-cinematic.js?v=6';
+import {createPolymerGrowthAnchor,createSafeRectWorkspace,largestSafeRect,POLYMER_VISUAL_AUTHORITY,projectedPolymerPathMetrics} from './polymer-growth-plan.js?v=5';
 import {createPolymerPresentationPlan} from './reaction-lab-polymer-presentation.js?v=1';
 import {polymerMorphologyProfile} from './polymer-morphology-authority.js?v=1';
 import {createPolymerMorphologyPlan} from './polymer-morphology-plan.js?v=1';

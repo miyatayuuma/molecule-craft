@@ -1,7 +1,7 @@
 import {
   createHeroChainPlan, heroGrowthFrame, HERO_CHAIN_BUDGET, POLYMER_VISUAL_AUTHORITY,
   sampleHeroPoint, screenSpaceMolecularWeight, visibleHeroPointCount, visibleHeroCenterlinePointCount,
-} from './polymer-growth-plan.js?v=4';
+} from './polymer-growth-plan.js?v=5';
 import {modelAtomRadius} from './chemistry.js?v=20';
 
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));

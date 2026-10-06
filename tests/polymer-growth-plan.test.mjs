@@ -135,7 +135,7 @@ test('molecular growth phases keep one increasing backbone under normal and redu
     const plan=createHeroChainPlan({polymerId:'polyethylene',anchor:anchorForTest(),seed:'timeline',viewPlane});
     const phases=new Set();let previous=0,final=null;
     for(let elapsed=0;elapsed<20000;elapsed+=25){const frame=heroGrowthFrame(elapsed,reduced,1,{},plan.growthUnits),visible=visibleHeroPointCount(plan,frame),centers=visibleHeroCenterlinePointCount(plan,frame);phases.add(frame.phase);assert.ok(visible>=previous,'the same path never retracts during growth');assert.ok(centers>=plan.baseUnitCount&&centers<=plan.centerlinePoints.length);previous=visible;if(frame.phase==='long-chain-hold')final=frame;}
-    for(const phase of ['anchored','recognizable-incorporation','extension','long-chain-hold'])assert.ok(phases.has(phase),`missing ${phase}`);
+    for(const phase of ['anchored','recognizable-incorporation','stage-b-molecular-hold','extension','long-chain-hold'])assert.ok(phases.has(phase),`missing ${phase}`);
     assert.equal(final.units,HERO_CHAIN_BUDGET.growthUnits);
   }
   assert.equal(heroGrowthFrame(100000,false,4).phase,'long-chain-hold');
@@ -198,7 +198,7 @@ test('bounded instanced detail persists while readable, crossfades in place, and
 test('Stage B incorporates four recognizable Feed monomers into the same 8-unit molecular chain',()=>{
   const cinematic=createPolymerCinematic({THREE,polymerId:'polyethylene',anchor:anchorForTest(),sourceRecords:[sourceRecord],sampleId:'stage-b-checkpoint',viewPlane});
   for(let frame=0;frame<62;frame++){cinematic.advance(50);cinematic.render(readableMetrics);}
-  assert.equal(cinematic.stats.phase,'extension');assert.equal(cinematic.stats.presentationUnitCount,8);
+  assert.equal(cinematic.stats.phase,'stage-b-molecular-hold');assert.equal(cinematic.stats.presentationUnitCount,8);
   assert.equal(cinematic.stats.molecularDetailUnitCount,8);assert.equal(cinematic.stats.recognizableFeedUnitProofMask,15);
   assert.equal(cinematic.stats.molecularAtomInstanceCount,24);assert.equal(cinematic.stats.molecularBondInstanceCount,24);
   const chainAtoms=cinematic.root.children.find(child=>child.name==='bounded-molecular-chain-atoms'),matrix=new THREE.Matrix4();
