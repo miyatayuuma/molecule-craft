@@ -1,0 +1,1430 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 900,
+    "mobile": false
+  },
+  "frames": {
+    "A": {
+      "cinematic": {
+        "active": true,
+        "phase": "long-chain-hold",
+        "progress": 0.08859999999999854,
+        "heroChainId": "polymer-sample-1-1",
+        "heroChainProgress": 72,
+        "heroChainSegmentCount": 143,
+        "heroChainVertexCount": 576,
+        "coarseBackboneAlphaMean": 0.9854441631729444,
+        "coarseLodWeight": 0.9854441631729444,
+        "molecularLodWeight": 0.01455583682705566,
+        "molecularLodMode": "transition",
+        "lodReadabilityScore": 0.07137472142072365,
+        "projectedHeavyAtomDiameterPx": 2.6427494428414473,
+        "projectedBackboneBondLengthPx": 5.797990776238967,
+        "projectedStrandWidthPx": 2.8,
+        "feedFullMoleculeWeight": 0,
+        "feedRepeatMarkerWeight": 1,
+        "feedParticleWeight": 0,
+        "feedVisualActiveCount": 0,
+        "feedVisualCapacity": 6,
+        "recognizableFeedUnitCount": 0,
+        "molecularDetailUnitCount": 0,
+        "molecularAtomInstanceCount": 0,
+        "molecularBondInstanceCount": 0,
+        "tipDetailAtomCount": 0,
+        "tipDetailBondCount": 0,
+        "chainAtomInstanceCapacity": 408,
+        "chainBondInstanceCapacity": 408,
+        "feedAtomInstanceCapacity": 36,
+        "feedBondInstanceCapacity": 30,
+        "markerAtomInstanceCapacity": 12,
+        "markerBondInstanceCapacity": 6,
+        "particleInstanceCapacity": 6,
+        "coarseGeometryVertexCapacity": 576,
+        "coarseGeometryIndexCapacity": 3408,
+        "growthTipScreenPosition": {
+          "x": 664.2923791430858,
+          "y": 405.6485619579955,
+          "visible": true
+        },
+        "safeRegion": {
+          "left": 83,
+          "top": 72,
+          "width": 697,
+          "height": 516
+        },
+        "projectedBounds": {
+          "left": 212.21644893893824,
+          "right": 664.2923791430858,
+          "top": 195.69073344429285,
+          "bottom": 460.83853741333974
+        },
+        "cameraDistance": 201.78695405475852,
+        "initialCameraDistance": 15,
+        "initialBackbonePointCount": 8,
+        "initialBackboneAtomIndices": [
+          1,
+          0,
+          16,
+          17,
+          4,
+          5,
+          18,
+          19
+        ],
+        "growthEndAtomIndex": 19,
+        "anchorStart": [
+          -2.7513196930106663,
+          0.6501964111926615,
+          -0.0005884214320134896
+        ],
+        "anchorTip": [
+          3.591978605992619,
+          0.5004087854364381,
+          -0.0005884214320134862
+        ],
+        "visiblePointCount": 144,
+        "centerlinePointCount": 72,
+        "actualRepeatUnitCount": 4,
+        "presentationUnitCount": 72,
+        "extensionUnitCapacity": 68,
+        "molecularChunkSizeUnits": 4,
+        "molecularChunkCount": 18,
+        "backboneBondLengthWorld": 1.4471919179338961,
+        "localZigzagTurnRad": 1.3878680325225194,
+        "continuationTurnAngleRad": 1.4685554056273966,
+        "maximumContinuationTurnDeviationRad": 0.1898371175553668,
+        "molecularTemplateAtomCount": 6,
+        "molecularTemplateBondCount": 5,
+        "recognizableFeedUnitProofMask": 15,
+        "lastIncomingPresentationUnit": 0,
+        "objectCount": 10,
+        "geometryCount": 5,
+        "materialCount": 9,
+        "updateCount": 174,
+        "incorporatedUnits": 68,
+        "incorporationPulse": 0,
+        "coarseBackboneAlignmentError": 0,
+        "resourcesDisposed": false,
+        "lod": "transition",
+        "cameraPanMagnitude": 57.449650554718154,
+        "cameraMotionActive": false,
+        "cameraFitRequirement": 1,
+        "safeRegionCenterErrorPx": 6.973779408064225,
+        "cameraFrameSettled": true,
+        "projectedPathLengthPx": 606.564983490089,
+        "projectedChordLengthPx": 495.54947302512085,
+        "projectedPathToChordRatio": 1.2240250802553885,
+        "projectedCenterlineUnitCount": 72,
+        "projectedCumulativeTurnRad": 3.316099162465118,
+        "projectedMaximumLocalTurnRad": 0.18794789678206808,
+        "initialProjectedLengthPx": 24.985382823981098,
+        "projectedLengthRatio": 24.27679366625133,
+        "safeRegionUtilizationMajor": 0.6486024823588917,
+        "safeRegionUtilizationMinor": 0.5138523332733467,
+        "growthTipInSafeRegion": true,
+        "framingClipped": false,
+        "lastTubePointCount": 72
+      },
+      "morphologyBridge": {
+        "active": false
+      }
+    },
+    "B": {
+      "cinematic": {
+        "active": true,
+        "phase": "long-chain-hold",
+        "progress": 1,
+        "heroChainId": "polymer-sample-1-1",
+        "heroChainProgress": 72,
+        "heroChainSegmentCount": 143,
+        "heroChainVertexCount": 576,
+        "coarseBackboneAlphaMean": 0.9854441631729444,
+        "coarseLodWeight": 0.9854441631729444,
+        "molecularLodWeight": 0.01455583682705566,
+        "molecularLodMode": "transition",
+        "lodReadabilityScore": 0.07137472142072365,
+        "projectedHeavyAtomDiameterPx": 2.6427494428414473,
+        "projectedBackboneBondLengthPx": 5.797990776238967,
+        "projectedStrandWidthPx": 2.8,
+        "feedFullMoleculeWeight": 0,
+        "feedRepeatMarkerWeight": 1,
+        "feedParticleWeight": 0,
+        "feedVisualActiveCount": 0,
+        "feedVisualCapacity": 6,
+        "recognizableFeedUnitCount": 0,
+        "molecularDetailUnitCount": 0,
+        "molecularAtomInstanceCount": 0,
+        "molecularBondInstanceCount": 0,
+        "tipDetailAtomCount": 0,
+        "tipDetailBondCount": 0,
+        "chainAtomInstanceCapacity": 408,
+        "chainBondInstanceCapacity": 408,
+        "feedAtomInstanceCapacity": 36,
+        "feedBondInstanceCapacity": 30,
+        "markerAtomInstanceCapacity": 12,
+        "markerBondInstanceCapacity": 6,
+        "particleInstanceCapacity": 6,
+        "coarseGeometryVertexCapacity": 576,
+        "coarseGeometryIndexCapacity": 3408,
+        "growthTipScreenPosition": {
+          "x": 664.2923791430858,
+          "y": 405.6485619579955,
+          "visible": true
+        },
+        "safeRegion": {
+          "left": 83,
+          "top": 72,
+          "width": 697,
+          "height": 516
+        },
+        "projectedBounds": {
+          "left": 212.21644893893824,
+          "right": 664.2923791430858,
+          "top": 195.69073344429285,
+          "bottom": 460.83853741333974
+        },
+        "cameraDistance": 201.78695405475852,
+        "initialCameraDistance": 15,
+        "initialBackbonePointCount": 8,
+        "initialBackboneAtomIndices": [
+          1,
+          0,
+          16,
+          17,
+          4,
+          5,
+          18,
+          19
+        ],
+        "growthEndAtomIndex": 19,
+        "anchorStart": [
+          -2.7513196930106663,
+          0.6501964111926615,
+          -0.0005884214320134896
+        ],
+        "anchorTip": [
+          3.591978605992619,
+          0.5004087854364381,
+          -0.0005884214320134862
+        ],
+        "visiblePointCount": 144,
+        "centerlinePointCount": 72,
+        "actualRepeatUnitCount": 4,
+        "presentationUnitCount": 72,
+        "extensionUnitCapacity": 68,
+        "molecularChunkSizeUnits": 4,
+        "molecularChunkCount": 18,
+        "backboneBondLengthWorld": 1.4471919179338961,
+        "localZigzagTurnRad": 1.3878680325225194,
+        "continuationTurnAngleRad": 1.4685554056273966,
+        "maximumContinuationTurnDeviationRad": 0.1898371175553668,
+        "molecularTemplateAtomCount": 6,
+        "molecularTemplateBondCount": 5,
+        "recognizableFeedUnitProofMask": 15,
+        "lastIncomingPresentationUnit": 0,
+        "objectCount": 10,
+        "geometryCount": 5,
+        "materialCount": 9,
+        "updateCount": 202,
+        "incorporatedUnits": 68,
+        "incorporationPulse": 0,
+        "coarseBackboneAlignmentError": 0,
+        "resourcesDisposed": false,
+        "lod": "transition",
+        "cameraPanMagnitude": 57.449650554718154,
+        "cameraMotionActive": false,
+        "cameraFitRequirement": 1,
+        "safeRegionCenterErrorPx": 6.973779408064225,
+        "cameraFrameSettled": true,
+        "projectedPathLengthPx": 606.564983490089,
+        "projectedChordLengthPx": 495.54947302512085,
+        "projectedPathToChordRatio": 1.2240250802553885,
+        "projectedCenterlineUnitCount": 72,
+        "projectedCumulativeTurnRad": 3.316099162465118,
+        "projectedMaximumLocalTurnRad": 0.18794789678206808,
+        "initialProjectedLengthPx": 24.985382823981098,
+        "projectedLengthRatio": 24.27679366625133,
+        "safeRegionUtilizationMajor": 0.6486024823588917,
+        "safeRegionUtilizationMinor": 0.5138523332733467,
+        "growthTipInSafeRegion": true,
+        "framingClipped": false,
+        "lastTubePointCount": 72
+      },
+      "morphologyBridge": {
+        "polymerId": "polyethylene",
+        "sampleId": "polymer-sample-1-1",
+        "seed": "polymer-sample-1-1",
+        "orientation": "reverse",
+        "resampleCount": 72,
+        "transform": {
+          "translation": [
+            52.50492025097251,
+            -48.37790384794276,
+            39.775199843526906
+          ],
+          "rotation": [
+            -0.039145693379168185,
+            -0.5830696761810484,
+            -0.7753735054001483,
+            0.23936017741361632
+          ],
+          "scale": 25.317863507659712
+        },
+        "registration": {
+          "rmsError": 29.383616425300243,
+          "startError": 23.60216162896579,
+          "endError": 60.542998660777556,
+          "maxError": 60.542998660777556,
+          "forwardScore": 34.90712728379884,
+          "reverseScore": 34.74252824622723
+        },
+        "startAlignmentError": 0,
+        "endAlignmentError": 0,
+        "heroRegistrationStartError": 23.60216162896579,
+        "heroRegistrationEndError": 60.542998660777556,
+        "cameraStartDistance": 201.78695405475852,
+        "peakObjectCount": 12,
+        "peakGeometryCount": 7,
+        "peakMaterialCount": 11,
+        "phaseProgress": 0.5304545454545487,
+        "bridgeOpacity": 0.5456253262584572,
+        "morphologyOpacity": 0,
+        "growthTubeOpacity": 0.4477608701322143,
+        "bridgeRadius": 0.35090727292062746,
+        "cameraDistance": 201.78695405475852,
+        "cameraTargetDistance": 358.27198436258976,
+        "cameraMotionActive": false,
+        "phase": "morphology-overlap",
+        "active": true,
+        "bridgeRenderer": {
+          "objectCount": 1,
+          "geometryCount": 1,
+          "materialCount": 1,
+          "pointCount": 72,
+          "vertexCount": 576,
+          "indexCount": 3408,
+          "radius": 0.35090727292062746,
+          "opacity": 0.5456253262584572,
+          "disposed": false
+        },
+        "morphologyRenderer": {
+          "disposed": false,
+          "objectCount": 1,
+          "geometryCount": 1,
+          "materialCount": 1,
+          "vertexCount": 7536,
+          "indexCount": 43920,
+          "strandCount": 36,
+          "junctionCount": 0
+        }
+      }
+    },
+    "C": {
+      "cinematic": {
+        "active": true,
+        "phase": "long-chain-hold",
+        "progress": 1,
+        "heroChainId": "polymer-sample-1-1",
+        "heroChainProgress": 72,
+        "heroChainSegmentCount": 143,
+        "heroChainVertexCount": 576,
+        "coarseBackboneAlphaMean": 0.9854441631729444,
+        "coarseLodWeight": 0.9854441631729444,
+        "molecularLodWeight": 0.01455583682705566,
+        "molecularLodMode": "transition",
+        "lodReadabilityScore": 0.07137472142072365,
+        "projectedHeavyAtomDiameterPx": 2.6427494428414473,
+        "projectedBackboneBondLengthPx": 5.797990776238967,
+        "projectedStrandWidthPx": 2.8,
+        "feedFullMoleculeWeight": 0,
+        "feedRepeatMarkerWeight": 1,
+        "feedParticleWeight": 0,
+        "feedVisualActiveCount": 0,
+        "feedVisualCapacity": 6,
+        "recognizableFeedUnitCount": 0,
+        "molecularDetailUnitCount": 0,
+        "molecularAtomInstanceCount": 0,
+        "molecularBondInstanceCount": 0,
+        "tipDetailAtomCount": 0,
+        "tipDetailBondCount": 0,
+        "chainAtomInstanceCapacity": 408,
+        "chainBondInstanceCapacity": 408,
+        "feedAtomInstanceCapacity": 36,
+        "feedBondInstanceCapacity": 30,
+        "markerAtomInstanceCapacity": 12,
+        "markerBondInstanceCapacity": 6,
+        "particleInstanceCapacity": 6,
+        "coarseGeometryVertexCapacity": 576,
+        "coarseGeometryIndexCapacity": 3408,
+        "growthTipScreenPosition": {
+          "x": 664.2923791430858,
+          "y": 405.6485619579955,
+          "visible": true
+        },
+        "safeRegion": {
+          "left": 83,
+          "top": 72,
+          "width": 697,
+          "height": 516
+        },
+        "projectedBounds": {
+          "left": 212.21644893893824,
+          "right": 664.2923791430858,
+          "top": 195.69073344429285,
+          "bottom": 460.83853741333974
+        },
+        "cameraDistance": 358.27198436258976,
+        "initialCameraDistance": 15,
+        "initialBackbonePointCount": 8,
+        "initialBackboneAtomIndices": [
+          1,
+          0,
+          16,
+          17,
+          4,
+          5,
+          18,
+          19
+        ],
+        "growthEndAtomIndex": 19,
+        "anchorStart": [
+          -2.7513196930106663,
+          0.6501964111926615,
+          -0.0005884214320134896
+        ],
+        "anchorTip": [
+          3.591978605992619,
+          0.5004087854364381,
+          -0.0005884214320134862
+        ],
+        "visiblePointCount": 144,
+        "centerlinePointCount": 72,
+        "actualRepeatUnitCount": 4,
+        "presentationUnitCount": 72,
+        "extensionUnitCapacity": 68,
+        "molecularChunkSizeUnits": 4,
+        "molecularChunkCount": 18,
+        "backboneBondLengthWorld": 1.4471919179338961,
+        "localZigzagTurnRad": 1.3878680325225194,
+        "continuationTurnAngleRad": 1.4685554056273966,
+        "maximumContinuationTurnDeviationRad": 0.1898371175553668,
+        "molecularTemplateAtomCount": 6,
+        "molecularTemplateBondCount": 5,
+        "recognizableFeedUnitProofMask": 15,
+        "lastIncomingPresentationUnit": 0,
+        "objectCount": 10,
+        "geometryCount": 5,
+        "materialCount": 9,
+        "updateCount": 202,
+        "incorporatedUnits": 68,
+        "incorporationPulse": 0,
+        "coarseBackboneAlignmentError": 0,
+        "resourcesDisposed": false,
+        "lod": "transition",
+        "cameraPanMagnitude": 57.449650554718154,
+        "cameraMotionActive": false,
+        "cameraFitRequirement": 1,
+        "safeRegionCenterErrorPx": 6.973779408064225,
+        "cameraFrameSettled": true,
+        "projectedPathLengthPx": 606.564983490089,
+        "projectedChordLengthPx": 495.54947302512085,
+        "projectedPathToChordRatio": 1.2240250802553885,
+        "projectedCenterlineUnitCount": 72,
+        "projectedCumulativeTurnRad": 3.316099162465118,
+        "projectedMaximumLocalTurnRad": 0.18794789678206808,
+        "initialProjectedLengthPx": 24.985382823981098,
+        "projectedLengthRatio": 24.27679366625133,
+        "safeRegionUtilizationMajor": 0.6486024823588917,
+        "safeRegionUtilizationMinor": 0.5138523332733467,
+        "growthTipInSafeRegion": true,
+        "framingClipped": false,
+        "lastTubePointCount": 72
+      },
+      "morphologyBridge": {
+        "polymerId": "polyethylene",
+        "sampleId": "polymer-sample-1-1",
+        "seed": "polymer-sample-1-1",
+        "orientation": "reverse",
+        "resampleCount": 72,
+        "transform": {
+          "translation": [
+            52.50492025097251,
+            -48.37790384794276,
+            39.775199843526906
+          ],
+          "rotation": [
+            -0.039145693379168185,
+            -0.5830696761810484,
+            -0.7753735054001483,
+            0.23936017741361632
+          ],
+          "scale": 25.317863507659712
+        },
+        "registration": {
+          "rmsError": 29.383616425300243,
+          "startError": 23.60216162896579,
+          "endError": 60.542998660777556,
+          "maxError": 60.542998660777556,
+          "forwardScore": 34.90712728379884,
+          "reverseScore": 34.74252824622723
+        },
+        "startAlignmentError": 0,
+        "endAlignmentError": 0,
+        "heroRegistrationStartError": 23.60216162896579,
+        "heroRegistrationEndError": 60.542998660777556,
+        "cameraStartDistance": 201.78695405475852,
+        "peakObjectCount": 12,
+        "peakGeometryCount": 7,
+        "peakMaterialCount": 11,
+        "phaseProgress": 0,
+        "bridgeOpacity": 1,
+        "morphologyOpacity": 0,
+        "growthTubeOpacity": 0,
+        "bridgeRadius": 0.8062239277795786,
+        "cameraDistance": 358.27198436258976,
+        "cameraTargetDistance": 358.27198436258976,
+        "cameraMotionActive": false,
+        "phase": "morphology-reveal",
+        "active": true,
+        "bridgeRenderer": {
+          "objectCount": 1,
+          "geometryCount": 1,
+          "materialCount": 1,
+          "pointCount": 72,
+          "vertexCount": 576,
+          "indexCount": 3408,
+          "radius": 0.8062239277795786,
+          "opacity": 1,
+          "disposed": false
+        },
+        "morphologyRenderer": {
+          "disposed": false,
+          "objectCount": 1,
+          "geometryCount": 1,
+          "materialCount": 1,
+          "vertexCount": 7536,
+          "indexCount": 43920,
+          "strandCount": 36,
+          "junctionCount": 0
+        },
+        "cameraPanMagnitude": 88.03359061331027,
+        "cameraTransitionProgress": 1,
+        "projectedBounds": {
+          "left": 215.21084981131776,
+          "right": 629.1525745254735,
+          "top": 80.6109694823973,
+          "bottom": 389.3558974827375,
+          "minDepth": 0.9994244211254169,
+          "width": 413.9417247141557,
+          "height": 308.74492800034017,
+          "clipped": false
+        },
+        "morphologyFitsSafeRegion": true
+      }
+    },
+    "D": {
+      "cinematic": {
+        "active": true,
+        "phase": "long-chain-hold",
+        "progress": 1,
+        "heroChainId": "polymer-sample-1-1",
+        "heroChainProgress": 72,
+        "heroChainSegmentCount": 143,
+        "heroChainVertexCount": 576,
+        "coarseBackboneAlphaMean": 0.9854441631729444,
+        "coarseLodWeight": 0.9854441631729444,
+        "molecularLodWeight": 0.01455583682705566,
+        "molecularLodMode": "transition",
+        "lodReadabilityScore": 0.07137472142072365,
+        "projectedHeavyAtomDiameterPx": 2.6427494428414473,
+        "projectedBackboneBondLengthPx": 5.797990776238967,
+        "projectedStrandWidthPx": 2.8,
+        "feedFullMoleculeWeight": 0,
+        "feedRepeatMarkerWeight": 1,
+        "feedParticleWeight": 0,
+        "feedVisualActiveCount": 0,
+        "feedVisualCapacity": 6,
+        "recognizableFeedUnitCount": 0,
+        "molecularDetailUnitCount": 0,
+        "molecularAtomInstanceCount": 0,
+        "molecularBondInstanceCount": 0,
+        "tipDetailAtomCount": 0,
+        "tipDetailBondCount": 0,
+        "chainAtomInstanceCapacity": 408,
+        "chainBondInstanceCapacity": 408,
+        "feedAtomInstanceCapacity": 36,
+        "feedBondInstanceCapacity": 30,
+        "markerAtomInstanceCapacity": 12,
+        "markerBondInstanceCapacity": 6,
+        "particleInstanceCapacity": 6,
+        "coarseGeometryVertexCapacity": 576,
+        "coarseGeometryIndexCapacity": 3408,
+        "growthTipScreenPosition": {
+          "x": 664.2923791430858,
+          "y": 405.6485619579955,
+          "visible": true
+        },
+        "safeRegion": {
+          "left": 83,
+          "top": 72,
+          "width": 697,
+          "height": 516
+        },
+        "projectedBounds": {
+          "left": 212.21644893893824,
+          "right": 664.2923791430858,
+          "top": 195.69073344429285,
+          "bottom": 460.83853741333974
+        },
+        "cameraDistance": 358.27198436258976,
+        "initialCameraDistance": 15,
+        "initialBackbonePointCount": 8,
+        "initialBackboneAtomIndices": [
+          1,
+          0,
+          16,
+          17,
+          4,
+          5,
+          18,
+          19
+        ],
+        "growthEndAtomIndex": 19,
+        "anchorStart": [
+          -2.7513196930106663,
+          0.6501964111926615,
+          -0.0005884214320134896
+        ],
+        "anchorTip": [
+          3.591978605992619,
+          0.5004087854364381,
+          -0.0005884214320134862
+        ],
+        "visiblePointCount": 144,
+        "centerlinePointCount": 72,
+        "actualRepeatUnitCount": 4,
+        "presentationUnitCount": 72,
+        "extensionUnitCapacity": 68,
+        "molecularChunkSizeUnits": 4,
+        "molecularChunkCount": 18,
+        "backboneBondLengthWorld": 1.4471919179338961,
+        "localZigzagTurnRad": 1.3878680325225194,
+        "continuationTurnAngleRad": 1.4685554056273966,
+        "maximumContinuationTurnDeviationRad": 0.1898371175553668,
+        "molecularTemplateAtomCount": 6,
+        "molecularTemplateBondCount": 5,
+        "recognizableFeedUnitProofMask": 15,
+        "lastIncomingPresentationUnit": 0,
+        "objectCount": 10,
+        "geometryCount": 5,
+        "materialCount": 9,
+        "updateCount": 202,
+        "incorporatedUnits": 68,
+        "incorporationPulse": 0,
+        "coarseBackboneAlignmentError": 0,
+        "resourcesDisposed": false,
+        "lod": "transition",
+        "cameraPanMagnitude": 57.449650554718154,
+        "cameraMotionActive": false,
+        "cameraFitRequirement": 1,
+        "safeRegionCenterErrorPx": 6.973779408064225,
+        "cameraFrameSettled": true,
+        "projectedPathLengthPx": 606.564983490089,
+        "projectedChordLengthPx": 495.54947302512085,
+        "projectedPathToChordRatio": 1.2240250802553885,
+        "projectedCenterlineUnitCount": 72,
+        "projectedCumulativeTurnRad": 3.316099162465118,
+        "projectedMaximumLocalTurnRad": 0.18794789678206808,
+        "initialProjectedLengthPx": 24.985382823981098,
+        "projectedLengthRatio": 24.27679366625133,
+        "safeRegionUtilizationMajor": 0.6486024823588917,
+        "safeRegionUtilizationMinor": 0.5138523332733467,
+        "growthTipInSafeRegion": true,
+        "framingClipped": false,
+        "lastTubePointCount": 72
+      },
+      "morphologyBridge": {
+        "polymerId": "polyethylene",
+        "sampleId": "polymer-sample-1-1",
+        "seed": "polymer-sample-1-1",
+        "orientation": "reverse",
+        "resampleCount": 72,
+        "transform": {
+          "translation": [
+            52.50492025097251,
+            -48.37790384794276,
+            39.775199843526906
+          ],
+          "rotation": [
+            -0.039145693379168185,
+            -0.5830696761810484,
+            -0.7753735054001483,
+            0.23936017741361632
+          ],
+          "scale": 25.317863507659712
+        },
+        "registration": {
+          "rmsError": 29.383616425300243,
+          "startError": 23.60216162896579,
+          "endError": 60.542998660777556,
+          "maxError": 60.542998660777556,
+          "forwardScore": 34.90712728379884,
+          "reverseScore": 34.74252824622723
+        },
+        "startAlignmentError": 0,
+        "endAlignmentError": 0,
+        "heroRegistrationStartError": 23.60216162896579,
+        "heroRegistrationEndError": 60.542998660777556,
+        "cameraStartDistance": 201.78695405475852,
+        "peakObjectCount": 12,
+        "peakGeometryCount": 7,
+        "peakMaterialCount": 11,
+        "phaseProgress": 0.34782608695652173,
+        "bridgeOpacity": 0.721213117448837,
+        "morphologyOpacity": 0.27878688255116296,
+        "growthTubeOpacity": 0,
+        "bridgeRadius": 0.8062239277795786,
+        "cameraDistance": 358.27198436258976,
+        "cameraTargetDistance": 358.27198436258976,
+        "cameraMotionActive": false,
+        "phase": "morphology-reveal",
+        "active": true,
+        "bridgeRenderer": {
+          "objectCount": 1,
+          "geometryCount": 1,
+          "materialCount": 1,
+          "pointCount": 72,
+          "vertexCount": 576,
+          "indexCount": 3408,
+          "radius": 0.8062239277795786,
+          "opacity": 0.721213117448837,
+          "disposed": false
+        },
+        "morphologyRenderer": {
+          "disposed": false,
+          "objectCount": 1,
+          "geometryCount": 1,
+          "materialCount": 1,
+          "vertexCount": 7536,
+          "indexCount": 43920,
+          "strandCount": 36,
+          "junctionCount": 0
+        },
+        "cameraPanMagnitude": 88.03359061331027,
+        "cameraTransitionProgress": 1,
+        "projectedBounds": {
+          "left": 215.21084981131776,
+          "right": 629.1525745254735,
+          "top": 80.6109694823973,
+          "bottom": 389.3558974827375,
+          "minDepth": 0.9994244211254169,
+          "width": 413.9417247141557,
+          "height": 308.74492800034017,
+          "clipped": false
+        },
+        "morphologyFitsSafeRegion": true
+      }
+    },
+    "E": {
+      "cinematic": {
+        "active": true,
+        "phase": "long-chain-hold",
+        "progress": 1,
+        "heroChainId": "polymer-sample-1-1",
+        "heroChainProgress": 72,
+        "heroChainSegmentCount": 143,
+        "heroChainVertexCount": 576,
+        "coarseBackboneAlphaMean": 0.9854441631729444,
+        "coarseLodWeight": 0.9854441631729444,
+        "molecularLodWeight": 0.01455583682705566,
+        "molecularLodMode": "transition",
+        "lodReadabilityScore": 0.07137472142072365,
+        "projectedHeavyAtomDiameterPx": 2.6427494428414473,
+        "projectedBackboneBondLengthPx": 5.797990776238967,
+        "projectedStrandWidthPx": 2.8,
+        "feedFullMoleculeWeight": 0,
+        "feedRepeatMarkerWeight": 1,
+        "feedParticleWeight": 0,
+        "feedVisualActiveCount": 0,
+        "feedVisualCapacity": 6,
+        "recognizableFeedUnitCount": 0,
+        "molecularDetailUnitCount": 0,
+        "molecularAtomInstanceCount": 0,
+        "molecularBondInstanceCount": 0,
+        "tipDetailAtomCount": 0,
+        "tipDetailBondCount": 0,
+        "chainAtomInstanceCapacity": 408,
+        "chainBondInstanceCapacity": 408,
+        "feedAtomInstanceCapacity": 36,
+        "feedBondInstanceCapacity": 30,
+        "markerAtomInstanceCapacity": 12,
+        "markerBondInstanceCapacity": 6,
+        "particleInstanceCapacity": 6,
+        "coarseGeometryVertexCapacity": 576,
+        "coarseGeometryIndexCapacity": 3408,
+        "growthTipScreenPosition": {
+          "x": 664.2923791430858,
+          "y": 405.6485619579955,
+          "visible": true
+        },
+        "safeRegion": {
+          "left": 83,
+          "top": 72,
+          "width": 697,
+          "height": 516
+        },
+        "projectedBounds": {
+          "left": 212.21644893893824,
+          "right": 664.2923791430858,
+          "top": 195.69073344429285,
+          "bottom": 460.83853741333974
+        },
+        "cameraDistance": 358.27198436258976,
+        "initialCameraDistance": 15,
+        "initialBackbonePointCount": 8,
+        "initialBackboneAtomIndices": [
+          1,
+          0,
+          16,
+          17,
+          4,
+          5,
+          18,
+          19
+        ],
+        "growthEndAtomIndex": 19,
+        "anchorStart": [
+          -2.7513196930106663,
+          0.6501964111926615,
+          -0.0005884214320134896
+        ],
+        "anchorTip": [
+          3.591978605992619,
+          0.5004087854364381,
+          -0.0005884214320134862
+        ],
+        "visiblePointCount": 144,
+        "centerlinePointCount": 72,
+        "actualRepeatUnitCount": 4,
+        "presentationUnitCount": 72,
+        "extensionUnitCapacity": 68,
+        "molecularChunkSizeUnits": 4,
+        "molecularChunkCount": 18,
+        "backboneBondLengthWorld": 1.4471919179338961,
+        "localZigzagTurnRad": 1.3878680325225194,
+        "continuationTurnAngleRad": 1.4685554056273966,
+        "maximumContinuationTurnDeviationRad": 0.1898371175553668,
+        "molecularTemplateAtomCount": 6,
+        "molecularTemplateBondCount": 5,
+        "recognizableFeedUnitProofMask": 15,
+        "lastIncomingPresentationUnit": 0,
+        "objectCount": 10,
+        "geometryCount": 5,
+        "materialCount": 9,
+        "updateCount": 202,
+        "incorporatedUnits": 68,
+        "incorporationPulse": 0,
+        "coarseBackboneAlignmentError": 0,
+        "resourcesDisposed": false,
+        "lod": "transition",
+        "cameraPanMagnitude": 57.449650554718154,
+        "cameraMotionActive": false,
+        "cameraFitRequirement": 1,
+        "safeRegionCenterErrorPx": 6.973779408064225,
+        "cameraFrameSettled": true,
+        "projectedPathLengthPx": 606.564983490089,
+        "projectedChordLengthPx": 495.54947302512085,
+        "projectedPathToChordRatio": 1.2240250802553885,
+        "projectedCenterlineUnitCount": 72,
+        "projectedCumulativeTurnRad": 3.316099162465118,
+        "projectedMaximumLocalTurnRad": 0.18794789678206808,
+        "initialProjectedLengthPx": 24.985382823981098,
+        "projectedLengthRatio": 24.27679366625133,
+        "safeRegionUtilizationMajor": 0.6486024823588917,
+        "safeRegionUtilizationMinor": 0.5138523332733467,
+        "growthTipInSafeRegion": true,
+        "framingClipped": false,
+        "lastTubePointCount": 72
+      },
+      "morphologyBridge": {
+        "polymerId": "polyethylene",
+        "sampleId": "polymer-sample-1-1",
+        "seed": "polymer-sample-1-1",
+        "orientation": "reverse",
+        "resampleCount": 72,
+        "transform": {
+          "translation": [
+            52.50492025097251,
+            -48.37790384794276,
+            39.775199843526906
+          ],
+          "rotation": [
+            -0.039145693379168185,
+            -0.5830696761810484,
+            -0.7753735054001483,
+            0.23936017741361632
+          ],
+          "scale": 25.317863507659712
+        },
+        "registration": {
+          "rmsError": 29.383616425300243,
+          "startError": 23.60216162896579,
+          "endError": 60.542998660777556,
+          "maxError": 60.542998660777556,
+          "forwardScore": 34.90712728379884,
+          "reverseScore": 34.74252824622723
+        },
+        "startAlignmentError": 0,
+        "endAlignmentError": 0,
+        "heroRegistrationStartError": 23.60216162896579,
+        "heroRegistrationEndError": 60.542998660777556,
+        "cameraStartDistance": 201.78695405475852,
+        "peakObjectCount": 12,
+        "peakGeometryCount": 7,
+        "peakMaterialCount": 11,
+        "phaseProgress": 0,
+        "bridgeOpacity": 0,
+        "morphologyOpacity": 1,
+        "growthTubeOpacity": 0,
+        "bridgeRadius": 0.8062239277795786,
+        "cameraDistance": 358.27198436258976,
+        "cameraTargetDistance": 358.27198436258976,
+        "cameraMotionActive": false,
+        "phase": "morphology-hold",
+        "active": true,
+        "bridgeRenderer": {
+          "objectCount": 0,
+          "geometryCount": 0,
+          "materialCount": 0,
+          "disposed": true
+        },
+        "morphologyRenderer": {
+          "disposed": false,
+          "objectCount": 1,
+          "geometryCount": 1,
+          "materialCount": 1,
+          "vertexCount": 7536,
+          "indexCount": 43920,
+          "strandCount": 36,
+          "junctionCount": 0
+        },
+        "cameraPanMagnitude": 88.03359061331027,
+        "cameraTransitionProgress": 1,
+        "projectedBounds": {
+          "left": 215.21084981131776,
+          "right": 629.1525745254735,
+          "top": 80.6109694823973,
+          "bottom": 389.3558974827375,
+          "minDepth": 0.9994244211254169,
+          "width": 413.9417247141557,
+          "height": 308.74492800034017,
+          "clipped": false
+        },
+        "morphologyFitsSafeRegion": true
+      }
+    },
+    "F": {
+      "cinematic": {
+        "active": false,
+        "phase": "long-chain-hold",
+        "progress": 1,
+        "heroChainId": "polymer-sample-1-1",
+        "heroChainProgress": 72,
+        "heroChainSegmentCount": 143,
+        "heroChainVertexCount": 576,
+        "coarseBackboneAlphaMean": 0.9854441631729444,
+        "coarseLodWeight": 0.9854441631729444,
+        "molecularLodWeight": 0.01455583682705566,
+        "molecularLodMode": "transition",
+        "lodReadabilityScore": 0.07137472142072365,
+        "projectedHeavyAtomDiameterPx": 2.6427494428414473,
+        "projectedBackboneBondLengthPx": 5.797990776238967,
+        "projectedStrandWidthPx": 2.8,
+        "feedFullMoleculeWeight": 0,
+        "feedRepeatMarkerWeight": 1,
+        "feedParticleWeight": 0,
+        "feedVisualActiveCount": 0,
+        "feedVisualCapacity": 6,
+        "recognizableFeedUnitCount": 0,
+        "molecularDetailUnitCount": 0,
+        "molecularAtomInstanceCount": 0,
+        "molecularBondInstanceCount": 0,
+        "tipDetailAtomCount": 0,
+        "tipDetailBondCount": 0,
+        "chainAtomInstanceCapacity": 408,
+        "chainBondInstanceCapacity": 408,
+        "feedAtomInstanceCapacity": 36,
+        "feedBondInstanceCapacity": 30,
+        "markerAtomInstanceCapacity": 12,
+        "markerBondInstanceCapacity": 6,
+        "particleInstanceCapacity": 6,
+        "coarseGeometryVertexCapacity": 576,
+        "coarseGeometryIndexCapacity": 3408,
+        "growthTipScreenPosition": {
+          "x": 664.2923791430858,
+          "y": 405.6485619579955,
+          "visible": true
+        },
+        "safeRegion": {
+          "left": 83,
+          "top": 72,
+          "width": 697,
+          "height": 516
+        },
+        "projectedBounds": {
+          "left": 212.21644893893824,
+          "right": 664.2923791430858,
+          "top": 195.69073344429285,
+          "bottom": 460.83853741333974
+        },
+        "cameraDistance": 15,
+        "initialCameraDistance": 15,
+        "initialBackbonePointCount": 8,
+        "initialBackboneAtomIndices": [
+          1,
+          0,
+          16,
+          17,
+          4,
+          5,
+          18,
+          19
+        ],
+        "growthEndAtomIndex": 19,
+        "anchorStart": [
+          -2.7513196930106663,
+          0.6501964111926615,
+          -0.0005884214320134896
+        ],
+        "anchorTip": [
+          3.591978605992619,
+          0.5004087854364381,
+          -0.0005884214320134862
+        ],
+        "visiblePointCount": 144,
+        "centerlinePointCount": 72,
+        "actualRepeatUnitCount": 4,
+        "presentationUnitCount": 72,
+        "extensionUnitCapacity": 68,
+        "molecularChunkSizeUnits": 4,
+        "molecularChunkCount": 18,
+        "backboneBondLengthWorld": 1.4471919179338961,
+        "localZigzagTurnRad": 1.3878680325225194,
+        "continuationTurnAngleRad": 1.4685554056273966,
+        "maximumContinuationTurnDeviationRad": 0.1898371175553668,
+        "molecularTemplateAtomCount": 6,
+        "molecularTemplateBondCount": 5,
+        "recognizableFeedUnitProofMask": 15,
+        "lastIncomingPresentationUnit": 0,
+        "objectCount": 0,
+        "geometryCount": 0,
+        "materialCount": 0,
+        "updateCount": 202,
+        "incorporatedUnits": 68,
+        "incorporationPulse": 0,
+        "coarseBackboneAlignmentError": 0,
+        "resourcesDisposed": false,
+        "lod": "transition",
+        "cameraPanMagnitude": 57.449650554718154,
+        "cameraMotionActive": false,
+        "cameraFitRequirement": 1,
+        "safeRegionCenterErrorPx": 6.973779408064225,
+        "cameraFrameSettled": true,
+        "projectedPathLengthPx": 606.564983490089,
+        "projectedChordLengthPx": 495.54947302512085,
+        "projectedPathToChordRatio": 1.2240250802553885,
+        "projectedCenterlineUnitCount": 72,
+        "projectedCumulativeTurnRad": 3.316099162465118,
+        "projectedMaximumLocalTurnRad": 0.18794789678206808,
+        "initialProjectedLengthPx": 24.985382823981098,
+        "projectedLengthRatio": 24.27679366625133,
+        "safeRegionUtilizationMajor": 0.6486024823588917,
+        "safeRegionUtilizationMinor": 0.5138523332733467,
+        "growthTipInSafeRegion": true,
+        "framingClipped": false,
+        "lastTubePointCount": 72
+      },
+      "morphologyBridge": {
+        "polymerId": "polyethylene",
+        "sampleId": "polymer-sample-1-1",
+        "seed": "polymer-sample-1-1",
+        "orientation": "reverse",
+        "resampleCount": 72,
+        "transform": {
+          "translation": [
+            52.50492025097251,
+            -48.37790384794276,
+            39.775199843526906
+          ],
+          "rotation": [
+            -0.039145693379168185,
+            -0.5830696761810484,
+            -0.7753735054001483,
+            0.23936017741361632
+          ],
+          "scale": 25.317863507659712
+        },
+        "registration": {
+          "rmsError": 29.383616425300243,
+          "startError": 23.60216162896579,
+          "endError": 60.542998660777556,
+          "maxError": 60.542998660777556,
+          "forwardScore": 34.90712728379884,
+          "reverseScore": 34.74252824622723
+        },
+        "startAlignmentError": 0,
+        "endAlignmentError": 0,
+        "heroRegistrationStartError": 23.60216162896579,
+        "heroRegistrationEndError": 60.542998660777556,
+        "cameraStartDistance": 201.78695405475852,
+        "peakObjectCount": 12,
+        "peakGeometryCount": 7,
+        "peakMaterialCount": 11,
+        "phaseProgress": 1,
+        "bridgeOpacity": 0,
+        "morphologyOpacity": 1,
+        "growthTubeOpacity": 0,
+        "bridgeRadius": 0.8062239277795786,
+        "cameraDistance": 358.27198436258976,
+        "cameraTargetDistance": 358.27198436258976,
+        "cameraMotionActive": false,
+        "phase": "disposed",
+        "active": false,
+        "bridgeRenderer": {
+          "objectCount": 0,
+          "geometryCount": 0,
+          "materialCount": 0,
+          "disposed": true
+        },
+        "morphologyRenderer": {
+          "disposed": true,
+          "objectCount": 0,
+          "geometryCount": 0,
+          "materialCount": 0,
+          "vertexCount": 0,
+          "indexCount": 0,
+          "strandCount": 36,
+          "junctionCount": 0
+        },
+        "cameraPanMagnitude": 88.03359061331027,
+        "cameraTransitionProgress": 1,
+        "projectedBounds": {
+          "left": 215.21084981131776,
+          "right": 629.1525745254735,
+          "top": 80.6109694823973,
+          "bottom": 389.3558974827375,
+          "minDepth": 0.9994244211254169,
+          "width": 413.9417247141557,
+          "height": 308.74492800034017,
+          "clipped": false
+        },
+        "morphologyFitsSafeRegion": true
+      },
+      "polymerization": {
+        "routeOwned": true,
+        "beginError": null,
+        "cinematicStartError": null,
+        "morphologyBridgeError": null,
+        "routeId": "polyethylene-coordination",
+        "polymerId": "polyethylene",
+        "state": "SAMPLE",
+        "stepKind": "vinyl",
+        "waitReason": null,
+        "manualStepCount": 2,
+        "automaticStepCount": 1,
+        "reservedInstanceIds": [
+          "ethene-1",
+          "ethene-2",
+          "ethene-3",
+          "ethene-4"
+        ],
+        "consumedInstanceIds": [
+          "ethene-1",
+          "ethene-2",
+          "ethene-3",
+          "ethene-4"
+        ],
+        "sourceMeshCount": 24,
+        "heroAnchor": null,
+        "sourceDetailOpacities": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "sourceDetailMaterialStates": [
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          },
+          {
+            "opacity": 1,
+            "depthWrite": true
+          }
+        ],
+        "sampleId": "polymer-sample-1-1",
+        "sampleReady": false,
+        "samplePhase": "hold",
+        "sampleBayRegion": "upper-right",
+        "sampleEvidence": {
+          "unitCount": 4,
+          "interUnitLinks": 3,
+          "ringOpenings": 0,
+          "byproducts": [],
+          "features": []
+        },
+        "siteTarget": null,
+        "dockAttempt": {
+          "ok": true,
+          "instanceId": "ethene-3"
+        },
+        "autoAttempt": {
+          "stage": "dwell",
+          "instanceId": "ethene-4",
+          "from": [
+            -3.0915248803654864,
+            -2.2256396815573862,
+            0.21939959421889438
+          ],
+          "to": [
+            1.6027608601955314,
+            0.9561918861800097,
+            0.1346986142980314
+          ],
+          "path": [
+            [
+              -3.0915248803654864,
+              -2.2256396815573862,
+              0.21939959421889438
+            ],
+            [
+              -3.0915248803654864,
+              -2.2256396815573862,
+              1.0193995942188945
+            ],
+            [
+              1.6027608601955314,
+              0.9561918861800097,
+              0.9346986142980315
+            ],
+            [
+              1.6027608601955314,
+              0.9561918861800097,
+              0.1346986142980314
+            ]
+          ],
+          "geometryValid": true
+        }
+      }
+    }
+  }
+}
