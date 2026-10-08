@@ -155,7 +155,7 @@ try{
     await evaluate("document.querySelector('[data-polymer-encyclopedia]').click()");await waitFor("!document.querySelector('#reaction-lab-dialog').open&&document.querySelector('#collection-dialog').open",'known Encyclopedia action safely closes the Lab and opens the collection');
     assert.equal(await evaluate("document.querySelector('#collection-detail h3')?.textContent"),polymers.find(item=>item.id===pe.polymerId).nameJa,'known action opens the corresponding polymer entry');
     await capture('encyclopedia-entry');
-    await evaluate("document.querySelector('#close-collection').click()");await waitFor("!document.querySelector('#collection-dialog').open",'known entry closes cleanly');await openLab();
+    await evaluate("document.querySelector('#close-collection').click()");await waitFor("!document.querySelector('#collection-dialog').open&&!document.body.classList.contains('collection-open')",'known entry closes cleanly');await pause(120);await openLab();
     // Closing before readiness emits one dismiss, pauses the feedback, and cannot register a presentation while closed.
     await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await evaluate('window.__closeBeforeReadyOnNextSample=true');await completeAutomaticStep(pe);
     const beforeClose=await snapshot();assert.equal(beforeClose.polymerization.sampleReady,false);await waitFor("!document.querySelector('#reaction-lab-dialog').open&&window.__polymerDismissEvents.length===1",'Lab closes at sample registration and emits one pre-ready dismiss');
