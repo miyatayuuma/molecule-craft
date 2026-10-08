@@ -119,6 +119,14 @@ expectDiagnostic('rejects incorrect phenolic aromatic substitution', input => { 
 expectDiagnostic('rejects styrene phenyl-ring edits in the independent SBR motif', input => { const r = record(input, 'styrene-butadiene-copolymer'); r.bonds.find(bond => bond.a === 'unit-1.a0' && bond.b === 'unit-1.a1').order = 1; }, 'SBR_STYRENE_PHENYL_RING', 'styrene-butadiene-copolymer');
 expectDiagnostic('rejects incorrect hydrogen-to-water mapping', input => { record(input, 'phenol-formaldehyde-resin').sourceAccounting.byproductGroups[0].sourceAtomRefs.pop(); }, 'HYDROGEN_ACCOUNTING', 'phenol-formaldehyde-resin');
 expectDiagnostic('rejects polycondensation water mapped to the wrong hydrogen source', input => { record(input, 'polyethylene-terephthalate').sourceAccounting.byproductGroups[0].sourceAtomRefs[2].atomIndex = 17; }, 'HYDROGEN_ACCOUNTING', 'polyethylene-terephthalate');
+expectDiagnostic('rejects omitted condensation byproduct groups', input => { record(input, 'polyethylene-terephthalate').sourceAccounting.byproductGroups = []; }, 'HYDROGEN_ACCOUNTING', 'polyethylene-terephthalate');
+expectDiagnostic('rejects incomplete condensation byproduct source coverage', input => { record(input, 'polyethylene-terephthalate').sourceAccounting.byproductGroups[0].sourceAtomRefs.pop(); }, 'HYDROGEN_ACCOUNTING', 'polyethylene-terephthalate');
+expectDiagnostic('rejects a VDF-HFP route link on the wrong initial VDF carbon', input => {
+  const r = record(input, 'vinylidene-fluoride-hexafluoropropylene-copolymer');
+  r.transformations.find(operation => operation.id === 'link-1').a = 'unit-0.a1';
+  r.bonds.find(bond => bond.provenance?.operationId === 'link-1').a = 'unit-0.a1';
+}, 'VDF_HFP_INTERUNIT_LINK', 'vinylidene-fluoride-hexafluoropropylene-copolymer');
+expectDiagnostic('rejects a VDF-HFP left continuation on the active linkage carbon', input => { record(input, 'vinylidene-fluoride-hexafluoropropylene-copolymer').continuationPorts.find(port => port.direction === 'left').atomRef = 'unit-0.a0'; }, 'VDF_HFP_CONTINUATION_PORT', 'vinylidene-fluoride-hexafluoropropylene-copolymer');
 expectDiagnostic('rejects a false route-sample equivalence claim', input => { record(input, 'polyethylene').source.routeSampleRelation = 'route-sample-equivalent'; }, 'ROUTE_SAMPLE_RELATION');
 expectDiagnostic('rejects an SBR graph incorrectly marked as independent from its matching route sample', input => { record(input, 'styrene-butadiene-copolymer').source.routeSampleRelation = 'independent-motif-not-gameplay-polymer-sample'; }, 'ROUTE_SAMPLE_RELATION', 'styrene-butadiene-copolymer');
 expectDiagnostic('rejects a route transformation without an authorized family', input => { record(input, 'polyethylene').transformations[0].family = null; }, 'BOND_TRANSFORM_FAMILY');
