@@ -302,6 +302,7 @@ Verified from current main or tracked evidence:
 - Task③ disposal paths and bounded counts are confirmed in source and tests; no persistent morphology cache is present.
 - The proposed Task⑤ path keeps the existing Sample identity/event order and uses a known Collection API; Task⑥–⑩ contracts follow the dependency sequence above.
 - Current combined status for the baseline commit returned no individual status entries. This is not reported as a passing status-check run.
+- The baseline’s GitHub Actions run [37632313851](https://github.com/miyatayuuma/molecule-craft/actions/runs/37632313851) for Polymer growth continuity also failed at the PE performance summary. At 390 px reduced motion, update P95 was 1.50× and renderer-submission P95 1.8125× the recorded baseline, exceeding the workflow’s 1.35× threshold. This run used the exact Task④ start SHA, so it is a pre-existing main failure, not caused by this documentation PR.
 
 Not executed in Task④:
 
