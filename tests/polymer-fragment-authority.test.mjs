@@ -62,6 +62,19 @@ test('Task⑦ drawing input is validated, normalized and deterministic', () => {
   assert.equal(Object.hasOwn(first, 'coordinates'), false);
 });
 
+test('all 25 authority records produce deterministic renderer-ready drawing input', () => {
+  for (const sourceRecord of authority.records) {
+    const first = createPolymerDrawingInput(authority, sourceRecord.polymerId, sources);
+    const second = createPolymerDrawingInput(authority, sourceRecord.polymerId, sources);
+    assert.equal(first.polymerId, sourceRecord.polymerId);
+    assert.equal(first.validation.status, 'passed');
+    assert.ok(first.atoms.length > 0, `${sourceRecord.polymerId} has drawing atoms`);
+    assert.ok(first.bonds.length > 0, `${sourceRecord.polymerId} has drawing bonds`);
+    assert.equal(JSON.stringify(first), JSON.stringify(second), `${sourceRecord.polymerId} output is deterministic`);
+    assert.equal(Object.hasOwn(first, 'coordinates'), false, `${sourceRecord.polymerId} does not prescribe layout coordinates`);
+  }
+});
+
 test('copolymer, diene, fluoropolymer and independent network qualifiers remain explicit', () => {
   const copolymer = createPolymerDrawingInput(authority, 'butyl-rubber', sources);
   const diene = createPolymerDrawingInput(authority, 'polybutadiene', sources);
