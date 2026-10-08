@@ -162,6 +162,11 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const [{polymerMorphologyProfile},{createPolymerMorphologyPlan},{createPolymerMorphologyRenderer}]=await Promise.all([
       import('./polymer-morphology-authority.js?v=1'),import('./polymer-morphology-plan.js?v=1'),import('./polymer-morphology-renderer.js?v=1'),
     ]);
+    // Retired renderers stay reachable for Task⑨ cleanup, but only this explicit localhost preview loads their modules.
+    await Promise.all([
+      import('./reaction-lab-polymer-cinematic.js?v=6'),import('./polymer-growth-plan.js?v=9'),
+      import('./polymer-morphology-bridge.js?v=1'),import('./polymer-morphology-bridge-renderer.js?v=1'),
+    ]);
     const profile=polymerMorphologyProfile(polymerId);
     if(!profile)throw new Error(`No static morphology profile for ${polymerId}.`);
     const plan=createPolymerMorphologyPlan({polymerId,seed,profile}),rendered=createPolymerMorphologyRenderer(THREE,plan),hadPreviewAttribute=Object.hasOwn(root.dataset,'morphologyPreview');
