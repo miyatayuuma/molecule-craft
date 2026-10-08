@@ -447,17 +447,17 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     polymerGraphVisual.representation=sample.representation;polymerGraphVisual.graph=sample.fragment;
     if(polymerGraphVisual.layoutPlan?.unitCount!==sample.evidence.unitCount||polymerGraphVisual.layoutPlan?.atoms.length!==sample.fragment.atoms.length){polymerGraphVisual.layoutPlan=polymerPresentationPlan(sample.fragment,sample.representation);}
     updatePolymerBondVisuals();
-    polymerSamplePresentation={sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,polymerId:sample.polymerId,elapsedMs:0,durationMs:reducedMotion?POLYMER_COMPLETION_REDUCED_FEEDBACK_MS:POLYMER_COMPLETION_FEEDBACK_MS,ready:false,dismissed:false,phase:'completion',displayedUnitCount:new Set(sample.fragment.atomOrigins.map(origin=>origin.instanceId)).size,layoutCallsAtReady:null,fit:null};
+    polymerSamplePresentation={sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,polymerId:sample.polymerId,startedAt:performance.now(),elapsedMs:0,durationMs:reducedMotion?POLYMER_COMPLETION_REDUCED_FEEDBACK_MS:POLYMER_COMPLETION_FEEDBACK_MS,ready:false,dismissed:false,phase:'completion',displayedUnitCount:new Set(sample.fragment.atomOrigins.map(origin=>origin.instanceId)).size,layoutCallsAtReady:null,fit:null};
     updatePolymerCompletionUi(polymerSamplePresentation,false);resize();polymerSamplePresentation.fit=fitFinitePolymerToWorkArea();
     dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample',{routeId:sample.routeId,polymerId:sample.polymerId,sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,sourceInstanceIds:[...snapshot.consumedInstanceIds],byproducts});
     updatePolymerCompletionUi(polymerSamplePresentation,false);
     polymerSiteIndicator.hidden=true;updatePolymerSiteIndicator();updateCommandBar();
   }
-  function advancePolymerCompletion(elapsedMs){
+  function advancePolymerCompletion(){
     const presentation=polymerSamplePresentation;
     if(!presentation){updatePolymerSiteIndicator();return;}
     if(presentation.ready)return;
-    presentation.elapsedMs=Math.min(presentation.durationMs,presentation.elapsedMs+elapsedMs);
+    presentation.elapsedMs=Math.min(presentation.durationMs,Math.max(0,performance.now()-presentation.startedAt));
     if(presentation.elapsedMs<presentation.durationMs||polymerGraphVisual?.animation)return;
     presentation.ready=true;presentation.phase='ready';presentation.layoutCallsAtReady=polymerRuntimeMetrics.finiteLayoutCalls;
     updatePolymerCompletionUi(presentation,true);
@@ -523,7 +523,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(polymerAutoMotion){const motion=polymerAutoMotion;motion.elapsedMs+=elapsedMs;const progress=clamp(motion.elapsedMs/motion.durationMs,0,1),eased=progress*progress*(3-2*progress);motion.item.group.position.copy(samplePolymerPath(motion.path,eased));motion.item.group.updateMatrixWorld(true);syncStageABodyFromGroup(motion.item);
       if(progress>=1){motion.item.group.position.copy(motion.to);motion.item.group.updateMatrixWorld(true);syncStageABodyFromGroup(motion.item);const valid=polymerGeometrySafe(motion.item,motion.interaction,motion.item.group.position),begun=polymerCore.beginAutomaticStep(motion.item.id,{geometryValid:valid});if(begun.ok){polymerDocking={item:motion.item,interaction:motion.interaction,kind:'automatic'};if(localhostPhysicsTest)polymerAutoAttempt={...polymerAutoAttempt,stage:'dwell',geometryValid:valid};}else{if(localhostPhysicsTest)polymerAutoAttempt={...polymerAutoAttempt,stage:'begin',geometryValid:valid,reason:begun.reason};motion.item.polymerDocking=false;motion.item.stageBody.kinematic=false;polymerCore.autoFallback();status.textContent='POLYMERIZATION PAUSED';}polymerAutoMotion=null;updatePolymerSiteIndicator();}
     }
-    if(!polymerSamplePresentation||!polymerSamplePresentation.ready)advancePolymerCompletion(elapsedMs);
+    if(!polymerSamplePresentation||!polymerSamplePresentation.ready)advancePolymerCompletion();
   }
 
   function isPolymerRackLocked(){const tx=polymerCore.snapshot();return polymerRouteOwned&&!!tx&&tx.state!==POLYMERIZATION_STATES.SAMPLE;}
