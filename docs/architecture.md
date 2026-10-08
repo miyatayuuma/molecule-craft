@@ -76,6 +76,8 @@
 
 ## Reaction Lab generic core and polymer foundation
 
+Task④の再baseline監査、表示方針、Task⑤〜⑩の実装契約は [docs/planning/polymer-presentation-rebaseline.md](planning/polymer-presentation-rebaseline.md) を参照してください。
+
 Production Reaction Labは `src/reaction-lab-viewer.js` の独立3D sandboxと、Three.js非依存のcompiled authority `src/reaction-lab-core.js` で構成されます。`src/reaction-lab-authority.js` が24個のgeneric Reaction Site Patternと11個のReaction Family（semantic atom labels、encounter / supplemental roles、family-level distance windows、declarative graph edits）を所有し、`src/reaction-lab-catalog.js` が⑦Aで確定した29 concrete reactionsの唯一のchemical source of truthです。Concrete ReactionはDB reactants/productsとenvironment conditionsを定義します。初期化時にlabelled pathways・symmetry classes・strict product mappingsをcompileし、commit時の `planReactionExecution()` がreaction/pathway・participants・matched sites・products・consumed IDs・`atomOrigins`・`graphTransition`・`graphDiff`を確定します。Productionとtestsは同じcatalog sourceをcompileし、test-only migration digestとmanifestが移行後のdriftを検出します。Presentationはchemistryやatom mappingを再判定せず、この確定結果を表示します。Polymer catalogと説明は通常のmolecule catalog / graphと分離し、`data/polymers.json` と `data/polymer-encyclopedia.json` が所有します。
 
 `tests/fixtures/reaction-lab-chemical-candidate-authority.json` と `reaction-lab-structural-exposure-resolutions.json` はtest-onlyの⑦A admission / ⑦D coverage oracleです。Production catalogをfixturesから生成しません。coverage auditのstructural exposure generatorはgeneric patternとfamily editsの露出を列挙する監査器で、chemical candidate generatorやPLAYABLE判定器ではありません。新規・古い・重複resolutionは同じDB-wide testで失敗します。
