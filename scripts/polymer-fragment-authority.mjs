@@ -100,10 +100,44 @@ function addDiagnostic(diagnostics, code, polymerId, field, message) {
   diagnostics.push({ code, polymerId: polymerId ?? null, field, message });
 }
 
+function validateByproductAccounting(record, { excludedByKey, fail }) {
+  const rawGroups = record.sourceAccounting?.byproductGroups;
+  const groups = Array.isArray(rawGroups) ? rawGroups : [];
+  if (rawGroups !== undefined && !Array.isArray(rawGroups)) fail('HYDROGEN_ACCOUNTING', 'sourceAccounting.byproductGroups', 'Byproduct groups must be an array.');
+  const excludedByproductAtoms = [...excludedByKey.entries()].filter(([, excluded]) => typeof excluded.byproductId === 'string' && excluded.byproductId);
+  const families = new Set([...(record.transformations ?? []).map(operation => operation.family), record.repeatClosure?.transformFamily]);
+  const isCondensation = [...families].some(family => ['ester-condensation', 'amide-condensation'].includes(family));
+  if (isCondensation && (!groups.length || !excludedByproductAtoms.length)) fail('HYDROGEN_ACCOUNTING', 'sourceAccounting.byproductGroups', 'Condensation records require explicit byproduct groups that account for excluded source atoms.');
+
+  const expectedIds = new Set(excludedByproductAtoms.map(([, excluded]) => excluded.byproductId));
+  const groupIds = new Set();
+  const coverage = new Map();
+  for (const group of groups) {
+    if (!group || typeof group.id !== 'string' || !group.id || groupIds.has(group.id)) {
+      fail('HYDROGEN_ACCOUNTING', 'sourceAccounting.byproductGroups', 'Byproduct group ids must be non-empty and unique.');
+      continue;
+    }
+    groupIds.add(group.id);
+    if (!expectedIds.has(group.id)) fail('HYDROGEN_ACCOUNTING', `sourceAccounting.byproductGroups.${group.id}`, 'Byproduct group has no excluded source atoms assigned to it.');
+    const refs = Array.isArray(group.sourceAtomRefs) ? group.sourceAtomRefs : [];
+    if (!Array.isArray(group.sourceAtomRefs)) fail('HYDROGEN_ACCOUNTING', `sourceAccounting.byproductGroups.${group.id}`, 'Byproduct sourceAtomRefs must be an array.');
+    for (const ref of refs) {
+      if (!ref || typeof ref.componentRef !== 'string' || !Number.isInteger(ref.atomIndex)) continue;
+      const key = sourceKey(ref.componentRef, ref.atomIndex);
+      coverage.set(key, (coverage.get(key) ?? 0) + 1);
+      const excluded = excludedByKey.get(key);
+      if (!excluded || excluded.byproductId !== group.id) fail('HYDROGEN_ACCOUNTING', `sourceAccounting.byproductGroups.${group.id}`, 'Every mapped byproduct atom must be excluded under the same byproduct id.');
+    }
+  }
+  for (const [key, excluded] of excludedByproductAtoms) {
+    if (coverage.get(key) !== 1) fail('HYDROGEN_ACCOUNTING', 'sourceAccounting.byproductGroups', `Excluded byproduct source atom ${key} must be mapped exactly once under ${excluded.byproductId}.`);
+  }
+}
+
 function validateCondensationHydrogenAccounting(record, { components, moleculeById, excludedByKey, fail }) {
   const families = new Set([...record.transformations.map(operation => operation.family), record.repeatClosure?.transformFamily]);
   if (![...families].some(family => ['ester-condensation', 'amide-condensation'].includes(family))) return;
-  for (const group of record.sourceAccounting?.byproductGroups ?? []) {
+  for (const group of Array.isArray(record.sourceAccounting?.byproductGroups) ? record.sourceAccounting.byproductGroups : []) {
     const refs = group.sourceAtomRefs ?? [];
     const oxygenRef = refs.find(ref => {
       const component = components.get(ref.componentRef);
@@ -437,7 +471,8 @@ export function validatePolymerFragmentAuthority(input, { polymers, routes, ency
       const check = reviewById.get(id);
       return check?.status !== 'pass' || typeof check?.result !== 'string' || !check.result.trim() || !Array.isArray(check?.evidence) || !check.evidence.length || check.evidence.some(ref => typeof ref !== 'string' || !ref.trim());
     })) fail('SCIENTIFIC_REVIEW', 'review.checks', 'All seven polymer-specific structural review checks require an individual PASS result and evidence references.');
-    for (const group of record.sourceAccounting?.byproductGroups ?? []) {
+    validateByproductAccounting(record, { excludedByKey, fail });
+    for (const group of Array.isArray(record.sourceAccounting?.byproductGroups) ? record.sourceAccounting.byproductGroups : []) {
       const refs = group.sourceAtomRefs ?? [];
       if (group.species !== 'water' || refs.length !== 3 || refs.filter(ref => sourceElement(moleculeById.get(components.get(ref.componentRef)?.moleculeId), ref.atomIndex) === 'O').length !== 1 || refs.filter(ref => sourceElement(moleculeById.get(components.get(ref.componentRef)?.moleculeId), ref.atomIndex) === 'H').length !== 2) fail('HYDROGEN_ACCOUNTING', `sourceAccounting.byproductGroups.${group.id}`, 'Water byproduct mapping must identify one O and two source H atoms.');
       for (const ref of refs) if (!excludedByKey.has(sourceKey(ref.componentRef, ref.atomIndex))) fail('HYDROGEN_ACCOUNTING', `sourceAccounting.byproductGroups.${group.id}`, 'Byproduct atom is not declared excluded from the fragment.');
@@ -445,6 +480,7 @@ export function validatePolymerFragmentAuthority(input, { polymers, routes, ency
     validateCondensationHydrogenAccounting(record, { components, moleculeById, excludedByKey, fail });
     if (record.representationType === 'network-junction') validatePhenolicNetwork(record, { fail, atomById, edgeByKey, portsById, components, moleculeById, excludedByKey });
     if (record.polymerId === 'styrene-butadiene-copolymer') validateSbrRouteMotif(record, { fail, atomById, edgeByKey, components, route });
+    if (record.polymerId === 'vinylidene-fluoride-hexafluoropropylene-copolymer') validateVdfHfpRouteMotif(record, { fail, edgeByKey, components, route });
   }
   return { ok: diagnostics.length === 0, diagnostics, count: input.records.length, polymerIds: [...recordById.keys()] };
 }
@@ -557,6 +593,27 @@ function validateSbrRouteMotif(record, { fail, atomById, edgeByKey, components, 
   if (record.qualifiers?.localSequence !== 'local-example-only' || record.qualifiers?.bulkComposition !== 'not-asserted' || record.qualifiers?.cisTrans !== 'unspecified' || record.qualifiers?.dieneMicrostructure !== 'varies' || record.qualifiers?.vulcanization !== 'not-represented') fail('COPOLYMER_QUALIFIER', 'qualifiers', 'SBR must disclose the illustrative local sequence, variable butadiene microstructure and unrepresented vulcanization/composition.');
   const ports = new Map((record.continuationPorts ?? []).map(port => [port.direction, port.atomRef]));
   if (ports.get('left') !== 'unit-0.a0' || ports.get('right') !== 'unit-2.a3') fail('CONTINUATION_PORT', 'continuationPorts', 'SBR local continuation ports must terminate at the outer butadiene backbone carbons.');
+}
+
+function validateVdfHfpRouteMotif(record, { fail, edgeByKey, components, route }) {
+  const expectedSequence = ['vinylidene-fluoride', 'hexafluoropropylene', 'vinylidene-fluoride'];
+  if (JSON.stringify(record.localSequence?.monomerIds) !== JSON.stringify(expectedSequence) || JSON.stringify(route?.representativeSequence) !== JSON.stringify(expectedSequence)) fail('VDF_HFP_LOCAL_SEQUENCE', 'localSequence.monomerIds', 'VDF-HFP motif must preserve the route-listed VDF–HFP–VDF local example.');
+  const expectedComponents = ['unit-0', 'unit-1', 'unit-2'];
+  if (JSON.stringify([...components.keys()]) !== JSON.stringify(expectedComponents) || expectedSequence.some((moleculeId, index) => components.get(expectedComponents[index])?.moleculeId !== moleculeId)) fail('VDF_HFP_SOURCE_MAPPING', 'source.components', 'VDF-HFP motif must map VDF, HFP and VDF source components in that order.');
+  const expectedLinks = [['unit-0.a0', 'unit-1.a0'], ['unit-1.a1', 'unit-2.a0']];
+  for (let index = 0; index < expectedLinks.length; index += 1) {
+    const [a, b] = expectedLinks[index];
+    const operation = (record.transformations ?? []).find(item => item.id === `link-${index + 1}`);
+    const bond = edgeByKey.get(keyFor(a, b));
+    if (!operation || operation.type !== 'form' || keyFor(operation.a, operation.b) !== keyFor(a, b) || operation.order !== 1 || operation.family !== 'vinyl'
+      || !bond || bond.order !== 1 || bond.provenance?.kind !== 'route-transformation' || bond.provenance.operationId !== operation.id || bond.provenance.routeId !== record.routeId) {
+      fail('VDF_HFP_INTERUNIT_LINK', `transformations.link-${index + 1}`, 'VDF-HFP route must connect active vinyl carbons in the VDF–HFP–VDF order with single bonds.');
+    }
+  }
+  const expectedBackbone = ['unit-0.a0', 'unit-0.a1', 'unit-1.a0', 'unit-1.a1', 'unit-2.a0', 'unit-2.a1'];
+  if (JSON.stringify(record.backboneAtomRefs) !== JSON.stringify(expectedBackbone)) fail('VDF_HFP_BACKBONE', 'backboneAtomRefs', 'VDF-HFP backbone must follow the two alkene carbons from each local sequence unit.');
+  const leftPort = record.continuationPorts?.find(port => port.direction === 'left');
+  if (leftPort?.atomRef !== 'unit-0.a1' || leftPort.partnerElement !== 'C' || leftPort.externalBondOrder !== 1) fail('VDF_HFP_CONTINUATION_PORT', 'continuationPorts.left', 'The left VDF continuation must use the C2 atom opposite the first active C1 linkage.');
 }
 
 export function createPolymerDrawingInput(input, polymerId, sources) {
