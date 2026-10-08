@@ -11,7 +11,7 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=49">
+  <link rel="stylesheet" href="./styles.css?v=50">
   <link rel="stylesheet" href="./veil.css?v=43">
 </head>
 <body>
@@ -83,7 +83,7 @@
     </div>
     <div class="reaction-lab-feed-conduits" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="reaction-lab-command-bar"><span data-lab-command-state>RACK READY</span><button type="button" data-lab-feed>FEED <b aria-hidden="true">›</b></button></div>
-    <div class="reaction-lab-space"><canvas aria-label="分子をドラッグして反応サイトを操作する3D空間"></canvas><div class="reaction-lab-purge-outlet" aria-hidden="true"><i></i><span>PURGE</span></div><div class="reaction-lab-sample-bay" data-polymer-sample-bay hidden aria-hidden="true"><span>SAMPLE BAY</span><small data-polymer-sample-label>REPRESENTATIVE SEGMENT</small></div><div class="reaction-lab-environment" role="group" aria-label="Chamber activation environment">
+    <div class="reaction-lab-space"><canvas aria-label="分子をドラッグして反応サイトを操作する3D空間"></canvas><div class="reaction-lab-purge-outlet" aria-hidden="true"><i></i><span>PURGE</span></div><div class="reaction-lab-environment" role="group" aria-label="Chamber activation environment">
       <button class="reaction-lab-equipment reaction-lab-light" type="button" data-lab-light aria-label="LIGHT：OFF" aria-pressed="false"><span class="reaction-lab-light-beam" aria-hidden="true"></span><span class="reaction-lab-equipment-glyph" aria-hidden="true">◉</span><span>LIGHT</span><small data-lab-equipment-state>OFF</small></button>
       <button class="reaction-lab-equipment reaction-lab-heat" type="button" data-lab-heat aria-label="HEAT：OFF" aria-pressed="false"><span class="reaction-lab-equipment-glyph" aria-hidden="true">≋</span><span>HEAT</span><small data-lab-equipment-state>OFF</small></button>
       <button class="reaction-lab-equipment reaction-lab-medium" type="button" data-lab-medium-port aria-label="pH medium：NEUTRAL" aria-expanded="false" aria-controls="reaction-lab-medium-selector"><small>pH</small><strong data-lab-medium-value>NEUTRAL</strong></button>
@@ -93,6 +93,7 @@
         <label data-lab-medium-option="basic"><input type="radio" name="reaction-lab-medium" value="basic" data-lab-medium><span>BASIC</span></label>
       </div>
     </div><p>ドラッグで近づける · pinch / wheelでzoom</p></div>
+    <div class="reaction-lab-polymer-completion" data-polymer-completion hidden><div class="reaction-lab-polymer-completion-copy"><strong data-polymer-completion-name></strong><span data-polymer-completion-status role="status" aria-live="polite"></span></div><button type="button" data-polymer-encyclopedia hidden disabled>図鑑を開く</button></div>
     <p data-lab-status class="reaction-lab-status" role="status" aria-live="polite">feed rackで種を選び、FEEDしてください。</p>
     <div id="reaction-lab-picker" class="reaction-lab-picker" data-lab-picker hidden aria-hidden="true" aria-label="分子picker"><div class="reaction-lab-picker-backdrop" aria-hidden="true"></div><section class="reaction-lab-picker-sheet" aria-labelledby="reaction-lab-picker-title"><header><div><small>DISCOVERED SPECIES</small><h3 id="reaction-lab-picker-title">Feed headを接続</h3></div><button type="button" data-lab-picker-close aria-label="分子pickerを閉じる">×</button></header><button type="button" class="reaction-lab-disconnect" data-lab-disconnect>このfeed headを切断</button><label class="reaction-lab-search-label">分子を検索<input type="search" data-lab-search placeholder="formula・分子名" autocomplete="off"></label><div class="reaction-lab-picker-list" data-lab-picker-list role="listbox" aria-label="発見済み分子"></div></section></div>
   </section></dialog>
@@ -144,7 +145,7 @@
     <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="飛行パッド。指で方向を指定。キーボードは矢印またはWASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-shock" type="button" aria-label="SHOCK UNIT。自機中心のpressure pulse。キーボードはE" hidden><strong>—</strong><small>SHOCK <span id="veil-shock-count">0 / 0</span></small></button><div id="veil-thermal" class="veil-thermal" data-state="normal" hidden><span><b id="veil-thermal-state">NORMAL</b><strong id="veil-heat">0%</strong></span><i aria-hidden="true"><span id="veil-heat-meter"></span></i><small id="veil-coolant">❄ ∅</small><div id="veil-coolant-level" class="tank-scale" role="meter" aria-label="冷却剤" aria-valuemin="0"><b></b></div></div><button id="veil-combustion" type="button" aria-label="燃料とO₂の燃焼推進。押している間だけ作動し、過熱後は安全温度で自動復帰。キーボードはShift" aria-pressed="false" hidden><strong>FUEL + O₂</strong><small id="veil-combustion-remaining">HOLD DRIVE</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel" class="paired-tanks"><span data-role="fuel"><b></b><i><em></em></i></span><span class="combustion-link" aria-hidden="true">＋<br>♨</span><span data-role="oxidizer"><b></b><i><em></em></i></span></span></button><button id="veil-boost" type="button" aria-label="噴射剤BURST。キーボードはスペース"><strong>—</strong><small>BURST <span id="veil-fuel">0 / 0</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
-  <script type="module" src="./src/app.js?v=64"></script>
+  <script type="module" src="./src/app.js?v=69"></script>
   <script type="module" src="./src/pwa.js?v=34"></script>
 </body>
 </html>

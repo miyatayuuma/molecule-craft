@@ -1,4 +1,4 @@
-name: Polymer growth continuity validation
+name: Reaction Lab finite polymer validation
 on:
   push:
     branches: [main]
@@ -6,10 +6,14 @@ on:
     paths:
       - 'src/*polymer*'
       - 'src/reaction-lab-viewer.js'
+      - 'src/app.js'
+      - 'src/collection-ui.js'
+      - 'src/craft-connections.js'
       - 'tests/*polymer*'
-      - 'src/polymer-growth-plan.js'
-      - 'scripts/summarize-polymer-growth-profile.mjs'
-      - 'docs/polymer-growth-continuity.md'
+      - 'tests/material-progression-browser.test.mjs'
+      - 'scripts/check-polymer-completion-evidence.mjs'
+      - 'index.html'
+      - 'styles.css'
       - 'docs/architecture.md'
       - 'precache-manifest.js'
       - 'sw.js'
@@ -29,14 +33,14 @@ jobs:
           node-version: 22
       - name: Japanese screenshot font
         run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
-      - name: Bounded plan, chemistry and discovery regressions
-        run: node --test tests/polymer-growth-plan.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
+      - name: Finite completion, chemistry and discovery regressions
+        run: node --test tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
       - name: Production pointer path and 390×844 visual QA
         run: node tests/reaction-lab-polymer-browser.test.mjs
       - name: Production pointer path and representative desktop QA
         run: POLYMER_DESKTOP=1 node tests/reaction-lab-polymer-browser.test.mjs
-      - name: Summarize measured PE presentation performance
-        run: node scripts/summarize-polymer-growth-profile.mjs
+      - name: Gate finite completion resource evidence
+        run: node scripts/check-polymer-completion-evidence.mjs
       - name: Collection, hygiene, offline integrity
         run: |
           node tests/collection-polymer-browser.test.mjs
@@ -46,7 +50,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: polymer-growth-continuity-evidence
-          path: test-results/polymer-growth-continuity
+          name: polymer-finite-completion-evidence
+          path: test-results/reaction-lab-polymer-simplification
           if-no-files-found: error
           retention-days: 14

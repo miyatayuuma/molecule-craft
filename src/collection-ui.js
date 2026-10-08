@@ -380,7 +380,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const discovered=polymerState.polymerEntry(id);extra.append(el('h4','発見'),el('p',`発見 ${discovered.order}番目${Number.isFinite(discovered.at)?` · ${new Date(discovered.at).toLocaleDateString('ja-JP')}`:''}`));
   }
   renderPalette();renderSummary();
-  return {state,polymerState,templateFor:id=>state.isUnlocked(id)?data.templates.find(template=>template.id===id):null,
+  return {state,polymerState,polymerNameFor:id=>polymerRecords.find(record=>record.id===id)?.nameJa??null,templateFor:id=>state.isUnlocked(id)?data.templates.find(template=>template.id===id):null,
     openEntry,openMolecule,openPolymer,
     isOpen:()=>dialog.open,
     closeAndWait(){if(!collectionDialogOpen&&!dialog.open)return Promise.resolve();return new Promise(resolve=>{closeWaiters.add(resolve);if(dialog.open)dialog.close();});},
