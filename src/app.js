@@ -24,7 +24,7 @@ import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=1';
 import { createCraftHistory } from './craft-history.js?v=2';
 import { bindCraftControls } from './craft-controls.js?v=3';
-import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=10';
+import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=11';
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 import { matchCraftTarget } from './craft-target-satisfaction.js';
@@ -118,8 +118,9 @@ loadMoleculeDatabase().then(async result=>{
   try{
     collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;if(!open)reactionLabDiscovery?.onCollectionClosed();}});
     try{
-      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=30');
+      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=31');
       reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,polymerRoutes:collectionGame.polymerRoutes,polymerSitePatterns:collectionGame.polymerSitePatterns,
+        polymerNameFor:id=>collectionGame.polymerNameFor(id),isPolymerKnown:id=>collectionGame.polymerState.hasPolymer(id),onOpenPolymer:async id=>{await reactionLabViewer.closeAndWait();return collectionGame.openPolymer(id);},
         onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
       reactionLabDiscovery=createReactionLabDiscoveryCoordinator({records:moleculeCatalog(),polymerRoutes:collectionGame.polymerRoutes,polymerIds:collectionGame.polymerRoutes.map(route=>route.polymerId),collection:collectionGame,root:document,
         closeLabAndWait:()=>reactionLabViewer.closeAndWait(),openLab:()=>reactionLabViewer.open(),isLabOpen:()=>reactionLabViewer.isOpen(),getBatchGeneration:()=>reactionLabViewer.getBatchGeneration(),

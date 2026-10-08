@@ -5,6 +5,13 @@ import {extname,resolve,sep,posix} from 'node:path';
 const DEFAULT_ROOT=new URL('../',import.meta.url);
 const COPY_DIRECTORY=/^(?:legacy|archive|old|backup|bak)$/i;
 const CODE_LIKE=new Set(['.js','.mjs','.cjs','.html','.css','.json']);
+// Task⑤ has disconnected these retired renderers from production. Task⑨ removes them.
+const DECOMMISSIONED_POLYMER_MODULES=new Set([
+  'src/reaction-lab-polymer-cinematic.js',
+  'src/polymer-growth-plan.js',
+  'src/polymer-morphology-bridge.js',
+  'src/polymer-morphology-bridge-renderer.js',
+]);
 const SIZE_WARNINGS=new Map([
   ['README.md',12_000],
   ['AGENTS.md',8_000],
@@ -106,7 +113,7 @@ async function inspectProductionModules(root,files,index,errors){
     reachable.add(path);
     for(const dependency of dependencies.get(path)??[])if(!reachable.has(dependency))queue.push(dependency);
   }
-  const unreachable=sourceFiles.filter(path=>!reachable.has(path));
+  const unreachable=sourceFiles.filter(path=>!reachable.has(path)&&!DECOMMISSIONED_POLYMER_MODULES.has(path));
   if(unreachable.length)errors.push(`Unreachable production module(s): ${unreachable.join(', ')}. Import them from a production entry/worker path or remove them from src/.`);
   return {sourceFiles,reachable};
 }
