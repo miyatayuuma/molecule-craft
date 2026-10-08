@@ -15140,7 +15140,7 @@
           }
         },
         {
-          "a": "unit-0.a1",
+          "a": "unit-0.a0",
           "b": "unit-1.a0",
           "order": 1,
           "provenance": {
@@ -15251,7 +15251,7 @@
       "continuationPorts": [
         {
           "id": "left",
-          "atomRef": "unit-0.a0",
+          "atomRef": "unit-0.a1",
           "role": "copolymer-backbone-continuation",
           "direction": "left",
           "externalBondOrder": 1,
@@ -15301,7 +15301,7 @@
         {
           "id": "link-1",
           "type": "form",
-          "a": "unit-0.a1",
+          "a": "unit-0.a0",
           "b": "unit-1.a0",
           "order": 1,
           "family": "vinyl"
@@ -15401,7 +15401,7 @@
           {
             "id": "repeat-or-local-ports",
             "status": "pass",
-            "result": "Local sequence vinylidene-fluoride → hexafluoropropylene → vinylidene-fluoride is preserved as a route example; left/right continuation ports left:unit-0.a0(copolymer-backbone-continuation), right:unit-2.a1(copolymer-backbone-continuation); no bulk sequence or ratio is asserted.",
+            "result": "Local sequence vinylidene-fluoride → hexafluoropropylene → vinylidene-fluoride is preserved as a route example; left/right continuation ports left:unit-0.a1(copolymer-backbone-continuation), right:unit-2.a1(copolymer-backbone-continuation); no bulk sequence or ratio is asserted.",
             "evidence": [
               "localSequence",
               "componentGroups",
