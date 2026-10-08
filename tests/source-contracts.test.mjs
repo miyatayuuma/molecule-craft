@@ -1,106 +1,8 @@
-import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-
-const root = new URL('../', import.meta.url);
-const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, craftWorkspace, craftControls, craftConnections, craftPanel] = await Promise.all([
-  readFile(new URL('index.html', root), 'utf8'),
-  readFile(new URL('src/app.js?v=64', root), 'utf8'),
-  readFile(new URL('src/chemistry.js', root), 'utf8'),
-  readFile(new URL('src/structure-relaxation.js?v=33', root), 'utf8'),
-  readFile(new URL('src/conformation-engine.js?v=3', root), 'utf8'),
-  readFile(new URL('src/electron-interaction.js', root), 'utf8'),
-  readFile(new URL('src/gesture-arbitration.js', root), 'utf8'),
-  readFile(new URL('veil.css', root), 'utf8'),
-  readFile(new URL('src/craft-workspace.js', root), 'utf8'),
-  readFile(new URL('src/craft-controls.js', root), 'utf8'),
-  readFile(new URL('src/craft-connections.js', root), 'utf8'),
-  readFile(new URL('src/craft-panel.js', root), 'utf8'),
-]);
-const collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'utf8');
-const collectionUI=await readFile(new URL('src/collection-ui.js',root),'utf8');
-const pubchemReference=await readFile(new URL('src/pubchem-reference.js',root),'utf8');
-const styles=await readFile(new URL('styles.css',root),'utf8');
-const gameShell=await readFile(new URL('src/game-shell.js',root),'utf8');
-assert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|æ¨¡å‹ã‚’(?:æ‹¡å¤§|ç¸®å°|è¡¨ç¤ºãƒªã‚»ãƒƒãƒˆ)/,'Collection viewer zoom/reset buttons stay removed');
-assert.doesNotMatch(collectionUI,/expeditionUseFor|expedition-use|æ¢ç´¢ã§ã®ç”¨é€”|è£œçµ¦ã§æ¯”è¼ƒã™ã‚‹/,'Collection stays chemistry-focused and does not repeat expedition guidance');
-assert.doesNotMatch(craftConnections,/onSupply/,'Collection connection no longer carries supply guidance callbacks');
-assert.match(craftPanel,/pubchemReferenceFor\(focus\)/);
-assert.match(craftPanel,/className='pubchem-link'/);
-assert.match(craftPanel,/createPubchemIntroState/);
-assert.doesNotMatch(craftPanel,/nodes\.pubchem\.title|PubChemã§æ§‹é€ æ¤œç´¢|PubChemã§åˆ†å­å¼æ¤œç´¢/,'PubChem has no hover-only explanation');
-assert.match(pubchemReference,/molecule-craft\.pubchem-intro\.v1/);
-assert.match(pubchemReference,/PubChem â†—/);
-
-assert.match(pubchemReference,/pubchem\.ncbi\.nlm\.nih\.gov\/\#query=/);
-assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
-assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
-
-assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=64"><\/script>/);
-assert.match(app, /from '\.\/structure-relaxation\.js\?v=33'/);
-assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
-assert.match(app, /from '\.\/structure-settlement\.js\?v=33'/);
-assert.match(app, /from '\.\/torsion-model\.js\?v=35'/);
-assert.match(app, /from '\.\/conformation-engine\.js\?v=3'/);
-assert.match(app, /from '\.\/workspace-view\.js\?v=23'/);
-assert.doesNotMatch(app, /stableFrames|maxDuration/);
-assert.doesNotMatch(app, /pendingFrame|followDraggedBranch|function structurePlan|interruptRelaxation|panCamera/);
-assert.doesNotMatch(index, /stop-relaxation/);
-assert.match(app, /conformationEngine\.updateDrag\(dragState\.targetWorld,\{deltaSeconds\}\)/);
-assert.match(app, /conformationEngine\.release\(\)/);
-assert.match(app, /function atomEditPlan\(atomId,activeKey=null\)/);
-assert.doesNotMatch(index, /rotation-axis-options|rotation-cue/);
-assert.doesNotMatch(app, /rotationOptions|rotationCue|candidateTorsionKeys|activeTorsionKey|axisGlow/);
-assert.match(app, /\['conformation','rigid-body'\]\.includes\(dragState\.mode\)\)advanceConformationDrag\(now\)/);
-assert.match(app, /activePointers.size&&dragState&&\(dragState.moved\|\|dragState.mode!=='molecule-rotate'\)/);
-assert.equal((app.match(/if\(!activePointers.has\(e.pointerId\)\)return/g)??[]).length,3,'Foreign pointer move/up/cancel must not steal an edit');
-assert.match(index, /id="structure-focus" aria-label="ç·¨é›†ã™ã‚‹åˆ†å­"/);
-const focusHandler=craftControls.slice(craftControls.indexOf("structureFocus.addEventListener('change'"),craftControls.indexOf("document.querySelector('#frame-structure')"));
-assert.doesNotMatch(focusHandler,/requestStructureFrame|camera\./,'Focus change must not reframe');
-assert.match(app, /workspaceView.frame\(focusedStructure\(\),fit.center\)/);
-assert.match(app, /solver.rotateReferenceFrames\(q,rotation.ids\);rotateStructure\(rotation,pos,q\)/);
-assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);
-assert.match(app, /from '\.\/gesture-arbitration\.js\?v=20'/);
-assert.match(app, /from '\.\/workspace-model\.js\?v=20'/);
-assert.match(app, /from '\.\/chemistry\.js\?v=20'/);
-assert.doesNotMatch(app, /hasCompatibleElectronPair|lastCelebrated/);
-assert.match(app, /chooseAtomOrElectron\(e.clientX,e.clientY,screenAtomCandidates\(\)/);
-assert.match(app, /connectedStructures\(molecule\)/);
-assert.doesNotMatch(index, /id="frame-structure"/,'Legacy CRAFT frame button stays removed');
-assert.match(index, /id="undo-cleanup"/);
-assert.match(index, /id="collection-dialog"/);
-assert.match(index, /id="craft-panel"[^>]*hidden/);
-assert.match(craftConnections, /createCompletionSideEffectGate\(\)/,'Completion side effects must be edge-gated rather than revision-scanned');
-assert.match(craftConnections, /completionGate\.suppressNextSync\(\)/,'Restore/Undo must establish a passive completion baseline');
-assert.doesNotMatch(craftConnections, /checkedRevision!==revision/,'Legacy level-triggered collection revision scan must stay removed');
-assert.match(craftWorkspace, /expandCraftStructure\(staged,template\)/);
-assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=45'\)/);
-assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations belong to craft-workspace.js');
-assert.match(app, /!elementPalette.canUse\(symbol\)/);
-assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
-assert.match(index, /id="veil-combustion"/);
-assert.match(index, /id="veil-combustion-remaining">HOLD DRIVE<\/small>/,'Exploration combustion control keeps its operational DRIVE label');
-assert.doesNotMatch(gameShell, /#veil-combustion-remaining/,'Gameplay chrome pruning must not hide the DRIVE action affordance');
-assert.match(index, /id="veil-threat"/);
-assert.match(index, /id="open-supply" class="collector-access"/);
-assert.doesNotMatch(index, /<span>åé›†æ®»<\/span>/,'Legacy collector access text label stays removed');
-assert.match(index, /id="shell-propellant"/);
-assert.match(index, /id="shell-fuel"/);
-assert.match(index, /id="shell-oxidizer"/);
-assert.match(index, /id="shell-coolant"/);
-assert.match(index, /id="tank-model-host"/);
-assert.doesNotMatch(index,/id="craft-tank-actions"|id="tank-charge-stage"/,'Legacy manual tank-charge DOM stays removed');
-assert.doesNotMatch(craftPanel,/craft-tank-actions|tank-charge-stage|tankActionKey|tankControls|renderTankActions/,'Craft panel no longer carries manual tank-charge state');
-await assert.rejects(readFile(new URL('src/craft-transfer-effects.js',root),'utf8'),error=>error?.code==='ENOENT','Legacy craft transfer effects runtime module stays deleted');
-assert.doesNotMatch(styles,/craft-tank-actions|tank-charge-stage|charge-stage-(?:in|out)/,'Legacy manual tank-charge CSS stays removed');
-assert.doesNotMatch(index,/id="(?:tank-use-guide|tank-replacement|tank-affordability|loaded-combustion-summary)"/,'Inactive loadout guidance placeholders stay removed');
-assert.doesNotMatch(styles,/\.model-toolbar\b|\.model-zoom\b/,'Removed collection model toolbar CSS stays removed');
-assert.doesNotMatch(styles,/\.undo-cleanup\b|\.collector-access (?:img|span)\b/,'Legacy hidden CRAFT/access chrome selectors stay removed');
-assert.doesNotMatch(veilCss,/#supply-dialog \.tank-affordability\b|\.tank-model #tank-model-host \.model-toolbar\b|\.tank-replacement\b|#tank-use-guide\b/,'Removed loadout placeholder selectors stay removed');
-await assert.rejects(readFile(new URL('src/tank-charge.js',root),'utf8'),error=>error?.code==='ENOENT','Legacy tank-charge runtime module stays deleted');
-assert.doesNotMatch(index, /id="molecule-select"|id="fill-hydrogen"|id="make-h2"/);
-assert.match(index, /EXPEDITION CARGO/);
-assert.match(index, /COLLECTOR SHELL Â· ANCHOR FIELD/);
-assert.match(index,/id="veil-status-panel"[^>]*role="status"/,'FIELD top-right HUD remains a status panel after extraction controls are removed');
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíã~uN‹Z–‹­¦ëeŠw¬Õ¥µÁ½ÉĞ…ÍÍ•ÉĞ™É½´€¹½‘”é…ÍÍ•ÉĞ½ÍÑÉ¥Ğœì)¥µÁ½ÉĞìÉ•…‘¥±”ô™É½´€¹½‘”é™Ì½ÁÉ½µ¥Í•Ìœì()½¹ÍĞÉ½½Ğ€ô¹•ÜUI0 œ¸¸¼œ°¥µÁ½ÉĞ¹µ•Ñ„¹ÕÉ°¤ì)½¹ÍĞm¥¹‘•à°…ÁÀ°¡•µ¥ÍÑÉä°Í½±Ù•È°½¹™½Éµ…Ñ¥½¸°•±•ÑÉ½¹%¹Ñ•É…Ñ¥½¸°•ÍÑÕÉ•É‰¥ÑÉ…Ñ¥½¸°Ù•¥±ÍÌ°É…™Ñ]½É­ÍÁ…”°É…™Ñ½¹ÑÉ½±Ì°É…™Ñ½¹¹•Ñ¥½¹Ì°É…™ÑA…¹•±t€ô…İ…¥ĞAÉ½µ¥Í”¹…±°¡l(€É•…‘¥±”¡¹•ÜUI0 ¥¹‘•à¹¡Ñµ°œ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½…ÁÀ¹©ÌıØôØÔœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½¡•µ¥ÍÑÉä¹©Ìœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½ÍÑÉÕÑÕÉ”µÉ•±…á…Ñ¥½¸¹©ÌıØôÌÌœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½½¹™½Éµ…Ñ¥½¸µ•¹¥¹”¹©ÌıØôÌœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½•±•ÑÉ½¸µ¥¹Ñ•É…Ñ¥½¸¹©Ìœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½•ÍÑÕÉ”µ…É‰¥ÑÉ…Ñ¥½¸¹©Ìœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 Ù•¥°¹ÍÌœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½É…™Ğµİ½É­ÍÁ…”¹©Ìœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½É…™Ğµ½¹ÑÉ½±Ì¹©Ìœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½É…™Ğµ½¹¹•Ñ¥½¹Ì¹©Ìœ°É½½Ğ¤°€ÕÑ˜àœ¤°(€É•…‘¥±”¡¹•ÜUI0 ÍÉŒ½É…™ĞµÁ…¹•°¹©Ìœ°É½½Ğ¤°€ÕÑ˜àœ¤°)t¤ì)½¹ÍĞ½±±•Ñ¥½¹Y¥•İ•Èõ…İ…¥ĞÉ•…‘¥±”¡¹•ÜUI0 ÍÉŒ½½±±•Ñ¥½¸µÙ¥•İ•È¹©Ìœ±É½½Ğ¤°ÕÑ˜àœ¤ì)½¹ÍĞ½±±•Ñ¥½¹U$õ…İ…¥ĞÉ•…‘¥±”¡¹•ÜUI0 ÍÉŒ½½±±•Ñ¥½¸µÕ¤¹©Ìœ±É½½Ğ¤°ÕÑ˜àœ¤ì)½¹ÍĞÁÕ‰¡•µI•™•É•¹”õ…İ…¥ĞÉ•…‘¥±”¡¹•ÜUI0 ÍÉŒ½ÁÕ‰¡•´µÉ•™•É•¹”¹©Ìœ±É½½Ğ¤°ÕÑ˜àœ¤ì)½¹ÍĞÍÑå±•Ìõ…İ…¥ĞÉ•…‘¥±”¡¹•ÜUI0 ÍÑå±•Ì¹ÍÌœ±É½½Ğ¤°ÕÑ˜àœ¤ì)½¹ÍĞ…µ•M¡•±°õ…İ…¥ĞÉ•…‘¥±”¡¹•ÜUI0 ÍÉŒ½…µ”µÍ¡•±°¹©Ìœ±É½½Ğ¤°ÕÑ˜àœ¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡½±±•Ñ¥½¹Y¥•İ•È°½µ½‘•°µÑ½½±‰…Éñµ½‘•°µé½½µóš¢‡–z/
+H üëš.‡–’óâ»–Â=ó¢†£’ë«
+ï ¤¼°½±±•Ñ¥½¸Ù¥•İ•Èé½½´½É•Í•Ğ‰ÕÑÑ½¹ÌÍÑ…äÉ•µ½Ù•œ¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡½±±•Ñ¥½¹U$°½•áÁ•‘¥Ñ¥½¹UÍ•½Éñ•áÁ•‘¥Ñ¥½¸µÕÍ•óš:‹Ò‹Ÿ»R£¦Qó¢sÖ›Ÿš¾S¢òg
+,¼°½±±•Ñ¥½¸ÍÑ…åÌ¡•µ¥ÍÑÉäµ™½ÕÍ•…¹‘½•Ì¹½ĞÉ•Á•…Ğ•áÁ•‘¥Ñ¥½¸Õ¥‘…¹”œ¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡É…™Ñ½¹¹•Ñ¥½¹Ì°½½¹MÕÁÁ±ä¼°½±±•Ñ¥½¸½¹¹•Ñ¥½¸¹¼±½¹•È…ÉÉ¥•ÌÍÕÁÁ±äÕ¥‘…¹”…±±‰…­Ìœ¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡É…™ÑA…¹•°°½ÁÕ‰¡•µI•™•É•¹•½Ép¡™½ÕÍp¤¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡É…™ÑA…¹•°°½±…ÍÍ9…µ”ôÁÕ‰¡•´µ±¥¹¬œ¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡É…™ÑA…¹•°°½É•…Ñ•AÕ‰¡•µ%¹ÑÉ½MÑ…Ñ”¼¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡É…™ÑA…¹•°°½¹½‘•Íp¹ÁÕ‰¡•µp¹Ñ¥Ñ±•ñAÕ‰¡•·Ÿš/¦ƒš’sÒ‰ñAÕ‰¡•·Ÿ–"–¶C–ò?š’sÒˆ¼°AÕ‰¡•´¡…Ì¹¼¡½Ù•Èµ½¹±ä•áÁ±…¹…Ñ¥½¸œ¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡ÁÕ‰¡•µI•™•É•¹”°½µ½±•Õ±”µÉ…™Ñp¹ÁÕ‰¡•´µ¥¹ÑÉ½p¹ØÄ¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡ÁÕ‰¡•µI•™•É•¹”°½AÕ‰¡•´ƒŠ\¼¤ì()…ÍÍ•ÉĞ¹µ…Ñ ¡ÁÕ‰¡•µI•™•É•¹”°½ÁÕ‰¡•µp¹¹‰¥p¹¹±µp¹¹¥¡p¹½Ùp½pÅÕ•Éäô¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡½±±•Ñ¥½¹Y¥•İ•È°½É•…Ñ•AÉ•Ù¥•İ½¹ÑÉ½±Íp ¼°½±±•Ñ¥½¸Ù¥•İ•È•ÍÑÕÉ”½¹ÑÉ½±ÌÉ•µ…¥¸•¹…‰±•œ¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡½±±•Ñ¥½¹Y¥•İ•È°½½¹ÑÉ½±Íp¹é½½µp ¼°A¥¹ ½Èİ¡••°é½½´É•µ…¥¹Ì…Ù…¥±…‰±”œ¤ì()…ÍÍ•ÉĞ¹µ…Ñ ¡¥¹‘•à°€¼ñÍÉ¥ÁĞÑåÁ”ô‰µ½‘Õ±”ˆÍÉŒô‰p¹p½ÍÉp½…ÁÁp¹©ÍpıØôØÔˆøñp½ÍÉ¥ÁĞø¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½™É½´€p¹p½ÍÑÉÕÑÕÉ”µÉ•±…á…Ñ¥½¹p¹©ÍpıØôÌÌœ¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½™É½´€p¹p½ÍÑÉÕÑÕÉ”µµ½Ñ¥½¹p¹©ÍpıØôÌÀœ¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½™É½´€p¹p½ÍÑÉÕÑÕÉ”µÍ•ÑÑ±•µ•¹Ñp¹©ÍpıØôÌÌœ¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½™É½´€p¹p½Ñ½ÉÍ¥½¸µµ½‘•±p¹©ÍpıØôÌÔœ¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½™É½´€p¹p½½¹™½Éµ…Ñ¥½¸µ•¹¥¹•p¹©ÍpıØôÌœ¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½™É½´€p¹p½İ½É­ÍÁ…”µÙ¥•İp¹©ÍpıØôÈÌœ¼¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡…ÁÀ°€½ÍÑ…‰±•É…µ•Íñµ…áÕÉ…Ñ¥½¸¼¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡…ÁÀ°€½Á•¹‘¥¹É…µ•ñ™½±±½İÉ…•‘	É…¹¡ñ™Õ¹Ñ¥½¸ÍÑÉÕÑÕÉ•A±…¹ñ¥¹Ñ•ÉÉÕÁÑI•±…á…Ñ¥½¹ñÁ…¹…µ•É„¼¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡¥¹‘•à°€½ÍÑ½ÀµÉ•±…á…Ñ¥½¸¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½½¹™½Éµ…Ñ¥½¹¹¥¹•p¹ÕÁ‘…Ñ•É…p¡‘É…MÑ…Ñ•p¹Ñ…É•Ñ]½É±±qí‘•±Ñ…M•½¹‘Íqõp¤¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½½¹™½Éµ…Ñ¥½¹¹¥¹•p¹É•±•…Í•p¡p¤¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½™Õ¹Ñ¥½¸…Ñ½µ‘¥ÑA±…¹p¡…Ñ½µ%±…Ñ¥Ù•-•äõ¹Õ±±p¤¼¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡¥¹‘•à°€½É½Ñ…Ñ¥½¸µ…á¥Ìµ½ÁÑ¥½¹ÍñÉ½Ñ…Ñ¥½¸µÕ”¼¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡…ÁÀ°€½É½Ñ…Ñ¥½¹=ÁÑ¥½¹ÍñÉ½Ñ…Ñ¥½¹Õ•ñ…¹‘¥‘…Ñ•Q½ÉÍ¥½¹-•åÍñ…Ñ¥Ù•Q½ÉÍ¥½¹-•åñ…á¥Í±½Ü¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½ql½¹™½Éµ…Ñ¥½¸œ°É¥¥µ‰½‘äqup¹¥¹±Õ‘•Íp¡‘É…MÑ…Ñ•p¹µ½‘•p¥p¥…‘Ù…¹•½¹™½Éµ…Ñ¥½¹É…p¡¹½İp¤¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”˜™‘É…MÑ…Ñ”˜™p¡‘É…MÑ…Ñ”¹µ½Ù•‘qñqñ‘É…MÑ…Ñ”¹µ½‘”„ôôµ½±•Õ±”µÉ½Ñ…Ñ”p¤¼¤ì)…ÍÍ•ÉĞ¹•ÅÕ…° ¡…ÁÀ¹µ…Ñ  ½¥™p ……Ñ¥Ù•A½¥¹Ñ•ÉÌ¹¡…Íp¡”¹Á½¥¹Ñ•É%‘p¥p¥É•ÑÕÉ¸½œ¤üımt¤¹±•¹Ñ °Ì°½É•¥¸Á½¥¹Ñ•Èµ½Ù”½ÕÀ½…¹•°µÕÍĞ¹½ĞÍÑ•…°…¸•‘¥Ğœ¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡¥¹‘•à°€½¥ô‰ÍÑÉÕÑÕÉ”µ™½ÕÌˆ…É¥„µ±…‰•°ô‹Ş£¦ng
+/–"–¶@ˆ¼¤ì)½¹ÍĞ™½ÕÍ!…¹‘±•ÈõÉ…™Ñ½¹ÑÉ½±Ì¹Í±¥”¡É…™Ñ½¹ÑÉ½±Ì¹¥¹‘•á=˜ ‰ÍÑÉÕÑÕÉ•½ÕÌ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ¡…¹”œˆ¤±É…™Ñ½¹ÑÉ½±Ì¹¥¹‘•á=˜ ‰‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ™É…µ”µÍÑÉÕÑÕÉ”œ¤ˆ¤¤ì)…ÍÍ•ÉĞ¹‘½•Í9½Ñ5…Ñ ¡™½ÕÍ!…¹‘±•È°½É•ÅÕ•ÍÑMÑÉÕÑÕÉ•É…µ•ñ…µ•É…p¸¼°½ÕÌ¡…¹”µÕÍĞ¹½ĞÉ•™É…µ”œ¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½İ½É­ÍÁ…•Y¥•Ü¹™É…µ•p¡™½ÕÍ•‘MÑÉÕÑÕÉ•p¡p¤±™¥Ğ¹•¹Ñ•Ép¤¼¤ì)…ÍÍ•ÉĞ¹µ…Ñ ¡…ÁÀ°€½Í½±Ù•È¹É½Ñ…Ñ•I•™•É•¹—]ùÖÚ$z{-®éÜj× extraction controls are removed');
 assert.doesNotMatch(index,/id="veil-extraction-meter"/,'FIELD has no return meter or persistent return control');
 assert.match(veilCss, /\.veil-actions #veil-sound\{position:absolute/);
 assert.match(veilCss, /@media\(max-width:370px\)\{[^@]*?\.veil-chain-block\{display:none\}/,'Narrow FIELD HUD must keep chain block hidden inside the 370px media contract');
@@ -166,6 +68,6 @@ assert.doesNotMatch(app, /cho-completion|cho-continue/);
 assert.match(app, /Craft information refresh failed; 3D workspace remains active/);
 assert.match(app, /Initial craft refresh failed; continuing runtime startup/);
 assert.match(index, /class=\"craft-target-meta\"/);
-assert.match(index, /styles\.css\?v=49/);
+assert.match(index, /styles\.css\?v=50/);
 
 console.log('Source contract tests passed.');
