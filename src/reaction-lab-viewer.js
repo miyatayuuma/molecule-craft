@@ -425,7 +425,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const minY=Math.min(...plan.atoms.map(atom=>atom.y-modelAtomRadius(atom.element))),maxY=Math.max(...plan.atoms.map(atom=>atom.y+modelAtomRadius(atom.element)));
     const minZ=Math.min(...plan.atoms.map(atom=>atom.z)),maxZ=Math.max(...plan.atoms.map(atom=>atom.z));
     const center=new THREE.Vector3((minX+maxX)*.5,(minY+maxY)*.5,(minZ+maxZ)*.5),height=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5)),worldPerPixel=height/rect.height;
-    const scale=Math.max(.03,Math.min(1,((right-left)*worldPerPixel)/Math.max(.01,maxX-minX),((bottom-top)*worldPerPixel)/Math.max(.01,maxY-minY)));
+    const scale=Math.max(.03,.94*Math.min(1,((right-left)*worldPerPixel)/Math.max(.01,maxX-minX),((bottom-top)*worldPerPixel)/Math.max(.01,maxY-minY)));
     const centerX=(left+right)*.5,centerY=(top+bottom)*.5,focus=cameraRight().multiplyScalar((centerX-rect.width*.5)*worldPerPixel).addScaledVector(cameraUp(),(rect.height*.5-centerY)*worldPerPixel);
     visual.group.scale.setScalar(scale);visual.group.position.copy(focus).addScaledVector(center,-scale);visual.group.updateMatrixWorld(true);
     polymerRuntimeMetrics.completionFitCalls++;
