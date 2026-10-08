@@ -1,0 +1,38 @@
+name: Polymer fragment authority validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - 'data/polymer-fragment-authority.json'
+      - 'scripts/polymer-fragment-authority.mjs'
+      - 'tests/polymer-fragment-authority.test.mjs'
+      - 'docs/polymer-fragment-authority.md'
+      - '.github/workflows/polymer-fragment-authority-validation.yml'
+permissions:
+  contents: read
+jobs:
+  fragment-authority:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate 25-polymer drawing authority
+        run: |
+          node scripts/polymer-fragment-authority.mjs
+          node tests/polymer-fragment-authority.test.mjs
+      - name: Run related catalog, route, Reaction Lab, Encyclopedia and fabrication tests
+        run: |
+          node tests/polymer-catalog.test.mjs
+          node tests/polymerization-routes.test.mjs
+          node tests/reaction-lab-polymerization.test.mjs
+          node tests/reaction-lab-polymerization-fixtures.test.mjs
+          node tests/polymer-collection.test.mjs
+          node tests/polymer-collection-persistence.test.mjs
+          node tests/engineering-fabrication.test.mjs
+          node tests/encyclopedia-content-architecture.test.mjs
+      - name: Check repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
