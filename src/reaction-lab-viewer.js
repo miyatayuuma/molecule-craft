@@ -447,10 +447,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     polymerGraphVisual.representation=sample.representation;polymerGraphVisual.graph=sample.fragment;
     if(polymerGraphVisual.layoutPlan?.unitCount!==sample.evidence.unitCount||polymerGraphVisual.layoutPlan?.atoms.length!==sample.fragment.atoms.length){polymerGraphVisual.layoutPlan=polymerPresentationPlan(sample.fragment,sample.representation);}
     updatePolymerBondVisuals();
-    polymerSamplePresentation={sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,polymerId:sample.polymerId,startedAt:performance.now(),elapsedMs:0,durationMs:reducedMotion?POLYMER_COMPLETION_REDUCED_FEEDBACK_MS:POLYMER_COMPLETION_FEEDBACK_MS,ready:false,dismissed:false,phase:'completion',displayedUnitCount:new Set(sample.fragment.atomOrigins.map(origin=>origin.instanceId)).size,layoutCallsAtReady:null,fit:null};
-    updatePolymerCompletionUi(polymerSamplePresentation,false);resize();polymerSamplePresentation.fit=fitFinitePolymerToWorkArea();
+    polymerSamplePresentation={sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,polymerId:sample.polymerId,startedAt:null,elapsedMs:0,durationMs:reducedMotion?POLYMER_COMPLETION_REDUCED_FEEDBACK_MS:POLYMER_COMPLETION_FEEDBACK_MS,ready:false,dismissed:false,phase:'completion',displayedUnitCount:new Set(sample.fragment.atomOrigins.map(origin=>origin.instanceId)).size,layoutCallsAtReady:null,fit:null};
+    resize();polymerSamplePresentation.fit=fitFinitePolymerToWorkArea();updatePolymerCompletionUi(polymerSamplePresentation,false);
+    polymerSamplePresentation.startedAt=performance.now();
     dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample',{routeId:sample.routeId,polymerId:sample.polymerId,sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,sourceInstanceIds:[...snapshot.consumedInstanceIds],byproducts});
-    updatePolymerCompletionUi(polymerSamplePresentation,false);
     polymerSiteIndicator.hidden=true;updatePolymerSiteIndicator();updateCommandBar();
   }
   function advancePolymerCompletion(){
