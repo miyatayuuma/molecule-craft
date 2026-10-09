@@ -3,14 +3,23 @@ import { resolve } from 'node:path';
 import { ELEMENTS } from '../src/chemistry.js';
 import { createPolymerDrawingInput, readPolymerFragmentSources, validatePolymerFragmentAuthority } from './polymer-fragment-authority.mjs';
 
-export const POLYMER_STRUCTURE_SVG_VERSION = 'task7-2d-v1';
+export const POLYMER_STRUCTURE_SVG_VERSION = 'task8-2d-v2';
 export const POLYMER_STRUCTURE_CANVAS = Object.freeze({ width: 960, height: 540 });
 export const POLYMER_2D_PILOT_IDS = Object.freeze([
   'polyethylene', 'polypropylene', 'polyvinyl-chloride', 'polystyrene',
   'polyethylene-terephthalate', 'nylon-6-6', 'polytetrafluoroethylene',
   'styrene-butadiene-copolymer', 'phenol-formaldehyde-resin'
 ]);
+export const POLYMER_2D_ROLLOUT_IDS = Object.freeze([
+  'ethylene-propylene-copolymer', 'polyisobutylene', 'polychlorotrifluoroethylene',
+  'polyacrylonitrile', 'polyacrylic-acid', 'polyethylene-oxide', 'polyethylene-adipate',
+  'polylactic-acid', 'polyglycolic-acid', 'polyethylene-adipamide',
+  'polybutadiene', 'nitrile-butadiene-rubber', 'polyisoprene', 'butyl-rubber',
+  'polyvinylidene-fluoride', 'vinylidene-fluoride-hexafluoropropylene-copolymer'
+]);
+export const POLYMER_2D_PRODUCTION_IDS = Object.freeze([...POLYMER_2D_PILOT_IDS, ...POLYMER_2D_ROLLOUT_IDS]);
 const pilotSet = new Set(POLYMER_2D_PILOT_IDS);
+const productionSet = new Set(POLYMER_2D_PRODUCTION_IDS);
 const BOND_LENGTH = 44;
 const COLORS = Object.freeze({
   ink: '#182b3b', muted: '#536779', paper: '#f8fafc', paperEdge: '#dce5ec',
@@ -542,7 +551,13 @@ function annotationLines(input) {
     'この図はReaction LabのPolymerSampleと同一の構造ではありません。'
   ];
   if (input.representationType === 'copolymer-local-motif') {
-    const names = { '1-3-butadiene': 'ブタジエン', styrene: 'スチレン' };
+    const names = {
+      '1-3-butadiene': 'ブタジエン', styrene: 'スチレン',
+      ethene: 'エチレン', propene: 'プロピレン', acrylonitrile: 'アクリロニトリル',
+      isobutene: 'イソブテン', isoprene: 'イソプレン',
+      'vinylidene-fluoride': 'フッ化ビニリデン',
+      hexafluoropropylene: 'ヘキサフルオロプロピレン'
+    };
     const sequence = (input.localSequence?.monomerIds ?? []).map(id => names[id] ?? id).join(' → ');
     return ['局所配列例：' + sequence, '組成比や配列規則を示しません。cis/trans は未指定です。'];
   }
@@ -643,7 +658,7 @@ export function validatePolymerStructureSvg(svg, input) {
   return { ok: true, polymerId: input.polymerId, atoms: input.atoms.length, bonds: input.bonds.length, visibleBondLines: input.bonds.reduce((sum, bond) => sum + bond.order, 0) };
 }
 
-export async function generatePolymerStructureAssets({ root, polymerIds = POLYMER_2D_PILOT_IDS, outputDirectory = 'assets/models' } = {}) {
+export async function generatePolymerStructureAssets({ root, polymerIds = POLYMER_2D_PRODUCTION_IDS, outputDirectory = 'assets/models' } = {}) {
   const projectRoot = resolve(root ?? new URL('..', import.meta.url).pathname);
   const { authority, sources } = await readPolymerFragmentSources(projectRoot);
   const checked = validatePolymerFragmentAuthority(authority, sources);
@@ -655,7 +670,7 @@ export async function generatePolymerStructureAssets({ root, polymerIds = POLYME
   if (ids.length !== polymerIds.length) throw new Error('Duplicate polymer ID in the requested asset set.');
   for (const id of ids) {
     try {
-      if (!pilotSet.has(id)) throw new Error('Only the nine Task⑦ pilot IDs may be replaced by this production pipeline.');
+      if (!productionSet.has(id)) throw new Error('Requested polymer is not in the validated 25-polymer production asset set.');
       const input = createPolymerDrawingInput(authority, id, sources);
       if (input.validation?.status !== 'passed') throw new Error('Task⑥ drawing input did not pass validation.');
       const record = sources.polymers.find(polymer => polymer.id === id);
@@ -670,3 +685,5 @@ export async function generatePolymerStructureAssets({ root, polymerIds = POLYME
 }
 
 export function isPolymer2DPilot(polymerId) { return pilotSet.has(polymerId); }
+
+export function isPolymer2DProduction(polymerId) { return productionSet.has(polymerId); }
