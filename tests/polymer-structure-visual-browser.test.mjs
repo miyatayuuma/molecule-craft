@@ -135,8 +135,9 @@ try{
   const previewPath=join(output,'task7-collection-detail-contact-sheet.jpg');
   await writeFile(previewPath,Buffer.from(preview.data,'base64'));
   if(process.env.TASK7_EXPORT_VISUAL_QA==='1'){
-    console.log('TASK7_VISUAL_QA_CONTACT_SHEET_BASE64_BEGIN');
-    console.log(preview.data);
+    const chunks=preview.data.match(/.{1,48000}/g)??[];
+    console.log('TASK7_VISUAL_QA_CONTACT_SHEET_BASE64_BEGIN '+chunks.length);
+    chunks.forEach((chunk,index)=>console.log('TASK7_VISUAL_QA_CONTACT_SHEET_CHUNK:'+index+':'+chunk));
     console.log('TASK7_VISUAL_QA_CONTACT_SHEET_BASE64_END');
   }
   const manifest={viewports,polymerIds:pilotIds,screenshots:pilotIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'.png')),modelCrops:pilotIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'-model.png')),contactSheet:'task7-collection-detail-contact-sheet.jpg',source:'Collection detail screen rendered in headless Chromium from this checkout'};
