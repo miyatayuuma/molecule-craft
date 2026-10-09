@@ -178,7 +178,7 @@ test('production asset generator covers all 25 validated polymer paths', async (
   assert.equal(result.generatorVersion, POLYMER_STRUCTURE_SVG_VERSION);
   assert.equal(POLYMER_2D_ROLLOUT_IDS.length, 16);
   assert.equal(new Set(POLYMER_2D_PRODUCTION_IDS).size, 25);
-  assert.deepEqual(new Set(POLYMER_2D_PRODUCTION_IDS), new Set(polymers.map(record => record.id)));
+  assert.deepEqual(new Set(POLYMER_2D_PRODUCTION_IDS), new Set(sources.polymers.map(record => record.id)));
   await assert.rejects(() => generatePolymerStructureAssets({ root, polymerIds: ['polyethylene', 'not-cataloged'] }), /not-cataloged.*validated 25-polymer/);
 });
 
