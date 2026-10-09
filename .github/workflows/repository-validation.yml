@@ -54,6 +54,34 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  polymer-fragment-authority:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate 25-polymer structural drawing authority
+        run: |
+          node scripts/polymer-fragment-authority.mjs
+          node tests/polymer-fragment-authority.test.mjs
+      - name: Run polymer production and Encyclopedia regressions
+        run: |
+          node tests/polymer-catalog.test.mjs
+          node tests/polymerization-routes.test.mjs
+          node tests/reaction-lab-polymerization.test.mjs
+          node tests/reaction-lab-polymerization-fixtures.test.mjs
+          node tests/reaction-lab-polymer-discovery.test.mjs
+          node tests/polymer-collection.test.mjs
+          node tests/polymer-collection-persistence.test.mjs
+          node tests/engineering-fabrication.test.mjs
+          node tests/encyclopedia-content-architecture.test.mjs
+      - name: Check repository hygiene
+        run: |
+          node scripts/check-repository-hygiene.mjs
+          node tests/repository-hygiene.test.mjs
+
   repository-guardrails:
     runs-on: ubuntu-latest
     steps:
