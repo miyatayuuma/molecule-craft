@@ -127,6 +127,15 @@ try{
       assert.equal((await snapshot()).polymerization.manualStepCount,manualIndex,`${route.routeId}: exactly one manual chemistry step was committed`);
     }
   };
+  const finishPvcContinuation=async route=>{
+    if(route.routeId!=='polyvinyl-chloride-radical')return 'route-automatic';
+    await waitFor(`(()=>{const p=window.__reactionLabProbe.snapshot().polymerization;return p.state==='SAMPLE'||(p.state==='WAITING'&&p.consumedInstanceIds.length===3&&!!p.siteTarget)})()`,`${route.routeId}: continuation did not become available`,20000);
+    const state=await snapshot();if(state.polymerization.state==='SAMPLE')return 'route-automatic';
+    const consumed=state.polymerization.consumedInstanceIds,reserved=new Set(state.polymerization.reservedInstanceIds),species=route.representativeSequence[consumed.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!consumed.includes(item.id));
+    assert.ok(candidate,`${route.routeId}: final reserved monomer remains draggable after automatic geometry fallback`);
+    const manualIndex=state.polymerization.manualStepCount+1,plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,manualIndex);
+    return 'actual-pointer-continuation';
+  };
   const inspectSample=async route=>{
     await waitFor(`(()=>{const p=window.__reactionLabProbe.snapshot().polymerization;return p.state==='SAMPLE'&&!!p.sampleId&&p.samplePhase==='completion'})()`,`${route.routeId}: finite PolymerSample completion did not start`,20000);
     const state=await snapshot(),p=state.polymerization,events=await evaluate('window.__polymerSampleEvents.slice()');
@@ -157,9 +166,9 @@ try{
   for(const route of hardRoutes){
     console.log(`${viewport.width}×${viewport.height} route`,route.routeId);
     const routeBefore=await evaluate("(()=>{const saved=JSON.parse(localStorage.getItem('molecule-craft.polymer-collection.v1')||'{}');return{batch:window.__reactionLabProbe.snapshot().batch,polymerization:window.__reactionLabProbe.snapshot().polymerization,discoveredPolymers:(saved.discoveredPolymers??[]).map(item=>item.id)}})()");
-    await evaluate('window.__polymerSampleEvents=[];window.__polymerPresentEvents=[];window.__polymerDismissEvents=[];true');await feedRoute(route,previousSample);await runManualSteps(route);const sampleEvidence=await inspectSample(route);evidence.push(sampleEvidence);previousSample=true;
+    await evaluate('window.__polymerSampleEvents=[];window.__polymerPresentEvents=[];window.__polymerDismissEvents=[];true');await feedRoute(route,previousSample);await runManualSteps(route);const continuationMode=await finishPvcContinuation(route),sampleEvidence=await inspectSample(route);evidence.push(sampleEvidence);previousSample=true;
     const actualSample=await snapshot(),afterDiscovery=await evaluate("JSON.parse(localStorage.getItem('molecule-craft.polymer-collection.v1')||'{}').discoveredPolymers");
-    journeyEvidence.push({step:journeyEvidence.length,action:'Exact FEED and actual pointer polymerization produce a finite PolymerSample and register discovery',beforeState:routeBefore,result:{routeId:route.routeId,polymerId:route.polymerId,sampleId:actualSample.polymerization.sampleId,batchGeneration:actualSample.batch.generation,manualStepCount:actualSample.polymerization.manualStepCount,automaticStepCount:actualSample.polymerization.automaticStepCount,consumedInstanceIds:actualSample.polymerization.consumedInstanceIds,sampleEvidence},afterState:{sampleReady:actualSample.polymerization.sampleReady,displayGraph:actualSample.polymerization.displayGraph,discoveredPolymerIds:afterDiscovery.map(item=>item.id),discoveryOrder:afterDiscovery.map(item=>item.order)},persistentAuthority:'molecule-craft.polymer-collection.v1',expectedInvariant:'The finite graph/evidence matches the selected route and the newly discovered polymer ID is saved once.'});
+    journeyEvidence.push({step:journeyEvidence.length,action:'Exact FEED and actual pointer polymerization produce a finite PolymerSample and register discovery',beforeState:routeBefore,result:{routeId:route.routeId,polymerId:route.polymerId,sampleId:actualSample.polymerization.sampleId,batchGeneration:actualSample.batch.generation,continuationMode,manualStepCount:actualSample.polymerization.manualStepCount,automaticStepCount:actualSample.polymerization.automaticStepCount,consumedInstanceIds:actualSample.polymerization.consumedInstanceIds,sampleEvidence},afterState:{sampleReady:actualSample.polymerization.sampleReady,displayGraph:actualSample.polymerization.displayGraph,discoveredPolymerIds:afterDiscovery.map(item=>item.id),discoveryOrder:afterDiscovery.map(item=>item.order)},persistentAuthority:'molecule-craft.polymer-collection.v1',expectedInvariant:'The finite graph/evidence matches the selected route and the newly discovered polymer ID is saved once.'});
     const sampleId=(await snapshot()).polymerization.sampleId;
     await openPolymer(route.polymerId);
     await waitFor("(()=>{const image=document.querySelector('#collection-detail img');return !!image&&image.complete&&image.naturalWidth>0})()",`${route.polymerId}: Encyclopedia SVG did not load`);
