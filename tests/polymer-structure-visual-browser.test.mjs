@@ -5,12 +5,9 @@ import {spawn,spawnSync} from 'node:child_process';
 import {extname,join,normalize,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
+import {POLYMER_2D_PILOT_IDS} from '../scripts/polymer-structure-svg.mjs';
 
-const pilotIds=[
-  'polyethylene','polypropylene','polyvinyl-chloride','polystyrene',
-  'polyethylene-terephthalate','nylon-6-6','polytetrafluoroethylene',
-  'styrene-butadiene-rubber','phenol-formaldehyde-resin',
-];
+const pilotIds=POLYMER_2D_PILOT_IDS;
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const output=join(root,'test-results','task7-polymer-visual-qa');
 const indexHtml=await readFile(join(root,'index.html'),'utf8');
