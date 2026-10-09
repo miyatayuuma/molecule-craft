@@ -131,7 +131,7 @@ try{
       const reveal=await evaluate(`(()=>({entry:document.querySelector('#collection-detail h3')?.textContent,marker:document.querySelector('[data-registration-marker]')?.textContent??'',action:document.querySelector('#collection-detail [data-discovery-session-action]')?.textContent}))()`);
       assert.equal(reveal.entry,polymers.find(item=>item.id===route.polymerId).nameJa);assert.match(reveal.marker,/REGISTERED|NEW ENTRY/);assert.equal(reveal.action,'REACTION LABへ戻る');
       await evaluate("document.querySelector('#collection-detail [data-discovery-session-action]').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('#collection-dialog').open",`${route.routeId}: discovery return did not restore the Lab`);
-      const returned=await snapshot();assert.equal(returned.polymerization.sampleId,p.sampleId);assert.equal(returned.polymerization.sampleReady,true);assert.equal(returned.polymerResources.geometryCount,state.polymerResources.geometryCount,'returning from Collection reconstructs the same finite graph resource set');
+      const returned=await snapshot();assert.equal(returned.polymerization.sampleId,p.sampleId);assert.equal(returned.polymerization.sampleReady,true);assert.equal(returned.polymerResources.activeGroupCount,1,'returning from Collection restores one finite graph group');assert.equal(returned.polymerResources.geometryCount,returned.polymerization.displayGraph.atomCount+returned.polymerization.displayGraph.visibleBondMeshCount,'returning from Collection reconstructs exactly the finite graph resource set');
       if(route.polymerId==='polyethylene')await capture('final-finite-fragment');
     }
     return{state:await snapshot(),delay};
