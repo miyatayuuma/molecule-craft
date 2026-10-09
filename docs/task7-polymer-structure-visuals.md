@@ -67,17 +67,17 @@ node scripts/build-precache.mjs --check
 
 Task⑦のコード・asset生成器・validatorは実装済みです。9件のSVGを静的raster previewへ出力し、960×540と約350×197表示サイズで構造の配置を確認しました。ここでは主鎖、置換基、芳香族二重結合、官能基、repeat bracket、network分岐とlabel/bond衝突を確認しています。preview環境に日本語フォントがなく、日本語の文字可読性はこの確認で証明できません。これらはCollection browser screenshotではありません。
 
-| Pilot | Authority / graph mapping | 静的raster構造確認 | Collection 390×844 | Collection 1280×900 |
-|---|---|---|---|---|
-| PE | PASS | PASS | 未実施 | 未実施 |
-| PP | PASS | PASS | 未実施 | 未実施 |
-| PVC | PASS | PASS | 未実施 | 未実施 |
-| PS | PASS | PASS | 未実施 | 未実施 |
-| PET | PASS | PASS | 未実施 | 未実施 |
-| Nylon 6,6 | PASS | PASS | 未実施 | 未実施 |
-| PTFE | PASS | PASS | 未実施 | 未実施 |
-| SBR | PASS | PASS | 未実施 | 未実施 |
-| Phenol-formaldehyde | PASS | PASS | 未実施 | 未実施 |
+| Pilot | 描画とauthorityの照合 | atom / bond | 構造解釈・静的layout review | Collection mobile 390×844 | Collection desktop 1280×900 |
+|---|---|---|---|---|---|
+| PE | PASS | PASS | PASS — 主鎖、bracket、左右port | 未実施 | 未実施 |
+| PP | PASS | PASS | PASS — methyl側鎖、stereochemistry非断定 | 未実施 | 未実施 |
+| PVC | PASS | PASS | PASS — 主鎖のCl置換 | 未実施 | 未実施 |
+| PS | PASS | PASS | PASS — pendant phenyl、芳香族二重結合 | 未実施 | 未実施 |
+| PET | PASS | PASS | PASS — terephthalate / ethylene glycol残基、ester / carbonyl | 未実施 | 未実施 |
+| Nylon 6,6 | PASS | PASS | PASS — carbonyl / amide、異なるmethylene鎖 | 未実施 | 未実施 |
+| PTFE | PASS | PASS | PASS — CF₂主鎖と4個のF | 未実施 | 未実施 |
+| SBR | PASS | PASS | PASS — 1,4-butadiene残存C=C、styrene phenyl、local sequence | 未実施 | 未実施 |
+| Phenol-formaldehyde | PASS | PASS | PASS — 独立motif、4環、3 bridge / 3 branch、OH | 未実施 | 未実施 |
 
 このworkspaceにはlocal Chromium executableがなく、`tests/collection-polymer-browser.test.mjs` はsandboxのloopback server権限で起動できませんでした。Cloud Browserからlocalhost previewを開く操作は、自動審査でrepository source/assetsを外部browserへ公開するriskを理由に拒否されています。承認済みの代替手段が用意されるまで、実Collection screenのmobile/desktop screenshotは未取得です。画像自体は実Collection画面で確認できていないため、このrecordではMobile / Desktop visual QAをPASS扱いしません。
 
