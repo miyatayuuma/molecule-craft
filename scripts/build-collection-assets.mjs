@@ -9,7 +9,7 @@ import {attachmentProjection} from '../src/attachment-rendering.js?v=31';
 import {canonicalPartView,PART_SETTLEMENT} from '../src/part-presentation.js?v=2';
 import {createReactionLabPolymerizationCore,POLYMER_COMMIT_DWELL_MS} from '../src/reaction-lab-polymerization.js?v=1';
 import {polymerPresentationSvg} from '../src/reaction-lab-polymer-presentation.js?v=1';
-import {generatePolymerStructureAssets,isPolymer2DPilot} from './polymer-structure-svg.mjs';
+import {generatePolymerStructureAssets,isPolymer2DProduction} from './polymer-structure-svg.mjs';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8').then(JSON.parse);
 const records=await read('data/molecules.json'),parts=await read('data/craft-structures.json'),polymers=await read('data/polymers.json'),polymerAuthority=await read('data/polymerization-routes.json');
 await mkdir(new URL('assets/models/',root),{recursive:true});
@@ -65,7 +65,7 @@ for(const [kind,items]of [['molecule',records],['part',parts]])for(const record 
 }
 const coreRecords=records.filter(record=>new Set(polymerAuthority.routes.flatMap(route=>[...route.feedSpecies,'water'])).has(record.id));
 for(const route of polymerAuthority.routes){
-  if(isPolymer2DPilot(route.polymerId))continue;
+  if(isPolymer2DProduction(route.polymerId))continue;
   const instances=route.representativeSequence.map((species,index)=>({id:`asset-${route.routeId}-${index+1}`,species,batchGeneration:1})),recordsForRoute={};
   route.representativeSequence.forEach((species,index)=>{recordsForRoute[instances[index].id]=presentationRecords.get(species);});
   const core=createReactionLabPolymerizationCore({records:coreRecords,routes:polymerAuthority.routes,sitePatterns:polymerAuthority.sitePatterns});
