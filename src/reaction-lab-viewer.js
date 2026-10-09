@@ -231,6 +231,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }
     for(let index=cursor;index<visual.bondMeshes.length;index++)visual.bondMeshes[index].visible=false;
   }
+  function prunePolymerBondVisuals(){
+    const visual=polymerGraphVisual;if(!visual||visual.suspended)return;
+    const retained=[];
+    for(const mesh of visual.bondMeshes){if(mesh.visible)retained.push(mesh);else{mesh.removeFromParent();disposePolymerResources(mesh);}}
+    visual.bondMeshes=retained;
+  }
   function restorePolymerVisual(){
     const visual=polymerGraphVisual;if(!visual?.suspended||!visual.graph||!visual.layoutPlan)return false;
     const atoms=visual.graph.atoms??[],origins=visual.graph.atomOrigins??[];if(atoms.length!==origins.length||atoms.length!==visual.layoutPlan.atoms.length)return false;
@@ -431,7 +437,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     for(const item of byproducts)if(!instances.some(instance=>instance.id===item.instanceId))createPolymerByproduct(item);
     polymerGraphVisual.representation=sample.representation;polymerGraphVisual.graph=sample.fragment;
     if(polymerGraphVisual.layoutPlan?.unitCount!==sample.evidence.unitCount||polymerGraphVisual.layoutPlan?.atoms.length!==sample.fragment.atoms.length){polymerGraphVisual.layoutPlan=polymerPresentationPlan(sample.fragment,sample.representation);}
-    updatePolymerBondVisuals();
+    updatePolymerBondVisuals();prunePolymerBondVisuals();
     polymerSamplePresentation={sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,polymerId:sample.polymerId,startedAt:null,elapsedMs:0,durationMs:reducedMotion?POLYMER_COMPLETION_REDUCED_FEEDBACK_MS:POLYMER_COMPLETION_FEEDBACK_MS,ready:false,dismissed:false,phase:'completion',displayedUnitCount:new Set(sample.fragment.atomOrigins.map(origin=>origin.instanceId)).size,layoutCallsAtReady:null,fit:null};
     resize();polymerSamplePresentation.fit=fitFinitePolymerToWorkArea();updatePolymerCompletionUi(polymerSamplePresentation,false);
     polymerSamplePresentation.startedAt=performance.now();
