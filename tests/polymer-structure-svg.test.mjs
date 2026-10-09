@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { ELEMENTS } from '../src/chemistry.js';
 import {
-  POLYMER_2D_PILOT_IDS, POLYMER_STRUCTURE_SVG_VERSION, createPolymerStructureLayout,
+  POLYMER_2D_PILOT_IDS, POLYMER_2D_ROLLOUT_IDS, POLYMER_2D_PRODUCTION_IDS, POLYMER_STRUCTURE_SVG_VERSION, createPolymerStructureLayout,
   generatePolymerStructureAssets, renderPolymerStructureSvg, validatePolymerStructureSvg
 } from '../scripts/polymer-structure-svg.mjs';
 import { createPolymerDrawingInput, readPolymerFragmentSources, validatePolymerFragmentAuthority } from '../scripts/polymer-fragment-authority.mjs';
@@ -170,11 +170,32 @@ test('negative gates reject unvalidated graphs false qualifiers invalid ports an
   assert.throws(() => validatePolymerStructureSvg(svg.replace('<g class="chemical-bonds"', '<g data-invalid="\u0000" class="chemical-bonds"'), base), /XML 1.0 forbidden control characters/);
 });
 
-test('production asset generator is restricted to the nine approved pilot paths', async () => {
+test('production asset generator covers all 25 validated polymer paths', async () => {
   const root = new URL('..', import.meta.url).pathname;
   const result = await generatePolymerStructureAssets({ root });
   assert.equal(result.authorityCount, 25);
-  assert.deepEqual(result.generated, POLYMER_2D_PILOT_IDS);
+  assert.deepEqual(result.generated, POLYMER_2D_PRODUCTION_IDS);
   assert.equal(result.generatorVersion, POLYMER_STRUCTURE_SVG_VERSION);
-  await assert.rejects(() => generatePolymerStructureAssets({ root, polymerIds: ['polyethylene', 'polybutadiene'] }), /polybutadiene.*nine Task/);
+  assert.equal(POLYMER_2D_ROLLOUT_IDS.length, 16);
+  assert.equal(new Set(POLYMER_2D_PRODUCTION_IDS).size, 25);
+  assert.deepEqual(new Set(POLYMER_2D_PRODUCTION_IDS), new Set(polymers.map(record => record.id)));
+  await assert.rejects(() => generatePolymerStructureAssets({ root, polymerIds: ['polyethylene', 'not-cataloged'] }), /not-cataloged.*validated 25-polymer/);
+});
+
+test('Task⑧: all 16 rollout diagrams preserve source-mapped chemistry and caveats', () => {
+  for (const id of POLYMER_2D_ROLLOUT_IDS) {
+    const { input, svg } = renderFor(id);
+    assert.equal(input.validation.status, 'passed', id);
+    assert.equal(validatePolymerStructureSvg(svg, input).atoms, input.atoms.length, id);
+    assert.equal((svg.match(/class="continuation-port"/g) ?? []).length, input.continuationPorts.length, id);
+    assert.match(svg, /data-structure-source-commit=/, id);
+    assert.match(svg, /aria-labelledby="polymer-title polymer-description"/, id);
+    assert.equal(renderFor(id).svg, svg, id + ' byte deterministic');
+    if (input.representationType === 'copolymer-local-motif') {
+      assert.match(svg, /組成比や配列規則を示しません/, id);
+      assert.doesNotMatch(svg, /data-repeat-count-notation="true"/, id);
+    } else if (input.representationType === 'linear-repeat') {
+      assert.match(svg, /data-repeat-count-notation="true"/, id);
+    }
+  }
 });
