@@ -44,16 +44,23 @@ jobs:
       - name: Collection, hygiene, offline integrity
         run: |
           node tests/collection-polymer-browser.test.mjs
-          TASK7_EXPORT_VISUAL_QA=1 node tests/polymer-structure-visual-browser.test.mjs
+          TASK8_EXPORT_VISUAL_QA=1 node tests/polymer-structure-visual-browser.test.mjs
           node scripts/check-repository-hygiene.mjs
+          node scripts/polymer-fragment-authority.mjs
+          node tests/polymer-fragment-authority.test.mjs
+          node scripts/build-collection-assets.mjs
+          node tests/polymer-structure-svg.test.mjs
+          node tests/polymer-catalog.test.mjs
+          node scripts/build-precache.mjs
           node scripts/build-precache.mjs --check
+          git diff --exit-code -- assets/models precache-manifest.js sw.js
           node --test tests/pwa.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: polymer-finite-completion-evidence
+          name: polymer-encyclopedia-task8-evidence
           path: |
             test-results/reaction-lab-polymer-simplification
-            test-results/task7-polymer-visual-qa
+            test-results/task8-polymer-visual-qa
           if-no-files-found: error
           retention-days: 14
