@@ -44,6 +44,7 @@ jobs:
       - name: Collection, hygiene, offline integrity
         run: |
           node tests/collection-polymer-browser.test.mjs
+          TASK7_EXPORT_VISUAL_QA=1 node tests/polymer-structure-visual-browser.test.mjs
           node scripts/check-repository-hygiene.mjs
           node scripts/build-precache.mjs --check
           node --test tests/pwa.test.mjs
@@ -51,6 +52,8 @@ jobs:
         if: always()
         with:
           name: polymer-finite-completion-evidence
-          path: test-results/reaction-lab-polymer-simplification
+          path: |
+            test-results/reaction-lab-polymer-simplification
+            test-results/task7-polymer-visual-qa
           if-no-files-found: error
           retention-days: 14

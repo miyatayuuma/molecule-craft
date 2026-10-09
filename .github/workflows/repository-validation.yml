@@ -66,6 +66,12 @@ jobs:
         run: |
           node scripts/polymer-fragment-authority.mjs
           node tests/polymer-fragment-authority.test.mjs
+      - name: Validate Task⑦ deterministic polymer structure assets
+        run: |
+          node tests/polymer-structure-svg.test.mjs
+          node scripts/build-collection-assets.mjs
+          node scripts/build-precache.mjs --check
+          git diff --exit-code -- assets/models precache-manifest.js sw.js
       - name: Run polymer production and Encyclopedia regressions
         run: |
           node tests/polymer-catalog.test.mjs
