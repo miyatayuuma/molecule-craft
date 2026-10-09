@@ -77,7 +77,7 @@ try{
   await waitFor("document.querySelector('#veil-status-panel').dataset.state==='site-ready'",'safe return ready');
   const ship=await evaluate("(()=>{const {run,renderer}=window.__materialFieldProbe(),r=document.querySelector('#veil-canvas').getBoundingClientRect(),p=renderer.screen(run.player.x,run.player.y);return{x:r.x+p.x,y:r.y+p.y}})()");await send('Input.dispatchMouseEvent',{type:'mousePressed',...ship,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...ship,button:'left',buttons:0});await waitFor("document.querySelector('#veil-view').hidden",'normal return settles Rare inventory');
   console.log('Mobile Rare acquisition / normal return PASS');
-  await openLab();await wireDiscoveryEvents();
+  await openLab();await evaluate(`(()=>{const dialog=document.querySelector('#reaction-lab-dialog');window.__task10LabCloseEvents=[];dialog.addEventListener('close',()=>window.__task10LabCloseEvents.push(performance.now()));return true})()`);await wireDiscoveryEvents();
   assert.equal((await snapshot()).physicsMode,'stage-b','the browser gate uses production Stage B');
   const setDraftSlots=async ids=>{
     for(let index=0;index<3;index++){
@@ -146,7 +146,13 @@ try{
     await tap('#collection-detail [data-discovery-session-action]');await waitFor("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('#collection-dialog').open",`${route.routeId}: NEW ENTRY did not return to the Lab`);
     const returned=await snapshot();assert.equal(returned.polymerization.sampleId,p.sampleId,'finite sample remains displayed after discovery presentation');assert.equal(returned.polymerization.sampleReady,true);return p.sampleEvidence;
   };
-  const openPolymer=async id=>{await tap('[data-lab-close]');await waitFor("!document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('#collection-dialog').open&&!document.body.classList.contains('collection-open')&&!window.__reactionLabProbe.snapshot().dialogOpen",'Lab and prior Collection close completely');await waitFor("(()=>{const button=document.querySelector('#open-collection');if(!button||button.disabled)return false;button.scrollIntoView({block:'center'});const r=button.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>0&&r.height>0&&(hit===button||button.contains(hit));})()",'Collection pointer target is unobstructed');await tap('#open-collection');await waitFor("document.querySelector('#collection-dialog').open",'Collection open');await tap('[data-book-tab=polymers]');await tap(`[data-entry-id="${id}"]`);await waitFor(`document.querySelector('#collection-detail').dataset.detailId===${JSON.stringify(id)}`,'polymer detail');};
+  const openPolymer=async id=>{
+    const closeEventCount=await evaluate('window.__task10LabCloseEvents.length');
+    await tap('[data-lab-close]');
+    await waitFor(`!document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('#collection-dialog').open&&!document.body.classList.contains('collection-open')&&window.__task10LabCloseEvents.length>${closeEventCount}`,'Lab and prior Collection close event completes');
+    await waitFor("(()=>{const button=document.querySelector('#open-collection');if(!button||button.disabled)return false;button.scrollIntoView({block:'center'});const r=button.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>0&&r.height>0&&(hit===button||button.contains(hit));})()",'Collection pointer target is unobstructed');
+    await tap('#open-collection');await waitFor("document.querySelector('#collection-dialog').open",'Collection open');await tap('[data-book-tab=polymers]');await tap(`[data-entry-id="${id}"]`);await waitFor(`document.querySelector('#collection-detail').dataset.detailId===${JSON.stringify(id)}`,'polymer detail');
+  };
   let previousSample=false;const evidence=[];
   for(const route of hardRoutes){
     console.log(`${viewport.width}×${viewport.height} route`,route.routeId);
