@@ -28,9 +28,13 @@ const server=createServer(async(req,res)=>{
     }
     const file=normalize(join(root,pathname==='/'?'index.html':pathname.replace(/^\/+/,'')));
     if(!file.startsWith(root)){res.writeHead(403).end();return;}
+    const content=await readFile(file);
     res.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store'});
-    res.end(await readFile(file));
-  }catch{res.writeHead(404).end('not found');}
+    res.end(content);
+  }catch{
+    if(!res.headersSent)res.writeHead(404,{'content-type':'text/plain; charset=utf-8'});
+    if(!res.writableEnded)res.end('not found');
+  }
 });
 await mkdir(output,{recursive:true});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
