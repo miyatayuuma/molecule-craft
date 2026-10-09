@@ -17,6 +17,7 @@ on:
       - 'data/polymer-fragment-authority.json'
       - 'data/polymer-encyclopedia.json'
       - 'data/polymers.json'
+      - 'assets/models/polymer-*.svg'
       - 'scripts/check-polymer-completion-evidence.mjs'
       - 'index.html'
       - 'styles.css'
