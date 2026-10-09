@@ -3,15 +3,30 @@ import { resolve } from 'node:path';
 import { ELEMENTS } from '../src/chemistry.js';
 import { createPolymerDrawingInput, readPolymerFragmentSources, validatePolymerFragmentAuthority } from './polymer-fragment-authority.mjs';
 
-export const POLYMER_STRUCTURE_SVG_VERSION = 'task7-2d-v1';
+export const POLYMER_STRUCTURE_SVG_VERSION = 'task8-2d-v4';
 export const POLYMER_STRUCTURE_CANVAS = Object.freeze({ width: 960, height: 540 });
 export const POLYMER_2D_PILOT_IDS = Object.freeze([
   'polyethylene', 'polypropylene', 'polyvinyl-chloride', 'polystyrene',
   'polyethylene-terephthalate', 'nylon-6-6', 'polytetrafluoroethylene',
   'styrene-butadiene-copolymer', 'phenol-formaldehyde-resin'
 ]);
+export const POLYMER_2D_ROLLOUT_IDS = Object.freeze([
+  'ethylene-propylene-copolymer', 'polyisobutylene', 'polychlorotrifluoroethylene',
+  'polyacrylonitrile', 'polyacrylic-acid', 'polyethylene-oxide', 'polyethylene-adipate',
+  'polylactic-acid', 'polyglycolic-acid', 'polyethylene-adipamide',
+  'polybutadiene', 'nitrile-butadiene-rubber', 'polyisoprene', 'butyl-rubber',
+  'polyvinylidene-fluoride', 'vinylidene-fluoride-hexafluoropropylene-copolymer'
+]);
+export const POLYMER_2D_PRODUCTION_IDS = Object.freeze([...POLYMER_2D_PILOT_IDS, ...POLYMER_2D_ROLLOUT_IDS]);
 const pilotSet = new Set(POLYMER_2D_PILOT_IDS);
+const productionSet = new Set(POLYMER_2D_PRODUCTION_IDS);
 const BOND_LENGTH = 44;
+// These hints change only drawing orientation. They preserve authority atom and bond identity.
+const POLYMER_LAYOUT_HINTS = Object.freeze({
+  'vinylidene-fluoride-hexafluoropropylene-copolymer': Object.freeze({
+    branchAngleOffsets: Object.freeze({ 'unit-1.a1': 5 * Math.PI / 6 })
+  })
+});
 const COLORS = Object.freeze({
   ink: '#182b3b', muted: '#536779', paper: '#f8fafc', paperEdge: '#dce5ec',
   continuation: '#007f78', chip: '#e9f2f6', chipText: '#19384a'
@@ -230,7 +245,7 @@ function layoutPhenolNetwork(input, rings, positions) {
   return { networkCenter: vec(0, 0) };
 }
 
-function layoutBranches(input, adjacency, rings, positions) {
+function layoutBranches(input, adjacency, rings, positions, layoutHints = {}) {
   const atomById = new Map(input.atoms.map(atom => [atom.id, atom]));
   const ringByAtom = new Map();
   for (const ring of rings) for (const id of ring.atoms) ringByAtom.set(id, ring);
@@ -242,16 +257,18 @@ function layoutBranches(input, adjacency, rings, positions) {
     const children = adjacency.get(parentId).filter(edge => atomById.get(edge.id).element !== 'H' && !backbone.has(edge.id) && !ringAtoms.has(edge.id) && !positions.has(edge.id));
     if (!children.length) continue;
     let directions;
+    const branchAngleOffset = layoutHints.branchAngleOffsets?.[parentId] ?? 0;
     if (children.length === 2 && atomById.get(parentId).element === 'C') {
       const tangent = adjacency.get(parentId).map(edge => positions.get(edge.id)).find(Boolean) ? unit(sub(parent, adjacency.get(parentId).map(edge => positions.get(edge.id)).find(Boolean))) : vec(1, 0);
-      const n = normal(tangent, -1);
+      const baseNormal = normal(tangent, -1), angle = Math.atan2(baseNormal.y, baseNormal.x) + branchAngleOffset;
+      const n = angleVector(angle);
       directions = [n, mul(n, -1)];
     } else {
       const role = input.sideChains?.some(group => group.atomRefs.includes(children[0].id)) ? 'side-chain' : 'group';
       const ring = ringByAtom.get(parentId);
       const ringCenter = ring?.atoms.map(id => positions.get(id)).reduce((sum, point) => add(sum, point), vec(0, 0));
       const base = ring ? unit(sub(parent, mul(ringCenter, 1 / ring.atoms.length))) : branchDirection(input, adjacency, positions, parentId, role);
-      const angle = Math.atan2(base.y, base.x);
+      const angle = Math.atan2(base.y, base.x) + branchAngleOffset;
       directions = children.map((_, childIndex) => angleVector(angle + (childIndex - (children.length - 1) / 2) * (children.length > 1 ? Math.PI / 3 : 0)));
     }
     children.forEach((child, childIndex) => {
@@ -375,6 +392,8 @@ function rectsOverlap(a, b) {
 }
 
 function collisionCheck(input, layout, labels) {
+  const atomById = new Map(input.atoms.map(atom => [atom.id, atom]));
+  const adjacency = adjacencyFor(input);
   const visible = input.atoms.filter(atom => labels.has(atom.id)).map(atom => ({ id: atom.id, point: layout.positions.get(atom.id), label: labels.get(atom.id) }));
   const collisions = [];
   for (let i = 0; i < visible.length; i++) for (let j = i + 1; j < visible.length; j++) {
@@ -387,6 +406,11 @@ function collisionCheck(input, layout, labels) {
     const halfHeight = label.label.height / 2;
     const rect = { left: label.point.x - halfWidth, right: label.point.x + halfWidth, top: label.point.y - halfHeight, bottom: label.point.y + halfHeight };
     for (const bond of bondByRef) {
+      // Carbon-bound hydrogens are deliberately collapsed into skeletal notation.
+      // Their zero-length SVG bonds are metadata only and cannot collide visually.
+      const isCollapsedCarbonHydrogen = atomRef => atomById.get(atomRef)?.element === 'H'
+        && hydrogenMode(adjacency, atomById, atomRef) === 'implicit-carbon-bound-hydrogen';
+      if (isCollapsedCarbonHydrogen(bond.a) || isCollapsedCarbonHydrogen(bond.b)) continue;
       if (members.has(bond.a) || members.has(bond.b)) continue;
       if (segmentCrossesRect(layout.positions.get(bond.a), layout.positions.get(bond.b), rect)) collisions.push(`${label.id}/bond:${bondRef(bond)}`);
     }
@@ -441,13 +465,13 @@ function qualifierNotes(input) {
   return [...new Set(notes)];
 }
 
-export function createPolymerStructureLayout(input) {
+export function createPolymerStructureLayout(input, { layoutHints = POLYMER_LAYOUT_HINTS[input?.polymerId] ?? {} } = {}) {
   assertValidatedDrawingInput(input);
   try {
     const adjacency = adjacencyFor(input), rings = findAromaticCycles(input, adjacency), positions = new Map();
     if (input.representationType === 'network-junction') layoutPhenolNetwork(input, rings, positions);
     else layoutLinear(input, adjacency, rings, positions);
-    const atomById = layoutBranches(input, adjacency, rings, positions), labels = buildLabels(input, adjacency, atomById);
+    const atomById = layoutBranches(input, adjacency, rings, positions, layoutHints), labels = buildLabels(input, adjacency, atomById);
     const normalized = normalize(input, positions, labels);
     collisionCheck(input, normalized, labels);
     const atomPositions = Object.fromEntries([...normalized.positions].map(([id, point]) => [id, { x: round(point.x), y: round(point.y) }]));
@@ -455,6 +479,7 @@ export function createPolymerStructureLayout(input) {
     const atomMetadata = input.atoms.map(atom => ({ ...atom, display: atom.element === 'H' ? hydrogenMode(adjacency, atomById, atom.id) : labels.has(atom.id) ? labels.get(atom.id).kind : atom.element === 'C' ? 'skeletal-carbon-vertex' : 'implicit-vertex' }));
     return {
       polymerId: input.polymerId, rendererVersion: POLYMER_STRUCTURE_SVG_VERSION, atomPositions,
+      layoutHints: structuredClone(layoutHints),
       ports: normalized.ports.map(port => ({ ...port, origin: { x: round(port.origin.x), y: round(port.origin.y) }, end: { x: round(port.end.x), y: round(port.end.y) }, direction: { x: round(port.direction.x), y: round(port.direction.y) } })),
       rings: rings.map(ring => ({ id: ring.id, atomRefs: [...ring.atoms] })),
       labels: renderedLabels, atomMetadata, bondMetadata: input.bonds.map(bond => ({ ...bond })),
@@ -542,15 +567,32 @@ function annotationLines(input) {
     'この図はReaction LabのPolymerSampleと同一の構造ではありません。'
   ];
   if (input.representationType === 'copolymer-local-motif') {
-    const names = { '1-3-butadiene': 'ブタジエン', styrene: 'スチレン' };
+    const names = {
+      '1-3-butadiene': 'ブタジエン', styrene: 'スチレン',
+      ethene: 'エチレン', propene: 'プロピレン', acrylonitrile: 'アクリロニトリル',
+      isobutene: 'イソブテン', isoprene: 'イソプレン',
+      'vinylidene-fluoride': 'フッ化ビニリデン',
+      hexafluoropropylene: 'ヘキサフルオロプロピレン'
+    };
     const sequence = (input.localSequence?.monomerIds ?? []).map(id => names[id] ?? id).join(' → ');
-    return ['局所配列例：' + sequence, '組成比や配列規則を示しません。cis/trans は未指定です。'];
+    const lines = ['局所配列例：' + sequence, '組成比や配列規則を示しません。'];
+    const q = input.qualifiers ?? {};
+    if (q.cisTrans === 'unspecified' && q.dieneMicrostructure === 'varies' && q.vulcanization === 'not-represented') lines.push('ジエンのcis/trans・微細構造は未指定または多様。加硫・架橋状態は図示していません。');
+    else if (q.cisTrans === 'unspecified' && q.vulcanization === 'not-represented') lines.push('cis/trans は未指定。加硫・架橋状態は図示していません。');
+    else if (q.cisTrans === 'unspecified') lines.push('cis/trans は未指定です。');
+    else if (q.vulcanization === 'not-represented') lines.push('加硫・架橋状態は図示していません。');
+    else if (q.regiochemistry === 'varies') lines.push('結合の向きや配向規則を特定しません。');
+    return lines.slice(0, 3);
   }
   const lines = ['反復単位 · n は同じ単位の繰り返しを示す'];
   if (input.polymerId === 'polystyrene') lines.push('フェニル環は主鎖に結合した側鎖');
   if ((input.componentGroups?.length ?? 0) > 1) for (const group of input.componentGroups.slice(0, 2)) lines.push(labelJa[group.label] ?? group.label);
-  if (input.qualifiers?.stereochemistry?.status === 'unspecified') lines.push('立体化学は未指定');
+  if (input.qualifiers?.cisTrans === 'unspecified' && input.qualifiers?.vulcanization === 'not-represented') lines.push('cis/trans・ジエン微細構造は未指定または多様。加硫・架橋状態は図示していません');
+  else if (input.qualifiers?.cisTrans === 'unspecified' || input.qualifiers?.dieneMicrostructure === 'varies') lines.push('cis/trans・ジエン微細構造は未指定または多様');
+  else if (input.qualifiers?.stereochemistry?.status === 'unspecified') lines.push('立体化学は未指定');
   else if (input.qualifiers?.tacticity === 'not-asserted') lines.push('立体配置を特定しない');
+  if (input.qualifiers?.regiochemistry === 'varies') lines.push('主鎖の配向規則を特定しない');
+  if (input.qualifiers?.vulcanization === 'not-represented') lines.push('加硫・架橋状態は図示していません');
   return [...new Set(lines)].slice(0, 3);
 }
 
@@ -570,6 +612,7 @@ function provenanceMetadata(input, layout) {
     atoms: layout.atomMetadata.map(atom => ({ id: atom.id, element: atom.element, role: atom.role, display: atom.display, source: atom.source, point: layout.atomPositions[atom.id] })),
     bonds: layout.bondMetadata, backboneAtomRefs: input.backboneAtomRefs, junctionAtomRefs: input.junctionAtomRefs,
     repeatGroups: input.repeatGroups, componentGroups: input.componentGroups, sideChains: input.sideChains,
+    layoutHints: layout.layoutHints,
     functionalGroups: input.functionalGroups, continuationPorts: input.continuationPorts, repeatClosure: input.repeatClosure,
     localSequence: input.localSequence, qualifiers: input.qualifiers, caveats: input.caveats
   };
@@ -627,13 +670,22 @@ export function validatePolymerStructureSvg(svg, input) {
   if (atomRefs.length !== expected.length || atomRefs.some((id, index) => id !== expected[index])) reject('Visible heavy-atom mapping differs from the validated graph.');
   const expectedH = input.atoms.filter(atom => atom.element === 'H').map(atom => atom.id).sort();
   if (expectedH.some(id => !svg.includes(`&quot;id&quot;:&quot;${escapeXml(id)}&quot;,&quot;element&quot;:&quot;H&quot;`))) reject('Explicit hydrogens are not preserved in authority metadata.');
-  const bonds = [...svg.matchAll(/class="bond" data-bond-ref="([^"]+)"[^>]*data-bond-order="([123])"/g)].map(match => [match[1], Number(match[2])]);
-  if (bonds.length !== input.bonds.length || input.bonds.some(bond => !bonds.some(([ref, order]) => ref === bondRef(bond) && order === bond.order))) reject('Bond identity or order differs from the validated graph.');
+  const bonds = [...svg.matchAll(/<g class="bond" data-bond-ref="([^"]+)"[^>]*data-bond-order="([123])">([\s\S]*?)<\/g>/g)].map(match => ({ ref: match[1], order: Number(match[2]), paths: [...match[3].matchAll(/<path\b/g)].length }));
+  if (bonds.length !== input.bonds.length || input.bonds.some(bond => bonds.filter(rendered => rendered.ref === bondRef(bond) && rendered.order === bond.order && rendered.paths === bond.order).length !== 1)) reject('Bond identity, order, or visible bond-line count differs from the validated graph.');
+  const annotations = [...svg.matchAll(/<text class="annotation(?: primary)?"[^>]*>([\s\S]*?)<\/text>/g)].map(match => match[1]);
+  const annotationText = annotations.join(' ');
   if (input.representationType === 'linear-repeat') {
     if (!svg.includes('class="repeat-bracket"') || !svg.includes('data-repeat-count-notation="true"')) reject('A linear repeat requires its bracket and n notation.');
     for (const port of input.continuationPorts) if (!svg.includes(`data-port-id="${port.id}"`) || !svg.includes(`data-port-label-for="${port.id}"`)) reject(`Continuation port ${port.id} or its visible label is missing.`);
   } else if (svg.includes('data-repeat-count-notation="true"')) reject('A copolymer or network cannot claim a fixed repeat count.');
-  if (input.representationType === 'copolymer-local-motif' && (!svg.includes('局所配列例') || !svg.includes('組成比や配列規則を示しません'))) reject('The local-sequence and non-asserted composition caveat is required.');
+  if (input.representationType === 'copolymer-local-motif') {
+    if (!annotationText.includes('局所配列例') || !annotationText.includes('組成比や配列規則を示しません')) reject('The local-sequence and non-asserted composition caveat is required.');
+    if (/\b\d{1,3}\s*:\s*\d{1,3}\b|組成比.{0,24}\d/.test(annotationText)) reject('A local copolymer example cannot claim a bulk composition ratio.');
+  }
+  if (input.qualifiers?.cisTrans === 'unspecified' && !annotationText.includes('cis/trans')) reject('The authority-required cis/trans caveat is missing.');
+  if (input.qualifiers?.cisTrans !== 'unspecified' && annotationText.includes('cis/trans')) reject('A cis/trans caveat cannot be shown when the authority does not mark it unspecified.');
+  if (input.qualifiers?.regiochemistry === 'varies' && !/配向規則.{0,6}特定/.test(annotationText)) reject('The authority-required regiochemistry caveat is missing.');
+  if (input.qualifiers?.vulcanization === 'not-represented' && !annotationText.includes('加硫・架橋状態は図示していません')) reject('The authority-required vulcanization caveat is missing.');
   if (input.representationType === 'network-junction') {
     if ((svg.match(/class="continuation-port"/g) ?? []).length !== 3) reject('The approved network motif requires three continuation ports.');
     for (const port of input.continuationPorts) if (!svg.includes(`data-port-id="${port.id}"`) || !svg.includes(`data-port-label-for="${port.id}"`)) reject(`Network port ${port.id} or its visible label is missing.`);
@@ -643,7 +695,7 @@ export function validatePolymerStructureSvg(svg, input) {
   return { ok: true, polymerId: input.polymerId, atoms: input.atoms.length, bonds: input.bonds.length, visibleBondLines: input.bonds.reduce((sum, bond) => sum + bond.order, 0) };
 }
 
-export async function generatePolymerStructureAssets({ root, polymerIds = POLYMER_2D_PILOT_IDS, outputDirectory = 'assets/models' } = {}) {
+export async function generatePolymerStructureAssets({ root, polymerIds = POLYMER_2D_PRODUCTION_IDS, outputDirectory = 'assets/models' } = {}) {
   const projectRoot = resolve(root ?? new URL('..', import.meta.url).pathname);
   const { authority, sources } = await readPolymerFragmentSources(projectRoot);
   const checked = validatePolymerFragmentAuthority(authority, sources);
@@ -655,7 +707,7 @@ export async function generatePolymerStructureAssets({ root, polymerIds = POLYME
   if (ids.length !== polymerIds.length) throw new Error('Duplicate polymer ID in the requested asset set.');
   for (const id of ids) {
     try {
-      if (!pilotSet.has(id)) throw new Error('Only the nine Task⑦ pilot IDs may be replaced by this production pipeline.');
+      if (!productionSet.has(id)) throw new Error('Requested polymer is not in the validated 25-polymer production asset set.');
       const input = createPolymerDrawingInput(authority, id, sources);
       if (input.validation?.status !== 'passed') throw new Error('Task⑥ drawing input did not pass validation.');
       const record = sources.polymers.find(polymer => polymer.id === id);
@@ -670,3 +722,5 @@ export async function generatePolymerStructureAssets({ root, polymerIds = POLYME
 }
 
 export function isPolymer2DPilot(polymerId) { return pilotSet.has(polymerId); }
+
+export function isPolymer2DProduction(polymerId) { return productionSet.has(polymerId); }

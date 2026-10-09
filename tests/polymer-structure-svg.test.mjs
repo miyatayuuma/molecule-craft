@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { ELEMENTS } from '../src/chemistry.js';
 import {
-  POLYMER_2D_PILOT_IDS, POLYMER_STRUCTURE_SVG_VERSION, createPolymerStructureLayout,
+  POLYMER_2D_PILOT_IDS, POLYMER_2D_ROLLOUT_IDS, POLYMER_2D_PRODUCTION_IDS, POLYMER_STRUCTURE_SVG_VERSION, createPolymerStructureLayout,
   generatePolymerStructureAssets, renderPolymerStructureSvg, validatePolymerStructureSvg
 } from '../scripts/polymer-structure-svg.mjs';
 import { createPolymerDrawingInput, readPolymerFragmentSources, validatePolymerFragmentAuthority } from '../scripts/polymer-fragment-authority.mjs';
@@ -105,6 +105,31 @@ test('linear aromatic polyester polyamide and fluorinated structures retain thei
   assert.match(nylon, /ヘキサメチレンジアミン残基/);
   assert.equal((nylon.match(/data-display="heteroatom-group"/g) || []).length, 2);
   assert.ok((nylon.match(/data-bond-order="2"/g) || []).length >= 2);
+  const pan = renderFor('polyacrylonitrile').svg;
+  assert.equal((pan.match(/data-bond-order="3"/g) || []).length, 1, 'PAN must retain its nitrile C≡N');
+  assert.ok([...pan.matchAll(/<g class="bond"[^>]*data-bond-order="3">([\s\S]*?)<\/g>/g)][0][1].includes('<path'));
+  assert.equal([...pan.matchAll(/<g class="bond"[^>]*data-bond-order="3">([\s\S]*?)<\/g>/g)][0][1].match(/<path\b/g).length, 3);
+  assert.match(renderFor('polyethylene-oxide').svg, /data-element="O"/);
+  const paa = renderFor('polyacrylic-acid').svg;
+  assert.match(paa, />OH<\/text>/, 'polyacrylic acid must show the carboxyl hydroxyl');
+  assert.match(paa, /data-bond-order="2"/, 'polyacrylic acid must show its carbonyl');
+  const pea = renderFor('polyethylene-adipate').svg;
+  assert.ok((pea.match(/data-bond-order="2"/g) || []).length >= 2, 'polyester must retain both carbonyl double bonds');
+  assert.ok((pea.match(/data-element="O"/g) || []).length >= 4, 'polyester must map ester and hydroxyl-derived oxygen atoms');
+  const peamide = renderFor('polyethylene-adipamide').svg;
+  assert.match(peamide, /data-element="N"/, 'polyamide must retain its amide nitrogens');
+  assert.ok((peamide.match(/data-bond-order="2"/g) || []).length >= 2, 'polyamide must retain carbonyl double bonds');
+  const pctfe = renderFor('polychlorotrifluoroethylene').svg;
+  assert.equal((pctfe.match(/data-element="F"/g) || []).length, 3);
+  assert.equal((pctfe.match(/data-element="Cl"/g) || []).length, 1);
+  const vdfHfp = inputFor('vinylidene-fluoride-hexafluoropropylene-copolymer');
+  const vdfHfpLayout = createPolymerStructureLayout(vdfHfp);
+  assert.equal(vdfHfpLayout.layoutHints.branchAngleOffsets['unit-1.a1'], 5 * Math.PI / 6);
+  assert.throws(() => createPolymerStructureLayout(vdfHfp, { layoutHints: {} }), /Atom label collision/, 'the F-label/backbone overlaps must remain a hard failure without the drawing-only orientation hint');
+  assert.equal(vdfHfp.bonds.filter(bond => bond.a.startsWith('unit-1.') || bond.b.startsWith('unit-1.')).length, 10, 'layout hints cannot remove or add source bonds');
+  for (const id of ['polybutadiene', 'polyisoprene', 'nitrile-butadiene-rubber', 'butyl-rubber']) {
+    assert.match(renderFor(id).svg, /data-bond-order="2"/, id + ' must show residual diene C=C');
+  }
 });
 
 test('SBR stays a local sequence example without a fixed repeat or composition ratio', () => {
@@ -115,7 +140,7 @@ test('SBR stays a local sequence example without a fixed repeat or composition r
   assert.doesNotMatch(svg, /class="repeat-bracket"|data-repeat-count-notation/);
   assert.match(svg, /局所配列例：ブタジエン → スチレン → ブタジエン/);
   assert.match(svg, /組成比や配列規則を示しません/);
-  assert.match(svg, /cis\/trans は未指定です/);
+  assert.match(svg, /ジエンのcis\/trans・微細構造は未指定または多様/);
   assert.match(svg, /data-bond-order="2"/);
 });
 
@@ -145,6 +170,8 @@ test('negative gates reject unvalidated graphs false qualifiers invalid ports an
   const base = inputFor('polyethylene');
   const failed = structuredClone(base); failed.validation.status = 'failed';
   assert.throws(() => renderPolymerStructureSvg(failed), /AUTHORITY_NOT_VALIDATED/);
+  const duplicateAtom = structuredClone(base); duplicateAtom.atoms[1].id = duplicateAtom.atoms[0].id;
+  assert.throws(() => createPolymerStructureLayout(duplicateAtom), /ATOM_ID/);
   const badOrder = structuredClone(base); badOrder.bonds[0].order = 4;
   assert.throws(() => createPolymerStructureLayout(badOrder), /BOND_ORDER/);
   const missingAtom = structuredClone(base); missingAtom.bonds[0].a = 'missing.atom';
@@ -165,16 +192,50 @@ test('negative gates reject unvalidated graphs false qualifiers invalid ports an
   const layout = createPolymerStructureLayout(base); layout._positions.set('repeat.a0', { x: 1000, y: 80 });
   assert.throws(() => renderPolymerStructureSvg(base, { layout }), /DRAWING_BOUNDS/);
   const svg = renderFor('polyethylene').svg;
+  const firstBond = svg.match(/<g class="bond" data-bond-ref="[^"]+"[^>]*>[\s\S]*?<\/g>/)?.[0];
+  assert.ok(firstBond);
+  assert.throws(() => validatePolymerStructureSvg(svg.replace(firstBond, ''), base), /Bond identity, order, or visible bond-line count/);
+  const badRenderedOrder = svg.replace(/data-bond-order="1"/, 'data-bond-order="2"');
+  assert.throws(() => validatePolymerStructureSvg(badRenderedOrder, base), /Bond identity, order, or visible bond-line count/);
+  const noRepeat = svg.replace(/<g class="repeat-bracket"[\s\S]*?<\/g>/, '').replace(/<text class="repeat-n"[\s\S]*?<\/text>/, '');
+  assert.throws(() => validatePolymerStructureSvg(noRepeat, base), /repeat requires its bracket/);
+  const ethylenePropylene = inputFor('ethylene-propylene-copolymer');
+  const falseCisTrans = renderPolymerStructureSvg(ethylenePropylene).replace('</svg>', '<text class="annotation">cis/trans は未指定です。</text></svg>');
+  assert.throws(() => validatePolymerStructureSvg(falseCisTrans, ethylenePropylene), /cis\/trans caveat cannot be shown/);
+  const sbrInput = inputFor('styrene-butadiene-copolymer');
+  const falseRatio = renderFor('styrene-butadiene-copolymer').svg.replace('組成比や配列規則を示しません。', '組成比 50:50 を示します。');
+  assert.throws(() => validatePolymerStructureSvg(falseRatio, sbrInput), /non-asserted composition caveat/);
   assert.throws(() => validatePolymerStructureSvg(svg + '<image href="https://example.test/a.png"/>', base), /External or embedded SVG dependencies/);
   assert.throws(() => validatePolymerStructureSvg(svg.replace(/<title[\s\S]*?<\/title>/, ''), base), /Accessible title and description/);
   assert.throws(() => validatePolymerStructureSvg(svg.replace('<g class="chemical-bonds"', '<g data-invalid="\u0000" class="chemical-bonds"'), base), /XML 1.0 forbidden control characters/);
 });
 
-test('production asset generator is restricted to the nine approved pilot paths', async () => {
+test('production asset generator covers all 25 validated polymer paths', async () => {
   const root = new URL('..', import.meta.url).pathname;
   const result = await generatePolymerStructureAssets({ root });
   assert.equal(result.authorityCount, 25);
-  assert.deepEqual(result.generated, POLYMER_2D_PILOT_IDS);
+  assert.deepEqual(result.generated, POLYMER_2D_PRODUCTION_IDS);
   assert.equal(result.generatorVersion, POLYMER_STRUCTURE_SVG_VERSION);
-  await assert.rejects(() => generatePolymerStructureAssets({ root, polymerIds: ['polyethylene', 'polybutadiene'] }), /polybutadiene.*nine Task/);
+  assert.equal(POLYMER_2D_ROLLOUT_IDS.length, 16);
+  assert.equal(new Set(POLYMER_2D_PRODUCTION_IDS).size, 25);
+  assert.deepEqual(new Set(POLYMER_2D_PRODUCTION_IDS), new Set(sources.polymers.map(record => record.id)));
+  await assert.rejects(() => generatePolymerStructureAssets({ root, polymerIds: ['polyethylene', 'not-cataloged'] }), /not-cataloged.*validated 25-polymer/);
+});
+
+test('Task⑧: all 16 rollout diagrams preserve source-mapped chemistry and caveats', () => {
+  for (const id of POLYMER_2D_ROLLOUT_IDS) {
+    const { input, svg } = renderFor(id);
+    assert.equal(input.validation.status, 'passed', id);
+    assert.equal(validatePolymerStructureSvg(svg, input).atoms, input.atoms.length, id);
+    assert.equal((svg.match(/class="continuation-port"/g) ?? []).length, input.continuationPorts.length, id);
+    assert.match(svg, /data-structure-source-commit=/, id);
+    assert.match(svg, /aria-labelledby="polymer-title polymer-description"/, id);
+    assert.equal(renderFor(id).svg, svg, id + ' byte deterministic');
+    if (input.representationType === 'copolymer-local-motif') {
+      assert.match(svg, /組成比や配列規則を示しません/, id);
+      assert.doesNotMatch(svg, /data-repeat-count-notation="true"/, id);
+    } else if (input.representationType === 'linear-repeat') {
+      assert.match(svg, /data-repeat-count-notation="true"/, id);
+    }
+  }
 });
