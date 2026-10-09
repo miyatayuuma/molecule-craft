@@ -361,6 +361,8 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const visual=el('div',null,'collection-model');visual.dataset.registrationVisual='true';
     const stage=el('div',null,'model-stage'),image=document.createElement('img');image.className='polymer-detail-visual';image.src=new URL(`../assets/models/polymer-${id}.svg`,import.meta.url).href;image.alt=`${record.nameJa}の代表構造`;image.decoding='async';stage.append(image);visual.append(stage);detail.append(visual);
     detail.append(chemistryParagraph(content.description,'dex-description'));
+    const learning=section('構造・物性・用途');learning.classList.add('polymer-education');learning.open=true;
+    for(const [title,field] of [['この図の読み方','structure'],['構造が物性に影響する理由','property'],['代表的な用途','applications'],['この図だけでは分からないこと','limits']])learning.append(chemistryHeading(title),chemistryParagraph(content.education[field]));
     renderEngineering(id);
     const formationName=({addition:'付加重合',copolymerization:'共重合', 'ring-opening':'開環重合',polycondensation:'縮合重合','condensation-network':'縮合による網目形成'})[record.formation]??record.formation;
     const topologyName=({linear:'線状',copolymer:'共重合体',network:'網目状'})[record.topology]??record.topology;

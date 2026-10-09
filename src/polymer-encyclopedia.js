@@ -1,5 +1,6 @@
-const UNKNOWN_ENTRY=Object.freeze({known:false,nameJa:'???',nameEn:'???',details:null,description:null,concepts:null});
+const UNKNOWN_ENTRY=Object.freeze({known:false,nameJa:'???',nameEn:'???',details:null,description:null,education:null,concepts:null});
 const CONCEPTS=new Set(['addition-polymerization','copolymerization','ring-opening-polymerization','polycondensation','network-polymerization','repeat-unit']);
+const EDUCATION_FIELDS=['structure','property','applications','limits'];
 
 export function createPolymerEncyclopediaModel(records,content,{knownIds=[]}={}){
   if(!Array.isArray(records)||!Array.isArray(content))throw new Error('Polymer encyclopedia requires catalog and content records.');
@@ -8,6 +9,7 @@ export function createPolymerEncyclopediaModel(records,content,{knownIds=[]}={})
   for(const [index,entry] of content.entries()){
     if(entry.number!==index+1||typeof entry.description!=='string'||!entry.description.trim()||!Array.isArray(entry.details)||!entry.details.length||!Array.isArray(entry.concepts)||entry.concepts.some(concept=>!CONCEPTS.has(concept)))throw new Error(`Invalid polymer encyclopedia content: ${entry.id}`);
     if(entry.details.some(detail=>typeof detail.title!=='string'||!detail.title.trim()||typeof detail.body!=='string'||!detail.body.trim()))throw new Error(`Invalid polymer encyclopedia detail: ${entry.id}`);
+    if(!entry.education||EDUCATION_FIELDS.some(field=>typeof entry.education[field]!=='string'||!entry.education[field].trim()))throw new Error(`Invalid polymer encyclopedia education: ${entry.id}`);
   }
   const known=new Set(knownIds);
   const publicEntry=record=>known.has(record.id)?Object.freeze({...record,...contentById.get(record.id),known:true}):Object.freeze({id:record.id,...UNKNOWN_ENTRY});
