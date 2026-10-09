@@ -207,6 +207,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function suspendPolymerVisual(){
     const visual=polymerGraphVisual;if(!visual||visual.suspended)return false;
+    visual.suspendedTransform={position:visual.group.position.clone(),quaternion:visual.group.quaternion.clone(),scale:visual.group.scale.clone()};
     const atomMeshes=[...visual.atomMeshesByOrigin.values()];disposePolymerResources(visual.group,atomMeshes);
     visual.group=new THREE.Group();visual.atomByGraphIndex.clear();visual.bondMeshes=[];visual.suspended=true;return true;
   }
@@ -247,6 +248,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const atoms=visual.graph.atoms??[],origins=visual.graph.atomOrigins??[];if(atoms.length!==origins.length||atoms.length!==visual.layoutPlan.atoms.length)return false;
     const meshes=origins.map(origin=>visual.atomMeshesByOrigin.get(polymerOriginKey(origin)));if(meshes.some(mesh=>!mesh))return false;
     visual.group=new THREE.Group();visual.atomByGraphIndex.clear();visual.bondMeshes=[];
+    if(visual.suspendedTransform){visual.group.position.copy(visual.suspendedTransform.position);visual.group.quaternion.copy(visual.suspendedTransform.quaternion);visual.group.scale.copy(visual.suspendedTransform.scale);visual.suspendedTransform=null;}
     for(let index=0;index<atoms.length;index++){
       const mesh=meshes[index],atom=atoms[index];
       mesh.geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),16,12);
