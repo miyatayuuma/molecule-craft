@@ -21,8 +21,15 @@ const server=createServer(async(req,res)=>{
       res.end(fixtureHtml);return;
     }
     if(pathname==='/__task8_contact_sheet__'){
-      const cards=polymerIds.map(id=>'<article><h2>'+id+'</h2><div class="pair"><figure><figcaption>390 × 844</figcaption><img src="/test-results/task8-polymer-visual-qa/'+id+'-mobile-model.png" alt="'+id+' mobile"></figure><figure><figcaption>1280 × 900</figcaption><img src="/test-results/task8-polymer-visual-qa/'+id+'-desktop-model.png" alt="'+id+' desktop"></figure></div></article>').join('');
-      const sheet='<!doctype html><html lang="en"><meta charset="utf-8"><title>Task8 polymer visual QA</title><style>html,body{margin:0;background:#07131e;color:#f2f7fa;font:18px/1.4 sans-serif}main{width:1420px;margin:0 auto;padding:12px}h1{font-size:25px;margin:0 0 10px}article{display:grid;grid-template-columns:250px 1fr;align-items:start;border-top:1px solid #526777;padding:8px 0;min-height:215px}h2{font:700 17px/1.3 ui-monospace,monospace;margin:8px 10px 0 0;overflow-wrap:anywhere}.pair{display:grid;grid-template-columns:390px 760px;gap:12px}figure{margin:0;background:#122638;border-radius:8px;overflow:hidden}figcaption{padding:3px 8px;color:#d8e7ef;font-size:14px}img{display:block;width:100%;height:auto;object-fit:contain}body>main>p{margin:0 0 8px;color:#c5d6e0;font-size:14px}</style><main><h1>Task8 Collection detail visual QA</h1><p>Rendered from the actual Collection detail screen; original mobile and desktop viewport screenshots are saved separately.</p>'+cards+'</main></html>';
+      const requestUrl=new URL(req.url,'http://localhost');
+      const start=Math.max(0,Number(requestUrl.searchParams.get('start')??0));
+      const variant=requestUrl.searchParams.get('variant')==='screens'?'screens':'structures';
+      const ids=polymerIds.slice(start,start+5);
+      const widths=variant==='screens'?['195px','320px']:['390px','760px'];
+      const firstSuffix=variant==='screens'?'-mobile.png':'-mobile-model.png';
+      const secondSuffix=variant==='screens'?'-desktop.png':'-desktop-model.png';
+      const cards=ids.map(id=>'<article><h2>'+id+'</h2><div class="pair"><figure><figcaption>390 × 844</figcaption><img src="/test-results/task8-polymer-visual-qa/'+id+firstSuffix+'" alt="'+id+' mobile '+variant+'"></figure><figure><figcaption>1280 × 900</figcaption><img src="/test-results/task8-polymer-visual-qa/'+id+secondSuffix+'" alt="'+id+' desktop '+variant+'"></figure></div></article>').join('');
+      const sheet='<!doctype html><html lang="en"><meta charset="utf-8"><title>Task8 polymer visual QA</title><style>html,body{margin:0;background:#07131e;color:#f2f7fa;font:18px/1.4 sans-serif}main{width:'+(variant==='screens'?'990px':'1420px')+';margin:0 auto;padding:12px}h1{font-size:25px;margin:0 0 10px}article{display:grid;grid-template-columns:'+(variant==='screens'?'190px 1fr':'250px 1fr')+';align-items:start;border-top:1px solid #526777;padding:8px 0;min-height:215px}h2{font:700 17px/1.3 ui-monospace,monospace;margin:8px 10px 0 0;overflow-wrap:anywhere}.pair{display:grid;grid-template-columns:'+widths.join(' ')+';gap:12px}figure{margin:0;background:#122638;border-radius:8px;overflow:hidden}figcaption{padding:3px 8px;color:#d8e7ef;font-size:14px}img{display:block;width:100%;height:auto;object-fit:contain}body>main>p{margin:0 0 8px;color:#c5d6e0;font-size:14px}</style><main><h1>Task8 Collection detail '+variant+' · entries '+(start+1)+'–'+Math.min(start+ids.length,polymerIds.length)+'</h1><p>Rendered from the actual Collection detail screen; original mobile and desktop viewport screenshots are saved separately.</p>'+cards+'</main></html>';
       res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
       res.end(sheet);return;
     }
@@ -137,19 +144,23 @@ try{
       await pause(80);
     }
   }
-  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:12000,deviceScaleFactor:1,mobile:false});
-  await send('Page.navigate',{url:'http://127.0.0.1:'+port+'/__task8_contact_sheet__'});
-  await waitFor('document.images.length===2*'+polymerIds.length+'&&[...document.images].every(image=>image.complete&&image.naturalWidth>0)','Task8 visual contact sheet images did not load');
-  const preview=await send('Page.captureScreenshot',{format:'jpeg',quality:65,fromSurface:true,captureBeyondViewport:true});
-  const previewPath=join(output,'task8-collection-detail-contact-sheet.jpg');
-  await writeFile(previewPath,Buffer.from(preview.data,'base64'));
-  if(process.env.TASK8_EXPORT_VISUAL_QA==='1'){
-    const chunks=preview.data.match(/.{1,48000}/g)??[];
-    console.log('TASK8_VISUAL_QA_CONTACT_SHEET_BASE64_BEGIN '+chunks.length);
-    chunks.forEach((chunk,index)=>console.log('TASK8_VISUAL_QA_CONTACT_SHEET_CHUNK:'+index+':'+chunk));
-    console.log('TASK8_VISUAL_QA_CONTACT_SHEET_BASE64_END');
+  const contactSheets=[];
+  for(const variant of ['structures','screens']) for(let start=0;start<polymerIds.length;start+=5){
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:2700,deviceScaleFactor:1,mobile:false});
+    await send('Page.navigate',{url:'http://127.0.0.1:'+port+'/__task8_contact_sheet__?variant='+variant+'&start='+start});
+    await waitFor('document.images.length===10&&[...document.images].every(image=>image.complete&&image.naturalWidth>0)','Task8 '+variant+' contact sheet images did not load');
+    const preview=await send('Page.captureScreenshot',{format:'jpeg',quality:72,fromSurface:true,captureBeyondViewport:true});
+    const pathName='task8-'+variant+'-contact-sheet-'+String(start/5+1).padStart(2,'0')+'.jpg';
+    await writeFile(join(output,pathName),Buffer.from(preview.data,'base64'));
+    contactSheets.push({variant,firstPolymer:polymerIds[start],lastPolymer:polymerIds[Math.min(start+4,polymerIds.length-1)],path:pathName});
+    if(process.env.TASK8_EXPORT_VISUAL_QA==='1'){
+      const chunks=preview.data.match(/.{1,48000}/g)??[];
+      console.log('TASK8_VISUAL_QA_SHEET_BEGIN:'+pathName+':'+chunks.length);
+      chunks.forEach((chunk,index)=>console.log('TASK8_VISUAL_QA_SHEET_CHUNK:'+pathName+':'+index+':'+chunk));
+      console.log('TASK8_VISUAL_QA_SHEET_END:'+pathName);
+    }
   }
-  const manifest={viewports,polymerIds,screenshots:polymerIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'.png')),modelCrops:polymerIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'-model.png')),contactSheet:'task8-collection-detail-contact-sheet.jpg',source:'Collection detail screen rendered in headless Chromium from this checkout'};
+  const manifest={viewports,polymerIds,screenshots:polymerIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'.png')),modelCrops:polymerIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'-model.png')),contactSheets,source:'Collection detail screen rendered in headless Chromium from this checkout'};
   await writeFile(join(output,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 }finally{
   try{socket?.close();}catch{}
