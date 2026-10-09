@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { ELEMENTS } from '../src/chemistry.js';
 import { createPolymerDrawingInput, readPolymerFragmentSources, validatePolymerFragmentAuthority } from './polymer-fragment-authority.mjs';
 
-export const POLYMER_STRUCTURE_SVG_VERSION = 'task8-2d-v3';
+export const POLYMER_STRUCTURE_SVG_VERSION = 'task8-2d-v4';
 export const POLYMER_STRUCTURE_CANVAS = Object.freeze({ width: 960, height: 540 });
 export const POLYMER_2D_PILOT_IDS = Object.freeze([
   'polyethylene', 'polypropylene', 'polyvinyl-chloride', 'polystyrene',
@@ -24,7 +24,7 @@ const BOND_LENGTH = 44;
 // These hints change only drawing orientation. They preserve authority atom and bond identity.
 const POLYMER_LAYOUT_HINTS = Object.freeze({
   'vinylidene-fluoride-hexafluoropropylene-copolymer': Object.freeze({
-    branchAngleOffsets: Object.freeze({ 'unit-1.a1': Math.PI / 3 })
+    branchAngleOffsets: Object.freeze({ 'unit-1.a1': 5 * Math.PI / 6 })
   })
 });
 const COLORS = Object.freeze({
