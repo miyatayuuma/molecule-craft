@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {POLYMER_2D_PRODUCTION_IDS} from '../scripts/polymer-structure-svg.mjs';
 
-const pilotIds=POLYMER_2D_PRODUCTION_IDS;
+const polymerIds=POLYMER_2D_PRODUCTION_IDS;
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const output=join(root,'test-results','task8-polymer-visual-qa');
 const indexHtml=await readFile(join(root,'index.html'),'utf8');
@@ -21,8 +21,8 @@ const server=createServer(async(req,res)=>{
       res.end(fixtureHtml);return;
     }
     if(pathname==='/__task8_contact_sheet__'){
-      const cards=pilotIds.map(id=>'<article><h2>'+id+'</h2><div class="pair"><figure><figcaption>390 × 844</figcaption><img src="/test-results/task8-polymer-visual-qa/'+id+'-mobile-model.png" alt="'+id+' mobile"></figure><figure><figcaption>1280 × 900</figcaption><img src="/test-results/task8-polymer-visual-qa/'+id+'-desktop-model.png" alt="'+id+' desktop"></figure></div></article>').join('');
-      const sheet='<!doctype html><html lang="en"><meta charset="utf-8"><title>Task8 polymer visual QA</title><style>html,body{margin:0;background:#07131e;color:#f2f7fa;font:18px/1.4 sans-serif}main{width:1420px;margin:0 auto;padding:12px}h1{font-size:25px;margin:0 0 10px}article{display:grid;grid-template-columns:250px 1fr;align-items:start;border-top:1px solid #526777;padding:8px 0;min-height:215px}h2{font:700 17px/1.3 ui-monospace,monospace;margin:8px 10px 0 0;overflow-wrap:anywhere}.pair{display:grid;grid-template-columns:390px 760px;gap:12px}figure{margin:0;background:#122638;border-radius:8px;overflow:hidden}figcaption{padding:3px 8px;color:#d8e7ef;font-size:14px}img{display:block;width:100%;height:auto;object-fit:contain}body>main>p{margin:0 0 8px;color:#c5d6e0;font-size:14px}</style><main><h1>Task8 Collection detail visual crops</h1><p>Rendered from the actual Collection detail screen; original mobile and desktop viewport screenshots are saved separately.</p>'+cards+'</main></html>';
+      const cards=polymerIds.map(id=>'<article><h2>'+id+'</h2><div class="pair"><figure><figcaption>390 × 844</figcaption><img src="/test-results/task8-polymer-visual-qa/'+id+'-mobile-model.png" alt="'+id+' mobile"></figure><figure><figcaption>1280 × 900</figcaption><img src="/test-results/task8-polymer-visual-qa/'+id+'-desktop-model.png" alt="'+id+' desktop"></figure></div></article>').join('');
+      const sheet='<!doctype html><html lang="en"><meta charset="utf-8"><title>Task8 polymer visual QA</title><style>html,body{margin:0;background:#07131e;color:#f2f7fa;font:18px/1.4 sans-serif}main{width:1420px;margin:0 auto;padding:12px}h1{font-size:25px;margin:0 0 10px}article{display:grid;grid-template-columns:250px 1fr;align-items:start;border-top:1px solid #526777;padding:8px 0;min-height:215px}h2{font:700 17px/1.3 ui-monospace,monospace;margin:8px 10px 0 0;overflow-wrap:anywhere}.pair{display:grid;grid-template-columns:390px 760px;gap:12px}figure{margin:0;background:#122638;border-radius:8px;overflow:hidden}figcaption{padding:3px 8px;color:#d8e7ef;font-size:14px}img{display:block;width:100%;height:auto;object-fit:contain}body>main>p{margin:0 0 8px;color:#c5d6e0;font-size:14px}</style><main><h1>Task8 Collection detail visual QA</h1><p>Rendered from the actual Collection detail screen; original mobile and desktop viewport screenshots are saved separately.</p>'+cards+'</main></html>';
       res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
       res.end(sheet);return;
     }
@@ -36,15 +36,15 @@ const server=createServer(async(req,res)=>{
     if(!res.writableEnded)res.end('not found');
   }
 });
-await mkdir(output,{recursive:true});
-await new Promise(done=>server.listen(0,'127.0.0.1',done));
-const port=server.address().port;
 let chrome=process.env.CHROMIUM_PATH??'';
 if(!chrome)for(const command of ['google-chrome','chromium','chromium-browser']){
   const found=spawnSync('which',[command],{encoding:'utf8'});
   if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}
 }
 assert.ok(chrome,'A Chromium browser is required for Task8 Collection visual QA');
+await mkdir(output,{recursive:true});
+await new Promise(done=>server.listen(0,'127.0.0.1',done));
+const port=server.address().port;
 const profile=await mkdtemp(join(tmpdir(),'molecule-craft-task8-'));
 const debugPort=9367,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let child=null,socket=null;
@@ -98,7 +98,7 @@ try{
   await send('Runtime.enable');await send('Page.enable');
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await send('Page.navigate',{url:'http://127.0.0.1:'+port+'/__task8_collection__'});
-  const bootstrap="(async()=>{const chemistry=await import('/src/chemistry.js?v=20'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return{ok:false};const [polymerRecords,polymerContent,routeAuthority]=await Promise.all(['/data/polymers.json','/data/polymer-encyclopedia.json','/data/polymerization-routes.json'].map(path=>fetch(path).then(response=>response.json())));const moleculeSave={schemaVersion:3,discoveredMolecules:[{id:'water',at:1,order:1}],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]},values=new Map([['molecule-craft.collection.v1',JSON.stringify(moleculeSave)]]),storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value)),removeItem:key=>values.delete(key)};const {createCollectionUI}=await import('/src/collection-ui.js?task8-visual=1');window.__task7Collection=await createCollectionUI({records:chemistry.moleculeCatalog(),storage,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:[],hints:[]}),polymerRecords,polymerContent,polymerRoutes:routeAuthority.routes});return{ok:true,polymers:polymerRecords.length};})()";
+  const bootstrap="(async()=>{const chemistry=await import('/src/chemistry.js?v=20'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return{ok:false};const [polymerRecords,polymerContent,routeAuthority]=await Promise.all(['/data/polymers.json','/data/polymer-encyclopedia.json','/data/polymerization-routes.json'].map(path=>fetch(path).then(response=>response.json())));const moleculeSave={schemaVersion:3,discoveredMolecules:[{id:'water',at:1,order:1}],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]},values=new Map([['molecule-craft.collection.v1',JSON.stringify(moleculeSave)]]),storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value)),removeItem:key=>values.delete(key)};const {createCollectionUI}=await import('/src/collection-ui.js?task8-visual=1');window.__task8Collection=await createCollectionUI({records:chemistry.moleculeCatalog(),storage,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:[],hints:[]}),polymerRecords,polymerContent,polymerRoutes:routeAuthority.routes});return{ok:true,polymers:polymerRecords.length};})()";
   await waitFor('document.readyState==="complete"','Task8 Collection fixture did not load');
   assert.deepEqual(await evaluate(bootstrap),{ok:true,polymers:25});
   await evaluate("document.querySelector('#open-collection').click();document.querySelector('[data-book-tab=\"polymers\"]').click()");
@@ -109,9 +109,9 @@ try{
   for(const viewport of viewports){
     await send('Emulation.setDeviceMetricsOverride',{width:viewport.width,height:viewport.height,deviceScaleFactor:1,mobile:viewport.mobile});
     await pause(120);
-    for(let index=0;index<pilotIds.length;index++){
-      const id=pilotIds[index];
-      const opened=await evaluate("(async()=>{const api=window.__task7Collection,id="+JSON.stringify(id)+";api.registerDiscoveredPolymer(id,{at:1700000000000+"+index+"});const result=api.openEntry('polymers',id);await new Promise(resolve=>setTimeout(resolve,80));const image=document.querySelector('#collection-detail .polymer-detail-visual');if(image&&!image.complete)await new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});});try{await image?.decode?.();}catch{}const dialog=document.querySelector('#collection-dialog');if(dialog)dialog.scrollTop=0;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));const detail=document.querySelector('#collection-detail'),stage=image?.closest('.model-stage'),r=image?.getBoundingClientRect(),s=stage?.getBoundingClientRect();return{opened:result!==false,dialogOpen:dialog?.open===true,detailId:detail?.dataset.detailId,src:image?.getAttribute('src')??'',alt:image?.alt??'',loaded:!!image&&image.complete&&image.naturalWidth>0&&image.naturalHeight>0,imageRect:r?{x:r.x,y:r.y,width:r.width,height:r.height}:null,stageRect:s?{x:s.x,y:s.y,width:s.width,height:s.height}:null,documentWidth:document.documentElement.clientWidth,documentHeight:document.documentElement.clientHeight,documentScroll:document.documentElement.scrollWidth,dialogWidth:dialog?.clientWidth,dialogScroll:dialog?.scrollWidth};})()");
+    for(let index=0;index<polymerIds.length;index++){
+      const id=polymerIds[index];
+      const opened=await evaluate("(async()=>{const api=window.__task8Collection,id="+JSON.stringify(id)+";api.registerDiscoveredPolymer(id,{at:1700000000000+"+index+"});const result=api.openEntry('polymers',id);await new Promise(resolve=>setTimeout(resolve,80));const image=document.querySelector('#collection-detail .polymer-detail-visual');if(image&&!image.complete)await new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});});try{await image?.decode?.();}catch{}const dialog=document.querySelector('#collection-dialog');if(dialog)dialog.scrollTop=0;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));const detail=document.querySelector('#collection-detail'),stage=image?.closest('.model-stage'),r=image?.getBoundingClientRect(),s=stage?.getBoundingClientRect();return{opened:result!==false,dialogOpen:dialog?.open===true,detailId:detail?.dataset.detailId,src:image?.getAttribute('src')??'',alt:image?.alt??'',loaded:!!image&&image.complete&&image.naturalWidth>0&&image.naturalHeight>0,imageRect:r?{x:r.x,y:r.y,width:r.width,height:r.height}:null,stageRect:s?{x:s.x,y:s.y,width:s.width,height:s.height}:null,documentWidth:document.documentElement.clientWidth,documentHeight:document.documentElement.clientHeight,documentScroll:document.documentElement.scrollWidth,dialogWidth:dialog?.clientWidth,dialogScroll:dialog?.scrollWidth};})()");
       assert.ok(opened.opened&&opened.dialogOpen,viewport.name+' '+id+': Collection detail did not open');
       assert.equal(opened.detailId,id,viewport.name+' '+id+': wrong detail entry');
       assert.match(opened.src,new RegExp('polymer-'+id+'\\.svg$'));
@@ -122,6 +122,11 @@ try{
       assert.ok(opened.documentScroll<=opened.documentWidth+1&&opened.dialogScroll<=opened.dialogWidth+1,viewport.name+' '+id+': horizontal overflow '+JSON.stringify(opened));
       assert.ok(opened.imageRect.x>=0&&opened.imageRect.x+opened.imageRect.width<=opened.documentWidth+1,viewport.name+' '+id+': image is horizontally clipped');
       assert.ok(opened.imageRect.y>=0&&opened.imageRect.y+opened.imageRect.height<=opened.documentHeight+1,viewport.name+' '+id+': image is vertically clipped');
+      const education=await evaluate("(()=>{const panel=document.querySelector('#collection-detail .polymer-education');return{open:panel?.open===true,headings:panel?.querySelectorAll('h5').length??0,paragraphs:panel?.querySelectorAll('p').length??0,text:panel?.innerText??''}})()");
+      assert.equal(education.open,true,viewport.name+' '+id+': educational explanation is not open in the detail view');
+      assert.equal(education.headings,4,viewport.name+' '+id+': expected structure, property, use, and caveat headings');
+      assert.equal(education.paragraphs,4,viewport.name+' '+id+': one text explanation is required under each heading');
+      assert.ok(education.text.trim().length>240,viewport.name+' '+id+': educational explanation is unexpectedly short');
       const shot=await send('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:false});
       const path=join(output,id+'-'+viewport.name+'.png');
       const bytes=Buffer.from(shot.data,'base64');
@@ -132,23 +137,23 @@ try{
       await pause(80);
     }
   }
-  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:3000,deviceScaleFactor:1,mobile:false});
+  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:12000,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:'http://127.0.0.1:'+port+'/__task8_contact_sheet__'});
-  await waitFor('document.images.length===18&&[...document.images].every(image=>image.complete&&image.naturalWidth>0)','Task8 visual contact sheet images did not load');
+  await waitFor('document.images.length===2*'+polymerIds.length+'&&[...document.images].every(image=>image.complete&&image.naturalWidth>0)','Task8 visual contact sheet images did not load');
   const preview=await send('Page.captureScreenshot',{format:'jpeg',quality:65,fromSurface:true,captureBeyondViewport:true});
-  const previewPath=join(output,'task7-collection-detail-contact-sheet.jpg');
+  const previewPath=join(output,'task8-collection-detail-contact-sheet.jpg');
   await writeFile(previewPath,Buffer.from(preview.data,'base64'));
-  if(process.env.TASK7_EXPORT_VISUAL_QA==='1'){
+  if(process.env.TASK8_EXPORT_VISUAL_QA==='1'){
     const chunks=preview.data.match(/.{1,48000}/g)??[];
-    console.log('TASK7_VISUAL_QA_CONTACT_SHEET_BASE64_BEGIN '+chunks.length);
-    chunks.forEach((chunk,index)=>console.log('TASK7_VISUAL_QA_CONTACT_SHEET_CHUNK:'+index+':'+chunk));
-    console.log('TASK7_VISUAL_QA_CONTACT_SHEET_BASE64_END');
+    console.log('TASK8_VISUAL_QA_CONTACT_SHEET_BASE64_BEGIN '+chunks.length);
+    chunks.forEach((chunk,index)=>console.log('TASK8_VISUAL_QA_CONTACT_SHEET_CHUNK:'+index+':'+chunk));
+    console.log('TASK8_VISUAL_QA_CONTACT_SHEET_BASE64_END');
   }
-  const manifest={viewports,polymerIds:pilotIds,screenshots:pilotIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'.png')),modelCrops:pilotIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'-model.png')),contactSheet:'task7-collection-detail-contact-sheet.jpg',source:'Collection detail screen rendered in headless Chromium from this checkout'};
+  const manifest={viewports,polymerIds,screenshots:polymerIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'.png')),modelCrops:polymerIds.flatMap(id=>viewports.map(viewport=>id+'-'+viewport.name+'-model.png')),contactSheet:'task8-collection-detail-contact-sheet.jpg',source:'Collection detail screen rendered in headless Chromium from this checkout'};
   await writeFile(join(output,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 }finally{
   try{socket?.close();}catch{}
   try{child?.kill('SIGKILL');}catch{}
   await pause(100);server.close();await rm(profile,{recursive:true,force:true});
 }
-console.log('Task8 Collection visual QA passed: 9 known polymer detail views at 390×844 and 1280×900; 18 viewport screenshots saved to test-results/task8-polymer-visual-qa.');
+console.log(`Task8 Collection visual QA passed: ${polymerIds.length} known polymer detail views at 390×844 and 1280×900; ${polymerIds.length * viewports.length} full-screen screenshots and structure crops saved to test-results/task8-polymer-visual-qa.`);

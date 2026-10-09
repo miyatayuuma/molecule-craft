@@ -384,6 +384,8 @@ function rectsOverlap(a, b) {
 }
 
 function collisionCheck(input, layout, labels) {
+  const atomById = new Map(input.atoms.map(atom => [atom.id, atom]));
+  const adjacency = adjacencyFor(input);
   const visible = input.atoms.filter(atom => labels.has(atom.id)).map(atom => ({ id: atom.id, point: layout.positions.get(atom.id), label: labels.get(atom.id) }));
   const collisions = [];
   for (let i = 0; i < visible.length; i++) for (let j = i + 1; j < visible.length; j++) {
@@ -396,6 +398,10 @@ function collisionCheck(input, layout, labels) {
     const halfHeight = label.label.height / 2;
     const rect = { left: label.point.x - halfWidth, right: label.point.x + halfWidth, top: label.point.y - halfHeight, bottom: label.point.y + halfHeight };
     for (const bond of bondByRef) {
+      // Carbon-bound hydrogens are deliberately collapsed into skeletal notation.
+      // Their zero-length SVG bonds are metadata only and cannot collide visually.
+      if (hydrogenMode(adjacency, atomById, bond.a) === 'implicit-carbon-bound-hydrogen'
+        || hydrogenMode(adjacency, atomById, bond.b) === 'implicit-carbon-bound-hydrogen') continue;
       if (members.has(bond.a) || members.has(bond.b)) continue;
       if (segmentCrossesRect(layout.positions.get(bond.a), layout.positions.get(bond.b), rect)) collisions.push(`${label.id}/bond:${bondRef(bond)}`);
     }
@@ -559,13 +565,24 @@ function annotationLines(input) {
       hexafluoropropylene: 'ヘキサフルオロプロピレン'
     };
     const sequence = (input.localSequence?.monomerIds ?? []).map(id => names[id] ?? id).join(' → ');
-    return ['局所配列例：' + sequence, '組成比や配列規則を示しません。cis/trans は未指定です。'];
+    const lines = ['局所配列例：' + sequence, '組成比や配列規則を示しません。'];
+    const q = input.qualifiers ?? {};
+    if (q.cisTrans === 'unspecified' && q.dieneMicrostructure === 'varies' && q.vulcanization === 'not-represented') lines.push('ジエンのcis/trans・微細構造は未指定または多様。加硫・架橋状態は図示していません。');
+    else if (q.cisTrans === 'unspecified' && q.vulcanization === 'not-represented') lines.push('cis/trans は未指定。加硫・架橋状態は図示していません。');
+    else if (q.cisTrans === 'unspecified') lines.push('cis/trans は未指定です。');
+    else if (q.vulcanization === 'not-represented') lines.push('加硫・架橋状態は図示していません。');
+    else if (q.regiochemistry === 'varies') lines.push('結合の向きや配向規則を特定しません。');
+    return lines.slice(0, 3);
   }
   const lines = ['反復単位 · n は同じ単位の繰り返しを示す'];
   if (input.polymerId === 'polystyrene') lines.push('フェニル環は主鎖に結合した側鎖');
   if ((input.componentGroups?.length ?? 0) > 1) for (const group of input.componentGroups.slice(0, 2)) lines.push(labelJa[group.label] ?? group.label);
-  if (input.qualifiers?.stereochemistry?.status === 'unspecified') lines.push('立体化学は未指定');
+  if (input.qualifiers?.cisTrans === 'unspecified' && input.qualifiers?.vulcanization === 'not-represented') lines.push('cis/trans・ジエン微細構造は未指定または多様。加硫・架橋状態は図示していません');
+  else if (input.qualifiers?.cisTrans === 'unspecified' || input.qualifiers?.dieneMicrostructure === 'varies') lines.push('cis/trans・ジエン微細構造は未指定または多様');
+  else if (input.qualifiers?.stereochemistry?.status === 'unspecified') lines.push('立体化学は未指定');
   else if (input.qualifiers?.tacticity === 'not-asserted') lines.push('立体配置を特定しない');
+  if (input.qualifiers?.regiochemistry === 'varies') lines.push('主鎖の配向規則を特定しない');
+  if (input.qualifiers?.vulcanization === 'not-represented') lines.push('加硫・架橋状態は図示していません');
   return [...new Set(lines)].slice(0, 3);
 }
 
@@ -642,13 +659,22 @@ export function validatePolymerStructureSvg(svg, input) {
   if (atomRefs.length !== expected.length || atomRefs.some((id, index) => id !== expected[index])) reject('Visible heavy-atom mapping differs from the validated graph.');
   const expectedH = input.atoms.filter(atom => atom.element === 'H').map(atom => atom.id).sort();
   if (expectedH.some(id => !svg.includes(`&quot;id&quot;:&quot;${escapeXml(id)}&quot;,&quot;element&quot;:&quot;H&quot;`))) reject('Explicit hydrogens are not preserved in authority metadata.');
-  const bonds = [...svg.matchAll(/class="bond" data-bond-ref="([^"]+)"[^>]*data-bond-order="([123])"/g)].map(match => [match[1], Number(match[2])]);
-  if (bonds.length !== input.bonds.length || input.bonds.some(bond => !bonds.some(([ref, order]) => ref === bondRef(bond) && order === bond.order))) reject('Bond identity or order differs from the validated graph.');
+  const bonds = [...svg.matchAll(/<g class="bond" data-bond-ref="([^"]+)"[^>]*data-bond-order="([123])">([\s\S]*?)<\/g>/g)].map(match => ({ ref: match[1], order: Number(match[2]), paths: [...match[3].matchAll(/<path\b/g)].length }));
+  if (bonds.length !== input.bonds.length || input.bonds.some(bond => bonds.filter(rendered => rendered.ref === bondRef(bond) && rendered.order === bond.order && rendered.paths === bond.order).length !== 1)) reject('Bond identity, order, or visible bond-line count differs from the validated graph.');
+  const annotations = [...svg.matchAll(/<text class="annotation(?: primary)?"[^>]*>([\s\S]*?)<\/text>/g)].map(match => match[1]);
+  const annotationText = annotations.join(' ');
   if (input.representationType === 'linear-repeat') {
     if (!svg.includes('class="repeat-bracket"') || !svg.includes('data-repeat-count-notation="true"')) reject('A linear repeat requires its bracket and n notation.');
     for (const port of input.continuationPorts) if (!svg.includes(`data-port-id="${port.id}"`) || !svg.includes(`data-port-label-for="${port.id}"`)) reject(`Continuation port ${port.id} or its visible label is missing.`);
   } else if (svg.includes('data-repeat-count-notation="true"')) reject('A copolymer or network cannot claim a fixed repeat count.');
-  if (input.representationType === 'copolymer-local-motif' && (!svg.includes('局所配列例') || !svg.includes('組成比や配列規則を示しません'))) reject('The local-sequence and non-asserted composition caveat is required.');
+  if (input.representationType === 'copolymer-local-motif') {
+    if (!annotationText.includes('局所配列例') || !annotationText.includes('組成比や配列規則を示しません')) reject('The local-sequence and non-asserted composition caveat is required.');
+    if (/\b\d{1,3}\s*:\s*\d{1,3}\b|組成比.{0,24}\d/.test(annotationText)) reject('A local copolymer example cannot claim a bulk composition ratio.');
+  }
+  if (input.qualifiers?.cisTrans === 'unspecified' && !annotationText.includes('cis/trans')) reject('The authority-required cis/trans caveat is missing.');
+  if (input.qualifiers?.cisTrans !== 'unspecified' && annotationText.includes('cis/trans')) reject('A cis/trans caveat cannot be shown when the authority does not mark it unspecified.');
+  if (input.qualifiers?.regiochemistry === 'varies' && !/配向規則.{0,6}特定/.test(annotationText)) reject('The authority-required regiochemistry caveat is missing.');
+  if (input.qualifiers?.vulcanization === 'not-represented' && !annotationText.includes('加硫・架橋状態は図示していません')) reject('The authority-required vulcanization caveat is missing.');
   if (input.representationType === 'network-junction') {
     if ((svg.match(/class="continuation-port"/g) ?? []).length !== 3) reject('The approved network motif requires three continuation ports.');
     for (const port of input.continuationPorts) if (!svg.includes(`data-port-id="${port.id}"`) || !svg.includes(`data-port-label-for="${port.id}"`)) reject(`Network port ${port.id} or its visible label is missing.`);
