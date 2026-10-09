@@ -65,20 +65,22 @@ node scripts/build-precache.mjs --check
 
 ## Task⑦ evidence status
 
-Task⑦のコード・asset生成器・validatorは実装済みです。9件のSVGを静的raster previewへ出力し、960×540と約350×197表示サイズで構造の配置を確認しました。ここでは主鎖、置換基、芳香族二重結合、官能基、repeat bracket、network分岐とlabel/bond衝突を確認しています。preview環境に日本語フォントがなく、日本語の文字可読性はこの確認で証明できません。これらはCollection browser screenshotではありません。
+9件すべてについて、実Collection detailをChromiumで390×844と1280×900に設定して表示し、各SVGの読み込み、polymerId、代替テキスト、画像全体の可視範囲、横overflowがないことを確認しました。9件×2 viewportの全画面PNG、同じ画面から切り出したstructure crop 18枚、manifestを生成しました。
 
-| Pilot | 描画とauthorityの照合 | atom / bond | 構造解釈・静的layout review | Collection mobile 390×844 | Collection desktop 1280×900 |
+全pilotのstructure cropを並べたcontact sheetは[Task⑦ Collection detail visual QA contact sheet](task7-collection-detail-contact-sheet.jpg)です。元の全画面PNGとcropは[GitHub Actions run #87 artifact](https://github.com/miyatayuuma/molecule-craft/actions/runs/37890636591/artifacts/11597809463)のtest-results/task7-polymer-visual-qaに保存されています。全画面ファイル名は各polymerIdに-mobile.png / -desktop.pngを付けた18件です。
+
+| Pilot | 描画とauthorityの照合 | atom / bond | 構造解釈・layout review | Mobile 390×844 | Desktop 1280×900 |
 |---|---|---|---|---|---|
-| PE | PASS | PASS | PASS — 主鎖、bracket、左右port | 未実施 | 未実施 |
-| PP | PASS | PASS | PASS — methyl側鎖、stereochemistry非断定 | 未実施 | 未実施 |
-| PVC | PASS | PASS | PASS — 主鎖のCl置換 | 未実施 | 未実施 |
-| PS | PASS | PASS | PASS — pendant phenyl、芳香族二重結合 | 未実施 | 未実施 |
-| PET | PASS | PASS | PASS — terephthalate / ethylene glycol残基、ester / carbonyl | 未実施 | 未実施 |
-| Nylon 6,6 | PASS | PASS | PASS — carbonyl / amide、異なるmethylene鎖 | 未実施 | 未実施 |
-| PTFE | PASS | PASS | PASS — CF₂主鎖と4個のF | 未実施 | 未実施 |
-| SBR | PASS | PASS | PASS — 1,4-butadiene残存C=C、styrene phenyl、local sequence | 未実施 | 未実施 |
-| Phenol-formaldehyde | PASS | PASS | PASS — 独立motif、4環、3 bridge / 3 branch、OH | 未実施 | 未実施 |
+| PE | PASS | PASS | PASS — 主鎖、repeat bracket、左右port | PASS — polyethylene-mobile.png | PASS — polyethylene-desktop.png |
+| PP | PASS | PASS | PASS — methyl側鎖、stereochemistry非断定 | PASS — polypropylene-mobile.png | PASS — polypropylene-desktop.png |
+| PVC | PASS | PASS | PASS — 主鎖のCl置換 | PASS — polyvinyl-chloride-mobile.png | PASS — polyvinyl-chloride-desktop.png |
+| PS | PASS | PASS | PASS — pendant phenyl、芳香族二重結合 | PASS — polystyrene-mobile.png | PASS — polystyrene-desktop.png |
+| PET | PASS | PASS | PASS — terephthalate / ethylene glycol残基、ester / carbonyl | PASS — polyethylene-terephthalate-mobile.png | PASS — polyethylene-terephthalate-desktop.png |
+| Nylon 6,6 | PASS | PASS | PASS — carbonyl / amide、異なるmethylene鎖 | PASS — nylon-6-6-mobile.png | PASS — nylon-6-6-desktop.png |
+| PTFE | PASS | PASS | PASS — CF₂主鎖と4個のF | PASS — polytetrafluoroethylene-mobile.png | PASS — polytetrafluoroethylene-desktop.png |
+| SBR | PASS | PASS | PASS — 1,4-butadiene残存C=C、styrene phenyl、local sequence | PASS — styrene-butadiene-copolymer-mobile.png | PASS — styrene-butadiene-copolymer-desktop.png |
+| Phenol-formaldehyde | PASS | PASS | PASS — 独立motif、4環、3 bridge / 3 branch、OHとSample caveat | PASS — phenol-formaldehyde-resin-mobile.png | PASS — phenol-formaldehyde-resin-desktop.png |
 
-このworkspaceにはlocal Chromium executableがなく、`tests/collection-polymer-browser.test.mjs` はsandboxのloopback server権限で起動できませんでした。Cloud Browserからlocalhost previewを開く操作は、自動審査でrepository source/assetsを外部browserへ公開するriskを理由に拒否されています。承認済みの代替手段が用意されるまで、実Collection screenのmobile/desktop screenshotは未取得です。画像自体は実Collection画面で確認できていないため、このrecordではMobile / Desktop visual QAをPASS扱いしません。
+画面では白い図版面と原子色が背景から分離しており、repeat bracket、continuation、PET/Nylonのcarbonyl、SBRの残存二重結合、networkの三方向branchと注意書きが読めます。未知entryの画像非表示と既知entryのdetail導線は既存Collection browser regressionでも確認しました。
 
-**Task⑦の完了条件として、実Collection detailでの9件×2 viewport確認とscreenshot evidenceが残っています。** この確認が終わるまでTask⑦はCLOSEDとしません。
+Task⑧ではPOLYMER_2D_PILOT_IDSへ対象IDを追加し、同じ静的描画・validator・browser screenshot手順を適用できます。今回の9件以外の16 assetは変更していません。
