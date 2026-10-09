@@ -139,7 +139,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 - `src/collection-ui.js`：図鑑DOM、データfetch、模型の遅延読込。
 - `src/collection-state.js`：発見記録、部品解放、保存互換。
 - `src/collection-viewer.js`, `src/preview-model.js`, `src/preview-controls.js`：図鑑3D模型。
-- `scripts/polymer-structure-svg.mjs`：Task⑥で検証したfragment authorityから9 pilotの静的2D SVGを決定論的に生成。
+- `scripts/polymer-structure-svg.mjs`：Task⑥で検証したfragment authorityから25件すべての静的2D SVGを決定論的に生成。production setは `POLYMER_2D_PRODUCTION_IDS`。
 - `data/polymer-fragment-authority.json`, `scripts/polymer-fragment-authority.mjs`：高分子描画入力の原子・結合・反復・局所モチーフ authorityとvalidator。
 - `tests/polymer-structure-svg.test.mjs`：構造mapping、bond order、repeat / copolymer / network表現、fail-closed、SVG再生成の検証。
 - `src/functional-groups.js`：官能基検出。
@@ -158,7 +158,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | `data/polymers.json` | 25 routeの高分子化学catalog。材料性能やgameplay qualificationは含めない |
 | `data/polymer-encyclopedia.json` | 高分子25件の独立した一般説明・Chemistry Detail・concepts |
 
-`assets/models/` の184 SVGは図鑑用ゲーム資産です。Task⑦では9 pilotだけを構造authority由来の静的2D図に置き換え、残り16件はTask⑧まで既存assetを維持します。新方式の生成対象は `POLYMER_2D_PILOT_IDS` で明示します。図鑑UIは従来の `assets/models/polymer-{id}.svg` pathを使用します。
+`assets/models/` の184 SVGは図鑑用ゲーム資産です。Task⑧完了後、高分子25件すべてをTask⑥の構造authority由来の静的2D図として `generatePolymerStructureAssets()` で生成します。対象IDは `POLYMER_2D_PRODUCTION_IDS` で明示し、catalogとの一致を検証します。図鑑UIは従来の `assets/models/polymer-{id}.svg` pathを使用します。
 
 ## 保存
 
