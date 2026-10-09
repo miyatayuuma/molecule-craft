@@ -139,6 +139,9 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 - `src/collection-ui.js`：図鑑DOM、データfetch、模型の遅延読込。
 - `src/collection-state.js`：発見記録、部品解放、保存互換。
 - `src/collection-viewer.js`, `src/preview-model.js`, `src/preview-controls.js`：図鑑3D模型。
+- `scripts/polymer-structure-svg.mjs`：Task⑥で検証したfragment authorityから9 pilotの静的2D SVGを決定論的に生成。
+- `data/polymer-fragment-authority.json`, `scripts/polymer-fragment-authority.mjs`：高分子描画入力の原子・結合・反復・局所モチーフ authorityとvalidator。
+- `tests/polymer-structure-svg.test.mjs`：構造mapping、bond order、repeat / copolymer / network表現、fail-closed、SVG再生成の検証。
 - `src/functional-groups.js`：官能基検出。
 - `src/collection-catalog.js`：分類と表示名。
 - `src/element-progression.js`：元素解放。
@@ -155,7 +158,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | `data/polymers.json` | 25 routeの高分子化学catalog。材料性能やgameplay qualificationは含めない |
 | `data/polymer-encyclopedia.json` | 高分子25件の独立した一般説明・Chemistry Detail・concepts |
 
-`assets/models/` の159 SVGは図鑑用ゲーム資産です。個別の表示不具合か生成処理の変更でない限り、一覧や中身を読みません。
+`assets/models/` の184 SVGは図鑑用ゲーム資産です。Task⑦では9 pilotだけを構造authority由来の静的2D図に置き換え、残り16件はTask⑧まで既存assetを維持します。新方式の生成対象は `POLYMER_2D_PILOT_IDS` で明示します。図鑑UIは従来の `assets/models/polymer-{id}.svg` pathを使用します。
 
 ## 保存
 
@@ -185,6 +188,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | 図鑑・部品・元素解放 | `collection.test.mjs`, `collection-expansion.test.mjs` |
 | 高分子DB・高分子図鑑model・25 route/sample | `polymer-catalog.test.mjs`, `polymerization-routes.test.mjs`, `reaction-graph-edits.test.mjs`, `reaction-lab-polymerization.test.mjs`, `reaction-lab-polymerization-fixtures.test.mjs`, `polymer-progression-geometry.test.mjs` |
 | 高分子発見・保存・Collection UI | `polymer-collection-persistence.test.mjs`, `polymer-collection.test.mjs`, `reaction-lab-polymer-discovery.test.mjs`, `collection-polymer-browser.test.mjs`, `reaction-lab-polymer-browser.test.mjs` |
+| 高分子fragment authority・2D SVG生成 | `polymer-fragment-authority.test.mjs`, `polymer-structure-svg.test.mjs`, `collection-polymer-browser.test.mjs` |
 | 分子のゲーム用役割・性能値 | `molecule-roles.test.mjs` |
 | 入力・長押し | `electron-interaction.test.mjs`, `gesture-arbitration.test.mjs`, `hold-action.test.mjs` |
 | 配置・補正・torsion | `conformation-regression.test.mjs`, `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |
