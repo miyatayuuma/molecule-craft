@@ -10,7 +10,9 @@ on:
       - 'src/collection-ui.js'
       - 'src/craft-connections.js'
       - 'tests/*polymer*'
+      - 'tests/reaction-lab-legacy-removal.test.mjs'
       - 'tests/material-progression-browser.test.mjs'
+      - 'scripts/*polymer*'
       - 'scripts/polymer-structure-svg.mjs'
       - 'scripts/build-collection-assets.mjs'
       - 'scripts/polymer-fragment-authority.mjs'
@@ -24,13 +26,14 @@ on:
       - 'docs/architecture.md'
       - 'docs/task7-polymer-structure-visuals.md'
       - 'docs/task8-polymer-encyclopedia-review.md'
+      - 'docs/planning/polymer-presentation-rebaseline.md'
       - 'precache-manifest.js'
       - 'sw.js'
-      - '.github/workflows/polymer-scale-up-validation.yml'
+      - '.github/workflows/reaction-lab-finite-polymer-validation.yml'
 permissions:
   contents: read
 jobs:
-  continuity:
+  finite-validation:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -43,7 +46,7 @@ jobs:
       - name: Japanese screenshot font
         run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
       - name: Finite completion, chemistry and discovery regressions
-        run: node --test tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
+        run: node --test tests/reaction-lab-legacy-removal.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
       - name: Production pointer path and 390×844 visual QA
         run: node tests/reaction-lab-polymer-browser.test.mjs
       - name: Production pointer path and representative desktop QA
@@ -67,7 +70,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: polymer-encyclopedia-task8-evidence
+          name: reaction-lab-finite-polymer-validation-evidence
           path: |
             test-results/reaction-lab-polymer-simplification
             test-results/task8-polymer-visual-qa

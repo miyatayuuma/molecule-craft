@@ -15,6 +15,8 @@ The new authority is:
 
 This is an audit and a future implementation contract. No production code, chemistry graph, sample lifecycle, save schema, or rendering behavior is changed by Task④.
 
+Task⑨ status note: the inventories, “current main” statements, and phase plan below describe the Task④ audit baseline only. They are historical findings, not a description of the current runtime. Task⑤–⑧ established the finite PolymerSample and 25-SVG production path; Task⑨ removed the retired morphology modules, preview APIs, and morphology-only QA artifacts. For current ownership and behavior, see `docs/architecture.md` and the current source tree.
+
 ## Baseline facts
 
 Current main contains 25 polymer catalog entries, 25 exact Feed routes, 25 encyclopedia entries, and 25 generated polymer SVG thumbnails. The morphology authority also has 25 rows across five display archetypes, but only polyethylene automatically enters the production long-chain/morphology path. All 25 plans can be viewed only by an explicit localhost test probe.
