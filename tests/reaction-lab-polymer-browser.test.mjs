@@ -109,6 +109,7 @@ try{
   };
   const finishCompletion=async(route,{newDiscovery=false,captureReady=false,captureName='completion-ready',expectedDuration=650}={})=>{
     await waitFor('window.__reactionLabProbe.snapshot().polymerization.sampleReady',`${route.routeId}: bounded completion feedback did not become ready`,5000);
+    await waitFor("(()=>{const state=window.__reactionLabProbe.snapshot();return state.dialogOpen?state.polymerResources.activeGroupCount===1:state.polymerResources.geometryCount===0})()",`${route.routeId}: finite resources settle to the Reaction Lab open/closed state`,2000);
     const state=await snapshot(),p=state.polymerization,presentEvents=await evaluate('window.__polymerPresentEvents.slice()');
     assert.equal(state.camera.distance,routeCameraDistances.get(route.routeId),`${route.routeId}: readiness adds no camera transition`);
     assert.equal(p.sampleReady,true);assert.equal(p.samplePhase,'ready');assert.equal(p.layoutCallsAtReady,state.polymerRuntimeMetrics.finiteLayoutCalls);assert.equal(state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,0);
