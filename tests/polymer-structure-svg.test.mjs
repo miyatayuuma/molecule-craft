@@ -122,6 +122,11 @@ test('linear aromatic polyester polyamide and fluorinated structures retain thei
   const pctfe = renderFor('polychlorotrifluoroethylene').svg;
   assert.equal((pctfe.match(/data-element="F"/g) || []).length, 3);
   assert.equal((pctfe.match(/data-element="Cl"/g) || []).length, 1);
+  const vdfHfp = inputFor('vinylidene-fluoride-hexafluoropropylene-copolymer');
+  const vdfHfpLayout = createPolymerStructureLayout(vdfHfp);
+  assert.equal(vdfHfpLayout.layoutHints.branchAngleOffsets['unit-1.a1'], Math.PI / 3);
+  assert.throws(() => createPolymerStructureLayout(vdfHfp, { layoutHints: {} }), /Atom label collision/, 'the F-label/backbone overlaps must remain a hard failure without the drawing-only orientation hint');
+  assert.equal(vdfHfp.bonds.filter(bond => bond.a.startsWith('unit-1.') || bond.b.startsWith('unit-1.')).length, 10, 'layout hints cannot remove or add source bonds');
   for (const id of ['polybutadiene', 'polyisoprene', 'nitrile-butadiene-rubber', 'butyl-rubber']) {
     assert.match(renderFor(id).svg, /data-bond-order="2"/, id + ' must show residual diene C=C');
   }

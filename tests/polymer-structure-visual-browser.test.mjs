@@ -156,4 +156,4 @@ try{
   try{child?.kill('SIGKILL');}catch{}
   await pause(100);server.close();await rm(profile,{recursive:true,force:true});
 }
-console.log(`Task8 Collection visual QA passed: ${polymerIds.length} known polymer detail views at 390×844 and 1280×900; ${polymerIds.length * viewports.length} full-screen screenshots and structure crops saved to test-results/task8-polymer-visual-qa.`);
+console.log(`Task8 Collection visual QA passed: ${polymerIds.length} known polymer detail views at 390×844 and 1280×900; ${polymerIds.length * 2} full-screen screenshots and structure crops saved to test-results/task8-polymer-visual-qa.`);

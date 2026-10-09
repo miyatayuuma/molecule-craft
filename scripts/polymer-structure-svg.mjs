@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { ELEMENTS } from '../src/chemistry.js';
 import { createPolymerDrawingInput, readPolymerFragmentSources, validatePolymerFragmentAuthority } from './polymer-fragment-authority.mjs';
 
-export const POLYMER_STRUCTURE_SVG_VERSION = 'task8-2d-v2';
+export const POLYMER_STRUCTURE_SVG_VERSION = 'task8-2d-v3';
 export const POLYMER_STRUCTURE_CANVAS = Object.freeze({ width: 960, height: 540 });
 export const POLYMER_2D_PILOT_IDS = Object.freeze([
   'polyethylene', 'polypropylene', 'polyvinyl-chloride', 'polystyrene',
@@ -21,6 +21,12 @@ export const POLYMER_2D_PRODUCTION_IDS = Object.freeze([...POLYMER_2D_PILOT_IDS,
 const pilotSet = new Set(POLYMER_2D_PILOT_IDS);
 const productionSet = new Set(POLYMER_2D_PRODUCTION_IDS);
 const BOND_LENGTH = 44;
+// These hints change only drawing orientation. They preserve authority atom and bond identity.
+const POLYMER_LAYOUT_HINTS = Object.freeze({
+  'vinylidene-fluoride-hexafluoropropylene-copolymer': Object.freeze({
+    branchAngleOffsets: Object.freeze({ 'unit-1.a1': Math.PI / 3 })
+  })
+});
 const COLORS = Object.freeze({
   ink: '#182b3b', muted: '#536779', paper: '#f8fafc', paperEdge: '#dce5ec',
   continuation: '#007f78', chip: '#e9f2f6', chipText: '#19384a'
@@ -239,7 +245,7 @@ function layoutPhenolNetwork(input, rings, positions) {
   return { networkCenter: vec(0, 0) };
 }
 
-function layoutBranches(input, adjacency, rings, positions) {
+function layoutBranches(input, adjacency, rings, positions, layoutHints = {}) {
   const atomById = new Map(input.atoms.map(atom => [atom.id, atom]));
   const ringByAtom = new Map();
   for (const ring of rings) for (const id of ring.atoms) ringByAtom.set(id, ring);
@@ -251,16 +257,18 @@ function layoutBranches(input, adjacency, rings, positions) {
     const children = adjacency.get(parentId).filter(edge => atomById.get(edge.id).element !== 'H' && !backbone.has(edge.id) && !ringAtoms.has(edge.id) && !positions.has(edge.id));
     if (!children.length) continue;
     let directions;
+    const branchAngleOffset = layoutHints.branchAngleOffsets?.[parentId] ?? 0;
     if (children.length === 2 && atomById.get(parentId).element === 'C') {
       const tangent = adjacency.get(parentId).map(edge => positions.get(edge.id)).find(Boolean) ? unit(sub(parent, adjacency.get(parentId).map(edge => positions.get(edge.id)).find(Boolean))) : vec(1, 0);
-      const n = normal(tangent, -1);
+      const baseNormal = normal(tangent, -1), angle = Math.atan2(baseNormal.y, baseNormal.x) + branchAngleOffset;
+      const n = angleVector(angle);
       directions = [n, mul(n, -1)];
     } else {
       const role = input.sideChains?.some(group => group.atomRefs.includes(children[0].id)) ? 'side-chain' : 'group';
       const ring = ringByAtom.get(parentId);
       const ringCenter = ring?.atoms.map(id => positions.get(id)).reduce((sum, point) => add(sum, point), vec(0, 0));
       const base = ring ? unit(sub(parent, mul(ringCenter, 1 / ring.atoms.length))) : branchDirection(input, adjacency, positions, parentId, role);
-      const angle = Math.atan2(base.y, base.x);
+      const angle = Math.atan2(base.y, base.x) + branchAngleOffset;
       directions = children.map((_, childIndex) => angleVector(angle + (childIndex - (children.length - 1) / 2) * (children.length > 1 ? Math.PI / 3 : 0)));
     }
     children.forEach((child, childIndex) => {
@@ -400,8 +408,9 @@ function collisionCheck(input, layout, labels) {
     for (const bond of bondByRef) {
       // Carbon-bound hydrogens are deliberately collapsed into skeletal notation.
       // Their zero-length SVG bonds are metadata only and cannot collide visually.
-      if (hydrogenMode(adjacency, atomById, bond.a) === 'implicit-carbon-bound-hydrogen'
-        || hydrogenMode(adjacency, atomById, bond.b) === 'implicit-carbon-bound-hydrogen') continue;
+      const isCollapsedCarbonHydrogen = atomRef => atomById.get(atomRef)?.element === 'H'
+        && hydrogenMode(adjacency, atomById, atomRef) === 'implicit-carbon-bound-hydrogen';
+      if (isCollapsedCarbonHydrogen(bond.a) || isCollapsedCarbonHydrogen(bond.b)) continue;
       if (members.has(bond.a) || members.has(bond.b)) continue;
       if (segmentCrossesRect(layout.positions.get(bond.a), layout.positions.get(bond.b), rect)) collisions.push(`${label.id}/bond:${bondRef(bond)}`);
     }
@@ -456,13 +465,13 @@ function qualifierNotes(input) {
   return [...new Set(notes)];
 }
 
-export function createPolymerStructureLayout(input) {
+export function createPolymerStructureLayout(input, { layoutHints = POLYMER_LAYOUT_HINTS[input?.polymerId] ?? {} } = {}) {
   assertValidatedDrawingInput(input);
   try {
     const adjacency = adjacencyFor(input), rings = findAromaticCycles(input, adjacency), positions = new Map();
     if (input.representationType === 'network-junction') layoutPhenolNetwork(input, rings, positions);
     else layoutLinear(input, adjacency, rings, positions);
-    const atomById = layoutBranches(input, adjacency, rings, positions), labels = buildLabels(input, adjacency, atomById);
+    const atomById = layoutBranches(input, adjacency, rings, positions, layoutHints), labels = buildLabels(input, adjacency, atomById);
     const normalized = normalize(input, positions, labels);
     collisionCheck(input, normalized, labels);
     const atomPositions = Object.fromEntries([...normalized.positions].map(([id, point]) => [id, { x: round(point.x), y: round(point.y) }]));
@@ -470,6 +479,7 @@ export function createPolymerStructureLayout(input) {
     const atomMetadata = input.atoms.map(atom => ({ ...atom, display: atom.element === 'H' ? hydrogenMode(adjacency, atomById, atom.id) : labels.has(atom.id) ? labels.get(atom.id).kind : atom.element === 'C' ? 'skeletal-carbon-vertex' : 'implicit-vertex' }));
     return {
       polymerId: input.polymerId, rendererVersion: POLYMER_STRUCTURE_SVG_VERSION, atomPositions,
+      layoutHints: structuredClone(layoutHints),
       ports: normalized.ports.map(port => ({ ...port, origin: { x: round(port.origin.x), y: round(port.origin.y) }, end: { x: round(port.end.x), y: round(port.end.y) }, direction: { x: round(port.direction.x), y: round(port.direction.y) } })),
       rings: rings.map(ring => ({ id: ring.id, atomRefs: [...ring.atoms] })),
       labels: renderedLabels, atomMetadata, bondMetadata: input.bonds.map(bond => ({ ...bond })),
@@ -602,6 +612,7 @@ function provenanceMetadata(input, layout) {
     atoms: layout.atomMetadata.map(atom => ({ id: atom.id, element: atom.element, role: atom.role, display: atom.display, source: atom.source, point: layout.atomPositions[atom.id] })),
     bonds: layout.bondMetadata, backboneAtomRefs: input.backboneAtomRefs, junctionAtomRefs: input.junctionAtomRefs,
     repeatGroups: input.repeatGroups, componentGroups: input.componentGroups, sideChains: input.sideChains,
+    layoutHints: layout.layoutHints,
     functionalGroups: input.functionalGroups, continuationPorts: input.continuationPorts, repeatClosure: input.repeatClosure,
     localSequence: input.localSequence, qualifiers: input.qualifiers, caveats: input.caveats
   };
