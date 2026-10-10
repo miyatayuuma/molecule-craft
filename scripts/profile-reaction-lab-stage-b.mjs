@@ -46,8 +46,11 @@ try{
   }
   await waitFor("!document.querySelector('[data-lab-feed]').disabled",'FEED did not become available');await evaluate("document.querySelector('[data-lab-feed]').click()");
   await waitFor("(()=>{const s=window.__reactionLabProbe.snapshot();return s.batch.phase==='ACTIVE'&&s.instances.length===6&&['methane','oxygen','2-butene'].every(id=>s.instances.some(item=>item.species===id))})()",'Six-instance Stage B workload did not become active');
-  const initial=await snapshot();assert.equal(initial.instances.length,6);const poses=initial.instances.map((item,index)=>({id:item.id,positionAngstrom:[index*25,0,0],orientation:[0,0,0,1],velocityAngstromPerPs:[0,0,0],angularVelocityRadPerPs:[0,0,0]}));
-  const setFixture=async()=>{await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(poses)})`);await evaluate('window.__reactionLabProbe.setSimulationClock(0)');};
+  const initial=await snapshot();assert.equal(initial.instances.length,6);const poses=initial.instances.map((item,index)=>({id:item.id,positionAngstrom:[index*25,0,0],orientation:item.orientation}));
+  // The repository gate stages positions only, so it preserves the Feed's
+  // production orientations while setGeometry clears velocity and matcher
+  // state. Repeat that same pose and initial simulation clock for each trial.
+  const setFixture=async()=>{await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(poses)})`);await evaluate(`window.__reactionLabProbe.setSimulationClock(${JSON.stringify(initial.simulationClockSeconds)})`);};
   const measure=async(label)=>{await setFixture();const result=await evaluate('window.__reactionLabProbe.measureFixedSteps(180)'),durations=result.durationsMs.slice(30);assert.equal(durations.length,150);assert.ok(result.candidateCount>=384,`The full 29-rule matcher workload fell below 384 candidates: ${result.candidateCount}`);const ordered=[...durations].sort((a,b)=>a-b),p=(fraction)=>ordered[Math.ceil(ordered.length*fraction)-1];return{label,candidateCount:result.candidateCount,reactionIds:result.reactionIds,stepCount:durations.length,p50Ms:p(.5),p95Ms:p(.95),p99Ms:p(.99),maximumMs:ordered.at(-1),frameIntervalsMs:durations};};
   const warmup=await measure('warmup'),trials=[];for(let index=1;index<=4;index++)trials.push(await measure(`measured-${index}`));
   assert.deepEqual(browserErrors,[],'Stage B profile has no browser exception or console error');
