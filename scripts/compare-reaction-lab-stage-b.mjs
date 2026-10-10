@@ -1,0 +1,19 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {dirname,resolve} from 'node:path';
+
+const [baselinePath,candidatePath,outputPath]=process.argv.slice(2).map(path=>resolve(path));assert.ok(baselinePath&&candidatePath&&outputPath,'Usage: node scripts/compare-reaction-lab-stage-b.mjs baseline.json candidate.json output.json');
+const [baseline,candidate]=await Promise.all([baselinePath,candidatePath].map(async path=>JSON.parse(await readFile(path,'utf8'))));
+for(const key of ['product','revision','protocolVersion'])assert.equal(candidate.browser[key],baseline.browser[key],`Baseline and candidate Chromium ${key} must match`);
+assert.deepEqual(candidate.viewport,baseline.viewport,'Baseline and candidate viewport/device scale must match');assert.equal(candidate.motion,baseline.motion);assert.deepEqual(candidate.workload.instances,baseline.workload.instances);assert.deepEqual(candidate.workload.chemistry,baseline.workload.chemistry);assert.equal(candidate.workload.fullMatcherRules,baseline.workload.fullMatcherRules);
+assert.equal(baseline.trials.length,4);assert.equal(candidate.trials.length,4);assert.ok(baseline.trials.every(trial=>trial.stepCount===150));assert.ok(candidate.trials.every(trial=>trial.stepCount===150));
+const budgetMs=1000/120,baseP95=baseline.trials.map(trial=>trial.p95Ms),candidateP95=candidate.trials.map(trial=>trial.p95Ms),sorted=values=>[...values].sort((a,b)=>a-b),median=values=>{const rows=sorted(values),middle=Math.floor(rows.length/2);return rows.length%2?rows[middle]:(rows[middle-1]+rows[middle])/2;};
+const baselineMedianP95=median(baseP95),candidateMedianP95=median(candidateP95),baselineRange={minimumMs:Math.min(...baseP95),maximumMs:Math.max(...baseP95)},candidateRange={minimumMs:Math.min(...candidateP95),maximumMs:Math.max(...candidateP95)};
+let classification;
+if(baseline.pooled.p95Ms<=budgetMs&&candidate.pooled.p95Ms<=budgetMs)classification='both-within-budget';
+else if(candidateMedianP95<=baselineRange.maximumMs&&baseline.pooled.p95Ms>budgetMs&&candidate.pooled.p95Ms>budgetMs)classification='baseline-threshold-exceedance-no-candidate-delta-outside-baseline-range';
+else if(candidate.pooled.p95Ms>budgetMs&&baseline.pooled.p95Ms<=budgetMs)classification='candidate-only-threshold-exceedance';
+else if(candidateMedianP95>baselineRange.maximumMs)classification='candidate-delta-outside-baseline-trial-range';
+else classification='mixed-trial-variance-review-required';
+const comparison={schemaVersion:1,budgetMs,baseline:{sourceSha:baseline.sourceSha,pooled:baseline.pooled,trialP95Ms:baseP95,medianTrialP95Ms:baselineMedianP95,trialRange:baselineRange},candidate:{sourceSha:candidate.sourceSha,pooled:candidate.pooled,trialP95Ms:candidateP95,medianTrialP95Ms:candidateMedianP95,trialRange:candidateRange},delta:{pooledP95Ms:+(candidate.pooled.p95Ms-baseline.pooled.p95Ms).toFixed(6),pooledP95Percent:baseline.pooled.p95Ms?+((candidate.pooled.p95Ms/baseline.pooled.p95Ms-1)*100).toFixed(3):null,medianTrialP95Ms:+(candidateMedianP95-baselineMedianP95).toFixed(6)},classification,raw:{baselineTrials:baseline.trials,candidateTrials:candidate.trials},interpretation:'This same-runner comparison describes whether Task⑩ changes the generic Stage B benchmark. The 8.333 ms production gate remains unchanged; equal baseline/candidate threshold exceedance is recorded as a pre-existing baseline issue and still requires an explicit gate-resolution decision.'};
+await mkdir(dirname(outputPath),{recursive:true});await writeFile(outputPath,JSON.stringify(comparison,null,2));console.log('REACTION_LAB_STAGE_B_COMPARISON',JSON.stringify(comparison));
