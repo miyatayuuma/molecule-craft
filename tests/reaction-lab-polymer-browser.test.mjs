@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 12178)
-Total output lines: 224
-
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {mkdtemp,readFile,rm,mkdir,writeFile} from 'node:fs/promises';
@@ -107,7 +104,12 @@ try{
     assert.equal(p.fit?.unitCount,route.completionEvidence.unitCount);assert.ok(p.fit.scale>0&&p.fit.scale<=1);assert.equal(state.instances.some(item=>item.species==='PolymerSample'),false,'PolymerSample is not inserted into the Stage B feed instances');
     assert.ok(state.polymerResources.geometryCount>0&&state.polymerResources.materialCount>0,`${route.routeId}: the visible finite fragment owns geometry and materials`);assert.equal(state.polymerResources.geometryCount,p.displayGraph.atomCount+p.displayGraph.visibleBondMeshCount,`${route.routeId}: only finite fragment atoms and bonds own render geometry`);assert.equal(state.polymerResources.materialCount,state.polymerResources.geometryCount,`${route.routeId}: each finite graph mesh has one current material`);
     assert.equal(events.length,1,'one sample registration event is emitted for each completion');assert.equal(events[0].detail.sampleId,p.sampleId);assert.equal(events[0].detail.routeId,route.routeId);assert.equal(events[0].detail.batchGeneration,state.batch.generation);assert.ok(events[0].detail.sourceInstanceIds.length>0);
-    assert.equal(events[0].snapshot.polymerization.sampleReady,false,'registration occurs during bounded feedback');assert.equal(events[0].snapshot.polymerization.samplePhase,'completion');assert.equal(events[0].completionUi.hidden,false);assert.match(events[0].completionUi.status,/重合完了/);assert.equal(events[0].completionUi.e…178 tokens truncated…route,{newDiscovery=false,captureReady=false,captureName='completion-ready',expectedDuration=650}={})=>{
+    assert.equal(events[0].snapshot.polymerization.sampleReady,false,'registration occurs during bounded feedback');assert.equal(events[0].snapshot.polymerization.samplePhase,'completion');assert.equal(events[0].completionUi.hidden,false);assert.match(events[0].completionUi.status,/重合完了/);assert.equal(events[0].completionUi.encyclopediaDisabled,true,'Encyclopedia remains disabled until presentation is ready');
+    assert.ok(presentEvents.length<=1);if(presentEvents.length)assert.ok(presentEvents[0].receivedAt>events[0].receivedAt&&presentEvents[0].snapshot.polymerization.sampleReady,'sample-present follows registration and readiness');
+    const bounds=await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');assert.ok(bounds?.depthVisible,`${route.routeId}: each actual atom remains within camera depth`);assert.ok(bounds?.insideSafeRegion,`${route.routeId}: finite fragment fits its work-area safe region: ${JSON.stringify(bounds)}`);
+    return{state,events,presentEvents,bounds};
+  };
+  const finishCompletion=async(route,{newDiscovery=false,captureReady=false,captureName='completion-ready',expectedDuration=650}={})=>{
     await waitFor('window.__reactionLabProbe.snapshot().polymerization.sampleReady',`${route.routeId}: bounded completion feedback did not become ready`,5000);
     await waitFor("(()=>{const state=window.__reactionLabProbe.snapshot();return state.dialogOpen?state.polymerResources.activeGroupCount===1:state.polymerResources.geometryCount===0})()",`${route.routeId}: finite resources settle to the Reaction Lab open/closed state`,2000);
     const state=await snapshot(),p=state.polymerization,presentEvents=await evaluate('window.__polymerPresentEvents.slice()');
