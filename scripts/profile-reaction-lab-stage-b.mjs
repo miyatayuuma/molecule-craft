@@ -8,6 +8,9 @@ import {fileURLToPath} from 'node:url';
 
 const root=resolve(process.env.POLYMER_ROOT??fileURLToPath(new URL('..',import.meta.url))),viewport={width:390,height:844,deviceScaleFactor:1,mobile:true};
 const output=resolve(process.env.STAGE_B_PROFILE_OUTPUT??join(root,'test-results/stage-b-profile.json')),pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+// Match the production-browser performance fixture: the test grants access to
+// the same already-discovered species before the Lab initializes.
+const discoveredSpecies=['water','ethanol','acetic-anhydride','acetic-acid','ethyl-acetate','oxygen','hydrogen','acetone','pyridine','methane','carbon-dioxide','carbonic-acid','hexamethylenediamine','isoamyl-acetate','methylcyclohexane','2-butene','difluoromethane','hydrogen-fluoride','chlorine','ethene','1-2-dichloroethane','ethylene-oxide','ethylene-glycol','methanol','dimethyl-ether','chloromethane','hydrogen-chloride'];
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
 const server=createServer(async(request,response)=>{
   try{const path=new URL(request.url,'http://localhost').pathname==='/'?'index.html':decodeURIComponent(new URL(request.url,'http://localhost').pathname).replace(/^\/+/,''),file=normalize(join(root,path));if(!file.startsWith(root))throw Error();response.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store'});response.end(await readFile(file));}
@@ -24,14 +27,17 @@ try{
   let sequence=0;const pending=new Map(),browserErrors=[];socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(Error(message.error.message)):task.resolve(message.result);}if(message.method==='Runtime.exceptionThrown')browserErrors.push(message.params.exceptionDetails.exception?.description??message.params.exceptionDetails.text);if(message.method==='Runtime.consoleAPICalled'&&message.params.type==='error')browserErrors.push(message.params.args?.map(arg=>arg.value??arg.description??'').join(' '));});
   const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);return result.result?.value;};
-  const waitFor=async(expression,label,timeout=12000)=>{for(let attempt=0;attempt<timeout/50;attempt++){if(await evaluate(expression))return;await pause(50);}throw Error(label);};
+  const waitFor=async(expression,label,timeout=12000)=>{for(let attempt=0;attempt<timeout/50;attempt++){if(await evaluate(expression))return;await pause(50);}const details=await evaluate(`(()=>({url:location.href,dialog:document.querySelector('#reaction-lab-dialog')?.open,pickerHidden:document.querySelector('[data-lab-picker]')?.hidden,searchValue:document.querySelector('[data-lab-search]')?.value,draftSlots:window.__reactionLabProbe?.snapshot().batch.draftSlots,rows:[...document.querySelectorAll('[data-lab-picker-list] [data-species]')].slice(0,12).map(item=>({id:item.dataset.species,hidden:item.hidden,disabled:item.disabled}))}))()`);throw Error(`${label}: ${JSON.stringify(details)}`);};
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()'),browser=await send('Browser.getVersion');
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',viewport);
+  const collectionSave=JSON.stringify({schemaVersion:3,discoveredMolecules:discoveredSpecies.map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]});
+  await send('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('molecule-craft.collection.v1',${JSON.stringify(collectionSave)})`});
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1&reactionLabPhysics=stage-b`});
   await waitFor("!!window.__reactionLabProbe&&window.__reactionLabProbe.physicsMode==='stage-b'&&!!document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled",'Stage B Reaction Lab probe did not initialize');
   await evaluate("document.querySelector('#open-reaction-lab').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open",'Stage B Reaction Lab did not open');
   for(let index=0;index<3;index++){
     const state=await snapshot(),current=state.batch.draftSlots[index]??'',next=['methane','oxygen','2-butene'][index];if(current===next)continue;
+    await waitFor("!window.__reactionLabProbe.snapshot().pickerOpen&&!window.__reactionLabProbe.snapshot().batch.transitionKind",'Feed Rack is still transitioning');
     await evaluate(`document.querySelectorAll('[data-lab-slot]')[${index}].click()`);await waitFor("!document.querySelector('[data-lab-picker]').hidden",'Species picker did not open');
     await evaluate(`(()=>{const input=document.querySelector('[data-lab-search]');input.value=${JSON.stringify(next)};input.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
     await waitFor(`!!document.querySelector('[data-lab-picker-list] [data-species=${JSON.stringify(next)}]')&&!document.querySelector('[data-lab-picker-list] [data-species=${JSON.stringify(next)}]').hidden`,`${next} did not appear in the filtered species picker`);
