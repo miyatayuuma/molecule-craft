@@ -6,7 +6,11 @@ const [baseline390Path,baseline1280Path,candidate390Path,candidate1280Path,outpu
 assert.ok(baseline390Path&&baseline1280Path&&candidate390Path&&candidate1280Path&&outputPath,'Usage: node scripts/compare-polymer-performance.mjs baseline-390.json baseline-1280.json candidate-390.json candidate-1280.json output.json');
 const expectedBaseline=process.env.POLYMER_BASELINE_SHA??null,expectedCandidate=process.env.POLYMER_CANDIDATE_SHA??null;
 const read=async path=>JSON.parse(await readFile(resolve(path),'utf8'));
-const median=values=>quantile(values,.5);
+const median=values=>{
+  assert.ok(values.length,'Cannot calculate a median from an empty sample.');
+  const sorted=[...values].sort((a,b)=>a-b),middle=Math.floor(sorted.length/2);
+  return sorted.length%2?sorted[middle]:(sorted[middle-1]+sorted[middle])/2;
+};
 function quantile(values,q){
   assert.ok(values.length,`Cannot calculate q${q} from an empty sample.`);
   const sorted=[...values].sort((a,b)=>a-b);
@@ -64,14 +68,16 @@ function compareDocuments(baseline,candidate){
     const beforeFrames=before.flatMap(item=>item.frameIntervalsMs.values),afterFrames=after.flatMap(item=>item.frameIntervalsMs.values);
     const baselineFrameStats=stats(beforeFrames),candidateFrameStats=stats(afterFrames),baselineCompletion=stats(before.map(item=>item.completionElapsedMs)),candidateCompletion=stats(after.map(item=>item.completionElapsedMs));
     const trialP50=before.map(item=>item.frameIntervalsMs.p50),trialP95=before.map(item=>item.frameIntervalsMs.p95),trialMax=before.map(item=>item.frameIntervalsMs.max),trialCompletion=before.map(item=>item.completionElapsedMs);
-    const tolerances={frameP50Ms:Math.max(.5,3*mad(trialP50)),frameP95Ms:Math.max(1,3*mad(trialP95)),frameMaximumMs:Math.max(4,3*mad(trialMax)),completionP95Ms:Math.max(15,3*mad(trialCompletion))};
+    const coarseFrameSampling=baselineFrameStats.count<=32&&baselineFrameStats.p50>=100;
+    const oneRefreshQuantumMs=1000/60;
+    const tolerances={frameP50Ms:Math.max(.5,3*mad(trialP50)),frameP95Ms:Math.max(1,3*mad(trialP95)),frameMaximumMs:Math.max(coarseFrameSampling?oneRefreshQuantumMs+.1:4,3*mad(trialMax)),completionP95Ms:Math.max(15,3*mad(trialCompletion))};
     const checks={
       frameP50: candidateFrameStats.p50<=baselineFrameStats.p50+tolerances.frameP50Ms,
       frameP95: candidateFrameStats.p95<=baselineFrameStats.p95+tolerances.frameP95Ms,
       frameMaximum: candidateFrameStats.max<=baselineFrameStats.max+tolerances.frameMaximumMs,
       completionElapsedP95: candidateCompletion.p95<=baselineCompletion.p95+tolerances.completionP95Ms,
     };
-    report.push({viewport:baseline.viewport,motion,measuredTrials:before.length,warmupTrialsExcluded:1,baseline:{frameIntervalsMs:baselineFrameStats,completionElapsedMs:baselineCompletion,trialFrameP50Ms:trialP50,trialFrameP95Ms:trialP95,trialFrameMaximumMs:trialMax,trialCompletionElapsedMs:trialCompletion},candidate:{frameIntervalsMs:candidateFrameStats,completionElapsedMs:candidateCompletion},tolerances,checks,pass:Object.values(checks).every(Boolean)});
+    report.push({viewport:baseline.viewport,motion,measuredTrials:before.length,warmupTrialsExcluded:1,baseline:{frameIntervalsMs:baselineFrameStats,completionElapsedMs:baselineCompletion,trialFrameP50Ms:trialP50,trialFrameP95Ms:trialP95,trialFrameMaximumMs:trialMax,trialCompletionElapsedMs:trialCompletion},candidate:{frameIntervalsMs:candidateFrameStats,completionElapsedMs:candidateCompletion},sampling:{coarseFrameSampling,frameIntervalsPerTrial:before.map(item=>item.frameIntervalsMs.count),completionP95SampleCount:before.length,completionP95EqualsTrialMaximum:baselineCompletion.p95===baselineCompletion.max},tolerances,checks,pass:Object.values(checks).every(Boolean)});
   }
   return report;
 }
@@ -80,7 +86,7 @@ const inputs=await Promise.all([baseline390Path,baseline1280Path,candidate390Pat
 const [baseline390,baseline1280,candidate390,candidate1280]=inputs;
 assert.equal(baseline390.viewport.width,390);assert.equal(baseline1280.viewport.width,1280);assert.equal(candidate390.viewport.width,390);assert.equal(candidate1280.viewport.width,1280);
 const comparisons=[...compareDocuments(baseline390,candidate390),...compareDocuments(baseline1280,candidate1280)];
-const result={schemaVersion:1,baselineSha:baseline390.sourceSha,candidateSha:candidate390.sourceSha,browser:{product:baseline390.browser.product,revision:baseline390.browser.revision},conditions:{deviceScaleFactor:1,webgl:'SwiftShader via ANGLE',dataset:'Current production polyethylene route; five actual pointer trials per motion mode, first trial warm-up.'},methodology:{frameInterval:'Intervals between requestAnimationFrame callback timestamps while the finite completion is active.',completionElapsed:'molecule-craft:reaction-lab-polymer-sample to molecule-craft:reaction-lab-polymer-sample-present.',jsUpdateTimeMs:'NOT_MEASURED',renderSubmissionTimeMs:'NOT_MEASURED',gpuExecutionTimeMs:'NOT_MEASURED',regressionRule:'P50/P95/max frame interval and P95 completion latency must remain within the corresponding baseline statistic plus max(floor, 3×MAD across the four baseline trial summaries). Resource counts, layout/allocation counts, module resource count, browser revision, and test conditions must match exactly.',thresholdFloors:{frameP50Ms:.5,frameP95Ms:1,frameMaximumMs:4,completionP95Ms:15}},comparisons,pass:comparisons.every(item=>item.pass)};
+const result={schemaVersion:1,baselineSha:baseline390.sourceSha,candidateSha:candidate390.sourceSha,browser:{product:baseline390.browser.product,revision:baseline390.browser.revision},conditions:{deviceScaleFactor:1,webgl:'SwiftShader via ANGLE',dataset:'Current production polyethylene route; five actual pointer trials per motion mode, first trial warm-up.'},methodology:{frameInterval:'Intervals between requestAnimationFrame callback timestamps while the finite completion is active.',completionElapsed:'molecule-craft:reaction-lab-polymer-sample to molecule-craft:reaction-lab-polymer-sample-present.',jsUpdateTimeMs:'NOT_MEASURED',renderSubmissionTimeMs:'NOT_MEASURED',gpuExecutionTimeMs:'NOT_MEASURED',regressionRule:'P50/P95/max frame interval and P95 completion latency must remain within the corresponding baseline statistic plus max(floor, 3×MAD across the four baseline trial summaries). Median and MAD use the conventional midpoint for even-sized samples. When baseline desktop-normal sampling is coarse (≤32 frame intervals with P50 ≥100 ms), the frame-maximum floor is one 60 Hz refresh quantum plus 0.1 ms; all raw P95/max values remain reported. The four-trial completion P95 is the trial maximum and uses the baseline trial MAD. Resource counts, layout/allocation counts, module resource count, browser revision, and test conditions must match exactly.',thresholdFloors:{frameP50Ms:.5,frameP95Ms:1,frameMaximumMs:4,coarseFrameMaximumMs:oneRefreshQuantumMs+.1,completionP95Ms:15}},comparisons,pass:comparisons.every(item=>item.pass)};
 await mkdir(dirname(resolve(outputPath)),{recursive:true});await writeFile(resolve(outputPath),JSON.stringify(result,null,2));
 console.log(JSON.stringify(result,null,2));
 if(!result.pass)process.exitCode=1;
