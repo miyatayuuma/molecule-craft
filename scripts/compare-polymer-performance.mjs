@@ -5,6 +5,7 @@ import {dirname,resolve} from 'node:path';
 const [baseline390Path,baseline1280Path,candidate390Path,candidate1280Path,outputPath]=process.argv.slice(2);
 assert.ok(baseline390Path&&baseline1280Path&&candidate390Path&&candidate1280Path&&outputPath,'Usage: node scripts/compare-polymer-performance.mjs baseline-390.json baseline-1280.json candidate-390.json candidate-1280.json output.json');
 const expectedBaseline=process.env.POLYMER_BASELINE_SHA??null,expectedCandidate=process.env.POLYMER_CANDIDATE_SHA??null;
+const oneRefreshQuantumMs=1000/60;
 const read=async path=>JSON.parse(await readFile(resolve(path),'utf8'));
 const median=values=>{
   assert.ok(values.length,'Cannot calculate a median from an empty sample.');
@@ -69,7 +70,6 @@ function compareDocuments(baseline,candidate){
     const baselineFrameStats=stats(beforeFrames),candidateFrameStats=stats(afterFrames),baselineCompletion=stats(before.map(item=>item.completionElapsedMs)),candidateCompletion=stats(after.map(item=>item.completionElapsedMs));
     const trialP50=before.map(item=>item.frameIntervalsMs.p50),trialP95=before.map(item=>item.frameIntervalsMs.p95),trialMax=before.map(item=>item.frameIntervalsMs.max),trialCompletion=before.map(item=>item.completionElapsedMs);
     const coarseFrameSampling=baselineFrameStats.count<=32&&baselineFrameStats.p50>=100;
-    const oneRefreshQuantumMs=1000/60;
     const tolerances={frameP50Ms:Math.max(.5,3*mad(trialP50)),frameP95Ms:Math.max(1,3*mad(trialP95)),frameMaximumMs:Math.max(coarseFrameSampling?oneRefreshQuantumMs+.1:4,3*mad(trialMax)),completionP95Ms:Math.max(15,3*mad(trialCompletion))};
     const checks={
       frameP50: candidateFrameStats.p50<=baselineFrameStats.p50+tolerances.frameP50Ms,
