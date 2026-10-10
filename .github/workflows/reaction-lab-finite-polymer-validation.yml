@@ -10,6 +10,7 @@ on:
       - 'src/collection-ui.js'
       - 'src/craft-connections.js'
       - 'tests/*polymer*'
+      - 'tests/reaction-lab-browser.test.mjs'
       - 'tests/reaction-lab-legacy-removal.test.mjs'
       - 'tests/material-progression-browser.test.mjs'
       - 'scripts/compare-polymer-performance.mjs'
