@@ -115,13 +115,15 @@ try{
     await setEnvironment(route);
     await waitFor(`window.__reactionLabProbe.snapshot().polymerization.waitReason!=='conditions'`,`${route.routeId}: route conditions did not become valid`);
   };
-  const pointerDrag=async(plan,instanceId,routeId,manualIndex)=>{
+  const pointerDrag=async(instanceId,routeId,manualIndex)=>{
+    const before=await snapshot(),candidateBefore=before.instances.find(item=>item.id===instanceId),captureEvidenceForGesture=routeId==='polybutadiene-coordination-1-4'&&manualIndex===2&&!viewport.mobile;
+    const beforeScreenshot=captureEvidenceForGesture?await captureEvidence('polybutadiene-desktop-step-2-before'):null;
+    const planRequestedAt=Date.now(),plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(instanceId)})`),planReturnedAt=Date.now();
     const rect=await evaluate(`(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,documentWidth:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth}})()`);
     assert.ok(plan.start.x>=rect.x&&plan.start.x<=rect.x+rect.width&&plan.start.y>=rect.y&&plan.start.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: reactive site is visible in the ${viewport.width}×${viewport.height} chamber: ${JSON.stringify(plan)}`);
     assert.ok(plan.end.x>=rect.x&&plan.end.x<=rect.x+rect.width&&plan.end.y>=rect.y&&plan.end.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: projected target remains visible: ${JSON.stringify(plan)}`);
     assert.ok(rect.documentScroll<=rect.documentWidth+1,`${routeId} manual step ${manualIndex}: no horizontal overflow`);
-    const before=await snapshot(),candidateBefore=before.instances.find(item=>item.id===instanceId),captureFailure=routeId==='polybutadiene-coordination-1-4'&&manualIndex===2&&!viewport.mobile;
-    const beforeScreenshot=captureFailure?await captureEvidence('polybutadiene-desktop-step-2-before'):null;
+    const pointerStartAt=Date.now();
     await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:plan.start.x,y:plan.start.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:plan.start.x,y:plan.start.y,button:'left',buttons:1,clickCount:1});await pause(40);
     assert.equal((await snapshot()).draggedInstanceId,instanceId,`${routeId} manual step ${manualIndex} acquires the intended real monomer on the first pointer target`);
     for(let step=1;step<=12;step++){const t=step/12;await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:plan.start.x+(plan.end.x-plan.start.x)*t,y:plan.start.y+(plan.end.y-plan.start.y)*t,button:'left',buttons:1});await pause(20);}
@@ -130,12 +132,16 @@ try{
     if(!committed){
       const afterCanvas=await evaluate(`(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,documentWidth:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth}})()`);
       let afterPlan=null,dockGeometry=null;try{afterPlan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(instanceId)})`);}catch(error){afterPlan={error:String(error)}}try{dockGeometry=await evaluate(`window.__reactionLabProbe.polymerDockDiagnostics(${JSON.stringify(instanceId)})`);}catch(error){dockGeometry={error:String(error)}}
-      const afterScreenshot=await captureEvidence('polybutadiene-desktop-step-2-after'),diagnostic={sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId,manualStepIndex:manualIndex,viewport:{...viewport,deviceScaleFactor:1},candidateInstanceId:instanceId,candidateBefore,actualGesture:{start:plan.start,end:plan.end,sequence:['mouseMoved(start)','mousePressed(start)',...Array.from({length:12},(_,index)=>`mouseMoved(interpolated-${index+1}/12)`),'mouseReleased(end)'],pressHoldMs:40,interMoveDelayMs:20},dockPlanBefore:plan,targetProjectionBefore:before.polymerization.siteTarget,canvasBoundsBefore:rect,cameraBefore:before.camera,beforeSnapshot:before,beforeScreenshot,afterSnapshot:after,dockAttempt:after.polymerization.dockAttempt,dockPlanAfter:afterPlan,dockGeometry,canvasBoundsAfter:afterCanvas,cameraAfter:after.camera,afterScreenshot,browserErrors:[...browserErrors]};
+      const afterScreenshot=await captureEvidence('polybutadiene-desktop-step-2-after'),diagnostic={sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId,manualStepIndex:manualIndex,viewport:{...viewport,deviceScaleFactor:1},candidateInstanceId:instanceId,candidateBefore,actualGesture:{start:plan.start,end:plan.end,sequence:['mouseMoved(start)','mousePressed(start)',...Array.from({length:12},(_,index)=>`mouseMoved(interpolated-${index+1}/12)`),'mouseReleased(end)'],pressHoldMs:40,interMoveDelayMs:20,planRequestMs:planRequestedAt,planReadyMs:planReturnedAt,pointerStartMs:pointerStartAt,planToPointerStartMs:pointerStartAt-planReturnedAt},dockPlanBefore:plan,targetProjectionBefore:before.polymerization.siteTarget,canvasBoundsBefore:rect,cameraBefore:before.camera,beforeSnapshot:before,beforeScreenshot,afterSnapshot:after,dockAttempt:after.polymerization.dockAttempt,dockPlanAfter:afterPlan,dockGeometry,canvasBoundsAfter:afterCanvas,cameraAfter:after.camera,afterScreenshot,browserErrors:[...browserErrors]};
       await mkdir(evidenceDir,{recursive:true});await writeFile(join(evidenceDir,`pointer-dock-failure-${routeId}-${manualIndex}-${viewport.width}.json`),JSON.stringify(diagnostic,null,2));
       console.log('POLYMER_POINTER_DOCK_DIAGNOSTIC',JSON.stringify(diagnostic));
       throw Error(`${routeId} manual step ${manualIndex} did not commit from the actual pointer gesture; diagnostics and before/after screenshots were saved.`);
     }
     assert.equal((await snapshot()).pointerActive,false,`${routeId} manual gesture releases pointer capture`);
+    if(captureEvidenceForGesture){
+      const after=await snapshot(),success={sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId,manualStepIndex:manualIndex,viewport:{...viewport,deviceScaleFactor:1},candidateInstanceId:instanceId,candidateBefore,actualGesture:{start:plan.start,end:plan.end,sequence:['mouseMoved(start)','mousePressed(start)',...Array.from({length:12},(_,index)=>`mouseMoved(interpolated-${index+1}/12)`),'mouseReleased(end)'],pressHoldMs:40,interMoveDelayMs:20,planToPointerStartMs:pointerStartAt-planReturnedAt},dockPlan:plan,targetProjectionBefore:before.polymerization.siteTarget,canvasBounds:rect,camera:before.camera,beforeSnapshot:before,beforeScreenshot,afterSnapshot:after,dockAttempt:after.polymerization.dockAttempt,browserErrors:[...browserErrors]};
+      await mkdir(evidenceDir,{recursive:true});await writeFile(join(evidenceDir,`pointer-dock-success-${routeId}-${manualIndex}-${viewport.width}.json`),JSON.stringify(success,null,2));console.log('POLYMER_POINTER_DOCK_SUCCESS',JSON.stringify(success));
+    }
     await pause(360);
   };
   const runManualSteps=async route=>{
@@ -143,7 +149,7 @@ try{
       await waitFor("!!window.__reactionLabProbe.snapshot().polymerization.siteTarget",`${route.routeId} manual step ${manualIndex}: stable reactive site is presented`);
       const state=await snapshot(),consumed=state.polymerization.consumedInstanceIds,reserved=new Set(state.polymerization.reservedInstanceIds),species=route.representativeSequence[consumed.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!consumed.includes(item.id));
       assert.ok(candidate,`${route.routeId} manual step ${manualIndex}: representative incoming monomer is reserved and draggable`);
-      const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,manualIndex);
+      await pointerDrag(candidate.id,route.routeId,manualIndex);
       assert.equal((await snapshot()).polymerization.manualStepCount,manualIndex,`${route.routeId}: exactly one manual chemistry step was committed`);
     }
   };
@@ -153,7 +159,7 @@ try{
     const state=await snapshot();if(state.polymerization.state==='SAMPLE')return 'route-automatic';
     const consumed=state.polymerization.consumedInstanceIds,reserved=new Set(state.polymerization.reservedInstanceIds),species=route.representativeSequence[consumed.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!consumed.includes(item.id));
     assert.ok(candidate,`${route.routeId}: final reserved monomer remains draggable after automatic geometry fallback`);
-    const manualIndex=state.polymerization.manualStepCount+1,plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,manualIndex);
+    const manualIndex=state.polymerization.manualStepCount+1;await pointerDrag(candidate.id,route.routeId,manualIndex);
     return 'actual-pointer-continuation';
   };
   const inspectSample=async route=>{
