@@ -118,8 +118,8 @@ try{
   const pointerDrag=async(instanceId,routeId,manualIndex)=>{
     const before=await snapshot(),candidateBefore=before.instances.find(item=>item.id===instanceId),captureEvidenceForGesture=routeId==='polybutadiene-coordination-1-4'&&manualIndex===2&&!viewport.mobile;
     const beforeScreenshot=captureEvidenceForGesture?await captureEvidence('polybutadiene-desktop-step-2-before'):null;
-    const planRequestedAt=Date.now(),plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(instanceId)})`),planReturnedAt=Date.now();
     const rect=await evaluate(`(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,documentWidth:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth}})()`);
+    const planRequestedAt=Date.now(),plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(instanceId)})`),planReturnedAt=Date.now();
     assert.ok(plan.start.x>=rect.x&&plan.start.x<=rect.x+rect.width&&plan.start.y>=rect.y&&plan.start.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: reactive site is visible in the ${viewport.width}×${viewport.height} chamber: ${JSON.stringify(plan)}`);
     assert.ok(plan.end.x>=rect.x&&plan.end.x<=rect.x+rect.width&&plan.end.y>=rect.y&&plan.end.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: projected target remains visible: ${JSON.stringify(plan)}`);
     assert.ok(rect.documentScroll<=rect.documentWidth+1,`${routeId} manual step ${manualIndex}: no horizontal overflow`);
