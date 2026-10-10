@@ -33,7 +33,10 @@ try{
   for(let index=0;index<3;index++){
     const state=await snapshot(),current=state.batch.draftSlots[index]??'',next=['methane','oxygen','2-butene'][index];if(current===next)continue;
     await evaluate(`document.querySelectorAll('[data-lab-slot]')[${index}].click()`);await waitFor("!document.querySelector('[data-lab-picker]').hidden",'Species picker did not open');
-    await evaluate(`(()=>{const input=document.querySelector('[data-lab-search]');input.value=${JSON.stringify(next)};input.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('[data-lab-picker-list] [data-species="${next}"]').click();})()`);await waitFor("document.querySelector('[data-lab-picker]').hidden",'Species picker did not close');
+    await evaluate(`(()=>{const input=document.querySelector('[data-lab-search]');input.value=${JSON.stringify(next)};input.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
+    await waitFor(`!!document.querySelector('[data-lab-picker-list] [data-species=${JSON.stringify(next)}]')&&!document.querySelector('[data-lab-picker-list] [data-species=${JSON.stringify(next)}]').hidden`,`${next} did not appear in the filtered species picker`);
+    const option=await evaluate(`(()=>{const item=document.querySelector('[data-lab-picker-list] [data-species=${JSON.stringify(next)}]');return{exists:!!item,disabled:item?.disabled??null,hidden:item?.hidden??null}})()`);assert.equal(option.disabled,false,`${next} must remain selectable in the Stage B fixture`);
+    await evaluate(`document.querySelector('[data-lab-picker-list] [data-species=${JSON.stringify(next)}]').click()`);await waitFor("document.querySelector('[data-lab-picker]').hidden",'Species picker did not close');
   }
   await waitFor("!document.querySelector('[data-lab-feed]').disabled",'FEED did not become available');await evaluate("document.querySelector('[data-lab-feed]').click()");
   await waitFor("(()=>{const s=window.__reactionLabProbe.snapshot();return s.batch.phase==='ACTIVE'&&s.instances.length===6&&['methane','oxygen','2-butene'].every(id=>s.instances.some(item=>item.species===id))})()",'Six-instance Stage B workload did not become active');
