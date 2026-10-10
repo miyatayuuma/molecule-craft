@@ -5,6 +5,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {extname,join,normalize,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
+import {once} from 'node:events';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url))),outputDir=join(root,'test-results','ring-visual-calibration');
 const indexHtml=await readFile(join(root,'index.html'),'utf8'),fixtureHtml=indexHtml.replace(/\s*<script type="module" src="\.\/src\/(?:app|pwa)\.js[^"]*"><\/script>/g,'');
@@ -40,5 +41,5 @@ try{
   }
   const assets=await evaluate(`(async()=>Object.fromEntries(await Promise.all(${JSON.stringify(['cyclopentane','tetrahydrofuran','cyclobutane','cyclohexane'])}.map(async id=>[id,await fetch('/assets/models/molecule-'+id+'.svg').then(r=>r.text())]))))()`);
   for(const id of ids){assert.match(assets[id],/viewBox="0 0 192 128"/,`${id}: Graph thumbnail framing contract`);assert.ok((assets[id].match(/<circle /g)??[]).length>=4,`${id}: Graph thumbnail lost atom topology`);assert.ok((assets[id].match(/<path /g)??[]).length>=4,`${id}: Graph thumbnail lost readable bonds`);}
-}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
+}finally{try{socket?.close();}catch{}if(child&&child.exitCode===null&&child.signalCode===null){const exited=once(child,'exit').catch(()=>{});try{child.kill('SIGKILL');}catch{}await Promise.race([exited,pause(5000)]);}else{try{child?.kill('SIGKILL');}catch{}}server.close();await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
 console.log('Ring visual browser passed at 360x780: live 3D fitting, no overflow, and Graph thumbnail topology/framing.');
