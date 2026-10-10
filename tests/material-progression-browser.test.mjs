@@ -110,11 +110,21 @@ try{
     assert.ok(plan.start.x>=rect.x&&plan.start.x<=rect.x+rect.width&&plan.start.y>=rect.y&&plan.start.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: reactive site is visible in the ${viewport.width}×${viewport.height} chamber: ${JSON.stringify(plan)}`);
     assert.ok(plan.end.x>=rect.x&&plan.end.x<=rect.x+rect.width&&plan.end.y>=rect.y&&plan.end.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: projected target remains visible: ${JSON.stringify(plan)}`);
     assert.ok(rect.documentScroll<=rect.documentWidth+1,`${routeId} manual step ${manualIndex}: no horizontal overflow`);
+    const before=await snapshot(),candidateBefore=before.instances.find(item=>item.id===instanceId),captureFailure=routeId==='polybutadiene-coordination-1-4'&&manualIndex===2&&!viewport.mobile;
+    const beforeScreenshot=captureFailure?await captureEvidence('polybutadiene-desktop-step-2-before'):null;
     await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:plan.start.x,y:plan.start.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:plan.start.x,y:plan.start.y,button:'left',buttons:1,clickCount:1});await pause(40);
     assert.equal((await snapshot()).draggedInstanceId,instanceId,`${routeId} manual step ${manualIndex} acquires the intended real monomer on the first pointer target`);
     for(let step=1;step<=12;step++){const t=step/12;await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:plan.start.x+(plan.end.x-plan.start.x)*t,y:plan.start.y+(plan.end.y-plan.start.y)*t,button:'left',buttons:1});await pause(20);}
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:plan.end.x,y:plan.end.y,button:'left',buttons:0});
-    await waitFor(`(()=>{const p=window.__reactionLabProbe.snapshot().polymerization;return p.manualStepCount===${manualIndex}&&p.state!=='TRANSFORMING'})()`,`${routeId} manual step ${manualIndex} did not commit from a pointer gesture`,9000);
+    let committed=false,after=null;for(let attempt=0;attempt<180;attempt++){after=await snapshot();const p=after.polymerization;if(p.manualStepCount===manualIndex&&p.state!=='TRANSFORMING'){committed=true;break;}await pause(50);}
+    if(!committed){
+      const afterCanvas=await evaluate(`(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,documentWidth:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth}})()`);
+      let afterPlan=null;try{afterPlan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(instanceId)})`);}catch(error){afterPlan={error:String(error)}}
+      const afterScreenshot=await captureEvidence('polybutadiene-desktop-step-2-after'),diagnostic={sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId,manualStepIndex:manualIndex,viewport:{...viewport,deviceScaleFactor:1},candidateInstanceId:instanceId,candidateBefore,actualGesture:{start:plan.start,end:plan.end,sequence:['mouseMoved(start)','mousePressed(start)',...Array.from({length:12},(_,index)=>`mouseMoved(interpolated-${index+1}/12)`),'mouseReleased(end)'],pressHoldMs:40,interMoveDelayMs:20},dockPlanBefore:plan,targetProjectionBefore:before.polymerization.siteTarget,canvasBoundsBefore:rect,cameraBefore:before.camera,beforeSnapshot:before,beforeScreenshot,afterSnapshot:after,dockAttempt:after.polymerization.dockAttempt,dockPlanAfter:afterPlan,canvasBoundsAfter:afterCanvas,cameraAfter:after.camera,afterScreenshot,browserErrors:[...browserErrors]};
+      await mkdir(evidenceDir,{recursive:true});await writeFile(join(evidenceDir,`pointer-dock-failure-${routeId}-${manualIndex}-${viewport.width}.json`),JSON.stringify(diagnostic,null,2));
+      console.log('POLYMER_POINTER_DOCK_DIAGNOSTIC',JSON.stringify(diagnostic));
+      throw Error(`${routeId} manual step ${manualIndex} did not commit from the actual pointer gesture; diagnostics and before/after screenshots were saved.`);
+    }
     assert.equal((await snapshot()).pointerActive,false,`${routeId} manual gesture releases pointer capture`);
     await pause(360);
   };
