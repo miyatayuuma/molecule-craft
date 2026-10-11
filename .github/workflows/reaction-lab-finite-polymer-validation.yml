@@ -115,6 +115,8 @@ jobs:
           POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/polymer-performance/candidate/desktop
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Validate trial-weighted performance comparison
+        run: node --test tests/compare-polymer-performance.test.mjs
       - name: Compare same-condition completion performance
         env:
           POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53

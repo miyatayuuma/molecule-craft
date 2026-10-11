@@ -37,6 +37,21 @@ The renderer reuses source atom meshes, maintains bounded bond mesh/material poo
 
 The browser gate records completion elapsed time, frame intervals, layout time, layout iterations, bond visual allocations, geometry/material counts, and disposal deltas at 390×844 and 1280×900. JavaScript and GPU execution times that the browser cannot measure are reported as `NOT_MEASURED`. The finite-polymer workflow compares completion performance against Task⑩ main (`4bc202c0eb1f51de0350c3a0b4be36c7178cba53`) under the same mobile and desktop profile conditions. The inherited Stage B regression gate remains in place.
 
+The profile contains one warm-up and four measured trials per viewport and motion mode. Raw `requestAnimationFrame` intervals, each trial's P50/P95/maximum, completion time, and interval count remain in the uploaded evidence. For frame P50/P95 comparison, the gate gives each measured trial equal weight by comparing the median of the four trial-level percentiles; the report also retains pooled P50/P95/maximum. Baseline-derived MAD tolerances and the existing coarse-sampling floors are unchanged. This matters when headless reduced-motion runs capture only one or two intervals per trial: a pooled P50 can jump by a refresh interval solely because the baseline has an even total count and the candidate an odd total count. That pooled result remains visible in the report, while the pass/fail comparison uses the four equally weighted trials. Per-trial layout-generation time is derived from successive snapshots of the cumulative `layoutComputationMs` counter; it is not inferred from frame intervals.
+
+### Initial desktop reduced-motion failure diagnosis
+
+The original failing run was GitHub Actions run `38108574355`, candidate `a3bfc66b97200e854f4c1611bce1ebeeadf1e569`, compared with Task⑩ main `4bc202c0eb1f51de0350c3a0b4be36c7178cba53`. Both profiles used Chrome `154.0.8037.97` revision `@b510e9d7cd3a2fbd78d0ddc42234103206c5f78d`, SwiftShader/ANGLE, and the same `1280×900` viewport and reduced-motion route on the same finite-validation job.
+
+|Measured trial|Task⑩ interval count / P50 / P95 (ms)|Task⑪ interval count / P50 / P95 (ms)|Task⑩ completion (ms)|Task⑪ completion (ms)|Task⑪ layout delta (ms)|
+|---:|---:|---:|---:|---:|---:|---:|
+|1|2 / 16.6 / 150.1|2 / 16.7 / 116.7|418.4|414.1|6.6|
+|2|2 / 16.7 / 133.3|1 / 133.2 / 133.2|428.3|267.6|7.2|
+|3|2 / 16.7 / 150.0|2 / 16.7 / 133.3|427.9|431.6|5.5|
+|4|2 / 16.7 / 150.0|2 / 16.6 / 150.0|429.0|425.7|5.8|
+
+The pooled intervals were 8 baseline values and 7 candidate values, yielding pooled P50 values of `16.7 ms` and `116.7 ms`. The four trial P50s instead have medians of `16.7 ms` for both builds. Candidate completion P95 was `431.6 ms` versus `429.0 ms` baseline, within the existing 15 ms floor; frame P95 and maximum checks also passed. The failure therefore came from pooling sparse intervals with unequal sample counts, not from repeated layout work or a measured GPU regression. This evidence does not establish GPU execution time; it remains `NOT_MEASURED`.
+
 ## Known limits
 
 - Coordinates are a deterministic visual conformer based on the monomer preview poses and simplified bond/angle/steric constraints.
