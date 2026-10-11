@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=resolve(process.env.POLYMER_ROOT??fileURLToPath(new URL('..',import.meta.url))),routes=JSON.parse(await readFile(join(root,'data/polymerization-routes.json'),'utf8')).routes,polymers=JSON.parse(await readFile(join(root,'data/polymers.json'),'utf8'));
 const viewport=process.env.POLYMER_DESKTOP==='1'?{width:1280,height:900,mobile:false}:{width:390,height:844,mobile:true},evidence=[],performanceEvidence=[];
+const task10BaselineProfile=process.env.POLYMER_PROFILE_ONLY==='1'&&process.env.POLYMER_SOURCE_SHA==='4bc202c0eb1f51de0350c3a0b4be36c7178cba53';
 const hardRouteIds=['polyethylene-coordination','ethylene-propylene-coordination','polyethylene-oxide-anionic-ring-opening','polyethylene-terephthalate-direct-polycondensation','phenol-formaldehyde-resole','styrene-butadiene-radical','butyl-rubber-cationic','nylon-6-6-direct-polycondensation'];
 const hardRoutes=hardRouteIds.map(id=>routes.find(route=>route.routeId===id));assert.equal(hardRoutes.filter(Boolean).length,8);hardRoutes.push(routes.find(r=>r.polymerId==='polystyrene'));
 const moleculeIds=[...new Set([...routes.flatMap(route=>route.feedSpecies),'water'])],moleculeSave={schemaVersion:3,discoveredMolecules:moleculeIds.map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
@@ -95,23 +96,93 @@ try{
   };
   const artifactDir=resolve(process.env.POLYMER_EVIDENCE_DIR??join(root,'test-results/reaction-lab-polymer-simplification'));
   const capture=async name=>{const image=await send('Page.captureScreenshot',{format:'png'});await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`${name}-${viewport.width}.png`),Buffer.from(image.data,'base64'));};
+  let observationDone=false;
+  const exercisePolymerObservation=async()=>{
+    const initial=await snapshot(),initialView=initial.polymerView,rect=await evaluate("(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}})()");
+    const center={x:rect.x+rect.width*.5,y:rect.y+rect.height*.5};
+    await capture('observation-initial');
+    if(viewport.mobile){
+      await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:2});
+      await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:center.x-28,y:center.y}]});
+      await send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:center.x+55,y:center.y+38}]});
+      await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    }else{
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x,y:center.y});
+      await send('Input.dispatchMouseEvent',{type:'mousePressed',x:center.x,y:center.y,button:'left',buttons:1,clickCount:1});
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x+85,y:center.y+42,button:'left',buttons:1});
+      await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:center.x+85,y:center.y+42,button:'left',buttons:0});
+    }
+    await pause(80);
+    const rotated=await snapshot();assert.notDeepEqual(rotated.polymerView.rotation,initialView.rotation,'observation drag rotates the completed Sample');assert.equal(rotated.polymerization.manualStepCount,initial.polymerization.manualStepCount,'observation drag does not commit chemistry');assert.equal(rotated.polymerization.sampleId,initial.polymerization.sampleId);assert.equal(rotated.polymerization.sampleReady,true);assert.equal(rotated.pointerActive,false);
+    await capture('observation-rotated');
+    if(viewport.mobile){
+      await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:center.x-62,y:center.y+12}]});
+      await send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:center.x+83,y:center.y-68}]});
+      await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    }else{
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x,y:center.y});
+      await send('Input.dispatchMouseEvent',{type:'mousePressed',x:center.x,y:center.y,button:'left',buttons:1,clickCount:1});
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x+145,y:center.y-80,button:'left',buttons:1});
+      await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:center.x+145,y:center.y-80,button:'left',buttons:0});
+    }
+    await pause(60);assert.ok((await evaluate('window.__reactionLabProbe.polymerDisplayBounds()')).insideSafeRegion,'rotated view remains fully framed');await capture('observation-side');
+    if(viewport.mobile){
+      await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:center.x-25,y:center.y},{id:2,x:center.x+25,y:center.y}]});
+      await send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:center.x-48,y:center.y},{id:2,x:center.x+48,y:center.y}]});
+      await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    }else{
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x,y:center.y});
+      await send('Input.dispatchMouseEvent',{type:'mouseWheel',x:center.x,y:center.y,deltaY:-240,deltaX:0});
+    }
+    await pause(60);const zoomed=await snapshot();assert.ok(zoomed.polymerView.zoomFactor>1,viewport.mobile?'two-finger pinch zooms the finite sample':'wheel zooms the finite sample');assert.equal(zoomed.camera.distance,initial.camera.distance,'observation zoom leaves the shared camera unchanged');assert.equal(zoomed.polymerization.manualStepCount,initial.polymerization.manualStepCount);await capture('observation-zoomed');
+    if(!viewport.mobile)await send('Input.dispatchMouseEvent',{type:'mouseWheel',x:center.x,y:center.y,deltaY:260,deltaX:0});
+    await evaluate("document.querySelector('[data-polymer-view-reset]').click()");await pause(60);
+    const reset=await snapshot();assert.equal(reset.polymerView.zoomFactor,1,'reset returns zoom to fitted scale');assert.deepEqual(reset.polymerization.displayGraph.groupQuaternion,reset.polymerization.fit.quaternion,'reset restores the completion orientation');assert.deepEqual(reset.polymerization.displayGraph.groupPosition,reset.polymerization.fit.position,'reset restores the fitted center');assert.ok((await evaluate('window.__reactionLabProbe.polymerDisplayBounds()')).insideSafeRegion,'reset returns the full fragment to its safe region');await capture('observation-reset');
+    if(viewport.mobile){
+      await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:center.x-12,y:center.y}]});
+      await send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:center.x+20,y:center.y+12}]});
+      await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    }else{
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x,y:center.y});
+      await send('Input.dispatchMouseEvent',{type:'mousePressed',x:center.x,y:center.y,button:'left',buttons:1,clickCount:1});
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x+32,y:center.y+12,button:'left',buttons:1});
+      await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:center.x+32,y:center.y+12,button:'left',buttons:0});
+    }
+    await pause(60);const retained=await snapshot();assert.notDeepEqual(retained.polymerView.rotation,reset.polymerView.rotation,'a user-selected observation pose remains active');assert.equal((await evaluate('window.__polymerSampleEvents.length')),1,'observation gestures emit no duplicate Sample');
+    if(viewport.mobile){await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:8,x:center.x,y:center.y}]});}
+    else{await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x,y:center.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:center.x,y:center.y,button:'left',buttons:1,clickCount:1});}
+    await waitFor('window.__reactionLabProbe.snapshot().polymerView.orbitPointerIds.length===1','completed Sample observes an active pointer before cancellation');const orbitPointerId=await evaluate('window.__reactionLabProbe.snapshot().polymerView.orbitPointerIds[0]');await evaluate(`document.querySelector('#reaction-lab canvas').dispatchEvent(new PointerEvent('pointercancel',{pointerId:${orbitPointerId},bubbles:true}))`);await waitFor('window.__reactionLabProbe.snapshot().pointerActive===false','pointercancel releases completed-Sample gesture state');assert.equal(await evaluate(`document.querySelector('#reaction-lab canvas').hasPointerCapture(${orbitPointerId})`),false,'pointercancel releases pointer capture');
+    if(viewport.mobile)await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});else await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:center.x,y:center.y,button:'left',buttons:0});
+    const cancelled=await snapshot();assert.equal(cancelled.polymerization.manualStepCount,initial.polymerization.manualStepCount,'pointercancel does not commit chemistry');assert.equal(cancelled.polymerization.sampleId,initial.polymerization.sampleId);return retained.polymerView.rotation;
+  };
+  const exerciseOrdinaryMoleculeDrag=async route=>{
+    if(route.polymerId!=='phenol-formaldehyde-resin')return;
+    const initial=await snapshot(),byproduct=initial.instances.find(item=>item.species==='water'&&item.feedPhase==='polymer-byproduct');assert.ok(byproduct,'network condensation retains its real finite water byproduct for the ordinary-molecule gesture check');
+    const projected=await evaluate(`window.__reactionLabProbe.projectedBounds().find(item=>item.id===${JSON.stringify(byproduct.id)})`);assert.ok(projected?.atoms?.length,`${route.routeId}: water byproduct has rendered atoms`);
+    const rect=await evaluate("(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}})()"),start={x:projected.atoms[0].x,y:projected.atoms[0].y},end={x:start.x+(start.x<rect.x+rect.width-36?28:-28),y:start.y+(start.y<rect.y+rect.height-28?18:-18)};
+    assert.ok(start.x>=rect.x&&start.x<=rect.x+rect.width&&start.y>=rect.y&&start.y<=rect.y+rect.height,`${route.routeId}: byproduct is pointer-accessible inside the chamber`);
+    if(viewport.mobile){await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:4,x:start.x,y:start.y}]});await send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:4,x:end.x,y:end.y}]});await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
+    else{await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:start.x,y:start.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:start.x,y:start.y,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:end.x,y:end.y,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:end.x,y:end.y,button:'left',buttons:0});}
+    await pause(80);const moved=await snapshot(),movedByproduct=moved.instances.find(item=>item.id===byproduct.id);assert.equal(moved.draggedInstanceId,null,`${route.routeId}: ordinary byproduct drag releases its pointer`);assert.ok(movedByproduct&&Math.hypot(...movedByproduct.position.map((value,index)=>value-byproduct.position[index]))>.05,`${route.routeId}: completed-Sample gestures preserve ordinary molecule dragging`);assert.deepEqual(moved.polymerView.rotation,initial.polymerView.rotation,'ordinary monomer drag does not rotate the completed Sample');assert.equal(moved.polymerization.manualStepCount,initial.polymerization.manualStepCount,'ordinary molecule drag does not commit polymerization');assert.equal(moved.polymerization.sampleId,initial.polymerization.sampleId);assert.equal(moved.camera.distance,initial.camera.distance,'ordinary molecule drag does not move the shared camera');
+  };
   const inspectCompletion=async(route,{newDiscovery=false,expectedDuration=650}={})=>{
     const state=await snapshot(),p=state.polymerization,events=await evaluate('window.__polymerSampleEvents.slice()'),presentEvents=await evaluate('window.__polymerPresentEvents.slice()');
     assert.equal(state.camera.distance,routeCameraDistances.get(route.routeId),`${route.routeId}: finite completion leaves the basic camera scale unchanged`);
     assert.equal(p.state,'SAMPLE');assert.equal(p.routeId,route.routeId);assert.equal(p.polymerId,route.polymerId);assert.ok(p.sampleId);
     assert.equal(p.sampleDurationMs,expectedDuration);assert.equal(p.sampleEvidence.unitCount,route.completionEvidence.unitCount);assert.equal(p.sampleEvidence.interUnitLinks,route.completionEvidence.interUnitLinks);assert.equal(p.sampleEvidence.ringOpenings,route.completionEvidence.ringOpenings);
-    assert.equal(p.displayGraph.unitCount,route.completionEvidence.unitCount);assert.equal(p.displayGraph.layoutUnitCount,route.completionEvidence.unitCount);assert.equal(p.displayGraph.atomOriginCount,p.displayGraph.atomCount);assert.equal(p.displayGraph.visibleAtomCount,p.displayGraph.atomCount);assert.equal(p.displayGraph.continuationCount,0,'no visual continuation markers or repeat units are added');assert.equal(p.displayGraph.bondsResolveToRenderedAtoms,true);assert.equal(p.displayedUnitCount,route.completionEvidence.unitCount);
+    assert.equal(p.displayGraph.unitCount,route.completionEvidence.unitCount);assert.equal(p.displayGraph.layoutUnitCount,route.completionEvidence.unitCount);if(!task10BaselineProfile){assert.equal(p.displayGraph.layoutDiagnostics?.accepted,true,`${route.routeId}: completed 3D layout is accepted`);assert.equal(p.displayGraph.layoutDiagnostics?.fallback,false,`${route.routeId}: no geometry fallback is hidden`);}assert.equal(p.displayGraph.atomOriginCount,p.displayGraph.atomCount);assert.equal(p.displayGraph.visibleAtomCount,p.displayGraph.atomCount);assert.equal(p.displayGraph.continuationCount,0,'no visual continuation markers or repeat units are added');assert.equal(p.displayGraph.bondsResolveToRenderedAtoms,true);assert.equal(p.displayedUnitCount,route.completionEvidence.unitCount);
     assert.equal(p.fit?.unitCount,route.completionEvidence.unitCount);assert.ok(p.fit.scale>0&&p.fit.scale<=1);assert.equal(state.instances.some(item=>item.species==='PolymerSample'),false,'PolymerSample is not inserted into the Stage B feed instances');
     assert.ok(state.polymerResources.geometryCount>0&&state.polymerResources.materialCount>0,`${route.routeId}: the visible finite fragment owns geometry and materials`);assert.equal(state.polymerResources.geometryCount,p.displayGraph.atomCount+p.displayGraph.visibleBondMeshCount,`${route.routeId}: only finite fragment atoms and bonds own render geometry`);assert.equal(state.polymerResources.materialCount,state.polymerResources.geometryCount,`${route.routeId}: each finite graph mesh has one current material`);
     assert.equal(events.length,1,'one sample registration event is emitted for each completion');assert.equal(events[0].detail.sampleId,p.sampleId);assert.equal(events[0].detail.routeId,route.routeId);assert.equal(events[0].detail.batchGeneration,state.batch.generation);assert.ok(events[0].detail.sourceInstanceIds.length>0);
     assert.equal(events[0].snapshot.polymerization.sampleReady,false,'registration occurs during bounded feedback');assert.equal(events[0].snapshot.polymerization.samplePhase,'completion');assert.equal(events[0].completionUi.hidden,false);assert.match(events[0].completionUi.status,/重合完了/);assert.equal(events[0].completionUi.encyclopediaDisabled,true,'Encyclopedia remains disabled until presentation is ready');
     assert.ok(presentEvents.length<=1);if(presentEvents.length)assert.ok(presentEvents[0].receivedAt>events[0].receivedAt&&presentEvents[0].snapshot.polymerization.sampleReady,'sample-present follows registration and readiness');
-    const bounds=await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');assert.ok(bounds?.depthVisible,`${route.routeId}: each actual atom remains within camera depth`);assert.ok(bounds?.insideSafeRegion,`${route.routeId}: finite fragment fits its work-area safe region: ${JSON.stringify(bounds)}`);
+    const bounds=task10BaselineProfile?null:await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');if(!task10BaselineProfile)assert.ok(bounds?.depthVisible,`${route.routeId}: each actual atom remains within camera depth`);
     return{state,events,presentEvents,bounds};
   };
   const finishCompletion=async(route,{newDiscovery=false,captureReady=false,captureName='completion-ready',expectedDuration=650}={})=>{
     await waitFor('window.__reactionLabProbe.snapshot().polymerization.sampleReady',`${route.routeId}: bounded completion feedback did not become ready`,5000);
     await waitFor("(()=>{const state=window.__reactionLabProbe.snapshot();return state.dialogOpen?state.polymerResources.activeGroupCount===1:state.polymerResources.geometryCount===0})()",`${route.routeId}: finite resources settle to the Reaction Lab open/closed state`,2000);
+    if(!task10BaselineProfile){const readyBounds=await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');assert.ok(readyBounds?.depthVisible,`${route.routeId}: each ready atom remains within camera depth`);assert.ok(readyBounds?.insideSafeRegion,`${route.routeId}: ready finite fragment fits its work-area safe region: ${JSON.stringify(readyBounds)}`);}
     const state=await snapshot(),p=state.polymerization,presentEvents=await evaluate('window.__polymerPresentEvents.slice()');
     assert.equal(state.camera.distance,routeCameraDistances.get(route.routeId),`${route.routeId}: readiness adds no camera transition`);
     assert.equal(p.sampleReady,true);assert.equal(p.samplePhase,'ready');assert.equal(p.layoutCallsAtReady,state.polymerRuntimeMetrics.finiteLayoutCalls);assert.equal(state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,0);
@@ -128,7 +199,7 @@ try{
     const motion=expectedDuration===250?'reduced':'normal',trialIndex=performanceEvidence.filter(item=>item.motion===motion).length;
     const moduleUrls=await evaluate("[...new Set(performance.getEntriesByType('resource').map(entry=>entry.name).filter(name=>/\\.m?js(?:$|[?#])/.test(name)))]");
     performanceEvidence.push({sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:browserVersion.product,viewport:{width:viewport.width,height:viewport.height,deviceScaleFactor:1},runtimeFlags:['--headless=new','--no-sandbox','--disable-background-networking','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--force-device-scale-factor=1'],routeId:route.routeId,polymerId:route.polymerId,motion,trialIndex,warmup:trialIndex===0,completionElapsedMs:frameProfile.completionElapsedMs,targetDurationMs:frameProfile.targetDurationMs,frameIntervalsMs:frameProfile.frameIntervalsMs,jsUpdateTimeMs:'NOT_MEASURED',renderSubmissionTimeMs:'NOT_MEASURED',gpuExecutionTimeMs:'NOT_MEASURED',moduleFetchCount:moduleUrls.length,retiredModuleFetchCount:retiredModuleRequests.length,polymerResources:state.polymerResources,polymerRuntimeMetrics:state.polymerRuntimeMetrics,reportedPresentDelayMs:delay});
-    assert.equal(await evaluate("document.querySelector('[data-polymer-completion]').hidden"),false);assert.equal(await evaluate("document.querySelector('[data-polymer-completion-status]').textContent"),'重合完了 · 次のFeedまたは図鑑へ進めます');
+    assert.equal(await evaluate("document.querySelector('[data-polymer-completion]').hidden"),false);assert.equal(await evaluate("document.querySelector('[data-polymer-completion-status]').textContent"),task10BaselineProfile?'重合完了 · 次のFeedまたは図鑑へ進めます':'重合完了 · ドラッグで回転、ホイール・ピンチで拡大');if(!task10BaselineProfile)assert.equal(await evaluate("document.querySelector('[data-polymer-view-reset]').hidden"),false,'ready Sample exposes a view-reset action');
     assert.equal(await evaluate("document.querySelector('[data-polymer-completion-name]').textContent"),polymers.find(item=>item.id===route.polymerId).nameJa,'completion UI uses the catalog polymer name');
     assert.equal(await evaluate("document.querySelector('[data-lab-feed]').disabled"),false,'FEED is available after readiness');
     const known=await evaluate(`document.querySelector('[data-polymer-encyclopedia]').hidden===false`);
@@ -136,6 +207,7 @@ try{
     const completionGeometry=await evaluate(`(()=>{const footer=document.querySelector('[data-polymer-completion]').getBoundingClientRect(),feed=document.querySelector('[data-lab-command-state]').parentElement.getBoundingClientRect(),action=document.querySelector('[data-polymer-encyclopedia]').getBoundingClientRect();return{footer:{left:footer.left,right:footer.right,top:footer.top,bottom:footer.bottom},feed:{left:feed.left,right:feed.right,top:feed.top,bottom:feed.bottom},action:{hidden:document.querySelector('[data-polymer-encyclopedia]').hidden,width:action.width,height:action.height}}})()`);
     assert.ok(completionGeometry.footer.left>=0&&completionGeometry.footer.right<=viewport.width&&completionGeometry.footer.top>=0&&completionGeometry.footer.bottom<=viewport.height,`${route.routeId}: completion UI remains inside the viewport: ${JSON.stringify(completionGeometry)}`);assert.ok(completionGeometry.footer.bottom<=completionGeometry.feed.top||completionGeometry.footer.top>=completionGeometry.feed.bottom,`${route.routeId}: completion UI does not overlap FEED controls`);if(known&&viewport.mobile&&!newDiscovery)assert.ok(completionGeometry.action.height>=44,`${route.routeId}: visible mobile Encyclopedia target is at least 44 px high`);
     if(captureReady)await capture(captureName);
+    if(captureReady&&route.polymerId==='polyethylene'&&!observationDone){await exercisePolymerObservation();observationDone=true;}
     await pause(350);
     const settled=await snapshot();assert.equal(settled.polymerRuntimeMetrics.finiteLayoutCalls,state.polymerRuntimeMetrics.finiteLayoutCalls,'ready fragment does not recompute its layout');assert.equal(settled.polymerRuntimeMetrics.bondVisualAllocations,state.polymerRuntimeMetrics.bondVisualAllocations,'ready fragment does not allocate bond visuals');assert.equal(settled.polymerRuntimeMetrics.completionLayoutCallsAfterReady,0,'ready state performs no completion layout');assert.equal(settled.polymerResources.geometryCount,state.polymerResources.geometryCount,'ready fragment resource ownership remains stable');
     if(newDiscovery){
@@ -172,6 +244,7 @@ try{
   for(const route of hardRoutes){
     await resetPolymerEvents();await feedRoute(route,previousSample);await runManualSteps(route);await completeAutomaticStep(route);
     const preReady=await inspectCompletion(route,{newDiscovery:true}),ready=await finishCompletion(route,{newDiscovery:true});
+    await exerciseOrdinaryMoleculeDrag(route);
     const row={routeId:route.routeId,polymerId:route.polymerId,viewport,durationMs:preReady.state.polymerization.sampleDurationMs,presentDelayMs:ready.delay,unitCount:ready.state.polymerization.displayGraph.unitCount,atomCount:ready.state.polymerization.displayGraph.atomCount,bondCount:ready.state.polymerization.displayGraph.bondCount,visibleBondMeshCount:ready.state.polymerization.displayGraph.visibleBondMeshCount,fit:ready.state.polymerization.fit,readyLayoutCalls:ready.state.polymerization.layoutCallsAtReady,finiteLayoutCalls:ready.state.polymerRuntimeMetrics.finiteLayoutCalls,completionLayoutCallsAfterReady:ready.state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,polymerResources:ready.state.polymerResources,retiredModuleRequests,metrics:ready.state.polymerRuntimeMetrics};
     evidence.push(row);normalEvidence.push(ready.state.polymerization.sampleEvidence);previousSample=true;
   }
@@ -181,12 +254,12 @@ try{
     // A previously discovered polymer opens through the existing closeAndWait → collection API path.
     await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await completeAutomaticStep(pe);await inspectCompletion(pe);await finishCompletion(pe,{captureReady:true,captureName:'completion-ready-known'});
     assert.equal(await evaluate("document.querySelector('[data-polymer-encyclopedia]').hidden"),false);
-    const resourcesBeforeClose=await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()'),transformBeforeClose=await evaluate(`(()=>{const graph=window.__reactionLabProbe.snapshot().polymerization.displayGraph;return{position:graph.groupPosition,scale:graph.groupScale}})()`);
+    const resourcesBeforeClose=await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()'),transformBeforeClose=await evaluate(`(()=>{const graph=window.__reactionLabProbe.snapshot().polymerization.displayGraph;return{position:graph.groupPosition,quaternion:graph.groupQuaternion,scale:graph.groupScale}})()`);
     await evaluate("document.querySelector('[data-polymer-encyclopedia]').click()");await waitFor("!document.querySelector('#reaction-lab-dialog').open&&document.querySelector('#collection-dialog').open",'known Encyclopedia action safely closes the Lab and opens the collection');
     await waitFor('window.__reactionLabProbe.polymerResourceSnapshot().geometryCount===0','closing the Lab disposes finite fragment resources');const resourcesWhileClosed=await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()');assert.ok(resourcesWhileClosed.disposals.geometryDisposals-resourcesBeforeClose.disposals.geometryDisposals>=resourcesBeforeClose.geometryCount,'Lab close disposes every finite fragment geometry');assert.ok(resourcesWhileClosed.disposals.materialDisposals-resourcesBeforeClose.disposals.materialDisposals>=resourcesBeforeClose.materialCount,'Lab close disposes every finite fragment material');
     assert.equal(await evaluate("document.querySelector('#collection-detail h3')?.textContent"),polymers.find(item=>item.id===pe.polymerId).nameJa,'known action opens the corresponding polymer entry');
     await capture('encyclopedia-entry');
-    await evaluate("document.querySelector('#close-collection').click()");await waitFor("!document.querySelector('#collection-dialog').open&&!document.body.classList.contains('collection-open')",'known entry closes cleanly');await pause(120);await openLab();assert.equal((await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()')).geometryCount,resourcesBeforeClose.geometryCount,'reopening the Lab restores the same finite sample geometry');const reopenedState=await snapshot();assert.deepEqual(reopenedState.polymerization.displayGraph.groupPosition,transformBeforeClose.position,'reopening preserves the finite sample fit position');assert.deepEqual(reopenedState.polymerization.displayGraph.groupScale,transformBeforeClose.scale,'reopening preserves the finite sample fit scale');assert.ok((await evaluate('window.__reactionLabProbe.polymerDisplayBounds()')).insideSafeRegion,'reopened finite sample remains in its fitted work area');
+    await evaluate("document.querySelector('#close-collection').click()");await waitFor("!document.querySelector('#collection-dialog').open&&!document.body.classList.contains('collection-open')",'known entry closes cleanly');await pause(120);await openLab();assert.equal((await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()')).geometryCount,resourcesBeforeClose.geometryCount,'reopening the Lab restores the same finite sample geometry');const reopenedState=await snapshot();assert.deepEqual(reopenedState.polymerization.displayGraph.groupPosition,transformBeforeClose.position,'reopening preserves the finite sample fit position');assert.deepEqual(reopenedState.polymerization.displayGraph.groupQuaternion,transformBeforeClose.quaternion,'reopening preserves the user-selected Sample rotation');assert.deepEqual(reopenedState.polymerization.displayGraph.groupScale,transformBeforeClose.scale,'reopening preserves the finite sample zoom');assert.ok((await evaluate('window.__reactionLabProbe.polymerDisplayBounds()')).depthVisible,'reopened finite sample remains within camera depth');
     // Closing before readiness emits one dismiss, pauses the feedback, and cannot register a presentation while closed.
     await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await evaluate('window.__closeBeforeReadyOnNextSample=true');await completeAutomaticStep(pe);
     const beforeClose=await snapshot();assert.equal(beforeClose.polymerization.sampleReady,false);await waitFor("!document.querySelector('#reaction-lab-dialog').open&&window.__polymerDismissEvents.length===1",'Lab closes at sample registration and emits one pre-ready dismiss');

@@ -54,6 +54,10 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
       - name: Finite completion, chemistry and discovery regressions
         run: node --test tests/reaction-lab-legacy-removal.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
+      - name: All 25 finite routes — 3D graph and geometry validation
+        env:
+          TASK11_GEOMETRY_EVIDENCE_DIR: ${{ runner.temp }}/polymer-3d-layout
+        run: node --test tests/polymer-fragment-3d-layout.test.mjs
       - name: Production pointer path and 390×844 visual QA
         env:
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -73,37 +77,37 @@ jobs:
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           TASK10_EVIDENCE_DIR: ${{ runner.temp }}/task10-journey
         run: node tests/material-progression-browser.test.mjs
-      - name: Prepare immutable Task ⑨ baseline
+      - name: Prepare immutable Task ⑩ main baseline
         env:
-          POLYMER_BASELINE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+          POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
         run: |
           git cat-file -e "$POLYMER_BASELINE_SHA^{commit}"
-          git worktree add --detach "$RUNNER_TEMP/polymer-task9-baseline" "$POLYMER_BASELINE_SHA"
+          git worktree add --detach "$RUNNER_TEMP/polymer-task10-baseline" "$POLYMER_BASELINE_SHA"
           echo "POLYMER_CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           echo "POLYMER_BASELINE_SHA=$POLYMER_BASELINE_SHA" >> "$GITHUB_ENV"
-      - name: Profile Task ⑨ baseline — mobile
+      - name: Profile Task ⑩ main baseline — mobile
         env:
           POLYMER_PROFILE_ONLY: '1'
-          POLYMER_ROOT: ${{ runner.temp }}/polymer-task9-baseline
+          POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-baseline
           POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/polymer-performance/baseline/mobile
-          POLYMER_SOURCE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
         run: node tests/reaction-lab-polymer-browser.test.mjs
-      - name: Profile Task ⑩ candidate — mobile
+      - name: Profile Task ⑪ candidate — mobile
         env:
           POLYMER_PROFILE_ONLY: '1'
           POLYMER_ROOT: ${{ github.workspace }}
           POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/polymer-performance/candidate/mobile
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/reaction-lab-polymer-browser.test.mjs
-      - name: Profile Task ⑨ baseline — desktop
+      - name: Profile Task ⑩ main baseline — desktop
         env:
           POLYMER_PROFILE_ONLY: '1'
           POLYMER_DESKTOP: '1'
-          POLYMER_ROOT: ${{ runner.temp }}/polymer-task9-baseline
+          POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-baseline
           POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/polymer-performance/baseline/desktop
-          POLYMER_SOURCE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
         run: node tests/reaction-lab-polymer-browser.test.mjs
-      - name: Profile Task ⑩ candidate — desktop
+      - name: Profile Task ⑪ candidate — desktop
         env:
           POLYMER_PROFILE_ONLY: '1'
           POLYMER_DESKTOP: '1'
@@ -113,7 +117,7 @@ jobs:
         run: node tests/reaction-lab-polymer-browser.test.mjs
       - name: Compare same-condition completion performance
         env:
-          POLYMER_BASELINE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+          POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
           POLYMER_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: >-
           node scripts/compare-polymer-performance.mjs
@@ -145,6 +149,7 @@ jobs:
           path: |
             test-results/reaction-lab-polymer-simplification
             test-results/task8-polymer-visual-qa
+            ${{ runner.temp }}/polymer-3d-layout
             ${{ runner.temp }}/task10-journey
             ${{ runner.temp }}/polymer-performance
           if-no-files-found: error
