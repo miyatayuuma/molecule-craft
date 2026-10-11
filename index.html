@@ -1,40 +1,27 @@
-<!doctype html>
-<html lang="ja" data-molecule-craft-shell="2">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101c29">
-  <meta name="description" content="å®‡å®™å¡µã‚’é›†ã‚ã€åŽŸå­ã‚’ã¤ãªãŽã€åˆ†å­ã®åŠ›ã§CHOã®æœ€æ·±éƒ¨ã¸åˆ°é”ã—ã€å¸°é‚„ã—ã‚ˆã†ã€‚">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Molecule Craft">
-  <title>Molecule Craft</title>
-  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./assets/icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=50">
-  <link rel="stylesheet" href="./veil.css?v=43">
-</head>
-<body>
-  <main class="app-shell">
-    <header class="topbar">
-      <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
-      <div class="topbar-actions"><button id="open-reaction-lab" type="button" aria-haspopup="dialog" disabled>LAB</button><button id="open-collection" type="button">å›³é‘‘ <small>0/142</small></button><button id="open-menu" type="button" class="icon-button" aria-label="ãƒ¡ãƒ‹ãƒ¥ãƒ¼">â˜°</button></div>
-    </header>
-    <div class="resource-bar"><button id="open-supply" class="collector-access" type="button" aria-label="æŽ¢ç´¢æ©Ÿã‚’é–‹ã"></button></div>
-    <section id="craft-target" class="craft-target" aria-label="åˆ¶ä½œç›®æ¨™" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><div class="craft-target-meta"><strong id="craft-target-formula"></strong><span id="craft-target-name" hidden></span></div><div id="craft-target-atoms" class="craft-target-atoms"></div><button id="clear-craft-target" type="button" aria-label="åˆ¶ä½œç›®æ¨™ã‚’è§£é™¤">Ã—</button></section>
-    <p id="craft-resource-hint" class="craft-expedition-note"></p><button id="cho-goal-action" class="cho-goal-action craft-emblem-action" type="button" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><span id="cho-goal-label"></span><span id="cho-goal-atoms" class="craft-target-atoms" aria-hidden="true"></span></button><p id="craft-last-run" class="craft-expedition-note"></p>
-    <div class="save-alerts" aria-live="polite"><p id="game-save-status" hidden></p><p id="workspace-save-status" hidden></p><p id="resource-save-status" hidden></p></div>
-    <section class="workspace">
-      <section class="viewer-wrap" aria-label="åˆ¶ä½œãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰">
-        <div id="viewer" class="viewer" aria-label="3Dåˆ†å­æ¨¡åž‹"></div>
-        <p id="viewer-unavailable" class="viewer-unavailable" hidden>ã“ã®ãƒ–ãƒ©ã‚¦ã‚¶ã§ã¯3Dåˆ¶ä½œã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚å›³é‘‘ã¯åˆ©ç”¨ã§ãã¾ã™ã€‚</p>
-        <div class="viewer-actions">
-          <div class="molecule-summary" aria-live="polite"><strong id="molecule-name">è‡ªç”±åˆ¶ä½œ</strong><span id="formula">â€”</span></div>
-          <label id="structure-focus-label" class="viewer-focus" hidden><span class="sr-only">ç·¨é›†å¯¾è±¡</span><select id="structure-focus" aria-label="ç·¨é›†ã™ã‚‹åˆ†å­"></select></label>
-          <button id="clear-all" class="hold-clear icon-button" type="button" aria-label="1ç§’é•·æŠ¼ã—ã§å…¨ç‰‡ä»˜ã‘ã€‚ã‚¯ãƒ©ãƒ•ãƒˆä¸­ã®å…¨è¦ç´ ã‚’BASE STOCKã¸æˆ»ã—ã¦ç‰‡ä»˜ã‘ã‚‹"><svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 8h8l-.7 11H8.7L8 8z"/><path d="M6.5 7h11M10 7l1-2h2l1 2M10.5 10.5v5M13.5 10.5v5"/></svg></button>
-        </div>
-        <div class="field-bottom"><div id="selection-chip" class="selection-chip" aria-live="polite">åŽŸå­ã‚’ãˆã‚‰ã‚“ã§ã€ã¯ã˜ã‚ã‚ˆã†</div><div id="selection-actions" hidden><button id="open-info" type="button" aria-label="é¸æŠžã—ãŸåˆ†å­ã®æƒ…å ±">æƒ…å ±</button></div></div>
-        <button id="undo-cleanup" class="icon-button craft-history-undo" type="button" aria-label="ç›´å‰ã®CRAFTæ“ä½œã‚’å…ƒã«æˆ»ã™" title="ç›´å‰ã®CRAFTæ“ä½œã‚’å…ƒã«æˆ»ã™" hidden><svg class="cleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 7L4 12l5 5"/><path d="M5 12h7a7 7 0 0 1 7 7"/></svg></button>
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Ôð…‘½ÑåÁ”¡Ñµ°ø(ñ¡Ñµ°±…¹œô‰©„ˆ‘…Ñ„µµ½±•Õ±”µÉ…™ÐµÍ¡•±°ôˆÈˆø(ñ¡•…ø(€€ñµ•Ñ„¡…ÉÍ•Ðô‰ÕÑ˜´àˆø(€€ñµ•Ñ„¹…µ”ô‰Ù¥•ÝÁ½ÉÐˆ½¹Ñ•¹Ðô‰Ý¥‘Ñ õ‘•Ù¥”µÝ¥‘Ñ °¥¹¥Ñ¥…°µÍ…±”ôÄ°Ù¥•ÝÁ½ÉÐµ™¥Ðõ½Ù•Èˆø(€€ñµ•Ñ„¹…µ”ô‰Ñ¡•µ”µ½±½Èˆ½¹Ñ•¹ÐôˆŒÄÀÅŒÈäˆø(€€ñµ•Ñ„¹…µ”ô‰‘•ÍÉ¥ÁÑ¥½¸ˆ½¹Ñ•¹Ðô‹–º–ºg–†×Ž
+K¦nŽ
+Ž–:–¶CŽ
+KŽ“Ž«Ž;Ž–"–¶CŽ»–*oŽ!?Ž»šršÞÇ¦£Žã–"Ã¦SŽ_Ž–âÃ¦
+Ž_Ž
+#ŽŽˆø(€€ñµ•Ñ„¹…µ”ô‰…ÁÁ±”µµ½‰¥±”µÝ•ˆµ…ÁÀµ…Á…‰±”ˆ½¹Ñ•¹Ðô‰å•Ìˆø(€€ñµ•Ñ„¹…µ”ô‰…ÁÁ±”µµ½‰¥±”µÝ•ˆµ…ÁÀµÑ¥Ñ±”ˆ½¹Ñ•¹Ðô‰5½±•Õ±”É…™Ðˆø(€€ñÑ¥Ñ±”ù5½±•Õ±”É…™Ðð½Ñ¥Ñ±”ø(€€ñ±¥¹¬É•°ô‰¥½¸ˆ¡É•˜ôˆ¸½…ÍÍ•ÑÌ½¥½¸¹ÍÙœˆÑåÁ”ô‰¥µ…”½ÍÙœ­áµ°ˆø(€€ñ±¥¹¬É•°ô‰…ÁÁ±”µÑ½Õ µ¥½¸ˆ¡É•˜ôˆ¸½…ÍÍ•ÑÌ½¥½¸´ÄäÈ¹Á¹œˆø(€€ñ±¥¹¬É•°ô‰µ…¹¥™•ÍÐˆ¡É•˜ôˆ¸½µ…¹¥™•ÍÐ¹Ý•‰µ…¹¥™•ÍÐˆø(€€ñ±¥¹¬É•°ô‰ÍÑå±•Í¡••Ðˆ¡É•˜ôˆ¸½ÍÑå±•Ì¹ÍÌýØôÔÄˆø(€€ñ±¥¹¬É•°ô‰ÍÑå±•Í¡••Ðˆ¡É•˜ôˆ¸½Ù•¥°¹ÍÌýØôÐÌˆø(ð½¡•…ø(ñ‰½‘äø(€€ñµ…¥¸±…ÍÌô‰…ÁÀµÍ¡•±°ˆø(€€€€ñ¡•…‘•È±…ÍÌô‰Ñ½Á‰…Èˆø(€€€€€€ñ Äøñ¥µœÍÉŒôˆ¸½…ÍÍ•ÑÌ½¥½¸¹ÍÙœˆ…±ÐôˆˆÝ¥‘Ñ ôˆÌÈˆ¡•¥¡ÐôˆÌÈˆøñÍÁ…¸ù5½±•Õ±”€ñˆùÉ…™Ðð½ˆøð½ÍÁ…¸øð½ Äø(€€€€€€ñ‘¥Ø±…ÍÌô‰Ñ½Á‰…Èµ…Ñ¥½¹Ìˆøñ‰ÕÑÑ½¸¥ô‰½Á•¸µÉ•…Ñ¥½¸µ±…ˆˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ…É¥„µ¡…ÍÁ½ÁÕÀô‰‘¥…±½œˆ‘¥Í…‰±•ù1ð½‰ÕÑÑ½¸øñ‰ÕÑÑ½¸¥ô‰½Á•¸µ½±±•Ñ¥½¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆû–nÏ¦FD€ñÍµ…±°øÀ¼ÄÐÈð½Íµ…±°øð½‰ÕÑÑ½¸øñ‰ÕÑÑ½¸¥ô‰½Á•¸µµ•¹ÔˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ±…ÍÌô‰¥½¸µ‰ÕÑÑ½¸ˆ…É¥„µ±…‰•°ô‹Ž‡Ž/Ž—ŽðˆûŠbÀð½‰ÕÑÑ½¸øð½‘¥Øø(€€€€ð½¡•…‘•Èø(€€€€ñ‘¥Ø±…ÍÌô‰É•Í½ÕÉ”µ‰…Èˆøñ‰ÕÑÑ½¸¥ô‰½Á•¸µÍÕÁÁ±äˆ±…ÍÌô‰½±±•Ñ½Èµ…•ÍÌˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ…É¥„µ±…‰•°ô‹š:‹žÒ‹š¦Ž
+K¦Z/Ž<ˆøð½‰ÕÑÑ½¸øð½‘¥Øø(€€€€ñÍ•Ñ¥½¸¥ô‰É…™ÐµÑ…É•Ðˆ±…ÍÌô‰É…™ÐµÑ…É•Ðˆ…É¥„µ±…‰•°ô‹–"Û’ösžn»š¢dˆ¡¥‘‘•¸øñÍÙœ±…ÍÌô‰É…™Ðµ•µ‰±•´ˆÙ¥•Ý	½àôˆÀ€À€ÌÈ€ÌÈˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆ™½ÕÍ…‰±”ô‰™…±Í”ˆøñÁ…Ñ ô‰4ä€å0ÈÌ€ÄÍ0ÄÐ€ÈÑhˆ¼øñ¥É±”±…ÍÌô‰É…™Ðµ•µ‰±•´µ„ˆàôˆäˆäôˆäˆÈôˆÐ¸Ðˆ¼øñ¥É±”±…ÍÌô‰É…™Ðµ•µ‰±•´µˆˆàôˆÈÌˆäôˆÄÌˆÈôˆÐ¸Üˆ¼øñ¥É±”±…ÍÌô‰É…™Ðµ•µ‰±•´µŒˆàôˆÄÐˆäôˆÈÐˆÈôˆÌ¸äˆ¼øð½ÍÙœøñ‘¥Ø±…ÍÌô‰É…™ÐµÑ…É•Ðµµ•Ñ„ˆøñÍÑÉ½¹œ¥ô‰É…™ÐµÑ…É•Ðµ™½ÉµÕ±„ˆøð½ÍÑÉ½¹œøñÍÁ…¸¥ô‰É…™ÐµÑ…É•Ðµ¹…µ”ˆ¡¥‘‘•¸øð½ÍÁ…¸øð½‘¥Øøñ‘¥Ø¥ô‰É…™ÐµÑ…É•Ðµ…Ñ½µÌˆ±…ÍÌô‰É…™ÐµÑ…É•Ðµ…Ñ½µÌˆøð½‘¥Øøñ‰ÕÑÑ½¸¥ô‰±•…ÈµÉ…™ÐµÑ…É•ÐˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ…É¥„µ±…‰•°ô‹–"Û’ösžn»š¢gŽ
+K¢ž¦fˆû\ð½‰ÕÑÑ½¸øð½Í•Ñ¥½¸ø(€€€€ñÀ¥ô‰É…™ÐµÉ•Í½ÕÉ”µ¡¥¹Ðˆ±…ÍÌô‰É…™Ðµ•áÁ•‘¥Ñ¥½¸µ¹½Ñ”ˆøð½Àøñ‰ÕÑÑ½¸¥ô‰¡¼µ½…°µ…Ñ¥½¸ˆ±…ÍÌô‰¡¼µ½…°µ…Ñ¥½¸É…™Ðµ•µ‰±•´µ…Ñ¥½¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ¡¥‘‘•¸øñÍÙœ±…ÍÌô‰É…™Ðµ•µ‰±•´ˆÙ¥•Ý	½àôˆÀ€À€ÌÈ€ÌÈˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆ™½ÕÍ…‰±”ô‰™…±Í”ˆøñÁ…Ñ ô‰4ä€å0ÈÌ€ÄÍ0ÄÐ€ÈÑhˆ¼øñ¥É±”±…ÍÌô‰É…™Ðµ•µ‰±•´µ„ˆàôˆäˆäôˆäˆÈôˆÐ¸Ðˆ¼øñ¥É±”±…ÍÌô‰É…™Ðµ•µ‰±•´µˆˆàôˆÈÌˆäôˆÄÌˆÈôˆÐ¸Üˆ¼øñ¥É±”±…ÍÌô‰É…™Ðµ•µ‰±•´µŒˆàôˆÄÐˆäôˆÈÐˆÈôˆÌ¸äˆ¼øð½ÍÙœøñÍÁ…¸¥ô‰¡¼µ½…°µ±…‰•°ˆøð½ÍÁ…¸øñÍÁ…¸¥ô‰¡¼µ½…°µ…Ñ½µÌˆ±…ÍÌô‰É…™ÐµÑ…É•Ðµ…Ñ½µÌˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆøð½ÍÁ…¸øð½‰ÕÑÑ½¸øñÀ¥ô‰É…™Ðµ±…ÍÐµÉÕ¸ˆ±…ÍÌô‰É…™Ðµ•áÁ•‘¥Ñ¥½¸µ¹½Ñ”ˆøð½Àø(€€€€ñ‘¥Ø±…ÍÌô‰Í…Ù”µ…±•ÉÑÌˆ…É¥„µ±¥Ù”ô‰Á½±¥Ñ”ˆøñÀ¥ô‰…µ”µÍ…Ù”µÍÑ…ÑÕÌˆ¡¥‘‘•¸øð½ÀøñÀ¥ô‰Ý½É­ÍÁ…”µÍ…Ù”µÍÑ…ÑÕÌˆ¡¥‘‘•¸øð½ÀøñÀ¥ô‰É•Í½ÕÉ”µÍ…Ù”µÍÑ…ÑÕÌˆ¡¥‘‘•¸øð½Àøð½‘¥Øø(€€€€ñÍ•Ñ¥½¸±…ÍÌô‰Ý½É­ÍÁ…”ˆø(€€€€€€ñÍ•Ñ¥½¸±…ÍÌô‰Ù¥•Ý•ÈµÝÉ…Àˆ…É¥„µ±…‰•°ô‹–"Û’ösŽWŽ
+ŽóŽ¯Ž$ˆø(€€€€€€€€ñ‘¥Ø¥ô‰Ù¥•Ý•Èˆ±…ÍÌô‰Ù¥•Ý•Èˆ…É¥„µ±…‰•°ôˆÍ–"–¶Cš¢‡–z,ˆøð½‘¥Øø(€€€€€€€€ñÀ¥ô‰Ù¥•Ý•ÈµÕ¹…Ù…¥±…‰±”ˆ±…ÍÌô‰Ù¥•Ý•ÈµÕ¹…Ù…¥±…‰±”ˆ¡¥‘‘•¸ûŽOŽ»Ž[Ž§Ž
+›Ž
+ÛŽŸŽ¼Í–"Û’ösŽ
+K¦Z/–ž/ŽŸŽ7ŽûŽoŽ
+OŽ–nÏ¦FGŽ¿–"§žR£ŽŸŽ7ŽûŽgŽð½Àø(€€€€€€€€ñ‘¥Ø±…ÍÌô‰Ù¥•Ý•Èµ…Ñ¥½¹Ìˆø(€€€€€€€€€€ñ‘¥Ø±…ÍÌô‰µ½±•Õ±”µÍÕµµ…Éäˆ…É¥„µ±¥Ù”ô‰Á½±¥Ñ”ˆøñÍÑÉ½¹œ¥ô‰µ½±•Õ±”µ¹…µ”ˆû¢«žRÇ–"Û’öpð½ÍÑÉ½¹œøñÍÁ…¸¥ô‰™½ÉµÕ±„ˆûŠPð½ÍÁ…¸øð½‘¥Øø(€€€€€€€€€€ñ±…‰•°¥ô‰ÍÑÉÕÑÕÉ”µ™½ÕÌµ±…‰•°ˆ±…ÍÌô‰Ù¥•Ý•Èµ™½ÕÌˆ¡¥‘‘•¸øñÍÁ…¸±…ÍÌô‰ÍÈµ½¹±äˆûžÞ£¦n–¾û¢Æ„ð½ÍÁ…¸øñÍ•±•Ð¥ô‰ÍÑÉÕÑÕÉ”µ™½ÕÌˆ…É¥„µ±…‰•°ô‹žÞ£¦nŽgŽ
+/–"–¶@ˆøð½Í•±•Ðøð½±…‰•°ø(€€€€€€€€€€ñ‰ÕÑÑ½¸¥ô‰±•…Èµ…±°ˆ±…ÍÌô‰¡½±µ±•…È¥½¸µ‰ÕÑÑ½¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ…É¥„µ±…‰•°ôˆÇžžK¦Vßš*óŽ_ŽŸ–£ž&’îcŽGŽŽ
+¿Ž§ŽWŽ#’â·Ž»–£¢šžÒƒŽ
+I	MMQ=/Žãš"ïŽ_Ž›ž&’îcŽGŽ
+,ˆøñÍÙœ±…ÍÌô‰±•…¹ÕÀµ¥½¸ˆÙ¥•Ý	½àôˆÀ€À€ÈÐ€ÈÐˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆ™½ÕÍ…‰±”ô‰™…±Í”ˆøñÁ…Ñ ô‰4à€á á°´¸Ü€ÄÅ à¸Ý0à€áèˆ¼øñÁ…Ñ ô‰4Ø¸Ô€Ý ÄÅ4ÄÀ€Ý°Ä´É É°Ä€É4ÄÀ¸Ô€ÄÀ¸ÕØÕ4ÄÌ¸Ô€ÄÀ¸ÕØÔˆ¼øð½ÍÙœøð½‰ÕÑÑ½¸ø(€€€€€€€€ð½‘¥Øø(€€€€€€€€ñ‘¥Ø±…ÍÌô‰™¥•±µ‰½ÑÑ½´ˆøñ‘¥Ø¥ô‰Í•±•Ñ¥½¸µ¡¥Àˆ±…ÍÌô‰Í•±•Ñ¥½¸µ¡¥Àˆ…É¥„µ±¥Ù”ô‰Á½±¥Ñ”ˆû–:–¶CŽ
+KŽ#Ž
+'Ž
+OŽŸŽŽ¿ŽcŽ
+Ž
+#Žð½‘¥Øøñ‘¥Ø¥ô‰Í•±•Ñ¥½¸µ…Ñ¥½¹Ìˆ¡¥‘‘•¸øñ‰ÕÑÑ½¸¥ô‰½Á•¸µ¥¹™¼ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ…É¥„µ±…‰•°ô‹¦ãš*{Ž_Ž–"–¶CŽ»š–‚Äˆûš–‚Äð½‰ÕÑÑ½¸øð½‘¥Øøð½‘¥Øø(€€€€€€€€ñ‰ÕÑÑ½¸¥ô‰Õ¹‘¼µ±•…¹ÕÀˆ±…ÍÌô‰¥½¸µ‰ÕÑÑ½¸É…™Ðµ¡¥ÍÑ½ÉäµÕ¹‘¼ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ…É¥„µ±…‰•°ô‹žnÓ–&7Ž¹ISšN7’ösŽ
+K–Ž¯š"ïŽdˆÑ¥Ñ±”ô‹žnÓ–&7Ž¹ISšN7’ösŽ
+K–Ž¯š"ïŽdˆ¡¥‘‘•¸øñÍÙœ±…ÍÌ÷[h‘éì¶»§q«^vcleanup-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 7L4 12l5 5"/><path d="M5 12h7a7 7 0 0 1 7 7"/></svg></button>
         <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">æ–°ç™ºè¦‹ï¼</span><strong id="discovery-formula"></strong><span id="discovery-name"></span></div>
       </section>
       <aside class="tool-panel" aria-label="ã‚¯ãƒ©ãƒ•ãƒˆç´ æ">
@@ -62,38 +49,40 @@
     <button id="reset-all" type="button">ã‚²ãƒ¼ãƒ é€²è¡Œã‚’æœ€åˆã‹ã‚‰ã‚„ã‚Šç›´ã™ <span>â†º</span></button>
     <details class="reset-tools"><summary>é–‹ç™ºç”¨ Â· åˆæœŸåŒ–ãƒ†ã‚¹ãƒˆ</summary>
       <p class="muted">é¸ã‚“ã ã‚«ãƒ†ã‚´ãƒªã ã‘åˆæœŸåŒ–ã—ã¾ã™ã€‚å›³é‘‘ãƒ»ãƒ¬ã‚·ãƒ”ãƒ»å…ƒç´ ã®åˆæœŸåŒ–æ™‚ã¯ã€å†ç™ºè¦‹ã‚„è³‡æºã®é‡è¤‡ã‚’é˜²ããŸã‚åˆ¶ä½œãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚‚ç©ºã«ã—ã¾ã™ã€‚</p>
-      <fieldset><legend>åˆæœŸåŒ–ã™ã‚‹é …ç›®</legend>
-        <label><input type="checkbox" name="reset-category" value="collection"> å›³é‘‘ãƒ»éƒ¨å“è§£æ”¾ãƒ»ç™ºè¦‹è¨˜éŒ²</label>
-        <label><input type="checkbox" name="reset-category" value="recipes"> åˆ†å­ãƒ¬ã‚·ãƒ”</label>
-        <label><input type="checkbox" name="reset-category" value="elements"> å…ƒç´ ã‚¹ãƒˆãƒƒã‚¯</label>
-        <label><input type="checkbox" name="reset-category" value="tanks"> ã‚¿ãƒ³ã‚¯å†…å®¹</label>
-        <label><input type="checkbox" name="reset-category" value="exploration"> æŽ¢ç´¢é ˜åŸŸãƒ»å…ƒç´ ç™ºè¦‹ãƒ»æœªçŸ¥ä¿¡å·ãƒ»CHOã‚¯ãƒªã‚¢</label>
-        <label><input type="checkbox" name="reset-category" value="records"> æœ€å¤§CHAIN</label>
-        <label><input type="checkbox" name="reset-category" value="workspace"> åˆ¶ä½œãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰</label>
-      </fieldset><button id="reset-selected" type="button">é¸æŠžã—ãŸé …ç›®ã‚’åˆæœŸåŒ–</button>
-    </details><p id="reset-status" class="muted" role="status"></p>
-    <p class="muted">å›³é‘‘ã¨åˆ¶ä½œé€”ä¸­ã®åˆ†å­ã¯ã€ã“ã®ç«¯æœ«ã«è‡ªå‹•ä¿å­˜ã•ã‚Œã¾ã™ã€‚</p><p id="game-loop-hint" class="muted"></p><details><summary>è‡ªç”±åˆ¶ä½œã®è¡¨ç¤º</summary><label><input id="show-extra-elements" type="checkbox"> è§£æ”¾æ¸ˆã¿ã®ä»–å…ƒç´ ã‚‚è¡¨ç¤ºã™ã‚‹</label><p class="muted">CHOæŽ¢ç´¢ã®ã‚¯ãƒªã‚¢ã«ã¯ä¸è¦ã§ã™ã€‚æ—¢å­˜ã®åˆ†å­æ¨¡åž‹ã‚„ç™ºè¦‹è¨˜éŒ²ã¯ãã®ã¾ã¾æ®‹ã‚Šã¾ã™ã€‚</p></details>
-  </div></dialog>
-  <dialog id="reaction-lab-dialog" aria-labelledby="reaction-lab-title"><section id="reaction-lab" class="reaction-lab">
-    <header><div><small>REACTION LAB Â· CRAFT FEED</small><h2 id="reaction-lab-title">åˆ†å­ã®ç›¸äº’ä½œç”¨</h2></div><button type="button" data-lab-close aria-label="Reaction Labã‚’é–‰ã˜ã‚‹">Ã—</button></header>
-    <div class="reaction-lab-feed-rack" aria-label="CRAFT feed rack">
-      <button class="reaction-lab-slot" type="button" data-lab-slot="0" aria-label="Feed slot Aï¼šæœªæŽ¥ç¶š" aria-haspopup="true" aria-expanded="false" aria-controls="reaction-lab-picker"><span class="reaction-lab-slot-index">A</span><span class="reaction-lab-slot-socket" aria-hidden="true"></span><span class="reaction-lab-slot-copy"><strong data-slot-formula>â€”</strong><small data-slot-name>æœªæŽ¥ç¶š</small></span></button>
-      <button class="reaction-lab-slot" type="button" data-lab-slot="1" aria-label="Feed slot Bï¼šæœªæŽ¥ç¶š" aria-haspopup="true" aria-expanded="false" aria-controls="reaction-lab-picker"><span class="reaction-lab-slot-index">B</span><span class="reaction-lab-slot-socket" aria-hidden="true"></span><span class="reaction-lab-slot-copy"><strong data-slot-formula>â€”</strong><small data-slot-name>æœªæŽ¥ç¶š</small></span></button>
-      <button class="reaction-lab-slot" type="button" data-lab-slot="2" aria-label="Feed slot Cï¼šæœªæŽ¥ç¶š" aria-haspopup="true" aria-expanded="false" aria-controls="reaction-lab-picker"><span class="reaction-lab-slot-index">C</span><span class="reaction-lab-slot-socket" aria-hidden="true"></span><span class="reaction-lab-slot-copy"><strong data-slot-formula>â€”</strong><small data-slot-name>æœªæŽ¥ç¶š</small></span></button>
-    </div>
-    <div class="reaction-lab-feed-conduits" aria-hidden="true"><i></i><i></i><i></i></div>
-    <div class="reaction-lab-command-bar"><span data-lab-command-state>RACK READY</span><button type="button" data-lab-feed>FEED <b aria-hidden="true">â€º</b></button></div>
-    <div class="reaction-lab-space"><canvas aria-label="åˆ†å­ã‚’ãƒ‰ãƒ©ãƒƒã‚°ã—ã¦åå¿œã‚µã‚¤ãƒˆã‚’æ“ä½œã™ã‚‹3Dç©ºé–“"></canvas><div class="reaction-lab-purge-outlet" aria-hidden="true"><i></i><span>PURGE</span></div><div class="reaction-lab-environment" role="group" aria-label="Chamber activation environment">
-      <button class="reaction-lab-equipment reaction-lab-light" type="button" data-lab-light aria-label="LIGHTï¼šOFF" aria-pressed="false"><span class="reaction-lab-light-beam" aria-hidden="true"></span><span class="reaction-lab-equipment-glyph" aria-hidden="true">â—‰</span><span>LIGHT</span><small data-lab-equipment-state>OFF</small></button>
-      <button class="reaction-lab-equipment reaction-lab-heat" type="button" data-lab-heat aria-label="HEATï¼šOFF" aria-pressed="false"><span class="reaction-lab-equipment-glyph" aria-hidden="true">â‰‹</span><span>HEAT</span><small data-lab-equipment-state>OFF</small></button>
-      <button class="reaction-lab-equipment reaction-lab-medium" type="button" data-lab-medium-port aria-label="pH mediumï¼šNEUTRAL" aria-expanded="false" aria-controls="reaction-lab-medium-selector"><small>pH</small><strong data-lab-medium-value>NEUTRAL</strong></button>
+      <fieldset><legend>åˆæœŸåYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Ö2[ŽgŽ
+/¦‚žn¸ð½±••¹ø(€€€€€€€€ñ±…‰•°øñ¥¹ÁÕÐÑåÁ”ô‰¡•­‰½àˆ¹…µ”ô‰É•Í•Ðµ…Ñ•½ÉäˆÙ…±Õ”ô‰½±±•Ñ¥½¸ˆøƒ–nÏ¦FGŽï¦£–N¢žšRûŽïžfë¢š/¢¢c¦2Èð½±…‰•°ø(€€€€€€€€ñ±…‰•°øñ¥¹ÁÕÐÑåÁ”ô‰¡•­‰½àˆ¹…µ”ô‰É•Í•Ðµ…Ñ•½ÉäˆÙ…±Õ”ô‰É•¥Á•Ìˆøƒ–"–¶CŽ³Ž
+ßŽPð½±…‰•°ø(€€€€€€€€ñ±…‰•°øñ¥¹ÁÕÐÑåÁ”ô‰¡•­‰½àˆ¹…µ”ô‰É•Í•Ðµ…Ñ•½ÉäˆÙ…±Õ”ô‰•±•µ•¹ÑÌˆøƒ–žÒƒŽ
+çŽ#ŽŽ
+¼ð½±…‰•°ø(€€€€€€€€ñ±…‰•°øñ¥¹ÁÕÐÑåÁ”ô‰¡•­‰½àˆ¹…µ”ô‰É•Í•Ðµ…Ñ•½ÉäˆÙ…±Õ”ô‰Ñ…¹­ÌˆøƒŽ
+ÿŽÏŽ
+¿––ºäð½±…‰•°ø(€€€€€€€€ñ±…‰•°øñ¥¹ÁÕÐÑåÁ”ô‰¡•­‰½àˆ¹…µ”ô‰É•Í•Ðµ…Ñ•½ÉäˆÙ…±Õ”ô‰•áÁ±½É…Ñ¥½¸ˆøƒš:‹žÒ‹¦‚c–~Žï–žÒƒžfë¢š/Žïšr«ž~—’þ‡–>ßŽí!?Ž
+¿Ž«Ž
+ˆð½±…‰•°ø(€€€€€€€€ñ±…‰•°øñ¥¹ÁÕÐÑåÁ”ô‰¡•­‰½àˆ¹…µ”ô‰É•Í•Ðµ…Ñ•½ÉäˆÙ…±Õ”ô‰É•½É‘Ìˆøƒšr–’!%8ð½±…‰•°ø(€€€€€€€€ñ±…‰•°øñ¥¹ÁÕÐÑåÁ”ô‰¡•­‰½àˆ¹…µ”ô‰É•Í•Ðµ…Ñ•½ÉäˆÙ…±Õ”ô‰Ý½É­ÍÁ…”ˆøƒ–"Û’ösŽWŽ
+ŽóŽ¯Ž$ð½±…‰•°ø(€€€€€€ð½™¥•±‘Í•Ðøñ‰ÕÑÑ½¸¥ô‰É•Í•ÐµÍ•±•Ñ•ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆû¦ãš*{Ž_Ž¦‚žn»Ž
+K–"wšr–2Xð½‰ÕÑÑ½¸ø(€€€€ð½‘•Ñ…¥±ÌøñÀ¥ô‰É•Í•ÐµÍÑ…ÑÕÌˆ±…ÍÌô‰µÕÑ•ˆÉ½±”ô‰ÍÑ…ÑÕÌˆøð½Àø(€€€€ñÀ±…ÍÌô‰µÕÑ•ˆû–nÏ¦FGŽ£–"Û’ös¦S’â·Ž»–"–¶CŽ¿ŽŽOŽ»ž®¿šr¯Ž¯¢«–.W’þw–¶cŽWŽ
+3ŽûŽgŽð½ÀøñÀ¥ô‰…µ”µ±½½Àµ¡¥¹Ðˆ±…ÍÌô‰µÕÑ•ˆøð½Àøñ‘•Ñ…¥±ÌøñÍÕµµ…Éäû¢«žRÇ–"Û’ösŽ»¢†£ž’èð½ÍÕµµ…Éäøñ±…‰•°øñ¥¹ÁÕÐ¥ô‰Í¡½Üµ•áÑÉ„µ•±•µ•¹ÑÌˆÑåÁ”ô‰¡•­‰½àˆøƒ¢žšRûšâ#ŽÿŽ»’î[–žÒƒŽ
+¢†£ž’ëŽgŽ
+,ð½±…‰•°øñÀ±…ÍÌô‰µÕÑ•ˆù!?š:‹žÒ‹Ž»Ž
+¿Ž«Ž
+‹Ž¯Ž¿’â7¢šŽŸŽgŽš^‹–¶cŽ»–"–¶Cš¢‡–z/Ž
+žfë¢š/¢¢c¦2ËŽ¿ŽwŽ»ŽûŽûšº/Ž
++ŽûŽgŽð½Àøð½‘•Ñ…¥±Ìø(€€ð½‘¥Øøð½‘¥…±½œø(€€ñ‘¥…±½œ¥ô‰É•…Ñ¥½¸µ±…ˆµ‘¥…±½œˆ…É¥„µ±…‰•±±•‘‰äô‰É•…Ñ¥½¸µ±…ˆµÑ¥Ñ±”ˆøñÍ•Ñ¥½¸¥ô‰É•…Ñ¥½¸µ±…ˆˆ±…ÍÌô‰É•…Ñ¥½¸µ±…ˆˆø(€€€€ñ¡•…‘•Èøñ‘¥ØøñÍµ…±°ùIQ%=81ƒ
+ÜIPð½Íµ…±°øñ È¥ô‰É•…Ñ¥½¸µ±…ˆµÑ¥Ñ±”ˆû–"–¶CŽ»žnã’êK’ösžR ð½ Èøð½‘¥Øøñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±…ˆµ±½Í”…É¥„µ±…‰•°ô‰I•…Ñ¥½¸1…‹Ž
+K¦Z'ŽcŽ
+,ˆû\ð½‰ÕÑÑ½¸øð½¡•…‘•Èø(€€€€ñ‘¥Ø±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ™••µÉ…¬ˆ…É¥„µ±…‰•°ô‰IP™••É…¬ˆø(€€€€€€ñ‰ÕÑÑ½¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½ÐˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±…ˆµÍ±½ÐôˆÀˆ…É¥„µ±…‰•°ô‰••Í±½Ð¾òkšr«š:—žÚhˆ…É¥„µ¡…ÍÁ½ÁÕÀô‰ÑÉÕ”ˆ…É¥„µ•áÁ…¹‘•ô‰™…±Í”ˆ…É¥„µ½¹ÑÉ½±Ìô‰É•…Ñ¥½¸µ±…ˆµÁ¥­•ÈˆøñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½Ðµ¥¹‘•àˆùð½ÍÁ…¸øñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½ÐµÍ½­•Ðˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆøð½ÍÁ…¸øñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½Ðµ½ÁäˆøñÍÑÉ½¹œ‘…Ñ„µÍ±½Ðµ™½ÉµÕ±„ûŠPð½ÍÑÉ½¹œøñÍµ…±°‘…Ñ„µÍ±½Ðµ¹…µ”ûšr«š:—žÚhð½Íµ…±°øð½ÍÁ…¸øð½‰ÕÑÑ½¸ø(€€€€€€ñ‰ÕÑÑ½¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½ÐˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±…ˆµÍ±½ÐôˆÄˆ…É¥„µ±…‰•°ô‰••Í±½Ð¾òkšr«š:—žÚhˆ…É¥„µ¡…ÍÁ½ÁÕÀô‰ÑÉÕ”ˆ…É¥„µ•áÁ…¹‘•ô‰™…±Í”ˆ…É¥„µ½¹ÑÉ½±Ìô‰É•…Ñ¥½¸µ±…ˆµÁ¥­•ÈˆøñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½Ðµ¥¹‘•àˆùð½ÍÁ…¸øñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½ÐµÍ½­•Ðˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆøð½ÍÁ…¸øñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½Ðµ½ÁäˆøñÍÑÉ½¹œ‘…Ñ„µÍ±½Ðµ™½ÉµÕ±„ûŠPð½ÍÑÉ½¹œøñÍµ…±°‘…Ñ„µÍ±½Ðµ¹…µ”ûšr«š:—žÚhð½Íµ…±°øð½ÍÁ…¸øð½‰ÕÑÑ½¸ø(€€€€€€ñ‰ÕÑÑ½¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½ÐˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±…ˆµÍ±½ÐôˆÈˆ…É¥„µ±…‰•°ô‰••Í±½Ð¾òkšr«š:—žÚhˆ…É¥„µ¡…ÍÁ½ÁÕÀô‰ÑÉÕ”ˆ…É¥„µ•áÁ…¹‘•ô‰™…±Í”ˆ…É¥„µ½¹ÑÉ½±Ìô‰É•…Ñ¥½¸µ±…ˆµÁ¥­•ÈˆøñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½Ðµ¥¹‘•àˆùð½ÍÁ…¸øñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½ÐµÍ½­•Ðˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆøð½ÍÁ…¸øñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍ±½Ðµ½ÁäˆøñÍÑÉ½¹œ‘…Ñ„µÍ±½Ðµ™½ÉµÕ±„ûŠPð½ÍÑÉ½¹œøñÍµ…±°‘…Ñ„µÍ±½Ðµ¹…µ”ûšr«š:—žÚhð½Íµ…±°øð½ÍÁ…¸øð½‰ÕÑÑ½¸ø(€€€€ð½‘¥Øø(€€€€ñ‘¥Ø±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ™••µ½¹‘Õ¥ÑÌˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆøñ¤øð½¤øñ¤øð½¤øñ¤øð½¤øð½‘¥Øø(€€€€ñ‘¥Ø±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ½µµ…¹µ‰…ÈˆøñÍÁ…¸‘…Ñ„µ±…ˆµ½µµ…¹µÍÑ…Ñ”ùI,Idð½ÍÁ…¸øñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±…ˆµ™••ù€ñˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆûŠèð½ˆøð½‰ÕÑÑ½¸øð½‘¥Øø(€€€€ñ‘¥Ø±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÍÁ…”ˆøñ…¹Ù…Ì…É¥„µ±…‰•°ô‹–"–¶CŽ
+KŽ'Ž§ŽŽ
+ÃŽ_Ž›–>7–þsŽ
+×Ž
+“Ž#Ž
+KšN7’ösŽgŽ
+,Íž¦ë¦ZLˆøð½…¹Ù…Ìøñ‘¥Ø±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµÁÕÉ”µ½ÕÑ±•Ðˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆøñ¤øð½¤øñÍÁ…¸ùAUIð½ÍÁ…¸øð½‘¥Øøñ‘¥Ø±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ•¹Ù¥É½¹µ•¹ÐˆÉ½±”ô‰É½ÕÀˆ…É¥„µ±…‰•°ô‰¡…µ‰•È…Ñ¥Ù…Ñ¥½¸•¹Ù¥É½¹µ•¹Ðˆø(€€€€€€ñ‰ÕÑÑ½¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ•ÅÕ¥Áµ•¹ÐÉ•…Ñ¥½¸µ±…ˆµ±¥¡ÐˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±…ˆµ±¥¡Ð…É¥„µ±…‰•°ô‰1%!S¾òi=ˆ…É¥„µÁÉ•ÍÍ•ô‰™…±Í”ˆøñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ±¥¡Ðµ‰•…´ˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆøð½ÍÁ…¸øñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ•ÅÕ¥Áµ•¹Ðµ±åÁ ˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆûŠ^$ð½ÍÁ…¸øñÍÁ…¸ù1%!Pð½ÍÁ…¸øñÍµ…±°‘…Ñ„µ±…ˆµ•ÅÕ¥Áµ•¹ÐµÍÑ…Ñ”ù=ð½Íµ…±°øð½‰ÕÑÑ½¸ø(€€€€€€ñ‰ÕÑÑ½¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ•ÅÕ¥Áµ•¹ÐÉ•…Ñ¥½¸µ±…ˆµ¡•…ÐˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±…ˆµ¡•…Ð…É¥„µ±…‰•°ô‰!S¾òi=ˆ…É¥„µÁÉ•ÍÍ•ô‰™…±Í”ˆøñÍÁ…¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ•ÅÕ¥Áµ•¹Ðµ±åÁ ˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆûŠ&,ð½ÍÁ…¸øñÍÁ…¸ù!Pð½ÍÁ…¸øñÍµ…±°‘…Ñ„µ±…ˆµ•ÅÕ¥Áµ•¹ÐµÍÑ…Ñ”ù=ð½Íµ…±°øð½‰ÕÑÑ½¸ø(€€€€€€ñ‰ÕÑÑ½¸±…ÍÌô‰É•…Ñ¥½¸µ±…ˆµ•ÅÕ¥Áµ•¹ÐÉ•…Ñ¥½¸µ±…ˆµµ•‘¥Õ´ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±…ˆµµ•‘¥Õ´µÁ½ÉÐ…É¥„µ±…‰•°ô‰Á µ•‘¥Õ·¾òi9UQI0ˆ…É¥„µ•áÁ…¹‘•ô‰™…±Í”ˆ…É¥„·[h‘éì¶»§q«^wontrols="reaction-lab-medium-selector"><small>pH</small><strong data-lab-medium-value>NEUTRAL</strong></button>
       <div id="reaction-lab-medium-selector" class="reaction-lab-medium-selector" data-lab-medium-selector role="radiogroup" aria-label="pH medium" hidden>
         <label data-lab-medium-option="neutral"><input type="radio" name="reaction-lab-medium" value="neutral" data-lab-medium checked><span>NEUTRAL</span></label>
         <label data-lab-medium-option="acidic"><input type="radio" name="reaction-lab-medium" value="acidic" data-lab-medium><span>ACIDIC</span></label>
         <label data-lab-medium-option="basic"><input type="radio" name="reaction-lab-medium" value="basic" data-lab-medium><span>BASIC</span></label>
       </div>
     </div><p>ãƒ‰ãƒ©ãƒƒã‚°ã§è¿‘ã¥ã‘ã‚‹ Â· pinch / wheelã§zoom</p></div>
-    <div class="reaction-lab-polymer-completion" data-polymer-completion hidden><div class="reaction-lab-polymer-completion-copy"><strong data-polymer-completion-name></strong><span data-polymer-completion-status role="status" aria-live="polite"></span></div><button type="button" data-polymer-encyclopedia hidden disabled>å›³é‘‘ã‚’é–‹ã</button></div>
+    <div class="reaction-lab-polymer-completion" data-polymer-completion hidden><div class="reaction-lab-polymer-completion-copy"><strong data-polymer-completion-name></strong><span data-polymer-completion-status role="status" aria-live="polite"></span></div><button type="button" data-polymer-view-reset hidden disabled aria-label="å®Œæˆæ¨¡åž‹ã®è¦–ç‚¹ã‚’ãƒªã‚»ãƒƒãƒˆ">è¦–ç‚¹ãƒªã‚»ãƒƒãƒˆ</button><button type="button" data-polymer-encyclopedia hidden disabled>å›³é‘‘ã‚’é–‹ã</button></div>
     <p data-lab-status class="reaction-lab-status" role="status" aria-live="polite">feed rackã§ç¨®ã‚’é¸ã³ã€FEEDã—ã¦ãã ã•ã„ã€‚</p>
     <div id="reaction-lab-picker" class="reaction-lab-picker" data-lab-picker hidden aria-hidden="true" aria-label="åˆ†å­picker"><div class="reaction-lab-picker-backdrop" aria-hidden="true"></div><section class="reaction-lab-picker-sheet" aria-labelledby="reaction-lab-picker-title"><header><div><small>DISCOVERED SPECIES</small><h3 id="reaction-lab-picker-title">Feed headã‚’æŽ¥ç¶š</h3></div><button type="button" data-lab-picker-close aria-label="åˆ†å­pickerã‚’é–‰ã˜ã‚‹">Ã—</button></header><button type="button" class="reaction-lab-disconnect" data-lab-disconnect>ã“ã®feed headã‚’åˆ‡æ–­</button><label class="reaction-lab-search-label">åˆ†å­ã‚’æ¤œç´¢<input type="search" data-lab-search placeholder="formulaãƒ»åˆ†å­å" autocomplete="off"></label><div class="reaction-lab-picker-list" data-lab-picker-list role="listbox" aria-label="ç™ºè¦‹æ¸ˆã¿åˆ†å­"></div></section></div>
   </section></dialog>
@@ -102,26 +91,64 @@
     <section><span>02</span><div><h3>Hâ‚‚ã‚’ä½œã£ã¦å™´å°„ã™ã‚‹</h3><p>Hã‚’2ã¤ç½®ãã€ã‚·ã‚¢ãƒ³ã®ç‚¹ã‚’ç›¸æ‰‹ã®ç‚¹ã¸ãƒ‰ãƒ©ãƒƒã‚°ã€‚åŒã˜åŽŸå­åŒå£«ã‚’ã‚‚ã†ä¸€åº¦ã¤ãªãã¨äºŒé‡çµåˆã«ã€‚</p></div></section>
     <section><span>03</span><div><h3>Cã¨Oã§æ”»ç•¥ã‚’å¤‰ãˆã‚‹</h3><p>å®Œæˆã—ãŸåˆ†å­ã¯å›³é‘‘ã«ç™»éŒ²ã•ã‚Œã€æŽ¢ç´¢ç”¨ãƒ­ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã«é¸ã¹ã¾ã™ã€‚å‡ºç™ºæ™‚ã«å¿…è¦ãªåˆ†ã ã‘BASE STOCKã®åŽŸå­ã‹ã‚‰è‡ªå‹•éŒ¬æˆã—ã¦ã‚¿ãƒ³ã‚¯ã¸ç©ã¿ã¾ã™ã€‚å†·å´å‰¤ã¯ç‡ƒç„¼ç†±ãŒé«˜ã¾ã‚‹ã¨è‡ªå‹•ã§ä½œå‹•ã—ã¾ã™ã€‚Hâ‚‚ã¯å¼·ã„ä¸€å™´å°„ã€COâ‚‚ã¯åå¾©å™´å°„ã€‚CHâ‚„ã¨Oâ‚‚ã¯ç‡ƒç„¼ã«ä½¿ã„ã€æ°´ã§å†·ã‚„ã™ã‹é€”ä¸­ã§ä¼‘ã¿ã¾ã™ã€‚</p></div></section>
     <section><span>04</span><div><h3>æœ€æ·±éƒ¨ã‹ã‚‰å¸°é‚„ã—ã¦ã‚¯ãƒªã‚¢</h3><p>æœ€æ·±éƒ¨ã®é‡‘è‰²ã®è¼ªã¸åˆ°é”ã—ã€ãã®é å¾ã§æ­£å¸¸å¸°é‚„ã™ã‚‹ã¨CHOæŽ¢ç´¢ã‚¯ãƒªã‚¢ã€‚å›³é‘‘ã®å…¨é …ç›®ã‚’åŸ‹ã‚ã‚‹å¿…è¦ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚æ­£å¸¸å¸°é‚„ã¯æ©Ÿä½“ã‚’ã‚¿ãƒƒãƒ—ã—ã¦å§‹ã‚ã€çŸ­ã„æŠ½å‡ºå¾…æ©Ÿã®å¾Œã«å…¨ç©è·ã‚’å®‰å®šå›žåŽã—ã¾ã™ã€‚InsightãŒãªã„å ´åˆã¯SAFE SITEã§æ©Ÿä½“ã‚’ã‚¿ãƒƒãƒ—ã—ã¦ãã ã•ã„ã€‚DUST EATERãŒä¿æŒå ´ã‚’å´©ã™ã¨ã€é€šå¸¸å¸°é‚„ã¨ã¯åˆ¥ã®å®‰å…¨è£…ç½®ãŒä¸€éƒ¨ã®ç©è·ã‚’ã“ã¼ã—ãªãŒã‚‰å¼·åˆ¶å›žåŽã—ã¾ã™ã€‚</p></div></section>
-    <details><summary>ç‰¹æ®ŠãªæŽ¥ç¶šã¨è¡¨ç¤º</summary><p>è–„ç´«ã®è¼ªã¯ãƒªãƒ³ãƒ»ç¡«é»„ã®è¿½åŠ æŽ¥ç¶šç‚¹ã§ã™ã€‚é›»å­ãŒå¢—ãˆãŸå°ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚C=Oã ã‘ã®æ§‹é€ ã§ã¯ã€é…¸ç´ ã®2ç‚¹å…¥ã‚Šã®è¼ªã‹ã‚‰é›»å­å¯¾ã‚’å…±æœ‰ã—ã¦COã‚’ä½œã‚Œã¾ã™ã€‚ï¼‹ãƒ»âˆ’ã¯å½¢å¼é›»è·ã§ã™ã€‚</p><p>æ°´è‰²ã®å†…å††ã‚„æ›²ç·šã¯ã€é›»å­ã‚’åºƒã„ç¯„å›²ã§å…±æœ‰ã™ã‚‹ã“ã¨ã‚’è¡¨ã™è¨˜å·ã§ã™ã€‚é›»å­ã®é€šã‚Šé“ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚ã‚´ãƒŸç®±ã¯1ç§’é•·æŠ¼ã—ã§å…¨ç‰‡ä»˜ã‘ã€‚å·¦å‘ãçŸ¢å°ã§ç›´å‰ã®CRAFTæ“ä½œã‚’1æ“ä½œãšã¤å…ƒã«æˆ»ã›ã¾ã™ã€‚å›³é‘‘ã®ç™ºè¦‹ã¯æ®‹ã‚Šã¾ã™ã€‚</p></details><details><summary>å‹•ã‹ã™ãƒ»å›žã™ãƒ»å¤–ã™</summary><p>åŽŸå­ã‚’ãƒ‰ãƒ©ãƒƒã‚°ã™ã‚‹ã¨ã€ç’°ã‚„äºŒé‡çµåˆãªã©ã®å›ºå®šæ§‹é€ ã‚’ä¿ã£ãŸã¾ã¾ã€å‹•ã‘ã‚‹è¤‡æ•°ã®å˜çµåˆã‚’ä½¿ã£ã¦åˆ†å­å…¨ä½“ãŒã—ãªã‚Šã¾ã™ã€‚å±Šã‹ãªã„ä½ç½®ã¸å¼•ã„ã¦ã‚‚çµåˆã¯ä¼¸ã³ã¾ã›ã‚“ã€‚èƒŒæ™¯ã‚’ãƒ‰ãƒ©ãƒƒã‚°ã™ã‚‹ã¨åˆ†å­å…¨ä½“ãŒå›žè»¢ã—ã€æœªçµåˆã®åŽŸå­ã¯ãƒ‰ãƒ©ãƒƒã‚°ã§ç§»å‹•ã§ãã¾ã™ã€‚2æœ¬æŒ‡ã§æ‹¡å¤§ç¸®å°ãƒ»ã²ã­ã‚Šå›žè»¢ã€èƒŒæ™¯ã®ãƒ€ãƒ–ãƒ«ã‚¿ãƒƒãƒ—ã§åˆ†å­ã«å¯„ã‚Šã¾ã™ã€‚</p><p>çµåˆæ£’ã®ä¸­å¤®ã‚’é•·æŠ¼ã—ã™ã‚‹ã¨ã€çµåˆãŒ1æ®µéšŽå¤–ã‚Œã¾ã™ã€‚å…±é³´ã™ã‚‹éƒ¨åˆ†ã¯ã€ã“ã®æ¨¡åž‹ã§ã¯å¹³é¢ã«ä¿ã¡ã¾ã™ã€‚</p><p>é‡‘è‰²ã®è¼ªã¯éƒ¨å“ã®æŽ¥ç¶šç‚¹ã§ã™ã€‚é…ç½®ã—ãŸå¾Œã€å…‰ã‚‹é›»å­ã‹ã‚‰ã¤ãªã„ã§ãã ã•ã„ã€‚</p></details>
-    <button id="help-done" type="button" class="primary">æŽ¢ç´¢ã‚’ã¯ã˜ã‚ã‚ˆã†</button>
-  </div></dialog>
-  <dialog id="info-dialog" class="sheet" aria-labelledby="info-title"><header class="sheet-header"><h2 id="info-title">ã„ã¾ã®åˆ†å­</h2><button type="button" data-close-dialog aria-label="åˆ†å­æƒ…å ±ã‚’é–‰ã˜ã‚‹">Ã—</button></header><div class="sheet-body info-panel">
-    <div id="status" class="status ok">åŽŸå­ã‚’è¿½åŠ ã—ã¦ãã ã•ã„</div><p id="molecule-iupac" class="muted"></p>
-    <h3>é¸æŠžã—ãŸåŽŸå­</h3><dl class="details"><div><dt>å…ƒç´ </dt><dd id="selected-element">â€”</dd></div><div><dt>çµåˆ</dt><dd id="selected-valence">â€”</dd></div><div><dt>é›»å­</dt><dd id="selected-limit">â€”</dd></div></dl>
-    <h3>åˆ†å­ã®æ§‹æˆ</h3><div id="atom-counts" class="atom-counts">â€”</div>
-    <h3>ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®åˆ†å­ <span id="structure-count"></span></h3><div id="structure-list" class="structure-list"></div>
-  </div></dialog>
-  <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="book-shell">
-    <header class="book-header"><div><h2 id="collection-title">å›³é‘‘</h2><p id="collection-progress"></p></div><button id="close-collection" type="button" aria-label="å›³é‘‘ã‚’é–‰ã˜ã‚‹">Ã—</button></header>
-    <p id="collection-storage" class="save-warning" role="status" hidden></p>
-    <div class="book-tabs" role="tablist" aria-label="å›³é‘‘ã®ç¨®é¡ž"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true" aria-controls="collection-list">åˆ†å­</button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" aria-controls="collection-list" tabindex="-1">éƒ¨å“</button><button type="button" role="tab" data-book-tab="polymers" aria-selected="false" aria-controls="collection-list" tabindex="-1">é«˜åˆ†å­</button></div>
-    <details id="collection-controls" class="book-controls"><summary>çµžã‚Šè¾¼ã¿ <span id="filter-summary">ä»Šã¤ãã‚Œã‚‹åˆ†å­</span></summary><div class="filter-fields"><label>ç¯„å›²<select id="collection-scope"><option value="cho">CHOã®åˆ†å­ãƒ»éƒ¨å“</option><option value="all">ä»–å…ƒç´ ã‚‚å«ã‚ãŸå›³é‘‘</option></select></label><label id="collection-category-label">ç¨®é¡ž<select id="collection-category"><option value="all">ã™ã¹ã¦</option></select></label><label>è¡¨ç¤º<select id="collection-filter"><option value="available">ä»Šã®åŽŸå­ã§ä½œã‚Œã‚‹</option><option value="all">ã™ã¹ã¦</option><option value="found">ç™ºè¦‹æ¸ˆã¿</option><option value="missing">æœªç™ºè¦‹</option></select></label></div></details>
-    <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
-    <footer class="book-footer"><details><summary>ç™ºè¦‹ã®ã‚ã—ã‚ã¨</summary><div id="collection-milestones" class="collection-tags"></div><p>åŒã˜åˆ†å­ã‚’ä½•åº¦ã¤ãã£ã¦ã‚‚ã€ç™ºè¦‹æ•°ã¯å¢—ãˆã¾ã›ã‚“ã€‚</p></details></footer>
-  </div></dialog>
-  <dialog id="supply-dialog" class="sheet" aria-labelledby="supply-title"><header class="sheet-header"><h2 id="supply-title">åŽé›†æ®»</h2><button type="button" data-close-dialog aria-label="åŽé›†æ®»ã‚’é–‰ã˜ã‚‹">Ã—</button></header><div class="sheet-body supply-body">
-    <div class="collector-shell-map" aria-label="åŽé›†æ®»ã®ã‚¿ãƒ³ã‚¯"><canvas id="collector-shell-preview" aria-hidden="true"></canvas>
-      <button id="shell-propellant" class="shell-port port-propellant" data-tank-role="propellant" type="button" aria-pressed="true"><i aria-hidden="true"></i><span>å™´å°„å‰¤</span><small>â€”</small></button>
+    <details><summary>ç‰¹æ®ŠãªæŽ¥ç¶šã¨è¡¨ç¤º</summary><p>è–„ç´«ã®è¼ªã¯ãƒªãƒ³ãƒ»ç¡«é»„ã®è¿½åŠ æŽ¥ç¶šç‚¹ã§ã™ã€‚é›»å­ãŒå¢—ãˆãŸå°ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚C=Oã ã‘ã®æ§‹é€ ã§ã¯ã€é…¸ç´ ã®2ç‚¹å…¥ã‚Šã®è¼ªã‹ã‚‰é›»å­å¯¾ã‚’å…±æœ‰ã—ã¦COã‚’ä½œã‚Œã¾ã™ã€‚ï¼‹ãƒ»YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬×Š"KŽ¿–ö‹–ò?¦nï¢6ßŽŸŽgŽð½ÀøñÀûšÂÓ¢&ËŽ»––Ž
+šnËžÞkŽ¿Ž¦nï–¶CŽ
+K–êŽž¾–nËŽŸ–Çšr'ŽgŽ
+/ŽOŽ£Ž
+K¢†£Žg¢¢c–>ßŽŸŽgŽ¦nï–¶CŽ»¦kŽ
++¦OŽŸŽ¿ŽŽ
++ŽûŽoŽ
+OŽŽ
+ÓŽžºÇŽ¼ÇžžK¦Vßš*óŽ_ŽŸ–£ž&’îcŽGŽ–Þ›–BGŽ7ž~‹–6ÃŽŸžnÓ–&7Ž¹ISšN7’ösŽ
+HÇšN7’ösŽkŽ“–Ž¯š"ïŽoŽûŽgŽ–nÏ¦FGŽ»žfë¢š/Ž¿šº/Ž
++ŽûŽgŽð½Àøð½‘•Ñ…¥±Ìøñ‘•Ñ…¥±ÌøñÍÕµµ…Éäû–.WŽ/ŽgŽï–n{ŽgŽï–’[Ždð½ÍÕµµ…ÉäøñÀû–:–¶CŽ
+KŽ'Ž§ŽŽ
+ÃŽgŽ
+/Ž£ŽžJÃŽ
+’ê3¦7žÖC–B#Ž«Ž§Ž»–në–ºkšž/¦ƒŽ
+K’þwŽŽŽûŽûŽ–.WŽGŽ
+/¢’šVÃŽ»–6cžÖC–B#Ž
+K’öÿŽŽ›–"–¶C–£’öOŽ3Ž_Ž«Ž
++ŽûŽgŽ–Æ+Ž/Ž«Ž’ö7žö»Žã–òWŽŽ›Ž
+žÖC–B#Ž¿’òãŽÏŽûŽoŽ
+OŽ¢3šf¿Ž
+KŽ'Ž§ŽŽ
+ÃŽgŽ
+/Ž£–"–¶C–£’öOŽ3–n{¢î‹Ž_Žšr«žÖC–B#Ž»–:–¶CŽ¿Ž'Ž§ŽŽ
+ÃŽŸžžï–.WŽŸŽ7ŽûŽgŽËšr³š2ŽŸš.‡–’Ÿžâ»–Â?ŽïŽËŽ·Ž
++–n{¢î‹Ž¢3šf¿Ž»ŽŽ[Ž¯Ž
+ÿŽŽ_ŽŸ–"–¶CŽ¯–¾Ž
++ŽûŽgŽð½ÀøñÀûžÖC–B#šŽKŽ»’â·–’»Ž
+K¦Vßš*óŽ_ŽgŽ
+/Ž£ŽžÖC–B#Ž0Çšº×¦j;–’[Ž
+3ŽûŽgŽ–Ç¦ÎÓŽgŽ
+/¦£–"Ž¿ŽŽOŽ»š¢‡–z/ŽŸŽ¿–æÏ¦v‹Ž¯’þwŽ‡ŽûŽgŽð½ÀøñÀû¦G¢&ËŽ»¢ò«Ž¿¦£–NŽ»š:—žÚkž
+çŽŸŽgŽ¦7žö»Ž_Ž–ú3Ž–'Ž
+/¦nï–¶CŽ/Ž
+'Ž“Ž«ŽŽŸŽ?ŽƒŽWŽŽð½Àøð½‘•Ñ…¥±Ìø(€€€€ñ‰ÕÑÑ½¸¥ô‰¡•±Àµ‘½¹”ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ±…ÍÌô‰ÁÉ¥µ…Éäˆûš:‹žÒ‹Ž
+KŽ¿ŽcŽ
+Ž
+#Žð½‰ÕÑÑ½¸ø(€€ð½‘¥Øøð½‘¥…±½œø(€€ñ‘¥…±½œ¥ô‰¥¹™¼µ‘¥…±½œˆ±…ÍÌô‰Í¡••Ðˆ…É¥„µ±…‰•±±•‘‰äô‰¥¹™¼µÑ¥Ñ±”ˆøñ¡•…‘•È±…ÍÌô‰Í¡••Ðµ¡•…‘•Èˆøñ È¥ô‰¥¹™¼µÑ¥Ñ±”ˆûŽŽûŽ»–"–¶@ð½ Èøñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±½Í”µ‘¥…±½œ…É¥„µ±…‰•°ô‹–"–¶Cš–‚ÇŽ
+K¦Z'ŽcŽ
+,ˆû\ð½‰ÕÑÑ½¸øð½¡•…‘•Èøñ‘¥Ø±…ÍÌô‰Í¡••Ðµ‰½‘ä¥¹™¼µÁ…¹•°ˆø(€€€€ñ‘¥Ø¥ô‰ÍÑ…ÑÕÌˆ±…ÍÌô‰ÍÑ…ÑÕÌ½¬ˆû–:–¶CŽ
+K¢þ÷–*ƒŽ_Ž›Ž?ŽƒŽWŽð½‘¥ØøñÀ¥ô‰µ½±•Õ±”µ¥ÕÁ…Œˆ±…ÍÌô‰µÕÑ•ˆøð½Àø(€€€€ñ Ìû¦ãš*{Ž_Ž–:–¶@ð½ Ìøñ‘°±…ÍÌô‰‘•Ñ…¥±Ìˆøñ‘¥Øøñ‘Ðû–žÒ€ð½‘Ðøñ‘¥ô‰Í•±•Ñ•µ•±•µ•¹ÐˆûŠPð½‘øð½‘¥Øøñ‘¥Øøñ‘ÐûžÖC–B ð½‘Ðøñ‘¥ô‰Í•±•Ñ•µÙ…±•¹”ˆûŠPð½‘øð½‘¥Øøñ‘¥Øøñ‘Ðû¦nï–¶@ð½‘Ðøñ‘¥ô‰Í•±•Ñ•µ±¥µ¥ÐˆûŠPð½‘øð½‘¥Øøð½‘°ø(€€€€ñ Ìû–"–¶CŽ»šž/š"@ð½ Ìøñ‘¥Ø¥ô‰…Ñ½´µ½Õ¹ÑÌˆ±…ÍÌô‰…Ñ½´µ½Õ¹ÑÌˆûŠPð½‘¥Øø(€€€€ñ ÌûŽWŽ
+ŽóŽ¯Ž'Ž»–"–¶@€ñÍÁ…¸¥ô‰ÍÑÉÕÑÕÉ”µ½Õ¹Ðˆøð½ÍÁ…¸øð½ Ìøñ‘¥Ø¥ô‰ÍÑÉÕÑÕÉ”µ±¥ÍÐˆ±…ÍÌô‰ÍÑÉÕÑÕÉ”µ±¥ÍÐˆøð½‘¥Øø(€€ð½‘¥Øøð½‘¥…±½œø(€€ñ‘¥…±½œ¥ô‰½±±•Ñ¥½¸µ‘¥…±½œˆ…É¥„µ±…‰•±±•‘‰äô‰½±±•Ñ¥½¸µÑ¥Ñ±”ˆøñ‘¥Ø±…ÍÌô‰‰½½¬µÍ¡•±°ˆø(€€€€ñ¡•…‘•È±…ÍÌô‰‰½½¬µ¡•…‘•Èˆøñ‘¥Øøñ È¥ô‰½±±•Ñ¥½¸µÑ¥Ñ±”ˆû–nÏ¦FDð½ ÈøñÀ¥ô‰½±±•Ñ¥½¸µÁÉ½É•ÍÌˆøð½Àøð½‘¥Øøñ‰ÕÑÑ½¸¥ô‰±½Í”µ½±±•Ñ¥½¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ…É¥„µ±…‰•°ô‹–nÏ¦FGŽ
+K¦Z'ŽcŽ
+,ˆû\ð½‰ÕÑÑ½¸øð½¡•…‘•Èø(€€€€ñÀ¥ô‰½±±•Ñ¥½¸µÍÑ½É…”ˆ±…ÍÌô‰Í…Ù”µÝ…É¹¥¹œˆÉ½±”ô‰ÍÑ…ÑÕÌˆ¡¥‘‘•¸øð½Àø(€€€€ñ‘¥Ø±…ÍÌô‰‰½½¬µÑ…‰ÌˆÉ½±”ô‰Ñ…‰±¥ÍÐˆ…É¥„µ±…‰•°ô‹–nÏ¦FGŽ»ž¢»¦†xˆøñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆÉ½±”ô‰Ñ…ˆˆ‘…Ñ„µ‰½½¬µÑ…ˆô‰µ½±•Õ±•Ìˆ…É¥„µÍ•±•Ñ•ô‰ÑÉÕ”ˆ…É¥„µ½¹ÑÉ½±Ìô‰½±±•Ñ¥½¸µ±¥ÍÐˆû–"–¶@ð½‰ÕÑÑ½¸øñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆÉ½±”ô‰Ñ…ˆˆ‘…Ñ„µ‰½½¬µÑ…ˆô‰É½ÕÁÌˆ…É¥„µÍ•±•Ñ•ô‰™…±Í”ˆ…É¥„µ½¹ÑÉ½±Ìô‰½±±•Ñ¥½¸µ±¥ÍÐˆÑ…‰¥¹‘•àôˆ´Äˆû¦£–Nð½‰ÕÑÑ½¸øñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆÉ½±”ô‰Ñ…ˆˆ‘…Ñ„µ‰½½¬µÑ…ˆô‰Á½±åµ•ÉÌˆ…É¥„µÍ•±•Ñ•ô‰™…±Í”ˆ…É¥„µ½¹ÑÉ½±Ìô‰½±±•Ñ¥½¸µ±¥ÍÐˆÑ…‰¥¹‘•àôˆ´Äˆû¦®c–"–¶@ð½‰ÕÑÑ½¸øð½‘¥Øø(€€€€ñ‘•Ñ…¥±Ì¥ô‰½±±•Ñ¥½¸µ½¹ÑÉ½±Ìˆ±…ÍÌô‰‰½½¬µ½¹ÑÉ½±ÌˆøñÍÕµµ…ÉäûžÖ{Ž
++¢úóŽü€ñÍÁ…¸¥ô‰™¥±Ñ•ÈµÍÕµµ…Éäˆû’î+Ž“Ž?Ž
+3Ž
+/–"–¶@ð½ÍÁ…¸øð½ÍÕµµ…Éäøñ‘¥Ø±…ÍÌô‰™¥±Ñ•Èµ™¥•±‘Ìˆøñ±…‰•°ûž¾–nÈñÍ•±•Ð¥ô‰½±±•Ñ¥½¸µÍ½Á”ˆøñ½ÁÑ¥½¸Ù…±Õ”ô‰¡¼ˆù!?Ž»–"–¶CŽï¦£–Nð½½ÁÑ¥½¸øñ½ÁÑ¥½¸Ù…±Õ”ô‰…±°ˆû’î[–žÒƒŽ
+–B¯Ž
+Ž–nÏ¦FDð½½ÁÑ¥½¸øð½Í•±•Ðøð½±…‰•°øñ±…‰•°¥ô‰½±±•Ñ¥½¸µ…Ñ•½Éäµ±…‰•°ˆûž¢»¦†xñÍ•±•Ð¥ô‰½±±•Ñ¥½¸µ…Ñ•½Éäˆøñ½ÁÑ¥½¸Ù…±Õ”ô‰…±°ˆûŽgŽçŽ˜ð½½ÁÑ¥½¸øð½Í•±•Ðøð½±…‰•°øñ±…‰•°û¢†£ž’èñÍ•±•Ð¥ô‰½±±•Ñ¥½¸µ™¥±Ñ•Èˆøñ½ÁÑ¥½¸Ù…±Õ”ô‰…Ù…¥±…‰±”ˆû’î+Ž»–:–¶CŽŸ’ösŽ
+3Ž
+,ð½½ÁÑ¥½¸øñ½ÁÑ¥½¸Ù…±Õ”ô‰…±°ˆûŽgŽçŽ˜ð½½ÁÑ¥½¸øñ½ÁÑ¥½¸Ù…±Õ”ô‰™½Õ¹ˆûžfë¢š/šâ#Žüð½½ÁÑ¥½¸øñ½ÁÑ¥½¸Ù…±Õ”ô‰µ¥ÍÍ¥¹œˆûšr«žfë¢š,ð½½ÁÑ¥½¸øð½Í•±•Ðøð½±…‰•°øð½‘¥Øøð½‘•Ñ…¥±Ìø(€€€€ñ‘¥Ø¥ô‰½±±•Ñ¥½¸µ±¥ÍÐˆ±…ÍÌô‰½±±•Ñ¥½¸µÉ¥ˆøð½‘¥ØøñÍ•Ñ¥½¸¥ô‰½±±•Ñ¥½¸µ‘•Ñ…¥°ˆ¡¥‘‘•¸øð½Í•Ñ¥½¸ø(€€€€ñ™½½Ñ•È±…ÍÌô‰‰½½¬µ™½½Ñ•Èˆøñ‘•Ñ…¥±ÌøñÍÕµµ…Éäûžfë¢š/Ž»ŽŽ_ŽŽ ð½ÍÕµµ…Éäøñ‘¥Ø¥ô‰½±±•Ñ¥½¸µµ¥±•ÍÑ½¹•Ìˆ±…ÍÌô‰½±±•Ñ¥½¸µÑ…Ìˆøð½‘¥ØøñÀû–B3Žc–"–¶CŽ
+K’öW–ê›Ž“Ž?ŽŽ›Ž
+Žžfë¢š/šVÃŽ¿–Š_Ž#ŽûŽoŽ
+OŽð½Àøð½‘•Ñ…¥±Ìøð½™½½Ñ•Èø(€€ð½‘¥Øøð½‘¥…±½œø(€€ñ‘¥…±½œ¥ô‰ÍÕÁÁ±äµ‘¥…±½œˆ±…ÍÌô‰Í¡••Ðˆ…É¥„µ±…‰•±±•‘‰äô‰ÍÕÁÁ±äµÑ¥Ñ±”ˆøñ¡•…‘•È±…ÍÌô‰Í¡••Ðµ¡•…‘•Èˆøñ È¥ô‰ÍÕÁÁ±äµÑ¥Ñ±”ˆû–>;¦nšºìð½ Èøñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±½Í”µ‘¥…±½œ…É¥„µ±…‰•°ô‹–>;¦nšºïŽ
+K¦Z'ŽcŽ
+,ˆû\ð½‰ÕÑÑ½¸øð½¡•…‘•Èøñ‘¥Ø±…ÍÌô‰Í¡••Ðµ‰½‘äÍÕÁÁ±äµ‰½‘äˆø(€€€€ñ‘¥Ø±…ÍÌô‰½±±•Ñ½ÈµÍ¡•±°µµ…Àˆ…É¥„µ±…‰•°ô‹–>;¦nšºïŽ»Ž
+ÿŽÏŽ
+¼ˆøñ…¹Ù…Ì¥ô‰½±±•Ñ½ÈµÍ¡•±°µÁÉ•Ù¥•Üˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆøð½…¹Ù…Ìø(€€€€€€ñ‰ÕÑÑ½¸¥ô‰Í¡•±°µÁÉ½Á•±±…¹Ðˆ±…ÍÌô‰Í¡•±°µÁ½ÉÐÁ½ÉÐ·[h‘éì¶»§q«^tropellant" data-tank-role="propellant" type="button" aria-pressed="true"><i aria-hidden="true"></i><span>å™´å°„å‰¤</span><small>â€”</small></button>
       <button id="shell-shock" class="shell-port port-shock" data-tank-role="shock" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>SHOCK</span><small>â€”</small></button>
       <button id="shell-fuel" class="shell-port port-fuel" data-tank-role="fuel" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>ç‡ƒæ–™</span><small>â€”</small></button>
       <button id="shell-oxidizer" class="shell-port port-oxidizer" data-tank-role="oxidizer" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>é…¸åŒ–å‰¤</span><small>â€”</small></button>
@@ -145,7 +172,7 @@
     <div class="veil-controls"><div id="veil-pad" class="veil-pad" role="group" aria-label="é£›è¡Œãƒ‘ãƒƒãƒ‰ã€‚æŒ‡ã§æ–¹å‘ã‚’æŒ‡å®šã€‚ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã¯çŸ¢å°ã¾ãŸã¯WASD"><i id="veil-knob" class="veil-knob"></i><span class="veil-pad-label">FLIGHT</span></div><div class="veil-drive-control"><button id="veil-shock" type="button" aria-label="SHOCK UNITã€‚è‡ªæ©Ÿä¸­å¿ƒã®pressure pulseã€‚ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã¯E" hidden><strong>â€”</strong><small>SHOCK <span id="veil-shock-count">0 / 0</span></small></button><div id="veil-thermal" class="veil-thermal" data-state="normal" hidden><span><b id="veil-thermal-state">NORMAL</b><strong id="veil-heat">0%</strong></span><i aria-hidden="true"><span id="veil-heat-meter"></span></i><small id="veil-coolant">â„ âˆ…</small><div id="veil-coolant-level" class="tank-scale" role="meter" aria-label="å†·å´å‰¤" aria-valuemin="0"><b></b></div></div><button id="veil-combustion" type="button" aria-label="ç‡ƒæ–™ã¨Oâ‚‚ã®ç‡ƒç„¼æŽ¨é€²ã€‚æŠ¼ã—ã¦ã„ã‚‹é–“ã ã‘ä½œå‹•ã—ã€éŽç†±å¾Œã¯å®‰å…¨æ¸©åº¦ã§è‡ªå‹•å¾©å¸°ã€‚ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã¯Shift" aria-pressed="false" hidden><strong>FUEL + Oâ‚‚</strong><small id="veil-combustion-remaining">HOLD DRIVE</small><i class="propulsion-meter" aria-hidden="true"><span id="veil-combustion-meter"></span></i><span id="veil-combustion-fuel" class="paired-tanks"><span data-role="fuel"><b></b><i><em></em></i></span><span class="combustion-link" aria-hidden="true">ï¼‹<br>â™¨</span><span data-role="oxidizer"><b></b><i><em></em></i></span></span></button><button id="veil-boost" type="button" aria-label="å™´å°„å‰¤BURSTã€‚ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã¯ã‚¹ãƒšãƒ¼ã‚¹"><strong>â€”</strong><small>BURST <span id="veil-fuel">0 / 0</span></small><i class="propulsion-meter" aria-hidden="true"><span id="veil-burst-meter"></span></i></button></div></div>
     <button id="veil-resume" type="button" hidden>é£›è¡Œã‚’å†é–‹</button>
   </section>
-  <script type="module" src="./src/app.js?v=69"></script>
+  <script type="module" src="./src/app.js?v=70"></script>
   <script type="module" src="./src/pwa.js?v=34"></script>
 </body>
 </html>
