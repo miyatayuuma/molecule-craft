@@ -11,7 +11,7 @@ import {MAX_DOCK_RELEASE_SEPARATION_ACCELERATION} from '../src/reaction-lab-mani
 const MAX_RELEASE_SEPARATION_INCREASE_3_STEPS_ANGSTROM=0.05;
 const MAX_RELEASE_SEPARATION_INCREASE_8_STEPS_ANGSTROM=0.12;
 
-const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
+const root=resolve(process.env.POLYMER_ROOT??fileURLToPath(new URL('..',import.meta.url)));
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
 const server=createServer(async(request,response)=>{
   try{const path=new URL(request.url,'http://localhost').pathname==='/'?'index.html':decodeURIComponent(new URL(request.url,'http://localhost').pathname).replace(/^\/+/,''),file=normalize(join(root,path));if(!file.startsWith(root))throw Error();response.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store'});response.end(await readFile(file));}
