@@ -1,4 +1,69 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Õ½¹ÍĞ=Y19Q}I%ULõí è¸ÌÄ±è¸ÜØ±8è¸ÜÄ±<è¸ØØ±è¸ÔÜ±M¤èÄ¸ÄÄ±@èÄ¸ÀÜ±LèÄ¸ÀÔ±°èÄ¸ÀÈ±	ÈèÄ¸ÈÀ±$èÄ¸Ìåôì)½¹ÍĞ±…µÀô¡Ù…±Õ”±µ¥¸±µ…à¤ôù5…Ñ ¹µ…à¡µ¥¸±5…Ñ ¹µ¥¸¡µ…à±Ù…±Õ”¤¤ì)½¹ÍĞÙ•Œô¡àôÀ±äôÀ±èôÀ¤ôø¡íà±ä±éô¤ì)½¹ÍĞ…‘ô¡„±ˆ¤ôùÙ•Œ¡„¹à­ˆ¹à±„¹ä­ˆ¹ä±„¹è­ˆ¹è¤ì)½¹ÍĞÍÕˆô¡„±ˆ¤ôùÙ•Œ¡„¹àµˆ¹à±„¹äµˆ¹ä±„¹èµˆ¹è¤ì)½¹ÍĞµÕ°ô¡„±Ì¤ôùÙ•Œ¡„¹à©Ì±„¹ä©Ì±„¹è©Ì¤ì)½¹ÍĞ‘½Ğô¡„±ˆ¤ôù„¹à©ˆ¹à­„¹ä©ˆ¹ä­„¹è©ˆ¹èì)½¹ÍĞÉ½ÍÌô¡„±ˆ¤ôùÙ•Œ¡„¹ä©ˆ¹èµ„¹è©ˆ¹ä±„¹è©ˆ¹àµ„¹à©ˆ¹è±„¹à©ˆ¹äµ„¹ä©ˆ¹à¤ì)½¹ÍĞ±•¹Ñ õ„ôù5…Ñ ¹¡åÁ½Ğ¡„¹à±„¹ä±„¹è¤ì)½¹ÍĞÕ¹¥Ğõ„ôùí½¹ÍĞ¸õ±•¹Ñ ¡„¤íÉ•ÑÕÉ¸¸øÅ”´äıµÕ°¡„°Ä½¸¤éÙ•Œ Ä°À°À¤íôì)½¹ÍĞÁ½¥¹Ñ=˜õÙ…±Õ”ôùÉÉ…ä¹¥ÍÉÉ…ä¡Ù…±Õ”¤ıÙ•Œ¡9Õµ‰•È¡Ù…±Õ•lÁt¤±9Õµ‰•È¡Ù…±Õ•lÅt¤±9Õµ‰•È¡Ù…±Õ•lÉtüüÀ¤¤éÙ•Œ¡9Õµ‰•È¡Ù…±Õ”ü¹àüüÀ¤±9Õµ‰•È¡Ù…±Õ”ü¹äüüÀ¤±9Õµ‰•È¡Ù…±Õ”ü¹èüüÀ¤¤ì)½¹ÍĞ½É¥¥¹-•äõ½É¥¥¸ôù€‘í½É¥¥¸ü¹¥¹ÍÑ…¹•%üüœôè‘í½É¥¥¸ü¹Í½ÕÉ•Ñ½µ%¹‘•àüüœõ€ì)½¹ÍĞ‰½¹‘-•äô¡„±ˆ¤ôù„ñˆı€‘í…õğ‘í‰õ€é€‘í‰õğ‘í…õ€ì)½¹ÍĞ•±•µ•¹Ñ=˜õ…Ñ½´ôùÑåÁ•½˜…Ñ½´ôôôÍÑÉ¥¹œœı…Ñ½´é…Ñ½´ü¹•±•µ•¹Ğüüœì)½¹ÍĞ‰½¹‘=˜õ‰½¹ôùÉÉ…ä¹¥ÍÉÉ…ä¡‰½¹¤ıí„é9Õµ‰•È¡‰½¹‘lÁt¤±ˆé9Õµ‰•È¡‰½¹‘lÅt¤±½É‘•Èé9Õµ‰•È¡‰½¹‘lÉtüüÄ¥ôéí„é9Õµ‰•È¡‰½¹¹„¤±ˆé9Õµ‰•È¡‰½¹¹ˆ¤±½É‘•Èé9Õµ‰•È¡‰½¹¹½É‘•ÈüüÄ¥ôì)½¹ÍĞ¡…Í ÌÈõÙ…±Õ”ôùí±•Ğ ôÈÄØØÄÌØÈØÄí™½È¡½¹ÍĞ¡…È½˜MÑÉ¥¹œ¡Ù…±Õ”¤¥í¡xõ¡…È¹¡…É½‘•Ğ À¤í õ5…Ñ ¹¥µÕ°¡ °ÄØÜÜÜØÄä¤íõÉ•ÑÕÉ¸ øøøÀíôì)½¹ÍĞ½Ù…±•¹ÑI…‘¥ÕÌõ•±•µ•¹Ğôù=Y19Q}I%UMm•±•µ•¹Ñtüü¸àÈì)½¹ÍĞ½É‘•ÉM…±”õ½É‘•Èôù½É‘•ÈøôÈ¸Üü¸Üàé½É‘•ÈøôÄ¸àü¸ààé½É‘•ÈøôÄ¸ÌÔü¸äĞèÄì)½¹ÍĞÑ…É•Ñ	½¹‘1•¹Ñ ô¡±•™Ğ±É¥¡Ğ±½É‘•È±Í…±”¤ôø¡½Ù…±•¹ÑI…‘¥ÕÌ¡±•™Ğ¤­½Ù…±•¹ÑI…‘¥ÕÌ¡É¥¡Ğ¤¤©Í…±”©½É‘•ÉM…±”¡½É‘•È¤ì()™Õ¹Ñ¥½¸…¹±•½È¡•¹Ñ•È±¹•¥¡‰½ÉÌ¥ì(€½¹ÍĞµÕ±Ñ¥Á±”õ¹•¥¡‰½ÉÌ¹Í½µ”¡¥Ñ•´ôù¥Ñ•´¹½É‘•ÈøôÄ¸ÌÔ¤ì(€¥˜¡µÕ±Ñ¥Á±”¥É•ÑÕÉ¸€ÄÈÀ©5…Ñ ¹A$¼ÄàÀì(€¥˜¡•¹Ñ•È¹•±•µ•¹Ğôôôœ¥É•ÑÕÉ¸¹•¥¡‰½ÉÌ¹±•¹Ñ øôÑññ¹•¥¡‰½ÉÌ¹±•¹Ñ ôôôÌ˜™•¹Ñ•È¹™½Éµ…±¡…É”ôôôÀüÄÀä¸ĞÜ©5…Ñ ¹A$¼ÄàÀèÄÈÀ©5…Ñ ¹A$¼ÄàÀì(€¥˜¡•¹Ñ•È¹•±•µ•¹Ğôôô8œ¥É•ÑÕÉ¸¹•¥¡‰½ÉÌ¹±•¹Ñ øôĞüÄÀä¸ĞÜ©5…Ñ ¹A$¼ÄàÀèÄÀÜ©5…Ñ ¹A$¼ÄàÀì(€¥˜¡•¹Ñ•È¹•±•µ•¹Ğôôô<œ¥É•ÑÕÉ¸€ÄÀĞ¸Ô©5…Ñ ¹A$¼ÄàÀì(€É•ÑÕÉ¸¹•¥¡‰½ÉÌ¹±•¹Ñ øôĞüÄÀä¸ĞÜ©5…Ñ ¹A$¼ÄàÀèÄÈÀ©5…Ñ ¹A$¼ÄàÀì)ô()™Õ¹Ñ¥½¸‘•Ñ•Éµ¥¹¥ÍÑ¥A•ÉÁ•¹‘¥Õ±…È¡…á¥Ì±­•ä¥ì(€½¹ÍĞ‘¥É•Ñ¥½¸õÕ¹¥Ğ¡…á¥Ì¤±…á•ÌõmÙ•Œ Ä°À°À¤±Ù•Œ À°Ä°À¤±Ù•Œ À°À°Ä¥t¹Í½ÉĞ ¡„±ˆ¤ôù5…Ñ ¹…‰Ì¡‘½Ğ¡„±‘¥É•Ñ¥½¸¤¤µ5…Ñ ¹…‰Ì¡‘½Ğ¡ˆ±‘¥É•Ñ¥½¸¤¤¤ì(€±•ĞÑ…¹•¹ĞõÕ¹¥Ğ¡É½ÍÌ¡‘¥É•Ñ¥½¸±…á•ÍlÁt¤¤í¥˜¡±•¹Ñ ¡Ñ…¹•¹Ğ¤ğ¸Ä¥Ñ…¹•¹ĞõÕ¹¥Ğ¡É½ÍÌ¡‘¥É•Ñ¥½¸±…á•ÍlÅt¤¤ì(€½¹ÍĞ‰¥Ñ…¹•¹ĞõÕ¹¥Ğ¡É½ÍÌ¡‘¥É•Ñ¥½¸±Ñ…¹•¹Ğ¤¤±Á¡…Í”ô¡¡…Í ÌÈ¡­•ä¤”ØÈàÌÄä¤¼ÄÀÀÀÀÀ±…¹±”õÁ¡…Í”ì(€É•ÑÕÉ¸…‘¡µÕ°¡Ñ…¹•¹Ğ±5…Ñ ¹½Ì¡…¹±”¤¤±µÕ°¡‰¥Ñ…¹•¹Ğ±5…Ñ ¹Í¥¸¡…¹±”¤¤¤ì)ô()™Õ¹Ñ¥½¸É½Ñ…Ñ¥½¹	•Ñİ••¸¡™É½´±Ñ¼¥ì(€½¹ÍĞ„õÕ¹¥Ğ¡™É½´¤±ˆõÕ¹¥Ğ¡Ñ¼¤±õ±…µÀ¡‘½Ğ¡„±ˆ¤°´Ä°Ä¤ì(€¥˜¡øÄ´Å”´ÄÀ¥É•ÑÕÉ¹lÀ°À°À°Åtì(€¥˜¡ğ´Ä¬Å”´ÄÀ¥í½¹ÍĞ…á¥Ìõ‘•Ñ•Éµ¥¹¥ÍÑ¥A•ÉÁ•¹‘¥Õ±…È¡„°…¹Ñ¥Á…É…±±•°œ¤íÉ•ÑÕÉ¹m…á¥Ì¹à±…á¥Ì¹ä±…á¥Ì¹è°Átíô(€½¹ÍĞ…á¥ÌõÉ½ÍÌ¡„±ˆ¤±Ìõ5…Ñ ¹ÍÅÉĞ  Ä­¤¨È¤±¥¹Ù•ÉÍ”ôÄ½Ìì(€É•ÑÕÉ¹m…á¥Ì¹à©¥¹Ù•ÉÍ”±…á¥Ì¹ä©¥¹Ù•ÉÍ”±…á¥Ì¹è©¥¹Ù•ÉÍ”±Ì¨¸Õtì)ô()™Õ¹Ñ¥½¸É½Ñ…Ñ”¡Á½¥¹Ğ±Ä¥ì(€½¹ÍĞØõÙ•Œ¡ÅlÁt±ÅlÅt±ÅlÉt¤±ĞõµÕ°¡É½ÍÌ¡Ø±Á½¥¹Ğ¤°È¤ì(€É•ÑÕÉ¸…‘¡Á½¥¹Ğ±…‘¡µÕ°¡Ğ±ÅlÍt¤±É½ÍÌ¡Ø±Ğ¤¤¤ì)ô()™Õ¹Ñ¥½¸‰Õ¥±‘U¹¥ÑQÉ…¹Í™½ÉµÌ¡É…Á ±…Ñ½µÌ±‰½¹‘Ì±Í½ÕÉ”±Í…±”¥ì(€½¹ÍĞÕ¹¥Ñ=É‘•Èõmtí™½È¡½¹ÍĞ½É¥¥¸½˜É…Á ¹…Ñ½µ=É¥¥¹Ì¥¥˜ …Õ¹¥Ñ=É‘•È¹¥¹±Õ‘•Ì¡½É¥¥¸¹¥¹ÍÑ…¹•%¤¥Õ¹¥Ñ=É‘•È¹ÁÕÍ ¡½É¥¥¸¹¥¹ÍÑ…¹•%¤ì(€½¹ÍĞÕ¹¥Ñ=˜õÉ…Á ¹…Ñ½µ=É¥¥¹Ì¹µ…À¡½É¥¥¸ôù½É¥¥¸¹¥¹ÍÑ…¹•%¤±Õ¹¥ÑÑ½µÌõ¹•Ü5…À¡Õ¹¥Ñ=É‘•È¹µ…À¡¥ôùm¥±mut¤¤ì(€™½È¡±•Ğ¥¹‘•àôÀí¥¹‘•àñÕ¹¥Ñ=˜¹±•¹Ñ í¥¹‘•à¬¬¥Õ¹¥ÑÑ½µÌ¹•Ğ¡Õ¹¥Ñ=™m¥¹‘•át¤ü¹ÁÕÍ ¡¥¹‘•à¤ì(€½¹ÍĞ¥¹ÑÉ…‘¨õ…Ñ½µÌ¹µ…À  ¤ôùmt¤±…±±‘¨õ…Ñ½µÌ¹µ…À  ¤ôùmt¤±Õ¹¥Ñ‘•Ìõmtì(€™½È¡½¹ÍĞ‰½¹½˜‰½¹‘Ì¥í…±±‘©m‰½¹¹…t¹ÁÕÍ ¡í¥¹‘•àé‰½¹¹ˆ±½É‘•Èé‰½¹¹½É‘•Éô¤í…±±‘©m‰½¹¹‰t¹ÁÕÍ ¡í¥¹‘•àé‰½¹¹„±½É‘•Èé‰½¹¹½É‘•Éô¤í½¹ÍĞ„õÕ¹¥Ñ=™m‰½¹¹…t±ˆõÕ¹¥Ñ=™m‰½¹¹‰tí¥˜¡„ôôõˆ¥í¥¹ÑÉ…‘©m‰½¹¹…t¹ÁÕÍ ¡í¥¹‘•àé‰½¹¹ˆ±½É‘•Èé‰½¹¹½É‘•Éô¤í¥¹ÑÉ…‘©m‰½¹¹‰t¹ÁÕÍ ¡í¥¹‘•àé‰½¹¹„±½É‘•Èé‰½¹¹½É‘•Éô¤íõ•±Í”Õ¹¥Ñ‘•Ì¹ÁÕÍ ¡í…U¹¥Ğé„±‰U¹¥Ğéˆ±„é‰½¹¹„±ˆé‰½¹¹ˆ±½É‘•Èé‰½¹¹½É‘•Éô¤íô(€™½È¡½¹ÍĞÉ½Ü½˜¥¹ÑÉ…‘¨¥É½Ü¹Í½ÉĞ ¡„±ˆ¤ôù„¹¥¹‘•àµˆ¹¥¹‘•à¤ì(€½¹ÍĞ‰åU¹¥Ğõ¹•Ü5…À¡Õ¹¥Ñ=É‘•È¹µ…À¡¥ôùm¥±mut¤¤ì(€™½È¡½¹ÍĞ•‘”½˜Õ¹¥Ñ‘•Ì¥í‰åU¹¥Ğ¹•Ğ¡•‘”¹…U¹¥Ğ¤ü¹ÁÕÍ ¡•‘”¤í‰åU¹¥Ğ¹•Ğ¡•‘”¹‰U¹¥Ğ¤ü¹ÁÕÍ ¡•‘”¤íô(€½¹ÍĞÁ±…•õ¹•ÜM•Ğ ¤±½½É‘¥¹…Ñ•ÌõÍ½ÕÉ”¹µ…À  ¤ôùÙ•Œ ¤¤±Õ¹¥Ñ¥ÍÑ…¹”õ¹•Ü5…À ¤ì(€¥˜ …Õ¹¥Ñ=É‘•È¹±•¹Ñ ¥É•ÑÕÉ¹í½½É‘¥¹…Ñ•Ì±Õ¹¥Ñ½Õ¹ĞèÀ±Õ¹Á±…•‘U¹¥ÑÌémuôì(€½¹ÍĞÉ½½ĞõÕ¹¥Ñ=É‘•ÉlÁt±É½½ÑÑ½µÌõÕ¹¥ÑÑ½µÌ¹•Ğ¡É½½Ğ¤±•¹Ñ•ÈõÉ½½ÑÑ½µÌ¹É•‘Õ” ¡ÍÕ´±¥¹‘•à¤ôù…‘¡ÍÕ´±Í½ÕÉ•m¥¹‘•át¤±Ù•Œ ¤¤ì(€½¹ÍĞÉ½½Ñ•¹Ñ•ÈõµÕ°¡•¹Ñ•È°Ä½5…Ñ ¹µ…à Ä±É½½ÑÑ½µÌ¹±•¹Ñ ¤¤ì(€™½È¡½¹ÍĞ¥¹‘•à½˜É½½ÑÑ½µÌ¥½½É‘¥¹…Ñ•Ím¥¹‘•átõÍÕˆ¡Í½ÕÉ•m¥¹‘•át±É½½Ñ•¹Ñ•È¤ì(€Á±…•¹…‘¡É½½Ğ¤íÕ¹¥Ñ¥ÍÑ…¹”¹Í•Ğ¡É½½Ğ°À¤í½¹ÍĞÅÕ•Õ”õmÉ½½Ñtì(€İ¡¥±”¡ÅÕ•Õ”¹±•¹Ñ ¥ì(€€€½¹ÍĞÁ…É•»[h‘éì¶»§q«^t=queue.shift(),edges=(byUnit.get(parent)??[]).slice().sort((left,right)=>`${left.aUnit}:${left.a}:${left.bUnit}:${left.b}`.localeCompare(`${right.aUnit}:${right.a}:${right.bUnit}:${right.b}`));
+const COVALENT_RADIUS={H:.31,C:.76,N:.71,O:.66,F:.57,Si:1.11,P:1.07,S:1.05,Cl:1.02,Br:1.20,I:1.39};
+const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+const vec=(x=0,y=0,z=0)=>({x,y,z});
+const add=(a,b)=>vec(a.x+b.x,a.y+b.y,a.z+b.z);
+const sub=(a,b)=>vec(a.x-b.x,a.y-b.y,a.z-b.z);
+const mul=(a,s)=>vec(a.x*s,a.y*s,a.z*s);
+const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
+const cross=(a,b)=>vec(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x);
+const length=a=>Math.hypot(a.x,a.y,a.z);
+const unit=a=>{const n=length(a);return n>1e-9?mul(a,1/n):vec(1,0,0);};
+const pointOf=value=>Array.isArray(value)?vec(Number(value[0]),Number(value[1]),Number(value[2]??0)):vec(Number(value?.x??0),Number(value?.y??0),Number(value?.z??0));
+const originKey=origin=>`${origin?.instanceId??''}:${origin?.sourceAtomIndex??''}`;
+const bondKey=(a,b)=>a<b?`${a}|${b}`:`${b}|${a}`;
+const elementOf=atom=>typeof atom==='string'?atom:atom?.element??'C';
+const bondOf=bond=>Array.isArray(bond)?{a:Number(bond[0]),b:Number(bond[1]),order:Number(bond[2]??1)}:{a:Number(bond.a),b:Number(bond.b),order:Number(bond.order??1)};
+const hash32=value=>{let h=2166136261;for(const char of String(value)){h^=char.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
+const covalentRadius=element=>COVALENT_RADIUS[element]??.82;
+const orderScale=order=>order>=2.7?.78:order>=1.8?.88:order>=1.35?.94:1;
+const targetBondLength=(left,right,order,scale)=>(covalentRadius(left)+covalentRadius(right))*scale*orderScale(order);
+
+function angleFor(center,neighbors){
+  const multiple=neighbors.some(item=>item.order>=1.35);
+  if(multiple)return 120*Math.PI/180;
+  if(center.element==='C')return neighbors.length>=4||neighbors.length===3&&center.formalCharge===0?109.47*Math.PI/180:120*Math.PI/180;
+  if(center.element==='N')return neighbors.length>=4?109.47*Math.PI/180:107*Math.PI/180;
+  if(center.element==='O')return 104.5*Math.PI/180;
+  return neighbors.length>=4?109.47*Math.PI/180:120*Math.PI/180;
+}
+
+function deterministicPerpendicular(axis,key){
+  const direction=unit(axis),axes=[vec(1,0,0),vec(0,1,0),vec(0,0,1)].sort((a,b)=>Math.abs(dot(a,direction))-Math.abs(dot(b,direction)));
+  let tangent=unit(cross(direction,axes[0]));if(length(tangent)<.1)tangent=unit(cross(direction,axes[1]));
+  const bitangent=unit(cross(direction,tangent)),phase=(hash32(key)%628319)/100000,angle=phase;
+  return add(mul(tangent,Math.cos(angle)),mul(bitangent,Math.sin(angle)));
+}
+
+function rotationBetween(from,to){
+  const a=unit(from),b=unit(to),d=clamp(dot(a,b),-1,1);
+  if(d>1-1e-10)return[0,0,0,1];
+  if(d<-1+1e-10){const axis=deterministicPerpendicular(a,'antiparallel');return[axis.x,axis.y,axis.z,0];}
+  const axis=cross(a,b),s=Math.sqrt((1+d)*2),inverse=1/s;
+  return[axis.x*inverse,axis.y*inverse,axis.z*inverse,s*.5];
+}
+
+function rotate(point,q){
+  const v=vec(q[0],q[1],q[2]),t=mul(cross(v,point),2);
+  return add(point,add(mul(t,q[3]),cross(v,t)));
+}
+
+function buildUnitTransforms(graph,atoms,bonds,source,scale){
+  const unitOrder=[];for(const origin of graph.atomOrigins)if(!unitOrder.includes(origin.instanceId))unitOrder.push(origin.instanceId);
+  const unitOf=graph.atomOrigins.map(origin=>origin.instanceId),unitAtoms=new Map(unitOrder.map(id=>[id,[]]));
+  for(let index=0;index<unitOf.length;index++)unitAtoms.get(unitOf[index])?.push(index);
+  const intraAdj=atoms.map(()=>[]),allAdj=atoms.map(()=>[]),unitEdges=[];
+  for(const bond of bonds){allAdj[bond.a].push({index:bond.b,order:bond.order});allAdj[bond.b].push({index:bond.a,order:bond.order});const a=unitOf[bond.a],b=unitOf[bond.b];if(a===b){intraAdj[bond.a].push({index:bond.b,order:bond.order});intraAdj[bond.b].push({index:bond.a,order:bond.order});}else unitEdges.push({aUnit:a,bUnit:b,a:bond.a,b:bond.b,order:bond.order});}
+  for(const row of intraAdj)row.sort((a,b)=>a.index-b.index);
+  const byUnit=new Map(unitOrder.map(id=>[id,[]]));
+  for(const edge of unitEdges){byUnit.get(edge.aUnit)?.push(edge);byUnit.get(edge.bUnit)?.push(edge);}
+  const placed=new Set(),coordinates=source.map(()=>vec()),unitDistance=new Map();
+  if(!unitOrder.length)return{coordinates,unitCount:0,unplacedUnits:[]};
+  const root=unitOrder[0],rootAtoms=unitAtoms.get(root),center=rootAtoms.reduce((sum,index)=>add(sum,source[index]),vec());
+  const rootCenter=mul(center,1/Math.max(1,rootAtoms.length));
+  for(const index of rootAtoms)coordinates[index]=sub(source[index],rootCenter);
+  placed.add(root);unitDistance.set(root,0);const queue=[root];
+  while(queue.length){
+    const parent=queue.shift(),edges=(byUnit.get(parent)??[]).slice().sort((left,right)=>`${left.aUnit}:${left.a}:${left.bUnit}:${left.b}`.localeCompare(`${right.aUnit}:${right.a}:${right.bUnit}:${right.b}`));
     for(const edge of edges){const child=edge.aUnit===parent?edge.bUnit:edge.aUnit;if(placed.has(child))continue;
       const parentIndex=edge.aUnit===parent?edge.a:edge.b,childIndex=edge.aUnit===parent?edge.b:edge.a;
       const parentNeighbors=intraAdj[parentIndex].map(row=>row.index),parentRef=parentNeighbors[0];

@@ -1,38 +1,30 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬ÔŒ5½±•Õ±”É…™Ğ½‘”µ…À(+O»šZšnã¿–’'šnÓ–¾û¢Æ‡/
-'¢ª·
-ç7W
-‡
-“¯
-KÖ{
-/
-»>û¢†3
-Ïó'–rÃ–nÏŸg¦k–âã
-ÿ
-ç
-¿Ÿ¿OO/
-'–¾û¢Æ‡W
-‡
-“¯£nÓš:•¥µÁ½ÉÓ–#ƒG
-K¦Z/7ûg((ŒŒƒšr–"w»š2¿
-+–"D()ğƒ
-ÿ
-ç
-¼ğƒšr–"w¯¢ª·
-W
-‡
-“¬ğƒ’âï«–n{–âÃ
-ç ğ)ğ´´µğ´´µğ´´µğ)ğƒš:‹Ò‹&§Bïš:£¦ËíUMPQHğÍÉŒ½Ù•¥°½•¹¥¹”¹©Í€°ÍÉŒ½Ù•¥°½½¹™¥œ¹©Í€°ÍÉŒ½Ù•¥°½É½İÑ ¹©Í€ğ•áÁ•‘¥Ñ¥½¸µ½É”¹Ñ•ÍĞ¹µ©Í€°Ù•¥°¹Ñ•ÍĞ¹µ©Í€ğ)ğƒ{_ï–†×ïšÖ
-0ğÍÉŒ½Ù•¥°½µ…À¹©Í€°ÍÉŒ½Ù•¥°½Õ¹¥Ù•ÉÍ”¹©Í€ğÉ½İÑ ¹Ñ•ÍĞ¹µ©Í€°Ù•¥°µÁ±…åÑ¡É½Õ ¹Ñ•ÍĞ¹µ©Í€ğ)ğƒš:‹Ò‹š>?Rïí!Uï¦~ÌğÍÉŒ½Ù•¥°½É•¹‘•É•È¹©Í€°ÍÉŒ½Ù•¥°½Õ¤¹©Í€°ÍÉŒ½Ù•¥°½…Õ‘¥¼¹©Í€°Ù•¥°¹ÍÍ€ğÙ•¥°µÕ¤µ¡•¬¹µ©Í€ğ)ğƒš:‹Ò‹¢ÎšêCï
-ÿÏ
-¿ï–âÃ¦
-ï’şw–¶`ğÍÉŒ½Ù•¥°½É•Í½ÕÉ•Ì¹©Í€°ÍÉŒ½Ù•¥°½ÍÕÁÁ±ä¹©Í€°ÍÉŒ½Ù•¥°½É½İÑ ¹©Í€ğÍÕÁÁ±äµÑ…¹­Ì¹Ñ•ÍĞ¹µ©Í€°•áÁ•‘¥Ñ¥½¸µ½É”¹Ñ•ÍĞ¹µ©Í€°Ù•¥°µÉ•Í•Ğ¹Ñ•ÍĞ¹µ©Í€ğ)ğƒ–"–¶C»
-ËóƒR£–öç–&ËïšŸ¢÷C§Ï
-äğÍÉŒ½Ù•¥°½µ½±•Õ±”µÉ½±•Ì¹©Í€ğµ½±•Õ±”µÉ½±•Ì¹Ñ•ÍĞ¹µ©Í€ğ)ğ	MMQ=/–—–ë–ê¯ï–:–¶C¢ş÷–*€¿–&+¦f¿&’îcDğÍÉŒ½É…™Ğµİ½É­ÍÁ…”¹©Í€ğÉ…™Ğµİ½É­ÍÁ…”¹Ñ•ÍĞ¹µ©Í€°Ù•¥°µÕ¤µ¡•¬¹µ©Í€ğ)ğI•…Ñ¥½¸1…ˆ¡…µ‰•ÈU`€¼‘¥Í½Ù•Éä€¼Á½±åµ•É¥é…Ñ¥½¸€¼™••‰…Ñ¡•Ì€¼ÁÉ•Í•¹Ñ…Ñ¥½¸ğÍÉŒ½É•…Ñ¥½¸µ±…ˆµÙ¥•İ•È¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµ‘¥Í½Ù•Éä¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµ•¹Ù¥É½¹µ•¹Ğ¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÁÉ•Í•¹Ñ…Ñ¥½¸¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÁ½±åµ•É¥é…Ñ¥½¸¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÁ½±åµ•ÈµÁÉ•Í•¹Ñ…Ñ¥½¸¹©Í€°ÍÉŒ½Á½±åµ•Èµ™É…µ•¹Ğ´Íµ±…å½ÕĞ¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµ‰…Ñ ¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµµ…¹¥ÁÕ±…Ñ¥½¸¹©Í€°ÍÉŒ½É•…Ñ¥½¸µÉ…Á µ•‘¥ÑÌ¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµ½É”¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÍÑ…”µ„¹©Í€°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÍÑ…”µˆ¹©Í€ğÉ•…Ñ¥½¸µ±…ˆµ‘¥Í½Ù•Éä¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµÁ½±åµ•Èµ‘¥Í½Ù•Éä¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµÁ½±åµ•É¥é…Ñ¥½¸¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµÁ½±åµ•É¥é…Ñ¥½¸µ™¥áÑÕÉ•Ì¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµ•¹Ù¥É½¹µ•¹Ğ¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµ½É”¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµÁÉ•Í•¹Ñ…Ñ¥½¸¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµ‰…Ñ ¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµµ…¹¥ÁÕ±…Ñ¥½¸¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµÍÑ…”µ„¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµ‰É½İÍ•È¹Ñ•ÍĞ¹µ©Í€°É•…Ñ¥½¸µ±…ˆµÁ½±åµ•Èµ‰É½İÍ•È¹Ñ•ÍĞ¹µ©Í€°Á½±åµ•Èµ™É…µ•¹Ğ´Íµ±…å½ÕĞ¹Ñ•ÍĞ¹µ©Í€ğ)ğA…¥Éİ¥Í”É•…Ñ¥½¸ÉÕ±•Ì€¼½¹Ñ…Ğ€¼ÁÉ½‘ÕĞÉ•Í½±ÕÑ¥½¸ğÍÉŒ½É•…Ñ¥½¸µ±…ˆµ½É”¹©Í€ğÉ•…Ñ¥½¸µ±…ˆµ½É”¹Ñ•ÍĞ¹µ©Í€ğ)ğƒ
-¿§W#»s
-ÿÏïG³#šN7’öpğÍÉŒ½É…™Ğµ½¹ÑÉ½±Ì¹©Í€ğÍ½ÕÉ”µ½¹ÑÉ…ÑÌ¹Ñ•ÍĞ¹µ©Í€°µ½‰¥±”µÕ¤µ¡•¬¹µ©Í€ğ)ğƒ
-¿§W#š–‚Çïš/¦ƒ’â¢šŸï–º3š"C¢†£’èğÍÉŒ½É…™ĞµÁ…¹•°¹©Í€ğÍ½ÕÉ”µ½¹ÑÉ…ÑÌ¹Ñ•ÍĞ¹µ©Í€°µ½‰¥±”µÕ¤µ¡•¬¹µ©Í€ğ)ğƒ
-¿§W#£–nÏ¦FGïš:‹Ò‹»š:—ÚhğÍÉŒ½É…™Ğµ½¹¹•Ñ¥½¹Ì¹©Í€ğÍ½ÕÉ”µ½¹ÑÉ…ÑÌ¹Ñ•ÍĞ¹µ©Í€°Ù•¥°µÕ¤µ¡•¬¹µ©Í€ğ)ğƒÖC–B#šN7’ösí‰É…¹ Ñ•…Èµ½™˜ğÍÉŒ½…ÁÀ¹©Í€°ÍÉŒ½‰½¹‘¥¹œµµ½‘•°¹©Í€°ÍÉŒ½•±•ÑÉ½¸µ¥¹Ñ•É…Ñ¥½¸¹©Í€°ÍÉŒ½•ÍÑÕÉ”µ…É‰¥ÑÉ…Ñ¥½¸¹©Í€°ÍÉŒ½É…™ĞµÑ•…É½™˜¹©Í€°ÍÉŒ½É…™Ğµ‘•Ñ…¡•µ‘É…œ¹©Í€ğ‰½¹µÍÑ…Ñ”¹Ñ•ÍĞ¹µ©Í€°É…™ĞµÑ•…É½™˜¹Ñ•ÍĞ¹µ©Í€°É…™Ğµ‘•Ñ…¡•µ‘É…œ¹Ñ•ÍĞ¹µ©Í€°µ½‰¥±”µÕ¤µ¡•¬¹µ©Í€ğ)ğ€Í¦7ö»ï¢sš¶ŒğÍÉŒ½½¹™½Éµ…Ñ¥½¸µ•¹¥¹”¹©Í€°ÍÉŒ½ÍÑÉÕÑÕÉ”µÉ•±…á…Ñ¥½¸¹©Í€°ÍÉŒ½ÍÑÉÕÑÕÉ”µµ½Ñ¥½¸¹©Í€°ÍÉŒ½ÍÑÉÕÑÕÉ”µÍ•ÑÑ±•µ•¹Ğ¹©Í€ğ½¹™½Éµ…Ñ¥½¸µÉ•É•ÍÍ¥½¸¹Ñ•ÍĞ¹µ©Í€°ÍÑÉÕÑÕÉ”µÉ•±…á…Ñ¥½¸¹Ñ•ÍĞ¹µ©Í€ğ)ğƒ–"–¶C–’'–ö‹ï–6cÖC–B#–n{¢îˆğÍÉŒ½½¹™½Éµ…Ñ¥½¸µ•¹¥¹”¹©Í€°ÍÉŒ½Ñ½ÉÍ¥½¸µµ½‘•°¹©Í€°ÍÉŒ½İ½É­ÍÁ…”µÙ¥•Ü¹©Í€ğ½¹™½Éµ…Ñ¥½¸µÉ•É•ÍÍ¥½¸¹Ñ•ÍĞ¹µ©Í€°ÍÑÉÕÑÕÉ”µ•‘¥Ğ¹Ñ•ÍĞ¹µ©Í€°µ½‰¥±”µÕ¤µ¡•¬¹µ©Í€ğ)ğƒ–"Û’ösW
-ó¯'’şw–¶`ğÍÉŒ½İ½É­ÍÁ…”µÍ…Ù”¹©Í€°ÍÉŒ½İ½É­ÍÁ…”µÁ•ÉÍ¥ÍÑ•¹”¹©Í€°ÍÉŒ½İ½É­ÍÁ…”µµ¥É…Ñ¥½¹Ì¹©Í€°ÍÉŒ½Ù•¥°½É•Í½ÕÉ•Ì¹©Í€ğİ½É­ÍÁ…”µÍ…Ù”¹Ñ•ÍĞ¹µ©Í€°İ½É­ÍÁ…”µÁ•ÉÍ¥ÍÑ•¹”¹Ñ•ÍĞ¹µ©Í€°Ù•¥°µÉ•Í•Ğ¹Ñ•ÍĞ¹µ©Í€ğ)ğƒ–nÏ¦FGïfë¢š/ï¢šRøğÍÉŒ½½±±•Ñ¥½¸µÕ¤¹©Í€°ÍÉŒ½½±±•Ñ¥½¸µÍÑ…Ñ”¹©Í€°ÍÉŒ½•±•µ•¹ĞµÁÉ½É•ÍÍ¥½¸¹©Í€°ÍÉŒ½•¹å±½Á•‘¥„µµ½±•Õ±”µÑÉ…¹Í¥Ñ¥½¸¹©Í€ğ½±±•Ñ¥½¸¹Ñ•ÍĞ¹µ©Í€°½±±•Ñ¥½¸µ•áÁ…¹Í¥½¸¹Ñ•ÍĞ¹µ©Í€°½±±•Ñ¥½¸µÁ½±åµ•Èµ‰É½İÍ•È¹Ñ•ÍĞ¹µ©Í€ğ)ğ½±±•Ñ½ÈM¡•±°…ÁÁ±¥…Ñ¥½¹Ì€¼%1µ…Ñ•É¥…°•™™•ÑÌğÍÉŒ½Ù•¥°½½±±•Ñ½Èµ…ÁÁ±¥…Ñ¥½¹Ì¹©Í€°ÍÉŒ½Ù•¥°½½±±•Ñ½Èµ…ÁÁ±¥…Ñ¥½¹ÌµÕ¤¹©Í€°ÍÉŒ½Ù•¥°½É•Í½ÕÉ•Ì¹©Í€°ÍÉŒ½Ù•¥°½•¹¥¹”¹©Í€ğ½±±•Ñ½Èµ…ÁÁ±¥…Ñ¥½¹Ì¹Ñ•ÍĞ¹µ©Í€°½±±•Ñ½Èµ…ÁÁ±¥…Ñ¥½¹Ìµ‰É½İÍ•È¹Ñ•ÍĞ¹µ©Í€ğ)ğ¹¥¹••É¥¹œ™…‰É¥…Ñ¥½¸€¼µ…Ñ•É¥…°Õ¹±½¬ğÍÉŒ½•¹¥¹••É¥¹œµ™…‰É¥…Ñ¥½¸¹©Í€°ÍÉŒ½Ù•¥°½É•Í½ÕÉ•Ì¹©Í€°ÍÉŒ½Ù•¥°½É•Í½ÕÉ•ÌµÁ•ÉÍ¥ÍÑ•¹”¹©Í€°ÍÉŒ½½±±•Ñ¥½¸µÕ¤¹©Í€ğ•¹¥¹••É¥¹œµ™…‰É¥…Ñ¥½¸¹Ñ•ÍĞ¹µ©Í€°½±±•Ñ¥½¸µÁ½±åµ•Èµ‰É½İÍ•È¹Ñ•ÍĞ¹µ©Í€ğ)ğƒ¦®c–"–¶A…Ñ…±½ŸíÉ½ÕÑ—ï.³®/’şw–¶`ğÍÉŒ½Á½±åµ•Èµ…Ñ…±½œ¹©Í€°ÍÉŒ½Á½±åµ•Èµ•¹å±½Á•‘¥„¹©Í€°ÍË[h‘éì¶»§q«^w/polymerization-routes.js`, `src/polymer-collection-state.js`, `src/polymer-collection-persistence.js`, `data/polymers.json`, `data/polymerization-routes.json` | `polymer-catalog.test.mjs`, `polymerization-routes.test.mjs`, `polymer-collection.test.mjs`, `polymer-collection-persistence.test.mjs` |
+# Molecule Craft code map
+
+ã“ã®æ–‡æ›¸ã¯ã€å¤‰æ›´å¯¾è±¡ã‹ã‚‰èª­ã‚€ã¹ããƒ•ã‚¡ã‚¤ãƒ«ã‚’çµã‚‹ãŸã‚ã®ç¾è¡Œã‚³ãƒ¼ãƒ‰åœ°å›³ã§ã™ã€‚é€šå¸¸ã‚¿ã‚¹ã‚¯ã§ã¯ã€ã“ã“ã‹ã‚‰å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«ã¨ç›´æ¥importå…ˆã ã‘ã‚’é–‹ãã¾ã™ã€‚
+
+## æœ€åˆã®æŒ¯ã‚Šåˆ†ã‘
+
+| ã‚¿ã‚¹ã‚¯ | æœ€åˆã«èª­ã‚€ãƒ•ã‚¡ã‚¤ãƒ« | ä¸»ãªå›å¸°ãƒ†ã‚¹ãƒˆ |
+|---|---|---|
+| æ¢ç´¢ç‰©ç†ãƒ»æ¨é€²ãƒ»DUST EATER | `src/veil/engine.js`, `src/veil/config.js`, `src/veil/growth.js` | `expedition-core.test.mjs`, `veil.test.mjs` |
+| ãƒãƒƒãƒ—ãƒ»å¡µãƒ»æµã‚Œ | `src/veil/map.js`, `src/veil/universe.js` | `growth.test.mjs`, `veil-playthrough.test.mjs` |
+| æ¢ç´¢æç”»ãƒ»HUDãƒ»éŸ³ | `src/veil/renderer.js`, `src/veil/ui.js`, `src/veil/audio.js`, `veil.css` | `veil-ui-check.mjs` |
+| æ¢ç´¢è³‡æºãƒ»ã‚¿ãƒ³ã‚¯ãƒ»å¸°é‚„ãƒ»ä¿å­˜ | `src/veil/resources.js`, `src/veil/supply.js`, `src/veil/growth.js` | `supply-tanks.test.mjs`, `expedition-core.test.mjs`, `veil-reset.test.mjs` |
+| åˆ†å­ã®ã‚²ãƒ¼ãƒ ç”¨å½¹å‰²ãƒ»æ€§èƒ½ãƒãƒ©ãƒ³ã‚¹ | `src/veil/molecule-roles.js` | `molecule-roles.test.mjs` |
+| BASE STOCKå…¥å‡ºåº«ãƒ»åŸå­è¿½åŠ /å‰Šé™¤/ç‰‡ä»˜ã‘ | `src/craft-workspace.js` | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
+| Reaction Lab Chamber UX / discovery / polymerization / feed batches / presentation | `src/reaction-lab-viewer.js`, `src/reaction-lab-discovery.js`, `src/reaction-lab-environment.js`, `src/reaction-lab-presentation.js`, `src/reaction-lab-polymerization.js`, `src/reaction-lab-polymer-presentation.js`, `src/polymer-fragment-3d-layout.js`, `src/reaction-lab-batch.js`, `src/reaction-lab-manipulation.js`, `src/reaction-graph-edits.js`, `src/reaction-lab-core.js`, `src/reaction-lab-stage-a.js`, `src/reaction-lab-stage-b.js` | `reaction-lab-discovery.test.mjs`, `reaction-lab-polymer-discovery.test.mjs`, `reaction-lab-polymerization.test.mjs`, `reaction-lab-polymerization-fixtures.test.mjs`, `reaction-lab-environment.test.mjs`, `reaction-lab-core.test.mjs`, `reaction-lab-presentation.test.mjs`, `reaction-lab-batch.test.mjs`, `reaction-lab-manipulation.test.mjs`, `reaction-lab-stage-a.test.mjs`, `reaction-lab-browser.test.mjs`, `reaction-lab-polymer-browser.test.mjs`, `polymer-fragment-3d-layout.test.mjs` |
+| Pairwise reaction rules / contact / DB product resolution | `src/reaction-lab-core.js` | `reaction-lab-core.test.mjs` |
+| ã‚¯ãƒ©ãƒ•ãƒˆã®ãƒœã‚¿ãƒ³ãƒ»ãƒ‘ãƒ¬ãƒƒãƒˆæ“ä½œ | `src/craft-controls.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
+| ã‚¯ãƒ©ãƒ•ãƒˆæƒ…å ±ãƒ»æ§‹é€ ä¸€è¦§ãƒ»å®Œæˆè¡¨ç¤º | `src/craft-panel.js` | `source-contracts.test.mjs`, `mobile-ui-check.mjs` |
+| ã‚¯ãƒ©ãƒ•ãƒˆã¨å›³é‘‘ãƒ»æ¢ç´¢ã®æ¥ç¶š | `src/craft-connections.js` | `source-contracts.test.mjs`, `veil-ui-check.mjs` |
+| çµåˆæ“ä½œãƒ»branch tear-off | `src/app.js`, `src/bonding-model.js`, `src/electron-interaction.js`, `src/gesture-arbitration.js`, `src/craft-tearoff.js`, `src/craft-detached-drag.js` | `bond-state.test.mjs`, `craft-tearoff.test.mjs`, `craft-detached-drag.test.mjs`, `mobile-ui-check.mjs` |
+| 3Dé…ç½®ãƒ»è£œæ­£ | `src/conformation-engine.js`, `src/structure-relaxation.js`, `src/structure-motion.js`, `src/structure-settlement.js` | `conformation-regression.test.mjs`, `structure-relaxation.test.mjs` |
+| åˆ†å­å¤‰å½¢ãƒ»å˜çµåˆå›è»¢ | `src/conformation-engine.js`, `src/torsion-model.js`, `src/workspace-view.js` | `conformation-regression.test.mjs`, `structure-edit.test.mjs`, `mobile-ui-check.mjs` |
+| åˆ¶ä½œãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ä¿å­˜ | `src/workspace-save.js`, `src/workspace-persistence.js`, `src/workspace-migrations.js`, `src/veil/resources.js` | `workspace-save.test.mjs`, `workspace-persistence.test.mjs`, `veil-reset.test.mjs` |
+| å›³é‘‘ãƒ»ç™ºè¦‹ãƒ»è§£æ”¾ | `src/collection-ui.js`, `src/collection-state.js`, `src/element-progression.js`, `src/encyclopedia-molecule-transition.js` | `collection.test.mjs`, `collection-expansion.test.mjs`, `collection-polymer-browser.test.mjs` |
+| Collector Shell applications / FIELD material effects | `src/veil/collector-applications.js`, `src/veil/collector-applications-ui.js`, `src/veil/resources.js`, `src/veil/engine.js` | `collector-applications.test.mjs`, `collector-applications-browser.test.mjs` |
+| Engineering fabrication / material unlock | `src/engineering-fabrication.js`, `src/veil/resources.js`, `src/veil/resources-persistence.js`, `src/collection-ui.js` | `engineering-fabrication.test.mjs`, `collection-polymer-browser.test.mjs` |
+| é«˜åˆ†å­catalogãƒ»routeãƒ»ç‹¬ç«‹ä¿å­˜ | `src/polymer-catalog.js`, `src/polymer-encyclopedia.js`, `src/polymerization-routes.js`, `src/polymer-collection-state.js`, `src/polymer-collection-persistence.js`, `data/polymers.json`, `data/polymerization-routes.json` | `polymer-catalog.test.mjs`, `polymerization-routes.test.mjs`, `polymer-collection.test.mjs`, `polymer-collection-persistence.test.mjs` |
 | PWAãƒ»æ›´æ–° | `src/pwa.js`, `sw.js`, `scripts/build-precache.mjs` | `pwa.test.mjs` |
 
 ## Engineering fabrication
@@ -69,68 +61,32 @@ K¦Z/7ûg((ŒŒƒšr–"w»š2¿
 | ãƒãƒƒãƒ—éª¨æ ¼ | `src/veil/map.js` |
 | C/Oé ˜åŸŸãƒ»å¡µãƒ»æµã‚Œ | `src/veil/universe.js`, `expedition-challenges.js`ï¼ˆä»»æ„é›£æ‰€ãƒ»å ±é…¬ï¼‰ |
 | Dynamic dust update ownership | `src/veil/dynamic-dust-registry.js`ã€‚æœ€çµ‚populationã§canonical flow/vortexå‚ç…§ã‚’ç¢ºå®šã€‚`tests/dynamic-dust-registry.test.mjs` / `docs/field-particle-dynamic-update.md` |
-| é…¸ç´ ã®åˆ†å²ãƒ»é€†æµãƒ»é™ã‹ãªæ¸¦ | `src/veil/oxygen-routes.js`ã€‚ç‰©ç†ãƒ»æç”»ãƒ»è£œçµ¦è¦‹å–ã‚Šå›³ãYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Ö»–Ç¦k–ºkú¤ğ)ğ…¹Ù…Ïš>?RìğÍÉŒ½Ù•¥°½É•¹‘•É•È¹©Íƒ	@ÈÉ¥“¹Ù¥•İÁ½ÉĞ‰É½…‘Á¡…Í—¼‘½Ì½™¥•±µÁ…ÉÑ¥±”µÉ•¹‘•É•ÈµÅÕ•Éä¹µ‘ƒ½É…±—¼Ñ•ÍÑÌ½É•¹‘•É•ÈµÍÁ…Ñ¥…°µÅÕ•Éä¹Ñ•ÍĞ¹µ©Í€ğ)ğƒRï¦v‹ÖÇ–B#ï–—–*oï–âÃ¦
-ğÍÉŒ½Ù•¥°½Õ¤¹©Í€ğ)ğƒ¦~ÌğÍÉŒ½Ù•¥°½…Õ‘¥¼¹©Í€ğ)ğƒ–:–¶Cï–"–¶Cï³
-ßSï¦7¢6ßïÊûº\ğÍÉŒ½Ù•¥°½É•Í½ÕÉ•Ì¹©Í€ğ)ğƒ–>;¦nšºïïR£¦S–"—
-ÿÏ
-¿¦ãš*{ìÍš¢‡–z/ï–nÏ¦FG–Â;ŞhğÍÉŒ½Ù•¥°½ÍÕÁÁ±ä¹©Í€ğ)ğƒ
-ÿÏ
-¿R£¦SïšÆ;R£š:£¦Ë¢¢#º\ğÍÉŒ½Ù•¥°½É½İÑ ¹©Í€°ÍÉŒ½Ù•¥°½µ½±•Õ±”µÉ½±•Ì¹©Í€ğ)ğƒ
-ÿÏ
-¿––ºçï·ó'
-‹
-›#¢«–.W¦2³š"Cïš^Ÿ–r£–ê¯ï¢†0ğÍÉŒ½Ù•¥°½É•Í½ÕÉ•Ì¹©Í€°ÍÉŒ½Ù•¥°½ÍÕÁÁ±ä¹©Í€ğ)ğƒ–>;¦nšºï»–Ç¦kš>?RìğÍÉŒ½Ù•¥°½½±±•Ñ½ÈµÍ¡•±°¹©Í€ğ)ğƒ–£’öO¾ò?
-¯
-Ó«–"wšr–2XğÍÉŒ½Ù•¥°½É•Í•ĞµÕ¤¹©Í€°ÍÉŒ½Ù•¥°½É•Í½ÕÉ•Ì¹©Í€ğ(+š:‹Ò‹»>û¢†3¯ó¯£š?–nÏ¼‘½Ì½¡¼µÉ½İÑ ¹µ‘€ƒ¯
-+ûgš:‹Ò‹ƒG»–’'šnÓŸ¿–"–¶A
-Rš"Cšâ#ıMY
-K¢ª·
-–ş¢š¿
-+ûo
-O((ŒŒI•…Ñ¥½¸1…ˆ•¹•É¥Œ½É”…¹Á½±åµ•È™½Õ¹‘…Ñ¥½¸()Q…Í¯ŠF»–5‰…Í•±¥¹—nš~ï¢†£’ëšZç¦wQ…Í¯ŠF“sŠF§»–º¢––GÒ¼m‘½Ì½Á±…¹¹¥¹œ½Á½±åµ•ÈµÁÉ•Í•¹Ñ…Ñ¥½¸µÉ•‰…Í•±¥¹”¹µ‘t¡Á±…¹¹¥¹œ½Á½±åµ•ÈµÁÉ•Í•¹Ñ…Ñ¥½¸µÉ•‰…Í•±¥¹”¹µ¤ƒ
-K–>Ÿ_›?ƒW()AÉ½‘ÕÑ¥½¸I•…Ñ¥½¸1…‹¼ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÙ¥•İ•È¹©Í€ƒ».³®,ÍÍ…¹‘‰½ã£Q¡É•”¹©Ï¦v{’úw–¶c¹½µÁ¥±•…ÕÑ¡½É¥ÑäÍÉŒ½É•…Ñ¥½¸µ±…ˆµ½É”¹©Í€ƒŸš/š"CW
-3ûg	ÍÉŒ½É•…Ñ¥½¸µ±…ˆµ…ÕÑ¡½É¥Ñä¹©Í€ƒ0ÈÓ–/¹•¹•É¥ŒI•…Ñ¥½¸M¥Ñ”A…ÑÑ•É» ÄÇ–/¹I•…Ñ¥½¸…µ¥±ç¾ò!Í•µ…¹Ñ¥Œ…Ñ½´±…‰•±Ï•¹½Õ¹Ñ•È€¼ÍÕÁÁ±•µ•¹Ñ…°É½±•Ï™…µ¥±äµ±•Ù•°‘¥ÍÑ…¹”İ¥¹‘½İÏ‘•±…É…Ñ¥Ù”É…Á •‘¥ÑÏ¾ò'
-Kš&šr'_ÍÉŒ½É•…Ñ¥½¸µ±…ˆµ…Ñ…±½œ¹©Í€ƒ3ŠF™ŸŠë–ºk_|Èä½¹É•Ñ”É•…Ñ¥½¹Ï»–R¿’â¹¡•µ¥…°Í½ÕÉ”½˜ÑÉÕÑ£Ÿg	½¹É•Ñ”I•…Ñ¥½»½É•…Ñ…¹ÑÌ½ÁÉ½‘ÕÑÏ¡•¹Ù¥É½¹µ•¹Ğ½¹‘¥Ñ¥½¹Ï
-K–ºkú§_ûg–"wšr–2[šf­±…‰•±±•Á…Ñ¡İ…åÏíÍåµµ•ÑÉä±…ÍÍ•ÏíÍÑÉ¥ĞÁÉ½‘ÕĞµ…ÁÁ¥¹Ï
-I½µÁ¥±—_½µµ¥Óšf¸Á±…¹I•…Ñ¥½¹á•ÕÑ¥½¸ ¥€ƒ1É•…Ñ¥½¸½Á…Ñ¡İ…çíÁ…ÉÑ¥¥Á…¹ÑÏíµ…Ñ¡•Í¥Ñ•ÏíÁÉ½‘ÕÑÏí½¹ÍÕµ•%Ïí…Ñ½µ=É¥¥¹ÍƒíÉ…Á¡QÉ…¹Í¥Ñ¥½¹ƒíÉ…Á¡¥™™ƒ
-KŠë–ºk_ûg	AÉ½‘ÕÑ¥½»¡Ñ•ÍÑÏ¿–B3a…Ñ…±½œÍ½ÕÉ—
-I½µÁ¥±—_Ñ•ÍĞµ½¹±äµ¥É…Ñ¥½¸‘¥•ÍÓ¡µ…¹¥™•ÍÓ3ï¢†3–ú3¹‘É¥™Ó
-Kš’s–ë_ûg	AÉ•Í•¹Ñ…Ñ¥½»½¡•µ¥ÍÑÉç
-…Ñ½´µ…ÁÁ¥¹Ÿ
-K–7–"“–ºkokO»Šë–ºkÖCšzs
-K¢†£’ë_ûg	A½±åµ•È…Ñ…±½Ÿ£¢ª³šb;¿¦k–âã¹µ½±•Õ±”…Ñ…±½œ€¼É…Á££–"¦n‹_‘…Ñ„½Á½±åµ•ÉÌ¹©Í½¹€ƒ ‘…Ñ„½Á½±åµ•Èµ•¹å±½Á•‘¥„¹©Í½¹€ƒ3š&šr'_ûg()Ñ•ÍÑÌ½™¥áÑÕÉ•Ì½É•…Ñ¥½¸µ±…ˆµ¡•µ¥…°µ…¹‘¥‘…Ñ”µ…ÕÑ¡½É¥Ñä¹©Í½¹€ƒ É•…Ñ¥½¸µ±…ˆµÍÑÉÕÑÕÉ…°µ•áÁ½ÍÕÉ”µÉ•Í½±ÕÑ¥½¹Ì¹©Í½¹€ƒ½Ñ•ÍĞµ½¹±ç»ŠF™…‘µ¥ÍÍ¥½¸€¼ƒŠF™½Ù•É…”½É…±—Ÿg	AÉ½‘ÕÑ¥½¸…Ñ…±½Ÿ
-I™¥áÑÕÉ•Ï/
-'Rš"C_ûo
-O	½Ù•É…”…Õ‘¥Ó¹ÍÑÉÕÑÕÉ…°•áÁ½ÍÕÉ”•¹•É…Ñ½Ë½•¹•É¥ŒÁ…ÑÑ•É»¡™…µ¥±ä•‘¥ÑÏ»¦rË–ë
-K–"_š2gg
-/nš~ï–f£Ÿ¡•µ¥…°…¹‘¥‘…Ñ”•¹•É…Ñ½Ë
-A1e	1–"“–ºk–f£Ÿ¿
-+ûo
-OšZÃ¢š?ï–>“ï¦7¢’É•Í½±ÕÑ¥½»¿–B3aµİ¥‘”Ñ•ÍÓŸ–’ÇšV__ûg(+¦®c–"–¶C–2[¿ŠF›¸Èç–>7–şq…Ñ…±½ŸìÈĞ•¹•É¥ŒÍ¥Ñ”Á…ÑÑ•É¹ÏíMÑ…”ã¢ş÷–*ƒ_ûo
-O	‘…Ñ„½Á½±åµ•É¥é…Ñ¥½¸µÉ½ÕÑ•Ì¹©Í½¹€ƒ ÍÉŒ½Á½±åµ•É¥é…Ñ¥½¸µÉ½ÕÑ•Ì¹©Í€ƒ0ÈÔ•á…Ğµ••É½ÕÑ—–Ş—¢/šv‡’îÛ–ÂR¡Í¥Ñ”Á…ÑÑ•É»
-Kš&šr'_ûg	Q¡É•”¹©Ï¦v{’úw–¶c¸ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÁ½±åµ•É¥é…Ñ¥½¸¹©Í€ƒ3šr'¦fC¹…Ñ½´É…Á£Í½ÕÉ”…Ñ½·–"–&Ë–&¿Rš"C&§½µÁ±•Ñ¥½¸•Ù¥‘•¹—
-Kš’s¢¢ó_ÍÉŒ½É•…Ñ¥½¸µÉ…Á µ•‘¥ÑÌ¹©Í€ƒ¿–"–¶A½É—£¦®c–"–¶A½É—3–ÇR£g
--Õ…É‘•É…Á£Ş£¦nÁÉ¥µ¥Ñ¥Ù—Ÿg¦®c–"–¶C½µ½±•Õ±”MÑ…”‰½‘¥•Ïµ½±•Õ±”ÁÉ½‘ÕĞÙ…±¥‘…Ñ½Ëã–—
-+ûo
-O()Q…Í¯ŠF£Q…Í¯ŠFƒsŠF‹¹Íå¹Ñ¡•Ñ¥Œ½¹Ñ¥¹Õ…Ñ¥½»1=µ½ÉÁ¡½±½ç‰É¥‘—ÁÉ•Ù¥•ÜÁÉ½‰—£–ÂR¡ÍÑ…Ñ—
-IÍ½ÕÉ”ÑÉ•—/
-'–&+¦f“_û_	™¥¹¥Ñ”A½±åµ•ÉM…µÁ±—Ö3¢Ş¿/
-'š^É•¹‘•É•Ë‘å¹…µ¥Œ¥µÁ½ÉÓ…µ•É„ÑÉ…¹Í¥Ñ¥½»š^…¹¥µ…Ñ¥½¸ÕÁ‘…Ñ—¿–FóÃ
-3ûo
-O	I•…Ñ¥½¸1…‹
-K¦Z'c
-/¡™¥¹¥Ñ”É…Á£¹•½µ•ÑÉä½µ…Ñ•É¥…³
-I‘¥ÍÁ½Í—_–7–ê›¦Z/£7¿’şwš2’â·»–B3’â™¥¹¥Ñ”É…Á£/
-'¢†£’ë¢ÎšêC
-K–7š/¾'_ûg	±½…±¡½ÍĞÑ•ÍĞÁÉ½‰—3–³¦Z/g
-,Á½±åµ•É¥ÍÁ±…å	½Õ¹‘Ì ¥€ƒ Á½±åµ•ÉI•Í½ÕÉ•M¹…ÁÍ¡½Ğ ¥€ƒ¿>û–r£¹™¥¹¥Ñ”É…Á£»¦7ö»£¢ÎšêC–¾ÿ–F÷ƒG
-K¢šÏšâ³_ûg()ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÙ¥•İ•È¹©Í€ƒ½•á…ĞÉ½ÕÑ—
-I‰…Ñ£–6c’ö7Ÿš&šr'_–º}µ½¹½µ•Ë¹Á½¥¹Ñ•È‘½­¥¹Ÿ
-I™¥á•µÍÑ•À‘İ•±³½µµ¥Ó_ûg–º3š"C–ú3
-	É½ÕÑ”µ…ÕÑ¡½É¥Ñ…Ñ¥Ù”Í…µÁ±”¹™É…µ•¹Ñ€ƒ¹…Ñ½´½‰½¹“ƒG
-K’â·–’»¯’şwš2_–B3aÍ½ÕÉ”…Ñ½´µ•Í£
-K®¿
-ç¯_šr'¦fAË[h‘éì¶»§q«^uphã‚’è¡¨ç¤ºã—ã¾ã™ã€‚3D presentation-only coordinatesã¯ `src/polymer-fragment-3d-layout.js` ãŒsource atom positionsã¨`atomOrigins`ã‚’ç”¨ã„ã¦unitå˜ä½ã«é…ç½®ã—ã€inter-unit bond length / valence-aware angle / bounded steric constraintsã‚’96å›ä»¥å†…ã§è§£ãã¾ã™ã€‚èŠ³é¦™ç’°ã¯source plane restraintã§ã‚‚ä¿è­·ã—ã¾ã™ã€‚topologyãƒ»atom identityãƒ»originã¯å¤‰æ›´ã—ã¾ã›ã‚“ã€‚æ§‹é€ æ¡ä»¶ã‚’æº€ãŸã•ãªã„å ´åˆã¯reasonä»˜ãdiagnosticã‚’æ®‹ã—ã¦æ—¢å­˜finite layoutã¸fallbackã—ã€25-route gateã§fallbackã‚’0ä»¶ã«ã—ã¾ã™ã€‚å®Œæˆposeã¯XYZ boundsã‹ã‚‰perspective-safe fitã‚’è¡Œã„ã€æ—¢å­˜cameraã‚’å‹•ã‹ã•ãšã«650 msï¼ˆé€šå¸¸ï¼‰ã¾ãŸã¯250 msï¼ˆreduced motionï¼‰å†…ã§åŒã˜atom meshã‚’ç§»è¡Œã—ã¾ã™ã€‚readyå¾Œã¯å®ŒæˆSample groupã ã‘ãŒdrag / wheel / pinch / resetã‚’å—ã‘ã€é€šå¸¸monomer hitã¯å¾“æ¥ã®dragã¸æ¸¡ã—ã€Lab close/reopenã§ã¯poseã‚’ä¿æŒã—ã¾ã™ã€‚view resetã¯ç”»è§’ã¨æ¨å¥¨orientationã¸æˆ»ã—ã€next FEEDã¯æ—§Sampleã‚’æ—¢å­˜purge / disposeçµŒè·¯ã¸æ¸¡ã—ã¾ã™ã€‚`src/reaction-lab-discovery.js` ãŒPolymerSampleç™»éŒ²ã¨presentation-readyã‚’åˆ¥ã‚¤ãƒ™ãƒ³ãƒˆã§å‡¦ç†ã—ã€Collection reveal brokerã‚’åˆ†å­ãƒ»é«˜åˆ†å­ã§å…±æœ‰ã—ã¾ã™ã€‚
+| é…¸ç´ ã®åˆ†å²ãƒ»é€†æµãƒ»é™ã‹ãªæ¸¦ | `src/veil/oxygen-routes.js`ã€‚ç‰©ç†ãƒ»æç”»ãƒ»è£œçµ¦è¦‹å–ã‚Šå›³ã®å…±é€šå®šç¾© |
+| Canvasæç”» | `src/veil/renderer.js`ã€‚P2 gridã®viewport broadphaseã¯ `docs/field-particle-renderer-query.md`ã€oracleã¯ `tests/renderer-spatial-query.test.mjs` |
+| ç”»é¢çµ±åˆãƒ»å…¥åŠ›ãƒ»å¸°é‚„ | `src/veil/ui.js` |
+| éŸ³ | `src/veil/audio.js` |
+| åŸå­ãƒ»åˆ†å­ãƒ»ãƒ¬ã‚·ãƒ”ãƒ»ç©è·ãƒ»ç²¾ç®— | `src/veil/resources.js` |
+| åé›†æ®»ãƒ»ç”¨é€”åˆ¥ã‚¿ãƒ³ã‚¯é¸æŠãƒ»3Dæ¨¡å‹ãƒ»å›³é‘‘å°ç·š | `src/veil/supply.js` |
+| ã‚¿ãƒ³ã‚¯ç”¨é€”ãƒ»æ±ç”¨æ¨é€²è¨ˆç®— | `src/veil/growth.js`, `src/veil/molecule-roles.js` |
+| ã‚¿ãƒ³ã‚¯å†…å®¹ãƒ»ãƒ­ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆè‡ªå‹•éŒ¬æˆãƒ»æ—§åœ¨åº«ç§»è¡Œ | `src/veil/resources.js`, `src/veil/supply.js` |
+| åé›†æ®»ã®å…±é€šæç”» | `src/veil/collector-shell.js` |
+| å…¨ä½“ï¼ã‚«ãƒ†ã‚´ãƒªåˆæœŸåŒ– | `src/veil/reset-ui.js`, `src/veil/resources.js` |
+
+æ¢ç´¢ã®ç¾è¡Œãƒ«ãƒ¼ãƒ«ã¨æ„å›³ã¯ `docs/hco-growth.md` ã«ã‚ã‚Šã¾ã™ã€‚æ¢ç´¢ã ã‘ã®å¤‰æ›´ã§ã¯ã€åˆ†å­DBã‚„ç”Ÿæˆæ¸ˆã¿SVGã‚’èª­ã‚€å¿…è¦ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚
+
+## Reaction Lab generic core and polymer foundation
+
+Taskâ‘£ã®å†baselineç›£æŸ»ã€è¡¨ç¤ºæ–¹é‡ã€Taskâ‘¤ã€œâ‘©ã®å®Ÿè£…å¥‘ç´„ã¯ [docs/planning/polymer-presentation-rebaseline.md](planning/polymer-presentation-rebaseline.md) ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
+
+Production Reaction Labã¯ `src/reaction-lab-viewer.js` ã®ç‹¬ç«‹3D sandboxã¨ã€Three.jséä¾å­˜ã®compiled authority `src/reaction-lab-core.js` ã§æ§‹æˆã•ã‚Œã¾ã™ã€‚`src/reaction-lab-authority.js` ãŒ24å€‹ã®generic Reaction Site Patternã¨11å€‹ã®Reaction Familyï¼ˆsemantic atom labelsã€encounter / supplemental rolesã€family-level distance windowsã€declarative graph editsï¼‰ã‚’æ‰€æœ‰ã—ã€`src/reaction-lab-catalog.js` ãŒâ‘¦Aã§ç¢ºå®šã—ãŸ29 concrete reactionsã®å”¯ä¸€ã®chemical source of truthã§ã™ã€‚Concrete Reactionã¯DB reactants/productsã¨environment conditionsã‚’å®šç¾©ã—ã¾ã™ã€‚åˆæœŸåŒ–æ™‚ã«labelled pathwaysãƒ»symmetry classesãƒ»strict product mappingsã‚’compileã—ã€commitæ™‚ã® `planReactionExecution()` ãŒreaction/pathwayãƒ»participantsãƒ»matched sitesãƒ»productsãƒ»consumed IDsãƒ»`atomOrigins`ãƒ»`graphTransition`ãƒ»`graphDiff`ã‚’ç¢ºå®šã—ã¾ã™ã€‚Productionã¨testsã¯åŒã˜catalog sourceã‚’compileã—ã€test-only migration digestã¨manifestãŒç§»è¡Œå¾Œã®driftã‚’æ¤œå‡ºã—ã¾ã™ã€‚Presentationã¯chemistryã‚„atom mappingã‚’å†åˆ¤å®šã›ãšã€ã“ã®ç¢ºå®šçµæœã‚’è¡¨ç¤ºã—ã¾ã™ã€‚Polymer catalogã¨èª¬æ˜ã¯é€šå¸¸ã®molecule catalog / graphã¨åˆ†é›¢ã—ã€`data/polymers.json` ã¨ `data/polymer-encyclopedia.json` ãŒæ‰€æœ‰ã—ã¾ã™ã€‚
+
+`tests/fixtures/reaction-lab-chemical-candidate-authority.json` ã¨ `reaction-lab-structural-exposure-resolutions.json` ã¯test-onlyã®â‘¦A admission / â‘¦D coverage oracleã§ã™ã€‚Production catalogã‚’fixturesã‹ã‚‰ç”Ÿæˆã—ã¾ã›ã‚“ã€‚coverage auditã®structural exposure generatorã¯generic patternã¨family editsã®éœ²å‡ºã‚’åˆ—æŒ™ã™ã‚‹ç›£æŸ»å™¨ã§ã€chemical candidate generatorã‚„PLAYABLEåˆ¤å®šå™¨ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚æ–°è¦ãƒ»å¤ã„ãƒ»é‡è¤‡resolutionã¯åŒã˜DB-wide testã§å¤±æ•—ã—ã¾ã™ã€‚
+
+é«˜åˆ†å­åŒ–ã¯â‘¦ã®29åå¿œcatalogãƒ»24 generic site patternsãƒ»Stage Bã¸è¿½åŠ ã—ã¾ã›ã‚“ã€‚`data/polymerization-routes.json` ã¨ `src/polymerization-routes.js` ãŒ25 exact-Feed routeã€å·¥ç¨‹æ¡ä»¶ã€å°‚ç”¨site patternã‚’æ‰€æœ‰ã—ã¾ã™ã€‚Three.jséä¾å­˜ã® `src/reaction-lab-polymerization.js` ãŒæœ‰é™ã®atom graphã€source atomåˆ†å‰²ã€å‰¯ç”Ÿæˆç‰©ã€completion evidenceã‚’æ¤œè¨¼ã—ã€`src/reaction-graph-edits.js` ã¯åˆ†å­Coreã¨é«˜åˆ†å­CoreãŒå…±ç”¨ã™ã‚‹guarded graphç·¨é›†primitiveã§ã™ã€‚é«˜åˆ†å­ã¯molecule DBã€Stage B bodiesã€molecule product validatorã¸å…¥ã‚Šã¾ã›ã‚“ã€‚
+
+Taskâ‘¨ã§Taskâ‘ ã€œâ‘¢ã®synthetic continuationã€LODã€morphologyã€bridgeã€preview probeã¨å°‚ç”¨stateã‚’source treeã‹ã‚‰å‰Šé™¤ã—ã¾ã—ãŸã€‚finite PolymerSampleçµŒè·¯ã‹ã‚‰æ—§rendererã€dynamic importã€camera transitionã€æ—§animation updateã¯å‘¼ã°ã‚Œã¾ã›ã‚“ã€‚Reaction Labã‚’é–‰ã˜ã‚‹ã¨finite graphã®geometry/materialã‚’disposeã—ã€å†åº¦é–‹ã„ãŸã¨ãã¯ä¿æŒä¸­ã®åŒä¸€finite graphã‹ã‚‰è¡¨ç¤ºè³‡æºã‚’å†æ§‹ç¯‰ã—ã¾ã™ã€‚localhost test probeãŒå…¬é–‹ã™ã‚‹ `polymerDisplayBounds()` ã¨ `polymerResourceSnapshot()` ã¯ã€ç¾åœ¨ã®finite graphã®é…ç½®ã¨è³‡æºå¯¿å‘½ã ã‘ã‚’è¦³æ¸¬ã—ã¾ã™ã€‚
+
+`src/reaction-lab-viewer.js` ã¯exact routeã‚’batchå˜ä½ã§æ‰€æœ‰ã—ã€å®Ÿmonomerã®pointer dockingã‚’fixed-step dwellã§commitã—ã¾ã™ã€‚å®Œæˆå¾Œã‚‚route-authoritative `sample.fragment` ã®atom/bondã ã‘ã‚’ä¸­å¤®ã«ä¿æŒã—ã€åŒã˜source atom meshã‚’ç«¯ç‚¹ã«ã—ãŸæœ‰é™graphã‚’è¡¨ç¤ºã—ã¾ã™ã€‚3D presentation-only coordinatesã¯ `src/polymer-fragment-3d-layout.js` ãŒsource atom positionsã¨`atomOrigins`ã‚’ç”¨ã„ã¦unitå˜ä½ã«é…ç½®ã—ã€inter-unit bond length / valence-aware angle / bounded steric constraintsã‚’96å›ä»¥å†…ã§è§£ãã¾ã™ã€‚èŠ³é¦™ç’°ã¯source plane restraintã§ã‚‚ä¿è­·ã—ã¾ã™ã€‚topologyãƒ»atom identityãƒ»originã¯å¤‰æ›´ã—ã¾ã›ã‚“ã€‚æ§‹é€ æ¡ä»¶ã‚’æº€ãŸã•ãªã„å ´åˆã¯reasonä»˜ãdiagnosticã‚’æ®‹ã—ã¦æ—¢å­˜finite layoutã¸fallbackã—ã€25-route gateã§fallbackã‚’0ä»¶ã«ã—ã¾ã™ã€‚å®Œæˆposeã¯XYZ boundsã‹ã‚‰perspective-safe fitã‚’è¡Œã„ã€æ—¢å­˜cameraã‚’å‹•ã‹ã•ãšã«650 msï¼ˆé€šå¸¸ï¼‰ã¾ãŸã¯250 msï¼ˆreduced motionï¼‰å†…ã§åŒã˜atom meshã‚’ç§»è¡Œã—ã¾ã™ã€‚readyå¾Œã¯å®ŒæˆSample groupã ã‘ãŒdrag / wheel / pinch / resetã‚’å—ã‘ã€é€šå¸¸monomer hitã¯å¾“æ¥ã®dragã¸æ¸¡ã—ã€Lab close/reopenã§ã¯poseã‚’ä¿æŒã—ã¾ã™ã€‚view resetã¯ç”»è§’ã¨æ¨å¥¨orientationã¸æˆ»ã—ã€next FEEDã¯æ—§Sampleã‚’æ—¢å­˜purge / disposeçµŒè·¯ã¸æ¸¡ã—ã¾ã™ã€‚`src/reaction-lab-discovery.js` ãŒPolymerSampleç™»éŒ²ã¨presentation-readyã‚’åˆ¥ã‚¤ãƒ™ãƒ³ãƒˆã§å‡¦ç†ã—ã€Collection reveal brokerã‚’åˆ†å­ãƒ»é«˜åˆ†å­ã§å…±æœ‰ã—ã¾ã™ã€‚
 
 é«˜åˆ†å­å›³é‘‘ã®25 stable entriesã¯ `data/polymers.json` ã¨ `data/polymer-encyclopedia.json` ãŒæ‰€æœ‰ã—ã¾ã™ã€‚ç”»é¢ã¨ç™ºè¦‹çŠ¶æ…‹ã¯ `src/collection-ui.js` ã¨ `src/polymer-collection-state.js`ã€ä¿å­˜ã¯æ—¢å­˜åˆ†å­Collection schemaã¨ç‹¬ç«‹ã—ãŸ `src/polymer-collection-persistence.js` ãŒæ‹…å½“ã—ã¾ã™ã€‚resources collection resetã¯ä¸¡Collection keyã‚’å‡¦ç†ã—ã€future polymer schemaã¯ä¿è­·ã—ã¾ã™ã€‚Polymer Core/route/graphãƒ»discoveryãƒ»persistenceãƒ»mobile pointer testsã¯ `tests/polymerization-routes.test.mjs`, `tests/reaction-graph-edits.test.mjs`, `tests/reaction-lab-polymerization*.test.mjs`, `tests/reaction-lab-polymer-discovery.test.mjs`, `tests/polymer-collection*.test.mjs`, `tests/collection-polymer-browser.test.mjs` ãŒæ‹…å½“ã—ã¾ã™ã€‚
 
@@ -140,69 +96,13 @@ K®¿
 
 Reaction readinessã¯normal Stage B fixed stepå¾Œã«actual 3D atom-distance windowã€canonical severe-overlap vetoã€environment gateã€participant stateã‚’è©•ä¾¡ã—ã¾ã™ã€‚Dwellã¯completed NORMAL fixed-step timeã ã‘ã§é€²ã¿ã€production authorityã¯ `src/reaction-lab-core.js` ã® `CONTACT_DWELL_MS = 1000 / 60`ï¼ˆç´„16.67 msï¼‰ã§ã™ã€‚ready candidatesã¯participant instanceã®overlap graphã§connected componentsã«åˆ†ã‘ã€componentå†…ã ã‘geometry fitãƒ»atom continuityã§arbitrateã—ã¾ã™ã€‚å‚åŠ è€…ãŒç‹¬ç«‹ã—ãŸreactionåŒå£«ã¯ç«¶åˆã›ãšã€è¤‡æ•°æˆç«‹æ™‚ã¯stable component keyã§1ä»¶ãšã¤presentationã—ã¾ã™ã€‚`reserveParticipantInstances()` ãŒå®Ÿåœ¨ã™ã‚‹participantsã‚’ã¾ã¨ã‚ã¦reserveã—ã¾ã™ã€‚Dwellãƒ»candidateãƒ»presentationé€”ä¸­ã®configurationã¯nonbonded forceã‚’å¤‰æ›´ã—ã¾ã›ã‚“ã€‚æ—§H-bond tracker / occupancy / rebinding / persistent H-bond line stateã¯ã‚ã‚Šã¾ã›ã‚“ã€‚
 
-Commitå¾Œã®Transformationã¯batch phaseã‹ã‚‰ç‹¬ç«‹ã—ãŸ `PREPARING` / `TRANSFORMING` / `SETTLING` stateã§å‹•ãã¾ã™ã€‚å‚åŠ moleculeã®Stage B bodiesã‚’integYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬ÕÉ…Ñ¥½»/
-'–’[_™Í½ÕÉ”…Ñ½´ÍÁ¡•É•Ï
-K’şw‡¦v{–>–*‰…Ñ ‰½‘¥•Ï½MÑ…”
-KÚgÚk_ûg	ÁÉ½‘ÕĞÑ½Á½±½çá½É—¹…Ñ½´µ…ÁÁ¥¹Ÿ¡Í½ÕÉ”İ½É±½½É‘¥¹…Ñ•Ï
-IÍ••“_›š^‹–¶aÁÉ•Ù¥•Ü€¼ÍÑÉÕÑÕÉ”Í½±Ù•ËÁÉ¥Ù…Ñ—­Ñ…É•Ğ•½µ•ÑÉç
-KR£š?_–’ÇšV_šf½…¹½¹¥…°ÁÉ•Ù¥•ß
-IÍ½ÕÉ”Á½Í¥Ñ¥½¹ÏáÁÉ½Á•ÈÉ½Ñ…Ñ¥½¸€¬ÑÉ…¹Í±…Ñ¥½»™¥Ó_ûg¾ò!É•™±•Ñ¥½»¡Í…±—«_¾ò'–Ç¦iÍµ½½Ñ ÁÉ½É•ÍÏ…Ñ½µÏ
-Iµ½ÉÁ£Wo½É”É…Á¡¥™™ƒ¯–úO™Á•ÉÍ¥ÍÑ•¹Ğ€¼‰É½­•¸€¼™½Éµ•€¼‰½¹µ½É‘•Èµ¡…¹”±…¹•Ï
-K–B3šf¯¢†£’ë_ûg	…É½µ…Ñ¥ŒÉ¥¹Ÿí‘¥ÍÑÉ¥‰ÕÑ•‰½¹‘Ïí™½Éµ…°¡…É•Ï¿š^‹–¶`…É½µ…Ñ¥ŒµÉ•¹‘•É¥¹œ¹©Í€€¼ÍÁ•¥…°µ‰½¹‘Ì¹©Í€É…µµ…Ë
-K’öÿµ•¡…¹¥Í·¥¹Ñ•Éµ•‘¥…Ñ—•¹•É•Ñ¥Œc¿’ös
-+ûo
-O¦k–âá‘ÕÉ…Ñ¥½»¼ÄÈÀÀµÏ¾ò!ÁÉ•Á…É”€ÄÈÀ€¼ÑÉ…¹Í™½É´€àÔÀ€¼¡…¹‘½™˜€ÈÌÃ¾ò'É•‘Õ•µ½Ñ¥½»¼ÈÈÀµÏ¾ò ÌÀ€¼€ÄĞÀ€¼€ÔÃ¾ò'Ÿg	±½Í”€¼¡¥‘‘•»’â·½ÁÉ•Í•¹Ñ…Ñ¥½¸±½¯
-IÁ…ÕÍ—_ûg()!…¹‘½™›Ÿ½•á¥ÍÑ¥¹œÁÉ½‘ÕÑ¥½¸MÑ…”É•…µ½¹±äÁ…¥ÈÍ…™•Ñä•Ù…±Õ…Ñ½Ë
-K’öÿÁÉ½‘ÕÓ–B3–¯¡¹½¸µÉ•…Ñ¥¹œ‰…Ñ µ½±•Õ±•Ï£¹Á…¥ÈÍ…™•Ñç
-K¢ªÿçûg	Õ¹Í…™—šf½•½µ•ÑÉç/
-'šÆë
-šZç–BGáÁÉ½‘ÕĞÉ¥¥‰½‘çƒG
-Kšr–Â?¦fCï–.W_‰åÍÑ…¹‘•ÉÏ
-K–.W/WkÕ¹Í…™”Á½Í—
-IMÑ…”ãfï¦2Ë_ûo
-O	ÁÉ½‘ÕĞÉÕ¹Ñ¥µ”‰½‘ç¹¹½¹‰½¹‘•Á…É…µ•Ñ•ÉÏíµ…ÍÌ€¼¥¹•ÉÑ¥‡í…É‰½¹å°…¹¥Í½ÑÉ½Áä€¼Ù¥ÉÑÕ…°Í¥Ñ•Ï½…¹½¹¥…°ÁÉ½‘ÕĞÉ•½É“/
-%™É•Í£¯’ös
-+Í½ÕÉ”…Ñ½´Ù•±½¥Ñ¥•Ï
-Iµ…ÁÁ•…Ñ½´½¹Ñ¥¹Õ¥Ñç/
-%É¥¥µ‰½‘äµ½Ñ¥½»á™¥Ó_ûg	™¥¹…°ÁÉ•Í•¹Ñ…Ñ¥½¸½½É‘¥¹…Ñ•Ï
-IÁÉ•Á…É•ÉÕ¹Ñ¥µ”±…å½ÕÓãšâ‡_™Í…µ”µ™É…µ—­Ù¥ÍÕ…°½İ¹•ÉÍ¡¥Ã
-K–"
-+šnÿ#É•…Ñ…¹ÑÏ
-K–>[
-+¦f“}¡…¹‘½™›–ú3¯»ÿ’â–ê˜µ½±•Õ±”µÉ…™ĞéÉ•…Ñ¥½¸µ±…ˆµÁÉ½‘ÕÑ€ƒ
-I•µ¥Ó_ûg	•Ù•¹Ó¹ÁÉ½‘ÕÑÏ¦‚ï¦7¢’
-K’şw‡–BÉÕ¹Ñ¥µ”ÁÉ½‘ÕÓ
-HÁÉ½‘ÕÑ%¹ÍÑ…¹•Í€%Ÿ¢¶c–"—_ûg	…ÁÀµ±•Ù•°ÍÉŒ½É•…Ñ¥½¸µ±…ˆµ‘¥Í½Ù•Éä¹©Í€ƒ½Á…å±½…“–£’öO
-IÁÉ•™±¥¡Ó_ÁÉ½‘ÕĞ•Ù•¹Ó¦‚Õ¹¥ÅÕ”ÍÁ•¥•Ï
-I…¹½¹¥…°½±±•Ñ¥½¸¹É•¥ÍÑ•É¥Í½Ù•É•‘5½±•Õ±” ¥€İÉ…ÁÁ•Ë/
-'–6Ïšffï¦2Ë_ûg	™¥ÉÍĞµÉ•¥ÍÑÉ…Ñ¥½»–¾û¢Æ‡3
-/–‚Ó–B#½1…ˆ‘¥…±½Ÿ
-K’â–ê›¦Z'c…¹½¹¥…°½±±•Ñ¥½»»–B3’âÍ•ÍÍ¥½»Ÿ¦‚š²…É•Ù•…³_›/
-'’â–ê›–5½Á•»_ûg	½±±•Ñ¥½¸ÁÉ•Í•¹Ñ…Ñ¥½»’â·½Ù¥•İ•Ë»š^‹–¶`€…‘¥…±½œ¹½Á•¹€Ñ¥¯–ŠV3Í¥µÕ±…Ñ¥½»3–sš¶‹_ÉÕ¹Ñ¥µ”ÁÉ½‘ÕĞ€¼‰…Ñ €¼•¹Ù¥É½¹µ•¹ĞÍÑ…Ñ—
-K’şwš2_ûg	½±±•Ñ¥½¸ÍÑ…Ñ—3fë¢š/íµ½Ñ¥›íÁ…ÉĞÕ¹±½¬…ÕÑ¡½É¥ÑçŸ
-+O»Ö3¢Ş¿/
-%I•Í½ÕÉ•Ì€¼%1ÁÉ½É•ÍÍ¥½»¿šnÓšZÃ_ûo
-O()AÉ½‘ÕÑ¥½¸Á¡åÍ¥Ì…ÕÑ¡½É¥Ñç½…¹½¹¥…°Ä€¼ƒ>€¼ƒ:×ÍÑ…Ñ•±•ÍÌ½Õ±½µˆ€¬1•¹¹…Éµ)½¹•Ì€ÄÈ´ÛÉ¥¥µ‰½‘ä‘å¹…µ¥Ï…É‰½¹å°±½…°µÕ±Ñ¥Á½±”ÅôÀ¸ÄÔ—Ÿg	I0µ9Û½Í…±…ÈÉ•…°µÍ¥Ñ”ÑÉ…Ù•ÉÍ…³íÑÉ…¹Í™½Éµ•µÍ¥Ñ”€¼1(µµ¥á¥¹œ…¡•Ïí±…éä½Ù•É±…À™…±±‰…¯í‘¥É•ĞMÑ…”Ù¥ÉÑÕ…°µÍ¥Ñ”•Ù…±Õ…Ñ¥½»íÁÉ•½µÁÕÑ•‰½‘äµÍÁ…”¥¹Ù•ÉÍ”¥¹•ÉÑ¥‡Á•É™½Éµ…¹”…Ñ—
-K¦k_ûg	MÑ…”Á¡åÍ¥Ìµ½¹±ä…Õ‘¥Ó£ŠF™¹I•…Ñ¥½¸1…ˆ‰É½İÍ•È…Õ‘¥Ó¿–"—­Àä×
-Kšâ³
-+–ú3¢½Ù¥•İ•Ë¹™¥á•ÍÑ•Ã–£’öO¾ò!MÑ…”€¬€ÈäµÉÕ±”…¹‘¥‘…Ñ”µ…Ñ¡¥¹œ€¼•½µ•ÑÉä€¼…É‰¥ÑÉ…Ñ¥½»¾ò'
-Hà¸ÌÌÌµÌ‰Õ‘•Ó£š¾S¢ò_ûg	€ıÉ•…Ñ¥½¹1…‰Q•ÍĞôÄ™É•…Ñ¥½¹1…‰A¡åÍ¥ÌõÍÑ…”µ…€ƒ½±½…±¡½ÍÓš¾S¢òÁÉ½‰—€ıÉ•…Ñ¥½¹1…‰A¡åÍ¥ÌõÍÑ…”µ‰€ƒ½ÁÉ½‘ÕÑ¥½¸µ•ÅÕ¥Ù…±•¹ĞÁÉ½‰—Ÿgš^I0´Å ™½É”½ÍÑ…Ñ”…ÕÑ¡½É¥Ñç¡ÉÕ¹Ñ¥µ”¥¹Ñ•É…Ñ¥½¸µ¡…É”‘•É¥Ù…Ñ¥½»½É•Ñ¥É•“Ÿg()¡…µ‰•È…µ•É„½É¥•¹Ñ…Ñ¥½»½¥¹¥Ñ¥…°Á•ÉÍÁ•Ñ¥Ù—¯–në–ºk_ÈÑÁà…ÅÕ¥É”€¼€ĞÁÁàÉ•±•…Í”¡åÍÑ•É•Í¥Ï…µ•É„µ™½Éİ…É…ÕÑ½µ…Ñ¥Œ‘•ÁÑ ‘½­¥¹ŸĞÕµÌ‘½­¥¹œ¥¹Ñ•ÉÁ½±…Ñ¥½»Á¥¹ €¼‘•Í­Ñ½Àµİ¡••°é½½·À¸ÄÔµ…¹¥ÁÕ±…Ñ¥½¸Í±½ÜµÑ¥µ—
-KÚ·š2_ûg	µ…¹Õ…°…µ•É„½É‰¥Ğ€¼Á…¸€¼µ½±•Õ±”É½Ñ…Ñ¥½»¿
-+ûo
-O	‘É…œÑ…É•Ó½ÁÉ½©•Ñ•É•…°µ…Ñ½´•½µ•ÑÉçŸšÆëû
-+É•±•…Í—–ú3½aek¢«RÅMÑ…”‘å¹…µ¥Ïãš"ï
-+ûg	ÍÉŒ½É•…Ñ¥½¸µ±…ˆµµ…¹¥ÁÕ±…Ñ¥½¸¹©Í€ƒ1ÍÉ••¸µ•½µ•ÑÉä…ÅÕ¥Í¥Ñ¥½»¡•½µ•ÑÉäµ™¥ÉÍĞ‘•ÁÑ …¹‘¥‘…Ñ—
-Kš&šr'_ûg	É•±•…Í—–&7­‘É…•‰½‘ç¡Ñ…É•Ğ‰½‘ç»nã–¾ù½ÕÑİ…É…•±•É…Ñ¥½»
-IÉ•…µ½¹±äÁÉ½‘ÕÑ¥½¸MÑ…”ÅÕ•Éä€¡É•…Ñ•MÑ…•	A…¥ÉM…™•Ñå=É…±•€€¼•Ù…±Õ…Ñ•MÑ…•	A…¥É½É•ÍI•…‘=¹±å€¤ƒ±½‰…°5a}=-}I1M}MAIQ%=9}1IQ%=9€ƒ’î—’â//Šë¢ª7_É•Ñ…¥¹•™É½¹Ğ½‰…¬‰É…¹£’â+»šr–"w¹Í…™”‘•ÁÑ£
-K¦ãÏûg	ÅÕ•Éç½…¹½¹¥…°Ä€¼ƒ>€¼ƒ:×¹½¹‰½¹‘•Ù¥ÉÑÕ…°¡…É•ÏÅôÀ¸ÄÔ…É‰½¹å°¡…É•Ï
-K–B¯ÿÁÉ½‘ÕÑ¥½¸‰½‘ç
-IµÕÑ…Ñ—oi•ÅÕ¥±¥‰É¥Õ·
-É•…Ñ¥½¸‘…Ñ‡
-K–>Ÿ_ûo
-O	‰½Õ¹‘•É…¹—–­Í…™”‘•ÁÑ£3«G
-3ÁÑ…É•Ó
-K’şwš2_Ù¥ÍÕ…°µ½¹Ñ…Ğ™…±±‰…¯¿_ûo
-O	±½‰…°É•±•…Í”¡•­Ï¼ÌµÍÑ•À€¼€àµÍÑ•ÀÏ[h‘éì¶»§q«^uparation increaseã‚’0.05 Ã… / 0.12 Ã…ã«åˆ¶é™ã—ã¾ã™ã€‚`scripts/audit-reaction-lab-docking.mjs` ã¯æ—§visual-contact poseã¨æ–°endpointã‚’åŒã˜Stage B evaluator / fixed-step release trajectoryã§æ¯”è¼ƒã—ã¾ã™ã€‚
+Commitå¾Œã®Transformationã¯batch phaseã‹ã‚‰ç‹¬ç«‹ã—ãŸ `PREPARING` / `TRANSFORMING` / `SETTLING` stateã§å‹•ãã¾ã™ã€‚å‚åŠ moleculeã®Stage B bodiesã‚’integrationã‹ã‚‰å¤–ã—ã¦source atom spheresã‚’ä¿ã¡ã€éå‚åŠ batch bodiesã¯Stage Bã‚’ç¶™ç¶šã—ã¾ã™ã€‚product topologyã¸Coreã®atom mappingã¨source world coordinatesã‚’seedã—ã¦æ—¢å­˜preview / structure solverã§privateã«target geometryã‚’ç”¨æ„ã—ã€å¤±æ•—æ™‚ã¯canonical previewã‚’source positionsã¸proper rotation + translationã§fitã—ã¾ã™ï¼ˆreflectionã¨scaleãªã—ï¼‰ã€‚å…±é€šsmooth progressã§atomsã‚’morphã•ã›ã€Core `graphDiff`ã«å¾“ã£ã¦persistent / broken / formed / bond-order-change lanesã‚’åŒæ™‚ã«è¡¨ç¤ºã—ã¾ã™ã€‚aromatic ringãƒ»distributed bondsãƒ»formal chargesã¯æ—¢å­˜ `aromatic-rendering.js` / `special-bonds.js` grammarã‚’ä½¿ã„ã€mechanismã€intermediateã€energetic FXã¯ä½œã‚Šã¾ã›ã‚“ã€‚é€šå¸¸durationã¯1200 msï¼ˆprepare 120 / transform 850 / handoff 230ï¼‰ã€reduced motionã¯220 msï¼ˆ30 / 140 / 50ï¼‰ã§ã™ã€‚close / hiddenä¸­ã¯presentation clockã‚’pauseã—ã¾ã™ã€‚
+
+Handoffã§ã¯existing production Stage B read-only pair safety evaluatorã‚’ä½¿ã„ã€productåŒå£«ã¨non-reacting batch moleculesã¨ã®pair safetyã‚’èª¿ã¹ã¾ã™ã€‚unsafeæ™‚ã¯geometryã‹ã‚‰æ±ºã‚ãŸæ–¹å‘ã¸product rigid bodyã ã‘ã‚’æœ€å°é™ç§»å‹•ã—ã€bystandersã‚’å‹•ã‹ã•ãšã€unsafe poseã‚’Stage Bã¸ç™»éŒ²ã—ã¾ã›ã‚“ã€‚product runtime bodyã®nonbonded parametersãƒ»mass / inertiaãƒ»carbonyl anisotropy / virtual sitesã¯canonical product recordã‹ã‚‰freshã«ä½œã‚Šã€source atom velocitiesã‚’mapped atom continuityã‹ã‚‰rigid-body motionã¸fitã—ã¾ã™ã€‚final presentation coordinatesã‚’prepared runtime layoutã¸æ¸¡ã—ã¦same-frameã«visual ownershipã‚’åˆ‡ã‚Šæ›¿ãˆã€reactantsã‚’å–ã‚Šé™¤ã„ãŸhandoffå¾Œã«ã®ã¿ä¸€åº¦ `molecule-craft:reaction-lab-product` ã‚’emitã—ã¾ã™ã€‚eventã®productsé †ãƒ»é‡è¤‡ã‚’ä¿ã¡ã€å„runtime productã‚’ `productInstances` IDã§è­˜åˆ¥ã—ã¾ã™ã€‚app-level `src/reaction-lab-discovery.js` ã¯payloadå…¨ä½“ã‚’preflightã—ã€product eventé †ã§unique speciesã‚’canonical `collection.registerDiscoveredMolecule()` wrapperã‹ã‚‰å³æ™‚ç™»éŒ²ã—ã¾ã™ã€‚first-registrationå¯¾è±¡ãŒã‚ã‚‹å ´åˆã¯Lab dialogã‚’ä¸€åº¦é–‰ã˜ã€canonical Collectionã®åŒä¸€sessionã§é †æ¬¡revealã—ã¦ã‹ã‚‰ä¸€åº¦å†openã—ã¾ã™ã€‚Collection presentationä¸­ã¯viewerã®æ—¢å­˜ `!dialog.open` tickå¢ƒç•Œã§simulationãŒåœæ­¢ã—ã€runtime product / batch / environment stateã‚’ä¿æŒã—ã¾ã™ã€‚Collection stateãŒç™ºè¦‹ãƒ»motifãƒ»part unlock authorityã§ã‚ã‚Šã€ã“ã®çµŒè·¯ã‹ã‚‰Resources / FIELD progressionã¯æ›´æ–°ã—ã¾ã›ã‚“ã€‚
+
+Production physics authorityã¯canonical q / Ïƒ / Îµã€stateless Coulomb + Lennard-Jones 12-6ã€rigid-body dynamicsã€carbonyl local multipole qA=0.15 eã§ã™ã€‚RL-NB6ã¯scalar real-site traversalãƒ»transformed-site / LJ-mixing cachesãƒ»lazy overlap fallbackãƒ»direct Stage B virtual-site evaluationãƒ»precomputed body-space inverse inertiaã§performance gateã‚’é€šã—ã¾ã™ã€‚Stage B physics-only auditã¨â‘¦Cã®Reaction Lab browser auditã¯åˆ¥ã€…ã«p95ã‚’æ¸¬ã‚Šã€å¾Œè€…ã¯viewerã®fixed stepå…¨ä½“ï¼ˆStage B + 29-rule candidate matching / geometry / arbitrationï¼‰ã‚’8.333 ms budgetã¨æ¯”è¼ƒã—ã¾ã™ã€‚`?reactionLabTest=1&reactionLabPhysics=stage-a` ã¯localhostæ¯”è¼ƒprobeã€`?reactionLabPhysics=stage-b` ã¯production-equivalent probeã§ã™ã€‚æ—§RL-1H force/state authorityã¨runtime interaction-charge derivationã¯retiredã§ã™ã€‚
+
+Chamber camera orientationã¯initial perspectiveã«å›ºå®šã—ã€24px acquire / 40px release hysteresisã€camera-forward automatic depth dockingã€45ms docking interpolationã€pinch / desktop-wheel zoomã€0.15 manipulation slow-timeã‚’ç¶­æŒã—ã¾ã™ã€‚manual camera orbit / pan / molecule rotationã¯ã‚ã‚Šã¾ã›ã‚“ã€‚drag targetã¯projected real-atom geometryã§æ±ºã¾ã‚Šã€releaseå¾Œã¯XYZè‡ªç”±Stage B dynamicsã¸æˆ»ã‚Šã¾ã™ã€‚`src/reaction-lab-manipulation.js` ãŒscreen-geometry acquisitionã¨geometry-first depth candidateã‚’æ‰€æœ‰ã—ã¾ã™ã€‚releaseå‰ã«dragged bodyã¨target bodyã®ç›¸å¯¾outward accelerationã‚’read-only production Stage B query (`createStageBPairSafetyOracle` / `evaluateStageBPairForcesReadOnly`) ã§global `MAX_DOCK_RELEASE_SEPARATION_ACCELERATION` ä»¥ä¸‹ã‹ç¢ºèªã—ã€retained front/back branchä¸Šã®æœ€åˆã®safe depthã‚’é¸ã³ã¾ã™ã€‚queryã¯canonical q / Ïƒ / Îµã€nonbonded virtual chargesã€qA=0.15 carbonyl chargesã‚’å«ã¿ã€production bodyã‚’mutateã›ãšequilibriumã‚„reaction dataã‚’å‚ç…§ã—ã¾ã›ã‚“ã€‚bounded rangeå†…ã«safe depthãŒãªã‘ã‚Œã°targetã‚’ä¿æŒã—ã€visual-contact fallbackã¯ã—ã¾ã›ã‚“ã€‚global release checksã¯3-step / 8-step separation increaseã‚’0.05 Ã… / 0.12 Ã…ã«åˆ¶é™ã—ã¾ã™ã€‚`scripts/audit-reaction-lab-docking.mjs` ã¯æ—§visual-contact poseã¨æ–°endpointã‚’åŒã˜Stage B evaluator / fixed-step release trajectoryã§æ¯”è¼ƒã—ã¾ã™ã€‚
 Current FIELD developer map ã¯ `scripts/export-field-map.mjs` ãŒç¾è¡Œ `src/veil/` å®Ÿè£…ã‹ã‚‰ `docs/maps/current-field.svg` ã‚’ç”Ÿæˆã™ã‚‹developer-onlyè³‡æ–™ã§ã™ã€‚å†ç”Ÿæˆã¯ `node scripts/export-field-map.mjs`ã€freshnessç¢ºèªã¯ `node scripts/export-field-map.mjs --check`ã€‚FIELD runtime / PWAé…ä¿¡ç‰©ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚
 
 FIELD expansion proposal map ã¯ `scripts/field-expansion-proposal-data.mjs` ãŒåº§æ¨™ãƒ»gateãƒ»densityãƒ»thermalãƒ»challengeãƒ»signalã®developer-only design intentã‚’æ‰€æœ‰ã—ã€`scripts/export-field-expansion-proposal.mjs` ãŒ `docs/maps/field-expansion-proposal.svg` ã‚’ç”Ÿæˆã—ã¾ã™ã€‚`current-field.svg` ã‚’åŒä¸€viewBoxã®è–„ã„CURRENT referenceã¨ã—ã¦é‡ã­ã‚‹ã ã‘ã§production `src/`ã‹ã‚‰ã¯importã—ã¾ã›ã‚“ã€‚å†ç”Ÿæˆã¯ `node scripts/export-field-expansion-proposal.mjs`ã€freshnessç¢ºèªã¯ `node scripts/export-field-expansion-proposal.mjs --check`ã€‚ã“ã®SVGã¨dataã¯å¾Œç¶šFIELDå®Ÿè£…ã®design sourceã§ã‚ã‚Šã€ç¾åœ¨ã®gameplayå®Ÿè£…ã‚’ç¤ºã™ã‚‚ã®ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚

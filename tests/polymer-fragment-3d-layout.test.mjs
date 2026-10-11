@@ -1,4 +1,57 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Õ¥µÁ½ÉÐÑ•ÍÐ™É½´€¹½‘”éÑ•ÍÐœì)¥µÁ½ÉÐ…ÍÍ•ÉÐ™É½´€¹½‘”é…ÍÍ•ÉÐ½ÍÑÉ¥Ðœì)¥µÁ½ÉÐíµ­‘¥È±É•…‘¥±”±ÝÉ¥Ñ•¥±•ô™É½´€¹½‘”é™Ì½ÁÉ½µ¥Í•Ìœì)¥µÁ½ÉÐí©½¥¸±É•Í½±Ù•ô™É½´€¹½‘”éÁ…Ñ œì)¥µÁ½ÉÐ€¨…ÌQ!I™É½´€œ¸¸½Ù•¹‘½È½Ñ¡É•”½Ñ¡É•”¹µ½‘Õ±”¹µ¥¸¹©Ìœì)¥µÁ½ÉÐíÉ•…Ñ•AÉ•Ù¥•Ý5½‘•±ô™É½´€œ¸¸½ÍÉŒ½ÁÉ•Ù¥•Üµµ½‘•°¹©ÌýØôÌÔœì)¥µÁ½ÉÐíÉ•…Ñ•A½±åµ•ÉÉ…µ•¹ÐÍ1…å½ÕÑô™É½´€œ¸¸½ÍÉŒ½Á½±åµ•Èµ™É…µ•¹Ð´Íµ±…å½ÕÐ¹©Ìœì)¥µÁ½ÉÐíÉ•…Ñ•I•…Ñ¥½¹1…‰A½±åµ•É¥é…Ñ¥½¹½É”±A=1e5I}=55%Q}]11}5Mô™É½´€œ¸¸½ÍÉŒ½É•…Ñ¥½¸µ±…ˆµÁ½±åµ•É¥é…Ñ¥½¸¹©ÌýØôÄœì()½¹ÍÐÉ•…‘)Í½¸õ…Íå¹ŒÁ…Ñ ôù)M=8¹Á…ÉÍ”¡…Ý…¥ÐÉ•…‘¥±”¡¹•ÜUI0¡Á…Ñ ±¥µÁ½ÉÐ¹µ•Ñ„¹ÕÉ°¤°ÕÑ˜àœ¤¤ì)½¹ÍÐmÉ½ÕÑ•ÍÕÑ¡½É¥Ñä±‘‰tõ…Ý…¥ÐAÉ½µ¥Í”¹…±°¡mÉ•…‘)Í½¸ œ¸¸½‘…Ñ„½Á½±åµ•É¥é…Ñ¥½¸µÉ½ÕÑ•Ì¹©Í½¸œ¤±É•…‘)Í½¸ œ¸¸½‘…Ñ„½µ½±•Õ±•Ì¹©Í½¸œ¥t¤ì)½¹ÍÐ™••‘%‘Ìõ¹•ÜM•Ð¡l¸¸¹É½ÕÑ•ÍÕÑ¡½É¥Ñä¹É½ÕÑ•Ì¹™±…Ñ5…À¡É½ÕÑ”ôùÉ½ÕÑ”¹™••‘MÁ•¥•Ì¤°Ý…Ñ•Èt¤ì)½¹ÍÐÉ•½É‘Ìõ‘ˆ¹™¥±Ñ•È¡É•½Éôù™••‘%‘Ì¹¡…Ì¡É•½É¹¥¤¤±É•½É‘	å%õ¹•Ü5…À¡É•½É‘Ì¹µ…À¡É•½ÉôùmÉ•½É¹¥±É•½É‘t¤¤ì)½¹ÍÐ½½É‘¥¹…Ñ•Í½ÈõÉ•½Éôùì(€½¹ÍÐµ½‘•°õÉ•…Ñ•AÉ•Ù¥•Ý5½‘•°¡Q!I±É•½É¤í™½È¡±•ÐÍÑ•ÀôÀíÍÑ•ÀðÄäÀíÍÑ•À¬¬¥µ½‘•°¹ÍÑ•À ¤ì(€½¹ÍÐÍ¹…ÁÍ¡½Ðõµ½‘•°¹Í¹…ÁÍ¡½Ð ¤íÉ•ÑÕÉ¹ì¸¸¹É•½É±…Ñ½µÌéÍ¹…ÁÍ¡½Ð¹…Ñ½µÌ±‰½¹‘ÌéÍ¹…ÁÍ¡½Ð¹‰½¹‘Ì±…É½µ…Ñ¥å±•ÌéÍ¹…ÁÍ¡½Ð¹…É½µ…Ñ¥å±•Íôì)ôì)½¹ÍÐÍ½ÕÉ•I•½É‘Í½Èõ¥¹ÍÑ…¹•Ìôù=‰©•Ð¹™É½µ¹ÑÉ¥•Ì¡¥¹ÍÑ…¹•Ì¹µ…À¡¥¹ÍÑ…¹”ôùm¥¹ÍÑ…¹”¹¥±½½É‘¥¹…Ñ•Í½È¡É•½É‘	å%¹•Ð¡¥¹ÍÑ…¹”¹ÍÁ•¥•Ì¤¥t¤¤ì)½¹ÍÐ™¥áÑÕÉ•½ÈõÉ½ÕÑ”ôùì(€½¹ÍÐÁ•ÉMÁ•¥•ÌõÉ½ÕÑ”¹™••‘MÁ•¥•Ì¹±•¹Ñ ôôôÄüÐèÈ±¥¹ÍÑ…¹•ÌõÉ½ÕÑ”¹™••‘MÁ•¥•Ì¹™±…Ñ5…À¡¥ôùÉÉ…ä¹™É½´¡í±•¹Ñ éÁ•ÉMÁ•¥•Íô°¡|±¥¹‘•à¤ôø¡í¥é™••´‘í¥‘ô´‘í¥¹‘•à¬Åõ€±ÍÁ•¥•Ìé¥±‰…Ñ¡•¹•É…Ñ¥½¸èÍô¤¤¤ì(€½¹ÍÐ½É”õÉ•…Ñ•I•…Ñ¥½¹1…‰A½±åµ•É¥é…Ñ¥½¹½É”¡íÉ•½É‘Ì±É½ÕÑ•ÌéÉ½ÕÑ•ÍÕÑ¡½É¥Ñä¹É½ÕÑ•Ì±Í¥Ñ•A…ÑÑ•É¹ÌéÉ½ÕÑ•ÍÕÑ¡½É¥Ñä¹Í¥Ñ•A…ÑÑ•É¹Íô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡½É”¹‰•¥¹	…Ñ ¡í…Ñ¥Ù•M±½ÑÌéÉ½ÕÑ”¹™••‘MÁ•¥•Ì±‰…Ñ¡•¹•É…Ñ¥½¸èÌ±¥¹ÍÑ…¹•Ì±•¹Ù¥É½¹µ•¹Ðé¹•ÜM•Ð¡É½ÕÑ”¹•¹Ù¥É½¹µ•¹Ð¹É•ÅÕ¥É•Ì¥ô¤¹½¬±ÑÉÕ”¤ì(€½¹ÍÐÕÍ•õ¹•Ü5…À ¤±¹•áÑ%¹ÍÑ…¹”õÍÁ•¥•Ìôùí½¹ÍÐ¹•áÐô¡ÕÍ•¹•Ð¡ÍÁ•¥•Ì¤üüÀ¤¬ÄíÕÍ•¹Í•Ð¡ÍÁ•¥•Ì±¹•áÐ¤íÉ•ÑÕÉ¹™••´‘íÍÁ•¥•Íô´‘í¹•áÑõ€íôì(€¹•áÑ%¹ÍÑ…¹”¡É½ÕÑ”¹É•ÁÉ•Í•¹Ñ…Ñ¥Ù•M•ÅÕ•¹•lÁt¤í±•ÐÉ•ÍÕ±Ðõ¹Õ±°ì(€™½È¡±•ÐÍÑ•ÀôÄíÍÑ•ÀñÉ½ÕÑ”¹É•ÁÉ•Í•¹Ñ…Ñ¥Ù•M•ÅÕ•¹”¹±•¹Ñ íÍÑ•À¬¬¥ì(€€€½¹ÍÐÍÁ•¥•ÌõÉ½ÕÑ”¹É•ÁÉ•Í•¹Ñ…Ñ¥Ù•M•ÅÕ•¹•mÍÑ•Át±¥¹ÍÑ…¹•%õ¹•áÑ%¹ÍÑ…¹”¡ÍÁ•¥•Ì¤±…ÕÑ½µ…Ñ¥ŒõÍÑ•ÀùÉ½ÕÑ”¹¥¹Ñ•É…Ñ¥½¹…‘•¹”¹µ…¹Õ…±MÑ•ÁÌì(€€€½¹ÍÐ‰•Õ¸õ…ÕÑ½µ…Ñ¥Œý½É”¹‰•¥¹ÕÑ½µ…Ñ¥MÑ•À¡¥¹ÍÑ…¹•%¤é½É”¹‰•¥¹5…¹Õ…±MÑ•À¡¥¹ÍÑ…¹•%¤í…ÍÍ•ÉÐ¹•ÅÕ…°¡‰•Õ¸¹½¬±ÑÉÕ”±€‘íÉ½ÕÑ”¹É½ÕÑ•%‘ôÍÑ•À€‘íÍÑ•Áôè€‘í‰•Õ¸¹É•…Í½¹õ€¤ì(€€€…ÍÍ•ÉÐ¹•ÅÕ…°¡½É”¹…‘Ù…¹•¥á•‘MÑ•À¡A=1e5I}=55%Q}]11}5L¼È¤¹½µµ¥ÑÑ•±™…±Í”¤ì(€€€É•ÍÕ±Ðõ½É”¹…‘Ù…¹•¥á•‘MÑ•À¡A=1e5I}=55%Q}]11}5L¼È¤ì(€ô(€…ÍÍ•ÉÐ¹½¬¡É•ÍÕ±Ðü¹Í…µÁ±”±€‘íÉ½ÕÑ”¹É½ÕÑ•%‘ôÁÉ½‘Õ•Ì„™¥¹¥Ñ”Í…µÁ±•€¤ì(€É•ÑÕÉ¹íÍ…µÁ±”éÉ•ÍÕ±Ð¹Í…µÁ±”±¥¹ÍÑ…¹•Íôì)ôì)½¹ÍÐÁ½¥¹Ðô¡à±ä±èôÀ¤ôø¡íà±ä±éô¤ì)½¹ÍÐÁ•É•¹Ñ¥±”ô¡Ù…±Õ•Ì±À¤ôùí½¹ÍÐÍ½ÉÑ•õl¸¸¹Ù…±Õ•Ít¹Í½ÉÐ ¡„±ˆ¤ôù„µˆ¤íÉ•ÑÕÉ¸Í½ÉÑ•‘m5…Ñ ¹µ…à À±5…Ñ ¹•¥°¡À©Í½ÉÑ•¹±•¹Ñ ¤´Ä¥tüüÀíôì)™Õ¹Ñ¥½¸Á±…¹••Ù¥…Ñ¥½¸¡Á½¥¹ÑÌ¥ì(€¥˜¡Á½¥¹ÑÌ¹±•¹Ñ ðÐ¥É•ÑÕÉ¸€Àí½¹ÍÐ½É¥¥¸õÁ½¥¹ÑÍlÁtí±•Ð¹½Éµ…°õ¹Õ±°ì(€™½È¡±•Ð„ôÄí„ñÁ½¥¹ÑÌ¹±•¹Ñ ´Ä˜˜…¹½Éµ…°í„¬¬¥™½È¡±•Ðˆõ„¬ÄíˆñÁ½¥¹ÑÌ¹±•¹Ñ ˜˜…¹½Éµ…°íˆ¬¬¥ì(€€€½¹ÍÐÔõmÁ½¥¹ÑÍm…t¹àµ½É¥¥¸¹à±Á½¥¹ÑÍm…t¹äµ½É¥¥¸¹ä±Á½¥¹ÑÍm…t¹èµ½É¥¥¸¹ét±ØõmÁ½¥¹ÑÍm‰t¹àµ½É¥¥¸¹à±Á½¥¹ÑÍm‰t¹äµ½É¥¥¸¹ä±Á½¥¹ÑÍm‰t¹èµ½É¥¥¸¹ét±É½ÍÌõmÕlÅt©ÙlÉtµÕlÉt©ÙlÅt±ÕlÉt©ÙlÁtµÕlÁt©ÙlÉt±ÕlÁt©ÙlÅtµÕlÅt©ÙlÁut±µ…¹¥ÑÕ‘”õ5…Ñ ¹¡åÁ½Ð ¸¸¹É½ÍÌ¤ì(€€€¥˜¡µ…¹¥ÑÕ‘”øÅ”´à¥¹½Éµ…°õÉ½ÍÌ¹µ…À¡Ù…±Õ”ôùÙ…±Õ”½µ…¹¥ÑÕ‘”¤ì(€ô(€¥˜ …¹½Éµ…°¥É•ÑÕÉ¸%¹™¥¹¥Ñäì(€É•ÑÕÉ¸5…Ñ ¹µ…à ¸¸¹Á½¥¹ÑÌ¹µ…À¡Àôù5…Ñ ¹…‰Ì ¡À¹àµ½É¥¥¸¹à¤©¹½Éµ…±lÁt¬¡À¹äµ½É¥¥¸¹ä¤©¹½Éµ…±lÅt¬¡À¹èµ½É¥¥¸¹è¤©¹½Éµ…±lÉt¤¤¤ì)ô()Ñ•ÍÐ œÍ¡…¥¸Á±…•µ•¹Ð¥Ì‘•Ñ•Éµ¥¹¥ÍÑ¥Œ°ÍÁ…Ñ¥…°…¹É…Á ÁÉ•Í•ÉÙ¥¹œœ° ¤ôùì(€½¹ÍÐ™É…µ•¹Ðõí…Ñ½µÌémt±‰½¹‘Ìémt±…Ñ½µ=É¥¥¹Ìémuô±Í½ÕÉ•I•½É‘Í	å%¹ÍÑ…¹•%õíôì(€™½È¡±•ÐÕ¹¥ÐôÀíÕ¹¥ÐðÐíÕ¹¥Ð¬¬¥ì(€€€½¹ÍÐ¥¹ÍÑ…¹•%õÕ¹¥Ð´‘íÕ¹¥Ñõ€íÍ½ÕÉ•I•½É‘Í	å%¹ÍÑ…¹•%‘m¥¹ÍÑ…¹•%‘tõí…Ñ½µÌémíÁ½¥¹ÐéÁ½¥¹Ð ´¸ÔÔ°À°À¥ô±íÁ½¥¹ÐéÁ½¥¹Ð ¸ÔÔ°À°À¥ô±íÁ½¥¹ÐéÁ½¥¹Ð ´¸ÜÈ°¸àÈ°À¥ô±íÁ½¥¹ÐéÁ½¥¹Ð ¸ÜÈ°´¸àÈ°À¥õuôì(€€€™½È¡½¹ÍÐ•±•µ•¹Ð½˜lœ°œ° œ° t¥í™É…µ•¹Ð¹…Ñ½µÌ¹ÁÕÍ ¡í•±•µ•¹Ð±™½Éµ…±¡…É”èÁô¤í™É…µ•¹Ð¹…Ñ½µ=É¥¥¹Ì¹ÁÕÍ ¡í¥¹ÍÑ…¹•%±Í½ÕÉ•Ñ½µ%¹‘•àé™É…µ•¹Ð¹…Ñ½µ=É¥¥¹Ì¹™¥±Ñ•È¡½É¥¥¸ôù½É¥¥¸¹¥¹ÍÑ…¹•%ôôõ¥¹ÍÑ…¹•%¤¹±•¹Ñ¡ô¤íô(€€€½¹ÍÐ‰…Í”õÕ¹¥Ð¨Ðí™É…µ•¹Ð¹‰½¹‘Ì¹ÁÕÍ ¡í„é‰…Í”±ˆé‰…Í”¬Ä±½É‘•ÈèÅô±í„é‰…Í”±ˆé‰…Í”¬È±½É‘•ÈèÅô±í„é‰…Í”¬Ä±ˆé‰…Í”¬Ì±½É‘•ÈèÅô¤í¥˜¡Õ¹¥ÐðÌ¥™É…µ•¹Ð¹‰½¹‘Ì¹ÁÕÍ ¡í„é‰…Í”¬Ä±ˆé‰…Í”¬Ð±½É‘•ÈèÅô¤ì(€ô(€½¹ÍÐÍ…µÁ±”õíÁ½±åµ•É%èÁ½±å•Ñ¡å±•¹”œ±É½ÕÑ•%è™¥áÑÕÉ”µ¡…¥¸œ±™É…µ•¹Ð±É•ÁÉ•Í•¹Ñ…Ñ¥½¸éíõôì(€½¹ÍÐ™¥ÉÍÐõÉ•…Ñ•A½±åµ•ÉÉ…µ•¹ÐÍ1…å½ÕÐ¡Í…µÁ±”±íÍ½ÕÉ•I•½É‘Í	å%¹ÍÑ…¹•%‘ô¤±Í•½¹õÉ•…Ñ—[h‘éì¶»§q«^tolymerFragment3DLayout(sample,{sourceRecordsByInstanceId});
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {join,resolve} from 'node:path';
+import * as THREE from '../vendor/three/three.module.min.js';
+import {createPreviewModel} from '../src/preview-model.js?v=35';
+import {createPolymerFragment3DLayout} from '../src/polymer-fragment-3d-layout.js';
+import {createReactionLabPolymerizationCore,POLYMER_COMMIT_DWELL_MS} from '../src/reaction-lab-polymerization.js?v=1';
+
+const readJson=async path=>JSON.parse(await readFile(new URL(path,import.meta.url),'utf8'));
+const [routesAuthority,db]=await Promise.all([readJson('../data/polymerization-routes.json'),readJson('../data/molecules.json')]);
+const feedIds=new Set([...routesAuthority.routes.flatMap(route=>route.feedSpecies),'water']);
+const records=db.filter(record=>feedIds.has(record.id)),recordById=new Map(records.map(record=>[record.id,record]));
+const coordinatesFor=record=>{
+  const model=createPreviewModel(THREE,record);for(let step=0;step<190;step++)model.step();
+  const snapshot=model.snapshot();return{...record,atoms:snapshot.atoms,bonds:snapshot.bonds,aromaticCycles:snapshot.aromaticCycles};
+};
+const sourceRecordsFor=instances=>Object.fromEntries(instances.map(instance=>[instance.id,coordinatesFor(recordById.get(instance.species))]));
+const fixtureFor=route=>{
+  const perSpecies=route.feedSpecies.length===1?4:2,instances=route.feedSpecies.flatMap(id=>Array.from({length:perSpecies},(_,index)=>({id:`feed-${id}-${index+1}`,species:id,batchGeneration:3})));
+  const core=createReactionLabPolymerizationCore({records,routes:routesAuthority.routes,sitePatterns:routesAuthority.sitePatterns});
+  assert.equal(core.beginBatch({activeSlots:route.feedSpecies,batchGeneration:3,instances,environment:new Set(route.environment.requires)}).ok,true);
+  const used=new Map(),nextInstance=species=>{const next=(used.get(species)??0)+1;used.set(species,next);return`feed-${species}-${next}`;};
+  nextInstance(route.representativeSequence[0]);let result=null;
+  for(let step=1;step<route.representativeSequence.length;step++){
+    const species=route.representativeSequence[step],instanceId=nextInstance(species),automatic=step>route.interactionCadence.manualSteps;
+    const begun=automatic?core.beginAutomaticStep(instanceId):core.beginManualStep(instanceId);assert.equal(begun.ok,true,`${route.routeId} step ${step}: ${begun.reason}`);
+    assert.equal(core.advanceFixedStep(POLYMER_COMMIT_DWELL_MS/2).committed,false);
+    result=core.advanceFixedStep(POLYMER_COMMIT_DWELL_MS/2);
+  }
+  assert.ok(result?.sample,`${route.routeId} produces a finite sample`);
+  return{sample:result.sample,instances};
+};
+const point=(x,y,z=0)=>({x,y,z});
+const percentile=(values,p)=>{const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.max(0,Math.ceil(p*sorted.length)-1)]??0;};
+function planeDeviation(points){
+  if(points.length<4)return 0;const origin=points[0];let normal=null;
+  for(let a=1;a<points.length-1&&!normal;a++)for(let b=a+1;b<points.length&&!normal;b++){
+    const u=[points[a].x-origin.x,points[a].y-origin.y,points[a].z-origin.z],v=[points[b].x-origin.x,points[b].y-origin.y,points[b].z-origin.z],cross=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],magnitude=Math.hypot(...cross);
+    if(magnitude>1e-8)normal=cross.map(value=>value/magnitude);
+  }
+  if(!normal)return Infinity;
+  return Math.max(...points.map(p=>Math.abs((p.x-origin.x)*normal[0]+(p.y-origin.y)*normal[1]+(p.z-origin.z)*normal[2])));
+}
+
+test('3D chain placement is deterministic, spatial and graph preserving',()=>{
+  const fragment={atoms:[],bonds:[],atomOrigins:[]},sourceRecordsByInstanceId={};
+  for(let unit=0;unit<4;unit++){
+    const instanceId=`unit-${unit}`;sourceRecordsByInstanceId[instanceId]={atoms:[{point:point(-.55,0,0)},{point:point(.55,0,0)},{point:point(-.72,.82,0)},{point:point(.72,-.82,0)}]};
+    for(const element of ['C','C','H','H']){fragment.atoms.push({element,formalCharge:0});fragment.atomOrigins.push({instanceId,sourceAtomIndex:fragment.atomOrigins.filter(origin=>origin.instanceId===instanceId).length});}
+    const base=unit*4;fragment.bonds.push({a:base,b:base+1,order:1},{a:base,b:base+2,order:1},{a:base+1,b:base+3,order:1});if(unit<3)fragment.bonds.push({a:base+1,b:base+4,order:1});
+  }
+  const sample={polymerId:'polyethylene',routeId:'fixture-chain',fragment,representation:{}};
+  const first=createPolymerFragment3DLayout(sample,{sourceRecordsByInstanceId}),second=createPolymerFragment3DLayout(sample,{sourceRecordsByInstanceId});
   assert.equal(first.diagnostics.accepted,true,JSON.stringify(first.diagnostics));assert.ok(first.bounds.depth>.5,'connected units form a genuine 3D pose');
   assert.deepEqual(first.atoms.map(({x,y,z})=>[x,y,z]),second.atoms.map(({x,y,z})=>[x,y,z]),'same graph and source geometry regenerate the same conformation');
   assert.deepEqual(first.atomOrigins,fragment.atomOrigins);assert.deepEqual(first.bonds,fragment.bonds.map(bond=>({...bond})));

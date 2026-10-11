@@ -1,4 +1,64 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Ô¼¼MÑ…‰±”…ÁÁ±¥…Ñ¥½¸•¹ÑÉåÁ½¥¹Ğ¸Y•ÉÍ¥½¸¡¥ÍÑ½Éä‰•±½¹Ì¥¸¥Ğ°¹½Ğ½Á¥•Í½ÕÉ”™¥±•Ì¸)¥µÁ½ÉĞ€¨…ÌQ!I™É½´€œ¸¸½Ù•¹‘½È½Ñ¡É•”½Ñ¡É•”¹µ½‘Õ±”¹µ¥¸¹©Ìœì)¥µÁ½ÉĞì159QL°5½±•Õ±”°±½…‘5½±•Õ±•…Ñ…‰…Í”°µ½±•Õ±•…Ñ…±½œ°µ½‘•±Ñ½µI…‘¥ÕÌô™É½´€œ¸½¡•µ¥ÍÑÉä¹©ÌıØôÈÀœì)¥µÁ½ÉĞìQ=5%}5=0°Õ¹Á…¥É•‘±•ÑÉ½¹½Õ¹Ğ°±½¹•A…¥É½Õ¹Ğ°Ù…±•¹•M¡•±±I…‘¥ÕÌ°…Ñ½µ	½¹‘MÑ…Ñ”°‰½¹‘‘‘¥Ñ¥½¸°•½µ•ÑÉå½ÉÑ½´°¹½¹‰½¹‘•‘¥ÍÑ…¹”ô™É½´€œ¸½‰½¹‘¥¹œµµ½‘•°¹©ÌıØôÌÌœì)¥µÁ½ÉĞìÉ•…Ñ•MÑÉÕÑÕÉ…±	½¹‘1•¹Ñ¡I•Í½±Ù•È°MQIUQUI1}=5QIe}]=I1}U9%QM}AI}9MQI=4ô™É½´€œ¸½‰½¹µ•½µ•ÑÉä¹©ÌıØôÄœì)¥µÁ½ÉĞìÉ•…Ñ•MÑÉÕÑÕÉ•M½±Ù•Èô™É½´€œ¸½ÍÑÉÕÑÕÉ”µÉ•±…á…Ñ¥½¸¹©ÌıØôÌÌœì)¥µÁ½ÉĞìÁ±…¹	½¹‘½­¥¹œô™É½´€œ¸½ÍÑÉÕÑÕÉ”µµ½Ñ¥½¸¹©ÌıØôÌÀœì)¥µÁ½ÉĞìÉ•…Ñ•MÑÉÕÑÕÉ•M•ÑÑ±•µ•¹Ğô™É½´€œ¸½ÍÑÉÕÑÕÉ”µÍ•ÑÑ±•µ•¹Ğ¹©ÌıØôÌÌœì)¥µÁ½ÉĞìÉ•…Ñ•Q½ÉÍ¥½¹5½‘•°ô™É½´€œ¸½Ñ½ÉÍ¥½¸µµ½‘•°¹©ÌıØôÌÔœì)¥µÁ½ÉĞìÉ•…Ñ•½¹™½Éµ…Ñ¥½¹¹¥¹”ô™É½´€œ¸½½¹™½Éµ…Ñ¥½¸µ•¹¥¹”¹©ÌıØôÌœì)¥µÁ½ÉĞìÉ•…Ñ•]½É­ÍÁ…•Y¥•Ü°É½Ñ…Ñ•MÑÉÕÑÕÉ”ô™É½´€œ¸½İ½É­ÍÁ…”µÙ¥•Ü¹©ÌıØôÈÌœì)¥µÁ½ÉĞì1QI=9}A=%9QI}QIP°Á¥­±•ÑÉ½¹ÑA½¥¹Ñ•Èô™É½´€œ¸½•±•ÑÉ½¸µ¥¹Ñ•É…Ñ¥½¸¹©ÌıØôÄØœì)¥µÁ½ÉĞì¡½½Í•Ñ½µ=É±•ÑÉ½¸°Á¥­	½¹‘ÑA½¥¹Ñ•Èô™É½´€œ¸½•ÍÑÕÉ”µ…É‰¥ÑÉ…Ñ¥½¸¹©ÌıØôÈÀœì)¥µÁ½ÉĞì½¹¹•Ñ•‘MÑÉÕÑÕÉ•Ì°¡½½Í•5…¥¹MÑÉÕÑÕÉ”°É•…Ñ••‰É¥ÍQÉ…­•È°	I%M}A=1%d°ÍÑÉÕÑÕÉ•É…µ”ô™É½´€œ¸½İ½É­ÍÁ…”µµ½‘•°¹©ÌıØôÈÀœì)¥µÁ½ÉĞìÉ•…Ñ•AÉ•Ù¥•İ5½‘•°ô™É½´€œ¸½ÁÉ•Ù¥•Üµµ½‘•°¹©ÌıØôÌÔœì)¥µÁ½ÉĞìÁ±…¹MÁ…İ¸ô™É½´€œ¸½ÍÁ…İ¸µ±…å½ÕĞ¹©ÌıØôÈàœì)¥µÁ½ÉĞìÉ•…Ñ•±•µ•¹ÑA…±•ÑÑ”°Íå¹±•µ•¹ÑMÑ½­Ìô™É½´€œ¸½•±•µ•¹ĞµÁÉ½É•ÍÍ¥½¸¹©ÌıØôÌäœì)¥µÁ½ÉĞì…É½µ…Ñ¥	½¹‘-•åÌ°‘¥ÍÁ±…å•‘	½¹‘=É‘•È°…É½µ…Ñ¥I¥¹É…µ”°É•…Ñ•É½µ…Ñ¥I¥¹œ°ÕÁ‘…Ñ•É½µ…Ñ¥I¥¹œ°Í•ÑÉ½µ…Ñ¥=Á…¥Ñäô™É½´€œ¸½…É½µ…Ñ¥ŒµÉ•¹‘•É¥¹œ¹©ÌıØôÈÜœì)¥µÁ½ÉĞìÍ¡…É•‘=á½É½ÕÁÌ°ÍÁ•¥…±‘•-•åÌ°É•…Ñ•M¡…É•‘	½¹‘Ì°ÕÁ‘…Ñ•M¡…É•‘	½¹‘Ì°É•…Ñ•¡…É•1…‰•°ô™É½´€œ¸½ÍÁ•¥…°µ‰½¹‘Ì¹©ÌıØôÌĞœì()¥µÁ½ÉĞìÉ•…Ñ•…µ•M¡•±°ô™É½´€œ¸½…µ”µÍ¡•±°¹©ÌıØôÌÄœì)¥µÁ½ÉĞì…ÁÑÕÉ•]½É­ÍÁ…”°É•ÍÑ½É•]½É­ÍÁ…”ô™É½´€œ¸½İ½É­ÍÁ…”µÍ…Ù”¹©ÌıØôÌÄœì)¥µÁ½ÉĞìÉ•…Ñ•]½É­ÍÁ…•MÑ½É…”ô™É½´€œ¸½İ½É­ÍÁ…”µÁ•ÉÍ¥ÍÑ•¹”¹©ÌıØôÄœì)¥µÁ½ÉĞìÉ•…Ñ•É…™Ñ]½É­ÍÁ…”ô™É½´€œ¸½É…™Ğµİ½É­ÍÁ…”¹©ÌıØôÄœì)¥µÁ½ÉĞìÉ•…Ñ•É…™Ñ!¥ÍÑ½Éäô™É½´€œ¸½É…™Ğµ¡¥ÍÑ½Éä¹©ÌıØôÈœì)¥µÁ½ÉĞì‰¥¹‘É…™Ñ½¹ÑÉ½±Ìô™É½´€œ¸½É…™Ğµ½¹ÑÉ½±Ì¹©ÌıØôÌœì)¥µÁ½ÉĞì‰¥¹‘M…Ù•1¥™•å±”°½¹¹•Ñ½±±•Ñ¥½¸°½¹¹•ÑáÁ±½É…Ñ¥½¸°É•…Ñ•¥Í½Ù•Éå½¹¹•Ñ¥½¸ô™É½´€œ¸½É…™Ğµ½¹¹•Ñ¥½¹Ì¹©ÌıØôÄÄœì)¥µÁ½ÉĞìÉ•…Ñ•É…™ÑA…¹•°ô™É½´€œ¸½É…™ĞµÁ…¹•°¹©ÌıØôĞœì)¥µÁ½ÉĞì‘•½µÁ½Í•Q…É•Ñ%¹Ñ½Ù…¥±…‰±•A…ÉÑÌô™É½´€œ¸½É…™Ğµ‘•½µÁ½Í¥Ñ¥½¸¹©ÌıØôÄœì)¥µÁ½ÉĞìµ…Ñ¡É…™ÑQ…É•Ğô™É½´€œ¸½É…™ĞµÑ…É•ĞµÍ…Ñ¥Í™…Ñ¥½¸¹©Ìœì)¥µÁ½ÉĞìÉ…™Ñ!¥¹Ñ±•ÑÉ½¹-•åÌ°¹•áÑÉ…™Ñ	½¹‘!¥¹Ğô™É½´€œ¸½É…™ĞµÑ…É•Ğµ¡¥¹Ğ¹©ÌıØôÄœì)¥µÁ½ÉĞì½‰Í•ÉÙ•É…™ÑMÑ•É•¼ô™É½´€œ¸½ÍÑ•É•¼µ½‰Í•ÉÙ…Ñ¥½¸¹©ÌıØôÄœì)¥µÁ½ÉĞìÉ•…Ñ•Q•…É•ÍÑÕÉ”°™¥¹‘Q•…É…¹‘¥‘…Ñ”°ÁÉ½©•Ñ•‘Q•…ÉAÕ±°ô™É½´€œ¸½É…™ĞµÑ•…É½™˜¹©ÌıØôÄœì)¥µÁ½ÉĞì…ÁÑÕÉ••Ñ…¡•‘É…µ•¹Ğ°É•…Ñ••Ñ…¡•‘É…œô™É½´€œ¸½É…™Ğµ‘•Ñ…¡•µ‘É…œ¹©ÌıØôÄœì)¥µÁ½ÉĞìÉ•…Ñ•I•…Ñ¥½¹1…‰¥Í½Ù•Éå½½É‘¥¹…Ñ½Èô™É½´€œ¸½É•…Ñ¥½¸µ±…ˆµ‘¥Í½Ù•Éä¹©ÌıØôÌœì()¥µÁ½ÉĞìÉ•…Ñ•I•Í½ÕÉ•Ìô™É½´€œ¸½Ù•¥°½É•Í½ÕÉ•Ì¹©Ìœì)±•ĞÙ•¥±U$õ¹Õ±°ì)½¹ÍĞÉ•Í½ÕÉ•ÌõÉ•…Ñ•I•Í½ÕÉ•Ì¡í½¹MÑ…ÑÕÌéÑ•áĞôùí™½È¡½¹ÍĞ¥½˜lÉ•Í½ÕÉ”µÍ…Ù”µÍÑ…ÑÕÌœ°Ù•¥°µÍ…Ù”µİ…É¹¥¹œt¥í½¹ÍĞ¹½‘”õ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å%¡¥¤í¥˜¡¹½‘”¥í¹½‘”¹Ñ•áÑ½¹Ñ•¹ĞõÑ•áĞí¹½‘”¹¡¥‘‘•¸ô…Ñ•áĞíõõõô¤ì)½¹ÍĞµ½±•Õ±”õ¹•Ü5½±•Õ±” ¤ì)½¹ÍĞÁ±…•µ•¹ÑÌõ¹•Ü5…À ¤ì)½¹ÍĞ…Ñ¥Ù•A½¥¹Ñ•ÉÌõ¹•Ü5…À ¤ì)±•ĞÑ½ÉÍ¥½¹5½‘•°õ¹Õ±°±Ñ½ÉÍ¥½¹Õ¥‘”õ¹Õ±°ì)±•ĞÍ•±•Ñ•‘Ñ½µ%õ¹Õ±°±‘É…MÑ…Ñ”õ¹Õ±°±µÕ±Ñ¥•ÍÑÕÉ”õ¹Õ±°ì)±•Ğ‰½¹‘!½±‘Q¥µ•Èõ¹Õ±°±É•±…á…Ñ¥½¸õ¹Õ±°ì)±•Ğ•±•ÑÉ½¹I•ÑÕÉ¸õ¹Õ±°±¡½Ù•É±•ÑÉ½¸õ¹Õ±°±‰½¹‘QÉ…¹Í¥Ñ¥½¸õ¹Õ±°ì)±•ĞÍ•±•Ñ¥½¹¡…¹•‘ĞõÁ•É™½Éµ…¹”¹¹½Ü ¤±É•¹‘•ÉQ½Á½±½å¥ÉÑäõÑÉÕ”ì)½¹ÍĞ…Ñ½µY¥ÍÕ…±Ìõ¹•Ü5…À ¤±‰½¹‘Y¥ÍÕ…±Ìõ¹•Ü5…À ¤ì)±•Ğ•±•ÑÉ½¹Y¥ÍÕ…±Ìõmt±…É½µ…Ñ¥Y¥ÍÕ…±Ìõmt±Í¡…É•‘Y¥ÍÕ…±Ìõmtì)½¹ÍĞÕ¹É•Í½±Ù•‘Ñ½µÌõ¹•ÜM•Ğ ¤±ÍÑ…Ñ•…¡”õ¹•Ü5…À ¤±•½µ•ÑÉå…¡”õ¹•Ü5…À ¤ì)½¹ÍĞÉ•‘Õ•5½Ñ¥½¸õİ¥¹‘½Ü¹µ…Ñ¡5•‘¥„ü¸ œ¡ÁÉ•™•ÉÌµÉ•‘Õ•µµ½Ñ¥½¸èÉ•‘Õ”¤œ¤ü¹µ…Ñ¡•Ìüı™…±Í”ì)½¹ÍĞ1QI=9}M9A}A`ôÔàì)½¹ÍĞQI}]I9%9}=1=Hõ¹•ÜQ!I¹½±½È Áá™ˆÜÄàÔ¤ì)±•ĞÍÑÉÕÑÕÉ•Ìõmt±µ…¥¹MÑÉÕÑÕÉ”õ¹Õ±°±ÍÑÉÕÑÕÉ•	åÑ½´õ¹•Ü5…À ¤ì)½¹ÍĞ‘•‰É¥ÍQÉ…­•ÈõÉ•…Ñ••‰É¥ÍQÉ…­•È ¤ì)½¹ÍĞİ½É­ÍÁ…•Y¥•ÜõÉ•…Ñ•]½É­ÍÁ…•Y¥•Ü ¤ì)½¹ÍĞÍå¹É…™ÑMÑ½¬ô ¤ôùÍå¹±•µ•¹ÑMÑ½­Ì¡‘½Õµ•¹Ğ±É•Í½ÕÉ•Ì¹ÍÑ…Ñ”¹•±•µ•¹ÑÌ¤ì)½¹ÍĞÉ…™Ñ]½É­ÍÁ…”õÉ•…Ñ•É…™Ñ]½É­ÍÁ…”¡íµ½±•Õ±”±Á±…•µ•¹ÑÌ±É•Í½ÕÉ•Ì±É•Í½±Ù•U¹±½­•‘A…ÉĞé¥ôù½±±•Ñ¥½¹…µ”ü¹Ñ•µÁ±…Ñ•½È¡¥¤±½¹MÑ½­¡…¹”éÍå¹É…™ÑMÑ½­ô¤ì)½¹ÍĞÁÉ½Ñ•Ñ•‘U¹Ñ¥°õ¹•Ü5…À ¤ì)±•Ğ±…ÍÑ	…­É½Õ¹‘Q…Àõ¹Õ±°±™É…µ•QÉ…¹Í¥Ñ¥½¸õ¹Õ±°ì)±•Ğ±•…¹ÕÁ¡•­•‘ĞôÀ±‘•‰É¥Í=Á…¥Ñäõ¹•Ü5…À£[h‘éì¶»§q«^u,fadeTargets=new Map();
+// Stable application entrypoint. Version history belongs in Git, not copied source files.
+import * as THREE from '../vendor/three/three.module.min.js';
+import { ELEMENTS, Molecule, loadMoleculeDatabase, moleculeCatalog, modelAtomRadius } from './chemistry.js?v=20';
+import { ATOMIC_MODEL, unpairedElectronCount, lonePairCount, valenceShellRadius, atomBondState, bondAddition, geometryForAtom, nonbondedDistance } from './bonding-model.js?v=33';
+import { createStructuralBondLengthResolver, STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM } from './bond-geometry.js?v=1';
+import { createStructureSolver } from './structure-relaxation.js?v=33';
+import { planBondDocking } from './structure-motion.js?v=30';
+import { createStructureSettlement } from './structure-settlement.js?v=33';
+import { createTorsionModel } from './torsion-model.js?v=35';
+import { createConformationEngine } from './conformation-engine.js?v=3';
+import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
+import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
+import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=20';
+import { connectedStructures, chooseMainStructure, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
+import { createPreviewModel } from './preview-model.js?v=35';
+import { planSpawn } from './spawn-layout.js?v=28';
+import { createElementPalette, syncElementStocks } from './element-progression.js?v=39';
+import { aromaticBondKeys, displayedBondOrder, aromaticRingFrame, createAromaticRing, updateAromaticRing, setAromaticOpacity } from './aromatic-rendering.js?v=27';
+import { sharedOxoGroups, specialEdgeKeys, createSharedBonds, updateSharedBonds, createChargeLabel } from './special-bonds.js?v=34';
+
+import { createGameShell } from './game-shell.js?v=31';
+import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
+import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
+import { createCraftWorkspace } from './craft-workspace.js?v=1';
+import { createCraftHistory } from './craft-history.js?v=2';
+import { bindCraftControls } from './craft-controls.js?v=3';
+import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=11';
+import { createCraftPanel } from './craft-panel.js?v=4';
+import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
+import { matchCraftTarget } from './craft-target-satisfaction.js';
+import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js?v=1';
+import { observeCraftStereo } from './stereo-observation.js?v=1';
+import { createTearGesture, findTearCandidate, projectedTearPull } from './craft-tearoff.js?v=1';
+import { captureDetachedFragment, createDetachedDrag } from './craft-detached-drag.js?v=1';
+import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=3';
+
+import { createResources } from './veil/resources.js';
+let veilUI=null;
+const resources=createResources({onStatus:text=>{for(const id of ['resource-save-status','veil-save-warning']){const node=document.getElementById(id);if(node){node.textContent=text;node.hidden=!text;}}}});
+const molecule=new Molecule();
+const placements=new Map();
+const activePointers=new Map();
+let torsionModel=null,torsionGuide=null;
+let selectedAtomId=null,dragState=null,multiGesture=null;
+let bondHoldTimer=null,relaxation=null;
+let electronReturn=null,hoverElectron=null,bondTransition=null;
+let selectionChangedAt=performance.now(),renderTopologyDirty=true;
+const atomVisuals=new Map(),bondVisuals=new Map();
+let electronVisuals=[],aromaticVisuals=[],sharedVisuals=[];
+const unresolvedAtoms=new Set(),stateCache=new Map(),geometryCache=new Map();
+const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
+const ELECTRON_SNAP_PX=58;
+const TEAR_WARNING_COLOR=new THREE.Color(0xfb7185);
+let structures=[],mainStructure=null,structureByAtom=new Map();
+const debrisTracker=createDebrisTracker();
+const workspaceView=createWorkspaceView();
+const syncCraftStock=()=>syncElementStocks(document,resources.state.elements);
+const craftWorkspace=createCraftWorkspace({molecule,placements,resources,resolveUnlockedPart:id=>collectionGame?.templateFor(id),onStockChange:syncCraftStock});
+const protectedUntil=new Map();
+let lastBackgroundTap=null,frameTransition=null;
+let cleanupCheckedAt=0,debrisOpacity=new Map(),fadeTargets=new Map();
 let collectionGame=null,collectionOpen=false,craftTargetId=null,craftBondHint=null;
 let reactionLabViewer=null,reactionLabDiscovery=null,reactionLabDialogOpen=false,reactionLabPointerLocked=false;
 let refreshInfoFault='',animationFault='';
@@ -48,15 +108,30 @@ if(renderer){
   try{refresh();}catch(error){console.error('Initial craft refresh failed; continuing runtime startup.',error);}
   resize();if(savedWorkspace)try{repairSavedGeometry();}catch(error){console.error('Saved geometry repair failed; continuing with restored positions.',error);}animate();
 }else document.querySelector('#viewer-unavailable').hidden=false;
-veilUI=connectExploration({resources,canLeave:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen())&&(saveWorkspaYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Õ”¡ÑÉÕ”¥ñğ…É•Í½ÕÉ•Ì¹‰±½­•¤±…¹MÕÁÁ±äè ¤ôø…É•Í½ÕÉ•Ì¹‰±½­•˜˜…Ù•¥±U$ü¹…Ñ¥Ù”˜˜…É•±…á…Ñ¥½¸˜˜…‰½¹‘QÉ…¹Í¥Ñ¥½¸˜˜…™É…µ•QÉ…¹Í¥Ñ¥½¸˜˜…‘É…MÑ…Ñ”˜˜……Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”˜˜…½±±•Ñ¥½¹=Á•¸˜˜¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÍÕÁÁ±äµ‘¥…±½œœ¤¹½Á•¹ñğ……µ•M¡•±°¹¥Í=Á•¸ ¤¤±½¹	•™½É•1…Õ¹ è ¤ôù±•…É¥•±¡í±•…ÉQ…É•ĞéÑÉÕ”±Í¥±•¹ĞéÑÉÕ”±É•½É‘!¥ÍÑ½Éäé™…±Í•ô¤±½¹É…™Ğè ¤ôùí•±•µ•¹ÑA…±•ÑÑ”¹ÕÁ‘…Ñ” ¤íÍå¹É…™ÑMÑ½¬ ¤í½±±•Ñ¥½¹…µ”ü¹É•™É•Í¡AÉ½É•ÍÌ ¤í¥˜¡É•¹‘•É•È¥íÉ•Í¥é” ¤íÉ•™É•Í  ¤íõô±½¹½µµ¥Ğè ¤ôùÍ…Ù•]½É­ÍÁ…”¡ÑÉÕ”¤±É•Í•Ğéí…¹I•Í•Ğè ¤ôø…Ù•¥±U$ü¹…Ñ¥Ù”˜˜…‘É…MÑ…Ñ”˜˜……Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”˜˜…É•±…á…Ñ¥½¸˜˜…‰½¹‘QÉ…¹Í¥Ñ¥½¸˜˜…™É…µ•QÉ…¹Í¥Ñ¥½¸˜˜…½±±•Ñ¥½¹=Á•¸±‰•™½É•I•Í•Ğè ¤ôùÍ…Ù•]½É­ÍÁ…”¡ÑÉÕ”¤˜™É•Í½ÕÉ•Ì¹Í…Ù” ¥õô¤ì)İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È µ½±•Õ±”µÉ…™ĞéÉ…™Ğµµ½±•Õ±”œ±•Ù•¹Ğôù‰•¥¹É…™ÑQ…É•Ğ¡•Ù•¹Ğ¹‘•Ñ…¥°ü¹¥¤¤ì)‰¥¹‘M…Ù•1¥™•å±”¡íİ¥¹‘½Ü±‘½Õµ•¹Ğ±½¹A…•!¥‘”è ¤ôùíÍ…Ù•]½É­ÍÁ…”¡ÑÉÕ”¤íÉ•Í½ÕÉ•Ì¹Í…Ù” ¤íô±½¹!¥‘‘•¸è ¤ôùÍ…Ù•]½É­ÍÁ…”¡ÑÉÕ”¤±½¹AÉ•Á…É•UÁ‘…Ñ”é•Ù•¹Ğôùí½¹ÍĞÍ…Ù•õİ½É­ÍÁ…•MÑ½É…”¹ÁÉ½Ñ•Ñ•˜˜…µ½±•Õ±”¹…Ñ½µÌ¹±•¹Ñ¡ññÍ…Ù•]½É­ÍÁ…”¡ÑÉÕ”¤í¥˜ …É•Í½ÕÉ•Ì¹Í…Ù” ¥ññÙ•¥±U$ü¹…Ñ¥Ù•ñğ…Í…Ù•‘ññ‘É…MÑ…Ñ•ññ…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é•ññÉ•±…á…Ñ¥½¹ññ‰½¹‘QÉ…¹Í¥Ñ¥½¹ññ™É…µ•QÉ…¹Í¥Ñ¥½¹ñğ¡½±±•Ñ¥½¹…µ”ü¹ÍÑ…Ñ”¹ÍÑ½É…•5•ÍÍ…”˜™½±±•Ñ¥½¹…µ”¹ÍÑ…Ñ”¹‘¥Í½Ù•É•‘½Õ¹ĞøÀ¤¥•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤íõô¤ì)±½…‘5½±•Õ±•…Ñ…‰…Í” ¤¹Ñ¡•¸¡…Íå¹ŒÉ•ÍÕ±Ğôùì(€Íå¹]½É­ÍÁ…” ¤í¥˜¡Í…Ù•‘]½É­ÍÁ…”¥‘¥Í½Ù•Éå½¹¹•Ñ¥½¸¹‘¥Í…É‘EÕ•Õ• ¤í¥˜¡É•¹‘•É•È¥í¡•­¥Í½Ù•Éä ¤íÉ•™É•Í¡%¹™¼ ¤íô(€¥˜ …É•ÍÕ±Ğ¹½¬¥í•±•µ•¹ÑA…±•ÑÑ”¹™…±±‰…¬ ¤í¥˜¡É•¹‘•É•È¥ÁÕ±Í” Ÿ–"–¶C–B5
-K¢ª·ÿ¢úó
-ûo
-OŸ_|ƒ
-Üƒ–"Û’ösš¦¢÷¿–"§R£Ÿ7ûdœ¤í‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ…µ”µÍ…Ù”µÍÑ…ÑÕÌœ¤¹¡¥‘‘•¸õ™…±Í”í‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ…µ”µÍ…Ù”µÍÑ…ÑÕÌœ¤¹Ñ•áÑ½¹Ñ•¹ĞôŸ–"–¶A
-K¢ª·
-«
-–nÏ¦FG¿–"§R£Ÿ7ûo
-LœíÉ•ÑÕÉ¸íô(€É•Í½ÕÉ•Ì¹Í•Ñ…Ñ…±½œ¡µ½±•Õ±•…Ñ…±½œ ¤¤ì(€ÑÉåì(€€€½±±•Ñ¥½¹…µ”õ…İ…¥Ğ½¹¹•Ñ½±±•Ñ¥½¸¡íÉ•½É‘Ìéµ½±•Õ±•…Ñ…±½œ ¤±•±•µ•¹ÑA…±•ÑÑ”±•±•µ•¹Ñ•ÍÌéÍåµ‰½°ôùÉ•Í½ÕÉ•Ì¹…¹UÍ•±•µ•¹Ğ¡Íåµ‰½°¤±½¹A±…”éÑ•µÁ±…Ñ”ôù…‘‘É…™ÑA…ÉĞ¡Ñ•µÁ±…Ñ”¹¥¤±½¹MÕÁÁ±äè¡¥±ÕÍ”¤ôùÙ•¥±U$ü¹½Á•¹MÕÁÁ±ä¡¥±ÕÍ”¤üı™…±Í”±…¹=Á•¸è ¤ôø……µ•M¡•±°¹¥Í=Á•¸ ¤˜˜…É•…Ñ¥½¹1…‰¥…±½=Á•¸˜˜…É•±…á…Ñ¥½¸˜˜…‰½¹‘QÉ…¹Í¥Ñ¥½¸˜˜…™É…µ•QÉ…¹Í¥Ñ¥½¸˜˜…‘É…MÑ…Ñ”˜˜……Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”±½¹=Á•¹¡…¹”é½Á•¸ôùí½±±•Ñ¥½¹=Á•¸õ½Á•¸í¥˜ …½Á•¸¥É•…Ñ¥½¹1…‰¥Í½Ù•Éäü¹½¹½±±•Ñ¥½¹±½Í• ¤íõô¤ì(€€€ÑÉåì(€€€€€½¹ÍĞíÉ•…Ñ•I•…Ñ¥½¹1…‰Y¥•İ•Éôõ…İ…¥Ğ¥µÁ½ÉĞ œ¸½É•…Ñ¥½¸µ±…ˆµÙ¥•İ•È¹©ÌıØôÌØœ¤ì(€€€€€É•…Ñ¥½¹1…‰Y¥•İ•ÈõÉ•…Ñ•I•…Ñ¥½¹1…‰Y¥•İ•È¡íQ!I±‘¥…±½œé‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÉ•…Ñ¥½¸µ±…ˆµ‘¥…±½œœ¤±É½½Ğé‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÉ•…Ñ¥½¸µ±…ˆœ¤±É•½É‘Ìéµ½±•Õ±•…Ñ…±½œ ¤±½±±•Ñ¥½¹MÑ…Ñ”é½±±•Ñ¥½¹…µ”¹ÍÑ…Ñ”±Á½±åµ•ÉI½ÕÑ•Ìé½±±•Ñ¥½¹…µ”¹Á½±åµ•ÉI½ÕÑ•Ì±Á½±åµ•ÉM¥Ñ•A…ÑÑ•É¹Ìé½±±•Ñ¥½¹…µ”¹Á½±åµ•ÉM¥Ñ•A…ÑÑ•É¹Ì°(€€€€€€€Á½±åµ•É9…µ•½Èé¥ôù½±±•Ñ¥½¹…µ”¹Á½±åµ•É9…µ•½È¡¥¤±¥ÍA½±åµ•É-¹½İ¸é¥ôù½±±•Ñ¥½¹…µ”¹Á½±åµ•ÉMÑ…Ñ”¹¡…ÍA½±åµ•È¡¥¤±½¹=Á•¹A½±åµ•Èé…Íå¹Œ¥ôùí…İ…¥ĞÉ•…Ñ¥½¹1…‰Y¥•İ•È¹±½Í•¹‘]…¥Ğ ¤íÉ•ÑÕÉ¸½±±•Ñ¥½¹…µ”¹½Á•¹A½±åµ•È¡¥¤íô°(€€€€€€€½¹¥…±½MÑ…Ñ•¡…¹”é½Á•¸ôùíÉ•…Ñ¥½¹1…‰¥…±½=Á•¸õ½Á•¸íô±½¹A½¥¹Ñ•É1½­¡…¹”é±½­•ôùíÉ•…Ñ¥½¹1…‰A½¥¹Ñ•É1½­•õ±½­•íõô¤ì(€€€€€É•…Ñ¥½¹1…‰¥Í½Ù•ÉäõÉ•…Ñ•I•…Ñ¥½¹1…‰¥Í½Ù•Éå½½É‘¥¹…Ñ½È¡íÉ•½É‘Ìéµ½±•Õ±•…Ñ…±½œ ¤±Á½±åµ•ÉI½ÕÑ•Ìé½±±•Ñ¥½¹…µ”¹Á½±åµ•ÉI½ÕÑ•Ì±Á½±åµ•É%‘Ìé½±±•Ñ¥½¹…µ”¹Á½±åµ•ÉI½ÕÑ•Ì¹µ…À¡É½ÕÑ”ôùÉ½ÕÑ”¹Á½±åµ•É%¤±½±±•Ñ¥½¸é½±±•Ñ¥½¹…µ”±É½½Ğé‘½Õµ•¹Ğ°(€€€€€€€±½Í•1…‰¹‘]…¥Ğè ¤ôùÉ•…Ñ¥½¹1…‰Y¥•İ•È¹±½Í•¹‘]…¥Ğ ¤±½Á•¹1…ˆè ¤ôùÉ•…Ñ¥½¹1…‰Y¥•İ•È¹½Á•¸ ¤±¥Í1…‰=Á•¸è ¤ôùÉ•…Ñ¥½¹1…‰Y¥•İ•È¹¥Í=Á•¸ ¤±•Ñ	…Ñ¡•¹•É…Ñ¥½¸è ¤ôùÉ•…Ñ¥½¹1…‰Y¥•İ•È¹•Ñ	…Ñ¡•¹•É…Ñ¥½¸ ¤°(€€€€€€€•Ñ½ÕÌè ¤ôù‘½Õµ•¹Ğ¹…Ñ¥Ù•±•µ•¹Ğ±½¹Y¥‰É…Ñ”è ¤ôùÙ¥‰É…Ñ•••‘‰…¬ ÈÈ°Ñ½Õ œ¥ô¤ì(€€€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È µ½±•Õ±”µÉ…™ĞéÉ•…Ñ¥½¸µ±…ˆµÁÉ½‘ÕĞœ±•Ù•¹ĞôùÉ•…Ñ¥½¹1…‰¥Í½Ù•Éäü¹¡…¹‘±•AÉ½‘ÕÑÙ•¹Ğ¡•Ù•¹Ğ¤¤ì(€€€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È µ½±•Õ±”µÉ…™ĞéÉ•…Ñ¥½¸µ±…ˆµÁ½±åµ•ÈµÍ…µÁ±”œ±•Ù•¹ĞôùÉ•…Ñ¥½¹1…‰¥Í½Ù•Éäü¹¡…¹‘±•A½±åµ•ÉM…µÁ±•Ù•¹Ğ¡•Ù•¹Ğ¤¤ì(€€€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È µ½±•Õ±”µÉ…™ĞéÉ•…Ñ¥½¸µ±…ˆµÁ½±åµ•ÈµÍ…µÁ±”µÁÉ•Í•¹Ğœ±•Ù•¹ĞôùÉ•…Ñ¥½¹1…‰¥Í½Ù•Éäü¹¡…¹‘±•A½±åµ•ÉM…µÁ±•AÉ•Í•¹Ğ¡•Ù•¹Ğ¤¤ì(€€€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È µ½±•Õ±”µÉ…™ĞéÉ•…Ñ¥½¸µ±…ˆµÁ½±åµ•ÈµÍ…µÁ±”µ‘¥Íµ¥ÍÌœ±•Ù•¹ĞôùÉ•…Ñ¥½¹1…‰¥Í½Ù•Éäü¹¡…¹‘±•A½±åµ•ÉM…µÁ±•¥Íµ¥ÍÌ¡•Ù•¹Ğ¤¤ì(€€€€€‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ½Á•¸µÉ•…Ñ¥½¸µ±…ˆœ¤¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ° ¤ôùí¥˜¡…µ•M¡•±°¹¥Í=Á•¸ ¥ññ½±±•Ñ¥½¹=Á•¹ññÙ•¥±U$ü¹…Ñ¥Ù•ñğ…É•…Ñ¥½¹1…‰Y¥•İ•È¥É•ÑÕÉ¸íÉ•…Ñ¥½¹1…‰Y¥•İ•È¹½Á•¸ ¤íô¤ì(€€€€€‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ½Á•¸µÉ•…Ñ¥½¸µ±…ˆœ¤¹‘¥Í…‰±•õ™…±Í”ì(€€€õ…Ñ ¡•ÉÉ½È¥í½¹Í½±”¹•ÉÉ½È I•…Ñ¥½¸1…ˆ½Õ±¹½ĞÍÑ…ÉĞ¸œ±•ÉÉ½È¤í‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ½Á•¸µÉ•…Ñ¥½¸µ±…ˆœ¤¹‘¥Í…‰±•õÓ[h‘éì¶»§q«^vue;}
+veilUI=connectExploration({resources,canLeave:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen())&&(saveWorkspace(true)||!resources.blocked),canSupply:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen()),onBeforeLaunch:()=>clearField({clearTarget:true,silent:true,recordHistory:false}),onCraft:()=>{elementPalette.update();syncCraftStock();collectionGame?.refreshProgress();if(renderer){resize();refresh();}},onCommit:()=>saveWorkspace(true),reset:{canReset:()=>!veilUI?.active&&!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen,beforeReset:()=>saveWorkspace(true)&&resources.save()}});
+window.addEventListener('molecule-craft:craft-molecule',event=>beginCraftTarget(event.detail?.id));
+bindSaveLifecycle({window,document,onPageHide:()=>{saveWorkspace(true);resources.save();},onHidden:()=>saveWorkspace(true),onPrepareUpdate:event=>{const saved=workspaceStorage.protected&&!molecule.atoms.length||saveWorkspace(true);if(!resources.save()||veilUI?.active||!saved||dragState||activePointers.size||relaxation||bondTransition||frameTransition||(collectionGame?.state.storageMessage&&collectionGame.state.discoveredCount>0))event.preventDefault();}});
+loadMoleculeDatabase().then(async result=>{
+  syncWorkspace();if(savedWorkspace)discoveryConnection.discardQueued();if(renderer){checkDiscovery();refreshInfo();}
+  if(!result.ok){elementPalette.fallback();if(renderer)pulse('åˆ†å­åDBã‚’èª­ã¿è¾¼ã‚ã¾ã›ã‚“ã§ã—ãŸ Â· åˆ¶ä½œæ©Ÿèƒ½ã¯åˆ©ç”¨ã§ãã¾ã™');document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='åˆ†å­DBã‚’èª­ã‚ãªã„ãŸã‚å›³é‘‘ã¯åˆ©ç”¨ã§ãã¾ã›ã‚“';return;}
+  resources.setCatalog(moleculeCatalog());
+  try{
+    collectionGame=await connectCollection({records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;if(!open)reactionLabDiscovery?.onCollectionClosed();}});
+    try{
+      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=36');
+      reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,polymerRoutes:collectionGame.polymerRoutes,polymerSitePatterns:collectionGame.polymerSitePatterns,
+        polymerNameFor:id=>collectionGame.polymerNameFor(id),isPolymerKnown:id=>collectionGame.polymerState.hasPolymer(id),onOpenPolymer:async id=>{await reactionLabViewer.closeAndWait();return collectionGame.openPolymer(id);},
+        onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
+      reactionLabDiscovery=createReactionLabDiscoveryCoordinator({records:moleculeCatalog(),polymerRoutes:collectionGame.polymerRoutes,polymerIds:collectionGame.polymerRoutes.map(route=>route.polymerId),collection:collectionGame,root:document,
+        closeLabAndWait:()=>reactionLabViewer.closeAndWait(),openLab:()=>reactionLabViewer.open(),isLabOpen:()=>reactionLabViewer.isOpen(),getBatchGeneration:()=>reactionLabViewer.getBatchGeneration(),
+        getFocus:()=>document.activeElement,onVibrate:()=>vibrateFeedback(22,'touch')});
+      window.addEventListener('molecule-craft:reaction-lab-product',event=>reactionLabDiscovery?.handleProductEvent(event));
+      window.addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>reactionLabDiscovery?.handlePolymerSampleEvent(event));
+      window.addEventListener('molecule-craft:reaction-lab-polymer-sample-present',event=>reactionLabDiscovery?.handlePolymerSamplePresent(event));
+      window.addEventListener('molecule-craft:reaction-lab-polymer-sample-dismiss',event=>reactionLabDiscovery?.handlePolymerSampleDismiss(event));
+      document.querySelector('#open-reaction-lab').addEventListener('click',()=>{if(gameShell.isOpen()||collectionOpen||veilUI?.active||!reactionLabViewer)return;reactionLabViewer.open();});
+      document.querySelector('#open-reaction-lab').disabled=false;
+    }catch(error){console.error('Reaction Lab could not start.',error);document.querySelector('#open-reaction-lab').disabled=true;}
     discoveryConnection.collectionReady();if(renderer){checkDiscovery();refreshInfo();}
   }catch(error){elementPalette.fallback();console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='å›³é‘‘ã‚’èª­ã¿è¾¼ã‚ã¾ã›ã‚“ã§ã—ãŸã€‚åŸå­ã‹ã‚‰ã®åˆ¶ä½œã¯ç¶šã‘ã‚‰ã‚Œã¾ã™ã€‚';}
 });
@@ -108,22 +183,61 @@ function addCraftPart(id){
   // must not reveal a larger part and trigger a delayed camera correction.
   // The field has no virtual port neighbours, unlike the book preview.
   const right=cameraRight(),up=cameraUp(),depth=cameraDirection();
-  const model=createPYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬ÕÉ•Ù¥•İ5½‘•°¡Q!I±ì¸¸¹Ñ•µÁ±…Ñ”±…ÑÑ…¡µ•¹ÑÌéÕ¹‘•™¥¹•‘ô¤ì(€™½È¡±•Ğ¤ôÀí¤ğÈÈÀí¤¬¬¥µ½‘•°¹ÍÑ•À ¤ì(€½¹ÍĞ½½É‘¥¹…Ñ•Ìõµ½‘•°¹Í¹…ÁÍ¡½Ğ ¤¹…Ñ½µÌ¹µ…À¡…Ñ½´ôù¹•ÜQ!I¹Y•Ñ½ÈÌ ¤¹…‘‘M…±•‘Y•Ñ½È¡É¥¡Ğ±…Ñ½´¹Á½¥¹Ğ¹à¤¹…‘‘M…±•‘Y•Ñ½È¡ÕÀ±…Ñ½´¹Á½¥¹Ğ¹ä¤¹…‘‘M…±•‘Y•Ñ½È¡‘•ÁÑ ±…Ñ½´¹Á½¥¹Ğ¹è¤¤±½É‘•ÉÌõÑ•µÁ±…Ñ”¹…Ñ½µÌ¹µ…À  ¤ôøÀ¤ì(€™½È¡½¹ÍĞm„±ˆ±½É‘•Ét½˜Ñ•µÁ±…Ñ”¹‰½¹‘Ì¥í½É‘•ÉÍm…t¬õ½É‘•Èí½É‘•ÉÍm‰t¬õ½É‘•Èíô(€½¹ÍĞÁ…ÉÑÌõ½½É‘¥¹…Ñ•Ì¹µ…À ¡À±¤¤ôø¡íàéÀ¹‘½Ğ¡É¥¡Ğ¤±äéÀ¹‘½Ğ¡ÕÀ¤±èèµÀ¹‘½Ğ¡‘•ÁÑ ¤±É…‘¥ÕÌéÍÁ…İ¹I…‘¥ÕÌ¡Ñ•µÁ±…Ñ”¹…Ñ½µÍm¥t±½É‘•ÉÍm¥t¥ô¤¤±Á±…¸õÁ±…¹]½É­ÍÁ…•MÁ…İ¸¡Á…ÉÑÌ¤ì(€¥˜ …Á±…¸¥íÁÕ±Í” Ÿ¦£–N–£’öO
-Kö»G
-/¦ë73
-+ûo
-Lƒ
-Üƒš/¦ƒ
-Kï–.WïšVÓB_›?ƒWœ¤íÉ•ÑÕÉ¸™…±Í”íô(€½¹ÍĞ½É¥¥¸õÁ±…¸¹½É¥¥¸íÉ…™Ñ!¥ÍÑ½Éä¹‰•¥¸ ¤ì(€½¹ÍĞ•áÁ…¹‘•õÉ…™Ñ]½É­ÍÁ…”¹…‘‘A…ÉĞ¡¥±½½É‘¥¹…Ñ•Ì¹µ…À¡Á½¥¹Ğôù½É¥¥¸¹±½¹” ¤¹…‘¡Á½¥¹Ğ¤¤¤ì(€¥˜ …•áÁ…¹‘•¥íÉ…™Ñ!¥ÍÑ½Éä¹…¹•° ¤íÁÕ±Í”¡ƒ¦£–N¯–ş¢š«–:–¶C3¢ÚÏ
-+ûo
-Lƒ
-Üƒš:‹Ò‹Ÿ¢sÖ›_
-#€¤íÉ•ÑÕÉ¸™…±Í”íô(€™½È¡½¹ÍĞm¥¹‘•à±…Ñ½µ%‘u½˜•áÁ…¹‘•¹¥‘Ì¹•¹ÑÉ¥•Ì ¤¥ì(€€€ÁÉ½Ñ•Ñ•‘U¹Ñ¥°¹Í•Ğ¡…Ñ½µ%±Á•É™½Éµ…¹”¹¹½Ü ¤­	I%M}A=1%d¹ÁÉ½Ñ•Ñ¥½¹5Ì¤ì(€ô(€Í•±•ÑÑ½´¡•áÁ…¹‘•¹…ÑÑ…¡µ•¹ÑÍlÁt¹…Ñ½µ%¤íÑ½Á½±½å¡…¹• ¤íÉ…™Ñ!¥ÍÑ½Éä¹½µµ¥Ğ ¤í‰•¥¹MÁ…İ¹i½½´¡Á±…¸¤ì(€€¼¼½½É‘¥¹…Ñ•Ì…É”…±É•…‘äÍ½±Ù•¸IÕ¹¹¥¹œÑ¡”Í½±Ù•È„Í•½¹Ñ¥µ”¡•É”(€€¼¼İ½Õ±‘É¥™ĞÑ¡”Á±…•Á…ÉĞ…™Ñ•È¥ÑÌ™½½ÑÁÉ¥¹Ğ¡…Ì‰••¸™¥ÑÑ•¸(€É•™É•Í  ¤íÁÕ±Í”¡€‘íÑ•µÁ±…Ñ”¹¹…µ•)…÷
-Kö»7û_}€¤íÉ•ÑÕÉ¸ÑÉÕ”ì)ô()™Õ¹Ñ¥½¸½¹A½¥¹Ñ•É½İ¸¡”¥ì(€¥˜¡‰½¹‘QÉ…¹Í¥Ñ¥½¹ññ™É…µ•QÉ…¹Í¥Ñ¥½¹ññ½±±•Ñ¥½¹=Á•¹ññ…µ•M¡•±°¹¥Í=Á•¸ ¤¥íÁÕ±Í” Ÿš/¦ƒ–’'–2[’â´ƒ
-Üƒ¢š[
-ç¿–në–ºkW
-3›ûdœ¤íÉ•ÑÕÉ¸íô(€€¼¼=¹”„‘É…œ¥Ì½µµ¥ÑÑ•°„ÍÑÉ…äÍ•½¹™¥¹•È…¹¹½ĞÍÑ•…°¥Ğ½Èµ½Ù”(€€¼¼Ñ¡”…µ•É„¸U¹É•¥ÍÑ•É•Á½¥¹Ñ•È•Ù•¹ÑÌ…É”¥¹½É•‰•±½Ü…Ìİ•±°¸(€¥˜¡…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”˜™‘É…MÑ…Ñ”˜˜¡‘É…MÑ…Ñ”¹µ½Ù•‘ññ‘É…MÑ…Ñ”¹µ½‘”„ôôµ½±•Õ±”µÉ½Ñ…Ñ”œ¤¥É•ÑÕÉ¸ì(€Í…Ù•]½É­ÍÁ…” ¤í¥˜ ……Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”¥É…™Ñ!¥ÍÑ½Éä¹‰•¥¸ ¤ì(€…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í•Ğ¡”¹Á½¥¹Ñ•É%±íàé”¹±¥•¹Ñ`±äé”¹±¥•¹Ñd±ÍÑ…ÉÑ`é”¹±¥•¹Ñ`±ÍÑ…ÉÑdé”¹±¥•¹Ñd±‘½İ¹ĞéÁ•É™½Éµ…¹”¹¹½Ü ¥ô¤ì(€¥˜¡…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”ôôôÈ¥íÉ…™Ñ!¥ÍÑ½Éä¹…¹•° ¤í±…ÍÑ	…­É½Õ¹‘Q…Àõ¹Õ±°í±•…ÉQ¥µ•½ÕĞ¡‰½¹‘!½±‘Q¥µ•È¤í½¹™½Éµ…Ñ¥½¹¹¥¹”¹É•±•…Í” ¤í‰•¥¹Qİ½¥¹•È ¤í‘É…MÑ…Ñ”õ¹Õ±°í¡½Ù•É±•ÑÉ½¸õ¹Õ±°íÉ•ÑÕÉ¸íõ¥˜¡…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”øÄ¥É•ÑÕÉ¸ì(€¥˜¡É•±…á…Ñ¥½¸¥ì(€€€½¹ÍĞÁ¥­•õ¡½½Í•Ñ½µ=É±•ÑÉ½¸¡”¹±¥•¹Ñ`±”¹±¥•¹Ñd±ÍÉ••¹Ñ½µ…¹‘¥‘…Ñ•Ì ¤±Á¥­MÉ••¹±•ÑÉ½¸¡”¹±¥•¹Ñ`±”¹±¥•¹Ñd¤¤ì(€€€¥˜¡Á¥­•¥íÍ•±•ÑÑ½´¡Á¥­•¹…Ñ½µ%¤íÍ¡½İQ½ÉÍ¥½¹Õ¥‘”¡íµ½‘”è…Ñ½´µ±½­•œ±…Ñ½µ%éÁ¥­•¹…Ñ½µ%±…¹‘¥‘…Ñ•Ìémt±É•…Í½¸èŸ–ö‹
-KšVÓ#›ûdô¤í‘É…MÑ…Ñ”õíµ½‘”è…Ñ½´µ±½­•œ±…Ñ½µ%éÁ¥­•¹…Ñ½µ%±ÍÑ…ÉÑ`é”¹±¥•¹Ñ`±ÍÑ…ÉÑdé”¹±¥•¹Ñd±µ½Ù•é™…±Í•ôíÙ¥‰É…Ñ•••‘‰…¬ ÈÈ±”¹Á½¥¹Ñ•ÉQåÁ”¤í…ÁÑÕÉ”¡”¤íÉ•ÑÕÉ¸íô(€€€±•…ÉQ½ÉÍ¥½¹Õ¥‘” ¤íÕÁ‘…Ñ•5½±•Õ±•QÉ…¹Í™½ÉµÌ ¤ì(€€€‘É…MÑ…Ñ”õíµ½‘”èµ½±•Õ±”µÉ½Ñ…Ñ”œ±É½Ñ…Ñ¥½¸éİ½É­ÍÁ…•Y¥•Ü¹…ÁÑÕÉ”¡ÍÑÉÕÑÕÉ•Ì±µ…¥¹MÑÉÕÑÕÉ”±Á½Ì¤±ÍÑ…ÉÑ`é”¹±¥•¹Ñ`±ÍÑ…ÉÑdé”¹±¥•¹Ñd±±…ÍÑ`é”¹±¥•¹Ñ`±±…ÍÑdé”¹±¥•¹Ñd±µ½Ù•é™…±Í•ôí…ÁÑÕÉ”¡”¤íÉ•ÑÕÉ¸ì(€ô(€½¹ÍĞÁ¥­•õ¡½½Í•Ñ½µ=É±•ÑÉ½¸¡”¹±¥•¹Ñ`±”¹±¥•¹Ñd±ÍÉ••¹Ñ½µ…¹‘¥‘…Ñ•Ì ¤±Á¥­MÉ••¹±•ÑÉ½¸¡”¹±¥•¹Ñ`±”¹±¥•¹Ñd¤¤ì(€¥˜¡Á¥­•¥í±…ÍÑ	…­É½Õ¹‘Q…Àõ¹Õ±°í¥˜¡Á¥­•¹­¥¹ôôô•±•ÑÉ½¸œ¥‰•¥¹±•ÑÉ½¹É…œ¡”±Á¥­•¤í•±Í”‰•¥¹Ñ½µÉ…œ¡”±Á¥­•¹…Ñ½µ%¤íÉ•ÑÕÉ¸íô(€½¹ÍĞ‰½¹‘A¥¬õÁ¥­MÉ••¹	½¹¡”¹±¥•¹Ñ`±”¹±¥•¹Ñd¤ì(€¥˜¡‰½¹‘A¥¬¥ì(€€€±…ÍÑ	…­É½Õ¹‘Q…Àõ¹Õ±°ì(€€€½¹ÍĞ­•äõ‰½¹‘A¥¬¹­•äí‘É…MÑ…Ñ”õíµ½‘”è‰½¹œ±­•ä±ÍÑ…ÉÑ`é”¹±¥•¹Ñ`±ÍÑ…ÉÑdé”¹±¥•¹Ñd±±…ÍÑ`é”¹±¥•¹Ñ`±±…ÍÑdé”¹±¥•¹Ñd±µ½Ù•é™…±Í”±¡½±‘¥¹œé™…±Í•ôì(€€€±•…ÉQ¥µ•½ÕĞ¡‰½¹‘!½±‘Q¥µ•È¤ì(€€€‰½¹‘!½±‘Q¥µ•ÈõÍ•ÑQ¥µ•½ÕĞ  ¤ôùí¥˜ …‘É…MÑ…Ñ•ññ‘É…MÑ…Ñ”¹µ½‘”„ôô‰½¹ññ‘É…MÑ…Ñ”¹­•ä„ôõ­•åññ‘É…MÑ…Ñ”¹µ½Ù•¥É•ÑÕÉ¸í‘É…MÑ…Ñ”¹¡½±‘¥¹œõİ•…­•¹	½¹¡­•ä¤í¥˜ …‘É…MÑ…Ñ”¹¡½±‘¥¹œ¥É…™Ñ!¥ÍÑ½Éä¹…¹•° ¤íô°ÔàÀ¤ì(€€€…ÁÑÕÉ”¡”¤íÉ•ÑÕÉ¸ì(€ô(€±•…ÉQ½ÉÍ¥½¹Õ¥‘” ¤íÕÁ‘…Ñ•5½±•Õ±•QÉ…¹Í™½ÉµÌ ¤ì(€‘É…MÑ…Ñ”õíµ½‘”èµ½±•Õ±”µÉ½Ñ…Ñ”œ±É½Ñ…Ñ¥½¸éİ½É­ÍÁ…•Y¥•Ü¹…ÁÑÕÉ”¡ÍÑÉÕÑÕÉ•Ì±µ…¥¹MÑÉÕÑÕÉ”±Á½Ì¤±ÍÑ…ÉÑ`é”¹±¥•¹Ñ`±ÍÑ…ÉÑdé”¹±¥•¹Ñd±±…ÍÑ`é”¹±¥•¹Ñ`±±…ÍÑdé”¹±¥•¹Ñd±µ½Ù•é™…±Í•ôí…ÁÑÕÉ”¡”¤ì)ô)™Õ¹Ñ¥½¸ÕÉÉ•¹ÑQ½ÉÍ¥½¹5½‘•° ¥íÉ•ÑÕÉ¸Ñ½ÉÍ¥½¹5½‘•°üüõÉ•…Ñ•Q½ÉÍ¥½¹5½‘•°¡µ½±•Õ±”±í…É½µ…Ñ¥å±•ÌéÍ½±Ù•È¹Í¹…ÁÍ¡½Ğ ¤¹…É½µ…Ñ¥å±•Íô¤íô)™Õ¹Ñ¥½¸…Ñ½µ‘¥ÑA±…¸¡…Ñ½µ%±…Ñ¥Ù•-•äõ¹Õ±°¥íÉ•ÑÕÉ¸½¹™½Éµ…Ñ¥½¹¹¥¹”¹Á±…¸¡…Ñ½µ%±í…Ñ¥Ù•-•åô¤íô)™Õ¹Ñ¥½¸±•…ÉQ½ÉÍ¥½¹Õ¥‘” ¥ì(€Ñ½ÉÍ¥½¹Õ¥‘”õ¹Õ±°ì)ô)™Õ¹Ñ¥½¸Í¡½İQ½ÉÍ¥½¹Õ¥‘”¡Á±…¸¥ì(€±•…ÉQ½ÉÍ¥½¹Õ¥‘” ¤í¥˜ …Á±…¹ññÁ±…¸¹µ½‘”ôôô…Ñ½´µÑÉ…¹Í±…Ñ”œ¥É•ÑÕÉ¸ì(€€¼¼Q¡¥Ì¥Ì¥¹Ñ•É…Ñ¥½¸ÍÑ…Ñ”½¹±ä¸½¹ÍÑÉ…¥¹ÑÌ…É”½µµÕ¹¥…Ñ•‰äµ½Ñ¥½¸°(€€¼¼İ¥Ñ¡½ÕĞÉ½Ñ…Ñ¥½¸µ…á¥Ì¡¥¡±¥¡ÑÌ°¹Õµ‰•É•½¹ÑÉ½±Ì½È±½¬ÍÑ…µÁÌ¸(€Ñ½ÉÍ¥½¹Õ§[h‘éì¶»§q«^te=plan;
+  const model=createPreviewModel(THREE,{...template,attachments:undefined});
+  for(let i=0;i<220;i++)model.step();
+  const coordinates=model.snapshot().atoms.map(atom=>new THREE.Vector3().addScaledVector(right,atom.point.x).addScaledVector(up,atom.point.y).addScaledVector(depth,atom.point.z)),orders=template.atoms.map(()=>0);
+  for(const [a,b,order] of template.bonds){orders[a]+=order;orders[b]+=order;}
+  const parts=coordinates.map((p,i)=>({x:p.dot(right),y:p.dot(up),z:-p.dot(depth),radius:spawnRadius(template.atoms[i],orders[i])})),plan=planWorkspaceSpawn(parts);
+  if(!plan){pulse('éƒ¨å“å…¨ä½“ã‚’ç½®ã‘ã‚‹ç©ºããŒã‚ã‚Šã¾ã›ã‚“ Â· æ§‹é€ ã‚’ç§»å‹•ãƒ»æ•´ç†ã—ã¦ãã ã•ã„');return false;}
+  const origin=plan.origin;craftHistory.begin();
+  const expanded=craftWorkspace.addPart(id,coordinates.map(point=>origin.clone().add(point)));
+  if(!expanded){craftHistory.cancel();pulse(`éƒ¨å“ã«å¿…è¦ãªåŸå­ãŒè¶³ã‚Šã¾ã›ã‚“ Â· æ¢ç´¢ã§è£œçµ¦ã—ã‚ˆã†`);return false;}
+  for(const [index,atomId]of expanded.ids.entries()){
+    protectedUntil.set(atomId,performance.now()+DEBRIS_POLICY.protectionMs);
+  }
+  selectAtom(expanded.attachments[0].atomId);topologyChanged();craftHistory.commit();beginSpawnZoom(plan);
+  // Coordinates are already solved. Running the solver a second time here
+  // would drift the placed part after its footprint has been fitted.
+  refresh();pulse(`${template.nameJa}ã‚’ç½®ãã¾ã—ãŸ`);return true;
+}
+
+function onPointerDown(e){
+  if(bondTransition||frameTransition||collectionOpen||gameShell.isOpen()){pulse('æ§‹é€ å¤‰åŒ–ä¸­ Â· è¦–ç‚¹ã¯å›ºå®šã•ã‚Œã¦ã„ã¾ã™');return;}
+  // Once a drag is committed, a stray second finger cannot steal it or move
+  // the camera. Unregistered pointer events are ignored below as well.
+  if(activePointers.size&&dragState&&(dragState.moved||dragState.mode!=='molecule-rotate'))return;
+  saveWorkspace();if(!activePointers.size)craftHistory.begin();
+  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,downAt:performance.now()});
+  if(activePointers.size===2){craftHistory.cancel();lastBackgroundTap=null;clearTimeout(bondHoldTimer);conformationEngine.release();beginTwoFinger();dragState=null;hoverElectron=null;return;}if(activePointers.size>1)return;
+  if(relaxation){
+    const picked=chooseAtomOrElectron(e.clientX,e.clientY,screenAtomCandidates(),pickScreenElectron(e.clientX,e.clientY));
+    if(picked){selectAtom(picked.atomId);showTorsionGuide({mode:'atom-locked',atomId:picked.atomId,candidates:[],reason:'å½¢ã‚’æ•´ãˆã¦ã„ã¾ã™'});dragState={mode:'atom-locked',atomId:picked.atomId,startX:e.clientX,startY:e.clientY,moved:false};vibrateFeedback(22,e.pointerType);capture(e);return;}
+    clearTorsionGuide();updateMoleculeTransforms();
+    dragState={mode:'molecule-rotate',rotation:workspaceView.capture(structures,mainStructure,pos),startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false};capture(e);return;
+  }
+  const picked=chooseAtomOrElectron(e.clientX,e.clientY,screenAtomCandidates(),pickScreenElectron(e.clientX,e.clientY));
+  if(picked){lastBackgroundTap=null;if(picked.kind==='electron')beginElectronDrag(e,picked);else beginAtomDrag(e,picked.atomId);return;}
+  const bondPick=pickScreenBond(e.clientX,e.clientY);
+  if(bondPick){
+    lastBackgroundTap=null;
+    const key=bondPick.key;dragState={mode:'bond',key,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,holding:false};
+    clearTimeout(bondHoldTimer);
+    bondHoldTimer=setTimeout(()=>{if(!dragState||dragState.mode!=='bond'||dragState.key!==key||dragState.moved)return;dragState.holding=weakenBond(key);if(!dragState.holding)craftHistory.cancel();},580);
+    capture(e);return;
+  }
+  clearTorsionGuide();updateMoleculeTransforms();
+  dragState={mode:'molecule-rotate',rotation:workspaceView.capture(structures,mainStructure,pos),startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false};capture(e);
+}
+function currentTorsionModel(){return torsionModel??=createTorsionModel(molecule,{aromaticCycles:solver.snapshot().aromaticCycles});}
+function atomEditPlan(atomId,activeKey=null){return conformationEngine.plan(atomId,{activeKey});}
+function clearTorsionGuide(){
+  torsionGuide=null;
+}
+function showTorsionGuide(plan){
+  clearTorsionGuide();if(!plan||plan.mode==='atom-translate')return;
+  // This is interaction state only. Constraints are communicated by motion,
+  // without rotation-axis highlights, numbered controls or lock stamps.
+  torsionGuide=plan;
 }
 function beginAtomDrag(e,atomId){
   selectAtom(atomId);
@@ -180,8 +294,62 @@ function cleanupDetachedTear(state=dragState){
 function performTearOff(state,candidate){
   if(!candidate||state.mode==='tear-detached')return false;
   try{conformationEngine.release();}catch{}
-  const snapshot=captureDetachedFragment(molecule,candidate,{positionFor:pos,pointerWorld:state.targetWorldYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Õô¤í¥˜ …Í¹…ÁÍ¡½Ğ¥É•ÑÕÉ¸™…±Í”ì(€½¹ÍĞÉ•µ½Ù•õ¹•ÜM•Ğ¡…¹‘¥‘…Ñ”¹É…‰É…µ•¹Ğ¤íÉ…™Ñ]½É­ÍÁ…”¹É•µ½Ù•Ñ½µÌ¡É•µ½Ù•¤ì(€™½È¡½¹ÍĞ¥½˜É•µ½Ù•¥íÁÉ½Ñ•Ñ•‘U¹Ñ¥°¹‘•±•Ñ”¡¥¤íÕ¹É•Í½±Ù•‘Ñ½µÌ¹‘•±•Ñ”¡¥¤í‘•‰É¥Í=Á…¥Ñä¹‘•±•Ñ”¡¥¤í™…‘•Q…É•ÑÌ¹‘•±•Ñ”¡¥¤íô(€½¹ÍĞ¹•áÑM•±•Ñ•õÉ•µ½Ù•¹¡…Ì¡Í•±•Ñ•‘Ñ½µ%¤ı…¹‘¥‘…Ñ”¹‰½‘åM¥‘•%éÍ•±•Ñ•‘Ñ½µ%íÍÑ…Ñ”¹µ½‘”ôÑ•…Èµ‘•Ñ…¡•œíÍÑ…Ñ”¹‘•Ñ…¡•‘Q•…Èõí‘É…œéÉ•…Ñ••Ñ…¡•‘É…œ¡Í¹…ÁÍ¡½Ğ¤±Ù¥ÍÕ…°éÉ•…Ñ••Ñ…¡•‘Q•…ÉY¥ÍÕ…°¡Í¹…ÁÍ¡½Ğ¥ôíÍÑ…Ñ”¹Ñ•…É…¹‘¥‘…Ñ”õ¹Õ±°íÍÑ…Ñ”¹Ñ•…É••‘‰…¬ôÀíÍÑ…Ñ”¹Ñ•…ÉAÉ½É•ÍÌôÄì(€ÁÉ½Ñ•Ñ•‘U¹Ñ¥°¹Í•Ğ¡…¹‘¥‘…Ñ”¹‰½‘åM¥‘•%±Á•É™½Éµ…¹”¹¹½Ü ¤­	I%M}A=1%d¹ÁÉ½Ñ•Ñ¥½¹5Ì¤íÑ½Á½±½å¡…¹• ¤íÍ•±•ÑÑ½´¡…Ñ½µ	å%¡¹•áÑM•±•Ñ•¤ı¹•áÑM•±•Ñ•é…¹‘¥‘…Ñ”¹‰½‘åM¥‘•%¤íİ½É­ÍÁ…•Y¥•Ü¹•½µ•ÑÉå¡…¹• ¤íÉ…™Ñ!¥ÍÑ½Éä¹½µµ¥Ğ ¤ì(€Ù¥‰É…Ñ•••‘‰…¬ ÌÀ±ÍÑ…Ñ”¹Á½¥¹Ñ•ÉQåÁ”¤í•¹ÍÕÉ•5½±•Õ±•5•Í¡•Ì ¤íÕÁ‘…Ñ•5½±•Õ±•QÉ…¹Í™½ÉµÌ ¤íÉ•™É•Í¡%¹™¼¡ÑÉÕ”¤íÁÕ±Í” Ÿ–Â?&
-I	MMQ=/ãš"ï_û_|œ¤íÉ•ÑÕÉ¸ÑÉÕ”ì)ô)™Õ¹Ñ¥½¸½¹A½¥¹Ñ•É5½Ù”¡”¥ì(€¥˜ ……Ñ¥Ù•A½¥¹Ñ•ÉÌ¹¡…Ì¡”¹Á½¥¹Ñ•É%¤¥É•ÑÕÉ¸ì(€½¹ÍĞÀõ…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹•Ğ¡”¹Á½¥¹Ñ•É%¤í¥˜¡À¥íÀ¹àõ”¹±¥•¹Ñ`íÀ¹äõ”¹±¥•¹Ñdíõ¥˜¡…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”ôôôÈ¥íÕÁ‘…Ñ•Qİ½¥¹•È ¤íÉ•ÑÕÉ¸íõ¥˜ …‘É…MÑ…Ñ”¥É•ÑÕÉ¸ì(€‘É…MÑ…Ñ”¹µ½Ù•‘ñğõ5…Ñ ¹¡åÁ½Ğ¡”¹±¥•¹Ñ`µ‘É…MÑ…Ñ”¹ÍÑ…ÉÑ`±”¹±¥•¹Ñdµ‘É…MÑ…Ñ”¹ÍÑ…ÉÑd¤øØì(€¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôô‰½¹œ¥í¥˜¡‘É…MÑ…Ñ”¹µ½Ù•˜˜…‘É…MÑ…Ñ”¹¡½±‘¥¹œ¥±•…ÉQ¥µ•½ÕĞ¡‰½¹‘!½±‘Q¥µ•È¤íÉ•ÑÕÉ¸íô(€¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôô•±•ÑÉ½¸œ¥ì(€€€¥˜ …‘É…MÑ…Ñ”¹µ½Ù•¥É•ÑÕÉ¸ì(€€€½¹ÍĞ‘É…`õ”¹±¥•¹Ñ`±‘É…dõ”¹±¥•¹Ñdµ‘É…MÑ…Ñ”¹±¥™ÑAà±™É•”õÍÉ••¹A½¥¹ÑQ½]½É±‘=¹A±…¹”¡‘É…`±‘É…d±‘É…MÑ…Ñ”¹¡½µ•]½É±±‘É…MÑ…Ñ”¹Á±…¹•9½Éµ…°¤í‘É…MÑ…Ñ”¹ÕÉÉ•¹Ñ]½É±¹±•ÉÀ¡™É•”°¸àÈ¤ì(€€€½¹ÍĞ¹•…É•ÍĞõ™¥¹‘9•…É•ÍÑ½µÁ…Ñ¥‰±•±•ÑÉ½¸¡‘É…`±‘É…d±‘É…MÑ…Ñ”¹…Ñ½µ%±‘É…MÑ…Ñ”¹¥¹‘•à¤í¡½Ù•É±•ÑÉ½¸õ¹•…É•ÍĞü¹‘¥ÍÑ…¹”ğõ1QI=9}M9A}A`ı¹•…É•ÍĞé¹Õ±°ì(€€€½¹ÍĞÍ¹…Á-•äõ¡½Ù•É±•ÑÉ½¸ı€‘í¡½Ù•É±•ÑÉ½¸¹…Ñ½µ%‘ôè‘í¡½Ù•É±•ÑÉ½¸¹¥¹‘•áõ€é¹Õ±°í¥˜¡Í¹…Á-•ä˜™Í¹…Á-•ä„ôõ‘É…MÑ…Ñ”¹Í¹…Á-•ä¥Ù¥‰É…Ñ•••‘‰…¬ Äà±‘É…MÑ…Ñ”¹Á½¥¹Ñ•ÉQåÁ”¤í‘É…MÑ…Ñ”¹Í¹…Á-•äõÍ¹…Á-•äì(€€€¥˜¡¡½Ù•É±•ÑÉ½¸¥ì(€€€€€½¹ÍĞÍ¹…Á]½É±õÍÉ••¹A½¥¹ÑQ½]½É±‘=¹A±…¹”¡¡½Ù•É±•ÑÉ½¸¹ÍÉ••¹`±¡½Ù•É±•ÑÉ½¸¹ÍÉ••¹d±‘É…MÑ…Ñ”¹¡½µ•]½É±±‘É…MÑ…Ñ”¹Á±…¹•9½Éµ…°¤ì(€€€€€‘É…MÑ…Ñ”¹ÕÉÉ•¹Ñ]½É±¹±•ÉÀ¡Í¹…Á]½É±°¸àØ¤ì(€€€ô(€€€ÕÁ‘…Ñ•5½±•Õ±•QÉ…¹Í™½ÉµÌ ¤íÉ•ÑÕÉ¸ì(€ô(€¥˜ …‘É…MÑ…Ñ”¹µ½Ù•¥É•ÑÕÉ¸ì(€¥˜¡‘É…MÑ…Ñ”¹…Ñ½µ%„õ¹Õ±°˜™‘É…MÑ…Ñ”¹¡½µ•]½É±˜™‘É…MÑ…Ñ”¹Á±…¹•9½Éµ…°¥í‘É…MÑ…Ñ”¹Ñ…É•Ñ]½É±õÁ½¥¹Ñ•É]½É±‘=¹A±…¹”¡”±‘É…MÑ…Ñ”¹¡½µ•]½É±±‘É…MÑ…Ñ”¹Á±…¹•9½Éµ…°¤í¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôôÑ•…Èµ‘•Ñ…¡•œ¥íÕÁ‘…Ñ••Ñ…¡•‘Q•…ÉY¥ÍÕ…°¡‘É…MÑ…Ñ”¤íÉ•ÑÕÉ¸íõ…‘Ù…¹•Q•…ÉÉ…œ ¤í¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôôÑ•…Èµ‘•Ñ…¡•œ¥É•ÑÕÉ¸íô(€¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôô…Ñ½´µ±½­•ññ‘É…MÑ…Ñ”¹µ½‘”ôôô…á¥ÌµÍ•±•Ğœ¥É•ÑÕÉ¸ì(€¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôô…Ñ½´µÑÉ…¹Í±…Ñ”œ¥ì(€€€½¹ÍĞ¹•áĞõ‘É…MÑ…Ñ”¹Ñ…É•Ñ]½É±¹±½¹” ¤ì(€€€½¹ÍĞ‘•±Ñ„õ¹•áĞ¹ÍÕˆ¡Á½Ì¡‘É…MÑ…Ñ”¹…Ñ½µ%¤¤ì(€€€™½È¡½¹ÍĞ¥½˜‘É…MÑ…Ñ”¹¥‘Ì¥Á½Ì¡¥¤ü¹…‘¡‘•±Ñ„¤ì(€€€İ½É­ÍÁ…•Y¥•Ü¹•½µ•ÑÉå¡…¹• ¤íÕÁ‘…Ñ•5½±•Õ±•QÉ…¹Í™½ÉµÌ ¤íÉ•ÑÕÉ¸ì(€ô(€½¹ÍĞ‘àõ”¹±¥•¹Ñ`µ‘É…MÑ…Ñ”¹±…ÍÑ`±‘äõ”¹±¥•¹Ñdµ‘É…MÑ…Ñ”¹±…ÍÑdí‘É…MÑ…Ñ”¹±…ÍÑ`õ”¹±¥•¹Ñ`í‘É…MÑ…Ñ”¹±…ÍÑdõ”¹±¥•¹Ñdì(€¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôô½¹™½Éµ…Ñ¥½¸ññ‘É…MÑ…Ñ”¹µ½‘”ôôôÉ¥¥µ‰½‘äœ¥ì(€€€‘É…MÑ…Ñ”¹Ñ…É•Ñ]½É±õÁ½¥¹Ñ•É]½É±‘=¹A±…¹”¡”±‘É…MÑ…Ñ”¹¡½µ•]½É±±‘É…MÑ…Ñ”¹Á±…¹•9½Éµ…°¤í…‘Ù…¹•½¹™½Éµ…Ñ¥½¹É…œ ¤íÉ•ÑÕÉ¸ì(€ô(€¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôôÑ½ÉÍ¥½¸œ¥ì(€€€½¹ÍĞÉ•ÍÕ±Ğõ½¹™½Éµ…Ñ¥½¹¹¥¹”¹É½Ñ…Ñ•É…œ ¡‘àµ‘ä¨¸ÈÔ¤¨¸ÀÄÈ¤í‘É…MÑ…Ñ”¹±…ÍÑI•ÍÕ±ĞõÉ•ÍÕ±Ğì(€€€¥˜¡É•ÍÕ±Ğ¹…•ÁÑ•¥İ½É­ÍÁ…•Y¥•Ü¹•½µ•ÑÉå¡…¹• ¤íÕÁ‘…Ñ•5½±•Õ±•QÉ…¹Í™½ÉµÌ ¤íÉ•ÑÕÉ¸ì(€ô(€¥˜¡‘É…MÑ…Ñ”¹µ½‘”ôôôµ½±•Õ±”µÉ½Ñ…Ñ”œ¥É½Ñ…Ñ•]¡½±•5½±•Õ±”¡‘à±‘ä°À±‘É…MÑ…Ñ”¹É½Ñ…Ñ¥½¸¤ì(€ÕÁ‘…Ñ•5½±•Õ±•QÉ…¹Í™½ÉµÌ ¤ì)ô)™Õ¹Ñ¥½¸½¹A½¥¹Ñ•ÉUÀ¡”¥ì(€¥˜ ……Ñ¥Ù•A½¥¹Ñ•ÉÌ¹¡…Ì¡”¹Á½¥¹Ñ•É%¤¥É•ÑÕÉ¸ì(€½¹ÍĞÍÑ…Ñ”õ‘É…MÑ…Ñ”±Àõ…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹•Ğ¡”¹Á½¥¹Ñ•É%¤í…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹‘•±•Ñ”¡”¹Á½¥¹Ñ•É%¤í¥˜¡…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”ğÈ¥µÕ±Ñ¥•ÍÑÕÉ”õ¹Õ±°í¥˜ …ÍÑ…Ñ”¥íÉ…™Ñ!¥ÍÑ½Éä¹…¹•° ¤íÉ•ÑÕÉ¸íô(€½¹ÍĞ•±…ÁÍ•õÀıÁ•É™½Éµ…¹”¹¹½Ü ¤µÀ¹‘½İ¹Ğé%¹™¥¹¥Ñä±¥ÍQ…Àô…ÍÑ…Ñ”¹µ½Ù•˜™•±…ÁÍ•ğĞÀÀì(€¥˜¡ÍÑ…Ñ”¹µ½‘”ôôôÑ•…Èµ‘•Ñ…¡•œ¥ì(€€€±•…¹ÕÁ•Ñ…¡•‘Q•…È¡ÍÑ…Ñ”¤íÉ…™Ñ!¥ÍÑ½Éä¹…¹•° ¤ì(€õ•±Í”¥˜¡ÍÑ…Ñ”¹µ½‘”ôôô‰½¹œ¥ì(€€€±•…ÉQ¥µ•½ÕĞ¡‰½¹‘!½±‘Q¥µ•È¤í‰½¹‘!½±‘Q¥µ•Èõ¹Õ±°í¥˜¡¥ÍQ…À˜˜…ÍÑ…Ñ”¹¡½±‘¥¹œ¥¡…¹‘±•	½¹‘Q…À¡ÍÑ…Ñ”¹­•ä±”¹Á½¥¹Ñ•ÉQåÁ”¤í¥˜ …ÍÑ…Ñ”¹¡½±‘¥¹œ¥É…™Ñ!¥ÍÑ½Éä¹…¹•° ¤ì(€õ•±Í”¥˜¡ÍÑ…Ñ”¹µ½‘”ôôô•±•ÑÉ½¸œ¥ì(€€€¥˜ …ÍÑ…Ñ”¹µ½Ù•¥íÍ•±•ÑÑ½´¡ÍÑ…Ñ”¹…Ñ½µ%¤íÉ…™Ñ!¥ÍÑ½Éä¹…¹•° ¤íõ•±Í”¥˜ …™¥¹¥Í¡±•ÑÉ½¹É…œ¡ÍÑ…Ñ”±”¤¥É…™Ñ!¥ÍÑ½Éä¹…¹•° ¤í¡½Ù•É±•ÑÉ½¸õ¹Õ±°ì(€õ•±Í”¥˜¡ÍÑ…Ñ”¹µ½‘”ôôô…Ñ½´µÑÉ…¹Í±…Ñ”œ¥ì(€€€¥˜¡¥ÍQ…À¥Í•±•ÑÑ½´¡ÍÑ…Ñ”¹…Ñ½µ%¤íÍÑ…Ñ”¹µ½Ù•ıÉ…™Ñ!¥ÍÑ½Éä¹½µµ¥Ğ ¤éÉ…™Ñ!¥ÍÑ½Éä¹…¹•° ¤ì(€õ•±Í”¥˜¡ÍÑ…Ñ”¹µ½“[h‘éì¶»§q«^u==='torsion'||state.mode==='conformation'||state.mode==='rigid-body'){
+  const snapshot=captureDetachedFragment(molecule,candidate,{positionFor:pos,pointerWorld:state.targetWorld});if(!snapshot)return false;
+  const removed=new Set(candidate.grabFragment);craftWorkspace.removeAtoms(removed);
+  for(const id of removed){protectedUntil.delete(id);unresolvedAtoms.delete(id);debrisOpacity.delete(id);fadeTargets.delete(id);}
+  const nextSelected=removed.has(selectedAtomId)?candidate.bodySideId:selectedAtomId;state.mode='tear-detached';state.detachedTear={drag:createDetachedDrag(snapshot),visual:createDetachedTearVisual(snapshot)};state.tearCandidate=null;state.tearFeedback=0;state.tearProgress=1;
+  protectedUntil.set(candidate.bodySideId,performance.now()+DEBRIS_POLICY.protectionMs);topologyChanged();selectAtom(atomById(nextSelected)?nextSelected:candidate.bodySideId);workspaceView.geometryChanged();craftHistory.commit();
+  vibrateFeedback(30,state.pointerType);ensureMoleculeMeshes();updateMoleculeTransforms();refreshInfo(true);pulse('å°ç‰‡ã‚’BASE STOCKã¸æˆ»ã—ã¾ã—ãŸ');return true;
+}
+function onPointerMove(e){
+  if(!activePointers.has(e.pointerId))return;
+  const p=activePointers.get(e.pointerId);if(p){p.x=e.clientX;p.y=e.clientY;}if(activePointers.size===2){updateTwoFinger();return;}if(!dragState)return;
+  dragState.moved||=Math.hypot(e.clientX-dragState.startX,e.clientY-dragState.startY)>6;
+  if(dragState.mode==='bond'){if(dragState.moved&&!dragState.holding)clearTimeout(bondHoldTimer);return;}
+  if(dragState.mode==='electron'){
+    if(!dragState.moved)return;
+    const dragX=e.clientX,dragY=e.clientY-dragState.liftPx,free=screenPointToWorldOnPlane(dragX,dragY,dragState.homeWorld,dragState.planeNormal);dragState.currentWorld.lerp(free,.82);
+    const nearest=findNearestCompatibleElectron(dragX,dragY,dragState.atomId,dragState.index);hoverElectron=nearest?.distance<=ELECTRON_SNAP_PX?nearest:null;
+    const snapKey=hoverElectron?`${hoverElectron.atomId}:${hoverElectron.index}`:null;if(snapKey&&snapKey!==dragState.snapKey)vibrateFeedback(18,dragState.pointerType);dragState.snapKey=snapKey;
+    if(hoverElectron){
+      const snapWorld=screenPointToWorldOnPlane(hoverElectron.screenX,hoverElectron.screenY,dragState.homeWorld,dragState.planeNormal);
+      dragState.currentWorld.lerp(snapWorld,.86);
+    }
+    updateMoleculeTransforms();return;
+  }
+  if(!dragState.moved)return;
+  if(dragState.atomId!=null&&dragState.homeWorld&&dragState.planeNormal){dragState.targetWorld=pointerWorldOnPlane(e,dragState.homeWorld,dragState.planeNormal);if(dragState.mode==='tear-detached'){updateDetachedTearVisual(dragState);return;}advanceTearDrag();if(dragState.mode==='tear-detached')return;}
+  if(dragState.mode==='atom-locked'||dragState.mode==='axis-select')return;
+  if(dragState.mode==='atom-translate'){
+    const next=dragState.targetWorld.clone();
+    const delta=next.sub(pos(dragState.atomId));
+    for(const id of dragState.ids)pos(id)?.add(delta);
+    workspaceView.geometryChanged();updateMoleculeTransforms();return;
+  }
+  const dx=e.clientX-dragState.lastX,dy=e.clientY-dragState.lastY;dragState.lastX=e.clientX;dragState.lastY=e.clientY;
+  if(dragState.mode==='conformation'||dragState.mode==='rigid-body'){
+    dragState.targetWorld=pointerWorldOnPlane(e,dragState.homeWorld,dragState.planeNormal);advanceConformationDrag();return;
+  }
+  if(dragState.mode==='torsion'){
+    const result=conformationEngine.rotateDrag((dx-dy*.25)*.012);dragState.lastResult=result;
+    if(result.accepted)workspaceView.geometryChanged();updateMoleculeTransforms();return;
+  }
+  if(dragState.mode==='molecule-rotate')rotateWholeMolecule(dx,dy,0,dragState.rotation);
+  updateMoleculeTransforms();
+}
+function onPointerUp(e){
+  if(!activePointers.has(e.pointerId))return;
+  const state=dragState,p=activePointers.get(e.pointerId);activePointers.delete(e.pointerId);if(activePointers.size<2)multiGesture=null;if(!state){craftHistory.cancel();return;}
+  const elapsed=p?performance.now()-p.downAt:Infinity,isTap=!state.moved&&elapsed<400;
+  if(state.mode==='tear-detached'){
+    cleanupDetachedTear(state);craftHistory.cancel();
+  }else if(state.mode==='bond'){
+    clearTimeout(bondHoldTimer);bondHoldTimer=null;if(isTap&&!state.holding)handleBondTap(state.key,e.pointerType);if(!state.holding)craftHistory.cancel();
+  }else if(state.mode==='electron'){
+    if(!state.moved){selectAtom(state.atomId);craftHistory.cancel();}else if(!finishElectronDrag(state,e))craftHistory.cancel();hoverElectron=null;
+  }else if(state.mode==='atom-translate'){
+    if(isTap)selectAtom(state.atomId);state.moved?craftHistory.commit():craftHistory.cancel();
+  }else if(state.mode==='torsion'||state.mode==='conformation'||state.mode==='rigid-body'){
     finishTorsion(state);state.moved?craftHistory.commit():craftHistory.cancel();
   }else if(state.mode==='molecule-rotate'){
     if(isTap&&state.atomId!=null)selectAtom(state.atomId);
@@ -244,24 +412,54 @@ function pickScreenBond(clientX,clientY,keys=null){
 function beginElectronDrag(e,picked){
   clearTorsionGuide();
   const home=picked.world,liftPx=e.pointerType==='touch'||e.pointerType==='pen'?ELECTRON_POINTER_TARGET.touchLiftPx:0;
-  dragState={mode:'electron',atomId:picked.atomId,index:picked.index,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,homeWorld:home.cloneYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Ô ¤±ÕÉÉ•¹Ñ]½É±é¡½µ”¹±½¹” ¤±Á±…¹•9½Éµ…°é…µ•É…¥É•Ñ¥½¸ ¤±±¥™ÑAà±Á½¥¹Ñ•ÉQåÁ”é”¹Á½¥¹Ñ•ÉQåÁ”±Í¹…Á-•äé¹Õ±±ôì(€Í•±•ÑÑ½´¡Á¥­•¹…Ñ½µ%¤í•±•ÑÉ½¹I•ÑÕÉ¸õ¹Õ±°íÙ¥‰É…Ñ•••‘‰…¬ ÄÀ±”¹Á½¥¹Ñ•ÉQåÁ”¤í…ÁÑÕÉ”¡”¤íÉ•™É•Í  ¤ì)ô()™Õ¹Ñ¥½¸ÅÕ•Õ•	½¹‘½Éµ…Ñ¥½¸¡ÍÑ…Ñ”±Ñ…É•Ğ±¡…¹”¥ì(€€¼¼Q¡”ÍÉ••¸µÍÁ…”•±•ÑÉ½¸•ÍÑÕÉ”¡½½Í•ÌÑ½Á½±½ä¸=¹±äQHÑ¡”‰½¹(€€¼¼…ÁÁ•…ÉÌ‘¼İ”µ½Ù”Ñ¡”Íµ…±±•È™É…µ•¹Ğ°­••Á¥¹œ¥ÑÌ¥¹Ñ•É¹…°Í¡…Á”¥¹Ñ…Ğ¸(€½¹ÍĞ‘½­¥¹œõ¡…¹”¹½±‘=É‘•ÈôôôÀıÁ±…¹	½¹‘½­¥¹œ¡íQ!I±µ½±•Õ±”±Á½Í¥Ñ¥½¹½ÈéÁ½Ì±„é¡…¹”¹Í½ÕÉ•%±ˆé¡…¹”¹Ñ…É•Ñ%±±•¹Ñ é‰½¹‘1•¹Ñ¡½È¡¡…¹”¹Í½ÕÉ•%±¡…¹”¹Ñ…É•Ñ%±¡…¹”¹¹•İ=É‘•È¤±ÁÉ•™•ÉÉ•‘%‘Ìéµ…¥¹MÑÉÕÑÕÉ”ü¹¥‘Ì±‘¥É•Ñ¥½¹½Èé¥ôùí½¹ÍĞ¥¹‘•àõ¥ôôõÍÑ…Ñ”¹…Ñ½µ%ıÍÑ…Ñ”¹¥¹‘•àéÑ…É•Ğ¹¥¹‘•àíÉ•ÑÕÉ¸•±•ÑÉ½¹!½µ•A½Í¥Ñ¥½¸¡¥±¥¹‘•à±Á•É™½Éµ…¹”¹¹½Ü ¤¤¹ÍÕˆ¡Á½Ì¡¥¤¤íõô¤é¹Õ±°ì(€½¹ÍĞÑ…É•ÑY¥ÍÕ…°õ•±•ÑÉ½¹Y¥ÍÕ…±Ì¹™¥¹¡¥Ñ•´ôù¥Ñ•´¹…Ñ½µ%ôôõÑ…É•Ğ¹…Ñ½µ%˜™¥Ñ•´¹¥¹‘•àôôõÑ…É•Ğ¹¥¹‘•à¤±Ñ¼õÑ…É•ÑY¥ÍÕ…°ü¹Ù¥Í¥‰±”¹Á½Í¥Ñ¥½¸¹±½¹” ¤üıÁ½Ì¡Ñ…É•Ğ¹…Ñ½µ%¤¹±½¹” ¤±™É½´õÍÑ…Ñ”¹ÕÉÉ•¹Ñ]½É±¹±½¹” ¤±µ¥‘Á½¥¹Ğõ™É½´¹±½¹” ¤¹±•ÉÀ¡Ñ¼°¸Ô¤ì(€½¹ÍĞ‘½¹½Èõ¡…¹”¹­¥¹‘=™A…¥ÈôôôÁ…¥Èœü¡¡…¹”¹‘½¹½É%ôôõÍÑ…Ñ”¹…Ñ½µ%ı™É½´éÑ¼¤é¹Õ±°ì(€½¹ÍĞÁ…¥Èô¡‘½¹½Èım‘½¹½È¹±½¹” ¤¹…‘‘M…±•‘Y•Ñ½È¡…µ•É…UÀ ¤°¸ÀÔ¤±‘½¹½È¹±½¹” ¤¹…‘‘M…±•‘Y•Ñ½È¡…µ•É…UÀ ¤°´¸ÀÔ¥tém™É½´±Ñ½t¤¹µ…À¡Á½¥¹Ğôùí½¹ÍĞµ•Í õ¹•ÜQ!I¹5•Í ¡¹•ÜQ!I¹MÁ¡•É••½µ•ÑÉä ¸ÀÔÔ°ÄÈ°ÄÀ¤±¹•ÜQ!I¹5•Í¡MÑ…¹‘…É‘5…Ñ•É¥…°¡í½±½ÈèÁá„Õ˜Í™Œ±•µ¥ÍÍ¥Ù”èÁàÈÉÍ•”±•µ¥ÍÍ¥Ù•%¹Ñ•¹Í¥ÑäèÈ¸Ø±É½Õ¡¹•ÍÌè¸Àà±‘•ÁÑ¡Q•ÍĞé™…±Í•ô¤¤íµ•Í ¹Á½Í¥Ñ¥½¸¹½Áä¡Á½¥¹Ğ¤íµ•Í ¹É•¹‘•É=É‘•ÈôĞÀí¥¹Ñ•É…Ñ¥½¹=Ù•É±…ä¹…‘¡µ•Í ¤íÉ•ÑÕÉ¸µ•Í íô¤ì(€‰½¹‘QÉ…¹Í¥Ñ¥½¸õí­¥¹è™½É´œ°¸¸¹¡…¹”±‘½­¥¹œ±Í½ÕÉ•%¹‘•àéÍÑ…Ñ”¹¥¹‘•à±Ñ…É•Ñ%¹‘•àéÑ…É•Ğ¹¥¹‘•à±ÍÑ…ÉÑ•‘ĞéÁ•É™½Éµ…¹”¹¹½Ü ¤±…ÁÁ±¥•é™…±Í”±™É½´éÁ…¥ÉlÁt¹Á½Í¥Ñ¥½¸¹±½¹” ¤±Ñ¼éÁ…¥ÉlÅt¹Á½Í¥Ñ¥½¸¹±½¹” ¤±µ¥‘Á½¥¹Ğ±Á…¥Éôì(€Í•±•Ñ¥½¹¡¥À¹Ñ•áÑ½¹Ñ•¹Ğõ‘½¹½ÈüŸ¦nï–¶C–¾û
-K–Çšr'_›ûdœé¡…¹”¹­¥¹‘=™A…¥ÈôôôÉ•Í½¹…¹”œüŸ–Ç¦ÎÓš:—Úk
-ç
-K“«Ÿûdœé¡…¹”¹­¥¹‘=™A…¥Èôôô•áÑ•¹Í¥½¸œüŸ¢ş÷–*ƒš:—Úk
-ç
-K“«ŸûdœèŸ¦nï–¶C–¾û
-K“?›ûdœì)ô()™Õ¹Ñ¥½¸¡…¹‘±•	½¹‘Q…À¡­•ä±Á½¥¹Ñ•ÉQåÁ”ôµ½ÕÍ”œ¥ì(€½¹ÍĞ…á¥ÌõÕÉÉ•¹ÑQ½ÉÍ¥½¹5½‘•° ¤¹‰½¹‘Ì¹•Ğ¡­•ä¤í¥˜ ……á¥Ì¥É•ÑÕÉ¸ì(€¥˜ ……á¥Ì¹…±±½İ•¥ì(€€€Í•±•ÑÑ½´¡…á¥Ì¹‰½¹¹„¤íÍ¡½İQ½ÉÍ¥½¹Õ¥‘”¡íµ½‘”è…Ñ½´µ±½­•œ±…Ñ½µ%é…á¥Ì¹‰½¹¹„±…¹‘¥‘…Ñ•Ìémt±É•…Í½¸é…á¥Ì¹É•…Í½¹ô¤íÙ¥‰É…Ñ•••‘‰…¬ ÈÈ±Á½¥¹Ñ•ÉQåÁ”¤íÉ•™É•Í  ¤íÉ•ÑÕÉ¸ì(€ô(€½¹ÍĞÁÉ•™•ÉÉ•õÑ½ÉÍ¥½¹Õ¥‘”ü¹…¹‘¥‘…Ñ•Ì¹™¥¹¡¥Ñ•´ôù¥Ñ•´¹­•äôôõ­•ä¤ıÑ½ÉÍ¥½¹Õ¥‘”¹…Ñ½µ%é…á¥Ì¹¡•…Ùåğõ…á¥Ì¹¡•…Ùåı…á¥Ì¹‰½¹¹„é…á¥Ì¹‰½¹¹ˆì(€Í•±•ÑÑ½´¡ÁÉ•™•ÉÉ•¤í½¹ÍĞÁ±…¸õ…Ñ½µ‘¥ÑA±…¸¡ÁÉ•™•ÉÉ•¤íÍ¡½İQ½ÉÍ¥½¹Õ¥‘”¡Á±…¸¤ì(€¥˜¡Á±…¸¹µ½‘”ôôô…Ñ½´µ±½­•œ¥Ù¥‰É…Ñ•••‘‰…¬ ÈÈ±Á½¥¹Ñ•ÉQåÁ”¤í•±Í”Ù¥‰É…Ñ•••‘‰…¬ ÄÀ±Á½¥¹Ñ•ÉQåÁ”¤ì(€É•™É•Í  ¤ì)ô)™Õ¹Ñ¥½¸İ•…­•¹	½¹¡­•ä¥ì(€½¹ÍĞ‰½¹õ‰½¹‘É½µ-•ä¡­•ä¤í¥˜ …‰½¹‘ññ¥¹Ñ•É…Ñ¥½¹1½­• ¤¥É•ÑÕÉ¸™…±Í”í½¹ÍĞ½±õ‰½¹¹½É‘•Èì(€‰½¹‘QÉ…¹Í¥Ñ¥½¸õí­¥¹èİ•…­•¸œ±¥‘Ìé½¹¹•Ñ•‘½µÁ½¹•¹Ğ¡‰½¹¹„¤±­•ä±„é‰½¹¹„±ˆé‰½¹¹ˆ±½±‘=É‘•Èé½±±¹•İ=É‘•Èé½±´Ä±ÍÑ…ÉÑ•‘ĞéÁ•É™½Éµ…¹”¹¹½Ü ¤±…ÁÁ±¥•é™…±Í”±µ•ÍÍ…”é½±ôôôÌüŸ–Çšr'¦nï–¶C–¾û
-HÇÖ¢šRøƒ
-Üƒ’ê3¦7ÖC–B#ã–º'–ºk–2[’â´œé½±ôôôÈüŸ–Çšr'¦nï–¶C–¾û
-HÇÖ¢šRøƒ
-Üƒ–6cÖC–B#ã–º'–ºk–2[’â´œèŸÖC–B#¢¦f“–ú3»š/¦ƒ
-K–º'–ºk–2[’â´ôì(€±•…ÉQ½ÉÍ¥½¹Õ¥‘” ¤íÍ•±•Ñ¥½¹¡¥À¹Ñ•áÑ½¹Ñ•¹Ğõ½±øÄüŸ–Çšr'¦nï–¶C–¾û
-HÇÖ¢šRû’â´œèŸÖC–B#
-K–"šZ·’â´œíÉ•ÑÕÉ¸ÑÉÕ”ì)ô()™Õ¹Ñ¥½¸ÕÁ‘…Ñ•	½¹‘QÉ…¹Í¥Ñ¥½¸¡¹½Ü¥ì(€¥˜ …‰½¹‘QÉ…¹Í¥Ñ¥½¸¥É•ÑÕÉ¸ì(€½¹ÍĞÑÉ…¹Í¥Ñ¥½¸õ‰½¹‘QÉ…¹Í¥Ñ¥½¸ì(€½¹ÍĞ‘Ğõ5…Ñ ¹µ¥¸ ÔÀ±5…Ñ ¹µ…à À±¹½Ü´¡ÑÉ…¹Í¥Ñ¥½¸¹ÁÉ•Ù¥½ÕÌüı¹½Ü¤¤¤íÑÉ…¹Í¥Ñ¥½¸¹ÁÉ•Ù¥½ÕÌõ¹½Üì(€¥˜¡‘½Õµ•¹Ğ¹¡¥‘‘•¸¥É•ÑÕÉ¸ì(€ÑÉ…¹Í¥Ñ¥½¸¹•±…ÁÍ•ô¡ÑÉ…¹Í¥Ñ¥½¸¹•±…ÁÍ•üüÀ¤­‘Ğí½¹ÍĞ•±…ÁÍ•õÑÉ…¹Í¥Ñ¥½¸¹•±…ÁÍ•ì(€¥˜¡ÑÉ…¹Í¥Ñ¥½¸¹­¥¹ôôô™½É´œ¥ì(€€€½¹ÍĞÁ…¥ÉPõQ!I¹5…Ñ¡UÑ¥±Ì¹±…µÀ¡•±…ÁÍ•¼ÄÌÀ°À°Ä¤±•…Í”ôÄµ5…Ñ ¹Á½Ü ÄµÁ…¥ÉP°Ì¤ì(€€€ÑÉ…¹Í¥Ñ¥½¸¹Á…¥ÉlÁtü¹Á½Í¥Ñ¥½¸¹½Áä¡ÑÉ…¹Í¥Ñ¥½¸¹™É½´¤¹±•ÉÀ¡ÑÉ…¹Í¥Ñ¥½¸¹µ¥‘Á½¥¹Ğ±•…Í”¤ì(€€€ÑÉ…¹Í¥Ñ¥½¸¹Á…¥ÉlÅtü¹Á½Í¥Ñ¥½¸¹½Áä¡ÑÉ…¹Í¥Ñ¥½¸¹Ñ¼¤¹±•ÉÀ¡ÑÉ…¹Í¥Ñ¥½¸¹µ¥‘Á½¥¹Ğ±•…Í”¤ì(€€€ÑÉ…¹Í¥Ñ¥½¸¹Á…¥È¹™½É… ¡µ•Í ôùµ•Í ¹Í…±”¹Í•ÑM…±…È Ä¬¸ÌÔ©5…Ñ ¹Í¥¸¡Á…¥ÉP©5…Ñ ¹A$¤¤¤ì(€€€¥˜ …ÑÉ…¹Í¥Ñ¥½¸¹…ÁÁ±¥•˜™•±…ÁÍ•øôÄÌÀ¥ì(€€€€€½¹ÍĞ…‘‘¥Ñ¥½¸õ‰½¹‘‘‘¥Ñ¥½¸¡µ½±•Õ±”±ÑÉ…¹Í¥Ñ¥½¸¹Í½ÕÉ•%±ÑÉ…¹Í¥Ñ¥½¸¹Ñ…É•Ñ%¤ì(€€€€€¥˜ ……‘‘¥Ñ¥½¸¹…±±½İ•‘ññ…‘‘¥Ñ¥½¸¹½É‘•È„ôõÑÉ…¹Í¥Ñ¥½¸¹¹•İ=É‘•È¥í±•…É	½¹‘QÉ…¹Í¥Ñ¥½¸ ¤íÉ•™É•Í  ¤íÁÕ±Í” Ÿš:—ÚkŸ7ûo
-Lƒ
-ÜƒÖC–B#
-K–>[
-+šÚ#_û_|œ¤íÉ•ÑÕÉ¸íô(€€€€€µ½±•Õ±”¹Í•Ñ	½¹¡ÑÉ…¹Í¥Ñ¥½¸¹Í½ÕÉ•%±ÑÉ…¹Í¥Ñ¥½¸¹Ñ…É•Ñ%±ÑÉ…¹Í¥Ñ¥½¸¹¹•İ=É‘•È¤íÑÉ…¹Í¥Ñ¥½¸¹…ÁÁ±¥•õÑÉÕ”íÑÉ…¹Í¥Ñ¥½¸¹‰½¹‘MÑ…ÉÑ•‘Ğõ¹½ÜíÍ•±•ÑÑ½´¡ÑÉ…¹Í¥Ñ¥½¸¹Ñ…É•Ñ%¤íÑ½Á½±½å¡…¹• ¤íÉ…™Ñ!¥ÍÑ½Éä¹½µµ¥Ğ ¤í•¹ÍÕÉ•5½±•Õ±•5•Í¡•Ì ¤ì(€€€ô(€€€¥˜¡ÑÉ…¹Í¥Ñ¥½¸¹…ÁÁ±¥•¥Í•Ñ	½¹‘QÉ…»[h‘éì¶»§q«^witionVisual(transition,THREE.MathUtils.clamp((now-transition.bondStartedAt)/150,0,1));
+  dragState={mode:'electron',atomId:picked.atomId,index:picked.index,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,homeWorld:home.clone(),currentWorld:home.clone(),planeNormal:cameraDirection(),liftPx,pointerType:e.pointerType,snapKey:null};
+  selectAtom(picked.atomId);electronReturn=null;vibrateFeedback(10,e.pointerType);capture(e);refresh();
+}
+
+function queueBondFormation(state,target,change){
+  // The screen-space electron gesture chooses topology. Only AFTER the bond
+  // appears do we move the smaller fragment, keeping its internal shape intact.
+  const docking=change.oldOrder===0?planBondDocking({THREE,molecule,positionFor:pos,a:change.sourceId,b:change.targetId,length:bondLengthFor(change.sourceId,change.targetId,change.newOrder),preferredIds:mainStructure?.ids,directionFor:id=>{const index=id===state.atomId?state.index:target.index;return electronHomePosition(id,index,performance.now()).sub(pos(id));}}):null;
+  const targetVisual=electronVisuals.find(item=>item.atomId===target.atomId&&item.index===target.index),to=targetVisual?.visible.position.clone()??pos(target.atomId).clone(),from=state.currentWorld.clone(),midpoint=from.clone().lerp(to,.5);
+  const donor=change.kindOfPair==='pair'?(change.donorId===state.atomId?from:to):null;
+  const pair=(donor?[donor.clone().addScaledVector(cameraUp(),.05),donor.clone().addScaledVector(cameraUp(),-.05)]:[from,to]).map(point=>{const mesh=new THREE.Mesh(new THREE.SphereGeometry(.055,12,10),new THREE.MeshStandardMaterial({color:0xa5f3fc,emissive:0x22d3ee,emissiveIntensity:2.6,roughness:.08,depthTest:false}));mesh.position.copy(point);mesh.renderOrder=40;interactionOverlay.add(mesh);return mesh;});
+  bondTransition={kind:'form',...change,docking,sourceIndex:state.index,targetIndex:target.index,startedAt:performance.now(),applied:false,from:pair[0].position.clone(),to:pair[1].position.clone(),midpoint,pair};
+  selectionChip.textContent=donor?'é›»å­å¯¾ã‚’å…±æœ‰ã—ã¦ã„ã¾ã™':change.kindOfPair==='resonance'?'å…±é³´æ¥ç¶šç‚¹ã‚’ã¤ãªã„ã§ã„ã¾ã™':change.kindOfPair==='extension'?'è¿½åŠ æ¥ç¶šç‚¹ã‚’ã¤ãªã„ã§ã„ã¾ã™':'é›»å­å¯¾ã‚’ã¤ãã£ã¦ã„ã¾ã™';
+}
+
+function handleBondTap(key,pointerType='mouse'){
+  const axis=currentTorsionModel().bonds.get(key);if(!axis)return;
+  if(!axis.allowed){
+    selectAtom(axis.bond.a);showTorsionGuide({mode:'atom-locked',atomId:axis.bond.a,candidates:[],reason:axis.reason});vibrateFeedback(22,pointerType);refresh();return;
+  }
+  const preferred=torsionGuide?.candidates.find(item=>item.key===key)?torsionGuide.atomId:axis.heavyA<=axis.heavyB?axis.bond.a:axis.bond.b;
+  selectAtom(preferred);const plan=atomEditPlan(preferred);showTorsionGuide(plan);
+  if(plan.mode==='atom-locked')vibrateFeedback(22,pointerType);else vibrateFeedback(10,pointerType);
+  refresh();
+}
+function weakenBond(key){
+  const bond=bondFromKey(key);if(!bond||interactionLocked())return false;const old=bond.order;
+  bondTransition={kind:'weaken',ids:connectedComponent(bond.a),key,a:bond.a,b:bond.b,oldOrder:old,newOrder:old-1,startedAt:performance.now(),applied:false,message:old===3?'å…±æœ‰é›»å­å¯¾ã‚’1çµ„è§£æ”¾ Â· äºŒé‡çµåˆã¸å®‰å®šåŒ–ä¸­':old===2?'å…±æœ‰é›»å­å¯¾ã‚’1çµ„è§£æ”¾ Â· å˜çµåˆã¸å®‰å®šåŒ–ä¸­':'çµåˆè§£é™¤å¾Œã®æ§‹é€ ã‚’å®‰å®šåŒ–ä¸­'};
+  clearTorsionGuide();selectionChip.textContent=old>1?'å…±æœ‰é›»å­å¯¾ã‚’1çµ„è§£æ”¾ä¸­':'çµåˆã‚’åˆ‡æ–­ä¸­';return true;
+}
+
+function updateBondTransition(now){
+  if(!bondTransition)return;
+  const transition=bondTransition;
+  const dt=Math.min(50,Math.max(0,now-(transition.previous??now)));transition.previous=now;
+  if(document.hidden)return;
+  transition.elapsed=(transition.elapsed??0)+dt;const elapsed=transition.elapsed;
+  if(transition.kind==='form'){
+    const pairT=THREE.MathUtils.clamp(elapsed/130,0,1),ease=1-Math.pow(1-pairT,3);
+    transition.pair[0]?.position.copy(transition.from).lerp(transition.midpoint,ease);
+    transition.pair[1]?.position.copy(transition.to).lerp(transition.midpoint,ease);
+    transition.pair.forEach(mesh=>mesh.scale.setScalar(1+.35*Math.sin(pairT*Math.PI)));
+    if(!transition.applied&&elapsed>=130){
+      const addition=bondAddition(molecule,transition.sourceId,transition.targetId);
+      if(!addition.allowed||addition.order!==transition.newOrder){clearBondTransition();refresh();pulse('æ¥ç¶šã§ãã¾ã›ã‚“ Â· çµåˆã‚’å–ã‚Šæ¶ˆã—ã¾ã—ãŸ');return;}
+      molecule.setBond(transition.sourceId,transition.targetId,transition.newOrder);transition.applied=true;transition.bondStartedAt=now;selectAtom(transition.targetId);topologyChanged();craftHistory.commit();ensureMoleculeMeshes();
+    }
+    if(transition.applied)setBondTransitionVisual(transition,THREE.MathUtils.clamp((now-transition.bondStartedAt)/150,0,1));
     if(elapsed>=300){
       transition.pair.forEach(mesh=>{mesh.visible=false;});
       const done=!transition.docking||transition.docking.apply((elapsed-300)/transition.docking.duration);
@@ -328,7 +526,55 @@ function geometryFor(id){if(!geometryCache.has(id))geometryCache.set(id,geometry
 function freeDirections(id){
   const atom=atomById(id);if(!atom)return[];const origin=pos(id),ns=molecule.neighbors(id),usedDirs=ns.map(n=>pos(n.atomId)?.clone().sub(origin).normalize()).filter(Boolean),g=geometryFor(id);let candidates;
   candidates=g.slots.map(v=>new THREE.Vector3(...v));
-  if(usedDirs.length){const q=bestAlignment(candidates,usedDirs[0]);candidates=candidates.map(v=>v.clone().applyQuaterYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Õ¹¥½¸¡Ä¤¤íô(€½¹ÍĞÉ…¹­•õ…¹‘¥‘…Ñ•Ì¹µ…À¡Øôø¡íØ±Í½É”éÕÍ•‘¥ÉÌ¹±•¹Ñ ı5…Ñ ¹µ¥¸ ¸¸¹ÕÍ•‘¥ÉÌ¹µ…À¡ÔôøÄµØ¹‘½Ğ¡Ô¤¤¤èÄÁô¤¤¹Í½ÉĞ ¡„±ˆ¤ôùˆ¹Í½É”µ„¹Í½É”¤¹™¥±Ñ•È¡àôùà¹Í½É”ø¸Äà¤¹µ…À¡àôùà¹Ø¤ì(€½¹ÍĞ½Õ¹ĞõÍÑ…Ñ•½È¡¥¤¹Í¥Ñ•Ì¹±•¹Ñ ì(€™½È¡±•Ğ¤ôÀíÉ…¹­•¹±•¹Ñ ñ½Õ¹Ğ˜™¤ğÌÈí¤¬¬¥ì(€€€½¹ÍĞäôÄ´È¨¡¤¬¸Ô¤¼ÌÈ±Èõ5…Ñ ¹ÍÅÉĞ Äµä©ä¤±„õ¤¨È¸ÌäääØÌÈÈäÜ±Øõ¹•ÜQ!I¹Y•Ñ½ÈÌ¡È©5…Ñ ¹½Ì¡„¤±ä±È©5…Ñ ¹Í¥¸¡„¤¤ì(€€€¥˜¡l¸¸¹ÕÍ•‘¥ÉÌ°¸¸¹É…¹­•‘t¹•Ù•Éä¡ÔôøÄµØ¹‘½Ğ¡Ô¤ø¸ÄÔ¤¥É…¹­•¹ÁÕÍ ¡Ø¤ì(€ô(€É•ÑÕÉ¸É…¹­•ì)ô)™Õ¹Ñ¥½¸‰•ÍÑ±¥¹µ•¹Ğ¡…¹‘¥‘…Ñ•Ì±Ñ…É•Ğ¥í±•Ğ‰•ÍĞõ…¹‘¥‘…Ñ•ÍlÁt±‘½Ğôµ%¹™¥¹¥Ñäí™½È¡½¹ÍĞŒ½˜…¹‘¥‘…Ñ•Ì¥í½¹ÍĞõŒ¹‘½Ğ¡Ñ…É•Ğ¤í¥˜¡ù‘½Ğ¥í‘½Ğõí‰•ÍĞõŒíõõÉ•ÑÕÉ¸¹•ÜQ!I¹EÕ…Ñ•É¹¥½¸ ¤¹Í•ÑÉ½µU¹¥ÑY•Ñ½ÉÌ¡‰•ÍĞ±Ñ…É•Ğ¤íô()™Õ¹Ñ¥½¸•¹ÍÕÉ•5½±•Õ±•5•Í¡•Ì ¥ì(€¥˜¡É•¹‘•ÉQ½Á½±½å¥ÉÑä¥É•‰Õ¥±‘5½±•Õ±•5•Í¡•Ì ¤ì)ô)™Õ¹Ñ¥½¸É•‰Õ¥±‘5½±•Õ±•5•Í¡•Ì ¥ì(€‘¥ÍÁ½Í•É½ÕÀ¡µ½±•Õ±•É½ÕÀ¤í…Ñ½µY¥ÍÕ…±Ì¹±•…È ¤í‰½¹‘Y¥ÍÕ…±Ì¹±•…È ¤í•±•ÑÉ½¹Y¥ÍÕ…±Ìõmtí…É½µ…Ñ¥Y¥ÍÕ…±ÌõmtíÍ¡…É•‘Y¥ÍÕ…±Ìõmtì(€½¹ÍĞÍÑÉÕÑÕÉ…°õÍ½±Ù•È¹Í¹…ÁÍ¡½Ğ ¤±Í¡…É•õÍ¡…É•‘=á½É½ÕÁÌ¡µ½±•Õ±”¤±É•Í½¹…¹•!å‰É¥‘Ñ½µ%‘Ìõ¹•ÜM•Ğ¡Í¡…É•¹™¥±Ñ•È¡É½ÕÀôùÉ½ÕÀ¹­¥¹ôôô¹¥ÑÉ¼ññÉ½ÕÀ¹­¥¹ôôô½é½¹”œ¤¹™±…Ñ5…À¡É½ÕÀôùmÉ½ÕÀ¹•¹Ñ•È°¸¸¹É½ÕÀ¹•¹‘Ít¤¤±…É½µ…Ñ¥‘•Ìõ¹•ÜM•Ğ¡l¸¸¹…É½µ…Ñ¥	½¹‘-•åÌ¡ÍÑÉÕÑÕÉ…°¹…É½µ…Ñ¥å±•Ì¤°¸¸¹ÍÁ•¥…±‘•-•åÌ¡Í¡…É•¥t¤ì(€™½È¡½¹ÍĞÉ½ÕÀ½˜Í¡…É•¥í½¹ÍĞÙ¥ÍÕ…°õÉ•…Ñ•M¡…É•‘	½¹‘Ì¡Q!I¤íµ½±•Õ±•É½ÕÀ¹…‘¡Ù¥ÍÕ…°¤íÍ¡…É•‘Y¥ÍÕ…±Ì¹ÁÕÍ ¡íÉ½ÕÀ±Ù¥ÍÕ…±ô¤íô(€™½È¡½¹ÍĞ‰½¹½˜µ½±•Õ±”¹‰½¹‘Ì¥É•…Ñ•	½¹‘Y¥ÍÕ…°¡‰½¹±…É½µ…Ñ¥‘•Ì¤ì(€™½È¡½¹ÍĞå±”½˜ÍÑÉÕÑÕÉ…°¹…É½µ…Ñ¥å±•Ì¥É•…Ñ•É½µ…Ñ¥Y¥ÍÕ…°¡å±”¤ì(€™½È¡½¹ÍĞ…Ñ½´½˜µ½±•Õ±”¹…Ñ½µÌ¥É•…Ñ•Ñ½µY¥ÍÕ…°¡…Ñ½´±íÍÕÁÁÉ•ÍÍ½Éµ…±¡…É”éÉ•Í½¹…¹•!å‰É¥‘Ñ½µ%‘Ì¹¡…Ì¡…Ñ½´¹¥¥ô¤ì(€É•¹‘•ÉQ½Á½±½å¥ÉÑäõ™…±Í”íÕÁ‘…Ñ•5½±•Õ±•QÉ…¹Í™½ÉµÌ ¤ì)ô)™Õ¹Ñ¥½¸É•…Ñ•Ñ½µY¥ÍÕ…°¡…Ñ½´±íÍÕÁÁÉ•ÍÍ½Éµ…±¡…É”õ™…±Í•ôõíô¥ì(€½¹ÍĞ™œõ159QMm…Ñ½´¹•±•µ•¹Ñt±‘¥ÍÁ±…åI…‘¥ÕÌõµ½‘•±Ñ½µI…‘¥ÕÌ¡…Ñ½´¹•±•µ•¹Ğ¤±µ•Í õ¹•ÜQ!I¹5•Í ¡¹•ÜQ!I¹MÁ¡•É••½µ•ÑÉä¡‘¥ÍÁ±…åI…‘¥ÕÌ°ÌÀ°ÈÈ¤±¹•ÜQ!I¹5•Í¡MÑ…¹‘…É‘5…Ñ•É¥…°¡í½±½Èé™œ¹½±½È±É½Õ¡¹•ÍÌè¸ÈĞ±µ•Ñ…±¹•ÍÌèÁô¤¤ì(€µ•Í ¹ÕÍ•É…Ñ„¹…Ñ½µ%õ…Ñ½´¹¥íµ½±•Õ±•É½ÕÀ¹…‘¡µ•Í ¤ì(€½¹ÍĞ¡…±¼õ¹•ÜQ!I¹MÁÉ¥Ñ”¡¹•ÜQ!I¹MÁÉ¥Ñ•5…Ñ•É¥…°¡íµ…ÀéÍ•±•Ñ¥½¹!…±½Q•áÑÕÉ” ¤±½±½ÈèÁá”Ù™‰™˜±ÑÉ…¹ÍÁ…É•¹ĞéÑÉÕ”±½Á…¥ÑäèÀ±‘•ÁÑ¡Q•ÍĞé™…±Í”±‘•ÁÑ¡]É¥Ñ”é™…±Í”±‰±•¹‘¥¹œéQ!I¹‘‘¥Ñ¥Ù•	±•¹‘¥¹ô¤¤ì(€¡…±¼¹Ù¥Í¥‰±”õ™…±Í”í¡…±¼¹É•¹‘•É=É‘•ÈôÌÀíµ½±•Õ±•É½ÕÀ¹…‘¡¡…±¼¤ì(€½¹ÍĞÍÑ…Ñ”õÍÑ…Ñ•½È¡…Ñ½´¹¥¤±Í¥¹±•ÌõÍÑ…Ñ”¹Í¥Ñ•Ì¹±•¹Ñ ±‘¥ÉÌõ™É••¥É•Ñ¥½¹Ì¡…Ñ½´¹¥¤±Í¡•±°õÙ…±•¹•M¡•±±I…‘¥ÕÌ¡…Ñ½´¹•±•µ•¹Ğ±‘¥ÍÁ±…åI…‘¥ÕÌ¤±±½¹•A…¥ÉÌõmtì(€™½È¡±•Ğ¥¹‘•àôÀí¥¹‘•àñÍ¥¹±•Ìí¥¹‘•à¬¬¥ì(€€€½¹ÍĞÉ…İM¥Ñ”õÍÑ…Ñ”¹Í¥Ñ•Ím¥¹‘•át±­¥¹õÑåÁ•½˜É…İM¥Ñ”ôôôÍÑÉ¥¹œœıÉ…İM¥Ñ”è¡É…İM¥Ñ”ü¹­¥¹üü•±•ÑÉ½¸œ¤±Á…ÉÑ¹•É%õÑåÁ•½˜É…İM¥Ñ”ôôô½‰©•ĞœıÉ…İM¥Ñ”ü¹Á…ÉÑ¹•É%üı¹Õ±°é¹Õ±°ì(€€€½¹ÍĞ‘¥É•Ñ¥½¸õ­¥¹ôôôÉ•Í½¹…¹”œ˜™Á…ÉÑ¹•É%„õ¹Õ±°ıÁ½Ì¡Á…ÉÑ¹•É%¤ü¹±½¹” ¤¹ÍÕˆ¡Á½Ì¡…Ñ½´¹¥¤¤¹¹½Éµ…±¥é” ¤é‘¥ÉÍm¥¹‘•átì(€€€¥˜¡‘¥É•Ñ¥½¸¥É•¹‘•ÉU¹Á…¥É•‘±•ÑÉ½¸¡…Ñ½´¹¥±¥¹‘•à±‘¥É•Ñ¥½¸±Í¡•±°±­¥¹±Á…ÉÑ¹•É%¤ì(€ô(€½¹ÍĞÁ…¥É½Õ¹ĞõÍÑ…Ñ”¹Á…¥ÉÌ´¡ÍÑ…Ñ”¹Í¥Ñ•Ì¹¥¹±Õ‘•Ì Á…¥Èœ¤üÄèÀ¤ì(€™½È¡±•Ğ¥¹‘•àôÀí¥¹‘•àñÁ…¥É½Õ¹Ğí¥¹‘•à¬¬¥ì(€€€½¹ÍĞµ•Í¡•Ìõmtì(€€€™½È¡½¹ÍĞÍ¥¸½™l´Ä°Åt¥í½¹ÍĞ•±•ÑÉ½¸õ¹•ÜQ!I¹5•Í ¡¹•ÜQ!I¹MÁ¡•É••½µ•ÑÉä ¸ÀÈÔ°à°Ø¤±¹•ÜQ!I¹5•Í¡MÑ…¹‘…É‘5…Ñ•É¥…°¡í½±½ÈèÁàØĞÜĞáˆ±•µ¥ÍÍ¥Ù”èÁàÌÌĞÄÔÔ±•µ¥ÍÍ¥Ù•%¹Ñ•¹Í¥Ñäè¸Äà±É½Õ¡¹•ÍÌè¸Õô¤¤í•±•ÑÉ½¸¹ÕÍ•É…Ñ„¹±½¹•A…¥ÉÑ½µ%õ…Ñ½´¹¥íµ½±•Õ±•É½ÕÀ¹…‘¡•±•ÑÉ½¸¤íµ•Í¡•Ì¹ÁÕÍ ¡í•±•ÑÉ½¸±Í¥¹ô¤íô(€€€±½¹•A…¥ÉÌ¹ÁÕÍ ¡í¥¹‘•à±µ•Í¡•Íô¤ì(€ô(€½¹ÍĞ¡…É”ô…ÍÕÁÁÉ•ÍÍ½Éµ…±¡…É”˜™ÍÑ…Ñ”¹¡…É”ıÉ•…Ñ•¡…É•1…‰•°¡Q!I±ÍÑ…Ñ”¹¡…É”¤é¹Õ±°í¥˜¡¡…É”¥µ½±•Õ±•É½ÕÀ¹…‘¡¡…É”¤ì(€…Ñ½µY¥ÍÕ…±Ì¹Í•Ğ¡…Ñ½´¹¥±íµ•Í ±¡…±¼±™œ±‘¥ÍÁ±…åI…‘¥ÕÌ±±½¹•A…¥ÉÌ±Í¥¹±•Ì±Í¡•±°±¡…É•ô¤ì)ô)™Õ¹Ñ¥½¸É•¹‘•ÉU¹Á…¥É•‘±•ÑÉ½¸¡…Ñ½µ%±¥¹‘•à±‘¥È±Í¡•±°±­¥¹ô•±•ÑÉ½¸œ±Á…ÉÑ¹•É%õ¹Õ±°¥ì(€½¹ÍĞÙ¥Í¥‰±”õ¹•ÜQ!I¹5•Í ¡­¥¹ôôô•±•ÑÉ½¸œı¹•ÜQ!I¹MÁ¡•É••½µ•ÑÉä ¸ÀÔĞ°ÄÈ°ÄÀ¤é¹•ÜQ!I¹Q½ÉÕÍ•½µ•ÑÉä ¸Àà°¸ÀÄØ°Ø°ÈÀ¤±¹•ÜQ!I¹5•Í¡MÑ…¹‘…É‘5…Ñ•É¥…°¡í½±½Èé­¥¹ôôô•áÑ•¹Í¥½¸œüÁáŒÑˆÕ™èÁàØİ”á˜ä±•µ¥ÍÍ¥Ù”é­¥¹ôôô•áÑ•¹Í¥½¸œüÁàáˆÕ˜ØèÁàÀÙˆÙĞ±•µ¥ÍÍ¥Ù•%¹Ñ•¹Í¥ÑäèÄ¸ĞÔ±É½Õ¡¹•ÍÌè¸ÄÉô¤¤ì(€½¹ÍĞ¡¥Ğõ¹•ÜQ!I¹5•Í ¡¹•ÜQ!I¹MÁ¡•É••½µ•ÑÉä ¸ÄĞÔ°ÄÀ°à¤±¹•ÜQ!I¹5•Í¡	…Í¥5…Ñ•É¥…°¡íÑÉ…¹ÍÁ…É•¹ĞéÑÉÕ”±½Á…¥ÑäèÀ±‘•ÁÑ¡]É¥Ñ”é™…±Í”±‘•ÁÑ¡Q•ÍĞé™…±Í•ô¤¤ì(€™½È¡½¹ÍĞ½‰©•Ğ½™mÙ¥Í¥‰±”±¡¥Ñt¥í½‰©•Ğ¹ÕÍ•É…Ñ„¹•±•ÑÉ½¹Ñ½µ%õ…Ñ½µ%í½‰©•Ğ¹ÕÍ•É…Ñ„¹•±•ÑÉ½¹%¹‘•àõ¥¹‘•àí½‰©•Ğ¹ÕÍ•É…Ñ„¹•±•ÑÉ½¹-¥¹õ­¥¹í½‰©•Ğ¹ÕÍ•É…Ñ„¹•±•ÑÉ½¹A…ÉÑ¹•É%õÁ…ÉÑ¹•É%íµ½±•Õ±•É½ÕÀ¹…‘¡½‰©•Ğ¤íô(€¥˜¡­¥¹ôôôÁ…¥Èœ¥™½È¡½¹ÍĞà½™l´¸ÀÌÈ°¸ÀÌÉt¥í½¹ÍĞ‘½Ğõ¹•ÜQ!I¹5•Í ¡¹•ÜQ!I¹MÁ¡•É••½µ•ÑÉä ¸ÀÈÔ°à°Ø¤±Ù¥Í¥‰±”¹µ…Ñ•É¥…°¤í‘½Ğ¹Á½Í¥Ñ¥½¸¹àõàíÙ¥Í¥‰±”¹…‘¡‘½Ğ¤íô(€•±•ÑË[h‘éì¶»§q«^wnVisuals.push({atomId,index,kind,partnerId,dir:dir.clone(),shell,visible,hit,phase:(atomId*1.71+index*2.37)%6.28});
+  if(usedDirs.length){const q=bestAlignment(candidates,usedDirs[0]);candidates=candidates.map(v=>v.clone().applyQuaternion(q));}
+  const ranked=candidates.map(v=>({v,score:usedDirs.length?Math.min(...usedDirs.map(u=>1-v.dot(u))):10})).sort((a,b)=>b.score-a.score).filter(x=>x.score>.18).map(x=>x.v);
+  const count=stateFor(id).sites.length;
+  for(let i=0;ranked.length<count&&i<32;i++){
+    const y=1-2*(i+.5)/32,r=Math.sqrt(1-y*y),a=i*2.3999632297,v=new THREE.Vector3(r*Math.cos(a),y,r*Math.sin(a));
+    if([...usedDirs,...ranked].every(u=>1-v.dot(u)>.15))ranked.push(v);
+  }
+  return ranked;
+}
+function bestAlignment(candidates,target){let best=candidates[0],dot=-Infinity;for(const c of candidates){const d=c.dot(target);if(d>dot){dot=d;best=c;}}return new THREE.Quaternion().setFromUnitVectors(best,target);}
+
+function ensureMoleculeMeshes(){
+  if(renderTopologyDirty)rebuildMoleculeMeshes();
+}
+function rebuildMoleculeMeshes(){
+  disposeGroup(moleculeGroup);atomVisuals.clear();bondVisuals.clear();electronVisuals=[];aromaticVisuals=[];sharedVisuals=[];
+  const structural=solver.snapshot(),shared=sharedOxoGroups(molecule),resonanceHybridAtomIds=new Set(shared.filter(group=>group.kind==='nitro'||group.kind==='ozone').flatMap(group=>[group.center,...group.ends])),aromaticEdges=new Set([...aromaticBondKeys(structural.aromaticCycles),...specialEdgeKeys(shared)]);
+  for(const group of shared){const visual=createSharedBonds(THREE);moleculeGroup.add(visual);sharedVisuals.push({group,visual});}
+  for(const bond of molecule.bonds)createBondVisual(bond,aromaticEdges);
+  for(const cycle of structural.aromaticCycles)createAromaticVisual(cycle);
+  for(const atom of molecule.atoms)createAtomVisual(atom,{suppressFormalCharge:resonanceHybridAtomIds.has(atom.id)});
+  renderTopologyDirty=false;updateMoleculeTransforms();
+}
+function createAtomVisual(atom,{suppressFormalCharge=false}={}){
+  const cfg=ELEMENTS[atom.element],displayRadius=modelAtomRadius(atom.element),mesh=new THREE.Mesh(new THREE.SphereGeometry(displayRadius,30,22),new THREE.MeshStandardMaterial({color:cfg.color,roughness:.24,metalness:0}));
+  mesh.userData.atomId=atom.id;moleculeGroup.add(mesh);
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:selectionHaloTexture(),color:0xe6fbff,transparent:true,opacity:0,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending}));
+  halo.visible=false;halo.renderOrder=30;moleculeGroup.add(halo);
+  const state=stateFor(atom.id),singles=state.sites.length,dirs=freeDirections(atom.id),shell=valenceShellRadius(atom.element,displayRadius),lonePairs=[];
+  for(let index=0;index<singles;index++){
+    const rawSite=state.sites[index],kind=typeof rawSite==='string'?rawSite:(rawSite?.kind??'electron'),partnerId=typeof rawSite==='object'?rawSite?.partnerId??null:null;
+    const direction=kind==='resonance'&&partnerId!=null?pos(partnerId)?.clone().sub(pos(atom.id)).normalize():dirs[index];
+    if(direction)renderUnpairedElectron(atom.id,index,direction,shell,kind,partnerId);
+  }
+  const pairCount=state.pairs-(state.sites.includes('pair')?1:0);
+  for(let index=0;index<pairCount;index++){
+    const meshes=[];
+    for(const sign of[-1,1]){const electron=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),new THREE.MeshStandardMaterial({color:0x64748b,emissive:0x334155,emissiveIntensity:.18,roughness:.5}));electron.userData.lonePairAtomId=atom.id;moleculeGroup.add(electron);meshes.push({electron,sign});}
+    lonePairs.push({index,meshes});
+  }
+  const charge=!suppressFormalCharge&&state.charge?createChargeLabel(THREE,state.charge):null;if(charge)moleculeGroup.add(charge);
+  atomVisuals.set(atom.id,{mesh,halo,cfg,displayRadius,lonePairs,singles,shell,charge});
+}
+function renderUnpairedElectron(atomId,index,dir,shell,kind='electron',partnerId=null){
+  const visible=new THREE.Mesh(kind==='electron'?new THREE.SphereGeometry(.054,12,10):new THREE.TorusGeometry(.08,.016,6,20),new THREE.MeshStandardMaterial({color:kind==='extension'?0xc4b5fd:0x67e8f9,emissive:kind==='extension'?0x8b5cf6:0x06b6d4,emissiveIntensity:1.45,roughness:.12}));
+  const hit=new THREE.Mesh(new THREE.SphereGeometry(.145,10,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,depthTest:false}));
+  for(const object of[visible,hit]){object.userData.electronAtomId=atomId;object.userData.electronIndex=index;object.userData.electronKind=kind;object.userData.electronPartnerId=partnerId;moleculeGroup.add(object);}
+  if(kind==='pair')for(const x of[-.032,.032]){const dot=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),visible.material);dot.position.x=x;visible.add(dot);}
+  electronVisuals.push({atomId,index,kind,partnerId,dir:dir.clone(),shell,visible,hit,phase:(atomId*1.71+index*2.37)%6.28});
 }
 function createBondVisual(bond,aromaticEdges){
   const order=displayedBondOrder(bond,aromaticEdges);
@@ -389,7 +635,55 @@ function updateAromaticVisual(visual){
 function selectionHaloTexture(){
   if(selectionHaloTexture.value)return selectionHaloTexture.value;
   const canvas=document.createElement('canvas');canvas.width=canvas.height=128;const context=canvas.getContext('2d'),gradient=context.createRadialGradient(64,64,35,64,64,61);
-  gradient.addColorStop(0,'rgba(186,245,255,0)');gradient.addColorStop(.58,'rgba(186,245,255,.08)');gradient.addColorStop(.72,'rgba(255,255,255,.98)');gradient.addColorStop(.79,'rgba(165,243,252,.72)');gradient.addColorStop(1,'rgba(56YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Ô°Äàä°ÈĞà°À¤œ¤ì(€½¹Ñ•áĞ¹™¥±±MÑå±”õÉ…‘¥•¹Ğí½¹Ñ•áĞ¹™¥±±I•Ğ À°À°ÄÈà°ÄÈà¤íÍ•±•Ñ¥½¹!…±½Q•áÑÕÉ”¹Ù…±Õ”õ¹•ÜQ!I¹…¹Ù…ÍQ•áÑÕÉ”¡…¹Ù…Ì¤íÉ•ÑÕÉ¸Í•±•Ñ¥½¹!…±½Q•áÑÕÉ”¹Ù…±Õ”ì)ô)™Õ¹Ñ¥½¸…¹¥µ…Ñ•M•±•Ñ¥½¸¡¹½Ü¥ì(€½¹ÍĞ•±…ÁÍ•õ5…Ñ ¹µ…à À±¹½ÜµÍ•±•Ñ¥½¹¡…¹•‘Ğ¤±İ…Ù”ô¸Ô¬¸Ô©5…Ñ ¹Í¥¸¡¹½Ü¨¸ÀÀÌĞ¤±™±…Í õ5…Ñ ¹•áÀ µ•±…ÁÍ•¼ĞÌÀ¤ì(€™½È¡½¹ÍĞm¥±Ù¥ÍÕ…±t½˜…Ñ½µY¥ÍÕ…±Ì¥ì(€€€½¹ÍĞÍ•±•Ñ•õ¥ôôõÍ•±•Ñ•‘Ñ½µ%íÙ¥ÍÕ…°¹¡…±¼¹Ù¥Í¥‰±”õÍ•±•Ñ•ì(€€€Ù¥ÍÕ…°¹µ•Í ¹Í…±”¹Í•ÑM…±…È¡Í•±•Ñ•üÄ¸À¬¸ÀĞÔ¨ ¸ÌÔ¬¸ØÔ©İ…Ù”¤¬¸ÀÈ©™±…Í èÄ¤ì(€€€¥˜¡Í•±•Ñ•¥íÙ¥ÍÕ…°¹¡…±¼¹µ…Ñ•É¥…°¹½Á…¥Ñäô¸ĞÔ¬¸ÈÈ©İ…Ù”¬¸ÌÈ©™±…Í í½¹ÍĞÍ¥é”õÙ¥ÍÕ…°¹™œ¹É…‘¥ÕÌ¨ Ì¸ÄÔ¬¸ÈÀ©İ…Ù”¬¸ÌÈ©™±…Í ¤íÙ¥ÍÕ…°¹¡…±¼¹Í…±”¹Í•Ğ¡Í¥é”±Í¥é”°Ä¤íô(€ô)ô)™Õ¹Ñ¥½¸…¹¥µ…Ñ•U¹Á…¥É•‘±•ÑÉ½¹Ì¡¹½Ü¥ì(€½¹ÍĞ¡¥¹Ñ-•åÌõ‰½¹‘QÉ…¹Í¥Ñ¥½¸ı¹•ÜM•Ğ ¤éÉ…™Ñ!¥¹Ñ±•ÑÉ½¹-•åÌ¡É…™Ñ	½¹‘!¥¹Ğ±•±•ÑÉ½¹Y¥ÍÕ…±Ì¤±¡¥¹Ñ]…Ù”ô¸Ô¬¸Ô©5…Ñ ¹Í¥¸¡¹½Ü¨¸ÀÀä¤ì(€™½È¡½¹ÍĞ•Ø½˜•±•ÑÉ½¹Y¥ÍÕ…±Ì¥ì(€€€½¹ÍĞ…Ñ½µA½ÌõÁ½Ì¡•Ø¹…Ñ½µ%¤í¥˜ ……Ñ½µA½Ì¥½¹Ñ¥¹Õ”í±•Ğİ½É±ì(€€€½¹ÍĞÁ…¥É¥¹œõ‰½¹‘QÉ…¹Í¥Ñ¥½¸ü¹­¥¹ôôô™½É´œ˜˜…‰½¹‘QÉ…¹Í¥Ñ¥½¸¹…ÁÁ±¥•˜˜ ¡•Ø¹…Ñ½µ%ôôõ‰½¹‘QÉ…¹Í¥Ñ¥½¸¹Í½ÕÉ•%˜™•Ø¹¥¹‘•àôôõ‰½¹‘QÉ…¹Í¥Ñ¥½¸¹Í½ÕÉ•%¹‘•à¥ñğ¡•Ø¹…Ñ½µ%ôôõ‰½¹‘QÉ…¹Í¥Ñ¥½¸¹Ñ…É•Ñ%˜™•Ø¹¥¹‘•àôôõ‰½¹‘QÉ…¹Í¥Ñ¥½¸¹Ñ…É•Ñ%¹‘•à¤¤ì(€€€•Ø¹Ù¥Í¥‰±”¹Ù¥Í¥‰±”ô…Á…¥É¥¹œí•Ø¹¡¥Ğ¹Ù¥Í¥‰±”ô…Á…¥É¥¹œí¥˜¡Á…¥É¥¹œ¥½¹Ñ¥¹Õ”ì(€€€½¹ÍĞ‘É…•õ‘É…MÑ…Ñ”ü¹µ½‘”ôôô•±•ÑÉ½¸œ˜™‘É…MÑ…Ñ”¹…Ñ½µ%ôôõ•Ø¹…Ñ½µ%˜™‘É…MÑ…Ñ”¹¥¹‘•àôôõ•Ø¹¥¹‘•àì(€€€½¹ÍĞ½µÁ…Ñ¥‰±”õ‘É…MÑ…Ñ”ü¹µ½‘”ôôô•±•ÑÉ½¸œ˜˜…‘É…•˜™•±•ÑÉ½¹M¥Ñ•Í½µÁ…Ñ¥‰±”¡‘É…MÑ…Ñ”¹…Ñ½µ%±‘É…MÑ…Ñ”¹¥¹‘•à±•Ø¤ì(€€€½¹ÍĞ¡¥¹Ñ•õ¡¥¹Ñ-•åÌ¹¡…Ì¡€‘í•Ø¹…Ñ½µ%‘ôè‘í•Ø¹¥¹‘•áõ€¤ì(€€€¥˜¡‘É…•¥İ½É±õ‘É…MÑ…Ñ”¹ÕÉÉ•¹Ñ]½É±¹±½¹” ¤ì(€€€•±Í”¥˜¡•±•ÑÉ½¹I•ÑÕÉ¸˜™•±•ÑÉ½¹I•ÑÕÉ¸¹…Ñ½µ%ôôõ•Ø¹…Ñ½µ%˜™•±•ÑÉ½¹I•ÑÕÉ¸¹¥¹‘•àôôõ•Ø¹¥¹‘•à¥í½¹ÍĞĞõQ!I¹5…Ñ¡UÑ¥±Ì¹±…µÀ ¡¹½Üµ•±•ÑÉ½¹I•ÑÕÉ¸¹ÍÑ…ÉÑ•‘Ğ¤½•±•ÑÉ½¹I•ÑÕÉ¸¹‘ÕÉ…Ñ¥½¸°À°Ä¤±•…Í”ôÄµ5…Ñ ¹Á½Ü ÄµĞ°Ì¤±¡½µ”õ•±•ÑÉ½¹!½µ•A½Í¥Ñ¥½¸¡•Ø¹…Ñ½µ%±•Ø¹¥¹‘•à±¹½Ü¤íİ½É±õ•±•ÑÉ½¹I•ÑÕÉ¸¹™É½´¹±½¹” ¤¹±•ÉÀ¡¡½µ”±•…Í”¤í¥˜¡ĞøôÄ¥•±•ÑÉ½¹I•ÑÕÉ¸õ¹Õ±°íô(€€€•±Í”İ½É±õÕ¹ÍÑ…‰±•±•ÑÉ½¹A½Í¥Ñ¥½¸¡•Ø±¹½Ü¤ì(€€€¥˜¡½µÁ…Ñ¥‰±”¥ì(€€€€€½¹ÍĞÍÉ••¸õİ½É±‘Q½MÉ••¸¡İ½É±¤ì(€€€€€İ½É±õÍÉ••¹A½¥¹ÑQ½]½É±‘=¹A±…¹”¡ÍÉ••¸¹à±ÍÉ••¸¹ä±‘É…MÑ…Ñ”¹¡½µ•]½É±±‘É…MÑ…Ñ”¹Á±…¹•9½Éµ…°¤ì(€€€ô(€€€½¹ÍĞÑ…É•Ğõ¡½Ù•É±•ÑÉ½¸˜™¡½Ù•É±•ÑÉ½¸¹…Ñ½µ%ôôõ•Ø¹…Ñ½µ%˜™¡½Ù•É±•ÑÉ½¸¹¥¹‘•àôôõ•Ø¹¥¹‘•àì(€€€•Ø¹Ù¥Í¥‰±”¹Á½Í¥Ñ¥½¸¹½Áä¡İ½É±¤í•Ø¹¡¥Ğ¹Á½Í¥Ñ¥½¸¹½Áä¡İ½É±¤ì(€€€¥˜¡•Ø¹­¥¹„ôô•±•ÑÉ½¸œ¥•Ø¹Ù¥Í¥‰±”¹ÅÕ…Ñ•É¹¥½¸¹½Áä¡…µ•É„¹ÅÕ…Ñ•É¹¥½¸¤ì(€€€•Ø¹Ù¥Í¥‰±”¹µ…Ñ•É¥…°¹‘•ÁÑ¡Q•ÍĞõ™…±Í”í•Ø¹Ù¥Í¥‰±”¹É•¹‘•É=É‘•Èô¡½µÁ…Ñ¥‰±•ññ‘É…•¤üÈÀé¡¥¹Ñ•üÄØèÄÀì(€€€•Ø¹Ù¥Í¥‰±”¹Í…±”¹Í•ÑM…±…È¡‘É…•üÄ¸ÔÔéÑ…É•ĞüÄ¸ØÈé½µÁ…Ñ¥‰±”üÄ¸Äàé¡¥¹Ñ•üÄ¸ÈĞ¬¸Äà©¡¥¹Ñ]…Ù”èÄ¬¸ÄÀ©5…Ñ ¹Í¥¸¡¹½Ü¨¸ÀÀà­•Ø¹Á¡…Í”¤¤ì(€€€•Ø¹Ù¥Í¥‰±”¹µ…Ñ•É¥…°¹•µ¥ÍÍ¥Ù•%¹Ñ•¹Í¥Ñäõ‘É…•üÈ¸ÔéÑ…É•ĞüÌ¸Àé½µÁ…Ñ¥‰±”üÄ¸äé¡¥¹Ñ•üÈ¸ÀÔ¬Ä¸ÄÔ©¡¥¹Ñ]…Ù”èÄ¸ÈÔ¬¸ĞÔ¨ ¸Ô¬¸Ô©5…Ñ ¹Í¥¸¡¹½Ü¨¸ÀÀØ­•Ø¹Á¡…Í”¤¤ì(€ô)ô)™Õ¹Ñ¥½¸Õ¹ÍÑ…‰±•±•ÑÉ½¹A½Í¥Ñ¥½¸¡•Ø±¹½Ü¥ì(€½¹ÍĞÀõÁ½Ì¡•Ø¹…Ñ½µ%¤±‰…Í”õ•Ø¹‘¥È¹±½¹” ¤¹¹½Éµ…±¥é” ¤±ĞÄõÁ•ÉÁ•¹‘¥Õ±…È¡‰…Í”¤±ĞÈõ¹•ÜQ!I¹Y•Ñ½ÈÌ ¤¹É½ÍÍY•Ñ½ÉÌ¡‰…Í”±ĞÄ¤¹¹½Éµ…±¥é” ¤±„ô¸ÄÌ©•Ø¹Í¡•±°±Ìõ¹½Ü¨¸ÀÀÈÄ­•Ø¹Á¡…Í”ì(€É•ÑÕÉ¸À¹±½¹” ¤¹…‘‘M…±•‘Y•Ñ½È¡‰…Í”±•Ø¹Í¡•±°¤¹…‘‘M…±•‘Y•Ñ½È¡ĞÄ±5…Ñ ¹Í¥¸¡Ì¨Ä¸Ü¤©„¤¹…‘‘M…±•‘Y•Ñ½È¡ĞÈ±5…Ñ ¹Í¥¸¡Ì¨È¸Ì¬Ä¸Ğ¤©„¨¸ÜÔ¤ì)ô)™Õ¹Ñ¥½¸•±•ÑÉ½¹I•ÍÑA½Í¥Ñ¥½¸¡•Ø¥í½¹ÍĞÀõÁ½Ì¡•Ø¹…Ñ½µ%¤íÉ•ÑÕÉ¸ÀıÀ¹±½¹” ¤¹…‘‘M…±•‘Y•Ñ½È¡•Ø¹‘¥È¹±½¹” ¤¹¹½Éµ…±¥é” ¤±•Ø¹Í¡•±°¤é¹•ÜQ!I¹Y•Ñ½ÈÌ ¤íô)™Õ¹Ñ¥½¸•±•ÑÉ½¹!½µ•A½Í¥Ñ¥½¸¡…Ñ½µ%±¥¹‘•à±¹½Ü¥ì(€½¹ÍĞ…Ñ½´õ…Ñ½µ	å%¡…Ñ½µ%¤±ÀõÁ½Ì¡…Ñ½µ%¤í¥˜ ……Ñ½µñğ…À¥É•ÑÕÉ¸¹•ÜQ!I¹Y•Ñ½ÈÌ ¤í½¹ÍĞ‘¥ÉÌõ™É••¥É•Ñ¥½¹Ì¡…Ñ½µ%¤±Ù¥ÍÕ…°õ•±•ÑÉ½¹Y¥ÍÕ…±Ì¹™¥¹¡¥Ñ•´ôù¥Ñ•´¹…Ñ½µ%ôôõ…Ñ½µ%˜™¥Ñ•´¹¥¹‘•àôôõ¥¹‘•à¤±‘¥ÈõÙ¥ÍÕ…°ü¹‘¥Èüı‘¥ÉÍm¥¹‘•átüı‘¥ÉÍlÁtüı¹•ÜQ!I¹Y•Ñ½ÈÌ Ä°À°À¤±Í¡•±°õÙ…±•¹•M¡•±±I…‘¥ÕÌ¡…Ñ½´¹•±•µ•¹Ğ±µ½‘•±Ñ½µI…‘¥ÕÌ¡…Ñ½´¹•±•µ•¹Ğ¤¤±‰…Í”õ‘¥È¹±½¹” ¤¹¹½Éµ…±¥é” ¤±ĞÄõÁ•ÉÁ•¹‘¥Õ±…È¡‰…Í”¤±ĞÈõ¹•ÜQ!I¹Y•Ñ½ÈÌ ¤¹É½ÍÍY•Ñ½ÉÌ¡‰…Í”±ĞÄ¤¹¹½Éµ…±¥é” ¤±Á¡…Í”ô¡…Ñ½µ%¨Ä¸ÜÄ­¥¹‘•à¨È¸ÌÜ¤”Ø¸Èà±„ô¸ÄÌ©Í¡•±°±Ìõ¹½Ü¨¸ÀÀÈÄ­Á¡…Í”ì(€É•ÑÕÉ¸À¹±½¹” ¤¹…‘‘M…±•‘Y•Ñ½È¡‰…Í”±Í¡•±°¤¹…‘‘M…±•‘Y•Ñ½È¡ĞÄ±5…Ñ ¹Í¥¸¡Ì¨Ä¸Ü¤©„¤¹…‘‘M…±•‘Y•Ñ½È¡ĞÈ±5…Ñ ¹Í¥¸¡Ì¨È¸Ì¬Ä¸Ğ¤©„¨¸ÜÔ¤ì)ô)™Õ¹Ñ¥½¸™¥¹‘9•…É•ÍÑ½µÁ…Ñ¥‰±•±•ÑÉ½¸¡±¥•¹Ñ`±±¥•¹Ñd±Í½ÕÉ•Ñ½µ%±Í½ÕÉ•%¹‘•à¥ì(€±•Ğ‰•ÍĞõ¹Õ±°í™½È¡½¹ÍĞ•Ø½˜•±•ÑÉ½¹Y¥ÍÕ…±Ì¥ì(€€€¥˜¡•Ø¹…Ñ½µ%ôôõÍ½ÕÉ•Ñ½µ%‘ñğ…•±•ÑÉ½¹M¥Ñ•Í½µÁ…Ñ¥‰±”¡Í½ÕÉ•Ñ½µ%±Í½ÕÉ•%¹‘•à±•Ø¤¥½¹Ñ¥¹Õ”ì(€€€½¹ÍĞÍÉ••¸õİ½É±‘Q½MÉ••¸¡•Ø¹Ù¥Í¥‰±”¹Á½Í¥Ñ¥½¸¤±‘¥ÍÑ…¹”õ5…Ñ ¹¡åÁ½Ğ¡±¥•¹Ñ`µÍÉ••¸¹à±±¥•¹ÑdµÍÉ••¸¹ä¤±‰½¹‘•ô„…‰½¹‘	•Ñİ••¸¡Í½ÕÉ•Ñ½µ%±•Ø¹…Ñ½µ%¤±Í½É”õ‘¥ÍÑ…¹”´¡‰½¹‘•üàèÀ¤ì(€€€¥˜ …‰•ÍÑññÍ½É”ñ‰•ÍĞ¹Í½É”¥‰•ÍĞõí…Ñ½µ%é•Ø¹…Ñ½µ%±¥¹‘•àé•Ø¹¥¹‘•à±‘¥ÍÑ…¹”±Í½É”±ÍÉ••¹`éÍÉ••¸¹à±ÍÉ••¹déÍÉ••¸¹ä±‰½¹“[h‘éì¶»§q«^ud};
+  gradient.addColorStop(0,'rgba(186,245,255,0)');gradient.addColorStop(.58,'rgba(186,245,255,.08)');gradient.addColorStop(.72,'rgba(255,255,255,.98)');gradient.addColorStop(.79,'rgba(165,243,252,.72)');gradient.addColorStop(1,'rgba(56,189,248,0)');
+  context.fillStyle=gradient;context.fillRect(0,0,128,128);selectionHaloTexture.value=new THREE.CanvasTexture(canvas);return selectionHaloTexture.value;
+}
+function animateSelection(now){
+  const elapsed=Math.max(0,now-selectionChangedAt),wave=.5+.5*Math.sin(now*.0034),flash=Math.exp(-elapsed/430);
+  for(const [id,visual] of atomVisuals){
+    const selected=id===selectedAtomId;visual.halo.visible=selected;
+    visual.mesh.scale.setScalar(selected?1.0+.045*(.35+.65*wave)+.02*flash:1);
+    if(selected){visual.halo.material.opacity=.45+.22*wave+.32*flash;const size=visual.cfg.radius*(3.15+.20*wave+.32*flash);visual.halo.scale.set(size,size,1);}
+  }
+}
+function animateUnpairedElectrons(now){
+  const hintKeys=bondTransition?new Set():craftHintElectronKeys(craftBondHint,electronVisuals),hintWave=.5+.5*Math.sin(now*.009);
+  for(const ev of electronVisuals){
+    const atomPos=pos(ev.atomId);if(!atomPos)continue;let world;
+    const pairing=bondTransition?.kind==='form'&&!bondTransition.applied&&((ev.atomId===bondTransition.sourceId&&ev.index===bondTransition.sourceIndex)||(ev.atomId===bondTransition.targetId&&ev.index===bondTransition.targetIndex));
+    ev.visible.visible=!pairing;ev.hit.visible=!pairing;if(pairing)continue;
+    const dragged=dragState?.mode==='electron'&&dragState.atomId===ev.atomId&&dragState.index===ev.index;
+    const compatible=dragState?.mode==='electron'&&!dragged&&electronSitesCompatible(dragState.atomId,dragState.index,ev);
+    const hinted=hintKeys.has(`${ev.atomId}:${ev.index}`);
+    if(dragged)world=dragState.currentWorld.clone();
+    else if(electronReturn&&electronReturn.atomId===ev.atomId&&electronReturn.index===ev.index){const t=THREE.MathUtils.clamp((now-electronReturn.startedAt)/electronReturn.duration,0,1),ease=1-Math.pow(1-t,3),home=electronHomePosition(ev.atomId,ev.index,now);world=electronReturn.from.clone().lerp(home,ease);if(t>=1)electronReturn=null;}
+    else world=unstableElectronPosition(ev,now);
+    if(compatible){
+      const screen=worldToScreen(world);
+      world=screenPointToWorldOnPlane(screen.x,screen.y,dragState.homeWorld,dragState.planeNormal);
+    }
+    const target=hoverElectron&&hoverElectron.atomId===ev.atomId&&hoverElectron.index===ev.index;
+    ev.visible.position.copy(world);ev.hit.position.copy(world);
+    if(ev.kind!=='electron')ev.visible.quaternion.copy(camera.quaternion);
+    ev.visible.material.depthTest=false;ev.visible.renderOrder=(compatible||dragged)?20:hinted?16:10;
+    ev.visible.scale.setScalar(dragged?1.55:target?1.62:compatible?1.18:hinted?1.24+.18*hintWave:1+.10*Math.sin(now*.008+ev.phase));
+    ev.visible.material.emissiveIntensity=dragged?2.5:target?3.0:compatible?1.9:hinted?2.05+1.15*hintWave:1.25+.45*(.5+.5*Math.sin(now*.006+ev.phase));
+  }
+}
+function unstableElectronPosition(ev,now){
+  const p=pos(ev.atomId),base=ev.dir.clone().normalize(),t1=perpendicular(base),t2=new THREE.Vector3().crossVectors(base,t1).normalize(),a=.13*ev.shell,s=now*.0021+ev.phase;
+  return p.clone().addScaledVector(base,ev.shell).addScaledVector(t1,Math.sin(s*1.7)*a).addScaledVector(t2,Math.sin(s*2.3+1.4)*a*.75);
+}
+function electronRestPosition(ev){const p=pos(ev.atomId);return p?p.clone().addScaledVector(ev.dir.clone().normalize(),ev.shell):new THREE.Vector3();}
+function electronHomePosition(atomId,index,now){
+  const atom=atomById(atomId),p=pos(atomId);if(!atom||!p)return new THREE.Vector3();const dirs=freeDirections(atomId),visual=electronVisuals.find(item=>item.atomId===atomId&&item.index===index),dir=visual?.dir??dirs[index]??dirs[0]??new THREE.Vector3(1,0,0),shell=valenceShellRadius(atom.element,modelAtomRadius(atom.element)),base=dir.clone().normalize(),t1=perpendicular(base),t2=new THREE.Vector3().crossVectors(base,t1).normalize(),phase=(atomId*1.71+index*2.37)%6.28,a=.13*shell,s=now*.0021+phase;
+  return p.clone().addScaledVector(base,shell).addScaledVector(t1,Math.sin(s*1.7)*a).addScaledVector(t2,Math.sin(s*2.3+1.4)*a*.75);
+}
+function findNearestCompatibleElectron(clientX,clientY,sourceAtomId,sourceIndex){
+  let best=null;for(const ev of electronVisuals){
+    if(ev.atomId===sourceAtomId||!electronSitesCompatible(sourceAtomId,sourceIndex,ev))continue;
+    const screen=worldToScreen(ev.visible.position),distance=Math.hypot(clientX-screen.x,clientY-screen.y),bonded=!!bondBetween(sourceAtomId,ev.atomId),score=distance-(bonded?8:0);
+    if(!best||score<best.score)best={atomId:ev.atomId,index:ev.index,distance,score,screenX:screen.x,screenY:screen.y,bonded};
   }return best;
 }
 function canPairAtoms(a,b){return bondAddition(molecule,a,b).allowed;}
@@ -449,9 +743,52 @@ function beginStructureFrame(){
   const fit=structureFrame(focusedStructure(),pos,camera.fov,camera.aspect);if(!fit)return;
   workspaceView.frame(focusedStructure(),fit.center);
   const target=new THREE.Vector3(fit.center.x,fit.center.y,fit.center.z),direction=camera.position.clone().sub(cameraTarget).normalize();
-  const positioYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíßM5N‹Z–‹­¦ëeŠw¬Õ¸õÑ…É•Ğ¹±½¹” ¤¹…‘‘M…±•‘Y•Ñ½È¡‘¥É•Ñ¥½¸±™¥Ğ¹‘¥ÍÑ…¹”¤ì(€™É…µ•QÉ…¹Í¥Ñ¥½¸õíÍÑ…ÉÑ•‘ĞéÁ•É™½Éµ…¹”¹¹½Ü ¤±‘ÕÉ…Ñ¥½¸éÉ•‘Õ•5½Ñ¥½¸üÄèĞÈÀ±™É½µA½Í¥Ñ¥½¸é…µ•É„¹Á½Í¥Ñ¥½¸¹±½¹” ¤±™É½µQ…É•Ğé…µ•É…Q…É•Ğ¹±½¹” ¤±Á½Í¥Ñ¥½¸±Ñ…É•Ñôì(€…µ•É„¹™…Èõ5…Ñ ¹µ…à ÄÀÀ±™¥Ğ¹‘¥ÍÑ…¹”­™¥Ğ¹É…‘¥ÕÌ¨Ì±Á½Í¥Ñ¥½¸¹‘¥ÍÑ…¹•Q¼¡…µ•É„¹Á½Í¥Ñ¥½¸¤­™¥Ğ¹É…‘¥ÕÌ¨Ì¤í…µ•É„¹ÕÁ‘…Ñ•AÉ½©•Ñ¥½¹5…ÑÉ¥à ¤ì)ô)™Õ¹Ñ¥½¸ÕÁ‘…Ñ•MÑÉÕÑÕÉ•É…µ”¡¹½Ü¥ì(€¥˜ …™É…µ•QÉ…¹Í¥Ñ¥½¹ññÉ•±…á…Ñ¥½¹ññ‰½¹‘QÉ…¹Í¥Ñ¥½¸¥É•ÑÕÉ¸ì(€½¹ÍĞ¥Ñ•´õ™É…µ•QÉ…¹Í¥Ñ¥½¸±ĞõQ!I¹5…Ñ¡UÑ¥±Ì¹±…µÀ ¡¹½Üµ¥Ñ•´¹ÍÑ…ÉÑ•‘Ğ¤½¥Ñ•´¹‘ÕÉ…Ñ¥½¸°À°Ä¤±•…Í”õĞ©Ğ¨ Ì´È©Ğ¤ì(€…µ•É„¹Á½Í¥Ñ¥½¸¹±•ÉÁY•Ñ½ÉÌ¡¥Ñ•´¹™É½µA½Í¥Ñ¥½¸±¥Ñ•´¹Á½Í¥Ñ¥½¸±•…Í”¤í…µ•É…Q…É•Ğ¹±•ÉÁY•Ñ½ÉÌ¡¥Ñ•´¹™É½µQ…É•Ğ±¥Ñ•´¹Ñ…É•Ğ±•…Í”¤ì(€¥˜¡ĞøôÄ¥í™É…µ•QÉ…¹Í¥Ñ¥½¸õ¹Õ±°íÉ•™É•Í¡%¹™¼ ¤íô)ô()™Õ¹Ñ¥½¸ÕÁ‘…Ñ••‰É¥Ì¡¹½Ü¥ì(€¥˜¡¹½Üµ±•…¹ÕÁ¡•­•‘ĞğÄØÀ¥É•ÑÕÉ¸í±•…¹ÕÁ¡•­•‘Ğõ¹½Üì(€½¹ÍĞÁÉ½Ñ•Ñ•‘%‘Ìõ¹•ÜM•Ğ¡l¸¸¹ÁÉ½Ñ•Ñ•‘U¹Ñ¥±t¹™¥±Ñ•È ¡l±Õ¹Ñ¥±t¤ôùÕ¹Ñ¥°ù¹½Ü¤¹µ…À ¡m¥‘t¤ôù¥¤¤ì(€¥˜¡Í•±•Ñ•‘Ñ½µ%„õ¹Õ±°¥ÁÉ½Ñ•Ñ•‘%‘Ì¹…‘¡Í•±•Ñ•‘Ñ½µ%¤ì(€½¹ÍĞÉ•ÍÕ±Ğõ‘•‰É¥ÍQÉ…­•È¹ÕÁ‘…Ñ”¡íÍÑÉÕÑÕÉ•Ì±µ…¥¸éµ…¥¹MÑÉÕÑÕÉ”±Á½Í¥Ñ¥½¹½ÈéÁ½Ì±ÁÉ½Ñ•Ñ•‘%‘Ì±¹½Ü±ÍÕÍÁ•¹‘•é‘½Õµ•¹Ğ¹¡¥‘‘•¹ññ¥¹Ñ•É…Ñ¥½¹1½­• ¥ñğ„…‘É…MÑ…Ñ•ññ…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹Í¥é”øÁñğ„…•±•ÑÉ½¹I•ÑÕÉ¹ô¤ì(€™…‘•Q…É•ÑÌõ¹•Ü5…À¡ÍÑÉÕÑÕÉ•Ì¹™±…Ñ5…À¡¥Ñ•´ôùl¸¸¹¥Ñ•´¹¥‘Ít¹µ…À¡¥ôùm¥±É•ÍÕ±Ğ¹½Á…¥Ñä¹•Ğ¡¥Ñ•´¹­•ä¤üüÅt¤¤¤ì(€¥˜ …É•ÍÕ±Ğ¹•áÁ¥É•¹±•¹Ñ ¥É•ÑÕÉ¸ì(€½¹ÍĞ¥‘Ìõ¹•ÜM•Ğ¡É•ÍÕ±Ğ¹•áÁ¥É•¹™±…Ñ5…À¡¥Ñ•´ôùl¸¸¹¥Ñ•´¹¥‘Ít¤¤íÉ…™Ñ!¥ÍÑ½Éä¹‰•¥¸ ¤íÉ…™Ñ]½É­ÍÁ…”¹É•µ½Ù•Ñ½µÌ¡¥‘Ì¤ì(€™½È¡½¹ÍĞ¥½˜¥‘Ì¥í‘•‰É¥Í=Á…¥Ñä¹‘•±•Ñ”¡¥¤í™…‘•Q…É•ÑÌ¹‘•±•Ñ”¡¥¤íô(€Ñ½Á½±½å¡…¹• ¤íÉ…™Ñ!¥ÍÑ½Éä¹½µµ¥Ğ ¤íÉ•™É•Í  ¤íÁÕ±Í” Ÿ¦ƒ?»–Â?&
-KšVÓB_û_|ƒ
-Üƒ–¯š"ïgŸ–ú§–Ÿ7ûdœ¤ì)ô)™Õ¹Ñ¥½¸…¹¥µ…Ñ••‰É¥Ì ¥ì(€™½È¡½¹ÍĞm¥±Ù¥ÍÕ…±t½˜…Ñ½µY¥ÍÕ…±Ì¥ì(€€€½¹ÍĞÑ…É•Ğõ™…‘•Q…É•ÑÌ¹•Ğ¡¥¤üüÄ±½±õ‘•‰É¥Í=Á…¥Ñä¹•Ğ¡¥¤üüÄ±…±Á¡„õ5…Ñ ¹…‰Ì¡½±µÑ…É•Ğ¤ğ¸ÀÀÔıÑ…É•Ğé½±¬¡Ñ…É•Ğµ½±¤¨¸Ìí‘•‰É¥Í=Á…¥Ñä¹Í•Ğ¡¥±…±Á¡„¤ì(€€€Í•Ñ=Á…¥Ñä¡Ù¥ÍÕ…°¹µ•Í ±…±Á¡„¤í™½È¡½¹ÍĞÁ…¥È½˜Ù¥ÍÕ…°¹±½¹•A…¥ÉÌ¥™½È¡½¹ÍĞí•±•ÑÉ½¹ô½˜Á…¥È¹µ•Í¡•Ì¥Í•Ñ=Á…¥Ñä¡•±•ÑÉ½¸±…±Á¡„¤ì(€ô(€™½È¡½¹ÍĞ•Ø½˜•±•ÑÉ½¹Y¥ÍÕ…±Ì¥Í•Ñ=Á…¥Ñä¡•Ø¹Ù¥Í¥‰±”±‘•‰É¥Í=Á…¥Ñä¹•Ğ¡•Ø¹…Ñ½µ%¤üüÄ¤ì(€™½È¡½¹ÍĞÙ¥ÍÕ…°½˜‰½¹‘Y¥ÍÕ…±Ì¹Ù…±Õ•Ì ¤¥™½È¡½¹ÍĞíµ•Í¡ô½˜Ù¥ÍÕ…°¹±¥¹•Ì¥Í•Ñ=Á…¥Ñä¡µ•Í ±‘•‰É¥Í=Á…¥Ñä¹•Ğ¡Ù¥ÍÕ…°¹‰½¹¹„¤üüÄ¤ì(€™½È¡½¹ÍĞÙ¥ÍÕ…°½˜…É½µ…Ñ¥Y¥ÍÕ…±Ì¥Í•ÑÉ½µ…Ñ¥=Á…¥Ñä¡Ù¥ÍÕ…°¹É¥¹œ±‘•‰É¥Í=Á…¥Ñä¹•Ğ¡Ù¥ÍÕ…°¹å±•lÁt¤üüÄ¤ì)ô)™Õ¹Ñ¥½¸Í•Ñ=Á…¥Ñä¡µ•Í ±½Á…¥Ñä¥í½¹ÍĞÑÉ…¹ÍÁ…É•¹Ğõ½Á…¥ÑäğÄí¥˜¡µ•Í ¹µ…Ñ•É¥…°¹ÑÉ…¹ÍÁ…É•¹Ğ„ôõÑÉ…¹ÍÁ…É•¹Ğ¥íµ•Í ¹µ…Ñ•É¥…°¹ÑÉ…¹ÍÁ…É•¹ĞõÑÉ…¹ÍÁ…É•¹Ğíµ•Í ¹µ…Ñ•É¥…°¹¹••‘ÍUÁ‘…Ñ”õÑÉÕ”íõµ•Í ¹µ…Ñ•É¥…°¹½Á…¥Ñäõ½Á…¥Ñäíµ•Í ¹µ…Ñ•É¥…°¹‘•ÁÑ¡]É¥Ñ”ô…ÑÉ…¹ÍÁ…É•¹Ğíô)™Õ¹Ñ¥½¸Í•ÑU¹‘½Ù…¥±…‰±”¡…¹U¹‘¼¥í½¹ÍĞ‰ÕÑÑ½¸õ‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÕ¹‘¼µ±•…¹ÕÀœ¤í¥˜ …‰ÕÑÑ½¸¥É•ÑÕÉ¸í‰ÕÑÑ½¸¹¡¥‘‘•¸õ™…±Í”í‰ÕÑÑ½¸¹‘¥Í…‰±•ô……¹U¹‘¼í‰ÕÑÑ½¸¹Í•ÑÑÑÉ¥‰ÕÑ” …É¥„µ‘¥Í…‰±•œ±MÑÉ¥¹œ ……¹U¹‘¼¤¤íô)™Õ¹Ñ¥½¸…ÁÑÕÉ•É…™Ñ!¥ÍÑ½ÉåMÑ…Ñ” ¥ì(€½¹ÍĞ™½ÕÌõ™½ÕÍ•‘MÑÉÕÑÕÉ” ¤±É½Ñ…Ñ¥½¸õİ½É­ÍÁ…•Y¥•Ü¹…ÁÑÕÉ”¡ÍÑÉÕÑÕÉ•Ì±µ…¥¹MÑÉÕÑÕÉ”±Á½Ì¤ì(€É•ÑÕÉ¹íİ½É­ÍÁ…”é…ÁÑÕÉ•]½É­ÍÁ…”¡íµ½±•Õ±”±Á½Í¥Ñ¥½¹½ÈéÁ½Ì±…µ•É„±…µ•É…Q…É•Ğ±Í•±•Ñ•‘Ñ½µ%±™½ÕÍ%é™½ÕÌü¹É…Á ¹…Ñ½µÍlÁtü¹¥±Á¥Ù½ĞéÉ½Ñ…Ñ¥½¸ü¹•¹Ñ•È±Ñ…É•Ñ5½±•Õ±•%éÉ…™ÑQ…É•Ñ%‘ô¤±•±•µ•¹ÑÌéì¸¸¹É•Í½ÕÉ•Ì¹ÍÑ…Ñ”¹•±•µ•¹ÑÍõôì)ô)™Õ¹Ñ¥½¸É•ÍÑ½É•É…™Ñ!¥ÍÑ½ÉåMÑ…Ñ”¡Í¹…ÁÍ¡½Ğ¥ì(€¥˜ …Í¹…ÁÍ¡½Ğü¹İ½É­ÍÁ…•ñğ…Í¹…ÁÍ¡½Ğü¹•±•µ•¹ÑÌ¥É•ÑÕÉ¸™…±Í”ì(€ÍÑ½ÁI•±…á…Ñ¥½¸ ¤í±•…É	½¹‘QÉ…¹Í¥Ñ¥½¸ ¤í±•…ÉQ½ÉÍ¥½¹Õ¥‘” ¤í±•…ÉQ¥µ•½ÕĞ¡‰½¹‘!½±‘Q¥µ•È¤í‰½¹‘!½±‘Q¥µ•Èõ¹Õ±°ì(€™½È¡½¹ÍĞ¥½˜…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹­•åÌ ¤¥ÑÉåíÉ•¹‘•É•È¹‘½µ±•µ•¹Ğ¹É•±•…Í•A½¥¹Ñ•É…ÁÑÕÉ”¡¥¤íõ…Ñ¡íô(€±•…¹ÕÁ•Ñ…¡•‘Q•…È¡‘É…MÑ…Ñ”¤í…Ñ¥Ù•A½¥¹Ñ•ÉÌ¹±•…È ¤í‘É…MÑ…Ñ”õ¹Õ±°íµÕ±Ñ¥•ÍÑÕÉ”õ¹Õ±°í•±•ÑÉ½¹I•ÑÕÉ¸õ¹Õ±°í¡½Ù•É±•ÑÉ½¸õ¹Õ±°í™É…µ•QÉ…¹Í¥Ñ¥½¸õ¹Õ±°í±…ÍÑ	…­É½Õ¹‘Q…Àõ¹Õ±°ì(€İ½É­ÍÁ…•Y¥•Ü¹±•…È ¤í½¹ÍĞÉ•ÍÑ½É•õÉ•ÍÑ½É•]½É­ÍÁ…”¡Í¹…ÁÍ¡½Ğ¹İ½É­ÍÁ…”±íQ!I±µ½±•Õ±”±Á±…•µ•¹ÑÌ±…µ•É„±…µ•É…Q…É•Ñô¤ì(€™½È¡½¹ÍĞÍåµ‰½°½˜=‰©•Ğ¹­•åÌ¡É•Í½ÕÉ•Ì¹ÍÑ…Ñ”¹•±•µ•¹ÑÌ¤¥¥˜ …=‰©•Ğ¹¡…Í=İ¸¡Í¹…ÁÍ¡½Ğ¹•±•µ•¹ÑÌ±Íåµ‰½°¤¥‘•±•Ñ”É•Í½ÕÉ•Ì¹ÍÑ…Ñ”¹•±•µ•¹ÑÍmÍåµ‰½±tí=‰©•Ğ¹…ÍÍ¥¸¡É•Í½ÕÉ•Ì¹ÍÑ…Ñ”¹•±•µ•¹ÑÌ±Í¹…ÁÍ¡½Ğ¹•±•µ•¹ÑÌ¤ì(€Í•±•Ñ•‘Ñ½µ%õÉ•ÍÑ½É•¹Í•±•Ñ•íÉ…™ÑQ…É•Ñ%ô¡É•Í½ÕÉ•Ì¹ÍÑ…Ñ”¹É•¥Á•Ì¹¥¹±Õ‘•Ì¡É•ÍÑ½É•¹Ñ…É•Ñ5½±•Õ±•%¥ññÉ•Í½ÕÉ•Ì¹ÍÑ…Ñ”¹¡¥¹ÑÌ¹¥¹±Õ‘•Ì¡É•ÍÑ½É•¹Ñ…É•Ñ5½±•Õ±•%¤¤ıÉ•ÍÑ½É•¹Ñ…É•Ñ5½±•Õ±•%é¹Õ±°íİ½É­ÍÁ…•Y¥•Ü¹Í•±•Ğ¡É•ÍÑ½É•¹™½ÕÌ¤ì(€ÁÉ½Ñ•Ñ•‘U¹Ñ¥°¹±•…È ¤í™½È¡½¹ÍĞ…Ñ½´½˜µ½±•Õ±”¹…Ñ½µÌ¥ÁÉ½Ñ•Ñ•‘U¹Ñ¥°¹Í•Ğ¡…Ñ½´¹¥±Á•É™½Éµ…¹”¹¹½Ü ¤¬ÄÔÀÀÀ¤íÕ¹É•Í½±Ù•‘Ñ½µÌ¹±•…È ¤í‘•‰É¥ÍQÉ…­•È¹É•Í•Ğ ¤í™…‘•Q…É•ÑÌ¹±•…È ¤í‘•‰É¥Í=Á…¥Ñä¹±•…È ¤í‘¥Í½Ù•Éå½¹¹•Ñ¥½¸¹±•…È ¤í±…ÍÑMÑ…‰±•]½É­ÍÁ…”õ¹Õ±°íÑ½Á½±½å¡…¹• ¤í¥˜¡Ë[h‘éì¶»§q«^ustored.pivot&&focusedStructure())workspaceView.frame(focusedStructure(),restored.pivot);syncCraftStock();refresh();saveWorkspace(true);return true;
+  const position=target.clone().addScaledVector(direction,fit.distance);
+  frameTransition={startedAt:performance.now(),duration:reduceMotion?1:420,fromPosition:camera.position.clone(),fromTarget:cameraTarget.clone(),position,target};
+  camera.far=Math.max(100,fit.distance+fit.radius*3,position.distanceTo(camera.position)+fit.radius*3);camera.updateProjectionMatrix();
+}
+function updateStructureFrame(now){
+  if(!frameTransition||relaxation||bondTransition)return;
+  const item=frameTransition,t=THREE.MathUtils.clamp((now-item.startedAt)/item.duration,0,1),ease=t*t*(3-2*t);
+  camera.position.lerpVectors(item.fromPosition,item.position,ease);cameraTarget.lerpVectors(item.fromTarget,item.target,ease);
+  if(t>=1){frameTransition=null;refreshInfo();}
+}
+
+function updateDebris(now){
+  if(now-cleanupCheckedAt<160)return;cleanupCheckedAt=now;
+  const protectedIds=new Set([...protectedUntil].filter(([,until])=>until>now).map(([id])=>id));
+  if(selectedAtomId!=null)protectedIds.add(selectedAtomId);
+  const result=debrisTracker.update({structures,main:mainStructure,positionFor:pos,protectedIds,now,suspended:document.hidden||interactionLocked()||!!dragState||activePointers.size>0||!!electronReturn});
+  fadeTargets=new Map(structures.flatMap(item=>[...item.ids].map(id=>[id,result.opacity.get(item.key)??1])));
+  if(!result.expired.length)return;
+  const ids=new Set(result.expired.flatMap(item=>[...item.ids]));craftHistory.begin();craftWorkspace.removeAtoms(ids);
+  for(const id of ids){debrisOpacity.delete(id);fadeTargets.delete(id);}
+  topologyChanged();craftHistory.commit();refresh();pulse('é ãã®å°ç‰‡ã‚’æ•´ç†ã—ã¾ã—ãŸ Â· å…ƒã«æˆ»ã™ã§å¾©å…ƒã§ãã¾ã™');
+}
+function animateDebris(){
+  for(const [id,visual] of atomVisuals){
+    const target=fadeTargets.get(id)??1,old=debrisOpacity.get(id)??1,alpha=Math.abs(old-target)<.005?target:old+(target-old)*.3;debrisOpacity.set(id,alpha);
+    setOpacity(visual.mesh,alpha);for(const pair of visual.lonePairs)for(const {electron} of pair.meshes)setOpacity(electron,alpha);
+  }
+  for(const ev of electronVisuals)setOpacity(ev.visible,debrisOpacity.get(ev.atomId)??1);
+  for(const visual of bondVisuals.values())for(const {mesh} of visual.lines)setOpacity(mesh,debrisOpacity.get(visual.bond.a)??1);
+  for(const visual of aromaticVisuals)setAromaticOpacity(visual.ring,debrisOpacity.get(visual.cycle[0])??1);
+}
+function setOpacity(mesh,opacity){const transparent=opacity<1;if(mesh.material.transparent!==transparent){mesh.material.transparent=transparent;mesh.material.needsUpdate=true;}mesh.material.opacity=opacity;mesh.material.depthWrite=!transparent;}
+function setUndoAvailable(canUndo){const button=document.querySelector('#undo-cleanup');if(!button)return;button.hidden=false;button.disabled=!canUndo;button.setAttribute('aria-disabled',String(!canUndo));}
+function captureCraftHistoryState(){
+  const focus=focusedStructure(),rotation=workspaceView.capture(structures,mainStructure,pos);
+  return{workspace:captureWorkspace({molecule,positionFor:pos,camera,cameraTarget,selectedAtomId,focusId:focus?.graph.atoms[0]?.id,pivot:rotation?.center,targetMoleculeId:craftTargetId}),elements:{...resources.state.elements}};
+}
+function restoreCraftHistoryState(snapshot){
+  if(!snapshot?.workspace||!snapshot?.elements)return false;
+  stopRelaxation();clearBondTransition();clearTorsionGuide();clearTimeout(bondHoldTimer);bondHoldTimer=null;
+  for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
+  cleanupDetachedTear(dragState);activePointers.clear();dragState=null;multiGesture=null;electronReturn=null;hoverElectron=null;frameTransition=null;lastBackgroundTap=null;
+  workspaceView.clear();const restored=restoreWorkspace(snapshot.workspace,{THREE,molecule,placements,camera,cameraTarget});
+  for(const symbol of Object.keys(resources.state.elements))if(!Object.hasOwn(snapshot.elements,symbol))delete resources.state.elements[symbol];Object.assign(resources.state.elements,snapshot.elements);
+  selectedAtomId=restored.selected;craftTargetId=(resources.state.recipes.includes(restored.targetMoleculeId)||resources.state.hints.includes(restored.targetMoleculeId))?restored.targetMoleculeId:null;workspaceView.select(restored.focus);
+  protectedUntil.clear();for(const atom of molecule.atoms)protectedUntil.set(atom.id,performance.now()+15000);unresolvedAtoms.clear();debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();discoveryConnection.clear();lastStableWorkspace=null;topologyChanged();if(restored.pivot&&focusedStructure())workspaceView.frame(focusedStructure(),restored.pivot);syncCraftStock();refresh();saveWorkspace(true);return true;
 }
 function undoCraft(){
   if(interactionLocked()||dragState||activePointers.size||!craftHistory.canUndo)return;
