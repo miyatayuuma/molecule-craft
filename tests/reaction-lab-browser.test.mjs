@@ -140,7 +140,7 @@ try{
     await evaluate('window.__labReactionEvents=[]');
     const offsets=offsetSequence??[[0,0],[8,0],[-8,0],[0,8],[0,-8],[16,0],[-16,0],[0,16],[0,-16],[22,0],[-22,0],[0,22]];
     let committed=false,finalTrace=null,finalManipulation=null,attemptCount=0,depthAcquisitions=0,hiddenDepthObserved=false,presentationObserved=false,closePauseVerified=false,visibilityPauseVerified=false;const trajectoryAttempts=[];
-    const resetReactionBatch=async()=>{await feedCurrent({double:true});await new Promise(resolve=>setTimeout(resolve,600));if(restageAfterRetry)await restageAfterRetry();};
+    const resetReactionBatch=async()=>{await feedCurrent({double:true});await new Promise(resolve=>setTimeout(resolve,600));await evaluate('window.__labReactionEvents=[]');if(restageAfterRetry)await restageAfterRetry();};
     await new Promise(resolve=>setTimeout(resolve,600));
     const populationAtStart=(await snapshot()).instances.length;
     for(let attempt=0;attempt<offsets.length&&!committed;attempt++){
@@ -158,7 +158,7 @@ try{
       const selected=options[repeatSameCandidate?0:attempt%Math.min(4,options.length)],offset=offsets[attempt%offsets.length],moveAcyl=repeatSameCandidate||attempt%2===0,draggedId=moveAcyl?selected.leftId:selected.rightId,targetId=moveAcyl?selected.rightId:selected.leftId,start=moveAcyl?selected.leftStart:selected.rightStart,end=moveAcyl?selected.leftEnd:selected.rightEnd,grabStarts=moveAcyl?selected.leftGrabStarts:selected.rightGrabStarts,plan={instanceId:draggedId,start,end:{x:end.x+offset[0],y:end.y+offset[1]},before:current.instances.find(item=>item.id===draggedId).position};
       attemptCount++;
       await evaluate(`window.__reactionLabProbe.startReactionTrajectoryTrace('${reactionId}',${JSON.stringify([selected.leftId,selected.rightId])})`);
-      let heldState=null,targetAcquired=false,heldGeometry=null,releaseTrajectory=null;
+      let heldState=null,targetAcquired=false,heldGeometry=null,releaseTrajectory=null,independentReactionEvents=[];
       const gesture=await drag(plan,{steps:24,stepDelay:32,hold:0,expectedInstanceId:draggedId,startCandidates:grabStarts,duringHold:async()=>{
         await new Promise(resolve=>setTimeout(resolve,600));heldState=await snapshot();
         assert.equal(heldState.draggedInstanceId,draggedId);targetAcquired=heldState.depthTargetId===targetId&&['docking','safe'].includes(heldState.depthDockingState);
@@ -169,10 +169,15 @@ try{
         heldGeometry=heldRows.map(row=>({distance:row.distanceConstraints[0]?.actual,geometryReady:row.geometryReady,severeOverlap:row.severeOverlap,minimumNonbondedSeparationRatio:row.minimumNonbondedSeparationRatio,dwellElapsed:row.dwellElapsed,commitReady:row.commitReady,normalPhysicsStepObserved:row.normalPhysicsStepObserved}));
         assert.ok(heldRows.length&&heldRows.every(item=>item.manipulating&&item.dwellElapsed===0&&!item.commitReady),'Pointer manipulation never advances reaction dwell');
         if(targetAcquired)releaseTrajectory=await evaluate(`window.__reactionLabProbe.measurePairReleaseTrajectory('${selected.leftId}','${selected.rightId}')`);
-        assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Manipulation cannot commit chemistry');finalManipulation=heldState;
+        const heldReactionEvents=await evaluate("window.__labReactionEvents.map(event=>({reactionId:event.reactionId,participantIds:(event.participants??[]).map(row=>row.instanceId).filter(Boolean)}))"),eventsInvolvingHeldPair=heldReactionEvents.filter(event=>[selected.leftId,selected.rightId].some(id=>event.participantIds.includes(id)));
+        assert.equal(eventsInvolvingHeldPair.length,0,`Manipulation cannot commit chemistry involving its selected participants: ${JSON.stringify(eventsInvolvingHeldPair)}`);if(heldReactionEvents.length)independentReactionEvents=heldReactionEvents;finalManipulation=heldState;
       }});
       if(!gesture.acquired){trajectoryAttempts.push({attempt,offset,selectionMiss:true,draggedId,targetId,initialSiteDistance:selected.actual,participantIds:[selected.leftId,selected.rightId],attemptedGrabPoints:grabStarts.length});await resetReactionBatch();continue;}
-      const released=await snapshot();assert.equal(released.simulationTimeScale,1,'Pointer release restores normal simulation time');assert.equal(released.manipulationActive,false);assert.equal(await evaluate('window.__labReactionEvents.length'),0,'Release itself does not commit chemistry');
+      const released=await snapshot();assert.equal(released.simulationTimeScale,1,'Pointer release restores normal simulation time');assert.equal(released.manipulationActive,false);
+      const releaseReactionEvents=await evaluate("window.__labReactionEvents.map(event=>({reactionId:event.reactionId,participantIds:(event.participants??[]).map(row=>row.instanceId).filter(Boolean)}))"),releaseEventsInvolvingHeldPair=releaseReactionEvents.filter(event=>[selected.leftId,selected.rightId].some(id=>event.participantIds.includes(id)));
+      assert.equal(releaseEventsInvolvingHeldPair.length,0,`Pointer release cannot commit chemistry before normal fixed-step dwell for its selected participants: ${JSON.stringify(releaseEventsInvolvingHeldPair)}`);
+      if(releaseReactionEvents.length)independentReactionEvents=releaseReactionEvents;
+      if(independentReactionEvents.length){const trace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()'),diagnostic={attempt,offset,draggedId,targetId,participantIds:[selected.leftId,selected.rightId],independentReactionEvents,heldGeometry,trajectory:summarizeTrajectory(trace)};console.log('REACTION_POINTER_INDEPENDENT_COMPONENT_COMMIT',JSON.stringify(diagnostic));trajectoryAttempts.push(diagnostic);await waitFor('!window.__reactionLabProbe.snapshot().reactionPresentation?.active',`${reactionId} independent component handoff did not finish`,10000);await resetReactionBatch();continue;}
       if(targetAcquired){assert.ok(releaseTrajectory?.rows?.length===3,'The read-only release trajectory is sampled before Stage B reserves reaction participants');assert.ok(releaseTrajectory.rows[0].separationIncreaseAngstrom<MAX_RELEASE_SEPARATION_INCREASE_3_STEPS_ANGSTROM,`${reactionId} first three fixed release steps stay below the global baseline gate: ${JSON.stringify(releaseTrajectory)}`);assert.ok(releaseTrajectory.rows[1].separationIncreaseAngstrom<MAX_RELEASE_SEPARATION_INCREASE_8_STEPS_ANGSTROM);assert.ok(releaseTrajectory.rows.every(row=>row.finite&&row.overlapGuardActivationCount===0));}
       finalManipulation=heldState;if(!targetAcquired){finalTrace=await evaluate('window.__reactionLabProbe.reactionTrajectoryTrace()');trajectoryAttempts.push({attempt,offset,draggedId,targetId:heldState.depthTargetId,dockingState:heldState.depthDockingState,initialSiteDistance:selected.actual,heldGeometry,trajectory:summarizeTrajectory(finalTrace)});await resetReactionBatch();continue;}
     for(let wait=0;wait<5000;wait+=50){

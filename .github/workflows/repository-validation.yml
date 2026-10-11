@@ -331,7 +331,7 @@ jobs:
           trap 'git worktree remove --force "$baseline_dir" || true' EXIT
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
           "$browser" --version
-          if (cd "$baseline_dir" && node tests/reaction-lab-browser.test.mjs) > "$baseline_log" 2>&1; then
+          if POLYMER_ROOT="$baseline_dir" node tests/reaction-lab-browser.test.mjs > "$baseline_log" 2>&1; then
             baseline_status=0
           else
             baseline_status=$?
