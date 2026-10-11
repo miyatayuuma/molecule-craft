@@ -61,7 +61,7 @@ function compareDocuments(baseline,candidate){
       const b=before[index],c=after[index];assert.equal(b.routeId,c.routeId);assert.equal(b.motion,c.motion);assert.equal(b.trialIndex,c.trialIndex);
       assert.deepEqual(b.runtimeFlags,c.runtimeFlags,'Browser runtime flags differ');
       assert.equal(b.targetDurationMs,c.targetDurationMs,'Completion feedback contract differs');
-      assert.equal(b.moduleFetchCount,c.moduleFetchCount,'Unique JavaScript module resource count differs');
+      assert.equal(c.moduleFetchCount,b.moduleFetchCount+1,'The isolated 3D layout module adds exactly one bounded JavaScript module request.');
       for(const metric of ['activeGroupCount','geometryCount','materialCount'])assert.equal(c.polymerResources[metric],b.polymerResources[metric],`${motion} trial ${index+1}: ${metric} differs`);
       for(const metric of ['geometryDisposals','materialDisposals'])assert.equal(c.polymerResources.disposals[metric],b.polymerResources.disposals[metric],`${motion} trial ${index+1}: ${metric} differs`);
       for(const metric of ['finiteLayoutCalls','bondVisualAllocations','completionFitCalls','completionLayoutCallsAfterReady'])assert.equal(c.polymerRuntimeMetrics[metric],b.polymerRuntimeMetrics[metric],`${motion} trial ${index+1}: ${metric} differs`);
