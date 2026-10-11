@@ -305,7 +305,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function updatePolymerSiteIndicator(){
     const hide=()=>{polymerSiteIndicator.hidden=true;polymerSiteIndicator.dataset.acquired='false';polymerSiteIndicator.classList.remove('acquired');polymerIncomingIndicator.hidden=true;};
-    const tx=polymerCore.snapshot();if(!polymerRouteOwned||!tx||![POLYMERIZATION_STATES.WAITING,POLYMERIZATION_STATES.AUTO_PENDING].includes(tx.state)||tx.waitReason==='conditions'||!polymerGraphVisual){hide();return;}
+    const tx=polymerCore.snapshot();if(polymerSamplePresentation||!polymerRouteOwned||!tx||![POLYMERIZATION_STATES.WAITING,POLYMERIZATION_STATES.AUTO_PENDING].includes(tx.state)||tx.waitReason==='conditions'||!polymerGraphVisual){hide();return;}
     if(polymerGraphVisual.animation){hide();return;}
     const item=polymerNextCandidates()[0],preview=polymerInteraction(item);if(!item||!preview.ok){hide();return;}
     const point=polymerTargetWorld(preview.interaction);if(!point){hide();return;}
