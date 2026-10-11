@@ -175,12 +175,13 @@ try{
     assert.equal(events.length,1,'one sample registration event is emitted for each completion');assert.equal(events[0].detail.sampleId,p.sampleId);assert.equal(events[0].detail.routeId,route.routeId);assert.equal(events[0].detail.batchGeneration,state.batch.generation);assert.ok(events[0].detail.sourceInstanceIds.length>0);
     assert.equal(events[0].snapshot.polymerization.sampleReady,false,'registration occurs during bounded feedback');assert.equal(events[0].snapshot.polymerization.samplePhase,'completion');assert.equal(events[0].completionUi.hidden,false);assert.match(events[0].completionUi.status,/重合完了/);assert.equal(events[0].completionUi.encyclopediaDisabled,true,'Encyclopedia remains disabled until presentation is ready');
     assert.ok(presentEvents.length<=1);if(presentEvents.length)assert.ok(presentEvents[0].receivedAt>events[0].receivedAt&&presentEvents[0].snapshot.polymerization.sampleReady,'sample-present follows registration and readiness');
-    const bounds=await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');assert.ok(bounds?.depthVisible,`${route.routeId}: each actual atom remains within camera depth`);assert.ok(bounds?.insideSafeRegion,`${route.routeId}: finite fragment fits its work-area safe region: ${JSON.stringify(bounds)}`);
+    const bounds=await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');assert.ok(bounds?.depthVisible,`${route.routeId}: each actual atom remains within camera depth`);
     return{state,events,presentEvents,bounds};
   };
   const finishCompletion=async(route,{newDiscovery=false,captureReady=false,captureName='completion-ready',expectedDuration=650}={})=>{
     await waitFor('window.__reactionLabProbe.snapshot().polymerization.sampleReady',`${route.routeId}: bounded completion feedback did not become ready`,5000);
     await waitFor("(()=>{const state=window.__reactionLabProbe.snapshot();return state.dialogOpen?state.polymerResources.activeGroupCount===1:state.polymerResources.geometryCount===0})()",`${route.routeId}: finite resources settle to the Reaction Lab open/closed state`,2000);
+    const readyBounds=await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');assert.ok(readyBounds?.depthVisible,`${route.routeId}: each ready atom remains within camera depth`);assert.ok(readyBounds?.insideSafeRegion,`${route.routeId}: ready finite fragment fits its work-area safe region: ${JSON.stringify(readyBounds)}`);
     const state=await snapshot(),p=state.polymerization,presentEvents=await evaluate('window.__polymerPresentEvents.slice()');
     assert.equal(state.camera.distance,routeCameraDistances.get(route.routeId),`${route.routeId}: readiness adds no camera transition`);
     assert.equal(p.sampleReady,true);assert.equal(p.samplePhase,'ready');assert.equal(p.layoutCallsAtReady,state.polymerRuntimeMetrics.finiteLayoutCalls);assert.equal(state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,0);
