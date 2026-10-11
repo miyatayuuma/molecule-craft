@@ -835,4 +835,47 @@ function planWorkspaceSpawn(parts){
 }
 function beginSpawnZoom(plan){
   if(!plan.zoomed)return;
-  const target=cameraTarget.clone(),direction=
+  const target=cameraTarget.clone(),direction=camera.position.clone().sub(target).normalize(),position=target.clone().addScaledVector(direction,plan.distance);
+  frameTransition={kind:'spawn',startedAt:performance.now(),duration:reduceMotion?1:420,fromPosition:camera.position.clone(),fromTarget:target.clone(),position,target};
+  camera.far=Math.max(camera.far,plan.distance+20);camera.updateProjectionMatrix();
+}
+function saveWorkspace(flush=false){
+  if(resources.blocked)return false;
+  if(!renderer)return true;
+  if(!dragState&&!activePointers.size&&!relaxation&&!bondTransition){
+    try{const focus=focusedStructure(),rotation=workspaceView.capture(structures,mainStructure,pos);lastStableWorkspace=captureWorkspace({molecule,positionFor:pos,camera:frameTransition?{position:frameTransition.position,up:camera.up}:camera,cameraTarget:frameTransition?.target??cameraTarget,selectedAtomId,focusId:focus?.graph.atoms[0]?.id,pivot:rotation?.center,targetMoleculeId:craftTargetId});}catch{workspaceStorage.reportFailure();return false;}
+  }
+  return (lastStableWorkspace?workspaceStorage.write(lastStableWorkspace):!flush||!molecule.atoms.length)&&resources.save();
+}
+
+function disposeObject(object){object.traverse?.(item=>{item.geometry?.dispose?.();if(item.userData?.formalCharge)item.material?.map?.dispose?.();if(Array.isArray(item.material))item.material.forEach(material=>material.dispose?.());else item.material?.dispose?.();});}
+function disposeGroup(group){for(const object of[...group.children]){group.remove(object);disposeObject(object);}}
+function resize(){const w=Math.max(1,viewer.clientWidth),h=Math.max(1,viewer.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+function recoverCraftAnimationState(){
+  if(!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!multiGesture&&!craftHistory.pending)return false;
+  if(craftHistory.pending){
+    try{if(craftHistory.rollback())return true;}
+    catch(error){console.error('Craft animation rollback failed; aborting transient transaction.',error);}
+  }
+  try{conformationEngine.release();}catch{}
+  cleanupDetachedTear(dragState);stopRelaxation();frameTransition=null;clearTimeout(bondHoldTimer);bondHoldTimer=null;
+  try{clearBondTransition();}catch{
+    bondTransition=null;
+    for(const object of[...interactionOverlay.children])try{interactionOverlay.remove(object);disposeObject(object);}catch{}
+  }
+  for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
+  activePointers.clear();dragState=null;multiGesture=null;hoverElectron=null;electronReturn=null;lastBackgroundTap=null;
+  try{refreshInfo(true);}catch{}
+  return true;
+}
+function animate(now=performance.now()){
+  requestAnimationFrame(animate);if(veilUI?.active||document.hidden||gameShell.isOpen()||collectionOpen)return;
+  try{
+    if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
+    if(dragState?.moved&&['conformation','rigid-body'].includes(dragState.mode))advanceConformationDrag(now);
+    if(dragState?.moved&&dragState.atomId!=null&&dragState.mode!=='tear-detached')advanceTearDrag(now);
+    updateStructureFrame(now);camera.lookAt(cameraTarget);camera.updateMatrixWorld();updateDebris(now);animateUnpairedElectrons(now);animateSelection(now);animateDebris();checkDiscovery(now);animationFault='';
+  }catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('Craft animation update failed; rendering the current scene.',error);}recoverCraftAnimationState();}
+  try{renderer.render(scene,camera);}catch(error){const detail=String(error?.stack??error);if(detail!==animationFault){animationFault=detail;console.error('3D render failed.',error);}}
+  if(now-lastSaveCheck>1000){lastSaveCheck=now;saveWorkspace();}
+}
