@@ -88,5 +88,6 @@ try{
 }finally{
   try{socket?.close();}catch{}
   try{child?.kill('SIGKILL');}catch{}
-  await pause(100);server.close();await rm(profile,{recursive:true,force:true});
+  if(child&&child.exitCode===null&&child.signalCode===null)await Promise.race([new Promise(resolve=>child.once('exit',resolve)),pause(5000)]);
+  server.close();await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});
 }

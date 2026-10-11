@@ -10,8 +10,14 @@ on:
       - 'src/collection-ui.js'
       - 'src/craft-connections.js'
       - 'tests/*polymer*'
+      - 'tests/reaction-lab-browser.test.mjs'
       - 'tests/reaction-lab-legacy-removal.test.mjs'
       - 'tests/material-progression-browser.test.mjs'
+      - 'scripts/compare-polymer-performance.mjs'
+      - 'scripts/profile-reaction-lab-stage-b.mjs'
+      - 'scripts/compare-reaction-lab-stage-b.mjs'
+      - 'docs/polymer-integrated-production-closure.md'
+      - 'tests/helpers/material-progression-fixture.mjs'
       - 'scripts/*polymer*'
       - 'scripts/polymer-structure-svg.mjs'
       - 'scripts/build-collection-assets.mjs'
@@ -35,11 +41,12 @@ permissions:
 jobs:
   finite-validation:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -48,9 +55,73 @@ jobs:
       - name: Finite completion, chemistry and discovery regressions
         run: node --test tests/reaction-lab-legacy-removal.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
       - name: Production pointer path and 390×844 visual QA
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/reaction-lab-polymer-browser.test.mjs
       - name: Production pointer path and representative desktop QA
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: POLYMER_DESKTOP=1 node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Integrated gameplay, discovery, Engineering and FIELD E2E — mobile
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          TASK10_EVIDENCE_DIR: ${{ runner.temp }}/task10-journey
+        run: node tests/material-progression-browser.test.mjs
+      - name: Integrated gameplay, discovery, Engineering and FIELD E2E — desktop
+        env:
+          MATERIAL_PROGRESS_DESKTOP: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          TASK10_EVIDENCE_DIR: ${{ runner.temp }}/task10-journey
+        run: node tests/material-progression-browser.test.mjs
+      - name: Prepare immutable Task ⑨ baseline
+        env:
+          POLYMER_BASELINE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+        run: |
+          git cat-file -e "$POLYMER_BASELINE_SHA^{commit}"
+          git worktree add --detach "$RUNNER_TEMP/polymer-task9-baseline" "$POLYMER_BASELINE_SHA"
+          echo "POLYMER_CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "POLYMER_BASELINE_SHA=$POLYMER_BASELINE_SHA" >> "$GITHUB_ENV"
+      - name: Profile Task ⑨ baseline — mobile
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_ROOT: ${{ runner.temp }}/polymer-task9-baseline
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/polymer-performance/baseline/mobile
+          POLYMER_SOURCE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Profile Task ⑩ candidate — mobile
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_ROOT: ${{ github.workspace }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/polymer-performance/candidate/mobile
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Profile Task ⑨ baseline — desktop
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_DESKTOP: '1'
+          POLYMER_ROOT: ${{ runner.temp }}/polymer-task9-baseline
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/polymer-performance/baseline/desktop
+          POLYMER_SOURCE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Profile Task ⑩ candidate — desktop
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_DESKTOP: '1'
+          POLYMER_ROOT: ${{ github.workspace }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/polymer-performance/candidate/desktop
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Compare same-condition completion performance
+        env:
+          POLYMER_BASELINE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+          POLYMER_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: >-
+          node scripts/compare-polymer-performance.mjs
+          "$RUNNER_TEMP/polymer-performance/baseline/mobile/performance-390.json"
+          "$RUNNER_TEMP/polymer-performance/baseline/desktop/performance-1280.json"
+          "$RUNNER_TEMP/polymer-performance/candidate/mobile/performance-390.json"
+          "$RUNNER_TEMP/polymer-performance/candidate/desktop/performance-1280.json"
+          "$RUNNER_TEMP/polymer-performance/comparison.json"
       - name: Gate finite completion resource evidence
         run: node scripts/check-polymer-completion-evidence.mjs
       - name: Collection, hygiene, offline integrity
@@ -74,5 +145,51 @@ jobs:
           path: |
             test-results/reaction-lab-polymer-simplification
             test-results/task8-polymer-visual-qa
+            ${{ runner.temp }}/task10-journey
+            ${{ runner.temp }}/polymer-performance
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
+  stage-b-performance-comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare immutable Task ⑨ baseline
+        env:
+          POLYMER_BASELINE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+        run: |
+          git cat-file -e "$POLYMER_BASELINE_SHA^{commit}"
+          git worktree add --detach "$RUNNER_TEMP/polymer-task9-stage-b-baseline" "$POLYMER_BASELINE_SHA"
+          echo "POLYMER_BASELINE_SHA=$POLYMER_BASELINE_SHA" >> "$GITHUB_ENV"
+          echo "POLYMER_CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Profile Stage B baseline — warm-up + four trials
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/polymer-task9-stage-b-baseline
+          POLYMER_SOURCE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+          STAGE_B_PROFILE_LABEL: baseline
+          STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/stage-b-performance/baseline.json
+          STAGE_B_DEBUG_PORT: 9277
+        run: node scripts/profile-reaction-lab-stage-b.mjs
+      - name: Profile Task ⑩ candidate — warm-up + four trials
+        env:
+          POLYMER_ROOT: ${{ github.workspace }}
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          STAGE_B_PROFILE_LABEL: candidate
+          STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/stage-b-performance/candidate.json
+          STAGE_B_DEBUG_PORT: 9278
+        run: node scripts/profile-reaction-lab-stage-b.mjs
+      - name: Compare same-condition Stage B performance
+        run: node scripts/compare-reaction-lab-stage-b.mjs "$RUNNER_TEMP/stage-b-performance/baseline.json" "$RUNNER_TEMP/stage-b-performance/candidate.json" "$RUNNER_TEMP/stage-b-performance/comparison.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task10-stage-b-performance-comparison
+          path: ${{ runner.temp }}/stage-b-performance
+          if-no-files-found: error
+          retention-days: 90
