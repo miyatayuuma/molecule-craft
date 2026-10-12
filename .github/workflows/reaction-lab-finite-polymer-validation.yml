@@ -83,7 +83,7 @@ jobs:
         run: |
           git cat-file -e "$POLYMER_BASELINE_SHA^{commit}"
           git worktree add --detach "$RUNNER_TEMP/polymer-task10-baseline" "$POLYMER_BASELINE_SHA"
-          echo "POLYMER_CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "POLYMER_CANDIDATE_SHA=${{ github.event.pull_request.head.sha || github.sha }}" >> "$GITHUB_ENV"
           echo "POLYMER_BASELINE_SHA=$POLYMER_BASELINE_SHA" >> "$GITHUB_ENV"
       - name: Profile Task ⑩ main baseline — mobile
         env:
@@ -167,23 +167,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Prepare immutable Task ⑨ baseline
+      - name: Stage B comparison contract tests
+        run: node --test tests/compare-reaction-lab-stage-b.test.mjs
+      - name: Prepare immutable Task ⑩ main baseline
         env:
-          POLYMER_BASELINE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+          POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
         run: |
           git cat-file -e "$POLYMER_BASELINE_SHA^{commit}"
-          git worktree add --detach "$RUNNER_TEMP/polymer-task9-stage-b-baseline" "$POLYMER_BASELINE_SHA"
+          git worktree add --detach "$RUNNER_TEMP/polymer-task10-stage-b-baseline" "$POLYMER_BASELINE_SHA"
           echo "POLYMER_BASELINE_SHA=$POLYMER_BASELINE_SHA" >> "$GITHUB_ENV"
           echo "POLYMER_CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
-      - name: Profile Stage B baseline — warm-up + four trials
+      - name: Profile Task ⑩ main baseline — warm-up + four trials
         env:
-          POLYMER_ROOT: ${{ runner.temp }}/polymer-task9-stage-b-baseline
-          POLYMER_SOURCE_SHA: 3a6eec8eea889fd59e661ec802a784a1788717a9
+          POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-stage-b-baseline
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
           STAGE_B_PROFILE_LABEL: baseline
           STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/stage-b-performance/baseline.json
           STAGE_B_DEBUG_PORT: 9277
         run: node scripts/profile-reaction-lab-stage-b.mjs
-      - name: Profile Task ⑩ candidate — warm-up + four trials
+      - name: Profile Task ⑪ candidate — warm-up + four trials
         env:
           POLYMER_ROOT: ${{ github.workspace }}
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -196,7 +198,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: task10-stage-b-performance-comparison
+          name: task10-task11-stage-b-performance-comparison
           path: ${{ runner.temp }}/stage-b-performance
           if-no-files-found: error
           retention-days: 90
