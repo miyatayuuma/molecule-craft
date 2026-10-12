@@ -93,6 +93,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let instances=[],purgeItems=[],selected=null,down=null,testIsolation=null,polymerRouteOwned=false,polymerBeginError=null;
   let polymerReservedById=new Map(),polymerSourceRecordsById={},polymerGraphVisual=null,polymerDocking=null,polymerAutoMotion=null,polymerSamplePresentation=null,polymerDockAttempt=null,polymerAutoAttempt=null;
   const polymerRuntimeMetrics={finiteLayoutCalls:0,bondVisualAllocations:0,completionFitCalls:0,completionLayoutCallsAfterReady:0,layoutComputationMs:0,threeDLayoutFallbacks:0,lastLayoutDiagnostics:null};
+  const polymerBondScratch={axis:new THREE.Vector3(),direction:new THREE.Vector3(),side:new THREE.Vector3(),reference:new THREE.Vector3(0,0,1),midpoint:new THREE.Vector3(),up:new THREE.Vector3(0,1,0)};
   const polymerResourceMetrics=localhostPhysicsTest?{disposalCount:0,geometryDisposals:0,materialDisposals:0}:null;
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,lastReactionPresentation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
   let dialogOpenState=!!dialog.open;const closeWaiters=new Set();
@@ -225,16 +226,19 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function updatePolymerBondVisuals(){
     const visual=polymerGraphVisual;if(!visual||visual.suspended)return;
     const graph=visual.graph;if(!graph)return;
+    const {axis,direction,side,reference,midpoint,up}=polymerBondScratch;
     let cursor=0;
     for(const bond of graph.bonds){
       const a=visual.atomByGraphIndex.get(bond.a),b=visual.atomByGraphIndex.get(bond.b);if(!a||!b)continue;
-      const axis=b.position.clone().sub(a.position),length=axis.length();if(!Number.isFinite(length)||length<.001)continue;
-      const direction=axis.clone().normalize(),reference=new THREE.Vector3(0,0,1),side=new THREE.Vector3().crossVectors(direction,reference).normalize();if(side.lengthSq()<1e-8)side.set(0,1,0);
+      axis.subVectors(b.position,a.position);const length=axis.length();if(!Number.isFinite(length)||length<.001)continue;
+      direction.copy(axis).normalize();side.crossVectors(direction,reference).normalize();if(side.lengthSq()<1e-8)side.set(0,1,0);
+      midpoint.addVectors(a.position,b.position).multiplyScalar(.5);
       const lanes=bond.order>=2?[-.055,.055]:[0];
       for(const offset of lanes){
         let mesh=visual.bondMeshes[cursor];
         if(!mesh){mesh=new THREE.Mesh(new THREE.CylinderGeometry(.038,.038,1,8),new THREE.MeshStandardMaterial({color:'#b8d1de',roughness:.5}));visual.bondMeshes[cursor]=mesh;visual.group.add(mesh);polymerRuntimeMetrics.bondVisualAllocations++;}
-        mesh.visible=true;mesh.scale.set(1,length,1);mesh.position.copy(a.position).add(b.position).multiplyScalar(.5).addScaledVector(side,offset);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction);mesh.userData.polymerAtomIndices=[bond.a,bond.b];cursor++;
+        mesh.visible=true;mesh.scale.set(1,length,1);mesh.position.copy(midpoint).addScaledVector(side,offset);mesh.quaternion.setFromUnitVectors(up,direction);
+        const atomIndices=mesh.userData.polymerAtomIndices;if(!atomIndices||atomIndices[0]!==bond.a||atomIndices[1]!==bond.b)mesh.userData.polymerAtomIndices=[bond.a,bond.b];cursor++;
       }
     }
     for(let index=cursor;index<visual.bondMeshes.length;index++)visual.bondMeshes[index].visible=false;
