@@ -293,10 +293,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const visual=polymerGraphVisual;if(!visual?.animation)return;
     const animation=visual.animation;
     if(animation){animation.elapsedMs+=elapsedMs;const progress=clamp(animation.elapsedMs/animation.durationMs,0,1),eased=progress*progress*(3-2*progress);
-      for(let index=0;index<animation.to.length;index++){const mesh=visual.atomByGraphIndex.get(index),from=animation.from.get(index),to=animation.to[index];if(mesh&&from)mesh.position.lerpVectors(from,to,eased);}
+      if(animation.animateAtoms!==false){for(let index=0;index<animation.to.length;index++){const mesh=visual.atomByGraphIndex.get(index),from=animation.from.get(index),to=animation.to[index];if(mesh&&from)mesh.position.lerpVectors(from,to,eased);}updatePolymerBondVisuals();}
       if(animation.transformFrom&&animation.transformTo){visual.group.position.lerpVectors(animation.transformFrom.position,animation.transformTo.position,eased);visual.group.quaternion.slerpQuaternions(animation.transformFrom.quaternion,animation.transformTo.quaternion,eased);visual.group.scale.lerpVectors(animation.transformFrom.scale,animation.transformTo.scale,eased);}
       if(progress>=1)visual.animation=null;
-      updatePolymerBondVisuals();visual.group.updateMatrixWorld(true);
     }
   }
   function polymerNextCandidates(){
@@ -462,6 +461,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     polymerSamplePresentation={sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,polymerId:sample.polymerId,startedAt:null,elapsedMs:0,durationMs:reducedMotion?POLYMER_COMPLETION_REDUCED_FEEDBACK_MS:POLYMER_COMPLETION_FEEDBACK_MS,ready:false,dismissed:false,phase:'completion',displayedUnitCount:new Set(sample.fragment.atomOrigins.map(origin=>origin.instanceId)).size,layoutCallsAtReady:null,fit:null,zoomFactor:1};
     const visual=polymerGraphVisual,startTransform={position:visual.group.position.clone(),quaternion:visual.group.quaternion.clone(),scale:visual.group.scale.clone()},fit=fitFinitePolymerToWorkArea({apply:false});
     polymerSamplePresentation.fit=fit;
+    if(visual.animation){const animation=visual.animation;for(let index=0;index<animation.to.length;index++){const mesh=visual.atomByGraphIndex.get(index);if(mesh)mesh.position.copy(animation.to[index]);}updatePolymerBondVisuals();visual.animation=reducedMotion?null:{from:new Map(),to:[],elapsedMs:0,durationMs:animation.durationMs,animateAtoms:false};}
     if(fit){const targetTransform={position:new THREE.Vector3(...fit.position),quaternion:new THREE.Quaternion(...fit.quaternion),scale:new THREE.Vector3().setScalar(fit.scale)};
       if(visual.animation&&!reducedMotion){visual.group.position.copy(startTransform.position);visual.group.quaternion.copy(startTransform.quaternion);visual.group.scale.copy(startTransform.scale);visual.animation.transformFrom=startTransform;visual.animation.transformTo=targetTransform;}
       else{visual.group.position.copy(targetTransform.position);visual.group.quaternion.copy(targetTransform.quaternion);visual.group.scale.copy(targetTransform.scale);visual.group.updateMatrixWorld(true);}
