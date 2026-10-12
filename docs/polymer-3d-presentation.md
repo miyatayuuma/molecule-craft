@@ -58,3 +58,41 @@ The pooled intervals were 8 baseline values and 7 candidate values, yielding poo
 - Flexible-link torsions are selected deterministically for reproducibility, not predicted thermodynamically.
 - The finite network route displays only links present in the PolymerSample graph; no bulk crosslinks or material-scale morphology are invented.
 - The fit preserves a complete initial model across rotations; user zoom can intentionally move atoms outside the initial safe rectangle while remaining inside camera clipping limits.
+
+## Task ⑪ acceptance record — 2026-10-12
+
+The measured candidate was `9aae5745507a91c627e53a528488f5f1dad37ed0`; the immutable Task ⑩ main baseline was `4bc202c0eb1f51de0350c3a0b4be36c7178cba53`. The commits between the previously visually reviewed runtime revision and this candidate changed CI comparison/tests and architecture documentation only; the polymer renderer and layout source were unchanged. The final validation runs were [Reaction Lab finite polymer validation](https://github.com/miyatayuuma/molecule-craft/actions/runs/38208425451), [Repository validation](https://github.com/miyatayuuma/molecule-craft/actions/runs/38208425518), and [FIELD Insight balance validation](https://github.com/miyatayuuma/molecule-craft/actions/runs/38208425450). All three latest attempts passed.
+
+### Stage B hard limit
+
+Both same-condition comparisons used six instances, the complete 29-rule matcher, 384 candidates in each measured fixed step, one 150-step warm-up, four measured trials of 150 steps, and the unchanged `8.333 ms` per-trial-P95 and pooled-P95 limit.
+
+| Gate | Task ⑩ trial P95 (ms) | Task ⑪ trial P95 (ms) | Task ⑩ pooled P95 (ms) | Task ⑪ pooled P95 (ms) | Result |
+| --- | --- | --- | ---: | ---: | --- |
+| Independent same-job comparison | 5.3, 5.2, 6.5, 6.0 | 5.2, 4.9, 4.9, 4.8 | 5.9 | 5.0 | Pass; no significant regression |
+| Repository hard-gate rerun | 6.5, 6.7, 6.5, 6.2 | 6.1, 6.4, 6.1, 6.3 | 6.6 | 6.3 | Pass |
+
+The independent comparison recorded the exact Task ⑩ and Task ⑪ source SHAs, all 600 pooled intervals per build, and the raw four-trial distributions. The Task ⑪ candidate passed every measured-trial P95 and pooled P95 check in both gates.
+
+### Completion and frame comparison
+
+Each cell below gives the Task ⑩ value followed by the Task ⑪ value. Completion P95 is the maximum of four measured completion trials; frame P95 is the median of the four per-trial P95 values.
+
+| Viewport | Motion | Completion P95 (ms) | Frame P95 (ms) | Result |
+| --- | --- | ---: | ---: | --- |
+| 390×844 | Normal | 662.9 → 660.2 | 16.8 → 16.8 | Pass |
+| 390×844 | Reduced | 266.0 → 261.2 | 16.8 → 16.8 | Pass |
+| 1280×900 | Normal | 1191.1 → 1108.0 | 191.7 → 183.3 | Pass |
+| 1280×900 | Reduced | 568.5 → 541.0 | 191.7 → 183.3 | Pass |
+
+All four candidate completion P95 values were at or below the Task ⑩ values. Candidate layout generation took 5.7–11.5 ms per measured completion. It ran zero times after readiness. The candidate used exactly one additional bounded module request (`145 → 146`), and retired module requests remained zero. At each ready sample the viewer held 47 geometries and 47 materials; each purge or close disposed all 47 of both kinds, matching the baseline lifecycle counts. The resource-evidence gate passed.
+
+### Route, interaction, and PWA checks
+
+- All 25 production routes passed finite graph and 3D geometry validation with zero layout fallback and zero severe overlaps.
+- Mobile and desktop actual-pointer QA each passed 12 representative completion routes, including all nine requested polymer types, with completion screenshots captured in the run artifact.
+- Integrated gameplay, discovery, Engineering, and FIELD E2E passed at mobile and desktop viewports.
+- Collection, repository hygiene, and offline integrity passed. The PWA check validated 353 hashed assets and their dependency closure, icons, 159 numbered entries/previews, and verified offline fallback.
+- The single prior P0 review thread about UTF-8 source corruption is resolved and outdated.
+
+An earlier candidate attempt recorded one desktop-normal completion outlier (`1131.8 ms` versus a `907.2 ms` Task ⑩ maximum). The repeat at the same product-code revision passed all four viewport/motion conditions; the succeeding desktop-normal candidate P95 was `1108.0 ms` versus `1191.1 ms` baseline. The raw trials remain available in the linked workflow artifacts; the earlier outlier is retained here rather than hidden.
