@@ -11,8 +11,8 @@ const baselineSha='4bc202c0eb1f51de0350c3a0b4be36c7178cba53';
 const candidateSha='a3bfc66b97200e854f4c1611bce1ebeeadf1e569';
 const browser={product:'Chrome/154.0.8037.97',revision:'@b510e9d7cd3a2fbd78d0ddc42234103206c5f78d'};
 const runtimeFlags=['--headless=new','--use-gl=angle','--use-angle=swiftshader'];
-const baselineReduced=[[16.6,150.1],[16.7,133.3],[16.7,150],[16.7,150]];
-const candidateReduced=[[16.7,116.7],[133.2],[16.7,133.3],[16.6,150]];
+const baselineReduced=[[16.7,116.6],[16.7,99.9],[16.7,83.3],[16.7,99.9]];
+const candidateReduced=[[33.4,83.3],[16.7,83.3],[16.6,83.3],[33.4,83.3]];
 const quantile=(values,q)=>[...values].sort((a,b)=>a-b)[Math.max(0,Math.ceil(values.length*q)-1)];
 const percentileSummary=values=>({count:values.length,p50:quantile(values,.5),p95:quantile(values,.95),max:Math.max(...values),values});
 
@@ -51,7 +51,7 @@ function profile(sourceSha,viewportWidth,isCandidate){
   return{schemaVersion:1,sourceSha,browser,viewport:{width:viewportWidth,height:viewportWidth===390?844:900,mobile:viewportWidth===390,deviceScaleFactor:1},warmupPolicy:'First completion for each motion mode is retained but excluded from aggregate regression statistics.',measurements};
 }
 
-test('coarse RAF P50 comparison uses equally weighted trial summaries and retains raw samples',async()=>{
+test('low-sample RAF comparison keeps the existing coarse-resolution floors when candidate P95 improves below 100 ms',async()=>{
   const directory=await mkdtemp(join(tmpdir(),'polymer-performance-comparison-'));
   try{
     const paths=['baseline-390.json','baseline-1280.json','candidate-390.json','candidate-1280.json','comparison.json'].map(name=>join(directory,name));
@@ -63,12 +63,17 @@ test('coarse RAF P50 comparison uses equally weighted trial summaries and retain
     const desktopReduced=report.comparisons.find(item=>item.viewport.width===1280&&item.motion==='reduced');
     assert.equal(report.pass,true);
     assert.equal(desktopReduced.baseline.frameIntervalsMs.count,8);
-    assert.equal(desktopReduced.candidate.frameIntervalsMs.count,7);
+    assert.equal(desktopReduced.candidate.frameIntervalsMs.count,8);
     assert.equal(desktopReduced.baseline.frameIntervalsMs.p50,16.7);
-    assert.equal(desktopReduced.candidate.frameIntervalsMs.p50,116.7,'pooled odd/even sample-count shift stays visible in the report');
-    assert.deepEqual(desktopReduced.sampling.frameIntervalsPerTrial,{baseline:[2,2,2,2],candidate:[2,1,2,2]});
-    assert.deepEqual(desktopReduced.comparisonStatistic.frameP50Ms,{baselineMedianOfTrialP50s:16.7,candidateMedianOfTrialP50s:16.7});
+    assert.equal(desktopReduced.candidate.frameIntervalsMs.p50,33.4,'pooled coarse-sample P50 remains visible in the report');
+    assert.equal(desktopReduced.baseline.frameIntervalsMs.p95,116.6);
+    assert.equal(desktopReduced.candidate.frameIntervalsMs.p95,83.3,'candidate improvement below 100 ms must not change the low-sample resolution class');
+    assert.deepEqual(desktopReduced.sampling.frameIntervalsPerTrial,{baseline:[2,2,2,2],candidate:[2,2,2,2]});
+    assert.equal(desktopReduced.sampling.coarseFrameSampling,true);
+    assert.equal(desktopReduced.comparisonStatistic.frameP50Ms.baselineMedianOfTrialP50s,16.7);
+    assert.ok(Math.abs(desktopReduced.comparisonStatistic.frameP50Ms.candidateMedianOfTrialP50s-25.05)<1e-9);
     assert.equal(desktopReduced.checks.frameP50,true);
+    assert.equal(desktopReduced.checks.frameMaximum,true);
     assert.deepEqual(desktopReduced.layoutGenerationTimingMs,{baselinePerTrial:['NOT_MEASURED','NOT_MEASURED','NOT_MEASURED','NOT_MEASURED'],candidatePerTrial:[7,7,7,7]});
   }finally{
     await rm(directory,{recursive:true,force:true});
