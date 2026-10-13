@@ -541,8 +541,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }
   }
   function advancePolymerPresentation(elapsedMs){
-    updatePolymerGraphVisual(elapsedMs);
-    if(polymerAutoMotion){const motion=polymerAutoMotion;motion.elapsedMs+=elapsedMs;const progress=clamp(motion.elapsedMs/motion.durationMs,0,1),eased=progress*progress*(3-2*progress);motion.item.group.position.copy(samplePolymerPath(motion.path,eased));motion.item.group.updateMatrixWorld(true);syncStageABodyFromGroup(motion.item);
+    const graphElapsedMs=polymerGraphVisual?.animation?.animateAtoms===false?elapsedMs:Math.min(elapsedMs,50);
+    updatePolymerGraphVisual(graphElapsedMs);
+    const motionElapsedMs=Math.min(elapsedMs,50);
+    if(polymerAutoMotion){const motion=polymerAutoMotion;motion.elapsedMs+=motionElapsedMs;const progress=clamp(motion.elapsedMs/motion.durationMs,0,1),eased=progress*progress*(3-2*progress);motion.item.group.position.copy(samplePolymerPath(motion.path,eased));motion.item.group.updateMatrixWorld(true);syncStageABodyFromGroup(motion.item);
       if(progress>=1){motion.item.group.position.copy(motion.to);motion.item.group.updateMatrixWorld(true);syncStageABodyFromGroup(motion.item);const valid=polymerGeometrySafe(motion.item,motion.interaction,motion.item.group.position),begun=polymerCore.beginAutomaticStep(motion.item.id,{geometryValid:valid});if(begun.ok){polymerDocking={item:motion.item,interaction:motion.interaction,kind:'automatic'};if(localhostPhysicsTest)polymerAutoAttempt={...polymerAutoAttempt,stage:'dwell',geometryValid:valid};}else{if(localhostPhysicsTest)polymerAutoAttempt={...polymerAutoAttempt,stage:'begin',geometryValid:valid,reason:begun.reason};motion.item.polymerDocking=false;motion.item.stageBody.kinematic=false;polymerCore.autoFallback();status.textContent='POLYMERIZATION PAUSED';}polymerAutoMotion=null;updatePolymerSiteIndicator();}
     }
     if(!polymerSamplePresentation||!polymerSamplePresentation.ready)advancePolymerCompletion();
@@ -1171,7 +1173,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const timeScale=chamberTime.scale,scaledElapsed=scaleSimulationElapsed(elapsed/1000,timeScale),acceptedElapsed=Math.min(scaledElapsed,STAGE_A_GAME_STEP_SECONDS*STAGE_A_MAX_CATCH_UP_STEPS);
     const timing=stageAStepper.advance(scaledElapsed);simulationClockSeconds+=acceptedElapsed;stageAPerformance.lastFrameStepCount=timing.steps;stageAPerformance.lastDroppedGameSeconds=timing.droppedGameSeconds;
     advanceReactionAnimation(elapsed);
-    advancePolymerPresentation(Math.min(elapsed,50));
+    advancePolymerPresentation(elapsed);
     renderer.render(scene,camera);
   }
   updateCamera();animationFrameId=requestAnimationFrame(tick);
