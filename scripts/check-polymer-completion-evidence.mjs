@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 
 const directory=process.argv[2]??'test-results/reaction-lab-polymer-simplification';
-const routeIds=['polyethylene-coordination','ethylene-propylene-coordination','polyethylene-oxide-anionic-ring-opening','polyethylene-terephthalate-direct-polycondensation','phenol-formaldehyde-resole','styrene-butadiene-radical','butyl-rubber-cationic','nylon-6-6-direct-polycondensation','polystyrene-radical'];
+const routeIds=['polyethylene-coordination','ethylene-propylene-coordination','polyethylene-oxide-anionic-ring-opening','polyethylene-terephthalate-direct-polycondensation','phenol-formaldehyde-resole','styrene-butadiene-radical','butyl-rubber-cationic','nylon-6-6-direct-polycondensation','polystyrene-radical','polypropylene-coordination','polyvinyl-chloride-radical','polybutadiene-coordination-1-4'];
 const viewports=[{width:390,height:844,label:'mobile'},{width:1280,height:900,label:'desktop'}],results=[];
 for(const viewport of viewports){
   const rows=JSON.parse(await readFile(`${directory}/browser-${viewport.width}.json`,'utf8'));

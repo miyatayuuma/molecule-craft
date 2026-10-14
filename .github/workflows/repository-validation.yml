@@ -319,13 +319,57 @@ jobs:
           node tests/combustion-residual-browser.test.mjs
           node tests/coolant-feedback.test.mjs
           node tests/propulsion-hud-source.test.mjs
+      - name: Task ⑩ main Stage B hard-gate control
+        env:
+          TASK10_MAIN_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$TASK10_MAIN_SHA"
+          baseline_dir="$RUNNER_TEMP/task10-stage-b-baseline"
+          baseline_log="$RUNNER_TEMP/task10-stage-b-control.log"
+          git worktree add --detach "$baseline_dir" "$TASK10_MAIN_SHA"
+          trap 'git worktree remove --force "$baseline_dir" || true' EXIT
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          "$browser" --version
+          if POLYMER_ROOT="$baseline_dir" node tests/reaction-lab-browser.test.mjs > "$baseline_log" 2>&1; then
+            baseline_status=0
+          else
+            baseline_status=$?
+          fi
+          printf '\nTASK10_STAGE_B_CONTROL_EXIT=%s\n' "$baseline_status" >> "$baseline_log"
+          if ! grep -Fq 'REACTION_LAB_FULL_MATCHER_PERFORMANCE' "$baseline_log"; then
+            cat "$baseline_log"
+            echo 'Task ⑩ baseline control did not reach the Stage B matcher measurement.'
+            exit 1
+          fi
+          node --input-type=commonjs - "$baseline_log" <<'NODE'
+          const fs=require('node:fs');
+          const log=fs.readFileSync(process.argv[2],'utf8');
+          const marker='REACTION_LAB_FULL_MATCHER_PERFORMANCE ';
+          const line=log.split('\n').find(value=>value.includes(marker));
+          const evidence=JSON.parse(line.slice(line.indexOf(marker)+marker.length));
+          const exit=Number(log.match(/TASK10_STAGE_B_CONTROL_EXIT=(\d+)/)?.[1]??NaN);
+          console.log('TASK10_STAGE_B_CONTROL',JSON.stringify({trialP95Ms:evidence.trialP95Ms,medianTrialP95Ms:evidence.medianTrialP95Ms,pooledP95Ms:evidence.pooledP95Ms,budgetMs:evidence.budgetMs,exit}));
+          NODE
+          echo "Task ⑩ baseline Stage B control reached its hard-gate measurement (test exit $baseline_status); full raw trial durations are saved as an artifact."
+      - name: Task ⑪ candidate Stage B hard gate
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          "$browser" --version
+          node tests/reaction-lab-browser.test.mjs
+      - name: Upload Task ⑩ baseline Stage B control evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task10-stage-b-hard-gate-control
+          path: ${{ runner.temp }}/task10-stage-b-control.log
+          if-no-files-found: ignore
       - name: UI de-explanation regressions
         run: |
           node tests/loadout-shortage-confirmation.test.mjs
           node tests/loadout-workstation.test.mjs
           node tests/loadout-transfer-browser.test.mjs
           node tests/loadout-mobile-fit-toggle-browser.test.mjs
-          node tests/reaction-lab-browser.test.mjs
           node tests/loadout-launch-regression.test.mjs
           node tests/issue-122-launch-route.test.mjs
           node tests/launch-request.test.mjs
