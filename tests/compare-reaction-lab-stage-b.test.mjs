@@ -40,6 +40,7 @@ test('Stage B comparison passes only with the Task ⑩ baseline, Task ⑪ source
   assert.equal(report.baseline.sourceSha,'task10-main');
   assert.equal(report.candidate.sourceSha,'task11-head');
   assert.equal(report.budgetMs,1000/120);
+  assert.match(report.interpretation,/does not measure requestAnimationFrame cadence or rendered-frame delivery/);
 });
 
 test('Stage B comparison accepts P95 values exactly at the unchanged 8.333 ms boundary',async()=>{
