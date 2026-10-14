@@ -311,6 +311,7 @@ try{
     await pause(80);const moved=await snapshot(),movedByproduct=moved.instances.find(item=>item.id===byproduct.id);assert.equal(moved.draggedInstanceId,null,`${route.routeId}: ordinary byproduct drag releases its pointer`);assert.ok(movedByproduct&&Math.hypot(...movedByproduct.position.map((value,index)=>value-byproduct.position[index]))>.05,`${route.routeId}: completed-Sample gestures preserve ordinary molecule dragging`);assert.deepEqual(moved.polymerView.rotation,initial.polymerView.rotation,'ordinary monomer drag does not rotate the completed Sample');assert.equal(moved.polymerization.manualStepCount,initial.polymerization.manualStepCount,'ordinary molecule drag does not commit polymerization');assert.equal(moved.polymerization.sampleId,initial.polymerization.sampleId);assert.equal(moved.camera.distance,initial.camera.distance,'ordinary molecule drag does not move the shared camera');
   };
   const assertRegistrationGraph=(route,event)=>{
+    if(task10BaselineProfile)return null; // Task ⑩ predates the Task ⑪ 3D graph probe; candidate geometry assertions still run.
     const graph=event?.graphEvidence;
     assert.ok(graph,`${route.routeId}: lightweight registration-time graph evidence is present`);
     assert.equal(graph.sampleId,event.detail.sampleId,`${route.routeId}: graph evidence belongs to this finite sample`);
