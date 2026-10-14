@@ -1194,6 +1194,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     };
     const probe={
       polymerResourceSnapshot,
+      polymerCompletionTiming(){const presentation=polymerSamplePresentation;return presentation?{sampleId:presentation.sampleId,timerStartedAtMs:presentation.startedAt,durationMs:presentation.durationMs,elapsedMs:presentation.elapsedMs,ready:presentation.ready,dismissed:presentation.dismissed}:null;},
       polymerGraphEvidence(){
         const graph=polymerGraphVisual?.graph??null,visual=polymerGraphVisual;
         if(!graph||!visual)return null;

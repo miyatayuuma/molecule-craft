@@ -6,6 +6,7 @@ const [baselinePath,candidatePath,outputPath]=process.argv.slice(2).map(path=>re
 const [baseline,candidate]=await Promise.all([baselinePath,candidatePath].map(async path=>JSON.parse(await readFile(path,'utf8'))));
 for(const [label,profile] of [['baseline',baseline],['candidate',candidate]]){
   assert.equal(profile.schemaVersion,2,`${label}: expected timer-precision-aware Stage B profile schema`);
+  assert.equal(profile.profileMode??'acceptance','acceptance',`${label}: diagnostic-only profiles cannot enter the Stage B acceptance comparator`);
   assert.equal(profile.timerPrecision?.crossOriginIsolated,true,`${label}: Stage B timings must come from a cross-origin isolated page`);
   assert.ok(profile.timerPrecision.minimumObservedStepMs>0&&profile.timerPrecision.minimumObservedStepMs<=.01,`${label}: observed performance.now step must be finer than 10 µs`);
 }

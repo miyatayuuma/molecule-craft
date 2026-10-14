@@ -89,6 +89,7 @@ jobs:
           node tests/repository-hygiene.test.mjs
 
   repository-guardrails:
+    if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

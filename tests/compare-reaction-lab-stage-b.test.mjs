@@ -9,6 +9,7 @@ import test from 'node:test';
 const script=fileURLToPath(new URL('../scripts/compare-reaction-lab-stage-b.mjs',import.meta.url));
 const makeProfile=(sourceSha,trialP95Ms,pooledP95Ms)=>({
   schemaVersion:2,
+  profileMode:'acceptance',
   sourceSha,
   browser:{product:'Chrome/154.0.8037.97',revision:'@test',protocolVersion:'1.3'},
   timerPrecision:{crossOriginIsolated:true,minimumObservedStepMs:.005,observedPositiveSteps:2048},
@@ -58,6 +59,17 @@ test('Stage B comparison rejects coarse or non-isolated browser timers',async()=
     await Promise.all([writeFile(baselinePath,JSON.stringify(baseline)),writeFile(candidatePath,JSON.stringify(candidate))]);
     const result=spawnSync(process.execPath,[script,baselinePath,candidatePath,outputPath],{encoding:'utf8',env:{...process.env,POLYMER_BASELINE_SHA:'task10-main',POLYMER_CANDIDATE_SHA:'task11-head'}});
     assert.equal(result.status,1);assert.match(result.stderr,/cross-origin isolated page/);
+  }finally{await rm(directory,{recursive:true,force:true});}
+});
+
+test('Stage B acceptance comparator rejects diagnostic-only profiles',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'stage-b-diagnostic-isolation-'));
+  try{
+    const baseline=makeProfile('task10-main',[8,8,8.1,8.1],8.1),candidate=makeProfile('task11-head',[8,8.1,8.1,8.1],8.1);candidate.profileMode='diagnostic';
+    const baselinePath=join(directory,'baseline.json'),candidatePath=join(directory,'candidate.json'),outputPath=join(directory,'comparison.json');
+    await Promise.all([writeFile(baselinePath,JSON.stringify(baseline)),writeFile(candidatePath,JSON.stringify(candidate))]);
+    const result=spawnSync(process.execPath,[script,baselinePath,candidatePath,outputPath],{encoding:'utf8',env:{...process.env,POLYMER_BASELINE_SHA:'task10-main',POLYMER_CANDIDATE_SHA:'task11-head'}});
+    assert.equal(result.status,1);assert.match(result.stderr,/diagnostic-only profiles cannot enter/);
   }finally{await rm(directory,{recursive:true,force:true});}
 });
 

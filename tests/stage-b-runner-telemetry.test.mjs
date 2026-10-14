@@ -8,7 +8,7 @@ const visibleProcSelfPid=process.platform==='linux'?Number(readFileSync('/proc/s
 test('Linux proc stat parsing preserves process names containing closing parentheses',()=>{
   const fields=['R','7','0','0','0','0','0','0','0','0','0','120','30',...Array(20).fill('0')];
   const result=parseProcStat(`123 (chrome ) renderer) ${fields.join(' ')}`,123,100);
-  assert.deepEqual(result,{pid:123,state:'R',parentPid:7,cpuMs:1500});
+  assert.deepEqual(result,{pid:123,state:'R',parentPid:7,userTicks:120,systemTicks:30,cpuMs:1500});
 });
 
 test('runner snapshot comparison distinguishes browser CPU time, host pressure, and cgroup throttling',()=>{

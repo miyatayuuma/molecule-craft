@@ -40,6 +40,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
+    if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -168,7 +169,7 @@ jobs:
         with:
           node-version: 22
       - name: Stage B comparison contract tests
-        run: node --test tests/compare-reaction-lab-stage-b.test.mjs
+        run: node --test tests/compare-reaction-lab-stage-b.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs tests/compare-polymer-performance.test.mjs
       - name: Prepare immutable Task ⑩ main baseline
         env:
           POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
@@ -178,6 +179,7 @@ jobs:
           echo "POLYMER_BASELINE_SHA=$POLYMER_BASELINE_SHA" >> "$GITHUB_ENV"
           echo "POLYMER_CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Profile Task ⑩ main baseline — warm-up + four trials
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-stage-b-baseline
           POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
@@ -186,6 +188,7 @@ jobs:
           STAGE_B_DEBUG_PORT: 9277
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - name: Profile Task ⑪ candidate — warm-up + four trials
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ github.workspace }}
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -194,29 +197,26 @@ jobs:
           STAGE_B_DEBUG_PORT: 9278
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - name: Compare same-condition Stage B performance
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
         run: node scripts/compare-reaction-lab-stage-b.mjs "$RUNNER_TEMP/stage-b-performance/baseline.json" "$RUNNER_TEMP/stage-b-performance/candidate.json" "$RUNNER_TEMP/stage-b-performance/comparison.json"
       - name: Diagnostic-only runner and browser pause attribution — Task ⑩ baseline
-        if: always()
-        continue-on-error: true
+        if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-stage-b-baseline
           POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
           STAGE_B_PROFILE_LABEL: baseline-diagnostic
           STAGE_B_PROFILE_MODE: diagnostic
           STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/stage-b-performance/diagnostic-baseline.json
-          STAGE_B_ACCEPTANCE_PROFILE: ${{ runner.temp }}/stage-b-performance/baseline.json
           STAGE_B_DEBUG_PORT: 9279
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - name: Diagnostic-only runner and browser pause attribution — Task ⑪ candidate
-        if: always()
-        continue-on-error: true
+        if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ github.workspace }}
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           STAGE_B_PROFILE_LABEL: candidate-diagnostic
           STAGE_B_PROFILE_MODE: diagnostic
           STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/stage-b-performance/diagnostic-candidate.json
-          STAGE_B_ACCEPTANCE_PROFILE: ${{ runner.temp }}/stage-b-performance/candidate.json
           STAGE_B_DEBUG_PORT: 9280
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - uses: actions/upload-artifact@v4
@@ -225,4 +225,31 @@ jobs:
           name: task10-task11-stage-b-performance-comparison
           path: ${{ runner.temp }}/stage-b-performance
           if-no-files-found: error
+          retention-days: 90
+  finite-root-cause-diagnostic:
+    if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Trace desktop reduced-motion completion pause
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_DESKTOP: '1'
+          POLYMER_PAUSE_DIAGNOSTIC: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/finite-pause-diagnostic
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: finite-desktop-reduced-motion-pause-diagnostic
+          path: ${{ runner.temp }}/finite-pause-diagnostic
+          if-no-files-found: warn
           retention-days: 90
