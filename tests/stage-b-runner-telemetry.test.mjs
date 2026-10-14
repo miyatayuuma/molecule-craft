@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {captureRunnerSnapshot,compareRunnerSnapshots,parseProcStat} from '../scripts/stage-b-runner-telemetry.mjs';
+import {captureRunnerSnapshot,compareRunnerSnapshots,parseProcStat,summarizeSlowIntervals} from '../scripts/stage-b-runner-telemetry.mjs';
 
 const visibleProcSelfPid=process.platform==='linux'?Number(readFileSync('/proc/self/stat','utf8').split(' ')[0]):null;
 
@@ -24,6 +24,15 @@ test('runner snapshot comparison distinguishes browser CPU time, host pressure, 
   assert.equal(result.cgroupCpuUsageDeltaMs,35);
   assert.equal(result.cgroupThrottledDeltaMs,7);
   assert.equal(result.processTreeAvailable,true);
+});
+
+test('diagnostic slow-interval analysis keeps sample positions and contiguous runs aligned with timestamp windows',()=>{
+  const result=summarizeSlowIntervals([5,9,10,7,11,12],[[100,105],[105,114],[114,124],[124,131],[131,142],[142,154]],8.333333333333334,100);
+  assert.equal(result.measuredSampleCount,6);
+  assert.deepEqual(result.slowSamples.map(sample=>sample.stepIndex),[1,2,4,5]);
+  assert.deepEqual(result.slowSamples.map(sample=>sample.elapsedFromTrialStartMs),[5,14,31,42]);
+  assert.deepEqual(result.consecutiveSlowRuns.map(run=>({first:run.firstStepIndex,last:run.lastStepIndex,count:run.count})),[{first:1,last:2,count:2},{first:4,last:5,count:2}]);
+  assert.equal(result.maximumConsecutiveSlowCount,2);
 });
 
 test('runner snapshot records available Linux host and process-tree context',{skip:process.platform!=='linux'||visibleProcSelfPid!==process.pid},async()=>{
