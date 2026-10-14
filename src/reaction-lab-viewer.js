@@ -1194,6 +1194,13 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     };
     const probe={
       polymerResourceSnapshot,
+      polymerGraphEvidence(){
+        const graph=polymerGraphVisual?.graph??null,visual=polymerGraphVisual;
+        if(!graph||!visual)return null;
+        const resources=polymerResourceSnapshot();
+        const visibleBonds=new Set(visual.bondMeshes.filter(mesh=>mesh.visible&&Array.isArray(mesh.userData.polymerAtomIndices)).map(mesh=>mesh.userData.polymerAtomIndices.join('|')));
+        return{sampleId:polymerSamplePresentation?.sampleId??null,sampleReady:!!polymerSamplePresentation?.ready,graphAtomCount:graph.atoms.length,graphBondCount:graph.bonds.length,atomOriginCount:graph.atomOrigins?.length??0,visibleAtomCount:visual.atomByGraphIndex.size,visibleBondMeshCount:visual.bondMeshes.filter(mesh=>mesh.visible).length,bondsResolveToRenderedAtoms:graph.bonds.every(bond=>visual.atomByGraphIndex.has(bond.a)&&visual.atomByGraphIndex.has(bond.b)),everyBondHasVisibleMesh:graph.bonds.every(bond=>visibleBonds.has(`${bond.a}|${bond.b}`)),activeGroupCount:resources.activeGroupCount,geometryCount:resources.geometryCount,materialCount:resources.materialCount};
+      },
       polymerDisplayBounds(){
         if(!polymerGraphVisual?.layoutPlan)return null;
         const rect=canvas.getBoundingClientRect(),forward=cameraNormal(),points=[];camera.updateMatrixWorld(true);polymerGraphVisual.group.updateMatrixWorld(true);
