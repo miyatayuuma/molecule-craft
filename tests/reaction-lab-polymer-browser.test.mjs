@@ -30,10 +30,144 @@ try{
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);return result.result?.value;};
   const waitFor=async(expression,label,timeout=16000)=>{for(let index=0;index<timeout/50;index++){try{const value=await evaluate(expression);if(value)return value;}catch{}await pause(50);}const state=await evaluate(`(()=>({url:location.href,title:document.title,labButton:{present:!!document.querySelector('#open-reaction-lab'),disabled:document.querySelector('#open-reaction-lab')?.disabled},viewerUnavailable:document.querySelector('#viewer-unavailable')?.hidden,status:document.querySelector('#status')?.textContent,dialog:document.querySelector('#reaction-lab-dialog')?.open,collection:document.querySelector('#collection-dialog')?.open,batch:window.__reactionLabProbe?.snapshot().batch,polymerization:window.__reactionLabProbe?.snapshot().polymerization,events:window.__polymerSampleEvents??[]}))()`);throw Error(`${label}: ${JSON.stringify({state,browserErrors})}`);};
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()'),resetPolymerEvents=()=>evaluate('window.__polymerSampleEvents=[];window.__polymerPresentEvents=[];window.__polymerDismissEvents=[];window.__closeBeforeReadyOnNextSample=false;true'),routeCameraDistances=new Map();
-  const wireDiscoveryEvents=()=>evaluate(`(()=>{window.__polymerSampleEvents=[];window.__polymerPresentEvents=[];window.__polymerDismissEvents=[];window.__closeBeforeReadyOnNextSample=false;const record=event=>({detail:event.detail,receivedAt:performance.now(),snapshot:window.__reactionLabProbe?.snapshot()??null,polymerDisplayBounds:window.__reactionLabProbe?.polymerDisplayBounds()??null,completionUi:{hidden:document.querySelector('[data-polymer-completion]')?.hidden??true,status:document.querySelector('[data-polymer-completion-status]')?.textContent??'',encyclopediaHidden:document.querySelector('[data-polymer-encyclopedia]')?.hidden??true,encyclopediaDisabled:document.querySelector('[data-polymer-encyclopedia]')?.disabled??true}});window.addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>{window.__polymerSampleEvents.push(record(event));if(window.__closeBeforeReadyOnNextSample){window.__closeBeforeReadyOnNextSample=false;document.querySelector('#reaction-lab-dialog')?.close();}});window.addEventListener('molecule-craft:reaction-lab-polymer-sample-present',event=>window.__polymerPresentEvents.push(record(event)));window.addEventListener('molecule-craft:reaction-lab-polymer-sample-dismiss',event=>window.__polymerDismissEvents.push(record(event)));return true})()`);
+  // Event callbacks keep only timestamps and DOM state; graph snapshots and bounds are read after the sampler stops.
+  const wireDiscoveryEvents=()=>evaluate(`(()=>{window.__polymerSampleEvents=[];window.__polymerPresentEvents=[];window.__polymerDismissEvents=[];window.__closeBeforeReadyOnNextSample=false;const record=event=>({detail:event.detail,receivedAt:performance.now(),dialogOpen:document.querySelector('#reaction-lab-dialog')?.open??false,visibilityState:document.visibilityState,hidden:document.hidden,readyEventsObserved:window.__polymerPresentEvents.length,completionUi:{hidden:document.querySelector('[data-polymer-completion]')?.hidden??true,status:document.querySelector('[data-polymer-completion-status]')?.textContent??'',encyclopediaHidden:document.querySelector('[data-polymer-encyclopedia]')?.hidden??true,encyclopediaDisabled:document.querySelector('[data-polymer-encyclopedia]')?.disabled??true}});window.addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>{window.__polymerSampleEvents.push(record(event));if(window.__closeBeforeReadyOnNextSample){window.__closeBeforeReadyOnNextSample=false;document.querySelector('#reaction-lab-dialog')?.close();}});window.addEventListener('molecule-craft:reaction-lab-polymer-sample-present',event=>window.__polymerPresentEvents.push(record(event)));window.addEventListener('molecule-craft:reaction-lab-polymer-sample-dismiss',event=>window.__polymerDismissEvents.push(record(event)));return true})()`);
   const openLab=async()=>{await waitFor("!!document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled&&!!window.__reactionLabProbe",'Reaction Lab app did not initialize');await evaluate("document.querySelector('#open-reaction-lab').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open",'Reaction Lab did not open');};
   const seedPage=await send('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('molecule-craft.collection.v1',${JSON.stringify(JSON.stringify(moleculeSave))});localStorage.setItem('molecule-craft.polymer-collection.v1',JSON.stringify({schemaVersion:1,discoveredPolymers:[]}));`});
-  const frameProbePage=await send('Page.addScriptToEvaluateOnNewDocument',{source:`(()=>{const samples=[];let active=null;const nativeRequestAnimationFrame=window.requestAnimationFrame.bind(window);const pct=(values,q)=>{if(!values.length)return null;const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.max(0,Math.ceil(q*sorted.length)-1)];};const summarize=(record,includePostReadyFrame=false)=>{const completionFrames=record.frames.filter(value=>value>=record.startedAt&&value<=record.presentedAt),frames=includePostReadyFrame&&record.tailFrameAt!==null?record.frames.filter(value=>value>=record.startedAt&&value<=record.tailFrameAt):completionFrames,intervals=frames.slice(1).map((value,index)=>value-frames[index]),firstFrameOffsetMs=frames.length?frames[0]-record.startedAt:null,lastFrameOffsetMs=frames.length?frames[frames.length-1]-record.startedAt:null;return{sampleId:record.sampleId,routeId:record.routeId,startedAt:record.startedAt,presentedAt:record.presentedAt,completionElapsedMs:record.presentedAt-record.startedAt,targetDurationMs:record.targetDurationMs,frameIntervalsMs:{count:intervals.length,frameCount:frames.length,firstFrameOffsetMs:firstFrameOffsetMs===null?null:Number(firstFrameOffsetMs.toFixed(3)),lastFrameOffsetMs:lastFrameOffsetMs===null?null:Number(lastFrameOffsetMs.toFixed(3)),sampledFrameSpanMs:frames.length>1?Number((frames[frames.length-1]-frames[0]).toFixed(3)):0,trailingGapMs:completionFrames.length?Number((record.presentedAt-completionFrames[completionFrames.length-1]).toFixed(3)):null,p50:pct(intervals,.5),p95:pct(intervals,.95),max:intervals.length?Math.max(...intervals):null,values:intervals.map(value=>Number(value.toFixed(3)))}};};addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>{if(active&&!active.presentedAt)active.abandoned=true;const duration=window.__reactionLabProbe?.snapshot().polymerization.sampleDurationMs??null;active={sampleId:event.detail.sampleId,routeId:event.detail.routeId,startedAt:performance.now(),presentedAt:null,targetDurationMs:duration,frames:[],tailFrameAt:null,awaitingTailFrame:false};samples.push(active);});addEventListener('molecule-craft:reaction-lab-polymer-sample-present',event=>{const record=samples.find(item=>item.sampleId===event.detail.sampleId);if(record&&!record.presentedAt){record.presentedAt=performance.now();record.awaitingTailFrame=true;}});window.requestAnimationFrame=callback=>nativeRequestAnimationFrame(now=>{if(active&&active.frames.at(-1)!==now)active.frames.push(now);if(active?.awaitingTailFrame){active.tailFrameAt=now;active.awaitingTailFrame=false;active=null;}callback.call(window,now);});window.__polymerFrameProbe={summary:(id,includePostReadyFrame=false)=>{const record=samples.find(item=>item.sampleId===id);return record?.presentedAt?summarize(record,includePostReadyFrame):null;},hasPostReadyFrame:id=>Boolean(samples.find(item=>item.sampleId===id)?.tailFrameAt)};})();`});
+  const frameProbePage=await send('Page.addScriptToEvaluateOnNewDocument',{source:`(()=>{
+    const samples=[];
+    let active=null;
+    const nativeRequestAnimationFrame=window.requestAnimationFrame.bind(window);
+    const pct=(values,q)=>{
+      if(!values.length)return null;
+      const sorted=[...values].sort((a,b)=>a-b);
+      return sorted[Math.max(0,Math.ceil(q*sorted.length)-1)];
+    };
+    const summarize=(record,includePostReadyFrame=false,targetDurationMs=null)=>{
+      const completionFrames=record.frames.filter(value=>value>=record.startedAt&&value<=record.presentedAt);
+      const frames=includePostReadyFrame&&record.tailFrameAt!==null
+        ?record.frames.filter(value=>value>=record.startedAt&&value<=record.tailFrameAt)
+        :completionFrames;
+      const intervals=frames.slice(1).map((value,index)=>value-frames[index]);
+      const firstFrameOffsetMs=frames.length?frames[0]-record.startedAt:null;
+      const lastFrameOffsetMs=frames.length?frames[frames.length-1]-record.startedAt:null;
+      const offset=value=>value===null?null:Number((value-record.startedAt).toFixed(3));
+      return{
+        sampleId:record.sampleId,
+        routeId:record.routeId,
+        startedAt:record.startedAt,
+        presentedAt:record.presentedAt,
+        completionElapsedMs:record.presentedAt-record.startedAt,
+        targetDurationMs:targetDurationMs??record.targetDurationMs,
+        lifecycle:{
+          sampleEventReceivedAtMs:record.sampleEventReceivedAt,
+          samplerStartedAtMs:record.samplerStartedAt,
+          readyEventReceivedAtMs:record.presentedAt,
+          samplerStoppedAtMs:record.samplerStoppedAt,
+          samplerStopReason:record.samplerStopReason,
+          frameRequestCount:record.frameRequestCount,
+          frameCallbackCount:record.frameCallbackCount,
+          firstFrameRequestOffsetMs:offset(record.firstFrameRequestAt),
+          lastFrameRequestOffsetMs:offset(record.lastFrameRequestAt),
+          firstFrameCallbackOffsetMs:offset(record.firstFrameCallbackAt),
+          lastFrameCallbackOffsetMs:offset(record.lastFrameCallbackAt),
+          visibilityAtStart:record.visibilityAtStart,
+          hiddenAtStart:record.hiddenAtStart,
+          visibilityChanges:record.visibilityChanges,
+        },
+        frameIntervalsMs:{
+          count:intervals.length,
+          frameCount:frames.length,
+          firstFrameOffsetMs:firstFrameOffsetMs===null?null:Number(firstFrameOffsetMs.toFixed(3)),
+          lastFrameOffsetMs:lastFrameOffsetMs===null?null:Number(lastFrameOffsetMs.toFixed(3)),
+          sampledFrameSpanMs:frames.length>1?Number((frames[frames.length-1]-frames[0]).toFixed(3)):0,
+          trailingGapMs:completionFrames.length?Number((record.presentedAt-completionFrames[completionFrames.length-1]).toFixed(3)):null,
+          p50:pct(intervals,.5),
+          p95:pct(intervals,.95),
+          max:intervals.length?Math.max(...intervals):null,
+          values:intervals.map(value=>Number(value.toFixed(3))),
+        },
+      };
+    };
+    addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>{
+      if(active&&!active.presentedAt){
+        active.abandonedAt=performance.now();
+        active.samplerStopReason='superseded-by-new-sample';
+      }
+      const receivedAt=performance.now();
+      active={
+        sampleId:event.detail.sampleId,
+        routeId:event.detail.routeId,
+        sampleEventReceivedAt:receivedAt,
+        samplerStartedAt:receivedAt,
+        startedAt:receivedAt,
+        presentedAt:null,
+        targetDurationMs:null,
+        frames:[],
+        tailFrameAt:null,
+        awaitingTailFrame:false,
+        samplerStoppedAt:null,
+        samplerStopReason:null,
+        frameRequestCount:0,
+        frameCallbackCount:0,
+        firstFrameRequestAt:null,
+        lastFrameRequestAt:null,
+        firstFrameCallbackAt:null,
+        lastFrameCallbackAt:null,
+        visibilityAtStart:document.visibilityState,
+        hiddenAtStart:document.hidden,
+        visibilityChanges:[],
+      };
+      samples.push(active);
+    });
+    document.addEventListener('visibilitychange',()=>{
+      if(active)active.visibilityChanges.push({
+        elapsedMs:Number((performance.now()-active.startedAt).toFixed(3)),
+        visibilityState:document.visibilityState,
+        hidden:document.hidden,
+      });
+    });
+    addEventListener('molecule-craft:reaction-lab-polymer-sample-present',event=>{
+      const record=samples.find(item=>item.sampleId===event.detail.sampleId);
+      if(record&&!record.presentedAt){
+        record.presentedAt=performance.now();
+        record.awaitingTailFrame=true;
+      }
+    });
+    window.requestAnimationFrame=callback=>{
+      const record=active;
+      if(record&&!record.presentedAt){
+        const requestedAt=performance.now();
+        record.frameRequestCount++;
+        if(record.firstFrameRequestAt===null)record.firstFrameRequestAt=requestedAt;
+        record.lastFrameRequestAt=requestedAt;
+      }
+      return nativeRequestAnimationFrame(now=>{
+        const current=active;
+        if(current){
+          current.frameCallbackCount++;
+          if(current.firstFrameCallbackAt===null)current.firstFrameCallbackAt=now;
+          current.lastFrameCallbackAt=now;
+          if(current.frames.at(-1)!==now)current.frames.push(now);
+          if(current.awaitingTailFrame){
+            current.tailFrameAt=now;
+            current.samplerStoppedAt=performance.now();
+            current.samplerStopReason='post-ready-frame';
+            current.awaitingTailFrame=false;
+            active=null;
+          }
+        }
+        callback.call(window,now);
+      });
+    };
+    window.__polymerFrameProbe={
+      summary:(id,includePostReadyFrame=false,targetDurationMs=null)=>{
+        const record=samples.find(item=>item.sampleId===id);
+        return record?.presentedAt?summarize(record,includePostReadyFrame,targetDurationMs):null;
+      },
+      hasPostReadyFrame:id=>Boolean(samples.find(item=>item.sampleId===id)?.tailFrameAt),
+    };
+  })();`});
   await send('Runtime.enable');await send('Page.enable');await send('Network.enable');await send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1});
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1&reactionLabPhysics=stage-b`});await openLab();await wireDiscoveryEvents();
   assert.equal((await snapshot()).physicsMode,'stage-b','the browser gate uses production Stage B');
@@ -59,11 +193,11 @@ try{
     await waitFor("!document.querySelector('[data-lab-feed]').disabled",`${route.routeId}: FEED is unavailable`);
     await evaluate("document.querySelector('[data-lab-feed]').click()");
     if(expectPurge)await waitFor("window.__reactionLabProbe.snapshot().purging.some(item=>item.species==='PolymerSample')",`${route.routeId}: next FEED did not PURGE prior PolymerSample`,5000);
-    await waitFor(`(()=>{const s=window.__reactionLabProbe.snapshot();return s.batch.phase==='ACTIVE'&&s.polymerization.routeId===${JSON.stringify(route.routeId)}&&['WAITING','AUTO_PENDING','SAMPLE'].includes(s.polymerization.state)})()`,`${route.routeId}: polymer route did not own its exact Feed batch`,22000);
+    await waitFor(`(()=>{if(window.__polymerSampleEvents.some(item=>item.detail.routeId===${JSON.stringify(route.routeId)}))return true;const s=window.__reactionLabProbe.snapshot();return s.batch.phase==='ACTIVE'&&s.polymerization.routeId===${JSON.stringify(route.routeId)}&&['WAITING','AUTO_PENDING','SAMPLE'].includes(s.polymerization.state)})()`,`${route.routeId}: polymer route did not own its exact Feed batch`,22000);
     if(expectPurge){await waitFor(`(()=>{const s=window.__reactionLabProbe.snapshot();return !s.purging.some(item=>item.species==='PolymerSample')&&s.polymerResources.disposals.geometryDisposals>${before.polymerResources.disposals.geometryDisposals}})()`,`${route.routeId}: prior finite graph resources are disposed by the purge`,5000);const state=await snapshot();assert.equal(state.purging.some(item=>item.species==='PolymerSample'),false,`${route.routeId}: prior finite graph resources leave purge ownership before the new route proceeds`);assert.equal(state.polymerization.sampleId,null,`${route.routeId}: prior PolymerSample identity is cleared before the next reaction`);}
     routeCameraDistances.set(route.routeId,(await snapshot()).camera.distance);
     await setEnvironment(route);
-    await waitFor(`window.__reactionLabProbe.snapshot().polymerization.waitReason!=='conditions'`,`${route.routeId}: route conditions did not become valid`);
+    await waitFor(`(()=>{if(window.__polymerSampleEvents.some(item=>item.detail.routeId===${JSON.stringify(route.routeId)}))return true;return window.__reactionLabProbe.snapshot().polymerization.waitReason!=='conditions'})()`,`${route.routeId}: route conditions did not become valid`);
   };
   const pointerDrag=async(plan,instanceId,routeId,manualIndex)=>{
     const rect=await evaluate(`(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,documentWidth:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth}})()`);
@@ -74,27 +208,36 @@ try{
     assert.equal((await snapshot()).draggedInstanceId,instanceId,`${routeId} manual step ${manualIndex} acquires the intended real monomer on the first pointer target`);
     for(let step=1;step<=12;step++){const t=step/12;await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:plan.start.x+(plan.end.x-plan.start.x)*t,y:plan.start.y+(plan.end.y-plan.start.y)*t,button:'left',buttons:1});await pause(20);}
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:plan.end.x,y:plan.end.y,button:'left',buttons:0});
-    await waitFor(`(()=>{const p=window.__reactionLabProbe.snapshot().polymerization;return p.manualStepCount===${manualIndex}&&p.state!=='TRANSFORMING'})()`,`${routeId} manual step ${manualIndex} did not commit from a pointer gesture`,9000);
-    const committed=await snapshot();assert.equal(committed.pointerActive,false,`${routeId} manual gesture releases pointer capture`);
-    if(routeId==='polyethylene-coordination'&&manualIndex===1){assert.ok(committed.polymerization.displayGraph?.unitCount>=2&&committed.polymerization.displayGraph.bondsResolveToRenderedAtoms,'actual finite graph and rendered bond endpoints stay connected during polymerization');await capture('actual-reaction');}
-    const bondAllocations=committed.polymerRuntimeMetrics.bondVisualAllocations;await pause(360);assert.equal((await snapshot()).polymerRuntimeMetrics.bondVisualAllocations,bondAllocations,`${routeId} graph animation reuses bond geometry/materials after commit`);
+    await waitFor(`(()=>{if(window.__polymerSampleEvents.some(item=>item.detail.routeId===${JSON.stringify(routeId)}))return true;const p=window.__reactionLabProbe.snapshot().polymerization;return p.manualStepCount===${manualIndex}&&p.state!=='TRANSFORMING'})()`,`${routeId} manual step ${manualIndex} did not commit from a pointer gesture`,9000);
+    const committed=await evaluate(`(()=>{if(window.__polymerSampleEvents.some(item=>item.detail.routeId===${JSON.stringify(routeId)}))return{completionStarted:true};const state=window.__reactionLabProbe.snapshot();return{completionStarted:false,state}})()`);
+    if(committed.completionStarted)return true;
+    assert.equal(committed.state.pointerActive,false,`${routeId} manual gesture releases pointer capture`);
+    if(routeId==='polyethylene-coordination'&&manualIndex===1){assert.ok(committed.state.polymerization.displayGraph?.unitCount>=2&&committed.state.polymerization.displayGraph.bondsResolveToRenderedAtoms,'actual finite graph and rendered bond endpoints stay connected during polymerization');await capture('actual-reaction');}
+    const bondAllocations=committed.state.polymerRuntimeMetrics.bondVisualAllocations;await pause(360);
+    const afterPause=await evaluate(`(()=>{if(window.__polymerSampleEvents.some(item=>item.detail.routeId===${JSON.stringify(routeId)}))return{completionStarted:true};return{completionStarted:false,bondVisualAllocations:window.__reactionLabProbe.snapshot().polymerRuntimeMetrics.bondVisualAllocations}})()`);
+    if(afterPause.completionStarted)return true;
+    assert.equal(afterPause.bondVisualAllocations,bondAllocations,`${routeId} graph animation reuses bond geometry/materials after commit`);
+    return false;
   };
   const runManualSteps=async route=>{
     for(let manualIndex=1;manualIndex<=route.interactionCadence.manualSteps;manualIndex++){
       await waitFor("!!window.__reactionLabProbe.snapshot().polymerization.siteTarget",`${route.routeId} manual step ${manualIndex}: stable reactive site is presented`);
       const state=await snapshot(),consumed=state.polymerization.consumedInstanceIds,reserved=new Set(state.polymerization.reservedInstanceIds),species=route.representativeSequence[consumed.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!consumed.includes(item.id));
       assert.ok(candidate,`${route.routeId} manual step ${manualIndex}: representative incoming monomer is reserved and draggable`);
-      const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,manualIndex);
-      assert.equal((await snapshot()).polymerization.manualStepCount,manualIndex,`${route.routeId}: exactly one manual chemistry step was committed`);
+      const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`),completionStarted=await pointerDrag(plan,candidate.id,route.routeId,manualIndex);
+      if(completionStarted)return;
+      const committedStep=await evaluate(`(()=>{if(window.__polymerSampleEvents.some(item=>item.detail.routeId===${JSON.stringify(route.routeId)}))return{completionStarted:true};return{completionStarted:false,manualStepCount:window.__reactionLabProbe.snapshot().polymerization.manualStepCount}})()`);
+      if(committedStep.completionStarted)return;
+      assert.equal(committedStep.manualStepCount,manualIndex,`${route.routeId}: exactly one manual chemistry step was committed`);
     }
   };
   const completeAutomaticStep=async route=>{
-    await waitFor("(()=>{const p=window.__reactionLabProbe.snapshot().polymerization;return p.state==='SAMPLE'||p.waitReason==='auto-fallback'})()",`${route.routeId}: automatic step completes or uses its existing pointer fallback`,18000);
-    const state=await snapshot();if(state.polymerization.waitReason==='auto-fallback'){
-      const p=state.polymerization,reserved=new Set(p.reservedInstanceIds),species=route.representativeSequence[p.consumedInstanceIds.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!p.consumedInstanceIds.includes(item.id));
+    const outcome=await waitFor(`(()=>{if(window.__polymerSampleEvents.some(item=>item.detail.routeId===${JSON.stringify(route.routeId)}))return 'sample';const p=window.__reactionLabProbe.snapshot().polymerization;return p.waitReason==='auto-fallback'?'auto-fallback':null})()`,`${route.routeId}: automatic step completes or uses its existing pointer fallback`,18000);
+    if(outcome==='auto-fallback'){
+      const state=await snapshot(),p=state.polymerization,reserved=new Set(p.reservedInstanceIds),species=route.representativeSequence[p.consumedInstanceIds.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!p.consumedInstanceIds.includes(item.id));
       assert.ok(candidate,`${route.routeId}: existing pointer fallback keeps its actual final Feed monomer`);const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,p.manualStepCount+1);
     }
-    await waitFor("window.__reactionLabProbe.snapshot().polymerization.state==='SAMPLE'",`${route.routeId}: final actual-pointer Feed completes`,18000);
+    await waitFor(`window.__polymerSampleEvents.some(item=>item.detail.routeId===${JSON.stringify(route.routeId)})`,`${route.routeId}: final actual-pointer Feed completion is recorded`,18000);
   };
   const artifactDir=resolve(process.env.POLYMER_EVIDENCE_DIR??join(root,'test-results/reaction-lab-polymer-simplification'));
   const capture=async name=>{const image=await send('Page.captureScreenshot',{format:'png'});await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`${name}-${viewport.width}.png`),Buffer.from(image.data,'base64'));};
@@ -177,34 +320,64 @@ try{
     assert.equal(p.fit?.unitCount,route.completionEvidence.unitCount);assert.ok(p.fit.scale>0&&p.fit.scale<=1);assert.equal(state.instances.some(item=>item.species==='PolymerSample'),false,'PolymerSample is not inserted into the Stage B feed instances');
     const currentGeometryCount=state.dialogOpen?p.displayGraph.atomCount+p.displayGraph.visibleBondMeshCount:0;assert.equal(state.polymerResources.activeGroupCount,state.dialogOpen?1:0,route.routeId+': the finite graph group follows Lab visibility');assert.equal(state.polymerResources.geometryCount,currentGeometryCount,route.routeId+': visible finite graph resources are disposed when the Lab closes');assert.equal(state.polymerResources.materialCount,currentGeometryCount,route.routeId+': visible finite graph materials follow Lab visibility');
     assert.equal(events.length,1,'one sample registration event is emitted for each completion');assert.equal(events[0].detail.sampleId,p.sampleId);assert.equal(events[0].detail.routeId,route.routeId);assert.equal(events[0].detail.batchGeneration,state.batch.generation);assert.ok(events[0].detail.sourceInstanceIds.length>0);
-    assert.equal(events[0].snapshot.dialogOpen,true,route.routeId+': registration is captured while the viewer is open');assert.equal(events[0].snapshot.polymerization.displayGraph.visibleAtomCount,events[0].snapshot.polymerization.displayGraph.atomCount,route.routeId+': registration captures every rendered atom before discovery suspension');assert.equal(events[0].snapshot.polymerization.displayGraph.bondsResolveToRenderedAtoms,true,route.routeId+': registration captures bonds resolved to rendered atoms');assert.equal(events[0].snapshot.polymerResources.geometryCount,events[0].snapshot.polymerization.displayGraph.atomCount+events[0].snapshot.polymerization.displayGraph.visibleBondMeshCount,route.routeId+': registration captures live finite graph geometry');assert.equal(events[0].snapshot.polymerization.sampleReady,false,'registration occurs during bounded feedback');assert.equal(events[0].snapshot.polymerization.samplePhase,'completion');assert.equal(events[0].completionUi.hidden,false);assert.match(events[0].completionUi.status,/重合完了/);assert.equal(events[0].completionUi.encyclopediaDisabled,true,'Encyclopedia remains disabled until presentation is ready');
-    assert.ok(presentEvents.length<=1);if(presentEvents.length)assert.ok(presentEvents[0].receivedAt>events[0].receivedAt&&presentEvents[0].snapshot.polymerization.sampleReady,'sample-present follows registration and readiness');
-    const bounds=task10BaselineProfile?null:events[0].polymerDisplayBounds;if(!task10BaselineProfile)assert.ok(bounds?.atomCount===p.displayGraph.atomCount&&bounds.depthVisible,route.routeId+': registered visible atoms remain within camera depth');
+    assert.equal(events[0].dialogOpen,true,route.routeId+': registration event is received while the viewer is open');
+    assert.equal(events[0].hidden,false,route.routeId+': completion sampling begins in a visible document');
+    assert.equal(events[0].readyEventsObserved,0,'registration is recorded before any completion-ready event');
+    assert.equal(p.displayGraph.visibleAtomCount,p.displayGraph.atomCount,route.routeId+': completed Sample retains every rendered atom');
+    assert.equal(p.displayGraph.bondsResolveToRenderedAtoms,true,route.routeId+': completed Sample bonds resolve to rendered atoms');
+    assert.equal(state.polymerResources.geometryCount,p.displayGraph.atomCount+p.displayGraph.visibleBondMeshCount,route.routeId+': completed Sample retains live finite graph geometry');
+    assert.equal(events[0].completionUi.hidden,false);
+    assert.match(events[0].completionUi.status,/重合完了/);
+    assert.equal(events[0].completionUi.encyclopediaDisabled,true,'Encyclopedia remains disabled until presentation is ready');
+    assert.ok(presentEvents.length<=1);
+    if(presentEvents.length)assert.ok(presentEvents[0].receivedAt>events[0].receivedAt&&p.sampleReady,'sample-present follows registration and readiness');
+    if(presentEvents.length)assert.equal(presentEvents[0].dialogOpen,true,route.routeId+': ready event is received while the viewer is open');
+    const bounds=task10BaselineProfile?null:await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');
+    if(!task10BaselineProfile){assert.ok(bounds?.atomCount===p.displayGraph.atomCount&&bounds.depthVisible,route.routeId+': completed finite atoms remain within camera depth');assert.ok(bounds.insideSafeRegion,route.routeId+': completed finite graph remains within its work-area safe region');}
+    if(presentEvents.length){
+      const presentedGraph=p.displayGraph;
+      assert.equal(presentedGraph.visibleAtomCount,presentedGraph.atomCount,route.routeId+': ready presentation contains every rendered atom');
+      assert.equal(presentedGraph.bondsResolveToRenderedAtoms,true,route.routeId+': ready bonds resolve to rendered atoms');
+      assert.equal(state.polymerResources.geometryCount,presentedGraph.atomCount+presentedGraph.visibleBondMeshCount,route.routeId+': ready presentation owns its finite graph geometry');
+      if(!task10BaselineProfile){
+        assert.ok(bounds?.atomCount===presentedGraph.atomCount&&bounds.depthVisible,route.routeId+': each ready atom remains within camera depth');
+        assert.ok(bounds.insideSafeRegion,route.routeId+': ready finite fragment fits its work-area safe region');
+      }
+    }
     return{state,events,presentEvents,bounds};
   };
   const finishCompletion=async(route,{newDiscovery=false,captureReady=false,captureName='completion-ready',expectedDuration=650,includePostReadyFrame=false}={})=>{
-    await waitFor('window.__reactionLabProbe.snapshot().polymerization.sampleReady',`${route.routeId}: bounded completion feedback did not become ready`,5000);
+    const sampleId=await waitFor(`window.__polymerSampleEvents.find(item=>item.detail.routeId===${JSON.stringify(route.routeId)})?.detail.sampleId??null`,`${route.routeId}: sample registration event was not recorded`,5000);
+    await waitFor(`window.__polymerPresentEvents.some(item=>item.detail.sampleId===${JSON.stringify(sampleId)})`,`${route.routeId}: bounded completion feedback did not become ready`,5000);
+    await waitFor(`window.__polymerFrameProbe.hasPostReadyFrame(${JSON.stringify(sampleId)})`,`${route.routeId}: sampler did not stop on the first post-ready frame`,2000);
     await waitFor("(()=>{const state=window.__reactionLabProbe.snapshot();return state.dialogOpen?state.polymerResources.activeGroupCount===1:state.polymerResources.geometryCount===0})()",`${route.routeId}: finite resources settle to the Reaction Lab open/closed state`,2000);
-    const state=await snapshot(),p=state.polymerization,presentEvents=await evaluate('window.__polymerPresentEvents.slice()');assert.equal(presentEvents.length,1,'sample-present fires exactly once after readiness');assert.equal(presentEvents[0].detail.sampleId,p.sampleId);assert.equal(presentEvents[0].detail.batchGeneration,state.batch.generation);
-    const presentedGraph=presentEvents[0].snapshot.polymerization.displayGraph;assert.equal(presentEvents[0].snapshot.dialogOpen,true,route.routeId+': ready presentation is sampled before discovery suspension');assert.equal(presentedGraph.visibleAtomCount,presentedGraph.atomCount,route.routeId+': ready presentation contains every rendered atom');assert.equal(presentedGraph.bondsResolveToRenderedAtoms,true,route.routeId+': ready bonds resolve to rendered atoms');assert.equal(presentEvents[0].snapshot.polymerResources.geometryCount,presentedGraph.atomCount+presentedGraph.visibleBondMeshCount,route.routeId+': ready presentation owns its finite graph geometry');
-    if(!task10BaselineProfile){const readyBounds=presentEvents[0].polymerDisplayBounds;assert.ok(readyBounds?.atomCount===presentedGraph.atomCount&&readyBounds.depthVisible,route.routeId+': each ready atom remains within camera depth');assert.ok(readyBounds.insideSafeRegion,route.routeId+': ready finite fragment fits its work-area safe region: '+JSON.stringify(readyBounds));}
-    if(includePostReadyFrame)await waitFor("window.__polymerFrameProbe.hasPostReadyFrame("+JSON.stringify(p.sampleId)+")",route.routeId+": no viewer frame was recorded after sample-present",2000);
+    const state=await snapshot(),p=state.polymerization,presentEvents=await evaluate('window.__polymerPresentEvents.slice()');let graphState=state;assert.equal(presentEvents.length,1,'sample-present fires exactly once after readiness');assert.equal(presentEvents[0].detail.sampleId,p.sampleId);assert.equal(presentEvents[0].detail.batchGeneration,state.batch.generation);
+    assert.equal(presentEvents[0].dialogOpen,true,route.routeId+': ready event is received while the viewer is open');
     assert.equal(p.siteTarget,null,`${route.routeId}: completion clears the reactive-site indicator`);assert.equal(await evaluate("document.querySelector('[data-polymer-incoming-indicator]').hidden"),true,`${route.routeId}: completion clears the incoming-atom indicator`);
     assert.equal(state.camera.distance,routeCameraDistances.get(route.routeId),`${route.routeId}: readiness adds no camera transition`);
-    assert.equal(p.sampleReady,true);assert.equal(p.samplePhase,'ready');assert.equal(p.layoutCallsAtReady,state.polymerRuntimeMetrics.finiteLayoutCalls);assert.equal(state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,0);
+    assert.equal(state.pointerActive,false,route.routeId+': actual pointer capture is released before completion readiness');assert.ok(p.manualStepCount>=route.interactionCadence.manualSteps,route.routeId+': configured actual pointer steps commit before the finite sample is inspected');assert.equal(p.sampleReady,true);assert.equal(p.sampleDurationMs,expectedDuration);assert.equal(p.samplePhase,'ready');assert.equal(p.layoutCallsAtReady,state.polymerRuntimeMetrics.finiteLayoutCalls);assert.equal(state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,0);
     const expectedActiveGroups=state.dialogOpen?1:0;assert.equal(state.polymerResources.activeGroupCount,expectedActiveGroups,`${route.routeId}: finite sample resources exist only while the Reaction Lab is open`);assert.equal(state.polymerResources.geometryCount,state.dialogOpen?p.displayGraph.atomCount+p.displayGraph.visibleBondMeshCount:0,`${route.routeId}: finite graph resources are disposed when discovery closes the Lab`);assert.equal(state.polymerResources.materialCount,state.polymerResources.geometryCount);
     const registrationEvents=await evaluate('window.__polymerSampleEvents.slice()'),delay=presentEvents[0].receivedAt-registrationEvents[0].receivedAt;
-    const frameProfile=await evaluate(`window.__polymerFrameProbe.summary(${JSON.stringify(p.sampleId)},${includePostReadyFrame})`),timingBounds={minimumMs:expectedDuration-30,maximumMs:expectedDuration+(expectedDuration===250?750:850)};
+    const frameProfile=await evaluate(`window.__polymerFrameProbe.summary(${JSON.stringify(p.sampleId)},${includePostReadyFrame},${p.sampleDurationMs})`),timingBounds={minimumMs:expectedDuration-30,maximumMs:expectedDuration+(expectedDuration===250?750:850)};
+    assert.ok(frameProfile?.lifecycle,route.routeId+': completion lifecycle evidence is present');
+    assert.equal(frameProfile.lifecycle.sampleEventReceivedAtMs,frameProfile.lifecycle.samplerStartedAtMs,route.routeId+': sampler starts at the lightweight completion event');
+    assert.ok(frameProfile.lifecycle.readyEventReceivedAtMs>=frameProfile.lifecycle.samplerStartedAtMs,route.routeId+': ready decision follows sampler start');
+    assert.ok(frameProfile.lifecycle.samplerStoppedAtMs>=frameProfile.lifecycle.readyEventReceivedAtMs,route.routeId+': sampler stops on a post-ready frame');
+    assert.equal(frameProfile.lifecycle.samplerStopReason,'post-ready-frame',route.routeId+': sampler stop reason is explicit');
+
     if(delay<timingBounds.minimumMs||delay>=timingBounds.maximumMs){
       const diagnostic={sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId:route.routeId,polymerId:route.polymerId,viewport:{...viewport,deviceScaleFactor:1},expectedDurationMs:expectedDuration,observedDelayMs:delay,timingBounds,registrationEvent:registrationEvents[0],presentEvent:presentEvents[0],frameProfile,afterSnapshot:await snapshot(),browserErrors:[...browserErrors]};
       await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`polymer-completion-timing-failure-${route.routeId}-${viewport.width}.json`),JSON.stringify(diagnostic,null,2));await capture(`polymer-completion-timing-failure-${route.routeId}`);console.log('POLYMER_COMPLETION_TIMING_DIAGNOSTIC',JSON.stringify(diagnostic));
     }
     assert.ok(delay>=timingBounds.minimumMs&&delay<timingBounds.maximumMs,`${route.routeId}: sample-present follows ${expectedDuration} ms bounded feedback (${delay} ms)`);
-    const frameSampleCaptured=expectedDuration===250?frameProfile?.frameIntervalsMs.frameCount>0:frameProfile?.frameIntervalsMs.count>0;
-    assert.ok(frameSampleCaptured,`${route.routeId}: ${expectedDuration===250?'reduced-motion completion rendered at least one viewer frame':'frame sampler captured the completion interval'} (${JSON.stringify(frameProfile)})`);
     const motion=expectedDuration===250?'reduced':'normal',trialIndex=performanceEvidence.filter(item=>item.motion===motion).length;
     const moduleUrls=await evaluate("[...new Set(performance.getEntriesByType('resource').map(entry=>entry.name).filter(name=>/\\.m?js(?:$|[?#])/.test(name)))]");
-    performanceEvidence.push({sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:browserVersion.product,viewport:{width:viewport.width,height:viewport.height,deviceScaleFactor:1},runtimeFlags:['--headless=new','--no-sandbox','--disable-background-networking','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--force-device-scale-factor=1'],routeId:route.routeId,polymerId:route.polymerId,motion,trialIndex,warmup:trialIndex===0,completionElapsedMs:frameProfile.completionElapsedMs,targetDurationMs:frameProfile.targetDurationMs,frameIntervalsMs:frameProfile.frameIntervalsMs,jsUpdateTimeMs:'NOT_MEASURED',renderSubmissionTimeMs:'NOT_MEASURED',gpuExecutionTimeMs:'NOT_MEASURED',moduleFetchCount:moduleUrls.length,retiredModuleFetchCount:retiredModuleRequests.length,polymerResources:state.polymerResources,polymerRuntimeMetrics:state.polymerRuntimeMetrics,reportedPresentDelayMs:delay});
+    performanceEvidence.push({sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:browserVersion.product,viewport:{width:viewport.width,height:viewport.height,deviceScaleFactor:1},runtimeFlags:['--headless=new','--no-sandbox','--disable-background-networking','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--force-device-scale-factor=1'],routeId:route.routeId,polymerId:route.polymerId,motion,trialIndex,warmup:trialIndex===0,completionElapsedMs:frameProfile.completionElapsedMs,targetDurationMs:frameProfile.targetDurationMs,frameIntervalsMs:frameProfile.frameIntervalsMs,completionLifecycle:frameProfile.lifecycle,jsUpdateTimeMs:'NOT_MEASURED',renderSubmissionTimeMs:'NOT_MEASURED',gpuExecutionTimeMs:'NOT_MEASURED',moduleFetchCount:moduleUrls.length,retiredModuleFetchCount:retiredModuleRequests.length,polymerResources:state.polymerResources,polymerRuntimeMetrics:state.polymerRuntimeMetrics,reportedPresentDelayMs:delay});
+    const frameSampleCaptured=expectedDuration===250?frameProfile?.frameIntervalsMs.frameCount>0:frameProfile?.frameIntervalsMs.count>0;
+
+    if(!frameSampleCaptured)await saveEvidence();
+    assert.ok(frameSampleCaptured,`${route.routeId}: ${expectedDuration===250?'reduced-motion completion rendered at least one viewer frame':'frame sampler captured the completion interval'} (${JSON.stringify(frameProfile)})`);
+
     assert.equal(await evaluate("document.querySelector('[data-polymer-completion]').hidden"),false);assert.equal(await evaluate("document.querySelector('[data-polymer-completion-status]').textContent"),task10BaselineProfile?'重合完了 · 次のFeedまたは図鑑へ進めます':'重合完了 · ドラッグで回転、ホイール・ピンチで拡大');if(!task10BaselineProfile)assert.equal(await evaluate("document.querySelector('[data-polymer-view-reset]').hidden"),false,'ready Sample exposes a view-reset action');
     assert.equal(await evaluate("document.querySelector('[data-polymer-completion-name]').textContent"),polymers.find(item=>item.id===route.polymerId).nameJa,'completion UI uses the catalog polymer name');
     assert.equal(await evaluate("document.querySelector('[data-lab-feed]').disabled"),false,'FEED is available after readiness');
@@ -219,23 +392,29 @@ try{
       const reveal=await evaluate(`(()=>({entry:document.querySelector('#collection-detail h3')?.textContent,marker:document.querySelector('[data-registration-marker]')?.textContent??'',action:document.querySelector('#collection-detail [data-discovery-session-action]')?.textContent}))()`);
       assert.equal(reveal.entry,polymers.find(item=>item.id===route.polymerId).nameJa);assert.match(reveal.marker,/REGISTERED|NEW ENTRY/);assert.equal(reveal.action,'REACTION LABへ戻る');
       await evaluate("document.querySelector('#collection-detail [data-discovery-session-action]').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('#collection-dialog').open",`${route.routeId}: discovery return did not restore the Lab`);
-      const returned=await snapshot();assert.equal(returned.polymerization.sampleId,p.sampleId);assert.equal(returned.polymerization.sampleReady,true);assert.equal(returned.polymerResources.activeGroupCount,1,'returning from Collection restores one finite graph group');assert.equal(returned.polymerResources.geometryCount,returned.polymerization.displayGraph.atomCount+returned.polymerization.displayGraph.visibleBondMeshCount,'returning from Collection reconstructs exactly the finite graph resource set');
+      const returned=await snapshot();assert.equal(returned.polymerization.sampleId,p.sampleId);assert.equal(returned.polymerization.sampleReady,true);assert.equal(returned.polymerResources.activeGroupCount,1,'returning from Collection restores one finite graph group');assert.equal(returned.polymerResources.geometryCount,returned.polymerization.displayGraph.atomCount+returned.polymerization.displayGraph.visibleBondMeshCount,'returning from Collection reconstructs exactly the finite graph resource set');graphState=returned;
       if(route.polymerId==='polyethylene')await capture('final-finite-fragment');
     }
+    const presentedGraph=graphState.polymerization.displayGraph;
+    assert.equal(graphState.dialogOpen,true,route.routeId+': completed finite presentation is inspected with the Lab open');
+    assert.equal(presentedGraph.visibleAtomCount,presentedGraph.atomCount,route.routeId+': ready presentation contains every rendered atom');
+    assert.equal(presentedGraph.bondsResolveToRenderedAtoms,true,route.routeId+': ready bonds resolve to rendered atoms');
+    assert.equal(graphState.polymerResources.geometryCount,presentedGraph.atomCount+presentedGraph.visibleBondMeshCount,route.routeId+': ready presentation owns its finite graph geometry');
+    if(!task10BaselineProfile){const readyBounds=await evaluate('window.__reactionLabProbe.polymerDisplayBounds()');assert.ok(readyBounds?.atomCount===presentedGraph.atomCount&&readyBounds.depthVisible,route.routeId+': each ready atom remains within camera depth');assert.ok(readyBounds.insideSafeRegion,route.routeId+': ready finite fragment fits its work-area safe region: '+JSON.stringify(readyBounds));}
     if(captureReady){const visible=await snapshot();assert.equal(visible.dialogOpen,true,`${route.routeId}: visual evidence is captured after returning to the open Reaction Lab`);assert.equal(await evaluate("document.querySelector('#collection-dialog').open"),false,`${route.routeId}: Collection transition is closed before visual QA`);const markerAudit=await evaluate("[...document.querySelectorAll('[data-polymer-site-indicator],[data-polymer-incoming-indicator],[data-depth-target-indicator]')].map(element=>({kind:element.dataset.polymerSiteIndicator!==undefined?'site':element.dataset.polymerIncomingIndicator!==undefined?'incoming':'depth-target',hidden:element.hidden,display:getComputedStyle(element).display,visibility:getComputedStyle(element).visibility}))");assert.ok(markerAudit.every(item=>item.hidden||item.display==='none'||item.visibility==='hidden'),`${route.routeId}: completed visual has no live docking target or incoming marker: ${JSON.stringify(markerAudit)}`);console.log('POLYMER_PRESENTATION_MARKER_AUDIT',JSON.stringify({routeId:route.routeId,viewport,markerAudit}));await capture(captureName);}
     if(captureReady&&route.polymerId==='polyethylene'&&!observationDone){await exercisePolymerObservation();observationDone=true;}
     return{state:await snapshot(),delay};
   };
   let viewerDisposalEvidence=null;
-  const saveEvidence=async()=>{await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`browser-${viewport.width}.json`),JSON.stringify(evidence,null,2));await writeFile(join(artifactDir,`performance-${viewport.width}.json`),JSON.stringify({schemaVersion:1,sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:{product:browserVersion.product,revision:browserVersion.revision,protocolVersion:browserVersion.protocolVersion},viewport:{...viewport,deviceScaleFactor:1},warmupPolicy:'First completion for each motion mode is retained but excluded from aggregate regression statistics.',measurements:performanceEvidence,viewerDisposal:viewerDisposalEvidence,notMeasured:['per-frame JavaScript update duration','WebGL submission CPU duration','GPU execution time','device memory']},null,2));};
+  const saveEvidence=async()=>{await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`browser-${viewport.width}.json`),JSON.stringify(evidence,null,2));await writeFile(join(artifactDir,`performance-${viewport.width}.json`),JSON.stringify({schemaVersion:1,evidenceSerializationStartedAt:new Date().toISOString(),sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:{product:browserVersion.product,revision:browserVersion.revision,protocolVersion:browserVersion.protocolVersion},viewport:{...viewport,deviceScaleFactor:1},warmupPolicy:'First completion for each motion mode is retained but excluded from aggregate regression statistics.',measurements:performanceEvidence,viewerDisposal:viewerDisposalEvidence,notMeasured:['per-frame JavaScript update duration','WebGL submission CPU duration','GPU execution time','device memory']},null,2));};
   let previousSample=false;const normalEvidence=[];
   if(process.env.POLYMER_PROFILE_ONLY==='1'){
     const route=hardRoutes[0],runProfileTrial=async(motion,trialIndex)=>{
       const reduced=motion==='reduced',expectedDuration=reduced?250:650,newDiscovery=motion==='normal'&&trialIndex===0;
       await resetPolymerEvents();await feedRoute(route,previousSample);await runManualSteps(route);await completeAutomaticStep(route);
-      await inspectCompletion(route,{newDiscovery,expectedDuration});
       const result=await finishCompletion(route,{newDiscovery,expectedDuration,includePostReadyFrame:true});
-      const measurement=performanceEvidence.at(-1);assert.equal(measurement.motion,motion);assert.equal(measurement.trialIndex,trialIndex);assert.equal(measurement.targetDurationMs,expectedDuration);console.log(`POLYMER_PROFILE_TRIAL ${JSON.stringify({sourceSha:measurement.sourceSha,viewport:measurement.viewport,motion,trialIndex,warmup:measurement.warmup,completionElapsedMs:measurement.completionElapsedMs,targetDurationMs:measurement.targetDurationMs,frameIntervalsMs:measurement.frameIntervalsMs,reportedPresentDelayMs:measurement.reportedPresentDelayMs,polymerRuntimeMetrics:measurement.polymerRuntimeMetrics,polymerResources:measurement.polymerResources,moduleFetchCount:measurement.moduleFetchCount,retiredModuleFetchCount:measurement.retiredModuleFetchCount,runtimeFlags:measurement.runtimeFlags})}`);await saveEvidence();const frameSampleCaptured=measurement.frameIntervalsMs.count>0||(motion==='reduced'&&measurement.warmup&&measurement.frameIntervalsMs.frameCount>0);assert.ok(frameSampleCaptured,`${motion} trial ${trialIndex} captured no viewer frame or measured interval`);
+      await inspectCompletion(route,{newDiscovery,expectedDuration});
+      const measurement=performanceEvidence.at(-1);assert.equal(measurement.motion,motion);assert.equal(measurement.trialIndex,trialIndex);assert.equal(measurement.targetDurationMs,expectedDuration);console.log(`POLYMER_PROFILE_TRIAL ${JSON.stringify({sourceSha:measurement.sourceSha,viewport:measurement.viewport,motion,trialIndex,warmup:measurement.warmup,completionElapsedMs:measurement.completionElapsedMs,targetDurationMs:measurement.targetDurationMs,frameIntervalsMs:measurement.frameIntervalsMs,completionLifecycle:measurement.completionLifecycle,reportedPresentDelayMs:measurement.reportedPresentDelayMs,polymerRuntimeMetrics:measurement.polymerRuntimeMetrics,polymerResources:measurement.polymerResources,moduleFetchCount:measurement.moduleFetchCount,retiredModuleFetchCount:measurement.retiredModuleFetchCount,runtimeFlags:measurement.runtimeFlags})}`);await saveEvidence();const frameSampleCaptured=measurement.frameIntervalsMs.count>0||(motion==='reduced'&&measurement.warmup&&measurement.frameIntervalsMs.frameCount>0);assert.ok(frameSampleCaptured,`${motion} trial ${trialIndex} captured no viewer frame or measured interval`);
       previousSample=true;return result;
     };
     for(let trial=0;trial<5;trial++)await runProfileTrial('normal',trial);
@@ -249,16 +428,16 @@ try{
   }else{
   for(const route of hardRoutes){
     await resetPolymerEvents();await feedRoute(route,previousSample);await runManualSteps(route);await completeAutomaticStep(route);
-    const preReady=await inspectCompletion(route,{newDiscovery:true}),ready=await finishCompletion(route,{newDiscovery:true,captureReady:true,captureName:`representative-${route.polymerId}`});
+    const ready=await finishCompletion(route,{newDiscovery:true,captureReady:true,captureName:`representative-${route.polymerId}`}),completion=await inspectCompletion(route,{newDiscovery:true});
     await exerciseOrdinaryMoleculeDrag(route);
-    const row={routeId:route.routeId,polymerId:route.polymerId,viewport,visualEvidence:{screenshot:`representative-${route.polymerId}-${viewport.width}.png`},durationMs:preReady.state.polymerization.sampleDurationMs,presentDelayMs:ready.delay,unitCount:ready.state.polymerization.displayGraph.unitCount,atomCount:ready.state.polymerization.displayGraph.atomCount,bondCount:ready.state.polymerization.displayGraph.bondCount,visibleBondMeshCount:ready.state.polymerization.displayGraph.visibleBondMeshCount,fit:ready.state.polymerization.fit,readyLayoutCalls:ready.state.polymerization.layoutCallsAtReady,finiteLayoutCalls:ready.state.polymerRuntimeMetrics.finiteLayoutCalls,completionLayoutCallsAfterReady:ready.state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,polymerResources:ready.state.polymerResources,retiredModuleRequests,metrics:ready.state.polymerRuntimeMetrics};
+    const row={routeId:route.routeId,polymerId:route.polymerId,viewport,visualEvidence:{screenshot:`representative-${route.polymerId}-${viewport.width}.png`},durationMs:completion.state.polymerization.sampleDurationMs,presentDelayMs:ready.delay,unitCount:ready.state.polymerization.displayGraph.unitCount,atomCount:ready.state.polymerization.displayGraph.atomCount,bondCount:ready.state.polymerization.displayGraph.bondCount,visibleBondMeshCount:ready.state.polymerization.displayGraph.visibleBondMeshCount,fit:ready.state.polymerization.fit,readyLayoutCalls:ready.state.polymerization.layoutCallsAtReady,finiteLayoutCalls:ready.state.polymerRuntimeMetrics.finiteLayoutCalls,completionLayoutCallsAfterReady:ready.state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,polymerResources:ready.state.polymerResources,retiredModuleRequests,metrics:ready.state.polymerRuntimeMetrics};
     evidence.push(row);normalEvidence.push(ready.state.polymerization.sampleEvidence);previousSample=true;
   }
   const discoveries=await evaluate(`JSON.parse(localStorage.getItem('molecule-craft.polymer-collection.v1')||'{}').discoveredPolymers`);assert.equal(discoveries.length,12);assert.deepEqual(discoveries.map(item=>item.order),[1,2,3,4,5,6,7,8,9,10,11,12]);
   {
     const pe=hardRoutes[0];
     // A previously discovered polymer opens through the existing closeAndWait → collection API path.
-    await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await completeAutomaticStep(pe);await inspectCompletion(pe);await finishCompletion(pe,{captureReady:true,captureName:'completion-ready-known'});
+    await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await completeAutomaticStep(pe);await finishCompletion(pe,{captureReady:true,captureName:'completion-ready-known'});await inspectCompletion(pe);
     assert.equal(await evaluate("document.querySelector('[data-polymer-encyclopedia]').hidden"),false);
     const resourcesBeforeClose=await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()'),transformBeforeClose=await evaluate(`(()=>{const graph=window.__reactionLabProbe.snapshot().polymerization.displayGraph;return{position:graph.groupPosition,quaternion:graph.groupQuaternion,scale:graph.groupScale}})()`);
     await evaluate("document.querySelector('[data-polymer-encyclopedia]').click()");await waitFor("!document.querySelector('#reaction-lab-dialog').open&&document.querySelector('#collection-dialog').open",'known Encyclopedia action safely closes the Lab and opens the collection');
@@ -268,13 +447,13 @@ try{
     await evaluate("document.querySelector('#close-collection').click()");await waitFor("!document.querySelector('#collection-dialog').open&&!document.body.classList.contains('collection-open')",'known entry closes cleanly');await pause(120);await openLab();assert.equal((await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()')).geometryCount,resourcesBeforeClose.geometryCount,'reopening the Lab restores the same finite sample geometry');const reopenedState=await snapshot();assert.deepEqual(reopenedState.polymerization.displayGraph.groupPosition,transformBeforeClose.position,'reopening preserves the finite sample fit position');assert.deepEqual(reopenedState.polymerization.displayGraph.groupQuaternion,transformBeforeClose.quaternion,'reopening preserves the user-selected Sample rotation');assert.deepEqual(reopenedState.polymerization.displayGraph.groupScale,transformBeforeClose.scale,'reopening preserves the finite sample zoom');assert.ok((await evaluate('window.__reactionLabProbe.polymerDisplayBounds()')).depthVisible,'reopened finite sample remains within camera depth');
     // Closing before readiness emits one dismiss, pauses the feedback, and cannot register a presentation while closed.
     await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await evaluate('window.__closeBeforeReadyOnNextSample=true');await completeAutomaticStep(pe);
-    const beforeClose=await snapshot();assert.equal(beforeClose.polymerization.sampleReady,false);await waitFor("!document.querySelector('#reaction-lab-dialog').open&&window.__polymerDismissEvents.length===1",'Lab closes at sample registration and emits one pre-ready dismiss');
+    const beforeClose=await evaluate('window.__polymerSampleEvents.at(-1)?.detail.sampleId??null');assert.ok(beforeClose,'sample registration is recorded before the Lab closes');await waitFor("!document.querySelector('#reaction-lab-dialog').open&&window.__polymerDismissEvents.length===1",'Lab closes at sample registration and emits one pre-ready dismiss');
     await waitFor('window.__reactionLabProbe.polymerResourceSnapshot().geometryCount===0','closing before readiness disposes finite fragment resources');
-    const dismissed=await evaluate('window.__polymerDismissEvents.slice()');assert.equal(dismissed.length,1);assert.equal(dismissed[0].detail.sampleId,beforeClose.polymerization.sampleId);
+    const dismissed=await evaluate('window.__polymerDismissEvents.slice()');assert.equal(dismissed.length,1);assert.equal(dismissed[0].detail.sampleId,beforeClose);
     await pause(800);assert.equal((await evaluate('window.__polymerPresentEvents.slice()')).length,0,'closed-before-ready sample does not emit sample-present');
-    await openLab();await waitFor('window.__reactionLabProbe.snapshot().polymerization.sampleReady','dismissed sample can become ready after reopening',5000);assert.ok((await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()')).geometryCount>0,'reopening restores the finite graph after close-before-ready');
+    await openLab();await waitFor("!document.querySelector('[data-polymer-view-reset]').hidden",'dismissed sample can become ready after reopening',5000);assert.ok((await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()')).geometryCount>0,'reopening restores the finite graph after close-before-ready');
     assert.equal((await evaluate('window.__polymerPresentEvents.slice()')).length,0,'dismissed sample never emits a late present event');assert.equal((await evaluate('window.__polymerDismissEvents.slice()')).length,1,'sample-dismiss is emitted once');
-    await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await completeAutomaticStep(pe);await inspectCompletion(pe);await finishCompletion(pe,{captureReady:true});
+    await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await completeAutomaticStep(pe);await finishCompletion(pe,{captureReady:true});await inspectCompletion(pe);
     const afterPurge=await snapshot();assert.equal(afterPurge.polymerization.displayGraph.unitCount,pe.completionEvidence.unitCount);assert.ok(afterPurge.polymerResources.geometryCount>0);
   }
   // Keep the discovered collection through reload so reduced motion exercises the known-polymer path.
