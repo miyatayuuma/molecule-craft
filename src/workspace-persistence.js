@@ -1,8 +1,10 @@
 import { validateWorkspace } from './workspace-save.js?v=31';
 import { isFutureWorkspaceSave,migrateWorkspaceSave } from './workspace-migrations.js?v=1';
+import {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave} from './resource-schema-guard.js?v=1';
 
 // The historical key is intentionally stable. Internal workspace schema is v2.
 export const WORKSPACE_STORAGE_KEY='molecule-craft.workspace.v1';
+const RESOURCE_STORAGE_KEY='molecule-craft.resources.v1';
 
 export function parseWorkspaceSave(raw){
   if(typeof raw!=='string')throw new Error('Invalid workspace save');
@@ -15,7 +17,14 @@ export function createWorkspaceStorage({storage,onStatus=()=>{}}={}){
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
   let previous=null,blocked='',snapshot=null,message='';
   const status=text=>{if(text===message)return;message=text;onStatus(text);};
+  function protectFutureResources(){
+    if(blocked==='future-resources')return true;
+    try{if(isFutureResourcesSave(storage?.getItem(RESOURCE_STORAGE_KEY))){blocked='future-resources';status(FUTURE_RESOURCES_MESSAGE);return true;}}
+    catch{blocked='resource-check';status('資源の保存状態を確認できないため、制作データの保存を停止しています。再読み込みしてください。');return true;}
+    return false;
+  }
   function read(){
+    if(protectFutureResources())return null;
     try{
       previous=storage?.getItem(WORKSPACE_STORAGE_KEY)??null;if(!storage){status('制作途中の保存を利用できません。');return null;}
       if(previous===null)return null;
@@ -26,7 +35,7 @@ export function createWorkspaceStorage({storage,onStatus=()=>{}}={}){
     }catch{blocked='invalid';status('制作データを復元できませんでした。保存を保護しています。新しく始める場合は画面上部の「片付ける」を長押ししてください。');return null;}
   }
   function write(value){
-    if(blocked)return false;
+    if(blocked||protectFutureResources())return false;
     try{
       validateWorkspace(value);const raw=JSON.stringify(value);snapshot=value;
       if(!storage){status('制作途中の保存を利用できません。');return false;}

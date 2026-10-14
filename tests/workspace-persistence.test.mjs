@@ -86,7 +86,7 @@ test('a completed restored structure is baselined without completion progression
   let discoveries=0,saves=0,presents=0;
   const collection={observeStructures:()=>({events:[]}),refreshProgress(){}};
   const connection=createDiscoveryConnection({
-    resources:{discover(){discoveries++;return true;},save(){saves++;return true;}},
+    resources:{discover(){discoveries++;return true;},discoverWithLoadout(){discoveries++;saves++;return{learned:true};},save(){saves++;return true;}},
     getVeilUI:()=>null,getCollection:()=>collection,onPresent:()=>{presents++;},onDismiss:()=>{},onVibrate:()=>{},
   });
   const complete={key:'0,1',signature:'hydrogen',complete:true,record:{id:'hydrogen'}};
