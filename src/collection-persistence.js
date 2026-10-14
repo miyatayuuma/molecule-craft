@@ -1,8 +1,7 @@
 import { CURRENT_COLLECTION_SCHEMA_VERSION,isFutureCollectionSave,migrateCollectionSave,validateCanonicalCollectionState } from './collection-migrations.js?v=2';
-import {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave} from './resource-schema-guard.js?v=1';
+import {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave,RESOURCE_STORAGE_KEY} from './workspace-persistence.js?v=1';
 
 export const COLLECTION_STORAGE_KEY='molecule-craft.collection.v1';
-const RESOURCE_STORAGE_KEY='molecule-craft.resources.v1';
 
 export function createCollectionPersistence({storage=null,records=[],milestoneIds=[]}={}){
   let storageMessage='',readOnly=false,resetEpoch=0;

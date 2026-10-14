@@ -2,13 +2,13 @@ import {createCollectorShellState,normalizeCollectorShellState} from './collecto
 import {createEngineeringState,normalizeEngineeringState} from '../engineering-fabrication.js';
 import { GROWTH,DRIVES,REGIONS,EXPEDITION_DESTINATION_REGION_IDS,TANK_USES,tankCapacity } from './growth.js';
 import { validatePersistedWorkspace } from '../workspace-migrations.js?v=1';
-import { WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';
+import { RESOURCE_SCHEMA_VERSION,RESOURCE_STORAGE_KEY as RESOURCE_KEY,UnsupportedFutureResourcesSchemaError,assertSupportedResourcesSchema,futureResourcesSchemaVersion,isFutureResourcesSave,isFutureResourcesSchemaVersion,WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';
 import {normalizeWorldAwakeningProgress} from './world-awakening.js';
 import {INSIGHT_DESTINATION_HISTORY_LIMIT,INSIGHT_DESTINATION_ORDER,normalizeInsightDestinationHistory} from './insight-destination.js';
 import {clearPolymerCollectionSave} from '../polymer-collection-persistence.js?v=1';
-import {RESOURCE_KEY,SCHEMA_VERSION,UnsupportedFutureResourcesSchemaError,assertSupportedResourcesSchema,futureResourcesSchemaVersion} from '../resource-schema-guard.js?v=1';
-
-export {RESOURCE_KEY,SCHEMA_VERSION,UnsupportedFutureResourcesSchemaError};
+export const SCHEMA_VERSION=RESOURCE_SCHEMA_VERSION;
+export {RESOURCE_KEY,UnsupportedFutureResourcesSchemaError};
+export {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave,isFutureResourcesSchemaVersion} from '../workspace-persistence.js?v=1';
 const COLLECTION_KEY='molecule-craft.collection.v1',HELP_KEY='molecule-craft.help.v1';
 export const MANAGED_ELEMENTS=['H','C','N','O','P','S','F','Cl'];
 export const DUST_ELEMENTS=['H','C','O'];

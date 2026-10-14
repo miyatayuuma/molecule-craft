@@ -4,7 +4,7 @@ import {SCHEMA_VERSION,UnsupportedFutureResourcesSchemaError,createInitialResour
 import {POLYMER_COLLECTION_STORAGE_KEY,clearPolymerCollectionSave,createPolymerCollectionPersistence} from '../src/polymer-collection-persistence.js';
 import {COLLECTION_STORAGE_KEY,createCollectionPersistence} from '../src/collection-persistence.js';
 import {WORKSPACE_STORAGE_KEY,createWorkspaceStorage} from '../src/workspace-persistence.js?v=1';
-import {isFutureResourcesSchemaVersion} from '../src/resource-schema-guard.js?v=1';
+import {isFutureResourcesSchemaVersion} from '../src/veil/resources-persistence.js';
 
 const memory=(entries=[])=>{const data=new Map(entries),operations=[];return {getItem(key){operations.push({type:'read',key});return data.get(key)??null;},setItem(key,value){value=String(value);operations.push({type:'write',key,value});data.set(key,value);},removeItem(key){operations.push({type:'remove',key});data.delete(key);},raw:key=>data.get(key)??null,operations,clearOperations(){operations.length=0;}};};
 

@@ -1,8 +1,7 @@
-import {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave} from './resource-schema-guard.js?v=1';
+import {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave,RESOURCE_STORAGE_KEY} from './workspace-persistence.js?v=1';
 
 export const POLYMER_COLLECTION_STORAGE_KEY='molecule-craft.polymer-collection.v1';
 export const POLYMER_COLLECTION_SCHEMA_VERSION=1;
-const RESOURCE_STORAGE_KEY='molecule-craft.resources.v1';
 const isId=value=>typeof value==='string'&&/^[a-z0-9][a-z0-9-]*$/.test(value);
 
 export function isFuturePolymerCollectionSave(saved){return !!saved&&typeof saved==='object'&&Number(saved.schemaVersion)>POLYMER_COLLECTION_SCHEMA_VERSION;}

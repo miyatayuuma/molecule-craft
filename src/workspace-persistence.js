@@ -1,10 +1,29 @@
 import { validateWorkspace } from './workspace-save.js?v=31';
 import { isFutureWorkspaceSave,migrateWorkspaceSave } from './workspace-migrations.js?v=1';
-import {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave} from './resource-schema-guard.js?v=1';
+
+// Keep the shared resources guard in this existing module so it adds no new
+// production module request and introduces no persistence import cycle.
+export const RESOURCE_STORAGE_KEY='molecule-craft.resources.v1';
+export const RESOURCE_SCHEMA_VERSION=9;
+export const FUTURE_RESOURCES_MESSAGE='新しい版の保存データを保護しています。現在のアプリでは変更できません。アプリを更新してください。';
+export function isFutureResourcesSchemaVersion(version){return Number.isInteger(version)&&version>RESOURCE_SCHEMA_VERSION;}
+export function futureResourcesSchemaVersion(rawOrValue){
+  let value=rawOrValue;
+  if(typeof value==='string'){try{value=JSON.parse(value);}catch{return null;}}
+  if(!value||typeof value!=='object'||Array.isArray(value)||!isFutureResourcesSchemaVersion(value.schemaVersion))return null;
+  return value.schemaVersion;
+}
+export const isFutureResourcesSave=rawOrValue=>futureResourcesSchemaVersion(rawOrValue)!==null;
+export class UnsupportedFutureResourcesSchemaError extends Error{
+  constructor(schemaVersion){super(`Unsupported future resources schema ${schemaVersion}`);this.name='UnsupportedFutureResourcesSchemaError';this.schemaVersion=schemaVersion;}
+}
+export function assertSupportedResourcesSchema(value){
+  if(isFutureResourcesSchemaVersion(value?.schemaVersion))throw new UnsupportedFutureResourcesSchemaError(value.schemaVersion);
+  return value;
+}
 
 // The historical key is intentionally stable. Internal workspace schema is v2.
 export const WORKSPACE_STORAGE_KEY='molecule-craft.workspace.v1';
-const RESOURCE_STORAGE_KEY='molecule-craft.resources.v1';
 
 export function parseWorkspaceSave(raw){
   if(typeof raw!=='string')throw new Error('Invalid workspace save');
