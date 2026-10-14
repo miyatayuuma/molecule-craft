@@ -38,10 +38,33 @@ try{
     const samples=[];
     let active=null;
     const nativeRequestAnimationFrame=window.requestAnimationFrame.bind(window);
+    // Sample on an independent real RAF chain; record the app's RAF cadence separately below.
     const pct=(values,q)=>{
       if(!values.length)return null;
       const sorted=[...values].sort((a,b)=>a-b);
       return sorted[Math.max(0,Math.ceil(q*sorted.length)-1)];
+    };
+    const requestSampleFrame=record=>{
+      if(active!==record||record.samplerStoppedAt!==null)return;
+      const requestedAt=performance.now();
+      record.frameRequestCount++;
+      if(record.firstFrameRequestAt===null)record.firstFrameRequestAt=requestedAt;
+      record.lastFrameRequestAt=requestedAt;
+      nativeRequestAnimationFrame(now=>{
+        if(active!==record)return;
+        record.frameCallbackCount++;
+        if(record.firstFrameCallbackAt===null)record.firstFrameCallbackAt=now;
+        record.lastFrameCallbackAt=now;
+        if(record.frames.at(-1)!==now)record.frames.push(now);
+        if(record.awaitingTailFrame){
+          record.tailFrameAt=now;
+          record.samplerStoppedAt=performance.now();
+          record.samplerStopReason='post-ready-frame';
+          active=null;
+          return;
+        }
+        requestSampleFrame(record);
+      });
     };
     const summarize=(record,includePostReadyFrame=false,targetDurationMs=null)=>{
       const completionFrames=record.frames.filter(value=>value>=record.startedAt&&value<=record.presentedAt);
@@ -49,6 +72,8 @@ try{
         ?record.frames.filter(value=>value>=record.startedAt&&value<=record.tailFrameAt)
         :completionFrames;
       const intervals=frames.slice(1).map((value,index)=>value-frames[index]);
+      const applicationCompletionFrames=record.applicationFrames.filter(value=>value>=record.startedAt&&value<=record.presentedAt);
+      const applicationIntervals=applicationCompletionFrames.slice(1).map((value,index)=>value-applicationCompletionFrames[index]);
       const firstFrameOffsetMs=frames.length?frames[0]-record.startedAt:null;
       const lastFrameOffsetMs=frames.length?frames[frames.length-1]-record.startedAt:null;
       const offset=value=>value===null?null:Number((value-record.startedAt).toFixed(3));
@@ -65,6 +90,7 @@ try{
           readyEventReceivedAtMs:record.presentedAt,
           samplerStoppedAtMs:record.samplerStoppedAt,
           samplerStopReason:record.samplerStopReason,
+          samplerKind:record.samplerKind,
           frameRequestCount:record.frameRequestCount,
           frameCallbackCount:record.frameCallbackCount,
           firstFrameRequestOffsetMs:offset(record.firstFrameRequestAt),
@@ -74,6 +100,13 @@ try{
           visibilityAtStart:record.visibilityAtStart,
           hiddenAtStart:record.hiddenAtStart,
           visibilityChanges:record.visibilityChanges,
+          applicationFrameRequestCount:record.applicationFrameRequestTimes.length,
+          applicationFrameCallbackCount:record.applicationFrameCallbackCount,
+          firstApplicationFrameRequestOffsetMs:offset(record.applicationFrameRequestTimes[0]??null),
+          lastApplicationFrameRequestOffsetMs:offset(record.applicationFrameRequestTimes.at(-1)??null),
+          firstApplicationFrameCallbackOffsetMs:offset(record.applicationFrames[0]??null),
+          lastApplicationFrameCallbackOffsetMs:offset(record.applicationFrames.at(-1)??null),
+          applicationFrameIntervalsMs:{count:applicationIntervals.length,values:applicationIntervals.map(value=>Number(value.toFixed(3)))},
         },
         frameIntervalsMs:{
           count:intervals.length,
@@ -92,6 +125,7 @@ try{
     addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>{
       if(active&&!active.presentedAt){
         active.abandonedAt=performance.now();
+        active.samplerStoppedAt=active.abandonedAt;
         active.samplerStopReason='superseded-by-new-sample';
       }
       const receivedAt=performance.now();
@@ -100,6 +134,7 @@ try{
         routeId:event.detail.routeId,
         sampleEventReceivedAt:receivedAt,
         samplerStartedAt:receivedAt,
+        samplerKind:'dedicated-requestAnimationFrame',
         startedAt:receivedAt,
         presentedAt:null,
         targetDurationMs:null,
@@ -114,11 +149,15 @@ try{
         lastFrameRequestAt:null,
         firstFrameCallbackAt:null,
         lastFrameCallbackAt:null,
+        applicationFrameRequestTimes:[],
+        applicationFrameCallbackCount:0,
+        applicationFrames:[],
         visibilityAtStart:document.visibilityState,
         hiddenAtStart:document.hidden,
         visibilityChanges:[],
       };
       samples.push(active);
+      requestSampleFrame(active);
     });
     document.addEventListener('visibilitychange',()=>{
       if(active)active.visibilityChanges.push({
@@ -134,28 +173,22 @@ try{
         record.awaitingTailFrame=true;
       }
     });
-    window.requestAnimationFrame=callback=>{
-      const record=active;
-      if(record&&!record.presentedAt){
-        const requestedAt=performance.now();
-        record.frameRequestCount++;
-        if(record.firstFrameRequestAt===null)record.firstFrameRequestAt=requestedAt;
-        record.lastFrameRequestAt=requestedAt;
+    addEventListener('molecule-craft:reaction-lab-polymer-sample-dismiss',event=>{
+      const record=samples.find(item=>item.sampleId===event.detail.sampleId);
+      if(record&&active===record){
+        record.samplerStoppedAt=performance.now();
+        record.samplerStopReason='dismissed-before-ready';
+        active=null;
       }
+    });
+    window.requestAnimationFrame=callback=>{
+      const requestedRecord=active;
+      if(requestedRecord&&requestedRecord.samplerStoppedAt===null)requestedRecord.applicationFrameRequestTimes.push(performance.now());
       return nativeRequestAnimationFrame(now=>{
         const current=active;
-        if(current){
-          current.frameCallbackCount++;
-          if(current.firstFrameCallbackAt===null)current.firstFrameCallbackAt=now;
-          current.lastFrameCallbackAt=now;
-          if(current.frames.at(-1)!==now)current.frames.push(now);
-          if(current.awaitingTailFrame){
-            current.tailFrameAt=now;
-            current.samplerStoppedAt=performance.now();
-            current.samplerStopReason='post-ready-frame';
-            current.awaitingTailFrame=false;
-            active=null;
-          }
+        if(current&&current.samplerStoppedAt===null){
+          current.applicationFrameCallbackCount++;
+          if(current.applicationFrames.at(-1)!==now)current.applicationFrames.push(now);
         }
         callback.call(window,now);
       });
