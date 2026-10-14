@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=resolve(process.env.POLYMER_ROOT??fileURLToPath(new URL('..',import.meta.url))),routes=JSON.parse(await readFile(join(root,'data/polymerization-routes.json'),'utf8')).routes,polymers=JSON.parse(await readFile(join(root,'data/polymers.json'),'utf8'));
 const viewport=process.env.POLYMER_DESKTOP==='1'?{width:1280,height:900,mobile:false}:{width:390,height:844,mobile:true},evidence=[],performanceEvidence=[];
+const timerIsolationHeaders={'cross-origin-opener-policy':'same-origin','cross-origin-embedder-policy':'require-corp'};
 const task10BaselineProfile=process.env.POLYMER_PROFILE_ONLY==='1'&&process.env.POLYMER_SOURCE_SHA==='4bc202c0eb1f51de0350c3a0b4be36c7178cba53';
 const hardRouteIds=['polyethylene-coordination','ethylene-propylene-coordination','polyethylene-oxide-anionic-ring-opening','polyethylene-terephthalate-direct-polycondensation','phenol-formaldehyde-resole','styrene-butadiene-radical','butyl-rubber-cationic','nylon-6-6-direct-polycondensation','polystyrene-radical','polypropylene-coordination','polyvinyl-chloride-radical','polybutadiene-coordination-1-4'];
 const hardRoutes=hardRouteIds.map(id=>routes.find(route=>route.routeId===id));assert.equal(hardRoutes.filter(Boolean).length,12,'The existing nine representative routes and three additional requested visual routes are present');
@@ -15,7 +16,7 @@ const requestedVisualRouteIds=['polyethylene-coordination','polypropylene-coordi
 assert.ok(requestedVisualRouteIds.every(id=>hardRoutes.some(route=>route.routeId===id)),'Pointer and screenshot QA includes all nine requested polymer types');
 const moleculeIds=[...new Set([...routes.flatMap(route=>route.feedSpecies),'water'])],moleculeSave={schemaVersion:3,discoveredMolecules:moleculeIds.map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
 const indexHtml=await readFile(join(root,'index.html'),'utf8'),mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
-const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=normalize(join(root,pathname==='/'?'index.html':pathname.replace(/^\/+/,'')));if(!file.startsWith(root)){res.writeHead(403).end();return;}let body=await readFile(file);if(pathname==='/src/app.js'){const source=body.toString(),target='reactionLabViewer=createReactionLabViewer({';assert.ok(source.includes(target),'test-only viewer disposal hook target remains present');body=Buffer.from(source.replace(target,'reactionLabViewer=window.__reactionLabViewer=createReactionLabViewer({'));}res.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);}catch{res.writeHead(404).end('not found');}});
+const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=normalize(join(root,pathname==='/'?'index.html':pathname.replace(/^\/+/,'')));if(!file.startsWith(root)){res.writeHead(403).end();return;}let body=await readFile(file);if(pathname==='/src/app.js'){const source=body.toString(),target='reactionLabViewer=createReactionLabViewer({';assert.ok(source.includes(target),'test-only viewer disposal hook target remains present');body=Buffer.from(source.replace(target,'reactionLabViewer=window.__reactionLabViewer=createReactionLabViewer({'));}res.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store',...timerIsolationHeaders});res.end(body);}catch{res.writeHead(404).end('not found');}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address();
 let chrome=process.env.CHROMIUM_PATH??'';if(!chrome)for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
 assert.ok(chrome,'Chromium is required for Reaction Lab polymer pointer validation');
@@ -38,11 +39,33 @@ try{
     const samples=[];
     let active=null;
     const nativeRequestAnimationFrame=window.requestAnimationFrame.bind(window);
+    const longTaskObserverSupported=typeof PerformanceObserver==='function'&&(PerformanceObserver.supportedEntryTypes??[]).includes('longtask');
+    const appendLongTasks=(record,entries)=>{
+      for(const entry of entries){
+        if(entry.startTime+entry.duration<record.startedAt)continue;
+        const key=String(entry.startTime)+':'+String(entry.duration);
+        if(record.longTaskKeys.has(key))continue;
+        record.longTaskKeys.add(key);
+        record.longTasks.push({startOffsetMs:Number((entry.startTime-record.startedAt).toFixed(3)),durationMs:Number(entry.duration.toFixed(3))});
+      }
+    };
+    const longTaskObserver=longTaskObserverSupported?new PerformanceObserver(list=>{
+      if(active)appendLongTasks(active,list.getEntries());
+    }):null;
+    longTaskObserver?.observe({type:'longtask',buffered:true});
     // Sample on an independent real RAF chain; record the app's RAF cadence separately below.
     const pct=(values,q)=>{
       if(!values.length)return null;
       const sorted=[...values].sort((a,b)=>a-b);
       return sorted[Math.max(0,Math.ceil(q*sorted.length)-1)];
+    };
+    const stopSampler=(record,reason,stoppedAt=performance.now())=>{
+      if(record.samplerStoppedAt!==null)return;
+      record.samplerStoppedAt=stoppedAt;
+      record.samplerStopReason=reason;
+      if(record.eventLoopInterval!==null){clearInterval(record.eventLoopInterval);record.eventLoopInterval=null;}
+      if(longTaskObserver)appendLongTasks(record,longTaskObserver.takeRecords());
+      if(active===record)active=null;
     };
     const requestSampleFrame=record=>{
       if(active!==record||record.samplerStoppedAt!==null)return;
@@ -58,9 +81,7 @@ try{
         if(record.frames.at(-1)!==now)record.frames.push(now);
         if(record.awaitingTailFrame){
           record.tailFrameAt=now;
-          record.samplerStoppedAt=performance.now();
-          record.samplerStopReason='post-ready-frame';
-          active=null;
+          stopSampler(record,'post-ready-frame');
           return;
         }
         requestSampleFrame(record);
@@ -107,6 +128,17 @@ try{
           firstApplicationFrameCallbackOffsetMs:offset(record.applicationFrames[0]??null),
           lastApplicationFrameCallbackOffsetMs:offset(record.applicationFrames.at(-1)??null),
           applicationFrameIntervalsMs:{count:applicationIntervals.length,values:applicationIntervals.map(value=>Number(value.toFixed(3)))},
+          focusAtStart:record.focusAtStart,
+          focusAtReady:record.focusAtReady,
+          focusChanges:record.focusChanges,
+          eventLoopProbe:{
+            timerIntervalMs:50,
+            pulseCount:record.eventLoopPulses.length,
+            maximumDelayMs:record.eventLoopPulses.length?Math.max(...record.eventLoopPulses.map(pulse=>pulse.delayMs)):null,
+            pulses:record.eventLoopPulses,
+            longTaskObserverSupported,
+            longTasks:record.longTasks,
+          },
         },
         frameIntervalsMs:{
           count:intervals.length,
@@ -123,11 +155,7 @@ try{
       };
     };
     addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>{
-      if(active&&!active.presentedAt){
-        active.abandonedAt=performance.now();
-        active.samplerStoppedAt=active.abandonedAt;
-        active.samplerStopReason='superseded-by-new-sample';
-      }
+      if(active&&!active.presentedAt)stopSampler(active,'superseded-by-new-sample');
       const receivedAt=performance.now();
       active={
         sampleId:event.detail.sampleId,
@@ -155,9 +183,25 @@ try{
         visibilityAtStart:document.visibilityState,
         hiddenAtStart:document.hidden,
         visibilityChanges:[],
+        focusAtStart:document.hasFocus(),
+        focusAtReady:null,
+        focusChanges:[],
+        eventLoopIntervalMs:50,
+        eventLoopExpectedAt:receivedAt+50,
+        eventLoopInterval:null,
+        eventLoopPulses:[],
+        longTasks:[],
+        longTaskKeys:new Set(),
       };
-      samples.push(active);
-      requestSampleFrame(active);
+      const record=active;
+      record.eventLoopInterval=setInterval(()=>{
+        if(active!==record||record.samplerStoppedAt!==null)return;
+        const actualAt=performance.now(),scheduledAt=record.eventLoopExpectedAt;
+        record.eventLoopPulses.push({scheduledOffsetMs:Number((scheduledAt-record.startedAt).toFixed(3)),actualOffsetMs:Number((actualAt-record.startedAt).toFixed(3)),delayMs:Number((actualAt-scheduledAt).toFixed(3))});
+        record.eventLoopExpectedAt+=record.eventLoopIntervalMs;
+      },record.eventLoopIntervalMs);
+      samples.push(record);
+      requestSampleFrame(record);
     });
     document.addEventListener('visibilitychange',()=>{
       if(active)active.visibilityChanges.push({
@@ -170,16 +214,19 @@ try{
       const record=samples.find(item=>item.sampleId===event.detail.sampleId);
       if(record&&!record.presentedAt){
         record.presentedAt=performance.now();
+        record.focusAtReady=document.hasFocus();
         record.awaitingTailFrame=true;
       }
     });
+    addEventListener('focus',()=>{
+      if(active)active.focusChanges.push({elapsedMs:Number((performance.now()-active.startedAt).toFixed(3)),hasFocus:true});
+    });
+    addEventListener('blur',()=>{
+      if(active)active.focusChanges.push({elapsedMs:Number((performance.now()-active.startedAt).toFixed(3)),hasFocus:false});
+    });
     addEventListener('molecule-craft:reaction-lab-polymer-sample-dismiss',event=>{
       const record=samples.find(item=>item.sampleId===event.detail.sampleId);
-      if(record&&active===record){
-        record.samplerStoppedAt=performance.now();
-        record.samplerStopReason='dismissed-before-ready';
-        active=null;
-      }
+      if(record&&active===record)stopSampler(record,'dismissed-before-ready');
     });
     window.requestAnimationFrame=callback=>{
       const requestedRecord=active;
@@ -201,8 +248,11 @@ try{
       hasPostReadyFrame:id=>Boolean(samples.find(item=>item.sampleId===id)?.tailFrameAt),
     };
   })();`});
-  await send('Runtime.enable');await send('Page.enable');await send('Network.enable');await send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1});
+  await send('Runtime.enable');await send('Page.enable');await send('Network.enable');await send('Network.setBypassServiceWorker',{bypass:true});await send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1});
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1&reactionLabPhysics=stage-b`});await openLab();await wireDiscoveryEvents();
+  const timerPrecision=await evaluate('(()=>{let previous=performance.now(),minimum=Infinity,observed=0;for(let index=0;index<2048;index++){const current=performance.now();if(current>previous){minimum=Math.min(minimum,current-previous);observed++;}previous=current;}return{crossOriginIsolated:window.crossOriginIsolated,minimumObservedStepMs:Number(minimum.toFixed(6)),observedPositiveSteps:observed}})()');
+  assert.equal(timerPrecision.crossOriginIsolated,true,'Polymer completion samples require a cross-origin isolated Chromium page');
+  assert.ok(timerPrecision.minimumObservedStepMs>0&&timerPrecision.minimumObservedStepMs<=.01,`Polymer completion timer resolution must be finer than 10 µs: ${JSON.stringify(timerPrecision)}`);
   assert.equal((await snapshot()).physicsMode,'stage-b','the browser gate uses production Stage B');
   const retiredModuleRequests=await evaluate("performance.getEntriesByType('resource').map(entry=>entry.name).filter(name=>/reaction-lab-polymer-cinematic|polymer-growth-plan|polymer-morphology-(?:authority|plan|renderer|bridge)/.test(name))");assert.deepEqual(retiredModuleRequests,[],'production completion does not fetch retired visualization modules');
   const setDraftSlots=async ids=>{
@@ -423,7 +473,7 @@ try{
     assert.ok(delay>=timingBounds.minimumMs&&delay<timingBounds.maximumMs,`${route.routeId}: sample-present follows ${expectedDuration} ms bounded feedback (${delay} ms)`);
     const motion=expectedDuration===250?'reduced':'normal',trialIndex=performanceEvidence.filter(item=>item.motion===motion).length;
     const moduleUrls=await evaluate("[...new Set(performance.getEntriesByType('resource').map(entry=>entry.name).filter(name=>/\\.m?js(?:$|[?#])/.test(name)))]");
-    performanceEvidence.push({sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:browserVersion.product,viewport:{width:viewport.width,height:viewport.height,deviceScaleFactor:1},runtimeFlags:['--headless=new','--no-sandbox','--disable-background-networking','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--force-device-scale-factor=1'],routeId:route.routeId,polymerId:route.polymerId,motion,trialIndex,warmup:trialIndex===0,completionElapsedMs:frameProfile.completionElapsedMs,targetDurationMs:frameProfile.targetDurationMs,frameIntervalsMs:frameProfile.frameIntervalsMs,completionLifecycle:frameProfile.lifecycle,jsUpdateTimeMs:'NOT_MEASURED',renderSubmissionTimeMs:'NOT_MEASURED',gpuExecutionTimeMs:'NOT_MEASURED',moduleFetchCount:moduleUrls.length,retiredModuleFetchCount:retiredModuleRequests.length,polymerResources:state.polymerResources,polymerRuntimeMetrics:state.polymerRuntimeMetrics,reportedPresentDelayMs:delay});
+    performanceEvidence.push({sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:browserVersion.product,timerPrecision,viewport:{width:viewport.width,height:viewport.height,deviceScaleFactor:1},runtimeFlags:['--headless=new','--no-sandbox','--disable-background-networking','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--force-device-scale-factor=1'],routeId:route.routeId,polymerId:route.polymerId,motion,trialIndex,warmup:trialIndex===0,completionElapsedMs:frameProfile.completionElapsedMs,targetDurationMs:frameProfile.targetDurationMs,frameIntervalsMs:frameProfile.frameIntervalsMs,completionLifecycle:frameProfile.lifecycle,jsUpdateTimeMs:'NOT_MEASURED',renderSubmissionTimeMs:'NOT_MEASURED',gpuExecutionTimeMs:'NOT_MEASURED',moduleFetchCount:moduleUrls.length,retiredModuleFetchCount:retiredModuleRequests.length,polymerResources:state.polymerResources,polymerRuntimeMetrics:state.polymerRuntimeMetrics,reportedPresentDelayMs:delay});
     const frameSampleCaptured=expectedDuration===250?frameProfile?.frameIntervalsMs.frameCount>0:frameProfile?.frameIntervalsMs.count>0;
 
     if(!frameSampleCaptured)await saveEvidence();
@@ -457,7 +507,7 @@ try{
     return{state:await snapshot(),delay};
   };
   let viewerDisposalEvidence=null;
-  const saveEvidence=async()=>{await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`browser-${viewport.width}.json`),JSON.stringify(evidence,null,2));await writeFile(join(artifactDir,`performance-${viewport.width}.json`),JSON.stringify({schemaVersion:1,evidenceSerializationStartedAt:new Date().toISOString(),sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:{product:browserVersion.product,revision:browserVersion.revision,protocolVersion:browserVersion.protocolVersion},viewport:{...viewport,deviceScaleFactor:1},warmupPolicy:'First completion for each motion mode is retained but excluded from aggregate regression statistics.',measurements:performanceEvidence,viewerDisposal:viewerDisposalEvidence,notMeasured:['per-frame JavaScript update duration','WebGL submission CPU duration','GPU execution time','device memory']},null,2));};
+  const saveEvidence=async()=>{await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`browser-${viewport.width}.json`),JSON.stringify(evidence,null,2));await writeFile(join(artifactDir,`performance-${viewport.width}.json`),JSON.stringify({schemaVersion:2,evidenceSerializationStartedAt:new Date().toISOString(),sourceSha:process.env.POLYMER_SOURCE_SHA??null,browser:{product:browserVersion.product,revision:browserVersion.revision,protocolVersion:browserVersion.protocolVersion},timerPrecision,viewport:{...viewport,deviceScaleFactor:1},warmupPolicy:'First completion for each motion mode is retained but excluded from aggregate regression statistics.',measurements:performanceEvidence,viewerDisposal:viewerDisposalEvidence,notMeasured:['per-frame JavaScript update duration','WebGL submission CPU duration','GPU execution time','device memory']},null,2));};
   let previousSample=false;const normalEvidence=[];
   if(process.env.POLYMER_PROFILE_ONLY==='1'){
     const route=hardRoutes[0],runProfileTrial=async(motion,trialIndex)=>{

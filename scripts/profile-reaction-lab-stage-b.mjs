@@ -8,12 +8,13 @@ import {fileURLToPath} from 'node:url';
 
 const root=resolve(process.env.POLYMER_ROOT??fileURLToPath(new URL('..',import.meta.url))),viewport={width:390,height:844,deviceScaleFactor:1,mobile:true};
 const output=resolve(process.env.STAGE_B_PROFILE_OUTPUT??join(root,'test-results/stage-b-profile.json')),pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const timerIsolationHeaders={'cross-origin-opener-policy':'same-origin','cross-origin-embedder-policy':'require-corp'};
 // Match the production-browser performance fixture: the test grants access to
 // the same already-discovered species before the Lab initializes.
 const discoveredSpecies=['water','ethanol','acetic-anhydride','acetic-acid','ethyl-acetate','oxygen','hydrogen','acetone','pyridine','methane','carbon-dioxide','carbonic-acid','hexamethylenediamine','isoamyl-acetate','methylcyclohexane','2-butene','difluoromethane','hydrogen-fluoride','chlorine','ethene','1-2-dichloroethane','ethylene-oxide','ethylene-glycol','methanol','dimethyl-ether','chloromethane','hydrogen-chloride'];
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
 const server=createServer(async(request,response)=>{
-  try{const path=new URL(request.url,'http://localhost').pathname==='/'?'index.html':decodeURIComponent(new URL(request.url,'http://localhost').pathname).replace(/^\/+/,''),file=normalize(join(root,path));if(!file.startsWith(root))throw Error();response.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store'});response.end(await readFile(file));}
+  try{const path=new URL(request.url,'http://localhost').pathname==='/'?'index.html':decodeURIComponent(new URL(request.url,'http://localhost').pathname).replace(/^\/+/,''),file=normalize(join(root,path));if(!file.startsWith(root))throw Error();response.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store',...timerIsolationHeaders});response.end(await readFile(file));}
   catch{response.writeHead(404).end();}
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address();
@@ -29,11 +30,14 @@ try{
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);return result.result?.value;};
   const waitFor=async(expression,label,timeout=12000)=>{for(let attempt=0;attempt<timeout/50;attempt++){if(await evaluate(expression))return;await pause(50);}const details=await evaluate(`(()=>({url:location.href,dialog:document.querySelector('#reaction-lab-dialog')?.open,pickerHidden:document.querySelector('[data-lab-picker]')?.hidden,searchValue:document.querySelector('[data-lab-search]')?.value,draftSlots:window.__reactionLabProbe?.snapshot().batch.draftSlots,rows:[...document.querySelectorAll('[data-lab-picker-list] [data-species]')].slice(0,12).map(item=>({id:item.dataset.species,hidden:item.hidden,disabled:item.disabled}))}))()`);throw Error(`${label}: ${JSON.stringify(details)}`);};
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()'),browser=await send('Browser.getVersion');
-  await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',viewport);
+  await send('Runtime.enable');await send('Page.enable');await send('Network.enable');await send('Network.setBypassServiceWorker',{bypass:true});await send('Emulation.setDeviceMetricsOverride',viewport);
   const collectionSave=JSON.stringify({schemaVersion:3,discoveredMolecules:discoveredSpecies.map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]});
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('molecule-craft.collection.v1',${JSON.stringify(collectionSave)})`});
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1&reactionLabPhysics=stage-b`});
   await waitFor("!!window.__reactionLabProbe&&window.__reactionLabProbe.physicsMode==='stage-b'&&!!document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled",'Stage B Reaction Lab probe did not initialize');
+  const timerPrecision=await evaluate('(()=>{let previous=performance.now(),minimum=Infinity,observed=0;for(let index=0;index<2048;index++){const current=performance.now();if(current>previous){minimum=Math.min(minimum,current-previous);observed++;}previous=current;}return{crossOriginIsolated:window.crossOriginIsolated,minimumObservedStepMs:Number(minimum.toFixed(6)),observedPositiveSteps:observed}})()');
+  assert.equal(timerPrecision.crossOriginIsolated,true,'Stage B timing runs require a cross-origin isolated Chromium page');
+  assert.ok(timerPrecision.minimumObservedStepMs>0&&timerPrecision.minimumObservedStepMs<=.01,`Stage B timing resolution must be finer than 10 µs: ${JSON.stringify(timerPrecision)}`);
   await evaluate("document.querySelector('#open-reaction-lab').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open",'Stage B Reaction Lab did not open');
   for(let index=0;index<3;index++){
     const state=await snapshot(),current=state.batch.draftSlots[index]??'',next=['methane','oxygen','2-butene'][index];if(current===next)continue;
@@ -55,6 +59,6 @@ try{
   const warmup=await measure('warmup'),trials=[];for(let index=1;index<=4;index++)trials.push(await measure(`measured-${index}`));
   assert.deepEqual(browserErrors,[],'Stage B profile has no browser exception or console error');
   const allIntervals=trials.flatMap(trial=>trial.frameIntervalsMs).sort((a,b)=>a-b),percentile=fraction=>allIntervals[Math.ceil(allIntervals.length*fraction)-1];
-  const evidence={schemaVersion:1,sourceSha:process.env.POLYMER_SOURCE_SHA??null,label:process.env.STAGE_B_PROFILE_LABEL??'candidate',node:process.version,browser:{product:browser.product,revision:browser.revision,protocolVersion:browser.protocolVersion},viewport,motion:'normal',workload:{instances:6,chemistry:'methane + oxygen + 2-butene',candidateCountPerFixedStep:trials.map(row=>row.candidateCount),assertedMinimumCandidates:384,fullMatcherRules:29},warmup,trials,pooled:{stepCount:allIntervals.length,p50Ms:percentile(.5),p95Ms:percentile(.95),p99Ms:percentile(.99),maximumMs:allIntervals.at(-1),frameIntervalsMs:allIntervals},browserErrors};
+  const evidence={schemaVersion:2,sourceSha:process.env.POLYMER_SOURCE_SHA??null,label:process.env.STAGE_B_PROFILE_LABEL??'candidate',node:process.version,browser:{product:browser.product,revision:browser.revision,protocolVersion:browser.protocolVersion},timerPrecision,viewport,motion:'normal',workload:{instances:6,chemistry:'methane + oxygen + 2-butene',candidateCountPerFixedStep:trials.map(row=>row.candidateCount),assertedMinimumCandidates:384,fullMatcherRules:29},warmup,trials,pooled:{stepCount:allIntervals.length,p50Ms:percentile(.5),p95Ms:percentile(.95),p99Ms:percentile(.99),maximumMs:allIntervals.at(-1),frameIntervalsMs:allIntervals},browserErrors};
   await mkdir(dirname(output),{recursive:true});await writeFile(output,JSON.stringify(evidence,null,2));console.log('REACTION_LAB_STAGE_B_PROFILE',JSON.stringify(evidence));
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(200);server.close();await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:100});}

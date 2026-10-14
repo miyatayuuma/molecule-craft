@@ -8,8 +8,10 @@ import test from 'node:test';
 
 const script=fileURLToPath(new URL('../scripts/compare-reaction-lab-stage-b.mjs',import.meta.url));
 const makeProfile=(sourceSha,trialP95Ms,pooledP95Ms)=>({
+  schemaVersion:2,
   sourceSha,
   browser:{product:'Chrome/154.0.8037.97',revision:'@test',protocolVersion:'1.3'},
+  timerPrecision:{crossOriginIsolated:true,minimumObservedStepMs:.005,observedPositiveSteps:2048},
   viewport:{width:390,height:844,deviceScaleFactor:1,mobile:true},
   motion:'normal',
   workload:{instances:6,chemistry:'methane + oxygen + 2-butene',fullMatcherRules:29,candidateCountPerFixedStep:[384,384,384,384],assertedMinimumCandidates:384},
@@ -45,6 +47,17 @@ test('Stage B comparison accepts P95 values exactly at the unchanged 8.333 ms bo
   assert.equal(result.status,0,result.stderr||result.stdout);
   assert.equal(report.checks.candidateEveryTrialHardGate,true);
   assert.equal(report.checks.candidatePooledHardGate,true);
+});
+
+test('Stage B comparison rejects coarse or non-isolated browser timers',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'stage-b-timer-contract-'));
+  try{
+    const baseline=makeProfile('task10-main',[8,8,8.1,8.1],8.1),candidate=makeProfile('task11-head',[8,8.1,8.1,8.1],8.1);candidate.timerPrecision={crossOriginIsolated:false,minimumObservedStepMs:.1,observedPositiveSteps:1000};
+    const baselinePath=join(directory,'baseline.json'),candidatePath=join(directory,'candidate.json'),outputPath=join(directory,'comparison.json');
+    await Promise.all([writeFile(baselinePath,JSON.stringify(baseline)),writeFile(candidatePath,JSON.stringify(candidate))]);
+    const result=spawnSync(process.execPath,[script,baselinePath,candidatePath,outputPath],{encoding:'utf8',env:{...process.env,POLYMER_BASELINE_SHA:'task10-main',POLYMER_CANDIDATE_SHA:'task11-head'}});
+    assert.equal(result.status,1);assert.match(result.stderr,/cross-origin isolated page/);
+  }finally{await rm(directory,{recursive:true,force:true});}
 });
 
 test('Stage B comparison fails when one trial exceeds 8.333 ms even if pooled P95 passes',async()=>{
