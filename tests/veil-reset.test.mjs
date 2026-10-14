@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createResources,RESOURCE_KEY,RESET_CATEGORIES} from '../src/veil/resources.js';
+import {createInitialResourcesState} from '../src/veil/resources-persistence.js';
+import {createProgressResetUI} from '../src/veil/reset-ui.js';
 import {createCollectionState,COLLECTION_STORAGE_KEY} from '../src/collection-state.js';
 import {WORKSPACE_STORAGE_KEY} from '../src/workspace-persistence.js?v=1';
 import {Molecule,setMoleculeDatabase} from '../src/chemistry.js?v=20';
@@ -23,7 +25,7 @@ for(let fail=0;fail<=5;fail++){
  assert.equal(result.committed,true);assert.equal(f.resources.save(),false,'Old graph frozen after commit');f.fail(0);
  const reloaded=createResources({storage:f.storage});assert.equal(reloaded.blocked,false);assert.equal(reloaded.state.elements.H,0);assert.deepEqual(reloaded.state.tanks.propellant,{molecule:null,amount:0});assert.deepEqual(reloaded.state.recipes,[]);assert.equal(reloaded.state.workspace,null);assert.equal(reloaded.state.progress.cleared,false);assert.equal(reloaded.state.progress.runs,0);assert.equal(reloaded.state.progress.bestChain,0);assert.equal(reloaded.state.pendingReset,undefined);
  assert.equal(f.storage.getItem(WORKSPACE_STORAGE_KEY),null);assert.equal(f.storage.getItem('molecule-craft.help.v1'),null);assert.equal(f.storage.getItem('unrelated-application'),'keep');
- const book=createCollectionState({records,groups:[],templates:[],storage:f.storage});assert.equal(book.discoveredCount,0);assert.deepEqual(book.unlockedElements(),['H','C','O']);
+ const book=createCollectionState({records,groups:[],templates:[],storage:f.storage,elementAccess:element=>reloaded.canUseElement(element)});assert.equal(book.discoveredCount,0);assert.deepEqual(book.unlockedElements(),['H'],'full reset leaves only the canonical H progression element available');
  reloaded.save();assert.deepEqual(createResources({storage:f.storage}).state.recipes,[],'Legacy collection cannot re-unlock H₂');
 }
 for(const category of RESET_CATEGORIES){
@@ -41,4 +43,18 @@ const f=fixture(),oldBook=createCollectionState({records,groups:[],templates:[],
 f.resources.reset(RESET_CATEGORIES);const resetRaw=f.storage.getItem(RESOURCE_KEY);assert.equal(stale.reset(RESET_CATEGORIES).committed,false);assert.equal(f.storage.getItem(RESOURCE_KEY),resetRaw);
 const water=records.find(r=>r.id==='water'),m=new Molecule(),ids=water.atoms.map(el=>m.addAtom(el).id);for(const [a,b,order]of water.bonds)m.setBond(ids[a],ids[b],order);
 oldBook.observeStructures(connectedStructures(m));assert.match(oldBook.storageMessage,/初期化/);assert.equal(JSON.parse(f.storage.getItem(COLLECTION_STORAGE_KEY)).discoveredMolecules.length,0);
+
+const futureState=createInitialResourcesState();futureState.schemaVersion=10;futureState.elements.H=17;futureState.futureField={keep:'raw'};
+const futureRaw=JSON.stringify(futureState),futureData=new Map([[RESOURCE_KEY,futureRaw],[COLLECTION_STORAGE_KEY,'collection bytes'],[WORKSPACE_STORAGE_KEY,'workspace bytes'],['molecule-craft.help.v1','help bytes']]);
+const futureStorage={getItem:key=>futureData.get(key)??null,setItem:(key,value)=>futureData.set(key,String(value)),removeItem:key=>futureData.delete(key)},futureResources=createResources({storage:futureStorage});
+const priorDocument=globalThis.document,priorWindow=globalThis.window,handlers={},nodes=new Map();let reloads=0;
+for(const id of ['reset-status','reset-all','reset-selected'])nodes.set(id,{textContent:'',disabled:false,addEventListener:(type,handler)=>{handlers[id]=handler;}});
+globalThis.document={getElementById:id=>nodes.get(id)??null,querySelectorAll:()=>[]};globalThis.window={confirm:()=>true};
+try{
+ createProgressResetUI({resources:futureResources,reload:()=>reloads++});handlers['reset-all']();
+ assert.equal(reloads,0,'a blocked future-schema reset never enters the success/reload path');
+ assert.match(nodes.get('reset-status').textContent,/新しい版.*保護.*変更できません.*更新/,'reset UI reports the unsupported save protection state');
+ assert.equal(nodes.get('reset-all').disabled,false,'failed reset does not disable controls as if it had succeeded');
+ assert.equal(futureData.get(RESOURCE_KEY),futureRaw);assert.equal(futureData.get(COLLECTION_STORAGE_KEY),'collection bytes');assert.equal(futureData.get(WORKSPACE_STORAGE_KEY),'workspace bytes');assert.equal(futureData.get('molecule-craft.help.v1'),'help bytes');
+}finally{if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;if(priorWindow===undefined)delete globalThis.window;else globalThis.window=priorWindow;}
 console.log('Reset: all interruption points, each category, refund balance, no legacy resurrection, unrelated storage and stale-tab protection passed.');

@@ -2,13 +2,13 @@ import {createCollectorShellState,normalizeCollectorShellState} from './collecto
 import {createEngineeringState,normalizeEngineeringState} from '../engineering-fabrication.js';
 import { GROWTH,DRIVES,REGIONS,EXPEDITION_DESTINATION_REGION_IDS,TANK_USES,tankCapacity } from './growth.js';
 import { validatePersistedWorkspace } from '../workspace-migrations.js?v=1';
-import { WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';
+import { RESOURCE_SCHEMA_VERSION,RESOURCE_STORAGE_KEY as RESOURCE_KEY,UnsupportedFutureResourcesSchemaError,assertSupportedResourcesSchema,futureResourcesSchemaVersion,isFutureResourcesSave,isFutureResourcesSchemaVersion,WORKSPACE_STORAGE_KEY } from '../workspace-persistence.js?v=1';
 import {normalizeWorldAwakeningProgress} from './world-awakening.js';
 import {INSIGHT_DESTINATION_HISTORY_LIMIT,INSIGHT_DESTINATION_ORDER,normalizeInsightDestinationHistory} from './insight-destination.js';
 import {clearPolymerCollectionSave} from '../polymer-collection-persistence.js?v=1';
-
-export const RESOURCE_KEY='molecule-craft.resources.v1';
-export const SCHEMA_VERSION=9;
+export const SCHEMA_VERSION=RESOURCE_SCHEMA_VERSION;
+export {RESOURCE_KEY,UnsupportedFutureResourcesSchemaError};
+export {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave,isFutureResourcesSchemaVersion} from '../workspace-persistence.js?v=1';
 const COLLECTION_KEY='molecule-craft.collection.v1',HELP_KEY='molecule-craft.help.v1';
 export const MANAGED_ELEMENTS=['H','C','N','O','P','S','F','Cl'];
 export const DUST_ELEMENTS=['H','C','O'];
@@ -40,7 +40,7 @@ function normalizeCurrentEngineering(state){const next=normalizeEngineeringState
 function normalizeCurrentCollectorShell(state){const next=normalizeCollectorShellState(state.collectorShell,state.engineering);if(JSON.stringify(next)===JSON.stringify(state.collectorShell))return false;state.collectorShell=next;return true;}
 function normalizeCurrentResourcesState(state){return !!(normalizeCurrentEngineering(state)|normalizeCurrentCollectorShell(state)|normalizeCurrentTankRoles(state)|normalizeCurrentWorldProgress(state)|normalizeCurrentInsightDestinationHistory(state)|normalizeCurrentElementStocks(state));}
 
-export function finishPendingResourcesReset(storage,state){const p=state.pendingReset;if(!p)return;if(p.collection){storage.setItem(COLLECTION_KEY,JSON.stringify(emptyCollection()));clearPolymerCollectionSave(storage);}if(p.legacy)storage.removeItem(WORKSPACE_STORAGE_KEY);if(p.help)storage.removeItem(HELP_KEY);const done={...state};delete done.pendingReset;storage.setItem(RESOURCE_KEY,JSON.stringify(done));delete state.pendingReset;}
+export function finishPendingResourcesReset(storage,state){const p=state?.pendingReset;if(!p)return;assertSupportedResourcesSchema(state);if(state.schemaVersion!==SCHEMA_VERSION)throw Error('Invalid resources schema for pending reset');const version=futureResourcesSchemaVersion(storage?.getItem(RESOURCE_KEY));if(version!==null)throw new UnsupportedFutureResourcesSchemaError(version);if(p.collection){storage.setItem(COLLECTION_KEY,JSON.stringify(emptyCollection()));clearPolymerCollectionSave(storage);}if(p.legacy)storage.removeItem(WORKSPACE_STORAGE_KEY);if(p.help)storage.removeItem(HELP_KEY);const done={...state};delete done.pendingReset;storage.setItem(RESOURCE_KEY,JSON.stringify(done));delete state.pendingReset;}
 
 function validatePersistedState(s){
   if(!s||s.schemaVersion!==SCHEMA_VERSION||!s.elements||!ids(s.recipes)||!ids(s.hints)||!s.progress||!s.tanks||!s.dust||!s.loadout)throw Error('Invalid resources');
@@ -64,7 +64,7 @@ function validatePersistedState(s){
   return s;
 }
 
-function parseResourceEnvelope(raw){if(typeof raw!=='string'||raw.length>3e6)throw Error('Invalid resources');const parsed=JSON.parse(raw);if(!parsed||typeof parsed!=='object')throw Error('Invalid resources');return parsed;}
+function parseResourceEnvelope(raw){if(typeof raw!=='string')throw Error('Invalid resources');const parsed=JSON.parse(raw);assertSupportedResourcesSchema(parsed);if(raw.length>3e6||!parsed||typeof parsed!=='object')throw Error('Invalid resources');return parsed;}
 function migrateV8ResourceState(state){
   const next={...state,schemaVersion:SCHEMA_VERSION,tanks:state.tanks&&typeof state.tanks==='object'?{...state.tanks}:state.tanks};
   delete next['upgrades'];delete next['treatments'];
@@ -72,10 +72,10 @@ function migrateV8ResourceState(state){
   return next;
 }
 function toCurrentSchema(state){return state?.schemaVersion===8?migrateV8ResourceState(state):state;}
-function parsePersistedResources(raw){const state=toCurrentSchema(parseResourceEnvelope(raw));normalizeCurrentResourcesState(state);return validatePersistedState(state);}
+function parsePersistedResources(raw){const envelope=parseResourceEnvelope(raw);assertSupportedResourcesSchema(envelope);const state=toCurrentSchema(envelope);normalizeCurrentResourcesState(state);return validatePersistedState(state);}
 export function normalizeLegacyExpeditionDestination(state){
   const progress=state?.progress;if(!progress||progress.checkpoint!=='frontier')return false;const visited=Array.isArray(progress.regions)?progress.regions:[],eligible=EXPEDITION_DESTINATION_REGION_IDS.filter(id=>id!=='nitrogen'||progress.choCompleted===true),fallback=eligible.filter(id=>visited.includes(id)).at(-1)??'veil';progress.checkpoint=fallback;return true;
 }
-export function migrateResourcesSave(raw){try{const persisted=toCurrentSchema(parseResourceEnvelope(raw));if(persisted.schemaVersion!==SCHEMA_VERSION)return createInitialResourcesState();normalizeCurrentResourcesState(persisted);const state=validatePersistedState(persisted);normalizeLegacyExpeditionDestination(state);return state;}catch{return createInitialResourcesState();}}
-export function loadPersistedResources(storage){let previous=storage?.getItem(RESOURCE_KEY)??null;if(!previous)return {state:null,previous:null};let envelope;try{envelope=parseResourceEnvelope(previous);}catch{const state=createInitialResourcesState();try{storage?.setItem(RESOURCE_KEY,serializeResourcesState(state));storage?.removeItem(COLLECTION_KEY);clearPolymerCollectionSave(storage);storage?.removeItem(WORKSPACE_STORAGE_KEY);previous=storage?.getItem(RESOURCE_KEY)??previous;}catch{}return {state,previous};}const migrated=envelope.schemaVersion===8;envelope=toCurrentSchema(envelope);if(envelope.schemaVersion!==SCHEMA_VERSION){const state=createInitialResourcesState();try{storage?.setItem(RESOURCE_KEY,serializeResourcesState(state));storage?.removeItem(COLLECTION_KEY);clearPolymerCollectionSave(storage);storage?.removeItem(WORKSPACE_STORAGE_KEY);previous=storage?.getItem(RESOURCE_KEY)??previous;}catch{}return {state,previous};}const normalizedCurrent=normalizeCurrentResourcesState(envelope);let persisted=validatePersistedState(envelope);if(persisted.pendingReset){finishPendingResourcesReset(storage,persisted);previous=storage.getItem(RESOURCE_KEY);persisted=parsePersistedResources(previous);}if(migrated||normalizedCurrent||normalizeLegacyExpeditionDestination(persisted)){const normalized=serializeResourcesState(persisted);try{storage?.setItem(RESOURCE_KEY,normalized);previous=storage?.getItem(RESOURCE_KEY)??normalized;}catch{}}return {state:persisted,previous};}
+export function migrateResourcesSave(raw){let envelope;try{envelope=parseResourceEnvelope(raw);}catch(error){if(error instanceof UnsupportedFutureResourcesSchemaError)throw error;return createInitialResourcesState();}try{const persisted=toCurrentSchema(envelope);if(persisted.schemaVersion!==SCHEMA_VERSION)return createInitialResourcesState();normalizeCurrentResourcesState(persisted);const state=validatePersistedState(persisted);normalizeLegacyExpeditionDestination(state);return state;}catch{return createInitialResourcesState();}}
+export function loadPersistedResources(storage){let previous=storage?.getItem(RESOURCE_KEY)??null;if(!previous)return {state:null,previous:null};let envelope;try{envelope=parseResourceEnvelope(previous);}catch(error){if(error instanceof UnsupportedFutureResourcesSchemaError)throw error;const state=createInitialResourcesState();try{storage?.setItem(RESOURCE_KEY,serializeResourcesState(state));storage?.removeItem(COLLECTION_KEY);clearPolymerCollectionSave(storage);storage?.removeItem(WORKSPACE_STORAGE_KEY);previous=storage?.getItem(RESOURCE_KEY)??previous;}catch{}return {state,previous};}const futureVersion=futureResourcesSchemaVersion(envelope);if(futureVersion!==null)throw new UnsupportedFutureResourcesSchemaError(futureVersion);const migrated=envelope.schemaVersion===8;envelope=toCurrentSchema(envelope);if(envelope.schemaVersion!==SCHEMA_VERSION){const state=createInitialResourcesState();try{storage?.setItem(RESOURCE_KEY,serializeResourcesState(state));storage?.removeItem(COLLECTION_KEY);clearPolymerCollectionSave(storage);storage?.removeItem(WORKSPACE_STORAGE_KEY);previous=storage?.getItem(RESOURCE_KEY)??previous;}catch{}return {state,previous};}const normalizedCurrent=normalizeCurrentResourcesState(envelope);let persisted=validatePersistedState(envelope);if(persisted.pendingReset){finishPendingResourcesReset(storage,persisted);previous=storage.getItem(RESOURCE_KEY);persisted=parsePersistedResources(previous);}if(migrated||normalizedCurrent||normalizeLegacyExpeditionDestination(persisted)){const normalized=serializeResourcesState(persisted);try{storage?.setItem(RESOURCE_KEY,normalized);previous=storage?.getItem(RESOURCE_KEY)??normalized;}catch{}}return {state:persisted,previous};}
 export function serializeResourcesState(state){if(state?.schemaVersion!==SCHEMA_VERSION)throw Error('Invalid resources schema');return JSON.stringify(validatePersistedState(state));}

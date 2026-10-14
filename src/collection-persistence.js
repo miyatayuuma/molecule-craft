@@ -1,17 +1,18 @@
 import { CURRENT_COLLECTION_SCHEMA_VERSION,isFutureCollectionSave,migrateCollectionSave,validateCanonicalCollectionState } from './collection-migrations.js?v=2';
+import {FUTURE_RESOURCES_MESSAGE,isFutureResourcesSave,RESOURCE_STORAGE_KEY} from './workspace-persistence.js?v=1';
 
 export const COLLECTION_STORAGE_KEY='molecule-craft.collection.v1';
-const RESOURCE_STORAGE_KEY='molecule-craft.resources.v1';
 
 export function createCollectionPersistence({storage=null,records=[],milestoneIds=[]}={}){
   let storageMessage='',readOnly=false,resetEpoch=0;
   try{
-    const resource=JSON.parse(storage?.getItem(RESOURCE_STORAGE_KEY)||'null');
-    resetEpoch=resource?.resetEpoch??0;
-    if(resource?.pendingReset)readOnly=true;
+    const raw=storage?.getItem(RESOURCE_STORAGE_KEY);
+    if(isFutureResourcesSave(raw)){readOnly=true;storageMessage=FUTURE_RESOURCES_MESSAGE;}
+    else{const resource=JSON.parse(raw||'null');resetEpoch=resource?.resetEpoch??0;if(resource?.pendingReset)readOnly=true;}
   }catch{}
 
   function load(){
+    try{if(isFutureResourcesSave(storage?.getItem(RESOURCE_STORAGE_KEY))){readOnly=true;storageMessage=FUTURE_RESOURCES_MESSAGE;return null;}}catch{}
     let raw;
     try{
       raw=storage?.getItem(COLLECTION_STORAGE_KEY);
@@ -31,8 +32,11 @@ export function createCollectionPersistence({storage=null,records=[],milestoneId
   }
 
   function save(snapshot){
-    if(!storage||readOnly)return false;
+    if(!storage)return false;
     try{
+      const resourceRaw=storage.getItem(RESOURCE_STORAGE_KEY);
+      if(isFutureResourcesSave(resourceRaw)){readOnly=true;storageMessage=FUTURE_RESOURCES_MESSAGE;return false;}
+      if(readOnly)return false;
       const canonical=validateCanonicalCollectionState({
         schemaVersion:snapshot?.schemaVersion,
         discoveredMolecules:snapshot?.discoveredMolecules,
@@ -40,7 +44,7 @@ export function createCollectionPersistence({storage=null,records=[],milestoneId
         milestones:snapshot?.milestones,
       },{records,milestoneIds});
       if(canonical.schemaVersion!==CURRENT_COLLECTION_SCHEMA_VERSION)throw Error('Invalid collection schema');
-      const resource=JSON.parse(storage.getItem(RESOURCE_STORAGE_KEY)||'null');
+      const resource=JSON.parse(resourceRaw||'null');
       if(resource?.pendingReset||(resource?.resetEpoch??0)!==resetEpoch){
         readOnly=true;
         storageMessage='進行が初期化されました。再読み込みしてください。';

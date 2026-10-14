@@ -160,8 +160,8 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 
 ## 保存
 
-- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v9は次回ロードアウトを保存し、O₂ oxidizer容量は36固定。schema v8からの移行では原子・レシピ・ヒント・タンク・LOADOUT・進行・Rare在庫・workspaceを維持し、旧utility stateを除いて酸素量を36以下へ正規化する。完成分子の中間在庫は持たない。出発確定時にBASE STOCKから不足分だけ自動錬成し、タンク交換・破棄・保存を一括処理する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。runtimeの資源・タンク・LOADOUT状態管理は `src/veil/resources.js`、resources schema v1〜v9のvalidation / migrationと破損・未来版保護、current-schema書き出しは `src/veil/resources-persistence.js`。
-- `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部current schemaはv2。v1/v2判定・normalize・破損/未来版保護とcurrent-only writeは `src/workspace-migrations.js`, `src/workspace-persistence.js`、runtimeのcanonical capture / restoreは `src/workspace-save.js`。resources初回移行に必要な旧workspace bridgeもこのmigration境界を利用する。
+- `molecule-craft.resources.v1`：原子在庫、タンク、レシピ、探索進行、精算、制作の保存元。内部schema v9は次回ロードアウトを保存し、O₂ oxidizer容量は36固定。schema v8からの移行では原子・レシピ・ヒント・タンク・LOADOUT・進行・Rare在庫・workspaceを維持し、旧utility stateを除いて酸素量を36以下へ正規化する。schema v10以上の整数値はunsupported futureとしてfail-closedにし、raw saveと関連キーを保持したまま通常保存・初期化を停止する。Collection、Polymer Collection、Workspaceの各writerも保存直前にresourcesの将来schemaを再確認する。完成分子の中間在庫は持たない。出発確定時にBASE STOCKから不足分だけ自動錬成し、タンク交換・破棄・保存を一括処理する。制作スナップショット上の原子はBASE STOCKから取り出し中として保存する。schema authorityは `src/workspace-persistence.js`、runtimeの資源・タンク・LOADOUT状態管理は `src/veil/resources.js`、resources schema v1〜v9のvalidation / migrationと破損・未来版保護、current-schema書き出しは `src/veil/resources-persistence.js`。
+- `molecule-craft.workspace.v1`：従来workspaceの互換入力。内部current schemaはv2。v1/v2判定・normalize・破損/未来版保護とcurrent-only writeは `src/workspace-migrations.js`, `src/workspace-persistence.js`、runtimeのcanonical capture / restoreは `src/workspace-save.js`。resources v10以上が検出された場合、workspace writerは読み込みと保存を止める。resources初回移行に必要な旧workspace bridgeもこのmigration境界を利用する。
 - `molecule-craft.collection.v1`：図鑑・発見順・部品解放。管理は `src/collection-state.js`。
 - `molecule-craft.help.v1`：初回ヘルプ既読。管理は `src/game-shell.js`。
 
@@ -191,6 +191,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | 入力・長押し | `electron-interaction.test.mjs`, `gesture-arbitration.test.mjs`, `hold-action.test.mjs` |
 | 配置・補正・torsion | `conformation-regression.test.mjs`, `spawn-layout.test.mjs`, `structure-*.test.mjs`, `*-check.mjs` |
 | workspace保存 | `workspace-save.test.mjs`, `workspace-model.test.mjs` |
+| resources/関連キーの将来schema保護・reset | `resources-persistence.test.mjs`, `veil-reset.test.mjs`, `workspace-persistence.test.mjs`, `collection-persistence.test.mjs`, `polymer-collection-persistence.test.mjs` |
 | BASE STOCK入出庫・制作グラフ操作 | `craft-workspace.test.mjs`, `veil-ui-check.mjs` |
 | 探索・成長・資源 | `expedition-core.test.mjs`, `growth.test.mjs`, `veil*.test.mjs` |
 | 探索バランスシミュレーション | `expedition-balance.test.mjs`, `scripts/simulate-expedition.mjs` |
