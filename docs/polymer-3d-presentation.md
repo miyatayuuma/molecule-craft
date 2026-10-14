@@ -98,3 +98,39 @@ All four candidate completion P95 values were at or below the Task ⑩ values. C
 An earlier candidate attempt recorded one desktop-normal completion outlier (`1131.8 ms` versus a `907.2 ms` Task ⑩ maximum). The repeat at the same product-code revision passed all four viewport/motion conditions; the succeeding desktop-normal candidate P95 was `1108.0 ms` versus `1191.1 ms` baseline. The raw trials remain available in the linked workflow artifacts; the earlier outlier is retained here rather than hidden.
 
 A follow-up validation at docs-only head `7e546de17313ae0f4a6be6194af6146930ce51a` found another desktop-normal completion outlier: one candidate trial had a `465.3 ms` first-frame offset and completed in `879.5 ms`, versus a Task ⑩ maximum of `730.3 ms`; the other three candidate trials completed in `669.0`, `705.3`, and `704.1 ms`. The trace does not establish the cause of the first-frame delay. In desktop reduced motion, both builds produced only eight frame intervals, but the candidate's pooled P95 improved to `83.3 ms` from `116.6 ms`. The old classifier incorrectly treated that candidate as fine-sampled because its P95 fell below `100 ms`, so sparse-sample P50 and maximum checks failed. The comparator now classifies from aggregate interval counts and retains the existing coarse numerical floors. The repeated run on the corrected head is recorded separately in its workflow results.
+
+## Task ⑪ final acceptance evidence — 2026-10-14 (pre-merge)
+
+The earlier **Local validation** section is retained as the original implementation-time record. The evidence below is the final remote CI acceptance evidence; the earlier local measurements are not treated as the final Stage B result.
+
+### Authority and Stage B attempt
+
+- PR #342: [Task⑪ finite polymer 3D presentation](https://github.com/miyatayuuma/molecule-craft/pull/342)
+- Measured candidate SHA: `1f66611cf1dbf594bd53d89249486daad5d09cdf`
+- Immutable Task⑩ baseline SHA: `4bc202c0eb1f51de0350c3a0b4be36c7178cba53`
+- Workflow: [Reaction Lab finite polymer validation, run 38364302028](https://github.com/miyatayuuma/molecule-craft/actions/runs/38364302028)
+- Failed-job-only retry: attempt 2, job `115621532713`, `stage-b-performance-comparison`, SUCCESS. The original failed job `115185631827` and its artifact remain in the run history.
+- Comparison artifact: [attempt 2 raw intervals and comparison JSON](https://github.com/miyatayuuma/molecule-craft/actions/runs/38364302028/artifacts/11862515555)
+
+Both profiles used Chrome `154.0.8037.97`, revision `@b510e9d7cd3a2fbd78d0ddc42234103206c5f78d`, 390×844 normal motion, six instances, the full 29-rule matcher, 384 candidates per fixed step, one 150-step warm-up, and four measured trials of 150 steps. The original `8.333333333333334 ms` hard limit and all comparison checks were unchanged.
+
+| Profile | Task⑩ baseline trial P95 (ms) | Task⑪ candidate trial P95 (ms) | Baseline pooled P95 (ms) | Candidate pooled P95 (ms) | Median trial P95: baseline → candidate (ms) |
+| --- | --- | --- | ---: | ---: | ---: |
+| Independent Stage B, attempt 2 | 7.2, 7.0, 10.8, 7.4 | 7.4, 7.0, 7.2, 7.1 | 8.2 | 7.2 | 7.30 → 7.15 |
+
+The candidate passed every-trial and pooled absolute hard gates, plus median-trial and pooled relative-regression checks. Its maximum trial P95 was 7.4 ms. The baseline had one 10.8 ms trial above the same hard limit; the prior attempt also had an above-limit baseline trial and one candidate trial at 9.0 ms. Those failures remain visible in the original run and are not replaced by the retry. The latest result supports acceptance of the candidate under the unchanged contract; the exact source of trial-tail variability is not isolated, so it remains a measurement risk rather than a demonstrated production regression.
+
+### Final CI and visual evidence
+
+- The same workflow run's finite-validation job passed: finite chemistry/discovery, all 25 routes' 3D geometry, mobile and desktop pointer QA, integrated mobile/desktop E2E, four-condition completion comparison, resource lifecycle, collection, and offline/PWA integrity.
+- [Repository validation, run 38364301997](https://github.com/miyatayuuma/molecule-craft/actions/runs/38364301997): SUCCESS.
+- [FIELD Insight balance validation, run 38364302013](https://github.com/miyatayuuma/molecule-craft/actions/runs/38364302013): SUCCESS.
+- The finite-validation artifact for run 38364302028 is [available here](https://github.com/miyatayuuma/molecule-craft/actions/runs/38364302028/artifacts/11796451947). Its mobile and desktop screenshots were inspected for the 12 captured representative polymer routes, including the nine requested model types. The finite polymer sample remains inside the viewer; the inspected rotated, reset, mobile, desktop, and reduced-motion views showed no severe sample overlap or clipping. The geometry evidence reports 25/25 accepted layouts, fallback 0, and severe overlap 0.
+- The existing completion contract remains 650 ms normal motion and 250 ms reduced motion. Missing frame intervals are not synthesized; the job's profiling and finite-resource evidence gates passed.
+- The previously reported UTF-8 P0 review thread is resolved and outdated; unresolved blocking review threads: 0.
+
+### Scientific limits and remaining closure step
+
+The viewer remains a deterministic representative conformer derived from the authoritative finite `PolymerSample` graph. It is not molecular dynamics, an experimental structure, or an assignment of strict stereochemistry. No synthetic bulk morphology or chemistry-authority change is introduced.
+
+This record is **pre-merge acceptance** at the measured candidate SHA. PR merge and post-merge main CI verification are recorded only after those operations succeed.
