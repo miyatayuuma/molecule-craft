@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {attributeSlowIntervals,classifyTraceCapabilities,fitClockMapping,mapTraceClock,STAGE_B_TRACE_CATEGORIES} from '../scripts/stage-b-trace-attribution.mjs';
-import {parseProcSchedstat,parseProcStatus,summarizeSchedulerSamples,summarizeSlowIntervals} from '../scripts/stage-b-runner-telemetry.mjs';
+import {attributeSlowIntervals,classifyTraceCapabilities,fitClockMapping,mapNodeClockToBrowserViaCdpMarkers,mapTraceClock,STAGE_B_TRACE_CATEGORIES} from '../scripts/stage-b-trace-attribution.mjs';
+import {PROC_CPU_COUNTER_RESOLUTION_MS,parseProcSchedstat,parseProcStatus,summarizeSchedulerSamples,summarizeSlowIntervals} from '../scripts/stage-b-runner-telemetry.mjs';
 
 const rendererStep={stepIndex:0,available:true,adequate:true,pid:91,tid:92,threadName:'CrRendererMain',state:'R',runtimeMs:7,runQueueWaitMs:.2,sampleCoverageMs:8,samplePairCount:4};
 const oneSlow=(options={})=>attributeSlowIntervals({label:'candidate',sourceSha:'candidate-sha',trialNumber:4,durationsMs:[10],stepWindowsMs:[[0,10]],budgetMs:8.333333333333334,...options});
@@ -30,6 +30,23 @@ test('browser performance marks map trace timestamps without assuming clock orig
   assert.equal(mapTraceClock([], [{id:'sync-start',browserLowMs:0,browserHighMs:0},{id:'sync-end',browserLowMs:10,browserHighMs:10}]).reason,'fewer-than-two-clock-pairs');
 });
 
+test('local CDP clock-sync pairs map Node scheduler samples with bounded uncertainty',()=>{
+  const traceEvents=[
+    {name:'clock_sync',cat:'__metadata',ph:'c',ts:500000,args:{sync_id:'trace-cdp-clock-candidate-measured-4-start'}},
+    {name:'clock_sync',cat:'__metadata',ph:'c',ts:1500000,args:{sync_id:'trace-cdp-clock-candidate-measured-4-end'}},
+  ];
+  const cdpMarkers=[
+    {syncId:'trace-cdp-clock-candidate-measured-4-start',success:true,nodeStartHrtimeMs:999.8,nodeEndHrtimeMs:1000.2},
+    {syncId:'trace-cdp-clock-candidate-measured-4-end',success:true,nodeStartHrtimeMs:1999.8,nodeEndHrtimeMs:2000.2},
+  ];
+  const mapping=mapNodeClockToBrowserViaCdpMarkers({traceEvents,cdpMarkers,traceClockMapping:{available:true,slope:1,offset:-100,uncertaintyMs:.02},markerSuffixes:['measured-4-start','measured-4-end']});
+  assert.equal(mapping.available,true);assert.ok(Math.abs(mapping.slope-1)<1e-8);assert.ok(Math.abs(mapping.offset+600)<.01);assert.equal(mapping.pairs.length,2);assert.ok(mapping.uncertaintyMs<.3);
+  const failed=mapNodeClockToBrowserViaCdpMarkers({traceEvents:[],cdpMarkers,traceClockMapping:{available:true,slope:1,offset:0,uncertaintyMs:.02},markerSuffixes:['measured-4-start','measured-4-end']});
+  assert.equal(failed.available,false);assert.equal(failed.reason,'fewer-than-two-clock-pairs');
+  const noClock=mapNodeClockToBrowserViaCdpMarkers({traceEvents,cdpMarkers,traceClockMapping:{available:false},markerSuffixes:['measured-4-start','measured-4-end']});
+  assert.equal(noClock.available,false);assert.equal(noClock.reason,'trace-to-browser-clock-unavailable');
+});
+
 test('Linux schedstat and context-switch parsing reject absent or malformed counters',()=>{
   assert.deepEqual(parseProcSchedstat('123456 7890 42\n'),{runTimeNs:123456,runQueueWaitNs:7890,timeslices:42});
   assert.equal(parseProcSchedstat('123 456'),null);
@@ -39,13 +56,41 @@ test('Linux schedstat and context-switch parsing reject absent or malformed coun
 
 test('scheduler samples map to browser steps and report only observed in-window deltas',()=>{
   const make=(atMs,runNs,waitNs)=>({readStartHrtimeNs:String((atMs-.01)*1e6),readEndHrtimeNs:String((atMs+.01)*1e6),threads:[{pid:91,tid:92,threadName:'CrRendererMain',state:'R',runTimeNs:runNs,runQueueWaitNs:waitNs,timeslices:1,cpuMs:runNs/1e6,voluntaryContextSwitches:1,involuntaryContextSwitches:0}]});
-  const summary=summarizeSchedulerSamples([make(1,1e6,.1e6),make(2,1.9e6,.2e6),make(3,2.8e6,2.2e6),make(4,3.7e6,7.2e6),make(9,9e6,9e6)],{available:true,slope:1,offset:0},[[0,5]]);
+  const summary=summarizeSchedulerSamples([make(1,1e6,.1e6),make(2,1.9e6,.2e6),make(3,2.8e6,2.2e6),make(4,3.7e6,7.2e6),make(9,9e6,9e6)],{available:true,slope:1,offset:0,uncertaintyMs:0},[[0,5]]);
   assert.equal(summary.available,true);assert.equal(summary.perStep[0].pid,91);assert.equal(summary.perStep[0].tid,92);assert.equal(summary.perStep[0].samplePairCount,3);assert.equal(summary.perStep[0].adequate,true);assert.ok(summary.perStep[0].runtimeMs>2.6&&summary.perStep[0].runtimeMs<2.8);assert.ok(summary.perStep[0].runQueueWaitMs>6.9&&summary.perStep[0].runQueueWaitMs<7.2);
+  assert.equal(summary.clockMappingUncertaintyMs,0);
+});
+
+test('scheduler samples report clock uncertainty and exclude ambiguous boundary observations',()=>{
+  const make=(atMs,runNs)=>({readStartHrtimeNs:String((atMs-.01)*1e6),readEndHrtimeNs:String((atMs+.01)*1e6),threads:[{pid:91,tid:92,threadName:'CrRendererMain',state:'R',runTimeNs:runNs,runQueueWaitNs:0,timeslices:1,cpuMs:runNs/1e6,voluntaryContextSwitches:1,involuntaryContextSwitches:0}]});
+  const summary=summarizeSchedulerSamples([make(.5,.5e6),make(1,1e6),make(2,2e6),make(3,3e6),make(4.5,4.5e6)],{available:true,slope:1,offset:0,uncertaintyMs:.6},[[0,5]]);
+  assert.equal(summary.perStep[0].clockMappingUncertaintyMs,.6);assert.equal(summary.perStep[0].samplePairCount,2);assert.equal(summary.perStep[0].sampleCoverageMs,2);
+  const tooUncertain=summarizeSchedulerSamples([make(1,1e6),make(2,2e6)],{available:true,slope:1,offset:0,uncertaintyMs:3},[[0,5]]);
+  assert.equal(tooUncertain.perStep[0].available,false);
+});
+
+test('renderer process CPU ticks retain their resolution limit for short steps',()=>{
+  const make=(atMs,cpuMs)=>({readStartHrtimeNs:String((atMs-.01)*1e6),readEndHrtimeNs:String((atMs+.01)*1e6),threads:[{pid:91,tid:92,threadName:'CrRendererMain',state:'R',runTimeNs:atMs*1e6,runQueueWaitNs:0,timeslices:1,cpuMs:atMs,voluntaryContextSwitches:1,involuntaryContextSwitches:0}],processes:[{pid:91,state:'R',cpuMs}]});
+  const mapping={available:true,slope:1,offset:0,uncertaintyMs:0};
+  const short=summarizeSchedulerSamples([make(1,100),make(5,110),make(9,110)],mapping,[[0,10]]).perStep[0];
+  assert.equal(short.rendererProcessCpuMs,null);assert.equal(short.rendererProcessCpuObservedDeltaMs,10);assert.equal(short.rendererProcessCpuCounterResolutionMs,PROC_CPU_COUNTER_RESOLUTION_MS);assert.equal(short.rendererProcessCpuCounterAdequate,false);
+  const long=summarizeSchedulerSamples([make(1,100),make(11,110),make(21,120),make(31,130),make(41,140),make(49,150)],mapping,[[0,50]]).perStep[0];
+  assert.equal(long.rendererProcessCpuMs,50);assert.equal(long.rendererProcessCpuCounterAdequate,true);
 });
 
 test('a matched GC interval is attributed to V8_GC with exact profile identity',()=>{
   const rows=oneSlow({traceClockMapping:{available:true,slope:1,offset:0,uncertaintyMs:.01},traceEvents:[{name:'V8.GC_SCAVENGER',cat:'disabled-by-default-v8.gc',ph:'X',pid:91,tid:92,ts:3000,dur:7000}],schedulerPerStep:[rendererStep]});
   assert.equal(rows.length,1);assert.equal(rows[0].attributionClassification,'V8_GC');assert.equal(rows[0].label,'candidate');assert.equal(rows[0].sourceSha,'candidate-sha');assert.equal(rows[0].trialNumber,4);assert.equal(rows[0].stepIndex,0);assert.equal(rows[0].matchedTraceEvents.length,1);
+});
+
+test('a GC trace without adequate renderer CPU counters remains unattributed',()=>{
+  const rows=oneSlow({traceClockMapping:{available:true,slope:1,offset:0,uncertaintyMs:.01},traceEvents:[{name:'V8.GC_SCAVENGER',cat:'disabled-by-default-v8.gc',ph:'X',pid:91,tid:92,ts:1000,dur:8000}],rendererMainThreads:[{pid:91,tid:92,threadName:'CrRendererMain'}]});
+  assert.equal(rows[0].attributionClassification,'UNATTRIBUTED');assert.equal(rows[0].rendererPid,91);assert.equal(rows[0].evidence.gcCoverageMs,8);assert.equal(rows[0].matchedTraceEvents.length,1);
+});
+
+test('dominant scheduler wait takes precedence over a coincident GC trace',()=>{
+  const rows=oneSlow({traceClockMapping:{available:true,slope:1,offset:0,uncertaintyMs:.01},traceEvents:[{name:'V8.GC_SCAVENGER',cat:'disabled-by-default-v8.gc',ph:'X',pid:91,tid:92,ts:1000,dur:8000}],schedulerPerStep:[{...rendererStep,runtimeMs:1,runQueueWaitMs:8,sampleCoverageMs:9}]});
+  assert.equal(rows[0].attributionClassification,'OS_SCHEDULER_WAIT');assert.equal(rows[0].evidence.gcCoverageMs,8);
 });
 
 test('thread CPU plus a matched FunctionCall distinguishes JavaScript execution',()=>{
@@ -82,6 +127,11 @@ test('no trace, unknown TID or inadequate counters remain unattributed',()=>{
   assert.equal(oneSlow({schedulerPerStep:[rendererStep]})[0].attributionClassification,'UNATTRIBUTED');
   assert.equal(oneSlow({traceClockMapping:{available:true,slope:1,offset:0,uncertaintyMs:.01},traceEvents:[{name:'FunctionCall',cat:'devtools.timeline',ph:'X',pid:91,tid:92,ts:2000,dur:6000}],schedulerPerStep:[{...rendererStep,pid:null,tid:null}]})[0].attributionClassification,'UNATTRIBUTED');
   assert.equal(oneSlow({schedulerPerStep:[{...rendererStep,adequate:false}]})[0].attributionClassification,'UNATTRIBUTED');
+});
+
+test('Chromium trace thread metadata identifies the renderer main thread without inventing scheduler counters',()=>{
+  const rows=oneSlow({traceClockMapping:{available:true,slope:1,offset:0,uncertaintyMs:.01},traceEvents:[{name:'FunctionCall',cat:'devtools.timeline',ph:'X',pid:91,tid:92,ts:1000,dur:7000}],rendererMainThreads:[{pid:91,tid:92,threadName:'CrRendererMain'}]});
+  assert.equal(rows[0].rendererPid,91);assert.equal(rows[0].rendererMainThreadTid,92);assert.equal(rows[0].evidence.identifiedThread,true);assert.equal(rows[0].rendererMainThreadCpuMs,null);assert.equal(rows[0].schedulerWaitMs,null);assert.equal(rows[0].attributionClassification,'UNATTRIBUTED');assert.equal(rows[0].matchedTraceEvents[0].name,'FunctionCall');
 });
 
 test('slow-step clustering retains separate stops and baseline/candidate identities',()=>{

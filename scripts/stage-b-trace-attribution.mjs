@@ -30,6 +30,22 @@ function tracePayloadContains(event,needle){
   try{return JSON.stringify(event.args??{}).includes(needle)||event.name===needle;}catch{return event.name===needle;}
 }
 
+export function mapNodeClockToBrowserViaCdpMarkers({traceEvents=[],cdpMarkers=[],traceClockMapping,markerSuffixes=[],minimumSpanMs=10}={}){
+  if(!traceClockMapping?.available)return{available:false,reason:'trace-to-browser-clock-unavailable',pairCount:0};
+  const pairs=[];
+  for(const suffix of markerSuffixes){
+    const marker=(cdpMarkers??[]).find(row=>row.success&&row.syncId?.endsWith(`-${suffix}`));
+    if(!marker)continue;
+    const event=(traceEvents??[]).find(row=>tracePayloadContains(row,marker.syncId));
+    const nodeStartMs=Number(marker.nodeStartHrtimeMs),nodeEndMs=Number(marker.nodeEndHrtimeMs);
+    if(!event||!Number.isFinite(event.ts)||!Number.isFinite(nodeStartMs)||!Number.isFinite(nodeEndMs)||nodeEndMs<nodeStartMs)continue;
+    const browserAtMarker=traceClockMapping.slope*(event.ts/1000)+traceClockMapping.offset,traceUncertaintyMs=Number(traceClockMapping.uncertaintyMs??0)+.001;
+    pairs.push({id:marker.syncId,sourceMs:(nodeStartMs+nodeEndMs)/2,sourceUncertaintyMs:(nodeEndMs-nodeStartMs)/2,targetLowMs:browserAtMarker-traceUncertaintyMs,targetHighMs:browserAtMarker+traceUncertaintyMs,traceTimestampUs:event.ts});
+  }
+  const mapping=fitClockMapping(pairs,{minimumSpanMs});
+  return{...mapping,markerSuffixes:[...markerSuffixes],pairs,clockMap:'Node hrtime → CDP trace clock-sync marker → Browser performance.now'};
+}
+
 export function mapTraceClock(events,browserMarkers,{minimumSpanMs=10}={}){
   const pairs=[];
   for(const marker of browserMarkers??[]){
@@ -74,27 +90,32 @@ function eventCoverage(events,startMs,endMs){
   return total+(current?current[1]-current[0]:0);
 }
 
-export function attributeSlowIntervals({label,sourceSha,trialNumber,durationsMs,stepWindowsMs,traceEvents=[],traceClockMapping,schedulerPerStep=[],budgetMs=8.333333333333334}){
+export function attributeSlowIntervals({label,sourceSha,trialNumber,durationsMs,stepWindowsMs,traceEvents=[],traceClockMapping,schedulerPerStep=[],rendererMainThreads=[],budgetMs=8.333333333333334}){
   const mapped=(traceEvents??[]).map(event=>mappedEvent(event,traceClockMapping)).filter(Boolean),records=[];
   for(let stepIndex=0;stepIndex<(durationsMs??[]).length;stepIndex++){
     const durationMs=durationsMs[stepIndex];if(!(durationMs>budgetMs))continue;
     const [startMs,endMs]=stepWindowsMs?.[stepIndex]??[];
     const scheduler=schedulerPerStep?.[stepIndex]??null;
     const overlapping=Number.isFinite(startMs)&&Number.isFinite(endMs)?mapped.filter(event=>event.startMs<endMs+ (traceClockMapping?.uncertaintyMs??0)&&event.endMs>startMs-(traceClockMapping?.uncertaintyMs??0)):[];
-    const threadIdKnown=Number.isInteger(scheduler?.pid)&&Number.isInteger(scheduler?.tid);
-    const mainThreadEvents=threadIdKnown?overlapping.filter(event=>event.pid===scheduler.pid&&event.tid===scheduler.tid):[];
+    const schedulerThread=Number.isInteger(scheduler?.pid)&&Number.isInteger(scheduler?.tid)?{pid:scheduler.pid,tid:scheduler.tid,source:'proc-schedstat'}:null;
+    const traceThreads=(rendererMainThreads??[]).filter(thread=>Number.isInteger(thread.pid)&&Number.isInteger(thread.tid));
+    const threadCandidates=schedulerThread?[schedulerThread]:traceThreads;
+    const threadScores=threadCandidates.map(thread=>({...thread,score:overlapping.filter(event=>event.pid===thread.pid&&event.tid===thread.tid).length})).sort((a,b)=>b.score-a.score);
+    const chosenThread=threadScores.length===1?threadScores[0]:threadScores.length>1&&threadScores[0].score>threadScores[1].score?threadScores[0]:null;
+    const threadIdKnown=!!chosenThread;
+    const mainThreadEvents=chosenThread?overlapping.filter(event=>event.pid===chosenThread.pid&&event.tid===chosenThread.tid):[];
     const gc=mainThreadEvents.filter(looksLikeGc),compile=mainThreadEvents.filter(looksLikeCompile),js=mainThreadEvents.filter(looksLikeJs),tasks=mainThreadEvents.filter(looksLikeTask);
     const gcCoverageMs=Number.isFinite(startMs)&&Number.isFinite(endMs)?eventCoverage(gc,startMs,endMs):0,compileCoverageMs=Number.isFinite(startMs)&&Number.isFinite(endMs)?eventCoverage(compile,startMs,endMs):0,jsCoverageMs=Number.isFinite(startMs)&&Number.isFinite(endMs)?eventCoverage(js,startMs,endMs):0,taskCoverageMs=Number.isFinite(startMs)&&Number.isFinite(endMs)?eventCoverage(tasks,startMs,endMs):0;
     let classification='UNATTRIBUTED',reason='insufficient-clock-thread-or-counter-evidence';
-    if(gcCoverageMs>=durationMs*.5){classification='V8_GC';reason='V8/GC trace events cover at least half of the slow interval on the identified renderer main thread';}
-    else if(compileCoverageMs>=durationMs*.5){classification='V8_COMPILE_JIT';reason='V8 compile/optimization trace events cover at least half of the slow interval on the identified renderer main thread';}
-    else if(scheduler?.available&&scheduler.adequate&&scheduler.runQueueWaitMs>=durationMs*.5&&scheduler.runtimeMs<=durationMs*.5){classification='OS_SCHEDULER_WAIT';reason='renderer main thread schedstat run-queue wait dominates its measured runtime';}
+    if(scheduler?.available&&scheduler.adequate&&scheduler.runQueueWaitMs>=durationMs*.5&&scheduler.runtimeMs<=durationMs*.5){classification='OS_SCHEDULER_WAIT';reason='renderer main thread schedstat run-queue wait dominates its measured runtime';}
     else if(scheduler?.available&&scheduler.adequate&&scheduler.state==='D'){classification='BLOCKED_OR_WAITING';reason='renderer main thread was observed in uninterruptible sleep during adequate scheduler samples';}
+    else if(gcCoverageMs>=durationMs*.5&&scheduler?.available&&scheduler.adequate&&scheduler.runtimeMs>=durationMs*.5){classification='V8_GC';reason='V8/GC trace events cover at least half of the slow interval while renderer main-thread CPU runtime is also observed';}
+    else if(compileCoverageMs>=durationMs*.5&&scheduler?.available&&scheduler.adequate&&scheduler.runtimeMs>=durationMs*.5){classification='V8_COMPILE_JIT';reason='V8 compile/optimization trace events cover at least half of the slow interval while renderer main-thread CPU runtime is also observed';}
     else if(scheduler?.available&&scheduler.adequate&&scheduler.runtimeMs>=durationMs*.5&&scheduler.runQueueWaitMs<=durationMs*.25&&jsCoverageMs>=durationMs*.25){classification='JS_EXECUTION';reason='renderer main thread accumulated CPU runtime while JavaScript trace events covered at least a quarter of the slow interval';}
     else if(scheduler?.available&&scheduler.adequate&&scheduler.runtimeMs>=durationMs*.5&&scheduler.runQueueWaitMs<=durationMs*.25&&taskCoverageMs>=durationMs*.25){classification='CHROMIUM_OTHER_TASK';reason='renderer main thread accumulated CPU runtime while explicit layout/paint/compositor task events covered at least a quarter of the slow interval';}
     else if(scheduler?.available&&scheduler.adequate&&scheduler.state==='S'&&scheduler.runtimeMs<=durationMs*.25){classification='BLOCKED_OR_WAITING';reason='renderer main thread samples were sleeping with little CPU runtime and no dominant run-queue wait';}
     const matched=mainThreadEvents.filter(event=>looksLikeGc(event)||looksLikeCompile(event)||looksLikeJs(event)||looksLikeTask(event)||looksLikeTaskEnvelope(event)).map(event=>({name:event.name,category:event.category,pid:event.pid,tid:event.tid,phase:event.phase,startMs:event.startMs,endMs:event.endMs,durationMs:event.durationMs,args:event.args}));
-    records.push({label,sourceSha,trialNumber,stepIndex,browserStartTimestampMs:Number.isFinite(startMs)?startMs:null,browserEndTimestampMs:Number.isFinite(endMs)?endMs:null,wallDurationMs:durationMs,matchedTraceEvents:matched,rendererPid:scheduler?.pid??null,rendererMainThreadTid:scheduler?.tid??null,rendererMainThreadCpuMs:scheduler?.runtimeMs??null,schedulerWaitMs:scheduler?.runQueueWaitMs??null,schedulerCoverageMs:scheduler?.sampleCoverageMs??null,clockMappingUncertaintyMs:traceClockMapping?.available?traceClockMapping.uncertaintyMs:null,attributionClassification:classification,attributionReason:reason,evidence:{traceClockMapped:!!traceClockMapping?.available,traceEventsOverlapping:overlapping.length,identifiedThread:threadIdKnown,schedulerCounterAvailable:!!scheduler?.available,schedulerCounterAdequate:!!scheduler?.adequate,gcCoverageMs,compileCoverageMs,jsCoverageMs,chromiumTaskCoverageMs:taskCoverageMs}});
+    records.push({label,sourceSha,trialNumber,stepIndex,browserStartTimestampMs:Number.isFinite(startMs)?startMs:null,browserEndTimestampMs:Number.isFinite(endMs)?endMs:null,wallDurationMs:durationMs,matchedTraceEvents:matched,rendererPid:chosenThread?.pid??null,rendererMainThreadTid:chosenThread?.tid??null,rendererProcessCpuMs:scheduler?.rendererProcessCpuMs??null,rendererProcessCpuObservedDeltaMs:scheduler?.rendererProcessCpuObservedDeltaMs??null,rendererProcessCpuCounterResolutionMs:scheduler?.rendererProcessCpuCounterResolutionMs??null,rendererProcessCpuCounterAdequate:!!scheduler?.rendererProcessCpuCounterAdequate,rendererProcessCpuSamplePairCount:scheduler?.rendererProcessCpuSamplePairCount??null,rendererProcessCpuSampleCoverageMs:scheduler?.rendererProcessCpuSampleCoverageMs??null,rendererMainThreadCpuMs:scheduler?.runtimeMs??null,schedulerWaitMs:scheduler?.runQueueWaitMs??null,schedulerCoverageMs:scheduler?.sampleCoverageMs??null,contextSwitches:scheduler?.contextSwitches??null,clockMappingUncertaintyMs:traceClockMapping?.available?traceClockMapping.uncertaintyMs:null,schedulerClockMappingUncertaintyMs:scheduler?.clockMappingUncertaintyMs??null,attributionClassification:classification,attributionReason:reason,evidence:{traceClockMapped:!!traceClockMapping?.available,traceEventsOverlapping:overlapping.length,identifiedThread:threadIdKnown,threadIdSource:chosenThread?.source??(chosenThread?'chromium-trace-metadata':null),schedulerCounterAvailable:!!scheduler?.available,schedulerCounterAdequate:!!scheduler?.adequate,gcCoverageMs,compileCoverageMs,jsCoverageMs,chromiumTaskCoverageMs:taskCoverageMs}});
   }
   return records;
 }

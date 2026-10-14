@@ -6,7 +6,7 @@ import {dirname,extname,join,normalize,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {captureRunnerSnapshot,compareRunnerSnapshots,startRendererSchedulerSampler,summarizeSchedulerSamples,summarizeSlowIntervals} from './stage-b-runner-telemetry.mjs';
-import {attributeSlowIntervals,fitClockMapping} from './stage-b-trace-attribution.mjs';
+import {attributeSlowIntervals,mapNodeClockToBrowserViaCdpMarkers} from './stage-b-trace-attribution.mjs';
 import {ChromiumTraceRecorder} from './chromium-trace-recorder.mjs';
 
 const root=resolve(process.env.POLYMER_ROOT??fileURLToPath(new URL('..',import.meta.url))),viewport={width:390,height:844,deviceScaleFactor:1,mobile:true};
@@ -48,20 +48,20 @@ try{
     let page=null;
     try{page=await evaluate(`(()=>{const state=window.__stageBRunnerDiagnostics;if(!state)return null;state.observer?.disconnect();return{url:location.href,visibilityState:document.visibilityState,focused:document.hasFocus(),supportedEntryTypes:state.supported,longTaskObserverAvailable:state.longTaskObserverAvailable,longTaskObserverError:state.longTaskObserverError??null,longTasks:state.longTasks.slice(0,300)}})()`);}catch(error){page={available:false,error:error.message};}
     const trace=await traceRecorder.stop();traceRecorderFinished=true;const traceArtifact=process.env.STAGE_B_PROFILE_OUTPUT?process.env.STAGE_B_PROFILE_OUTPUT.replace(/\.json$/i,'.trace.json'):`${output}.trace.json`;await traceRecorder.writeRaw(traceArtifact);
-    const traceEvents=trace.traceEvents??[],traceClockMapping=trace.clock.traceToBrowserPerformance,nodeClockMapping=fitClockMapping(trace.clock.nodeClockPairs.filter(pair=>pair.browserClock).map(pair=>({sourceMs:(pair.nodeStartHrtimeMs+pair.nodeEndHrtimeMs)/2,sourceUncertaintyMs:(pair.nodeEndHrtimeMs-pair.nodeStartHrtimeMs)/2,targetLowMs:pair.browserClock.browserLowMs,targetHighMs:pair.browserClock.browserHighMs}))),slowStepAttributions=[],controlAttributions=[];
+    const traceEvents=trace.traceEvents??[],traceClockMapping=trace.clock.traceToBrowserPerformance,rendererMainThreads=trace.threadMetadata.filter(row=>row.name==='thread_name'&&row.label==='CrRendererMain'&&Number.isInteger(row.pid)&&Number.isInteger(row.tid)).map(row=>({pid:row.pid,tid:row.tid,threadName:row.label,source:'chromium-trace-metadata'})),slowStepAttributions=[],controlAttributions=[];
     for(const trial of capturedDiagnosticTrials){
-      const scheduler=summarizeSchedulerSamples(trial.schedulerSamples??[],nodeClockMapping,trial.stepWindowsMs);
-      const attributed=attributeSlowIntervals({label:trial.label,sourceSha:process.env.POLYMER_SOURCE_SHA??null,trialNumber:trial.trialNumber,durationsMs:trial.durationsMs,stepWindowsMs:trial.stepWindowsMs,traceEvents,traceClockMapping,schedulerPerStep:scheduler.perStep});
+      const schedulerClockMapping=mapNodeClockToBrowserViaCdpMarkers({traceEvents,cdpMarkers:trace.clock.cdpMarkers,traceClockMapping,markerSuffixes:[`${trial.label}-start`,`${trial.label}-end`]}),scheduler=summarizeSchedulerSamples(trial.schedulerSamples??[],schedulerClockMapping,trial.stepWindowsMs);
+      const attributed=attributeSlowIntervals({label:trial.label,sourceSha:process.env.POLYMER_SOURCE_SHA??null,trialNumber:trial.trialNumber,durationsMs:trial.durationsMs,stepWindowsMs:trial.stepWindowsMs,traceEvents,traceClockMapping,schedulerPerStep:scheduler.perStep,rendererMainThreads});
       slowStepAttributions.push(...attributed);
-      trial.schedulerAttribution=scheduler;
+      trial.schedulerClockMapping=schedulerClockMapping;trial.schedulerAttribution=scheduler;
     }
     for(const control of capturedDiagnosticControls){
-      const scheduler=summarizeSchedulerSamples(control.schedulerSamples??[],nodeClockMapping,control.stepWindowsMs);
-      const attributed=attributeSlowIntervals({label:control.label,sourceSha:process.env.POLYMER_SOURCE_SHA??null,trialNumber:null,durationsMs:control.durationsMs,stepWindowsMs:control.stepWindowsMs,traceEvents,traceClockMapping,schedulerPerStep:scheduler.perStep,budgetMs:8.333333333333334});
-      control.schedulerAttribution=scheduler;controlAttributions.push(...attributed);
+      const schedulerClockMapping=mapNodeClockToBrowserViaCdpMarkers({traceEvents,cdpMarkers:trace.clock.cdpMarkers,traceClockMapping,markerSuffixes:[`${control.label}-start`,`${control.label}-end`]}),scheduler=summarizeSchedulerSamples(control.schedulerSamples??[],schedulerClockMapping,control.stepWindowsMs);
+      const attributed=attributeSlowIntervals({label:control.label,sourceSha:process.env.POLYMER_SOURCE_SHA??null,trialNumber:null,durationsMs:control.durationsMs,stepWindowsMs:control.stepWindowsMs,traceEvents,traceClockMapping,schedulerPerStep:scheduler.perStep,rendererMainThreads,budgetMs:8.333333333333334});
+      control.schedulerClockMapping=schedulerClockMapping;control.schedulerAttribution=scheduler;controlAttributions.push(...attributed);
     }
     const{traceEvents:discardedTraceEvents,...traceSummary}=trace;
-    return{page,pageLifecycle:{available:pageLifecycleAvailable,error:pageLifecycleError,events:pageLifecycleEvents},trace:{...traceSummary,traceArtifact,slowStepAttributions,controlAttributions},schedulerClockMapping:nodeClockMapping};
+    return{page,pageLifecycle:{available:pageLifecycleAvailable,error:pageLifecycleError,events:pageLifecycleEvents},trace:{...traceSummary,traceArtifact,rendererMainThreads,slowStepAttributions,controlAttributions}};
   };
   const snapshot=()=>evaluate('window.__reactionLabProbe.snapshot()'),browser=await send('Browser.getVersion');
   await send('Runtime.enable');await send('Page.enable');if(diagnosticMode)try{await send('Page.setLifecycleEventsEnabled',{enabled:true});pageLifecycleAvailable=true;}catch(error){pageLifecycleError=error.message;}await send('Network.enable');await send('Network.setBypassServiceWorker',{bypass:true});await send('Emulation.setDeviceMetricsOverride',viewport);

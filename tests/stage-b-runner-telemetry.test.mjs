@@ -26,6 +26,12 @@ test('runner snapshot comparison distinguishes browser CPU time, host pressure, 
   assert.equal(result.processTreeAvailable,true);
 });
 
+test('process-tree CPU is unavailable when a process thread set changes between snapshots',()=>{
+  const snapshot=(cpuMs,threadIds)=>({browserProcesses:{available:true,processes:[{pid:10,state:'R',cpuMs,cpuCounterAvailable:true,cpuCounterThreadCount:threadIds.length,cpuCounterThreadIds:threadIds}]}});
+  const result=compareRunnerSnapshots(snapshot(50,[10,11]),snapshot(70,[10,12]),100);
+  assert.equal(result.processTreeAvailable,true);assert.equal(result.processCpuCounterAvailable,false);assert.equal(result.browserCpuMs,null);assert.equal(result.processCpuCounterProcessCount,0);
+});
+
 test('diagnostic slow-interval analysis keeps sample positions and contiguous runs aligned with timestamp windows',()=>{
   const result=summarizeSlowIntervals([5,9,10,7,11,12],[[100,105],[105,114],[114,124],[124,131],[131,142],[142,154]],8.333333333333334,100);
   assert.equal(result.measuredSampleCount,6);
