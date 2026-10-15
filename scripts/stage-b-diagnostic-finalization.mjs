@@ -1,5 +1,5 @@
 import {attributeSlowIntervals,mapNodeClockToBrowserViaCdpMarkers} from './stage-b-trace-attribution.mjs';
-import {resolveRendererThreadIdentity,summarizeSchedulerSamples} from './stage-b-runner-telemetry.mjs';
+import {resolveRendererThreadIdentity,summarizeSchedulerSamples,summarizeSlowIntervals} from './stage-b-runner-telemetry.mjs';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {dirname} from 'node:path';
 
@@ -29,9 +29,20 @@ export function finalizeStageBTrialAttribution({trial,trace,sourceSha=null,budge
   const pageRenderer=resolvePageRendererTraceIdentity(trace,{markerSuffixes}),discovery=trial?.rendererDiscovery??{},linuxCandidates=Array.isArray(discovery.targets)?discovery.targets:[];
   const rendererResolution=pageRenderer.available?resolveRendererThreadIdentity({traceIdentity:pageRenderer.identity,linuxCandidates,linuxProcesses:discovery.rendererProcesses??linuxCandidates,rootPidNamespace:discovery.rootPidNamespace??null,rootPidNamespaceIds:discovery.rootPidNamespaceIds??null}):{status:'RENDERER_THREAD_UNAVAILABLE',reason:pageRenderer.reason,traceIdentity:pageRenderer.identity??null,linuxCandidateCount:linuxCandidates.length};
   const schedulerClockMapping=mapNodeClockToBrowserViaCdpMarkers({traceEvents,cdpMarkers:trace?.clock?.cdpMarkers??[],traceClockMapping,markerSuffixes});
-  const schedulerAttribution=summarizeSchedulerSamples(trial?.schedulerSamples??[],schedulerClockMapping,trial?.stepWindowsMs??[],{targetIdentity:rendererResolution.status==='RENDERER_THREAD_RESOLVED'?pageRenderer.identity:null,requireTargetIdentity:true});
+  const schedulerAttribution=summarizeSchedulerSamples(trial?.schedulerSamples??[],schedulerClockMapping,trial?.stepWindowsMs??[],{targetIdentity:rendererResolution.status==='RENDERER_THREAD_RESOLVED'?pageRenderer.identity:null,requireTargetIdentity:true,rootPidNamespace:discovery.rootPidNamespace??null,rootPidNamespaceIds:discovery.rootPidNamespaceIds??null});
   const slowStepAttributions=attributeSlowIntervals({label,sourceSha,trialNumber:trial?.trialNumber??null,durationsMs:trial?.durationsMs??[],stepWindowsMs:trial?.stepWindowsMs??[],traceEvents,traceClockMapping,schedulerPerStep:schedulerAttribution.perStep,rendererMainThreads:pageRenderer.available?[pageRenderer.identity]:[],budgetMs});
-  return{label,trialNumber:trial?.trialNumber??null,pageRenderer,rendererResolution,schedulerClockMapping,schedulerAttribution,slowStepAttributions};
+  const runs=summarizeSlowIntervals(trial?.durationsMs??[],trial?.stepWindowsMs??[],budgetMs).consecutiveSlowRuns;
+  const clusters=runs.filter(run=>run.count>=2).map(run=>({...run,scope:'continuous-slow-step-cluster',windowMs:[run.startPerformanceNowMs,run.endPerformanceNowMs]}));
+  const windows=trial?.stepWindowsMs??[];
+  const trialWindow=windows.length?{scope:'measured-trial-including-inter-step-gaps',windowMs:[windows[0][0],windows.at(-1)[1]]}:null;
+  const aggregateWindows=[...clusters,...(trialWindow?[trialWindow]:[])];
+  const aggregateScheduler=summarizeSchedulerSamples(trial?.schedulerSamples??[],schedulerClockMapping,aggregateWindows.map(row=>row.windowMs),{targetIdentity:rendererResolution.status==='RENDERER_THREAD_RESOLVED'?pageRenderer.identity:null,requireTargetIdentity:true,rootPidNamespace:discovery.rootPidNamespace??null,rootPidNamespaceIds:discovery.rootPidNamespaceIds??null});
+  const aggregateAttributions=aggregateWindows.map((window,index)=>{
+    const duration=window.windowMs[1]-window.windowMs[0],scheduler=aggregateScheduler.perStep[index];
+    const attribution=attributeSlowIntervals({label,sourceSha,trialNumber:trial?.trialNumber??null,durationsMs:[duration],stepWindowsMs:[window.windowMs],traceEvents,traceClockMapping,schedulerPerStep:[scheduler],rendererMainThreads:pageRenderer.available?[pageRenderer.identity]:[],budgetMs:0})[0];
+    return{...window,wallDurationMs:duration,rendererScheduler:scheduler,attribution};
+  });
+  return{label,trialNumber:trial?.trialNumber??null,pageRenderer,rendererResolution,schedulerClockMapping,schedulerAttribution,slowStepAttributions,clusterAttributions:aggregateAttributions.filter(row=>row.scope==='continuous-slow-step-cluster'),trialAttribution:aggregateAttributions.find(row=>row.scope==='measured-trial-including-inter-step-gaps')??null};
 }
 
 export async function finalizeStageBDiagnosticArtifacts({traceRecorder,trace=null,trials=[],controls=[],sourceSha=null,browser=null,outputPath=null,tracePath=null,assertionFailure=null}={}){

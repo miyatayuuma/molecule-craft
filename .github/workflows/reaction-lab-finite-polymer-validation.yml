@@ -41,7 +41,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
-    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C6-DIAGNOSTIC-ONLY]') && github.event.action != 'edited') }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C6-DIAGNOSTIC-ONLY]') && github.event.action != 'edited')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -159,7 +159,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   stage-b-performance-comparison:
-    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C6-DIAGNOSTIC-ONLY]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]'))))) }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C6-DIAGNOSTIC-ONLY]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]')))))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -296,4 +296,112 @@ jobs:
           name: finite-desktop-reduced-motion-pause-diagnostic
           path: ${{ runner.temp }}/finite-pause-diagnostic
           if-no-files-found: warn
+          retention-days: 90
+  c7-diagnostic-gates:
+    # One explicit title transition opts in at an exact head. Push/body/normal-title edits cannot launch it.
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && github.event.pull_request.title == format('[TASK12C7-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: All deterministic C7 integration gates
+        run: |
+          mkdir -p test-results/c7-gates
+          node --test tests/chromium-renderer-authority.test.mjs tests/c7-diagnostic-integration.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs > test-results/c7-gates/deterministic.tap 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c7-deterministic-gates
+          path: test-results/c7-gates
+          if-no-files-found: error
+          retention-days: 90
+  c7-stage-b-diagnostic:
+    needs: c7-diagnostic-gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Freeze checked-out and browser authority
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          mkdir -p "$RUNNER_TEMP/c7-stage-b"
+          git worktree add --detach "$RUNNER_TEMP/c7-baseline" 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          echo "CHROMIUM_PATH=$browser" >> "$GITHUB_ENV"
+          "$browser" --version > "$RUNNER_TEMP/c7-stage-b/chromium-version.txt"
+      - name: One immutable baseline diagnostic
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/c7-baseline
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          STAGE_B_PROFILE_LABEL: baseline-diagnostic
+          STAGE_B_PROFILE_MODE: diagnostic
+          STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/c7-stage-b/baseline.json
+          STAGE_B_DEBUG_PORT: 9279
+        run: node scripts/profile-reaction-lab-stage-b.mjs > "$RUNNER_TEMP/c7-stage-b/baseline.log" 2>&1
+      - name: One frozen candidate diagnostic
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          STAGE_B_PROFILE_LABEL: candidate-diagnostic
+          STAGE_B_PROFILE_MODE: diagnostic
+          STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/c7-stage-b/candidate.json
+          STAGE_B_DEBUG_PORT: 9280
+        run: node scripts/profile-reaction-lab-stage-b.mjs > "$RUNNER_TEMP/c7-stage-b/candidate.log" 2>&1
+      - name: Validate diagnostic pair authority without acceptance comparison
+        run: |
+          node --input-type=module - "$RUNNER_TEMP/c7-stage-b" <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const dir=process.argv[2],base=JSON.parse(await readFile(dir+'/baseline.json')),candidate=JSON.parse(await readFile(dir+'/candidate.json'));
+          assert.deepEqual(base.browser,candidate.browser);
+          for(const report of [base,candidate]){assert.equal(report.profileMode,'diagnostic');assert.equal(report.pooled.stepCount,600);assert.equal(report.trials.length,4);}
+          console.log('Diagnostic pair recorded; not an acceptance result.',base.browser);
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c7-paired-stage-b-diagnostic
+          path: ${{ runner.temp }}/c7-stage-b
+          if-no-files-found: error
+          retention-days: 90
+  c7-finite-diagnostic:
+    needs: c7-diagnostic-gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: One desktop real-RAF reduced-motion diagnostic
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_DESKTOP: '1'
+          POLYMER_PAUSE_DIAGNOSTIC: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/c7-finite
+        run: |
+          test "$(git rev-parse HEAD)" = "$POLYMER_SOURCE_SHA"
+          mkdir -p "$POLYMER_EVIDENCE_DIR"
+          node tests/reaction-lab-polymer-browser.test.mjs > "$POLYMER_EVIDENCE_DIR/finite.log" 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c7-finite-desktop-reduced-diagnostic
+          path: ${{ runner.temp }}/c7-finite
+          if-no-files-found: error
           retention-days: 90

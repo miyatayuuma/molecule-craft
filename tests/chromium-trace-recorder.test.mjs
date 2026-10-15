@@ -31,7 +31,7 @@ test('trace recorder requests explicit categories, reads a trace stream, and map
   assert.equal(start.cdpClockSyncMarker.success,true);assert.equal(end.cdpClockSyncMarker.success,true);
   assert.ok(seenMethods.some(item=>item.method==='Tracing.getCategories'));
   const startCall=seenMethods.find(item=>item.method==='Tracing.start');
-  assert.deepEqual(startCall.params.traceConfig.includedCategories,['devtools.timeline','disabled-by-default-devtools.timeline','v8','disabled-by-default-v8.gc','disabled-by-default-v8.compile','blink.user_timing','toplevel']);
+  assert.deepEqual(startCall.params.traceConfig.includedCategories,['devtools.timeline','disabled-by-default-devtools.timeline','disabled-by-default-devtools.timeline.stack','disabled-by-default-v8.cpu_profiler','v8','disabled-by-default-v8.gc','disabled-by-default-v8.compile','blink.user_timing','toplevel']);
   assert.equal(startCall.params.transferMode,'ReturnAsStream');
   assert.equal(startCall.params.bufferUsageReportingInterval,1000);
   assert.ok(seenMethods.some(item=>item.method==='Tracing.recordClockSyncMarker'));

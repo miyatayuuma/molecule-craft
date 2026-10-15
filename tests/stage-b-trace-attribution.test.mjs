@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {attributeSlowIntervals,classifyTraceCapabilities,fitClockMapping,mapNodeClockPairsToBrowserPerformance,mapNodeClockToBrowserViaCdpMarkers,mapTraceClock,STAGE_B_TRACE_CATEGORIES} from '../scripts/stage-b-trace-attribution.mjs';
 import {PROC_CPU_COUNTER_RESOLUTION_MS,parseProcSchedstat,parseProcStatus,resolveRendererThreadIdentity,summarizeSchedulerSamples,summarizeSlowIntervals} from '../scripts/stage-b-runner-telemetry.mjs';
 
-const rendererStep={stepIndex:0,available:true,adequate:true,pid:91,tid:92,threadName:'CrRendererMain',state:'R',runtimeMs:7,runQueueWaitMs:.2,sampleCoverageMs:8,samplePairCount:4};
+const rendererStep={clockMappingUncertaintyMs:.01,stepIndex:0,available:true,adequate:true,pid:91,tid:92,threadName:'CrRendererMain',state:'R',runtimeMs:7,runQueueWaitMs:.2,sampleCoverageMs:8,samplePairCount:4};
 const oneSlow=(options={})=>attributeSlowIntervals({label:'candidate',sourceSha:'candidate-sha',trialNumber:4,durationsMs:[10],stepWindowsMs:[[0,10]],budgetMs:8.333333333333334,...options});
 
 test('explicit Chromium trace category set contains timing, V8, GC/JIT, task and user marks',()=>{
-  assert.deepEqual(STAGE_B_TRACE_CATEGORIES,['devtools.timeline','disabled-by-default-devtools.timeline','v8','disabled-by-default-v8.gc','disabled-by-default-v8.compile','blink.user_timing','toplevel']);
+  assert.deepEqual(STAGE_B_TRACE_CATEGORIES,['devtools.timeline','disabled-by-default-devtools.timeline','disabled-by-default-devtools.timeline.stack','disabled-by-default-v8.cpu_profiler','v8','disabled-by-default-v8.gc','disabled-by-default-v8.compile','blink.user_timing','toplevel']);
 });
 
 test('clock mapping succeeds only with separated paired observations and returns uncertainty',()=>{
@@ -162,12 +162,12 @@ test('V8 compile and JIT trace categories classify a dominant compile interval',
 });
 
 test('high run-queue wait with low renderer runtime identifies scheduler wait',()=>{
-  const rows=oneSlow({schedulerPerStep:[{...rendererStep,runtimeMs:1,runQueueWaitMs:8,sampleCoverageMs:9}]});
+  const rows=oneSlow({traceClockMapping:{available:true,slope:1,offset:0,uncertaintyMs:.01},schedulerPerStep:[{...rendererStep,runtimeMs:1,runQueueWaitMs:8,sampleCoverageMs:9}]});
   assert.equal(rows[0].attributionClassification,'OS_SCHEDULER_WAIT');
 });
 
 test('sleeping renderer main thread with little runtime identifies blocked waiting',()=>{
-  const rows=oneSlow({schedulerPerStep:[{...rendererStep,state:'S',runtimeMs:1,runQueueWaitMs:.1,sampleCoverageMs:9}]});
+  const rows=oneSlow({traceClockMapping:{available:true,slope:1,offset:0,uncertaintyMs:.01},schedulerPerStep:[{...rendererStep,state:'S',runtimeMs:1,runQueueWaitMs:.1,sampleCoverageMs:9}]});
   assert.equal(rows[0].attributionClassification,'BLOCKED_OR_WAITING');
 });
 

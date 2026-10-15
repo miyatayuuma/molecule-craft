@@ -107,7 +107,8 @@ export class ChromiumTraceRecorder{
   async writeRaw(filePath){
     if(this.finalTrace?.capabilities?.usableTrace!==true)throw Error('Cannot write raw trace artifact when Chromium trace is unavailable or incomplete');
     await mkdir(dirname(filePath),{recursive:true});
-    const content=this.rawStream||JSON.stringify(this.traceJson??{traceEvents:this.events},null,2);
+    const raw=this.rawStream?JSON.parse(this.rawStream):(this.traceJson??{traceEvents:this.events});
+    const content=JSON.stringify({...raw,diagnosticAuthority:{sourceSha:process.env.POLYMER_SOURCE_SHA??process.env.DIAGNOSTIC_SOURCE_SHA??null,label:this.label,acceptanceResult:false}});
     await writeFile(filePath,content);
   }
 }

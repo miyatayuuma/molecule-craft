@@ -76,3 +76,15 @@ test('partial Stage B finalization preserves failure and samples but writes raw 
     assert.equal(unavailable.traceRawArtifactAvailable,false);assert.equal(await readdir(directory).then(files=>files.includes('unavailable.trace.json')),false);
   }finally{await rm(directory,{recursive:true,force:true});}
 });
+
+test('sparse individual steps remain unavailable while a continuous cluster and trial can have interior coverage',()=>{
+  const sparse={...trial,durationsMs:[4,4,4],stepWindowsMs:[[104,108],[108,112],[112,116]]};
+  const result=finalizeStageBTrialAttribution({trial:sparse,trace,sourceSha:'source-sha',budgetMs:3});
+  assert.equal(result.schedulerAttribution.perStep.every(row=>!row.available),true);
+  assert.equal(result.slowStepAttributions.every(row=>row.attributionClassification==='UNATTRIBUTED'),true);
+  assert.equal(result.clusterAttributions.length,1);
+  assert.equal(result.clusterAttributions[0].rendererScheduler.available,true);
+  assert.equal(result.clusterAttributions[0].rendererScheduler.runtimeMs,6);
+  assert.deepEqual(result.clusterAttributions[0].windowMs,[104,116]);
+  assert.equal(result.trialAttribution.rendererScheduler.sampleCoverageMs,10);
+});
