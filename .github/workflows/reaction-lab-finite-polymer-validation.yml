@@ -229,7 +229,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   diagnostic-preflight:
-    if: ${{ contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 345 && github.event.pull_request.head.ref == 'work/reaction-lab-ci-stability-recovery' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
