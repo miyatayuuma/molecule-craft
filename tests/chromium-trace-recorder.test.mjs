@@ -24,7 +24,7 @@ test('trace recorder requests explicit categories, reads a trace stream, and map
     const match=expression.match(/performance\.mark\((".*?")\)/);assert.ok(match,'mark expression includes an explicit browser mark name');
     const id=JSON.parse(match[1]),value={id,browserLowMs:clock,browserHighMs:clock+.01,timeOriginMs:123456,dateNowMs:123579};clock+=100;browserMarkers.push(value);rawEvents.push({name:'blink.user_timing',cat:'blink.user_timing',ph:'R',ts:(clock-100)*1000,args:{data:{name:id}}});return value;
   };
-  const recorder=new ChromiumTraceRecorder({socket,send,evaluate,label:'unit'}),capability=await recorder.start();
+  const recorder=new ChromiumTraceRecorder({socket,send,evaluate,label:'unit'});emit(socket,{method:'Tracing.dataCollected',params:{value:[{name:'stale-bootstrap-event',ph:'X',ts:1}]}});const capability=await recorder.start();
   assert.equal(capability.categoriesAvailable,true);assert.equal(capability.available,true);assert.equal(capability.startProtocol,'traceConfig+ReturnAsStream');
   const start=await recorder.mark('start'),end=await recorder.mark('end'),trace=await recorder.stop();
   assert.equal(await recorder.stop(),trace,'trace stop is idempotent for a finalized capture');

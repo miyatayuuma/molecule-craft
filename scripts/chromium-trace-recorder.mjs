@@ -8,11 +8,12 @@ const getArgsName=event=>event?.args?.name??event?.args?.data?.name??event?.args
 export class ChromiumTraceRecorder{
   constructor({socket,send,evaluate,label='chromium-diagnostic'}){
     this.socket=socket;this.send=send;this.evaluate=evaluate;this.label=label;
-    this.available=false;this.started=false;this.completed=false;this.finalized=false;this.finalTrace=null;this.startErrors=[];this.endError=null;
+    this.available=false;this.started=false;this.acceptingEvents=false;this.completed=false;this.finalized=false;this.finalTrace=null;this.startErrors=[];this.endError=null;
     this.categories=[];this.categoriesAvailable=false;this.events=[];this.browserMarkers=[];this.nodeClockPairs=[];this.cdpMarkers=[];this.startCategories=[...STAGE_B_TRACE_CATEGORIES];this.bufferUsageSamples=[];
     this.completeEvent=null;this.completeResolve=null;this.completePromise=null;this.streamReadError=null;this.rawStream='';this.traceJson=null;
     this.listener=event=>{
       let message;try{message=JSON.parse(event.data);}catch{return;}
+      if(!this.acceptingEvents)return;
       if(message.method==='Tracing.dataCollected')this.events.push(...(message.params?.value??[]));
       if(message.method==='Tracing.bufferUsage')this.bufferUsageSamples.push(message.params??{});
       if(message.method==='Tracing.tracingComplete'){
@@ -25,7 +26,7 @@ export class ChromiumTraceRecorder{
   async start(){
     try{const result=await this.send('Tracing.getCategories');this.categories=result.categories??[];this.categoriesAvailable=Array.isArray(result.categories);}catch(error){this.startErrors.push(`Tracing.getCategories: ${error.message}`);}
     this.completePromise=new Promise(resolve=>{this.completeResolve=resolve;});
-    const traceConfig={includedCategories:STAGE_B_TRACE_CATEGORIES,recordMode:'recordUntilFull',traceBufferSizeInKb:32768,enableSampling:true};
+    const traceConfig={includedCategories:STAGE_B_TRACE_CATEGORIES,recordMode:'recordUntilFull',traceBufferSizeInKb:32768,enableSampling:true};this.acceptingEvents=true;
     try{
       await this.send('Tracing.start',{traceConfig,transferMode:'ReturnAsStream',streamFormat:'json',bufferUsageReportingInterval:1000});
       this.available=true;this.started=true;
@@ -41,7 +42,7 @@ export class ChromiumTraceRecorder{
         try{
           await this.send('Tracing.start',{categories:fallbackCategories.join(','),transferMode:'ReportEvents',bufferUsageReportingInterval:1000});
           this.available=true;this.started=true;this.startProtocol='reported+ReportEvents';this.startCategories=fallbackCategories;
-        }catch(thirdError){this.startErrors.push(`Tracing.start(reported categories/ReportEvents): ${thirdError.message}`);this.startProtocol=null;}
+        }catch(thirdError){this.startErrors.push(`Tracing.start(reported categories/ReportEvents): ${thirdError.message}`);this.startProtocol=null;this.acceptingEvents=false;}
       }
     }
     return this.capabilitySnapshot();
@@ -80,7 +81,7 @@ export class ChromiumTraceRecorder{
     const streamExpected=this.startProtocol==='traceConfig+ReturnAsStream',capabilities=classifyTraceCapabilities({categoriesAvailable:this.categoriesAvailable,requestedCategories:STAGE_B_TRACE_CATEGORIES,startSucceeded:this.available,clockSyncSucceeded:this.cdpMarkers.some(marker=>marker.success),traceEndSucceeded:this.completed,streamExpected,streamReadSucceeded:streamExpected&&!!this.completeEvent?.stream&&this.streamReadError===null,eventCount:this.events.length,threadMetadataCount:threadMetadata.length});
     const trace={schemaVersion:1,label:this.label,startProtocol:this.startProtocol,startCategories:this.startCategories,capabilities,categoryProbe:{available:this.categoriesAvailable,reported:this.categories,requested:STAGE_B_TRACE_CATEGORIES,requestedAndReported:STAGE_B_TRACE_CATEGORIES.filter(category=>this.categories.includes(category)),observed:categoriesObserved},startErrors:this.startErrors,endError:this.endError,dataLossOccurred:this.completeEvent?.dataLossOccurred??null,streamFormat:this.completeEvent?.traceFormat??null,streamCompression:this.completeEvent?.streamCompression??null,streamReadError:this.streamReadError,eventCount:this.events.length,bufferUsageSamples:this.bufferUsageSamples,threadMetadata,clock:{domains:{browserPerformanceNow:'milliseconds relative to performance.timeOrigin; bracketed by each Runtime.evaluate mark',browserTimeOrigin:'performance.timeOrigin in epoch milliseconds, recorded as metadata only',traceTimestamp:'Chromium trace event ts/dur in microseconds, mapped from browser marks or CDP clock-sync markers',nodeHrtime:'process.hrtime.bigint() nanoseconds; paired with browser Runtime.evaluate and Tracing.recordClockSyncMarker',linuxUptime:'seconds from /proc/uptime; retained as a distinct Linux clock observation, not assumed equal to Node hrtime',threadCpuAndScheduler:'cumulative /proc thread CPU ticks and schedstat nanosecond counters; compared only as in-window deltas'},browserMarkers:this.browserMarkers,nodeClockPairs:this.nodeClockPairs,cdpMarkers:this.cdpMarkers,directTraceToBrowserPerformance:directTraceClockMapping,traceToBrowserPerformance:traceClockMapping},gcEventCount:this.events.filter(event=>/gc|garbage|scavenge|mark.?compact/i.test(`${event.name??''} ${event.cat??''}`)).length,compileEventCount:this.events.filter(event=>/compile|optim|deopt|tiering|baseline/i.test(`${event.name??''} ${event.cat??''}`)).length,traceEvents:this.events};
     this.socket.removeEventListener('message',this.listener);
-    this.started=false;this.finalized=true;this.finalTrace=trace;return trace;
+    this.started=false;this.acceptingEvents=false;this.finalized=true;this.finalTrace=trace;return trace;
   }
 
   async readStream(handle){

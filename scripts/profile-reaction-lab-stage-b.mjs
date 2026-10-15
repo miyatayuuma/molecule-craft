@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {captureRunnerSnapshot,compareRunnerSnapshots,startRendererSchedulerSampler,summarizeSchedulerSamples,summarizeSlowIntervals} from './stage-b-runner-telemetry.mjs';
 import {mapNodeClockPairsToBrowserPerformance} from './stage-b-trace-attribution.mjs';
 import {finalizeStageBDiagnosticArtifacts,finalizeStageBTrialAttribution} from './stage-b-diagnostic-finalization.mjs';
+import {capturePageRendererIdentity} from './chromium-renderer-identity.mjs';
 import {ChromiumTraceRecorder} from './chromium-trace-recorder.mjs';
 
 const root=resolve(process.env.POLYMER_ROOT??fileURLToPath(new URL('..',import.meta.url))),viewport={width:390,height:844,deviceScaleFactor:1,mobile:true};
@@ -28,7 +29,7 @@ await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.a
 let chrome=process.env.CHROMIUM_PATH??'';if(!chrome)for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
 assert.ok(chrome,'Chromium is required for the Stage B performance profile');
 const profile=await mkdtemp(join(tmpdir(),'molecule-craft-stage-b-')),debugPort=Number(process.env.STAGE_B_DEBUG_PORT??9277);let child=null,socket=null;
-let traceRecorder=null,diagnosticFinalizationArtifactWritten=false,activeSchedulerSampler=null,diagnosticFailure=null;
+let traceRecorder=null,diagnosticFinalizationArtifactWritten=false,activeSchedulerSampler=null,diagnosticFailure=null,rendererIdentityBootstrap=null;
 try{
   const browserSpawnStartedAt=process.hrtime.bigint();
   child=spawn(chrome,['--headless=new','--no-sandbox','--disable-background-networking','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:'ignore'});
@@ -43,8 +44,9 @@ try{
   const waitFor=async(expression,label,timeout=12000)=>{for(let attempt=0;attempt<timeout/50;attempt++){if(await evaluate(expression))return;await pause(50);}const details=await evaluate(`(()=>({url:location.href,dialog:document.querySelector('#reaction-lab-dialog')?.open,pickerHidden:document.querySelector('[data-lab-picker]')?.hidden,searchValue:document.querySelector('[data-lab-search]')?.value,draftSlots:window.__reactionLabProbe?.snapshot().batch.draftSlots,rows:[...document.querySelectorAll('[data-lab-picker-list] [data-species]')].slice(0,12).map(item=>({id:item.dataset.species,hidden:item.hidden,disabled:item.disabled}))}))()`);throw Error(`${label}: ${JSON.stringify(details)}`);};
   const startDiagnosticCapture=async()=>{
     const page=await evaluate(`(()=>{const supported=Array.isArray(PerformanceObserver.supportedEntryTypes)?PerformanceObserver.supportedEntryTypes:[],state={supported,longTaskObserverAvailable:false,longTasks:[]};if(supported.includes('longtask'))try{state.observer=new PerformanceObserver(list=>{for(const entry of list.getEntries())state.longTasks.push({startTime:entry.startTime,duration:entry.duration,name:entry.name,attribution:(entry.attribution??[]).map(item=>({name:item.name,containerType:item.containerType,containerName:item.containerName}))});});state.observer.observe({type:'longtask',buffered:true});state.longTaskObserverAvailable=true;}catch(error){state.longTaskObserverError=String(error);}window.__stageBRunnerDiagnostics=state;return{url:location.href,timeOrigin:performance.timeOrigin,visibilityState:document.visibilityState,focused:document.hasFocus(),supportedEntryTypes:state.supported,longTaskObserverAvailable:state.longTaskObserverAvailable,longTaskObserverError:state.longTaskObserverError??null}})()`);
+    const bootstrapTracePath=`${output}.renderer-identity.trace.json`;rendererIdentityBootstrap=await capturePageRendererIdentity({socket,send,evaluate,label:`${process.env.STAGE_B_PROFILE_LABEL??'stage-b-diagnostic'}-renderer-bootstrap`,tracePath:bootstrapTracePath});
     const traceCapability=await traceRecorder.start();
-    return{page,traceCapability};
+    return{page,traceCapability,rendererIdentityBootstrap:{resolution:rendererIdentityBootstrap.resolution,identity:rendererIdentityBootstrap.identity,traceCapability:rendererIdentityBootstrap.traceCapability,traceArtifact:rendererIdentityBootstrap.traceArtifact,traceEventCount:rendererIdentityBootstrap.traceEventCount,failure:rendererIdentityBootstrap.failure}};
   };
   const finishDiagnosticCapture=async()=>{
     let page=null;
@@ -88,7 +90,7 @@ try{
   const setFixture=async()=>{await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(poses)})`);await evaluate(`window.__reactionLabProbe.setSimulationClock(${JSON.stringify(initial.simulationClockSeconds)})`);};
   const measure=async(label)=>{
     await setFixture();
-    const runnerBefore=diagnosticMode?await captureRunnerSnapshot(child.pid):null,schedulerSampler=diagnosticMode?await startRendererSchedulerSampler(child.pid,{intervalMs:2}):null;activeSchedulerSampler=schedulerSampler;const traceStartMarker=diagnosticMode?await traceRecorder.mark(`${label}-start`):null,nodeCpuBefore=diagnosticMode?process.cpuUsage():null,hostStart=diagnosticMode?process.hrtime.bigint():null;
+    const runnerBefore=diagnosticMode?await captureRunnerSnapshot(child.pid):null,schedulerSampler=diagnosticMode?await startRendererSchedulerSampler(child.pid,{intervalMs:2,traceIdentity:rendererIdentityBootstrap?.identity??null}):null;activeSchedulerSampler=schedulerSampler;const traceStartMarker=diagnosticMode?await traceRecorder.mark(`${label}-start`):null,nodeCpuBefore=diagnosticMode?process.cpuUsage():null,hostStart=diagnosticMode?process.hrtime.bigint():null;
     const expression=diagnosticMode?`(()=>{const probe=window.__reactionLabProbe,windowStartMs=performance.now(),timeOrigin=performance.timeOrigin,hasNativeStepWindows=Array.isArray(probe.measureFixedSteps(0,{includeTimestamps:true}).stepWindowsMs);let result;if(hasNativeStepWindows)result=probe.measureFixedSteps(180,{includeTimestamps:true});else{const durationsMs=[],stepWindowsMs=[];let candidateCount=0,reactionIds=[];for(let index=0;index<180;index++){const startedAt=performance.now(),sample=probe.measureFixedSteps(1),endedAt=performance.now();durationsMs.push(...sample.durationsMs);stepWindowsMs.push([startedAt,endedAt]);candidateCount=sample.candidateCount;reactionIds=sample.reactionIds;}result={durationsMs,stepWindowsMs,candidateCount,reactionIds,diagnosticWindowSource:'per-step performance.now() around immutable baseline probe calls'};}const windowEndMs=performance.now();return{...result,diagnosticWindow:{windowStartMs,windowEndMs,timeOrigin,visibilityState:document.visibilityState,focused:document.hasFocus(),stepWindowSource:hasNativeStepWindows?'probe-native':'per-step probe-call wrapper'}}})()`:'window.__reactionLabProbe.measureFixedSteps(180)';
     const result=await evaluate(expression),hostEnd=diagnosticMode?process.hrtime.bigint():null,nodeCpu=diagnosticMode?process.cpuUsage(nodeCpuBefore):null,schedulerEvidence=diagnosticMode?await schedulerSampler.stop():null;activeSchedulerSampler=null;const traceEndMarker=diagnosticMode?await traceRecorder.mark(`${label}-end`):null,runnerAfter=diagnosticMode?await captureRunnerSnapshot(child.pid):null,durations=result.durationsMs.slice(30);
     assert.equal(durations.length,150);if(diagnosticMode)assert.equal(result.stepWindowsMs?.length,180,'Diagnostic mode must retain per-step browser timestamp windows');assert.ok(result.candidateCount>=384,`The full 29-rule matcher workload fell below 384 candidates: ${result.candidateCount}`);
@@ -101,7 +103,7 @@ try{
     return{label,candidateCount:result.candidateCount,reactionIds:result.reactionIds,stepCount:durations.length,p50Ms:p(.5),p95Ms:p(.95),p99Ms:p(.99),maximumMs:ordered.at(-1),frameIntervalsMs:durations,...(diagnosticMode?{diagnostic:runnerDiagnostic}:{})};
   };
   const runDiagnosticControl=async(label,expression)=>{
-    const sampler=await startRendererSchedulerSampler(child.pid,{intervalMs:2});activeSchedulerSampler=sampler;const start=await traceRecorder.mark(`${label}-start`),result=await evaluate(expression),end=await traceRecorder.mark(`${label}-end`),scheduler=await sampler.stop();activeSchedulerSampler=null;
+    const sampler=await startRendererSchedulerSampler(child.pid,{intervalMs:2,traceIdentity:rendererIdentityBootstrap?.identity??null});activeSchedulerSampler=sampler;const start=await traceRecorder.mark(`${label}-start`),result=await evaluate(expression),end=await traceRecorder.mark(`${label}-end`),scheduler=await sampler.stop();activeSchedulerSampler=null;
     const startMs=(start.browserClock.browserLowMs+start.browserClock.browserHighMs)/2,endMs=(end.browserClock.browserLowMs+end.browserClock.browserHighMs)/2;
     capturedDiagnosticControls.push({label,browserResult:result,startMs,endMs,durationsMs:[result.windowEndMs-result.windowStartMs],stepWindowsMs:[[result.windowStartMs,result.windowEndMs]],markerWindowMs:[startMs,endMs],schedulerSamples:scheduler.samples,rendererDiscovery:scheduler.discovery});
   };
