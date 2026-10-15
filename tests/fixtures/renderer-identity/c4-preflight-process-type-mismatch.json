@@ -1,0 +1,25 @@
+{
+  "evidenceSource": "C4 preflight run 38665107170 artifact 11940147877",
+  "rawProcMetadataCaptured": false,
+  "expectedIdentity": {
+    "tracePid": 2721,
+    "traceTid": 2721,
+    "traceThreadName": "CrRendererMain",
+    "traceProcessName": "Renderer",
+    "browserPid": 2636
+  },
+  "observedIdentity": {
+    "procPathPid": 2721,
+    "processTypeParseResult": null,
+    "processComm": null,
+    "threadComm": null,
+    "processNSpid": null,
+    "threadNSpid": null,
+    "pidNamespace": null,
+    "processStartTicks": null,
+    "threadStartTicks": null,
+    "rejectionReason": "renderer-process-type-mismatch",
+    "fallbackReason": "renderer-process-not-visible"
+  },
+  "interpretation": "The prior artifact retained only the rejection result; it did not retain the /proc fields needed to identify which process-type or executable-name predicate failed."
+}
