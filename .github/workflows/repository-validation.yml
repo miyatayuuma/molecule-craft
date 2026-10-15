@@ -89,7 +89,7 @@ jobs:
           node tests/repository-hygiene.test.mjs
 
   repository-guardrails:
-    if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') }}
+    if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

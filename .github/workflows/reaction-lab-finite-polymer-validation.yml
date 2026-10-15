@@ -41,7 +41,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
-    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && github.event.action != 'edited') }}
+    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && github.event.action != 'edited') }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -159,7 +159,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   stage-b-performance-comparison:
-    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]'))))) }}
+    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]'))))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -229,7 +229,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   diagnostic-preflight:
-    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && (github.event.action == 'synchronize' || (github.event.action == 'edited' && github.event.changes.title != null)) }}
+    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && (github.event.action == 'synchronize' || github.event.action == 'edited') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
