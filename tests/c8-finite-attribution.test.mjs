@@ -50,12 +50,12 @@ test('interior CPU/wait counters and nearest outer bracket are separate; missing
 function fixture(waitRatio=.02){
   const marks=[{name:'start',startTime:0},{name:'end',startTime:500}];
   const trace=[{name:'start',pid:91,tid:92,ts:0},{name:'end',pid:91,tid:92,ts:500000},event('a',0),event('b',500),{name:'RunTask',pid:91,tid:92,ts:20000,dur:440000,tdur:30000},{name:'FunctionCall',pid:91,tid:92,ts:30000,dur:400000,tdur:14000,args:{data:{functionName:'resize',stackTrace:[{functionName:'setSize'}]}}}];
-  const report={sourceSha:'sha',rendererIdentityBootstrap:{identity},traceClock:{cdpMarkers:[marker('a',0),marker('b',500)]},scheduler:{discovery:{targets:[candidate],rendererProcesses:[candidate]}},schedulerRawSamples:Array.from({length:101},(_,i)=>sample(i*5,i*.2,i*5*waitRatio)),pageEvidence:{performanceMarks:marks,completionTimer:{timerStartedAtMs:25},frameProfile:{frameIntervalsMs:{frameCount:1,count:0},lifecycle:{samplerStartedAtMs:25,readyEventReceivedAtMs:455}},longTasks:[{startOffsetMs:-5,durationMs:440}]}};
+  const report={sourceSha:'sha',rendererIdentityBootstrap:{identity},traceClock:{cdpMarkers:[marker('a',0),marker('b',500)]},scheduler:{discovery:{targets:[candidate],rendererProcesses:[candidate]}},schedulerRawSamples:Array.from({length:101},(_,i)=>sample(i*5,i*.2,i*5*waitRatio)),pageEvidence:{performanceMarks:marks,completionTimer:{timerStartedAtMs:20},frameProfile:{frameIntervalsMs:{frameCount:1,count:0},lifecycle:{samplerStartedAtMs:25,readyEventReceivedAtMs:455}},longTasks:[{startOffsetMs:-5,durationMs:440}]}};
   return{report,raw:{diagnosticAuthority:{sourceSha:'sha'},traceEvents:trace}};
 }
 test('offline analyzer separates completion, RunTask, resize and bracket and refuses GPU inference',()=>{
   const {report,raw}=fixture(),analysis=analyzeFiniteEvidence(report,raw),task=analysis.longTaskAttributions[0];
-  assert.equal(analysis.nodeClockMapping.available,true);assert.equal(analysis.completionWindows[0].scope,'A-completion-lifecycle');assert.equal(task.windows.resize.wallMs,400);
+  assert.equal(analysis.nodeClockMapping.available,true);assert.equal(analysis.completionWindows[0].scope,'A-completion-lifecycle');assert.equal(analysis.completionWindows[0].browserWindowMs[0],25,'Window A starts at registration rather than the earlier timer');assert.equal(task.windows.resize.wallMs,400);
   assert.equal(task.windows.resize.attributionAvailable,true);assert.equal(task.functionEvent.chromiumThreadCpuMs,14);assert.equal(task.stackEvents[0].stack[0].functionName,'setSize');
   assert.equal(task.gpuBrowserEvidence.available,false);assert.equal(task.classification,'UNATTRIBUTED');
   raw.traceEvents.push({name:'GPUTask',cat:'gpu',pid:30,tid:30,ts:40000,dur:390000});

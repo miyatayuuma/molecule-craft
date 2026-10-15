@@ -41,7 +41,7 @@ export function analyzeFiniteEvidence(report,raw){
   const frame=report.pageEvidence?.frameProfile,lifecycle=frame?.lifecycle??{};
   const completionEvidence=report.completionEvidence??(frame?[{...frame,completionLifecycle:lifecycle}]:[]);
   const completions=completionEvidence.map(item=>{
-    const life=item.completionLifecycle??item.lifecycle??{},start=item.completionTimerStartedAtMs??report.pageEvidence?.completionTimer?.timerStartedAtMs??life.samplerStartedAtMs,end=item.sampleReadyAtMs??life.readyEventReceivedAtMs;
+    const life=item.completionLifecycle??item.lifecycle??{},start=item.sampleRegistrationAtMs??life.samplerStartedAtMs??item.completionTimerStartedAtMs??report.pageEvidence?.completionTimer?.timerStartedAtMs,end=item.sampleReadyAtMs??life.readyEventReceivedAtMs;
     return{sampleId:item.sampleId??null,realFrameIntervals:item.frameIntervalsMs??null,lifecycle:life,...counterWindow('A-completion-lifecycle',start,end)};
   });
   const main=events.filter(event=>event.pid===identity?.pid&&event.tid===identity?.tid);
