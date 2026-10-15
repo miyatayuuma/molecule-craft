@@ -4,7 +4,7 @@ import {mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {readFileSync} from 'node:fs';
-import {finalizeStageBDiagnosticArtifacts,finalizeStageBTrialAttribution} from '../scripts/stage-b-diagnostic-finalization.mjs';
+import {finalizeStageBDiagnosticArtifacts,finalizeStageBTrialAttribution,resolvePageRendererTraceIdentity} from '../scripts/stage-b-diagnostic-finalization.mjs';
 
 const identity={pid:31,tid:31,threadName:'CrRendererMain'};
 const trace={
@@ -36,6 +36,11 @@ test('diagnostic profiler source uses imported clock mapping and shared finaliza
   assert.match(source,/finalizeStageBDiagnosticArtifacts\(/);
 });
 
+test('Stage B, preflight and Finite diagnostics bootstrap trace PID/TID before scheduler sampling',()=>{
+  const profiler=readFileSync(new URL('../scripts/profile-reaction-lab-stage-b.mjs',import.meta.url),'utf8'),preflight=readFileSync(new URL('../scripts/preflight-reaction-lab-diagnostics.mjs',import.meta.url),'utf8'),finite=readFileSync(new URL('../tests/reaction-lab-polymer-browser.test.mjs',import.meta.url),'utf8');
+  for(const source of [profiler,preflight,finite]){assert.match(source,/capturePageRendererIdentity/);assert.match(source,/traceIdentity:[A-Za-z_$][\w$]*\??\.identity/);}
+});
+
 test('Stage B finalization resolves page trace PID/TID and attributes sampled renderer counters',()=>{
   const result=finalizeStageBTrialAttribution({trial,trace,sourceSha:'source-sha'});
   assert.equal(result.pageRenderer.available,true);assert.deepEqual({pid:result.pageRenderer.identity.pid,tid:result.pageRenderer.identity.tid},{pid:31,tid:31});
@@ -49,6 +54,14 @@ test('missing trace markers and events return explicit unavailable attribution w
   assert.equal(incomplete.pageRenderer.available,false);assert.equal(incomplete.pageRenderer.reason,'browser-performance-markers-missing');
   assert.equal(incomplete.schedulerClockMapping.available,false);assert.equal(incomplete.schedulerAttribution.status,'RENDERER_THREAD_UNAVAILABLE');
   assert.equal(incomplete.slowStepAttributions[0].attributionClassification,'UNATTRIBUTED');
+});
+
+test('renderer identity recognizes Chromium performance marks emitted as trace event names',()=>{
+  const identity=resolvePageRendererTraceIdentity({...trace,traceEvents:[
+    {name:'trace-browser-clock-candidate-measured-1-start',ph:'I',pid:31,tid:31},
+    {name:'trace-browser-clock-candidate-measured-1-end',ph:'I',pid:31,tid:31},
+  ],threadMetadata:[...trace.threadMetadata,{name:'process_name',pid:7,tid:0,label:'Browser'}]},{markerSuffixes:['measured-1-start','measured-1-end']});
+  assert.equal(identity.available,true);assert.equal(identity.identity.pid,31);assert.equal(identity.identity.tid,31);assert.equal(identity.identity.browserPid,7);
 });
 
 test('partial Stage B finalization preserves failure and samples but writes raw trace only when usable',async()=>{

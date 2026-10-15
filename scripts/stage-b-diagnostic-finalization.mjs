@@ -5,7 +5,9 @@ import {dirname} from 'node:path';
 
 function traceMarkerName(event){
   const data=event?.args?.data??event?.args?.beginData??event?.args??{};
-  return data.name??data.message??null;
+  // Chromium can emit a performance.mark() as the trace event name itself;
+  // other versions expose it in args.data.name/message.
+  return data.name??data.message??event?.name??null;
 }
 
 export function resolvePageRendererTraceIdentity(trace,{markerSuffixes=[]}={}){
@@ -18,7 +20,8 @@ export function resolvePageRendererTraceIdentity(trace,{markerSuffixes=[]}={}){
   const [pid,tid]=keys[0].split(':').map(Number),threadMetadata=metadata.find(row=>row.name==='thread_name'&&row.pid===pid&&row.tid===tid);
   if(threadMetadata?.label!=='CrRendererMain')return{available:false,reason:'trace-thread-name-mismatch',identity:{pid,tid,threadName:threadMetadata?.label??null},markerIds};
   const processMetadata=metadata.find(row=>row.name==='process_name'&&row.pid===pid);
-  return{available:true,reason:null,identity:{pid,tid,threadName:threadMetadata.label,processName:processMetadata?.label??null,source:'browser-performance-marker-trace-pid-tid'},markerIds};
+  const browserProcessMetadata=metadata.find(row=>row.name==='process_name'&&row.label==='Browser');
+  return{available:true,reason:null,identity:{pid,tid,threadName:threadMetadata.label,processName:processMetadata?.label??null,browserPid:Number.isSafeInteger(browserProcessMetadata?.pid)?browserProcessMetadata.pid:null,source:'browser-performance-marker-trace-pid-tid'},markerIds};
 }
 
 export function finalizeStageBTrialAttribution({trial,trace,sourceSha=null,budgetMs=8.333333333333334}={}){

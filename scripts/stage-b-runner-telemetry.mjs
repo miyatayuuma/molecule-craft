@@ -127,6 +127,40 @@ export function resolveRendererThreadIdentity({traceIdentity=null,linuxCandidate
   return unavailable(processes.length?'process-not-visible':'renderer-process-not-visible');
 }
 
+async function readTraceRendererCandidate(rootPid,traceIdentity){
+  const pid=Number(traceIdentity?.pid),tid=Number(traceIdentity?.tid);
+  if(!Number.isSafeInteger(pid)||!Number.isSafeInteger(tid)||pid<=0||tid<=0)return{candidate:null,process:null,reason:'trace-thread-identity-unavailable'};
+  let process,rootProcess;
+  try{process=await readProcessRecord(pid);}catch(error){return{candidate:null,process:null,reason:error.code==='EACCES'||error.code==='EPERM'?'permission-denied':error.code==='ENOENT'?'process-not-visible':'process-read-failed',errorCode:error.code??null};}
+  if(!process)return{candidate:null,process:null,reason:'process-not-visible'};
+  try{rootProcess=await readProcessRecord(Number(rootPid));}catch{}
+  const traceBrowserPid=Number(traceIdentity.browserPid),browserMatchesRoot=!Number.isSafeInteger(traceBrowserPid)||rootProcess&&(rootProcess.pid===traceBrowserPid||rootProcess.namespaceIds?.includes(traceBrowserPid));
+  if(!browserMatchesRoot)return{candidate:null,process,reason:'pid-namespace-mismatch',rootPidNamespace:rootProcess?.pidNamespace??null};
+  if(process.processType!=='renderer'||!isChromiumProcess(process.cmdline,process.comm))return{candidate:null,process,reason:'renderer-process-type-mismatch',rootPidNamespace:rootProcess?.pidNamespace??null};
+  if(rootProcess?.pidNamespace&&process.pidNamespace&&rootProcess.pidNamespace!==process.pidNamespace)return{candidate:null,process,reason:'pid-namespace-mismatch',rootPidNamespace:rootProcess.pidNamespace};
+  const counter=await readThreadCounter(pid,tid);
+  if(!counter.available&&counter.reason==='process-exited')return{candidate:null,process,reason:'process-exited',rootPidNamespace:rootProcess?.pidNamespace??null};
+  if(!Number.isSafeInteger(counter.startTimeTicks))return{candidate:null,process,reason:counter.reason==='permission-denied'?'permission-denied':counter.reason??'thread-not-visible',rootPidNamespace:rootProcess?.pidNamespace??null};
+  if(counter.threadName!=='CrRendererMain')return{candidate:null,process,reason:counter.threadName?'thread-name-mismatch':'thread-not-visible',rootPidNamespace:rootProcess?.pidNamespace??null};
+  if(counter.liveProcessStartTimeTicks!==process.startTimeTicks)return{candidate:null,process,reason:'process-or-thread-identity-changed',rootPidNamespace:rootProcess?.pidNamespace??null};
+  const candidate={...process,...counter,pid,tid,processType:process.processType,processName:process.comm,commandLine:process.cmdline,processStartTimeTicks:process.startTimeTicks,threadStartTimeTicks:counter.startTimeTicks,expectedProcessStartTimeTicks:process.startTimeTicks,expectedThreadStartTimeTicks:counter.startTimeTicks,processNamespaceIds:process.namespaceIds,threadNamespaceIds:counter.namespaceIds??null,pidNamespace:process.pidNamespace,candidateSource:'trace-pid-tid-proc'};
+  const resolution=resolveRendererThreadIdentity({traceIdentity,linuxCandidates:[candidate],linuxProcesses:[process],rootPidNamespace:rootProcess?.pidNamespace??null});
+  if(resolution.status!=='RENDERER_THREAD_RESOLVED')return{candidate:null,process,reason:resolution.reason,rootPidNamespace:rootProcess?.pidNamespace??null,resolution};
+  return{candidate,process,reason:null,rootPidNamespace:rootProcess?.pidNamespace??null,resolution};
+}
+
+async function discoverRendererTargets(rootPid,traceIdentity=null){
+  if(!traceIdentity)return findRendererMainThreads(rootPid);
+  const direct=await readTraceRendererCandidate(rootPid,traceIdentity);
+  if(direct.candidate)return{available:true,status:'RENDERER_THREAD_CANDIDATES_DISCOVERED',rootPid:Number(rootPid),rootPidNamespace:direct.rootPidNamespace,targets:[direct.candidate],rendererProcesses:[direct.process],rendererMainCandidateCount:1,reason:null,traceIdentityResolution:direct.resolution,traceIdentitySource:'trace-pid-tid-direct-proc',directResolutionFailure:null,discoverySources:{tracePidTidDirect:true,processTreeFallbackUsed:false,procEnumerationFallbackUsed:false}};
+  const fallback=await findRendererMainThreads(rootPid),resolution=resolveRendererThreadIdentity({traceIdentity,linuxCandidates:fallback.targets,linuxProcesses:fallback.rendererProcesses,rootPidNamespace:fallback.rootPidNamespace});
+  if(resolution.status==='RENDERER_THREAD_RESOLVED'){
+    const chosen=fallback.targets.find(candidate=>candidate.pid===resolution.linuxIdentity.pid&&candidate.tid===resolution.linuxIdentity.tid);
+    if(chosen)return{...fallback,targets:[chosen],available:true,status:'RENDERER_THREAD_CANDIDATES_DISCOVERED',reason:null,traceIdentityResolution:resolution,traceIdentitySource:'trace-pid-tid-proc-namespace-map',directResolutionFailure:direct.reason};
+  }
+  return{...fallback,available:false,status:'RENDERER_THREAD_UNAVAILABLE',reason:resolution.reason==='process-not-visible'&&direct.reason?direct.reason:resolution.reason,traceIdentityResolution:resolution,traceIdentitySource:null,directResolutionFailure:direct.reason};
+}
+
 export async function findRendererMainThreads(rootPid){
   const tree=await readProcessTree(Number(rootPid)),enumerated=await enumerateRendererProcesses(tree.processes),renderers=enumerated.processes,targets=[],readErrors=[];
   for(const renderer of renderers){
@@ -145,8 +179,8 @@ export async function findRendererMainThreads(rootPid){
   return{available:targets.length>0,status:targets.length?'RENDERER_THREAD_CANDIDATES_DISCOVERED':'RENDERER_THREAD_UNAVAILABLE',rootPid:Number(rootPid),rootPidNamespace:rootProcess?.pidNamespace??null,targets,rendererProcesses:renderers,rendererMainCandidateCount:rendererMainCandidates.length,reason,discoverySources:{processTreeCount:tree.processes.length,treeRendererCount:tree.processes.filter(process=>process.processType==='renderer').length,procRendererCount:renderers.length,treeFallbackUsed:renderers.some(process=>!tree.processes.some(row=>row.pid===process.pid))},processCount:tree.processes.length,readErrors:discoveryErrors};
 }
 
-export async function startRendererSchedulerSampler(rootPid,{intervalMs=2,processIntervalMs=20}={}){
-  const discovery=await findRendererMainThreads(rootPid);
+export async function startRendererSchedulerSampler(rootPid,{intervalMs=2,processIntervalMs=20,traceIdentity=null}={}){
+  const discovery=await discoverRendererTargets(rootPid,traceIdentity);
   if(!discovery.available)return{available:false,status:'RENDERER_THREAD_UNAVAILABLE',reason:discovery.reason,discovery,samples:[],stop:async()=>({available:false,status:'RENDERER_THREAD_UNAVAILABLE',reason:discovery.reason,discovery,samples:[],sampleIntervalMs:intervalMs})};
   const targets=discovery.targets.map(target=>({...target})),processTargets=[...new Set(targets.map(target=>target.pid))],samples=[];let inFlight=null,lastProcessSampleHrtimeNs=0n;
   const take=({forceProcesses=false}={})=>{
