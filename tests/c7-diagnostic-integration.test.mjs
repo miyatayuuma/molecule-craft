@@ -59,5 +59,15 @@ test('C7 campaigns require exact-head title opt-in and cannot use acceptance job
   }
   const gates=workflow.split('  c7-diagnostic-gates:\n')[1].split('    runs-on:')[0];
   assert.match(gates,/github.event.action == 'edited'/);assert.match(gates,/github.event.changes.title != null/);assert.match(gates,/title == format\('\[TASK12C7-RUN\] \{0\}', github.event.pull_request.head.sha\)/);
-  for(const job of ['c7-stage-b-diagnostic','c7-finite-diagnostic'])assert.match(workflow.split(`  ${job}:\n`)[1].split('    steps:')[0],/needs: c7-diagnostic-gates/);
+  for(const job of ['c7-stage-b-diagnostic','c7-finite-diagnostic']){const block=workflow.split(`  ${job}:\n`)[1].split('    steps:')[0];assert.match(block,/needs: c7-diagnostic-gates/);assert.match(block,/github.event.action == 'edited'/);assert.match(block,/title == format/);assert.doesNotMatch(block,/synchronize/);}
+});
+
+test('offline Finite analysis localizes a production function while missing Node clock remains unattributed',async()=>{
+  const {analyzeFiniteEvidence}=await import('../scripts/analyze-c7-finite-evidence.mjs');
+  const events=[{name:'start',pid:2,tid:2,ts:100000},{name:'end',pid:2,tid:2,ts:600000},{name:'RunTask',ph:'X',pid:2,tid:2,ts:110000,dur:429000,tdur:37000},{name:'FunctionCall',ph:'X',pid:2,tid:2,ts:130000,dur:399000,tdur:14000,args:{data:{functionName:'resize',url:'/src/reaction-lab-viewer.js'}}}];
+  const report={sourceSha:'sha',rendererIdentityBootstrap:{identity:{pid:2,tid:2}},pageEvidence:{performanceMarks:[{name:'start',startTime:0},{name:'end',startTime:500}],frameProfile:{lifecycle:{samplerStartedAtMs:10},frameIntervalsMs:{frameCount:1,count:0}},longTasks:[{startOffsetMs:0,durationMs:429}]}};
+  const result=analyzeFiniteEvidence(report,{diagnosticAuthority:{sourceSha:'sha'},traceEvents:events});
+  assert.equal(result.traceClockMappingFromStoredPageMarks.available,true);assert.equal(result.nodeClockMapping.available,false);assert.equal(result.validIntervalCount,0);
+  const attribution=result.longTaskAttributions[0];assert.equal(attribution.classification,'UNATTRIBUTED');assert.equal(attribution.functionEvent.function.functionName,'resize');assert.equal(attribution.functionEvent.chromiumThreadCpuMs,14);assert.equal(attribution.scheduler.available,false);
+  assert.throws(()=>analyzeFiniteEvidence(report,{diagnosticAuthority:{sourceSha:'other'}}),/source authority mismatch/);
 });

@@ -17,3 +17,14 @@ test('completion timer origin is set immediately before sample registration disp
   assert.ok(start>=0&&registration>start,'timer start precedes sample-registration event');
   assert.ok(registration-start<150,'timer and registration remain adjacent in the same function');
 });
+
+test('a real RAF timestamp may precede readiness while its callback executes after readiness',async()=>{
+  const {runInNewContext}=await import('node:vm');
+  const browserSource=await readFile(new URL('./reaction-lab-polymer-browser.test.mjs',import.meta.url),'utf8');
+  const start=browserSource.indexOf('    const requestSampleFrame=record=>{'),end=browserSource.indexOf('    const summarize=',start);
+  const record={awaitingTailFrame:true,samplerStoppedAt:null,frameRequestCount:0,frameCallbackCount:0,firstFrameRequestAt:null,firstFrameCallbackAt:null,frames:[]};let callback,stopped;
+  const context={active:record,record,performance:{now:()=>120},window:{__polymerPauseTraceEnabled:false},nativeRequestAnimationFrame:fn=>{callback=fn;},stopSampler:(row,reason)=>{stopped=reason;}};
+  runInNewContext(browserSource.slice(start,end)+'requestSampleFrame(record);',context);callback(100);
+  assert.equal(record.tailFrameAt,100);assert.equal(record.tailFrameCallbackReceivedAt,120);assert.deepEqual(record.frames,[100]);assert.equal(record.frameCallbackCount,1);assert.equal(stopped,'post-ready-frame');
+  assert.match(browserSource,/firstPostReadyFrameAtMs:record.tailFrameCallbackReceivedAt\?\?null/);
+});

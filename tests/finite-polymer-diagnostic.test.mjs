@@ -49,3 +49,17 @@ test('normal Finite finalization saves a complete report and does not fabricate 
     assert.equal(JSON.parse(await readFile(report.diagnosticArtifact,'utf8')).classification,'DIAGNOSTIC_ONLY');
   }finally{await rm(directory,{recursive:true,force:true});}
 });
+
+test('partial failure records a second clock marker before finalizing trace and scheduler',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'finite-partial-clock-')),calls=[];
+  const trace={capabilities:{usableTrace:false},traceEvents:[]},recorder={started:true,mark:async id=>calls.push(id),stop:async()=>{calls.push('stop');return trace;}};
+  try{await finalizeFinitePauseDiagnostic({traceRecorder:recorder,evaluate:async()=>{calls.push('page');return{};},artifactDir:directory,assertionFailure:Error('fail')});assert.deepEqual(calls,['partial-finalization','page','stop']);}finally{await rm(directory,{recursive:true,force:true});}
+});
+
+test('deferred graph validates the restored open Lab without relabeling it as a registration snapshot',async()=>{
+  const {validateDeferredFiniteGraph}=await import('../scripts/finite-polymer-diagnostic.mjs');
+  const graph={sampleId:'sample-1',sampleReady:true,graphAtomCount:24,visibleAtomCount:24,atomOriginCount:24,graphBondCount:23,visibleBondMeshCount:23,everyBondHasVisibleMesh:true,bondsResolveToRenderedAtoms:true,activeGroupCount:1,geometryCount:47,materialCount:47};
+  const good=validateDeferredFiniteGraph(graph,{sampleId:'sample-1',dialogOpen:true});assert.equal(good.valid,true);assert.equal(good.registrationGraphObserved,false);assert.equal(good.scope,'post-ready-open-lab');
+  const disposed={...graph,visibleAtomCount:0,activeGroupCount:0,geometryCount:0,materialCount:0};assert.equal(validateDeferredFiniteGraph(disposed,{sampleId:'sample-1',dialogOpen:false}).valid,false);
+  assert.equal(validateDeferredFiniteGraph(graph,{sampleId:'other',dialogOpen:true}).valid,false);
+});

@@ -37,8 +37,22 @@ export function validateFiniteSampleReadyLifecycle(registrationEvent,presentEven
   return{valid:failures.length===0,failures,sampleId:registration.sampleId,batchGeneration:registration.batchGeneration,registrationAtMs:registrationEvent?.receivedAt??null,readyAtMs:present?.receivedAt??null,firstPostReadyFrameAtMs:Number.isFinite(firstPostReadyFrameAtMs)?firstPostReadyFrameAtMs:null,samplerStopReason:lifecycle.samplerStopReason??null,frameCount:Number.isSafeInteger(frameCount)?frameCount:null,intervalCount:Number.isSafeInteger(intervalCount)?intervalCount:null,longTasks:lifecycle.eventLoopProbe?.longTasks??[],completionUiUsedAsReadinessEvidence:false};
 }
 
+
+/** A deferred graph is a ready/open observation, never registration-time evidence. */
+export function validateDeferredFiniteGraph(graph,{sampleId,dialogOpen}={}){
+  const failures=[];
+  if(!dialogOpen)failures.push('lab-not-open');
+  if(!sampleId||graph?.sampleId!==sampleId)failures.push('sample-identity-mismatch');
+  if(graph?.sampleReady!==true)failures.push('sample-not-ready');
+  if(!(graph?.graphAtomCount>0)||graph?.visibleAtomCount!==graph.graphAtomCount||graph?.atomOriginCount!==graph.graphAtomCount)failures.push('rendered-atom-or-origin-mismatch');
+  if(!(graph?.graphBondCount>0)||!graph?.everyBondHasVisibleMesh||!graph?.bondsResolveToRenderedAtoms)failures.push('rendered-bond-mismatch');
+  if(graph?.activeGroupCount!==1||graph?.geometryCount!==graph?.visibleAtomCount+graph?.visibleBondMeshCount||graph?.materialCount!==graph?.geometryCount)failures.push('resource-mismatch');
+  return{valid:failures.length===0,scope:'post-ready-open-lab',registrationGraphObserved:false,failures,sampleId,graph};
+}
+
 export async function finalizeFinitePauseDiagnostic({traceRecorder,schedulerSampler,schedulerResult=null,rendererIdentityBootstrap=null,evaluate,artifactDir,sourceSha=null,browser=null,viewport=null,assertionFailure=null,traceFileName='finite-pause-trace.json',diagnosticFileName='finite-pause-diagnostic.json'}={}){
   const errors=[];let pageEvidence=null,scheduler=schedulerResult,trace=null;
+  if(traceRecorder?.started&&traceRecorder.mark)try{await traceRecorder.mark('partial-finalization');}catch(error){errors.push(`finalization-clock-marker:${error.message}`);}
   try{
     pageEvidence=await evaluate(`(()=>{
       const registrations=window.__polymerSampleEvents??[],presentEvents=window.__polymerPresentEvents??[],dismissEvents=window.__polymerDismissEvents??[],registration=registrations.at(-1)??null,sampleId=registration?.detail?.sampleId??null;

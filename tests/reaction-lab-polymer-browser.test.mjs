@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {ChromiumTraceRecorder} from '../scripts/chromium-trace-recorder.mjs';
 import {resolveRendererThreadIdentity,startRendererSchedulerSampler,summarizeSchedulerSamples} from '../scripts/stage-b-runner-telemetry.mjs';
 import {attributeSlowIntervals,mapNodeClockToBrowserViaCdpMarkers} from '../scripts/stage-b-trace-attribution.mjs';
-import {finalizeFinitePauseDiagnostic,validateFiniteSampleReadyLifecycle,validateFiniteSampleRegistration} from '../scripts/finite-polymer-diagnostic.mjs';
+import {finalizeFinitePauseDiagnostic,validateDeferredFiniteGraph,validateFiniteSampleReadyLifecycle,validateFiniteSampleRegistration} from '../scripts/finite-polymer-diagnostic.mjs';
 import {resolvePageRendererTraceIdentity} from '../scripts/stage-b-diagnostic-finalization.mjs';
 import {capturePageRendererIdentity,connectBrowserProcessMetadata} from '../scripts/chromium-renderer-identity.mjs';
 
@@ -108,6 +108,7 @@ try{
         if(record.frames.at(-1)!==now)record.frames.push(now);
         if(record.awaitingTailFrame){
           record.tailFrameAt=now;
+          record.tailFrameCallbackReceivedAt=performance.now();
           stopSampler(record,'post-ready-frame');
           return;
         }
@@ -137,7 +138,8 @@ try{
           samplerStartedAtMs:record.samplerStartedAt,
           readyEventReceivedAtMs:record.presentedAt,
           samplerStoppedAtMs:record.samplerStoppedAt,
-          firstPostReadyFrameAtMs:record.tailFrameAt,
+          firstPostReadyFrameAtMs:record.tailFrameCallbackReceivedAt??null,
+          firstPostReadyFrameTimestampMs:record.tailFrameAt,
           samplerStopReason:record.samplerStopReason,
           samplerKind:record.samplerKind,
           frameRequestCount:record.frameRequestCount,
@@ -478,8 +480,7 @@ try{
     const registrationValidation=validateFiniteSampleRegistration(registrationEvent,{expectedSampleId:sampleId,expectedDurationMs:expectedDuration,requireTimer:pauseDiagnostic});assert.ok(registrationValidation.valid,`${route.routeId}: registration lifecycle is valid without treating completion UI state as readiness: ${registrationValidation.failures.join(', ')}`);
     await waitFor(`window.__polymerPresentEvents.some(item=>item.detail.sampleId===${JSON.stringify(sampleId)})`,`${route.routeId}: bounded completion feedback did not become ready`,5000);
     await waitFor(`window.__polymerFrameProbe.hasPostReadyFrame(${JSON.stringify(sampleId)})`,`${route.routeId}: sampler did not stop on the first post-ready frame`,2000);
-    if(pauseDiagnostic&&!registrationEvent.graphEvidence)registrationEvent.graphEvidence=await evaluate('window.__reactionLabProbe.polymerGraphEvidence()');
-    assertRegistrationGraph(route,registrationEvent,{diagnosticEvidenceDeferred:pauseDiagnostic});
+    if(!pauseDiagnostic)assertRegistrationGraph(route,registrationEvent);
     await waitFor("(()=>{const state=window.__reactionLabProbe.snapshot();return state.dialogOpen?state.polymerResources.activeGroupCount===1:state.polymerResources.geometryCount===0})()",`${route.routeId}: finite resources settle to the Reaction Lab open/closed state`,2000);
     const state=await snapshot(),p=state.polymerization,presentEvents=await evaluate('window.__polymerPresentEvents.slice()');let graphState=state;assert.equal(presentEvents.length,1,'sample-present fires exactly once after readiness');assert.equal(presentEvents[0].detail.sampleId,p.sampleId);assert.equal(presentEvents[0].detail.batchGeneration,state.batch.generation);
     assert.equal(presentEvents[0].dialogOpen,true,route.routeId+': ready event is received while the viewer is open');
@@ -526,6 +527,7 @@ try{
       const returned=await snapshot();assert.equal(returned.polymerization.sampleId,p.sampleId);assert.equal(returned.polymerization.sampleReady,true);assert.equal(returned.polymerResources.activeGroupCount,1,'returning from Collection restores one finite graph group');assert.equal(returned.polymerResources.geometryCount,returned.polymerization.displayGraph.atomCount+returned.polymerization.displayGraph.visibleBondMeshCount,'returning from Collection reconstructs exactly the finite graph resource set');graphState=returned;
       if(route.polymerId==='polyethylene')await capture('final-finite-fragment');
     }
+    if(pauseDiagnostic){const graph=await evaluate('window.__reactionLabProbe.polymerGraphEvidence()'),validation=validateDeferredFiniteGraph(graph,{sampleId:p.sampleId,dialogOpen:graphState.dialogOpen});performanceEvidence.at(-1).deferredGraphValidation=validation;assert.ok(validation.valid,`${route.routeId}: post-ready open-Lab graph: ${validation.failures.join(', ')}`);}
     const presentedGraph=graphState.polymerization.displayGraph;
     assert.equal(graphState.dialogOpen,true,route.routeId+': completed finite presentation is inspected with the Lab open');
     assert.equal(presentedGraph.visibleAtomCount,presentedGraph.atomCount,route.routeId+': ready presentation contains every rendered atom');
