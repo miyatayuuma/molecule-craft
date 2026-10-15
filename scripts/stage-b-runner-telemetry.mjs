@@ -35,7 +35,7 @@ export function parseProcStatus(value){
 
 function parseCmdline(value){return typeof value==='string'?value.slice(0,MAX_CMDLINE_BYTES).split('\0').filter(Boolean):[];}
 export function parseChromiumCommandLine(cmdlineText,commText=''){
-  const boundedCmdline=typeof cmdlineText==='string'?cmdlineText.slice(0,MAX_CMDLINE_BYTES):'',hasNulDelimiter=boundedCmdline.includes('\0'),opaqueSingleString=!hasNulDelimiter&&/\s/.test(boundedCmdline.trim()),args=opaqueSingleString?[]:parseCmdline(boundedCmdline),executableName=opaqueSingleString?null:basename(args[0]??'')||null,typeFlags=[];
+  const boundedCmdline=typeof cmdlineText==='string'?cmdlineText.slice(0,MAX_CMDLINE_BYTES):'',hasNulDelimiter=boundedCmdline.includes('\0'),rawArgs=parseCmdline(boundedCmdline),opaqueSingleString=rawArgs.length===1&&/\s/.test(rawArgs[0].trim()),args=opaqueSingleString?[]:rawArgs,executableName=opaqueSingleString?null:basename(args[0]??'')||null,typeFlags=[];
   const unparsedTypeMarkerSeen=opaqueSingleString&&/(?:^|\s)--type(?:=|\s|$)/.test(boundedCmdline),rendererClientIdMarkerSeen=opaqueSingleString&&/(?:^|\s)--renderer-client-id(?:=|\s)\S+/.test(boundedCmdline);
   for(let index=0;index<args.length;index++){
     const arg=args[index];
@@ -251,7 +251,7 @@ export async function discoverAuthoritativeRenderer(rootPid,traceIdentity,{procR
   const process=matches[0];
   evidence.rawObservedIdentity={browserProcess:root,process};evidence.parsedIdentity={processType:process.processType,processTypeReason:process.processTypeReason};evidence.procReadStatus.process=process.readStatus;
   if(process.pidNamespace!==root.pidNamespace)return reject('pid-namespace-mismatch');
-  if(process.processType&&process.processType!=='renderer')return reject('process-type-authority-conflict');
+  if(process.processTypeSource==='command-line'&&process.processType&&process.processType!=='renderer')return reject('process-type-authority-conflict');
   const tasks=await readProcDirectory(join(procRoot,String(process.pid),'task'));
   if(!tasks.value)return reject('task-directory-unavailable');
   const counters=await Promise.all(tasks.value.filter(value=>/^\d+$/.test(value)).map(tid=>readThreadCounter(process.pid,Number(tid),procRoot)));

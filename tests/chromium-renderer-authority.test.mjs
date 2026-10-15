@@ -23,7 +23,7 @@ async function procRecord(root,pid,{parent=0,start=100,ids=[pid],namespace='pid:
   const path=thread?join(root,'191','task',String(pid)):join(root,String(pid));await mkdir(path,{recursive:true});
   await writeFile(join(path,'stat'),stat(pid,parent,start));await writeFile(join(path,'comm'),'chrome\n');
   await writeFile(join(path,'status'),`NSpid:\t${ids.join(' ')}\nvoluntary_ctxt_switches:\t5\nnonvoluntary_ctxt_switches:\t2\n`);
-  if(thread){if(schedstat!==null)await writeFile(join(path,'schedstat'),schedstat);}else{await writeFile(join(path,'cmdline'),'/opaque/profile --renderer-client-id=6');await mkdir(join(path,'ns'),{recursive:true});await symlink(namespace,join(path,'ns/pid'));}
+  if(thread){if(schedstat!==null)await writeFile(join(path,'schedstat'),schedstat);}else{await writeFile(join(path,'cmdline'),'/opaque/profile --renderer-client-id=6\0');await mkdir(join(path,'ns'),{recursive:true});await symlink(namespace,join(path,'ns/pid'));}
 }
 async function fixture(options={}){
   const root=await mkdtemp(join(tmpdir(),'renderer-authority-'));
@@ -51,6 +51,14 @@ test('parent mismatch, namespace mismatch and renderer-client-id alone stay fail
     const root=await fixture(options);try{assert.equal((await discoverAuthoritativeRenderer(110,{...page.identity,processAuthority:await getAuthority()},{procRoot:root})).reason,expected);}finally{await rm(root,{recursive:true,force:true});}
   }
   const root=await fixture();try{assert.equal((await discoverAuthoritativeRenderer(110,{...page.identity,processAuthority:{available:false,reason:'system-info-process-metadata-unavailable'}},{procRoot:root})).available,false);}finally{await rm(root,{recursive:true,force:true});}
+});
+
+test('CDP may supersede an inferred default but explicit non-renderer argv conflicts fail closed',async()=>{
+  const root=await fixture();try{
+    const identity={...page.identity,processAuthority:await getAuthority()};
+    await writeFile(join(root,'191','cmdline'),'/usr/bin/chrome\0');assert.equal((await discoverAuthoritativeRenderer(110,identity,{procRoot:root})).available,true);
+    await writeFile(join(root,'191','cmdline'),'/usr/bin/chrome\0--type=gpu-process\0');assert.equal((await discoverAuthoritativeRenderer(110,identity,{procRoot:root})).reason,'process-type-authority-conflict');
+  }finally{await rm(root,{recursive:true,force:true});}
 });
 
 test('missing counter remains separate from verified identity; duplicate namespace candidates reject',async()=>{
