@@ -8,8 +8,8 @@ import {fileURLToPath} from 'node:url';
 import {assessDiagnosticPreflight,assessDiagnosticSourceAuthority} from '../scripts/diagnostic-preflight-contract.mjs';
 
 const sourceAuthority=assessDiagnosticSourceAuthority({checkedOutHeadSha:'1b4274ea8197ce94c21925ddb177cc2f07b5e30d',explicitSourceSha:'1b4274ea8197ce94c21925ddb177cc2f07b5e30d',expectedPrHeadSha:'1b4274ea8197ce94c21925ddb177cc2f07b5e30d',githubEventSha:'f8c8facd88c31a0a813703628d98d45a732b7094',baselineSha:'4bc202c0eb1f51de0350c3a0b4be36c7178cba53',isPullRequest:true});
-const identityEvidence={expectedIdentity:{pid:31,tid:31},rawObservedIdentity:{processComm:'chrome',threadComm:'CrRendererMain'},parsedIdentity:{processType:'renderer'},procReadStatus:{process:{stat:{available:true}}},rejectionReason:null};
-const ready={browserStarted:true,pageInitialized:true,traceCapability:{traceCompletion:'AVAILABLE',usableTrace:true},pageRenderer:{available:true,identity:{pid:31,tid:31}},rendererResolution:{status:'RENDERER_THREAD_RESOLVED'},rendererIdentityEvidence:identityEvidence,sourceAuthority,schedulerClockMapping:{available:true,uncertaintyMs:.2},schedulerAttribution:{perStep:[{available:true,adequate:true,samplePairCount:12,runtimeMs:74,runQueueWaitMs:1,sampleCoverageMs:76,coverageRatio:.95}]},busyResult:{durationMs:80,iterations:10000},rawTraceArtifact:'/tmp/preflight.trace.json'};
+const identityEvidence={expectedIdentity:{pid:31,tid:31,processAuthority:{available:true}},rawObservedIdentity:{processComm:'chrome',threadComm:'CrRendererMain'},parsedIdentity:{processType:'renderer'},procReadStatus:{process:{stat:{available:true}}},rejectionReason:null};
+const ready={browserStarted:true,pageInitialized:true,traceCapability:{traceCompletion:'AVAILABLE',usableTrace:true},pageRenderer:{available:true,identity:{pid:31,tid:31}},rendererResolution:{status:'RENDERER_THREAD_RESOLVED'},rendererIdentityEvidence:identityEvidence,sourceAuthority,schedulerClockMapping:{available:true,uncertaintyMs:.2},schedulerAttribution:{perStep:[{available:true,adequate:true,identityStable:true,samplePairCount:12,runtimeMs:74,runQueueWaitMs:1,sampleCoverageMs:76,coverageRatio:.95}]},busyResult:{durationMs:80,iterations:10000},rawTraceArtifact:'/tmp/preflight.trace.json'};
 
 test('source SHA authority uses checked out PR HEAD and preserves event merge SHA separately',()=>{
   assert.equal(sourceAuthority.accepted,true);assert.equal(sourceAuthority.sourceSha,'1b4274ea8197ce94c21925ddb177cc2f07b5e30d');assert.equal(sourceAuthority.githubEventSha,'f8c8facd88c31a0a813703628d98d45a732b7094');assert.notEqual(sourceAuthority.sourceSha,sourceAuthority.githubEventSha);
@@ -44,12 +44,12 @@ test('diagnostic preflight blocks full campaign when identity, counters or clock
 });
 
 test('preflight blocks a report that omits rejected proc identity evidence or source authority',()=>{
-  const report=assessDiagnosticPreflight({...ready,rendererIdentityEvidence:{expectedIdentity:{pid:31,tid:31},rejectionReason:'process-type-flag-absent'},sourceAuthority:{accepted:false,failedChecks:['sourceShaMatchesCheckout']}});
+  const report=assessDiagnosticPreflight({...ready,rendererIdentityEvidence:{expectedIdentity:{pid:31,tid:31,processAuthority:{available:true}},rejectionReason:'process-type-flag-absent'},sourceAuthority:{accepted:false,failedChecks:['sourceShaMatchesCheckout']}});
   assert.equal(report.preflightAccepted,false);assert.ok(report.failedChecks.includes('procIdentityEvidenceSaved'));assert.ok(report.failedChecks.includes('sourceShaAuthority'));
 });
 
 test('preflight accepts an available zero scheduler-wait delta without converting missing counters to zero',()=>{
-  const report=assessDiagnosticPreflight({...ready,schedulerAttribution:{perStep:[{available:true,adequate:true,samplePairCount:12,runtimeMs:80,runQueueWaitMs:0}]}});
+  const report=assessDiagnosticPreflight({...ready,schedulerAttribution:{perStep:[{available:true,adequate:true,identityStable:true,samplePairCount:12,runtimeMs:80,runQueueWaitMs:0}]}});
   assert.equal(report.preflightAccepted,true);assert.equal(report.schedulerStep.runQueueWaitMs,0);
   const missing=assessDiagnosticPreflight({...ready,schedulerAttribution:{perStep:[{available:false,adequate:false,samplePairCount:0,runtimeMs:null,runQueueWaitMs:null}]}});
   assert.equal(missing.preflightAccepted,false);assert.equal(missing.schedulerStep.runQueueWaitMs,null);

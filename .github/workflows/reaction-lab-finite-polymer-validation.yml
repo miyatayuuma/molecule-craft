@@ -41,7 +41,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
-    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && github.event.action != 'edited') }}
+    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C6-DIAGNOSTIC-ONLY]') && github.event.action != 'edited') }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -159,7 +159,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   stage-b-performance-comparison:
-    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]'))))) }}
+    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C6-DIAGNOSTIC-ONLY]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]'))))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -171,7 +171,7 @@ jobs:
         with:
           node-version: 22
       - name: Stage B comparison contract tests
-        run: node --test tests/compare-reaction-lab-stage-b.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs tests/compare-polymer-performance.test.mjs
+        run: node --test tests/compare-reaction-lab-stage-b.test.mjs tests/chromium-renderer-authority.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs tests/compare-polymer-performance.test.mjs
       - name: Prepare immutable Task ⑩ main baseline
         env:
           POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
@@ -229,7 +229,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   diagnostic-preflight:
-    if: ${{ false }}
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -245,7 +245,7 @@ jobs:
           gate_artifact_dir="$RUNNER_TEMP/reaction-lab-diagnostic-preflight"
           mkdir -p "$gate_artifact_dir"
           set +e
-          node --test tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs > "$gate_artifact_dir/deterministic-gates.tap" 2>&1
+          node --test tests/chromium-renderer-authority.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs > "$gate_artifact_dir/deterministic-gates.tap" 2>&1
           gate_status=$?
           cat "$gate_artifact_dir/deterministic-gates.tap"
           exit "$gate_status"
@@ -266,7 +266,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: task12c5-renderer-identity-preflight
+          name: task12c6-renderer-identity-preflight
           path: ${{ runner.temp }}/reaction-lab-diagnostic-preflight
           if-no-files-found: error
           retention-days: 90
