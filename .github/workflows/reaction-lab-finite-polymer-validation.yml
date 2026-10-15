@@ -41,7 +41,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
-    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && github.event.action != 'edited') }}
+    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && github.event.action != 'edited') }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -159,7 +159,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   stage-b-performance-comparison:
-    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]'))))) }}
+    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]'))))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -229,7 +229,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   diagnostic-preflight:
-    if: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' && contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') }}
+    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && (github.event.action == 'synchronize' || (github.event.action == 'edited' && github.event.changes.title != null)) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -242,15 +242,24 @@ jobs:
           node-version: 22
       - name: Deterministic diagnostic harness gates
         run: node --test tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs
+      - name: Record checked-out source authority
+        env:
+          EXPECTED_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          DIAGNOSTIC_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+        run: |
+          CHECKED_OUT_SOURCE_SHA="$(git rev-parse HEAD)"
+          echo "DIAGNOSTIC_SOURCE_SHA=$CHECKED_OUT_SOURCE_SHA" >> "$GITHUB_ENV"
+          echo "DIAGNOSTIC_EXPECTED_PR_HEAD_SHA=$EXPECTED_PR_HEAD_SHA" >> "$GITHUB_ENV"
+          echo "DIAGNOSTIC_BASELINE_SHA=$DIAGNOSTIC_BASELINE_SHA" >> "$GITHUB_ENV"
       - name: Renderer counter and trace capability preflight — no Stage B campaign
         env:
-          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          DIAGNOSTIC_GITHUB_EVENT_SHA: ${{ github.sha }}
           DIAGNOSTIC_PREFLIGHT_OUTPUT: ${{ runner.temp }}/reaction-lab-diagnostic-preflight/preflight.json
         run: node scripts/preflight-reaction-lab-diagnostics.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: task12c4-diagnostic-preflight
+          name: task12c5-renderer-identity-preflight
           path: ${{ runner.temp }}/reaction-lab-diagnostic-preflight
           if-no-files-found: error
           retention-days: 90
