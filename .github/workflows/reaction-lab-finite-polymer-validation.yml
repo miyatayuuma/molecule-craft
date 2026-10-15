@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     paths:
       - 'src/*polymer*'
       - 'src/reaction-lab-viewer.js'
@@ -40,7 +41,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
-    if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
+    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && github.event.action != 'edited') }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -158,6 +159,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   stage-b-performance-comparison:
+    if: ${{ github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]'))))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -169,7 +171,7 @@ jobs:
         with:
           node-version: 22
       - name: Stage B comparison contract tests
-        run: node --test tests/compare-reaction-lab-stage-b.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs tests/compare-polymer-performance.test.mjs
+        run: node --test tests/compare-reaction-lab-stage-b.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs tests/compare-polymer-performance.test.mjs
       - name: Prepare immutable Task ⑩ main baseline
         env:
           POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
@@ -179,7 +181,7 @@ jobs:
           echo "POLYMER_BASELINE_SHA=$POLYMER_BASELINE_SHA" >> "$GITHUB_ENV"
           echo "POLYMER_CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Profile Task ⑩ main baseline — warm-up + four trials
-        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-stage-b-baseline
           POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
@@ -188,7 +190,7 @@ jobs:
           STAGE_B_DEBUG_PORT: 9277
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - name: Profile Task ⑪ candidate — warm-up + four trials
-        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ github.workspace }}
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -197,10 +199,10 @@ jobs:
           STAGE_B_DEBUG_PORT: 9278
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - name: Compare same-condition Stage B performance
-        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
         run: node scripts/compare-reaction-lab-stage-b.mjs "$RUNNER_TEMP/stage-b-performance/baseline.json" "$RUNNER_TEMP/stage-b-performance/candidate.json" "$RUNNER_TEMP/stage-b-performance/comparison.json"
       - name: Diagnostic-only runner and browser pause attribution — Task ⑩ baseline
-        if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
+        if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-stage-b-baseline
           POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
@@ -210,7 +212,7 @@ jobs:
           STAGE_B_DEBUG_PORT: 9279
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - name: Diagnostic-only runner and browser pause attribution — Task ⑪ candidate
-        if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
+        if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ github.workspace }}
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -226,8 +228,34 @@ jobs:
           path: ${{ runner.temp }}/stage-b-performance
           if-no-files-found: error
           retention-days: 90
+  diagnostic-preflight:
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' && contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deterministic diagnostic harness gates
+        run: node --test tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs
+      - name: Renderer counter and trace capability preflight — no Stage B campaign
+        env:
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          DIAGNOSTIC_PREFLIGHT_OUTPUT: ${{ runner.temp }}/reaction-lab-diagnostic-preflight/preflight.json
+        run: node scripts/preflight-reaction-lab-diagnostics.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task12c4-diagnostic-preflight
+          path: ${{ runner.temp }}/reaction-lab-diagnostic-preflight
+          if-no-files-found: error
+          retention-days: 90
   finite-root-cause-diagnostic:
-    if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') }}
+    if: ${{ (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]')) && (github.event.action != 'edited' || github.event.changes.title != null) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
