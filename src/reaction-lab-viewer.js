@@ -47,6 +47,39 @@ const POLYMER_DOCK_MS=430;
 const POLYMER_COMPLETION_FEEDBACK_MS=650;
 const POLYMER_COMPLETION_REDUCED_FEEDBACK_MS=250;
 
+// The drawing buffer is synchronous WebGL state: never reset it for a no-op fit.
+export function resizeReactionLabCanvas({canvas,renderer,camera,pixelRatio}){
+  const rect=canvas.getBoundingClientRect();
+  if(rect.width<1||rect.height<1)return false;
+  const ratio=Math.min(pixelRatio||1,2),width=Math.floor(rect.width*ratio),height=Math.floor(rect.height*ratio);
+  const ratioChanged=renderer.getPixelRatio()!==ratio;
+  const changed=ratioChanged||canvas.width!==width||canvas.height!==height;
+  if(changed){
+    if(ratioChanged)renderer.setDrawingBufferSize(rect.width,rect.height,ratio);
+    else renderer.setSize(rect.width,rect.height,false);
+  }
+  const aspect=rect.width/rect.height;
+  if(camera.aspect!==aspect){camera.aspect=aspect;camera.updateProjectionMatrix();}
+  return changed;
+}
+
+const POLYMER_COMPLETION_PREPARING_TEXT='重合完了 · 3D表示を整えています';
+const POLYMER_COMPLETION_READY_TEXT='重合完了 · ドラッグで回転、ホイール・ピンチで拡大';
+// Decorative intrinsic sizing only. Live elements retain native hidden semantics.
+export function reservePolymerCompletionFooter(reservation,completion,name){
+  reservation.replaceChildren();reservation.hidden=!name;
+  if(!name)return;
+  for(const message of [POLYMER_COMPLETION_PREPARING_TEXT,POLYMER_COMPLETION_READY_TEXT]){
+    const copy=completion.cloneNode(true);
+    for(const element of [copy,...copy.querySelectorAll('*')]){
+      for(const attribute of [...element.attributes])if(attribute.name!=='class'&&attribute.name!=='type')element.removeAttribute(attribute.name);
+      if(element.tagName==='BUTTON')element.disabled=true;
+    }
+    copy.querySelector('strong').textContent=name;copy.querySelector('span').textContent=message;
+    reservation.append(copy);
+  }
+}
+
 export function reserveParticipantInstances(participantInstances,instances,generation,requiredRoles=Object.keys(participantInstances??{})){
   if(!participantInstances||!Array.isArray(requiredRoles)||!requiredRoles.length)return{ok:false,reason:'missing-reaction-participant'};
   const ids=requiredRoles.map(role=>participantInstances[role]);
@@ -72,6 +105,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const canvas=root.querySelector('canvas');
   const status=root.querySelector('[data-lab-status]');
   const polymerCompletion=root.querySelector('[data-polymer-completion]'),polymerCompletionName=root.querySelector('[data-polymer-completion-name]'),polymerCompletionStatus=root.querySelector('[data-polymer-completion-status]'),polymerEncyclopediaButton=root.querySelector('[data-polymer-encyclopedia]'),polymerViewResetButton=root.querySelector('[data-polymer-view-reset]');
+  const polymerFooterReservation=root.querySelector('[data-polymer-footer-reservation]');
   const slots=[...root.querySelectorAll('[data-lab-slot]')];
   const feedButton=root.querySelector('[data-lab-feed]'),commandState=root.querySelector('[data-lab-command-state]');
   const picker=root.querySelector('[data-lab-picker]'),pickerList=root.querySelector('[data-lab-picker-list]'),pickerSearch=root.querySelector('[data-lab-search]');
@@ -111,7 +145,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   if(!polymerSiteIndicator){polymerSiteIndicator=document.createElement('div');polymerSiteIndicator.className='reaction-lab-polymer-site';polymerSiteIndicator.dataset.polymerSiteIndicator='';polymerSiteIndicator.setAttribute('aria-hidden','true');polymerSiteIndicator.hidden=true;chamber.append(polymerSiteIndicator);}
   let polymerIncomingIndicator=root.querySelector('[data-polymer-incoming-indicator]');
   if(!polymerIncomingIndicator){polymerIncomingIndicator=document.createElement('div');polymerIncomingIndicator.className='reaction-lab-polymer-incoming';polymerIncomingIndicator.dataset.polymerIncomingIndicator='';polymerIncomingIndicator.setAttribute('aria-hidden','true');polymerIncomingIndicator.hidden=true;chamber.append(polymerIncomingIndicator);}
-  function resize(){const rect=canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;renderer.setSize(rect.width,rect.height,false);camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix();}
+  function resize(){return resizeReactionLabCanvas({canvas,renderer,camera,pixelRatio:devicePixelRatio});}
+  window.addEventListener('resize',resize,eventOptions);
+  function watchPixelRatio(){matchMedia(`(resolution: ${devicePixelRatio||1}dppx)`).addEventListener('change',()=>{resize();watchPixelRatio();},{once:true,signal:eventController.signal});}
+  watchPixelRatio();
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);resize();
   function updateCamera(){camera.position.set(distance*Math.sin(FIXED_CAMERA_AZIMUTH)*Math.cos(FIXED_CAMERA_ELEVATION),distance*Math.sin(FIXED_CAMERA_ELEVATION),distance*Math.cos(FIXED_CAMERA_AZIMUTH)*Math.cos(FIXED_CAMERA_ELEVATION));camera.lookAt(0,0,0);camera.updateMatrixWorld();}
   function cameraNormal(){camera.updateMatrixWorld();return camera.getWorldDirection(new THREE.Vector3());}
@@ -446,7 +483,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const known=!!isPolymerKnown(presentation.polymerId);
     polymerCompletion.hidden=false;status.hidden=true;
     polymerCompletionName.textContent=polymerNameFor(presentation.polymerId)??presentation.polymerId;
-    polymerCompletionStatus.textContent=ready?'重合完了 · ドラッグで回転、ホイール・ピンチで拡大':'重合完了 · 3D表示を整えています';
+    polymerCompletionStatus.textContent=ready?POLYMER_COMPLETION_READY_TEXT:POLYMER_COMPLETION_PREPARING_TEXT;
     polymerViewResetButton.hidden=!ready;polymerViewResetButton.disabled=!ready;
     polymerEncyclopediaButton.hidden=!known;polymerEncyclopediaButton.disabled=!ready||!known;
   }
@@ -651,6 +688,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     return{kind:'feed',generation,elapsedMs:0,feedStartedAt:null,entries,preparations,preparationBySpecies:new Map(preparations.map(preparation=>[preparation.species,preparation])),preparationCursor:0,feedLayoutReady:false};
   }
   function startFeedTransition(generation,schedule,preparedTransition=null){
+    const route=polymerCore.routeFor(batch.activeSlots);
+    reservePolymerCompletionFooter(polymerFooterReservation,polymerCompletion,route?(polymerNameFor(route.polymerId)??route.polymerId):null);
+    resize();
     batchTransition=preparedTransition??createFeedTransition(generation,schedule);
     if(preparedTransition)prepareFeedModels(batchTransition);
     status.textContent='FEEDING · 分子をchamberへ投入中';renderSlotTiles();

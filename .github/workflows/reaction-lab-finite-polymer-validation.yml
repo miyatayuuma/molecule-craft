@@ -442,3 +442,39 @@ jobs:
           path: ${{ runner.temp }}/c8-finite
           if-no-files-found: error
           retention-days: 90
+
+  c9-layout-gates:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event.action == 'synchronize' || (github.event.action == 'edited' && github.event.changes.title != null && github.event.pull_request.title == format('[TASK12C9-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title)) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deterministic resize, geometry, lifecycle and diagnostic contracts
+        run: node --test tests/reaction-lab-resize.test.mjs tests/polymer-fragment-3d-layout.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/reaction-lab-legacy-removal.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs tests/c8-finite-attribution.test.mjs tests/finite-polymer-diagnostic.test.mjs
+      - name: Frozen C8 production layout reproduction
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/c9-baseline
+          POLYMER_SOURCE_SHA: da4a0f529ceb4ca0fc5303e6e768d82945b4f934
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/c9-layout/baseline
+        run: |
+          git worktree add --detach "$POLYMER_ROOT" "$POLYMER_SOURCE_SHA"
+          node scripts/check-finite-completion-layout.mjs
+      - name: Candidate desktop/mobile, normal/reduced, all 25 footer names, reopen and DPR
+        env:
+          C9_LAYOUT_CANDIDATE: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/c9-layout/candidate
+        run: node scripts/check-finite-completion-layout.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c9-layout-regression
+          path: ${{ runner.temp }}/c9-layout
+          if-no-files-found: warn
+          retention-days: 90
