@@ -241,7 +241,14 @@ jobs:
         with:
           node-version: 22
       - name: Deterministic diagnostic harness gates
-        run: node --test tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs
+        run: |
+          gate_artifact_dir="$RUNNER_TEMP/reaction-lab-diagnostic-preflight"
+          mkdir -p "$gate_artifact_dir"
+          set +e
+          node --test tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs > "$gate_artifact_dir/deterministic-gates.tap" 2>&1
+          gate_status=$?
+          cat "$gate_artifact_dir/deterministic-gates.tap"
+          exit "$gate_status"
       - name: Record checked-out source authority
         env:
           EXPECTED_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
