@@ -1,14 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {captureRunnerSnapshot,compareRunnerSnapshots,parseProcStat,summarizeSlowIntervals} from '../scripts/stage-b-runner-telemetry.mjs';
+import {captureRunnerSnapshot,compareRunnerSnapshots,parseProcStat,parseProcStatus,summarizeSlowIntervals} from '../scripts/stage-b-runner-telemetry.mjs';
 
 const visibleProcSelfPid=process.platform==='linux'?Number(readFileSync('/proc/self/stat','utf8').split(' ')[0]):null;
 
 test('Linux proc stat parsing preserves process names containing closing parentheses',()=>{
-  const fields=['R','7','0','0','0','0','0','0','0','0','0','120','30',...Array(20).fill('0')];
+  const fields=['R','7','0','0','0','0','0','0','0','0','0','120','30',...Array(6).fill('0'),'9876'];
   const result=parseProcStat(`123 (chrome ) renderer) ${fields.join(' ')}`,123,100);
-  assert.deepEqual(result,{pid:123,state:'R',parentPid:7,userTicks:120,systemTicks:30,cpuMs:1500});
+  assert.deepEqual(result,{pid:123,state:'R',parentPid:7,userTicks:120,systemTicks:30,startTimeTicks:9876,cpuMs:1500});
+});
+
+test('Linux proc status keeps PID namespace identifiers separate from context switches',()=>{
+  const parsed=parseProcStatus('Name:\tCrRendererMain\nNSpid:\t194 31\nvoluntary_ctxt_switches:\t17\nnonvoluntary_ctxt_switches:\t5\n');
+  assert.deepEqual(parsed,{voluntaryContextSwitches:17,involuntaryContextSwitches:5,namespaceIds:[194,31]});
 });
 
 test('runner snapshot comparison distinguishes browser CPU time, host pressure, and cgroup throttling',()=>{

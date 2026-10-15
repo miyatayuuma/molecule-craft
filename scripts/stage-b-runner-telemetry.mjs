@@ -1,4 +1,5 @@
-import {readdir,readFile} from 'node:fs/promises';
+import {readdir,readFile,readlink} from 'node:fs/promises';
+import {basename} from 'node:path';
 import os from 'node:os';
 import {spawnSync} from 'node:child_process';
 
@@ -10,10 +11,10 @@ export function parseProcStat(value,pid=null,ticksPerSecond=clockTicksPerSecond)
   const end=value.lastIndexOf(')');
   if(end<0)return null;
   const fields=value.slice(end+2).trim().split(/\s+/);
-  if(fields.length<13)return null;
+  if(fields.length<20)return null;
   const numbers=fields.slice(1).map(Number);
-  if(!Number.isFinite(numbers[0])||!Number.isFinite(numbers[10])||!Number.isFinite(numbers[11]))return null;
-  return{pid:Number(pid),state:fields[0],parentPid:numbers[0],userTicks:numbers[10],systemTicks:numbers[11],cpuMs:(numbers[10]+numbers[11])*1000/ticksPerSecond};
+  if(!Number.isFinite(numbers[0])||!Number.isFinite(numbers[10])||!Number.isFinite(numbers[11])||!Number.isFinite(numbers[18]))return null;
+  return{pid:Number(pid),state:fields[0],parentPid:numbers[0],userTicks:numbers[10],systemTicks:numbers[11],startTimeTicks:numbers[18],cpuMs:(numbers[10]+numbers[11])*1000/ticksPerSecond};
 }
 
 export function parseProcSchedstat(value){
@@ -26,10 +27,27 @@ export function parseProcStatus(value){
   if(typeof value!=='string')return null;
   const voluntary=Number(value.match(/^voluntary_ctxt_switches:\s+(\d+)$/m)?.[1]);
   const involuntary=Number(value.match(/^nonvoluntary_ctxt_switches:\s+(\d+)$/m)?.[1]);
-  return Number.isFinite(voluntary)&&Number.isFinite(involuntary)?{voluntaryContextSwitches:voluntary,involuntaryContextSwitches:involuntary}:null;
+  const namespaceIds=value.match(/^NSpid:\s+([\d\s]+)$/m)?.[1]?.trim().split(/\s+/).map(Number).filter(Number.isSafeInteger)??null;
+  return Number.isFinite(voluntary)&&Number.isFinite(involuntary)?{voluntaryContextSwitches:voluntary,involuntaryContextSwitches:involuntary,namespaceIds}:null;
 }
 
 function parseCmdline(value){return typeof value==='string'?value.split('\0').filter(Boolean):[];}
+function getProcessType(args){const typeIndex=args.indexOf('--type');return typeIndex>=0?args[typeIndex+1]??null:args.find(value=>value.startsWith('--type='))?.slice(7)??'browser';}
+function isChromiumProcess(args,comm){return/(?:chrome|chromium|headless_shell)/i.test(`${basename(args[0]??'')} ${comm??''}`);}
+function nspidPairsMatch(processIds,threadIds,tracePid,traceTid){
+  if(!Array.isArray(processIds)||!Array.isArray(threadIds))return false;
+  for(let index=0;index<Math.min(processIds.length,threadIds.length);index++)if(processIds[index]===tracePid&&threadIds[index]===traceTid)return true;
+  return false;
+}
+
+async function readProcessRecord(pid){
+  const [statText,cmdlineText,commText,statusText,namespace]=await Promise.all([
+    readFile(`/proc/${pid}/stat`,'utf8'),readFile(`/proc/${pid}/cmdline`,'utf8'),readFile(`/proc/${pid}/comm`,'utf8'),readFile(`/proc/${pid}/status`,'utf8').catch(()=>''),readlink(`/proc/${pid}/ns/pid`).catch(()=>null)
+  ]);
+  const stat=parseProcStat(statText,pid);if(!stat)return null;
+  const cmdline=parseCmdline(cmdlineText),comm=commText.trim();
+  return{...stat,comm,cmdline,processType:getProcessType(cmdline),namespaceIds:parseProcStatus(statusText)?.namespaceIds??null,pidNamespace:namespace};
+}
 
 async function readProcessCpuCounter(pid){
   let tids=[];try{tids=await readdir(`/proc/${pid}/task`);}catch{return{pid:Number(pid),available:false,cpuMs:null,threadCount:0};}
@@ -44,11 +62,11 @@ async function readProcessTree(rootPid){
   async function visit(pid){
     if(!Number.isInteger(pid)||pid<=0||seen.has(pid))return;
     seen.add(pid);
-    let stat,cmdline,comm;
-    try{[stat,cmdline,comm]=await Promise.all([readFile(`/proc/${pid}/stat`,'utf8'),readFile(`/proc/${pid}/cmdline`,'utf8'),readFile(`/proc/${pid}/comm`,'utf8')]);stat=parseProcStat(stat,pid);}catch{return;}
-    if(!stat)return;
-    const argumentsList=parseCmdline(cmdline),typeIndex=argumentsList.indexOf('--type'),processCounters=await readProcessCpuCounter(pid);
-    processes.push({...stat,cpuMs:processCounters.cpuMs,cpuCounterAvailable:processCounters.available,cpuCounterThreadCount:processCounters.threadCount,cpuCounterThreadIds:processCounters.threadIds,comm:comm.trim(),cmdline:argumentsList,processType:typeIndex>=0?argumentsList[typeIndex+1]??null:argumentsList.find(value=>value.startsWith('--type='))?.slice(7)??'browser'});
+    let process;
+    try{process=await readProcessRecord(pid);}catch{return;}
+    if(!process)return;
+    const processCounters=await readProcessCpuCounter(pid);
+    processes.push({...process,cpuMs:processCounters.cpuMs,cpuCounterAvailable:processCounters.available,cpuCounterThreadCount:processCounters.threadCount,cpuCounterThreadIds:processCounters.threadIds});
     // Chromium can spawn renderers and GPU processes from worker threads. The
     // leader's `children` file then omits them, so walk every task's child list.
     let taskIds=[];try{taskIds=await readdir(`/proc/${pid}/task`);}catch{taskIds=[String(pid)];}
@@ -61,32 +79,76 @@ async function readProcessTree(rootPid){
 }
 
 async function readThreadCounter(pid,tid){
-  try{
-    const [statText,schedstatText,statusText,commText]=await Promise.all([
-      readFile(`/proc/${pid}/task/${tid}/stat`,'utf8'),
-      readFile(`/proc/${pid}/task/${tid}/schedstat`,'utf8'),
-      readFile(`/proc/${pid}/task/${tid}/status`,'utf8'),
-      readFile(`/proc/${pid}/task/${tid}/comm`,'utf8')
-    ]);
-    const stat=parseProcStat(statText,tid),schedstat=parseProcSchedstat(schedstatText),contextSwitches=parseProcStatus(statusText);
-    if(!stat||!schedstat)return null;
-    return{pid:Number(pid),tid:Number(tid),threadName:commText.trim(),state:stat.state,cpuMs:stat.cpuMs,...schedstat,...contextSwitches};
-  }catch{return null;}
+  const [statResult,schedstatResult,statusResult,commResult,processStatResult]=await Promise.all([
+    readFile(`/proc/${pid}/task/${tid}/stat`,'utf8').then(value=>({value}),error=>({error})),
+    readFile(`/proc/${pid}/task/${tid}/schedstat`,'utf8').then(value=>({value}),error=>({error})),
+    readFile(`/proc/${pid}/task/${tid}/status`,'utf8').then(value=>({value}),error=>({error})),
+    readFile(`/proc/${pid}/task/${tid}/comm`,'utf8').then(value=>({value}),error=>({error})),
+    readFile(`/proc/${pid}/stat`,'utf8').then(value=>({value}),error=>({error})),
+  ]);
+  if(statResult.error){const error=statResult.error;let reason=error.code==='EACCES'||error.code==='EPERM'?'permission-denied':error.code==='ENOENT'?'thread-not-visible':'counter-read-failed';if(error.code==='ENOENT')try{await readFile(`/proc/${pid}/stat`,'utf8');}catch(processError){reason=processError.code==='EACCES'||processError.code==='EPERM'?'permission-denied':processError.code==='ENOENT'?'process-exited':reason;}return{pid:Number(pid),tid:Number(tid),available:false,reason,errorCode:error.code??null,error:error.message};}
+  const stat=parseProcStat(statResult.value,tid),processStat=processStatResult.value?parseProcStat(processStatResult.value,pid):null,schedstat=schedstatResult.value?parseProcSchedstat(schedstatResult.value):null,status=statusResult.value?parseProcStatus(statusResult.value):null,threadName=commResult.value?.trim()??null;
+  if(!stat)return{pid:Number(pid),tid:Number(tid),threadName,available:false,reason:'thread-stat-unavailable'};
+  const schedstatError=schedstatResult.error,reason=schedstat?null:schedstatError?.code==='EACCES'||schedstatError?.code==='EPERM'?'permission-denied':schedstatError?.code==='ENOENT'?'schedstat-unavailable':schedstatError?'counter-read-failed':'schedstat-unavailable';
+  return{pid:Number(pid),tid:Number(tid),threadName,available:!!schedstat,reason,state:stat.state,cpuMs:stat.cpuMs,userTicks:stat.userTicks,systemTicks:stat.systemTicks,startTimeTicks:stat.startTimeTicks,liveProcessStartTimeTicks:processStat?.startTimeTicks??null,schedstatAvailable:!!schedstat,contextSwitchCountersAvailable:Number.isFinite(status?.voluntaryContextSwitches)&&Number.isFinite(status?.involuntaryContextSwitches),...schedstat,...(status??{}),...(commResult.error?{threadNameReadError:commResult.error.code??commResult.error.message}:{}),...(processStatResult.error?{processStartReadError:processStatResult.error.code??processStatResult.error.message}:{})};
+}
+
+async function enumerateRendererProcesses(treeProcesses=[]){
+  const known=new Map(treeProcesses.filter(process=>process.processType==='renderer'&&isChromiumProcess(process.cmdline,process.comm)).map(process=>[process.pid,process])),errors=[];
+  let entries=[];try{entries=await readdir('/proc');}catch(error){return{processes:[...known.values()],error:error.code==='EACCES'?'permission-denied':'process-list-unavailable',errors:[{reason:error.code==='EACCES'?'permission-denied':'process-list-unavailable',errorCode:error.code??null}]};}
+  await Promise.all(entries.filter(entry=>/^\d+$/.test(entry)&&!known.has(Number(entry))).map(async entry=>{
+    const pid=Number(entry);let comm;
+    try{comm=(await readFile(`/proc/${pid}/comm`,'utf8')).trim();}catch(error){if(error.code==='EACCES'||error.code==='EPERM')errors.push({pid,reason:'permission-denied',errorCode:error.code});return;}
+    if(!/chrome|chromium|headless_shell/i.test(comm))return;
+    try{const process=await readProcessRecord(pid);if(process?.processType==='renderer'&&isChromiumProcess(process.cmdline,process.comm))known.set(pid,process);}catch(error){if(error.code==='EACCES'||error.code==='EPERM')errors.push({pid,reason:'permission-denied',errorCode:error.code});}
+  }));
+  return{processes:[...known.values()],error:null,errors};
+}
+
+export function resolveRendererThreadIdentity({traceIdentity=null,linuxCandidates=[],linuxProcesses=[],rootPidNamespace=null}={}){
+  const tracePid=Number(traceIdentity?.pid),traceTid=Number(traceIdentity?.tid),traceThreadName=traceIdentity?.threadName??null;
+  const unavailable=reason=>({status:'RENDERER_THREAD_UNAVAILABLE',reason,traceIdentity:traceIdentity??null,linuxCandidateCount:linuxCandidates.length});
+  if(!Number.isSafeInteger(tracePid)||!Number.isSafeInteger(traceTid)||tracePid<=0||traceTid<=0)return unavailable('trace-thread-identity-unavailable');
+  if(traceThreadName&&traceThreadName!=='CrRendererMain')return unavailable('trace-thread-name-mismatch');
+  const processes=linuxProcesses.length?linuxProcesses:linuxCandidates;
+  const pidMatches=processes.filter(process=>process.processType==='renderer'&&(process.pid===tracePid||process.namespaceIds?.includes(tracePid)));
+  const pairMatches=linuxCandidates.filter(candidate=>candidate.processType==='renderer'&&((candidate.pid===tracePid&&candidate.tid===traceTid)||nspidPairsMatch(candidate.processNamespaceIds??candidate.namespaceIds,candidate.threadNamespaceIds,tracePid,traceTid)));
+  const stableProcessStart=candidate=>{const actual=candidate.processStartTimeTicks??candidate.startTimeTicks,expected=candidate.expectedProcessStartTimeTicks;return Number.isSafeInteger(actual)&&(expected==null||actual===expected);};
+  const stableThreadStart=candidate=>{const actual=candidate.threadStartTimeTicks??candidate.startTimeTicks,expected=candidate.expectedThreadStartTimeTicks;return Number.isSafeInteger(actual)&&(expected==null||actual===expected);};
+  const valid=pairMatches.filter(candidate=>candidate.threadName==='CrRendererMain'&&stableProcessStart(candidate)&&stableThreadStart(candidate));
+  if(valid.length===1){
+    const candidate=valid[0],namespaceIndex=candidate.pid===tracePid&&candidate.tid===traceTid?null:(candidate.processNamespaceIds??candidate.namespaceIds??[]).findIndex((pid,index)=>pid===tracePid&&candidate.threadNamespaceIds?.[index]===traceTid);
+    return{status:'RENDERER_THREAD_RESOLVED',reason:null,matchMethod:namespaceIndex===null?'trace-pid-tid-exact':'trace-pid-tid-namespace-map',traceIdentity:{pid:tracePid,tid:traceTid,threadName:traceThreadName??'CrRendererMain'},linuxIdentity:{pid:candidate.pid,tid:candidate.tid,threadName:candidate.threadName,processType:candidate.processType,commandLine:candidate.commandLine??candidate.cmdline??[],processStartTimeTicks:candidate.processStartTimeTicks??candidate.startTimeTicks,threadStartTimeTicks:candidate.threadStartTimeTicks??candidate.startTimeTicks,pidNamespace:candidate.pidNamespace??null,namespaceIndex},counterAvailable:candidate.available===true,counterUnavailableReason:candidate.available===false?candidate.reason??'counter-unavailable':null};
+  }
+  if(valid.length>1)return unavailable('multiple-unresolved-candidates');
+  if(pairMatches.length)return unavailable(pairMatches.some(candidate=>candidate.threadName!=='CrRendererMain')?'thread-name-mismatch':pairMatches.some(candidate=>!stableProcessStart(candidate)||!stableThreadStart(candidate))?'process-or-thread-identity-changed':'process-start-identity-unavailable');
+  if(pidMatches.length)return unavailable('thread-not-visible');
+  if(rootPidNamespace&&processes.some(process=>process.pidNamespace&&process.pidNamespace!==rootPidNamespace))return unavailable('pid-namespace-mismatch');
+  return unavailable(processes.length?'process-not-visible':'renderer-process-not-visible');
 }
 
 export async function findRendererMainThreads(rootPid){
-  const tree=await readProcessTree(Number(rootPid)),renderers=tree.processes.filter(process=>process.processType==='renderer'),candidates=renderers.length?renderers:tree.processes,targets=[];
-  for(const renderer of candidates){
-    let tids=[];try{tids=await readdir(`/proc/${renderer.pid}/task`);}catch{continue;}
-    for(const tidText of tids){const tid=Number(tidText);if(!Number.isInteger(tid))continue;let name;try{name=(await readFile(`/proc/${renderer.pid}/task/${tid}/comm`,'utf8')).trim();}catch{continue;}if(name==='CrRendererMain'){const counters=await readThreadCounter(renderer.pid,tid);targets.push({pid:renderer.pid,tid,processType:renderer.processType,processName:renderer.comm,commandLine:renderer.cmdline,threadName:name,...(counters??{})});}}
+  const tree=await readProcessTree(Number(rootPid)),enumerated=await enumerateRendererProcesses(tree.processes),renderers=enumerated.processes,targets=[],readErrors=[];
+  for(const renderer of renderers){
+    let tids=[];try{tids=await readdir(`/proc/${renderer.pid}/task`);}catch(error){readErrors.push({pid:renderer.pid,reason:error.code==='EACCES'?'permission-denied':'process-not-visible',errorCode:error.code??null});continue;}
+    await Promise.all(tids.map(async tidText=>{
+      const tid=Number(tidText);if(!Number.isSafeInteger(tid))return;
+      let threadName='';try{threadName=(await readFile(`/proc/${renderer.pid}/task/${tid}/comm`,'utf8')).trim();}catch(error){readErrors.push({pid:renderer.pid,tid,reason:error.code==='EACCES'?'permission-denied':'thread-not-visible',errorCode:error.code??null});return;}
+      if(threadName!=='CrRendererMain')return;
+      const counter=await readThreadCounter(renderer.pid,tid);
+      targets.push({pid:renderer.pid,tid,processType:renderer.processType,processName:renderer.comm,commandLine:renderer.cmdline,processStartTimeTicks:renderer.startTimeTicks,processNamespaceIds:renderer.namespaceIds,threadNamespaceIds:counter.namespaceIds??null,pidNamespace:renderer.pidNamespace,threadName,candidateSource:threadName==='CrRendererMain'?'proc-thread-name':'renderer-process-leader',...counter});
+    }));
   }
-  return{available:targets.length>0,rootPid:Number(rootPid),targets,reason:targets.length?'':tree.processes.length?'renderer-main-thread-not-visible':'renderer-process-not-visible',processTypeFiltered:renderers.length>0,processCount:tree.processes.length};
+  const rendererMainCandidates=targets.filter(target=>target.threadName==='CrRendererMain');
+  const rootProcess=tree.processes.find(process=>process.pid===Number(rootPid));
+  const discoveryErrors=[...readErrors,...(enumerated.errors??[])],reason=targets.length?null:discoveryErrors.some(item=>item.reason==='permission-denied')||enumerated.error==='permission-denied'?'permission-denied':renderers.length?'thread-not-visible':tree.processes.length?'renderer-process-not-visible':enumerated.error??'process-not-visible';
+  return{available:targets.length>0,status:targets.length?'RENDERER_THREAD_CANDIDATES_DISCOVERED':'RENDERER_THREAD_UNAVAILABLE',rootPid:Number(rootPid),rootPidNamespace:rootProcess?.pidNamespace??null,targets,rendererProcesses:renderers,rendererMainCandidateCount:rendererMainCandidates.length,reason,discoverySources:{processTreeCount:tree.processes.length,treeRendererCount:tree.processes.filter(process=>process.processType==='renderer').length,procRendererCount:renderers.length,treeFallbackUsed:renderers.some(process=>!tree.processes.some(row=>row.pid===process.pid))},processCount:tree.processes.length,readErrors:discoveryErrors};
 }
 
 export async function startRendererSchedulerSampler(rootPid,{intervalMs=2,processIntervalMs=20}={}){
   const discovery=await findRendererMainThreads(rootPid);
-  if(!discovery.available)return{available:false,discovery,samples:[],stop:async()=>({available:false,discovery,samples:[],sampleIntervalMs:intervalMs})};
-  const targets=discovery.targets.map(({pid,tid})=>({pid,tid})),processTargets=[...new Set(targets.map(target=>target.pid))],samples=[];let inFlight=null,lastProcessSampleHrtimeNs=0n;
+  if(!discovery.available)return{available:false,status:'RENDERER_THREAD_UNAVAILABLE',reason:discovery.reason,discovery,samples:[],stop:async()=>({available:false,status:'RENDERER_THREAD_UNAVAILABLE',reason:discovery.reason,discovery,samples:[],sampleIntervalMs:intervalMs})};
+  const targets=discovery.targets.map(target=>({...target})),processTargets=[...new Set(targets.map(target=>target.pid))],samples=[];let inFlight=null,lastProcessSampleHrtimeNs=0n;
   const take=({forceProcesses=false}={})=>{
     if(inFlight)return inFlight;
     inFlight=(async()=>{
@@ -94,52 +156,65 @@ export async function startRendererSchedulerSampler(rootPid,{intervalMs=2,proces
       const [rows,processes]=await Promise.all([Promise.all(targets.map(({pid,tid})=>readThreadCounter(pid,tid))),processDue?Promise.all(processTargets.map(readProcessCpuCounter)):Promise.resolve([])]);
       if(processDue)lastProcessSampleHrtimeNs=readStart;
       const readEndHrtimeNs=process.hrtime.bigint().toString();
-      samples.push({readStartHrtimeNs,readEndHrtimeNs,threads:rows.filter(Boolean),processes:processes.filter(Boolean),processCpuSampleTaken:processDue});
+      samples.push({readStartHrtimeNs,readEndHrtimeNs,readDurationMs:Number(readEndHrtimeNs-readStartHrtimeNs)/1e6,threads:rows.map((row,index)=>({...targets[index],...row,expectedThreadStartTimeTicks:targets[index].startTimeTicks,expectedProcessStartTimeTicks:targets[index].processStartTimeTicks})),processes:processes.filter(Boolean),processCpuSampleTaken:processDue});
     })().finally(()=>{inFlight=null;});
     return inFlight;
   };
   await take({forceProcesses:true});
   const timer=setInterval(()=>{void take();},Math.max(1,intervalMs));timer.unref?.();
   return{
-    available:true,discovery,
+    available:true,status:'RENDERER_THREAD_CANDIDATES_DISCOVERED',discovery,
     stop:async()=>{
       clearInterval(timer);await inFlight;await take({forceProcesses:true});
       const readCostsMs=samples.map(sample=>(Number(sample.readEndHrtimeNs)-Number(sample.readStartHrtimeNs))/1e6);
-      return{available:true,discovery,sampleIntervalMs:intervalMs,processSampleIntervalMs:processIntervalMs,processSampleCount:samples.filter(sample=>sample.processCpuSampleTaken).length,sampleCount:samples.length,meanReadCostMs:readCostsMs.length?readCostsMs.reduce((sum,value)=>sum+value,0)/readCostsMs.length:null,maxReadCostMs:readCostsMs.length?Math.max(...readCostsMs):null,samples};
+      const actualSampleIntervalsMs=samples.slice(1).map((sample,index)=>(Number(BigInt(sample.readStartHrtimeNs)-BigInt(samples[index].readStartHrtimeNs))/1e6)),sortedIntervals=[...actualSampleIntervalsMs].sort((a,b)=>a-b);
+      return{available:true,status:'RENDERER_THREAD_CANDIDATES_DISCOVERED',discovery,requestedSampleIntervalMs:intervalMs,sampleIntervalMs:intervalMs,actualSampleIntervalsMs,medianObservedSampleIntervalMs:sortedIntervals.length?sortedIntervals[Math.floor(sortedIntervals.length/2)]:null,maxObservedSampleIntervalMs:actualSampleIntervalsMs.length?Math.max(...actualSampleIntervalsMs):null,processSampleIntervalMs:processIntervalMs,processSampleCount:samples.filter(sample=>sample.processCpuSampleTaken).length,sampleCount:samples.length,meanReadCostMs:readCostsMs.length?readCostsMs.reduce((sum,value)=>sum+value,0)/readCostsMs.length:null,maxReadCostMs:readCostsMs.length?Math.max(...readCostsMs):null,samples};
     }
   };
 }
 
-export function summarizeSchedulerSamples(samples,clockMapping,stepWindowsMs){
+export function summarizeSchedulerSamples(samples,clockMapping,stepWindowsMs,{targetIdentity=null,requireTargetIdentity=false}={}){
   const map=clockMapping?.available?(value=>clockMapping.slope*value+clockMapping.offset):null,clockMappingUncertaintyMs=clockMapping?.available&&Number.isFinite(clockMapping.uncertaintyMs)?clockMapping.uncertaintyMs:null;
   const rows=(samples??[]).flatMap(sample=>{
     const start=Number(sample.readStartHrtimeNs)/1e6,end=Number(sample.readEndHrtimeNs)/1e6;
     if(!Number.isFinite(start)||!Number.isFinite(end))return[];
     const at=map?(map(start)+map(end))/2:null;
-    return(sample.threads??[]).map(thread=>({pid:thread.pid,tid:thread.tid,threadName:thread.threadName,state:thread.state,atBrowserPerformanceNowMs:at,readStartHrtimeMs:start,readEndHrtimeMs:end,runTimeNs:thread.runTimeNs,runQueueWaitNs:thread.runQueueWaitNs,timeslices:thread.timeslices,cpuMs:thread.cpuMs,voluntaryContextSwitches:thread.voluntaryContextSwitches,involuntaryContextSwitches:thread.involuntaryContextSwitches}));
-  }).filter(row=>Number.isFinite(row.atBrowserPerformanceNowMs)).sort((a,b)=>a.atBrowserPerformanceNowMs-b.atBrowserPerformanceNowMs);
+    return(sample.threads??[]).map(thread=>{
+      const expectedProcessStartTimeTicks=thread.expectedProcessStartTimeTicks??thread.processStartTimeTicks??null,expectedThreadStartTimeTicks=thread.expectedThreadStartTimeTicks??null,processStartTimeTicks=thread.liveProcessStartTimeTicks??thread.processStartTimeTicks??thread.startTimeTicks,processIdentityStable=expectedProcessStartTimeTicks==null||processStartTimeTicks===expectedProcessStartTimeTicks,threadIdentityStable=expectedThreadStartTimeTicks==null||thread.startTimeTicks===expectedThreadStartTimeTicks;
+      return{pid:thread.pid,tid:thread.tid,threadName:thread.threadName,processType:thread.processType,processStartTimeTicks,threadStartTimeTicks:thread.startTimeTicks,expectedProcessStartTimeTicks,expectedThreadStartTimeTicks,state:thread.state,available:thread.available===true&&processIdentityStable&&threadIdentityStable,unavailableReason:thread.reason??(!processIdentityStable||!threadIdentityStable?'process-or-thread-identity-changed':null),atBrowserPerformanceNowMs:at,readStartHrtimeMs:start,readEndHrtimeMs:end,readDurationMs:sample.readDurationMs??end-start,runTimeNs:thread.runTimeNs,runQueueWaitNs:thread.runQueueWaitNs,timeslices:thread.timeslices,cpuMs:thread.cpuMs,userTicks:thread.userTicks,systemTicks:thread.systemTicks,startTimeTicks:thread.startTimeTicks,voluntaryContextSwitches:thread.voluntaryContextSwitches,involuntaryContextSwitches:thread.involuntaryContextSwitches,namespaceIds:thread.namespaceIds,processNamespaceIds:thread.processNamespaceIds,threadNamespaceIds:thread.threadNamespaceIds,pidNamespace:thread.pidNamespace,commandLine:thread.commandLine};
+    });
+  }).sort((a,b)=>(a.atBrowserPerformanceNowMs??0)-(b.atBrowserPerformanceNowMs??0));
   const processRows=(samples??[]).flatMap(sample=>{
     const start=Number(sample.readStartHrtimeNs)/1e6,end=Number(sample.readEndHrtimeNs)/1e6;
     if(!Number.isFinite(start)||!Number.isFinite(end))return[];
     const at=map?(map(start)+map(end))/2:null;
     return(sample.processes??[]).map(process=>({pid:process.pid,state:process.state,cpuMs:process.cpuMs,threadCount:process.threadCount,threadIds:process.threadIds,available:process.available,atBrowserPerformanceNowMs:at}));
   }).filter(row=>Number.isFinite(row.atBrowserPerformanceNowMs)).sort((a,b)=>a.atBrowserPerformanceNowMs-b.atBrowserPerformanceNowMs);
-  const target=rows[0],perStep=(stepWindowsMs??[]).map(([startMs,endMs],stepIndex)=>{
-    if(!target||!Number.isFinite(startMs)||!Number.isFinite(endMs)||endMs<=startMs)return{stepIndex,available:false,reason:'invalid-clock-or-thread'};
-    const margin=clockMappingUncertaintyMs??Infinity,matching=rows.filter(row=>row.pid===target.pid&&row.tid===target.tid),inside=matching.filter(row=>row.atBrowserPerformanceNowMs>=startMs+margin&&row.atBrowserPerformanceNowMs<=endMs-margin),runtimeDeltas=[],waitDeltas=[],switches=[];
+  const candidateMap=new Map(rows.map(row=>[`${row.pid}:${row.tid}`,row])),candidates=[...candidateMap.values()].map(row=>({pid:row.pid,tid:row.tid,threadName:row.threadName,processType:row.processType,processStartTimeTicks:row.processStartTimeTicks,threadStartTimeTicks:row.threadStartTimeTicks,expectedProcessStartTimeTicks:row.expectedProcessStartTimeTicks,expectedThreadStartTimeTicks:row.expectedThreadStartTimeTicks,available:row.available,reason:row.unavailableReason,namespaceIds:row.namespaceIds,processNamespaceIds:row.processNamespaceIds,threadNamespaceIds:row.threadNamespaceIds,pidNamespace:row.pidNamespace,commandLine:row.commandLine}));
+  let resolvedIdentity=null,identityResolution=null;
+  if(targetIdentity){identityResolution=resolveRendererThreadIdentity({traceIdentity:targetIdentity,linuxCandidates:candidates,linuxProcesses:candidates});if(identityResolution.status==='RENDERER_THREAD_RESOLVED')resolvedIdentity=identityResolution.linuxIdentity;}
+  else if(!requireTargetIdentity&&candidates.length===1&&candidates[0].threadName==='CrRendererMain'&&candidates[0].processType==='renderer'&&Number.isSafeInteger(candidates[0].processStartTimeTicks)){resolvedIdentity=candidates[0];identityResolution={status:'RENDERER_THREAD_RESOLVED',reason:null,matchMethod:'single-proc-renderer-main-candidate',linuxIdentity:resolvedIdentity};}
+  else identityResolution={status:'RENDERER_THREAD_UNAVAILABLE',reason:requireTargetIdentity?'trace-renderer-identity-unavailable':candidates.length===0?'renderer-thread-not-sampled':'multiple-unresolved-candidates',linuxCandidateCount:candidates.length};
+  const target=resolvedIdentity,perStep=(stepWindowsMs??[]).map(([startMs,endMs],stepIndex)=>{
+    if(!Number.isFinite(startMs)||!Number.isFinite(endMs)||endMs<=startMs)return{stepIndex,available:false,reason:'invalid-step-window'};
+    if(!clockMapping?.available)return{stepIndex,available:false,reason:'clock-mapping-unavailable',rendererIdentity:identityResolution};
+    if(!target)return{stepIndex,available:false,reason:identityResolution.reason,rendererIdentity:identityResolution};
+    const margin=clockMappingUncertaintyMs??Infinity,matching=rows.filter(row=>row.pid===target.pid&&row.tid===target.tid),inside=matching.filter(row=>row.available&&row.atBrowserPerformanceNowMs>=startMs+margin&&row.atBrowserPerformanceNowMs<=endMs-margin),runtimeDeltas=[],switches=[];let changedThreadIdentity=false;
     for(let index=1;index<inside.length;index++){
       const before=inside[index-1],after=inside[index],spanMs=after.atBrowserPerformanceNowMs-before.atBrowserPerformanceNowMs;
       if(!(spanMs>0))continue;
-      const runtimeMs=(after.runTimeNs-before.runTimeNs)/1e6,waitMs=(after.runQueueWaitNs-before.runQueueWaitNs)/1e6;
-      if(runtimeMs>=0&&waitMs>=0){runtimeDeltas.push({runtimeMs,waitMs,spanMs});switches.push({voluntary:after.voluntaryContextSwitches-before.voluntaryContextSwitches,involuntary:after.involuntaryContextSwitches-before.involuntaryContextSwitches});}
+      const runtimeMs=(after.runTimeNs-before.runTimeNs)/1e6,waitMs=(after.runQueueWaitNs-before.runQueueWaitNs)/1e6,stableStart=before.startTimeTicks===after.startTimeTicks;
+      if(!stableStart||before.processStartTimeTicks!==before.expectedProcessStartTimeTicks||after.processStartTimeTicks!==after.expectedProcessStartTimeTicks||before.startTimeTicks!==before.expectedThreadStartTimeTicks||after.startTimeTicks!==after.expectedThreadStartTimeTicks){changedThreadIdentity=true;continue;}
+      if(runtimeMs>=0&&waitMs>=0){runtimeDeltas.push({runtimeMs,waitMs,userCpuMs:Number.isFinite(after.userTicks)&&Number.isFinite(before.userTicks)?(after.userTicks-before.userTicks)*PROC_CPU_COUNTER_RESOLUTION_MS:null,systemCpuMs:Number.isFinite(after.systemTicks)&&Number.isFinite(before.systemTicks)?(after.systemTicks-before.systemTicks)*PROC_CPU_COUNTER_RESOLUTION_MS:null,timeslices:after.timeslices-before.timeslices,spanMs});switches.push({voluntary:after.voluntaryContextSwitches-before.voluntaryContextSwitches,involuntary:after.involuntaryContextSwitches-before.involuntaryContextSwitches});}
     }
     const runtimeMs=runtimeDeltas.reduce((sum,row)=>sum+row.runtimeMs,0),waitMs=runtimeDeltas.reduce((sum,row)=>sum+row.waitMs,0),coverageMs=runtimeDeltas.reduce((sum,row)=>sum+row.spanMs,0),wallMs=endMs-startMs;
     const processSamples=processRows.filter(row=>row.pid===target.pid&&row.atBrowserPerformanceNowMs>=startMs+margin&&row.atBrowserPerformanceNowMs<=endMs-margin),processDeltas=[];
     for(let index=1;index<processSamples.length;index++){const before=processSamples[index-1],after=processSamples[index],spanMs=after.atBrowserPerformanceNowMs-before.atBrowserPerformanceNowMs,deltaMs=Number.isFinite(before.cpuMs)&&Number.isFinite(after.cpuMs)?after.cpuMs-before.cpuMs:null,threadSetStable=Array.isArray(before.threadIds)&&Array.isArray(after.threadIds)?before.threadIds.length===after.threadIds.length&&before.threadIds.every((tid,tidIndex)=>tid===after.threadIds[tidIndex]):before.threadCount===after.threadCount;if(spanMs>0&&deltaMs!==null&&deltaMs>=0&&threadSetStable)processDeltas.push({deltaMs,spanMs});}
     const processCpuDeltaMs=processDeltas.reduce((sum,row)=>sum+row.deltaMs,0),processCoverageMs=processDeltas.reduce((sum,row)=>sum+row.spanMs,0),processCounterAdequate=processCoverageMs>=wallMs*.5&&wallMs>=PROC_CPU_COUNTER_RESOLUTION_MS*2&&processCpuDeltaMs>=PROC_CPU_COUNTER_RESOLUTION_MS;
-    return{stepIndex,available:runtimeDeltas.length>0,pid:target.pid,tid:target.tid,threadName:target.threadName,state:inside.at(-1)?.state??null,runtimeMs,runQueueWaitMs:waitMs,contextSwitches:{voluntary:switches.reduce((sum,row)=>sum+row.voluntary,0),involuntary:switches.reduce((sum,row)=>sum+row.involuntary,0)},sampleCoverageMs:coverageMs,coverageRatio:Math.min(1,coverageMs/wallMs),samplePairCount:runtimeDeltas.length,clockMappingUncertaintyMs,adequate:coverageMs>=wallMs*.5,rendererProcessCpuMs:processCounterAdequate?processCpuDeltaMs:null,rendererProcessCpuObservedDeltaMs:processDeltas.length?processCpuDeltaMs:null,rendererProcessCpuCounterResolutionMs:PROC_CPU_COUNTER_RESOLUTION_MS,rendererProcessCpuCounterAdequate:processCounterAdequate,rendererProcessCpuSamplePairCount:processDeltas.length,rendererProcessCpuSampleCoverageMs:processCoverageMs};
+    const counterAvailable=runtimeDeltas.length>0,coverageAdequate=coverageMs>=wallMs*.5,perStepAvailable=counterAvailable&&coverageAdequate,counterUnavailableReason=counterAvailable&&!coverageAdequate?'counter-coverage-insufficient':counterAvailable?null:matching.find(row=>!row.available)?.unavailableReason??'counter-coverage-insufficient';
+    return{stepIndex,available:perStepAvailable,counterAvailable,reason:counterUnavailableReason,pid:target.pid,tid:target.tid,threadName:target.threadName,state:inside.at(-1)?.state??null,runtimeMs:perStepAvailable?runtimeMs:null,runQueueWaitMs:perStepAvailable?waitMs:null,cpuToWallRatio:perStepAvailable?runtimeMs/wallMs:null,observedRuntimeDeltaMs:counterAvailable?runtimeMs:null,observedRunQueueWaitDeltaMs:counterAvailable?waitMs:null,userCpuMs:perStepAvailable&&runtimeDeltas.every(row=>row.userCpuMs!==null)?runtimeDeltas.reduce((sum,row)=>sum+row.userCpuMs,0):null,systemCpuMs:perStepAvailable&&runtimeDeltas.every(row=>row.systemCpuMs!==null)?runtimeDeltas.reduce((sum,row)=>sum+row.systemCpuMs,0):null,timeslices:perStepAvailable?runtimeDeltas.reduce((sum,row)=>sum+row.timeslices,0):null,contextSwitches:perStepAvailable?{voluntary:switches.reduce((sum,row)=>sum+row.voluntary,0),involuntary:switches.reduce((sum,row)=>sum+row.involuntary,0)}:null,sampleCoverageMs:coverageMs,coverageRatio:Math.min(1,coverageMs/wallMs),samplePairCount:runtimeDeltas.length,clockMappingUncertaintyMs,adequate:coverageAdequate,pidReuseObserved:changedThreadIdentity,counterCoverage:{sampleCount:inside.length,pairCount:runtimeDeltas.length,coverageMs:coverageMs,coverageRatio:Math.min(1,coverageMs/wallMs),clockUncertaintyMs:clockMappingUncertaintyMs,maxReadCostMs:inside.length?Math.max(...inside.map(row=>row.readDurationMs??0)):null},rendererProcessCpuMs:processCounterAdequate?processCpuDeltaMs:null,rendererProcessCpuObservedDeltaMs:processDeltas.length?processCpuDeltaMs:null,rendererProcessCpuCounterResolutionMs:PROC_CPU_COUNTER_RESOLUTION_MS,rendererProcessCpuCounterAdequate:processCounterAdequate,rendererProcessCpuSamplePairCount:processDeltas.length,rendererProcessCpuSampleCoverageMs:processCoverageMs};
   });
-  return{available:rows.length>0,clockMappingAvailable:!!map,clockMappingUncertaintyMs,sampleCount:rows.length,perStep};
+  return{available:perStep.some(row=>row.available),counterAvailable:perStep.some(row=>row.available),identityResolved:!!target,status:target?'RENDERER_THREAD_RESOLVED':'RENDERER_THREAD_UNAVAILABLE',reason:target?null:identityResolution.reason,identityResolution,clockMappingAvailable:!!map,clockMappingUncertaintyMs,sampleCount:rows.length,threadCandidateCount:candidates.length,perStep};
 }
 
 async function readText(path){try{return await readFile(path,'utf8');}catch{return null;}}
