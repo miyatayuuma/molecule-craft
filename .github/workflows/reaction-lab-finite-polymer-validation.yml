@@ -299,7 +299,7 @@ jobs:
           retention-days: 90
   c7-diagnostic-gates:
     # Synchronize runs deterministic tests only. Campaigns still require exact-head explicit opt-in.
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event.action == 'synchronize' || (github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && github.event.pull_request.title == format('[TASK12C7-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title)) }}
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event.action == 'synchronize' || (github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && (github.event.pull_request.title == format('[TASK12C7-RUN] {0}', github.event.pull_request.head.sha) || github.event.pull_request.title == format('[TASK12C8-RUN] {0}', github.event.pull_request.head.sha)) && github.event.changes.title.from != github.event.pull_request.title)) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -312,7 +312,7 @@ jobs:
       - name: All deterministic C7 integration gates
         run: |
           mkdir -p test-results/c7-gates
-          node --test tests/chromium-renderer-authority.test.mjs tests/c7-diagnostic-integration.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs > test-results/c7-gates/deterministic.tap 2>&1
+          node --test tests/chromium-renderer-authority.test.mjs tests/c7-diagnostic-integration.test.mjs tests/c8-finite-attribution.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs > test-results/c7-gates/deterministic.tap 2>&1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -405,5 +405,40 @@ jobs:
         with:
           name: c7-finite-desktop-reduced-diagnostic
           path: ${{ runner.temp }}/c7-finite
+          if-no-files-found: error
+          retention-days: 90
+
+  c8-finite-diagnostic:
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && github.event.pull_request.title == format('[TASK12C8-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title }}
+    needs: c7-diagnostic-gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: One desktop real-RAF reduced-motion diagnostic
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_DESKTOP: '1'
+          POLYMER_PAUSE_DIAGNOSTIC: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/c8-finite
+        run: |
+          test "$(git rev-parse HEAD)" = "$POLYMER_SOURCE_SHA"
+          mkdir -p "$POLYMER_EVIDENCE_DIR"
+          node tests/reaction-lab-polymer-browser.test.mjs > "$POLYMER_EVIDENCE_DIR/finite.log" 2>&1
+      - name: Offline CPU wall and GPU evidence reconciliation
+        if: always()
+        run: |
+          node scripts/analyze-c7-finite-evidence.mjs "${{ runner.temp }}/c8-finite/finite-pause-diagnostic-1280.json" "${{ runner.temp }}/c8-finite/finite-pause-trace-1280.json" "${{ runner.temp }}/c8-finite/c8-analysis.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c8-finite-desktop-reduced-diagnostic
+          path: ${{ runner.temp }}/c8-finite
           if-no-files-found: error
           retention-days: 90

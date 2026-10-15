@@ -53,7 +53,7 @@ test('normal Finite finalization saves a complete report and does not fabricate 
 test('partial failure records a second clock marker before finalizing trace and scheduler',async()=>{
   const directory=await mkdtemp(join(tmpdir(),'finite-partial-clock-')),calls=[];
   const trace={capabilities:{usableTrace:false},traceEvents:[]},recorder={started:true,mark:async id=>calls.push(id),stop:async()=>{calls.push('stop');return trace;}};
-  try{await finalizeFinitePauseDiagnostic({traceRecorder:recorder,evaluate:async()=>{calls.push('page');return{};},artifactDir:directory,assertionFailure:Error('fail')});assert.deepEqual(calls,['partial-finalization','page','stop']);}finally{await rm(directory,{recursive:true,force:true});}
+  try{await finalizeFinitePauseDiagnostic({traceRecorder:recorder,evaluate:async()=>{calls.push('page');return{};},artifactDir:directory,assertionFailure:Error('fail')});assert.deepEqual(calls,['partial-finalization','page','before-trace-end','stop']);}finally{await rm(directory,{recursive:true,force:true});}
 });
 
 test('deferred graph validates the restored open Lab without relabeling it as a registration snapshot',async()=>{

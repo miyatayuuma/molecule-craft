@@ -57,18 +57,43 @@ export async function finalizeFinitePauseDiagnostic({traceRecorder,schedulerSamp
     pageEvidence=await evaluate(`(()=>{
       const registrations=window.__polymerSampleEvents??[],presentEvents=window.__polymerPresentEvents??[],dismissEvents=window.__polymerDismissEvents??[],registration=registrations.at(-1)??null,sampleId=registration?.detail?.sampleId??null;
       let frameProfile=null;try{if(sampleId&&window.__polymerFrameProbe)frameProfile=window.__polymerFrameProbe.summary(sampleId,true,window.__reactionLabProbe?.polymerCompletionTiming?.().durationMs??null);}catch(error){frameProfile={available:false,error:String(error?.message??error)};}
-      return{url:location.href,visibilityState:document.visibilityState,hidden:document.hidden,focused:document.hasFocus(),completionTimer:window.__reactionLabProbe?.polymerCompletionTiming?.()??null,registrationEvents:registrations,presentEvents,dismissEvents,frameProfile,performanceMarks:performance.getEntriesByType('mark').slice(-400).map(entry=>({name:entry.name,startTime:entry.startTime,duration:entry.duration})),longTasks:frameProfile?.lifecycle?.eventLoopProbe?.longTasks??[]};
+      return{url:location.href,visibilityState:document.visibilityState,hidden:document.hidden,focused:document.hasFocus(),completionTimer:window.__reactionLabProbe?.polymerCompletionTiming?.()??null,registrationEvents:registrations,presentEvents,dismissEvents,frameProfile,performanceMarks:performance.getEntriesByType('mark').slice(-400).map(entry=>({name:entry.name,startTime:entry.startTime,duration:entry.duration})),longTasks:frameProfile?.lifecycle?.eventLoopProbe?.longTasks??[],resizeProbes:window.__finiteResizeProbes??null};
     })()`);
   }catch(error){pageEvidence={available:false,error:error.message};errors.push(`page-evidence:${error.message}`);}
   if(!scheduler&&schedulerSampler){try{scheduler=await schedulerSampler.stop();}catch(error){errors.push(`scheduler-stop:${error.message}`);scheduler={available:false,error:error.message};}}
-  if(traceRecorder?.started){try{trace=await traceRecorder.stop();}catch(error){errors.push(`trace-stop:${error.message}`);}}
+  if(traceRecorder?.started){try{if(traceRecorder.mark)await traceRecorder.mark('before-trace-end');trace=await traceRecorder.stop();}catch(error){errors.push(`trace-stop:${error.message}`);}}
   else if(traceRecorder?.finalized)trace=traceRecorder.finalTrace;
   let traceArtifact=null;
   if(trace?.capabilities?.usableTrace===true){
     try{traceArtifact=join(artifactDir,traceFileName);await traceRecorder.writeRaw(traceArtifact);}catch(error){errors.push(`trace-write:${error.message}`);traceArtifact=null;}
   }
   const events=Array.isArray(trace?.traceEvents)?trace.traceEvents:[],traceEventTimeline=events.filter(event=>/clock_sync|user_timing|run.?task|functioncall|evaluate.?script|gc|garbage|compile|task/i.test(`${event.name??''} ${event.cat??''}`)).slice(0,2000).map(event=>({name:event.name??null,category:event.cat??null,phase:event.ph??null,pid:Number.isSafeInteger(event.pid)?event.pid:null,tid:Number.isSafeInteger(event.tid)?event.tid:null,timestampUs:Number.isFinite(event.ts)?event.ts:null,durationUs:Number.isFinite(event.dur)?event.dur:null,args:event.args?.data??event.args?.beginData??null}));
-  const report={schemaVersion:2,sourceSha,browser,viewport,classification:'DIAGNOSTIC_ONLY',status:assertionFailure||errors.length?'PARTIAL_FINALIZATION':'FINALIZED',assertionFailure:assertionFailure?{name:assertionFailure.name??'Error',message:assertionFailure.message??String(assertionFailure),stack:assertionFailure.stack??null}:null,finalizationErrors:errors,pageEvidence,rendererIdentityBootstrap,traceAttempted:!!(traceRecorder?.started||traceRecorder?.finalized),traceCapability:trace?.capabilities??traceRecorder?.capabilitySnapshot?.()??null,traceCategoryProbe:trace?.categoryProbe??null,traceClock:trace?.clock??null,traceArtifact,traceRawArtifactAvailable:!!traceArtifact,traceEventCount:trace?.eventCount??events.length,traceEventTimeline,rendererIdentityEvidence:trace?.threadMetadata??[],scheduler,schedulerRawSamples:scheduler?.samples??[],capturedAt:new Date().toISOString()};
+  const report={schemaVersion:2,sourceSha,browser,viewport,classification:'DIAGNOSTIC_ONLY',status:assertionFailure||errors.length?'PARTIAL_FINALIZATION':'FINALIZED',assertionFailure:assertionFailure?{name:assertionFailure.name??'Error',message:assertionFailure.message??String(assertionFailure),stack:assertionFailure.stack??null}:null,finalizationErrors:errors,pageEvidence,rendererIdentityBootstrap,traceAttempted:!!(traceRecorder?.started||traceRecorder?.finalized),traceCapability:trace?.capabilities??traceRecorder?.capabilitySnapshot?.()??null,traceCategoryProbe:trace?.categoryProbe??null,traceClock:trace?.clock??null,traceDataLoss:trace?.dataLossOccurred??null,traceArtifact,traceRawArtifactAvailable:!!traceArtifact,traceEventCount:trace?.eventCount??events.length,traceEventTimeline,rendererIdentityEvidence:trace?.threadMetadata??[],scheduler,schedulerRawSamples:scheduler?.samples??[],capturedAt:new Date().toISOString()};
   await mkdir(artifactDir,{recursive:true});const diagnosticArtifact=join(artifactDir,diagnosticFileName);await writeFile(diagnosticArtifact,JSON.stringify(report,null,2));
   return{...report,diagnosticArtifact};
+}
+
+// Installed only by the diagnostic harness, after reload. Preserve calls, arguments,
+// receivers and return/throw behavior; never issue WebGL queries or force a layout.
+export function installFiniteResizeProbes(){
+  if(window.__finiteResizeProbes)return;
+  const records=[],restore=[];window.__finiteResizeProbes=records;window.__restoreFiniteResizeProbes=()=>{for(const fn of restore)fn();};
+  const observe=(label,invoke,receiver,args)=>{
+    const startMs=performance.now();
+    try{return Reflect.apply(invoke,receiver,args);}finally{
+      if(records.length<10000)records.push({label,startMs,endMs:performance.now(),args:args.filter(value=>typeof value==='number')});
+    }
+  };
+  const canvasProto=HTMLCanvasElement.prototype;
+  for(const key of ['width','height']){
+    const descriptor=Object.getOwnPropertyDescriptor(canvasProto,key);
+    restore.push(()=>Object.defineProperty(canvasProto,key,descriptor));
+    Object.defineProperty(canvasProto,key,{...descriptor,set:function(value){return observe(`canvas.${key}=`,descriptor.set,this,[value]);}});
+  }
+  const rect=Element.prototype.getBoundingClientRect;
+  restore.push(()=>{Element.prototype.getBoundingClientRect=rect;});
+  Element.prototype.getBoundingClientRect=function(...args){return this instanceof HTMLCanvasElement?observe('canvas.getBoundingClientRect',rect,this,args):Reflect.apply(rect,this,args);};
+  for(const proto of [window.WebGLRenderingContext?.prototype,window.WebGL2RenderingContext?.prototype].filter(Boolean)){
+    const viewport=proto.viewport,descriptor=Object.getOwnPropertyDescriptor(proto,'viewport');restore.push(()=>{if(descriptor)Object.defineProperty(proto,'viewport',descriptor);else delete proto.viewport;});proto.viewport=function(...args){return observe('WebGL.viewport',viewport,this,args);};
+  }
 }
