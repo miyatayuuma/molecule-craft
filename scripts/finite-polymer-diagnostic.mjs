@@ -97,3 +97,11 @@ export function installFiniteResizeProbes(){
     const viewport=proto.viewport,descriptor=Object.getOwnPropertyDescriptor(proto,'viewport');restore.push(()=>{if(descriptor)Object.defineProperty(proto,'viewport',descriptor);else delete proto.viewport;});proto.viewport=function(...args){return observe('WebGL.viewport',viewport,this,args);};
   }
 }
+
+export async function restoreFiniteDiagnosticLab({graphState,evaluate,waitFor,snapshot}){
+  if(graphState.dialogOpen)return graphState;
+  const returnClicked=await evaluate(`(()=>{const collection=document.querySelector('#collection-dialog'),button=document.querySelector('#collection-detail [data-discovery-session-action]');if(!collection?.open||!button)return false;button.click();return true;})()`);
+  if(!returnClicked)throw Error('diagnostic Lab restore unavailable: no active discovery return action');
+  await waitFor("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('#collection-dialog').open",'diagnostic discovery return did not restore the Lab');
+  return snapshot();
+}

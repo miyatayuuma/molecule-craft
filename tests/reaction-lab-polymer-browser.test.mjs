@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {ChromiumTraceRecorder} from '../scripts/chromium-trace-recorder.mjs';
 import {resolveRendererThreadIdentity,startRendererSchedulerSampler,summarizeSchedulerSamples} from '../scripts/stage-b-runner-telemetry.mjs';
 import {STAGE_B_TRACE_CATEGORIES,attributeSlowIntervals,mapNodeClockToBrowserViaCdpMarkers} from '../scripts/stage-b-trace-attribution.mjs';
-import {installFiniteResizeProbes,finalizeFinitePauseDiagnostic,validateDeferredFiniteGraph,validateFiniteSampleReadyLifecycle,validateFiniteSampleRegistration} from '../scripts/finite-polymer-diagnostic.mjs';
+import {restoreFiniteDiagnosticLab,installFiniteResizeProbes,finalizeFinitePauseDiagnostic,validateDeferredFiniteGraph,validateFiniteSampleReadyLifecycle,validateFiniteSampleRegistration} from '../scripts/finite-polymer-diagnostic.mjs';
 import {resolvePageRendererTraceIdentity} from '../scripts/stage-b-diagnostic-finalization.mjs';
 import {capturePageRendererIdentity,connectBrowserProcessMetadata} from '../scripts/chromium-renderer-identity.mjs';
 
@@ -527,7 +527,7 @@ try{
       const returned=await snapshot();assert.equal(returned.polymerization.sampleId,p.sampleId);assert.equal(returned.polymerization.sampleReady,true);assert.equal(returned.polymerResources.activeGroupCount,1,'returning from Collection restores one finite graph group');assert.equal(returned.polymerResources.geometryCount,returned.polymerization.displayGraph.atomCount+returned.polymerization.displayGraph.visibleBondMeshCount,'returning from Collection reconstructs exactly the finite graph resource set');graphState=returned;
       if(route.polymerId==='polyethylene')await capture('final-finite-fragment');
     }
-    if(pauseDiagnostic){const graph=await evaluate('window.__reactionLabProbe.polymerGraphEvidence()'),validation=validateDeferredFiniteGraph(graph,{sampleId:p.sampleId,dialogOpen:graphState.dialogOpen});performanceEvidence.at(-1).deferredGraphValidation=validation;assert.ok(validation.valid,`${route.routeId}: post-ready open-Lab graph: ${validation.failures.join(', ')}`);}
+    if(pauseDiagnostic){graphState=await restoreFiniteDiagnosticLab({graphState,evaluate,waitFor,snapshot});const graph=await evaluate('window.__reactionLabProbe.polymerGraphEvidence()'),validation=validateDeferredFiniteGraph(graph,{sampleId:p.sampleId,dialogOpen:graphState.dialogOpen});performanceEvidence.at(-1).deferredGraphValidation=validation;assert.ok(validation.valid,`${route.routeId}: post-ready open-Lab graph: ${validation.failures.join(', ')}`);}
     const presentedGraph=graphState.polymerization.displayGraph;
     assert.equal(graphState.dialogOpen,true,route.routeId+': completed finite presentation is inspected with the Lab open');
     assert.equal(presentedGraph.visibleAtomCount,presentedGraph.atomCount,route.routeId+': ready presentation contains every rendered atom');

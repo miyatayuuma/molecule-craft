@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
+import {fitFiniteClockBounds,projectFiniteClockBounds} from '../scripts/finite-clock-bounds.mjs';
 import {ChromiumTraceRecorder} from '../scripts/chromium-trace-recorder.mjs';
 import {analyzeFiniteEvidence,recoverFiniteClock} from '../scripts/analyze-c7-finite-evidence.mjs';
 import {summarizeSchedulerSamples} from '../scripts/stage-b-runner-telemetry.mjs';
-import {installFiniteResizeProbes} from '../scripts/finite-polymer-diagnostic.mjs';
+import {installFiniteResizeProbes,restoreFiniteDiagnosticLab} from '../scripts/finite-polymer-diagnostic.mjs';
 
 const marker=(id,at,delay=.1)=>({id,syncId:`clock-${id}`,success:true,nodeStartHrtimeMs:at-delay/2,nodeEndHrtimeMs:at+delay/2});
 const event=(id,at)=>({name:'clock_sync',ts:at*1000,args:{sync_id:`clock-${id}`}});
@@ -76,4 +77,46 @@ test('C8 exact-head campaign cannot dispatch Stage B or ordinary acceptance and 
   const workflow=readFileSync(new URL('../.github/workflows/reaction-lab-finite-polymer-validation.yml',import.meta.url),'utf8');
   const c8=workflow.split('  c8-finite-diagnostic:\n')[1];assert.match(c8,/needs: c7-diagnostic-gates/);assert.match(c8,/\[TASK12C8-RUN\]/);assert.doesNotMatch(c8.split('    steps:')[0],/synchronize/);assert.match(c8,/if: always\(\)/);assert.match(c8,/c8-analysis.json/);
   assert.doesNotMatch(workflow.split('  c7-stage-b-diagnostic:\n')[1].split('    steps:')[0],/TASK12C8-RUN/);
+});
+
+
+test('all-pair clock bounds retain broad latency brackets and bound every feasible clock in a window',()=>{
+  const pairs=[{sourceMs:0,sourceUncertaintyMs:6,targetLowMs:-.07,targetHighMs:.07},{sourceMs:18000,sourceUncertaintyMs:.85,targetLowMs:17999.93,targetHighMs:18000.07},{sourceMs:21800,sourceUncertaintyMs:8,targetLowMs:21792,targetHighMs:21808},{sourceMs:21840,sourceUncertaintyMs:.84,targetLowMs:21839.93,targetHighMs:21840.07},{sourceMs:21900,sourceUncertaintyMs:1.54,targetLowMs:21899.93,targetHighMs:21900.07}];
+  const bounds=fitFiniteClockBounds(pairs),window=projectFiniteClockBounds(bounds,20000,20600);
+  assert.equal(bounds.pairCount,5);assert.equal(window.available,true);assert.ok(window.uncertaintyMs<1);assert.equal(window.pairCount,5);
+  for(const vertex of bounds.vertices)for(const at of window.sourceWindowMs){const exact=vertex.slope*(at-bounds.referenceMs)+vertex.targetAtReferenceMs;assert.ok(Math.abs(exact-(window.slope*at+window.offset))<=window.uncertaintyMs);}
+  assert.equal(projectFiniteClockBounds(bounds,-100,100).reason,'window-not-enclosed-by-clock-pairs');
+  assert.equal(fitFiniteClockBounds(pairs.slice(0,1)).available,false);assert.equal(fitFiniteClockBounds([pairs[0],{...pairs[0],sourceMs:1}]).reason,'clock-pairs-too-close');
+  assert.equal(fitFiniteClockBounds([{sourceMs:0,sourceUncertaintyMs:0,targetLowMs:0,targetHighMs:0},{sourceMs:100,sourceUncertaintyMs:0,targetLowMs:200,targetHighMs:200}]).reason,'clock-brackets-inconsistent');
+  const wide=fitFiniteClockBounds([{sourceMs:0,sourceUncertaintyMs:10,targetLowMs:0,targetHighMs:.1},{sourceMs:100,sourceUncertaintyMs:10,targetLowMs:100,targetHighMs:100.1}]);assert.equal(projectFiniteClockBounds(wide,30,70).reason,'mapping-uncertainty-exceeds-1ms');
+});
+
+test('explicit same-thread GPU command-buffer dependency is required in addition to temporal overlap',()=>{
+  const {report,raw}=fixture();report.rendererIdentityBootstrap.identity={...identity,processAuthority:{processes:[{id:30,type:'GPU'}]}};
+  raw.traceEvents.push({name:'CommandBufferProxyImpl::WaitForGetOffset',ph:'X',pid:91,tid:92,ts:31000,dur:398000},{name:'GpuChannel::WaitForGetOffsetInRange',ph:'X',pid:91,tid:92,ts:32000,dur:396000});
+  const task=analyzeFiniteEvidence(report,raw).longTaskAttributions[0];assert.equal(task.classification,'GPU_OR_WEBGL_SYNCHRONIZATION');assert.equal(task.gpuBrowserEvidence.syncWaitMs,396);
+  raw.traceEvents.at(-1).pid=30;assert.equal(analyzeFiniteEvidence(report,raw).longTaskAttributions[0].classification,'UNATTRIBUTED','GPU-side wait alone does not prove renderer dependency');
+});
+
+test('diagnostic graph restore follows observed discovery state even for reduced-motion first discovery',async()=>{
+  const calls=[],snapshot=async()=>({dialogOpen:true,graph:'restored'}),evaluate=async expression=>{calls.push(expression);return true;},waitFor=async expression=>{calls.push(expression);};
+  assert.deepEqual(await restoreFiniteDiagnosticLab({graphState:{dialogOpen:false},evaluate,waitFor,snapshot}),{dialogOpen:true,graph:'restored'});assert.equal(calls.length,2);
+  const open={dialogOpen:true};assert.equal(await restoreFiniteDiagnosticLab({graphState:open,evaluate,waitFor,snapshot}),open);assert.equal(calls.length,2);
+  await assert.rejects(restoreFiniteDiagnosticLab({graphState:{dialogOpen:false},evaluate:async()=>false,waitFor,snapshot}),/no active discovery return action/);
+});
+
+test('recorded C8 five-pair bounds recover the resize window without dropping slow host replies',async()=>{
+  const fixture=JSON.parse(readFileSync(new URL('./fixtures/finite-diagnostics/c8-resize-clock.json',import.meta.url),'utf8'));
+  const clock=recoverFiniteClock(fixture.clockSyncEvents,{cdpMarkers:fixture.cdpMarkers},fixture.traceClockMapping),local=projectFiniteClockBounds(clock.boundedAllPairMapping,...fixture.resizeBrowserWindowMs);
+  assert.equal(clock.available,false,'historical 1.5 ms prefilter result remains explicit');assert.equal(local.available,true);assert.equal(local.pairCount,5);assert.ok(local.uncertaintyMs>.92&&local.uncertaintyMs<.93);assert.ok(local.sourceSpanMs>21000);
+  assert.equal(fixture.recordedResize.wallMs,584.888);assert.equal(fixture.explicitSyncWaits.reduce((sum,event)=>sum+event.wallMs,0),583.978);
+});
+
+test('bounded clock envelope contains independently known clocks despite asymmetric response latency',()=>{
+  for(let run=0;run<20;run++){
+    const slope=1+(run-10)*.00005,offset=1000,pairs=[0,100,200,300,400,500].map((actual,index)=>{const before=.1+((index+run)%7)*.08,after=.1+((index*3+run)%5)*.13;return{sourceMs:actual+(after-before)/2,sourceUncertaintyMs:(after+before)/2,targetLowMs:slope*actual+offset-.01,targetHighMs:slope*actual+offset+.01};});
+    const bounds=fitFiniteClockBounds(pairs),projection=projectFiniteClockBounds(bounds,slope*180+offset,slope*320+offset);
+    assert.equal(bounds.available,true);assert.equal(projection.available,true);
+    for(const at of projection.sourceWindowMs)assert.ok(Math.abs((slope*at+offset)-(projection.slope*at+projection.offset))<=projection.uncertaintyMs,'known clock must stay inside the entire reported envelope');
+  }
 });
