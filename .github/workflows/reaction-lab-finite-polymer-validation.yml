@@ -229,7 +229,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   diagnostic-preflight:
-    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && (github.event.action == 'synchronize' || github.event.action == 'edited') }}
+    if: ${{ contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
