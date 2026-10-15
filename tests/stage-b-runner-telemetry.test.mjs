@@ -28,6 +28,7 @@ test('Chromium process-type parsing supports both argv forms and keeps diagnosti
   assert.equal(gpu.processType,'gpu-process');assert.equal(gpu.processTypeReason,'process-type-not-renderer');
   const empty=parseChromiumCommandLine('','Renderer');assert.equal(empty.processType,null);assert.equal(empty.processTypeReason,'cmdline-empty');
   const malformed=parseChromiumCommandLine('/usr/bin/chrome\0--type=renderer\0--type\0','chrome');assert.equal(malformed.processType,null);assert.equal(malformed.processTypeReason,'process-type-flag-missing-value');
+  const opaque=parseChromiumCommandLine('/tmp/diagnostic-profile --type=renderer --renderer-client-id=6 --auth-token=do-not-store','chrome');assert.equal(opaque.processType,null);assert.equal(opaque.processTypeReason,'cmdline-not-argv-delimited');assert.equal(opaque.commandLine.format,'opaque-single-string');assert.equal(opaque.commandLine.executable,null);assert.equal(opaque.commandLine.processTypeFlagMarkerSeen,true);assert.equal(opaque.commandLine.rendererClientIdMarkerSeen,true);assert.equal(JSON.stringify(opaque).includes('do-not-store'),false);assert.equal(JSON.stringify(opaque).includes('/tmp/diagnostic-profile'),false);
 });
 
 test('C4 mismatch fixture separates expected trace identity from uncollected proc identity',async()=>{
