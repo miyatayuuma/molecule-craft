@@ -27,6 +27,7 @@ test('trace recorder requests explicit categories, reads a trace stream, and map
   const recorder=new ChromiumTraceRecorder({socket,send,evaluate,label:'unit'}),capability=await recorder.start();
   assert.equal(capability.categoriesAvailable,true);assert.equal(capability.available,true);assert.equal(capability.startProtocol,'traceConfig+ReturnAsStream');
   const start=await recorder.mark('start'),end=await recorder.mark('end'),trace=await recorder.stop();
+  assert.equal(await recorder.stop(),trace,'trace stop is idempotent for a finalized capture');
   assert.equal(start.cdpClockSyncMarker.success,true);assert.equal(end.cdpClockSyncMarker.success,true);
   assert.ok(seenMethods.some(item=>item.method==='Tracing.getCategories'));
   const startCall=seenMethods.find(item=>item.method==='Tracing.start');
@@ -55,6 +56,8 @@ test('trace recorder falls back to ReportEvents and retains capability failures'
   const start=await recorder.start();assert.equal(start.available,true);assert.equal(start.categoriesAvailable,false);assert.equal(start.startProtocol,'categories+ReportEvents');
   const mark=await recorder.mark('one');assert.equal(mark.cdpClockSyncMarker.success,false);
   const trace=await recorder.stop();assert.equal(trace.capabilities.categoryDiscovery,'UNAVAILABLE');assert.equal(trace.capabilities.clockSyncMarker,'UNAVAILABLE');assert.equal(trace.capabilities.traceCompletion,'AVAILABLE');assert.equal(trace.capabilities.traceStreamRead,'NOT_USED');assert.equal(trace.capabilities.usableTrace,false);assert.ok(trace.startErrors.length>=2);
+  const directory=await mkdtemp(join(tmpdir(),'molecule-craft-unavailable-trace-test-'));
+  try{await assert.rejects(()=>recorder.writeRaw(join(directory,'must-not-exist.json')),/trace is unavailable or incomplete/);assert.deepEqual(await (await import('node:fs/promises')).readdir(directory),[]);}finally{await rm(directory,{recursive:true,force:true});}
   assert.ok(seen.some(item=>item.method==='Tracing.start'&&item.params.transferMode==='ReportEvents'));
 });
 

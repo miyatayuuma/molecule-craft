@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {attributeSlowIntervals,classifyTraceCapabilities,fitClockMapping,mapNodeClockToBrowserViaCdpMarkers,mapTraceClock,STAGE_B_TRACE_CATEGORIES} from '../scripts/stage-b-trace-attribution.mjs';
-import {PROC_CPU_COUNTER_RESOLUTION_MS,parseProcSchedstat,parseProcStatus,summarizeSchedulerSamples,summarizeSlowIntervals} from '../scripts/stage-b-runner-telemetry.mjs';
+import {attributeSlowIntervals,classifyTraceCapabilities,fitClockMapping,mapNodeClockPairsToBrowserPerformance,mapNodeClockToBrowserViaCdpMarkers,mapTraceClock,STAGE_B_TRACE_CATEGORIES} from '../scripts/stage-b-trace-attribution.mjs';
+import {PROC_CPU_COUNTER_RESOLUTION_MS,parseProcSchedstat,parseProcStatus,resolveRendererThreadIdentity,summarizeSchedulerSamples,summarizeSlowIntervals} from '../scripts/stage-b-runner-telemetry.mjs';
 
 const rendererStep={stepIndex:0,available:true,adequate:true,pid:91,tid:92,threadName:'CrRendererMain',state:'R',runtimeMs:7,runQueueWaitMs:.2,sampleCoverageMs:8,samplePairCount:4};
 const oneSlow=(options={})=>attributeSlowIntervals({label:'candidate',sourceSha:'candidate-sha',trialNumber:4,durationsMs:[10],stepWindowsMs:[[0,10]],budgetMs:8.333333333333334,...options});
@@ -18,6 +18,16 @@ test('clock mapping succeeds only with separated paired observations and returns
   assert.equal(mapping.available,true);assert.ok(Math.abs(mapping.slope-1)<1e-8);assert.ok(Math.abs(mapping.offset-110.005)<.001);assert.ok(mapping.uncertaintyMs<.02);
   assert.equal(fitClockMapping([{sourceMs:10,targetLowMs:10,targetHighMs:10}]).reason,'fewer-than-two-clock-pairs');
   assert.equal(fitClockMapping([{sourceMs:10,targetLowMs:10,targetHighMs:10},{sourceMs:11,targetLowMs:11,targetHighMs:11}]).reason,'clock-pairs-too-close');
+});
+
+test('Node hrtime maps only through bracketed Browser performance markers',()=>{
+  const mapping=mapNodeClockPairsToBrowserPerformance([
+    {id:'a',nodeStartHrtimeMs:100,nodeEndHrtimeMs:100.02,browserClock:{browserLowMs:210,browserHighMs:210.01}},
+    {id:'b',nodeStartHrtimeMs:120,nodeEndHrtimeMs:120.02,browserClock:{browserLowMs:230,browserHighMs:230.01}},
+  ]);
+  assert.equal(mapping.available,true);assert.ok(Math.abs(mapping.slope-1)<1e-8);assert.ok(mapping.uncertaintyMs<.03);
+  assert.equal(mapNodeClockPairsToBrowserPerformance([{nodeStartHrtimeMs:100,nodeEndHrtimeMs:100.02,browserClock:{browserLowMs:210,browserHighMs:210.01}}]).reason,'fewer-than-two-clock-pairs');
+  assert.equal(mapNodeClockPairsToBrowserPerformance([{nodeStartHrtimeMs:100,nodeEndHrtimeMs:100.02},{nodeStartHrtimeMs:120,nodeEndHrtimeMs:120.02}]).reason,'fewer-than-two-clock-pairs');
 });
 
 test('browser performance marks map trace timestamps without assuming clock origins match',()=>{
@@ -50,19 +60,21 @@ test('local CDP clock-sync pairs map Node scheduler samples with bounded uncerta
 test('Linux schedstat and context-switch parsing reject absent or malformed counters',()=>{
   assert.deepEqual(parseProcSchedstat('123456 7890 42\n'),{runTimeNs:123456,runQueueWaitNs:7890,timeslices:42});
   assert.equal(parseProcSchedstat('123 456'),null);
-  assert.deepEqual(parseProcStatus('Name:\tchrome\nvoluntary_ctxt_switches:\t17\nnonvoluntary_ctxt_switches:\t5\n'),{voluntaryContextSwitches:17,involuntaryContextSwitches:5});
+  assert.deepEqual(parseProcStatus('Name:\tchrome\nvoluntary_ctxt_switches:\t17\nnonvoluntary_ctxt_switches:\t5\n'),{voluntaryContextSwitches:17,involuntaryContextSwitches:5,namespaceIds:null});
   assert.equal(parseProcStatus('Name:\tchrome\n'),null);
 });
 
+const makeThreadSample=(atMs,runNs,waitNs,{pid=91,tid=92,threadName='CrRendererMain',processStartTimeTicks=100,threadStartTimeTicks=101,...overrides}={})=>({readStartHrtimeNs:String((atMs-.01)*1e6),readEndHrtimeNs:String((atMs+.01)*1e6),threads:[{pid,tid,threadName,processType:'renderer',processStartTimeTicks,liveProcessStartTimeTicks:processStartTimeTicks,expectedProcessStartTimeTicks:processStartTimeTicks,startTimeTicks:threadStartTimeTicks,expectedThreadStartTimeTicks:threadStartTimeTicks,state:'R',available:true,runTimeNs:runNs,runQueueWaitNs:waitNs,timeslices:Math.round(runNs/1e6),cpuMs:runNs/1e6,userTicks:Math.floor(runNs/1e6),systemTicks:0,voluntaryContextSwitches:1,involuntaryContextSwitches:0,...overrides}]});
+
 test('scheduler samples map to browser steps and report only observed in-window deltas',()=>{
-  const make=(atMs,runNs,waitNs)=>({readStartHrtimeNs:String((atMs-.01)*1e6),readEndHrtimeNs:String((atMs+.01)*1e6),threads:[{pid:91,tid:92,threadName:'CrRendererMain',state:'R',runTimeNs:runNs,runQueueWaitNs:waitNs,timeslices:1,cpuMs:runNs/1e6,voluntaryContextSwitches:1,involuntaryContextSwitches:0}]});
+  const make=(atMs,runNs,waitNs)=>makeThreadSample(atMs,runNs,waitNs);
   const summary=summarizeSchedulerSamples([make(1,1e6,.1e6),make(2,1.9e6,.2e6),make(3,2.8e6,2.2e6),make(4,3.7e6,7.2e6),make(9,9e6,9e6)],{available:true,slope:1,offset:0,uncertaintyMs:0},[[0,5]]);
   assert.equal(summary.available,true);assert.equal(summary.perStep[0].pid,91);assert.equal(summary.perStep[0].tid,92);assert.equal(summary.perStep[0].samplePairCount,3);assert.equal(summary.perStep[0].adequate,true);assert.ok(summary.perStep[0].runtimeMs>2.6&&summary.perStep[0].runtimeMs<2.8);assert.ok(summary.perStep[0].runQueueWaitMs>6.9&&summary.perStep[0].runQueueWaitMs<7.2);
   assert.equal(summary.clockMappingUncertaintyMs,0);
 });
 
 test('scheduler samples report clock uncertainty and exclude ambiguous boundary observations',()=>{
-  const make=(atMs,runNs)=>({readStartHrtimeNs:String((atMs-.01)*1e6),readEndHrtimeNs:String((atMs+.01)*1e6),threads:[{pid:91,tid:92,threadName:'CrRendererMain',state:'R',runTimeNs:runNs,runQueueWaitNs:0,timeslices:1,cpuMs:runNs/1e6,voluntaryContextSwitches:1,involuntaryContextSwitches:0}]});
+  const make=(atMs,runNs)=>makeThreadSample(atMs,runNs,0);
   const summary=summarizeSchedulerSamples([make(.5,.5e6),make(1,1e6),make(2,2e6),make(3,3e6),make(4.5,4.5e6)],{available:true,slope:1,offset:0,uncertaintyMs:.6},[[0,5]]);
   assert.equal(summary.perStep[0].clockMappingUncertaintyMs,.6);assert.equal(summary.perStep[0].samplePairCount,2);assert.equal(summary.perStep[0].sampleCoverageMs,2);
   const tooUncertain=summarizeSchedulerSamples([make(1,1e6),make(2,2e6)],{available:true,slope:1,offset:0,uncertaintyMs:3},[[0,5]]);
@@ -70,12 +82,48 @@ test('scheduler samples report clock uncertainty and exclude ambiguous boundary 
 });
 
 test('renderer process CPU ticks retain their resolution limit for short steps',()=>{
-  const make=(atMs,cpuMs)=>({readStartHrtimeNs:String((atMs-.01)*1e6),readEndHrtimeNs:String((atMs+.01)*1e6),threads:[{pid:91,tid:92,threadName:'CrRendererMain',state:'R',runTimeNs:atMs*1e6,runQueueWaitNs:0,timeslices:1,cpuMs:atMs,voluntaryContextSwitches:1,involuntaryContextSwitches:0}],processes:[{pid:91,state:'R',cpuMs}]});
+  const make=(atMs,cpuMs)=>({...makeThreadSample(atMs,atMs*1e6,0),processes:[{pid:91,state:'R',cpuMs,threadCount:1,threadIds:[91]}]});
   const mapping={available:true,slope:1,offset:0,uncertaintyMs:0};
   const short=summarizeSchedulerSamples([make(1,100),make(5,110),make(9,110)],mapping,[[0,10]]).perStep[0];
   assert.equal(short.rendererProcessCpuMs,null);assert.equal(short.rendererProcessCpuObservedDeltaMs,10);assert.equal(short.rendererProcessCpuCounterResolutionMs,PROC_CPU_COUNTER_RESOLUTION_MS);assert.equal(short.rendererProcessCpuCounterAdequate,false);
   const long=summarizeSchedulerSamples([make(1,100),make(11,110),make(21,120),make(31,130),make(41,140),make(49,150)],mapping,[[0,50]]).perStep[0];
   assert.equal(long.rendererProcessCpuMs,50);assert.equal(long.rendererProcessCpuCounterAdequate,true);
+});
+
+test('renderer identity resolution requires matching PID/TID, process type, thread name and start identity',()=>{
+  const identity={pid:91,tid:92,threadName:'CrRendererMain'},candidate={pid:91,tid:92,threadName:'CrRendererMain',processType:'renderer',processStartTimeTicks:100,expectedProcessStartTimeTicks:100,threadStartTimeTicks:101,expectedThreadStartTimeTicks:101,available:true};
+  assert.equal(resolveRendererThreadIdentity({traceIdentity:identity,linuxCandidates:[candidate]}).status,'RENDERER_THREAD_RESOLVED');
+  assert.equal(resolveRendererThreadIdentity({traceIdentity:{...identity,tid:93},linuxCandidates:[candidate],linuxProcesses:[candidate]}).reason,'thread-not-visible');
+  assert.equal(resolveRendererThreadIdentity({traceIdentity:identity,linuxCandidates:[{...candidate,pid:191}],linuxProcesses:[{...candidate,pid:191}]}).reason,'process-not-visible');
+  assert.equal(resolveRendererThreadIdentity({traceIdentity:identity,linuxCandidates:[{...candidate,expectedProcessStartTimeTicks:999}]}).reason,'process-or-thread-identity-changed');
+  assert.equal(resolveRendererThreadIdentity({traceIdentity:identity,linuxCandidates:[{...candidate,threadName:'CrBrowserMain'}]}).reason,'thread-name-mismatch');
+});
+
+test('renderer discovery reports a visible process from another PID namespace explicitly',()=>{
+  const result=resolveRendererThreadIdentity({traceIdentity:{pid:91,tid:92,threadName:'CrRendererMain'},linuxCandidates:[],linuxProcesses:[{pid:191,processType:'renderer',pidNamespace:'pid:[2]',namespaceIds:[191]}],rootPidNamespace:'pid:[1]'});
+  assert.equal(result.status,'RENDERER_THREAD_UNAVAILABLE');assert.equal(result.reason,'pid-namespace-mismatch');
+});
+
+test('renderer PID/TID can resolve through matching NSpid namespace pairs',()=>{
+  const candidate={pid:191,tid:192,threadName:'CrRendererMain',processType:'renderer',processStartTimeTicks:100,expectedProcessStartTimeTicks:100,threadStartTimeTicks:101,expectedThreadStartTimeTicks:101,processNamespaceIds:[191,91],threadNamespaceIds:[192,92],available:true};
+  const result=resolveRendererThreadIdentity({traceIdentity:{pid:91,tid:92,threadName:'CrRendererMain'},linuxCandidates:[candidate],linuxProcesses:[{pid:191,processType:'renderer',namespaceIds:[191,91]}]});
+  assert.equal(result.status,'RENDERER_THREAD_RESOLVED');assert.equal(result.matchMethod,'trace-pid-tid-namespace-map');assert.equal(result.linuxIdentity.namespaceIndex,1);
+  assert.equal(resolveRendererThreadIdentity({traceIdentity:{pid:91,tid:92,threadName:'CrRendererMain'},linuxCandidates:[{...candidate,threadNamespaceIds:[192,93]}],linuxProcesses:[{pid:191,processType:'renderer',namespaceIds:[191,91]}]}).reason,'thread-not-visible');
+});
+
+test('scheduler wait and CPU runtime are both reported when counters are available',()=>{
+  const samples=[makeThreadSample(1,1e6,2e6),makeThreadSample(2,4e6,8e6)];
+  const summary=summarizeSchedulerSamples(samples,{available:true,slope:1,offset:0,uncertaintyMs:0},[[.5,2.5]],{targetIdentity:{pid:91,tid:92,threadName:'CrRendererMain'},requireTargetIdentity:true});
+  assert.equal(summary.status,'RENDERER_THREAD_RESOLVED');assert.equal(summary.perStep[0].runtimeMs,3);assert.equal(summary.perStep[0].runQueueWaitMs,6);assert.deepEqual(summary.perStep[0].contextSwitches,{voluntary:0,involuntary:0});assert.equal(summary.perStep[0].adequate,true);
+});
+
+test('scheduler samples report unavailable counters and inadequate coverage instead of zero deltas',()=>{
+  const missing=[makeThreadSample(1,1e6,2e6,{available:false,reason:'schedstat-unavailable',runTimeNs:undefined,runQueueWaitNs:undefined}),makeThreadSample(2,1e6,2e6,{available:false,reason:'schedstat-unavailable',runTimeNs:undefined,runQueueWaitNs:undefined})];
+  const clock={available:true,slope:1,offset:0,uncertaintyMs:0};
+  const unavailable=summarizeSchedulerSamples(missing,clock,[[0,3]]);
+  assert.equal(unavailable.identityResolved,true);assert.equal(unavailable.available,false);assert.equal(unavailable.perStep[0].available,false);assert.equal(unavailable.perStep[0].reason,'schedstat-unavailable');assert.equal(unavailable.perStep[0].runtimeMs,null);assert.equal(unavailable.perStep[0].runQueueWaitMs,null);assert.equal(unavailable.perStep[0].contextSwitches,null);assert.equal(unavailable.perStep[0].samplePairCount,0);assert.equal(unavailable.perStep[0].adequate,false);
+  const sparse=summarizeSchedulerSamples([makeThreadSample(.5,1e6,0),makeThreadSample(1,2e6,0)],clock,[[0,10]]);
+  assert.equal(sparse.perStep[0].sampleCoverageMs,.5);assert.equal(sparse.perStep[0].adequate,false);
 });
 
 test('a matched GC interval is attributed to V8_GC with exact profile identity',()=>{
