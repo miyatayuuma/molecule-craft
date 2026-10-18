@@ -1,18 +1,18 @@
+import {createBrowserLifecycle} from './helpers/browser-lifecycle.mjs';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {spawnSync,spawn} from 'node:child_process';
-import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import {readFile} from 'node:fs/promises';
 import {extname,join,normalize,resolve} from 'node:path';
-import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url))),types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
 const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),relative=pathname==='/'?'index.html':pathname.replace(/^\/+/,''),file=normalize(join(root,relative));if(!file.startsWith(root)){res.writeHead(403).end();return;}let body=await readFile(file);if(relative==='src/veil/ui.js')body=Buffer.from(body.toString('utf8').replace('function frame(now){',"function frame(now){globalThis.__returnFlowProbe=()=>({run,returnState,active,renderer});globalThis.__returnFlowResources=resources;"));res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);}catch{res.writeHead(404).end('not found');}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address(),origin=`http://127.0.0.1:${port}`;
 let chrome='';for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}assert.ok(chrome,'Chromium is required for Safe Extraction browser integration');
-const profile=await mkdtemp(join(tmpdir(),'molecule-craft-safe-extraction-')),debugPort=9270,pause=ms=>new Promise(resolvePause=>setTimeout(resolvePause,ms));let child=null,socket=null;
-try{
-  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});let tabs=null,stderr='';child.stderr.setEncoding('utf8');child.stderr.on('data',chunk=>stderr+=chunk);
+const lifecycle=await createBrowserLifecycle({name:'safe-extraction'}),profile=lifecycle.profile,debugPort=9270,pause=ms=>new Promise(resolvePause=>setTimeout(resolvePause,ms));let child=null,socket=null;
+await lifecycle.run(async()=>{
+  child=lifecycle.launch(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});let tabs=null,stderr='';child.stderr.setEncoding('utf8');child.stderr.on('data',chunk=>stderr+=chunk);
   for(let attempt=0;attempt<160;attempt++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}await pause(100);}assert.ok(tabs?.length,stderr.slice(-1000));
   socket=new WebSocket(tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl??tabs[0].webSocketDebuggerUrl);await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(new Error('DevTools websocket timeout')),5000);socket.addEventListener('open',()=>{clearTimeout(timer);ok();},{once:true});socket.addEventListener('error',fail,{once:true});});
   let sequence=0;const pending=new Map(),exceptions=[];socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(new Error(message.error.message)):task.resolve(message.result);return;}if(message.method==='Runtime.exceptionThrown')exceptions.push(message.params.exceptionDetails);});
@@ -37,5 +37,5 @@ try{
   await tapShip();await waitFor(`globalThis.__returnFlowProbe()?.returnState?.phase==='normal-extraction-pending'`,'Touching the ship did not start Insight extraction');
   await send('Page.reload',{ignoreCache:true});await waitFor(`!!document.querySelector('#collector-launch-handle')&&!document.querySelector('#open-supply')?.disabled`,'App did not recover after a pending normal extraction reload');const afterReload=await evaluate(`(async()=>{const {createResources}=await import('/src/veil/resources.js');const r=createResources({storage:localStorage});return{hydrogen:r.state.elements.H,dustH:r.state.dust.H,active:!!document.querySelector('#veil-view')&&!document.querySelector('#veil-view').hidden};})()`);assert.equal(afterReload.hydrogen,afterSite.hydrogen,'Reload during pending extraction cannot settle transient cargo twice');assert.equal(afterReload.dustH,afterSite.dustH,'Pending cargo is not partially saved as dust residue');assert.equal(afterReload.active,false);
   await launchVeil();assert.equal(await evaluate(`globalThis.__returnFlowProbe().run.carriedInsights.includes('ethane')`),false,'Previous run Insight does not enter the next sortie');assert.equal(await evaluate(`document.querySelector('#veil-status-panel')?.dataset.state`),'site-seeking','Fresh sortie has no stale return state and points toward authored Safe Sites');assert.equal(exceptions.length,0,`Safe Extraction mobile UI must not throw: ${JSON.stringify(exceptions)}`);
-}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
+},{socket:()=>socket,server});
 console.log('Safe Extraction mobile browser flow passed: locked spawn, noninteractive status panel, ship-tap Safe Site extraction, pending lock, one lossless settlement, Insight ship tap and reload isolation.');

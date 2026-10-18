@@ -1,9 +1,9 @@
+import {createBrowserLifecycle} from './helpers/browser-lifecycle.mjs';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {mkdtemp,readFile,rm,mkdir,writeFile} from 'node:fs/promises';
-import {spawn,spawnSync} from 'node:child_process';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
 import {extname,join,normalize,resolve} from 'node:path';
-import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url))),routes=JSON.parse(await readFile(join(root,'data/polymerization-routes.json'),'utf8')).routes,polymers=JSON.parse(await readFile(join(root,'data/polymers.json'),'utf8'));
@@ -35,9 +35,9 @@ const server=createServer(async(req,res)=>{try{
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address();
 let chrome=process.env.CHROMIUM_PATH??'';if(!chrome)for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
 assert.ok(chrome,'Chromium is required for Reaction Lab polymer pointer validation');
-const profile=await mkdtemp(join(tmpdir(),'molecule-craft-polymer-lab-')),debugPort=9264,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));let child=null,socket=null;
-try{
-  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-background-networking','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:'ignore'});
+const lifecycle=await createBrowserLifecycle({name:'polymer-lab'}),profile=lifecycle.profile,debugPort=9264,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));let child=null,socket=null;
+await lifecycle.run(async()=>{
+  child=lifecycle.launch(chrome,['--headless=new','--no-sandbox','--disable-background-networking','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:'ignore'});
   let tabs=null;for(let attempt=0;attempt<180;attempt++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}await pause(100);}assert.ok(tabs?.length,'Polymer Reaction Lab DevTools endpoint did not become ready');
   socket=new WebSocket(tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl??tabs[0].webSocketDebuggerUrl);await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(Error('DevTools websocket timeout')),5000);socket.addEventListener('open',()=>{clearTimeout(timer);ok();},{once:true});socket.addEventListener('error',fail,{once:true});});
   let sequence=0;const pending=new Map(),browserErrors=[],failedLocalRequests=[],badLocalResponses=[];socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(Error(message.error.message)):task.resolve(message.result);}if(message.method==='Runtime.exceptionThrown')browserErrors.push(message.params.exceptionDetails.exception?.description??message.params.exceptionDetails.text);if(message.method==='Runtime.consoleAPICalled'&&message.params.type==='error')browserErrors.push(message.params.args?.map(item=>item.value??item.description??'').join(' '));if(message.method==='Network.loadingFailed'&&!/ERR_ABORTED|canceled/i.test(message.params.errorText??''))failedLocalRequests.push({requestId:message.params.requestId,error:message.params.errorText});if(message.method==='Network.responseReceived'&&message.params.response.status>=400)badLocalResponses.push({url:message.params.response.url,status:message.params.response.status});});
@@ -252,5 +252,5 @@ try{
   assert.deepEqual(browserErrors,[],`No browser console errors: ${JSON.stringify(browserErrors)}`);assert.deepEqual(failedLocalRequests,[],`No local production asset request failed: ${JSON.stringify(failedLocalRequests)}`);assert.deepEqual(badLocalResponses,[],`No local production asset returned HTTP error: ${JSON.stringify(badLocalResponses)}`);const fieldScreenshot=await captureEvidence('field-application-effect');
   journeyEvidence.push({step:journeyEvidence.length,action:'Capture FIELD after targeted polymer application effects',beforeState:{activeApplications:launchedApplications},result:{targetFeedback:['摩耗軽減','熱伝達軽減','制御低下軽減'],consoleErrors:browserErrors,failedLocalRequests,badLocalResponses},afterState:{fieldVisible:true,activeApplications:launchedApplications},persistentAuthority:'FIELD launch cache derived from molecule-craft.resources.v1.collectorShell.activeApplications',screenshot:fieldScreenshot,expectedInvariant:'All targeted FIELD feedback is observed with no browser console or local asset errors.'});
   const summary={routeIds:hardRouteIds,samples:evidence.length,bounds,browserErrors,failedLocalRequests,badLocalResponses};await saveJourneyEvidence();console.log(`Material progression ${viewport.width}×${viewport.height} pointer closure`,JSON.stringify(summary));
-}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(100);server.close();await rm(profile,{recursive:true,force:true});}
+},{socket:()=>socket,server});
 console.log(`${viewport.width}×${viewport.height} material progression: actual FEED, 4 polymer routes, fabrication, free toggles, reload, FIELD cache and feedback PASS.`);
