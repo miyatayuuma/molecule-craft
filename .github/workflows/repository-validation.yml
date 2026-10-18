@@ -353,6 +353,9 @@ jobs:
           NODE
           echo "Task ⑩ baseline Stage B control reached its hard-gate measurement (test exit $baseline_status); full raw trial durations are saved as an artifact."
       - name: Task ⑪ candidate Stage B hard gate
+        # Retain candidate evidence even when the independent baseline fails.
+        # The earlier failed step still fails this job; no gate is waived.
+        if: ${{ !cancelled() }}
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
           "$browser" --version
@@ -418,6 +421,7 @@ jobs:
           node tests/cho-campaign.test.mjs
           node tests/safe-extraction-site.test.mjs
           node tests/return-ux-contract.test.mjs
+          node --test tests/browser-lifecycle.test.mjs
           node tests/safe-extraction-browser.test.mjs
           node tests/veil-return-effects.test.mjs
           node tests/dust-eater-forced-return.test.mjs
