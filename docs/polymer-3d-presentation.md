@@ -1,5 +1,7 @@
 # Finite Polymer 3D Presentation
 
+> Current roadmap authority: [local-fragment Task① canonical specification](validation/polymer-local-fragment-task1-authority.md) distinguishes the former Task⑪ implementation/evidence recorded here from the new Tasks①–⑥, and corrects source-pose, iteration-limit, bond-rendering and current-main/#345 ownership assumptions. Acceptance runs below remain historical evidence at their stated SHAs.
+
 ## Authority and boundary
 
 The chemical authority remains the finite `PolymerSample` graph:

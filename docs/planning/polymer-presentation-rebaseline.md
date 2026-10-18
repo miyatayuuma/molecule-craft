@@ -1,5 +1,7 @@
 # Polymer Presentation Rebaseline — Task④ Audit and Task⑤–⑩ Contracts
 
+> Historical scope: this is the former Task④ baseline/roadmap, not the new local-fragment Tasks①–⑥. Current normative decisions, source ownership and superseded statements are in [Task① canonical authority](../validation/polymer-local-fragment-task1-authority.md). The old optional-3D and no-generalized-viewer task limits do not override the subsequently merged former Task⑪ finite 3D implementation.
+
 ## Authority and disposition
 
 Audit baseline: remote main at 7d58d91fcaeee5ee7b3998027814e4ae5e767e28, confirmed from refs/heads/main at task start. This is the merge of PR #334. All source findings below refer to that exact tree.

@@ -2,7 +2,7 @@
 
 ## Scope and authority
 
-`data/polymer-fragment-authority.json` is the chemical-structure source for the 25 encyclopedia polymers. It contains source-mapped local fragments and route-derived repeat templates; it does not contain layout coordinates or rendered images. It validates one-to-one IDs against the catalog, routes and encyclopedia entries, and records each current encyclopedia number. Task④'s Sections E–H in `docs/planning/polymer-presentation-rebaseline.md` remain the planning contract.
+`data/polymer-fragment-authority.json` is the chemical-structure source for the 25 encyclopedia polymers. It contains source-mapped local fragments and route-derived repeat templates; it does not contain layout coordinates or rendered images. It validates one-to-one IDs against the catalog, routes and encyclopedia entries, and records each current encyclopedia number. The former Task④'s Sections E–H in `docs/planning/polymer-presentation-rebaseline.md` record the original drawing plan. The new local-fragment Tasks①–⑥ use [Task① canonical authority](validation/polymer-local-fragment-task1-authority.md) for current runtime/drawing boundaries; this document and its mapped data remain the static drawing authority.
 
 The authority is pinned to source commit `3050fed9c89f16aed19c2323db94fef5f9f9765e`. Source molecule atoms and bonds are mapped from `data/molecules.json`. Route family and representative-sequence references come from `data/polymerization-routes.json`; actual graph edits are verified against `src/reaction-lab-polymerization.js` and `src/reaction-graph-edits.js`. Catalog class and topology map through `data/polymers.json` and `src/polymer-catalog.js`.
 
