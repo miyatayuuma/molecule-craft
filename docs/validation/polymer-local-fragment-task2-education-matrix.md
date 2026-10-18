@@ -536,7 +536,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 
 ## Appendix A — reproducible specification check
 
-repository rootで次のJavaScript blockだけを `node --input-type=module` の標準入力へ渡す。文書検査であり、文章の科学的独立reviewを自動代替しない。Task①の数値正本を採用し、Task②に必要なID・分類・反応・metadataの対応を検証する。全25のXをTask①正本と照合し、Lはroute completion evidenceと照合する。PFでX=4とL=3を区別し、詳細の由来claimの欠落も不合格にする。Coreの原子保存は既存fixture testを別実行する。
+repository rootで次のJavaScript blockだけを `node --input-type=module` の標準入力へ渡す。文書検査であり、文章の科学的独立reviewを自動代替しない。Task①の数値正本を採用し、Task②に必要なID・分類・反応・metadataの対応を検証する。全25のXをTask①正本と照合し、Lはroute completion evidenceと照合する。PFでX=4とL=3を区別し、詳細の由来claimの欠落も不合格にする。Coreの原子保存は既存fixture testを別実行する。 統合差分のscope比較基準はCI修復PR #349を取り込んだmain `512dc7e550154bdbe9baf960b0609c41961a20f3`。Task①からの化学入力は不変で、独立修復のtest/CI差分を教育PRの変更と混同しない。
 
 ```js
 import assert from 'node:assert/strict';
@@ -597,7 +597,7 @@ for(const file of allowed){
   await readFile(resolve(dirname(file),target.split('#')[0]));
  }
 }
-const diff=execFileSync('git',['diff','--name-only','96a7ec72643eddd140cedeb311c45c36bd07202a'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+const diff=execFileSync('git',['diff','--name-only','512dc7e550154bdbe9baf960b0609c41961a20f3'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
 const untracked=execFileSync('git',['ls-files','--others','--exclude-standard'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
 for(const file of [...diff,...untracked])assert.ok(allowed.includes(file),'non-document scope: '+file);
 console.log('PASS: 25 exact polymer/route pairs; unique IDs; goals; 15 contract fields; taxonomy; four evidence classes; Task① counts/families/cross-origin X vs growth L; L1/L2; nine cases; links; documentation-only scope');
