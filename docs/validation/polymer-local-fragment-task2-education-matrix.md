@@ -6,7 +6,7 @@ Normative companion: [Task② educational authority](polymer-local-fragment-task
 
 全25行の識別・目標・分類と、続く25詳細ブロックを一体で使用する。各詳細ブロックは依頼の13項目を、ID/route、主副目標、分類、実構造、探す対象、最低説明、誤解、禁止断定、③視覚、④/⑤検証、sourceとして固定する。evidenceは4クラスに分ける。V0–V8/E1–E4/U0/M1–M9は教育正本の定義を参照し、各行に一律U0を適用する。
 
-数値U/μ/O/W/Pは投入分子インスタンス数/実cycle rank/実結合次数集合/分離water数/実continuations数。UはCRU数ではない。OBSERVED_GRAPHは最終fragmentだけ、REACTION_EVIDENCEは前後/履歴比較、ILLUSTRATIVE_CONCEPTは別枠概念、UNCERTAIN_OR_UNSUPPORTEDは断定禁止。側基は三方向高分子鎖junctionを意味しない。全25でそのjunctionは未確認。
+数値U/μ/O/W/Pは投入分子インスタンス数/実cycle rank/実結合次数集合/分離water数/実continuations数。Xはfinal graphの異なるsource instance origin間を結ぶ実edge数、Lは実growth/link commit step数。Xはorigin partition由来の数で、鎖junction数ではない。PFはX=4/L=3（移動Hの由来跨ぎedgeを含む）、他routeはX=L=U−1。UはCRU数ではない。OBSERVED_GRAPHは最終fragmentだけ、REACTION_EVIDENCEは前後/履歴比較、ILLUSTRATIVE_CONCEPTは別枠概念、UNCERTAIN_OR_UNSUPPORTEDは断定禁止。側基は三方向高分子鎖junctionを意味しない。全25でそのjunctionは未確認。
 
 OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示し、元分子全体が無変化で残ることや、反応前後を完成模型だけから直接観測できることを意味しない。
 
@@ -14,33 +14,33 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 
 ## Inventory
 
-| Polymer ID | Route ID | 主 | 副 | 複数軸の表示分類 | builder / transform families | U | μ | O | W | P |
-|---|---|---|---|---|---|---:|---:|---|---:|---:|
-| `polyethylene` | `polyethylene-coordination` | E1 | E3 | C-SAT | chain / vinyl | 4 | 0 | 1 | 0 | 2 |
-| `polypropylene` | `polypropylene-coordination` | E2 | E1 | C-SAT SIDE-METHYL | chain / vinyl | 4 | 0 | 1 | 0 | 2 |
-| `ethylene-propylene-copolymer` | `ethylene-propylene-coordination` | E4 | E2 | C-SAT SIDE-METHYL MIXED-LOCAL | chain / vinyl | 3 | 0 | 1 | 0 | 2 |
-| `polyisobutylene` | `polyisobutylene-cationic` | E2 | E1 | C-SAT SIDE-METHYL | chain / vinyl | 4 | 0 | 1 | 0 | 2 |
-| `polystyrene` | `polystyrene-radical` | E2 | E1 | C-SAT RING-PENDANT BOND-2 | chain / vinyl | 4 | 4 | 1,2 | 0 | 2 |
-| `polyvinyl-chloride` | `polyvinyl-chloride-radical` | E2 | E1 | C-SAT SIDE-HALOGEN | chain / vinyl | 4 | 0 | 1 | 0 | 2 |
-| `polychlorotrifluoroethylene` | `polychlorotrifluoroethylene-radical` | E2 | E1 | C-SAT SIDE-HALOGEN | chain / vinyl | 4 | 0 | 1 | 0 | 2 |
-| `polyacrylonitrile` | `polyacrylonitrile-radical` | E2 | E1 | C-SAT SIDE-NITRILE BOND-3 | chain / vinyl | 4 | 0 | 1,3 | 0 | 2 |
-| `polyacrylic-acid` | `polyacrylic-acid-radical` | E2 | E1 | C-SAT SIDE-ACID BOND-2 | chain / vinyl | 4 | 0 | 1,2 | 0 | 2 |
-| `polyethylene-oxide` | `polyethylene-oxide-anionic-ring-opening` | E3 | E2 | HET-ETHER ETHER | chain / epoxide | 4 | 0 | 1 | 0 | 2 |
-| `polyethylene-terephthalate` | `polyethylene-terephthalate-direct-polycondensation` | E3 | E2,E4 | HET-ESTER ESTER BOND-2 RING-BACKBONE TWO-SOURCE-COND | step-growth / ester-condensation | 4 | 2 | 1,2 | 3 | 0 |
-| `polyethylene-adipate` | `polyethylene-adipate-direct-polycondensation` | E3 | E2 | HET-ESTER ESTER BOND-2 TWO-SOURCE-COND | step-growth / ester-condensation | 4 | 0 | 1,2 | 3 | 0 |
-| `polylactic-acid` | `polylactic-acid-direct-polycondensation` | E3 | E2 | HET-ESTER ESTER BOND-2 SIDE-METHYL SELF-COND | step-growth / ester-condensation | 4 | 0 | 1,2 | 3 | 0 |
-| `polyglycolic-acid` | `polyglycolic-acid-direct-polycondensation` | E3 | E2 | HET-ESTER ESTER BOND-2 SELF-COND | step-growth / ester-condensation | 4 | 0 | 1,2 | 3 | 0 |
-| `phenol-formaldehyde-resin` | `phenol-formaldehyde-resole` | E4 | E2,E3 | PF-FINITE RING-PF BOND-2 HYDROXYMETHYL NETWORK-CAPABILITY | network / phenol-methylolation, phenol-methylene-bridge | 4 | 2 | 1,2 | 1 | 0 |
-| `polyethylene-adipamide` | `polyethylene-adipamide-direct-polycondensation` | E3 | E2 | HET-AMIDE AMIDE BOND-2 TWO-SOURCE-COND | step-growth / amide-condensation | 4 | 0 | 1,2 | 3 | 0 |
-| `polybutadiene` | `polybutadiene-coordination-1-4` | E3 | E2 | C-UNSAT BOND-2 | chain / diene | 4 | 0 | 1,2 | 0 | 2 |
-| `styrene-butadiene-copolymer` | `styrene-butadiene-radical` | E4 | E2,E3 | C-UNSAT BOND-2 RING-PENDANT MIXED-LOCAL | chain / vinyl, diene | 3 | 1 | 1,2 | 0 | 2 |
-| `nitrile-butadiene-rubber` | `nitrile-butadiene-radical` | E4 | E2,E3 | C-UNSAT BOND-2 SIDE-NITRILE BOND-3 MIXED-LOCAL | chain / vinyl, diene | 3 | 0 | 1,2,3 | 0 | 2 |
-| `polyisoprene` | `polyisoprene-coordination-1-4` | E3 | E2 | C-UNSAT SIDE-METHYL BOND-2 | chain / diene | 4 | 0 | 1,2 | 0 | 2 |
-| `butyl-rubber` | `butyl-rubber-cationic` | E4 | E2 | C-UNSAT SIDE-METHYL BOND-2 MIXED-LOCAL | chain / vinyl, diene | 3 | 0 | 1,2 | 0 | 2 |
-| `polyvinylidene-fluoride` | `polyvinylidene-fluoride-radical` | E2 | E1 | C-SAT SIDE-HALOGEN | chain / vinyl | 4 | 0 | 1 | 0 | 2 |
-| `vinylidene-fluoride-hexafluoropropylene-copolymer` | `vinylidene-fluoride-hexafluoropropylene-radical` | E4 | E2 | C-SAT SIDE-HALOGEN SIDE-CF3 MIXED-LOCAL | chain / vinyl | 3 | 0 | 1 | 0 | 2 |
-| `polytetrafluoroethylene` | `polytetrafluoroethylene-radical` | E2 | E1 | C-SAT SIDE-HALOGEN | chain / vinyl | 4 | 0 | 1 | 0 | 2 |
-| `nylon-6-6` | `nylon-6-6-direct-polycondensation` | E3 | E2,E4 | HET-AMIDE AMIDE BOND-2 TWO-SOURCE-COND | step-growth / amide-condensation | 4 | 0 | 1,2 | 3 | 0 |
+| Polymer ID | Route ID | 主 | 副 | 複数軸の表示分類 | builder / transform families | U | μ | O | W | P | X | L |
+|---|---|---|---|---|---|---:|---:|---|---:|---:|---:|---:|
+| `polyethylene` | `polyethylene-coordination` | E1 | E3 | C-SAT | chain / vinyl | 4 | 0 | 1 | 0 | 2 | 3 | 3 |
+| `polypropylene` | `polypropylene-coordination` | E2 | E1 | C-SAT SIDE-METHYL | chain / vinyl | 4 | 0 | 1 | 0 | 2 | 3 | 3 |
+| `ethylene-propylene-copolymer` | `ethylene-propylene-coordination` | E4 | E2 | C-SAT SIDE-METHYL MIXED-LOCAL | chain / vinyl | 3 | 0 | 1 | 0 | 2 | 2 | 2 |
+| `polyisobutylene` | `polyisobutylene-cationic` | E2 | E1 | C-SAT SIDE-METHYL | chain / vinyl | 4 | 0 | 1 | 0 | 2 | 3 | 3 |
+| `polystyrene` | `polystyrene-radical` | E2 | E1 | C-SAT RING-PENDANT BOND-2 | chain / vinyl | 4 | 4 | 1,2 | 0 | 2 | 3 | 3 |
+| `polyvinyl-chloride` | `polyvinyl-chloride-radical` | E2 | E1 | C-SAT SIDE-HALOGEN | chain / vinyl | 4 | 0 | 1 | 0 | 2 | 3 | 3 |
+| `polychlorotrifluoroethylene` | `polychlorotrifluoroethylene-radical` | E2 | E1 | C-SAT SIDE-HALOGEN | chain / vinyl | 4 | 0 | 1 | 0 | 2 | 3 | 3 |
+| `polyacrylonitrile` | `polyacrylonitrile-radical` | E2 | E1 | C-SAT SIDE-NITRILE BOND-3 | chain / vinyl | 4 | 0 | 1,3 | 0 | 2 | 3 | 3 |
+| `polyacrylic-acid` | `polyacrylic-acid-radical` | E2 | E1 | C-SAT SIDE-ACID BOND-2 | chain / vinyl | 4 | 0 | 1,2 | 0 | 2 | 3 | 3 |
+| `polyethylene-oxide` | `polyethylene-oxide-anionic-ring-opening` | E3 | E2 | HET-ETHER ETHER | chain / epoxide | 4 | 0 | 1 | 0 | 2 | 3 | 3 |
+| `polyethylene-terephthalate` | `polyethylene-terephthalate-direct-polycondensation` | E3 | E2,E4 | HET-ESTER ESTER BOND-2 RING-BACKBONE TWO-SOURCE-COND | step-growth / ester-condensation | 4 | 2 | 1,2 | 3 | 0 | 3 | 3 |
+| `polyethylene-adipate` | `polyethylene-adipate-direct-polycondensation` | E3 | E2 | HET-ESTER ESTER BOND-2 TWO-SOURCE-COND | step-growth / ester-condensation | 4 | 0 | 1,2 | 3 | 0 | 3 | 3 |
+| `polylactic-acid` | `polylactic-acid-direct-polycondensation` | E3 | E2 | HET-ESTER ESTER BOND-2 SIDE-METHYL SELF-COND | step-growth / ester-condensation | 4 | 0 | 1,2 | 3 | 0 | 3 | 3 |
+| `polyglycolic-acid` | `polyglycolic-acid-direct-polycondensation` | E3 | E2 | HET-ESTER ESTER BOND-2 SELF-COND | step-growth / ester-condensation | 4 | 0 | 1,2 | 3 | 0 | 3 | 3 |
+| `phenol-formaldehyde-resin` | `phenol-formaldehyde-resole` | E4 | E2,E3 | PF-FINITE RING-PF BOND-2 HYDROXYMETHYL NETWORK-CAPABILITY | network / phenol-methylolation, phenol-methylene-bridge | 4 | 2 | 1,2 | 1 | 0 | 4 | 3 |
+| `polyethylene-adipamide` | `polyethylene-adipamide-direct-polycondensation` | E3 | E2 | HET-AMIDE AMIDE BOND-2 TWO-SOURCE-COND | step-growth / amide-condensation | 4 | 0 | 1,2 | 3 | 0 | 3 | 3 |
+| `polybutadiene` | `polybutadiene-coordination-1-4` | E3 | E2 | C-UNSAT BOND-2 | chain / diene | 4 | 0 | 1,2 | 0 | 2 | 3 | 3 |
+| `styrene-butadiene-copolymer` | `styrene-butadiene-radical` | E4 | E2,E3 | C-UNSAT BOND-2 RING-PENDANT MIXED-LOCAL | chain / vinyl, diene | 3 | 1 | 1,2 | 0 | 2 | 2 | 2 |
+| `nitrile-butadiene-rubber` | `nitrile-butadiene-radical` | E4 | E2,E3 | C-UNSAT BOND-2 SIDE-NITRILE BOND-3 MIXED-LOCAL | chain / vinyl, diene | 3 | 0 | 1,2,3 | 0 | 2 | 2 | 2 |
+| `polyisoprene` | `polyisoprene-coordination-1-4` | E3 | E2 | C-UNSAT SIDE-METHYL BOND-2 | chain / diene | 4 | 0 | 1,2 | 0 | 2 | 3 | 3 |
+| `butyl-rubber` | `butyl-rubber-cationic` | E4 | E2 | C-UNSAT SIDE-METHYL BOND-2 MIXED-LOCAL | chain / vinyl, diene | 3 | 0 | 1,2 | 0 | 2 | 2 | 2 |
+| `polyvinylidene-fluoride` | `polyvinylidene-fluoride-radical` | E2 | E1 | C-SAT SIDE-HALOGEN | chain / vinyl | 4 | 0 | 1 | 0 | 2 | 3 | 3 |
+| `vinylidene-fluoride-hexafluoropropylene-copolymer` | `vinylidene-fluoride-hexafluoropropylene-radical` | E4 | E2 | C-SAT SIDE-HALOGEN SIDE-CF3 MIXED-LOCAL | chain / vinyl | 3 | 0 | 1 | 0 | 2 | 2 | 2 |
+| `polytetrafluoroethylene` | `polytetrafluoroethylene-radical` | E2 | E1 | C-SAT SIDE-HALOGEN | chain / vinyl | 4 | 0 | 1 | 0 | 2 | 3 | 3 |
+| `nylon-6-6` | `nylon-6-6-direct-polycondensation` | E3 | E2,E4 | HET-AMIDE AMIDE BOND-2 TWO-SOURCE-COND | step-growth / amide-condensation | 4 | 0 | 1,2 | 3 | 0 | 3 | 3 |
 
 ## Route-specific educational contracts
 
@@ -52,7 +52,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E3
 - 教育的表示分類: C-SAT; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: ethene×4; saturated C backbone, no heavy-atom side group; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `ethene → ethene → ethene → ethene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `ethene → ethene → ethene → ethene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 実C–C主鎖を両端の間でたどる。近接するだけのHへ飛び移らない。
 - 最低限の説明: 「原子は棒でつながっています。つながりを端から端までたどってみよう。」
@@ -70,7 +70,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT SIDE-METHYL; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: propene×4; saturated backbone, methyl substituents; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `propene → propene → propene → propene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `propene → propene → propene → propene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 二原料接続を結ぶC主鎖から出るCH3とその一接続点。
 - 最低限の説明: 「鎖をたどる道と、そこから出ている小さなまとまりを見つけよう。」
@@ -88,7 +88,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: C-SAT SIDE-METHYL MIXED-LOCAL; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: ethene→propene→ethene; one methyl-bearing source unit; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `ethene → propene → ethene`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=2、growth steps L=2。representation metadata P=2（追加原子/結合ではない）。実source列 `ethene → propene → ethene`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 異種原料を組み合わせる共重合体の考え方。実局所列をbulk比率・配列統計と区別。
 - 子どもが探す対象: ethene→propene→etheneの実局所列と中央由来のメチル。
 - 最低限の説明: 「この短い例には2種類の原料から来た部分があります。形の違う部分を探そう。」
@@ -106,7 +106,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT SIDE-METHYL; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: isobutene×4; two methyl substituents on substituted backbone C; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `isobutene → isobutene → isobutene → isobutene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `isobutene → isobutene → isobutene → isobutene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 同じ置換主鎖Cから出る二つのメチル。高分子鎖の腕とは区別。
 - 最低限の説明: 「同じ鎖のところから、小さなまとまりが二つ出ています。」
@@ -124,7 +124,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT RING-PENDANT BOND-2; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: styrene×4; four pendant six-C rings with alternating orders 1/2; μ=4, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `styrene → styrene → styrene → styrene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `styrene → styrene → styrene → styrene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 主鎖から一つの結合でぶら下がる六C環を一周。
 - 最低限の説明: 「鎖から出ている輪を探そう。輪の結合をたどると元へ戻れます。」
@@ -142,7 +142,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT SIDE-HALOGEN; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: vinyl-chloride×4; Cl on saturated backbone; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `vinyl-chloride → vinyl-chloride → vinyl-chloride → vinyl-chloride`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `vinyl-chloride → vinyl-chloride → vinyl-chloride → vinyl-chloride`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: C主鎖に共有結合したClを凡例と結合で識別。
 - 最低限の説明: 「鎖にくっついている塩素の原子を、印とつながりで探そう。」
@@ -160,7 +160,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT SIDE-HALOGEN; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: chlorotrifluoroethylene×4; source-mapped F/Cl on C backbone; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `chlorotrifluoroethylene → chlorotrifluoroethylene → chlorotrifluoroethylene → chlorotrifluoroethylene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `chlorotrifluoroethylene → chlorotrifluoroethylene → chlorotrifluoroethylene → chlorotrifluoroethylene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: FとClの置換基をC主鎖との結合で対比。
 - 最低限の説明: 「鎖についている2種類の原子を、印とつながりで見分けよう。」
@@ -178,7 +178,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT SIDE-NITRILE BOND-3; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: acrylonitrile×4; four pendant C≡N groups, order 3; μ=0, orders=1,3。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `acrylonitrile → acrylonitrile → acrylonitrile → acrylonitrile`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `acrylonitrile → acrylonitrile → acrylonitrile → acrylonitrile`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 側基C≡Nの実order3と主鎖single bond。
 - 最低限の説明: 「この部分の炭素と窒素は三重結合です。鎖の一本の結合と見比べよう。」
@@ -196,7 +196,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT SIDE-ACID BOND-2; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: acrylic-acid×4; pendant C(=O)OH groups, acid O–H present; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `acrylic-acid → acrylic-acid → acrylic-acid → acrylic-acid`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `acrylic-acid → acrylic-acid → acrylic-acid → acrylic-acid`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 側基C(=O)OHと主鎖C経路。酸Hは実際に残る。
 - 最低限の説明: 「鎖から出た部分に、酸素が二つあるまとまりを探そう。」
@@ -214,7 +214,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: HET-ETHER ETHER; reaction=`chain; epoxide`
 - OBSERVED_GRAPH: four source-origin groups; C–C–O backbone paths with ether O; no graph cycle; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `ethylene-oxide → ethylene-oxide → ethylene-oxide → ethylene-oxide`、投入元4個、water 0個。元のepoxide閉路が開き、実ringOpenings=4。最終graphに環はない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `ethylene-oxide → ethylene-oxide → ethylene-oxide → ethylene-oxide`、投入元4個、water 0個。元のepoxide閉路が開き、実ringOpenings=4。最終graphに環はない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 元ethylene-oxide三員環と、生成後の環なしC–O–C主鎖。
 - 最低限の説明: 「原料の小さな輪が開き、酸素も入った鎖になりました。元と今を見比べよう。」
@@ -232,7 +232,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2,E4
 - 教育的表示分類: HET-ESTER ESTER BOND-2 RING-BACKBONE TWO-SOURCE-COND; reaction=`step-growth; ester-condensation`
 - OBSERVED_GRAPH: terephthalic-acid→ethylene-glycol→terephthalic-acid→ethylene-glycol; two backbone rings, three ester links; μ=2, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=0（追加原子/結合ではない）。実source列 `terephthalic-acid → ethylene-glycol → terephthalic-acid → ethylene-glycol`、投入元4個、water 3個。実C(=O)–O連結と別partitionの水。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=0（追加原子/結合ではない）。実source列 `terephthalic-acid → ethylene-glycol → terephthalic-acid → ethylene-glycol`、投入元4個、water 3個。実C(=O)–O連結と別partitionの水。
 - ILLUSTRATIVE_CONCEPT: 酸由来＋glycol/diamine由来残基を組にするCRUの考え方。実端を含む4投入を完全CRU数へ置換しない。
 - 子どもが探す対象: 酸由来の環を通る連続性、glycol由来O、実esterと別の水。
 - 最低限の説明: 主E3:「2種類の原料の一部が鎖につながり、一部は水になりました。」副E2の別段階:「輪は鎖の途中にあります。」
@@ -250,7 +250,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: HET-ESTER ESTER BOND-2 TWO-SOURCE-COND; reaction=`step-growth; ester-condensation`
 - OBSERVED_GRAPH: adipic-acid→ethylene-glycol→adipic-acid→ethylene-glycol; three ester links; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=0（追加原子/結合ではない）。実source列 `adipic-acid → ethylene-glycol → adipic-acid → ethylene-glycol`、投入元4個、water 3個。実C(=O)–O連結と別partitionの水。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=0（追加原子/結合ではない）。実source列 `adipic-acid → ethylene-glycol → adipic-acid → ethylene-glycol`、投入元4個、water 3個。実C(=O)–O連結と別partitionの水。
 - ILLUSTRATIVE_CONCEPT: 酸由来＋glycol/diamine由来残基を組にするCRUの考え方。実端を含む4投入を完全CRU数へ置換しない。
 - 子どもが探す対象: adipic-acidとglycol残基を結ぶC(=O)–O、実端基と水。
 - 最低限の説明: 「2種類の原料から鎖ができ、一部の原子は水になって分かれました。」
@@ -268,7 +268,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: HET-ESTER ESTER BOND-2 SIDE-METHYL SELF-COND; reaction=`step-growth; ester-condensation`
 - OBSERVED_GRAPH: lactic-acid×4; three ester links and methyl side groups; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=0（追加原子/結合ではない）。実source列 `lactic-acid → lactic-acid → lactic-acid → lactic-acid`、投入元4個、water 3個。実C(=O)–O連結と別partitionの水。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=0（追加原子/結合ではない）。実source列 `lactic-acid → lactic-acid → lactic-acid → lactic-acid`、投入元4個、water 3個。実C(=O)–O連結と別partitionの水。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 同じlactic-acid由来の残基間ester、水、横のメチル。
 - 最低限の説明: 主E3:「同じ種類の原料がつながり、一部の原子は水になりました。」副E2の別段階:「横の小さなまとまりも探そう。」
@@ -286,7 +286,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: HET-ESTER ESTER BOND-2 SELF-COND; reaction=`step-growth; ester-condensation`
 - OBSERVED_GRAPH: glycolic-acid×4; three ester links; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=0（追加原子/結合ではない）。実source列 `glycolic-acid → glycolic-acid → glycolic-acid → glycolic-acid`、投入元4個、water 3個。実C(=O)–O連結と別partitionの水。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=0（追加原子/結合ではない）。実source列 `glycolic-acid → glycolic-acid → glycolic-acid → glycolic-acid`、投入元4個、water 3個。実C(=O)–O連結と別partitionの水。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 同種glycolic-acid由来のesterと別分離した水。
 - 最低限の説明: 「同じ種類の原料がつながり、一部の原子は水になって分かれました。」
@@ -304,7 +304,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2,E3
 - 教育的表示分類: PF-FINITE RING-PF BOND-2 HYDROXYMETHYL NETWORK-CAPABILITY; reaction=`network; phenol-methylolation, phenol-methylene-bridge`
 - OBSERVED_GRAPH: phenol→formaldehyde→phenol→formaldehyde; two rings, one methylene bridge and hydroxymethyl site; no three-arm junction; μ=2, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=0（追加原子/結合ではない）。実source列 `phenol → formaldehyde → phenol → formaldehyde`、投入元4個、water 1個。実hydroxymethyl site形成（位置妥当性L2は未評価）。二環間の実methylene bridgeと水。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=4、growth steps L=3。representation metadata P=0（追加原子/結合ではない）。実source列 `phenol → formaldehyde → phenol → formaldehyde`、投入元4個、water 1個。実hydroxymethyl site形成（位置妥当性L2は未評価）。二環間の実methylene bridgeと水。
 - ILLUSTRATIVE_CONCEPT: 一般的network形成能力と独立図鑑4環/3bridge motifは実2環Sampleとは別の模式説明。L2を解決した図ではない。
 - 子どもが探す対象: 実二環をつなぐCH2とCH2OH、別図のnetworkとの相違。
 - 最低限の説明: 「今回の短い模型には輪が二つあります。網目の図は、別にしくみを説明する図です。」
@@ -322,7 +322,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: HET-AMIDE AMIDE BOND-2 TWO-SOURCE-COND; reaction=`step-growth; amide-condensation`
 - OBSERVED_GRAPH: adipic-acid→ethylenediamine→adipic-acid→ethylenediamine; three amide links; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=0（追加原子/結合ではない）。実source列 `adipic-acid → ethylenediamine → adipic-acid → ethylenediamine`、投入元4個、water 3個。実C(=O)–N連結と別partitionの水。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=0（追加原子/結合ではない）。実source列 `adipic-acid → ethylenediamine → adipic-acid → ethylenediamine`、投入元4個、water 3個。実C(=O)–N連結と別partitionの水。
 - ILLUSTRATIVE_CONCEPT: 酸由来＋glycol/diamine由来残基を組にするCRUの考え方。実端を含む4投入を完全CRU数へ置換しない。
 - 子どもが探す対象: adipic-acidとethylenediamine由来を結ぶC(=O)–Nと実water。
 - 最低限の説明: 「2種類の原料から鎖ができ、一部は水になりました。窒素も鎖の途中にあります。」
@@ -340,7 +340,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: C-UNSAT BOND-2; reaction=`chain; diene`
 - OBSERVED_GRAPH: four source-origin groups; C backbone with four C=C bonds; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `1-3-butadiene → 1-3-butadiene → 1-3-butadiene → 1-3-butadiene`、投入元4個、water 0個。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `1-3-butadiene → 1-3-butadiene → 1-3-butadiene → 1-3-butadiene`、投入元4個、water 0個。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 元dieneの二C=Cと、1,4編集後に各原料由来に残るC=C。
 - 最低限の説明: 「つながり方が変わったあとにも、二重結合が残っています。」
@@ -358,7 +358,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2,E3
 - 教育的表示分類: C-UNSAT BOND-2 RING-PENDANT MIXED-LOCAL; reaction=`chain; vinyl, diene`
 - OBSERVED_GRAPH: BD/styrene/BD source-origin groups; one pendant aromatic ring and two backbone C=C bonds; μ=1, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `1-3-butadiene → styrene → 1-3-butadiene`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=2、growth steps L=2。representation metadata P=2（追加原子/結合ではない）。実source列 `1-3-butadiene → styrene → 1-3-butadiene`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
 - ILLUSTRATIVE_CONCEPT: 異種原料を組み合わせる共重合体の考え方。実局所列をbulk比率・配列統計と区別。
 - 子どもが探す対象: BD→styrene→BDの実由来列、側芳香環と鎖内残存C=C。
 - 最低限の説明: 「2種類の原料から来た部分があります。輪のある部分と、鎖に残った二重結合を探そう。」
@@ -376,7 +376,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2,E3
 - 教育的表示分類: C-UNSAT BOND-2 SIDE-NITRILE BOND-3 MIXED-LOCAL; reaction=`chain; vinyl, diene`
 - OBSERVED_GRAPH: BD/acrylonitrile/BD source-origin groups; one C≡N side group and two backbone C=C bonds; μ=0, orders=1,2,3。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `1-3-butadiene → acrylonitrile → 1-3-butadiene`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=2、growth steps L=2。representation metadata P=2（追加原子/結合ではない）。実source列 `1-3-butadiene → acrylonitrile → 1-3-butadiene`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
 - ILLUSTRATIVE_CONCEPT: 異種原料を組み合わせる共重合体の考え方。実局所列をbulk比率・配列統計と区別。
 - 子どもが探す対象: BD→acrylonitrile→BD由来、C≡N一個と残存C=C二個。
 - 最低限の説明: 「2種類の原料から来た部分があります。二重結合と三重結合を見比べよう。」
@@ -394,7 +394,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: C-UNSAT SIDE-METHYL BOND-2; reaction=`chain; diene`
 - OBSERVED_GRAPH: four source-origin groups; C backbone with four C=C bonds and methyl substituents; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `isoprene → isoprene → isoprene → isoprene`、投入元4個、water 0個。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `isoprene → isoprene → isoprene → isoprene`、投入元4個、water 0個。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: 1,4編集後の四残存C=Cとmethyl側基。
 - 最低限の説明: 「つながりが変わっても二重結合は残ります。鎖から出た小さな部分も探そう。」
@@ -412,7 +412,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: C-UNSAT SIDE-METHYL BOND-2 MIXED-LOCAL; reaction=`chain; vinyl, diene`
 - OBSERVED_GRAPH: isobutene/isoprene/isobutene source-origin groups; geminal methyl substituents and one backbone C=C bond; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `isobutene → isoprene → isobutene`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=2、growth steps L=2。representation metadata P=2（追加原子/結合ではない）。実source列 `isobutene → isoprene → isobutene`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。実代表1,4編集で二重結合位置/次数が変わりC=Cが残る。
 - ILLUSTRATIVE_CONCEPT: 異種原料を組み合わせる共重合体の考え方。実局所列をbulk比率・配列統計と区別。
 - 子どもが探す対象: isobutene→isoprene→isobuteneと一残存C=C、geminal methyl。
 - 最低限の説明: 「この短い例は2種類の原料からできています。二重結合が残るところを探そう。」
@@ -430,7 +430,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT SIDE-HALOGEN; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: vinylidene-fluoride×4; F-bearing saturated C backbone; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `vinylidene-fluoride → vinylidene-fluoride → vinylidene-fluoride → vinylidene-fluoride`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `vinylidene-fluoride → vinylidene-fluoride → vinylidene-fluoride → vinylidene-fluoride`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: F-bearing炭素とH-bearing炭素を含む実C主鎖。
 - 最低限の説明: 「鎖の炭素に、フッ素の原子がついているところを探そう。」
@@ -448,7 +448,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2
 - 教育的表示分類: C-SAT SIDE-HALOGEN SIDE-CF3 MIXED-LOCAL; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: vinylidene-fluoride→hexafluoropropylene→vinylidene-fluoride; source CF₃ side group; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `vinylidene-fluoride → hexafluoropropylene → vinylidene-fluoride`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=2、growth steps L=2。representation metadata P=2（追加原子/結合ではない）。実source列 `vinylidene-fluoride → hexafluoropropylene → vinylidene-fluoride`、投入元3個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 異種原料を組み合わせる共重合体の考え方。実局所列をbulk比率・配列統計と区別。
 - 子どもが探す対象: VDF→HFP→VDFのoriginとHFP由来CF3側基。
 - 最低限の説明: 「2種類の原料から来た部分があります。フッ素のついた横のまとまりを探そう。」
@@ -466,7 +466,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E1
 - 教育的表示分類: C-SAT SIDE-HALOGEN; reaction=`chain; vinyl`
 - OBSERVED_GRAPH: tetrafluoroethylene×4; saturated C backbone bearing F substituents; μ=0, orders=1。
-- REACTION_EVIDENCE: representation metadata P=2（追加原子/結合ではない）。実source列 `tetrafluoroethylene → tetrafluoroethylene → tetrafluoroethylene → tetrafluoroethylene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=2（追加原子/結合ではない）。実source列 `tetrafluoroethylene → tetrafluoroethylene → tetrafluoroethylene → tetrafluoroethylene`、投入元4個、water 0個。反応対象C=CがC–Cとなり実分子間結合ができる。他の多重結合は一括消失しない。
 - ILLUSTRATIVE_CONCEPT: 有限片とより長い鎖の関係／反復する接続の考え方。実Sampleに追加edgeはない。
 - 子どもが探す対象: Fに囲まれたC主鎖とC–F置換結合。
 - 最低限の説明: 「外側の原子の間から、つながる炭素の鎖をたどってみよう。」
@@ -484,7 +484,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 - 副学習目標: E2,E4
 - 教育的表示分類: HET-AMIDE AMIDE BOND-2 TWO-SOURCE-COND; reaction=`step-growth; amide-condensation`
 - OBSERVED_GRAPH: adipic-acid→hexamethylenediamine→adipic-acid→hexamethylenediamine; three amide links; μ=0, orders=1,2。
-- REACTION_EVIDENCE: representation metadata P=0（追加原子/結合ではない）。実source列 `adipic-acid → hexamethylenediamine → adipic-acid → hexamethylenediamine`、投入元4個、water 3個。実C(=O)–N連結と別partitionの水。
+- REACTION_EVIDENCE: 由来跨ぎ結合X=3、growth steps L=3。representation metadata P=0（追加原子/結合ではない）。実source列 `adipic-acid → hexamethylenediamine → adipic-acid → hexamethylenediamine`、投入元4個、water 3個。実C(=O)–N連結と別partitionの水。
 - ILLUSTRATIVE_CONCEPT: 酸由来＋glycol/diamine由来残基を組にするCRUの考え方。実端を含む4投入を完全CRU数へ置換しない。
 - 子どもが探す対象: acid/hexamethylenediamine残基間C(=O)–Nと別水。
 - 最低限の説明: 「2種類の原料の一部が鎖になり、一部は水になりました。窒素のあるつなぎ目を探そう。」
@@ -536,7 +536,7 @@ OBSERVED_GRAPH中の原料名や由来列は最終原子のsource originを示�
 
 ## Appendix A — reproducible specification check
 
-repository rootで次のJavaScript blockだけを `node --input-type=module` の標準入力へ渡す。文書検査であり、文章の科学的独立reviewを自動代替しない。Task①の数値正本を採用し、Task②に必要なID・分類・反応・metadataの対応を検証する。Coreの原子保存は既存fixture testを別実行する。
+repository rootで次のJavaScript blockだけを `node --input-type=module` の標準入力へ渡す。文書検査であり、文章の科学的独立reviewを自動代替しない。Task①の数値正本を採用し、Task②に必要なID・分類・反応・metadataの対応を検証する。全25のXをTask①正本と照合し、Lはroute completion evidenceと照合する。PFでX=4とL=3を区別し、詳細の由来claimの欠落も不合格にする。Coreの原子保存は既存fixture testを別実行する。
 
 ```js
 import assert from 'node:assert/strict';
@@ -572,6 +572,13 @@ for(const route of authority.routes){
  const p=previous.find(r=>r[0].startsWith('`'+route.polymerId+'` /'));
  assert.ok(p);assert.equal(row[6],p[1]);assert.equal(row[7],p[3].split('/')[2]);assert.equal(row[8],p[4]);assert.equal(row[9],p[7]);assert.equal(row[10],p[5]);
  assert.equal(Number(row[6]),route.completionEvidence.unitCount);assert.equal(Number(row[9]),route.completionEvidence.byproducts.water);
+ assert.equal(row[11],p[6],'Task① cross-origin X: '+route.polymerId);
+ assert.equal(Number(row[12]),route.completionEvidence.interUnitLinks,'growth L: '+route.polymerId);
+ assert.ok(sec.includes(`由来跨ぎ結合X=${row[11]}、growth steps L=${row[12]}。`),'missing/mismatched origin claim');
+ assert.equal(Number(row[12]),Number(row[6])-1);
+ if(route.polymerId==='phenol-formaldehyde-resin'){
+  assert.equal(Number(row[11]),4);assert.equal(Number(row[12]),3);
+ }else assert.equal(row[11],row[12]);
  assert.ok(sec.includes(route.representativeSequence.join(' → ')));
  const v=sec.match(/- Task③ 視覚的強調: (.*?)。/)[1].split(' ');for(const key of v)assert.match(key,/^V[0-8]$/);
 }
@@ -593,5 +600,5 @@ for(const file of allowed){
 const diff=execFileSync('git',['diff','--name-only','96a7ec72643eddd140cedeb311c45c36bd07202a'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
 const untracked=execFileSync('git',['ls-files','--others','--exclude-standard'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
 for(const file of [...diff,...untracked])assert.ok(allowed.includes(file),'non-document scope: '+file);
-console.log('PASS: 25 exact polymer/route pairs; unique IDs; goals; 15 contract fields; taxonomy; four evidence classes; Task① counts/families; L1/L2; nine cases; links; documentation-only scope');
+console.log('PASS: 25 exact polymer/route pairs; unique IDs; goals; 15 contract fields; taxonomy; four evidence classes; Task① counts/families/cross-origin X vs growth L; L1/L2; nine cases; links; documentation-only scope');
 ```

@@ -218,7 +218,7 @@ Task③は9代表ケースをmobile/desktopの視覚受入セットへ変換し�
 
 | 検証 | 状態 / 意味 |
 |---|---|
-| マトリクスAppendix A | PASS: production 25組とset一致、重複0、主/副目標・15field・taxonomy・四evidence classes・Task①数値/family・L1/L2・9ケース・相対link・文書限定scope |
+| マトリクスAppendix A | PASS: production 25組とset一致、重複0、主/副目標・15field・taxonomy・四evidence classes・Task①数値/family・全25の由来跨ぎ結合Xとgrowth step L（PFは4対3）・L1/L2・9ケース・相対link・文書限定scope |
 | 既存route/Core fixture | PASS: `node --test tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs`、29 tests、0 fail、0 skip。既存実装の原子保存/evidenceを照合する範囲 |
 | Repository hygiene / diff | PASS: `node scripts/check-repository-hygiene.mjs`、774 files、137 reachable production modules、0 warnings; `git diff --check` |
 | Offline consistency | PASS: `node scripts/build-precache.mjs --check`、353 assets; `node tests/pwa.test.mjs`。アセット再生成なし |
