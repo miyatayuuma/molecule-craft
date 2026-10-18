@@ -1,5 +1,7 @@
 # Task⑦ 高分子2D構造図パイプライン
 
+> 履歴注記：本書の「9 pilotのみ／残り16件はTask⑧まで」は旧Task⑦時点の記録です。現行は旧Task⑧で全25件を同じ静的SVG pipelineへ展開済みです。現行の2D・3D責務と新Task①〜⑥の正本は [Task① canonical authority](validation/polymer-local-fragment-task1-authority.md) を参照してください。
+
 ## 目的と境界
 
 図鑑で使う高分子の代表局所構造を、Task⑥の検証済み構造authorityからbuild-timeで生成します。描画座標は図示専用で、分子座標、立体配座、tacticityを表しません。ゲーム実行中に構造layoutやphysicsを起動しません。
