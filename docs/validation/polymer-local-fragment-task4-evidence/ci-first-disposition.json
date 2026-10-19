@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "sourceSha": "de02802dd1e78fc08157d1ba0320b9894e4488dc",
+  "runId": 39197944147,
+  "attempt": 1,
+  "stageB": {
+    "jobId": 117884659034,
+    "conclusion": "FAIL",
+    "artifactId": 12162707092,
+    "zipSha256": "97045f50347f7c080bc1aa56477a3efdc74f75fd9b5759cf9e21d3c3c71f8c3d",
+    "classification": "candidate-hard-gate-failure",
+    "interpretation": "No direct geometry solve in generic workload; indirect/runtime/environment cause unresolved. Not waived."
+  },
+  "finite": {
+    "jobId": 117884659300,
+    "conclusion": "FAIL",
+    "failedStep": "Production pointer path and 390×844 visual QA",
+    "cause": "New failure QA: explicit re-FEED after initial display failure leaves old WAITING Core transaction; sampleDismiss only clears SAMPLE.",
+    "artifactId": 12162851787,
+    "zipSha256": "0d85407962c12a3afb22c2885e911e02f2e164727758225ac4ba0309ffa13c04",
+    "notRun": [
+      "desktop pointer/failure QA",
+      "mobile/desktop integrated gameplay",
+      "Finite baseline/candidate profiles and comparison",
+      "downstream Collection/PWA"
+    ]
+  },
+  "field": {
+    "runId": 39197944105,
+    "conclusion": "SUCCESS"
+  },
+  "sourceFix": "At explicit next FEED purge only, replace a failed transient polymer Core using the existing factory. Normal chemistry and sample dismissal unchanged.",
+  "rerunPolicy": "No old failed job rerun. Ordinary CI on the necessary repaired-source commit is separate evidence, not a performance root-cause repair."
+}

@@ -78,7 +78,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const lightButton=root.querySelector('[data-lab-light]'),heatButton=root.querySelector('[data-lab-heat]'),mediumButton=root.querySelector('[data-lab-medium-port]'),mediumSelector=root.querySelector('[data-lab-medium-selector]'),mediumInputs=[...root.querySelectorAll('[data-lab-medium]')];
   const activationEnvironment=createReactionLabEnvironment();let mediumSelectorOpen=false;
   const batch=createReactionLabBatch(records),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const polymerCore=createReactionLabPolymerizationCore({records,routes:polymerRoutes,sitePatterns:polymerSitePatterns});
+  let polymerCore=createReactionLabPolymerizationCore({records,routes:polymerRoutes,sitePatterns:polymerSitePatterns});
   const reactionCatalog=compileReactionCatalog(records);
   const eventController=new AbortController(),eventOptions={signal:eventController.signal};
   const recordsById=new Map(records.map(record=>[record.id,record]));
@@ -667,11 +667,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     status.textContent='FEEDING · 分子をchamberへ投入中';renderSlotTiles();
   }
   function startPurge(generation,nextSlots,feedSchedule){
+    const discardFailedPolymerBatch=!!polymerBeginError||!!polymerGraphVisual?.displayError;
     cancelAllPointers();contactMatcher.reset();testIsolation=null;reactionDiagnostics=[];
     purgeItems=instances;instances=[];
     if(polymerSamplePresentation&&!polymerSamplePresentation.ready&&!polymerSamplePresentation.dismissed){polymerSamplePresentation.dismissed=true;dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-dismiss',{sampleId:polymerSamplePresentation.sampleId,batchGeneration:polymerSamplePresentation.batchGeneration});}
     if(polymerGraphVisual){purgeItems.push({id:polymerSamplePresentation?.sampleId??'polymer-fragment',species:'PolymerSample',group:polymerGraphVisual.group,polymerSample:true});polymerGraphVisual=null;}
-    polymerCore.sampleDismiss();polymerRouteOwned=false;polymerReservedById.clear();polymerSourceRecordsById={};polymerSamplePresentation=null;polymerDocking=null;polymerAutoMotion=null;polymerSiteIndicator.hidden=true;polymerCompletion.hidden=true;status.hidden=false;
+    // Only an explicit next FEED discards a failed transient transaction.
+    // Keep normal Core locking and completed-sample dismissal unchanged.
+    if(discardFailedPolymerBatch)polymerCore=createReactionLabPolymerizationCore({records,routes:polymerRoutes,sitePatterns:polymerSitePatterns});
+    else polymerCore.sampleDismiss();
+    polymerRouteOwned=false;polymerReservedById.clear();polymerSourceRecordsById={};polymerSamplePresentation=null;polymerDocking=null;polymerAutoMotion=null;polymerSiteIndicator.hidden=true;polymerCompletion.hidden=true;status.hidden=false;
     const durationMs=reducedMotion?360:FLUSH_PRESENTATION_MS;
     for(const item of purgeItems){item.busy=false;item.purgeStart=item.group.position.clone();item.group.scale.setScalar(1);}
     batchTransition={kind:'flush',generation,elapsedMs:0,durationMs,items:purgeItems,nextSlots:[...nextSlots],nextFeed:feedSchedule?.length?createFeedTransition(generation,feedSchedule):null};

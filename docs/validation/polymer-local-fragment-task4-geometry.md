@@ -88,3 +88,13 @@ Node measured100 solves/build: baseline median/P95/max=8.964/36.335/44.500ms; ca
 75/75 fixed-camera analytical projections satisfy full fit, bounds-center≤1px, occupancy.70–.94 (±.01), H diameter≥4px where present, heavy diameter≥6px. This is not DOM/raster/occlusion acceptance.
 
 Local tests:12 geometry/negative/determinism tests,37 Core/discovery/progression/source-contract tests, PWA353 assets and repository hygiene0 warnings passed. Initial independent-review findings were corrected; browser fault injection additionally tests latched initial failure, committed failure without consumed monomer remnants, discovery retention and next-FEED recovery. No GPU/RAF or hosted result is inferred from these local checks.
+
+## First hosted acceptance and cause-backed recovery
+
+PR [#351](https://github.com/miyatayuuma/molecule-craft/pull/351), source `de02802dd1e78fc08157d1ba0320b9894e4488dc`, [run39197944147](https://github.com/miyatayuuma/molecule-craft/actions/runs/39197944147) attempt1: Stage B and ordinary mobile pointer/failure QA **FAIL**. Raw comparison, exact browser/source conditions, ZIP digests and failure state are retained in `polymer-local-fragment-task4-evidence/ci-first-*`. FIELD run39197944105 passed.
+
+Stage B trial P95 baseline7.6/7.3/7.5/11.7ms (pooled8.7), candidate7.6/7.4/7.4/12.8ms (pooled9.5); absolute limit8.333333333ms, unchanged relative tolerance.45ms. Candidate median-trial difference−.05ms passes; pooled+.8ms fails. Both baseline and candidate exceed the hard gate. Generic integration/matcher/profiler/comparator are unchanged by Task④ and its solver does not directly run for methane+oxygen+2-butene, but indirect code/runtime effects and environment are not excluded. This is NOT a proven noise-only or existing-only failure. No pass is substituted and no old job is rerun.
+
+The mobile suite reached all13 ordinary routes (including PAN), observation/close/reopen and reduced PE before its new fault recovery check. That negative check exposed an actual implementation defect: Core `sampleDismiss()` only clears SAMPLE, so an explicitly abandoned failed initial WAITING transaction survives next FEED. The source repair recreates only that failed transient Core at explicit next-FEED purge. Normal Core locking, graph edits, completed Sample dismissal, byproducts and persistence are unchanged. The existing fault QA remains mandatory. Downstream desktop/integrated/Finite-comparison stages were SKIPPED in this first job and are not accepted.
+
+A new necessary repaired-source commit receives ordinary CI; it is separate evidence and does not claim the Stage B cause was fixed. Required failed gates continue to block merge/CLOSED. Final disposition belongs to the PR's exact source authority and retained run records.
