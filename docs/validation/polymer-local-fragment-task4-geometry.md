@@ -77,7 +77,7 @@ Independent review initially found over-shortened N–alkyl bonds, malformed sou
 
 Task⑤ receives this geometry API, exact merged SHA only after merge, accepted fixtures and read-only semantic groups. It still owns L1 triple-lane rendering, final tokens, annotation/selection/local focus, DOM safe-region fitting, final raster occlusion and interactions, DPR/resize/GPU lifecycle reconciliation with #345. PF L2 attachment-site chemistry is explicitly UNVERIFIED: coordinates do not repair it. Task⑥ still owns full25×V/state/device acceptance, strict integration and child observation.
 
-Final acceptance/merge status: PENDING; no Task④ CLOSED or main merge is claimed by the local evidence alone.
+Final acceptance/merge status: **BLOCKED**. Required hosted acceptance has an unresolved failure; PR #351 remains open. No main merge or post-merge acceptance is claimed.
 
 ## Local results on the delivered source
 
@@ -104,3 +104,46 @@ A new necessary repaired-source commit receives ordinary CI; it is separate evid
 GitHub review thread `PRRT_kwDOUHvkUc6tyGMM` found that ready display-error samples have fit=null yet old pinch/wheel handlers still dereference fit. Added one observation predicate requiring ready, fit, layoutPlan, no displayError and not suspended; failed displays accept neither observation pointers nor wheel zoom. The actual fault QA now dispatches wheel and two-touch pinch and asserts no browser exception, no active pointer, unchanged camera and preserved sample identity. This is a failure-boundary fix, not Task⑤ renderer work.
 
 On the preceding recovery source `a6dafe8b65191983ae9e5967c00d18350a16db12`, Stage B run39198475297/job117886273971 PASS: baseline trial P95 4.4/4.2/4.4/6.0ms (pooled4.4), candidate4.3/4.1/4.1/4.2ms (pooled4.2), unchanged budget8.333333333ms/tolerance.3ms. Exact Chrome/Node/source conditions and all raw trials are retained in `ci-second-stage-b-*`, artifact12162907251 ZIP SHA256 `a1766d98d4e8bb748795139ca1d9773e3ed73df9876d03f9784e5af826759e49`. The mobile ordinary and failure/re-FEED suite passed on that source. This does not explain or erase the first Stage B FAIL. The gesture repair still requires its own ordinary acceptance on its exact source.
+
+## Final source acceptance disposition — BLOCKED
+
+Measured production source: `0f3e51de1a6e05770a74e008cbda9e0303fabf4d`, tree `7851c23621810ee818ae55614fe7e9e7702a72d3`. Subsequent evidence-only publication does not change the measured runtime. Main remains `37b7d2cde1e60cd28575784a252382f4599c391f`; PR #345 remains OPEN/unmerged. Task④ PR #351 stays OPEN. Merge, actual merged SHA and post-merge verification are **NOT EXECUTED**, because mandatory acceptance is incomplete.
+
+### Mandatory repository blocker
+
+[Repository run39199007958](https://github.com/miyatayuuma/molecule-craft/actions/runs/39199007958), candidate job117887858346, fails `tests/reaction-lab-browser.test.mjs:280`: **Release removes linear throw momentum**. The immutable Task⑩ baseline control reached its measurement and passed (trial P95 7.8/8.0/7.6/7.7ms; pooled7.8ms). The candidate fails the preceding generic water-drag assertion and therefore its Stage B measurement in this job is NOT_EXECUTED. Seven other Repository jobs pass. The dedicated Reaction Lab Stage B comparison is a distinct successful job and cannot substitute for this required functional failure. Raw failure excerpt is `ci-final-guardrails-failure.txt`; hosted baseline-control artifact12163371759 has ZIP SHA256 `31751fac12c486d9592a6fe926fc0aefb44c488bd0244824910944a3cd92d7ed`.
+
+Bounded source review confirms no Task④ edits to the generic release handler, manipulation module, integrator or failing test. New pointer guards fall through identically when no polymer display exists. The handler still synchronously zeros the selected body's velocity. CDP release and subsequent snapshot occur in separate requests, so intervening physical steps are a plausible explanation; however the log contains only actual:false, without velocity or fixed-step counters. Neither an existing-only defect, an environmental flake nor absence of an indirect regression is established. No threshold/test relaxation or unchanged-source rerun is used to hide this failure.
+
+Resume condition: instrument only the failing release boundary to retain velocity XYZ/finite status immediately before release, immediately after handler reset and at assertion; include selected/down/pointer IDs, fixed-step counter and simulation clock. Determine whether reset failed or later force integration produced velocity. Repair the demonstrated cause, validate both release and subsequent-physics contracts without weakening either, then complete all required CI on the repaired exact source. See independent `gate-disposition-review.md`. This task does not expand into an unrelated global physics rewrite.
+
+### Hosted FIELD and retained failure history
+
+FIELD run39199007969 first fails before Page.navigate: Chromium DevTools readiness times out. Application assertions are NOT_EXECUTED in that invocation. A single job-only infrastructure diagnostic rerun on the same source, job117890148182, completes the actual desktop/mobile FIELD assertions and hygiene: PASS. Both logs are retained (`ci-final-field-startup-failure.txt`, `ci-final-field-retry-pass.txt`). No failed performance job was rerun.
+
+The superseded recovery source a6 Finite run39198475297 also has a retained strict FAIL: Desktop reduced-motion maximum RAF133.3ms exceeds unchanged116.9ms allowance; P50/P95/completion checks pass independently. Raw four-condition performance inputs and comparator are `ci-second-completion-*`; artifact12163302340 ZIP SHA256 `40257c9e76dc2f85cf4969f8b6b0b5df15fd78d088b571f807f8ef17d3933cc4`. Source0f ordinary CI was necessary for the separate reviewed failed-display gesture repair; it does not establish a performance root-cause repair. No trial is removed, no favorable trial selected and no failed history erased.
+
+On source0f, dedicated Stage B run39199007973/job117887858370 PASS: baseline trial P95 3.9/4.1/4.0/4.2ms, pooled4.1; candidate5.5/4.2/4.1/3.9ms, pooled4.3; unchanged hard budget8.333333333ms and tolerance.3ms. Full trials/comparison are `ci-final-stage-b-*`; artifact12162748689 ZIP SHA256 `cdb299f928b13c48fb586b910023d2b61ef1a9e5d92b1736527eef19bfeb2ed2`. This PASS is evidence for that job/source, not permission to ignore the separate required guardrail FAIL.
+
+### Task⑤ handoff state
+
+Geometry source SHA256 remains `96b87ff09ca838113a5c885c3b3b20f1c959f6199dd54320ab51f7ab3f51e687`; generated25-route and75-projection evidence matches it exactly. `createPolymerFragment3DLayout`, `createSafePolymerFragmentPlan`, `polymerGeometryModel`, `polymerGeometryDiagnostics` and `resolvePolymerFragmentTargets` are reviewable in PR #351. Actual accepted fixtures and index/bond/origin-tuple semantic sets are in `validation-25.json`, generated by the documented scripts. There is **no merged Task④ SHA** to consume yet.
+
+Independent production/scientific reviews found no remaining major code defect after their listed repairs; the separate evidence review explicitly withholds CLOSED because the required guardrail is unresolved. This is constrained illustrative geometry, not a force-field minimum or experimentally validated material conformation. PF L2, L1 triple-lane rendering, annotation/local focus, DOM safe-region fit, final raster occlusion and broader renderer/device acceptance remain outside this completion claim.
+
+### Completed final Finite browser/performance evidence
+
+Source0f Finite run39199007973/job117887858605 completes **PASS**, including12 geometry tests, 13 ordinary representative routes at390×844 and1280×900 plus reduced PE, real FEED/docking/completion, graph mesh counts, orbit/zoom/reset, close/reopen, re-FEED, source/final failure injection, failed-display wheel/pinch, resource evidence, integrated mobile/desktop discovery→Engineering→FIELD journeys, Collection and unchanged353-asset PWA closure. `ci-final-browser-summary.json` retains28 route/motion observations and26 screenshot hashes; six PAN/Nylon/PF images and the exact failure/gesture/journey logs are committed alongside it. All full raw images and state logs are retained in artifact12163079912, verified ZIP SHA256 `d394051cceab152c8a40a13a7f3b9c4cd7db63718802e33572204b5a017ea74a`.
+
+All16 strict real-RAF/completion checks across the four viewport/motion conditions pass unchanged. Raw measured+warmup inputs and comparator are `ci-final-completion-*`. Baseline remains historical Task⑩ SHA4bc202c, not task-start main; Chrome155.0.8059.39/revision3ff7ac5a... is identical across builds. This does not isolate every Task④-vs-start-main effect or erase earlier failing runs.
+
+| Viewport / motion | Baseline / candidate pooled RAF P95 (ms) | Baseline / candidate max (ms) | Baseline / candidate completion P95 (ms) | Result |
+|---|---:|---:|---:|---|
+| Mobile / normal |16.8 /16.7|33.2 /33.4|665.0 /663.3|PASS|
+| Mobile / reduced |16.7 /16.8|16.8 /16.8|256.6 /264.6|PASS|
+| Desktop / normal |150.0 /150.0|150.0 /150.0|895.0 /757.3|PASS|
+| Desktop / reduced |150.1 /16.7|150.1 /16.7|436.1 /286.0|PASS|
+
+These are actual SwiftShader/headless RAF samples, including coarse Desktop counts (normal24/20, reduced12/4 intervals baseline/candidate). The frozen comparator evaluates median-of-trial P50/P95, maxima, latency, resources and source/browser conditions. No synthetic frames or floor changes are introduced. A relative PASS does not claim 60fps Desktop rendering or physical-device validation. Local all25 generation-tail increase remains documented separately. **The unresolved Repository release-velocity guardrail still blocks Task④ despite this Finite PASS.**
+
+[Machine-readable final acceptance and source provenance](polymer-local-fragment-task4-evidence/ci-final-acceptance.json) ties every hosted result to its job/run/source. The evidence-only publication preserves those failed results; any automatically scheduled CI is not a root-cause repair or a substitute for the documented resume conditions.
