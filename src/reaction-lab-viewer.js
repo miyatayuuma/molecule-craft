@@ -47,6 +47,39 @@ const POLYMER_DOCK_MS=430;
 const POLYMER_COMPLETION_FEEDBACK_MS=650;
 const POLYMER_COMPLETION_REDUCED_FEEDBACK_MS=250;
 
+// The drawing buffer is synchronous WebGL state: never reset it for a no-op fit.
+export function resizeReactionLabCanvas({canvas,renderer,camera,pixelRatio}){
+  const rect=canvas.getBoundingClientRect();
+  if(rect.width<1||rect.height<1)return false;
+  const ratio=Math.min(pixelRatio||1,2),width=Math.floor(rect.width*ratio),height=Math.floor(rect.height*ratio);
+  const ratioChanged=renderer.getPixelRatio()!==ratio;
+  const changed=ratioChanged||canvas.width!==width||canvas.height!==height;
+  if(changed){
+    if(ratioChanged)renderer.setDrawingBufferSize(rect.width,rect.height,ratio);
+    else renderer.setSize(rect.width,rect.height,false);
+  }
+  const aspect=rect.width/rect.height;
+  if(camera.aspect!==aspect){camera.aspect=aspect;camera.updateProjectionMatrix();}
+  return changed;
+}
+
+const POLYMER_COMPLETION_PREPARING_TEXT='重合完了 · 3D表示を整えています';
+const POLYMER_COMPLETION_READY_TEXT='重合完了 · ドラッグで回転、ホイール・ピンチで拡大';
+// Decorative intrinsic sizing only. Live elements retain native hidden semantics.
+export function reservePolymerCompletionFooter(reservation,completion,name){
+  reservation.replaceChildren();reservation.hidden=!name;
+  if(!name)return;
+  for(const message of [POLYMER_COMPLETION_PREPARING_TEXT,POLYMER_COMPLETION_READY_TEXT]){
+    const copy=completion.cloneNode(true);
+    for(const element of [copy,...copy.querySelectorAll('*')]){
+      for(const attribute of [...element.attributes])if(attribute.name!=='class'&&attribute.name!=='type')element.removeAttribute(attribute.name);
+      if(element.tagName==='BUTTON')element.disabled=true;
+    }
+    copy.querySelector('strong').textContent=name;copy.querySelector('span').textContent=message;
+    reservation.append(copy);
+  }
+}
+
 export function reserveParticipantInstances(participantInstances,instances,generation,requiredRoles=Object.keys(participantInstances??{})){
   if(!participantInstances||!Array.isArray(requiredRoles)||!requiredRoles.length)return{ok:false,reason:'missing-reaction-participant'};
   const ids=requiredRoles.map(role=>participantInstances[role]);
@@ -72,6 +105,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const canvas=root.querySelector('canvas');
   const status=root.querySelector('[data-lab-status]');
   const polymerCompletion=root.querySelector('[data-polymer-completion]'),polymerCompletionName=root.querySelector('[data-polymer-completion-name]'),polymerCompletionStatus=root.querySelector('[data-polymer-completion-status]'),polymerEncyclopediaButton=root.querySelector('[data-polymer-encyclopedia]'),polymerViewResetButton=root.querySelector('[data-polymer-view-reset]');
+  const polymerFooterReservation=root.querySelector('[data-polymer-footer-reservation]');
   const slots=[...root.querySelectorAll('[data-lab-slot]')];
   const feedButton=root.querySelector('[data-lab-feed]'),commandState=root.querySelector('[data-lab-command-state]');
   const picker=root.querySelector('[data-lab-picker]'),pickerList=root.querySelector('[data-lab-picker-list]'),pickerSearch=root.querySelector('[data-lab-search]');
@@ -111,7 +145,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   if(!polymerSiteIndicator){polymerSiteIndicator=document.createElement('div');polymerSiteIndicator.className='reaction-lab-polymer-site';polymerSiteIndicator.dataset.polymerSiteIndicator='';polymerSiteIndicator.setAttribute('aria-hidden','true');polymerSiteIndicator.hidden=true;chamber.append(polymerSiteIndicator);}
   let polymerIncomingIndicator=root.querySelector('[data-polymer-incoming-indicator]');
   if(!polymerIncomingIndicator){polymerIncomingIndicator=document.createElement('div');polymerIncomingIndicator.className='reaction-lab-polymer-incoming';polymerIncomingIndicator.dataset.polymerIncomingIndicator='';polymerIncomingIndicator.setAttribute('aria-hidden','true');polymerIncomingIndicator.hidden=true;chamber.append(polymerIncomingIndicator);}
-  function resize(){const rect=canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;renderer.setSize(rect.width,rect.height,false);camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix();}
+  function resize(){return resizeReactionLabCanvas({canvas,renderer,camera,pixelRatio:devicePixelRatio});}
+  window.addEventListener('resize',resize,eventOptions);
+  function watchPixelRatio(){matchMedia(`(resolution: ${devicePixelRatio||1}dppx)`).addEventListener('change',()=>{resize();watchPixelRatio();},{once:true,signal:eventController.signal});}
+  watchPixelRatio();
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);resize();
   function updateCamera(){camera.position.set(distance*Math.sin(FIXED_CAMERA_AZIMUTH)*Math.cos(FIXED_CAMERA_ELEVATION),distance*Math.sin(FIXED_CAMERA_ELEVATION),distance*Math.cos(FIXED_CAMERA_AZIMUTH)*Math.cos(FIXED_CAMERA_ELEVATION));camera.lookAt(0,0,0);camera.updateMatrixWorld();}
   function cameraNormal(){camera.updateMatrixWorld();return camera.getWorldDirection(new THREE.Vector3());}
@@ -446,7 +483,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const known=!!isPolymerKnown(presentation.polymerId);
     polymerCompletion.hidden=false;status.hidden=true;
     polymerCompletionName.textContent=polymerNameFor(presentation.polymerId)??presentation.polymerId;
-    polymerCompletionStatus.textContent=ready?'重合完了 · ドラッグで回転、ホイール・ピンチで拡大':'重合完了 · 3D表示を整えています';
+    polymerCompletionStatus.textContent=ready?POLYMER_COMPLETION_READY_TEXT:POLYMER_COMPLETION_PREPARING_TEXT;
     polymerViewResetButton.hidden=!ready;polymerViewResetButton.disabled=!ready;
     polymerEncyclopediaButton.hidden=!known;polymerEncyclopediaButton.disabled=!ready||!known;
   }
@@ -651,6 +688,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     return{kind:'feed',generation,elapsedMs:0,feedStartedAt:null,entries,preparations,preparationBySpecies:new Map(preparations.map(preparation=>[preparation.species,preparation])),preparationCursor:0,feedLayoutReady:false};
   }
   function startFeedTransition(generation,schedule,preparedTransition=null){
+    const route=polymerCore.routeFor(batch.activeSlots);
+    reservePolymerCompletionFooter(polymerFooterReservation,polymerCompletion,route?(polymerNameFor(route.polymerId)??route.polymerId):null);
+    resize();
     batchTransition=preparedTransition??createFeedTransition(generation,schedule);
     if(preparedTransition)prepareFeedModels(batchTransition);
     status.textContent='FEEDING · 分子をchamberへ投入中';renderSlotTiles();
@@ -1194,6 +1234,14 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     };
     const probe={
       polymerResourceSnapshot,
+      polymerCompletionTiming(){const presentation=polymerSamplePresentation;return presentation?{sampleId:presentation.sampleId,timerStartedAtMs:presentation.startedAt,durationMs:presentation.durationMs,elapsedMs:presentation.elapsedMs,ready:presentation.ready,dismissed:presentation.dismissed}:null;},
+      polymerGraphEvidence(){
+        const graph=polymerGraphVisual?.graph??null,visual=polymerGraphVisual;
+        if(!graph||!visual)return null;
+        const resources=polymerResourceSnapshot();
+        const visibleBonds=new Set(visual.bondMeshes.filter(mesh=>mesh.visible&&Array.isArray(mesh.userData.polymerAtomIndices)).map(mesh=>mesh.userData.polymerAtomIndices.join('|')));
+        return{sampleId:polymerSamplePresentation?.sampleId??null,sampleReady:!!polymerSamplePresentation?.ready,graphAtomCount:graph.atoms.length,graphBondCount:graph.bonds.length,atomOriginCount:graph.atomOrigins?.length??0,visibleAtomCount:visual.atomByGraphIndex.size,visibleBondMeshCount:visual.bondMeshes.filter(mesh=>mesh.visible).length,bondsResolveToRenderedAtoms:graph.bonds.every(bond=>visual.atomByGraphIndex.has(bond.a)&&visual.atomByGraphIndex.has(bond.b)),everyBondHasVisibleMesh:graph.bonds.every(bond=>visibleBonds.has(`${bond.a}|${bond.b}`)),activeGroupCount:resources.activeGroupCount,geometryCount:resources.geometryCount,materialCount:resources.materialCount};
+      },
       polymerDisplayBounds(){
         if(!polymerGraphVisual?.layoutPlan)return null;
         const rect=canvas.getBoundingClientRect(),forward=cameraNormal(),points=[];camera.updateMatrixWorld(true);polymerGraphVisual.group.updateMatrixWorld(true);
@@ -1226,7 +1274,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       },
       setGeometry(poses){const ids=new Set(poses.map(pose=>pose.id));if(ids.size!==poses.length)throw Error('Stage A geometry fixture contains duplicate molecule IDs');endManipulation();activePointers.clear();pinchActive=false;pinchDistance=0;onPointerLockChange(false);testIsolation=ids.size?ids:null;contactMatcher.reset();reactionDiagnostics=[];for(const pose of poses){const item=instanceById(pose.id);if(!item)throw Error(`Missing fixture molecule ${pose.id}`);if(pose.positionAngstrom)item.stageBody.positionAngstrom=[...pose.positionAngstrom];if(pose.orientation)item.stageBody.orientation=[...pose.orientation];item.stageBody.velocityAngstromPerPs=[...(pose.velocityAngstromPerPs??[0,0,0])];item.stageBody.angularVelocityRadPerPs=[...(pose.angularVelocityRadPerPs??[0,0,0])];syncGroupFromStageABody(item);}clearDepthTarget();updateCommandBar();return this.snapshot();},
       advanceDeterministic(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps)));stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;}return this.snapshot();},
-      measureFixedSteps(steps=1){const count=Math.max(0,Math.min(600,Math.floor(steps))),durationsMs=[];stageAStepper.reset();for(let index=0;index<count;index++){integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;durationsMs.push(stageAPerformance.lastFixedStepDurationMs);}return{durationsMs,candidateCount:reactionDiagnostics.length,reactionIds:[...new Set(reactionDiagnostics.map(item=>item.reactionId))].sort()};},
+      measureFixedSteps(steps=1,{includeTimestamps=false}={}){const count=Math.max(0,Math.min(600,Math.floor(steps))),durationsMs=[],stepWindowsMs=[];stageAStepper.reset();for(let index=0;index<count;index++){const startedAt=includeTimestamps?performance.now():null;integrateStageAStep(STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND);simulationClockSeconds+=STAGE_A_GAME_STEP_SECONDS;durationsMs.push(stageAPerformance.lastFixedStepDurationMs);if(includeTimestamps)stepWindowsMs.push([startedAt,performance.now()]);}return{durationsMs,candidateCount:reactionDiagnostics.length,reactionIds:[...new Set(reactionDiagnostics.map(item=>item.reactionId))].sort(),...(includeTimestamps?{stepWindowsMs}:{})};},
       decomposePair(aId,bId){const a=instanceById(aId),b=instanceById(bId);if(!a||!b)throw Error('Missing Reaction Lab molecule instance');const result=stageBPhysicsEnabled?evaluateStageBForces([a.stageBody,b.stageBody]):evaluateStageAForces([a.stageBody,b.stageBody]);return{pairs:result.pairDiagnostics,bodies:Object.fromEntries([...result.bodies].map(([id,state])=>[id,state])),overlapGuardActivationCount:result.overlapGuardActivationCount};},
       measurePairReleaseTrajectory(aId,bId){
         if(!stageBPhysicsEnabled)throw Error('Release handoff measurement requires production Stage B');

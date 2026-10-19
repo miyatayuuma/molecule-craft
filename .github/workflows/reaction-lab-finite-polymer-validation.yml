@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     paths:
       - 'src/*polymer*'
       - 'src/reaction-lab-viewer.js'
@@ -40,6 +41,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C6-DIAGNOSTIC-ONLY]') && github.event.action != 'edited')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -53,7 +55,7 @@ jobs:
       - name: Japanese screenshot font
         run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
       - name: Finite completion, chemistry and discovery regressions
-        run: node --test tests/reaction-lab-legacy-removal.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
+        run: node --test tests/reaction-lab-resize.test.mjs tests/finite-resize-ab.test.mjs tests/c9-resize-attribution.test.mjs tests/reaction-lab-legacy-removal.test.mjs tests/polymerization-routes.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymerization-fixtures.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/polymer-catalog.test.mjs tests/polymer-collection.test.mjs tests/polymer-collection-persistence.test.mjs tests/engineering-fabrication.test.mjs
       - name: All 25 finite routes — 3D graph and geometry validation
         env:
           TASK11_GEOMETRY_EVIDENCE_DIR: ${{ runner.temp }}/polymer-3d-layout
@@ -157,6 +159,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
   stage-b-performance-comparison:
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event_name != 'pull_request' || (!contains(github.event.pull_request.title, '[TASK12C4-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C5-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') && !contains(github.event.pull_request.title, '[TASK12C6-DIAGNOSTIC-ONLY]') && (github.event.action != 'edited' || (github.event.changes.title != null && (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]')))))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -168,7 +171,7 @@ jobs:
         with:
           node-version: 22
       - name: Stage B comparison contract tests
-        run: node --test tests/compare-reaction-lab-stage-b.test.mjs
+        run: node --test tests/compare-reaction-lab-stage-b.test.mjs tests/chromium-renderer-authority.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs tests/compare-polymer-performance.test.mjs
       - name: Prepare immutable Task ⑩ main baseline
         env:
           POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
@@ -178,6 +181,7 @@ jobs:
           echo "POLYMER_BASELINE_SHA=$POLYMER_BASELINE_SHA" >> "$GITHUB_ENV"
           echo "POLYMER_CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Profile Task ⑩ main baseline — warm-up + four trials
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-stage-b-baseline
           POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
@@ -186,6 +190,7 @@ jobs:
           STAGE_B_DEBUG_PORT: 9277
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - name: Profile Task ⑪ candidate — warm-up + four trials
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
         env:
           POLYMER_ROOT: ${{ github.workspace }}
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -194,11 +199,312 @@ jobs:
           STAGE_B_DEBUG_PORT: 9278
         run: node scripts/profile-reaction-lab-stage-b.mjs
       - name: Compare same-condition Stage B performance
+        if: ${{ !contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') && !contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
         run: node scripts/compare-reaction-lab-stage-b.mjs "$RUNNER_TEMP/stage-b-performance/baseline.json" "$RUNNER_TEMP/stage-b-performance/candidate.json" "$RUNNER_TEMP/stage-b-performance/comparison.json"
+      - name: Diagnostic-only runner and browser pause attribution — Task ⑩ baseline
+        if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/polymer-task10-stage-b-baseline
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          STAGE_B_PROFILE_LABEL: baseline-diagnostic
+          STAGE_B_PROFILE_MODE: diagnostic
+          STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/stage-b-performance/diagnostic-baseline.json
+          STAGE_B_DEBUG_PORT: 9279
+        run: node scripts/profile-reaction-lab-stage-b.mjs
+      - name: Diagnostic-only runner and browser pause attribution — Task ⑪ candidate
+        if: ${{ contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]') }}
+        env:
+          POLYMER_ROOT: ${{ github.workspace }}
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          STAGE_B_PROFILE_LABEL: candidate-diagnostic
+          STAGE_B_PROFILE_MODE: diagnostic
+          STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/stage-b-performance/diagnostic-candidate.json
+          STAGE_B_DEBUG_PORT: 9280
+        run: node scripts/profile-reaction-lab-stage-b.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: task10-task11-stage-b-performance-comparison
           path: ${{ runner.temp }}/stage-b-performance
+          if-no-files-found: error
+          retention-days: 90
+  diagnostic-preflight:
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && contains(github.event.pull_request.title, '[TASK12C6-PREFLIGHT]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deterministic diagnostic harness gates
+        run: |
+          gate_artifact_dir="$RUNNER_TEMP/reaction-lab-diagnostic-preflight"
+          mkdir -p "$gate_artifact_dir"
+          set +e
+          node --test tests/chromium-renderer-authority.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs > "$gate_artifact_dir/deterministic-gates.tap" 2>&1
+          gate_status=$?
+          cat "$gate_artifact_dir/deterministic-gates.tap"
+          exit "$gate_status"
+      - name: Record checked-out source authority
+        env:
+          EXPECTED_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          DIAGNOSTIC_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+        run: |
+          CHECKED_OUT_SOURCE_SHA="$(git rev-parse HEAD)"
+          echo "DIAGNOSTIC_SOURCE_SHA=$CHECKED_OUT_SOURCE_SHA" >> "$GITHUB_ENV"
+          echo "DIAGNOSTIC_EXPECTED_PR_HEAD_SHA=$EXPECTED_PR_HEAD_SHA" >> "$GITHUB_ENV"
+          echo "DIAGNOSTIC_BASELINE_SHA=$DIAGNOSTIC_BASELINE_SHA" >> "$GITHUB_ENV"
+      - name: Renderer counter and trace capability preflight — no Stage B campaign
+        env:
+          DIAGNOSTIC_GITHUB_EVENT_SHA: ${{ github.sha }}
+          DIAGNOSTIC_PREFLIGHT_OUTPUT: ${{ runner.temp }}/reaction-lab-diagnostic-preflight/preflight.json
+        run: node scripts/preflight-reaction-lab-diagnostics.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task12c6-renderer-identity-preflight
+          path: ${{ runner.temp }}/reaction-lab-diagnostic-preflight
+          if-no-files-found: error
+          retention-days: 90
+  finite-root-cause-diagnostic:
+    if: ${{ (contains(github.event.pull_request.title, '[TASK12C3-DIAGNOSTIC-ONLY]') || contains(github.event.pull_request.title, '[TASK12C4-DIAGNOSTIC-ONLY]')) && (github.event.action != 'edited' || github.event.changes.title != null) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Trace desktop reduced-motion completion pause
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_DESKTOP: '1'
+          POLYMER_PAUSE_DIAGNOSTIC: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/finite-pause-diagnostic
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: finite-desktop-reduced-motion-pause-diagnostic
+          path: ${{ runner.temp }}/finite-pause-diagnostic
+          if-no-files-found: warn
+          retention-days: 90
+  c7-diagnostic-gates:
+    # Synchronize runs deterministic tests only. Campaigns still require exact-head explicit opt-in.
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event.action == 'synchronize' || (github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && (github.event.pull_request.title == format('[TASK12C7-RUN] {0}', github.event.pull_request.head.sha) || github.event.pull_request.title == format('[TASK12C8-RUN] {0}', github.event.pull_request.head.sha)) && github.event.changes.title.from != github.event.pull_request.title)) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: All deterministic C7 integration gates
+        run: |
+          mkdir -p test-results/c7-gates
+          node --test tests/chromium-renderer-authority.test.mjs tests/c7-diagnostic-integration.test.mjs tests/c8-finite-attribution.test.mjs tests/stage-b-runner-telemetry.test.mjs tests/stage-b-trace-attribution.test.mjs tests/chromium-trace-recorder.test.mjs tests/stage-b-diagnostic-finalization.test.mjs tests/diagnostic-preflight-contract.test.mjs tests/finite-polymer-diagnostic.test.mjs tests/compare-reaction-lab-stage-b.test.mjs tests/compare-polymer-performance.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs > test-results/c7-gates/deterministic.tap 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c7-deterministic-gates
+          path: test-results/c7-gates
+          if-no-files-found: error
+          retention-days: 90
+  c7-stage-b-diagnostic:
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && github.event.pull_request.title == format('[TASK12C7-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title }}
+    needs: c7-diagnostic-gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Freeze checked-out and browser authority
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          mkdir -p "$RUNNER_TEMP/c7-stage-b"
+          git worktree add --detach "$RUNNER_TEMP/c7-baseline" 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          echo "CHROMIUM_PATH=$browser" >> "$GITHUB_ENV"
+          "$browser" --version > "$RUNNER_TEMP/c7-stage-b/chromium-version.txt"
+      - name: One immutable baseline diagnostic
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/c7-baseline
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          STAGE_B_PROFILE_LABEL: baseline-diagnostic
+          STAGE_B_PROFILE_MODE: diagnostic
+          STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/c7-stage-b/baseline.json
+          STAGE_B_DEBUG_PORT: 9279
+        run: node scripts/profile-reaction-lab-stage-b.mjs > "$RUNNER_TEMP/c7-stage-b/baseline.log" 2>&1
+      - name: One frozen candidate diagnostic
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          STAGE_B_PROFILE_LABEL: candidate-diagnostic
+          STAGE_B_PROFILE_MODE: diagnostic
+          STAGE_B_PROFILE_OUTPUT: ${{ runner.temp }}/c7-stage-b/candidate.json
+          STAGE_B_DEBUG_PORT: 9280
+        run: node scripts/profile-reaction-lab-stage-b.mjs > "$RUNNER_TEMP/c7-stage-b/candidate.log" 2>&1
+      - name: Validate diagnostic pair authority without acceptance comparison
+        run: |
+          node --input-type=module - "$RUNNER_TEMP/c7-stage-b" <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const dir=process.argv[2],base=JSON.parse(await readFile(dir+'/baseline.json')),candidate=JSON.parse(await readFile(dir+'/candidate.json'));
+          assert.deepEqual(base.browser,candidate.browser);
+          for(const report of [base,candidate]){assert.equal(report.profileMode,'diagnostic');assert.equal(report.pooled.stepCount,600);assert.equal(report.trials.length,4);}
+          console.log('Diagnostic pair recorded; not an acceptance result.',base.browser);
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c7-paired-stage-b-diagnostic
+          path: ${{ runner.temp }}/c7-stage-b
+          if-no-files-found: error
+          retention-days: 90
+  c7-finite-diagnostic:
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && github.event.pull_request.title == format('[TASK12C7-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title }}
+    needs: c7-diagnostic-gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: One desktop real-RAF reduced-motion diagnostic
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_DESKTOP: '1'
+          POLYMER_PAUSE_DIAGNOSTIC: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/c7-finite
+        run: |
+          test "$(git rev-parse HEAD)" = "$POLYMER_SOURCE_SHA"
+          mkdir -p "$POLYMER_EVIDENCE_DIR"
+          node tests/reaction-lab-polymer-browser.test.mjs > "$POLYMER_EVIDENCE_DIR/finite.log" 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c7-finite-desktop-reduced-diagnostic
+          path: ${{ runner.temp }}/c7-finite
+          if-no-files-found: error
+          retention-days: 90
+
+  c8-finite-diagnostic:
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && github.event.pull_request.title == format('[TASK12C8-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title }}
+    needs: c7-diagnostic-gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: One desktop real-RAF reduced-motion diagnostic
+        env:
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_DESKTOP: '1'
+          POLYMER_PAUSE_DIAGNOSTIC: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/c8-finite
+        run: |
+          test "$(git rev-parse HEAD)" = "$POLYMER_SOURCE_SHA"
+          mkdir -p "$POLYMER_EVIDENCE_DIR"
+          node tests/reaction-lab-polymer-browser.test.mjs > "$POLYMER_EVIDENCE_DIR/finite.log" 2>&1
+      - name: Offline CPU wall and GPU evidence reconciliation
+        if: always()
+        run: |
+          node scripts/analyze-c7-finite-evidence.mjs "${{ runner.temp }}/c8-finite/finite-pause-diagnostic-1280.json" "${{ runner.temp }}/c8-finite/finite-pause-trace-1280.json" "${{ runner.temp }}/c8-finite/c8-analysis.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c8-finite-desktop-reduced-diagnostic
+          path: ${{ runner.temp }}/c8-finite
+          if-no-files-found: error
+          retention-days: 90
+
+  c9-layout-gates:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && (github.event.action == 'synchronize' || (github.event.action == 'edited' && github.event.changes.title != null && github.event.pull_request.title == format('[TASK12C9-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title)) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deterministic resize, geometry, lifecycle and diagnostic contracts
+        run: node --test tests/finite-resize-ab.test.mjs tests/reaction-lab-resize.test.mjs tests/polymer-fragment-3d-layout.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/reaction-lab-legacy-removal.test.mjs tests/reaction-lab-polymer-timing-probe.test.mjs tests/c8-finite-attribution.test.mjs tests/finite-polymer-diagnostic.test.mjs
+      - name: Frozen C8 production layout reproduction
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/c9-baseline
+          POLYMER_SOURCE_SHA: da4a0f529ceb4ca0fc5303e6e768d82945b4f934
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/c9-layout/baseline
+        run: |
+          git worktree add --detach "$POLYMER_ROOT" "$POLYMER_SOURCE_SHA"
+          node scripts/check-finite-completion-layout.mjs
+      - name: Candidate desktop/mobile, normal/reduced, all 25 footer names, reopen and DPR
+        env:
+          C9_LAYOUT_CANDIDATE: '1'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/c9-layout/candidate
+        run: node scripts/check-finite-completion-layout.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c9-layout-regression
+          path: ${{ runner.temp }}/c9-layout
+          if-no-files-found: warn
+          retention-days: 90
+
+  c9-controlled-ab:
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.changes.title != null && contains(github.event.pull_request.labels.*.name, 'task12c-diagnostic-only') && github.event.pull_request.title == format('[TASK12C9-RUN] {0}', github.event.pull_request.head.sha) && github.event.changes.title.from != github.event.pull_request.title }}
+    needs: c9-layout-gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare frozen C8 production; shared C9 harness remains in candidate checkout
+        env:
+          C9_BASELINE_ROOT: ${{ runner.temp }}/c9-baseline
+        run: git worktree add --detach "$C9_BASELINE_ROOT" da4a0f529ceb4ca0fc5303e6e768d82945b4f934
+      - name: Exactly one campaign — A minimal baseline, B minimal candidate, D full candidate, C full baseline
+        env:
+          C9_BASELINE_ROOT: ${{ runner.temp }}/c9-baseline
+          C9_EVIDENCE_DIR: ${{ runner.temp }}/c9-ab
+        run: node scripts/run-finite-resize-ab.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c9-controlled-ab
+          path: ${{ runner.temp }}/c9-ab
           if-no-files-found: error
           retention-days: 90

@@ -1,0 +1,299 @@
+{
+  "provenance": {
+    "runId": 38703987554,
+    "artifactId": 11956769215,
+    "artifactSha256": "6fff302c9ee96e02f242836613f4bc96b6b0c1d6b0a87bd9c0a1d97a01728059",
+    "measuredSourceSha": "bc9d118f720fa3c93bd75ed8f79613eae84deecf",
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/154.0.8037.97",
+      "revision": "@b510e9d7cd3a2fbd78d0ddc42234103206c5f78d",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "jsVersion": "15.4.80.20"
+    },
+    "scope": "recorded clock and trace excerpts only; full scheduler raw retained in artifact"
+  },
+  "cdpMarkers": [
+    {
+      "id": "finite-capture-start",
+      "syncId": "trace-cdp-clock-finite-desktop-reduced-motion-finite-capture-start",
+      "success": true,
+      "error": null,
+      "transport": "browser-target",
+      "nodeStartHrtimeNs": "55212188210",
+      "nodeEndHrtimeNs": "55224151650",
+      "nodeStartHrtimeMs": 55212.18821,
+      "nodeEndHrtimeMs": 55224.15165
+    },
+    {
+      "id": "reduced-trial-0-start",
+      "syncId": "trace-cdp-clock-finite-desktop-reduced-motion-reduced-trial-0-start",
+      "success": true,
+      "error": null,
+      "transport": "browser-target",
+      "nodeStartHrtimeNs": "72992492249",
+      "nodeEndHrtimeNs": "72994196364",
+      "nodeStartHrtimeMs": 72992.492249,
+      "nodeEndHrtimeMs": 72994.196364
+    },
+    {
+      "id": "reduced-trial-0-end",
+      "syncId": "trace-cdp-clock-finite-desktop-reduced-motion-reduced-trial-0-end",
+      "success": true,
+      "error": null,
+      "transport": "browser-target",
+      "nodeStartHrtimeNs": "76811231402",
+      "nodeEndHrtimeNs": "76826623143",
+      "nodeStartHrtimeMs": 76811.231402,
+      "nodeEndHrtimeMs": 76826.623143
+    },
+    {
+      "id": "partial-finalization",
+      "syncId": "trace-cdp-clock-finite-desktop-reduced-motion-partial-finalization",
+      "success": true,
+      "error": null,
+      "transport": "browser-target",
+      "nodeStartHrtimeNs": "76848720703",
+      "nodeEndHrtimeNs": "76850398255",
+      "nodeStartHrtimeMs": 76848.720703,
+      "nodeEndHrtimeMs": 76850.398255
+    },
+    {
+      "id": "before-trace-end",
+      "syncId": "trace-cdp-clock-finite-desktop-reduced-motion-before-trace-end",
+      "success": true,
+      "error": null,
+      "transport": "browser-target",
+      "nodeStartHrtimeNs": "76902294930",
+      "nodeEndHrtimeNs": "76905368527",
+      "nodeStartHrtimeMs": 76902.29493,
+      "nodeEndHrtimeMs": 76905.368527
+    }
+  ],
+  "clockSyncEvents": [
+    {
+      "args": {
+        "sync_id": "trace-cdp-clock-finite-desktop-reduced-motion-finite-capture-start"
+      },
+      "cat": "__metadata",
+      "name": "clock_sync",
+      "ph": "c",
+      "pid": 2288,
+      "tid": 2288,
+      "ts": 55215109,
+      "tts": 906729
+    },
+    {
+      "args": {
+        "sync_id": "trace-cdp-clock-finite-desktop-reduced-motion-reduced-trial-0-start"
+      },
+      "cat": "__metadata",
+      "name": "clock_sync",
+      "ph": "c",
+      "pid": 2288,
+      "tid": 2288,
+      "ts": 72992971,
+      "tts": 1134396
+    },
+    {
+      "args": {
+        "sync_id": "trace-cdp-clock-finite-desktop-reduced-motion-reduced-trial-0-end"
+      },
+      "cat": "__metadata",
+      "name": "clock_sync",
+      "ph": "c",
+      "pid": 2288,
+      "tid": 2288,
+      "ts": 76811740,
+      "tts": 1154895
+    },
+    {
+      "args": {
+        "sync_id": "trace-cdp-clock-finite-desktop-reduced-motion-partial-finalization"
+      },
+      "cat": "__metadata",
+      "name": "clock_sync",
+      "ph": "c",
+      "pid": 2288,
+      "tid": 2288,
+      "ts": 76849222,
+      "tts": 1155272
+    },
+    {
+      "args": {
+        "sync_id": "trace-cdp-clock-finite-desktop-reduced-motion-before-trace-end"
+      },
+      "cat": "__metadata",
+      "name": "clock_sync",
+      "ph": "c",
+      "pid": 2288,
+      "tid": 2288,
+      "ts": 76903185,
+      "tts": 1158008
+    }
+  ],
+  "traceClockMapping": {
+    "available": true,
+    "slope": 0.9999996089039279,
+    "offset": -51602.934362228334,
+    "uncertaintyMs": 0.07140919621510086,
+    "pairCount": 10,
+    "sourceSpanMs": 21622.657999999996,
+    "maxResidualMs": 0.02040919660794316,
+    "clockMap": "targetMs = slope * sourceMs + offset",
+    "matchedMarkerIds": [
+      "trace-browser-clock-finite-desktop-reduced-motion-finite-capture-start",
+      "trace-browser-clock-finite-desktop-reduced-motion-reduced-trial-0-start",
+      "trace-browser-clock-finite-desktop-reduced-motion-reduced-trial-0-end",
+      "trace-browser-clock-finite-desktop-reduced-motion-partial-finalization",
+      "trace-browser-clock-finite-desktop-reduced-motion-before-trace-end",
+      "polymer-sampler-start-polymer-sample-1-1",
+      "polymer-sample-registration-polymer-sample-1-1",
+      "polymer-sampler-ready-polymer-sample-1-1",
+      "polymer-sample-ready-polymer-sample-1-1",
+      "polymer-first-sampler-raf-polymer-sample-1-1"
+    ],
+    "pairs": [
+      {
+        "id": "trace-browser-clock-finite-desktop-reduced-motion-finite-capture-start",
+        "sourceMs": 55283.541,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 3680.5550000000003,
+        "targetHighMs": 3680.614999999998,
+        "traceTimestampUs": 55283541
+      },
+      {
+        "id": "trace-browser-clock-finite-desktop-reduced-motion-reduced-trial-0-start",
+        "sourceMs": 72995.11,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 21392.129999999997,
+        "targetHighMs": 21392.200000000004,
+        "traceTimestampUs": 72995110
+      },
+      {
+        "id": "trace-browser-clock-finite-desktop-reduced-motion-reduced-trial-0-end",
+        "sourceMs": 76827.589,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 25224.6,
+        "targetHighMs": 25224.689999999995,
+        "traceTimestampUs": 76827589
+      },
+      {
+        "id": "trace-browser-clock-finite-desktop-reduced-motion-partial-finalization",
+        "sourceMs": 76851.084,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 25248.09500000001,
+        "targetHighMs": 25248.165,
+        "traceTimestampUs": 76851084
+      },
+      {
+        "id": "trace-browser-clock-finite-desktop-reduced-motion-before-trace-end",
+        "sourceMs": 76906.199,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 25303.215000000004,
+        "targetHighMs": 25303.275,
+        "traceTimestampUs": 76906199
+      },
+      {
+        "id": "polymer-sampler-start-polymer-sample-1-1",
+        "sourceMs": 75319.516,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 23716.535,
+        "targetHighMs": 23716.545000000002,
+        "traceTimestampUs": 75319516
+      },
+      {
+        "id": "polymer-sample-registration-polymer-sample-1-1",
+        "sourceMs": 75322.141,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 23719.16,
+        "targetHighMs": 23719.170000000002,
+        "traceTimestampUs": 75322141
+      },
+      {
+        "id": "polymer-sampler-ready-polymer-sample-1-1",
+        "sourceMs": 75949.384,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 24346.404999999995,
+        "targetHighMs": 24346.414999999997,
+        "traceTimestampUs": 75949384
+      },
+      {
+        "id": "polymer-sample-ready-polymer-sample-1-1",
+        "sourceMs": 75949.808,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 24346.824999999993,
+        "targetHighMs": 24346.834999999995,
+        "traceTimestampUs": 75949808
+      },
+      {
+        "id": "polymer-first-sampler-raf-polymer-sample-1-1",
+        "sourceMs": 75953.37,
+        "sourceUncertaintyMs": 0.001,
+        "targetLowMs": 24350.389999999996,
+        "targetHighMs": 24350.399999999998,
+        "traceTimestampUs": 75953370
+      }
+    ]
+  },
+  "resizeBrowserWindowMs": [
+    23747.57416847223,
+    24332.46193972483
+  ],
+  "explicitSyncWaits": [
+    {
+      "name": "GpuChannel::WaitForGetOffsetInRange",
+      "function": null,
+      "traceTimestampUs": 75350939,
+      "wallMs": 278.103,
+      "chromiumThreadCpuMs": 14.084,
+      "pid": 2395,
+      "tid": 2395
+    },
+    {
+      "name": "GpuChannel::WaitForGetOffsetInRange",
+      "function": null,
+      "traceTimestampUs": 75629157,
+      "wallMs": 0.802,
+      "chromiumThreadCpuMs": 0.024,
+      "pid": 2395,
+      "tid": 2395
+    },
+    {
+      "name": "GpuChannel::WaitForGetOffsetInRange",
+      "function": null,
+      "traceTimestampUs": 75630022,
+      "wallMs": 304.837,
+      "chromiumThreadCpuMs": 7.537,
+      "pid": 2395,
+      "tid": 2395
+    },
+    {
+      "name": "GpuChannel::WaitForGetOffsetInRange",
+      "function": null,
+      "traceTimestampUs": 75934907,
+      "wallMs": 0.236,
+      "chromiumThreadCpuMs": 0.018,
+      "pid": 2395,
+      "tid": 2395
+    }
+  ],
+  "recordedResize": {
+    "name": "FunctionCall",
+    "function": {
+      "columnNumber": 18,
+      "frame": "E62F5B6AC0520B5B433F530F86F69633",
+      "functionName": "resize",
+      "isolate": "6526792658257147527",
+      "lineNumber": 114,
+      "sampleTraceId": 2785887897793638,
+      "scriptId": "143",
+      "url": "http://127.0.0.1:43075/src/reaction-lab-viewer.js?v=37"
+    },
+    "traceTimestampUs": 75350538,
+    "wallMs": 584.888,
+    "chromiumThreadCpuMs": 22.518,
+    "pid": 2395,
+    "tid": 2395
+  }
+}

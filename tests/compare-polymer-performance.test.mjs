@@ -10,6 +10,7 @@ const script=fileURLToPath(new URL('../scripts/compare-polymer-performance.mjs',
 const baselineSha='4bc202c0eb1f51de0350c3a0b4be36c7178cba53';
 const candidateSha='a3bfc66b97200e854f4c1611bce1ebeeadf1e569';
 const browser={product:'Chrome/154.0.8037.97',revision:'@b510e9d7cd3a2fbd78d0ddc42234103206c5f78d'};
+const timerPrecision={crossOriginIsolated:true,minimumObservedStepMs:.005,observedPositiveSteps:2048};
 const runtimeFlags=['--headless=new','--use-gl=angle','--use-angle=swiftshader'];
 const baselineReduced=[[16.7,116.6],[16.7,99.9],[16.7,83.3],[16.7,99.9]];
 const candidateReduced=[[33.4,83.3],[16.7,83.3],[16.6,83.3],[33.4,83.3]];
@@ -45,10 +46,11 @@ function profile(sourceSha,viewportWidth,isCandidate){
         retiredModuleFetchCount:0,
         runtimeFlags,
         browser:browser.product,
+        timerPrecision,
       });
     }
   }
-  return{schemaVersion:1,sourceSha,browser,viewport:{width:viewportWidth,height:viewportWidth===390?844:900,mobile:viewportWidth===390,deviceScaleFactor:1},warmupPolicy:'First completion for each motion mode is retained but excluded from aggregate regression statistics.',measurements};
+  return{schemaVersion:2,sourceSha,browser,timerPrecision,viewport:{width:viewportWidth,height:viewportWidth===390?844:900,mobile:viewportWidth===390,deviceScaleFactor:1},warmupPolicy:'First completion for each motion mode is retained but excluded from aggregate regression statistics.',measurements};
 }
 
 test('low-sample RAF comparison keeps the existing coarse-resolution floors when candidate P95 improves below 100 ms',async()=>{
@@ -78,4 +80,15 @@ test('low-sample RAF comparison keeps the existing coarse-resolution floors when
   }finally{
     await rm(directory,{recursive:true,force:true});
   }
+});
+
+test('completion comparison rejects coarse or non-isolated browser timers',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'polymer-performance-timer-contract-'));
+  try{
+    const paths=['baseline-390.json','baseline-1280.json','candidate-390.json','candidate-1280.json','comparison.json'].map(name=>join(directory,name));
+    const docs=[profile(baselineSha,390,false),profile(baselineSha,1280,false),profile(candidateSha,390,true),profile(candidateSha,1280,true)];docs[2].timerPrecision={crossOriginIsolated:false,minimumObservedStepMs:.1,observedPositiveSteps:1000};
+    await Promise.all(docs.map((document,index)=>writeFile(paths[index],JSON.stringify(document))));
+    const result=spawnSync(process.execPath,[script,...paths],{encoding:'utf8',env:{...process.env,POLYMER_BASELINE_SHA:baselineSha,POLYMER_CANDIDATE_SHA:candidateSha}});
+    assert.equal(result.status,1);assert.match(result.stderr,/cross-origin isolated Chromium page/);
+  }finally{await rm(directory,{recursive:true,force:true});}
 });
