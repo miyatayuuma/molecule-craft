@@ -92,7 +92,7 @@ test('all 25 route samples retain their chemical topology in a bounded 3D layout
     assert.deepEqual(plan.atomOrigins,sample.fragment.atomOrigins,`${route.routeId}: atom origins remain unchanged`);assert.deepEqual(plan.bonds,sample.fragment.bonds.map(bond=>({...bond})),`${route.routeId}: bonds and orders remain unchanged`);
     assert.ok(plan.diagnostics.finite,`${route.routeId}: all XYZ positions are finite`);assert.ok(plan.diagnostics.sourceCoordinateFallbacks.length===0,`${route.routeId}: every source atom has a real preview pose`);
     assert.equal(plan.diagnostics.accepted,true,`${route.routeId}: layout must not require fallback: ${JSON.stringify(plan.diagnostics)}`);assert.equal(plan.diagnostics.severeOverlapCount,0,`${route.routeId}: no severe nonbonded overlap`);
-    assert.ok(plan.diagnostics.maxBondError<=.35,`${route.routeId}: max bond error remains within 0.35 Å (${plan.diagnostics.maxBondError})`);
+    assert.ok(plan.diagnostics.maxBondError<=.35,`${route.routeId}: max bond error remains within 0.35 world units (${plan.diagnostics.maxBondError})`);
     assert.ok(plan.bounds.width>0&&plan.bounds.height>=0&&plan.bounds.depth>=0,`${route.routeId}: finite XYZ bounds`);assert.ok(plan.diagnostics.iterations<=160);
     if(focused.has(route.polymerId))assert.ok(plan.bounds.depth>.18,`${route.polymerId}: the representative pose has readable spatial depth`);
     if(route.polymerId==='polystyrene')assert.ok(plan.diagnostics.protectedRingAtomCount>=6,'polystyrene aromatic ring atoms receive local conformation restraints');
