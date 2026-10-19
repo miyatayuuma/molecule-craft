@@ -133,10 +133,15 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function shapeFor(item,center=item.group.position){return{center:center.toArray(),orientation:[item.group.quaternion.x,item.group.quaternion.y,item.group.quaternion.z,item.group.quaternion.w],atoms:item.record.atoms.map(atom=>({position:atom.point.toArray(),radius:modelAtomRadius(atom.element)}))};}
   function clearDepthTarget(){depthTarget=null;depthDockingState='none';pointerAnchorErrorPx=0;depthSafetyOracle=null;depthSafetyPairKey=null;depthOutwardAcceleration=Infinity;depthSafetySampleCount=0;targetIndicator.hidden=true;}
+  // Armed only by the localhost probe; never sampled in a physics/RAF step.
+  let releaseObserver=null;
   function endManipulation(){
     const item=selected;
+    releaseObserver?.('before-sync');
     if(item){syncStageABodyFromGroup(item);item.stageBody.velocityAngstromPerPs=[0,0,0];}
+    releaseObserver?.('after-reset');
     selected=null;down=null;chamberTime.setMode(CHAMBER_TIME_MODES.NORMAL);clearDepthTarget();
+    releaseObserver?.('after-end-manipulation');
   }
   function instanceById(id){return instances.find(item=>item.id===id)??null;}
   function disposeObject(object){object?.traverse?.(child=>{child.geometry?.dispose?.();if(child.userData?.formalCharge)child.material?.map?.dispose?.();if(Array.isArray(child.material))child.material.forEach(material=>material.dispose?.());else child.material?.dispose?.();});}
@@ -861,14 +866,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   },eventOptions);
   function endPointer(event){
     const active=activePointers.has(event.pointerId),wasPinching=pinchActive;
+    releaseObserver?.('pointer-received',event);
     if(!active)return;
     if(polymerOrbitPointers.has(event.pointerId)){activePointers.delete(event.pointerId);polymerOrbitPointers.delete(event.pointerId);try{canvas.releasePointerCapture(event.pointerId);}catch{}if(polymerOrbitPointers.size<2){polymerOrbitPinchDistance=0;const remaining=[...polymerOrbitPointers][0],point=remaining===undefined?null:activePointers.get(remaining);polymerOrbitGesture=point?{pointerId:remaining,x:point.x,y:point.y}:null;}else polymerOrbitPinchDistance=currentPolymerOrbitPinchDistance();onPointerLockChange(activePointers.size>0);updateCommandBar();return;}
-    if(!wasPinching&&event.type==='pointerup'&&down?.pointerId===event.pointerId&&selected)updateManipulation(16);
+    if(!wasPinching&&event.type==='pointerup'&&down?.pointerId===event.pointerId&&selected){updateManipulation(16);releaseObserver?.('after-final-update',event);}
     let polymerCommitted=false;if(!wasPinching&&event.type==='pointerup'&&down?.pointerId===event.pointerId&&selected?.polymerReservation)polymerCommitted=startManualPolymerDock(selected,event);
     if(down?.pointerId===event.pointerId&&!wasPinching&&!polymerCommitted)endManipulation();
     activePointers.delete(event.pointerId);try{canvas.releasePointerCapture(event.pointerId);}catch{}
     if(wasPinching){if(activePointers.size===0){pinchActive=false;pinchDistance=0;clearDepthTarget();}onPointerLockChange(activePointers.size>0);updateCommandBar();return;}
     onPointerLockChange(activePointers.size>0);updateCommandBar();
+    releaseObserver?.('after-pointer',event);
   }
   canvas.addEventListener('pointerup',endPointer,eventOptions);canvas.addEventListener('pointercancel',endPointer,eventOptions);
   canvas.addEventListener('wheel',event=>{event.preventDefault();if(pickerOpen||isTransitionLocked()||reactionAnimation||polymerGraphVisual?.displayError)return;if(canObservePolymerSample()){const presentation=polymerSamplePresentation;presentation.zoomFactor=clamp(presentation.zoomFactor*Math.exp(-event.deltaY*.001),.72,presentation.fit.maxZoomFactor);polymerGraphVisual.group.scale.setScalar(presentation.fit.scale*presentation.zoomFactor);polymerGraphVisual.group.updateMatrixWorld(true);return;}distance=clamp(distance*Math.exp(event.deltaY*.001),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();},{passive:false,signal:eventController.signal});
@@ -1210,7 +1217,25 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       for(const item of [...purgeItems,...(batchTransition?.items??[])])if(item.polymerSample)groups.add(item.group);
       return{activeGroupCount:groups.size,...countPolymerResources(groups),disposals:{...polymerResourceMetrics}};
     };
+    let releaseTrace=null;
+    const releaseState=(phase,event)=>{
+      const item=instanceById(releaseTrace?.instanceId),body=item?.stageBody;
+      const velocity=body?[...body.velocityAngstromPerPs]:null;
+      return{phase,eventType:event?.type??null,eventTimestamp:event?.timeStamp??null,eventTrusted:event?.isTrusted??null,
+        browserNow:performance.now(),fixedSteps:stageAPerformance.fixedSteps,simulationClockSeconds,
+        instanceId:item?.id??null,bodyId:body?.id??null,selectedInstanceId:selected?.id??null,
+        pointerId:event?.pointerId??null,activePointerIds:[...activePointers.keys()],downPointerId:down?.pointerId??null,
+        downInstanceId:down?.group?.id??null,manipulationActive:isManipulating(),timeMode:chamberTime.mode,timeScale:chamberTime.scale,
+        pointerCaptured:event?canvas.hasPointerCapture(event.pointerId):null,
+        position:body?[...body.positionAngstrom]:null,velocity,velocityNorm:velocity?Math.hypot(...velocity):null,
+        angularVelocity:body?[...body.angularVelocityRadPerPs]:null,
+        finite:!!body&&[...body.positionAngstrom,...body.velocityAngstromPerPs,...body.angularVelocityRadPerPs].every(Number.isFinite),
+        bodies:instances.map(item=>({id:item.id,bodyId:item.stageBody.id,position:[...item.stageBody.positionAngstrom],velocity:[...item.stageBody.velocityAngstromPerPs]}))};
+    };
     const probe={
+      startReleaseTrace(instanceId){if(!instanceById(instanceId))throw Error('Missing release trace instance');releaseTrace={instanceId,rows:[]};releaseObserver=(phase,event)=>{if(releaseTrace.rows.length>=32)throw Error('Release trace budget exceeded');releaseTrace.rows.push(releaseState(phase,event));};releaseObserver('armed');return this.releaseTrace();},
+      releaseTrace(){return releaseTrace?structuredClone({...releaseTrace,current:releaseState('snapshot')}):null;},
+      stopReleaseTrace(){const result=this.releaseTrace();releaseObserver=null;releaseTrace=null;return result;},
       polymerResourceSnapshot,
       polymerDisplayBounds(){
         if(!polymerGraphVisual?.layoutPlan)return null;
