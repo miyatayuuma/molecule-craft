@@ -1,0 +1,1114 @@
+[
+  {
+    "routeId": "polyethylene-coordination",
+    "polymerId": "polyethylene",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-polyethylene-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 651.0999999999913,
+    "unitCount": 4,
+    "atomCount": 24,
+    "bondCount": 23,
+    "visibleBondMeshCount": 23,
+    "fit": {
+      "scale": 0.6095074710249901,
+      "position": [
+        0,
+        -0.06240341263349371,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 24,
+      "bondCount": 23,
+      "depth": 3.4960353555851262,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 4,
+    "finiteLayoutCalls": 4,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 48,
+      "geometryCount": 47,
+      "materialCount": 47,
+      "disposals": {
+        "disposalCount": 1,
+        "geometryDisposals": 47,
+        "materialDisposals": 47
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 4,
+      "bondVisualAllocations": 46,
+      "completionFitCalls": 1,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 21.499999999985448,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7799999999999998,
+        "maxBondError": 0.13327163135876818,
+        "meanBondError": 0.03898134977563814,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.5864927432974854,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 3.4960353555851262,
+        "finite": true,
+        "atomCount": 24,
+        "bondCount": 23
+      }
+    }
+  },
+  {
+    "routeId": "ethylene-propylene-coordination",
+    "polymerId": "ethylene-propylene-copolymer",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-ethylene-propylene-copolymer-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 673.6000000000058,
+    "unitCount": 3,
+    "atomCount": 21,
+    "bondCount": 20,
+    "visibleBondMeshCount": 20,
+    "fit": {
+      "scale": 0.6887056520581245,
+      "position": [
+        0,
+        -0.07063909183317563,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 3,
+      "atomCount": 21,
+      "bondCount": 20,
+      "depth": 3.552830434983333,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 7,
+    "finiteLayoutCalls": 7,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 42,
+      "geometryCount": 41,
+      "materialCount": 41,
+      "disposals": {
+        "disposalCount": 3,
+        "geometryDisposals": 135,
+        "materialDisposals": 135
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 7,
+      "bondVisualAllocations": 86,
+      "completionFitCalls": 2,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 26.499999999985448,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 3,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7799999966258659,
+        "maxBondError": 0.07985916554152461,
+        "meanBondError": 0.03029217644013852,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.42552833405592416,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 3.552830434983333,
+        "finite": true,
+        "atomCount": 21,
+        "bondCount": 20
+      }
+    }
+  },
+  {
+    "routeId": "polyethylene-oxide-anionic-ring-opening",
+    "polymerId": "polyethylene-oxide",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-polyethylene-oxide-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 663.6999999999971,
+    "unitCount": 4,
+    "atomCount": 28,
+    "bondCount": 27,
+    "visibleBondMeshCount": 27,
+    "fit": {
+      "scale": 0.5492037272453307,
+      "position": [
+        0,
+        -0.05858309022577032,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 28,
+      "bondCount": 27,
+      "depth": 3.2141793194891815,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 11,
+    "finiteLayoutCalls": 11,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 56,
+      "geometryCount": 55,
+      "materialCount": 55,
+      "disposals": {
+        "disposalCount": 5,
+        "geometryDisposals": 231,
+        "materialDisposals": 231
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 11,
+      "bondVisualAllocations": 140,
+      "completionFitCalls": 3,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 38.59999999999127,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7802052111245114,
+        "maxBondError": 0.06140200105274096,
+        "meanBondError": 0.018795018549163326,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.6157852838198616,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 3.2141793194891815,
+        "finite": true,
+        "atomCount": 28,
+        "bondCount": 27
+      }
+    }
+  },
+  {
+    "routeId": "polyethylene-terephthalate-direct-polycondensation",
+    "polymerId": "polyethylene-terephthalate",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-polyethylene-terephthalate-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 673.5,
+    "unitCount": 4,
+    "atomCount": 47,
+    "bondCount": 48,
+    "visibleBondMeshCount": 58,
+    "fit": {
+      "scale": 0.48327356427907947,
+      "position": [
+        0,
+        -0.11341477841801118,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 47,
+      "bondCount": 48,
+      "depth": 2.9600251707940415,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 15,
+    "finiteLayoutCalls": 15,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 106,
+      "geometryCount": 105,
+      "materialCount": 105,
+      "disposals": {
+        "disposalCount": 12,
+        "geometryDisposals": 396,
+        "materialDisposals": 396
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 15,
+      "bondVisualAllocations": 256,
+      "completionFitCalls": 4,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 96.10000000000582,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7800000000000001,
+        "maxBondError": 0.05820986753442203,
+        "meanBondError": 0.011163167155688254,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.6131137435179352,
+        "protectedRingAtomCount": 12,
+        "protectedRingCount": 2,
+        "depthSpan": 2.9600251707940415,
+        "finite": true,
+        "atomCount": 47,
+        "bondCount": 48
+      }
+    }
+  },
+  {
+    "routeId": "phenol-formaldehyde-resole",
+    "polymerId": "phenol-formaldehyde-resin",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-phenol-formaldehyde-resin-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 653.4000000000087,
+    "unitCount": 4,
+    "atomCount": 31,
+    "bondCount": 32,
+    "visibleBondMeshCount": 38,
+    "fit": {
+      "scale": 0.7689779946208002,
+      "position": [
+        0,
+        -0.09878878528848412,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 31,
+      "bondCount": 32,
+      "depth": 3.5755338022079535,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 19,
+    "finiteLayoutCalls": 19,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 70,
+      "geometryCount": 69,
+      "materialCount": 69,
+      "disposals": {
+        "disposalCount": 16,
+        "geometryDisposals": 572,
+        "materialDisposals": 572
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 19,
+      "bondVisualAllocations": 332,
+      "completionFitCalls": 5,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 121.40000000000873,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7797150461776591,
+        "maxBondError": 0.14852387278580803,
+        "meanBondError": 0.02406055375622088,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.6141186064837726,
+        "protectedRingAtomCount": 12,
+        "protectedRingCount": 2,
+        "depthSpan": 3.5755338022079535,
+        "finite": true,
+        "atomCount": 31,
+        "bondCount": 32
+      }
+    }
+  },
+  {
+    "routeId": "styrene-butadiene-radical",
+    "polymerId": "styrene-butadiene-copolymer",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-styrene-butadiene-copolymer-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 652.6000000000058,
+    "unitCount": 3,
+    "atomCount": 36,
+    "bondCount": 36,
+    "visibleBondMeshCount": 41,
+    "fit": {
+      "scale": 0.7275790667533875,
+      "position": [
+        0,
+        -0.11583183503386808,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 3,
+      "atomCount": 36,
+      "bondCount": 36,
+      "depth": 3.716346162441105,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 22,
+    "finiteLayoutCalls": 22,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 78,
+      "geometryCount": 77,
+      "materialCount": 77,
+      "disposals": {
+        "disposalCount": 18,
+        "geometryDisposals": 718,
+        "materialDisposals": 718
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 22,
+      "bondVisualAllocations": 414,
+      "completionFitCalls": 6,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 137.29999999998836,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 3,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7795778913493137,
+        "maxBondError": 0.07786402529630432,
+        "meanBondError": 0.01914273996667322,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.5787000883522736,
+        "protectedRingAtomCount": 6,
+        "protectedRingCount": 1,
+        "depthSpan": 3.716346162441105,
+        "finite": true,
+        "atomCount": 36,
+        "bondCount": 36
+      }
+    }
+  },
+  {
+    "routeId": "butyl-rubber-cationic",
+    "polymerId": "butyl-rubber",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-butyl-rubber-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 666.1999999999971,
+    "unitCount": 3,
+    "atomCount": 37,
+    "bondCount": 36,
+    "visibleBondMeshCount": 37,
+    "fit": {
+      "scale": 0.7731516388058663,
+      "position": [
+        0,
+        -0.09710773141481249,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 3,
+      "atomCount": 37,
+      "bondCount": 36,
+      "depth": 3.793333587742156,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 25,
+    "finiteLayoutCalls": 25,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 75,
+      "geometryCount": 74,
+      "materialCount": 74,
+      "disposals": {
+        "disposalCount": 20,
+        "geometryDisposals": 869,
+        "materialDisposals": 869
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 25,
+      "bondVisualAllocations": 488,
+      "completionFitCalls": 7,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 152.39999999997963,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 3,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7799999999999998,
+        "maxBondError": 0.1248694020020712,
+        "meanBondError": 0.03683418701943896,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.3424029046625435,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 3.793333587742156,
+        "finite": true,
+        "atomCount": 37,
+        "bondCount": 36
+      }
+    }
+  },
+  {
+    "routeId": "nylon-6-6-direct-polycondensation",
+    "polymerId": "nylon-6-6",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-nylon-6-6-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 665.3000000000029,
+    "unitCount": 4,
+    "atomCount": 79,
+    "bondCount": 78,
+    "visibleBondMeshCount": 82,
+    "fit": {
+      "scale": 0.41028941243886946,
+      "position": [
+        0,
+        -0.10720004937084968,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 79,
+      "bondCount": 78,
+      "depth": 7.031025315182986,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 29,
+    "finiteLayoutCalls": 29,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 162,
+      "geometryCount": 161,
+      "materialCount": 161,
+      "disposals": {
+        "disposalCount": 27,
+        "geometryDisposals": 1109,
+        "materialDisposals": 1109
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 29,
+      "bondVisualAllocations": 652,
+      "completionFitCalls": 8,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 211.49999999998545,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7799909936201228,
+        "maxBondError": 0.22886659991879776,
+        "meanBondError": 0.0099178107323503,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.3243410284761105,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 7.031025315182986,
+        "finite": true,
+        "atomCount": 79,
+        "bondCount": 78
+      }
+    }
+  },
+  {
+    "routeId": "polystyrene-radical",
+    "polymerId": "polystyrene",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-polystyrene-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 667.5,
+    "unitCount": 4,
+    "atomCount": 64,
+    "bondCount": 67,
+    "visibleBondMeshCount": 79,
+    "fit": {
+      "scale": 0.5034034177660942,
+      "position": [
+        0,
+        -0.11606776483228481,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 64,
+      "bondCount": 67,
+      "depth": 6.96774420580925,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 33,
+    "finiteLayoutCalls": 33,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 144,
+      "geometryCount": 143,
+      "materialCount": 143,
+      "disposals": {
+        "disposalCount": 29,
+        "geometryDisposals": 1413,
+        "materialDisposals": 1413
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 33,
+      "bondVisualAllocations": 810,
+      "completionFitCalls": 9,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 263.69999999998254,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7788837691493727,
+        "maxBondError": 0.09656987009913431,
+        "meanBondError": 0.012879301907649259,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.5506762906042922,
+        "protectedRingAtomCount": 24,
+        "protectedRingCount": 4,
+        "depthSpan": 6.96774420580925,
+        "finite": true,
+        "atomCount": 64,
+        "bondCount": 67
+      }
+    }
+  },
+  {
+    "routeId": "polypropylene-coordination",
+    "polymerId": "polypropylene",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-polypropylene-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 655.4000000000087,
+    "unitCount": 4,
+    "atomCount": 36,
+    "bondCount": 35,
+    "visibleBondMeshCount": 35,
+    "fit": {
+      "scale": 0.5618290987610817,
+      "position": [
+        0,
+        -0.0699301791226994,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 36,
+      "bondCount": 35,
+      "depth": 4.76885645277564,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 37,
+    "finiteLayoutCalls": 37,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 72,
+      "geometryCount": 71,
+      "materialCount": 71,
+      "disposals": {
+        "disposalCount": 31,
+        "geometryDisposals": 1627,
+        "materialDisposals": 1627
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 37,
+      "bondVisualAllocations": 880,
+      "completionFitCalls": 10,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 276.09999999999127,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7799999962009567,
+        "maxBondError": 0.20404204344095211,
+        "meanBondError": 0.03817167342869556,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.4422769231161859,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 4.76885645277564,
+        "finite": true,
+        "atomCount": 36,
+        "bondCount": 35
+      }
+    }
+  },
+  {
+    "routeId": "polyvinyl-chloride-radical",
+    "polymerId": "polyvinyl-chloride",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-polyvinyl-chloride-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 661.3000000000175,
+    "unitCount": 4,
+    "atomCount": 24,
+    "bondCount": 23,
+    "visibleBondMeshCount": 23,
+    "fit": {
+      "scale": 0.6581763824820518,
+      "position": [
+        0,
+        -0.0690674615729342,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 24,
+      "bondCount": 23,
+      "depth": 3.0190319298928907,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 41,
+    "finiteLayoutCalls": 41,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 48,
+      "geometryCount": 47,
+      "materialCount": 47,
+      "disposals": {
+        "disposalCount": 33,
+        "geometryDisposals": 1745,
+        "materialDisposals": 1745
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 41,
+      "bondVisualAllocations": 926,
+      "completionFitCalls": 11,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 282.09999999999127,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7800000000000001,
+        "maxBondError": 0.11173983784646146,
+        "meanBondError": 0.05511999190589249,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.5015794928440044,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 3.0190319298928907,
+        "finite": true,
+        "atomCount": 24,
+        "bondCount": 23
+      }
+    }
+  },
+  {
+    "routeId": "polybutadiene-coordination-1-4",
+    "polymerId": "polybutadiene",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "visualEvidence": {
+      "screenshot": "representative-polybutadiene-390.png"
+    },
+    "durationMs": 650,
+    "presentDelayMs": 651,
+    "unitCount": 4,
+    "atomCount": 40,
+    "bondCount": 39,
+    "visibleBondMeshCount": 43,
+    "fit": {
+      "scale": 0.5521539944410324,
+      "position": [
+        0,
+        -0.08962217902790463,
+        0
+      ],
+      "quaternion": [
+        0.16509473679851985,
+        -0.14044208319443624,
+        -0.006526507207909971,
+        0.9762054875143347
+      ],
+      "maxZoomFactor": 2.6,
+      "unitCount": 4,
+      "atomCount": 40,
+      "bondCount": 39,
+      "depth": 2.834827118417946,
+      "safeRegion": {
+        "left": 69.92,
+        "top": 64,
+        "right": 298.08,
+        "bottom": 547,
+        "width": 228.15999999999997,
+        "height": 483
+      }
+    },
+    "readyLayoutCalls": 45,
+    "finiteLayoutCalls": 45,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 84,
+      "geometryCount": 83,
+      "materialCount": 83,
+      "disposals": {
+        "disposalCount": 35,
+        "geometryDisposals": 1875,
+        "materialDisposals": 1875
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 45,
+      "bondVisualAllocations": 1012,
+      "completionFitCalls": 12,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 306.3000000000029,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7798833152131335,
+        "maxBondError": 0.04875658444602815,
+        "meanBondError": 0.021597521683943632,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.5092654509630274,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 2.834827118417946,
+        "finite": true,
+        "atomCount": 40,
+        "bondCount": 39
+      }
+    }
+  },
+  {
+    "routeId": "polyethylene-reduced-motion",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "mobile": true
+    },
+    "durationMs": 250,
+    "presentDelayMs": 260,
+    "unitCount": 4,
+    "atomCount": 24,
+    "visibleBondMeshCount": 23,
+    "readyLayoutCalls": 4,
+    "finiteLayoutCalls": 4,
+    "completionLayoutCallsAfterReady": 0,
+    "polymerResources": {
+      "activeGroupCount": 1,
+      "objectCount": 48,
+      "geometryCount": 47,
+      "materialCount": 47,
+      "disposals": {
+        "disposalCount": 0,
+        "geometryDisposals": 0,
+        "materialDisposals": 0
+      }
+    },
+    "retiredModuleRequests": [],
+    "metrics": {
+      "finiteLayoutCalls": 4,
+      "bondVisualAllocations": 23,
+      "completionFitCalls": 1,
+      "completionLayoutCallsAfterReady": 0,
+      "layoutComputationMs": 15.199999999953434,
+      "threeDLayoutFallbacks": 0,
+      "lastLayoutDiagnostics": {
+        "accepted": true,
+        "fallback": false,
+        "reason": null,
+        "iterations": 96,
+        "unitCount": 4,
+        "unplacedUnits": [],
+        "sourceCoordinateFallbacks": [],
+        "geometryScale": 0.7799999999999998,
+        "maxBondError": 0.13327163135876818,
+        "meanBondError": 0.03898134977563814,
+        "severeOverlapCount": 0,
+        "minimumNonbondedDistance": 0.5864927432974854,
+        "protectedRingAtomCount": 0,
+        "protectedRingCount": 0,
+        "depthSpan": 3.4960353555851262,
+        "finite": true,
+        "atomCount": 24,
+        "bondCount": 23
+      }
+    }
+  }
+]
