@@ -1,0 +1,16 @@
+[
+  {
+    "view": "ci-final-field-startup-failure.txt",
+    "rawArchive": "ci-final-field-startup-failure-raw.txt.gz",
+    "rawSHA256": "d0d4cd18e8e7c91e80f413c12600c3e05daf8d572d921d3154d81902e72acc15",
+    "archiveSHA256": "7fd8262e6c58346341329bcd839a3ed4ef25a8b12a9fc43249280a3fa58625f6",
+    "normalization": "Trailing whitespace removed only in the text view. Gzip decompresses to the exact historical original."
+  },
+  {
+    "view": "ci-final-guardrails-failure.txt",
+    "rawArchive": "ci-final-guardrails-failure-raw.txt.gz",
+    "rawSHA256": "5c13bb5e5b1d324ffa7cdbd63882688bd647f98618ca2a794985c2b22b899d74",
+    "archiveSHA256": "631a4d03267b5769190db009a7a6c80a17aab7a5198516f71f437e3cb76fdc69",
+    "normalization": "Trailing whitespace removed only in the text view. Gzip decompresses to the exact historical original."
+  }
+]

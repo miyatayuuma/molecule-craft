@@ -7,11 +7,11 @@
 2026-10-19T04:31:34.2400033Z [36;1mnode tests/reaction-lab-browser.test.mjs[0m
 2026-10-19T04:31:34.2462327Z shell: /usr/bin/bash -e {0}
 2026-10-19T04:31:34.2462618Z ##[endgroup]
-2026-10-19T04:31:34.2825403Z Google Chrome 155.0.8059.39 
+2026-10-19T04:31:34.2825403Z Google Chrome 155.0.8059.39
 2026-10-19T04:31:40.3893907Z node:internal/modules/run_main:123
 2026-10-19T04:31:40.3894591Z     triggerUncaughtException(
 2026-10-19T04:31:40.3895124Z     ^
-2026-10-19T04:31:40.3895317Z 
+2026-10-19T04:31:40.3895317Z
 2026-10-19T04:31:40.3895543Z AssertionError [ERR_ASSERTION]: Release removes linear throw momentum
 2026-10-19T04:31:40.3896609Z     at file:///home/runner/work/molecule-craft/molecule-craft/tests/reaction-lab-browser.test.mjs:280:500 {
 2026-10-19T04:31:40.3897757Z   generatedMessage: false,
@@ -21,7 +21,7 @@
 2026-10-19T04:31:40.3899524Z   operator: '==',
 2026-10-19T04:31:40.3899876Z   diff: 'simple'
 2026-10-19T04:31:40.3900208Z }
-2026-10-19T04:31:40.3900383Z 
+2026-10-19T04:31:40.3900383Z
 2026-10-19T04:31:40.3900529Z Node.js v22.23.3
 2026-10-19T04:31:40.3983158Z ##[error]Process completed with exit code 1.
-2026-10-19T04:31:40.4179826Z 
+2026-10-19T04:31:40.4179826Z

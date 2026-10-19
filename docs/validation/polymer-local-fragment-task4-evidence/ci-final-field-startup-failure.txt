@@ -3,7 +3,7 @@ AssertionError [ERR_ASSERTION]: Chromium DevTools endpoint did not become ready:
 2026-10-19T04:21:46.3496977Z [2287:2312:1019/042142.253542:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
 2026-10-19T04:21:46.3498568Z [2287:2312:1019/042143.164687:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
 2026-10-19T04:21:46.3500202Z [2287:2312:1019/042144.193780:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-2026-10-19T04:21:46.3501036Z 
+2026-10-19T04:21:46.3501036Z
 2026-10-19T04:21:46.3501544Z     at file:///home/runner/work/molecule-craft/molecule-craft/tests/field-insight-discovery-browser.test.mjs:24:273 {
 2026-10-19T04:21:46.3502252Z   generatedMessage: false,
 2026-10-19T04:21:46.3502615Z   code: 'ERR_ASSERTION',
@@ -12,7 +12,7 @@ AssertionError [ERR_ASSERTION]: Chromium DevTools endpoint did not become ready:
 2026-10-19T04:21:46.3503914Z   operator: '==',
 2026-10-19T04:21:46.3504227Z   diff: 'simple'
 2026-10-19T04:21:46.3504540Z }
-2026-10-19T04:21:46.3504756Z 
+2026-10-19T04:21:46.3504756Z
 2026-10-19T04:21:46.3504957Z Node.js v22.23.3
 2026-10-19T04:21:46.3570257Z ##[error]Process completed with exit code 1.
-2026-10-19T04:21:46.3720829Z 
+2026-10-19T04:21:46.3720829Z

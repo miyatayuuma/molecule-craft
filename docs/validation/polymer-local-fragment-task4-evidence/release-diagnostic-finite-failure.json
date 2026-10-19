@@ -1,0 +1,11 @@
+{
+  "source": "524982c68affe5e5a04753d759628a780f073feb",
+  "run": 39249295520,
+  "job": 118048847452,
+  "artifact": 12185121591,
+  "artifactDigestLog": "SHA256 digest of uploaded artifact zip is eec034f5b6225fd69b4238c34e266572b45bf2a6250fedb63eb003ca538b0d55",
+  "error": "AssertionError [ERR_ASSERTION]: nylon-6-6-direct-polycondensation: frame sampler captured the completion interval ({\"sampleId\":\"polymer-sample-8-8\",\"routeId\":\"nylon-6-6-direct-polycondensation\",\"startedAt\":166339.7,\"presentedAt\":167017.3,\"completionElapsedMs\":677.5999999999767,\"targetDurationMs\":650,\"frameIntervalsMs\":{\"count\":0,\"frameCount\":1,\"firstFrameOffsetMs\":643.6,\"lastFrameOffsetMs\":643.6,\"sampledFrameSpanMs\":0,\"trailingGapMs\":34,\"p50\":null,\"p95\":null,\"max\":null,\"values\":[]}})",
+  "mobilePointerQA": "PASS:13 routes plus reduced/known/gesture/failure fixtures",
+  "desktopPointerQA": "FAIL:Nylon66 sampler has 1 frame/0 intervals",
+  "downstreamPerformanceAndIntegratedJourney": "NOT_EXECUTED after desktop QA failure"
+}
