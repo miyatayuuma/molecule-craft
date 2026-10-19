@@ -1,0 +1,87 @@
+{
+  "source": "0036e0f68f8fcce863d05fe2073950ad15461642",
+  "description": "Complete UTF-8-decoded GitHub job logs, not selected excerpts. JSON string encoding preserves control characters and trailing whitespace.",
+  "reconstruction": "Parse each JSON part in listed order; concatenate rawText without separators; encode UTF-8. No whitespace normalization or line selection.",
+  "logs": [
+    {
+      "label": "repository",
+      "jobId": 118057240204,
+      "utf16CodeUnits": 1335999,
+      "parts": [
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-repository-log-part-01.json",
+          "blobSha": "a4c9a40cda5c951978d3d56e084058b52eefdeb2"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-repository-log-part-02.json",
+          "blobSha": "8e60a5f83e8a91b7118cb5aff5874a0b8cf8c97d"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-repository-log-part-03.json",
+          "blobSha": "998a7f5ee7881aa8be2230cd03c363839c560f7d"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-repository-log-part-04.json",
+          "blobSha": "b3c02334a6b7fcb9523d18950405a5878fe29b06"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-repository-log-part-05.json",
+          "blobSha": "39ba355d310ef5a78e4053924a560f7e414c5f89"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-repository-log-part-06.json",
+          "blobSha": "ccc592f648abb2081c94fe371f5ecb7a6690004f"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-repository-log-part-07.json",
+          "blobSha": "4d3ac7d3e329266689ef20937c2c248bf12ec9d1"
+        }
+      ]
+    },
+    {
+      "label": "stage-b",
+      "jobId": 118057239621,
+      "utf16CodeUnits": 156185,
+      "parts": [
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-stage-b-log-part-01.json",
+          "blobSha": "86c4c0523e432891b73f20ef3a3e9bb19680f227"
+        }
+      ]
+    },
+    {
+      "label": "finite",
+      "jobId": 118057238681,
+      "utf16CodeUnits": 620007,
+      "parts": [
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-finite-log-part-01.json",
+          "blobSha": "0afa80c4413e86193c8ad238ce186c485b8041be"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-finite-log-part-02.json",
+          "blobSha": "4fc44eb1a8409eeca47e2e7ee22d0755a3ff92e1"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-finite-log-part-03.json",
+          "blobSha": "cc2d1f2171296eebac631b313dec2308114a4b64"
+        },
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-finite-log-part-04.json",
+          "blobSha": "42f07b3b6b6ddf6d2ecb7ed6d05a11cdbbffbc77"
+        }
+      ]
+    },
+    {
+      "label": "field",
+      "jobId": 118057237877,
+      "utf16CodeUnits": 17447,
+      "parts": [
+        {
+          "path": "docs/validation/polymer-local-fragment-task4-evidence/release-final-field-log-part-01.json",
+          "blobSha": "d1c5a2f9efd63b6232dc7ce08c5393db4934183a"
+        }
+      ]
+    }
+  ]
+}

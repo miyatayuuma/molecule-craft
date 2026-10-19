@@ -1,0 +1,1057 @@
+{
+  "task": 4,
+  "determination": "BLOCKED",
+  "startedMain": "37b7d2cde1e60cd28575784a252382f4599c391f",
+  "finalMain": "37b7d2cde1e60cd28575784a252382f4599c391f",
+  "pr": 351,
+  "head": "0036e0f68f8fcce863d05fe2073950ad15461642",
+  "prState": "open",
+  "merged": false,
+  "repositoryVirtualMerge": "982be5aa9f84013b9c144a1b378524ca5ed68f5f",
+  "testedTree": "0a9276902619e168668e7480eac5cf400f0e60e8",
+  "virtualMergeTreeEqualsHead": true,
+  "release": {
+    "rootCause": "Case B: asynchronous snapshot can include later normal physics steps; synchronous reset itself succeeds",
+    "strictXYZZero": true,
+    "trustedPointerAndIdentity": true,
+    "genericBrowserPassed": true,
+    "nativeTouchCancelAndEscapeClosePassed": true,
+    "unitTests": 5,
+    "blurNativePointerAndExplicitDOMLifecyclePassed": true,
+    "diagnosticSource": "524982c68affe5e5a04753d759628a780f073feb",
+    "diagnosticReleaseStep": 204,
+    "diagnosticLaterSnapshotStep": 206,
+    "diagnosticLaterVelocityNorm": 8.743996682324036e-10,
+    "oldFailureExactStepCount": "UNKNOWN; historical log lacks it"
+  },
+  "geometry": {
+    "all25Pass": true,
+    "localTests": 12,
+    "fullPriorValidationAndProjectionFilesByteIdentical": true,
+    "graphOriginIdentityPreserved": true,
+    "maxBondResidualWorld": 0.006146543008233696,
+    "maxAngleResidualDegrees": 6.468591961469741,
+    "maxPlaneDeviationWorld": 0.06486308344375737,
+    "severeOverlaps": 0,
+    "localCorePointerPhysicsTests": 50
+  },
+  "requiredCI": {
+    "repository": {
+      "run": 39251826296,
+      "jobs": [
+        {
+          "id": 118057239558,
+          "name": "loadout-optical-acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826296,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "LOADOUT geometry authority",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "LOADOUT 390x844 optical acceptance",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "LOADOUT reduced-motion acceptance",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Upload LOADOUT optical acceptance frames",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 118057239864,
+          "name": "field-return-flow",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826296,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "FIELD return lifecycle and PWA regressions",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            }
+          ]
+        },
+        {
+          "id": 118057239933,
+          "name": "field-particle-baseline",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826296,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Fixed P4 Chromium binary",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "FIELD deterministic gameplay and Canvas counter authority",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Retained integrated performance authority",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "FIELD mobile work and descriptive timing benchmark",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "FIELD profile structural and viewport sanity",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Upload FIELD measurements and comparison frames",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        },
+        {
+          "id": 118057240168,
+          "name": "aromatic-geometry",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826296,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Shared aromatic geometry and Graph assets",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            }
+          ]
+        },
+        {
+          "id": 118057240194,
+          "name": "polymer-fragment-authority",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826296,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Validate 25-polymer structural drawing authority",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Validate Task⑦ deterministic polymer structure assets",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Run polymer production and Encyclopedia regressions",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Check repository hygiene",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            }
+          ]
+        },
+        {
+          "id": 118057240196,
+          "name": "six-member-conformation",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826296,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Six-member ring conformation and shared assets",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            }
+          ]
+        },
+        {
+          "id": 118057240204,
+          "name": "repository-guardrails",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_id": 39251826296,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Repository hygiene",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Reaction Lab release contracts and blur lifecycle",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "H / C revisit routes and H economy",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "CHO FIELD integrated production baseline",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Current FIELD developer map",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "FIELD hazard authority",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "FIELD runtime allowlist",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post-Core Rare ecology and hazard authority",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "FIELD expansion proposal map",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Molecule graph / frontier",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Source contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Encyclopedia registration reveal",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Polymer catalog foundation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            },
+            {
+              "name": "Polymerization gameplay closure",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 16
+            },
+            {
+              "name": "Encyclopedia graph UI",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 17
+            },
+            {
+              "name": "Upload Encyclopedia stereo comparison frames",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Upload Encyclopedia chemistry visual frames",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            },
+            {
+              "name": "Upload Encyclopedia Graph thumbnail frames",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20
+            },
+            {
+              "name": "Encyclopedia visible transition frames",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 21
+            },
+            {
+              "name": "Upload Encyclopedia transition frames",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 22
+            },
+            {
+              "name": "Browser startup",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 23
+            },
+            {
+              "name": "Molecule DB v2 persistence",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 24
+            },
+            {
+              "name": "Element authority / nitrogen chapter and FIELD",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 25
+            },
+            {
+              "name": "CRAFT input recovery",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 26
+            },
+            {
+              "name": "Upload CRAFT stereo observation frames",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 27
+            },
+            {
+              "name": "Expedition insights",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 28
+            },
+            {
+              "name": "Thermal and expedition regressions",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 29
+            },
+            {
+              "name": "Upload Dust Eater forced-return frame",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 30
+            },
+            {
+              "name": "Insight taxonomy and presentation",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 31
+            },
+            {
+              "name": "Propulsion HUD regressions",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 32
+            },
+            {
+              "name": "Task ⑩ main Stage B hard-gate control",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 33
+            },
+            {
+              "name": "Task ⑪ candidate Stage B hard gate",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 34
+            },
+            {
+              "name": "Upload Task ⑩ baseline Stage B control evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 35
+            },
+            {
+              "name": "UI de-explanation regressions",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 36
+            },
+            {
+              "name": "Generated PWA freshness",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 37
+            },
+            {
+              "name": "PWA integrity",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 38
+            },
+            {
+              "name": "Whitespace errors in pull request diff",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 39
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 78
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 79
+            }
+          ]
+        },
+        {
+          "id": 118057240329,
+          "name": "ring-visual-calibration",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826296,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Ring geometry and visual calibration",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Upload ring visual calibration frames",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            }
+          ]
+        }
+      ],
+      "conclusion": "failure",
+      "candidateStageBP95": [
+        4.7,
+        4.7,
+        5.5,
+        4.5
+      ],
+      "candidatePooledP95": 4.6,
+      "baselineControl": "NOT_EXECUTED after earlier FIELD transition failure",
+      "pwaAndWhitespaceSteps": "SKIPPED; local PWA353/diff checks passed"
+    },
+    "finite": {
+      "run": 39251826085,
+      "jobs": [
+        {
+          "id": 118057238681,
+          "name": "finite-validation",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_id": 39251826085,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Japanese screenshot font",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Finite completion, chemistry and discovery regressions",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "All 25 finite routes — 3D graph and geometry validation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Production pointer path and 390×844 visual QA",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Production pointer path and representative desktop QA",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Integrated gameplay, discovery, Engineering and FIELD E2E — mobile",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Integrated gameplay, discovery, Engineering and FIELD E2E — desktop",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Prepare immutable Task ⑩ main baseline",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Profile Task ⑩ main baseline — mobile",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Profile Task ⑪ candidate — mobile",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Profile Task ⑩ main baseline — desktop",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Profile Task ⑪ candidate — desktop",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            },
+            {
+              "name": "Validate trial-weighted performance comparison",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Compare same-condition completion performance",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 17
+            },
+            {
+              "name": "Gate finite completion resource evidence",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 18
+            },
+            {
+              "name": "Collection, hygiene, offline integrity",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 19
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 39
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 40
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 41
+            }
+          ]
+        },
+        {
+          "id": 118057239621,
+          "name": "stage-b-performance-comparison",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826085,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Stage B comparison contract tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Prepare immutable Task ⑩ main baseline",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Profile Task ⑩ main baseline — warm-up + four trials",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Profile Task ⑪ candidate — warm-up + four trials",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Compare same-condition Stage B performance",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        }
+      ],
+      "conclusion": "failure",
+      "failedCondition": "390x844 normal, frameMaximum conjunction: long-frame-count clause",
+      "longFrameThresholdMs": 25,
+      "baselineLongFrames": 2,
+      "candidateLongFrames": 5,
+      "allowedLongFrames": 3,
+      "pooledCandidateMaxMs": 33.4,
+      "pooledBaselineMaxMs": 50.1,
+      "maxMagnitudeClausePass": true,
+      "otherThreeConditions": "PASS",
+      "bothViewportsPointerAndIntegratedE2E": "PASS",
+      "downstreamResourceAndCollectionOffline": "SKIPPED after comparison failure",
+      "rawTrialsRetained": 40,
+      "warmups": 8,
+      "measuredTrials": 32,
+      "artifact": 12186274652,
+      "artifactSha256FromGitHubJobLog": "4d52ccbb184d1dde553605e4fa87360ad730ec4c7fe73a335ec26ee6573b73c4",
+      "artifactDownloadIndependentlyVerified": false
+    },
+    "dedicatedStageB": {
+      "run": 39251826085,
+      "job": 118057239621,
+      "conclusion": "success",
+      "baselinePooledMs": 6.19999999999709,
+      "candidatePooledMs": 6,
+      "budgetMs": 8.333333333333334,
+      "allAbsoluteAndRelativeChecks": true
+    },
+    "field": {
+      "run": 39251826033,
+      "jobs": [
+        {
+          "id": 118057237877,
+          "name": "field-insight-balance",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39251826033,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Persistent Seed and site lifecycle",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Destination rotation, yield calibration and stock balance",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Desktop and mobile player-facing regression",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Repository hygiene",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Generated PWA freshness",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            }
+          ]
+        }
+      ],
+      "conclusion": "success"
+    }
+  },
+  "independentReview": {
+    "remainingMajorCodeFindings": 0,
+    "resolvedFinding": "Blur cleanup must also update disabled controls",
+    "rawRepositoryAndStageBAudited": true,
+    "unresolvedGitHubThreads": 0,
+    "disposition": "Required failures prevent merge; separate passes do not replace them",
+    "finalFiniteComparisonIndependentlyAudited": true,
+    "fieldJobAndSkippedStepsIndependentlyVerified": true,
+    "finalFinding": "No remaining major code/report findings; two required CI failures independently confirmed; BLOCKED/no merge supported."
+  },
+  "blockers": [
+    {
+      "id": "FIELD_ENTRY",
+      "owner": "tests/material-progression-browser.test.mjs:243",
+      "observation": "Desktop destination/launch wait fails; supply-dialog remains open, FIELD run not confirmed, browserErrors empty",
+      "cause": "UNDETERMINED: production vs test/transition timing; not labeled pre-existing or unrelated",
+      "minimalResume": "Freeze0036 and instrument destination selection -> partial-fill confirmation -> launch/FIELD start. No speculative fixed-wait increase."
+    },
+    {
+      "id": "FINITE_LONG_FRAMES",
+      "owner": "scripts/compare-polymer-performance.mjs:87 and 390x844 normal PE real-RAF profile",
+      "observation": "Candidate has5 intervals>25ms vs baseline2; unchanged count allowance3",
+      "cause": "UNDETERMINED; no noise/production attribution",
+      "minimalResume": "Use all40 retained trials to isolate actual frame stalls with a bounded cause-backed diagnostic; do not rerun unchanged source or relax comparator."
+    }
+  ],
+  "postMerge": "NOT_EXECUTED; no merge",
+  "task5": {
+    "mergedAuthorityAvailable": false,
+    "geometryAPIUnchanged": "createPolymerFragment3DLayout(sample,{sourceRecordsByInstanceId})",
+    "next": "Keep Task4 blocked until both required failures are resolved; do not restart geometry design."
+  },
+  "pr345": "OPEN / untouched",
+  "budget": {
+    "diagnosticSynchronizations": 1,
+    "ordinaryAcceptanceSynchronizations": 1,
+    "unchangedSourceRetries": 0
+  }
+}

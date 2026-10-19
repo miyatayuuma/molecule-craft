@@ -1,0 +1,72 @@
+[
+  {
+    "name": "reaction-lab-blur",
+    "profile": "/tmp/molecule-craft-reaction-lab-blur-587mIO",
+    "pid": 2453,
+    "phase": "body",
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "reaction-lab-blur",
+    "profile": "/tmp/molecule-craft-reaction-lab-blur-587mIO",
+    "pid": 2453,
+    "phase": "cleanup",
+    "status": "PASS",
+    "process": {
+      "code": 0,
+      "signal": null,
+      "spawnError": null,
+      "forced": false
+    },
+    "errors": []
+  },
+  {
+    "name": "polymer-lab",
+    "profile": "/tmp/molecule-craft-polymer-lab-ppAwOj",
+    "pid": 3763,
+    "phase": "body",
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "polymer-lab",
+    "profile": "/tmp/molecule-craft-polymer-lab-ppAwOj",
+    "pid": 3763,
+    "phase": "cleanup",
+    "status": "PASS",
+    "process": {
+      "code": 0,
+      "signal": null,
+      "spawnError": null,
+      "forced": false
+    },
+    "errors": []
+  },
+  {
+    "name": "polymer-lab",
+    "profile": "/tmp/molecule-craft-polymer-lab-rjRACx",
+    "pid": 4032,
+    "phase": "body",
+    "status": "FAIL",
+    "error": {
+      "name": "Error",
+      "message": "FIELD entry: {\"state\":{\"url\":\"http://127.0.0.1:43361/?reactionLabTest=1&reactionLabPhysics=stage-b\",\"title\":\"Molecule Craft\",\"dialog\":false,\"collection\":false,\"collectionClass\":false,\"collectionTrigger\":{\"disabled\":false,\"rect\":{\"x\":1165.796875,\"y\":11.5,\"width\":49.203125,\"height\":44},\"hit\":{\"tag\":\"DIALOG\",\"id\":\"supply-dialog\",\"className\":\"sheet\"}},\"partial\":false,\"supply\":true,\"field\":true,\"batch\":{\"activeSlots\":[\"\",\"\",\"\"],\"draftSlots\":[\"\",\"\",\"\"],\"phase\":\"IDLE\",\"generation\":0,\"transitionKind\":null,\"transitionGeneration\":null,\"feedEntryCount\":0,\"feedEntriesHandedOff\":0,\"reactionEnabled\":false,\"reactionPresentationActive\":false},\"polymerization\":{\"routeOwned\":false,\"beginError\":null,\"routeId\":null,\"polymerId\":null,\"state\":null,\"stepKind\":null,\"waitReason\":null,\"manualStepCount\":0,\"automaticStepCount\":0,\"reservedInstanceIds\":[],\"consumedInstanceIds\":[],\"sourceMeshCount\":0,\"sourceDetailOpacities\":[],\"sampleId\":null,\"sampleReady\":false,\"samplePhase\":null,\"sampleElapsedMs\":0,\"sampleDurationMs\":null,\"fragmentAnimationActive\":false,\"layoutCallsAtReady\":null,\"displayedUnitCount\":0,\"displayGraph\":null,\"sampleEvidence\":null,\"fit\":null,\"siteTarget\":null,\"dockAttempt\":null,\"autoAttempt\":null},\"events\":[]},\"browserErrors\":[]}",
+      "stack": "Error: FIELD entry: {\"state\":{\"url\":\"http://127.0.0.1:43361/?reactionLabTest=1&reactionLabPhysics=stage-b\",\"title\":\"Molecule Craft\",\"dialog\":false,\"collection\":false,\"collectionClass\":false,\"collectionTrigger\":{\"disabled\":false,\"rect\":{\"x\":1165.796875,\"y\":11.5,\"width\":49.203125,\"height\":44},\"hit\":{\"tag\":\"DIALOG\",\"id\":\"supply-dialog\",\"className\":\"sheet\"}},\"partial\":false,\"supply\":true,\"field\":true,\"batch\":{\"activeSlots\":[\"\",\"\",\"\"],\"draftSlots\":[\"\",\"\",\"\"],\"phase\":\"IDLE\",\"generation\":0,\"transitionKind\":null,\"transitionGeneration\":null,\"feedEntryCount\":0,\"feedEntriesHandedOff\":0,\"reactionEnabled\":false,\"reactionPresentationActive\":false},\"polymerization\":{\"routeOwned\":false,\"beginError\":null,\"routeId\":null,\"polymerId\":null,\"state\":null,\"stepKind\":null,\"waitReason\":null,\"manualStepCount\":0,\"automaticStepCount\":0,\"reservedInstanceIds\":[],\"consumedInstanceIds\":[],\"sourceMeshCount\":0,\"sourceDetailOpacities\":[],\"sampleId\":null,\"sampleReady\":false,\"samplePhase\":null,\"sampleElapsedMs\":0,\"sampleDurationMs\":null,\"fragmentAnimationActive\":false,\"layoutCallsAtReady\":null,\"displayedUnitCount\":0,\"displayGraph\":null,\"sampleEvidence\":null,\"fit\":null,\"siteTarget\":null,\"dockAttempt\":null,\"autoAttempt\":null},\"events\":[]},\"browserErrors\":[]}\n    at waitFor (file:///home/runner/work/molecule-craft/molecule-craft/tests/material-progression-browser.test.mjs:49:1138)\n    at async lifecycle.run.socket (file:///home/runner/work/molecule-craft/molecule-craft/tests/material-progression-browser.test.mjs:243:621)\n    at async Object.run (file:///home/runner/work/molecule-craft/molecule-craft/tests/helpers/browser-lifecycle.mjs:69:9)\n    at async file:///home/runner/work/molecule-craft/molecule-craft/tests/material-progression-browser.test.mjs:39:1"
+    }
+  },
+  {
+    "name": "polymer-lab",
+    "profile": "/tmp/molecule-craft-polymer-lab-rjRACx",
+    "pid": 4032,
+    "phase": "cleanup",
+    "status": "PASS",
+    "process": {
+      "code": 0,
+      "signal": null,
+      "spawnError": null,
+      "forced": false
+    },
+    "errors": []
+  }
+]
