@@ -1,0 +1,30 @@
+{
+  "reviewer": "independent sub-agent review_gpu_diagnostic",
+  "scope": [
+    "diagnostic code",
+    "FIELD diff 0036→1378 (tests/material-progression-browser.test.mjs only)",
+    "raw ten trial GPU/OS analysis"
+  ],
+  "result": "No remaining major finding; D Indeterminate supported",
+  "resolvedFindings": [
+    "Observation initialization failure now reaches trace/evidence save",
+    "End clock-marker failure no longer skips authority save/close",
+    "wchan/comm reads now occur before task afterUs"
+  ],
+  "verification": [
+    "Nonbrowser sampler smoke only; no additional browser campaign",
+    "All ten native RAF sequences independently recomputed; all interval values match",
+    "Process/cmdline/starttime/trace PID/TID identity matched for target renderer and GPU main",
+    "Clock offset intersection verified, 0.693–1.693ms uncertainty",
+    "No negative counter deltas",
+    "Non-target renderer PID2832 unavailable reads575 explicitly retained"
+  ],
+  "limits": [
+    "Sampler costs about0.36–0.41 CPU core; observer effect not ruled out",
+    "run_delay enclosing deltas update on scheduling boundaries, not exact causal gap proportions",
+    "GPU worker to specific swap completion causality unproven",
+    "Old ordinary five intervals and Task4 regression not attributed",
+    "sched_schedstats=0 does not disable sched_info in Linuxv6.17; zero delta still not proof of no wait"
+  ],
+  "field": "One native trusted intended button click; synchronous PARTIAL hidden; Supply closes; FIELD runs; same contract after reload; no100ms sleep/hidden retry/synthetic click; old smooth-scroll cause not claimed"
+}

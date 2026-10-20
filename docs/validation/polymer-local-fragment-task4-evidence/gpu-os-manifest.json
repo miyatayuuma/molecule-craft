@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "runId": 39360186742,
+  "sourceSha": "e9c74a9fa71700014a12e2ee65c81b3bd5562119",
+  "baseline": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+  "candidate": "0036e0f68f8fcce863d05fe2073950ad15461642",
+  "instrumentedDiagnosticOnly": true,
+  "campaigns": 1,
+  "trialsPerSide": 5,
+  "warmupPerSide": 1,
+  "artifact": {
+    "id": 12236574307,
+    "zipBytes": 39556122,
+    "sha256": "01c4d270d341e688b90b280544eff52c517aa9672330157cfb60896e66d3a659",
+    "independentlyDownloadedAndVerified": true,
+    "retentionDays": 30
+  },
+  "prior": {
+    "evidenceCommit": "24a6dd515f12ca9504a5671966b6f2fc09eb2bf3",
+    "all40ProfilesVerified": true,
+    "tenNormalWindowsReconstructed": true,
+    "partsVerified": 14,
+    "gzipSha256": "a34dc297c6ae96d6d7c01e73412401d3633d7e4cf5034cef80b86aa9895e79bd"
+  },
+  "files": [
+    {
+      "name": "gpu-os-observations.json.gz",
+      "bytes": 4431911,
+      "sha256": "0ccf663d4477ce31e071c06e88db873ab373ffde6555497bb40d42c615872c03",
+      "parts": [
+        {
+          "offset": 0,
+          "bytes": 524280,
+          "sha256": "e296d91f62c8e272e368c7fd0299dd1ed46bcedd0c2db155763a42dc39e76b8e",
+          "gitBlobSha": "66ac89e624eb1b5abfbb2304e46baa2328e13c89",
+          "name": "gpu-os-observations.json.gz.part-01"
+        },
+        {
+          "offset": 524280,
+          "bytes": 524280,
+          "sha256": "61ad3cd402be75908ec68929ea7f962c813a83739662461bd1e035429bcbca5c",
+          "gitBlobSha": "39585ef99406ad7582f4206d36e13599c5589402",
+          "name": "gpu-os-observations.json.gz.part-02"
+        },
+        {
+          "offset": 1048560,
+          "bytes": 524280,
+          "sha256": "b16e63e185eede24c53897127590b948802b7abd6d8eef97bac28cb72fd7f409",
+          "gitBlobSha": "22df751201bdb80251addde8fb32efdb22722bb6",
+          "name": "gpu-os-observations.json.gz.part-03"
+        },
+        {
+          "offset": 1572840,
+          "bytes": 524280,
+          "sha256": "0ec011f59c1d7dad5fba0d65fb8b3ebb2860b36b426ebf79bdbd235621d6a078",
+          "gitBlobSha": "66b22aade6d9713e274c4a7f8d84aad4b73e3281",
+          "name": "gpu-os-observations.json.gz.part-04"
+        },
+        {
+          "offset": 2097120,
+          "bytes": 524280,
+          "sha256": "5b81cfff1d9e2b1b6877ddfbccd8d4f46940ce7ab033f8e37f03a3091f3d8483",
+          "gitBlobSha": "28d4caecf60366bf5d0983c10f16811e43cee21a",
+          "name": "gpu-os-observations.json.gz.part-05"
+        },
+        {
+          "offset": 2621400,
+          "bytes": 524280,
+          "sha256": "8bb0d1ce3c87223a616a1adbb285b5edc1549a4f4034475b5f64a1a86eb1f289",
+          "gitBlobSha": "f359c5a8de2f603cd99360b48c35c873a7a8bdbf",
+          "name": "gpu-os-observations.json.gz.part-06"
+        },
+        {
+          "offset": 3145680,
+          "bytes": 524280,
+          "sha256": "ae814b17f72b958f6e05dd3d49bea2467ece38fe4b0b33af2068c5faca31a704",
+          "gitBlobSha": "ce26ba11313d44b5513e2caa7f3fb57f80638ad4",
+          "name": "gpu-os-observations.json.gz.part-07"
+        },
+        {
+          "offset": 3669960,
+          "bytes": 524280,
+          "sha256": "a7437c3e67edcf46b8e8953672dfc83704f87b9b848c1abbcd86037faac8711d",
+          "gitBlobSha": "fdcaf032ac1fa2456183513fb3bd5216a402df41",
+          "name": "gpu-os-observations.json.gz.part-08"
+        },
+        {
+          "offset": 4194240,
+          "bytes": 237671,
+          "sha256": "ea4adf7b42b39efa33187faddf6b9d4a7319844e87d05406742fcc85cd36294e",
+          "gitBlobSha": "e44426b924400712be0d2cc190ec5a860b865adc",
+          "name": "gpu-os-observations.json.gz.part-09"
+        }
+      ]
+    },
+    {
+      "name": "gpu-os-completion-windows.json.gz",
+      "bytes": 7280481,
+      "sha256": "97cd1360be50313fd3d2ff6d9902776e349f4b84582c0b3c6f1775efd490434e",
+      "parts": [
+        {
+          "offset": 0,
+          "bytes": 524280,
+          "sha256": "2c52e1350e1347b1fd6b94c55b708762379b1868da76181749fd8eb0739ea0af",
+          "gitBlobSha": "ba73171747beaa98976bb32aa9a917b4f37dba5b",
+          "name": "gpu-os-completion-windows.json.gz.part-01"
+        },
+        {
+          "offset": 524280,
+          "bytes": 524280,
+          "sha256": "03f64c1f47335ac86152377df8fdae6247a8d6117c8e70a36a05f9979736f627",
+          "gitBlobSha": "7b05a87f825103ea9d81d678e807a26e9be8fc16",
+          "name": "gpu-os-completion-windows.json.gz.part-02"
+        },
+        {
+          "offset": 1048560,
+          "bytes": 524280,
+          "sha256": "f4c042b0c9b7447ec11eb99b396e6a4260fb54515c22411c9425603649857e7a",
+          "gitBlobSha": "482c16c79280b2ddfe91e3d88d5f1d186abfbe03",
+          "name": "gpu-os-completion-windows.json.gz.part-03"
+        },
+        {
+          "offset": 1572840,
+          "bytes": 524280,
+          "sha256": "4ad1b76545f1e22c0a0850fe3027344f5964b962b74e2c211ae47d30831269c9",
+          "gitBlobSha": "24228328c37586bc383e8a8b2f9aec536a9af3bf",
+          "name": "gpu-os-completion-windows.json.gz.part-04"
+        },
+        {
+          "offset": 2097120,
+          "bytes": 524280,
+          "sha256": "71d14b6023f0f325d604db2d50544a4a96de4eae9285b8094ae37027412c26ef",
+          "gitBlobSha": "ddfcc477eb46165b3b8d99736612b2e3cde5ff2f",
+          "name": "gpu-os-completion-windows.json.gz.part-05"
+        },
+        {
+          "offset": 2621400,
+          "bytes": 524280,
+          "sha256": "79ac11622c95e51a466f8e73cd39b68ba6690b9f32fd694ace11c63251b35fd2",
+          "gitBlobSha": "fb91cd9eb5ad2660ab74be8ad9a37120ebae64a4",
+          "name": "gpu-os-completion-windows.json.gz.part-06"
+        },
+        {
+          "offset": 3145680,
+          "bytes": 524280,
+          "sha256": "9cffb6362ce213c3f931062e0d6677fc7bde14abb3ff6c16d4bfef61b3d92868",
+          "gitBlobSha": "a181518da3dee9a596fff51429e2728b1f6e7416",
+          "name": "gpu-os-completion-windows.json.gz.part-07"
+        },
+        {
+          "offset": 3669960,
+          "bytes": 524280,
+          "sha256": "363cb71a01fd4dcbe3e90f2778bd6793a99468fd26e3de45606bdf428fb15100",
+          "gitBlobSha": "aae7a7e03791e70c3420eb99906216e20f977a9d",
+          "name": "gpu-os-completion-windows.json.gz.part-08"
+        },
+        {
+          "offset": 4194240,
+          "bytes": 524280,
+          "sha256": "78a8165693391a16cf24244e14c1d933d3ab09d23d7a36c8fbdf99c053365990",
+          "gitBlobSha": "427121916373be80f3ff7b3992627f3b1a00f7a9",
+          "name": "gpu-os-completion-windows.json.gz.part-09"
+        },
+        {
+          "offset": 4718520,
+          "bytes": 524280,
+          "sha256": "9f9bff3fb035378fe36ea1abcc599e57c6b5ed4adc773b5d017372b161a50b46",
+          "gitBlobSha": "d63856ccff044c202b96e7508ecd93f27a47fb84",
+          "name": "gpu-os-completion-windows.json.gz.part-10"
+        },
+        {
+          "offset": 5242800,
+          "bytes": 524280,
+          "sha256": "b080126b1e7ca130ef91137c616da9bcaee179798793a64d02aceb038072e285",
+          "gitBlobSha": "aae389ff8780c503549ee3e087d52c6e1fcb9a38",
+          "name": "gpu-os-completion-windows.json.gz.part-11"
+        },
+        {
+          "offset": 5767080,
+          "bytes": 524280,
+          "sha256": "15567d433b2d4b233fb28573dc60439c5196c1dac955f6134370ac377c8b3fdb",
+          "gitBlobSha": "b2463ce70fc94f3c55d042bf3b9fdc3174e24f4f",
+          "name": "gpu-os-completion-windows.json.gz.part-12"
+        },
+        {
+          "offset": 6291360,
+          "bytes": 524280,
+          "sha256": "70d5b7bd807ce13bf8ec07a2f03c5cf76fa11a8a4277a687bc381bce940fc6fb",
+          "gitBlobSha": "960fc4418ea76dfa10876071a3383ad9e75ead3b",
+          "name": "gpu-os-completion-windows.json.gz.part-13"
+        },
+        {
+          "offset": 6815640,
+          "bytes": 464841,
+          "sha256": "82915f59d71bbc6dd145d602c2b9b90a909188f910702f866e676304d863fd89",
+          "gitBlobSha": "a9af12d19ee5cdebd51ffcde1976b568ea546c59",
+          "name": "gpu-os-completion-windows.json.gz.part-14"
+        }
+      ]
+    },
+    {
+      "name": "gpu-os-analysis.json.gz",
+      "bytes": 104346,
+      "sha256": "05d8d19ba82fbcb01625421d64b0c626c877674f3212a43816ff8b43057e6316",
+      "parts": [
+        {
+          "offset": 0,
+          "bytes": 104346,
+          "sha256": "05d8d19ba82fbcb01625421d64b0c626c877674f3212a43816ff8b43057e6316",
+          "gitBlobSha": "94ec5a4d678abe9409ff780a529e249e01a68416",
+          "name": "gpu-os-analysis.json.gz.part-01"
+        }
+      ]
+    }
+  ],
+  "reconstruction": "For each file, concatenate listed binary parts in numeric order. Verify full bytes and SHA256 before gzip decompression. Part Git blob SHA and SHA256 were verified on upload.",
+  "retention": "All ten trials retained, including both warmups. Completion-window trace selection is fixed and outcome-independent. Full proc rows and observations retained. PNGs and noncompletion trace traffic remain only in the 30-day original artifact."
+}
