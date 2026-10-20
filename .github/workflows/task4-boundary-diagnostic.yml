@@ -1,7 +1,7 @@
-name: Task4 frozen wait-attribution diagnostic correction
+name: Task4 candidate wait-attribution capture
 on:
   push:
-    branches: [diagnostic/task4-wait-boundaries]
+    branches: [diagnostic/task4-candidate-wait-proof]
 permissions:
   contents: read
 jobs:
@@ -18,16 +18,6 @@ jobs:
       - name: Verify frozen runtime and prepare immutable baseline
         run: |
           git diff --exit-code 0036e0f68f8fcce863d05fe2073950ad15461642 -- src styles.css index.html data vendor
-          git worktree add --detach "$RUNNER_TEMP/task4-baseline" 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
-      - name: Immutable baseline mobile — one profile batch, normal tracing only
-        if: ${{ !cancelled() }}
-        env:
-          TASK4_BOUNDARY_DIAGNOSTIC: '1'
-          POLYMER_PROFILE_ONLY: '1'
-          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
-          POLYMER_ROOT: ${{ runner.temp }}/task4-baseline
-          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/task4-boundary/baseline
-        run: node tests/reaction-lab-polymer-browser.test.mjs
       - name: Frozen candidate mobile — one profile batch, normal tracing only
         if: ${{ !cancelled() }}
         env:
@@ -39,6 +29,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: task4-frozen-wait-attribution-diagnostic
+          name: task4-candidate-wait-attribution-capture
           path: ${{ runner.temp }}/task4-boundary
           retention-days: 30

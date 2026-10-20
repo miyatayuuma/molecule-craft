@@ -11,8 +11,13 @@ export async function beginBoundaryTrace({send,socket,evaluate,artifactDir,motio
   const traceEvents=[];
   const availableCategories=(await send('Tracing.getCategories')).categories;
   const requestedCategories=['toplevel','devtools.timeline','renderer.scheduler','v8','blink.user_timing','cc','gpu','viz','disabled-by-default-devtools.timeline','disabled-by-default-gpu.service','disabled-by-default-v8.gc'];
-  const enabledCategories=requestedCategories.filter(category=>availableCategories.includes(category));
-  assert.ok(enabledCategories.includes('toplevel')&&enabledCategories.includes('devtools.timeline'),'Required diagnostic trace categories must exist');
+  assert.ok(Array.isArray(availableCategories),'Trace category catalogue must be recorded');
+  // Enable the explicit protocol category patterns. Validate actual RunTask
+  // events after capture; catalogue membership alone is not execution proof.
+  const enabledCategories=requestedCategories;
+  await mkdir(artifactDir,{recursive:true});
+  await writeFile(join(artifactDir,`boundary-categories-${motion}-${trialIndex}.json`),JSON.stringify({availableCategories,enabledCategories},null,2));
+  console.log('TASK4_TRACE_CATEGORIES',JSON.stringify({trialIndex,availableCount:availableCategories.length,enabledCategories,catalogueMissing:enabledCategories.filter(category=>!availableCategories.includes(category))}));
   let tracingComplete;
   const listener=event=>{const message=JSON.parse(event.data);if(message.method==='Tracing.dataCollected')traceEvents.push(...message.params.value);if(message.method==='Tracing.tracingComplete')tracingComplete?.();};
   socket.addEventListener('message',listener);
@@ -30,11 +35,14 @@ export async function beginBoundaryTrace({send,socket,evaluate,artifactDir,motio
     const errorRecord=error=>error?{name:error.name,message:error.message,stack:error.stack}:null;
     const actualMeasurement=measurement?.motion===motion&&measurement?.trialIndex===trialIndex?measurement:null;
     await mkdir(artifactDir,{recursive:true});
-    await writeFile(join(artifactDir,`boundary-trace-${motion}-${trialIndex}.json`),JSON.stringify({availableCategories,enabledCategories,traceEvents}));
+    const mainMarker=traceEvents.find(event=>event.name==='task4:tick'),rendererPid=mainMarker?.pid,rendererTid=mainMarker?.tid;
+    const mainTaskCount=traceEvents.filter(event=>event.pid===rendererPid&&event.tid===rendererTid&&/RunTask/.test(event.name)).length;
+    await writeFile(join(artifactDir,`boundary-trace-${motion}-${trialIndex}.json`),JSON.stringify({availableCategories,enabledCategories,validation:{rendererPid,rendererTid,mainTaskCount},traceEvents}));
     await writeFile(join(artifactDir,`boundary-observation-${motion}-${trialIndex}.json`),JSON.stringify({sourceSha:process.env.POLYMER_SOURCE_SHA,trialIndex,warmup:trialIndex===0,motion,rows,roundtrips,measurement:actualMeasurement,primaryError:errorRecord(primaryError),diagnosticErrors:errors.map(errorRecord)},null,2));
     const start=rows.filter(row=>row.name==='molecule-craft:reaction-lab-polymer-sample').at(-1)?.start,early=rows.filter(row=>Number.isFinite(start)&&row.start>=start&&row.start<start+150);
     console.log('TASK4_FINITE_BOUNDARY_DIAGNOSTIC',JSON.stringify({sourceSha:process.env.POLYMER_SOURCE_SHA,trialIndex,start,primaryError:errorRecord(primaryError),diagnosticErrors:errors.map(errorRecord),early:early.filter(row=>row.durationMs>1||row.name==='tick'||row.name.startsWith('molecule-craft:')),frameIntervalsMs:actualMeasurement?.frameIntervalsMs}));
     if(errors.length)throw new AggregateError(errors,'Diagnostic capture incomplete');
+    assert.ok(mainTaskCount>0,'Captured trace must contain actual renderer main RunTask events');
   }};
 }
 
