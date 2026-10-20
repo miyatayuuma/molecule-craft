@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "file": "postmerge-ordinary-finite.json.gz",
+  "bytes": 1601944,
+  "sha256": "198c0575159d28f92e439fb1cfe57b0154319ebe0c377c2e04ff5ed65e6b9bb7",
+  "parts": [
+    {
+      "name": "postmerge-ordinary-finite.json.gz.part-01",
+      "offset": 0,
+      "bytes": 524280,
+      "sha256": "c46c4e68f5bc77626e9c95eac1499361e34b6dc23a3cd63d816afaed9c1d7c8b",
+      "gitBlobSha": "813a5e5c937e509c9c7e9ed1ee52b5a1efdbb57d"
+    },
+    {
+      "name": "postmerge-ordinary-finite.json.gz.part-02",
+      "offset": 524280,
+      "bytes": 524280,
+      "sha256": "2de95568b36f846ebc34ac47b9f92179f7d8a5762354749f826078703eda4612",
+      "gitBlobSha": "b9137b8904d3d7d5ceabca4f2d9bc7004289568a"
+    },
+    {
+      "name": "postmerge-ordinary-finite.json.gz.part-03",
+      "offset": 1048560,
+      "bytes": 524280,
+      "sha256": "3f02e3a04a2810f9f5f4bdad2e6dc2b5aa6009bd7fcdc7e411dae77947695ebe",
+      "gitBlobSha": "3655726702afada1b09ac05f750760df8ccb3008"
+    },
+    {
+      "name": "postmerge-ordinary-finite.json.gz.part-04",
+      "offset": 1572840,
+      "bytes": 29104,
+      "sha256": "d7d5ea7cb7b12b0122a39b0259027a98f335fefccc8fe80393b7e5fd50a42fdd",
+      "gitBlobSha": "11d00d7b6e914335a92094fd1b1675e123203b06"
+    }
+  ],
+  "reconstruction": "Concatenate listed binary parts in order, verify lengths/SHA256, then gzip-decompress JSON. No profiles selected or removed.",
+  "artifactId": 12281456187,
+  "artifactZipSha256": "78c4ee25f8b87e7ca48daf5784a25914ee1f0916a43fe996544e043ac06896e9",
+  "independentlyDownloadedAndVerified": true
+}

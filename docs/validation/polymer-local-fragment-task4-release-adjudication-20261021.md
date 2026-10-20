@@ -1,3 +1,43 @@
+# Final post-merge disposition: RELEASE_BLOCKED / Task④ BLOCKED
+
+PR351 is **MERGED** at `6c676317ff590dd756685168484c79788b5a329b`; main's entire tree equals reviewed HEADbce74c85: `2e9bdad7345ae8437721d3a234368646868a4e5f`. The pre-merge independent RELEASE_ELIGIBLE decision below was based on then-current all-PASS mandatory acceptance. The new mandatory post-merge failure supersedes that eligibility for final closure. No failed result has been removed or reclassified.
+
+## Final main verification
+
+[Ordinary main push run39454378232](https://github.com/miyatayuuma/molecule-craft/actions/runs/39454378232) completed on attempt1: **FAIL overall**, solely because Stage B comparison failed. No workflow/job rerun occurred.
+
+| Main verification | Actual result |
+|---|---|
+| Finite job118737239586 | SUCCESS; every step successful, none skipped |
+| All25 chemical graph/geometry | PASS, fallback0; graph/origin/sample identity preserved |
+| 390px/1280px actual-pointer and failure-boundary QA | PASS |
+| Both integrated Save/Collection/Engineering/re-FEED/FIELD journeys | PASS |
+| All40 ordinary Finite profiles, unchanged strict comparison | PASS; every warm-up/measurement retained |
+| Finite resource/Collection/offline/PWA stages | PASS |
+| Dedicated Stage B job118737239196 | **FAIL: measured trial1 P95 10.0ms >8.333333333ms** |
+| Main local geometry/release/destination tests | 28/28 PASS, zero skipped |
+| Main local FIELD seed / PWA353 / hygiene | PASS / PASS /0 warnings |
+| Repository39360743636 and FIELD39360743535 | Earlier PASS reused by complete tree equality; no new main Repository/FIELD run is claimed |
+| PWA refresh39454378225 / Pages39454376302 | SUCCESS; does not override performance FAIL |
+
+Stage B candidate trialP95: **10.0 /7.7 /7.9 /7.9ms**, pooled8.1ms. Baseline4bc202c0:7.5 /7.2 /11.0 /8.1ms, pooled8.8ms. Pooled candidate and both unchanged relative checks PASS (allowance1.35ms), but per-trial absolute FAIL remains blocking. Both profiles use Chrome155.0.8059.39/revision3ff7ac5a..., same viewport/fixed step/workload. A failing baseline does not prove host noise or waive candidate failure.
+
+Primary agent independently downloaded both artifacts and verified ZIP SHA256: StageB12279503918 `7845a56ce3f4def6a1a3d4d6d0a7dd1ec7ae31f91d49811a71f4498901eeabc1`; Finite12281456187 `78c4ee25f8b87e7ca48daf5784a25914ee1f0916a43fe996544e043ac06896e9`. Recomputing the unchanged Stage B comparator OFFLINE on exact downloaded inputs returns the same FAIL and an exactly equal comparison object. This is not a new timing trial.
+
+Durable evidence contains the full decoded Stage B log, original complete baseline/candidate profiles and comparison; the Finite bundle contains every artifact JSON (including all40 ordinary profiles), complete decoded critical Finite log and final authority. Bundle parts/full checksums are in `postmerge-ordinary-manifest.json`; their Git blob hashes match local bytes. PNGs remain in the original90-day artifact, not in the durable bundle. No trial was selected by its outcome.
+
+## Final independent review and restart boundary
+
+The new independent reviewer rechecked the actual merged commit/tree and completed GitHub jobs. It agrees **RELEASE_BLOCKED / Task④ BLOCKED**, with only the fresh Stage B hard gate as a current mandatory failure. See the accompanying independent report's final addendum.
+
+No new chemistry/save corruption, functional break or Task④-specific performance cause was established. No evidence-backed rollback target was identified; main remains merged, while final acceptance remains BLOCKED. This is not a blanket claim that rollback could never be needed.
+
+[Issue352](https://github.com/miyatayuuma/molecule-craft/issues/352) tracks the specific remaining Stage B acceptance boundary. Minimum follow-up: inspect the frozen raw slow-step distribution and unchanged profiler/workload/source authority against earlier evidence, establish a bounded falsifiable cause, then make only a cause-backed repair and necessary acceptance. No new GPU campaign, geometry redevelopment, PR345 merge, threshold/baseline/workload change or favorable unchanged-source retry is authorized by this disposition.
+
+Task⑤ must not treat this merged commit as a CLOSED Task④ authority. Its geometry/API input is now on main, but release acceptance must first resolve Issue352. The older Desktop/GPU/solve-tail risks and Task⑤/⑥ ownership below remain intact.
+
+---
+
 # Task④ final release adjudication — 2026-10-21 JST
 
 ## Authority and scope
