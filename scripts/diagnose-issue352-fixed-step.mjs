@@ -16,12 +16,14 @@ function instrumentViewer(text){
   replace('function atomWorldAngstrom(item,index){', 'function atomWorldAngstrom(item,index){if(globalThis.__issue352?.active)globalThis.__issue352.atomWorldCalls++;');
   replace('const physical=canonicalNonbondedPairGeometry(', 'if(globalThis.__issue352?.active)globalThis.__issue352.pairCalls++;const physical=canonicalNonbondedPairGeometry(');
   replace('const fixedStepStarted=performance.now();', `const fixedStepStarted=performance.now();const diag=globalThis.__issue352,di=diag?.active?diag.index++:-1,off=di*8;if(di>=0)diag.sections[off]=fixedStepStarted;`);
-  replace('const started=performance.now();', 'const started=performance.now();if(di>=0)diag.sections[off+1]=started;');
+  replace('const started=performance.now();\n    stageAForces=', 'const started=performance.now();if(di>=0)diag.sections[off+1]=started;\n    stageAForces=');
   replace('stageAPerformance.lastInteractionPairCount=', 'if(di>=0)diag.sections[off+2]=performance.now();stageAPerformance.lastInteractionPairCount=');
   replace('if(batch.phase===REACTION_LAB_BATCH_PHASES.ACTIVE){const stepMs=STAGE_A_GAME_STEP_SECONDS*1000;advancePolymerRuntime(stepMs);reactionStep(stepMs);}', `if(di>=0)diag.sections[off+3]=performance.now();if(batch.phase===REACTION_LAB_BATCH_PHASES.ACTIVE){const stepMs=STAGE_A_GAME_STEP_SECONDS*1000;advancePolymerRuntime(stepMs);if(di>=0)diag.sections[off+4]=performance.now();reactionStep(stepMs);}if(di>=0){diag.sections[off+5]=performance.now();diag.sections[off+6]=reactionDiagnostics.length;diag.sections[off+7]=(reactionAnimation?1:0)+(polymerRouteOwned?2:0)+(instances.some(item=>item.busy)?4:0);}`);
   return text;
 }
 if(instrument){
+  // Fail before browser launch if an upstream source boundary is ambiguous.
+  instrumentViewer(await readFile(join(resolve(process.env.POLYMER_ROOT??'.'),'src/reaction-lab-viewer.js'),'utf8'));
   // Embed function text only into temporary diagnostic server, not production assets.
   source=replaceOnce(source,"const root=",`const replaceOnce=${replaceOnce.toString()};const instrumentViewer=${instrumentViewer.toString()};\nconst root=`);
   source=replaceOnce(source,'response.end(await readFile(file));',`const bytes=await readFile(file);response.end(file.endsWith('/src/reaction-lab-viewer.js')?instrumentViewer(bytes.toString()):bytes);`);

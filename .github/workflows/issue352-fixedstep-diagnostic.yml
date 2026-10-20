@@ -24,18 +24,8 @@ jobs:
           lscpu > test-results/issue352/cpu-environment.txt
           google-chrome --version >> test-results/issue352/cpu-environment.txt
           uname -a >> test-results/issue352/cpu-environment.txt
-      - name: Frozen baseline control
-        env:
-          POLYMER_ROOT: ${{ runner.temp }}/issue352-baseline
-          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
-          ISSUE352_OUTPUT: test-results/issue352/baseline-control
-        run: node scripts/diagnose-issue352-fixed-step.mjs
-      - name: Frozen main control
-        env:
-          POLYMER_ROOT: ${{ runner.temp }}/issue352-main
-          POLYMER_SOURCE_SHA: 6c676317ff590dd756685168484c79788b5a329b
-          ISSUE352_OUTPUT: test-results/issue352/main-control
-        run: node scripts/diagnose-issue352-fixed-step.mjs
+      # Controls retained from run39517457453. Do not repeat them after the
+      # instrumentation-boundary correction; only the two uncollected profiles.
       - name: Frozen baseline instrumented
         env:
           POLYMER_ROOT: ${{ runner.temp }}/issue352-baseline

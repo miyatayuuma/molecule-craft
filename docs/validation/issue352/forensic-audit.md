@@ -78,3 +78,11 @@ reproduce is reported, never repaired by another identical acceptance run.
 All four profiles and traces are retained, irrespective of outcome. Diagnostics
 do not satisfy the strict gate. Production changes require evidence of a specific
 removable cost and semantic equivalence tests, followed by ordinary acceptance.
+
+Diagnostic run39517457453 retained both controls; instrumentation failed before
+collecting any profile because `const started=performance.now();` occurred twice.
+The bounded remainder uses the unique following `stageAForces` boundary and
+validates transformation before browser launch. Only the two missing instrumented
+profiles run; controls are not repeated. This splits the original same-runner
+control/instrument comparison across runners, so a causal overhead estimate is
+unavailable. Instrumented times cannot establish strict production performance.
