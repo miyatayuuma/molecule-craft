@@ -1,0 +1,37 @@
+name: Task4 FIELD confirmation contract regression
+on:
+  push:
+    branches: [repair/task4-field-confirmation-contract]
+permissions:
+  contents: read
+jobs:
+  native-confirmation-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Preserve frozen production sources
+        run: git diff --exit-code 0036e0f68f8fcce863d05fe2073950ad15461642 -- src styles.css index.html data vendor
+      - name: Native desktop destination and confirmation regression
+        env:
+          MATERIAL_PROGRESS_DESKTOP: '1'
+          POLYMER_SOURCE_SHA: 0036e0f68f8fcce863d05fe2073950ad15461642
+          TASK10_EVIDENCE_DIR: ${{ runner.temp }}/task4-field-confirmation/desktop
+        run: node tests/material-progression-browser.test.mjs
+      - name: Native mobile destination and confirmation regression
+        if: ${{ !cancelled() }}
+        env:
+          POLYMER_SOURCE_SHA: 0036e0f68f8fcce863d05fe2073950ad15461642
+          TASK10_EVIDENCE_DIR: ${{ runner.temp }}/task4-field-confirmation/mobile
+        run: node tests/material-progression-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: task4-field-confirmation-regression
+          path: ${{ runner.temp }}/task4-field-confirmation
+          retention-days: 30
