@@ -1,0 +1,51 @@
+name: Task4 frozen remaining-boundary diagnostic
+on:
+  push:
+    branches: [diagnostic/task4-remaining-boundaries]
+permissions:
+  contents: read
+jobs:
+  bounded-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify frozen runtime and prepare immutable baseline
+        run: |
+          git diff --exit-code 0036e0f68f8fcce863d05fe2073950ad15461642 -- src styles.css index.html data vendor
+          git worktree add --detach "$RUNNER_TEMP/task4-baseline" 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+      - name: Desktop FIELD launch — single diagnostic journey
+        env:
+          TASK4_BOUNDARY_DIAGNOSTIC: '1'
+          MATERIAL_PROGRESS_DESKTOP: '1'
+          POLYMER_SOURCE_SHA: 0036e0f68f8fcce863d05fe2073950ad15461642
+          TASK10_EVIDENCE_DIR: ${{ runner.temp }}/task4-boundary/field
+        run: node tests/material-progression-browser.test.mjs
+      - name: Immutable baseline mobile — one profile batch, normal tracing only
+        if: ${{ !cancelled() }}
+        env:
+          TASK4_BOUNDARY_DIAGNOSTIC: '1'
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          POLYMER_ROOT: ${{ runner.temp }}/task4-baseline
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/task4-boundary/baseline
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Frozen candidate mobile — one profile batch, normal tracing only
+        if: ${{ !cancelled() }}
+        env:
+          TASK4_BOUNDARY_DIAGNOSTIC: '1'
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_SOURCE_SHA: 0036e0f68f8fcce863d05fe2073950ad15461642
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/task4-boundary/candidate
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: task4-frozen-boundary-diagnostic
+          path: ${{ runner.temp }}/task4-boundary
+          retention-days: 30

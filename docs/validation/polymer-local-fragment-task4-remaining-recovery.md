@@ -1,0 +1,20 @@
+# Task④ remaining guardrails — bounded recovery campaign
+
+Authority refreshed on 2026-10-20: main `37b7d2cde1e60cd28575784a252382f4599c391f`, PR351 source `0036e0f68f8fcce863d05fe2073950ad15461642`, OPEN/unmerged. PR345 is unchanged/unmerged. Previous final evidence at `f5fa69e9f7dcf9908520beec80f9c49e77d9aff0` remains authoritative for the previous campaign; it is not overwritten.
+
+## Budget fixed before execution
+
+- One desktop material-progression diagnostic journey, with the existing native pointer sequence and assertions retained.
+- One immutable-baseline mobile profile batch and one frozen-candidate mobile profile batch. Each retains the existing normal/reduced warm-up plus four-trial sequence. Trace only the five normal trials, spanning actual manual docking through completion. No desktop profile, all25 E2E repetition, comparator gate or acceptance claim is part of this diagnostic.
+- One ordinary required-CI synchronization after a cause-backed repair. No retry of unchanged source to obtain a favorable result. New contradictory evidence or instrumentation failure must be reported; it does not silently enlarge this budget.
+- Relevant deterministic regressions and all25 geometry preservation checks follow an actual repair. No thresholds, immutable baseline, real RAF, workloads, completion650/250ms or geometry design changes.
+
+## Known facts and hypotheses
+
+Repository desktop material progression failed at line243 waiting for FIELD entry with LOADOUT still open. Its final partial-confirmation tap does not verify the hit target; production starts a smooth scroll. A missed/moving pointer target is a hypothesis, not an established cause. The localhost diagnostic records native event target/coordinates/timestamps, element bounds and hits, destination/request/partial/commit boundaries without changing their behavior. DOM bounds/hit observers may force layout and change reproduction; diagnostic success alone cannot exonerate the pointer path. Observer collection is capped at256 records. Existing failure assertions remain active and observations are saved on success or wait failure.
+
+Finite390normal has five >25ms intervals versus baseline two (allowance three), all near completion start. Candidate maximum33.4ms passes the maximum-magnitude clause. Independent read-only review confirms all40 prior trials and the unchanged conjunction. Candidate snapshot serializes larger geometry diagnostics than baseline; observer/serialization overhead is a hypothesis, not an established cause. Diagnostic-only wrappers record actual RAF argument versus callback wall time, snapshot/bounds generation, viewer tick, resize, render submission wall duration, Node/CDP roundtrip separately, and Chromium trace RunTask/GC/user timing. No synthetic RAF is introduced. Collection is capped at30000 scalar records per page. Browser and Node clock values are not subtracted from one another. A common monotonic evaluate request ID links browser synchronous work to Node/CDP response duration; browser execution and return serialization are distinct boundaries. Trace stop and partial evidence saving execute in finally even when a fixture assertion fails, preserving the primary error. Native RAF callback receiver, timestamp and scheduler are retained. Instrumented durations are diagnostic evidence only; GPU execution and Linux scheduler attribution are not inferred from wall durations.
+
+Local Chromium startup aborted before the fixture because Unix socket creation is denied (`process_singleton_posix.cc`, EPERM). No local browser PASS or test execution is claimed. The single dedicated push-triggered diagnostic workflow runs sequentially on a hosted runner; it does not modify PR351 HEAD. Its production sources must match0036 exactly. `tests/helpers/task4-boundary-diagnostics.mjs` is used only by the two explicit fixture opt-ins, never by production or ordinary StageB/RAF acceptance.
+
+Until both required failures have a demonstrated repair and full acceptance, Task④ remains BLOCKED; no merge/post-merge authority is claimed.
