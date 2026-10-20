@@ -9,10 +9,14 @@ export async function beginBoundaryTrace({send,socket,evaluate,artifactDir,motio
   await evaluate('window.__task4BoundaryRows.length=0;true');
   roundtrips.length=0;
   const traceEvents=[];
+  const availableCategories=(await send('Tracing.getCategories')).categories;
+  const requestedCategories=['toplevel','devtools.timeline','renderer.scheduler','v8','blink.user_timing','cc','gpu','viz','disabled-by-default-devtools.timeline','disabled-by-default-gpu.service','disabled-by-default-v8.gc'];
+  const enabledCategories=requestedCategories.filter(category=>availableCategories.includes(category));
+  assert.ok(enabledCategories.includes('toplevel')&&enabledCategories.includes('devtools.timeline'),'Required diagnostic trace categories must exist');
   let tracingComplete;
   const listener=event=>{const message=JSON.parse(event.data);if(message.method==='Tracing.dataCollected')traceEvents.push(...message.params.value);if(message.method==='Tracing.tracingComplete')tracingComplete?.();};
   socket.addEventListener('message',listener);
-  try { await send('Tracing.start',{categories:'devtools.timeline,v8,blink.user_timing,disabled-by-default-v8.gc',transferMode:'ReportEvents'}); }
+  try { await send('Tracing.start',{categories:enabledCategories.join(','),transferMode:'ReportEvents'}); }
   catch(error) { socket.removeEventListener('message',listener);throw error; }
   return {async save({measurement,primaryError}) {
     const errors=[];
@@ -26,7 +30,7 @@ export async function beginBoundaryTrace({send,socket,evaluate,artifactDir,motio
     const errorRecord=error=>error?{name:error.name,message:error.message,stack:error.stack}:null;
     const actualMeasurement=measurement?.motion===motion&&measurement?.trialIndex===trialIndex?measurement:null;
     await mkdir(artifactDir,{recursive:true});
-    await writeFile(join(artifactDir,`boundary-trace-${motion}-${trialIndex}.json`),JSON.stringify({traceEvents}));
+    await writeFile(join(artifactDir,`boundary-trace-${motion}-${trialIndex}.json`),JSON.stringify({availableCategories,enabledCategories,traceEvents}));
     await writeFile(join(artifactDir,`boundary-observation-${motion}-${trialIndex}.json`),JSON.stringify({sourceSha:process.env.POLYMER_SOURCE_SHA,trialIndex,warmup:trialIndex===0,motion,rows,roundtrips,measurement:actualMeasurement,primaryError:errorRecord(primaryError),diagnosticErrors:errors.map(errorRecord)},null,2));
     const start=rows.filter(row=>row.name==='molecule-craft:reaction-lab-polymer-sample').at(-1)?.start,early=rows.filter(row=>Number.isFinite(start)&&row.start>=start&&row.start<start+150);
     console.log('TASK4_FINITE_BOUNDARY_DIAGNOSTIC',JSON.stringify({sourceSha:process.env.POLYMER_SOURCE_SHA,trialIndex,start,primaryError:errorRecord(primaryError),diagnosticErrors:errors.map(errorRecord),early:early.filter(row=>row.durationMs>1||row.name==='tick'||row.name.startsWith('molecule-craft:')),frameIntervalsMs:actualMeasurement?.frameIntervalsMs}));
@@ -36,6 +40,9 @@ export async function beginBoundaryTrace({send,socket,evaluate,artifactDir,motio
 
 export function instrumentViewer(source) {
   if (!boundaryDiagnostic) return source;
+  const size='renderer.setSize(rect.width,rect.height,false);';
+  assert.ok(source.includes(size),'Missing setSize diagnostic boundary');
+  source=source.replace(size,`const __sizeBefore={width:canvas.width,height:canvas.height,pixelRatio:renderer.getPixelRatio()},__sizeStarted=performance.now();try{${size}}finally{globalThis.__task4BoundaryRecord?.('renderer.setSize',__sizeStarted,performance.now(),{before:__sizeBefore,requested:{width:rect.width,height:rect.height},after:{width:canvas.width,height:canvas.height}});}`);
   for (const name of ['resize', 'tick']) {
     const marker = name === 'resize' ? 'function resize(){' : 'function tick(now){';
     const start = source.indexOf(marker);
@@ -78,6 +85,15 @@ export const boundaryPageSource = `(${function () {
     rows.push({name,start,end,durationMs:end-start,requestId:globalThis.__task4EvaluateRequestId??null,...details});
     performance.measure('task4:'+name,{start,end});
   };
+  for(const key of ['width','height']) {
+    const descriptor=Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype,key);
+    Object.defineProperty(HTMLCanvasElement.prototype,key,{...descriptor,set(value){
+      if(!this.closest('#reaction-lab'))return descriptor.set.call(this,value);
+      const before={width:this.width,height:this.height},start=performance.now();
+      try{return descriptor.set.call(this,value);}
+      finally{globalThis.__task4BoundaryRecord('canvas.'+key,start,performance.now(),{value,before,after:{width:this.width,height:this.height}});}
+    }});
+  }
   globalThis.__task4WrapProbe = () => {
     const probe = window.__reactionLabProbe;
     if (probe.__task4Wrapped) return;

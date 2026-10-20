@@ -1,7 +1,7 @@
-name: Task4 frozen remaining-boundary diagnostic
+name: Task4 frozen wait-attribution diagnostic correction
 on:
   push:
-    branches: [diagnostic/task4-remaining-boundaries]
+    branches: [diagnostic/task4-wait-boundaries]
 permissions:
   contents: read
 jobs:
@@ -19,13 +19,6 @@ jobs:
         run: |
           git diff --exit-code 0036e0f68f8fcce863d05fe2073950ad15461642 -- src styles.css index.html data vendor
           git worktree add --detach "$RUNNER_TEMP/task4-baseline" 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
-      - name: Desktop FIELD launch — single diagnostic journey
-        env:
-          TASK4_BOUNDARY_DIAGNOSTIC: '1'
-          MATERIAL_PROGRESS_DESKTOP: '1'
-          POLYMER_SOURCE_SHA: 0036e0f68f8fcce863d05fe2073950ad15461642
-          TASK10_EVIDENCE_DIR: ${{ runner.temp }}/task4-boundary/field
-        run: node tests/material-progression-browser.test.mjs
       - name: Immutable baseline mobile — one profile batch, normal tracing only
         if: ${{ !cancelled() }}
         env:
@@ -46,6 +39,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: task4-frozen-boundary-diagnostic
+          name: task4-frozen-wait-attribution-diagnostic
           path: ${{ runner.temp }}/task4-boundary
           retention-days: 30
