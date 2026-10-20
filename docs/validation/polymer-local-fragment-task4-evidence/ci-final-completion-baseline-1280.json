@@ -1,0 +1,746 @@
+{
+  "schemaVersion": 1,
+  "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+  "browser": {
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "protocolVersion": "1.3"
+  },
+  "viewport": {
+    "width": 1280,
+    "height": 900,
+    "mobile": false,
+    "deviceScaleFactor": 1
+  },
+  "warmupPolicy": "First completion for each motion mode is retained but excluded from aggregate regression statistics.",
+  "measurements": [
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "normal",
+      "trialIndex": 0,
+      "warmup": true,
+      "completionElapsedMs": 916.5999999999767,
+      "targetDurationMs": 650,
+      "frameIntervalsMs": {
+        "count": 6,
+        "frameCount": 7,
+        "firstFrameOffsetMs": 257.6,
+        "lastFrameOffsetMs": 1040.9,
+        "sampledFrameSpanMs": 783.3,
+        "trailingGapMs": 9,
+        "p50": 133.3000000000011,
+        "p95": 216.60000000000036,
+        "max": 216.60000000000036,
+        "values": [
+          16.7,
+          216.6,
+          150,
+          133.4,
+          133.3,
+          133.3
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 0,
+        "objectCount": 0,
+        "geometryCount": 0,
+        "materialCount": 0,
+        "disposals": {
+          "disposalCount": 1,
+          "geometryDisposals": 47,
+          "materialDisposals": 47
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 4,
+        "bondVisualAllocations": 23,
+        "completionFitCalls": 1,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 915.8000000000466
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "normal",
+      "trialIndex": 1,
+      "warmup": false,
+      "completionElapsedMs": 843.3000000000466,
+      "targetDurationMs": 650,
+      "frameIntervalsMs": {
+        "count": 6,
+        "frameCount": 7,
+        "firstFrameOffsetMs": 251.9,
+        "lastFrameOffsetMs": 968.5,
+        "sampledFrameSpanMs": 716.6,
+        "trailingGapMs": 8.2,
+        "p50": 133.3000000000029,
+        "p95": 150,
+        "max": 150,
+        "values": [
+          16.6,
+          150,
+          133.3,
+          150,
+          133.3,
+          133.4
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 2,
+          "geometryDisposals": 94,
+          "materialDisposals": 94
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 8,
+        "bondVisualAllocations": 69,
+        "completionFitCalls": 2,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 843.2000000000698
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "normal",
+      "trialIndex": 2,
+      "warmup": false,
+      "completionElapsedMs": 847.4000000000233,
+      "targetDurationMs": 650,
+      "frameIntervalsMs": {
+        "count": 6,
+        "frameCount": 7,
+        "firstFrameOffsetMs": 254.7,
+        "lastFrameOffsetMs": 988,
+        "sampledFrameSpanMs": 733.3,
+        "trailingGapMs": 9.4,
+        "p50": 133.40000000000146,
+        "p95": 150,
+        "max": 150,
+        "values": [
+          16.7,
+          150,
+          149.9,
+          133.4,
+          133.3,
+          150
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 3,
+          "geometryDisposals": 141,
+          "materialDisposals": 141
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 12,
+        "bondVisualAllocations": 92,
+        "completionFitCalls": 3,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 847.3000000000466
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "normal",
+      "trialIndex": 3,
+      "warmup": false,
+      "completionElapsedMs": 848,
+      "targetDurationMs": 650,
+      "frameIntervalsMs": {
+        "count": 6,
+        "frameCount": 7,
+        "firstFrameOffsetMs": 264.9,
+        "lastFrameOffsetMs": 965,
+        "sampledFrameSpanMs": 700.1,
+        "trailingGapMs": 16.4,
+        "p50": 133.3000000000029,
+        "p95": 150,
+        "max": 150,
+        "values": [
+          16.7,
+          133.4,
+          150,
+          133.3,
+          133.3,
+          133.4
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 4,
+          "geometryDisposals": 188,
+          "materialDisposals": 188
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 16,
+        "bondVisualAllocations": 115,
+        "completionFitCalls": 4,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 847.9000000000233
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "normal",
+      "trialIndex": 4,
+      "warmup": false,
+      "completionElapsedMs": 895,
+      "targetDurationMs": 650,
+      "frameIntervalsMs": {
+        "count": 6,
+        "frameCount": 7,
+        "firstFrameOffsetMs": 299.6,
+        "lastFrameOffsetMs": 1032.9,
+        "sampledFrameSpanMs": 733.3,
+        "trailingGapMs": 12.1,
+        "p50": 133.3000000000029,
+        "p95": 150,
+        "max": 150,
+        "values": [
+          16.7,
+          133.3,
+          150,
+          150,
+          133.3,
+          150
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 5,
+          "geometryDisposals": 235,
+          "materialDisposals": 235
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 20,
+        "bondVisualAllocations": 138,
+        "completionFitCalls": 5,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 894.9000000000233
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "reduced",
+      "trialIndex": 0,
+      "warmup": true,
+      "completionElapsedMs": 415.0999999999767,
+      "targetDurationMs": 250,
+      "frameIntervalsMs": {
+        "count": 3,
+        "frameCount": 4,
+        "firstFrameOffsetMs": 239.6,
+        "lastFrameOffsetMs": 539.6,
+        "sampledFrameSpanMs": 300,
+        "trailingGapMs": 8.8,
+        "p50": 133.29999999999927,
+        "p95": 150,
+        "max": 150,
+        "values": [
+          16.7,
+          150,
+          133.3
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 0,
+          "geometryDisposals": 0,
+          "materialDisposals": 0
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 4,
+        "bondVisualAllocations": 23,
+        "completionFitCalls": 1,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 412.9000000000233
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "reduced",
+      "trialIndex": 1,
+      "warmup": false,
+      "completionElapsedMs": 427.29999999993015,
+      "targetDurationMs": 250,
+      "frameIntervalsMs": {
+        "count": 3,
+        "frameCount": 4,
+        "firstFrameOffsetMs": 255,
+        "lastFrameOffsetMs": 571.8,
+        "sampledFrameSpanMs": 316.8,
+        "trailingGapMs": 5.6,
+        "p50": 150,
+        "p95": 150.09999999999854,
+        "max": 150.09999999999854,
+        "values": [
+          16.7,
+          150,
+          150.1
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 1,
+          "geometryDisposals": 47,
+          "materialDisposals": 47
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 8,
+        "bondVisualAllocations": 46,
+        "completionFitCalls": 2,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 427.19999999995343
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "reduced",
+      "trialIndex": 2,
+      "warmup": false,
+      "completionElapsedMs": 436.10000000009313,
+      "targetDurationMs": 250,
+      "frameIntervalsMs": {
+        "count": 3,
+        "frameCount": 4,
+        "firstFrameOffsetMs": 254.3,
+        "lastFrameOffsetMs": 570.9,
+        "sampledFrameSpanMs": 316.6,
+        "trailingGapMs": 15.3,
+        "p50": 149.90000000000146,
+        "p95": 150.09999999999854,
+        "max": 150.09999999999854,
+        "values": [
+          16.6,
+          149.9,
+          150.1
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 2,
+          "geometryDisposals": 94,
+          "materialDisposals": 94
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 12,
+        "bondVisualAllocations": 69,
+        "completionFitCalls": 3,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 436.10000000009313
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "reduced",
+      "trialIndex": 3,
+      "warmup": false,
+      "completionElapsedMs": 415.9000000000233,
+      "targetDurationMs": 250,
+      "frameIntervalsMs": {
+        "count": 3,
+        "frameCount": 4,
+        "firstFrameOffsetMs": 240.8,
+        "lastFrameOffsetMs": 557.5,
+        "sampledFrameSpanMs": 316.7,
+        "trailingGapMs": 8.5,
+        "p50": 149.90000000000146,
+        "p95": 150.09999999999854,
+        "max": 150.09999999999854,
+        "values": [
+          16.7,
+          149.9,
+          150.1
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 3,
+          "geometryDisposals": 141,
+          "materialDisposals": 141
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 16,
+        "bondVisualAllocations": 92,
+        "completionFitCalls": 4,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 416
+    },
+    {
+      "sourceSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+      "browser": "Chrome/155.0.8059.39",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "runtimeFlags": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-webgl",
+        "--ignore-gpu-blocklist",
+        "--force-device-scale-factor=1"
+      ],
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "motion": "reduced",
+      "trialIndex": 4,
+      "warmup": false,
+      "completionElapsedMs": 433.79999999993015,
+      "targetDurationMs": 250,
+      "frameIntervalsMs": {
+        "count": 3,
+        "frameCount": 4,
+        "firstFrameOffsetMs": 272.2,
+        "lastFrameOffsetMs": 572.2,
+        "sampledFrameSpanMs": 300,
+        "trailingGapMs": 11.6,
+        "p50": 133.40000000000146,
+        "p95": 150,
+        "max": 150,
+        "values": [
+          16.6,
+          133.4,
+          150
+        ]
+      },
+      "jsUpdateTimeMs": "NOT_MEASURED",
+      "renderSubmissionTimeMs": "NOT_MEASURED",
+      "gpuExecutionTimeMs": "NOT_MEASURED",
+      "moduleFetchCount": 145,
+      "retiredModuleFetchCount": 0,
+      "polymerResources": {
+        "activeGroupCount": 1,
+        "objectCount": 48,
+        "geometryCount": 47,
+        "materialCount": 47,
+        "disposals": {
+          "disposalCount": 4,
+          "geometryDisposals": 188,
+          "materialDisposals": 188
+        }
+      },
+      "polymerRuntimeMetrics": {
+        "finiteLayoutCalls": 20,
+        "bondVisualAllocations": 115,
+        "completionFitCalls": 5,
+        "completionLayoutCallsAfterReady": 0
+      },
+      "reportedPresentDelayMs": 433.79999999993015
+    }
+  ],
+  "viewerDisposal": {
+    "before": {
+      "activeGroupCount": 1,
+      "objectCount": 48,
+      "geometryCount": 47,
+      "materialCount": 47,
+      "disposals": {
+        "disposalCount": 4,
+        "geometryDisposals": 188,
+        "materialDisposals": 188
+      }
+    },
+    "after": {
+      "activeGroupCount": 0,
+      "objectCount": 0,
+      "geometryCount": 0,
+      "materialCount": 0,
+      "disposals": {
+        "disposalCount": 5,
+        "geometryDisposals": 235,
+        "materialDisposals": 235
+      }
+    },
+    "runtimeStableAfterDispose": true,
+    "rendererDisposeCalled": true,
+    "eventControllerAbortedByProductionDispose": true
+  },
+  "notMeasured": [
+    "per-frame JavaScript update duration",
+    "WebGL submission CPU duration",
+    "GPU execution time",
+    "device memory"
+  ]
+}

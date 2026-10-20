@@ -1,0 +1,14 @@
+{
+  "kind": "Task4-failure-boundary",
+  "sourceSha": "0f3e51de1a6e05770a74e008cbda9e0303fabf4d",
+  "viewport": {
+    "width": 1280,
+    "height": 900,
+    "mobile": false
+  },
+  "sourceSetupLatch": true,
+  "committedSamplePreserved": true,
+  "unverifiedGeometryCount": 0,
+  "discoveryPreserved": true,
+  "failedDisplayGesturesInert": true
+}

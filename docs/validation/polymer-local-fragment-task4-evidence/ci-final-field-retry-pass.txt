@@ -1,0 +1,6 @@
+2026-10-19T04:30:12.4413006Z ##[group]Run node tests/field-insight-discovery-balance.test.mjs
+2026-10-19T04:30:12.7259544Z FIELD Insight persistent Seed, weighting, early/rescue/re-arm and Critical protection regressions passed.
+2026-10-19T04:30:45.8788627Z ##[group]Run node tests/field-insight-discovery-browser.test.mjs
+2026-10-19T04:30:52.4333064Z FIELD Insight Chromium regression passed: subtle persistent hot logo, desktop/mobile interaction, early site, post-Eater rescue, re-arm and live threat during analysis.
+2026-10-19T04:30:52.4435752Z ##[group]Run node tests/repository-hygiene.test.mjs
+2026-10-19T04:30:52.7657636Z Repository hygiene passed: 812 files, 137 production modules reachable, fixture failures detected.

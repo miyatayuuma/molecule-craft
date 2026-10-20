@@ -57,13 +57,15 @@ jobs:
       - name: All 25 finite routes — 3D graph and geometry validation
         env:
           TASK11_GEOMETRY_EVIDENCE_DIR: ${{ runner.temp }}/polymer-3d-layout
-        run: node --test tests/polymer-fragment-3d-layout.test.mjs
+        run: node --test tests/polymer-fragment-3d-layout.test.mjs tests/polymer-fragment-task4.test.mjs
       - name: Production pointer path and 390×844 visual QA
         env:
+          POLYMER_TASK4_FAILURE_QA: '1'
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/reaction-lab-polymer-browser.test.mjs
       - name: Production pointer path and representative desktop QA
         env:
+          POLYMER_TASK4_FAILURE_QA: '1'
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: POLYMER_DESKTOP=1 node tests/reaction-lab-polymer-browser.test.mjs
       - name: Integrated gameplay, discovery, Engineering and FIELD E2E — mobile

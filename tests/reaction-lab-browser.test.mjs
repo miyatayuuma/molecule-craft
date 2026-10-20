@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {extname,join,normalize,resolve} from 'node:path';
 import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {KCAL_MOL_AMU_TO_ANGSTROM_PS2,STAGE_A_GAME_STEP_SECONDS,STAGE_A_PHYSICAL_PS_PER_GAME_SECOND} from '../src/reaction-lab-stage-a.js';
 import {MAX_DOCK_RELEASE_SEPARATION_ACCELERATION} from '../src/reaction-lab-manipulation.js';
 
 // Global release gates calibrated below the old visual-contact maxima
@@ -276,8 +277,57 @@ try{
   await evaluate("document.querySelectorAll('[data-lab-slot]')[2].click()");await waitFor("!document.querySelector('[data-lab-picker]').hidden",'Picker pause fixture did not open');const pickerPauseClock=(await snapshot()).simulationClockSeconds;await new Promise(resolve=>setTimeout(resolve,250));assert.equal((await snapshot()).simulationClockSeconds,pickerPauseClock,'Picker pause freezes simulation time');await evaluate("document.querySelector('[data-lab-picker-close]').click()");
   const isolatedPoses=productionWaters.map((item,index)=>({id:item.id,positionAngstrom:index===0?[0,0,0]:[240+index*50,240,0],orientation:[0,0,0,1]}));await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(isolatedPoses)})`);productionState=await snapshot();
   const singleWater=productionState.instances[0],singlePlan=await evaluate(`window.__reactionLabProbe.dragPlan('${singleWater.id}',0,[.42,.18,0])`),cameraBefore=productionState.camera,orientationBefore=[...singleWater.orientation];
-  await drag(singlePlan,{steps:5,stepDelay:18,hold:0});productionState=await snapshot();const movedSingle=productionState.instances.find(item=>item.id===singleWater.id);
-  assert.ok(Math.hypot(...movedSingle.position.map((value,index)=>value-singleWater.position[index]))>.2,'An isolated molecule follows one-finger direct drag');assert.ok(Math.hypot(...movedSingle.orientation.map((value,index)=>value-orientationBefore[index]))<1e-5,'With no nearby molecule, drag does not rotate the molecule');assert.equal(productionState.manipulationActive,false);assert.equal(productionState.simulationTimeMode,'NORMAL');assert.equal(productionState.simulationTimeScale,1);assert.ok(Math.hypot(...movedSingle.velocityAngstromPerPs)<1e-12,'Release removes linear throw momentum');
+  // Register after production on the same canvas/bubble phase. This observes
+  // the release dispatch synchronously on candidate AND immutable baseline.
+  await evaluate(`(()=>{
+    const canvas=document.querySelector('#reaction-lab canvas');
+    const observation=window.__waterReleaseObservation={down:null,before:null,up:null,error:null};
+    const capture=(phase,event)=>{try{observation[phase]={eventType:event.type,pointerId:event.pointerId,isTrusted:event.isTrusted,eventTimestamp:event.timeStamp,browserNow:performance.now(),pointerCaptured:canvas.hasPointerCapture(event.pointerId),state:window.__reactionLabProbe.snapshot()};}catch(error){observation.error=String(error.stack??error);}};
+    canvas.addEventListener('pointerdown',event=>capture('down',event),{once:true});
+    canvas.addEventListener('pointerup',event=>capture('up',event),{once:true});
+  })()`);
+  await drag(singlePlan,{steps:5,stepDelay:18,hold:0,duringHold:()=>evaluate('window.__waterReleaseObservation.before={browserNow:performance.now(),state:window.__reactionLabProbe.snapshot()}')});
+  const releaseCommandCompletedNodeMs=performance.now();
+  const observedRelease=await evaluate('({observation:window.__waterReleaseObservation,after:{browserNow:performance.now(),state:window.__reactionLabProbe.snapshot()}})');
+  productionState=observedRelease.after.state;const movedSingle=productionState.instances.find(item=>item.id===singleWater.id),release=observedRelease.observation;
+  assert.equal(release.error,null,'Synchronous release observer must not throw');
+  assert.ok(release.down&&release.before&&release.up,'A missing real pointer event is a failure, with no async fallback');
+  assert.equal(release.down.isTrusted,true);assert.equal(release.up.isTrusted,true);assert.equal(release.up.eventType,'pointerup');assert.equal(release.up.pointerId,release.down.pointerId,'Release belongs to the acquired pointer');
+  assert.equal(release.down.state.draggedInstanceId,singleWater.id);assert.equal(release.before.state.draggedInstanceId,singleWater.id);assert.equal(release.before.state.downInstanceId,singleWater.id);assert.equal(release.before.state.pointerActive,true);
+  assert.ok(Math.hypot(...release.before.state.instances.find(item=>item.id===singleWater.id).position.map((value,index)=>value-singleWater.position[index]))>.2,'The owned molecule moves while the pointer is held');
+  const releaseBody=release.up.state.instances.find(item=>item.id===singleWater.id);assert.ok(releaseBody,'Release snapshot preserves instance identity');
+  assert.deepEqual(releaseBody.velocityAngstromPerPs,[0,0,0],'Release removes linear throw momentum');
+  assert.equal(release.up.state.selectedInstanceId,null);assert.equal(release.up.state.downInstanceId,null);assert.equal(release.up.state.pointerActive,false);assert.equal(release.up.pointerCaptured,false);assert.equal(release.up.state.manipulationActive,false);assert.equal(release.up.state.simulationTimeMode,'NORMAL');assert.equal(release.up.state.simulationTimeScale,1);
+  assert.ok(Math.hypot(...movedSingle.position.map((value,index)=>value-singleWater.position[index]))>.2,'An isolated molecule follows one-finger direct drag');assert.ok(Math.hypot(...movedSingle.orientation.map((value,index)=>value-orientationBefore[index]))<1e-5,'With no nearby molecule, drag does not rotate the molecule');assert.equal(productionState.manipulationActive,false);assert.equal(productionState.simulationTimeMode,'NORMAL');assert.equal(productionState.simulationTimeScale,1);
+  const postReleaseSteps=productionState.diagnostics.fixedSteps-release.up.state.diagnostics.fixedSteps;assert.ok(Number.isInteger(postReleaseSteps)&&postReleaseSteps>=0);assert.ok(productionState.simulationClockSeconds>=release.up.state.simulationClockSeconds);
+  assert.ok(productionState.instances.every(item=>[...item.positionAngstrom,...item.velocityAngstromPerPs,...item.angularVelocityRadPerPs].every(Number.isFinite)),'Post-release physics is finite');
+  // No RAF can interleave within this evaluate. One production step followed
+  // by seven more proves that normal physics resumes without throw momentum.
+  const physicsControl=await evaluate('(()=>{const p=window.__reactionLabProbe,before=p.snapshot(),first=p.advanceDeterministic(1),after=p.advanceDeterministic(7);return{before,first,after}})()');
+  assert.equal(physicsControl.first.diagnostics.fixedSteps-physicsControl.before.diagnostics.fixedSteps,1);assert.equal(physicsControl.after.diagnostics.fixedSteps-physicsControl.before.diagnostics.fixedSteps,8);
+  const force=physicsControl.before.pairs.reduce((sum,pair)=>{const sign=pair.bodyAId===singleWater.id?1:pair.bodyBId===singleWater.id?-1:0;return sum.map((v,axis)=>v+sign*pair.forceOnA[axis]);},[0,0,0]);
+  const controlBody=physicsControl.before.instances.find(item=>item.id===singleWater.id),firstBody=physicsControl.first.instances.find(item=>item.id===singleWater.id),dt=STAGE_A_GAME_STEP_SECONDS*STAGE_A_PHYSICAL_PS_PER_GAME_SECOND;
+  const acceleration=force.map(v=>v*KCAL_MOL_AMU_TO_ANGSTROM_PS2/controlBody.massAmu),expectedVelocity=controlBody.velocityAngstromPerPs.map((v,axis)=>(v+acceleration[axis]*dt)*Math.exp(-9.08*dt));
+  assert.ok(Math.hypot(...force)>0,'Other distant waters still exert ordinary nonzero physics forces');
+  for(let axis=0;axis<3;axis++)assert.ok(Math.abs(firstBody.velocityAngstromPerPs[axis]-expectedVelocity[axis])<1e-12,'Post-release acceleration agrees with the canonical force and damping law');
+  assert.ok(physicsControl.after.instances.every(item=>[...item.positionAngstrom,...item.velocityAngstromPerPs,...item.angularVelocityRadPerPs].every(Number.isFinite)));assert.equal(physicsControl.after.simulationTimeScale,1);
+  console.log('RELEASE_BOUNDARY_REGRESSION',JSON.stringify({instanceId:singleWater.id,releaseCommandCompletedNodeMs,down:release.down,before:release.before,release:release.up,afterSnapshotBrowserMs:observedRelease.after.browserNow,postReleaseSteps,simulationClockDifference:productionState.simulationClockSeconds-release.up.state.simulationClockSeconds,postVelocity:movedSingle.velocityAngstromPerPs,physicsControl,force,acceleration,expectedVelocity}));
+  // Native touch cancellation and native Escape/close exercise real event wiring.
+  await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(isolatedPoses)})`);
+  const cancelPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${singleWater.id}',0,[0,0,0])`);
+  await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:2});
+  await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:cancelPlan.start.x,y:cancelPlan.start.y,id:71}]});
+  assert.equal((await snapshot()).draggedInstanceId,singleWater.id,'Native touch owns the intended molecule');
+  await send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
+  const cancelledWater=await snapshot();assert.equal(cancelledWater.pointerActive,false);assert.equal(cancelledWater.selectedInstanceId,null);assert.equal(cancelledWater.downInstanceId,null);assert.equal(cancelledWater.simulationTimeMode,'NORMAL');assert.equal(cancelledWater.simulationTimeScale,1);
+  await send('Emulation.setTouchEmulationEnabled',{enabled:false});
+  await evaluate(`window.__reactionLabProbe.setGeometry(${JSON.stringify(isolatedPoses)})`);
+  const closeDragPlan=await evaluate(`window.__reactionLabProbe.dragPlan('${singleWater.id}',0,[0,0,0])`),waterIdsBeforeClose=(await snapshot()).instances.map(item=>item.id);
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:closeDragPlan.start.x,y:closeDragPlan.start.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:closeDragPlan.start.x,y:closeDragPlan.start.y,button:'left',buttons:1,clickCount:1});
+  assert.equal((await snapshot()).draggedInstanceId,singleWater.id);await key('Escape','Escape',27);
+  await waitFor("(()=>{const s=window.__reactionLabProbe.snapshot();return !document.querySelector('#reaction-lab-dialog').open&&!s.pointerActive&&!s.manipulationActive&&s.selectedInstanceId===null&&s.downInstanceId===null&&s.simulationTimeMode==='NORMAL'})()",'Escape close releases the owned drag');
+  await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:closeDragPlan.start.x,y:closeDragPlan.start.y,button:'left',buttons:0});
+  await evaluate("document.querySelector('#open-reaction-lab').click()");await waitFor("document.querySelector('#reaction-lab-dialog').open",'Lab reopens after an interrupted drag');assert.deepEqual((await snapshot()).instances.map(item=>item.id),waterIdsBeforeClose,'Drag cancellation and close preserve every instance');
   const canvasRect=await evaluate("(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}})()"),backgroundStart={x:canvasRect.x+3,y:canvasRect.y+3},backgroundEnd={x:backgroundStart.x+55,y:backgroundStart.y+40};
   await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:backgroundStart.x,y:backgroundStart.y});await send('Input.dispatchMouseEvent',{type:'mousePressed',x:backgroundStart.x,y:backgroundStart.y,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:backgroundEnd.x,y:backgroundEnd.y,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:backgroundEnd.x,y:backgroundEnd.y,button:'left',buttons:0});
   const cameraAfterBackground=(await snapshot()).camera;assert.equal(cameraAfterBackground.azimuth,cameraBefore.azimuth);assert.equal(cameraAfterBackground.elevation,cameraBefore.elevation,'Background drag leaves camera look direction fixed');

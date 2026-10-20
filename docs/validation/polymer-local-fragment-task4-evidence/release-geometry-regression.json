@@ -1,0 +1,22 @@
+{
+  "source": "524982c68affe5e5a04753d759628a780f073feb",
+  "runtimeSourceSha256": "96b87ff09ca838113a5c885c3b3b20f1c959f6199dd54320ab51f7ab3f51e687",
+  "geometrySourceChanged": false,
+  "all25Accepted": true,
+  "fullGeometryRowsExactlyEqualToPrior": true,
+  "validationFileByteIdentical": true,
+  "projectionsByteIdentical": true,
+  "newValidationSha256": "4acabea441cfe8c224001c6ca56797ed01ac01d0fc7ae1774ea7397b3389725d",
+  "priorValidationSha256": "4acabea441cfe8c224001c6ca56797ed01ac01d0fc7ae1774ea7397b3389725d",
+  "projectionSha256": "1e833ee11b545b0351dede91eefaf9bc780cb2cbdbc3a76193549a1cafba6c07",
+  "maximumBondResidualWorld": 0.006146543008233696,
+  "maximumAngleResidualDegrees": 6.468591961469741,
+  "maximumPlaneDeviationWorld": 0.06486308344375737,
+  "severeOverlaps": 0,
+  "graphOriginIdentityAndDeterminism": true,
+  "localGeometryTests": {
+    "total": 12,
+    "pass": 12,
+    "fail": 0
+  }
+}
