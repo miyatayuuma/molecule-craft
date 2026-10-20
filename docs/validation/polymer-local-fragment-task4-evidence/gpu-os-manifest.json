@@ -211,8 +211,58 @@
           "name": "gpu-os-analysis.json.gz.part-01"
         }
       ]
+    },
+    {
+      "name": "gpu-os-ordinary-ci.json.gz",
+      "bytes": 1895880,
+      "sha256": "3cf288e62349389c8b37e52246a0b783cb1f338df58a1dc065462af56de04329",
+      "parts": [
+        {
+          "offset": 0,
+          "bytes": 524280,
+          "sha256": "0e4973f8b6a62c2d4b3f7f97f09ad4e7edc560d8c71357d91dcfdcaba5c8a11b",
+          "gitBlobSha": "93172937b387f6552e05ddc8b2c2c32d44cabba3",
+          "name": "gpu-os-ordinary-ci.json.gz.part-01"
+        },
+        {
+          "offset": 524280,
+          "bytes": 524280,
+          "sha256": "193cc4c024758ae42c5c5b4ff9ec080a61736ce308c126e7546104403fe0ad7e",
+          "gitBlobSha": "23c5b743d7485e2aed2b14fed0a926761116e476",
+          "name": "gpu-os-ordinary-ci.json.gz.part-02"
+        },
+        {
+          "offset": 1048560,
+          "bytes": 524280,
+          "sha256": "de363fd26aef02a4d9dec1b69919193ec86193950a6db9751471f55478f3595a",
+          "gitBlobSha": "162b5a398a4f0500ebf120c37f37a41d35e7541d",
+          "name": "gpu-os-ordinary-ci.json.gz.part-03"
+        },
+        {
+          "offset": 1572840,
+          "bytes": 323040,
+          "sha256": "ea8fd64737816998b7e6fad375f36f1c4c3d9ce518de37609ec5bed31ee41e2a",
+          "gitBlobSha": "1aa1afedb0c81700ec879bd3938504bedd30e41a",
+          "name": "gpu-os-ordinary-ci.json.gz.part-04"
+        }
+      ]
     }
   ],
   "reconstruction": "For each file, concatenate listed binary parts in numeric order. Verify full bytes and SHA256 before gzip decompression. Part Git blob SHA and SHA256 were verified on upload.",
-  "retention": "All ten trials retained, including both warmups. Completion-window trace selection is fixed and outcome-independent. Full proc rows and observations retained. PNGs and noncompletion trace traffic remain only in the 30-day original artifact."
+  "retention": "All ten trials retained, including both warmups. Completion-window trace selection is fixed and outcome-independent. Full proc rows and observations retained. PNGs and noncompletion trace traffic remain only in the 30-day original artifact.",
+  "ordinaryCI": {
+    "sourceSha": "bce74c85b9121cbcaf5af83e58d9b86d62f36fe9",
+    "synchronizations": 1,
+    "reruns": 0,
+    "repositoryRun": 39360743636,
+    "finiteRun": 39360743634,
+    "fieldRun": 39360743535,
+    "allCurrentRequiredWorkflows": "PASS",
+    "finiteArtifact": {
+      "id": 12237946916,
+      "bytes": 17502766,
+      "sha256": "64dac291c69cbbac5e13043c03f5b4486b3ecaf1297b051e8649323a99e2ecaf",
+      "independentlyDownloadedAndVerified": true
+    }
+  }
 }
