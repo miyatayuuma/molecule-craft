@@ -245,7 +245,7 @@ try{
     const route=hardRoutes[0],runProfileTrial=async(motion,trialIndex)=>{
       const reduced=motion==='reduced',expectedDuration=reduced?250:650,newDiscovery=motion==='normal'&&trialIndex===0;
       await resetPolymerEvents();await feedRoute(route,previousSample);
-      const diagnosticTrace=boundaryDiagnostic&&motion==='normal'?await beginBoundaryTrace({send,socket,evaluate,artifactDir,motion,trialIndex,roundtrips:diagnosticRoundtrips}):null;
+      const diagnosticTrace=boundaryDiagnostic&&motion==='normal'?await beginBoundaryTrace({send,socket,evaluate,artifactDir,motion,trialIndex,roundtrips:diagnosticRoundtrips,debugPort}):null;
       let primaryError;
       try {
       await runManualSteps(route);await completeAutomaticStep(route);
@@ -257,6 +257,7 @@ try{
       finally { if(diagnosticTrace)try{await diagnosticTrace.save({measurement:performanceEvidence.at(-1),primaryError});}catch(error){if(primaryError)throw new AggregateError([primaryError,error],'Profile failed and partial diagnostic save failed',{cause:primaryError});throw error;} }
     };
     for(let trial=0;trial<5;trial++)await runProfileTrial('normal',trial);
+    if(process.env.TASK4_GPU_OS_DIAGNOSTIC==='1'){await saveEvidence();assert.deepEqual(browserErrors,[]);console.log('TASK4_GPU_OS_DIAGNOSTIC_COMPLETE normal warmup+4; not acceptance');}else{
     await send('Page.removeScriptToEvaluateOnNewDocument',{identifier:seedPage.identifier});
     await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await send('Page.reload',{ignoreCache:true});
     await waitFor("!!document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled&&!!window.__reactionLabProbe",'Reduced-motion profile reload did not initialize');await openLab();if(boundaryDiagnostic)await evaluate('window.__task4WrapProbe();true');await wireDiscoveryEvents();previousSample=false;
@@ -264,6 +265,7 @@ try{
     const final=await snapshot();assert.equal(final.instances.some(item=>item.species==='PolymerSample'),false);assert.deepEqual(browserErrors,[],'No browser console error or exception occurs during performance profiling');
     assert.equal(performanceEvidence.filter(item=>item.motion==='normal'&&!item.warmup).length,4);assert.equal(performanceEvidence.filter(item=>item.motion==='reduced'&&!item.warmup).length,4);
     console.log(`Polymer completion profile passed at ${viewport.width}×${viewport.height}: 1 warm-up + 4 measured PE trials for normal and reduced motion.`);
+    }
   }else{
   for(const route of hardRoutes){
     await resetPolymerEvents();await feedRoute(route,previousSample);await runManualSteps(route);await completeAutomaticStep(route);

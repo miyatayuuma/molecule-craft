@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
+import {beginGpuOsObservation} from './task4-gpu-os-observer.mjs';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 
 // Opt-in, localhost fixture observers. These files are never production assets.
 export const boundaryDiagnostic = process.env.TASK4_BOUNDARY_DIAGNOSTIC === '1';
 
-export async function beginBoundaryTrace({send,socket,evaluate,artifactDir,motion,trialIndex,roundtrips}) {
+export async function beginBoundaryTrace({send,socket,evaluate,artifactDir,motion,trialIndex,roundtrips,debugPort}) {
   await evaluate('window.__task4BoundaryRows.length=0;true');
   roundtrips.length=0;
   const traceEvents=[];
   const availableCategories=(await send('Tracing.getCategories')).categories;
-  const requestedCategories=['toplevel','devtools.timeline','renderer.scheduler','v8','blink.user_timing','cc','gpu','viz','disabled-by-default-devtools.timeline','disabled-by-default-gpu.service','disabled-by-default-v8.gc'];
+  const requestedCategories=['toplevel','devtools.timeline','renderer.scheduler','v8','blink.user_timing','cc','gpu','viz','disabled-by-default-devtools.timeline','disabled-by-default-gpu.service','disabled-by-default-v8.gc','disabled-by-default-viz.gpu_composite_time','disabled-by-default-skia','disabled-by-default-gpu.device','disabled-by-default-gpu.debug'];
   assert.ok(Array.isArray(availableCategories),'Trace category catalogue must be recorded');
   // Enable the explicit protocol category patterns. Validate actual RunTask
   // events after capture; catalogue membership alone is not execution proof.
@@ -23,8 +24,12 @@ export async function beginBoundaryTrace({send,socket,evaluate,artifactDir,motio
   socket.addEventListener('message',listener);
   try { await send('Tracing.start',{categories:enabledCategories.join(','),transferMode:'ReportEvents'}); }
   catch(error) { socket.removeEventListener('message',listener);throw error; }
+  let osObserver=null,osInitError=null;
+  if(process.env.TASK4_GPU_OS_DIAGNOSTIC==='1')try{osObserver=await beginGpuOsObservation({send,debugPort,artifactDir,trialIndex});}catch(error){osInitError=error;}
   return {async save({measurement,primaryError}) {
     const errors=[];
+    if(osInitError)errors.push(osInitError);
+    if(osObserver)try{await osObserver.stop();}catch(error){errors.push(error);}
     let timer,rows=[];
     try {
       const complete=new Promise((ok,fail)=>{timer=setTimeout(()=>fail(Error('Diagnostic trace stop timeout')),15000);tracingComplete=ok;});

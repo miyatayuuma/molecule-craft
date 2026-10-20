@@ -1,13 +1,13 @@
-name: Task4 candidate wait-attribution capture
+name: Task4 bounded GPU OS wait discrimination
 on:
   push:
-    branches: [diagnostic/task4-candidate-wait-proof]
+    branches: [diagnostic/task4-gpu-os-wait]
 permissions:
   contents: read
 jobs:
-  bounded-diagnostic:
+  one-paired-campaign:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
         with:
@@ -15,20 +15,45 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Verify frozen runtime and prepare immutable baseline
+      - name: Fixed experiment and capability record
         run: |
+          mkdir -p "$RUNNER_TEMP/task4-gpu-os"
           git diff --exit-code 0036e0f68f8fcce863d05fe2073950ad15461642 -- src styles.css index.html data vendor
-      - name: Frozen candidate mobile — one profile batch, normal tracing only
+          git worktree add --detach "$RUNNER_TEMP/task4-gpu-baseline" 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          google-chrome --version > "$RUNNER_TEMP/task4-gpu-os/browser-before.txt"
+          sha256sum /opt/google/chrome/chrome >> "$RUNNER_TEMP/task4-gpu-os/browser-before.txt"
+          uname -a > "$RUNNER_TEMP/task4-gpu-os/host.txt"
+          lscpu >> "$RUNNER_TEMP/task4-gpu-os/host.txt"
+          cat /proc/sys/kernel/perf_event_paranoid /proc/sys/kernel/sched_schedstats >> "$RUNNER_TEMP/task4-gpu-os/host.txt" 2>&1 || true
+          { command -v perf; perf stat -e task-clock true; } > "$RUNNER_TEMP/task4-gpu-os/perf-capability.txt" 2>&1 || true
+          { ls -ld /sys/kernel/tracing/events/sched; test -r /sys/kernel/tracing/events/sched/sched_switch/format && cat /sys/kernel/tracing/events/sched/sched_switch/format; } > "$RUNNER_TEMP/task4-gpu-os/scheduler-capability.txt" 2>&1 || true
+      - name: Immutable baseline normal warmup and four trials ONCE
+        env:
+          TASK4_BOUNDARY_DIAGNOSTIC: '1'
+          TASK4_GPU_OS_DIAGNOSTIC: '1'
+          POLYMER_PROFILE_ONLY: '1'
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          POLYMER_ROOT: ${{ runner.temp }}/task4-gpu-baseline
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/task4-gpu-os/baseline
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Frozen candidate normal warmup and four trials ONCE
         if: ${{ !cancelled() }}
         env:
           TASK4_BOUNDARY_DIAGNOSTIC: '1'
+          TASK4_GPU_OS_DIAGNOSTIC: '1'
           POLYMER_PROFILE_ONLY: '1'
           POLYMER_SOURCE_SHA: 0036e0f68f8fcce863d05fe2073950ad15461642
-          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/task4-boundary/candidate
+          POLYMER_EVIDENCE_DIR: ${{ runner.temp }}/task4-gpu-os/candidate
         run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Verify unchanged browser
+        if: ${{ !cancelled() }}
+        run: |
+          google-chrome --version > "$RUNNER_TEMP/task4-gpu-os/browser-after.txt"
+          sha256sum /opt/google/chrome/chrome >> "$RUNNER_TEMP/task4-gpu-os/browser-after.txt"
+          diff -u "$RUNNER_TEMP/task4-gpu-os/browser-before.txt" "$RUNNER_TEMP/task4-gpu-os/browser-after.txt"
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: task4-candidate-wait-attribution-capture
-          path: ${{ runner.temp }}/task4-boundary
+          name: task4-gpu-os-one-paired-campaign
+          path: ${{ runner.temp }}/task4-gpu-os
           retention-days: 30
