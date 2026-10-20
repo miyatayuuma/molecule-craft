@@ -28,13 +28,13 @@ if(instrument){
   source=replaceOnce(source,"const root=",`const replaceOnce=${replaceOnce.toString()};const instrumentViewer=${instrumentViewer.toString()};\nconst root=`);
   source=replaceOnce(source,'response.end(await readFile(file));',`const bytes=await readFile(file);response.end(file.endsWith('/src/reaction-lab-viewer.js')?instrumentViewer(bytes.toString()):bytes);`);
 }
-source=replaceOnce(source,"evaluate('window.__reactionLabProbe.measureFixedSteps(180)')", "evaluate('(()=>{const entryState=window.__reactionLabProbe.snapshot();const result=window.__reactionLabProbe.measureFixedSteps(180);return{...result,entryState,exitState:window.__reactionLabProbe.snapshot()}})()')");
+source=replaceOnce(source,"evaluate('window.__reactionLabProbe.measureFixedSteps(180)')", "evaluate('(()=>{const entryState=window.__reactionLabProbe.snapshot();const d=globalThis.__issue352;if(d){d.index=0;d.atomWorldCalls=0;d.pairCalls=0;d.active=true;}const result=window.__reactionLabProbe.measureFixedSteps(180);if(d)d.active=false;return{...result,entryState,exitState:window.__reactionLabProbe.snapshot()}})()')");
 source=replaceOnce(source,'return{label,candidateCount:', 'return{entryState:result.entryState,exitState:result.exitState,label,candidateCount:');
 source=replaceOnce(source,'const warmup=await measure',`const diagnosticRows=[];
   const originalMeasure=measure;
   const tracedMeasure=async label=>{
     const before=await snapshot();
-    ${instrument?`await evaluate('globalThis.__issue352={active:true,index:0,sections:new Float64Array(180*8),atomWorldCalls:0,pairCalls:0}');`:''}
+    ${instrument?`await evaluate('globalThis.__issue352={active:false,index:0,sections:new Float64Array(180*8),atomWorldCalls:0,pairCalls:0}');`:''}
     const result=await originalMeasure(label);
     ${instrument?`const detail=await evaluate('(()=>{const d=globalThis.__issue352;d.active=false;return{index:d.index,sections:Array.from(d.sections),atomWorldCalls:d.atomWorldCalls,pairCalls:d.pairCalls}})()');`:'const detail=null;'}
     diagnosticRows.push({label,before,entryState:result.entryState,exitState:result.exitState,after:await snapshot(),detail});return result;

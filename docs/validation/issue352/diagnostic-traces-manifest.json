@@ -1,0 +1,38 @@
+{
+  "compressedBytes": 2011048,
+  "sha256": "5e109865d0b2c6aa413eab2fa2f3935809fbae6d4ea7a838c73f098dba47a456",
+  "uncompressedSHA256": "2da495e6492cef136009f08111fc233ee5ac279f5c410e829eac83ec2b107f1c",
+  "parts": [
+    {
+      "name": "diagnostic-traces.json.gz.part-01",
+      "bytes": 400000,
+      "sha256": "06a8b4c37a485584c9bb6beb13a7daa03df37c87c98e8a295ff4a6d3c2d87c17"
+    },
+    {
+      "name": "diagnostic-traces.json.gz.part-02",
+      "bytes": 400000,
+      "sha256": "15d6a7d4241e0d7bb1b414e0a6015c2b015abf36a220aaf5c0154cc4fed8d00e"
+    },
+    {
+      "name": "diagnostic-traces.json.gz.part-03",
+      "bytes": 400000,
+      "sha256": "6a807a0990f201140248dcee57a9ce34998b4c6e8b6acc51a98f33d4df16bbe3"
+    },
+    {
+      "name": "diagnostic-traces.json.gz.part-04",
+      "bytes": 400000,
+      "sha256": "02e11971304ab458e892a434ecd124ff5bb7970a7eb86cd4c5e468eb9327636f"
+    },
+    {
+      "name": "diagnostic-traces.json.gz.part-05",
+      "bytes": 400000,
+      "sha256": "78d28c60f0d6f394d2aee2c5d82ac3f41c5d46c50f58869b0bf90ae80cd4853c"
+    },
+    {
+      "name": "diagnostic-traces.json.gz.part-06",
+      "bytes": 11048,
+      "sha256": "7689dec192084b1c7293fd633a5b31ea37d62902e282d611ba782e95ae0e1f23"
+    }
+  ],
+  "reconstruct": "Concatenate binary parts in order, verify SHA256, gzip-decompress JSON. Complete traces and CPU profiles for both instrumented sources."
+}

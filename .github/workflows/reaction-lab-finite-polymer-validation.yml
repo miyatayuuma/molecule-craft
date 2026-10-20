@@ -170,7 +170,7 @@ jobs:
         with:
           node-version: 22
       - name: Stage B comparison contract tests
-        run: node --test tests/compare-reaction-lab-stage-b.test.mjs
+        run: node --test tests/compare-reaction-lab-stage-b.test.mjs tests/reaction-lab-step-geometry-cache.test.mjs
       - name: Prepare immutable Task ⑩ main baseline
         env:
           POLYMER_BASELINE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53

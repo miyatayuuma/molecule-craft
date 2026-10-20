@@ -882,30 +882,44 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(manipulating)contactMatcher.reset();
     contactMatcher.beginStep();
     const active=[...instances].filter(item=>!item.feedMotion&&item.batchGeneration===batch.generation).sort((a,b)=>a.id.localeCompare(b.id));
+    // Candidate assessment is read-only until the final commit below. Reuse
+    // geometry only within this step, never across physics/pointer/commit work.
+    const atomPositions=new Map(),participantPairGeometry=new Map();
+    function stepAtomWorldAngstrom(item,index){
+      let positions=atomPositions.get(item);if(!positions){positions=[];atomPositions.set(item,positions);}
+      return positions[index]??(positions[index]=atomWorldAngstrom(item,index));
+    }
+    function stepPairGeometry(left,right){
+      let pairs=participantPairGeometry.get(left);if(!pairs){pairs=new Map();participantPairGeometry.set(left,pairs);}
+      if(pairs.has(right))return pairs.get(right);
+      let minimumRealAtomDistance=Infinity,minimumNonbondedSeparationRatio=Infinity,severeOverlap=false;
+      for(let a=0;a<left.record.atoms.length;a++)for(let b=0;b<right.record.atoms.length;b++){
+        const pa=stepAtomWorldAngstrom(left,a),pb=stepAtomWorldAngstrom(right,b),distance=Math.hypot(pa[0]-pb[0],pa[1]-pb[1],pa[2]-pb[2]);
+        const physical=canonicalNonbondedPairGeometry({sigmaAngstrom:left.record.nonbonded.sigmaAngstrom[a],epsilonKcalMol:left.record.nonbonded.epsilonKcalMol[a]},{sigmaAngstrom:right.record.nonbonded.sigmaAngstrom[b],epsilonKcalMol:right.record.nonbonded.epsilonKcalMol[b]},distance);
+        minimumRealAtomDistance=Math.min(minimumRealAtomDistance,distance);minimumNonbondedSeparationRatio=Math.min(minimumNonbondedSeparationRatio,physical.minimumNonbondedSeparationRatio);severeOverlap||=physical.severeOverlap;
+      }
+      const result={minimumRealAtomDistance,minimumNonbondedSeparationRatio,severeOverlap};pairs.set(right,result);return result;
+    }
     function assess(candidate){
       const rejectionReasons=[],encounterIds=candidate.reactantInstanceIds,encounter=encounterIds.map(instanceById);
       if(encounter.some(item=>!item))rejectionReasons.push('participant-missing');
       if(encounter.some(item=>item?.busy))rejectionReasons.push('participant-busy');
       if(encounter.some(item=>item&&testIsolation&&!testIsolation.has(item.id)))rejectionReasons.push('outside-test-isolation');
       const center=supplementalSelectionCenter(candidate,(role,atomIndex)=>{
-        const item=instanceById(candidate.participantInstances[role]);return item?atomWorldAngstrom(item,atomIndex):null;
+        const item=instanceById(candidate.participantInstances[role]);return item?stepAtomWorldAngstrom(item,atomIndex):null;
       });
       const supplemental=center?resolveSupplementalParticipants(candidate.reaction,candidate,active,item=>Math.hypot(...item.stageBody.positionAngstrom.map((value,index)=>value-center[index]))):{ok:false,reason:'participant-missing'};
       const participantInstances=supplemental.ok?supplemental.participantInstances:{...candidate.participantInstances};
       if(!supplemental.ok)rejectionReasons.push(supplemental.reason);
       const participantItems=Object.values(participantInstances).map(instanceById).filter(Boolean);
       if(participantItems.some(item=>item.busy))rejectionReasons.push('participant-busy');
-      const bindingsPosition=(role,index)=>atomWorldAngstrom(instanceById(candidate.participantInstances[role]),index);
+      const bindingsPosition=(role,index)=>stepAtomWorldAngstrom(instanceById(candidate.participantInstances[role]),index);
       const geometry=scoreReactionGeometry(candidate.geometryConstraints,bindingsPosition);
       if(!geometry.geometryReady)rejectionReasons.push('geometry-outside-window');
       let minimumRealAtomDistance=Infinity,minimumNonbondedSeparationRatio=Infinity,severeOverlap=false;
       for(let i=0;i<participantItems.length;i++)for(let j=i+1;j<participantItems.length;j++){
-        const left=participantItems[i],right=participantItems[j];
-        for(let a=0;a<left.record.atoms.length;a++)for(let b=0;b<right.record.atoms.length;b++){
-          const pa=atomWorldAngstrom(left,a),pb=atomWorldAngstrom(right,b),distance=Math.hypot(pa[0]-pb[0],pa[1]-pb[1],pa[2]-pb[2]);
-          const physical=canonicalNonbondedPairGeometry({sigmaAngstrom:left.record.nonbonded.sigmaAngstrom[a],epsilonKcalMol:left.record.nonbonded.epsilonKcalMol[a]},{sigmaAngstrom:right.record.nonbonded.sigmaAngstrom[b],epsilonKcalMol:right.record.nonbonded.epsilonKcalMol[b]},distance);
-          minimumRealAtomDistance=Math.min(minimumRealAtomDistance,distance);minimumNonbondedSeparationRatio=Math.min(minimumNonbondedSeparationRatio,physical.minimumNonbondedSeparationRatio);severeOverlap||=physical.severeOverlap;
-        }
+        const physical=stepPairGeometry(participantItems[i],participantItems[j]);
+        minimumRealAtomDistance=Math.min(minimumRealAtomDistance,physical.minimumRealAtomDistance);minimumNonbondedSeparationRatio=Math.min(minimumNonbondedSeparationRatio,physical.minimumNonbondedSeparationRatio);severeOverlap||=physical.severeOverlap;
       }
       if(severeOverlap)rejectionReasons.push('severe-overlap');
       const environmentMatched=environmentMatches(candidate.reaction,activeConditions);if(!environmentMatched)rejectionReasons.push('environment-mismatch');
@@ -921,7 +935,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(commitReady){
         const staged={...candidate,participantInstances,environmentConditions:[...activeConditions],environmentSnapshot:activationEnvironment.snapshot(),geometryQuality:{worstNormalizedDeviation:geometry.worstNormalizedDeviation,meanNormalizedDeviation:geometry.meanNormalizedDeviation}};
         const participantByRole=new Map(Object.entries(participantInstances).map(([role,id])=>[role,instanceById(id)]));
-        const sourcePoint=sourceAtom=>{const split=sourceAtom.indexOf(':'),role=sourceAtom.slice(0,split),index=Number(sourceAtom.slice(split+1)),item=participantByRole.get(role);return item?atomWorldAngstrom(item,index):null;};
+        const sourcePoint=sourceAtom=>{const split=sourceAtom.indexOf(':'),role=sourceAtom.slice(0,split),index=Number(sourceAtom.slice(split+1)),item=participantByRole.get(role);return item?stepAtomWorldAngstrom(item,index):null;};
         staged.newBondEndpointDistanceSum=(candidate.graphTransition?.formedBonds??[]).reduce((sum,bond)=>{const a=sourcePoint(bond.a),b=sourcePoint(bond.b);return sum+(a&&b?Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]):0);},0);
         ready.push(staged);
       }
