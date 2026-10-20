@@ -1,0 +1,58 @@
+name: Issue352 bounded fixed-step diagnostic
+on:
+  push:
+    branches: [repair/issue352-stage-b]
+    paths: ['.github/workflows/issue352-fixedstep-diagnostic.yml']
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Freeze source authority and environment
+        run: |
+          mkdir -p test-results/issue352
+          git worktree add --detach "$RUNNER_TEMP/issue352-baseline" 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          git worktree add --detach "$RUNNER_TEMP/issue352-main" 6c676317ff590dd756685168484c79788b5a329b
+          lscpu > test-results/issue352/cpu-environment.txt
+          google-chrome --version >> test-results/issue352/cpu-environment.txt
+          uname -a >> test-results/issue352/cpu-environment.txt
+      - name: Frozen baseline control
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/issue352-baseline
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          ISSUE352_OUTPUT: test-results/issue352/baseline-control
+        run: node scripts/diagnose-issue352-fixed-step.mjs
+      - name: Frozen main control
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/issue352-main
+          POLYMER_SOURCE_SHA: 6c676317ff590dd756685168484c79788b5a329b
+          ISSUE352_OUTPUT: test-results/issue352/main-control
+        run: node scripts/diagnose-issue352-fixed-step.mjs
+      - name: Frozen baseline instrumented
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/issue352-baseline
+          POLYMER_SOURCE_SHA: 4bc202c0eb1f51de0350c3a0b4be36c7178cba53
+          ISSUE352_INSTRUMENT: '1'
+          ISSUE352_OUTPUT: test-results/issue352/baseline-instrumented
+        run: node scripts/diagnose-issue352-fixed-step.mjs
+      - name: Frozen main instrumented
+        env:
+          POLYMER_ROOT: ${{ runner.temp }}/issue352-main
+          POLYMER_SOURCE_SHA: 6c676317ff590dd756685168484c79788b5a329b
+          ISSUE352_INSTRUMENT: '1'
+          ISSUE352_OUTPUT: test-results/issue352/main-instrumented
+        run: node scripts/diagnose-issue352-fixed-step.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: issue352-fixed-step-diagnostic
+          path: test-results/issue352
+          retention-days: 90
