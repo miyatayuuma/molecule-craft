@@ -1,0 +1,24 @@
+{
+  "run": 39518445476,
+  "job": 118956164582,
+  "artifact": 12308328094,
+  "zipSHA256": "78d089f4a5f727a7b9d684fe2e94e15be09d64d79ad58ea089228a3368ff146b",
+  "sourceSha": "e5ce3d1b5168e670990b40081cc9246922289d90",
+  "files": [
+    {
+      "path": "pr-stage-b/baseline.json",
+      "bytes": 35077,
+      "sha256": "b84252a4e50aa88a17b68265d5ba55a29b86cd76292d196a49f7045dc0acb2e8"
+    },
+    {
+      "path": "pr-stage-b/candidate.json",
+      "bytes": 37955,
+      "sha256": "88f0de74c5a6462e9f57f5482642cf01fa1b043140685b8b204248fd30b2acee"
+    },
+    {
+      "path": "pr-stage-b/comparison.json",
+      "bytes": 70685,
+      "sha256": "18e8fbc9399ee1539ccbffe82f983477d6bb49ef2ddf51367a8e29e820d4adee"
+    }
+  ]
+}
