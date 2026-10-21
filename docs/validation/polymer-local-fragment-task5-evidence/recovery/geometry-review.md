@@ -1,0 +1,3 @@
+Independent read-only agent review, 2026-10-21 (working tree; final-source review pending).
+
+No blocking defect found in geometry repair. Old/new traces have identical full chemical diagnostics for all 161 states (0–160); only the terminal restoration differs. Selected iterate 64, plane max .06970964359427587. Reviewer independently ran captured-PET + Task4 (10 tests PASS), final25 + intermediate95 acceptance and frozen/candidate XYZ comparison (0 changed). Graph/origin/identity, invalid input and fallback rejection, determinism and terminal nitrile validation were covered. Scope excludes docking/renderer/final-source acceptance. Extra final diagnostic/copy overhead requires strict performance acceptance; no RAF timer was added.

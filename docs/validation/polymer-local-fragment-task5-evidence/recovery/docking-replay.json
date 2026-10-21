@@ -1,0 +1,261 @@
+{
+  "kind": "FROZEN_ACTUAL_RELEASE_ENDPOINT_REPLAY_NOT_BROWSER_ACCEPTANCE",
+  "inputSHA256": "a735e6ce95e588eda497f0dd7c2452b95e14f025d19d93856f310c20a8fe08bb",
+  "graphDigest": "fbc3b6761087d4ac1d8a4d1ee82773f712e3b26a4729041250886a747e9a8a45",
+  "routeId": "polyethylene-terephthalate-direct-polycondensation",
+  "generation": 11,
+  "instanceId": "terephthalic-acid-44",
+  "oldSafePoseCount": 0,
+  "recoveredSafePoseCount": 14,
+  "selected": {
+    "position": [
+      -0.08885248418482083,
+      -1.3056888397136408,
+      0.5744716816083268
+    ],
+    "travel": 2.908673975721221,
+    "lateral": 0.3619394871947269,
+    "depth": 2.8860672384140864,
+    "bondDistance": 1.1543999999999999,
+    "overlaps": [],
+    "safe": true,
+    "legacyReachable": false,
+    "depthResolvedReachable": true
+  },
+  "rows": [
+    {
+      "position": [
+        -0.08885248418482083,
+        -1.3056888397136408,
+        0.5744716816083268
+      ],
+      "travel": 2.908673975721221,
+      "lateral": 0.3619394871947269,
+      "depth": 2.8860672384140864,
+      "bondDistance": 1.1543999999999999,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        0.054259108234719466,
+        -1.3180822760472208,
+        0.5654994771724944
+      ],
+      "travel": 2.9211801994628908,
+      "lateral": 0.5055867118425117,
+      "depth": 2.877095033978254,
+      "bondDistance": 1.1544,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        0.054259108234719466,
+        -1.3180822760472208,
+        2.8742994771724946
+      ],
+      "travel": 5.210482245112447,
+      "lateral": 0.5055867118425117,
+      "depth": 5.185895033978254,
+      "bondDistance": 1.1544,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        1.2086591082347196,
+        -1.3180822760472208,
+        1.7198994771724945
+      ],
+      "travel": 4.359375582093239,
+      "lateral": 1.65867515106468,
+      "depth": 4.0314950339782545,
+      "bondDistance": 1.1544,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        -1.1001408917652804,
+        -1.3180822760472208,
+        1.7198994771724945
+      ],
+      "travel": 4.083902976151042,
+      "lateral": 0.6521589603953983,
+      "depth": 4.0314950339782545,
+      "bondDistance": 1.1543999999999999,
+      "overlaps": [
+        {
+          "incoming": 6,
+          "fragment": 24,
+          "distance": 0.08793620136676807,
+          "minimum": 0.32572799999999996
+        }
+      ],
+      "safe": false,
+      "legacyReachable": false,
+      "depthResolvedReachable": false
+    },
+    {
+      "position": [
+        0.054259108234719466,
+        -0.16368227604722074,
+        1.7198994771724945
+      ],
+      "travel": 4.211947126319322,
+      "lateral": 1.2196501079892828,
+      "depth": 4.0314950339782545,
+      "bondDistance": 1.1544,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        0.054259108234719466,
+        -2.472482276047221,
+        1.7198994771724945
+      ],
+      "travel": 4.235790409056674,
+      "lateral": 1.299603085740095,
+      "depth": 4.0314950339782545,
+      "bondDistance": 1.1544,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        -0.6122340425177848,
+        -1.9845754267997249,
+        2.3863926279249985
+      ],
+      "travel": 4.754140872946486,
+      "lateral": 0.7285344576274811,
+      "depth": 4.697988184730758,
+      "bondDistance": 1.1544000000000003,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        -0.6122340425177848,
+        -1.9845754267997249,
+        1.0534063264199904
+      ],
+      "travel": 3.4429638583731044,
+      "lateral": 0.7285344576274811,
+      "depth": 3.3650018832257502,
+      "bondDistance": 1.1544000000000003,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        -0.6122340425177848,
+        -0.6515891252947167,
+        2.3863926279249985
+      ],
+      "travel": 4.7418946121268934,
+      "lateral": 0.6437946323543352,
+      "depth": 4.697988184730758,
+      "bondDistance": 1.1544000000000003,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        -0.6122340425177848,
+        -0.6515891252947167,
+        1.0534063264199904
+      ],
+      "travel": 3.4260340340926416,
+      "lateral": 0.6437946323543352,
+      "depth": 3.3650018832257502,
+      "bondDistance": 1.1544000000000003,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        0.7207522589872237,
+        -1.9845754267997249,
+        2.3863926279249985
+      ],
+      "travel": 4.893333197484615,
+      "lateral": 1.3688012265245795,
+      "depth": 4.697988184730758,
+      "bondDistance": 1.1544000000000003,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        0.7207522589872237,
+        -1.9845754267997249,
+        1.0534063264199904
+      ],
+      "travel": 3.6327475100601254,
+      "lateral": 1.3688012265245795,
+      "depth": 3.3650018832257502,
+      "bondDistance": 1.1544000000000003,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        0.7207522589872237,
+        -0.6515891252947167,
+        2.3863926279249985
+      ],
+      "travel": 4.881436146699318,
+      "lateral": 1.3256416825194048,
+      "depth": 4.697988184730758,
+      "bondDistance": 1.1544000000000003,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    },
+    {
+      "position": [
+        0.7207522589872237,
+        -0.6515891252947167,
+        1.0534063264199904
+      ],
+      "travel": 3.616706173377335,
+      "lateral": 1.3256416825194048,
+      "depth": 3.3650018832257502,
+      "bondDistance": 1.1544000000000003,
+      "overlaps": [],
+      "safe": true,
+      "legacyReachable": false,
+      "depthResolvedReachable": true
+    }
+  ],
+  "unchanged": true,
+  "pass": true
+}

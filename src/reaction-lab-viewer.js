@@ -360,13 +360,20 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }
     return true;
   }
-  function polymerDockPoses(item,interaction,{maxDistance=2.8}={}){
+  function polymerDockPoses(item,interaction,{maxDistance=2.8,resolveDepth=false}={}){
     const target=polymerTargetWorld(interaction);if(!target)return null;
     const incoming=atomWorld(item,interaction.incomingAtomIndex),towardIncoming=incoming.clone().sub(target),normal=cameraNormal(),right=cameraRight(),up=cameraUp(),axes=[towardIncoming.lengthSq()>1e-9?towardIncoming.normalize():right,normal,normal.clone().negate(),right,right.clone().negate(),up,up.clone().negate()],directions=[...axes];
     for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])directions.push(right.clone().multiplyScalar(x).addScaledVector(up,y).addScaledVector(normal,z).normalize());
     const unique=[];for(const direction of directions)if(!unique.some(candidate=>candidate.dot(direction)>.999))unique.push(direction);
     const local=item.record.atoms[interaction.incomingAtomIndex].point.clone().applyQuaternion(item.group.quaternion),ideal=POLYMER_DOCK_DISTANCE_ANGSTROM*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM;
-    const poses=unique.map(direction=>target.clone().addScaledVector(direction,ideal).sub(local)).filter(position=>position.toArray().every(Number.isFinite)&&position.distanceTo(item.group.position)<=maxDistance&&polymerGeometrySafe(item,interaction,position));
+    // A manual pointer acquires the real reaction site in screen space. Depth
+    // can still belong to ordinary molecule docking (e.g. a nearby water).
+    // Bound lateral travel while solving that depth; all steric/bond checks
+    // still apply. Automatic paths retain their original 3D distance policy.
+    const poses=unique.map(direction=>target.clone().addScaledVector(direction,ideal).sub(local)).filter(position=>{
+      const travel=position.clone().sub(item.group.position);if(resolveDepth)travel.addScaledVector(normal,-travel.dot(normal));
+      return position.toArray().every(Number.isFinite)&&travel.length()<=maxDistance&&polymerGeometrySafe(item,interaction,position);
+    });
     poses.sort((a,b)=>a.distanceTo(item.group.position)-b.distanceTo(item.group.position));return poses;
   }
   function polymerDockPose(item,interaction,options={}){return polymerDockPoses(item,interaction,options)?.[0]??null;}
@@ -438,7 +445,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const targetIncomingDistancePx=targetScreen?Math.hypot(targetScreen.x-incomingScreen.x,targetScreen.y-incomingScreen.y):Infinity,targetPointerDistancePx=targetScreen?Math.hypot(targetScreen.x-event.clientX,targetScreen.y-event.clientY):Infinity;
     if(!targetScreen||targetScreen.z < -1||targetScreen.z>1)return reject('target-outside-view',{targetScreen});
     if(polymerSiteIndicator.dataset.acquired!=='true'||targetIncomingDistancePx>POLYMER_DOCK_RELEASE_PX||targetPointerDistancePx>POLYMER_DOCK_RELEASE_PX)return reject('site-not-acquired',{acquired:polymerSiteIndicator.dataset.acquired==='true',targetIncomingDistancePx,targetPointerDistancePx,targetScreen,incomingScreen,pointer:{x:event.clientX,y:event.clientY}});
-    const position=polymerDockPose(item,preview.interaction);if(!position)return reject('no-dock-pose',{current:item.group.position.toArray()});
+    const position=polymerDockPose(item,preview.interaction,{resolveDepth:true});if(!position)return reject('no-dock-pose',{current:item.group.position.toArray(),...(localhostPhysicsTest?{diagnostics:window.__reactionLabProbe.polymerDockDiagnostics(item.id),pointer:{x:event.clientX,y:event.clientY}}:{})});
     if(!polymerGeometrySafe(item,preview.interaction,position))return reject('unsafe-dock-pose',{current:item.group.position.toArray(),position:position.toArray()});
     endManipulation();item.group.position.copy(position);item.group.updateMatrixWorld(true);item.polymerDocking=true;item.stageBody.kinematic=true;syncStageABodyFromGroup(item);
     const begun=polymerCore.beginManualStep(item.id,{geometryValid:true});if(!begun.ok){item.polymerDocking=false;item.stageBody.kinematic=false;return reject('core-rejected',{coreReason:begun.reason});}
@@ -1265,7 +1272,20 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       restoreContext(){if(!testContextLoss)throw Error('No test context loss');testContextLoss.restoreContext();},
       polymerResourceSnapshot,
       polymerObservation:()=>observation.snapshot(),
-      polymerFailureInput:()=>({snapshot:polymerCore.snapshot(),sources:polymerSourceRecordsById,diagnostics:polymerRuntimeMetrics.lastLayoutDiagnostics,displayError:polymerGraphVisual?.displayError??null}),
+      polymerFailureInput:()=>({snapshot:polymerCore.snapshot(),sources:polymerSourceRecordsById,diagnostics:polymerRuntimeMetrics.lastLayoutDiagnostics,displayError:polymerGraphVisual?.displayError??null,docking:probe.polymerDockDiagnostics()}),
+      polymerDockDiagnostics(instanceId){
+        const item=instanceId?instanceById(instanceId):polymerNextCandidates()[0],preview=polymerInteraction(item);
+        if(!item||!preview.ok||!polymerGraphVisual)return null;
+        const interaction=preview.interaction,target=polymerTargetWorld(interaction),incoming=atomWorld(item,interaction.incomingAtomIndex),normal=cameraNormal(),right=cameraRight(),up=cameraUp(),local=item.record.atoms[interaction.incomingAtomIndex].point.clone().applyQuaternion(item.group.quaternion),ideal=POLYMER_DOCK_DISTANCE_ANGSTROM*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM;
+        const fragment=[...polymerGraphVisual.atomByGraphIndex].map(([index,mesh])=>({index,element:recordAtomElement(polymerGraphVisual.graph,index),point:mesh.getWorldPosition(new THREE.Vector3()).toArray()}));
+        const check=direction=>{const position=target.clone().addScaledVector(direction,ideal).sub(local),overlaps=[];
+          for(let index=0;index<item.record.atoms.length;index++){const a=item.record.atoms[index],point=position.clone().add(a.point.clone().applyQuaternion(item.group.quaternion));for(const b of fragment){if(index===interaction.incomingAtomIndex&&b.index===interaction.fragmentAtomIndex)continue;const minimum=(modelAtomRadius(a.element)+modelAtomRadius(b.element))*.58,distance=point.distanceTo(new THREE.Vector3(...b.point));if(distance<minimum)overlaps.push({incoming:index,fragment:b.index,distance,minimum});}}
+          return{direction:direction.toArray(),position:position.toArray(),travel:position.distanceTo(item.group.position),safe:polymerGeometrySafe(item,interaction,position),overlaps};};
+        const toward=incoming.clone().sub(target),directions=[toward.lengthSq()>1e-9?toward.normalize():right,normal,normal.clone().negate(),right,right.clone().negate(),up,up.clone().negate()];
+        for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])directions.push(right.clone().multiplyScalar(x).addScaledVector(up,y).addScaledVector(normal,z).normalize());
+        const dense=[];for(let i=0;i<256;i++){const z=1-2*(i+.5)/256,r=Math.sqrt(1-z*z),a=i*Math.PI*(3-Math.sqrt(5));dense.push(check(new THREE.Vector3(r*Math.cos(a),r*Math.sin(a),z)));}
+        return{batch:batch.snapshot(),routeId:polymerCore.routeId,core:polymerCore.snapshot(),incoming:{id:item.id,species:item.species,position:item.group.position.toArray(),quaternion:item.group.quaternion.toArray(),atoms:item.record.atoms.map((a,index)=>({index,element:a.element,local:a.point.toArray(),world:atomWorld(item,index).toArray()}))},fragment,target:target.toArray(),interaction,start:projectPoint(incoming),destination:projectPoint(target),candidatePoses:directions.map(check),densePoses:dense,depthDocking:{state:depthDockingState,outwardAcceleration:depthOutwardAcceleration,sampleCount:depthSafetySampleCount,pairKey:depthSafetyPairKey},pairSafetyAuthority:'Polymer fragment is kinematic; polymerGeometrySafe owns its steric veto. Generic Stage B pair oracle applies only to ordinary molecule depth docking.',camera:{position:camera.position.toArray(),quaternion:camera.quaternion.toArray()},pointer:{selected:selected?.id??null,active:[...activePointers.keys()]}};
+      },
       polymerVisualSnapshot(){
         const v=polymerGraphVisual;if(!v||v.suspended)return null;if(!v.layoutPlan)return{displayError:v.displayError,graph:v.graph};camera.updateMatrixWorld(true);v.group.updateMatrixWorld(true);const r=canvas.getBoundingClientRect(),f=r.height/(2*Math.tan(camera.fov*Math.PI/360));
         const project=p=>{const c=p.clone().applyMatrix4(camera.matrixWorldInverse),s=p.clone().project(camera);return{x:(s.x+1)*r.width/2,y:(1-s.y)*r.height/2,depth:-c.z};};

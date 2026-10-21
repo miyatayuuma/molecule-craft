@@ -261,7 +261,10 @@ jobs:
       - name: Replay captured production PET input against protected geometry
         env:
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: node scripts/replay-polymer-task5-captured-input.mjs
+        run: |
+          node --test tests/polymer-task5-pet-recovery.test.mjs
+          node scripts/replay-polymer-task5-captured-input.mjs
+          node scripts/replay-polymer-task5-docking-input.mjs
       - name: Reproduce actual PET fit with captured failure input
         env:
           POLYMER_FIT_DIAGNOSTIC_ROUTE: polyethylene-terephthalate-direct-polycondensation
