@@ -225,7 +225,7 @@ jobs:
       - name: Japanese screenshot font
         run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
       - name: Deterministic rendering and preservation contracts
-        run: node --test tests/polymer-observation.test.mjs tests/polymer-fragment-task4.test.mjs tests/reaction-lab-step-geometry-cache.test.mjs
+        run: node --test tests/polymer-observation.test.mjs tests/polymer-static-render.test.mjs tests/polymer-fragment-task4.test.mjs tests/reaction-lab-step-geometry-cache.test.mjs
       - name: All25 at DPR1 and representative cases at DPR2 — fixed static mask campaign
         env:
           POLYMER_TASK5_DPR: ${{ matrix.dpr }}
@@ -258,6 +258,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Replay captured production PET input against protected geometry
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/replay-polymer-task5-captured-input.mjs
       - name: Reproduce actual PET fit with captured failure input
         env:
           POLYMER_FIT_DIAGNOSTIC_ROUTE: polyethylene-terephthalate-direct-polycondensation

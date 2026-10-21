@@ -1,0 +1,872 @@
+{
+  "state": {
+    "url": "http://127.0.0.1:32995/?reactionLabTest=1&reactionLabPhysics=stage-b",
+    "title": "Molecule Craft",
+    "labButton": {
+      "present": true,
+      "disabled": false
+    },
+    "viewerUnavailable": true,
+    "status": "原子を追加してください",
+    "dialog": true,
+    "collection": false,
+    "batch": {
+      "activeSlots": [
+        "ethylene-glycol",
+        "terephthalic-acid",
+        ""
+      ],
+      "draftSlots": [
+        "ethylene-glycol",
+        "terephthalic-acid",
+        ""
+      ],
+      "phase": "ACTIVE",
+      "generation": 11,
+      "transitionKind": null,
+      "transitionGeneration": null,
+      "feedEntryCount": 0,
+      "feedEntriesHandedOff": 0,
+      "reactionEnabled": false,
+      "reactionPresentationActive": false
+    },
+    "polymerization": {
+      "routeOwned": true,
+      "beginError": null,
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "polymerId": "polyethylene-terephthalate",
+      "state": "WAITING",
+      "stepKind": "ester-condensation",
+      "waitReason": "player",
+      "manualStepCount": 1,
+      "automaticStepCount": 0,
+      "reservedInstanceIds": [
+        "terephthalic-acid-42",
+        "ethylene-glycol-41",
+        "terephthalic-acid-44",
+        "ethylene-glycol-43"
+      ],
+      "consumedInstanceIds": [
+        "terephthalic-acid-42",
+        "ethylene-glycol-41"
+      ],
+      "sourceMeshCount": 27,
+      "sourceDetailOpacities": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sampleId": null,
+      "sampleReady": false,
+      "samplePhase": null,
+      "sampleElapsedMs": 0,
+      "sampleDurationMs": null,
+      "fragmentAnimationActive": false,
+      "layoutCallsAtReady": null,
+      "displayedUnitCount": 2,
+      "displayGraph": {
+        "atomCount": 25,
+        "bondCount": 25,
+        "atomOriginCount": 25,
+        "unitCount": 2,
+        "visibleAtomCount": 25,
+        "visibleBondMeshCount": 30,
+        "continuationCount": 0,
+        "bondsResolveToRenderedAtoms": true,
+        "layoutUnitCount": 2,
+        "layoutDiagnostics": {
+          "accepted": true,
+          "fallback": false,
+          "reason": null,
+          "version": 2,
+          "iterations": 24,
+          "converged": true,
+          "qualityTargetReached": true,
+          "unitCount": 2,
+          "unplacedUnits": [],
+          "sourceCoordinateFallbacks": [],
+          "degenerateSourceBonds": [],
+          "geometryScale": 0.78,
+          "maxBondError": 0.0006640251885470239,
+          "meanBondError": 0.0001426445022286016,
+          "maxAngleError": 0.996893228954221,
+          "severeOverlapCount": 0,
+          "minimumNonbondedDistance": 1.7202487356699212,
+          "protectedRingAtomCount": 6,
+          "protectedRingCount": 1,
+          "depthSpan": 3.8505599134842816,
+          "finite": true,
+          "atomCount": 25,
+          "bondCount": 25,
+          "chemical": {
+            "accepted": true,
+            "finite": true,
+            "bonds": [
+              {
+                "a": 0,
+                "b": 1,
+                "order": 2,
+                "target": 1.0919999999999999,
+                "environment": "aromatic",
+                "length": 1.091627898485909,
+                "error": 0.00037210151409095005
+              },
+              {
+                "a": 12,
+                "b": 0,
+                "order": 1,
+                "target": 1.0919999999999999,
+                "environment": "aromatic",
+                "length": 1.0917870440235204,
+                "error": 0.000212955976479412
+              },
+              {
+                "a": 0,
+                "b": 13,
+                "order": 1,
+                "target": 1.1856,
+                "environment": "C-C:1:aromatic/carbonyl",
+                "length": 1.184935974811453,
+                "error": 0.0006640251885470239
+              },
+              {
+                "a": 1,
+                "b": 4,
+                "order": 1,
+                "target": 0.8502000000000001,
+                "environment": "C-H:1:aromatic/sp3",
+                "length": 0.8502369564669727,
+                "error": 3.695646697265964e-05
+              },
+              {
+                "a": 1,
+                "b": 9,
+                "order": 1,
+                "target": 1.0919999999999999,
+                "environment": "aromatic",
+                "length": 1.0918797403424945,
+                "error": 0.00012025965750539491
+              },
+              {
+                "a": 15,
+                "b": 2,
+                "order": 2,
+                "target": 0.9438,
+                "environment": "C-O:2:carbonyl/sp2",
+                "length": 0.9435236453614981,
+                "error": 0.00027635463850184117
+              },
+              {
+                "a": 3,
+                "b": 8,
+                "order": 1,
+                "target": 0.7566,
+                "environment": "H-O:1:acyl-O/sp3",
+                "length": 0.756353016597868,
+                "error": 0.0002469834021320283
+              },
+              {
+                "a": 15,
+                "b": 3,
+                "order": 1,
+                "target": 1.0405200000000001,
+                "environment": "C-O:1:acyl-O/carbonyl",
+                "length": 1.0404133642417117,
+                "error": 0.00010663575828839811
+              },
+              {
+                "a": 9,
+                "b": 5,
+                "order": 1,
+                "target": 0.8502000000000001,
+                "environment": "C-H:1:aromatic/sp3",
+                "length": 0.8501130743560571,
+                "error": 8.692564394296998e-05
+              },
+              {
+                "a": 11,
+                "b": 6,
+                "order": 1,
+                "target": 0.8502000000000001,
+                "environment": "C-H:1:aromatic/sp3",
+                "length": 0.8502811505089414,
+                "error": 8.115050894130782e-05
+              },
+              {
+                "a": 12,
+                "b": 7,
+                "order": 1,
+                "target": 0.8502000000000001,
+                "environment": "C-H:1:aromatic/sp3",
+                "length": 0.8502742621908813,
+                "error": 7.426219088124686e-05
+              },
+              {
+                "a": 9,
+                "b": 10,
+                "order": 2,
+                "target": 1.0919999999999999,
+                "environment": "aromatic",
+                "length": 1.09206494875928,
+                "error": 6.494875928009236e-05
+              },
+              {
+                "a": 10,
+                "b": 11,
+                "order": 1,
+                "target": 1.0919999999999999,
+                "environment": "aromatic",
+                "length": 1.0920891383789404,
+                "error": 8.913837894053422e-05
+              },
+              {
+                "a": 10,
+                "b": 15,
+                "order": 1,
+                "target": 1.1856,
+                "environment": "C-C:1:aromatic/carbonyl",
+                "length": 1.1856277678424967,
+                "error": 2.7767842496695394e-05
+              },
+              {
+                "a": 11,
+                "b": 12,
+                "order": 2,
+                "target": 1.0919999999999999,
+                "environment": "aromatic",
+                "length": 1.0920075321992873,
+                "error": 7.532199287396679e-06
+              },
+              {
+                "a": 13,
+                "b": 14,
+                "order": 2,
+                "target": 0.9438,
+                "environment": "C-O:2:carbonyl/sp2",
+                "length": 0.94331780368114,
+                "error": 0.00048219631885992875
+              },
+              {
+                "a": 13,
+                "b": 18,
+                "order": 1,
+                "target": 1.0405200000000001,
+                "environment": "C-O:1:acyl-O/carbonyl",
+                "length": 1.0402131948359576,
+                "error": 0.0003068051640424674
+              },
+              {
+                "a": 16,
+                "b": 17,
+                "order": 1,
+                "target": 1.1856,
+                "environment": "C-C:1:sp3/sp3",
+                "length": 1.185459156278794,
+                "error": 0.00014084372120604094
+              },
+              {
+                "a": 16,
+                "b": 18,
+                "order": 1,
+                "target": 1.1154,
+                "environment": "C-O:1:acyl-O/sp3",
+                "length": 1.1153573927322449,
+                "error": 4.260726775506818e-05
+              },
+              {
+                "a": 16,
+                "b": 20,
+                "order": 1,
+                "target": 0.8502000000000001,
+                "environment": "C-H:1:sp3/sp3",
+                "length": 0.8502304697023831,
+                "error": 3.046970238307356e-05
+              },
+              {
+                "a": 16,
+                "b": 21,
+                "order": 1,
+                "target": 0.8502000000000001,
+                "environment": "C-H:1:sp3/sp3",
+                "length": 0.8502293612817725,
+                "error": 2.9361281772444237e-05
+              },
+              {
+                "a": 17,
+                "b": 19,
+                "order": 1,
+                "target": 1.1154,
+                "environment": "C-O:1:hydroxyl-O/sp3",
+                "length": 1.115408099841499,
+                "error": 8.099841499076277e-06
+              },
+              {
+                "a": 17,
+                "b": 22,
+                "order": 1,
+                "target": 0.8502000000000001,
+                "environment": "C-H:1:sp3/sp3",
+                "length": 0.8502176937412343,
+                "error": 1.7693741234281468e-05
+              },
+              {
+                "a": 17,
+                "b": 23,
+                "order": 1,
+                "target": 0.8502000000000001,
+                "environment": "C-H:1:sp3/sp3",
+                "length": 0.8502249647658449,
+                "error": 2.496476584479268e-05
+              },
+              {
+                "a": 19,
+                "b": 24,
+                "order": 1,
+                "target": 0.7566,
+                "environment": "H-O:1:hydroxyl-O/sp3",
+                "length": 0.75661507262483,
+                "error": 1.5072624829914893e-05
+              }
+            ],
+            "angles": [
+              {
+                "a": 1,
+                "center": 0,
+                "b": 12,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.0328807777121,
+                "error": 0.0328807777120943
+              },
+              {
+                "a": 1,
+                "center": 0,
+                "b": 13,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 119.00310677104578,
+                "error": 0.996893228954221
+              },
+              {
+                "a": 12,
+                "center": 0,
+                "b": 13,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.962347732478,
+                "error": 0.9623477324779941
+              },
+              {
+                "a": 0,
+                "center": 1,
+                "b": 4,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.07577539388201,
+                "error": 0.0757753938820116
+              },
+              {
+                "a": 0,
+                "center": 1,
+                "b": 9,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.00625987641399,
+                "error": 0.00625987641399206
+              },
+              {
+                "a": 4,
+                "center": 1,
+                "b": 9,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 119.91750254778,
+                "error": 0.0824974522199966
+              },
+              {
+                "a": 8,
+                "center": 3,
+                "b": 15,
+                "target": 114.8,
+                "environment": "acyl-O",
+                "degrees": 114.40369905936417,
+                "error": 0.3963009406358253
+              },
+              {
+                "a": 1,
+                "center": 9,
+                "b": 5,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.00055722115005,
+                "error": 0.0005572211500464164
+              },
+              {
+                "a": 1,
+                "center": 9,
+                "b": 10,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 119.98487006358138,
+                "error": 0.015129936418617262
+              },
+              {
+                "a": 5,
+                "center": 9,
+                "b": 10,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.01134343535531,
+                "error": 0.011343435355314568
+              },
+              {
+                "a": 9,
+                "center": 10,
+                "b": 11,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 119.98069040121791,
+                "error": 0.019309598782086823
+              },
+              {
+                "a": 9,
+                "center": 10,
+                "b": 15,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 119.05862022249813,
+                "error": 0.9413797775018651
+              },
+              {
+                "a": 11,
+                "center": 10,
+                "b": 15,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.96055684239442,
+                "error": 0.9605568423944248
+              },
+              {
+                "a": 6,
+                "center": 11,
+                "b": 10,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 119.83926136160616,
+                "error": 0.16073863839383762
+              },
+              {
+                "a": 6,
+                "center": 11,
+                "b": 12,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.13725961477326,
+                "error": 0.13725961477325654
+              },
+              {
+                "a": 10,
+                "center": 11,
+                "b": 12,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.02337249341406,
+                "error": 0.023372493414058226
+              },
+              {
+                "a": 0,
+                "center": 12,
+                "b": 7,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 119.980599180453,
+                "error": 0.019400819547001902
+              },
+              {
+                "a": 0,
+                "center": 12,
+                "b": 11,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 119.9545087682786,
+                "error": 0.04549123172139957
+              },
+              {
+                "a": 7,
+                "center": 12,
+                "b": 11,
+                "target": 120,
+                "environment": "aromatic",
+                "degrees": 120.06472732177451,
+                "error": 0.06472732177451235
+              },
+              {
+                "a": 0,
+                "center": 13,
+                "b": 14,
+                "target": 120,
+                "environment": "carbonyl",
+                "degrees": 120.25769948289938,
+                "error": 0.25769948289938327
+              },
+              {
+                "a": 0,
+                "center": 13,
+                "b": 18,
+                "target": 120,
+                "environment": "carbonyl",
+                "degrees": 119.87421293818429,
+                "error": 0.1257870618157142
+              },
+              {
+                "a": 14,
+                "center": 13,
+                "b": 18,
+                "target": 120,
+                "environment": "carbonyl",
+                "degrees": 119.84438018783635,
+                "error": 0.15561981216364984
+              },
+              {
+                "a": 2,
+                "center": 15,
+                "b": 3,
+                "target": 120,
+                "environment": "carbonyl",
+                "degrees": 119.8006418611223,
+                "error": 0.19935813887769882
+              },
+              {
+                "a": 2,
+                "center": 15,
+                "b": 10,
+                "target": 120,
+                "environment": "carbonyl",
+                "degrees": 120.04848307782818,
+                "error": 0.0484830778281804
+              },
+              {
+                "a": 3,
+                "center": 15,
+                "b": 10,
+                "target": 120,
+                "environment": "carbonyl",
+                "degrees": 120.15085338928581,
+                "error": 0.15085338928581393
+              },
+              {
+                "a": 17,
+                "center": 16,
+                "b": 18,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.2379897274767,
+                "error": 0.23323090701398996
+              },
+              {
+                "a": 17,
+                "center": 16,
+                "b": 20,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.7102425484972,
+                "error": 0.23902191400651418
+              },
+              {
+                "a": 17,
+                "center": 16,
+                "b": 21,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.28737501777778,
+                "error": 0.18384561671291522
+              },
+              {
+                "a": 18,
+                "center": 16,
+                "b": 20,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.92390571373515,
+                "error": 0.45268507924446055
+              },
+              {
+                "a": 18,
+                "center": 16,
+                "b": 21,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.09580240570394,
+                "error": 0.37541822878675646
+              },
+              {
+                "a": 20,
+                "center": 16,
+                "b": 21,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.56807999186591,
+                "error": 0.096859357375223
+              },
+              {
+                "a": 16,
+                "center": 17,
+                "b": 19,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.35980283647021,
+                "error": 0.1114177980204829
+              },
+              {
+                "a": 16,
+                "center": 17,
+                "b": 22,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.43844891056516,
+                "error": 0.03277172392553496
+              },
+              {
+                "a": 16,
+                "center": 17,
+                "b": 23,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.56931319444922,
+                "error": 0.0980925599585305
+              },
+              {
+                "a": 19,
+                "center": 17,
+                "b": 22,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.51807136223451,
+                "error": 0.04685072774381638
+              },
+              {
+                "a": 19,
+                "center": 17,
+                "b": 23,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.44881193328328,
+                "error": 0.022408701207410786
+              },
+              {
+                "a": 22,
+                "center": 17,
+                "b": 23,
+                "target": 109.47122063449069,
+                "environment": "sp3",
+                "degrees": 109.49283061427555,
+                "error": 0.021609979784855682
+              },
+              {
+                "a": 13,
+                "center": 18,
+                "b": 16,
+                "target": 114.8,
+                "environment": "acyl-O",
+                "degrees": 114.53009465200647,
+                "error": 0.2699053479935287
+              },
+              {
+                "a": 17,
+                "center": 19,
+                "b": 24,
+                "target": 108.5,
+                "environment": "hydroxyl-O",
+                "degrees": 108.47375824894716,
+                "error": 0.02624175105283655
+              }
+            ],
+            "planes": [
+              {
+                "indices": [
+                  0,
+                  12,
+                  11,
+                  10,
+                  9,
+                  1
+                ],
+                "kind": "aromatic-ring",
+                "deviation": 0.02225092902080633
+              },
+              {
+                "indices": [
+                  0,
+                  1,
+                  12,
+                  13
+                ],
+                "kind": "aromatic",
+                "deviation": 0.008407014494447853
+              },
+              {
+                "indices": [
+                  1,
+                  0,
+                  4,
+                  9
+                ],
+                "kind": "aromatic",
+                "deviation": 0.0040844289014200265
+              },
+              {
+                "indices": [
+                  9,
+                  1,
+                  5,
+                  10
+                ],
+                "kind": "aromatic",
+                "deviation": 0.010789944255970636
+              },
+              {
+                "indices": [
+                  10,
+                  9,
+                  11,
+                  15
+                ],
+                "kind": "aromatic",
+                "deviation": 0.0023722825230368264
+              },
+              {
+                "indices": [
+                  11,
+                  6,
+                  10,
+                  12
+                ],
+                "kind": "aromatic",
+                "deviation": 0.0019564905340268947
+              },
+              {
+                "indices": [
+                  12,
+                  0,
+                  7,
+                  11
+                ],
+                "kind": "aromatic",
+                "deviation": 0.0024363796935731085
+              },
+              {
+                "indices": [
+                  13,
+                  0,
+                  14,
+                  18
+                ],
+                "kind": "carbonyl",
+                "deviation": 0.027918123767116207
+              },
+              {
+                "indices": [
+                  15,
+                  2,
+                  3,
+                  10
+                ],
+                "kind": "carbonyl",
+                "deviation": 0.0009577290651686141
+              },
+              {
+                "indices": [
+                  2,
+                  15,
+                  3,
+                  8
+                ],
+                "kind": "ester",
+                "deviation": 3.461297099667378e-05
+              },
+              {
+                "indices": [
+                  14,
+                  13,
+                  18,
+                  16
+                ],
+                "kind": "ester",
+                "deviation": 0.001560789178090824
+              }
+            ],
+            "violations": {
+              "bonds": [],
+              "angles": [],
+              "planes": [],
+              "steric": []
+            },
+            "maxBondError": 0.0006640251885470239,
+            "maxAngleError": 0.996893228954221,
+            "minimumNonbondedDistance": 1.7202487356699212,
+            "severeOverlapCount": 0
+          }
+        },
+        "depthSpan": 3.8505599134842816,
+        "groupPosition": [
+          0,
+          0,
+          0
+        ],
+        "groupQuaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "groupScale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "sampleEvidence": null,
+      "fit": null,
+      "siteTarget": {
+        "x": 116.95981370856352,
+        "y": 383.8893717997298,
+        "semantic": "REACTIVE END",
+        "acquired": true
+      },
+      "dockAttempt": {
+        "ok": false,
+        "reason": "no-dock-pose",
+        "current": [
+          -0.4486145104013529,
+          -1.276750681957742,
+          -2.3334343484321396
+        ]
+      },
+      "autoAttempt": null
+    },
+    "events": []
+  },
+  "browserErrors": []
+}

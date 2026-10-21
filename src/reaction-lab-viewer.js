@@ -455,7 +455,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const rect=canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return null;
     camera.updateMatrixWorld(true);
     try{
-      const fit=fitPolymerObservation(THREE,{plan,camera,width:rect.width,height:rect.height,safeRegion:observation.safeRegion()});
+      const fit=fitPolymerObservation(THREE,{plan,camera,width:rect.width,height:rect.height,safeRegion:observation.safeRegion(),requiredAtomIndices:observation.initialEnds});
       if(apply){visual.group.position.fromArray(fit.position);visual.group.quaternion.fromArray(fit.quaternion);visual.group.scale.setScalar(fit.scale);visual.group.updateMatrixWorld(true);updatePolymerBondVisuals();}
       polymerRuntimeMetrics.completionFitCalls++;return{...fit,unitCount:plan.unitCount,atomCount:plan.atoms.length,bondCount:plan.bonds.length,depth:plan.bounds.depth};
     }catch(error){visual.fitError={message:error.message,diagnostic:error.fitDiagnostic??null};return null;}

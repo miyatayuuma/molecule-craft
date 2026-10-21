@@ -72,6 +72,19 @@ export function polymerLaneOffsets(order){
   throw new TypeError('Unsupported polymer bond order');
 }
 export const polymerLaneRadius=order=>order===1?.050:.038;
+
+// Comparison groups own these meshes. Refit updates transforms, never geometry.
+export function updatePolymerComparisonLanes(THREE,group,plan,camera){
+  group.updateMatrixWorld(true);camera.updateMatrixWorld(true);
+  const view=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,2).applyQuaternion(group.getWorldQuaternion(new THREE.Quaternion()).invert()),up=new THREE.Vector3(0,1,0);
+  for(const mesh of group.userData.bondLanes??[]){const {bondIndex,offset}=mesh.userData,b=plan.bonds[bondIndex],a=plan.atoms[b.a],z=plan.atoms[b.b],A=new THREE.Vector3(a.x,a.y,a.z),axis=new THREE.Vector3(z.x,z.y,z.z).sub(A),length=axis.length(),direction=axis.clone().normalize(),side=new THREE.Vector3().crossVectors(direction,view),previous=mesh.userData.side;
+    if(side.lengthSq()<1e-8&&previous)side.copy(previous).addScaledVector(direction,-previous.dot(direction));
+    if(side.lengthSq()<1e-8){const fallback=[new THREE.Vector3(1,0,0),up,new THREE.Vector3(0,0,1)].sort((a,b)=>Math.abs(a.dot(direction))-Math.abs(b.dot(direction)))[0];side.crossVectors(direction,fallback);}
+    side.normalize();if(previous&&side.dot(previous)<0)side.negate();mesh.userData.side=side;
+    const trim=element=>Math.max(0,Math.sqrt(Math.max(0,modelAtomRadius(element)**2-offset**2))-.01),start=trim(a.element),end=trim(z.element),exposed=length-start-end,radius=polymerLaneRadius(b.order);
+    mesh.visible=exposed>0;mesh.scale.set(radius,Math.max(0,exposed),radius);mesh.position.copy(A).addScaledVector(direction,start+exposed/2).addScaledVector(side,offset);mesh.quaternion.setFromUnitVectors(up,direction);
+  }
+}
 export const POLYMER_ELEMENT_NAMES=Object.freeze({C:'炭素',H:'水素',O:'酸素',N:'窒素',F:'フッ素',Cl:'塩素',P:'リン',S:'硫黄'});
 
 // Largest empty rectangle, measured in canvas CSS pixels. Touching edges is OK.
@@ -98,7 +111,7 @@ export function polymerVisualPrimitives(plan){
   return primitives;
 }
 
-export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion,atomIndices=null,quaternion=null}){
+export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion,atomIndices=null,quaternion=null,requiredAtomIndices=[]}){
   if(!safeRegion||!plan?.atoms?.length)throw new Error('POLYMER_SAFE_REGION_UNAVAILABLE');
   camera.updateMatrixWorld(true);
   const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1),back=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,2);
@@ -110,10 +123,11 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
   const pivot=new THREE.Vector3(...min.map((v,i)=>(v+max[i])/2));
   const candidates=[];
   if(quaternion)candidates.push(quaternion.clone());
-  else for(const r of [0,Math.PI/2])for(let y=0;y<8;y++)for(const p of [-Math.PI/6,0,Math.PI/6])candidates.push(new THREE.Quaternion().setFromEuler(new THREE.Euler(.34+p,-.28+y*Math.PI/4,.035+r,'XYZ')));
+  else for(const pitches of [[-Math.PI/6,0,Math.PI/6],[-Math.PI/3,Math.PI/3]])for(const r of [0,Math.PI/2])for(let y=0;y<8;y++)for(const p of pitches)candidates.push(new THREE.Quaternion().setFromEuler(new THREE.Euler(.34+p,-.28+y*Math.PI/4,.035+r,'XYZ')));
   let best=null;
   for(let candidateIndex=0;candidateIndex<candidates.length;candidateIndex++){
-    const q=candidates[candidateIndex],convert=p=>{const v=new THREE.Vector3(p.x,p.y,p.z).sub(pivot).applyQuaternion(q);return{x:v.dot(right),y:v.dot(up),z:v.dot(back),r:p.radius};},points=primitives.map(convert),depthPoints=selected?all.map(convert):points;
+    if(candidateIndex===48&&best)break;
+    const q=candidates[candidateIndex],convert=p=>{const v=new THREE.Vector3(p.x,p.y,p.z).sub(pivot).applyQuaternion(q);return{x:v.dot(right),y:v.dot(up),z:v.dot(back),r:p.radius};},points=primitives.map(convert),atomPoints=plan.atoms.map(a=>({...convert(a),r:modelAtomRadius(a.element)})),depthPoints=selected?all.map(convert):points;
     const measure=s=>{
       let tx=(cx-width/2)*d/f,ty=(height/2-cy)*d/f,bounds;
       const project=()=>{let left=Infinity,top=Infinity,right=-Infinity,bottom=-Infinity;
@@ -126,10 +140,19 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
     };
     let low=0,high=8;while(high<64&&measure(high).fits)high*=2;
     for(let j=0;j<32;j++){const mid=(low+high)/2;if(measure(mid).fits)low=mid;else high=mid;}
-    const scale=low*.92,result=measure(scale);if(!result.fits)continue;
+    const scale=low*.92,result=measure(scale);if(!result.fits||!atomIndices&&(result.occupancy<.69||result.occupancy>.95))continue;
+    const visibility=[];
+    for(const index of requiredAtomIndices){const atom=plan.atoms[index];if(!atom)throw new Error('POLYMER_UNKNOWN_INITIAL_TARGET');const center=atomPoints[index],x=scale*center.x+result.tx,y=scale*center.y+result.ty,z=-d+scale*center.z,r=scale*modelAtomRadius(atom.element),px=width/2+f*x/(-z),py=height/2-f*y/(-z),rp=f*r/(-z);let visible=0;
+      for(let k=0;k<64;k++){const radius=Math.sqrt((k+.5)/64)*rp,angle=k*2.3999632297,ray=new THREE.Vector3((px+radius*Math.cos(angle)-width/2)/f,(height/2-py-radius*Math.sin(angle))/f,-1).normalize();let nearest=Infinity,hit=-1;
+        for(let i=0;i<plan.atoms.length;i++){const a=atomPoints[i],cx=scale*a.x+result.tx,cy=scale*a.y+result.ty,cz=-d+scale*a.z,rr=scale*a.r,b=ray.x*cx+ray.y*cy+ray.z*cz,disc=b*b-(cx*cx+cy*cy+cz*cz-rr*rr);if(disc<0)continue;const t=b-Math.sqrt(disc);if(t>0&&t<nearest){nearest=t;hit=i;}}
+        if(hit===index)visible++;
+      }visibility.push({index,visibleFraction:visible/64});
+    }
+    if(visibility.some(v=>v.visibleFraction<.70))continue;
+
     if(!best||result.qMin>best.qMin+1e-9){const position=right.clone().multiplyScalar(result.tx).addScaledVector(up,result.ty).sub(pivot.clone().applyQuaternion(q).multiplyScalar(scale));
       const radius=Math.max(...all.map(p=>Math.hypot(p.x-pivot.x,p.y-pivot.y,p.z-pivot.z)+p.radius));
-      best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
+      best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,initialTargetVisibility:visibility,maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
   }
   if(!best||!atomIndices&&(best.occupancy<.69||best.occupancy>.95||best.maxZoomFactor<1)){const error=new Error('POLYMER_FIT_UNAVAILABLE');error.fitDiagnostic={width,height,safeRegion,best};throw error;}
   return best;
@@ -166,7 +189,7 @@ export function createPolymerObservationUi({THREE,root,canvas,camera,world,signa
   const $=s=>host.querySelector(s),copy=$('[data-observation-copy]'),panel=$('[data-observation-panel]'),target=$('[data-observation-target]'),detail=$('[data-observation-detail]'),focus=$('[data-observation-focus]'),candidates=$('[data-observation-candidates]');
   const overlay=document.createElementNS('http://www.w3.org/2000/svg','svg');overlay.classList.add('polymer-observation-outline');overlay.setAttribute('aria-hidden','true');canvas.parentElement.append(overlay);
   const concept=document.createElement('section');concept.className='polymer-observation-concept';concept.hidden=true;concept.innerHTML='<h3>網目のしくみを説明する模式図</h3><img src="assets/models/polymer-phenol-formaldehyde-resin.svg" alt="図鑑の独立した四つの環と三つの橋の模式図"><p>今回つないだ模型とは別の説明です。</p>';canvas.parentElement.append(concept);
-  let state='OVERVIEW_NEUTRAL',selection=null,targets=[],comparison=null,comparisonGroup=null,comparisonPlan=null,evidence=null,visibility=[],contextLost=false;
+  let overviewEnds=[],state='OVERVIEW_NEUTRAL',selection=null,targets=[],comparison=null,comparisonGroup=null,comparisonPlan=null,evidence=null,visibility=[],contextLost=false;
   const visibleGroup=()=>comparisonGroup??getVisual()?.group;
   function safeRegion(){const r=canvas.getBoundingClientRect(),rects=[];for(const el of root.querySelectorAll('.reaction-lab-equipment,.reaction-lab-medium-selector,.reaction-lab-space>p,.reaction-lab-purge-outlet')){if(el.hidden||!el.getClientRects().length)continue;const b=el.getBoundingClientRect();rects.push({left:b.left-r.left,right:b.right-r.left,top:b.top-r.top,bottom:b.bottom-r.top});}return polymerSafeRectangle(r.width,r.height,rects);}
   function setCopy(){copy.textContent=state==='SELECTED'?detail.textContent:state==='LOCAL_FOCUS'?'一部を拡大中 · リセットで全体へ':state==='COMPARE_BEFORE'?'原料 · 同じ投入分の反応前の構造':state==='COMPARE_BYPRODUCT'?'別にできた水 · 模型とは別の原子':state==='CONCEPT_SEPARATE'?'しくみの説明 · 今回の模型とは別': 'ゲームでつないだ短い部分。形は一例';host.dataset.state=state;}
@@ -189,6 +212,7 @@ export function createPolymerObservationUi({THREE,root,canvas,camera,world,signa
     reset();evidence={sample,sources,sourceRecords,route,coreEvidence};host.hidden=false;
     const semantics=resolvePolymerFragmentTargets(sample,{sourceRecordsByInstanceId:sourceRecords,route});targets=[];
     const add=(label,t)=>{if(t?.atomIndices?.length)targets.push({label,target:t});};
+    overviewEnds=route.builder==='network'?[]:semantics.ends.atomIndices;
     if(semantics.resolved){if(route.builder!=='network')add('主鎖',semantics.backbone);add('側基とのつなぎ目',semantics.sideAttachment);semantics.rings.forEach((t,i)=>add(`輪 ${i+1}`,t));for(const [name,key]of [['エステル','ester'],['アミド','amide'],['三重結合 C≡N','nitrile'],['鎖の二重結合','diene'],['今の鎖の端','ends']])add(name,semantics[key]);for(const [name,key]of [['エーテル','ether'],['酸のOH','acidOH'],['メチル','methyl'],['環をつなぐCH₂','methyleneBridge'],['CH₂OH','hydroxymethyl']])semantics[key].forEach((t,i)=>add(`${name} ${i+1}`,t));semantics.sources.forEach((t,i)=>add(`原料 ${i+1} ${sources.find(s=>s.instanceId===t.originTuples[0]?.instanceId)?.name??''}`,t));}
     sample.fragment.atoms.forEach((a,i)=>add(`原子 ${a.element} · atom ${i}`,{kind:'atom',atomIndices:[i],bondIndices:[],originTuples:[sample.fragment.atomOrigins[i]]}));
     target.replaceChildren(new Option('選んでください',''));targets.forEach((t,i)=>target.add(new Option(t.label,String(i))));
@@ -204,10 +228,11 @@ export function createPolymerObservationUi({THREE,root,canvas,camera,world,signa
     const plan={atoms:[],bonds:[],atomOrigins:[]};for(const row of rows){const offset=plan.atoms.length;plan.atoms.push(...row.atoms);plan.atomOrigins.push(...row.graph.atomOrigins);plan.bonds.push(...row.graph.bonds.map(b=>({...b,a:b.a+offset,b:b.b+offset})));}
     comparisonGroup=new THREE.Group();comparisonGroup.userData.presentationIdentity=kind==='before'?'source-snapshot':'actual-byproducts';world.add(comparisonGroup);
     for(const a of plan.atoms){const mesh=new THREE.Mesh(new THREE.SphereGeometry(modelAtomRadius(a.element),24,16),new THREE.MeshStandardMaterial({color:ELEMENTS[a.element].color,roughness:.32,metalness:.08}));mesh.position.set(a.x,a.y,a.z);comparisonGroup.add(mesh);}
-    for(const b of plan.bonds){const a=plan.atoms[b.a],z=plan.atoms[b.b],A=new THREE.Vector3(a.x,a.y,a.z),B=new THREE.Vector3(z.x,z.y,z.z),axis=B.clone().sub(A),side=new THREE.Vector3().crossVectors(axis,new THREE.Vector3(0,0,1)).normalize();if(side.lengthSq()<1e-8)side.set(1,0,0);for(const o of polymerLaneOffsets(b.order)){const mesh=new THREE.Mesh(new THREE.CylinderGeometry(polymerLaneRadius(b.order),polymerLaneRadius(b.order),axis.length(),12),new THREE.MeshStandardMaterial({color:'#b8d1de',roughness:.5}));mesh.position.copy(A).add(B).multiplyScalar(.5).addScaledVector(side,o);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),axis.normalize());comparisonGroup.add(mesh);}}
+    comparisonGroup.userData.bondLanes=[];
+    for(const [bondIndex,b]of plan.bonds.entries())for(const offset of polymerLaneOffsets(b.order)){const mesh=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,12),new THREE.MeshStandardMaterial({color:'#b8d1de',roughness:.5,metalness:0}));mesh.userData={bondIndex,offset};comparisonGroup.add(mesh);comparisonGroup.userData.bondLanes.push(mesh);}
     comparisonPlan=plan;refitComparison();state=kind==='before'?'COMPARE_BEFORE':'COMPARE_BYPRODUCT';setCopy();
   }
-  function refitComparison(){if(!comparisonGroup||!comparisonPlan)return;const r=canvas.getBoundingClientRect(),fit=fitPolymerObservation(THREE,{plan:comparisonPlan,camera,width:r.width,height:r.height,safeRegion:safeRegion()});comparisonGroup.position.fromArray(fit.position);comparisonGroup.quaternion.fromArray(fit.quaternion);comparisonGroup.scale.setScalar(fit.scale);comparisonGroup.userData.fit=fit;}
+  function refitComparison(){if(!comparisonGroup||!comparisonPlan)return;const r=canvas.getBoundingClientRect(),fit=fitPolymerObservation(THREE,{plan:comparisonPlan,camera,width:r.width,height:r.height,safeRegion:safeRegion()});comparisonGroup.position.fromArray(fit.position);comparisonGroup.quaternion.fromArray(fit.quaternion);comparisonGroup.scale.setScalar(fit.scale);updatePolymerComparisonLanes(THREE,comparisonGroup,comparisonPlan,camera);comparisonGroup.userData.fit=fit;}
   function coreWaterPose(b){const canonical=evidence.coreEvidence.byproductPoses?.[b.instanceId];if(!canonical)throw new Error('POLYMER_WATER_POSE_UNAVAILABLE');return canonical;}
   target.addEventListener('change',()=>{const row=targets[Number(target.value)];if(target.value!==''&&row){if(row.target.kind==='atom')selectAtom(row.target.atomIndices[0]);else select(row.target,row.label);}},{signal});
   function focusSelection({preserveOrientation=false}={}){if(!selection)return;panel.hidden=true;const visual=getVisual(),g=visual.graph,indices=new Set(selection.atomIndices);for(const b of g.bonds)if(selection.atomIndices.includes(b.a)||selection.atomIndices.includes(b.b)){indices.add(b.a);indices.add(b.b);}const r=canvas.getBoundingClientRect(),fit=fitPolymerObservation(THREE,{plan:visual.layoutPlan,camera,width:r.width,height:r.height,safeRegion:safeRegion(),atomIndices:[...indices],quaternion:preserveOrientation?visual.group.quaternion:null});visual.group.position.fromArray(fit.position);visual.group.quaternion.fromArray(fit.quaternion);visual.group.scale.setScalar(fit.scale);getPresentation().focusFit=fit;getPresentation().zoomFactor=1;state='LOCAL_FOCUS';setCopy();onPoseChange();updateOutline();}
@@ -215,5 +240,5 @@ export function createPolymerObservationUi({THREE,root,canvas,camera,world,signa
   $('[data-observation-close]').addEventListener('click',()=>{panel.hidden=true;$('[data-observation-menu]').setAttribute('aria-expanded','false');},{signal});
   $('[data-observation-menu]').addEventListener('click',()=>{panel.hidden=!panel.hidden;$('[data-observation-menu]').setAttribute('aria-expanded',String(!panel.hidden));},{signal});
   for(const [name,kind]of [['before','before'],['after','after'],['water','water'],['concept','concept']])$(`[data-observation-${name}]`).addEventListener('click',()=>compare(kind),{signal});
-  return{prepare,reset,tap,refitComparison,get resourceGroup(){return comparisonGroup;},safeRegion,updateOutline,get state(){return state;},get selection(){return selection;},get comparisonActive(){return !!comparisonGroup||!concept.hidden;},refitLocal:()=>focusSelection({preserveOrientation:true}),resume(){if(state==='COMPARE_BEFORE')compare('before');else if(state==='COMPARE_BYPRODUCT')compare('water');else if(state==='CONCEPT_SEPARATE')compare('concept');else updateOutline();},snapshot:()=>({state,selection,targets,comparisonIdentity:comparisonGroup?.userData.presentationIdentity??(!concept.hidden?'independent-network-concept':null),sampleId:getPresentation()?.sampleId??null,comparisonGraph:comparisonPlan,transition:comparison?.transition??null,comparisonFit:comparisonGroup?.userData.fit??null,safeRegion:safeRegion()}),suspend(){disposeComparison();overlay.replaceChildren();},hide(){disposeComparison();host.hidden=true;panel.hidden=true;overlay.replaceChildren();evidence=null;comparison=null;},contextLost(value){contextLost=value;overlay.replaceChildren();},dispose(){disposeComparison();host.remove();overlay.remove();concept.remove();}};
+  return{prepare,reset,tap,refitComparison,get initialEnds(){return overviewEnds;},get resourceGroup(){return comparisonGroup;},safeRegion,updateOutline,get state(){return state;},get selection(){return selection;},get comparisonActive(){return !!comparisonGroup||!concept.hidden;},refitLocal:()=>focusSelection({preserveOrientation:true}),resume(){if(state==='COMPARE_BEFORE')compare('before');else if(state==='COMPARE_BYPRODUCT')compare('water');else if(state==='CONCEPT_SEPARATE')compare('concept');else updateOutline();},snapshot:()=>({state,selection,targets,comparisonIdentity:comparisonGroup?.userData.presentationIdentity??(!concept.hidden?'independent-network-concept':null),sampleId:getPresentation()?.sampleId??null,comparisonGraph:comparisonPlan,transition:comparison?.transition??null,comparisonFit:comparisonGroup?.userData.fit??null,safeRegion:safeRegion()}),suspend(){disposeComparison();overlay.replaceChildren();},hide(){disposeComparison();host.hidden=true;panel.hidden=true;overlay.replaceChildren();evidence=null;comparison=null;overviewEnds=[];},contextLost(value){contextLost=value;overlay.replaceChildren();},dispose(){disposeComparison();host.remove();overlay.remove();concept.remove();}};
 }

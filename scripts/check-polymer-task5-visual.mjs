@@ -7,6 +7,7 @@ const failures=[],rows=[];
 for(const name of await readdir(directory)){const path=join(directory,name,'visual.json');let row;try{row=JSON.parse(await readFile(path,'utf8'));}catch{failures.push(`${name}: missing visual.json`);continue;}
   const reasons=[];
   if(row.sourceSha!==process.env.POLYMER_SOURCE_SHA)reasons.push('source SHA mismatch');
+  if(!row.initialEndVisibility||row.initialEndVisibility.some(x=>x.visibleFraction<.60))reasons.push('initial real ends insufficiently visible');
   if(row.missingAtoms.length)reasons.push(`unrecovered atoms ${row.missingAtoms}`);
   if(row.missingBonds.length)reasons.push(`unrecovered bonds ${row.missingBonds}`);
   if(!row.localRecovery.completed||!row.rasterLuminance.completed)reasons.push('local/raster grading incomplete');

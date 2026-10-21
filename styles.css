@@ -160,3 +160,5 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .polymer-observation-line{min-height:44px}
 
 .reaction-lab-equipment:disabled{opacity:1;cursor:default}
+
+.polymer-observation-line>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4}

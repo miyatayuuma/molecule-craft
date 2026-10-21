@@ -1,0 +1,665 @@
+{
+  "schemaVersion": 1,
+  "baselineSha": "4bc202c0eb1f51de0350c3a0b4be36c7178cba53",
+  "candidateSha": "6400361c5bc813cd098a038de7883df4692b36ef",
+  "browser": {
+    "product": "Chrome/155.0.8059.84",
+    "revision": "@5869fe313571d75152b77813cf0a4ee26a4e6df0"
+  },
+  "conditions": {
+    "deviceScaleFactor": 1,
+    "webgl": "SwiftShader via ANGLE",
+    "dataset": "Current production polyethylene route; five actual pointer trials per motion mode, first trial warm-up."
+  },
+  "methodology": {
+    "frameInterval": "Intervals between requestAnimationFrame callback timestamps while the finite completion is active.",
+    "completionElapsed": "molecule-craft:reaction-lab-polymer-sample to molecule-craft:reaction-lab-polymer-sample-present.",
+    "framePercentileComparison": "Compare the median of the four per-trial P50s and P95s, giving each independently measured trial equal weight. Also report pooled P50/P95/max and every per-trial raw interval count and percentile. This prevents a one-sample difference between coarse runs from changing the pooled P50 by an entire refresh interval.",
+    "layoutGenerationTiming": "Report per-trial deltas from the cumulative layoutComputationMs counter; baseline implementations without this counter are NOT_MEASURED.",
+    "jsUpdateTimeMs": "NOT_MEASURED",
+    "renderSubmissionTimeMs": "NOT_MEASURED",
+    "gpuExecutionTimeMs": "NOT_MEASURED",
+    "regressionRule": "Median-of-trial P50/P95 frame interval and P95 completion latency must remain within the corresponding baseline statistic plus max(floor, 3×MAD across the four baseline trial summaries). Fine-sampled frame maxima also allow at most one additional candidate interval above 1.5× the 60 Hz refresh quantum, capped at two refresh quanta; coarse samples use the one-refresh-quantum floor. Median and MAD use the conventional midpoint for even-sized samples. When both builds produce 32 or fewer intervals in aggregate, apply the existing one-60-Hz-quantum-plus-0.1-ms floors to P50/P95/maximum comparisons. This remains a coarse sample even when the candidate improves pooled P95 below 100 ms. Every raw interval and long-frame count remains reported. The four-trial completion P95 is the trial maximum and uses the baseline trial MAD. Resource counts, layout/allocation counts, the isolated 3D module request, browser revision, and test conditions are validated explicitly.",
+    "thresholdFloors": {
+      "frameP50Ms": 0.5,
+      "frameP95Ms": 1,
+      "frameMaximumMs": 4,
+      "fineSingleLongFrameMs": 33.5,
+      "coarseFrameP50Ms": 16.8,
+      "coarseFrameP95Ms": 16.8,
+      "coarseFrameMaximumMs": 16.8,
+      "completionP95Ms": 15
+    }
+  },
+  "comparisons": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "mobile": true,
+        "deviceScaleFactor": 1
+      },
+      "motion": "normal",
+      "measuredTrials": 4,
+      "warmupTrialsExcluded": 1,
+      "baseline": {
+        "frameIntervalsMs": {
+          "count": 152,
+          "p50": 16.7,
+          "p95": 16.8,
+          "max": 66.6
+        },
+        "completionElapsedMs": {
+          "count": 4,
+          "p50": 656,
+          "p95": 666.4000000000233,
+          "max": 666.4000000000233
+        },
+        "trialFrameP50Ms": [
+          16.69999999999891,
+          16.69999999999709,
+          16.700000000000728,
+          16.700000000000728
+        ],
+        "trialFrameP95Ms": [
+          33.399999999999636,
+          16.799999999999272,
+          16.700000000000728,
+          16.80000000000291
+        ],
+        "trialFrameMaximumMs": [
+          66.60000000000036,
+          33.29999999999927,
+          16.799999999999272,
+          33.400000000001455
+        ],
+        "trialCompletionElapsedMs": [
+          665.6999999999534,
+          656,
+          653.5999999999767,
+          666.4000000000233
+        ]
+      },
+      "candidate": {
+        "frameIntervalsMs": {
+          "count": 111,
+          "p50": 16.7,
+          "p95": 33.4,
+          "max": 50.1
+        },
+        "completionElapsedMs": {
+          "count": 4,
+          "p50": 655.1999999999534,
+          "p95": 669.1999999999534,
+          "max": 669.1999999999534
+        },
+        "trialFrameP50Ms": [
+          16.700000000000728,
+          16.700000000000728,
+          16.700000000000728,
+          16.700000000000728
+        ],
+        "trialFrameP95Ms": [
+          33.399999999999636,
+          33.400000000001455,
+          33.39999999999782,
+          49.900000000001455
+        ],
+        "trialFrameMaximumMs": [
+          33.399999999999636,
+          50,
+          49.89999999999782,
+          50.099999999998545
+        ],
+        "trialCompletionElapsedMs": [
+          655.8000000000466,
+          653.6000000000931,
+          669.1999999999534,
+          655.1999999999534
+        ]
+      },
+      "comparisonStatistic": {
+        "frameP50Ms": {
+          "baselineMedianOfTrialP50s": 16.699999999999818,
+          "candidateMedianOfTrialP50s": 16.700000000000728
+        },
+        "frameP95Ms": {
+          "baselineMedianOfTrialP95s": 16.80000000000109,
+          "candidateMedianOfTrialP95s": 33.400000000000546
+        }
+      },
+      "layoutGenerationTimingMs": {
+        "baselinePerTrial": [
+          "NOT_MEASURED",
+          "NOT_MEASURED",
+          "NOT_MEASURED",
+          "NOT_MEASURED"
+        ],
+        "candidatePerTrial": [
+          10.9,
+          9.7,
+          8.7,
+          7.2
+        ]
+      },
+      "sampling": {
+        "coarseFrameSampling": false,
+        "frameIntervalCount": {
+          "baseline": 152,
+          "candidate": 111
+        },
+        "frameIntervalsPerTrial": {
+          "baseline": [
+            36,
+            38,
+            39,
+            39
+          ],
+          "candidate": [
+            28,
+            28,
+            29,
+            26
+          ]
+        },
+        "longFrameThresholdMs": 25,
+        "baselineLongFrameCount": 4,
+        "candidateLongFrameCount": 42,
+        "frameMaximumAllowedMs": 91.50000000000327,
+        "completionP95SampleCount": {
+          "baseline": 4,
+          "candidate": 4
+        },
+        "completionP95EqualsTrialMaximum": {
+          "baseline": true,
+          "candidate": true
+        }
+      },
+      "tolerances": {
+        "frameP50Ms": 0.5,
+        "frameP95Ms": 1,
+        "frameMaximumMs": 24.900000000003274,
+        "completionP95Ms": 15.600000000034925
+      },
+      "checks": {
+        "frameP50": true,
+        "frameP95": false,
+        "frameMaximum": false,
+        "completionElapsedP95": true
+      },
+      "pass": false
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "mobile": true,
+        "deviceScaleFactor": 1
+      },
+      "motion": "reduced",
+      "measuredTrials": 4,
+      "warmupTrialsExcluded": 1,
+      "baseline": {
+        "frameIntervalsMs": {
+          "count": 59,
+          "p50": 16.7,
+          "p95": 16.8,
+          "max": 33.4
+        },
+        "completionElapsedMs": {
+          "count": 4,
+          "p50": 258.60000000009313,
+          "p95": 263.4000000000233,
+          "max": 263.4000000000233
+        },
+        "trialFrameP50Ms": [
+          16.69999999999891,
+          16.69999999999891,
+          16.700000000000728,
+          16.69999999999709
+        ],
+        "trialFrameP95Ms": [
+          16.80000000000109,
+          16.799999999999272,
+          33.29999999999927,
+          33.400000000001455
+        ],
+        "trialFrameMaximumMs": [
+          16.80000000000109,
+          16.799999999999272,
+          33.29999999999927,
+          33.400000000001455
+        ],
+        "trialCompletionElapsedMs": [
+          258.60000000009313,
+          263.4000000000233,
+          251.30000000004657,
+          262.19999999995343
+        ]
+      },
+      "candidate": {
+        "frameIntervalsMs": {
+          "count": 41,
+          "p50": 16.7,
+          "p95": 33.4,
+          "max": 50
+        },
+        "completionElapsedMs": {
+          "count": 4,
+          "p50": 254.59999999997672,
+          "p95": 259.80000000004657,
+          "max": 259.80000000004657
+        },
+        "trialFrameP50Ms": [
+          16.700000000000728,
+          16.69999999999891,
+          33.29999999999927,
+          33.30000000000291
+        ],
+        "trialFrameP95Ms": [
+          33.399999999999636,
+          50,
+          50,
+          33.400000000001455
+        ],
+        "trialFrameMaximumMs": [
+          33.399999999999636,
+          50,
+          50,
+          33.400000000001455
+        ],
+        "trialCompletionElapsedMs": [
+          254.59999999997672,
+          250.90000000002328,
+          259.80000000004657,
+          256.69999999995343
+        ]
+      },
+      "comparisonStatistic": {
+        "frameP50Ms": {
+          "baselineMedianOfTrialP50s": 16.69999999999891,
+          "candidateMedianOfTrialP50s": 25
+        },
+        "frameP95Ms": {
+          "baselineMedianOfTrialP95s": 25.050000000000182,
+          "candidateMedianOfTrialP95s": 41.70000000000073
+        }
+      },
+      "layoutGenerationTimingMs": {
+        "baselinePerTrial": [
+          "NOT_MEASURED",
+          "NOT_MEASURED",
+          "NOT_MEASURED",
+          "NOT_MEASURED"
+        ],
+        "candidatePerTrial": [
+          5.4,
+          8.4,
+          7.9,
+          6.8
+        ]
+      },
+      "sampling": {
+        "coarseFrameSampling": false,
+        "frameIntervalCount": {
+          "baseline": 59,
+          "candidate": 41
+        },
+        "frameIntervalsPerTrial": {
+          "baseline": [
+            16,
+            15,
+            14,
+            14
+          ],
+          "candidate": [
+            12,
+            10,
+            10,
+            9
+          ]
+        },
+        "longFrameThresholdMs": 25,
+        "baselineLongFrameCount": 2,
+        "candidateLongFrameCount": 20,
+        "frameMaximumAllowedMs": 58.15,
+        "completionP95SampleCount": {
+          "baseline": 4,
+          "candidate": 4
+        },
+        "completionP95EqualsTrialMaximum": {
+          "baseline": true,
+          "candidate": true
+        }
+      },
+      "tolerances": {
+        "frameP50Ms": 0.5,
+        "frameP95Ms": 24.75,
+        "frameMaximumMs": 24.75,
+        "completionP95Ms": 15
+      },
+      "checks": {
+        "frameP50": false,
+        "frameP95": true,
+        "frameMaximum": false,
+        "completionElapsedP95": true
+      },
+      "pass": false
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "mobile": false,
+        "deviceScaleFactor": 1
+      },
+      "motion": "normal",
+      "measuredTrials": 4,
+      "warmupTrialsExcluded": 1,
+      "baseline": {
+        "frameIntervalsMs": {
+          "count": 24,
+          "p50": 200,
+          "p95": 216.7,
+          "max": 216.7
+        },
+        "completionElapsedMs": {
+          "count": 4,
+          "p50": 1249.0999999999767,
+          "p95": 1407,
+          "max": 1407
+        },
+        "trialFrameP50Ms": [
+          200,
+          200,
+          199.89999999999418,
+          200
+        ],
+        "trialFrameP95Ms": [
+          216.6999999999971,
+          216.70000000000437,
+          216.6999999999971,
+          216.6999999999971
+        ],
+        "trialFrameMaximumMs": [
+          216.6999999999971,
+          216.70000000000437,
+          216.6999999999971,
+          216.6999999999971
+        ],
+        "trialCompletionElapsedMs": [
+          1407,
+          1249.0999999999767,
+          1065.4000000000233,
+          1253.9000000000233
+        ]
+      },
+      "candidate": {
+        "frameIntervalsMs": {
+          "count": 16,
+          "p50": 216.7,
+          "p95": 250,
+          "max": 250
+        },
+        "completionElapsedMs": {
+          "count": 4,
+          "p50": 758.3999999999069,
+          "p95": 771.5,
+          "max": 771.5
+        },
+        "trialFrameP50Ms": [
+          199.89999999999418,
+          216.70000000000437,
+          200,
+          216.60000000000582
+        ],
+        "trialFrameP95Ms": [
+          233.29999999999563,
+          250,
+          250,
+          250
+        ],
+        "trialFrameMaximumMs": [
+          233.29999999999563,
+          250,
+          250,
+          250
+        ],
+        "trialCompletionElapsedMs": [
+          771.5,
+          758.3999999999069,
+          763.5,
+          745.1999999999534
+        ]
+      },
+      "comparisonStatistic": {
+        "frameP50Ms": {
+          "baselineMedianOfTrialP50s": 200,
+          "candidateMedianOfTrialP50s": 208.3000000000029
+        },
+        "frameP95Ms": {
+          "baselineMedianOfTrialP95s": 216.6999999999971,
+          "candidateMedianOfTrialP95s": 250
+        }
+      },
+      "layoutGenerationTimingMs": {
+        "baselinePerTrial": [
+          "NOT_MEASURED",
+          "NOT_MEASURED",
+          "NOT_MEASURED",
+          "NOT_MEASURED"
+        ],
+        "candidatePerTrial": [
+          14.4,
+          9.6,
+          8.8,
+          7.1
+        ]
+      },
+      "sampling": {
+        "coarseFrameSampling": true,
+        "frameIntervalCount": {
+          "baseline": 24,
+          "candidate": 16
+        },
+        "frameIntervalsPerTrial": {
+          "baseline": [
+            6,
+            6,
+            6,
+            6
+          ],
+          "candidate": [
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "longFrameThresholdMs": 25,
+        "baselineLongFrameCount": 19,
+        "candidateLongFrameCount": 16,
+        "frameMaximumAllowedMs": 233.5,
+        "completionP95SampleCount": {
+          "baseline": 4,
+          "candidate": 4
+        },
+        "completionP95EqualsTrialMaximum": {
+          "baseline": true,
+          "candidate": true
+        }
+      },
+      "tolerances": {
+        "frameP50Ms": 16.8,
+        "frameP95Ms": 16.8,
+        "frameMaximumMs": 16.8,
+        "completionP95Ms": 236.85000000003492
+      },
+      "checks": {
+        "frameP50": true,
+        "frameP95": false,
+        "frameMaximum": false,
+        "completionElapsedP95": true
+      },
+      "pass": false
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "mobile": false,
+        "deviceScaleFactor": 1
+      },
+      "motion": "reduced",
+      "measuredTrials": 4,
+      "warmupTrialsExcluded": 1,
+      "baseline": {
+        "frameIntervalsMs": {
+          "count": 12,
+          "p50": 200,
+          "p95": 216.7,
+          "max": 216.7
+        },
+        "completionElapsedMs": {
+          "count": 4,
+          "p50": 621.9000000000233,
+          "p95": 627.3000000000466,
+          "max": 627.3000000000466
+        },
+        "trialFrameP50Ms": [
+          200,
+          216.60000000000582,
+          216.60000000000582,
+          200
+        ],
+        "trialFrameP95Ms": [
+          216.60000000000218,
+          216.6999999999971,
+          216.6999999999971,
+          216.6999999999971
+        ],
+        "trialFrameMaximumMs": [
+          216.60000000000218,
+          216.6999999999971,
+          216.6999999999971,
+          216.6999999999971
+        ],
+        "trialCompletionElapsedMs": [
+          621.9000000000233,
+          603.1999999999534,
+          627.3000000000466,
+          622.5999999999767
+        ]
+      },
+      "candidate": {
+        "frameIntervalsMs": {
+          "count": 8,
+          "p50": 200,
+          "p95": 250,
+          "max": 250
+        },
+        "completionElapsedMs": {
+          "count": 4,
+          "p50": 306.89999999990687,
+          "p95": 313.39999999990687,
+          "max": 313.39999999990687
+        },
+        "trialFrameP50Ms": [
+          199.90000000000146,
+          200,
+          200,
+          199.90000000000873
+        ],
+        "trialFrameP95Ms": [
+          233.39999999999782,
+          250,
+          250,
+          233.39999999999418
+        ],
+        "trialFrameMaximumMs": [
+          233.39999999999782,
+          250,
+          250,
+          233.39999999999418
+        ],
+        "trialCompletionElapsedMs": [
+          306.89999999990687,
+          313.39999999990687,
+          313,
+          278.39999999990687
+        ]
+      },
+      "comparisonStatistic": {
+        "frameP50Ms": {
+          "baselineMedianOfTrialP50s": 208.3000000000029,
+          "candidateMedianOfTrialP50s": 199.95000000000437
+        },
+        "frameP95Ms": {
+          "baselineMedianOfTrialP95s": 216.6999999999971,
+          "candidateMedianOfTrialP95s": 241.6999999999989
+        }
+      },
+      "layoutGenerationTimingMs": {
+        "baselinePerTrial": [
+          "NOT_MEASURED",
+          "NOT_MEASURED",
+          "NOT_MEASURED",
+          "NOT_MEASURED"
+        ],
+        "candidatePerTrial": [
+          5.7,
+          7.6,
+          4.6,
+          7.8
+        ]
+      },
+      "sampling": {
+        "coarseFrameSampling": true,
+        "frameIntervalCount": {
+          "baseline": 12,
+          "candidate": 8
+        },
+        "frameIntervalsPerTrial": {
+          "baseline": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "candidate": [
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "longFrameThresholdMs": 25,
+        "baselineLongFrameCount": 8,
+        "candidateLongFrameCount": 8,
+        "frameMaximumAllowedMs": 233.5,
+        "completionP95SampleCount": {
+          "baseline": 4,
+          "candidate": 4
+        },
+        "completionP95EqualsTrialMaximum": {
+          "baseline": true,
+          "candidate": true
+        }
+      },
+      "tolerances": {
+        "frameP50Ms": 24.90000000000873,
+        "frameP95Ms": 16.8,
+        "frameMaximumMs": 16.8,
+        "completionP95Ms": 15
+      },
+      "checks": {
+        "frameP50": true,
+        "frameP95": false,
+        "frameMaximum": false,
+        "completionElapsedP95": true
+      },
+      "pass": false
+    }
+  ],
+  "pass": false
+}
