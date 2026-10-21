@@ -29,17 +29,18 @@ await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const {port}=server.address(),origin=`http://127.0.0.1:${port}`;
 const profile=await mkdtemp(join(tmpdir(),'molecule-craft-loadout-optical-'));
 const debugPort=9241,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-let child=null,socket=null;
+let child=null,socket=null,browserStderr='',browserExit=null;
 
 try{
   if(captureEnabled)await mkdir(captureDir,{recursive:true});
   child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
+  child.stderr.on('data',data=>{browserStderr=(browserStderr+data.toString()).slice(-16000);});child.on('exit',(code,signal)=>{browserExit={code,signal};});
   let tabs=null;
   for(let attempt=0;attempt<160;attempt++){
     try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}
-    await pause(100);
+    if(browserExit)break;await pause(100);
   }
-  assert.ok(tabs?.length,'DevTools endpoint did not become ready');
+  assert.ok(tabs?.length,'DevTools endpoint did not become ready: '+JSON.stringify({chrome,browserExit,browserStderr}));
   socket=new WebSocket(tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl??tabs[0].webSocketDebuggerUrl);
   await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(new Error('DevTools websocket timeout')),5000);socket.addEventListener('open',()=>{clearTimeout(timer);ok();},{once:true});socket.addEventListener('error',fail,{once:true});});
   let sequence=0;const pending=new Map();

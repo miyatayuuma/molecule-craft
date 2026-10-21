@@ -1,0 +1,2946 @@
+{
+  "sourceSha": null,
+  "routeId": "phenol-formaldehyde-resole",
+  "cycles": [
+    {
+      "craft": {
+        "before": 22,
+        "after": 25,
+        "reopened": {
+          "before": 25,
+          "after": 25
+        }
+      },
+      "gpu": {
+        "geometries": 74,
+        "textures": 0,
+        "renderCalls": 74
+      },
+      "heap": {
+        "usedSize": 12123476,
+        "totalSize": 13107200,
+        "embedderHeapUsedSize": 3776144,
+        "backingStorageSize": 3278411
+      },
+      "kind": "before",
+      "before": "polymer-sample-1-1",
+      "comparisonIdentity": "source-snapshot",
+      "resourcesBefore": {
+        "activeGroupCount": 2,
+        "objectCount": 145,
+        "geometryCount": 143,
+        "materialCount": 143,
+        "disposals": {
+          "disposalCount": 7,
+          "geometryDisposals": 347,
+          "materialDisposals": 347
+        }
+      },
+      "empty": {
+        "state": "COMPARE_BEFORE",
+        "selection": null,
+        "targets": [
+          {
+            "label": "\u8f2a 1",
+            "target": {
+              "kind": "aromatic-0",
+              "atomIndices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "bondIndices": [
+                0,
+                1,
+                3,
+                5,
+                7,
+                9
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u8f2a 2",
+            "target": {
+              "kind": "aromatic-1",
+              "atomIndices": [
+                7,
+                8,
+                13,
+                14,
+                15,
+                16
+              ],
+              "bondIndices": [
+                13,
+                14,
+                16,
+                21,
+                23,
+                25
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u4eca\u306e\u9396\u306e\u7aef",
+            "target": {
+              "kind": "actual-ends",
+              "atomIndices": [
+                6,
+                17,
+                28
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u74b0\u3092\u3064\u306a\u3050CH\u2082 1",
+            "target": {
+              "kind": "methylene-bridge",
+              "atomIndices": [
+                1,
+                8,
+                21,
+                22,
+                23
+              ],
+              "bondIndices": [
+                4,
+                17,
+                27,
+                28
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "CH\u2082OH 1",
+            "target": {
+              "kind": "hydroxymethyl",
+              "atomIndices": [
+                13,
+                27,
+                28,
+                29,
+                30
+              ],
+              "bondIndices": [
+                22,
+                29,
+                30,
+                31
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 1 \u30d5\u30a7\u30ce\u30fc\u30eb",
+            "target": {
+              "kind": "source:phenol-2",
+              "atomIndices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                12,
+                20,
+                24,
+                25,
+                26
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 5
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 8
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 9
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 10
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 11
+                },
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 2 \u30d5\u30a7\u30ce\u30fc\u30eb",
+            "target": {
+              "kind": "source:phenol-4",
+              "atomIndices": [
+                7,
+                8,
+                9,
+                10,
+                11,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 10
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 11
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 12
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 5
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 8
+                },
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 3 \u30db\u30eb\u30e0\u30a2\u30eb\u30c7\u30d2\u30c9",
+            "target": {
+              "kind": "source:formaldehyde-1",
+              "atomIndices": [
+                21,
+                22,
+                23
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 4 \u30db\u30eb\u30e0\u30a2\u30eb\u30c7\u30d2\u30c9",
+            "target": {
+              "kind": "source:formaldehyde-3",
+              "atomIndices": [
+                27,
+                28,
+                29,
+                30
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 0",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                0
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 1",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                1
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 2",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                2
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 3",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                3
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 4",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                4
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 4
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 5",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                5
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 6",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                6
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 6
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 7",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                7
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 8",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                8
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 9",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                9
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 10
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 10",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                10
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 11
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 11",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                11
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 12",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                12
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 8
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 13",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                13
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 14",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                14
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 15",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                15
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 4
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 16",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                16
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 17",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                17
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 6
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 18",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                18
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 8
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 19",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                19
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-4",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 20",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                20
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 21",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                21
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 22",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                22
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 23",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                23
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-1",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 24",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                24
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 10
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 25",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                25
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 11
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 26",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                26
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-2",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 27",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                27
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 28",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                28
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 29",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                29
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 30",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                30
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-3",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          }
+        ],
+        "comparisonIdentity": null,
+        "sampleId": null,
+        "comparisonGraph": null,
+        "transition": null,
+        "comparisonFit": null,
+        "safeRegion": {
+          "left": 12,
+          "right": 244,
+          "top": 81,
+          "bottom": 328,
+          "width": 232,
+          "height": 247,
+          "area": 57304,
+          "centerDistance": 1723.25
+        }
+      },
+      "resources": {
+        "activeGroupCount": 0,
+        "objectCount": 0,
+        "geometryCount": 0,
+        "materialCount": 0,
+        "disposals": {
+          "disposalCount": 8,
+          "geometryDisposals": 416,
+          "materialDisposals": 416
+        }
+      },
+      "after": "polymer-sample-3-2",
+      "restoredResources": {
+        "activeGroupCount": 1,
+        "objectCount": 70,
+        "geometryCount": 69,
+        "materialCount": 69,
+        "disposals": {
+          "disposalCount": 10,
+          "geometryDisposals": 418,
+          "materialDisposals": 418
+        }
+      }
+    },
+    {
+      "craft": {
+        "before": 25,
+        "after": 28,
+        "reopened": {
+          "before": 28,
+          "after": 28
+        }
+      },
+      "gpu": {
+        "geometries": 74,
+        "textures": 0,
+        "renderCalls": 74
+      },
+      "heap": {
+        "usedSize": 12444852,
+        "totalSize": 13631488,
+        "embedderHeapUsedSize": 3810560,
+        "backingStorageSize": 3278432
+      },
+      "kind": "water",
+      "before": "polymer-sample-3-2",
+      "comparisonIdentity": "actual-byproducts",
+      "resourcesBefore": {
+        "activeGroupCount": 2,
+        "objectCount": 76,
+        "geometryCount": 74,
+        "materialCount": 74,
+        "disposals": {
+          "disposalCount": 10,
+          "geometryDisposals": 418,
+          "materialDisposals": 418
+        }
+      },
+      "empty": {
+        "state": "COMPARE_BYPRODUCT",
+        "selection": null,
+        "targets": [
+          {
+            "label": "\u8f2a 1",
+            "target": {
+              "kind": "aromatic-0",
+              "atomIndices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "bondIndices": [
+                0,
+                1,
+                3,
+                5,
+                7,
+                9
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u8f2a 2",
+            "target": {
+              "kind": "aromatic-1",
+              "atomIndices": [
+                7,
+                8,
+                13,
+                14,
+                15,
+                16
+              ],
+              "bondIndices": [
+                13,
+                14,
+                16,
+                21,
+                23,
+                25
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u4eca\u306e\u9396\u306e\u7aef",
+            "target": {
+              "kind": "actual-ends",
+              "atomIndices": [
+                6,
+                17,
+                28
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u74b0\u3092\u3064\u306a\u3050CH\u2082 1",
+            "target": {
+              "kind": "methylene-bridge",
+              "atomIndices": [
+                1,
+                8,
+                21,
+                22,
+                23
+              ],
+              "bondIndices": [
+                4,
+                17,
+                27,
+                28
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "CH\u2082OH 1",
+            "target": {
+              "kind": "hydroxymethyl",
+              "atomIndices": [
+                13,
+                27,
+                28,
+                29,
+                30
+              ],
+              "bondIndices": [
+                22,
+                29,
+                30,
+                31
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 1 \u30d5\u30a7\u30ce\u30fc\u30eb",
+            "target": {
+              "kind": "source:phenol-7",
+              "atomIndices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                12,
+                20,
+                24,
+                25,
+                26
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 5
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 8
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 9
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 10
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 11
+                },
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 2 \u30d5\u30a7\u30ce\u30fc\u30eb",
+            "target": {
+              "kind": "source:phenol-9",
+              "atomIndices": [
+                7,
+                8,
+                9,
+                10,
+                11,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 10
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 11
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 12
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 5
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 8
+                },
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 3 \u30db\u30eb\u30e0\u30a2\u30eb\u30c7\u30d2\u30c9",
+            "target": {
+              "kind": "source:formaldehyde-6",
+              "atomIndices": [
+                21,
+                22,
+                23
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 4 \u30db\u30eb\u30e0\u30a2\u30eb\u30c7\u30d2\u30c9",
+            "target": {
+              "kind": "source:formaldehyde-8",
+              "atomIndices": [
+                27,
+                28,
+                29,
+                30
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 0",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                0
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 1",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                1
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 2",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                2
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 3",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                3
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 4",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                4
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 4
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 5",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                5
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 6",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                6
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 6
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 7",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                7
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 8",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                8
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 9",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                9
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 10
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 10",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                10
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 11
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 11",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                11
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 12",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                12
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 8
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 13",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                13
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 14",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                14
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 15",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                15
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 4
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 16",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                16
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 17",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                17
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 6
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 18",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                18
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 8
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 19",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                19
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-9",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 20",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                20
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 21",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                21
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 22",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                22
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 23",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                23
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-6",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 24",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                24
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 10
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 25",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                25
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 11
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 26",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                26
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-7",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 27",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                27
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 28",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                28
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 29",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                29
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 30",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                30
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-8",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          }
+        ],
+        "comparisonIdentity": null,
+        "sampleId": null,
+        "comparisonGraph": null,
+        "transition": null,
+        "comparisonFit": null,
+        "safeRegion": {
+          "left": 12,
+          "right": 244,
+          "top": 81,
+          "bottom": 328,
+          "width": 232,
+          "height": 247,
+          "area": 57304,
+          "centerDistance": 1723.25
+        }
+      },
+      "resources": {
+        "activeGroupCount": 0,
+        "objectCount": 0,
+        "geometryCount": 0,
+        "materialCount": 0,
+        "disposals": {
+          "disposalCount": 11,
+          "geometryDisposals": 487,
+          "materialDisposals": 487
+        }
+      },
+      "after": "polymer-sample-5-3",
+      "restoredResources": {
+        "activeGroupCount": 1,
+        "objectCount": 70,
+        "geometryCount": 69,
+        "materialCount": 69,
+        "disposals": {
+          "disposalCount": 13,
+          "geometryDisposals": 489,
+          "materialDisposals": 489
+        }
+      }
+    },
+    {
+      "craft": {
+        "before": 28,
+        "after": 31,
+        "reopened": {
+          "before": 31,
+          "after": 31
+        }
+      },
+      "gpu": {
+        "geometries": 74,
+        "textures": 0,
+        "renderCalls": 74
+      },
+      "heap": {
+        "usedSize": 12678428,
+        "totalSize": 13631488,
+        "embedderHeapUsedSize": 3768160,
+        "backingStorageSize": 3278519
+      },
+      "kind": "concept",
+      "before": "polymer-sample-5-3",
+      "comparisonIdentity": "independent-network-concept",
+      "resourcesBefore": {
+        "activeGroupCount": 1,
+        "objectCount": 70,
+        "geometryCount": 69,
+        "materialCount": 69,
+        "disposals": {
+          "disposalCount": 13,
+          "geometryDisposals": 489,
+          "materialDisposals": 489
+        }
+      },
+      "empty": {
+        "state": "CONCEPT_SEPARATE",
+        "selection": null,
+        "targets": [
+          {
+            "label": "\u8f2a 1",
+            "target": {
+              "kind": "aromatic-0",
+              "atomIndices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "bondIndices": [
+                0,
+                1,
+                3,
+                5,
+                7,
+                9
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u8f2a 2",
+            "target": {
+              "kind": "aromatic-1",
+              "atomIndices": [
+                7,
+                8,
+                13,
+                14,
+                15,
+                16
+              ],
+              "bondIndices": [
+                13,
+                14,
+                16,
+                21,
+                23,
+                25
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u4eca\u306e\u9396\u306e\u7aef",
+            "target": {
+              "kind": "actual-ends",
+              "atomIndices": [
+                6,
+                17,
+                28
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u74b0\u3092\u3064\u306a\u3050CH\u2082 1",
+            "target": {
+              "kind": "methylene-bridge",
+              "atomIndices": [
+                1,
+                8,
+                21,
+                22,
+                23
+              ],
+              "bondIndices": [
+                4,
+                17,
+                27,
+                28
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "CH\u2082OH 1",
+            "target": {
+              "kind": "hydroxymethyl",
+              "atomIndices": [
+                13,
+                27,
+                28,
+                29,
+                30
+              ],
+              "bondIndices": [
+                22,
+                29,
+                30,
+                31
+              ],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 1 \u30d5\u30a7\u30ce\u30fc\u30eb",
+            "target": {
+              "kind": "source:phenol-12",
+              "atomIndices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                12,
+                20,
+                24,
+                25,
+                26
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 5
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 8
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 9
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 10
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 11
+                },
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 2 \u30d5\u30a7\u30ce\u30fc\u30eb",
+            "target": {
+              "kind": "source:phenol-14",
+              "atomIndices": [
+                7,
+                8,
+                9,
+                10,
+                11,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 10
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 11
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 12
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 3
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 4
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 5
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 6
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 8
+                },
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 3 \u30db\u30eb\u30e0\u30a2\u30eb\u30c7\u30d2\u30c9",
+            "target": {
+              "kind": "source:formaldehyde-11",
+              "atomIndices": [
+                21,
+                22,
+                23
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u6599 4 \u30db\u30eb\u30e0\u30a2\u30eb\u30c7\u30d2\u30c9",
+            "target": {
+              "kind": "source:formaldehyde-13",
+              "atomIndices": [
+                27,
+                28,
+                29,
+                30
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 0
+                },
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 1
+                },
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 2
+                },
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 0",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                0
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 1",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                1
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 2",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                2
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 3",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                3
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 4",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                4
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 4
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 5",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                5
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 6",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                6
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 6
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 7",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                7
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 8",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                8
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 9",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                9
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 10
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 10",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                10
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 11
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 11",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                11
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 12",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                12
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 8
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 13",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                13
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 14",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                14
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 15",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                15
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 4
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 16",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                16
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 5
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 17",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                17
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 6
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 18",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                18
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 8
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 19",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                19
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-14",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 20",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                20
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 9
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 21",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                21
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 22",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                22
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 23",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                23
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-11",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 24",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                24
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 10
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 25",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                25
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 11
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 26",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                26
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "phenol-12",
+                  "sourceAtomIndex": 12
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 C \u00b7 atom 27",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                27
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 0
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 O \u00b7 atom 28",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                28
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 1
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 29",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                29
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            }
+          },
+          {
+            "label": "\u539f\u5b50 H \u00b7 atom 30",
+            "target": {
+              "kind": "atom",
+              "atomIndices": [
+                30
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "formaldehyde-13",
+                  "sourceAtomIndex": 3
+                }
+              ]
+            }
+          }
+        ],
+        "comparisonIdentity": null,
+        "sampleId": null,
+        "comparisonGraph": null,
+        "transition": null,
+        "comparisonFit": null,
+        "safeRegion": {
+          "left": 12,
+          "right": 244,
+          "top": 81,
+          "bottom": 328,
+          "width": 232,
+          "height": 247,
+          "area": 57304,
+          "centerDistance": 1723.25
+        }
+      },
+      "resources": {
+        "activeGroupCount": 0,
+        "objectCount": 0,
+        "geometryCount": 0,
+        "materialCount": 0,
+        "disposals": {
+          "disposalCount": 14,
+          "geometryDisposals": 558,
+          "materialDisposals": 558
+        }
+      },
+      "after": "polymer-sample-7-4",
+      "restoredResources": {
+        "activeGroupCount": 1,
+        "objectCount": 70,
+        "geometryCount": 69,
+        "materialCount": 69,
+        "disposals": {
+          "disposalCount": 16,
+          "geometryDisposals": 560,
+          "materialDisposals": 560
+        }
+      }
+    }
+  ],
+  "kind": "LOCAL_DIAGNOSTIC_NOT_FINAL_SOURCE_ACCEPTANCE",
+  "sourceFiles": {
+    "src/app.js": "57dbb0c433b16da2c133cd18fdd67bb8ff24a34372665c57ea6a1592d31c03af",
+    "src/reaction-lab-viewer.js": "dadd13dcac1e57d9f7e9c3c6fe3d1736a65740062de5b1e03657f223092515d6",
+    "styles.css": "4ecfdbbc4266adabdbc3e2b7c275c464a5cc7f11d4bb9f1322ef70747d642238"
+  }
+}

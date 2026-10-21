@@ -139,6 +139,7 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .polymer-observation-concept{position:absolute;inset:0;z-index:2;background:#0a1724;color:#e2edf5;overflow:auto;padding:16px;font-size:14px;line-height:1.4}
 .polymer-observation-concept[hidden]{display:none}
 .polymer-observation-concept h3{font-size:16px}
+.polymer-observation-concept p{position:static;margin:12px 0;font-size:14px;line-height:1.4;color:inherit;text-align:left;text-shadow:none}
 .polymer-observation-concept img{width:100%;height:calc(100% - 100px);object-fit:contain}
 .reaction-lab-space>p{font-size:14px;line-height:1.4;bottom:8px;left:82px;right:74px}
 @media(max-width:650px){.reaction-lab{padding:8px 10px;gap:8px}.reaction-lab>header{min-height:44px}.reaction-lab-slot{height:64px}.reaction-lab-command-bar{height:44px}.reaction-lab-polymer-completion{padding:4px 8px;gap:8px}.reaction-lab-polymer-completion-copy strong{font-size:14px}.reaction-lab-polymer-completion button{font-size:14px;min-height:44px}.reaction-lab-space>p{font-size:14px}}

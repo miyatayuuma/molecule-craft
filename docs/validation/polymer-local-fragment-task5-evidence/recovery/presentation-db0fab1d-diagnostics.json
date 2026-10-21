@@ -1,0 +1,562 @@
+{
+  "kind": "BOUNDED_DIAGNOSTIC_NOT_ACCEPTANCE",
+  "sourceSha": "db0fab1d656efa6c1e893beb1a83bb4a5936faeb",
+  "policy": "1 warmup + 1 measured trial each normal/reduced at 1280x900; CPU timing injection and Lab render omission are test-only; not formal comparator acceptance",
+  "conditions": [
+    {
+      "label": "render",
+      "cpu": {
+        "kind": "BOUNDED_DIAGNOSTIC_NOT_ACCEPTANCE",
+        "source": "db0fab1d656efa6c1e893beb1a83bb4a5936faeb",
+        "omitLabRender": false,
+        "costs": [
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 9560.8,
+            "start": 9570.200000000186,
+            "pre": 0.09999999962747097,
+            "manipulation": 0,
+            "physics": 2.7000000001862645,
+            "presentation": 0,
+            "render": 0.09999999962747097,
+            "total": 2.8999999994412065,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 9577.4,
+            "start": 9579.599999999627,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 0.40000000037252903,
+            "presentation": 0,
+            "render": 0,
+            "total": 0.40000000037252903,
+            "submitted": false,
+            "steps": 1
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 9644.1,
+            "start": 9653.200000000186,
+            "pre": 0,
+            "manipulation": 0.09999999962747097,
+            "physics": 2.7000000001862645,
+            "presentation": 0.09999999962747097,
+            "render": 0,
+            "total": 2.8999999994412065,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 9660.8,
+            "start": 9661.099999999627,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 0.7000000001862645,
+            "presentation": 0,
+            "render": 0,
+            "total": 0.7000000001862645,
+            "submitted": false,
+            "steps": 2
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 9677.4,
+            "start": 9678,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 0.5,
+            "presentation": 0,
+            "render": 0,
+            "total": 0.5,
+            "submitted": false,
+            "steps": 1
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 9727.5,
+            "start": 9736.399999999441,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 2.6000000005587935,
+            "presentation": 0,
+            "render": 0,
+            "total": 2.6000000005587935,
+            "submitted": false,
+            "steps": 7
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 9744.1,
+            "start": 9746.299999999814,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 0.7000000001862645,
+            "presentation": 0,
+            "render": 0,
+            "total": 0.7000000001862645,
+            "submitted": false,
+            "steps": 2
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 9810.8,
+            "start": 9824.899999999441,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 1.7000000001862645,
+            "presentation": 1.6000000005587935,
+            "render": 0,
+            "total": 3.300000000745058,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 17027.1,
+            "start": 17031,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 1.599999999627471,
+            "presentation": 0.10000000055879354,
+            "render": 0,
+            "total": 1.7000000001862645,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 17043.8,
+            "start": 17044.700000000186,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 0.8999999994412065,
+            "presentation": 0,
+            "render": 0,
+            "total": 0.8999999994412065,
+            "submitted": false,
+            "steps": 2
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 17127.1,
+            "start": 17135.89999999944,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 2.6000000005587935,
+            "presentation": 0,
+            "render": 0,
+            "total": 2.6000000005587935,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 17227.1,
+            "start": 17230.5,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 1.7999999998137355,
+            "presentation": 0,
+            "render": 0,
+            "total": 1.7999999998137355,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 17243.8,
+            "start": 17247.5,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 0.599999999627471,
+            "presentation": 1.2000000001862645,
+            "render": 0,
+            "total": 1.7999999998137355,
+            "submitted": false,
+            "steps": 2
+          }
+        ]
+      },
+      "trials": [
+        {
+          "motion": "normal",
+          "trialIndex": 0,
+          "warmup": true,
+          "completionElapsedMs": 703.3999999994412,
+          "targetDurationMs": 650,
+          "frameIntervalsMs": {
+            "count": 18,
+            "frameCount": 19,
+            "firstFrameOffsetMs": 8.7,
+            "lastFrameOffsetMs": 758.7,
+            "sampledFrameSpanMs": 750,
+            "trailingGapMs": 11.4,
+            "p50": 33.29999999999927,
+            "p95": 116.70000000000073,
+            "max": 116.70000000000073,
+            "values": [
+              116.7,
+              66.7,
+              83.3,
+              83.3,
+              16.6,
+              50.1,
+              16.7,
+              16.6,
+              33.3,
+              16.7,
+              16.6,
+              33.4,
+              16.7,
+              16.7,
+              33.3,
+              16.6,
+              50,
+              66.7
+            ]
+          }
+        },
+        {
+          "motion": "normal",
+          "trialIndex": 1,
+          "warmup": false,
+          "completionElapsedMs": 664.8999999994412,
+          "targetDurationMs": 650,
+          "frameIntervalsMs": {
+            "count": 20,
+            "frameCount": 21,
+            "firstFrameOffsetMs": 25.7,
+            "lastFrameOffsetMs": 675.7,
+            "sampledFrameSpanMs": 650,
+            "trailingGapMs": 5.9,
+            "p50": 16.700000000000728,
+            "p95": 66.59999999999854,
+            "max": 66.79999999999927,
+            "values": [
+              16.6,
+              66.8,
+              16.6,
+              50,
+              16.7,
+              50,
+              66.6,
+              16.7,
+              50,
+              16.7,
+              50,
+              16.6,
+              16.7,
+              50,
+              16.7,
+              16.6,
+              16.7,
+              16.7,
+              66.6,
+              16.7
+            ]
+          }
+        },
+        {
+          "motion": "reduced",
+          "trialIndex": 0,
+          "warmup": true,
+          "completionElapsedMs": 323.09999999962747,
+          "targetDurationMs": 250,
+          "frameIntervalsMs": {
+            "count": 8,
+            "frameCount": 9,
+            "firstFrameOffsetMs": 57,
+            "lastFrameOffsetMs": 323.7,
+            "sampledFrameSpanMs": 266.7,
+            "trailingGapMs": 16.1,
+            "p50": 16.69999999999891,
+            "p95": 66.70000000000073,
+            "max": 66.70000000000073,
+            "values": [
+              16.6,
+              66.7,
+              16.7,
+              16.6,
+              50.1,
+              16.6,
+              66.7,
+              16.7
+            ]
+          }
+        },
+        {
+          "motion": "reduced",
+          "trialIndex": 1,
+          "warmup": false,
+          "completionElapsedMs": 260,
+          "targetDurationMs": 250,
+          "frameIntervalsMs": {
+            "count": 5,
+            "frameCount": 6,
+            "firstFrameOffsetMs": 38.9,
+            "lastFrameOffsetMs": 288.9,
+            "sampledFrameSpanMs": 250,
+            "trailingGapMs": 4.4,
+            "p50": 33.29999999999927,
+            "p95": 100,
+            "max": 100,
+            "values": [
+              16.7,
+              83.3,
+              100,
+              16.7,
+              33.3
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "omit-render",
+      "cpu": {
+        "kind": "BOUNDED_DIAGNOSTIC_NOT_ACCEPTANCE",
+        "source": "db0fab1d656efa6c1e893beb1a83bb4a5936faeb",
+        "omitLabRender": true,
+        "costs": [
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 10273.1,
+            "start": 10275.200000000186,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 1.7000000001862645,
+            "presentation": 0,
+            "render": 0.09999999962747097,
+            "total": 1.7999999998137355,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 10289.7,
+            "start": 10293.200000000186,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 0.2999999998137355,
+            "presentation": 0,
+            "render": 0,
+            "total": 0.2999999998137355,
+            "submitted": false,
+            "steps": 1
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 10323,
+            "start": 10333.799999999814,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 0.900000000372529,
+            "presentation": 0,
+            "render": 0,
+            "total": 0.900000000372529,
+            "submitted": false,
+            "steps": 4
+          },
+          {
+            "sampleId": "polymer-sample-1-1",
+            "raf": 10406.4,
+            "start": 10408.599999999627,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 2.6000000005587935,
+            "presentation": 1.3999999994412065,
+            "render": 0,
+            "total": 4,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 18856,
+            "start": 18860.900000000373,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 2,
+            "presentation": 0,
+            "render": 0,
+            "total": 2,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 18872.6,
+            "start": 18872.900000000373,
+            "pre": 0.09999999962747097,
+            "manipulation": 0.09999999962747097,
+            "physics": 0.10000000055879354,
+            "presentation": 0,
+            "render": 0,
+            "total": 0.2999999998137355,
+            "submitted": false,
+            "steps": 1
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 18939.3,
+            "start": 18941.700000000186,
+            "pre": 0,
+            "manipulation": 0.09999999962747097,
+            "physics": 1.6000000005587935,
+            "presentation": 0,
+            "render": 0,
+            "total": 1.7000000001862645,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 19006,
+            "start": 19016.099999999627,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 1.7000000001862645,
+            "presentation": 0,
+            "render": 0,
+            "total": 1.7000000001862645,
+            "submitted": false,
+            "steps": 8
+          },
+          {
+            "sampleId": "polymer-sample-2-2",
+            "raf": 19156,
+            "start": 19166.400000000373,
+            "pre": 0,
+            "manipulation": 0,
+            "physics": 1.8999999994412065,
+            "presentation": 2.7000000001862645,
+            "render": 0,
+            "total": 4.599999999627471,
+            "submitted": false,
+            "steps": 8
+          }
+        ]
+      },
+      "trials": [
+        {
+          "motion": "normal",
+          "trialIndex": 0,
+          "warmup": true,
+          "completionElapsedMs": 684.5,
+          "targetDurationMs": 650,
+          "frameIntervalsMs": {
+            "count": 11,
+            "frameCount": 12,
+            "firstFrameOffsetMs": 31,
+            "lastFrameOffsetMs": 764.2,
+            "sampledFrameSpanMs": 733.2,
+            "trailingGapMs": 3.6,
+            "p50": 66.70000000000073,
+            "p95": 133.29999999999927,
+            "max": 133.29999999999927,
+            "values": [
+              16.6,
+              66.7,
+              66.6,
+              83.4,
+              83.4,
+              66.6,
+              16.6,
+              33.4,
+              133.3,
+              83.3,
+              83.3
+            ]
+          }
+        },
+        {
+          "motion": "normal",
+          "trialIndex": 1,
+          "warmup": false,
+          "completionElapsedMs": 675.1000000005588,
+          "targetDurationMs": 650,
+          "frameIntervalsMs": {
+            "count": 13,
+            "frameCount": 14,
+            "firstFrameOffsetMs": 39.5,
+            "lastFrameOffsetMs": 789.5,
+            "sampledFrameSpanMs": 750,
+            "trailingGapMs": 2.2,
+            "p50": 66.60000000000218,
+            "p95": 116.60000000000218,
+            "max": 116.60000000000218,
+            "values": [
+              16.7,
+              66.6,
+              66.7,
+              50,
+              66.7,
+              50,
+              66.7,
+              16.6,
+              50,
+              66.7,
+              50,
+              66.7,
+              116.6
+            ]
+          }
+        },
+        {
+          "motion": "reduced",
+          "trialIndex": 0,
+          "warmup": true,
+          "completionElapsedMs": 260.29999999981374,
+          "targetDurationMs": 250,
+          "frameIntervalsMs": {
+            "count": 4,
+            "frameCount": 5,
+            "firstFrameOffsetMs": 122.1,
+            "lastFrameOffsetMs": 322,
+            "sampledFrameSpanMs": 199.9,
+            "trailingGapMs": 4.9,
+            "p50": 33.29999999999927,
+            "p95": 83.39999999999964,
+            "max": 83.39999999999964,
+            "values": [
+              16.6,
+              33.3,
+              83.4,
+              66.6
+            ]
+          }
+        },
+        {
+          "motion": "reduced",
+          "trialIndex": 1,
+          "warmup": false,
+          "completionElapsedMs": 382.5,
+          "targetDurationMs": 250,
+          "frameIntervalsMs": {
+            "count": 5,
+            "frameCount": 6,
+            "firstFrameOffsetMs": 70,
+            "lastFrameOffsetMs": 453.3,
+            "sampledFrameSpanMs": 383.3,
+            "trailingGapMs": 12.5,
+            "p50": 66.70000000000073,
+            "p95": 150,
+            "max": 150,
+            "values": [
+              16.6,
+              66.7,
+              66.7,
+              150,
+              83.3
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "conclusion": "Lab completion CPU was at most 3.3ms in the full-render reduced sample; omitting Lab submissions did not remove RAF stalls. Code inspection found behind-modal CRAFT submissions; subsequent candidate pauses those via existing dialog ownership flag. Formal Finite improvement is not certified by this diagnostic."
+}

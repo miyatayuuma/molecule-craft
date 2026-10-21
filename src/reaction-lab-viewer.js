@@ -101,7 +101,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   let dialogOpenState=!!dialog.open;const closeWaiters=new Set();
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
-  let reactionDiagnostics=[],reactionTrajectoryTrace=null;
+  let reactionDiagnostics=[],reactionTrajectoryTrace=null,pickerTrace=[];
   let instanceSequence=0,stageAForces={bodies:new Map(),pairDiagnostics:[],overlapGuardActivationCount:0},stageAPerformance={lastPhysicsDurationMs:0,lastFixedStepDurationMs:0,lastInteractionPairCount:0,lastFrameStepCount:0,lastDroppedGameSeconds:0,fixedSteps:0};
   const activePointers=new Map(),polymerOrbitPointers=new Set();
   const chamberTime=createChamberTimeAuthority(),isManipulating=()=>chamberTime.mode===CHAMBER_TIME_MODES.MANIPULATING;
@@ -667,6 +667,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(!pickerOpen)return;pickerOpen=false;picker.hidden=true;picker.setAttribute('aria-hidden','true');pickerSlotIndex=-1;const source=pickerSource;pickerSource=null;renderSlotTiles();if(returnFocus&&source?.isConnected)source.focus();
   }
   function openPicker(index){
+    if(localhostPhysicsTest){pickerTrace.push({index,canEdit:canEditRack(),signalAborted:eventController.signal.aborted,connected:slots[index]?.isConnected,same:slots[index]===root.querySelectorAll('[data-lab-slot]')[index]});if(pickerTrace.length>32)pickerTrace.shift();}
     if(!canEditRack())return;pickerSlotIndex=index;pickerSource=slots[index];pickerOpen=true;pickerSearch.value='';renderPickerOptions();picker.hidden=false;picker.setAttribute('aria-hidden','false');renderSlotTiles();root.querySelector('[data-lab-picker-close]')?.focus({preventScroll:true});
   }
   slots.forEach((tile,index)=>tile.addEventListener('click',()=>openPicker(index),eventOptions));
@@ -704,6 +705,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function startPurge(generation,nextSlots,feedSchedule){
     const discardFailedPolymerBatch=!!polymerBeginError||!!polymerGraphVisual?.displayError;
     cancelAllPointers();contactMatcher.reset();testIsolation=null;reactionDiagnostics=[];
+    // Comparisons own world groups independently of the finite Sample. An
+    // empty next rack ends at IDLE and never initializes another polymer batch.
+    observation?.hide();
     purgeItems=instances;instances=[];
     if(polymerSamplePresentation&&!polymerSamplePresentation.ready&&!polymerSamplePresentation.dismissed){polymerSamplePresentation.dismissed=true;dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-dismiss',{sampleId:polymerSamplePresentation.sampleId,batchGeneration:polymerSamplePresentation.batchGeneration});}
     if(polymerGraphVisual){purgeItems.push({id:polymerSamplePresentation?.sampleId??'polymer-fragment',species:'PolymerSample',group:polymerGraphVisual.group,polymerSample:true});polymerGraphVisual=null;}
@@ -1272,7 +1276,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       restoreContext(){if(!testContextLoss)throw Error('No test context loss');testContextLoss.restoreContext();},
       polymerResourceSnapshot,
       polymerObservation:()=>observation.snapshot(),
-      polymerFailureInput:()=>({snapshot:polymerCore.snapshot(),sources:polymerSourceRecordsById,diagnostics:polymerRuntimeMetrics.lastLayoutDiagnostics,displayError:polymerGraphVisual?.displayError??null,docking:probe.polymerDockDiagnostics()}),
+      polymerFailureInput:()=>({snapshot:polymerCore.snapshot(),sources:polymerSourceRecordsById,diagnostics:polymerRuntimeMetrics.lastLayoutDiagnostics,displayError:polymerGraphVisual?.displayError??null,rackLock:{pickerTrace,eventSignalAborted:eventController.signal.aborted,disposed,selected:selected?.id??null,pointers:[...activePointers.keys()],pinchActive,pickerOpen,transition:isTransitionLocked(),polymer:isPolymerRackLocked(),presentation:!!polymerSamplePresentation&&!polymerSamplePresentation.ready,reactionAnimation:!!reactionAnimation,contextLost,canEdit:canEditRack(),slots:[...root.querySelectorAll('[data-lab-slot]')].map(e=>({disabled:e.disabled,html:e.outerHTML}))},docking:probe.polymerDockDiagnostics()}),
       polymerDockDiagnostics(instanceId){
         const item=instanceId?instanceById(instanceId):polymerNextCandidates()[0],preview=polymerInteraction(item);
         if(!item||!preview.ok||!polymerGraphVisual)return null;

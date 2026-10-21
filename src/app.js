@@ -869,7 +869,7 @@ function recoverCraftAnimationState(){
   return true;
 }
 function animate(now=performance.now()){
-  requestAnimationFrame(animate);if(veilUI?.active||document.hidden||gameShell.isOpen()||collectionOpen)return;
+  requestAnimationFrame(animate);if(veilUI?.active||document.hidden||gameShell.isOpen()||collectionOpen||reactionLabDialogOpen)return;
   try{
     if(bondTransition)updateBondTransition(now);if(relaxation)updateRelaxation(now);
     if(dragState?.moved&&['conformation','rigid-body'].includes(dragState.mode))advanceConformationDrag(now);

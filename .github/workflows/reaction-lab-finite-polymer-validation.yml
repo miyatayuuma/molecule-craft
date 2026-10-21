@@ -40,6 +40,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
+    needs: task5-visual-acceptance
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -268,6 +269,15 @@ jobs:
       - name: Reproduce actual PET fit with captured failure input
         env:
           POLYMER_FIT_DIAGNOSTIC_ROUTE: polyethylene-terephthalate-direct-polycondensation
+          POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Empty FEED comparison disposal and real re-FEED — PF before/water/concept
+        env:
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: phenol-formaldehyde-resole
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
+          POLYMER_TASK5_LIFECYCLE_QA: '1'
           POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/reaction-lab-polymer-browser.test.mjs

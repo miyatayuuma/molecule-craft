@@ -19,7 +19,7 @@ const requestedVisualRouteIds=['polyethylene-coordination','polypropylene-coordi
 if(!task5Visual&&!fitDiagnosticRoute)assert.ok(requestedVisualRouteIds.every(id=>hardRoutes.some(route=>route.routeId===id)),'Pointer and screenshot QA includes all nine requested polymer types');
 const moleculeIds=[...new Set([...routes.flatMap(route=>route.feedSpecies),'water'])],moleculeSave={schemaVersion:3,discoveredMolecules:moleculeIds.map((id,index)=>({id,at:index+1,order:index+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
 const indexHtml=await readFile(join(root,'index.html'),'utf8'),mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
-const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=normalize(join(root,pathname==='/'?'index.html':pathname.replace(/^\/+/,'')));if(!file.startsWith(root)){res.writeHead(403).end();return;}let body=await readFile(file);if(pathname==='/src/app.js'){const source=body.toString(),target='reactionLabViewer=createReactionLabViewer({';assert.ok(source.includes(target),'test-only viewer disposal hook target remains present');body=Buffer.from(source.replace(target,'reactionLabViewer=window.__reactionLabViewer=createReactionLabViewer({'));}if(process.env.POLYMER_TASK4_FAILURE_QA==='1'&&pathname==='/src/polymer-fragment-3d-layout.js'){
+const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=normalize(join(root,pathname==='/'?'index.html':pathname.replace(/^\/+/,'')));if(!file.startsWith(root)){res.writeHead(403).end();return;}let body=await readFile(file);if(pathname==='/src/app.js'){const source=body.toString(),target='reactionLabViewer=createReactionLabViewer({';assert.ok(source.includes(target),'test-only viewer disposal hook target remains present');const renderTarget='try{renderer.render(scene,camera);}';assert.ok(source.includes(renderTarget),'test-only Craft render counter target remains present');body=Buffer.from(source.replace(target,'reactionLabViewer=window.__reactionLabViewer=createReactionLabViewer({').replace(renderTarget,'try{window.__task5CraftRenders=(window.__task5CraftRenders??0)+1;renderer.render(scene,camera);}'));}if(process.env.POLYMER_TASK4_FAILURE_QA==='1'&&pathname==='/src/polymer-fragment-3d-layout.js'){
 const text=body.toString(),target='const plan=createPolymerFragment3DLayout(sample,options);';assert.ok(text.includes(target),'Task4 failure injection matches the production safe boundary');
 body=Buffer.from(text.replace(target,`if(globalThis.__task4GeometryFailure==='initial'||globalThis.__task4GeometryFailure==='final'&&new Set((sample.fragment??sample).atomOrigins.map(o=>o.instanceId)).size===4)throw new Error('TASK4_INJECTED_GEOMETRY_FAILURE');${target}`));
 }res.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);}catch{res.writeHead(404).end('not found');}});
@@ -44,13 +44,16 @@ try{
   await send('Runtime.enable');await send('Page.enable');await send('Network.enable');await send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:task5Dpr});
   if(task5Reduced)await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1&reactionLabPhysics=stage-b`});await openLab();await wireDiscoveryEvents();
+  const craftPause={};
+  const assertCraftPaused=async()=>{await pause(100);const before=await evaluate('window.__task5CraftRenders??0');await pause(120);const after=await evaluate('window.__task5CraftRenders??0');assert.equal(after,before,'CRAFT GPU submissions pause while Reaction Lab owns the modal');return{before,after};};
+  if(!task10BaselineProfile)craftPause.open=await assertCraftPaused();
   assert.equal((await snapshot()).physicsMode,'stage-b','the browser gate uses production Stage B');
   const retiredModuleRequests=await evaluate("performance.getEntriesByType('resource').map(entry=>entry.name).filter(name=>/reaction-lab-polymer-cinematic|polymer-growth-plan|polymer-morphology-(?:authority|plan|renderer|bridge)/.test(name))");assert.deepEqual(retiredModuleRequests,[],'production completion does not fetch retired visualization modules');
   const setDraftSlots=async ids=>{
     for(let index=0;index<3;index++){
       const state=await snapshot(),current=state.batch.draftSlots[index]??'',next=ids[index]??'';if(current===next)continue;
       await waitFor("!window.__reactionLabProbe.snapshot().pickerOpen&&!window.__reactionLabProbe.snapshot().batch.transitionKind",'Feed Rack is still transitioning');
-      await evaluate(`document.querySelectorAll('[data-lab-slot]')[${index}].click()`);await waitFor("!document.querySelector('[data-lab-picker]').hidden",'Species picker did not open');
+      await waitFor(`!document.querySelectorAll('[data-lab-slot]')[${index}].disabled`,'Feed slot is still locked');await evaluate(`document.querySelectorAll('[data-lab-slot]')[${index}].click()`);await waitFor("!document.querySelector('[data-lab-picker]').hidden",'Species picker did not open');
       if(next)await evaluate(`(()=>{const input=document.querySelector('[data-lab-search]');input.value=${JSON.stringify(next)};input.dispatchEvent(new Event('input',{bubbles:true}));const option=document.querySelector('[data-lab-picker-list] [data-species="${next}"]');if(!option)throw Error('Feed picker lacks '+${JSON.stringify(next)});option.click()})()`);
       else await evaluate("document.querySelector('[data-lab-disconnect]').click()");
       await waitFor("document.querySelector('[data-lab-picker]').hidden",'Species picker did not close');
@@ -266,6 +269,29 @@ try{
     if(task5Visual)await auditPolymerTask5Visual({evaluate,send,artifactDir,route,viewport,sourceSha:process.env.POLYMER_SOURCE_SHA});
     const row={routeId:route.routeId,polymerId:route.polymerId,viewport,visualEvidence:{screenshot:`representative-${route.polymerId}-${viewport.width}.png`},durationMs:preReady.state.polymerization.sampleDurationMs,presentDelayMs:ready.delay,unitCount:ready.state.polymerization.displayGraph.unitCount,atomCount:ready.state.polymerization.displayGraph.atomCount,bondCount:ready.state.polymerization.displayGraph.bondCount,visibleBondMeshCount:ready.state.polymerization.displayGraph.visibleBondMeshCount,fit:ready.state.polymerization.fit,readyLayoutCalls:ready.state.polymerization.layoutCallsAtReady,finiteLayoutCalls:ready.state.polymerRuntimeMetrics.finiteLayoutCalls,completionLayoutCallsAfterReady:ready.state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,polymerResources:ready.state.polymerResources,retiredModuleRequests,metrics:ready.state.polymerRuntimeMetrics};
     evidence.push(row);normalEvidence.push(ready.state.polymerization.sampleEvidence);previousSample=true;
+  }
+  if(process.env.POLYMER_TASK5_LIFECYCLE_QA==='1'){
+    const route=hardRoutes.at(-1),cycles=[];
+    for(const kind of ['before',...(route.completionEvidence.byproducts.water?['water']:[]),...(route.builder==='network'?['concept']:[])]){
+      const before=await snapshot(),identity=before.polymerization.sampleId;
+      await evaluate("document.querySelector('[data-observation-menu]').click()");await evaluate(`document.querySelector('[data-observation-${kind}]').click()`);
+      const comparison=await evaluate('window.__reactionLabProbe.polymerObservation()');assert.ok(comparison.comparisonIdentity);
+      const resourcesBefore=await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()');
+      await setDraftSlots([]);await evaluate("document.querySelector('[data-lab-feed]').click()");
+      await waitFor("window.__reactionLabProbe.snapshot().batch.phase==='IDLE'&&!window.__reactionLabProbe.snapshot().batch.transitionKind",'Empty FEED reaches IDLE');
+      const empty=await evaluate('window.__reactionLabProbe.polymerObservation()'),resources=await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()');
+      assert.equal(empty.comparisonIdentity,null,'empty FEED disposes independent comparison/concept');assert.equal(empty.comparisonGraph,null);assert.equal(resources.activeGroupCount,0);assert.equal(resources.geometryCount,0);assert.equal(resources.materialCount,0);
+      await evaluate("document.querySelector('[data-lab-close]').click()");const craftBefore=await evaluate('window.__task5CraftRenders??0');await waitFor(`(window.__task5CraftRenders??0)>${craftBefore}`,'CRAFT render resumes after Lab closes');const craftAfter=await evaluate('window.__task5CraftRenders??0');await openLab();const craftReopened=await assertCraftPaused();assert.equal((await evaluate('window.__reactionLabProbe.polymerObservation()')).comparisonIdentity,null);
+      const r=await evaluate("(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()");
+      await send('Input.dispatchMouseEvent',{type:'mousePressed',...r,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...r,button:'left',buttons:0});assert.equal((await snapshot()).pointerActive,false);
+      await resetPolymerEvents();await feedRoute(route,false);await runManualSteps(route);await completeAutomaticStep(route);await inspectCompletion(route);await finishCompletion(route);
+      const restored=await snapshot();assert.notEqual(restored.polymerization.sampleId,identity,'actual re-FEED constructs a new Sample');
+      const gpu=await evaluate('window.__reactionLabProbe.polymerVisualSnapshot().gpuResources');await send('HeapProfiler.collectGarbage');const heap=await send('Runtime.getHeapUsage');
+      cycles.push({craft:{before:craftBefore,after:craftAfter,reopened:craftReopened},gpu,heap,kind,before:identity,comparisonIdentity:comparison.comparisonIdentity,resourcesBefore,empty,resources,after:restored.polymerization.sampleId,restoredResources:restored.polymerResources});
+    }
+    for(const cycle of cycles)for(const key of ['geometries','textures'])assert.equal(cycle.gpu[key],cycles[0].gpu[key],'GPU resources stay flat across real construction/disposal');
+    const restored=cycles.map(c=>c.restoredResources);for(const row of restored)for(const key of ['geometryCount','materialCount'])assert.equal(row[key],restored[0][key],'same real Sample construction/disposal count stays flat');
+    await writeFile(join(artifactDir,'empty-feed-lifecycle.json'),JSON.stringify({sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId:route.routeId,cycles},null,2));
   }
   const discoveries=await evaluate(`JSON.parse(localStorage.getItem('molecule-craft.polymer-collection.v1')||'{}').discoveredPolymers`);assert.equal(discoveries.length,hardRoutes.length);assert.deepEqual(discoveries.map(item=>item.order),Array.from({length:hardRoutes.length},(_,i)=>i+1));
   {
