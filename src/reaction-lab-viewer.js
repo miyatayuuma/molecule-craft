@@ -154,7 +154,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     selected=null;down=null;chamberTime.setMode(CHAMBER_TIME_MODES.NORMAL);clearDepthTarget();
   }
   function instanceById(id){return instances.find(item=>item.id===id)??null;}
-  function disposeObject(object){const geometries=new Set(),materials=new Set();object?.traverse?.(child=>{if(child.geometry&&!geometries.has(child.geometry)){geometries.add(child.geometry);child.geometry.dispose();}if(child.userData?.formalCharge)child.material?.map?.dispose?.();if(Array.isArray(child.material))child.material.forEach(material=>material.dispose?.());else child.material?.dispose?.();});}
+  function disposeObject(object){const geometries=new Set();object?.traverse?.(child=>{if(child.geometry&&!geometries.has(child.geometry)){geometries.add(child.geometry);child.geometry.dispose();}if(child.userData?.formalCharge)child.material?.map?.dispose?.();if(Array.isArray(child.material))child.material.forEach(material=>material.dispose?.());else child.material?.dispose?.();});}
   function countPolymerResources(groups){
     const objects=new Set(),geometries=new Set(),materials=new Set();
     for(const group of groups)group?.traverse?.(object=>{objects.add(object);if(object.geometry)geometries.add(object.geometry);if(Array.isArray(object.material))for(const material of object.material)materials.add(material);else if(object.material)materials.add(object.material);});
@@ -287,7 +287,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const mesh=meshes[index],atom=atoms[index];
       mesh.geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),24,16);
       mesh.material=new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element]?.color??'#cbd5e1',roughness:.32,metalness:.08});
-      mesh.userData.polymerAtom=true;mesh.userData.polymerGraphIndex=index;mesh.userData.polymerOrigin={...origins[index]};visual.group.add(mesh);visual.atomByGraphIndex.set(index,mesh);
+      mesh.userData.polymerAtom=true;mesh.userData.polymerGraphIndex=index;mesh.userData.polymerElement=atoms[index].element;mesh.userData.polymerOrigin={...origins[index]};visual.group.add(mesh);visual.atomByGraphIndex.set(index,mesh);
     }
     visual.suspended=false;world.add(visual.group);updatePolymerBondVisuals();visual.group.updateMatrixWorld(true);return true;
   }
@@ -307,7 +307,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const plan=polymerPresentationPlan(fragment,representation),visual=mergePolymerSourceAtoms(fragment),from=new Map();visual.atomByGraphIndex.clear();
     for(let index=0;index<fragment.atomOrigins.length;index++){
       const mesh=visual.atomMeshesByOrigin.get(polymerOriginKey(fragment.atomOrigins[index]));if(!mesh)continue;
-      from.set(index,mesh.position.clone());visual.atomByGraphIndex.set(index,mesh);mesh.userData.polymerAtom=true;mesh.userData.polymerGraphIndex=index;mesh.userData.polymerOrigin={...fragment.atomOrigins[index]};
+      from.set(index,mesh.position.clone());visual.atomByGraphIndex.set(index,mesh);mesh.userData.polymerAtom=true;mesh.userData.polymerGraphIndex=index;mesh.userData.polymerElement=fragment.atoms[index].element;mesh.userData.polymerOrigin={...fragment.atomOrigins[index]};
     }
     visual.graph=fragment;visual.representation=representation;visual.layoutPlan=plan;visual.animation={from,to:plan.atoms.map(atom=>new THREE.Vector3(atom.x,atom.y,atom.z)),elapsedMs:0,durationMs};
     updatePolymerBondVisuals();updatePolymerSiteIndicator();return plan;
@@ -850,12 +850,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     else if(!target)depthDockingState=Math.abs(currentOffset)<.025?'none':'returning';
   }
   function currentPinchDistance(){const points=[...activePointers.values()];return points.length<2?0:Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
-  function canObservePolymerSample(){return !!polymerSamplePresentation?.ready&&!!polymerSamplePresentation.fit&&!!polymerGraphVisual?.layoutPlan&&!polymerGraphVisual.displayError&&!polymerGraphVisual.suspended;}
+  function canObservePolymerSample(){return !contextLost&&!!polymerSamplePresentation?.ready&&!!polymerSamplePresentation.fit&&!!polymerGraphVisual?.layoutPlan&&!polymerGraphVisual.displayError&&!polymerGraphVisual.suspended;}
   function currentPolymerOrbitPinchDistance(){const points=[...polymerOrbitPointers].map(pointerId=>activePointers.get(pointerId)).filter(Boolean);return points.length<2?0:Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
   function capturePointer(event){try{canvas.setPointerCapture(event.pointerId);}catch{}}
   canvas.addEventListener('pointerdown',event=>{
     if(polymerGraphVisual?.displayError)return;
-    if(disposed||pickerOpen||isTransitionLocked()||reactionAnimation)return;
+    if(disposed||contextLost||pickerOpen||isTransitionLocked()||reactionAnimation)return;
     const completedSample=canObservePolymerSample()&&!observation.comparisonActive;
     const continuingOrbit=polymerOrbitPointers.size>0,completedSampleHit=completedSample&&!continuingOrbit?(raycastAtoms(event)??fallbackGrab(event)):null;
     if(completedSample&&(continuingOrbit||!completedSampleHit&&activePointers.size===0)){event.preventDefault();activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});polymerOrbitPointers.add(event.pointerId);capturePointer(event);if(polymerOrbitPointers.size>1){polymerOrbitPinchDistance=currentPolymerOrbitPinchDistance();polymerOrbitGesture=null;}else polymerOrbitGesture={pointerId:event.pointerId,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,startedAt:performance.now(),moved:false};onPointerLockChange(true);updateCommandBar();return;}
@@ -878,7 +878,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(polymerOrbitPointers.has(event.pointerId)){
       if(canObservePolymerSample()){
         if(polymerOrbitPointers.size>1){const next=currentPolymerOrbitPinchDistance();if(next>0&&polymerOrbitPinchDistance>0){const presentation=polymerSamplePresentation;zoomPolymer(next/polymerOrbitPinchDistance);}polymerOrbitPinchDistance=next;return;}
-        if(polymerOrbitGesture?.pointerId===event.pointerId){const deltaX=event.clientX-polymerOrbitGesture.x,deltaY=event.clientY-polymerOrbitGesture.y;polymerOrbitGesture.x=event.clientX;polymerOrbitGesture.y=event.clientY;polymerOrbitGesture.moved||=Math.hypot(event.clientX-polymerOrbitGesture.startX,event.clientY-polymerOrbitGesture.startY)>6;const fit=polymerSamplePresentation.focusFit??polymerSamplePresentation.fit,pivot=new THREE.Vector3(...fit.pivot),anchor=pivot.clone().applyMatrix4(polymerGraphVisual.group.matrixWorld);const yaw=new THREE.Quaternion().setFromAxisAngle(cameraUp(),deltaX*.008),pitch=new THREE.Quaternion().setFromAxisAngle(cameraRight(),deltaY*.008);polymerGraphVisual.group.quaternion.premultiply(yaw).premultiply(pitch).normalize();polymerGraphVisual.group.position.copy(anchor).sub(pivot.applyQuaternion(polymerGraphVisual.group.quaternion).multiplyScalar(polymerGraphVisual.group.scale.x));polymerGraphVisual.group.updateMatrixWorld(true);clampPolymerClipping();updatePolymerBondVisuals();observation.updateOutline();}
+        if(polymerOrbitGesture?.pointerId===event.pointerId){if(!polymerOrbitGesture.moved&&Number.isFinite(polymerOrbitGesture.startX)){if(Math.hypot(event.clientX-polymerOrbitGesture.startX,event.clientY-polymerOrbitGesture.startY)<=6)return;polymerOrbitGesture.moved=true;}const deltaX=event.clientX-polymerOrbitGesture.x,deltaY=event.clientY-polymerOrbitGesture.y;polymerOrbitGesture.x=event.clientX;polymerOrbitGesture.y=event.clientY;polymerOrbitGesture.moved||=Math.hypot(event.clientX-polymerOrbitGesture.startX,event.clientY-polymerOrbitGesture.startY)>6;const fit=polymerSamplePresentation.focusFit??polymerSamplePresentation.fit,pivot=new THREE.Vector3(...fit.pivot),anchor=pivot.clone().applyMatrix4(polymerGraphVisual.group.matrixWorld);const yaw=new THREE.Quaternion().setFromAxisAngle(cameraUp(),deltaX*.008),pitch=new THREE.Quaternion().setFromAxisAngle(cameraRight(),deltaY*.008);polymerGraphVisual.group.quaternion.premultiply(yaw).premultiply(pitch).normalize();polymerGraphVisual.group.position.copy(anchor).sub(pivot.applyQuaternion(polymerGraphVisual.group.quaternion).multiplyScalar(polymerGraphVisual.group.scale.x));polymerGraphVisual.group.updateMatrixWorld(true);clampPolymerClipping();updatePolymerBondVisuals();observation.updateOutline();}
       }return;
     }
     if(pinchActive){const next=currentPinchDistance();if(next>0&&pinchDistance>0){distance=clamp(distance*pinchDistance/Math.max(1,next),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();}pinchDistance=next;return;}
@@ -897,7 +897,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   canvas.addEventListener('pointerup',endPointer,eventOptions);canvas.addEventListener('pointercancel',endPointer,eventOptions);
   window.addEventListener('blur',()=>{cancelAllPointers();updateCommandBar();},eventOptions);
-  canvas.addEventListener('wheel',event=>{event.preventDefault();if(pickerOpen||isTransitionLocked()||reactionAnimation||polymerGraphVisual?.displayError)return;if(canObservePolymerSample()){const presentation=polymerSamplePresentation;if(observation.comparisonActive)return;const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?canvas.clientHeight:1);zoomPolymer(Math.exp(-delta*.001));return;}distance=clamp(distance*Math.exp(event.deltaY*.001),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();},{passive:false,signal:eventController.signal});
+  canvas.addEventListener('wheel',event=>{event.preventDefault();if(contextLost||pickerOpen||isTransitionLocked()||reactionAnimation||polymerGraphVisual?.displayError)return;if(canObservePolymerSample()){const presentation=polymerSamplePresentation;if(observation.comparisonActive)return;const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?canvas.clientHeight:1);zoomPolymer(Math.exp(-delta*.001));return;}distance=clamp(distance*Math.exp(event.deltaY*.001),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();},{passive:false,signal:eventController.signal});
 
   function reactionStep(stepMs){
     if(batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE)return;
@@ -1254,20 +1254,24 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       for(const item of [...purgeItems,...(batchTransition?.items??[])])if(item.polymerSample)groups.add(item.group);
       return{activeGroupCount:groups.size,...countPolymerResources(groups),disposals:{...polymerResourceMetrics}};
     };
+    let testContextLoss=null;
     const probe={
+      loseContext(){testContextLoss=renderer.getContext().getExtension('WEBGL_lose_context');if(!testContextLoss)throw Error('WEBGL_lose_context unavailable');testContextLoss.loseContext();},
+      restoreContext(){if(!testContextLoss)throw Error('No test context loss');testContextLoss.restoreContext();},
       polymerResourceSnapshot,
       polymerObservation:()=>observation.snapshot(),
+      polymerFailureInput:()=>({snapshot:polymerCore.snapshot(),sources:polymerSourceRecordsById,diagnostics:polymerRuntimeMetrics.lastLayoutDiagnostics,displayError:polymerGraphVisual?.displayError??null}),
       polymerVisualSnapshot(){
-        const v=polymerGraphVisual;if(!v||v.suspended)return null;camera.updateMatrixWorld(true);v.group.updateMatrixWorld(true);const r=canvas.getBoundingClientRect(),f=r.height/(2*Math.tan(camera.fov*Math.PI/360));
+        const v=polymerGraphVisual;if(!v||v.suspended)return null;if(!v.layoutPlan)return{displayError:v.displayError,graph:v.graph};camera.updateMatrixWorld(true);v.group.updateMatrixWorld(true);const r=canvas.getBoundingClientRect(),f=r.height/(2*Math.tan(camera.fov*Math.PI/360));
         const project=p=>{const c=p.clone().applyMatrix4(camera.matrixWorldInverse),s=p.clone().project(camera);return{x:(s.x+1)*r.width/2,y:(1-s.y)*r.height/2,depth:-c.z};};
         const atoms=[...v.atomByGraphIndex].map(([i,m])=>{const center=m.getWorldPosition(new THREE.Vector3()),p=project(center),radius=modelAtomRadius(v.graph.atoms[i].element)*v.group.scale.x,corners=[];for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])corners.push(project(center.clone().add(new THREE.Vector3(x*radius,y*radius,z*radius))));return{index:i,element:v.graph.atoms[i].element,origin:v.graph.atomOrigins[i],materialColor:m.material.color.getHexString(),roughness:m.material.roughness,metalness:m.material.metalness,visible:m.visible,center:p,radius:f*radius/p.depth,corners};});
         const lanes=v.bondMeshes.filter(m=>m.visible).map(m=>{const a=m.localToWorld(new THREE.Vector3(0,-.5,0)),b=m.localToWorld(new THREE.Vector3(0,.5,0)),radius=m.scale.x*v.group.scale.x;return{bondIndex:m.userData.polymerBondIndex,order:m.userData.polymerOrder,offset:m.userData.polymerLaneOffset,atomIndices:m.userData.polymerAtomIndices,a:project(a),b:project(b),radius:f*radius/((project(a).depth+project(b).depth)/2)};});
-        return{gpuResources:{...renderer.info.memory,renderCalls:renderer.info.render.calls},graph:v.graph,layoutAtoms:v.layoutPlan.atoms,fitError:v.fitError??null,atoms,lanes,canvas:{left:r.left,top:r.top,width:r.width,height:r.height,bufferWidth:canvas.width,bufferHeight:canvas.height,dpr:renderer.getPixelRatio()},camera:{position:camera.position.toArray(),matrix:camera.matrixWorld.toArray(),projection:camera.projectionMatrix.toArray(),fov:camera.fov,near:camera.near,far:camera.far},pose:{position:v.group.position.toArray(),quaternion:v.group.quaternion.toArray(),scale:v.group.scale.x},fit:polymerSamplePresentation?.fit,observation:observation.snapshot(),metrics:{...polymerRuntimeMetrics}};
+        return{contextLost,gpuResources:{...renderer.info.memory,renderCalls:renderer.info.render.calls},graph:v.graph,layoutAtoms:v.layoutPlan.atoms,fitError:v.fitError??null,atoms,lanes,canvas:{left:r.left,top:r.top,width:r.width,height:r.height,bufferWidth:canvas.width,bufferHeight:canvas.height,dpr:renderer.getPixelRatio()},camera:{position:camera.position.toArray(),matrix:camera.matrixWorld.toArray(),projection:camera.projectionMatrix.toArray(),fov:camera.fov,near:camera.near,far:camera.far},pose:{position:v.group.position.toArray(),quaternion:v.group.quaternion.toArray(),scale:v.group.scale.x},fit:polymerSamplePresentation?.fit,observation:observation.snapshot(),metrics:{...polymerRuntimeMetrics}};
       },
       polymerIdMask(){
         if(!polymerGraphVisual||polymerGraphVisual.suspended)throw new Error('No visible sample');
         const maskColor=id=>(Math.imul(id,73856093)>>>0)&0xffffff,saved=[],background=scene.background;scene.background=new THREE.Color(0);let lane=1024;
-        for(const child of world.children)if(child!==polymerGraphVisual.group){saved.push([child,'visible',child.visible]);child.visible=false;}
+        let occluder=50000;for(const child of world.children)if(child!==polymerGraphVisual.group)child.traverse(o=>{if(o.isMesh){saved.push([o,'material',o.material]);o.material=new THREE.MeshBasicMaterial({color:maskColor(occluder++),toneMapped:false});}});
         for(const [i,m]of polymerGraphVisual.atomByGraphIndex){saved.push([m,'material',m.material]);m.material=new THREE.MeshBasicMaterial({color:maskColor(i+1),toneMapped:false});}
         for(const m of polymerGraphVisual.bondMeshes){saved.push([m,'material',m.material]);m.material=new THREE.MeshBasicMaterial({color:maskColor(lane++),toneMapped:false});}
         try{renderer.render(scene,camera);return canvas.toDataURL('image/png');}finally{for(const [o,k,v]of saved){if(k==='material')o.material.dispose();o[k]=v;}scene.background=background;renderer.render(scene,camera);}

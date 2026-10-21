@@ -158,3 +158,5 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .reaction-lab-polymer-completion{grid-template-rows:44px 1fr;gap:4px 8px}
 .polymer-observation [data-observation-legend]{margin:0;gap:0 8px}
 .polymer-observation-line{min-height:44px}
+
+.reaction-lab-equipment:disabled{opacity:1;cursor:default}

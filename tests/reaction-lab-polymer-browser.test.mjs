@@ -180,6 +180,7 @@ try{
   const inspectCompletion=async(route,{newDiscovery=false,expectedDuration=defaultDuration}={})=>{
     await waitFor("(()=>{const state=window.__reactionLabProbe.snapshot();return state.dialogOpen?state.polymerResources.activeGroupCount===1:state.polymerResources.geometryCount===0})()",route.routeId+': finite graph resources settle to the Reaction Lab visibility state',2000);
     const state=await snapshot(),p=state.polymerization,events=await evaluate('window.__polymerSampleEvents.slice()'),presentEvents=await evaluate('window.__polymerPresentEvents.slice()');
+    if(!task10BaselineProfile&&(!p.displayGraph?.layoutUnitCount||!p.fit)){await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`completion-failure-${route.polymerId}.json`),JSON.stringify({state,browserErrors,input:await evaluate('window.__reactionLabProbe.polymerFailureInput()')},null,2));}
     assert.equal(state.camera.distance,routeCameraDistances.get(route.routeId),`${route.routeId}: finite completion leaves the basic camera scale unchanged`);
     assert.equal(p.state,'SAMPLE');assert.equal(p.routeId,route.routeId);assert.equal(p.polymerId,route.polymerId);assert.ok(p.sampleId);
     assert.equal(p.sampleDurationMs,expectedDuration);assert.equal(p.sampleEvidence.unitCount,route.completionEvidence.unitCount);assert.equal(p.sampleEvidence.interUnitLinks,route.completionEvidence.interUnitLinks);assert.equal(p.sampleEvidence.ringOpenings,route.completionEvidence.ringOpenings);
