@@ -10,9 +10,7 @@ import {
 import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './reaction-lab-environment.js?v=1';
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=2';
 import {createReactionLabPolymerizationCore,POLYMERIZATION_STATES,POLYMER_COMMIT_DWELL_MS} from './reaction-lab-polymerization.js?v=1';
-import {createPolymerPresentationPlan} from './reaction-lab-polymer-presentation.js?v=1';
-import {fitPolymerObservation,resizePolymerCanvas,polymerLaneOffsets,polymerLaneRadius} from './polymer-observation.js?v=1';
-import {createPolymerObservationUi} from './polymer-observation-ui.js?v=1';
+import {createPolymerPresentationPlan,fitPolymerObservation,resizePolymerCanvas,polymerLaneOffsets,polymerLaneRadius,createPolymerObservationUi} from './reaction-lab-polymer-presentation.js?v=1';
 import {createSafePolymerFragmentPlan} from './polymer-fragment-3d-layout.js?v=1';
 import {
   REACTION_LAB_WORLD_UNITS_PER_ANGSTROM, STAGE_A_GAME_STEP_SECONDS,

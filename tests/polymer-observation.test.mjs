@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {createPolymerFragment3DLayout} from '../src/polymer-fragment-3d-layout.js';
 import {polymerTask4Fixtures} from './helpers/polymer-task4-fixtures.mjs';
-import {fitPolymerObservation,polymerSafeRectangle,polymerLaneOffsets,polymerLaneRadius,resizePolymerCanvas,polymerComparisonGraphs} from '../src/polymer-observation.js';
+import {fitPolymerObservation,polymerSafeRectangle,polymerLaneOffsets,polymerLaneRadius,resizePolymerCanvas,polymerComparisonGraphs} from '../src/reaction-lab-polymer-presentation.js';
 const fixtures=await polymerTask4Fixtures();
 test('all 25 real graphs fit full visual envelopes in DOM-shaped safe rectangles at three canvas sizes; reset is deterministic',()=>{
   const camera=new THREE.PerspectiveCamera(42,1,.1,500);camera.position.set(0,0,15);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);

@@ -245,3 +245,28 @@ jobs:
           path: test-results/reaction-lab-polymer-simplification
           if-no-files-found: error
           retention-days: 90
+
+  task5-fit-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reproduce actual PET fit with captured failure input
+        env:
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: polyethylene-terephthalate-direct-polycondensation
+          POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-fit-diagnostic
+          path: test-results/reaction-lab-polymer-simplification
+          if-no-files-found: error
+          retention-days: 90
