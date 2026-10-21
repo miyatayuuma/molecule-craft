@@ -22,3 +22,10 @@ Hosted first implementation campaign: existing Repository/FIELD/Finite workflows
 Local Chrome 156.0.8078.47 starts with a fatal `process_singleton_posix.cc` Unix socket permission error in this environment. Browser acceptance is hosted; local DevTools startup failure is not a renderer PASS or an environmental explanation of hosted performance.
 
 Status: IN_PROGRESS. No merge/CLOSED claim before complete visual, interaction, lifecycle, strict performance, review and main acceptance. PF attachment chemistry L2 remains unassessed. Physical-device and child observation belong to Task⑥.
+
+
+## Static campaign declared before execution
+
+Three viewports (360×780, 390×844, 1280×800), two motion modes, DPR1 all25 routes, DPR2 the16 distinct C01–C09/S10–S16 routes. Twelve jobs; each one actual FEED/pointer execution per route. At each completed actual sample: overview PNG and complete40 yaw/pitch masks, then at most one selected atom+shell focus per actual atom, each the same40 directions when unresolved targets remain. No camera motion, roll addition or geometry solve during this static campaign. Static readback never enters Finite/Stage B performance windows. Every view and failed target remains recorded. Comparison states are traversed with actual pointer controls and tested through close/reopen and resize. A07 ring simultaneity, residual target IDs and local witnesses are explicit. Raster luminance and continuous-lane raster grading are still pending; masks alone do not certify them.
+
+Independent GitHub review of first source found stale comparison identity after close/reopen and a missing active-comparison resize fit. The next implementation reconstructs comparison on reopen and refits its separate display group on resize; actual comparison state lifecycle tests accompany these changes.

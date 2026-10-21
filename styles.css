@@ -142,3 +142,10 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .polymer-observation-concept img{width:100%;height:calc(100% - 100px);object-fit:contain}
 .reaction-lab-space>p{font-size:14px;line-height:1.4;bottom:8px;left:82px;right:74px}
 @media(max-width:650px){.reaction-lab{padding:8px 10px;gap:7px}.reaction-lab>header{min-height:44px}.reaction-lab-slot{height:64px}.reaction-lab-command-bar{height:44px}.reaction-lab-polymer-completion{padding:4px 8px;gap:8px}.reaction-lab-polymer-completion-copy strong{font-size:14px}.reaction-lab-polymer-completion button{font-size:14px;min-height:44px}.reaction-lab-space>p{font-size:14px}}
+.reaction-lab-equipment{font-size:14px;line-height:1.4;letter-spacing:0}
+.reaction-lab-equipment small,.reaction-lab-medium small,.reaction-lab-medium strong{font-size:14px;line-height:1.4;letter-spacing:0}
+.reaction-lab-light{width:80px;height:68px}
+.reaction-lab-heat{width:72px;height:64px}
+.reaction-lab-medium{width:80px;height:64px}
+.reaction-lab-medium-selector{right:96px}
+.reaction-lab-medium-selector label{font-size:14px;line-height:1.4;min-height:44px}

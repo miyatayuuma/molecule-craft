@@ -204,3 +204,39 @@ jobs:
           path: ${{ runner.temp }}/stage-b-performance
           if-no-files-found: error
           retention-days: 90
+  task5-visual-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: ['{"width":360,"height":780,"mobile":true}', '{"width":390,"height":844,"mobile":true}', '{"width":1280,"height":800,"mobile":false}']
+        motion: [normal, reduced]
+        dpr: [1, 2]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Japanese screenshot font
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Deterministic rendering and preservation contracts
+        run: node --test tests/polymer-observation.test.mjs tests/polymer-fragment-task4.test.mjs tests/reaction-lab-step-geometry-cache.test.mjs
+      - name: All 25 actual pointer routes and fixed static mask campaign
+        env:
+          POLYMER_TASK5_DPR: ${{ matrix.dpr }}
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_MOTION: ${{ matrix.motion }}
+          POLYMER_TASK5_VIEWPORT: ${{ matrix.viewport }}
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-visual-${{ strategy.job-index }}
+          path: test-results/reaction-lab-polymer-simplification
+          if-no-files-found: error
+          retention-days: 90
