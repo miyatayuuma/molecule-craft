@@ -1,0 +1,105 @@
+{
+  "sourceSha": "b57b8bd492a7e0b63205dd87c245c5bc7227e0a7",
+  "runId": 39598918395,
+  "fitDiagnostic": "PASS",
+  "stageB": "PASS",
+  "finite": "SKIPPED_AFTER_STATIC_FAILURE",
+  "static": [
+    {
+      "id": 119220708164,
+      "name": "task5-visual-acceptance ({\"width\":390,\"height\":844,\"mobile\":true}, reduced, 2)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:30:52.0719678Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.9695216624998125"
+      ]
+    },
+    {
+      "id": 119220708208,
+      "name": "task5-visual-acceptance ({\"width\":1280,\"height\":800,\"mobile\":false}, normal, 1)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:30:16.7847801Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.7651109446107116"
+      ]
+    },
+    {
+      "id": 119220708250,
+      "name": "task5-visual-acceptance ({\"width\":1280,\"height\":800,\"mobile\":false}, reduced, 1)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:29:09.6068359Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.7651109446107116"
+      ]
+    },
+    {
+      "id": 119220708259,
+      "name": "task5-visual-acceptance ({\"width\":390,\"height\":844,\"mobile\":true}, normal, 2)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:31:49.6778298Z AssertionError [ERR_ASSERTION]: polypropylene-coordination: actual pointer retains witness zoom 0.9487016258655868"
+      ]
+    },
+    {
+      "id": 119220708282,
+      "name": "task5-visual-acceptance ({\"width\":360,\"height\":780,\"mobile\":true}, normal, 2)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:29:05.8946412Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.9748015434411476"
+      ]
+    },
+    {
+      "id": 119220708307,
+      "name": "task5-visual-acceptance ({\"width\":360,\"height\":780,\"mobile\":true}, reduced, 1)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:28:25.4956285Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.9748015434411476"
+      ]
+    },
+    {
+      "id": 119220708349,
+      "name": "task5-visual-acceptance ({\"width\":390,\"height\":844,\"mobile\":true}, reduced, 1)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:28:47.1892732Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.9695216624998125"
+      ]
+    },
+    {
+      "id": 119220708358,
+      "name": "task5-visual-acceptance ({\"width\":390,\"height\":844,\"mobile\":true}, normal, 1)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:29:56.2931791Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.9695216624998125"
+      ]
+    },
+    {
+      "id": 119220708361,
+      "name": "task5-visual-acceptance ({\"width\":1280,\"height\":800,\"mobile\":false}, reduced, 2)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:30:16.7398150Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.7651109446107116"
+      ]
+    },
+    {
+      "id": 119220708368,
+      "name": "task5-visual-acceptance ({\"width\":360,\"height\":780,\"mobile\":true}, normal, 1)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:28:47.0301158Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.9748015434411476"
+      ]
+    },
+    {
+      "id": 119220708431,
+      "name": "task5-visual-acceptance ({\"width\":360,\"height\":780,\"mobile\":true}, reduced, 2)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:29:02.2209613Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.9748015434411476"
+      ]
+    },
+    {
+      "id": 119220708583,
+      "name": "task5-visual-acceptance ({\"width\":1280,\"height\":800,\"mobile\":false}, normal, 2)",
+      "conclusion": "failure",
+      "errors": [
+        "2026-10-21T12:31:07.3686990Z AssertionError [ERR_ASSERTION]: polyethylene-coordination: actual pointer retains witness zoom 0.7651109446107116"
+      ]
+    }
+  ]
+}

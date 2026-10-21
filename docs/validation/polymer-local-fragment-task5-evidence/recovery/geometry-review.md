@@ -8,3 +8,8 @@ No blocking defect found in geometry repair. Old/new traces have identical full 
 Independent reviewer `/root/independent_geometry_review` read the additional CRAFT modal early-return, comparison disposal on emptyFEED, actual pointer40-direction harness, DPR2 DOMwheel stimulus, same-view groups and reset gates. No new blocking production defect was found;9 source/release/static checks passed. A concrete review concern was corrected: all-route local reset now uses the real button and Task③'s q1e-5/scale1e-6/projection1px, rather than the looser pointer-arrival tolerances. PF concept text receives a limited14px flow-text rule after the DOMaudit caught the inherited8px canvas hint style.
 
 The reviewer separately found no accumulated old Core/source/mesh owner in inspected cache/disposal paths. GPU geometries/textures were flat across3 real construction/disposal cycles. CPU used heap still increased; the reviewer explicitly did not certify CPU memory non-regression. Formal final-source visual/performance/CI acceptance remains separate and pending.
+
+
+## Independent local-focus / heap review
+
+The reviewer independently ran the new25×4×40 local clipping regression and found no additional blocking code issue. Initial local scale now reserves the full graph's existing spherical depth budget, leaving overview unchanged. Raster remains separately required. Raw b57 heap snapshots were independently re-aggregated:90.4% of self-size growth was code; buffers, typed arrays and WebGL owners were flat across3 cycles. This supports the bounded resource conclusion only; long-session/JIT-CDP attribution is not proved.

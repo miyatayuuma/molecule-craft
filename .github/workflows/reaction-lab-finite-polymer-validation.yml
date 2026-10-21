@@ -278,9 +278,14 @@ jobs:
           POLYMER_TASK5_VISUAL: '1'
           POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
           POLYMER_TASK5_LIFECYCLE_QA: '1'
+          POLYMER_TASK5_HEAP_SNAPSHOT: '1'
           POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Inspect bounded repeated resource and heap ownership
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/summarize-polymer-task5-heaps.mjs test-results/reaction-lab-polymer-simplification
       - name: Sequential pointer and comparison replay — diagnostic, not visual acceptance
         env:
           POLYMER_TASK5_VISUAL: '1'

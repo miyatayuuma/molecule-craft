@@ -67,7 +67,8 @@ export async function auditPolymerTask5Visual({evaluate,send,artifactDir,route,v
       }
     }
     await stable();const view=await evaluate('window.__reactionLabProbe.polymerVisualSnapshot()'),expected=new THREE.Quaternion().setFromAxisAngle(right,pitch*Math.PI/180).multiply(new THREE.Quaternion().setFromAxisAngle(up,yaw*Math.PI/180)).multiply(new THREE.Quaternion(...base.pose.quaternion)),angleError=expected.angleTo(new THREE.Quaternion(...view.pose.quaternion)),zoomRatio=view.pose.scale/base.pose.scale;
-    assert.ok(angleError<=.02,`${route.routeId} ${label}/${yaw}/${pitch}: actual pointer quaternion ${angleError}`);assert.ok(Math.abs(zoomRatio-1)<=.02,`${route.routeId}: actual pointer retains witness zoom ${zoomRatio}`);
+    if(angleError>.02||Math.abs(zoomRatio-1)>.02){await writeFile(join(dir,'pointer-failure.json'),JSON.stringify({sourceSha,routeId:route.routeId,graphDigest,label,yaw,pitch,angleError,zoomRatio,trace,base,view},null,2));await writeFile(join(dir,'pointer-failure.png'),Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));}
+    assert.ok(angleError<=.02,`${route.routeId} ${label}/${yaw}/${pitch}: actual pointer quaternion ${angleError}`);assert.ok(Math.abs(zoomRatio-1)<=.02,`${route.routeId} ${label}/${yaw}/${pitch}: actual pointer retains witness zoom ${zoomRatio}`);
     return{view,trace,angleError,zoomRatio};
   }
   async function grid(label){

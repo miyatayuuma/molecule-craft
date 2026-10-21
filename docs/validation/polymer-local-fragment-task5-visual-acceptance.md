@@ -57,3 +57,5 @@ L1は「実装修復＋PAN部分raster確認」。NBRを含む最終受入がな
 後続campaignは、全40方向を実pointerで到達し、全viewの実PNG/IDmaskを保存。同時可視は環＋接続、methylH/接点＋隣接主鎖、amideN–H等を同一viewで判定する。PAN4本/NBR1本は各local witnessと実reset復帰も必要。resetは元のq1e-5/scale1e-6/投影1pxを維持する。
 
 A10/A11の実DOM/hit-grid auditを短いgateにも追加。PF模式図注記の8px継承を検出・限定CSS修正した。比較から空FEEDへ進むresource漏れは独立reviewで修正。PF3cycleのGPU資源は横ばいだがCPU heap増加は原因未確定で、memory PASSにはしない。後続sourceのstrictFiniteは12静的jobs合格後だけ実行する。旧FAIL、旧DPR1部分PASS、DPR2の入力不備を上書きしない。
+
+The b57 final-source short gate and Stage B passed, but its static PE local pointer witness failed at zoom.97480154. The local fit accepted maxZoom<1 while overview rejected it; applying the existing full-radius depth budget at focus time fixes the reproduced numerical cause. No raster PASS is claimed before a new campaign. The bounded heap investigation attributes90.4% of observed self-size growth to compiled code, with measured buffers/WebGL owners flat; final-source raw snapshots and summary remain required.

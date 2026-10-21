@@ -121,6 +121,10 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
   let min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];
   for(const p of primitives)for(let i=0;i<3;i++){const v=[p.x,p.y,p.z][i];min[i]=Math.min(min[i],v-p.radius);max[i]=Math.max(max[i],v+p.radius);}
   const pivot=new THREE.Vector3(...min.map((v,i)=>(v+max[i])/2));
+  const radius=Math.max(...all.map(p=>Math.hypot(p.x-pivot.x,p.y-pivot.y,p.z-pivot.z)+p.radius));
+  // A local crop still owns the whole graph. Reserve the existing spherical
+  // near/far budget at focus time so orbit does not silently change its scale.
+  const focusScaleLimit=selected?Math.min((d-.3)/(1.12*radius),(camera.far-d-.01)/(1.12*radius)):Infinity;
   const candidates=[];
   if(quaternion)candidates.push(quaternion.clone());
   else for(const pitches of [[-Math.PI/6,0,Math.PI/6],[-Math.PI/3,Math.PI/3]])for(const r of [0,Math.PI/2])for(let y=0;y<8;y++)for(const p of pitches)candidates.push(new THREE.Quaternion().setFromEuler(new THREE.Euler(.34+p,-.28+y*Math.PI/4,.035+r,'XYZ')));
@@ -140,7 +144,7 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
     };
     let low=0,high=8;while(high<64&&measure(high).fits)high*=2;
     for(let j=0;j<32;j++){const mid=(low+high)/2;if(measure(mid).fits)low=mid;else high=mid;}
-    const scale=low*.92,result=measure(scale);if(!result.fits||!atomIndices&&(result.occupancy<.69||result.occupancy>.95))continue;
+    const scale=Math.min(low*.92,focusScaleLimit),result=measure(scale);if(!result.fits||!atomIndices&&(result.occupancy<.69||result.occupancy>.95))continue;
     const visibility=[];
     for(const index of requiredAtomIndices){const atom=plan.atoms[index];if(!atom)throw new Error('POLYMER_UNKNOWN_INITIAL_TARGET');const center=atomPoints[index],x=scale*center.x+result.tx,y=scale*center.y+result.ty,z=-d+scale*center.z,r=scale*modelAtomRadius(atom.element),px=width/2+f*x/(-z),py=height/2-f*y/(-z),rp=f*r/(-z);let visible=0;
       for(let k=0;k<64;k++){const radius=Math.sqrt((k+.5)/64)*rp,angle=k*2.3999632297,ray=new THREE.Vector3((px+radius*Math.cos(angle)-width/2)/f,(height/2-py-radius*Math.sin(angle))/f,-1).normalize();let nearest=Infinity,hit=-1;
@@ -151,7 +155,6 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
     if(visibility.some(v=>v.visibleFraction<.70))continue;
 
     if(!best||result.qMin>best.qMin+1e-9){const position=right.clone().multiplyScalar(result.tx).addScaledVector(up,result.ty).sub(pivot.clone().applyQuaternion(q).multiplyScalar(scale));
-      const radius=Math.max(...all.map(p=>Math.hypot(p.x-pivot.x,p.y-pivot.y,p.z-pivot.z)+p.radius));
       best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,initialTargetVisibility:visibility,maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
   }
   if(!best||!atomIndices&&(best.occupancy<.69||best.occupancy>.95||best.maxZoomFactor<1)){const error=new Error('POLYMER_FIT_UNAVAILABLE');error.fitDiagnostic={width,height,safeRegion,best};throw error;}

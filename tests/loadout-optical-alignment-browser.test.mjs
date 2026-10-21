@@ -36,7 +36,9 @@ try{
   child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
   child.stderr.on('data',data=>{browserStderr=(browserStderr+data.toString()).slice(-16000);});child.on('exit',(code,signal)=>{browserExit={code,signal};});
   let tabs=null;
-  for(let attempt=0;attempt<160;attempt++){
+  // The 2026-10-18 runner first emitted live Chrome stderr at15.8s. Bound
+  // startup separately from the unchanged optical assertions; never relaunch.
+  for(let attempt=0;attempt<300;attempt++){
     try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}
     if(browserExit)break;await pause(100);
   }

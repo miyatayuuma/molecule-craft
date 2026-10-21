@@ -39,3 +39,12 @@ test('comparison rejects tuple duplication or omission rather than inventing wat
 test('all25 comparison source/after/water partitions use actual Core tuples and read-only transitions',()=>{
   for(const row of fixtures){const source=Object.entries(row.sourceRecordsByInstanceId).map(([instanceId,r])=>({instanceId,atoms:r.atoms.map(a=>({element:a.element,point:a.point.toArray()})),bonds:r.bonds})),before=JSON.stringify(row.sample),comparison=polymerComparisonGraphs(row.sample,source,row.comparisonEvidence.byproducts);assert.equal(comparison.byproducts.length,row.route.completionEvidence.byproducts.water);assert.equal(JSON.stringify(row.sample),before);assert.ok(comparison.transition.formed.length>0);if(row.route.polymerId==='polyethylene-oxide'){assert.equal(comparison.before.bonds.length-comparison.before.atoms.length+source.length,4);assert.equal(comparison.after.bonds.length-comparison.after.atoms.length+1,0);}}
 });
+
+test('local focus reserves full-graph clipping depth for all forty real orbit directions without reducing zoom',()=>{
+  const camera=new THREE.PerspectiveCamera(42,338/430,.1,500);camera.position.set(0,0,15);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);const safeRegion=polymerSafeRectangle(338,430,[]),up=new THREE.Vector3(0,1,0),right=new THREE.Vector3(1,0,0);
+  for(const row of fixtures){const plan=createPolymerFragment3DLayout(row.sample,{sourceRecordsByInstanceId:row.sourceRecordsByInstanceId});
+    for(const index of new Set([0,1,Math.floor(plan.atoms.length/2),plan.atoms.length-1])){const selected=new Set([index]);for(const b of plan.bonds)if(b.a===index||b.b===index){selected.add(b.a);selected.add(b.b);}const fit=fitPolymerObservation(THREE,{plan,camera,width:338,height:430,safeRegion,atomIndices:[...selected]});assert.ok(fit.maxZoomFactor>=1-1e-12,row.route.routeId+': focus starts inside its rotation-invariant zoom budget');const pivot=new THREE.Vector3(...fit.pivot),base=new THREE.Quaternion(...fit.quaternion);
+      for(const pitch of [-60,-30,0,30,60])for(let yaw=0;yaw<360;yaw+=45){const q=new THREE.Quaternion().setFromAxisAngle(right,pitch*Math.PI/180).multiply(new THREE.Quaternion().setFromAxisAngle(up,yaw*Math.PI/180)).multiply(base);for(const atom of plan.atoms){const z=new THREE.Vector3(atom.x,atom.y,atom.z).sub(pivot).applyQuaternion(q).z,r=modelAtomRadius(atom.element);assert.ok(15-fit.scale*(z+r)>.2&&15-fit.scale*(z-r)<500,row.route.routeId+': whole graph remains in clipping range at unchanged local scale');}}
+    }
+  }
+});
