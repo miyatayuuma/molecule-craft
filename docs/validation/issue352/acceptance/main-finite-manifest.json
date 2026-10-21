@@ -1,0 +1,9 @@
+{
+  "run": 39520340651,
+  "job": 118962378468,
+  "artifact": 12310984792,
+  "zipBytes": 17551053,
+  "zipSHA256": "0b4c8c09aa705523ad40823bd0c4d76671e2630dd285b6899a62179ffc8c778e",
+  "jsonBundleSHA256": "eaa3cb96f8e359e0d0948cfc2e52b5a886f89d16f28ac9eca1b0afbb324d7859",
+  "offlineComparisonExact": true
+}

@@ -1,0 +1,23 @@
+{
+  "sourceSha": "593ac571e4d664f7af885855352142874dd227ab",
+  "tree": "7dad9ba4df1824276efc9121b0de5829f7704610",
+  "run": 39520340651,
+  "job": 118962378077,
+  "artifact": 12310827735,
+  "zipSHA256": "e36a462c177c016f678fdf39bd6c79c47e941385efb144b46e93f55354df5249",
+  "offlineComparisonExact": true,
+  "files": [
+    {
+      "name": "baseline.json",
+      "sha256": "7c8d02d1fa72656f2203c8aa679985cab75dadf016454df7a617cc1cd6cbe9a6"
+    },
+    {
+      "name": "candidate.json",
+      "sha256": "765cc047127a03bbaed1023749e3152ab92cb0907b0be53aeef994a51d5b5395"
+    },
+    {
+      "name": "comparison.json",
+      "sha256": "b5cbf1f3b0d560613f87a73c9a90154c1fb7d60de2d0fafcca189f3628e18453"
+    }
+  ]
+}
