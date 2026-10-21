@@ -13,6 +13,6 @@ export async function polymerTask4Fixtures({prefix='u',generation=1,includeInter
     assert.equal(core.beginBatch({activeSlots:route.feedSpecies,batchGeneration:generation,instances,environment:new Set(route.environment.requires)}).ok,true);
     const intermediate=[];if(includeIntermediate)intermediate.push(structuredClone(core.snapshot().fragment));
     let result;for(let i=1;i<instances.length;i++){const begun=i<=route.interactionCadence.manualSteps?core.beginManualStep(instances[i].id):core.beginAutomaticStep(instances[i].id);assert.equal(begun.ok,true);result=core.advanceFixedStep(POLYMER_COMMIT_DWELL_MS);if(includeIntermediate)intermediate.push(structuredClone(core.snapshot().fragment));}
-    assert.ok(result.sample);return{route,sample:result.sample,sourceRecordsByInstanceId:Object.fromEntries(instances.map(i=>[i.id,source.get(i.species)])),intermediate};
+    assert.ok(result.sample);return{route,sample:result.sample,comparisonEvidence:core.comparisonEvidence(),sourceRecordsByInstanceId:Object.fromEntries(instances.map(i=>[i.id,source.get(i.species)])),intermediate};
   });
 }

@@ -66,7 +66,7 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
       const radius=Math.max(...all.map(p=>Math.hypot(p.x-pivot.x,p.y-pivot.y,p.z-pivot.z)+p.radius));
       best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
   }
-  if(!best||!atomIndices&&(best.occupancy<.69||best.occupancy>.95||best.maxZoomFactor<1))throw new Error('POLYMER_FIT_UNAVAILABLE');
+  if(!best||!atomIndices&&(best.occupancy<.69||best.occupancy>.95||best.maxZoomFactor<1)){const error=new Error('POLYMER_FIT_UNAVAILABLE');error.fitDiagnostic={width,height,safeRegion,best};throw error;}
   return best;
 }
 
@@ -87,5 +87,7 @@ export function polymerComparisonGraphs(sample,sources,byproducts){
   const used=new Set(),key=o=>JSON.stringify([o.instanceId,o.sourceAtomIndex]);
   for(const g of [sample.fragment,...byproducts.map(b=>b.graph)])for(const o of g.atomOrigins){const k=key(o);if(used.has(k))throw new Error('POLYMER_COMPARISON_DUPLICATE_ORIGIN');used.add(k);}
   if(used.size!==before.atoms.length||before.atomOrigins.some(o=>!used.has(key(o))))throw new Error('POLYMER_COMPARISON_PARTITION_MISMATCH');
-  return{before,after:sample.fragment,byproducts};
+  const edges=g=>new Map(g.bonds.map(b=>{const a=key(g.atomOrigins[b.a]),z=key(g.atomOrigins[b.b]);return[[a,z].sort().join('|'),b.order];})),old=edges(before),after=new Map([sample.fragment,...byproducts.map(b=>b.graph)].flatMap(g=>[...edges(g)]));
+  const transition={broken:[...old].filter(([k])=>!after.has(k)),formed:[...after].filter(([k])=>!old.has(k)),orderChanged:[...old].filter(([k,v])=>after.has(k)&&after.get(k)!==v).map(([k,v])=>({originEdge:k,before:v,after:after.get(k)}))};
+  return{before,after:sample.fragment,byproducts,transition};
 }

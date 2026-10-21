@@ -11,7 +11,7 @@ Starting main: `593ac571e4d664f7af885855352142874dd227ab`. Task①–④ canonic
 
 ## PR #345 reconciliation
 
-PR #345 remains OPEN/unmerged, head `95f3fd1bf0334be32ca8d1b095a0956d2f14582d`. Its resize/footer findings are reused, without merging its other diagnostics or changing its failed evidence. Task⑤ reserves the same 140 CSS px footer before FEED and after completion, and only changes the drawing buffer if real dimensions/capped DPR differ. ResizeObserver coalesces to one RAF. DPR is clamped to [1,2]. No same-buffer reset is requested.
+PR #345 remains OPEN/unmerged, head `95f3fd1bf0334be32ca8d1b095a0956d2f14582d`. Its resize/footer findings are reused, without merging its other diagnostics or changing its failed evidence. Task⑤ reserves the same 160 CSS px footer before FEED and after completion, and only changes the drawing buffer if real dimensions/capped DPR differ. ResizeObserver coalesces to one RAF. DPR is clamped to [1,2]. No same-buffer reset is requested.
 
 ## Validation budget and current status
 

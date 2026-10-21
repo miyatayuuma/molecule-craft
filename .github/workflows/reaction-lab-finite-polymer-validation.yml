@@ -233,6 +233,11 @@ jobs:
           POLYMER_TASK5_VIEWPORT: ${{ matrix.viewport }}
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Gate every declared static visual target
+        env:
+          POLYMER_TASK5_DPR: ${{ matrix.dpr }}
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/check-polymer-task5-visual.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

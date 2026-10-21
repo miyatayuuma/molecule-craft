@@ -27,3 +27,8 @@ test('canvas buffer updates only on actual CSS or capped DPR changes',()=>{
 test('comparison rejects tuple duplication or omission rather than inventing water/source evidence',()=>{
   const graph={atoms:[{element:'C'}],bonds:[],atomOrigins:[{instanceId:'a',sourceAtomIndex:0}]},sample={fragment:graph},sources=[{instanceId:'a',atoms:[{element:'C',point:[0,0,0]}],bonds:[]}];assert.equal(polymerComparisonGraphs(sample,sources,[]).after,graph);assert.throws(()=>polymerComparisonGraphs(sample,sources,[{graph}]),/DUPLICATE/);assert.throws(()=>polymerComparisonGraphs({fragment:{...graph,atomOrigins:[]}},sources,[]),/MISMATCH/);
 });
+
+
+test('all25 comparison source/after/water partitions use actual Core tuples and read-only transitions',()=>{
+  for(const row of fixtures){const source=Object.entries(row.sourceRecordsByInstanceId).map(([instanceId,r])=>({instanceId,atoms:r.atoms.map(a=>({element:a.element,point:a.point.toArray()})),bonds:r.bonds})),before=JSON.stringify(row.sample),comparison=polymerComparisonGraphs(row.sample,source,row.comparisonEvidence.byproducts);assert.equal(comparison.byproducts.length,row.route.completionEvidence.byproducts.water);assert.equal(JSON.stringify(row.sample),before);assert.ok(comparison.transition.formed.length>0);if(row.route.polymerId==='polyethylene-oxide'){assert.equal(comparison.before.bonds.length-comparison.before.atoms.length+source.length,4);assert.equal(comparison.after.bonds.length-comparison.after.atoms.length+1,0);}}
+});

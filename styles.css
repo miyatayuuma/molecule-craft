@@ -149,3 +149,12 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .reaction-lab-medium{width:80px;height:64px}
 .reaction-lab-medium-selector{right:96px}
 .reaction-lab-medium-selector label{font-size:14px;line-height:1.4;min-height:44px}
+
+/* The neutral legend stays visible without opening the observation menu. */
+.reaction-lab-slot{height:56px;grid-template-rows:22px 25px}
+.reaction-lab-slot-socket{min-height:21px}
+.reaction-lab-slot-socket img{height:21px}
+.reaction-lab-footer{flex-basis:160px;min-height:160px}
+.reaction-lab-polymer-completion{grid-template-rows:44px 1fr;gap:4px 8px}
+.polymer-observation [data-observation-legend]{margin:0;gap:0 8px}
+.polymer-observation-line{min-height:44px}
