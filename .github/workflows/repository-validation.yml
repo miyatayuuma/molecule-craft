@@ -103,6 +103,7 @@ jobs:
           node --test tests/reaction-lab-discovery.test.mjs tests/reaction-lab-discovery-collection.test.mjs
           node --test tests/reaction-lab-generic-fixtures.test.mjs tests/reaction-lab-calibration.test.mjs
           node --test tests/reaction-lab-viewer-reservation.test.mjs
+          node --test tests/reaction-lab-step-geometry-cache.test.mjs
           node --test tests/reaction-lab-batch.test.mjs
           node --test tests/reaction-lab-manipulation.test.mjs
           node --test tests/reaction-lab-stage-a.test.mjs
