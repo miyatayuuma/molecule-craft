@@ -11,6 +11,8 @@ import { createReactionLabEnvironment, environmentTokensFromSnapshot } from './r
 import { createReactionLabBatch, deterministicFeedVariation, planFeedSchedule, REACTION_LAB_BATCH_PHASES } from './reaction-lab-batch.js?v=2';
 import {createReactionLabPolymerizationCore,POLYMERIZATION_STATES,POLYMER_COMMIT_DWELL_MS} from './reaction-lab-polymerization.js?v=1';
 import {createPolymerPresentationPlan} from './reaction-lab-polymer-presentation.js?v=1';
+import {fitPolymerObservation,resizePolymerCanvas,polymerLaneOffsets,polymerLaneRadius} from './polymer-observation.js?v=1';
+import {createPolymerObservationUi} from './polymer-observation-ui.js?v=1';
 import {createSafePolymerFragmentPlan} from './polymer-fragment-3d-layout.js?v=1';
 import {
   REACTION_LAB_WORLD_UNITS_PER_ANGSTROM, STAGE_A_GAME_STEP_SECONDS,
@@ -91,8 +93,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const world=new THREE.Group();scene.add(world);
 
   let instances=[],purgeItems=[],selected=null,down=null,testIsolation=null,polymerRouteOwned=false,polymerBeginError=null;
+  let polymerCapturedSources=[],observation=null,contextLost=false;
   let polymerReservedById=new Map(),polymerSourceRecordsById={},polymerGraphVisual=null,polymerDocking=null,polymerAutoMotion=null,polymerSamplePresentation=null,polymerDockAttempt=null,polymerAutoAttempt=null;
-  const polymerRuntimeMetrics={finiteLayoutCalls:0,bondVisualAllocations:0,completionFitCalls:0,completionLayoutCallsAfterReady:0,layoutComputationMs:0,threeDLayoutFallbacks:0,lastLayoutDiagnostics:null};
+  const polymerRuntimeMetrics={resizeBufferUpdates:0,finiteLayoutCalls:0,bondVisualAllocations:0,completionFitCalls:0,completionLayoutCallsAfterReady:0,layoutComputationMs:0,threeDLayoutFallbacks:0,lastLayoutDiagnostics:null};
   const polymerBondScratch={axis:new THREE.Vector3(),direction:new THREE.Vector3(),side:new THREE.Vector3(),reference:new THREE.Vector3(0,0,1),midpoint:new THREE.Vector3(),up:new THREE.Vector3(0,1,0)};
   const polymerResourceMetrics=localhostPhysicsTest?{disposalCount:0,geometryDisposals:0,materialDisposals:0}:null;
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,lastReactionPresentation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
@@ -111,8 +114,21 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   if(!polymerSiteIndicator){polymerSiteIndicator=document.createElement('div');polymerSiteIndicator.className='reaction-lab-polymer-site';polymerSiteIndicator.dataset.polymerSiteIndicator='';polymerSiteIndicator.setAttribute('aria-hidden','true');polymerSiteIndicator.hidden=true;chamber.append(polymerSiteIndicator);}
   let polymerIncomingIndicator=root.querySelector('[data-polymer-incoming-indicator]');
   if(!polymerIncomingIndicator){polymerIncomingIndicator=document.createElement('div');polymerIncomingIndicator.className='reaction-lab-polymer-incoming';polymerIncomingIndicator.dataset.polymerIncomingIndicator='';polymerIncomingIndicator.setAttribute('aria-hidden','true');polymerIncomingIndicator.hidden=true;chamber.append(polymerIncomingIndicator);}
-  function resize(){const rect=canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;renderer.setSize(rect.width,rect.height,false);camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix();}
-  const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);resize();
+  let lastCanvasSize=null,resizeRequest=0;
+  function resize(){
+    const result=resizePolymerCanvas({canvas,renderer,camera,pixelRatio:devicePixelRatio});
+    if(result.changed)polymerRuntimeMetrics.resizeBufferUpdates++;
+    const cssChanged=lastCanvasSize&&(lastCanvasSize.cssWidth!==result.cssWidth||lastCanvasSize.cssHeight!==result.cssHeight);
+    if(result.cssWidth)lastCanvasSize=result;
+    if(cssChanged&&polymerSamplePresentation?.ready&&!polymerGraphVisual?.suspended){
+      const fit=fitFinitePolymerToWorkArea({apply:false});
+      if(fit){polymerSamplePresentation.fit=fit;if(!polymerSamplePresentation.focusFit&&polymerSamplePresentation.zoomFactor===1)resetPolymerPose();}
+    }
+    return result.changed;
+  }
+  function scheduleResize(){if(!resizeRequest)resizeRequest=requestAnimationFrame(()=>{resizeRequest=0;if(!disposed)resize();});}
+  const resizeObserver=new ResizeObserver(scheduleResize);resizeObserver.observe(canvas);resize();
+  window.addEventListener('resize',scheduleResize,eventOptions);
   function updateCamera(){camera.position.set(distance*Math.sin(FIXED_CAMERA_AZIMUTH)*Math.cos(FIXED_CAMERA_ELEVATION),distance*Math.sin(FIXED_CAMERA_ELEVATION),distance*Math.cos(FIXED_CAMERA_AZIMUTH)*Math.cos(FIXED_CAMERA_ELEVATION));camera.lookAt(0,0,0);camera.updateMatrixWorld();}
   function cameraNormal(){camera.updateMatrixWorld();return camera.getWorldDirection(new THREE.Vector3());}
   function cameraRight(){camera.updateMatrixWorld();return new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0).normalize();}
@@ -139,7 +155,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     selected=null;down=null;chamberTime.setMode(CHAMBER_TIME_MODES.NORMAL);clearDepthTarget();
   }
   function instanceById(id){return instances.find(item=>item.id===id)??null;}
-  function disposeObject(object){object?.traverse?.(child=>{child.geometry?.dispose?.();if(child.userData?.formalCharge)child.material?.map?.dispose?.();if(Array.isArray(child.material))child.material.forEach(material=>material.dispose?.());else child.material?.dispose?.();});}
+  function disposeObject(object){const geometries=new Set(),materials=new Set();object?.traverse?.(child=>{if(child.geometry&&!geometries.has(child.geometry)){geometries.add(child.geometry);child.geometry.dispose();}if(child.userData?.formalCharge)child.material?.map?.dispose?.();if(Array.isArray(child.material))child.material.forEach(material=>material.dispose?.());else child.material?.dispose?.();});}
   function countPolymerResources(groups){
     const objects=new Set(),geometries=new Set(),materials=new Set();
     for(const group of groups)group?.traverse?.(object=>{objects.add(object);if(object.geometry)geometries.add(object.geometry);if(Array.isArray(object.material))for(const material of object.material)materials.add(material);else if(object.material)materials.add(object.material);});
@@ -181,7 +197,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const renderAtoms=model.atoms.map((atom,index)=>({...atom,point:vector(THREE,massProperties.centeredPositionsAngstrom[index].map(value=>value*REACTION_LAB_WORLD_UNITS_PER_ANGSTROM))}));
     group.position.copy(position);if(orientation)group.rotation.set(orientation.pitch,orientation.yaw,orientation.roll);
     const atomMeshes=new Map();
-    for(const atom of renderAtoms){const geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),16,12),material=new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element]?.color??'#cbd5e1',roughness:.32,metalness:.08}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(atom.point);mesh.userData.atomIndex=atom.id;atomMeshes.set(atom.id,mesh);group.add(mesh);if(atom.charge){const label=createChargeLabel(THREE,atom.charge,document);label.position.copy(atom.point).add(new THREE.Vector3(0,modelAtomRadius(atom.element)+.12,0));group.add(label);}}
+    for(const atom of renderAtoms){const geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),24,16),material=new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element]?.color??'#cbd5e1',roughness:.32,metalness:.08}),mesh=new THREE.Mesh(geometry,material);mesh.position.copy(atom.point);mesh.userData.atomIndex=atom.id;atomMeshes.set(atom.id,mesh);group.add(mesh);if(atom.charge){const label=createChargeLabel(THREE,atom.charge,document);label.position.copy(atom.point).add(new THREE.Vector3(0,modelAtomRadius(atom.element)+.12,0));group.add(label);}}
     const sharedGroups=model.sharedGroups??[],aromaticCycles=model.aromaticCycles??[],specialEdges=specialEdgeKeys(sharedGroups),aromaticEdges=aromaticBondKeys(aromaticCycles),adjacency=renderAtoms.map(()=>[]);
     for(const bond of model.bonds){adjacency[bond.a].push(bond.b);adjacency[bond.b].push(bond.a);}
     const bondMaterial=new THREE.MeshStandardMaterial({color:'#c3d2dc',roughness:.6});
@@ -204,12 +220,14 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
 
   const polymerOriginKey=origin=>`${origin.instanceId}:${origin.sourceAtomIndex}`;
   function disposePolymerVisual(){
+    observation?.hide();
     if(polymerGraphVisual)disposeItem({id:polymerSamplePresentation?.sampleId??'polymer-fragment',species:'PolymerSample',group:polymerGraphVisual.group,polymerSample:true});
     for(const pointerId of polymerOrbitPointers){activePointers.delete(pointerId);try{if(canvas.hasPointerCapture(pointerId))canvas.releasePointerCapture(pointerId);}catch{}}
     polymerOrbitPointers.clear();polymerOrbitGesture=null;polymerOrbitPinchDistance=0;polymerGraphVisual=null;polymerSiteIndicator.hidden=true;polymerIncomingIndicator.hidden=true;polymerCompletion.hidden=true;polymerEncyclopediaButton.hidden=false;polymerEncyclopediaButton.disabled=true;status.hidden=false;polymerSamplePresentation=null;onPointerLockChange(activePointers.size>0);
   }
   function suspendPolymerVisual(){
     const visual=polymerGraphVisual;if(!visual||visual.suspended)return false;
+    observation?.suspend();
     visual.suspendedTransform={position:visual.group.position.clone(),quaternion:visual.group.quaternion.clone(),scale:visual.group.scale.clone()};
     const atomMeshes=[...visual.atomMeshesByOrigin.values()];disposePolymerResources(visual.group,atomMeshes);
     visual.group=new THREE.Group();visual.atomByGraphIndex.clear();visual.bondMeshes=[];visual.suspended=true;return true;
@@ -227,21 +245,24 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
 
   function updatePolymerBondVisuals(){
-    const visual=polymerGraphVisual;if(!visual||visual.suspended)return;
-    const graph=visual.graph;if(!graph)return;
-    const {axis,direction,side,reference,midpoint,up}=polymerBondScratch;
-    let cursor=0;
-    for(const bond of graph.bonds){
-      const a=visual.atomByGraphIndex.get(bond.a),b=visual.atomByGraphIndex.get(bond.b);if(!a||!b)continue;
+    const visual=polymerGraphVisual;if(!visual||visual.suspended||!visual.graph)return;
+    const {axis,direction,side,midpoint,up}=polymerBondScratch;
+    const inverse=visual.group.getWorldQuaternion(new THREE.Quaternion()).invert(),view=cameraNormal().applyQuaternion(inverse);
+    visual.bondSides??=new Map();let cursor=0;
+    for(let bondIndex=0;bondIndex<visual.graph.bonds.length;bondIndex++){
+      const bond=visual.graph.bonds[bondIndex],a=visual.atomByGraphIndex.get(bond.a),b=visual.atomByGraphIndex.get(bond.b);if(!a||!b)continue;
       axis.subVectors(b.position,a.position);const length=axis.length();if(!Number.isFinite(length)||length<.001)continue;
-      direction.copy(axis).normalize();side.crossVectors(direction,reference).normalize();if(side.lengthSq()<1e-8)side.set(0,1,0);
-      midpoint.addVectors(a.position,b.position).multiplyScalar(.5);
-      const lanes=bond.order>=2?[-.055,.055]:[0];
-      for(const offset of lanes){
+      direction.copy(axis).normalize();side.crossVectors(direction,view);
+      const previous=visual.bondSides.get(bondIndex);
+      if(side.lengthSq()<1e-8&&previous)side.copy(previous).addScaledVector(direction,-previous.dot(direction));
+      if(side.lengthSq()<1e-8){const axes=[new THREE.Vector3(1,0,0),new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1)].sort((a,b)=>Math.abs(a.dot(direction))-Math.abs(b.dot(direction)));side.crossVectors(direction,axes[0]);}
+      side.normalize();if(previous&&side.dot(previous)<0)side.negate();if(previous)previous.copy(side);else visual.bondSides.set(bondIndex,side.clone());
+      for(const offset of polymerLaneOffsets(bond.order)){
+        const radius=polymerLaneRadius(bond.order),rA=modelAtomRadius(visual.graph.atoms[bond.a].element),rB=modelAtomRadius(visual.graph.atoms[bond.b].element),start=Math.max(0,Math.sqrt(Math.max(0,rA*rA-offset*offset))-.01),end=Math.max(0,Math.sqrt(Math.max(0,rB*rB-offset*offset))-.01),exposed=length-start-end;
         let mesh=visual.bondMeshes[cursor];
-        if(!mesh){mesh=new THREE.Mesh(new THREE.CylinderGeometry(.038,.038,1,8),new THREE.MeshStandardMaterial({color:'#b8d1de',roughness:.5}));visual.bondMeshes[cursor]=mesh;visual.group.add(mesh);polymerRuntimeMetrics.bondVisualAllocations++;}
-        mesh.visible=true;mesh.scale.set(1,length,1);mesh.position.copy(midpoint).addScaledVector(side,offset);mesh.quaternion.setFromUnitVectors(up,direction);
-        const atomIndices=mesh.userData.polymerAtomIndices;if(!atomIndices||atomIndices[0]!==bond.a||atomIndices[1]!==bond.b)mesh.userData.polymerAtomIndices=[bond.a,bond.b];cursor++;
+        if(!mesh){mesh=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,12),new THREE.MeshStandardMaterial({color:'#b8d1de',roughness:.5,metalness:0}));visual.bondMeshes[cursor]=mesh;visual.group.add(mesh);polymerRuntimeMetrics.bondVisualAllocations++;}
+        mesh.visible=exposed>0;mesh.scale.set(radius,Math.max(0,exposed),radius);midpoint.copy(a.position).addScaledVector(direction,start+exposed*.5);mesh.position.copy(midpoint).addScaledVector(side,offset);mesh.quaternion.setFromUnitVectors(up,direction);
+        mesh.userData.polymerAtomIndices=[bond.a,bond.b];mesh.userData.polymerBondIndex=bondIndex;mesh.userData.polymerOrder=bond.order;mesh.userData.polymerLaneOffset=offset;cursor++;
       }
     }
     for(let index=cursor;index<visual.bondMeshes.length;index++)visual.bondMeshes[index].visible=false;
@@ -265,9 +286,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(visual.suspendedTransform){visual.group.position.copy(visual.suspendedTransform.position);visual.group.quaternion.copy(visual.suspendedTransform.quaternion);visual.group.scale.copy(visual.suspendedTransform.scale);visual.suspendedTransform=null;}
     for(let index=0;index<atoms.length;index++){
       const mesh=meshes[index],atom=atoms[index];
-      mesh.geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),16,12);
+      mesh.geometry=new THREE.SphereGeometry(modelAtomRadius(atom.element),24,16);
       mesh.material=new THREE.MeshStandardMaterial({color:ELEMENTS[atom.element]?.color??'#cbd5e1',roughness:.32,metalness:.08});
-      mesh.userData.polymerAtom=true;visual.group.add(mesh);visual.atomByGraphIndex.set(index,mesh);
+      mesh.userData.polymerAtom=true;mesh.userData.polymerGraphIndex=index;mesh.userData.polymerOrigin={...origins[index]};visual.group.add(mesh);visual.atomByGraphIndex.set(index,mesh);
     }
     visual.suspended=false;world.add(visual.group);updatePolymerBondVisuals();visual.group.updateMatrixWorld(true);return true;
   }
@@ -287,7 +308,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const plan=polymerPresentationPlan(fragment,representation),visual=mergePolymerSourceAtoms(fragment),from=new Map();visual.atomByGraphIndex.clear();
     for(let index=0;index<fragment.atomOrigins.length;index++){
       const mesh=visual.atomMeshesByOrigin.get(polymerOriginKey(fragment.atomOrigins[index]));if(!mesh)continue;
-      from.set(index,mesh.position.clone());visual.atomByGraphIndex.set(index,mesh);mesh.userData.polymerAtom=true;
+      from.set(index,mesh.position.clone());visual.atomByGraphIndex.set(index,mesh);mesh.userData.polymerAtom=true;mesh.userData.polymerGraphIndex=index;mesh.userData.polymerOrigin={...fragment.atomOrigins[index]};
     }
     visual.graph=fragment;visual.representation=representation;visual.layoutPlan=plan;visual.animation={from,to:plan.atoms.map(atom=>new THREE.Vector3(atom.x,atom.y,atom.z)),elapsedMs:0,durationMs};
     updatePolymerBondVisuals();updatePolymerSiteIndicator();return plan;
@@ -428,22 +449,17 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function dispatchPolymerEvent(name,detail){window.dispatchEvent(new CustomEvent(name,{detail}));}
   function fitFinitePolymerToWorkArea({apply=true}={}){
     const visual=polymerGraphVisual,plan=visual?.layoutPlan;if(!visual||!plan)return null;
-    if(polymerSamplePresentation?.ready){polymerRuntimeMetrics.completionLayoutCallsAfterReady++;return null;}
     const rect=canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return null;
-    resize();camera.updateMatrixWorld(true);
-    const left=Math.min(72,rect.width*.19),right=Math.max(left+40,rect.width-Math.min(72,rect.width*.19));
-    const top=Math.min(64,rect.height*.19),bottom=Math.max(top+40,rect.height-Math.min(58,rect.height*.17));
-    const centerX=(left+right)*.5,centerY=(top+bottom)*.5,height=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5)),worldPerPixel=height/rect.height;
-    const focus=cameraRight().multiplyScalar((centerX-rect.width*.5)*worldPerPixel).addScaledVector(cameraUp(),(rect.height*.5-centerY)*worldPerPixel);
-    const quaternion=new THREE.Quaternion().setFromEuler(new THREE.Euler(.34,-.28,.035,'XYZ'));
-    const sphereRadius=Math.max(...plan.atoms.map(atom=>Math.hypot(atom.x,atom.y,atom.z)+modelAtomRadius(atom.element))),centerDepth=viewDepth(focus),focalPixels=rect.height/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))),availableRadius=Math.max(8,Math.min(centerX-left,right-centerX,centerY-top,bottom-centerY)*.78);
-    const fits=scale=>{const nearestDepth=centerDepth-sphereRadius*scale;if(nearestDepth<=camera.near*2||centerDepth+sphereRadius*scale>=camera.far)return false;return sphereRadius*scale*focalPixels/nearestDepth<=availableRadius;};
-    let scale=1;if(!fits(scale)){let low=.005,high=1;for(let iteration=0;iteration<24;iteration++){const middle=(low+high)*.5;if(fits(middle))low=middle;else high=middle;}scale=low;}
-    const maxZoomFactor=clamp((centerDepth-camera.near*3)/(Math.max(.01,sphereRadius*scale)*1.12),1,2.6);    const transform={position:focus.toArray(),quaternion:[quaternion.x,quaternion.y,quaternion.z,quaternion.w],scale};
-    if(apply){visual.group.position.copy(focus);visual.group.quaternion.copy(quaternion);visual.group.scale.setScalar(scale);visual.group.updateMatrixWorld(true);}
-    polymerRuntimeMetrics.completionFitCalls++;
-    return{scale,position:transform.position,quaternion:transform.quaternion,maxZoomFactor,unitCount:plan.unitCount,atomCount:plan.atoms.length,bondCount:plan.bonds.length,depth:plan.bounds.depth,safeRegion:{left,top,right,bottom,width:right-left,height:bottom-top}};
+    camera.updateMatrixWorld(true);
+    try{
+      const fit=fitPolymerObservation(THREE,{plan,camera,width:rect.width,height:rect.height,safeRegion:observation.safeRegion()});
+      if(apply){visual.group.position.fromArray(fit.position);visual.group.quaternion.fromArray(fit.quaternion);visual.group.scale.setScalar(fit.scale);visual.group.updateMatrixWorld(true);updatePolymerBondVisuals();}
+      polymerRuntimeMetrics.completionFitCalls++;return{...fit,unitCount:plan.unitCount,atomCount:plan.atoms.length,bondCount:plan.bonds.length,depth:plan.bounds.depth};
+    }catch(error){visual.fitError=error.message;return null;}
   }
+  function resetPolymerPose(){const p=polymerSamplePresentation,fit=p?.fit,v=polymerGraphVisual;if(!fit||!v||v.suspended)return;p.focusFit=null;p.zoomFactor=1;v.group.position.fromArray(fit.position);v.group.quaternion.fromArray(fit.quaternion);v.group.scale.setScalar(fit.scale);v.group.updateMatrixWorld(true);updatePolymerBondVisuals();}
+  function zoomPolymer(factor){const p=polymerSamplePresentation,v=polymerGraphVisual,fit=p.focusFit??p.fit;p.zoomFactor=clamp(p.zoomFactor*factor,.72,Math.max(1,fit.maxZoomFactor));v.group.scale.setScalar(fit.scale*p.zoomFactor);const pivot=new THREE.Vector3(...fit.pivot),anchor=new THREE.Vector3(...fit.position).add(pivot.clone().applyQuaternion(new THREE.Quaternion(...fit.quaternion)).multiplyScalar(fit.scale));v.group.position.copy(anchor).sub(pivot.applyQuaternion(v.group.quaternion).multiplyScalar(v.group.scale.x));v.group.updateMatrixWorld(true);updatePolymerBondVisuals();observation.updateOutline();}
+  observation=createPolymerObservationUi({THREE,root,canvas,camera,world,signal:eventController.signal,getVisual:()=>polymerGraphVisual,getPresentation:()=>polymerSamplePresentation,getEvidence:()=>polymerCore.comparisonEvidence(),onReset:resetPolymerPose,onPoseChange:updatePolymerBondVisuals});
   function updatePolymerCompletionUi(presentation,ready=presentation?.ready===true){
     if(!presentation)return;
     const known=!!isPolymerKnown(presentation.polymerId);
@@ -462,6 +478,11 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(!polymerGraphVisual.displayError&&(polymerGraphVisual.layoutPlan?.unitCount!==sample.evidence.unitCount||polymerGraphVisual.layoutPlan?.atoms.length!==sample.fragment.atoms.length)){polymerGraphVisual.layoutPlan=polymerPresentationPlan(sample.fragment,sample.representation);}
     if(!polymerGraphVisual.displayError){prunePolymerAtomVisuals(sample.fragment);updatePolymerBondVisuals();prunePolymerBondVisuals();}
     polymerSamplePresentation={sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,polymerId:sample.polymerId,startedAt:null,elapsedMs:0,durationMs:reducedMotion?POLYMER_COMPLETION_REDUCED_FEEDBACK_MS:POLYMER_COMPLETION_FEEDBACK_MS,ready:false,dismissed:false,phase:'completion',displayedUnitCount:new Set(sample.fragment.atomOrigins.map(origin=>origin.instanceId)).size,layoutCallsAtReady:null,fit:null,zoomFactor:1};
+    if(!polymerGraphVisual.displayError){
+      const coreEvidence=polymerCore.comparisonEvidence();coreEvidence.byproductPoses={};
+      for(const b of coreEvidence.byproducts){const item=instances.find(i=>i.id===b.instanceId),available=item?.record.atoms??[],used=new Set();coreEvidence.byproductPoses[b.instanceId]=b.graph.atoms.map(a=>{const i=available.findIndex((v,i)=>v.element===a.element&&!used.has(i));if(i<0)throw new Error('Missing actual byproduct pose');used.add(i);return available[i].point.toArray();});}
+      observation.prepare(sample,polymerSourceRecordsById,route,coreEvidence,polymerCapturedSources);
+    }
     const visual=polymerGraphVisual,startTransform={position:visual.group.position.clone(),quaternion:visual.group.quaternion.clone(),scale:visual.group.scale.clone()},fit=fitFinitePolymerToWorkArea({apply:false});
     polymerSamplePresentation.fit=fit;
     if(visual.animation){const animation=visual.animation;for(let index=0;index<animation.to.length;index++){const mesh=visual.atomByGraphIndex.get(index);if(mesh)mesh.position.copy(animation.to[index]);}updatePolymerBondVisuals();visual.animation=reducedMotion?null:{from:new Map(),to:[],elapsedMs:0,durationMs:animation.durationMs,animateAtoms:false};}
@@ -469,6 +490,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       if(visual.animation&&!reducedMotion){visual.group.position.copy(startTransform.position);visual.group.quaternion.copy(startTransform.quaternion);visual.group.scale.copy(startTransform.scale);visual.animation.transformFrom=startTransform;visual.animation.transformTo=targetTransform;}
       else{visual.group.position.copy(targetTransform.position);visual.group.quaternion.copy(targetTransform.quaternion);visual.group.scale.copy(targetTransform.scale);visual.group.updateMatrixWorld(true);}
     }
+    updatePolymerBondVisuals();
     updatePolymerCompletionUi(polymerSamplePresentation,false);
     polymerSamplePresentation.startedAt=performance.now();
     dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample',{routeId:sample.routeId,polymerId:sample.polymerId,sampleId:sample.sampleId,batchGeneration:sample.batchGeneration,sourceInstanceIds:[...snapshot.consumedInstanceIds],byproducts});
@@ -490,10 +512,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const opened=await onOpenPolymer(presentation.polymerId);
     if(!opened)polymerCompletionStatus.textContent='図鑑を開けませんでした。次のFeedへ進めます。';
   },eventOptions);
-  polymerViewResetButton?.addEventListener('click',()=>{
-    const presentation=polymerSamplePresentation,fit=presentation?.fit;if(!presentation?.ready||!polymerGraphVisual||!fit)return;
-    presentation.zoomFactor=1;polymerGraphVisual.group.position.fromArray(fit.position);polymerGraphVisual.group.quaternion.fromArray(fit.quaternion);polymerGraphVisual.group.scale.setScalar(fit.scale);polymerGraphVisual.group.updateMatrixWorld(true);
-  },eventOptions);
+  polymerViewResetButton?.addEventListener('click',()=>observation.reset(),eventOptions);
 
   function reconcilePolymerCommit(result){
     const snapshot=polymerCore.snapshot();if(!snapshot)return;
@@ -526,6 +545,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const begun=polymerCore.beginBatch({activeSlots:batch.activeSlots,batchGeneration:batch.generation,instances,environment:activationEnvironment.conditions()});
     if(!begun.ok){polymerBeginError=begun.reason;status.textContent='POLYMERIZATION PAUSED';updateCommandBar();return;}
     for(const id of begun.reservedInstanceIds){const item=instanceById(id);if(!item)continue;item.polymerReservation=begun.routeId;polymerReservedById.set(id,item);polymerSourceRecordsById[id]=item.record;}
+    polymerCapturedSources=[];let sourceOffset=0;
+    for(const [id,item]of polymerReservedById){const points=item.record.atoms.map(a=>a.point.clone().applyQuaternion(item.group.quaternion)),minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x));polymerCapturedSources.push({instanceId:id,species:item.species,name:item.record.nameJa??item.record.name??item.species,atoms:item.record.atoms.map((a,i)=>({element:a.element,point:[points[i].x-minX+sourceOffset,points[i].y,points[i].z]})),bonds:item.record.bonds.map(b=>({...b}))});sourceOffset+=maxX-minX+1.5;}
     ensurePolymerProcessSetup();
     if(polymerCore.snapshot()?.waitReason==='conditions')status.textContent='POLYMERIZATION PAUSED';
     updateCommandBar();
@@ -831,9 +852,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   canvas.addEventListener('pointerdown',event=>{
     if(polymerGraphVisual?.displayError)return;
     if(disposed||pickerOpen||isTransitionLocked()||reactionAnimation)return;
-    const completedSample=canObservePolymerSample();
+    const completedSample=canObservePolymerSample()&&!observation.comparisonActive;
     const continuingOrbit=polymerOrbitPointers.size>0,completedSampleHit=completedSample&&!continuingOrbit?(raycastAtoms(event)??fallbackGrab(event)):null;
-    if(completedSample&&(continuingOrbit||!completedSampleHit&&activePointers.size===0)){event.preventDefault();activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});polymerOrbitPointers.add(event.pointerId);capturePointer(event);if(polymerOrbitPointers.size>1){polymerOrbitPinchDistance=currentPolymerOrbitPinchDistance();polymerOrbitGesture=null;}else polymerOrbitGesture={pointerId:event.pointerId,x:event.clientX,y:event.clientY};onPointerLockChange(true);updateCommandBar();return;}
+    if(completedSample&&(continuingOrbit||!completedSampleHit&&activePointers.size===0)){event.preventDefault();activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});polymerOrbitPointers.add(event.pointerId);capturePointer(event);if(polymerOrbitPointers.size>1){polymerOrbitPinchDistance=currentPolymerOrbitPinchDistance();polymerOrbitGesture=null;}else polymerOrbitGesture={pointerId:event.pointerId,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,startedAt:performance.now(),moved:false};onPointerLockChange(true);updateCommandBar();return;}
     event.preventDefault();activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});capturePointer(event);
     if(pinchActive||activePointers.size>1){if(!pinchActive){endManipulation();pinchActive=true;}pinchDistance=currentPinchDistance();onPointerLockChange(true);updateEnvironmentControls();return;}
     const hit=raycastAtoms(event)??fallbackGrab(event);selected=hit?.item??null;
@@ -852,8 +873,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     point.x=event.clientX;point.y=event.clientY;
     if(polymerOrbitPointers.has(event.pointerId)){
       if(canObservePolymerSample()){
-        if(polymerOrbitPointers.size>1){const next=currentPolymerOrbitPinchDistance();if(next>0&&polymerOrbitPinchDistance>0){const presentation=polymerSamplePresentation;presentation.zoomFactor=clamp(presentation.zoomFactor*next/polymerOrbitPinchDistance,.72,presentation.fit.maxZoomFactor);polymerGraphVisual.group.scale.setScalar(presentation.fit.scale*presentation.zoomFactor);polymerGraphVisual.group.updateMatrixWorld(true);}polymerOrbitPinchDistance=next;return;}
-        if(polymerOrbitGesture?.pointerId===event.pointerId){const deltaX=event.clientX-polymerOrbitGesture.x,deltaY=event.clientY-polymerOrbitGesture.y;polymerOrbitGesture.x=event.clientX;polymerOrbitGesture.y=event.clientY;const yaw=new THREE.Quaternion().setFromAxisAngle(cameraUp(),deltaX*.008),pitch=new THREE.Quaternion().setFromAxisAngle(cameraRight(),deltaY*.008);polymerGraphVisual.group.quaternion.premultiply(yaw).premultiply(pitch).normalize();polymerGraphVisual.group.updateMatrixWorld(true);}
+        if(polymerOrbitPointers.size>1){const next=currentPolymerOrbitPinchDistance();if(next>0&&polymerOrbitPinchDistance>0){const presentation=polymerSamplePresentation;zoomPolymer(next/polymerOrbitPinchDistance);}polymerOrbitPinchDistance=next;return;}
+        if(polymerOrbitGesture?.pointerId===event.pointerId){const deltaX=event.clientX-polymerOrbitGesture.x,deltaY=event.clientY-polymerOrbitGesture.y;polymerOrbitGesture.x=event.clientX;polymerOrbitGesture.y=event.clientY;polymerOrbitGesture.moved||=Math.hypot(event.clientX-polymerOrbitGesture.startX,event.clientY-polymerOrbitGesture.startY)>6;const fit=polymerSamplePresentation.focusFit??polymerSamplePresentation.fit,pivot=new THREE.Vector3(...fit.pivot),anchor=pivot.clone().applyMatrix4(polymerGraphVisual.group.matrixWorld);const yaw=new THREE.Quaternion().setFromAxisAngle(cameraUp(),deltaX*.008),pitch=new THREE.Quaternion().setFromAxisAngle(cameraRight(),deltaY*.008);polymerGraphVisual.group.quaternion.premultiply(yaw).premultiply(pitch).normalize();polymerGraphVisual.group.position.copy(anchor).sub(pivot.applyQuaternion(polymerGraphVisual.group.quaternion).multiplyScalar(polymerGraphVisual.group.scale.x));polymerGraphVisual.group.updateMatrixWorld(true);updatePolymerBondVisuals();observation.updateOutline();}
       }return;
     }
     if(pinchActive){const next=currentPinchDistance();if(next>0&&pinchDistance>0){distance=clamp(distance*pinchDistance/Math.max(1,next),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();}pinchDistance=next;return;}
@@ -862,7 +883,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function endPointer(event){
     const active=activePointers.has(event.pointerId),wasPinching=pinchActive;
     if(!active)return;
-    if(polymerOrbitPointers.has(event.pointerId)){activePointers.delete(event.pointerId);polymerOrbitPointers.delete(event.pointerId);try{canvas.releasePointerCapture(event.pointerId);}catch{}if(polymerOrbitPointers.size<2){polymerOrbitPinchDistance=0;const remaining=[...polymerOrbitPointers][0],point=remaining===undefined?null:activePointers.get(remaining);polymerOrbitGesture=point?{pointerId:remaining,x:point.x,y:point.y}:null;}else polymerOrbitPinchDistance=currentPolymerOrbitPinchDistance();onPointerLockChange(activePointers.size>0);updateCommandBar();return;}
+    if(polymerOrbitPointers.has(event.pointerId)){const gesture=polymerOrbitGesture;if(event.type==='pointerup'&&polymerOrbitPointers.size===1&&gesture&&!gesture.moved&&performance.now()-gesture.startedAt<=250)observation.tap(event);activePointers.delete(event.pointerId);polymerOrbitPointers.delete(event.pointerId);try{canvas.releasePointerCapture(event.pointerId);}catch{}if(polymerOrbitPointers.size<2){polymerOrbitPinchDistance=0;const remaining=[...polymerOrbitPointers][0],point=remaining===undefined?null:activePointers.get(remaining);polymerOrbitGesture=point?{pointerId:remaining,x:point.x,y:point.y}:null;}else polymerOrbitPinchDistance=currentPolymerOrbitPinchDistance();onPointerLockChange(activePointers.size>0);updateCommandBar();return;}
     if(!wasPinching&&event.type==='pointerup'&&down?.pointerId===event.pointerId&&selected)updateManipulation(16);
     let polymerCommitted=false;if(!wasPinching&&event.type==='pointerup'&&down?.pointerId===event.pointerId&&selected?.polymerReservation)polymerCommitted=startManualPolymerDock(selected,event);
     if(down?.pointerId===event.pointerId&&!wasPinching&&!polymerCommitted)endManipulation();
@@ -872,7 +893,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   canvas.addEventListener('pointerup',endPointer,eventOptions);canvas.addEventListener('pointercancel',endPointer,eventOptions);
   window.addEventListener('blur',()=>{cancelAllPointers();updateCommandBar();},eventOptions);
-  canvas.addEventListener('wheel',event=>{event.preventDefault();if(pickerOpen||isTransitionLocked()||reactionAnimation||polymerGraphVisual?.displayError)return;if(canObservePolymerSample()){const presentation=polymerSamplePresentation;presentation.zoomFactor=clamp(presentation.zoomFactor*Math.exp(-event.deltaY*.001),.72,presentation.fit.maxZoomFactor);polymerGraphVisual.group.scale.setScalar(presentation.fit.scale*presentation.zoomFactor);polymerGraphVisual.group.updateMatrixWorld(true);return;}distance=clamp(distance*Math.exp(event.deltaY*.001),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();},{passive:false,signal:eventController.signal});
+  canvas.addEventListener('wheel',event=>{event.preventDefault();if(pickerOpen||isTransitionLocked()||reactionAnimation||polymerGraphVisual?.displayError)return;if(canObservePolymerSample()){const presentation=polymerSamplePresentation;if(observation.comparisonActive)return;const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?canvas.clientHeight:1);zoomPolymer(Math.exp(-delta*.001));return;}distance=clamp(distance*Math.exp(event.deltaY*.001),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();},{passive:false,signal:eventController.signal});
 
   function reactionStep(stepMs){
     if(batch.phase!==REACTION_LAB_BATCH_PHASES.ACTIVE)return;
@@ -1199,16 +1220,21 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function tick(now){
     if(disposed)return;animationFrameId=requestAnimationFrame(tick);
     const elapsed=Math.max(0,now-last);last=now;
-    if(document.hidden)return;
-    if(!dialog.open||pickerOpen){renderer.render(scene,camera);return;}
+    if(document.hidden||contextLost)return;
+    if(!dialog.open)return;
+    if(pickerOpen){renderer.render(scene,camera);return;}
+    if(Math.min(Math.max(devicePixelRatio||1,1),2)!==renderer.getPixelRatio())scheduleResize();
     updateManipulation(elapsed);
     advanceBatchTransition(elapsed);
     const timeScale=chamberTime.scale,scaledElapsed=scaleSimulationElapsed(elapsed/1000,timeScale),acceptedElapsed=Math.min(scaledElapsed,STAGE_A_GAME_STEP_SECONDS*STAGE_A_MAX_CATCH_UP_STEPS);
     const timing=stageAStepper.advance(scaledElapsed);simulationClockSeconds+=acceptedElapsed;stageAPerformance.lastFrameStepCount=timing.steps;stageAPerformance.lastDroppedGameSeconds=timing.droppedGameSeconds;
     advanceReactionAnimation(elapsed);
     advancePolymerPresentation(elapsed);
+    if(polymerGraphVisual?.animation)updatePolymerBondVisuals();
     renderer.render(scene,camera);
   }
+  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();contextLost=true;cancelAllPointers();observation.contextLost(true);},eventOptions);
+  canvas.addEventListener('webglcontextrestored',()=>{contextLost=false;last=performance.now();resize();updatePolymerBondVisuals();observation.contextLost(false);observation.updateOutline();},eventOptions);
   updateCamera();animationFrameId=requestAnimationFrame(tick);
   document.addEventListener('visibilitychange',()=>{last=performance.now();if(document.hidden)setMediumSelectorOpen(false);},{signal:eventController.signal});
 
@@ -1227,6 +1253,23 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     };
     const probe={
       polymerResourceSnapshot,
+      polymerObservation:()=>observation.snapshot(),
+      polymerVisualSnapshot(){
+        const v=polymerGraphVisual;if(!v||v.suspended)return null;camera.updateMatrixWorld(true);v.group.updateMatrixWorld(true);const r=canvas.getBoundingClientRect(),f=r.height/(2*Math.tan(camera.fov*Math.PI/360));
+        const project=p=>{const c=p.clone().applyMatrix4(camera.matrixWorldInverse),s=p.clone().project(camera);return{x:(s.x+1)*r.width/2,y:(1-s.y)*r.height/2,depth:-c.z};};
+        const atoms=[...v.atomByGraphIndex].map(([i,m])=>{const center=m.getWorldPosition(new THREE.Vector3()),p=project(center),radius=modelAtomRadius(v.graph.atoms[i].element)*v.group.scale.x,corners=[];for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])corners.push(project(center.clone().add(new THREE.Vector3(x*radius,y*radius,z*radius))));return{index:i,element:v.graph.atoms[i].element,origin:v.graph.atomOrigins[i],materialColor:m.material.color.getHexString(),roughness:m.material.roughness,metalness:m.material.metalness,visible:m.visible,center:p,radius:f*radius/p.depth,corners};});
+        const lanes=v.bondMeshes.filter(m=>m.visible).map(m=>{const a=m.localToWorld(new THREE.Vector3(0,-.5,0)),b=m.localToWorld(new THREE.Vector3(0,.5,0)),radius=m.scale.x*v.group.scale.x;return{bondIndex:m.userData.polymerBondIndex,order:m.userData.polymerOrder,offset:m.userData.polymerLaneOffset,atomIndices:m.userData.polymerAtomIndices,a:project(a),b:project(b),radius:f*radius/((project(a).depth+project(b).depth)/2)};});
+        return{graph:v.graph,atoms,lanes,canvas:{left:r.left,top:r.top,width:r.width,height:r.height,bufferWidth:canvas.width,bufferHeight:canvas.height,dpr:renderer.getPixelRatio()},camera:{position:camera.position.toArray(),matrix:camera.matrixWorld.toArray(),projection:camera.projectionMatrix.toArray(),fov:camera.fov,near:camera.near,far:camera.far},pose:{position:v.group.position.toArray(),quaternion:v.group.quaternion.toArray(),scale:v.group.scale.x},fit:polymerSamplePresentation?.fit,observation:observation.snapshot(),metrics:{...polymerRuntimeMetrics}};
+      },
+      polymerIdMask(){
+        if(!polymerGraphVisual||polymerGraphVisual.suspended)throw new Error('No visible sample');
+        const saved=[],background=scene.background;scene.background=new THREE.Color(0);let lane=1024;
+        for(const child of world.children)if(child!==polymerGraphVisual.group){saved.push([child,'visible',child.visible]);child.visible=false;}
+        for(const [i,m]of polymerGraphVisual.atomByGraphIndex){saved.push([m,'material',m.material]);m.material=new THREE.MeshBasicMaterial({color:i+1,toneMapped:false});}
+        for(const m of polymerGraphVisual.bondMeshes){saved.push([m,'material',m.material]);m.material=new THREE.MeshBasicMaterial({color:lane++,toneMapped:false});}
+        try{renderer.render(scene,camera);return canvas.toDataURL('image/png');}finally{for(const [o,k,v]of saved){if(k==='material')o.material.dispose();o[k]=v;}scene.background=background;renderer.render(scene,camera);}
+      },
+      setPolymerObservationPose({quaternion,reset=false}){if(!canObservePolymerSample())throw new Error('Sample not ready');if(reset)observation.reset();if(quaternion){polymerGraphVisual.group.quaternion.fromArray(quaternion).normalize();polymerGraphVisual.group.updateMatrixWorld(true);updatePolymerBondVisuals();observation.updateOutline();}return this.polymerVisualSnapshot();},
       polymerDisplayBounds(){
         if(!polymerGraphVisual?.layoutPlan)return null;
         const rect=canvas.getBoundingClientRect(),forward=cameraNormal(),points=[];camera.updateMatrixWorld(true);polymerGraphVisual.group.updateMatrixWorld(true);
@@ -1328,5 +1371,5 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     };
     window.__reactionLabProbe=probe;
   }
-  return {open,closeAndWait,isOpen:()=>dialog.open,getBatchGeneration:()=>batch.snapshot().generation,dispose(){disposed=true;cancelAnimationFrame(animationFrameId);closePicker({returnFocus:false});eventController.abort();batch.invalidate();resizeObserver.disconnect();clear();renderer.dispose();for(const resolve of closeWaiters)resolve(false);closeWaiters.clear();onPointerLockChange(false);}};
+  return {open,closeAndWait,isOpen:()=>dialog.open,getBatchGeneration:()=>batch.snapshot().generation,dispose(){disposed=true;cancelAnimationFrame(animationFrameId);closePicker({returnFocus:false});eventController.abort();batch.invalidate();resizeObserver.disconnect();cancelAnimationFrame(resizeRequest);observation.dispose();clear();renderer.dispose();for(const resolve of closeWaiters)resolve(false);closeWaiters.clear();onPointerLockChange(false);}};
 }
