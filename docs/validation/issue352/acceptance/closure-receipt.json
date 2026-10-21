@@ -1,0 +1,24 @@
+{
+  "decision": "Task④ CLOSED",
+  "issue": {
+    "number": 352,
+    "url": "https://github.com/miyatayuuma/molecule-craft/issues/352",
+    "state": "closed",
+    "state_reason": "completed",
+    "closed_at": "2026-10-21T00:34:08Z"
+  },
+  "startingMain": "6c676317ff590dd756685168484c79788b5a329b",
+  "finalMain": "593ac571e4d664f7af885855352142874dd227ab",
+  "reviewedHead": "e5ce3d1b5168e670990b40081cc9246922289d90",
+  "tree": "7dad9ba4df1824276efc9121b0de5829f7704610",
+  "repairPR": 353,
+  "repairMerged": true,
+  "postMergeRun": 39520340651,
+  "postEvidence": "e34d0e7eb8ef3744c854b91a865dbce0cedcb12d",
+  "pr345": {
+    "state": "open",
+    "merged": false,
+    "head": "95f3fd1bf0334be32ca8d1b095a0956d2f14582d"
+  },
+  "nextTask": 5
+}
