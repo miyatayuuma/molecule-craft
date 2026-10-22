@@ -1,4 +1,4 @@
-name: Task5 frozen evidence inspection
+name: Task5 bounded repair pilot and frozen inspection
 on:
   push:
     branches: [diagnostics/task5-evidence-50c0]
@@ -6,80 +6,86 @@ permissions:
   contents: read
   actions: read
 jobs:
-  inspect:
+  inspect-pib:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        artifact: [12411244546, 12412278535]
     steps:
       - name: Verify original artifact authority
         env:
           GH_TOKEN: ${{ github.token }}
-          ARTIFACT_ID: ${{ matrix.artifact }}
         run: |
-          gh api "repos/miyatayuuma/molecule-craft/actions/artifacts/$ARTIFACT_ID" > artifact.json
+          gh api repos/miyatayuuma/molecule-craft/actions/artifacts/12411244546 > artifact.json
           python - <<'PY'
           import json
           a=json.load(open('artifact.json'))
           assert a['workflow_run']['head_sha']=='50c0b38fba2ad87272d30a536d45a1060a80c7a0'
           assert a['workflow_run']['id']==39740905764
           assert not a['expired']
-          print(a['id'],a['name'],a.get('digest'))
           PY
       - uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
           repository: miyatayuuma/molecule-craft
           run-id: 39740905764
-          artifact-ids: ${{ matrix.artifact }}
+          artifact-ids: 12411244546
           path: original
           merge-multiple: true
-      - name: Extract unchanged reports and diagnostic raster witnesses
+      - name: Extract unchanged complete PIB witnesses
         run: |
           python - <<'PY'
           import json,shutil,hashlib
           from pathlib import Path
-          root=Path('original');out=Path('inspection');out.mkdir()
+          out=Path('inspection');out.mkdir()
           shutil.copy2('artifact.json',out/'original-artifact.json')
-          manifest={'kind':'FROZEN_FAILED_EVIDENCE_INSPECTION_NOT_ACCEPTANCE','sourceSha':'50c0b38fba2ad87272d30a536d45a1060a80c7a0','routes':[],'files':[]}
-          def copy(src,dst):
-            dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
-            manifest['files'].append({'path':str(dst.relative_to(out)),'sha256':hashlib.sha256(src.read_bytes()).hexdigest()})
-          for src in sorted(root.rglob('visual.json')):
-            d=json.loads(src.read_text());assert d['sourceSha']==manifest['sourceSha']
-            target=out/'task5'/d['polymerId'];copy(src,target/src.name)
-            for name in ['overview.png','initial-ends-id-mask.png']:
-              if (src.parent/name).exists():copy(src.parent/name,target/name)
-            failures=[]
-            for g in d.get('simultaneous',[]):
-              if g.get('witness'):continue
-              candidates=[]
-              for v in d['views']:
-                if not v['mode'].startswith('local-'):continue
-                missingAtoms=sorted(set(g['atomIndices'])-set(v['visibleAtoms']))
-                missingBonds=sorted(set(g['bondIndices'])-set(v['visibleBonds']))
-                missingQ=sorted(set(g['atomIndices'])-set(v.get('localQAtoms',[])))
-                anchorOK=g['anchor'] in v.get('localShell',[])
-                semanticOK=not g['kind'].startswith('aromatic-') or v.get('selection',{}).get('kind')==g['kind']
-                score=len(missingAtoms)+len(missingBonds)+len(missingQ)+int(not anchorOK)+int(not semanticOK)+int(v.get('localQMin',0)<20)
-                candidates.append((score,v['mode'],v['yaw'],v['pitch'],v,{'missingAtoms':missingAtoms,'missingBonds':missingBonds,'missingQ':missingQ,'anchorOK':anchorOK,'semanticOK':semanticOK}))
-              best=[]
-              for _,_,_,_,v,reason in sorted(candidates,key=lambda x:x[:4])[:2]:
-                best.append({'mode':v['mode'],'yaw':v['yaw'],'pitch':v['pitch'],'localQMin':v.get('localQMin'),'selection':v.get('selection'),**reason})
-                for k in ['actualPNG','photometryPNG','mask']:
-                  name=v.get(k)
-                  if name and (src.parent/name).exists() and not (target/name).exists():copy(src.parent/name,target/name)
-              failures.append({'group':g,'bestDiagnosticCandidates':best})
-            manifest['routes'].append({'polymerId':d['polymerId'],'views':len(d['views']),'initialEndVisibility':d['initialEndVisibility'],'missingAtoms':d['missingAtoms'],'missingBonds':d['missingBonds'],'failedGroups':failures})
-          assert len(manifest['routes'])==25
-          (out/'inspection-summary.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
-          print(json.dumps({'routes':len(manifest['routes']),'files':len(manifest['files']),'failedGroups':sum(len(r['failedGroups']) for r in manifest['routes'])}))
+          matches=list(Path('original').rglob('polyisobutylene/visual.json'));assert len(matches)==1
+          src=matches[0].parent
+          assert json.loads((src/'visual.json').read_text())['sourceSha']=='50c0b38fba2ad87272d30a536d45a1060a80c7a0'
+          shutil.copytree(src,out/'polyisobutylene')
+          manifest={'kind':'FROZEN_FAILED_EVIDENCE_INSPECTION_NOT_ACCEPTANCE','sourceSha':'50c0b38fba2ad87272d30a536d45a1060a80c7a0','files':[{'path':str(p.relative_to(out)),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted((out/'polyisobutylene').rglob('*')) if p.is_file()]}
+          (out/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(len(manifest['files']),sum(p.stat().st_size for p in out.rglob('*') if p.is_file()))
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: task5-50c0-inspection-${{ matrix.artifact }}
+          name: task5-50c0-complete-pib-inspection
           path: inspection
           retention-days: 90
           if-no-files-found: error
+  repair-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [polyethylene-terephthalate-direct-polycondensation, polyisobutylene-cationic]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Japanese screenshot font
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Single route actual browser raster pilot
+        env:
+          POLYMER_TASK5_DPR: '1'
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_MOTION: normal
+          POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Gate single route pilot
+        env:
+          POLYMER_TASK5_DPR: '1'
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
+        run: node scripts/check-polymer-task5-visual.mjs > pilot-gate.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-annotation-pilot-${{ matrix.route }}
+          path: |
+            test-results/reaction-lab-polymer-simplification
+            pilot-gate.json
+          if-no-files-found: error
+          retention-days: 90
