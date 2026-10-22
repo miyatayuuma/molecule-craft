@@ -99,3 +99,9 @@ HEAD `239624dbf6ec1985a37233a60748c41461b285e6` のrun39708513297は、保存PET
 run39738710682/job119690461800は保存PET/実PET/PF lifecycleがPASSした後、heap集計でFAIL。原本 `recovery/5f344-heap-failure.json` のobject ArrayBufferは75→73→73個、native backing bytes951124→950292→950292であり増加ではなかった。測定resourceの完全一致assertが解放による減少まで拒否していた。原本とexact type/name/self_size node projection（元heap hash付き）を保持した。
 
 集計は全差分を保存し、各隣接cycleのcountまたはself_size増加だけを0許容で拒否する。減少後の新規1個増加、同countで8bytes増加のnegative controlを含む3回帰がPASS。GPU/mesh/materialの別の完全一致assertは不変。総heapの長期収束や正式性能改善は引き続き未認定。旧FAILを上書きせず、新sourceで先行gateから再検証する。
+
+## Heap観測境界の正規化
+
+0c972 run39739683129/job119693620634は75→73→75 buffersで増加gateがFAIL。元summaryとartifact hashを `recovery/0c972-heap-failure.json`、独立owner診断2件を同recoveryへ保存した。416byte sigma/epsilon cacheのpairは各cycleの現source6–9/11–14/16–19だけに属し、旧cycleキーは未検出。FEED handoffと初期phenol消費のframe境界により、ready時点でそのpairを既に評価した履歴が異なる構造である。原本だけから特定frameの履歴までは断定しない。
+
+比較状態を同じにするため、heap採取を各cycleの空FEED完了後へ移す。IDLE、transitionなし、instances/purge/reserved0、sampleIdなしを実snapshotでassertし、採取stateを保存する。再構築後のGPU/mesh/materialは従来通り完全一致、CPU資源の増加許容0も維持。production cache/physicsは変更しない。この候補の実ブラウザ確認は次source CIで行い、未実行の12静的jobs/strictFiniteはPASSにしない。

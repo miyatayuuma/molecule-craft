@@ -1,0 +1,45 @@
+{
+  "kind": "INDEPENDENT_SAVED_HEAP_OWNER_CLASSIFICATION",
+  "sourceSha": "5f3445f18090578a0ecadd5159e0b4beb73afc48",
+  "scope": "All object ArrayBuffer nodes, up to four reverse non-weak edges; owner/property/backing-size classes. Not full dominator analysis.",
+  "cycles": [
+    {
+      "kind": "before",
+      "sha256": "3f4b7a342d2467432dbd7e0ffacb873f914c5ac6d38ac4a54f4a40ac3b804c0f",
+      "objectArrayBufferCount": 75
+    },
+    {
+      "kind": "water",
+      "sha256": "ea6377b9a64fa6d56fa7b3dbcdaa276c4f0191055adc4d01bf4bbc009da67012",
+      "objectArrayBufferCount": 73
+    },
+    {
+      "kind": "concept",
+      "sha256": "1b30568f99255da25cc5adb856a5646ad19668c31e5849aefee9e92bdb75b982",
+      "objectArrayBufferCount": 73
+    }
+  ],
+  "changedOwnerClasses": [
+    {
+      "typedArray": "Float64Array",
+      "ownerProperty": "sigma",
+      "backingBytes": 416,
+      "counts": [
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "typedArray": "Float64Array",
+      "ownerProperty": "epsilon",
+      "backingBytes": 416,
+      "counts": [
+        4,
+        3,
+        3
+      ]
+    }
+  ],
+  "conclusion": "Only sigma and epsilon Float64Array416-byte owner classes decrease4->3->3. All other object ArrayBuffer owner/property/backing-size classes are equal. This supports decrease-aware zero-growth grading, not an exemption for a positive resource increase."
+}
