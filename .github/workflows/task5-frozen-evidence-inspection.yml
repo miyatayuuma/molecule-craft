@@ -1,45 +1,86 @@
-name: Task5 graph derived local frame pilot
+name: Task5 frozen desktop failure inspection
 on:
   push:
     branches: [diagnostics/task5-evidence-50c0]
 permissions:
   contents: read
+  actions: read
 jobs:
-  repair-pilot:
+  inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        route: [polyethylene-terephthalate-direct-polycondensation, polyisobutylene-cationic, polypropylene-coordination]
+        artifact: [12418309503, 12418370613]
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - name: Verify original failed source and artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ matrix.artifact }}
+        run: |
+          gh api "repos/miyatayuuma/molecule-craft/actions/artifacts/$ARTIFACT_ID" > artifact.json
+          python - <<'PY'
+          import json,os
+          a=json.load(open('artifact.json'))
+          assert a['id']==int(os.environ['ARTIFACT_ID'])
+          assert a['workflow_run']['head_sha']=='50c0b38fba2ad87272d30a536d45a1060a80c7a0'
+          assert a['workflow_run']['id']==39740905764
+          assert not a['expired']
+          assert a.get('digest','').startswith('sha256:')
+          print(a['id'],a['name'],a['digest'])
+          PY
+      - uses: actions/download-artifact@v4
         with:
-          node-version: 22
-      - name: Japanese screenshot font
-        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
-      - name: Single route actual browser raster pilot
-        env:
-          POLYMER_TASK5_DPR: '1'
-          POLYMER_TASK5_VISUAL: '1'
-          POLYMER_TASK5_MOTION: normal
-          POLYMER_TASK5_VIEWPORT: '{"width":390,"height":844,"mobile":true}'
-          POLYMER_SOURCE_SHA: ${{ github.sha }}
-          POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
-        run: node tests/reaction-lab-polymer-browser.test.mjs
-      - name: Gate single route pilot
-        env:
-          POLYMER_TASK5_DPR: '1'
-          POLYMER_SOURCE_SHA: ${{ github.sha }}
-          POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
-        run: node scripts/check-polymer-task5-visual.mjs > pilot-gate.json
+          github-token: ${{ github.token }}
+          repository: miyatayuuma/molecule-craft
+          run-id: 39740905764
+          artifact-ids: ${{ matrix.artifact }}
+          path: original
+          merge-multiple: true
+      - name: Extract unchanged failure records and completed reports
+        run: |
+          python - <<'PY'
+          import json,shutil,hashlib
+          from pathlib import Path
+          root=Path('original');out=Path('inspection');out.mkdir()
+          manifest={'kind':'FROZEN_FAILED_EVIDENCE_INSPECTION_NOT_ACCEPTANCE','sourceSha':'50c0b38fba2ad87272d30a536d45a1060a80c7a0','originalArtifact':json.load(open('artifact.json')),'files':[],'reports':[],'failures':[]}
+          def copy(src):
+            rel=src.relative_to(root);dst=out/'original'/rel
+            dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+            manifest['files'].append({'path':str(dst.relative_to(out)),'bytes':src.stat().st_size,'sha256':hashlib.sha256(src.read_bytes()).hexdigest()})
+          for src in sorted(root.rglob('*')):
+            if not src.is_file():continue
+            n=src.name
+            keep=(n=='visual.json' or ('failure' in n and src.suffix in ['.json','.png']) or (n.startswith(('browser-','performance-')) and src.suffix=='.json'))
+            if not keep:continue
+            copy(src)
+            if src.suffix!='.json':continue
+            d=json.loads(src.read_text())
+            if n=='visual.json':
+              assert d['sourceSha']==manifest['sourceSha']
+              manifest['reports'].append({'path':str(src.relative_to(root)),'routeId':d['routeId'],'sampleId':d['sampleId'],'graphDigest':d['graphDigest'],'viewport':d['viewport'],'DPR':d['DPR'],'motion':d['motion'],'views':len(d['views']),'missingAtoms':d['missingAtoms'],'missingBonds':d['missingBonds'],'failedGroups':[{'kind':g['kind'],'anchor':g.get('anchor'),'atomIndices':g['atomIndices'],'bondIndices':g['bondIndices']} for g in d.get('simultaneous',[]) if not g.get('witness')]})
+            elif 'failure' in n:
+              failure={'path':str(src.relative_to(root)),'keys':list(d) if isinstance(d,dict) else [],'routeId':d.get('routeId'),'error':d.get('error'),'label':d.get('label'),'yaw':d.get('yaw'),'pitch':d.get('pitch'),'angleError':d.get('angleError'),'zoomRatio':d.get('zoomRatio'),'trace':d.get('trace')}
+              for k in ['base','view','snapshot','state','input']:
+                v=d.get(k)
+                if isinstance(v,dict):
+                  failure[k]={'keys':list(v)}
+                  for field in ['camera','pose','canvas','draggedInstanceId','polymerResources','pointer','dialogOpen']:
+                    if field in v:failure[k][field]=v[field]
+                  if k in ['input','snapshot','state']:
+                    for field in ['instances','currentMolecules','molecules','participants','batch','polymerization']:
+                      if field in v:failure[k][field]=v[field]
+              manifest['failures'].append(failure)
+          assert manifest['files'],'No original evidence found'
+          assert sum(x['bytes'] for x in manifest['files'])<400*1024*1024
+          (out/'inspection-summary.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
+          print('FROZEN_INSPECTION_COUNTS',json.dumps({'files':len(manifest['files']),'reports':len(manifest['reports']),'failures':len(manifest['failures']),'bytes':sum(x['bytes'] for x in manifest['files'])}))
+          print('FROZEN_FAILURE_SUMMARY',json.dumps(manifest['failures'],ensure_ascii=False))
+          PY
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: task5-local-frame-pilot-${{ matrix.route }}
-          path: |
-            test-results/reaction-lab-polymer-simplification
-            pilot-gate.json
-          if-no-files-found: error
+          name: task5-50c0-desktop-failure-inspection-${{ matrix.artifact }}
+          path: inspection
           retention-days: 90
+          if-no-files-found: error
