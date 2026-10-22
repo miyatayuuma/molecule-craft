@@ -1,0 +1,85 @@
+name: Task5 frozen evidence inspection
+on:
+  push:
+    branches: [diagnostics/task5-evidence-50c0]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        artifact: [12411244546, 12412278535]
+    steps:
+      - name: Verify original artifact authority
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ matrix.artifact }}
+        run: |
+          gh api "repos/miyatayuuma/molecule-craft/actions/artifacts/$ARTIFACT_ID" > artifact.json
+          python - <<'PY'
+          import json
+          a=json.load(open('artifact.json'))
+          assert a['workflow_run']['head_sha']=='50c0b38fba2ad87272d30a536d45a1060a80c7a0'
+          assert a['workflow_run']['id']==39740905764
+          assert not a['expired']
+          print(a['id'],a['name'],a.get('digest'))
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: miyatayuuma/molecule-craft
+          run-id: 39740905764
+          artifact-ids: ${{ matrix.artifact }}
+          path: original
+          merge-multiple: true
+      - name: Extract unchanged reports and diagnostic raster witnesses
+        run: |
+          python - <<'PY'
+          import json,shutil,hashlib
+          from pathlib import Path
+          root=Path('original');out=Path('inspection');out.mkdir()
+          shutil.copy2('artifact.json',out/'original-artifact.json')
+          manifest={'kind':'FROZEN_FAILED_EVIDENCE_INSPECTION_NOT_ACCEPTANCE','sourceSha':'50c0b38fba2ad87272d30a536d45a1060a80c7a0','routes':[],'files':[]}
+          def copy(src,dst):
+            dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+            manifest['files'].append({'path':str(dst.relative_to(out)),'sha256':hashlib.sha256(src.read_bytes()).hexdigest()})
+          for src in sorted(root.rglob('visual.json')):
+            d=json.loads(src.read_text());assert d['sourceSha']==manifest['sourceSha']
+            target=out/'task5'/d['polymerId'];copy(src,target/src.name)
+            for name in ['overview.png','initial-ends-id-mask.png']:
+              if (src.parent/name).exists():copy(src.parent/name,target/name)
+            failures=[]
+            for g in d.get('simultaneous',[]):
+              if g.get('witness'):continue
+              candidates=[]
+              for v in d['views']:
+                if not v['mode'].startswith('local-'):continue
+                missingAtoms=sorted(set(g['atomIndices'])-set(v['visibleAtoms']))
+                missingBonds=sorted(set(g['bondIndices'])-set(v['visibleBonds']))
+                missingQ=sorted(set(g['atomIndices'])-set(v.get('localQAtoms',[])))
+                anchorOK=g['anchor'] in v.get('localShell',[])
+                semanticOK=not g['kind'].startswith('aromatic-') or v.get('selection',{}).get('kind')==g['kind']
+                score=len(missingAtoms)+len(missingBonds)+len(missingQ)+int(not anchorOK)+int(not semanticOK)+int(v.get('localQMin',0)<20)
+                candidates.append((score,v['mode'],v['yaw'],v['pitch'],v,{'missingAtoms':missingAtoms,'missingBonds':missingBonds,'missingQ':missingQ,'anchorOK':anchorOK,'semanticOK':semanticOK}))
+              best=[]
+              for _,_,_,_,v,reason in sorted(candidates,key=lambda x:x[:4])[:2]:
+                best.append({'mode':v['mode'],'yaw':v['yaw'],'pitch':v['pitch'],'localQMin':v.get('localQMin'),'selection':v.get('selection'),**reason})
+                for k in ['actualPNG','photometryPNG','mask']:
+                  name=v.get(k)
+                  if name and (src.parent/name).exists() and not (target/name).exists():copy(src.parent/name,target/name)
+              failures.append({'group':g,'bestDiagnosticCandidates':best})
+            manifest['routes'].append({'polymerId':d['polymerId'],'views':len(d['views']),'initialEndVisibility':d['initialEndVisibility'],'missingAtoms':d['missingAtoms'],'missingBonds':d['missingBonds'],'failedGroups':failures})
+          assert len(manifest['routes'])==25
+          (out/'inspection-summary.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
+          print(json.dumps({'routes':len(manifest['routes']),'files':len(manifest['files']),'failedGroups':sum(len(r['failedGroups']) for r in manifest['routes'])}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: task5-50c0-inspection-${{ matrix.artifact }}
+          path: inspection
+          retention-days: 90
+          if-no-files-found: error
