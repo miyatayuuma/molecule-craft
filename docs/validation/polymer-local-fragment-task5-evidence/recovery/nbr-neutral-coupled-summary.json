@@ -1,0 +1,33 @@
+{
+  "kind": "ANNOTATION_FREE_PHOTOMETRY_PILOT_BEFORE_A03_A06_SCOPE_FIX",
+  "graphDigest": "6037bbd8cc4be6c350d365c4807660e6ef2b74204d53d30783e8cf58ee539143",
+  "views": 200,
+  "missingA03A06Atoms": [],
+  "missingBonds": [],
+  "missingGroups": [
+    {
+      "kind": "side/junction/adjacent-backbone",
+      "anchor": 3
+    },
+    {
+      "kind": "nitrile",
+      "anchor": 4
+    },
+    {
+      "kind": "nonaromatic-C=C",
+      "anchor": 1
+    },
+    {
+      "kind": "nonaromatic-C=C",
+      "anchor": 18
+    }
+  ],
+  "tripleLocal": [
+    {
+      "bondIndex": 12,
+      "witness": false
+    }
+  ],
+  "reportSha256": "ae21fe1c5fe5fbcec2fadb90aa84e07ed890a7b363df9b716cc66d1eedda32cb",
+  "limitation": "A07 group predicate still incorrectly coupled all atom A06 in the same view; no DOM/circle occlusion metadata. Not final acceptance."
+}

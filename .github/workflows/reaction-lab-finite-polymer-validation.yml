@@ -208,7 +208,9 @@ jobs:
   task5-visual-acceptance:
     needs: task5-fit-diagnostic
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # Source5633's390/DPR2 fixed PNG campaign hit90min before completion.
+    # Preserve every40-direction target and optical gate; allow its full run.
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
@@ -250,7 +252,7 @@ jobs:
 
   task5-fit-diagnostic:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
         with:
@@ -263,7 +265,7 @@ jobs:
         env:
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          node --test tests/polymer-task5-pet-recovery.test.mjs
+          node --test tests/polymer-task5-pet-recovery.test.mjs tests/polymer-raster-grading.test.mjs
           node scripts/replay-polymer-task5-captured-input.mjs
           node scripts/replay-polymer-task5-docking-input.mjs
       - name: Reproduce actual PET fit with captured failure input
@@ -293,10 +295,20 @@ jobs:
           POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Desktop sequential pointer reachability — diagnostic, not visual acceptance
+        env:
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
+          POLYMER_TASK5_VIEWPORT: '{"width":1280,"height":800,"mobile":false}'
+          POLYMER_EVIDENCE_DIR: test-results/task5-desktop-diagnostic
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: task5-fit-diagnostic
-          path: test-results/reaction-lab-polymer-simplification
+          path: |
+            test-results/reaction-lab-polymer-simplification
+            test-results/task5-desktop-diagnostic
           if-no-files-found: error
           retention-days: 90

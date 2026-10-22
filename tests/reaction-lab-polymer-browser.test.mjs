@@ -26,10 +26,11 @@ body=Buffer.from(text.replace(target,`if(globalThis.__task4GeometryFailure==='in
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address();
 let chrome=process.env.CHROMIUM_PATH??'';if(!chrome)for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
 assert.ok(chrome,'Chromium is required for Reaction Lab polymer pointer validation');
-const profile=await mkdtemp(join(tmpdir(),'molecule-craft-polymer-lab-')),debugPort=Number(process.env.POLYMER_DEBUG_PORT??9262),pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));let child=null,socket=null;
+const profile=await mkdtemp(join(tmpdir(),'molecule-craft-polymer-lab-')),debugPort=Number(process.env.POLYMER_DEBUG_PORT??9262),pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));let child=null,socket=null,browserStderr='',browserExit=null;
 try{
-  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-background-networking','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--force-device-scale-factor=1',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:'ignore'});
-  let tabs=null;for(let attempt=0;attempt<180;attempt++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}await pause(100);}assert.ok(tabs?.length,'Polymer Reaction Lab DevTools endpoint did not become ready');
+  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-background-networking','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--force-device-scale-factor=1',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
+  child.stderr.on('data',data=>{browserStderr=(browserStderr+data.toString()).slice(-16000);});child.on('exit',(code,signal)=>{browserExit={code,signal};});child.on('error',error=>{browserExit={error:String(error)};});
+  let tabs=null;for(let attempt=0;attempt<180;attempt++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}if(browserExit)break;await pause(100);}assert.ok(tabs?.length,'Polymer Reaction Lab DevTools endpoint did not become ready: '+JSON.stringify({chrome,browserExit,browserStderr}));
   socket=new WebSocket(tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl??tabs[0].webSocketDebuggerUrl);await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(Error('DevTools websocket timeout')),5000);socket.addEventListener('open',()=>{clearTimeout(timer);ok();},{once:true});socket.addEventListener('error',fail,{once:true});});
   const browserVersion=await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(Error('Browser version query timeout')),5000);const id=0;const handler=event=>{const message=JSON.parse(event.data);if(message.id!==id)return;socket.removeEventListener('message',handler);clearTimeout(timer);message.error?fail(Error(message.error.message)):ok(message.result);};socket.addEventListener('message',handler);socket.send(JSON.stringify({id,method:'Browser.getVersion'}));});
   let sequence=0;let heapChunks=null;const pending=new Map(),browserErrors=[];socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(heapChunks&&message.method==='HeapProfiler.addHeapSnapshotChunk')heapChunks.push(message.params.chunk);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(Error(message.error.message)):task.resolve(message.result);}if(message.method==='Runtime.exceptionThrown')browserErrors.push(message.params.exceptionDetails.exception?.description??message.params.exceptionDetails.text);if(message.method==='Runtime.consoleAPICalled'&&message.params.type==='error')browserErrors.push(message.params.args?.map(item=>item.value??item.description??'').join(' '));});
@@ -78,6 +79,24 @@ try{
   };
   const pointerDrag=async(plan,instanceId,routeId,manualIndex)=>{
     const rect=await evaluate(`(()=>{const r=document.querySelector('#reaction-lab canvas').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,documentWidth:document.documentElement.clientWidth,documentScroll:document.documentElement.scrollWidth}})()`);
+    const inside=point=>point.x>=rect.x+8&&point.x<=rect.x+rect.width-8&&point.y>=rect.y+8&&point.y<=rect.y+rect.height-8;
+    if(!inside(plan.start)||!inside(plan.end)){
+      const recovery={sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId,manualIndex,instanceId,viewport,rect,before:{plan,snapshot:await snapshot(),input:await evaluate('window.__reactionLabProbe.polymerFailureInput()')},wheels:[]};
+      const recoveryPath=join(artifactDir,`pointer-camera-recovery-${routeId}-${manualIndex}.json`);
+      await mkdir(artifactDir,{recursive:true});await writeFile(recoveryPath,JSON.stringify(recovery,null,2));await capture(`pointer-out-of-view-${routeId}-${manualIndex}`);
+      // Use the ordinary camera control before acquiring any molecule. Re-read
+      // the same live participant after every real wheel; physics keeps running.
+      try{for(let attempt=0;attempt<6&&(!inside(plan.start)||!inside(plan.end));attempt++){
+        const before=await snapshot();await send('Input.dispatchMouseEvent',{type:'mouseWheel',x:rect.x+rect.width/2,y:rect.y+rect.height/2,deltaX:0,deltaY:200});await pause(60);
+        plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(instanceId)})`);const after=await snapshot();recovery.wheels.push({deltaY:200,beforeDistance:before.camera.distance,afterDistance:after.camera.distance,plan});
+        assert.equal(after.polymerization.manualStepCount,before.polymerization.manualStepCount,'camera recovery does not commit chemistry');assert.equal(after.pointerActive,false,'camera recovery never acquires a molecule pointer');
+        if(after.camera.distance===before.camera.distance)break;
+      }}catch(error){recovery.error=String(error.stack??error);throw error;}finally{
+        recovery.after={plan,snapshot:await snapshot(),input:await evaluate('window.__reactionLabProbe.polymerFailureInput()')};recovery.recovered=inside(plan.start)&&inside(plan.end);
+        await writeFile(recoveryPath,JSON.stringify(recovery,null,2));await capture(`pointer-camera-recovery-${routeId}-${manualIndex}`);
+      }
+      routeCameraDistances.set(routeId,recovery.after.snapshot.camera.distance);
+    }
     assert.ok(plan.start.x>=rect.x&&plan.start.x<=rect.x+rect.width&&plan.start.y>=rect.y&&plan.start.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: reactive site is visible in the ${viewport.width}×${viewport.height} chamber: ${JSON.stringify(plan)}`);
     assert.ok(plan.end.x>=rect.x&&plan.end.x<=rect.x+rect.width&&plan.end.y>=rect.y&&plan.end.y<=rect.y+rect.height,`${routeId} manual step ${manualIndex}: projected target remains visible: ${JSON.stringify(plan)}`);
     assert.ok(rect.documentScroll<=rect.documentWidth+1,`${routeId} manual step ${manualIndex}: no horizontal overflow`);
@@ -92,20 +111,26 @@ try{
     if(routeId==='polyethylene-coordination'&&manualIndex===1){assert.ok(committed.polymerization.displayGraph?.unitCount>=2&&committed.polymerization.displayGraph.bondsResolveToRenderedAtoms,'actual finite graph and rendered bond endpoints stay connected during polymerization');await capture('actual-reaction');}
     const bondAllocations=committed.polymerRuntimeMetrics.bondVisualAllocations;await pause(360);assert.equal((await snapshot()).polymerRuntimeMetrics.bondVisualAllocations,bondAllocations,`${routeId} graph animation reuses bond geometry/materials after commit`);
   };
-  const runManualSteps=async route=>{
+  const savePointerFailure=async(error,routeId,manualIndex)=>{
+    await mkdir(artifactDir,{recursive:true});await writeFile(join(artifactDir,`pointer-failure-${routeId}-${manualIndex}.json`),JSON.stringify({sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId,manualIndex,viewport,error:String(error.stack??error),snapshot:await snapshot(),input:await evaluate('window.__reactionLabProbe.polymerFailureInput()'),browserErrors},null,2));await capture(`pointer-failure-${routeId}-${manualIndex}`);
+  };
+  const runManualSteps=async(route,{closeBeforeReady=false}={})=>{
     for(let manualIndex=1;manualIndex<=route.interactionCadence.manualSteps;manualIndex++){
+      try{
       await waitFor("!!window.__reactionLabProbe.snapshot().polymerization.siteTarget",`${route.routeId} manual step ${manualIndex}: stable reactive site is presented`);
       const state=await snapshot(),consumed=state.polymerization.consumedInstanceIds,reserved=new Set(state.polymerization.reservedInstanceIds),species=route.representativeSequence[consumed.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!consumed.includes(item.id));
       assert.ok(candidate,`${route.routeId} manual step ${manualIndex}: representative incoming monomer is reserved and draggable`);
+      if(closeBeforeReady&&route.interactionCadence.automaticSteps===0&&manualIndex===route.interactionCadence.manualSteps)await evaluate('window.__closeBeforeReadyOnNextSample=true');
       const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,manualIndex);
       assert.equal((await snapshot()).polymerization.manualStepCount,manualIndex,`${route.routeId}: exactly one manual chemistry step was committed`);
+      }catch(error){await savePointerFailure(error,route.routeId,manualIndex);throw error;}
     }
   };
   const completeAutomaticStep=async route=>{
     await waitFor("(()=>{const p=window.__reactionLabProbe.snapshot().polymerization;return p.state==='SAMPLE'||p.waitReason==='auto-fallback'})()",`${route.routeId}: automatic step completes or uses its existing pointer fallback`,18000);
     const state=await snapshot();if(state.polymerization.waitReason==='auto-fallback'){
       const p=state.polymerization,reserved=new Set(p.reservedInstanceIds),species=route.representativeSequence[p.consumedInstanceIds.length],candidate=state.instances.find(item=>reserved.has(item.id)&&item.species===species&&!p.consumedInstanceIds.includes(item.id));
-      assert.ok(candidate,`${route.routeId}: existing pointer fallback keeps its actual final Feed monomer`);const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,p.manualStepCount+1);
+      try{assert.ok(candidate,`${route.routeId}: existing pointer fallback keeps its actual final Feed monomer`);const plan=await evaluate(`window.__reactionLabProbe.polymerDockPlan(${JSON.stringify(candidate.id)})`);await pointerDrag(plan,candidate.id,route.routeId,p.manualStepCount+1);}catch(error){await savePointerFailure(error,route.routeId,p.manualStepCount+1);throw error;}
     }
     await waitFor("window.__reactionLabProbe.snapshot().polymerization.state==='SAMPLE'",`${route.routeId}: final actual-pointer Feed completes`,18000);
   };
@@ -306,7 +331,7 @@ try{
     await capture('encyclopedia-entry');
     await evaluate("document.querySelector('#close-collection').click()");await waitFor("!document.querySelector('#collection-dialog').open&&!document.body.classList.contains('collection-open')",'known entry closes cleanly');await pause(120);await openLab();assert.equal((await evaluate('window.__reactionLabProbe.polymerResourceSnapshot()')).geometryCount,resourcesBeforeClose.geometryCount,'reopening the Lab restores the same finite sample geometry');const reopenedState=await snapshot();assert.deepEqual(reopenedState.polymerization.displayGraph.groupPosition,transformBeforeClose.position,'reopening preserves the finite sample fit position');assert.deepEqual(reopenedState.polymerization.displayGraph.groupQuaternion,transformBeforeClose.quaternion,'reopening preserves the user-selected Sample rotation');assert.deepEqual(reopenedState.polymerization.displayGraph.groupScale,transformBeforeClose.scale,'reopening preserves the finite sample zoom');assert.ok((await evaluate('window.__reactionLabProbe.polymerDisplayBounds()')).depthVisible,'reopened finite sample remains within camera depth');
     // Closing before readiness emits one dismiss, pauses the feedback, and cannot register a presentation while closed.
-    await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe);await evaluate('window.__closeBeforeReadyOnNextSample=true');await completeAutomaticStep(pe);
+    await resetPolymerEvents();await feedRoute(pe,true);await runManualSteps(pe,{closeBeforeReady:true});if(pe.interactionCadence.automaticSteps>0)await evaluate('window.__closeBeforeReadyOnNextSample=true');await completeAutomaticStep(pe);
     const beforeClose=await snapshot();assert.equal(beforeClose.polymerization.sampleReady,false);await waitFor("!document.querySelector('#reaction-lab-dialog').open&&window.__polymerDismissEvents.length===1",'Lab closes at sample registration and emits one pre-ready dismiss');
     await waitFor('window.__reactionLabProbe.polymerResourceSnapshot().geometryCount===0','closing before readiness disposes finite fragment resources');
     const dismissed=await evaluate('window.__polymerDismissEvents.slice()');assert.equal(dismissed.length,1);assert.equal(dismissed[0].detail.sampleId,beforeClose.polymerization.sampleId);

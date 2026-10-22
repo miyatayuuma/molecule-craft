@@ -1,0 +1,1324 @@
+{
+  "kind": "CANDIDATE_SINGLE_ROUTE_PILOTS_NOT_ALL25_OR_FINAL_SOURCE_ACCEPTANCE",
+  "parentSha": "5633a18d8578ac0b1d326e9fd30f15ff59529813",
+  "runtimeSha256": {
+    "src/reaction-lab-viewer.js": "d4ec38ea0038969182d5727903174a957840e4dc54c5460d222690c230713bc8",
+    "src/reaction-lab-polymer-presentation.js": "1d57e2db517ae4ed6c86220068a548b1f8d2bc1d9bb769e509e809214068c380",
+    "styles.css": "86bfc3a0cfc35ffa0c8fb157bb8ea1f766b41544c26a065cceb7cf2ef656f0d8",
+    "tests/helpers/polymer-task5-visual.mjs": "53bee61801a8ca87175daf696824ec84cc3559f65be3c73a07be4b0ec9609e91",
+    "scripts/check-polymer-task5-visual.mjs": "731d993ce5ce66c9881c251b7bdde64fdb0c86d265a8f34af2b13f17d13772dc"
+  },
+  "pilots": [
+    {
+      "polymerId": "nitrile-butadiene-rubber",
+      "routeId": "nitrile-butadiene-radical",
+      "sampleId": "polymer-sample-1-1",
+      "graphDigest": "6037bbd8cc4be6c350d365c4807660e6ef2b74204d53d30783e8cf58ee539143",
+      "viewport": {
+        "width": 360,
+        "height": 780,
+        "mobile": true
+      },
+      "DPR": 1,
+      "motion": "normal",
+      "views": 160,
+      "atomA06Witnesses": 27,
+      "bondWitnesses": 26,
+      "missingAtoms": [],
+      "missingBonds": [],
+      "groups": 4,
+      "missingGroups": 0,
+      "initialEndVisibility": [
+        {
+          "index": 0,
+          "visibleFraction": 0.7683734157896419
+        },
+        {
+          "index": 20,
+          "visibleFraction": 0.604106373045205
+        }
+      ],
+      "reset": {
+        "pose": {
+          "position": [
+            -1.1808482171532964,
+            -0.11845915021571095,
+            -0.3146810672178855
+          ],
+          "quaternion": [
+            0.6875175451256698,
+            0.5826845977428466,
+            0.3790298443968487,
+            -0.2100825117760405
+          ],
+          "scale": 1.5318062933534384
+        },
+        "initialPose": {
+          "position": [
+            -1.1808482171532964,
+            -0.11845915021571095,
+            -0.3146810672178855
+          ],
+          "quaternion": [
+            0.6875175451256698,
+            0.5826845977428466,
+            0.3790298443968487,
+            -0.2100825117760405
+          ],
+          "scale": 1.5318062933534384
+        },
+        "angle": 2.9802322387695312e-08,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "tripleLocalWitnesses": [
+        {
+          "bondIndex": 12,
+          "actualBond": {
+            "a": 4,
+            "b": 5,
+            "order": 3
+          },
+          "witness": {
+            "actualPNG": "local-4-render-y45-p-60.png",
+            "actualSha256": "6aec72b236be556f22b3dbf6589e4cf760380e6c659b671b40f05e31d933bd44",
+            "photometryPNG": "local-4-photometry-y45-p-60.png",
+            "photometrySha256": "ff334aa3fbe14d984a6e50c24a086e533d4e84c452d40b370daaec030d76f6ec",
+            "domOcclusions": {
+              "rectangles": [
+                {
+                  "left": 138.3984375,
+                  "right": 199.6015625,
+                  "top": 396,
+                  "bottom": 415
+                },
+                {
+                  "left": 129,
+                  "right": 209,
+                  "top": 5,
+                  "bottom": 73
+                },
+                {
+                  "left": 7,
+                  "right": 79,
+                  "top": 334,
+                  "bottom": 398
+                },
+                {
+                  "left": 252,
+                  "right": 332,
+                  "top": 178,
+                  "bottom": 242
+                },
+                {
+                  "left": 82,
+                  "right": 264,
+                  "top": 348.8125,
+                  "bottom": 388
+                }
+              ],
+              "circles": [
+                {
+                  "x": 134.2971445180306,
+                  "y": 210.7392057548784,
+                  "radius": 31.63148851979701,
+                  "stroke": 2
+                }
+              ]
+            },
+            "pointerTrace": [
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 130.0873852123405,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 130.0873852123405,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              }
+            ],
+            "pointerAngleError": 2.0212918469683143e-07,
+            "pointerZoomRatio": 1,
+            "localQMin": 81.497108545717,
+            "localQAtoms": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26
+            ],
+            "localShell": [
+              4,
+              3,
+              5
+            ],
+            "mode": "local-4",
+            "selection": {
+              "kind": "atom",
+              "atomIndices": [
+                4
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "acrylonitrile-2",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            },
+            "pose": {
+              "position": [
+                -2.307852322165611,
+                2.60238793955762,
+                -2.578273558775078
+              ],
+              "quaternion": [
+                0.4358652533920319,
+                -0.33086398412102197,
+                -0.686782714009124,
+                -0.47841405564147654
+              ],
+              "scale": 2.878274588614201
+            },
+            "yaw": 45,
+            "pitch": -60,
+            "quaternion": [
+              0.4358652143393834,
+              -0.3308639052738563,
+              -0.6867827504858359,
+              -0.4784140933866039
+            ],
+            "mask": "local-4-id-mask-y45-p-60.png",
+            "sha256": "e874af290db12f310fcd8615352ca6f4dc268155957f0836fef71260a46bdf9f",
+            "visibleAtoms": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              8,
+              9,
+              10,
+              11,
+              14,
+              15,
+              16,
+              17,
+              20,
+              22
+            ],
+            "visibleBonds": [
+              4,
+              5,
+              6,
+              8,
+              9,
+              10,
+              11,
+              12,
+              14,
+              15,
+              18,
+              22
+            ]
+          },
+          "files": {
+            "actual": {
+              "path": "nbr-l1-id-buffer-12-actual.png",
+              "sha256": "6aec72b236be556f22b3dbf6589e4cf760380e6c659b671b40f05e31d933bd44"
+            },
+            "photometry": {
+              "path": "nbr-l1-id-buffer-12-photometry.png",
+              "sha256": "ff334aa3fbe14d984a6e50c24a086e533d4e84c452d40b370daaec030d76f6ec"
+            },
+            "mask": {
+              "path": "nbr-l1-id-buffer-12-mask.png",
+              "sha256": "e874af290db12f310fcd8615352ca6f4dc268155957f0836fef71260a46bdf9f"
+            }
+          }
+        }
+      ],
+      "reportSha256": "bfd0fd8d9545aad2a5d6ec74c06b525e7a0432a67dbf200ff91710bf70676ded",
+      "gzipSha256": "10477fadba92be4b25834a9bf7bebd8d0d48e90a7acfe81c906549989e81eb8f",
+      "gateFile": "nbr-id-buffer-pilot-gate.json"
+    },
+    {
+      "polymerId": "polyacrylonitrile",
+      "routeId": "polyacrylonitrile-radical",
+      "sampleId": "polymer-sample-1-1",
+      "graphDigest": "23e10d9bf6592a1828cd072e4dbcb5907be1fc5b56e54da36b73b466fcc87314",
+      "viewport": {
+        "width": 360,
+        "height": 780,
+        "mobile": true
+      },
+      "DPR": 1,
+      "motion": "normal",
+      "views": 360,
+      "atomA06Witnesses": 28,
+      "bondWitnesses": 27,
+      "missingAtoms": [],
+      "missingBonds": [],
+      "groups": 8,
+      "missingGroups": 0,
+      "initialEndVisibility": [
+        {
+          "index": 1,
+          "visibleFraction": 0.9582342732336494
+        },
+        {
+          "index": 22,
+          "visibleFraction": 0.961057362449735
+        }
+      ],
+      "reset": {
+        "pose": {
+          "position": [
+            -1.0351203275649552,
+            0.24452843758439308,
+            -0.06544246025447345
+          ],
+          "quaternion": [
+            0.34706712270886475,
+            0.685068876883085,
+            -0.16076503790159954,
+            -0.6199835875644091
+          ],
+          "scale": 1.2568913105875255
+        },
+        "initialPose": {
+          "position": [
+            -1.0351203275649552,
+            0.24452843758439308,
+            -0.06544246025447345
+          ],
+          "quaternion": [
+            0.34706712270886475,
+            0.685068876883085,
+            -0.16076503790159954,
+            -0.6199835875644091
+          ],
+          "scale": 1.2568913105875255
+        },
+        "angle": 4.2146848510894035e-08,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "tripleLocalWitnesses": [
+        {
+          "bondIndex": 12,
+          "actualBond": {
+            "a": 5,
+            "b": 12,
+            "order": 3
+          },
+          "witness": {
+            "actualPNG": "local-5-render-y90-p-60.png",
+            "actualSha256": "192ffc260fa9c51ad6fb12ec43ce090179df41f0e81687025978deafdab3f0c6",
+            "photometryPNG": "local-5-photometry-y90-p-60.png",
+            "photometrySha256": "cb8f02cdcac3c02c278da9601f1869723757f9096d02ff451f7166cb2f35b037",
+            "domOcclusions": {
+              "rectangles": [
+                {
+                  "left": 138.3984375,
+                  "right": 199.6015625,
+                  "top": 396,
+                  "bottom": 415
+                },
+                {
+                  "left": 129,
+                  "right": 209,
+                  "top": 5,
+                  "bottom": 73
+                },
+                {
+                  "left": 7,
+                  "right": 79,
+                  "top": 334,
+                  "bottom": 398
+                },
+                {
+                  "left": 252,
+                  "right": 332,
+                  "top": 178,
+                  "bottom": 242
+                },
+                {
+                  "left": 82,
+                  "right": 264,
+                  "top": 348.8125,
+                  "bottom": 388
+                }
+              ],
+              "circles": [
+                {
+                  "x": 128.42010941151915,
+                  "y": 212.68681027407567,
+                  "radius": 34.36465435081247,
+                  "stroke": 2
+                }
+              ]
+            },
+            "pointerTrace": [
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 130.0873852123405,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 130.0873852123405,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 130.0873852123405,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 130.0873852123405,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              }
+            ],
+            "pointerAngleError": 2.1073424255447025e-07,
+            "pointerZoomRatio": 1,
+            "localQMin": 93.10471466868087,
+            "localQAtoms": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27
+            ],
+            "localShell": [
+              5,
+              4,
+              12
+            ],
+            "mode": "local-5",
+            "selection": {
+              "kind": "atom",
+              "atomIndices": [
+                5
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "acrylonitrile-2",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            },
+            "pose": {
+              "position": [
+                -4.613634055948257,
+                2.5487464295837308,
+                -2.6793640773396197
+              ],
+              "quaternion": [
+                0.6397374753590438,
+                0.2895666860732805,
+                -0.7089610553217807,
+                -0.06527877890097357
+              ],
+              "scale": 2.7196967889368535
+            },
+            "yaw": 90,
+            "pitch": -60,
+            "quaternion": [
+              0.6397374718500229,
+              0.2895667755076166,
+              -0.7089610180827537,
+              -0.06527882100749323
+            ],
+            "mask": "local-5-id-mask-y90-p-60.png",
+            "sha256": "3de27c803724c054257c70080749cd87d77ee2d0a01cc201195086287653bea7",
+            "visibleAtoms": [
+              3,
+              4,
+              5,
+              7,
+              8,
+              10,
+              11,
+              12,
+              13
+            ],
+            "visibleBonds": [
+              6,
+              7,
+              9,
+              11,
+              12,
+              13,
+              14,
+              16,
+              18,
+              19
+            ]
+          },
+          "files": {
+            "actual": {
+              "path": "pan-l1-id-buffer-12-actual.png",
+              "sha256": "192ffc260fa9c51ad6fb12ec43ce090179df41f0e81687025978deafdab3f0c6"
+            },
+            "photometry": {
+              "path": "pan-l1-id-buffer-12-photometry.png",
+              "sha256": "cb8f02cdcac3c02c278da9601f1869723757f9096d02ff451f7166cb2f35b037"
+            },
+            "mask": {
+              "path": "pan-l1-id-buffer-12-mask.png",
+              "sha256": "3de27c803724c054257c70080749cd87d77ee2d0a01cc201195086287653bea7"
+            }
+          }
+        },
+        {
+          "bondIndex": 19,
+          "actualBond": {
+            "a": 8,
+            "b": 9,
+            "order": 3
+          },
+          "witness": {
+            "actualPNG": "local-8-render-y180-p-60.png",
+            "actualSha256": "b9b68d80d0bbd09870196264d76bf23460054c324893ec49fa4b95ec8aa60561",
+            "photometryPNG": "local-8-photometry-y180-p-60.png",
+            "photometrySha256": "ee6815603d589f1191a25229d0c45f02a396a5aa7225916eb9b182038065a1d4",
+            "domOcclusions": {
+              "rectangles": [
+                {
+                  "left": 138.3984375,
+                  "right": 199.6015625,
+                  "top": 396,
+                  "bottom": 415
+                },
+                {
+                  "left": 129,
+                  "right": 209,
+                  "top": 5,
+                  "bottom": 73
+                },
+                {
+                  "left": 7,
+                  "right": 79,
+                  "top": 334,
+                  "bottom": 398
+                },
+                {
+                  "left": 252,
+                  "right": 332,
+                  "top": 178,
+                  "bottom": 242
+                },
+                {
+                  "left": 82,
+                  "right": 264,
+                  "top": 348.8125,
+                  "bottom": 388
+                }
+              ],
+              "circles": [
+                {
+                  "x": 142.22578581919814,
+                  "y": 203.28180496055418,
+                  "radius": 33.67060149094493,
+                  "stroke": 2
+                }
+              ]
+            },
+            "pointerTrace": [
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 137.09986881410344,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 137.09986881410344,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 137.09986881410344,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 137.09986881410344,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 137.09986881410344,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 137.09986881410344,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 137.09986881410344,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              }
+            ],
+            "pointerAngleError": 2.0212918469683143e-07,
+            "pointerZoomRatio": 1,
+            "localQMin": 88.45276252729859,
+            "localQAtoms": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27
+            ],
+            "localShell": [
+              8,
+              7,
+              9
+            ],
+            "mode": "local-8",
+            "selection": {
+              "kind": "atom",
+              "atomIndices": [
+                8
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "acrylonitrile-3",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            },
+            "pose": {
+              "position": [
+                -2.265776015999272,
+                5.184539453489364,
+                -0.7781403346927649
+              ],
+              "quaternion": [
+                0.6729272341168665,
+                -0.03299076981719183,
+                -0.7029056634596588,
+                0.22804423905687726
+              ],
+              "scale": 2.6501258865144153
+            },
+            "yaw": 180,
+            "pitch": -60,
+            "quaternion": [
+              0.672927256807926,
+              -0.03299069909523343,
+              -0.7029056673968153,
+              0.22804417019429662
+            ],
+            "mask": "local-8-id-mask-y180-p-60.png",
+            "sha256": "1e08de80b103918ed9cf1f468388440f9f5f2cf26f73a1fc4df73beb077e3f76",
+            "visibleAtoms": [
+              7,
+              8,
+              9,
+              10,
+              13,
+              19,
+              25
+            ],
+            "visibleBonds": [
+              13,
+              14,
+              16,
+              18,
+              19
+            ]
+          },
+          "files": {
+            "actual": {
+              "path": "pan-l1-id-buffer-19-actual.png",
+              "sha256": "b9b68d80d0bbd09870196264d76bf23460054c324893ec49fa4b95ec8aa60561"
+            },
+            "photometry": {
+              "path": "pan-l1-id-buffer-19-photometry.png",
+              "sha256": "ee6815603d589f1191a25229d0c45f02a396a5aa7225916eb9b182038065a1d4"
+            },
+            "mask": {
+              "path": "pan-l1-id-buffer-19-mask.png",
+              "sha256": "1e08de80b103918ed9cf1f468388440f9f5f2cf26f73a1fc4df73beb077e3f76"
+            }
+          }
+        },
+        {
+          "bondIndex": 20,
+          "actualBond": {
+            "a": 17,
+            "b": 18,
+            "order": 3
+          },
+          "witness": {
+            "actualPNG": "local-17-render-y45-p-60.png",
+            "actualSha256": "6fded4c58f2a2b750220fd053a692dbc1690ea98bae688022578d046989e2e0f",
+            "photometryPNG": "local-17-photometry-y45-p-60.png",
+            "photometrySha256": "d77b7182954b26f6b37d976c2fab5ebc7d392df7b0a47442eda4867acb8e8ad9",
+            "domOcclusions": {
+              "rectangles": [
+                {
+                  "left": 138.3984375,
+                  "right": 199.6015625,
+                  "top": 396,
+                  "bottom": 415
+                },
+                {
+                  "left": 129,
+                  "right": 209,
+                  "top": 5,
+                  "bottom": 73
+                },
+                {
+                  "left": 7,
+                  "right": 79,
+                  "top": 334,
+                  "bottom": 398
+                },
+                {
+                  "left": 252,
+                  "right": 332,
+                  "top": 178,
+                  "bottom": 242
+                },
+                {
+                  "left": 82,
+                  "right": 264,
+                  "top": 348.8125,
+                  "bottom": 388
+                }
+              ],
+              "circles": [
+                {
+                  "x": 123.70411494230186,
+                  "y": 195.17784289680282,
+                  "radius": 28.78512792460272,
+                  "stroke": 2
+                }
+              ]
+            },
+            "pointerTrace": [
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 130.0873852123405,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "yaw",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 130.0873852123405,
+                  "y": 325.25
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 281.61676870014173
+                }
+              }
+            ],
+            "pointerAngleError": 2.0212918469683143e-07,
+            "pointerZoomRatio": 1,
+            "localQMin": 79.93811065400371,
+            "localQAtoms": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27
+            ],
+            "localShell": [
+              17,
+              1,
+              18
+            ],
+            "mode": "local-17",
+            "selection": {
+              "kind": "atom",
+              "atomIndices": [
+                17
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "acrylonitrile-1",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            },
+            "pose": {
+              "position": [
+                2.1214549312887083,
+                -0.1783801075222604,
+                -4.629970406634562
+              ],
+              "quaternion": [
+                0.2133236288511007,
+                0.8957082483156139,
+                -0.3538559194127919,
+                -0.1642734049373182
+              ],
+              "scale": 2.2666234046257285
+            },
+            "yaw": 45,
+            "pitch": -60,
+            "quaternion": [
+              0.2133236032309227,
+              0.8957082881787397,
+              -0.35385582916180575,
+              -0.16427341525852185
+            ],
+            "mask": "local-17-id-mask-y45-p-60.png",
+            "sha256": "2ff3b19b1b005bd420652ed9148c3afd46db000fc1ba70186860feb822e02f7d",
+            "visibleAtoms": [
+              1,
+              2,
+              3,
+              6,
+              8,
+              9,
+              10,
+              11,
+              13,
+              14,
+              17,
+              18,
+              20,
+              21,
+              23,
+              27
+            ],
+            "visibleBonds": [
+              1,
+              3,
+              4,
+              5,
+              6,
+              7,
+              14,
+              15,
+              17,
+              18,
+              20,
+              21,
+              22,
+              23,
+              24
+            ]
+          },
+          "files": {
+            "actual": {
+              "path": "pan-l1-id-buffer-20-actual.png",
+              "sha256": "6fded4c58f2a2b750220fd053a692dbc1690ea98bae688022578d046989e2e0f"
+            },
+            "photometry": {
+              "path": "pan-l1-id-buffer-20-photometry.png",
+              "sha256": "d77b7182954b26f6b37d976c2fab5ebc7d392df7b0a47442eda4867acb8e8ad9"
+            },
+            "mask": {
+              "path": "pan-l1-id-buffer-20-mask.png",
+              "sha256": "2ff3b19b1b005bd420652ed9148c3afd46db000fc1ba70186860feb822e02f7d"
+            }
+          }
+        },
+        {
+          "bondIndex": 26,
+          "actualBond": {
+            "a": 23,
+            "b": 24,
+            "order": 3
+          },
+          "witness": {
+            "actualPNG": "local-23-render-y0-p-30.png",
+            "actualSha256": "22e37fdfb3dded112ff76857294981bbca5a9d02af28ddd9bde3cbc86f182438",
+            "photometryPNG": "local-23-photometry-y0-p-30.png",
+            "photometrySha256": "f756033e2c31a5a58c06a27a32b8c99c70be280f2ded1b68cf46da04e06f5f4e",
+            "domOcclusions": {
+              "rectangles": [
+                {
+                  "left": 138.3984375,
+                  "right": 199.6015625,
+                  "top": 396,
+                  "bottom": 415
+                },
+                {
+                  "left": 129,
+                  "right": 209,
+                  "top": 5,
+                  "bottom": 73
+                },
+                {
+                  "left": 7,
+                  "right": 79,
+                  "top": 334,
+                  "bottom": 398
+                },
+                {
+                  "left": 252,
+                  "right": 332,
+                  "top": 178,
+                  "bottom": 242
+                },
+                {
+                  "left": 82,
+                  "right": 264,
+                  "top": 348.8125,
+                  "bottom": 388
+                }
+              ],
+              "circles": [
+                {
+                  "x": 130.412522267136,
+                  "y": 199.29806545335433,
+                  "radius": 29.33680472229281,
+                  "stroke": 2
+                }
+              ]
+            },
+            "pointerTrace": [
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 292.52507652510633
+                }
+              },
+              {
+                "axis": "pitch",
+                "start": {
+                  "x": 81,
+                  "y": 325.25
+                },
+                "end": {
+                  "x": 81,
+                  "y": 292.52507652510633
+                }
+              }
+            ],
+            "pointerAngleError": 1.3328003749250115e-07,
+            "pointerZoomRatio": 1,
+            "localQMin": 80.43949579311159,
+            "localQAtoms": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27
+            ],
+            "localShell": [
+              23,
+              22,
+              24
+            ],
+            "mode": "local-23",
+            "selection": {
+              "kind": "atom",
+              "atomIndices": [
+                23
+              ],
+              "bondIndices": [],
+              "originTuples": [
+                {
+                  "instanceId": "acrylonitrile-4",
+                  "sourceAtomIndex": 2
+                }
+              ]
+            },
+            "pose": {
+              "position": [
+                -4.920822137126047,
+                -4.098921141805735,
+                2.817643910559539
+              ],
+              "quaternion": [
+                -0.03153769674427468,
+                0.8584956127408206,
+                -0.07010675795012575,
+                0.5070263297685356
+              ],
+              "scale": 2.319346881508827
+            },
+            "yaw": 0,
+            "pitch": -30,
+            "quaternion": [
+              -0.03153773294235438,
+              0.8584956077356936,
+              -0.0701068192406165,
+              0.5070263275169666
+            ],
+            "mask": "local-23-id-mask-y0-p-30.png",
+            "sha256": "5ebfcc07392416f42082b1da0dc1c3fb2a4018528cc4d58ed3f805064005aa0d",
+            "visibleAtoms": [
+              22,
+              23,
+              24,
+              25
+            ],
+            "visibleBonds": [
+              18,
+              21,
+              24,
+              26
+            ]
+          },
+          "files": {
+            "actual": {
+              "path": "pan-l1-id-buffer-26-actual.png",
+              "sha256": "22e37fdfb3dded112ff76857294981bbca5a9d02af28ddd9bde3cbc86f182438"
+            },
+            "photometry": {
+              "path": "pan-l1-id-buffer-26-photometry.png",
+              "sha256": "f756033e2c31a5a58c06a27a32b8c99c70be280f2ded1b68cf46da04e06f5f4e"
+            },
+            "mask": {
+              "path": "pan-l1-id-buffer-26-mask.png",
+              "sha256": "5ebfcc07392416f42082b1da0dc1c3fb2a4018528cc4d58ed3f805064005aa0d"
+            }
+          }
+        }
+      ],
+      "reportSha256": "87ef1090e2a0b667560e6bd01cbce3bc3a790935a8eb36e02eb5a56490c6623a",
+      "gzipSha256": "1e781c028bcb89ac0ac7545737304ac66fbbbf59e6dfa53bbadd43896cac7bb1",
+      "gateFile": "pan-id-buffer-pilot-gate.json"
+    }
+  ]
+}

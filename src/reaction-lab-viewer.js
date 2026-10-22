@@ -122,7 +122,13 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(cssChanged&&observation?.comparisonActive)observation.refitComparison();
     if(cssChanged&&polymerSamplePresentation?.ready&&!polymerGraphVisual?.suspended){
       const fit=fitFinitePolymerToWorkArea({apply:false});
-      if(fit){polymerSamplePresentation.fit=fit;if(polymerSamplePresentation.focusFit)observation.refitLocal();else if(polymerSamplePresentation.zoomFactor===1)resetPolymerPose();}
+      if(fit){
+        const p=polymerSamplePresentation,zoom=p.zoomFactor,rotated=!!p.fit?.quaternion&&polymerGraphVisual.group.quaternion.angleTo(new THREE.Quaternion(...p.fit.quaternion))>1e-5;
+        p.fit=fit;
+        if(p.focusFit){observation.refitLocal();p.zoomFactor=zoom;zoomPolymer(1);}
+        else if(zoom!==1||rotated)zoomPolymer(1);
+        else resetPolymerPose();
+      }
     }
     return result.changed;
   }
@@ -1295,15 +1301,18 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         const project=p=>{const c=p.clone().applyMatrix4(camera.matrixWorldInverse),s=p.clone().project(camera);return{x:(s.x+1)*r.width/2,y:(1-s.y)*r.height/2,depth:-c.z};};
         const atoms=[...v.atomByGraphIndex].map(([i,m])=>{const center=m.getWorldPosition(new THREE.Vector3()),p=project(center),radius=modelAtomRadius(v.graph.atoms[i].element)*v.group.scale.x,corners=[];for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])corners.push(project(center.clone().add(new THREE.Vector3(x*radius,y*radius,z*radius))));return{index:i,element:v.graph.atoms[i].element,origin:v.graph.atomOrigins[i],materialColor:m.material.color.getHexString(),roughness:m.material.roughness,metalness:m.material.metalness,visible:m.visible,center:p,radius:f*radius/p.depth,corners};});
         const lanes=v.bondMeshes.filter(m=>m.visible).map(m=>{const a=m.localToWorld(new THREE.Vector3(0,-.5,0)),b=m.localToWorld(new THREE.Vector3(0,.5,0)),radius=m.scale.x*v.group.scale.x;return{bondIndex:m.userData.polymerBondIndex,order:m.userData.polymerOrder,offset:m.userData.polymerLaneOffset,atomIndices:m.userData.polymerAtomIndices,a:project(a),b:project(b),radius:f*radius/((project(a).depth+project(b).depth)/2)};});
-        return{contextLost,gpuResources:{...renderer.info.memory,renderCalls:renderer.info.render.calls},graph:v.graph,layoutAtoms:v.layoutPlan.atoms,fitError:v.fitError??null,atoms,lanes,canvas:{left:r.left,top:r.top,width:r.width,height:r.height,bufferWidth:canvas.width,bufferHeight:canvas.height,dpr:renderer.getPixelRatio()},camera:{position:camera.position.toArray(),matrix:camera.matrixWorld.toArray(),projection:camera.projectionMatrix.toArray(),fov:camera.fov,near:camera.near,far:camera.far},pose:{position:v.group.position.toArray(),quaternion:v.group.quaternion.toArray(),scale:v.group.scale.x},fit:polymerSamplePresentation?.fit,observation:observation.snapshot(),metrics:{...polymerRuntimeMetrics}};
+        return{contextLost,gpuResources:{...renderer.info.memory,renderCalls:renderer.info.render.calls},graph:v.graph,layoutAtoms:v.layoutPlan.atoms,fitError:v.fitError??null,atoms,lanes,canvas:{left:r.left,top:r.top,width:r.width,height:r.height,bufferWidth:canvas.width,bufferHeight:canvas.height,dpr:renderer.getPixelRatio()},camera:{position:camera.position.toArray(),matrix:camera.matrixWorld.toArray(),projection:camera.projectionMatrix.toArray(),fov:camera.fov,near:camera.near,far:camera.far},pose:{position:v.group.position.toArray(),quaternion:v.group.quaternion.toArray(),scale:v.group.scale.x},fit:polymerSamplePresentation?.fit,activeFit:polymerSamplePresentation?.focusFit??polymerSamplePresentation?.fit,observation:observation.snapshot(),metrics:{...polymerRuntimeMetrics}};
       },
       polymerIdMask(){
         if(!polymerGraphVisual||polymerGraphVisual.suspended)throw new Error('No visible sample');
-        const maskColor=id=>(Math.imul(id,73856093)>>>0)&0xffffff,saved=[],background=scene.background;scene.background=new THREE.Color(0);let lane=1024;
+        const maskColor=id=>(Math.imul(id,73856093)>>>0)&0xffffff,saved=[],background=scene.background,previousTarget=renderer.getRenderTarget(),target=new THREE.WebGLRenderTarget(canvas.width,canvas.height,{samples:0});target.texture.colorSpace=THREE.SRGBColorSpace;scene.background=new THREE.Color(0);let lane=1024;
         let occluder=50000;for(const child of world.children)if(child!==polymerGraphVisual.group)child.traverse(o=>{if(o.isMesh){saved.push([o,'material',o.material]);o.material=new THREE.MeshBasicMaterial({color:maskColor(occluder++),toneMapped:false});}});
         for(const [i,m]of polymerGraphVisual.atomByGraphIndex){saved.push([m,'material',m.material]);m.material=new THREE.MeshBasicMaterial({color:maskColor(i+1),toneMapped:false});}
         for(const m of polymerGraphVisual.bondMeshes){saved.push([m,'material',m.material]);m.material=new THREE.MeshBasicMaterial({color:maskColor(lane++),toneMapped:false});}
-        try{renderer.render(scene,camera);return canvas.toDataURL('image/png');}finally{for(const [o,k,v]of saved){if(k==='material')o.material.dispose();o[k]=v;}scene.background=background;renderer.render(scene,camera);}
+        // ID coverage must not discard MSAA pixels whose colors mix two IDs.
+        // This localhost-only attachment uses the same geometry/pose/DPR with
+        // single-sample rasterization; the actual antialiased PNG is separate.
+        try{renderer.setRenderTarget(target);renderer.render(scene,camera);const pixels=new Uint8Array(canvas.width*canvas.height*4);renderer.readRenderTargetPixels(target,0,0,canvas.width,canvas.height,pixels);const mask=document.createElement('canvas');mask.width=canvas.width;mask.height=canvas.height;const context=mask.getContext('2d'),image=context.createImageData(mask.width,mask.height),stride=mask.width*4;for(let y=0;y<mask.height;y++)image.data.set(pixels.subarray((mask.height-y-1)*stride,(mask.height-y)*stride),y*stride);context.putImageData(image,0,0);return mask.toDataURL('image/png');}finally{renderer.setRenderTarget(previousTarget);target.dispose();for(const [o,k,v]of saved){if(k==='material')o.material.dispose();o[k]=v;}scene.background=background;renderer.render(scene,camera);}
       },
       setPolymerObservationPose({quaternion,reset=false}){if(!canObservePolymerSample())throw new Error('Sample not ready');if(reset)observation.reset();if(quaternion){const fit=polymerSamplePresentation.focusFit??polymerSamplePresentation.fit,pivot=new THREE.Vector3(...fit.pivot),anchor=pivot.clone().applyMatrix4(polymerGraphVisual.group.matrixWorld);polymerGraphVisual.group.quaternion.fromArray(quaternion).normalize();polymerGraphVisual.group.position.copy(anchor).sub(pivot.applyQuaternion(polymerGraphVisual.group.quaternion).multiplyScalar(polymerGraphVisual.group.scale.x));polymerGraphVisual.group.updateMatrixWorld(true);updatePolymerBondVisuals();observation.updateOutline();}return this.polymerVisualSnapshot();},
       polymerDisplayBounds(){

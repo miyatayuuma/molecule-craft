@@ -40,7 +40,7 @@ Source `6400361c5bc813cd098a038de7883df4692b36ef`、run39544766886/job1190403160
 node scripts/replay-polymer-task5-captured-input.mjs
 ```
 
-現状exit1、`test-results/reaction-lab-polymer-simplification/captured-input-replay.json`へ全診断を保存する。sample/sourceは不変。geometry module SHA256 `96b87ff09ca838113a5c885c3b3b20f1c959f6199dd54320ab51f7ab3f51e687` はTask④/mainと同一。異なるcanonical fixtureで25/25がPASSする事実はこの実入力を保証しない。
+修正前はexit1で、`test-results/reaction-lab-polymer-simplification/captured-input-replay.json`へ全診断を保存した。現在の修復結果は後述のrecovery節を参照。sample/sourceは不変。修正前geometry module SHA256 `96b87ff09ca838113a5c885c3b3b20f1c959f6199dd54320ab51f7ab3f51e687` はTask④/mainと同一。異なるcanonical fixtureで25/25がPASSする事実はこの実入力を保証しない。
 
 制約順序の最小候補を一時ファイルで比較したが、元のPET/Nylon fixtureを退行させ、実入力も不合格だったため採用しなかった。Task④の閾値、160反復上限、診断、fallback契約、XYZ出力を変更していない。最小再開地点はこの保存済み入力で、既存25ルート/全中間commitと同時にgeometryを合格させる限定修復。これがPASSするまで高コスト12視覚jobsは依存gateで停止する。
 
@@ -107,3 +107,16 @@ Hosted run39598918395/job119218116830 passed frozen PET, PF emptyFEED/re-FEED an
 Heap growth was investigated using three fresh-browser PF raw snapshots on b57. `recovery/heap-three-cycle-b57-summary.json` records hashes, sizes and type totals. Total self-size increased568,555B; compiled code accounts for513,964B (90.4%), with InstructionStream+354,240 and TrustedByteArray+90,196. Closure size is constant, object+1,788 and array−3,436. ArrayBuffer, Float32Array, JSArrayBufferData and WebGL buffer/VAO/program/shader counts were fixed in all three snapshots. Independent raw-snapshot review supports bounded renderer resource non-accumulation, **not** a proof of infinite-session heap convergence or a decomposition of JIT vsCDP overhead. Final-source lifecycle QA now retains raw snapshots and a separate type/resource summary; this instrumentation is absent from production and formal performance windows.
 
 LOADOUT startup logs on b57 showed Chrome still alive and first stderr at15.8s while the handshake limit was16s. The one-process readiness bound is now30s; optical assertions are unchanged and no relaunch/retry was added. Local LOADOUT optical acceptance passed with the same assertions. This is a browser-startup budget repair, not renderer or physics evidence. The original failed source/job remains recorded.
+
+
+## 2026-10-22 final acceptance follow-up
+
+Source5633 CIの結果は[受入台帳](polymer-local-fragment-task5-visual-acceptance.md)とrecovery/5633-ci-summary.jsonへ固定。Stage B・短い全25・Repository/FIELDはPASS、12静的はFAIL/CANCELLED、FiniteはSKIPPEDである。
+
+追加P2のzoom済みresizeを実ブラウザで再現し、新fitと表示transformを同時更新する限定修復を検証中。global/local zoom、閉じた間のresize、DPR-onlyを含む原本はrecovery/zoom-resize-*.json.gz、要約はzoom-resize-recovery-summary.json。未知old-fitのnull回復も独立reviewで確認。
+
+今回のmobile全25 actual-pointer診断は完走し、PETはpolymer-sample-11-11 / 47atoms / 48bonds / digest ac71c980c5105222e7d2b217da840d403c89349a278f8d18716862ba293d5d1eを保持。実graph/origin・lane数・比較・厳密reset・nextFEED/disposalを保存した（recovery/all25-mobile-camera-*.json*）。未commit runtimeの診断で、最終source raster/性能PASSではない。
+
+別のdesktop PGA manual2は反応部位がcanvas外に出たため試験がpointer前に停止した。安全endpoint9/15（dense197/256）が存在し、同じglycolic-acid-64を通常wheel4回で画面内へ戻して実pointerで完成まで到達した。distance15→33.3831、manualcountはcamera操作中1のまま。座標・安全判定・dwell・fixedstep変更なし。recovery/pga-camera-recovery*と元FAIL logを独立保存。カメラ回復は試験側の到達操作であり、PET solver/docking修復と混同しない。
+
+実PNGのhint/PURGE重なりはA10違反としてbottom32pxへ限定修正。PE360/DPR2の実DOMでgap8、全UI失敗0、reset投影差0を確認し、実PNG/hashをrecovery/hint-*へ保存。正式12jobsとstrict Finiteは依然として未認定。

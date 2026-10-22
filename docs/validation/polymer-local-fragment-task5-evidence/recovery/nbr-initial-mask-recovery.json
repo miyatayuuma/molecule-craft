@@ -1,0 +1,57 @@
+{
+  "kind": "SINGLE_SAMPLE_ID_MASK_DIAGNOSTIC_NOT_FORMAL_VISUAL_ACCEPTANCE",
+  "graphDigest": "6037bbd8cc4be6c350d365c4807660e6ef2b74204d53d30783e8cf58ee539143",
+  "viewport": {
+    "width": 360,
+    "height": 780,
+    "mobile": true
+  },
+  "DPR": 1,
+  "before": [
+    {
+      "index": 0,
+      "visibleFraction": 0.7279720857562679
+    },
+    {
+      "index": 20,
+      "visibleFraction": 0.5491876112071606
+    }
+  ],
+  "after": [
+    {
+      "index": 0,
+      "visibleFraction": 0.76762524128003
+    },
+    {
+      "index": 20,
+      "visibleFraction": 0.60833089230722
+    }
+  ],
+  "sphereRay64": [
+    {
+      "index": 0,
+      "visibleFraction": 0.75
+    },
+    {
+      "index": 20,
+      "visibleFraction": 0.734375
+    }
+  ],
+  "initialTargetProjectionDifference": 1.254523397819906e-08,
+  "files": {
+    "before": {
+      "file": "nbr-initial-mask-before.png",
+      "sha256": "af07860f6d31761b04d405af34bdde8eb5d6b328966c409d69935b67a03ea276"
+    },
+    "after": {
+      "file": "nbr-initial-mask-after.png",
+      "sha256": "f6861b45c2ce8ecd1a60b44bae988cd054231ec27a9ed5c5ba9f33423b9dc4bd"
+    },
+    "actual": {
+      "file": "nbr-initial-mask-actual.png",
+      "sha256": "0c07a32ae782a231df238bd51e92738a70e4c1dafca1925101461974d6042f7f"
+    }
+  },
+  "actualRenderingChanged": false,
+  "maskMethod": "Same geometry/pose/DPR; samples0 sRGB object-ID attachment; dispose+restore previous target/materials/background; actual PNG remains MSAA."
+}

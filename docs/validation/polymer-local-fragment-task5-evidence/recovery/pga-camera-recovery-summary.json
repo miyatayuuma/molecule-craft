@@ -1,0 +1,78 @@
+{
+  "kind": "UNCOMMITTED_RUNTIME_ACTUAL_POINTER_CAMERA_DIAGNOSTIC",
+  "routeId": "polyglycolic-acid-direct-polycondensation",
+  "instanceId": "glycolic-acid-64",
+  "manualIndex": 2,
+  "viewport": {
+    "width": 1280,
+    "height": 800,
+    "mobile": false
+  },
+  "canvas": {
+    "x": 202,
+    "y": 185,
+    "width": 876,
+    "height": 436,
+    "documentWidth": 1280,
+    "documentScroll": 1280
+  },
+  "evidence": "pga-camera-recovery.json.gz",
+  "inputSha256": "eab4504ae0c7a8ac4e7cada2f0ff0ba69e59c164bc5e81635952ff59d105ab92",
+  "gzipSha256": "f32e19ef6c7ce4db88a13cd3bfee36162e6a629c8e1fe2b96fdacb34fe8b5318",
+  "recovered": true,
+  "wheelCount": 4,
+  "distanceBefore": 15,
+  "distanceAfter": 33.383113927387015,
+  "beforeStart": {
+    "x": 716.215191549477,
+    "y": 660.578175690363,
+    "z": 0.9846933064499829
+  },
+  "afterStart": {
+    "x": 679.7565846470791,
+    "y": 586.1923704243771,
+    "z": 0.993736144368826
+  },
+  "actualSourceUnchanged": true,
+  "safeEndpointsBefore": 9,
+  "safeDenseBefore": 197,
+  "manualCountDuringWheel": [
+    1,
+    1
+  ],
+  "chemistryPhysicsModified": false,
+  "beforeFailure": {
+    "file": "desktop-pga-pointer-before.log.gz",
+    "sha256": "5ffac5b74d3cc4ea2602c9faa73c57e3ca38306496f60bd9a9002f9217742da2",
+    "gzipSha256": "c0a810156c8b0bdcd895a9ec5e00970b8f236b375bbe19236de04d1eb91a468b",
+    "classification": "HARNESS_STOPPED_BEFORE_POINTER_BECAUSE_ACTUAL_SITE_WAS_OUTSIDE_CANVAS",
+    "candidateRuntimeSha256": {
+      "src/reaction-lab-viewer.js": "ede76e24ac8f79bd441a5c65e3dbeda7df3080109770fe494ce0dedeb5467aa9",
+      "styles.css": "459dd9de4b7e2569f600527ac8dcd8a12cf65f8dc9d4bc2ce5b1242a3a43231c"
+    }
+  },
+  "completedActualSample": {
+    "routeId": "polyglycolic-acid-direct-polycondensation",
+    "sampleId": "polymer-sample-14-14",
+    "graphDigest": "3d259741126cea1e2742b80bdedf3b8dc3f7959951cdcb7194e9388634f480af",
+    "originDigest": "cc900843a1ebf96b2a02384782ac41c6d39c9a4afa7f4c5d60c1f8ca9cf09b40",
+    "atoms": 27,
+    "bonds": 26,
+    "lanes": 30,
+    "requiredLanes": 30,
+    "visibleAtoms": 27,
+    "comparisonKinds": [
+      "before",
+      "after",
+      "water"
+    ],
+    "reset": {
+      "angle": 0,
+      "zoomRatio": 1,
+      "maxProjectionError": 0
+    },
+    "uiFailures": [],
+    "reportSha256": "e84ad9d77b7530f5962f1e534c187beae371e3ce5c2872fed2d2515e48909f9f",
+    "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+  }
+}

@@ -4,7 +4,7 @@ Task③ A01–A15、V0–V8、C01–C09、S10–S16を変更しない。最終�
 
 ## 固定した検証予算
 
-360×780、390×844、1280×800 × normal/reduced × DPR1全25、DPR2はC01–C09/S10–S16の重複を除く16ルート、12jobs。各実sampleでoverview/reset PNG、固定40方向（yaw8×pitch5、roll0、同倍率）、未回復対象がある時だけ実atom+1shellのlocal各40方向、各atomにつき最大1local attempt。全失敗を保存し、良い画像だけを選ばない。PNG/readbackはstrict性能windowの外で実施する。既知の実入力FAILを再現する短いgateを先行させ、未達の重いjobsをPASSとは扱わない。
+360×780、390×844、1280×800 × normal/reduced × DPR1全25、DPR2はC01–C09/S10–S16の重複を除く16ルート、12jobs。各実sampleでoverview/reset PNG、固定40方向（yaw8×pitch5、roll0、同倍率）、未回復対象がある時だけ既存UIの実atomまたはsemantic group+1shellのlocal各40方向、各実atom anchorにつき最大1local attempt。全失敗を保存し、良い画像だけを選ばない。PNG/readbackはstrict性能windowの外で実施する。既知の実入力FAILを再現する短いgateを先行させ、未達の重いjobsをPASSとは扱わない。
 
 ## 現在の証拠
 
@@ -59,3 +59,33 @@ L1は「実装修復＋PAN部分raster確認」。NBRを含む最終受入がな
 A10/A11の実DOM/hit-grid auditを短いgateにも追加。PF模式図注記の8px継承を検出・限定CSS修正した。比較から空FEEDへ進むresource漏れは独立reviewで修正。PF3cycleのGPU資源は横ばいだがCPU heap増加は原因未確定で、memory PASSにはしない。後続sourceのstrictFiniteは12静的jobs合格後だけ実行する。旧FAIL、旧DPR1部分PASS、DPR2の入力不備を上書きしない。
 
 The b57 final-source short gate and Stage B passed, but its static PE local pointer witness failed at zoom.97480154. The local fit accepted maxZoom<1 while overview rejected it; applying the existing full-radius depth budget at focus time fixes the reproduced numerical cause. No raster PASS is claimed before a new campaign. The bounded heap investigation attributes90.4% of observed self-size growth to compiled code, with measured buffers/WebGL owners flat; final-source raw snapshots and summary remain required.
+
+## 5633 CI and resize follow-up
+
+Source `5633a18d8578ac0b1d326e9fd30f15ff59529813` の [run39600752370](https://github.com/miyatayuuma/molecule-craft/actions/runs/39600752370) は短い全25連続gate・PF3cycle資源・strict Stage BがPASS。Repository/FIELD専用CIもPASS。12静的jobsはdesktop4件がSlot C→FEEDの実hitbox間隔7pxでFAIL、mobile6件が同一viewのgroup/L1 local witness不足でFAIL、390 DPR2の2件が90分でCANCELLED。Finite jobはSKIPPED。[全jobとartifact hash](polymer-local-fragment-task5-evidence/recovery/5633-ci-summary.json)を保持し、正式visual/FiniteをPASSとはしない。
+
+候補は44pxボタンをbar内へ収める46px/縦padding0の限定CSSと、既存semantic group選択を使うlocal witnessを検証中。全要求atomのq≥20と同じviewのatom/bond回復を必要とし、aromaticは実環選択を必要とする。overviewの可視だけではlocal groupを認定しない。
+
+追加reviewのzoom済みresize指摘を実ブラウザで再現した。旧sourceは小wheel後pivotが1.03005 worldずれ、local zoom .904837→1へ戻った。候補はresize時に新fitと表示transformを同期しzoom/orientationを保持。desktopのglobal/local、閉じた間のresize、DPR-onlyで検証中の[原本と差分](polymer-local-fragment-task5-evidence/recovery/zoom-resize-recovery-summary.json)を保存する。これは未commit runtime診断であり最終source認定ではない。
+
+独立reviewで実PNGの旧hintとPURGEの重なりをA10違反と確認。hintをPURGEから8px離すbottom32pxへ限定変更し、実DOMのgap検査を追加した。旧390/DPR2の2jobは固定campaign実行中に90分で中断したため、次回の静的job実行上限だけ180分とする。12job・全40方向・local anchor予算・光学閾値・Finite650/250msとwarm-up/trial/comparatorは不変。先行gateにdesktop全25を追加し、重いjob前に既知の画面外pointer条件も検査する。
+
+今回の未commit runtimeのmobile360/desktop1280全25 actual-pointer短診断は両方完走。PETの同Sample ID/graph、PGAの通常camera回復→実pointer完成、次FEED/purge、比較、厳密resetを確認した。recovery/all25-{mobile,desktop}-camera-summary.jsonと圧縮原本を保持する。最初の25は旧hint位置をロード済みで、hint修復は別PE/DPR2実browser pilotでgap8・UI失敗0・reset差0を確認。最終source全25はCI先行gateで再受入する。
+
+## Optical measurement recovery (not yet final acceptance)
+
+新しいPAN4/NBR1のlocal triple候補PNGとmaskをrecovery/pan-l1-candidate-* / nbr-l1-candidate-*へ保存した。PANは360viewsで7group、NBRは240viewsで3groupが旧predicateのFAIL。さらにA06 graderが2px帯でなく境界の単一点を採点し、黄色selection outlineを混入していた。実同poseのC3はannotated44/45方向、注釈なし25/45方向であり、旧A06 PASSを最終光学根拠に使わない。原本FAILは保存し上書きしない。
+
+修正はtest-only。annotated実PNGを保持し、SVG annotationだけ一時非表示にした同poseの実photometryPNGを別保存、finally元visibilityへ戻す。固定72ray、内側/外側2CSSpx帯のmean linear luminance、delta.05・75%・白clip30%は不変。DPRの各physical pixelを帯に含める。実PNG fixtureで注釈による偽PASSを拒否し、別poseの同じCが無注釈で合格する回帰2件を追加した。
+
+独立reviewでA07表の同時条件はA03/A04、A06は指定球の独立光学条件と確認。全atomのA06 coverageを保持し、同一group viewで全近傍atomのA06まで同時成立させていた過剰な結合を分離した。view.visibleAtomsはA03、atomWitnesses/missingAtomsは各atomのA03+A06を検査する。DOM equipment/hint/PURGEとSVG circleの実occlusionも保存し、maskの背後を実可視と数えない。各C≡Nは実carbon atom選択で既存local shellへ到達し、同じ40方向/最大1anchor予算で検査する。
+
+保存PNGの読取診断は `node scripts/diagnose-polymer-task5-raster.mjs <route-evidence-directory>`。geometry/pose/cameraからの投影が初期実snapshotと1e-6以内で一致することを先に検査し、actual/maskを同じgraderで読む。正式性能windowには接続しない。測定修正後のNBR/PAN pilotと最終source campaignは未認定のまま。
+
+NBR/PANのscope/遮蔽pilotで全atomのA06、全groupの同時A03/A04、実triple localは取得できたが、single-route checkerでNBR初期端20のmask可視率.549がFAIL。予測64ray .734（dense16384 .762）と差があり、AA maskのID混色をexact-color計数が捨てている可能性を短診断で調査中。NBR原本とgateFAILはrecovery/nbr-occlusion-before-mask-*へ保存。12jobは既知FAILの解消前には開始しない。
+
+## Latest candidate pilot result
+
+NBRのAA IDmask FAILを保存後、同じ投影（差1.26e-8px）でsamples0 sRGB object-ID attachmentを検証。端20 exact-ID画素260→288、可視率.549→.608、端0 .728→.768。独立reviewで混色451色→69色とresource復帰を確認。表示用MSAA/材質/graph/poseは不変で、IDmaskだけがtest-only単一sampleとなる。
+
+修正を含む最後の実browser pilotはNBR160views・PAN360viewsでsingle-route checkerの全条件PASS。全atom独立A06・全bond・同時group・PAN4/NBR1のtriple local・初期両端・UI・実resetがPASS。annotated PNG、無注釈photometry PNG、maskを別hashで保持した。recovery/pan-nbr-id-buffer-pilot-summary.json、*-id-buffer-pilot.json.gz、*-pilot-gate.json、*-l1-id-buffer-*.pngを参照。runtime SHA256を保存した候補診断であり、最終source全25/12job/DPR2/strictFiniteの代用にしない。

@@ -1,0 +1,283 @@
+{
+  "kind": "UNCOMMITTED_RUNTIME_PILOT_NOT_FINAL_SOURCE_ACCEPTANCE",
+  "runtimeSha256": {
+    "src/reaction-lab-viewer.js": "ede76e24ac8f79bd441a5c65e3dbeda7df3080109770fe494ce0dedeb5467aa9",
+    "styles.css": "86bfc3a0cfc35ffa0c8fb157bb8ea1f766b41544c26a065cceb7cf2ef656f0d8"
+  },
+  "sourceSha": null,
+  "routeId": "nitrile-butadiene-radical",
+  "sampleId": "polymer-sample-1-1",
+  "graphDigest": "6037bbd8cc4be6c350d365c4807660e6ef2b74204d53d30783e8cf58ee539143",
+  "DPR": 1,
+  "viewport": {
+    "width": 360,
+    "height": 780,
+    "mobile": true
+  },
+  "views": 240,
+  "missingAtoms": [],
+  "missingBonds": [],
+  "missingGroups": [
+    {
+      "kind": "side/junction/adjacent-backbone",
+      "anchor": 3,
+      "atomIndices": [
+        2,
+        3,
+        4,
+        17
+      ],
+      "bondIndices": [
+        5,
+        9,
+        11
+      ]
+    },
+    {
+      "kind": "nonaromatic-C=C",
+      "anchor": 1,
+      "atomIndices": [
+        0,
+        1,
+        9,
+        10
+      ],
+      "bondIndices": [
+        0,
+        3,
+        13
+      ]
+    },
+    {
+      "kind": "nonaromatic-C=C",
+      "anchor": 18,
+      "atomIndices": [
+        17,
+        18,
+        19,
+        20
+      ],
+      "bondIndices": [
+        17,
+        20,
+        22
+      ]
+    }
+  ],
+  "tripleLocalWitnesses": [
+    {
+      "bondIndex": 12,
+      "order": 3,
+      "witness": {
+        "actualPNG": "local-4-render-y45-p-60.png",
+        "actualSha256": "17465ecf0bb6f34329187dab27e1140108406dd588a0e5e0f9a0fbdf0171d745",
+        "pointerTrace": [
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 130.0873852123405,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 130.0873852123405,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 281.61676870014173
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 281.61676870014173
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 281.61676870014173
+            }
+          }
+        ],
+        "pointerAngleError": 2.0212918469683143e-07,
+        "pointerZoomRatio": 1,
+        "localQMin": 81.49707823697307,
+        "localQAtoms": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26
+        ],
+        "localShell": [
+          4,
+          5,
+          3
+        ],
+        "mode": "local-4",
+        "selection": {
+          "kind": "nitrile",
+          "atomIndices": [
+            4,
+            5
+          ],
+          "bondIndices": [
+            12
+          ],
+          "originTuples": [
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 3
+            }
+          ]
+        },
+        "pose": {
+          "position": [
+            -2.3077975718372197,
+            2.602325678280403,
+            -2.5782118061916686
+          ],
+          "quaternion": [
+            0.4358652533920319,
+            -0.33086398412102197,
+            -0.686782714009124,
+            -0.47841405564147654
+          ],
+          "scale": 2.8782056506650053
+        },
+        "yaw": 45,
+        "pitch": -60,
+        "quaternion": [
+          0.4358652143393834,
+          -0.3308639052738563,
+          -0.6867827504858359,
+          -0.4784140933866039
+        ],
+        "mask": "local-4-id-mask-y45-p-60.png",
+        "sha256": "6366b0a18fca44e1ed32010651f6311a73cd8e9dbb9203d64655ea43d25296a9",
+        "visibleAtoms": [
+          4,
+          5,
+          8,
+          11,
+          15,
+          22
+        ],
+        "visibleBonds": [
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          14,
+          15,
+          18,
+          22
+        ]
+      }
+    }
+  ],
+  "reset": {
+    "pose": {
+      "position": [
+        -1.1808204108655354,
+        -0.1184563617214075,
+        -0.31467365760441696
+      ],
+      "quaternion": [
+        0.6875175451256698,
+        0.5826845977428466,
+        0.3790298443968487,
+        -0.2100825117760405
+      ],
+      "scale": 1.5317702247947456
+    },
+    "initialPose": {
+      "position": [
+        -1.1808204108655354,
+        -0.1184563617214075,
+        -0.31467365760441696
+      ],
+      "quaternion": [
+        0.6875175451256698,
+        0.5826845977428466,
+        0.3790298443968487,
+        -0.2100825117760405
+      ],
+      "scale": 1.5317702247947456
+    },
+    "angle": 2.9802322387695312e-08,
+    "zoomRatio": 1,
+    "maxProjectionError": 0
+  },
+  "witnessFiles": {
+    "actual": {
+      "path": "nbr-l1-candidate-actual.png",
+      "sha256": "17465ecf0bb6f34329187dab27e1140108406dd588a0e5e0f9a0fbdf0171d745"
+    },
+    "mask": {
+      "path": "nbr-l1-candidate-mask.png",
+      "sha256": "6366b0a18fca44e1ed32010651f6311a73cd8e9dbb9203d64655ea43d25296a9"
+    }
+  },
+  "reportSha256": "cbfea7ba63240102bfb51168e39990ce85abc2dc7cf0c52b7908ae80c73a1dd9",
+  "auxiliaryFailure": "close-before-ready flag armed after the final manual step for a route with zero automatic steps; preserved separately, not an optical failure"
+}
