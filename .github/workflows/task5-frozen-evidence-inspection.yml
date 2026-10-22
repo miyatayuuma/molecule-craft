@@ -1,4 +1,4 @@
-name: Task5 local orientation readability pilot
+name: Task5 fixed-source motion pose diagnostic
 on:
   push:
     branches: [diagnostics/task5-evidence-50c0]
@@ -6,13 +6,13 @@ permissions:
   contents: read
   actions: read
 jobs:
-  repair-pilot:
+  motion-pose:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        route: [polyethylene-terephthalate-direct-polycondensation, polyisobutylene-cationic, polypropylene-coordination]
+        motion: [normal, reduced]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
@@ -20,27 +20,52 @@ jobs:
           node-version: 22
       - name: Japanese screenshot font
         run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
-      - name: Single route actual browser raster pilot
+      - name: Actual SBR motion pose diagnostic without the static campaign
         env:
           POLYMER_TASK5_DPR: '1'
           POLYMER_TASK5_VISUAL: '1'
-          POLYMER_TASK5_MOTION: normal
+          POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
+          POLYMER_TASK5_MOTION: ${{ matrix.motion }}
           POLYMER_TASK5_VIEWPORT: '{"width":390,"height":844,"mobile":true}'
           POLYMER_SOURCE_SHA: ${{ github.sha }}
-          POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: styrene-butadiene-radical
         run: node tests/reaction-lab-polymer-browser.test.mjs
-      - name: Gate single route pilot
-        env:
-          POLYMER_TASK5_DPR: '1'
-          POLYMER_SOURCE_SHA: ${{ github.sha }}
-          POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
-        run: node scripts/check-polymer-task5-visual.mjs > pilot-gate.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: task5-local-orientation-pilot-${{ matrix.route }}
-          path: |
-            test-results/reaction-lab-polymer-simplification
-            pilot-gate.json
+          name: task5-motion-pose-${{ matrix.motion }}
+          path: test-results/reaction-lab-polymer-simplification
+          if-no-files-found: error
+          retention-days: 90
+  compare:
+    needs: motion-pose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: task5-motion-pose-*
+          path: motion
+      - name: Compare identical graph, initial pose and reset
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          reports={motion:json.loads(next((Path('motion')/('task5-motion-pose-'+motion)).rglob('visual.json')).read_text()) for motion in ['normal','reduced']}
+          a,b=reports.values()
+          assert a['kind']==b['kind']=='DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE'
+          assert a['initial']['graph']==b['initial']['graph']
+          assert a['initial']['canvas']==b['initial']['canvas']
+          pa,pb=a['initial']['pose'],b['initial']['pose'];dot=abs(sum(x*y for x,y in zip(pa['quaternion'],pb['quaternion'])))
+          qError=2*math.acos(min(1,dot));scaleRatio=pa['scale']/pb['scale'];positionError=math.dist(pa['position'],pb['position'])
+          result={'kind':'MOTION_POSE_DIAGNOSTIC_NOT_VISUAL_ACCEPTANCE','sourceSha':a['sourceSha'],'graphDigest':a['graphDigest'],'normal':{'pose':pa,'fit':a['initial']['fit'],'initialEndVisibility':a['initialEndVisibility'],'reset':a['resetAfterLocal']},'reduced':{'pose':pb,'fit':b['initial']['fit'],'initialEndVisibility':b['initialEndVisibility'],'reset':b['resetAfterLocal']},'quaternionError':qError,'scaleRatio':scaleRatio,'positionError':positionError,'pass':qError<=1e-5 and abs(scaleRatio-1)<=1e-6 and positionError<=1e-6}
+          Path('motion-pose-comparison.json').write_text(json.dumps(result,indent=2))
+          print(result['pass'],qError,scaleRatio,positionError)
+          assert result['pass'],'motion modes changed the final static pose'
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-motion-pose-comparison
+          path: motion-pose-comparison.json
           if-no-files-found: error
           retention-days: 90
