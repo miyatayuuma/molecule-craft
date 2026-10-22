@@ -111,7 +111,7 @@ export function polymerVisualPrimitives(plan){
   return primitives;
 }
 
-export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion,atomIndices=null,quaternion=null,requiredAtomIndices=[],occludingAtoms=[]}){
+export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion,atomIndices=null,quaternion=null,requiredAtomIndices=[],requiredBondIndices=[],occludingAtoms=[]}){
   if(!safeRegion||!plan?.atoms?.length)throw new Error('POLYMER_SAFE_REGION_UNAVAILABLE');
   camera.updateMatrixWorld(true);
   const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1),back=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,2);
@@ -133,7 +133,7 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
   const occluders=occludingAtoms.map(a=>({point:new THREE.Vector3(...a.point).applyMatrix4(camera.matrixWorldInverse),radius:a.radius}));
   let best=null;
   for(let candidateIndex=0;candidateIndex<candidates.length;candidateIndex++){
-    if(candidateIndex===48&&best)break;
+    if(candidateIndex===48&&best&&(!best.localReadability||best.localReadability.score>=1))break;
     const q=candidates[candidateIndex],convert=p=>{const v=new THREE.Vector3(p.x,p.y,p.z).sub(pivot).applyQuaternion(q);return{x:v.dot(right),y:v.dot(up),z:v.dot(back),r:p.radius};},points=primitives.map(convert),atomPoints=plan.atoms.map(a=>({...convert(a),r:modelAtomRadius(a.element)})),depthPoints=selected?all.map(convert):points;
     const measure=s=>{
       let tx=(cx-width/2)*d/f,ty=(height/2-cy)*d/f,bounds;
@@ -156,10 +156,14 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
         if(hit===index)visible++;
       }visibility.push({index,visibleFraction:visible/64});
     }
-    if(visibility.some(v=>v.visibleFraction<.70))continue;
+    if(!selected&&visibility.some(v=>v.visibleFraction<.70))continue;
+    // A compact local projection can maximize q by pointing a requested bond
+    // into the camera. Prefer a readable local feature inside the same fixed
+    // orientation candidates; these predictions never replace the PNG gates.
+    const screen=p=>{const z=d-scale*p.z;return{x:width/2+f*(scale*p.x+result.tx)/z,y:height/2-f*(scale*p.y+result.ty)/z,r:f*scale*p.r/z};},freeLengths=selected?requiredBondIndices.map(index=>{const b=plan.bonds[index],a=screen(atomPoints[b.a]),z=screen(atomPoints[b.b]);return{index,length:Math.max(0,Math.hypot(z.x-a.x,z.y-a.y)-a.r-z.r)};}):[],localReadability=selected&&(visibility.length||freeLengths.length)?{score:Math.min(1,result.qMin/20,...visibility.map(v=>v.visibleFraction/.70),...freeLengths.map(b=>b.length/8)),atomVisibility:visibility,bondFreeLengths:freeLengths}:null;
 
-    if(!best||result.qMin>best.qMin+1e-9){const position=right.clone().multiplyScalar(result.tx).addScaledVector(up,result.ty).sub(pivot.clone().applyQuaternion(q).multiplyScalar(scale));
-      best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,initialTargetVisibility:visibility,visibilityOccluders:occludingAtoms.map(a=>({...a,point:[...a.point]})),maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
+    if(!best||(localReadability?.score??1)>(best.localReadability?.score??1)+1e-9||Math.abs((localReadability?.score??1)-(best.localReadability?.score??1))<=1e-9&&result.qMin>best.qMin+1e-9){const position=right.clone().multiplyScalar(result.tx).addScaledVector(up,result.ty).sub(pivot.clone().applyQuaternion(q).multiplyScalar(scale));
+      best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,initialTargetVisibility:visibility,localReadability,visibilityOccluders:occludingAtoms.map(a=>({...a,point:[...a.point]})),maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
   }
   if(!best||!atomIndices&&(best.occupancy<.69||best.occupancy>.95||best.maxZoomFactor<1)){const error=new Error('POLYMER_FIT_UNAVAILABLE');error.fitDiagnostic={width,height,safeRegion,best};throw error;}
   return best;
@@ -266,7 +270,9 @@ export function createPolymerObservationUi({THREE,root,canvas,camera,world,signa
   function refitComparison(){if(!comparisonGroup||!comparisonPlan)return;const r=canvas.getBoundingClientRect(),fit=fitPolymerObservation(THREE,{plan:comparisonPlan,camera,width:r.width,height:r.height,safeRegion:safeRegion()});comparisonGroup.position.fromArray(fit.position);comparisonGroup.quaternion.fromArray(fit.quaternion);comparisonGroup.scale.setScalar(fit.scale);updatePolymerComparisonLanes(THREE,comparisonGroup,comparisonPlan,camera);comparisonGroup.userData.fit=fit;}
   function coreWaterPose(b){const canonical=evidence.coreEvidence.byproductPoses?.[b.instanceId];if(!canonical)throw new Error('POLYMER_WATER_POSE_UNAVAILABLE');return canonical;}
   target.addEventListener('change',()=>{const row=targets[Number(target.value)];if(target.value!==''&&row){if(row.target.kind==='atom')selectAtom(row.target.atomIndices[0]);else select(row.target,row.label);}},{signal});
-  function focusSelection({preserveOrientation=false}={}){if(!selection)return;panel.hidden=true;const visual=getVisual(),g=visual.graph,indices=new Set(selection.atomIndices);for(const b of g.bonds)if(selection.atomIndices.includes(b.a)||selection.atomIndices.includes(b.b)){indices.add(b.a);indices.add(b.b);}const r=canvas.getBoundingClientRect(),fit=fitPolymerObservation(THREE,{plan:visual.layoutPlan,camera,width:r.width,height:r.height,safeRegion:safeRegion(),atomIndices:[...indices],quaternion:preserveOrientation?visual.group.quaternion:null});visual.group.position.fromArray(fit.position);visual.group.quaternion.fromArray(fit.quaternion);visual.group.scale.setScalar(fit.scale);getPresentation().focusFit=fit;getPresentation().zoomFactor=1;state='LOCAL_FOCUS';setCopy();onPoseChange();updateOutline();}
+  function focusSelection({preserveOrientation=false}={}){if(!selection)return;panel.hidden=true;const visual=getVisual(),g=visual.graph,indices=new Set(selection.atomIndices);for(const b of g.bonds)if(selection.atomIndices.includes(b.a)||selection.atomIndices.includes(b.b)){indices.add(b.a);indices.add(b.b);}
+    const named=selection.kind.startsWith('local:')||selection.kind.startsWith('aromatic-'),featureAtoms=new Set(named?selection.atomIndices:[]),featureBonds=new Set(named?selection.bondIndices:[]);if(selection.kind.startsWith('aromatic-'))g.bonds.forEach((b,i)=>{if((selection.atomIndices.includes(b.a)||selection.atomIndices.includes(b.b))&&g.atoms[b.a].element!=='H'&&g.atoms[b.b].element!=='H'){featureAtoms.add(b.a);featureAtoms.add(b.b);featureBonds.add(i);}});
+    const r=canvas.getBoundingClientRect(),fit=fitPolymerObservation(THREE,{plan:visual.layoutPlan,camera,width:r.width,height:r.height,safeRegion:safeRegion(),atomIndices:[...indices],quaternion:preserveOrientation?visual.group.quaternion:null,requiredAtomIndices:[...featureAtoms],requiredBondIndices:[...featureBonds]});visual.group.position.fromArray(fit.position);visual.group.quaternion.fromArray(fit.quaternion);visual.group.scale.setScalar(fit.scale);getPresentation().focusFit=fit;getPresentation().zoomFactor=1;state='LOCAL_FOCUS';setCopy();onPoseChange();updateOutline();}
   focus.addEventListener('click',()=>focusSelection(),{signal});
   $('[data-observation-close]').addEventListener('click',()=>{panel.hidden=true;$('[data-observation-menu]').setAttribute('aria-expanded','false');},{signal});
   $('[data-observation-menu]').addEventListener('click',()=>{panel.hidden=!panel.hidden;$('[data-observation-menu]').setAttribute('aria-expanded',String(!panel.hidden));},{signal});

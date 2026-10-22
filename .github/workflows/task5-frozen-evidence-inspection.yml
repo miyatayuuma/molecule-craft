@@ -1,4 +1,4 @@
-name: Task5 local target and occlusion repair pilot
+name: Task5 local orientation readability pilot
 on:
   push:
     branches: [diagnostics/task5-evidence-50c0]
@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        route: [polyisobutylene-cationic, nylon-6-6-direct-polycondensation, polypropylene-coordination, styrene-butadiene-radical]
+        route: [polyethylene-terephthalate-direct-polycondensation, polyisobutylene-cationic, polypropylene-coordination]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: task5-local-target-pilot-${{ matrix.route }}
+          name: task5-local-orientation-pilot-${{ matrix.route }}
           path: |
             test-results/reaction-lab-polymer-simplification
             pilot-gate.json

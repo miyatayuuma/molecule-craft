@@ -173,4 +173,4 @@ export async function auditPolymerTask5Visual({evaluate,send,artifactDir,route,v
 }
 
 // Shared only by saved-raster diagnostics and optical regression tests.
-export {pngPixels,countsFromMask,maskColor,contourGrade,rgbAt,matchesMask,luminance,rasterLayers};
+export {pngPixels,countsFromMask,maskColor,contourGrade,rgbAt,matchesMask,luminance,rasterLayers,continuousLanes};
