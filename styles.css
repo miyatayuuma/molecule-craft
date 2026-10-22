@@ -102,7 +102,7 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 
 /* Finite observation reserves the complete footer before FEED. Completion text,
    comparison and selection never resize the WebGL canvas. */
-.reaction-lab{gap:7px;padding:10px}
+.reaction-lab{gap:8px;padding:10px}
 .reaction-lab>header{min-height:44px}
 .reaction-lab>header button{width:44px;height:44px}
 .reaction-lab-feed-rack{gap:8px}

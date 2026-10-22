@@ -89,3 +89,7 @@ NBR/PANのscope/遮蔽pilotで全atomのA06、全groupの同時A03/A04、実trip
 NBRのAA IDmask FAILを保存後、同じ投影（差1.26e-8px）でsamples0 sRGB object-ID attachmentを検証。端20 exact-ID画素260→288、可視率.549→.608、端0 .728→.768。独立reviewで混色451色→69色とresource復帰を確認。表示用MSAA/材質/graph/poseは不変で、IDmaskだけがtest-only単一sampleとなる。
 
 修正を含む最後の実browser pilotはNBR160views・PAN360viewsでsingle-route checkerの全条件PASS。全atom独立A06・全bond・同時group・PAN4/NBR1のtriple local・初期両端・UI・実resetがPASS。annotated PNG、無注釈photometry PNG、maskを別hashで保持した。recovery/pan-nbr-id-buffer-pilot-summary.json、*-id-buffer-pilot.json.gz、*-pilot-gate.json、*-l1-id-buffer-*.pngを参照。runtime SHA256を保存した候補診断であり、最終source全25/12job/DPR2/strictFiniteの代用にしない。
+
+## Final-source先行gate 239624
+
+HEAD `239624dbf6ec1985a37233a60748c41461b285e6` のrun39708513297は、保存PET replay・実PET・PF3cycle resource・mobile全25 actual pointer/比較がPASS。Repository run39708513226とFIELD run39708513252、strict Stage BもPASS。desktop先行gateはPEの閉じる/Slot C間隔7.5pxでFAILし、12静的jobs/FiniteはSKIPPED。原本report/PNGとartifact digestを `recovery/239624-*` に保存した。親 `.reaction-lab` に残ったdesktop gap7pxを8pxへ揃える限定CSS修正を行い、新sourceで先行gateから再検証する。閾値やhit gridは変更しない。
