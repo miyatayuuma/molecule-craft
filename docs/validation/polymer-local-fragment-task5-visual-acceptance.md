@@ -93,3 +93,9 @@ NBRのAA IDmask FAILを保存後、同じ投影（差1.26e-8px）でsamples0 sRG
 ## Final-source先行gate 239624
 
 HEAD `239624dbf6ec1985a37233a60748c41461b285e6` のrun39708513297は、保存PET replay・実PET・PF3cycle resource・mobile全25 actual pointer/比較がPASS。Repository run39708513226とFIELD run39708513252、strict Stage BもPASS。desktop先行gateはPEの閉じる/Slot C間隔7.5pxでFAILし、12静的jobs/FiniteはSKIPPED。原本report/PNGとartifact digestを `recovery/239624-*` に保存した。親 `.reaction-lab` に残ったdesktop gap7pxを8pxへ揃える限定CSS修正を行い、新sourceで先行gateから再検証する。閾値やhit gridは変更しない。
+
+## 5f344 resource判定の修復
+
+run39738710682/job119690461800は保存PET/実PET/PF lifecycleがPASSした後、heap集計でFAIL。原本 `recovery/5f344-heap-failure.json` のobject ArrayBufferは75→73→73個、native backing bytes951124→950292→950292であり増加ではなかった。測定resourceの完全一致assertが解放による減少まで拒否していた。原本とexact type/name/self_size node projection（元heap hash付き）を保持した。
+
+集計は全差分を保存し、各隣接cycleのcountまたはself_size増加だけを0許容で拒否する。減少後の新規1個増加、同countで8bytes増加のnegative controlを含む3回帰がPASS。GPU/mesh/materialの別の完全一致assertは不変。総heapの長期収束や正式性能改善は引き続き未認定。旧FAILを上書きせず、新sourceで先行gateから再検証する。

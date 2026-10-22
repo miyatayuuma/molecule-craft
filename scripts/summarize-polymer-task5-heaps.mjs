@@ -14,5 +14,12 @@ for(const kind of ['before','water','concept']){
   cycles.push({kind,file,sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length,selfSize,selfSizeByType,resources});
 }
 const first=cycles[0],last=cycles.at(-1),growthByType=Object.fromEntries([...new Set(cycles.flatMap(c=>Object.keys(c.selfSizeByType)))].map(k=>[k,(last.selfSizeByType[k]??0)-(first.selfSizeByType[k]??0)])),resourceKeys=[...new Set(cycles.flatMap(c=>Object.keys(c.resources)))],resourceDifferences=resourceKeys.filter(k=>cycles.some(c=>JSON.stringify(c.resources[k])!==JSON.stringify(first.resources[k])));
-const report={kind:'BOUNDED_REAL_BROWSER_RESOURCE_OWNERSHIP',sourceSha:process.env.POLYMER_SOURCE_SHA??null,cycles,totalSelfSizeGrowth:last.selfSize-first.selfSize,growthByType,resourceDifferences,limitation:'Three real PF construction/disposal cycles. Self-size is not retained-size dominance analysis or a proof of long-session heap convergence. Compiled-code growth is reported separately; no total-heap threshold is changed.'};
-await writeFile(join(dir,'heap-summary.json'),JSON.stringify(report,null,2));assert.deepEqual(resourceDifferences,[],'same PF construction/disposal must not accumulate measured geometry/buffer resources');console.log(JSON.stringify({sourceSha:report.sourceSha,totalSelfSizeGrowth:report.totalSelfSizeGrowth,growthByType,resourceDifferences}));
+// Resource release may reduce the next post-GC snapshot. Reject growth at every
+// adjacent cycle, retaining all decreases/deltas as evidence rather than
+// requiring the browser to retain already-freed buffers for exact equality.
+const resourceGrowth=cycles.slice(1).flatMap((cycle,i)=>resourceKeys.flatMap(key=>{
+  const before=cycles[i].resources[key]??{count:0,selfSize:0},after=cycle.resources[key]??{count:0,selfSize:0};
+  return after.count>before.count||after.selfSize>before.selfSize?[{from:cycles[i].kind,to:cycle.kind,key,before,after}]:[];
+}));
+const report={kind:'BOUNDED_REAL_BROWSER_RESOURCE_OWNERSHIP',sourceSha:process.env.POLYMER_SOURCE_SHA??null,cycles,totalSelfSizeGrowth:last.selfSize-first.selfSize,growthByType,resourceDifferences,resourceGrowth,limitation:'Three real PF construction/disposal cycles. Self-size is not retained-size dominance analysis or a proof of long-session heap convergence. Compiled-code growth is reported separately; no total-heap threshold is changed.'};
+await writeFile(join(dir,'heap-summary.json'),JSON.stringify(report,null,2));assert.deepEqual(resourceGrowth,[],'same PF construction/disposal must not accumulate measured geometry/buffer resources');console.log(JSON.stringify({sourceSha:report.sourceSha,totalSelfSizeGrowth:report.totalSelfSizeGrowth,growthByType,resourceDifferences,resourceGrowth}));

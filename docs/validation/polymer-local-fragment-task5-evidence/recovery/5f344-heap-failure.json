@@ -1,0 +1,251 @@
+{
+  "kind": "BOUNDED_REAL_BROWSER_RESOURCE_OWNERSHIP",
+  "sourceSha": "5f3445f18090578a0ecadd5159e0b4beb73afc48",
+  "cycles": [
+    {
+      "kind": "before",
+      "file": "heap-before.heapsnapshot",
+      "sha256": "3f4b7a342d2467432dbd7e0ffacb873f914c5ac6d38ac4a54f4a40ac3b804c0f",
+      "bytes": 26715161,
+      "selfSize": 19849580,
+      "selfSizeByType": {
+        "synthetic": 0,
+        "native": 8613728,
+        "string": 1159128,
+        "object shape": 650248,
+        "code": 6246900,
+        "array": 1302644,
+        "number": 274176,
+        "symbol": 96,
+        "closure": 237100,
+        "object": 1351088,
+        "concatenated string": 14280,
+        "regexp": 192
+      },
+      "resources": {
+        "native|WebGLProgram": {
+          "count": 1,
+          "selfSize": 96
+        },
+        "native|WebGLShader": {
+          "count": 2,
+          "selfSize": 160
+        },
+        "native|WebGLBuffer": {
+          "count": 296,
+          "selfSize": 23680
+        },
+        "native|Float32Array": {
+          "count": 345,
+          "selfSize": 40020
+        },
+        "native|ArrayBuffer": {
+          "count": 460,
+          "selfSize": 53360
+        },
+        "native|system / JSArrayBufferData": {
+          "count": 497,
+          "selfSize": 951124
+        },
+        "native|WebGLVertexArrayObject": {
+          "count": 76,
+          "selfSize": 9088
+        },
+        "object|Float32Array": {
+          "count": 7,
+          "selfSize": 420
+        },
+        "object|ArrayBuffer": {
+          "count": 75,
+          "selfSize": 3852
+        },
+        "object|WebGLVertexArrayObject": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLShader": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLProgram": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLBuffer": {
+          "count": 1,
+          "selfSize": 16
+        }
+      }
+    },
+    {
+      "kind": "water",
+      "file": "heap-water.heapsnapshot",
+      "sha256": "ea6377b9a64fa6d56fa7b3dbcdaa276c4f0191055adc4d01bf4bbc009da67012",
+      "bytes": 26885114,
+      "selfSize": 20203285,
+      "selfSizeByType": {
+        "synthetic": 0,
+        "native": 8644029,
+        "string": 1159868,
+        "object shape": 654844,
+        "code": 6565544,
+        "array": 1301000,
+        "number": 274548,
+        "symbol": 96,
+        "closure": 237100,
+        "object": 1351784,
+        "concatenated string": 14280,
+        "regexp": 192
+      },
+      "resources": {
+        "native|WebGLBuffer": {
+          "count": 296,
+          "selfSize": 23680
+        },
+        "object|ArrayBuffer": {
+          "count": 73,
+          "selfSize": 3748
+        },
+        "native|system / JSArrayBufferData": {
+          "count": 495,
+          "selfSize": 950292
+        },
+        "object|Float32Array": {
+          "count": 7,
+          "selfSize": 420
+        },
+        "native|Float32Array": {
+          "count": 345,
+          "selfSize": 40020
+        },
+        "native|ArrayBuffer": {
+          "count": 460,
+          "selfSize": 53360
+        },
+        "native|WebGLProgram": {
+          "count": 1,
+          "selfSize": 96
+        },
+        "native|WebGLVertexArrayObject": {
+          "count": 76,
+          "selfSize": 9088
+        },
+        "native|WebGLShader": {
+          "count": 2,
+          "selfSize": 160
+        },
+        "object|WebGLVertexArrayObject": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLShader": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLProgram": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLBuffer": {
+          "count": 1,
+          "selfSize": 16
+        }
+      }
+    },
+    {
+      "kind": "concept",
+      "file": "heap-concept.heapsnapshot",
+      "sha256": "1b30568f99255da25cc5adb856a5646ad19668c31e5849aefee9e92bdb75b982",
+      "bytes": 27002084,
+      "selfSize": 20430747,
+      "selfSizeByType": {
+        "synthetic": 0,
+        "native": 8668247,
+        "string": 1159936,
+        "object shape": 657224,
+        "code": 6766972,
+        "array": 1299376,
+        "number": 274716,
+        "symbol": 96,
+        "closure": 237100,
+        "object": 1352608,
+        "concatenated string": 14280,
+        "regexp": 192
+      },
+      "resources": {
+        "native|ArrayBuffer": {
+          "count": 460,
+          "selfSize": 53360
+        },
+        "native|system / JSArrayBufferData": {
+          "count": 495,
+          "selfSize": 950292
+        },
+        "native|Float32Array": {
+          "count": 345,
+          "selfSize": 40020
+        },
+        "object|Float32Array": {
+          "count": 7,
+          "selfSize": 420
+        },
+        "native|WebGLBuffer": {
+          "count": 296,
+          "selfSize": 23680
+        },
+        "native|WebGLProgram": {
+          "count": 1,
+          "selfSize": 96
+        },
+        "native|WebGLShader": {
+          "count": 2,
+          "selfSize": 160
+        },
+        "object|ArrayBuffer": {
+          "count": 73,
+          "selfSize": 3748
+        },
+        "native|WebGLVertexArrayObject": {
+          "count": 76,
+          "selfSize": 9088
+        },
+        "object|WebGLVertexArrayObject": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLShader": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLProgram": {
+          "count": 1,
+          "selfSize": 16
+        },
+        "object|WebGLBuffer": {
+          "count": 1,
+          "selfSize": 16
+        }
+      }
+    }
+  ],
+  "totalSelfSizeGrowth": 581167,
+  "growthByType": {
+    "synthetic": 0,
+    "native": 54519,
+    "string": 808,
+    "object shape": 6976,
+    "code": 520072,
+    "array": -3268,
+    "number": 540,
+    "symbol": 0,
+    "closure": 0,
+    "object": 1520,
+    "concatenated string": 0,
+    "regexp": 0
+  },
+  "resourceDifferences": [
+    "native|system / JSArrayBufferData",
+    "object|ArrayBuffer"
+  ],
+  "limitation": "Three real PF construction/disposal cycles. Self-size is not retained-size dominance analysis or a proof of long-session heap convergence. Compiled-code growth is reported separately; no total-heap threshold is changed."
+}
