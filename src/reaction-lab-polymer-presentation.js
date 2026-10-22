@@ -111,7 +111,7 @@ export function polymerVisualPrimitives(plan){
   return primitives;
 }
 
-export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion,atomIndices=null,quaternion=null,requiredAtomIndices=[]}){
+export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion,atomIndices=null,quaternion=null,requiredAtomIndices=[],occludingAtoms=[]}){
   if(!safeRegion||!plan?.atoms?.length)throw new Error('POLYMER_SAFE_REGION_UNAVAILABLE');
   camera.updateMatrixWorld(true);
   const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1),back=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,2);
@@ -128,6 +128,9 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
   const candidates=[];
   if(quaternion)candidates.push(quaternion.clone());
   else for(const pitches of [[-Math.PI/6,0,Math.PI/6],[-Math.PI/3,Math.PI/3]])for(const r of [0,Math.PI/2])for(let y=0;y<8;y++)for(const p of pitches)candidates.push(new THREE.Quaternion().setFromEuler(new THREE.Euler(.34+p,-.28+y*Math.PI/4,.035+r,'XYZ')));
+  // Snapshot input is fixed for this fit. Reset reuses the selected transform;
+  // moving ordinary molecules never trigger another orientation search in RAF.
+  const occluders=occludingAtoms.map(a=>({point:new THREE.Vector3(...a.point).applyMatrix4(camera.matrixWorldInverse),radius:a.radius}));
   let best=null;
   for(let candidateIndex=0;candidateIndex<candidates.length;candidateIndex++){
     if(candidateIndex===48&&best)break;
@@ -149,13 +152,14 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
     for(const index of requiredAtomIndices){const atom=plan.atoms[index];if(!atom)throw new Error('POLYMER_UNKNOWN_INITIAL_TARGET');const center=atomPoints[index],x=scale*center.x+result.tx,y=scale*center.y+result.ty,z=-d+scale*center.z,r=scale*modelAtomRadius(atom.element),px=width/2+f*x/(-z),py=height/2-f*y/(-z),rp=f*r/(-z);let visible=0;
       for(let k=0;k<64;k++){const radius=Math.sqrt((k+.5)/64)*rp,angle=k*2.3999632297,ray=new THREE.Vector3((px+radius*Math.cos(angle)-width/2)/f,(height/2-py-radius*Math.sin(angle))/f,-1).normalize();let nearest=Infinity,hit=-1;
         for(let i=0;i<plan.atoms.length;i++){const a=atomPoints[i],cx=scale*a.x+result.tx,cy=scale*a.y+result.ty,cz=-d+scale*a.z,rr=scale*a.r,b=ray.x*cx+ray.y*cy+ray.z*cz,disc=b*b-(cx*cx+cy*cy+cz*cz-rr*rr);if(disc<0)continue;const t=b-Math.sqrt(disc);if(t>0&&t<nearest){nearest=t;hit=i;}}
+        for(const a of occluders){const b=ray.dot(a.point),disc=b*b-a.point.lengthSq()+a.radius*a.radius;if(disc<0)continue;const t=b-Math.sqrt(disc);if(t>0&&t<nearest){nearest=t;hit=-1;}}
         if(hit===index)visible++;
       }visibility.push({index,visibleFraction:visible/64});
     }
     if(visibility.some(v=>v.visibleFraction<.70))continue;
 
     if(!best||result.qMin>best.qMin+1e-9){const position=right.clone().multiplyScalar(result.tx).addScaledVector(up,result.ty).sub(pivot.clone().applyQuaternion(q).multiplyScalar(scale));
-      best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,initialTargetVisibility:visibility,maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
+      best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,initialTargetVisibility:visibility,visibilityOccluders:occludingAtoms.map(a=>({...a,point:[...a.point]})),maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
   }
   if(!best||!atomIndices&&(best.occupancy<.69||best.occupancy>.95||best.maxZoomFactor<1)){const error=new Error('POLYMER_FIT_UNAVAILABLE');error.fitDiagnostic={width,height,safeRegion,best};throw error;}
   return best;
@@ -183,6 +187,21 @@ export function polymerComparisonGraphs(sample,sources,byproducts){
   return{before,after:sample.fragment,byproducts,transition};
 }
 
+
+// Local UI targets supplement the Task④ aggregate resolver. Each target owns
+// actual graph edges at one junction/site, including every attached methyl H.
+export function polymerLocalObservationTargets(graph,semantics){
+  const targets=[],backbone=new Set(semantics.backbone.atomIndices),attachments=semantics.sideAttachment.bondIndices;
+  const add=(label,kind,anchor,edges)=>{const bondIndices=[...new Set(edges)].sort((a,b)=>a-b),atomIndices=[...new Set(bondIndices.flatMap(i=>[graph.bonds[i].a,graph.bonds[i].b]))].sort((a,b)=>a-b);if(atomIndices.length)targets.push({label,target:{kind:`local:${kind}`,anchor,atomIndices,bondIndices,originTuples:atomIndices.map(i=>({...graph.atomOrigins[i]}))}});};
+  for(const center of [...new Set(attachments.flatMap(i=>[graph.bonds[i].a,graph.bonds[i].b]).filter(i=>backbone.has(i)))]){
+    add(`側基のつなぎ目 ${targets.length+1}`,'side/junction/adjacent-backbone',center,[...attachments.filter(i=>{const b=graph.bonds[i];return b.a===center||b.b===center;}),...semantics.methyl.filter(t=>t.atomIndices.includes(center)).flatMap(t=>t.bondIndices),...graph.bonds.flatMap((b,i)=>(b.a===center||b.b===center)&&backbone.has(b.a)&&backbone.has(b.b)?[i]:[])]);
+  }
+  for(const [key,label]of [['ester','エステル'],['amide','アミド'],['nitrile','三重結合 C≡N'],['diene','鎖の二重結合']]){
+    const sites=new Map();for(const edge of semantics[key].bondIndices){const b=graph.bonds[edge],base=new Set([b.a,b.b]),indices=new Set(base);for(const e of graph.bonds)if((base.has(e.a)||base.has(e.b))&&((graph.atoms[e.a].element!=='H'&&graph.atoms[e.b].element!=='H')||[e.a,e.b].some(i=>base.has(i)&&graph.atoms[i].element==='N'))){indices.add(e.a);indices.add(e.b);}const edges=graph.bonds.flatMap((e,i)=>indices.has(e.a)&&indices.has(e.b)?[i]:[]);sites.set(b.a,[...(sites.get(b.a)??[]),...edges]);}
+    let n=0;for(const [anchor,edges]of sites)add(`${label}の部分 ${++n}`,semantics[key].kind,anchor,edges);
+  }
+  return targets;
+}
 
 export function createPolymerObservationUi({THREE,root,canvas,camera,world,signal,getVisual,getPresentation,getEvidence,onReset,onPoseChange}){
   const host=document.createElement('div');host.className='polymer-observation';host.hidden=true;
@@ -225,6 +244,7 @@ export function createPolymerObservationUi({THREE,root,canvas,camera,world,signa
     const add=(label,t)=>{if(t?.atomIndices?.length)targets.push({label,target:t});};
     overviewEnds=route.builder==='network'?[]:semantics.ends.atomIndices;
     if(semantics.resolved){if(route.builder!=='network')add('主鎖',semantics.backbone);add('側基とのつなぎ目',semantics.sideAttachment);semantics.rings.forEach((t,i)=>add(`輪 ${i+1}`,t));for(const [name,key]of [['エステル','ester'],['アミド','amide'],['三重結合 C≡N','nitrile'],['鎖の二重結合','diene'],['今の鎖の端','ends']])add(name,semantics[key]);for(const [name,key]of [['エーテル','ether'],['酸のOH','acidOH'],['メチル','methyl'],['環をつなぐCH₂','methyleneBridge'],['CH₂OH','hydroxymethyl']])semantics[key].forEach((t,i)=>add(`${name} ${i+1}`,t));semantics.sources.forEach((t,i)=>add(`原料 ${i+1} ${sources.find(s=>s.instanceId===t.originTuples[0]?.instanceId)?.name??''}`,t));}
+    if(semantics.resolved)targets.push(...polymerLocalObservationTargets(sample.fragment,semantics));
     sample.fragment.atoms.forEach((a,i)=>add(`原子 ${a.element} · atom ${i}`,{kind:'atom',atomIndices:[i],bondIndices:[],originTuples:[sample.fragment.atomOrigins[i]]}));
     target.replaceChildren(new Option('選んでください',''));targets.forEach((t,i)=>target.add(new Option(t.label,String(i))));
     const legend=$('[data-observation-legend]');legend.replaceChildren();for(const el of new Set(sample.fragment.atoms.map(a=>a.element))){const item=document.createElement('span'),swatch=document.createElement('i');swatch.style.background=ELEMENTS[el]?.color??'#cbd5e1';item.append(swatch,`${el} ${POLYMER_ELEMENT_NAMES[el]??el} `);legend.append(item);}legend.append(document.createTextNode('結合：1本 — / 2本 ═ / 3本 ≡'));

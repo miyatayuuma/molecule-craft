@@ -1,4 +1,4 @@
-name: Task5 bounded repair pilot and frozen inspection
+name: Task5 local target and occlusion repair pilot
 on:
   push:
     branches: [diagnostics/task5-evidence-50c0]
@@ -6,58 +6,13 @@ permissions:
   contents: read
   actions: read
 jobs:
-  inspect-pib:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Verify original artifact authority
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api repos/miyatayuuma/molecule-craft/actions/artifacts/12411244546 > artifact.json
-          python - <<'PY'
-          import json
-          a=json.load(open('artifact.json'))
-          assert a['workflow_run']['head_sha']=='50c0b38fba2ad87272d30a536d45a1060a80c7a0'
-          assert a['workflow_run']['id']==39740905764
-          assert not a['expired']
-          PY
-      - uses: actions/download-artifact@v4
-        with:
-          github-token: ${{ github.token }}
-          repository: miyatayuuma/molecule-craft
-          run-id: 39740905764
-          artifact-ids: 12411244546
-          path: original
-          merge-multiple: true
-      - name: Extract unchanged complete PIB witnesses
-        run: |
-          python - <<'PY'
-          import json,shutil,hashlib
-          from pathlib import Path
-          out=Path('inspection');out.mkdir()
-          shutil.copy2('artifact.json',out/'original-artifact.json')
-          matches=list(Path('original').rglob('polyisobutylene/visual.json'));assert len(matches)==1
-          src=matches[0].parent
-          assert json.loads((src/'visual.json').read_text())['sourceSha']=='50c0b38fba2ad87272d30a536d45a1060a80c7a0'
-          shutil.copytree(src,out/'polyisobutylene')
-          manifest={'kind':'FROZEN_FAILED_EVIDENCE_INSPECTION_NOT_ACCEPTANCE','sourceSha':'50c0b38fba2ad87272d30a536d45a1060a80c7a0','files':[{'path':str(p.relative_to(out)),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted((out/'polyisobutylene').rglob('*')) if p.is_file()]}
-          (out/'manifest.json').write_text(json.dumps(manifest,indent=2))
-          print(len(manifest['files']),sum(p.stat().st_size for p in out.rglob('*') if p.is_file()))
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: task5-50c0-complete-pib-inspection
-          path: inspection
-          retention-days: 90
-          if-no-files-found: error
   repair-pilot:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        route: [polyethylene-terephthalate-direct-polycondensation, polyisobutylene-cationic]
+        route: [polyisobutylene-cationic, nylon-6-6-direct-polycondensation, polypropylene-coordination, styrene-butadiene-radical]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
@@ -70,7 +25,7 @@ jobs:
           POLYMER_TASK5_DPR: '1'
           POLYMER_TASK5_VISUAL: '1'
           POLYMER_TASK5_MOTION: normal
-          POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
+          POLYMER_TASK5_VIEWPORT: '{"width":390,"height":844,"mobile":true}'
           POLYMER_SOURCE_SHA: ${{ github.sha }}
           POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
         run: node tests/reaction-lab-polymer-browser.test.mjs
@@ -83,7 +38,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: task5-annotation-pilot-${{ matrix.route }}
+          name: task5-local-target-pilot-${{ matrix.route }}
           path: |
             test-results/reaction-lab-polymer-simplification
             pilot-gate.json

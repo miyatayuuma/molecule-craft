@@ -3,9 +3,17 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {createPolymerFragment3DLayout,resolvePolymerFragmentTargets} from '../src/polymer-fragment-3d-layout.js';
 import {polymerTask4Fixtures} from './helpers/polymer-task4-fixtures.mjs';
-import {fitPolymerObservation,polymerSafeRectangle,polymerLaneOffsets,polymerLaneRadius,resizePolymerCanvas,polymerComparisonGraphs,updatePolymerComparisonLanes} from '../src/reaction-lab-polymer-presentation.js';
+import {fitPolymerObservation,polymerSafeRectangle,polymerLaneOffsets,polymerLaneRadius,resizePolymerCanvas,polymerComparisonGraphs,updatePolymerComparisonLanes,polymerLocalObservationTargets} from '../src/reaction-lab-polymer-presentation.js';
 import {modelAtomRadius} from '../src/chemistry.js';
 const fixtures=await polymerTask4Fixtures();
+test('local junction/site selection preserves the real graph and all geminal methyl hydrogens',()=>{
+  for(const row of fixtures){const before=JSON.stringify(row.sample),s=resolvePolymerFragmentTargets(row.sample,{sourceRecordsByInstanceId:row.sourceRecordsByInstanceId,route:row.route}),resolved=JSON.stringify(s),targets=polymerLocalObservationTargets(row.sample.fragment,s),g=row.sample.fragment;
+    for(const {target:t}of targets){assert.ok(t.atomIndices.includes(t.anchor));assert.deepEqual(t.originTuples,t.atomIndices.map(i=>g.atomOrigins[i]));for(const index of t.bondIndices){const b=g.bonds[index];assert.ok(t.atomIndices.includes(b.a)&&t.atomIndices.includes(b.b));}}
+    if(row.sample.polymerId==='polyisobutylene'){const junctions=targets.filter(t=>t.target.kind==='local:side/junction/adjacent-backbone');assert.equal(junctions.length,4);for(const {target:t}of junctions){const methyls=s.methyl.filter(m=>m.atomIndices.includes(t.anchor));assert.equal(methyls.length,2);assert.equal(new Set(methyls.flatMap(m=>m.atomIndices).filter(i=>g.atoms[i].element==='H')).size,6);assert.ok(methyls.flatMap(m=>m.atomIndices).every(i=>t.atomIndices.includes(i)));}}
+    if(row.sample.polymerId==='nylon-6-6'){const amides=targets.filter(t=>t.target.kind==='local:amide');assert.equal(amides.length,3);assert.equal(new Set(amides.map(t=>JSON.stringify(t.target.atomIndices))).size,3);assert.ok(amides.every(t=>t.target.atomIndices.length<g.atoms.length));}
+    assert.equal(JSON.stringify(row.sample),before);assert.equal(JSON.stringify(s),resolved);
+  }
+});
 test('all 25 real graphs fit full visual envelopes in DOM-shaped safe rectangles at three canvas sizes; reset is deterministic',()=>{
   const camera=new THREE.PerspectiveCamera(42,1,.1,500);camera.position.set(0,0,15);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);
   for(const row of fixtures){const plan=createPolymerFragment3DLayout(row.sample,{sourceRecordsByInstanceId:row.sourceRecordsByInstanceId});
@@ -15,6 +23,12 @@ test('all 25 real graphs fit full visual envelopes in DOM-shaped safe rectangles
 test('triple lanes preserve actual PAN four and NBR one bonds; offsets and widths are distinct',()=>{
   assert.deepEqual(polymerLaneOffsets(1),[0]);assert.deepEqual(polymerLaneOffsets(2),[-.08,.08]);assert.deepEqual(polymerLaneOffsets(3),[-.16,0,.16]);assert.equal(polymerLaneRadius(1),.05);assert.equal(polymerLaneRadius(3),.038);assert.throws(()=>polymerLaneOffsets(4));
   for(const [id,count]of [['polyacrylonitrile',4],['nitrile-butadiene-rubber',1]])assert.equal(fixtures.find(r=>r.sample.polymerId===id).sample.fragment.bonds.filter(b=>b.order===3).length,count);
+});
+test('initial fit rejects an endpoint hidden by a frozen ordinary atom and deterministically reuses the same input',()=>{
+  const row=fixtures.find(r=>r.sample.polymerId==='polyethylene'),plan=createPolymerFragment3DLayout(row.sample,{sourceRecordsByInstanceId:row.sourceRecordsByInstanceId}),camera=new THREE.PerspectiveCamera(42,338/430,.1,500);camera.position.set(0,0,15);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);
+  const requiredAtomIndices=resolvePolymerFragmentTargets(row.sample,{sourceRecordsByInstanceId:row.sourceRecordsByInstanceId,route:row.route}).ends.atomIndices,input={plan,camera,width:338,height:430,safeRegion:polymerSafeRectangle(338,430,[]),requiredAtomIndices},clear=fitPolymerObservation(THREE,input),a=plan.atoms[requiredAtomIndices[0]],point=new THREE.Vector3(a.x,a.y,a.z).applyQuaternion(new THREE.Quaternion(...clear.quaternion)).multiplyScalar(clear.scale).add(new THREE.Vector3(...clear.position)).lerp(camera.position,.5),occludingAtoms=[{instanceId:'frozen-ordinary-atom',atomIndex:0,point:point.toArray(),radius:modelAtomRadius(a.element)*clear.scale*.65}],frozen=JSON.stringify(occludingAtoms);
+  assert.throws(()=>fitPolymerObservation(THREE,{...input,quaternion:new THREE.Quaternion(...clear.quaternion),occludingAtoms}),/POLYMER_FIT_UNAVAILABLE/);
+  const repaired=fitPolymerObservation(THREE,{...input,occludingAtoms});assert.notDeepEqual(repaired.quaternion,clear.quaternion);assert.ok(repaired.initialTargetVisibility.every(v=>v.visibleFraction>=.70));assert.deepEqual(fitPolymerObservation(THREE,{...input,occludingAtoms}),repaired);assert.deepEqual(repaired.visibilityOccluders,occludingAtoms);assert.notEqual(repaired.visibilityOccluders[0].point,occludingAtoms[0].point);assert.equal(JSON.stringify(occludingAtoms),frozen);
 });
 test('comparison multiple lanes retain the real bond length and face the camera after refit, including end-on fallback',()=>{
   const plan={atoms:[{element:'C',x:0,y:0,z:0},{element:'N',x:0,y:3.4,z:0}],bonds:[{a:0,b:1,order:3}]},camera=new THREE.PerspectiveCamera(42,1,.1,500);camera.position.set(0,0,15);camera.lookAt(0,0,0);
