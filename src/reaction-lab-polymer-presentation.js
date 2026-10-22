@@ -111,6 +111,23 @@ export function polymerVisualPrimitives(plan){
   return primitives;
 }
 
+// Local-only rigid view frames. Facet normals of the actual bond directions
+// avoid looking along a requested connection. At most four axes × two faces ×
+// two rolls supplement the overview's fixed Euler candidates; no atom moves.
+export function polymerLocalOrientationCandidates(THREE,{plan,bondIndices,camera}){
+  const edges=bondIndices.map(index=>{const b=plan.bonds[index],a=plan.atoms[b.a],z=plan.atoms[b.b],v=new THREE.Vector3(z.x-a.x,z.y-a.y,z.z-a.z),length=v.length();return{v:v.divideScalar(length),length,radii:modelAtomRadius(a.element)+modelAtomRadius(z.element)};}),axes=[];
+  if(!edges.length)return[];
+  const add=n=>{if(n.lengthSq()<1e-10)return;n.normalize();const components=n.toArray(),major=components.map(Math.abs).indexOf(Math.max(...components.map(Math.abs)));if(components[major]<0)n.negate();if(axes.some(a=>Math.abs(a.n.dot(n))>1-1e-8))return;axes.push({n,score:Math.min(...edges.map(e=>e.length*Math.sqrt(Math.max(0,1-e.v.dot(n)**2))-e.radii)),order:axes.length});};
+  for(let i=0;i<edges.length;i++)for(let j=i+1;j<edges.length;j++){
+    add(new THREE.Vector3().crossVectors(edges[i].v,edges[j].v));
+    for(let k=j+1;k<edges.length;k++)for(const sj of [-1,1])for(const sk of [-1,1])add(new THREE.Vector3().crossVectors(edges[j].v.clone().multiplyScalar(sj).sub(edges[i].v),edges[k].v.clone().multiplyScalar(sk).sub(edges[i].v)));
+  }
+  if(!axes.length){const reference=[new THREE.Vector3(1,0,0),new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1)].sort((a,b)=>Math.abs(a.dot(edges[0].v))-Math.abs(b.dot(edges[0].v)))[0];add(new THREE.Vector3().crossVectors(edges[0].v,reference));}
+  axes.sort((a,b)=>b.score-a.score||a.order-b.order);camera.updateMatrixWorld(true);const back=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,2),right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1),out=[];
+  for(const [axis,a]of axes.slice(0,4).entries())for(const face of [1,-1]){const q=new THREE.Quaternion().setFromUnitVectors(a.n.clone().multiplyScalar(face),back),edge=edges[0].v.clone().applyQuaternion(q),angle=Math.atan2(edge.dot(up),edge.dot(right));for(const roll of [0,Math.PI/2])out.push({quaternion:new THREE.Quaternion().setFromAxisAngle(back,roll-angle).multiply(q),axis,face,roll,minimumProjectedBondGap:a.score});}
+  return out;
+}
+
 export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion,atomIndices=null,quaternion=null,requiredAtomIndices=[],requiredBondIndices=[],occludingAtoms=[]}){
   if(!safeRegion||!plan?.atoms?.length)throw new Error('POLYMER_SAFE_REGION_UNAVAILABLE');
   camera.updateMatrixWorld(true);
@@ -128,6 +145,7 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
   const candidates=[];
   if(quaternion)candidates.push(quaternion.clone());
   else for(const pitches of [[-Math.PI/6,0,Math.PI/6],[-Math.PI/3,Math.PI/3]])for(const r of [0,Math.PI/2])for(let y=0;y<8;y++)for(const p of pitches)candidates.push(new THREE.Quaternion().setFromEuler(new THREE.Euler(.34+p,-.28+y*Math.PI/4,.035+r,'XYZ')));
+  const localFrames=!quaternion&&selected?polymerLocalOrientationCandidates(THREE,{plan,bondIndices:requiredBondIndices,camera}):[];for(const frame of localFrames)candidates.push(frame.quaternion);
   // Snapshot input is fixed for this fit. Reset reuses the selected transform;
   // moving ordinary molecules never trigger another orientation search in RAF.
   const occluders=occludingAtoms.map(a=>({point:new THREE.Vector3(...a.point).applyMatrix4(camera.matrixWorldInverse),radius:a.radius}));
@@ -160,7 +178,12 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
     // A compact local projection can maximize q by pointing a requested bond
     // into the camera. Prefer a readable local feature inside the same fixed
     // orientation candidates; these predictions never replace the PNG gates.
-    const screen=p=>{const z=d-scale*p.z;return{x:width/2+f*(scale*p.x+result.tx)/z,y:height/2-f*(scale*p.y+result.ty)/z,r:f*scale*p.r/z};},freeLengths=selected?requiredBondIndices.map(index=>{const b=plan.bonds[index],a=screen(atomPoints[b.a]),z=screen(atomPoints[b.b]);return{index,length:Math.max(0,Math.hypot(z.x-a.x,z.y-a.y)-a.r-z.r)};}):[],localReadability=selected&&(visibility.length||freeLengths.length)?{score:Math.min(1,result.qMin/20,...visibility.map(v=>v.visibleFraction/.70),...freeLengths.map(b=>b.length/8)),atomVisibility:visibility,bondFreeLengths:freeLengths}:null;
+    const screen=p=>({x:width/2+f*p.x/-p.z,y:height/2-f*p.y/-p.z}),centers=atomPoints.map(p=>new THREE.Vector3(scale*p.x+result.tx,scale*p.y+result.ty,-d+scale*p.z)),sphereHit=ray=>{let nearest=Infinity;for(let i=0;i<centers.length;i++){const c=centers[i],b=ray.dot(c),disc=b*b-c.lengthSq()+(scale*atomPoints[i].r)**2;if(disc>=0){const t=b-Math.sqrt(disc);if(t>0)nearest=Math.min(nearest,t);}}return nearest;},rayAt=p=>new THREE.Vector3((p.x-width/2)/f,(height/2-p.y)/f,-1).normalize();
+    const bondExposure=selected?requiredBondIndices.map(index=>{const b=plan.bonds[index],a=plan.atoms[b.a],z=plan.atoms[b.b],direction=centers[b.b].clone().sub(centers[b.a]).normalize(),side=new THREE.Vector3().crossVectors(direction,new THREE.Vector3(0,0,1));if(side.lengthSq()<1e-10)side.crossVectors(direction,new THREE.Vector3(1,0,0));side.normalize();
+      const lanes=polymerLaneOffsets(b.order).map(offset=>{const trim=el=>Math.max(0,Math.sqrt(Math.max(0,modelAtomRadius(el)**2-offset**2))-.01)*scale,A=centers[b.a].clone().addScaledVector(direction,trim(a.element)).addScaledVector(side,offset*scale),B=centers[b.b].clone().addScaledVector(direction,-trim(z.element)).addScaledVector(side,offset*scale);return{A,B,a:screen(A),b:screen(B),length:A.distanceTo(B),radius:polymerLaneRadius(b.order)*scale};}),length=Math.min(...lanes.map(l=>Math.hypot(l.b.x-l.a.x,l.b.y-l.a.y))),steps=32;let bestRun=0,run=0,visible=0;
+      for(let j=0;j<=steps;j++){const t=j/steps,points=lanes.map(l=>({x:l.a.x+(l.b.x-l.a.x)*t,y:l.a.y+(l.b.y-l.a.y)*t})),hit=lanes.every((l,i)=>{const ray=rayAt(points[i]),oa=l.A.clone().negate(),dr=ray.dot(direction),da=oa.dot(direction),qa=1-dr*dr,qb=ray.dot(oa)-dr*da,qc=oa.lengthSq()-da*da-l.radius*l.radius,disc=qb*qb-qa*qc;if(qa<1e-10||disc<0)return false;const near=(-qb-Math.sqrt(disc))/qa,h=da+near*dr;return near>0&&h>=0&&h<=l.length&&sphereHit(ray)>=near;})&&points.slice(1).every((p,i)=>sphereHit(rayAt({x:(p.x+points[i].x)/2,y:(p.y+points[i].y)/2}))===Infinity);if(hit)visible++;run=hit?run+1:0;bestRun=Math.max(bestRun,run);}
+      return{index,continuousLength:Math.max(0,bestRun-1)*length/steps,visibleFraction:visible/(steps+1)};
+    }):[],localReadability=selected&&(visibility.length||bondExposure.length)?{score:Math.min(1,result.qMin/20,...visibility.map(v=>v.visibleFraction/.70),...bondExposure.flatMap(b=>[b.continuousLength/8,b.visibleFraction/.50])),atomVisibility:visibility,bondExposure,frame:candidateIndex>=80?{...localFrames[candidateIndex-80],quaternion:localFrames[candidateIndex-80].quaternion.toArray()}:null}:null;
 
     if(!best||(localReadability?.score??1)>(best.localReadability?.score??1)+1e-9||Math.abs((localReadability?.score??1)-(best.localReadability?.score??1))<=1e-9&&result.qMin>best.qMin+1e-9){const position=right.clone().multiplyScalar(result.tx).addScaledVector(up,result.ty).sub(pivot.clone().applyQuaternion(q).multiplyScalar(scale));
       best={...result,scale,position:position.toArray(),quaternion:q.toArray(),pivot:pivot.toArray(),safeRegion:S,candidateIndex,initialTargetVisibility:visibility,localReadability,visibilityOccluders:occludingAtoms.map(a=>({...a,point:[...a.point]})),maxZoomFactor:Math.min(8,(d-.3)/(1.12*scale*radius)),radius};}
