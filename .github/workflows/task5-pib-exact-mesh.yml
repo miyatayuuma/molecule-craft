@@ -1,0 +1,32 @@
+name: Task5 one bounded PIB exact mesh capture
+on:
+  push:
+    branches: [diagnostics/task5-pib-exact-mesh]
+    paths: [.github/workflows/task5-pib-exact-mesh.yml]
+permissions:
+  contents: read
+jobs:
+  mesh-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Japanese screenshot font
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: One production sample and nine frozen mesh calibration views
+        env:
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: polyisobutylene-cationic
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_MESH_DIAGNOSTIC: '1'
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-pib-exact-mesh
+          path: test-results/reaction-lab-polymer-simplification
+          if-no-files-found: error
+          retention-days: 90

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {exactMeshProbeSource,capturePolymerExactMesh} from './helpers/polymer-exact-mesh.mjs';
 import {auditPolymerTask5Visual} from './helpers/polymer-task5-visual.mjs';
 import {assertPolymerAllocationWindow} from './helpers/polymer-allocation-window.mjs';
 import {createServer} from 'node:http';
@@ -8,6 +9,7 @@ import {extname,join,normalize,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 
+const exactMeshComplete=Symbol('Exact mesh diagnostic complete; not acceptance');
 const root=resolve(process.env.POLYMER_ROOT??fileURLToPath(new URL('..',import.meta.url))),routes=JSON.parse(await readFile(join(root,'data/polymerization-routes.json'),'utf8')).routes,polymers=JSON.parse(await readFile(join(root,'data/polymers.json'),'utf8'));
 const fitDiagnosticRoute=process.env.POLYMER_FIT_DIAGNOSTIC_ROUTE??null;
 const task5Dpr=Number(process.env.POLYMER_TASK5_DPR??1),task5Visual=process.env.POLYMER_TASK5_VISUAL==='1',task5Reduced=task5Visual&&process.env.POLYMER_TASK5_MOTION==='reduced',defaultDuration=task5Reduced?250:650;
@@ -23,7 +25,7 @@ const indexHtml=await readFile(join(root,'index.html'),'utf8'),mime={'.html':'te
 const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=normalize(join(root,pathname==='/'?'index.html':pathname.replace(/^\/+/,'')));if(!file.startsWith(root)){res.writeHead(403).end();return;}let body=await readFile(file);if(pathname==='/src/app.js'){const source=body.toString(),target='reactionLabViewer=createReactionLabViewer({';assert.ok(source.includes(target),'test-only viewer disposal hook target remains present');const renderTarget='try{renderer.render(scene,camera);}';assert.ok(source.includes(renderTarget),'test-only Craft render counter target remains present');body=Buffer.from(source.replace(target,'reactionLabViewer=window.__reactionLabViewer=createReactionLabViewer({').replace(renderTarget,'try{window.__task5CraftRenders=(window.__task5CraftRenders??0)+1;renderer.render(scene,camera);}'));}if(process.env.POLYMER_TASK4_FAILURE_QA==='1'&&pathname==='/src/polymer-fragment-3d-layout.js'){
 const text=body.toString(),target='const plan=createPolymerFragment3DLayout(sample,options);';assert.ok(text.includes(target),'Task4 failure injection matches the production safe boundary');
 body=Buffer.from(text.replace(target,`if(globalThis.__task4GeometryFailure==='initial'||globalThis.__task4GeometryFailure==='final'&&new Set((sample.fragment??sample).atomOrigins.map(o=>o.instanceId)).size===4)throw new Error('TASK4_INJECTED_GEOMETRY_FAILURE');${target}`));
-}res.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);}catch{res.writeHead(404).end('not found');}});
+}if(process.env.POLYMER_TASK5_MESH_DIAGNOSTIC==='1'&&pathname==='/src/reaction-lab-viewer.js'){const source=body.toString(),target='      polymerVisualSnapshot(){';assert.equal(source.split(target).length,2);body=Buffer.from(source.replace(target,exactMeshProbeSource+target));}res.writeHead(200,{'content-type':mime[extname(file)]??'application/octet-stream','cache-control':'no-store'});res.end(body);}catch{res.writeHead(404).end('not found');}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address();
 let chrome=process.env.CHROMIUM_PATH??'';if(!chrome)for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
 assert.ok(chrome,'Chromium is required for Reaction Lab polymer pointer validation');
@@ -294,6 +296,7 @@ try{
     await resetPolymerEvents();await feedRoute(route,previousSample);await runManualSteps(route);await completeAutomaticStep(route);
     const preReady=await inspectCompletion(route,{newDiscovery:true}),ready=await finishCompletion(route,{newDiscovery:true,captureReady:true,captureName:`representative-${route.polymerId}`});
     await exerciseOrdinaryMoleculeDrag(route);
+    if(process.env.POLYMER_TASK5_MESH_DIAGNOSTIC==='1'){await capturePolymerExactMesh({evaluate,send,artifactDir,sourceSha:process.env.POLYMER_SOURCE_SHA});throw exactMeshComplete;}
     if(task5Visual)try{await auditPolymerTask5Visual({evaluate,send,artifactDir,route,viewport,sourceSha:process.env.POLYMER_SOURCE_SHA});}catch(error){await writeFile(join(artifactDir,'visual-failure-'+route.polymerId+'.json'),JSON.stringify({sourceSha:process.env.POLYMER_SOURCE_SHA??null,routeId:route.routeId,viewport,error:String(error.stack??error),snapshot:await snapshot(),visual:await evaluate('window.__reactionLabProbe.polymerVisualSnapshot()'),input:await evaluate('window.__reactionLabProbe.polymerFailureInput()')},null,2));await writeFile(join(artifactDir,'visual-failure-'+route.polymerId+'.png'),Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));throw error;}
     const row={routeId:route.routeId,polymerId:route.polymerId,viewport,visualEvidence:{screenshot:`representative-${route.polymerId}-${viewport.width}.png`},durationMs:preReady.state.polymerization.sampleDurationMs,presentDelayMs:ready.delay,unitCount:ready.state.polymerization.displayGraph.unitCount,atomCount:ready.state.polymerization.displayGraph.atomCount,bondCount:ready.state.polymerization.displayGraph.bondCount,visibleBondMeshCount:ready.state.polymerization.displayGraph.visibleBondMeshCount,fit:ready.state.polymerization.fit,readyLayoutCalls:ready.state.polymerization.layoutCallsAtReady,finiteLayoutCalls:ready.state.polymerRuntimeMetrics.finiteLayoutCalls,completionLayoutCallsAfterReady:ready.state.polymerRuntimeMetrics.completionLayoutCallsAfterReady,polymerResources:ready.state.polymerResources,retiredModuleRequests,metrics:ready.state.polymerRuntimeMetrics};
     evidence.push(row);normalEvidence.push(ready.state.polymerization.sampleEvidence);previousSample=true;
@@ -394,5 +397,6 @@ try{
   await pause(100);const settledAfterDispose=await snapshot();assert.deepEqual(settledAfterDispose.polymerRuntimeMetrics,afterDispose.polymerRuntimeMetrics,'disposed viewer does not resume runtime work');
   viewerDisposalEvidence={before:resourcesBeforeDispose,after:resourcesAfterDispose,runtimeStableAfterDispose:true,rendererDisposeCalled:true,eventControllerAbortedByProductionDispose:true};
   await saveEvidence();assert.deepEqual(browserErrors,[],'No browser console error or exception occurs through viewer disposal');
-}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(500);server.close();await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:100});}
-console.log(`Reaction Lab finite-polymer completion validation passed at ${viewport.width}×${viewport.height}; ${hardRoutes.length} declared actual-pointer routes and completion screenshots, 650/250 ms feedback, discovery/known entry, next Feed/purge, close/reopen resource disposal, close-before-ready, and retired module fetches=0.`);
+}catch(error){if(error!==exactMeshComplete)throw error;}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}await pause(500);server.close();await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:100});}
+if(process.env.POLYMER_TASK5_MESH_DIAGNOSTIC==='1')console.log('Exact mesh diagnostic completed; NO acceptance or performance pass is asserted.');
+else console.log(`Reaction Lab finite-polymer completion validation passed at ${viewport.width}×${viewport.height}; ${hardRoutes.length} declared actual-pointer routes and completion screenshots, 650/250 ms feedback, discovery/known entry, next Feed/purge, close/reopen resource disposal, close-before-ready, and retired module fetches=0.`);
