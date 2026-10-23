@@ -1,0 +1,59 @@
+{
+  "kind": "FIXED_RASTER_PARITY_AND_SINGLE_GENERIC_FOCUS_RULE_NOT_ACCEPTANCE",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "startHead": "d100a76bcdb183f3669a6a93283dee2c91f3113f",
+  "captureAuthority": "../pib-exact-mesh-519a686c/manifest.json",
+  "captureManifestSha256": "3b54a5db1b6c4a46bd866256769cc21e4f4f797b62ee44a72d96a951b54fa4f8",
+  "runtime": "v24.19.0",
+  "newGPUExperiments": 0,
+  "newOrientations": 0,
+  "sourceHashes": {
+    "scripts/analyze-polymer-task5-exact-mesh.mjs": "018437bb3cc6b951d47bc3077ad52807d98aa9a791028d9cbbb3fd26d832f2b7",
+    "scripts/analyze-polymer-task5-raster-parity.mjs": "09d2ba873cdc0e6b1ff6a37a11c008ba10691e8c69380f40722d3ad7ac815097",
+    "scripts/diagnose-polymer-task5-focus-rule.mjs": "4fa0593714a43a509f0dd04cd99735845c239b1d784b9ce577e4f5afee8e146c",
+    "tests/polymer-task5-raster-parity.test.mjs": "28b85c751bd5aed01d34babe02ad6cc622beca46d813ef4149848ac53a8ebe02"
+  },
+  "tests": {
+    "passCount": 37,
+    "failCount": 0,
+    "skipCount": 0
+  },
+  "files": [
+    {
+      "path": "focus-rule-analysis.json.gz",
+      "bytes": 13239,
+      "sha256": "7fc9710359e98d6a8ccd7cb35ab33e3d61ddbced811e7887ab9522b3a5c82993"
+    },
+    {
+      "path": "focus-rule-protocol.json.gz",
+      "bytes": 593,
+      "sha256": "1eb4f774fd3a7b4565c38380cedb11d11d3c60a4e61e2bdc263d5bf47caf7064"
+    },
+    {
+      "path": "focus-rule-summary.jsonl",
+      "bytes": 1626,
+      "sha256": "a04003c41628a53a08f2b6d48811c01a9261a1ea634861edd7f22da4ecff9c2c"
+    },
+    {
+      "path": "parity-analysis.json.gz",
+      "bytes": 43201,
+      "sha256": "b59a6b02c3478b55683fc7f1ac51db6524c72f10fd1da99d4e700b25f1e0b7a6"
+    },
+    {
+      "path": "parity-protocol.json.gz",
+      "bytes": 538,
+      "sha256": "bd6364b6a176da87b9c1634d76ce34f77f222eb14aac8780e76582eb47360a84"
+    },
+    {
+      "path": "parity-summary.jsonl",
+      "bytes": 2957,
+      "sha256": "3d0759f715012fe00f6214da6ab82dc590aa2b4d72b9cb81077fc2e02ad4cee1"
+    },
+    {
+      "path": "protected-tests.log",
+      "bytes": 4251,
+      "sha256": "cf83748fb9330cac90fd7e2b897b797470bec7a64087ea30502ae24afb0b7df4"
+    }
+  ],
+  "review": "PENDING on code checkpoint; no release acceptance claimed"
+}

@@ -1,0 +1,45 @@
+✔ a real automatic commit permits only its seven new actual single/double lanes (2.907585ms)
+✔ unchanged graphs allow zero new geometry even if the automatic counter advances (0.496725ms)
+✔ a changed graph cannot excuse allocations without a same-batch automatic unit commit (0.981784ms)
+✔ Task4 G0-G7 all 25: actual Core graph, new independent local chemistry checks, source/identity and determinism (711.43963ms)
+✔ initial sources and every intermediate actual commit graph remain accepted, including epoxide before ring opening (418.695183ms)
+✔ read-only semantic targets agree with Task3 motifs and real origin tuples; PF transferred-H is not a junction (28.032035ms)
+✔ invalid chemistry and invalid budgets throw before fallback; graph remains unchanged (1.605438ms)
+✔ absent, nonfinite, malformed and coincident source poses reject explicitly; never certify invented coordinates (5.163666ms)
+✔ nonconvergence rejects bad fallback; only independently validated real-graph fallback can be displayed (20.095564ms)
+✔ identities, changed valid source poses and ordered atom/bond remapping have explicit deterministic behavior (15.480471ms)
+✔ connected cyclic/branched inter-origin graph is solved or explicitly rejected without mutating topology (0.867404ms)
+✔ actual PF heap release is preserved as a decrease, not reported as accumulation (148.467921ms)
+✔ a new resource after the measured decrease still fails (155.57552ms)
+✔ increased backing bytes fail even when the resource count is unchanged (114.408297ms)
+✔ graph-derived local frames are finite, deterministic and preserve tilted planar and linear geometry (3.555715ms)
+✔ local junction/site selection preserves the real graph and all geminal methyl hydrogens (24.57782ms)
+✔ all 25 real graphs fit full visual envelopes in DOM-shaped safe rectangles at three canvas sizes; reset is deterministic (16285.375131ms)
+✔ triple lanes preserve actual PAN four and NBR one bonds; offsets and widths are distinct (0.440684ms)
+✔ initial fit rejects an endpoint hidden by a frozen ordinary atom and deterministically reuses the same input (227.401947ms)
+✔ comparison multiple lanes retain the real bond length and face the camera after refit, including end-on fallback (2.701957ms)
+✔ safe region rejects impossible UI and tie breaks deterministically (0.212586ms)
+✔ canvas buffer updates only on actual CSS or capped DPR changes (0.264622ms)
+✔ comparison rejects tuple duplication or omission rather than inventing water/source evidence (0.491949ms)
+✔ all25 comparison source/after/water partitions use actual Core tuples and read-only transitions (4.217713ms)
+✔ local focus reserves full-graph clipping depth for all forty real orbit directions without reducing zoom (802.056203ms)
+✔ A06: a real selection outline cannot certify the underlying carbon silhouette (62.822877ms)
+✔ A06: another real view recovers the same carbon with no annotation or material change (34.788419ms)
+✔ A03 excludes a real selection circle crossing another atom; A06 keeps the unannotated disk (68.729783ms)
+✔ static GPU reuse keeps every RAF, fixed-step and completion update; a changed pose renders immediately (3.530156ms)
+✔ animation, real molecules and comparison views render every live frame (2.602974ms)
+✔ hidden, closed and lost contexts cannot submit GPU work; disposing ends RAF ownership (2.413293ms)
+✔ captured production PET: all chemical constraints jointly pass without changing graph, source, order or identity (265.253913ms)
+✔ captured production PET still rejects a budget with no jointly feasible iterate and rejects an invalid fallback (21.574013ms)
+✔ frozen actual PLA re-FEED retains a jointly feasible pre-distance checkpoint with every chemical limit intact (185.081788ms)
+✔ PLA pre-distance retention does not admit an infeasible short solve or an invalid fallback (13.560158ms)
+✔ independent triangle edges recover native shared-edge coverage without changing legacy replay (353.885559ms)
+✔ a native one-ULP ownership difference remains explicit and cannot rescue the retained boundary pose (42.939422ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18639.4914

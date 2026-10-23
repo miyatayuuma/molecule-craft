@@ -1,5 +1,7 @@
 # Task⑤ PIB visibility recovery — BLOCKED
 
+Latest continuation: [raster parity and one generic focus rule](polymer-local-fragment-task5-pib-raster-parity.md). Starting from d100a76b, the shared-edge CPU defect is identified, native disagreement falls from85 to9 pixels across the same nine captures, target metric effects are bounded for those captures, and the fixed focus-rule candidate is rejected. Formal PIB remains0/3; no production change or merge is adopted. The records below remain historical evidence.
+
 Authority at start: main `593ac571e4d664f7af885855352142874dd227ab`, PR #354 Draft/Open HEAD `6036606df10126840c5c51ada9fde76cb4d57f84`. Main and PR #345 are not merged or modified by this investigation. **No production repair is adopted.** The frozen actual-PNG campaign still has zero simultaneous witnesses at anchors 0/17/30. Numeric and CPU mesh predictions below do not certify new PNG acceptance or global rigid-view impossibility.
 
 Evidence: [manifest](polymer-local-fragment-task5-evidence/recovery/pib-occlusion-6036606d/index.json), [original 40-direction conflict ledger](polymer-local-fragment-task5-evidence/recovery/pib-visibility-conflict.json). Original PNGs, masks, annotation-free photometry and prior failures remain unchanged. The new folder contains complete bounded diagnostic observations, protocols, CPU masks explicitly named `CPU`, the protected-test log, and independent review.
