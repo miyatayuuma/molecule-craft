@@ -1,0 +1,81 @@
+{
+  "kind": "RESUMED_WORK_CHECKPOINT_NOT_TASK5_CLOSURE",
+  "dateJst": "2026-10-23",
+  "mainSha": "593ac571e4d664f7af885855352142874dd227ab",
+  "pr354Head": "50c0b38fba2ad87272d30a536d45a1060a80c7a0",
+  "recoveredCandidateSha": "d29a11599c7c71ebb4e2e2824545904272976b23",
+  "status": "BLOCKED",
+  "contracts": {
+    "pass": 31,
+    "fail": 0,
+    "skipped": 0,
+    "PWAAssets": 353,
+    "hygieneWarnings": 0,
+    "PETCapturedInputReplay": "PASS",
+    "dockingCapturedInputReplay": "PASS"
+  },
+  "mobileSmoke": {
+    "pass": true,
+    "uniqueRoutes": 25,
+    "sourceSha": "d29a11599c7c71ebb4e2e2824545904272976b23",
+    "browser": {
+      "product": "HeadlessChrome/156.0.8078.47",
+      "revision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+      "protocolVersion": "1.3"
+    },
+    "PET": {
+      "sampleId": "polymer-sample-11-11",
+      "graphDigest": "ac71c980c5105222e7d2b217da840d403c89349a278f8d18716862ba293d5d1e",
+      "atoms": 47,
+      "bonds": 48
+    },
+    "evidence": {
+      "path": "d29-mobile-smoke.json.gz",
+      "sha256": "ce3a8e2775cf52aac9ed85fa51056ff943516e41771424ceba3b3dee12963a78",
+      "uncompressedSha256": "1c14373f29d006e3bf648899edb71d45e07033c477491eb49999d39ad3e621c6"
+    }
+  },
+  "desktopSmoke": "RUNNING_NOT_ACCEPTED",
+  "PIB": {
+    "type": "NUMERIC_DIAGNOSTIC_NOT_RASTER_ACCEPTANCE",
+    "sites": [
+      {
+        "anchor": 0,
+        "oldPrediction": 0.7589285714285715,
+        "bestOf512": 1,
+        "predictedPasses": 1
+      },
+      {
+        "anchor": 17,
+        "oldPrediction": 0.625,
+        "bestOf512": 0.8023471036453128,
+        "predictedPasses": 0
+      },
+      {
+        "anchor": 30,
+        "oldPrediction": 0.4910714285714286,
+        "bestOf512": 0.5357142857142857,
+        "predictedPasses": 0
+      }
+    ],
+    "evidence": {
+      "path": "d29-pib-direction-diagnostic.json.gz",
+      "sha256": "5077db2eb91defb11db776272c44e4cc243e25ebb178b716e652462056e19bda",
+      "uncompressedSha256": "b4ecec8c67a077389474299b51c3b5dae7ed4475517c2f87bf33a562b4a9a77c"
+    },
+    "limits": [
+      "Numeric sphere/cylinder approximation; actual PNG remains required",
+      "No proof of geometric impossibility",
+      "No threshold, graph, geometry or production candidate changes"
+    ]
+  },
+  "remaining": [
+    "Desktop all25 completion of current local job",
+    "PET/PLA targeted raster acceptance on the recovered source",
+    "PIB simultaneous local groups under unchanged real-PNG gates",
+    "Final-source all12 static campaign before strict Finite",
+    "Finite original real-RAF comparator (old FAIL retained)",
+    "Final independent review, main merge and post-merge verification"
+  ],
+  "ciPolicy": "Checkpoint uses [skip ci] to preserve work without starting additional Actions during this diagnostic checkpoint. Required gates remain pending and Draft/Open is retained."
+}

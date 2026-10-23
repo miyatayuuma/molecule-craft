@@ -3,9 +3,15 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {createPolymerFragment3DLayout,resolvePolymerFragmentTargets} from '../src/polymer-fragment-3d-layout.js';
 import {polymerTask4Fixtures} from './helpers/polymer-task4-fixtures.mjs';
-import {fitPolymerObservation,polymerSafeRectangle,polymerLaneOffsets,polymerLaneRadius,resizePolymerCanvas,polymerComparisonGraphs,updatePolymerComparisonLanes,polymerLocalObservationTargets} from '../src/reaction-lab-polymer-presentation.js';
+import {fitPolymerObservation,polymerSafeRectangle,polymerLaneOffsets,polymerLaneRadius,resizePolymerCanvas,polymerComparisonGraphs,updatePolymerComparisonLanes,polymerLocalObservationTargets,polymerLocalOrientationCandidates} from '../src/reaction-lab-polymer-presentation.js';
 import {modelAtomRadius} from '../src/chemistry.js';
 const fixtures=await polymerTask4Fixtures();
+test('graph-derived local frames are finite, deterministic and preserve tilted planar and linear geometry',()=>{
+  const camera=new THREE.PerspectiveCamera(42,1,.1,500);camera.position.set(0,0,15);camera.lookAt(0,0,0);
+  const tilt=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,2,3).normalize(),.71),ring={atoms:Array.from({length:6},(_,i)=>{const p=new THREE.Vector3(Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3),0).applyQuaternion(tilt);return{element:'C',x:p.x,y:p.y,z:p.z};}),bonds:Array.from({length:6},(_,i)=>({a:i,b:(i+1)%6,order:1}))},linear={atoms:[{element:'C',x:0,y:0,z:0},{element:'N',x:0,y:3.4,z:0}],bonds:[{a:0,b:1,order:3}]};
+  for(const plan of [ring,linear]){const before=JSON.stringify(plan),input={plan,bondIndices:plan.bonds.map((_,i)=>i),camera},frames=polymerLocalOrientationCandidates(THREE,input);assert.equal(frames.length,4);assert.deepEqual(polymerLocalOrientationCandidates(THREE,input),frames);for(const frame of frames){assert.ok(frame.quaternion.toArray().every(Number.isFinite));assert.ok(Math.abs(frame.quaternion.length()-1)<1e-12);const z=plan.atoms.map(a=>new THREE.Vector3(a.x,a.y,a.z).applyQuaternion(frame.quaternion).z);assert.ok(Math.max(...z)-Math.min(...z)<1e-12);}assert.equal(JSON.stringify(plan),before);}
+  for(const x of [0,NaN,Infinity])assert.throws(()=>polymerLocalOrientationCandidates(THREE,{plan:{atoms:[{element:'C',x:0,y:0,z:0},{element:'C',x,y:0,z:0}],bonds:[{a:0,b:1,order:1}]},bondIndices:[0],camera}),/POLYMER_DEGENERATE_LOCAL_EDGE/);
+});
 test('local junction/site selection preserves the real graph and all geminal methyl hydrogens',()=>{
   for(const row of fixtures){const before=JSON.stringify(row.sample),s=resolvePolymerFragmentTargets(row.sample,{sourceRecordsByInstanceId:row.sourceRecordsByInstanceId,route:row.route}),resolved=JSON.stringify(s),targets=polymerLocalObservationTargets(row.sample.fragment,s),g=row.sample.fragment;
     for(const {target:t}of targets){assert.ok(t.atomIndices.includes(t.anchor));assert.deepEqual(t.originTuples,t.atomIndices.map(i=>g.atomOrigins[i]));for(const index of t.bondIndices){const b=g.bonds[index];assert.ok(t.atomIndices.includes(b.a)&&t.atomIndices.includes(b.b));}}

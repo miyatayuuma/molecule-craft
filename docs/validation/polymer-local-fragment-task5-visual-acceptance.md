@@ -105,3 +105,28 @@ run39738710682/job119690461800は保存PET/実PET/PF lifecycleがPASSした後�
 0c972 run39739683129/job119693620634は75→73→75 buffersで増加gateがFAIL。元summaryとartifact hashを `recovery/0c972-heap-failure.json`、独立owner診断2件を同recoveryへ保存した。416byte sigma/epsilon cacheのpairは各cycleの現source6–9/11–14/16–19だけに属し、旧cycleキーは未検出。FEED handoffと初期phenol消費のframe境界により、ready時点でそのpairを既に評価した履歴が異なる構造である。原本だけから特定frameの履歴までは断定しない。
 
 比較状態を同じにするため、heap採取を各cycleの空FEED完了後へ移す。IDLE、transitionなし、instances/purge/reserved0、sampleIdなしを実snapshotでassertし、採取stateを保存する。再構築後のGPU/mesh/materialは従来通り完全一致、CPU資源の増加許容0も維持。production cache/physicsは変更しない。この候補の実ブラウザ確認は次source CIで行い、未実行の12静的jobs/strictFiniteはPASSにしない。
+
+## 50c0正式FAILの保持と限定修復
+
+Source `50c0b38fba2ad87272d30a536d45a1060a80c7a0` のrun39740905764は保存PET・実PET・mobile/desktop全25短診断とStage BがPASS。固定12静的jobsは10 FAIL/2 timeout、FiniteはSKIPPED。Repository/FIELDはPASS。旧Finite db0fab1dのFAILも残し、性能修復成功とは判定しない。
+
+Mobileの同時group視認は未達。限定候補ba94cbはPPでPASSしたが、PIBの接点0/17/30はFAIL。geminal二C/各3Hの同時条件と全実C–Hの検査は維持する。追加のgraph-derived local frameは実graphへの剛体回転だけを選び、geometry・原子・結合・originを変えない。予測scoreは実PNG gateの代用ではない。
+
+ba94cbのPETは比較中resize後の最終resetでFAIL。比較がordinary worldを一時非表示にする間に初期fitのoccluder集合を空へ置換していた。候補はSample完成時の実world atom snapshotを同Sample内で保持し、比較・resize・reopenで再利用。次Sampleはfit=nullから開始し、前Sampleの入力を流用しない。
+
+Desktop元artifact9/10はinspection run39772675225でsource/run/digestを照合して部分抽出した。[保存index](polymer-local-fragment-task5-evidence/recovery/50c0-desktop-inspection-index.json) と圧縮原本・実PNGを保持する。PLA local29/y45/p30は角差.3926989446、倍率1。旧開始点判定の6pxとproduction fallback grab22pxの不整合を修正し、実press直後のSample/orbit/ordinary drag ownerを記録・assertする。旧traceにはownerがなく、過去の取得先instanceは断定しない。40方向・anchor予算・実イベント/角度/倍率gateは不変。
+
+SBR desktop reduced/DPR1は閉じたdialogにgeometry36が残るsnapshotでFAIL。試験側は待機条件に合格したsnapshotをそのままassertへ使い、別CDP呼出しとの間のnative close境界を除く。元2秒上限・geometry/material/activeGroup/atom map assertを維持し、production disposeを変更しない。これは複数cycle資源受入の代用ではない。
+
+4修正の[独立限定review](polymer-local-fragment-task5-evidence/recovery/frozen-fit-pointer-limited-review.json)はblocking findingなし。局所frameのzero/非有限edgeを正規化前に拒否するnegative controlを追加し、関連19 testsとPWA353資産検査がPASS。新sourceは先行全25→PET/PLA対象rasterとPF資源を実行する。既知PIB FAILの同source再実行、固定12件campaign、strict Finiteの成功はまだ宣言しない。Task⑤はBLOCKED、PR #354はDraft/Openを維持する。
+
+
+## 2026-10-23 thread recovery checkpoint
+
+GitHub authority remains main `593ac571` / PR #354 Draft HEAD `50c0b38f`. Recovered local source `d29a11599c7c71ebb4e2e2824545904272976b23` was not on GitHub at recovery start; preserve it with this checkpoint. The previous hosted run39740905764 finished: Repository/FIELD/Stage B and both short all25 gates PASS, fixed12 raster jobs10 FAIL/2 CANCELLED after timeouts, Finite SKIPPED. No job remains pending in that old run.
+
+The recovered candidate passes31 local tests (no failures/skips), frozen actual PET and docking replays, hygiene0 warnings and353-asset PWA freshness. Fresh official Chrome for Testing156.0.8078.47 with Japanese fonts completed360×780 all25 actual-pointer/comparison smoke, known entry, nextFEED/purge, resource open/close and close-before-ready. Records are `recovery/d29-mobile-smoke.json.gz`; the PET representative is `recovery/d29-mobile-pet.png`. Fixed mask grids were disabled; these are not raster/Finite acceptance. Desktop smoke is running at this checkpoint, not accepted. `recovery/20261023-resumed-state.json` indexes exact source, results and limits.
+
+PIB frozen-input numerical replay retains the old local poses. One bounded exploratory sweep (256 sphere directions×2rolls×3failed sites=1536 fits) predicts scores1/.80235/.53571 for anchors0/17/30; this does not prove impossibility or certify any PNG. Source/graph/geometry/candidate budgets and thresholds are unchanged. Reproduce with `node scripts/diagnose-polymer-task5-directions.mjs`; all observations and input/runtime hashes are retained in `recovery/d29-pib-direction-diagnostic.json.gz`. This diagnostic belongs to the present unresolved visibility work, outside performance windows.
+
+Checkpoint commits use `[skip ci]` to avoid starting additional Actions during this diagnostic checkpoint; this does not waive any hard gate. Final-source raster/Finite/review/merge remain pending, and Task⑤ stays BLOCKED.

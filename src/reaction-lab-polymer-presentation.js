@@ -115,7 +115,7 @@ export function polymerVisualPrimitives(plan){
 // avoid looking along a requested connection. At most four axes × two faces ×
 // two rolls supplement the overview's fixed Euler candidates; no atom moves.
 export function polymerLocalOrientationCandidates(THREE,{plan,bondIndices,camera}){
-  const edges=bondIndices.map(index=>{const b=plan.bonds[index],a=plan.atoms[b.a],z=plan.atoms[b.b],v=new THREE.Vector3(z.x-a.x,z.y-a.y,z.z-a.z),length=v.length();return{v:v.divideScalar(length),length,radii:modelAtomRadius(a.element)+modelAtomRadius(z.element)};}),axes=[];
+  const edges=bondIndices.map(index=>{const b=plan.bonds[index],a=plan.atoms[b.a],z=plan.atoms[b.b],v=new THREE.Vector3(z.x-a.x,z.y-a.y,z.z-a.z),length=v.length();if(!Number.isFinite(length)||length<1e-12)throw new Error('POLYMER_DEGENERATE_LOCAL_EDGE');return{v:v.divideScalar(length),length,radii:modelAtomRadius(a.element)+modelAtomRadius(z.element)};}),axes=[];
   if(!edges.length)return[];
   const add=n=>{if(n.lengthSq()<1e-10)return;n.normalize();const components=n.toArray(),major=components.map(Math.abs).indexOf(Math.max(...components.map(Math.abs)));if(components[major]<0)n.negate();if(axes.some(a=>Math.abs(a.n.dot(n))>1-1e-8))return;axes.push({n,score:Math.min(...edges.map(e=>e.length*Math.sqrt(Math.max(0,1-e.v.dot(n)**2))-e.radii)),order:axes.length});};
   for(let i=0;i<edges.length;i++)for(let j=i+1;j<edges.length;j++){
@@ -177,7 +177,8 @@ export function fitPolymerObservation(THREE,{plan,camera,width,height,safeRegion
     if(!selected&&visibility.some(v=>v.visibleFraction<.70))continue;
     // A compact local projection can maximize q by pointing a requested bond
     // into the camera. Prefer a readable local feature inside the same fixed
-    // orientation candidates; these predictions never replace the PNG gates.
+    // Euler candidates plus at most sixteen graph-derived local frames. These
+    // predictions never replace the actual PNG gates.
     const screen=p=>({x:width/2+f*p.x/-p.z,y:height/2-f*p.y/-p.z}),centers=atomPoints.map(p=>new THREE.Vector3(scale*p.x+result.tx,scale*p.y+result.ty,-d+scale*p.z)),sphereHit=ray=>{let nearest=Infinity;for(let i=0;i<centers.length;i++){const c=centers[i],b=ray.dot(c),disc=b*b-c.lengthSq()+(scale*atomPoints[i].r)**2;if(disc>=0){const t=b-Math.sqrt(disc);if(t>0)nearest=Math.min(nearest,t);}}return nearest;},rayAt=p=>new THREE.Vector3((p.x-width/2)/f,(height/2-p.y)/f,-1).normalize();
     const bondExposure=selected?requiredBondIndices.map(index=>{const b=plan.bonds[index],a=plan.atoms[b.a],z=plan.atoms[b.b],direction=centers[b.b].clone().sub(centers[b.a]).normalize(),side=new THREE.Vector3().crossVectors(direction,new THREE.Vector3(0,0,1));if(side.lengthSq()<1e-10)side.crossVectors(direction,new THREE.Vector3(1,0,0));side.normalize();
       const lanes=polymerLaneOffsets(b.order).map(offset=>{const trim=el=>Math.max(0,Math.sqrt(Math.max(0,modelAtomRadius(el)**2-offset**2))-.01)*scale,A=centers[b.a].clone().addScaledVector(direction,trim(a.element)).addScaledVector(side,offset*scale),B=centers[b.b].clone().addScaledVector(direction,-trim(z.element)).addScaledVector(side,offset*scale);return{A,B,a:screen(A),b:screen(B),length:A.distanceTo(B),radius:polymerLaneRadius(b.order)*scale};}),length=Math.min(...lanes.map(l=>Math.hypot(l.b.x-l.a.x,l.b.y-l.a.y))),steps=32;let bestRun=0,run=0,visible=0;

@@ -1,0 +1,18 @@
+{
+  "kind": "INDEPENDENT_LIMITED_PATCH_REVIEW_NOT_BROWSER_ACCEPTANCE",
+  "baseSha": "9ffba03551102b19c3db67893238699f2e6a6d25",
+  "reviewer": "independent_group_review",
+  "result": "NO_BLOCKING_FINDING",
+  "scope": [
+    "Sample-owned frozen visibility occluders survive comparison/resize/reopen without leaking across Samples",
+    "Atomic settled snapshot retains original 2s bound and resource assertions",
+    "Real CDP pointer start respects production22px grab + existing6px margin and records immediate ownership",
+    "Degenerate/nonfinite local edge rejected before normalization"
+  ],
+  "limits": [
+    "New-source browser acceptance still required",
+    "Old PLA owner and exact old SBR close boundary are unproven",
+    "All six geminal H simultaneous requirement retained; spec ambiguity does not authorize threshold/scope reduction",
+    "Existing lifecycle and multi-cycle resource gates remain required"
+  ]
+}

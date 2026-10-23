@@ -1,0 +1,92 @@
+{
+  "kind": "FROZEN_FAILED_EVIDENCE_INSPECTION_NOT_ACCEPTANCE",
+  "sourceSha": "50c0b38fba2ad87272d30a536d45a1060a80c7a0",
+  "originalRun": 39740905764,
+  "inspectionRun": 39772675225,
+  "inspectionSha": "9ffba03551102b19c3db67893238699f2e6a6d25",
+  "artifacts": [
+    {
+      "artifact": 12423241436,
+      "sha256": "fc83b0c0aff1d5d62b0f0c4144f9e856c043e8a3dcb8c5ce45c05ec8e5aed1f0",
+      "original": {
+        "id": 12418309503,
+        "node_id": "MDg6QXJ0aWZhY3QxMjQxODMwOTUwMw==",
+        "name": "task5-visual-9",
+        "size_in_bytes": 2057188652,
+        "url": "https://api.github.com/repos/miyatayuuma/molecule-craft/actions/artifacts/12418309503",
+        "archive_download_url": "https://api.github.com/repos/miyatayuuma/molecule-craft/actions/artifacts/12418309503/zip",
+        "expired": false,
+        "digest": "sha256:df88b2ff7ab966542ba7a725af34428935156fe41b517a4b89a0021dfc712e4b",
+        "created_at": "2026-10-22T10:38:13Z",
+        "updated_at": "2026-10-22T10:38:13Z",
+        "expires_at": "2027-01-20T07:30:03Z",
+        "workflow_run": {
+          "id": 39740905764,
+          "repository_id": 1350296657,
+          "head_repository_id": 1350296657,
+          "head_branch": "feat/polymer-local-fragment-task5",
+          "head_sha": "50c0b38fba2ad87272d30a536d45a1060a80c7a0"
+        }
+      },
+      "completedReports": 9,
+      "failureRecords": 2
+    },
+    {
+      "artifact": 12422443511,
+      "sha256": "da0f6179662ddc10526e8e0151b5d39bfe3cf6db929b5b8f37c8646ff8b07966",
+      "original": {
+        "id": 12418370613,
+        "node_id": "MDg6QXJ0aWZhY3QxMjQxODM3MDYxMw==",
+        "name": "task5-visual-10",
+        "size_in_bytes": 1142487295,
+        "url": "https://api.github.com/repos/miyatayuuma/molecule-craft/actions/artifacts/12418370613",
+        "archive_download_url": "https://api.github.com/repos/miyatayuuma/molecule-craft/actions/artifacts/12418370613/zip",
+        "expired": false,
+        "digest": "sha256:dc78936dd2b197d3d71e66582374f07866f73c1fa3bbcac4308655ab7597aa55",
+        "created_at": "2026-10-22T10:08:56Z",
+        "updated_at": "2026-10-22T10:08:56Z",
+        "expires_at": "2027-01-20T07:30:03Z",
+        "workflow_run": {
+          "id": 39740905764,
+          "repository_id": 1350296657,
+          "head_repository_id": 1350296657,
+          "head_branch": "feat/polymer-local-fragment-task5",
+          "head_sha": "50c0b38fba2ad87272d30a536d45a1060a80c7a0"
+        }
+      },
+      "completedReports": 17,
+      "failureRecords": 0
+    }
+  ],
+  "retainedFiles": [
+    {
+      "path": "50c0-desktop9-pointer-failure.json.gz",
+      "originalPath": "original/task5/polylactic-acid/pointer-failure.json",
+      "originalSha256": "748cd536f06c143178d44abf56473c1ac58f61bd6c87b835ee141eac7d7b5f71",
+      "sha256": "33b77389c813e75a8ac360d4eee8285fb6fd04c64a8c374399ac8837ed1343fa"
+    },
+    {
+      "path": "50c0-desktop9-pointer-failure.png",
+      "originalPath": "original/task5/polylactic-acid/pointer-failure.png",
+      "originalSha256": "c433c4784b2003612e2dd36ce0ccec721c595a2f64a125745cbf19310710641b",
+      "sha256": "c433c4784b2003612e2dd36ce0ccec721c595a2f64a125745cbf19310710641b"
+    },
+    {
+      "path": "50c0-desktop9-visual-failure-polylactic-acid.json.gz",
+      "originalPath": "original/visual-failure-polylactic-acid.json",
+      "originalSha256": "97002dd16812c5944abb00b955236099c0eec21e41be5a9a03f3ccc12a90fca0",
+      "sha256": "54d4ff451827877b77f634c10b6269ce08635d38355ee35251b2ae36e64acdb6"
+    },
+    {
+      "path": "50c0-desktop9-visual-failure-polylactic-acid.png",
+      "originalPath": "original/visual-failure-polylactic-acid.png",
+      "originalSha256": "8a6b19bc75c6fde3acd7e626d5df341b38e8c38f01f85dfbcea9201425aa02a4",
+      "sha256": "8a6b19bc75c6fde3acd7e626d5df341b38e8c38f01f85dfbcea9201425aa02a4"
+    }
+  ],
+  "limits": [
+    "Desktop reduced DPR1 SBR resource assertion produced no failure JSON; original logs remain authority.",
+    "Old PLA trace has no press ownership, so the exact claiming instance is unproven.",
+    "Inspection does not rerun source or certify acceptance."
+  ]
+}

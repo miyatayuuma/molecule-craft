@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import {inflateSync} from 'node:zlib';
 import * as THREE from '../../vendor/three/three.module.min.js';
 import {modelAtomRadius} from '../../src/chemistry.js';
+import {GRAB_FALLBACK_RADIUS_PX} from '../../src/reaction-lab-manipulation.js';
 
 function pngPixels(buffer){
   assert.equal(buffer.toString('hex',0,8),'89504e470d0a1a0a');let width,height,type,depth,offset=8,chunks=[];
@@ -78,12 +79,14 @@ export async function auditPolymerTask5Visual({evaluate,send,artifactDir,route,v
     const base=await evaluate('window.__reactionLabProbe.polymerVisualSnapshot()'),trace=[];
     for(const [axis,radians] of [['yaw',(yaw>180?yaw-360:yaw)*Math.PI/180],['pitch',pitch*Math.PI/180]]){
       const pixels=radians/.008,n=Math.ceil(Math.abs(pixels)/60);for(let k=0;k<n;k++){
-        const delta=pixels/n,start=await evaluate(`(()=>{const canvas=document.querySelector('#reaction-lab canvas'),r=canvas.getBoundingClientRect(),S=window.__reactionLabProbe.polymerObservation().safeRegion,rows=window.__reactionLabProbe.projectedBounds();for(const fy of [.25,.5,.75])for(const fx of [.25,.5,.75]){const x=r.left+S.left+S.width*fx,y=r.top+S.top+S.height*fy;if(document.elementFromPoint(x,y)!==canvas)continue;if(rows.some(row=>row.atoms.some(a=>Math.hypot(a.x-x,a.y-y)<a.radius+6)))continue;return{x,y};}throw Error('No ordinary-molecule-free canvas pointer start');})()`),end={x:start.x+(axis==='yaw'?delta:0),y:start.y+(axis==='pitch'?delta:0)};
-        await send('Input.dispatchMouseEvent',{type:'mousePressed',...start,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseMoved',...end,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...end,button:'left',buttons:0});trace.push({axis,start,end});
+        const delta=pixels/n,start=await evaluate(`(()=>{const canvas=document.querySelector('#reaction-lab canvas'),r=canvas.getBoundingClientRect(),S=window.__reactionLabProbe.polymerObservation().safeRegion,rows=window.__reactionLabProbe.projectedBounds();for(const fy of [.25,.5,.75,.125,.875])for(const fx of [.25,.5,.75,.125,.875]){const x=r.left+S.left+S.width*fx,y=r.top+S.top+S.height*fy;if(document.elementFromPoint(x,y)!==canvas)continue;if(rows.some(row=>row.atoms.some(a=>Math.hypot(a.x-x,a.y-y)<a.radius+${GRAB_FALLBACK_RADIUS_PX}+6)))continue;return{x,y};}throw Error('No ordinary-molecule-free canvas pointer start');})()`),end={x:start.x+(axis==='yaw'?delta:0),y:start.y+(axis==='pitch'?delta:0)};
+        await send('Input.dispatchMouseEvent',{type:'mousePressed',...start,button:'left',buttons:1,clickCount:1});const owner=await evaluate('(()=>{const s=window.__reactionLabProbe.snapshot();return{sampleId:s.polymerization.sampleId,orbitPointerIds:s.polymerView.orbitPointerIds,draggedInstanceId:s.draggedInstanceId}})()');await send('Input.dispatchMouseEvent',{type:'mouseMoved',...end,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...end,button:'left',buttons:0});trace.push({axis,start,end,owner});
       }
     }
     await stable();const view=await evaluate('window.__reactionLabProbe.polymerVisualSnapshot()'),expected=new THREE.Quaternion().setFromAxisAngle(right,pitch*Math.PI/180).multiply(new THREE.Quaternion().setFromAxisAngle(up,yaw*Math.PI/180)).multiply(new THREE.Quaternion(...base.pose.quaternion)),angleError=expected.angleTo(new THREE.Quaternion(...view.pose.quaternion)),zoomRatio=view.pose.scale/base.pose.scale;
-    if(angleError>.02||Math.abs(zoomRatio-1)>.02){await writeFile(join(dir,'pointer-failure.json'),JSON.stringify({sourceSha,routeId:route.routeId,graphDigest,label,yaw,pitch,angleError,zoomRatio,trace,base,view},null,2));await writeFile(join(dir,'pointer-failure.png'),Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));}
+    const ownershipOK=trace.every(t=>t.owner.sampleId===base.observation.sampleId&&t.owner.orbitPointerIds.length===1&&t.owner.draggedInstanceId===null);
+    if(!ownershipOK||angleError>.02||Math.abs(zoomRatio-1)>.02){await writeFile(join(dir,'pointer-failure.json'),JSON.stringify({sourceSha,routeId:route.routeId,graphDigest,label,yaw,pitch,ownershipOK,angleError,zoomRatio,trace,base,view},null,2));await writeFile(join(dir,'pointer-failure.png'),Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));}
+    assert.ok(ownershipOK,`${route.routeId} ${label}/${yaw}/${pitch}: actual presses belong to this Sample orbit`);
     assert.ok(angleError<=.02,`${route.routeId} ${label}/${yaw}/${pitch}: actual pointer quaternion ${angleError}`);assert.ok(Math.abs(zoomRatio-1)<=.02,`${route.routeId} ${label}/${yaw}/${pitch}: actual pointer retains witness zoom ${zoomRatio}`);
     return{view,trace,angleError,zoomRatio};
   }
