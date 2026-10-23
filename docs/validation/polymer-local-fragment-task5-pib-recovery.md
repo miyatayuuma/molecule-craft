@@ -75,3 +75,55 @@ node scripts/check-repository-hygiene.mjs
 ```
 
 The extracted sphere/facet/refine30/factor replay was compared with every original retained observation: identical. The CPU control predictions are independently checked against saved real ID masks and a separate reviewer raycaster, with differences retained rather than hidden. The four scripts are current diagnostic tooling owned by this document; none is imported by production.
+
+## Exact mesh follow-up — actual capture 519a686c, still BLOCKED
+
+Start authority: main `593ac571e4d664f7af885855352142874dd227ab`, PR #354 HEAD `24d0f0daec64279a264cd118c9b4c96a28342534`. All five existing inline review threads are resolved. No review receipt for that HEAD was available. The latest-HEAD PR workflow lookup returned no runs; it is not a successful acceptance result. PR #345 remains open/unmerged and untouched.
+
+The actual atom mesh carries a nonidentity local quaternion because `mergePolymerSourceAtoms()` uses `Group.attach()` on an existing source mesh. The historical report and original artifact12420347609 do **not** retain those quaternions. A new production capture cannot retroactively supply the historical values. This missing authority is stated explicitly, rather than replacing it with an identity assumption.
+
+One predeclared hosted diagnostic ran on source `519a686caae48de4ff7d55e0be927bc3c2b26079`: [run39924742033](https://github.com/miyatayuuma/molecule-craft/actions/runs/39924742033), job120318249309, artifact12489405304, ZIP SHA256 `dcc1a6ed508a059c4703daf05c21dfa85734f66f96adc1b1d48c0d8fde2c497e`. It completed its diagnostic capture, **not** Task⑤ acceptance. No rerun was made. Its budget was one actual-pointer production sample, six previously saved control poses and the three previously saved anchor30 boundary poses; zero new directions or searches. All raw captures are retained in [the manifest](polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/manifest.json).
+
+Test-server-only instrumentation records all95 actual atom/lane meshes, their local position/quaternion/scale/matrix, world matrix, material side, exact Float32 geometry attributes/indices, camera and group matrices. It then replays the frozen graph/XYZ/camera/poses while retaining the newly captured inherited local quaternions. Sphere24×16 and cylinder12 tokens match production. Captured local matrices recompose to their world matrices with max error0, and all atom centers and lane endpoints reproject with max error0 CSS px/depth. Graph equality is asserted before replay. This does not turn the replay into a real-pointer local-focus acceptance or certify its photometry.
+
+The six control masks continue to show the original named atom/bond failures. All three saved boundary poses also fail the **actual new ID-mask** A03/A04 partial criteria:
+
+| Saved anchor30 candidate | Actual failure with captured mesh transform |
+|---|---|
+| boundary0, prior best | bond33 area91px <94.474167779px; bond34 continuous7.456203238px <7.75px |
+| boundary1 | C30 fraction.590563551 <.60; bond32 area64 <64.805465246px; bond33 area96 <99.436973657px; bond34 continuous7.396846102px <7.75px |
+| boundary2 | bond32 area51 <53.703722902px and continuous6.969204562px; bond34 continuous7.373731857px <7.75px |
+
+Thus the prior91px/7.456px boundary was not rescued by using actual inherited sphere quaternions. It is now independently observed in an actual raster of that retained pose, without promoting CPU output to acceptance. The newly captured actual controls differ from the historical masks by.1115–.1814% of foreground union; this is consistent with differing tessellation poses, but the old quaternion is unavailable and no unique causal reconstruction is claimed.
+
+`scripts/analyze-polymer-task5-exact-mesh.mjs` reconstructs native meshes from those captured attributes/matrices. Its fixed modes distinguish double precision, Float32 shader/depth arithmetic with an8-bit subpixel grid, and the documented4-bit legacy SwiftShader grid. Top-left edge ownership and front-face culling are included. SwiftShader's public `VkConfig.hpp` exposes both compile-time precision settings; the exact ANGLE/SPIR-V build setting was not captured, so the legacy mode remains a diagnostic hypothesis, not a certified GPU emulator. Offline corrections of those raster rules add no poses or browser executions.
+
+The complete front-face/depth version still differs from the actual masks by1–16 pixels per image in its4-bit mode (Float64:44–73;8-bit mode:45–73). Earlier intermediate uncullled calculations reached1–5 pixels, which is **not** the final complete-raster parity result. Some target counts differ, so the predictor is **not pixel-identical and is not admitted as a formal candidate selector**. In particular, neither tiny whole-image error nor partial metric agreement at the best boundary justifies treating the CPU score as a PASS.
+
+No generic production orientation repair is adopted. The actual boundary candidates fail, the CPU parity prerequisite remains unresolved, and the original local-quaternion authority is not recoverable from the retained JSON. The whole set of rigid poses is **not** proven impossible. No further direction sweep, conformer edit, transparency, omitted atom/bond, fixed observation quaternion or threshold change was made. The production orientation candidates, fit function, graph/XYZ/origin, chemistry, Stage B, feedback timers and PWA assets are byte-identical to the start HEAD.
+
+The related18 geometry/observation/raster tests and the remaining17 geometry/static/resource/heap tests passed:35 PASS,0 FAIL,0 SKIP. This covers frozen PLA/PET and the canonical25final/95intermediate graph checks. Precache freshness:353 verified assets. Syntax and diff checks pass. These deterministic results do not replace formal browser, performance, Repository or FIELD gates. A review request is attached to the final checkpoint; receipt and source binding must be checked before any final acceptance claim.
+
+Disposition: **Task⑤ BLOCKED / PR #354 Draft / Open / Unmerged**. Formal PIB3/3 remains0/3 in the original campaign; this follow-up is9 diagnostic rasters, not a new formal three-site campaign. A06/real local-focus/reset acceptance, all25/fixed12jobs, V0–V8/C01–C09/S10–S16, PAN4/NBR1 L1, final PF/resource/lifecycle/PWA browser checks, strict Stage B/Finite real RAF, Repository/FIELD, final independent review, merge and post-merge are NOT_RUN/NOT_CERTIFIED on this checkpoint. No Task⑤ requirement is transferred to Task⑥.
+
+The smallest next decision is how to bind an exact tessellation authority when the historical local quaternions were never saved. The new actual capture makes every new transform observable, but does not authorize silently replacing historical evidence. Technical restart is confined to the remaining native rasterization difference on these same nine captures, including recorded material-side/depth semantics; no extra orientation search is needed to resolve that prerequisite. Only after the selector's measurements are demonstrably consistent may one generic fixed-budget orientation candidate be evaluated and then sent through the unchanged actual-pointer40-direction/one-anchor gate.
+
+Offline replay (read-only; no new capture):
+
+```sh
+mkdir -p test-results/pib-exact-replay
+python - <<'PY'
+import gzip, shutil
+from pathlib import Path
+src=Path('docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c')
+dst=Path('test-results/pib-exact-replay')
+for p in src.iterdir():
+    if p.name.endswith('.json.gz'):
+        (dst/p.name[:-3]).write_bytes(gzip.decompress(p.read_bytes()))
+    elif p.suffix=='.png':
+        shutil.copyfile(p,dst/p.name)
+PY
+node scripts/analyze-polymer-task5-exact-mesh.mjs test-results/pib-exact-replay
+```
+
+The exact-capture helper `tests/helpers/polymer-exact-mesh.mjs` and one-shot workflow `.github/workflows/task5-pib-exact-mesh.yml` are owned by this follow-up. The workflow path filter prevents ordinary evidence/checkpoint changes from starting another browser diagnostic. They are test tooling and are not imported by production.
