@@ -1,0 +1,24 @@
+{
+  "systems": [
+    {
+      "steps": 26,
+      "rows": 60189,
+      "variables": 10381,
+      "matchesFrozenExecutionSystem": true,
+      "solverCalls": 0
+    },
+    {
+      "steps": 27,
+      "rows": 60313,
+      "variables": 10397,
+      "matchesFrozenExecutionSystem": true,
+      "solverCalls": 0
+    }
+  ],
+  "frozenHashesMatch": true,
+  "productionHashesMatch": true,
+  "productionFiles": 160,
+  "oldCandidateReruns": 0,
+  "newCPURasters": 0,
+  "newGPU": 0
+}

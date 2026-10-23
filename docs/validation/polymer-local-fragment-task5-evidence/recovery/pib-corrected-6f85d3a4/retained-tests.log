@@ -1,0 +1,11 @@
+✔ corrected preflight retains every area cell and validates nonzero OR branches and extracted poses (1.222468ms)
+✔ fresh protocol binds source and inputs before exactly two corrected slots; old invalid slots stay separate (3.06405ms)
+✔ native evidence and disposition count only actual candidate rasters and preserve production bytes (9.198379ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.479512

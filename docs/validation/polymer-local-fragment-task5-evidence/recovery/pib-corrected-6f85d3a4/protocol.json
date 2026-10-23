@@ -1,0 +1,144 @@
+{
+  "kind": "CORRECTED_MODEL_FRESH_BOUNDED_CAMPAIGN_NOT_PROOF",
+  "startHead": "6f85d3a4635c55fcde647207d94f469aeb1122f6",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "anchor": 30,
+  "seed": [
+    -0.054539559717073846,
+    -0.10453805899021659,
+    0.08315483688476073
+  ],
+  "modelPath": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-active-constraints-8227174d/active-model.json.gz",
+  "trustBoxesDegrees": [
+    1
+  ],
+  "bond34StepBranches": [
+    26,
+    27
+  ],
+  "areaSurplusPixels": [
+    0
+  ],
+  "candidateSlots": 2,
+  "MILPTimeLimitSecondsPerSlot": 30,
+  "MILPNodeLimitPerSlot": 5000,
+  "MILPRelativeGap": 0.001,
+  "CPUCap": 6,
+  "GPUCap": 1,
+  "GPUSelection": "only candidate passing full21 native conditions in all3 modes; no speculative diagnostic",
+  "seedDiagnosticSlots": 0,
+  "syntheticPreflightSolves": 2,
+  "excludedOldSlots": "12 old pixel-exchange and2 invalid active slots; no reruns or evidence promotion",
+  "stop": "Exactly2 corrected slots; no time extension, extra seeds, sweep, or reuse of unused budget.",
+  "activeObjectIds": [
+    31,
+    1056,
+    1057,
+    1058,
+    1059
+  ],
+  "proposalClearancePixels": 0,
+  "limitations": [
+    "Native legacy4 hull/Float32 depth intercepts match seed; derivatives are local raw affine approximations.",
+    "Finite old screen pool; no safe exclusion claim.",
+    "Depth disjunction uses selected front facets, not all changing facets.",
+    "Other16 objects omitted only in proposal; full21-target native oracle mandatory."
+  ],
+  "frozenFiles": [
+    {
+      "path": "scripts/solve-polymer-task5-pixel-exchange.py",
+      "bytes": 10467,
+      "sha256": "fe2165b2f31dd5ede3ab8f5bd0594359a4f1863f5cce9603613e4ed58a0be4f3"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-corrected-campaign.py",
+      "bytes": 10423,
+      "sha256": "32336f0f0d9f764391c3b6ebbce643f4caff0a348b60b5b6be61f8c54f700c73"
+    },
+    {
+      "path": "scripts/verify-polymer-task5-model-logic.py",
+      "bytes": 5622,
+      "sha256": "5f585180f514eaaa0e9407ec16aea3483727c95b0796cedf36a47623a24e01a1"
+    },
+    {
+      "path": "scripts/check-polymer-task5-pixel-exchange.mjs",
+      "bytes": 4192,
+      "sha256": "e8f3dc36358bef51d1bae08da3468407ecb0083102ff10b78b871aac92c551ca"
+    },
+    {
+      "path": "scripts/diagnose-polymer-task5-boundaries.mjs",
+      "bytes": 14218,
+      "sha256": "1e60c79cca53365fbe9fe5bc957238d65af16262b2386c9a48d101abd5ae7c41"
+    },
+    {
+      "path": "scripts/analyze-polymer-task5-orientation-feasibility.mjs",
+      "bytes": 6826,
+      "sha256": "66a590e6c4f34e83cdc34816d6d2e9eb1f9ff06535f1e0a3c300032f77a62c51"
+    },
+    {
+      "path": "scripts/analyze-polymer-task5-exact-mesh.mjs",
+      "bytes": 10610,
+      "sha256": "0d1539589118fc0f3a63baf595602918242bc7e26fbd04304258e0ed040fb1dd"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-active-constraints-8227174d/active-model.json.gz",
+      "bytes": 357707,
+      "sha256": "b76094e0d82f071dddefc98de60a7dbb51dec432376efd75a6b32e7d8c4dcfa8"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-active-constraints-8227174d/active-seed-membership.json",
+      "bytes": 1565,
+      "sha256": "b0dd4ae415a9b74bc737398a29e5d368a8249f1a0fc228d6d6f6e942e16ccd22"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-boundary-92da7771/baseline-CPU-id.png",
+      "bytes": 6203,
+      "sha256": "4ff3ad7bd429fed2a6c1b3aabcf65b391cbb2dfc224f743118bb9e97e8600065"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-coupled-6d508e75/result.json.gz",
+      "bytes": 3382,
+      "sha256": "62a2e29bbae65091d5f8f2ca9a091a4c894438f156e5b883f707dca8cd57eb6a"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/ba94cb-pib-visual.json.gz",
+      "bytes": 858708,
+      "sha256": "cc795cd5008cf2ab61e89cc58e9e3c17cd8ba47d13af8963ec363a2387d2a7a1"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/production-before-replay.json.gz",
+      "bytes": 55236,
+      "sha256": "206b5f88e78fb2cec7cf47d6b1cfae5947a6af447c79db3e164bc836e0bf405a"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-model-consistency-8227174d/manifest.json",
+      "bytes": 9418,
+      "sha256": "b2c98de3beb353cb73d2df3d281ebe8e093a8801a7125545270dd32d9301bc6c"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-pixel-exchange-a664c1da/manifest.json",
+      "bytes": 5781,
+      "sha256": "bb9677c7b5fd02914965e1e510c56c46b2c9f44188ecf438d3bc72de21e57d40"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-boundary-92da7771/manifest.json",
+      "bytes": 5707,
+      "sha256": "18dc30a478ca601dde8ac7777efe21c88d41ca5bd49ca678b5a598c67b49d883"
+    },
+    {
+      "path": "tests/helpers/polymer-task5-visual.mjs",
+      "bytes": 41754,
+      "sha256": "4de211311be27e588b0c2b2a78ece2a26eec442ea107f9b45c4adb8bdf79f2b2"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-corrected-6f85d3a4/preflight.json",
+      "bytes": 4662,
+      "sha256": "c5a772d28975b1dd78980c96318839815af8e986583687eccfb75a529b4bc247"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-corrected-6f85d3a4/production-before.json",
+      "bytes": 21098,
+      "sha256": "b9e904df96d24b7cd8d62ff64a46483298e3b5380d2e144fc558754f738a173e"
+    }
+  ]
+}

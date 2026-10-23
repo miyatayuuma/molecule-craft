@@ -83,3 +83,5 @@ PIB3/3、All25 browser、fixed12 visual jobs、V0–V8/C01–C09/S10–S16、PAN
 ```sh
 node --test tests/polymer-task5-model-consistency.test.mjs
 ```
+
+修正後モデルの独立した新2枠は [corrected campaign](polymer-local-fragment-task5-corrected-campaign.md) を参照。非ゼロ合成preflightもPASSしたが、新2枠は近似上infeasible、候補0、CPU/GPU0、PIB UNRESOLVEDのまま。このページの無効2枠とは別の記録である。
