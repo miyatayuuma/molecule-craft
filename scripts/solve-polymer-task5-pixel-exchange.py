@@ -94,8 +94,8 @@ def construct(data, radius, steps34, surplus, *, disabled_area=(), disabled_cont
                         z = m.var(integer=True); alternatives.append(z)
                         m.row({z: 1, y: -1}, hi=0)
                         m.implies_ge(z, f, epsilon)
-                    terms = {z: 1 for z in alternatives}; terms[y] = -1
-                    m.row(terms, lo=0)
+                    clause_terms = {z: 1 for z in alternatives}; clause_terms[y] = -1
+                    m.row(clause_terms, lo=0)
             cells[(cell['x'], cell['y'])] = (y, cell)
             # Annotation edges are omitted from area witnesses. This is a
             # conservative proposal restriction, not a changed formal grader.

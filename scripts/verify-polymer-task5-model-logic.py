@@ -70,6 +70,20 @@ def checks():
                      for bits in itertools.product((0,1),repeat=len(m.lo)-6))
         assert feasible==(abs(dx)>=.2)
         or_cases.append(dict(deltaX=dx,feasible=feasible))
+    # Independent multi-cell count oracle catches leakage of OR selectors into
+    # the area total. At dx=-1 only the first cell is visible, so area2 fails.
+    two_cells=json.loads(json.dumps(synthetic))
+    two_cells['objects'][0]['required']['value']=2
+    two_cells['objects'][0]['cells'].append(dict(x=1,y=0,annotationBoundary=False,
+        conditions=[dict(value=.5,gradient=[1,0,0])],disjunctions=[]))
+    m,_,_=module.construct(two_cells,1,26,0)
+    count_cases=[]
+    for dx in (-1,-.5,-.2,0,.2,1):
+        visible=int(abs(dx)>=.2)+int(dx>=-.5)
+        feasible=any(residual(m,[dx,0,0,abs(dx),0,0]+list(bits))<1e-9
+                     for bits in itertools.product((0,1),repeat=len(m.lo)-6))
+        assert feasible==(visible>=2), ('areaCountMismatch',dx,visible,feasible)
+        count_cases.append(dict(deltaX=dx,visibleCells=visible,requiredCells=2,feasible=feasible))
     # ceil branch and interval count are checked at boundaries, independently
     # of MILP enumeration; no fixed old screen cells are used.
     ceil_rows=[]
@@ -78,7 +92,7 @@ def checks():
         assert intervals*L/n>=7.75-1e-12
         assert (intervals-1)*L/n<7.75
         ceil_rows.append(dict(length=L,steps=n,requiredHits=intervals+1))
-    return dict(implicationTruthCases=truth_rows,depthOrCases=or_cases,ceilCases=ceil_rows,solverCalls=0,rasters=0)
+    return dict(implicationTruthCases=truth_rows,depthOrCases=or_cases,multiCellAreaCases=count_cases,ceilCases=ceil_rows,solverCalls=0,rasters=0)
 
 if __name__=='__main__':
     root=Path(sys.argv[1]);result=checks()

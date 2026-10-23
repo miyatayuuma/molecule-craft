@@ -56,7 +56,7 @@ activeはC30、bond32/33/34/35の面積、32/34の可変floor/ceil連続run。bo
 | active-r1-n26 | 10381 / 60189 | 0.232433 | 近似上infeasible | 0 |
 | active-r1-n27 | 10397 / 60313 | 0.217315 | 近似上infeasible | 0 |
 
-**この2枠は判定無効。** 非ゼロboxでORをbinary化する際、条項用の一時辞書`terms`が対象全体の面積式`terms`を上書きしていた。十分な可視pixelがあっても面積式にほぼ最後のcellしか残らず、過剰制約による偽のinfeasibleを生む。seedでは全cellが定数となりOR用binaryを構築しないため、旧・修復seedの整合性PASSと独立primalは影響されない。旧12枠の入力にはORがなく、この不具合は新しい縮約実装に導入されたもの。旧12枠の失敗原因を説明したとは主張しない。生出力を残し、無効判定を別ファイルへ明記した。固定2枠は消費済みとし、修正後の追加candidate solveは行わない。
+**この2枠は判定無効。** 非ゼロboxでORをbinary化する際、条項用の一時辞書`terms`が対象全体の面積式`terms`を上書きしていた。十分な可視pixelがあっても面積式にほぼ最後のcellしか残らず、過剰制約による偽のinfeasibleを生む。seedでは全cellが定数となりOR用binaryを構築しないため、旧・修復seedの整合性PASSと独立primalは影響されない。旧12枠の入力にはORがなく、この不具合は新しい縮約実装に導入されたもの。旧12枠の失敗原因を説明したとは主張しない。生出力を残し、無効判定を別ファイルへ明記した。固定2枠は消費済みとし、修正後の追加candidate solveは行わない。誤った実行sourceはcheckpoint commit `ab8c0775fcbcefba8e383a0c98cd0542451560cb`に保持した。修正はOR用辞書を`clause_terms`へ分離する2行のみ。2cellの可視pixel数を独立に数える6ケースのBoolean oracleを追加し、旧sourceで`areaCountMismatch`を再現、修正後は全ケースPASS。solver呼出し0/raster0のまま、旧・修復seedの全primal行も残差0で再検証した。
 
 CPU **0/6**、GPU **0/1**。Actual PNG、native GPU ID mask、photometry、pointer focus/resetの新証拠は0。Formal GPUは従来の**0/3**。2枠のinfeasibleは、正しいactiveモデルの判定としても採用しない。真の姿勢に対する不可能性証明でもraster FAILでもない。timeout0、再試行0、追加sweep0、未使用予算の転用0。
 
@@ -66,13 +66,13 @@ CPU **0/6**、GPU **0/1**。Actual PNG、native GPU ID mask、photometry、point
 
 seedのnative定数は整合したが、非ゼロ姿勢のhull/depth勾配、選択front facet、ceil/floor、有限pool、annotation位置には局所近似が残る。depth ORで選んだfacetが別facetへ替わる領域やpool外の新pixelは安全に囲んでいない。省略した16対象もある。したがって2枠を除外証明に使わない。旧box全域、steps25/28、他roll/focus/SO(3)は未除外のまま。旧bond33/34実測FAILは改善していない。
 
-次の最小再開地点は、**面積集約のOR上書き修正を多cellの独立論理oracleで確認し、その修正版に対して別途固定された候補生成予算を設けること**。今回の固定2枠を有効な結果として再利用しない。さらにactive5のnative facet/coverage/depthの切替を含む整合モデルが必要である。有限pool・局所勾配が必要なwitnessを落としていないかを、保存したzero-delta primal・2370cell・全不一致pixelから検査できる。今回の2枠の時間延長・radius追加・blind sweepを再開手順にしない。
+次の最小再開地点は、**多cellの独立論理oracleで確認済みの面積集約修正版に対して、別途固定された候補生成予算を設けること**。今回の固定2枠を有効な結果として再利用しない。さらにactive5のnative facet/coverage/depthの切替を含む整合モデルが必要である。有限pool・局所勾配が必要なwitnessを落としていないかを、保存したzero-delta primal・2370cell・全不一致pixelから検査できる。今回の2枠の時間延長・radius追加・blind sweepを再開手順にしない。
 
 ## 検証・release状態
 
 今回の変更はoffline診断scripts、retained-evidence tests、この文書とhash-bound artifactsのみ。production renderer、geometry、graph/XYZ/native mesh、origin/identity、保存schema、PWA、40方向/1anchor、650/250ms、Stage B固定step・性能閾値に変更はない。汎用orientationのproduction修復は未採用。
 
-関連deterministic regression、PLA/PETの固定入力、25final/95intermediate geometry、PWA freshness、hygiene、syntax/diffの実行結果はmanifestとlogsに保存する。これらは実ブラウザ・性能受入の代用ではない。
+最終関連deterministic regressionは **47/47 PASS、0 FAIL、0 SKIP**。PLA/PETの固定入力、25final/95intermediate geometryもPASS。PWA freshnessは353資産、hygieneは0 warnings、syntax/diffもPASS。実行結果はmanifestとlogsに保存した。保存入力を再検証するregression rasterと、新候補のraster0は区別する。これらは実ブラウザ・性能受入の代用ではない。
 
 PIB3/3、All25 browser、fixed12 visual jobs、V0–V8/C01–C09/S10–S16、PAN/NBR L1、最終resource/lifecycle/PF heap、strict Stage B、Finite real RAF、Repository Validation CI、FIELD Insight、PWA browser、Save/Collection/Engineering、独立final release reviewは本checkpointでは**NOT_RUN/NOT_CERTIFIED**。PR #354はDraft/Open/Unmergedを維持し、merge/post-mergeなし。main不変。Task⑤の未達をTask⑥へ移管しない。診断保存commitの`[skip ci]`はrelease免除ではない。
 

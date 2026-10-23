@@ -1,0 +1,12 @@
+✔ known seed is represented with only the two specified diagnostic conditions disabled (1.554102ms)
+✔ corrected native-quantized seed membership equals the entire saved pixel set for all5 active objects (16.885318ms)
+✔ Big-M implications, depth OR, ceil arithmetic and independent fixed-seed primals verify without any solver calls (802.214227ms)
+✔ fixed2 new active slots are not native failures or an impossibility proof; old12 remain frozen (2.857997ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 945.066329

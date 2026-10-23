@@ -14,9 +14,34 @@
   "productionChanges": 0,
   "files": [
     {
+      "path": "pib-model-consistency-8227174d/checkpoint-tests.log",
+      "bytes": 580,
+      "sha256": "475511a9dfabb27ef1afd918c3c20a134fd4f5521065d247b2e5deb2f8d8ccc7"
+    },
+    {
+      "path": "pib-model-consistency-8227174d/corrected-logic-and-primal.json",
+      "bytes": 2558,
+      "sha256": "29bc8a8941a8b0a29a8a1553dce473cd891b9abc761ac030b6ca2dc14037df7d"
+    },
+    {
+      "path": "pib-model-consistency-8227174d/final-regressions.log",
+      "bytes": 14197,
+      "sha256": "810bf3a9fb6c81cad87ed0711cea66b773dd1d0b7d0242aa439869b8fa3c089c"
+    },
+    {
+      "path": "pib-model-consistency-8227174d/geometry-25.json",
+      "bytes": 11475,
+      "sha256": "f5127114649cf1bc3516c570b30bfeba1339f2119d171a3a8b22f0a2c089cc21"
+    },
+    {
       "path": "pib-model-consistency-8227174d/logic-and-primal.json",
       "bytes": 2091,
       "sha256": "205ac1a5e7ebe0fde1482ae7ce9f8a9904b8289ae01f7387cffb7a3131cb09a7"
+    },
+    {
+      "path": "pib-model-consistency-8227174d/pre-correction-regressions.log",
+      "bytes": 13217,
+      "sha256": "590bd7825cb5bfb96ce48a43fa2d90d9d78a760846919f84201b984228c19463"
     },
     {
       "path": "pib-model-consistency-8227174d/protocol.json",
@@ -27,6 +52,11 @@
       "path": "pib-model-consistency-8227174d/seed-consistency.json",
       "bytes": 431674,
       "sha256": "4f3bd3468da630553a6512ccce56ac68d604680ed43a360f6b7877102f70ce6d"
+    },
+    {
+      "path": "pib-model-consistency-8227174d/validation.json",
+      "bytes": 485,
+      "sha256": "e5b183a27cb1486843386721c7224d95909e24f51b4d4dfd9369df694d5eae6f"
     },
     {
       "path": "pib-model-consistency-8227174d/zero-delta-solver.json",
@@ -69,6 +99,11 @@
       "sha256": "d38c588e52a6d8bb739dc4a5f8dd05d6ffa3d754fe959a92340d054f5fff27e5"
     },
     {
+      "path": "pib-active-constraints-8227174d/area-clobber-reproduction.json",
+      "bytes": 689,
+      "sha256": "d490faa8a0b1449f5ecbd015328f629e107431d58f50baee295264437574d2f7"
+    },
+    {
       "path": "pib-active-constraints-8227174d/candidate-history.jsonl",
       "bytes": 1810,
       "sha256": "00413089cbe02a5ea58e678b45fa02b067eb68efaf5efc2b688342b92d06ec2d"
@@ -77,6 +112,11 @@
       "path": "pib-active-constraints-8227174d/candidates.json",
       "bytes": 2775,
       "sha256": "7309ebf2319503c06719f7d25eab4fd32dd8430f80ba11fb6cec58959bcbcb30"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/model-validity.json",
+      "bytes": 753,
+      "sha256": "9b93175e715d6614ec3c67e6f060f5e2d5b2b5356211f54291937ad57ec8b231"
     },
     {
       "path": "pib-active-constraints-8227174d/protocol.json",
@@ -92,11 +132,6 @@
       "path": "pib-active-constraints-8227174d/solver.log",
       "bytes": 2921,
       "sha256": "52b008b231d8e75180b7b0d159b68125c23aba5113dd5fb98df4f9f50f0fc6fc"
-    },
-    {
-      "path": "pib-active-constraints-8227174d/model-validity.json",
-      "bytes": 753,
-      "sha256": "9b93175e715d6614ec3c67e6f060f5e2d5b2b5356211f54291937ad57ec8b231"
     }
   ],
   "previousManifests": [
@@ -131,7 +166,10 @@
       "verifiedFiles": 7
     }
   ],
-  "tools": [
+  "releaseValidation": "NOT_RUN/NOT_CERTIFIED",
+  "activeCampaign": "MODEL_INVALID_NOT_FEASIBILITY_EVIDENCE",
+  "executionSourceCommit": "ab8c0775fcbcefba8e383a0c98cd0542451560cb",
+  "executedTools": [
     {
       "path": "scripts/audit-polymer-task5-model-consistency.mjs",
       "sha256": "acfc93394a142685eb8083fb0b7948e1501c0f08553d1b663a43955d8261b283"
@@ -161,6 +199,49 @@
       "sha256": "e8f3dc36358bef51d1bae08da3468407ecb0083102ff10b78b871aac92c551ca"
     }
   ],
-  "releaseValidation": "NOT_RUN/NOT_CERTIFIED",
-  "activeCampaign": "MODEL_INVALID_NOT_FEASIBILITY_EVIDENCE"
+  "currentTools": [
+    {
+      "path": "scripts/audit-polymer-task5-model-consistency.mjs",
+      "sha256": "acfc93394a142685eb8083fb0b7948e1501c0f08553d1b663a43955d8261b283"
+    },
+    {
+      "path": "scripts/prepare-polymer-task5-active-constraints.mjs",
+      "sha256": "94ce286b4f83c14d40918647512db1e95b4cf676bd51ec5a0cc1f21ed52786ce"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-active-constraints.py",
+      "sha256": "34b9d3e6e264c1fb18801a44e87f7701f2e28e2ff99744c679298e1215e99d2f"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-pixel-exchange.py",
+      "sha256": "fe2165b2f31dd5ede3ab8f5bd0594359a4f1863f5cce9603613e4ed58a0be4f3"
+    },
+    {
+      "path": "scripts/verify-polymer-task5-model-logic.py",
+      "sha256": "5f585180f514eaaa0e9407ec16aea3483727c95b0796cedf36a47623a24e01a1"
+    },
+    {
+      "path": "scripts/analyze-polymer-task5-exact-mesh.mjs",
+      "sha256": "0d1539589118fc0f3a63baf595602918242bc7e26fbd04304258e0ed040fb1dd"
+    },
+    {
+      "path": "scripts/check-polymer-task5-pixel-exchange.mjs",
+      "sha256": "e8f3dc36358bef51d1bae08da3468407ecb0083102ff10b78b871aac92c551ca"
+    }
+  ],
+  "validation": {
+    "tests": 47,
+    "passCount": 47,
+    "fail": 0,
+    "skip": 0,
+    "PLA_PET": "PASS",
+    "final25_intermediate95": "PASS",
+    "PWA": "353 assets current",
+    "hygieneWarnings": 0,
+    "strictPerformance": "NOT_RUN",
+    "releaseCI": "NOT_RUN/NOT_CERTIFIED",
+    "newCandidateRasters": 0
+  },
+  "activeCandidateSolvesValid": 0,
+  "correctionVerified": "972 implication cases,5 OR cases,6 independent multi-cell count cases; no solver rerun"
 }

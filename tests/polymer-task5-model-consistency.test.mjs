@@ -48,11 +48,13 @@ test('corrected native-quantized seed membership equals the entire saved pixel s
 test('Big-M implications, depth OR, ceil arithmetic and independent fixed-seed primals verify without any solver calls',()=>{
   const result=spawnSync('python',['scripts/verify-polymer-task5-model-logic.py',new URL('.',root).pathname],{encoding:'utf8'});
   assert.equal(result.status,0,result.stderr);const v=JSON.parse(result.stdout);
-  assert.equal(v.implicationTruthCases,972);assert.equal(v.depthOrCases.length,5);
+  assert.equal(v.implicationTruthCases,972);assert.equal(v.depthOrCases.length,5);assert.equal(v.multiCellAreaCases.length,6);
   assert.deepEqual(v.ceilCases.map(c=>c.requiredHits),[17,17,18,17,17]);
   assert.equal(v.oldSeedWitness.maxViolation,0);assert.equal(v.activeSeedWitness.maxViolation,0);
   assert.equal(v.solverCalls,0);assert.equal(v.rasters,0);
-  assert.deepEqual(v,read('pib-model-consistency-8227174d/logic-and-primal.json'));
+  assert.deepEqual(v,read('pib-model-consistency-8227174d/corrected-logic-and-primal.json'));
+  const reproduction=read('pib-active-constraints-8227174d/area-clobber-reproduction.json');
+  assert.notEqual(reproduction.returnCode,0);assert.match(reproduction.stderr,/areaCountMismatch/);
 });
 
 test('fixed2 new active slots are not native failures or an impossibility proof; old12 remain frozen',()=>{
@@ -63,6 +65,9 @@ test('fixed2 new active slots are not native failures or an impossibility proof;
   assert.ok(results.rows.every(r=>r.solver.status===2&&!r.hasIncumbent&&r.observations.length===0));
   assert.equal(zip('pib-pixel-exchange-a664c1da/results.json.gz').rows.length,12);
   const manifest=read('pib-model-consistency-8227174d/manifest.json');
+  const validity=read('pib-active-constraints-8227174d/model-validity.json');
+  assert.equal(validity.status,'MODEL_INVALID');assert.equal(validity.validActiveCandidateSolves,0);
+  assert.equal(manifest.activeCampaign,'MODEL_INVALID_NOT_FEASIBILITY_EVIDENCE');
   assert.equal(manifest.disposition,'UNRESOLVED');assert.equal(manifest.modelConsistency,'PASS_AT_FIXED_SEED');
   for(const item of manifest.files){const bytes=fs.readFileSync(new URL(item.path,root));assert.equal(bytes.length,item.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),item.sha256);}
 });
