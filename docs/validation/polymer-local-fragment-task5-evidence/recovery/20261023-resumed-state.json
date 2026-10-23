@@ -35,7 +35,85 @@
       "uncompressedSha256": "1c14373f29d006e3bf648899edb71d45e07033c477491eb49999d39ad3e621c6"
     }
   },
-  "desktopSmoke": "RUNNING_NOT_ACCEPTED",
+  "desktopSmoke": {
+    "pass": true,
+    "uniqueRoutes": 25,
+    "browser": {
+      "product": "HeadlessChrome/156.0.8078.47",
+      "revision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+      "protocolVersion": "1.3"
+    },
+    "evidence": {
+      "path": "d29-desktop-smoke.json.gz",
+      "sha256": "477a07d2e486892cd218b091d184cfa9d5b8b7d92b7c802a5792843929613381"
+    },
+    "PETReset": {
+      "pose": {
+        "position": [
+          -2.459429690159609,
+          -0.6653962137099665,
+          -0.5212827318260594
+        ],
+        "quaternion": [
+          0.081383234653508,
+          0.579738991011209,
+          -0.41517911819577147,
+          -0.6963517582607364
+        ],
+        "scale": 1.8301798036694528
+      },
+      "initialPose": {
+        "position": [
+          -2.459429690159609,
+          -0.6653962137099665,
+          -0.5212827318260594
+        ],
+        "quaternion": [
+          0.081383234653508,
+          0.579738991011209,
+          -0.41517911819577147,
+          -0.6963517582607364
+        ],
+        "scale": 1.8301798036694528
+      },
+      "angle": 0,
+      "zoomRatio": 1,
+      "maxProjectionError": 0
+    },
+    "SBRReset": {
+      "pose": {
+        "position": [
+          -0.07392608476594265,
+          -1.1234778285615816,
+          0.8400484423904641
+        ],
+        "quaternion": [
+          -0.08438889137692737,
+          0.25048058461645756,
+          -0.00604377544897914,
+          0.9644176815678428
+        ],
+        "scale": 1.2994723758846523
+      },
+      "initialPose": {
+        "position": [
+          -0.07392608476594265,
+          -1.1234778285615816,
+          0.8400484423904641
+        ],
+        "quaternion": [
+          -0.08438889137692737,
+          0.25048058461645756,
+          -0.00604377544897914,
+          0.9644176815678428
+        ],
+        "scale": 1.2994723758846523
+      },
+      "angle": 2.9802322387695312e-08,
+      "zoomRatio": 1,
+      "maxProjectionError": 0
+    }
+  },
   "PIB": {
     "type": "NUMERIC_DIAGNOSTIC_NOT_RASTER_ACCEPTANCE",
     "sites": [
@@ -70,12 +148,13 @@
     ]
   },
   "remaining": [
-    "Desktop all25 completion of current local job",
     "PET/PLA targeted raster acceptance on the recovered source",
     "PIB simultaneous local groups under unchanged real-PNG gates",
     "Final-source all12 static campaign before strict Finite",
     "Finite original real-RAF comparator (old FAIL retained)",
-    "Final independent review, main merge and post-merge verification"
+    "Final independent review, main merge and post-merge verification",
+    "Final-source Repository/FIELD/StageB and PF multi-cycle resource gates"
   ],
-  "ciPolicy": "Checkpoint uses [skip ci] to preserve work without starting additional Actions during this diagnostic checkpoint. Required gates remain pending and Draft/Open is retained."
+  "ciPolicy": "Checkpoint uses [skip ci] to preserve work without starting additional Actions during this diagnostic checkpoint. Required gates remain pending and Draft/Open is retained.",
+  "equivalentSavedRuntimeSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c"
 }
