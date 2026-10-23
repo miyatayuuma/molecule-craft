@@ -105,3 +105,17 @@ run39738710682/job119690461800は保存PET/実PET/PF lifecycleがPASSした後�
 0c972 run39739683129/job119693620634は75→73→75 buffersで増加gateがFAIL。元summaryとartifact hashを `recovery/0c972-heap-failure.json`、独立owner診断2件を同recoveryへ保存した。416byte sigma/epsilon cacheのpairは各cycleの現source6–9/11–14/16–19だけに属し、旧cycleキーは未検出。FEED handoffと初期phenol消費のframe境界により、ready時点でそのpairを既に評価した履歴が異なる構造である。原本だけから特定frameの履歴までは断定しない。
 
 比較状態を同じにするため、heap採取を各cycleの空FEED完了後へ移す。IDLE、transitionなし、instances/purge/reserved0、sampleIdなしを実snapshotでassertし、採取stateを保存する。再構築後のGPU/mesh/materialは従来通り完全一致、CPU資源の増加許容0も維持。production cache/physicsは変更しない。この候補の実ブラウザ確認は次source CIで行い、未実行の12静的jobs/strictFiniteはPASSにしない。
+
+## 50c0正式FAILの保持と限定修復
+
+Source `50c0b38fba2ad87272d30a536d45a1060a80c7a0` のrun39740905764は保存PET・実PET・mobile/desktop全25短診断とStage BがPASS。固定12静的jobsは10 FAIL/2 timeout、FiniteはSKIPPED。Repository/FIELDはPASS。旧Finite db0fab1dのFAILも残し、性能修復成功とは判定しない。
+
+Mobileの同時group視認は未達。限定候補ba94cbはPPでPASSしたが、PIBの接点0/17/30はFAIL。geminal二C/各3Hの同時条件と全実C–Hの検査は維持する。追加のgraph-derived local frameは実graphへの剛体回転だけを選び、geometry・原子・結合・originを変えない。予測scoreは実PNG gateの代用ではない。
+
+ba94cbのPETは比較中resize後の最終resetでFAIL。比較がordinary worldを一時非表示にする間に初期fitのoccluder集合を空へ置換していた。候補はSample完成時の実world atom snapshotを同Sample内で保持し、比較・resize・reopenで再利用。次Sampleはfit=nullから開始し、前Sampleの入力を流用しない。
+
+Desktop元artifact9/10はinspection run39772675225でsource/run/digestを照合して部分抽出した。[保存index](polymer-local-fragment-task5-evidence/recovery/50c0-desktop-inspection-index.json) と圧縮原本・実PNGを保持する。PLA local29/y45/p30は角差.3926989446、倍率1。旧開始点判定の6pxとproduction fallback grab22pxの不整合を修正し、実press直後のSample/orbit/ordinary drag ownerを記録・assertする。旧traceにはownerがなく、過去の取得先instanceは断定しない。40方向・anchor予算・実イベント/角度/倍率gateは不変。
+
+SBR desktop reduced/DPR1は閉じたdialogにgeometry36が残るsnapshotでFAIL。試験側は待機条件に合格したsnapshotをそのままassertへ使い、別CDP呼出しとの間のnative close境界を除く。元2秒上限・geometry/material/activeGroup/atom map assertを維持し、production disposeを変更しない。これは複数cycle資源受入の代用ではない。
+
+4修正の[独立限定review](polymer-local-fragment-task5-evidence/recovery/frozen-fit-pointer-limited-review.json)はblocking findingなし。局所frameのzero/非有限edgeを正規化前に拒否するnegative controlを追加し、関連19 testsとPWA353資産検査がPASS。新sourceは先行全25→PET/PLA対象rasterとPF資源を実行する。既知PIB FAILの同source再実行、固定12件campaign、strict Finiteの成功はまだ宣言しない。Task⑤はBLOCKED、PR #354はDraft/Openを維持する。

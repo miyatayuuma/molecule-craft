@@ -1,0 +1,24 @@
+{
+  "kind": "SINGLE_ROUTE_PILOT_NOT_ALL25_OR_FINAL_ACCEPTANCE",
+  "sourceSha": "ba94cbf9a8a2364a25b17e3f90d9ae276d723f58",
+  "expected": 1,
+  "completed": 1,
+  "rows": [
+    {
+      "polymerId": "polyisobutylene",
+      "atoms": 48,
+      "bonds": 47,
+      "views": 200,
+      "missingAtoms": [],
+      "missingBonds": [],
+      "failures": [
+        "simultaneous group missing: side/junction/adjacent-backbone/0",
+        "simultaneous group missing: side/junction/adjacent-backbone/17",
+        "simultaneous group missing: side/junction/adjacent-backbone/30"
+      ]
+    }
+  ],
+  "failures": [
+    "polyisobutylene: simultaneous group missing: side/junction/adjacent-backbone/0; simultaneous group missing: side/junction/adjacent-backbone/17; simultaneous group missing: side/junction/adjacent-backbone/30"
+  ]
+}
