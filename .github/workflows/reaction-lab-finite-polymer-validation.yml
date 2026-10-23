@@ -265,7 +265,7 @@ jobs:
         env:
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          node --test tests/polymer-task5-pet-recovery.test.mjs tests/polymer-raster-grading.test.mjs tests/polymer-heap-grading.test.mjs tests/polymer-allocation-window.test.mjs
+          node --test tests/polymer-task5-pla-recovery.test.mjs tests/polymer-task5-pet-recovery.test.mjs tests/polymer-raster-grading.test.mjs tests/polymer-heap-grading.test.mjs tests/polymer-allocation-window.test.mjs
           node scripts/replay-polymer-task5-captured-input.mjs
           node scripts/replay-polymer-task5-docking-input.mjs
       - name: Replay captured known-PLA re-FEED geometry before browser campaigns

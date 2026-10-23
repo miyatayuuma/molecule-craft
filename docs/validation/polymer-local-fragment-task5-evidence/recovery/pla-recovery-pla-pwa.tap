@@ -1,0 +1,12 @@
+✔ frozen actual PLA re-FEED retains a jointly feasible pre-distance checkpoint with every chemical limit intact (92.134995ms)
+✔ PLA pre-distance retention does not admit an infeasible short solve or an invalid fallback (10.644794ms)
+PWA passed: 353 hashed assets, dependency closure, icons, 159 numbered entries/previews, HTTP-cache-safe online refresh with verified offline fallback, missing pages, explicit discovery/activation updates and multi-window blocking.
+✔ tests/pwa.test.mjs (477.290224ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 491.464262

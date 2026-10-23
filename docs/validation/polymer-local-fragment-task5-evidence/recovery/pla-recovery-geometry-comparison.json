@@ -1,0 +1,2203 @@
+{
+  "kind": "FIXED_NODE_GEOMETRY_COMPARISON_NOT_RAF_ACCEPTANCE",
+  "node": "v24.19.0",
+  "sourceHashes": [
+    "4d3e302341c573c1ea5ab56ba033c30bb397dd2987e773d7abcaec55a26807a0",
+    "36dc11d0e412c84eeeabf1adc4bbd87bbc111763d8f03c0a0dba3f326b868125"
+  ],
+  "budget": {
+    "warmups": 1,
+    "trials": 4,
+    "routes": 27
+  },
+  "summary": {
+    "baseline": {
+      "count": 108,
+      "p50": 3.734005000000252,
+      "p95": 38.72001500000033,
+      "max": 62.41460200000006,
+      "sum": 1092.9279990000007,
+      "failRoutes": [
+        "PLA"
+      ]
+    },
+    "candidate": {
+      "count": 108,
+      "p50": 3.9643590000000586,
+      "p95": 43.60541400000011,
+      "max": 61.13158300000032,
+      "sum": 1150.1566190000003,
+      "failRoutes": []
+    }
+  },
+  "changed": [
+    {
+      "routeId": "PLA",
+      "wasAccepted": false,
+      "isAccepted": true,
+      "XYZChanged": true
+    }
+  ],
+  "rows": [
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 10.037976999999955,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 6.0796530000000075,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 3.581188999999995,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 31.63317600000005,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 117.31596800000011,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 3.1849260000001323,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 4.518610999999964,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 4.04907900000012,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 2.776350999999977,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 6.704291000000012,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 57.205285,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 46.03128599999991,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 8.65835600000014,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 5.360298999999941,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 11.404280999999855,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 7.907567999999856,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 2.174238999999943,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 4.643937000000051,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 1.911867999999913,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 5.211845999999923,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 6.868794999999864,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 4.60536900000011,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.2788309999998546,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 2.5044180000002143,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 46.47342400000002,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "PLA",
+      "elapsedMs": 19.258154999999988,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "candidate",
+      "routeId": "PET",
+      "elapsedMs": 44.23214300000018,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 9.36666799999989,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 6.613121000000092,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 2.2433109999999488,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 23.36239599999999,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 83.86054000000013,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 3.071944999999914,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 3.78038400000014,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 3.355252000000064,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 3.092926999999918,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 5.797620000000052,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 27.951536999999917,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 40.59902000000011,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 10.957443999999896,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 6.302005999999892,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 8.789523999999801,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 7.679755000000114,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 2.257029999999986,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 3.045451999999841,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 1.2000540000001365,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 4.854049000000032,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 6.59337800000003,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 2.5066099999999096,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.1891209999998864,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 3.041827999999896,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 42.34246600000006,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "PLA",
+      "elapsedMs": 16.769661000000042,
+      "accepted": false,
+      "iterations": 160
+    },
+    {
+      "trial": -1,
+      "profile": "baseline",
+      "routeId": "PET",
+      "elapsedMs": 27.223450000000184,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 3.6099480000000312,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 5.301465000000007,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 1.6396480000000793,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 24.498579000000063,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 62.41460200000006,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 3.07850099999996,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 4.10704399999986,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 1.693561999999929,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 1.418253000000277,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 1.236229000000094,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 29.79553900000019,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 20.59723699999995,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 5.759861999999885,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 3.9200879999998506,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 7.669489999999769,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 7.586493000000246,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 1.7467539999997825,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 2.77580799999987,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 1.0143379999999524,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 4.165368999999828,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 5.621008999999958,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 2.419510000000173,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.2618480000001,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 2.6464560000003985,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 40.450456999999915,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "PLA",
+      "elapsedMs": 16.613034999999854,
+      "accepted": false,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "baseline",
+      "routeId": "PET",
+      "elapsedMs": 39.25685300000032,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 2.2563099999997576,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 2.406202000000121,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 1.184393,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 23.607386000000133,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 52.94740600000023,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 3.192793000000165,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 3.9643590000000586,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 1.2974899999999252,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 1.3623329999995804,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 1.2706679999996595,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 26.427863000000343,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 24.80261900000005,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 6.576176000000032,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 4.520407999999861,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 5.929517999999916,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 6.257430999999997,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 2.9408979999998337,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 3.6639329999998154,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 1.0347249999999804,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 3.8535360000000765,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 6.382661999999982,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 2.676358000000164,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.2583300000001145,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 2.3354009999998198,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 43.60541400000011,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "PLA",
+      "elapsedMs": 19.767010000000028,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 0,
+      "profile": "candidate",
+      "routeId": "PET",
+      "elapsedMs": 28.40094799999997,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 1.790288000000146,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 1.9324369999999362,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 0.8345440000002782,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 19.63028000000031,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 47.57130200000029,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 3.107716999999866,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 3.544484999999895,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 1.5157210000002124,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 1.453309999999874,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 1.2143529999998464,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 27.02163900000005,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 26.61426399999982,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 5.72912099999985,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 4.009783999999854,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 6.848965000000135,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 5.863816999999926,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 2.107003000000077,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 2.575761000000057,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 1.172277000000122,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 7.979624999999942,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 7.160511999999926,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 2.4286709999996674,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.1368929999998727,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 2.146093999999721,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 42.71387999999979,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "PLA",
+      "elapsedMs": 17.439546999999948,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "candidate",
+      "routeId": "PET",
+      "elapsedMs": 29.713983999999982,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 2.8787029999998595,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 2.7485500000002503,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 0.8404569999997875,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 20.25983700000006,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 39.5446179999999,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 3.1773949999997058,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 3.454737000000023,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 1.0898900000001959,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 1.1105789999996887,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 1.139201999999841,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 29.041161999999986,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 22.010048000000097,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 5.639164000000164,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 3.468271000000186,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 5.94925400000011,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 5.51123699999971,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 1.5446219999998902,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 2.6827280000002247,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 1.0153510000000097,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 3.8790210000001935,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 5.506979999999658,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 2.3981360000002496,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.3731079999997746,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 1.975528000000395,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 36.825264999999945,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "PLA",
+      "elapsedMs": 17.34809600000017,
+      "accepted": false,
+      "iterations": 160
+    },
+    {
+      "trial": 1,
+      "profile": "baseline",
+      "routeId": "PET",
+      "elapsedMs": 24.58362599999964,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 1.2751429999998436,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 1.8560350000002472,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 0.8132489999998143,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 21.198747999999796,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 38.30631099999982,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 3.853321000000051,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 3.9141429999999673,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 1.1670050000002448,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 1.318471000000045,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 1.249717000000146,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 24.760553000000073,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 21.18921300000011,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 6.187354000000141,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 3.0955690000000686,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 11.65426800000023,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 8.846132000000125,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 1.8270199999997203,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 2.7210359999999127,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 1.089053000000149,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 4.182671000000028,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 7.057882000000063,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 4.479808000000048,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.9216480000000047,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 3.790252999999666,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 59.170260999999755,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "PLA",
+      "elapsedMs": 22.883863999999903,
+      "accepted": false,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "baseline",
+      "routeId": "PET",
+      "elapsedMs": 31.42424200000005,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 7.4732960000001185,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 5.023251999999957,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 1.8106720000000678,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 27.095530999999937,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 61.13158300000032,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 3.376459000000068,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 3.5600020000001678,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 1.1416909999998097,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 1.8843839999999545,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 1.3458690000002207,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 28.9189080000001,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 23.904383999999936,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 6.265969999999925,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 4.192714000000251,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 6.460579999999936,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 8.352766999999858,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 2.084222999999838,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 2.602730999999949,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 1.1449389999997948,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 4.341980000000149,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 5.856002999999873,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 2.9341440000002876,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.3814219999999295,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 2.262749999999869,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 50.3625219999999,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "PLA",
+      "elapsedMs": 18.441793000000416,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 2,
+      "profile": "candidate",
+      "routeId": "PET",
+      "elapsedMs": 30.786415000000034,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 1.7872540000003028,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 1.8666909999997188,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 0.9125189999999748,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 21.315169999999853,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 42.117976,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 4.746192000000065,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 5.315696000000116,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 1.4550920000001497,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 1.7598259999999755,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 1.813448000000335,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 27.6980309999999,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 23.424735000000055,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 6.659223999999995,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 3.7935419999998885,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 6.6883020000000215,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 7.235359000000244,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 3.0700580000002446,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 3.634501,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 0.954457999999704,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 4.398635999999897,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 6.4951029999997445,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 2.4359010000002854,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.284853000000112,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 2.6447739999998703,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 46.24545799999987,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "PLA",
+      "elapsedMs": 18.136823000000277,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "candidate",
+      "routeId": "PET",
+      "elapsedMs": 28.951168999999936,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyethylene-coordination",
+      "elapsedMs": 1.6195980000002237,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polypropylene-coordination",
+      "elapsedMs": 1.835866000000351,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "ethylene-propylene-coordination",
+      "elapsedMs": 0.9096190000000206,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyisobutylene-cationic",
+      "elapsedMs": 20.538013999999748,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polystyrene-radical",
+      "elapsedMs": 38.72001500000033,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyvinyl-chloride-radical",
+      "elapsedMs": 2.9678090000002157,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "elapsedMs": 3.59249600000021,
+      "accepted": true,
+      "iterations": 72
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyacrylonitrile-radical",
+      "elapsedMs": 1.5765230000001793,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyacrylic-acid-radical",
+      "elapsedMs": 1.4218359999999848,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "elapsedMs": 1.299293999999918,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "elapsedMs": 29.474836999999752,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "elapsedMs": 22.127625999999964,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "elapsedMs": 7.186452999999801,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "elapsedMs": 3.285393999999542,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "phenol-formaldehyde-resole",
+      "elapsedMs": 7.910047999999733,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "elapsedMs": 7.438530999999784,
+      "accepted": true,
+      "iterations": 32
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polybutadiene-coordination-1-4",
+      "elapsedMs": 2.9574460000003455,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "styrene-butadiene-radical",
+      "elapsedMs": 2.8447400000004563,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "nitrile-butadiene-radical",
+      "elapsedMs": 0.9118389999994179,
+      "accepted": true,
+      "iterations": 8
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyisoprene-coordination-1-4",
+      "elapsedMs": 3.734005000000252,
+      "accepted": true,
+      "iterations": 16
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "butyl-rubber-cationic",
+      "elapsedMs": 5.329717000000528,
+      "accepted": true,
+      "iterations": 56
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polyvinylidene-fluoride-radical",
+      "elapsedMs": 2.4084860000002664,
+      "accepted": true,
+      "iterations": 48
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "elapsedMs": 1.0853429999997388,
+      "accepted": true,
+      "iterations": 24
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "polytetrafluoroethylene-radical",
+      "elapsedMs": 1.9587249999995038,
+      "accepted": true,
+      "iterations": 40
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "elapsedMs": 35.796056000000135,
+      "accepted": true,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "PLA",
+      "elapsedMs": 18.29848000000038,
+      "accepted": false,
+      "iterations": 160
+    },
+    {
+      "trial": 3,
+      "profile": "baseline",
+      "routeId": "PET",
+      "elapsedMs": 25.17269099999976,
+      "accepted": true,
+      "iterations": 160
+    }
+  ]
+}

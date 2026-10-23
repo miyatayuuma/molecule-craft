@@ -1,0 +1,3923 @@
+{
+  "kind": "FROZEN_ACTUAL_PNG_40_DIRECTION_CONFLICT_NOT_GLOBAL_IMPOSSIBILITY",
+  "sourceSha": "ba94cbf9a8a2364a25b17e3f90d9ae276d723f58",
+  "sampleId": "polymer-sample-1-1",
+  "routeId": "polyisobutylene-cationic",
+  "graphDigest": "f7bd07a6bc990bb0157fe2e917b2df5a7c1c4510a0a924c137dccad5b914b7b6",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "mobile": true
+  },
+  "DPR": 1,
+  "motion": "normal",
+  "frozenReportSha256": "cc795cd5008cf2ab61e89cc58e9e3c17cd8ba47d13af8963ec363a2387d2a7a1",
+  "originalArtifactId": 12420347609,
+  "budget": {
+    "directions": 40,
+    "localAttemptsPerAnchor": 1
+  },
+  "groups": [
+    {
+      "anchor": 0,
+      "atomIndices": [
+        0,
+        1,
+        10,
+        11,
+        30,
+        4,
+        9,
+        12,
+        15,
+        16,
+        23
+      ],
+      "bondIndices": [
+        0,
+        1,
+        2,
+        3,
+        8,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "atomPass": 4,
+      "bondPass": 1,
+      "jointPass": 0,
+      "retained": [
+        {
+          "yaw": 0,
+          "pitch": 0,
+          "missingAtoms": [
+            4
+          ],
+          "missingBonds": [],
+          "files": [
+            {
+              "path": "local-0-render-y0-p0.png",
+              "sha256": "7d89ba1d3b4c281a5b717814182d03d7a7b494a5f9db5d451cd04da3bb0ff597"
+            },
+            {
+              "path": "local-0-id-mask-y0-p0.png",
+              "sha256": "f1e995076638fea3554bf109e1935155b4193157b0c70f70b278ee444495f1ea"
+            },
+            {
+              "path": "local-0-photometry-y0-p0.png",
+              "sha256": "ec0d4c2ab1124198410a2a7260b9a76a6391aedcd76667f309a8464591cb9d90"
+            }
+          ]
+        },
+        {
+          "yaw": 90,
+          "pitch": -60,
+          "missingAtoms": [],
+          "missingBonds": [
+            13,
+            15
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y90-p-60.png",
+              "sha256": "e5b4e8169eaa7272f588b72b9ced9184ce4c2453493cbadd8a0f2b18dc8acb6d"
+            },
+            {
+              "path": "local-0-id-mask-y90-p-60.png",
+              "sha256": "a2e22c3b4f86796247b25c60642637627af9fda0c5e3e21ee914a530123368d2"
+            },
+            {
+              "path": "local-0-photometry-y90-p-60.png",
+              "sha256": "9fcd3e970c5e38918558a27bcbc8b7a80d5ec9ce0b3ad550936c8d6c010cf8bc"
+            }
+          ]
+        }
+      ],
+      "ledger": [
+        {
+          "mode": "local-0",
+          "yaw": 0,
+          "pitch": -60,
+          "localQMin": 56.05320030745294,
+          "missingAtoms": [
+            30
+          ],
+          "missingBonds": [
+            3,
+            14,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y0-p-60.png",
+              "sha256": "9b815f49f169e5250e72421425d9b07e76978eb82b0e523342be30198b3b118f"
+            },
+            {
+              "path": "local-0-id-mask-y0-p-60.png",
+              "sha256": "306a3d50ce062ae2b84f14c86d1c765bbeac319e31bfbfc031641702541e3c00"
+            },
+            {
+              "path": "local-0-photometry-y0-p-60.png",
+              "sha256": "bcd1e9fd50513611ea31359bd78b428806cc3572cb2556aefb7c0f5a3b6b9bff"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 45,
+          "pitch": -60,
+          "localQMin": 56.3079624727446,
+          "missingAtoms": [
+            30,
+            9
+          ],
+          "missingBonds": [
+            13,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y45-p-60.png",
+              "sha256": "20fb1b3056dab2cbc1d81ed7edc5b614ff569e4c187d3a3551c4cb32133790f3"
+            },
+            {
+              "path": "local-0-id-mask-y45-p-60.png",
+              "sha256": "4f90236b50c5b41ca5b1e9ce6b79207f93eec5642a547937e4cf1ab46f55ddde"
+            },
+            {
+              "path": "local-0-photometry-y45-p-60.png",
+              "sha256": "f36b4056b0f1f05c40b27db54d19c41703a7ce7e64585615cb2e558358a44678"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 90,
+          "pitch": -60,
+          "localQMin": 55.21647360492445,
+          "missingAtoms": [],
+          "missingBonds": [
+            13,
+            15
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y90-p-60.png",
+              "sha256": "e5b4e8169eaa7272f588b72b9ced9184ce4c2453493cbadd8a0f2b18dc8acb6d"
+            },
+            {
+              "path": "local-0-id-mask-y90-p-60.png",
+              "sha256": "a2e22c3b4f86796247b25c60642637627af9fda0c5e3e21ee914a530123368d2"
+            },
+            {
+              "path": "local-0-photometry-y90-p-60.png",
+              "sha256": "9fcd3e970c5e38918558a27bcbc8b7a80d5ec9ce0b3ad550936c8d6c010cf8bc"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 135,
+          "pitch": -60,
+          "localQMin": 54.73362082274669,
+          "missingAtoms": [],
+          "missingBonds": [
+            15,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y135-p-60.png",
+              "sha256": "d90e9cffe392c7f2df4e14469992f08789315a561b0a1c3376baa5e074c32eab"
+            },
+            {
+              "path": "local-0-id-mask-y135-p-60.png",
+              "sha256": "56fe0e334526f14194e51b1083c615f9b4d86089eb8352458b71f19ce7af8bea"
+            },
+            {
+              "path": "local-0-photometry-y135-p-60.png",
+              "sha256": "bd682925eeb3c73f66ac77ba5e750e49ce1f29a5247f7b737894ddc3bcde2796"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 180,
+          "pitch": -60,
+          "localQMin": 55.111012969580784,
+          "missingAtoms": [
+            0,
+            30,
+            16
+          ],
+          "missingBonds": [
+            0,
+            2,
+            3,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y180-p-60.png",
+              "sha256": "a6deadbd0e2ee6cb1cd66c4f483706324209962ce56756e0c5b1615eccc8ac10"
+            },
+            {
+              "path": "local-0-id-mask-y180-p-60.png",
+              "sha256": "f7317cb7e29865faddf01ccaf07ea3c3735ed4be22938c1accf72f7b645e0ade"
+            },
+            {
+              "path": "local-0-photometry-y180-p-60.png",
+              "sha256": "28149b1a9da34a6294a247e83f576847a13fd5bd99c5d6f02f530e2bacc2d76a"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 225,
+          "pitch": -60,
+          "localQMin": 56.15299482142781,
+          "missingAtoms": [
+            30,
+            16
+          ],
+          "missingBonds": [
+            3,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y225-p-60.png",
+              "sha256": "e4fa5e1cfced408967d0255b5ec6850446cd3cb5f90d785584a233f68646180e"
+            },
+            {
+              "path": "local-0-id-mask-y225-p-60.png",
+              "sha256": "55d602766378967569d7948db197734ba564bb767a73371d55c475f8be2e0fb9"
+            },
+            {
+              "path": "local-0-photometry-y225-p-60.png",
+              "sha256": "7302df85e61fededf41e36289ad0a07e0907445a496f49cf46ac86a54bb46fae"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 270,
+          "pitch": -60,
+          "localQMin": 55.770493521457766,
+          "missingAtoms": [
+            16
+          ],
+          "missingBonds": [
+            3,
+            16,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y270-p-60.png",
+              "sha256": "0b28d365b57ad5af05e3e7a29dc8fd73676f478fe9e700e625b491fbd45da728"
+            },
+            {
+              "path": "local-0-id-mask-y270-p-60.png",
+              "sha256": "70d6ce078f31464f52ab78418296bb7733f341556009c3e0c7bf6d2dc8ff265f"
+            },
+            {
+              "path": "local-0-photometry-y270-p-60.png",
+              "sha256": "5ce972f06e30bf2e1acbb0925657f96f733fc9feb3923b3877e204cfd32aff2c"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 315,
+          "pitch": -60,
+          "localQMin": 56.60124987089172,
+          "missingAtoms": [
+            30,
+            16
+          ],
+          "missingBonds": [
+            3,
+            8,
+            14,
+            16,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y315-p-60.png",
+              "sha256": "5efefaf0fca19ee099e2324399abb76bcb31ac2139bccfb17f13cb5baff3cf9a"
+            },
+            {
+              "path": "local-0-id-mask-y315-p-60.png",
+              "sha256": "277a963efc888974d471324e7bb085cd9f45340f7567ba3d21c162193fefdc9c"
+            },
+            {
+              "path": "local-0-photometry-y315-p-60.png",
+              "sha256": "ac120fa6a222356f12c02ad9e2c3bad398657f2d0184725a5fad9b710895e0c6"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 0,
+          "pitch": -30,
+          "localQMin": 55.75744157427168,
+          "missingAtoms": [
+            1
+          ],
+          "missingBonds": [
+            14
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y0-p-30.png",
+              "sha256": "9e0b6c2ffe2533ebe67b1d278de9be8794ac11cc8436f12298a6cde4e76ea3a5"
+            },
+            {
+              "path": "local-0-id-mask-y0-p-30.png",
+              "sha256": "60bd680d3ac3eb881ef9e4e901e904d9990a58fdbcd30a3e9c9aa06e47f1abaf"
+            },
+            {
+              "path": "local-0-photometry-y0-p-30.png",
+              "sha256": "650dc7101f79e028943513d8c80c34bf84dbaf031be3e643223dff9d09ddca2d"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 45,
+          "pitch": -30,
+          "localQMin": 58.088675525577166,
+          "missingAtoms": [
+            0,
+            9
+          ],
+          "missingBonds": [
+            0,
+            1,
+            3,
+            13
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y45-p-30.png",
+              "sha256": "8439af57c6d1adf590fcc545e3bf33bd35b5f3280d2add3dc6f6dc68d564ea90"
+            },
+            {
+              "path": "local-0-id-mask-y45-p-30.png",
+              "sha256": "873b3e4af33ed7248e3f98b7638226bb860f38c8b193498c27907d1f3e42d239"
+            },
+            {
+              "path": "local-0-photometry-y45-p-30.png",
+              "sha256": "79bb86cd392dab038b674336d59ca6199f70d230b03aec4659981def7f82db9b"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 90,
+          "pitch": -30,
+          "localQMin": 56.02060781368254,
+          "missingAtoms": [],
+          "missingBonds": [
+            0,
+            1,
+            13,
+            15
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y90-p-30.png",
+              "sha256": "44ff98caa4204d2248e7aec5b68e48a7719abf044c45e88f21646df41d54baa7"
+            },
+            {
+              "path": "local-0-id-mask-y90-p-30.png",
+              "sha256": "10c1d46480f5fd694b250f7b6e3e0b88844de8bafd97617bec01f06174c65c6c"
+            },
+            {
+              "path": "local-0-photometry-y90-p-30.png",
+              "sha256": "6badf8b6690b9ac7c8f55caacbaf4aa7220c95e9c72d2c3e47ca0bba81993feb"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 135,
+          "pitch": -30,
+          "localQMin": 55.482212283073935,
+          "missingAtoms": [
+            10
+          ],
+          "missingBonds": [
+            0,
+            8,
+            15
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y135-p-30.png",
+              "sha256": "8b02845f4d303591dd876298a6c1e4fe7ff8c95ad4fa031ca700d1d57e5e4933"
+            },
+            {
+              "path": "local-0-id-mask-y135-p-30.png",
+              "sha256": "3deaf692415e4f8c07e1856b1efc475c9a965c3f73cb92b8fe05595187716268"
+            },
+            {
+              "path": "local-0-photometry-y135-p-30.png",
+              "sha256": "b7098cb8317bb92691aceff488ceaea3eab3021ad8ed09b9178b6df1091e3018"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 180,
+          "pitch": -30,
+          "localQMin": 57.57597295104329,
+          "missingAtoms": [
+            0
+          ],
+          "missingBonds": [
+            2,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y180-p-30.png",
+              "sha256": "c9c23f0ad1ac6a0cc9c9948fc106ff1df43789c1e960446f81182d97fd41acbe"
+            },
+            {
+              "path": "local-0-id-mask-y180-p-30.png",
+              "sha256": "a92da32192e027270422c780d8b1b58c85f031dc768a8527c3d7aed601f78e8b"
+            },
+            {
+              "path": "local-0-photometry-y180-p-30.png",
+              "sha256": "6e671cbd509126117774bb77c43a3a82f824a8a4245adc3c44ccfe5bd07220ae"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 225,
+          "pitch": -30,
+          "localQMin": 56.2292266982633,
+          "missingAtoms": [
+            16
+          ],
+          "missingBonds": [
+            15,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y225-p-30.png",
+              "sha256": "800ce90bbc505942b26969a51098538fa7518646f66197561424200ed0e68515"
+            },
+            {
+              "path": "local-0-id-mask-y225-p-30.png",
+              "sha256": "b2cb270d54ebf7b70761b90c66ebc700dbc84c88ec9f8c5dcb9b5bc69e9c8781"
+            },
+            {
+              "path": "local-0-photometry-y225-p-30.png",
+              "sha256": "24f948b023d27b311ae225a388c12e87a9abc74bc796fc9a3f4ca61fb4830a3f"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 270,
+          "pitch": -30,
+          "localQMin": 55.31982554202195,
+          "missingAtoms": [],
+          "missingBonds": [
+            8,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y270-p-30.png",
+              "sha256": "05e7c02000776dbcd78c6b637314cb25dce6c170efdd6b9bd799955421acf9df"
+            },
+            {
+              "path": "local-0-id-mask-y270-p-30.png",
+              "sha256": "7965aa155c02e388c3d389343b236fe3e6fb2624d900f232a8223b5a8c1d9e2b"
+            },
+            {
+              "path": "local-0-photometry-y270-p-30.png",
+              "sha256": "d4672294a64cab2cfbd65880caf87ff62427478ebc4539c702a8eae5a56c7043"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 315,
+          "pitch": -30,
+          "localQMin": 56.70338694355079,
+          "missingAtoms": [
+            30,
+            4
+          ],
+          "missingBonds": [
+            3,
+            8,
+            14
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y315-p-30.png",
+              "sha256": "ddded6b27b8e935427a82edd1cbd81648f51b917e30684a12ace6dcd08004be9"
+            },
+            {
+              "path": "local-0-id-mask-y315-p-30.png",
+              "sha256": "9f206b7d8eaf55bf2f8d4b49952377393f83400a0825ecc711b139cb538831df"
+            },
+            {
+              "path": "local-0-photometry-y315-p-30.png",
+              "sha256": "eb4ec3b9c4e75b1ee05ab7fa9f5ecfbb12635b587b19954884e01bd3d6b81745"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 0,
+          "pitch": 0,
+          "localQMin": 57.707049104223394,
+          "missingAtoms": [
+            4
+          ],
+          "missingBonds": [],
+          "files": [
+            {
+              "path": "local-0-render-y0-p0.png",
+              "sha256": "7d89ba1d3b4c281a5b717814182d03d7a7b494a5f9db5d451cd04da3bb0ff597"
+            },
+            {
+              "path": "local-0-id-mask-y0-p0.png",
+              "sha256": "f1e995076638fea3554bf109e1935155b4193157b0c70f70b278ee444495f1ea"
+            },
+            {
+              "path": "local-0-photometry-y0-p0.png",
+              "sha256": "ec0d4c2ab1124198410a2a7260b9a76a6391aedcd76667f309a8464591cb9d90"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 45,
+          "pitch": 0,
+          "localQMin": 56.88306818670479,
+          "missingAtoms": [
+            0,
+            9
+          ],
+          "missingBonds": [
+            1,
+            2,
+            13
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y45-p0.png",
+              "sha256": "0cac7b2f483aa4612d73903aeda570d1bbfda0d6c104b896121d6d7b2c26ff18"
+            },
+            {
+              "path": "local-0-id-mask-y45-p0.png",
+              "sha256": "654c1412f187827183e6b15517893ae58e66b2f8a5e5e0853b8f47a40a73d99b"
+            },
+            {
+              "path": "local-0-photometry-y45-p0.png",
+              "sha256": "37ba5688e1080854c8c3a26b6f1ec4f6c3f6639c64e64c53e12d4015f816075b"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 90,
+          "pitch": 0,
+          "localQMin": 56.70289583626506,
+          "missingAtoms": [
+            30
+          ],
+          "missingBonds": [
+            0,
+            3,
+            8,
+            13
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y90-p0.png",
+              "sha256": "d4933338390c419e4fec56ed27e1a93dff3433f33c407ae7d176d0bc6fd94a97"
+            },
+            {
+              "path": "local-0-id-mask-y90-p0.png",
+              "sha256": "bda49540ba182f24348bc75cca48ee0487e90b4e13d536cbff0f562cbad212e2"
+            },
+            {
+              "path": "local-0-photometry-y90-p0.png",
+              "sha256": "f7abe0f71818293eb600687463790d628e3f6babb155bd1240c3a7c4bc637576"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 135,
+          "pitch": 0,
+          "localQMin": 54.70174039325011,
+          "missingAtoms": [
+            1,
+            11,
+            12
+          ],
+          "missingBonds": [
+            0,
+            8,
+            14,
+            15
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y135-p0.png",
+              "sha256": "8d7c0c4678d7be9de91f8bb2823560fc969b865afbda06aebc87fb51a677191c"
+            },
+            {
+              "path": "local-0-id-mask-y135-p0.png",
+              "sha256": "a1f81df549cafab7965e835009dc357342177d85785a647e311dbbca48513dbb"
+            },
+            {
+              "path": "local-0-photometry-y135-p0.png",
+              "sha256": "07d7128c0879364fa5fc35cb7a7f9c50c1c1d150e6c769edce3827d83980a5f1"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 180,
+          "pitch": 0,
+          "localQMin": 56.34688522168966,
+          "missingAtoms": [
+            30,
+            12
+          ],
+          "missingBonds": [
+            14
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y180-p0.png",
+              "sha256": "73d21462393582a17ade7736a8096ebb4e19f4a110408f6ccdbc13a35e5b5917"
+            },
+            {
+              "path": "local-0-id-mask-y180-p0.png",
+              "sha256": "a02e9eb8babeb730060247a6e19c4ce44cd4cb979dba917f4499c3ef07cce092"
+            },
+            {
+              "path": "local-0-photometry-y180-p0.png",
+              "sha256": "f696a301ad41cedcafcc5e72062550fed6870c32fd2a8147c1384d9d59d03bcb"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 225,
+          "pitch": 0,
+          "localQMin": 55.30421419645284,
+          "missingAtoms": [
+            10,
+            11,
+            15,
+            16
+          ],
+          "missingBonds": [
+            1,
+            13,
+            15,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y225-p0.png",
+              "sha256": "59a5cb3114e128b8d07ae07194e9641c4e61541c27f934bae3491e99cc14bb8a"
+            },
+            {
+              "path": "local-0-id-mask-y225-p0.png",
+              "sha256": "70227676d0c6cd801709d1a992b47475a80136523cb32070d8c14c5871cbd19d"
+            },
+            {
+              "path": "local-0-photometry-y225-p0.png",
+              "sha256": "36aab956e2316479e7a6bbbae5e58c15d693a7797c7fa675838e6be8c72a5ab6"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 270,
+          "pitch": 0,
+          "localQMin": 57.19446831964874,
+          "missingAtoms": [
+            10,
+            4,
+            16
+          ],
+          "missingBonds": [
+            1,
+            8,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y270-p0.png",
+              "sha256": "6e9589958834750bdea5c30809ad1453baddb0d97868d048f5b984ff54373295"
+            },
+            {
+              "path": "local-0-id-mask-y270-p0.png",
+              "sha256": "69ffcac26930bcdf425764a04f3e52dc462256441edbf7a7e303152297b0cd07"
+            },
+            {
+              "path": "local-0-photometry-y270-p0.png",
+              "sha256": "0d7e92498c90b60edcd98ff154e06d5541814e526876037ca29dfb5c716f7707"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 315,
+          "pitch": 0,
+          "localQMin": 57.78824849154516,
+          "missingAtoms": [
+            0,
+            4,
+            15
+          ],
+          "missingBonds": [
+            0,
+            2,
+            8,
+            15
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y315-p0.png",
+              "sha256": "bdb4c2fd686e9eb22b4269061aa9f4f2b212581b5170b0d4d0d905cce7382a00"
+            },
+            {
+              "path": "local-0-id-mask-y315-p0.png",
+              "sha256": "74f546b3d2231c5a46d91ed83b553f613eafb97524242a90c63ab323c9e17b26"
+            },
+            {
+              "path": "local-0-photometry-y315-p0.png",
+              "sha256": "1cad47cf68f9c89ac8960f7b907088e44befcfa572e2c511f8c11d2e624620e5"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 0,
+          "pitch": 30,
+          "localQMin": 57.02894522334608,
+          "missingAtoms": [
+            11
+          ],
+          "missingBonds": [
+            2,
+            8,
+            15
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y0-p30.png",
+              "sha256": "3080fd3e0db087cb415a800be56d331f20a894ef69a4d45161fdd85943d41f02"
+            },
+            {
+              "path": "local-0-id-mask-y0-p30.png",
+              "sha256": "6b090f4d3da105c8c76bc84087100d653abc08fd93b78b72d1bcb85642dd134e"
+            },
+            {
+              "path": "local-0-photometry-y0-p30.png",
+              "sha256": "c40cc40e9ac9b272ee392d98aea8c0f4c76a2314768303b289ea1790a07a2474"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 45,
+          "pitch": 30,
+          "localQMin": 56.28497706842161,
+          "missingAtoms": [
+            10,
+            9,
+            23
+          ],
+          "missingBonds": [
+            13,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y45-p30.png",
+              "sha256": "4eaabf92f38ba6d96fb66efdfed5e8cc97f804db274c2f2a89786a5aa9266360"
+            },
+            {
+              "path": "local-0-id-mask-y45-p30.png",
+              "sha256": "e404d7319dc945d184d591afe07fb034f614ef61551c039c0b7a7e59c62c89ce"
+            },
+            {
+              "path": "local-0-photometry-y45-p30.png",
+              "sha256": "f7b4ac7f8f187d5f3486f84ba75d163fa1cc2fc16e1d1a0f37e069c41e9d23e5"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 90,
+          "pitch": 30,
+          "localQMin": 58.08052709014895,
+          "missingAtoms": [
+            0,
+            1,
+            30
+          ],
+          "missingBonds": [
+            0,
+            3,
+            14
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y90-p30.png",
+              "sha256": "aaa94bd9366152e1762896e6645fafc9258c5e5d6e6a9a3aaa507c4d70868e9c"
+            },
+            {
+              "path": "local-0-id-mask-y90-p30.png",
+              "sha256": "bb540118826a67f8f1a7030353460b0f4ea3b2861fd4b8e36f28cf76925ef103"
+            },
+            {
+              "path": "local-0-photometry-y90-p30.png",
+              "sha256": "bbb0b0d0bce612f520404eb106c02ba44f748649249432c871232fdea644626c"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 135,
+          "pitch": 30,
+          "localQMin": 54.804156881262394,
+          "missingAtoms": [
+            1,
+            12,
+            23
+          ],
+          "missingBonds": [
+            8,
+            14,
+            16,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y135-p30.png",
+              "sha256": "09e533211f21071dc9c613bee1089847795c9745a6cae9b22cd2eeaa95b1e9ab"
+            },
+            {
+              "path": "local-0-id-mask-y135-p30.png",
+              "sha256": "deb63a114e0f69175c263ecd1fe506d2d2d5430f6342f55254d752894f4ed690"
+            },
+            {
+              "path": "local-0-photometry-y135-p30.png",
+              "sha256": "49dfc2a8997e6aac22828b1769da9afafe0e9e41c0866226cb1b4d20a2e2fce9"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 180,
+          "pitch": 30,
+          "localQMin": 54.66920827356316,
+          "missingAtoms": [
+            0,
+            10,
+            30,
+            12
+          ],
+          "missingBonds": [
+            3,
+            14,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y180-p30.png",
+              "sha256": "e9f4e40b718f1dcc5e08c5b2599155f1d85ce539fdc7a054c2f7b64481cf42aa"
+            },
+            {
+              "path": "local-0-id-mask-y180-p30.png",
+              "sha256": "3cb891a83ac5f64bcf84b0596ae7c7196130bb5449fbfe25dbce5aa1d68db9a8"
+            },
+            {
+              "path": "local-0-photometry-y180-p30.png",
+              "sha256": "e24202241888dcf2a8020aa9e0ba50cce45deeac746fa53f56b9e46e7bce2281"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 225,
+          "pitch": 30,
+          "localQMin": 55.67027512003691,
+          "missingAtoms": [
+            0,
+            1,
+            10,
+            12,
+            23
+          ],
+          "missingBonds": [
+            0,
+            1,
+            3,
+            13,
+            14,
+            15,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y225-p30.png",
+              "sha256": "f679321c97f2b828177e254c3ee62196b65e92ff80eea9e78415ec81fd64b31d"
+            },
+            {
+              "path": "local-0-id-mask-y225-p30.png",
+              "sha256": "5f14b79778a293b8119ec912579f5c665eb684bf26b866a014e8d4c208f66db4"
+            },
+            {
+              "path": "local-0-photometry-y225-p30.png",
+              "sha256": "83354589d4f8aa320fbea931b3fe7722c01a8e816c3ce5d229617f93da276edb"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 270,
+          "pitch": 30,
+          "localQMin": 55.901460143217776,
+          "missingAtoms": [
+            10,
+            30,
+            4,
+            15,
+            16
+          ],
+          "missingBonds": [
+            1,
+            8,
+            14,
+            15,
+            16
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y270-p30.png",
+              "sha256": "f0fca154aa14212a64d2ebee530a7f530e027d883ebcca8521abad08e13b4228"
+            },
+            {
+              "path": "local-0-id-mask-y270-p30.png",
+              "sha256": "dbf2ff4be6bad5b8b4989a622ece1010157b54db5524a4c16c8e0e242db93735"
+            },
+            {
+              "path": "local-0-photometry-y270-p30.png",
+              "sha256": "2c3648e945f77d6fb216643119ca432dba22da4124fafd152e06460717633125"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 315,
+          "pitch": 30,
+          "localQMin": 56.6355067517031,
+          "missingAtoms": [
+            11,
+            30,
+            4,
+            15
+          ],
+          "missingBonds": [
+            2,
+            8,
+            15,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y315-p30.png",
+              "sha256": "955a083a7ba6049997f0d41f07154ad5e84845799b7de70226d1f582932c4d9e"
+            },
+            {
+              "path": "local-0-id-mask-y315-p30.png",
+              "sha256": "2ea0f306cd191bfa6339d4b6c265fb30c2490fa9f034e36d2dceacc2db3464ff"
+            },
+            {
+              "path": "local-0-photometry-y315-p30.png",
+              "sha256": "2a92ce54ef0e90e885be7c9f91f000f0a0744021dc13e58838fb7ebfbafb6a7a"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 0,
+          "pitch": 60,
+          "localQMin": 55.60226537690153,
+          "missingAtoms": [
+            11,
+            4,
+            9,
+            23
+          ],
+          "missingBonds": [
+            0,
+            2,
+            8,
+            13,
+            15,
+            16,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y0-p60.png",
+              "sha256": "0f45cda04a629d16aaefd0fb9ff227199491a1f726b90b766502974211540741"
+            },
+            {
+              "path": "local-0-id-mask-y0-p60.png",
+              "sha256": "d4fdf274b7a3bd061ae00d5fb687ad485c9ad62a62096f942f5e6c97bb6a80e7"
+            },
+            {
+              "path": "local-0-photometry-y0-p60.png",
+              "sha256": "288856a0d5ce16309fa43121ed7620e92e336dbea927c44607cac4da1421dc1c"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 45,
+          "pitch": 60,
+          "localQMin": 55.54503412653226,
+          "missingAtoms": [
+            1,
+            11,
+            23
+          ],
+          "missingBonds": [
+            13,
+            16,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y45-p60.png",
+              "sha256": "12097bbd225443a0029fdfc5949c90f5f47dc11cbb48a3c1d3c04164ac1e8eb5"
+            },
+            {
+              "path": "local-0-id-mask-y45-p60.png",
+              "sha256": "94c876da5d2ee929deae21d8b11cdfd194fe00926f94a1484b9fe15563cc4750"
+            },
+            {
+              "path": "local-0-photometry-y45-p60.png",
+              "sha256": "8d4d0d4c8305aeea600128dda301cfa26095701ce99f8fad6057b2ae84211738"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 90,
+          "pitch": 60,
+          "localQMin": 56.24085066122928,
+          "missingAtoms": [
+            10,
+            9,
+            12,
+            23
+          ],
+          "missingBonds": [
+            3,
+            14,
+            16,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y90-p60.png",
+              "sha256": "fd193b873af4d71cdeb1676fd47ca926cbc49fe614ab971fde46b16f50402c46"
+            },
+            {
+              "path": "local-0-id-mask-y90-p60.png",
+              "sha256": "f07e785f7af8840fc96f0fd154fde7ad3143fb2442368f4a878b0f8de86a856a"
+            },
+            {
+              "path": "local-0-photometry-y90-p60.png",
+              "sha256": "e6bff1894f9e0e8aabb9d1a74d828a22eeb1fa1faf11767599765f04138f3d94"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 135,
+          "pitch": 60,
+          "localQMin": 57.079799113682355,
+          "missingAtoms": [
+            0,
+            10,
+            4,
+            9,
+            12,
+            15,
+            16,
+            23
+          ],
+          "missingBonds": [
+            0,
+            1,
+            3,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y135-p60.png",
+              "sha256": "4f6aba5749c8bbaf8c4f0e661e9e2f5ae79dac3b73e4ff515963f18c4284422e"
+            },
+            {
+              "path": "local-0-id-mask-y135-p60.png",
+              "sha256": "864a0aa83e3ad790469a2688c7aeb646fef5903e166efe0a0527995c706b7b7a"
+            },
+            {
+              "path": "local-0-photometry-y135-p60.png",
+              "sha256": "e8316e5e15640189534c11e79a1721e8828785eec06f62b842f706294a274aa4"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 180,
+          "pitch": 60,
+          "localQMin": 55.43162338963033,
+          "missingAtoms": [
+            11,
+            12,
+            23
+          ],
+          "missingBonds": [
+            1,
+            2,
+            3,
+            13,
+            14,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y180-p60.png",
+              "sha256": "a8078560b3de1571f841b4eab7d2bab188362d6c5c2428fa286e002e3d6d519e"
+            },
+            {
+              "path": "local-0-id-mask-y180-p60.png",
+              "sha256": "b12f3bcccffc4b61b8cab6aa5b405c6c7dedcf5606e4914f1746af1c45d1692d"
+            },
+            {
+              "path": "local-0-photometry-y180-p60.png",
+              "sha256": "17267aa218a01130387e23c95add500a8922076b4ac634d937a5189b80f4e54b"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 225,
+          "pitch": 60,
+          "localQMin": 56.02134527068593,
+          "missingAtoms": [
+            0,
+            1,
+            10,
+            9,
+            12,
+            15,
+            23
+          ],
+          "missingBonds": [
+            3,
+            15,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y225-p60.png",
+              "sha256": "e97c5f8b03cb23be814e2daf672d77680ff1b27bc6cf789f541d21d3238b34c7"
+            },
+            {
+              "path": "local-0-id-mask-y225-p60.png",
+              "sha256": "d897f9f0f3d8652b06f63e53768bd0cc6b3700e673fe53057b32f709adff2e38"
+            },
+            {
+              "path": "local-0-photometry-y225-p60.png",
+              "sha256": "21ebe2c9f6ccc1dc780777973eb654e9ad91629917993cf83cfeac5f9ce66217"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 270,
+          "pitch": 60,
+          "localQMin": 56.38548282978024,
+          "missingAtoms": [
+            0,
+            1,
+            10,
+            11,
+            9,
+            15,
+            16,
+            23
+          ],
+          "missingBonds": [
+            2,
+            8,
+            13,
+            15,
+            16,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y270-p60.png",
+              "sha256": "e68c16e75283d499d01c861c4cef9434d1707e91021b81e8b3181b2eea8980fe"
+            },
+            {
+              "path": "local-0-id-mask-y270-p60.png",
+              "sha256": "35107df7b6b4473bf640fa8576176e6229b8d9004c22aa8b4fd81e3c6fedf041"
+            },
+            {
+              "path": "local-0-photometry-y270-p60.png",
+              "sha256": "ed375293e73cf35ca4f5793cc8f77c765ef52557a8417ea748505292da5c1095"
+            }
+          ]
+        },
+        {
+          "mode": "local-0",
+          "yaw": 315,
+          "pitch": 60,
+          "localQMin": 56.382713629612184,
+          "missingAtoms": [
+            1,
+            11,
+            30,
+            9,
+            23
+          ],
+          "missingBonds": [
+            1,
+            2,
+            3,
+            8,
+            13,
+            15,
+            17
+          ],
+          "files": [
+            {
+              "path": "local-0-render-y315-p60.png",
+              "sha256": "a9f6f0fb532f7ecbe498478c0bd34065957270f8c4bef44b4553201e5663e73e"
+            },
+            {
+              "path": "local-0-id-mask-y315-p60.png",
+              "sha256": "bc42865f3b6fc147b5bd60bccc6f97209d27033328f927fa43d5d679af8d487d"
+            },
+            {
+              "path": "local-0-photometry-y315-p60.png",
+              "sha256": "fcd668f1155b5f44ffde85de94b0cf2d0cb67ff67b94c65078362088c82d9e13"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "anchor": 17,
+      "atomIndices": [
+        17,
+        18,
+        21,
+        22,
+        31,
+        19,
+        20,
+        26,
+        27,
+        28,
+        29
+      ],
+      "bondIndices": [
+        18,
+        19,
+        20,
+        21,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "atomPass": 3,
+      "bondPass": 0,
+      "jointPass": 0,
+      "retained": [
+        {
+          "yaw": 45,
+          "pitch": 30,
+          "missingAtoms": [],
+          "missingBonds": [
+            28,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y45-p30.png",
+              "sha256": "53eff0e3fd231c90d76c962c8086c8a650e25787b518bfd02feb8806c7e3fe4e"
+            },
+            {
+              "path": "local-17-id-mask-y45-p30.png",
+              "sha256": "18f9c9af5ab9baa3b55f3407b6453db0bc5030fa5c45a71f9e8905e247dff0e7"
+            },
+            {
+              "path": "local-17-photometry-y45-p30.png",
+              "sha256": "32d2cfb1a20415082e563138634ea04960e1f5fa267c6f85bcb9e2ca33ed0627"
+            }
+          ]
+        },
+        {
+          "yaw": 135,
+          "pitch": 30,
+          "missingAtoms": [],
+          "missingBonds": [
+            25,
+            27
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y135-p30.png",
+              "sha256": "3b7fbfa01b98786709fe7864e286ce93eff7e434f05f94b85518ccc6a3c865c4"
+            },
+            {
+              "path": "local-17-id-mask-y135-p30.png",
+              "sha256": "77613211c3ac59ccbc4f836a9f3765fbc917add8c66bc466e73c6bef4aeda5fe"
+            },
+            {
+              "path": "local-17-photometry-y135-p30.png",
+              "sha256": "545578d9c6e3eee7cc0cff50dbfc6ef8a67a4c2dc220877e013db5f696f1c906"
+            }
+          ]
+        }
+      ],
+      "ledger": [
+        {
+          "mode": "local-17",
+          "yaw": 0,
+          "pitch": -60,
+          "localQMin": 54.43147527484558,
+          "missingAtoms": [
+            18,
+            21,
+            31,
+            20,
+            26,
+            27
+          ],
+          "missingBonds": [
+            18,
+            26,
+            27,
+            28
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y0-p-60.png",
+              "sha256": "93ed2e8e1e903041a4139e98c534bcd3881d98277097b87df233d7ef9013c7c4"
+            },
+            {
+              "path": "local-17-id-mask-y0-p-60.png",
+              "sha256": "0b525c21c25aa1e51975214afcf524b052f3fee9decd5adb9173abcd6adffb77"
+            },
+            {
+              "path": "local-17-photometry-y0-p-60.png",
+              "sha256": "b6a2501a43f5829fd6f1023bc27a79a3bfed8574f7728570c089c6b73d1804bb"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 45,
+          "pitch": -60,
+          "localQMin": 53.15209898657251,
+          "missingAtoms": [
+            17,
+            21,
+            20
+          ],
+          "missingBonds": [
+            20,
+            26,
+            27,
+            28
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y45-p-60.png",
+              "sha256": "f69c10ef8242319b8bf6325160b90d9b5556df7f73aad6aab2cd1aa7ab4468ad"
+            },
+            {
+              "path": "local-17-id-mask-y45-p-60.png",
+              "sha256": "8dc2ce2b6a02edc2a1ce96ae3cad3241daf521076482e98892fbaa7ddda55df7"
+            },
+            {
+              "path": "local-17-photometry-y45-p-60.png",
+              "sha256": "5cb4f053d89e1eee0a941026661e3d739f4a7a9904580254f5febc94bfd031d4"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 90,
+          "pitch": -60,
+          "localQMin": 53.66601664014905,
+          "missingAtoms": [
+            17,
+            18,
+            22,
+            31,
+            20
+          ],
+          "missingBonds": [
+            18,
+            25,
+            26,
+            29,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y90-p-60.png",
+              "sha256": "ec406de706fcfe9083fe44cc0b872acd29ecd605f2e3409f9557f20a76a7b2e3"
+            },
+            {
+              "path": "local-17-id-mask-y90-p-60.png",
+              "sha256": "aff922b5cf72458485c73b685a549eda211768d33cc2e60139356ff6469e03d5"
+            },
+            {
+              "path": "local-17-photometry-y90-p-60.png",
+              "sha256": "c616f8b07eb1c2b65e2b981c37fefc57f809c43049bd2b2b7082a9c768928b0a"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 135,
+          "pitch": -60,
+          "localQMin": 55.254742477063594,
+          "missingAtoms": [
+            21,
+            22,
+            31,
+            19,
+            20,
+            28,
+            29
+          ],
+          "missingBonds": [
+            19,
+            20,
+            21,
+            26,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y135-p-60.png",
+              "sha256": "d89740144fa2b31ec8a482366570e9f28169eb51dc19d2843de7c4cb3a0871d8"
+            },
+            {
+              "path": "local-17-id-mask-y135-p-60.png",
+              "sha256": "59e3d508c2986cea39e719d86f3e551ed2c596bba7d7e1886b54ae6436e4178d"
+            },
+            {
+              "path": "local-17-photometry-y135-p-60.png",
+              "sha256": "82ef4978245a593a712eb44bbf223e53713d66ae333054915159dfe7cd68b9c6"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 180,
+          "pitch": -60,
+          "localQMin": 55.00532260799928,
+          "missingAtoms": [
+            18,
+            21,
+            22,
+            31,
+            19,
+            20,
+            27,
+            29
+          ],
+          "missingBonds": [
+            20,
+            25,
+            26,
+            29,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y180-p-60.png",
+              "sha256": "469e10a60a9030013e0fc4dc0ec2947c4e988a1b0ee867aedc64a22db5a945b9"
+            },
+            {
+              "path": "local-17-id-mask-y180-p-60.png",
+              "sha256": "20443277e14284be8bdfdad9c35beea7ec6cf488e807e72bae6205a5ba0f5662"
+            },
+            {
+              "path": "local-17-photometry-y180-p-60.png",
+              "sha256": "cea62c6fb0a947f4ecf72c7a6b7d4f1e79735b980f060960d0c2199bf77bf625"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 225,
+          "pitch": -60,
+          "localQMin": 55.821720284869144,
+          "missingAtoms": [
+            21,
+            22,
+            20,
+            26,
+            27,
+            28,
+            29
+          ],
+          "missingBonds": [
+            20,
+            26,
+            27,
+            28,
+            29,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y225-p-60.png",
+              "sha256": "517e013ac41608b77fcea036dceae15f5ebe221b57305b892f00eae530204856"
+            },
+            {
+              "path": "local-17-id-mask-y225-p-60.png",
+              "sha256": "0d65664cc31a8cea117d3e5e53193e74ed542e80035474ebfc9117c0cb56daa6"
+            },
+            {
+              "path": "local-17-photometry-y225-p-60.png",
+              "sha256": "b0aac5eb209e7cd5c40d25a46bd2d27b4ecf9145ae19ecd8db39c39cb546331e"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 270,
+          "pitch": -60,
+          "localQMin": 57.28659422677035,
+          "missingAtoms": [
+            17,
+            22,
+            20,
+            26,
+            27,
+            28
+          ],
+          "missingBonds": [
+            18,
+            20,
+            21,
+            25,
+            26,
+            27,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y270-p-60.png",
+              "sha256": "15f49c218e4fcd3acb7da30a5b7da990671c4960d5e72ac8b46914659d85b1e2"
+            },
+            {
+              "path": "local-17-id-mask-y270-p-60.png",
+              "sha256": "e2344120a71d0b57e7c56c70a174f97c6a5a7f5bb68edbeba50343eae47413b8"
+            },
+            {
+              "path": "local-17-photometry-y270-p-60.png",
+              "sha256": "eb638431b769e5712bb6428789fd53750a4215687b7a023662e963ac340415d1"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 315,
+          "pitch": -60,
+          "localQMin": 56.92757771980155,
+          "missingAtoms": [
+            17,
+            18,
+            21,
+            20,
+            26,
+            27,
+            28
+          ],
+          "missingBonds": [
+            18,
+            19,
+            21,
+            26,
+            27,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y315-p-60.png",
+              "sha256": "ecb4d2e63c7473d162b51a42d23ea1f262ad4b4b8ed189397c068aab2e459123"
+            },
+            {
+              "path": "local-17-id-mask-y315-p-60.png",
+              "sha256": "3573342dbb21d9b64493f77d9ae7952d79160bdd47fa869fc5e7d3f2a1f659a6"
+            },
+            {
+              "path": "local-17-photometry-y315-p-60.png",
+              "sha256": "d18dd0e489c715c9640717f1c898cfbc8a1f5582ccd7615a796b1acd2d32b1bc"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 0,
+          "pitch": -30,
+          "localQMin": 55.06026657889315,
+          "missingAtoms": [
+            21,
+            26,
+            28
+          ],
+          "missingBonds": [
+            18,
+            26,
+            27,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y0-p-30.png",
+              "sha256": "20a98fba34563e3d6f9f90b30a992248d9e9d9f11147c16df31f6855e86a586e"
+            },
+            {
+              "path": "local-17-id-mask-y0-p-30.png",
+              "sha256": "c42c4fd52975d07bd25251af2f6c4909d5f8f7d9949bc1d17474726e41ed4948"
+            },
+            {
+              "path": "local-17-photometry-y0-p-30.png",
+              "sha256": "5c567fb04d6b33eda2544deb0b1ca2348afa9f213707b4335858010b51b61444"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 45,
+          "pitch": -30,
+          "localQMin": 53.76744864008545,
+          "missingAtoms": [
+            18,
+            28
+          ],
+          "missingBonds": [
+            18,
+            26,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y45-p-30.png",
+              "sha256": "5effd469d39fb38e7b14103ee22d6b4b2d800c01e8cd7a3f24abfe65f04c6281"
+            },
+            {
+              "path": "local-17-id-mask-y45-p-30.png",
+              "sha256": "bb405e795c56fec32220a901cc2d428f560c95b5c485c6007e73387472f8c689"
+            },
+            {
+              "path": "local-17-photometry-y45-p-30.png",
+              "sha256": "bd396c0d067e88cd69c254a98aa53ceb0d647d2c7ff01ae31bb495b208eeaa89"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 90,
+          "pitch": -30,
+          "localQMin": 54.68498245232801,
+          "missingAtoms": [],
+          "missingBonds": [
+            18,
+            19,
+            25
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y90-p-30.png",
+              "sha256": "2cc587887634438fba3000d5eba6f02a837f573f4d0c3645058e6ba07353ab75"
+            },
+            {
+              "path": "local-17-id-mask-y90-p-30.png",
+              "sha256": "65295eb51bb26107b8401f5c99117085a6605f3823d1f24a5b3777327a592368"
+            },
+            {
+              "path": "local-17-photometry-y90-p-30.png",
+              "sha256": "5d000dd92b7e4ded156b456ded2b95f724dab81df34d5cb8128faadc0b2b8f45"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 135,
+          "pitch": -30,
+          "localQMin": 54.93992015672007,
+          "missingAtoms": [
+            22,
+            19,
+            20
+          ],
+          "missingBonds": [
+            20,
+            25,
+            26,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y135-p-30.png",
+              "sha256": "41394e38f14f35c192d99559f6d7aacdfcd8ef0da111f2cd5d4d5e8eeecd9975"
+            },
+            {
+              "path": "local-17-id-mask-y135-p-30.png",
+              "sha256": "21e5e888df3aa2bb3e55bb1dbafcfc6ded5a9c8beabe70fb324269565f304ed1"
+            },
+            {
+              "path": "local-17-photometry-y135-p-30.png",
+              "sha256": "360ff1e10d5c8ce1d6d070a0c5122ab9b7a863db9e9ef0c476477aff7b933eec"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 180,
+          "pitch": -30,
+          "localQMin": 55.84470593050574,
+          "missingAtoms": [
+            17,
+            22,
+            31,
+            27,
+            29
+          ],
+          "missingBonds": [
+            20,
+            21,
+            25,
+            28,
+            29,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y180-p-30.png",
+              "sha256": "8815a32264906edc571b5ca360af68530e45ce175d42cd74282cb6c9869128a5"
+            },
+            {
+              "path": "local-17-id-mask-y180-p-30.png",
+              "sha256": "9330b4f4919680bbcb66aed63d1788f98f28a63e94cd976948376ed47dd5fe9b"
+            },
+            {
+              "path": "local-17-photometry-y180-p-30.png",
+              "sha256": "236bb47529d03ff93e3cbe60b5553aa07d07c821c0a9cc6b49c9be2cb9207ed6"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 225,
+          "pitch": -30,
+          "localQMin": 56.93909458977539,
+          "missingAtoms": [
+            18,
+            21,
+            28,
+            29
+          ],
+          "missingBonds": [
+            21,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y225-p-30.png",
+              "sha256": "661367967ed12e1de3e5fdade3de7f339d7cd87c3699f4ed9f57a48b9890df1c"
+            },
+            {
+              "path": "local-17-id-mask-y225-p-30.png",
+              "sha256": "e18a7b7218554726d78c8d94964d64edcea60ab04066af3e0e9b4fd16a237b3c"
+            },
+            {
+              "path": "local-17-photometry-y225-p-30.png",
+              "sha256": "eaf8acbe4d2baa6e612c3caec8a49c67bb40048bd10e330cdf33338fa7c2f128"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 270,
+          "pitch": -30,
+          "localQMin": 56.847067049756085,
+          "missingAtoms": [
+            21,
+            26
+          ],
+          "missingBonds": [
+            19,
+            21,
+            27,
+            28
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y270-p-30.png",
+              "sha256": "8eb565159ee8a025d18865c309654fbf4fdc8062f4e549f0399963d25a040cf3"
+            },
+            {
+              "path": "local-17-id-mask-y270-p-30.png",
+              "sha256": "32e66276840b0f148c1d18b23a59efda02491b961c286210883056d1666f2c93"
+            },
+            {
+              "path": "local-17-photometry-y270-p-30.png",
+              "sha256": "48b1171a914c96e20c97d2f986e8949f5e8d5b49d0b87f691517d5a219770711"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 315,
+          "pitch": -30,
+          "localQMin": 56.43662447026379,
+          "missingAtoms": [
+            17,
+            20,
+            26,
+            28
+          ],
+          "missingBonds": [
+            21,
+            25,
+            26,
+            27
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y315-p-30.png",
+              "sha256": "d79353617d66e69ed03c7000dc9af355b75be2898d7b0ee9c2a4d242c0fb4035"
+            },
+            {
+              "path": "local-17-id-mask-y315-p-30.png",
+              "sha256": "94b0c2c1f061ae1e8600a1a9fbd23da6ae5d58ef509ca030b3dfb2bed256d3e9"
+            },
+            {
+              "path": "local-17-photometry-y315-p-30.png",
+              "sha256": "6f4035e119f4b4b26e569226c612549bba8c1f09155db131ee65632d63322821"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 0,
+          "pitch": 0,
+          "localQMin": 56.12297616682463,
+          "missingAtoms": [
+            18,
+            28
+          ],
+          "missingBonds": [
+            28
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y0-p0.png",
+              "sha256": "5b5e41fc3d326ff84d6b8812413bdc78b3bbf3c8589fd7d213427c8fa44d6da6"
+            },
+            {
+              "path": "local-17-id-mask-y0-p0.png",
+              "sha256": "f89f98dfe247ff6bb08c557333d2ae4500be5d883320093853bd776de1f6c005"
+            },
+            {
+              "path": "local-17-photometry-y0-p0.png",
+              "sha256": "659dba613fc3f6dce951b45327065fc726183ea6144eefecc358e32bfba5d9be"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 45,
+          "pitch": 0,
+          "localQMin": 54.81607165985553,
+          "missingAtoms": [
+            21,
+            22,
+            31
+          ],
+          "missingBonds": [
+            18,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y45-p0.png",
+              "sha256": "d50eece95d547821e66f59bb10abbcee1bc2e70611638c0b3e891978d83ce147"
+            },
+            {
+              "path": "local-17-id-mask-y45-p0.png",
+              "sha256": "e46e9eb43135aad3525fe548f7fdd7f107c8095605fd48811b63d48d58a2d0ae"
+            },
+            {
+              "path": "local-17-photometry-y45-p0.png",
+              "sha256": "89c0de3863f736b325d01431c42e9d8afdf14c61b9b197b23ea1674d3a10fc79"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 90,
+          "pitch": 0,
+          "localQMin": 57.068829265896966,
+          "missingAtoms": [
+            17,
+            18,
+            19
+          ],
+          "missingBonds": [
+            19,
+            25
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y90-p0.png",
+              "sha256": "008b52014695787f24f1646e55a29159406299223b8d7cb31f7ca8e8f4106f63"
+            },
+            {
+              "path": "local-17-id-mask-y90-p0.png",
+              "sha256": "c3cf9eaa79cd3b8780fc3d30f470d8aa509678c63ac017658ea86e4ecd1f8d94"
+            },
+            {
+              "path": "local-17-photometry-y90-p0.png",
+              "sha256": "7c3734b9a86696b13b92d3a2dac2e969173491ca137aeee72f05f567086e1463"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 135,
+          "pitch": 0,
+          "localQMin": 55.49759360580137,
+          "missingAtoms": [
+            22,
+            19
+          ],
+          "missingBonds": [
+            20,
+            25
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y135-p0.png",
+              "sha256": "9b58b858b4181613d285437517eb10512fafb537a60c9008451b706241c19c08"
+            },
+            {
+              "path": "local-17-id-mask-y135-p0.png",
+              "sha256": "4eddaf19ca84b436a884bdec8edce38851c6b164e3fad8416df455a739bb3f79"
+            },
+            {
+              "path": "local-17-photometry-y135-p0.png",
+              "sha256": "ca1270e19983278584a376acff097106a9544862c6c67384ac7590c41d45b640"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 180,
+          "pitch": 0,
+          "localQMin": 56.13995218808963,
+          "missingAtoms": [
+            22,
+            19,
+            27
+          ],
+          "missingBonds": [
+            20,
+            25,
+            26,
+            28
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y180-p0.png",
+              "sha256": "3784380c1599cb0ea5280a672ca7ab7c9afa937d2aa3b10cfef6aba7e87aad73"
+            },
+            {
+              "path": "local-17-id-mask-y180-p0.png",
+              "sha256": "8b55eb9e2bd389cb9522bace900e485633b0b5624c1846b9379654b6fad68e9f"
+            },
+            {
+              "path": "local-17-photometry-y180-p0.png",
+              "sha256": "bfa36d509c9c2631aa588eb796cefaca7bec895e253346d83980f154e57b1498"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 225,
+          "pitch": 0,
+          "localQMin": 56.89466818086568,
+          "missingAtoms": [
+            31,
+            27,
+            28,
+            29
+          ],
+          "missingBonds": [
+            18,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y225-p0.png",
+              "sha256": "31cc2601837d879c93dc44af172496380d6b6e4f00816fa84d34e7705dda6692"
+            },
+            {
+              "path": "local-17-id-mask-y225-p0.png",
+              "sha256": "335d19b70752e045edb96f8e9b350ecb8ce1f63169e654b3671d2da176cf14c3"
+            },
+            {
+              "path": "local-17-photometry-y225-p0.png",
+              "sha256": "76567b52e6646c346489e202b9f0c5e9b9b6c2e03e15bd1561292040742627b2"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 270,
+          "pitch": 0,
+          "localQMin": 56.909714375061775,
+          "missingAtoms": [
+            21
+          ],
+          "missingBonds": [
+            19,
+            25,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y270-p0.png",
+              "sha256": "a7a0c058737e31058eb31586d72fbb99ffd8c9bc8766a44d1cc85caeca8bd988"
+            },
+            {
+              "path": "local-17-id-mask-y270-p0.png",
+              "sha256": "ddbaeaa9970b6bfd69ae6d4cca77a87dabeda2854390b6fd5f64bfe686360875"
+            },
+            {
+              "path": "local-17-photometry-y270-p0.png",
+              "sha256": "87a4b896cba715c0a3fd4aba9385d865f7a927ce8e425a02b8777d8f87a1bf08"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 315,
+          "pitch": 0,
+          "localQMin": 56.60601505471015,
+          "missingAtoms": [
+            31
+          ],
+          "missingBonds": [
+            25,
+            27
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y315-p0.png",
+              "sha256": "032cac2bdb444023a046eb33a07572ea1a527501e88bb6799926a8e37ee1597b"
+            },
+            {
+              "path": "local-17-id-mask-y315-p0.png",
+              "sha256": "81c9d63361c93fd773716d4ac306330816b5ba9be20b509031888d8b732151ab"
+            },
+            {
+              "path": "local-17-photometry-y315-p0.png",
+              "sha256": "36c76e07ca2e911f894a03faad77ea3e9f22474d8a22bf488be27fc932c4564a"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 0,
+          "pitch": 30,
+          "localQMin": 58.03103616420011,
+          "missingAtoms": [
+            17
+          ],
+          "missingBonds": [
+            18,
+            20,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y0-p30.png",
+              "sha256": "d6a24c1c078f9c8f4d4ab416cd9caa175f483f5cc487a15e012d7f5e0209acfd"
+            },
+            {
+              "path": "local-17-id-mask-y0-p30.png",
+              "sha256": "b84333f64a674a7aa14e39281e56873aae2681fd9b2bd96c15cca73045a2d0aa"
+            },
+            {
+              "path": "local-17-photometry-y0-p30.png",
+              "sha256": "376f282a53660ee1cc2d2c9d7fad50995c9afff65c4b7d7c7891094e475f2c48"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 45,
+          "pitch": 30,
+          "localQMin": 55.42392145734789,
+          "missingAtoms": [],
+          "missingBonds": [
+            28,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y45-p30.png",
+              "sha256": "53eff0e3fd231c90d76c962c8086c8a650e25787b518bfd02feb8806c7e3fe4e"
+            },
+            {
+              "path": "local-17-id-mask-y45-p30.png",
+              "sha256": "18f9c9af5ab9baa3b55f3407b6453db0bc5030fa5c45a71f9e8905e247dff0e7"
+            },
+            {
+              "path": "local-17-photometry-y45-p30.png",
+              "sha256": "32d2cfb1a20415082e563138634ea04960e1f5fa267c6f85bcb9e2ca33ed0627"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 90,
+          "pitch": 30,
+          "localQMin": 55.762788253485354,
+          "missingAtoms": [
+            19
+          ],
+          "missingBonds": [
+            21,
+            25
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y90-p30.png",
+              "sha256": "7c5a129d9ee70e24137c6cb7ea78fe005e20affa5f6e28e234e7c23edcf9f4fe"
+            },
+            {
+              "path": "local-17-id-mask-y90-p30.png",
+              "sha256": "8edce86d3c5618983ec1b87d3623943fa94f5229658af2bb2fd4b4a0a859ae01"
+            },
+            {
+              "path": "local-17-photometry-y90-p30.png",
+              "sha256": "3277aaf0c433f048c9c4bcc5c9ba1e90eb8b1b93792c4cd20c5fe5423c67a257"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 135,
+          "pitch": 30,
+          "localQMin": 55.369469205370514,
+          "missingAtoms": [],
+          "missingBonds": [
+            25,
+            27
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y135-p30.png",
+              "sha256": "3b7fbfa01b98786709fe7864e286ce93eff7e434f05f94b85518ccc6a3c865c4"
+            },
+            {
+              "path": "local-17-id-mask-y135-p30.png",
+              "sha256": "77613211c3ac59ccbc4f836a9f3765fbc917add8c66bc466e73c6bef4aeda5fe"
+            },
+            {
+              "path": "local-17-photometry-y135-p30.png",
+              "sha256": "545578d9c6e3eee7cc0cff50dbfc6ef8a67a4c2dc220877e013db5f696f1c906"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 180,
+          "pitch": 30,
+          "localQMin": 58.12785749084366,
+          "missingAtoms": [
+            17,
+            27
+          ],
+          "missingBonds": [
+            18,
+            27,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y180-p30.png",
+              "sha256": "16b4ce33503311f7b9235cb8e724feb90051e1b6b9b398481a51d91c9054c096"
+            },
+            {
+              "path": "local-17-id-mask-y180-p30.png",
+              "sha256": "5270b54352e320e0e8b61657034f58061f16aea33a95e6f24e3a7a677de205d0"
+            },
+            {
+              "path": "local-17-photometry-y180-p30.png",
+              "sha256": "71cd46eec6802a86dcf889e55941793ee7ba9e486b23d2974e514593171a264b"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 225,
+          "pitch": 30,
+          "localQMin": 57.47713798938832,
+          "missingAtoms": [
+            22,
+            19,
+            20,
+            29
+          ],
+          "missingBonds": [
+            18,
+            19,
+            20,
+            26,
+            27,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y225-p30.png",
+              "sha256": "e0098f8317a6080a971854de1396f0a4b491be8d0bb6698ffc8e76a369ac2c40"
+            },
+            {
+              "path": "local-17-id-mask-y225-p30.png",
+              "sha256": "bf5f4db82d5c8d24c5e0f2421d3e44fdd79a58fcafe063e6a3f960206d09c404"
+            },
+            {
+              "path": "local-17-photometry-y225-p30.png",
+              "sha256": "040c690a3fa1ffe528fed64871eb5ac72bff3632dc98e3a025f9aa17c2b16a6f"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 270,
+          "pitch": 30,
+          "localQMin": 56.954769730955306,
+          "missingAtoms": [
+            21,
+            26,
+            27
+          ],
+          "missingBonds": [
+            19,
+            20,
+            26,
+            28,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y270-p30.png",
+              "sha256": "f199ac772c17af63d7ea578ce450f918c4989738fb1812701b1bbb3618ae5b52"
+            },
+            {
+              "path": "local-17-id-mask-y270-p30.png",
+              "sha256": "077f27c204a68cb0ca5f6a74a3993fc5e2ab70fe87e269e4c4ce196d67ec6374"
+            },
+            {
+              "path": "local-17-photometry-y270-p30.png",
+              "sha256": "0c52753ea77465714b92748d4fa7861624f8909de316dc121674d7508afcd5a1"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 315,
+          "pitch": 30,
+          "localQMin": 56.602856475364696,
+          "missingAtoms": [
+            18,
+            21,
+            27,
+            28
+          ],
+          "missingBonds": [
+            19,
+            28,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y315-p30.png",
+              "sha256": "02dd63a6b3c3c6d8d8e110b02330ad6cc8ebc3e260a60cee723a2c832f3a2ca9"
+            },
+            {
+              "path": "local-17-id-mask-y315-p30.png",
+              "sha256": "c7b8fee7eb71f1ab34118fc7585705d17a8a31977d33c08da3fff77bb46da456"
+            },
+            {
+              "path": "local-17-photometry-y315-p30.png",
+              "sha256": "c9db9e04184b943793ad81aace16abbe826890ddc21d889cfa00e9f2bd547323"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 0,
+          "pitch": 60,
+          "localQMin": 56.39494091149023,
+          "missingAtoms": [
+            17,
+            28
+          ],
+          "missingBonds": [
+            20,
+            21,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y0-p60.png",
+              "sha256": "3d6bd8ef332f547f13583b535b6b39970f885b935cbd20ef2ffb0549b70f9163"
+            },
+            {
+              "path": "local-17-id-mask-y0-p60.png",
+              "sha256": "3e059676f03a4259d077981eb4ec3fe66ea9eca069caf9aa4ef6a0a7bf4c227e"
+            },
+            {
+              "path": "local-17-photometry-y0-p60.png",
+              "sha256": "e006f3968a0620824424d68bdb82cb55bb9080f2314f56680a6b477115ffb13d"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 45,
+          "pitch": 60,
+          "localQMin": 56.017815459347545,
+          "missingAtoms": [
+            31,
+            28
+          ],
+          "missingBonds": [
+            21,
+            26,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y45-p60.png",
+              "sha256": "626d60786eb2bb2f5bf8ac6d2357651e2887d5ec3d0fc6244fb24b9d2975c75e"
+            },
+            {
+              "path": "local-17-id-mask-y45-p60.png",
+              "sha256": "210f6dbfd5cbec1dd8b4b41015f496dfb4874d723dee5d2a6647540b29912d63"
+            },
+            {
+              "path": "local-17-photometry-y45-p60.png",
+              "sha256": "b77757e6a2436d84471f29e6fe46364a674f06784f03ca5ec559e4c7909fb4c0"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 90,
+          "pitch": 60,
+          "localQMin": 55.509569695920334,
+          "missingAtoms": [
+            18,
+            31
+          ],
+          "missingBonds": [
+            21,
+            26,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y90-p60.png",
+              "sha256": "bdcac37c4cad64bf24813ce22c71949a8b87b7fc7dbf4a721f81bc5cabb690e0"
+            },
+            {
+              "path": "local-17-id-mask-y90-p60.png",
+              "sha256": "3b79688a17e5f7b12967fda1e05278026242b826bc0ba3130c2c8ea37e172e85"
+            },
+            {
+              "path": "local-17-photometry-y90-p60.png",
+              "sha256": "25ccb87c0932f654ca28b3b015c7c253e346d316ab43ae66cbaeb6cdec192647"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 135,
+          "pitch": 60,
+          "localQMin": 55.15827663620895,
+          "missingAtoms": [
+            31
+          ],
+          "missingBonds": [
+            21,
+            25,
+            26,
+            27,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y135-p60.png",
+              "sha256": "7f077f10ff2d027487329aa2bb1ef6a45ff129d3d06264884defd8410e1de110"
+            },
+            {
+              "path": "local-17-id-mask-y135-p60.png",
+              "sha256": "7d2ffd6c963c0ca382d7db04003d6fb64249d37ccfbd338906f2ec792a51c79a"
+            },
+            {
+              "path": "local-17-photometry-y135-p60.png",
+              "sha256": "747516261f1ff91003d6c0c32d1fa0ea4c82b763e19f9b457ac4c51f87891ed8"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 180,
+          "pitch": 60,
+          "localQMin": 55.165628487376026,
+          "missingAtoms": [
+            22,
+            31
+          ],
+          "missingBonds": [
+            21,
+            25,
+            26,
+            27
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y180-p60.png",
+              "sha256": "e140756cad92526297f35d985b7fc73a3ec09804528d937feea78f167f054ef5"
+            },
+            {
+              "path": "local-17-id-mask-y180-p60.png",
+              "sha256": "ff702f5c47a41df00fd28aa51d078a8a803fcca9d4431ced1790d582e9fb7f5b"
+            },
+            {
+              "path": "local-17-photometry-y180-p60.png",
+              "sha256": "b271ce20f6a41d433093fe5c59fbe76dd80e030f4c2017f5763d19663830ab5d"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 225,
+          "pitch": 60,
+          "localQMin": 55.52754893681528,
+          "missingAtoms": [
+            17,
+            31,
+            27,
+            29
+          ],
+          "missingBonds": [
+            21,
+            26,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y225-p60.png",
+              "sha256": "f3de646cdf84ac5d53c0b97c489bb0ebfc88e4e1899f37649ce935c90aa066a2"
+            },
+            {
+              "path": "local-17-id-mask-y225-p60.png",
+              "sha256": "f0195fa42eb1d3ba95ecbe76b39ec28c735679c2aef01317bfe0d74d5842c17a"
+            },
+            {
+              "path": "local-17-photometry-y225-p60.png",
+              "sha256": "9e3779be976e049f7510ffaefa156a9fb39203190af168271a1130351b95e444"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 270,
+          "pitch": 60,
+          "localQMin": 56.03997556597735,
+          "missingAtoms": [
+            18,
+            31,
+            26
+          ],
+          "missingBonds": [
+            18,
+            21,
+            25,
+            27,
+            29,
+            30
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y270-p60.png",
+              "sha256": "6bee0df418ea2b3f1544480c9a15945e5c3d3a59e014cc19025713e957130b2b"
+            },
+            {
+              "path": "local-17-id-mask-y270-p60.png",
+              "sha256": "66a3a4477172de484a55c5c6bd8aa3a751dff8910457b89dce47aba91af13dc3"
+            },
+            {
+              "path": "local-17-photometry-y270-p60.png",
+              "sha256": "f319b42ddf9aac3def1a691a343299adf18b80716c0c9cea608582c934db097b"
+            }
+          ]
+        },
+        {
+          "mode": "local-17",
+          "yaw": 315,
+          "pitch": 60,
+          "localQMin": 56.40262614353156,
+          "missingAtoms": [
+            18,
+            26,
+            28
+          ],
+          "missingBonds": [
+            21,
+            29
+          ],
+          "files": [
+            {
+              "path": "local-17-render-y315-p60.png",
+              "sha256": "bb721458bc326db7449075a9ea4bd8001728457ab07ce666c15e76ddd8371553"
+            },
+            {
+              "path": "local-17-id-mask-y315-p60.png",
+              "sha256": "315481e19e7d6147c51a221a2951e23bea85c2ceb5bc54a995fdaeb5c5ebb3e9"
+            },
+            {
+              "path": "local-17-photometry-y315-p60.png",
+              "sha256": "ecb21832ea43f3d2075b82084992a6ec7bc6ec1be6484d6bef3745f59bf6aa4e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "anchor": 30,
+      "atomIndices": [
+        0,
+        30,
+        34,
+        5,
+        6,
+        7,
+        35,
+        8,
+        31,
+        32,
+        33
+      ],
+      "bondIndices": [
+        3,
+        9,
+        10,
+        11,
+        12,
+        31,
+        32,
+        33,
+        34,
+        35
+      ],
+      "atomPass": 4,
+      "bondPass": 0,
+      "jointPass": 0,
+      "retained": [
+        {
+          "yaw": 45,
+          "pitch": -60,
+          "missingAtoms": [
+            31
+          ],
+          "missingBonds": [
+            12
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y45-p-60.png",
+              "sha256": "a47e60a30830e8d4fed2e60d79933ed3cb13c38954a065d7b5433ed7d54ab700"
+            },
+            {
+              "path": "local-30-id-mask-y45-p-60.png",
+              "sha256": "3328baf060c669dbfea7099f731804010252919b3f32e217c2a760f75539c55d"
+            },
+            {
+              "path": "local-30-photometry-y45-p-60.png",
+              "sha256": "eb6cffd8af6659e46aedf4c76fa7497a302375149db9f4c13f03e3d8dc496f99"
+            }
+          ]
+        },
+        {
+          "yaw": 90,
+          "pitch": -60,
+          "missingAtoms": [],
+          "missingBonds": [
+            12,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y90-p-60.png",
+              "sha256": "ec44d1f55e1f2dd9a45cf2497a301c0ba5ed0b2801735940f4bf9f514b495b09"
+            },
+            {
+              "path": "local-30-id-mask-y90-p-60.png",
+              "sha256": "00ddaa400fddc2ecc5057739d22accea4cda688c3133c2756291f4aca508fe0a"
+            },
+            {
+              "path": "local-30-photometry-y90-p-60.png",
+              "sha256": "c605302451e77ba6ad37082458d6f5a50a7d891734aab2941a20b0809e45457e"
+            }
+          ]
+        }
+      ],
+      "ledger": [
+        {
+          "mode": "local-30",
+          "yaw": 0,
+          "pitch": -60,
+          "localQMin": 51.17463146546722,
+          "missingAtoms": [
+            31,
+            32
+          ],
+          "missingBonds": [
+            9,
+            12,
+            31,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y0-p-60.png",
+              "sha256": "138be7178e57a4aa49da52ba176dc832a3fa978bb0a72e25fc7f08d4c177a56a"
+            },
+            {
+              "path": "local-30-id-mask-y0-p-60.png",
+              "sha256": "934b81eb32c122395ed3b3bec883253d694be11169aa93095bc120c08ebb75fe"
+            },
+            {
+              "path": "local-30-photometry-y0-p-60.png",
+              "sha256": "3a6773e3b599ee51736a292d3a7318efad74fb4cbd3f590ed11c85df52dc6400"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 45,
+          "pitch": -60,
+          "localQMin": 52.46498911319425,
+          "missingAtoms": [
+            31
+          ],
+          "missingBonds": [
+            12
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y45-p-60.png",
+              "sha256": "a47e60a30830e8d4fed2e60d79933ed3cb13c38954a065d7b5433ed7d54ab700"
+            },
+            {
+              "path": "local-30-id-mask-y45-p-60.png",
+              "sha256": "3328baf060c669dbfea7099f731804010252919b3f32e217c2a760f75539c55d"
+            },
+            {
+              "path": "local-30-photometry-y45-p-60.png",
+              "sha256": "eb6cffd8af6659e46aedf4c76fa7497a302375149db9f4c13f03e3d8dc496f99"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 90,
+          "pitch": -60,
+          "localQMin": 52.00809071234503,
+          "missingAtoms": [],
+          "missingBonds": [
+            12,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y90-p-60.png",
+              "sha256": "ec44d1f55e1f2dd9a45cf2497a301c0ba5ed0b2801735940f4bf9f514b495b09"
+            },
+            {
+              "path": "local-30-id-mask-y90-p-60.png",
+              "sha256": "00ddaa400fddc2ecc5057739d22accea4cda688c3133c2756291f4aca508fe0a"
+            },
+            {
+              "path": "local-30-photometry-y90-p-60.png",
+              "sha256": "c605302451e77ba6ad37082458d6f5a50a7d891734aab2941a20b0809e45457e"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 135,
+          "pitch": -60,
+          "localQMin": 51.9474969274237,
+          "missingAtoms": [],
+          "missingBonds": [
+            10,
+            11,
+            12
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y135-p-60.png",
+              "sha256": "4850ffeb8468fe58d154659a808988640b511d5627cde3dacf3b335e5be04a7f"
+            },
+            {
+              "path": "local-30-id-mask-y135-p-60.png",
+              "sha256": "8dfd34f20537bf941650740692e998a18e1b0a3fa7a76093e1554d9863306a99"
+            },
+            {
+              "path": "local-30-photometry-y135-p-60.png",
+              "sha256": "4d25b7106f23bfc8d65136677cfece3fdf114702769778d59419f1b58645e318"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 180,
+          "pitch": -60,
+          "localQMin": 52.134811045764074,
+          "missingAtoms": [
+            30,
+            7
+          ],
+          "missingBonds": [
+            11,
+            33
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y180-p-60.png",
+              "sha256": "4b90d91e008a08b7a406a324d46c3b5da342401a5a183e35168ccfbd7c54f494"
+            },
+            {
+              "path": "local-30-id-mask-y180-p-60.png",
+              "sha256": "2a99d262de7022ab3719d76a5af44084d5864d1ea0005bf6e902e45a7ec40d31"
+            },
+            {
+              "path": "local-30-photometry-y180-p-60.png",
+              "sha256": "edc729be95d78a2e20398e7cf1714f97b8d81b2ac75c37812222e69bee57a8d2"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 225,
+          "pitch": -60,
+          "localQMin": 51.56184069630486,
+          "missingAtoms": [
+            7,
+            31
+          ],
+          "missingBonds": [
+            11,
+            31
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y225-p-60.png",
+              "sha256": "9f27ccc1307c8b9caf488cf83907540fd4e887f9ec84b34f9d1bcd22ff1a6cf1"
+            },
+            {
+              "path": "local-30-id-mask-y225-p-60.png",
+              "sha256": "b6bfeca20821299b5417413a4e839e8f58075164416d3296715720cf9b6d3798"
+            },
+            {
+              "path": "local-30-photometry-y225-p-60.png",
+              "sha256": "6695074fcdfabb19f97c74449bc139b6446ddd514a3d8f44a831f62ff61c73f6"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 270,
+          "pitch": -60,
+          "localQMin": 51.95797265372353,
+          "missingAtoms": [
+            7,
+            31
+          ],
+          "missingBonds": [
+            3,
+            9,
+            11,
+            31
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y270-p-60.png",
+              "sha256": "4bcb1e6e144c64d4be4a9d569a888e1eb6e3dd299f86611a12716ed645b998a4"
+            },
+            {
+              "path": "local-30-id-mask-y270-p-60.png",
+              "sha256": "c32854e217b8cea64820c3f8191c50751c63b77fbe0446ce4ae18b384aa291b3"
+            },
+            {
+              "path": "local-30-photometry-y270-p-60.png",
+              "sha256": "acc9c6f0b66f3f42bc526424a4dded257b2aae22802d85c3f29bde6d2020737e"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 315,
+          "pitch": -60,
+          "localQMin": 51.31086506316255,
+          "missingAtoms": [
+            31
+          ],
+          "missingBonds": [
+            9,
+            11,
+            12,
+            31,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y315-p-60.png",
+              "sha256": "edf987370257176c80649db288c1a9102238edc42570823bbb8f223c326173c5"
+            },
+            {
+              "path": "local-30-id-mask-y315-p-60.png",
+              "sha256": "1f40a6af852d58b8863bbb438b9d4a300ef5f4423af33c4d11fe51c016021daf"
+            },
+            {
+              "path": "local-30-photometry-y315-p-60.png",
+              "sha256": "21e5bfee84a29979c4465f1cdf002d57d40d36eb54091e1cd7e2512ebe312f43"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 0,
+          "pitch": -30,
+          "localQMin": 51.470024508857506,
+          "missingAtoms": [
+            0
+          ],
+          "missingBonds": [
+            9,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y0-p-30.png",
+              "sha256": "efcfc837de965753e30d25cfe824ea1504acfd3892da2c4c1fc0dae5c78c0393"
+            },
+            {
+              "path": "local-30-id-mask-y0-p-30.png",
+              "sha256": "462df9014aa93ca972b93f527bcedc2b5f251d60c0c421cdd05e424c52dc3805"
+            },
+            {
+              "path": "local-30-photometry-y0-p-30.png",
+              "sha256": "0d996477f949eba7326228ad68e58469e15f77258d0699973f0469e6698300d8"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 45,
+          "pitch": -30,
+          "localQMin": 53.773974880808694,
+          "missingAtoms": [
+            30
+          ],
+          "missingBonds": [
+            32,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y45-p-30.png",
+              "sha256": "8a99495316b95b3d308a375027c0e986af95dd3aae8ef25a8cae5b5330ebb925"
+            },
+            {
+              "path": "local-30-id-mask-y45-p-30.png",
+              "sha256": "dec4552cb5d440f3955f314bd413a53ed7e8bc4a68e6fd374a7ad7c2033c490f"
+            },
+            {
+              "path": "local-30-photometry-y45-p-30.png",
+              "sha256": "e39c70d318ad2453731eafc3dd1e9b76d425d233121d29db4a52d42f63f2df84"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 90,
+          "pitch": -30,
+          "localQMin": 51.8202405071877,
+          "missingAtoms": [
+            0
+          ],
+          "missingBonds": [
+            3,
+            10,
+            32,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y90-p-30.png",
+              "sha256": "e31657786237b87c1682417f0222d3a88a0a754afbec4f66a4596d6d0e24b5c9"
+            },
+            {
+              "path": "local-30-id-mask-y90-p-30.png",
+              "sha256": "2c66d33b792cd7466d7092d765fd350093f7a1c57ef53c052201c502c5008edc"
+            },
+            {
+              "path": "local-30-photometry-y90-p-30.png",
+              "sha256": "6312f51ccd48464ce5e6e524729a35e5d573f916e43c782561ce16aff59fdd17"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 135,
+          "pitch": -30,
+          "localQMin": 51.71613377021957,
+          "missingAtoms": [],
+          "missingBonds": [
+            3,
+            10,
+            11
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y135-p-30.png",
+              "sha256": "d3c4f06ef1586f4e944af97af7309b75c2942e4a02ec01193cd383cd07e514d8"
+            },
+            {
+              "path": "local-30-id-mask-y135-p-30.png",
+              "sha256": "45e3f1c46ed2bb96264fe1cd35ef9a833e10a0685f0a030aa0998b4e829b0d01"
+            },
+            {
+              "path": "local-30-photometry-y135-p-30.png",
+              "sha256": "5beb98057787e65dfb294cf38f928bafff09ab721548793d4407c5dbee59f574"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 180,
+          "pitch": -30,
+          "localQMin": 52.35296607153472,
+          "missingAtoms": [
+            0,
+            30
+          ],
+          "missingBonds": [
+            3,
+            11,
+            31,
+            33
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y180-p-30.png",
+              "sha256": "e09266358103d0e45a489d819c41fe388c594f4e74c00a46cf7ce954a8337b1f"
+            },
+            {
+              "path": "local-30-id-mask-y180-p-30.png",
+              "sha256": "fd9c3657e88c19228ed4bdc508bcf313a10fa9e1881b57e4f43f83b95b309454"
+            },
+            {
+              "path": "local-30-photometry-y180-p-30.png",
+              "sha256": "510b7db9125d7104c27ba7f605aa0b28c2c8285918bdf409e95ee53f9324483b"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 225,
+          "pitch": -30,
+          "localQMin": 51.64198754718227,
+          "missingAtoms": [
+            0,
+            6,
+            7
+          ],
+          "missingBonds": [
+            10,
+            11,
+            31,
+            33,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y225-p-30.png",
+              "sha256": "999b40314497276cca7007d88b5ee43c84dcddd4c9d0488040cca3f261cc67e9"
+            },
+            {
+              "path": "local-30-id-mask-y225-p-30.png",
+              "sha256": "ccd65321577f2b7d707a1c508c5f8fe90ed8267d80d9dc6561e183b085ea0aae"
+            },
+            {
+              "path": "local-30-photometry-y225-p-30.png",
+              "sha256": "bc03b532f09a49c081b3699f4b526242dfd27a13d10e23909c92ea4a92c8d8d1"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 270,
+          "pitch": -30,
+          "localQMin": 50.85032142192005,
+          "missingAtoms": [
+            0,
+            31
+          ],
+          "missingBonds": [
+            3,
+            11,
+            32,
+            34,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y270-p-30.png",
+              "sha256": "58c2d635e63dff79bf215b45a7f1976bd7a6fcc1f6206cd47186143b91ad99f6"
+            },
+            {
+              "path": "local-30-id-mask-y270-p-30.png",
+              "sha256": "00b587fde7779bcaddd96d477dc17ee35cb88fbc15c64e517e48e48a2cff430b"
+            },
+            {
+              "path": "local-30-photometry-y270-p-30.png",
+              "sha256": "21e6249489eff799b0706ab8596b083c591ee5aa503c65b9915d04c448bf3a9d"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 315,
+          "pitch": -30,
+          "localQMin": 51.709192531051066,
+          "missingAtoms": [
+            35,
+            31,
+            32
+          ],
+          "missingBonds": [
+            9,
+            10,
+            31,
+            34,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y315-p-30.png",
+              "sha256": "9faa25fb3db780444a96e0493e84f08c44d33d20b1f790816d9881d4b7f63ece"
+            },
+            {
+              "path": "local-30-id-mask-y315-p-30.png",
+              "sha256": "5988e199c2781adf115c3fe1ff3e80f69f44a010b818fc3fe73c3e3da4e558a8"
+            },
+            {
+              "path": "local-30-photometry-y315-p-30.png",
+              "sha256": "8be5163a246961496ae71d42f453d6ef3e65ce13dbbf74440a1b0dde1134bdd8"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 0,
+          "pitch": 0,
+          "localQMin": 52.48976050907559,
+          "missingAtoms": [
+            0,
+            30,
+            32,
+            33
+          ],
+          "missingBonds": [
+            3,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y0-p0.png",
+              "sha256": "754c35365dc3cc35f182ba55171cc2d40a97f5f6e29596b1b3948c7f468a3a75"
+            },
+            {
+              "path": "local-30-id-mask-y0-p0.png",
+              "sha256": "b055f1827339aee62dd62e5ac4de18ddbdfffa18f7c190ee93a78b91f0522697"
+            },
+            {
+              "path": "local-30-photometry-y0-p0.png",
+              "sha256": "44f83a14a05b4fcc5545af00b3c7e81e62bfbe156d51cc1dcd9db135e7c17f53"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 45,
+          "pitch": 0,
+          "localQMin": 53.37394902254602,
+          "missingAtoms": [
+            30,
+            33
+          ],
+          "missingBonds": [
+            32,
+            33,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y45-p0.png",
+              "sha256": "496cee050b1311d53feaf13dcf912052bd833a084fadc5932987895dad59e88e"
+            },
+            {
+              "path": "local-30-id-mask-y45-p0.png",
+              "sha256": "ddf66800ad95552b0f14ff4ea33212e6e83b54736eae896553b09c922e2b9562"
+            },
+            {
+              "path": "local-30-photometry-y45-p0.png",
+              "sha256": "0b6fc3c07c6021711ddad5c7a1dfb0d08aca7181fdefabe11cc8ce2da756f98c"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 90,
+          "pitch": 0,
+          "localQMin": 51.8952884996081,
+          "missingAtoms": [
+            31,
+            33
+          ],
+          "missingBonds": [
+            3,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y90-p0.png",
+              "sha256": "c5f5098dcc8525ca25310298228d37c21e79c31e1188f5a50c4b10924b45ec98"
+            },
+            {
+              "path": "local-30-id-mask-y90-p0.png",
+              "sha256": "10659239356d31540073ee134282edeb9eb20d1e536f3fcf459625c65fb52a04"
+            },
+            {
+              "path": "local-30-photometry-y90-p0.png",
+              "sha256": "c51fbfa552bd89dc6a04c734e11327ec1ee787b889be8e4bc37beb4e2965b9d3"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 135,
+          "pitch": 0,
+          "localQMin": 51.091045648416596,
+          "missingAtoms": [
+            0
+          ],
+          "missingBonds": [
+            3,
+            9,
+            10,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y135-p0.png",
+              "sha256": "d0b8bf0d0b6c2a44d41382a5af4c01301b4608e560661ce9d5f8a99fb878b3b7"
+            },
+            {
+              "path": "local-30-id-mask-y135-p0.png",
+              "sha256": "e739dda552809ae6cec0ec57cfbfe26dba9446cd1203a1ed76bfc198ac8972b3"
+            },
+            {
+              "path": "local-30-photometry-y135-p0.png",
+              "sha256": "6a439e8c3a69cb89e66587ac9b79ae128a6645361591765dde1631ea8b5590cc"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 180,
+          "pitch": 0,
+          "localQMin": 50.79872184225334,
+          "missingAtoms": [
+            0,
+            34
+          ],
+          "missingBonds": [
+            32
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y180-p0.png",
+              "sha256": "24e1a39fac575fc63d90c6b55b9aa76b1d323889fcb3601d4275d7c88ac387a1"
+            },
+            {
+              "path": "local-30-id-mask-y180-p0.png",
+              "sha256": "3889a87101fa7798aa783091ce09ea87922594b1c2d39d0c177e35fd632f6c4f"
+            },
+            {
+              "path": "local-30-photometry-y180-p0.png",
+              "sha256": "4e705d2991d0341808a15815d623f0b5478d36504d2f8d3ef9f9fe797ced67b7"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 225,
+          "pitch": 0,
+          "localQMin": 50.25916338621522,
+          "missingAtoms": [
+            34,
+            6,
+            7,
+            31
+          ],
+          "missingBonds": [
+            10,
+            11,
+            32,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y225-p0.png",
+              "sha256": "54703b4aca7f57d83efb9bcadf7458020a3b203e087d3a52f2d99680a1c52e1b"
+            },
+            {
+              "path": "local-30-id-mask-y225-p0.png",
+              "sha256": "285d60a2a6664b0e30cf798f3e22c9feb433703be852a4e58fb6033bef4fa0d0"
+            },
+            {
+              "path": "local-30-photometry-y225-p0.png",
+              "sha256": "782f88eac8a571f074461662f6b34a292f1965c3f3c808c5f815ff28077119ab"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 270,
+          "pitch": 0,
+          "localQMin": 51.510476926197974,
+          "missingAtoms": [
+            34,
+            6,
+            7,
+            35
+          ],
+          "missingBonds": [
+            9,
+            10,
+            34,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y270-p0.png",
+              "sha256": "d1a195adcad14f6fae3f83a36e7adfac02047b8f7e37fa51e9999ce17c81d226"
+            },
+            {
+              "path": "local-30-id-mask-y270-p0.png",
+              "sha256": "d7c13f43904c93a475bdb902d1ec0be5e38f5132524c882c36c234d4d912b0af"
+            },
+            {
+              "path": "local-30-photometry-y270-p0.png",
+              "sha256": "92992f7aab40bc6e57b2deacac1f7593b8bcc7ee97190ec46c8b93ebcb2ba08d"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 315,
+          "pitch": 0,
+          "localQMin": 52.04783492710352,
+          "missingAtoms": [
+            30,
+            34,
+            6,
+            7,
+            32,
+            33
+          ],
+          "missingBonds": [
+            3,
+            10,
+            32,
+            34,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y315-p0.png",
+              "sha256": "ee62ae7e7a8d644b08c76207b9b8074cd7f6c2b827e1446f0031eff515657db8"
+            },
+            {
+              "path": "local-30-id-mask-y315-p0.png",
+              "sha256": "842b63d8f82e094455d49a5b3db13f2752e2a7c82989ef30b2e625929c6ca1ff"
+            },
+            {
+              "path": "local-30-photometry-y315-p0.png",
+              "sha256": "675131e71c89714d7affcbaa0b757f018df7f0bc829c5a74fdf7dfd09c34a222"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 0,
+          "pitch": 30,
+          "localQMin": 52.11061708391781,
+          "missingAtoms": [
+            6,
+            35,
+            33
+          ],
+          "missingBonds": [
+            10,
+            11,
+            33,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y0-p30.png",
+              "sha256": "5d5f992228e1393d835301bf9d395c87039318aadc37734aab44248a657234c9"
+            },
+            {
+              "path": "local-30-id-mask-y0-p30.png",
+              "sha256": "019d9aa5e2f71f8761ef07060e01b804fca7ad5208609dba526c184920f299e1"
+            },
+            {
+              "path": "local-30-photometry-y0-p30.png",
+              "sha256": "ee6358ae9b94c5fa4db3b4974b8d9aa10c4635ba16029a634adcaee43d188db9"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 45,
+          "pitch": 30,
+          "localQMin": 52.323922979449215,
+          "missingAtoms": [
+            34,
+            33
+          ],
+          "missingBonds": [
+            11,
+            33,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y45-p30.png",
+              "sha256": "416945731b0602a50dfb16534758b87dbbf03be175ed8361df6012e654e7c738"
+            },
+            {
+              "path": "local-30-id-mask-y45-p30.png",
+              "sha256": "36ad2cb4865b8563abdcb6008f3ae6ea03082736d9edc6acff6547cb84a6722f"
+            },
+            {
+              "path": "local-30-photometry-y45-p30.png",
+              "sha256": "9e925b151f9fd7d030cbb131a69a503e225c382a918fe264f406a10948d28f71"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 90,
+          "pitch": 30,
+          "localQMin": 51.086621579813496,
+          "missingAtoms": [],
+          "missingBonds": [
+            9,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y90-p30.png",
+              "sha256": "1e3eb032e15bae4ae29655649631257f7e65a3bc8d40890c52ee9a98ee3f0a4d"
+            },
+            {
+              "path": "local-30-id-mask-y90-p30.png",
+              "sha256": "fac13a0d13a0c64512de5d5bec245405b12409d939f48acb1f56aa55971e61ed"
+            },
+            {
+              "path": "local-30-photometry-y90-p30.png",
+              "sha256": "9f00b35ce44b8ab05ffdb5c5ad7eb56bdb59390d482d77e966411902118e1c28"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 135,
+          "pitch": 30,
+          "localQMin": 51.55402753189254,
+          "missingAtoms": [
+            0,
+            30,
+            5,
+            33
+          ],
+          "missingBonds": [
+            3,
+            9,
+            31,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y135-p30.png",
+              "sha256": "307f01c1cc964a42667adcd8d4522085b212c22595ce59f01a6b8db30f5825ab"
+            },
+            {
+              "path": "local-30-id-mask-y135-p30.png",
+              "sha256": "94ed907a84231ca02c1dee21f3897f05a65b613a50fe48f27f109d1e175bb3c3"
+            },
+            {
+              "path": "local-30-photometry-y135-p30.png",
+              "sha256": "4918be6a9f1ad66724b5168b9671c002f1ce52b574a54f3213ecd5282f57df95"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 180,
+          "pitch": 30,
+          "localQMin": 50.92513573447047,
+          "missingAtoms": [
+            7,
+            31,
+            33
+          ],
+          "missingBonds": [
+            9,
+            11,
+            12,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y180-p30.png",
+              "sha256": "7a7b7b4496da5159880716229e2e471ed7c1fc2fef371cdfde75c877d2d57e9a"
+            },
+            {
+              "path": "local-30-id-mask-y180-p30.png",
+              "sha256": "5adb8f3e34b186e6177f2e24eb66d3e86eb9e1b64af4159fc3cf271f56e5d02d"
+            },
+            {
+              "path": "local-30-photometry-y180-p30.png",
+              "sha256": "74bb85f68e22e1ac93919803cbed843935a0b46e058d5772188f9069f799df8f"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 225,
+          "pitch": 30,
+          "localQMin": 50.75685979687281,
+          "missingAtoms": [
+            34,
+            5,
+            6,
+            32
+          ],
+          "missingBonds": [
+            9,
+            10,
+            12,
+            32,
+            34,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y225-p30.png",
+              "sha256": "41a0389f005157b1b9cd72b1db7c8e2ee47755d979ff4b4d9eabc999cbcdaad6"
+            },
+            {
+              "path": "local-30-id-mask-y225-p30.png",
+              "sha256": "f1f1d26a4a11f135864bdf37b3a1d6f26b06cd7d5bb807439c0aa906e8a3dcc4"
+            },
+            {
+              "path": "local-30-photometry-y225-p30.png",
+              "sha256": "b880666ab2fd4c0db0dc86e7fffeec1e73c1946a3fd92607addb9f64b2ae78df"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 270,
+          "pitch": 30,
+          "localQMin": 50.2315349837849,
+          "missingAtoms": [
+            34,
+            6,
+            7
+          ],
+          "missingBonds": [
+            9,
+            10,
+            11,
+            12,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y270-p30.png",
+              "sha256": "ee31fdde8fdedd02a917fb2ca6ecee0834b90e0bc199a827aea8a0408fa51519"
+            },
+            {
+              "path": "local-30-id-mask-y270-p30.png",
+              "sha256": "049cac94ed64c7848989bdb707fa43ed68db6da3a63b67948365aceacd703f0b"
+            },
+            {
+              "path": "local-30-photometry-y270-p30.png",
+              "sha256": "7877c5b98db932263d98eac76e2bc0271f5be87e9f5736c0a70ddac732af4fce"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 315,
+          "pitch": 30,
+          "localQMin": 51.73296133036749,
+          "missingAtoms": [
+            5,
+            6,
+            32
+          ],
+          "missingBonds": [
+            3,
+            9,
+            10,
+            12,
+            31,
+            33,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y315-p30.png",
+              "sha256": "8b99962b39a1dcc680d3804f8f443d6e197eff96919fb3665e96a15b43e6ba8a"
+            },
+            {
+              "path": "local-30-id-mask-y315-p30.png",
+              "sha256": "40518d00c437723a76d989bbb894721ec272d02b59951e56da065b323a2554c9"
+            },
+            {
+              "path": "local-30-photometry-y315-p30.png",
+              "sha256": "376a1686570933b8dcb0ab329b9f144683ecf9b15d27917ead3a4b963e870073"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 0,
+          "pitch": 60,
+          "localQMin": 51.1578163638736,
+          "missingAtoms": [
+            8,
+            32
+          ],
+          "missingBonds": [
+            10,
+            11,
+            12,
+            33
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y0-p60.png",
+              "sha256": "bf493dcd301347caa7f037cc0740a790fa4857e68f47c4c700e147ca9e98e16b"
+            },
+            {
+              "path": "local-30-id-mask-y0-p60.png",
+              "sha256": "89fe82d25dcb82b2f0248be433958441642915c25abfdfc6b70aecc021be74fc"
+            },
+            {
+              "path": "local-30-photometry-y0-p60.png",
+              "sha256": "3a9555608e952f9b4d2b3b38639d3ba2d7ec7a0b52fa2fefc2943edb8e609e76"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 45,
+          "pitch": 60,
+          "localQMin": 52.11813441204666,
+          "missingAtoms": [
+            35
+          ],
+          "missingBonds": [
+            11,
+            33,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y45-p60.png",
+              "sha256": "0e4f4bef77b93eb86bae4b1085f2aed6b6ca54994b4444f43f2d7a675aaa05a8"
+            },
+            {
+              "path": "local-30-id-mask-y45-p60.png",
+              "sha256": "a44f3b9534157ff50ff23c85069944d9744dea39c8c08659b7327c90135b3034"
+            },
+            {
+              "path": "local-30-photometry-y45-p60.png",
+              "sha256": "d45e59be60c72e82528a246ef6000362a4612023d10ca59887c551fc2629fd5f"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 90,
+          "pitch": 60,
+          "localQMin": 52.26282092659964,
+          "missingAtoms": [
+            30,
+            5,
+            8,
+            32
+          ],
+          "missingBonds": [
+            3,
+            9,
+            12,
+            31,
+            33,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y90-p60.png",
+              "sha256": "e052d9024cee581e9419d603954994f39041c6f46ac441dfc24bb1b2835608d3"
+            },
+            {
+              "path": "local-30-id-mask-y90-p60.png",
+              "sha256": "c2070c4a78a64138c29bc3638bd70b737f133280cf555804e31a7be381b80c51"
+            },
+            {
+              "path": "local-30-photometry-y90-p60.png",
+              "sha256": "b4da951676b48890f3131fdb7fa05bc926d47d7f7529beb345898a2fea86b5f7"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 135,
+          "pitch": 60,
+          "localQMin": 52.59944584181942,
+          "missingAtoms": [
+            30,
+            5,
+            8,
+            32
+          ],
+          "missingBonds": [
+            9,
+            12,
+            31,
+            32,
+            33,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y135-p60.png",
+              "sha256": "036838942413409947c92721105e4adaad1e331bbad0dc599aa8931d71b0b66b"
+            },
+            {
+              "path": "local-30-id-mask-y135-p60.png",
+              "sha256": "cdb200ba7d502892cbbae3b8fc0b9c8ebea52808a93cc1bec7237dce1d438352"
+            },
+            {
+              "path": "local-30-photometry-y135-p60.png",
+              "sha256": "0490192984c8a47a5248aa2cab513652ccca0d096663a594da1069bb42f718a8"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 180,
+          "pitch": 60,
+          "localQMin": 50.91983160967902,
+          "missingAtoms": [
+            0,
+            30,
+            34,
+            5,
+            35,
+            8,
+            31,
+            32,
+            33
+          ],
+          "missingBonds": [
+            3,
+            9,
+            11,
+            12,
+            31,
+            32,
+            33,
+            34,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y180-p60.png",
+              "sha256": "d87690a0e32808a0581cd2a24d0065c7ae0c40e9c96433c9dc4425bbf152e028"
+            },
+            {
+              "path": "local-30-id-mask-y180-p60.png",
+              "sha256": "4fe0f3f3dbe87320559e9e6ed63f429cf25e4b2d07d6bc5b98735eaa8efac683"
+            },
+            {
+              "path": "local-30-photometry-y180-p60.png",
+              "sha256": "1d6ff3e04f7c41fa1d54d0ea1c638986e80fda2bd23b294a08abcb14bbefe10e"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 225,
+          "pitch": 60,
+          "localQMin": 50.873718942163556,
+          "missingAtoms": [
+            30,
+            6,
+            7,
+            35,
+            8,
+            31,
+            33
+          ],
+          "missingBonds": [
+            10,
+            12,
+            31,
+            32,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y225-p60.png",
+              "sha256": "4029c3e57f83494c9017e6d2a39e53e7c770d3e422e3b300e73ae55c932f966b"
+            },
+            {
+              "path": "local-30-id-mask-y225-p60.png",
+              "sha256": "9536ca653ab132961ba7bcedd43b40f9caf1b86c6c816b9babcf65468f0ab4db"
+            },
+            {
+              "path": "local-30-photometry-y225-p60.png",
+              "sha256": "2711c7bc0d44921688dfa99d4f9409aab63740aac7f3762228a0623e6d10790e"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 270,
+          "pitch": 60,
+          "localQMin": 51.10578979884717,
+          "missingAtoms": [
+            0,
+            30,
+            8
+          ],
+          "missingBonds": [
+            10,
+            12,
+            32,
+            35
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y270-p60.png",
+              "sha256": "2d3772afa104e98498f8e7ba32c801508aff079e3249608bc0eefead2e18cff8"
+            },
+            {
+              "path": "local-30-id-mask-y270-p60.png",
+              "sha256": "a6500c19d0ca9ce9fd09f00b010a33173020354d835a78c57b542799955d34bb"
+            },
+            {
+              "path": "local-30-photometry-y270-p60.png",
+              "sha256": "76be7176fa9b0291b29573ecf93dfbbee4dcddc8037a21bed2fa221747a0dbe8"
+            }
+          ]
+        },
+        {
+          "mode": "local-30",
+          "yaw": 315,
+          "pitch": 60,
+          "localQMin": 50.984438462256996,
+          "missingAtoms": [
+            0,
+            35,
+            8
+          ],
+          "missingBonds": [
+            10,
+            12,
+            34
+          ],
+          "files": [
+            {
+              "path": "local-30-render-y315-p60.png",
+              "sha256": "291aee875c3d865812924f5c34453c92b53298d7367b255ca4eb318d4354c33d"
+            },
+            {
+              "path": "local-30-id-mask-y315-p60.png",
+              "sha256": "7182075e671873b5476e1c63bd6d25f0ece88a14dc600b6d02d2a571914beb01"
+            },
+            {
+              "path": "local-30-photometry-y315-p60.png",
+              "sha256": "00d284e867d5c01e1ab12231b2c089b06a1c706519271ccd1d2ffe74bfe91fe7"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "decision": "BLOCKED_A07_S12_NO_SIMULTANEOUS_VIEW",
+  "limits": [
+    "All original PNG/mask/photometry hashes verified. Only the two closest failed poses per anchor are copied here.",
+    "This proves failure in the existing fixed campaign, not impossibility under every rigid pose.",
+    "No new browser campaign, chemistry change, fit change or grader relaxation."
+  ]
+}

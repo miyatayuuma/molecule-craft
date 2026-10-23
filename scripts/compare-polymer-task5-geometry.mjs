@@ -1,0 +1,14 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+// Owner: docs/validation/polymer-local-fragment-task5-pla-recovery.md.
+const root=process.cwd(),{polymerTask4Fixtures}=await import(root+'/tests/helpers/polymer-task4-fixtures.mjs');
+const fixtures=await polymerTask4Fixtures({includeIntermediate:false});
+for(const [id,file]of [['PLA','recovery/pla-refeed-geometry-input.json'],['PET','hosted-pet-failure.json']]){const r=JSON.parse(await readFile(root+'/docs/validation/polymer-local-fragment-task5-evidence/'+file));fixtures.push({route:{routeId:id},sample:r.input.snapshot.sample,sourceRecordsByInstanceId:r.input.sources});}
+const codes=[execFileSync('git',['show',`${process.env.GEOMETRY_BASE_REF??'dc70f7e2edd20d40bf1432855ff7fc6c24f6de24'}:src/polymer-fragment-3d-layout.js`],{encoding:'utf8'}),await readFile(root+'/src/polymer-fragment-3d-layout.js','utf8')],modules=await Promise.all(codes.map(s=>import('data:text/javascript;base64,'+Buffer.from(s).toString('base64')))),rows=[];
+// Fixed one full warm-up per source, then four full trials. Alternate order;
+// retain every measurement, with diagnostics outside the timed solve only.
+for(let trial=-1;trial<4;trial++)for(const profile of trial%2===0?[0,1]:[1,0])for(const f of fixtures){const t=performance.now(),p=modules[profile].createPolymerFragment3DLayout(f.sample,{sourceRecordsByInstanceId:f.sourceRecordsByInstanceId}),elapsedMs=performance.now()-t;rows.push({trial,profile:profile?'candidate':'baseline',routeId:f.route.routeId,elapsedMs,accepted:p.diagnostics.accepted,iterations:p.diagnostics.iterations});}
+const changed=[];for(const f of fixtures){const args=[f.sample,{sourceRecordsByInstanceId:f.sourceRecordsByInstanceId}],a=modules[0].createPolymerFragment3DLayout(...args),b=modules[1].createPolymerFragment3DLayout(...args);if(JSON.stringify(a)!==JSON.stringify(b))changed.push({routeId:f.route.routeId,wasAccepted:a.diagnostics.accepted,isAccepted:b.diagnostics.accepted,XYZChanged:JSON.stringify(a.atoms)!==JSON.stringify(b.atoms)});}
+const percentile=(a,q)=>a.toSorted((a,b)=>a-b)[Math.ceil(a.length*q)-1],summary=Object.fromEntries(['baseline','candidate'].map(profile=>{const r=rows.filter(r=>r.profile===profile&&r.trial>=0),times=r.map(r=>r.elapsedMs);return[profile,{count:r.length,p50:percentile(times,.5),p95:percentile(times,.95),max:Math.max(...times),sum:times.reduce((a,b)=>a+b,0),failRoutes:[...new Set(r.filter(r=>!r.accepted).map(r=>r.routeId))]}];})),report={kind:'FIXED_NODE_GEOMETRY_COMPARISON_NOT_RAF_ACCEPTANCE',node:process.version,sourceHashes:codes.map(s=>createHash('sha256').update(s).digest('hex')),budget:{warmups:1,trials:4,routes:fixtures.length},summary,changed,rows};
+await writeFile('test-results/geometry-comparison.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({summary,changed},null,2));

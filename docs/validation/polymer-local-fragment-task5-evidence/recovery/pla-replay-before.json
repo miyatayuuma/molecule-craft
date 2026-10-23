@@ -1,0 +1,1089 @@
+{
+  "kind": "CAPTURED_PRODUCTION_INPUT_REPLAY_NOT_BROWSER_ACCEPTANCE",
+  "capturedSourceSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
+  "candidateSourceSha": null,
+  "run": null,
+  "job": null,
+  "artifact": null,
+  "inputSHA256": "d66858f2b16e770772842f03eb32eb0174847db142f39ae5d5f0735446b54828",
+  "geometrySourceSHA256": "4d3e302341c573c1ea5ab56ba033c30bb397dd2987e773d7abcaec55a26807a0",
+  "sampleId": "polymer-sample-2-2",
+  "routeId": "polylactic-acid-direct-polycondensation",
+  "graphDigest": "0e2881feedc95881932ed5f49a8f5a8a899d33afb4d4ef51f0a273078d1a0556",
+  "viewport": {
+    "width": 1280,
+    "height": 800,
+    "mobile": false
+  },
+  "DPR": 2,
+  "motion": "normal",
+  "unchanged": true,
+  "diagnostics": {
+    "accepted": false,
+    "fallback": false,
+    "reason": "chemical-geometry-did-not-converge",
+    "version": 2,
+    "iterations": 160,
+    "restoredFeasibleIteration": null,
+    "converged": false,
+    "qualityTargetReached": false,
+    "unitCount": 4,
+    "unplacedUnits": [],
+    "sourceCoordinateFallbacks": [],
+    "degenerateSourceBonds": [],
+    "geometryScale": 0.78,
+    "maxBondError": 0.01939479817962897,
+    "meanBondError": 0.002375151072852735,
+    "maxAngleError": 15.420202394886346,
+    "severeOverlapCount": 0,
+    "minimumNonbondedDistance": 1.3043828578670376,
+    "protectedRingAtomCount": 0,
+    "protectedRingCount": 0,
+    "depthSpan": 5.090129430805408,
+    "finite": true,
+    "atomCount": 39,
+    "bondCount": 38,
+    "chemical": {
+      "accepted": false,
+      "finite": true,
+      "bonds": [
+        {
+          "a": 0,
+          "b": 1,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:sp3/sp3",
+          "length": 1.1856745596735287,
+          "error": 0.00007455967352876236
+        },
+        {
+          "a": 0,
+          "b": 7,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8501754748575421,
+          "error": 0.000024525142457987315
+        },
+        {
+          "a": 0,
+          "b": 8,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8501804780399765,
+          "error": 0.000019521960023527463
+        },
+        {
+          "a": 0,
+          "b": 9,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8501920144982078,
+          "error": 0.00000798550179226254
+        },
+        {
+          "a": 1,
+          "b": 4,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:carbonyl/sp3",
+          "length": 1.1863832420626457,
+          "error": 0.0007832420626456837
+        },
+        {
+          "a": 1,
+          "b": 5,
+          "order": 1,
+          "target": 1.1154,
+          "environment": "C-O:1:hydroxyl-O/sp3",
+          "length": 1.1153480717990947,
+          "error": 0.00005192820090527128
+        },
+        {
+          "a": 1,
+          "b": 10,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502017132323243,
+          "error": 0.0000017132323242297076
+        },
+        {
+          "a": 5,
+          "b": 2,
+          "order": 1,
+          "target": 0.7566,
+          "environment": "H-O:1:hydroxyl-O/sp3",
+          "length": 0.7565938000510727,
+          "error": 0.000006199948927365639
+        },
+        {
+          "a": 21,
+          "b": 3,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8514499218362424,
+          "error": 0.0012499218362422848
+        },
+        {
+          "a": 4,
+          "b": 6,
+          "order": 2,
+          "target": 0.9438,
+          "environment": "C-O:2:carbonyl/sp2",
+          "length": 0.9444517417565693,
+          "error": 0.0006517417565693462
+        },
+        {
+          "a": 4,
+          "b": 23,
+          "order": 1,
+          "target": 1.0405200000000001,
+          "environment": "C-O:1:acyl-O/carbonyl",
+          "length": 1.0380471700462903,
+          "error": 0.0024728299537097875
+        },
+        {
+          "a": 11,
+          "b": 13,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:sp3/sp3",
+          "length": 1.1912562865357195,
+          "error": 0.005656286535719479
+        },
+        {
+          "a": 11,
+          "b": 17,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8488279658005475,
+          "error": 0.001372034199452532
+        },
+        {
+          "a": 11,
+          "b": 18,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8501825774026918,
+          "error": 0.00001742259730830309
+        },
+        {
+          "a": 11,
+          "b": 19,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502091420297647,
+          "error": 0.000009142029764652726
+        },
+        {
+          "a": 12,
+          "b": 21,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:sp3/sp3",
+          "length": 1.1870725699855669,
+          "error": 0.001472569985566885
+        },
+        {
+          "a": 12,
+          "b": 25,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502043888349063,
+          "error": 0.0000043888349062770615
+        },
+        {
+          "a": 12,
+          "b": 26,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.850227163316078,
+          "error": 0.000027163316077882804
+        },
+        {
+          "a": 12,
+          "b": 27,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502214607252871,
+          "error": 0.000021460725287081317
+        },
+        {
+          "a": 13,
+          "b": 14,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:carbonyl/sp3",
+          "length": 1.204994798179629,
+          "error": 0.01939479817962897
+        },
+        {
+          "a": 13,
+          "b": 15,
+          "order": 1,
+          "target": 1.1154,
+          "environment": "C-O:1:acyl-O/sp3",
+          "length": 1.1322037066148765,
+          "error": 0.016803706614876512
+        },
+        {
+          "a": 13,
+          "b": 20,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8503550556459466,
+          "error": 0.00015505564594653354
+        },
+        {
+          "a": 14,
+          "b": 16,
+          "order": 2,
+          "target": 0.9438,
+          "environment": "C-O:2:carbonyl/sp2",
+          "length": 0.9513521877912725,
+          "error": 0.0075521877912725355
+        },
+        {
+          "a": 14,
+          "b": 32,
+          "order": 1,
+          "target": 1.0405200000000001,
+          "environment": "C-O:1:acyl-O/carbonyl",
+          "length": 1.0501746817328257,
+          "error": 0.009654681732825576
+        },
+        {
+          "a": 22,
+          "b": 15,
+          "order": 1,
+          "target": 1.0405200000000001,
+          "environment": "C-O:1:acyl-O/carbonyl",
+          "length": 1.052211873190598,
+          "error": 0.011691873190597946
+        },
+        {
+          "a": 21,
+          "b": 22,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:carbonyl/sp3",
+          "length": 1.1852439093043112,
+          "error": 0.00035609069568875995
+        },
+        {
+          "a": 21,
+          "b": 23,
+          "order": 1,
+          "target": 1.1154,
+          "environment": "C-O:1:acyl-O/sp3",
+          "length": 1.1139219506106026,
+          "error": 0.001478049389397329
+        },
+        {
+          "a": 22,
+          "b": 24,
+          "order": 2,
+          "target": 0.9438,
+          "environment": "C-O:2:carbonyl/sp2",
+          "length": 0.9438377590929555,
+          "error": 0.00003775909295555824
+        },
+        {
+          "a": 28,
+          "b": 29,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:sp3/sp3",
+          "length": 1.1891686023635006,
+          "error": 0.0035686023635006503
+        },
+        {
+          "a": 28,
+          "b": 35,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8501862346043065,
+          "error": 0.000013765395693532412
+        },
+        {
+          "a": 28,
+          "b": 36,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502056039068113,
+          "error": 0.000005603906811257886
+        },
+        {
+          "a": 28,
+          "b": 37,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502198131153252,
+          "error": 0.00001981311532517349
+        },
+        {
+          "a": 29,
+          "b": 31,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:carbonyl/sp3",
+          "length": 1.1884499985485135,
+          "error": 0.0028499985485135326
+        },
+        {
+          "a": 29,
+          "b": 32,
+          "order": 1,
+          "target": 1.1154,
+          "environment": "C-O:1:acyl-O/sp3",
+          "length": 1.1176164367942216,
+          "error": 0.0022164367942216767
+        },
+        {
+          "a": 29,
+          "b": 38,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502073411020988,
+          "error": 0.0000073411020987679265
+        },
+        {
+          "a": 34,
+          "b": 30,
+          "order": 1,
+          "target": 0.7566,
+          "environment": "H-O:1:acyl-O/sp3",
+          "length": 0.756603049200171,
+          "error": 0.0000030492001709125915
+        },
+        {
+          "a": 31,
+          "b": 33,
+          "order": 2,
+          "target": 0.9438,
+          "environment": "C-O:2:carbonyl/sp2",
+          "length": 0.9432823491605763,
+          "error": 0.0005176508394236778
+        },
+        {
+          "a": 31,
+          "b": 34,
+          "order": 1,
+          "target": 1.0405200000000001,
+          "environment": "C-O:1:acyl-O/carbonyl",
+          "length": 1.0405246396762455,
+          "error": 0.000004639676245421498
+        }
+      ],
+      "angles": [
+        {
+          "a": 1,
+          "center": 0,
+          "b": 7,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.44940554167407,
+          "error": 0.02181509281662386
+        },
+        {
+          "a": 1,
+          "center": 0,
+          "b": 8,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.39833406105147,
+          "error": 0.07288657343922011
+        },
+        {
+          "a": 1,
+          "center": 0,
+          "b": 9,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.43179054091628,
+          "error": 0.03943009357440985
+        },
+        {
+          "a": 7,
+          "center": 0,
+          "b": 8,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.63627596339097,
+          "error": 0.16505532890028007
+        },
+        {
+          "a": 7,
+          "center": 0,
+          "b": 9,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.47690873366483,
+          "error": 0.005688099174136596
+        },
+        {
+          "a": 8,
+          "center": 0,
+          "b": 9,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.43442252277103,
+          "error": 0.036798111719662074
+        },
+        {
+          "a": 0,
+          "center": 1,
+          "b": 4,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.57805888904484,
+          "error": 0.1068382545541482
+        },
+        {
+          "a": 0,
+          "center": 1,
+          "b": 5,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.50650781918642,
+          "error": 0.035287184695732776
+        },
+        {
+          "a": 0,
+          "center": 1,
+          "b": 10,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.32950776004773,
+          "error": 0.141712874442959
+        },
+        {
+          "a": 4,
+          "center": 1,
+          "b": 5,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.79461482676165,
+          "error": 0.32339419227095334
+        },
+        {
+          "a": 4,
+          "center": 1,
+          "b": 10,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.2980382964888,
+          "error": 0.17318233800189375
+        },
+        {
+          "a": 5,
+          "center": 1,
+          "b": 10,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.31916140756287,
+          "error": 0.15205922692781826
+        },
+        {
+          "a": 1,
+          "center": 4,
+          "b": 6,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 119.8115623873159,
+          "error": 0.18843761268409764
+        },
+        {
+          "a": 1,
+          "center": 4,
+          "b": 23,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.06712336201689,
+          "error": 0.06712336201688629
+        },
+        {
+          "a": 6,
+          "center": 4,
+          "b": 23,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.11822895192519,
+          "error": 0.11822895192518956
+        },
+        {
+          "a": 1,
+          "center": 5,
+          "b": 2,
+          "target": 108.5,
+          "environment": "hydroxyl-O",
+          "degrees": 108.55250942355677,
+          "error": 0.052509423556770685
+        },
+        {
+          "a": 13,
+          "center": 11,
+          "b": 17,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.37555192579711,
+          "error": 0.9043312913064199
+        },
+        {
+          "a": 13,
+          "center": 11,
+          "b": 18,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.98711129663445,
+          "error": 0.5158906621437609
+        },
+        {
+          "a": 13,
+          "center": 11,
+          "b": 19,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.3319944153324,
+          "error": 1.1392262191582887
+        },
+        {
+          "a": 17,
+          "center": 11,
+          "b": 18,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.9706919720638,
+          "error": 1.4994713375731124
+        },
+        {
+          "a": 17,
+          "center": 11,
+          "b": 19,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.54391498428357,
+          "error": 0.9273056502071171
+        },
+        {
+          "a": 18,
+          "center": 11,
+          "b": 19,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.55975569640208,
+          "error": 0.9114649380886135
+        },
+        {
+          "a": 21,
+          "center": 12,
+          "b": 25,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.58725548147223,
+          "error": 0.11603484698153466
+        },
+        {
+          "a": 21,
+          "center": 12,
+          "b": 26,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.51915944948763,
+          "error": 0.04793881499693953
+        },
+        {
+          "a": 21,
+          "center": 12,
+          "b": 27,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.38132436662099,
+          "error": 0.08989626786970462
+        },
+        {
+          "a": 25,
+          "center": 12,
+          "b": 26,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.63107865752735,
+          "error": 0.1598580230366622
+        },
+        {
+          "a": 25,
+          "center": 12,
+          "b": 27,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.39273862777601,
+          "error": 0.07848200671467964
+        },
+        {
+          "a": 26,
+          "center": 12,
+          "b": 27,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.31507121692336,
+          "error": 0.15614941756733458
+        },
+        {
+          "a": 11,
+          "center": 13,
+          "b": 14,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 115.88413525805296,
+          "error": 6.412914623562273
+        },
+        {
+          "a": 11,
+          "center": 13,
+          "b": 15,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.06461978248258,
+          "error": 0.5933991479918888
+        },
+        {
+          "a": 11,
+          "center": 13,
+          "b": 20,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 105.38903306093331,
+          "error": 4.082187573557377
+        },
+        {
+          "a": 14,
+          "center": 13,
+          "b": 15,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 115.47320189105237,
+          "error": 6.0019812565616775
+        },
+        {
+          "a": 14,
+          "center": 13,
+          "b": 20,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 105.34173995678299,
+          "error": 4.129480677707704
+        },
+        {
+          "a": 15,
+          "center": 13,
+          "b": 20,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 103.20768675954507,
+          "error": 6.263533874945622
+        },
+        {
+          "a": 13,
+          "center": 14,
+          "b": 16,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 117.50047934375311,
+          "error": 2.4995206562468866
+        },
+        {
+          "a": 13,
+          "center": 14,
+          "b": 32,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 128.20092513579195,
+          "error": 8.200925135791948
+        },
+        {
+          "a": 16,
+          "center": 14,
+          "b": 32,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 114.29599690415884,
+          "error": 5.704003095841159
+        },
+        {
+          "a": 13,
+          "center": 15,
+          "b": 22,
+          "target": 114.8,
+          "environment": "acyl-O",
+          "degrees": 130.22020239488634,
+          "error": 15.420202394886346
+        },
+        {
+          "a": 3,
+          "center": 21,
+          "b": 12,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 107.08129334290643,
+          "error": 2.3899272915842573
+        },
+        {
+          "a": 3,
+          "center": 21,
+          "b": 22,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 106.23562116540236,
+          "error": 3.235599469088328
+        },
+        {
+          "a": 3,
+          "center": 21,
+          "b": 23,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 107.56377793777308,
+          "error": 1.9074426967176095
+        },
+        {
+          "a": 12,
+          "center": 21,
+          "b": 22,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.74151314608618,
+          "error": 0.7297074884045145
+        },
+        {
+          "a": 12,
+          "center": 21,
+          "b": 23,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.70963131088301,
+          "error": 0.23841067639231994
+        },
+        {
+          "a": 22,
+          "center": 21,
+          "b": 23,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 117.03097967406494,
+          "error": 7.559759039574246
+        },
+        {
+          "a": 15,
+          "center": 22,
+          "b": 21,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 126.53265311155305,
+          "error": 6.532653111553046
+        },
+        {
+          "a": 15,
+          "center": 22,
+          "b": 24,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 117.06869404378038,
+          "error": 2.9313059562196173
+        },
+        {
+          "a": 21,
+          "center": 22,
+          "b": 24,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 116.39863210377702,
+          "error": 3.601367896222982
+        },
+        {
+          "a": 4,
+          "center": 23,
+          "b": 21,
+          "target": 114.8,
+          "environment": "acyl-O",
+          "degrees": 114.39484024189147,
+          "error": 0.40515975810852467
+        },
+        {
+          "a": 29,
+          "center": 28,
+          "b": 35,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.9170614772912,
+          "error": 0.4458408428005072
+        },
+        {
+          "a": 29,
+          "center": 28,
+          "b": 36,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.72514531101247,
+          "error": 0.25392467652177686
+        },
+        {
+          "a": 29,
+          "center": 28,
+          "b": 37,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.07786255585636,
+          "error": 0.3933580786343356
+        },
+        {
+          "a": 35,
+          "center": 28,
+          "b": 36,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.98693313541183,
+          "error": 0.5157125009211398
+        },
+        {
+          "a": 35,
+          "center": 28,
+          "b": 37,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.14882856465384,
+          "error": 0.32239206983685165
+        },
+        {
+          "a": 36,
+          "center": 28,
+          "b": 37,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.96182845272351,
+          "error": 0.5093921817671827
+        },
+        {
+          "a": 28,
+          "center": 29,
+          "b": 31,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.74213202104318,
+          "error": 1.2709113865524841
+        },
+        {
+          "a": 28,
+          "center": 29,
+          "b": 32,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.37460572831623,
+          "error": 0.9033850938255341
+        },
+        {
+          "a": 28,
+          "center": 29,
+          "b": 38,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 107.16973040179502,
+          "error": 2.30149023269567
+        },
+        {
+          "a": 31,
+          "center": 29,
+          "b": 32,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 114.91315120841361,
+          "error": 5.441930573922917
+        },
+        {
+          "a": 31,
+          "center": 29,
+          "b": 38,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 107.24947252397583,
+          "error": 2.2217481105148664
+        },
+        {
+          "a": 32,
+          "center": 29,
+          "b": 38,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 105.94518017654897,
+          "error": 3.5260404579417184
+        },
+        {
+          "a": 29,
+          "center": 31,
+          "b": 33,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 119.78456353481533,
+          "error": 0.2154364651846663
+        },
+        {
+          "a": 29,
+          "center": 31,
+          "b": 34,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.4149028231564,
+          "error": 0.41490282315639604
+        },
+        {
+          "a": 33,
+          "center": 31,
+          "b": 34,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 119.80022778682067,
+          "error": 0.19977221317932958
+        },
+        {
+          "a": 14,
+          "center": 32,
+          "b": 29,
+          "target": 114.8,
+          "environment": "acyl-O",
+          "degrees": 123.34935624560154,
+          "error": 8.549356245601544
+        },
+        {
+          "a": 30,
+          "center": 34,
+          "b": 31,
+          "target": 114.8,
+          "environment": "acyl-O",
+          "degrees": 114.72028822194002,
+          "error": 0.07971177805997343
+        }
+      ],
+      "planes": [
+        {
+          "indices": [
+            4,
+            1,
+            6,
+            23
+          ],
+          "kind": "carbonyl",
+          "deviation": 0.01000592911692459
+        },
+        {
+          "indices": [
+            14,
+            13,
+            16,
+            32
+          ],
+          "kind": "carbonyl",
+          "deviation": 0.008987631191526402
+        },
+        {
+          "indices": [
+            22,
+            15,
+            21,
+            24
+          ],
+          "kind": "carbonyl",
+          "deviation": 0.0008001312269460064
+        },
+        {
+          "indices": [
+            31,
+            29,
+            33,
+            34
+          ],
+          "kind": "carbonyl",
+          "deviation": 0.003157030978792212
+        },
+        {
+          "indices": [
+            6,
+            4,
+            23,
+            21
+          ],
+          "kind": "ester",
+          "deviation": 0.008403404414092385
+        },
+        {
+          "indices": [
+            16,
+            14,
+            32,
+            29
+          ],
+          "kind": "ester",
+          "deviation": 0.0017240649509290317
+        },
+        {
+          "indices": [
+            24,
+            22,
+            15,
+            13
+          ],
+          "kind": "ester",
+          "deviation": 0.005508234425467976
+        },
+        {
+          "indices": [
+            33,
+            31,
+            34,
+            30
+          ],
+          "kind": "ester",
+          "deviation": 0.00006546978387450652
+        }
+      ],
+      "violations": {
+        "bonds": [],
+        "angles": [
+          {
+            "a": 13,
+            "center": 15,
+            "b": 22,
+            "target": 114.8,
+            "environment": "acyl-O",
+            "degrees": 130.22020239488634,
+            "error": 15.420202394886346
+          }
+        ],
+        "planes": [],
+        "steric": []
+      },
+      "maxBondError": 0.01939479817962897,
+      "maxAngleError": 15.420202394886346,
+      "minimumNonbondedDistance": 1.3043828578670376,
+      "severeOverlapCount": 0
+    }
+  },
+  "safeError": {
+    "code": "POLYMER_GEOMETRY_UNAVAILABLE",
+    "message": "Polymer geometry unavailable: chemical-geometry-did-not-converge"
+  },
+  "pass": false
+}

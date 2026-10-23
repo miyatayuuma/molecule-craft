@@ -268,6 +268,7 @@ function relaxGeometry(model,coordinates,maxIterations){
     }
   };
   let performed=0,qualityTargetReached=false,bestFeasible=null,bestScore=Infinity,bestIteration=null,restoredFeasibleIteration=null;
+  let preDistanceFeasible=null,preDistanceScore=Infinity,preDistanceIteration=null;
   for(let i=0;i<iterations;i++){
     performed=i+1;
 
@@ -285,6 +286,17 @@ function relaxGeometry(model,coordinates,maxIterations){
       for(let j=0;j<6;j++)p[indices[j]]=add(center,mul(add(mul(x,Math.cos(j*Math.PI/3)),mul(y,Math.sin(j*Math.PI/3))),1.4*POLYMER_GEOMETRY_SCALE));
     }
     for(const plane of model.planar)projectPlane(plane.indices);
+    // Length projection can undo a jointly feasible angle/plane pose while
+    // reducing bond error already inside the chemical tolerance. Keep that
+    // pose only after validating EVERY constraint, at the existing cadence.
+    // Prefer the original full-sweep checkpoint whenever one exists.
+    if(sweep===7&&performed%8===0){
+      const d=polymerGeometryDiagnostics(model,p);
+      if(d.accepted){
+        const score=Math.max(d.maxBondError/.02,d.maxAngleError/5,...d.planes.map(plane=>plane.deviation/.035));
+        if(score<preDistanceScore){preDistanceScore=score;preDistanceFeasible=p.map(point=>({...point}));preDistanceIteration=performed;}
+      }
+    }
     for(const b of model.bondTargets)projectDistance(b.a,b.b,b.target,.9);
     }
     if(performed%8===0){
@@ -302,10 +314,11 @@ function relaxGeometry(model,coordinates,maxIterations){
   }
   // The terminal nitrile projection is exact and cannot move a chain center.
   for(const a of model.angles)if(a.target===180)projectAngle(a);
-  if(bestFeasible&&!polymerGeometryDiagnostics(model,p).accepted){
-    for(let i=0;i<p.length;i++)p[i]={...bestFeasible[i]};
+  const retained=bestFeasible??preDistanceFeasible;
+  if(retained&&!polymerGeometryDiagnostics(model,p).accepted){
+    for(let i=0;i<p.length;i++)p[i]={...retained[i]};
     for(const a of model.angles)if(a.target===180)projectAngle(a);
-    restoredFeasibleIteration=bestIteration;
+    restoredFeasibleIteration=bestFeasible?bestIteration:preDistanceIteration;
   }
   // The caller independently validates the returned pose, including the exact
   // nitrile projection; retaining an iterate never bypasses acceptance/fallback.
