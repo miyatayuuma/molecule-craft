@@ -12,7 +12,9 @@
     "PWAAssets": 353,
     "hygieneWarnings": 0,
     "PETCapturedInputReplay": "PASS",
-    "dockingCapturedInputReplay": "PASS"
+    "dockingCapturedInputReplay": "PASS",
+    "newAllocationGuardTests": 3,
+    "repeatedStaticRenderControls": 3
   },
   "mobileSmoke": {
     "pass": true,
@@ -156,5 +158,30 @@
     "Final-source Repository/FIELD/StageB and PF multi-cycle resource gates"
   ],
   "ciPolicy": "Checkpoint uses [skip ci] to preserve work without starting additional Actions during this diagnostic checkpoint. Required gates remain pending and Draft/Open is retained.",
-  "equivalentSavedRuntimeSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c"
+  "equivalentSavedRuntimeSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
+  "PETRaster": {
+    "runtimeSourceSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "DPR": 1
+    },
+    "fixedViews": 160,
+    "rasterGate": "PASS_SINGLE_ROUTE_PILOT",
+    "originalBrowserProcess": "FAIL_REDUCED_TAIL_ALLOCATION_51_TO_58",
+    "followupFunctionalReplay": "PASS_NORMAL_AND_REDUCED",
+    "stableAllocationWindows": 10,
+    "liveAutomaticGrowthBranch": "NOT_EXERCISED",
+    "deterministicAllocationGuardTests": 3,
+    "limits": [
+      "The original before-window graph was not captured.",
+      "Original browser FAIL is retained separately from raster PASS.",
+      "Formal performance-profile allocation checks are unchanged."
+    ],
+    "harnessHashes": {
+      "tests/reaction-lab-polymer-browser.test.mjs": "d25497c71ac9112c25e06acb4b75a623aa25e0bd19ef6e73f7b86d083c87d533",
+      "tests/helpers/polymer-allocation-window.mjs": "5ecedf9b01cc8800228bd264a42ad8afe46690e807841e631937c198be31a8f2"
+    }
+  },
+  "PLARaster": "RUNNING_NOT_ACCEPTED"
 }
