@@ -1,0 +1,278 @@
+{
+  "kind": "PIB_OCCLUSION_DIAGNOSIS_BLOCKED_NOT_ACCEPTANCE",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "prHeadAtStart": "6036606df10126840c5c51ada9fde76cb4d57f84",
+  "productionChanged": false,
+  "sampleId": "polymer-sample-1-1",
+  "routeId": "polyisobutylene-cationic",
+  "actualPNGAcceptance": {
+    "anchors0_17_30": "old fixed campaign FAIL / no new browser campaign",
+    "all25_12jobs": "NOT_RUN",
+    "V0_V8_C01_C09_S10_S16": "NOT_CERTIFIED",
+    "PAN_NBR_L1": "NOT_CERTIFIED",
+    "lifecycle_resource_PF3cycle": "NOT_RUN",
+    "StageB_Finite_Repository_FIELD": "NOT_RUN",
+    "merge_postmerge": "NOT_RUN"
+  },
+  "protectedTests": {
+    "passed": 35,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "frozen PLA/PET,25 final/95 intermediate geometry,observation,raster,allocation,static render,heap"
+  },
+  "diagnosticCPU": {
+    "calibrationMismatchUnionRange": [
+      0.0026259937407820426,
+      0.004239668999335955
+    ],
+    "initialCandidateCount": 13,
+    "pixelRefinementCount": 405,
+    "wideRegionFactorPoseCount": 24,
+    "limits": [
+      "CPU mesh prediction is not an actual PNG acceptance",
+      "Unknown original sphere quaternion; foreground union differs by0.26–0.424%",
+      "No proof of global rigid-view impossibility",
+      "No production change was justified for all three anchors"
+    ]
+  },
+  "sourceHashes": {
+    "src/reaction-lab-polymer-presentation.js": "f6f30f3537b913a96133d0d672c62f7c78d4ad107e230ad786487b480c25d775",
+    "src/reaction-lab-viewer.js": "785cacc637f2ef8d6889c45b9b102aecc9506a77f8dd44db8bb328d3590309cd",
+    "src/polymer-fragment-3d-layout.js": "36dc11d0e412c84eeeabf1adc4bbd87bbc111763d8f03c0a0dba3f326b868125",
+    "src/chemistry.js": "61e88dacc1168d18cb8405182873fa4f77581c6fad8bb8da42c779b5af260482",
+    "tests/helpers/polymer-task5-visual.mjs": "4de211311be27e588b0c2b2a78ece2a26eec442ea107f9b45c4adb8bdf79f2b2",
+    "tests/polymer-task5-pla-recovery.test.mjs": "94729ad2e8801a258dcf57abbe955303732e9cd3bf78c1c05cb9fcfb3e345eb6",
+    "tests/polymer-task5-pet-recovery.test.mjs": "6c00baab1564c5d6c71b33af9f186aa7b3e18b97f0c60080a5c5bed52771f3e8"
+  },
+  "files": [
+    {
+      "path": "independent-review.json",
+      "sha256": "d257e270a6d19c72813aa79e21bd3ac0f211bad5ffa43c440a37f34d686a2554",
+      "bytes": 2202
+    },
+    {
+      "path": "mesh-candidate-0-0-CPU.png",
+      "sha256": "c1d1c3769b29d890ce235f58b502fa2859668ba56af39da59a0013d5043fd01d",
+      "bytes": 5746
+    },
+    {
+      "path": "mesh-candidate-17-0-CPU.png",
+      "sha256": "9d5380114d4551d4b0a97003981dee3a028273e008aabcd5be956944f7bab0e2",
+      "bytes": 7210
+    },
+    {
+      "path": "mesh-candidate-30-0-CPU.png",
+      "sha256": "8985a79f125ab01e875933684aa63122d9330511f5698a97e3dc70736843a3cc",
+      "bytes": 6000
+    },
+    {
+      "path": "mesh-candidate-30-1-CPU.png",
+      "sha256": "aa738553bc4c4506dac59e388f619bce8e6de7327189fbe08953de95843072c3",
+      "bytes": 5765
+    },
+    {
+      "path": "mesh-candidate-30-10-CPU.png",
+      "sha256": "5ab615fb0a66090298eb37dd85c6c07c9e6f70ee3f480b58a8079e97175e7fb9",
+      "bytes": 6588
+    },
+    {
+      "path": "mesh-candidate-30-2-CPU.png",
+      "sha256": "470096914524aef6d936fe6813447f266c6c66d4300db46d5e0991b30412cd4d",
+      "bytes": 5761
+    },
+    {
+      "path": "mesh-candidate-30-3-CPU.png",
+      "sha256": "9d5e4fe134c0968000e3f1a83ed43e2d484ac4a4634b63a54d046be047cbff0a",
+      "bytes": 6019
+    },
+    {
+      "path": "mesh-candidate-30-4-CPU.png",
+      "sha256": "d2091878a2c960a2b0c4a8c2545e032207a9723a3265c3a6c1a26bebee64c7e0",
+      "bytes": 5955
+    },
+    {
+      "path": "mesh-candidate-30-5-CPU.png",
+      "sha256": "3101ac0c4f4c143d7dfed72dc589a2d5d6a77fcc0bec68a472d1667b602376f6",
+      "bytes": 6230
+    },
+    {
+      "path": "mesh-candidate-30-6-CPU.png",
+      "sha256": "a2c3453522b483549866498fe3441eb25e4041785b7d446f8720c2a86fb3cc87",
+      "bytes": 5467
+    },
+    {
+      "path": "mesh-candidate-30-7-CPU.png",
+      "sha256": "120f809c9efd6b2d4bf032eb96c1420fb1e00ba3c2e10abd23b14fbf92fa7ef6",
+      "bytes": 5487
+    },
+    {
+      "path": "mesh-candidate-30-8-CPU.png",
+      "sha256": "3df0ccbcbb3e6818d84d152a2ecaf5d7c866a72d308d064e6106cc7681f406af",
+      "bytes": 6488
+    },
+    {
+      "path": "mesh-candidate-30-9-CPU.png",
+      "sha256": "756d848ef9b7e0ee2641d8a7d81426542ad514221980d95bb3703d698fdc39f1",
+      "bytes": 6276
+    },
+    {
+      "path": "mesh-control-0-y0-p0-CPU.png",
+      "sha256": "916c1116f938b338e38a02fb39da2096ffe17c4e9268e463111d557a6316ba41",
+      "bytes": 6343
+    },
+    {
+      "path": "mesh-control-0-y90-p-60-CPU.png",
+      "sha256": "8d7087bb951323517a70438722e00572f2a1ec205e0dc622857e93d8adbdd6d3",
+      "bytes": 5398
+    },
+    {
+      "path": "mesh-control-17-y135-p30-CPU.png",
+      "sha256": "432967fc4402f7d8f03b27ea08fe1407b2002a1f217512f6a59b55f299932c8e",
+      "bytes": 6818
+    },
+    {
+      "path": "mesh-control-17-y45-p30-CPU.png",
+      "sha256": "9e8d9753cd6f9a6f736bc10937725b0f038afe5f64843eab2bd017ca022b734a",
+      "bytes": 6692
+    },
+    {
+      "path": "mesh-control-30-y45-p-60-CPU.png",
+      "sha256": "eee3da931179d6653a38606e97989d6fef021609def44c7ed38f9295a3d7cb0b",
+      "bytes": 5786
+    },
+    {
+      "path": "mesh-control-30-y90-p-60-CPU.png",
+      "sha256": "e83f735de24b0cd12b18eafd5ebbc800710f82bf9e16857fb2ca6d5cdea546bb",
+      "bytes": 6235
+    },
+    {
+      "path": "mesh-pixel-refinement-0-CPU.png",
+      "sha256": "e09d81173d257b3952be99ee70bf08bcb839966bda4d920b23bbeb0c9eba8df3",
+      "bytes": 6233
+    },
+    {
+      "path": "mesh-pixel-refinement-1-CPU.png",
+      "sha256": "c457917dde9dda4234b5e064699935bed215bf3c9097c6e8ad53b363414d00ca",
+      "bytes": 6121
+    },
+    {
+      "path": "mesh-pixel-refinement-2-CPU.png",
+      "sha256": "5c08d48601ce6086b97b21c2ade6beb940159688809e4ef21e00cbce6af23299",
+      "bytes": 5816
+    },
+    {
+      "path": "mesh-pixel-refinement-protocol.json.gz",
+      "sha256": "649fb98713444907ce09cc5a3fb679d8fd529fbc0f3ab0c8eb12455447de4799",
+      "bytes": 465
+    },
+    {
+      "path": "mesh-pixel-refinement.json.gz",
+      "sha256": "bcd1d514f8fe9675666de7a351afb197fbdd5baa2cf9a1cfc8175367dfd05664",
+      "bytes": 328357
+    },
+    {
+      "path": "mesh-protocol.json.gz",
+      "sha256": "cda8b2a9c29f5e6ddfe0472ace45cc6efb0619c515abf4f6f86630d95bf983e7",
+      "bytes": 383
+    },
+    {
+      "path": "mesh-report.json.gz",
+      "sha256": "fde67e7660ae568d1f292452bb447d92b026d64722978518f4efa7e7aef5d580",
+      "bytes": 17053
+    },
+    {
+      "path": "mesh-wide-region-protocol.json.gz",
+      "sha256": "a2fb60a97592943359cb24451594d0d9e3204a78d374f2530688e75068ecf57a",
+      "bytes": 313
+    },
+    {
+      "path": "mesh-wide-region.json.gz",
+      "sha256": "9ffccf2c7c2db848c104b0fdd8abeb7a2f0dae8cbc2fcfc703ecf6b936cc2166",
+      "bytes": 21027
+    },
+    {
+      "path": "pib-facets-protocol.json.gz",
+      "sha256": "d53c47904b3302dbff927767f7c8ccf6ec7d6efb276d0c8aa3ee2de6107ef358",
+      "bytes": 409
+    },
+    {
+      "path": "pib-facets.json.gz",
+      "sha256": "976c32c7627f1ef0f9692f08e301b81f5c321b3320a6b9c26bf2da224884952f",
+      "bytes": 182496
+    },
+    {
+      "path": "pib-fit-factors-protocol.json.gz",
+      "sha256": "3b5abbb643e1995e7e9f45510e1adf64d400c613524df9da435a1909304ab7b4",
+      "bytes": 391
+    },
+    {
+      "path": "pib-fit-factors.json.gz",
+      "sha256": "bf8ab3a8efa5f71ebbe74a5375e9789813ef9fd3c9c99d6631b3f908ec8db774",
+      "bytes": 41026
+    },
+    {
+      "path": "pib-occlusion.json.gz",
+      "sha256": "e3ea865435ddbaec14f1e441789b6a3afb9a3a4f18765e5f051d29d8d77cc8a7",
+      "bytes": 19505
+    },
+    {
+      "path": "pib-reachability-protocol.json.gz",
+      "sha256": "9eadd5fded28cc655ed9618b5ce9abcd4c38258353ab9bd59e94dae16d4641e9",
+      "bytes": 342
+    },
+    {
+      "path": "pib-reachability-refine-protocol.json.gz",
+      "sha256": "c234f912f72336f418032446a9d4e03fe0b86d65664e8bd0dba5d4ed570276be",
+      "bytes": 344
+    },
+    {
+      "path": "pib-reachability-refine.json.gz",
+      "sha256": "1911085f281d3dcc763bfd4d85a31b80068501f643d68a37c420733246c2b2fa",
+      "bytes": 75598
+    },
+    {
+      "path": "pib-reachability.json.gz",
+      "sha256": "89b3176e2cd35fab04c88234144e31af890b58a1ba339d67d956ae38e0ef3252",
+      "bytes": 216559
+    },
+    {
+      "path": "pib-refinement-protocol.json.gz",
+      "sha256": "bf8085894af36da87d2701152304d17611ec589d807c1727d678d6155fe340c3",
+      "bytes": 508
+    },
+    {
+      "path": "pib-refinement.json.gz",
+      "sha256": "039c40bce50802f2f15d15c28bf9c07d826bcf6ba86fdd8d7fe72428bba0d739",
+      "bytes": 103986
+    },
+    {
+      "path": "protected-tests.log",
+      "sha256": "c65b2a1bf1d3315256e6522e1376dcca81df9abea855bc254a3d45abf5deb31e",
+      "bytes": 4020
+    }
+  ],
+  "fixture": {
+    "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/ba94cb-pib-visual.json.gz",
+    "sha256": "cc795cd5008cf2ab61e89cc58e9e3c17cd8ba47d13af8963ec363a2387d2a7a1",
+    "graphDigest": "f7bd07a6bc990bb0157fe2e917b2df5a7c1c4510a0a924c137dccad5b914b7b6",
+    "layoutJSONSha256": "bc628f415ff5d72e35554f969919dd17b6cae2dd83b4a109686baae053c1e9a8",
+    "cameraJSONSha256": "dac2171e88ec15ac8826eca4acbdc79d82c3dc12bd0430dcfda82c1a59323ecb"
+  },
+  "scriptHashes": {
+    "scripts/diagnose-polymer-task5-pib-occlusion.mjs": "fcf8cbc2f020ce22a69d98c05d0471f46429442fd970ea85ae1121e02674da71",
+    "scripts/diagnose-polymer-task5-pib-refinement.mjs": "b99dbd563251093a22de2d7b92e7324090310a84307ce6e9cd9030d752088925",
+    "scripts/diagnose-polymer-task5-pib-search.mjs": "82619d13a8c3c86e506f8cb6471867d5119a1c1eed32b8de1349b79ab913642c",
+    "scripts/diagnose-polymer-task5-pib-mesh.mjs": "8e5babc842d20fae6a7eaf26f1367cbf6c6fd6df329fbab68877488ba55f7d8b"
+  },
+  "runtime": {
+    "node": "v24.19.0",
+    "v8": "13.6.233.17-node.51",
+    "threeSha256": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6"
+  },
+  "replayVerification": {
+    "sphere": "IDENTICAL observations",
+    "facets": "IDENTICAL observations",
+    "refine30": "IDENTICAL observations",
+    "factors": "IDENTICAL observations"
+  }
+}
