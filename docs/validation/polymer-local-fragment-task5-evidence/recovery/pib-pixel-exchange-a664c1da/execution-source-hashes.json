@@ -1,0 +1,35 @@
+{
+  "note": "Recorded unchanged execution sources during the fixed MILP campaign, before first candidate raster; no tools modified while solver running",
+  "files": [
+    {
+      "path": "scripts/prepare-polymer-task5-pixel-exchange.mjs",
+      "sha256": "8c9421bd95a52b319d5f50113c36db264a043988215fd55d9ffe1e3bcdb6175e"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-pixel-exchange.py",
+      "sha256": "3f2ca5098f0dbcee7a108df90ac183a0323dc32e49588616bf2b5afa8b201e22"
+    },
+    {
+      "path": "scripts/check-polymer-task5-pixel-exchange.mjs",
+      "sha256": "e8f3dc36358bef51d1bae08da3468407ecb0083102ff10b78b871aac92c551ca"
+    },
+    {
+      "path": "scripts/analyze-polymer-task5-exact-mesh.mjs",
+      "sha256": "018437bb3cc6b951d47bc3077ad52807d98aa9a791028d9cbbb3fd26d832f2b7"
+    },
+    {
+      "path": "scripts/analyze-polymer-task5-orientation-feasibility.mjs",
+      "sha256": "66a590e6c4f34e83cdc34816d6d2e9eb1f9ff06535f1e0a3c300032f77a62c51"
+    },
+    {
+      "path": "scripts/diagnose-polymer-task5-boundaries.mjs",
+      "sha256": "1e60c79cca53365fbe9fe5bc957238d65af16262b2386c9a48d101abd5ae7c41"
+    },
+    {
+      "path": "tests/helpers/polymer-task5-visual.mjs",
+      "sha256": "4de211311be27e588b0c2b2a78ece2a26eec442ea107f9b45c4adb8bdf79f2b2"
+    }
+  ],
+  "node": "v24.19.0",
+  "python": "3.12.14"
+}

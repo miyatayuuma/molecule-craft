@@ -1,0 +1,168 @@
+{
+  "kind": "FINITE_PIXEL_EXCHANGE_MILP_NO_NATIVE_WITNESS",
+  "startHead": "a664c1da27fced58ec76fc3be13592b695f71629",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "disposition": "UNRESOLVED",
+  "certifiedExcludedRegions": 0,
+  "productionChanges": 0,
+  "graphDigest": "f7bd07a6bc990bb0157fe2e917b2df5a7c1c4510a0a924c137dccad5b914b7b6",
+  "formalGPU": "original0/3; newGPU0",
+  "budgets": {
+    "fixedSolverSlots": 12,
+    "actualSlots": 12,
+    "affineInfeasible": 5,
+    "timeoutNoIncumbent": 7,
+    "candidatePoses": 0,
+    "CPURasterCap": 36,
+    "CPURasterActual": 0,
+    "GPUCap": 1,
+    "GPUActual": 0,
+    "restarts": 0,
+    "elapsedIncludingModelConstructionSeconds": 468.3583442530007,
+    "requestedHiGHSTimeLimitSecondsPerSlot": 45,
+    "strictWallClockKill": false
+  },
+  "previousManifests": [
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-boundary-92da7771/manifest.json",
+      "sha256": "18dc30a478ca601dde8ac7777efe21c88d41ca5bd49ca678b5a598c67b49d883",
+      "entriesVerified": 12
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-coupled-6d508e75/manifest.json",
+      "sha256": "4eb5a215e7086710f0afa21877a1d532c95e26ba3aff462bf87a59dbadf9d89b",
+      "entriesVerified": 14
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-orientation-6a2f056a/manifest.json",
+      "sha256": "4857600d1bbfaae512393a73526dbca8a097c38b83964d89ff202ef7219914c3",
+      "entriesVerified": 13
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/manifest.json",
+      "sha256": "3b54a5db1b6c4a46bd866256769cc21e4f4f797b62ee44a72d96a951b54fa4f8",
+      "entriesVerified": 32
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-raster-parity-d100a76b/manifest.json",
+      "sha256": "0a8c128c0375efc8ce5ffae7a6beb735eba42f1fcafae429febb206c1327ad09",
+      "entriesVerified": 7
+    }
+  ],
+  "protectedGitTreeEntriesSHA256": "48ade8ca7c4d429a66481159f7abcfed67175bdd045aa3a47adc2a18578febcd",
+  "files": [
+    {
+      "path": "candidate-evaluations.log",
+      "bytes": 717,
+      "sha256": "13a1841d7b991823f63ff84f6379bd289bf1bb9e911bf76259ba981d0c131166"
+    },
+    {
+      "path": "candidate-history.jsonl.gz",
+      "bytes": 1797,
+      "sha256": "6f7fe86185e7acbc96d27a39cb48db7500370ac2d2f5a5e19f921feab227088a"
+    },
+    {
+      "path": "candidates.json.gz",
+      "bytes": 2075,
+      "sha256": "1fbb9f3d2f6220e3781c48f700c100d8e9bd432d934c4c9334df462f012959e1"
+    },
+    {
+      "path": "events.json.gz",
+      "bytes": 25677,
+      "sha256": "91823b8d8f8d001e9e8666bbe27596e70f5f819c14b6ddc27079f5b1f2825fc1"
+    },
+    {
+      "path": "execution-source-hashes.json",
+      "bytes": 1338,
+      "sha256": "0866e612e56cd8ae97d2694089becc3f3663ea3be18ecccde6b0cae4d62a681a"
+    },
+    {
+      "path": "geometry-tests.log",
+      "bytes": 1103,
+      "sha256": "db6e506e0dd59b8e739e439428aedd4417bee348a126a9a85581361ddb909fda"
+    },
+    {
+      "path": "model.json.gz",
+      "bytes": 1660302,
+      "sha256": "95c9aec2c705acd2f9a60dda416ef0f67e651aeb523f38b5df24247537b0d962"
+    },
+    {
+      "path": "new-tests.log",
+      "bytes": 487,
+      "sha256": "4235a4cad9768648b3d2ae7eff1e6a83b30a4f746cf73624e71c1708759436c0"
+    },
+    {
+      "path": "protected-tests.log",
+      "bytes": 13102,
+      "sha256": "49dbf384f372a1b0d645ac3c91055cc8f8b10c731e25bc142e6ec3147ccfb46e"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 2060,
+      "sha256": "c8536a592ffcd9cd4b03196d559f4c8c8ed3135f4f4479530a12c45d4b436084"
+    },
+    {
+      "path": "results.json.gz",
+      "bytes": 3313,
+      "sha256": "3deebd451ca7be07a0e6e63104fadd6ec5deaf6a6bc2cfcca6db6d764e1c1e84"
+    },
+    {
+      "path": "seed-model-audit.json",
+      "bytes": 6335,
+      "sha256": "94ff0978f879347e966d8340f76128c30c8e0797a2e0f79a71522706c200451c"
+    },
+    {
+      "path": "solver.log",
+      "bytes": 3352,
+      "sha256": "b04146570177de8b2630ae20d167881d20f04ce0d4a0af8758c27408cb099230"
+    },
+    {
+      "path": "validation-checks.json",
+      "bytes": 896,
+      "sha256": "d1740c6057924508b36f7e8b76c6b7f6a8a51e4b4f573fbaa49b929dbe61b899"
+    }
+  ],
+  "tools": [
+    {
+      "path": "scripts/prepare-polymer-task5-pixel-exchange.mjs",
+      "sha256": "8c9421bd95a52b319d5f50113c36db264a043988215fd55d9ffe1e3bcdb6175e"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-pixel-exchange.py",
+      "sha256": "3f2ca5098f0dbcee7a108df90ac183a0323dc32e49588616bf2b5afa8b201e22"
+    },
+    {
+      "path": "scripts/check-polymer-task5-pixel-exchange.mjs",
+      "sha256": "e8f3dc36358bef51d1bae08da3468407ecb0083102ff10b78b871aac92c551ca"
+    },
+    {
+      "path": "tests/polymer-task5-pixel-exchange.test.mjs",
+      "sha256": "bdecac5af61b5a3aeec265e9c2854c5beb6d07b90f3e13b419899e8e5fd9713b"
+    }
+  ],
+  "validation": {
+    "protectedTests": 40,
+    "geometryTests": 8,
+    "newTests": 3,
+    "fail": 0,
+    "skip": 0,
+    "PLA_PET": "PASS",
+    "final25_intermediate95": "PASS",
+    "pwaAssets": 353,
+    "hygieneWarnings": 0,
+    "releaseCI": "NOT_RUN/NOT_CERTIFIED",
+    "totalTests": 51,
+    "passCount": 51
+  },
+  "review": {
+    "startingReceipt": 6366952612,
+    "startingSHA": "a664c1da27fced58ec76fc3be13592b695f71629",
+    "finalReleaseReview": "NOT_RUN/NOT_CERTIFIED"
+  },
+  "limits": [
+    "No feasible pose was nominated, so zero new CPU raster grades exist.",
+    "MILP infeasibility/time limit is not an exclusion proof.",
+    "Projection, depth, pool and sample approximations may have false positives and false negatives.",
+    "All current-source browser/performance/release gates remain unaccepted."
+  ]
+}

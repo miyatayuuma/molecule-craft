@@ -1,5 +1,7 @@
 # Task⑤ finite Sample renderer — BLOCKED
 
+最新の[PIB pixel-exchange feasibility](polymer-local-fragment-task5-pixel-exchange.md)は、固定pixel保持を外した12個の近似MILP枠で提案姿勢0（解なし5・時間上限7）。新候補CPU/GPU評価0、認証済み除外領域0、feasibilityはUNRESOLVED。正式PIB0/3のためTask⑤は引き続きBLOCKED。
+
 開始main: `593ac571e4d664f7af885855352142874dd227ab`。Task①–④の8文書、Task③ A01–A15/V0–V8/C01–C09/S10–S16を採用する。実装PRは[#354](https://github.com/miyatayuuma/molecule-craft/pull/354)。必須条件がFAILしているためmainへ統合しない。以下の部分的な成功をCLOSEDと読み替えない。
 
 ## 実装と限定所有権監査
