@@ -1,5 +1,7 @@
 # Task⑤ PIB orientation feasibility — BLOCKED
 
+Latest continuation: [coupled complete-mesh feasibility](polymer-local-fragment-task5-coupled-feasibility.md). One predeclared exact-mesh local max-min solve stopped after25 evaluations; its fixed three-mode confirmation still fails bond33/34. Disposition **UNRESOLVED**, not proven infeasible. No production change, extra GPU campaign, or merge.
+
 Start authority: main `593ac571e4d664f7af885855352142874dd227ab`, PR #354 HEAD `6a2f056a13ddea48c1d55218f3a58f1b3d058c62`, Draft/Open/Unmerged. Both matched GitHub. PR #345 stayed Open/Unmerged. All five inline threads were resolved; the latest 6a2f056 review request still had no completed receipt. HEAD had no PR-triggered workflow runs, which is not CI PASS. The latest branch campaign is older source50c0b38f: Repository39740905733/FIELD39740905500 succeeded, Finite39740905764 failed. Those results are not acceptance of this checkpoint.
 
 **No production orientation repair is adopted.** The rigid-view feasibility of anchor30 remains unresolved. This is a bounded negative result for one graph-shadow method, not a proof that every rigid pose is impossible. The original formal GPU campaign remains **0/3**. No new GPU/browser campaign was run.
