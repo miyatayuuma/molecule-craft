@@ -1,0 +1,184 @@
+{
+  "kind": "BOUNDARY_CONSTRAINED_NATIVE_MESH_DIAGNOSIS_NOT_ACCEPTANCE",
+  "startHead": "92da7771cb3f17930d3163236fd042bbd1499d85",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "disposition": "UNRESOLVED",
+  "certifiedExcludedRegions": 0,
+  "CPUJointWitness": false,
+  "productionChanges": 0,
+  "graphDigest": "f7bd07a6bc990bb0157fe2e917b2df5a7c1c4510a0a924c137dccad5b914b7b6",
+  "budgets": {
+    "candidateSlotsCap": 12,
+    "candidateSlotsActual": 12,
+    "uniquePoses": 4,
+    "CPURasterCap": 38,
+    "CPURasterActual": 38,
+    "GPUCap": 1,
+    "GPUActual": 0,
+    "restarts": 0
+  },
+  "previousManifests": [
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-coupled-6d508e75/manifest.json",
+      "sha256": "4eb5a215e7086710f0afa21877a1d532c95e26ba3aff462bf87a59dbadf9d89b",
+      "entriesVerified": 18
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-orientation-6a2f056a/manifest.json",
+      "sha256": "4857600d1bbfaae512393a73526dbca8a097c38b83964d89ff202ef7219914c3",
+      "entriesVerified": 17
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/manifest.json",
+      "sha256": "3b54a5db1b6c4a46bd866256769cc21e4f4f797b62ee44a72d96a951b54fa4f8",
+      "entriesVerified": 32
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-raster-parity-d100a76b/manifest.json",
+      "sha256": "0a8c128c0375efc8ce5ffae7a6beb735eba42f1fcafae429febb206c1327ad09",
+      "entriesVerified": 7
+    }
+  ],
+  "protectedGitTreeEntriesSHA256": "fd775e21d3d2c23eb828a539a2028b0ea9ee3776f310080fa6ae44d7a9d8f2e9",
+  "files": [
+    {
+      "path": "baseline-CPU-id.png",
+      "bytes": 6203,
+      "sha256": "4ff3ad7bd429fed2a6c1b3aabcf65b391cbb2dfc224f743118bb9e97e8600065"
+    },
+    {
+      "path": "baseline-endpoints33-CPU-id.png",
+      "bytes": 968,
+      "sha256": "793d1ebd694966b2ce042c56c2332e20805bdfb1ecbec8e01382959e77778c29"
+    },
+    {
+      "path": "boundaries.json.gz",
+      "bytes": 27097,
+      "sha256": "b17be6c10669c68f4bf8f15fc45f9c955861438f14d9a9059c5c1fddbc51b0c9"
+    },
+    {
+      "path": "candidate-evaluations.log",
+      "bytes": 20292,
+      "sha256": "89fe9318fb54b48efbe9e3392c4868d8eec0feeb3e29be62bccfea7d848dbfd5"
+    },
+    {
+      "path": "candidates.json.gz",
+      "bytes": 1050,
+      "sha256": "b58e3ffb3873221aa37acc70688e4bdb6e15416a31e2b9a051b48b9e62ebbd95"
+    },
+    {
+      "path": "linear-input.json.gz",
+      "bytes": 184367,
+      "sha256": "18b0c4e1498df9d3e403c0e9b10ccfae0c0fb56fa1c37b25012fb6ec1da2da95"
+    },
+    {
+      "path": "linear-solver.log",
+      "bytes": 61,
+      "sha256": "b33dd3dd2161c0c8c0f0955f552133de1ead5c8ad64857bba6c73530eb70da5e"
+    },
+    {
+      "path": "preparation-failure.log",
+      "bytes": 575,
+      "sha256": "d9c7918cfdc89a6c68e896993cd8f36eadb0faffc0e563a9fd9b4d825a38a3bd"
+    },
+    {
+      "path": "protected-tests.log",
+      "bytes": 5130,
+      "sha256": "a0d0ac2de1673b7c88dcd8dff49e37d5b3bf00834063e57a06d7c68f9cb33708"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 1108,
+      "sha256": "202f514e910fe0dd241291ef8fc68b59c447a4feb4f341544b33cacfea8470ff"
+    },
+    {
+      "path": "results.json.gz",
+      "bytes": 12552,
+      "sha256": "cba641a39cbe4d0812d8fd62021f15e842f343629f7afa10d15a179443b657be"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 75530,
+      "sha256": "68b4970b211c6a696deb87d9670fce04a0ac06fcad56528fa84bcfb5045fc067"
+    }
+  ],
+  "tools": [
+    {
+      "path": "scripts/diagnose-polymer-task5-boundaries.mjs",
+      "sha256": "1e60c79cca53365fbe9fe5bc957238d65af16262b2386c9a48d101abd5ae7c41"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-boundaries.py",
+      "sha256": "72156baef4c5b637a6b155a9114fdcf64ef37a96cea3c8cd1cd36de5eca8d0e8"
+    },
+    {
+      "path": "tests/polymer-task5-boundaries.test.mjs",
+      "sha256": "ecbe75b9c5cba02c0db14bfaa3fe9bc13cc96513fc71161c7c5ffb4bbdbcf27c"
+    }
+  ],
+  "validation": {
+    "tests": 44,
+    "pass": 44,
+    "fail": 0,
+    "skip": 0,
+    "frozenGeometry": "PLA/PET;25final/95intermediatePASS",
+    "pwaAssets": 353,
+    "hygieneWarnings": 0,
+    "syntax": "PASS",
+    "diff": "PASS",
+    "checks": [
+      {
+        "command": [
+          "node",
+          "scripts/build-precache.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "stdout": "Offline release is current: 353 verified assets\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "node",
+          "scripts/check-repository-hygiene.mjs"
+        ],
+        "exit": 0,
+        "stdout": "Repository hygiene passed: 1219 files, 137 production modules reachable, 0 warning(s)\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "node",
+          "--check",
+          "scripts/diagnose-polymer-task5-boundaries.mjs"
+        ],
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "releaseCI": "NOT_RUN/NOT_CERTIFIED"
+  },
+  "runtime": {
+    "node": "v24.19.0",
+    "python": "3.12.14",
+    "scipy": "1.17.0"
+  },
+  "review": {
+    "startingReceipt": 6366335968,
+    "startingReviewedSHA": "92da7771cb3f17930d3163236fd042bbd1499d85",
+    "finalReleaseReview": "NOT_CERTIFIED"
+  },
+  "formalGPU": "original0/3; newGPU0",
+  "preparationCorrection": "j27 trimmed-end assertion after2seed rasters; corrected before any candidate; decoded retained baseline PNGs; no extra raster/restart/budget change"
+}

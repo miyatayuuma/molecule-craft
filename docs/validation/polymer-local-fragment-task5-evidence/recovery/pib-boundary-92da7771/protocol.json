@@ -1,0 +1,42 @@
+{
+  "kind": "ONE_FINITE_NATIVE_BOUNDARY_DIAGNOSIS_NOT_ACCEPTANCE",
+  "sourceSha": "92da7771cb3f17930d3163236fd042bbd1499d85",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "seedRotationDegrees": [
+    -0.054539559717073846,
+    -0.10453805899021659,
+    0.08315483688476073
+  ],
+  "anchor": 30,
+  "candidateCount": 12,
+  "areaPixelSets": [
+    4,
+    8,
+    12
+  ],
+  "continuityExtensions": [
+    "start",
+    "end"
+  ],
+  "trustRadiiDegrees": [
+    1,
+    4
+  ],
+  "projectedDerivativeDegrees": 0.01,
+  "CPURasterCap": 38,
+  "CPURasterAllocation": {
+    "baselineFullTrace": 1,
+    "baselineEndpoints33": 1,
+    "candidates": 36
+  },
+  "arithmeticModes": [
+    "legacy4",
+    "shader32",
+    "float64"
+  ],
+  "GPUCap": 1,
+  "GPUSelection": "all-mode CPU PASS preferred; otherwise only exact-boundary/native-parity-supported near miss with a written justification before GPU",
+  "stop": "after twelve derived candidates; no restart, new seed, rescaling, sweep or unused-budget search",
+  "noGlobalProof": true,
+  "graphDigest": "f7bd07a6bc990bb0157fe2e917b2df5a7c1c4510a0a924c137dccad5b914b7b6"
+}

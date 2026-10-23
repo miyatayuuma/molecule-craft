@@ -1,5 +1,7 @@
 # Task⑤ PIB coupled mesh feasibility — UNRESOLVED / BLOCKED
 
+The subsequent finite [native-boundary diagnosis](polymer-local-fragment-task5-boundary-recovery.md) retained twelve candidate slots/four distinct poses, all FAIL in three CPU modes. It does not replace or rerun this experiment; joint feasibility remains UNRESOLVED and Task⑤ BLOCKED.
+
 Start authority: main `593ac571e4d664f7af885855352142874dd227ab`, PR #354 HEAD `6d508e753e2c7bd8cf3b2578d81311936c9e8250`. Both matched GitHub and remote refs. PR #354 was Draft/Open/Unmerged; PR #345 remained Open/Unmerged. All five inline threads were resolved. Codex receipt [6364897951](https://github.com/miyatayuuma/molecule-craft/pull/354#issuecomment-6364897951) covers the starting diagnostic commit, not this change or final release. The starting HEAD had zero workflow runs; this is not CI PASS.
 
 **Disposition: UNRESOLVED.** No simultaneous witness was found by the one bounded, actual-mesh local solve below. No safe interval exclusion or exhaustive SO(3) coverage was implemented, so **PROVEN_INFEASIBLE is not established**. No production repair, GPU acceptance campaign, threshold change, or merge follows this result. Task③ remains unchanged.
