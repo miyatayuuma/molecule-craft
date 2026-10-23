@@ -1,0 +1,38 @@
+{
+  "kind": "MINIMAL_NATIVE_BOUNDARY_AFFINE_PROPOSALS_NOT_PROOF",
+  "startHead": "8227174df14f91a2b4c4ab2b62f1e472e6bb12b4",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "gate": "old fixed seed feasible; corrected active membership must match retained mask before candidate solve",
+  "activeObjectIds": [
+    31,
+    1056,
+    1057,
+    1058,
+    1059
+  ],
+  "trustBoxesDegrees": [
+    1
+  ],
+  "bond34StepBranches": [
+    26,
+    27
+  ],
+  "areaSurplusPixels": [
+    0
+  ],
+  "candidateSlots": 2,
+  "MILPTimeLimitSecondsPerSlot": 30,
+  "MILPNodeLimitPerSlot": 5000,
+  "MILPRelativeGap": 0.001,
+  "CPUCap": 6,
+  "GPUCap": 1,
+  "GPUSelection": "only all3 arithmetic modes all21 native target conditions PASS",
+  "seedDiagnosticSlots": 1,
+  "seedDiagnosticSeconds": 10,
+  "stop": "After exactly2 newly formulated active slots. No old MILP reruns, extra radius, seed, unused-budget search or timeout extension.",
+  "limits": [
+    "Fixed seed membership exact only for5 active objects, and full21 threshold gate separately verified.",
+    "Affine boundary/depth gradients, old finite pool and selected front-facet OR are approximate; no excluded true orientation regions.",
+    "All11 atoms and10 bonds, Q,fit/depth recomputed in each candidate native oracle."
+  ]
+}

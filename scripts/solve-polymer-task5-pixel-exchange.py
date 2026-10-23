@@ -11,10 +11,6 @@ import scipy
 from scipy.optimize import milp, Bounds, LinearConstraint
 from scipy.sparse import coo_matrix
 
-directory = Path(sys.argv[1])
-assert not (directory / 'candidates.json').exists(), 'Do not repeat candidate generation'
-data = json.loads(gzip.decompress((directory / 'model.json.gz').read_bytes()))
-protocol = data['protocol']
 
 
 class Model:
@@ -53,7 +49,7 @@ class Model:
     def implies_le(self, binary, f, threshold):
         self.implies_ge(binary, {'value': -f['value'], 'gradient': [-g for g in f['gradient']]}, -threshold)
 
-    def solve(self):
+    def solve(self, protocol):
         r, c, values = [], [], []
         for j, terms in enumerate(self.rows):
             for i, v in terms.items():
@@ -67,7 +63,8 @@ class Model:
                              'mip_rel_gap': protocol['MILPRelativeGap']})
 
 
-def construct(radius, steps34, surplus):
+def construct(data, radius, steps34, surplus, *, disabled_area=(), disabled_continuity=()):
+    protocol = data['protocol']
     m = Model(radius)
     epsilon = protocol['proposalClearancePixels']
     cells_by_object = {}
@@ -77,13 +74,28 @@ def construct(radius, steps34, surplus):
         fixed, terms = 0, {}
         for cell in obj['cells']:
             ranges = [m.affine_range(f) for f in cell['conditions']]
-            if any(high < epsilon for low, high in ranges):
+            clauses = cell.get('disjunctions', [])
+            if any(high < epsilon for low, high in ranges) or any(
+                    all(m.affine_range(f)[1] < epsilon for f in clause) for clause in clauses):
                 continue
-            variable = any(low < epsilon for low, high in ranges)
+            variable = any(low < epsilon for low, high in ranges) or any(
+                not any(m.affine_range(f)[0] >= epsilon for f in clause) for clause in clauses)
             y = m.var(integer=True) if variable else None
             if variable:
                 for f in cell['conditions']:
                     m.implies_ge(y, f, epsilon)
+                for clause in clauses:
+                    if any(m.affine_range(f)[0] >= epsilon for f in clause):
+                        continue
+                    alternatives = []
+                    for f in clause:
+                        if m.affine_range(f)[1] < epsilon:
+                            continue
+                        z = m.var(integer=True); alternatives.append(z)
+                        m.row({z: 1, y: -1}, hi=0)
+                        m.implies_ge(z, f, epsilon)
+                    terms = {z: 1 for z in alternatives}; terms[y] = -1
+                    m.row(terms, lo=0)
             cells[(cell['x'], cell['y'])] = (y, cell)
             # Annotation edges are omitted from area witnesses. This is a
             # conservative proposal restriction, not a changed formal grader.
@@ -95,7 +107,8 @@ def construct(radius, steps34, surplus):
         for i, gradient in enumerate(obj['required']['gradient']):
             terms[i] = -gradient
         need = obj['required']['value'] + surplus - fixed
-        m.row(terms, lo=need)
+        if obj['id'] not in disabled_area:
+            m.row(terms, lo=need)
         cells_by_object[obj['id']] = cells
         area_constraints.append({'kind': obj['kind'], 'index': obj['index'],
                                  'fixedAffineInterior': fixed, 'eligibleCells': len(cells),
@@ -104,6 +117,8 @@ def construct(radius, steps34, surplus):
     continuity_records = []
     for continuity in data['continuity']:
         index = continuity['index']
+        if index in disabled_continuity:
+            continue
         cells = cells_by_object[1024+index]
         branches = [b for b in continuity['branches'] if index != 34 or b['n'] == steps34]
         selected, records = [], []
@@ -158,33 +173,39 @@ def construct(radius, steps34, surplus):
     return m, area_constraints, continuity_records
 
 
-rows = []
-for radius in protocol['trustBoxesDegrees']:
-    for n in protocol['bond34StepBranches']:
-        for surplus in protocol['areaSurplusPixels']:
-            name = f'r{radius}-n{n}-a{surplus}'
-            started = time.monotonic()
-            m, areas, runs = construct(radius, n, surplus)
-            result = m.solve()
-            row = {'name': name, 'radius': radius, 'steps34': n, 'surplus': surplus,
-                   'solver': {'status': int(result.status), 'message': result.message,
-                              'variables': len(m.lo), 'constraints': len(m.rows),
-                              'seconds': time.monotonic()-started,
-                              'mipGap': float(result.mip_gap) if getattr(result, 'mip_gap', None) is not None else None},
-                   'areaConstraints': areas, 'hasIncumbent': result.x is not None}
-            if result.x is not None:
-                x = result.x
-                row.update(deltaDegrees=x[:3].tolist(),
-                           rotationDegrees=[s+float(d) for s, d in zip(data['seed'], x[:3])],
-                           l1Degrees=float(result.fun),
-                           continuityWitnesses=[{'index': r['index'], 'branches': [
-                               {'n': b['n'], 'hits': [j for j,h in enumerate(b['hits']) if x[h]>.5]}
-                               for b in r['branches'] if x[b['branchVariable']]>.5]} for r in runs])
-            rows.append(row)
-            # Every solver outcome, including limits/infeasibility, is retained.
-            (directory / 'candidate-history.jsonl').open('a').write(json.dumps(row)+'\n')
-            print(json.dumps({'slot': name, **row['solver'], 'incumbent': row['hasIncumbent'],
-                              'rotationDegrees': row.get('rotationDegrees')}), flush=True)
-assert len(rows) == protocol['candidateSlots']
-(directory / 'candidates.json').write_text(json.dumps({'kind': 'AFFINE_PIXEL_EXCHANGE_PROPOSALS_NOT_PROOF',
-                                                      'scipy': scipy.__version__, 'rows': rows}, indent=2)+'\n')
+
+if __name__ == '__main__':
+    directory = Path(sys.argv[1])
+    assert not (directory / 'candidates.json').exists(), 'Do not repeat candidate generation'
+    data = json.loads(gzip.decompress((directory / 'model.json.gz').read_bytes()))
+    protocol = data['protocol']
+    rows = []
+    for radius in protocol['trustBoxesDegrees']:
+        for n in protocol['bond34StepBranches']:
+            for surplus in protocol['areaSurplusPixels']:
+                name = f'r{radius}-n{n}-a{surplus}'
+                started = time.monotonic()
+                m, areas, runs = construct(data, radius, n, surplus)
+                result = m.solve(protocol)
+                row = {'name': name, 'radius': radius, 'steps34': n, 'surplus': surplus,
+                       'solver': {'status': int(result.status), 'message': result.message,
+                                  'variables': len(m.lo), 'constraints': len(m.rows),
+                                  'seconds': time.monotonic()-started,
+                                  'mipGap': float(result.mip_gap) if getattr(result, 'mip_gap', None) is not None else None},
+                       'areaConstraints': areas, 'hasIncumbent': result.x is not None}
+                if result.x is not None:
+                    x = result.x
+                    row.update(deltaDegrees=x[:3].tolist(),
+                               rotationDegrees=[s+float(d) for s, d in zip(data['seed'], x[:3])],
+                               l1Degrees=float(result.fun),
+                               continuityWitnesses=[{'index': r['index'], 'branches': [
+                                   {'n': b['n'], 'hits': [j for j,h in enumerate(b['hits']) if x[h]>.5]}
+                                   for b in r['branches'] if x[b['branchVariable']]>.5]} for r in runs])
+                rows.append(row)
+                # Every solver outcome, including limits/infeasibility, is retained.
+                (directory / 'candidate-history.jsonl').open('a').write(json.dumps(row)+'\n')
+                print(json.dumps({'slot': name, **row['solver'], 'incumbent': row['hasIncumbent'],
+                                  'rotationDegrees': row.get('rotationDegrees')}), flush=True)
+    assert len(rows) == protocol['candidateSlots']
+    (directory / 'candidates.json').write_text(json.dumps({'kind': 'AFFINE_PIXEL_EXCHANGE_PROPOSALS_NOT_PROOF',
+                                                          'scipy': scipy.__version__, 'rows': rows}, indent=2)+'\n')

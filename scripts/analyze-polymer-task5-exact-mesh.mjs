@@ -25,6 +25,8 @@ export function render(snapshot,precision,options={}){
     for(let i=0;i<g.positions.length;i+=3){const c=mul(matrix,[...g.positions.slice(i,i+3),1]),p=mul(projection,c),x=(p[0]/p[3]+1)*W/2,y=(1-p[1]/p[3])*H/2;vertices.push({rawX:x,rawY:y,x:precision!=='float64'?Math.round(x*(precision==='legacy4'?16:256))/(precision==='legacy4'?16:256):x,y:precision!=='float64'?Math.round(y*(precision==='legacy4'?16:256))/(precision==='legacy4'?16:256):y,depth:-c[2],ndc:round(round(round(p[2]+p[3])*.5)/p[3])});}
     for(let k=0;k<g.indices.length;k+=3){const a=vertices[g.indices[k]],b=vertices[g.indices[k+1]],c=vertices[g.indices[k+2]],den=(b.y-c.y)*(a.x-c.x)+(c.x-b.x)*(a.y-c.y);const rawDen=(b.rawY-c.rawY)*(a.rawX-c.rawX)+(c.rawX-b.rawX)*(a.rawY-c.rawY),faceDen=options.rawCull?rawDen:den,culled=!options.noCull&&(mesh.materialSide===0&&faceDen>=0||mesh.materialSide===1&&faceDen<=0);
       if(triangles)triangles.push({id:mesh.id,kind:mesh.kind,index:mesh.index,triangle:k/3,a,b,c,den,rawDen,culled});
+      // Projection-only consumers inspect native subpixel triangles without a raster call.
+      if(options.projectOnly)continue;
       if(Math.abs(den)<1e-12||culled)continue;
       const r=round,D=r(1/r(r(b.x-a.x)*r(c.y-a.y)-r(c.x-a.x)*r(b.y-a.y))),za=r(b.ndc-a.ndc),zb=r(c.ndc-a.ndc),DA=r(r(r(c.y-a.y)*za-r(b.y-a.y)*zb)*D),DB=r(r(r(b.x-a.x)*zb-r(c.x-a.x)*za)*D);
       const minX=Math.max(0,Math.ceil(Math.min(a.x,b.x,c.x)-.5)),maxX=Math.min(W-1,Math.floor(Math.max(a.x,b.x,c.x)-.5)),minY=Math.max(0,Math.ceil(Math.min(a.y,b.y,c.y)-.5)),maxY=Math.min(H-1,Math.floor(Math.max(a.y,b.y,c.y)-.5));

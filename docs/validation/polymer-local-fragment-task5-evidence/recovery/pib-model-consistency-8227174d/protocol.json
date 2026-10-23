@@ -1,0 +1,22 @@
+{
+  "kind": "FIXED_SEED_MODEL_CONSISTENCY_NOT_PRODUCTION_ACCEPTANCE",
+  "startHead": "8227174df14f91a2b4c4ab2b62f1e472e6bb12b4",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "rotationDeltaDegrees": [
+    0,
+    0,
+    0
+  ],
+  "disabledDiagnosticConditions": [
+    "bond33 area",
+    "bond34 continuity"
+  ],
+  "retainedConditions": "All other target area/continuity/size, bond32/35, Q, fit/depth",
+  "seedSource": "saved native CPU ID mask, no reraster",
+  "solverSlots": 1,
+  "solverLimitSeconds": 10,
+  "newPoseCandidates": 0,
+  "CPURasters": 0,
+  "GPU": 0,
+  "stop": "Do not start active candidate generation until this gate is resolved; record a separate bounded protocol before any active solve"
+}

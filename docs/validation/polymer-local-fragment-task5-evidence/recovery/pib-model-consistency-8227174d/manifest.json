@@ -1,0 +1,166 @@
+{
+  "kind": "FIXED_SEED_CONSISTENCY_AND_BOUNDED_ACTIVE_PROPOSALS",
+  "startHead": "8227174df14f91a2b4c4ab2b62f1e472e6bb12b4",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "modelConsistency": "PASS_AT_FIXED_SEED",
+  "disposition": "UNRESOLVED",
+  "task5": "BLOCKED",
+  "formalGPU": "original0/3; newGPU0",
+  "candidatePoses": 0,
+  "CPURasters": 0,
+  "GPU": 0,
+  "activeSolverSlots": 2,
+  "certifiedExcludedRegions": 0,
+  "productionChanges": 0,
+  "files": [
+    {
+      "path": "pib-model-consistency-8227174d/logic-and-primal.json",
+      "bytes": 2091,
+      "sha256": "205ac1a5e7ebe0fde1482ae7ce9f8a9904b8289ae01f7387cffb7a3131cb09a7"
+    },
+    {
+      "path": "pib-model-consistency-8227174d/protocol.json",
+      "bytes": 715,
+      "sha256": "c232a18143ac493cc70404e658827ad4418c8c10aa0bc7f1313495f9dda842a0"
+    },
+    {
+      "path": "pib-model-consistency-8227174d/seed-consistency.json",
+      "bytes": 431674,
+      "sha256": "4f3bd3468da630553a6512ccce56ac68d604680ed43a360f6b7877102f70ce6d"
+    },
+    {
+      "path": "pib-model-consistency-8227174d/zero-delta-solver.json",
+      "bytes": 4429,
+      "sha256": "b18e0d89dca8e506990c399c6ad02eed1d80e527282bfa6ddc73ab0c8aa37804"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/active-model-v0.json.gz",
+      "bytes": 377190,
+      "sha256": "a2a161e596b9c79baf59af5337b57762f18b5db51f62de729cc5d558d4a6551b"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/active-model-v1.json.gz",
+      "bytes": 357957,
+      "sha256": "2ed39acb9fc0ecf568299a5d6546388079b5b4967aea93368f424a312e39ffee"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/active-model.json.gz",
+      "bytes": 357707,
+      "sha256": "b76094e0d82f071dddefc98de60a7dbb51dec432376efd75a6b32e7d8c4dcfa8"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/active-seed-membership-v0.json",
+      "bytes": 1499,
+      "sha256": "b3a5d0ebc19b20ea2d16543efe44f3e7a6b5405f437c0591422c19ec7bfe8d4e"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/active-seed-membership-v1.json",
+      "bytes": 1565,
+      "sha256": "b0dd4ae415a9b74bc737398a29e5d368a8249f1a0fc228d6d6f6e942e16ccd22"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/active-seed-membership.json",
+      "bytes": 1565,
+      "sha256": "b0dd4ae415a9b74bc737398a29e5d368a8249f1a0fc228d6d6f6e942e16ccd22"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/active-zero-delta-solver.json",
+      "bytes": 1901,
+      "sha256": "d38c588e52a6d8bb739dc4a5f8dd05d6ffa3d754fe959a92340d054f5fff27e5"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/candidate-history.jsonl",
+      "bytes": 1810,
+      "sha256": "00413089cbe02a5ea58e678b45fa02b067eb68efaf5efc2b688342b92d06ec2d"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/candidates.json",
+      "bytes": 2775,
+      "sha256": "7309ebf2319503c06719f7d25eab4fd32dd8430f80ba11fb6cec58959bcbcb30"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/protocol.json",
+      "bytes": 1275,
+      "sha256": "6469d2dd67777addd8e3fb139c7f670eb4fbc5c2975f5247b94b786ec9149c6e"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/results.json.gz",
+      "bytes": 1291,
+      "sha256": "ab8ebf005f3f4adceb942ea20615e01b67cfcf904940e8d640515c42792fc1ec"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/solver.log",
+      "bytes": 2921,
+      "sha256": "52b008b231d8e75180b7b0d159b68125c23aba5113dd5fb98df4f9f50f0fc6fc"
+    },
+    {
+      "path": "pib-active-constraints-8227174d/model-validity.json",
+      "bytes": 753,
+      "sha256": "9b93175e715d6614ec3c67e6f060f5e2d5b2b5356211f54291937ad57ec8b231"
+    }
+  ],
+  "previousManifests": [
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-pixel-exchange-a664c1da/manifest.json",
+      "sha256": "bb9677c7b5fd02914965e1e510c56c46b2c9f44188ecf438d3bc72de21e57d40",
+      "verifiedFiles": 14
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-boundary-92da7771/manifest.json",
+      "sha256": "18dc30a478ca601dde8ac7777efe21c88d41ca5bd49ca678b5a598c67b49d883",
+      "verifiedFiles": 12
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-coupled-6d508e75/manifest.json",
+      "sha256": "4eb5a215e7086710f0afa21877a1d532c95e26ba3aff462bf87a59dbadf9d89b",
+      "verifiedFiles": 9
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-orientation-6a2f056a/manifest.json",
+      "sha256": "4857600d1bbfaae512393a73526dbca8a097c38b83964d89ff202ef7219914c3",
+      "verifiedFiles": 9
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/manifest.json",
+      "sha256": "3b54a5db1b6c4a46bd866256769cc21e4f4f797b62ee44a72d96a951b54fa4f8",
+      "verifiedFiles": 32
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-raster-parity-d100a76b/manifest.json",
+      "sha256": "0a8c128c0375efc8ce5ffae7a6beb735eba42f1fcafae429febb206c1327ad09",
+      "verifiedFiles": 7
+    }
+  ],
+  "tools": [
+    {
+      "path": "scripts/audit-polymer-task5-model-consistency.mjs",
+      "sha256": "acfc93394a142685eb8083fb0b7948e1501c0f08553d1b663a43955d8261b283"
+    },
+    {
+      "path": "scripts/prepare-polymer-task5-active-constraints.mjs",
+      "sha256": "94ce286b4f83c14d40918647512db1e95b4cf676bd51ec5a0cc1f21ed52786ce"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-active-constraints.py",
+      "sha256": "34b9d3e6e264c1fb18801a44e87f7701f2e28e2ff99744c679298e1215e99d2f"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-pixel-exchange.py",
+      "sha256": "144830170fc2ac1d3479f7533969aae3bf6599590e3f924b90566f3b2e4ec701"
+    },
+    {
+      "path": "scripts/verify-polymer-task5-model-logic.py",
+      "sha256": "075fdf195c74589c57d8a3f9f56a2419b72c77ac1af9e50b9b4cf3e9d854ca8e"
+    },
+    {
+      "path": "scripts/analyze-polymer-task5-exact-mesh.mjs",
+      "sha256": "0d1539589118fc0f3a63baf595602918242bc7e26fbd04304258e0ed040fb1dd"
+    },
+    {
+      "path": "scripts/check-polymer-task5-pixel-exchange.mjs",
+      "sha256": "e8f3dc36358bef51d1bae08da3468407ecb0083102ff10b78b871aac92c551ca"
+    }
+  ],
+  "releaseValidation": "NOT_RUN/NOT_CERTIFIED",
+  "activeCampaign": "MODEL_INVALID_NOT_FEASIBILITY_EVIDENCE"
+}

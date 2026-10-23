@@ -81,3 +81,5 @@ bond34では、L=12.956049664px、n=26、j11…26の16hitは15intervalしか持�
 ```sh
 node --test tests/polymer-task5-pixel-exchange.test.mjs
 ```
+
+後続の固定seed整合性検証と最小activeモデルの結果は [constraint-model consistency](polymer-local-fragment-task5-model-consistency.md) を参照。ここに保存した旧12枠の結果は変更していない。
