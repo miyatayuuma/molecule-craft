@@ -1,0 +1,18 @@
+{
+  "kind": "READ_ONLY_DIAGNOSTIC_CODE_REVIEW_NOT_RELEASE_REVIEW",
+  "reviewer": "independent review_orientation_evidence agent",
+  "new_searches": 0,
+  "browser_or_gpu_runs": 0,
+  "conclusion": "BLOCKED disposition supported; no production repair or release acceptance certified",
+  "findings_addressed": [
+    "graph seed maximizes numerator, not projected distance",
+    "actual counts93 rasters/21 final rasters/152 optimizer evaluations",
+    "best history point includes finite-difference evaluations",
+    "component bounds apply to rotation vector, not independent tilt/roll",
+    "smooth proxy cap/bond-shadow/self-ray and zero-run limitations",
+    "counterfactual no-change finding restricted to requested bond metrics"
+  ],
+  "native_shadow_regression": "38 total deterministic tests PASS; native H5=89, other owners=0",
+  "reviewer_test_execution": "not independently rerun",
+  "second_read": "ledger/native-mask regression rechecked; no additional blocking finding"
+}

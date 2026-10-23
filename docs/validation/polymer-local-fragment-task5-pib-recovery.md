@@ -1,5 +1,7 @@
 # Task⑤ PIB visibility recovery — BLOCKED
 
+Latest continuation: [orientation feasibility and identified H5 shadow conflict](polymer-local-fragment-task5-orientation-feasibility.md). One bounded graph-shadow method is rejected; anchor30 rigid-view feasibility remains unresolved, formal PIB0/3 and production unchanged.
+
 Latest continuation: [raster parity and one generic focus rule](polymer-local-fragment-task5-pib-raster-parity.md). Starting from d100a76b, the shared-edge CPU defect is identified, native disagreement falls from85 to9 pixels across the same nine captures, target metric effects are bounded for those captures, and the fixed focus-rule candidate is rejected. Formal PIB remains0/3; no production change or merge is adopted. The records below remain historical evidence.
 
 Authority at start: main `593ac571e4d664f7af885855352142874dd227ab`, PR #354 Draft/Open HEAD `6036606df10126840c5c51ada9fde76cb4d57f84`. Main and PR #345 are not merged or modified by this investigation. **No production repair is adopted.** The frozen actual-PNG campaign still has zero simultaneous witnesses at anchors 0/17/30. Numeric and CPU mesh predictions below do not certify new PNG acceptance or global rigid-view impossibility.
