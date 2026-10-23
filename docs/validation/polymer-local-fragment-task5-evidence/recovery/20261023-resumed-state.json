@@ -2,7 +2,6 @@
   "kind": "RESUMED_WORK_CHECKPOINT_NOT_TASK5_CLOSURE",
   "dateJst": "2026-10-23",
   "mainSha": "593ac571e4d664f7af885855352142874dd227ab",
-  "pr354Head": "50c0b38fba2ad87272d30a536d45a1060a80c7a0",
   "recoveredCandidateSha": "d29a11599c7c71ebb4e2e2824545904272976b23",
   "status": "BLOCKED",
   "contracts": {
@@ -150,12 +149,12 @@
     ]
   },
   "remaining": [
-    "PET/PLA targeted raster acceptance on the recovered source",
-    "PIB simultaneous local groups under unchanged real-PNG gates",
-    "Final-source all12 static campaign before strict Finite",
-    "Finite original real-RAF comparator (old FAIL retained)",
-    "Final independent review, main merge and post-merge verification",
-    "Final-source Repository/FIELD/StageB and PF multi-cycle resource gates"
+    "Frozen actual PLA re-FEED geometry recovery before PIB visibility or final campaigns",
+    "PIB simultaneous groups under unchanged actual PNG criteria",
+    "Final-source all25 static / all12 viewport-motion-DPR conditions",
+    "PF repeated resource/heap acceptance",
+    "Original strict real-RAF Finite comparator",
+    "Final Repository/FIELD/StageB, independent review, merge and post-merge verification"
   ],
   "ciPolicy": "Checkpoint uses [skip ci] to preserve work without starting additional Actions during this diagnostic checkpoint. Required gates remain pending and Draft/Open is retained.",
   "equivalentSavedRuntimeSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
@@ -183,5 +182,147 @@
       "tests/helpers/polymer-allocation-window.mjs": "5ecedf9b01cc8800228bd264a42ad8afe46690e807841e631937c198be31a8f2"
     }
   },
-  "PLARaster": "RUNNING_NOT_ACCEPTED"
+  "PLARaster": {
+    "runtimeSourceSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
+    "harnessCheckpointSha": "f480b879946e7ec0a722b041274e7721374e9dcc",
+    "viewport": {
+      "width": 1280,
+      "height": 800,
+      "mobile": false
+    },
+    "DPR": 2,
+    "fixedViews": 240,
+    "rasterGate": "PASS_SINGLE_ROUTE_PILOT",
+    "enclosingBrowserProcess": "FAIL_NEXT_KNOWN_SAMPLE_GEOMETRY",
+    "oldCase": {
+      "label": "local-29/y45/p30",
+      "pointerAngleError": 3.068336886461678e-07,
+      "pointerZoomRatio": 1,
+      "presses": 4,
+      "owners": [
+        {
+          "axis": "yaw",
+          "start": {
+            "x": 463.75,
+            "y": 343.3515625
+          },
+          "end": {
+            "x": 512.8373852123406,
+            "y": 343.3515625
+          },
+          "owner": {
+            "sampleId": "polymer-sample-1-1",
+            "orbitPointerIds": [
+              1
+            ],
+            "draggedInstanceId": null
+          }
+        },
+        {
+          "axis": "yaw",
+          "start": {
+            "x": 463.75,
+            "y": 343.3515625
+          },
+          "end": {
+            "x": 512.8373852123406,
+            "y": 343.3515625
+          },
+          "owner": {
+            "sampleId": "polymer-sample-1-1",
+            "orbitPointerIds": [
+              1
+            ],
+            "draggedInstanceId": null
+          }
+        },
+        {
+          "axis": "pitch",
+          "start": {
+            "x": 463.75,
+            "y": 343.3515625
+          },
+          "end": {
+            "x": 463.75,
+            "y": 376.07648597489367
+          },
+          "owner": {
+            "sampleId": "polymer-sample-1-1",
+            "orbitPointerIds": [
+              1
+            ],
+            "draggedInstanceId": null
+          }
+        },
+        {
+          "axis": "pitch",
+          "start": {
+            "x": 463.75,
+            "y": 343.3515625
+          },
+          "end": {
+            "x": 463.75,
+            "y": 376.07648597489367
+          },
+          "owner": {
+            "sampleId": "polymer-sample-1-1",
+            "orbitPointerIds": [
+              1
+            ],
+            "draggedInstanceId": null
+          }
+        }
+      ]
+    },
+    "nextSample": {
+      "sampleId": "polymer-sample-2-2",
+      "graphDigest": "0e2881feedc95881932ed5f49a8f5a8a899d33afb4d4ef51f0a273078d1a0556",
+      "atoms": 39,
+      "bonds": 38,
+      "inputPath": "pla-refeed-geometry-input.json",
+      "inputSHA256": "d66858f2b16e770772842f03eb32eb0174847db142f39ae5d5f0735446b54828",
+      "geometryReplayPass": false,
+      "safeError": {
+        "code": "POLYMER_GEOMETRY_UNAVAILABLE",
+        "message": "Polymer geometry unavailable: chemical-geometry-did-not-converge"
+      },
+      "iterations": 160,
+      "maxAngleError": 15.420202394886346,
+      "violations": {
+        "bonds": [],
+        "angles": [
+          {
+            "a": 13,
+            "center": 15,
+            "b": 22,
+            "target": 114.8,
+            "environment": "acyl-O",
+            "degrees": 130.22020239488634,
+            "error": 15.420202394886346
+          }
+        ],
+        "planes": [],
+        "steric": []
+      }
+    },
+    "limits": [
+      "The first Sample raster passes; the next known Sample is rejected and the process fails.",
+      "No final-source all25 static, all12 conditions, strict Finite or merge certification."
+    ]
+  },
+  "nextMinimum": {
+    "step": "Frozen actual PLA re-FEED geometry recovery before PIB visibility or final campaigns",
+    "input": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pla-refeed-geometry-input.json",
+    "command": "POLYMER_CAPTURED_SOURCE_SHA=9e3f4bb8af55c0ff34a29e29f734b9e895bb600c POLYMER_CAPTURED_VIEWPORT='{\"width\":1280,\"height\":800,\"mobile\":false}' POLYMER_CAPTURED_DPR=2 node scripts/replay-polymer-task5-captured-input.mjs docs/validation/polymer-local-fragment-task5-evidence/recovery/pla-refeed-geometry-input.json",
+    "required": "Preserve160 iterations, every chemistry tolerance, graph/source/origin and fail-closed fallback; accept this input and existing PET/all25/intermediate geometry before new expensive browser campaigns"
+  },
+  "activeJobs": "NONE_ALL_LOCAL_BROWSER_PROCESSES_FINISHED",
+  "environment": {
+    "Chrome": "156.0.8078.47",
+    "Node": "24.19.0",
+    "JapaneseFontSHA256": "68a3fc98800b2a27b371f2fb79991daf3633bd89309d4ffaa6946fd587f375b5"
+  },
+  "mandatoryCIRegression": "task5-fit-diagnostic now replays the frozen known-PLA input before browser/resource/all25 campaigns; current rejection remains a hard failure",
+  "startingPR354Head": "50c0b38fba2ad87272d30a536d45a1060a80c7a0",
+  "currentPR354Head": "Resolve feat/polymer-local-fragment-task5 on GitHub; do not substitute the starting SHA"
 }

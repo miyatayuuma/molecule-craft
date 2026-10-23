@@ -265,9 +265,17 @@ jobs:
         env:
           POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          node --test tests/polymer-task5-pet-recovery.test.mjs tests/polymer-raster-grading.test.mjs tests/polymer-heap-grading.test.mjs
+          node --test tests/polymer-task5-pet-recovery.test.mjs tests/polymer-raster-grading.test.mjs tests/polymer-heap-grading.test.mjs tests/polymer-allocation-window.test.mjs
           node scripts/replay-polymer-task5-captured-input.mjs
           node scripts/replay-polymer-task5-docking-input.mjs
+      - name: Replay captured known-PLA re-FEED geometry before browser campaigns
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          POLYMER_CAPTURED_SOURCE_SHA: 9e3f4bb8af55c0ff34a29e29f734b9e895bb600c
+          POLYMER_CAPTURED_VIEWPORT: '{"width":1280,"height":800,"mobile":false}'
+          POLYMER_CAPTURED_DPR: '2'
+          POLYMER_EVIDENCE_DIR: test-results/reaction-lab-polymer-simplification/pla-captured-input
+        run: node scripts/replay-polymer-task5-captured-input.mjs docs/validation/polymer-local-fragment-task5-evidence/recovery/pla-refeed-geometry-input.json
       - name: Reproduce actual PET fit with captured failure input
         env:
           POLYMER_FIT_DIAGNOSTIC_ROUTE: polyethylene-terephthalate-direct-polycondensation
