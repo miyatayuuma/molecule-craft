@@ -1,0 +1,25 @@
+✔ a real automatic commit permits only its seven new actual single/double lanes (2.534389ms)
+✔ unchanged graphs allow zero new geometry even if the automatic counter advances (0.405899ms)
+✔ a changed graph cannot excuse allocations without a same-batch automatic unit commit (0.977812ms)
+✔ Task4 G0-G7 all 25: actual Core graph, new independent local chemistry checks, source/identity and determinism (593.227952ms)
+✔ initial sources and every intermediate actual commit graph remain accepted, including epoxide before ring opening (400.167757ms)
+✔ read-only semantic targets agree with Task3 motifs and real origin tuples; PF transferred-H is not a junction (29.192492ms)
+✔ invalid chemistry and invalid budgets throw before fallback; graph remains unchanged (1.727278ms)
+✔ absent, nonfinite, malformed and coincident source poses reject explicitly; never certify invented coordinates (2.251301ms)
+✔ nonconvergence rejects bad fallback; only independently validated real-graph fallback can be displayed (23.622404ms)
+✔ identities, changed valid source poses and ordered atom/bond remapping have explicit deterministic behavior (21.034097ms)
+✔ connected cyclic/branched inter-origin graph is solved or explicitly rejected without mutating topology (1.058892ms)
+✔ actual PF heap release is preserved as a decrease, not reported as accumulation (79.898069ms)
+✔ a new resource after the measured decrease still fails (83.528414ms)
+✔ increased backing bytes fail even when the resource count is unchanged (68.614924ms)
+✔ static GPU reuse keeps every RAF, fixed-step and completion update; a changed pose renders immediately (2.802804ms)
+✔ animation, real molecules and comparison views render every live frame (2.008142ms)
+✔ hidden, closed and lost contexts cannot submit GPU work; disposing ends RAF ownership (2.180757ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2131.806834

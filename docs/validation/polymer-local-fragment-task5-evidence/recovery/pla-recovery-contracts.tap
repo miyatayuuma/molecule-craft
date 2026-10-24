@@ -1,0 +1,31 @@
+✔ a real automatic commit permits only its seven new actual single/double lanes (3.284674ms)
+✔ unchanged graphs allow zero new geometry even if the automatic counter advances (0.846299ms)
+✔ a changed graph cannot excuse allocations without a same-batch automatic unit commit (1.373276ms)
+✔ actual PF heap release is preserved as a decrease, not reported as accumulation (87.238268ms)
+✔ a new resource after the measured decrease still fails (85.843387ms)
+✔ increased backing bytes fail even when the resource count is unchanged (95.938304ms)
+✔ graph-derived local frames are finite, deterministic and preserve tilted planar and linear geometry (3.675227ms)
+✔ local junction/site selection preserves the real graph and all geminal methyl hydrogens (30.308249ms)
+✔ all 25 real graphs fit full visual envelopes in DOM-shaped safe rectangles at three canvas sizes; reset is deterministic (16543.18671ms)
+✔ triple lanes preserve actual PAN four and NBR one bonds; offsets and widths are distinct (0.395617ms)
+✔ initial fit rejects an endpoint hidden by a frozen ordinary atom and deterministically reuses the same input (225.071721ms)
+✔ comparison multiple lanes retain the real bond length and face the camera after refit, including end-on fallback (3.099442ms)
+✔ safe region rejects impossible UI and tie breaks deterministically (0.281483ms)
+✔ canvas buffer updates only on actual CSS or capped DPR changes (0.438767ms)
+✔ comparison rejects tuple duplication or omission rather than inventing water/source evidence (0.776954ms)
+✔ all25 comparison source/after/water partitions use actual Core tuples and read-only transitions (4.107913ms)
+✔ local focus reserves full-graph clipping depth for all forty real orbit directions without reducing zoom (802.888159ms)
+✔ A06: a real selection outline cannot certify the underlying carbon silhouette (42.638871ms)
+✔ A06: another real view recovers the same carbon with no annotation or material change (21.106058ms)
+✔ A03 excludes a real selection circle crossing another atom; A06 keeps the unannotated disk (21.299708ms)
+✔ static GPU reuse keeps every RAF, fixed-step and completion update; a changed pose renders immediately (3.578325ms)
+✔ animation, real molecules and comparison views render every live frame (2.781297ms)
+✔ hidden, closed and lost contexts cannot submit GPU work; disposing ends RAF ownership (2.785735ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18872.901689

@@ -1,0 +1,130 @@
+{
+  "kind": "COUPLED_NATIVE_MESH_LOCAL_FEASIBILITY_NOT_ACCEPTANCE",
+  "startHead": "6d508e753e2c7bd8cf3b2578d81311936c9e8250",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "disposition": "UNRESOLVED",
+  "provenInfeasible": false,
+  "certifiedExcludedRegions": 0,
+  "productionChanges": 0,
+  "graphDigest": "f7bd07a6bc990bb0157fe2e917b2df5a7c1c4510a0a924c137dccad5b914b7b6",
+  "formalGPU": "original0/3; newGPU0; no formal source-bound acceptance",
+  "budgets": {
+    "objectiveCap": 240,
+    "objectiveActual": 25,
+    "confirmationCap": 9,
+    "confirmationActual": 3,
+    "restarts": 0
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "node": "v24.19.0"
+  },
+  "previousManifestEntriesVerified": 17,
+  "protectedGitTreeEntriesSHA256": "2792efc7a37f5b82daa2e7c5702d9b32c1155b49c5edd5d1154fe6217fe71efb",
+  "tools": [
+    {
+      "path": "scripts/solve-polymer-task5-coupled-mesh.py",
+      "sha256": "d00671d3b7f4705d6a70e840efc48d530bdfd7c98eda6eb2470f4e9151ecc0ed"
+    },
+    {
+      "path": "scripts/polymer-task5-coupled-mesh-oracle.mjs",
+      "sha256": "4ecfa44bc0479e9b5ed419747684f74e108df3c8ab559b75eebe40fe8f766590"
+    },
+    {
+      "path": "scripts/check-polymer-task5-coupled-mesh.mjs",
+      "sha256": "a90f173c8d7cd5faee08610376f2e40af1e2c49b6e5359548e21511d2e3952c6"
+    },
+    {
+      "path": "tests/polymer-task5-coupled-mesh.test.mjs",
+      "sha256": "4c0ee6d90ce003d3b69102291231f69a136272ac5abe53d0f05089a3c5cff68c"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-orientation-6a2f056a/manifest.json",
+      "sha256": "4857600d1bbfaae512393a73526dbca8a097c38b83964d89ff202ef7219914c3"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-orientation-6a2f056a/decomposition.json.gz",
+      "sha256": "bf16a0057d2bd11b4cb183a86a6bc55ffdf62a03956bef9c9d142f806d0bbd32"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/ba94cb-pib-visual.json.gz",
+      "sha256": "cc795cd5008cf2ab61e89cc58e9e3c17cd8ba47d13af8963ec363a2387d2a7a1"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/production-before-replay.json.gz",
+      "sha256": "206b5f88e78fb2cec7cf47d6b1cfae5947a6af447c79db3e164bc836e0bf405a"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-raster-parity-d100a76b/focus-rule-analysis.json.gz",
+      "sha256": "7fc9710359e98d6a8ccd7cb35ab33e3d61ddbced811e7887ab9522b3a5c82993"
+    }
+  ],
+  "files": [
+    {
+      "path": "confirmation.json.gz",
+      "bytes": 3174,
+      "sha256": "54aba74d28d0f3c5ecab81c9ef4587cae1a624db9c142ac199c77be1fd1642c3"
+    },
+    {
+      "path": "confirmation.log",
+      "bytes": 1998,
+      "sha256": "eb73679af1ef708abcbc45e6ec689e1fe9b44d4357bdc8f2079bf911c5364f00"
+    },
+    {
+      "path": "history.jsonl.gz",
+      "bytes": 38808,
+      "sha256": "f40a37b7ce7c924dc260b5321d07f31cb686799288b230bf80f49e426a9ac4cb"
+    },
+    {
+      "path": "hygiene.log",
+      "bytes": 86,
+      "sha256": "8b96b5f87daf3eb3705cf6c96429a7f18558bf0e71e95afc89542006b083cf6d"
+    },
+    {
+      "path": "optimizer.log",
+      "bytes": 2112,
+      "sha256": "3b70e740537c2343b2c58f2e8d4cb97c9426048f8d15aade32a720748e36eed0"
+    },
+    {
+      "path": "protected-tests.log",
+      "bytes": 4714,
+      "sha256": "a9bec821ac4e2088ae441046421c22ccd6ceefc2219e4deeff191f28841d3224"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 1514,
+      "sha256": "18e91f9b1610068aba9d72062ccac07b1f32c3169bcedb8d590cb7224872ff16"
+    },
+    {
+      "path": "pwa.log",
+      "bytes": 48,
+      "sha256": "2d4b78e8635ff1a987c7942b02d24c88fc576a1db977d7ce281507385ffc483e"
+    },
+    {
+      "path": "result.json.gz",
+      "bytes": 3382,
+      "sha256": "62a2e29bbae65091d5f8f2ca9a091a4c894438f156e5b883f707dca8cd57eb6a"
+    }
+  ],
+  "validation": {
+    "tests": 41,
+    "pass": 41,
+    "fail": 0,
+    "skip": 0,
+    "geometry": "frozenPLA/PET;25final/95intermediatePASS",
+    "pwaAssets": 353,
+    "hygiene": "PASS0warnings",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "requiredBrowserAndPerformance": "NOT_RUN/NOT_CERTIFIED"
+  },
+  "postEvaluationToolChanges": "Added importable retained-pose replay, request/overwrite guards and confirmation only; objective arithmetic and solver options unchanged; no solver rerun",
+  "review": {
+    "startingCodexReceipt": 6364897951,
+    "startingReviewedCommit": "6d508e753e2c7bd8cf3b2578d81311936c9e8250",
+    "currentSourceDiagnosticReview": "REQUEST_AFTER_COMMIT",
+    "finalReleaseReview": "NOT_CERTIFIED"
+  }
+}

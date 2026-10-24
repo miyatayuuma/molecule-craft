@@ -1,0 +1,116 @@
+{
+  "kind": "FROZEN_GRAPH_ORIENTATION_FEASIBILITY_NOT_ACCEPTANCE",
+  "startHead": "6a2f056a13ddea48c1d55218f3a58f1b3d058c62",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "productionChanges": 0,
+  "graphDigest": "f7bd07a6bc990bb0157fe2e917b2df5a7c1c4510a0a924c137dccad5b914b7b6",
+  "formalGPU": "original0/3; no new GPU/browser campaign",
+  "budgets": {
+    "decompositionCap": 123,
+    "decompositionActual": 93,
+    "solverPerSeedCap": 800,
+    "solverActual": 152,
+    "finalMeshCap": 27,
+    "finalMeshActual": 21
+  },
+  "runtime": {
+    "node": "v24.19.0",
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0"
+  },
+  "tools": [
+    {
+      "path": "scripts/analyze-polymer-task5-orientation-feasibility.mjs",
+      "sha256": "66a590e6c4f34e83cdc34816d6d2e9eb1f9ff06535f1e0a3c300032f77a62c51"
+    },
+    {
+      "path": "scripts/solve-polymer-task5-orientation.py",
+      "sha256": "ccd59765b01269881b467b77ba15f550a79c2de8857f2fb906b3a89040b32242"
+    },
+    {
+      "path": "scripts/check-polymer-task5-orientation-candidates.mjs",
+      "sha256": "8b8e34ff1a9d85bae3c4f9bb530007975fe192453b3a3ef333c635a776fa9380"
+    },
+    {
+      "path": "tests/polymer-task5-orientation-feasibility.test.mjs",
+      "sha256": "c68133e9f830bea09599d229ace26746db92bc38940580461e03264b18ec73b8"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/ba94cb-pib-visual.json.gz",
+      "sha256": "cc795cd5008cf2ab61e89cc58e9e3c17cd8ba47d13af8963ec363a2387d2a7a1"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/manifest.json",
+      "sha256": "3b54a5db1b6c4a46bd866256769cc21e4f4f797b62ee44a72d96a951b54fa4f8"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/production-before-replay.json.gz",
+      "sha256": "206b5f88e78fb2cec7cf47d6b1cfae5947a6af447c79db3e164bc836e0bf405a"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-raster-parity-d100a76b/focus-rule-analysis.json.gz",
+      "sha256": "7fc9710359e98d6a8ccd7cb35ab33e3d61ddbced811e7887ab9522b3a5c82993"
+    }
+  ],
+  "files": [
+    {
+      "path": "checks.log",
+      "bytes": 255,
+      "sha256": "b4bf33bb505d593555602f7927131b396a8af21b0d1aab803fb220730e1df914"
+    },
+    {
+      "path": "decomposition-protocol.json",
+      "bytes": 734,
+      "sha256": "345ce1b7d97562e753dad1edc5da3e129088018c48c054b20494090a19df2d30"
+    },
+    {
+      "path": "decomposition.json.gz",
+      "bytes": 6316,
+      "sha256": "bf16a0057d2bd11b4cb183a86a6bc55ffdf62a03956bef9c9d142f806d0bbd32"
+    },
+    {
+      "path": "finalists-protocol.json",
+      "bytes": 871,
+      "sha256": "93e88e4f36e4da57659365bf059efccb451eae0cfcb1c261adf18e5da710791d"
+    },
+    {
+      "path": "finalists.json.gz",
+      "bytes": 20086,
+      "sha256": "b9d6379db2c9bb3249f18bb267583218484cef0b3d20178ec562eea7d22ae419"
+    },
+    {
+      "path": "independent-review.json",
+      "bytes": 982,
+      "sha256": "7c4a1750acb7a5cc6ff625fae00f2af63479e41fcda01effe0bcfaccff67a013"
+    },
+    {
+      "path": "protected-tests.log",
+      "bytes": 4393,
+      "sha256": "994775be1e524831f87ad5e66017f3da9c8b7e48839224c48eec9270cd56ea7d"
+    },
+    {
+      "path": "solver-protocol.json",
+      "bytes": 1182,
+      "sha256": "b5bdd1f6f175f42b38b81fba88819a55ffcae38312dd9b35cbda985dcc395827"
+    },
+    {
+      "path": "solver.json.gz",
+      "bytes": 86709,
+      "sha256": "679489bec1690f0861d98de383d33ce14750025132cef9f1bd91811f1aaa9d75"
+    }
+  ],
+  "validation": {
+    "tests": 38,
+    "passCount": 38,
+    "fail": 0,
+    "skip": 0,
+    "pwaAssets": 353,
+    "hygiene": "PASS0warnings",
+    "syntax": "PASS",
+    "limits": "not Repository/FIELD/StageB/Finite/browser certification"
+  },
+  "editorialCorrection": "Independent reviewer corrected descriptions only after the fixed experiment; no numeric observation or pose altered and no search rerun"
+}

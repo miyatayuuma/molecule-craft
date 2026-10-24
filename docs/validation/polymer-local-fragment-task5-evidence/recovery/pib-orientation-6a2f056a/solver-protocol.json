@@ -1,0 +1,22 @@
+{
+  "kind": "BOUNDED_GRAPH_SHADOW_MAXMIN_DIAGNOSIS_NOT_ACCEPTANCE",
+  "anchors": [
+    0,
+    17,
+    30
+  ],
+  "seeds": 2,
+  "seed_rule": "retained reference; graph shadow normal cross(blocker-bond endpoint,bond axis) projected onto plane perpendicular to the worst endpoint-limited bond, two-sided sign nearest reference",
+  "budget_per_seed": 800,
+  "iterations": 80,
+  "area_quadrature": [
+    40,
+    9
+  ],
+  "atom_disk_samples": 96,
+  "continuous_samples": 97,
+  "optimization": "SLSQP max-min normalized independent constraints; rotation-vector x/y components within +/-40deg and z within +/-90deg, not independent view/roll bounds; finite-difference Jacobian",
+  "adoption": "not automatic; best minimum-margin evaluated point per seed (including finite-difference points), plus reference, in 3 fixed mesh arithmetic modes; min all constraints >=1; GPU remains authority",
+  "uncertainty": "Smooth ideal spheres/cylinder side quadrature ignores cylinder caps, cylinder-cylinder shadows and mesh facets/pixels; negative self-ray discriminants clamp to zero; flat zero continuous runs can stop SLSQP without improvement; no feasibility or optimality proof",
+  "repeats": 0
+}

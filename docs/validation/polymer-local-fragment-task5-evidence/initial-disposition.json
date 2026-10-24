@@ -1,0 +1,45 @@
+{
+  "startingMain": "593ac571e4d664f7af885855352142874dd227ab",
+  "firstSource": "d2029ffc283c895ca0dc99ea1f72cc54fbdee692",
+  "firstRun": 39541253075,
+  "StageB": {
+    "job": 119029265376,
+    "result": "PASS"
+  },
+  "Finite": {
+    "job": 119029265217,
+    "result": "FAIL",
+    "boundary": "moduleFetchCount 148 != 146; comparator stopped before timing acceptance",
+    "artifact": 12319359192,
+    "artifactSHA256": "e577f7bafdf015f6e266acf8452e47568c76061b7282458da16a513dde4a60b1"
+  },
+  "firstStaticSource": "9f7a8732e1101111404f9572577c0609663b446e",
+  "firstStaticRun": 39542001183,
+  "mobile360Normal": {
+    "job": 119031620906,
+    "result": "FAIL",
+    "completedRoutes": 10,
+    "failure": "PET displayGraph.layoutUnitCount null at inspectCompletion, before fit assertion; verified geometry is unavailable. Earlier fit-null interpretation was incorrect.",
+    "artifact": 12319108975,
+    "artifactSHA256": "4e0d5e0cc8fe1fd5d60ef63e8f04054df49ad9afa04f4ca4c9ed0a2dd4384926",
+    "completedMaskCoverage": "40 directions; 0 unrecovered atoms/bonds in each of 10 prior routes; A06 and continuous raster were not yet graded"
+  },
+  "desktopDPR2": {
+    "job": 119031620932,
+    "result": "FAIL",
+    "route": "polyacrylic-acid-radical",
+    "boundary": "manual step 2 reactive site not acquired; 27.73871077926385 CSS px site offset; pointer at target"
+  },
+  "reviewFindings": [
+    "comparison state stale after suspend",
+    "active comparison not refitted after resize"
+  ],
+  "laterSinglePETDiagnostic": {
+    "source": "1daf130c4bc121c2793954bf4303c15495555b46",
+    "run": 39543429036,
+    "job": 119036141199,
+    "result": "PASS",
+    "interpretation": "does not replace earlier sequential mobile failures or establish a root cause"
+  },
+  "acceptance": "NOT_ACCEPTED; all failures retained; no threshold/trial/baseline/comparator change"
+}

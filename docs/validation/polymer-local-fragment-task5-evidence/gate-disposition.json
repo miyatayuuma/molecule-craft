@@ -1,0 +1,99 @@
+{
+  "decision": "BLOCKED",
+  "startingMain": "593ac571e4d664f7af885855352142874dd227ab",
+  "mainMerge": "NOT_EXECUTED",
+  "postMerge": "NOT_EXECUTED",
+  "pr": 354,
+  "runtimeSHA256": {
+    "src/reaction-lab-viewer.js": "34f290d844504361caa37804f4a17325679f0b94143927f2db50b84b35763440",
+    "src/reaction-lab-polymer-presentation.js": "596db77fe0bb9add39ba8ea580eab72938d98cd189a21a14db36d0314df900c9",
+    "src/reaction-lab-polymerization.js": "7e452fe7fadf4547f1a4e27e83f4e882685836ea9888583cc963fbce671471ff",
+    "src/polymer-fragment-3d-layout.js": "96b87ff09ca838113a5c885c3b3b20f1c959f6199dd54320ab51f7ab3f51e687",
+    "styles.css": "e20c6c54839b81b2015309dba1d2be84956a5ce3ca831b4afe73c48cee1e0393",
+    "index.html": "585436ee5b5cef59362f72ba63e7960fa40780b5d3b590b5bedb38129f1488cc",
+    "precache-manifest.js": "a6b81d00cc5c9fd1a60340739ee2261661f0c3b857521e1b30e402c6297d00d1",
+    "sw.js": "d511b462b4d1d0cca22507139736197145136e20f303bd6ab1fd166da5a05d00"
+  },
+  "local": {
+    "deterministicTests": {
+      "pass": 27,
+      "fail": 0,
+      "suites": [
+        "polymer-observation",
+        "polymer-static-render",
+        "polymer-fragment-task4",
+        "reaction-lab-step-geometry-cache",
+        "polymer-collection-persistence",
+        "engineering-fabrication"
+      ]
+    },
+    "pwa": {
+      "assets": 353,
+      "release": "afd6db5ac79bf362",
+      "result": "PASS after manifest regeneration",
+      "earlierFailure": "Stale precache check was started before regeneration completed; preserved in /tmp/task5-final-unit.log; no timing trial was rerun"
+    },
+    "hygiene": {
+      "files": 892,
+      "reachableModules": 137,
+      "warnings": 0
+    },
+    "capturedGeometryReplay": "FAIL; preserved Task4 source rejects actual PET",
+    "localSequentialBrowser": "FAIL PET manual2 no-dock-pose after first10 routes",
+    "localIsolatedPET": "PASS; does not invalidate sequential failure",
+    "localFirst10": "quantitative C01 gestures, comparison ownership, close/reopen, resize, C01 context/DPR pass; diagnostic only"
+  },
+  "hosted": {
+    "capturedPET": {
+      "source": "6400361c5bc813cd098a038de7883df4692b36ef",
+      "run": 39544766886,
+      "job": 119040316034,
+      "artifact": 12322320528,
+      "zipSHA256": "2598564affa9120a1ca40a029933323f6d70663d1b94869e0dea59608147ea07",
+      "routesCompleted": 10,
+      "result": "FAIL geometry unavailable at PET"
+    },
+    "finite640": {
+      "run": 39544766886,
+      "job": 119040315862,
+      "artifact": 12321419875,
+      "result": "FAIL timing; raw comparison retained"
+    },
+    "stageB640": {
+      "run": 39544766886,
+      "job": 119040315609,
+      "result": "PASS"
+    },
+    "staticGPURepair": {
+      "source": "c7cdb5dd935656ba8054faba9c5352493d0b6fbb",
+      "run": 39545767615,
+      "result": "QUEUED/NOT_ACCEPTED"
+    }
+  },
+  "finalAcceptance": {
+    "all25Visual": "NOT_ACCEPTED",
+    "V0-V8": "PARTIAL; see ledger",
+    "C01-C09": "PARTIAL; see ledger",
+    "S10-S16": "PARTIAL; see ledger",
+    "L1": "IMPLEMENTED; PAN4 raster partial PASS; NBR/final source NOT_ACCEPTED",
+    "StageB": "FINAL_SOURCE_NOT_VERIFIED",
+    "Finite": "FAIL before optimization; FINAL_SOURCE_NOT_VERIFIED",
+    "FIELD": "FINAL_SOURCE_NOT_VERIFIED",
+    "resourcesLifecycle": "PARTIAL; full repeated browser acceptance missing",
+    "independentReview": "3 findings repaired; final review pending"
+  },
+  "deferred": {
+    "task6": [
+      "physical devices",
+      "child observation"
+    ],
+    "PF-L2": "UNASSESSED"
+  },
+  "resume": [
+    "captured production PET geometry input with unchanged diagnostics/budget/fallback",
+    "actual sequential PET pointer rejection",
+    "all25 short browser replay, then frozen12 static jobs and real gesture witnesses",
+    "strict performance and non-regression on same final source, independent review, merge/post-merge only after all gates pass"
+  ],
+  "finalMain": "593ac571e4d664f7af885855352142874dd227ab"
+}

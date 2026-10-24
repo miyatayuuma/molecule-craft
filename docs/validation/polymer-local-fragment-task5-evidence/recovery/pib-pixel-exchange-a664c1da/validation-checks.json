@@ -1,0 +1,51 @@
+[
+  {
+    "command": [
+      "node",
+      "scripts/build-precache.mjs",
+      "--check"
+    ],
+    "exit": 0,
+    "stdout": "Offline release is current: 353 verified assets\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "scripts/check-repository-hygiene.mjs"
+    ],
+    "exit": 0,
+    "stdout": "Repository hygiene passed: 1240 files, 137 production modules reachable, 0 warning(s)\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "scripts/prepare-polymer-task5-pixel-exchange.mjs"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "scripts/check-polymer-task5-pixel-exchange.mjs"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

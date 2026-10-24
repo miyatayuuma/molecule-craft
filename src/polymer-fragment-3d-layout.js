@@ -267,7 +267,8 @@ function relaxGeometry(model,coordinates,maxIterations){
       for(const [index,g]of [[ia,ga],[ib,gb],[ic,gc],[id,gd]])p[index]=sub(p[index],mul(g,lambda));
     }
   };
-  let performed=0,qualityTargetReached=false;
+  let performed=0,qualityTargetReached=false,bestFeasible=null,bestScore=Infinity,bestIteration=null,restoredFeasibleIteration=null;
+  let preDistanceFeasible=null,preDistanceScore=Infinity,preDistanceIteration=null;
   for(let i=0;i<iterations;i++){
     performed=i+1;
 
@@ -285,16 +286,43 @@ function relaxGeometry(model,coordinates,maxIterations){
       for(let j=0;j<6;j++)p[indices[j]]=add(center,mul(add(mul(x,Math.cos(j*Math.PI/3)),mul(y,Math.sin(j*Math.PI/3))),1.4*POLYMER_GEOMETRY_SCALE));
     }
     for(const plane of model.planar)projectPlane(plane.indices);
+    // Length projection can undo a jointly feasible angle/plane pose while
+    // reducing bond error already inside the chemical tolerance. Keep that
+    // pose only after validating EVERY constraint, at the existing cadence.
+    // Prefer the original full-sweep checkpoint whenever one exists.
+    if(sweep===7&&performed%8===0){
+      const d=polymerGeometryDiagnostics(model,p);
+      if(d.accepted){
+        const score=Math.max(d.maxBondError/.02,d.maxAngleError/5,...d.planes.map(plane=>plane.deviation/.035));
+        if(score<preDistanceScore){preDistanceScore=score;preDistanceFeasible=p.map(point=>({...point}));preDistanceIteration=performed;}
+      }
+    }
     for(const b of model.bondTargets)projectDistance(b.a,b.b,b.target,.9);
     }
     if(performed%8===0){
       const d=polymerGeometryDiagnostics(model,p);
+      // Alternating ring/plane/length projections are not monotone: later
+      // sweeps can undo a fully valid pose while pursuing the tighter quality
+      // target. Retain a jointly validated iterate, never a partial constraint
+      // projection. Successful terminal solves keep their original coordinates.
+      if(d.accepted){
+        const score=Math.max(d.maxBondError/.02,d.maxAngleError/5,...d.planes.map(plane=>plane.deviation/.035));
+        if(score<bestScore){bestScore=score;bestFeasible=p.map(point=>({...point}));bestIteration=performed;}
+      }
       if(d.accepted&&d.maxBondError<=.02&&d.maxAngleError<=5&&d.planes.every(p=>p.deviation<=.035)) {qualityTargetReached=true;break;}
     }
   }
   // The terminal nitrile projection is exact and cannot move a chain center.
   for(const a of model.angles)if(a.target===180)projectAngle(a);
-  return{iterations:performed,qualityTargetReached};
+  const retained=bestFeasible??preDistanceFeasible;
+  if(retained&&!polymerGeometryDiagnostics(model,p).accepted){
+    for(let i=0;i<p.length;i++)p[i]={...retained[i]};
+    for(const a of model.angles)if(a.target===180)projectAngle(a);
+    restoredFeasibleIteration=bestFeasible?bestIteration:preDistanceIteration;
+  }
+  // The caller independently validates the returned pose, including the exact
+  // nitrile projection; retaining an iterate never bypasses acceptance/fallback.
+  return{iterations:performed,qualityTargetReached,restoredFeasibleIteration};
 }
 
 export function createPolymerFragment3DLayout(sample,{sourceRecordsByInstanceId={},maxIterations=160}={}){
@@ -323,7 +351,7 @@ export function createPolymerFragment3DLayout(sample,{sourceRecordsByInstanceId=
   for(const a of atomPlan)for(const axis of ['X','Y','Z']){const v=a[axis.toLowerCase()];bounds[`min${axis}`]=Math.min(bounds[`min${axis}`],v);bounds[`max${axis}`]=Math.max(bounds[`max${axis}`],v);}
   bounds.width=bounds.maxX-bounds.minX;bounds.height=bounds.maxY-bounds.minY;bounds.depth=bounds.maxZ-bounds.minZ;
   const chemical=polymerGeometryDiagnostics(model,centered),accepted=chemical.accepted&&!sourceCoordinateFallbacks.length&&!degenerateSourceBonds.length;
-  const diagnostics={accepted,fallback:false,reason:accepted?null:sourceCoordinateFallbacks.length?'missing-source-coordinates':degenerateSourceBonds.length?'degenerate-source-geometry':'chemical-geometry-did-not-converge',version:POLYMER_GEOMETRY_VERSION,iterations:relaxed.iterations,converged:chemical.accepted,qualityTargetReached:relaxed.qualityTargetReached,unitCount:placed.unitCount,unplacedUnits:placed.unplacedUnits,sourceCoordinateFallbacks,degenerateSourceBonds,geometryScale,maxBondError:chemical.maxBondError,meanBondError:chemical.bonds.reduce((s,b)=>s+b.error,0)/Math.max(1,bonds.length),maxAngleError:chemical.maxAngleError,severeOverlapCount:chemical.severeOverlapCount,minimumNonbondedDistance:chemical.minimumNonbondedDistance,protectedRingAtomCount:model.aromaticAtoms.size,protectedRingCount:model.rings.length,depthSpan:bounds.depth,finite:chemical.finite,atomCount:atoms.length,bondCount:bonds.length,chemical};
+  const diagnostics={accepted,fallback:false,reason:accepted?null:sourceCoordinateFallbacks.length?'missing-source-coordinates':degenerateSourceBonds.length?'degenerate-source-geometry':'chemical-geometry-did-not-converge',version:POLYMER_GEOMETRY_VERSION,iterations:relaxed.iterations,restoredFeasibleIteration:relaxed.restoredFeasibleIteration,converged:chemical.accepted,qualityTargetReached:relaxed.qualityTargetReached,unitCount:placed.unitCount,unplacedUnits:placed.unplacedUnits,sourceCoordinateFallbacks,degenerateSourceBonds,geometryScale,maxBondError:chemical.maxBondError,meanBondError:chemical.bonds.reduce((s,b)=>s+b.error,0)/Math.max(1,bonds.length),maxAngleError:chemical.maxAngleError,severeOverlapCount:chemical.severeOverlapCount,minimumNonbondedDistance:chemical.minimumNonbondedDistance,protectedRingAtomCount:model.aromaticAtoms.size,protectedRingCount:model.rings.length,depthSpan:bounds.depth,finite:chemical.finite,atomCount:atoms.length,bondCount:bonds.length,chemical};
   const continuations=(sample?.representation?.continuations??[]).map((item,index)=>{const atomIndex=Number.isInteger(item.atomRef)?item.atomRef:Number.parseInt(String(item.atomRef).split(':').at(-1),10),a=atomPlan[atomIndex];return{...item,atomIndex,x:(a?.x??0)+(index%2===0?.7:-.7),y:a?.y??0,z:a?.z??0};});
   return{polymerId:sample?.polymerId??'polymer',routeId:sample?.routeId??'unknown',atoms:atomPlan,bonds,atomOrigins:graph.atomOrigins,continuations,qualifiers:[...(sample?.representation?.qualifiers??[])],bounds,unitCount:placed.unitCount,diagnostics};
 }

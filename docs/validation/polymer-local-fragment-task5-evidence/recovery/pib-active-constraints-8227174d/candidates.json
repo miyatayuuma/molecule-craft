@@ -1,0 +1,107 @@
+{
+  "kind": "MINIMAL_AFFINE_PROPOSALS_NOT_PROOF",
+  "rows": [
+    {
+      "name": "active-r1-n26",
+      "radius": 1,
+      "steps34": 26,
+      "surplus": 0,
+      "solver": {
+        "status": 2,
+        "message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+        "variables": 10381,
+        "constraints": 60189,
+        "seconds": 0.23243338599991148
+      },
+      "areaConstraints": [
+        {
+          "kind": "atom",
+          "index": 30,
+          "fixedAffineInterior": 564,
+          "eligibleCells": 1178,
+          "requiredAtSeed": 815.7791315171334
+        },
+        {
+          "kind": "bond",
+          "index": 32,
+          "fixedAffineInterior": 0,
+          "eligibleCells": 162,
+          "requiredAtSeed": 61.70281866165162
+        },
+        {
+          "kind": "bond",
+          "index": 33,
+          "fixedAffineInterior": 33,
+          "eligibleCells": 169,
+          "requiredAtSeed": 94.62870517647175
+        },
+        {
+          "kind": "bond",
+          "index": 34,
+          "fixedAffineInterior": 18,
+          "eligibleCells": 94,
+          "requiredAtSeed": 37.79253198756675
+        },
+        {
+          "kind": "bond",
+          "index": 35,
+          "fixedAffineInterior": 55,
+          "eligibleCells": 107,
+          "requiredAtSeed": 46.54663077113314
+        }
+      ],
+      "hasIncumbent": false
+    },
+    {
+      "name": "active-r1-n27",
+      "radius": 1,
+      "steps34": 27,
+      "surplus": 0,
+      "solver": {
+        "status": 2,
+        "message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+        "variables": 10397,
+        "constraints": 60313,
+        "seconds": 0.21731450000004315
+      },
+      "areaConstraints": [
+        {
+          "kind": "atom",
+          "index": 30,
+          "fixedAffineInterior": 564,
+          "eligibleCells": 1178,
+          "requiredAtSeed": 815.7791315171334
+        },
+        {
+          "kind": "bond",
+          "index": 32,
+          "fixedAffineInterior": 0,
+          "eligibleCells": 162,
+          "requiredAtSeed": 61.70281866165162
+        },
+        {
+          "kind": "bond",
+          "index": 33,
+          "fixedAffineInterior": 33,
+          "eligibleCells": 169,
+          "requiredAtSeed": 94.62870517647175
+        },
+        {
+          "kind": "bond",
+          "index": 34,
+          "fixedAffineInterior": 18,
+          "eligibleCells": 94,
+          "requiredAtSeed": 37.79253198756675
+        },
+        {
+          "kind": "bond",
+          "index": 35,
+          "fixedAffineInterior": 55,
+          "eligibleCells": 107,
+          "requiredAtSeed": 46.54663077113314
+        }
+      ],
+      "hasIncumbent": false
+    }
+  ]
+}

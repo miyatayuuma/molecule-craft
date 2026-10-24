@@ -1,0 +1,221 @@
+{
+  "kind": "LOCAL_DIAGNOSTIC_NOT_FINAL_SOURCE_ACCEPTANCE",
+  "viewport": {
+    "width": 360,
+    "height": 780,
+    "DPR": 1
+  },
+  "routes": [
+    {
+      "routeId": "butyl-rubber-cationic",
+      "polymerId": "butyl-rubber",
+      "sampleId": "polymer-sample-21-21",
+      "graphDigest": "1202b3e58d9692c5ceb4d9ba91ef3e2d4309a22d2eaf61d9d3803d76427bba20",
+      "occupancy": 0.9201295382608883,
+      "uiFailures": []
+    },
+    {
+      "routeId": "ethylene-propylene-coordination",
+      "polymerId": "ethylene-propylene-copolymer",
+      "sampleId": "polymer-sample-3-3",
+      "graphDigest": "2b3b921acb4ee105045c1c5ba18e266ecd4ce68b80a85bb9bfabb0b9c150f62e",
+      "occupancy": 0.9119748625218893,
+      "uiFailures": []
+    },
+    {
+      "routeId": "nitrile-butadiene-radical",
+      "polymerId": "nitrile-butadiene-rubber",
+      "sampleId": "polymer-sample-19-19",
+      "graphDigest": "0278919c0eeea80fff8df11d018e856d477709fdb985134415c2d278b4db50ed",
+      "occupancy": 0.9168657834177589,
+      "uiFailures": []
+    },
+    {
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "polymerId": "nylon-6-6",
+      "sampleId": "polymer-sample-25-25",
+      "graphDigest": "90323ab7c43e6235837d272a0adc5b5d2b71daa571e0d41e37f5377d4edc19be",
+      "occupancy": 0.9178727089723329,
+      "uiFailures": []
+    },
+    {
+      "routeId": "phenol-formaldehyde-resole",
+      "polymerId": "phenol-formaldehyde-resin",
+      "sampleId": "polymer-sample-15-15",
+      "graphDigest": "a2d67c01307e7e9376d45c448c3f782ef6fac99a80fc15777f7b9279453f5e60",
+      "occupancy": 0.9056210428550897,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyacrylic-acid-radical",
+      "polymerId": "polyacrylic-acid",
+      "sampleId": "polymer-sample-9-9",
+      "graphDigest": "de7ff7d89fdec740e166e43c2108c4796df5f10c4aeae1d645d4b24ef1fa05fa",
+      "occupancy": 0.9145951756736707,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyacrylonitrile-radical",
+      "polymerId": "polyacrylonitrile",
+      "sampleId": "polymer-sample-8-8",
+      "graphDigest": "0890d61307d82bc6c496a8a7e4f5d5151eaa655ceecfca97b60b202feefda7cc",
+      "occupancy": 0.9097972819557563,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polybutadiene-coordination-1-4",
+      "polymerId": "polybutadiene",
+      "sampleId": "polymer-sample-17-17",
+      "graphDigest": "db038008c13f7bf5630cc2ca7de9815bf2b00ea01703007800671a1a307bd0de",
+      "occupancy": 0.9207818082553749,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "polymerId": "polychlorotrifluoroethylene",
+      "sampleId": "polymer-sample-7-7",
+      "graphDigest": "7c84943f3d57f75dadbb5c0b3a9abb5d696b63cb045ca5a3e4f36abcb5363d55",
+      "occupancy": 0.9130143500741004,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyethylene-coordination",
+      "polymerId": "polyethylene",
+      "sampleId": "polymer-sample-1-1",
+      "graphDigest": "3f9b0ef2aed8ba77743d142639673c087c054f329d6067f649156525c7868c6c",
+      "occupancy": 0.9133194669283609,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "polymerId": "polyethylene-adipamide",
+      "sampleId": "polymer-sample-16-16",
+      "graphDigest": "d7b95204cc73e2670d83cbde3adb7cb6c7775bb2f0dffaa59c276d4f44ddfe7c",
+      "occupancy": 0.9268088738354023,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "polymerId": "polyethylene-adipate",
+      "sampleId": "polymer-sample-12-12",
+      "graphDigest": "095ee9cfb36af15c465ef0ee1e8d9be998855e3331ec670855766e9e6944bab0",
+      "occupancy": 0.9203708193094665,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "polymerId": "polyethylene-oxide",
+      "sampleId": "polymer-sample-10-10",
+      "graphDigest": "55dda0f56b6ff6714ee2b73e4a3642b0d942e0525a2f93669db3312e04f5d358",
+      "occupancy": 0.9138957451147599,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "polymerId": "polyethylene-terephthalate",
+      "sampleId": "polymer-sample-11-11",
+      "graphDigest": "ac71c980c5105222e7d2b217da840d403c89349a278f8d18716862ba293d5d1e",
+      "occupancy": 0.909779790860026,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "polymerId": "polyglycolic-acid",
+      "sampleId": "polymer-sample-14-14",
+      "graphDigest": "3d259741126cea1e2742b80bdedf3b8dc3f7959951cdcb7194e9388634f480af",
+      "occupancy": 0.9224036187817842,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyisobutylene-cationic",
+      "polymerId": "polyisobutylene",
+      "sampleId": "polymer-sample-4-4",
+      "graphDigest": "44facce546bf00e6dcecc128151e749462f2988edfc0249bc95126fba5318f0f",
+      "occupancy": 0.9102625741525875,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyisoprene-coordination-1-4",
+      "polymerId": "polyisoprene",
+      "sampleId": "polymer-sample-20-20",
+      "graphDigest": "af8d0e6257eb5c4ad07c10b4d7d2c4abf558bdecb665f000726f6075f546ebfa",
+      "occupancy": 0.9140968817644367,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "polymerId": "polylactic-acid",
+      "sampleId": "polymer-sample-13-13",
+      "graphDigest": "7a0d9dc38733784e6a2af99b469b6a7e6cd9a37724d93c5e793c78cd3a614956",
+      "occupancy": 0.9126031745455793,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polypropylene-coordination",
+      "polymerId": "polypropylene",
+      "sampleId": "polymer-sample-2-2",
+      "graphDigest": "b61802056578070f13607eb28424b0fb887a8e2d9375261824c5a4b7b9a88e50",
+      "occupancy": 0.9149990373699007,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polystyrene-radical",
+      "polymerId": "polystyrene",
+      "sampleId": "polymer-sample-5-5",
+      "graphDigest": "75f2610028e884745b6fe42784b3ac6c87c8cfa18e2eacc475b3f4eeca16ff3a",
+      "occupancy": 0.9096919088553909,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polytetrafluoroethylene-radical",
+      "polymerId": "polytetrafluoroethylene",
+      "sampleId": "polymer-sample-24-24",
+      "graphDigest": "96fea9d05d8a75bec54fc8601cbac7fc98515844ab55a0fdbf671395d3777b47",
+      "occupancy": 0.9079620512474014,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyvinyl-chloride-radical",
+      "polymerId": "polyvinyl-chloride",
+      "sampleId": "polymer-sample-6-6",
+      "graphDigest": "b9f9816146494c3bb077f99763adb7ebb005a4f2cd23b9e5f9345d0377c84d97",
+      "occupancy": 0.9178358166453962,
+      "uiFailures": []
+    },
+    {
+      "routeId": "polyvinylidene-fluoride-radical",
+      "polymerId": "polyvinylidene-fluoride",
+      "sampleId": "polymer-sample-22-22",
+      "graphDigest": "0f01acc9b7d4399905ee82f8602b8b84bceec563d131823b19a47bba41a624f0",
+      "occupancy": 0.9188202852243701,
+      "uiFailures": []
+    },
+    {
+      "routeId": "styrene-butadiene-radical",
+      "polymerId": "styrene-butadiene-copolymer",
+      "sampleId": "polymer-sample-18-18",
+      "graphDigest": "67527b89cd79345bbfc31a56375c07e62c2dea19c98ebd83b6afc4f753e8b2ad",
+      "occupancy": 0.9280515794713928,
+      "uiFailures": []
+    },
+    {
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "polymerId": "vinylidene-fluoride-hexafluoropropylene-copolymer",
+      "sampleId": "polymer-sample-23-23",
+      "graphDigest": "68aa8f8896bb15d9d42fc180734778d28d65fc08325b7289c9bb657083f26edc",
+      "occupancy": 0.9200298541206618,
+      "uiFailures": []
+    }
+  ],
+  "sourceFiles": {
+    "src/app.js": "57dbb0c433b16da2c133cd18fdd67bb8ff24a34372665c57ea6a1592d31c03af",
+    "src/reaction-lab-viewer.js": "e2911019f7158729fcbc574927007fce9840997a88bc57691bdc4ab4b16b7dcb",
+    "src/polymer-fragment-3d-layout.js": "4d3e302341c573c1ea5ab56ba033c30bb397dd2987e773d7abcaec55a26807a0",
+    "styles.css": "4ecfdbbc4266adabdbc3e2b7c275c464a5cc7f11d4bb9f1322ef70747d642238",
+    "tests/reaction-lab-polymer-browser.test.mjs": "6b515796425bb8afb621b2004b76108ee207a710883b15870cc6f191a22e5625",
+    "tests/helpers/polymer-task5-visual.mjs": "74cc1cd827a4410abfba22a10906f1ad705a3b8a3cd4896eb4521b231768f62f"
+  },
+  "browserArtifact": "all25-cheap-gate-local.json.gz",
+  "browserArtifactSha256": "6a4079ad83c68aefdde6515ca8232e5a7dcb1924808c4185ac40c7f41b506be3",
+  "note": "No-mask replay is not static visual or strict performance acceptance. Source SHA was null in local run; formal hosted gate is still required. The bounded picker trace was capped after this browser had loaded; no runtime chemistry/physics change."
+}

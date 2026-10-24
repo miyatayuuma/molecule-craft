@@ -1,0 +1,19 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(j>=0&&j<samples.length)
+
+    at deriveBoundaries (file:///workspace/scratch/4b9124a1aff6/molecule-craft/scripts/diagnose-polymer-task5-boundaries.mjs:104:12)
+    at file:///workspace/scratch/4b9124a1aff6/molecule-craft/scripts/diagnose-polymer-task5-boundaries.mjs:124:20 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

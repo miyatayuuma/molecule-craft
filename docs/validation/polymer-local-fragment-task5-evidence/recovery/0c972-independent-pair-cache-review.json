@@ -1,0 +1,372 @@
+{
+  "kind": "INDEPENDENT_ACTIVE_PAIR_CACHE_OWNERSHIP",
+  "sourceSha": "0c972c2b308eafcd63a912a55f7f751cbb93a398",
+  "scope": "Saved heaps: classify 416-byte LJ sigma/epsilon cache pairs by actual body/atom-array owners; not full heap dominator analysis.",
+  "cycles": [
+    {
+      "kind": "before",
+      "sha256": "5fd7f81d35f885bd0a67559621505a0c0e38072258930e21e4283376a8232723",
+      "phenolFormaldehydePairCount": 4,
+      "pairs": [
+        {
+          "cacheNodeId": 256607,
+          "leftCandidates": [
+            {
+              "nodeId": 116097,
+              "instanceId": "formaldehyde-8",
+              "atomsId": 95609,
+              "owners": [
+                {
+                  "nodeId": 150737,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-8"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 116093,
+            "instanceId": "phenol-9",
+            "atomsId": 256445,
+            "owners": [
+              {
+                "nodeId": 150729,
+                "species": "phenol",
+                "id": "phenol-9"
+              }
+            ]
+          },
+          "leftAtomsId": 95609,
+          "rightAtomsId": 256445
+        },
+        {
+          "cacheNodeId": 256611,
+          "leftCandidates": [
+            {
+              "nodeId": 116089,
+              "instanceId": "phenol-7",
+              "atomsId": 258211,
+              "owners": [
+                {
+                  "nodeId": 116129,
+                  "species": "phenol",
+                  "id": "phenol-7"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 116097,
+            "instanceId": "formaldehyde-8",
+            "atomsId": 95609,
+            "owners": [
+              {
+                "nodeId": 150737,
+                "species": "formaldehyde",
+                "id": "formaldehyde-8"
+              }
+            ]
+          },
+          "leftAtomsId": 258211,
+          "rightAtomsId": 95609
+        },
+        {
+          "cacheNodeId": 256615,
+          "leftCandidates": [
+            {
+              "nodeId": 116085,
+              "instanceId": "formaldehyde-6",
+              "atomsId": 258209,
+              "owners": [
+                {
+                  "nodeId": 256623,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-6"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 116089,
+            "instanceId": "phenol-7",
+            "atomsId": 258211,
+            "owners": [
+              {
+                "nodeId": 116129,
+                "species": "phenol",
+                "id": "phenol-7"
+              }
+            ]
+          },
+          "leftAtomsId": 258209,
+          "rightAtomsId": 258211
+        },
+        {
+          "cacheNodeId": 256617,
+          "leftCandidates": [
+            {
+              "nodeId": 116085,
+              "instanceId": "formaldehyde-6",
+              "atomsId": 258209,
+              "owners": [
+                {
+                  "nodeId": 256623,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-6"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 116093,
+            "instanceId": "phenol-9",
+            "atomsId": 256445,
+            "owners": [
+              {
+                "nodeId": 150729,
+                "species": "phenol",
+                "id": "phenol-9"
+              }
+            ]
+          },
+          "leftAtomsId": 258209,
+          "rightAtomsId": 256445
+        }
+      ]
+    },
+    {
+      "kind": "water",
+      "sha256": "66b3b68b69d5e669c984cc4766bfc728fc95590d3f55856467d240fdfee44e32",
+      "phenolFormaldehydePairCount": 3,
+      "pairs": [
+        {
+          "cacheNodeId": 671981,
+          "leftCandidates": [
+            {
+              "nodeId": 599583,
+              "instanceId": "formaldehyde-11",
+              "atomsId": 598995,
+              "owners": [
+                {
+                  "nodeId": 558857,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-11"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 592339,
+            "instanceId": "phenol-14",
+            "atomsId": 708369,
+            "owners": [
+              {
+                "nodeId": 558859,
+                "species": "phenol",
+                "id": "phenol-14"
+              }
+            ]
+          },
+          "leftAtomsId": 598995,
+          "rightAtomsId": 708369
+        },
+        {
+          "cacheNodeId": 671983,
+          "leftCandidates": [
+            {
+              "nodeId": 599583,
+              "instanceId": "formaldehyde-11",
+              "atomsId": 598995,
+              "owners": [
+                {
+                  "nodeId": 558857,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-11"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 591803,
+            "instanceId": "phenol-12",
+            "atomsId": 591813,
+            "owners": [
+              {
+                "nodeId": 558835,
+                "species": "phenol",
+                "id": "phenol-12"
+              }
+            ]
+          },
+          "leftAtomsId": 598995,
+          "rightAtomsId": 591813
+        },
+        {
+          "cacheNodeId": 711037,
+          "leftCandidates": [
+            {
+              "nodeId": 614195,
+              "instanceId": "formaldehyde-13",
+              "atomsId": 680051,
+              "owners": [
+                {
+                  "nodeId": 558861,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-13"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 592339,
+            "instanceId": "phenol-14",
+            "atomsId": 708369,
+            "owners": [
+              {
+                "nodeId": 558859,
+                "species": "phenol",
+                "id": "phenol-14"
+              }
+            ]
+          },
+          "leftAtomsId": 680051,
+          "rightAtomsId": 708369
+        }
+      ]
+    },
+    {
+      "kind": "concept",
+      "sha256": "ed5d1c9488059081570392936efa632a5d3d63bc62cf53f0483e9f2bf24a9e4a",
+      "phenolFormaldehydePairCount": 4,
+      "pairs": [
+        {
+          "cacheNodeId": 748121,
+          "leftCandidates": [
+            {
+              "nodeId": 779085,
+              "instanceId": "phenol-17",
+              "atomsId": 817437,
+              "owners": [
+                {
+                  "nodeId": 746671,
+                  "species": "phenol",
+                  "id": "phenol-17"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 748119,
+            "instanceId": "formaldehyde-18",
+            "atomsId": 774047,
+            "owners": [
+              {
+                "nodeId": 746693,
+                "species": "formaldehyde",
+                "id": "formaldehyde-18"
+              }
+            ]
+          },
+          "leftAtomsId": 817437,
+          "rightAtomsId": 774047
+        },
+        {
+          "cacheNodeId": 748131,
+          "leftCandidates": [
+            {
+              "nodeId": 748119,
+              "instanceId": "formaldehyde-18",
+              "atomsId": 774047,
+              "owners": [
+                {
+                  "nodeId": 746693,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-18"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 748129,
+            "instanceId": "phenol-19",
+            "atomsId": 763403,
+            "owners": [
+              {
+                "nodeId": 746691,
+                "species": "phenol",
+                "id": "phenol-19"
+              }
+            ]
+          },
+          "leftAtomsId": 774047,
+          "rightAtomsId": 763403
+        },
+        {
+          "cacheNodeId": 827693,
+          "leftCandidates": [
+            {
+              "nodeId": 817257,
+              "instanceId": "formaldehyde-16",
+              "atomsId": 816441,
+              "owners": [
+                {
+                  "nodeId": 746689,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-16"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 748129,
+            "instanceId": "phenol-19",
+            "atomsId": 763403,
+            "owners": [
+              {
+                "nodeId": 746691,
+                "species": "phenol",
+                "id": "phenol-19"
+              }
+            ]
+          },
+          "leftAtomsId": 816441,
+          "rightAtomsId": 763403
+        },
+        {
+          "cacheNodeId": 895393,
+          "leftCandidates": [
+            {
+              "nodeId": 817257,
+              "instanceId": "formaldehyde-16",
+              "atomsId": 816441,
+              "owners": [
+                {
+                  "nodeId": 746689,
+                  "species": "formaldehyde",
+                  "id": "formaldehyde-16"
+                }
+              ]
+            }
+          ],
+          "right": {
+            "nodeId": 779085,
+            "instanceId": "phenol-17",
+            "atomsId": 817437,
+            "owners": [
+              {
+                "nodeId": 746671,
+                "species": "phenol",
+                "id": "phenol-17"
+              }
+            ]
+          },
+          "leftAtomsId": 816441,
+          "rightAtomsId": 817437
+        }
+      ]
+    }
+  ],
+  "facts": "All identified416-byte pairs belong to current cycle source IDs6-9,11-14,16-19 respectively; no previous-cycle key is present. The second cycle lacks the initial phenol12/formaldehyde13 pair; third cycle has the analogous phenol17/formaldehyde18 pair.",
+  "inference": "progressFeed hands bodies to physics at RAF boundaries; completeFeed immediately initializes and consumes initial phenol before the fixed step. This permits different cache histories depending on whether initial phenol and later formaldehyde share a physics step before completion. The saved ready heaps do not prove exact frame history.",
+  "recommendation": "Compare heap resources at the same fully disposed empty-FEED IDLE state (instances,purge,transition,reserved absent), keeping rebuilt Sample GPU/mesh/material flat checks separately; keep zero positive-growth allowance and original FAIL. Do not change Stage B caches or performance thresholds."
+}

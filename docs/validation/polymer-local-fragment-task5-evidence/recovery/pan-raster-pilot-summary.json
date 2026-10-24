@@ -1,0 +1,1131 @@
+{
+  "kind": "UNCOMMITTED_RUNTIME_PILOT_NOT_FINAL_SOURCE_ACCEPTANCE",
+  "sourceSha": null,
+  "graphDigest": "23e10d9bf6592a1828cd072e4dbcb5907be1fc5b56e54da36b73b466fcc87314",
+  "sampleId": "polymer-sample-1-1",
+  "views": 360,
+  "missingAtoms": [],
+  "missingBonds": [],
+  "missingGroups": [
+    {
+      "kind": "side/junction/adjacent-backbone",
+      "anchor": 1,
+      "atomIndices": [
+        0,
+        1,
+        17
+      ],
+      "bondIndices": [
+        0,
+        5
+      ]
+    },
+    {
+      "kind": "side/junction/adjacent-backbone",
+      "anchor": 4,
+      "atomIndices": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "bondIndices": [
+        6,
+        9,
+        10
+      ]
+    },
+    {
+      "kind": "side/junction/adjacent-backbone",
+      "anchor": 7,
+      "atomIndices": [
+        6,
+        7,
+        8,
+        21
+      ],
+      "bondIndices": [
+        13,
+        16,
+        18
+      ]
+    },
+    {
+      "kind": "side/junction/adjacent-backbone",
+      "anchor": 22,
+      "atomIndices": [
+        21,
+        22,
+        23
+      ],
+      "bondIndices": [
+        21,
+        24
+      ]
+    },
+    {
+      "kind": "nitrile",
+      "anchor": 5,
+      "atomIndices": [
+        4,
+        5,
+        12
+      ],
+      "bondIndices": [
+        9,
+        12
+      ]
+    },
+    {
+      "kind": "nitrile",
+      "anchor": 8,
+      "atomIndices": [
+        7,
+        8,
+        9
+      ],
+      "bondIndices": [
+        16,
+        19
+      ]
+    },
+    {
+      "kind": "nitrile",
+      "anchor": 17,
+      "atomIndices": [
+        1,
+        17,
+        18
+      ],
+      "bondIndices": [
+        5,
+        20
+      ]
+    }
+  ],
+  "tripleLocalWitnesses": [
+    {
+      "bondIndex": 12,
+      "witness": {
+        "actualPNG": "local-5-render-y90-p-60.png",
+        "actualSha256": "51653a18beff973dfc77a59734849de13c0bc4c38de78d1dd88a0a45b1953083",
+        "pointerTrace": [
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 130.0873852123405,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 130.0873852123405,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 130.0873852123405,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 130.0873852123405,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 281.61676870014173
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 281.61676870014173
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 281.61676870014173
+            }
+          }
+        ],
+        "pointerAngleError": 2.1073424255447025e-07,
+        "pointerZoomRatio": 1,
+        "localQMin": 41.367061823705455,
+        "localQAtoms": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "localShell": [
+          5,
+          8,
+          9,
+          12,
+          17,
+          18,
+          23,
+          24,
+          1,
+          4,
+          7,
+          22
+        ],
+        "mode": "local-5",
+        "selection": {
+          "kind": "nitrile",
+          "atomIndices": [
+            5,
+            8,
+            9,
+            12,
+            17,
+            18,
+            23,
+            24
+          ],
+          "bondIndices": [
+            12,
+            19,
+            20,
+            26
+          ],
+          "originTuples": [
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-3",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-3",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-1",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-1",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-4",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-4",
+              "sourceAtomIndex": 3
+            }
+          ]
+        },
+        "pose": {
+          "position": [
+            -0.8930018519717497,
+            -0.1799140033604052,
+            0.4019615698186021
+          ],
+          "quaternion": [
+            0.5754920508525221,
+            -0.13968940485839165,
+            -0.33399351726949605,
+            -0.733310370851127
+          ],
+          "scale": 1.3732285205274821
+        },
+        "yaw": 90,
+        "pitch": -60,
+        "quaternion": [
+          0.575491985156149,
+          -0.13968934508809447,
+          -0.3339935418340501,
+          -0.7333104226063072
+        ],
+        "mask": "local-5-id-mask-y90-p-60.png",
+        "sha256": "8d59ba46b246050040ded0146ee99f291b1eaf4998aae5af73a7d9ad6a7dc0f5",
+        "visibleAtoms": [
+          5,
+          8,
+          12,
+          13,
+          14,
+          16,
+          17,
+          20,
+          23,
+          25,
+          26
+        ],
+        "visibleBonds": [
+          0,
+          1,
+          4,
+          7,
+          8,
+          9,
+          12,
+          13,
+          15,
+          17,
+          18,
+          21,
+          22,
+          25
+        ]
+      },
+      "files": {
+        "actual": {
+          "path": "pan-l1-candidate-12-actual.png",
+          "sha256": "51653a18beff973dfc77a59734849de13c0bc4c38de78d1dd88a0a45b1953083"
+        },
+        "mask": {
+          "path": "pan-l1-candidate-12-mask.png",
+          "sha256": "8d59ba46b246050040ded0146ee99f291b1eaf4998aae5af73a7d9ad6a7dc0f5"
+        }
+      }
+    },
+    {
+      "bondIndex": 19,
+      "witness": {
+        "actualPNG": "local-5-render-y180-p-30.png",
+        "actualSha256": "83a95af50240dc75f69de0a51a3c9dd28fbacdf0e3ff16eb5e5dafca5efdcd74",
+        "pointerTrace": [
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 137.09986881410344,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 137.09986881410344,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 137.09986881410344,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 137.09986881410344,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 137.09986881410344,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 137.09986881410344,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 137.09986881410344,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 292.52507652510633
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 292.52507652510633
+            }
+          }
+        ],
+        "pointerAngleError": 1.4600096599955432e-07,
+        "pointerZoomRatio": 1,
+        "localQMin": 39.421481723541596,
+        "localQAtoms": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "localShell": [
+          5,
+          8,
+          9,
+          12,
+          17,
+          18,
+          23,
+          24,
+          1,
+          4,
+          7,
+          22
+        ],
+        "mode": "local-5",
+        "selection": {
+          "kind": "nitrile",
+          "atomIndices": [
+            5,
+            8,
+            9,
+            12,
+            17,
+            18,
+            23,
+            24
+          ],
+          "bondIndices": [
+            12,
+            19,
+            20,
+            26
+          ],
+          "originTuples": [
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-3",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-3",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-1",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-1",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-4",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-4",
+              "sourceAtomIndex": 3
+            }
+          ]
+        },
+        "pose": {
+          "position": [
+            -1.6495922317668275,
+            -0.22183463993005448,
+            0.08310944904565731
+          ],
+          "quaternion": [
+            0.022021720808609604,
+            -0.6886857272227863,
+            -0.1747775867045604,
+            -0.703334776701664
+          ],
+          "scale": 1.3732285205274821
+        },
+        "yaw": 180,
+        "pitch": -30,
+        "quaternion": [
+          0.022021770470840533,
+          -0.6886857403898007,
+          -0.17477753716767425,
+          -0.7033347745637806
+        ],
+        "mask": "local-5-id-mask-y180-p-30.png",
+        "sha256": "cd711b2e2525b249d38d2a6eefbc78f4ae7565c3d8e63e5633df0053b8cb6c2d",
+        "visibleAtoms": [
+          2,
+          5,
+          8,
+          9,
+          12,
+          15,
+          16,
+          18,
+          19,
+          23
+        ],
+        "visibleBonds": [
+          3,
+          4,
+          6,
+          7,
+          10,
+          11,
+          13,
+          16,
+          19,
+          21,
+          23,
+          24,
+          26
+        ]
+      },
+      "files": {
+        "actual": {
+          "path": "pan-l1-candidate-19-actual.png",
+          "sha256": "83a95af50240dc75f69de0a51a3c9dd28fbacdf0e3ff16eb5e5dafca5efdcd74"
+        },
+        "mask": {
+          "path": "pan-l1-candidate-19-mask.png",
+          "sha256": "cd711b2e2525b249d38d2a6eefbc78f4ae7565c3d8e63e5633df0053b8cb6c2d"
+        }
+      }
+    },
+    {
+      "bondIndex": 20,
+      "witness": {
+        "actualPNG": "local-5-render-y315-p-30.png",
+        "actualSha256": "26c05a2b610a14bf378f7507206f14a338f980e0acf7a2175b7b0eda69c21033",
+        "pointerTrace": [
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 31.912614787659486,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 31.912614787659486,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 292.52507652510633
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 292.52507652510633
+            }
+          }
+        ],
+        "pointerAngleError": 1.3978528260658475e-07,
+        "pointerZoomRatio": 1,
+        "localQMin": 39.88653368195625,
+        "localQAtoms": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "localShell": [
+          5,
+          8,
+          9,
+          12,
+          17,
+          18,
+          23,
+          24,
+          1,
+          4,
+          7,
+          22
+        ],
+        "mode": "local-5",
+        "selection": {
+          "kind": "nitrile",
+          "atomIndices": [
+            5,
+            8,
+            9,
+            12,
+            17,
+            18,
+            23,
+            24
+          ],
+          "bondIndices": [
+            12,
+            19,
+            20,
+            26
+          ],
+          "originTuples": [
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-3",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-3",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-1",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-1",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-4",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-4",
+              "sourceAtomIndex": 3
+            }
+          ]
+        },
+        "pose": {
+          "position": [
+            -1.1261016906886558,
+            0.2047370212192552,
+            0.8219534828588799
+          ],
+          "quaternion": [
+            0.4495440061245783,
+            0.8364617367595613,
+            -0.24039408608421095,
+            -0.2011283989653888
+          ],
+          "scale": 1.3732285205274821
+        },
+        "yaw": 315,
+        "pitch": -30,
+        "quaternion": [
+          -0.4495440204253611,
+          -0.8364617197079682,
+          0.24039414572141607,
+          0.20112836663648812
+        ],
+        "mask": "local-5-id-mask-y315-p-30.png",
+        "sha256": "ea7e1bb8e22a495841991d87785c4aecadc610e405c43e6f205b1fbf0d4f8944",
+        "visibleAtoms": [
+          5,
+          9,
+          10,
+          12,
+          13,
+          17,
+          18,
+          19
+        ],
+        "visibleBonds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          10,
+          14,
+          15,
+          18,
+          20,
+          22,
+          23,
+          25
+        ]
+      },
+      "files": {
+        "actual": {
+          "path": "pan-l1-candidate-20-actual.png",
+          "sha256": "26c05a2b610a14bf378f7507206f14a338f980e0acf7a2175b7b0eda69c21033"
+        },
+        "mask": {
+          "path": "pan-l1-candidate-20-mask.png",
+          "sha256": "ea7e1bb8e22a495841991d87785c4aecadc610e405c43e6f205b1fbf0d4f8944"
+        }
+      }
+    },
+    {
+      "bondIndex": 26,
+      "witness": {
+        "actualPNG": "local-5-render-y225-p-30.png",
+        "actualSha256": "2170e872b2149d756e05cbc598aa4a95e00bae817b0c9e059774f6f72d3c11b5",
+        "pointerTrace": [
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 22.09513774519138,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 22.09513774519138,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 22.09513774519138,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 22.09513774519138,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "yaw",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 22.09513774519138,
+              "y": 325.25
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 292.52507652510633
+            }
+          },
+          {
+            "axis": "pitch",
+            "start": {
+              "x": 81,
+              "y": 325.25
+            },
+            "end": {
+              "x": 81,
+              "y": 292.52507652510633
+            }
+          }
+        ],
+        "pointerAngleError": 1.5196262340524156e-07,
+        "pointerZoomRatio": 1,
+        "localQMin": 43.68524315425003,
+        "localQAtoms": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "localShell": [
+          5,
+          8,
+          9,
+          12,
+          17,
+          18,
+          23,
+          24,
+          1,
+          4,
+          7,
+          22
+        ],
+        "mode": "local-5",
+        "selection": {
+          "kind": "nitrile",
+          "atomIndices": [
+            5,
+            8,
+            9,
+            12,
+            17,
+            18,
+            23,
+            24
+          ],
+          "bondIndices": [
+            12,
+            19,
+            20,
+            26
+          ],
+          "originTuples": [
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-3",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-3",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-2",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-1",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-1",
+              "sourceAtomIndex": 3
+            },
+            {
+              "instanceId": "acrylonitrile-4",
+              "sourceAtomIndex": 2
+            },
+            {
+              "instanceId": "acrylonitrile-4",
+              "sourceAtomIndex": 3
+            }
+          ]
+        },
+        "pose": {
+          "position": [
+            -1.746145355325774,
+            -0.020231288183169993,
+            0.43229681239185314
+          ],
+          "quaternion": [
+            0.16935253671194928,
+            0.8735710371526216,
+            0.03419447652001793,
+            0.45499901003501414
+          ],
+          "scale": 1.3732285205274821
+        },
+        "yaw": 225,
+        "pitch": -30,
+        "quaternion": [
+          -0.16935249672283748,
+          -0.8735710346154868,
+          -0.03419442017438063,
+          -0.45499903402480674
+        ],
+        "mask": "local-5-id-mask-y225-p-30.png",
+        "sha256": "d6a2fd176f0be565f6ac4b5b0d51b8360499ba8a78c3015d99d3c288f00d522b",
+        "visibleAtoms": [
+          2,
+          5,
+          8,
+          12,
+          15,
+          16,
+          18,
+          19,
+          20,
+          23,
+          24
+        ],
+        "visibleBonds": [
+          0,
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          13,
+          14,
+          16,
+          19,
+          23,
+          24,
+          26
+        ]
+      },
+      "files": {
+        "actual": {
+          "path": "pan-l1-candidate-26-actual.png",
+          "sha256": "2170e872b2149d756e05cbc598aa4a95e00bae817b0c9e059774f6f72d3c11b5"
+        },
+        "mask": {
+          "path": "pan-l1-candidate-26-mask.png",
+          "sha256": "d6a2fd176f0be565f6ac4b5b0d51b8360499ba8a78c3015d99d3c288f00d522b"
+        }
+      }
+    }
+  ],
+  "reset": {
+    "pose": {
+      "position": [
+        -1.0351105563433642,
+        0.2445261296233031,
+        -0.06544184255934131
+      ],
+      "quaternion": [
+        0.34706712270886475,
+        0.685068876883085,
+        -0.16076503790159954,
+        -0.6199835875644091
+      ],
+      "scale": 1.2568794471025468
+    },
+    "initialPose": {
+      "position": [
+        -1.0351105563433642,
+        0.2445261296233031,
+        -0.06544184255934131
+      ],
+      "quaternion": [
+        0.34706712270886475,
+        0.685068876883085,
+        -0.16076503790159954,
+        -0.6199835875644091
+      ],
+      "scale": 1.2568794471025468
+    },
+    "angle": 4.2146848510894035e-08,
+    "zoomRatio": 1,
+    "maxProjectionError": 0
+  },
+  "reportSha256": "7d6a0cd89e1ecd347d1afaf52f33751afc0e37ca445c1c7cb564bfbbbb4ce99b",
+  "A06Status": "NOT_CERTIFIED: boundary single-point grading is annotation-contaminated; preserve this original and remeasure with separate annotation-free photometry"
+}

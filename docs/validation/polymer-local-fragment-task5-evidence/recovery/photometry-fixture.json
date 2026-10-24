@@ -1,0 +1,106 @@
+{
+  "kind": "ACTUAL_BROWSER_SAME_POSE_ANNOTATION_PHOTOMETRY_REGRESSION",
+  "graphDigest": "6037bbd8cc4be6c350d365c4807660e6ef2b74204d53d30783e8cf58ee539143",
+  "pose": {
+    "position": [
+      -0.29878492005911483,
+      0.2941488106538004,
+      1.3202475155810383
+    ],
+    "quaternion": [
+      0.1747775863349456,
+      0.7033347761359768,
+      0.022021720257731595,
+      -0.6886857279119237
+    ],
+    "scale": 3.051123059988022
+  },
+  "canvas": {
+    "left": 11,
+    "top": 183,
+    "width": 338,
+    "height": 420,
+    "bufferWidth": 338,
+    "bufferHeight": 420,
+    "dpr": 1
+  },
+  "atom": {
+    "index": 3,
+    "element": "C",
+    "center": {
+      "x": 155.18612753310782,
+      "y": 192.38196614254886
+    },
+    "radius": 31.362668218090768
+  },
+  "annotated": {
+    "exposed": 45,
+    "contrast": 44,
+    "contrastRatio": 0.9777777777777777,
+    "whiteClipRatio": 0,
+    "pass": true
+  },
+  "photometry": {
+    "exposed": 45,
+    "contrast": 25,
+    "contrastRatio": 0.5555555555555556,
+    "whiteClipRatio": 0,
+    "pass": false
+  },
+  "files": {
+    "annotated": {
+      "file": "photometry-fixture-annotated.png",
+      "sha256": "a412d56b0a391042128be9c4a3f4806edee355549f0f8a549b1a0b92e70db83f"
+    },
+    "photometry": {
+      "file": "photometry-fixture-photometry.png",
+      "sha256": "405d00bb5acdbf3cbc77ebbdf0b655468bb11f50a7d0ae04edc80e469a63f5d6"
+    },
+    "mask": {
+      "file": "photometry-fixture-mask.png",
+      "sha256": "31cf1d3815df4d3c60070694fc53afb031e152509d254f4a7b2b544a43cb9942"
+    }
+  },
+  "positive": {
+    "atom": {
+      "index": 3,
+      "element": "C",
+      "center": {
+        "x": 104.41347032665018,
+        "y": 250.04580790983255
+      },
+      "radius": 19.24276167536567
+    },
+    "pose": {
+      "position": [
+        -1.442993555003963,
+        -1.344567612625418,
+        -0.12942236297419338
+      ],
+      "quaternion": [
+        0.013810819113507757,
+        0.3012515858600466,
+        -0.18679162319809295,
+        -0.9349682522926875
+      ],
+      "scale": 1.9326831739395858
+    },
+    "expected": {
+      "exposed": 31,
+      "contrast": 25,
+      "contrastRatio": 0.8064516129032258,
+      "whiteClipRatio": 0,
+      "pass": true
+    },
+    "files": {
+      "photometry": {
+        "file": "photometry-positive-photometry.png",
+        "sha256": "cdc8ca21694501889689e2d4cfca81eabb0403b4cb86a6ede31661c13333a64f"
+      },
+      "mask": {
+        "file": "photometry-positive-mask.png",
+        "sha256": "77c1147c39e2e75774fe2e685dc1d89f9bfe5b7a881f5c9a34dabae772467fbc"
+      }
+    }
+  }
+}

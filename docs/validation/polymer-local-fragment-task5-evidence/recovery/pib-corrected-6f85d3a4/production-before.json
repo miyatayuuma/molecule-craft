@@ -1,0 +1,642 @@
+[
+  {
+    "path": "data/craft-structures.json",
+    "sha256": "c793b9a142e902143129633d831138b74d6c30c831f9c3c4e6ad0624a9acf047"
+  },
+  {
+    "path": "data/encyclopedia.json",
+    "sha256": "66a12c4d50376cd02f2de40e5ea3e98da5fa5380449a5c848f59316e13bbd850"
+  },
+  {
+    "path": "data/functional-groups.json",
+    "sha256": "2b8b071bd293d2d77d42220a735b1ba57f4adeb040a4ccb433b49c1f5c714c19"
+  },
+  {
+    "path": "data/molecule-graph.json",
+    "sha256": "b39e4477e9550001f603ec18b17f047c67abf2fb662c37a50daff4fcdd9baa46"
+  },
+  {
+    "path": "data/molecules.json",
+    "sha256": "6d798460660280c066166cf260ddf8f18e8807ba829df69f58c6dedad1b3e14d"
+  },
+  {
+    "path": "data/parameterization/openff-ashgc-environment.yml",
+    "sha256": "0e76fde29e709d63ee13af2b7065397947a1e842c776e1d320197275563d6029"
+  },
+  {
+    "path": "data/parameterization/openff-ashgc-linux-64.lock",
+    "sha256": "9ebde8b82639c8a33c9b555e35c97500c6e31b12c391d817a35a7a05766a02f0"
+  },
+  {
+    "path": "data/parameterization/reaction-lab-nonbonded-routes.json",
+    "sha256": "9b09b5ac24a0b9da21c40bdd2d8e0004a7d99c0473f756882e1d14c8e7da8276"
+  },
+  {
+    "path": "data/polymer-encyclopedia.json",
+    "sha256": "b0d0ee509b2c17ba367c8865425789b1ee3736eceb406a2d8445bdc01d95127d"
+  },
+  {
+    "path": "data/polymer-fragment-authority.json",
+    "sha256": "549e0920babdabdac732d9a5e209932344e3de97abec92729f7fd4be3c7dafce"
+  },
+  {
+    "path": "data/polymerization-routes.json",
+    "sha256": "3397aea735894667606d42903e3f920d9df9915d3eed9c80cd7497d07153f8b1"
+  },
+  {
+    "path": "data/polymers.json",
+    "sha256": "2830025844a23944eed81cdcb9a0a29a13b94f462ad6493655540e2d2db88675"
+  },
+  {
+    "path": "data/reaction-lab-nonbonded-models.json",
+    "sha256": "6e3496248e89534496e8c173224967a076d66d0f9af79acf87d1100ecd4ad7a3"
+  },
+  {
+    "path": "index.html",
+    "sha256": "585436ee5b5cef59362f72ba63e7960fa40780b5d3b590b5bedb38129f1488cc"
+  },
+  {
+    "path": "precache-manifest.js",
+    "sha256": "85a21f3778b9db4133e17c45a419a5370cd63e650e6d652e4430c3389bbf2cc1"
+  },
+  {
+    "path": "src/app.js",
+    "sha256": "57dbb0c433b16da2c133cd18fdd67bb8ff24a34372665c57ea6a1592d31c03af"
+  },
+  {
+    "path": "src/aromatic-graph.js",
+    "sha256": "bed130871ca5585e5a20c0d7745ed833f065f83a96524687b43bf4a4c24468ce"
+  },
+  {
+    "path": "src/aromatic-rendering.js",
+    "sha256": "78f06f0ec85ee3b38bc719e414b544044070da5f175954ccfc53acea039ce09f"
+  },
+  {
+    "path": "src/attachment-rendering.js",
+    "sha256": "a674c7c910608474a03ef2e7e41448fc0214c8744e45afbd48daab7ce886cc1b"
+  },
+  {
+    "path": "src/bond-geometry.js",
+    "sha256": "b2be6461a97757368a5bdfaabb542040e0c38f7df46d55ccc5cbab813e40f17e"
+  },
+  {
+    "path": "src/bonding-model.js",
+    "sha256": "a0aadba70db2ea41a8307d7083fcb84776342ab825de5d2f88bea2351e47b0cc"
+  },
+  {
+    "path": "src/chemistry.js",
+    "sha256": "61e88dacc1168d18cb8405182873fa4f77581c6fad8bb8da42c779b5af260482"
+  },
+  {
+    "path": "src/collection-catalog.js",
+    "sha256": "3e63f6a05c146960d7fb68783af3a59dcda13c47707486be27417cacede1cede"
+  },
+  {
+    "path": "src/collection-migrations.js",
+    "sha256": "f237ec06f23c19daa8ba42198efa1364902360cfca74542e68930634434cdc0b"
+  },
+  {
+    "path": "src/collection-persistence.js",
+    "sha256": "8f1915b849b339d5b1c6d5614d9332bc80ec19f05d44925dfb770d9f802a1e08"
+  },
+  {
+    "path": "src/collection-registration-reveal.js",
+    "sha256": "d5ee868271548ecbc1d9d4b227ded4fb41238dd78c6fa981cf8fe98f10de8c99"
+  },
+  {
+    "path": "src/collection-state.js",
+    "sha256": "b6d1fe284aca75396e87a13a8ab5bf04aca9bb708c3665c4e8f524e561d30c9a"
+  },
+  {
+    "path": "src/collection-ui.js",
+    "sha256": "c15bc9dfb874bf7bab628206ad092a64dfe081fe404c038a60b8b9e0897d49d6"
+  },
+  {
+    "path": "src/collection-viewer.js",
+    "sha256": "657b4c6be985d1969bed8a670ecb0ed9ae50a33830516dbded00387f76e956d3"
+  },
+  {
+    "path": "src/completion-side-effects.js",
+    "sha256": "4e2fb655acd935a0f2804d5affc7e83bdaf575e9687960fac6dc2507be515f11"
+  },
+  {
+    "path": "src/conformation-engine.js",
+    "sha256": "1d90126fed81ecf46d3c7bea62dc099d4219e79887a3318e71c36c53ffa661ec"
+  },
+  {
+    "path": "src/conjugation-model.js",
+    "sha256": "224f42bbce769e001ecbcc28cfc7cf4eb12b687acb51cbe22e3492721e1682d9"
+  },
+  {
+    "path": "src/craft-connections.js",
+    "sha256": "dd07bd4d03c28584070cd0bfae81698b0613d6887c8822c873e20c5220f372e4"
+  },
+  {
+    "path": "src/craft-controls.js",
+    "sha256": "8f7fc149045b50a28e1aaf0bc66daa0d6f4ae6178a88565ed56650f05fc65370"
+  },
+  {
+    "path": "src/craft-decomposition.js",
+    "sha256": "952e497e62fe86caa063e7d0fd86ce47befd6f5adc059eec815bf573b63a1cbf"
+  },
+  {
+    "path": "src/craft-detached-drag.js",
+    "sha256": "cd47bdcff445eab7373e4d8506f737a1f9a80346c7c1cbb6509625a945c913aa"
+  },
+  {
+    "path": "src/craft-history.js",
+    "sha256": "8b1ae888b3709b8852e08a1f52cc7b6e495f5a98086caef8551e0321987d0d42"
+  },
+  {
+    "path": "src/craft-panel.js",
+    "sha256": "a6b763f5f2ef52bf544229fd657383b2d812715c7659adaad4d3fb20257636a5"
+  },
+  {
+    "path": "src/craft-structures.js",
+    "sha256": "81c58037c91a1e43320be8592d6b04f3b03847914d91d40ede4046d8113120a9"
+  },
+  {
+    "path": "src/craft-target-hint.js",
+    "sha256": "8836969ddc7945b77e8647a621336b5e6c36331d1287364b5f0a2ea59af9ef95"
+  },
+  {
+    "path": "src/craft-target-match.js",
+    "sha256": "f874392d28b50e3a37d4d3946b50e3ff3bbc5033b944bbd20697463cee18c6e4"
+  },
+  {
+    "path": "src/craft-target-satisfaction.js",
+    "sha256": "887918975dde9a41fb276697852754a98f2ee1bf987245b3401082405bcbe235"
+  },
+  {
+    "path": "src/craft-tearoff.js",
+    "sha256": "4e88671d21a822940ad40271e8f18b087597241bbbaedc8084ef44e88c54ef33"
+  },
+  {
+    "path": "src/craft-workspace.js",
+    "sha256": "632e718476f395000f68b3263c7f717d09d007032c18b3d83f26c3236e7e9636"
+  },
+  {
+    "path": "src/electron-interaction.js",
+    "sha256": "4d21a4d6faf366f191ebed935e9be923e106ddef29a9acf73db48fa726fc0e7a"
+  },
+  {
+    "path": "src/element-progression.js",
+    "sha256": "e7f9478d94bbabfc2fe8f9287fcb0ed2e871e860c74ae7d0b71754f1615f0b55"
+  },
+  {
+    "path": "src/encyclopedia-chemistry-visuals.js",
+    "sha256": "006ff27cf6d662edddeaf3afbfacceddbd842846e8bcccddacb354f2eb7af89a"
+  },
+  {
+    "path": "src/encyclopedia-graph-view.js",
+    "sha256": "14a44fe8610a291c031cba790769601101324868e833d176a08660beacec9a85"
+  },
+  {
+    "path": "src/encyclopedia-graph.js",
+    "sha256": "b772a8b7077e2a6242bd687c4ea46c47f5fc52ab370cc6a030516e4defc81ba3"
+  },
+  {
+    "path": "src/encyclopedia-molecule-transition.js",
+    "sha256": "bedd9a3be12fcf56251aee1ef1ca6bd838c8f41bab43a74b3388041af1abcb0e"
+  },
+  {
+    "path": "src/engineering-fabrication.js",
+    "sha256": "51aea21f2d23fa5be3339a3bd288d188cca893636c7befd6ad308ea6d02d703c"
+  },
+  {
+    "path": "src/functional-groups.js",
+    "sha256": "40dc219c20c748199b4e2e76395e50ff3205d95564c33433abf46edbf5c8bfa0"
+  },
+  {
+    "path": "src/game-shell.js",
+    "sha256": "08e58b6a2e234e424201cf509dba3d8281fc9f8d79d68c2109178018e09230f3"
+  },
+  {
+    "path": "src/gesture-arbitration.js",
+    "sha256": "7a9befb0059fc85c47919e1931119839e2f2f2a25cb8e948946b9bc4fe4f9dc8"
+  },
+  {
+    "path": "src/hamajima-term-reference.js",
+    "sha256": "c7dfe0711361650de24b075be18f00db3b9097751769cefd5f379f03e022140c"
+  },
+  {
+    "path": "src/hold-action.js",
+    "sha256": "a3bcf533b3a47a8f2fe224bc039048d405c9c3bfc18f371457b258b31d08b07f"
+  },
+  {
+    "path": "src/insight-category.css",
+    "sha256": "31926a68768f4e7d91ac749de111bee0ebc0ea991a92aa8fefa6c685e9f83fad"
+  },
+  {
+    "path": "src/insight-category.js",
+    "sha256": "e10189c5b455724921d21e4d7fc1d482fae9afbef7634298d9529a430f378dcf"
+  },
+  {
+    "path": "src/molecule-frontier-selection.js",
+    "sha256": "2c204a2da6870df9119527eb34c44a3f4bf1af3db9dcb808cc7f2bd848a08248"
+  },
+  {
+    "path": "src/molecule-frontier-weighting.js",
+    "sha256": "170200d7110cc2db1b94204bb1bb050eb0374820f2ac7d9df3ba8f04e1c92c43"
+  },
+  {
+    "path": "src/molecule-frontier.js",
+    "sha256": "f375d350d6c361ae7ea652338742ce443d1f67fbdc91aa54db4a33b2f2793950"
+  },
+  {
+    "path": "src/molecule-graph.js",
+    "sha256": "bf5056c2bb7a7ff772babbceb4a0501bc82eaadd3311d12f7c53d41b18deaf6e"
+  },
+  {
+    "path": "src/part-presentation.js",
+    "sha256": "f1b75ea92e6b3bcd688eccba004528f68c25bac0e638bd98817cc2eeaf534a2b"
+  },
+  {
+    "path": "src/pending-craft.js",
+    "sha256": "a81897e6ab16e2db3284f4c0afe31a47822025a7cdae5d6a5c80e6ae3dbd7c76"
+  },
+  {
+    "path": "src/polymer-catalog.js",
+    "sha256": "4a1918428b4c684de6a692d82db41503278c58155ee1f4d0c45987b1354ed3ab"
+  },
+  {
+    "path": "src/polymer-collection-persistence.js",
+    "sha256": "05464a75a2f518008dd0234d8a1f367049db8c54544283837d3a6e2ed6fa3bc7"
+  },
+  {
+    "path": "src/polymer-collection-state.js",
+    "sha256": "3b4d6b41898daf3db3fc3b2597c7f5819385d3e954345ece4a00f16f83340c46"
+  },
+  {
+    "path": "src/polymer-encyclopedia.js",
+    "sha256": "5ac62a61e18fcba717442c10f48cb29017615145960b1b3169552559cc062616"
+  },
+  {
+    "path": "src/polymer-fragment-3d-layout.js",
+    "sha256": "36dc11d0e412c84eeeabf1adc4bbd87bbc111763d8f03c0a0dba3f326b868125"
+  },
+  {
+    "path": "src/polymerization-routes.js",
+    "sha256": "5797eb0fcca498e65527b8e55434f86cad1d08c261121de03a79f0e58cc63513"
+  },
+  {
+    "path": "src/preview-controls.js",
+    "sha256": "84a389c9e22ee27130c147205bb0f7383f4923227b85a6937dc68a89e84e518e"
+  },
+  {
+    "path": "src/preview-model.js",
+    "sha256": "a0d22eaace5af4070ddde338050c3372613d75dcc07cc7b9ff56dd4454fac2db"
+  },
+  {
+    "path": "src/pubchem-reference.js",
+    "sha256": "f18b059eae1d124d605b73c42c39dcfda732534f636052336542645dc72060c7"
+  },
+  {
+    "path": "src/pwa.js",
+    "sha256": "c09588139fe8d882d037e0e74b2623df216ec213f701be2324300a1ccede77f9"
+  },
+  {
+    "path": "src/reaction-graph-edits.js",
+    "sha256": "1ff3ddd331ee6340b26fef45ff283185a7f6a099aeaf908c1aad0e35716d0728"
+  },
+  {
+    "path": "src/reaction-lab-authority.js",
+    "sha256": "4ef394fc268dee6b4f27543dbe7fe2642a96122e6dfa58477ad3e58312151c50"
+  },
+  {
+    "path": "src/reaction-lab-batch.js",
+    "sha256": "91eaac8644fcd1ff45ef9942f95b13f58b381bb9d2bd22f7e7736ce87530cf7e"
+  },
+  {
+    "path": "src/reaction-lab-catalog.js",
+    "sha256": "540e02fe98e55f468e0c6f907d2c95adf64c07699b04822de1ced494a97424c7"
+  },
+  {
+    "path": "src/reaction-lab-core.js",
+    "sha256": "c14bd3a4e7da8b5aeec9ff7431bd2b24ad9e9fb80211d235d0075b0bb057631b"
+  },
+  {
+    "path": "src/reaction-lab-discovery.js",
+    "sha256": "9fc8e7c8bafa536893fefc7fb135ef56675e5fb448cd7da9253bd9dabf231255"
+  },
+  {
+    "path": "src/reaction-lab-environment.js",
+    "sha256": "d04fc5e74bd324ba75026a510301ecee6743f43596b27b1d54a2bf97cfcf3204"
+  },
+  {
+    "path": "src/reaction-lab-manipulation.js",
+    "sha256": "10a7108b334a9021467c3c30c7873371b686d8c9274ea2d05a9222c6839fdf1e"
+  },
+  {
+    "path": "src/reaction-lab-polymer-presentation.js",
+    "sha256": "f6f30f3537b913a96133d0d672c62f7c78d4ad107e230ad786487b480c25d775"
+  },
+  {
+    "path": "src/reaction-lab-polymerization.js",
+    "sha256": "7e452fe7fadf4547f1a4e27e83f4e882685836ea9888583cc963fbce671471ff"
+  },
+  {
+    "path": "src/reaction-lab-presentation.js",
+    "sha256": "1ccdf828041e120ba811e087a9d5e9955ac2694789fee72848a413360341be51"
+  },
+  {
+    "path": "src/reaction-lab-stage-a.js",
+    "sha256": "b3812bedb84b7b67e7771f7c1662a0dbd689a44ce8e1018171bcec6e5433ecc6"
+  },
+  {
+    "path": "src/reaction-lab-stage-b.js",
+    "sha256": "5a001bf85d661aedc4d5382dccb52a744a7856018cc503dcb3bc9b34c5024d02"
+  },
+  {
+    "path": "src/reaction-lab-viewer.js",
+    "sha256": "785cacc637f2ef8d6889c45b9b102aecc9506a77f8dd44db8bb328d3590309cd"
+  },
+  {
+    "path": "src/resonance-model.js",
+    "sha256": "62024a998ec228c875ecd7096a4e91cd9ee07dc33b88762c546b8acde365ad8c"
+  },
+  {
+    "path": "src/spawn-layout.js",
+    "sha256": "a858b140000831bd9ed84fa7e973410d5ae122748e9a4e517b7725943568d58b"
+  },
+  {
+    "path": "src/special-bonds.js",
+    "sha256": "f25b6682c33090b288bdb6538b0ab5c6e49be59bd0214d214313fbdc3b5080b0"
+  },
+  {
+    "path": "src/stereo-descriptor.js",
+    "sha256": "23f8bfbe58dbf98484bf9f87791cc631ec7987336a701f6a4ba79f871206f8d1"
+  },
+  {
+    "path": "src/stereo-observation.js",
+    "sha256": "8df3d03b914b1f11ba36c52dd2bde169630ccdfab20035eaf39d4b3f9af057de"
+  },
+  {
+    "path": "src/structural-groups.js",
+    "sha256": "ea1450ffb08cf315f5cf00b9ce10d42f0771bebd22bc89a12b05743b9fd7183b"
+  },
+  {
+    "path": "src/structure-motion.js",
+    "sha256": "329ecd8b1b1eb929c5c9eff97579dbcf35a0a703286df0e62bd165090ed94e88"
+  },
+  {
+    "path": "src/structure-relaxation.js",
+    "sha256": "58b26666ac1a589cd48b5d8d5cd03f07cf78e14a7398e18a4baa396bf28bd800"
+  },
+  {
+    "path": "src/structure-settlement.js",
+    "sha256": "ecc5ed90f6c5eeff97a955ea08e49dbfe316c17d5f3263d455df38f9b4914ba2"
+  },
+  {
+    "path": "src/subgraph-matcher.js",
+    "sha256": "88e66e567dcc49db722b9d2493173371b44729ffa16ca3ca5f4165a5062dfbd4"
+  },
+  {
+    "path": "src/torsion-model.js",
+    "sha256": "84d14ff3f742044f5e7e1b60a79d9064728acd6f176743b1b6f86a2ec21506af"
+  },
+  {
+    "path": "src/veil/abrasive-field.js",
+    "sha256": "499b463ee9fca4556661e488df66798d62227b53a39e610a426a3b5159a8ed4a"
+  },
+  {
+    "path": "src/veil/audio.js",
+    "sha256": "178f7fa3ca012e76cc490c323455ec19f5f1c6bd8072a4885bd53f2fa70a55fd"
+  },
+  {
+    "path": "src/veil/capability-unlock.js",
+    "sha256": "421419e614d55ba98d0b2edd6d64f4a5deaa3097c7b78f6db14646297a6ea338"
+  },
+  {
+    "path": "src/veil/cho-campaign.js",
+    "sha256": "a19094d221cd7a14bef2a3167f91d11e6961ea855dd288a6d652832d103bb353"
+  },
+  {
+    "path": "src/veil/collector-applications-ui.js",
+    "sha256": "ce872c3c0d09d1e0ef137a1567c71091e9695a33b5841ee9d18705a08401fd2c"
+  },
+  {
+    "path": "src/veil/collector-applications.js",
+    "sha256": "3924eaa9a5815c9e3d6d3608d68ea9d3d38b26e1c5d5d8a8feca0e757f8b8bb2"
+  },
+  {
+    "path": "src/veil/collector-shell.js",
+    "sha256": "dd1e0f4b5da188d0964fdbf5c52406ad6ea787dca02020a417a61e1be6d4d3e5"
+  },
+  {
+    "path": "src/veil/config.js",
+    "sha256": "585460a7024ed8c9c1ec381c2565636b049661ce32f9f2de9a22c69eaff25ef5"
+  },
+  {
+    "path": "src/veil/dust-spatial-index.js",
+    "sha256": "7113f563b37620f14edfb25e64eccb119cd819fae51bd9acdc7a4cd93c7be11f"
+  },
+  {
+    "path": "src/veil/dynamic-dust-registry.js",
+    "sha256": "d3b7b96fd04b9b39df5336e6c8a6aff69c82426b0f2655bc0f35386882bccc9b"
+  },
+  {
+    "path": "src/veil/electrical-field.js",
+    "sha256": "72364be337e236ea215f350ed8d63521742cd64a4554f683677d58b264cc8772"
+  },
+  {
+    "path": "src/veil/engine.js",
+    "sha256": "7452c4594ac2515ff15c4514b9a4f7ebfebce9ebc28bc04c27aa0ff1d1571b1e"
+  },
+  {
+    "path": "src/veil/expedition-challenges.js",
+    "sha256": "c06fa72b25128c7992250eecab907754990785e4a654b0d4b24a7f71b8cdfbea"
+  },
+  {
+    "path": "src/veil/expedition-loss.js",
+    "sha256": "1886dea503aba28c64479e4cd33a56b07f49454a5f3bcc1e8af84c76121c2d80"
+  },
+  {
+    "path": "src/veil/expedition-run.js",
+    "sha256": "fe2f51ae0587b95ce0d9936d33f85c778a337cd8bfa01c598ca9af597dc59aaf"
+  },
+  {
+    "path": "src/veil/field-runtime-authority.js",
+    "sha256": "2c22c030bc83c361b7d02fa115bbf7c4875271e40c18664822367851644142e7"
+  },
+  {
+    "path": "src/veil/growth.js",
+    "sha256": "2b2466f50f2ced3a9659829b1dafb6b5c2371c4aa5b1a17e68ea4e264b12fb08"
+  },
+  {
+    "path": "src/veil/hazards.js",
+    "sha256": "f101616a44c19f507234e1a1bd8d1603a5e50ab33080a655ae49f817c3143e92"
+  },
+  {
+    "path": "src/veil/insight-destination.js",
+    "sha256": "74845062c868f9b2e0fe7428eae2d74158ba78cc2d0b2fbcefe83d006cdb91a4"
+  },
+  {
+    "path": "src/veil/insight-loadout-vfx.js",
+    "sha256": "82eb470f86eaab726e444d4309dda43e83606a2849a1176fafe2021ff9b6e6f6"
+  },
+  {
+    "path": "src/veil/insight-presentation.css",
+    "sha256": "3adb082c9515c2ea5df272c782eaa6e7ac750cf1334f1cfb85bcb560bb4b116e"
+  },
+  {
+    "path": "src/veil/insight-presentation.js",
+    "sha256": "60b2779000423899aaed8f48f6209d08583743a99b8ddd502f83e53999394604"
+  },
+  {
+    "path": "src/veil/insights.js",
+    "sha256": "ced212b70d030774dca6b10635e48ad68e80a73ee2282a757c2f7faff42f4a7b"
+  },
+  {
+    "path": "src/veil/launch-request.js",
+    "sha256": "166759c000f71d7f417353dff01583330d6b2e08d22edd4627216a2c4e4b675f"
+  },
+  {
+    "path": "src/veil/launch-transaction.js",
+    "sha256": "d6e83947d602a5cc47d7f87496dcce9e897c5c4d298f62eeb8b02fb2754561e5"
+  },
+  {
+    "path": "src/veil/loadout-hardware-layout.js",
+    "sha256": "5a210c7b437978160f75c8fee830274f27164929635edc7413d1d9f0b08ffe0e"
+  },
+  {
+    "path": "src/veil/loadout-preview.js",
+    "sha256": "99f7d696ee231fec4b5d17c539804d893f76e42a488582996851b8b07d1cffaa"
+  },
+  {
+    "path": "src/veil/loadout-workstation.js",
+    "sha256": "59eb42e1af012c98b580a4da0c1a908bc367e59430086c35b8aea1f95e8db2ee"
+  },
+  {
+    "path": "src/veil/map.js",
+    "sha256": "da0cf2d6c6ffde06b1996007b01589c7fee11a9b020e8690ca8a35d071a9ed39"
+  },
+  {
+    "path": "src/veil/molecule-roles.js",
+    "sha256": "8b723dd69f7721bf222a1f58903228a551d5932a959818e9ecf489318a46fff7"
+  },
+  {
+    "path": "src/veil/nitrogen-config.js",
+    "sha256": "b97f0b8f57783a570f11d15a2add2fd2726b0bbfed1d147e495dc40bc7faea07"
+  },
+  {
+    "path": "src/veil/nitrogen-progression.js",
+    "sha256": "e9846ebc22793e7f52bdf6c23b443f477512fce7700a3af5ad0847e352a90de5"
+  },
+  {
+    "path": "src/veil/nitrogen-routes.js",
+    "sha256": "327f1a0fd814fa7feaa2809b0993077eafb6c467a945eb7767e5a58d34a7b471"
+  },
+  {
+    "path": "src/veil/oxygen-routes.js",
+    "sha256": "28000730564479268d1e199acbcd5c7ab536f0104aef816dbe567866be1c3d29"
+  },
+  {
+    "path": "src/veil/progression-reserved-molecules.js",
+    "sha256": "c05fb60e8bfa317af7cce095e26f8fd187234da5ba9f0494a8c7509f79bf547a"
+  },
+  {
+    "path": "src/veil/rare-ecology.js",
+    "sha256": "e72a96b963ad96803cdd8d92296e8fcd5727c9987415ced8bcb2ac0ef54f8a5b"
+  },
+  {
+    "path": "src/veil/renderer.js",
+    "sha256": "d0bd3b9fef007f2e099ab5b946fdcab6034e7cbe8236777da02bd3247de18322"
+  },
+  {
+    "path": "src/veil/reset-ui.js",
+    "sha256": "69fdd2eecda60484768350078ab4427acda096adc110e37b4484c9a15afb9e91"
+  },
+  {
+    "path": "src/veil/resources-persistence.js",
+    "sha256": "c8f1a1ef694e8570971fbf8b068e1567d88d1721b3e645f6054b9f4e4950eaad"
+  },
+  {
+    "path": "src/veil/resources.js",
+    "sha256": "425a708b111908542a192f2a78d7215de707482db80cc32e849ee65fedb3577a"
+  },
+  {
+    "path": "src/veil/route-kit.js",
+    "sha256": "2692483aa65f163f72d2ac8ba3c702333f99c5bc28b940fbf39549a342038e83"
+  },
+  {
+    "path": "src/veil/safe-extraction-sites.js",
+    "sha256": "34b44ae2913dfe66b54945e322035bc0be92a805dbccc8850f93c6103ed31bb5"
+  },
+  {
+    "path": "src/veil/shock-structures.js",
+    "sha256": "ab926740aa9d1d42b5ab6c4af5e307ad6a076b40b09fc30d25e323894ee8573c"
+  },
+  {
+    "path": "src/veil/shock.js",
+    "sha256": "2db71da072c605a5c793ba0de2e0b3b03166de1bdf02351b5abc569cdb577557"
+  },
+  {
+    "path": "src/veil/signal-claimability.js",
+    "sha256": "1592c2ef856c46e3598735509a8e8c6eca236c843fb1621b4da7e78360019e9a"
+  },
+  {
+    "path": "src/veil/supply.js",
+    "sha256": "68ddaf869bad8ff98b463a0cbc60a48957fb905f0e184bb122cc352811e5bbca"
+  },
+  {
+    "path": "src/veil/telemetry.js",
+    "sha256": "e7744c5b0516e83fe3621e8ec12ae1f04e79ca532aad8da70d7a3edc53556be3"
+  },
+  {
+    "path": "src/veil/ui.js",
+    "sha256": "d2ae0a31a36a55e4eb5af508181a6306f998d10261153b0c49dfb1c4787946fb"
+  },
+  {
+    "path": "src/veil/universe.js",
+    "sha256": "e1b73f25039ea0b34e0997cc181f45e70ab0a987be624cd1ee12d2652d652c7c"
+  },
+  {
+    "path": "src/veil/world-awakening.js",
+    "sha256": "65926ed5d544898a2084b20ff1479c126085e2308d26cac53b62b3b3f895d17b"
+  },
+  {
+    "path": "src/workspace-migrations.js",
+    "sha256": "6c29b54016bb6fc36c17221c9fd15b75c41652804fed10ee6774ee4f1289fe52"
+  },
+  {
+    "path": "src/workspace-model.js",
+    "sha256": "1ab0f4998eab1064471161ee265af37e9ebf4ea67126a138e899c9e8529e1ec7"
+  },
+  {
+    "path": "src/workspace-persistence.js",
+    "sha256": "631e76200b472cf31c66349418c1bc75f55f5891e235cd0a6e6a1151240b1f9b"
+  },
+  {
+    "path": "src/workspace-save.js",
+    "sha256": "213e8aa863fa10fbfdc3cdfbb8998cf41c375c9636b3c4d9ad72146b01223c24"
+  },
+  {
+    "path": "src/workspace-view.js",
+    "sha256": "931711bceaffce3224db7cb9169c4b0277dd0ae2537656ffda14f912f53ab1d9"
+  },
+  {
+    "path": "styles.css",
+    "sha256": "ad09e7dc4da4af4c8c5706d3b33af8ea2a665a6e8a0f41eb7b53a06e45dd669f"
+  },
+  {
+    "path": "sw.js",
+    "sha256": "c2f1c37885a0b98185b287d1e5af9fc9cda4d36e54a449a1a5cefdc047517b1d"
+  },
+  {
+    "path": "veil.css",
+    "sha256": "a0dba8a9c61dd84e5a8016c2bb5dab98abf80b87d866a11f020c6e42fe9ed3da"
+  },
+  {
+    "path": "vendor/three/LICENSE",
+    "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+  },
+  {
+    "path": "vendor/three/three.core.min.js",
+    "sha256": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de"
+  },
+  {
+    "path": "vendor/three/three.module.min.js",
+    "sha256": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6"
+  }
+]

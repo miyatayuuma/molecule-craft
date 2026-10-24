@@ -1,0 +1,460 @@
+{
+  "sourceSha": "5633a18d8578ac0b1d326e9fd30f15ff59529813",
+  "mainSha": "593ac571e4d664f7af885855352142874dd227ab",
+  "runId": 39600752370,
+  "repositoryRun": {
+    "id": 39600752357,
+    "conclusion": "success"
+  },
+  "fieldRun": {
+    "id": 39600752360,
+    "conclusion": "success"
+  },
+  "jobs": [
+    {
+      "id": 119224328175,
+      "name": "task5-fit-diagnostic",
+      "conclusion": "success"
+    },
+    {
+      "id": 119224328490,
+      "name": "stage-b-performance-comparison",
+      "conclusion": "success"
+    },
+    {
+      "id": 119226683590,
+      "name": "task5-visual-acceptance ({\"width\":390,\"height\":844,\"mobile\":true}, normal, 2)",
+      "conclusion": "cancelled"
+    },
+    {
+      "id": 119226683624,
+      "name": "task5-visual-acceptance ({\"width\":1280,\"height\":800,\"mobile\":false}, normal, 1)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683635,
+      "name": "task5-visual-acceptance ({\"width\":360,\"height\":780,\"mobile\":true}, reduced, 1)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683658,
+      "name": "task5-visual-acceptance ({\"width\":1280,\"height\":800,\"mobile\":false}, reduced, 1)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683669,
+      "name": "task5-visual-acceptance ({\"width\":360,\"height\":780,\"mobile\":true}, normal, 2)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683738,
+      "name": "task5-visual-acceptance ({\"width\":390,\"height\":844,\"mobile\":true}, reduced, 1)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683744,
+      "name": "task5-visual-acceptance ({\"width\":360,\"height\":780,\"mobile\":true}, reduced, 2)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683747,
+      "name": "task5-visual-acceptance ({\"width\":390,\"height\":844,\"mobile\":true}, normal, 1)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683830,
+      "name": "task5-visual-acceptance ({\"width\":390,\"height\":844,\"mobile\":true}, reduced, 2)",
+      "conclusion": "cancelled"
+    },
+    {
+      "id": 119226683832,
+      "name": "task5-visual-acceptance ({\"width\":360,\"height\":780,\"mobile\":true}, normal, 1)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683861,
+      "name": "task5-visual-acceptance ({\"width\":1280,\"height\":800,\"mobile\":false}, reduced, 2)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119226683883,
+      "name": "task5-visual-acceptance ({\"width\":1280,\"height\":800,\"mobile\":false}, normal, 2)",
+      "conclusion": "failure"
+    },
+    {
+      "id": 119273002158,
+      "name": "finite-validation",
+      "conclusion": "skipped"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 12352126761,
+      "name": "task5-visual-4",
+      "size_in_bytes": 1273854038,
+      "digest": "sha256:30632698157d04759ff345d913fd3a048fca4dec5d081144bd4f25d3306976c7",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12351354019,
+      "name": "task5-visual-5",
+      "size_in_bytes": 1855123694,
+      "digest": "sha256:c100726bd887fcba90b696b75ad8f6b306e241daac203594a9468163f3b5145f",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12351108484,
+      "name": "task5-visual-7",
+      "size_in_bytes": 1872196604,
+      "digest": "sha256:8b3de5366d26d0c3f8690ebbf8ea5542c7c8c37ac5dcb18031d3693a2c64f2ae",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12350535117,
+      "name": "task5-visual-0",
+      "size_in_bytes": 1100593255,
+      "digest": "sha256:91bb3d153006506f120fa7777d39a74a53fd54902e0a0d63b677c2d6392bf965",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12350458432,
+      "name": "task5-visual-2",
+      "size_in_bytes": 1102567045,
+      "digest": "sha256:ae10a7b283b11be5fad080a602f2aa17ae840137b19fe089365b2366114380e8",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12350067562,
+      "name": "task5-visual-1",
+      "size_in_bytes": 1931661134,
+      "digest": "sha256:3adb9ff0b846043b806c1784f22c85259d19518b273fec0bf308a8efbe0efe18",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12349213459,
+      "name": "task5-visual-3",
+      "size_in_bytes": 1934917081,
+      "digest": "sha256:138bbd23ca6b497e48b50002256f9563c269819b9a3b21eedcc3aceffd699d25",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12348533723,
+      "name": "task5-visual-6",
+      "size_in_bytes": 1238343183,
+      "digest": "sha256:f17dc35f197261256b5c079d1cefebb0241f0113062985dd8efdb8c560a0af01",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12348090507,
+      "name": "task5-visual-9",
+      "size_in_bytes": 152599643,
+      "digest": "sha256:91bb6bc565d7f8e774b1d154327a3732fddfb7291202bfdb55462f9de60b98d3",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12347320597,
+      "name": "task5-visual-10",
+      "size_in_bytes": 38846629,
+      "digest": "sha256:75c9887860519369b3a9905623cd22986a8e2c469e365f4b5bfe38f91f82d2a6",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12346746436,
+      "name": "task5-visual-11",
+      "size_in_bytes": 126835679,
+      "digest": "sha256:bb2a01091caca5ead7d550213f224e69b79a41b7d37a3dbcdd82b9bd367da37f",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12346318852,
+      "name": "task5-visual-8",
+      "size_in_bytes": 38773255,
+      "digest": "sha256:e702b7b1d4a2845b4e05e83653d5121a57c9bdb7163d9174c4028cb933327a0b",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12345269410,
+      "name": "task5-fit-diagnostic",
+      "size_in_bytes": 28920567,
+      "digest": "sha256:efbc1adceb766269b3306a6ff5979a7d43101ac7835ba3725e6c486acb45a400",
+      "expires_at": "2027-01-19T12:34:59Z"
+    },
+    {
+      "id": 12344714380,
+      "name": "task10-task11-stage-b-performance-comparison",
+      "size_in_bytes": 7780,
+      "digest": "sha256:c41ce3a7e85a179ca4dacae37dc20a9e7a1cadf93262e610b2da6ef044d4d8c8",
+      "expires_at": "2027-01-19T12:34:59Z"
+    }
+  ],
+  "dpr2_360_gate": {
+    "expected": 16,
+    "completed": 16,
+    "rows": [
+      {
+        "polymerId": "nitrile-butadiene-rubber",
+        "atoms": 27,
+        "bonds": 26,
+        "views": 280,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "triple local focus missing: 12",
+          "simultaneous group missing: side/junction/adjacent-backbone/3",
+          "simultaneous group missing: nitrile/4",
+          "simultaneous group missing: nonaromatic-C=C/1",
+          "simultaneous group missing: nonaromatic-C=C/18"
+        ]
+      },
+      {
+        "polymerId": "nylon-6-6",
+        "atoms": 79,
+        "bonds": 78,
+        "views": 360,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: side/junction/adjacent-backbone/0",
+          "simultaneous group missing: side/junction/adjacent-backbone/35",
+          "simultaneous group missing: side/junction/adjacent-backbone/49",
+          "simultaneous group missing: side/junction/adjacent-backbone/52",
+          "simultaneous group missing: amide/0",
+          "simultaneous group missing: amide/35",
+          "simultaneous group missing: amide/49"
+        ]
+      },
+      {
+        "polymerId": "phenol-formaldehyde-resin",
+        "atoms": 31,
+        "bonds": 32,
+        "views": 160,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: aromatic-0/0",
+          "simultaneous group missing: aromatic-1/7"
+        ]
+      },
+      {
+        "polymerId": "polyacrylic-acid",
+        "atoms": 36,
+        "bonds": 35,
+        "views": 320,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: side/junction/adjacent-backbone/1",
+          "simultaneous group missing: side/junction/adjacent-backbone/11",
+          "simultaneous group missing: side/junction/adjacent-backbone/12",
+          "simultaneous group missing: side/junction/adjacent-backbone/28"
+        ]
+      },
+      {
+        "polymerId": "polyacrylonitrile",
+        "atoms": 28,
+        "bonds": 27,
+        "views": 440,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "triple local focus missing: 12",
+          "triple local focus missing: 19",
+          "triple local focus missing: 20",
+          "triple local focus missing: 26",
+          "simultaneous group missing: side/junction/adjacent-backbone/1",
+          "simultaneous group missing: side/junction/adjacent-backbone/4",
+          "simultaneous group missing: side/junction/adjacent-backbone/7",
+          "simultaneous group missing: side/junction/adjacent-backbone/22",
+          "simultaneous group missing: nitrile/5",
+          "simultaneous group missing: nitrile/8",
+          "simultaneous group missing: nitrile/17",
+          "simultaneous group missing: nitrile/23"
+        ]
+      },
+      {
+        "polymerId": "polychlorotrifluoroethylene",
+        "atoms": 24,
+        "bonds": 23,
+        "views": 360,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: side/junction/adjacent-backbone/0",
+          "simultaneous group missing: side/junction/adjacent-backbone/1",
+          "simultaneous group missing: side/junction/adjacent-backbone/16",
+          "simultaneous group missing: side/junction/adjacent-backbone/4",
+          "simultaneous group missing: side/junction/adjacent-backbone/5",
+          "simultaneous group missing: side/junction/adjacent-backbone/17",
+          "simultaneous group missing: side/junction/adjacent-backbone/18",
+          "simultaneous group missing: side/junction/adjacent-backbone/19"
+        ]
+      },
+      {
+        "polymerId": "polyethylene",
+        "atoms": 24,
+        "bonds": 23,
+        "views": 240,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": []
+      },
+      {
+        "polymerId": "polyethylene-oxide",
+        "atoms": 28,
+        "bonds": 27,
+        "views": 280,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": []
+      },
+      {
+        "polymerId": "polyethylene-terephthalate",
+        "atoms": 47,
+        "bonds": 48,
+        "views": 360,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: aromatic-0/0",
+          "simultaneous group missing: aromatic-1/17",
+          "simultaneous group missing: side/junction/adjacent-backbone/35",
+          "simultaneous group missing: side/junction/adjacent-backbone/31",
+          "simultaneous group missing: side/junction/adjacent-backbone/29",
+          "simultaneous group missing: side/junction/adjacent-backbone/33",
+          "simultaneous group missing: ester/33",
+          "simultaneous group missing: ester/29",
+          "simultaneous group missing: ester/31"
+        ]
+      },
+      {
+        "polymerId": "polyisobutylene",
+        "atoms": 48,
+        "bonds": 47,
+        "views": 240,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: side/junction/adjacent-backbone/0",
+          "simultaneous group missing: side/junction/adjacent-backbone/17",
+          "simultaneous group missing: side/junction/adjacent-backbone/30",
+          "simultaneous group missing: side/junction/adjacent-backbone/36"
+        ]
+      },
+      {
+        "polymerId": "polylactic-acid",
+        "atoms": 39,
+        "bonds": 38,
+        "views": 440,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: side/junction/adjacent-backbone/1",
+          "simultaneous group missing: side/junction/adjacent-backbone/4",
+          "simultaneous group missing: side/junction/adjacent-backbone/13",
+          "simultaneous group missing: side/junction/adjacent-backbone/21",
+          "simultaneous group missing: side/junction/adjacent-backbone/14",
+          "simultaneous group missing: side/junction/adjacent-backbone/22",
+          "simultaneous group missing: side/junction/adjacent-backbone/29",
+          "simultaneous group missing: side/junction/adjacent-backbone/31",
+          "simultaneous group missing: ester/4",
+          "simultaneous group missing: ester/14",
+          "simultaneous group missing: ester/22"
+        ]
+      },
+      {
+        "polymerId": "polypropylene",
+        "atoms": 36,
+        "bonds": 35,
+        "views": 360,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: side/junction/adjacent-backbone/1",
+          "simultaneous group missing: side/junction/adjacent-backbone/11",
+          "simultaneous group missing: side/junction/adjacent-backbone/12",
+          "simultaneous group missing: side/junction/adjacent-backbone/28"
+        ]
+      },
+      {
+        "polymerId": "polystyrene",
+        "atoms": 64,
+        "bonds": 67,
+        "views": 360,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: aromatic-1/9",
+          "simultaneous group missing: aromatic-2/26",
+          "simultaneous group missing: aromatic-3/48",
+          "simultaneous group missing: side/junction/adjacent-backbone/34",
+          "simultaneous group missing: side/junction/adjacent-backbone/14",
+          "simultaneous group missing: side/junction/adjacent-backbone/39",
+          "simultaneous group missing: side/junction/adjacent-backbone/60"
+        ]
+      },
+      {
+        "polymerId": "polytetrafluoroethylene",
+        "atoms": 24,
+        "bonds": 23,
+        "views": 360,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: side/junction/adjacent-backbone/0",
+          "simultaneous group missing: side/junction/adjacent-backbone/1",
+          "simultaneous group missing: side/junction/adjacent-backbone/16",
+          "simultaneous group missing: side/junction/adjacent-backbone/4",
+          "simultaneous group missing: side/junction/adjacent-backbone/5",
+          "simultaneous group missing: side/junction/adjacent-backbone/17",
+          "simultaneous group missing: side/junction/adjacent-backbone/18",
+          "simultaneous group missing: side/junction/adjacent-backbone/19"
+        ]
+      },
+      {
+        "polymerId": "styrene-butadiene-copolymer",
+        "atoms": 36,
+        "bonds": 36,
+        "views": 240,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: aromatic-0/2",
+          "simultaneous group missing: side/junction/adjacent-backbone/15",
+          "simultaneous group missing: nonaromatic-C=C/1",
+          "simultaneous group missing: nonaromatic-C=C/27"
+        ]
+      },
+      {
+        "polymerId": "vinylidene-fluoride-hexafluoropropylene-copolymer",
+        "atoms": 21,
+        "bonds": 20,
+        "views": 280,
+        "missingAtoms": [],
+        "missingBonds": [],
+        "failures": [
+          "simultaneous group missing: side/junction/adjacent-backbone/1",
+          "simultaneous group missing: side/junction/adjacent-backbone/11",
+          "simultaneous group missing: side/junction/adjacent-backbone/12",
+          "simultaneous group missing: side/junction/adjacent-backbone/16"
+        ]
+      }
+    ],
+    "failures": [
+      "nitrile-butadiene-rubber: triple local focus missing: 12; simultaneous group missing: side/junction/adjacent-backbone/3; simultaneous group missing: nitrile/4; simultaneous group missing: nonaromatic-C=C/1; simultaneous group missing: nonaromatic-C=C/18",
+      "nylon-6-6: simultaneous group missing: side/junction/adjacent-backbone/0; simultaneous group missing: side/junction/adjacent-backbone/35; simultaneous group missing: side/junction/adjacent-backbone/49; simultaneous group missing: side/junction/adjacent-backbone/52; simultaneous group missing: amide/0; simultaneous group missing: amide/35; simultaneous group missing: amide/49",
+      "phenol-formaldehyde-resin: simultaneous group missing: aromatic-0/0; simultaneous group missing: aromatic-1/7",
+      "polyacrylic-acid: simultaneous group missing: side/junction/adjacent-backbone/1; simultaneous group missing: side/junction/adjacent-backbone/11; simultaneous group missing: side/junction/adjacent-backbone/12; simultaneous group missing: side/junction/adjacent-backbone/28",
+      "polyacrylonitrile: triple local focus missing: 12; triple local focus missing: 19; triple local focus missing: 20; triple local focus missing: 26; simultaneous group missing: side/junction/adjacent-backbone/1; simultaneous group missing: side/junction/adjacent-backbone/4; simultaneous group missing: side/junction/adjacent-backbone/7; simultaneous group missing: side/junction/adjacent-backbone/22; simultaneous group missing: nitrile/5; simultaneous group missing: nitrile/8; simultaneous group missing: nitrile/17; simultaneous group missing: nitrile/23",
+      "polychlorotrifluoroethylene: simultaneous group missing: side/junction/adjacent-backbone/0; simultaneous group missing: side/junction/adjacent-backbone/1; simultaneous group missing: side/junction/adjacent-backbone/16; simultaneous group missing: side/junction/adjacent-backbone/4; simultaneous group missing: side/junction/adjacent-backbone/5; simultaneous group missing: side/junction/adjacent-backbone/17; simultaneous group missing: side/junction/adjacent-backbone/18; simultaneous group missing: side/junction/adjacent-backbone/19",
+      "polyethylene-terephthalate: simultaneous group missing: aromatic-0/0; simultaneous group missing: aromatic-1/17; simultaneous group missing: side/junction/adjacent-backbone/35; simultaneous group missing: side/junction/adjacent-backbone/31; simultaneous group missing: side/junction/adjacent-backbone/29; simultaneous group missing: side/junction/adjacent-backbone/33; simultaneous group missing: ester/33; simultaneous group missing: ester/29; simultaneous group missing: ester/31",
+      "polyisobutylene: simultaneous group missing: side/junction/adjacent-backbone/0; simultaneous group missing: side/junction/adjacent-backbone/17; simultaneous group missing: side/junction/adjacent-backbone/30; simultaneous group missing: side/junction/adjacent-backbone/36",
+      "polylactic-acid: simultaneous group missing: side/junction/adjacent-backbone/1; simultaneous group missing: side/junction/adjacent-backbone/4; simultaneous group missing: side/junction/adjacent-backbone/13; simultaneous group missing: side/junction/adjacent-backbone/21; simultaneous group missing: side/junction/adjacent-backbone/14; simultaneous group missing: side/junction/adjacent-backbone/22; simultaneous group missing: side/junction/adjacent-backbone/29; simultaneous group missing: side/junction/adjacent-backbone/31; simultaneous group missing: ester/4; simultaneous group missing: ester/14; simultaneous group missing: ester/22",
+      "polypropylene: simultaneous group missing: side/junction/adjacent-backbone/1; simultaneous group missing: side/junction/adjacent-backbone/11; simultaneous group missing: side/junction/adjacent-backbone/12; simultaneous group missing: side/junction/adjacent-backbone/28",
+      "polystyrene: simultaneous group missing: aromatic-1/9; simultaneous group missing: aromatic-2/26; simultaneous group missing: aromatic-3/48; simultaneous group missing: side/junction/adjacent-backbone/34; simultaneous group missing: side/junction/adjacent-backbone/14; simultaneous group missing: side/junction/adjacent-backbone/39; simultaneous group missing: side/junction/adjacent-backbone/60",
+      "polytetrafluoroethylene: simultaneous group missing: side/junction/adjacent-backbone/0; simultaneous group missing: side/junction/adjacent-backbone/1; simultaneous group missing: side/junction/adjacent-backbone/16; simultaneous group missing: side/junction/adjacent-backbone/4; simultaneous group missing: side/junction/adjacent-backbone/5; simultaneous group missing: side/junction/adjacent-backbone/17; simultaneous group missing: side/junction/adjacent-backbone/18; simultaneous group missing: side/junction/adjacent-backbone/19",
+      "styrene-butadiene-copolymer: simultaneous group missing: aromatic-0/2; simultaneous group missing: side/junction/adjacent-backbone/15; simultaneous group missing: nonaromatic-C=C/1; simultaneous group missing: nonaromatic-C=C/27",
+      "vinylidene-fluoride-hexafluoropropylene-copolymer: simultaneous group missing: side/junction/adjacent-backbone/1; simultaneous group missing: side/junction/adjacent-backbone/11; simultaneous group missing: side/junction/adjacent-backbone/12; simultaneous group missing: side/junction/adjacent-backbone/16"
+    ]
+  },
+  "note": "All25 short gate, Stage B, Repository, FIELD passed. Formal static failed or cancelled; Finite skipped after static failure. The 360 DPR2 log parsed completely. Some DPR1 logs interleave stdout/stderr mid-JSON; their failures remain at the hosted jobs/artifacts."
+}

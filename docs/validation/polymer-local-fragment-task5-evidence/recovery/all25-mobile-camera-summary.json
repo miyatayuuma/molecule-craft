@@ -1,0 +1,601 @@
+{
+  "kind": "ACTUAL_ALL25_DIAGNOSTIC_NOT_FINAL_SOURCE_VISUAL_OR_PERFORMANCE_ACCEPTANCE",
+  "runtimeSha256AtFirst25": {
+    "src/reaction-lab-viewer.js": "ede76e24ac8f79bd441a5c65e3dbeda7df3080109770fe494ce0dedeb5467aa9",
+    "styles.css": "459dd9de4b7e2569f600527ac8dcd8a12cf65f8dc9d4bc2ce5b1242a3a43231c"
+  },
+  "sourceSha": null,
+  "viewport": {
+    "width": 360,
+    "height": 780,
+    "DPR": 1
+  },
+  "completed": 25,
+  "bundleSha256": "9df51ed468065dddfca0079cd9e25be9984cbe4efbc68d238a90a4d41b584ce2",
+  "bundleGzipSha256": "8100815089d8389b095d75fdc583ec5412ac4eac5a829d85c4eb406f2ced5631",
+  "rows": [
+    {
+      "routeId": "butyl-rubber-cationic",
+      "sampleId": "polymer-sample-21-21",
+      "graphDigest": "1202b3e58d9692c5ceb4d9ba91ef3e2d4309a22d2eaf61d9d3803d76427bba20",
+      "originDigest": "3f28cca255426e2185b9e86d847f36fc0e78e35ac390a8c94528da1cc980e2e0",
+      "atoms": 37,
+      "bonds": 36,
+      "lanes": 37,
+      "requiredLanes": 37,
+      "visibleAtoms": 37,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "5c72d516552419635a7220ad72dbde74c0321bd58d6396ddbd6f4a9eb9d10743",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "ethylene-propylene-coordination",
+      "sampleId": "polymer-sample-3-3",
+      "graphDigest": "2b3b921acb4ee105045c1c5ba18e266ecd4ce68b80a85bb9bfabb0b9c150f62e",
+      "originDigest": "5a2225df512157102674f59fae9a0a0d9b43539a1e6cac556adcfbf42a6e13d5",
+      "atoms": 21,
+      "bonds": 20,
+      "lanes": 20,
+      "requiredLanes": 20,
+      "visibleAtoms": 21,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "b86bb66499346985c87aea21e0fed3e8ddc82aef6a071b3311cfcc8a92e067d6",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "nitrile-butadiene-radical",
+      "sampleId": "polymer-sample-19-19",
+      "graphDigest": "0278919c0eeea80fff8df11d018e856d477709fdb985134415c2d278b4db50ed",
+      "originDigest": "01dee3cd98485556a2d98015f6d76f2c8747033492accf0719fa2ea0dc29ded9",
+      "atoms": 27,
+      "bonds": 26,
+      "lanes": 30,
+      "requiredLanes": 30,
+      "visibleAtoms": 27,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "8a77c072fa6aa90870371bb78bc35f8588171860190c1c3514e0be877acbf925",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "nylon-6-6-direct-polycondensation",
+      "sampleId": "polymer-sample-25-25",
+      "graphDigest": "90323ab7c43e6235837d272a0adc5b5d2b71daa571e0d41e37f5377d4edc19be",
+      "originDigest": "fff831d064682faf5b6b03b0cf5bde591e69cc2c42078d1531fe42fc14e653c1",
+      "atoms": 79,
+      "bonds": 78,
+      "lanes": 82,
+      "requiredLanes": 82,
+      "visibleAtoms": 79,
+      "comparisonKinds": [
+        "before",
+        "after",
+        "water"
+      ],
+      "reset": {
+        "angle": 2.9802322387695312e-08,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "30c36d53976356b8bad9e95f5cb8b92ea500961a1ba390f65f6dcc13830f8c07",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "phenol-formaldehyde-resole",
+      "sampleId": "polymer-sample-15-15",
+      "graphDigest": "a2d67c01307e7e9376d45c448c3f782ef6fac99a80fc15777f7b9279453f5e60",
+      "originDigest": "eb6dd8e1f27c81ee9b78687a4ab6735ce871657513cfe7dc4a658b9fd25b8cb2",
+      "atoms": 31,
+      "bonds": 32,
+      "lanes": 38,
+      "requiredLanes": 38,
+      "visibleAtoms": 31,
+      "comparisonKinds": [
+        "before",
+        "after",
+        "water",
+        "concept"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "124e8e4677e5bae04a881f0fc80fa0470142af1a6a3e89393acf9e99a9791225",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyacrylic-acid-radical",
+      "sampleId": "polymer-sample-9-9",
+      "graphDigest": "de7ff7d89fdec740e166e43c2108c4796df5f10c4aeae1d645d4b24ef1fa05fa",
+      "originDigest": "68a6039b058f212187ed5e2fcc19bf1cab74f10299501e3a8fed83ec78711b64",
+      "atoms": 36,
+      "bonds": 35,
+      "lanes": 39,
+      "requiredLanes": 39,
+      "visibleAtoms": 36,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "e420da5de8d9bbedeb01b40a8bae6bac2fa7b50862c860e28e5104eac0f54989",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyacrylonitrile-radical",
+      "sampleId": "polymer-sample-8-8",
+      "graphDigest": "0890d61307d82bc6c496a8a7e4f5d5151eaa655ceecfca97b60b202feefda7cc",
+      "originDigest": "e43fd9b01212d78003e4e64d37c3e534e6ae4f24f1262f35aae225d61c42e1a3",
+      "atoms": 28,
+      "bonds": 27,
+      "lanes": 35,
+      "requiredLanes": 35,
+      "visibleAtoms": 28,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 4.2146848510894035e-08,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "17634c213abc507613765e7d64e49d190048ead68ead8712d8b6f7223a6b95b2",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polybutadiene-coordination-1-4",
+      "sampleId": "polymer-sample-17-17",
+      "graphDigest": "db038008c13f7bf5630cc2ca7de9815bf2b00ea01703007800671a1a307bd0de",
+      "originDigest": "fe0534b1c8d076e4f75ee55b752adab50978d7d02f2af950f0b507e6ef15cf85",
+      "atoms": 40,
+      "bonds": 39,
+      "lanes": 43,
+      "requiredLanes": 43,
+      "visibleAtoms": 40,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "92a7f142be39166f54949ced87601d1af0e3ac6a22ee85d1288e5c0fb3bb1f0b",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polychlorotrifluoroethylene-radical",
+      "sampleId": "polymer-sample-7-7",
+      "graphDigest": "7c84943f3d57f75dadbb5c0b3a9abb5d696b63cb045ca5a3e4f36abcb5363d55",
+      "originDigest": "bd7938c76e77a2089bdd280eb29264b119cc4350b5107ecbebc25a1cd384970c",
+      "atoms": 24,
+      "bonds": 23,
+      "lanes": 23,
+      "requiredLanes": 23,
+      "visibleAtoms": 24,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "775ce76c8f93e63636acfb470aa8b52344b5259ed470951e1925335eb21fa12e",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyethylene-coordination",
+      "sampleId": "polymer-sample-1-1",
+      "graphDigest": "3f9b0ef2aed8ba77743d142639673c087c054f329d6067f649156525c7868c6c",
+      "originDigest": "d12ae9320d1567adca3c39f222d9e6102c8da76ca232769857d9232b895e1141",
+      "atoms": 24,
+      "bonds": 23,
+      "lanes": 23,
+      "requiredLanes": 23,
+      "visibleAtoms": 24,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "aa672df71e7fa07e2f91de4dacabc312f47c36b74f259f0c6b09d307f89b04e2",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyethylene-adipamide-direct-polycondensation",
+      "sampleId": "polymer-sample-16-16",
+      "graphDigest": "d7b95204cc73e2670d83cbde3adb7cb6c7775bb2f0dffaa59c276d4f44ddfe7c",
+      "originDigest": "a25f9ef44f2e84fa36a73963b71012c405715748aa83f77cc45cd0ae8c577ed7",
+      "atoms": 55,
+      "bonds": 54,
+      "lanes": 58,
+      "requiredLanes": 58,
+      "visibleAtoms": 55,
+      "comparisonKinds": [
+        "before",
+        "after",
+        "water"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "4cb54c8663f9a9514e27d22a4b78db6891073acaf812c6d7bf01a499d0630151",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyethylene-adipate-direct-polycondensation",
+      "sampleId": "polymer-sample-12-12",
+      "graphDigest": "095ee9cfb36af15c465ef0ee1e8d9be998855e3331ec670855766e9e6944bab0",
+      "originDigest": "96c00916a76846f13f2314ee79ef4f24ba45a7af07325a7904d01bd400f0be76",
+      "atoms": 51,
+      "bonds": 50,
+      "lanes": 54,
+      "requiredLanes": 54,
+      "visibleAtoms": 51,
+      "comparisonKinds": [
+        "before",
+        "after",
+        "water"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "fabdfa106e05313f40f8aea464cc3554d0b769a42ddc1be4e42e02148fb4bebf",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyethylene-oxide-anionic-ring-opening",
+      "sampleId": "polymer-sample-10-10",
+      "graphDigest": "55dda0f56b6ff6714ee2b73e4a3642b0d942e0525a2f93669db3312e04f5d358",
+      "originDigest": "d6886dd723c445fba1cd1352a778fe48ce2b8f3ca30fa5c06e96983f18718022",
+      "atoms": 28,
+      "bonds": 27,
+      "lanes": 27,
+      "requiredLanes": 27,
+      "visibleAtoms": 28,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "ca77d3ecd0b4c3e35d09c9c68d9f9c051e24bf0068250fd9e34d1482db1cacdb",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyethylene-terephthalate-direct-polycondensation",
+      "sampleId": "polymer-sample-11-11",
+      "graphDigest": "ac71c980c5105222e7d2b217da840d403c89349a278f8d18716862ba293d5d1e",
+      "originDigest": "afb0b12e960bc7c918936f48b063ecb5a97bf28048a82e6b792677fc2b76d575",
+      "atoms": 47,
+      "bonds": 48,
+      "lanes": 58,
+      "requiredLanes": 58,
+      "visibleAtoms": 47,
+      "comparisonKinds": [
+        "before",
+        "after",
+        "water"
+      ],
+      "reset": {
+        "angle": 4.2146848510894035e-08,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "b73e85d8313a7ab561fb71745e6b2e45d4d006ed05fe68cc1084db9901c06908",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyglycolic-acid-direct-polycondensation",
+      "sampleId": "polymer-sample-14-14",
+      "graphDigest": "3d259741126cea1e2742b80bdedf3b8dc3f7959951cdcb7194e9388634f480af",
+      "originDigest": "cc900843a1ebf96b2a02384782ac41c6d39c9a4afa7f4c5d60c1f8ca9cf09b40",
+      "atoms": 27,
+      "bonds": 26,
+      "lanes": 30,
+      "requiredLanes": 30,
+      "visibleAtoms": 27,
+      "comparisonKinds": [
+        "before",
+        "after",
+        "water"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "ceecf0f6783610b87a0e38aa3273979983660b78813356fd487d0020f231b24a",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyisobutylene-cationic",
+      "sampleId": "polymer-sample-4-4",
+      "graphDigest": "44facce546bf00e6dcecc128151e749462f2988edfc0249bc95126fba5318f0f",
+      "originDigest": "e00d7a672aa0134e4dca273eae13ca7b4b090bc2bc89194dca9f60cef26d3cea",
+      "atoms": 48,
+      "bonds": 47,
+      "lanes": 47,
+      "requiredLanes": 47,
+      "visibleAtoms": 48,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "eaac16ef58d614828a2cdbb5e851967cadf3a81611e309bdf99a0fb27b9e3ead",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyisoprene-coordination-1-4",
+      "sampleId": "polymer-sample-20-20",
+      "graphDigest": "af8d0e6257eb5c4ad07c10b4d7d2c4abf558bdecb665f000726f6075f546ebfa",
+      "originDigest": "b5c1890e71610c0451123a7586e2b879bee39059b52d90cd276f273d07edf032",
+      "atoms": 52,
+      "bonds": 51,
+      "lanes": 55,
+      "requiredLanes": 55,
+      "visibleAtoms": 52,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "7e16d8ac9b601819579dfb829d9f80b0559ef18e08022d04a01a30644248bd98",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polylactic-acid-direct-polycondensation",
+      "sampleId": "polymer-sample-13-13",
+      "graphDigest": "7a0d9dc38733784e6a2af99b469b6a7e6cd9a37724d93c5e793c78cd3a614956",
+      "originDigest": "73812e8c858154f5e4a0ccfd716d07c0000298302d21f11a5cfd6522b411cef8",
+      "atoms": 39,
+      "bonds": 38,
+      "lanes": 42,
+      "requiredLanes": 42,
+      "visibleAtoms": 39,
+      "comparisonKinds": [
+        "before",
+        "after",
+        "water"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "f288abfa60137433569f135d387dd487aefd57064d90e7b61a5f43184cea2420",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polypropylene-coordination",
+      "sampleId": "polymer-sample-2-2",
+      "graphDigest": "b61802056578070f13607eb28424b0fb887a8e2d9375261824c5a4b7b9a88e50",
+      "originDigest": "193f1cb4791b614669ae974c793cded4b75d444a5c086602ea7f1e54e8517d9d",
+      "atoms": 36,
+      "bonds": 35,
+      "lanes": 35,
+      "requiredLanes": 35,
+      "visibleAtoms": 36,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "fd93e1b88fb10de959822967cd1faf6e8e82cbccf819549353a4039b9cf78703",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polystyrene-radical",
+      "sampleId": "polymer-sample-5-5",
+      "graphDigest": "75f2610028e884745b6fe42784b3ac6c87c8cfa18e2eacc475b3f4eeca16ff3a",
+      "originDigest": "0df72abe7ef07deeab9f6aad44f44d2676ba9e8476642d417ae4301d6047a966",
+      "atoms": 64,
+      "bonds": 67,
+      "lanes": 79,
+      "requiredLanes": 79,
+      "visibleAtoms": 64,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 4.2146848510894035e-08,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "5c52e731ff022f396572f4014e23cadb73a64567a283d795ceed9d972f4bb15b",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polytetrafluoroethylene-radical",
+      "sampleId": "polymer-sample-24-24",
+      "graphDigest": "96fea9d05d8a75bec54fc8601cbac7fc98515844ab55a0fdbf671395d3777b47",
+      "originDigest": "d23be3fa3eaa36a74cb419ab3930d8fbc425e43b7d90382680ac43d3bbe925cb",
+      "atoms": 24,
+      "bonds": 23,
+      "lanes": 23,
+      "requiredLanes": 23,
+      "visibleAtoms": 24,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "717edd9fb05bc0014e1cf75dc4b03ccfbb1ab1406f64eb01e35051e32c29d99a",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyvinyl-chloride-radical",
+      "sampleId": "polymer-sample-6-6",
+      "graphDigest": "b9f9816146494c3bb077f99763adb7ebb005a4f2cd23b9e5f9345d0377c84d97",
+      "originDigest": "4f2555850486f6adefcdbf8da2aa73ec6d01155350cf41be7c78f282cdb6ce8d",
+      "atoms": 24,
+      "bonds": 23,
+      "lanes": 23,
+      "requiredLanes": 23,
+      "visibleAtoms": 24,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "8ac7f7658204ba191c3acff6a9e2d27d0dcaadf2de15f069b6be0ab6511b2b35",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "polyvinylidene-fluoride-radical",
+      "sampleId": "polymer-sample-22-22",
+      "graphDigest": "0f01acc9b7d4399905ee82f8602b8b84bceec563d131823b19a47bba41a624f0",
+      "originDigest": "6e534cc91ac4c5cf0d044148223502bc635ea6eb0e7fec877616d2dee2b697aa",
+      "atoms": 24,
+      "bonds": 23,
+      "lanes": 23,
+      "requiredLanes": 23,
+      "visibleAtoms": 24,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "d82533cafbe29653a8ee5aa7d77706c2942ae20d4d7ea7917cef6cefb3e17a72",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "styrene-butadiene-radical",
+      "sampleId": "polymer-sample-18-18",
+      "graphDigest": "67527b89cd79345bbfc31a56375c07e62c2dea19c98ebd83b6afc4f753e8b2ad",
+      "originDigest": "f1e7f95d9f31b30cc3f8c2374bae1a3ac04c23e41602cb512d5a37c3f712e04d",
+      "atoms": 36,
+      "bonds": 36,
+      "lanes": 41,
+      "requiredLanes": 41,
+      "visibleAtoms": 36,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "2485c1c4e09b1a4fdcf94dec9f65eb86faef0b6bf7ae1b28dcde3d79cfc9fa19",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    },
+    {
+      "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+      "sampleId": "polymer-sample-23-23",
+      "graphDigest": "68aa8f8896bb15d9d42fc180734778d28d65fc08325b7289c9bb657083f26edc",
+      "originDigest": "54e108117e1e7b79abd2b174f023a8c361057a5fe4a49427fa372d28c090c4a0",
+      "atoms": 21,
+      "bonds": 20,
+      "lanes": 20,
+      "requiredLanes": 20,
+      "visibleAtoms": 21,
+      "comparisonKinds": [
+        "before",
+        "after"
+      ],
+      "reset": {
+        "angle": 0,
+        "zoomRatio": 1,
+        "maxProjectionError": 0
+      },
+      "uiFailures": [],
+      "reportSha256": "86f37b2154ac66570f359b97513683272c4fd00ed7f97f37039a4806a085e815",
+      "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE"
+    }
+  ]
+}

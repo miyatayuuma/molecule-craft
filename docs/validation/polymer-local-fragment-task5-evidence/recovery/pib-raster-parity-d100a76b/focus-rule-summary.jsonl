@@ -1,0 +1,10 @@
+{"name":"retained-facet-0","rule":"reference","scale":1.6306487666070462,"minimumMargin":1.1876164630279293,"partial":[true,true,true],"conservativeScreen":true}
+{"name":"retained-facet-0","rule":"candidate","scale":1.8282754411010351,"minimumMargin":1.191247432906126,"partial":[true,true,true],"conservativeScreen":true}
+{"name":"retained-facet-17","rule":"reference","scale":1.7391107645630837,"minimumMargin":1.0743659301247792,"partial":[true,true,true],"conservativeScreen":false}
+{"name":"retained-facet-17","rule":"candidate","scale":1.956647419430064,"minimumMargin":1.089847292890347,"partial":[true,true,true],"conservativeScreen":false}
+{"name":"boundary-30-0","rule":"reference","scale":1.5724352644383908,"minimumMargin":0.9620907404461597,"partial":[false,false,false],"conservativeScreen":false}
+{"name":"boundary-30-0","rule":"candidate","scale":1.7941195048176906,"minimumMargin":0.942473974091712,"partial":[false,false,false],"conservativeScreen":false}
+{"name":"boundary-30-1","rule":"reference","scale":1.6131442262232305,"minimumMargin":0.9544317551513681,"partial":[false,false,false],"conservativeScreen":false}
+{"name":"boundary-30-1","rule":"candidate","scale":1.8436546198920776,"minimumMargin":0.9205390551147317,"partial":[false,false,false],"conservativeScreen":false}
+{"name":"boundary-30-2","rule":"reference","scale":1.4661292231082916,"minimumMargin":0.8992522014967503,"partial":[false,false,false],"conservativeScreen":false}
+{"name":"boundary-30-2","rule":"candidate","scale":1.6731932437239567,"minimumMargin":0.9500326628703428,"partial":[false,false,false],"conservativeScreen":false}

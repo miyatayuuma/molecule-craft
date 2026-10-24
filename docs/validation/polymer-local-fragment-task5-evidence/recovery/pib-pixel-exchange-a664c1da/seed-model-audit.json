@@ -1,0 +1,237 @@
+{
+  "kind": "STATIC_RETAINED_MASK_AND_MODEL_AUDIT_NO_RASTERS",
+  "objects": [
+    {
+      "kind": "atom",
+      "index": 0,
+      "rawRetainedCPUCount": 1276,
+      "affineSeedWitnessCount": 1275,
+      "affineMinusRaw": -1,
+      "required": 853.086691058543,
+      "rawSurplus": 422.913308941457
+    },
+    {
+      "kind": "atom",
+      "index": 30,
+      "rawRetainedCPUCount": 827,
+      "affineSeedWitnessCount": 823,
+      "affineMinusRaw": -4,
+      "required": 815.7791315171334,
+      "rawSurplus": 11.22086848286665
+    },
+    {
+      "kind": "atom",
+      "index": 34,
+      "rawRetainedCPUCount": 1602,
+      "affineSeedWitnessCount": 1601,
+      "affineMinusRaw": -1,
+      "required": 1012.3502164483151,
+      "rawSurplus": 589.6497835516849
+    },
+    {
+      "kind": "atom",
+      "index": 5,
+      "rawRetainedCPUCount": 930,
+      "affineSeedWitnessCount": 930,
+      "affineMinusRaw": 0,
+      "required": 563.9933315076037,
+      "rawSurplus": 366.00666849239633
+    },
+    {
+      "kind": "atom",
+      "index": 6,
+      "rawRetainedCPUCount": 797,
+      "affineSeedWitnessCount": 796,
+      "affineMinusRaw": -1,
+      "required": 481.8801805473786,
+      "rawSurplus": 315.1198194526214
+    },
+    {
+      "kind": "atom",
+      "index": 7,
+      "rawRetainedCPUCount": 855,
+      "affineSeedWitnessCount": 855,
+      "affineMinusRaw": 0,
+      "required": 512.4007434322361,
+      "rawSurplus": 342.59925656776386
+    },
+    {
+      "kind": "atom",
+      "index": 35,
+      "rawRetainedCPUCount": 1182,
+      "affineSeedWitnessCount": 1182,
+      "affineMinusRaw": 0,
+      "required": 747.3143279656088,
+      "rawSurplus": 434.68567203439125
+    },
+    {
+      "kind": "atom",
+      "index": 8,
+      "rawRetainedCPUCount": 677,
+      "affineSeedWitnessCount": 677,
+      "affineMinusRaw": 0,
+      "required": 408.9390220231631,
+      "rawSurplus": 268.0609779768369
+    },
+    {
+      "kind": "atom",
+      "index": 31,
+      "rawRetainedCPUCount": 1015,
+      "affineSeedWitnessCount": 1014,
+      "affineMinusRaw": -1,
+      "required": 711.1496902861096,
+      "rawSurplus": 303.8503097138904
+    },
+    {
+      "kind": "atom",
+      "index": 32,
+      "rawRetainedCPUCount": 508,
+      "affineSeedWitnessCount": 505,
+      "affineMinusRaw": -3,
+      "required": 325.2156763845287,
+      "rawSurplus": 182.7843236154713
+    },
+    {
+      "kind": "atom",
+      "index": 33,
+      "rawRetainedCPUCount": 537,
+      "affineSeedWitnessCount": 536,
+      "affineMinusRaw": -1,
+      "required": 337.01129103471266,
+      "rawSurplus": 199.98870896528734
+    },
+    {
+      "kind": "bond",
+      "index": 3,
+      "rawRetainedCPUCount": 211,
+      "affineSeedWitnessCount": 211,
+      "affineMinusRaw": 0,
+      "required": 110.57418370618238,
+      "rawSurplus": 100.42581629381762
+    },
+    {
+      "kind": "bond",
+      "index": 9,
+      "rawRetainedCPUCount": 80,
+      "affineSeedWitnessCount": 80,
+      "affineMinusRaw": 0,
+      "required": 54.50950591039297,
+      "rawSurplus": 25.490494089607033
+    },
+    {
+      "kind": "bond",
+      "index": 10,
+      "rawRetainedCPUCount": 144,
+      "affineSeedWitnessCount": 144,
+      "affineMinusRaw": 0,
+      "required": 74.15465026789795,
+      "rawSurplus": 69.84534973210205
+    },
+    {
+      "kind": "bond",
+      "index": 11,
+      "rawRetainedCPUCount": 155,
+      "affineSeedWitnessCount": 155,
+      "affineMinusRaw": 0,
+      "required": 77.44660683685261,
+      "rawSurplus": 77.55339316314739
+    },
+    {
+      "kind": "bond",
+      "index": 12,
+      "rawRetainedCPUCount": 70,
+      "affineSeedWitnessCount": 70,
+      "affineMinusRaw": 0,
+      "required": 44.45517299338,
+      "rawSurplus": 25.544827006619997
+    },
+    {
+      "kind": "bond",
+      "index": 31,
+      "rawRetainedCPUCount": 125,
+      "affineSeedWitnessCount": 126,
+      "affineMinusRaw": 1,
+      "required": 75.7988892866852,
+      "rawSurplus": 49.201110713314804
+    },
+    {
+      "kind": "bond",
+      "index": 32,
+      "rawRetainedCPUCount": 63,
+      "affineSeedWitnessCount": 63,
+      "affineMinusRaw": 0,
+      "required": 61.70281866165162,
+      "rawSurplus": 1.2971813383483806
+    },
+    {
+      "kind": "bond",
+      "index": 33,
+      "rawRetainedCPUCount": 92,
+      "affineSeedWitnessCount": 92,
+      "affineMinusRaw": 0,
+      "required": 94.62870517647175,
+      "rawSurplus": -2.6287051764717546
+    },
+    {
+      "kind": "bond",
+      "index": 34,
+      "rawRetainedCPUCount": 49,
+      "affineSeedWitnessCount": 50,
+      "affineMinusRaw": 1,
+      "required": 37.79253198756675,
+      "rawSurplus": 11.207468012433253
+    },
+    {
+      "kind": "bond",
+      "index": 35,
+      "rawRetainedCPUCount": 80,
+      "affineSeedWitnessCount": 81,
+      "affineMinusRaw": 1,
+      "required": 46.54663077113314,
+      "rawSurplus": 33.45336922886686
+    }
+  ],
+  "seedRotationDegrees": [
+    -0.054539559717073846,
+    -0.10453805899021659,
+    0.08315483688476073
+  ],
+  "unexcludedRotationComponentBoxDegrees": [
+    [
+      -2.0545395597170737,
+      1.945460440282926
+    ],
+    [
+      -2.1045380589902165,
+      1.8954619410097835
+    ],
+    [
+      -1.9168451631152392,
+      2.0831548368847606
+    ]
+  ],
+  "unexcludedRegions": [
+    {
+      "domain": "all true poses in the component box, including every MILP-infeasible cell",
+      "reason": "affine coverage/depth and finite screen pool have no conservative nonlinear enclosure; seed C30 already differs by four pixels"
+    },
+    {
+      "domain": "bond34 step26: L in (12.5,13], contiguous hit count at least ceil(201.5/L)+1",
+      "reason": "no candidate or safe exclusion certificate"
+    },
+    {
+      "domain": "bond34 step27: L in (13,13.5], contiguous hit count at least ceil(209.25/L)+1",
+      "reason": "solver has no native-mesh witness; timeout does not exclude"
+    },
+    {
+      "domain": "bond34 steps25/28 and other permitted rolls/focuses/SO(3)",
+      "reason": "not enumerated by this finite proposal campaign"
+    }
+  ],
+  "necessaryExactConditions": [
+    "bond33 native visible area >= 0.5*newProjectedLength*newProjectedWidth*DPR^2",
+    "bond34 maximum sampled contiguous run >=7.75, using new ceil(length*2) and new floored sample cells",
+    "bond32/35 and all other target atoms/bonds, Q, fit/depth also pass"
+  ],
+  "certifiedExcludedRegions": 0
+}

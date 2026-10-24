@@ -1,0 +1,154 @@
+{
+  "kind": "CORRECTED_AFFINE_PROPOSALS_NOT_PROOF",
+  "scipy": "1.17.0",
+  "rows": [
+    {
+      "name": "corrected-r1-n26",
+      "radius": 1,
+      "steps34": 26,
+      "surplus": 0,
+      "hasIncumbent": false,
+      "solver": {
+        "status": 2,
+        "message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+        "variables": 10381,
+        "constraints": 60189,
+        "seconds": 22.036644017000015,
+        "solveSeconds": 21.066179895000005,
+        "mipNodes": null,
+        "mipGap": null
+      },
+      "areaConstraints": [
+        {
+          "kind": "atom",
+          "index": 30,
+          "fixedAffineInterior": 564,
+          "eligibleCells": 1178,
+          "requiredAtSeed": 815.7791315171334
+        },
+        {
+          "kind": "bond",
+          "index": 32,
+          "fixedAffineInterior": 0,
+          "eligibleCells": 162,
+          "requiredAtSeed": 61.70281866165162
+        },
+        {
+          "kind": "bond",
+          "index": 33,
+          "fixedAffineInterior": 33,
+          "eligibleCells": 169,
+          "requiredAtSeed": 94.62870517647175
+        },
+        {
+          "kind": "bond",
+          "index": 34,
+          "fixedAffineInterior": 18,
+          "eligibleCells": 94,
+          "requiredAtSeed": 37.79253198756675
+        },
+        {
+          "kind": "bond",
+          "index": 35,
+          "fixedAffineInterior": 55,
+          "eligibleCells": 107,
+          "requiredAtSeed": 46.54663077113314
+        }
+      ],
+      "continuityBranches": [
+        {
+          "index": 32,
+          "steps": [
+            36,
+            37,
+            38,
+            39,
+            40
+          ]
+        },
+        {
+          "index": 34,
+          "steps": [
+            26
+          ]
+        }
+      ],
+      "boxInconsistentRows": [],
+      "primalActiveSet": null
+    },
+    {
+      "name": "corrected-r1-n27",
+      "radius": 1,
+      "steps34": 27,
+      "surplus": 0,
+      "hasIncumbent": false,
+      "solver": {
+        "status": 2,
+        "message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+        "variables": 10397,
+        "constraints": 60313,
+        "seconds": 18.522213204000025,
+        "solveSeconds": 17.60596542999997,
+        "mipNodes": null,
+        "mipGap": null
+      },
+      "areaConstraints": [
+        {
+          "kind": "atom",
+          "index": 30,
+          "fixedAffineInterior": 564,
+          "eligibleCells": 1178,
+          "requiredAtSeed": 815.7791315171334
+        },
+        {
+          "kind": "bond",
+          "index": 32,
+          "fixedAffineInterior": 0,
+          "eligibleCells": 162,
+          "requiredAtSeed": 61.70281866165162
+        },
+        {
+          "kind": "bond",
+          "index": 33,
+          "fixedAffineInterior": 33,
+          "eligibleCells": 169,
+          "requiredAtSeed": 94.62870517647175
+        },
+        {
+          "kind": "bond",
+          "index": 34,
+          "fixedAffineInterior": 18,
+          "eligibleCells": 94,
+          "requiredAtSeed": 37.79253198756675
+        },
+        {
+          "kind": "bond",
+          "index": 35,
+          "fixedAffineInterior": 55,
+          "eligibleCells": 107,
+          "requiredAtSeed": 46.54663077113314
+        }
+      ],
+      "continuityBranches": [
+        {
+          "index": 32,
+          "steps": [
+            36,
+            37,
+            38,
+            39,
+            40
+          ]
+        },
+        {
+          "index": 34,
+          "steps": [
+            27
+          ]
+        }
+      ],
+      "boxInconsistentRows": [],
+      "primalActiveSet": null
+    }
+  ]
+}

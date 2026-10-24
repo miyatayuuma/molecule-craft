@@ -1,0 +1,209 @@
+{
+  "kind": "BOUNDED_ACTUAL_MESH_DIAGNOSTIC_NOT_ACCEPTANCE",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "startHead": "24d0f0daec64279a264cd118c9b4c96a28342534",
+  "captureSource": "519a686caae48de4ff7d55e0be927bc3c2b26079",
+  "runId": 39924742033,
+  "jobId": 120318249309,
+  "artifactId": 12489405304,
+  "archiveSha256": "dcc1a6ed508a059c4703daf05c21dfa85734f66f96adc1b1d48c0d8fde2c497e",
+  "sourceUnchanged": true,
+  "sourceHashes": {
+    "src/reaction-lab-polymer-presentation.js": "f6f30f3537b913a96133d0d672c62f7c78d4ad107e230ad786487b480c25d775",
+    "src/reaction-lab-viewer.js": "785cacc637f2ef8d6889c45b9b102aecc9506a77f8dd44db8bb328d3590309cd",
+    "src/polymer-fragment-3d-layout.js": "36dc11d0e412c84eeeabf1adc4bbd87bbc111763d8f03c0a0dba3f326b868125",
+    "src/chemistry.js": "61e88dacc1168d18cb8405182873fa4f77581c6fad8bb8da42c779b5af260482"
+  },
+  "limits": [
+    "Current actual inherited mesh transforms, not the uncaptured historical atom local quaternion",
+    "Six saved controls and three saved boundary poses, zero new orientation searches",
+    "Actual ID masks fail all nine partial A03/A04 checks; not a formal A06/pointer acceptance",
+    "CPU raster is not pixel identical; no production orientation change adopted"
+  ],
+  "files": [
+    {
+      "path": "analysis.json.gz",
+      "bytes": 17615,
+      "sha256": "449252f4f5250f23639be35c959ffe794123732c8b66f0f1706f5fad1053240e"
+    },
+    {
+      "path": "boundary-30-0-actual.png",
+      "bytes": 142138,
+      "sha256": "b81e6600c31e90ac783fe5d0aef47330081e52c1bd2b83437434dc01a02f592f"
+    },
+    {
+      "path": "boundary-30-0-id.png",
+      "bytes": 14082,
+      "sha256": "ee8e82ed7c433d7bdec515be3fdf83a2c5df39cc84860d628fe2658c756b5979"
+    },
+    {
+      "path": "boundary-30-0.json.gz",
+      "bytes": 55679,
+      "sha256": "b1b7b0981ec2a6e039fe48af918e82bbd9a31aafbaa8b02dc956d99d5f782c69"
+    },
+    {
+      "path": "boundary-30-1-actual.png",
+      "bytes": 141852,
+      "sha256": "d5eff9474b64f9494974ae6ee0e821a59ecef6d2ff3f1c04364dc9c3629bb4f6"
+    },
+    {
+      "path": "boundary-30-1-id.png",
+      "bytes": 13769,
+      "sha256": "268f2e049003640ef8d2a651a904a694620cece3be39ffc8fa724906df5b16a8"
+    },
+    {
+      "path": "boundary-30-1.json.gz",
+      "bytes": 55751,
+      "sha256": "e82d86a28c99191c0278aa9c1cf6d5acda6279a68defa1edddc3b033716b7be8"
+    },
+    {
+      "path": "boundary-30-2-actual.png",
+      "bytes": 136724,
+      "sha256": "9561771973449266d0142d565da18796d014dd5da7b125b8eb854413ab1625ef"
+    },
+    {
+      "path": "boundary-30-2-id.png",
+      "bytes": 13545,
+      "sha256": "ee539ddfe4c59db5446e5f25465c4936944183363c4c12aae18c907e60cbd1d8"
+    },
+    {
+      "path": "boundary-30-2.json.gz",
+      "bytes": 55650,
+      "sha256": "df7d5cb2298de78df06a68b94e1fd15786a90a573e6f66dfd1604cc0dab6cbca"
+    },
+    {
+      "path": "control-0-y0-p0-actual.png",
+      "bytes": 146330,
+      "sha256": "a283ab3af514eb47eb74af6fce48ce0e06423bc52e2afb81c80b4df3b3982745"
+    },
+    {
+      "path": "control-0-y0-p0-id.png",
+      "bytes": 14048,
+      "sha256": "378ad79caeac4b06110a5e847bce0b97c82cf0321517a273f3414b669909edd5"
+    },
+    {
+      "path": "control-0-y0-p0.json.gz",
+      "bytes": 60070,
+      "sha256": "2a6232f0d82f1c98683afa27504226d127f7eabe3b65a787d247ec4cdfb9fc27"
+    },
+    {
+      "path": "control-0-y90-p-60-actual.png",
+      "bytes": 135200,
+      "sha256": "ba94c0f111b02cc57d6e183c87c4be0df225e6ff267108d2988f04c1cfc308a2"
+    },
+    {
+      "path": "control-0-y90-p-60-id.png",
+      "bytes": 13028,
+      "sha256": "fc2e7dd18ca217e5e3c4b6fd75d4981a56698b556b48ba20a1241359fa56678e"
+    },
+    {
+      "path": "control-0-y90-p-60.json.gz",
+      "bytes": 59908,
+      "sha256": "f31bb9838a1b53363ad92d9655ad399fd1c33af56141b24aa75cdcb84108f30a"
+    },
+    {
+      "path": "control-17-y135-p30-actual.png",
+      "bytes": 149847,
+      "sha256": "915ba273eca9ebdb538dccb16c27cf19e440c86544f467d093f8748ac4afa000"
+    },
+    {
+      "path": "control-17-y135-p30-id.png",
+      "bytes": 14759,
+      "sha256": "8f99156535bea2ca0924a12ebc7087604f191b024347b9355edec2dab9450e3c"
+    },
+    {
+      "path": "control-17-y135-p30.json.gz",
+      "bytes": 59971,
+      "sha256": "d605feb87c1fbd152511a5918dfdf40ff28a37ae60d494a3309a8b05234dab8e"
+    },
+    {
+      "path": "control-17-y45-p30-actual.png",
+      "bytes": 148518,
+      "sha256": "6c433c956044905898d6c63be480cdaa73ca3450dccbd0ab321afdefcf820484"
+    },
+    {
+      "path": "control-17-y45-p30-id.png",
+      "bytes": 14791,
+      "sha256": "c5f5a4d8f20d78b514f3b3d63f7430a538707f23394ee3599ba733018251a678"
+    },
+    {
+      "path": "control-17-y45-p30.json.gz",
+      "bytes": 59997,
+      "sha256": "07a2285cce01bc4b503e7dc3b14a6fcdc7567b506cc657add9307550fd44a97e"
+    },
+    {
+      "path": "control-30-y45-p-60-actual.png",
+      "bytes": 136813,
+      "sha256": "8604acce8eb220904a5f1317845949aecc34cb0e8b1e819ff1df4f71a779368c"
+    },
+    {
+      "path": "control-30-y45-p-60-id.png",
+      "bytes": 13568,
+      "sha256": "888dabf0f58b427ca55c210759a73a944aecb6da544cf7c0d9593281cd6a78a4"
+    },
+    {
+      "path": "control-30-y45-p-60.json.gz",
+      "bytes": 59898,
+      "sha256": "31e380084cf43bdc9c1c13788de54f0cf4f7c87cc0c72c737b6b0a1d4971651d"
+    },
+    {
+      "path": "control-30-y90-p-60-actual.png",
+      "bytes": 142418,
+      "sha256": "0c977513e6d7f11270b7eeecafbc82d54ba9ceeeed948b58e6dc61407adf1174"
+    },
+    {
+      "path": "control-30-y90-p-60-id.png",
+      "bytes": 14084,
+      "sha256": "093d5a4744dd627b825e173840a4a0e5d9038b2ecb0fda38330ec5a0ba1a67c2"
+    },
+    {
+      "path": "control-30-y90-p-60.json.gz",
+      "bytes": 59985,
+      "sha256": "8e011bf10984855116e5743770184c05bdaaa2d3a6b2e9b129f567ffc376f7bf"
+    },
+    {
+      "path": "index.json.gz",
+      "bytes": 29852,
+      "sha256": "c1ede5bc19544b0d491145b61ff0bdd7170c07712ec79792a3813a960d527818"
+    },
+    {
+      "path": "production-before-replay.json.gz",
+      "bytes": 55236,
+      "sha256": "206b5f88e78fb2cec7cf47d6b1cfae5947a6af447c79db3e164bc836e0bf405a"
+    },
+    {
+      "path": "protected-tests.log",
+      "bytes": 1972,
+      "sha256": "f3ee506e5f08f04c21d1d5b85dfcb4a7595f23a3d6664de11035fa3343ec565b"
+    },
+    {
+      "path": "protocol.json.gz",
+      "bytes": 424,
+      "sha256": "4c52bdedfe24f1292dd6ccd6870c5cceda2f6231e21e161bb5a8eb7068aa68bc"
+    }
+  ],
+  "scriptHashes": {
+    "tests/helpers/polymer-exact-mesh.mjs": "c26983300d81f358b651b5c98f3ac274a0b6550b1ae36c505089fbf41d3e209c",
+    "tests/reaction-lab-polymer-browser.test.mjs": "ccaf3ffbc2dbc2001954ad9e16a7d95a86cf5108b2477216cd1be9e7a837d9f2",
+    "scripts/analyze-polymer-task5-exact-mesh.mjs": "1a28d70088847cf281eb202d7ca7f5413be2a56cbaecb54095cf1ab0e5b01a16"
+  },
+  "deterministicTests": {
+    "relatedGeometryObservationRaster": {
+      "pass": 18,
+      "fail": 0,
+      "skip": 0,
+      "command": "node --test tests/polymer-task5-pla-recovery.test.mjs tests/polymer-task5-pet-recovery.test.mjs tests/polymer-observation.test.mjs tests/polymer-raster-grading.test.mjs"
+    },
+    "remainingGeometryStaticResourceHeap": {
+      "pass": 17,
+      "fail": 0,
+      "skip": 0,
+      "log": "protected-tests.log"
+    },
+    "totalPass": 35
+  },
+  "runtime": {
+    "offlineNode": "v24.19.0",
+    "browserVersion": "NOT_CAPTURED in saved diagnostic; not a performance profile"
+  }
+}

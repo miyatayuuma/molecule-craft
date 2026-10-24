@@ -1,0 +1,77 @@
+{
+  "disposition": "UNRESOLVED",
+  "rows": [
+    {
+      "precision": "legacy4",
+      "minimumMargin": 0.9644701983248996,
+      "failures": [
+        {
+          "index": 33,
+          "length": 30.805558214284975,
+          "width": 6.143612429823854,
+          "visiblePixels": 92,
+          "requiredPixels": 94.62870517647175,
+          "continuous": 14.409051422810714,
+          "pass": false
+        },
+        {
+          "index": 34,
+          "length": 12.956049664164484,
+          "width": 5.8339591105610245,
+          "visiblePixels": 49,
+          "requiredPixels": 37.79253198756675,
+          "continuous": 7.474644037017971,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "precision": "shader32",
+      "minimumMargin": 0.9644701983248996,
+      "failures": [
+        {
+          "index": 33,
+          "length": 30.805558214284975,
+          "width": 6.143612429823854,
+          "visiblePixels": 92,
+          "requiredPixels": 94.62870517647175,
+          "continuous": 14.409051422810714,
+          "pass": false
+        },
+        {
+          "index": 34,
+          "length": 12.956049664164484,
+          "width": 5.8339591105610245,
+          "visiblePixels": 50,
+          "requiredPixels": 37.79253198756675,
+          "continuous": 7.474644037017971,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "precision": "float64",
+      "minimumMargin": 0.9644701983248996,
+      "failures": [
+        {
+          "index": 33,
+          "length": 30.805558214284975,
+          "width": 6.143612429823854,
+          "visiblePixels": 92,
+          "requiredPixels": 94.62870517647175,
+          "continuous": 14.409051422810714,
+          "pass": false
+        },
+        {
+          "index": 34,
+          "length": 12.956049664164484,
+          "width": 5.8339591105610245,
+          "visiblePixels": 50,
+          "requiredPixels": 37.79253198756675,
+          "continuous": 7.474644037017971,
+          "pass": false
+        }
+      ]
+    }
+  ]
+}

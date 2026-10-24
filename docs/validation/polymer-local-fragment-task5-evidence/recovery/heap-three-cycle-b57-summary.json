@@ -1,0 +1,162 @@
+{
+  "kind": "BOUNDED_LOCAL_HEAP_DIAGNOSTIC_NOT_GENERAL_LEAK_PROOF",
+  "sourceSha": "b57b8bd492a7e0b63205dd87c245c5bc7227e0a7",
+  "routeId": "phenol-formaldehyde-resole",
+  "method": "Fresh real browser, actual before/water/concept -> emptyFEED -> actual reFEED, explicit GC then heap snapshot. No screenshot or profiling in completion timing window. Non-acceptance diagnostic harness; all runtime source is b57.",
+  "cycles": [
+    {
+      "cycle": "before",
+      "snapshotSha256": "f51bf7d082a5216101e0ddf308e2b64658e2efb064ed1b386e9f5525c666d9ea",
+      "bytes": 27099879,
+      "compressedBytes": 5252408,
+      "selfSize": 19723192,
+      "selfSizeByType": {
+        "synthetic": 0,
+        "native": 8576744,
+        "string": 1159836,
+        "object shape": 610136,
+        "code": 6233388,
+        "array": 1293164,
+        "number": 274044,
+        "symbol": 32,
+        "object": 1346936,
+        "closure": 214440,
+        "regexp": 192,
+        "concatenated string": 14280
+      },
+      "selected": {
+        "object|Float32Array": {
+          "count": 7,
+          "size": 420
+        },
+        "object|ArrayBuffer": {
+          "count": 74,
+          "size": 3824
+        },
+        "native|system / JSArrayBufferData": {
+          "count": 497,
+          "size": 951124
+        },
+        "object|WebGLBuffer": {
+          "count": 1,
+          "size": 16
+        },
+        "object|WebGLTexture": {
+          "count": 1,
+          "size": 16
+        },
+        "code|system / InstructionStream": {
+          "count": 2097,
+          "size": 2931456
+        },
+        "code|system / TrustedByteArray": {
+          "count": 4676,
+          "size": 591044
+        }
+      }
+    },
+    {
+      "cycle": "water",
+      "snapshotSha256": "5e27ceec05cfbe4da0902023367c90645f7c8abbd10959a2bc914e4058f9d8a9",
+      "bytes": 27192723,
+      "compressedBytes": 5332972,
+      "selfSize": 20033913,
+      "selfSizeByType": {
+        "synthetic": 0,
+        "native": 8601721,
+        "string": 1160600,
+        "object shape": 614816,
+        "code": 6513848,
+        "array": 1291504,
+        "number": 274560,
+        "symbol": 32,
+        "object": 1347920,
+        "concatenated string": 14280,
+        "closure": 214440,
+        "regexp": 192
+      },
+      "selected": {
+        "object|Float32Array": {
+          "count": 7,
+          "size": 420
+        },
+        "object|ArrayBuffer": {
+          "count": 74,
+          "size": 3824
+        },
+        "native|system / JSArrayBufferData": {
+          "count": 497,
+          "size": 951124
+        },
+        "object|WebGLBuffer": {
+          "count": 1,
+          "size": 16
+        },
+        "object|WebGLTexture": {
+          "count": 1,
+          "size": 16
+        },
+        "code|system / InstructionStream": {
+          "count": 2196,
+          "size": 3126720
+        },
+        "code|system / TrustedByteArray": {
+          "count": 4884,
+          "size": 636880
+        }
+      }
+    },
+    {
+      "cycle": "concept",
+      "snapshotSha256": "a04ea7585c5bfc59276b0504570126e05751f9590bf2da8634c6d0c996b7ffd3",
+      "bytes": 27289691,
+      "compressedBytes": 5385971,
+      "selfSize": 20291747,
+      "selfSizeByType": {
+        "synthetic": 0,
+        "native": 8624479,
+        "string": 1160676,
+        "object shape": 617140,
+        "code": 6747352,
+        "array": 1289728,
+        "number": 274704,
+        "symbol": 32,
+        "object": 1348724,
+        "closure": 214440,
+        "concatenated string": 14280,
+        "regexp": 192
+      },
+      "selected": {
+        "object|Float32Array": {
+          "count": 7,
+          "size": 420
+        },
+        "object|ArrayBuffer": {
+          "count": 74,
+          "size": 3824
+        },
+        "native|system / JSArrayBufferData": {
+          "count": 497,
+          "size": 951124
+        },
+        "object|WebGLBuffer": {
+          "count": 1,
+          "size": 16
+        },
+        "object|WebGLTexture": {
+          "count": 1,
+          "size": 16
+        },
+        "code|system / InstructionStream": {
+          "count": 2260,
+          "size": 3285696
+        },
+        "code|system / TrustedByteArray": {
+          "count": 5021,
+          "size": 681240
+        }
+      }
+    }
+  ],
+  "conclusion": "3-cycle used/self heap growth is dominated by compiled code. ArrayBuffer, Float32Array, JSArrayBufferData, WebGL wrappers and GPU geometry/texture counts remain flat. This supports bounded renderer resource non-accumulation; not proof of unbounded-session heap behavior."
+}

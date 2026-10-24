@@ -1,0 +1,16 @@
+✔ Task4 G0-G7 all 25: actual Core graph, new independent local chemistry checks, source/identity and determinism (730.734708ms)
+✔ initial sources and every intermediate actual commit graph remain accepted, including epoxide before ring opening (425.900584ms)
+✔ read-only semantic targets agree with Task3 motifs and real origin tuples; PF transferred-H is not a junction (24.698678ms)
+✔ invalid chemistry and invalid budgets throw before fallback; graph remains unchanged (1.387781ms)
+✔ absent, nonfinite, malformed and coincident source poses reject explicitly; never certify invented coordinates (1.790177ms)
+✔ nonconvergence rejects bad fallback; only independently validated real-graph fallback can be displayed (19.50378ms)
+✔ identities, changed valid source poses and ordered atom/bond remapping have explicit deterministic behavior (17.032692ms)
+✔ connected cyclic/branched inter-origin graph is solved or explicitly rejected without mutating topology (1.26123ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2524.523602

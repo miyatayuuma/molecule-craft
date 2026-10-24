@@ -1,0 +1,31 @@
+{
+  "kind": "FINITE_PIXEL_EXCHANGE_MILP_NOT_ACCEPTANCE",
+  "startHead": "a664c1da27fced58ec76fc3be13592b695f71629",
+  "main": "593ac571e4d664f7af885855352142874dd227ab",
+  "anchor": 30,
+  "seed": "retained coupled best; old masks decoded, no seed raster",
+  "trustBoxesDegrees": [0.5, 1, 2],
+  "bond34StepBranches": [26, 27],
+  "areaSurplusPixels": [0, 2],
+  "candidateSlots": 12,
+  "order": "radius, bond34 steps, area surplus; all lists frozen before any candidate raster",
+  "CPUCap": 36,
+  "CPUAllocation": "each available distinct or duplicate slot once in legacy4/shader32/float64; infeasible/time-limit without incumbent slots get no raster",
+  "GPUCap": 1,
+  "GPUSelection": "only all-three-mode full-condition CPU PASS; choose highest minimum normalized margin, slot order breaks ties",
+  "MILPTimeLimitSecondsPerSlot": 45,
+  "MILPNodeLimitPerSlot": 10000,
+  "MILPRelativeGap": 0.001,
+  "finiteDifferenceDegrees": 0.01,
+  "proposalClearancePixels": 0.005,
+  "objective": "minimum L1 rotation change; NOT sampled visibility objective",
+  "constraints": "exchangeable full target atom/bond aggregate areas; bond32 and bond34 variable floor-cell/ceil-step contiguous sample witnesses; explicit fixed-quaternion fit; all targets graded by unchanged native-mesh CPU oracle",
+  "stop": "after the fixed twelve slots and their at-most36 rasters; no new seed, sweep, restart, branch, radius or budget expansion even if infeasible",
+  "limits": [
+    "MILP uses local affine native convex-hull clearance, depth-blocker assignment and linearized required area; NOT rigorous interval enclosure",
+    "moving sampled coordinates and native projections are affine approximations, ceil branches restricted to enumerated local ranges",
+    "false positive and false negative proposals possible; MILP infeasibility excludes no true orientation region",
+    "all exact CPU grades recompute projected width/length/area and continuous samples with unchanged thresholds",
+    "CPU predictions cannot certify GPU photometry, pointer/reset contract or final release"
+  ]
+}

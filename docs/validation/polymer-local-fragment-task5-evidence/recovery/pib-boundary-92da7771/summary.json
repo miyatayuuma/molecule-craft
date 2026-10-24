@@ -1,0 +1,2619 @@
+{
+  "disposition": "UNRESOLVED",
+  "certifiedExcludedRegions": 0,
+  "CPUJointWitness": false,
+  "GPU": "NOT_RUN: no CPU pass; all bond34 continuity deficits exceed any measured native/CPU continuous difference in retained parity evidence",
+  "CPURasters": 38,
+  "candidateSlots": 12,
+  "uniquePoses": 4,
+  "H5LossPixels": 88,
+  "selectedBoundaryFeatures": [
+    {
+      "key": "6:183.5:233.5:1:gain33:occluder",
+      "objectId": 6,
+      "point": {
+        "x": 183.5,
+        "y": 233.5
+      },
+      "sign": 1,
+      "role": "gain33:occluder",
+      "value": -0.2069486072070038,
+      "gradient": [
+        2.2457820958692585,
+        -1.8068620993231366,
+        -1.03266586414274
+      ],
+      "threshold": 0.08
+    },
+    {
+      "key": "36:222.5:231.5:1:extend34:start:occluder",
+      "objectId": 36,
+      "point": {
+        "x": 222.5,
+        "y": 231.5
+      },
+      "sign": 1,
+      "role": "extend34:start:occluder",
+      "value": -0.3967242309737068,
+      "gradient": [
+        -0.0721837083586252,
+        -0.3046325018142365,
+        0.9312466753803733
+      ],
+      "threshold": 0.08
+    },
+    {
+      "key": "lane34:length",
+      "objectId": 1058,
+      "role": "extend34:end:length",
+      "value": 12.956049664164484,
+      "gradient": [
+        -0.17258618220967747,
+        -0.09486492529120483,
+        0.022938546435380402
+      ],
+      "threshold": 13.533333333333333
+    },
+    {
+      "key": "6:162.5:260.5:1:retain32:occluder",
+      "objectId": 6,
+      "point": {
+        "x": 162.5,
+        "y": 260.5
+      },
+      "sign": 1,
+      "role": "retain32:occluder",
+      "value": 0.05641947813434785,
+      "gradient": [
+        -2.20096370726483,
+        1.526685923130797,
+        0.961499336082838
+      ],
+      "threshold": 0.016419478134347847
+    }
+  ],
+  "rows": [
+    {
+      "name": "a4-start-r1",
+      "rotationDegrees": [
+        -0.011548954377126087,
+        -0.11010341764545481,
+        0.14879951749352516
+      ],
+      "linearSlack": 0.4403661969939681,
+      "activeBoundaries": [
+        {
+          "key": "6:181.5:232.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:185.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:159.5:266.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.03881434655910207
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": 0.05972355838593751
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": -0.005385833559076765
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.04000000000000003
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.9640331472830644,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.659735905464387,
+              "width": 6.619736524816375,
+              "visiblePixels": 62,
+              "requiredPixels": 61.76126765841508,
+              "continuous": 7.856730907563953,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.811526302507435,
+              "width": 6.143714281859912,
+              "visiblePixels": 92,
+              "requiredPixels": 94.64860709530863,
+              "continuous": 14.411842947947026,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.950178611835833,
+              "width": 5.834103989383982,
+              "visiblePixels": 50,
+              "requiredPixels": 37.77634435127327,
+              "continuous": 7.471256891443749,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.802339330742091,
+              "width": 5.893920037309141,
+              "visiblePixels": 81,
+              "requiredPixels": 46.568862208909565,
+              "continuous": 12.839400706227948,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.97864295677826
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9640331472830644,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.659735905464387,
+              "width": 6.619736524816375,
+              "visiblePixels": 62,
+              "requiredPixels": 61.76126765841508,
+              "continuous": 7.856730907563953,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.811526302507435,
+              "width": 6.143714281859912,
+              "visiblePixels": 92,
+              "requiredPixels": 94.64860709530863,
+              "continuous": 14.411842947947026,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.950178611835833,
+              "width": 5.834103989383982,
+              "visiblePixels": 51,
+              "requiredPixels": 37.77634435127327,
+              "continuous": 7.471256891443749,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.802339330742091,
+              "width": 5.893920037309141,
+              "visiblePixels": 81,
+              "requiredPixels": 46.568862208909565,
+              "continuous": 12.839400706227948,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.97864295677826
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9640331472830644,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.659735905464387,
+              "width": 6.619736524816375,
+              "visiblePixels": 62,
+              "requiredPixels": 61.76126765841508,
+              "continuous": 7.856730907563953,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.811526302507435,
+              "width": 6.143714281859912,
+              "visiblePixels": 92,
+              "requiredPixels": 94.64860709530863,
+              "continuous": 14.411842947947026,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.950178611835833,
+              "width": 5.834103989383982,
+              "visiblePixels": 51,
+              "requiredPixels": 37.77634435127327,
+              "continuous": 7.471256891443749,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.802339330742091,
+              "width": 5.893920037309141,
+              "visiblePixels": 81,
+              "requiredPixels": 46.568862208909565,
+              "continuous": 12.839400706227948,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.97864295677826
+        }
+      ]
+    },
+    {
+      "name": "a4-start-r4",
+      "rotationDegrees": [
+        -0.011548954377126087,
+        -0.11010341764545481,
+        0.14879951749352516
+      ],
+      "linearSlack": 0.4403661969939681,
+      "activeBoundaries": [
+        {
+          "key": "6:181.5:232.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:185.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:159.5:266.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.03881434655910207
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": 0.05972355838593751
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": -0.005385833559076765
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.04000000000000003
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.9640331472830644,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.659735905464387,
+              "width": 6.619736524816375,
+              "visiblePixels": 62,
+              "requiredPixels": 61.76126765841508,
+              "continuous": 7.856730907563953,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.811526302507435,
+              "width": 6.143714281859912,
+              "visiblePixels": 92,
+              "requiredPixels": 94.64860709530863,
+              "continuous": 14.411842947947026,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.950178611835833,
+              "width": 5.834103989383982,
+              "visiblePixels": 50,
+              "requiredPixels": 37.77634435127327,
+              "continuous": 7.471256891443749,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.802339330742091,
+              "width": 5.893920037309141,
+              "visiblePixels": 81,
+              "requiredPixels": 46.568862208909565,
+              "continuous": 12.839400706227948,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.97864295677826
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9640331472830644,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.659735905464387,
+              "width": 6.619736524816375,
+              "visiblePixels": 62,
+              "requiredPixels": 61.76126765841508,
+              "continuous": 7.856730907563953,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.811526302507435,
+              "width": 6.143714281859912,
+              "visiblePixels": 92,
+              "requiredPixels": 94.64860709530863,
+              "continuous": 14.411842947947026,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.950178611835833,
+              "width": 5.834103989383982,
+              "visiblePixels": 51,
+              "requiredPixels": 37.77634435127327,
+              "continuous": 7.471256891443749,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.802339330742091,
+              "width": 5.893920037309141,
+              "visiblePixels": 81,
+              "requiredPixels": 46.568862208909565,
+              "continuous": 12.839400706227948,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.97864295677826
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9640331472830644,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.659735905464387,
+              "width": 6.619736524816375,
+              "visiblePixels": 62,
+              "requiredPixels": 61.76126765841508,
+              "continuous": 7.856730907563953,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.811526302507435,
+              "width": 6.143714281859912,
+              "visiblePixels": 92,
+              "requiredPixels": 94.64860709530863,
+              "continuous": 14.411842947947026,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.950178611835833,
+              "width": 5.834103989383982,
+              "visiblePixels": 51,
+              "requiredPixels": 37.77634435127327,
+              "continuous": 7.471256891443749,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.802339330742091,
+              "width": 5.893920037309141,
+              "visiblePixels": 81,
+              "requiredPixels": 46.568862208909565,
+              "continuous": 12.839400706227948,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.97864295677826
+        }
+      ]
+    },
+    {
+      "name": "a4-end-r1",
+      "rotationDegrees": [
+        -0.11475570694135168,
+        -0.19492406158846304,
+        0.0829290669108358
+      ],
+      "linearSlack": 0.558321911663213,
+      "activeBoundaries": [
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "6:182.5:232.5:1:retain33:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1057:191.5:232.5:-1:retain33:cylinder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "lane34:length",
+          "guard": false,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.02831584203080425
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": 0.03167089137259091
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": 0.01896175750563668
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.005674560862891412
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.9458891435295087,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.57095685129602,
+              "width": 6.616476173995905,
+              "visiblePixels": 61,
+              "requiredPixels": 61.43714676745307,
+              "continuous": 7.330640862353692,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.799970548387858,
+              "width": 6.140563349132882,
+              "visiblePixels": 92,
+              "requiredPixels": 94.56458515190134,
+              "continuous": 14.40643783714916,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.973582101877074,
+              "width": 5.831768604070215,
+              "visiblePixels": 49,
+              "requiredPixels": 37.82946439202699,
+              "continuous": 7.484758904929081,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.773705688162694,
+              "width": 5.890563763607441,
+              "visiblePixels": 79,
+              "requiredPixels": 46.45800957224987,
+              "continuous": 12.81613587163219,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95763332594165
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9458891435295087,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.57095685129602,
+              "width": 6.616476173995905,
+              "visiblePixels": 61,
+              "requiredPixels": 61.43714676745307,
+              "continuous": 7.330640862353692,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.799970548387858,
+              "width": 6.140563349132882,
+              "visiblePixels": 91,
+              "requiredPixels": 94.56458515190134,
+              "continuous": 14.40643783714916,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.973582101877074,
+              "width": 5.831768604070215,
+              "visiblePixels": 49,
+              "requiredPixels": 37.82946439202699,
+              "continuous": 7.484758904929081,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.773705688162694,
+              "width": 5.890563763607441,
+              "visiblePixels": 79,
+              "requiredPixels": 46.45800957224987,
+              "continuous": 12.81613587163219,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95763332594165
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9458891435295087,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.57095685129602,
+              "width": 6.616476173995905,
+              "visiblePixels": 61,
+              "requiredPixels": 61.43714676745307,
+              "continuous": 7.330640862353692,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.799970548387858,
+              "width": 6.140563349132882,
+              "visiblePixels": 91,
+              "requiredPixels": 94.56458515190134,
+              "continuous": 14.40643783714916,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.973582101877074,
+              "width": 5.831768604070215,
+              "visiblePixels": 50,
+              "requiredPixels": 37.82946439202699,
+              "continuous": 7.484758904929081,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.773705688162694,
+              "width": 5.890563763607441,
+              "visiblePixels": 79,
+              "requiredPixels": 46.45800957224987,
+              "continuous": 12.81613587163219,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95763332594165
+        }
+      ]
+    },
+    {
+      "name": "a4-end-r4",
+      "rotationDegrees": [
+        -0.11475570694135168,
+        -0.19492406158846304,
+        0.0829290669108358
+      ],
+      "linearSlack": 0.558321911663213,
+      "activeBoundaries": [
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "6:182.5:232.5:1:retain33:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1057:191.5:232.5:-1:retain33:cylinder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "lane34:length",
+          "guard": false,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.02831584203080425
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": 0.03167089137259091
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": 0.01896175750563668
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.005674560862891412
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.9458891435295087,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.57095685129602,
+              "width": 6.616476173995905,
+              "visiblePixels": 61,
+              "requiredPixels": 61.43714676745307,
+              "continuous": 7.330640862353692,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.799970548387858,
+              "width": 6.140563349132882,
+              "visiblePixels": 92,
+              "requiredPixels": 94.56458515190134,
+              "continuous": 14.40643783714916,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.973582101877074,
+              "width": 5.831768604070215,
+              "visiblePixels": 49,
+              "requiredPixels": 37.82946439202699,
+              "continuous": 7.484758904929081,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.773705688162694,
+              "width": 5.890563763607441,
+              "visiblePixels": 79,
+              "requiredPixels": 46.45800957224987,
+              "continuous": 12.81613587163219,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95763332594165
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9458891435295087,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.57095685129602,
+              "width": 6.616476173995905,
+              "visiblePixels": 61,
+              "requiredPixels": 61.43714676745307,
+              "continuous": 7.330640862353692,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.799970548387858,
+              "width": 6.140563349132882,
+              "visiblePixels": 91,
+              "requiredPixels": 94.56458515190134,
+              "continuous": 14.40643783714916,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.973582101877074,
+              "width": 5.831768604070215,
+              "visiblePixels": 49,
+              "requiredPixels": 37.82946439202699,
+              "continuous": 7.484758904929081,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.773705688162694,
+              "width": 5.890563763607441,
+              "visiblePixels": 79,
+              "requiredPixels": 46.45800957224987,
+              "continuous": 12.81613587163219,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95763332594165
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9458891435295087,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.57095685129602,
+              "width": 6.616476173995905,
+              "visiblePixels": 61,
+              "requiredPixels": 61.43714676745307,
+              "continuous": 7.330640862353692,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.799970548387858,
+              "width": 6.140563349132882,
+              "visiblePixels": 91,
+              "requiredPixels": 94.56458515190134,
+              "continuous": 14.40643783714916,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.973582101877074,
+              "width": 5.831768604070215,
+              "visiblePixels": 50,
+              "requiredPixels": 37.82946439202699,
+              "continuous": 7.484758904929081,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.773705688162694,
+              "width": 5.890563763607441,
+              "visiblePixels": 79,
+              "requiredPixels": 46.45800957224987,
+              "continuous": 12.81613587163219,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95763332594165
+        }
+      ]
+    },
+    {
+      "name": "a8-start-r1",
+      "rotationDegrees": [
+        -0.09271242276680092,
+        -0.19181942324295329,
+        0.09275873741274734
+      ],
+      "linearSlack": 1.1519996706100388,
+      "activeBoundaries": [
+        {
+          "key": "6:184.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1057:194.5:230.5:-1:retain33:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.06205983642246678
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": 0.03828779960503743
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": 0.015088348315137556
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.039999999999999994
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 60,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 92,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 49,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 79,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 61,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 91,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 50,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 78,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 61,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 91,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 50,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 78,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        }
+      ]
+    },
+    {
+      "name": "a8-start-r4",
+      "rotationDegrees": [
+        -0.09271242276680092,
+        -0.19181942324295329,
+        0.09275873741274734
+      ],
+      "linearSlack": 1.1519996706100388,
+      "activeBoundaries": [
+        {
+          "key": "6:184.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1057:194.5:230.5:-1:retain33:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.06205983642246678
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": 0.03828779960503743
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": 0.015088348315137556
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.039999999999999994
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 60,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 92,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 49,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 79,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 61,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 91,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 50,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 78,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 61,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 91,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 50,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 78,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        }
+      ]
+    },
+    {
+      "name": "a8-end-r1",
+      "rotationDegrees": [
+        -0.09271242276680092,
+        -0.19181942324295329,
+        0.09275873741274734
+      ],
+      "linearSlack": 1.1519996706100388,
+      "activeBoundaries": [
+        {
+          "key": "6:184.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1057:194.5:230.5:-1:retain33:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.06205983642246678
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": 0.03828779960503743
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": 0.015088348315137556
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.039999999999999994
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 60,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 92,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 49,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 79,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 61,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 91,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 50,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 78,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 61,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 91,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 50,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 78,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        }
+      ]
+    },
+    {
+      "name": "a8-end-r4",
+      "rotationDegrees": [
+        -0.09271242276680092,
+        -0.19181942324295329,
+        0.09275873741274734
+      ],
+      "linearSlack": 1.1519996706100388,
+      "activeBoundaries": [
+        {
+          "key": "6:184.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1057:194.5:230.5:-1:retain33:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.06205983642246678
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": 0.03828779960503743
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": 0.015088348315137556
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.039999999999999994
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 60,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 92,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 49,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 79,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 61,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 91,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 50,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 78,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9464921188889571,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.582795267519856,
+              "width": 6.6164344114725155,
+              "visiblePixels": 61,
+              "requiredPixels": 61.47592303468349,
+              "continuous": 7.335313921389417,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.802431215875114,
+              "width": 6.140643241850047,
+              "visiblePixels": 91,
+              "requiredPixels": 94.57337053915722,
+              "continuous": 14.40758879452223,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.969659477048955,
+              "width": 5.83182924781439,
+              "visiblePixels": 50,
+              "requiredPixels": 37.818419736223596,
+              "continuous": 7.482495852143628,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.777561262101539,
+              "width": 5.890777058757254,
+              "visiblePixels": 78,
+              "requiredPixels": 46.471047962962444,
+              "continuous": 12.8192685254575,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.95685901993169
+        }
+      ]
+    },
+    {
+      "name": "a12-start-r1",
+      "rotationDegrees": [
+        -0.05314727798000343,
+        -0.10667435805628094,
+        0.048132263856419825
+      ],
+      "linearSlack": 1.7982177853416208,
+      "activeBoundaries": [
+        {
+          "key": "6:180.5:233.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:183.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.04315337485362343
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": -0.032064368625651936
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": -0.0008409956559564754
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.04
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.949416665623797,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 61,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.357979158584427,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9643934425903293,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 62,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.848511102490055,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9643934425903293,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 62,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.848511102490055,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        }
+      ]
+    },
+    {
+      "name": "a12-start-r4",
+      "rotationDegrees": [
+        -0.05314727798000343,
+        -0.10667435805628094,
+        0.048132263856419825
+      ],
+      "linearSlack": 1.7982177853416208,
+      "activeBoundaries": [
+        {
+          "key": "6:180.5:233.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:183.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.04315337485362343
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": -0.032064368625651936
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": -0.0008409956559564754
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.04
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.949416665623797,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 61,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.357979158584427,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9643934425903293,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 62,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.848511102490055,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9643934425903293,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 62,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.848511102490055,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        }
+      ]
+    },
+    {
+      "name": "a12-end-r1",
+      "rotationDegrees": [
+        -0.05314727798000343,
+        -0.10667435805628094,
+        0.048132263856419825
+      ],
+      "linearSlack": 1.7982177853416208,
+      "activeBoundaries": [
+        {
+          "key": "6:180.5:233.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:183.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.04315337485362343
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": -0.032064368625651936
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": -0.0008409956559564754
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.04
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.949416665623797,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 61,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.357979158584427,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9643934425903293,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 62,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.848511102490055,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9643934425903293,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 62,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.848511102490055,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        }
+      ]
+    },
+    {
+      "name": "a12-end-r4",
+      "rotationDegrees": [
+        -0.05314727798000343,
+        -0.10667435805628094,
+        0.048132263856419825
+      ],
+      "linearSlack": 1.7982177853416208,
+      "activeBoundaries": [
+        {
+          "key": "6:180.5:233.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:183.5:235.5:1:gain33:occluder",
+          "guard": false,
+          "residual": 0
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "guard": true,
+          "residual": 0
+        },
+        {
+          "key": "1056:166.5:265.5:-1:retain32:cylinder",
+          "guard": true,
+          "residual": 0
+        }
+      ],
+      "boundaryMovement": [
+        {
+          "key": "6:183.5:233.5:1:gain33:occluder",
+          "linearPredictedDisplacement": 0.04315337485362343
+        },
+        {
+          "key": "36:222.5:231.5:1:extend34:start:occluder",
+          "linearPredictedDisplacement": -0.032064368625651936
+        },
+        {
+          "key": "lane34:length",
+          "linearPredictedDisplacement": -0.0008409956559564754
+        },
+        {
+          "key": "6:162.5:260.5:1:retain32:occluder",
+          "linearPredictedDisplacement": -0.04
+        }
+      ],
+      "observations": [
+        {
+          "precision": "legacy4",
+          "minimumMargin": 0.949416665623797,
+          "allAtomsPass": true,
+          "failBonds": [
+            32,
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 61,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.357979158584427,
+              "pass": false
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        },
+        {
+          "precision": "shader32",
+          "minimumMargin": 0.9643934425903293,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 62,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.848511102490055,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        },
+        {
+          "precision": "float64",
+          "minimumMargin": 0.9643934425903293,
+          "allAtomsPass": true,
+          "failBonds": [
+            33,
+            34
+          ],
+          "bonds": [
+            {
+              "index": 32,
+              "length": 18.64021386841388,
+              "width": 6.61930302044123,
+              "visiblePixels": 62,
+              "requiredPixels": 61.69261198043126,
+              "continuous": 7.848511102490055,
+              "pass": true
+            },
+            {
+              "index": 33,
+              "length": 30.804196315661823,
+              "width": 6.143095467327382,
+              "visiblePixels": 93,
+              "requiredPixels": 94.6165593807025,
+              "continuous": 14.408414405712788,
+              "pass": false
+            },
+            {
+              "index": 34,
+              "length": 12.955018578796759,
+              "width": 5.833507393779077,
+              "visiblePixels": 49,
+              "requiredPixels": 37.7865983329781,
+              "continuous": 7.474049180075053,
+              "pass": false
+            },
+            {
+              "index": 35,
+              "length": 15.794898715336155,
+              "width": 5.89306047937362,
+              "visiblePixels": 81,
+              "requiredPixels": 46.54014669752833,
+              "continuous": 12.833355206210626,
+              "pass": true
+            }
+          ],
+          "guards": {
+            "fit": true,
+            "near": true,
+            "far": true
+          },
+          "qMin": 52.977139884251535
+        }
+      ]
+    }
+  ]
+}

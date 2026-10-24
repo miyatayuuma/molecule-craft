@@ -1,0 +1,8 @@
+{
+  "sourceCommit": "ab8c0775fcbcefba8e383a0c98cd0542451560cb",
+  "returnCode": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/workspace/scratch/5280b759438d/molecule-craft/scripts/verify-polymer-task5-model-logic.py\", line 98, in <module>\n    root=Path(sys.argv[1]);result=checks()\n                                  ^^^^^^^^\n  File \"/workspace/scratch/5280b759438d/molecule-craft/scripts/verify-polymer-task5-model-logic.py\", line 85, in checks\n    assert feasible==(visible>=2), ('areaCountMismatch',dx,visible,feasible)\n           ^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('areaCountMismatch', -1, 1, True)\n",
+  "solverCalls": 0,
+  "rasters": 0
+}

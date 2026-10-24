@@ -1,0 +1,86 @@
+{
+  "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+  "candidateSource": "UNCOMMITTED_RUNTIME_DIAGNOSTIC_NOT_FINAL_SOURCE_ACCEPTANCE",
+  "runtimeSha256": {
+    "src/reaction-lab-viewer.js": "ede76e24ac8f79bd441a5c65e3dbeda7df3080109770fe494ce0dedeb5467aa9",
+    "styles.css": "86bfc3a0cfc35ffa0c8fb157bb8ea1f766b41544c26a065cceb7cf2ef656f0d8"
+  },
+  "viewport": {
+    "width": 360,
+    "height": 780,
+    "mobile": true
+  },
+  "DPR": 2,
+  "graphDigest": "3f9b0ef2aed8ba77743d142639673c087c054f329d6067f649156525c7868c6c",
+  "sampleId": "polymer-sample-1-1",
+  "inputSha256": "05268bccaf08ec47540730d5ccc6f5bc69ddae9d6b4e22bcc1b1c38b1aaf64ff",
+  "gzipSha256": "dc17237ad28c704694350da0a90a44757931b9ed3b8ee81635b1bdbd3b60b283",
+  "pngSha256": "313371259973434bb1d38e2c9d9762665ee3d3eb03b413dc61ef84bf5236a6aa",
+  "ui": [
+    {
+      "state": "OVERVIEW_NEUTRAL",
+      "hintPurge": {
+        "hint": {
+          "top": 531.8125,
+          "bottom": 571
+        },
+        "purge": {
+          "top": 579,
+          "bottom": 598
+        },
+        "gap": 8
+      },
+      "failures": []
+    },
+    {
+      "state": "OVERVIEW_NEUTRAL",
+      "hintPurge": {
+        "hint": {
+          "top": 531.8125,
+          "bottom": 571
+        },
+        "purge": {
+          "top": 579,
+          "bottom": 598
+        },
+        "gap": 8
+      },
+      "failures": []
+    },
+    {
+      "state": "COMPARE_BEFORE",
+      "hintPurge": {
+        "hint": {
+          "top": 531.8125,
+          "bottom": 571
+        },
+        "purge": {
+          "top": 579,
+          "bottom": 598
+        },
+        "gap": 8
+      },
+      "failures": []
+    },
+    {
+      "state": "COMPARE_AFTER",
+      "hintPurge": {
+        "hint": {
+          "top": 531.8125,
+          "bottom": 571
+        },
+        "purge": {
+          "top": 579,
+          "bottom": 598
+        },
+        "gap": 8
+      },
+      "failures": []
+    }
+  ],
+  "reset": {
+    "angle": 0,
+    "zoomRatio": 1,
+    "maxProjectionError": 0
+  }
+}

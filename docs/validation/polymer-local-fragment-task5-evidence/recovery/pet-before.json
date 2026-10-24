@@ -1,0 +1,1431 @@
+{
+  "kind": "CAPTURED_PRODUCTION_INPUT_REPLAY_NOT_BROWSER_ACCEPTANCE",
+  "capturedSourceSha": "6400361c5bc813cd098a038de7883df4692b36ef",
+  "candidateSourceSha": null,
+  "run": 39544766886,
+  "job": 119040316034,
+  "artifact": 12322320528,
+  "inputSHA256": "82d84eb5181e9f758caf896b1978175e17a9b70ea454179a64bfce3cf15bf4ba",
+  "geometrySourceSHA256": "96b87ff09ca838113a5c885c3b3b20f1c959f6199dd54320ab51f7ab3f51e687",
+  "sampleId": "polymer-sample-11-11",
+  "routeId": "polyethylene-terephthalate-direct-polycondensation",
+  "graphDigest": "ac71c980c5105222e7d2b217da840d403c89349a278f8d18716862ba293d5d1e",
+  "viewport": {
+    "width": 360,
+    "height": 780,
+    "mobile": true
+  },
+  "DPR": 1,
+  "motion": "normal",
+  "unchanged": true,
+  "diagnostics": {
+    "accepted": false,
+    "fallback": false,
+    "reason": "chemical-geometry-did-not-converge",
+    "version": 2,
+    "iterations": 160,
+    "converged": false,
+    "qualityTargetReached": false,
+    "unitCount": 4,
+    "unplacedUnits": [],
+    "sourceCoordinateFallbacks": [],
+    "degenerateSourceBonds": [],
+    "geometryScale": 0.78,
+    "maxBondError": 0.005190615518603892,
+    "meanBondError": 0.0007556736982872181,
+    "maxAngleError": 7.521454430964852,
+    "severeOverlapCount": 0,
+    "minimumNonbondedDistance": 1.290614046880456,
+    "protectedRingAtomCount": 12,
+    "protectedRingCount": 2,
+    "depthSpan": 5.137272132453253,
+    "finite": true,
+    "atomCount": 47,
+    "bondCount": 48,
+    "chemical": {
+      "accepted": false,
+      "finite": true,
+      "bonds": [
+        {
+          "a": 0,
+          "b": 1,
+          "order": 2,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0910552208763848,
+          "error": 0.0009447791236150138
+        },
+        {
+          "a": 32,
+          "b": 0,
+          "order": 1,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0914339614174233,
+          "error": 0.0005660385825765335
+        },
+        {
+          "a": 0,
+          "b": 33,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:aromatic/carbonyl",
+          "length": 1.184517452549356,
+          "error": 0.0010825474506439559
+        },
+        {
+          "a": 1,
+          "b": 10,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:aromatic/sp3",
+          "length": 0.8501105275621239,
+          "error": 0.0000894724378761591
+        },
+        {
+          "a": 1,
+          "b": 16,
+          "order": 1,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0918486865624146,
+          "error": 0.00015131343758523208
+        },
+        {
+          "a": 33,
+          "b": 2,
+          "order": 1,
+          "target": 1.0405200000000001,
+          "environment": "C-O:1:acyl-O/carbonyl",
+          "length": 1.0428352119377178,
+          "error": 0.002315211937717665
+        },
+        {
+          "a": 36,
+          "b": 2,
+          "order": 1,
+          "target": 1.1154,
+          "environment": "C-O:1:acyl-O/sp3",
+          "length": 1.1186408747083643,
+          "error": 0.0032408747083643163
+        },
+        {
+          "a": 29,
+          "b": 3,
+          "order": 1,
+          "target": 1.0405200000000001,
+          "environment": "C-O:1:acyl-O/carbonyl",
+          "length": 1.0426856861391967,
+          "error": 0.002165686139196543
+        },
+        {
+          "a": 37,
+          "b": 3,
+          "order": 1,
+          "target": 1.1154,
+          "environment": "C-O:1:acyl-O/sp3",
+          "length": 1.1155395875755285,
+          "error": 0.00013958757552856582
+        },
+        {
+          "a": 35,
+          "b": 4,
+          "order": 2,
+          "target": 0.9438,
+          "environment": "C-O:2:carbonyl/sp2",
+          "length": 0.9436047370667427,
+          "error": 0.0001952629332572231
+        },
+        {
+          "a": 36,
+          "b": 5,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8512965721579282,
+          "error": 0.001096572157928133
+        },
+        {
+          "a": 36,
+          "b": 6,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.85135212559763,
+          "error": 0.0011521255976298939
+        },
+        {
+          "a": 37,
+          "b": 7,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8497834601572776,
+          "error": 0.00041653984272249645
+        },
+        {
+          "a": 37,
+          "b": 8,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8503514352174676,
+          "error": 0.00015143521746752153
+        },
+        {
+          "a": 9,
+          "b": 15,
+          "order": 1,
+          "target": 0.7566,
+          "environment": "H-O:1:acyl-O/sp3",
+          "length": 0.7565881046811558,
+          "error": 0.00001189531884426831
+        },
+        {
+          "a": 35,
+          "b": 9,
+          "order": 1,
+          "target": 1.0405200000000001,
+          "environment": "C-O:1:acyl-O/carbonyl",
+          "length": 1.0403395916677933,
+          "error": 0.00018040833220678287
+        },
+        {
+          "a": 16,
+          "b": 11,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:aromatic/sp3",
+          "length": 0.8501148808450131,
+          "error": 0.00008511915498699008
+        },
+        {
+          "a": 16,
+          "b": 12,
+          "order": 2,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0917865070644277,
+          "error": 0.0002134929355721571
+        },
+        {
+          "a": 12,
+          "b": 22,
+          "order": 1,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0920258701134653,
+          "error": 0.000025870113465442657
+        },
+        {
+          "a": 12,
+          "b": 35,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:aromatic/carbonyl",
+          "length": 1.18551760850943,
+          "error": 0.00008239149056987749
+        },
+        {
+          "a": 22,
+          "b": 13,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:aromatic/sp3",
+          "length": 0.8504050824121121,
+          "error": 0.00020508241211203426
+        },
+        {
+          "a": 32,
+          "b": 14,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:aromatic/sp3",
+          "length": 0.850424173086074,
+          "error": 0.00022417308607391995
+        },
+        {
+          "a": 17,
+          "b": 18,
+          "order": 2,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0922099401773926,
+          "error": 0.0002099401773927312
+        },
+        {
+          "a": 28,
+          "b": 17,
+          "order": 1,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.091631283259721,
+          "error": 0.0003687167402788294
+        },
+        {
+          "a": 17,
+          "b": 29,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:aromatic/carbonyl",
+          "length": 1.1856736563074726,
+          "error": 0.00007365630747258045
+        },
+        {
+          "a": 18,
+          "b": 20,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:aromatic/sp3",
+          "length": 0.8503050309924759,
+          "error": 0.0001050309924758297
+        },
+        {
+          "a": 18,
+          "b": 25,
+          "order": 1,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.092149529078819,
+          "error": 0.000149529078819155
+        },
+        {
+          "a": 31,
+          "b": 19,
+          "order": 2,
+          "target": 0.9438,
+          "environment": "C-O:2:carbonyl/sp2",
+          "length": 0.9489906155186039,
+          "error": 0.005190615518603892
+        },
+        {
+          "a": 25,
+          "b": 21,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:aromatic/sp3",
+          "length": 0.8502978821398174,
+          "error": 0.00009788213981731797
+        },
+        {
+          "a": 22,
+          "b": 32,
+          "order": 2,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0920900919219063,
+          "error": 0.00009009192190645443
+        },
+        {
+          "a": 27,
+          "b": 23,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:aromatic/sp3",
+          "length": 0.8485671788160893,
+          "error": 0.0016328211839107265
+        },
+        {
+          "a": 28,
+          "b": 24,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:aromatic/sp3",
+          "length": 0.8496893994402304,
+          "error": 0.0005106005597697028
+        },
+        {
+          "a": 25,
+          "b": 26,
+          "order": 2,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0945111619393073,
+          "error": 0.002511161939307449
+        },
+        {
+          "a": 26,
+          "b": 27,
+          "order": 1,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.094810268288969,
+          "error": 0.002810268288969242
+        },
+        {
+          "a": 26,
+          "b": 31,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:aromatic/carbonyl",
+          "length": 1.1894875613824634,
+          "error": 0.003887561382463378
+        },
+        {
+          "a": 27,
+          "b": 28,
+          "order": 2,
+          "target": 1.0919999999999999,
+          "environment": "aromatic",
+          "length": 1.0917754554451669,
+          "error": 0.00022454455483300606
+        },
+        {
+          "a": 29,
+          "b": 30,
+          "order": 2,
+          "target": 0.9438,
+          "environment": "C-O:2:carbonyl/sp2",
+          "length": 0.943779767160632,
+          "error": 0.00002023283936791742
+        },
+        {
+          "a": 31,
+          "b": 40,
+          "order": 1,
+          "target": 1.0405200000000001,
+          "environment": "C-O:1:acyl-O/carbonyl",
+          "length": 1.040572446558429,
+          "error": 0.000052446558428842494
+        },
+        {
+          "a": 33,
+          "b": 34,
+          "order": 2,
+          "target": 0.9438,
+          "environment": "C-O:2:carbonyl/sp2",
+          "length": 0.9426294531129856,
+          "error": 0.0011705468870143454
+        },
+        {
+          "a": 36,
+          "b": 37,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:sp3/sp3",
+          "length": 1.1863873312407054,
+          "error": 0.0007873312407054023
+        },
+        {
+          "a": 38,
+          "b": 39,
+          "order": 1,
+          "target": 1.1856,
+          "environment": "C-C:1:sp3/sp3",
+          "length": 1.185078418358817,
+          "error": 0.0005215816411829888
+        },
+        {
+          "a": 38,
+          "b": 40,
+          "order": 1,
+          "target": 1.1154,
+          "environment": "C-O:1:acyl-O/sp3",
+          "length": 1.1146870006262155,
+          "error": 0.0007129993737844398
+        },
+        {
+          "a": 38,
+          "b": 42,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8500435348978188,
+          "error": 0.00015646510218125798
+        },
+        {
+          "a": 38,
+          "b": 43,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502033578270441,
+          "error": 0.000003357827044081496
+        },
+        {
+          "a": 39,
+          "b": 41,
+          "order": 1,
+          "target": 1.1154,
+          "environment": "C-O:1:hydroxyl-O/sp3",
+          "length": 1.1155410474653702,
+          "error": 0.0001410474653702476
+        },
+        {
+          "a": 39,
+          "b": 44,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8501658300750521,
+          "error": 0.00003416992494797988
+        },
+        {
+          "a": 39,
+          "b": 45,
+          "order": 1,
+          "target": 0.8502000000000001,
+          "environment": "C-H:1:sp3/sp3",
+          "length": 0.8502098806504667,
+          "error": 0.000009880650466587149
+        },
+        {
+          "a": 41,
+          "b": 46,
+          "order": 1,
+          "target": 0.7566,
+          "environment": "H-O:1:hydroxyl-O/sp3",
+          "length": 0.7566639772353314,
+          "error": 0.00006397723533135835
+        }
+      ],
+      "angles": [
+        {
+          "a": 1,
+          "center": 0,
+          "b": 32,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.1400527755119,
+          "error": 0.14005277551190431
+        },
+        {
+          "a": 1,
+          "center": 0,
+          "b": 33,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.57401546876413,
+          "error": 0.5740154687641308
+        },
+        {
+          "a": 32,
+          "center": 0,
+          "b": 33,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.27440372510469,
+          "error": 0.7255962748953095
+        },
+        {
+          "a": 0,
+          "center": 1,
+          "b": 10,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.94214664979168,
+          "error": 0.05785335020831894
+        },
+        {
+          "a": 0,
+          "center": 1,
+          "b": 16,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.89018180084263,
+          "error": 0.1098181991573739
+        },
+        {
+          "a": 10,
+          "center": 1,
+          "b": 16,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.16633592033205,
+          "error": 0.16633592033204536
+        },
+        {
+          "a": 33,
+          "center": 2,
+          "b": 36,
+          "target": 114.8,
+          "environment": "acyl-O",
+          "degrees": 122.32145443096485,
+          "error": 7.521454430964852
+        },
+        {
+          "a": 29,
+          "center": 3,
+          "b": 37,
+          "target": 114.8,
+          "environment": "acyl-O",
+          "degrees": 116.52731385316208,
+          "error": 1.7273138531620873
+        },
+        {
+          "a": 15,
+          "center": 9,
+          "b": 35,
+          "target": 114.8,
+          "environment": "acyl-O",
+          "degrees": 114.8346964904375,
+          "error": 0.03469649043749712
+        },
+        {
+          "a": 16,
+          "center": 12,
+          "b": 22,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.01706746869289,
+          "error": 0.017067468692886223
+        },
+        {
+          "a": 16,
+          "center": 12,
+          "b": 35,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.25291524761549,
+          "error": 0.25291524761549056
+        },
+        {
+          "a": 22,
+          "center": 12,
+          "b": 35,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.72928641439381,
+          "error": 0.2707135856061882
+        },
+        {
+          "a": 1,
+          "center": 16,
+          "b": 11,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.97533301265798,
+          "error": 0.024666987342016
+        },
+        {
+          "a": 1,
+          "center": 16,
+          "b": 12,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.03362340675804,
+          "error": 0.03362340675803921
+        },
+        {
+          "a": 11,
+          "center": 16,
+          "b": 12,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.99103499318828,
+          "error": 0.008965006811720855
+        },
+        {
+          "a": 18,
+          "center": 17,
+          "b": 28,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.98666949041315,
+          "error": 0.01333050958685078
+        },
+        {
+          "a": 18,
+          "center": 17,
+          "b": 29,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 118.79067046930213,
+          "error": 1.2093295306978717
+        },
+        {
+          "a": 28,
+          "center": 17,
+          "b": 29,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 121.22219638414425,
+          "error": 1.2221963841442545
+        },
+        {
+          "a": 17,
+          "center": 18,
+          "b": 20,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.21007897801286,
+          "error": 0.21007897801285935
+        },
+        {
+          "a": 17,
+          "center": 18,
+          "b": 25,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.03802691998693,
+          "error": 0.038026919986933194
+        },
+        {
+          "a": 20,
+          "center": 18,
+          "b": 25,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.75163005506528,
+          "error": 0.24836994493472275
+        },
+        {
+          "a": 12,
+          "center": 22,
+          "b": 13,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.14027647056946,
+          "error": 0.1402764705694608
+        },
+        {
+          "a": 12,
+          "center": 22,
+          "b": 32,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.94941495850874,
+          "error": 0.050585041491260085
+        },
+        {
+          "a": 13,
+          "center": 22,
+          "b": 32,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.91030735185485,
+          "error": 0.08969264814514588
+        },
+        {
+          "a": 18,
+          "center": 25,
+          "b": 21,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.92133207031137,
+          "error": 0.07866792968863479
+        },
+        {
+          "a": 18,
+          "center": 25,
+          "b": 26,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.29739758319715,
+          "error": 0.2973975831971529
+        },
+        {
+          "a": 21,
+          "center": 25,
+          "b": 26,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.77541215690074,
+          "error": 0.2245878430992576
+        },
+        {
+          "a": 25,
+          "center": 26,
+          "b": 27,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.29476578768691,
+          "error": 0.705234212313087
+        },
+        {
+          "a": 25,
+          "center": 26,
+          "b": 31,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 117.40232103181562,
+          "error": 2.5976789681843826
+        },
+        {
+          "a": 27,
+          "center": 26,
+          "b": 31,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 123.30016341157672,
+          "error": 3.300163411576719
+        },
+        {
+          "a": 23,
+          "center": 27,
+          "b": 26,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.12364891938503,
+          "error": 0.1236489193850332
+        },
+        {
+          "a": 23,
+          "center": 27,
+          "b": 28,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.37153240774576,
+          "error": 0.6284675922542391
+        },
+        {
+          "a": 26,
+          "center": 27,
+          "b": 28,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.50458939171038,
+          "error": 0.5045893917103825
+        },
+        {
+          "a": 17,
+          "center": 28,
+          "b": 24,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.77877267250693,
+          "error": 0.22122732749306806
+        },
+        {
+          "a": 17,
+          "center": 28,
+          "b": 27,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.85711616825336,
+          "error": 0.14288383174664432
+        },
+        {
+          "a": 24,
+          "center": 28,
+          "b": 27,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.3641068143886,
+          "error": 0.3641068143886059
+        },
+        {
+          "a": 3,
+          "center": 29,
+          "b": 17,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.27260998048257,
+          "error": 0.2726099804825708
+        },
+        {
+          "a": 3,
+          "center": 29,
+          "b": 30,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.05489682784035,
+          "error": 0.0548968278403521
+        },
+        {
+          "a": 17,
+          "center": 29,
+          "b": 30,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 119.6671327596411,
+          "error": 0.3328672403588939
+        },
+        {
+          "a": 19,
+          "center": 31,
+          "b": 26,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 118.56047335430144,
+          "error": 1.4395266456985638
+        },
+        {
+          "a": 19,
+          "center": 31,
+          "b": 40,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 117.74397468830855,
+          "error": 2.2560253116914453
+        },
+        {
+          "a": 26,
+          "center": 31,
+          "b": 40,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 123.69485203928083,
+          "error": 3.694852039280832
+        },
+        {
+          "a": 0,
+          "center": 32,
+          "b": 14,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 120.13330471251143,
+          "error": 0.13330471251143194
+        },
+        {
+          "a": 0,
+          "center": 32,
+          "b": 22,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.94110033886864,
+          "error": 0.058899661131363246
+        },
+        {
+          "a": 14,
+          "center": 32,
+          "b": 22,
+          "target": 120,
+          "environment": "aromatic",
+          "degrees": 119.9245639646887,
+          "error": 0.07543603531129861
+        },
+        {
+          "a": 0,
+          "center": 33,
+          "b": 2,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.55210088671942,
+          "error": 0.5521008867194155
+        },
+        {
+          "a": 0,
+          "center": 33,
+          "b": 34,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 118.26920831668589,
+          "error": 1.7307916833141093
+        },
+        {
+          "a": 2,
+          "center": 33,
+          "b": 34,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.8982701670502,
+          "error": 0.8982701670501996
+        },
+        {
+          "a": 4,
+          "center": 35,
+          "b": 9,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.06713618415816,
+          "error": 0.06713618415815858
+        },
+        {
+          "a": 4,
+          "center": 35,
+          "b": 12,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 119.90528772319131,
+          "error": 0.09471227680869276
+        },
+        {
+          "a": 9,
+          "center": 35,
+          "b": 12,
+          "target": 120,
+          "environment": "carbonyl",
+          "degrees": 120.02743879713063,
+          "error": 0.027438797130628245
+        },
+        {
+          "a": 2,
+          "center": 36,
+          "b": 5,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.38949042657781,
+          "error": 1.0817302079128837
+        },
+        {
+          "a": 2,
+          "center": 36,
+          "b": 6,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.0147655865911,
+          "error": 0.5435449521004045
+        },
+        {
+          "a": 2,
+          "center": 36,
+          "b": 37,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 114.9977439729484,
+          "error": 5.526523338457707
+        },
+        {
+          "a": 5,
+          "center": 36,
+          "b": 6,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 106.7289986961795,
+          "error": 2.7422219383111894
+        },
+        {
+          "a": 5,
+          "center": 36,
+          "b": 37,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.01987027042044,
+          "error": 1.451350364070251
+        },
+        {
+          "a": 6,
+          "center": 36,
+          "b": 37,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.36222695910695,
+          "error": 1.1089936753837435
+        },
+        {
+          "a": 3,
+          "center": 37,
+          "b": 7,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.37262106434568,
+          "error": 0.9014004298549878
+        },
+        {
+          "a": 3,
+          "center": 37,
+          "b": 8,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.2695449645908,
+          "error": 0.20167566989988472
+        },
+        {
+          "a": 3,
+          "center": 37,
+          "b": 36,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.87662446699106,
+          "error": 0.5945961674996312
+        },
+        {
+          "a": 7,
+          "center": 37,
+          "b": 8,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.8358218501799,
+          "error": 0.6353987843107944
+        },
+        {
+          "a": 7,
+          "center": 37,
+          "b": 36,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.1113497872858,
+          "error": 0.3598708472048884
+        },
+        {
+          "a": 8,
+          "center": 37,
+          "b": 36,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.36910062473873,
+          "error": 0.8978799902480432
+        },
+        {
+          "a": 39,
+          "center": 38,
+          "b": 40,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.64684502649392,
+          "error": 0.824375607996771
+        },
+        {
+          "a": 39,
+          "center": 38,
+          "b": 42,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.86404765696656,
+          "error": 1.3928270224758705
+        },
+        {
+          "a": 39,
+          "center": 38,
+          "b": 43,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.09837855702116,
+          "error": 0.372842077469528
+        },
+        {
+          "a": 40,
+          "center": 38,
+          "b": 42,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 110.4440544745808,
+          "error": 0.9728338400901038
+        },
+        {
+          "a": 40,
+          "center": 38,
+          "b": 43,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 108.30967647437112,
+          "error": 1.1615441601195755
+        },
+        {
+          "a": 42,
+          "center": 38,
+          "b": 43,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.42532974193463,
+          "error": 0.04589089255605927
+        },
+        {
+          "a": 38,
+          "center": 39,
+          "b": 41,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.4179666910323,
+          "error": 0.05325394345838674
+        },
+        {
+          "a": 38,
+          "center": 39,
+          "b": 44,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.30371490534857,
+          "error": 0.16750572914212114
+        },
+        {
+          "a": 38,
+          "center": 39,
+          "b": 45,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.9087118870253,
+          "error": 0.4374912525346133
+        },
+        {
+          "a": 41,
+          "center": 39,
+          "b": 44,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.42321743117195,
+          "error": 0.04800320331874275
+        },
+        {
+          "a": 41,
+          "center": 39,
+          "b": 45,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.38034962209971,
+          "error": 0.09087101239097706
+        },
+        {
+          "a": 44,
+          "center": 39,
+          "b": 45,
+          "target": 109.47122063449069,
+          "environment": "sp3",
+          "degrees": 109.39260639292925,
+          "error": 0.07861424156143926
+        },
+        {
+          "a": 31,
+          "center": 40,
+          "b": 38,
+          "target": 114.8,
+          "environment": "acyl-O",
+          "degrees": 116.7333320722915,
+          "error": 1.9333320722915062
+        },
+        {
+          "a": 39,
+          "center": 41,
+          "b": 46,
+          "target": 108.5,
+          "environment": "hydroxyl-O",
+          "degrees": 108.51184299167718,
+          "error": 0.0118429916771845
+        }
+      ],
+      "planes": [
+        {
+          "indices": [
+            0,
+            32,
+            22,
+            12,
+            16,
+            1
+          ],
+          "kind": "aromatic-ring",
+          "deviation": 0.031359830061115354
+        },
+        {
+          "indices": [
+            17,
+            28,
+            27,
+            26,
+            25,
+            18
+          ],
+          "kind": "aromatic-ring",
+          "deviation": 0.038946570406012036
+        },
+        {
+          "indices": [
+            0,
+            1,
+            32,
+            33
+          ],
+          "kind": "aromatic",
+          "deviation": 0.022141216826333143
+        },
+        {
+          "indices": [
+            1,
+            0,
+            10,
+            16
+          ],
+          "kind": "aromatic",
+          "deviation": 0.006933749256515953
+        },
+        {
+          "indices": [
+            12,
+            16,
+            22,
+            35
+          ],
+          "kind": "aromatic",
+          "deviation": 0.0055733294878065115
+        },
+        {
+          "indices": [
+            16,
+            1,
+            11,
+            12
+          ],
+          "kind": "aromatic",
+          "deviation": 0.0005561340337641003
+        },
+        {
+          "indices": [
+            17,
+            18,
+            28,
+            29
+          ],
+          "kind": "aromatic",
+          "deviation": 0.004437035852891006
+        },
+        {
+          "indices": [
+            18,
+            17,
+            20,
+            25
+          ],
+          "kind": "aromatic",
+          "deviation": 0.0030921453620110606
+        },
+        {
+          "indices": [
+            22,
+            12,
+            13,
+            32
+          ],
+          "kind": "aromatic",
+          "deviation": 0.00020994499607511832
+        },
+        {
+          "indices": [
+            25,
+            18,
+            21,
+            26
+          ],
+          "kind": "aromatic",
+          "deviation": 0.014553396731394818
+        },
+        {
+          "indices": [
+            26,
+            25,
+            27,
+            31
+          ],
+          "kind": "aromatic",
+          "deviation": 0.010749183520597269
+        },
+        {
+          "indices": [
+            27,
+            23,
+            26,
+            28
+          ],
+          "kind": "aromatic",
+          "deviation": 0.0028777259858439146
+        },
+        {
+          "indices": [
+            28,
+            17,
+            24,
+            27
+          ],
+          "kind": "aromatic",
+          "deviation": 0.0003947907989750492
+        },
+        {
+          "indices": [
+            29,
+            3,
+            17,
+            30
+          ],
+          "kind": "carbonyl",
+          "deviation": 0.012046890805486746
+        },
+        {
+          "indices": [
+            31,
+            19,
+            26,
+            40
+          ],
+          "kind": "carbonyl",
+          "deviation": 0.004709404270592737
+        },
+        {
+          "indices": [
+            32,
+            0,
+            14,
+            22
+          ],
+          "kind": "aromatic",
+          "deviation": 0.0061050052057212215
+        },
+        {
+          "indices": [
+            33,
+            0,
+            2,
+            34
+          ],
+          "kind": "carbonyl",
+          "deviation": 0.087180940144578
+        },
+        {
+          "indices": [
+            35,
+            4,
+            9,
+            12
+          ],
+          "kind": "carbonyl",
+          "deviation": 0.0024168439704757936
+        },
+        {
+          "indices": [
+            34,
+            33,
+            2,
+            36
+          ],
+          "kind": "ester",
+          "deviation": 0.0029575617654896023
+        },
+        {
+          "indices": [
+            30,
+            29,
+            3,
+            37
+          ],
+          "kind": "ester",
+          "deviation": 0.00654351569713333
+        },
+        {
+          "indices": [
+            4,
+            35,
+            9,
+            15
+          ],
+          "kind": "ester",
+          "deviation": 0.00008645376917715038
+        },
+        {
+          "indices": [
+            19,
+            31,
+            40,
+            38
+          ],
+          "kind": "ester",
+          "deviation": 0.0018467913062635013
+        }
+      ],
+      "violations": {
+        "bonds": [],
+        "angles": [],
+        "planes": [
+          {
+            "indices": [
+              33,
+              0,
+              2,
+              34
+            ],
+            "kind": "carbonyl",
+            "deviation": 0.087180940144578
+          }
+        ],
+        "steric": []
+      },
+      "maxBondError": 0.005190615518603892,
+      "maxAngleError": 7.521454430964852,
+      "minimumNonbondedDistance": 1.290614046880456,
+      "severeOverlapCount": 0
+    }
+  },
+  "safeError": {
+    "code": "POLYMER_GEOMETRY_UNAVAILABLE",
+    "message": "Polymer geometry unavailable: chemical-geometry-did-not-converge"
+  },
+  "pass": false
+}

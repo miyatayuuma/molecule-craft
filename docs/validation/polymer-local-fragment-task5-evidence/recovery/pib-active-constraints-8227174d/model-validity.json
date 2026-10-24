@@ -1,0 +1,18 @@
+{
+  "kind": "ACTIVE_CAMPAIGN_INVALID_ADJUDICATION",
+  "status": "MODEL_INVALID",
+  "reason": "OR temporary terms overwrites per-object aggregate area terms at nonzero trust radius",
+  "affectedSlots": [
+    "active-r1-n26",
+    "active-r1-n27"
+  ],
+  "rawSolverOutcomes": "Retained but not admissible feasibility evidence",
+  "validActiveCandidateSolves": 0,
+  "consumedSolverSlots": 2,
+  "additionalCandidateSolves": 0,
+  "seedGateAffected": false,
+  "original12Affected": false,
+  "executedSolverSourceSHA256": "144830170fc2ac1d3479f7533969aae3bf6599590e3f924b90566f3b2e4ec701",
+  "feasibility": "UNRESOLVED",
+  "correction": "Use clause_terms local dict; verify multi-cell aggregate area against an independent Boolean count oracle without solver"
+}

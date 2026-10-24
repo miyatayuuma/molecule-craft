@@ -1,0 +1,720 @@
+{
+  "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+  "mainSha": "593ac571e4d664f7af885855352142874dd227ab",
+  "run": 39708513297,
+  "fitJob": 119594067267,
+  "artifact": {
+    "id": 12396411910,
+    "sha256": "4762833dc834c73114a1617427a06ee618cc04622028b9f53320774be0bf4d45"
+  },
+  "repositoryRun": {
+    "id": 39708513226,
+    "conclusion": "success"
+  },
+  "fieldRun": {
+    "id": 39708513252,
+    "conclusion": "success"
+  },
+  "stageB": {
+    "job": 119594067156,
+    "conclusion": "success",
+    "artifact": 12395832251,
+    "artifactSHA256": "e2b0b22689a6b651994c279c53c807e8574222581dd50efc42f475742e2b14a1",
+    "candidatePooledP95Ms": 3.9,
+    "candidateMaxMs": 6,
+    "budgetMs": 8.333333333333334,
+    "rules": 29,
+    "candidates": 384,
+    "measuredTrials": 4
+  },
+  "mobileActualBrowser": {
+    "conclusion": "pass",
+    "routes": [
+      {
+        "routeId": "butyl-rubber-cationic",
+        "polymerId": "butyl-rubber",
+        "sampleId": "polymer-sample-21-21",
+        "graphDigest": "1202b3e58d9692c5ceb4d9ba91ef3e2d4309a22d2eaf61d9d3803d76427bba20",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 37,
+        "bonds": 36,
+        "uiFailures": []
+      },
+      {
+        "routeId": "ethylene-propylene-coordination",
+        "polymerId": "ethylene-propylene-copolymer",
+        "sampleId": "polymer-sample-3-3",
+        "graphDigest": "2b3b921acb4ee105045c1c5ba18e266ecd4ce68b80a85bb9bfabb0b9c150f62e",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 21,
+        "bonds": 20,
+        "uiFailures": []
+      },
+      {
+        "routeId": "nitrile-butadiene-radical",
+        "polymerId": "nitrile-butadiene-rubber",
+        "sampleId": "polymer-sample-19-19",
+        "graphDigest": "0278919c0eeea80fff8df11d018e856d477709fdb985134415c2d278b4db50ed",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 27,
+        "bonds": 26,
+        "uiFailures": []
+      },
+      {
+        "routeId": "nylon-6-6-direct-polycondensation",
+        "polymerId": "nylon-6-6",
+        "sampleId": "polymer-sample-25-25",
+        "graphDigest": "90323ab7c43e6235837d272a0adc5b5d2b71daa571e0d41e37f5377d4edc19be",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 79,
+        "bonds": 78,
+        "uiFailures": []
+      },
+      {
+        "routeId": "phenol-formaldehyde-resole",
+        "polymerId": "phenol-formaldehyde-resin",
+        "sampleId": "polymer-sample-15-15",
+        "graphDigest": "a2d67c01307e7e9376d45c448c3f782ef6fac99a80fc15777f7b9279453f5e60",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 31,
+        "bonds": 32,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyacrylic-acid-radical",
+        "polymerId": "polyacrylic-acid",
+        "sampleId": "polymer-sample-9-9",
+        "graphDigest": "de7ff7d89fdec740e166e43c2108c4796df5f10c4aeae1d645d4b24ef1fa05fa",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 36,
+        "bonds": 35,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyacrylonitrile-radical",
+        "polymerId": "polyacrylonitrile",
+        "sampleId": "polymer-sample-8-8",
+        "graphDigest": "0890d61307d82bc6c496a8a7e4f5d5151eaa655ceecfca97b60b202feefda7cc",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 28,
+        "bonds": 27,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polybutadiene-coordination-1-4",
+        "polymerId": "polybutadiene",
+        "sampleId": "polymer-sample-17-17",
+        "graphDigest": "db038008c13f7bf5630cc2ca7de9815bf2b00ea01703007800671a1a307bd0de",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 40,
+        "bonds": 39,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polychlorotrifluoroethylene-radical",
+        "polymerId": "polychlorotrifluoroethylene",
+        "sampleId": "polymer-sample-7-7",
+        "graphDigest": "7c84943f3d57f75dadbb5c0b3a9abb5d696b63cb045ca5a3e4f36abcb5363d55",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 24,
+        "bonds": 23,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyethylene-adipamide-direct-polycondensation",
+        "polymerId": "polyethylene-adipamide",
+        "sampleId": "polymer-sample-16-16",
+        "graphDigest": "d7b95204cc73e2670d83cbde3adb7cb6c7775bb2f0dffaa59c276d4f44ddfe7c",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 55,
+        "bonds": 54,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyethylene-adipate-direct-polycondensation",
+        "polymerId": "polyethylene-adipate",
+        "sampleId": "polymer-sample-12-12",
+        "graphDigest": "095ee9cfb36af15c465ef0ee1e8d9be998855e3331ec670855766e9e6944bab0",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 51,
+        "bonds": 50,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyethylene-oxide-anionic-ring-opening",
+        "polymerId": "polyethylene-oxide",
+        "sampleId": "polymer-sample-10-10",
+        "graphDigest": "55dda0f56b6ff6714ee2b73e4a3642b0d942e0525a2f93669db3312e04f5d358",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 28,
+        "bonds": 27,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyethylene-terephthalate-direct-polycondensation",
+        "polymerId": "polyethylene-terephthalate",
+        "sampleId": "polymer-sample-11-11",
+        "graphDigest": "ac71c980c5105222e7d2b217da840d403c89349a278f8d18716862ba293d5d1e",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 47,
+        "bonds": 48,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyethylene-coordination",
+        "polymerId": "polyethylene",
+        "sampleId": "polymer-sample-1-1",
+        "graphDigest": "3f9b0ef2aed8ba77743d142639673c087c054f329d6067f649156525c7868c6c",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 24,
+        "bonds": 23,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyglycolic-acid-direct-polycondensation",
+        "polymerId": "polyglycolic-acid",
+        "sampleId": "polymer-sample-14-14",
+        "graphDigest": "3d259741126cea1e2742b80bdedf3b8dc3f7959951cdcb7194e9388634f480af",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 27,
+        "bonds": 26,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyisobutylene-cationic",
+        "polymerId": "polyisobutylene",
+        "sampleId": "polymer-sample-4-4",
+        "graphDigest": "44facce546bf00e6dcecc128151e749462f2988edfc0249bc95126fba5318f0f",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 48,
+        "bonds": 47,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyisoprene-coordination-1-4",
+        "polymerId": "polyisoprene",
+        "sampleId": "polymer-sample-20-20",
+        "graphDigest": "af8d0e6257eb5c4ad07c10b4d7d2c4abf558bdecb665f000726f6075f546ebfa",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 52,
+        "bonds": 51,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polylactic-acid-direct-polycondensation",
+        "polymerId": "polylactic-acid",
+        "sampleId": "polymer-sample-13-13",
+        "graphDigest": "7a0d9dc38733784e6a2af99b469b6a7e6cd9a37724d93c5e793c78cd3a614956",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 39,
+        "bonds": 38,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polypropylene-coordination",
+        "polymerId": "polypropylene",
+        "sampleId": "polymer-sample-2-2",
+        "graphDigest": "b61802056578070f13607eb28424b0fb887a8e2d9375261824c5a4b7b9a88e50",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 36,
+        "bonds": 35,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polystyrene-radical",
+        "polymerId": "polystyrene",
+        "sampleId": "polymer-sample-5-5",
+        "graphDigest": "75f2610028e884745b6fe42784b3ac6c87c8cfa18e2eacc475b3f4eeca16ff3a",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 64,
+        "bonds": 67,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polytetrafluoroethylene-radical",
+        "polymerId": "polytetrafluoroethylene",
+        "sampleId": "polymer-sample-24-24",
+        "graphDigest": "96fea9d05d8a75bec54fc8601cbac7fc98515844ab55a0fdbf671395d3777b47",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 24,
+        "bonds": 23,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyvinyl-chloride-radical",
+        "polymerId": "polyvinyl-chloride",
+        "sampleId": "polymer-sample-6-6",
+        "graphDigest": "b9f9816146494c3bb077f99763adb7ebb005a4f2cd23b9e5f9345d0377c84d97",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 24,
+        "bonds": 23,
+        "uiFailures": []
+      },
+      {
+        "routeId": "polyvinylidene-fluoride-radical",
+        "polymerId": "polyvinylidene-fluoride",
+        "sampleId": "polymer-sample-22-22",
+        "graphDigest": "0f01acc9b7d4399905ee82f8602b8b84bceec563d131823b19a47bba41a624f0",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 24,
+        "bonds": 23,
+        "uiFailures": []
+      },
+      {
+        "routeId": "styrene-butadiene-radical",
+        "polymerId": "styrene-butadiene-copolymer",
+        "sampleId": "polymer-sample-18-18",
+        "graphDigest": "67527b89cd79345bbfc31a56375c07e62c2dea19c98ebd83b6afc4f753e8b2ad",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 36,
+        "bonds": 36,
+        "uiFailures": []
+      },
+      {
+        "routeId": "vinylidene-fluoride-hexafluoropropylene-radical",
+        "polymerId": "vinylidene-fluoride-hexafluoropropylene-copolymer",
+        "sampleId": "polymer-sample-23-23",
+        "graphDigest": "68aa8f8896bb15d9d42fc180734778d28d65fc08325b7289c9bb657083f26edc",
+        "sourceSha": "239624dbf6ec1985a37233a60748c41461b285e6",
+        "kind": "DIAGNOSTIC_REPLAY_NOT_VISUAL_ACCEPTANCE",
+        "DPR": 1,
+        "motion": "normal",
+        "atoms": 21,
+        "bonds": 20,
+        "uiFailures": []
+      }
+    ]
+  },
+  "desktopActualBrowser": {
+    "conclusion": "failure",
+    "route": "polyethylene-coordination",
+    "uiFailures": [
+      "control gap Reaction Labを閉じる/Feed slot C：未接続。分子を選ぶ 7.5"
+    ],
+    "controls": [
+      {
+        "label": "Reaction Labを閉じる",
+        "width": 44,
+        "height": 44,
+        "font": "23px",
+        "rect": {
+          "left": 1035,
+          "right": 1079,
+          "top": 11.5,
+          "bottom": 55.5
+        },
+        "hits": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "disabled": false,
+        "owner": "root",
+        "logical": {
+          "left": 1035,
+          "right": 1079,
+          "top": 11.5,
+          "bottom": 55.5
+        }
+      },
+      {
+        "label": "Feed slot C：未接続。分子を選ぶ",
+        "width": 287.34375,
+        "height": 56,
+        "font": "16px",
+        "rect": {
+          "left": 791.65625,
+          "right": 1079,
+          "top": 63,
+          "bottom": 119
+        },
+        "hits": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "disabled": false,
+        "owner": "root",
+        "logical": {
+          "left": 791.65625,
+          "right": 1079,
+          "top": 63,
+          "bottom": 119
+        }
+      }
+    ]
+  },
+  "static12": "skipped",
+  "strictFinite": "skipped",
+  "heap": {
+    "kind": "BOUNDED_REAL_BROWSER_RESOURCE_OWNERSHIP",
+    "cycles": [
+      {
+        "kind": "before",
+        "file": "heap-before.heapsnapshot",
+        "sha256": "4ce918d9c748008f81dfc7867e790fe9faed92c14a024b4ffab0a32d4a8886c2",
+        "bytes": 26814897,
+        "selfSize": 19873108,
+        "selfSizeByType": {
+          "synthetic": 0,
+          "native": 8629244,
+          "string": 1159736,
+          "object shape": 649820,
+          "code": 6254640,
+          "array": 1302800,
+          "number": 274080,
+          "symbol": 96,
+          "closure": 237100,
+          "object": 1351120,
+          "concatenated string": 14280,
+          "regexp": 192
+        },
+        "resources": {
+          "native|WebGLBuffer": {
+            "count": 296,
+            "selfSize": 23680
+          },
+          "object|ArrayBuffer": {
+            "count": 75,
+            "selfSize": 3852
+          },
+          "native|system / JSArrayBufferData": {
+            "count": 497,
+            "selfSize": 951124
+          },
+          "native|Float32Array": {
+            "count": 345,
+            "selfSize": 40020
+          },
+          "native|WebGLVertexArrayObject": {
+            "count": 76,
+            "selfSize": 9088
+          },
+          "native|ArrayBuffer": {
+            "count": 460,
+            "selfSize": 53360
+          },
+          "object|Float32Array": {
+            "count": 7,
+            "selfSize": 420
+          },
+          "object|WebGLVertexArrayObject": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLShader": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLProgram": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLBuffer": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "native|WebGLProgram": {
+            "count": 1,
+            "selfSize": 96
+          },
+          "native|WebGLShader": {
+            "count": 2,
+            "selfSize": 160
+          }
+        }
+      },
+      {
+        "kind": "water",
+        "file": "heap-water.heapsnapshot",
+        "sha256": "f0e7571e5025be669d4eb4b9f7adee4041b12673d0caf6538270b9423a811450",
+        "bytes": 26902320,
+        "selfSize": 20229661,
+        "selfSizeByType": {
+          "synthetic": 0,
+          "native": 8650089,
+          "string": 1160508,
+          "object shape": 654624,
+          "code": 6584984,
+          "array": 1301140,
+          "number": 274560,
+          "symbol": 96,
+          "closure": 237100,
+          "object": 1352088,
+          "concatenated string": 14280,
+          "regexp": 192
+        },
+        "resources": {
+          "object|ArrayBuffer": {
+            "count": 75,
+            "selfSize": 3852
+          },
+          "native|system / JSArrayBufferData": {
+            "count": 497,
+            "selfSize": 951124
+          },
+          "object|Float32Array": {
+            "count": 7,
+            "selfSize": 420
+          },
+          "native|WebGLVertexArrayObject": {
+            "count": 76,
+            "selfSize": 9088
+          },
+          "native|Float32Array": {
+            "count": 345,
+            "selfSize": 40020
+          },
+          "native|ArrayBuffer": {
+            "count": 460,
+            "selfSize": 53360
+          },
+          "native|WebGLBuffer": {
+            "count": 296,
+            "selfSize": 23680
+          },
+          "native|WebGLShader": {
+            "count": 2,
+            "selfSize": 160
+          },
+          "native|WebGLProgram": {
+            "count": 1,
+            "selfSize": 96
+          },
+          "object|WebGLVertexArrayObject": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLShader": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLProgram": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLBuffer": {
+            "count": 1,
+            "selfSize": 16
+          }
+        }
+      },
+      {
+        "kind": "concept",
+        "file": "heap-concept.heapsnapshot",
+        "sha256": "e3208cc478aa87324d7ae4329b2f96ea27939945e766cc631c8a4d79a8ca9505",
+        "bytes": 27001813,
+        "selfSize": 20453891,
+        "selfSizeByType": {
+          "synthetic": 0,
+          "native": 8674583,
+          "string": 1160576,
+          "object shape": 657136,
+          "code": 6782796,
+          "array": 1299516,
+          "number": 274704,
+          "symbol": 96,
+          "closure": 237100,
+          "object": 1352912,
+          "regexp": 192,
+          "concatenated string": 14280
+        },
+        "resources": {
+          "object|Float32Array": {
+            "count": 7,
+            "selfSize": 420
+          },
+          "object|ArrayBuffer": {
+            "count": 75,
+            "selfSize": 3852
+          },
+          "native|ArrayBuffer": {
+            "count": 460,
+            "selfSize": 53360
+          },
+          "native|system / JSArrayBufferData": {
+            "count": 497,
+            "selfSize": 951124
+          },
+          "native|Float32Array": {
+            "count": 345,
+            "selfSize": 40020
+          },
+          "native|WebGLBuffer": {
+            "count": 296,
+            "selfSize": 23680
+          },
+          "native|WebGLVertexArrayObject": {
+            "count": 76,
+            "selfSize": 9088
+          },
+          "native|WebGLProgram": {
+            "count": 1,
+            "selfSize": 96
+          },
+          "native|WebGLShader": {
+            "count": 2,
+            "selfSize": 160
+          },
+          "object|WebGLVertexArrayObject": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLShader": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLProgram": {
+            "count": 1,
+            "selfSize": 16
+          },
+          "object|WebGLBuffer": {
+            "count": 1,
+            "selfSize": 16
+          }
+        }
+      }
+    ],
+    "totalSelfSizeGrowth": 580783,
+    "growthByType": {
+      "synthetic": 0,
+      "native": 45339,
+      "string": 840,
+      "object shape": 7316,
+      "code": 528156,
+      "array": -3284,
+      "number": 624,
+      "symbol": 0,
+      "closure": 0,
+      "object": 1792,
+      "concatenated string": 0,
+      "regexp": 0
+    },
+    "resourceDifferences": [],
+    "limitation": "Three real PF construction/disposal cycles. Self-size is not retained-size dominance analysis or a proof of long-session heap convergence. Compiled-code growth is reported separately; no total-heap threshold is changed."
+  },
+  "zoomResize": [
+    {
+      "local": false,
+      "zoomBefore": 1.2214027581601699,
+      "zoomResized": 1.2214027581601699,
+      "anchorDrift": 2.220446049250313e-16,
+      "scaleRatio": 0.9900498337491681,
+      "expectedScaleRatio": 0.9900498337491681,
+      "angle": 0,
+      "dprOnly": {
+        "left": 202,
+        "top": 180,
+        "width": 876,
+        "height": 441,
+        "bufferWidth": 1752,
+        "bufferHeight": 882,
+        "dpr": 2
+      },
+      "reopenedRatio": 0.990049833749168
+    },
+    {
+      "local": true,
+      "zoomBefore": 0.9048374180359595,
+      "zoomResized": 0.9048374180359595,
+      "anchorDrift": 5.551115123125783e-17,
+      "scaleRatio": 0.9900498337491681,
+      "expectedScaleRatio": 0.9900498337491681,
+      "angle": 0,
+      "dprOnly": {
+        "left": 202,
+        "top": 180,
+        "width": 876,
+        "height": 441,
+        "bufferWidth": 1752,
+        "bufferHeight": 882,
+        "dpr": 2
+      },
+      "reopenedRatio": 0.9900498337491682
+    }
+  ]
+}

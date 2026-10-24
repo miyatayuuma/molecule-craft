@@ -1,0 +1,91 @@
+{
+  "consistency": [
+    {
+      "id": 31,
+      "seedCount": 827,
+      "predicted": 827,
+      "falseNegatives": [],
+      "falsePositives": []
+    },
+    {
+      "id": 1056,
+      "seedCount": 63,
+      "predicted": 63,
+      "falseNegatives": [],
+      "falsePositives": []
+    },
+    {
+      "id": 1057,
+      "seedCount": 92,
+      "predicted": 92,
+      "falseNegatives": [],
+      "falsePositives": []
+    },
+    {
+      "id": 1058,
+      "seedCount": 49,
+      "predicted": 49,
+      "falseNegatives": [],
+      "falsePositives": []
+    },
+    {
+      "id": 1059,
+      "seedCount": 80,
+      "predicted": 80,
+      "falseNegatives": [],
+      "falsePositives": []
+    }
+  ],
+  "corrections": [
+    {
+      "id": 31,
+      "x": 159,
+      "y": 236,
+      "savedOwner": 31,
+      "oldVisible": false,
+      "visible": true
+    },
+    {
+      "id": 31,
+      "x": 159,
+      "y": 257,
+      "savedOwner": 31,
+      "oldVisible": false,
+      "visible": true
+    },
+    {
+      "id": 31,
+      "x": 140,
+      "y": 268,
+      "savedOwner": 31,
+      "oldVisible": false,
+      "visible": true
+    },
+    {
+      "id": 31,
+      "x": 146,
+      "y": 272,
+      "savedOwner": 31,
+      "oldVisible": false,
+      "visible": true
+    },
+    {
+      "id": 1058,
+      "x": 229,
+      "y": 235,
+      "savedOwner": 33,
+      "oldVisible": true,
+      "visible": false
+    },
+    {
+      "id": 1059,
+      "x": 199,
+      "y": 184,
+      "savedOwner": 34,
+      "oldVisible": true,
+      "visible": false
+    }
+  ],
+  "projectionOnly": true,
+  "newCPURasters": 0
+}

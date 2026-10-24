@@ -1,0 +1,18 @@
+{
+  "kind": "SINGLE_ROUTE_PILOT_NOT_ALL25_OR_FINAL_ACCEPTANCE",
+  "sourceSha": null,
+  "expected": 1,
+  "completed": 1,
+  "rows": [
+    {
+      "polymerId": "nitrile-butadiene-rubber",
+      "atoms": 27,
+      "bonds": 26,
+      "views": 160,
+      "missingAtoms": [],
+      "missingBonds": [],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

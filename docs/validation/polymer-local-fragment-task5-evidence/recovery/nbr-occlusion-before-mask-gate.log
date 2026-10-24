@@ -1,0 +1,46 @@
+{
+  "kind": "SINGLE_ROUTE_PILOT_NOT_ALL25_OR_FINAL_ACCEPTANCE",
+  "sourceSha": null,
+  "expected": 1,
+  "completed": 1,
+  "rows": [
+    {
+      "polymerId": "nitrile-butadiene-rubber",
+      "atoms": 27,
+      "bonds": 26,
+      "views": 160,
+      "missingAtoms": [],
+      "missingBonds": [],
+      "failures": [
+        "initial real ends insufficiently visible"
+      ]
+    }
+  ],
+  "failures": [
+    "nitrile-butadiene-rubber: initial real ends insufficiently visible"
+  ]
+}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Static visual acceptance has unresolved failures
++ actual - expected
+
++ [
++   'nitrile-butadiene-rubber: initial real ends insufficiently visible'
++ ]
+- []
+
+    at file:///workspace/scratch/42fe32d8f263/molecule-craft/scripts/check-polymer-task5-visual.mjs:37:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'nitrile-butadiene-rubber: initial real ends insufficiently visible'
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

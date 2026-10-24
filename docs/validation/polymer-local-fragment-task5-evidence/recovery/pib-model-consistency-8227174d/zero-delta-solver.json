@@ -1,0 +1,215 @@
+{
+  "kind": "OLD_AFFINE_MODEL_ZERO_DELTA_DIAGNOSTIC",
+  "status": 0,
+  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+  "hasIncumbent": true,
+  "variables": 162,
+  "constraints": 1610,
+  "seconds": 0.008399628999995912,
+  "deltaDegrees": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "areas": [
+    {
+      "kind": "atom",
+      "index": 0,
+      "fixedAffineInterior": 1275,
+      "eligibleCells": 1275,
+      "requiredAtSeed": 853.086691058543
+    },
+    {
+      "kind": "atom",
+      "index": 30,
+      "fixedAffineInterior": 823,
+      "eligibleCells": 823,
+      "requiredAtSeed": 815.7791315171334
+    },
+    {
+      "kind": "atom",
+      "index": 34,
+      "fixedAffineInterior": 1601,
+      "eligibleCells": 1601,
+      "requiredAtSeed": 1012.3502164483151
+    },
+    {
+      "kind": "atom",
+      "index": 5,
+      "fixedAffineInterior": 930,
+      "eligibleCells": 930,
+      "requiredAtSeed": 563.9933315076037
+    },
+    {
+      "kind": "atom",
+      "index": 6,
+      "fixedAffineInterior": 796,
+      "eligibleCells": 796,
+      "requiredAtSeed": 481.8801805473786
+    },
+    {
+      "kind": "atom",
+      "index": 7,
+      "fixedAffineInterior": 855,
+      "eligibleCells": 855,
+      "requiredAtSeed": 512.4007434322361
+    },
+    {
+      "kind": "atom",
+      "index": 35,
+      "fixedAffineInterior": 1182,
+      "eligibleCells": 1182,
+      "requiredAtSeed": 747.3143279656088
+    },
+    {
+      "kind": "atom",
+      "index": 8,
+      "fixedAffineInterior": 677,
+      "eligibleCells": 677,
+      "requiredAtSeed": 408.9390220231631
+    },
+    {
+      "kind": "atom",
+      "index": 31,
+      "fixedAffineInterior": 1014,
+      "eligibleCells": 1014,
+      "requiredAtSeed": 711.1496902861096
+    },
+    {
+      "kind": "atom",
+      "index": 32,
+      "fixedAffineInterior": 505,
+      "eligibleCells": 505,
+      "requiredAtSeed": 325.2156763845287
+    },
+    {
+      "kind": "atom",
+      "index": 33,
+      "fixedAffineInterior": 536,
+      "eligibleCells": 536,
+      "requiredAtSeed": 337.01129103471266
+    },
+    {
+      "kind": "bond",
+      "index": 3,
+      "fixedAffineInterior": 211,
+      "eligibleCells": 211,
+      "requiredAtSeed": 110.57418370618238
+    },
+    {
+      "kind": "bond",
+      "index": 9,
+      "fixedAffineInterior": 80,
+      "eligibleCells": 80,
+      "requiredAtSeed": 54.50950591039297
+    },
+    {
+      "kind": "bond",
+      "index": 10,
+      "fixedAffineInterior": 144,
+      "eligibleCells": 144,
+      "requiredAtSeed": 74.15465026789795
+    },
+    {
+      "kind": "bond",
+      "index": 11,
+      "fixedAffineInterior": 155,
+      "eligibleCells": 155,
+      "requiredAtSeed": 77.44660683685261
+    },
+    {
+      "kind": "bond",
+      "index": 12,
+      "fixedAffineInterior": 70,
+      "eligibleCells": 70,
+      "requiredAtSeed": 44.45517299338
+    },
+    {
+      "kind": "bond",
+      "index": 31,
+      "fixedAffineInterior": 126,
+      "eligibleCells": 126,
+      "requiredAtSeed": 75.7988892866852
+    },
+    {
+      "kind": "bond",
+      "index": 32,
+      "fixedAffineInterior": 63,
+      "eligibleCells": 63,
+      "requiredAtSeed": 61.70281866165162
+    },
+    {
+      "kind": "bond",
+      "index": 33,
+      "fixedAffineInterior": 92,
+      "eligibleCells": 92,
+      "requiredAtSeed": 94.62870517647175
+    },
+    {
+      "kind": "bond",
+      "index": 34,
+      "fixedAffineInterior": 50,
+      "eligibleCells": 50,
+      "requiredAtSeed": 37.79253198756675
+    },
+    {
+      "kind": "bond",
+      "index": 35,
+      "fixedAffineInterior": 81,
+      "eligibleCells": 81,
+      "requiredAtSeed": 46.54663077113314
+    }
+  ],
+  "continuity": [
+    {
+      "index": 32,
+      "branches": [
+        {
+          "n": 38,
+          "branchVariable": 6,
+          "hits": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45
+          ]
+        }
+      ]
+    }
+  ]
+}

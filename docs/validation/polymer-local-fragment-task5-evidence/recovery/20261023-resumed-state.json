@@ -1,0 +1,328 @@
+{
+  "kind": "RESUMED_WORK_CHECKPOINT_NOT_TASK5_CLOSURE",
+  "dateJst": "2026-10-23",
+  "mainSha": "593ac571e4d664f7af885855352142874dd227ab",
+  "recoveredCandidateSha": "d29a11599c7c71ebb4e2e2824545904272976b23",
+  "status": "BLOCKED",
+  "contracts": {
+    "pass": 31,
+    "fail": 0,
+    "skipped": 0,
+    "PWAAssets": 353,
+    "hygieneWarnings": 0,
+    "PETCapturedInputReplay": "PASS",
+    "dockingCapturedInputReplay": "PASS",
+    "newAllocationGuardTests": 3,
+    "repeatedStaticRenderControls": 3
+  },
+  "mobileSmoke": {
+    "pass": true,
+    "uniqueRoutes": 25,
+    "sourceSha": "d29a11599c7c71ebb4e2e2824545904272976b23",
+    "browser": {
+      "product": "HeadlessChrome/156.0.8078.47",
+      "revision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+      "protocolVersion": "1.3"
+    },
+    "PET": {
+      "sampleId": "polymer-sample-11-11",
+      "graphDigest": "ac71c980c5105222e7d2b217da840d403c89349a278f8d18716862ba293d5d1e",
+      "atoms": 47,
+      "bonds": 48
+    },
+    "evidence": {
+      "path": "d29-mobile-smoke.json.gz",
+      "sha256": "ce3a8e2775cf52aac9ed85fa51056ff943516e41771424ceba3b3dee12963a78",
+      "uncompressedSha256": "1c14373f29d006e3bf648899edb71d45e07033c477491eb49999d39ad3e621c6"
+    }
+  },
+  "desktopSmoke": {
+    "pass": true,
+    "uniqueRoutes": 25,
+    "browser": {
+      "product": "HeadlessChrome/156.0.8078.47",
+      "revision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+      "protocolVersion": "1.3"
+    },
+    "evidence": {
+      "path": "d29-desktop-smoke.json.gz",
+      "sha256": "477a07d2e486892cd218b091d184cfa9d5b8b7d92b7c802a5792843929613381"
+    },
+    "PETReset": {
+      "pose": {
+        "position": [
+          -2.459429690159609,
+          -0.6653962137099665,
+          -0.5212827318260594
+        ],
+        "quaternion": [
+          0.081383234653508,
+          0.579738991011209,
+          -0.41517911819577147,
+          -0.6963517582607364
+        ],
+        "scale": 1.8301798036694528
+      },
+      "initialPose": {
+        "position": [
+          -2.459429690159609,
+          -0.6653962137099665,
+          -0.5212827318260594
+        ],
+        "quaternion": [
+          0.081383234653508,
+          0.579738991011209,
+          -0.41517911819577147,
+          -0.6963517582607364
+        ],
+        "scale": 1.8301798036694528
+      },
+      "angle": 0,
+      "zoomRatio": 1,
+      "maxProjectionError": 0
+    },
+    "SBRReset": {
+      "pose": {
+        "position": [
+          -0.07392608476594265,
+          -1.1234778285615816,
+          0.8400484423904641
+        ],
+        "quaternion": [
+          -0.08438889137692737,
+          0.25048058461645756,
+          -0.00604377544897914,
+          0.9644176815678428
+        ],
+        "scale": 1.2994723758846523
+      },
+      "initialPose": {
+        "position": [
+          -0.07392608476594265,
+          -1.1234778285615816,
+          0.8400484423904641
+        ],
+        "quaternion": [
+          -0.08438889137692737,
+          0.25048058461645756,
+          -0.00604377544897914,
+          0.9644176815678428
+        ],
+        "scale": 1.2994723758846523
+      },
+      "angle": 2.9802322387695312e-08,
+      "zoomRatio": 1,
+      "maxProjectionError": 0
+    }
+  },
+  "PIB": {
+    "type": "NUMERIC_DIAGNOSTIC_NOT_RASTER_ACCEPTANCE",
+    "sites": [
+      {
+        "anchor": 0,
+        "oldPrediction": 0.7589285714285715,
+        "bestOf512": 1,
+        "predictedPasses": 1
+      },
+      {
+        "anchor": 17,
+        "oldPrediction": 0.625,
+        "bestOf512": 0.8023471036453128,
+        "predictedPasses": 0
+      },
+      {
+        "anchor": 30,
+        "oldPrediction": 0.4910714285714286,
+        "bestOf512": 0.5357142857142857,
+        "predictedPasses": 0
+      }
+    ],
+    "evidence": {
+      "path": "d29-pib-direction-diagnostic.json.gz",
+      "sha256": "5077db2eb91defb11db776272c44e4cc243e25ebb178b716e652462056e19bda",
+      "uncompressedSha256": "b4ecec8c67a077389474299b51c3b5dae7ed4475517c2f87bf33a562b4a9a77c"
+    },
+    "limits": [
+      "Numeric sphere/cylinder approximation; actual PNG remains required",
+      "No proof of geometric impossibility",
+      "No threshold, graph, geometry or production candidate changes"
+    ]
+  },
+  "remaining": [
+    "Frozen actual PLA re-FEED geometry recovery before PIB visibility or final campaigns",
+    "PIB simultaneous groups under unchanged actual PNG criteria",
+    "Final-source all25 static / all12 viewport-motion-DPR conditions",
+    "PF repeated resource/heap acceptance",
+    "Original strict real-RAF Finite comparator",
+    "Final Repository/FIELD/StageB, independent review, merge and post-merge verification"
+  ],
+  "ciPolicy": "Checkpoint uses [skip ci] to preserve work without starting additional Actions during this diagnostic checkpoint. Required gates remain pending and Draft/Open is retained.",
+  "equivalentSavedRuntimeSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
+  "PETRaster": {
+    "runtimeSourceSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "DPR": 1
+    },
+    "fixedViews": 160,
+    "rasterGate": "PASS_SINGLE_ROUTE_PILOT",
+    "originalBrowserProcess": "FAIL_REDUCED_TAIL_ALLOCATION_51_TO_58",
+    "followupFunctionalReplay": "PASS_NORMAL_AND_REDUCED",
+    "stableAllocationWindows": 10,
+    "liveAutomaticGrowthBranch": "NOT_EXERCISED",
+    "deterministicAllocationGuardTests": 3,
+    "limits": [
+      "The original before-window graph was not captured.",
+      "Original browser FAIL is retained separately from raster PASS.",
+      "Formal performance-profile allocation checks are unchanged."
+    ],
+    "harnessHashes": {
+      "tests/reaction-lab-polymer-browser.test.mjs": "d25497c71ac9112c25e06acb4b75a623aa25e0bd19ef6e73f7b86d083c87d533",
+      "tests/helpers/polymer-allocation-window.mjs": "5ecedf9b01cc8800228bd264a42ad8afe46690e807841e631937c198be31a8f2"
+    }
+  },
+  "PLARaster": {
+    "runtimeSourceSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
+    "harnessCheckpointSha": "f480b879946e7ec0a722b041274e7721374e9dcc",
+    "viewport": {
+      "width": 1280,
+      "height": 800,
+      "mobile": false
+    },
+    "DPR": 2,
+    "fixedViews": 240,
+    "rasterGate": "PASS_SINGLE_ROUTE_PILOT",
+    "enclosingBrowserProcess": "FAIL_NEXT_KNOWN_SAMPLE_GEOMETRY",
+    "oldCase": {
+      "label": "local-29/y45/p30",
+      "pointerAngleError": 3.068336886461678e-07,
+      "pointerZoomRatio": 1,
+      "presses": 4,
+      "owners": [
+        {
+          "axis": "yaw",
+          "start": {
+            "x": 463.75,
+            "y": 343.3515625
+          },
+          "end": {
+            "x": 512.8373852123406,
+            "y": 343.3515625
+          },
+          "owner": {
+            "sampleId": "polymer-sample-1-1",
+            "orbitPointerIds": [
+              1
+            ],
+            "draggedInstanceId": null
+          }
+        },
+        {
+          "axis": "yaw",
+          "start": {
+            "x": 463.75,
+            "y": 343.3515625
+          },
+          "end": {
+            "x": 512.8373852123406,
+            "y": 343.3515625
+          },
+          "owner": {
+            "sampleId": "polymer-sample-1-1",
+            "orbitPointerIds": [
+              1
+            ],
+            "draggedInstanceId": null
+          }
+        },
+        {
+          "axis": "pitch",
+          "start": {
+            "x": 463.75,
+            "y": 343.3515625
+          },
+          "end": {
+            "x": 463.75,
+            "y": 376.07648597489367
+          },
+          "owner": {
+            "sampleId": "polymer-sample-1-1",
+            "orbitPointerIds": [
+              1
+            ],
+            "draggedInstanceId": null
+          }
+        },
+        {
+          "axis": "pitch",
+          "start": {
+            "x": 463.75,
+            "y": 343.3515625
+          },
+          "end": {
+            "x": 463.75,
+            "y": 376.07648597489367
+          },
+          "owner": {
+            "sampleId": "polymer-sample-1-1",
+            "orbitPointerIds": [
+              1
+            ],
+            "draggedInstanceId": null
+          }
+        }
+      ]
+    },
+    "nextSample": {
+      "sampleId": "polymer-sample-2-2",
+      "graphDigest": "0e2881feedc95881932ed5f49a8f5a8a899d33afb4d4ef51f0a273078d1a0556",
+      "atoms": 39,
+      "bonds": 38,
+      "inputPath": "pla-refeed-geometry-input.json",
+      "inputSHA256": "d66858f2b16e770772842f03eb32eb0174847db142f39ae5d5f0735446b54828",
+      "geometryReplayPass": false,
+      "safeError": {
+        "code": "POLYMER_GEOMETRY_UNAVAILABLE",
+        "message": "Polymer geometry unavailable: chemical-geometry-did-not-converge"
+      },
+      "iterations": 160,
+      "maxAngleError": 15.420202394886346,
+      "violations": {
+        "bonds": [],
+        "angles": [
+          {
+            "a": 13,
+            "center": 15,
+            "b": 22,
+            "target": 114.8,
+            "environment": "acyl-O",
+            "degrees": 130.22020239488634,
+            "error": 15.420202394886346
+          }
+        ],
+        "planes": [],
+        "steric": []
+      }
+    },
+    "limits": [
+      "The first Sample raster passes; the next known Sample is rejected and the process fails.",
+      "No final-source all25 static, all12 conditions, strict Finite or merge certification."
+    ]
+  },
+  "nextMinimum": {
+    "step": "Frozen actual PLA re-FEED geometry recovery before PIB visibility or final campaigns",
+    "input": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pla-refeed-geometry-input.json",
+    "command": "POLYMER_CAPTURED_SOURCE_SHA=9e3f4bb8af55c0ff34a29e29f734b9e895bb600c POLYMER_CAPTURED_VIEWPORT='{\"width\":1280,\"height\":800,\"mobile\":false}' POLYMER_CAPTURED_DPR=2 node scripts/replay-polymer-task5-captured-input.mjs docs/validation/polymer-local-fragment-task5-evidence/recovery/pla-refeed-geometry-input.json",
+    "required": "Preserve160 iterations, every chemistry tolerance, graph/source/origin and fail-closed fallback; accept this input and existing PET/all25/intermediate geometry before new expensive browser campaigns"
+  },
+  "activeJobs": "NONE_ALL_LOCAL_BROWSER_PROCESSES_FINISHED",
+  "environment": {
+    "Chrome": "156.0.8078.47",
+    "Node": "24.19.0",
+    "JapaneseFontSHA256": "68a3fc98800b2a27b371f2fb79991daf3633bd89309d4ffaa6946fd587f375b5"
+  },
+  "mandatoryCIRegression": "task5-fit-diagnostic now replays the frozen known-PLA input before browser/resource/all25 campaigns; current rejection remains a hard failure",
+  "startingPR354Head": "50c0b38fba2ad87272d30a536d45a1060a80c7a0",
+  "currentPR354Head": "Resolve feat/polymer-local-fragment-task5 on GitHub; do not substitute the starting SHA"
+}

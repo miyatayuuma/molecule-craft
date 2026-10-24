@@ -1,0 +1,18 @@
+{
+  "kind": "SINGLE_ROUTE_PILOT_NOT_ALL25_OR_FINAL_ACCEPTANCE",
+  "sourceSha": null,
+  "expected": 1,
+  "completed": 1,
+  "rows": [
+    {
+      "polymerId": "polyacrylonitrile",
+      "atoms": 28,
+      "bonds": 27,
+      "views": 360,
+      "missingAtoms": [],
+      "missingBonds": [],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

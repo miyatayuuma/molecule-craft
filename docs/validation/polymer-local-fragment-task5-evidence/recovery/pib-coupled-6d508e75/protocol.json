@@ -1,0 +1,32 @@
+{
+  "kind": "COUPLED_EXACT_MESH_LOCAL_FEASIBILITY_NOT_ACCEPTANCE",
+  "startHead": "6d508e753e2c7bd8cf3b2578d81311936c9e8250",
+  "maximumObjectiveEvaluations": 240,
+  "maximumConfirmationRasters": 9,
+  "anchor": 30,
+  "seed": "retained boundary30#0, actual native-mesh capture",
+  "variables": "three components of camera-space rotation vector in degrees, left-multiplied onto retained quaternion",
+  "boundsDegrees": [
+    -6,
+    6
+  ],
+  "method": "COBYQA trust-region maximizing minimum of ALL independent atom/bond/Q ratios; safe-region/depth are separate hard guards",
+  "initialRadiusDegrees": 1,
+  "finalRadiusDegrees": 0.025,
+  "maximumIterations": 400,
+  "objectiveTarget": 1.02,
+  "stop": "first target attainment, trust-region termination, 240 evaluations or 400 iterations; no second seed/restart/sweep",
+  "fit": "unchanged production explicit-quaternion fit, inherited shell pivot/.92 headroom and whole-graph depth budget",
+  "raster": "legacy4 with independently evaluated edges, ALL frozen native spheres/cylinders and depth; no smooth shadow proxy",
+  "confirmation": "at most one selected anchor30 pose plus retained 0/17 poses, each legacy4/shader32/float64",
+  "limits": [
+    "local existence search only; no global nonexistence proof",
+    "CPU arithmetic modes are sensitivity checks, not native error bounds",
+    "No A06/actual pointer/reset/GPU acceptance",
+    "No production changes or chemistry/XYZ modifications"
+  ],
+  "runtime": {
+    "numpy": "2.3.5",
+    "scipy": "1.17.0"
+  }
+}

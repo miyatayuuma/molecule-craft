@@ -1,0 +1,18 @@
+{
+  "kind": "SINGLE_ROUTE_PILOT_NOT_ALL25_OR_FINAL_ACCEPTANCE",
+  "sourceSha": "9e3f4bb8af55c0ff34a29e29f734b9e895bb600c",
+  "expected": 1,
+  "completed": 1,
+  "rows": [
+    {
+      "polymerId": "polylactic-acid",
+      "atoms": 39,
+      "bonds": 38,
+      "views": 240,
+      "missingAtoms": [],
+      "missingBonds": [],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

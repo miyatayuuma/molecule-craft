@@ -449,5 +449,5 @@ function interactionFor(plan,sequenceIndex){
       sample:tx.sample?clone(tx.sample):null,
     };
   }
-  return{routeFor,beginBatch,previewManualStep,beginManualStep,beginAutomaticStep,advanceFixedStep,autoFallback,rollbackPending,setEnvironment,sampleDismiss,snapshot,get state(){return transaction?.state??null;},get routeId(){return transaction?.routeId??null;}};
+  return{comparisonEvidence:()=>transaction?clone({byproducts:transaction.byproducts}):null,routeFor,beginBatch,previewManualStep,beginManualStep,beginAutomaticStep,advanceFixedStep,autoFallback,rollbackPending,setEnvironment,sampleDismiss,snapshot,get state(){return transaction?.state??null;},get routeId(){return transaction?.routeId??null;}};
 }

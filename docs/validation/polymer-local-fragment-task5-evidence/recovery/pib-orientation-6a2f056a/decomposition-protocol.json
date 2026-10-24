@@ -1,0 +1,25 @@
+{
+  "kind": "FIXED_OCCLUSION_COMPONENT_ANALYSIS_NOT_ACCEPTANCE",
+  "anchors": [
+    0,
+    17,
+    30
+  ],
+  "poses": "one retained reference pose per anchor, boundary30#0; no new orientations",
+  "rasterBudget": 123,
+  "components": [
+    "isolated cylinder",
+    "cylinder plus endpoint spheres",
+    "cylinder plus all atom spheres",
+    "complete graph"
+  ],
+  "inputs": {
+    "graphDigest": "f7bd07a6bc990bb0157fe2e917b2df5a7c1c4510a0a924c137dccad5b914b7b6",
+    "source": "6a2f056a13ddea48c1d55218f3a58f1b3d058c62"
+  },
+  "limits": [
+    "CPU legacy4 independent edges is approximate",
+    "Removed occluders are diagnostic counterfactuals only",
+    "No universal rigid-pose impossibility proof or formal GPU acceptance"
+  ]
+}

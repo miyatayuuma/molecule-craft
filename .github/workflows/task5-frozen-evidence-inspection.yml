@@ -1,0 +1,144 @@
+name: Task5 recovered fit and pointer gates
+on:
+  push:
+    branches: [diagnostics/task5-evidence-50c0]
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Protected geometry, raster and resource contracts
+        run: node --test tests/polymer-task5-pet-recovery.test.mjs tests/polymer-observation.test.mjs tests/polymer-raster-grading.test.mjs tests/polymer-static-render.test.mjs tests/polymer-heap-grading.test.mjs tests/polymer-fragment-task4.test.mjs tests/pwa.test.mjs
+      - name: Frozen production input and independent docking replay
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+        run: |
+          node scripts/replay-polymer-task5-captured-input.mjs
+          node scripts/replay-polymer-task5-docking-input.mjs
+      - name: Source and generated assets
+        run: |
+          node scripts/check-repository-hygiene.mjs
+          node scripts/build-precache.mjs --check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-recovered-contracts
+          path: test-results/reaction-lab-polymer-simplification
+          if-no-files-found: error
+          retention-days: 90
+  smoke:
+    needs: contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - width: 360
+            viewport: '{"width":360,"height":780,"mobile":true}'
+          - width: 1280
+            viewport: '{"width":1280,"height":800,"mobile":false}'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Japanese screenshot font
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: All25 sequential actual pointer and comparison smoke
+        env:
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
+          POLYMER_TASK5_VIEWPORT: ${{ matrix.viewport }}
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-recovered-smoke-${{ matrix.width }}
+          path: test-results/reaction-lab-polymer-simplification
+          if-no-files-found: error
+          retention-days: 90
+  targeted-raster:
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - route: polyethylene-terephthalate-direct-polycondensation
+            viewport: '{"width":390,"height":844,"mobile":true}'
+            dpr: 1
+          - route: polylactic-acid-direct-polycondensation
+            viewport: '{"width":1280,"height":800,"mobile":false}'
+            dpr: 2
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Japanese screenshot font
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Actual raster and immediate pointer ownership for repaired failure
+        env:
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_MOTION: normal
+          POLYMER_TASK5_DPR: ${{ matrix.dpr }}
+          POLYMER_TASK5_VIEWPORT: ${{ matrix.viewport }}
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Retain unchanged per-route raster criteria
+        env:
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: ${{ matrix.route }}
+          POLYMER_TASK5_DPR: ${{ matrix.dpr }}
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+        run: node scripts/check-polymer-task5-visual.mjs > pilot-gate.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-recovered-raster-${{ matrix.route }}
+          path: |
+            test-results/reaction-lab-polymer-simplification
+            pilot-gate.json
+          if-no-files-found: error
+          retention-days: 90
+  repeated-resources:
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Japanese screenshot font
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: PF comparison, empty FEED and repeated actual resource ownership
+        env:
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: phenol-formaldehyde-resole
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
+          POLYMER_TASK5_LIFECYCLE_QA: '1'
+          POLYMER_TASK5_HEAP_SNAPSHOT: '1'
+          POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Preserve zero resource growth acceptance
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.sha }}
+        run: node scripts/summarize-polymer-task5-heaps.mjs test-results/reaction-lab-polymer-simplification
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-recovered-repeated-resources
+          path: test-results/reaction-lab-polymer-simplification
+          if-no-files-found: error
+          retention-days: 90

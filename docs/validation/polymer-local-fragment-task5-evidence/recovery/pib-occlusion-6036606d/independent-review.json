@@ -1,0 +1,34 @@
+{
+  "kind": "INDEPENDENT_READ_ONLY_LIMITED_REVIEW_NOT_GITHUB_APPROVAL",
+  "sourceHead": "6036606df10126840c5c51ada9fde76cb4d57f84",
+  "scriptHashes": {
+    "scripts/diagnose-polymer-task5-pib-occlusion.mjs": "fcf8cbc2f020ce22a69d98c05d0471f46429442fd970ea85ae1121e02674da71",
+    "scripts/diagnose-polymer-task5-pib-refinement.mjs": "b99dbd563251093a22de2d7b92e7324090310a84307ce6e9cd9030d752088925",
+    "scripts/diagnose-polymer-task5-pib-search.mjs": "82619d13a8c3c86e506f8cb6471867d5119a1c1eed32b8de1349b79ab913642c",
+    "scripts/diagnose-polymer-task5-pib-mesh.mjs": "8e5babc842d20fae6a7eaf26f1367cbf6c6fd6df329fbab68877488ba55f7d8b"
+  },
+  "scope": [
+    "Frozen PIB masks/projections and four diagnostic scripts",
+    "Original PLA validated pre-distance retention and frozen regression intent"
+  ],
+  "blockingFindings": [],
+  "findings": [
+    "Original mask deficits support real endpoint/other-atom occlusion; all-single PIB has no demonstrated camera-facing-lane mismatch",
+    "Top-four gap-only frame ranking discards useful0/17 predictions",
+    "The centerline visibility proxy is not the formal lane-area observable; no formal grader error demonstrated",
+    "Pivot/wide-region factors do not justify production adoption",
+    "CPU raycaster independently reproduces original mask deficits and30 retained best predictions; unknown atom local quaternion matters at boundaries",
+    "PLA stores only jointly accepted poses, prioritizes original checkpoints and retains final caller validation/160 iterations/thresholds/graph/origin"
+  ],
+  "resolvedReviewNotes": [
+    "Bound finite-cylinder analytic side intersection to h in[0,length]",
+    "Bind fixture/runtime/scripts by manifest hashes",
+    "Describe CPU jointPrediction as a partial pixel prediction; no photometry/actual pointer/independent q-depth acceptance"
+  ],
+  "limits": [
+    "Reviewer did not run browser tests or independently rerun the35 tests",
+    "Separate Codex agent review is not a returned GitHub bot receipt or branch-protection approval",
+    "No proof of global rigid-view impossibility; no new actual PNG acceptance"
+  ],
+  "recommendation": "BLOCKED; retain Draft/Open; no merge; no transfer to Task6"
+}

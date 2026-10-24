@@ -1,0 +1,11 @@
+{
+  "pwaAssets": 353,
+  "hygieneWarnings": 0,
+  "syntax": "PASS",
+  "diff": "PASS",
+  "protectedChanges": 0,
+  "regressionCommand": "node --test tests/polymer-task5-*.test.mjs tests/polymer-observation.test.mjs tests/polymer-raster-grading.test.mjs tests/polymer-fragment-3d-layout.test.mjs tests/polymer-progression-geometry.test.mjs tests/polymer-fragment-task4.test.mjs",
+  "candidateSolverCallsAfterCorrection": 0,
+  "releaseBrowser": "NOT_RUN",
+  "strictPerformance": "NOT_RUN"
+}

@@ -40,6 +40,7 @@ permissions:
   contents: read
 jobs:
   finite-validation:
+    needs: task5-visual-acceptance
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -202,5 +203,120 @@ jobs:
         with:
           name: task10-task11-stage-b-performance-comparison
           path: ${{ runner.temp }}/stage-b-performance
+          if-no-files-found: error
+          retention-days: 90
+  task5-visual-acceptance:
+    needs: task5-fit-diagnostic
+    runs-on: ubuntu-latest
+    # Source5633's390/DPR2 fixed PNG campaign hit90min before completion.
+    # Preserve every40-direction target and optical gate; allow its full run.
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: ['{"width":360,"height":780,"mobile":true}', '{"width":390,"height":844,"mobile":true}', '{"width":1280,"height":800,"mobile":false}']
+        motion: [normal, reduced]
+        dpr: [1, 2]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Japanese screenshot font
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Deterministic rendering and preservation contracts
+        run: node --test tests/polymer-observation.test.mjs tests/polymer-static-render.test.mjs tests/polymer-fragment-task4.test.mjs tests/reaction-lab-step-geometry-cache.test.mjs
+      - name: All25 at DPR1 and representative cases at DPR2 — fixed static mask campaign
+        env:
+          POLYMER_TASK5_DPR: ${{ matrix.dpr }}
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_MOTION: ${{ matrix.motion }}
+          POLYMER_TASK5_VIEWPORT: ${{ matrix.viewport }}
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Gate every declared static visual target
+        env:
+          POLYMER_TASK5_DPR: ${{ matrix.dpr }}
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/check-polymer-task5-visual.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-visual-${{ strategy.job-index }}
+          path: test-results/reaction-lab-polymer-simplification
+          if-no-files-found: error
+          retention-days: 90
+
+  task5-fit-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Replay captured production PET input against protected geometry
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --test tests/polymer-task5-pla-recovery.test.mjs tests/polymer-task5-pet-recovery.test.mjs tests/polymer-raster-grading.test.mjs tests/polymer-heap-grading.test.mjs tests/polymer-allocation-window.test.mjs
+          node scripts/replay-polymer-task5-captured-input.mjs
+          node scripts/replay-polymer-task5-docking-input.mjs
+      - name: Replay captured known-PLA re-FEED geometry before browser campaigns
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          POLYMER_CAPTURED_SOURCE_SHA: 9e3f4bb8af55c0ff34a29e29f734b9e895bb600c
+          POLYMER_CAPTURED_VIEWPORT: '{"width":1280,"height":800,"mobile":false}'
+          POLYMER_CAPTURED_DPR: '2'
+          POLYMER_EVIDENCE_DIR: test-results/reaction-lab-polymer-simplification/pla-captured-input
+        run: node scripts/replay-polymer-task5-captured-input.mjs docs/validation/polymer-local-fragment-task5-evidence/recovery/pla-refeed-geometry-input.json
+      - name: Reproduce actual PET fit with captured failure input
+        env:
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: polyethylene-terephthalate-direct-polycondensation
+          POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Empty FEED comparison disposal and real re-FEED — PF before/water/concept
+        env:
+          POLYMER_FIT_DIAGNOSTIC_ROUTE: phenol-formaldehyde-resole
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
+          POLYMER_TASK5_LIFECYCLE_QA: '1'
+          POLYMER_TASK5_HEAP_SNAPSHOT: '1'
+          POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Inspect bounded repeated resource and heap ownership
+        env:
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/summarize-polymer-task5-heaps.mjs test-results/reaction-lab-polymer-simplification
+      - name: Sequential pointer and comparison replay — diagnostic, not visual acceptance
+        env:
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
+          POLYMER_TASK5_VIEWPORT: '{"width":360,"height":780,"mobile":true}'
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - name: Desktop sequential pointer reachability — diagnostic, not visual acceptance
+        env:
+          POLYMER_TASK5_VISUAL: '1'
+          POLYMER_TASK5_DIAGNOSTIC_NO_MASK: '1'
+          POLYMER_TASK5_VIEWPORT: '{"width":1280,"height":800,"mobile":false}'
+          POLYMER_EVIDENCE_DIR: test-results/task5-desktop-diagnostic
+          POLYMER_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/reaction-lab-polymer-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task5-fit-diagnostic
+          path: |
+            test-results/reaction-lab-polymer-simplification
+            test-results/task5-desktop-diagnostic
           if-no-files-found: error
           retention-days: 90
