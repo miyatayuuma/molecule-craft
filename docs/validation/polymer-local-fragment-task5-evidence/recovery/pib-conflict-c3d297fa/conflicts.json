@@ -1,0 +1,182 @@
+[
+  {
+    "branch": 26,
+    "conflictingGroups": [
+      "area:1056",
+      "continuity:34"
+    ],
+    "backgroundRowsRetained": true,
+    "groupMinimalWithFixedBackground": true,
+    "decisions": [
+      {
+        "group": "area:31",
+        "solveSerial": 2,
+        "activeBefore": [
+          "area:31",
+          "area:1058",
+          "area:1059",
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "area:1058",
+        "solveSerial": 3,
+        "activeBefore": [
+          "area:1058",
+          "area:1059",
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "area:1059",
+        "solveSerial": 4,
+        "activeBefore": [
+          "area:1059",
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "area:1056",
+        "solveSerial": 5,
+        "activeBefore": [
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "FEASIBLE_DIAGNOSTIC_RELAXATION"
+      },
+      {
+        "group": "area:1057",
+        "solveSerial": 6,
+        "activeBefore": [
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "continuity:32",
+        "solveSerial": 7,
+        "activeBefore": [
+          "area:1056",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "continuity:34",
+        "solveSerial": 8,
+        "activeBefore": [
+          "area:1056",
+          "continuity:34"
+        ],
+        "classification": "FEASIBLE_DIAGNOSTIC_RELAXATION"
+      }
+    ]
+  },
+  {
+    "branch": 27,
+    "conflictingGroups": [
+      "continuity:32",
+      "continuity:34"
+    ],
+    "backgroundRowsRetained": true,
+    "groupMinimalWithFixedBackground": false,
+    "decisions": [
+      {
+        "group": "area:31",
+        "solveSerial": 10,
+        "activeBefore": [
+          "area:31",
+          "area:1058",
+          "area:1059",
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "area:1058",
+        "solveSerial": 11,
+        "activeBefore": [
+          "area:1058",
+          "area:1059",
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "area:1059",
+        "solveSerial": 12,
+        "activeBefore": [
+          "area:1059",
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "area:1056",
+        "solveSerial": 13,
+        "activeBefore": [
+          "area:1056",
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "area:1057",
+        "solveSerial": 14,
+        "activeBefore": [
+          "area:1057",
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "INFEASIBLE_AFFINE_ONLY"
+      },
+      {
+        "group": "continuity:32",
+        "solveSerial": 15,
+        "activeBefore": [
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "FEASIBLE_DIAGNOSTIC_RELAXATION"
+      },
+      {
+        "group": "continuity:34",
+        "solveSerial": 16,
+        "activeBefore": [
+          "continuity:32",
+          "continuity:34"
+        ],
+        "classification": "UNKNOWN"
+      }
+    ]
+  }
+]

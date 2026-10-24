@@ -1,0 +1,12 @@
+✔ retained conflict systems have complete provenance and byte-exact constructor replay without solves (2259.890091ms)
+✔ both approximate cores are group-minimal against fixed background, with independently checked deletion primals (1245.898563ms)
+✔ a retained native bond pixel contradicts the affine depth rejection while original visibility gates stay intact (9.07085ms)
+✔ fixed diagnosis budgets do not become new candidate, GPU or release acceptance (0.495461ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3633.230784

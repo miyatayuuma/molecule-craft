@@ -1,0 +1,20 @@
+{
+  "regressions": {
+    "passed": 62,
+    "failed": 0,
+    "skipped": 0
+  },
+  "productionFilesCompared": 160,
+  "productionChanges": 0,
+  "PWAAssets": 353,
+  "hygieneWarnings": 0,
+  "syntaxAndDiff": true,
+  "formalGPU": "0/3",
+  "Task5": "BLOCKED",
+  "feasibility": "UNRESOLVED",
+  "candidateConstraintRepair": "NOT_IMPLEMENTED",
+  "newCandidateSolves": 0,
+  "newCandidateCPURasters": 0,
+  "newGPU": 0,
+  "releaseGates": "NOT_RUN_NOT_CERTIFIED"
+}

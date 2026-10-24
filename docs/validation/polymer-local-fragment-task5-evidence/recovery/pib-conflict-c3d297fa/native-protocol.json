@@ -1,0 +1,35 @@
+{
+  "kind": "RETAINED_NATIVE_DISCRIMINATION_NO_SEARCH",
+  "aggregateCases": "all12 retained boundary candidate legacy4 grades; no re-evaluation",
+  "maskCases": [
+    "retained baseline CPU mask",
+    "retained boundary-30-0 actual GPU mask"
+  ],
+  "facetCases": "seed and retained boundary-30-0 only; projection-only, no pixel raster loops",
+  "probeCapPerObject": 12,
+  "solverCalls": 0,
+  "newCPURasters": 0,
+  "newGPUCalls": 0,
+  "frozenFiles": [
+    {
+      "path": "/workspace/scratch/30e08c378695/molecule-craft/scripts/audit-polymer-task5-conflict-native.mjs",
+      "sha256": "291934989adc7cd8d22ac10cf4f8cc06a8f308ce8eb1b2e7f8850ef8c1868689"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-active-constraints-8227174d/active-model.json.gz",
+      "sha256": "b76094e0d82f071dddefc98de60a7dbb51dec432376efd75a6b32e7d8c4dcfa8"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-boundary-92da7771/results.json.gz",
+      "sha256": "cba641a39cbe4d0812d8fd62021f15e842f343629f7afa10d15a179443b657be"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/boundary-30-0.json.gz",
+      "sha256": "b1b7b0981ec2a6e039fe48af918e82bbd9a31aafbaa8b02dc956d99d5f782c69"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-exact-mesh-519a686c/boundary-30-0-id.png",
+      "sha256": "ee8e82ed7c433d7bdec515be3fdf83a2c5df39cc84860d628fe2658c756b5979"
+    }
+  ]
+}

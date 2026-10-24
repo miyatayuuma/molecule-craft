@@ -1,0 +1,46 @@
+{
+  "kind": "FROZEN_MATRIX_CONFLICT_DIAGNOSIS_NOT_CANDIDATE_GENERATION",
+  "startingMain": "593ac571e4d664f7af885855352142874dd227ab",
+  "startingHead": "c3d297fae42b4e653388b5e4ff75bdb50f02fd7c",
+  "maxSolverCalls": 32,
+  "secondsPerCall": 20,
+  "nodesPerCall": 2000,
+  "branches": [
+    26,
+    27
+  ],
+  "groupDeletionOrder": [
+    "area:31",
+    "area:1058",
+    "area:1059",
+    "area:1056",
+    "area:1057",
+    "continuity:32",
+    "continuity:34"
+  ],
+  "phaseA": "Two full LP relaxations; integer full systems are NOT rerun.",
+  "phaseB": "Greedy deletion in fixed order, retained rows and bounds unchanged; unknown retains group.",
+  "phaseC": "For final conflict: remove pixelCoverage then depthOrdering rows, by object31/1056/1057/1058/1059; at most remaining16 calls; stop after both branches or cap.",
+  "stop": "No pose optimization. Time/node limit is UNKNOWN, never infeasible. Stop at32 calls. No unused budget transfer.",
+  "candidateSolverCalls": 0,
+  "newCPURasters": 0,
+  "newGPUCalls": 0,
+  "frozenFiles": [
+    {
+      "path": "/workspace/scratch/30e08c378695/molecule-craft/scripts/diagnose-polymer-task5-conflict.py",
+      "sha256": "7d891281bca246da72415a5f83fac61baec8db22868f96ec2d757b3eb20faca4"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-active-constraints-8227174d/active-model.json.gz",
+      "sha256": "b76094e0d82f071dddefc98de60a7dbb51dec432376efd75a6b32e7d8c4dcfa8"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-corrected-6f85d3a4/corrected-r1-n26-system.json.gz",
+      "sha256": "b019620c790c1407af1b5a25ca6ac822e9877aeefe9a7867ec3c4a00bd7f91e3"
+    },
+    {
+      "path": "docs/validation/polymer-local-fragment-task5-evidence/recovery/pib-corrected-6f85d3a4/corrected-r1-n27-system.json.gz",
+      "sha256": "77e170f6ae2c10264c744621ac220c23754c8d6feaed8725877536af554d219d"
+    }
+  ]
+}
