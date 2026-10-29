@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: 22
       - name: Targeted tests
-        run: node --test tests/reaction-progress.test.mjs tests/tnt-rewards.test.mjs tests/expedition-insights.test.mjs tests/insight-presentation.test.mjs tests/reaction-lab-discovery.test.mjs tests/tnt-eater-defeat.test.mjs
+        run: node --test tests/special-insight.test.mjs tests/reaction-progress.test.mjs tests/tnt-rewards.test.mjs tests/expedition-insights.test.mjs tests/insight-presentation.test.mjs tests/reaction-lab-discovery.test.mjs tests/tnt-eater-defeat.test.mjs
       - name: Browser 360px and desktop
         run: |
           GUIDE_WIDTH=360 node tests/tnt-rewards-browser.test.mjs
