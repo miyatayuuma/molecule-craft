@@ -330,3 +330,9 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 @media(prefers-reduced-motion:reduce){.rb-group-preview svg,.rb-group-preview svg *{animation:none!important;transition:none!important}.rb-motion-cycloaddition .rb-alkenes,.rb-motion-ring-opening .rb-closed-ring,.rb-motion-substitution .rb-old-substituent,.rb-motion-combustion .rb-fuel{opacity:0}.rb-motion-cycloaddition .rb-square,.rb-motion-ring-opening .rb-open-chain,.rb-motion-substitution .rb-new-substituent,.rb-motion-combustion .rb-products{opacity:1}.rb-motion-dehydration .rb-dehydration-before,.rb-motion-oxidation .rb-oxidation-oxygen{opacity:0}.rb-motion-dehydration .rb-dehydration-after{opacity:1}.rb-motion-hydrolysis .rb-hydrolysis-before{opacity:0}.rb-motion-hydrolysis .rb-hydrolysis-after{opacity:1}.rb-motion-hydration .rb-hydration-before{opacity:0}.rb-motion-hydration .rb-hydration-after{opacity:1}.rb-motion-addition .rb-double{opacity:0}.rb-motion-polymerization .rb-chain-3,.rb-motion-polymerization .rb-chain-4{opacity:1}}
 
 .collection-recipe-list{margin:12px 0;display:grid;gap:6px}.collection-recipe-list summary{cursor:pointer;padding:10px}.collection-recipe-list button{display:block;width:100%;margin:5px 0;text-align:left}.collection-special-recipe{border-color:#b886ed;color:#d6b5ff}
+
+.rb-detail-chemistry{min-width:0;max-width:100%;margin:12px 0;padding:13px;border:1px solid #3b5d70;border-radius:12px;background:#152b3c;overflow-wrap:anywhere}
+.rb-detail-chemistry h4{margin:12px 0 4px;font-size:14px;color:#9de2d6}
+.rb-detail-chemistry h4:first-child{margin-top:0}
+.rb-detail-chemistry p{margin:5px 0;line-height:1.65;font-size:13px}
+.rb-detail-chemistry .rb-detail-formula{font-size:15px;color:#f3e2b1;font-weight:600;line-height:1.8;word-break:break-word}

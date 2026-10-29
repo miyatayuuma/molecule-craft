@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createReactionCatalogAuthority} from '../src/reaction-catalog-authority.js';
 import {createReactionProgress} from '../src/reaction-progress.js';
-import {reactionGroups} from '../src/reaction-encyclopedia.js';
+import {reactionGroups,reactionDetailInfo} from '../src/reaction-encyclopedia.js';
 const routes=JSON.parse(readFileSync(new URL('../data/polymerization-routes.json',import.meta.url))).routes;
 test('registry entries remain unique across categories and unreachable route is separate',()=>{
  const authority=createReactionCatalogAuthority({polymerRoutes:routes});const progress=createReactionProgress({authority});const m=reactionGroups(authority,progress);
@@ -18,4 +18,23 @@ test('all 54 reviewed route categories match the mapping',()=>{
  const entries=createReactionCatalogAuthority({polymerRoutes:routes}).entries();
  assert.equal(Object.keys(expected).length,54);
  assert.deepEqual(Object.fromEntries(entries.map(e=>[e.reactionId,e.categoryTags.length?e.categoryTags:['other']])),expected);
+});
+
+test('54 route details show formulas, bond change, and required process conditions',()=>{
+ const records=JSON.parse(readFileSync(new URL('../data/molecules.json',import.meta.url)));
+ const polymerRecords=JSON.parse(readFileSync(new URL('../data/polymers.json',import.meta.url)));
+ const authority=createReactionCatalogAuthority({polymerRoutes:routes}),ctx={records,polymerRecords};
+ for(const entry of authority.entries()){
+   const detail=reactionDetailInfo(entry,ctx);
+   assert.ok(detail?.before&&detail.after&&detail.bondChange&&detail.conditions.length,entry.reactionId);
+ }
+ const pet=reactionDetailInfo(authority.get('polymer:polyethylene-terephthalate-direct-polycondensation'),ctx);
+ assert.match(pet.before,/C2H6O2/);assert.match(pet.before,/C8H6O4/);
+ assert.match(pet.after,/CH₂/);assert.match(pet.after,/H₂O/);
+ assert.ok(pet.conditions.some(x=>x.includes('水の除去')));
+ const phenol=reactionDetailInfo(authority.get('polymer:phenol-formaldehyde-resole'),ctx);
+ assert.match(phenol.before,/CH2O/);assert.match(phenol.before,/C6H6O/);
+ assert.match(phenol.after,/H₂O/);assert.ok(phenol.conditions.some(x=>x.includes('塩基')));
+ const pe=reactionDetailInfo(authority.get('polymer:polyethylene-coordination'),ctx);
+ assert.doesNotMatch(pe.after,/H₂O/);
 });

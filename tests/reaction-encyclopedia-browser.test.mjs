@@ -103,7 +103,9 @@ try{
       const inspect=document.querySelector('.reaction-book-inspect');
       if(!inspect)throw Error('Missing verified detail button in group '+i);
       inspect.click();
-      if(!document.querySelector('.rb-detail-molecules img'))throw Error('Missing structural detail in group '+i);
+      const detail=document.querySelector('.rb-detail-chemistry');
+      if(!detail||!detail.querySelector('.rb-detail-formula')?.textContent.includes('→')||!detail.textContent.includes('結合の変化'))throw Error('Missing chemistry detail in group '+i);
+      if(document.querySelector('.rb-detail-molecules'))throw Error('Duplicated thumbnail models in group '+i);
       if(![...document.querySelectorAll('#collection-list button')].some(b=>b.textContent.includes('LABでもう一度ためす')))throw Error('Missing LAB route in group '+i);
       document.querySelector('#collection-list button').click();
       document.querySelector('#collection-list button').click();
