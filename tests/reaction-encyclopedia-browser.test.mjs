@@ -42,6 +42,7 @@ try{
   await evaluate(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/実証 0 \/ 54/);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),14);
+  assert.equal(await evaluate(`[...document.querySelectorAll('.rb-group-preview svg')].every(svg=>!svg.querySelector('text, foreignObject') && Math.abs(parseFloat(getComputedStyle(svg).animationDuration)-5.6)<.01)`),true);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list canvas').length`),0);
   assert.equal(await evaluate(`[...document.querySelectorAll('#collection-list .reaction-book-group')].every(button=>button.getBoundingClientRect().height>=44)`),true);
   await send('Emulation.setEmulatedMedia',{media:'screen',features:[{name:'prefers-reduced-motion',value:'reduce'}]});
@@ -81,6 +82,8 @@ try{
     assert.equal(await evaluate(`document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1`),true);
     if(label==='重合'){
       assert.equal(await evaluate(`!!document.querySelector('[data-preview-reaction="polymer:polyethylene-terephthalate-direct-polycondensation"]')`),true);
+      await waitFor(`!!document.querySelector('[data-preview-reaction="polymer:polyethylene-coordination"] img[data-polymer-unit="polyethylene"]')?.naturalWidth`, 'Polyethylene unit image did not load', 300);
+      assert.equal(await evaluate(`getComputedStyle(document.querySelector('[data-polymer-unit="polyethylene"]')).backgroundColor`),'rgba(0, 0, 0, 0)');
       await capture('verified-polymer');
     }
     await evaluate(`document.querySelector('#collection-list button').click()`);
