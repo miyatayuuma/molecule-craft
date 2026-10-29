@@ -130,7 +130,7 @@ export function reactionThumbnailModel(entry,{records=[],polymerRecords=[]}={}){
   const polymerName=id=>polymerRecords.find(x=>x.id===id)?.nameJa??id;
   const d=entry.definition,polymer=entry.kind==='polymer';
   const inputs=polymer?d.feedSpecies:d.reactants.map(x=>x.species);
-  const outputs=polymer?[d.polymerId]:d.products;
+  const outputs=polymer?[d.polymerId]:[...new Set(d.products)];
   if(!Array.isArray(inputs)||!inputs.length||!Array.isArray(outputs)||!outputs.length)return null;
   const families=d.transformFamilies??[];
   const tag=entry.categoryTags.find(x=>CHANGE_EXPLANATIONS[x])??'other';
@@ -138,7 +138,7 @@ export function reactionThumbnailModel(entry,{records=[],polymerRecords=[]}={}){
   return Object.freeze({
     id:entry.reactionId,kind:entry.kind,feature,
     inputs:inputs.map(id=>({id,name:moleculeName(id),src:modelAsset(id,'molecule')})),
-    outputs:outputs.map(id=>({id,name:polymer?polymerName(id):moleculeName(id),src:polymer?null:modelAsset(id,'molecule'),polymerUnit:polymer})),
+    outputs:[...outputs.map(id=>({id,name:polymer?polymerName(id):moleculeName(id),src:polymer?null:modelAsset(id,'molecule'),polymerUnit:polymer})),...(polymer&&families.some(f=>['ester-condensation','amide-condensation','phenol-methylene-bridge'].includes(f))?[{id:'water',name:moleculeName('water'),src:modelAsset('water','molecule'),polymerUnit:false}]:[])],
     before:inputs.map(moleculeName).join(' ＋ '),after:outputs.map(id=>polymer?polymerName(id):moleculeName(id)).join(' ＋ ')
   });
 }
