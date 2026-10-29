@@ -17,17 +17,12 @@ test('only validated success events persist a unique reaction, including already
 test('hints, unknown and duplicate legacy IDs, and normal discoveries do not invent history',()=>{const s=new Storage();s.setItem('molecule-craft.collection.v1',JSON.stringify({discoveredMolecules:[{id:'dimethyl-sulfoxide'}]}));s.setItem(REACTION_PROGRESS_KEY,JSON.stringify({schemaVersion:1,hintedReactionIds:['unknown:future','unknown:future'],verifiedReactionIds:[]}));let p=createReactionProgress({storage:s,authority,legacyPolymerEntries:[{id:polymer.polymerId}]});assert.equal(p.getState(normal.reactionId),'notFound');p.hint(normal.reactionId);assert.equal(p.getState(normal.reactionId),'hinted');p.verify(normal.reactionId);p.hint(normal.reactionId);assert.equal(p.getState(normal.reactionId),'verified');p=createReactionProgress({storage:s,authority});assert.deepEqual(p.snapshot().hintedReactionIds,['unknown:future',normal.reactionId]);assert.equal(JSON.parse(s.getItem('molecule-craft.collection.v1')).discoveredMolecules[0].id,'dimethyl-sulfoxide');});
 test('legacy polymer migration is unambiguous and is saved without changing legacy data',()=>{const s=new Storage(),p=createReactionProgress({storage:s,authority,legacyPolymerEntries:[{id:polymer.polymerId},{id:'unknown'}]});assert.equal(p.getState(`polymer:${polymer.routeId}`),'verified');assert.equal(p.getState(normal.reactionId),'notFound');assert.equal(p.persist(),true);assert.equal(createReactionProgress({storage:s,authority}).getState(`polymer:${polymer.routeId}`),'verified');});
 test('future saves and conflicting tabs are preserved',()=>{const s=new Storage(),a=createReactionProgress({storage:s,authority}),b=createReactionProgress({storage:s,authority});assert.equal(a.hint(normal.reactionId).saved,true);const before=s.getItem(REACTION_PROGRESS_KEY);assert.equal(b.verify(normal.reactionId).saved,false);assert.equal(s.getItem(REACTION_PROGRESS_KEY),before);s.setItem(REACTION_PROGRESS_KEY,JSON.stringify({schemaVersion:99,extra:'keep'}));const future=createReactionProgress({storage:s,authority});assert.equal(future.verify(normal.reactionId).saved,false);assert.equal(clearReactionProgress(s),false);assert.match(s.getItem(REACTION_PROGRESS_KEY),/keep/);});
-test('field and TNT hints share a per-expedition budget and persist without duplicate awards',()=>{
-  const storage=new Storage(), p=createReactionProgress({storage,authority}), ids=[...authority.includedIds()];
-  assert.equal(p.claimFieldRecipe(ids[0],'run-1','field',1).changed,true);
-  assert.equal(p.claimFieldRecipe(ids[1],'run-1','tnt',2).changed,true);
-  assert.equal(p.claimFieldRecipe(ids[1],'run-1','tnt',2).reason,'already-known');
-  assert.equal(p.claimFieldRecipe(ids[2],'run-1','tnt',2).changed,true);
-  assert.equal(p.claimFieldRecipe(ids[3],'run-1','tnt',2).reason,'cap');
+test('field and TNT share one special recipe per expedition and persist across reload',()=>{
+  const storage=new Storage(),p=createReactionProgress({storage,authority}),ids=[...authority.includedIds()];
+  assert.equal(p.claimFieldRecipe(ids[0],'run-1','field').changed,true);
+  assert.equal(p.claimFieldRecipe(ids[1],'run-1','tnt').reason,'cap');
   const restored=createReactionProgress({storage,authority});
-  assert.equal(restored.getState(ids[2]),'hinted');
-  assert.equal(restored.fieldRecipeCount('run-1','field'),1);
-  assert.equal(restored.fieldRecipeCount('run-1','tnt'),2);
-  assert.equal(restored.claimFieldRecipe(ids[3],'run-2','tnt',2).changed,true);
-  assert.equal(restored.fieldRecipeCount('run-2','field'),0);
+  assert.equal(restored.getState(ids[0]),'hinted');assert.equal(restored.fieldRecipeCount('run-1','field'),1);
+  assert.equal(restored.claimFieldRecipe(ids[1],'run-2','tnt').changed,true);
+  assert.equal(restored.claimFieldRecipe(ids[2],'run-2','field').reason,'cap');
 });

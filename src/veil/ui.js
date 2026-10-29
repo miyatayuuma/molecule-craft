@@ -23,7 +23,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   const q=id=>document.getElementById(id),root=q('veil-view'),canvas=q('veil-canvas'),pad=q('veil-pad'),knob=q('veil-knob'),shockButton=q('veil-shock'),combustionButton=q('veil-combustion'),thermal=q('veil-thermal'),outputMeterFill=q('veil-heat-meter'),outputMeter=outputMeterFill?.parentElement,audio=createVeilAudio(),appShell=document.querySelector('.app-shell');
   if(outputMeter){outputMeter.id='veil-output-meter';outputMeter.removeAttribute('aria-hidden');outputMeter.setAttribute('role','meter');outputMeter.setAttribute('aria-label','推進出力');outputMeter.setAttribute('aria-valuemin','0');outputMeter.setAttribute('aria-valuemax','100');}
   if(outputMeterFill)outputMeterFill.id='veil-output-meter-fill';
-  let recipeServices=null,recipeNoticeUntil=0;
+  let recipeServices=null;
   let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,shipTap=null,messageUntil=0,thermalNotice=null,thermalNoticeUntil=0,returnState=null,requestExpeditionLaunch=()=>false,launchTransaction=null;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
@@ -72,18 +72,19 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   function returnMethod(){
     if(!active||!run||paused||run.captured||returnState?.phase!=='exploring')return null;
-    if((run.carriedInsights?.length??0)>0)return 'insight';
+    if((run.carriedInsights?.length??0)>0||run.specialInsightId)return 'insight';
     return isInsideSafeExtractionSite(run.player,run.map.safeExtractionSites)?'site':null;
   }
   function notice(text,seconds=4,icon='✦'){q('veil-message').setAttribute('aria-label',text);q('veil-message').textContent=icon;messageUntil=(run?.time??0)+seconds;q('veil-message').hidden=false;}
   function handleInsight(event){
     if(!event||!run)return false;
     if(event.type==='insightAnalysisStart'){insightPresentation.sync(run);return true;}
+    if(event.type==='insightReady'&&event.kind==='special'){const result=recipeServices.progress.claimFieldRecipe(event.id,run.reactionRecipeRunId,run.specialInsightSource??'field');if(!result.changed||!result.saved)return false;run.specialInsightId=event.id;insightPresentation.ready(event,run);insightPresentation.sync(run);return true;}
     if(event.type==='insightReady'){if(!run.inspiration||performanceFor(event.id,'fuel')||performanceFor(event.id,'coolant'))run.inspiration=event.id;updatePrompt();insightPresentation.ready(event,run);insightPresentation.sync(run);return true;}
     return false;
   }
   function currentInsightExcludeIds(){const ids=new Set(run?.carriedInsights??[]);if(run?.analysis?.id)ids.add(run.analysis.id);return ids;}
-  function syncInsightMarkers(){if(!run)return null;const excludeIds=currentInsightExcludeIds();return syncFieldInsightMarkerClaimability(run,signal=>resources.signalClaimability(signal.region,signal.roll,signal.choice,{excludeIds,runContext:run}));}
+  function syncInsightMarkers(){if(!run)return null;const excludeIds=currentInsightExcludeIds();const result=syncFieldInsightMarkerClaimability(run,signal=>resources.signalClaimability(signal.region,signal.roll,signal.choice,{excludeIds,runContext:run}));if(run.normalTntSignal)for(const signal of run.map.signals)signal.claimable=false;return result;}
   function offerInsight(id){if(!resources.insightRecipeEligible(id,{runContext:run}))return false;return handleInsight(triggerInsight(run,id,resources.state));}
   function offerProgressionInsights(){if(!run)return;const ids=resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements}).filter(id=>!run.carriedInsights.includes(id)&&run.analysis?.id!==id);if(ids.length)resources.suppressFrontierInsightForCritical();for(const id of ids)offerInsight(id);}
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
@@ -95,7 +96,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     run.rewardResourceState=()=>resources.state;run.rewardedEaterEvents=new Set();run.tntRewardRandom=seededRandom(prepared.seed^0x6a721);
     if(recipeServices&&!recipeServices.progress.blocked)run.reactionRecipeDrop=chooseFieldRecipe({...recipeServices,runId:run.reactionRecipeRunId,dust:run.map.dust,player:run.player,random:seededRandom(prepared.seed^0x43c4a)});
     if(run.reactionRecipeDrop?.pending){run.reactionRecipePending=run.reactionRecipeDrop;run.reactionRecipeDrop=null;run.reactionRecipeNextPlacement=0;}
-    q('veil-recipe-notice').hidden=true;recipeNoticeUntil=0;thermalNoticeUntil=0;insightPresentation.clear();
+    thermalNoticeUntil=0;insightPresentation.clear();
     active=true;paused=false;returnState={phase:'exploring'};root.hidden=false;document.body.dataset.mode='veil';appShell.inert=true;
     renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();
     resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();offerProgressionInsights();syncInsightMarkers();
@@ -138,17 +139,19 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     const slot=run.fuel.propellant,performance=performanceFor(slot.molecule,'propellant'),label=formula(slot.molecule)??'噴射剤';
     if(run.player.boost<=0)notice(!slot.molecule?'噴射剤を搭載すると緊急噴射が使える':slot.amount<(performance?.moleculesPerBurst??Infinity)?`搭載した${label}ではBURSTできない · 帰還して補給しよう`:`${label}が不足している`,2);
   }
-  function showRecipeAward(id){
-    const entry=recipeServices.authority.get(id),definition=entry.definition,name=entry.kind==='polymer'?recipeServices.polymerNameFor(definition.polymerId):(recipeServices.records.find(r=>r.id===definition.products[0])?.commonNameJa??recipeServices.records.find(r=>r.id===definition.products[0])?.nameJa??definition.products[0]);
-    const banner=q('veil-recipe-notice');banner.textContent=`特殊レシピをひらめいた！ ${name}`;banner.hidden=false;recipeNoticeUntil=run.time+4;vibrate(18);
-  }
   window.addEventListener('molecule-craft:eater-defeated',event=>{
     const detail=event.detail;if(!active||!run||detail?.source!=='tnt'||!detail.blastId||detail.enemyId==null||!Number.isFinite(detail.position?.x)||!Number.isFinite(detail.position?.y))return;
     const key=JSON.stringify([detail.blastId,detail.enemyId]);if(run.rewardedEaterEvents.has(key))return;run.rewardedEaterEvents.add(key);
     releaseEaterAtoms(run,resources.state,detail.position,run.tntRewardRandom);
     if(!recipeServices||recipeServices.progress.blocked)return;
-    const id=chooseTntRecipe({...recipeServices,runId:run.reactionRecipeRunId,random:run.tntRewardRandom});
-    if(id){const result=recipeServices.progress.claimFieldRecipe(id,run.reactionRecipeRunId,'tnt',2);if(result.changed&&result.saved)showRecipeAward(id);}
+    if(!run.reactionRecipeDrop&&!run.reactionRecipePending&&!run.specialInsightId&&run.analysis?.kind!=='special'){
+      const id=chooseTntRecipe({...recipeServices,runId:run.reactionRecipeRunId,random:run.tntRewardRandom});
+      if(id)run.reactionRecipeDrop={reactionId:id,source:'tnt',x:detail.position.x,y:detail.position.y};
+    }
+    if(!run.normalTntSignal&&!run.analysis&&!run.carriedInsights.length&&!run.map.signals.some(signal=>signal.claimable&&!signal.ready)){
+      const region=run.region,roll=run.tntRewardRandom(),choice=run.tntRewardRandom(),claim=resources.signalClaimability(region,roll,choice,{excludeIds:currentInsightExcludeIds(),runContext:run});
+      if(claim?.claimable&&claim.recipe)run.normalTntSignal={region,roll,choice,x:detail.position.x+35,y:detail.position.y};
+    }
   });
   function shock(){
     if(!active||paused||returnState?.phase!=='exploring'||run.captured)return false;const core=run.map?.nitrogenCore,nearIntactCore=!!core&&!core.fractured&&Math.hypot(run.player.x-core.x,run.player.y-core.y)<=core.fractureRadius;audio.start();const event=beginShock(run,(material,amount)=>resources.consumeTank('shock',material,amount));
@@ -245,12 +248,18 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(placed){run.reactionRecipeDrop=placed;run.reactionRecipePending=null;}else run.reactionRecipeNextPlacement=run.time+2;
     }
     const drop=run.reactionRecipeDrop;
-    if(drop&&recipeServices&&recipeSegmentDistance(drop,recipeStart,run.player)<=REACTION_RECIPE_FIELD_CONFIG.pickupRadius){
-      const claimed=recipeServices.progress.claimFieldRecipe(drop.reactionId,run.reactionRecipeRunId,'field',REACTION_RECIPE_FIELD_CONFIG.fieldCap);
-      if(claimed.changed&&claimed.saved){showRecipeAward(drop.reactionId);run.reactionRecipeDrop=null;
-      }else if(claimed.reason==='already-known'||claimed.reason==='cap')run.reactionRecipeDrop=null;
+    if(drop&&recipeServices&&!run.analysis&&!run.specialInsightId&&recipeSegmentDistance(drop,recipeStart,run.player)<=REACTION_RECIPE_FIELD_CONFIG.pickupRadius){
+      if(recipeServices.progress.getState(drop.reactionId)==='notFound'){
+        run.analysis={id:drop.reactionId,kind:'special',elapsed:0,requiredDuration:5,progress:0};run.specialInsightSource=drop.source;insightPresentation.sync(run);audio.event('signal');
+      }
+      run.reactionRecipeDrop=null;
     }
-    if(run.time>recipeNoticeUntil)q('veil-recipe-notice').hidden=true;
+    const normalDrop=run.normalTntSignal;
+    if(normalDrop&&run.carriedInsights.length)run.normalTntSignal=null;
+    if(run.normalTntSignal&&normalDrop&&!run.analysis&&!run.carriedInsights.length&&recipeSegmentDistance(normalDrop,recipeStart,run.player)<=REACTION_RECIPE_FIELD_CONFIG.pickupRadius){
+      const result=resources.signal(normalDrop.region,normalDrop.roll,normalDrop.choice,{excludeIds:currentInsightExcludeIds(),runContext:run,claimableOnly:true});
+      if(result?.recipe)offerInsight(result.recipe);run.normalTntSignal=null;
+    }
     if(run.time>messageUntil)q('veil-message').hidden=true;
     const propulsion=run.player.boost>0?'burst':run.player.combustion?'combustion':null;audio.update(run.player.speed,run.chain,propulsion);renderer.draw(run,dt,reduced);
     if(now-hudAt>70){hudAt=now;hud();}

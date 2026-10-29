@@ -256,6 +256,14 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       onCraft:id=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();},
     });
     lastGraphPositions=result.positions;lastGraphVisibleIds=result.visibleIds;
+    const normal=(recipeState?.().hints??[]).filter(id=>recordById(id));
+    const special=reactionAuthority?.entries().filter(entry=>reactionProgress?.getState(entry.reactionId)==='hinted')??[];
+    if(normal.length||special.length){
+      const panel=el('details',null,'collection-recipe-list'),summary=el('summary','ひらめいたレシピ');panel.append(summary);
+      for(const id of normal){const record=recordById(id),item=button(`💡 ${moleculeDisplayName(record)}`,()=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();});panel.append(item);}
+      for(const entry of special){const d=entry.definition,id=entry.kind==='normal'?d.products[0]:d.polymerId,label=entry.kind==='normal'?(recordById(id)?moleculeDisplayName(recordById(id)):id):(polymerRecords.find(row=>row.id===id)?.nameJa??id);const item=button(`✦ ${label}`,()=>onTryReaction(entry.reactionId));item.dataset.reactionRecipe=entry.reactionId;item.className='collection-special-recipe';panel.append(item);}
+      list.append(panel);
+    }
   }
   function renderGroupList(){
     list.className='collection-grid';

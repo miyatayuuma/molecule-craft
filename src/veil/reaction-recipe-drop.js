@@ -5,7 +5,7 @@ export function recipeCandidatePool({authority,progress,records,collection,confi
   return authority.entries().filter(e=>e.encyclopediaIncluded&&progress.getState(e.reactionId)==='notFound').map(entry=>({entry,guide:compileReactionGuide(entry,records)})).filter(x=>x.guide.ok&&x.guide.species.every(id=>collection.hasMolecule(id))).map(x=>({...x,weight:config.readyWeight}));
 }
 export function chooseFieldRecipe({authority,progress,records,collection,runId,dust,player,random,config=REACTION_RECIPE_FIELD_CONFIG}){
-  if(progress?.fieldRecipeCount(runId,'field')>=config.fieldCap)return null;
+  if((progress?.fieldRecipeCount(runId,'field')??0)+(progress?.fieldRecipeCount(runId,'tnt')??0)>=1)return null;
   const pool=recipeCandidatePool({authority,progress,records,collection,config});if(!pool.length||random()>=config.spawnChance)return null;
   let n=random()*pool.reduce((sum,x)=>sum+x.weight,0),choice=pool.at(-1);for(const candidate of pool){n-=candidate.weight;if(n<0){choice=candidate;break;}}
   const drop={reactionId:choice.entry.reactionId,source:'field'};
@@ -22,7 +22,7 @@ export function placeFieldRecipe(drop,dust,player,random=()=>0,config=REACTION_R
 
 export const TNT_RECIPE_CHANCE=.55;
 export function chooseTntRecipe({authority,progress,records,collection,runId,random=Math.random}){
-  if(progress.fieldRecipeCount(runId,'tnt')>=2 || progress.fieldRecipeCount(runId,'field')+progress.fieldRecipeCount(runId,'tnt')>=3)return null;
+  if(progress.fieldRecipeCount(runId,'field')+progress.fieldRecipeCount(runId,'tnt')>=1)return null;
   const pool=recipeCandidatePool({authority,progress,records,collection,config:{...REACTION_RECIPE_FIELD_CONFIG,discoveryRate:0}});
   if(!pool.length || random()>=TNT_RECIPE_CHANCE)return null;
   let n=random()*pool.reduce((sum,item)=>sum+item.weight,0);
