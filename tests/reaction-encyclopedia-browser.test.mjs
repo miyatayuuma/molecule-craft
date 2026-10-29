@@ -108,6 +108,18 @@ try{
     return{groups,seen:seen.size,overflow:document.querySelector('#collection-dialog').scrollWidth>document.querySelector('#collection-dialog').clientWidth+1};
   })()`);
   assert.deepEqual(fullCoverage,{groups:14,seen:54,overflow:false});
+  if(process.env.REACTION_BOOK_CAPTURE_DIR){
+    for(let i=0;i<14;i++){
+      await evaluate(`document.querySelectorAll('.reaction-book-group')[${i}].click();document.querySelector('#collection-list').scrollTop=0`);
+      await capture('all-routes-group-'+String(i+1).padStart(2,'0'));
+      if([0,2,7,12].includes(i)){
+        await evaluate(`document.querySelector('.reaction-book-inspect').click();document.querySelector('#collection-list').scrollTop=0`);
+        await capture('all-routes-detail-'+String(i+1).padStart(2,'0'));
+        await evaluate(`document.querySelector('#collection-list button').click()`);
+      }
+      await evaluate(`document.querySelector('#collection-list button').click()`);
+    }
+  }
   await evaluate(`document.querySelector('[data-book-tab="polymers"]').click()`);assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-entry-id]').length`),25);
   await evaluate(`document.querySelector('[data-book-tab="molecules"]').click()`);assert.equal(await evaluate(`document.querySelector('[data-book-tab="molecules"]').getAttribute('aria-selected')`),'true');
   console.log('REACTION_BOOK_BROWSER PASS '+process.env.REACTION_VIEWPORT);
