@@ -249,7 +249,7 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .reaction-book .reaction-book-group{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:9px 12px;max-width:100%;min-width:0}
 .rb-group-preview{display:block;overflow:hidden;max-width:100%;width:100%;border-radius:9px;background:linear-gradient(100deg,#162f41,#244354);--rb-cycle:2.5s}
 .rb-group-preview svg{display:block;width:100%;height:70px;max-width:100%}
-.rb-motion-hydrolysis{--rb-cycle:2.4s}.rb-motion-addition{--rb-cycle:2.5s}.rb-motion-cycloaddition{--rb-cycle:2.6s}.rb-motion-polymerization{--rb-cycle:2.7s}
+.rb-motion-hydrolysis{--rb-cycle:2.4s}.rb-motion-esterification{--rb-cycle:2.6s}.rb-motion-addition{--rb-cycle:2.5s}.rb-motion-halogenation{--rb-cycle:2.5s}.rb-motion-ring-opening{--rb-cycle:2.7s}.rb-motion-hydration{--rb-cycle:2.6s}.rb-motion-substitution{--rb-cycle:2.5s}.rb-motion-cycloaddition{--rb-cycle:2.6s}.rb-motion-oxidation{--rb-cycle:2.7s}.rb-motion-dehydration{--rb-cycle:2.5s}.rb-motion-condensation{--rb-cycle:2.6s}.rb-motion-combustion{--rb-cycle:2.7s}.rb-motion-polymerization{--rb-cycle:2.7s}.rb-motion-other{--rb-cycle:2.7s}
 .rb-group-preview svg>g,.rb-group-preview svg>path{transform-box:fill-box;transform-origin:center}
 .rb-group-preview svg{animation:rb-end-reset var(--rb-cycle) linear infinite}
 .rb-motion-hydrolysis .rb-water{animation:rb-water-in var(--rb-cycle) ease-in-out infinite}
@@ -263,6 +263,24 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .rb-motion-cycloaddition .rb-square{animation:rb-ring-in var(--rb-cycle) ease-in-out infinite}
 .rb-motion-polymerization .rb-chain-3{animation:rb-chain-step-3 var(--rb-cycle) ease-in-out infinite}
 .rb-motion-polymerization .rb-chain-4{animation:rb-chain-step-4 var(--rb-cycle) ease-in-out infinite}
+.rb-motion-esterification .rb-ester-left{animation:rb-split-left var(--rb-cycle) ease-in-out infinite;animation-direction:reverse}
+.rb-motion-esterification .rb-ester-right{animation:rb-split-right var(--rb-cycle) ease-in-out infinite;animation-direction:reverse}
+.rb-motion-esterification .rb-new-bond,.rb-motion-condensation .rb-new-bond{animation:rb-fade-in var(--rb-cycle) ease-in-out infinite}
+.rb-motion-halogenation .rb-halogens{animation:rb-fade-in var(--rb-cycle) ease-in-out infinite}
+.rb-motion-ring-opening .rb-closed-ring{animation:rb-fade-out var(--rb-cycle) linear infinite}
+.rb-motion-ring-opening .rb-open-chain{animation:rb-fade-in var(--rb-cycle) linear infinite}
+.rb-motion-hydration .rb-water{animation:rb-water-in var(--rb-cycle) ease-in-out infinite}
+.rb-motion-hydration .rb-new-bond,.rb-motion-oxidation .rb-new-bond{animation:rb-fade-in var(--rb-cycle) linear infinite}
+.rb-motion-substitution .rb-old-substituent{animation:rb-fade-out var(--rb-cycle) linear infinite}
+.rb-motion-substitution .rb-new-substituent{animation:rb-fade-in var(--rb-cycle) linear infinite}
+.rb-motion-dehydration .rb-water-away,.rb-motion-esterification .rb-water-away,.rb-motion-condensation .rb-water-away{animation:rb-water-away var(--rb-cycle) ease-in-out infinite}
+.rb-motion-condensation .rb-condense-left{animation:rb-approach-left var(--rb-cycle) ease-in-out infinite}
+.rb-motion-condensation .rb-condense-right{animation:rb-approach-right var(--rb-cycle) ease-in-out infinite}
+.rb-motion-combustion .rb-fuel{animation:rb-fade-out var(--rb-cycle) linear infinite}
+.rb-motion-combustion .rb-products{animation:rb-fade-in var(--rb-cycle) linear infinite}
+.rb-motion-other .rb-other-1{animation:rb-other-phase-1 var(--rb-cycle) linear infinite}
+.rb-motion-other .rb-other-2{animation:rb-other-phase-2 var(--rb-cycle) linear infinite}
+.rb-motion-other .rb-other-3{animation:rb-other-phase-3 var(--rb-cycle) linear infinite}
 .rb-group-preview:not(.rb-visible) svg,.rb-group-preview:not(.rb-visible) svg *{animation-play-state:paused!important}
 @keyframes rb-end-reset{0%,80%{opacity:1}92%,100%{opacity:0}}
 @keyframes rb-water-in{0%,12%{opacity:0;transform:translateY(-8px)}38%,82%{opacity:1;transform:translateY(8px)}100%{opacity:0}}
@@ -275,10 +293,31 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 @keyframes rb-ring-in{0%,31%{opacity:0;transform:scale(.72)}53%,84%{opacity:1;transform:scale(1)}100%{opacity:0}}
 @keyframes rb-chain-step-3{0%,25%{opacity:0}42%,85%{opacity:1}100%{opacity:0}}
 @keyframes rb-chain-step-4{0%,44%{opacity:0}62%,85%{opacity:1}100%{opacity:0}}
+@keyframes rb-fade-in{0%,28%{opacity:0}48%,85%{opacity:1}100%{opacity:1}}
+@keyframes rb-fade-out{0%,28%{opacity:1}48%,100%{opacity:0}}
+@keyframes rb-water-away{0%,24%{opacity:0;transform:translateY(9px)}50%,78%{opacity:1;transform:translateY(-8px)}100%{opacity:0;transform:translateY(-8px)}}
+@keyframes rb-approach-left{0%,25%{transform:translateX(-14px)}50%,100%{transform:translateX(0)}}
+@keyframes rb-approach-right{0%,25%{transform:translateX(14px)}50%,100%{transform:translateX(0)}}
+@keyframes rb-other-phase-1{0%,33%{opacity:1}45%,100%{opacity:.25}}
+@keyframes rb-other-phase-2{0%,27%{opacity:.25}40%,68%{opacity:1}80%,100%{opacity:.25}}
+@keyframes rb-other-phase-3{0%,54%{opacity:.25}68%,100%{opacity:1}}
 .rb-reaction-thumb{display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);align-items:center;gap:8px;margin:8px 0;max-width:100%;min-width:0;border:1px solid #3b5d70;border-radius:9px;background:#152b3c;padding:6px;color:#f2f6fa;overflow-wrap:anywhere;text-align:left}
 .rb-reaction-thumb svg{display:block;width:100%;height:76px;min-width:0}
+.rb-reaction-assets{display:grid;grid-template-columns:minmax(0,1fr) 15px minmax(0,1fr);gap:3px;align-items:center;width:100%;min-width:0}
+.rb-reaction-assets img{display:block;width:100%;height:65px;object-fit:contain;min-width:0;border-radius:5px;background:#eef4f8}
+.rb-reaction-assets .rb-arrow{color:#f4ce7c;text-align:center;font-size:16px}
+.rb-thumb-legend .rb-thumb-note{color:#b6ddf4}
+.rb-thumb-condition{color:#f0cb83;font-size:11px}
+.rb-reaction-detail .rb-reaction-assets img{height:105px}
+.rb-reaction-detail{width:100%;margin:10px 0;padding:10px;border:1px solid #3b5d70;border-radius:10px;background:#152b3c}
+.rb-detail-molecules{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rb-detail-molecules h4{margin:4px 0 8px}
+.rb-molecule-tile{display:grid;grid-template-columns:70px minmax(0,1fr);align-items:center;gap:8px;margin:6px 0;font-size:12px}
+.rb-molecule-tile img{width:70px;height:70px;object-fit:contain;border-radius:6px;background:#edf3f7}
+.rb-molecule-tile span{overflow-wrap:anywhere}
 .rb-thumb-legend{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
 .reaction-book .reaction-book-inspect{display:block;margin-top:8px;width:100%;min-height:44px}
 .reaction-book .reaction-book-hint .rb-reaction-thumb{color:#fff9df}
 @media(max-width:480px){.rb-reaction-thumb{grid-template-columns:minmax(0,1fr);gap:2px}.rb-reaction-thumb svg{height:65px}.rb-thumb-legend{font-size:11px}}
-@media(prefers-reduced-motion:reduce){.rb-group-preview svg,.rb-group-preview svg *{animation:none!important;transition:none!important}.rb-motion-cycloaddition .rb-alkenes{opacity:0}.rb-motion-cycloaddition .rb-square{opacity:1}.rb-motion-addition .rb-double{opacity:0}.rb-motion-polymerization .rb-chain-3,.rb-motion-polymerization .rb-chain-4{opacity:1}}
+@media(max-width:480px){.rb-detail-molecules{grid-template-columns:minmax(0,1fr)}.rb-molecule-tile{grid-template-columns:62px minmax(0,1fr)}.rb-molecule-tile img{width:62px;height:62px}}
+@media(prefers-reduced-motion:reduce){.rb-group-preview svg,.rb-group-preview svg *{animation:none!important;transition:none!important}.rb-motion-cycloaddition .rb-alkenes,.rb-motion-ring-opening .rb-closed-ring,.rb-motion-substitution .rb-old-substituent,.rb-motion-combustion .rb-fuel{opacity:0}.rb-motion-cycloaddition .rb-square,.rb-motion-ring-opening .rb-open-chain,.rb-motion-substitution .rb-new-substituent,.rb-motion-combustion .rb-products{opacity:1}.rb-motion-addition .rb-double{opacity:0}.rb-motion-polymerization .rb-chain-3,.rb-motion-polymerization .rb-chain-4{opacity:1}}
