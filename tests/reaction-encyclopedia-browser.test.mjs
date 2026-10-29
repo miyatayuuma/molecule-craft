@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,mkdir,writeFile} from 'node:fs/promises';
 import {spawn,spawnSync} from 'node:child_process';
 import {extname,join,normalize,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -22,6 +22,13 @@ try{
   const send=(method,params={})=>new Promise((ok,fail)=>{const id=++sequence;pending.set(id,{resolve:ok,reject:fail});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);return result.result?.value;};
   const waitFor=async(expression,label,attempts=120)=>{for(let index=0;index<attempts;index++){try{if(await evaluate(expression))return;}catch{}await pause(100);}throw Error(label);};
+  const capture=async label=>{
+    const dir=process.env.REACTION_BOOK_CAPTURE_DIR;
+    if(!dir)return;
+    await mkdir(join(root,dir),{recursive:true});
+    const result=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(join(root,dir,label+'-'+(process.env.REACTION_VIEWPORT||360)+'.png'),Buffer.from(result.data,'base64'));
+  };
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:Number(process.env.REACTION_VIEWPORT||360),height:844,deviceScaleFactor:1,mobile:Number(process.env.REACTION_VIEWPORT||360)<600});await send('Page.navigate',{url:`http://127.0.0.1:${port}/__collection-polymer__`});
   const ready=await evaluate(`(async()=>{const chemistry=await import('/src/chemistry.js?v=20'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return{ok:false,reason:'molecule-db'};const [polymerRecords,polymerContent,routeAuthority]=await Promise.all(['/data/polymers.json','/data/polymer-encyclopedia.json','/data/polymerization-routes.json'].map(path=>fetch(path).then(response=>response.json())));const moleculeSave={schemaVersion:3,discoveredMolecules:[{id:'water',at:1,order:1}],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]},values=new Map([['molecule-craft.collection.v1',JSON.stringify(moleculeSave)]]),storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value)),removeItem:key=>values.delete(key)};const {createResources}=await import('/src/veil/resources.js'),{RESOURCE_KEY,createInitialResourcesState}=await import('/src/veil/resources-persistence.js');storage.setItem(RESOURCE_KEY,JSON.stringify(createInitialResourcesState()));window.__engineeringStorage=storage;window.__engineeringResources=createResources({storage});const {createCollectionUI}=await import('/src/collection-ui.js?polymer-browser=1');window.__collection=await createCollectionUI({records:chemistry.moleculeCatalog(),storage,engineeringResources:window.__engineeringResources,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:[],hints:[]}),polymerRecords,polymerContent,polymerRoutes:routeAuthority.routes});return{ok:true,molecules:chemistry.moleculeCatalog().length,polymers:polymerRecords.length};})()`);
   assert.deepEqual(ready,{ok:true,molecules:142,polymers:25});
@@ -34,15 +41,49 @@ try{
   await evaluate(`document.querySelector('#close-collection').click()`);
   await evaluate(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/実証 0 \/ 54/);
+  assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),4);
+  assert.equal(await evaluate(`document.querySelectorAll('#collection-list canvas').length`),0);
+  assert.equal(await evaluate(`[...document.querySelectorAll('#collection-list .reaction-book-group')].every(button=>button.getBoundingClientRect().height>=44)`),true);
+  await send('Emulation.setEmulatedMedia',{media:'screen',features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+  await capture('groups-top');
+  await evaluate(`document.querySelector('[data-preview-group="polymerization"]').scrollIntoView({block:'center'})`);
+  await pause(150);
+  await capture('groups-polymerization');
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.rb-group-preview svg')).animationName`),'none');
+  await send('Emulation.setEmulatedMedia',{media:'screen',features:[]});
   assert.equal(await evaluate(`document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1`),true);
   await evaluate(`[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('脱水')).click()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/ひらめいたレシピ · 未実証/);
   await evaluate(`document.querySelector('.reaction-book-hint').click()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/まだLABで実証していません/);
+  assert.equal(await evaluate(`[...document.querySelectorAll('#collection-list button')].some(button=>button.textContent==='LABでためす')`),true);
   await evaluate(`document.querySelector('#collection-list button').click();document.querySelector('#collection-list button').click()`);
   await evaluate(`[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('環化')).click()`);
   const text=await evaluate(`document.querySelector('#collection-list').innerText`);assert.match(text,/未発見 1 件/);assert.doesNotMatch(text,/シクロブタン|エチレン/);
+  assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-preview-reaction]').length`),0);
   assert.equal(await evaluate(`document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1`),true);
+  await evaluate(`document.querySelector('#collection-list button').click()`);
+  await evaluate(`(async()=>{
+    const previewIds=['normal:complete-01-anhydride-hydrolysis','normal:complete-06-ethene-halogenation','normal:complete-21-cyclobutane-dimerization','polymer:polyethylene-coordination','polymer:polyethylene-terephthalate-direct-polycondensation'];
+    for(const id of previewIds)window.__reactionProgress.verify(id);
+    const {createReactionCatalogAuthority}=await import('/src/reaction-catalog-authority.js');
+    const routes=(await fetch('/data/polymerization-routes.json').then(response=>response.json())).routes;
+    window.__collection.setReactionProgress(createReactionCatalogAuthority({polymerRoutes:routes}),window.__reactionProgress);
+    document.querySelector('[data-book-tab="molecules"]').click();
+    document.querySelector('[data-book-tab="reactions"]').click();
+  })()`);
+  assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/実証 5 \/ 54/);
+  const previews=[['加水分解','normal:complete-01-anhydride-hydrolysis'],['付加','normal:complete-06-ethene-halogenation'],['環化','normal:complete-21-cyclobutane-dimerization'],['重合','polymer:polyethylene-coordination']];
+  for(const [label,id] of previews){
+    await evaluate(`[...document.querySelectorAll('#collection-list button')].find(button=>button.textContent.startsWith(${JSON.stringify(label)})).click()`);
+    assert.equal(await evaluate(`!!document.querySelector('[data-preview-reaction="${id}"]')`),true,'missing '+id);
+    assert.equal(await evaluate(`document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1`),true);
+    if(label==='重合'){
+      assert.equal(await evaluate(`!!document.querySelector('[data-preview-reaction="polymer:polyethylene-terephthalate-direct-polycondensation"]')`),true);
+      await capture('verified-polymer');
+    }
+    await evaluate(`document.querySelector('#collection-list button').click()`);
+  }
   await evaluate(`document.querySelector('[data-book-tab="polymers"]').click()`);assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-entry-id]').length`),25);
   await evaluate(`document.querySelector('[data-book-tab="molecules"]').click()`);assert.equal(await evaluate(`document.querySelector('[data-book-tab="molecules"]').getAttribute('aria-selected')`),'true');
   console.log('REACTION_BOOK_BROWSER PASS '+process.env.REACTION_VIEWPORT);
