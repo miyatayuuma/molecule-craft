@@ -30,6 +30,7 @@ export function normalInsightModels(run,resources){
     if(CRITICAL_INSIGHTS.has(id)||persistent.hints?.includes(id)||persistent.recipes?.includes(id))continue;
     const category=insightCategoryFor(id);models.push({id,category,categoryLabel:insightCategoryLabel(category)});
   }
+  if(run?.specialInsightId)models.push({id:run.specialInsightId,category:'special',categoryLabel:'特殊'});
   return models;
 }
 
@@ -98,6 +99,7 @@ export function createInsightPresentation({root,resources,formula=id=>resources?
   function updateVisibility(){group.hidden=!lastAnchor||analysis.hidden&&start.hidden&&ready.hidden&&normal.hidden&&critical.children.length===0&&lossLayer.hidden;}
   function sync(run){
     const current=run?.analysis??null,progress=insightAnalysisProgress(current),now=run?.time??Infinity,currentKey=current?.id??null;if(currentKey&&currentKey!==analysisKey){startUntil=now+START_SECONDS;start.hidden=false;}analysisKey=currentKey;analysis.hidden=!current;
+    analysis.dataset.kind=current?.kind??'normal';
     if(current){const percent=Math.round(progress*100);analysis.setAttribute('aria-valuenow',String(percent));setProgress(analysisRing,progress);}
     else{analysis.setAttribute('aria-valuenow','0');setProgress(analysisRing,0);}
     start.hidden=!(run&&now<startUntil);
@@ -106,7 +108,7 @@ export function createInsightPresentation({root,resources,formula=id=>resources?
   }
   function showReady(event,run){
     if(!event?.id||event.type!=='insightReady')return false;
-    const category=insightCategoryFor(event.id);ready.dataset.critical=String(!!event.critical);ready.dataset.fromAnalysis=String(!event.critical);ready.dataset.insightCategory=category;ready.hidden=false;readyUntil=(run?.time??0)+READY_SECONDS;readyNormalId=event.critical?null:event.id;start.hidden=true;audio?.event?.('insight');const normalModels=renderNormal(run);renderCritical(run);concealNormalFieldIdentity(run,normalModels);updateVisibility();return true;
+    const category=event.kind==='special'?'special':insightCategoryFor(event.id);ready.dataset.critical=String(!!event.critical);ready.dataset.fromAnalysis=String(!event.critical);ready.dataset.insightCategory=category;ready.hidden=false;readyUntil=(run?.time??0)+READY_SECONDS;readyNormalId=event.critical?null:event.id;start.hidden=true;audio?.event?.('insight');const normalModels=renderNormal(run);renderCritical(run);concealNormalFieldIdentity(run,normalModels);updateVisibility();return true;
   }
   function snapshot(run){return {normal:normalInsightModels(run,resources),critical:criticalInsightModels(run,resources,formula)};}
   function showLoss(snapshotValue){

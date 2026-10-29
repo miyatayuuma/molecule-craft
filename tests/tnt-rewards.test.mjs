@@ -11,15 +11,11 @@ import {random} from '../src/veil/map.js';
 const records=JSON.parse(readFileSync(new URL('../data/molecules.json',import.meta.url))),routes=JSON.parse(readFileSync(new URL('../data/polymerization-routes.json',import.meta.url))).routes;
 const authority=createReactionCatalogAuthority({polymerRoutes:routes}),collection={discoveredCount:records.length,hasMolecule:()=>true};
 const storage=()=>{const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v)}};
-test('seeded TNT draws match 55%, skip known reactions and enforce shared caps',()=>{
- const progress=createReactionProgress({storage:storage(),authority}),args={authority,progress,records,collection,runId:'r'};let hits=0;
- for(let i=0;i<2000;i++)if(chooseTntRecipe({...args,random:random(i)}))hits++;
- assert.equal(TNT_RECIPE_CHANCE,.55);assert.ok(hits>1040&&hits<1160,`${hits}/2000`);
- const field=authority.entries()[0].reactionId;assert.ok(progress.claimFieldRecipe(field,'r','field',1).saved);
- for(let i=0;i<2;i++){const id=chooseTntRecipe({...args,random:()=>0});assert.notEqual(id,field);assert.equal(progress.claimFieldRecipe(id,'r','tnt',2).saved,true);}
- assert.equal(chooseTntRecipe({...args,random:()=>0}),null);
+test('TNT uses the 55% boundary and a shared per-expedition cap',()=>{
+ const progress=createReactionProgress({storage:storage(),authority}),args={authority,progress,records,collection,runId:'r'};
+ assert.equal(TNT_RECIPE_CHANCE,.55);assert.ok(chooseTntRecipe({...args,random:()=>.549999}));assert.equal(chooseTntRecipe({...args,random:()=>.55}),null);
+ const field=authority.entries()[0].reactionId;assert.ok(progress.claimFieldRecipe(field,'r','field').saved);assert.equal(chooseTntRecipe({...args,random:()=>0}),null);
  assert.ok(chooseTntRecipe({...args,runId:'new',random:()=>0}));
- console.log('TNT_SEEDED_HITS',hits,'/2000');
 });
 test('atom emission reserves capacity across multiple defeats and never emits an overfull element',()=>{
  const max=MAX_RESOURCE_VALUE,state={elements:{H:max-3,C:max,N:max,O:max},dust:{H:0,C:0,O:0}};

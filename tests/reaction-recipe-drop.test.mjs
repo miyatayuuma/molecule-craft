@@ -3,10 +3,11 @@ import {createReactionCatalogAuthority} from '../src/reaction-catalog-authority.
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url))),records=read('../data/molecules.json'),routes=read('../data/polymerization-routes.json').routes,authority=createReactionCatalogAuthority({polymerRoutes:routes});
 const memory=()=>{const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)}};
 const collection=(count,known=()=>true)=>({discoveredCount:count,hasMolecule:known});
-test('30% gate, 54 unique candidates, empty pool and source cap survive reload',()=>{
- const store=memory(),progress=createReactionProgress({storage:store,authority});assert.equal(recipeCandidatePool({authority,progress,records,collection:collection(42)}).length,0);
+test('discovered inputs determine candidates; hints and verified reactions are excluded',()=>{
+ const store=memory(),progress=createReactionProgress({storage:store,authority});assert.equal(recipeCandidatePool({authority,progress,records,collection:collection(0,()=>false)}).length,0);
  const args={authority,progress,records,collection:collection(43)},pool=recipeCandidatePool(args);assert.equal(pool.length,54);assert.equal(pool.filter(x=>x.entry.kind==='normal').length,29);assert.equal(pool.filter(x=>x.entry.kind==='polymer').length,25);
  const a=pool[0].entry.reactionId,b=pool[1].entry.reactionId;assert.equal(progress.claimFieldRecipe(a,'0:1').saved,true);assert.equal(progress.getState(a),'hinted');assert.equal(progress.claimFieldRecipe(b,'0:1').reason,'cap');
+ const inputs=new Set(pool[1].guide.species),partial=collection(0,id=>inputs.has(id));assert.ok(recipeCandidatePool({...args,collection:partial}).some(x=>x.entry.reactionId===b));inputs.delete(pool[1].guide.species[0]);assert.ok(!recipeCandidatePool({...args,collection:partial}).some(x=>x.entry.reactionId===b));assert.ok(!recipeCandidatePool({...args,collection:collection(0)}).some(x=>x.entry.reactionId===a));
  const restored=createReactionProgress({storage:store,authority});assert.equal(restored.getState(a),'hinted');assert.equal(restored.fieldRecipeCount('0:1'),1);assert.equal(restored.claimFieldRecipe(a,'0:2').reason,'already-known');assert.equal(restored.claimFieldRecipe(b,'0:2').saved,true);
  for(const e of authority.entries())restored.verify(e.reactionId);assert.equal(recipeCandidatePool({...args,progress:restored}).length,0);assert.ok(store.getItem(REACTION_PROGRESS_KEY));
 });

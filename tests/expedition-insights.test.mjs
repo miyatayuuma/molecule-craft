@@ -66,11 +66,10 @@ for(const id of CRITICAL_INSIGHT_IDS){
   const normalValue=resources(),normalFirst=run();triggerInsight(normalFirst,'ethane',normalValue.state);advance(normalFirst,5);settle(normalValue,normalFirst,true);const normalSecond=run();assert.deepEqual(triggerInsight(normalSecond,'ethane',normalValue.state),{type:'insightAnalysisStart',id:'ethane'});
 }
 
-// Only one normal analysis is active. Critical progression does not consume or
-// replace that slot.
+// Only one normal insight may be earned per expedition, including critical insights.
 {
   const value=resources(),flight=run();triggerInsight(flight,'ethane',value.state);assert.equal(triggerInsight(flight,'propane',value.state),null);assert.equal(flight.analysis.id,'ethane');assert.deepEqual(flight.carriedInsights,[]);
-  assert.deepEqual(triggerInsight(flight,'water',value.state),{type:'insightReady',id:'water',critical:true});assert.equal(flight.analysis.id,'ethane');assert.deepEqual(flight.carriedInsights,['water']);
+  assert.equal(triggerInsight(flight,'water',value.state),null);assert.equal(flight.analysis.id,'ethane');assert.deepEqual(flight.carriedInsights,[]);
 }
 
 // Persistent, active and carried duplicates are rejected.
