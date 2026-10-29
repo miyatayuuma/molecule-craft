@@ -1,0 +1,50 @@
+name: Reaction book visual quality gate
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/reaction-book-visual-gate.yml'
+      - 'src/reaction-book-visual.js'
+      - 'src/reaction-encyclopedia.js'
+      - 'styles.css'
+      - 'tests/reaction-book-visual-gate.test.mjs'
+      - 'tests/reaction-encyclopedia-browser.test.mjs'
+      - 'docs/validation/reaction-book-visual-gate.md'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/reaction-book-visual-gate.test.mjs tests/reaction-encyclopedia.test.mjs tests/reaction-progress.test.mjs
+      - run: node scripts/check-repository-hygiene.mjs
+      - run: node scripts/build-precache.mjs --check
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: [360, 1280]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: sudo apt-get update -qq
+      - run: sudo apt-get install -y fonts-noto-cjk
+      - run: node tests/reaction-encyclopedia-browser.test.mjs
+        env:
+          REACTION_VIEWPORT: ${{ matrix.viewport }}
+          REACTION_BOOK_CAPTURE_DIR: reaction-book-captures
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reaction-book-visual-${{ matrix.viewport }}
+          path: reaction-book-captures/*.png
+          if-no-files-found: ignore
