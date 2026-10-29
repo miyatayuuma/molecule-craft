@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {launchDestinationLayout} from '../src/veil/supply.js';
+
+const source=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
+const uiSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
+const indexSource=await readFile(new URL('../index.html',import.meta.url),'utf8');
+assert.match(source,/collector-launch-handle/,'Explorer launch must have a dedicated touch target');
+assert.match(source,/launchHandle\.addEventListener\('pointerdown',beginLaunch\)/,'Drag must start from the dedicated touch target');
+assert.match(source,/setLoadoutFlightCraftTranslation/,'LOADOUT drag must translate the visible flight craft overlay');
+assert.match(source,/resetLaunchGesture\(\{keepDestinations:true\}\)/,'Destination launch must preserve selector context through shortage confirmation');
+assert.match(source,/setCraftTranslation\(target\.x,target\.y\)/,'Flight craft must stay parked on the selected destination while launch state is evaluated');
+assert.match(source,/return onRequestLaunch\(id\)!==false;/,'Destination interaction must call the application launch request callback with an explicit destination id');
+assert.doesNotMatch(source,/setLoadoutCraftTranslation\(/,'Launch path must not translate the fixed dock through the legacy authority');
+assert.match(source,/partialBack\.addEventListener\('click',\(\)=>\{requestedDestinationId=null;partialPanel\.hidden=true;resetLaunchGesture\(\);\}\)/,'Back from shortage confirmation must clear the pending destination, highlight, and explorer position');
+assert.doesNotMatch(source,/dispatchEvent\(new window\.Event\('change'/,'Launch must not relay application behavior through a synthetic destination change event');
+assert.doesNotMatch(source,/launch-veil|expedition-anchor/,'LOADOUT must not retain the retired fallback launch DOM contract');
+assert.match(uiSource,/createExpeditionLaunchRequester/,'EXPLORE must own an application-level launch requester');
+assert.doesNotMatch(uiSource,/launch-veil|expedition-anchor/,'EXPLORE must not retain the retired hidden launch controls');
+assert.doesNotMatch(indexSource,/id="(?:launch-veil|expedition-anchor)"/,'Production DOM must expose only the Collector Shell destination selector');
+const ids=['veil','carbon','oxygen','frontier','nitrogen'];
+const layout=launchDestinationLayout(ids);
+assert.deepEqual(layout.map(({id})=>id),['veil','carbon','oxygen','nitrogen'],'Legacy Inner Horizon/frontier is not a LOADOUT destination candidate');
+assert.equal(new Set(layout.map(({x,y})=>`${x.toFixed(6)},${y.toFixed(6)}`)).size,layout.length);
+for(const point of layout)assert.ok(Math.abs(Math.hypot(point.x,point.y)-66)<1e-8);
+assert.deepEqual(launchDestinationLayout(['frontier','unknown','veil']).map(({id})=>id),['veil']);
+await import('./legacy-frontier-destination.test.mjs');
+console.log('Explorer launch selector passed: radial inputs share the explicit launch request API without DOM event relays, and legacy frontier is absent.');

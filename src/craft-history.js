@@ -1,0 +1,62 @@
+const clone=value=>globalThis.structuredClone?globalThis.structuredClone(value):JSON.parse(JSON.stringify(value));
+const keyOf=value=>JSON.stringify(value);
+
+const workspaceAtomCount=snapshot=>Array.isArray(snapshot?.workspace?.atoms)?snapshot.workspace.atoms.length:null;
+
+// CRAFT deletes return atoms to BASE STOCK, so a decrease in workspace atoms is
+// the shared destructive boundary. The mutation itself succeeds, but history
+// before that boundary is intentionally discarded instead of becoming Undoable.
+export function isDestructiveCraftChange(before,after){
+  const beforeCount=workspaceAtomCount(before),afterCount=workspaceAtomCount(after);
+  return beforeCount!==null&&afterCount!==null&&afterCount<beforeCount;
+}
+
+// Session-local undo history for semantic CRAFT mutations. Snapshots are owned
+// by the integration layer so workspace graph and BASE STOCK can be restored
+// atomically without operation-specific inverse logic. Progression/discovery is
+// deliberately outside these snapshots and therefore remains monotonic.
+export function createCraftHistory({capture,restore,onChange=()=>{}}={}){
+  if(typeof capture!=='function'||typeof restore!=='function')throw new TypeError('capture and restore are required');
+  const past=[];let pending=null,pendingKey='',restoring=false;
+  const notify=()=>onChange({canUndo:past.length>0,depth:past.length,pending:pending!==null});
+
+  function begin(){
+    if(restoring||pending!==null)return false;
+    pending=clone(capture());pendingKey=keyOf(pending);return true;
+  }
+  function commit(){
+    if(pending===null)return false;
+    const before=pending,beforeKey=pendingKey,after=clone(capture());pending=null;pendingKey='';
+    if(keyOf(after)===beforeKey)return false;
+    if(isDestructiveCraftChange(before,after)){past.length=0;notify();return true;}
+    past.push(before);notify();return true;
+  }
+  function cancel(){const had=pending!==null;pending=null;pendingKey='';return had;}
+  function rollback(){
+    if(restoring||pending===null)return false;
+    const snapshot=pending,snapshotKey=pendingKey;pending=null;pendingKey='';restoring=true;let restored=false;
+    try{restored=restore(clone(snapshot))!==false;}
+    catch(error){pending=snapshot;pendingKey=snapshotKey;throw error;}
+    finally{restoring=false;}
+    if(!restored){pending=snapshot;pendingKey=snapshotKey;}
+    notify();return restored;
+  }
+  function reset(){past.length=0;cancel();notify();}
+  function undo(){
+    if(restoring||!past.length)return false;
+    cancel();const snapshot=past.pop();restoring=true;let restored=false;
+    try{restored=restore(clone(snapshot))!==false;}
+    catch(error){past.push(snapshot);throw error;}
+    finally{restoring=false;}
+    if(!restored)past.push(snapshot);notify();return restored;
+  }
+  function record(mutate){
+    if(typeof mutate!=='function')throw new TypeError('mutate must be a function');
+    if(!begin())return mutate();
+    try{const result=mutate();if(result===false||result===null){cancel();return result;}commit();return result;}
+    catch(error){cancel();throw error;}
+  }
+
+  notify();
+  return{begin,commit,cancel,rollback,reset,undo,record,get canUndo(){return past.length>0;},get depth(){return past.length;},get pending(){return pending!==null;}};
+}

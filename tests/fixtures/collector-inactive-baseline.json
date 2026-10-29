@@ -1,0 +1,10 @@
+{
+  "basis": "0ad156fb39b350935041f1bcc5453c2220af67b2",
+  "frames": 600,
+  "cases": {
+    "normal": "6a713dcd9ffeb9413b144fbad9e0ee3f755d12b95db7aaf3a31fbed9fdcc7776",
+    "dense": "85fb226c4613bd38ebd9ac46112fac13728a3a592cd315d98a98c0481cb5d960",
+    "awakened": "8a68625e4ac0622ff35a285a2c4c1f4edd65a03acd61523ffbccb70c33fe02c6",
+    "dynamic-heavy": "718b54d6928abdee3eca0b73ed95da231a2835ee2c09946250b85c466620815a"
+  }
+}

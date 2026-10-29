@@ -1,0 +1,33 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createReactionCatalogAuthority} from '../src/reaction-catalog-authority.js';
+import {createReactionProgress,REACTION_PROGRESS_KEY,clearReactionProgress} from '../src/reaction-progress.js';
+import {createReactionLabDiscoveryCoordinator} from '../src/reaction-lab-discovery.js';
+const routes=JSON.parse(readFileSync(new URL('../data/polymerization-routes.json',import.meta.url))).routes;
+const authority=createReactionCatalogAuthority({polymerRoutes:routes});
+class Storage{map=new Map();getItem(k){return this.map.get(k)??null}setItem(k,v){this.map.set(k,String(v))}removeItem(k){this.map.delete(k)}}
+const normal=authority.entries().find(e=>e.reactionId==='normal:complete-22-dimethyl-sulfide-oxidation');
+const polymer=routes.find(r=>r.routeId==='polyethylene-coordination');
+const normalPayload=()=>({reactionId:normal.definition.id,pathwayId:`${normal.definition.id}/test`,batchGeneration:1,products:normal.definition.products,productInstances:normal.definition.products.map((species,productIndex)=>({species,productIndex,instanceId:`p${productIndex}`}))});
+const polymerPayload=()=>({routeId:polymer.routeId,polymerId:polymer.polymerId,sampleId:'s',batchGeneration:1,sourceInstanceIds:Array.from({length:polymer.completionEvidence.unitCount},(_,i)=>`source${i}`),byproducts:[]});
+function harness(storage){const progress=createReactionProgress({storage,authority});const collection={registerDiscoveredMolecule:()=>({changed:false}),registerDiscoveredPolymer:()=>({changed:false})};const records=[...new Set([...normal.definition.products,'water'])].map(id=>({id}));const c=createReactionLabDiscoveryCoordinator({records,collection,polymerRoutes:routes,polymerIds:routes.map(x=>x.polymerId),reactionAuthority:authority,reactionProgress:progress,onDiagnostic:()=>{}});return {progress,c};}
+test('catalog preserves unique source identities and overlapping categories',()=>{assert.equal(authority.entries().filter(x=>x.kind==='normal').length,29);assert.equal(authority.entries().filter(x=>x.kind==='polymer').length,25);assert.equal(authority.includedIds().size,54);assert.equal(authority.count(),54);assert.equal(authority.get(normal.reactionId).definition,normal.definition);assert.ok(authority.tags('normal:complete-28-methane-combustion').includes('oxidation'));assert.ok(authority.tags('normal:complete-28-methane-combustion').includes('combustion'));});
+test('only validated success events persist a unique reaction, including already known products',()=>{const s=new Storage(),{c,progress}=harness(s),id=normal.reactionId,pid=`polymer:${polymer.routeId}`;assert.equal(progress.getState(id),'notFound');assert.equal(progress.getState(pid),'notFound');c.handleProductEvent({...normalPayload(),products:['water'],productInstances:[{species:'water',productIndex:0,instanceId:'p'}]});assert.equal(progress.getState(id),'notFound');c.handleProductEvent(normalPayload());c.handleProductEvent(normalPayload());assert.equal(progress.getState(id),'verified');c.handlePolymerSamplePresent({sampleId:'s',batchGeneration:1});assert.equal(progress.getState(pid),'notFound');c.handlePolymerSampleEvent({...polymerPayload(),sourceInstanceIds:[]});assert.equal(progress.getState(pid),'notFound');c.handlePolymerSampleEvent(polymerPayload());c.handlePolymerSampleEvent(polymerPayload());let restored=createReactionProgress({storage:s,authority});assert.equal(restored.getState(id),'verified');assert.equal(restored.getState(pid),'verified');assert.equal(restored.snapshot().verifiedReactionIds.length,2);});
+test('hints, unknown and duplicate legacy IDs, and normal discoveries do not invent history',()=>{const s=new Storage();s.setItem('molecule-craft.collection.v1',JSON.stringify({discoveredMolecules:[{id:'dimethyl-sulfoxide'}]}));s.setItem(REACTION_PROGRESS_KEY,JSON.stringify({schemaVersion:1,hintedReactionIds:['unknown:future','unknown:future'],verifiedReactionIds:[]}));let p=createReactionProgress({storage:s,authority,legacyPolymerEntries:[{id:polymer.polymerId}]});assert.equal(p.getState(normal.reactionId),'notFound');p.hint(normal.reactionId);assert.equal(p.getState(normal.reactionId),'hinted');p.verify(normal.reactionId);p.hint(normal.reactionId);assert.equal(p.getState(normal.reactionId),'verified');p=createReactionProgress({storage:s,authority});assert.deepEqual(p.snapshot().hintedReactionIds,['unknown:future',normal.reactionId]);assert.equal(JSON.parse(s.getItem('molecule-craft.collection.v1')).discoveredMolecules[0].id,'dimethyl-sulfoxide');});
+test('legacy polymer migration is unambiguous and is saved without changing legacy data',()=>{const s=new Storage(),p=createReactionProgress({storage:s,authority,legacyPolymerEntries:[{id:polymer.polymerId},{id:'unknown'}]});assert.equal(p.getState(`polymer:${polymer.routeId}`),'verified');assert.equal(p.getState(normal.reactionId),'notFound');assert.equal(p.persist(),true);assert.equal(createReactionProgress({storage:s,authority}).getState(`polymer:${polymer.routeId}`),'verified');});
+test('future saves and conflicting tabs are preserved',()=>{const s=new Storage(),a=createReactionProgress({storage:s,authority}),b=createReactionProgress({storage:s,authority});assert.equal(a.hint(normal.reactionId).saved,true);const before=s.getItem(REACTION_PROGRESS_KEY);assert.equal(b.verify(normal.reactionId).saved,false);assert.equal(s.getItem(REACTION_PROGRESS_KEY),before);s.setItem(REACTION_PROGRESS_KEY,JSON.stringify({schemaVersion:99,extra:'keep'}));const future=createReactionProgress({storage:s,authority});assert.equal(future.verify(normal.reactionId).saved,false);assert.equal(clearReactionProgress(s),false);assert.match(s.getItem(REACTION_PROGRESS_KEY),/keep/);});
+test('field and TNT hints share a per-expedition budget and persist without duplicate awards',()=>{
+  const storage=new Storage(), p=createReactionProgress({storage,authority}), ids=[...authority.includedIds()];
+  assert.equal(p.claimFieldRecipe(ids[0],'run-1','field',1).changed,true);
+  assert.equal(p.claimFieldRecipe(ids[1],'run-1','tnt',2).changed,true);
+  assert.equal(p.claimFieldRecipe(ids[1],'run-1','tnt',2).reason,'already-known');
+  assert.equal(p.claimFieldRecipe(ids[2],'run-1','tnt',2).changed,true);
+  assert.equal(p.claimFieldRecipe(ids[3],'run-1','tnt',2).reason,'cap');
+  const restored=createReactionProgress({storage,authority});
+  assert.equal(restored.getState(ids[2]),'hinted');
+  assert.equal(restored.fieldRecipeCount('run-1','field'),1);
+  assert.equal(restored.fieldRecipeCount('run-1','tnt'),2);
+  assert.equal(restored.claimFieldRecipe(ids[3],'run-2','tnt',2).changed,true);
+  assert.equal(restored.fieldRecipeCount('run-2','field'),0);
+});

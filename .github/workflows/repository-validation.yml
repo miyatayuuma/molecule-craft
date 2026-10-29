@@ -1,0 +1,30 @@
+name: Repository validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  current-production-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Repository and PWA integrity
+        run: |
+          node scripts/check-repository-hygiene.mjs
+          node scripts/build-precache.mjs --check
+          node tests/pwa.test.mjs
+      - name: Saved progress and current game systems
+        run: |
+          node --test tests/resources-persistence.test.mjs tests/collection-persistence.test.mjs tests/polymer-collection-persistence.test.mjs tests/reaction-progress.test.mjs tests/collection.test.mjs tests/expedition-core.test.mjs
+      - name: Reaction Lab, polymer and TNT contracts
+        run: |
+          node --test tests/reaction-lab-core.test.mjs tests/reaction-lab-complete-catalog.test.mjs tests/reaction-lab-polymerization.test.mjs tests/polymerization-routes.test.mjs tests/reaction-encyclopedia.test.mjs tests/reaction-recipe-drop.test.mjs tests/tnt-rewards.test.mjs

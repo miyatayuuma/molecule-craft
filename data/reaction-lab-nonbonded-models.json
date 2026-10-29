@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "parameterSet": "reaction-lab-nonbonded-v1",
+  "protocolVersion": "1.0.0",
+  "chargeUnit": "elementary_charge",
+  "vdwUnits": {
+    "sigma": "angstrom",
+    "epsilon": "kilocalorie_per_mole"
+  },
+  "combiningRule": "Lorentz-Berthelot",
+  "chargeModels": [
+    {
+      "id": "ashgc-1.0",
+      "parameterKind": "atomic partial charges",
+      "method": "OpenFF NAGL AM1-BCC GNN v1.0, official chemical-domain validation enabled, readout am1bcc_charges",
+      "source": "OpenFF NAGL Models",
+      "version": "1.0.0",
+      "modelFilename": "openff-gnn-am1bcc-1.0.0.pt",
+      "releaseState": "production",
+      "protocol": "OpenFF Toolkit Molecule graph from indexed atoms/bonds; reject unsupported domain; explicit neutral total-charge constraint; no coordinate/conformer dependence",
+      "reproducibilityNote": "Model SHA-256 is pinned in fileHashes; the lockfile pins the free/open-source developer environment. Do not use an unversioned latest model. Torch inference uses one intra-op and one inter-op thread."
+    },
+    {
+      "id": "symmetry-zero",
+      "parameterKind": "atomic partial charges",
+      "method": "explicit zero-charge neutral homonuclear diatomic approximation",
+      "source": "Reaction Lab Stage A route manifest",
+      "version": "1",
+      "modelFilename": null,
+      "protocol": "Set both atoms to 0 e for H2, O2, N2, and Cl2; this is not a multipole or open-shell electronic-structure model",
+      "reproducibilityNote": "Exact values and molecule IDs are listed in reaction-lab-nonbonded-routes.json."
+    },
+    {
+      "id": "tip3p-library",
+      "parameterKind": "atomic partial charges",
+      "method": "Sage 2.3.0 TIP3P LibraryCharges",
+      "source": "OpenFF Sage 2.3.0 openff-2.3.0.offxml",
+      "version": "2.3.0",
+      "modelFilename": "openff-2.3.0.offxml",
+      "protocol": "Use matched LibraryCharges entries q-tip3p-O and q-tip3p-H; Sage library charges take precedence over NAGLCharges",
+      "reproducibilityNote": "Water charge values are verified exactly as [-0.834, 0.417, 0.417] e."
+    },
+    {
+      "id": "ambertools-am1bcc",
+      "parameterKind": "atomic partial charges",
+      "method": "AmberTools Antechamber AM1-BCC (SQM), deterministic RDKit ETKDGv3 conformer",
+      "source": "AmberTools",
+      "version": "26.0",
+      "modelFilename": null,
+      "protocol": "Generate one conformer with the route manifest seed; minimize with RDKit MMFF94s when available; assign AM1-BCC using AmberToolsToolkitWrapper; enforce neutral total charge",
+      "reproducibilityNote": "Used for explicit CO [C-]#[O+] and for AshGC domain/parameterization fallback. This is a deliberate fallback, not AshGC."
+    }
+  ],
+  "vdwModels": [
+    {
+      "id": "openff-sage-2.3.0",
+      "parameterKind": "atom-centered Lennard-Jones parameters",
+      "method": "OpenFF Sage 2.3.0 vdW handler",
+      "source": "OpenFF Force Fields",
+      "version": "2.3.0",
+      "modelFilename": "openff-2.3.0.offxml",
+      "protocol": "Match each atom against Sage vdW SMIRKS in the mapped OpenFF topology; record the OpenFF parameter id; normalize to sigma in angstrom and epsilon in kcal/mol",
+      "combiningRule": "Lorentz-Berthelot",
+      "reproducibilityNote": "When an input vdW parameter is expressed as rmin_half, sigma = (2*rmin_half)/2^(1/6). Use Sage TIP3P-specific atom parameters for water. No custom vdW overrides."
+    }
+  ],
+  "toolVersions": {
+    "python": "3.11.16",
+    "openff-toolkit": "0.18.0",
+    "openff-nagl": "0.5.5",
+    "openff-nagl-models": "2025.9.0",
+    "openff-forcefields": "2026.01.0",
+    "ambertools": "26.0",
+    "rdkit": "2026.03.1",
+    "pytorch": "2.13.0"
+  },
+  "fileHashes": {
+    "ashgcModelSha256": "7981e7f5b0b1e424c9e10a40d9e7606d96dcd3dd2b095cb4eeff6829f92238ee",
+    "sageOffxmlSha256": "7a0d7195a4b717e29fe14aa2cf1bc3203e87ce4aef9cc2ef10fb5145b7edcf63"
+  }
+}

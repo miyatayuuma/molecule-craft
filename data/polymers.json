@@ -1,0 +1,417 @@
+[
+  {
+    "id": "polyethylene",
+    "nameJa": "ポリエチレン",
+    "nameEn": "Polyethylene",
+    "family": "polyolefin",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH₂–"
+  },
+  {
+    "id": "polypropylene",
+    "nameJa": "ポリプロピレン",
+    "nameEn": "Polypropylene",
+    "family": "polyolefin",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "propene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH(CH₃)–"
+  },
+  {
+    "id": "ethylene-propylene-copolymer",
+    "nameJa": "エチレン-プロピレン共重合体",
+    "nameEn": "Ethylene-propylene copolymer",
+    "family": "polyolefin-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "ethene",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "propene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "polyisobutylene",
+    "nameJa": "ポリイソブチレン",
+    "nameEn": "Polyisobutylene",
+    "family": "polyolefin",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "isobutene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–C(CH₃)₂–"
+  },
+  {
+    "id": "polystyrene",
+    "nameJa": "ポリスチレン",
+    "nameEn": "Polystyrene",
+    "family": "vinyl-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "styrene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH(C₆H₅)–"
+  },
+  {
+    "id": "polyvinyl-chloride",
+    "nameJa": "ポリ塩化ビニル",
+    "nameEn": "Poly(vinyl chloride)",
+    "family": "vinyl-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "vinyl-chloride",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CHCl–"
+  },
+  {
+    "id": "polychlorotrifluoroethylene",
+    "nameJa": "ポリクロロトリフルオロエチレン",
+    "nameEn": "Polychlorotrifluoroethylene",
+    "family": "fluoropolymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "chlorotrifluoroethylene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CF₂–CFCl–"
+  },
+  {
+    "id": "polyacrylonitrile",
+    "nameJa": "ポリアクリロニトリル",
+    "nameEn": "Polyacrylonitrile",
+    "family": "vinyl-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "acrylonitrile",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH(CN)–"
+  },
+  {
+    "id": "polyacrylic-acid",
+    "nameJa": "ポリアクリル酸",
+    "nameEn": "Poly(acrylic acid)",
+    "family": "vinyl-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "acrylic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH(COOH)–"
+  },
+  {
+    "id": "polyethylene-oxide",
+    "nameJa": "ポリエチレンオキシド",
+    "nameEn": "Poly(ethylene oxide)",
+    "family": "polyether",
+    "formation": "ring-opening",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethylene-oxide",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CH₂–O–"
+  },
+  {
+    "id": "polyethylene-terephthalate",
+    "nameJa": "ポリエチレンテレフタラート",
+    "nameEn": "Poly(ethylene terephthalate)",
+    "family": "polyester",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethylene-glycol",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "terephthalic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–O–CH₂–CH₂–O–CO–C₆H₄–CO–"
+  },
+  {
+    "id": "polyethylene-adipate",
+    "nameJa": "ポリエチレンアジペート",
+    "nameEn": "Poly(ethylene adipate)",
+    "family": "polyester",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethylene-glycol",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "adipic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–O–CH₂–CH₂–O–CO–(CH₂)₄–CO–"
+  },
+  {
+    "id": "polylactic-acid",
+    "nameJa": "ポリ乳酸",
+    "nameEn": "Polylactic acid",
+    "family": "polyester",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "lactic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–O–CH(CH₃)–CO–"
+  },
+  {
+    "id": "polyglycolic-acid",
+    "nameJa": "ポリグリコール酸",
+    "nameEn": "Polyglycolic acid",
+    "family": "polyester",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "glycolic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–O–CH₂–CO–"
+  },
+  {
+    "id": "phenol-formaldehyde-resin",
+    "nameJa": "フェノール-ホルムアルデヒド樹脂",
+    "nameEn": "Phenol-formaldehyde resin",
+    "family": "phenolic",
+    "formation": "condensation-network",
+    "topology": "network",
+    "reactants": [
+      {
+        "moleculeId": "phenol",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "formaldehyde",
+        "role": "crosslinker"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "polyethylene-adipamide",
+    "nameJa": "ポリエチレンアジパミド",
+    "nameEn": "Poly(ethylene adipamide)",
+    "family": "polyamide",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "ethylenediamine",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "adipic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–NH–CH₂–CH₂–NH–CO–(CH₂)₄–CO–"
+  },
+  {
+    "id": "polybutadiene",
+    "nameJa": "ポリブタジエン",
+    "nameEn": "Polybutadiene",
+    "family": "diene-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "1-3-butadiene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "styrene-butadiene-copolymer",
+    "nameJa": "スチレン-ブタジエン共重合体",
+    "nameEn": "Styrene-butadiene copolymer",
+    "family": "diene-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "styrene",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "1-3-butadiene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "nitrile-butadiene-rubber",
+    "nameJa": "ニトリル-ブタジエンゴム",
+    "nameEn": "Nitrile-butadiene rubber",
+    "family": "diene-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "acrylonitrile",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "1-3-butadiene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "polyisoprene",
+    "nameJa": "ポリイソプレン",
+    "nameEn": "Polyisoprene",
+    "family": "diene-polymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "isoprene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "butyl-rubber",
+    "nameJa": "ブチルゴム",
+    "nameEn": "Butyl rubber",
+    "family": "diene-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "isobutene",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "isoprene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "polyvinylidene-fluoride",
+    "nameJa": "ポリフッ化ビニリデン",
+    "nameEn": "Poly(vinylidene fluoride)",
+    "family": "fluoropolymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "vinylidene-fluoride",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CH₂–CF₂–"
+  },
+  {
+    "id": "vinylidene-fluoride-hexafluoropropylene-copolymer",
+    "nameJa": "フッ化ビニリデン-ヘキサフルオロプロピレン共重合体",
+    "nameEn": "Vinylidene fluoride-hexafluoropropylene copolymer",
+    "family": "fluoropolymer-copolymer",
+    "formation": "copolymerization",
+    "topology": "copolymer",
+    "reactants": [
+      {
+        "moleculeId": "vinylidene-fluoride",
+        "role": "comonomer"
+      },
+      {
+        "moleculeId": "hexafluoropropylene",
+        "role": "comonomer"
+      }
+    ],
+    "repeatUnit": null
+  },
+  {
+    "id": "polytetrafluoroethylene",
+    "nameJa": "ポリテトラフルオロエチレン",
+    "nameEn": "Polytetrafluoroethylene",
+    "family": "fluoropolymer",
+    "formation": "addition",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "tetrafluoroethylene",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–CF₂–CF₂–"
+  },
+  {
+    "id": "nylon-6-6",
+    "nameJa": "ナイロン66",
+    "nameEn": "Nylon 6,6",
+    "family": "polyamide",
+    "formation": "polycondensation",
+    "topology": "linear",
+    "reactants": [
+      {
+        "moleculeId": "hexamethylenediamine",
+        "role": "monomer"
+      },
+      {
+        "moleculeId": "adipic-acid",
+        "role": "monomer"
+      }
+    ],
+    "repeatUnit": "–NH–(CH₂)₆–NH–CO–(CH₂)₄–CO–"
+  }
+]

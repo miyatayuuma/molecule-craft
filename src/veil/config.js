@@ -1,0 +1,71 @@
+import {tankCapacityFor} from './molecule-roles.js';
+
+// World units / seconds. Tune feel here; resource units are not individual atoms.
+export const VEIL = Object.freeze({
+  speed: 164, driftSpeed: 29, acceleration: 7.5, releaseDrag: 3.2,
+  turnRate: 5.8, boostTurnRate: 8.5, turnResponse: 9, reverseAssist: 1.45,
+  velocityGrip: 10, boostGrip: 15, cornerSpeed: .64,
+  boostAcceleration: 21, boostCooldown: .35,
+  chainSeconds: 1.45, feverChain: 80,
+  suctionRadius: 30, assistRadius: 78, assistStrength: .22,
+  suctionSeconds: .3, feverSuctionSeconds: .18, suctionBend: 35,
+  dustSpacing: 30, denseSpacing: 21, dustValue: 1, dustPerH: 3,
+  denseLaneOffset: 21, shoulderOffset: 88, shoulderLanes: 2,
+  bandPeriod: 24, bandLength: 12,
+  respawnSeconds: 45, normalHSupplementChance: .28,
+  fieldForce: 112, fieldRadius: 200, fieldPeriod: 7, fieldPulse: .28,
+  boostFieldResistance: .10, maxOpposingFlow: .22, gateDeflection: 230,
+  lapMinSeconds: 40, lapRadius: 150, lapRearmDistance: 700,
+  maxEffects: 160, maxDpr: 1.75, maxFrame: .05,
+  cameraLead: .65, cameraMaxLead: 210, cameraEase: 6, boostZoom: .10,
+  holdDelayMs: 360, holdIntervalMs: 140,
+  bounds: {left:-1100, right:1250, top:-4350, bottom:500},
+  spawn: {x:0, y:180, angle:-Math.PI/2},
+  gate: {x:530, y:-3800, width:460, height:140},
+});
+// Expedition-only limits and pursuit tuning. Base inventories remain uncapped;
+// these values describe what one sortie can use and how pressure escalates.
+export const EXPEDITION = Object.freeze({
+  hydrogenCapacity: 3,
+  methaneCapacity: 18,
+  oxygenCapacity: tankCapacityFor('oxidizer','oxygen'),
+  normalExtractionSeconds: .8,
+  captureLoss: .15,
+  safeSeconds: 20,
+  threatPerSecond: 1,
+  threatPerDustUnit: .012,
+  eaterThresholds: [8, 24, 38, 58, 84],
+  eaterSpawnDistance: 650,
+  tntEaterRespawnSeconds: 60,
+  tntEaterRespawnMinDistance: 500,
+  eaterSpawnDelay: 2.75,
+  eaterSpeed: 168,
+  eaterAcceleration: 2.8,
+  eaterTurnRate: 3.2,
+  eaterGrip: 4.4,
+  eaterLeadSeconds: .45,
+  eaterFlankOffset: 150,
+  eaterContactRadius: 38,
+  eaterSeparationRadius: 150,
+  eaterSeparationForce: 82,
+  eaterWarningRadius: 500,
+  eaterDangerRadius: 250,
+});
+// Compressed thermal game units; ambient exposure adds heat and shortens
+// coolant service time according to its environment tolerance.
+export const THERMAL = Object.freeze({
+  heatPerSecond: 10,
+  naturalCoolingPerSecond: 14,
+  coolantCoolingPerSecond: 12,
+  coolantSecondsPerMolecule: 1,
+  coolantStart: 35,
+  hotThreshold: 70,
+  overheatThreshold: 100,
+  recoveryThreshold: 55,
+});
+export const VEIL_AUDIO = Object.freeze({
+  master: .25, pickupInterval: .075, pickupSeconds: .15,
+  pickupLevel: .095, pickupBase: 196, harmonyLevel: .022,
+  movementLevel: .045, feverLevel: .035, boostLevel: .23,
+  notes: [0, 2, 4, 7, 9, 12, 14, 16],
+});

@@ -1,0 +1,105 @@
+import { VEIL, EXPEDITION } from './config.js';
+import { activeTankRolesFor,combustionBurnPlanFor,combustionPacketFor,performanceFor,tankCapacityFor } from './molecule-roles.js';
+import {NITROGEN_REGION_AVAILABLE,nitrogenGrowthGoal} from './nitrogen-progression.js';
+import {NITROGEN_ENTRY,NITROGEN_REGION_BOUNDS,NITROGEN_REGION_Y} from './nitrogen-config.js';
+import {hazardWorldStateFor} from './hazards.js';
+import {worldAwakeningState} from './world-awakening.js';
+// Game units, not a combustion/thermodynamics simulation. Ordinary DB molecules
+// need no effect entry; future shared actions can be attached here independently.
+export const MOLECULE_USES = Object.freeze({
+  hydrogen:{formula:'H₂',name:'水素',atoms:['H','H'],role:'burst-propellant',tankUses:['propellant'],performance:{propellant:{thrust:.82,load:.25}},hint:'Hを2つ置き、光る電子を1本つなぐ。',use:'原始的な短時間ガス噴射。通常航行には不向きだが、緊急回避と強い流れの突破に使える。',discovery:'H₂ BURSTを発見。一探索に積めるのは少量だけ。危険な瞬間まで残しておこう。'},
+  methane:{formula:'CH₄',name:'メタン',atoms:['C','H','H','H','H'],role:'fuel',tankUses:['fuel'],performance:{fuel:{load:.72,oxygen:.5}},hint:'Cを中心に、4つのHをそれぞれ1本でつなぐ。',use:'高密度な燃料。単独では推進に使えず、O₂と組み合わせて初めて連続航行できる。',discovery:'メタンを発見。燃料はできた。燃焼には、さらに酸化剤が必要だ。'},
+  oxygen:{formula:'O₂',name:'酸素',atoms:['O','O'],role:'oxidizer',tankUses:['oxidizer'],hint:'Oを2つ置く。同じ2原子の電子を2回つなぎ、二重結合にする。',use:'燃料ではなく酸化剤。CH₄ 1個とO₂ 2個で、押している間だけ続くCOMBUSTION DRIVEを動かす。',discovery:'酸化剤ができた。H₂の一瞬の噴射から、CH₄ + O₂による高速航行へ。'},
+  water:{formula:'H₂O',name:'水',atoms:['O','H','H'],role:'coolant',tankUses:['coolant'],hint:'Oを中心に、Hを2つそれぞれ1本でつなぐ。',use:'燃焼ドライブの熱を自動的に逃がす冷却剤。短い燃焼では消費せず、連続航行を支える。',discovery:'水を発見。冷却剤タンクに充填すると、燃焼熱を自動制御できる。'},
+});
+export const TANK_USES=Object.freeze({
+  propellant:{label:'噴射剤'},
+  fuel:{label:'燃料'},
+  oxidizer:{label:'酸化剤'},
+  coolant:{label:'冷却剤'},
+  shock:{label:'SHOCK'},
+});
+export const tankUsesFor=id=>activeTankRolesFor(id);
+export const tankCapacity=(use,id)=>tankCapacityFor(use,id);
+// Input chooses an action, not its physics. A later cruise controller can use
+// these same actions without changing resources or adding HUD buttons.
+export const DRIVES=Object.freeze({
+  hydrogen:{type:'burst',label:'H₂',name:'H₂ BURST',cost:{hydrogen:40},boostSpeed:760,boostSeconds:.65,boostRadius:8,boostCooldown:.55,boostAcceleration:28,boostGrip:20},
+  combustion:{type:'continuous',label:'FUEL + O₂',name:'COMBUSTION DRIVE',cost:{methane:1,oxygen:2},boostSpeed:470,packetSeconds:2,boostRadius:40,boostAcceleration:5.2,boostGrip:14},
+});
+export const GROWTH=Object.freeze({
+  flight:{speed:164,driftSpeed:29,suctionRadius:30,assistRadius:78},
+  dustPerAtom:{H:3,C:3,N:1,O:3,P:1,S:1,F:1,Cl:1},bounds:{left:-1100,right:1250,top:-12750,bottom:500},
+  clusterRadius:64,clusterRespawn:40,clusterParticles:36,clusterSpread:120,clusterValue:3,
+  density:{
+    carbon:{spacing:25,lanes:2,value:1},
+    oxygenEdge:{spacing:23,lanes:2,value:1},
+    oxygenDeep:{spacing:20,lanes:4,value:2},
+    frontier:{spacing:18,lanes:4,value:2},
+  },
+  signalChance:.38,signalPity:3,
+  carbonY:-4390,oxygenY:-7830,frontierY:-11680,nitrogenY:NITROGEN_REGION_Y,
+});
+export const REGIONS=Object.freeze({
+  veil:{name:'H Veil',subtitle:'水素の帳',element:'H',x:0,y:180,angle:-Math.PI/2},
+  carbon:{name:'Carbon Drift',subtitle:'炭素の群れ',element:'C',x:250,y:-4600,angle:-Math.PI/2},
+  oxygen:{name:'Oxygen Surge',subtitle:'酸素の奔流',element:'O',x:170,y:-8090,angle:-Math.PI/2},
+  frontier:{name:'Inner Horizon',subtitle:'まだ名のない光',element:'O',x:100,y:-11920,angle:-Math.PI/2},
+  nitrogen:{name:'Nitrogen FIELD',subtitle:'窒素の深部試験場',element:'N',x:NITROGEN_ENTRY.x,y:NITROGEN_ENTRY.y,angle:NITROGEN_ENTRY.angle},
+});
+export const REGION_ORDER=Object.freeze(['veil','carbon','oxygen','frontier','nitrogen']);
+export const EXPEDITION_DESTINATION_REGION_IDS=Object.freeze(['veil','carbon','oxygen','nitrogen']);
+const EXPEDITION_DESTINATION_REGION_SET=new Set(EXPEDITION_DESTINATION_REGION_IDS);
+export const isExpeditionRegionDestination=id=>EXPEDITION_DESTINATION_REGION_SET.has(id);
+export function regionAt(y){return y<GROWTH.nitrogenY?'nitrogen':y<GROWTH.frontierY?'frontier':y<GROWTH.oxygenY?'oxygen':y<GROWTH.carbonY?'carbon':'veil';}
+export function flightConfig(state){const nitrogenField=state?.progress?.choCompleted===true,bounds=nitrogenField?NITROGEN_REGION_BOUNDS:GROWTH.bounds,world=worldAwakeningState(state?.progress);return {...VEIL,...GROWTH.flight,bounds,nitrogenField,nitrogenStock:Math.max(0,Number(state?.elements?.N)||0),coreFractured:world.coreFractured,worldAwakeningPending:world.worldAwakeningPending,worldAwakened:world.worldAwakened,rareEcologyEligible:world.rareEcologyEligible,hazardWorldState:hazardWorldStateFor(world.worldAwakened)};}
+export function propulsionSpeedMax(config=GROWTH.flight){return Math.max(Number(config?.speed)||0,...Object.values(DRIVES).map(drive=>Number(drive.boostSpeed)||0));}
+export function driveAvailable(state,id){
+  if(id==='hydrogen')return state.recipes.includes('hydrogen');
+  if(id==='combustion')return state.recipes.includes('oxygen')&&state.recipes.some(molecule=>performanceFor(molecule,'fuel'));
+  return false;
+}
+const finiteFuel=value=>Number.isFinite(value)?Math.max(0,value):0;
+const slot=(loadout,use,legacy)=>loadout?.[use]?.molecule?loadout[use]:{molecule:legacy,amount:finiteFuel(loadout?.[legacy])};
+function combustionPlan(loadout={}){
+  const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen');if(!performanceFor(fuel.molecule,'fuel')||oxidizer.molecule!=='oxygen')return null;
+  return combustionBurnPlanFor(fuel.molecule,{fuelAmount:finiteFuel(fuel.amount),oxygenAmount:finiteFuel(oxidizer.amount),baseSeconds:DRIVES.combustion.packetSeconds});
+}
+export function combustionPackets(loadout={}){return combustionPlan(loadout)?.fuelUsed??0;}
+export function burstDriveFor(id){
+  const performance=performanceFor(id,'propellant');if(!performance)return null;
+  const base=DRIVES.hydrogen,power=performance.burstPower;
+  return {...base,label:id,name:'BURST',boostSpeed:GROWTH.flight.speed+(base.boostSpeed-GROWTH.flight.speed)*power,boostAcceleration:base.boostAcceleration*(.55+.45*power),boostGrip:base.boostGrip*(.65+.35*power)};
+}
+export function combustionDriveFor(id){
+  const performance=performanceFor(id,'fuel');if(!performance)return null;
+  const base=DRIVES.combustion,response=performance.response??1;
+  return {...base,label:id,name:'COMBUSTION DRIVE',boostAcceleration:base.boostAcceleration*response};
+}
+export function propulsionGauge(id,loadout={},driveBuffer=0){
+  let remaining=0,capacity=0,seconds=0,maxSeconds=0;
+  if(id==='hydrogen'){
+    const propellant=slot(loadout,'propellant','hydrogen'),performance=performanceFor(propellant.molecule,'propellant');
+    capacity=performance?Math.floor(performance.capacity/performance.moleculesPerBurst):0;remaining=performance?Math.min(capacity,Math.floor(finiteFuel(propellant.amount)/performance.moleculesPerBurst)):0;
+  }else if(id==='combustion'){
+    const fuel=slot(loadout,'fuel','methane'),oxidizer=slot(loadout,'oxidizer','oxygen'),performance=performanceFor(fuel.molecule,'fuel'),full={fuel:{molecule:fuel.molecule,amount:tankCapacity('fuel',fuel.molecule)??0},oxidizer:{molecule:oxidizer.molecule,amount:oxidizer.capacity??tankCapacity('oxidizer',oxidizer.molecule)??0}},fullPlan=combustionPlan(full),plan=combustionPlan(loadout);
+    capacity=fullPlan?.fuelUsed??0;maxSeconds=fullPlan?.seconds??0;seconds=Math.min(maxSeconds,(plan?.seconds??0)+finiteFuel(driveBuffer));const secondsPerFuel=performance?DRIVES.combustion.packetSeconds*performance.energy:0;remaining=Math.min(capacity,secondsPerFuel?Math.ceil(Math.max(0,seconds-1e-10)/secondsPerFuel):0);
+  }
+  const ratio=capacity?Math.max(0,Math.min(1,id==='combustion'?seconds/maxSeconds:remaining/capacity)):0;
+  return {remaining,capacity,seconds,ratio,state:ratio<=0?'empty':ratio<=.34?'low':'enough'};
+}
+export function growthGoal(state,{cargo={},nitrogenRegionAvailable=NITROGEN_REGION_AVAILABLE}={}){
+  const has=id=>state.recipes.includes(id),hinted=id=>state.hints?.includes(id),found=state.progress.foundElements??['H'];
+  if(state.progress.choCompleted)return nitrogenGrowthGoal(state,{regionAvailable:nitrogenRegionAvailable})??{text:'CHO探索クリア · 自由探索で構成を試したり、気になるCHO分子を作ろう。'};
+  if(!has('hydrogen'))return hinted('hydrogen')?{id:'hydrogen',text:'得た構造をもとにH₂をCRAFTし、緊急用BURSTを準備しよう。'}:{text:'Hの光を集め、緊急噴射を実用量試せるだけの材料を確保しよう。'};
+  if(!found.includes('C'))return {text:'完成したH₂模型の噴射剤ボタンを長押しで充填。H Veilの奥の強流で噴射し、Cを探そう。'};
+  if(!has('methane'))return hinted('methane')?{id:'methane',text:'得た構造をもとにCH₄をCRAFTしよう。燃焼にはさらに酸化剤が必要だ。'}:{text:'CとHを集め、燃料として試せるだけの材料を確保しよう。'};
+  if(!found.includes('O'))return {text:'CH₄は燃料。酸化剤を探して、炭素の群れのさらに奥へ。'};
+  if(!has('oxygen'))return hinted('oxygen')?{id:'oxygen',text:'得た構造をもとにO₂をCRAFTし、CH₄と組み合わせる酸化剤を準備しよう。'}:{text:'Oを集め、COMBUSTION DRIVEを試せるだけの酸化剤材料を確保しよう。'};
+  if(!has('water')){
+    if(!state.progress.coolantNeedExperienced)return {text:'CH₄とO₂を積み、COMBUSTION DRIVEで酸素後半を進もう。押し続けたときの熱制約を実際に確かめよう。'};
+    return hinted('water')?{id:'water',text:'熱制約への対策として得た構造をCRAFTし、冷却剤として試そう。'}:{text:'燃焼の熱制約は見えた。HとOを集め、対策を実用量試せる材料を確保しよう。'};
+  }
+  if(!state.progress.frontier)return {text:'H₂Oを冷却剤に積み、酸素最深部の熱・逆風帯を越えよう。BURSTは緊急突破に残そう。'};
+  return {text:'最深部の金色の輪へ進み、正常帰還してCHO探索を完了しよう。噴射・燃焼・休止を組み合わせよう。'};
+}

@@ -1,0 +1,42 @@
+{
+  "source": "pre-migration COMPLETE_REACTION_FIXTURE chemical projection",
+  "projection": "id,familyId,reactants(role/species),products,requires,forbids; array order preserved",
+  "count": 29,
+  "digest": "sha256:73d94b8ededfb8c600128a84b681fdccfd12ab6f63fbfc1378ed0d22ec69d564",
+  "ids": [
+    "complete-01-anhydride-hydrolysis",
+    "complete-02-anhydride-alcoholysis",
+    "complete-03-aspirin-synthesis",
+    "complete-04-aspirin-hydrolysis",
+    "complete-05-amide-alcoholysis",
+    "complete-06-ethene-halogenation",
+    "complete-07-sulfur-trioxide-hydration",
+    "complete-08-phosphorus-pentachloride-formation",
+    "complete-09-ethylene-oxide-acid-cleavage",
+    "complete-10-ethylene-oxide-basic-cleavage",
+    "complete-11-propene-hydration",
+    "complete-12-1-butene-hydration",
+    "complete-13-2-butene-hydration",
+    "complete-14-isobutene-hydration",
+    "complete-15-cyclohexene-hydration",
+    "complete-16-methane-chlorination",
+    "complete-17-chloromethane-chlorination",
+    "complete-18-dichloromethane-chlorination",
+    "complete-19-chloroform-chlorination",
+    "complete-20-hydrogen-chlorination",
+    "complete-21-cyclobutane-dimerization",
+    "complete-22-dimethyl-sulfide-oxidation",
+    "complete-23-methanol-dehydration",
+    "complete-24-urea-hydrolysis",
+    "complete-25-carbonyl-sulfide-hydrolysis",
+    "complete-26-hydrogen-combustion",
+    "complete-27-carbon-monoxide-oxidation",
+    "complete-28-methane-combustion",
+    "complete-29-difluoromethane-combustion"
+  ],
+  "compiledAuthority": {
+    "labelledPathways": 198,
+    "symmetryClasses": 29,
+    "uniqueNetTransformations": 28
+  }
+}

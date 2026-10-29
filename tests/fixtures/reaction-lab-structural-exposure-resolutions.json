@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "authorityRevision": "reaction-lab-7d-structural-exposure-2026-09-29",
+  "entries": [
+    {
+      "signature": "1*acetic-anhydride+1*ammonia=>1*acetamide+1*acetic-acid",
+      "resolutionKind": "exact-blocked-transformation",
+      "referencedAuthority": "blockedTransformation:original-01",
+      "rationaleCode": "ORIGINAL_01_SPECIATION_DB"
+    },
+    {
+      "signature": "1*ammonia+1*aspirin=>1*acetamide+1*salicylic-acid",
+      "resolutionKind": "exact-blocked-transformation",
+      "referencedAuthority": "blockedTransformation:A5-aspirin-ammonolysis",
+      "rationaleCode": "A5_SPECIATION_SELECTIVITY"
+    },
+    {
+      "signature": "1*aspirin+1*ethanol=>1*ethyl-acetate+1*salicylic-acid",
+      "resolutionKind": "exact-blocked-transformation",
+      "referencedAuthority": "blockedTransformation:A6-aspirin-ethanolysis",
+      "rationaleCode": "A6_EQUILIBRIUM_SPECIATION_SELECTIVITY"
+    },
+    {
+      "signature": "1*ethene+1*water=>1*ethanol",
+      "resolutionKind": "exact-blocked-transformation",
+      "referencedAuthority": "blockedTransformation:original-08",
+      "rationaleCode": "ORIGINAL_08_CATALYST_PRESSURE_EQUILIBRIUM"
+    },
+    {
+      "signature": "1*ethyl-acetate+1*salicylic-acid=>1*aspirin+1*ethanol",
+      "resolutionKind": "exact-blocked-transformation",
+      "referencedAuthority": "blockedTransformation:A4-aspirin-synthesis-reverse",
+      "rationaleCode": "A4_CATALYST_EQUILIBRIUM_SELECTIVITY"
+    },
+    {
+      "signature": "1*ethyl-acetate+1*water=>1*acetic-acid+1*ethanol",
+      "resolutionKind": "exact-blocked-transformation",
+      "referencedAuthority": "blockedTransformation:A3-ethyl-acetate-hydrolysis",
+      "rationaleCode": "A3_EQUILIBRIUM"
+    },
+    {
+      "signature": "1*acrylic-acid+1*water=>1*lactic-acid",
+      "resolutionKind": "blocked-species-probe-acknowledged",
+      "referencedAuthority": "blockedSpeciesProbe:acrylic-acid",
+      "rationaleCode": "BLOCKED_SPECIES_SCOPE_PROBE"
+    },
+    {
+      "signature": "1*ammonia+1*methane=>1*hydrogen+1*methylamine",
+      "resolutionKind": "blocked-species-probe-acknowledged",
+      "referencedAuthority": "blockedSpeciesProbe:methylamine",
+      "rationaleCode": "BLOCKED_PRODUCT_SPECIES_SCOPE_PROBE"
+    },
+    {
+      "signature": "1*ammonia+1*methanol=>1*methylamine+1*water",
+      "resolutionKind": "blocked-species-probe-acknowledged",
+      "referencedAuthority": "blockedSpeciesProbe:methylamine",
+      "rationaleCode": "BLOCKED_PRODUCT_SPECIES_SCOPE_PROBE"
+    },
+    {
+      "signature": "1*chlorine+1*methanol=>1*chloromethane+1*hypochlorous-acid",
+      "resolutionKind": "blocked-species-probe-acknowledged",
+      "referencedAuthority": "blockedSpeciesProbe:hypochlorous-acid",
+      "rationaleCode": "BLOCKED_PRODUCT_SPECIES_SCOPE_PROBE"
+    },
+    {
+      "signature": "1*ethanol+1*methane=>1*hydrogen+1*methyl-ethyl-ether",
+      "resolutionKind": "blocked-species-probe-acknowledged",
+      "referencedAuthority": "blockedSpeciesProbe:methyl-ethyl-ether",
+      "rationaleCode": "BLOCKED_PRODUCT_SPECIES_SCOPE_PROBE"
+    },
+    {
+      "signature": "1*ethanol+1*methanol=>1*methyl-ethyl-ether+1*water",
+      "resolutionKind": "blocked-species-probe-acknowledged",
+      "referencedAuthority": "blockedSpeciesProbe:methyl-ethyl-ether",
+      "rationaleCode": "BLOCKED_PRODUCT_SPECIES_SCOPE_PROBE"
+    },
+    {
+      "signature": "1*methane+1*phenol=>1*anisole+1*hydrogen",
+      "resolutionKind": "blocked-species-probe-acknowledged",
+      "referencedAuthority": "blockedSpeciesProbe:anisole",
+      "rationaleCode": "BLOCKED_PRODUCT_SPECIES_SCOPE_PROBE"
+    },
+    {
+      "signature": "1*methanol+1*phenol=>1*anisole+1*water",
+      "resolutionKind": "blocked-species-probe-acknowledged",
+      "referencedAuthority": "blockedSpeciesProbe:anisole",
+      "rationaleCode": "BLOCKED_PRODUCT_SPECIES_SCOPE_PROBE"
+    },
+    {
+      "signature": "1*methane+1*methanol=>1*dimethyl-ether+1*hydrogen",
+      "resolutionKind": "structural-rejection",
+      "referencedAuthority": "rejection:STRUCTURAL_ARTIFACT",
+      "rationaleCode": "STRUCTURAL_ARTIFACT"
+    },
+    {
+      "signature": "1*methane+1*water=>1*hydrogen+1*methanol",
+      "resolutionKind": "structural-rejection",
+      "referencedAuthority": "rejection:NOT_CHEMICAL_CANDIDATE",
+      "rationaleCode": "NOT_CHEMICAL_CANDIDATE"
+    }
+  ]
+}

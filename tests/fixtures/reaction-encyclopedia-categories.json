@@ -1,0 +1,190 @@
+{
+  "normal:complete-01-anhydride-hydrolysis": [
+    "hydrolysis"
+  ],
+  "normal:complete-02-anhydride-alcoholysis": [
+    "esterification"
+  ],
+  "normal:complete-03-aspirin-synthesis": [
+    "esterification"
+  ],
+  "normal:complete-04-aspirin-hydrolysis": [
+    "hydrolysis"
+  ],
+  "normal:complete-05-amide-alcoholysis": [
+    "other"
+  ],
+  "normal:complete-06-ethene-halogenation": [
+    "addition",
+    "halogenation"
+  ],
+  "normal:complete-07-sulfur-trioxide-hydration": [
+    "other"
+  ],
+  "normal:complete-08-phosphorus-pentachloride-formation": [
+    "other"
+  ],
+  "normal:complete-09-ethylene-oxide-acid-cleavage": [
+    "ring-opening"
+  ],
+  "normal:complete-10-ethylene-oxide-basic-cleavage": [
+    "ring-opening"
+  ],
+  "normal:complete-11-propene-hydration": [
+    "addition",
+    "hydration"
+  ],
+  "normal:complete-12-1-butene-hydration": [
+    "addition",
+    "hydration"
+  ],
+  "normal:complete-13-2-butene-hydration": [
+    "addition",
+    "hydration"
+  ],
+  "normal:complete-14-isobutene-hydration": [
+    "addition",
+    "hydration"
+  ],
+  "normal:complete-15-cyclohexene-hydration": [
+    "addition",
+    "hydration"
+  ],
+  "normal:complete-16-methane-chlorination": [
+    "substitution",
+    "halogenation"
+  ],
+  "normal:complete-17-chloromethane-chlorination": [
+    "substitution",
+    "halogenation"
+  ],
+  "normal:complete-18-dichloromethane-chlorination": [
+    "substitution",
+    "halogenation"
+  ],
+  "normal:complete-19-chloroform-chlorination": [
+    "substitution",
+    "halogenation"
+  ],
+  "normal:complete-20-hydrogen-chlorination": [
+    "halogenation"
+  ],
+  "normal:complete-21-cyclobutane-dimerization": [
+    "cycloaddition"
+  ],
+  "normal:complete-22-dimethyl-sulfide-oxidation": [
+    "oxidation"
+  ],
+  "normal:complete-23-methanol-dehydration": [
+    "dehydration",
+    "condensation"
+  ],
+  "normal:complete-24-urea-hydrolysis": [
+    "hydrolysis"
+  ],
+  "normal:complete-25-carbonyl-sulfide-hydrolysis": [
+    "hydrolysis"
+  ],
+  "normal:complete-26-hydrogen-combustion": [
+    "oxidation",
+    "combustion"
+  ],
+  "normal:complete-27-carbon-monoxide-oxidation": [
+    "oxidation"
+  ],
+  "normal:complete-28-methane-combustion": [
+    "oxidation",
+    "combustion"
+  ],
+  "normal:complete-29-difluoromethane-combustion": [
+    "oxidation",
+    "combustion"
+  ],
+  "polymer:polyethylene-coordination": [
+    "polymerization"
+  ],
+  "polymer:polypropylene-coordination": [
+    "polymerization"
+  ],
+  "polymer:ethylene-propylene-coordination": [
+    "polymerization"
+  ],
+  "polymer:polyisobutylene-cationic": [
+    "polymerization"
+  ],
+  "polymer:polystyrene-radical": [
+    "polymerization"
+  ],
+  "polymer:polyvinyl-chloride-radical": [
+    "polymerization"
+  ],
+  "polymer:polychlorotrifluoroethylene-radical": [
+    "polymerization"
+  ],
+  "polymer:polyacrylonitrile-radical": [
+    "polymerization"
+  ],
+  "polymer:polyacrylic-acid-radical": [
+    "polymerization"
+  ],
+  "polymer:polyethylene-oxide-anionic-ring-opening": [
+    "polymerization",
+    "ring-opening"
+  ],
+  "polymer:polyethylene-terephthalate-direct-polycondensation": [
+    "polymerization",
+    "condensation",
+    "esterification"
+  ],
+  "polymer:polyethylene-adipate-direct-polycondensation": [
+    "polymerization",
+    "condensation",
+    "esterification"
+  ],
+  "polymer:polylactic-acid-direct-polycondensation": [
+    "polymerization",
+    "condensation",
+    "esterification"
+  ],
+  "polymer:polyglycolic-acid-direct-polycondensation": [
+    "polymerization",
+    "condensation",
+    "esterification"
+  ],
+  "polymer:phenol-formaldehyde-resole": [
+    "polymerization",
+    "condensation"
+  ],
+  "polymer:polyethylene-adipamide-direct-polycondensation": [
+    "polymerization",
+    "condensation"
+  ],
+  "polymer:polybutadiene-coordination-1-4": [
+    "polymerization"
+  ],
+  "polymer:styrene-butadiene-radical": [
+    "polymerization"
+  ],
+  "polymer:nitrile-butadiene-radical": [
+    "polymerization"
+  ],
+  "polymer:polyisoprene-coordination-1-4": [
+    "polymerization"
+  ],
+  "polymer:butyl-rubber-cationic": [
+    "polymerization"
+  ],
+  "polymer:polyvinylidene-fluoride-radical": [
+    "polymerization"
+  ],
+  "polymer:vinylidene-fluoride-hexafluoropropylene-radical": [
+    "polymerization"
+  ],
+  "polymer:polytetrafluoroethylene-radical": [
+    "polymerization"
+  ],
+  "polymer:nylon-6-6-direct-polycondensation": [
+    "polymerization",
+    "condensation"
+  ]
+}

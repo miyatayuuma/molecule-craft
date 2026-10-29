@@ -1,0 +1,229 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {buildFieldMapSvg} from '../scripts/export-field-map.mjs';
+import {createFlight,createRun,moveFlight,stepRun} from '../src/veil/engine.js';
+import {createUniverse,environmentAt,OXYGEN_ENTRY_KNOTS} from '../src/veil/universe.js';
+import {DRIVES,flightConfig} from '../src/veil/growth.js';
+import {
+  DEEP_OXYGEN_ROUTES,OXYGEN_HARVEST,OXYGEN_JUNCTION,OXYGEN_REWARD,OXYGEN_ROUTES,OXYGEN_VORTEX,OXYGEN_VORTEX_REWARD,
+  oxygenPressureAt,oxygenRouteAt,oxygenRouteCenterAtY,oxygenVortexFlowAt,
+} from '../src/veil/oxygen-routes.js';
+
+const root=fileURLToPath(new URL('../',import.meta.url));
+const script=fileURLToPath(new URL('../scripts/export-field-map.mjs',import.meta.url));
+const output=new URL('../docs/maps/current-field.svg',import.meta.url);
+const requiredLayers=[
+  'layer-grid','layer-regions','layer-geometry','layer-revisit-post-drive','layer-managed-rare-ecology','playable-bounds','route-centerlines','route-widths','authored-gates',
+  'layer-elements-h','layer-elements-c','layer-elements-o','layer-hazards-fields','layer-hazards-pressure',
+  'layer-hazards-challenges','layer-hazards-vortex','layer-agents-dust-eater','layer-thermal','layer-gameplay',
+  'spawn','checkpoints','gates','junctions','rest-stops','rewards','signals','safe-extraction-site','destination','layer-labels',
+];
+
+const run=(...args)=>spawnSync(process.execPath,[script,...args],{cwd:root,encoding:'utf8'});
+
+test('FIELD map exporter is deterministic and required layers are present',async()=>{
+  const first=buildFieldMapSvg(),second=buildFieldMapSvg();
+  assert.equal(first,second);
+  for(const id of requiredLayers)assert.match(first,new RegExp(`id="${id}"`),id);
+  assert.match(first,/data-left="-1100" data-right="1250" data-top="-12750" data-bottom="500"/);
+  assert.match(first,/data-carbon-y="-4390" data-oxygen-y="-7830" data-frontier-y="-11680"/);
+  assert.match(first,/element positions are deterministic baseline snapshot, not invariant authored positions/);
+  assert.match(first,/environment heat != player thermal state/);
+  for(const [area,element] of Object.entries({veil:'P',carbon:'S',oxygen:'F',nitrogen:'Cl'}))assert.match(first,new RegExp(`data-rare-ecology-area="${area}" data-element="${element}"`));
+  assert.match(first,/Rare ecology overlay shows eligible areas\/density only; exact trace particle coordinates are intentionally hidden/);
+  assert.match(first,/agents: DUST EATER|dynamic pursuit agent/);assert.doesNotMatch(first,/layer-hazards-dust-eater/);
+  assert.match(first,/data-shock-structure="carbon-charged-anchor" data-structure-kind="hazard-anchor" data-target-hazard="carbon-sweep-charged-region" data-post-fracture-scale="0.6" data-post-awakening-only="true"/);
+  assert.match(first,/post-Awakening-only run-local SHOCK-reactive structures/);
+  assert.match(first,/id="h-boundary-current" data-gate="h-boundary" x="300" y="-3940" width="460" height="280"/);
+  assert.match(first,/id="h-boundary-gate-marker"[^>]*cx="530" cy="-3800"/);
+  assert.match(first,/id="cho-destination" data-radius="95" cx="280" cy="-12470" r="95"/);
+  assert.match(first,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe" data-source-landmark="hydrogen-safe-route"><circle cx="-520" cy="-2200" r="120"/);
+  assert.match(first,/data-safe-extraction-site="oxygen-network-merge-extraction" data-route="oxygen-main" data-source-landmark="oxygen-network-merge-recovery"><circle cx="120" cy="-10800" r="330"/);
+  assert.match(first,/data-safe-extraction-site="nitrogen-side-recovery-extraction" data-route="nitrogen-side-pocket" data-source-landmark="nitrogen-side-recovery"><circle cx="-500" cy="-15380" r="220"/);
+  for(const route of DEEP_OXYGEN_ROUTES)assert.match(first,new RegExp(`id="route-${route.id}"`),`${route.id} current-map centerline`);
+  assert.doesNotMatch(first,/id="route-oxygen-depth"/,'legacy Deep route must not remain as a fourth field route');
+  const committed=await readFile(output,'utf8');
+  assert.equal(committed,first);
+});
+
+test('Oxygen Entry follows the expansion geometry and stays safe-biased through its middle',()=>{
+  const entryKnots=[[170,-8090],[420,-8300],[420,-8500],[120,-8700]];
+  const routeKnots=[[170,-7750],...entryKnots];
+  assert.deepEqual(OXYGEN_ENTRY_KNOTS,entryKnots);
+  const route=createUniverse(1,{H:0,C:0,O:0}).routes.find(candidate=>candidate.id==='oxygen-entry');
+  assert.ok(route,'oxygen-entry route must exist');
+  const distanceToRoute=([x,y])=>Math.min(...route.points.map(point=>Math.hypot(point.x-x,point.y-y)));
+  for(const knot of routeKnots)assert.ok(distanceToRoute(knot)<12,`oxygen-entry must pass ${knot.join(',')}`);
+  assert.deepEqual([OXYGEN_JUNCTION.x,OXYGEN_JUNCTION.y],entryKnots.at(-1));
+  for(const networkRoute of OXYGEN_ROUTES)assert.deepEqual(networkRoute.knots[0],entryKnots.at(-1),`${networkRoute.id} must still start at the existing junction`);
+
+  for(const point of [{x:420,y:-8300},{x:420,y:-8500}]){
+    const vortex=oxygenVortexFlowAt({...point,vx:0,vy:0});
+    assert.ok(vortex.radius>OXYGEN_VORTEX.influenceRadius,'entry middle must stay outside direct vortex influence');
+    assert.ok(vortex.intensity<.02,'entry middle must not inherit strong vortex guidance');
+    for(const time of [0,.6,1.2,1.8]){
+      const environment=environmentAt(point,time);
+      assert.ok(Math.abs(environment.pressure)<25,'entry middle pressure must remain low');
+      assert.ok(Math.abs(environment.flowX)<50,'entry middle lateral flow must remain traversable');
+      assert.ok(environment.heat<5,'entry middle must not become a thermal introduction');
+    }
+  }
+  assert.deepEqual(OXYGEN_VORTEX_REWARD,{x:OXYGEN_VORTEX.center.x,y:OXYGEN_VORTEX.center.y,radius:72});
+});
+
+test('Oxygen Entry remains G1 while COMBUSTION DRIVE makes the travel materially faster',()=>{
+  // The current pulse challenge still overlaps the junction by design. Skirt its
+  // lower edge here so this test measures Entry traversability without pretending
+  // that the later challenge-placement task has already happened.
+  const waypoints=[
+    ...OXYGEN_ENTRY_KNOTS.slice(1,-1).map(([x,y])=>({x,y})),
+    {x:420,y:-8780},{x:120,y:-8780},{...OXYGEN_JUNCTION},
+  ];
+  const traverse=drive=>{
+    const config=flightConfig(),player=createFlight(config),dt=1/60;
+    Object.assign(player,{x:170,y:-8090,angle:-Math.PI/2,vx:0,vy:0});
+    let index=0;
+    for(let frame=0;frame<20/dt;frame++){
+      const target=waypoints[index],dx=target.x-player.x,dy=target.y-player.y,distance=Math.hypot(dx,dy);
+      if(distance<22){if(index===waypoints.length-1)return frame*dt;index++;continue;}
+      player.combustion=drive;player.drive=drive?DRIVES.combustion:null;
+      moveFlight(player,{x:dx/distance,y:dy/distance},dt,{config,environment:environmentAt(player,frame*dt)});
+    }
+    return Infinity;
+  };
+  const normal=traverse(false),combustion=traverse(true);
+  assert.ok(Number.isFinite(normal)&&normal<12,'normal thrust must be able to reach the junction without a capability gate');
+  assert.ok(combustion<normal*.7,`COMBUSTION DRIVE should be materially faster (${combustion.toFixed(2)}s vs ${normal.toFixed(2)}s)`);
+});
+
+test('Oxygen Network uses the locked three-route geometry and curved membership',()=>{
+  const routes=Object.fromEntries(OXYGEN_ROUTES.map(route=>[route.id,route]));
+  assert.deepEqual(routes['oxygen-shortcut'].knots,[[120,-8700],[-320,-9000],[-320,-10350],[120,-10670]]);
+  assert.deepEqual(routes['oxygen-main'].knots,[[120,-8700],[300,-9100],[350,-9600],[260,-10150],[120,-10670]]);
+  assert.deepEqual(routes['oxygen-side'].knots,[[120,-8700],[780,-9000],[850,-10350],[120,-10670]]);
+  for(const route of Object.values(routes)){
+    assert.deepEqual(route.knots[0],[120,-8700]);
+    assert.deepEqual(route.knots.at(-1),[120,-10670]);
+    assert.equal(route.width,230);
+  }
+  assert.deepEqual([routes['oxygen-shortcut'].lanes,routes['oxygen-shortcut'].value],[1,2]);
+  assert.deepEqual([routes['oxygen-main'].lanes,routes['oxygen-main'].value],[2,2]);
+  assert.deepEqual([routes['oxygen-side'].lanes,routes['oxygen-side'].value],[2,2]);
+
+  const samples=[
+    ['oxygen-shortcut',-9700,-320],
+    ['oxygen-main',-9000,255],
+    ['oxygen-side',-9700,816.2962962962963],
+    ['oxygen-shortcut',-10450,-182.5],
+    ['oxygen-main',-10450,179.23076923076923],
+    ['oxygen-side',-10450,621.875],
+  ];
+  for(const [id,y,x] of samples){
+    const route=routes[id];
+    assert.ok(Math.abs(oxygenRouteCenterAtY(route,y)-x)<1e-9,`${id} center at ${y}`);
+    assert.equal(oxygenRouteAt({x,y})?.id,id,`${id} membership at ${x},${y}`);
+  }
+  assert.ok(Math.abs(samples[1][2]-routes['oxygen-main'].x)>routes['oxygen-main'].width/2,'DRIVE sample must fail the old fixed route.x test');
+  assert.ok(Math.abs(samples[5][2]-routes['oxygen-side'].x)>routes['oxygen-side'].width/2,'THERMAL sample must fail the old fixed route.x test');
+});
+
+test('Oxygen Network pressure roles separate BURST, DRIVE and low-pressure routes',()=>{
+  const routes=Object.fromEntries(OXYGEN_ROUTES.map(route=>[route.id,route]));
+  const burst=routes['oxygen-shortcut'],drive=routes['oxygen-main'],thermal=routes['oxygen-side'];
+  assert.deepEqual(burst.gates,[{y:-9480,depth:72,pressure:600},{y:-9950,depth:72,pressure:600}]);
+  assert.equal(burst.pressure,0);
+  assert.equal(oxygenPressureAt({x:-320,y:-9360}),0,'BURST route before gate 1 stays quiet');
+  assert.equal(oxygenPressureAt({x:-320,y:-9480}),600,'gate 1 keeps the strong localized pressure');
+  assert.equal(oxygenPressureAt({x:-320,y:-9700}),0,'pulse/shear corridor between gates has no route pressure');
+  assert.equal(oxygenPressureAt({x:-320,y:-9950}),600,'gate 2 keeps the strong localized pressure');
+  assert.equal(oxygenPressureAt({x:-320,y:-10070}),0,'BURST route after gate 2 returns to quiet');
+
+  assert.equal(drive.pressure,370);
+  assert.deepEqual(drive.restStops,[{x:300,y:-9750,depth:180}]);
+  assert.equal(oxygenPressureAt({x:255,y:-9000}),370,'DRIVE route has sustained moderate resistance');
+  assert.equal(oxygenPressureAt({x:300,y:-9750}),0,'DRIVE recovery cuts route pressure');
+  assert.equal(oxygenPressureAt({x:301,y:-9900}),370,'DRIVE pressure resumes after recovery');
+
+  assert.equal(thermal.pressure,0);
+  assert.deepEqual(thermal.gates,[],'THERMAL-oriented route has no legacy four-gate pressure pattern');
+  assert.equal(oxygenPressureAt({x:816,y:-9700}),0,'THERMAL-oriented route is low pressure');
+  for(const route of [burst,drive,thermal]){
+    assert.equal(route.requiredCapability,undefined,'no route becomes a hard capability gate');
+    assert.equal(route.requires,undefined,'no capability requirement is introduced');
+  }
+});
+
+test('Oxygen Network route pressure stays traversable and propulsion keeps a material advantage',()=>{
+  const traverse=({x,y,targetY,burst=false,drive=false,maxSeconds=6})=>{
+    const config=flightConfig(),fuel=drive?{fuel:{molecule:'methane',amount:18,capacity:18},oxidizer:{molecule:'oxygen',amount:36,capacity:36}}:{},run=createRun(createUniverse(1,{H:0,C:0,O:0}),config,{fuel,predators:false});
+    Object.assign(run.player,{x,y,angle:-Math.PI/2,vx:0,vy:-config.speed,speed:config.speed});run.region='oxygen';
+    if(burst){run.player.drive=DRIVES.hydrogen;run.player.boost=DRIVES.hydrogen.boostSeconds;}
+    if(drive)run.driveHeld=true;
+    const systems=drive?{consumeCombustion:()=>true}:{},dt=1/60;
+    for(let frame=0;frame<maxSeconds/dt;frame++){
+      stepRun(run,{x:0,y:-1},dt,systems);
+      if(run.player.y<=targetY)return run.time;
+    }
+    return Infinity;
+  };
+  const shortcutNormal=traverse({x:-530,y:-9400,targetY:-9560,maxSeconds:6}),shortcutBurst=traverse({x:-320,y:-9400,targetY:-9560,burst:true,maxSeconds:4});
+  assert.ok(Number.isFinite(shortcutNormal),'normal thrust must retain a skill bypass around gate 1');
+  assert.ok(shortcutBurst<shortcutNormal*.7,`BURST must materially ease direct gate 1 traversal (${shortcutBurst.toFixed(2)}s vs ${shortcutNormal.toFixed(2)}s)`);
+  const mainNormal=traverse({x:300,y:-9000,targetY:-9400}),mainDrive=traverse({x:300,y:-9000,targetY:-9400,drive:true});
+  assert.ok(Number.isFinite(mainNormal),'normal thrust must traverse sustained DRIVE-route pressure');
+  assert.ok(mainDrive<mainNormal*.6,`COMBUSTION DRIVE must materially improve sustained traversal (${mainDrive.toFixed(2)}s vs ${mainNormal.toFixed(2)}s)`);
+});
+
+test('Oxygen main recovery keeps its harvest while Deep routes replace the legacy single path',()=>{
+  const universe=createUniverse(1,{H:0,C:0,O:0}),rest=universe.dust.filter(dust=>dust.route==='oxygen-rest-harvest');
+  assert.equal(rest.length,OXYGEN_HARVEST.eddyAtoms);
+  assert.equal(rest.length,36);
+  assert.ok(rest.every(dust=>dust.value===2));
+  assert.ok(rest.every(dust=>Math.hypot(dust.x-300,dust.y+9750)<=56),'rest harvest follows the new recovery center');
+  assert.ok(rest.every(dust=>Math.hypot(dust.x-120,dust.y+9700)>100),'rest harvest no longer uses the old hardcoded center');
+  assert.deepEqual(OXYGEN_REWARD,{x:120,y:-10720,radius:95},'network merge reward stays unchanged');
+  assert.equal(universe.routes.some(route=>route.id==='oxygen-depth'),false,'legacy oxygen-depth route is gone');
+  for(const authored of DEEP_OXYGEN_ROUTES){
+    const runtime=universe.routes.find(route=>route.id===authored.id);assert.ok(runtime,`${authored.id} is generated`);
+    const distanceToRoute=([x,y])=>Math.min(...runtime.points.map(point=>Math.hypot(point.x-x,point.y-y)));
+    assert.ok(distanceToRoute([120,-10800])<45,`${authored.id} starts at Deep decision`);
+    assert.ok(distanceToRoute([100,-11830])<45,`${authored.id} converges at Frontier approach`);
+  }
+});
+
+test('FIELD map renders existing network widths and all Deep production centerlines',()=>{
+  const svg=buildFieldMapSvg();
+  assert.match(svg,/data-route-width="oxygen-shortcut" d="M 120 -8700 L -320 -9000 L -320 -10350 L 120 -10670" stroke-width="230"/);
+  assert.match(svg,/data-route-width="oxygen-main" d="M 120 -8700 L 300 -9100 L 350 -9600 L 260 -10150 L 120 -10670" stroke-width="230"/);
+  assert.match(svg,/data-route-width="oxygen-side" d="M 120 -8700 L 780 -9000 L 850 -10350 L 120 -10670" stroke-width="230"/);
+  assert.match(svg,/data-pressure-gate="oxygen-shortcut:0" data-pressure="600" x="-435" y="-9516" width="230" height="72"/);
+  assert.match(svg,/data-pressure-gate-falloff="oxygen-shortcut:0" data-hazard-type="mechanical" data-hazard-subtype="pressure"/);
+  assert.match(svg,/data-challenge-falloff="pulse" data-hazard-types="mechanical"/);
+  assert.match(svg,/data-pressure-gate="oxygen-shortcut:1" data-pressure="600" x="-435" y="-9986" width="230" height="72"/);
+  assert.doesNotMatch(svg,/data-pressure-gate="oxygen-side:/);
+  assert.match(svg,/data-rest-stop="oxygen-main" x="185" y="-9840" width="230" height="180"/);
+  for(const route of DEEP_OXYGEN_ROUTES)assert.match(svg,new RegExp(`id="route-${route.id}"`),route.id);
+});
+
+test('DUST EATER stays dynamic and Safe Extraction Site stays an authored point',()=>{
+  const svg=buildFieldMapSvg();
+  const eaterLayer=svg.match(/<g id="layer-agents-dust-eater"[\s\S]*?<\/g>/)?.[0]??'';
+  assert.match(eaterLayer,/dynamic pursuit agent \/ no authored map position/);
+  assert.doesNotMatch(eaterLayer,/<(?:circle|rect|path|line|polyline|polygon)\b/);
+  assert.match(svg,/RETURN: 3 authored Safe Extraction Sites; Insight may extract anywhere/);
+  assert.match(svg,/data-safe-extraction-site="hydrogen-safe-extraction" data-route="safe" data-source-landmark="hydrogen-safe-route"><circle cx="-520" cy="-2200" r="120"/);
+  assert.doesNotMatch(svg,/RETURN has no fixed world position/);
+  assert.doesNotMatch(svg,/id="return-(?:point|marker|destination)"/);
+});
+
+test('exporter CLI writes successfully and --check accepts the committed SVG',()=>{
+  const write=run();
+  assert.equal(write.status,0,write.stderr||write.stdout);
+  assert.match(write.stdout,/Wrote docs\/maps\/current-field\.svg/);
+  const check=run('--check');
+  assert.equal(check.status,0,check.stderr||check.stdout);
+  assert.match(check.stdout,/FIELD map is current/);
+});

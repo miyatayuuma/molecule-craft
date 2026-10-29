@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><title>Molecule Craft browser tests</title></head>
+<body>
+  <h1>Molecule Craft browser tests</h1>
+  <ol id="results"></ol>
+  <strong id="summary">RUNNING</strong>
+  <p id="release-metrics"></p>
+  <script type="module">
+    import * as THREE from '../vendor/three/three.module.min.js';
+    import { ELEMENTS, Molecule, setMoleculeDatabase } from '../src/chemistry.js?v=20';
+    import { ATOMIC_MODEL, bondLengthScale, idealBondAngleDeg } from '../src/bonding-model.js?v=31';
+    import { createStructureSolver } from '../src/structure-relaxation.js?v=33';
+    import { checkStructureMotion } from './structure-motion-checks.js?v=31';
+    import { checkReleaseMotion } from './release-motion-checks.js?v=32';
+    import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from '../src/electron-interaction.js?v=16';
+    import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js?v=20';
+    import { connectedStructures, createCompletionTracker, createDebrisTracker, structureFrame } from '../src/workspace-model.js?v=20';
+    import { createCollectionState } from '../src/collection-state.js?v=25';
+    import { loadCollectionData } from '../src/collection-ui.js?v=31';
+    import { expandCraftStructure, seedCraftCoordinates } from '../src/craft-structures.js?v=31';
+    import { checkPreviewModels } from './preview-model-checks.js?v=31';
+    import { checkAromaticRendering } from './aromatic-rendering-checks.js?v=31';
+    import { checkSpawnLayouts } from './spawn-layout-checks.js?v=31';
+
+    import { checkTorsionModel } from './torsion-checks.js?v=32';
+    import { checkStructureSettlement } from './structure-settlement-checks.js?v=31';
+
+    const collectionData=await loadCollectionData();
+    const records=await fetch('../data/molecules.json').then(response=>response.json());setMoleculeDatabase(records);
+
+    const results = [];
+    const near = (actual, expected, tolerance) => Math.abs(actual - expected) <= tolerance;
+    const angle = (a, center, b) => THREE.MathUtils.radToDeg(a.clone().sub(center).angleTo(b.clone().sub(center)));
+    const centroid = points => points.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / points.length);
+    const planeSpread = (points, normal = new THREE.Vector3(0,0,1)) => { const center = centroid(points); return Math.max(...points.map(point => Math.abs(point.clone().sub(center).dot(normal)))); };
+    const relaxLikeApp = (solver, duration = 1380) => { for (let elapsed = 0; elapsed <= duration; elapsed += 1000 / 60) { const scale = elapsed < 280 ? .76 : elapsed < 760 ? .54 : .36; solver.step(scale, 2); } };
+
+    function fixture(elements, bonds, coordinates) {
+      const molecule = new Molecule();
+      const ids = elements.map(element => molecule.addAtom(element).id);
+      bonds.forEach(([a, b, order]) => molecule.setBond(ids[a], ids[b], order));
+      const placements = new Map(ids.map((id, index) => [id, { position: new THREE.Vector3(...coordinates[index]) }]));
+      const atomById = id => molecule.atoms.find(atom => atom.id === id);
+      const bondBetween = (a, b) => molecule.bonds.find(bond => (bond.a === a && bond.b === b) || (bond.a === b && bond.b === a));
+      const bondLengthFor = (a, b, order) => ((ATOMIC_MODEL[atomById(a).element]?.covalentRadius ?? .75) + (ATOMIC_MODEL[atomById(b).element]?.covalentRadius ?? .75)) * .78 * bondLengthScale(order);
+      const geometryFor = id => {
+        const atom = atomById(id), neighbors = molecule.neighbors(id), orders = neighbors.map(item => item.order), doubleCount = orders.filter(order => order === 2).length;
+        if (orders.some(order => order === 3) || doubleCount >= 2) return { kind: 'sp', angle: Math.PI };
+        if (doubleCount === 1) return { kind: 'sp2', angle: 2 * Math.PI / 3 };
+        const degrees = idealBondAngleDeg(atom.element, molecule.bondOrderForAtom(id), neighbors.length);
+        return { kind: degrees >= 175 ? 'linear' : degrees >= 116 ? 'trigonal' : 'sp3', angle: THREE.MathUtils.degToRad(degrees) };
+      };
+      const solver = createStructureSolver({ THREE, molecule, placements, atomById, bondBetween, bondLengthFor, geometryFor, radiusFor: id => ELEMENTS[atomById(id).element].radius });
+      return { molecule, ids, placements, solver, pos: index => placements.get(ids[index]).position };
+    }
+
+    function run(name, test) {
+      try { test(); results.push({ name, ok: true }); }
+      catch (error) { results.push({ name, ok: false, error: error.message }); }
+    }
+
+    run('torsion axes: fixed P, rings and resonance, selectable branches and unregistered graphs',()=>{checkTorsionModel(records);});
+    run('automatic P repair, rotation during correction and surface attachment markers',()=>{checkStructureSettlement(THREE,records,collectionData.templates);});
+    run('far bonds, docking, ring closure, low-FPS convergence and focused rotation',()=>{
+      checkStructureMotion(THREE);
+    });
+    run('spawn layout: 17 whole parts stay within portrait/landscape bounds, including electron radii',()=>{
+      checkSpawnLayouts(THREE,collectionData.templates);
+    });
+    run('release at 15/60fps: rigid background rotation, fixed camera, independent components and preserved torsion',()=>{
+      const result=checkReleaseMotion(THREE,records);
+      document.querySelector('#release-metrics').textContent=`${result.releaseCases} rigid drag cases · max pair-distance error ${result.maxDistanceError.toExponential(2)} (390 × 430 viewport)`;
+    });
+    run('collection models: isolated geometry, ports and correct sp/sp2/sp3 shapes',()=>{
+      checkPreviewModels(THREE,records,collectionData.templates);
+    });
+    run('aromatic display: uniform sticks, ring break/restore, plane tracking and unchanged topology',()=>{
+      checkAromaticRendering(THREE,records,collectionData.templates);
+    });
+    run('atom progression: H/C/O start, distinct discoveries, N/Cl/S/P/F gates and legacy grants',()=>{
+      const state=createCollectionState({records,...collectionData});
+      const initial=records.filter(record=>state.canBuild(record));
+      if(state.unlockedElements().join(',')!=='H,C,O'||initial.length<15)throw new Error('Initial palette or reachable targets');
+      for(let i=0;i<15;i++){
+        const record=initial[i],graph=new Molecule(),ids=record.atoms.map(element=>graph.addAtom(element).id);
+        record.bonds.forEach(([a,b,order])=>graph.setBond(ids[a],ids[b],order));
+        state.observeStructures(connectedStructures(graph));state.observeStructures(connectedStructures(graph));
+        for(const [element,target] of [['N',3],['Cl',6],['S',10],['P',15],['F',15]])if(state.canUseElement(element)!==(i+1>=target))throw new Error(`Gate ${element} at ${i+1}`);
+      }
+      const legacy=createCollectionState({records,...collectionData,storage:{getItem:()=>JSON.stringify({schemaVersion:1,discoveredMolecules:[{id:'sulfur-hexafluoride'}]})}});
+      if(!legacy.canUseElement('F')||!legacy.canUseElement('S'))throw new Error('Legacy element access lost');
+    });
+
+    run('collection loop: methanol unlocks OH, OH plus raw skeleton discovers ethanol', () => {
+      const state=createCollectionState({records,...collectionData});
+      const graphFor=id=>{const model=new Molecule(),record=records.find(item=>item.id===id),ids=record.atoms.map(element=>model.addAtom(element).id);record.bonds.forEach(([a,b,order])=>model.setBond(ids[a],ids[b],order));return model;};
+      state.observeStructures(connectedStructures(graphFor('methanol')));
+      if(!state.isUnlocked('hydroxyl'))throw new Error('OH not unlocked');
+      const model=new Molecule(),ids=['C','C','H','H','H','H','H'].map(element=>model.addAtom(element).id);
+      [[0,1],[0,2],[0,3],[0,4],[1,5],[1,6]].forEach(([a,b])=>model.setBond(ids[a],ids[b],1));
+      const part=expandCraftStructure(model,collectionData.templates.find(item=>item.id==='hydroxyl'));
+      if(connectedStructures(model).some(item=>item.complete))throw new Error('part auto-completed molecule');
+      model.setBond(ids[1],part.attachments[0].atomId,1);
+      const result=state.observeStructures(connectedStructures(model));
+      if(result.events[0]?.record.id!=='ethanol'||!result.events[0]?.isNew)throw new Error('ethanol not discovered');
+      const isomer=state.observeStructures(connectedStructures(graphFor('dimethyl-ether')));
+      if(!isomer.events[0]?.isomerOf.includes('ethanol'))throw new Error('isomer discovery lost');
+    });
+    run('collection persistence: duplicate molecules do not reaward or rewrite storage', () => {
+      let saved=null,writes=0;const storage={getItem:()=>saved,setItem:(_,value)=>{saved=value;writes++;}};
+      const state=createCollectionState({records,...collectionData,storage}),model=new Molecule(),ids=['O','H','H'].map(element=>model.addAtom(element).id);
+      model.setBond(ids[0],ids[1],1);model.setBond(ids[0],ids[2],1);const structures=connectedStructures(model);
+      state.observeStructures(structures);state.observeStructures(structures);
+      const restored=createCollectionState({records,...collectionData,storage});
+      if(writes!==1||!restored.hasMolecule('water')||new Molecule().atoms.length)throw new Error('persistence separation failed');
+    });
+    run('all craft parts: topology seeds relax with finite coordinates and no camera', () => {
+      for(const template of collectionData.templates){
+        const coordinates=seedCraftCoordinates(template).map(p=>[p.x,p.y,p.z]),item=fixture(template.atoms,template.bonds,coordinates);
+        item.solver.rebuildTopology();relaxLikeApp(item.solver);
+        if([...item.placements.values()].some(({position:p})=>!Number.isFinite(p.x+p.y+p.z)))throw new Error(`${template.id}: nonfinite positions`);
+      }
+    });
+
+    run('independent structures: completion survives loose atoms and repeats after repair', () => {
+      const model=new Molecule(), makeWater=()=>{
+        const ids=['O','H','H'].map(element=>model.addAtom(element).id);
+        model.setBond(ids[0],ids[1],1);model.setBond(ids[0],ids[2],1);return ids;
+      };
+      const a=makeWater();makeWater();model.addAtom('C');
+      const tracker=createCompletionTracker();
+      if(tracker.update(connectedStructures(model)).length!==2)throw new Error('two independent completions expected');
+      model.removeBond(a[0],a[1]);tracker.update(connectedStructures(model));model.setBond(a[0],a[1],1);
+      if(tracker.update(connectedStructures(model)).length!==1)throw new Error('recompletion lost');
+    });
+    run('per-atom gestures: direct electrons win; distant assists do not steal atoms', () => {
+      const atoms=[{atomId:1,screenX:100,screenY:100,unpaired:0},{atomId:2,screenX:200,screenY:100,unpaired:1}];
+      if(chooseAtomOrElectron(130,100,atoms,{atomId:2,distance:45,assisted:true})?.atomId!==1)throw new Error('filled atom target stolen');
+      if(chooseAtomOrElectron(225,100,atoms,{atomId:2,distance:8,assisted:false})?.kind!=='electron')throw new Error('reactive electron unavailable');
+      if(chooseAtomOrElectron(110,100,atoms,{atomId:2,distance:0,assisted:false})?.kind!=='electron')throw new Error('direct electron hidden behind atom');
+    });
+    run('cleanup and framing: preserve complete molecules, ignore far debris in fit', () => {
+      const model=new Molecule(), ids=['O','H','H','H','H','C'].map(element=>model.addAtom(element).id);
+      model.setBond(ids[0],ids[1],1);model.setBond(ids[0],ids[2],1);model.setBond(ids[3],ids[4],1);
+      const structures=connectedStructures(model),main=structures[0],point=id=>({x:id===ids[5]?100:ids.indexOf(id)*.3,y:0,z:0});
+      const tracker=createDebrisTracker(),args={structures,main,positionFor:point};tracker.update({...args,now:0});
+      const removed=tracker.update({...args,now:6000}).expired;
+      if(removed.length!==1||!removed[0].ids.has(ids[5]))throw new Error('cleanup removed a complete molecule or missed debris');
+      const fit=structureFrame(main,point,44,.5);
+      if(fit.center.x>1||!Number.isFinite(fit.distance))throw new Error('far debris distorted fit');
+    });
+
+    run('electron handles: core, assist, and ambiguity rules use screen distance', () => {
+      const electron=(atomId,x)=>({atomId,index:0,screenX:x,screenY:100,restScreenX:x,restScreenY:100});
+      const core=pickElectronAtPointer(100,100,[electron(1,132),electron(2,140)]);
+      const assist=pickElectronAtPointer(100,100,[electron(3,148),electron(4,170)]);
+      const ambiguous=pickElectronAtPointer(100,100,[electron(5,145),electron(6,149)]);
+      if(ELECTRON_POINTER_TARGET.coreRadiusPx!==36||ELECTRON_POINTER_TARGET.assistRadiusPx!==52)throw new Error('unexpected touch radii');
+      if(core?.atomId!==1||assist?.atomId!==3||ambiguous!==null)throw new Error('screen-space acquisition mismatch');
+    });
+
+    run('gesture arbitration: atom core wins and bonds only respond between endpoints', () => {
+      const atoms=[{atomId:1,screenX:100,screenY:100,depth:.2}];
+      const bond=[{key:'1:2',startX:100,startY:100,endX:180,endY:100,depth:.2}];
+      if(pickAtomAtPointer(119,100,atoms,POINTER_ARBITRATION.atomCoreRadiusPx)?.atomId!==1)throw new Error('atom core missed');
+      if(pickAtomAtPointer(66,100,atoms,POINTER_ARBITRATION.atomStructureRadiusPx)?.atomId!==1)throw new Error('structure target missed');
+      if(pickBondAtPointer(140,108,bond)?.key!=='1:2'||pickBondAtPointer(112,100,bond)!==null)throw new Error('bond middle arbitration failed');
+      if(!hasCompatibleElectronPair([{atomId:1},{atomId:2}],(a,b)=>a===1&&b===2))throw new Error('reactive state missed');
+    });
+
+    run('ethene: 4H return to distinct trigonal-planar slots', () => {
+      const item = fixture(['C','C','H','H','H','H'], [[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]], [[-.6,0,0],[.6,0,0],[-1,.75,0],[-1,-.75,0],[1,.75,0],[1,-.75,0]]);
+      item.solver.rebuildTopology();
+      const groups = item.solver.snapshot().doublePlanarGroups;
+      if (groups.length !== 1 || groups[0].length !== 6) throw new Error(`planar group size ${groups[0]?.length ?? 0}`);
+      if (!item.solver.snapshot().doubleSubstituentSlots.every(endpoint => new Set(endpoint.roots.map(root => root.sign)).size === 2)) throw new Error('duplicate sp2 slot');
+      item.pos(2).set(-.08,.18,1.1); item.pos(3).set(-.12,.12,-.7); item.solver.rebuildTopology(); relaxLikeApp(item.solver);
+      const spread = planeSpread(item.ids.map((_, index) => item.pos(index)));
+      if (spread > .025) throw new Error(`max plane error ${spread.toFixed(4)}`);
+      for (const [center,partner,left,right] of [[0,1,2,3],[1,0,4,5]]) {
+        const values = [angle(item.pos(partner),item.pos(center),item.pos(left)),angle(item.pos(partner),item.pos(center),item.pos(right)),angle(item.pos(left),item.pos(center),item.pos(right))];
+        if (values.some(value => !near(value,120,2))) throw new Error(`carbon ${center} angles ${values.map(value => value.toFixed(2)).join(', ')}`);
+      }
+    });
+
+    run('benzene: all 6 hydrogens return to the outward ring-plane positions', () => {
+      const elements = [...Array(6).fill('C'), ...Array(6).fill('H')], bonds = [];
+      for (let index = 0; index < 6; index++) { bonds.push([index,(index+1)%6,index%2===0?2:1]); bonds.push([index,index+6,1]); }
+      const coordinates = [];
+      for (const radius of [1,1.65]) for (let index = 0; index < 6; index++) coordinates.push([Math.cos(index*Math.PI/3)*radius,Math.sin(index*Math.PI/3)*radius,0]);
+      const item = fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+      const groups=item.solver.snapshot().aromaticPlanarGroups;
+      if(groups.length!==1||groups[0].length!==12)throw new Error(`aromatic planar group size ${groups[0]?.length??0}`);
+      item.pos(8).set(.05,.02,1.2);item.solver.rebuildTopology();relaxLikeApp(item.solver);
+      const spread=planeSpread(item.ids.map((_,index)=>item.pos(index)));
+      if(spread>.03)throw new Error(`max plane error ${spread.toFixed(4)}`);
+      const center=centroid([...Array(6)].map((_,index)=>item.pos(index)));
+      for(let index=0;index<6;index++){
+        const radial=item.pos(index).clone().sub(center).normalize(),direction=item.pos(index+6).clone().sub(item.pos(index)).normalize();
+        if(radial.dot(direction)<=.985)throw new Error(`hydrogen ${index} remained inward`);
+      }
+    });
+
+    run('phenol: OH branch returns outside and into the aromatic plane', () => {
+      const elements=[...Array(6).fill('C'),...Array(5).fill('H'),'O','H'],bonds=[],coordinates=[];
+      for(let index=0;index<6;index++)bonds.push([index,(index+1)%6,index%2===0?2:1]);
+      for(let index=1;index<6;index++)bonds.push([index,index+5,1]);
+      bonds.push([0,11,1],[11,12,1]);
+      for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),0]);
+      for(let index=1;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*1.65,Math.sin(index*Math.PI/3)*1.65,0]);
+      coordinates.push([1.7,0,0],[2.35,0,0]);
+      const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+      const shift=new THREE.Vector3(-1.45,.18,.9);item.pos(11).add(shift);item.pos(12).add(shift);item.solver.rebuildTopology();relaxLikeApp(item.solver);
+      const center=centroid([...Array(6)].map((_,index)=>item.pos(index))),radial=item.pos(0).clone().sub(center).normalize(),oxygenDirection=item.pos(11).clone().sub(item.pos(0)).normalize();
+      if(radial.dot(oxygenDirection)<=.985)throw new Error('oxygen remained inside ring');
+      if(Math.abs(item.pos(11).z-center.z)>.03||Math.abs(item.pos(12).z-center.z)>.05)throw new Error('OH branch remained outside aromatic plane');
+    });
+
+    run('anisole: the methoxy carbon unfolds from the aromatic ring', () => {
+      const elements=[...Array(6).fill('C'),...Array(5).fill('H'),'O','C','H','H','H'],bonds=[],coordinates=[];
+      for(let index=0;index<6;index++)bonds.push([index,(index+1)%6,index%2===0?2:1]);
+      for(let index=1;index<6;index++)bonds.push([index,index+5,1]);
+      bonds.push([0,11,1],[11,12,1],[12,13,1],[12,14,1],[12,15,1]);
+      for(let index=0;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3),Math.sin(index*Math.PI/3),0]);
+      for(let index=1;index<6;index++)coordinates.push([Math.cos(index*Math.PI/3)*1.65,Math.sin(index*Math.PI/3)*1.65,0]);
+      coordinates.push([1.75,0,0],[1.02,.03,.12],[.55,.62,.28],[.55,-.52,-.25],[.72,.02,.82]);
+      const item=fixture(elements,bonds,coordinates);item.solver.rebuildTopology();
+      const slot=item.solver.snapshot().aromaticFollowerSlots.flatMap(group=>group.followers).find(follower=>follower.id===item.ids[12]);
+      if(!slot||Math.abs(slot.sign)!==1)throw new Error('missing methoxy slot');
+      relaxLikeApp(item.solver);
+      const ringCenter=centroid([...Array(6)].map((_,index)=>item.pos(index))),coc=angle(item.pos(0),item.pos(11),item.pos(12));
+      const nearest=Math.min(...[...Array(6)].map((_,index)=>item.pos(12).distanceTo(item.pos(index))));
+      if(coc<=112||nearest<=.9)throw new Error(`folded C-O-C ${coc.toFixed(2)}°, distance ${nearest.toFixed(3)}`);
+      if(Math.abs(item.pos(11).z-ringCenter.z)>.04||Math.abs(item.pos(12).z-ringCenter.z)>.06)throw new Error('methoxy group remained outside aromatic plane');
+    });
+
+    run('ethyne: both sp centers return to linear', () => {
+      const item=fixture(['C','C','H','H'],[[0,1,3],[0,2,1],[1,3,1]],[[-.55,0,0],[.55,0,0],[-1.25,.65,0],[1.25,-.55,0]]);
+      item.solver.rebuildTopology();for(let index=0;index<180;index++)item.solver.step(.8,2);
+      const left=angle(item.pos(2),item.pos(0),item.pos(1)),right=angle(item.pos(0),item.pos(1),item.pos(3));
+      if(!near(left,180,1.5)||!near(right,180,1.5))throw new Error(`angles ${left.toFixed(2)}, ${right.toFixed(2)}`);
+    });
+
+    run('methane: tetrahedral H-C-H angles remain stable', () => {
+      const tetra=[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]].map(values=>new THREE.Vector3(...values).normalize().multiplyScalar(1.1));
+      const item=fixture(['C','H','H','H','H'],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]],[[0,0,0],...tetra.map(v=>v.toArray())]);
+      item.pos(1).add(new THREE.Vector3(.35,-.25,.2));item.solver.rebuildTopology();for(let index=0;index<160;index++)item.solver.step(.7,2);
+      const angles=[];for(let left=1;left<5;left++)for(let right=left+1;right<5;right++)angles.push(angle(item.pos(left),item.pos(0),item.pos(right)));
+      if(angles.some(value=>!near(value,109.47,3.5)))throw new Error(`angle range ${Math.min(...angles).toFixed(2)}–${Math.max(...angles).toFixed(2)}`);
+    });
+
+    const list=document.querySelector('#results');
+    results.forEach(result=>{const item=document.createElement('li');item.textContent=`${result.ok?'PASS':'FAIL'} — ${result.name}${result.error?` (${result.error})`:''}`;list.appendChild(item);});
+    const passed=results.filter(result=>result.ok).length,summary=document.querySelector('#summary');summary.textContent=`${passed}/${results.length} PASSED`;summary.dataset.status=passed===results.length?'pass':'fail';
+  </script>
+</body>
+</html>

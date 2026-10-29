@@ -1,0 +1,171 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+const root = new URL('../', import.meta.url);
+const [index, app, chemistry, solver, conformation, electronInteraction, gestureArbitration, veilCss, craftWorkspace, craftControls, craftConnections, craftPanel] = await Promise.all([
+  readFile(new URL('index.html', root), 'utf8'),
+  readFile(new URL('src/app.js?v=70', root), 'utf8'),
+  readFile(new URL('src/chemistry.js', root), 'utf8'),
+  readFile(new URL('src/structure-relaxation.js?v=33', root), 'utf8'),
+  readFile(new URL('src/conformation-engine.js?v=3', root), 'utf8'),
+  readFile(new URL('src/electron-interaction.js', root), 'utf8'),
+  readFile(new URL('src/gesture-arbitration.js', root), 'utf8'),
+  readFile(new URL('veil.css', root), 'utf8'),
+  readFile(new URL('src/craft-workspace.js', root), 'utf8'),
+  readFile(new URL('src/craft-controls.js', root), 'utf8'),
+  readFile(new URL('src/craft-connections.js', root), 'utf8'),
+  readFile(new URL('src/craft-panel.js', root), 'utf8'),
+]);
+const collectionViewer=await readFile(new URL('src/collection-viewer.js',root),'utf8');
+const collectionUI=await readFile(new URL('src/collection-ui.js',root),'utf8');
+const pubchemReference=await readFile(new URL('src/pubchem-reference.js',root),'utf8');
+const styles=await readFile(new URL('styles.css',root),'utf8');
+const gameShell=await readFile(new URL('src/game-shell.js',root),'utf8');
+assert.doesNotMatch(collectionViewer,/model-toolbar|model-zoom|模型を(?:拡大|縮小|表示リセット)/,'Collection viewer zoom/reset buttons stay removed');
+assert.doesNotMatch(collectionUI,/expeditionUseFor|expedition-use|探索での用途|補給で比較する/,'Collection stays chemistry-focused and does not repeat expedition guidance');
+assert.doesNotMatch(craftConnections,/onSupply/,'Collection connection no longer carries supply guidance callbacks');
+assert.match(craftPanel,/pubchemReferenceFor\(focus\)/);
+assert.match(craftPanel,/className='pubchem-link'/);
+assert.match(craftPanel,/createPubchemIntroState/);
+assert.doesNotMatch(craftPanel,/nodes\.pubchem\.title|PubChemで構造検索|PubChemで分子式検索/,'PubChem has no hover-only explanation');
+assert.match(pubchemReference,/molecule-craft\.pubchem-intro\.v1/);
+assert.match(pubchemReference,/PubChem ↗/);
+
+assert.match(pubchemReference,/pubchem\.ncbi\.nlm\.nih\.gov\/\#query=/);
+assert.match(collectionViewer,/createPreviewControls\(/,'Collection viewer gesture controls remain enabled');
+assert.match(collectionViewer,/controls\.zoom\(/,'Pinch or wheel zoom remains available');
+
+assert.match(index, /<script type="module" src="\.\/src\/app\.js\?v=70"><\/script>/);
+assert.match(app, /from '\.\/structure-relaxation\.js\?v=33'/);
+assert.match(app, /from '\.\/structure-motion\.js\?v=30'/);
+assert.match(app, /from '\.\/structure-settlement\.js\?v=33'/);
+assert.match(app, /from '\.\/torsion-model\.js\?v=35'/);
+assert.match(app, /from '\.\/conformation-engine\.js\?v=3'/);
+assert.match(app, /from '\.\/workspace-view\.js\?v=23'/);
+assert.doesNotMatch(app, /stableFrames|maxDuration/);
+assert.doesNotMatch(app, /pendingFrame|followDraggedBranch|function structurePlan|interruptRelaxation|panCamera/);
+assert.doesNotMatch(index, /stop-relaxation/);
+assert.match(app, /conformationEngine\.updateDrag\(dragState\.targetWorld,\{deltaSeconds\}\)/);
+assert.match(app, /conformationEngine\.release\(\)/);
+assert.match(app, /function atomEditPlan\(atomId,activeKey=null\)/);
+assert.doesNotMatch(index, /rotation-axis-options|rotation-cue/);
+assert.doesNotMatch(app, /rotationOptions|rotationCue|candidateTorsionKeys|activeTorsionKey|axisGlow/);
+assert.match(app, /\['conformation','rigid-body'\]\.includes\(dragState\.mode\)\)advanceConformationDrag\(now\)/);
+assert.match(app, /activePointers.size&&dragState&&\(dragState.moved\|\|dragState.mode!=='molecule-rotate'\)/);
+assert.equal((app.match(/if\(!activePointers.has\(e.pointerId\)\)return/g)??[]).length,3,'Foreign pointer move/up/cancel must not steal an edit');
+assert.match(index, /id="structure-focus" aria-label="編集する分子"/);
+const focusHandler=craftControls.slice(craftControls.indexOf("structureFocus.addEventListener('change'"),craftControls.indexOf("document.querySelector('#frame-structure')"));
+assert.doesNotMatch(focusHandler,/requestStructureFrame|camera\./,'Focus change must not reframe');
+assert.match(app, /workspaceView.frame\(focusedStructure\(\),fit.center\)/);
+assert.match(app, /solver.rotateReferenceFrames\(q,rotation.ids\);rotateStructure\(rotation,pos,q\)/);
+assert.match(app, /from '\.\/electron-interaction\.js\?v=16'/);
+assert.match(app, /from '\.\/gesture-arbitration\.js\?v=20'/);
+assert.match(app, /from '\.\/workspace-model\.js\?v=20'/);
+assert.match(app, /from '\.\/chemistry\.js\?v=20'/);
+assert.doesNotMatch(app, /hasCompatibleElectronPair|lastCelebrated/);
+assert.match(app, /chooseAtomOrElectron\(e.clientX,e.clientY,screenAtomCandidates\(\)/);
+assert.match(app, /connectedStructures\(molecule\)/);
+assert.doesNotMatch(index, /id="frame-structure"/,'Legacy CRAFT frame button stays removed');
+assert.match(index, /id="undo-cleanup"/);
+assert.match(index, /id="collection-dialog"/);
+assert.match(index, /id="craft-panel"[^>]*hidden/);
+assert.match(craftConnections, /createCompletionSideEffectGate\(\)/,'Completion side effects must be edge-gated rather than revision-scanned');
+assert.match(craftConnections, /completionGate\.suppressNextSync\(\)/,'Restore/Undo must establish a passive completion baseline');
+assert.doesNotMatch(craftConnections, /checkedRevision!==revision/,'Legacy level-triggered collection revision scan must stay removed');
+assert.match(craftWorkspace, /expandCraftStructure\(staged,template\)/);
+assert.match(craftConnections, /await import\('\.\/collection-ui\.js\?v=46'\)/);
+assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations belong to craft-workspace.js');
+assert.match(app, /!elementPalette.canUse\(symbol\)/);
+assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
+assert.match(index, /id="veil-combustion"/);
+assert.match(index, /id="veil-combustion-remaining">HOLD DRIVE<\/small>/,'Exploration combustion control keeps its operational DRIVE label');
+assert.doesNotMatch(gameShell, /#veil-combustion-remaining/,'Gameplay chrome pruning must not hide the DRIVE action affordance');
+assert.match(index, /id="veil-threat"/);
+assert.match(index, /id="open-supply" class="collector-access"/);
+assert.doesNotMatch(index, /<span>収集殻<\/span>/,'Legacy collector access text label stays removed');
+assert.match(index, /id="shell-propellant"/);
+assert.match(index, /id="shell-fuel"/);
+assert.match(index, /id="shell-oxidizer"/);
+assert.match(index, /id="shell-coolant"/);
+assert.match(index, /id="tank-model-host"/);
+assert.doesNotMatch(index,/id="craft-tank-actions"|id="tank-charge-stage"/,'Legacy manual tank-charge DOM stays removed');
+assert.doesNotMatch(craftPanel,/craft-tank-actions|tank-charge-stage|tankActionKey|tankControls|renderTankActions/,'Craft panel no longer carries manual tank-charge state');
+await assert.rejects(readFile(new URL('src/craft-transfer-effects.js',root),'utf8'),error=>error?.code==='ENOENT','Legacy craft transfer effects runtime module stays deleted');
+assert.doesNotMatch(styles,/craft-tank-actions|tank-charge-stage|charge-stage-(?:in|out)/,'Legacy manual tank-charge CSS stays removed');
+assert.doesNotMatch(index,/id="(?:tank-use-guide|tank-replacement|tank-affordability|loaded-combustion-summary)"/,'Inactive loadout guidance placeholders stay removed');
+assert.doesNotMatch(styles,/\.model-toolbar\b|\.model-zoom\b/,'Removed collection model toolbar CSS stays removed');
+assert.doesNotMatch(styles,/\.undo-cleanup\b|\.collector-access (?:img|span)\b/,'Legacy hidden CRAFT/access chrome selectors stay removed');
+assert.doesNotMatch(veilCss,/#supply-dialog \.tank-affordability\b|\.tank-model #tank-model-host \.model-toolbar\b|\.tank-replacement\b|#tank-use-guide\b/,'Removed loadout placeholder selectors stay removed');
+await assert.rejects(readFile(new URL('src/tank-charge.js',root),'utf8'),error=>error?.code==='ENOENT','Legacy tank-charge runtime module stays deleted');
+assert.doesNotMatch(index, /id="molecule-select"|id="fill-hydrogen"|id="make-h2"/);
+assert.match(index, /EXPEDITION CARGO/);
+assert.match(index, /COLLECTOR SHELL · ANCHOR FIELD/);
+assert.match(index,/id="veil-status-panel"[^>]*role="status"/,'FIELD top-right HUD remains a status panel after extraction controls are removed');
+assert.doesNotMatch(index,/id="veil-extraction-meter"/,'FIELD has no return meter or persistent return control');
+assert.match(veilCss, /\.veil-actions #veil-sound\{position:absolute/);
+assert.match(veilCss, /@media\(max-width:370px\)\{[^@]*?\.veil-chain-block\{display:none\}/,'Narrow FIELD HUD must keep chain block hidden inside the 370px media contract');
+assert.match(index, /id="veil-thermal"/);
+assert.doesNotMatch(index, /id="drive-select"|id="auto-cooling"/,'Thermal control is automatic and adds no flight input');
+assert.doesNotMatch(app, /localStorage\.setItem/);
+assert.equal((index.match(/data-element=/g) ?? []).length, 8, 'Static element palette must remain in HTML');
+assert.doesNotMatch(chemistry, /const KNOWN_MOLECULES/);
+assert.doesNotMatch(app, /completeBenzeneCycle|renderMolecule\(|relaxGeometryStep/);
+assert.match(app, /depthTest:false/);
+assert.match(app, /ELECTRON_SNAP_PX=58/);
+assert.doesNotMatch(app, /electronHit=hits\.find/);
+assert.match(electronInteraction, /coreRadiusPx: 36/);
+assert.match(electronInteraction, /assistRadiusPx: 52/);
+assert.match(gestureArbitration, /atomCoreRadiusPx: 20/);
+assert.match(gestureArbitration, /atomStructureRadiusPx: 34/);
+assert.match(gestureArbitration, /bondEndpointExclusionPx: 24/);
+assert.doesNotMatch(app, /const bondHit=hits\.find/);
+assert.match(solver, /aromaticPlanarGroup/);
+assert.match(solver, /planarSubstituentGroup/);
+assert.match(solver, /doubleSubstituentSlots/);
+assert.match(solver, /enforceAromaticSubstituentDirections/);
+assert.match(solver, /assignAromaticFollowerSigns/);
+assert.match(solver, /enforceConjugatedSubstituentGeometry/);
+assert.match(solver, /projectRigidConstraints/);
+assert.match(solver, /relaxStericIntersections/);
+assert.match(solver, /validateConformation/);
+assert.match(solver, /ringExclusionVolumes/);
+assert.match(conformation, /jacobianToward/);
+assert.match(conformation, /forceStiffness|rigidBodyToward|velocities/);
+assert.match(conformation, /lastValid/);
+assert.match(conformation, /attemptScales/);
+
+const cameraMutationLines = app.split('\n').filter(line => /camera\.position\.(set|copy|add|lerp)|cameraTarget\.(set|copy|add|lerp)/.test(line));
+assert.equal(cameraMutationLines.length, 3, `Unexpected camera mutation:\n${cameraMutationLines.join('\n')}`);
+assert.ok(cameraMutationLines.every(line => line.includes('const camera=') || line.includes('function zoomCamera') || line.includes('camera.position.lerpVectors(item.fromPosition')));
+assert.match(app, /if\(!frameTransition\|\|relaxation\|\|bondTransition\)return/);
+assert.doesNotMatch(app, /ensureSpawnVisible|function spawnPosition/);
+assert.match(app, /planWorkspaceSpawn\(parts\)/);
+assert.doesNotMatch(craftControls,/frame-structure|onFrame/,'Legacy CRAFT frame button event contract stays removed');
+assert.match(app, /createCraftWorkspace\(\{molecule,placements,resources,resolveUnlockedPart:id=>collectionGame\?\.templateFor\(id\),onStockChange:syncCraftStock\}\)/);
+assert.match(app, /bindCraftControls\(/);
+assert.match(app, /connectExploration\(/);
+assert.match(app, /connectCollection\(/);
+assert.match(app, /createDiscoveryConnection\(/);
+assert.match(app, /craftPanel\.renderInfo\(/);
+assert.match(app, /decomposeTargetIntoAvailableParts\(record,unlocked\)/);
+assert.match(app, /targetParts:targetPartsFor\(target\)/);
+assert.match(craftPanel, /renderCraftTargetParts/);
+assert.match(craftPanel, /onPlaceTargetPart/);
+assert.match(craftPanel, /part-\$\{item\.partId\}\.svg/);
+assert.match(craftPanel, /craft-target-part-formula/);
+assert.doesNotMatch(app, /targetDeployments|targetDeploymentTargetId|targetPartKey/);
+assert.match(app, /matchCraftTarget\(record,pieces,molecule\)\.unsatisfiedPieces/);
+assert.doesNotMatch(app, /return expanded;/);
+assert.match(app, /return true;/);
+assert.match(craftPanel, /compactPartNotation/);
+assert.match(index, /data-molecule-craft-shell="2"/);
+assert.doesNotMatch(index, /id="cho-completion"|id="cho-continue"/);
+assert.doesNotMatch(index, /<button id="open-supply"[^>]*>\s*<img[^>]+collector-shell\.png/);
+assert.doesNotMatch(index, /id="discovery-learning"/);
+assert.doesNotMatch(app, /cho-completion|cho-continue/);
+assert.match(app, /Craft information refresh failed; 3D workspace remains active/);
+assert.match(app, /Initial craft refresh failed; continuing runtime startup/);
+assert.match(index, /class=\"craft-target-meta\"/);
+assert.match(index, /styles\.css\?v=51/);
+
+console.log('Source contract tests passed.');

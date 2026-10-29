@@ -1,0 +1,606 @@
+{
+  "schemaVersion": 1,
+  "authorityRevision": "reaction-lab-7a-targeted-reopen-2026-09-29",
+  "playableReactions": [
+    "complete-01-anhydride-hydrolysis",
+    "complete-02-anhydride-alcoholysis",
+    "complete-03-aspirin-synthesis",
+    "complete-04-aspirin-hydrolysis",
+    "complete-05-amide-alcoholysis",
+    "complete-06-ethene-halogenation",
+    "complete-07-sulfur-trioxide-hydration",
+    "complete-08-phosphorus-pentachloride-formation",
+    "complete-09-ethylene-oxide-acid-cleavage",
+    "complete-10-ethylene-oxide-basic-cleavage",
+    "complete-11-propene-hydration",
+    "complete-12-1-butene-hydration",
+    "complete-13-2-butene-hydration",
+    "complete-14-isobutene-hydration",
+    "complete-15-cyclohexene-hydration",
+    "complete-16-methane-chlorination",
+    "complete-17-chloromethane-chlorination",
+    "complete-18-dichloromethane-chlorination",
+    "complete-19-chloroform-chlorination",
+    "complete-20-hydrogen-chlorination",
+    "complete-21-cyclobutane-dimerization",
+    "complete-22-dimethyl-sulfide-oxidation",
+    "complete-23-methanol-dehydration",
+    "complete-24-urea-hydrolysis",
+    "complete-25-carbonyl-sulfide-hydrolysis",
+    "complete-26-hydrogen-combustion",
+    "complete-27-carbon-monoxide-oxidation",
+    "complete-28-methane-combustion",
+    "complete-29-difluoromethane-combustion"
+  ],
+  "blockedSpeciesProbes": [
+    "1-3-butadiene",
+    "1-butanol",
+    "1-butyne",
+    "2-4-6-trinitrotoluene",
+    "2-4-dinitrotoluene",
+    "2-butanone",
+    "2-butyne",
+    "2-nitrotoluene",
+    "acetaldehyde",
+    "acetone",
+    "acetonitrile",
+    "acetophenone",
+    "acrolein",
+    "acrylic-acid",
+    "acrylonitrile",
+    "adipic-acid",
+    "alanine",
+    "aniline",
+    "anisole",
+    "benzaldehyde",
+    "benzene",
+    "benzoic-acid",
+    "benzyl-alcohol",
+    "butyric-acid",
+    "carbon-disulfide",
+    "carbonic-acid",
+    "catechol",
+    "chlorobenzene",
+    "chlorotrifluoroethylene",
+    "citric-acid",
+    "cyclohexane",
+    "cyclohexanone",
+    "cyclopentane",
+    "cyclopropane",
+    "cysteine",
+    "diethyl-ether",
+    "dimethylamine",
+    "ethane",
+    "ethylbenzene",
+    "ethylenediamine",
+    "ethyne",
+    "fluoromethane",
+    "formaldehyde",
+    "formic-acid",
+    "furan",
+    "glycerol",
+    "glycine",
+    "glycolic-acid",
+    "hexafluoropropylene",
+    "hexamethylenediamine",
+    "hydrogen-cyanide",
+    "hydroquinone",
+    "hypochlorous-acid",
+    "isoamyl-acetate",
+    "isobutane",
+    "isoprene",
+    "lactic-acid",
+    "malic-acid",
+    "malonic-acid",
+    "methanethiol",
+    "methionine",
+    "methyl-ethyl-ether",
+    "methyl-salicylate",
+    "methylamine",
+    "methylcyclohexane",
+    "n-butane",
+    "n-hexane",
+    "n-pentane",
+    "nitrobenzene",
+    "nitrogen",
+    "nitromethane",
+    "oxalic-acid",
+    "ozone",
+    "p-xylene",
+    "phenol",
+    "phosphine",
+    "phosphoric-acid",
+    "propane",
+    "propionaldehyde",
+    "propionic-acid",
+    "propyne",
+    "pyridine",
+    "pyruvic-acid",
+    "serine",
+    "styrene",
+    "succinic-acid",
+    "sulfur-dioxide",
+    "terephthalic-acid",
+    "tetrafluoroethylene",
+    "tetrahydrofuran",
+    "toluene",
+    "trimethylamine",
+    "vinyl-chloride",
+    "vinylidene-fluoride"
+  ],
+  "blockedTransformations": [
+    {
+      "label": "original-01",
+      "reactants": [
+        {
+          "species": "acetic-anhydride",
+          "count": 1
+        },
+        {
+          "species": "ammonia",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "acetamide",
+          "count": 1
+        },
+        {
+          "species": "acetic-acid",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "SPECIATION",
+        "DB"
+      ]
+    },
+    {
+      "label": "original-02",
+      "reactants": [
+        {
+          "species": "sulfur-dioxide",
+          "count": 1
+        },
+        {
+          "species": "hydrogen-peroxide",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "sulfuric-acid",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "SPECIATION",
+        "GLOBAL_NET"
+      ]
+    },
+    {
+      "label": "original-03",
+      "reactants": [
+        {
+          "species": "ethanol",
+          "count": 2
+        }
+      ],
+      "products": [
+        {
+          "species": "diethyl-ether",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "SELECTIVITY"
+      ]
+    },
+    {
+      "label": "original-04",
+      "reactants": [
+        {
+          "species": "ethanol",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "ethene",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "CORE",
+        "SELECTIVITY"
+      ]
+    },
+    {
+      "label": "original-05",
+      "reactants": [
+        {
+          "species": "carbon-monoxide",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "carbon-dioxide",
+          "count": 1
+        },
+        {
+          "species": "hydrogen",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "CATALYST",
+        "EQUILIBRIUM"
+      ]
+    },
+    {
+      "label": "original-06",
+      "reactants": [
+        {
+          "species": "methane",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "carbon-monoxide",
+          "count": 1
+        },
+        {
+          "species": "hydrogen",
+          "count": 3
+        }
+      ],
+      "blockers": [
+        "CATALYST",
+        "EQUILIBRIUM"
+      ]
+    },
+    {
+      "label": "original-07",
+      "reactants": [
+        {
+          "species": "ammonia",
+          "count": 2
+        },
+        {
+          "species": "carbon-dioxide",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "urea",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "PRESSURE",
+        "SPECIATION",
+        "EQUILIBRIUM",
+        "GLOBAL_NET"
+      ]
+    },
+    {
+      "label": "original-08",
+      "reactants": [
+        {
+          "species": "ethene",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "ethanol",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "CATALYST",
+        "PRESSURE",
+        "EQUILIBRIUM"
+      ]
+    },
+    {
+      "label": "original-09",
+      "reactants": [
+        {
+          "species": "water",
+          "count": 2
+        }
+      ],
+      "products": [
+        {
+          "species": "hydrogen",
+          "count": 2
+        },
+        {
+          "species": "oxygen",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "CORE"
+      ]
+    },
+    {
+      "label": "original-10",
+      "reactants": [
+        {
+          "species": "hydrogen-chloride",
+          "count": 2
+        }
+      ],
+      "products": [
+        {
+          "species": "hydrogen",
+          "count": 1
+        },
+        {
+          "species": "chlorine",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "CORE"
+      ]
+    },
+    {
+      "label": "original-11",
+      "reactants": [
+        {
+          "species": "oxalic-acid",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "carbon-monoxide",
+          "count": 1
+        },
+        {
+          "species": "carbon-dioxide",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "CORE",
+        "SELECTIVITY"
+      ]
+    },
+    {
+      "label": "original-12",
+      "reactants": [
+        {
+          "species": "chloromethane",
+          "count": 1
+        },
+        {
+          "species": "ammonia",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "methylamine",
+          "count": 1
+        },
+        {
+          "species": "hydrogen-chloride",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "SPECIATION",
+        "SELECTIVITY"
+      ]
+    },
+    {
+      "label": "A3-ethyl-acetate-hydrolysis",
+      "reactants": [
+        {
+          "species": "ethyl-acetate",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "acetic-acid",
+          "count": 1
+        },
+        {
+          "species": "ethanol",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "EQUILIBRIUM"
+      ]
+    },
+    {
+      "label": "Fischer-esterification-reverse",
+      "reactants": [
+        {
+          "species": "acetic-acid",
+          "count": 1
+        },
+        {
+          "species": "ethanol",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "ethyl-acetate",
+          "count": 1
+        },
+        {
+          "species": "water",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "EQUILIBRIUM"
+      ]
+    },
+    {
+      "label": "A4-aspirin-synthesis-reverse",
+      "reactants": [
+        {
+          "species": "ethyl-acetate",
+          "count": 1
+        },
+        {
+          "species": "salicylic-acid",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "aspirin",
+          "count": 1
+        },
+        {
+          "species": "ethanol",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "CATALYST",
+        "EQUILIBRIUM",
+        "SELECTIVITY"
+      ]
+    },
+    {
+      "label": "A5-aspirin-ammonolysis",
+      "reactants": [
+        {
+          "species": "aspirin",
+          "count": 1
+        },
+        {
+          "species": "ammonia",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "acetamide",
+          "count": 1
+        },
+        {
+          "species": "salicylic-acid",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "SPECIATION",
+        "SELECTIVITY"
+      ]
+    },
+    {
+      "label": "A6-aspirin-ethanolysis",
+      "reactants": [
+        {
+          "species": "aspirin",
+          "count": 1
+        },
+        {
+          "species": "ethanol",
+          "count": 1
+        }
+      ],
+      "products": [
+        {
+          "species": "ethyl-acetate",
+          "count": 1
+        },
+        {
+          "species": "salicylic-acid",
+          "count": 1
+        }
+      ],
+      "blockers": [
+        "EQUILIBRIUM",
+        "SPECIATION",
+        "SELECTIVITY"
+      ]
+    }
+  ],
+  "excludedPolymerRoutes": [
+    "butyl-rubber",
+    "ethylene-propylene-copolymer",
+    "nitrile-butadiene-rubber",
+    "nylon-6-6",
+    "phenol-formaldehyde-resin",
+    "polyacrylic-acid",
+    "polyacrylonitrile",
+    "polybutadiene",
+    "polychlorotrifluoroethylene",
+    "polyethylene",
+    "polyethylene-adipamide",
+    "polyethylene-adipate",
+    "polyethylene-oxide",
+    "polyethylene-terephthalate",
+    "polyglycolic-acid",
+    "polyisobutylene",
+    "polyisoprene",
+    "polylactic-acid",
+    "polypropylene",
+    "polystyrene",
+    "polytetrafluoroethylene",
+    "polyvinyl-chloride",
+    "polyvinylidene-fluoride",
+    "styrene-butadiene-copolymer",
+    "vinylidene-fluoride-hexafluoropropylene-copolymer"
+  ],
+  "blockerVocabulary": [
+    "CORE",
+    "DB",
+    "CATALYST",
+    "PRESSURE",
+    "SPECIATION",
+    "EQUILIBRIUM",
+    "BATCH",
+    "SELECTIVITY",
+    "GLOBAL_NET"
+  ]
+}

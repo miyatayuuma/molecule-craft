@@ -1,0 +1,135 @@
+import {ELEMENTS,UNKNOWN_NAME,countElements} from './chemistry.js?v=20';
+import {preferredValence} from './bonding-model.js?v=31';
+import {createPubchemIntroState,pubchemReferenceFor} from './pubchem-reference.js';
+import {createCraftTargetMatchTracker} from './craft-target-match.js?v=1';
+
+export function craftTargetSlots(record,placedAtoms=[]){
+  if(!record?.atoms)return[];
+  const needed=countElements(record.atoms),placed=countElements(placedAtoms),slots=[];
+  for(const [symbol,total]of Object.entries(needed).sort(([a],[b])=>a.localeCompare(b)))for(let index=0;index<total;index++)slots.push({symbol,index,filled:index<(placed[symbol]??0)});
+  return slots;
+}
+
+function targetLabelColor(color){
+  const value=String(color??'').replace('#','');if(!/^[0-9a-f]{6}$/i.test(value))return'#f8fafc';
+  const r=parseInt(value.slice(0,2),16),g=parseInt(value.slice(2,4),16),b=parseInt(value.slice(4,6),16);return .299*r+.587*g+.114*b>168?'#07131f':'#f8fafc';
+}
+
+function styleTargetAtom(node,symbol,size=31){
+  const color=ELEMENTS[symbol]?.color??'#94a3b8',highlight=`color-mix(in srgb,#fff 48%,${color})`,edge=`color-mix(in srgb,${color} 72%,#d8f3f5)`,text=targetLabelColor(color);
+  node.style.cssText=`display:inline-grid;place-items:center;flex:0 0 ${size}px;width:${size}px;height:${size}px;border:1px solid ${edge};border-radius:50%;background:radial-gradient(circle at 34% 28%,${highlight} 0 10%,${color} 48%,color-mix(in srgb,${color} 66%,#07131f) 100%);box-shadow:inset -3px -4px 7px #07131f55,0 2px 7px #0005;color:${text};font-size:${size<=27?10:12}px;font-weight:800;line-height:1;text-shadow:${text==='#07131f'?'0 1px 1px #fff6':'0 1px 2px #000'};user-select:none;transition:transform .18s ease,opacity .18s ease;`;
+}
+
+function partCompositionFormula(template){
+  const atoms=template?.atoms??[],counts=countElements(atoms),order=[];for(const symbol of atoms)if(!order.includes(symbol))order.push(symbol);
+  return order.map(symbol=>`${symbol}${counts[symbol]>1?counts[symbol]:''}`).join('');
+}
+export function compactPartNotation(template){
+  const raw=String(template?.notation??template?.label??template?.id??'').trim();if([...raw].length<=10)return raw;
+  const leading=raw.match(/^[–—-]/)?.[0]??(template?.attachments?.length?'–':''),trailing=raw.match(/[–—-]$/)?.[0]??(template?.attachments?.length>1?'–':'');
+  const formula=partCompositionFormula(template);return formula?`${leading}${formula}${trailing}`:raw;
+}
+
+export function renderCraftTargetAtoms(container,record,placedAtoms=[],{size=31}={}){
+  if(!container)return[];container.replaceChildren();const rendered=[];
+  for(const slot of craftTargetSlots(record,placedAtoms)){const chip=container.ownerDocument.createElement('span');chip.className='craft-target-atom';chip.dataset.element=slot.symbol;chip.dataset.filled=String(slot.filled);chip.textContent=slot.symbol;chip.setAttribute('aria-label',`${ELEMENTS[slot.symbol]?.name??slot.symbol} ${slot.filled?'配置済み':'未配置'}`);styleTargetAtom(chip,slot.symbol,size);container.appendChild(chip);rendered.push({slot,node:chip});}
+  return rendered;
+}
+
+export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=31,onPlace=()=>{}}={}){
+  if(!container)return[];container.replaceChildren();const rendered=[],used={};
+  for(const item of parts){
+    if(item.partId){
+      const template=item.template,chip=container.ownerDocument.createElement('button'),model=container.ownerDocument.createElement('img'),formula=container.ownerDocument.createElement('strong');
+      chip.type='button';chip.className='craft-target-part';chip.dataset.partId=item.partId;
+      model.className='craft-target-part-model';model.alt='';model.src=new URL(`../assets/models/part-${item.partId}.svg`,import.meta.url).href;model.addEventListener('error',()=>{model.hidden=true;},{once:true});
+      const notation=compactPartNotation(template)||item.partId;formula.className='craft-target-part-formula';formula.textContent=notation;formula.dataset.long=String([...notation].length>8);
+      chip.setAttribute('aria-label',`${template?.nameJa??notation}をクラフト台へ出す`);chip.append(model,formula);chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot:null});continue;
+    }
+    const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;const slot={symbol,index,filled:false},chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled=String(slot.filled);chip.textContent=symbol;chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);styleTargetAtom(chip,symbol,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot});
+  }
+  return rendered;
+}
+
+export function createCraftPanel(document){
+
+  const nodes={
+    status:document.querySelector('#status'),formula:document.querySelector('#formula'),name:document.querySelector('#molecule-name'),iupac:document.querySelector('#molecule-iupac'),counts:document.querySelector('#atom-counts'),
+    selectedElement:document.querySelector('#selected-element'),selectedValence:document.querySelector('#selected-valence'),selectedLimit:document.querySelector('#selected-limit'),selectionChip:document.querySelector('#selection-chip'),
+    discovery:document.querySelector('#discovery'),discoveryFormula:document.querySelector('#discovery-formula'),discoveryName:document.querySelector('#discovery-name'),
+    structureList:document.querySelector('#structure-list'),structureCount:document.querySelector('#structure-count'),structureFocus:document.querySelector('#structure-focus'),
+target:document.querySelector('#craft-target'),targetName:document.querySelector('#craft-target-name'),targetFormula:document.querySelector('#craft-target-formula'),targetAtoms:document.querySelector('#craft-target-atoms'),
+  };
+  const stereoObservation=document.createElement('div'),stereoLabel=document.createElement('span'),stereoDetail=document.createElement('span');
+  stereoObservation.className='craft-stereo-observation';stereoObservation.hidden=true;stereoObservation.setAttribute('role','status');stereoObservation.setAttribute('aria-live','polite');
+  stereoLabel.className='craft-stereo-label';stereoDetail.className='craft-stereo-detail';stereoObservation.append(stereoLabel,stereoDetail);nodes.formula?.after(stereoObservation);
+  nodes.stereoObservation=stereoObservation;nodes.stereoLabel=stereoLabel;nodes.stereoDetail=stereoDetail;
+  const targetMatchTracker=createCraftTargetMatchTracker(),targetMatch=document.createElement('span'),targetTint=document.createElement('span'),targetScale=document.createElement('span'),targetScaleFill=document.createElement('span');
+  targetMatch.className='craft-target-match';targetMatch.setAttribute('aria-hidden','true');Object.assign(targetMatch.style,{display:'block',marginTop:'2px',color:'#b8e7e8',fontSize:'10px',fontWeight:'750',fontVariantNumeric:'tabular-nums',letterSpacing:'.03em',lineHeight:'1.05',whiteSpace:'nowrap'});nodes.targetMatch=targetMatch;
+  nodes.targetFormula?.parentNode?.insertBefore(targetMatch,nodes.targetFormula.nextSibling);
+  targetTint.className='craft-target-match-tint';Object.assign(targetTint.style,{position:'absolute',inset:'0',pointerEvents:'none',background:'radial-gradient(circle at 22% 50%,rgba(103,217,199,.78),rgba(88,154,214,.34) 58%,transparent 100%)',opacity:'0',transition:'opacity .22s ease',zIndex:'0'});
+  targetScale.className='craft-target-match-scale';Object.assign(targetScale.style,{position:'absolute',left:'0',right:'0',bottom:'0',height:'2px',overflow:'hidden',pointerEvents:'none',background:'rgba(143,224,223,.13)',zIndex:'2'});
+  targetScaleFill.className='craft-target-match-scale-fill';Object.assign(targetScaleFill.style,{display:'block',width:'100%',height:'100%',transform:'scaleX(0)',transformOrigin:'left center',transition:'transform .22s ease',background:'linear-gradient(90deg,#69c7db,#8fe0df)',boxShadow:'0 0 8px rgba(143,224,223,.72)'});targetScale.append(targetScaleFill);
+  if(nodes.target){nodes.target.style.position='relative';nodes.target.style.transition='box-shadow .22s ease';nodes.target.prepend(targetTint);nodes.target.append(targetScale);for(const child of nodes.target.children)if(child!==targetTint&&child!==targetScale){child.style.position='relative';child.style.zIndex='1';}}
+  const pubchemLink=document.createElement('a');pubchemLink.className='pubchem-link';pubchemLink.textContent='PubChem ↗';pubchemLink.target='_blank';pubchemLink.rel='noopener noreferrer external';pubchemLink.hidden=true;pubchemLink.setAttribute('aria-label','PubChemでこの分子を調べる（外部サイト）');Object.assign(pubchemLink.style,{marginLeft:'0',minWidth:'auto',minHeight:'32px',padding:'4px 6px',borderLeft:'0'});nodes.pubchem=pubchemLink;
+  let pubchemStorage=null;try{pubchemStorage=document.defaultView?.localStorage??null;}catch{}const pubchemIntro=createPubchemIntroState(pubchemStorage);
+  let clearTarget=()=>{},lastTargetKey='',lastTargetFilled={};
+  document.querySelector('#clear-craft-target')?.addEventListener('click',()=>clearTarget());
+
+  function identity(structure){
+    if(!structure)return{record:null,primary:'自由制作',iupac:'',formula:'—'};
+    const record=structure.record;
+    return record?{record,primary:record.commonNameJa??record.nameJa,iupac:record.iupacNameEn??record.nameEn,formula:record.formula??structure.formula}:{record:null,primary:UNKNOWN_NAME,iupac:'',formula:structure.formula};
+  }
+
+  function renderStructureList({structures,focused,disabled,onSelect}){
+    const focusLabel=document.querySelector('#structure-focus-label');if(focusLabel)focusLabel.hidden=structures.length<2;
+    nodes.structureFocus.disabled=disabled;nodes.structureFocus.replaceChildren();
+    nodes.structureCount.textContent=`完成 ${structures.filter(item=>item.complete).length} / 構造 ${structures.length}`;nodes.structureList.replaceChildren();
+    for(const [index,item] of structures.entries()){
+      const itemIdentity=identity(item),button=document.createElement('button');button.type='button';button.className='structure-item';button.setAttribute('aria-pressed',String(item===focused));
+      button.textContent=`${item===focused?'編集中 · ':''}${index+1}. ${item.complete?'完成':'制作中'} · ${itemIdentity.formula}${item.record?` · ${itemIdentity.primary}`:''}`;button.addEventListener('click',()=>onSelect(item));nodes.structureList.appendChild(button);
+      const option=document.createElement('option');option.value=item.key;option.textContent=`${index+1}. ${item.record?itemIdentity.primary+' · ':''}${itemIdentity.formula}`;option.selected=item===focused;nodes.structureFocus.appendChild(option);
+    }
+  }
+
+  function renderTargetMatch(record,match){
+    if(!record||!match){nodes.targetMatch.textContent='';targetScaleFill.style.transform='scaleX(0)';targetTint.style.opacity='0';nodes.target?.style.removeProperty('box-shadow');if(nodes.target)delete nodes.target.dataset.targetMatchState;return 0;}
+    const percent=Math.max(0,Math.min(100,Math.round(Number(match.percent)||0))),ratio=percent/100;nodes.targetMatch.textContent=`${percent}%`;targetScaleFill.style.transform=`scaleX(${ratio})`;targetTint.style.opacity=(ratio*.18).toFixed(3);if(nodes.target){nodes.target.dataset.targetMatchState=match.state??'matching';nodes.target.style.boxShadow=`inset 0 -12px 22px rgba(103,217,199,${(ratio*.075).toFixed(3)}),0 0 ${Math.round(4+ratio*8)}px rgba(103,217,199,${(ratio*.07).toFixed(3)})`;}
+    return percent;
+  }
+
+function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{},targetMatch=null}={}){
+  clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;renderTargetMatch(null,null);lastTargetKey='';lastTargetFilled={};return;}
+  const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;const matchPercent=renderTargetMatch(record,targetMatch??{percent:0,state:'matching'});nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標 · 接近度 ${matchPercent}%`);
+  const rendered=targetParts!==null?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:31,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:31});
+  const key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
+  for(const {slot,node:chip}of rendered){if(!slot)continue;if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
+  lastTargetKey=key;lastTargetFilled=filledNow;
+}
+
+function renderStereoObservation(observation){
+    const visible=!!observation?.label;nodes.stereoObservation.hidden=!visible;
+    nodes.stereoLabel.textContent=visible?observation.label:'';nodes.stereoDetail.textContent=visible?observation.detail??'':'';
+    if(visible){nodes.stereoObservation.dataset.relation=observation.relation;nodes.stereoObservation.setAttribute('aria-label',observation.detail?`${observation.label}。 ${observation.detail}`:observation.label);}
+    else{delete nodes.stereoObservation.dataset.relation;nodes.stereoObservation.removeAttribute('aria-label');}
+  }
+
+function renderInfo({keep,veilUI,focus,structures,selected,molecule,target,targetParts=null,onPlaceTargetPart,targetDiscovered=false,onClearTarget,unresolvedAtoms,stateFor,stereoObservation=null,structureListDisabled,onSelectStructure}){
+    veilUI?.updateCraft();renderStereoObservation(stereoObservation);const itemIdentity=identity(focus),idea=!!target&&!targetDiscovered;nodes.formula.textContent=itemIdentity.formula;nodes.formula.append(nodes.pubchem);nodes.name.textContent=`${idea?'💡 ':''}${itemIdentity.primary}`;nodes.iupac.textContent=itemIdentity.iupac?`IUPAC: ${itemIdentity.iupac}`:'';const reference=focus?.complete&&!focus.record?pubchemReferenceFor(focus):null;nodes.pubchem.hidden=!reference;nodes.pubchem.textContent=pubchemIntro.label(reference?focus.signature:null);if(reference){nodes.pubchem.href=reference.url;nodes.pubchem.dataset.searchMode=reference.mode;}else{nodes.pubchem.removeAttribute('href');delete nodes.pubchem.dataset.searchMode;}
+    const targetMatchResult=targetMatchTracker.update(target,molecule);renderTarget(target,molecule.atoms,onClearTarget,{discovered:targetDiscovered,targetParts,onPlaceTargetPart,targetMatch:targetMatchResult});
+    const validation=focus?.validation??molecule.validation();nodes.status.className=`status ${validation.level}`;nodes.status.textContent=focus&&[...focus.ids].some(id=>unresolvedAtoms.has(id))?'配置未解決 · 結合は保持しています':focus?.complete?(focus.record?'結合がそろいました':'未登録 · 結合ルールOK'):validation.message;
+    nodes.counts.replaceChildren();const atoms=focus?.graph.atoms??[],counts=countElements(atoms);if(!atoms.length)nodes.counts.textContent='—';else for(const symbol of Object.keys(counts).sort()){const chip=document.createElement('span');chip.className='atom-count';chip.textContent=`${symbol} × ${counts[symbol]}`;nodes.counts.appendChild(chip);}
+    renderStructureList({structures,focused:focus,disabled:structureListDisabled,onSelect:onSelectStructure});
+    document.querySelector('#selection-actions').hidden=!selected;if(!selected){nodes.selectedElement.textContent=nodes.selectedValence.textContent=nodes.selectedLimit.textContent='—';if(!keep)nodes.selectionChip.textContent='';return;}
+    const used=molecule.bondOrderForAtom(selected.id),state=stateFor(selected.id);nodes.selectedElement.textContent=`${selected.element} / ${ELEMENTS[selected.element].name}`;nodes.selectedValence.textContent=`${used} / ${state.charge?used:preferredValence(selected.element,used)}`;nodes.selectedLimit.textContent=`不対電子 ${state.singles} · 非共有電子対 ${state.pairs}${state.charge?` · ${state.charge>0?'+':'−'}1`:''}`;
+    if(!keep)nodes.selectionChip.textContent=selected.element;
+  }
+
+  function showDiscovery({isNew,itemIdentity}){
+    document.querySelector('#discovery-kicker').textContent=isNew?'新発見！':'完成';
+    nodes.discoveryFormula.textContent=itemIdentity.formula;nodes.discoveryName.textContent=itemIdentity.primary;nodes.discovery.classList.toggle('new-discovery',isNew);nodes.discovery.classList.toggle('repeat',!isNew);nodes.discovery.classList.remove('show');void nodes.discovery.offsetWidth;nodes.discovery.classList.add('show');
+  }
+
+  return{nodes,identity,renderInfo,renderStructureList,showDiscovery};
+}

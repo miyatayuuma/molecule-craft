@@ -1,0 +1,222 @@
+import {createCollectorApplicationsUI} from './collector-applications-ui.js';
+import { MOLECULE_USES,REGIONS,TANK_USES,isExpeditionRegionDestination } from './growth.js';
+import { ACTIVE_TANK_ROLES,performanceFor } from './molecule-roles.js';
+import { drawCollectorShell,drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
+import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_JUNCTION } from './oxygen-routes.js';
+import { NITROGEN_REGION_ID } from './nitrogen-config.js';
+import { renderLoadoutPreview } from './loadout-preview.js';
+import { animateLoadoutElementTransfer,setLoadoutFlightCraftTranslation,syncLoadoutElementStock,syncLoadoutHardwareLayout } from './loadout-workstation.js';
+import { isExpeditionDestinationAvailable } from './launch-request.js';
+import { syncElementStocks } from '../element-progression.js?v=36';
+
+const USE_ORDER=[...ACTIVE_TANK_ROLES];
+const REGION_CUES=Object.freeze({veil:{glyph:'H',color:'#bfefff'},carbon:{glyph:'C',color:'#aeb8c4'},oxygen:{glyph:'O',color:'#8dbcf4'},nitrogen:{glyph:'N',color:'#a8a8ff'}});
+const availableLaunchRegionIds=progress=>{const ids=[...(progress?.regions??[])].filter(isExpeditionRegionDestination);if(progress?.choCompleted===true&&!ids.includes(NITROGEN_REGION_ID))ids.push(NITROGEN_REGION_ID);return ids;};
+
+export function launchDestinationLayout(ids,radius=66){
+  const visible=ids.filter(id=>REGIONS[id]&&isExpeditionRegionDestination(id)).slice(0,5),count=visible.length;
+  return visible.map((id,index)=>{const angle=-Math.PI/2+(count===1?0:index*Math.PI*2/count);return {id,x:Math.cos(angle)*radius,y:Math.sin(angle)*radius};});
+}
+
+export function tankMeterSegments(use,moleculeId){
+  if(use==='shock')return performanceFor(moleculeId,'shock')?.capacity??0;if(use!=='propellant')return 0;const performance=performanceFor(moleculeId,'propellant');return performance?.moleculesPerBurst?Math.floor(performance.capacity/performance.moleculesPerBurst):0;
+}
+
+export function loadoutCandidateCards(list,{loadoutId=null,loadedId=null}={}){
+  return list.map(record=>({record,selected:record.id===loadoutId,loaded:record.id===loadedId}));
+}
+
+export function launchShortageItems(plan){
+  return Object.entries(plan?.missing??{}).map(([element,row])=>({element,have:Math.max(0,row?.have??0),need:Math.max(0,row?.need??0)})).filter(item=>item.have<item.need);
+}
+
+export function launchFillRows(plan){
+  const actualByUse=new Map((plan?.partial?.entries??[]).map(entry=>[entry.use,entry]));
+  return (plan?.full?.entries??[]).filter(entry=>entry.molecule).map(requested=>{const actual=actualByUse.get(requested.use);return {use:requested.use,molecule:requested.molecule,actual:actual?.target??0,requested:requested.target??requested.capacity??0};});
+}
+
+export function launchConfirmationState(plan){
+  const rows=launchFillRows(plan),shortages=launchShortageItems(plan);
+  return {rows,shortages,zeroFill:rows.length>0&&rows.every(row=>row.actual===0)};
+}
+
+export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaunch=()=>false,onLaunchReady=()=>false}){
+  const q=id=>document.getElementById(id),dialog=q('supply-dialog'),shellCanvas=q('collector-shell-preview'),shellMap=shellCanvas.parentElement,access=q('open-supply');
+  const applicationsUI=createCollectorApplicationsUI(resources,dialog);
+  const partialPanel=document.createElement('div'),partialRows=document.createElement('div'),partialActions=document.createElement('div'),partialGo=document.createElement('button'),partialBack=document.createElement('button');partialPanel.id='partial-fill-confirm';partialPanel.hidden=true;Object.assign(partialPanel.style,{position:'absolute',inset:'auto 10px 10px 10px',zIndex:'9',padding:'12px',maxHeight:'calc(100% - 20px)',overflow:'auto',border:'1px solid #678494',borderRadius:'14px',background:'#071925f2',boxShadow:'0 10px 30px #0008'});Object.assign(partialRows.style,{display:'grid',gap:'8px',marginBottom:'10px'});Object.assign(partialActions.style,{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'flex-end'});partialGo.type='button';partialGo.className='primary';partialGo.textContent='出発';partialBack.type='button';partialBack.textContent='戻る';partialActions.append(partialBack,partialGo);partialPanel.append(partialRows,partialActions);q('supply-dialog').querySelector('.sheet-body').append(partialPanel);
+  let selectedUse='propellant',selectedId=null,destinationsKey='',announcement='',viewer=null,viewerKey='',viewerGeneration=0,launchPointer=null,launchStart=null,launchDragged=0,launchTapStartedOpen=false,launchActive=null,launchOpen=false,launchItems=[],launchBusy=false,requestedDestinationId=null;
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
+  const formula=record=>MOLECULE_USES[record?.id]?.formula??record?.formula??'';
+  const name=record=>record?.commonNameJa??record?.nameJa??record?.name??MOLECULE_USES[record?.id]?.name??'';
+  const formulaId=id=>id?(formula(resources.record(id)??{id})||id):'∅';
+  const candidates=use=>resources.tankCatalog(use);
+  const tankRecord=use=>{const id=resources.state.tanks[use]?.molecule;return id?resources.record(id):null;};
+  function styleTankMeter(track,use,moleculeId){
+    const fill=track?.firstElementChild;if(!track||!fill)return;const segments=tankMeterSegments(use,moleculeId);
+    track.dataset.segments=String(segments);track.style.backgroundRepeat='repeat-x';fill.style.webkitMaskRepeat='repeat-x';fill.style.maskRepeat='repeat-x';
+    if(segments>1){const cell=`calc(100% / ${segments}) 100%`,gap=segments>=9?'1px':'2px',pattern=`linear-gradient(90deg,#304553 0 calc(100% - ${gap}),#152734 calc(100% - ${gap}) 100%)`,mask=`linear-gradient(90deg,#000 0 calc(100% - ${gap}),transparent calc(100% - ${gap}) 100%)`;track.style.background=pattern;track.style.backgroundSize=cell;fill.style.webkitMaskImage=mask;fill.style.webkitMaskSize=cell;fill.style.maskImage=mask;fill.style.maskSize=cell;return;}
+    track.style.background='#304553';track.style.backgroundSize='auto';fill.style.webkitMaskImage='none';fill.style.webkitMaskSize='auto';fill.style.maskImage='none';fill.style.maskSize='auto';
+  }
+  function setTankMeterLevel(track,ratio){
+    const fill=track?.firstElementChild;if(!track||!fill)return;const value=Math.max(0,Math.min(1,ratio||0)),segments=Number(track.dataset.segments)||0;
+    if(segments>1){fill.style.transform='none';fill.style.clipPath=`inset(0 ${(1-value)*100}% 0 0)`;fill.style.transition='clip-path .2s linear';return;}
+    fill.style.clipPath='none';fill.style.transition='transform .2s linear';fill.style.transform=`scaleX(${value})`;
+  }
+  const combustionLink=document.querySelector('#veil-combustion .combustion-link');if(combustionLink)combustionLink.textContent='🔥';
+  styleTankMeter(q('veil-coolant-level'),'coolant',null);
+
+  const accessCanvas=document.createElement('canvas');accessCanvas.id='collector-access-preview';accessCanvas.setAttribute('aria-hidden','true');Object.assign(accessCanvas.style,{display:'block',width:'42px',height:'34px',pointerEvents:'none'});access.append(accessCanvas);access.setAttribute('aria-label','探索機を開く');Object.assign(access.style,{minWidth:'50px',padding:'3px 5px',justifyContent:'center'});
+  function drawAccessIcon(){
+    const rect=accessCanvas.getBoundingClientRect(),ratio=Math.min(globalThis.devicePixelRatio??1,2),width=Math.max(1,Math.round(rect.width*ratio)),height=Math.max(1,Math.round(rect.height*ratio));if(accessCanvas.width!==width||accessCanvas.height!==height){accessCanvas.width=width;accessCanvas.height=height;}const ctx=accessCanvas.getContext('2d');if(!ctx)return;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,rect.width,rect.height);drawCollectorShell(ctx,{x:rect.width/2,y:rect.height/2,angle:-Math.PI/2,scale:Math.min(rect.width/42,rect.height/34)});
+  }
+  const launchLayer=document.createElement('div');launchLayer.id='expedition-destinations';launchLayer.setAttribute('aria-hidden','true');Object.assign(launchLayer.style,{position:'absolute',inset:'0',zIndex:'3',pointerEvents:'none'});shellMap.append(launchLayer);
+  const launchHandle=document.createElement('button');launchHandle.type='button';launchHandle.id='collector-launch-handle';launchHandle.setAttribute('aria-label','探索機をドラッグして出発地点を選ぶ');launchHandle.setAttribute('aria-expanded','false');launchHandle.setAttribute('aria-controls','expedition-destinations');Object.assign(launchHandle.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'80px',height:'80px',transform:'translate(-50%,-50%)',zIndex:'9',padding:'0',border:'0',borderRadius:'50%',background:'transparent',boxShadow:'none',touchAction:'none',cursor:'grab'});shellMap.append(launchHandle);
+  Object.assign(shellCanvas.style,{zIndex:'1',pointerEvents:'none',transformOrigin:'center',transition:'transform .16s ease, opacity .16s ease'});
+  const drawFlightCraftPreview=()=>drawCollectorShellPreview(shellCanvas,shellMap._loadoutFlightCraftPreview??{});
+  const setCraftTranslation=(x=0,y=0)=>{setLoadoutFlightCraftTranslation(shellMap,x,y);};
+  function decorateDestination(button,cue){
+    const glyph=document.createElement('span');glyph.textContent=cue.glyph;Object.assign(glyph.style,{position:'relative',zIndex:'2',fontSize:'13px',fontWeight:'750',color:cue.color,textShadow:`0 0 8px ${cue.color}`});button.append(glyph);
+    for(const [left,top,size,alpha] of [[7,10,4,.85],[31,8,3,.65],[34,29,4,.75],[9,31,3,.55]]){const dot=document.createElement('b');Object.assign(dot.style,{position:'absolute',left:`${left}px`,top:`${top}px`,width:`${size}px`,height:`${size}px`,borderRadius:'50%',background:cue.color,opacity:String(alpha),boxShadow:`0 0 7px ${cue.color}`});button.append(dot);}
+  }
+  function destinationTransform(item,scale=1){return `translate(-50%,-50%) translate(${item.x}px,${item.y}px) scale(${scale})`;}
+  function showLaunchDestinations(show){
+    launchOpen=show;launchHandle.setAttribute('aria-expanded',String(show));shellMap.classList.toggle('launch-selecting',show);launchLayer.setAttribute('aria-hidden',String(!show));for(const item of launchItems){item.node.style.opacity=show?'1':'0';item.node.style.pointerEvents=show?'auto':'none';item.node.tabIndex=show?0:-1;item.node.style.transform=destinationTransform(item,show?(item===launchActive?1.16:1):.55);item.node.style.boxShadow=item===launchActive?`0 0 25px ${item.color},inset 0 0 12px ${item.color}55`:item.checkpoint?`0 0 14px ${item.color}77`:`0 0 10px ${item.color}44`;}
+    for(const use of USE_ORDER)q(`shell-${use}`).style.opacity=show?'.34':'1';for(const path of shellMap.querySelectorAll('.loadout-slot-path'))path.style.pointerEvents=show?'none':'visibleFill';if(!show)launchActive=null;
+  }
+  function resetLaunchPosition(){shellCanvas.style.transition=reduced?'none':'transform .16s ease, opacity .16s ease';setCraftTranslation(0,0);shellCanvas.style.opacity='1';launchHandle.style.cursor='grab';}
+  function resetLaunchGesture({keepDestinations=false}={}){
+    const pointer=launchPointer;launchPointer=null;launchStart=null;launchDragged=0;launchTapStartedOpen=false;
+    try{if(pointer!==null)launchHandle.releasePointerCapture(pointer);}catch{}
+    if(!keepDestinations)showLaunchDestinations(false);if(!keepDestinations)resetLaunchPosition();else launchHandle.style.cursor='grab';
+  }
+  function renderLaunchDestinations(){
+    launchLayer.replaceChildren();
+    const checkpoint=resources.state.progress.checkpoint,destinationIds=availableLaunchRegionIds(resources.state.progress);launchItems=launchDestinationLayout(destinationIds).map(point=>{const region=REGIONS[point.id],cue=REGION_CUES[point.id]??{glyph:region.element??'·',color:'#9ad8e5'},button=document.createElement('button'),item={...point,node:button,color:cue.color,checkpoint:point.id===checkpoint};button.type='button';button.dataset.region=point.id;button.dataset.checkpoint=String(item.checkpoint);button.setAttribute('aria-label',`${region.name}へ出発`);Object.assign(button.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'46px',height:'46px',minWidth:'46px',minHeight:'46px',padding:'0',overflow:'hidden',borderRadius:'50%',border:`1px solid ${cue.color}99`,background:`radial-gradient(circle at 50% 50%,${cue.color}22 0 30%,#0b2231ee 31% 64%,#07141f 65%)`,opacity:'0',pointerEvents:'none',transform:destinationTransform(item,.55),transition:reduced?'none':'opacity .14s ease, transform .14s ease, box-shadow .14s ease',touchAction:'none'});decorateDestination(button,cue);button.addEventListener('click',event=>{event.stopPropagation();requestDestinationLaunch(point.id);});launchLayer.append(button);return item;});
+    if(launchOpen)showLaunchDestinations(true);
+  }
+  function setLaunchActive(next){if(launchActive===next)return;launchActive=next;if(launchOpen)showLaunchDestinations(true);}
+  function requestDestinationLaunch(id){
+    resetLaunchGesture();if(!canOpen()||resources.blocked)return false;const target=launchItems.find(item=>item.id===id);if(!target)return false;resetLaunchGesture({keepDestinations:true});setLaunchActive(target);showLaunchDestinations(true);shellCanvas.style.transition=reduced?'none':'transform .12s ease';setCraftTranslation(target.x,target.y);return onRequestLaunch(id)!==false;
+  }
+  function moveLaunch(event){
+    if(event.pointerId!==launchPointer||!launchStart)return;const rawX=event.clientX-launchStart.x,rawY=event.clientY-launchStart.y,len=Math.hypot(rawX,rawY),limit=84,factor=len>limit?limit/len:1,dx=rawX*factor,dy=rawY*factor;launchDragged=Math.max(launchDragged,len);let nearest=null,best=Infinity;for(const item of launchItems){const distance=Math.hypot(rawX-item.x,rawY-item.y);if(distance<best)best=distance,nearest=item;}if(best>44)nearest=null;setLaunchActive(nearest);const x=nearest?.x??dx,y=nearest?.y??dy;setCraftTranslation(x,y);
+  }
+  function beginLaunch(event){
+    if(launchPointer!==null||launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen()||event.button!==undefined&&event.button!==0)return;event.preventDefault();launchTapStartedOpen=launchOpen;launchPointer=event.pointerId;launchStart={x:event.clientX,y:event.clientY};launchDragged=0;showLaunchDestinations(true);shellCanvas.style.transition='none';launchHandle.style.cursor='grabbing';try{launchHandle.setPointerCapture(launchPointer);}catch{}moveLaunch(event);
+  }
+  function endLaunch(event,cancel=false){
+    if(event.pointerId!==launchPointer)return;const id=launchActive?.id??null,wasTap=launchDragged<8,wasOpen=launchTapStartedOpen;resetLaunchGesture({keepDestinations:!cancel&&!id&&wasTap&&!wasOpen});if(cancel)return;if(wasTap&&wasOpen&&!id)return;if(id)requestDestinationLaunch(id);
+  }
+  launchHandle.addEventListener('pointerdown',beginLaunch);launchHandle.addEventListener('pointermove',moveLaunch);launchHandle.addEventListener('pointerup',event=>endLaunch(event));launchHandle.addEventListener('pointercancel',event=>endLaunch(event,true));launchHandle.addEventListener('lostpointercapture',event=>{if(event.pointerId===launchPointer)endLaunch(event,true);});launchHandle.addEventListener('keydown',event=>{if(event.key==='Escape'){if(!launchBusy&&requestedDestinationId===null)resetLaunchGesture();return;}if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();if(launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen())return;showLaunchDestinations(!launchOpen);if(launchOpen)(launchItems.find(item=>item.checkpoint)??launchItems[0])?.node.focus();});
+
+  function releaseViewer(){viewerGeneration++;viewer?.dispose();viewer=null;viewerKey='';q('tank-model-host')?.replaceChildren();}
+  function startCraft(){if(!selectedId)return;dialog.close();window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:selectedId}}));}
+  function mountViewer(record){
+    const host=q('tank-model-host'),key=record?.id??'';if(!dialog.open||!record||viewerKey===key)return;
+    releaseViewer();viewerKey=key;const generation=viewerGeneration,status=document.createElement('p');status.className='model-status';status.textContent='模型を準備しています…';host.append(status);
+    import('../collection-viewer.js?v=39').then(({createCollectionViewer})=>{
+      if(generation!==viewerGeneration||!dialog.open||viewerKey!==key||!host.isConnected)return;
+      host.replaceChildren();viewer=createCollectionViewer({host,record,name:name(record),showGestureHint:false});
+    }).catch(()=>{if(generation===viewerGeneration){host.replaceChildren();const failed=document.createElement('p');failed.className='model-status';failed.textContent='模型を表示できません';host.append(failed);}});
+  }
+  function renderComparison(record){
+    const host=q('tank-comparison');if(!record){host.replaceChildren();host.hidden=true;return;}
+    const tank=resources.state.tanks[selectedUse],plan=resources.launchFillPlan(),preview=plan.status==='FULL'?plan.full:plan.partial,entry=preview.entries.find(item=>item.use===selectedUse&&item.molecule===record.id),loadout=resources.selectedLoadout(),oxygenEntry=preview.entries.find(item=>item.use==='oxidizer'),candidateAmount=entry?.target??resources.tankFillPlan(selectedUse,record.id)?.target??null,oxygenAmount=oxygenEntry?.target??resources.state.tanks.oxidizer.amount??0,coolantId=selectedUse==='coolant'?record.id:(loadout.coolant??resources.state.tanks.coolant.molecule);
+    renderLoadoutPreview(host,{use:selectedUse,candidateId:record.id,currentId:tank.molecule,currentAmount:tank.amount,candidateAmount,oxygenAmount,currentOxygenAmount:resources.state.tanks.oxidizer.amount??0,coolantId,reduced});
+  }
+  function thumbnail(button,record){
+    const img=document.createElement('img');img.src=new URL(`../../assets/models/molecule-${record.id}.svg`,import.meta.url).href;img.alt='';img.width=76;img.height=56;img.loading='lazy';img.decoding='async';img.addEventListener('error',()=>img.remove(),{once:true});button.append(img);
+  }
+  function renderCandidates(list,loadedId){
+    const tabs=q('tank-molecules'),left=tabs.scrollLeft,loadoutId=resources.selectedLoadout()[selectedUse];tabs.replaceChildren();
+    const emptyButton=document.createElement('button'),emptyLabels=document.createElement('span'),emptyState=document.createElement('small');emptyButton.type='button';emptyButton.dataset.moleculeId='';emptyButton.dataset.loaded=String(!loadedId);emptyButton.setAttribute('aria-pressed',String(loadoutId===null));Object.assign(emptyLabels,{textContent:'∅'});emptyState.textContent=loadoutId===null?'選択中':'';emptyButton.append(emptyLabels,emptyState);emptyButton.addEventListener('click',()=>{if(resources.setLoadoutTank(selectedUse,null)){selectedId=null;update();}});tabs.append(emptyButton);
+    for(const {record,selected,loaded} of loadoutCandidateCards(list,{loadoutId,loadedId})){const button=document.createElement('button'),labels=document.createElement('span'),state=document.createElement('small');button.type='button';button.dataset.moleculeId=record.id;button.dataset.loaded=String(loaded);button.setAttribute('aria-pressed',String(selected));thumbnail(button,record);labels.append(Object.assign(document.createElement('strong'),{textContent:formula(record)}),Object.assign(document.createElement('small'),{textContent:name(record)}));state.textContent=selected?'選択中':loaded?'残量あり':'';button.append(labels,state);button.addEventListener('click',()=>{if(resources.setLoadoutTank(selectedUse,record.id)){selectedId=record.id;update();}});tabs.append(button);}
+    tabs.scrollLeft=left;
+  }
+  function renderTankDetail(){
+    const loadedId=resources.state.tanks[selectedUse]?.molecule,loadoutId=resources.selectedLoadout()[selectedUse],list=candidates(selectedUse);if(selectedId!==null&&!list.some(record=>record.id===selectedId))selectedId=null;if(selectedId===null&&loadoutId&&list.some(record=>record.id===loadoutId))selectedId=loadoutId;
+    q('tank-detail').hidden=false;q('tank-detail-title').textContent=TANK_USES[selectedUse].label;renderCandidates(list,loadedId);
+    const empty=q('tank-empty'),model=q('tank-model'),decision=q('tank-craft-molecule');empty.hidden=!!list.length;model.hidden=!selectedId;decision.hidden=true;
+    if(!list.length){empty.textContent='発見済み分子なし';q('tank-comparison').hidden=true;releaseViewer();}
+    const record=resources.record(selectedId);if(record){q('tank-model-name').textContent=`${formula(record)} · ${name(record)}`;mountViewer(record);renderComparison(record);}else{releaseViewer();q('tank-comparison').replaceChildren();q('tank-comparison').hidden=true;}
+    const loaded=tankRecord(selectedUse),tank=resources.state.tanks[selectedUse],loadedStatus=resources.tankStatus(selectedUse),loadTrack=q('tank-load-meter').parentElement;q('tank-load').textContent=loaded?`${formula(loaded)} ${tank.amount}${selectedUse==='oxidizer'?` / ${loadedStatus.loadedCapacity}`:''}`:'∅';styleTankMeter(loadTrack,selectedUse,tank.molecule);loadTrack.setAttribute('role','meter');loadTrack.setAttribute('aria-label',`${TANK_USES[selectedUse].label}の現在残量`);loadTrack.setAttribute('aria-valuemin','0');loadTrack.setAttribute('aria-valuemax',String(loadedStatus.loadedCapacity||1));loadTrack.setAttribute('aria-valuenow',String(tank.amount));setTankMeterLevel(loadTrack,loadedStatus.loadedCapacity?tank.amount/loadedStatus.loadedCapacity:0);
+
+  }
+  function renderLaunchPlan(){return resources.launchFillPlan();}
+  function requestLaunch(destinationId){
+    if(!isExpeditionDestinationAvailable(resources.state,destinationId)||launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen())return false;
+    requestedDestinationId=destinationId;const plan=renderLaunchPlan();
+    if(plan.status==='IMPOSSIBLE'){requestedDestinationId=null;partialPanel.hidden=true;return false;}
+    if(plan.status==='PARTIAL'){showPartialConfirm(plan);return true;}
+    void commitAndContinue(false);return true;
+  }
+  function renderShell(){
+    const plan=resources.launchFillPlan(),preview=plan.status==='FULL'?plan.full:plan.partial,selected=resources.selectedLoadout();for(const use of USE_ORDER){const button=q(`shell-${use}`),id=selected[use],record=id?resources.record(id):null,entry=preview.entries.find(item=>item.use===use),presentation=TANK_PRESENTATION[use],capacity=entry?.capacity??0,amount=entry?.target??0;button.style.setProperty('--tank-color',presentation.color);button.querySelector('i').textContent=presentation.icon;button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?formula(record):'∅';let track=button.querySelector('.tank-scale');if(!track){track=document.createElement('span');track.className='tank-scale';track.append(document.createElement('b'));button.append(track);}styleTankMeter(track,use,id);track.setAttribute('role','meter');track.setAttribute('aria-label',`${TANK_USES[use].label}の出発時プレビュー`);track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax',String(capacity||1));track.setAttribute('aria-valuenow',String(amount));setTankMeterLevel(track,capacity?amount/capacity:0);}
+    syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();drawAccessIcon();
+  }
+  function update(){
+    applicationsUI.update();
+    const state=resources.state,destinations=availableLaunchRegionIds(state.progress);syncElementStocks(document,state.elements);syncLoadoutElementStock(resources,document);
+    renderShell();renderTankDetail();q('supply-announcement').textContent=announcement;q('supply-announcement').hidden=!announcement;
+    q('oxygen-route-guide').hidden=!state.progress.foundElements.includes('O');
+
+    const destinationKey=`${destinations.join('|')}|${state.progress.checkpoint}`;if(destinationKey!==destinationsKey){destinationsKey=destinationKey;renderLaunchDestinations();}
+  }
+  function openMolecule(id,use=null){
+    const roles=resources.tankUses(id);if(!canOpen()||!resources.state.recipes.includes(id)||!roles.length)return false;
+    selectedUse=roles.includes(use)?use:roles[0];selectedId=id;announcement='';dialog.showModal();update();return true;
+  }
+  function renderRouteGuide(){
+    const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 320 175');svg.setAttribute('role','img');svg.setAttribute('aria-label','出発点から強流の近道、連続する支流、持続流の本道が分岐し、Oの集積へ合流');
+    const point=([x,y])=>[30+(x+450)/1300*260,18+(-y-8700)/2020*140];
+    for(const route of OXYGEN_ROUTES){const line=document.createElementNS(ns,'polyline');line.setAttribute('points',route.knots.map(k=>point(k).join(',')).join(' '));line.setAttribute('fill','none');line.setAttribute('stroke',route.color);line.setAttribute('stroke-width','3');svg.append(line);
+      const note=document.createElement('p');note.textContent=`${route.label}：${route.summary}`;note.style.borderColor=route.color;q('oxygen-route-notes').append(note);
+      for(const gate of route.gates){const [x,y]=point([route.x,gate.y]),mark=document.createElementNS(ns,'path');mark.setAttribute('d',`M${x-8} ${y-3}l8 6 8-6`);mark.setAttribute('fill','none');mark.setAttribute('stroke',route.color);mark.setAttribute('stroke-width','3');svg.append(mark);}
+      for(const stop of route.restStops??[]){const [x,y]=point([route.x,stop.y]),mark=document.createElementNS(ns,'circle');mark.setAttribute('cx',String(x));mark.setAttribute('cy',String(y));mark.setAttribute('r','6');mark.setAttribute('fill','#6ab2cb');svg.append(mark);}
+      const [x]=point([route.x,-9000]),label=document.createElementNS(ns,'text');label.setAttribute('x',String(x));label.setAttribute('y','12');label.setAttribute('text-anchor',route.id==='oxygen-side'?'end':'middle');label.setAttribute('fill',route.color);label.textContent=route.label;svg.append(label);
+    }
+    for(const p of [OXYGEN_JUNCTION,OXYGEN_REWARD]){const [x,y]=point([p.x,p.y]),circle=document.createElementNS(ns,'circle');circle.setAttribute('cx',String(x));circle.setAttribute('cy',String(y));circle.setAttribute('r','5');circle.setAttribute('fill','#e4f5e9');svg.append(circle);}
+    const destination=document.createElementNS(ns,'text');destination.setAttribute('x',String(point([OXYGEN_REWARD.x,OXYGEN_REWARD.y])[0]));destination.setAttribute('y','173');destination.setAttribute('text-anchor','middle');destination.setAttribute('fill','#e4f5e9');destination.textContent='Oの集積';svg.append(destination);
+    q('oxygen-route-chart').append(svg);
+  }
+  function commitFill(){return false;}
+  function showPartialConfirm(plan){
+    const confirmation=launchConfirmationState(plan);partialRows.replaceChildren();partialPanel.dataset.fillState=confirmation.zeroFill?'ZERO':'PARTIAL';partialGo.textContent='出発';
+    for(const item of confirmation.rows){const row=document.createElement('div'),head=document.createElement('div'),identity=document.createElement('strong'),amount=document.createElement('span'),track=document.createElement('i'),fill=document.createElement('b'),record=resources.record(item.molecule);row.dataset.molecule=item.molecule;row.dataset.actual=String(item.actual);row.dataset.requested=String(item.requested);Object.assign(row.style,{display:'grid',gap:'5px',minWidth:'0'});Object.assign(head.style,{display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',alignItems:'baseline',gap:'10px'});identity.textContent=[formulaId(item.molecule),name(record)].filter(Boolean).join(' · ');Object.assign(identity.style,{minWidth:'0',overflowWrap:'anywhere'});amount.textContent=`${item.actual} / ${item.requested}`;amount.setAttribute('aria-label',`搭載可能量 ${item.actual} / 希望量 ${item.requested}`);Object.assign(amount.style,{fontVariantNumeric:'tabular-nums',whiteSpace:'nowrap',fontWeight:'800'});head.append(identity,amount);Object.assign(track.style,{display:'block',height:'5px',borderRadius:'4px',background:'#304553',overflow:'hidden'});Object.assign(fill.style,{display:'block',height:'100%',transformOrigin:'left',transform:`scaleX(${item.requested?item.actual/item.requested:0})`,background:'#9ad8e5'});track.append(fill);row.append(head,track);partialRows.append(row);}
+    if(confirmation.shortages.length){const shortages=document.createElement('div');shortages.dataset.launchShortage='true';Object.assign(shortages.style,{display:'flex',gap:'7px',flexWrap:'wrap',margin:'2px 0 0'});for(const item of confirmation.shortages){const chip=document.createElement('span'),element=document.createElement('strong'),amount=document.createElement('b'),track=document.createElement('i'),fill=document.createElement('em');chip.dataset.element=item.element;Object.assign(chip.style,{display:'grid',gridTemplateColumns:'auto auto',alignItems:'center',gap:'6px',padding:'5px 7px',border:'1px solid #b97856',borderRadius:'9px',background:'#1d1817',fontVariantNumeric:'tabular-nums'});element.textContent=item.element;amount.textContent=`${item.have} / ${item.need}`;Object.assign(amount.style,{fontSize:'12px',fontWeight:'800'});Object.assign(track.style,{gridColumn:'1 / -1',display:'block',height:'3px',borderRadius:'3px',background:'#4b3026',overflow:'hidden'});Object.assign(fill.style,{display:'block',height:'100%',transformOrigin:'left',transform:`scaleX(${item.need?Math.min(1,item.have/item.need):0})`,background:'#d9956f'});track.append(fill);chip.append(element,amount,track);shortages.append(chip);}partialRows.append(shortages);}
+    partialPanel.hidden=false;queueMicrotask(()=>{partialPanel.scrollIntoView?.({block:'nearest',behavior:reduced?'auto':'smooth'});partialGo.focus?.({preventScroll:true});});
+  }
+  async function playSynthesis(supply){
+    syncElementStocks(document,resources.state.elements);syncLoadoutElementStock(resources,document);
+    return animateLoadoutElementTransfer({cost:supply?.plan?.cost??{},root:document,reduced});
+  }
+  async function commitAndContinue(partial){
+    const destinationId=requestedDestinationId;if(!destinationId||launchBusy||resources.blocked||!canOpen())return false;
+    launchBusy=true;dialog.dataset.preserveShellClose='true';
+    try{
+      const preview=renderLaunchPlan();
+      if(preview.status==='IMPOSSIBLE'||preview.status==='PARTIAL'&&!partial){requestedDestinationId=null;update();return false;}
+      let outcome;
+      try{
+        outcome=await onLaunchReady(destinationId,{partial,presentSupply:async supply=>{
+          try{await playSynthesis(supply);}finally{delete dialog.dataset.preserveShellClose;if(dialog.open)dialog.close();}
+        }});
+      }catch(error){console.error('Expedition launch transaction failed unexpectedly.',error);outcome={status:'failed',reason:'unexpected',error};}
+      if(outcome===true||outcome?.status==='success'){requestedDestinationId=null;if(dialog.open)dialog.close();return true;}
+      requestedDestinationId=null;
+      if(!resources.blocked&&canOpen()&&!dialog.open)dialog.showModal();
+      update();
+      return false;
+    }finally{
+      delete dialog.dataset.preserveShellClose;launchBusy=false;
+    }
+  }
+
+  q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';requestedDestinationId=null;partialPanel.hidden=true;dialog.showModal();update();resetLaunchGesture();});
+  for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{resetLaunchGesture();selectedUse=use;selectedId=null;update();});
+  partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;if(!launchBusy)requestedDestinationId=null;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
+  q('tank-craft-molecule').addEventListener('click',startCraft);
+  if(globalThis.ResizeObserver){new ResizeObserver(()=>{drawAccessIcon();if(dialog.open){syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();}}).observe(accessCanvas);new ResizeObserver(()=>{if(dialog.open){syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();}}).observe(shellCanvas);}
+  drawAccessIcon();renderRouteGuide();update();
+  return {update,requestLaunch,openMolecule,discovered(id){const uses=resources.tankUses(id);if(uses.length){selectedUse=uses[0];selectedId=id;}},clearAnnouncement(){announcement='';},usesFor:id=>resources.tankUses(id),tankStatus:(use,id)=>resources.tankStatus(use,id),fillPlan:(use,id)=>resources.tankFillPlan(use,id),commitFill,get open(){return dialog.open;},get launchPending(){return launchBusy||requestedDestinationId!==null;}};
+}
