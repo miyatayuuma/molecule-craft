@@ -309,6 +309,9 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .rb-reaction-thumb svg{display:block;width:100%;height:76px;min-width:0}
 .rb-reaction-assets{display:grid;grid-template-columns:minmax(0,1fr) 15px minmax(0,1fr);gap:3px;align-items:center;width:100%;min-width:0}
 .rb-reaction-assets img{display:block;width:100%;height:65px;object-fit:contain;min-width:0;background:transparent}
+.rb-reaction-side{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;min-width:0;gap:2px}
+.rb-reaction-side img{width:65px;max-width:100%;flex:0 1 65px}
+.rb-plus{color:#f4ce7c;font-size:16px}
 .rb-reaction-assets .rb-arrow{color:#f4ce7c;text-align:center;font-size:16px}
 .rb-thumb-legend .rb-thumb-note{color:#b6ddf4}
 .rb-thumb-condition{color:#f0cb83;font-size:11px}

@@ -1,4 +1,4 @@
-import {createReactionGroupPreview,createReactionThumbnailFromEntry,createReactionDetailModels} from './reaction-book-visual.js';
+import {createReactionGroupPreview,createReactionThumbnailFromEntry,reactionThumbnailModel,REACTION_THUMBNAIL_SPECS} from './reaction-book-visual.js';
 // The registry owns reaction definitions; this module only groups and presents them.
 const LABELS={oxidation:'酸化',combustion:'燃焼',esterification:'エステル化',halogenation:'ハロゲン化',condensation:'縮合',polymerization:'重合',hydrolysis:'加水分解',addition:'付加',hydration:'水和',substitution:'置換','ring-opening':'開環',cycloaddition:'環化',dehydration:'脱水',other:'その他'};
 const CONDITION={acidic:'酸性',basic:'塩基性',heat:'加熱',light:'光'};
@@ -41,7 +41,9 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
       const conditionText=[...(conditions??[]).map(x=>CONDITION[x]??x),...(forbidden??[]).map(x=>`${CONDITION[x]??x}は不可`)].join('、')||'特別な条件なし';
       function showDetail(){
         host.replaceChildren(button('‹ '+group.label+'に戻る',()=>showGroup(group)),make('h3',outputs.join(' + ')),make('p',equation));
-        const models=createReactionDetailModels(item,visualContext);if(models)host.append(models);
+        const model=reactionThumbnailModel(item,visualContext), formula=REACTION_THUMBNAIL_SPECS[item.reactionId];
+        if(model)host.append(make('p',model.feature));
+        if(formula)host.append(make('p',`${formula.before} → ${formula.after}`));
         host.append(make('p',`LABの条件：${conditionText}`));
         if(item.state==='hinted')host.append(make('p','手掛かりを獲得しました。まだLABで実証していません。反応を確かめるにはLABで実験してください。'));
         else host.append(make('p','LABで実証した反応です。模型は生成物の構造を示し、反応の途中を再現した映像ではありません。'));
@@ -59,7 +61,7 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
       const thumb=createReactionThumbnailFromEntry(item,visualContext);
       if(thumb){
         block.prepend(thumb);
-        const inspect=button('構造と変化をみる',showDetail);
+        const inspect=button('反応のしくみ',showDetail);
         inspect.className='reaction-book-inspect';
         block.append(inspect);
       }

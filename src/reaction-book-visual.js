@@ -156,14 +156,9 @@ export function createReactionThumbnailFromEntry(entry,context={}){
     img.loading='lazy';img.decoding='async';img.draggable=false;return img;
   };
   const arrow=document.createElement('span');arrow.className='rb-arrow';arrow.textContent='→';
-  images.append(asset(spec.inputs[0]),arrow,asset(spec.outputs[0]));
-  const legend=document.createElement('span');legend.className='rb-thumb-legend';
-  const before=document.createElement('span');before.textContent='前：'+spec.before;
-  const after=document.createElement('span');after.textContent='後：'+spec.after;
-  const feature=document.createElement('span');feature.className='rb-thumb-note';feature.textContent=spec.feature;
-  const conditions=entry.kind==='normal'?entry.definition.requires:entry.definition.environment?.requires;
-  if(conditions?.length){const environment=document.createElement('span');environment.className='rb-thumb-condition';environment.textContent='条件：'+conditions.join('・');legend.append(environment);}
-  legend.append(before,after,feature);box.append(images,legend);
+  const side=list=>{const group=document.createElement('span');group.className='rb-reaction-side';list.forEach((item,index)=>{if(index){const plus=document.createElement('span');plus.className='rb-plus';plus.textContent='＋';group.append(plus);}group.append(asset(item));});return group;};
+  images.append(side(spec.inputs),arrow,side(spec.outputs));
+  box.append(images);
   return box;
 }
 
