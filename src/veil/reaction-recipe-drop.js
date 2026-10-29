@@ -1,8 +1,8 @@
 import {compileReactionGuide} from '../reaction-lab-guidance.js?v=1';
 export const REACTION_RECIPE_FIELD_CONFIG=Object.freeze({discoveryRate:.30,spawnChance:.15,fieldCap:1,readyWeight:2,minDistance:100,maxDistance:240,pickupRadius:32});
 export function recipeCandidatePool({authority,progress,records,collection,config=REACTION_RECIPE_FIELD_CONFIG}){
-  if(!authority||!progress||!collection||collection.discoveredCount<Math.ceil(records.length*config.discoveryRate))return [];
-  return authority.entries().filter(e=>e.encyclopediaIncluded&&progress.getState(e.reactionId)==='notFound').map(entry=>({entry,guide:compileReactionGuide(entry,records)})).filter(x=>x.guide.ok).map(x=>({...x,weight:x.guide.species.every(id=>collection.hasMolecule(id))?config.readyWeight:1}));
+  if(!authority||!progress||!collection)return [];
+  return authority.entries().filter(e=>e.encyclopediaIncluded&&progress.getState(e.reactionId)==='notFound').map(entry=>({entry,guide:compileReactionGuide(entry,records)})).filter(x=>x.guide.ok&&x.guide.species.every(id=>collection.hasMolecule(id))).map(x=>({...x,weight:config.readyWeight}));
 }
 export function chooseFieldRecipe({authority,progress,records,collection,runId,dust,player,random,config=REACTION_RECIPE_FIELD_CONFIG}){
   if(progress?.fieldRecipeCount(runId,'field')>=config.fieldCap)return null;
