@@ -41,7 +41,7 @@ try{
   await evaluate(`document.querySelector('#close-collection').click()`);
   await evaluate(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/実証 0 \/ 54/);
-  assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),4);
+  assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),14);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list canvas').length`),0);
   assert.equal(await evaluate(`[...document.querySelectorAll('#collection-list .reaction-book-group')].every(button=>button.getBoundingClientRect().height>=44)`),true);
   await send('Emulation.setEmulatedMedia',{media:'screen',features:[{name:'prefers-reduced-motion',value:'reduce'}]});
@@ -73,6 +73,7 @@ try{
     document.querySelector('[data-book-tab="reactions"]').click();
   })()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/実証 5 \/ 54/);
+  assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-preview-group]').length`),14);
   const previews=[['加水分解','normal:complete-01-anhydride-hydrolysis'],['付加','normal:complete-06-ethene-halogenation'],['環化','normal:complete-21-cyclobutane-dimerization'],['重合','polymer:polyethylene-coordination']];
   for(const [label,id] of previews){
     await evaluate(`[...document.querySelectorAll('#collection-list button')].find(button=>button.textContent.startsWith(${JSON.stringify(label)})).click()`);
@@ -84,6 +85,29 @@ try{
     }
     await evaluate(`document.querySelector('#collection-list button').click()`);
   }
+  const fullCoverage=await evaluate(`(async()=>{
+    const {createReactionCatalogAuthority}=await import('/src/reaction-catalog-authority.js');
+    const routes=(await fetch('/data/polymerization-routes.json').then(r=>r.json())).routes;
+    const authority=createReactionCatalogAuthority({polymerRoutes:routes});
+    for(const entry of authority.entries())window.__reactionProgress.verify(entry.reactionId);
+    window.__collection.setReactionProgress(authority,window.__reactionProgress);
+    document.querySelector('[data-book-tab="molecules"]').click();
+    document.querySelector('[data-book-tab="reactions"]').click();
+    const seen=new Set(),groups=document.querySelectorAll('.reaction-book-group').length;
+    for(let i=0;i<groups;i++){
+      document.querySelectorAll('.reaction-book-group')[i].click();
+      for(const item of document.querySelectorAll('[data-preview-reaction]'))seen.add(item.dataset.previewReaction);
+      const inspect=document.querySelector('.reaction-book-inspect');
+      if(!inspect)throw Error('Missing verified detail button in group '+i);
+      inspect.click();
+      if(!document.querySelector('.rb-detail-molecules img'))throw Error('Missing structural detail in group '+i);
+      if(![...document.querySelectorAll('#collection-list button')].some(b=>b.textContent.includes('LABでもう一度ためす')))throw Error('Missing LAB route in group '+i);
+      document.querySelector('#collection-list button').click();
+      document.querySelector('#collection-list button').click();
+    }
+    return{groups,seen:seen.size,overflow:document.querySelector('#collection-dialog').scrollWidth>document.querySelector('#collection-dialog').clientWidth+1};
+  })()`);
+  assert.deepEqual(fullCoverage,{groups:14,seen:54,overflow:false});
   await evaluate(`document.querySelector('[data-book-tab="polymers"]').click()`);assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-entry-id]').length`),25);
   await evaluate(`document.querySelector('[data-book-tab="molecules"]').click()`);assert.equal(await evaluate(`document.querySelector('[data-book-tab="molecules"]').getAttribute('aria-selected')`),'true');
   console.log('REACTION_BOOK_BROWSER PASS '+process.env.REACTION_VIEWPORT);
