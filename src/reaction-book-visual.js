@@ -145,6 +145,9 @@ export function reactionThumbnailModel(entry,{records=[],polymerRecords=[]}={}){
 export function createReactionThumbnailFromEntry(entry,context={}){
   const spec=reactionThumbnailModel(entry,context);
   if(!spec)return null;
+  // Keep the five previously reviewed hand-drawn examples in the list.
+  // Every reaction, including these five, uses its actual molecular drawings in detail.
+  if(REACTION_THUMBNAIL_SPECS[entry.reactionId])return createReactionThumbnail(entry.reactionId);
   const box=document.createElement('span');
   box.className='rb-reaction-thumb rb-reaction-thumb-models';
   box.dataset.previewReaction=entry.reactionId;
