@@ -1,3 +1,4 @@
+import {polymerReactionImage} from './reaction-polymer-thumbnail.js';
 // Static reaction-book preview motifs. Chemistry and unlock status remain owned by the catalog/progress.
 export const GROUP_PREVIEW_SPECS=Object.freeze({
   hydrolysis:{renderer:'svg',motion:'split',durationMs:5600,caption:'水が加わり結合が切れる'},
@@ -137,7 +138,7 @@ export function reactionThumbnailModel(entry,{records=[],polymerRecords=[]}={}){
   return Object.freeze({
     id:entry.reactionId,kind:entry.kind,feature,
     inputs:inputs.map(id=>({id,name:moleculeName(id),src:modelAsset(id,'molecule')})),
-    outputs:outputs.map(id=>({id,name:polymer?polymerName(id):moleculeName(id),src:modelAsset(id,polymer?'polymer':'molecule')})),
+    outputs:outputs.map(id=>({id,name:polymer?polymerName(id):moleculeName(id),src:polymer?null:modelAsset(id,'molecule'),polymerUnit:polymer})),
     before:inputs.map(moleculeName).join(' ＋ '),after:outputs.map(id=>polymer?polymerName(id):moleculeName(id)).join(' ＋ ')
   });
 }
@@ -145,15 +146,13 @@ export function reactionThumbnailModel(entry,{records=[],polymerRecords=[]}={}){
 export function createReactionThumbnailFromEntry(entry,context={}){
   const spec=reactionThumbnailModel(entry,context);
   if(!spec)return null;
-  // Keep the five previously reviewed hand-drawn examples in the list.
-  // Every reaction, including these five, uses its actual molecular drawings in detail.
   // All 54 reactions use the same model-based presentation.
   const box=document.createElement('span');
   box.className='rb-reaction-thumb rb-reaction-thumb-models';
   box.dataset.previewReaction=entry.reactionId;
   const images=document.createElement('span');images.className='rb-reaction-assets';
   const asset=(data)=>{
-    const img=document.createElement('img');img.src=data.src;img.alt=data.name;
+    const img=data.polymerUnit?polymerReactionImage(data.id,data.name):document.createElement('img');if(data.src)img.src=data.src;img.alt=data.name;
     img.loading='lazy';img.decoding='async';img.draggable=false;return img;
   };
   const arrow=document.createElement('span');arrow.className='rb-arrow';arrow.textContent='→';
@@ -177,7 +176,7 @@ export function createReactionDetailModels(entry,context={}){
     const column=document.createElement('section'),title=document.createElement('h4');title.textContent=heading;column.append(title);
     for(const item of list){
       const tile=document.createElement('div');tile.className='rb-molecule-tile';
-      const img=document.createElement('img');img.src=item.src;img.alt=item.name;img.loading='lazy';img.decoding='async';
+      const img=item.polymerUnit?polymerReactionImage(item.id,item.name):document.createElement('img');if(item.src)img.src=item.src;img.alt=item.name;img.loading='lazy';img.decoding='async';
       const name=document.createElement('span');name.textContent=item.name;
       tile.append(img,name);column.append(tile);
     }
