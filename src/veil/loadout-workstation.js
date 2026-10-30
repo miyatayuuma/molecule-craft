@@ -179,8 +179,8 @@ function installLoadoutElementStock(map){
   if(!map)return null;
   let stock=document.getElementById('loadout-element-stock');
   if(stock)return stock;
-  stock=document.createElement('section');stock.id='loadout-element-stock';stock.className='loadout-element-stock';stock.setAttribute('aria-label','BASE STOCK');
-  const heading=document.createElement('span');heading.className='loadout-element-stock-title';heading.textContent='BASE STOCK';
+  stock=document.createElement('section');stock.id='loadout-element-stock';stock.className='loadout-element-stock';stock.setAttribute('aria-label','原子ストック');
+  const heading=document.createElement('span');heading.className='loadout-element-stock-title';heading.textContent='原子ストック';
   const elements=document.createElement('div');elements.className='loadout-stock-elements';
   for(const item of ELEMENT_PRESENTATION){
     const token=document.createElement('div');token.className='loadout-element-token';token.dataset.loadoutStockElement=item.symbol;token.dataset.stockCount='0';token.hidden=true;token.style.setProperty('--element-color',item.color);token.setAttribute('role','img');
@@ -196,7 +196,7 @@ export function syncLoadoutElementStock(resources,root=document){
   for(const token of stock.querySelectorAll('[data-loadout-stock-element]')){
     const symbol=token.dataset.loadoutStockElement,item=ELEMENT_PRESENTATION.find(candidate=>candidate.symbol===symbol),unlocked=resources.canUseElement?.(symbol)===true,count=Math.max(0,Number(resources.state.elements[symbol]??0));
     token.hidden=!unlocked;token.dataset.stockCount=String(count);token.querySelector('[data-loadout-element-stock]')?.replaceChildren(String(count));
-    if(item)token.setAttribute('aria-label',`${item.name}（${symbol}） BASE STOCK ${count}`);if(unlocked)visible++;
+    if(item)token.setAttribute('aria-label',`${item.name}（${symbol}） 原子ストック ${count}`);if(unlocked)visible++;
   }
   stock.hidden=visible===0;return true;
 }
@@ -246,9 +246,9 @@ export async function animateLoadoutElementTransfer({cost={},root=document,reduc
 
 function installLabels(){
   const title=document.getElementById('supply-title');
-  if(title)title.textContent='LOADOUT';
+  if(title)title.textContent='出発準備';
   const access=document.getElementById('open-supply');
-  if(access)access.setAttribute('aria-label','LOADOUTを開く');
+  if(access)access.setAttribute('aria-label','探索機を開く');
   for(const [use,label] of Object.entries(LOADOUT_LABELS)){
     const button=document.getElementById(`shell-${use}`);
     if(!button)continue;

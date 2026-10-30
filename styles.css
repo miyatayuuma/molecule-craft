@@ -20,7 +20,6 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 
 .field-bottom{flex-wrap:wrap}
 
-.resource-bar .collector-access{margin-left:auto;display:flex;align-items:center;gap:8px;border-color:#49768b;background:#102f40;color:#d8f5ff}
 
 
 /* The palette previews use the same element colours and part assets as the workspace/book. */
@@ -327,6 +326,26 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .reaction-book .reaction-book-hint .rb-reaction-thumb{color:#fff9df}
 @media(max-width:480px){.rb-reaction-thumb{grid-template-columns:minmax(0,1fr);gap:2px}.rb-reaction-thumb svg{height:65px}.rb-thumb-legend{font-size:11px}}
 @media(max-width:480px){.rb-detail-molecules{grid-template-columns:minmax(0,1fr)}.rb-molecule-tile{grid-template-columns:62px minmax(0,1fr)}.rb-molecule-tile img{width:62px;height:62px}}
+
+/* MC-UX: surface the next action without bringing back persistent instruction panels. */
+.topbar-actions .collector-access{display:flex;flex-direction:column-reverse;align-items:center;justify-content:center;gap:0;min-width:52px;height:52px;padding:2px 4px;border-color:#49768b;background:#102f40;color:#d8f5ff}
+.collector-access-label{font-size:10px;line-height:1.15;font-weight:700;letter-spacing:.04em}
+.first-step-tip{position:absolute;z-index:5;top:38%;left:50%;transform:translate(-50%,-50%);width:min(370px,calc(100% - 28px));display:grid;gap:9px;justify-items:center;padding:18px;border:1px solid #42867f;border-radius:18px;background:#102c38ed;box-shadow:0 12px 34px #020c18b3;text-align:center;pointer-events:auto}
+.first-step-tip[hidden]{display:none}
+.first-step-tip strong{font-size:17px;color:#edfffa}
+.first-step-tip span{font-size:13px;line-height:1.55;color:#c6e2e7}
+.first-step-tip button{min-height:44px;width:100%;max-width:215px;background:#26635d;border-color:#69c9b7;color:#effffa;font-weight:700}
+#craft-empty{font-size:13px;line-height:1.6;color:#a8c8d7}
+#craft-empty::after{content:none}
+#element-palette .element-button[data-locked="true"]{opacity:.48}
+#element-palette .element-button[data-locked="true"]::after{content:'未発見';font-size:10px;letter-spacing:.01em;color:#a8c3d1}
+.collection-grid[data-kind="polymers"] .collection-card.unknown{min-height:94px;gap:3px;padding:10px 8px;justify-content:center;border-style:dashed}
+.collection-grid[data-kind="polymers"] .collection-card.unknown strong{font-size:12px;color:#96adbc;font-weight:500}
+.supply-launch{display:block;width:100%;min-height:48px;background:#246c64;border-color:#5dc8b6;color:#f4fffc;font-weight:750}
+.supply-region-choices:not([hidden]){display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.supply-region-choices button{min-height:44px;background:#153b4b;border-color:#558c9b;color:#dff6fa}
+@media(max-width:420px){.topbar{gap:3px;padding-left:7px;padding-right:7px}.topbar h1{font-size:13px;gap:4px}.topbar h1 img{width:24px;height:24px}.topbar-actions{gap:3px}.topbar-actions button{padding:5px 7px}.topbar-actions .collector-access{min-width:43px!important;width:43px;height:50px;padding:2px}.topbar-actions .collector-access canvas{width:34px!important;height:30px!important}.topbar-actions .icon-button{width:36px;min-width:36px}}
+@media(max-width:355px){.topbar h1 span{display:none}.topbar h1 img{width:29px;height:29px}}
 @media(prefers-reduced-motion:reduce){.rb-group-preview svg,.rb-group-preview svg *{animation:none!important;transition:none!important}.rb-motion-cycloaddition .rb-alkenes,.rb-motion-ring-opening .rb-closed-ring,.rb-motion-substitution .rb-old-substituent,.rb-motion-combustion .rb-fuel{opacity:0}.rb-motion-cycloaddition .rb-square,.rb-motion-ring-opening .rb-open-chain,.rb-motion-substitution .rb-new-substituent,.rb-motion-combustion .rb-products{opacity:1}.rb-motion-dehydration .rb-dehydration-before,.rb-motion-oxidation .rb-oxidation-oxygen{opacity:0}.rb-motion-dehydration .rb-dehydration-after{opacity:1}.rb-motion-hydrolysis .rb-hydrolysis-before{opacity:0}.rb-motion-hydrolysis .rb-hydrolysis-after{opacity:1}.rb-motion-hydration .rb-hydration-before{opacity:0}.rb-motion-hydration .rb-hydration-after{opacity:1}.rb-motion-addition .rb-double{opacity:0}.rb-motion-polymerization .rb-chain-3,.rb-motion-polymerization .rb-chain-4{opacity:1}}
 
 .collection-recipe-list{margin:12px 0;display:grid;gap:6px}.collection-recipe-list summary{cursor:pointer;padding:10px}.collection-recipe-list button{display:block;width:100%;margin:5px 0;text-align:left}.collection-special-recipe{border-color:#b886ed;color:#d6b5ff}

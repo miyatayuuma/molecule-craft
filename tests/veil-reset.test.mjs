@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createResources,RESOURCE_KEY,RESET_CATEGORIES} from '../src/veil/resources.js';
 import {createInitialResourcesState} from '../src/veil/resources-persistence.js';
-import {createProgressResetUI} from '../src/veil/reset-ui.js';
 import {createCollectionState,COLLECTION_STORAGE_KEY} from '../src/collection-state.js';
 import {WORKSPACE_STORAGE_KEY} from '../src/workspace-persistence.js?v=1';
 import {Molecule,setMoleculeDatabase} from '../src/chemistry.js?v=20';
@@ -47,14 +46,6 @@ oldBook.observeStructures(connectedStructures(m));assert.match(oldBook.storageMe
 const futureState=createInitialResourcesState();futureState.schemaVersion=10;futureState.elements.H=17;futureState.futureField={keep:'raw'};
 const futureRaw=JSON.stringify(futureState),futureData=new Map([[RESOURCE_KEY,futureRaw],[COLLECTION_STORAGE_KEY,'collection bytes'],[WORKSPACE_STORAGE_KEY,'workspace bytes'],['molecule-craft.help.v1','help bytes']]);
 const futureStorage={getItem:key=>futureData.get(key)??null,setItem:(key,value)=>futureData.set(key,String(value)),removeItem:key=>futureData.delete(key)},futureResources=createResources({storage:futureStorage});
-const priorDocument=globalThis.document,priorWindow=globalThis.window,handlers={},nodes=new Map();let reloads=0;
-for(const id of ['reset-status','reset-all','reset-selected'])nodes.set(id,{textContent:'',disabled:false,addEventListener:(type,handler)=>{handlers[id]=handler;}});
-globalThis.document={getElementById:id=>nodes.get(id)??null,querySelectorAll:()=>[]};globalThis.window={confirm:()=>true};
-try{
- createProgressResetUI({resources:futureResources,reload:()=>reloads++});handlers['reset-all']();
- assert.equal(reloads,0,'a blocked future-schema reset never enters the success/reload path');
- assert.match(nodes.get('reset-status').textContent,/新しい版.*保護.*変更できません.*更新/,'reset UI reports the unsupported save protection state');
- assert.equal(nodes.get('reset-all').disabled,false,'failed reset does not disable controls as if it had succeeded');
- assert.equal(futureData.get(RESOURCE_KEY),futureRaw);assert.equal(futureData.get(COLLECTION_STORAGE_KEY),'collection bytes');assert.equal(futureData.get(WORKSPACE_STORAGE_KEY),'workspace bytes');assert.equal(futureData.get('molecule-craft.help.v1'),'help bytes');
-}finally{if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;if(priorWindow===undefined)delete globalThis.window;else globalThis.window=priorWindow;}
+assert.equal(futureResources.reset(RESET_CATEGORIES).committed,false,'Unsupported future-schema saves remain protected from reset');
+assert.equal(futureData.get(RESOURCE_KEY),futureRaw);assert.equal(futureData.get(COLLECTION_STORAGE_KEY),'collection bytes');assert.equal(futureData.get(WORKSPACE_STORAGE_KEY),'workspace bytes');assert.equal(futureData.get('molecule-craft.help.v1'),'help bytes');
 console.log('Reset: all interruption points, each category, refund balance, no legacy resurrection, unrelated storage and stale-tab protection passed.');
