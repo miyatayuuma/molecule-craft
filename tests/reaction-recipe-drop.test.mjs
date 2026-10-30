@@ -13,6 +13,8 @@ test('discovered inputs determine candidates; hints and verified reactions are e
 });
 test('one 5% roll per eligible expedition uses existing nearby pickup points',()=>{
  assert.equal(REACTION_RECIPE_FIELD_CONFIG.spawnChance,.05);
+ const boundary={authority,progress:createReactionProgress({storage:memory(),authority}),records,collection:collection(43),runId:'boundary',dust:[],player:{x:0,y:0}};
+ assert.ok(chooseFieldRecipe({...boundary,random:()=>.049999}));assert.equal(chooseFieldRecipe({...boundary,random:()=>.05}),null);
  const progress=createReactionProgress({storage:memory(),authority}),p=REGIONS.veil,args={authority,progress,records,collection:collection(43),runId:'0:1',dust:createUniverse(42,{}).dust,player:p};let hits=0;for(let seed=1;seed<=1000;seed++)if(chooseFieldRecipe({...args,random:random(seed)}))hits++;assert.ok(hits>25&&hits<75,`1000 seeded runs: ${hits}`);assert.equal(recipeSegmentDistance({x:5,y:0},{x:0,y:0},{x:10,y:0}),0);console.log(`FIELD_RECIPE_SEEDED_HITS ${hits}/1000`);
 });
 
