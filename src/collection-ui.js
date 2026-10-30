@@ -4,7 +4,7 @@ import {isCHO} from './veil/cho-campaign.js';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
 import { validateCraftStructures } from './craft-structures.js?v=33';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=38';
-import { createElementPalette, ELEMENT_UNLOCKS } from './element-progression.js?v=38';
+import { createElementPalette } from './element-progression.js?v=38';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
 import {loadMoleculeGraph} from './molecule-graph.js?v=2';
 import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=2';
@@ -210,11 +210,9 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function openEntry(kind,id){return kind==='molecules'?openRegisteredMoleculeEntry(id):kind==='polymers'?openPolymer(id):false;}
   window.addEventListener('molecule-craft:open-molecule',event=>openMolecule(event.detail?.id));
-  root.querySelector('#show-extra-elements')?.addEventListener('change',()=>renderPalette());
   function renderPalette(){
     elementPalette.update(state);const container=q('craft-palette');container.replaceChildren();
     for(const template of [...data.templates].sort((a,b)=>a.tier-b.tier)){
-      if(!root.querySelector('#show-extra-elements')?.checked&&!isCHO(template.atoms))continue;
       if(!state.isUnlocked(template.id)&&!state.hasGroup(template.unlock.groupId))continue;
       const unlocked=state.isUnlocked(template.id),count=state.groupSources(template.unlock.groupId).length;
       const node=button('',()=>{
@@ -234,7 +232,6 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     q('collection-progress').textContent=`分子 ${state.discoveredCount} / ${records.length}　部品 ${knownParts} / ${partGroups.length}　高分子 ${polymerState.discoveredCount} / ${polymerRecords.length}`;
     const storage=q('collection-storage'),message=[state.storageMessage,polymerState.storageMessage].filter(Boolean).join('　');storage.textContent=message;storage.hidden=!message;
     const save=q('game-save-status');save.dataset.collectionStatus=message?'図鑑を保存できません。図鑑で確認してください。':'';const warnings=[save.dataset.collectionStatus,save.dataset.reactionStatus].filter(Boolean);save.textContent=warnings.join('　');save.hidden=!warnings.length;const labWarning=root.querySelector('#lab-save-warning');if(labWarning){labWarning.textContent=save.textContent;labWarning.hidden=save.hidden;}
-    q('game-loop-hint').textContent=`発見 ${records.filter(r=>isCHO(r.atoms)&&state.hasMolecule(r.id)).length}（CHO） · 図鑑完成は任意のやり込み`;
     const milestoneList=q('collection-milestones');milestoneList.replaceChildren();for(const id of state.milestoneIds())milestoneList.appendChild(el('span',MILESTONES[id],'collection-tag'));
   }
   function visibleItems(kind=tab){
@@ -530,7 +527,6 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     observeStructures(structures){const result=state.observeStructures(structures);if(result.changed){renderPalette();renderSummary();if(dialog.open)renderBook();}return result;},
     describeEvent(event){
       if(!event?.isNew)return '';if(event.saved===false)return 'この画面の間だけ図鑑に登録しました。保存できていません。';const messages=[];
-      if(root.querySelector('#show-extra-elements')?.checked&&event.unlockedElements?.length)messages.push(`${event.unlockedElements.map(symbol=>`${ELEMENT_UNLOCKS.find(item=>item.symbol===symbol).name}（${symbol}）`).join('・')}を解放`);
       if(event.unlockedParts.length)messages.push(`${event.unlockedParts.map(id=>data.templates.find(template=>template.id===id).nameJa).join('・')}を獲得`);
       return messages.join(' ／ ')||'図鑑に登録しました';
     },

@@ -118,8 +118,6 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   function finish(captured=false){
     const expected=captured?'forced-warp-pending':'normal-warp-pending';if(!active||!run||returnState?.phase!==expected)return false;returnState.phase='settling/returning';active=false;cancelAnimationFrame(raf);raf=0;resetInput();shipTap=null;audio.pause();
     const completed=run,result=resources.settleExpedition(completed.elementDust,completed.best,captured,{destinationReached:completed.destinationReached,insights:captured?[]:completed.carriedInsights});lastTelemetry=completeExpeditionTelemetry(completed,{captured,result});logExpeditionTelemetry(lastTelemetry);discardRunInsights(completed);insightPresentation.clear();root.hidden=true;document.body.dataset.mode='craft';appShell.inert=false;
-    const seconds=Math.round(completed.time),parts=result?Object.entries(result.atoms).filter(([,n])=>n).map(([el,n])=>`${el} +${n}`).join(' · '):'';
-    q('craft-last-run').textContent=result?`${result.worldAwakenedNow?'WORLD AWAKENED · ':''}${result.completedNow?'◎ CHO ✓ · ':''}${captured?'⚠':'↩'} ${parts||'—'} · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'帰還しましたが、探索物を保存できませんでした。';
     run=null;returnState=null;thermalNotice=null;thermalNoticeUntil=0;onCraft();updateCraft();q('open-supply')?.focus();return true;
   }
   function beginReturn(captured=false){

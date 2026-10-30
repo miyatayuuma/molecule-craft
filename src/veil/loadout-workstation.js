@@ -272,6 +272,10 @@ function installStyles(){
   style.id=STYLE_ID;
   style.textContent=`
 #supply-dialog .collector-shell-map{height:clamp(205px,60vw,240px)!important;border-color:#294656;background:#071520;overflow:hidden}
+#supply-dialog .sheet-header{padding:10px 16px}
+#supply-dialog .sheet-body{padding:8px 14px 14px;gap:10px}
+#supply-dialog .tank-empty{padding:8px 4px}
+#supply-dialog .tank-inspector:has(> #tank-model[hidden]){display:none}
 #supply-dialog .collector-shell-map:before,#supply-dialog .collector-shell-map:after,#supply-dialog .collector-core{display:none!important}
 #supply-dialog .loadout-design-layer{position:absolute;z-index:2;transform-origin:top left;pointer-events:none}
 #supply-dialog .loadout-unit-image{position:absolute;left:var(--module-left);top:var(--module-top);width:var(--module-width);height:var(--module-height);display:block;object-fit:fill;pointer-events:none;user-select:none;transition:filter .14s ease,opacity .14s ease}
@@ -325,6 +329,7 @@ function installStyles(){
 @media(max-width:370px){#supply-dialog #collector-launch-handle{width:70px!important;height:70px!important}#supply-dialog .loadout-callout-label{font-size:9px}#supply-dialog .loadout-module-label{font-size:10px}#supply-dialog .tank-comparison .loadout-stat,#supply-dialog .loadout-charges{grid-template-columns:55px 1fr}#supply-dialog .loadout-stock-elements{grid-template-columns:repeat(4,minmax(0,1fr))!important}#supply-dialog .sheet-body{padding:9px 10px 10px;gap:6px}#supply-dialog .loadout-element-stock{grid-template-columns:50px minmax(0,1fr);padding:4px 6px;gap:5px}#supply-dialog .tank-molecules button{grid-template-rows:42px auto 10px;min-height:90px}#supply-dialog .tank-molecules button img{width:68px;height:42px}#supply-dialog .tank-inspector{min-height:132px}#supply-dialog .tank-model #tank-model-host .model-stage{height:96px}}
 @media(max-width:340px) and (max-height:680px){#supply-dialog .collector-shell-map{height:164px!important}#supply-dialog .sheet-header{padding:8px 10px}#supply-dialog .sheet-body{padding:7px 8px 8px;gap:5px}#supply-dialog .loadout-element-stock{grid-template-columns:48px minmax(0,1fr);padding:4px 5px;gap:4px}#supply-dialog .loadout-element-token{min-height:38px;padding:2px 3px}#supply-dialog .loadout-element-token>.atom-preview{width:18px;height:18px}#supply-dialog .loadout-element-token[data-loadout-stock-element='H']>.atom-preview{width:16px;height:16px}#supply-dialog .tank-detail{gap:5px;padding:7px 8px}#supply-dialog .tank-molecules button{grid-template-rows:40px auto 9px;min-height:86px}#supply-dialog .tank-molecules button img{height:40px}#supply-dialog .tank-inspector{min-height:120px;gap:5px}#supply-dialog .tank-model #tank-model-host .model-stage{height:88px}}
 @media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog #collector-shell-preview,#supply-dialog .loadout-callout-label,#supply-dialog .loadout-module-label,#supply-dialog .loadout-synthesis-intake{transition:none}}
+@media(min-width:371px) and (max-width:520px) and (orientation:portrait){#supply-dialog .sheet-header{padding:9px 14px}#supply-dialog .sheet-body{padding:8px 12px 12px;gap:8px}}
 `;
   document.head.append(style);
 }

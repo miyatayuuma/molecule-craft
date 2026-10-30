@@ -1,5 +1,4 @@
 import {createVeilUI} from './veil/ui.js?v=5';
-import {createProgressResetUI} from './veil/reset-ui.js';
 import {createCompletionSideEffectGate} from './completion-side-effects.js?v=1';
 import {installPendingCraftAccess} from './pending-craft.js?v=1';
 import {loadMoleculeDatabase,moleculeCatalog} from './chemistry.js?v=20';
@@ -65,7 +64,7 @@ export async function prepareExplorationCatalog(resources){
   return result;
 }
 
-function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit,reset}){
+function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onCraft,onCommit}){
   installEmptyDeparturePolicy(resources);
   const pendingCraft=installPendingCraftAccess({resources});
   const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft:(...args)=>{pendingCraft.refresh();return onCraft(...args);},onCommit});
@@ -77,7 +76,6 @@ function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onC
   veilUI.refreshPendingRecipes=()=>pendingCraft.refresh();
   const capabilityPresentation=installTankCapabilityPresentation({resources}),forwardDiscovery=veilUI.discovered?.bind(veilUI);
   veilUI.discovered=(id,outcome)=>{forwardDiscovery?.(id);capabilityPresentation.discovered(id,outcome);};
-  createProgressResetUI({resources,...reset});
   return veilUI;
 }
 
