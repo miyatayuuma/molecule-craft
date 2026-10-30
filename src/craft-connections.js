@@ -69,6 +69,12 @@ function createReadyExploration({resources,canLeave,canSupply,onBeforeLaunch,onC
   installEmptyDeparturePolicy(resources);
   const pendingCraft=installPendingCraftAccess({resources});
   const veilUI=createVeilUI({resources,canLeave,canSupply,onBeforeLaunch,onCraft:(...args)=>{pendingCraft.refresh();return onCraft(...args);},onCommit});
+  const configureFieldReactionRecipes=veilUI.configureReactionRecipes?.bind(veilUI);
+  veilUI.configureReactionRecipes=services=>{
+    pendingCraft.configureReactionRecipes?.(services);
+    return configureFieldReactionRecipes?.(services);
+  };
+  veilUI.refreshPendingRecipes=()=>pendingCraft.refresh();
   const capabilityPresentation=installTankCapabilityPresentation({resources}),forwardDiscovery=veilUI.discovered?.bind(veilUI);
   veilUI.discovered=(id,outcome)=>{forwardDiscovery?.(id);capabilityPresentation.discovered(id,outcome);};
   createProgressResetUI({resources,...reset});
@@ -88,6 +94,7 @@ export function createDeferredExplorationFacade(getCurrent,ready){
     get lastTelemetry(){return current()?.lastTelemetry??null;},
     get ready(){return ready;},
     configureReactionRecipes(...args){return ready.then(ui=>ui?.configureReactionRecipes?.(...args));},
+    refreshPendingRecipes(...args){return current()?.refreshPendingRecipes?.(...args);},
     updateCraft(...args){return current()?.updateCraft?.(...args);},
     requestExpeditionLaunch(...args){return current()?.requestExpeditionLaunch?.(...args)??false;},
     pause(...args){return current()?.pause?.(...args)??false;},

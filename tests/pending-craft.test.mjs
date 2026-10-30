@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {pendingAttentionTransition,pendingCraftRowModel,unfinishedCraftIds} from '../src/pending-craft.js?v=1';
+import {pendingAttentionTransition,pendingCraftRowModel,pendingReactionRecipeIds,unfinishedCraftIds} from '../src/pending-craft.js?v=1';
 
 assert.deepEqual(unfinishedCraftIds({hints:[],recipes:[]}),[],'undiscovered molecules are not pending');
 assert.deepEqual(unfinishedCraftIds({hints:['oxygen'],recipes:[]}),['oxygen'],'discovered unfinished molecules are pending');
@@ -9,6 +9,18 @@ assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','oxygen','water'],recipes
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','hydrogen','water'],recipes:[]}),['hydrogen','water'],'duplicate hints do not duplicate the route');
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','water'],recipes:['hydrogen']}),['water'],'completion removes only the completed candidate');
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','water'],recipes:['hydrogen','water']}),[],'notification clears after all candidates are completed');
+assert.deepEqual(pendingReactionRecipeIds(null),[],'startup without reaction services has no special pending candidates');
+const reactionEntries=[{reactionId:'normal:complete-03-aspirin-synthesis'},{reactionId:'polymer:route-pe'}];
+const reactionStatus=new Map([['normal:complete-03-aspirin-synthesis','hinted'],['polymer:route-pe','verified']]);
+const reactionServices={authority:{entries:()=>reactionEntries},progress:{getState:id=>reactionStatus.get(id)??'notFound'}};
+assert.deepEqual(pendingReactionRecipeIds(reactionServices),['normal:complete-03-aspirin-synthesis'],'persisted special recipe is pending only while not verified');
+reactionStatus.set('polymer:route-pe','hinted');
+assert.deepEqual(pendingReactionRecipeIds(reactionServices),reactionEntries.map(entry=>entry.reactionId),'normal and polymer reaction insights use the same pending list');
+reactionStatus.set('normal:complete-03-aspirin-synthesis','verified');
+assert.deepEqual(pendingReactionRecipeIds(reactionServices),['polymer:route-pe'],'verification removes only the completed special recipe');
+reactionStatus.set('polymer:route-pe','verified');
+assert.deepEqual(pendingReactionRecipeIds(reactionServices),[],'all verified special recipes disappear without resetting normal molecule hints');
+
 const liveRecipeState={hints:['hydrogen','water'],recipes:[]};
 assert.equal(unfinishedCraftIds(liveRecipeState).length,2,'two available recipes keep the bulb visible');
 liveRecipeState.recipes.push('hydrogen');
@@ -30,11 +42,19 @@ assert.deepEqual(pendingCraftRowModel(resources,'ethene'),{id:'ethene',formula:'
 assert.deepEqual(pendingCraftRowModel(resources,'benzene'),{id:'benzene',formula:'C₆H₆',name:'ベンゼン',category:'general',categoryLabel:'GENERAL'});
 
 const pendingSource=await readFile(new URL('../src/pending-craft.js',import.meta.url),'utf8');
+const appSource=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+const progressSource=await readFile(new URL('../src/reaction-progress.js',import.meta.url),'utf8');
 const supplySource=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
 const connectionsSource=await readFile(new URL('../src/craft-connections.js',import.meta.url),'utf8');
 const veilSource=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
 assert.doesNotMatch(pendingSource,/selectedUse|TANK_USES|ACTIVE_TANK_ROLES/,'pending-craft access must not depend on LOADOUT slot selection');
 assert.match(pendingSource,/molecule-craft:craft-molecule/,'candidate selection must route through the existing craft-target event');
+assert.match(pendingSource,/pendingReactionRecipeIds\(reactionServices\)/,'top-right bulb includes special reaction progress');
+assert.match(pendingSource,/button\.dataset\.reactionRecipe=reactionId/,'special candidates are selectable directly from the bulb panel');
+assert.match(pendingSource,/reactionServices\?\.onTryReaction\?\.\(reactionId\)/,'special choice launches the shared guided LAB handler');
+assert.match(connectionsSource,/pendingCraft\.configureReactionRecipes\?\.\(services\)/,'FIELD services are also passed to the top-right bulb');
+assert.match(appSource,/onTryReaction:openReactionGuide/,'top-right bulb reuses the encyclopedia reaction guide entrypoint');
+assert.match(progressSource,/onChange\(\)/,'changes to special progress refresh the pending bulb');
 assert.match(pendingSource,/button\.dataset\.insightCategory=model\.category/,'each pending row carries the canonical semantic category');
 assert.match(pendingSource,/bulb\.className='insight-bulb'/,'pending identities use the shared monochrome bulb primitive');
 assert.match(pendingSource,/role\.textContent=model\.categoryLabel/,'pending rows expose a visible non-color category label');
