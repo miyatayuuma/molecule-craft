@@ -77,7 +77,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const status=root.querySelector('[data-lab-status]');
   const polymerCompletion=root.querySelector('[data-polymer-completion]'),polymerCompletionName=root.querySelector('[data-polymer-completion-name]'),polymerCompletionStatus=root.querySelector('[data-polymer-completion-status]'),polymerEncyclopediaButton=root.querySelector('[data-polymer-encyclopedia]');
   const slots=[...root.querySelectorAll('[data-lab-slot]')];
-  const feedButton=root.querySelector('[data-lab-feed]'),commandState=root.querySelector('[data-lab-command-state]');
+  const feedButton=root.querySelector('[data-lab-feed]'),commandBar=root.querySelector('.reaction-lab-command-bar'),commandState=root.querySelector('[data-lab-command-state]');
   const picker=root.querySelector('[data-lab-picker]'),pickerList=root.querySelector('[data-lab-picker-list]'),pickerSearch=root.querySelector('[data-lab-search]');
   const lightButton=root.querySelector('[data-lab-light]'),heatButton=root.querySelector('[data-lab-heat]'),mediumButton=root.querySelector('[data-lab-medium-port]');
   const activationEnvironment=createReactionLabEnvironment();
@@ -886,7 +886,17 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   root.querySelector('[data-reaction-guide-cancel]')?.addEventListener('click',clearGuide,eventOptions);
   function updateCommandBar(){
     const state=batch.snapshot(),dirty=state.draftSlots.some((species,index)=>species!==state.activeSlots[index]);
-    const polymerState=polymerCore.snapshot();commandState.textContent=state.phase===REACTION_LAB_BATCH_PHASES.FLUSHING?'FLUSHING':state.phase===REACTION_LAB_BATCH_PHASES.FEEDING?'FEEDING':reactionAnimation?'REACTION':polymerRouteOwned&&polymerState?.state===POLYMERIZATION_STATES.SAMPLE?(polymerSamplePresentation?.ready?'POLYMER COMPLETE':'POLYMERIZATION COMPLETE'):polymerRouteOwned&&polymerState?.waitReason==='conditions'?'POLYMERIZATION PAUSED':polymerRouteOwned?'POLYMERIZATION':state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE?dirty?'DRAFT READY':'BATCH ACTIVE':'RACK READY';
+    const polymerState=polymerCore.snapshot();
+    const chamberState=state.phase===REACTION_LAB_BATCH_PHASES.FLUSHING?'PURGING'
+      :state.phase===REACTION_LAB_BATCH_PHASES.FEEDING?'FEEDING'
+      :reactionAnimation?'REACTING'
+      :polymerRouteOwned&&polymerState?.state===POLYMERIZATION_STATES.SAMPLE?'COMPLETE'
+      :polymerRouteOwned&&polymerState?.waitReason==='conditions'?'PAUSED'
+      :state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE?dirty?'DRAFT':'ACTIVE'
+      :state.draftSlots.some(Boolean)?'READY':'EMPTY';
+    commandState.textContent=`CHAMBER · ${chamberState}`;
+    // Only the actual material-transfer phase opens the valve; purge stays closed.
+    commandBar.dataset.feedFlow=state.phase===REACTION_LAB_BATCH_PHASES.FEEDING?'open':'closed';
     slots.forEach((tile,index)=>{tile.disabled=!canEditRack();tile.setAttribute('aria-expanded',String(pickerOpen&&pickerSlotIndex===index));});
     feedButton.disabled=!canEditRack()||(!state.draftSlots.some(Boolean)&&state.phase===REACTION_LAB_BATCH_PHASES.IDLE);
     updateEnvironmentControls();updateGuide();
@@ -910,10 +920,19 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function renderPickerOptions(){
     pickerList.replaceChildren();const discovered=records.filter(record=>collectionState.hasMolecule(record.id)),draft=batch.draftSlots;
+    const disconnect=root.querySelector('[data-lab-disconnect]');
+    if(disconnect){disconnect.disabled=!draft[pickerSlotIndex];disconnect.setAttribute('aria-disabled',String(!draft[pickerSlotIndex]));}
     for(const record of discovered){
-      const option=document.createElement('button'),copy=document.createElement('span'),formula=document.createElement('strong'),name=document.createElement('small'),index=draft.findIndex(id=>id===record.id),unavailable=index>=0&&index!==pickerSlotIndex;
+      const option=document.createElement('button'),visual=document.createElement('span'),copy=document.createElement('span'),formula=document.createElement('strong'),name=document.createElement('small'),index=draft.findIndex(id=>id===record.id),unavailable=index>=0&&index!==pickerSlotIndex;
       option.type='button';option.className='reaction-lab-picker-option';option.role='option';option.dataset.species=record.id;option.dataset.search=`${record.formula??''} ${record.commonNameJa??record.nameJa??''} ${record.nameEn??''} ${record.id}`;option.disabled=unavailable;option.setAttribute('aria-disabled',String(unavailable));option.setAttribute('aria-selected',String(draft[pickerSlotIndex]===record.id));
-      formula.textContent=record.formula??record.id;name.textContent=record.commonNameJa??record.nameJa??record.nameEn??record.id;copy.append(formula,name);option.append(copy);
+      formula.textContent=record.formula??record.id;name.textContent=record.commonNameJa??record.nameJa??record.nameEn??record.id;
+       visual.className='reaction-lab-picker-model';copy.className='reaction-lab-picker-copy';
+       const model=document.createElement('img'),fallback=document.createElement('span');
+       model.src=new URL(`../assets/models/molecule-${record.id}.svg`,import.meta.url).href;
+       model.alt='';model.width=96;model.height=96;model.loading='lazy';model.decoding='async';
+       fallback.className='reaction-lab-picker-fallback';fallback.textContent='◦—◦';fallback.hidden=true;
+       model.addEventListener('error',()=>{model.remove();fallback.hidden=false;},{once:true});
+       visual.append(model,fallback);copy.append(formula,name);option.append(visual,copy);
       if(unavailable)option.setAttribute('aria-label',`${formula.textContent} ${name.textContent}。別のfeed slotですでに選択されています`);
       option.addEventListener('click',()=>{if(!pickerOpen||option.disabled)return;const result=batch.setDraftSlot(pickerSlotIndex,record.id);if(!result.ok){status.textContent='同じ分子は複数のfeed headへ接続できません。';return;}closePicker();renderSlotTiles();status.textContent='draftを更新しました。FEEDでchamberへ投入します。';});pickerList.append(option);
     }
