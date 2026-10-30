@@ -232,7 +232,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const knownParts=partGroups.filter(group=>state.hasGroup(group.id)).length;
     q('collection-progress').textContent=`分子 ${state.discoveredCount} / ${records.length}　部品 ${knownParts} / ${partGroups.length}　高分子 ${polymerState.discoveredCount} / ${polymerRecords.length}`;
     const storage=q('collection-storage'),message=[state.storageMessage,polymerState.storageMessage].filter(Boolean).join('　');storage.textContent=message;storage.hidden=!message;
-    const save=q('game-save-status');save.textContent=message?'図鑑を保存できません。図鑑で確認してください。':'';save.hidden=!message;
+    const save=q('game-save-status');save.dataset.collectionStatus=message?'図鑑を保存できません。図鑑で確認してください。':'';const warnings=[save.dataset.collectionStatus,save.dataset.reactionStatus].filter(Boolean);save.textContent=warnings.join('　');save.hidden=!warnings.length;const labWarning=root.querySelector('#lab-save-warning');if(labWarning){labWarning.textContent=save.textContent;labWarning.hidden=save.hidden;}
     q('game-loop-hint').textContent=`発見 ${records.filter(r=>isCHO(r.atoms)&&state.hasMolecule(r.id)).length}（CHO） · 図鑑完成は任意のやり込み`;
     const milestoneList=q('collection-milestones');milestoneList.replaceChildren();for(const id of state.milestoneIds())milestoneList.appendChild(el('span',MILESTONES[id],'collection-tag'));
   }

@@ -188,7 +188,7 @@ export function createReactionLabDiscoveryCoordinator({
     const sequence=++eventSequence,at=now(),newItems=[];
     for(const speciesId of validated.species){
       const result=collection.registerDiscoveredMolecule(speciesId,{at}),registrationEvent=result?.event??null;
-      if(result?.changed!==true||registrationEvent?.isNew!==true)continue;
+      if(result?.changed!==true||registrationEvent?.isNew!==true||result.saved===false)continue;
       const duplicate=queue.some(item=>item.speciesId===speciesId&&['pending','active','presented','dismissed'].includes(item.status));
       if(duplicate)continue;
       const item={kind:'molecules',id:speciesId,eventSequence:sequence,status:'pending',speciesId,reactionId:payload.reactionId,pathwayId:payload.pathwayId,batchGeneration:payload.batchGeneration,firstProductIndex:validated.firstIndexBySpecies.get(speciesId),registrationEvent,registrationResult:result,productIds:[...payload.products]};
@@ -210,11 +210,11 @@ export function createReactionLabDiscoveryCoordinator({
     const sequence=++eventSequence,at=now(),items=[];
     try{
       const polymerResult=collection.registerDiscoveredPolymer(payload.polymerId,{at});
-      if(polymerResult?.changed===true&&polymerResult?.event?.isNew===true)items.push({kind:'polymers',id:payload.polymerId,eventSequence:sequence,status:'awaiting-present',speciesId:payload.polymerId,polymerId:payload.polymerId,routeId:payload.routeId,sampleId:payload.sampleId,batchGeneration:payload.batchGeneration,registrationEvent:polymerResult.event,registrationResult:polymerResult});
+      if(polymerResult?.changed===true&&polymerResult?.saved!==false&&polymerResult?.event?.isNew===true)items.push({kind:'polymers',id:payload.polymerId,eventSequence:sequence,status:'awaiting-present',speciesId:payload.polymerId,polymerId:payload.polymerId,routeId:payload.routeId,sampleId:payload.sampleId,batchGeneration:payload.batchGeneration,registrationEvent:polymerResult.event,registrationResult:polymerResult});
       const registeredByproductSpecies=new Set();for(const byproduct of validated.byproducts){
         if(registeredByproductSpecies.has(byproduct.species))continue;registeredByproductSpecies.add(byproduct.species);
         const result=collection.registerDiscoveredMolecule(byproduct.species,{at}),registrationEvent=result?.event??null;
-        if(result?.changed!==true||registrationEvent?.isNew!==true)continue;
+        if(result?.changed!==true||registrationEvent?.isNew!==true||result.saved===false)continue;
         const duplicate=queue.some(item=>item.kind==='molecules'&&item.speciesId===byproduct.species&&['pending','active','presented','dismissed','awaiting-present'].includes(item.status));
         if(duplicate)continue;
         items.push({kind:'molecules',id:byproduct.species,eventSequence:sequence,status:'awaiting-present',speciesId:byproduct.species,routeId:payload.routeId,polymerId:payload.polymerId,sampleId:payload.sampleId,batchGeneration:payload.batchGeneration,firstProductIndex:byproduct.formationIndex,byproduct:{...byproduct},registrationEvent,registrationResult:result});
