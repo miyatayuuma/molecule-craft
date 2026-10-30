@@ -35,8 +35,10 @@ import { captureDetachedFragment, createDetachedDrag } from './craft-detached-dr
 import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=4';
 import { createReactionCatalogAuthority } from './reaction-catalog-authority.js?v=1';
 import { createReactionProgress } from './reaction-progress.js?v=1';
+import { startGamepadUi } from './gamepad-input.js';
 
 import { createResources } from './veil/resources.js';
+startGamepadUi({window,document});
 let veilUI=null;
 const resources=createResources({onStatus:text=>{for(const id of ['resource-save-status','veil-save-warning']){const node=document.getElementById(id);if(node){node.textContent=text;node.hidden=!text;}}}});
 const molecule=new Molecule();
