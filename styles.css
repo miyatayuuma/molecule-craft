@@ -536,3 +536,6 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
  .reaction-lab-feed-particle{animation:none!important;opacity:0!important;}
  .reaction-lab-command-bar[data-feed-flow="open"]::after{animation:none;background:#a6f8eb;}
 }
+
+/* Keep the browser's visible focus treatment clear for controller navigation. */
+:focus-visible { outline: 3px solid #7dd3fc; outline-offset: 3px; }
