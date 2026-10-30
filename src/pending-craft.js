@@ -33,7 +33,8 @@ function ensureInsightCategoryStyles(root){
   const link=root.createElement('link');link.id='insight-category-styles';link.rel='stylesheet';link.href=new URL('./insight-category.css',import.meta.url).href;root.head?.append(link);
 }
 
-export function pendingReactionRecipeIds({authority,progress}={}){
+export function pendingReactionRecipeIds(services){
+  const {authority,progress}=services??{};
   if(!authority?.entries||!progress?.getState)return [];
   return authority.entries().filter(entry=>progress.getState(entry.reactionId)==='hinted').map(entry=>entry.reactionId);
 }
