@@ -20,6 +20,7 @@ test('retired instructions, reset controls and hidden copy are absent',async()=>
   for(const id of ['help-dialog','reset-selected','reset-status','game-loop-hint','craft-last-run']){
     assert.doesNotMatch(html,new RegExp(`id="${id}"`));
   }
+  assert.doesNotMatch(html,/この端末に自動保存されます/);
   assert.doesNotMatch(gameShell,/open-help|help-dialog|reset-status/);
   assert.doesNotMatch(connections,/createProgressResetUI/);
   assert.doesNotMatch(collection,/show-extra-elements|game-loop-hint/);
