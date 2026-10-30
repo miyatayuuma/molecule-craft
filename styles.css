@@ -337,3 +337,25 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .rb-detail-chemistry h4:first-child{margin-top:0}
 .rb-detail-chemistry p{margin:5px 0;line-height:1.65;font-size:13px}
 .rb-detail-chemistry .rb-detail-formula{font-size:15px;color:#f3e2b1;font-weight:600;line-height:1.8;word-break:break-word}
+
+/* The whole feed head is the molecule preview. The formula occupies only its lower-right corner. */
+.reaction-lab-slot{position:relative;height:80px;display:block;padding:3px;isolation:isolate}
+.reaction-lab-slot-socket{position:absolute;inset:3px;min-height:0;margin:0;border:0;border-radius:0;background:transparent;overflow:hidden}
+.reaction-lab-slot-socket img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 7px rgba(96,208,230,.22))}
+.reaction-lab-slot-index{z-index:2;top:5px;left:7px;font-size:10px;text-shadow:0 1px 5px #06121c}
+.reaction-lab-slot-copy{position:absolute;z-index:2;right:4px;bottom:4px;left:auto;max-width:84%;display:flex;justify-content:flex-end;pointer-events:none}
+.reaction-lab-slot-copy strong{max-width:100%;padding:2px 5px;border-radius:5px;background:rgba(6,19,30,.78);font-size:13px;line-height:1.15;text-shadow:0 1px 2px #07111b}
+.reaction-lab-slot-copy small{display:none}
+
+/* A non-interactive wash above the WebGL canvas makes chamber conditions visible. */
+.reaction-lab-space{
+  --lab-light-glow:linear-gradient(transparent,transparent);
+  --lab-heat-glow:linear-gradient(transparent,transparent);
+  --lab-medium-glow:radial-gradient(ellipse 90% 70% at 50% 62%,rgba(61,141,168,.035),transparent 80%);
+  --lab-edge:transparent;
+}
+.reaction-lab-space::before{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:var(--lab-light-glow),var(--lab-heat-glow),var(--lab-medium-glow);box-shadow:inset 0 0 52px var(--lab-edge)}
+.reaction-lab-space[data-light="on"]{--lab-light-glow:radial-gradient(ellipse 85% 73% at 50% 7%,rgba(255,241,174,.27),rgba(245,233,172,.12) 38%,transparent 79%)}
+.reaction-lab-space[data-heat="on"]{--lab-heat-glow:radial-gradient(ellipse 95% 55% at 50% 100%,rgba(245,110,62,.20),rgba(222,95,56,.08) 52%,transparent 90%)}
+.reaction-lab-space[data-medium="acidic"]{--lab-medium-glow:linear-gradient(115deg,rgba(220,82,89,.14),rgba(157,42,70,.055) 55%,transparent);--lab-edge:rgba(204,78,98,.19)}
+.reaction-lab-space[data-medium="basic"]{--lab-medium-glow:linear-gradient(250deg,rgba(67,137,222,.16),rgba(65,175,206,.055) 60%,transparent);--lab-edge:rgba(76,151,215,.19)}
