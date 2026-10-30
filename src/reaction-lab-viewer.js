@@ -894,9 +894,13 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       :polymerRouteOwned&&polymerState?.waitReason==='conditions'?'PAUSED'
       :state.phase===REACTION_LAB_BATCH_PHASES.ACTIVE?dirty?'DRAFT':'ACTIVE'
       :state.draftSlots.some(Boolean)?'READY':'EMPTY';
-    commandState.textContent=`CHAMBER · ${chamberState}`;
-    // Only the actual material-transfer phase opens the valve; purge stays closed.
-    commandBar.dataset.feedFlow=state.phase===REACTION_LAB_BATCH_PHASES.FEEDING?'open':'closed';
+    commandState.textContent=`CHAMBER\n${chamberState}`;
+    // A genuine transfer opens the valve. Flushing is not material flow.
+    const feeding=state.phase===REACTION_LAB_BATCH_PHASES.FEEDING;
+    commandBar.dataset.feedFlow=feeding?'open':'closed';
+    root.dataset.feedFlow=commandBar.dataset.feedFlow;
+    commandBar.dataset.feedSources=state.activeSlots.map((species,index)=>species?'abc'[index]:'').filter(Boolean).join(' ');
+    feedButton.setAttribute('aria-label',feeding?'材料を反応室に投入中':'バルブを開いて材料を反応室に投入');
     slots.forEach((tile,index)=>{tile.disabled=!canEditRack();tile.setAttribute('aria-expanded',String(pickerOpen&&pickerSlotIndex===index));});
     feedButton.disabled=!canEditRack()||(!state.draftSlots.some(Boolean)&&state.phase===REACTION_LAB_BATCH_PHASES.IDLE);
     updateEnvironmentControls();updateGuide();
@@ -921,7 +925,11 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function renderPickerOptions(){
     pickerList.replaceChildren();const discovered=records.filter(record=>collectionState.hasMolecule(record.id)),draft=batch.draftSlots;
     const disconnect=root.querySelector('[data-lab-disconnect]');
-    if(disconnect){disconnect.disabled=!draft[pickerSlotIndex];disconnect.setAttribute('aria-disabled',String(!draft[pickerSlotIndex]));}
+    const connected=draft[pickerSlotIndex],selected=connected?recordsById.get(connected):null;
+    const head=root.querySelector('[data-lab-picker-head]'),current=root.querySelector('[data-lab-picker-current]');
+    if(head)head.textContent=`HEAD ${'ABC'[pickerSlotIndex]??'A'} · 分子の接続`;
+    if(current)current.textContent=selected?`接続中：${selected.commonNameJa??selected.nameJa??selected.formula??selected.id}`:'未接続';
+    if(disconnect){disconnect.disabled=!connected;disconnect.setAttribute('aria-disabled',String(!connected));disconnect.setAttribute('aria-label',`HEAD ${'ABC'[pickerSlotIndex]??'A'} の分子接続を外す`);}
     for(const record of discovered){
       const option=document.createElement('button'),visual=document.createElement('span'),copy=document.createElement('span'),formula=document.createElement('strong'),name=document.createElement('small'),index=draft.findIndex(id=>id===record.id),unavailable=index>=0&&index!==pickerSlotIndex;
       option.type='button';option.className='reaction-lab-picker-option';option.role='option';option.dataset.species=record.id;option.dataset.search=`${record.formula??''} ${record.commonNameJa??record.nameJa??''} ${record.nameEn??''} ${record.id}`;option.disabled=unavailable;option.setAttribute('aria-disabled',String(unavailable));option.setAttribute('aria-selected',String(draft[pickerSlotIndex]===record.id));
@@ -948,7 +956,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   slots.forEach((tile,index)=>tile.addEventListener('click',()=>openPicker(index),eventOptions));
   pickerSearch.addEventListener('input',filterPicker,eventOptions);
   root.querySelector('[data-lab-picker-close]')?.addEventListener('click',()=>closePicker(),eventOptions);
-  root.querySelector('[data-lab-disconnect]')?.addEventListener('click',()=>{if(!pickerOpen)return;const result=batch.setDraftSlot(pickerSlotIndex,'');if(!result.ok)return;closePicker();renderSlotTiles();status.textContent='feed headを切断しました。FEEDで変更を適用します。';},eventOptions);
+  root.querySelector('[data-lab-disconnect]')?.addEventListener('click',()=>{if(!pickerOpen)return;const result=batch.setDraftSlot(pickerSlotIndex,'');if(!result.ok)return;closePicker();renderSlotTiles();status.textContent='HEADの接続を外しました。次のFEEDで変更を適用します。';},eventOptions);
   dialog.addEventListener('cancel',event=>{if(pickerOpen){event.preventDefault();closePicker();}},{signal:eventController.signal});
   root.addEventListener('keydown',event=>{if(pickerOpen&&event.key==='Escape'){event.preventDefault();event.stopPropagation();closePicker();}},eventOptions);
 
