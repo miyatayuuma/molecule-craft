@@ -17,11 +17,10 @@ const reactionIds=[
  'polymer:polyethylene-terephthalate-direct-polycondensation'
 ];
 
-test('G01: 54 unique reactions in 13 populated groups, verified counted once',()=>{
- const saved=new Map(),storage={getItem:key=>saved.get(key)??null,setItem:(key,value)=>saved.set(key,value),removeItem:key=>saved.delete(key)};
- const progress=createReactionProgress({authority,storage}),model=reactionGroups(authority,progress);
+test('G01: 54 unique reactions in 14 groups, verified counted once',()=>{
+ const progress=createReactionProgress({authority}),model=reactionGroups(authority,progress);
  assert.equal(model.entries.length,54);
- assert.equal(model.groups.length,13,'The 14th presentation category (other) has no assigned routes after catalog classification');
+ assert.equal(model.groups.length,14);
  assert.equal(new Set(model.entries.map(e=>e.reactionId)).size,54);
  const shared=model.entries.find(e=>e.categoryTags.length>1);
  progress.verify(shared.reactionId);

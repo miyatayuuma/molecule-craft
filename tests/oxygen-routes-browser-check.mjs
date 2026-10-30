@@ -73,7 +73,7 @@ try{
   await page.evaluate(()=>{const run=window.__oxygenRun,site=run.map.safeExtractionSites.find(site=>site.id==='oxygen-network-merge-extraction');Object.assign(run.player,{x:site.x,y:site.y,vx:0,vy:0,speed:0,boost:0,combustion:false});run.carriedInsights=[];run.eaters=[];run.captured=false;window.__oxygenRenderer.reset();});
   await page.waitForFunction(()=>document.querySelector('#veil-status-panel')?.dataset.state==='site-ready');
   await tapShip();await page.waitForSelector('#veil-view',{state:'hidden'});
-  assert.match(await page.locator('#craft-last-run').textContent(),/CHO ✓/);
+  assert.match(await page.locator('#craft-last-run').innerText(),/CHO ✓/);
   assert.equal(await page.locator('#cho-completion').count(),0);
   await page.screenshot({path:'/tmp/molecule-craft-cho-ending.png'});
   await page.reload();await page.waitForSelector('#open-supply');

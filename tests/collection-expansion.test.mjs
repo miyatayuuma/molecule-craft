@@ -97,10 +97,10 @@ assert.equal(loop.observeStructures(connectedStructures(field)).events[0].isNew,
 // DOM double complements the public browser integration harness. Give each gate
 // one unit of stock so this test isolates progression visibility from inventory.
 const buttons=ELEMENT_UNLOCKS.map(item=>({dataset:{element:item.symbol,stockCount:'1'},style:{},hidden:false,disabled:false}));
-const root={querySelectorAll:()=>buttons},palette=createElementPalette(root,{canUse:CHO_ACCESS});
-assert.deepEqual(buttons.filter(b=>!b.hidden).map(b=>b.dataset.element),ELEMENT_UNLOCKS.map(item=>item.symbol));assert.equal(palette.canUse('N'),false);
-assert.equal(buttons.find(b=>b.dataset.element==='N').disabled,true,'Locked elements remain visible but cannot be placed');
+const extra={checked:false,addEventListener(type,fn){this.change=fn;}},root={querySelectorAll:()=>buttons,querySelector:selector=>selector==='#show-extra-elements'?extra:null},palette=createElementPalette(root,{canUse:CHO_ACCESS});
+assert.deepEqual(buttons.filter(b=>!b.hidden).map(b=>b.dataset.element),['H','C','O']);assert.equal(palette.canUse('N'),false);
 palette.update(loop);assert.equal(palette.canUse('N'),false,'Normal campaign stays CHO even when the legacy collection unlocks N');
+extra.checked=true;extra.change();palette.update(loop);assert.equal(palette.canUse('N'),false);
 palette.fallback();assert.equal(palette.canUse('P'),false,'Data fallback cannot bypass canonical element access');
-palette.fallback();assert.equal(palette.canUse('N'),false,'Data-load fallback preserves the canonical access gate');
+extra.checked=false;extra.change();palette.fallback();assert.equal(palette.canUse('N'),false,'Data-load fallback preserves the selected CHO scope');
 console.log(`Expansion passed: 20 PubChem topologies, external atom authority/migration, 3 named parts, recipe loop and locked palette fallback.`);

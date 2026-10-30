@@ -174,7 +174,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   q('close-collection').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('close',()=>{moleculeTransition.cancel({owner:currentDetail?'detail':'graph'});detailTransitionHandle=null;releaseViewer();document.body.classList.remove('collection-open');collectionDialogOpen=false;onOpenChange(false);for(const resolve of closeWaiters)resolve();closeWaiters.clear();});
   dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
-  for(const node of root.querySelectorAll('[data-book-tab]'))node.addEventListener('click',()=>{if(discoverySession||moleculeTransition.busy)return;tab=node.dataset.bookTab;currentDetail=null;listScroll=0;if(tab==='molecules')ensureGraphFocus();if(tab==='polymers'||tab==='groups'){filter='all';if(tab==='groups')scope='all';}renderBook();});
+  for(const node of root.querySelectorAll('[data-book-tab]'))node.addEventListener('click',()=>{if(discoverySession||moleculeTransition.busy)return;tab=node.dataset.bookTab;currentDetail=null;listScroll=0;if(tab==='molecules')ensureGraphFocus();if(tab==='polymers')filter='all';renderBook();});
   q('collection-category').addEventListener('change',event=>{if(discoverySession||moleculeTransition.busy)return;category=event.target.value;currentDetail=null;listScroll=0;renderBook();});
   q('collection-filter').addEventListener('change',event=>{if(discoverySession||moleculeTransition.busy)return;filter=event.target.value;currentDetail=null;listScroll=0;renderBook();});
   function showDetail(kind,id){
@@ -210,9 +210,11 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function openEntry(kind,id){return kind==='molecules'?openRegisteredMoleculeEntry(id):kind==='polymers'?openPolymer(id):false;}
   window.addEventListener('molecule-craft:open-molecule',event=>openMolecule(event.detail?.id));
+  root.querySelector('#show-extra-elements')?.addEventListener('change',()=>renderPalette());
   function renderPalette(){
     elementPalette.update(state);const container=q('craft-palette');container.replaceChildren();
     for(const template of [...data.templates].sort((a,b)=>a.tier-b.tier)){
+      if(!root.querySelector('#show-extra-elements')?.checked&&!isCHO(template.atoms))continue;
       if(!state.isUnlocked(template.id)&&!state.hasGroup(template.unlock.groupId))continue;
       const unlocked=state.isUnlocked(template.id),count=state.groupSources(template.unlock.groupId).length;
       const node=button('',()=>{
@@ -232,6 +234,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     q('collection-progress').textContent=`分子 ${state.discoveredCount} / ${records.length}　部品 ${knownParts} / ${partGroups.length}　高分子 ${polymerState.discoveredCount} / ${polymerRecords.length}`;
     const storage=q('collection-storage'),message=[state.storageMessage,polymerState.storageMessage].filter(Boolean).join('　');storage.textContent=message;storage.hidden=!message;
     const save=q('game-save-status');save.dataset.collectionStatus=message?'図鑑を保存できません。図鑑で確認してください。':'';const warnings=[save.dataset.collectionStatus,save.dataset.reactionStatus].filter(Boolean);save.textContent=warnings.join('　');save.hidden=!warnings.length;const labWarning=root.querySelector('#lab-save-warning');if(labWarning){labWarning.textContent=save.textContent;labWarning.hidden=save.hidden;}
+    q('game-loop-hint').textContent=`発見 ${records.filter(r=>isCHO(r.atoms)&&state.hasMolecule(r.id)).length}（CHO） · 図鑑完成は任意のやり込み`;
     const milestoneList=q('collection-milestones');milestoneList.replaceChildren();for(const id of state.milestoneIds())milestoneList.appendChild(el('span',MILESTONES[id],'collection-tag'));
   }
   function visibleItems(kind=tab){
@@ -264,7 +267,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }
   }
   function renderGroupList(){
-    list.className='collection-grid';delete list.dataset.kind;
+    list.className='collection-grid';
     const select=q('collection-category');select.replaceChildren(new Option('すべて','all'));select.value='all';q('collection-filter').value=filter;
     if(q('filter-summary'))q('filter-summary').textContent=q('collection-filter').selectedOptions[0]?.textContent??'';
     list.replaceChildren();
@@ -272,7 +275,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       const known=state.hasGroup(item.id),card=button('',()=>showDetail('groups',item.id),`collection-card ${known?'found':'unknown'}`);card.dataset.entryId=item.id;
       card.append(el('small',numberLabel('groups',item.id),'dex-number'));
       if(known){thumbnail(card,'groups',item.id);card.append(el('span',data.templates.some(t=>t.unlock.groupId===item.id&&state.isUnlocked(t.id))?'✓':'●','dex-state'));}
-      // Unknown groups reveal only their stable catalog number and mystery state.
+      // Unknown polymers deliberately reveal only their stable number and ???.
       card.append(el('strong',known?item.nameJa:'???'));list.appendChild(card);
     }
     if(!list.childElementCount)list.appendChild(el('p','この条件の項目はありません。','collection-note'));
@@ -317,15 +320,14 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     });
   }
   function renderPolymerList(){
-    list.className='collection-grid';list.dataset.kind='polymers';q('collection-category').replaceChildren(new Option('すべて','all'));q('collection-category').value='all';q('collection-filter').value=filter;
+    list.className='collection-grid';q('collection-category').replaceChildren(new Option('すべて','all'));q('collection-category').value='all';q('collection-filter').value=filter;
     if(q('filter-summary'))q('filter-summary').textContent=q('collection-filter').selectedOptions[0]?.textContent??'';
     list.replaceChildren();
     const previews=[];
     for(const record of visibleItems('polymers')){
       const known=polymerState.hasPolymer(record.id),content=polymerContentById.get(record.id);
-      const card=known?button('',()=>showDetail('polymers',record.id),'collection-card found'):el('div',null,'collection-card unknown');
+      const card=button('',()=>showDetail('polymers',record.id),`collection-card ${known?'found':'unknown'}`);
       card.dataset.entryId=record.id;
-      if(!known)card.setAttribute('aria-label',`No. ${String(content?.number??number('polymers',record.id)).padStart(3,'0')} 未発見`);
       card.append(el('small',`No. ${String(content?.number??number('polymers',record.id)).padStart(3,'0')}`,'dex-number'));
       if(known){
         const cached=polymerThumbnailCache.get(record.id);
@@ -338,7 +340,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
           card.append(host);previews.push({host,record});
         }
       }
-      card.append(el('strong',known?record.nameJa:'未発見'));
+      card.append(el('strong',known?record.nameJa:'???'));
       list.appendChild(card);
     }
     if(!list.childElementCount)list.appendChild(el('p','この条件の項目はありません。','collection-note'));
@@ -528,7 +530,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     observeStructures(structures){const result=state.observeStructures(structures);if(result.changed){renderPalette();renderSummary();if(dialog.open)renderBook();}return result;},
     describeEvent(event){
       if(!event?.isNew)return '';if(event.saved===false)return 'この画面の間だけ図鑑に登録しました。保存できていません。';const messages=[];
-      if(event.unlockedElements?.length)messages.push(`${event.unlockedElements.map(symbol=>`${ELEMENT_UNLOCKS.find(item=>item.symbol===symbol).name}（${symbol}）`).join('・')}を解放`);
+      if(root.querySelector('#show-extra-elements')?.checked&&event.unlockedElements?.length)messages.push(`${event.unlockedElements.map(symbol=>`${ELEMENT_UNLOCKS.find(item=>item.symbol===symbol).name}（${symbol}）`).join('・')}を解放`);
       if(event.unlockedParts.length)messages.push(`${event.unlockedParts.map(id=>data.templates.find(template=>template.id===id).nameJa).join('・')}を獲得`);
       return messages.join(' ／ ')||'図鑑に登録しました';
     },
