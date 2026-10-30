@@ -92,7 +92,24 @@
       <button class="reaction-lab-slot" type="button" data-lab-slot="2" aria-label="Feed slot C：未接続" aria-haspopup="true" aria-expanded="false" aria-controls="reaction-lab-picker"><span class="reaction-lab-slot-index">C</span><span class="reaction-lab-slot-socket" aria-hidden="true"></span><span class="reaction-lab-slot-copy"><strong data-slot-formula>—</strong><small data-slot-name>未接続</small></span></button>
     </div>
     <div class="reaction-lab-feed-conduits" aria-hidden="true"><i></i><i></i><i></i></div>
-    <div class="reaction-lab-command-bar" data-feed-flow="closed"><span data-lab-command-state>CHAMBER · READY</span><span class="reaction-lab-feed-valve" aria-hidden="true"><i class="reaction-lab-valve-handle"></i></span><button type="button" data-lab-feed>FEED <b aria-hidden="true">›</b></button></div>
+    <div class="reaction-lab-command-bar" data-feed-flow="closed" data-feed-sources="">
+      <span class="reaction-lab-command-state" data-lab-command-state>CHAMBER<br>READY</span>
+      <span class="reaction-lab-feed-particle" data-feed-source="a" aria-hidden="true"></span>
+      <span class="reaction-lab-feed-particle" data-feed-source="b" aria-hidden="true"></span>
+      <span class="reaction-lab-feed-particle" data-feed-source="c" aria-hidden="true"></span>
+      <button type="button" class="reaction-lab-feed-control" data-lab-feed aria-label="バルブを開いて材料を反応室に投入">
+        <svg class="reaction-lab-feed-control-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path class="reaction-lab-valve-pipe" d="M24 1v8M24 39v8" fill="none" stroke-width="6" stroke-linecap="round"/>
+          <path class="reaction-lab-valve-body" d="M15 13h18l6 11-6 11H15L9 24z" stroke-width="2"/>
+          <circle class="reaction-lab-valve-core" cx="24" cy="24" r="9"/>
+          <g class="reaction-lab-valve-rotor">
+            <path d="M13 24h22" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="24" cy="24" r="4.5"/>
+          </g>
+        </svg>
+        <span class="reaction-lab-feed-control-label"><strong>FEED</strong><small>投入 ↓</small></span>
+      </button>
+    </div>
     <div class="reaction-lab-space"><canvas aria-label="分子をドラッグして反応サイトを操作する3D空間"></canvas><div class="reaction-lab-purge-outlet" aria-hidden="true"><i></i><span>PURGE</span></div><div class="reaction-lab-environment" role="group" aria-label="Chamber activation environment">
       <button class="reaction-lab-equipment reaction-lab-light" type="button" data-lab-light aria-label="LIGHT：OFF" aria-pressed="false"><span class="reaction-lab-light-beam" aria-hidden="true"></span><span class="reaction-lab-equipment-glyph" aria-hidden="true">◉</span><span>LIGHT</span><small data-lab-equipment-state>OFF</small></button>
       <button class="reaction-lab-equipment reaction-lab-heat" type="button" data-lab-heat aria-label="HEAT：OFF" aria-pressed="false"><span class="reaction-lab-equipment-glyph" aria-hidden="true">≋</span><span>HEAT</span><small data-lab-equipment-state>OFF</small></button>
@@ -103,7 +120,7 @@
     <div class="reaction-lab-polymer-completion" data-polymer-completion hidden><div class="reaction-lab-polymer-completion-copy"><strong data-polymer-completion-name></strong><span data-polymer-completion-status role="status" aria-live="polite"></span></div></div>
     <p data-lab-status class="reaction-lab-status" role="status" aria-live="polite"></p>
     </div>
-    <div id="reaction-lab-picker" class="reaction-lab-picker" data-lab-picker hidden aria-hidden="true" aria-label="分子picker"><div class="reaction-lab-picker-backdrop" aria-hidden="true"></div><section class="reaction-lab-picker-sheet" aria-labelledby="reaction-lab-picker-title"><header><div><small>DISCOVERED SPECIES</small><h3 id="reaction-lab-picker-title">Feed headを接続</h3></div><div class="reaction-lab-picker-actions"><button type="button" class="reaction-lab-disconnect" data-lab-disconnect aria-label="このFEED HEADの接続を外す" title="接続を外す"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h6v6H3zM15 9h6v6h-6zM9 12h3M3 12H1M21 12h2M13 8l2-2M13 16l2 2"/></svg></button><button type="button" data-lab-picker-close aria-label="分子pickerを閉じる">×</button></div></header><label class="reaction-lab-search-label">分子を検索<input type="search" data-lab-search placeholder="formula・分子名" autocomplete="off"></label><div class="reaction-lab-picker-list" data-lab-picker-list role="listbox" aria-label="発見済み分子"></div></section></div>
+    <div id="reaction-lab-picker" class="reaction-lab-picker" data-lab-picker hidden aria-hidden="true" aria-label="分子picker"><div class="reaction-lab-picker-backdrop" aria-hidden="true"></div><section class="reaction-lab-picker-sheet" aria-labelledby="reaction-lab-picker-title"><header><div class="reaction-lab-picker-heading"><small data-lab-picker-head>HEAD A</small><h3 id="reaction-lab-picker-title">接続する分子</h3><span class="reaction-lab-picker-current" data-lab-picker-current>未接続</span></div><div class="reaction-lab-picker-actions"><button type="button" class="reaction-lab-disconnect" data-lab-disconnect aria-label="このHEADの分子接続を外す" title="分子の接続を外す"><svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect x="2.5" y="10" width="8.5" height="12" rx="2.5" fill="currentColor"/><path d="M2.5 16H1M11 12v8" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/><rect x="22" y="11" width="8" height="10" rx="2" fill="currentColor"/><path d="M22 13.5h-5M22 18.5h-5M30 16h1" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="m15 5 4 0m-2-2 2 2-2 2" fill="none" stroke="#f1be85" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>外す</span></button><button type="button" data-lab-picker-close aria-label="分子pickerを閉じる">×</button></div></header><label class="reaction-lab-search-label">分子を検索<input type="search" data-lab-search placeholder="formula・分子名" autocomplete="off"></label><div class="reaction-lab-picker-list" data-lab-picker-list role="listbox" aria-label="発見済み分子"></div></section></div>
   </section></dialog>
   <dialog id="info-dialog" class="sheet" aria-labelledby="info-title"><header class="sheet-header"><h2 id="info-title">いまの分子</h2><button type="button" data-close-dialog aria-label="分子情報を閉じる">×</button></header><div class="sheet-body info-panel">
     <div id="status" class="status ok">原子を追加してください</div><p id="molecule-iupac" class="muted"></p>

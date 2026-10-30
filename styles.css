@@ -380,23 +380,6 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 @media(max-width:650px){.topbar-actions button.ui-icon-button{width:46px;height:46px;min-width:46px;padding:5px}.ui-book-icon{width:31px;height:31px}}
 
 
-/* FEED manifold and chamber inlet share the head conduit's cyan mechanical language. */
-.reaction-lab-command-bar{position:relative;isolation:isolate}
-.reaction-lab-command-bar::after{content:"";position:absolute;z-index:2;left:50%;top:100%;height:13px;width:4px;transform:translateX(-50%);border-radius:3px;background:#337f91;box-shadow:0 0 7px rgba(75,199,215,.5);pointer-events:none}
-.reaction-lab-feed-valve{position:absolute;z-index:3;left:50%;bottom:-14px;width:18px;height:18px;transform:translateX(-50%);border:2px solid #559fac;border-radius:50%;background:#102c3c;box-shadow:0 0 0 2px #0a1a28,0 0 8px rgba(76,190,212,.24);pointer-events:none}
-.reaction-lab-valve-handle{position:absolute;left:50%;top:50%;width:3px;height:14px;transform:translate(-50%,-50%) rotate(0deg);transform-origin:center;border-radius:3px;background:#8de4e9;transition:transform 280ms ease}
-.reaction-lab-valve-handle::after{content:"";position:absolute;left:-4px;top:5px;width:11px;height:3px;border-radius:3px;background:#8de4e9}
-.reaction-lab-command-bar[data-feed-flow="open"] .reaction-lab-valve-handle{transform:translate(-50%,-50%) rotate(90deg)}
-.reaction-lab-command-bar[data-feed-flow="open"]::after{background:linear-gradient(180deg,#227d94,#a5ffff,#227d94);background-size:100% 200%;animation:reaction-lab-feed-current 650ms linear infinite;box-shadow:0 0 10px rgba(88,229,231,.8)}
-.reaction-lab-command-bar[data-feed-flow="open"] .reaction-lab-feed-valve{border-color:#a7f4f3;box-shadow:0 0 0 2px #0a1a28,0 0 12px rgba(124,231,243,.65)}
-@keyframes reaction-lab-feed-current{to{background-position:0 200%}}
-
-/* Disconnection is an unplug action, distinct from the flow valve and close control. */
-.reaction-lab-picker-actions{display:flex;align-items:center;gap:8px}
-.reaction-lab-picker-sheet header .reaction-lab-disconnect{display:grid;place-items:center;flex:none;width:44px;height:44px;min-height:44px;padding:8px;border:1px solid #385268;border-radius:10px;background:#132737;color:#aee4e5}
-.reaction-lab-disconnect svg{display:block;width:23px;height:23px}
-.reaction-lab-picker-sheet header .reaction-lab-disconnect:disabled{opacity:.3}
-
 /* Two touch-friendly square molecule cards on phones, three on wider screens. */
 .reaction-lab-picker-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .reaction-lab-picker-option{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;aspect-ratio:1/1;min-width:0;min-height:136px;padding:8px 6px;text-align:center;border-radius:11px}
@@ -410,7 +393,7 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .reaction-lab-picker-option[aria-selected="true"]::after{content:"✓";position:absolute;right:7px;top:5px;color:#ffe099;font-size:17px;font-weight:800}
 .reaction-lab-picker-option[aria-disabled="true"]{opacity:.44}
 @media(min-width:720px){.reaction-lab-picker-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(prefers-reduced-motion:reduce){.reaction-lab-valve-handle{transition:none}.reaction-lab-command-bar[data-feed-flow="open"]::after{animation:none;background:#8cdbdf}}
+
 
 
 /* Picker card fit: fixed grid tracks prevent neighbouring cards from overlapping.
@@ -423,3 +406,130 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .reaction-lab-picker-option strong{max-width:100%;font-size:12px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .reaction-lab-picker-option small{max-width:100%;margin:0;font-size:10px;line-height:1.2;-webkit-line-clamp:2}
 @media(min-width:720px){.reaction-lab-picker-list{grid-auto-rows:138px}.reaction-lab-picker-model img{max-height:82px}}
+
+/* Mechanical FEED manifold: slot ports, actuator and chamber inlet are one device. */
+.reaction-lab-command-bar{
+  position:relative;isolation:isolate;display:flex;align-items:center;justify-content:flex-start;
+  height:46px;min-height:46px;padding:0 10px;overflow:visible;
+  background:linear-gradient(180deg,#122b3a,#0b1e2b);
+}
+.reaction-lab-command-bar::before{
+  content:"";position:absolute;z-index:0;left:16.66%;right:16.66%;top:-2px;
+  height:4px;border-radius:4px;background:linear-gradient(90deg,#357c8b,#5aa9b7 50%,#357c8b);
+  box-shadow:0 0 8px rgba(70,183,197,.35);pointer-events:none;
+}
+.reaction-lab-command-bar::after{
+  content:"";position:absolute;z-index:2;left:50%;top:100%;width:6px;height:13px;
+  transform:translateX(-50%);border-radius:3px;
+  background:linear-gradient(90deg,#204555,#5ca7b6,#204555);
+  box-shadow:0 0 8px rgba(78,186,204,.4);pointer-events:none;
+}
+.reaction-lab-command-bar>.reaction-lab-command-state{
+  position:relative;z-index:3;flex:none;width:calc(50% - 81px);max-width:118px;min-width:62px;
+  overflow:hidden;white-space:pre-line;line-height:1.25;font-size:10px;
+  letter-spacing:.06em;color:#91c9d0;
+}
+.reaction-lab-command-bar .reaction-lab-feed-control{
+  position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:152px;min-width:152px;height:44px;min-height:44px;margin:0;padding:1px 8px;
+  border:1px solid #5caebd;border-radius:9px;
+  background:linear-gradient(180deg,#27596a,#173746 50%,#102b3b);
+  color:#eaffff;box-shadow:0 2px 0 #061722,0 0 12px rgba(54,185,202,.24);
+  text-align:left;touch-action:manipulation;
+}
+.reaction-lab-feed-control-icon{display:block;flex:none;width:42px;height:42px;overflow:visible;}
+.reaction-lab-valve-pipe{stroke:#6ca9b7;}
+.reaction-lab-valve-body{fill:#143444;stroke:#7cc6cd;}
+.reaction-lab-valve-core{fill:#225363;stroke:#b8eced;stroke-width:1.5;}
+.reaction-lab-valve-rotor{transform-origin:24px 24px;transform:rotate(0);transition:transform 380ms cubic-bezier(.22,.75,.28,1);stroke:#e5f6e7;fill:#c0e3e5;}
+.reaction-lab-feed-control-label{display:grid;align-content:center;gap:2px;min-width:0;}
+.reaction-lab-feed-control-label strong{font:900 16px/1.1 ui-monospace,monospace;letter-spacing:.12em;}
+.reaction-lab-feed-control-label small{font:700 11px/1.1 system-ui,sans-serif;letter-spacing:.02em;color:#d4edef;white-space:nowrap;}
+.reaction-lab-command-bar .reaction-lab-feed-control:disabled{opacity:.5;cursor:default;}
+.reaction-lab-command-bar[data-feed-flow="open"] .reaction-lab-feed-control{
+  opacity:1;border-color:#c4f6de;background:linear-gradient(180deg,#2b726f,#1b554e 52%,#133c3b);
+  box-shadow:0 0 0 1px rgba(164,248,216,.2),0 0 17px rgba(104,247,222,.5);
+}
+.reaction-lab-command-bar[data-feed-flow="open"] .reaction-lab-valve-rotor{transform:rotate(90deg);}
+.reaction-lab-command-bar[data-feed-flow="open"] .reaction-lab-valve-core{fill:#329e87;}
+.reaction-lab-command-bar[data-feed-flow="open"]::after{
+  background:linear-gradient(180deg,#43c7c7,#e5fff1,#43c7c7);background-size:100% 200%;
+  animation:reaction-lab-outlet-current 700ms linear infinite;
+}
+.reaction-lab[data-feed-flow="open"] .reaction-lab-slot.is-active::after{
+  background:#abfff0;box-shadow:0 0 10px #68efde;
+}
+/* Each lit bead follows a source HEAD into the common manifold, then downward. */
+.reaction-lab-feed-particle{
+  position:absolute;top:-4px;left:50%;z-index:4;width:8px;height:8px;
+  margin:-1px 0 0 -4px;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 30% 30%,#fff,#a5ffe6 45%,#28bec5);
+  box-shadow:0 0 10px rgba(114,255,234,.9);
+}
+.reaction-lab-command-bar[data-feed-flow="open"][data-feed-sources~="a"] [data-feed-source="a"]{
+  animation:reaction-lab-feed-a 1.65s ease-in-out infinite;
+}
+.reaction-lab-command-bar[data-feed-flow="open"][data-feed-sources~="b"] [data-feed-source="b"]{
+  animation:reaction-lab-feed-b 1.65s ease-in-out .27s infinite;
+}
+.reaction-lab-command-bar[data-feed-flow="open"][data-feed-sources~="c"] [data-feed-source="c"]{
+  animation:reaction-lab-feed-c 1.65s ease-in-out .54s infinite;
+}
+@keyframes reaction-lab-feed-a{
+  0%{left:16.66%;top:-4px;opacity:0}
+  14%{opacity:1}
+  52%{left:50%;top:-4px;opacity:1}
+  83%{left:50%;top:100%;opacity:1}
+  100%{left:50%;top:calc(100% + 9px);opacity:0}
+}
+@keyframes reaction-lab-feed-b{
+  0%{left:50%;top:-4px;opacity:0}
+  14%{opacity:1}
+  52%{left:50%;top:-4px;opacity:1}
+  83%{left:50%;top:100%;opacity:1}
+  100%{left:50%;top:calc(100% + 9px);opacity:0}
+}
+@keyframes reaction-lab-feed-c{
+  0%{left:83.34%;top:-4px;opacity:0}
+  14%{opacity:1}
+  52%{left:50%;top:-4px;opacity:1}
+  83%{left:50%;top:100%;opacity:1}
+  100%{left:50%;top:calc(100% + 9px);opacity:0}
+}
+@keyframes reaction-lab-outlet-current{to{background-position:0 200%}}
+
+/* Picker explicitly identifies its HEAD and uses a plug/socket plus a text verb. */
+.reaction-lab-picker-sheet>header{gap:8px;}
+.reaction-lab-picker-heading{display:grid;align-content:center;min-width:0;flex:1 1 auto;gap:2px;}
+.reaction-lab-picker-sheet .reaction-lab-picker-heading h3{margin:0;font-size:16px;line-height:1.3;}
+.reaction-lab-picker-current{
+  display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#bdd1de;font-size:11px;line-height:1.3;
+}
+.reaction-lab-picker-actions{display:flex;align-items:center;gap:6px;flex:none;}
+.reaction-lab-picker-sheet header .reaction-lab-disconnect{
+  display:flex;flex-direction:row;align-items:center;justify-content:center;gap:4px;
+  width:84px;min-width:84px;height:44px;min-height:44px;padding:4px 7px;
+  border:1px solid #6d6e76;border-radius:10px;
+  background:linear-gradient(180deg,#283742,#172932);color:#eed9ca;
+  font:750 12px/1 system-ui,sans-serif;white-space:nowrap;
+}
+.reaction-lab-disconnect svg{display:block;flex:none;width:31px;height:31px;}
+.reaction-lab-picker-sheet header .reaction-lab-disconnect:disabled{opacity:.34;}
+.reaction-lab-picker-sheet header .reaction-lab-disconnect:focus-visible,
+.reaction-lab-command-bar .reaction-lab-feed-control:focus-visible{
+  outline:3px solid #ffdd81;outline-offset:3px;
+}
+@media(max-width:380px){
+ .reaction-lab-command-bar>.reaction-lab-command-state{font-size:9px;min-width:54px;}
+ .reaction-lab-command-bar .reaction-lab-feed-control{width:142px;min-width:142px;}
+ .reaction-lab-picker-sheet .reaction-lab-picker-heading h3{font-size:14px;}
+ .reaction-lab-picker-sheet header .reaction-lab-disconnect{width:76px;min-width:76px;padding:3px;}
+ .reaction-lab-picker-actions{gap:4px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .reaction-lab-valve-rotor{transition:none;}
+ .reaction-lab-feed-particle{animation:none!important;opacity:0!important;}
+ .reaction-lab-command-bar[data-feed-flow="open"]::after{animation:none;background:#a6f8eb;}
+}
