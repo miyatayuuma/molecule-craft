@@ -1,5 +1,5 @@
 import {compileReactionGuide} from '../reaction-lab-guidance.js?v=1';
-export const REACTION_RECIPE_FIELD_CONFIG=Object.freeze({discoveryRate:.30,spawnChance:.15,fieldCap:1,readyWeight:2,minDistance:100,maxDistance:240,pickupRadius:32});
+export const REACTION_RECIPE_FIELD_CONFIG=Object.freeze({discoveryRate:.30,spawnChance:.05,fieldCap:1,readyWeight:2,minDistance:100,maxDistance:240,pickupRadius:32});
 export function recipeCandidatePool({authority,progress,records,collection,config=REACTION_RECIPE_FIELD_CONFIG}){
   if(!authority||!progress||!collection)return [];
   return authority.entries().filter(e=>e.encyclopediaIncluded&&progress.getState(e.reactionId)==='notFound').map(entry=>({entry,guide:compileReactionGuide(entry,records)})).filter(x=>x.guide.ok&&x.guide.species.every(id=>collection.hasMolecule(id))).map(x=>({...x,weight:config.readyWeight}));
