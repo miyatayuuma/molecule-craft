@@ -528,7 +528,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     refreshProgress(){state.refreshAccess();renderPalette();renderSummary();if(dialog.open)renderBook();},
     observeStructures(structures){const result=state.observeStructures(structures);if(result.changed){renderPalette();renderSummary();if(dialog.open)renderBook();}return result;},
     describeEvent(event){
-      if(!event?.isNew)return '';const messages=[];
+      if(!event?.isNew)return '';if(event.saved===false)return 'この画面の間だけ図鑑に登録しました。保存できていません。';const messages=[];
       if(root.querySelector('#show-extra-elements')?.checked&&event.unlockedElements?.length)messages.push(`${event.unlockedElements.map(symbol=>`${ELEMENT_UNLOCKS.find(item=>item.symbol===symbol).name}（${symbol}）`).join('・')}を解放`);
       if(event.unlockedParts.length)messages.push(`${event.unlockedParts.map(id=>data.templates.find(template=>template.id===id).nameJa).join('・')}を獲得`);
       return messages.join(' ／ ')||'図鑑に登録しました';

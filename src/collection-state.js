@@ -40,7 +40,7 @@ export function createCollectionState({records,groups,templates,storage=null,now
   function snapshot(){
     return {schemaVersion:CURRENT_COLLECTION_SCHEMA_VERSION,discoveredMolecules:[...molecules.values()],discoveredGroups:[...sources].map(([id,ids])=>({id,sources:[...ids]})),unlockedStructures:[...unlocked],legacyElements:[...legacyElements],milestones:[...milestones]};
   }
-  function persist(){persistence.save(snapshot());}
+  function persist(){return persistence.save(snapshot());}
   function registerDiscoveredMoleculeCore(recordId,{at=now(),shouldPersist=true}={}){
     const record=byId.get(recordId);if(!record)throw new RangeError(`Unknown molecule record: ${recordId}`);
     if(!Number.isFinite(at)||at<0)throw new TypeError('Discovery time must be a non-negative finite number');
@@ -52,8 +52,8 @@ export function createCollectionState({records,groups,templates,storage=null,now
     molecules.set(record.id,{id:record.id,at,order:molecules.size+1});learn(record.id);
     event.groupDiscoveries=[...sources.keys()].filter(id=>!previousGroups.has(id));
     event.unlockedParts=[...unlocked].filter(id=>!previousUnlocks.has(id));
-    if(shouldPersist)persist();
-    return {changed:true,event};
+    const saved=shouldPersist?persist():null;event.saved=saved;
+    return {changed:true,saved,event};
   }
   function registerDiscoveredMolecule(recordId,{at=now()}={}){return registerDiscoveredMoleculeCore(recordId,{at});}
   restore();
@@ -84,8 +84,9 @@ export function createCollectionState({records,groups,templates,storage=null,now
         if(result.changed)changed=true;
         events.push({...result.event,signature:item.signature});
       }
-      if(changed)persist();
-      return {changed,events};
+      const saved=changed?persist():null;
+      if(changed)for(const event of events)if(event.isNew)event.saved=saved;
+      return {changed,saved,events};
     },
   };
 }
