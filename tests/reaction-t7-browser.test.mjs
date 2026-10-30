@@ -1,3 +1,6 @@
+// Manual focused browser check: node tests/reaction-t7-browser.test.mjs
+// Atom-capacity variant: T7_CASE=capacity node tests/reaction-t7-browser.test.mjs
+// Requires a Chromium executable on PATH; this script is not part of the default CI workflow.
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
