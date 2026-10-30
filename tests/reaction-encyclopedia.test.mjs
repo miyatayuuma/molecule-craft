@@ -16,7 +16,7 @@ test('registry entries remain unique across categories and unreachable route is 
 test('all 54 reviewed route categories match the mapping',()=>{
  const expected=JSON.parse(readFileSync(new URL('./fixtures/reaction-encyclopedia-categories.json',import.meta.url)));
  const entries=createReactionCatalogAuthority({polymerRoutes:routes}).entries();
- assert.equal(Object.keys(expected).length,54);
+ assert.equal(Object.keys(expected).length,54);assert.equal(entries.filter(e=>e.kind==='normal'&&!e.categoryTags.length).length,0);
  assert.deepEqual(Object.fromEntries(entries.map(e=>[e.reactionId,e.categoryTags.length?e.categoryTags:['other']])),expected);
 });
 

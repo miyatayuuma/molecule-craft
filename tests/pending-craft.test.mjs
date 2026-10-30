@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {pendingAttentionTransition,pendingCraftRowModel,pendingReactionRecipeIds,unfinishedCraftIds} from '../src/pending-craft.js?v=1';
+import {pendingAttentionTransition,pendingCraftRowModel,pendingReactionRecipeIds,reactionRecipeRowModel,unfinishedCraftIds} from '../src/pending-craft.js?v=1';
 
 assert.deepEqual(unfinishedCraftIds({hints:[],recipes:[]}),[],'undiscovered molecules are not pending');
 assert.deepEqual(unfinishedCraftIds({hints:['oxygen'],recipes:[]}),['oxygen'],'discovered unfinished molecules are pending');
@@ -84,3 +84,8 @@ assert.doesNotMatch(supplySource,/const hintIds=\{propellant:/,'LOADOUT must not
 assert.doesNotMatch(pendingSource,/tank-next-hint/,'retired LOADOUT hint-button compatibility DOM must not return');
 
 console.log('Pending craft passed: centered knowledge panel, session-local unseen/acknowledged attention, immediate recipe-state synchronization, sparse/reduced-motion affordance, return integration, category semantics and craft routing.');
+
+const inputs=[{id:'ethylene-glycol',nameJa:'エチレングリコール'},{id:'ethylene-oxide',nameJa:'エチレンオキシド'},{id:'water',nameJa:'水'}];
+const mkEntry=(reactionId,requires)=>({reactionId,kind:'normal',definition:{products:['ethylene-glycol'],reactants:[{species:'ethylene-oxide'},{species:'water'}],requires}});
+const acid=reactionRecipeRowModel(mkEntry('normal:acid',['acidic']),{records:inputs}),base=reactionRecipeRowModel(mkEntry('normal:base',['basic','heat']),{records:inputs});
+assert.equal(acid.name,base.name);assert.match(acid.detail,/酸性/);assert.match(base.detail,/塩基性・加熱/);assert.notEqual(acid.detail,base.detail);

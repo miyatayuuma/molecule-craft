@@ -12,17 +12,20 @@
     "hydrolysis"
   ],
   "normal:complete-05-amide-alcoholysis": [
-    "other"
+    "substitution"
   ],
   "normal:complete-06-ethene-halogenation": [
     "addition",
     "halogenation"
   ],
   "normal:complete-07-sulfur-trioxide-hydration": [
-    "other"
+    "addition",
+    "hydration"
   ],
   "normal:complete-08-phosphorus-pentachloride-formation": [
-    "other"
+    "addition",
+    "halogenation",
+    "oxidation"
   ],
   "normal:complete-09-ethylene-oxide-acid-cleavage": [
     "ring-opening"
