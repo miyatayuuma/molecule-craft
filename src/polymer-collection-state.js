@@ -11,8 +11,8 @@ export function createPolymerCollectionState({records=[],storage=null,now=Date.n
     const record=byId.get(id);if(!record)throw new RangeError(`Unknown polymer record: ${id}`);
     if(!Number.isFinite(at)||at<0)throw new TypeError('Discovery time must be a non-negative finite number');
     if(discovered.has(id))return{changed:false,event:{record,isNew:false}};
-    const entry={id,at,order:discovered.size+1};discovered.set(id,entry);persist();
-    return{changed:true,event:{record,isNew:true,entry:{...entry}}};
+    const entry={id,at,order:discovered.size+1};discovered.set(id,entry);const saved=persist();
+    return{changed:true,saved,event:{record,isNew:true,saved,entry:{...entry}}};
   }
   return{
     snapshot,hasPolymer:id=>discovered.has(id),polymerEntry:id=>discovered.get(id)??null,

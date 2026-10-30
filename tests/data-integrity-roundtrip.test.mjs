@@ -1,0 +1,21 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createResources,RESOURCE_KEY} from '../src/veil/resources.js';
+import {createInitialResourcesState} from '../src/veil/resources-persistence.js';
+import {createCollectionState,COLLECTION_STORAGE_KEY} from '../src/collection-state.js';
+import {createPolymerCollectionState} from '../src/polymer-collection-state.js';
+import {createReactionProgress,REACTION_PROGRESS_KEY} from '../src/reaction-progress.js';
+import {createReactionCatalogAuthority} from '../src/reaction-catalog-authority.js';
+const read=name=>JSON.parse(readFileSync(new URL(`../data/${name}.json`,import.meta.url)));
+const records=read('molecules'),groups=read('functional-groups'),templates=read('craft-structures'),polymers=read('polymers'),routes=read('polymerization-routes').routes;
+const authority=createReactionCatalogAuthority({polymerRoutes:routes});
+const memory=()=>{const map=new Map();return {getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,String(v)),removeItem:k=>map.delete(k)};};
+test('v9 progress and all existing keys survive save and reload',()=>{
+ const s=memory(),state=createInitialResourcesState();state.elements.H=311;state.elements.C=45;state.dust.H=1;state.recipes=['hydrogen','water'];state.hints=['methane'];state.tanks.propellant={molecule:'hydrogen',amount:10};state.loadout.tanks.propellant='hydrogen';state.progress.runs=4;state.workspace={schemaVersion:2,atoms:[],bonds:[],selected:null,focus:null,pivot:null,camera:{position:[0,0,1],target:[0,0,0],up:[0,1,0]}};s.setItem(RESOURCE_KEY,JSON.stringify(state));s.setItem('molecule-craft.workspace.v1','legacy-workspace-bytes');
+ const c=createCollectionState({records,groups,templates,storage:s,now:()=>1});assert.equal(c.registerDiscoveredMolecule('water').saved,true);
+ const p=createPolymerCollectionState({records:polymers,storage:s,now:()=>2});assert.equal(p.registerDiscoveredPolymer('polyethylene').saved,true);
+ const progress=createReactionProgress({storage:s,authority}),ids=[...authority.includedIds()];assert.equal(progress.hint(ids[0]).saved,true);assert.equal(progress.verify(ids[1]).saved,true);
+ const resources=createResources({storage:s});const before=resources.snapshot();assert.equal(resources.save(),true);const reloaded=createResources({storage:s});assert.deepEqual(reloaded.snapshot(),before);assert.deepEqual(reloaded.state.workspace,state.workspace);
+ const c2=createCollectionState({records,groups,templates,storage:s}),p2=createPolymerCollectionState({records:polymers,storage:s}),r2=createReactionProgress({storage:s,authority});assert.deepEqual(c2.snapshot(),c.snapshot());assert.deepEqual(p2.snapshot(),p.snapshot());assert.deepEqual(r2.snapshot(),progress.snapshot());assert.equal(s.getItem('molecule-craft.workspace.v1'),'legacy-workspace-bytes');assert.equal(JSON.parse(s.getItem(COLLECTION_STORAGE_KEY)).schemaVersion,3);assert.equal(JSON.parse(s.getItem(REACTION_PROGRESS_KEY)).schemaVersion,1);
+});

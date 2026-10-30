@@ -55,3 +55,6 @@ assert.equal(resetPersistence.load()?.discoveredMolecules.length,2);resetStorage
 assert.equal(resetPersistence.save(currentSnapshot),false);assert.match(resetPersistence.storageMessage,/初期化/,'resource reset epoch still prevents stale collection writes');
 
 console.log('Collection persistence v3 passed: incompatible saves reset cleanly and current discovery state round-trips.');
+
+const shared=memory(),tabA=createCollectionPersistence({storage:shared,records,milestoneIds}),tabB=createCollectionPersistence({storage:shared,records,milestoneIds});
+tabA.load();tabB.load();assert.equal(tabA.save(currentSnapshot),true);const savedByA=shared.raw(COLLECTION_STORAGE_KEY);assert.equal(tabB.save({...currentSnapshot,discoveredMolecules:[{id:'methane',at:1,order:1}]}),false);assert.equal(shared.raw(COLLECTION_STORAGE_KEY),savedByA);assert.match(tabB.storageMessage,/別の画面/);

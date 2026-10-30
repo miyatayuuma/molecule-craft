@@ -118,11 +118,11 @@ export function connectExploration(options){
   return createDeferredExplorationFacade(()=>veilUI,ready);
 }
 
-export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange}){
+export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,storage}){
   const polymerData=await preparePolymerEncyclopedia({records});
   if(!polymerData.result.ok||!polymerData.model)throw new Error(polymerData.result.error??'Polymer encyclopedia unavailable.');
   const {createCollectionUI}=await import('./collection-ui.js?v=51');
-  const collection=await createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,engineeringResources:connectedResources,polymerRecords:polymerCatalog(),polymerContent:polymerData.content,polymerRoutes:polymerizationRoutes(),recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
+  const collection=await createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,storage,engineeringResources:connectedResources,polymerRecords:polymerCatalog(),polymerContent:polymerData.content,polymerRoutes:polymerizationRoutes(),recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
   collection.polymerRoutes=polymerizationRoutes();collection.polymerSitePatterns=polymerizationSitePatterns();
   return collection;
 }
@@ -176,13 +176,13 @@ export function createDiscoveryConnection({resources,getVeilUI,getCollection,onP
         const discovery=resources.discoverWithLoadout(item.record.id,criticalPrimaryLoadoutUse(item.record.id));
         if(discovery?.learned){veilUI?.discovered(item.record.id,{autoAssignedUse:discovery.assignedUse??null});collection.refreshProgress();}
       }
-      const result=collection.observeStructures([item]);event.gameEvent=result.events.find(candidate=>candidate.signature===item.signature)??null;event.effectsDone=true;
+      const result=collection.observeStructures([item]);event.gameEvent=result.events.find(candidate=>candidate.signature===item.signature)??null;if(item.record&&!resources.state.recipes.includes(item.record.id)&&event.gameEvent)event.gameEvent.saved=false;event.effectsDone=true;
     }
     if(now<until)return;
     while(queue.length){
       const event=queue[0],item=structures.find(candidate=>candidate.key===event.key&&candidate.signature===event.signature&&candidate.complete);
       if(!item){queue.shift();continue;}if(!event.effectsDone)return;
-      const isNew=!!event.gameEvent?.isNew,recordId=event.gameEvent?.record?.id??item.record?.id;
+      const isNew=!!event.gameEvent?.isNew&&event.gameEvent?.saved!==false,recordId=event.gameEvent?.record?.id??item.record?.id;
       if(isNew&&recordId){
         onDismiss();
         if(!presentRegistration({collection,id:recordId}))return;

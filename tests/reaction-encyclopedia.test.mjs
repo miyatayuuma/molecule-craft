@@ -6,7 +6,7 @@ import {createReactionProgress} from '../src/reaction-progress.js';
 import {reactionGroups,reactionDetailInfo} from '../src/reaction-encyclopedia.js';
 const routes=JSON.parse(readFileSync(new URL('../data/polymerization-routes.json',import.meta.url))).routes;
 test('registry entries remain unique across categories and unreachable route is separate',()=>{
- const authority=createReactionCatalogAuthority({polymerRoutes:routes});const progress=createReactionProgress({authority});const m=reactionGroups(authority,progress);
+ const authority=createReactionCatalogAuthority({polymerRoutes:routes});const data=new Map(),storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,String(v))};const progress=createReactionProgress({authority,storage});const m=reactionGroups(authority,progress);
  assert.equal(m.entries.length,54);assert.equal(new Set(m.entries.map(e=>e.reactionId)).size,54);
  for(const group of m.groups)assert.equal(new Set(group.items.map(e=>e.reactionId)).size,group.items.length);
  assert.equal(m.groups.flatMap(g=>g.items).filter(e=>e.unavailable).every(e=>e.reactionId==='normal:complete-21-cyclobutane-dimerization'),true);
