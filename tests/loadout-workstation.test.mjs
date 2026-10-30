@@ -90,3 +90,10 @@ test('LOADOUT has no material selector, material panel or material UI runtime im
   assert.doesNotMatch(supply,/collector-applications-ui|createCollectorApplicationsUI|applicationsUI/);
   assert.doesNotMatch(css,/collector-applications/);
 });
+
+test('LOADOUT occupies the full mobile viewport without sheet margins or rounded overlay edges',async()=>{
+  const source=await readFile(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8');
+  assert.ok(source.includes('@media(max-width:650px){#supply-dialog{inset:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;overflow-y:auto}'));
+  assert.ok(source.includes('#supply-dialog .sheet-header{padding-top:calc(10px + env(safe-area-inset-top))}'));
+  assert.doesNotMatch(source,/margin:max\(8px,env\(safe-area-inset-top\)\) 0 auto/);
+});

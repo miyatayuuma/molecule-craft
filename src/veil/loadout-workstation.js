@@ -271,7 +271,7 @@ function installStyles(){
   const style=document.createElement('style');
   style.id=STYLE_ID;
   style.textContent=`
-@media(max-width:650px) and (orientation:portrait){#supply-dialog{margin:max(8px,env(safe-area-inset-top)) 0 auto;max-height:calc(100dvh - max(8px,env(safe-area-inset-top)) - 8px)}}
+@media(max-width:650px){#supply-dialog{inset:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;overflow-y:auto}}
 #supply-dialog .collector-shell-map{height:clamp(205px,60vw,240px)!important;border-color:#294656;background:#071520;overflow:hidden}
 #supply-dialog .sheet-header{padding:10px 16px}
 #supply-dialog .sheet-body{padding:8px 14px 14px;gap:10px}
@@ -331,6 +331,7 @@ function installStyles(){
 @media(max-width:340px) and (max-height:680px){#supply-dialog .collector-shell-map{height:164px!important}#supply-dialog .sheet-header{padding:8px 10px}#supply-dialog .sheet-body{padding:7px 8px 8px;gap:5px}#supply-dialog .loadout-element-stock{grid-template-columns:48px minmax(0,1fr);padding:4px 5px;gap:4px}#supply-dialog .loadout-element-token{min-height:38px;padding:2px 3px}#supply-dialog .loadout-element-token>.atom-preview{width:18px;height:18px}#supply-dialog .loadout-element-token[data-loadout-stock-element='H']>.atom-preview{width:16px;height:16px}#supply-dialog .tank-detail{gap:5px;padding:7px 8px}#supply-dialog .tank-molecules button{grid-template-rows:40px auto 9px;min-height:86px}#supply-dialog .tank-molecules button img{height:40px}#supply-dialog .tank-inspector{min-height:120px;gap:5px}#supply-dialog .tank-model #tank-model-host .model-stage{height:88px}}
 @media(prefers-reduced-motion:reduce){#supply-dialog .shell-port,#supply-dialog .loadout-unit-image,#supply-dialog #collector-shell-preview,#supply-dialog .loadout-callout-label,#supply-dialog .loadout-module-label,#supply-dialog .loadout-synthesis-intake{transition:none}}
 @media(min-width:371px) and (max-width:520px) and (orientation:portrait){#supply-dialog .sheet-header{padding:9px 14px}#supply-dialog .sheet-body{padding:8px 12px 12px;gap:8px}}
+@media(max-width:650px){#supply-dialog .sheet-header{padding-top:calc(10px + env(safe-area-inset-top))}}
 `;
   document.head.append(style);
 }
