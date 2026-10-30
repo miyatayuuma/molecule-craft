@@ -364,7 +364,17 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 /* Collection progress lives in the four tabs; no separate progress/filter rows. */
 .book-tabs{margin-bottom:14px}
 .book-tabs button{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:58px;padding:9px 3px}
-.book-tab-label{line-height:1.2}
 .book-tab-count{color:#90aebd;font-size:11px;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
 .book-tabs button[aria-selected="true"] .book-tab-count{color:#b9e6df}
 @media(max-width:650px){.book-tabs button{padding:8px 2px}.book-tab-count{font-size:10.5px}}
+
+/* Compact, consistent icon navigation for CRAFT and the four Collection sections. */
+.ui-icon-library{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.topbar-actions button.ui-icon-button{display:grid;place-items:center;flex:none;width:48px;height:48px;min-width:48px;padding:6px;border-radius:14px}
+.ui-nav-icon,.ui-palette-icon,.ui-book-icon{display:block;flex:none;aspect-ratio:1}
+.ui-nav-icon{width:30px;height:30px}
+.palette-tabs button:has(.ui-palette-icon){display:grid;place-items:center;min-width:58px;min-height:52px;padding:6px 10px;border-radius:12px}
+.ui-palette-icon{width:32px;height:32px}
+.book-tabs button:has(.ui-book-icon){min-height:70px;padding:6px 2px;gap:2px}
+.ui-book-icon{width:34px;height:34px}
+@media(max-width:650px){.topbar-actions button.ui-icon-button{width:46px;height:46px;min-width:46px;padding:5px}.ui-book-icon{width:31px;height:31px}}
