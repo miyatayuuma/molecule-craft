@@ -13,11 +13,13 @@ on storage failure or conflicting-tab protection and consumes no resources.
 Canonical full reset clears both fabrication and selection; category resets retain
 them under the existing fabrication reset convention.
 
-LOADOUT / 収集殻 → 素材 opens three controls (未製作 / 装着 / 適用中 · 解除).
-All three can be applied together. Launch copies and freezes validated material
-state into `run.collectorMaterial`; state is not read from storage during frames.
-Changing selection takes effect on the next FIELD launch. The existing region
-subtitle displays a brief reduction label while the corresponding exposure exists.
+The LOADOUT 「素材」 button, material dialog and all three controls were removed
+on 2026-10-30. The browser-facing `collector-applications-ui.js` module and its
+styles no longer exist. The domain save/activation APIs remain for compatibility
+with old resource-v9 saves, but there is no new LOADOUT activation UI.
+Legacy active selections can still affect the next FIELD launch: launch copies and
+freezes validated material state into `run.collectorMaterial`, and the region
+subtitle displays a reduction label during corresponding exposure.
 
 ## FIELD equations
 
@@ -49,12 +51,10 @@ from independent checkout `0ad156fb39b350935041f1bcc5453c2220af67b2`:
 heat, raw hazards, pickup, respawn and progression signatures. Inactive digests
 match exactly. The fixture is test-only and is not production authority.
 
-`collector-applications-browser.test.mjs` uses actual Chromium pointer clicks at
-390×844: locked/available/active, toggle, reload, FIELD launch and all three
-reduction labels. Existing mobile LOADOUT fit and Collection polymer fabrication
-browser checks pass. Existing particle performance, spatial index, dynamic
-registry, renderer query/counter and retained P5 authority tests pass; no
-population scan, renderer modification, pickup or assist change was introduced.
+The retired LOADOUT material-selector browser check was removed with its UI.
+`tests/loadout-workstation.test.mjs` now asserts the absence of its runtime import,
+button, dialog, and styles. Domain-level `collector-applications.test.mjs` retains
+legacy save and FIELD response coverage.
 
 Dense paired Chromium 153 / SwiftShader measurement at 390×844, DPR 2, on
 2026-10-03: 360 timed frames per variant and motion setting, after warm-up,
@@ -71,7 +71,5 @@ frame regression was observed; P5 classification remains unchanged.
 ## Integrated progression
 
 The [post-Core material progression contract](post-core-material-progression.md)
-connects these authorities with production flight, acquisition, CRAFT, polymer
-gameplay, fabrication, mobile selection and save/reload verification. Its closure
-tests import the same catalogs and controllers; they do not define parallel
-progression or unlock state.
+documents the original gameplay integration. Its domain closure tests remain;
+its now-retired browser selector journey is no longer a current acceptance path.

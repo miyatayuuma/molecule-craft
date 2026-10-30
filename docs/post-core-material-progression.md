@@ -87,16 +87,10 @@ and recognizes the required molecules. Runtime polymer instances are consumed by
 the production controller and their actual events register discovery. It does
 not attempt to replay the already closed entire pre-CHO campaign.
 
-`tests/material-progression-browser.test.mjs` resumes that earned, polymer-free
-checkpoint in the full application at **390 × 844**. It uses actual pointer flight
-to acquire another Rare P and taps the ship at a safe site to return. Actual FEED
-picker clicks and reactive-site drags produce BR, PAN, phenolic resin and PVC;
-the Collection handoff leads to actual fabrication buttons. PAN remains
-unavailable until resin exists. Sample Bay survives the fabrication round trip.
-All three materials then toggle freely, persist through page reload, launch FIELD
-and show the existing reduction labels without horizontal overflow. Authored
-hazard positions are controlled exposure fixtures for feedback, not a claim of
-manual navigation through every hazard zone.
+The original **390 × 844** browser journey tested real FEED, polymer fabrication,
+LOADOUT material toggles, persistence and FIELD feedback. The material selector
+was removed from LOADOUT on 2026-10-30, so that UI-specific browser script was
+retired. The domain closure test above remains the current authority.
 
 `collector-applications.test.mjs` provides exact inactive physics digests, paired
 effective response assertions and orthogonality. Existing ⑦ pointer reaction
@@ -105,7 +99,7 @@ checks the resulting species against the actual PET FEED and produces its sample
 The ⑨ suite still covers all 25 routes. Existing ⑩A/B suites cover all alternative
 recipes, atomic save failure rollback and effect isolation.
 
-Both new tests run in repository CI. FIELD spatial-index, dynamic-registry,
+The remaining domain tests cover production contracts. FIELD spatial-index, dynamic-registry,
 renderer-query/counter, retained P5 and Chromium dense benchmark gates remain the
 performance evidence. This work adds tests and authority documentation; it does
 not change the FIELD hot path, catalog, save schema or response constants.
