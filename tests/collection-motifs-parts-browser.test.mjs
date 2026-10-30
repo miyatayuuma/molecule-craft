@@ -43,8 +43,8 @@ try{
   assert.deepEqual(halogenDetail,{kind:'motifs',id:'carbon-halogen',number:null,unlock:false,place:false,nextDisabled:false},'Element-disjunction motifs remain learnable contextual details with no Part affordance.');
 
   await evaluate(`document.querySelector('[data-book-tab="groups"]').click()`);
-  const partsTab=await evaluate(`(()=>({tab:document.querySelector('[data-book-tab="groups"]')?.textContent.trim(),count:document.querySelectorAll('#collection-list [data-entry-id]').length,first:document.querySelector('#collection-list [data-entry-id] .dex-number')?.textContent,progress:document.querySelector('#collection-progress')?.textContent,motifCard:!!document.querySelector('#collection-list [data-entry-id="sulfoxide"]')}))()`);
-  assert.deepEqual(partsTab,{tab:'部品',count:17,first:'No. 001',progress:'分子 142 / 142　部品 17 / 17　高分子 0 / 25',motifCard:false});
+  const partsTab=await evaluate(`(()=>({tab:document.querySelector('[data-book-tab="groups"] .book-tab-label')?.textContent.trim(),count:document.querySelectorAll('#collection-list [data-entry-id]').length,first:document.querySelector('#collection-list [data-entry-id] .dex-number')?.textContent,progress:[...document.querySelectorAll('[data-book-count]')].map(node=>node.textContent),filterControls:document.querySelectorAll('#collection-controls,#collection-filter,#collection-scope,#collection-category').length,motifCard:!!document.querySelector('#collection-list [data-entry-id="sulfoxide"]')}))()`);
+  assert.deepEqual(partsTab,{tab:'部品',count:17,first:'No. 001',progress:['142 / 142','17 / 17','— / —','0 / 25'],filterControls:0,motifCard:false});
 
   for(const partId of ['methyl','n-butyl','isopropyl','ester']){
     const detail=await evaluate(`(()=>{const node=document.querySelector('#collection-list [data-entry-id=${JSON.stringify(partId)}]');if(!node)return false;node.click();return true})()`);assert.equal(detail,true,`${partId}: Parts catalog detail opens`);

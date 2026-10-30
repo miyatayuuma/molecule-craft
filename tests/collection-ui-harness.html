@@ -25,9 +25,8 @@
   </section>
 </main>
 <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="book-shell">
-  <header class="book-header"><div><h2 id="collection-title">分子と構造の図鑑</h2><p id="collection-progress"></p></div><button id="close-collection" type="button">閉じる</button></header>
-  <p id="collection-storage" hidden></p><div class="book-tabs" role="tablist"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true">分子</button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" tabindex="-1">部品</button></div>
-  <div id="collection-controls" class="book-controls"><label id="collection-category-label">カテゴリ<select id="collection-category"></select></label><label>表示<select id="collection-filter"><option value="available">今の原子で作れる</option><option value="all">すべて</option><option value="found">発見済み</option><option value="missing">未発見</option></select></label></div>
+  <header class="book-header"><h2 id="collection-title">図鑑</h2><button id="close-collection" type="button">閉じる</button></header>
+  <p id="collection-storage" hidden></p><div class="book-tabs" role="tablist"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true"><span class="book-tab-label">分子</span><span data-book-count="molecules" class="book-tab-count">0 / 0</span></button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" tabindex="-1"><span class="book-tab-label">部品</span><span data-book-count="groups" class="book-tab-count">0 / 0</span></button><button type="button" role="tab" data-book-tab="reactions" aria-selected="false" tabindex="-1"><span class="book-tab-label">反応</span><span data-book-count="reactions" class="book-tab-count">— / —</span></button><button type="button" role="tab" data-book-tab="polymers" aria-selected="false" tabindex="-1"><span class="book-tab-label">高分子</span><span data-book-count="polymers" class="book-tab-count">0 / 0</span></button></div>
   <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section><footer class="book-footer"><div id="collection-milestones"></div></footer>
 </div></dialog>
 <script type="module">
