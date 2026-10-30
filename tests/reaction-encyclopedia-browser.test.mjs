@@ -41,7 +41,7 @@ try{
   await evaluate(`document.querySelector('#close-collection').click()`);
   await evaluate(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/実証 0 \/ 54/);
-  assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),13,'Only populated reaction categories appear in the book');
+  assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),14);
   assert.equal(await evaluate(`[...document.querySelectorAll('.rb-group-preview svg')].every(svg=>!svg.querySelector('text, foreignObject') && Math.abs(parseFloat(getComputedStyle(svg).animationDuration)-5.6)<.01)`),true);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list canvas').length`),0);
   assert.equal(await evaluate(`[...document.querySelectorAll('#collection-list .reaction-book-group')].every(button=>button.getBoundingClientRect().height>=44)`),true);
@@ -74,7 +74,7 @@ try{
     document.querySelector('[data-book-tab="reactions"]').click();
   })()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/実証 5 \/ 54/);
-  assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-preview-group]').length`),13);
+  assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-preview-group]').length`),14);
   const previews=[['加水分解','normal:complete-01-anhydride-hydrolysis'],['付加','normal:complete-06-ethene-halogenation'],['環化','normal:complete-21-cyclobutane-dimerization'],['重合','polymer:polyethylene-coordination']];
   for(const [label,id] of previews){
     await evaluate(`[...document.querySelectorAll('#collection-list button')].find(button=>button.textContent.startsWith(${JSON.stringify(label)})).click()`);
@@ -112,9 +112,9 @@ try{
     }
     return{groups,seen:seen.size,overflow:document.querySelector('#collection-dialog').scrollWidth>document.querySelector('#collection-dialog').clientWidth+1};
   })()`);
-  assert.deepEqual(fullCoverage,{groups:13,seen:54,overflow:false});
+  assert.deepEqual(fullCoverage,{groups:14,seen:54,overflow:false});
   if(process.env.REACTION_BOOK_CAPTURE_DIR){
-    for(let i=0;i<13;i++){
+    for(let i=0;i<14;i++){
       await evaluate(`document.querySelectorAll('.reaction-book-group')[${i}].click();document.querySelector('#collection-list').scrollTop=0`);
       await capture('all-routes-group-'+String(i+1).padStart(2,'0'));
       if([0,2,7,12].includes(i)){
