@@ -25,7 +25,7 @@ export function createReactionProgress({storage=null,authority,legacyPolymerEntr
     }catch{warn('反応の進行を保存できません。再読み込み前に保存設定を確認してください。');return false;}
   }
   if(previous===null&&verified.size&&!blocked)persist();
-  function record(id,set){if(!authority.get(id))return {changed:false,saved:false,reason:'unknown-id'};const changed=!set.has(id);set.add(id);return {changed,saved:persist()};}
+  function record(id,set){if(!authority.get(id))return {changed:false,saved:false,reason:'unknown-id'};if(set.has(id))return {changed:false,saved:true};set.add(id);if(!persist()){set.delete(id);return {changed:false,saved:false,reason:'save-failed'};}return {changed:true,saved:true};}
   function fieldRecipeCount(runId,source='field'){return fieldBudget?.runId===runId?(fieldBudget.sources[source]??0):0;}
   function claimFieldRecipe(id,runId,source='field',cap=1){
     if(blocked||typeof runId!=='string'||!runId||!['field','tnt'].includes(source)||!Number.isSafeInteger(cap)||cap<1||!authority.get(id))return {changed:false,saved:false,reason:'invalid'};

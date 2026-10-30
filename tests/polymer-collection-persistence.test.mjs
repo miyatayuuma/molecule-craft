@@ -43,3 +43,5 @@ test('current runtime preserves future polymer schemas during save and reset',()
   assert.equal(clearPolymerCollectionSave(storage),false);
   assert.equal(storage.getItem(POLYMER_COLLECTION_STORAGE_KEY),future);
 });
+
+test('concurrent tabs do not overwrite discoveries',()=>{const storage=new MemoryStorage(),a=createPolymerCollectionPersistence({storage,polymerIds:ids}),b=createPolymerCollectionPersistence({storage,polymerIds:ids});a.load();b.load();assert.equal(a.save(saved([{id:ids[0],at:1,order:1}])),true);const raw=storage.getItem(POLYMER_COLLECTION_STORAGE_KEY);assert.equal(b.save(saved([{id:ids[1],at:1,order:1}])),false);assert.equal(storage.getItem(POLYMER_COLLECTION_STORAGE_KEY),raw);assert.match(b.storageMessage,/別の画面/);});

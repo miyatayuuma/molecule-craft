@@ -26,3 +26,5 @@ test('field and TNT share one special recipe per expedition and persist across r
   assert.equal(restored.claimFieldRecipe(ids[1],'run-2','tnt').changed,true);
   assert.equal(restored.claimFieldRecipe(ids[2],'run-2','field').reason,'cap');
 });
+
+test('failed writes roll back reaction state and duplicate verification does not write',()=>{const storage=new Storage(),p=createReactionProgress({storage,authority}),id=normal.reactionId;storage.setItem=()=>{throw Error('quota')};assert.deepEqual(p.verify(id),{changed:false,saved:false,reason:'save-failed'});assert.equal(p.getState(id),'notFound');const ok=new Storage(),q=createReactionProgress({storage:ok,authority});assert.equal(q.verify(id).saved,true);ok.setItem=()=>{throw Error('unexpected write')};assert.deepEqual(q.verify(id),{changed:false,saved:true});});
