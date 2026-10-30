@@ -121,7 +121,7 @@ await lifecycle.run(async()=>{
     const requiredHeat=route.environment.requires.includes('heat'),requiredMedium=route.environment.requires.includes('basic')?'basic':route.environment.requires.includes('acidic')?'acidic':'neutral';
     let state=await snapshot();if(state.environment.light)await tap('[data-lab-light]');
     if(state.environment.heat!==requiredHeat)await tap('[data-lab-heat]');
-    state=await snapshot();if(state.environment.medium!==requiredMedium){await tap('[data-lab-medium-port]');await waitFor("!document.querySelector('[data-lab-medium-selector]').hidden",'Existing pH equipment did not open');await tap(`[data-lab-medium-option="${requiredMedium}"] input`);}
+    state=await snapshot();if(state.environment.medium!==requiredMedium){await evaluate(`(()=>{const button=document.querySelector('[data-lab-medium-port]');button.focus();for(const key of ${JSON.stringify(requiredMedium==='acidic'?['Home']:requiredMedium==='basic'?['End']:['Home','ArrowUp'])})button.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true}));})()`);}
   };
   const feedRoute=async(route,expectPurge)=>{
     await setDraftSlots(route.feedSpecies);const before=await snapshot();assert.deepEqual(before.batch.draftSlots.filter(Boolean).sort(),[...route.feedSpecies].sort(),`${route.routeId}: exact Feed slots are set`);
