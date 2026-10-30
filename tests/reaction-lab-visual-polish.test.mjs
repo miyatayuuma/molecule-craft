@@ -27,3 +27,23 @@ test('LIGHT, HEAT and pH are reflected in a pointer-transparent chamber overlay'
   assert.match(css,/\.reaction-lab-space::before\{[^}]*pointer-events:none/);
   for(const state of ['data-light="on"','data-heat="on"','data-medium="acidic"','data-medium="basic"'])assert.ok(css.includes(`.reaction-lab-space[${state}]`));
 });
+
+test('HEAT warms the chamber bottom bar while preserving its center gap',()=>{
+  assert.match(css,/\.reaction-lab-space\[data-heat="on"\]::after\{[^}]*border-color:rgba\(245,160,91/);
+  assert.match(css,/\.reaction-lab-space\[data-heat="on"\]::after\{[^}]*transparent 42%,transparent 58%/);
+  assert.match(css,/\.reaction-lab-space\[data-heat="on"\]::after\{[^}]*box-shadow:/);
+});
+
+test('pH uses a draggable three-stop vertical slider, not a selector popup',()=>{
+  assert.match(html,/class="reaction-lab-medium-rail" aria-hidden="true"/);
+  assert.match(html,/type="button" role="slider" data-lab-medium-port/);
+  assert.doesNotMatch(html,/data-lab-medium-selector|data-lab-medium-option/);
+  assert.match(viewer,/mediumStops=\['acidic','neutral','basic'\]/);
+  assert.match(viewer,/addEventListener\('pointerdown'/);
+  assert.match(viewer,/addEventListener\('pointermove'/);
+  assert.match(viewer,/addEventListener\('pointerup'/);
+  assert.match(viewer,/shift < -32\?'basic':shift > 32\?'acidic':'neutral'/);
+  assert.match(viewer,/event\.key==='ArrowUp'/);
+  assert.match(viewer,/event\.key==='ArrowDown'/);
+  assert.match(css,/\.reaction-lab-environment \.reaction-lab-medium\{[^}]*touch-action:none/);
+});

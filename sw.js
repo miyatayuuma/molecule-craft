@@ -1,4 +1,4 @@
-/* PRECACHE_ASSET_VERSION:e72875fa03343b9e */
+/* PRECACHE_ASSET_VERSION:af8635d3ac33c1a9 */
 /* All cached bytes belong to one release. A failed install keeps the old app. */
 importScripts('./precache-manifest.js');
 const CACHE=`molecule-craft-${self.PRECACHE_VERSION}`;

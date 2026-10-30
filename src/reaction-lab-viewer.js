@@ -79,8 +79,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const slots=[...root.querySelectorAll('[data-lab-slot]')];
   const feedButton=root.querySelector('[data-lab-feed]'),commandState=root.querySelector('[data-lab-command-state]');
   const picker=root.querySelector('[data-lab-picker]'),pickerList=root.querySelector('[data-lab-picker-list]'),pickerSearch=root.querySelector('[data-lab-search]');
-  const lightButton=root.querySelector('[data-lab-light]'),heatButton=root.querySelector('[data-lab-heat]'),mediumButton=root.querySelector('[data-lab-medium-port]'),mediumSelector=root.querySelector('[data-lab-medium-selector]'),mediumInputs=[...root.querySelectorAll('[data-lab-medium]')];
-  const activationEnvironment=createReactionLabEnvironment();let mediumSelectorOpen=false;
+  const lightButton=root.querySelector('[data-lab-light]'),heatButton=root.querySelector('[data-lab-heat]'),mediumButton=root.querySelector('[data-lab-medium-port]');
+  const activationEnvironment=createReactionLabEnvironment();
+  const mediumStops=['acidic','neutral','basic'],mediumShift={acidic:64,neutral:0,basic:-64};
+  let mediumDrag=null;
   const batch=createReactionLabBatch(records),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let guide=null,guideBatchId=null;
   const guidePanel=root.querySelector('[data-reaction-guide]'),guideText=root.querySelector('[data-reaction-guide-text]');
@@ -810,23 +812,18 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function hasPointerGesture(){return !!selected||activePointers.size>0||pinchActive;}
   function canEditRack(){return !disposed&&!pickerOpen&&!isTransitionLocked()&&!reactionAnimation&&!hasPointerGesture();}
   function environmentControlsLocked(){const tx=polymerCore.snapshot(),polymerLocked=polymerRouteOwned&&!!tx&&![POLYMERIZATION_STATES.WAITING,POLYMERIZATION_STATES.AUTO_PENDING].includes(tx.state);return disposed||pickerOpen||isManipulating()||pinchActive||isTransitionLocked()||!!reactionAnimation||polymerLocked;}
-  function closeMediumSelector({returnFocus=false}={}){
-    if(!mediumSelectorOpen)return;mediumSelectorOpen=false;mediumSelector.hidden=true;mediumButton?.setAttribute('aria-expanded','false');
-    if(returnFocus){const target=environmentControlsLocked()?root.querySelector('[data-lab-close]'):mediumButton;target?.focus({preventScroll:true});}
+  function cancelMediumDrag(){
+    if(!mediumDrag)return;
+    const pointerId=mediumDrag.pointerId;mediumDrag=null;delete mediumButton.dataset.dragging;
+    if(mediumButton.hasPointerCapture?.(pointerId))mediumButton.releasePointerCapture(pointerId);
   }
   function updateEnvironmentControls(){
-    const locked=environmentControlsLocked();if(locked&&mediumSelectorOpen)closeMediumSelector({returnFocus:mediumSelector.contains(document.activeElement)});
+    const locked=environmentControlsLocked();if(locked)cancelMediumDrag();
     const state=activationEnvironment.snapshot(),mediumLabels={neutral:'NEUTRAL',acidic:'ACID',basic:'BASE'};
     if(chamberSpace){chamberSpace.dataset.light=state.light?'on':'off';chamberSpace.dataset.heat=state.heat?'on':'off';chamberSpace.dataset.medium=state.medium;}
     if(lightButton){lightButton.disabled=locked;lightButton.setAttribute('aria-pressed',String(state.light));lightButton.setAttribute('aria-label',`LIGHT：${state.light?'ON':'OFF'}`);lightButton.dataset.active=String(state.light);lightButton.querySelector('[data-lab-equipment-state]').textContent=state.light?'ON':'OFF';}
     if(heatButton){heatButton.disabled=locked;heatButton.setAttribute('aria-pressed',String(state.heat));heatButton.setAttribute('aria-label',`HEAT：${state.heat?'ON':'OFF'}`);heatButton.dataset.active=String(state.heat);heatButton.querySelector('[data-lab-equipment-state]').textContent=state.heat?'ON':'OFF';}
-    if(mediumButton){mediumButton.disabled=locked;mediumButton.setAttribute('aria-label',`pH medium：${mediumLabels[state.medium]}`);mediumButton.dataset.medium=state.medium;mediumButton.querySelector('[data-lab-medium-value]').textContent=mediumLabels[state.medium];}
-    for(const input of mediumInputs){input.disabled=locked;input.checked=input.value===state.medium;}
-  }
-  function setMediumSelectorOpen(open,{returnFocus=false}={}){
-    if(open&&environmentControlsLocked())return false;
-    if(open){mediumSelectorOpen=true;mediumSelector.hidden=false;mediumButton?.setAttribute('aria-expanded','true');updateEnvironmentControls();updateGuide();mediumInputs.find(input=>input.checked)?.focus({preventScroll:true});return true;}
-    closeMediumSelector({returnFocus});updateEnvironmentControls();return true;
+    if(mediumButton){mediumButton.disabled=locked;mediumButton.setAttribute('aria-valuenow',String(mediumStops.indexOf(state.medium)));mediumButton.setAttribute('aria-valuetext',mediumLabels[state.medium]);mediumButton.dataset.medium=state.medium;mediumButton.querySelector('[data-lab-medium-value]').textContent=mediumLabels[state.medium];if(!mediumDrag)mediumButton.style.setProperty('--ph-shift',`${mediumShift[state.medium]}px`);}
   }
   function syncPolymerEnvironment(){
     if(!polymerRouteOwned)return;const changed=polymerCore.setEnvironment(activationEnvironment.conditions());if(!changed.ok)return;
@@ -835,9 +832,37 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   lightButton?.addEventListener('click',()=>{if(environmentControlsLocked())return;activationEnvironment.toggleLight();syncPolymerEnvironment();updateEnvironmentControls();updateGuide();},eventOptions);
   heatButton?.addEventListener('click',()=>{if(environmentControlsLocked())return;activationEnvironment.toggleHeat();syncPolymerEnvironment();updateEnvironmentControls();updateGuide();},eventOptions);
-  mediumButton?.addEventListener('click',()=>setMediumSelectorOpen(!mediumSelectorOpen),eventOptions);
-  for(const input of mediumInputs)input.addEventListener('change',()=>{if(!input.checked)return;if(environmentControlsLocked()){updateEnvironmentControls();return;}activationEnvironment.setMedium(input.value);syncPolymerEnvironment();setMediumSelectorOpen(false,{returnFocus:true});updateGuide();},eventOptions);
-  mediumSelector?.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setMediumSelectorOpen(false,{returnFocus:true});}},eventOptions);
+  function setMediumFromSlider(medium){
+    if(environmentControlsLocked())return;
+    if(activationEnvironment.snapshot().medium!==medium){activationEnvironment.setMedium(medium);syncPolymerEnvironment();}
+    updateEnvironmentControls();updateGuide();
+  }
+  mediumButton?.addEventListener('pointerdown',event=>{
+    if(environmentControlsLocked()||event.button!==0)return;
+    const medium=activationEnvironment.snapshot().medium;
+    mediumDrag={pointerId:event.pointerId,startY:event.clientY,startShift:mediumShift[medium],shift:mediumShift[medium]};
+    mediumButton.dataset.dragging='true';
+    try{mediumButton.setPointerCapture(event.pointerId);}catch{}
+    event.preventDefault();
+  },eventOptions);
+  mediumButton?.addEventListener('pointermove',event=>{
+    if(!mediumDrag||event.pointerId!==mediumDrag.pointerId)return;
+    mediumDrag.shift=clamp(mediumDrag.startShift+event.clientY-mediumDrag.startY,-64,64);
+    mediumButton.style.setProperty('--ph-shift',`${mediumDrag.shift}px`);
+  },eventOptions);
+  mediumButton?.addEventListener('pointerup',event=>{
+    if(!mediumDrag||event.pointerId!==mediumDrag.pointerId)return;
+    const shift=clamp(mediumDrag.startShift+event.clientY-mediumDrag.startY,-64,64);
+    cancelMediumDrag();
+    setMediumFromSlider(shift < -32?'basic':shift > 32?'acidic':'neutral');
+  },eventOptions);
+  mediumButton?.addEventListener('pointercancel',()=>{cancelMediumDrag();updateEnvironmentControls();},eventOptions);
+  mediumButton?.addEventListener('keydown',event=>{
+    const index=mediumStops.indexOf(activationEnvironment.snapshot().medium);
+    const next=event.key==='ArrowUp'?Math.min(2,index+1):event.key==='ArrowDown'?Math.max(0,index-1):event.key==='Home'?0:event.key==='End'?2:null;
+    if(next===null)return;
+    event.preventDefault();setMediumFromSlider(mediumStops[next]);
+  },eventOptions);
   function clearGuide(){guide=null;guideBatchId=null;updateGuide();}
   function updateGuide(){
     for(const node of root.querySelectorAll('.reaction-guide-target'))node.classList.remove('reaction-guide-target');
@@ -852,7 +877,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(step.stage==='condition'){
       const label={light:'光',heat:'熱',acidic:'酸性',basic:'塩基性'}[step.token]??step.token;
       guideText.textContent=`${label}を${step.enable?'設定':'解除'}しよう。`;
-      if(step.token==='light')mark(lightButton);else if(step.token==='heat')mark(heatButton);else if(mediumSelectorOpen){const wanted=step.enable?step.token:'neutral';mark(root.querySelector(`[data-lab-medium-option="${wanted}"]`));}else mark(mediumButton);return;
+      if(step.token==='light')mark(lightButton);else if(step.token==='heat')mark(heatButton);else mark(mediumButton);return;
     }
     if(step.stage==='waiting'){guideText.textContent='材料を投入しています。';return;}
     if(step.stage==='feed'){guideText.textContent='準備OK。FEEDを押そう。';mark(feedButton);return;}
@@ -905,7 +930,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   pickerSearch.addEventListener('input',filterPicker,eventOptions);
   root.querySelector('[data-lab-picker-close]')?.addEventListener('click',()=>closePicker(),eventOptions);
   root.querySelector('[data-lab-disconnect]')?.addEventListener('click',()=>{if(!pickerOpen)return;const result=batch.setDraftSlot(pickerSlotIndex,'');if(!result.ok)return;closePicker();renderSlotTiles();status.textContent='feed headを切断しました。FEEDで変更を適用します。';},eventOptions);
-  dialog.addEventListener('cancel',event=>{if(mediumSelectorOpen){event.preventDefault();setMediumSelectorOpen(false,{returnFocus:true});return;}if(pickerOpen){event.preventDefault();closePicker();}},{signal:eventController.signal});
+  dialog.addEventListener('cancel',event=>{if(pickerOpen){event.preventDefault();closePicker();}},{signal:eventController.signal});
   root.addEventListener('keydown',event=>{if(pickerOpen&&event.key==='Escape'){event.preventDefault();event.stopPropagation();closePicker();}},eventOptions);
 
   function fitPopulation(){
@@ -1494,7 +1519,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();contextLost=true;cancelAllPointers();observation.contextLost(true);},eventOptions);
   canvas.addEventListener('webglcontextrestored',()=>{contextLost=false;last=performance.now();resize();updatePolymerBondVisuals();observation.contextLost(false);observation.updateOutline();},eventOptions);
   updateCamera();animationFrameId=requestAnimationFrame(tick);
-  document.addEventListener('visibilitychange',()=>{last=performance.now();if(document.hidden)setMediumSelectorOpen(false);},{signal:eventController.signal});
+  document.addEventListener('visibilitychange',()=>{last=performance.now();if(document.hidden){cancelMediumDrag();updateEnvironmentControls();}},{signal:eventController.signal});
 
   function setDialogOpen(open){onDialogStateChange(open);}
   function open(){renderSlotTiles();if(!dialog.open){if(dialogOpenState)handleDialogClose();dialog.showModal();}restorePolymerVisual();polymerVisualRevision++;dialogOpenState=true;setDialogOpen(true);last=performance.now();resize();observation.resume();if(polymerSamplePresentation?.ready&&!finiteReferenceView){referenceUnits.value='100';referenceDisplay.value='reference';showPolymerReference();}return true;}
@@ -1504,7 +1529,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     // Native close is queued. Reopening before that event must first release
     // the closed presentation; the queued event must not suspend the new one.
     if(dialog.open||!dialogOpenState)return;
-    clearGuide();closePicker({returnFocus:false});setMediumSelectorOpen(false);if(polymerSamplePresentation&&!polymerSamplePresentation.ready&&!polymerSamplePresentation.dismissed){polymerSamplePresentation.dismissed=true;dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-dismiss',{sampleId:polymerSamplePresentation.sampleId,batchGeneration:polymerSamplePresentation.batchGeneration});}cancelAllPointers();suspendPolymerVisual();last=performance.now();dialogOpenState=false;setDialogOpen(false);for(const resolve of closeWaiters)resolve(true);closeWaiters.clear();
+    clearGuide();closePicker({returnFocus:false});cancelMediumDrag();updateEnvironmentControls();if(polymerSamplePresentation&&!polymerSamplePresentation.ready&&!polymerSamplePresentation.dismissed){polymerSamplePresentation.dismissed=true;dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-dismiss',{sampleId:polymerSamplePresentation.sampleId,batchGeneration:polymerSamplePresentation.batchGeneration});}cancelAllPointers();suspendPolymerVisual();last=performance.now();dialogOpenState=false;setDialogOpen(false);for(const resolve of closeWaiters)resolve(true);closeWaiters.clear();
   }
   dialog.addEventListener('close',handleDialogClose,{signal:eventController.signal});
 

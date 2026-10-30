@@ -68,12 +68,8 @@ try{
   if(!task10BaselineProfile)craftPause.open=await assertCraftPaused();
   assert.equal((await snapshot()).physicsMode,'stage-b','the browser gate uses production Stage B');
   if(task7r8r2){
-    const button=await evaluate(`(()=>{const b=document.querySelector('[data-lab-medium-port]').getBoundingClientRect();return{x:b.left+b.width/2,y:b.top+b.height/2}})()`);
-    await send('Input.dispatchMouseEvent',{type:'mouseMoved',...button});await send('Input.dispatchMouseEvent',{type:'mousePressed',...button,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...button,button:'left',buttons:0,clickCount:1});
-    await waitFor("!document.querySelector('[data-lab-medium-selector]').hidden",'pH button is reachable and opens selector');
-    const neutral=await evaluate(`(()=>{const b=document.querySelector('[data-lab-medium-option="basic"]').getBoundingClientRect();return{x:b.left+b.width/2,y:b.top+b.height/2}})()`);
-    await send('Input.dispatchMouseEvent',{type:'mouseMoved',...neutral});await send('Input.dispatchMouseEvent',{type:'mousePressed',...neutral,button:'left',buttons:1,clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...neutral,button:'left',buttons:0,clickCount:1});
-    await waitFor("document.querySelector('[data-lab-medium-selector]').hidden",'pH selection remains usable');
+    await evaluate("(()=>{const button=document.querySelector('[data-lab-medium-port]');button.focus();button.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp',bubbles:true}));})()");
+    await waitFor("window.__reactionLabProbe.snapshot().environment.medium==='basic'",'pH slider selects the basic state');
   }
 
   const retiredModuleRequests=await evaluate("performance.getEntriesByType('resource').map(entry=>entry.name).filter(name=>/reaction-lab-polymer-cinematic|polymer-growth-plan|polymer-morphology-(?:authority|plan|renderer|bridge)/.test(name))");assert.deepEqual(retiredModuleRequests,[],'production completion does not fetch retired visualization modules');
@@ -91,7 +87,7 @@ try{
     const requiredHeat=route.environment.requires.includes('heat'),requiredMedium=route.environment.requires.includes('basic')?'basic':route.environment.requires.includes('acidic')?'acidic':'neutral';
     let state=await snapshot();if(state.environment.light)await evaluate("document.querySelector('[data-lab-light]').click()");
     if(state.environment.heat!==requiredHeat)await evaluate("document.querySelector('[data-lab-heat]').click()");
-    state=await snapshot();if(state.environment.medium!==requiredMedium){await evaluate("document.querySelector('[data-lab-medium-port]').click()");await waitFor("!document.querySelector('[data-lab-medium-selector]').hidden",'Existing pH equipment did not open');await evaluate(`document.querySelector('[data-lab-medium-option="${requiredMedium}"] input').click()`);}
+    state=await snapshot();if(state.environment.medium!==requiredMedium){await evaluate(`(()=>{const button=document.querySelector('[data-lab-medium-port]');button.focus();for(const key of ${JSON.stringify(requiredMedium==='acidic'?['Home']:requiredMedium==='basic'?['End']:['Home','ArrowUp'])})button.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true}));})()`);}
   };
   const feedRoute=async(route,expectPurge)=>{
     await setDraftSlots(route.feedSpecies);if(process.env.REACTION_T3_GUIDED==='1')assert.equal(await evaluate("document.querySelector('[data-lab-feed]').classList.contains('reaction-guide-target')"),true,'polymer guide highlights FEED');const before=await snapshot();assert.deepEqual(before.batch.draftSlots.filter(Boolean).sort(),[...route.feedSpecies].sort(),`${route.routeId}: exact Feed slots are set`);
