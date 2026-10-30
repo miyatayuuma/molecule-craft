@@ -1,9 +1,11 @@
 import { VEIL, VEIL_AUDIO as A } from './config.js';
+import { createFieldBgm } from './bgm.js';
 // Semantic events keep sample replacement independent of simulation and input.
 export function createVeilAudio(){
   let ctx=null,master=null,hum=null,humGain=null,air=null,airGain=null,lastPickup=-1,lastInsight=-Infinity,phrase=0,muted=false;
+  const bgm=createFieldBgm();
   function start(){try{if(!ctx){
-    const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;ctx=new Audio();
+    const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio){bgm.start();return;}ctx=new Audio();
     master=ctx.createGain();master.gain.value=muted?0:A.master;
     const limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-18;limiter.ratio.value=5;master.connect(limiter);limiter.connect(ctx.destination);
     hum=ctx.createOscillator();humGain=ctx.createGain();hum.type='sine';hum.frequency.value=64;humGain.gain.value=0;hum.connect(humGain);humGain.connect(master);hum.start();
@@ -12,7 +14,7 @@ export function createVeilAudio(){
     for(let i=0;i<data.length;i++){smoothed=(smoothed+(Math.random()*2-1)*.02)/1.02;data[i]=smoothed*3;}
     air=ctx.createBufferSource();air.buffer=noise;air.loop=true;const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=1100;
     airGain=ctx.createGain();airGain.gain.value=0;air.connect(filter);filter.connect(airGain);airGain.connect(master);air.start();
-  }void ctx.resume().catch(()=>{});}catch{}}
+  }void ctx.resume().catch(()=>{});}catch{}bgm.start();}
   function tone(frequency,duration=.1,level=.15,delay=0,type='sine',end=null){
     if(!ctx||muted||ctx.state!=='running')return;const t=ctx.currentTime+delay,o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(frequency,t);if(end)o.frequency.exponentialRampToValueAtTime(end,t+duration);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(level,t+.012);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.connect(g);g.connect(master);o.start(t);o.stop(t+duration+.02);o.onended=()=>{o.disconnect();g.disconnect();};
@@ -45,8 +47,8 @@ export function createVeilAudio(){
     else if(type==='rare'||type==='gate'){[0,7,12,16].forEach((n,i)=>tone(294*2**(n/12),.45,.09,i*.11));}
     else if(type==='chainEnd'&&chain>=8){phrase=0;tone(196,.24,.04,0,'sine',164.8);}
   }
-  return {start,event,update(speed,chain,propulsion){if(!ctx||!hum)return;const fever=Math.min(chain/VEIL.feverChain,1),t=ctx.currentTime,thrust=propulsion==='burst'?.14:propulsion==='combustion'?.09:0;
+  return {start,event,setRegion:region=>bgm.setRegion(region),update(speed,chain,propulsion,dt){bgm.update(dt);if(!ctx||!hum)return;const fever=Math.min(chain/VEIL.feverChain,1),t=ctx.currentTime,thrust=propulsion==='burst'?.14:propulsion==='combustion'?.09:0;
     hum.frequency.setTargetAtTime(55+speed*.065,t,.15);humGain.gain.setTargetAtTime(muted?0:Math.min(speed/VEIL.speed,1)*(A.movementLevel+fever*A.feverLevel),t,.12);
     airGain?.gain.setTargetAtTime(muted?0:(chain>0?.04+fever*.06:0)+thrust,t,.12);
-  },mute(value){muted=value;if(master)master.gain.setTargetAtTime(muted?0:A.master,ctx.currentTime,.025);},pause(){if(ctx)void ctx.suspend().catch(()=>{});},dispose(){if(ctx)void ctx.close().catch(()=>{});}};
+  },mute(value){muted=value;bgm.mute(value);if(master)master.gain.setTargetAtTime(muted?0:A.master,ctx.currentTime,.025);},pause(){bgm.pause();if(ctx)void ctx.suspend().catch(()=>{});},dispose(){bgm.dispose();if(ctx)void ctx.close().catch(()=>{});}};
 }
