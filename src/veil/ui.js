@@ -263,6 +263,8 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(now-hudAt>70){hudAt=now;hud();}
   }
   q('cho-goal-action').addEventListener('click',()=>{const goal=growthGoal(resources.state);if(goal.id)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:goal.id}}));});
+  // Retry blocked music within the user's next FIELD gesture (before async work).
+  root.addEventListener('pointerdown',()=>{if(active&&!paused)audio.start();},{capture:true});
   const shipHitRadius=48;
   canvas.setAttribute('role','button');canvas.setAttribute('tabindex','0');canvas.setAttribute('aria-label','FIELDの機体。帰還可能な時は機体をtap');
   canvas.addEventListener('pointerdown',event=>{if(event.button!==undefined&&event.button!==0)return;shipTap={id:event.pointerId,x:event.clientX,y:event.clientY};});
@@ -283,3 +285,4 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
   return {configureReactionRecipes(value){recipeServices=value;},get active(){return active;},get run(){return run;},get returnPhase(){return returnState?.phase??null;},get returning(){return returnState?.phase?.startsWith('forced-')?'emergency':returnState?.phase?.startsWith('normal-')&&returnState.phase.endsWith('pending')?'normal-extraction-pending':null;},get lastTelemetry(){return lastTelemetry;},updateCraft,requestExpeditionLaunch,pause,openSupply:(id,use)=>supply.openMolecule(id,use),discovered:id=>supply.discovered(id),usesFor:id=>supply.usesFor(id),tankStatus:(use,id)=>supply.tankStatus(use,id),fillPlan:(use,id)=>supply.fillPlan(use,id),commitFill:(use,id,count)=>supply.commitFill(use,id,count)};
 }
+

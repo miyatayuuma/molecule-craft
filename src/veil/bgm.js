@@ -38,20 +38,25 @@ export function createFieldBgm({ AudioCtor = globalThis.Audio, loadSource = load
   }
 
   function play(node, onReady = () => {}) {
+    if (node.playPending) return;
+    node.playPending = true;
     try {
       Promise.resolve(node.audio.play()).then(() => {
+        node.playPending = false;
         if (!running || muted || (node !== current && node !== incoming)) {
           silence(node);
           return;
         }
         onReady();
       }).catch(() => {
+        node.playPending = false;
         // A rejected autoplay attempt must not interrupt synthesized sound effects.
-        if (incoming === node) incoming = null;
+        node.ready = false;
         silence(node);
       });
     } catch {
-      if (incoming === node) incoming = null;
+      node.playPending = false;
+      node.ready = false;
       silence(node);
     }
   }
@@ -107,7 +112,8 @@ export function createFieldBgm({ AudioCtor = globalThis.Audio, loadSource = load
         running = true;
         if (current) play(current);
       }
-      transition();
+      if (incoming && !incoming.ready) play(incoming, () => { incoming.ready = true; });
+      else transition();
     },
     update(dt = 1 / 60) {
       if (!running || muted || !incoming?.ready) return;
@@ -154,3 +160,4 @@ export function createFieldBgm({ AudioCtor = globalThis.Audio, loadSource = load
     },
   };
 }
+
