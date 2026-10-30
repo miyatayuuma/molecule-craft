@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import { LOADOUT_SLOT_GEOMETRY } from '../src/veil/loadout-workstation.js';
 
+test('topbar has no flash of placeholder Collection count and portrait LOADOUT anchors to the top',async()=>{
+  const [html,source]=await Promise.all([
+    readFile(new URL('../index.html',import.meta.url),'utf8'),
+    readFile(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8'),
+  ]);
+  assert.match(html,/<button id="open-collection" type="button">図鑑<\/button>/);
+  assert.doesNotMatch(html,/id="open-collection"[^>]*>図鑑\s*<small>/);
+  assert.ok(source.includes('@media(max-width:650px) and (orientation:portrait){#supply-dialog{margin:max(8px,env(safe-area-inset-top)) 0 auto'));
+});
+
 const DRIVE_USES=['fuel','oxidizer','coolant'];
 const right=slot=>Number((slot.left+slot.width).toFixed(2));
 

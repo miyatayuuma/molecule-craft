@@ -271,6 +271,7 @@ function installStyles(){
   const style=document.createElement('style');
   style.id=STYLE_ID;
   style.textContent=`
+@media(max-width:650px) and (orientation:portrait){#supply-dialog{margin:max(8px,env(safe-area-inset-top)) 0 auto;max-height:calc(100dvh - max(8px,env(safe-area-inset-top)) - 8px)}}
 #supply-dialog .collector-shell-map{height:clamp(205px,60vw,240px)!important;border-color:#294656;background:#071520;overflow:hidden}
 #supply-dialog .sheet-header{padding:10px 16px}
 #supply-dialog .sheet-body{padding:8px 14px 14px;gap:10px}
