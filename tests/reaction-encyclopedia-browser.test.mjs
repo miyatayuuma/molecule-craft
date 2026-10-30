@@ -41,7 +41,7 @@ try{
   await evaluate(`document.querySelector('#close-collection').click()`);
   await evaluate(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/実証 0 \/ 54/);
-  assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),14);
+  assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),13,'Only populated reaction categories appear in the book');
   assert.equal(await evaluate(`[...document.querySelectorAll('.rb-group-preview svg')].every(svg=>!svg.querySelector('text, foreignObject') && Math.abs(parseFloat(getComputedStyle(svg).animationDuration)-5.6)<.01)`),true);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list canvas').length`),0);
   assert.equal(await evaluate(`[...document.querySelectorAll('#collection-list .reaction-book-group')].every(button=>button.getBoundingClientRect().height>=44)`),true);
