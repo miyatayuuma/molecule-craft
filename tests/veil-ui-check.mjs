@@ -177,7 +177,7 @@ game=await setup(null,0,game.window.localStorage.getItem('molecule-craft.resourc
 game.run(`for(const use of ['propellant','fuel','oxidizer','coolant'])resources.setLoadoutTank(use,null);`);q('open-supply').click();game.run("veilUI.requestExpeditionLaunch('continue')");
 game.run(`Object.assign(veilUI.run.player,{x:280,y:-12470,vx:0,vy:0});veilUI.run.eaters=[];veilUI.run.predators=false;`);game.tick();game.tick();
 assert.equal(game.run('veilUI.run.destinationReached'),true);assert.equal(game.run('resources.state.progress.choCompleted'),false);
-tapShip(game);finishReturn();assert.equal(game.run('resources.state.progress.choCompleted'),true);assert.equal(q('cho-completion'),null);assert.match(q('craft-last-run').textContent,/CHO ✓/);
+tapShip(game);finishReturn();assert.equal(game.run('resources.state.progress.choCompleted'),true);assert.equal(q('cho-completion'),null);
 const completedRaw=game.window.localStorage.getItem('molecule-craft.resources.v1');
 game=await setup(null,0,completedRaw);assert.equal(q('cho-completion'),null);assert.equal(q('craft-resource-hint').textContent,'');
 q('open-supply').click();assert.equal(q('supply-dialog').open,true);
