@@ -9,6 +9,7 @@ assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','oxygen','water'],recipes
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','hydrogen','water'],recipes:[]}),['hydrogen','water'],'duplicate hints do not duplicate the route');
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','water'],recipes:['hydrogen']}),['water'],'completion removes only the completed candidate');
 assert.deepEqual(unfinishedCraftIds({hints:['hydrogen','water'],recipes:['hydrogen','water']}),[],'notification clears after all candidates are completed');
+assert.deepEqual(pendingReactionRecipeIds(null),[],'startup without reaction services has no special pending candidates');
 const reactionEntries=[{reactionId:'normal:complete-03-aspirin-synthesis'},{reactionId:'polymer:route-pe'}];
 const reactionStatus=new Map([['normal:complete-03-aspirin-synthesis','hinted'],['polymer:route-pe','verified']]);
 const reactionServices={authority:{entries:()=>reactionEntries},progress:{getState:id=>reactionStatus.get(id)??'notFound'}};
