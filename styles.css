@@ -378,3 +378,36 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .book-tabs button:has(.ui-book-icon){min-height:70px;padding:6px 2px;gap:2px}
 .ui-book-icon{width:34px;height:34px}
 @media(max-width:650px){.topbar-actions button.ui-icon-button{width:46px;height:46px;min-width:46px;padding:5px}.ui-book-icon{width:31px;height:31px}}
+
+
+/* FEED manifold and chamber inlet share the head conduit's cyan mechanical language. */
+.reaction-lab-command-bar{position:relative;isolation:isolate}
+.reaction-lab-command-bar::after{content:"";position:absolute;z-index:2;left:50%;top:100%;height:13px;width:4px;transform:translateX(-50%);border-radius:3px;background:#337f91;box-shadow:0 0 7px rgba(75,199,215,.5);pointer-events:none}
+.reaction-lab-feed-valve{position:absolute;z-index:3;left:50%;bottom:-14px;width:18px;height:18px;transform:translateX(-50%);border:2px solid #559fac;border-radius:50%;background:#102c3c;box-shadow:0 0 0 2px #0a1a28,0 0 8px rgba(76,190,212,.24);pointer-events:none}
+.reaction-lab-valve-handle{position:absolute;left:50%;top:50%;width:3px;height:14px;transform:translate(-50%,-50%) rotate(0deg);transform-origin:center;border-radius:3px;background:#8de4e9;transition:transform 280ms ease}
+.reaction-lab-valve-handle::after{content:"";position:absolute;left:-4px;top:5px;width:11px;height:3px;border-radius:3px;background:#8de4e9}
+.reaction-lab-command-bar[data-feed-flow="open"] .reaction-lab-valve-handle{transform:translate(-50%,-50%) rotate(90deg)}
+.reaction-lab-command-bar[data-feed-flow="open"]::after{background:linear-gradient(180deg,#227d94,#a5ffff,#227d94);background-size:100% 200%;animation:reaction-lab-feed-current 650ms linear infinite;box-shadow:0 0 10px rgba(88,229,231,.8)}
+.reaction-lab-command-bar[data-feed-flow="open"] .reaction-lab-feed-valve{border-color:#a7f4f3;box-shadow:0 0 0 2px #0a1a28,0 0 12px rgba(124,231,243,.65)}
+@keyframes reaction-lab-feed-current{to{background-position:0 200%}}
+
+/* Disconnection is an unplug action, distinct from the flow valve and close control. */
+.reaction-lab-picker-actions{display:flex;align-items:center;gap:8px}
+.reaction-lab-picker-sheet header .reaction-lab-disconnect{display:grid;place-items:center;flex:none;width:44px;height:44px;min-height:44px;padding:8px;border:1px solid #385268;border-radius:10px;background:#132737;color:#aee4e5}
+.reaction-lab-disconnect svg{display:block;width:23px;height:23px}
+.reaction-lab-picker-sheet header .reaction-lab-disconnect:disabled{opacity:.3}
+
+/* Two touch-friendly square molecule cards on phones, three on wider screens. */
+.reaction-lab-picker-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.reaction-lab-picker-option{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;aspect-ratio:1/1;min-width:0;min-height:136px;padding:8px 6px;text-align:center;border-radius:11px}
+.reaction-lab-picker-model{display:grid;place-items:center;flex:1 1 auto;min-height:0;width:100%;overflow:hidden}
+.reaction-lab-picker-model img{display:block;max-width:100%;height:100%;min-height:0;object-fit:contain;filter:drop-shadow(0 0 7px rgba(92,209,227,.15))}
+.reaction-lab-picker-fallback{font-size:27px;color:#7dbfc7}
+.reaction-lab-picker-copy{display:grid;gap:3px;max-width:100%;min-width:0;flex:none}
+.reaction-lab-picker-option strong{display:block;overflow-wrap:anywhere;font-size:13px}
+.reaction-lab-picker-option small{display:-webkit-box;margin:0;overflow:hidden;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.3}
+.reaction-lab-picker-option[aria-selected="true"]{border-color:#eac56e;background:#1b3945;box-shadow:inset 0 0 0 2px rgba(244,202,106,.5)}
+.reaction-lab-picker-option[aria-selected="true"]::after{content:"✓";position:absolute;right:7px;top:5px;color:#ffe099;font-size:17px;font-weight:800}
+.reaction-lab-picker-option[aria-disabled="true"]{opacity:.44}
+@media(min-width:720px){.reaction-lab-picker-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.reaction-lab-valve-handle{transition:none}.reaction-lab-command-bar[data-feed-flow="open"]::after{animation:none;background:#8cdbdf}}
