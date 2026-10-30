@@ -73,6 +73,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const stageBPhysicsEnabled=!stageAPhysicsEnabled;
   const stageBChargeE=STAGE_B_TEST_QA_E;
   const canvas=root.querySelector('canvas');
+  const chamberSpace=root.querySelector('.reaction-lab-space');
   const status=root.querySelector('[data-lab-status]');
   const polymerCompletion=root.querySelector('[data-polymer-completion]'),polymerCompletionName=root.querySelector('[data-polymer-completion-name]'),polymerCompletionStatus=root.querySelector('[data-polymer-completion-status]'),polymerEncyclopediaButton=root.querySelector('[data-polymer-encyclopedia]');
   const slots=[...root.querySelectorAll('[data-lab-slot]')];
@@ -816,6 +817,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function updateEnvironmentControls(){
     const locked=environmentControlsLocked();if(locked&&mediumSelectorOpen)closeMediumSelector({returnFocus:mediumSelector.contains(document.activeElement)});
     const state=activationEnvironment.snapshot(),mediumLabels={neutral:'NEUTRAL',acidic:'ACID',basic:'BASE'};
+    if(chamberSpace){chamberSpace.dataset.light=state.light?'on':'off';chamberSpace.dataset.heat=state.heat?'on':'off';chamberSpace.dataset.medium=state.medium;}
     if(lightButton){lightButton.disabled=locked;lightButton.setAttribute('aria-pressed',String(state.light));lightButton.setAttribute('aria-label',`LIGHT：${state.light?'ON':'OFF'}`);lightButton.dataset.active=String(state.light);lightButton.querySelector('[data-lab-equipment-state]').textContent=state.light?'ON':'OFF';}
     if(heatButton){heatButton.disabled=locked;heatButton.setAttribute('aria-pressed',String(state.heat));heatButton.setAttribute('aria-label',`HEAT：${state.heat?'ON':'OFF'}`);heatButton.dataset.active=String(state.heat);heatButton.querySelector('[data-lab-equipment-state]').textContent=state.heat?'ON':'OFF';}
     if(mediumButton){mediumButton.disabled=locked;mediumButton.setAttribute('aria-label',`pH medium：${mediumLabels[state.medium]}`);mediumButton.dataset.medium=state.medium;mediumButton.querySelector('[data-lab-medium-value]').textContent=mediumLabels[state.medium];}
