@@ -33,14 +33,19 @@ function ensureInsightCategoryStyles(root){
   const link=root.createElement('link');link.id='insight-category-styles';link.rel='stylesheet';link.href=new URL('./insight-category.css',import.meta.url).href;root.head?.append(link);
 }
 
+export function pendingReactionRecipeIds({authority,progress}={}){
+  if(!authority?.entries||!progress?.getState)return [];
+  return authority.entries().filter(entry=>progress.getState(entry.reactionId)==='hinted').map(entry=>entry.reactionId);
+}
+
 export function installPendingCraftAccess({resources,root=globalThis.document,windowRef=globalThis.window}={}){
-  const noop={refresh:()=>unfinishedCraftIds(resources?.state)};
+  const noop={refresh:()=>unfinishedCraftIds(resources?.state),configureReactionRecipes:()=>{}};
   if(!resources||!root?.createElement||!windowRef)return noop;
   const actions=root.querySelector?.('.topbar-actions'),collection=root.getElementById?.('open-collection');
   if(!actions||!collection)return noop;
   ensureInsightCategoryStyles(root);
 
-  let access=root.getElementById?.('open-pending-crafts'),dialog=root.getElementById?.('pending-crafts-dialog'),list=null,count=null,previousIds=[],acknowledgedIds=new Set(),acknowledgedKey='';
+  let access=root.getElementById?.('open-pending-crafts'),dialog=root.getElementById?.('pending-crafts-dialog'),list=null,count=null,previousIds=[],acknowledgedIds=new Set(),acknowledgedKey='',reactionServices=null;
   if(!access){
     access=root.createElement('button');access.id='open-pending-crafts';access.type='button';access.className='icon-button pending-craft-access';access.innerHTML='<span aria-hidden="true">💡</span><small></small>';count=access.querySelector('small');
     actions.insertBefore(access,collection.nextSibling);
@@ -97,10 +102,32 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
     `;root.head?.append(style);
   }
 
-  function candidates(){return unfinishedCraftIds(resources.state);}
+  function candidates(){
+    const normal=unfinishedCraftIds(resources.state);
+    return [...normal,...pendingReactionRecipeIds(reactionServices).map(id=>'special:'+id)];
+  }
+  function reactionRow(id){
+    const entry=reactionServices?.authority?.get(id);
+    if(!entry)return null;
+    const resultId=entry.kind==='normal'?entry.definition.products?.[0]:entry.definition.polymerId;
+    const record=reactionServices.records?.find(item=>item.id===resultId);
+    const name=entry.kind==='polymer'?(reactionServices.polymerNameFor?.(resultId)??resultId):recordName(record,resultId);
+    return {entry,name,formula:entry.kind==='normal'?recordFormula(record,resultId):'高分子反応'};
+  }
   function renderList(ids){
     if(!list)return;list.replaceChildren();
     for(const id of ids){
+      if(id.startsWith('special:')){
+        const reactionId=id.slice('special:'.length),model=reactionRow(reactionId);
+        if(!model)continue;
+        const button=root.createElement('button'),copy=root.createElement('span'),identity=root.createElement('span'),bulb=root.createElement('span'),formula=root.createElement('strong'),meta=root.createElement('span'),name=root.createElement('small'),role=root.createElement('small'),arrow=root.createElement('b');
+        button.type='button';button.dataset.reactionRecipe=reactionId;button.dataset.insightCategory='special';button.setAttribute('aria-label',`${model.name}。特殊レシピ。ラボで試す`);
+        copy.className='pending-craft-copy';identity.className='pending-craft-identity';bulb.className='insight-bulb';bulb.setAttribute('aria-hidden','true');
+        formula.textContent=model.formula;meta.className='pending-craft-meta';name.className='pending-craft-name';name.textContent=model.name;role.className='pending-craft-role insight-category-label';role.textContent='SPECIAL';arrow.textContent='LAB ›';
+        identity.append(bulb,formula);meta.append(name,role);copy.append(identity,meta);button.append(copy,arrow);
+        button.addEventListener('click',()=>{dialog.close();reactionServices?.onTryReaction?.(reactionId);});
+        list.append(button);continue;
+      }
       const model=pendingCraftRowModel(resources,id),button=root.createElement('button'),copy=root.createElement('span'),identity=root.createElement('span'),bulb=root.createElement('span'),formula=root.createElement('strong'),meta=root.createElement('span'),name=root.createElement('small'),role=root.createElement('small'),arrow=root.createElement('b');
       button.type='button';button.dataset.moleculeId=id;button.dataset.insightCategory=model.category;button.setAttribute('aria-label',`${model.formula} ${model.name}。用途 ${model.categoryLabel}。クラフト`);
       copy.className='pending-craft-copy';identity.className='pending-craft-identity';bulb.className='insight-bulb';bulb.setAttribute('aria-hidden','true');formula.textContent=model.formula;meta.className='pending-craft-meta';name.className='pending-craft-name';name.textContent=model.name;role.className='pending-craft-role insight-category-label';role.textContent=model.categoryLabel;arrow.textContent='CRAFT ›';
@@ -133,5 +160,5 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
     const wrapped=function(...args){const result=original.apply(this,args);refresh();return result;};wrapped.__pendingCraftObserved=true;resources[method]=wrapped;
   }
   refresh();
-  return {refresh,get attention(){return access.dataset.attention??'none';},get acknowledgedKey(){return acknowledgedKey;}};
+  return {refresh,configureReactionRecipes(services){reactionServices=services;refresh();},get attention(){return access.dataset.attention??'none';},get acknowledgedKey(){return acknowledgedKey;}};
 }
