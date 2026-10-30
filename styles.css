@@ -411,3 +411,15 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .reaction-lab-picker-option[aria-disabled="true"]{opacity:.44}
 @media(min-width:720px){.reaction-lab-picker-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.reaction-lab-valve-handle{transition:none}.reaction-lab-command-bar[data-feed-flow="open"]::after{animation:none;background:#8cdbdf}}
+
+
+/* Picker card fit: fixed grid tracks prevent neighbouring cards from overlapping.
+   The model shrinks to its own row; labels remain in front and always readable. */
+.reaction-lab-picker-list{grid-auto-rows:126px;align-items:stretch;row-gap:8px}
+.reaction-lab-picker-option{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;justify-items:center;align-items:stretch;align-content:stretch;aspect-ratio:auto;height:100%;max-height:100%;min-height:0;gap:3px;overflow:hidden;padding:6px 7px 7px}
+.reaction-lab-picker-model{position:relative;z-index:1;display:grid;place-items:center;width:100%;height:100%;max-height:100%;min-width:0;min-height:0;overflow:hidden}
+.reaction-lab-picker-model img{display:block;width:100%;height:100%;max-height:70px;min-height:0;object-fit:contain}
+.reaction-lab-picker-copy{position:relative;z-index:2;display:grid;justify-items:center;align-self:end;width:100%;max-width:100%;min-width:0;gap:1px;padding:2px 4px;border-radius:5px;background:rgba(7,20,31,.88);pointer-events:none}
+.reaction-lab-picker-option strong{max-width:100%;font-size:12px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reaction-lab-picker-option small{max-width:100%;margin:0;font-size:10px;line-height:1.2;-webkit-line-clamp:2}
+@media(min-width:720px){.reaction-lab-picker-list{grid-auto-rows:138px}.reaction-lab-picker-model img{max-height:82px}}
