@@ -39,6 +39,19 @@ export function pendingReactionRecipeIds(services){
   return authority.entries().filter(entry=>progress.getState(entry.reactionId)==='hinted').map(entry=>entry.reactionId);
 }
 
+const conditionLabels={acidic:'酸性',basic:'塩基性',heat:'加熱',light:'光'};
+export function reactionRecipeRowModel(entry,{records=[],polymerNameFor=()=>null}={}){
+  const d=entry.definition,resultId=entry.kind==='normal'?d.products?.[0]:d.polymerId;
+  const record=records.find(item=>item.id===resultId);
+  const name=entry.kind==='polymer'?(polymerNameFor(resultId)??resultId):recordName(record,resultId);
+  const feed=entry.kind==='normal'?(d.reactants??[]).map(item=>item.species):(d.feedSpecies??[]);
+  const reactants=feed.map(id=>recordName(records.find(item=>item.id===id),id));
+  const conditions=(entry.kind==='normal'?d.requires:d.environment?.requires)??[];
+  const details=[...new Set(reactants)].join('＋');
+  const environment=conditions.map(id=>conditionLabels[id]??id).join('・');
+  return {entry,name,formula:entry.kind==='normal'?recordFormula(record,resultId):'高分子反応',detail:[details,environment].filter(Boolean).join(' ／ ')};
+}
+
 export function installPendingCraftAccess({resources,root=globalThis.document,windowRef=globalThis.window}={}){
   const noop={refresh:()=>unfinishedCraftIds(resources?.state),configureReactionRecipes:()=>{}};
   if(!resources||!root?.createElement||!windowRef)return noop;
@@ -110,10 +123,7 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
   function reactionRow(id){
     const entry=reactionServices?.authority?.get(id);
     if(!entry)return null;
-    const resultId=entry.kind==='normal'?entry.definition.products?.[0]:entry.definition.polymerId;
-    const record=reactionServices.records?.find(item=>item.id===resultId);
-    const name=entry.kind==='polymer'?(reactionServices.polymerNameFor?.(resultId)??resultId):recordName(record,resultId);
-    return {entry,name,formula:entry.kind==='normal'?recordFormula(record,resultId):'高分子反応'};
+    return reactionRecipeRowModel(entry,{records:reactionServices.records,polymerNameFor:reactionServices.polymerNameFor});
   }
   function renderList(ids){
     if(!list)return;list.replaceChildren();
@@ -122,16 +132,16 @@ export function installPendingCraftAccess({resources,root=globalThis.document,wi
         const reactionId=id.slice('special:'.length),model=reactionRow(reactionId);
         if(!model)continue;
         const button=root.createElement('button'),copy=root.createElement('span'),identity=root.createElement('span'),bulb=root.createElement('span'),formula=root.createElement('strong'),meta=root.createElement('span'),name=root.createElement('small'),role=root.createElement('small'),arrow=root.createElement('b');
-        button.type='button';button.dataset.reactionRecipe=reactionId;button.dataset.insightCategory='special';button.setAttribute('aria-label',`${model.name}。特殊レシピ。ラボで試す`);
+        button.type='button';button.dataset.reactionRecipe=reactionId;button.dataset.insightCategory='special';button.setAttribute('aria-label',`${model.name}。${model.detail}。特殊レシピ。ラボで試す`);
         copy.className='pending-craft-copy';identity.className='pending-craft-identity';bulb.className='insight-bulb';bulb.setAttribute('aria-hidden','true');
-        formula.textContent=model.formula;meta.className='pending-craft-meta';name.className='pending-craft-name';name.textContent=model.name;role.className='pending-craft-role insight-category-label';role.textContent='SPECIAL';arrow.textContent='LAB ›';
+        formula.textContent=model.formula;meta.className='pending-craft-meta';name.className='pending-craft-name';name.textContent=[model.name,model.detail].filter(Boolean).join(' · ');role.className='pending-craft-role insight-category-label';role.textContent='SPECIAL';arrow.textContent='LAB ›';
         identity.append(bulb,formula);meta.append(name,role);copy.append(identity,meta);button.append(copy,arrow);
         button.addEventListener('click',()=>{dialog.close();reactionServices?.onTryReaction?.(reactionId);});
         list.append(button);continue;
       }
       const model=pendingCraftRowModel(resources,id),button=root.createElement('button'),copy=root.createElement('span'),identity=root.createElement('span'),bulb=root.createElement('span'),formula=root.createElement('strong'),meta=root.createElement('span'),name=root.createElement('small'),role=root.createElement('small'),arrow=root.createElement('b');
       button.type='button';button.dataset.moleculeId=id;button.dataset.insightCategory=model.category;button.setAttribute('aria-label',`${model.formula} ${model.name}。用途 ${model.categoryLabel}。クラフト`);
-      copy.className='pending-craft-copy';identity.className='pending-craft-identity';bulb.className='insight-bulb';bulb.setAttribute('aria-hidden','true');formula.textContent=model.formula;meta.className='pending-craft-meta';name.className='pending-craft-name';name.textContent=model.name;role.className='pending-craft-role insight-category-label';role.textContent=model.categoryLabel;arrow.textContent='CRAFT ›';
+      copy.className='pending-craft-copy';identity.className='pending-craft-identity';bulb.className='insight-bulb';bulb.setAttribute('aria-hidden','true');formula.textContent=model.formula;meta.className='pending-craft-meta';name.className='pending-craft-name';name.textContent=[model.name,model.detail].filter(Boolean).join(' · ');role.className='pending-craft-role insight-category-label';role.textContent=model.categoryLabel;arrow.textContent='CRAFT ›';
       identity.append(bulb,formula);meta.append(name,role);copy.append(identity,meta);button.append(copy,arrow);
       button.addEventListener('click',()=>{dialog.close();windowRef.dispatchEvent(new windowRef.CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));});
       list.append(button);

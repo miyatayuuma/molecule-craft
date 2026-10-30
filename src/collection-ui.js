@@ -1,3 +1,4 @@
+import {unfinishedCraftIds,pendingReactionRecipeIds,reactionRecipeRowModel} from './pending-craft.js';
 import {renderReactionBook} from './reaction-encyclopedia.js?v=1';
 import {isCHO} from './veil/cho-campaign.js';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
@@ -256,12 +257,12 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       onCraft:id=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();},
     });
     lastGraphPositions=result.positions;lastGraphVisibleIds=result.visibleIds;
-    const normal=(recipeState?.().hints??[]).filter(id=>recordById(id));
-    const special=reactionAuthority?.entries().filter(entry=>reactionProgress?.getState(entry.reactionId)==='hinted')??[];
+    const normal=unfinishedCraftIds(recipeState?.()).filter(id=>recordById(id));
+    const special=pendingReactionRecipeIds({authority:reactionAuthority,progress:reactionProgress}).map(id=>reactionAuthority.get(id));
     if(normal.length||special.length){
       const panel=el('details',null,'collection-recipe-list'),summary=el('summary',`💡 ひらめいたレシピ（${normal.length+special.length}）`);panel.open=true;panel.append(summary);
       for(const id of normal){const record=recordById(id),item=button(`💡 ${moleculeDisplayName(record)}`,()=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();});panel.append(item);}
-      for(const entry of special){const d=entry.definition,id=entry.kind==='normal'?d.products[0]:d.polymerId,label=entry.kind==='normal'?(recordById(id)?moleculeDisplayName(recordById(id)):id):(polymerRecords.find(row=>row.id===id)?.nameJa??id);const item=button(`💡 ${label}`,()=>onTryReaction(entry.reactionId));item.dataset.reactionRecipe=entry.reactionId;item.className='collection-special-recipe';panel.append(item);}
+      for(const entry of special){const model=reactionRecipeRowModel(entry,{records,polymerNameFor:id=>polymerRecords.find(row=>row.id===id)?.nameJa});const item=button(`💡 ${model.name}（${model.detail}）`,()=>onTryReaction(entry.reactionId));item.dataset.reactionRecipe=entry.reactionId;item.className='collection-special-recipe';panel.append(item);}
       list.prepend(panel);
     }
   }

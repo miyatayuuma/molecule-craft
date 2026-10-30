@@ -27,8 +27,8 @@ export function createReactionProgress({storage=null,authority,legacyPolymerEntr
   if(previous===null&&verified.size&&!blocked)persist();
   function record(id,set){if(!authority.get(id))return {changed:false,saved:false,reason:'unknown-id'};if(set.has(id))return {changed:false,saved:true};set.add(id);if(!persist()){set.delete(id);return {changed:false,saved:false,reason:'save-failed'};}return {changed:true,saved:true};}
   function fieldRecipeCount(runId,source='field'){return fieldBudget?.runId===runId?(fieldBudget.sources[source]??0):0;}
-  function claimFieldRecipe(id,runId,source='field',cap=1){
-    if(blocked||typeof runId!=='string'||!runId||!['field','tnt'].includes(source)||!Number.isSafeInteger(cap)||cap<1||!authority.get(id))return {changed:false,saved:false,reason:'invalid'};
+  function claimFieldRecipe(id,runId,source='field'){
+    if(blocked||typeof runId!=='string'||!runId||!['field','tnt'].includes(source)||!authority.get(id))return {changed:false,saved:false,reason:'invalid'};
     if(verified.has(id)||hinted.has(id))return {changed:false,saved:false,reason:'already-known'};
     if(fieldRecipeCount(runId,'field')+fieldRecipeCount(runId,'tnt')>=1)return {changed:false,saved:false,reason:'cap'};
     const old=fieldBudget;fieldBudget={runId,sources:{...(old?.runId===runId?old.sources:{}),[source]:fieldRecipeCount(runId,source)+1}};hinted.add(id);
