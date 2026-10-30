@@ -99,7 +99,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     thermalNoticeUntil=0;insightPresentation.clear();
     active=true;paused=false;returnState={phase:'exploring'};root.hidden=false;document.body.dataset.mode='veil';appShell.inert=true;
     renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();
-    resetInput();q('veil-resume').hidden=true;audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();offerProgressionInsights();syncInsightMarkers();
+    resetInput();q('veil-resume').hidden=true;audio.setRegion(run.region);audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();offerProgressionInsights();syncInsightMarkers();
     const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,propellant=run.fuel.propellant;
     const first=prepared.nextRun===1?'採集殻を展開 · Insight保持中は機体、そうでなければSAFE SITEをtapして帰還':fuel.molecule&&oxidizer.molecule?'COMBUSTION DRIVE · 長押しで継続航行':propellant.molecule?`${formula(propellant.molecule)} BURST · 探索を続けるか持ち帰るか選ぼう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';
     notice(first,5);root.focus();last=0;hudAt=0;hud();updatePrompt();return true;
@@ -201,7 +201,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     if(returnState?.phase?.endsWith('-pending')){
       const warp=returnState.phase==='normal-warp-pending'||returnState.phase==='forced-warp-pending',forced=returnState.phase==='forced-return-pending'||returnState.phase==='forced-warp-pending';
       if(forced&&!warp)stepRun(run,{x:0,y:0},dt);else if(!warp)stepNormalExtractionPending(run,dt);else run.time+=dt;
-      returnState.elapsed=Math.min(returnState.duration,returnState.elapsed+dt);audio.update(run.player.speed,run.chain,null);renderer.draw(run,dt,reduced);returnHud();
+      returnState.elapsed=Math.min(returnState.duration,returnState.elapsed+dt);audio.update(run.player.speed,run.chain,null,dt);renderer.draw(run,dt,reduced);returnHud();
       if(returnState.elapsed>=returnState.duration){if(warp)finish(forced);else{const duration=renderer.beginWarp(run,forced?'emergency':'stable');returnState={phase:forced?'forced-warp-pending':'normal-warp-pending',duration,elapsed:0};returnHud();}}
       return;
     }
@@ -218,7 +218,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(event.type==='dense')vibrate(10);
       if(event.type==='cluster'){notice('炭素塊がほどけた · 散るC塵をまとめて吸おう',2.5);vibrate(18);}
       if(event.type==='gate'){resources.state.progress.cleared=true;run.gateTime=run.time;resources.save();notice('Hの帳を抜けた · BURSTを使うべき瞬間だった',4);}
-      if(event.type==='region'){const first=resources.visit(event.region);if(first)notice(event.region==='carbon'?'CARBON DRIFT · 粒子列の先に、塊が脈打つ':event.region==='oxygen'?'OXYGEN SURGE · 高速流と熱の領域':event.region==='frontier'?'INNER HORIZON · 金色の輪が最終地点。到達後は正常帰還を':`${REGIONS[event.region].name}へ戻った`,6);resources.save();}
+      if(event.type==='region'){audio.setRegion(event.region);const first=resources.visit(event.region);if(first)notice(event.region==='carbon'?'CARBON DRIFT · 粒子列の先に、塊が脈打つ':event.region==='oxygen'?'OXYGEN SURGE · 高速流と熱の領域':event.region==='frontier'?'INNER HORIZON · 金色の輪が最終地点。到達後は正常帰還を':`${REGIONS[event.region].name}へ戻った`,6);resources.save();}
       if(event.type==='inspiration')for(const id of event.rewards)offerInsight(id);
       if(event.type==='signal'){const excludeIds=currentInsightExcludeIds(),result=resources.signal(event.region,event.roll,event.choice,{excludeIds,runContext:run,claimableOnly:true});if(!result?.deferred)notice(signalText(result),result?.recipe?3:3);if(result?.recipe)offerInsight(result.recipe);supply.update();}
       if(event.type==='insightReady')handleInsight(event);
@@ -259,7 +259,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(result?.recipe)offerInsight(result.recipe);run.normalTntSignal=null;
     }
     if(run.time>messageUntil)q('veil-message').hidden=true;
-    const propulsion=run.player.boost>0?'burst':run.player.combustion?'combustion':null;audio.update(run.player.speed,run.chain,propulsion);renderer.draw(run,dt,reduced);
+    const propulsion=run.player.boost>0?'burst':run.player.combustion?'combustion':null;audio.update(run.player.speed,run.chain,propulsion,dt);renderer.draw(run,dt,reduced);
     if(now-hudAt>70){hudAt=now;hud();}
   }
   q('cho-goal-action').addEventListener('click',()=>{const goal=growthGoal(resources.state);if(goal.id)window.dispatchEvent(new window.CustomEvent('molecule-craft:craft-molecule',{detail:{id:goal.id}}));});
