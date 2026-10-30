@@ -13,6 +13,23 @@ test('exploration machine stays icon-only in the header, without a second toolba
   assert.doesNotMatch(html,/class="resource-bar"/);
 });
 
+test('top navigation, palette and Collection tabs use accessible shared chemical icons',async()=>{
+  const [html,collection]=await Promise.all([read('index.html'),read('src/collection-ui.js')]);
+  for(const symbol of ['lab','book','atom','part','molecule','reaction','polymer']){
+    assert.match(html,new RegExp(`<symbol id="ui-${symbol}"`));
+  }
+  for(const [id,label,symbol] of [['open-reaction-lab','Reaction Labを開く','lab'],['open-collection','図鑑を開く','book'],['atoms-tab','原子','atom'],['parts-tab','部品','part']]){
+    assert.match(html,new RegExp(`<button id="${id}"[^>]*aria-label="${label}"[^>]*><svg[^>]*><use href="#ui-${symbol}"`));
+  }
+  for(const [tab,symbol] of [['molecules','molecule'],['groups','part'],['reactions','reaction'],['polymers','polymer']]){
+    assert.match(html,new RegExp(`data-book-tab="${tab}"[^>]*><svg[^>]*><use href="#ui-${symbol}"`));
+  }
+  assert.doesNotMatch(html,/id="craft-count"/);
+  assert.doesNotMatch(collection,/open\.textContent='図鑑'|q\('craft-count'\)/);
+  assert.match(html,/<symbol id="ui-part"[\s\S]*?stroke-dasharray="6 5"/);
+  assert.match(html,/<symbol id="ui-polymer"[\s\S]*?stroke-dasharray="5 4"/);
+});
+
 test('retired instructions, reset controls and hidden copy are absent',async()=>{
   const [html,gameShell,connections,collection]=await Promise.all([
     read('index.html'),read('src/game-shell.js'),read('src/craft-connections.js'),read('src/collection-ui.js'),

@@ -11,14 +11,39 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=60">
+  <link rel="stylesheet" href="./styles.css?v=61">
   <link rel="stylesheet" href="./veil.css?v=44">
 </head>
 <body>
+  <svg class="ui-icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <symbol id="ui-lab" viewBox="0 0 64 64">
+      <path d="M24 9h16M28 9v18L15 51a5 5 0 0 0 4 7h26a5 5 0 0 0 4-7L36 27V9" fill="none" stroke="#87e4d5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M21 43h22l5 10H16z" fill="#438c94" opacity=".65"/><circle cx="28" cy="37" r="3" fill="#b9f2ec"/><circle cx="39" cy="33" r="2.5" fill="#b9f2ec"/>
+    </symbol>
+    <symbol id="ui-book" viewBox="0 0 64 64">
+      <path d="M32 16c-7-6-17-7-25-4v35c10-3 18-1 25 5 7-6 15-8 25-5V12c-8-3-18-2-25 4zM32 16v36" fill="none" stroke="#c0dbee" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="19" cy="29" r="5.5" fill="#e76e76"/><circle cx="43" cy="30" r="5.5" fill="#69c8bf"/>
+    </symbol>
+    <symbol id="ui-atom" viewBox="0 0 64 64">
+      <g fill="none" stroke="#b8d2e3" stroke-width="2.8"><ellipse cx="32" cy="32" rx="25" ry="11"/><ellipse cx="32" cy="32" rx="25" ry="11" transform="rotate(60 32 32)"/><ellipse cx="32" cy="32" rx="25" ry="11" transform="rotate(120 32 32)"/></g><circle cx="32" cy="32" r="6" fill="#78d7cf"/>
+    </symbol>
+    <symbol id="ui-molecule" viewBox="0 0 64 64">
+      <path d="M31 25L15 44M33 25l16 19" stroke="#adc4d0" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="23" r="12" fill="#e66e75"/><circle cx="13" cy="46" r="8" fill="#edf3f8"/><circle cx="51" cy="46" r="8" fill="#edf3f8"/>
+    </symbol>
+    <symbol id="ui-part" viewBox="0 0 64 64">
+      <g stroke="#aec4d0" stroke-width="4.5" stroke-linecap="round"><path d="M27 31L11 15M27 31L11 47M27 31l2-22"/></g><path d="M36 32h23" fill="none" stroke="#ffa34e" stroke-width="4" stroke-dasharray="6 5" stroke-linecap="round"/><circle cx="27" cy="32" r="10" fill="#768c9c"/><g fill="#edf3f8"><circle cx="11" cy="15" r="6"/><circle cx="11" cy="48" r="6"/><circle cx="29" cy="9" r="6"/></g>
+    </symbol>
+    <symbol id="ui-reaction" viewBox="0 0 64 64">
+      <circle cx="12" cy="19" r="7" fill="#e87279"/><circle cx="12" cy="45" r="7" fill="#e8f0f6"/><path d="M24 32h19m-6-7 8 7-8 7" fill="none" stroke="#72d7cc" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M53 24v16" stroke="#aecbd0" stroke-width="4" stroke-linecap="round"/><circle cx="53" cy="20" r="7" fill="#e87279"/><circle cx="53" cy="44" r="7" fill="#e8f0f6"/>
+    </symbol>
+    <symbol id="ui-polymer" viewBox="0 0 64 64">
+      <path d="M12 13h5M12 13v39h5M52 13h-5M52 13v39h-5" fill="none" stroke="#91bbcb" stroke-width="2.5" stroke-linecap="round"/><path d="M2 44l17-17M46 36l16-16" fill="none" stroke="#ffa34e" stroke-width="3.5" stroke-dasharray="5 4" stroke-linecap="round"/><path d="M19 27l9 9 9-9 9 9" fill="none" stroke="#b8d5d9" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="27" r="5" fill="#67c7c0"/><circle cx="28" cy="36" r="5" fill="#d1e6eb"/><circle cx="37" cy="27" r="5" fill="#67c7c0"/><circle cx="46" cy="36" r="5" fill="#d1e6eb"/>
+    </symbol>
+  </svg>
   <main class="app-shell">
     <header class="topbar">
       <h1><img src="./assets/icon.svg" alt="" width="32" height="32"><span>Molecule <b>Craft</b></span></h1>
-      <div class="topbar-actions"><button id="open-supply" class="collector-access" type="button" aria-label="探索機を開く"></button><button id="open-reaction-lab" type="button" aria-haspopup="dialog" disabled>LAB</button><button id="open-collection" type="button">図鑑</button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
+      <div class="topbar-actions"><button id="open-supply" class="collector-access" type="button" aria-label="探索機を開く"></button><button id="open-reaction-lab" class="ui-icon-button" type="button" aria-label="Reaction Labを開く" title="Reaction Lab" aria-haspopup="dialog" disabled><svg class="ui-nav-icon" aria-hidden="true"><use href="#ui-lab"/></svg></button><button id="open-collection" class="ui-icon-button" type="button" aria-label="図鑑を開く" title="図鑑"><svg class="ui-nav-icon" aria-hidden="true"><use href="#ui-book"/></svg></button><button id="open-menu" type="button" class="icon-button" aria-label="メニュー">☰</button></div>
     </header>
     <section id="craft-target" class="craft-target" aria-label="制作目標" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><div class="craft-target-meta"><strong id="craft-target-formula"></strong><span id="craft-target-name" hidden></span></div><div id="craft-target-atoms" class="craft-target-atoms"></div><button id="clear-craft-target" type="button" aria-label="制作目標を解除">×</button></section>
     <p id="craft-resource-hint" class="craft-expedition-note"></p><button id="cho-goal-action" class="cho-goal-action craft-emblem-action" type="button" hidden><svg class="craft-emblem" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M9 9L23 13L14 24Z"/><circle class="craft-emblem-a" cx="9" cy="9" r="4.4"/><circle class="craft-emblem-b" cx="23" cy="13" r="4.7"/><circle class="craft-emblem-c" cx="14" cy="24" r="3.9"/></svg><span id="cho-goal-label"></span><span id="cho-goal-atoms" class="craft-target-atoms" aria-hidden="true"></span></button>
@@ -37,7 +62,7 @@
         <div id="discovery" class="discovery" aria-live="assertive"><span id="discovery-kicker" class="discovery-kicker">新発見！</span><strong id="discovery-formula"></strong><span id="discovery-name"></span></div>
       </section>
       <aside class="tool-panel" aria-label="クラフト素材">
-        <div class="tray-header"><div class="palette-tabs" role="tablist" aria-label="クラフト素材"><button id="atoms-tab" type="button" role="tab" data-palette-tab="atoms" aria-selected="true" aria-controls="element-panel">原子</button><button id="parts-tab" type="button" role="tab" data-palette-tab="structures" aria-selected="false" aria-controls="craft-panel" tabindex="-1">部品 <small id="craft-count"></small></button></div></div>
+        <div class="tray-header"><div class="palette-tabs" role="tablist" aria-label="クラフト素材"><button id="atoms-tab" type="button" role="tab" data-palette-tab="atoms" aria-label="原子" title="原子" aria-selected="true" aria-controls="element-panel"><svg class="ui-palette-icon" aria-hidden="true"><use href="#ui-atom"/></svg></button><button id="parts-tab" type="button" role="tab" data-palette-tab="structures" aria-label="部品" title="部品" aria-selected="false" aria-controls="craft-panel" tabindex="-1"><svg class="ui-palette-icon" aria-hidden="true"><use href="#ui-part"/></svg></button></div></div>
         <div id="element-panel" role="tabpanel" aria-labelledby="atoms-tab">
           <div id="element-palette" class="element-palette">
             <button type="button" class="element-button" data-element="H" style="--element-color:#f8fafc"><span class="atom-preview" aria-hidden="true"></span><strong>H</strong><small class="element-stock" data-element-stock="H">0</small></button>
@@ -89,7 +114,7 @@
   <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="book-shell">
     <header class="book-header"><h2 id="collection-title">図鑑</h2><button id="close-collection" type="button" aria-label="図鑑を閉じる">×</button></header>
     <p id="collection-storage" class="save-warning" role="status" hidden></p>
-    <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-selected="true" aria-controls="collection-list"><span class="book-tab-label">分子</span><span class="book-tab-count" data-book-count="molecules">0 / 0</span></button><button type="button" role="tab" data-book-tab="groups" aria-selected="false" aria-controls="collection-list" tabindex="-1"><span class="book-tab-label">部品</span><span class="book-tab-count" data-book-count="groups">0 / 0</span></button><button type="button" role="tab" data-book-tab="reactions" aria-selected="false" aria-controls="collection-list" tabindex="-1"><span class="book-tab-label">反応</span><span class="book-tab-count" data-book-count="reactions">— / —</span></button><button type="button" role="tab" data-book-tab="polymers" aria-selected="false" aria-controls="collection-list" tabindex="-1"><span class="book-tab-label">高分子</span><span class="book-tab-count" data-book-count="polymers">0 / 0</span></button></div>
+    <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-label="分子" title="分子" aria-selected="true" aria-controls="collection-list"><svg class="ui-book-icon" aria-hidden="true"><use href="#ui-molecule"/></svg><span class="book-tab-count" data-book-count="molecules">0 / 0</span></button><button type="button" role="tab" data-book-tab="groups" aria-label="部品" title="部品" aria-selected="false" aria-controls="collection-list" tabindex="-1"><svg class="ui-book-icon" aria-hidden="true"><use href="#ui-part"/></svg><span class="book-tab-count" data-book-count="groups">0 / 0</span></button><button type="button" role="tab" data-book-tab="reactions" aria-label="反応" title="反応" aria-selected="false" aria-controls="collection-list" tabindex="-1"><svg class="ui-book-icon" aria-hidden="true"><use href="#ui-reaction"/></svg><span class="book-tab-count" data-book-count="reactions">— / —</span></button><button type="button" role="tab" data-book-tab="polymers" aria-label="高分子" title="高分子" aria-selected="false" aria-controls="collection-list" tabindex="-1"><svg class="ui-book-icon" aria-hidden="true"><use href="#ui-polymer"/></svg><span class="book-tab-count" data-book-count="polymers">0 / 0</span></button></div>
     <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>

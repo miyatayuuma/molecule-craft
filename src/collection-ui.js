@@ -220,17 +220,17 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       if(!unlocked)node.append(el('small',`解放まで ${count}/${template.unlock.distinctMolecules}`));
       node.title=`${template.nameJa} ${template.notation}`;container.appendChild(node);
     }
-    q('craft-empty').hidden=container.childElementCount>0;q('craft-count').textContent=String(state.unlockedCount);
+    q('craft-empty').hidden=container.childElementCount>0;
   }
   function renderSummary(){
-    const open=q('open-collection');open.textContent='図鑑';
     const knownParts=partGroups.filter(group=>state.hasGroup(group.id)).length;
     const reactionModel=reactionAuthority&&reactionProgress?reactionGroups(reactionAuthority,reactionProgress):null;
     const progress={molecules:[state.discoveredCount,records.length],groups:[knownParts,partGroups.length],reactions:reactionModel?[reactionModel.verified,reactionModel.entries.length]:null,polymers:[polymerState.discoveredCount,polymerRecords.length]};
     for(const node of root.querySelectorAll('[data-book-tab]')){
       const kind=node.dataset.bookTab,counts=progress[kind];
       node.querySelector('[data-book-count]').textContent=counts?`${counts[0]} / ${counts[1]}`:'— / —';
-      node.setAttribute('aria-label',`${node.querySelector('.book-tab-label').textContent} ${kind==='reactions'?'実証済み':'発見済み'} ${counts?`${counts[0]} / ${counts[1]}`:'未読み込み'}`);
+      const tabName={molecules:'分子',groups:'部品',reactions:'反応',polymers:'高分子'}[kind];
+      node.setAttribute('aria-label',`${tabName} ${kind==='reactions'?'実証済み':'発見済み'} ${counts?`${counts[0]} / ${counts[1]}`:'未読み込み'}`);
     }
     const storage=q('collection-storage'),message=[state.storageMessage,polymerState.storageMessage].filter(Boolean).join('　');storage.textContent=message;storage.hidden=!message;
     const save=q('game-save-status');save.dataset.collectionStatus=message?'図鑑を保存できません。図鑑で確認してください。':'';const warnings=[save.dataset.collectionStatus,save.dataset.reactionStatus].filter(Boolean);save.textContent=warnings.join('　');save.hidden=!warnings.length;const labWarning=root.querySelector('#lab-save-warning');if(labWarning){labWarning.textContent=save.textContent;labWarning.hidden=save.hidden;}
