@@ -22,29 +22,31 @@ export function syncElementStocks(root = document, elements = {}) {
     if(!stock)continue;
     const count=Math.max(0,Number(elements[symbol]??0));
     stock.textContent=String(count);button.dataset.stockCount=String(count);
-    button.disabled=button.hidden||count<=0;
+    button.disabled=button.dataset.locked==='true'||count<=0;
     const item=ELEMENT_PRESENTATION.find(item=>item.symbol===symbol);
-    if(item)button.setAttribute('aria-label',`${item.name}（${symbol}） 在庫 ${count}`);
+    if(item)button.setAttribute('aria-label',`${item.name}（${symbol}） ${button.dataset.locked==='true'?'未発見':`在庫 ${count}`}`);
   }
 }
 
-// Visibility scope is presentation-only. The injected access function is the
-// sole gameplay authority; collection counts and fallback mode cannot unlock atoms.
+// Present the whole element palette, including locked elements. The injected
+// access function remains the sole gameplay authority.
 export function createElementPalette(root = document, {canUse=()=>true} = {}) {
   const buttons=[...root.querySelectorAll('#element-palette [data-element]')];
-  const visible=()=>true;
   function render(){
     for(const button of buttons){
       const item=ELEMENT_PRESENTATION.find(item=>item.symbol===button.dataset.element);
       if(!item)continue;button.style?.setProperty?.('--element-color',item.color);
-      button.hidden=!visible(item.symbol)||!canUse(item.symbol);button.disabled=button.hidden||Number(button.dataset.stockCount??0)<=0;
+      const unlocked=canUse(item.symbol);
+      button.hidden=false;
+      button.dataset.locked=String(!unlocked);
+      button.disabled=!unlocked||Number(button.dataset.stockCount??0)<=0;
       button.style.order=ELEMENT_PRESENTATION.indexOf(item);
-      button.title=`${item.name}（${item.symbol}）を追加`;
+      button.title=unlocked?`${item.name}（${item.symbol}）を追加`:`${item.name}（${item.symbol}）は未発見`;
     }
   }
   render();
   return {
-    canUse:symbol=>ELEMENT_SYMBOLS.includes(symbol)&&visible(symbol)&&canUse(symbol),
+    canUse:symbol=>ELEMENT_SYMBOLS.includes(symbol)&&canUse(symbol),
     update(){render();},
     fallback(){render();},
   };

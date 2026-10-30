@@ -56,7 +56,13 @@ const TEAR_WARNING_COLOR=new THREE.Color(0xfb7185);
 let structures=[],mainStructure=null,structureByAtom=new Map();
 const debrisTracker=createDebrisTracker();
 const workspaceView=createWorkspaceView();
-const syncCraftStock=()=>syncElementStocks(document,resources.state.elements);
+function refreshFirstStepTip(){
+  const tip=document.querySelector('#first-step-tip');if(!tip)return;
+  const stockEmpty=Object.values(resources.state.elements).every(count=>!(count>0));
+  const fieldEmpty=!(resources.state.workspace?.atoms?.length)&&!molecule.atoms.length;
+  tip.hidden=!(stockEmpty&&fieldEmpty);
+}
+const syncCraftStock=()=>{syncElementStocks(document,resources.state.elements);refreshFirstStepTip();};
 const craftWorkspace=createCraftWorkspace({molecule,placements,resources,resolveUnlockedPart:id=>collectionGame?.templateFor(id),onStockChange:syncCraftStock});
 const protectedUntil=new Map();
 let lastBackgroundTap=null,frameTransition=null;
@@ -94,6 +100,7 @@ const solver=createStructureSolver({
 const conformationEngine=createConformationEngine({THREE,molecule,solver,positionFor:pos,modelFor:currentTorsionModel});
 
 const gameShell=createGameShell({canOpen:()=>!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen&&!reactionLabDialogOpen,onBlockedMenuOpen:()=>recoverCraftAnimationState()});
+document.querySelector('#first-step-explore')?.addEventListener('click',()=>document.querySelector('#open-supply')?.click());
 const workspaceStorage=createWorkspaceStorage({storage:resources.workspaceAdapter,onStatus:text=>{const node=document.querySelector('#workspace-save-status');node.textContent=text;node.hidden=!text;}});
 const craftHistory=createCraftHistory({capture:captureCraftHistoryState,restore:restoreCraftHistoryState,onChange:({canUndo})=>setUndoAvailable(canUndo)});
 let savedWorkspace=null,lastSaveCheck=0,lastStableWorkspace=null;
@@ -110,7 +117,7 @@ if(renderer){
   try{refresh();}catch(error){console.error('Initial craft refresh failed; continuing runtime startup.',error);}
   resize();if(savedWorkspace)try{repairSavedGeometry();}catch(error){console.error('Saved geometry repair failed; continuing with restored positions.',error);}animate();
 }else document.querySelector('#viewer-unavailable').hidden=false;
-veilUI=connectExploration({resources,canLeave:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen())&&saveWorkspace(true),canSupply:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen()),onBeforeLaunch:()=>clearField({clearTarget:true,silent:true,recordHistory:false}),onCraft:()=>{elementPalette.update();syncCraftStock();collectionGame?.refreshProgress();if(renderer){resize();refresh();}},onCommit:()=>saveWorkspace(true),reset:{canReset:()=>!veilUI?.active&&!dragState&&!activePointers.size&&!relaxation&&!bondTransition&&!frameTransition&&!collectionOpen,beforeReset:()=>saveWorkspace(true)&&resources.save()}});
+veilUI=connectExploration({resources,canLeave:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen())&&saveWorkspace(true),canSupply:()=>!resources.blocked&&!veilUI?.active&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size&&!collectionOpen&&(document.querySelector('#supply-dialog').open||!gameShell.isOpen()),onBeforeLaunch:()=>clearField({clearTarget:true,silent:true,recordHistory:false}),onCraft:()=>{elementPalette.update();syncCraftStock();collectionGame?.refreshProgress();if(renderer){resize();refresh();}},onCommit:()=>saveWorkspace(true)});
 window.addEventListener('molecule-craft:craft-molecule',event=>beginCraftTarget(event.detail?.id));
 bindSaveLifecycle({window,document,onPageHide:()=>{saveWorkspace(true);resources.save();},onHidden:()=>saveWorkspace(true),onPrepareUpdate:event=>{const saved=workspaceStorage.protected&&!molecule.atoms.length||saveWorkspace(true);if(!resources.save()||veilUI?.active||!saved||dragState||activePointers.size||relaxation||bondTransition||frameTransition||(collectionGame?.state.storageMessage&&collectionGame.state.discoveredCount>0))event.preventDefault();}});
 loadMoleculeDatabase().then(async result=>{
@@ -121,15 +128,21 @@ loadMoleculeDatabase().then(async result=>{
     let progressStorage=null;try{const local=window.localStorage;progressStorage={getItem:key=>local.getItem(key),setItem:(key,value)=>{if(resources.blocked)throw Error('Resource save protected');local.setItem(key,value);},removeItem:key=>{if(resources.blocked)throw Error('Resource save protected');local.removeItem(key);}};}catch{}
     const labWarning=document.createElement('p');labWarning.id='lab-save-warning';labWarning.setAttribute('role','status');labWarning.className='storage-message';labWarning.hidden=true;document.querySelector('#reaction-lab').prepend(labWarning);
     collectionGame=await connectCollection({storage:progressStorage,records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;if(!open)reactionLabDiscovery?.onCollectionClosed();}});
-    try{
-      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=40');
-      reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,polymerRoutes:collectionGame.polymerRoutes,polymerSitePatterns:collectionGame.polymerSitePatterns,
-        polymerNameFor:id=>collectionGame.polymerNameFor(id),isPolymerKnown:id=>collectionGame.polymerState.hasPolymer(id),onOpenPolymer:async id=>{await reactionLabViewer.closeAndWait();return collectionGame.openPolymer(id);},
-        onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
+    // The 2D reaction encyclopedia must remain available when WebGL cannot start.
+    // Its catalog/progress authority has no dependency on the 3D Chamber.
+    {
       const reactionAuthority=createReactionCatalogAuthority({polymerRoutes:collectionGame.polymerRoutes});
       const reactionStorage=progressStorage;
       const reactionProgress=createReactionProgress({storage:reactionStorage,authority:reactionAuthority,legacyPolymerEntries:collectionGame.polymerState.entries(),onChange:()=>veilUI?.refreshPendingRecipes?.(),onStatus:text=>{const node=document.querySelector('#game-save-status');if(node){node.dataset.reactionStatus=text;const messages=[node.dataset.collectionStatus,text].filter(Boolean);node.textContent=messages.join('　');node.hidden=!messages.length;labWarning.textContent=node.textContent;labWarning.hidden=node.hidden;}}});
-      collectionGame.reactionAuthority=reactionAuthority;collectionGame.reactionProgress=reactionProgress;collectionGame.setReactionProgress(reactionAuthority,reactionProgress);const openReactionGuide=async id=>{const entry=reactionAuthority.get(id);if(!entry||reactionProgress.getState(id)==='notFound')return;await collectionGame.closeAndWait();reactionLabViewer.openGuide(entry);};collectionGame.setReactionGuideHandler(openReactionGuide);void veilUI.configureReactionRecipes({authority:reactionAuthority,progress:reactionProgress,collection:collectionGame.state,records:moleculeCatalog(),polymerNameFor:collectionGame.polymerNameFor,onTryReaction:openReactionGuide});
+      collectionGame.reactionAuthority=reactionAuthority;collectionGame.reactionProgress=reactionProgress;collectionGame.setReactionProgress(reactionAuthority,reactionProgress);
+      const openReactionGuide=async id=>{const entry=reactionAuthority.get(id);if(!entry||reactionProgress.getState(id)==='notFound')return;if(!reactionLabViewer){const status=document.querySelector('#game-save-status');status.textContent='この環境では3D LABを開けません。反応図鑑は利用できます。';status.hidden=false;return;}await collectionGame.closeAndWait();reactionLabViewer.openGuide(entry);};
+      collectionGame.setReactionGuideHandler(openReactionGuide);
+      void veilUI.configureReactionRecipes({authority:reactionAuthority,progress:reactionProgress,collection:collectionGame.state,records:moleculeCatalog(),polymerNameFor:collectionGame.polymerNameFor,onTryReaction:openReactionGuide});
+      try{
+        const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=40');
+        reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,polymerRoutes:collectionGame.polymerRoutes,polymerSitePatterns:collectionGame.polymerSitePatterns,
+          polymerNameFor:id=>collectionGame.polymerNameFor(id),isPolymerKnown:id=>collectionGame.polymerState.hasPolymer(id),onOpenPolymer:async id=>{await reactionLabViewer.closeAndWait();return collectionGame.openPolymer(id);},
+          onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
       reactionLabDiscovery=createReactionLabDiscoveryCoordinator({reactionAuthority,reactionProgress,records:moleculeCatalog(),polymerRoutes:collectionGame.polymerRoutes,polymerIds:collectionGame.polymerRoutes.map(route=>route.polymerId),collection:collectionGame,root:document,
         closeLabAndWait:()=>reactionLabViewer.closeAndWait(),openLab:()=>reactionLabViewer.open(),isLabOpen:()=>reactionLabViewer.isOpen(),getBatchGeneration:()=>reactionLabViewer.getBatchGeneration(),
         getFocus:()=>document.activeElement,onVibrate:()=>vibrateFeedback(22,'touch')});
@@ -139,7 +152,8 @@ loadMoleculeDatabase().then(async result=>{
       window.addEventListener('molecule-craft:reaction-lab-polymer-sample-dismiss',event=>reactionLabDiscovery?.handlePolymerSampleDismiss(event));
       document.querySelector('#open-reaction-lab').addEventListener('click',()=>{if(gameShell.isOpen()||collectionOpen||veilUI?.active||!reactionLabViewer)return;reactionLabViewer.open();});
       document.querySelector('#open-reaction-lab').disabled=false;
-    }catch(error){console.error('Reaction Lab could not start.',error);document.querySelector('#open-reaction-lab').disabled=true;}
+      }catch(error){console.error('Reaction Lab could not start.',error);document.querySelector('#open-reaction-lab').disabled=true;}
+    }
     discoveryConnection.collectionReady();if(renderer){checkDiscovery();refreshInfo();}
   }catch(error){elementPalette.fallback();console.warn('Collection unavailable; sandbox remains usable.',error);document.querySelector('#game-save-status').hidden=false;document.querySelector('#game-save-status').textContent='図鑑を読み込めませんでした。原子からの制作は続けられます。';}
 });

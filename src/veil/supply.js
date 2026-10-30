@@ -70,6 +70,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     const rect=accessCanvas.getBoundingClientRect(),ratio=Math.min(globalThis.devicePixelRatio??1,2),width=Math.max(1,Math.round(rect.width*ratio)),height=Math.max(1,Math.round(rect.height*ratio));if(accessCanvas.width!==width||accessCanvas.height!==height){accessCanvas.width=width;accessCanvas.height=height;}const ctx=accessCanvas.getContext('2d');if(!ctx)return;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,rect.width,rect.height);drawCollectorShell(ctx,{x:rect.width/2,y:rect.height/2,angle:-Math.PI/2,scale:Math.min(rect.width/42,rect.height/34)});
   }
   const launchLayer=document.createElement('div');launchLayer.id='expedition-destinations';launchLayer.setAttribute('aria-hidden','true');Object.assign(launchLayer.style,{position:'absolute',inset:'0',zIndex:'3',pointerEvents:'none'});shellMap.append(launchLayer);
+  const launchAction=q('supply-launch'),regionChoices=q('supply-region-choices');
   const launchHandle=document.createElement('button');launchHandle.type='button';launchHandle.id='collector-launch-handle';launchHandle.setAttribute('aria-label','探索機をドラッグして出発地点を選ぶ');launchHandle.setAttribute('aria-expanded','false');launchHandle.setAttribute('aria-controls','expedition-destinations');Object.assign(launchHandle.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'80px',height:'80px',transform:'translate(-50%,-50%)',zIndex:'9',padding:'0',border:'0',borderRadius:'50%',background:'transparent',boxShadow:'none',touchAction:'none',cursor:'grab'});shellMap.append(launchHandle);
   Object.assign(shellCanvas.style,{zIndex:'1',pointerEvents:'none',transformOrigin:'center',transition:'transform .16s ease, opacity .16s ease'});
   const drawFlightCraftPreview=()=>drawCollectorShellPreview(shellCanvas,shellMap._loadoutFlightCraftPreview??{});
@@ -81,6 +82,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   function destinationTransform(item,scale=1){return `translate(-50%,-50%) translate(${item.x}px,${item.y}px) scale(${scale})`;}
   function showLaunchDestinations(show){
     launchOpen=show;launchHandle.setAttribute('aria-expanded',String(show));shellMap.classList.toggle('launch-selecting',show);launchLayer.setAttribute('aria-hidden',String(!show));for(const item of launchItems){item.node.style.opacity=show?'1':'0';item.node.style.pointerEvents=show?'auto':'none';item.node.tabIndex=show?0:-1;item.node.style.transform=destinationTransform(item,show?(item===launchActive?1.16:1):.55);item.node.style.boxShadow=item===launchActive?`0 0 25px ${item.color},inset 0 0 12px ${item.color}55`:item.checkpoint?`0 0 14px ${item.color}77`:`0 0 10px ${item.color}44`;}
+    if(regionChoices)regionChoices.hidden=!show||launchItems.length<=1;
     for(const use of USE_ORDER)q(`shell-${use}`).style.opacity=show?'.34':'1';for(const path of shellMap.querySelectorAll('.loadout-slot-path'))path.style.pointerEvents=show?'none':'visibleFill';if(!show)launchActive=null;
   }
   function resetLaunchPosition(){shellCanvas.style.transition=reduced?'none':'transform .16s ease, opacity .16s ease';setCraftTranslation(0,0);shellCanvas.style.opacity='1';launchHandle.style.cursor='grab';}
@@ -91,13 +93,21 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   }
   function renderLaunchDestinations(){
     launchLayer.replaceChildren();
+    regionChoices?.replaceChildren();
     const checkpoint=resources.state.progress.checkpoint,destinationIds=availableLaunchRegionIds(resources.state.progress);launchItems=launchDestinationLayout(destinationIds).map(point=>{const region=REGIONS[point.id],cue=REGION_CUES[point.id]??{glyph:region.element??'·',color:'#9ad8e5'},button=document.createElement('button'),item={...point,node:button,color:cue.color,checkpoint:point.id===checkpoint};button.type='button';button.dataset.region=point.id;button.dataset.checkpoint=String(item.checkpoint);button.setAttribute('aria-label',`${region.name}へ出発`);Object.assign(button.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'46px',height:'46px',minWidth:'46px',minHeight:'46px',padding:'0',overflow:'hidden',borderRadius:'50%',border:`1px solid ${cue.color}99`,background:`radial-gradient(circle at 50% 50%,${cue.color}22 0 30%,#0b2231ee 31% 64%,#07141f 65%)`,opacity:'0',pointerEvents:'none',transform:destinationTransform(item,.55),transition:reduced?'none':'opacity .14s ease, transform .14s ease, box-shadow .14s ease',touchAction:'none'});decorateDestination(button,cue);button.addEventListener('click',event=>{event.stopPropagation();requestDestinationLaunch(point.id);});launchLayer.append(button);return item;});
+    for(const item of launchItems){const choice=document.createElement('button');choice.type='button';choice.textContent=`${REGIONS[item.id].name}へ出発`;choice.addEventListener('click',()=>requestDestinationLaunch(item.id));regionChoices?.append(choice);}
+    if(launchAction)launchAction.disabled=!launchItems.length;
     if(launchOpen)showLaunchDestinations(true);
   }
   function setLaunchActive(next){if(launchActive===next)return;launchActive=next;if(launchOpen)showLaunchDestinations(true);}
   function requestDestinationLaunch(id){
     resetLaunchGesture();if(!canOpen()||resources.blocked)return false;const target=launchItems.find(item=>item.id===id);if(!target)return false;resetLaunchGesture({keepDestinations:true});setLaunchActive(target);showLaunchDestinations(true);shellCanvas.style.transition=reduced?'none':'transform .12s ease';setCraftTranslation(target.x,target.y);return onRequestLaunch(id)!==false;
   }
+  launchAction?.addEventListener('click',()=>{
+    if(launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen())return;
+    if(launchItems.length===1){requestDestinationLaunch(launchItems[0].id);return;}
+    showLaunchDestinations(true);regionChoices?.querySelector('button')?.focus();
+  });
   function moveLaunch(event){
     if(event.pointerId!==launchPointer||!launchStart)return;const rawX=event.clientX-launchStart.x,rawY=event.clientY-launchStart.y,len=Math.hypot(rawX,rawY),limit=84,factor=len>limit?limit/len:1,dx=rawX*factor,dy=rawY*factor;launchDragged=Math.max(launchDragged,len);let nearest=null,best=Infinity;for(const item of launchItems){const distance=Math.hypot(rawX-item.x,rawY-item.y);if(distance<best)best=distance,nearest=item;}if(best>44)nearest=null;setLaunchActive(nearest);const x=nearest?.x??dx,y=nearest?.y??dy;setCraftTranslation(x,y);
   }
