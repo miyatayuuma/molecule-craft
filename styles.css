@@ -543,3 +543,40 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3px; }
 
 .craft-gamepad-cursor{position:absolute;z-index:20;width:22px;height:22px;border:2px solid #a5f3fc;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 2px #102b3b;pointer-events:none}.craft-gamepad-cursor.grabbing{border-color:#ffd580;background:#fbbf2433}
+
+/* Shared frame for the three main workspaces. */
+#collection-dialog,#supply-dialog,#reaction-lab-dialog{background:#0d1d2b;border-color:#385a6c;box-shadow:0 22px 65px #020a14a8}
+#collection-dialog .book-header,#supply-dialog .sheet-header,#reaction-lab-dialog .reaction-lab>header{color:#e8f5f5;border-bottom:1px solid #385a6c}
+#collection-dialog .book-header button,#supply-dialog .sheet-header button,#reaction-lab-dialog .reaction-lab>header button{min-width:44px;min-height:44px;border-radius:10px;color:#dceef0}
+@media(min-width:1050px) and (min-height:600px){
+ #collection-dialog,#supply-dialog,#reaction-lab-dialog{width:min(1400px,96vw);max-width:96vw;height:min(920px,94dvh);max-height:94dvh;border-radius:20px;overflow:hidden}
+ #collection-dialog .book-shell{height:100%;min-height:0;display:grid;grid-template-columns:minmax(340px,43%) minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr) auto;column-gap:20px;padding:0 20px 14px}
+ #collection-dialog .book-header{grid-column:1/-1;grid-row:1;margin-bottom:10px}
+ #collection-storage{grid-column:1/-1;grid-row:2}
+ #collection-dialog .book-tabs{grid-column:1/-1;grid-row:3;margin-bottom:12px}
+ #collection-dialog #collection-list{grid-column:1;grid-row:4;min-height:0;overflow:auto;align-content:start;overscroll-behavior:contain}
+ #collection-dialog #collection-detail{grid-column:2;grid-row:4;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:4px 8px 20px 20px;border-left:1px solid #385a6c}
+ #collection-dialog:not(.book-split) #collection-list{grid-column:1/-1}
+ #collection-dialog .book-footer{grid-column:1/-1;grid-row:5;margin-top:4px}
+ #supply-dialog .sheet-body{display:grid;grid-template-columns:minmax(360px,1fr) minmax(360px,1fr);align-items:start;gap:14px;max-height:calc(94dvh - 80px);overflow:auto}
+ #supply-dialog .collector-shell-map{grid-column:1;grid-row:1 / span 3;height:min(58dvh,500px);min-height:292px}
+ #supply-dialog #tank-detail{grid-column:2;grid-row:1 / span 3}
+ #supply-dialog #supply-announcement,#supply-dialog #oxygen-route-guide{grid-column:1/-1}
+}
+@media(min-width:1050px) and (min-height:600px){
+ #collection-dialog.book-split .book-shell:has(#collection-detail[hidden])::after{content:'項目を選んでください';grid-column:2;grid-row:4;display:grid;place-items:center;min-height:0;border-left:1px solid #385a6c;color:#91adba;font-size:14px}
+ #reaction-lab-dialog .reaction-lab{display:grid;grid-template-columns:minmax(260px,300px) minmax(0,1fr);grid-template-rows:auto auto auto auto minmax(0,1fr) auto;gap:10px 16px;padding:12px 16px 16px}
+ #reaction-lab-dialog .reaction-lab>header{grid-column:1/-1;grid-row:1}
+ #reaction-lab-dialog .reaction-guide{grid-column:1/-1;grid-row:2}
+ #reaction-lab-dialog .reaction-lab-feed-rack{grid-column:1;grid-row:3;grid-template-columns:repeat(3,minmax(0,1fr))}
+ #reaction-lab-dialog .reaction-lab-feed-conduits{grid-column:1;grid-row:4}
+ #reaction-lab-dialog .reaction-lab-command-bar{grid-column:1;grid-row:5;align-self:start;margin-top:0}
+ #reaction-lab-dialog .reaction-lab-space{grid-column:2;grid-row:3/6;min-height:0}
+ #reaction-lab-dialog .reaction-lab-footer{grid-column:1/-1;grid-row:6}
+}
+@media(min-width:1050px) and (min-height:600px){
+ #reaction-lab-dialog .reaction-lab-command-bar::after{left:100%;top:50%;width:16px;height:6px;transform:translateY(-50%)}
+}
+@media(min-width:1050px) and (min-height:600px){
+ #collection-dialog .collection-card[aria-current="true"]{border-color:#7ddbd0;box-shadow:inset 0 0 0 1px #7ddbd0,0 0 14px #53b5b229}
+}
