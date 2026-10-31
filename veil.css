@@ -86,3 +86,5 @@
 
 
 .veil-recipe-notice{position:absolute;top:max(78px,env(safe-area-inset-top));left:16px;right:16px;margin:0;padding:8px 12px;text-align:center;color:#fff0bd;background:#3e3020e8;border:1px solid #c49a53;border-radius:10px;font-size:14px;line-height:1.4;pointer-events:none;z-index:4}.veil-recipe-notice[hidden]{display:none}
+
+.gamepad-return-progress{position:absolute;z-index:10;left:50%;bottom:110px;transform:translateX(-50%);padding:8px 18px;border:1px solid #8cdeec;border-radius:8px;color:#eaffff;background:linear-gradient(90deg,#267b84 var(--return-progress,0%),#132b39 var(--return-progress,0%));pointer-events:none}

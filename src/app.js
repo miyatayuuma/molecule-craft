@@ -39,7 +39,7 @@ import { startGamepadUi } from './gamepad-input.js';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
-startGamepadUi({window,document,onFieldSample:sample=>veilUI?.gamepadInput(sample)});
+startGamepadUi({window,document,onFieldSample:sample=>veilUI?.gamepadInput?.(sample)});
 const resources=createResources({onStatus:text=>{for(const id of ['resource-save-status','veil-save-warning']){const node=document.getElementById(id);if(node){node.textContent=text;node.hidden=!text;}}}});
 const molecule=new Molecule();
 const placements=new Map();
