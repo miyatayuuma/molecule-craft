@@ -39,7 +39,7 @@ import { startGamepadUi } from './gamepad-input.js';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
-startGamepadUi({window,document,onFieldSample:sample=>veilUI?.gamepadInput?.(sample)});
+startGamepadUi({window,document,onFieldSample:sample=>veilUI?.gamepadInput?.(sample),onUiSample:handleCraftGamepad});
 const resources=createResources({onStatus:text=>{for(const id of ['resource-save-status','veil-save-warning']){const node=document.getElementById(id);if(node){node.textContent=text;node.hidden=!text;}}}});
 const molecule=new Molecule();
 const placements=new Map();
@@ -78,7 +78,7 @@ const camera=new THREE.PerspectiveCamera(44,1,.1,100);camera.position.set(5.2,4,
 const cameraTarget=new THREE.Vector3();
 let renderer=null;
 try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}catch{statusEl.textContent='3D表示を開始できませんでした。WebGL対応ブラウザで開いてください。図鑑は利用できます。';}
-if(renderer){renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.touchAction='none';viewer.appendChild(renderer.domElement);}
+if(renderer){renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.touchAction='none';viewer.appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','CRAFT 3D操作領域');}
 scene.add(new THREE.HemisphereLight(0xffffff,0x172033,2.7));
 const keyLight=new THREE.DirectionalLight(0xffffff,3.2);keyLight.position.set(6,8,8);scene.add(keyLight);
 const rim=new THREE.DirectionalLight(0x7dd3fc,1);rim.position.set(-5,1,4);scene.add(rim);
@@ -209,6 +209,41 @@ function addCraftPart(id){
   // Coordinates are already solved. Running the solver a second time here
   // would drift the placed part after its footprint has been fitted.
   refresh();pulse(`${template.nameJa}を置きました`);return true;
+}
+
+// Controller input calls the same gesture handlers as mouse and touch. It does
+// not dispatch synthetic DOM events; the gesture state owns cancellation.
+let craftPadActive=false,craftPadGrab=false,craftPadFine=false,craftPadX=0,craftPadY=0,craftPadLast=0;
+const craftPadCursor=document.createElement('div');craftPadCursor.className='craft-gamepad-cursor';craftPadCursor.hidden=true;viewer.appendChild(craftPadCursor);
+function craftPadPoint(){return {pointerId:-739,clientX:craftPadX,clientY:craftPadY,pointerType:'gamepad'};}
+function endCraftPad(){if(craftPadGrab)abortPointerInteraction();craftPadGrab=false;craftPadActive=false;craftPadLast=0;craftPadCursor.hidden=true;}
+function handleCraftGamepad(sample,{dialog,now}={}){
+  if(!renderer||!sample||dialog||veilUI?.active){if(craftPadActive)endCraftPad();return dialog?.id==='reaction-lab-dialog'?(reactionLabViewer?.handleGamepad?.(sample,now)??false):(reactionLabViewer?.handleGamepad?.(null,now),false);}
+  if(!craftPadActive){
+    if(document.activeElement!==renderer.domElement||!sample.pressed.includes(0))return false;
+    if(interactionLocked())return true;const r=renderer.domElement.getBoundingClientRect();craftPadX=r.left+r.width/2;craftPadY=r.top+r.height/2;craftPadLast=now;craftPadActive=true;craftPadCursor.hidden=false;
+  }else{
+    if(sample.pressed.includes(1)){if(craftPadGrab){abortPointerInteraction();craftPadGrab=false;}else endCraftPad();return true;}
+    if(sample.pressed.includes(10))craftPadFine=!craftPadFine;
+    const r=renderer.domElement.getBoundingClientRect(),dt=Math.min(.05,Math.max(0,(now-craftPadLast)/1000));craftPadLast=now;
+    craftPadX=Math.max(r.left,Math.min(r.right,craftPadX+sample.axes[0]*dt*(craftPadFine?100:390)));
+    craftPadY=Math.max(r.top,Math.min(r.bottom,craftPadY+sample.axes[1]*dt*(craftPadFine?100:390)));
+    if(craftPadGrab)onPointerMove(craftPadPoint());
+    if(!craftPadGrab&&!interactionLocked()){
+      if(sample.axes[2]||sample.axes[3]){rotateWholeMolecule(sample.axes[2]*dt*80,sample.axes[3]*dt*80);updateMoleculeTransforms();}
+      if(sample.held[6]||sample.held[7])zoomCamera(Math.exp(((sample.held[6]?1:0)-(sample.held[7]?1:0))*dt));
+    }
+    if(sample.pressed.includes(0)){
+      if(craftPadGrab){onPointerUp(craftPadPoint());craftPadGrab=false;}
+      else if(!interactionLocked()){
+        onPointerDown(craftPadPoint());
+        if(dragState?.mode==='bond'||dragState?.mode==='molecule-rotate'){onPointerUp(craftPadPoint());}
+        else craftPadGrab=activePointers.has(-739);
+      }
+    }
+  }
+  if(craftPadActive){const r=viewer.getBoundingClientRect();craftPadCursor.style.left=`${craftPadX-r.left}px`;craftPadCursor.style.top=`${craftPadY-r.top}px`;craftPadCursor.classList.toggle('grabbing',craftPadGrab);}
+  return true;
 }
 
 function onPointerDown(e){
