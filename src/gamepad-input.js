@@ -25,7 +25,7 @@ export function createGamepadSampler({deadzone=.22,repeatDelay=380,repeatInterva
 
 // Initial UI-only adapter. FIELD and 3D input are deliberately left to their
 // respective domain owners; no pointer events are fabricated here.
-export function startGamepadUi({window,document,onFieldSample=()=>{}}){
+export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=()=>false}){
   const sampler=createGamepadSampler();let stopped=false,lastDirection='',nextMove=0,lastScope=null;
   const eligible='button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
   function frame(now){
@@ -39,7 +39,8 @@ export function startGamepadUi({window,document,onFieldSample=()=>{}}){
     if(scope!==lastScope){lastDirection='';lastScope=scope;}
     const sample=sampler.sample(document.hidden?[]:window.navigator.getGamepads?.()??[],now,context);
     onFieldSample(field&&sample.connected?sample:null);
-    if(sample.connected&&!field){
+    const consumed=onUiSample(sample.connected&&!field?sample:null,{scope,dialog,now});
+    if(sample.connected&&!field&&!consumed){
       const items=[...scope.querySelectorAll(eligible)].filter(el=>!el.closest('[hidden], [inert], [aria-hidden="true"]')&&el.tabIndex>=0&&el.getClientRects().length&&window.getComputedStyle(el).visibility!=='hidden');
       const direction=(sample.held[12]||sample.axes[1]<-.55)?'up':(sample.held[13]||sample.axes[1]>.55)?'down':(sample.held[14]||sample.axes[0]<-.55)?'left':(sample.held[15]||sample.axes[0]>.55)?'right':'';
       if(direction&&(direction!==lastDirection||now>=nextMove)){
@@ -58,6 +59,6 @@ export function startGamepadUi({window,document,onFieldSample=()=>{}}){
     }
     window.requestAnimationFrame(frame);
   }
-  const reset=()=>{sampler.reset();onFieldSample(null);};const clearFocusStyle=()=>document.body.classList.remove('gamepad-focus-active');document.addEventListener('pointerdown',clearFocusStyle);document.addEventListener('keydown',clearFocusStyle);window.addEventListener('blur',reset);document.addEventListener('visibilitychange',reset);window.requestAnimationFrame(frame);
+  const reset=()=>{sampler.reset();onFieldSample(null);onUiSample(null,{});};const clearFocusStyle=()=>document.body.classList.remove('gamepad-focus-active');document.addEventListener('pointerdown',clearFocusStyle);document.addEventListener('keydown',clearFocusStyle);window.addEventListener('blur',reset);document.addEventListener('visibilitychange',reset);window.requestAnimationFrame(frame);
   return ()=>{stopped=true;reset();window.removeEventListener('blur',reset);document.removeEventListener('visibilitychange',reset);document.removeEventListener('pointerdown',clearFocusStyle);document.removeEventListener('keydown',clearFocusStyle);};
 }

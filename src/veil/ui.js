@@ -25,7 +25,9 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   if(outputMeterFill)outputMeterFill.id='veil-output-meter-fill';
   let recipeServices=null;
   let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,shipTap=null,messageUntil=0,thermalNotice=null,thermalNoticeUntil=0,returnState=null,requestExpeditionLaunch=()=>false,launchTransaction=null;
-  const gamepadStick={x:0,y:0};let gamepadDriving=false;
+  const gamepadStick={x:0,y:0};let gamepadDriving=false,gamepadReturnStarted=null;
+  const returnProgress=document.createElement('div');returnProgress.className='gamepad-return-progress';returnProgress.hidden=true;returnProgress.setAttribute('role','progressbar');returnProgress.setAttribute('aria-label','帰還までの長押し');returnProgress.setAttribute('aria-valuemin','0');returnProgress.setAttribute('aria-valuemax','100');returnProgress.textContent='帰還';root.append(returnProgress);
+  function clearGamepadReturn(){gamepadReturnStarted=null;returnProgress.hidden=true;returnProgress.style.setProperty('--return-progress','0%');returnProgress.setAttribute('aria-valuenow','0');}
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
   const insightPresentation=createInsightPresentation({root,resources,formula,audio,reduced});
@@ -89,7 +91,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   function offerInsight(id){if(!resources.insightRecipeEligible(id,{runContext:run}))return false;return handleInsight(triggerInsight(run,id,resources.state));}
   function offerProgressionInsights(){if(!run)return;const ids=resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements}).filter(id=>!run.carriedInsights.includes(id)&&run.analysis?.id!==id);if(ids.length)resources.suppressFrontierInsightForCritical();for(const id of ids)offerInsight(id);}
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
-  function resetInput(){stick.x=stick.y=gamepadStick.x=gamepadStick.y=0;gamepadDriving=false;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
+  function resetInput(){clearGamepadReturn();stick.x=stick.y=gamepadStick.x=gamepadStick.y=0;gamepadDriving=false;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
   function positionAt(id){const at=REGIONS[id]??REGIONS.veil;run.player.x=at.x;run.player.y=at.y;run.player.angle=at.angle;run.player.vx=run.player.vy=0;run.player.trail=[];run.region=id;}
   function initializeExploreLaunch(prepared,nextRun){
     run=nextRun;positionAt(prepared.start);thermalNotice=null;
@@ -286,10 +288,16 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
   function gamepadInput(sample){
     if(!sample||!active||paused||returnState?.phase!=='exploring'){
-      gamepadStick.x=gamepadStick.y=0;if(gamepadDriving){gamepadDriving=false;stopCombustion();}
+      clearGamepadReturn();gamepadStick.x=gamepadStick.y=0;if(gamepadDriving){gamepadDriving=false;stopCombustion();}
       if(sample&&active&&paused&&sample.pressed.includes(9))q('veil-resume').click();
       return;
     }
+    const stationary=Math.hypot(sample.axes[0],sample.axes[1])<.22&&Math.hypot(stick.x,stick.y)<.01&&!keys.size;
+    if(sample.held[0]&&stationary&&returnMethod()){
+      if(gamepadReturnStarted===null)gamepadReturnStarted=performance.now();
+      const progress=Math.min(1,(performance.now()-gamepadReturnStarted)/700);returnProgress.hidden=false;returnProgress.style.setProperty('--return-progress',`${progress*100}%`);returnProgress.setAttribute('aria-valuenow',String(Math.round(progress*100)));
+      if(progress>=1){clearGamepadReturn();beginReturn(false);return;}
+    }else clearGamepadReturn();
     gamepadStick.x=sample.axes[0];gamepadStick.y=sample.axes[1];
     if(sample.pressed.includes(9)){pause();return;}
     if(sample.pressed.includes(1))burst();if(sample.pressed.includes(2))shock();

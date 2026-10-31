@@ -96,6 +96,7 @@ export function createDeferredExplorationFacade(getCurrent,ready){
     updateCraft(...args){return current()?.updateCraft?.(...args);},
     requestExpeditionLaunch(...args){return current()?.requestExpeditionLaunch?.(...args)??false;},
     pause(...args){return current()?.pause?.(...args)??false;},
+    gamepadInput(...args){return current()?.gamepadInput?.(...args);},
     openSupply(...args){return current()?.openSupply?.(...args)??false;},
     discovered(...args){return current()?.discovered?.(...args);},
     usesFor(...args){return current()?.usesFor?.(...args)??[];},

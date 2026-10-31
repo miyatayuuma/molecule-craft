@@ -1152,7 +1152,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function canObservePolymerSample(){return !contextLost&&!!polymerSamplePresentation?.ready&&!!polymerSamplePresentation.fit&&!!polymerGraphVisual?.layoutPlan&&!polymerGraphVisual.displayError&&!polymerGraphVisual.suspended;}
   function currentPolymerOrbitPinchDistance(){const points=[...polymerOrbitPointers].map(pointerId=>activePointers.get(pointerId)).filter(Boolean);return points.length<2?0:Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
   function capturePointer(event){try{canvas.setPointerCapture(event.pointerId);}catch{}}
-  canvas.addEventListener('pointerdown',event=>{
+  function handleLabPointerDown(event){
     if(polymerGraphVisual?.displayError)return;
     if(disposed||contextLost||pickerOpen||isTransitionLocked()||reactionAnimation||growthCameraMotion||observation.comparisonActive)return;
     const completedSample=canObservePolymerSample()&&!observation.comparisonActive;
@@ -1172,8 +1172,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }
     onPointerLockChange(true);
     updateCommandBar();
-  },eventOptions);
-  canvas.addEventListener('pointermove',event=>{
+  }
+  canvas.addEventListener('pointerdown',handleLabPointerDown,eventOptions);
+  function handleLabPointerMove(event){
     const point=activePointers.get(event.pointerId);if(!point)return;
     point.x=event.clientX;point.y=event.clientY;
     if(polymerOrbitPointers.has(event.pointerId)){
@@ -1184,7 +1185,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     }
     if(pinchActive){const next=currentPinchDistance();if(next>0&&pinchDistance>0){distance=clamp(distance*pinchDistance/Math.max(1,next),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);updateCamera();}pinchDistance=next;return;}
     if(down?.pointerId===event.pointerId){down.clientX=event.clientX;down.clientY=event.clientY;}
-  },eventOptions);
+  }
+  canvas.addEventListener('pointermove',handleLabPointerMove,eventOptions);
   function endPointer(event){
     const active=activePointers.has(event.pointerId),wasPinching=pinchActive;
     if(!active)return;
@@ -1707,5 +1709,37 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     };
     window.__reactionLabProbe=probe;
   }
-  return {open,openGuide(entry){guide=compileReactionGuide(entry,records);guideBatchId=null;return open();},closeAndWait,isOpen:()=>dialog.open,getBatchGeneration:()=>batch.snapshot().generation,dispose(){disposed=true;cancelAnimationFrame(animationFrameId);closePicker({returnFocus:false});eventController.abort();batch.invalidate();resizeObserver.disconnect();cancelAnimationFrame(resizeRequest);observation.dispose();clear();renderer.dispose();for(const resolve of closeWaiters)resolve(false);closeWaiters.clear();onPointerLockChange(false);}};
+  canvas.tabIndex=0;canvas.setAttribute('aria-label','LAB 3D操作領域');
+  const padCursor=document.createElement('div');padCursor.className='craft-gamepad-cursor';padCursor.hidden=true;chamber.append(padCursor);
+  let padActive=false,padGrab=false,padX=0,padY=0,padLast=0,padFine=false,padStartPosition=null,padStartQuaternion=null;
+  const padEvent=type=>({pointerId:-740,pointerType:'gamepad',clientX:padX,clientY:padY,type,preventDefault(){}});
+  function resetLabPad(){
+    if(padGrab){if(selected&&padStartPosition){selected.group.position.copy(padStartPosition);selected.group.quaternion.copy(padStartQuaternion);selected.group.updateMatrixWorld(true);}endPointer(padEvent('pointercancel'));}
+    padGrab=false;padActive=false;padCursor.hidden=true;padStartPosition=padStartQuaternion=null;padLast=0;
+  }
+  function handleGamepad(sample,now){
+    if(!sample||!dialog.open||pickerOpen||disposed||contextLost){if(padActive)resetLabPad();return false;}
+    if(!padActive){
+      if(document.activeElement!==canvas||!sample.pressed.includes(0))return false;
+      if(isTransitionLocked()||reactionAnimation||growthCameraMotion)return true;
+      const r=canvas.getBoundingClientRect();padX=r.left+r.width/2;padY=r.top+r.height/2;padLast=now;padActive=true;padCursor.hidden=false;
+    }else{
+      if(sample.pressed.includes(1)){if(padGrab){resetLabPad();canvas.focus();}else resetLabPad();return true;}
+      if(sample.pressed.includes(10))padFine=!padFine;
+      const r=canvas.getBoundingClientRect(),dt=Math.min(.05,Math.max(0,(now-padLast)/1000));padLast=now;
+      padX=clamp(padX+sample.axes[0]*dt*(padFine?100:390),r.left,r.right);padY=clamp(padY+sample.axes[1]*dt*(padFine?100:390),r.top,r.bottom);
+      if(padGrab)handleLabPointerMove(padEvent('pointermove'));
+      if(sample.pressed.includes(0)){
+        if(padGrab){endPointer(padEvent('pointerup'));padGrab=false;padStartPosition=padStartQuaternion=null;}
+        else if(!isTransitionLocked()&&!reactionAnimation&&!growthCameraMotion){
+          handleLabPointerDown(padEvent('pointerdown'));
+          padGrab=activePointers.has(-740);if(selected){padStartPosition=selected.group.position.clone();padStartQuaternion=selected.group.quaternion.clone();}
+          if(padGrab&&!selected&&!polymerOrbitPointers.has(-740)){endPointer(padEvent('pointerup'));padGrab=false;}
+        }
+      }
+    }
+    if(padActive){const r=chamber.getBoundingClientRect();padCursor.style.left=`${padX-r.left}px`;padCursor.style.top=`${padY-r.top}px`;padCursor.classList.toggle('grabbing',padGrab);}
+    return true;
+  }
+  return {handleGamepad,open,openGuide(entry){guide=compileReactionGuide(entry,records);guideBatchId=null;return open();},closeAndWait,isOpen:()=>dialog.open,getBatchGeneration:()=>batch.snapshot().generation,dispose(){disposed=true;cancelAnimationFrame(animationFrameId);closePicker({returnFocus:false});eventController.abort();batch.invalidate();resizeObserver.disconnect();cancelAnimationFrame(resizeRequest);observation.dispose();clear();renderer.dispose();for(const resolve of closeWaiters)resolve(false);closeWaiters.clear();onPointerLockChange(false);}};
 }
