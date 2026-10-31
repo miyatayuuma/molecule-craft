@@ -36,7 +36,9 @@ assert.equal(isExpeditionDestinationAvailable({},'continue'),false);
 {
   let current=null;const calls=[],facade=createDeferredExplorationFacade(()=>current,Promise.resolve(null));
   assert.equal(facade.requestExpeditionLaunch('oxygen'),false,'DB-not-ready facade must preserve the existing blocked launch behavior');
-  current={requestExpeditionLaunch:id=>{calls.push(id);return true;}};
+  assert.equal(facade.gamepadInput(null),undefined);
+  current={gamepadInput:sample=>calls.push(sample),requestExpeditionLaunch:id=>{calls.push(id);return true;}};
+  facade.gamepadInput('sample');assert.deepEqual(calls,['sample']);calls.length=0;
   assert.equal(facade.requestExpeditionLaunch('oxygen'),true);
   assert.deepEqual(calls,['oxygen'],'DB-ready facade must forward the explicit destination id to the application launch API');
 }
