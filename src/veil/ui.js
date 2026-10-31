@@ -25,6 +25,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   if(outputMeterFill)outputMeterFill.id='veil-output-meter-fill';
   let recipeServices=null;
   let renderer=null,run=null,lastTelemetry=null,active=false,paused=false,raf=0,last=0,hudAt=0,pointer=null,drivePointer=null,origin=null,shipTap=null,messageUntil=0,thermalNotice=null,thermalNoticeUntil=0,returnState=null,requestExpeditionLaunch=()=>false,launchTransaction=null;
+  const gamepadStick={x:0,y:0};let gamepadDriving=false;
   const stick={x:0,y:0},keys=new Set(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches??false;
   const formula=id=>MOLECULE_USES[id]?.formula??resources.record(id)?.formula??id;
   const insightPresentation=createInsightPresentation({root,resources,formula,audio,reduced});
@@ -88,7 +89,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   function offerInsight(id){if(!resources.insightRecipeEligible(id,{runContext:run}))return false;return handleInsight(triggerInsight(run,id,resources.state));}
   function offerProgressionInsights(){if(!run)return;const ids=resources.progressionInsightCandidates({cargo:run.collectedElements,foundElements:run.foundElements}).filter(id=>!run.carriedInsights.includes(id)&&run.analysis?.id!==id);if(ids.length)resources.suppressFrontierInsightForCritical();for(const id of ids)offerInsight(id);}
   function stopCombustion(){if(run)setCombustionHeld(run,false);const id=drivePointer;drivePointer=null;if(id!==null)try{combustionButton.releasePointerCapture(id);}catch{}combustionButton.classList.remove('driving');}
-  function resetInput(){stick.x=stick.y=0;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
+  function resetInput(){stick.x=stick.y=gamepadStick.x=gamepadStick.y=0;gamepadDriving=false;keys.clear();stopCombustion();const id=pointer;pointer=null;if(id!==null)try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}
   function positionAt(id){const at=REGIONS[id]??REGIONS.veil;run.player.x=at.x;run.player.y=at.y;run.player.angle=at.angle;run.player.vx=run.player.vy=0;run.player.trail=[];run.region=id;}
   function initializeExploreLaunch(prepared,nextRun){
     run=nextRun;positionAt(prepared.start);thermalNotice=null;
@@ -205,7 +206,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(returnState.elapsed>=returnState.duration){if(warp)finish(forced);else{const duration=renderer.beginWarp(run,forced?'emergency':'stable');returnState={phase:forced?'forced-warp-pending':'normal-warp-pending',duration,elapsed:0};returnHud();}}
       return;
     }
-    const input={x:stick.x+(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0),y:stick.y+(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0)};
+    const input={x:stick.x+gamepadStick.x+(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0),y:stick.y+gamepadStick.y+(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0)};
     const recipeStart={x:run.player.x,y:run.player.y};
     syncInsightMarkers();const frameEvents=stepRun(run,input,dt,{consumeCombustion:packet=>resources.consumeCombustion(packet),consumeCoolant:(amount,molecule)=>resources.consumeTank('coolant',molecule,amount)});for(const event of frameEvents){
       if(event.type!=='insightReady'&&(event.type!=='danger'||event.level!=='clear'))audio.event(event.type,event.chain,event.count);
@@ -283,6 +284,17 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   window.addEventListener('pagehide',()=>{resources.save();audio.pause();});window.addEventListener('storage',event=>{if(event.key==='molecule-craft.resources.v1'){pause();resources.save();updateCraft();}});
   q('veil-resume').addEventListener('click',()=>{if(resources.blocked)return;paused=false;last=0;q('veil-resume').hidden=true;audio.start();root.focus();});
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
-  return {configureReactionRecipes(value){recipeServices=value;},get active(){return active;},get run(){return run;},get returnPhase(){return returnState?.phase??null;},get returning(){return returnState?.phase?.startsWith('forced-')?'emergency':returnState?.phase?.startsWith('normal-')&&returnState.phase.endsWith('pending')?'normal-extraction-pending':null;},get lastTelemetry(){return lastTelemetry;},updateCraft,requestExpeditionLaunch,pause,openSupply:(id,use)=>supply.openMolecule(id,use),discovered:id=>supply.discovered(id),usesFor:id=>supply.usesFor(id),tankStatus:(use,id)=>supply.tankStatus(use,id),fillPlan:(use,id)=>supply.fillPlan(use,id),commitFill:(use,id,count)=>supply.commitFill(use,id,count)};
+  function gamepadInput(sample){
+    if(!sample||!active||paused||returnState?.phase!=='exploring'){
+      gamepadStick.x=gamepadStick.y=0;if(gamepadDriving){gamepadDriving=false;stopCombustion();}
+      if(sample&&active&&paused&&sample.pressed.includes(9))q('veil-resume').click();
+      return;
+    }
+    gamepadStick.x=sample.axes[0];gamepadStick.y=sample.axes[1];
+    if(sample.pressed.includes(9)){pause();return;}
+    if(sample.pressed.includes(1))burst();if(sample.pressed.includes(2))shock();
+    const drive=!!sample.held[7];if(drive&&!gamepadDriving){gamepadDriving=true;startCombustion();}else if(!drive&&gamepadDriving){gamepadDriving=false;stopCombustion();}
+  }
+  return {gamepadInput,configureReactionRecipes(value){recipeServices=value;},get active(){return active;},get run(){return run;},get returnPhase(){return returnState?.phase??null;},get returning(){return returnState?.phase?.startsWith('forced-')?'emergency':returnState?.phase?.startsWith('normal-')&&returnState.phase.endsWith('pending')?'normal-extraction-pending':null;},get lastTelemetry(){return lastTelemetry;},updateCraft,requestExpeditionLaunch,pause,openSupply:(id,use)=>supply.openMolecule(id,use),discovered:id=>supply.discovered(id),usesFor:id=>supply.usesFor(id),tankStatus:(use,id)=>supply.tankStatus(use,id),fillPlan:(use,id)=>supply.fillPlan(use,id),commitFill:(use,id,count)=>supply.commitFill(use,id,count)};
 }
 

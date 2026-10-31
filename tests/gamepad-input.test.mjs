@@ -15,3 +15,9 @@ test('repeat, release, deadzone and device isolation',()=>{
  assert.deepEqual(s.sample([pad(2,[0])],402,'ui').pressed,[]);
 });
 test('reset requires neutral input again',()=>{const s=createGamepadSampler();s.sample([pad(0)],0,'ui');s.sample([pad(0,[0])],1,'ui');s.reset();assert.deepEqual(s.sample([pad(0,[0])],2,'ui').pressed,[]);});
+test('FIELD receives sampled movement and is cleared on blur', async()=>{
+ const {startGamepadUi}=await import('../src/gamepad-input.js');let frame,blur,p=pad(0),received=[];
+ const document={hidden:false,body:{dataset:{mode:'veil'},classList:{add(){},remove(){}}},querySelectorAll:()=>[],addEventListener(){},removeEventListener(){}};
+ const window={navigator:{getGamepads:()=>[p]},requestAnimationFrame:f=>{frame=f;},addEventListener:(name,f)=>{if(name==='blur')blur=f;},removeEventListener(){}};
+ const stop=startGamepadUi({window,document,onFieldSample:s=>received.push(s)});frame(0);p=pad(0,[],[.7,0,0,0]);frame(20);assert.equal(received.at(-1).axes[0],.7);blur();assert.equal(received.at(-1),null);stop();
+});

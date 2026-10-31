@@ -25,21 +25,25 @@ export function createGamepadSampler({deadzone=.22,repeatDelay=380,repeatInterva
 
 // Initial UI-only adapter. FIELD and 3D input are deliberately left to their
 // respective domain owners; no pointer events are fabricated here.
-export function startGamepadUi({window,document}){
+export function startGamepadUi({window,document,onFieldSample=()=>{}}){
   const sampler=createGamepadSampler();let stopped=false,lastDirection='',nextMove=0,lastScope=null;
   const eligible='button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
   function frame(now){
     if(stopped)return;
     const dialogs=[...document.querySelectorAll('dialog[open]')];
-    const scope=dialogs.at(-1)??document.body;
+    const dialog=dialogs.at(-1);
+    const partial=dialog?.querySelector('#partial-fill-confirm:not([hidden])');
+    const scope=partial??dialog??document.body;
     const field=document.body.dataset.mode==='veil'&&!dialogs.length;
     const context=field?'field':scope;
     if(scope!==lastScope){lastDirection='';lastScope=scope;}
     const sample=sampler.sample(document.hidden?[]:window.navigator.getGamepads?.()??[],now,context);
+    onFieldSample(field&&sample.connected?sample:null);
     if(sample.connected&&!field){
-      const items=[...scope.querySelectorAll(eligible)].filter(el=>!el.closest('[hidden], [inert]')&&el.getClientRects().length&&window.getComputedStyle(el).visibility!=='hidden');
+      const items=[...scope.querySelectorAll(eligible)].filter(el=>!el.closest('[hidden], [inert], [aria-hidden="true"]')&&el.tabIndex>=0&&el.getClientRects().length&&window.getComputedStyle(el).visibility!=='hidden');
       const direction=(sample.held[12]||sample.axes[1]<-.55)?'up':(sample.held[13]||sample.axes[1]>.55)?'down':(sample.held[14]||sample.axes[0]<-.55)?'left':(sample.held[15]||sample.axes[0]>.55)?'right':'';
       if(direction&&(direction!==lastDirection||now>=nextMove)){
+        document.body.classList.add('gamepad-focus-active');
         const current=document.activeElement,rect=current?.getBoundingClientRect?.();let best=null,bestScore=Infinity;
         if(rect&&items.includes(current))for(const el of items){if(el===current)continue;const r=el.getBoundingClientRect(),dx=(r.left+r.right-rect.left-rect.right)/2,dy=(r.top+r.bottom-rect.top-rect.bottom)/2,primary=direction==='left'?-dx:direction==='right'?dx:direction==='up'?-dy:dy,cross=direction==='left'||direction==='right'?Math.abs(dy):Math.abs(dx);if(primary>1){const score=primary+cross*2;if(score<bestScore){best=el;bestScore=score;}}}
         (best??(!items.includes(current)?items[0]:null))?.focus({preventScroll:false});nextMove=now+(direction===lastDirection?120:380);
@@ -50,10 +54,10 @@ export function startGamepadUi({window,document}){
         // Hold actions, text fields, sliders and selects need dedicated adapters.
         if(items.includes(target)&&target.matches('button:not(.hold-clear), a[href], summary'))target.click();
       }
-      if(sample.pressed.includes(1)&&scope.tagName==='DIALOG')scope.requestClose?.();
+      if(sample.pressed.includes(1)){if(partial)partial.querySelector('button')?.click();else if(dialog)dialog.requestClose?.();}
     }
     window.requestAnimationFrame(frame);
   }
-  const reset=()=>sampler.reset();window.addEventListener('blur',reset);document.addEventListener('visibilitychange',reset);window.requestAnimationFrame(frame);
-  return ()=>{stopped=true;reset();window.removeEventListener('blur',reset);document.removeEventListener('visibilitychange',reset);};
+  const reset=()=>{sampler.reset();onFieldSample(null);};const clearFocusStyle=()=>document.body.classList.remove('gamepad-focus-active');document.addEventListener('pointerdown',clearFocusStyle);document.addEventListener('keydown',clearFocusStyle);window.addEventListener('blur',reset);document.addEventListener('visibilitychange',reset);window.requestAnimationFrame(frame);
+  return ()=>{stopped=true;reset();window.removeEventListener('blur',reset);document.removeEventListener('visibilitychange',reset);document.removeEventListener('pointerdown',clearFocusStyle);document.removeEventListener('keydown',clearFocusStyle);};
 }

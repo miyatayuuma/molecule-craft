@@ -539,3 +539,5 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 
 /* Keep the browser's visible focus treatment clear for controller navigation. */
 :focus-visible { outline: 3px solid #7dd3fc; outline-offset: 3px; }
+
+body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3px; }
