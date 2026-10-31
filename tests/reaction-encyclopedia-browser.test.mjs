@@ -36,6 +36,10 @@ try{
   assert.equal(await evaluate(`window.__reactionProgress.getState('normal:complete-01-anhydride-hydrolysis')`),'notFound','legacy water does not verify a reaction');
   await evaluate(`window.__collection.registerDiscoveredPolymer('polyethylene');window.__collection.openPolymer('polyethylene')`);
   await waitFor(`document.querySelectorAll('#collection-detail .polymer-model-mode').length===2`,'Polymer model controls ready');
+  const splitLayout=await evaluate(`(()=>{const list=document.querySelector('#collection-list'),detail=document.querySelector('#collection-detail'),a=list.getBoundingClientRect(),b=detail.getBoundingClientRect();return{listHidden:list.hidden,detailHidden:detail.hidden,left:a.left,right:a.right,detailLeft:b.left,detailRight:b.right};})()`);
+  if(Number(process.env.REACTION_VIEWPORT||360)>=1050){assert.equal(splitLayout.listHidden,false,'Desktop keeps the polymer list visible');assert.equal(splitLayout.detailHidden,false);assert.ok(splitLayout.right<=splitLayout.detailLeft,'Desktop list and details must not overlap');}
+  else{assert.equal(splitLayout.listHidden,true,'Mobile keeps the existing detail view');assert.equal(splitLayout.detailHidden,false);}
+
   await evaluate(`document.querySelectorAll('#collection-detail .polymer-model-mode')[1].click()`);
   assert.equal(await evaluate(`window.__reactionProgress.getState('polymer:polyethylene-coordination')`),'notFound','reference display does not verify LAB reaction');
   await evaluate(`document.querySelector('#close-collection').click()`);

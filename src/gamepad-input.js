@@ -50,6 +50,11 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
         (best??(!items.includes(current)?items[0]:null))?.focus({preventScroll:false});nextMove=now+(direction===lastDirection?120:380);
       }
       lastDirection=direction;
+      if(sample.pressed.includes(4)||sample.pressed.includes(5)){
+        const active=scope.querySelector('[role="tablist"] [role="tab"][aria-selected="true"]');
+        const group=active?.closest('[role="tablist"]'),tabs=group?[...group.querySelectorAll('[role="tab"]')].filter(el=>!el.disabled&&el.getClientRects().length):[];
+        if(tabs.length){const next=(tabs.indexOf(active)+(sample.pressed.includes(5)?1:-1)+tabs.length)%tabs.length;tabs[next].click();tabs[next].focus();document.body.classList.add('gamepad-focus-active');}
+      }
       if(sample.pressed.includes(0)){
         const target=document.activeElement;
         // Hold actions, text fields, sliders and selects need dedicated adapters.
