@@ -55,11 +55,35 @@ const DEFINITIONS=Object.freeze([
 
 const MATCH_ORDER=[...DEFINITIONS].sort((a,b)=>b[0].length-a[0].length);
 
-export function moleculeSummaryGlossarySegments(value,{limit=3}={}){
+const PART_DEFINITIONS=Object.freeze([
+  ['水素イオン','水素の原子が電子を失ってできる、小さな粒。',2],
+  ['カルボキシ基','酸としての働きに関わる、分子の部品。',2],
+  ['たんぱく質','体や筋肉などをつくる、大切な物質。',2],
+  ['アミノ酸','たんぱく質の材料になる小さな分子。',2],
+  ['尿素','体の中ででき、尿にも含まれる物質。肥料にも使われる。',2],
+  ['炭素','多くの分子の骨組みになる元素。',2],
+  ['電子','原子にある、とても小さな粒。',2],
+  ['酸素','呼吸や燃焼に関わる元素。',2],
+  ['消毒','ばい菌などの数を減らすこと。',1],
+  ['塗料','色をつけたり、表面を守ったりする材料。',1],
+  ['性質','ものがもつ特徴のこと。',1],
+  ['糖','砂糖やブドウ糖などの仲間。',1],
+  ['合成','材料を組み合わせて、別の物質をつくること。',2],
+  ['油脂','油や脂肪のこと。',2],
+  ['繊維','糸や布になる細長い材料。',2],
+  ['香料','ものに香りをつける材料。',1],
+  ['出発点','ものごとが始まるところ。',1],
+  ['共通','いくつかのものに同じ特徴があること。',1],
+  ['周囲','そのもののまわり。',1],
+  ['反応','物質が別の物質に変わること。',2],
+]);
+const PART_MATCH_ORDER=[...DEFINITIONS,...PART_DEFINITIONS].sort((a,b)=>b[0].length-a[0].length);
+
+function glossarySegments(value,matchOrder,{limit=3}={}){
   const text=String(value??'');
   const found=[],seen=new Set();
   for(let index=0;index<text.length;){
-    const item=MATCH_ORDER.find(([word])=>text.startsWith(word,index));
+    const item=matchOrder.find(([word])=>text.startsWith(word,index));
     if(!item){index++;continue;}
     const [word,meaning,priority]=item;
     // 二酸化炭素などの分子名の一部を「酸化」という動作として説明しない。
@@ -77,4 +101,12 @@ export function moleculeSummaryGlossarySegments(value,{limit=3}={}){
   }
   if(cursor<text.length)result.push({kind:'text',text:text.slice(cursor)});
   return result;
+}
+
+export function moleculeSummaryGlossarySegments(value,options){
+  return glossarySegments(value,MATCH_ORDER,options);
+}
+
+export function partSummaryGlossarySegments(value,options){
+  return glossarySegments(value,PART_MATCH_ORDER,options);
 }

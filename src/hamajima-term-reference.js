@@ -94,6 +94,10 @@ export function hamajimaTermSegments(value){
   while(cursor<text.length){
     const term=MATCH_TERMS.find(candidate=>text.startsWith(candidate,cursor));
     if(!term){cursor++;continue;}
+    // 「二酸化炭素」の「酸化」は、反応名の「酸化」としてリンクしない。
+    if(term==='酸化'&&/[一二]/.test(text.slice(cursor-1,cursor))&&text.startsWith('炭素',cursor+term.length)){
+      cursor+=term.length;continue;
+    }
     if(cursor>plainStart)segments.push({kind:'text',text:text.slice(plainStart,cursor)});
     segments.push({kind:'term',text:term,reference:HAMAJIMA_TERM_REFERENCES[term]});
     cursor+=term.length;
