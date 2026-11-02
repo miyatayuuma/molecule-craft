@@ -1,4 +1,4 @@
-import { createStructureSolver } from './structure-relaxation.js?v=33';
+import { createStructureSolver } from './structure-relaxation.js?v=34';
 
 // Work on a private pose in small time slices. The field sees one short blend,
 // never the solver's trial steps. Rotation is allowed throughout; topology edits
@@ -17,7 +17,7 @@ export function createStructureSettlement({THREE,molecule,placements,ids,lockedI
   const score=e=>e.finite&&!e.topologyLimited?Math.max(e.bondRelative/.025,e.angleRadians/(8*Math.PI/180),e.planeDistance/.035,
     (e.overlapRelative??0)/.15,(e.rigidRelative??0)/.025,(e.fiveMemberConformationRelative??0)/.11,(e.sixMemberConformationRelative??0)/.05,
     (e.aromaticRadiusRelative??0)/.015,(e.aromaticAngleRadians??0)/(2.5*Math.PI/180),(e.aromaticPlaneDistance??0)/.035,
-    e.ringPenetrations?20+e.ringPenetrations:0,e.bondIntersections?20+e.bondIntersections:0):Infinity;
+    e.ringPenetrations?20+e.ringPenetrations:0,e.bondIntersections?20+e.bondIntersections:0,e.ringSelfCrossings?20+e.ringSelfCrossings:0):Infinity;
   // Keep a better aromatic pose when an unrelated maximum error is still flat.
   const poseScore=e=>score(e)+Math.max((e.aromaticRadiusRelative??0)/.015,(e.aromaticAngleRadians??0)/(2.5*Math.PI/180),(e.aromaticPlaneDistance??0)/.035)*.25;
   let errors=solver.measureError({rigidReference}),bestErrors=errors,bestScore=score(errors),bestPoseScore=poseScore(errors),best=copy();
@@ -57,7 +57,7 @@ export function createStructureSettlement({THREE,molecule,placements,ids,lockedI
           solver.step(.85,1,{lockedIds});steps++;count++;
           if(count%8===0){
             errors=solver.measureError({rigidReference});const validation=solver.validateConformation({rigidReference});
-            if(!errors.finite||(lastValid&&!validation.valid&&(errors.bondRelative>.16||errors.overlapRelative>.34||errors.rigidRelative>.06||errors.ringPenetrations||errors.bondIntersections))){
+            if(!errors.finite||(lastValid&&!validation.valid&&(errors.bondRelative>.16||errors.overlapRelative>.34||errors.rigidRelative>.06||errors.ringPenetrations||errors.bondIntersections||errors.ringSelfCrossings))){
               if(lastValid){solver.restoreConformation(lastValid);solver.rebuildTopology({resetFrames:true});}
               rolledBack=true;errors=solver.measureError({rigidReference});
             }else if(validation.valid)lastValid=copy();

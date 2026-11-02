@@ -132,6 +132,8 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 | 追加位置 | `src/spawn-layout.js` |
 | 芳香環・特殊結合・接続点 | `src/aromatic-rendering.js`, `src/special-bonds.js`, `src/attachment-rendering.js` |
 
+非芳香族の六員炭素環では、単なる視点上の重なりと、環の基準平面上で結合が自己交差する8の字形を区別します。自己交差のみ `src/structure-relaxation.js` が環と枝を一緒にほどき、`src/structure-settlement.js` は交差姿勢を最良候補から除外します。検証は `tests/six-member-ring-conformation.test.mjs` に置き、正常ないす形とCRAFT確定時の交差復旧を併せて確認します。
+
 ## 図鑑とデータ
 
 - `src/collection-ui.js`：図鑑DOM、データfetch、模型の遅延読込。

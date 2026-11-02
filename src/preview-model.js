@@ -3,7 +3,7 @@ import { geometryForAtom, atomBondState, nonbondedDistance } from './bonding-mod
 import {createStructuralBondLengthResolver,STRUCTURAL_GEOMETRY_WORLD_UNITS_PER_ANGSTROM} from './bond-geometry.js?v=1';
 import { sharedOxoGroups } from './special-bonds.js?v=34';
 import { seedCraftCoordinates } from './craft-structures.js?v=34';
-import { createStructureSolver } from './structure-relaxation.js?v=33';
+import { createStructureSolver } from './structure-relaxation.js?v=34';
 import { describeAlkeneRelativeSide } from './stereo-descriptor.js?v=1';
 
 // A private graph, not a Molecule instance: opening the book cannot even consume

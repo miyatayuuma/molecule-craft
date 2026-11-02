@@ -205,6 +205,7 @@ export function createStructureSolver({
       for(const bond of activeBonds)enforceBondLength(bond,.12*scale,locked);
       // Stage D: local electron-domain geometry remains a soft correction.
       relaxLocalGeometry(scale,locked,activeAtoms);
+      enforceSixMemberUncrossing(.20*scale,locked,activeAtoms);
       enforceFiveMemberConformations(.16*scale,locked,activeAtoms);
       enforceSixMemberConformations(.12*scale,locked,activeAtoms);
       projectRigidConstraints(scale,locked,activeAtoms);
@@ -394,6 +395,7 @@ export function createStructureSolver({
     }
     const ringIssues=measureRingPenetrations(includes);
     const bondIntersections=measureBondIntersections(includes);
+    const ringSelfCrossings=sixMemberFrames.reduce((count,frame)=>count+(frame.cycle.every(includes)?sixMemberCrossings(frame).length:0),0);
     const rigidRelative=measureRigidDeviation(rigidReference,includes);
     const fiveMemberConformationRelative=measureFiveMemberConformationDeviation(includes);
     const sixMemberConformationRelative=measureSixMemberConformationDeviation(includes);
@@ -403,7 +405,7 @@ export function createStructureSolver({
     return {finite,bondRelative,angleRadians,planeDistance,overlapRelative,fiveMemberConformationRelative,sixMemberConformationRelative,
       aromaticRadiusRelative:aromaticGeometry.radiusRelative,aromaticAngleRadians:aromaticGeometry.angleRadians,aromaticPlaneDistance:aromaticGeometry.planeDistance,
       ringPenetrations:ringIssues.atomCount+ringIssues.bondCount,ringAtomPenetrations:ringIssues.atomCount,
-      ringBondPenetrations:ringIssues.bondCount,bondIntersections,rigidRelative,topologyLimited};
+      ringBondPenetrations:ringIssues.bondCount,bondIntersections,ringSelfCrossings,rigidRelative,topologyLimited};
   }
 
   function measureAromaticGeometry(includes){
@@ -604,6 +606,7 @@ export function createStructureSolver({
     for(const key of ['bondRelative','angleRadians','planeDistance','overlapRelative','rigidRelative','fiveMemberConformationRelative','sixMemberConformationRelative','aromaticRadiusRelative','aromaticAngleRadians','aromaticPlaneDistance'])if(errors[key]>limits[key])reasons.push(key);
     if(errors.ringPenetrations)reasons.push('ring-penetration');
     if(errors.bondIntersections)reasons.push('bond-intersection');
+    if(errors.ringSelfCrossings)reasons.push('ring-self-crossing');
     return{valid:reasons.length===0,reasons,errors,limits};
   }
 
@@ -1102,6 +1105,66 @@ export function createStructureSolver({
     const center=anchors.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/anchors.length);
     const amplitude=frame.targetLength*(frame.mode==='chair'?1/6:.24);
     return {center,normal,amplitude};
+  }
+
+  // A chair can overlap in a camera projection, but its six edges must not
+  // form a figure-eight in the ring's own plane. This is independent of the
+  // viewer orientation and catches crossed rings made by closing a CRAFT chain.
+  function sixMemberPlane(frame){
+    const points=frame.cycle.map(pos);if(points.some(point=>!point))return null;
+    const center=points.reduce((sum,point)=>sum.add(point),new THREE.Vector3()).multiplyScalar(1/6);
+    const offsets=points.map(point=>point.clone().sub(center)),normal=new THREE.Vector3();
+    for(let i=0;i<6;i++)normal.add(new THREE.Vector3().crossVectors(offsets[i],offsets[(i+1)%6]));
+    // An exact bow-tie can cancel its signed area. Recover its plane from the
+    // largest triangle instead of falling back to the world Z axis.
+    if(normal.lengthSq()<1e-8){
+      let largest=0;
+      for(let a=0;a<6;a++)for(let b=a+1;b<6;b++)for(let c=b+1;c<6;c++){
+        const candidate=new THREE.Vector3().crossVectors(points[b].clone().sub(points[a]),points[c].clone().sub(points[a]));
+        if(candidate.lengthSq()>largest){largest=candidate.lengthSq();normal.copy(candidate);}
+      }
+    }
+    if(normal.lengthSq()<1e-8)return null;
+    normal.normalize();
+    const radial=offsets.map(offset=>offset.clone().addScaledVector(normal,-offset.dot(normal)));
+    let anchor=0;for(let i=1;i<6;i++)if(radial[i].lengthSq()>radial[anchor].lengthSq())anchor=i;
+    if(radial[anchor].lengthSq()<1e-8)return null;
+    const u=radial[anchor].normalize(),v=new THREE.Vector3().crossVectors(normal,u).normalize();
+    const polygon=offsets.map(offset=>({x:offset.dot(u),y:offset.dot(v)}));
+    return {center,normal,u,v,polygon,anchor};
+  }
+
+  function sixMemberCrossings(frame,plane=sixMemberPlane(frame)){
+    if(!plane)return[];
+    const points=plane.polygon,orient=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x),crossings=[];
+    for(let i=0;i<6;i++)for(let j=i+2;j<6;j++){
+      if(i===0&&j===5)continue; // neighboring ring edges share a vertex
+      const a=points[i],b=points[(i+1)%6],c=points[j],d=points[(j+1)%6];
+      if(orient(a,b,c)*orient(a,b,d)<-1e-8&&orient(c,d,a)*orient(c,d,b)<-1e-8)crossings.push([i,j]);
+    }
+    return crossings;
+  }
+
+  function enforceSixMemberUncrossing(strength,locked,activeAtoms){
+    const active=new Set(activeAtoms.map(atom=>atom.id));
+    for(const frame of sixMemberFrames){
+      if(!frame.cycle.every(id=>active.has(id))||frame.motionGroups.some(group=>group.some(id=>locked.has(id))))continue;
+      const plane=sixMemberPlane(frame);if(!plane||!sixMemberCrossings(frame,plane).length)continue;
+      const radius=frame.targetLength; // regular six-sided ring: radius = side length
+      const candidate=sign=>frame.cycle.map((id,index)=>{
+        const theta=sign*(index-plane.anchor)*Math.PI/3,original=pos(id);
+        return plane.center.clone().addScaledVector(plane.u,radius*Math.cos(theta))
+          .addScaledVector(plane.v,radius*Math.sin(theta))
+          .addScaledVector(plane.normal,original.clone().sub(plane.center).dot(plane.normal));
+      });
+      const forward=candidate(1),reverse=candidate(-1);
+      const cost=targets=>targets.reduce((sum,target,index)=>sum+target.distanceToSquared(pos(frame.cycle[index])),0);
+      const targets=cost(forward)<=cost(reverse)?forward:reverse;
+      for(let i=0;i<6;i++){
+        const delta=targets[i].sub(pos(frame.cycle[i])).multiplyScalar(strength);
+        for(const id of frame.motionGroups[i])pos(id)?.add(delta);
+      }
+    }
   }
 
   function enforceSixMemberConformations(strength,locked,activeAtoms){

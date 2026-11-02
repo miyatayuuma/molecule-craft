@@ -104,8 +104,20 @@ function assertHealthy(item,{angleTolerance=13}={}){
   const overlap=worstOverlap(item);assert.ok((errors.overlapRelative??0)<.20,`${item.id}: severe nonbonded overlap ${errors.overlapRelative}; pair ${overlap.a}-${overlap.b} d=${overlap.distance} min=${overlap.minimum}`);
   assert.equal(errors.ringPenetrations,0,`${item.id}: ring penetration introduced`);
   assert.equal(errors.bondIntersections,0,`${item.id}: bond intersection introduced`);
+  assert.equal(errors.ringSelfCrossings,0,`${item.id}: self-crossing six-member ring introduced`);
   assert.ok((errors.sixMemberConformationRelative??Infinity)<.08,`${item.id}: ring conformation authority did not converge`);
   return frame;
+}
+function crossRingBySwappingBranches(item,firstIndex=1,secondIndex=3){
+  const cycle=conformation(item).cycle,ring=new Set(cycle);
+  const branch=index=>{
+    const id=cycle[index];return [id,...item.molecule.neighbors(id).map(neighbor=>neighbor.atomId).filter(other=>!ring.has(other))];
+  };
+  const first=branch(firstIndex),second=branch(secondIndex);
+  const firstPoint=item.placements.get(cycle[firstIndex]).position.clone(),secondPoint=item.placements.get(cycle[secondIndex]).position.clone();
+  const displacement=secondPoint.clone().sub(firstPoint);
+  for(const id of first)item.placements.get(id).position.add(displacement);
+  for(const id of second)item.placements.get(id).position.sub(displacement);
 }
 function assertChair(item){
   const frame=assertHealthy(item),cycle=frame.cycle,points=pointsFor(item,cycle),target=frame.mode;
@@ -124,6 +136,14 @@ function assertDeterministic(id){
 
 for(const id of ['cyclohexane','methylcyclohexane','cyclohexanol']){
   const item=relax(fixture(id));assertChair(item);assertDeterministic(id);
+}
+{
+  const item=relax(fixture('cyclohexane'));
+  crossRingBySwappingBranches(item);
+  assert.ok(item.solver.measureError().ringSelfCrossings>0,'A crossed CRAFT cyclohexane ring was not detected');
+  assert.ok(item.solver.validateConformation().reasons.includes('ring-self-crossing'),'Crossed ring was not reported as invalid');
+  relax(item,700);
+  assertChair(item);
 }
 {
   const item=relax(fixture('methylcyclohexane')),frame=conformation(item),ring=new Set(frame.cycle),substituent=item.atoms.find(atom=>atom.element==='C'&&!ring.has(atom.id));
@@ -180,6 +200,20 @@ for(const id of ['tetrahydrofuran','cyclopentane','cyclobutane']){
   let result=null,time=0;
   for(let i=0;i<120&&!result?.done;i++){time+=16;result=session.advance(time,{clock:()=>0,budgetMs:999});}
   assert.ok(result?.done,'CRAFT-style settlement did not finish');
+  item.solver.rebuildTopology({resetFrames:true});assertChair(item);
+}
+{
+  const item=relax(fixture('cyclohexane'));
+  crossRingBySwappingBranches(item);
+  assert.ok(item.solver.measureError().ringSelfCrossings>0,'Settlement fixture must start with a crossed ring');
+  const ids=new Set(item.atoms.map(atom=>atom.id));
+  const session=createStructureSettlement({THREE,molecule:item.molecule,placements:item.placements,ids,
+    bondLengthFor:item.bondLengthFor,geometryFor:item.geometryFor,radiusFor:id=>ELEMENTS[item.atoms[id].element].radius,
+    nonbondedDistanceFor:(a,b)=>nonbondedDistance(item.atoms[a].element,item.atoms[b].element),now:0,duration:1});
+  let result=null,time=0;
+  for(let i=0;i<120&&!result?.done;i++){time+=16;result=session.advance(time,{clock:()=>0,budgetMs:999});}
+  assert.ok(result?.done,'CRAFT-style crossed-ring settlement did not finish');
+  assert.equal(result.errors.ringSelfCrossings,0,'Settlement retained a crossed ring as its best pose');
   item.solver.rebuildTopology({resetFrames:true});assertChair(item);
 }
 for(const id of ['cyclohexane','methylcyclohexane','cyclohexanol','cyclohexene','cyclohexanone']){
