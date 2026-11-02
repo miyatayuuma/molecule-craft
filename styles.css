@@ -580,3 +580,10 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 @media(min-width:1050px) and (min-height:600px){
  #collection-dialog .collection-card[aria-current="true"]{border-color:#7ddbd0;box-shadow:inset 0 0 0 1px #7ddbd0,0 0 14px #53b5b229}
 }
+
+/* Short word explanations in molecule encyclopedia summaries only. */
+#collection-dialog .dex-description .dex-glossary-term{appearance:none;display:inline;padding:0 1px;margin:0;min-width:0;min-height:0;border:0;border-bottom:1px dotted #74dcd0;border-radius:0;background:none;color:#a6f1e5;font:inherit;line-height:inherit;vertical-align:baseline;cursor:help;touch-action:manipulation}
+#collection-dialog .dex-description .dex-glossary-term:hover,#collection-dialog .dex-description .dex-glossary-term[aria-expanded="true"]{color:#edfffb;border-bottom-style:solid;background:#1d4447}
+#collection-dialog .dex-description .dex-glossary-term:focus-visible{outline:2px solid #a6f1e5;outline-offset:3px;border-radius:2px}
+#collection-dialog .dex-glossary-popup{position:fixed;z-index:20;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;max-width:calc(100vw - 24px);padding:11px 14px;background:#25434d;color:#eafbf7;border:1px solid #78cbbf;border-radius:12px;box-shadow:0 10px 28px #000a;font-size:14px;line-height:1.6;overflow-wrap:anywhere;pointer-events:auto}
+#collection-dialog .dex-glossary-popup strong{font-size:15px;color:#aff5e9}
