@@ -11,6 +11,7 @@ import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-
 import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';
 import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=5';
 import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
+import {moleculeSummaryGlossarySegments} from './encyclopedia-glossary.js';
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 
@@ -61,6 +62,46 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const chemistryParagraph=(text,className)=>appendChemistryText(el('p',null,className),text);
   const chemistryHeading=(text)=>appendChemistryText(el('h5'),text);
   const button=(text,handler,className)=>{const node=el('button',text,className);node.type='button';node.addEventListener('click',handler);return node;};
+  let glossaryPopup=null,glossaryTrigger=null;
+  function closeGlossary(){
+    glossaryTrigger?.setAttribute('aria-expanded','false');
+    glossaryTrigger?.removeAttribute('aria-describedby');
+    glossaryPopup?.remove();glossaryPopup=null;glossaryTrigger=null;
+  }
+  function toggleGlossary(trigger,word,meaning){
+    if(glossaryTrigger===trigger){closeGlossary();return;}
+    closeGlossary();
+    const popup=el('div',null,'dex-glossary-popup');popup.id='dex-molecule-glossary-popup';popup.setAttribute('role','tooltip');
+    popup.append(el('strong',word),el('span',meaning));
+    dialog.append(popup);
+    glossaryPopup=popup;glossaryTrigger=trigger;
+    trigger.setAttribute('aria-expanded','true');trigger.setAttribute('aria-describedby',popup.id);
+    const anchor=trigger.getBoundingClientRect(),width=Math.min(264,window.innerWidth-24);
+    popup.style.width=`${width}px`;
+    const height=popup.getBoundingClientRect().height;
+    popup.style.left=`${Math.max(12,Math.min(anchor.left,window.innerWidth-width-12))}px`;
+    const below=anchor.bottom+8;
+    popup.style.top=`${below+height<=window.innerHeight-12?below:Math.max(12,anchor.top-height-8)}px`;
+  }
+  const moleculeSummaryParagraph=text=>{
+    const paragraph=el('p',null,'dex-description');
+    for(const segment of moleculeSummaryGlossarySegments(text)){
+      if(segment.kind==='term'){
+        const trigger=button(segment.text,()=>toggleGlossary(trigger,segment.text,segment.meaning),'dex-glossary-term');
+        trigger.setAttribute('aria-label',`${segment.text}の意味を見る`);trigger.setAttribute('aria-expanded','false');
+        paragraph.append(trigger);
+      }else appendChemistryText(paragraph,segment.text);
+    }
+    return paragraph;
+  };
+  dialog.addEventListener('click',event=>{
+    if(glossaryPopup&&!glossaryPopup.contains(event.target)&&!glossaryTrigger?.contains(event.target))closeGlossary();
+  });
+  dialog.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&glossaryPopup){event.preventDefault();event.stopImmediatePropagation();const trigger=glossaryTrigger;closeGlossary();trigger?.focus();}
+  },true);
+  dialog.addEventListener('scroll',closeGlossary,true);
+  window.addEventListener('resize',closeGlossary);
   const wideBook=()=>window.matchMedia?.('(min-width: 1050px) and (min-height: 600px)')?.matches??false;
   const section=(title)=>{const node=el('details',null,'detail-extras');node.open=wideBook()&&!discoverySession;node.append(el('summary',title));detail.append(node);return node;};
   const registeredIds=()=>new Set(records.filter(record=>state.hasMolecule(record.id)).map(record=>record.id));
@@ -173,7 +214,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const notifyOpen=()=>{collectionDialogOpen=true;onOpenChange(true);};
   q('open-collection').addEventListener('click',()=>{if(!canOpen())return;ensureGraphFocus();if(wideBook()&&!discoverySession&&!currentDetail&&tab==='molecules'&&state.hasMolecule(graphFocusId))currentDetail={kind:'molecules',id:graphFocusId};renderBook();dialog.showModal();document.body.classList.add('collection-open');notifyOpen();});
   q('close-collection').addEventListener('click',()=>dialog.close());
-  dialog.addEventListener('close',()=>{moleculeTransition.cancel({owner:currentDetail?'detail':'graph'});detailTransitionHandle=null;releaseViewer();document.body.classList.remove('collection-open');collectionDialogOpen=false;onOpenChange(false);for(const resolve of closeWaiters)resolve();closeWaiters.clear();});
+  dialog.addEventListener('close',()=>{closeGlossary();moleculeTransition.cancel({owner:currentDetail?'detail':'graph'});detailTransitionHandle=null;releaseViewer();document.body.classList.remove('collection-open');collectionDialogOpen=false;onOpenChange(false);for(const resolve of closeWaiters)resolve();closeWaiters.clear();});
   dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
   for(const node of root.querySelectorAll('[data-book-tab]'))node.addEventListener('click',()=>{if(discoverySession||moleculeTransition.busy)return;tab=node.dataset.bookTab;currentDetail=null;listScroll=0;if(tab==='molecules')ensureGraphFocus();renderBook();});
   function showDetail(kind,id){
@@ -357,6 +398,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }else for(const item of previews)enqueue(item);
   }
   function renderBook(){
+    closeGlossary();
     releaseViewer();renderSummary();
     for(const node of root.querySelectorAll('[data-book-tab]')){const active=node.dataset.bookTab===tab;node.setAttribute('aria-selected',String(active));node.tabIndex=active?0:-1;}
     for(const node of root.querySelectorAll('[data-book-tab]'))node.disabled=!!discoverySession;
@@ -390,7 +432,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const defaultStereo=stereoSpec?{kind:stereoSpec.kind,relation:stereoSpec.defaultRelation??stereoSpec.states?.[0]?.relation}:null;
     const previewHandle=preview(record,moleculeDisplayName(record),{graphReturn:true,presentation:defaultStereo});
     if(stereoSpec)stereoComparisonControl(stereoSpec,previewHandle);
-    detail.append(chemistryParagraph(catalogEntry.description??'この分子を図鑑に登録しました。','dex-description'));
+    detail.append(moleculeSummaryParagraph(catalogEntry.description??'この分子を図鑑に登録しました。'));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
     const detailSections=Array.isArray(catalogEntry.details)?catalogEntry.details:[];
