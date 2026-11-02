@@ -135,6 +135,16 @@ for(const id of ['benzene','pyridine','furan']){
   assert.equal(snap.aromaticCycles.length,1,`${id}: aromatic authority lost`);
   assert.equal(snap.fiveMemberConformations.length,0,`${id}: aromatic entered saturated five-member authority`);
 }
+{
+  const item=preview('2-4-6-trinitrotoluene'),point=id=>item.view.atoms[id].point;
+  for(const group of item.source.resonanceGroups.filter(row=>row.kind==='nitro')){
+    const [left,right]=group.ends,center=point(group.center);
+    const leftAxis=point(left).clone().sub(center),rightAxis=point(right).clone().sub(center);
+    const angle=THREE.MathUtils.radToDeg(leftAxis.angleTo(rightAxis));
+    assert.ok(angle>115&&angle<125,`TNT nitro group ${group.center} is folded (${angle}°)`);
+    assert.ok(Math.abs(leftAxis.length()-rightAxis.length())<.05,`TNT nitro group ${group.center} has unequal N–O distances`);
+  }
+}
 for(const id of ['cyclohexane','cyclohexene','cyclohexanone']){
   const row=byId.get(id);assert.ok(row.planeMax>.07,`${id}: six-member non-aromatic ring flattened`);
   const item=settleFixture(solverFixture(id));assert.equal(item.solver.snapshot().sixMemberConformations.length,1,`${id}: six-member authority lost`);
