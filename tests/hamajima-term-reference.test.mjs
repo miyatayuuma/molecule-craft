@@ -46,6 +46,9 @@ const longestCases=[
 for(const [text,terms]of longestCases){
   assert.deepEqual(hamajimaTermSegments(text).filter(segment=>segment.kind==='term').map(segment=>segment.text),terms);
 }
+for(const compound of ['一酸化炭素','二酸化炭素']){
+  assert.deepEqual(hamajimaTermSegments(compound),[{kind:'text',text:compound}],`${compound}: 酸化 is not a separate reaction`);
+}
 
 for(const term of ['キラリティ','芳香族性','位置異性','位置異性体','共鳴','形式電荷','結合次数','環ひずみ']){
   assert.equal(hamajimaTermReference(term),null,`${term}: no approximate reference mapping`);

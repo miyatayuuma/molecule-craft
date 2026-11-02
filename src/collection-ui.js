@@ -5,25 +5,29 @@ import { validateCraftStructures } from './craft-structures.js?v=34';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=38';
 import { createElementPalette } from './element-progression.js?v=38';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
+import {appendMoleculeNameFurigana} from './molecule-name-furigana.js?v=2';
+import {appendPartNameFurigana} from './part-name-furigana.js';
 import {loadMoleculeGraph} from './molecule-graph.js?v=2';
 import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=2';
-import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=4';
+import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=5';
 import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';
 import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=5';
 import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
-import {moleculeSummaryGlossarySegments} from './encyclopedia-glossary.js';
+import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from './encyclopedia-glossary.js';
+import {furiganaSegmentsForRange} from './encyclopedia-furigana.js?v=1';
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
-  const [groups,templates,encyclopedia,graph]=await Promise.all([
+  const [groups,templates,encyclopedia,graph,furigana]=await Promise.all([
     load('../data/functional-groups.json?v=26'),
     load('../data/craft-structures.json?v=25'),
     load('../data/encyclopedia.json?v=34').catch(()=>({molecules:{},parts:{},noteDefinitions:{}})),
     loadMoleculeGraph({url:new URL('../data/molecule-graph.json',import.meta.url).href}),
+    load('../data/encyclopedia-furigana.json?v=2').catch(()=>({molecules:{},parts:{}})),
   ]);
-  validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph};
+  validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph,furigana};
 }
 
 export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true,recipeState=()=>({recipes:[],hints:[]}),polymerRecords=[],polymerContent=[],polymerRoutes=[],engineeringResources=null}){
@@ -50,12 +54,22 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const number=(kind,id)=>kind==='molecules'?entry(kind,id)?.number??(records.findIndex(item=>item.id===id)+1):kind==='polymers'?polymerContentById.get(id)?.number??(polymerRecords.findIndex(item=>item.id===id)+1):groupById(id)?.learningRole==='part'?(entry('groups',id)?.number??(partGroups.findIndex(item=>item.id===id)+1)):null;
   const numberLabel=(kind,id)=>{const value=number(kind,id);return Number.isInteger(value)?`No. ${String(value).padStart(3,'0')}`:'';};
   const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node;};
-  const appendChemistryText=(host,text)=>{
+  const appendReadingText=(host,fullText,annotations,start,end)=>{
+    for(const segment of furiganaSegmentsForRange(fullText,annotations,start,end)){
+      if(segment.kind==='ruby'){
+        const ruby=el('ruby');ruby.append(document.createTextNode(segment.text),el('rt',segment.reading));host.append(ruby);
+      }else host.append(document.createTextNode(segment.text));
+    }
+    return host;
+  };
+  const appendChemistryText=(host,text,{fullText=text,annotations=[],startOffset=0}={})=>{
     const fragment=document.createDocumentFragment();
+    let offset=startOffset;
     for(const segment of hamajimaTermSegments(text)){
       if(segment.kind==='term'){
-        const link=document.createElement('a');link.href=segment.reference.url;link.target='_blank';link.rel='noopener noreferrer external';link.textContent=segment.text;fragment.append(link);
-      }else fragment.append(document.createTextNode(segment.text));
+        const link=document.createElement('a');link.href=segment.reference.url;link.target='_blank';link.rel='noopener noreferrer external';appendReadingText(link,fullText,annotations,offset,offset+segment.text.length);fragment.append(link);
+      }else appendReadingText(fragment,fullText,annotations,offset,offset+segment.text.length);
+      offset+=segment.text.length;
     }
     host.append(fragment);return host;
   };
@@ -83,14 +97,19 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const below=anchor.bottom+8;
     popup.style.top=`${below+height<=window.innerHeight-12?below:Math.max(12,anchor.top-height-8)}px`;
   }
-  const moleculeSummaryParagraph=text=>{
+  const encyclopediaSummaryParagraph=(text,kind,id)=>{
     const paragraph=el('p',null,'dex-description');
-    for(const segment of moleculeSummaryGlossarySegments(text)){
+    const annotations=data.furigana?.[kind]?.[id]??[];
+    let offset=0;
+    const segments=kind==='parts'?partSummaryGlossarySegments(text):moleculeSummaryGlossarySegments(text);
+    for(const segment of segments){
       if(segment.kind==='term'){
-        const trigger=button(segment.text,()=>toggleGlossary(trigger,segment.text,segment.meaning),'dex-glossary-term');
+        const trigger=button(null,()=>toggleGlossary(trigger,segment.text,segment.meaning),'dex-glossary-term');
+        appendReadingText(trigger,text,annotations,offset,offset+segment.text.length);
         trigger.setAttribute('aria-label',`${segment.text}の意味を見る`);trigger.setAttribute('aria-expanded','false');
         paragraph.append(trigger);
-      }else appendChemistryText(paragraph,segment.text);
+      }else appendChemistryText(paragraph,segment.text,{fullText:text,annotations,startOffset:offset});
+      offset+=segment.text.length;
     }
     return paragraph;
   };
@@ -301,7 +320,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const special=pendingReactionRecipeIds({authority:reactionAuthority,progress:reactionProgress}).map(id=>reactionAuthority.get(id));
     if(normal.length||special.length){
       const panel=el('details',null,'collection-recipe-list'),summary=el('summary',`💡 ひらめいたレシピ（${normal.length+special.length}）`);panel.open=true;panel.append(summary);
-      for(const id of normal){const record=recordById(id),item=button(`💡 ${moleculeDisplayName(record)}`,()=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();});panel.append(item);}
+      for(const id of normal){const record=recordById(id),item=button(null,()=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();});item.append(document.createTextNode('💡 '));appendMoleculeNameFurigana(item,moleculeDisplayName(record));panel.append(item);}
       for(const entry of special){const model=reactionRecipeRowModel(entry,{records,polymerNameFor:id=>polymerRecords.find(row=>row.id===id)?.nameJa});const item=button(`💡 ${model.name}（${model.detail}）`,()=>onTryReaction(entry.reactionId));item.dataset.reactionRecipe=entry.reactionId;item.className='collection-special-recipe';panel.append(item);}
       list.prepend(panel);
     }
@@ -314,7 +333,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       card.append(el('small',numberLabel('groups',item.id),'dex-number'));
       if(known){thumbnail(card,'groups',item.id);card.append(el('span',data.templates.some(t=>t.unlock.groupId===item.id&&state.isUnlocked(t.id))?'✓':'●','dex-state'));}
       // Unknown polymers deliberately reveal only their stable number and ???.
-      card.append(el('strong',known?item.nameJa:'???'));list.appendChild(card);
+      const title=el('strong');if(known)appendPartNameFurigana(title,item.nameJa);else title.textContent='???';card.append(title);list.appendChild(card);
     }
     if(!list.childElementCount)list.appendChild(el('p','項目はありません。','collection-note'));
   }
@@ -432,7 +451,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const defaultStereo=stereoSpec?{kind:stereoSpec.kind,relation:stereoSpec.defaultRelation??stereoSpec.states?.[0]?.relation}:null;
     const previewHandle=preview(record,moleculeDisplayName(record),{graphReturn:true,presentation:defaultStereo});
     if(stereoSpec)stereoComparisonControl(stereoSpec,previewHandle);
-    detail.append(moleculeSummaryParagraph(catalogEntry.description??'この分子を図鑑に登録しました。'));
+    detail.append(encyclopediaSummaryParagraph(catalogEntry.description??'この分子を図鑑に登録しました。','molecules',record.id));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
     const detailSections=Array.isArray(catalogEntry.details)?catalogEntry.details:[];
@@ -442,7 +461,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const discovered=state.moleculeEntry(id);extra.append(el('h4','発見'),el('p',`発見 ${discovered.order}番目${discovered.at?` · ${new Date(discovered.at).toLocaleDateString('ja-JP')}`:''}`));
     const tags=el('div',null,'collection-tags');for(const match of matches)tags.append(button(groupById(match.id).nameJa,()=>showDetail('groups',match.id),'collection-tag'));if(matches.length)extra.append(el('h4','見つかる部品'),tags);
     if(motifs.length){const motifTags=el('div',null,'collection-tags');for(const match of motifs){const tag=button(groupById(match.id).nameJa,()=>showDetail('motifs',match.id),'collection-tag structure-motif-tag');tag.dataset.motifId=match.id;motifTags.append(tag);}extra.append(el('h4','構造モチーフ'),motifTags);}
-    const relatives=state.isomersOf(record);if(relatives.length){extra.append(el('h4','同じ分子式の仲間'));for(const item of relatives)extra.append(button(state.hasMolecule(item.id)?moleculeDisplayName(item):'???',()=>state.hasMolecule(item.id)&&showDetail('molecules',item.id),'collection-tag'));}
+    const relatives=state.isomersOf(record);if(relatives.length){extra.append(el('h4','同じ分子式の仲間'));for(const item of relatives){const known=state.hasMolecule(item.id),tag=button(null,()=>known&&showDetail('molecules',item.id),'collection-tag');if(known)appendMoleculeNameFurigana(tag,moleculeDisplayName(item));else tag.textContent='???';extra.append(tag);}}
     if(discoverySession)for(const node of detail.querySelectorAll('button:not([data-discovery-session-action])'))node.disabled=true;
   }
   function updateDiscoveryAction(node=detail.querySelector('[data-discovery-session-action]')){
@@ -451,14 +470,15 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     node.disabled=!current.ready;node.setAttribute('aria-label',current.ready?`発見 ${current.index} / ${current.total} · ${current.hasNext?'次の登録':'REACTION LABへ戻る'}`:`発見 ${current.index} / ${current.total} · 登録表示中`);
   }
   function heading(kind,id,name,formula=''){
-    const host=el('div',null,'detail-heading'),left=el('div'),numberText=numberLabel(kind,id);if(numberText)left.append(el('span',numberText,'dex-number'));left.append(el('h3',name));host.append(left);if(formula)host.append(el('p',formula,'detail-formula'));detail.append(host);
+    const host=el('div',null,'detail-heading'),left=el('div'),numberText=numberLabel(kind,id);if(numberText)left.append(el('span',numberText,'dex-number'));const title=el('h3');if(kind==='molecules')appendMoleculeNameFurigana(title,name);else if(kind==='groups')appendPartNameFurigana(title,name);else title.textContent=name;left.append(title);host.append(left);if(formula)host.append(el('p',formula,'detail-formula'));detail.append(host);
   }
   function renderGroup(id){
     const group=groupById(id),known=state.hasGroup(id),sources=state.groupSources(id),part=group?.learningRole==='part'?data.templates.find(item=>item.unlock.groupId===id):null;
     heading(currentDetail.kind,id,known?group.nameJa:'???');
     if(!known){const box=el('div',null,'unknown-detail');box.append(el('div','','unknown-model'),el('p','分子を完成させると、その中の部品も見つかります。'));detail.append(box);return;}
     if(part)preview(part,group.nameJa);
-    detail.append(chemistryParagraph(entry('groups',id)?.description??group.description,'dex-description'));
+    const description=entry('groups',id)?.description??group.description;
+    detail.append(currentDetail.kind==='groups'?encyclopediaSummaryParagraph(description,'parts',id):chemistryParagraph(description,'dex-description'));
     for(const template of part?data.templates.filter(item=>item.unlock.groupId===id):[]){
       const unlocked=state.isUnlocked(template.id);detail.append(el('p',unlocked?'✓ この部品は使えます':`解放まで：異なる分子 ${sources.length}/${template.unlock.distinctMolecules}種類で発見`,'unlock-condition'));
       if(unlocked)detail.append(button('部品トレーへ',()=>{paletteTab('structures');dialog.close();},'collection-primary'));
@@ -466,7 +486,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const extra=section('くわしく');extra.append(el('p',`${group.nameEn} · ${group.notation}`),chemistryParagraph(group.description));
     if(group.aliases?.length)extra.append(el('p',`別名：${group.aliases.join('、')}`));
     if(part)extra.append(el('p',`接続点：${part.attachments.map(port=>`${part.atoms[port.atom]}に単結合${port.slots}本分`).join('、')}`));
-    extra.append(el('h4','見つかった分子'));for(const sourceId of sources)extra.append(button(moleculeDisplayName(recordById(sourceId)),()=>showDetail('molecules',sourceId),'collection-tag'));
+    extra.append(el('h4','見つかった分子'));for(const sourceId of sources){const tag=button(null,()=>showDetail('molecules',sourceId),'collection-tag');appendMoleculeNameFurigana(tag,moleculeDisplayName(recordById(sourceId)));extra.append(tag);}
   }
   function renderEngineering(polymerId){
     const recipes=engineeringRecipes.filter(recipe=>recipe.inputs.some(input=>input.type==='polymer-discovery'&&input.id===polymerId));
@@ -538,7 +558,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(chemistryHeading(item.title),chemistryParagraph(item.body));chemistry.append(sectionNode);}
     if(chemistry.childElementCount)process.append(chemistry);
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${record.family}`),el('p',`生成法：${formationName}`),el('p',`トポロジー：${topologyName}`));
-    extra.append(el('h4','原料分子'));for(const source of sourceRecords)extra.append(el('span',moleculeDisplayName(source),'collection-tag'));
+    extra.append(el('h4','原料分子'));for(const source of sourceRecords)extra.append(appendMoleculeNameFurigana(el('span',null,'collection-tag'),moleculeDisplayName(source)));
     if(record.repeatUnit)extra.append(el('h4','代表的な繰り返し単位'),el('p',record.repeatUnit,'polymer-repeat-unit'));
     else if(route.presentation.kind==='network')extra.append(el('h4','代表構造'),el('p','フェノール環がメチレン橋でつながる有限の分岐例です。硬化後の架橋網目全体を再現した模型ではありません。','polymer-repeat-unit'));
     else extra.append(el('h4','代表構造'),el('p','二種類の単量体由来部分を含む代表的な配列です。実際の組成比や並び方を示すものではありません。','polymer-repeat-unit'));

@@ -582,6 +582,17 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 }
 
 /* Short word explanations in molecule encyclopedia summaries only. */
+#collection-dialog .detail-heading h3:has(ruby){line-height:1.9}
+#collection-dialog .detail-heading h3 rt,#collection-dialog .collection-tag rt,#collection-dialog .collection-recipe-list rt{font-size:.56em;line-height:1;color:#b5d6d5}
+#collection-dialog .detail-heading ruby,#collection-dialog .collection-tag ruby,#collection-dialog .collection-recipe-list ruby{ruby-position:over}
+#collection-dialog .collection-card ruby{ruby-position:over}
+#collection-dialog .collection-card rt{font-size:.56em;line-height:1;color:#b5d6d5}
+#collection-dialog .collection-card strong:has(ruby){line-height:1.95}
+#collection-dialog .collection-tag:has(ruby),#collection-dialog .collection-recipe-list button:has(ruby){line-height:2}
+#collection-dialog .dex-description{line-height:2.35}
+#collection-dialog .dex-description ruby{ruby-position:over}
+#collection-dialog .dex-description rt{font-size:.58em;line-height:1;color:#a9c8ce;font-weight:500}
+#collection-dialog .dex-description .dex-glossary-term rt{color:#a6f1e5}
 #collection-dialog .dex-description .dex-glossary-term{appearance:none;display:inline;padding:0 1px;margin:0;min-width:0;min-height:0;border:0;border-bottom:1px dotted #74dcd0;border-radius:0;background:none;color:#a6f1e5;font:inherit;line-height:inherit;vertical-align:baseline;cursor:help;touch-action:manipulation}
 #collection-dialog .dex-description .dex-glossary-term:hover,#collection-dialog .dex-description .dex-glossary-term[aria-expanded="true"]{color:#edfffb;border-bottom-style:solid;background:#1d4447}
 #collection-dialog .dex-description .dex-glossary-term:focus-visible{outline:2px solid #a6f1e5;outline-offset:3px;border-radius:2px}
