@@ -123,7 +123,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   const polymerBondScratch={axis:new THREE.Vector3(),direction:new THREE.Vector3(),side:new THREE.Vector3(),reference:new THREE.Vector3(0,0,1),midpoint:new THREE.Vector3(),up:new THREE.Vector3(0,1,0)};
   const polymerResourceMetrics=localhostPhysicsTest?{disposalCount:0,geometryDisposals:0,materialDisposals:0}:null;
   let distance=15,last=performance.now(),disposed=false,reactionAnimation=null,lastReactionPresentation=null,batchTransition=null,simulationClockSeconds=0,animationFrameId=0,pickerOpen=false,pickerSlotIndex=-1,pickerSource=null;
-  let dialogOpenState=!!dialog.open;const closeWaiters=new Set();
+  let dialogOpenState=!!dialog.open,preserveOnClose=false;const closeWaiters=new Set();
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   const contactMatcher=createContactMatcher();
   let reactionDiagnostics=[],reactionTrajectoryTrace=null,pickerTrace=[];
@@ -1552,13 +1552,25 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
 
   function setDialogOpen(open){onDialogStateChange(open);}
   function open(){renderSlotTiles();if(!dialog.open){if(dialogOpenState)handleDialogClose();dialog.showModal();}restorePolymerVisual();polymerVisualRevision++;dialogOpenState=true;setDialogOpen(true);last=performance.now();resize();observation.resume();if(polymerSamplePresentation?.ready&&!finiteReferenceView){referenceUnits.value='100';referenceDisplay.value='reference';showPolymerReference();}return true;}
-  function closeAndWait(){if(!dialogOpenState&&!dialog.open)return Promise.resolve(false);return new Promise(resolve=>{closeWaiters.add(resolve);if(dialog.open)dialog.close();});}
+  function closeAndWait({preserveState=false}={}){if(!dialogOpenState&&!dialog.open)return Promise.resolve(false);if(preserveState)preserveOnClose=true;return new Promise(resolve=>{closeWaiters.add(resolve);if(dialog.open)dialog.close();});}
   root.querySelector('[data-lab-close]')?.addEventListener('click',()=>dialog.close(),eventOptions);
   function handleDialogClose(){
     // Native close is queued. Reopening before that event must first release
     // the closed presentation; the queued event must not suspend the new one.
     if(dialog.open||!dialogOpenState)return;
-    clearGuide();closePicker({returnFocus:false});cancelMediumDrag();updateEnvironmentControls();if(polymerSamplePresentation&&!polymerSamplePresentation.ready&&!polymerSamplePresentation.dismissed){polymerSamplePresentation.dismissed=true;dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-dismiss',{sampleId:polymerSamplePresentation.sampleId,batchGeneration:polymerSamplePresentation.batchGeneration});}cancelAllPointers();suspendPolymerVisual();last=performance.now();dialogOpenState=false;setDialogOpen(false);for(const resolve of closeWaiters)resolve(true);closeWaiters.clear();
+    const preserveState=preserveOnClose;preserveOnClose=false;
+    clearGuide();closePicker({returnFocus:false});cancelMediumDrag();updateEnvironmentControls();if(polymerSamplePresentation&&!polymerSamplePresentation.ready&&!polymerSamplePresentation.dismissed){polymerSamplePresentation.dismissed=true;dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-dismiss',{sampleId:polymerSamplePresentation.sampleId,batchGeneration:polymerSamplePresentation.batchGeneration});}
+    resetLabPad();cancelAllPointers();
+    if(preserveState)suspendPolymerVisual();
+    else{
+      // A user exit starts the next Lab visit with an empty chamber and HEADs.
+      // Only the brief Collection discovery reveal preserves the live batch.
+      batch.invalidate();observation.hide();clear();polymerCore=createReactionLabPolymerizationCore({records,routes:polymerRoutes,sitePatterns:polymerSitePatterns});
+      polymerBeginError=null;polymerDockAttempt=null;polymerAutoAttempt=null;polymerCapturedSources=[];newlyDiscoveredPolymerId=null;
+      referenceDisplay.value='actual';referenceUnits.value='100';distance=15;updateCamera();clearDepthTarget();
+      status.textContent='Chamber empty';renderSlotTiles();updateCommandBar();polymerVisualRevision++;
+    }
+    last=performance.now();dialogOpenState=false;setDialogOpen(false);for(const resolve of closeWaiters)resolve(true);closeWaiters.clear();
   }
   dialog.addEventListener('close',handleDialogClose,{signal:eventController.signal});
 

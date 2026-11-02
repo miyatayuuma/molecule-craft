@@ -77,6 +77,25 @@ export function seedCraftCoordinates(template) {
       points.set(n.id,{x:origin.x+direction.x*scale,y:origin.y+direction.y*scale,z:origin.z+direction.z*scale});queue.push(n.id);
     }
   }
+  // An aromatic nitro group is trigonal at N. The generic branch seeding can
+  // put an oxygen on the ring-facing side, trapping the 3D solver in a folded
+  // local minimum (notably the para nitro group of TNT).
+  if(ringOrder.length){
+    const centroid=ringOrder.reduce((sum,id)=>({x:sum.x+points.get(id).x/ringOrder.length,y:sum.y+points.get(id).y/ringOrder.length}),{x:0,y:0});
+    for(const group of template.resonanceGroups??[]){
+      if(group.kind!=='nitro'||group.ends?.length!==2)continue;
+      const nitrogen=group.center,attached=adjacency[nitrogen]?.find(n=>ringOrder.includes(n.id));
+      if(!attached)continue;
+      const carbon=points.get(attached.id),radialX=carbon.x-centroid.x,radialY=carbon.y-centroid.y,magnitude=Math.hypot(radialX,radialY);
+      if(magnitude<1e-8)continue;
+      const ux=radialX/magnitude,uy=radialY/magnitude,nLength=length(attached.id,nitrogen,attached.order);
+      const nPoint={x:carbon.x+ux*nLength,y:carbon.y+uy*nLength,z:carbon.z};points.set(nitrogen,nPoint);
+      group.ends.forEach((oxygen,index)=>{
+        const order=adjacency[nitrogen].find(n=>n.id===oxygen)?.order??1,oLength=length(nitrogen,oxygen,order),side=index===0?1:-1;
+        points.set(oxygen,{x:nPoint.x+(ux*.5-side*uy*Math.sqrt(3)/2)*oLength,y:nPoint.y+(uy*.5+side*ux*Math.sqrt(3)/2)*oLength,z:nPoint.z});
+      });
+    }
+  }
   const root=points.get(template.attachments[0].atom);
   return template.atoms.map((_,id)=>{const p=points.get(id);return {x:p.x-root.x,y:p.y-root.y,z:p.z-root.z};});
 }
