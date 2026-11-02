@@ -25,7 +25,7 @@ async function pump(){
     };
     timer=setTimeout(()=>finish(null),10000);
     try{
-      const {mountPolymerUnitPreview}=await import('./polymer-unit-preview.js?v=4');
+      const {mountPolymerUnitPreview}=await import('./polymer-unit-preview.js?v=5');
       if(!finished)viewer=mountPolymerUnitPreview({host:stage,polymerId:item.id,name:item.name,onReady:({snapshot})=>{if(snapshot)finish(snapshot);},onThumbnail:finish});
     }catch(error){console.warn('Polymer unit preview unavailable',item.id,error);finish(null);}
     return;

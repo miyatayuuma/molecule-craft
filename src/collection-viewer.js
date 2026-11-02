@@ -1,6 +1,6 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { ELEMENTS, modelAtomRadius } from './chemistry.js?v=20';
-import { createPreviewModel } from './preview-model.js?v=36';
+import { createPreviewModel } from './preview-model.js?v=37';
 import { createPreviewControls } from './preview-controls.js?v=23';
 import { canonicalPartView, PART_SETTLEMENT } from './part-presentation.js?v=2';
 import { attachmentProjection, createAttachmentMarker } from './attachment-rendering.js?v=32';
