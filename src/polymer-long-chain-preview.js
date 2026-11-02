@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createCollectionViewer} from './collection-viewer.js?v=42';
+import {createCollectionViewer} from './collection-viewer.js?v=43';
 
 // Read-only, centered 30-unit display geometry. The reference plan owns all
 // chemical connections; Collection neither edits it nor uses a finite Sample.

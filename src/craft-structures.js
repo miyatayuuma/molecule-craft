@@ -63,12 +63,44 @@ export function seedCraftCoordinates(template) {
   }else{const root=template.attachments[0].atom;points.set(root,{x:0,y:0,z:0});queue.push(root);}
   for(let i=0;i<queue.length;i++){
     const id=queue[i],origin=points.get(id),neighbors=adjacency[id];
+    // Seed a carbonyl carbon's two open bonds at 120° to its incoming bond.
+    // The generic index-based directions can point one oxygen back toward an
+    // aromatic ring (terephthalic acid) or a neighboring C=O (pyruvic acid),
+    // leaving the relaxation solver trapped in a sharply folded arrangement.
+    // The same pattern at a carbonyl-bound amide N prevents its two hydrogens
+    // from starting almost on top of the neighboring C=O (acetamide / urea).
+    const placed=neighbors.filter(n=>points.has(n.id)),open=neighbors.filter(n=>!points.has(n.id));
+    const carbonyl=template.atoms[id]==='C'&&neighbors.some(n=>n.order===2&&template.atoms[n.id]==='O');
+    const amideNitrogen=template.atoms[id]==='N'&&placed.length===1&&template.atoms[placed[0].id]==='C'
+      &&adjacency[placed[0].id].some(n=>n.order===2&&template.atoms[n.id]==='O');
+    if((carbonyl||amideNitrogen)&&neighbors.length===3&&placed.length===1&&open.length===2){
+      const previous=points.get(placed[0].id),axis={x:origin.x-previous.x,y:origin.y-previous.y,z:origin.z-previous.z};
+      const magnitude=Math.hypot(axis.x,axis.y,axis.z),inPlane=Math.hypot(axis.x,axis.y);
+      if(magnitude>1e-8){
+        const ux=axis.x/magnitude,uy=axis.y/magnitude,uz=axis.z/magnitude;
+        const side=inPlane>1e-8?{x:-axis.y/inPlane,y:axis.x/inPlane,z:0}:{x:0,y:1,z:0};
+        open.forEach((n,index)=>{
+          const sign=index===0?1:-1,distance=length(id,n.id,n.order);
+          points.set(n.id,{x:origin.x+distance*(ux*.5+sign*side.x*Math.sqrt(3)/2),y:origin.y+distance*(uy*.5+sign*side.y*Math.sqrt(3)/2),z:origin.z+distance*(uz*.5+sign*side.z*Math.sqrt(3)/2)});
+          queue.push(n.id);
+        });
+        continue;
+      }
+    }
     for(let slot=0;slot<neighbors.length;slot++){
       const n=neighbors[slot];if(points.has(n.id))continue;
       let direction;
       if(ringOrder.includes(id)){
         const center=ringOrder.reduce((sum,atomId)=>({x:sum.x+points.get(atomId).x/6,y:sum.y+points.get(atomId).y/6,z:0}),{x:0,y:0,z:0});
         direction={x:origin.x-center.x,y:origin.y-center.y,z:0};
+        // A saturated ring carbon has two outward bonds. Sending both along
+        // the same radial axis makes coincident H seeds and distorted tetrahedral
+        // angles after settlement (notably methylcyclohexane).
+        if(template.atoms[id]==='C'&&neighbors.length===4&&open.length===2){
+          const sign=open.findIndex(item=>item.id===n.id)===0?1:-1;
+          const radius=Math.hypot(direction.x,direction.y);
+          direction={x:direction.x/(radius*Math.sqrt(3)),y:direction.y/(radius*Math.sqrt(3)),z:sign*Math.sqrt(2/3)};
+        }
       }else{
         const angle=(slot+.35)*2*Math.PI/Math.max(3,neighbors.length)+i*.7;
         direction={x:Math.cos(angle),y:Math.sin(angle),z:neighbors.length>=4?(slot%2?.65:-.65):.15*Math.sin(i+slot)};

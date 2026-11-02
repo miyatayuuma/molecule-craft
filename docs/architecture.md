@@ -137,6 +137,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 - `src/collection-ui.js`：図鑑DOM、データfetch、模型の遅延読込。
 - `src/collection-state.js`：発見記録、部品解放、保存互換。
 - `src/collection-viewer.js`, `src/preview-model.js`, `src/preview-controls.js`：図鑑3D模型。
+- `tests/preview-geometry-audit.test.mjs`：全分子の図鑑模型について、三配位角と結合距離の歪み、カルボニル・アミド・飽和環置換基を点検する。
 - `scripts/polymer-structure-svg.mjs`：Task⑥で検証したfragment authorityから25件すべての静的2D SVGを決定論的に生成。production setは `POLYMER_2D_PRODUCTION_IDS`。
 - `data/polymer-fragment-authority.json`, `scripts/polymer-fragment-authority.mjs`：高分子描画入力の原子・結合・反復・局所モチーフ authorityとvalidator。
 - `tests/polymer-structure-svg.test.mjs`：構造mapping、bond order、repeat / copolymer / network表現、fail-closed、SVG再生成の検証。

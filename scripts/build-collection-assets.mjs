@@ -1,7 +1,7 @@
 // Build-time projections; the list never starts a renderer or solver.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createPreviewModel} from '../src/preview-model.js?v=35';
+import {createPreviewModel} from '../src/preview-model.js?v=37';
 import {ELEMENTS,modelAtomRadius} from '../src/chemistry.js';
 import {AROMATIC_STYLE,aromaticBondKeys,displayedBondOrder,aromaticRingFrame,aromaticRingPoints} from '../src/aromatic-rendering.js?v=27';
 import {RESONANCE_STYLE,SULFUR_OXO_STYLE,specialEdgeKeys,sharedBondCurves,sulfurOxoBondAxes} from '../src/special-bonds.js?v=34';

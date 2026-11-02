@@ -1,7 +1,7 @@
 import {unfinishedCraftIds,pendingReactionRecipeIds,reactionRecipeRowModel} from './pending-craft.js';
 import {reactionGroups,renderReactionBook} from './reaction-encyclopedia.js?v=1';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
-import { validateCraftStructures } from './craft-structures.js?v=33';
+import { validateCraftStructures } from './craft-structures.js?v=34';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=38';
 import { createElementPalette } from './element-progression.js?v=38';
 import { COLLECTION_CATEGORIES, collectionCategory, moleculeDisplayName } from './collection-catalog.js';
@@ -126,7 +126,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       detailViewer?.dispose();detailViewer=null;host.replaceChildren();host.dataset.viewerReady='false';host.dataset.stereoRelation='';
       let overlay=null;if(previousSnapshot){overlay=el('img',null,'stereo-configuration-transition');overlay.src=previousSnapshot;overlay.alt='';host.append(overlay);}else if(request===1&&continuity)host.append(continuity);
       host.append(el('p','模型を準備しています…','model-status'));
-      return import('./collection-viewer.js?v=42').then(({createCollectionViewer})=>new Promise(resolve=>{
+      return import('./collection-viewer.js?v=43').then(({createCollectionViewer})=>new Promise(resolve=>{
         if(request!==mountGeneration||generation!==detailGeneration||!dialog.open||!host.isConnected){resolve(null);return;}
         host.querySelector(':scope > .model-status')?.remove();
         detailViewer=createCollectionViewer({host,record,name,presentation:nextPresentation,initialView:previousView,
@@ -304,7 +304,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       });
     };
     job.timeout=setTimeout(()=>finish(null),5000);
-    import('./polymer-unit-preview.js?v=4').then(({mountPolymerUnitPreview})=>{
+    import('./polymer-unit-preview.js?v=5').then(({mountPolymerUnitPreview})=>{
       if(job.done||activeThumbnailJob!==job)return;
       job.viewer=mountPolymerUnitPreview({
         host:stage,polymerId:item.record.id,name:item.record.nameJa,
@@ -463,7 +463,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       detailViewer?.dispose();detailViewer=null;
       const status=el('p',mode==='chain'?`${polymerReferenceLabel}の模型を準備しています…`:'構成単位を準備しています…','model-status');
       status.setAttribute('role','status');visual.replaceChildren(status);
-      const modulePromise=mode==='chain'?import('./polymer-long-chain-preview.js?v=2'):import('./polymer-unit-preview.js?v=4');
+      const modulePromise=mode==='chain'?import('./polymer-long-chain-preview.js?v=3'):import('./polymer-unit-preview.js?v=5');
       modulePromise.then(module=>{
         if(token!==request||generation!==detailGeneration||currentDetail?.kind!=='polymers'||currentDetail.id!==id||!visual.isConnected)return;
         visual.replaceChildren();
