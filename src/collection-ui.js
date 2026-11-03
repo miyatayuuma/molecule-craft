@@ -316,14 +316,13 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       host:list,graph:data.graph,records,stateOptions:graphStateOptions(),focusId:graphFocusId,highlightId:graphHighlightId,
       previousPositions:lastGraphPositions,previousVisibleIds:lastGraphVisibleIds,suppressMotion,
       onFocus:id=>focusGraph(id),onDetail:(id,node)=>showMoleculeDetailFromGraph(id,node),
-      onCraft:id=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();},
     });
     lastGraphPositions=result.positions;lastGraphVisibleIds=result.visibleIds;
     const normal=unfinishedCraftIds(recipeState?.()).filter(id=>recordById(id));
     const special=pendingReactionRecipeIds({authority:reactionAuthority,progress:reactionProgress}).map(id=>reactionAuthority.get(id));
     if(normal.length||special.length){
       const panel=el('details',null,'collection-recipe-list'),summary=el('summary',`💡 ひらめいたレシピ（${normal.length+special.length}）`);panel.open=true;panel.append(summary);
-      for(const id of normal){const record=recordById(id),item=button(null,()=>{window.dispatchEvent(new CustomEvent('molecule-craft:craft-molecule',{detail:{id}}));dialog.close();});item.append(document.createTextNode('💡 '));appendMoleculeNameFurigana(item,moleculeDisplayName(record));panel.append(item);}
+      for(const id of normal){const record=recordById(id),item=el('div',null,'collection-recipe-reference');item.append(document.createTextNode('💡 '));appendMoleculeNameFurigana(item,moleculeDisplayName(record));panel.append(item);}
       for(const entry of special){const model=reactionRecipeRowModel(entry,{records,polymerNameFor:id=>polymerRecords.find(row=>row.id===id)?.nameJa});const item=button(`💡 ${model.name}（${model.detail}）`,()=>onTryReaction(entry.reactionId));item.dataset.reactionRecipe=entry.reactionId;item.className='collection-special-recipe';panel.append(item);}
       list.prepend(panel);
     }

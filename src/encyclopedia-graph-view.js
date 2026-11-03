@@ -222,7 +222,7 @@ function continuityState(document,win){
 }
 
 export function renderEncyclopediaGraph({
-  host,graph,records,stateOptions,focusId,highlightId=null,onFocus=()=>{},onDetail=()=>{},onCraft=()=>{},previousPositions=new Map(),previousVisibleIds=new Set(),suppressMotion=false,win=globalThis.window,
+  host,graph,records,stateOptions,focusId,highlightId=null,onFocus=()=>{},onDetail=()=>{},previousPositions=new Map(),previousVisibleIds=new Set(),suppressMotion=false,win=globalThis.window,
 }={}){
   if(!host||!graph)throw Error('Graph host and graph are required');
   const document=host.ownerDocument??globalThis.document;ensureStyles(document);const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,graphMotion=graphMotionState(host,win);host.className='encyclopedia-graph-host';host.replaceChildren();
@@ -293,7 +293,7 @@ export function renderEncyclopediaGraph({
   }
   const nodeCircles=()=>[...stage.querySelectorAll('.graph-node')].map(node=>graphNodeCircleInSvg(node,svg,width,height)).filter(Boolean);if(!reduceMotion&&!suppressMotion){const movingLines=new Set(edgeTweens.map(tween=>tween.line));updateGraphChevrons(chevronEdges.filter(record=>!movingLines.has(record.line)),nodeCircles());runGraphGeometryMotion(graphMotion,geometryTweens,edgeTweens,chevronEdges,{win,nodeCircles});}else updateGraphChevrons(chevronEdges,nodeCircles());
   const focusedState=projection.stateFor(focusId),focusedPresentation=graphNodePresentation(recordById.get(focusId),focusedState,{selected:true}),card=document.createElement('div');card.className='graph-focus-card';
-  if(focusedState!==GRAPH_NODE_STATE.UNKNOWN){const identity=document.createElement('div');identity.className='graph-focus-identity graph-focus-label';const name=document.createElement('strong');appendMoleculeNameFurigana(name,focusedPresentation.name);identity.append(name);if(focusedPresentation.formula){const formula=document.createElement('small');formula.textContent=focusedPresentation.formula;identity.append(formula);}card.append(identity);if(focusedPresentation.canCraft){const action=document.createElement('button');action.type='button';action.textContent='クラフト';action.addEventListener('click',()=>onCraft(focusId));card.append(action);}}
+  if(focusedState!==GRAPH_NODE_STATE.UNKNOWN){const identity=document.createElement('div');identity.className='graph-focus-identity graph-focus-label';const name=document.createElement('strong');appendMoleculeNameFurigana(name,focusedPresentation.name);identity.append(name);if(focusedPresentation.formula){const formula=document.createElement('small');formula.textContent=focusedPresentation.formula;identity.append(formula);}card.append(identity);}
   if(card.childElementCount)wrapper.append(card);host.append(wrapper);
   return {projection,positions,visibleIds:new Set(projection.visibleIds)};
 }
