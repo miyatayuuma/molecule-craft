@@ -70,13 +70,16 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
   const title=make('h3',`${model.verified} / ${model.entries.length} 経路`);
   const note=make('p','件数はこの図鑑に収録された経路です。実験での到達方法が未確認のものも含みます。');
   function showList(){
+    host.classList.add('reaction-book-categories');
     host.replaceChildren(title,note);
     for(const group of model.groups){
       const done=group.items.filter(x=>x.state==='verified').length;
       const control=button('',()=>showGroup(group));
       control.className='reaction-book-group';
-      const label=make('span',`${group.label}　${done} / ${group.items.length}`);
-      label.className='reaction-book-group-label';
+      const label=make('span','');label.className='reaction-book-group-label';
+      const name=make('span',group.label);name.className='reaction-book-group-name';
+      const count=make('span',`${done} / ${group.items.length}`);count.className='reaction-book-group-count';
+      label.append(name,count);
       control.append(label);
       const preview=createReactionGroupPreview(group.id);
       if(preview)control.append(preview);
@@ -84,6 +87,7 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
     }
   }
   function showGroup(group){
+    host.classList.remove('reaction-book-categories');
     host.replaceChildren(button('‹ カテゴリ一覧',showList),make('h3',group.label));
     for(const item of group.items.filter(x=>x.state!=='notFound')){
       const d=item.definition,inputs=item.kind==='normal'?d.reactants.map(x=>name(x.species)):d.feedSpecies.map(name),outputs=item.kind==='normal'?d.products.map(name):[polymerRecords.find(x=>x.id===d.polymerId)?.nameJa??d.polymerId];

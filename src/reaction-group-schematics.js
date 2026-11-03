@@ -112,9 +112,14 @@ function bondSvg(a,b,order,final,mark){
  };
  return order===2?line(-lane)+line(lane):line(0);
 }
+// Use a compact portrait layout without shrinking individual atoms.
+const compactX=x=>120+(x-120)*.76;
+const compactY=y=>39+(y-39)*1.3;
+const compactMarkup=markup=>'<g transform="translate(120 39) scale(.76 1.3) translate(-120 -39)">'+markup+'</g>';
 function render(def){
- const refs=new Map(def.atoms.map(a=>[a.id,a]));
- if(refs.size!==def.atoms.length)throw Error('Duplicate schematic atom ID');
+ const points=def.atoms.map(a=>({...a,x:compactX(a.x),y:compactY(a.y),tx:compactX(a.tx),ty:compactY(a.ty)}));
+ const refs=new Map(points.map(a=>[a.id,a]));
+ if(refs.size!==points.length)throw Error('Duplicate schematic atom ID');
  const key=b=>[...([b.from,b.to].sort()),b.order].join(':');
  const beforeKeys=new Set(def.before.map(key)),afterKeys=new Set(def.after.map(key));
  const bonds=(set,final)=>set.map(b=>{
@@ -122,13 +127,13 @@ function render(def){
   if(!a||!c)throw Error('Unknown schematic atom');
   return bondSvg(a,c,b.order,final,final?beforeKeys.has(key(b))?'base':'new':afterKeys.has(key(b))?'base':'broken');
  }).join('');
- const atoms=def.atoms.map(a=>{
+ const atoms=points.map(a=>{
   const dx=a.tx-a.x,dy=a.ty-a.y,r=RADII[a.kind];
   return '<g class="rb-schem-atom" style="--rb-dx:'+dx+'px;--rb-dy:'+dy+'px"><circle cx="'+a.x+'" cy="'+a.y+'" r="'+r+'" fill="'+COLORS[a.kind]+'" stroke="#d9e8ef" stroke-opacity=".28" stroke-width="1"/><circle cx="'+(a.x-r*.29)+'" cy="'+(a.y-r*.32)+'" r="'+(r*.27)+'" fill="#fff" fill-opacity=".25"/></g>';
  }).join('');
- const flame=def.flame?'<path class="rb-schem-fire" d="M211 65Q199 52 210 38Q219 50 225 26Q245 52 230 65Z" fill="#f2ad5a" fill-opacity=".88"/>':'';
+ const flame=def.flame?compactMarkup('<path class="rb-schem-fire" d="M211 65Q199 52 210 38Q219 50 225 26Q245 52 230 65Z" fill="#f2ad5a" fill-opacity=".88"/>'):'';
  // "Other" deliberately shows distinct miniatures, not a fictitious shared mechanism.
- const framing=def.other?'<path d="M91 20V61M164 20V61" stroke="#718b9c" stroke-opacity=".6" stroke-width="1.5" stroke-dasharray="3 5"/>':'';
+ const framing=def.other?compactMarkup('<path d="M91 20V61M164 20V61" stroke="#718b9c" stroke-opacity=".6" stroke-width="1.5" stroke-dasharray="3 5"/>'):'';
  return '<g class="rb-schem-scene" transform="translate(120 39) scale('+def.scale+') translate(-120 -39)">'+
   '<g class="rb-schem-before">'+bonds(def.before,false)+'</g>'+
   '<g class="rb-schem-after">'+bonds(def.after,true)+flame+'</g>'+

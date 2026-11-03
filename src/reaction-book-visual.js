@@ -48,7 +48,7 @@ function watchVisibility(node){
 }
 function vector(markup,label,kind){
   const svg=document.createElementNS(NS,'svg');
-  svg.setAttribute('viewBox',kind==='group'?'0 0 240 78':'0 0 240 78');
+  svg.setAttribute('viewBox',kind==='group'?'40 -18 160 114':'0 0 240 78');
   svg.setAttribute('role','img');
   svg.setAttribute('aria-label',label);
   svg.setAttribute('focusable','false');
