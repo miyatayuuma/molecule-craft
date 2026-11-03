@@ -14,7 +14,7 @@ export function compileReactionGuide(entry,records){
 export function evaluateReactionGuide(guide,{slots=[],activeSlots=[],phase='IDLE',environment={},isKnown=()=>true}={}){
   if(!guide?.ok)return {stage:'blocked',reason:guide?.reason??'レシピが見つかりません。'};
   const active=slots.filter(Boolean),missing=guide.species.filter(id=>!active.includes(id)),extra=active.filter(id=>!guide.species.includes(id));
-  const locked=guide.species.find(id=>!isKnown(id));if(locked)return {stage:'blocked',species:locked,reason:'必要な分子を先に図鑑で発見してください。'};
+  const locked=guide.species.find(id=>!isKnown(id));if(locked)return {stage:'blocked',species:locked,reason:'必要な分子を先に見つけよう。'};
   if(extra.length){const index=slots.indexOf(extra[0]);return {stage:'remove',index,species:extra[0]};}
   if(missing.length){const index=slots.findIndex(id=>!id);return {stage:'material',index,species:missing[0],count:guide.counts[missing[0]]};}
   const tokens=new Set([...(environment.light?['light']:[]),...(environment.heat?['heat']:[]),...(environment.medium&&environment.medium!=='neutral'?[environment.medium]:[])]);

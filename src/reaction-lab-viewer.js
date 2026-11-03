@@ -852,16 +852,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     const display=id=>recordsById.get(id)?.commonNameJa??recordsById.get(id)?.nameJa??id;
     const mark=node=>node?.classList.add('reaction-guide-target');
     if(step.stage==='blocked'){guideText.textContent=step.species?`${display(step.species)}：${step.reason}`:step.reason;return;}
-    if(step.stage==='remove'){guideText.textContent='指定されていない材料を取り外そう。';if(pickerOpen)mark(root.querySelector('[data-lab-disconnect]'));else mark(slots[step.index]);return;}
-    if(step.stage==='material'){guideText.textContent=`${display(step.species)}を選ぼう${step.count>1?`（FEEDで${step.count}個以上）`:''}。`;if(pickerOpen){const option=[...pickerList.children].find(node=>node.dataset.species===step.species);if(option?.hidden)guideText.textContent+=' 検索を消すと見つかります。';else mark(option);}else mark(slots[step.index]);return;}
+    if(step.stage==='remove'){guideText.textContent=`${display(step.species)}を外そう。`;if(pickerOpen)mark(root.querySelector('[data-lab-disconnect]'));else mark(slots[step.index]);return;}
+    if(step.stage==='material'){guideText.textContent=`${display(step.species)}を選ぼう。`;if(pickerOpen){const option=[...pickerList.children].find(node=>node.dataset.species===step.species);if(option?.hidden)guideText.textContent+=' 検索を消そう。';else mark(option);}else mark(slots[step.index]);return;}
     if(step.stage==='condition'){
       const label={light:'光',heat:'熱',acidic:'酸性',basic:'塩基性'}[step.token]??step.token;
-      guideText.textContent=`${label}を${step.enable?'設定':'解除'}しよう。`;
+      guideText.textContent=step.token==='light'||step.token==='heat'?`${step.token==='light'?'LIGHT':'HEAT'}を${step.enable?'ON':'OFF'}にしよう。`:step.enable?`pHを${label}にしよう。`:'pHを中性にしよう。';
       if(step.token==='light')mark(lightButton);else if(step.token==='heat')mark(heatButton);else mark(mediumButton);return;
     }
-    if(step.stage==='waiting'){guideText.textContent='材料を投入しています。';return;}
-    if(step.stage==='feed'){guideText.textContent='準備OK。FEEDを押そう。';mark(feedButton);return;}
-    guideText.textContent='材料を近づけて反応させよう。';
+    if(step.stage==='waiting'){guideText.textContent='切り替え中…';return;}
+    if(step.stage==='feed'){guideText.textContent='FEEDを押そう。';mark(feedButton);return;}
+    guideText.textContent='分子を近づけよう。';
   }
   root.querySelector('[data-reaction-guide-cancel]')?.addEventListener('click',clearGuide,eventOptions);
   function updateCommandBar(){
