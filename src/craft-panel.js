@@ -122,7 +122,7 @@ target:document.querySelector('#craft-target'),targetName:document.querySelector
 
   function renderTargetMatch(record,match){
     if(!record||!match){nodes.targetMatch.textContent='';targetWarning.hidden=true;targetScaleFill.style.transform='scaleX(0)';targetTint.style.opacity='0';nodes.target?.style.removeProperty('box-shadow');if(nodes.target)delete nodes.target.dataset.targetMatchState;return 0;}
-    const percent=Math.max(0,Math.min(100,Math.round(Number(match.percent)||0))),ratio=percent/100;nodes.targetMatch.textContent=`${percent}%`;const warning=match.state==='dead-end'?'⚠ つなぎかたがちがう':match.offTargetBondedComponents>0?'⚠ べつのかたまりにちがう結合':'';targetWarning.textContent=warning;targetWarning.hidden=!warning;targetScaleFill.style.transform=`scaleX(${ratio})`;targetTint.style.opacity=(ratio*.18).toFixed(3);if(nodes.target){nodes.target.dataset.targetMatchState=match.state??'matching';nodes.target.style.boxShadow=`inset 0 -12px 22px rgba(103,217,199,${(ratio*.075).toFixed(3)}),0 0 ${Math.round(4+ratio*8)}px rgba(103,217,199,${(ratio*.07).toFixed(3)})`;}
+    const percent=Math.max(0,Math.min(100,Math.round(Number(match.percent)||0))),ratio=percent/100;nodes.targetMatch.textContent=`${percent}%`;const warning=(match.state==='dead-end'||match.offTargetBondedComponents>0)?'⚠ つなぎかたがちがう':'';targetWarning.textContent=warning;targetWarning.hidden=!warning;targetScaleFill.style.transform=`scaleX(${ratio})`;targetTint.style.opacity=(ratio*.18).toFixed(3);if(nodes.target){nodes.target.dataset.targetMatchState=match.state??'matching';nodes.target.style.boxShadow=`inset 0 -12px 22px rgba(103,217,199,${(ratio*.075).toFixed(3)}),0 0 ${Math.round(4+ratio*8)}px rgba(103,217,199,${(ratio*.07).toFixed(3)})`;}
     return percent;
   }
 

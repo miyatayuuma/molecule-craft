@@ -1,5 +1,16 @@
 import { createStructureSolver } from './structure-relaxation.js?v=34';
 
+// Numerical limits belong to the release-time optimizer, not pointer physics.
+// Changing these values adjusts the work budget, not the molecule constraints.
+const SETTLEMENT_WORK_LIMITS = Object.freeze({
+  maxStepsPerAdvance: 64,
+  maxSteps: 768,
+  measureEverySteps: 8,
+  maxSolveTimeMs: 480,
+  frameBudgetMs: 5,
+  stepStrength: .85,
+});
+
 // Work on a private pose in small time slices. The field sees one short blend,
 // never the solver's trial steps. Rotation is allowed throughout; topology edits
 // wait for this bounded transaction. No camera or recognition state is involved.
@@ -48,14 +59,14 @@ export function createStructureSettlement({THREE,molecule,placements,ids,lockedI
       for(const[id,item]of working)if(rotation.ids.has(id))item.position.sub(center).applyQuaternion(q).add(center);
       solver.rotateReferenceFrames(q,rotation.ids);
     },
-    advance(time,{clock=()=>performance.now(),budgetMs=5}={}){
+    advance(time,{clock=()=>performance.now(),budgetMs=SETTLEMENT_WORK_LIMITS.frameBudgetMs}={}){
       if(done)return {done:true,converged:bestScore<=1,errors:bestErrors,steps,rolledBack};
       elapsed+=Math.max(0,time-previous);previous=time;
       if(blendAt===null){
         const started=clock();let count=0;
-        while(count<64&&steps<768&&clock()-started<budgetMs&&bestScore>1&&errors.finite&&!errors.topologyLimited){
-          solver.step(.85,1,{lockedIds});steps++;count++;
-          if(count%8===0){
+        while(count<SETTLEMENT_WORK_LIMITS.maxStepsPerAdvance&&steps<SETTLEMENT_WORK_LIMITS.maxSteps&&clock()-started<budgetMs&&bestScore>1&&errors.finite&&!errors.topologyLimited){
+          solver.step(SETTLEMENT_WORK_LIMITS.stepStrength,1,{lockedIds});steps++;count++;
+          if(count%SETTLEMENT_WORK_LIMITS.measureEverySteps===0){
             errors=solver.measureError({rigidReference});const validation=solver.validateConformation({rigidReference});
             if(!errors.finite||(lastValid&&!validation.valid&&(errors.bondRelative>.16||errors.overlapRelative>.34||errors.rigidRelative>.06||errors.ringPenetrations||errors.bondIntersections||errors.ringSelfCrossings))){
               if(lastValid){solver.restoreConformation(lastValid);solver.rebuildTopology({resetFrames:true});}
@@ -71,7 +82,7 @@ export function createStructureSettlement({THREE,molecule,placements,ids,lockedI
         }
         const next=score(errors),nextPose=poseScore(errors);
         if(nextPose<bestPoseScore){bestPoseScore=nextPose;bestScore=next;best=copy();bestErrors=errors;}
-        if(bestScore<=1||steps>=768||elapsed>=480||!errors.finite||errors.topologyLimited){centerTarget();blendAt=time;}
+        if(bestScore<=1||steps>=SETTLEMENT_WORK_LIMITS.maxSteps||elapsed>=SETTLEMENT_WORK_LIMITS.maxSolveTimeMs||!errors.finite||errors.topologyLimited){centerTarget();blendAt=time;}
       }
       if(blendAt!==null){
         const t=Math.min(1,Math.max(0,(time-blendAt)/Math.max(1,duration))),ease=t*t*(3-2*t);

@@ -56,6 +56,29 @@ function saturatedChain(length=6){
   return fixture(elements,bonds,coordinates);
 }
 
+test('scoped geometry projection never moves a separate aromatic fragment',()=>{
+  const radius=1.03,bonds=[],coordinates=[];
+  for(let ring=0;ring<2;ring++){
+    for(let index=0;index<6;index++){
+      const atom=ring*6+index,next=ring*6+(index+1)%6;
+      bonds.push([atom,next,index%2===0?2:1]);
+      coordinates.push([ring*7+Math.cos(index*Math.PI/3)*radius,Math.sin(index*Math.PI/3)*radius,
+        ring===1&&index===2?.7:0]);
+    }
+  }
+  const item=fixture(Array(12).fill('C'),bonds,coordinates);
+  assert.equal(item.solver.snapshot().aromaticCycles.length,2,'both disconnected rings must be constrained');
+  const untouched=new Map(item.ids.slice(6).map(id=>[id,item.positionFor(id).clone()]));
+  item.solver.step(.8,3,{activeIds:new Set(item.ids.slice(0,6))});
+  for(const [id,before] of untouched)assert.ok(item.positionFor(id).distanceTo(before)<1e-10,
+    'scoped solver moved a different molecule');
+  // A partial selection must not let rigid branch constraints escape the scope.
+  const allBefore=new Map(item.ids.map(id=>[id,item.positionFor(id).clone()]));
+  item.solver.step(.8,2,{activeIds:new Set([item.ids[0]])});
+  for(const id of item.ids.slice(1))assert.ok(item.positionFor(id).distanceTo(allBefore.get(id))<1e-10,
+    'partial-scope solver moved a locked neighbor');
+});
+
 test('freedom analysis classifies rigid, restricted, locked and rotatable bonds',()=>{
   const benzene=benzeneWithChain(3),ringIds=benzene.ids.slice(0,6);
   const aromatic=createTorsionModel(benzene.molecule,{aromaticCycles:[ringIds]});
