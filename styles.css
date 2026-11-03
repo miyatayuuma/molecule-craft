@@ -233,9 +233,10 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 
 
 /* MC-RB-01: light reaction-book previews; no per-card 3D renderers. */
-.reaction-book .reaction-book-group{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:9px 12px;max-width:100%;min-width:0}
-.rb-group-preview{display:block;overflow:hidden;max-width:100%;width:100%;border-radius:9px;background:linear-gradient(100deg,#162f41,#244354);--rb-cycle:5.6s}
-.rb-group-preview svg{display:block;width:100%;height:70px;max-width:100%}
+.reaction-book .reaction-book-group{position:relative;display:block;padding:0;max-width:100%;min-width:0;overflow:hidden;border-radius:12px;isolation:isolate}
+.reaction-book .reaction-book-group-label{position:absolute;top:9px;left:11px;z-index:1;max-width:calc(100% - 22px);padding:3px 6px;border-radius:6px;background:#0c2431b8;color:#f2f8fc;font-weight:700;line-height:1.3;pointer-events:none}
+.rb-group-preview{display:block;overflow:hidden;max-width:100%;width:100%;border-radius:inherit;background:linear-gradient(100deg,#162f41,#244354);--rb-cycle:5.6s}
+.rb-group-preview svg{display:block;width:100%;height:100px;max-width:100%}
 .rb-group-preview svg>g,.rb-group-preview svg>path{transform-box:fill-box;transform-origin:center}
 .rb-group-preview svg{animation:rb-end-reset var(--rb-cycle) linear infinite}
 .rb-motion-hydrolysis .rb-hydrolysis-before{animation:rb-fade-out var(--rb-cycle) linear infinite}
