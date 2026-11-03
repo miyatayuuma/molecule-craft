@@ -39,7 +39,12 @@ function findEmbedding(target,workspace,{requiredPair=null,stats=null}={}){
   });
   bump(stats,'candidateTargets',candidates.reduce((sum,list)=>sum+list.length,0));
   if(candidates.some(list=>!list.length)){bump(stats,'emptyCandidatePrunes');return null;}
-  const order=workspace.atoms.map((_,index)=>index).sort((a,b)=>{
+  // Loose atoms have no structural constraints. Matching every permutation of
+  // indistinguishable loose C/H/O atoms makes large targets such as TNT hang.
+  // Required-pair endpoints stay in the search even when currently unbonded.
+  const order=workspace.atoms.map((_,index)=>index)
+    .filter(index=>workspace.edges[index].size>0||index===requiredA||index===requiredB)
+    .sort((a,b)=>{
     // requiredPair is a real embedding constraint, just like an existing bond.
     // Check its endpoints before interchangeable loose atoms so a failed pair
     // does not enumerate permutations that cannot affect the outcome.
@@ -65,7 +70,25 @@ function findEmbedding(target,workspace,{requiredPair=null,stats=null}={}){
 
   function visit(depth){
     bump(stats,'recursiveVisits');
-    if(depth===order.length)return targetForWorkspace.slice();
+    if(depth===order.length){
+      // Any unused target atom of the same element fits an unconstrained loose
+      // workspace atom. Fill them deterministically without factorial search.
+      const unused=new Map();
+      for(let index=0;index<target.atoms.length;index++){
+        if(usedTarget.has(index))continue;
+        const element=target.atoms[index].element;
+        if(!unused.has(element))unused.set(element,[]);
+        unused.get(element).push(index);
+      }
+      const filled=[];
+      for(let index=0;index<workspace.atoms.length;index++){
+        if(targetForWorkspace[index]>=0)continue;
+        const queue=unused.get(workspace.atoms[index].element);
+        if(!queue?.length){for(const prior of filled)targetForWorkspace[prior]=-1;return null;}
+        targetForWorkspace[index]=queue.shift();filled.push(index);
+      }
+      return targetForWorkspace.slice();
+    }
     const workspaceIndex=order[depth];
     for(const targetIndex of candidates[workspaceIndex]){
       bump(stats,'candidateAssignments');
