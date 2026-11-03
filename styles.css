@@ -233,13 +233,12 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 
 
 /* MC-RB-01: light reaction-book previews; no per-card 3D renderers. */
-.reaction-book .reaction-book-group{position:relative;display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;aspect-ratio:1.06;padding:0;overflow:hidden;border-radius:12px;isolation:isolate;background:#172f40}
+.reaction-book .reaction-book-group{position:relative;display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;aspect-ratio:1.4;padding:0;overflow:hidden;border-radius:12px;isolation:isolate;background:#172f40}
 .reaction-book .reaction-book-group-label{position:absolute;left:0;right:0;bottom:0;z-index:1;display:flex;align-items:end;justify-content:space-between;gap:3px;padding:17px 8px 6px;background:linear-gradient(180deg,transparent,#0c2335db);pointer-events:none;white-space:nowrap}
 .reaction-book .reaction-book-group-name{min-width:0;color:#bcd2dd;font-size:12px;font-weight:600;line-height:1.2}
 .reaction-book .reaction-book-group-count{flex:none;color:#9ab7c6;font-size:10px;font-weight:500;line-height:1.2;font-variant-numeric:tabular-nums}
 .rb-group-preview{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;width:100%;height:100%;border-radius:inherit;background:linear-gradient(105deg,#142b3c,#1f3b4b);--rb-cycle:5.6s}
-.rb-group-preview svg{display:block;width:100%;height:100%;max-width:100%;max-height:none;transform:scale(1.06);transform-origin:50% 50%}
-.rb-group-preview svg>g,.rb-group-preview svg>path{transform-box:fill-box;transform-origin:center}
+.rb-group-preview svg{display:block;width:100%;height:100%;max-width:100%;max-height:none;transform:none}
 .rb-group-preview svg{animation:rb-end-reset var(--rb-cycle) linear infinite}
 .rb-motion-hydrolysis .rb-hydrolysis-before{animation:rb-fade-out var(--rb-cycle) linear infinite}
 .rb-motion-hydrolysis .rb-hydrolysis-after{animation:rb-fade-in var(--rb-cycle) linear infinite}
