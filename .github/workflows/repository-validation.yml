@@ -22,8 +22,8 @@ jobs:
           node scripts/check-repository-hygiene.mjs
           node scripts/build-precache.mjs --check
           node tests/pwa.test.mjs
-      - name: CRAFT geometry regression
-        run: node --test tests/conformation-regression.test.mjs
+      - name: CRAFT geometry and docking regression
+        run: node --test tests/conformation-regression.test.mjs tests/structure-motion.test.mjs
       - name: Saved progress and current game systems
         run: |
           node --test tests/resources-persistence.test.mjs tests/collection-persistence.test.mjs tests/polymer-collection-persistence.test.mjs tests/reaction-progress.test.mjs tests/collection.test.mjs tests/expedition-core.test.mjs
