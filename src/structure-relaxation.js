@@ -192,29 +192,30 @@ export function createStructureSolver({
     return result?.map(i => slots[i]);
   }
 
+  // A local drag may optimize one connected component of a workspace with many
+  // molecules. All corrections, including branch-wide and planar constraints,
+  // must respect this boundary; an unrelated fragment is effectively locked.
   function step(scale = 0.5, passes = 1, options = {}) {
     if (dirty) rebuildTopology();
-    const locked = options.lockedIds ?? new Set();
+    const activeIds = options.activeIds ?? null;
+    const locked = new Set(options.lockedIds ?? []);
+    if (activeIds) for (const atom of molecule.atoms) if (!activeIds.has(atom.id)) locked.add(atom.id);
+    const activeAtoms = activeIds ? molecule.atoms.filter(atom => activeIds.has(atom.id)) : molecule.atoms;
+    const activeBonds = activeIds ? molecule.bonds.filter(bond => activeIds.has(bond.a) && activeIds.has(bond.b)) : molecule.bonds;
     let maxMove = 0;
-    const activeAtoms = options.activeIds ? molecule.atoms.filter(a => options.activeIds.has(a.id)) : molecule.atoms;
-    const activeBonds = options.activeIds ? molecule.bonds.filter(b => options.activeIds.has(b.a) && options.activeIds.has(b.b)) : molecule.bonds;
     for (let pass = 0; pass < passes; pass++) {
       const before = new Map(activeAtoms.map(atom => [atom.id, pos(atom.id)?.clone()]));
-      // Stage B: topology-derived hard geometry. Stage A (torsion IK) lives in
-      // conformation-engine.js and feeds a chemically valid trial pose here.
-      for(const bond of activeBonds)enforceBondLength(bond,.12*scale,locked);
-      // Stage D: local electron-domain geometry remains a soft correction.
-      relaxLocalGeometry(scale,locked,activeAtoms);
-      enforceSixMemberUncrossing(.20*scale,locked,activeAtoms);
-      enforceFiveMemberConformations(.16*scale,locked,activeAtoms);
-      enforceSixMemberConformations(.12*scale,locked,activeAtoms);
-      projectRigidConstraints(scale,locked,activeAtoms);
-      // Stage C: non-bonded collisions and explicit topology penetration.
-      // It runs after local geometry so collision response cannot become the
-      // source of a large angular correction in the same iteration.
-      relaxStericIntersections(scale,locked,options.activeIds);
-      relaxSixMemberSterics(.055*scale,locked,options.activeIds);
-      for(const bond of activeBonds)enforceBondLength(bond,.35*scale,locked);
+      // Keep the order stable: bond correction -> local angles and rings ->
+      // planar/rigid constraints -> steric separation -> final bond correction.
+      enforceBondLengths(activeBonds, .12 * scale, locked);
+      relaxLocalGeometry(scale, locked, activeAtoms);
+      enforceSixMemberUncrossing(.20 * scale, locked, activeAtoms);
+      enforceFiveMemberConformations(.16 * scale, locked, activeAtoms);
+      enforceSixMemberConformations(.12 * scale, locked, activeAtoms);
+      projectRigidConstraints(scale, locked, activeAtoms, activeIds);
+      relaxStericIntersections(scale, locked, activeIds);
+      relaxSixMemberSterics(.055 * scale, locked, activeIds);
+      enforceBondLengths(activeBonds, .35 * scale, locked);
 
       for (const atom of activeAtoms) {
         const point = pos(atom.id);
@@ -225,24 +226,35 @@ export function createStructureSolver({
     return maxMove;
   }
 
-  function projectRigidConstraints(scale,locked,activeAtoms){
-    // Aromatic frames already own the ring-plane projection and regular-cycle
-    // correction below. The shared fragment still synchronizes their normal
-    // with the exocyclic pi frames, but must not add a second plane projection
-    // through a connector midpoint, which would fight aromatic radius/angle
-    // authority during incremental ring closure.
-    for(const fragment of conjugatedPlanarFragments)if(!fragment.aromatic)enforcePlane(fragment.atomIds,fragment.normal,fragment.anchorIds,.28*scale,locked);
-    for(const frame of doubleFrames.values()){
-      enforcePlane(frame.atomIds,frame.normal,[frame.bond.a,frame.bond.b],.22*scale,locked,frame.bond,frame.slottedRootIds);
-      enforceDoubleSubstituentDirections(frame,.24*scale,locked);
+  function enforceBondLengths(bonds, strength, locked) {
+    for (const bond of bonds) enforceBondLength(bond, strength, locked);
+  }
+
+  function projectRigidConstraints(scale, locked, activeAtoms, activeIds = null) {
+    const inScope = atomIds => !activeIds || atomIds.every(id => activeIds.has(id));
+    // A planar group is atomic for this projection: do not deform part of a
+    // conjugated or aromatic frame when an optimization scope cuts across it.
+    // Aromatic frames own their own ring-plane projection, so the shared
+    // conjugation fragment must not project an aromatic plane a second time.
+    for (const fragment of conjugatedPlanarFragments) {
+      if (!fragment.aromatic && inScope(fragment.atomIds))
+        enforcePlane(fragment.atomIds, fragment.normal, fragment.anchorIds, .28 * scale, locked);
     }
-    for(const frame of trigonalFrames.values())enforcePlane(frame.atomIds,frame.normal,frame.cycle,.22*scale,locked);
-    for(const atom of activeAtoms)if(geometryFor(atom.id).kind==='sp')enforceLinearCenter(atom.id,.16*scale,locked);
-    for(const frame of aromaticFrames.values()){
-      enforcePlane(frame.atomIds,frame.normal,frame.cycle,.26*scale,locked,null,frame.substituentRootIds);
-      enforceRegularAromaticCycle(frame,.045*scale,locked);
-      enforceAromaticSubstituentDirections(frame,.28*scale,locked);
-      enforceConjugatedSubstituentGeometry(frame,.30*scale,locked);
+    for (const frame of doubleFrames.values()) {
+      if (!inScope(frame.atomIds)) continue;
+      enforcePlane(frame.atomIds, frame.normal, [frame.bond.a, frame.bond.b], .22 * scale, locked, frame.bond, frame.slottedRootIds);
+      enforceDoubleSubstituentDirections(frame, .24 * scale, locked);
+    }
+    for (const frame of trigonalFrames.values()) {
+      if (inScope(frame.atomIds)) enforcePlane(frame.atomIds, frame.normal, frame.cycle, .22 * scale, locked);
+    }
+    for (const atom of activeAtoms) if (geometryFor(atom.id).kind === 'sp') enforceLinearCenter(atom.id, .16 * scale, locked);
+    for (const frame of aromaticFrames.values()) {
+      if (!inScope(frame.atomIds)) continue;
+      enforcePlane(frame.atomIds, frame.normal, frame.cycle, .26 * scale, locked, null, frame.substituentRootIds);
+      enforceRegularAromaticCycle(frame, .045 * scale, locked);
+      enforceAromaticSubstituentDirections(frame, .28 * scale, locked);
+      enforceConjugatedSubstituentGeometry(frame, .30 * scale, locked);
     }
   }
 
