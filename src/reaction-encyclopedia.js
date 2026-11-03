@@ -84,33 +84,45 @@ export function updateReactionStars(host,done,total){
     fill.style.width=`${total?100*count/total:0}%`;meter.append(fill);host.append(mark,numbers,meter);
   }
 }
-export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},reducedMotion=false}={}){
+export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},onReady=()=>{},reducedMotion=false}={}){
   const entries=[...new Set(tags)].map(tag=>{
     const card=[...host.querySelectorAll('[data-reaction-group]')].find(node=>node.dataset.reactionGroup===tag);
     const stars=card?.querySelector('.reaction-book-group-count'),done=Number(stars?.dataset.done),total=Number(stars?.dataset.total);
     return card&&stars&&done>0?{card,stars,done,total}:null;
   }).filter(Boolean);
   for(const entry of entries)updateReactionStars(entry.stars,entry.done-1,entry.total);
-  let cancelled=false,timer=null,index=0;
+  let cancelled=false,timer=null,index=0,ready=false;
+  const resetCards=()=>{for(const entry of entries){updateReactionStars(entry.stars,entry.done,entry.total);entry.card.classList.remove('reaction-award-focus','reaction-award-earned');}};
   const finish=(status='presented')=>{
     if(cancelled)return;cancelled=true;if(timer!==null)clearTimeout(timer);
-    for(const entry of entries){updateReactionStars(entry.stars,entry.done,entry.total);entry.card.classList.remove('reaction-award-focus');}
-    onSettled({status});
+    resetCards();onSettled({status});
   };
-  const step=()=>{
-    if(cancelled)return;
-    if(index>=entries.length){finish();return;}
-    const item=entries[index++];
+  const show=()=>{
+    if(cancelled||index>=entries.length)return;
+    ready=false;
+    for(const entry of entries)entry.card.classList.remove('reaction-award-focus','reaction-award-earned');
+    const item=entries[index];
     item.card.scrollIntoView?.({block:'center',behavior:reducedMotion?'auto':'smooth'});
     item.card.classList.add('reaction-award-focus');
     timer=setTimeout(()=>{
       if(cancelled)return;
       updateReactionStars(item.stars,item.done,item.total);item.card.classList.add('reaction-award-earned');
-      timer=setTimeout(()=>{item.card.classList.remove('reaction-award-focus','reaction-award-earned');step();},reducedMotion?80:420);
-    },reducedMotion?30:250);
+      timer=setTimeout(()=>{
+        if(cancelled)return;
+        item.card.classList.remove('reaction-award-earned');
+        ready=true;onReady({index:index+1,total:entries.length});
+      },reducedMotion?80:1350);
+    },reducedMotion?60:700);
   };
-  if(entries.length)step();else queueMicrotask(()=>finish());
-  return {skip:()=>finish(),cancel:()=>{cancelled=true;if(timer!==null)clearTimeout(timer);for(const entry of entries){updateReactionStars(entry.stars,entry.done,entry.total);entry.card.classList.remove('reaction-award-focus','reaction-award-earned');}}};
+  const advance=()=>{
+    if(cancelled||!ready)return false;
+    ready=false;index++;
+    if(index>=entries.length)finish();
+    else show();
+    return true;
+  };
+  if(entries.length)show();else queueMicrotask(()=>finish());
+  return {advance,cancel:()=>{cancelled=true;if(timer!==null)clearTimeout(timer);resetCards();}};
 }
 
 export function renderReactionBook({host,authority,progress,records,polymerRecords,onTry=()=>{}}){

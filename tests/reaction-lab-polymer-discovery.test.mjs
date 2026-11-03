@@ -39,7 +39,7 @@ test('polymer registration is immediate; after grown-sample presentation, Collec
   assert.deepEqual(presented.newEntries.map(x=>x.kind),['molecules','polymers']);
   await new Promise(resolve=>setTimeout(resolve,710));
   assert.equal(h.presentations[0].id,'water');
-  h.presentations[0].onSettled({status:'presented'});h.view.onNext();await flush();
+  h.presentations[0].onSettled({status:'presented'});await flush();
   assert.equal(h.presentations[1].kind,'polymers');
   assert.equal(h.presentations[1].id,'polyethylene-terephthalate');
   assert.equal(h.collectionOpen,true);

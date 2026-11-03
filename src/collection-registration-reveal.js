@@ -1,4 +1,4 @@
-export const REGISTRATION_REVEAL_HOLD_MS=2400;
+export const REGISTRATION_REVEAL_HOLD_MS=4000;
 
 const SILHOUETTE_FILTER='grayscale(1) brightness(.2) contrast(1.35)';
 const STATUS_FAILURE=/表示できません|読み込めません|利用できません/;
@@ -24,7 +24,7 @@ export function presentFirstRegistration({
 
   const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const timers=new Set(),animations=new Set(),identity=[...detail.querySelectorAll('.detail-heading h3,.detail-heading .detail-formula,.dex-description,.detail-extras')];
-  const originals=new Map(),ariaOriginal=new Map();let observer=null,scan=null,cancelled=false,started=false,announced=false,settled=false;
+  const originals=new Map(),ariaOriginal=new Map();let observer=null,scan=null,cancelled=false,started=false,announced=false,settled=false,ready=false;
   const remember=(node,props)=>{if(!node||originals.has(node))return;const saved={};for(const prop of props)saved[prop]=node.style[prop]??'';originals.set(node,saved);};
   remember(modelHost,['filter','opacity','pointerEvents']);for(const node of identity){remember(node,['opacity','transform']);ariaOriginal.set(node,node.getAttribute('aria-hidden'));}
 
@@ -43,6 +43,7 @@ export function presentFirstRegistration({
     marker.replaceChildren(...nodes);
   };setMarker('NEW ENTRY · REGISTERING');
   const nav=detail.querySelector('.detail-navigation');if(nav?.after)nav.after(marker);else detail.prepend(marker);
+  const tapHint=root.createElement('p');tapHint.className='discovery-registration-tap';tapHint.textContent='タップでつづける';tapHint.hidden=true;marker.after(tapHint);
 
   const live=root.createElement('p');live.className='sr-only';live.setAttribute('role','status');live.setAttribute('aria-live','polite');live.setAttribute('aria-atomic','true');detail.append(live);
   const name=detail.querySelector('.detail-heading h3')?.textContent?.trim()||'',formula=kind==='molecules'?(detail.querySelector('.detail-heading .detail-formula')?.textContent?.trim()||''):'';
@@ -55,54 +56,62 @@ export function presentFirstRegistration({
     for(const [node,value]of ariaOriginal){if(value==null)node.removeAttribute('aria-hidden');else node.setAttribute('aria-hidden',value);}
   };
   let closeHandler=null;
+  const onTap=event=>{
+    if(event.target?.closest?.('#close-collection'))return;
+    event.preventDefault();event.stopImmediatePropagation();if(ready)cleanup('presented');
+  };
+  const onKey=event=>{
+    if(!['Enter',' ','Spacebar'].includes(event.key))return;
+    event.preventDefault();event.stopImmediatePropagation();if(ready)cleanup('presented');
+  };
   const cleanup=(outcome='dismissed')=>{
     if(cancelled)return;cancelled=true;observer?.disconnect?.();observer=null;
     for(const timer of timers)clearTimer(timer);timers.clear();for(const animation of animations)try{animation.cancel();}catch{}animations.clear();
-    scan?.remove();marker.remove();live.remove();restore();if(closeHandler)dialog.removeEventListener('close',closeHandler);
+    scan?.remove();marker.remove();tapHint.remove();live.remove();restore();if(closeHandler)dialog.removeEventListener('close',closeHandler);
+    dialog.removeEventListener('click',onTap,true);dialog.removeEventListener('keydown',onKey,true);
     if(dialog.__moleculeCraftRegistrationRevealCleanup===cleanup)delete dialog.__moleculeCraftRegistrationRevealCleanup;
     if(!settled){settled=true;notifySettled({status:outcome});}
   };
   closeHandler=()=>cleanup('dismissed');dialog.__moleculeCraftRegistrationRevealCleanup=cleanup;dialog.addEventListener('close',closeHandler,{once:true});
+  dialog.addEventListener('click',onTap,true);dialog.addEventListener('keydown',onKey,true);
 
   const revealIdentity=()=>{
     if(announced)return;announced=true;
-    for(const node of identity){node.removeAttribute('aria-hidden');applyStyles(node,{opacity:'1',transform:'none'});animate(node,reduceMotion?[{opacity:0},{opacity:1}]:[{opacity:0,transform:'translateY(3px)'},{opacity:1,transform:'none'}],{duration:reduceMotion?120:220,easing:'ease-out'},animations);}
+    for(const node of identity){node.removeAttribute('aria-hidden');applyStyles(node,{opacity:'1',transform:'none'});animate(node,reduceMotion?[{opacity:0},{opacity:1}]:[{opacity:0,transform:'translateY(3px)'},{opacity:1,transform:'none'}],{duration:reduceMotion?120:540,easing:'ease-out'},animations);}
     live.textContent=`図鑑に ${[formula,name].filter(Boolean).join(' ')}を登録しました`;
   };
   const settle=stage=>{
     revealIdentity();setMarker('REGISTERED');
     const saved=originals.get(modelHost)??{};applyStyles(modelHost,{filter:saved.filter??'',opacity:saved.opacity??'',pointerEvents:saved.pointerEvents??''});
-    if(!reduceMotion)animate(stage,[{boxShadow:'inset 0 0 0 1px #7ce8d633'},{boxShadow:'inset 0 0 28px 3px #7ce8d655'},{boxShadow:'inset 0 0 0 1px #7ce8d600'}],{duration:280,easing:'ease-out'},animations);
-    if(!settled){settled=true;notifySettled({status:'presented'});}
-    schedule(()=>{animate(marker,[{opacity:1},{opacity:0}],{duration:180,easing:'ease-out'},animations);schedule(()=>marker.remove(),180);},360);
-    schedule(()=>cleanup('presented'),620);
+    if(!reduceMotion)animate(stage,[{boxShadow:'inset 0 0 0 1px #7ce8d633'},{boxShadow:'inset 0 0 28px 3px #7ce8d655'},{boxShadow:'inset 0 0 0 1px #7ce8d600'}],{duration:1050,easing:'ease-out'},animations);
+    // Keep the completed registration visible until the player taps.
+    schedule(()=>{ready=true;tapHint.hidden=false;},reduceMotion?90:1100);
   };
   const startReveal=()=>{
     if(cancelled||started)return;
     const stage=modelHost.querySelector('.model-stage');if(!stage){fallback();return;}
     started=true;observer?.disconnect?.();observer=null;
     schedule(()=>{
-      if(reduceMotion){setMarker('NEW ENTRY · REGISTERING');applyStyles(modelHost,{filter:'none',opacity:'1'});animate(modelHost,[{opacity:.84},{opacity:1}],{duration:180,easing:'ease-out'},animations);revealIdentity();schedule(()=>settle(stage),180);return;}
+      if(reduceMotion){setMarker('NEW ENTRY · REGISTERING');applyStyles(modelHost,{filter:'none',opacity:'1'});animate(modelHost,[{opacity:.84},{opacity:1}],{duration:180,easing:'ease-out'},animations);revealIdentity();schedule(()=>settle(stage),200);return;}
       setMarker('NEW ENTRY · SCANNING');
       scan=root.createElement('div');scan.dataset.registrationScan='true';applyStyles(scan,{position:'absolute',left:'0',right:'0',top:'-22%',height:'26%',pointerEvents:'none',background:'linear-gradient(180deg,transparent,#8ff7e955,transparent)',filter:'blur(1px)',mixBlendMode:'screen',opacity:'0'});stage.append(scan);
-      animate(scan,[{transform:'translateY(0)',opacity:0},{opacity:.9,offset:.42},{transform:'translateY(470%)',opacity:0}],{duration:560,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
-      animate(modelHost,[{transform:'scale(.965)'},{transform:'scale(1.025)',offset:.68},{transform:'scale(1)'}],{duration:820,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
+      animate(scan,[{transform:'translateY(0)',opacity:0},{opacity:.9,offset:.42},{transform:'translateY(470%)',opacity:0}],{duration:1550,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
+      animate(modelHost,[{transform:'scale(.965)'},{transform:'scale(1.025)',offset:.68},{transform:'scale(1)'}],{duration:1850,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
       for(let n=0;n<9;n++){
         const particle=root.createElement('span'),angle=n*Math.PI*2/9,radius=36+n%3*10;
         applyStyles(particle,{position:'absolute',left:'50%',top:'50%',width:'4px',height:'4px',borderRadius:'50%',background:'#9dfff1',boxShadow:'0 0 8px #8cf8e6',pointerEvents:'none',zIndex:'3'});
         stage.append(particle);
-        animate(particle,[{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{opacity:1,offset:.24},{transform:`translate(calc(-50% + ${Math.round(Math.cos(angle)*radius)}px),calc(-50% + ${Math.round(Math.sin(angle)*radius)}px)) scale(.1)`,opacity:0}],{duration:680,easing:'ease-out'},animations);
-        schedule(()=>particle.remove(),710);
+        animate(particle,[{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{opacity:1,offset:.24},{transform:`translate(calc(-50% + ${Math.round(Math.cos(angle)*radius)}px),calc(-50% + ${Math.round(Math.sin(angle)*radius)}px)) scale(.1)`,opacity:0}],{duration:1650,easing:'ease-out'},animations);
+        schedule(()=>particle.remove(),1700);
       }
-      applyStyles(modelHost,{filter:'none',opacity:'1'});animate(modelHost,[{filter:SILHOUETTE_FILTER,opacity:.84},{filter:'grayscale(0) brightness(1) contrast(1)',opacity:1}],{duration:600,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
-      schedule(revealIdentity,320);schedule(()=>{scan?.remove();scan=null;settle(stage);},620);
-    },reduceMotion?70:300);
+      applyStyles(modelHost,{filter:'none',opacity:'1'});animate(modelHost,[{filter:SILHOUETTE_FILTER,opacity:.84},{filter:'grayscale(0) brightness(1) contrast(1)',opacity:1}],{duration:1500,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
+      schedule(revealIdentity,750);schedule(()=>{scan?.remove();scan=null;settle(stage);},1900);
+    },reduceMotion?70:650);
   };
   const fallback=()=>{
     if(cancelled||started)return;started=true;observer?.disconnect?.();observer=null;revealIdentity();setMarker('REGISTERED');
     const saved=originals.get(modelHost)??{};applyStyles(modelHost,{filter:saved.filter??'',opacity:saved.opacity??'',pointerEvents:saved.pointerEvents??''});
-    schedule(()=>{if(!settled){settled=true;notifySettled({status:'presented'});}},reduceMotion?120:220);
-    schedule(()=>marker.remove(),320);schedule(()=>cleanup('presented'),360);
+    schedule(()=>{ready=true;tapHint.hidden=false;},reduceMotion?120:600);
   };
   const inspect=()=>{
     if(cancelled||started)return;

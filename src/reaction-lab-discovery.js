@@ -1,4 +1,4 @@
-import {presentFirstRegistration} from './collection-registration-reveal.js?v=4';
+import {presentFirstRegistration} from './collection-registration-reveal.js?v=5';
 
 const isNonEmptyString=value=>typeof value==='string'&&value.trim().length>0;
 
@@ -121,8 +121,10 @@ export function createReactionLabDiscoveryCoordinator({
     item.presentationResult={status:result.status??'presented',reason:result.reason??null};
     if(result.status==='presented'){
       item.status='presented';updateSessionControl(true);
-      if(item.kind==='reactions'||item.kind==='polymers'){advance();return;}
-      if(!session.items.some(candidate=>candidate.status==='pending'))finishSession();
+      // Each presentation calls onSettled only after the player taps its completed reveal.
+      // One tap advances one discovery, or releases the final Collection page.
+      if(session.items.some(candidate=>candidate.status==='pending'))advance();
+      else finishSession();
       return;
     }
     if(result.status==='dismissed'){

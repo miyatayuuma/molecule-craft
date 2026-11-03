@@ -30,9 +30,9 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.deepEqual(h.registrations.map(row=>row.id),['E','C','D']);
   assert.deepEqual(h.coordinator.snapshot().queue.map(item=>item.speciesId),['E','C','D']);
   await flush();assert.equal(h.presentations[0].id,'E');
-  h.presentations[0].onSettled({status:'presented'});h.sessionView.onNext();
+  h.presentations[0].onSettled({status:'presented'});
   assert.equal(h.presentations[1].id,'C');
-  h.presentations[1].onSettled({status:'presented'});h.sessionView.onNext();
+  h.presentations[1].onSettled({status:'presented'});
   assert.equal(h.presentations[2].id,'D');
 }
 
@@ -56,8 +56,9 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.equal(h.presentations.length,0,'No reveal starts until all species in the event are registered.');
   await flush();
   assert.deepEqual(h.presentations.map(item=>item.id),['C']);assert.deepEqual(h.registrations.map(row=>row.id),['C','D']);
-  h.presentations[0].onSettled({status:'presented'});assert.equal(h.sessionView.ready,true);assert.equal(h.sessionView.hasNext,true);
-  assert.equal(h.sessionView.onNext(),true);assert.deepEqual(h.presentations.map(item=>item.id),['C','D']);
+  assert.equal(h.sessionView.ready,false,'First entry must stay visible until the player taps.');
+  assert.deepEqual(h.presentations.map(item=>item.id),['C']);
+  h.presentations[0].onSettled({status:'presented'});assert.deepEqual(h.presentations.map(item=>item.id),['C','D']);
   h.presentations[1].onSettled({status:'presented'});await flush();
   const queue=h.coordinator.snapshot().queue;assert.deepEqual(queue.map(item=>item.status),['presented','presented']);
   assert.equal(h.closeCalls,1,'Discovery closes LAB once and leaves Collection open.');
@@ -94,8 +95,7 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   h.coordinator.handleProductEvent(payload(['D'],'second-event'));
   h.coordinator.handleProductEvent(payload(['D'],'third-event'));
   assert.deepEqual(h.coordinator.snapshot().queue.map(item=>[item.speciesId,item.eventSequence]),[['C',1],['D',2]]);
-  h.presentations[0].onSettled({status:'presented'});assert.equal(h.sessionView.hasNext,true);
-  h.sessionView.onNext();assert.equal(h.presentations[1].id,'D');
+  h.presentations[0].onSettled({status:'presented'});assert.equal(h.presentations[1].id,'D');
 }
 
 // A changed batch generation only invalidates the visual item; registration stays committed.
@@ -113,10 +113,10 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.ok(h.collectionState.has('C')&&h.collectionState.has('D'));assert.equal(h.openCalls,0);
 }
 
-// Closing after the visible reveal still dismisses its active item and the remaining queue.
+// Closing after tapping past the first reveal keeps that registration and dismisses the next active item.
 {
   const h=harness();h.coordinator.handleProductEvent(payload(['C','D']));await flush();h.presentations[0].onSettled({status:'presented'});
-  h.coordinator.onCollectionClosed();await flush();assert.deepEqual(h.coordinator.snapshot().queue.map(item=>item.status),['dismissed','dismissed']);assert.equal(h.openCalls,0);
+  h.coordinator.onCollectionClosed();await flush();assert.deepEqual(h.coordinator.snapshot().queue.map(item=>item.status),['presented','dismissed']);assert.equal(h.openCalls,0);
 }
 
 // Presentation startup failure aborts the visual queue, leaves registrations, and safely restores the Lab.
