@@ -57,7 +57,7 @@ function groupVisualCenterX(id){
 function vector(markup,label,kind,groupId){
   const svg=document.createElementNS(NS,'svg');
   const groupCenterX=kind==='group'?groupVisualCenterX(groupId):120;
-  svg.setAttribute('viewBox',kind==='group'?`${(groupCenterX-80).toFixed(2)} -18 160 114`:'0 0 240 78');
+  svg.setAttribute('viewBox',kind==='group'?`${(groupCenterX-88).toFixed(2)} -24 176 126`:'0 0 240 78');
   if(kind==='group')svg.setAttribute('preserveAspectRatio','xMidYMid meet');
   svg.setAttribute('role','img');
   svg.setAttribute('aria-label',label);
