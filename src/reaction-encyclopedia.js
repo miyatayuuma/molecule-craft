@@ -92,12 +92,6 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
       if(preview)control.append(preview);
       grid.append(control);
     }
-    if(model.groups.length%2===1){
-      const last=grid.lastElementChild;
-      last.style.gridColumn='1 / -1';
-      last.style.width='calc((100% - 8px) / 2)';
-      last.style.justifySelf='center';
-    }
   }
   function showGroup(group){
     host.replaceChildren(button('‹ カテゴリ一覧',showList),make('h3',group.label));

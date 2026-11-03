@@ -1,5 +1,5 @@
 import {polymerReactionImage} from './reaction-polymer-thumbnail.js';
-import {GROUP_GRAPHICS} from './reaction-group-schematics.js';
+import {GROUP_GRAPHICS,GROUP_SCHEMATIC_DATA} from './reaction-group-schematics.js';
 // Static reaction-book preview motifs. Chemistry and unlock status remain owned by the catalog/progress.
 export const GROUP_PREVIEW_SPECS=Object.freeze({
   hydrolysis:{renderer:'svg',motion:'split',durationMs:5600,caption:'水が加わり結合が切れる'},
@@ -46,9 +46,18 @@ function watchVisibility(node){
   },{threshold:0.05});
   observer.observe(node);
 }
-function vector(markup,label,kind){
+function groupVisualCenterX(id){
+  const spec=GROUP_SCHEMATIC_DATA[id];
+  if(!spec?.atoms?.length)return 120;
+  // Center the whole reaction across its before/after poses, including their shared scaling.
+  const positions=spec.atoms.flatMap(atom=>[atom.x,atom.tx]);
+  const midpoint=(Math.min(...positions)+Math.max(...positions))/2;
+  return 120+(midpoint-120)*.76*spec.scale;
+}
+function vector(markup,label,kind,groupId){
   const svg=document.createElementNS(NS,'svg');
-  svg.setAttribute('viewBox',kind==='group'?'40 -18 160 114':'0 0 240 78');
+  const groupCenterX=kind==='group'?groupVisualCenterX(groupId):120;
+  svg.setAttribute('viewBox',kind==='group'?`${(groupCenterX-80).toFixed(2)} -18 160 114`:'0 0 240 78');
   if(kind==='group')svg.setAttribute('preserveAspectRatio','xMidYMid meet');
   svg.setAttribute('role','img');
   svg.setAttribute('aria-label',label);
@@ -62,7 +71,7 @@ export function createReactionGroupPreview(id){
   const box=document.createElement('span');
   box.className='rb-group-preview rb-motion-'+id;
   box.dataset.previewGroup=id;
-  box.append(vector(GROUP_GRAPHICS[id],spec.caption,'group'));
+  box.append(vector(GROUP_GRAPHICS[id],spec.caption,'group',id));
   watchVisibility(box);
   return box;
 }
