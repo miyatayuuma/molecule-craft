@@ -483,8 +483,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const description=entry('groups',id)?.description??group.description;
     detail.append(currentDetail.kind==='groups'?encyclopediaSummaryParagraph(description,'parts',id):chemistryParagraph(description,'dex-description'));
     for(const template of part?data.templates.filter(item=>item.unlock.groupId===id):[]){
-      const unlocked=state.isUnlocked(template.id);detail.append(el('p',unlocked?'✓ この部品は使えます':`解放まで：異なる分子 ${sources.length}/${template.unlock.distinctMolecules}種類で発見`,'unlock-condition'));
-      if(unlocked)detail.append(button('部品トレーへ',()=>{paletteTab('structures');dialog.close();},'collection-primary'));
+      if(!state.isUnlocked(template.id))detail.append(el('p',`解放まで：異なる分子 ${sources.length}/${template.unlock.distinctMolecules}種類で発見`,'unlock-condition'));
     }
     const extra=section('くわしく');extra.append(el('p',`${group.nameEn} · ${group.notation}`),chemistryParagraph(group.description));
     if(group.aliases?.length)extra.append(el('p',`別名：${group.aliases.join('、')}`));
