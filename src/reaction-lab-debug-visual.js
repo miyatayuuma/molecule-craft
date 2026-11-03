@@ -14,7 +14,7 @@ export function capturePolymerIdMask({THREE,visual,renderer,canvas,scene,world,c
 
 export function measurePolymerDisplayBounds({THREE,visual,camera,canvas,fit,modelAtomRadius}){
         if(!visual?.layoutPlan)return null;
-        const rect=canvas.getBoundingClientRect(),forward=cameraNormal(),points=[];camera.updateMatrixWorld(true);visual.group.updateMatrixWorld(true);
+        const rect=canvas.getBoundingClientRect(),forward=camera.getWorldDirection(new THREE.Vector3()),points=[];camera.updateMatrixWorld(true);visual.group.updateMatrixWorld(true);
         for(const[index,mesh]of visual.atomByGraphIndex){const atom=visual.layoutPlan.atoms[index],worldPoint=mesh.getWorldPosition(new THREE.Vector3()),depth=worldPoint.clone().sub(camera.position).dot(forward),projected=worldPoint.project(camera),radius=modelAtomRadius(atom.element)*visual.group.scale.x*rect.height/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))*Math.max(camera.near,depth));points.push({x:(projected.x+1)*.5*rect.width,y:(1-projected.y)*.5*rect.height,radius,depth,ndcZ:projected.z});}
         const bounds={left:Math.min(...points.map(point=>point.x-point.radius)),right:Math.max(...points.map(point=>point.x+point.radius)),top:Math.min(...points.map(point=>point.y-point.radius)),bottom:Math.max(...points.map(point=>point.y+point.radius))},safe=fit?.safeRegion??null;
         bounds.width=bounds.right-bounds.left;bounds.height=bounds.bottom-bounds.top;
