@@ -6,7 +6,7 @@ import {loadMoleculeGraph} from './molecule-graph.js';
 import {CRITICAL_INSIGHT_IDS} from './veil/insights.js';
 import {primaryRoleFor} from './veil/molecule-roles.js';
 import {installTankCapabilityPresentation} from './veil/capability-unlock.js?v=1';
-import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=3';
+import {presentFirstRegistration,REGISTRATION_REVEAL_HOLD_MS} from './collection-registration-reveal.js?v=4';
 import {loadPolymerCatalog,polymerCatalog} from './polymer-catalog.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 import {loadPolymerizationRouteAuthority,polymerizationRoutes,polymerizationSitePatterns} from './polymerization-routes.js?v=1';
@@ -120,7 +120,7 @@ export function connectExploration(options){
 export async function connectCollection({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,storage}){
   const polymerData=await preparePolymerEncyclopedia({records});
   if(!polymerData.result.ok||!polymerData.model)throw new Error(polymerData.result.error??'Polymer encyclopedia unavailable.');
-  const {createCollectionUI}=await import('./collection-ui.js?v=54');
+  const {createCollectionUI}=await import('./collection-ui.js?v=55');
   const collection=await createCollectionUI({records,elementPalette,elementAccess,onPlace,canOpen,onOpenChange,storage,engineeringResources:connectedResources,polymerRecords:polymerCatalog(),polymerContent:polymerData.content,polymerRoutes:polymerizationRoutes(),recipeState:()=>connectedResources?.state??{recipes:[],hints:[]}});
   collection.polymerRoutes=polymerizationRoutes();collection.polymerSitePatterns=polymerizationSitePatterns();
   return collection;

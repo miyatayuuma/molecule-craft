@@ -31,7 +31,17 @@ export function presentFirstRegistration({
   const marker=root.createElement('div');marker.dataset.registrationMarker='true';
   applyStyles(marker,{display:'inline-flex',alignItems:'center',gap:'7px',margin:'0 0 10px',padding:'6px 9px',border:'1px solid #5ec9b8',borderRadius:'999px',background:'#123b3a',color:'#b9f4e9',fontSize:'11px',fontWeight:'800',letterSpacing:'.08em'});
   const number=detail.querySelector('.detail-heading .dex-number')?.textContent?.trim()||'';
-  const setMarker=text=>{marker.textContent=[number,text].filter(Boolean).join(' · ');};setMarker('NEW ENTRY · REGISTERING');
+  const ruby=(base,reading)=>{const node=root.createElement('ruby');node.append(root.createTextNode(base));const rt=root.createElement('rt');rt.textContent=reading;node.append(rt);return node;};
+  const PHRASES={
+    'NEW ENTRY · REGISTERING':[['新','あたら'],'しい ',['分子','ぶんし'],'！'],
+    'NEW ENTRY · SCANNING':[['分子','ぶんし'],'を ',['調','しら'],'べています…'],
+    'REGISTERED':[['図鑑','ずかん'],'に ',['登録','とうろく'],'！'],
+  };
+  const setMarker=phase=>{
+    const nodes=[];if(number)nodes.push(root.createTextNode(number+' · '));
+    for(const part of PHRASES[phase]??[phase])nodes.push(Array.isArray(part)?ruby(part[0],part[1]):root.createTextNode(part));
+    marker.replaceChildren(...nodes);
+  };setMarker('NEW ENTRY · REGISTERING');
   const nav=detail.querySelector('.detail-navigation');if(nav?.after)nav.after(marker);else detail.prepend(marker);
 
   const live=root.createElement('p');live.className='sr-only';live.setAttribute('role','status');live.setAttribute('aria-live','polite');live.setAttribute('aria-atomic','true');detail.append(live);
@@ -76,6 +86,14 @@ export function presentFirstRegistration({
       setMarker('NEW ENTRY · SCANNING');
       scan=root.createElement('div');scan.dataset.registrationScan='true';applyStyles(scan,{position:'absolute',left:'0',right:'0',top:'-22%',height:'26%',pointerEvents:'none',background:'linear-gradient(180deg,transparent,#8ff7e955,transparent)',filter:'blur(1px)',mixBlendMode:'screen',opacity:'0'});stage.append(scan);
       animate(scan,[{transform:'translateY(0)',opacity:0},{opacity:.9,offset:.42},{transform:'translateY(470%)',opacity:0}],{duration:560,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
+      animate(modelHost,[{transform:'scale(.965)'},{transform:'scale(1.025)',offset:.68},{transform:'scale(1)'}],{duration:820,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
+      for(let n=0;n<9;n++){
+        const particle=root.createElement('span'),angle=n*Math.PI*2/9,radius=36+n%3*10;
+        applyStyles(particle,{position:'absolute',left:'50%',top:'50%',width:'4px',height:'4px',borderRadius:'50%',background:'#9dfff1',boxShadow:'0 0 8px #8cf8e6',pointerEvents:'none',zIndex:'3'});
+        stage.append(particle);
+        animate(particle,[{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{opacity:1,offset:.24},{transform:`translate(calc(-50% + ${Math.round(Math.cos(angle)*radius)}px),calc(-50% + ${Math.round(Math.sin(angle)*radius)}px)) scale(.1)`,opacity:0}],{duration:680,easing:'ease-out'},animations);
+        schedule(()=>particle.remove(),710);
+      }
       applyStyles(modelHost,{filter:'none',opacity:'1'});animate(modelHost,[{filter:SILHOUETTE_FILTER,opacity:.84},{filter:'grayscale(0) brightness(1) contrast(1)',opacity:1}],{duration:600,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
       schedule(revealIdentity,320);schedule(()=>{scan?.remove();scan=null;settle(stage);},620);
     },reduceMotion?70:300);

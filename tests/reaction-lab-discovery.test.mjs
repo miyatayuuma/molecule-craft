@@ -58,10 +58,10 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.deepEqual(h.presentations.map(item=>item.id),['C']);assert.deepEqual(h.registrations.map(row=>row.id),['C','D']);
   h.presentations[0].onSettled({status:'presented'});assert.equal(h.sessionView.ready,true);assert.equal(h.sessionView.hasNext,true);
   assert.equal(h.sessionView.onNext(),true);assert.deepEqual(h.presentations.map(item=>item.id),['C','D']);
-  h.presentations[1].onSettled({status:'presented'});assert.equal(h.sessionView.hasNext,false);
-  h.sessionView.onReturn();await flush();
+  h.presentations[1].onSettled({status:'presented'});await flush();
   const queue=h.coordinator.snapshot().queue;assert.deepEqual(queue.map(item=>item.status),['presented','presented']);
-  assert.equal(h.closeCalls,2,'One Lab close and one Collection close end the single queue session.');assert.equal(h.openCalls,1);assert.equal(h.vibrationCount,2);
+  assert.equal(h.closeCalls,1,'Discovery closes LAB once and leaves Collection open.');
+  assert.equal(h.openCalls,0);assert.equal(h.collectionOpen,true);assert.equal(h.sessionView,null);assert.equal(h.vibrationCount,2);
 }
 
 // Repeated products and later reactions use Collection as their duplicate gate.
@@ -77,7 +77,7 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
 {
   const mixed=harness({known:['D']});mixed.coordinator.handleProductEvent(payload(['C','D']));
   assert.deepEqual(mixed.coordinator.snapshot().queue.map(item=>item.speciesId),['C']);assert.deepEqual(mixed.registrations.map(row=>row.id),['C','D']);
-  await flush();mixed.presentations[0].onSettled({status:'presented'});mixed.sessionView.onReturn();await flush();
+  await flush();mixed.presentations[0].onSettled({status:'presented'});await flush();
   const known=harness({known:['C','D']});known.coordinator.handleProductEvent(payload(['C','D']));await flush();
   assert.deepEqual(known.coordinator.snapshot().queue,[]);assert.equal(known.closeCalls,0);assert.equal(known.openCalls,0);assert.equal(known.presentations.length,0);
 }
@@ -102,7 +102,7 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
 {
   const h=harness();h.coordinator.handleProductEvent(payload(['C']));h.generation=5;await flush();
   assert.equal(h.collectionState.has('C'),true);assert.equal(h.coordinator.snapshot().queue[0].status,'stale');
-  assert.equal(h.presentations.length,0);assert.equal(h.openCalls,1);assert.equal(h.closeCalls,1);
+  assert.equal(h.presentations.length,0);assert.equal(h.openCalls,0);assert.equal(h.closeCalls,0);
 }
 
 // Dismissal keeps registration, marks every not-yet-presented item dismissed, and never replays it.
@@ -110,13 +110,13 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   const h=harness();h.coordinator.handleProductEvent(payload(['C','D']));await flush();
   h.collectionOpen=false;h.presentations[0].onSettled({status:'dismissed'});await flush();
   assert.deepEqual(h.coordinator.snapshot().queue.map(item=>item.status),['dismissed','dismissed']);
-  assert.ok(h.collectionState.has('C')&&h.collectionState.has('D'));assert.equal(h.openCalls,1);
+  assert.ok(h.collectionState.has('C')&&h.collectionState.has('D'));assert.equal(h.openCalls,0);
 }
 
 // Closing after the visible reveal still dismisses its active item and the remaining queue.
 {
   const h=harness();h.coordinator.handleProductEvent(payload(['C','D']));await flush();h.presentations[0].onSettled({status:'presented'});
-  h.coordinator.onCollectionClosed();await flush();assert.deepEqual(h.coordinator.snapshot().queue.map(item=>item.status),['dismissed','dismissed']);assert.equal(h.openCalls,1);
+  h.coordinator.onCollectionClosed();await flush();assert.deepEqual(h.coordinator.snapshot().queue.map(item=>item.status),['dismissed','dismissed']);assert.equal(h.openCalls,0);
 }
 
 // Presentation startup failure aborts the visual queue, leaves registrations, and safely restores the Lab.
@@ -125,10 +125,10 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   const collection={registerDiscoveredMolecule(id,{at}){const changed=!known.has(id);if(changed)known.add(id);const result={changed,event:{isNew:changed,at}};registrations.push(id);return result;},setDiscoverySession(){},isOpen:()=>false};
   const failed=createReactionLabDiscoveryCoordinator({records,collection,isLabOpen:()=>labOpen,getBatchGeneration:()=>4,closeLabAndWait:()=>{labOpen=false;},openLab:()=>{labOpen=true;opened++;return true;},present:()=>false,onDiagnostic:item=>diagnostics.push(item)});
   failed.handleProductEvent(payload(['C','D']));await flush();
-  assert.deepEqual(registrations,['C','D']);assert.deepEqual(failed.snapshot().queue.map(item=>item.status),['failed','failed']);assert.deepEqual([...known],['C','D']);assert.equal(opened,1);assert.equal(diagnostics.some(item=>item.code==='presentation-threw'),false);
+  assert.deepEqual(registrations,['C','D']);assert.deepEqual(failed.snapshot().queue.map(item=>item.status),['failed','failed']);assert.deepEqual([...known],['C','D']);assert.equal(opened,0);assert.equal(diagnostics.some(item=>item.code==='presentation-threw'),false);
 }
 
-// If a connected but non-focusable original target does not accept focus, return focus to the stable Lab close control.
+// A completed discovery keeps Collection open and never restores LAB focus.
 {
   const focusTarget={isConnected:true,disabled:false,closest:()=>null,focus(){}},fallback={isConnected:true,disabled:false,focus(){root.activeElement=this;}};
   const root={activeElement:focusTarget,querySelector:()=>fallback},known=new Set(),view={};let labOpen=true,collectionOpen=false;
@@ -136,8 +136,9 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   const focusCoordinator=createReactionLabDiscoveryCoordinator({records,collection,root,getFocus:()=>root.activeElement,isLabOpen:()=>labOpen,getBatchGeneration:()=>4,
     closeLabAndWait(){labOpen=false;root.activeElement=null;},openLab(){labOpen=true;root.activeElement=fallback;return true;},
     present({onSettled}){collectionOpen=true;onSettled({status:'presented'});return true;},onDiagnostic:()=>{}});
-  focusCoordinator.handleProductEvent(payload(['C']));await flush();view.onReturn();await flush();await flush();
-  assert.equal(root.activeElement,fallback,'A failed focus restoration falls back to the stable Lab control.');
+  focusCoordinator.handleProductEvent(payload(['C']));await flush();await flush();
+  assert.equal(labOpen,false,'LAB remains closed after discovery.');
+  assert.equal(root.activeElement,null,'No automatic focus transfer back into LAB.');
 }
 
 // Invalid instance identity is rejected before any registration.
@@ -147,3 +148,21 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
 }
 
 console.log('reaction-lab-discovery.test.mjs: all assertions passed');
+
+{
+  const reactions=new Set(),seen=[],collection={setDiscoverySession(){},refreshReactionProgress(){},
+    registerDiscoveredMolecule(){return{changed:false,saved:true,event:{isNew:false}};},
+    openReactionAward(id,{onSettled}){seen.push(id);onSettled({status:'presented'});return true;},
+    isOpen:()=>true,
+  };
+  const authority={get:id=>id==='normal:reaction-a'?{reactionId:id,definition:{products:['C']}}:null};
+  const progress={verify(id){const changed=!reactions.has(id);reactions.add(id);return{changed,saved:true};}};
+  let closed=0,opened=0;
+  const coordinator=createReactionLabDiscoveryCoordinator({records,collection,reactionAuthority:authority,reactionProgress:progress,
+    getBatchGeneration:()=>4,closeLabAndWait:()=>{closed++;},openLab:()=>{opened++;},onDiagnostic:()=>{}});
+  const one={...payload(['C']),pathwayId:'reaction-a/path-1'};
+  coordinator.handleProductEvent(one);await flush();
+  assert.deepEqual(seen,['normal:reaction-a']);assert.equal(closed,1);assert.equal(opened,0);
+  coordinator.handleProductEvent(one);await flush();assert.deepEqual(seen,['normal:reaction-a']);
+}
+
