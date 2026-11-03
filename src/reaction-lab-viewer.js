@@ -120,6 +120,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function referenceModelFormula(plan){return referenceModules.model.referenceModelFormula(plan);}
 
   let polymerReservedById=new Map(),polymerSourceRecordsById={},polymerGraphVisual=null,polymerDocking=null,polymerAutoMotion=null,polymerSamplePresentation=null,polymerDockAttempt=null,polymerAutoAttempt=null,newlyDiscoveredPolymerId=null;
+  const presentedPolymerSampleIds=new Set();
   const polymerRuntimeMetrics={staticFrameSkips:0,renderSubmissions:0,resizeBufferUpdates:0,finiteLayoutCalls:0,bondVisualAllocations:0,completionFitCalls:0,completionLayoutCallsAfterReady:0,layoutComputationMs:0,threeDLayoutFallbacks:0,lastLayoutDiagnostics:null};
   let polymerVisualRevision=0,lastRenderedPolymerRevision=-1;
   const polymerBondScratch={axis:new THREE.Vector3(),direction:new THREE.Vector3(),side:new THREE.Vector3(),reference:new THREE.Vector3(0,0,1),midpoint:new THREE.Vector3(),up:new THREE.Vector3(0,1,0)};
@@ -538,6 +539,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     newlyDiscoveredPolymerId=firstDiscovery&&isPolymerKnown(sample.polymerId)?sample.polymerId:null;
     polymerSiteIndicator.hidden=true;updatePolymerSiteIndicator();updateCommandBar();
   }
+  function presentCompletedPolymerGrowth(units){
+    // The registered Sample precedes the illustrative 100-unit growth.
+    // Do not open the Collection until its last unit has been rendered.
+    const presentation=polymerSamplePresentation;
+    if(units!==100||!finiteReferenceView||!presentation?.ready||presentation.dismissed||presentation.batchGeneration!==batch.generation)return;
+    const key=`${presentation.batchGeneration}:${presentation.sampleId}`;
+    if(presentedPolymerSampleIds.has(key))return;
+    presentedPolymerSampleIds.add(key);
+    dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-present',{sampleId:presentation.sampleId,batchGeneration:presentation.batchGeneration});
+  }
   function advancePolymerCompletion(){
     const presentation=polymerSamplePresentation;
     if(!presentation){updatePolymerSiteIndicator();return;}
@@ -546,7 +557,6 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(presentation.elapsedMs<presentation.durationMs||polymerGraphVisual?.animation)return;
     presentation.ready=true;presentation.phase='ready';presentation.layoutCallsAtReady=polymerRuntimeMetrics.finiteLayoutCalls;
     updatePolymerCompletionUi(presentation,true);
-    if(!presentation.dismissed)dispatchPolymerEvent('molecule-craft:reaction-lab-polymer-sample-present',{sampleId:presentation.sampleId,batchGeneration:presentation.batchGeneration});
     referenceUnits.value='100';referenceDisplay.value='reference';showPolymerReference();
     updateCommandBar();
   }
@@ -1542,7 +1552,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(growth&&transition&&!transition.done&&!cameraMoving){transition.elapsed=Math.min(transition.duration,transition.elapsed+Math.min(elapsed,50));const t=transition.elapsed/transition.duration,eased=t*t*(3-2*t);transition.methylol.position.copy(transition.offset).multiplyScalar(eased);transition.methylol.children[2].material.opacity=1-eased;transition.water.position.copy(transition.offset);transition.done=t>=1;polymerVisualRevision++;}
     if(growth&&!cameraMoving&&(!transition||transition.done)&&referenceModules.renderer.advanceReferenceGrowth(growth,now,polymerGraphVisual.layoutPlan.unitCount)){referenceModules.renderer.setReferenceGrowth(THREE,polymerGraphVisual,growth.units);polymerVisualRevision++;}
     const staticSample=polymerSamplePresentation&&!polymerGraphVisual?.animation&&!batchTransition&&!reactionAnimation&&(instances.length===0||(finiteReferenceView&&polymerReferenceDefinition(polymerSamplePresentation.polymerId)?.network&&instances.every(item=>!item.group.visible)))&&!observation.comparisonActive;
-    if(!staticSample||polymerVisualRevision!==lastRenderedPolymerRevision){renderer.render(scene,camera);polymerRuntimeMetrics.renderSubmissions++;lastRenderedPolymerRevision=polymerVisualRevision;if(growth&&!growthCameraMotion&&growth.lastRenderedAt===null){growth.lastRenderedAt=performance.now();if(growth.units===polymerGraphVisual.layoutPlan.unitCount)polymerGraphVisual.growth=null;}}
+    if(!staticSample||polymerVisualRevision!==lastRenderedPolymerRevision){renderer.render(scene,camera);polymerRuntimeMetrics.renderSubmissions++;lastRenderedPolymerRevision=polymerVisualRevision;if(growth&&!growthCameraMotion&&growth.lastRenderedAt===null){growth.lastRenderedAt=performance.now();if(growth.units===polymerGraphVisual.layoutPlan.unitCount){polymerGraphVisual.growth=null;presentCompletedPolymerGrowth(growth.units);}}}
     else polymerRuntimeMetrics.staticFrameSkips++;
   }
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();contextLost=true;cancelAllPointers();observation.contextLost(true);},eventOptions);
