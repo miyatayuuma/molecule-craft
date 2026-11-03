@@ -1,5 +1,5 @@
 import {unfinishedCraftIds,pendingReactionRecipeIds,reactionRecipeRowModel} from './pending-craft.js';
-import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=2';
+import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=3';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
 import { validateCraftStructures } from './craft-structures.js?v=34';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=38';
@@ -279,16 +279,18 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       if(typeof part==='string'){notice.append(document.createTextNode(part));continue;}
       const ruby=el('ruby');ruby.append(document.createTextNode(part[0]),el('rt',part[1]));notice.append(ruby);
     }
-    dialog.append(notice);return notice;
+    const prompt=el('span','タップでつづける','discovery-award-tap');
+    prompt.hidden=true;notice.append(prompt);
+    dialog.append(notice);return {notice,prompt};
   }
-  function beginAwardInteraction(skip){
+  function beginAwardInteraction(advance){
     const click=event=>{
       if(event.target?.closest?.('#close-collection'))return;
-      event.preventDefault();event.stopImmediatePropagation();skip();
+      event.preventDefault();event.stopImmediatePropagation();advance();
     };
     const key=event=>{
       if(!['Enter',' ','Spacebar'].includes(event.key))return;
-      event.preventDefault();event.stopImmediatePropagation();skip();
+      event.preventDefault();event.stopImmediatePropagation();advance();
     };
     dialog.addEventListener('click',click,true);dialog.addEventListener('keydown',key,true);
     return()=>{dialog.removeEventListener('click',click,true);dialog.removeEventListener('keydown',key,true);};
@@ -300,18 +302,18 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     tab='reactions';currentDetail=null;listScroll=0;renderBook();
     if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');notifyOpen();}
     dialog.scrollTop=0;
-    const notice=showAwardNotice('reactions');
-    let finished=false,removeSkip=()=>{},cancelVisual=()=>{};
+    const {notice,prompt}=showAwardNotice('reactions');
+    let finished=false,removeInteraction=()=>{},cancelVisual=()=>{};
     const complete=result=>{
-      if(finished)return;finished=true;removeSkip();dialog.removeEventListener('close',dismiss);
+      if(finished)return;finished=true;removeInteraction();dialog.removeEventListener('close',dismiss);
       notice.remove();discoveryAward=null;onSettled(result);
     };
     const dismiss=()=>{cancelVisual();complete({status:'dismissed'});};
-    const runner=playReactionStarCeremony({host:list,tags,reducedMotion:prefersReducedMotion(),onSettled:complete});
+    const runner=playReactionStarCeremony({host:list,tags,reducedMotion:prefersReducedMotion(),onReady:()=>{prompt.hidden=false;},onSettled:complete});
     cancelVisual=runner.cancel;
-    removeSkip=beginAwardInteraction(runner.skip);
+    removeInteraction=beginAwardInteraction(()=>{if(runner.advance())prompt.hidden=true;});
     dialog.addEventListener('close',dismiss,{once:true});
-    discoveryAward={cancel:()=>{runner.cancel();removeSkip();dialog.removeEventListener('close',dismiss);finished=true;}};
+    discoveryAward={cancel:()=>{runner.cancel();removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();finished=true;}};
     return true;
   }
   function openPolymerAward(id,{onSettled=()=>{}}={}){
@@ -321,15 +323,16 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');notifyOpen();}
     const card=[...list.querySelectorAll('[data-entry-id]')].find(node=>node.dataset.entryId===id);
     if(!card)return false;
-    const notice=showAwardNotice('polymers');
+    const {notice,prompt}=showAwardNotice('polymers');
     card.classList.add('polymer-award-hidden');
     const name=card.querySelector('strong'),originalName=name?.textContent;
     if(name)name.textContent='???';
     card.scrollIntoView?.({block:'center',behavior:prefersReducedMotion()?'auto':'smooth'});
-    let timer=null,finished=false,removeSkip=()=>{};
+    let timer=null,finished=false,ready=false,removeInteraction=()=>{};
     const settle=(status='presented')=>{
-      if(finished)return;finished=true;if(timer!==null)clearTimeout(timer);
-      removeSkip();dialog.removeEventListener('close',dismiss);
+      if(finished||(status==='presented'&&!ready))return;
+      finished=true;if(timer!==null)clearTimeout(timer);
+      removeInteraction();dialog.removeEventListener('close',dismiss);
       card.classList.remove('polymer-award-hidden','polymer-award-target');
       if(name)name.textContent=originalName;
       notice.remove();discoveryAward=null;
@@ -340,12 +343,12 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const reveal=()=>{
       card.classList.remove('polymer-award-hidden');card.classList.add('polymer-award-target');
       if(name)name.textContent=originalName;
-      timer=setTimeout(()=>settle(),prefersReducedMotion()?80:650);
+      timer=setTimeout(()=>{ready=true;prompt.hidden=false;},prefersReducedMotion()?80:1450);
     };
-    removeSkip=beginAwardInteraction(()=>settle());
+    removeInteraction=beginAwardInteraction(()=>settle());
     dialog.addEventListener('close',dismiss,{once:true});
-    discoveryAward={cancel:()=>{finished=true;if(timer!==null)clearTimeout(timer);removeSkip();dialog.removeEventListener('close',dismiss);card.classList.remove('polymer-award-hidden','polymer-award-target');if(name)name.textContent=originalName;}};
-    timer=setTimeout(reveal,prefersReducedMotion()?80:520);
+    discoveryAward={cancel:()=>{finished=true;if(timer!==null)clearTimeout(timer);removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();card.classList.remove('polymer-award-hidden','polymer-award-target');if(name)name.textContent=originalName;}};
+    timer=setTimeout(reveal,prefersReducedMotion()?80:950);
     return true;
   }
 
@@ -523,7 +526,6 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(kind==='motifs'){const back=button('‹ 分子',()=>{if(motifReturnMoleculeId)showDetail('molecules',motifReturnMoleculeId);},'book-back');back.id='motif-detail-back';back.disabled=!motifReturnMoleculeId;nav.append(back);}
     const items=kind==='polymers'?polymerRecords.filter(item=>polymerState.hasPolymer(item.id)).sort((a,b)=>number(kind,a.id)-number(kind,b.id)):visibleItems(kind),index=items.findIndex(item=>item.id===id);
     for(const [label,delta]of [['‹',-1],['›',1]]){const next=items[index+delta],node=button(label,()=>{if(next)showDetail(kind,next.id);});node.setAttribute('aria-label',delta<0?'前の項目':'次の項目');node.disabled=!!discoverySession||index<0||!next;nav.append(node);}
-    if(discoverySession){const action=button('',()=>{const current=discoverySession;if(!current?.ready)return;if(current.hasNext)current.onNext?.();else current.onReturn?.();},'book-discovery-action');action.dataset.discoverySessionAction='true';nav.append(action);updateDiscoveryAction(action);}
     detail.append(nav);
     if(kind==='groups'||kind==='motifs'){renderGroup(id);return;}
     if(kind==='polymers'){renderPolymerDetail(id);return;}
@@ -543,12 +545,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const tags=el('div',null,'collection-tags');for(const match of matches)tags.append(button(groupById(match.id).nameJa,()=>showDetail('groups',match.id),'collection-tag'));if(matches.length)extra.append(el('h4','見つかる部品'),tags);
     if(motifs.length){const motifTags=el('div',null,'collection-tags');for(const match of motifs){const tag=button(groupById(match.id).nameJa,()=>showDetail('motifs',match.id),'collection-tag structure-motif-tag');tag.dataset.motifId=match.id;motifTags.append(tag);}extra.append(el('h4','構造モチーフ'),motifTags);}
     const relatives=state.isomersOf(record);if(relatives.length){extra.append(el('h4','同じ分子式の仲間'));for(const item of relatives){const known=state.hasMolecule(item.id),tag=button(null,()=>known&&showDetail('molecules',item.id),'collection-tag');if(known)appendMoleculeNameFurigana(tag,moleculeDisplayName(item));else tag.textContent='???';extra.append(tag);}}
-    if(discoverySession)for(const node of detail.querySelectorAll('button:not([data-discovery-session-action])'))node.disabled=true;
-  }
-  function updateDiscoveryAction(node=detail.querySelector('[data-discovery-session-action]')){
-    if(!node||!discoverySession)return;
-    const current=discoverySession;node.textContent=current.ready?(current.hasNext?'次の登録':'REACTION LABへ戻る'):'登録表示中…';
-    node.disabled=!current.ready;node.setAttribute('aria-label',current.ready?`発見 ${current.index} / ${current.total} · ${current.hasNext?'次の登録':'REACTION LABへ戻る'}`:`発見 ${current.index} / ${current.total} · 登録表示中`);
+    if(discoverySession)for(const node of detail.querySelectorAll('button'))node.disabled=true;
   }
   function heading(kind,id,name,formula=''){
     const host=el('div',null,'detail-heading'),left=el('div'),numberText=numberLabel(kind,id);if(numberText)left.append(el('span',numberText,'dex-number'));const title=el('h3');if(kind==='molecules')appendMoleculeNameFurigana(title,name);else if(kind==='groups')appendPartNameFurigana(title,name);else title.textContent=name;left.append(title);host.append(left);if(formula)host.append(el('p',formula,'detail-formula'));detail.append(host);
@@ -663,7 +660,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     openEntry,openMolecule,openPolymer,openReactionAward,openPolymerAward,
     isOpen:()=>dialog.open,
     closeAndWait(){if(!collectionDialogOpen&&!dialog.open)return Promise.resolve();return new Promise(resolve=>{closeWaiters.add(resolve);if(dialog.open)dialog.close();});},
-    setDiscoverySession(value){discoverySession=value?{...value}:null;if(dialog.open){for(const node of root.querySelectorAll('[data-book-tab]'))node.disabled=!!discoverySession;if(discoverySession)updateDiscoveryAction();else dialog.querySelector('[data-discovery-session-action]')?.remove();}},
+    setDiscoverySession(value){discoverySession=value?{...value}:null;if(dialog.open)for(const node of root.querySelectorAll('[data-book-tab]'))node.disabled=!!discoverySession;},
     registerDiscoveredMolecule(recordId,options={}){const result=state.registerDiscoveredMolecule(recordId,options);if(result.changed){renderPalette();renderSummary();if(dialog.open)renderBook();}return result;},
     registerDiscoveredPolymer(polymerId,options={}){const result=polymerState.registerDiscoveredPolymer(polymerId,options);if(result.changed){renderSummary();if(dialog.open)renderBook();}return result;},
     refreshProgress(){state.refreshAccess();renderPalette();renderSummary();if(dialog.open)renderBook();},

@@ -24,7 +24,7 @@ import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=2';
 import { createCraftHistory } from './craft-history.js?v=2';
 import { bindCraftControls } from './craft-controls.js?v=3';
-import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=17';
+import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=18';
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 import { matchCraftTarget } from './craft-target-satisfaction.js';
@@ -32,7 +32,7 @@ import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js
 import { observeCraftStereo } from './stereo-observation.js?v=1';
 import { createTearGesture, findTearCandidate, projectedTearPull } from './craft-tearoff.js?v=1';
 import { captureDetachedFragment, createDetachedDrag } from './craft-detached-drag.js?v=1';
-import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=5';
+import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=6';
 import { createReactionCatalogAuthority } from './reaction-catalog-authority.js?v=1';
 import { createReactionProgress } from './reaction-progress.js?v=1';
 import { startGamepadUi } from './gamepad-input.js';
