@@ -153,3 +153,30 @@ test('unfamiliar everyday vocabulary such as 不凍液 now opens an explanation'
   assert.ok(found.some(item=>item.kind==='term'&&item.text==='不凍液'));
   assert.ok(found.some(item=>item.kind==='term'&&item.text==='液化'));
 });
+
+test('context-sensitive chemical and everyday readings never use name/place defaults',()=>{
+  const expectations=[
+    {surface:'環',reading:'かん',matches:(text,offset)=>true,count:23},
+    {surface:'三重',reading:'さんじゅう',matches:(text,offset)=>text.startsWith('三重結合',offset),count:4},
+    {surface:'間',reading:'あいだ',matches:(text,offset)=>text.startsWith('間に',offset)||text.startsWith('間で',offset),count:2},
+    {surface:'生',reading:'せい',matches:(text,offset)=>text.startsWith('生分解性',offset),count:1},
+    {surface:'本',reading:'ぽん',matches:(text,offset)=>text.slice(Math.max(0,offset-1),offset+1)==='1本',count:1},
+  ];
+  for(const {surface,reading,matches,count} of expectations){
+    let seen=0;
+    for(const kind of ['molecules','parts']){
+      for(const [id,{description}] of Object.entries(encyclopedia[kind])){
+        for(const [offset,actual,pronunciation] of furigana[kind][id]){
+          if(actual!==surface||!matches(description,offset))continue;
+          assert.equal(pronunciation,reading,`${kind}:${id}: ${description}`);
+          seen++;
+        }
+      }
+    }
+    assert.equal(seen,count,`${surface}: audit coverage changed`);
+  }
+  // The same character may have a different, correct reading in other contexts.
+  assert.ok(furigana.molecules.cyclohexanol.some(([,surface,reading])=>surface==='環状'&&reading==='かんじょう'));
+  assert.ok(furigana.molecules['carbon-monoxide'].some(([,surface,reading])=>surface==='生'&&reading==='しょう'));
+  assert.ok(furigana.molecules['sulfur-dioxide'].some(([,surface,reading])=>surface==='雨'&&reading==='う'));
+});
