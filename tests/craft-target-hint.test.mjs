@@ -87,3 +87,16 @@ test('saturated repeated-element endpoints are pruned before constrained embeddi
  assert.ok(stats.candidateAssignments<5000,`candidate assignments regressed: ${stats.candidateAssignments}`);
  assert.ok(stats.capacityPrunes>=400,`expected saturated endpoint pruning, got ${stats.capacityPrunes}`);
 });
+
+test('TNT with a placed methyl group and all loose atoms avoids factorial hint search',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const records=JSON.parse(await readFile(new URL('../data/molecules.json',import.meta.url),'utf8'));
+ const tnt=records.find(record=>record.id==='2-4-6-trinitrotoluene');
+ assert.ok(tnt);
+ const methylIndices=[6,18,19,20],order=[...methylIndices,...tnt.atoms.map((_,index)=>index).filter(index=>!methylIndices.includes(index))];
+ const workspace=graph(order.map(index=>tnt.atoms[index]),[[0,1,1],[0,2,1],[0,3,1]]);
+ const stats={},result=hint(tnt,workspace,{stats});
+ assert.ok(result,'a compatible TNT bond must remain available');
+ assert.ok(stats.recursiveVisits<20000,`TNT hint visited too many states: ${stats.recursiveVisits}`);
+ assert.ok(stats.candidateAssignments<100000,`TNT hint assignments regressed: ${stats.candidateAssignments}`);
+});
