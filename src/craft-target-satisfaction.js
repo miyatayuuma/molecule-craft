@@ -35,14 +35,44 @@ export function matchCraftTarget(target,pieces,workspace){
     if(!match)continue;claimedComponents.add(match.index);satisfiedOccurrences.add(occurrence.index);satisfiedPieces.push(occurrence.piece);
     occurrence.indices.forEach((targetIndex,local)=>{const workspaceIndex=match.mapping[local],atom=workspaceAtoms[workspaceIndex];claimedWorkspace.add(workspaceIndex);claimedTargets.add(targetIndex);assignments.push({targetIndex,workspaceAtomId:atom.id});});
   }
-  // Reserve already present material for remaining pieces in a stable order.
-  for(const occurrence of occurrences){if(satisfiedOccurrences.has(occurrence.index))continue;const missing=[],secured=[];let overlapsClaimedTarget=false;
-    for(const index of occurrence.indices){if(claimedTargets.has(index)){overlapsClaimedTarget=true;continue;}const element=targetAtoms[index]?.element,queue=available.get(element),atom=queue?.find(candidate=>!claimedWorkspace.has(workspaceAtoms.indexOf(candidate)));
-      if(atom){const workspaceIndex=workspaceAtoms.indexOf(atom);claimedWorkspace.add(workspaceIndex);claimedTargets.add(index);assignments.push({targetIndex:index,workspaceAtomId:atom.id});secured.push(index);}else missing.push(index);
+  // Keep standalone material assignments independent of the placement order.
+  // A loose carbon placed before TNT's methyl part belongs to a standalone C
+  // slot first; it must not make the still-available methyl shortcut disappear.
+  const pending=new Map();
+  function reserve(occurrence){
+    const missing=[],secured=[];let overlapsClaimedTarget=false;
+    for(const index of occurrence.indices){
+      if(claimedTargets.has(index)){overlapsClaimedTarget=true;continue;}
+      const element=targetAtoms[index]?.element,queue=available.get(element);
+      const atom=queue?.find(candidate=>!claimedWorkspace.has(workspaceAtoms.indexOf(candidate)));
+      if(atom){
+        const workspaceIndex=workspaceAtoms.indexOf(atom);
+        claimedWorkspace.add(workspaceIndex);claimedTargets.add(index);
+        assignments.push({targetIndex:index,workspaceAtomId:atom.id});secured.push(index);
+      }else missing.push(index);
     }
-    if(!missing.length){if(occurrence.piece.partId&&!overlapsClaimedTarget)satisfiedPieces.push(occurrence.piece);else if(overlapsClaimedTarget)unsatisfiedPieces.push(occurrence.piece);continue;}
+    pending.set(occurrence.index,{missing,secured,overlapsClaimedTarget});
+  }
+  for(const occurrence of occurrences)if(!satisfiedOccurrences.has(occurrence.index)&&!occurrence.piece?.partId)reserve(occurrence);
+  for(const occurrence of occurrences)if(!satisfiedOccurrences.has(occurrence.index)&&occurrence.piece?.partId)reserve(occurrence);
+
+  // Present in canonical decomposition order even though standalone atoms were
+  // reserved first. Part cards stay whole; partial parts expose the remaining
+  // atoms without silently replacing their identity.
+  for(const occurrence of occurrences){
+    if(satisfiedOccurrences.has(occurrence.index))continue;
+    const {missing,secured,overlapsClaimedTarget}=pending.get(occurrence.index);
+    if(!missing.length){
+      if(occurrence.piece.partId&&!overlapsClaimedTarget)satisfiedPieces.push(occurrence.piece);
+      else if(overlapsClaimedTarget)unsatisfiedPieces.push(occurrence.piece);
+      continue;
+    }
     if(!secured.length){unsatisfiedPieces.push(occurrence.piece);continue;}
-    for(const index of missing){const element=targetAtoms[index]?.element;if(element)unsatisfiedPieces.push({partId:null,element,atomIndices:[index]});}
+    if(occurrence.piece.partId){
+      unsatisfiedPieces.push({...occurrence.piece,incomplete:true,missingAtoms:missing.map(index=>({partId:null,element:targetAtoms[index].element,atomIndices:[index]}))});
+    }else{
+      for(const index of missing){const element=targetAtoms[index]?.element;if(element)unsatisfiedPieces.push({partId:null,element,atomIndices:[index]});}
+    }
   }
   assignments.sort((a,b)=>a.targetIndex-b.targetIndex||compare(a.workspaceAtomId,b.workspaceAtomId));
   return{satisfiedPieces,unsatisfiedPieces,assignments};
