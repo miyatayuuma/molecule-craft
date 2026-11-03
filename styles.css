@@ -598,3 +598,35 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 #collection-dialog .dex-description .dex-glossary-term:focus-visible{outline:2px solid #a6f1e5;outline-offset:3px;border-radius:2px}
 #collection-dialog .dex-glossary-popup{position:fixed;z-index:20;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;max-width:calc(100vw - 24px);padding:11px 14px;background:#25434d;color:#eafbf7;border:1px solid #78cbbf;border-radius:12px;box-shadow:0 10px 28px #000a;font-size:14px;line-height:1.6;overflow-wrap:anywhere;pointer-events:auto}
 #collection-dialog .dex-glossary-popup strong{font-size:15px;color:#aff5e9}
+
+
+/* Reaction atlas: legible particles and persistent atom identities.
+   Central reaction bonds stay within the canvas; outer decorative atoms may clip. */
+.rb-group-preview{background:linear-gradient(105deg,#142b3c,#1f3b4b);overflow:hidden}
+.rb-group-preview svg{height:70px;max-height:70px}
+.rb-group-preview .rb-schem-atom{
+ animation:rb-schem-move var(--rb-cycle,5.6s) ease-in-out infinite;
+ transform-origin:0 0;
+}
+.rb-group-preview .rb-schem-before{animation:rb-schem-before var(--rb-cycle,5.6s) linear infinite}
+.rb-group-preview .rb-schem-after{animation:rb-schem-after var(--rb-cycle,5.6s) linear infinite}
+@keyframes rb-schem-move{
+ 0%,26%{transform:translate(0,0)}
+ 57%,100%{transform:translate(var(--rb-dx,0px),var(--rb-dy,0px))}
+}
+@keyframes rb-schem-before{0%,26%{opacity:1}43%,100%{opacity:0}}
+@keyframes rb-schem-after{0%,40%{opacity:0}58%,100%{opacity:1}}
+/* A whole-model preview needs the full card width, not the retired two-column diagram/legend grid. */
+.rb-reaction-thumb.rb-reaction-thumb-models{display:block;width:100%;padding:7px 8px}
+.rb-reaction-thumb-models .rb-reaction-assets{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);gap:4px}
+.rb-reaction-thumb-models .rb-reaction-side{gap:4px}
+.rb-reaction-thumb-models .rb-reaction-side img{width:80px;flex:0 1 80px;max-width:100%;height:80px}
+.rb-reaction-thumb-models .rb-arrow{font-size:21px}
+@media(max-width:480px){
+ .rb-reaction-thumb-models .rb-reaction-side img{width:65px;flex-basis:65px;height:69px}
+}
+@media(prefers-reduced-motion:reduce){
+ .rb-group-preview .rb-schem-atom{animation:none!important;transform:translate(var(--rb-dx,0px),var(--rb-dy,0px))}
+ .rb-group-preview .rb-schem-before{animation:none!important;opacity:0}
+ .rb-group-preview .rb-schem-after{animation:none!important;opacity:1}
+}
