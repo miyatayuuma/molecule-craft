@@ -10,7 +10,7 @@ const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.js
 const reconstruct=segments=>segments.map(item=>item.text).join('');
 
 test('all 142 molecule summaries have exact, non-overlapping kana readings',()=>{
-  assert.equal(furigana.schemaVersion,1);
+  assert.equal(furigana.schemaVersion,2);
   assert.deepEqual(Object.keys(furigana.molecules).sort(),Object.keys(encyclopedia.molecules).sort());
   for(const [id,entry] of Object.entries(encyclopedia.molecules)){
     const {description}=entry,annotations=furigana.molecules[id];
@@ -19,7 +19,7 @@ test('all 142 molecule summaries have exact, non-overlapping kana readings',()=>
     for(const [offset,surface,reading] of annotations){
       assert.ok(Number.isInteger(offset)&&offset>=end,`${id}: reading overlaps`);
       assert.equal(description.slice(offset,offset+surface.length),surface,`${id}: source text changed`);
-      assert.match(surface,/[一-龯々]/u,`${id}: expected a kanji`);
+      assert.match(surface,/^[一-龯々]+$/u,`${id}: ruby must cover Kanji only`);
       assert.match(reading,/^[ぁ-ゖー]+$/u,`${id}: expected a hiragana reading`);
       end=offset+surface.length;
     }
@@ -84,6 +84,7 @@ test('all 17 part descriptions have intact readings and no glossary/link gaps',(
     for(const [offset,surface,reading] of annotations){
       assert.ok(Number.isInteger(offset)&&offset>=previousEnd,id);
       assert.equal(description.slice(offset,offset+surface.length),surface,id);
+      assert.match(surface,/^[一-龯々]+$/u,`${id}: ruby must cover Kanji only`);
       assert.match(reading,/^[ぁ-ゖー]+$/u,id);
       previousEnd=offset+surface.length;
     }
@@ -107,4 +108,48 @@ test('all 17 part descriptions have intact readings and no glossary/link gaps',(
   }
   const aldehyde=furigana.parts.aldehyde;
   assert.ok(aldehyde.some(([,surface,reading])=>surface==='基'&&reading==='き'));
+});
+
+test('all kanji in both catalog summaries have readings and every functional-group 基 reads き',()=>{
+  for(const kind of ['molecules','parts']){
+    for(const [id,{description}] of Object.entries(encyclopedia[kind])){
+      const covered=new Set();
+      for(const [offset,surface,reading] of furigana[kind][id]){
+        if(surface==='基')assert.equal(reading,'き',id);
+        for(let i=0;i<surface.length;i++)covered.add(offset+i);
+      }
+      for(let i=0;i<description.length;i++){
+        if(/[一-龯々]/u.test(description[i]))assert.ok(covered.has(i),`${kind}:${id}: Kanji without reading at ${i}`);
+      }
+    }
+  }
+});
+
+test('glossary popup descriptions have complete Kanji-only furigana',()=>{
+  const glossarySource=readFileSync(new URL('../src/encyclopedia-glossary.js',import.meta.url),'utf8');
+  const definitions=[...glossarySource.matchAll(/^\s*\['([^']+)','([^']+)',[12]\],?$/gm)];
+  assert.ok(definitions.length>=90);
+  assert.deepEqual(Object.keys(furigana.glossary).sort(),definitions.map(item=>item[1]).sort());
+  for(const [,word,meaning] of definitions){
+    const annotations=furigana.glossary[word],covered=new Set();
+    let end=0;
+    for(const [offset,surface,reading] of annotations){
+      assert.ok(offset>=end,`${word}: overlapping ruby`);
+      assert.equal(meaning.slice(offset,offset+surface.length),surface,word);
+      assert.match(surface,/^[一-龯々]+$/u,`${word}: kana inside ruby`);
+      assert.match(reading,/^[ぁ-ゖー]+$/u,word);
+      for(let i=0;i<surface.length;i++)covered.add(offset+i);
+      end=offset+surface.length;
+    }
+    for(let i=0;i<meaning.length;i++){
+      if(/[一-龯々]/u.test(meaning[i]))assert.ok(covered.has(i),`${word}: no reading at ${i}`);
+    }
+    assert.equal(reconstruct(furiganaSegmentsForRange(meaning,annotations)),meaning,word);
+  }
+});
+
+test('unfamiliar everyday vocabulary such as 不凍液 now opens an explanation',()=>{
+  const found=moleculeSummaryGlossarySegments('不凍液は液化した材料と違う');
+  assert.ok(found.some(item=>item.kind==='term'&&item.text==='不凍液'));
+  assert.ok(found.some(item=>item.kind==='term'&&item.text==='液化'));
 });
