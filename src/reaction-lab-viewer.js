@@ -1316,11 +1316,21 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   }
   function advanceProductPreparation(animation,elapsedMs){
     if(!animation.correspondence.ok)animation.targetPreparationFailed='invalid-core-atom-mapping';
-    const start=performance.now(),taskCount=animation.products.length*2;let cursor=animation.preparationCursor??0,spins=0;
-    while(taskCount&&performance.now()-start<2.5&&spins<taskCount*12){
-      const task=cursor%taskCount,product=animation.products[Math.floor(task/2)],seed=task%2===0;cursor=(cursor+1)%taskCount;spins++;
-      if(seed&&product.seedPreview){product.seedPreview.step();product.seedSteps++;if(product.seedSteps>=190){product.seedModel=product.seedPreview.snapshot();product.seedQuality=product.seedPreview.quality();product.seedPreview=null;}}
-      else if(!seed&&product.canonicalPreview){product.canonicalPreview.step();product.canonicalSteps++;if(product.canonicalSteps>=190){product.canonicalModel=product.canonicalPreview.snapshot();product.canonicalPreview=null;}}
+    // Solve the source-seeded pose first. A valid pose does not need the
+    // duplicate canonical solve; an invalid seed retains the same fallback.
+    const start=performance.now(),taskCount=animation.products.length;let cursor=animation.preparationCursor??0,spins=0;
+    while(taskCount&&performance.now()-start<2.5&&spins<taskCount*24){
+      const product=animation.products[cursor%taskCount];cursor=(cursor+1)%taskCount;spins++;
+      if(product.seedPreview){
+        product.seedPreview.step();product.seedSteps++;
+        if(product.seedSteps>=190){
+          product.seedModel=product.seedPreview.snapshot();product.seedQuality=product.seedPreview.quality();product.seedPreview=null;
+          if(product.seedQuality?.validation?.valid)product.canonicalPreview=null;
+        }
+      }else if(product.canonicalPreview){
+        product.canonicalPreview.step();product.canonicalSteps++;
+        if(product.canonicalSteps>=190){product.canonicalModel=product.canonicalPreview.snapshot();product.canonicalPreview=null;}
+      }
     }
     animation.preparationCursor=cursor;animation.phaseElapsedMs+=elapsedMs;
     // Keep the per-frame work budget, but never accept a partly settled
@@ -1333,6 +1343,8 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       product.targetPositions=target.points.map(point=>new THREE.Vector3(...point));product.targetGeometry=target.geometry;
       if(!target.ok||!product.model||product.targetPositions.some(point=>![point.x,point.y,point.z].every(Number.isFinite))){product.model=product.canonicalModel??product.seedModel;product.targetPositions=product.sourcePoints.map(point=>point.clone());product.targetGeometry='source-continuity-fallback';animation.targetPreparationFailed=target.reason??'non-finite-target';}
     }
+    // Source spheres are reused by the final product: clear the preparation pulse.
+    for(const mesh of animation.sourceMeshes.values())if(mesh)mesh.scale.setScalar(1);
     setupPresentationVisuals(animation);animation.productTargetsReady=true;animation.phase='TRANSFORMING';animation.phaseElapsedMs=0;updatePresentationFrame(animation,0,0);return true;
   }
   function sourceOrdersAndVisuals(animation){
@@ -1458,7 +1470,17 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   function advanceReactionAnimation(elapsedMs){
     const animation=reactionAnimation;if(!animation)return;animation.elapsedMs+=elapsedMs;
     if(animation.phase==='PREPARING'){
-      if(!animation.productTargetsReady){const ready=advanceProductPreparation(animation,elapsedMs);if(!ready){updatePresentationFrame(animation,0,0);return;}}
+      if(!animation.productTargetsReady){const ready=advanceProductPreparation(animation,elapsedMs);if(!ready){
+        updatePresentationFrame(animation,0,0);
+        if(!reducedMotion){
+          let index=0;
+          for(const mesh of animation.sourceMeshes.values()){
+            if(mesh)mesh.scale.setScalar(1+.06*Math.sin(animation.elapsedMs*.012+index*.68));
+            index++;
+          }
+        }
+        return;
+      }}
       return;
     }
     const phases=reducedMotion?REDUCED_PRESENTATION_PHASES:NORMAL_PRESENTATION_PHASES;
