@@ -30,7 +30,13 @@ export function createConformationEngine({THREE,molecule,solver,positionFor,mode
   const model=()=>modelFor?.()??createTorsionModel(molecule,{aromaticCycles:solver.snapshot().aromaticCycles});
   const plan=(atomId,{activeKey=null}={})=>model().forAtom(atomId,{activeKey,positionFor});
   const copyPose=ids=>solver.captureConformation(ids);
-  const restore=pose=>{const changed=solver.restoreConformation(pose);solver.rebuildTopology({resetFrames:true});return changed;};
+  const copyFrames=()=>solver.captureReferenceFrames();
+  const restore=(pose,frames)=>{
+    const changed=solver.restoreConformation(pose);
+    // A topology edit invalidates stored frame objects; only then rebuild.
+    if(!solver.restoreReferenceFrames(frames))solver.rebuildTopology({resetFrames:true});
+    return changed;
+  };
 
   function beginDrag(atomId,{activeKey=null,preparedPlan=null}={}){
     const dragPlan=preparedPlan??plan(atomId,{activeKey});
@@ -39,9 +45,10 @@ export function createConformationEngine({THREE,molecule,solver,positionFor,mode
     const movableIds=new Set(axes.flatMap(axis=>axis.ids));
     const lockedIds=dragPlan.mode==='rigid-body'?new Set():new Set(molecule.atoms.filter(atom=>dragPlan.scope.has(atom.id)&&!movableIds.has(atom.id)).map(atom=>atom.id));
     const rigidReference=solver.captureRigidReference();
-    const pose=copyPose(dragPlan.scope),validation=solver.validateConformation({ids:dragPlan.scope,rigidReference,mode:'drag'});
+    const pose=copyPose(dragPlan.scope),frames=copyFrames(),validation=solver.validateConformation({ids:dragPlan.scope,rigidReference,mode:'drag'});
     const grabbed=positionFor(atomId)?.clone()??new THREE.Vector3();
-    active={plan:dragPlan,axes,movableIds,lockedIds,rigidReference,lastValid:validation.valid?pose:null,lastPose:pose,
+    active={plan:dragPlan,axes,movableIds,lockedIds,rigidReference,lastValid:validation.valid?pose:null,lastValidFrames:validation.valid?frames:null,
+      lastPose:pose,lastPoseFrames:frames,
       changedAxes:new Set(),angles:new Map(),velocities:new Map(),linearVelocity:new THREE.Vector3(),angularVelocity:new THREE.Vector3(),
       smoothedTarget:grabbed.clone(),elapsed:0,updates:0,rollbacks:0,lastValidation:validation};
     return active;
@@ -110,17 +117,17 @@ export function createConformationEngine({THREE,molecule,solver,positionFor,mode
 
   function updateDrag(target,{deltaSeconds=1/60}={}){
     if(!active||!target||![target.x,target.y,target.z].every(Number.isFinite)){
-      if(active?.lastValid){restore(active.lastValid);active.rollbacks++;}
+      if(active?.lastValid){restore(active.lastValid,active.lastValidFrames);active.rollbacks++;}
       return{accepted:false,rolledBack:!!active,lastValidation:active?.lastValidation??null};
     }
     deltaSeconds=THREE.MathUtils.clamp(Number.isFinite(deltaSeconds)?deltaSeconds:1/60,1/240,1/20);
-    const before=copyPose(active.plan.scope),beforeDistance=positionFor(active.plan.atomId)?.distanceTo(target)??Infinity;
+    const before=copyPose(active.plan.scope),beforeFrames=copyFrames(),beforeDistance=positionFor(active.plan.atomId)?.distanceTo(target)??Infinity;
     const changedBefore=new Set(active.changedAxes),anglesBefore=new Map(active.angles),velocitiesBefore=new Map(active.velocities),
       linearBefore=active.linearVelocity.clone(),angularBefore=active.angularVelocity.clone(),targetBefore=active.smoothedTarget.clone(),elapsedBefore=active.elapsed;
     active.elapsed+=deltaSeconds;active.smoothedTarget.lerp(target,1-Math.exp(-policy.targetResponse*deltaSeconds));
     let firstAttempt=true;
     for(const scale of policy.attemptScales){
-      if(!firstAttempt)restore(before);
+      if(!firstAttempt)restore(before,beforeFrames);
       firstAttempt=false;
       active.changedAxes=new Set(changedBefore);active.angles=new Map(anglesBefore);active.velocities=new Map(velocitiesBefore);
       active.linearVelocity.copy(linearBefore);active.angularVelocity.copy(angularBefore);
@@ -138,13 +145,15 @@ export function createConformationEngine({THREE,molecule,solver,positionFor,mode
       if(active.plan.mode!=='rigid-body')solver.step(policy.projectionStrength,1,{lockedIds:active.lockedIds,activeIds:active.plan.scope});
       const validation=solver.validateConformation({ids:active.plan.scope,rigidReference:active.rigidReference,mode:'drag'});
       if(validation.valid){
-        active.lastPose=copyPose(active.plan.scope);active.lastValid=active.lastPose;active.lastValidation=validation;active.updates++;
+        active.lastPose=copyPose(active.plan.scope);active.lastPoseFrames=copyFrames();
+        active.lastValid=active.lastPose;active.lastValidFrames=active.lastPoseFrames;active.lastValidation=validation;active.updates++;
         return{accepted:true,rolledBack:false,validation,beforeDistance,afterDistance:positionFor(active.plan.atomId)?.distanceTo(target)??Infinity,
           changedAxes:new Set(active.changedAxes),angles:new Map(active.angles)};
       }
       active.lastValidation=validation;
     }
-    restore(active.lastValid??before);active.changedAxes=changedBefore;active.angles=anglesBefore;active.velocities=velocitiesBefore;
+    restore(active.lastValid??before,active.lastValidFrames??beforeFrames);
+    active.changedAxes=changedBefore;active.angles=anglesBefore;active.velocities=velocitiesBefore;
     active.linearVelocity.copy(linearBefore);active.angularVelocity.copy(angularBefore);active.smoothedTarget.copy(targetBefore);active.elapsed=elapsedBefore;active.rollbacks++;
     active.lastValidation=solver.validateConformation({ids:active.plan.scope,rigidReference:active.rigidReference,mode:'drag'});
     return{accepted:false,rolledBack:true,validation:active.lastValidation,beforeDistance,
@@ -153,20 +162,22 @@ export function createConformationEngine({THREE,molecule,solver,positionFor,mode
 
   function rotateDrag(angle){
     if(!active||active.plan.mode!=='torsion'||!Number.isFinite(angle))return{accepted:false,rolledBack:false,validation:active?.lastValidation??null};
-    const before=copyPose(active.plan.scope),changedBefore=new Set(active.changedAxes),anglesBefore=new Map(active.angles);
+    const before=copyPose(active.plan.scope),beforeFrames=copyFrames(),changedBefore=new Set(active.changedAxes),anglesBefore=new Map(active.angles);
     let firstAttempt=true;
     for(const scale of policy.attemptScales){
-      if(!firstAttempt)restore(before);
+      if(!firstAttempt)restore(before,beforeFrames);
       firstAttempt=false;active.changedAxes=new Set(changedBefore);active.angles=new Map(anglesBefore);
       applyAxis(active.axes[0],angle*scale);solver.step(policy.projectionStrength,1,{lockedIds:active.lockedIds,activeIds:active.plan.scope});
       const validation=solver.validateConformation({ids:active.plan.scope,rigidReference:active.rigidReference,mode:'drag'});
       if(validation.valid){
-        active.lastPose=copyPose(active.plan.scope);active.lastValid=active.lastPose;active.lastValidation=validation;active.updates++;
+        active.lastPose=copyPose(active.plan.scope);active.lastPoseFrames=copyFrames();
+        active.lastValid=active.lastPose;active.lastValidFrames=active.lastPoseFrames;active.lastValidation=validation;active.updates++;
         return{accepted:true,rolledBack:false,validation,changedAxes:new Set(active.changedAxes),angles:new Map(active.angles)};
       }
       active.lastValidation=validation;
     }
-    restore(active.lastValid??before);active.changedAxes=changedBefore;active.angles=anglesBefore;active.rollbacks++;
+    restore(active.lastValid??before,active.lastValidFrames??beforeFrames);
+    active.changedAxes=changedBefore;active.angles=anglesBefore;active.rollbacks++;
     active.lastValidation=solver.validateConformation({ids:active.plan.scope,rigidReference:active.rigidReference,mode:'drag'});
     return{accepted:false,rolledBack:true,validation:active.lastValidation,changedAxes:new Set(active.changedAxes),angles:new Map(active.angles)};
   }
@@ -181,7 +192,7 @@ export function createConformationEngine({THREE,molecule,solver,positionFor,mode
 
   function rollback(){
     if(!active)return false;
-    const restored=restore(active.lastValid??active.lastPose);active.rollbacks++;
+    const restored=restore(active.lastValid??active.lastPose,active.lastValidFrames??active.lastPoseFrames);active.rollbacks++;
     active.lastValidation=solver.validateConformation({ids:active.plan.scope,rigidReference:active.rigidReference,mode:'drag'});
     return restored;
   }

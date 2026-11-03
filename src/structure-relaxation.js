@@ -14,6 +14,7 @@ export function createStructureSolver({
   enforceAromaticGeometryContract = false,
 }) {
   let dirty = true;
+  let topologyGeneration = 0;
   let cycles = [];
   let aromaticCycles = [];
   let aromaticCycleKeys = new Set();
@@ -169,6 +170,7 @@ export function createStructureSolver({
       }
     }
     dirty = false;
+    topologyGeneration++;
   }
 
   // Assign distinct axial/equatorial sites once per topology, never a single
@@ -605,6 +607,21 @@ export function createStructureSolver({
     if(!(snapshot instanceof Map))return false;let restored=false;
     for(const[id,point]of snapshot){if(!pos(id)||!point)continue;pos(id).copy(point);restored=true;}
     return restored;
+  }
+
+  // Drag retries change coordinates and reference plane normals, never bonds.
+  // Keep the frame objects paired with their topology generation so a rejected
+  // attempt can restore its exact starting constraints without graph traversal.
+  function captureReferenceFrames(){
+    if(dirty)rebuildTopology();
+    const frames=[...doubleFrames.values(),...trigonalFrames.values(),...aromaticFrames.values(),...conjugatedPlanarFragments];
+    return{generation:topologyGeneration,normals:frames.map(frame=>[frame,frame.normal.clone()])};
+  }
+
+  function restoreReferenceFrames(reference){
+    if(dirty||!reference||reference.generation!==topologyGeneration)return false;
+    for(const[frame,normal]of reference.normals)frame.normal.copy(normal);
+    return true;
   }
 
   function validateConformation({ids=null,rigidReference=null,mode='release'}={}){
@@ -1424,6 +1441,6 @@ export function createStructureSolver({
     };
   }
 
-  return {step,measureError,validateConformation,captureConformation,restoreConformation,captureRigidReference,
-    markTopologyDirty,rebuildTopology,rotateReferenceFrames,snapshot};
+  return {step,measureError,validateConformation,captureConformation,restoreConformation,captureReferenceFrames,restoreReferenceFrames,
+    captureRigidReference,markTopologyDirty,rebuildTopology,rotateReferenceFrames,snapshot};
 }
