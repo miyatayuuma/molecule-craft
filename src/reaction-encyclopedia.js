@@ -61,6 +61,58 @@ export function reactionGroups(authority,progress){
   }
   return {entries,groups:[...groups].map(([id,items])=>({id,label:LABELS[id],items})),verified:new Set(entries.filter(e=>progress.getState(e.reactionId)==='verified').map(e=>e.reactionId)).size};
 }
+
+const STAR_POINTS='12,1 15.3,8.2 23.2,9.2 17.5,14.8 18.9,22.8 12,19 5.1,22.8 6.5,14.8 .8,9.2 8.7,8.2';
+function starIcon(filled){
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.classList.add('reaction-progress-star');
+  if(filled)svg.classList.add('is-filled');
+  const shape=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+  shape.setAttribute('points',STAR_POINTS);svg.append(shape);return svg;
+}
+export function updateReactionStars(host,done,total){
+  const count=Math.max(0,Math.min(total,done));
+  host.className='reaction-book-group-count';
+  host.setAttribute('aria-label',`実証済み ${count} / ${total} 経路`);
+  host.dataset.done=String(count);host.dataset.total=String(total);
+  host.replaceChildren();
+  if(total<=7){
+    for(let n=0;n<total;n++)host.append(starIcon(n<count));
+  }else{
+    const mark=starIcon(true),numbers=document.createElement('span'),meter=document.createElement('span'),fill=document.createElement('span');
+    numbers.textContent=`${count}/${total}`;meter.className='reaction-progress-meter';fill.className='reaction-progress-meter-fill';
+    fill.style.width=`${total?100*count/total:0}%`;meter.append(fill);host.append(mark,numbers,meter);
+  }
+}
+export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},reducedMotion=false}={}){
+  const entries=[...new Set(tags)].map(tag=>{
+    const card=[...host.querySelectorAll('[data-reaction-group]')].find(node=>node.dataset.reactionGroup===tag);
+    const stars=card?.querySelector('.reaction-book-group-count'),done=Number(stars?.dataset.done),total=Number(stars?.dataset.total);
+    return card&&stars&&done>0?{card,stars,done,total}:null;
+  }).filter(Boolean);
+  for(const entry of entries)updateReactionStars(entry.stars,entry.done-1,entry.total);
+  let cancelled=false,timer=null,index=0;
+  const finish=(status='presented')=>{
+    if(cancelled)return;cancelled=true;if(timer!==null)clearTimeout(timer);
+    for(const entry of entries){updateReactionStars(entry.stars,entry.done,entry.total);entry.card.classList.remove('reaction-award-focus');}
+    onSettled({status});
+  };
+  const step=()=>{
+    if(cancelled)return;
+    if(index>=entries.length){finish();return;}
+    const item=entries[index++];
+    item.card.scrollIntoView?.({block:'center',behavior:reducedMotion?'auto':'smooth'});
+    item.card.classList.add('reaction-award-focus');
+    timer=setTimeout(()=>{
+      if(cancelled)return;
+      updateReactionStars(item.stars,item.done,item.total);item.card.classList.add('reaction-award-earned');
+      timer=setTimeout(()=>{item.card.classList.remove('reaction-award-focus','reaction-award-earned');step();},reducedMotion?80:420);
+    },reducedMotion?30:250);
+  };
+  if(entries.length)step();else queueMicrotask(()=>finish());
+  return {skip:()=>finish(),cancel:()=>{cancelled=true;if(timer!==null)clearTimeout(timer);for(const entry of entries){updateReactionStars(entry.stars,entry.done,entry.total);entry.card.classList.remove('reaction-award-focus','reaction-award-earned');}}};
+}
+
 export function renderReactionBook({host,authority,progress,records,polymerRecords,onTry=()=>{}}){
   const make=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;return el;};
   const button=(text,fn)=>{const el=make('button',text);el.type='button';el.addEventListener('click',fn);return el;};
@@ -85,7 +137,8 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
       control.className='reaction-book-group';
       const label=make('span','');label.className='reaction-book-group-label';
       const name=make('span',group.label);name.className='reaction-book-group-name';
-      const count=make('span',`${done} / ${group.items.length}`);count.className='reaction-book-group-count';
+      const count=make('span','');updateReactionStars(count,done,group.items.length);
+      control.dataset.reactionGroup=group.id;
       label.append(name,count);
       control.append(label);
       const preview=createReactionGroupPreview(group.id);

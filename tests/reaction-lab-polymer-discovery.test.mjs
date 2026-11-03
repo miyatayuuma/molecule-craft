@@ -12,6 +12,7 @@ function harness(knownPolymers=[],knownMolecules=[]){
     registerDiscoveredPolymer(id,{at}){const changed=!polymers.has(id);polymers.add(id);const result={changed,event:{isNew:changed,at}};registrations.push({kind:'polymers',id,at,result});return result;},
     registerDiscoveredMolecule(id,{at}){const changed=!molecules.has(id);molecules.add(id);const result={changed,event:{isNew:changed,at}};registrations.push({kind:'molecules',id,at,result});return result;},
     setDiscoverySession(value){view=value;},isOpen:()=>collectionOpen,closeAndWait(){collectionOpen=false;return Promise.resolve();},
+    openPolymerAward(id,{onSettled}){presentations.push({kind:'polymers',id});collectionOpen=true;onSettled({status:'presented'});return true;},
   };
   const coordinator=createReactionLabDiscoveryCoordinator({records,polymerRoutes:authority.routes,polymerIds:(awaitlessPolymers()),collection,now:()=>1700,isLabOpen:()=>labOpen,getBatchGeneration:()=>7,
     closeLabAndWait:async()=>{labOpen=false;},openLab:()=>{labOpen=true;return true;},present:options=>{presentations.push(options);collectionOpen=true;return true;},onDiagnostic:item=>diagnostics.push(item)});
@@ -26,22 +27,35 @@ test('PolymerSample preflight validates route, identity, source partition, and c
   assert.equal(validatePolymerSampleEvent(bad,{recordsById:new Map(records.map(record=>[record.id,record])),polymerIds:new Set(authority.routes.map(route=>route.polymerId)),routesById:new Map(authority.routes.map(route=>[route.routeId,route]))}).ok,false);
 });
 
-test('polymer and byproducts register immediately without suspending Lab growth or opening Collection',async()=>{
+
+test('polymer registration is immediate; after grown-sample presentation, Collection reveals byproducts then polymer',async()=>{
   const h=harness(),payload=product();
   const registered=h.coordinator.handlePolymerSampleEvent(payload);
-  assert.equal(registered.accepted,true);assert.deepEqual(h.registrations.map(row=>[row.kind,row.id]),[['polymers','polyethylene-terephthalate'],['molecules','water']]);
+  assert.equal(registered.accepted,true);
+  assert.deepEqual(h.registrations.map(row=>[row.kind,row.id]),[['polymers','polyethylene-terephthalate'],['molecules','water']]);
   assert.deepEqual(h.coordinator.snapshot().queue,[]);
-  const presented=h.coordinator.handlePolymerSamplePresent({sampleId:payload.sampleId,batchGeneration:payload.batchGeneration});await flush();
-  assert.equal(presented.accepted,true);assert.deepEqual(presented.newEntries,[]);
-  assert.deepEqual(h.presentations,[]);assert.equal(h.collectionOpen,false);assert.equal(h.view,null);
+  const presented=h.coordinator.handlePolymerSamplePresent({sampleId:payload.sampleId,batchGeneration:payload.batchGeneration});
+  assert.equal(presented.accepted,true);
+  assert.deepEqual(presented.newEntries.map(x=>x.kind),['molecules','polymers']);
+  await new Promise(resolve=>setTimeout(resolve,710));
+  assert.equal(h.presentations[0].id,'water');
+  h.presentations[0].onSettled({status:'presented'});h.view.onNext();await flush();
+  assert.equal(h.presentations[1].kind,'polymers');
+  assert.equal(h.presentations[1].id,'polyethylene-terephthalate');
+  assert.equal(h.collectionOpen,true);
   assert.ok(h.polymers.has(pet.polymerId)&&h.molecules.has('water'));
 });
 
-test('known entries are omitted and all-known samples never open Collection',async()=>{
-  const payload=product(),polymerKnown=harness([pet.polymerId],[]);polymerKnown.coordinator.handlePolymerSampleEvent(payload);polymerKnown.coordinator.handlePolymerSamplePresent({sampleId:payload.sampleId,batchGeneration:7});await flush();
-  assert.deepEqual(polymerKnown.coordinator.snapshot().queue,[]);assert.equal(polymerKnown.presentations.length,0);assert.ok(polymerKnown.molecules.has('water'));
-  const allKnown=harness([pet.polymerId],['water']);allKnown.coordinator.handlePolymerSampleEvent(payload);allKnown.coordinator.handlePolymerSamplePresent({sampleId:payload.sampleId,batchGeneration:7});await flush();
-  assert.deepEqual(allKnown.coordinator.snapshot().queue,[]);assert.equal(allKnown.presentations.length,0);
+test('known entries are omitted, while all-known samples never open Collection',async()=>{
+  const payload=product(),polymerKnown=harness([pet.polymerId],[]);
+  polymerKnown.coordinator.handlePolymerSampleEvent(payload);
+  polymerKnown.coordinator.handlePolymerSamplePresent({sampleId:payload.sampleId,batchGeneration:7});
+  await new Promise(resolve=>setTimeout(resolve,710));
+  assert.equal(polymerKnown.presentations.length,1);assert.equal(polymerKnown.presentations[0].id,'water');
+  const allKnown=harness([pet.polymerId],['water']);
+  allKnown.coordinator.handlePolymerSampleEvent(payload);
+  allKnown.coordinator.handlePolymerSamplePresent({sampleId:payload.sampleId,batchGeneration:7});
+  await flush();assert.deepEqual(allKnown.coordinator.snapshot().queue,[]);assert.equal(allKnown.presentations.length,0);
 });
 
 test('manual Lab close dismisses a registered sample before visible hold without undoing registration',()=>{

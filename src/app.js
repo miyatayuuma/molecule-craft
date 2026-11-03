@@ -32,7 +32,7 @@ import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js
 import { observeCraftStereo } from './stereo-observation.js?v=1';
 import { createTearGesture, findTearCandidate, projectedTearPull } from './craft-tearoff.js?v=1';
 import { captureDetachedFragment, createDetachedDrag } from './craft-detached-drag.js?v=1';
-import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=4';
+import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=5';
 import { createReactionCatalogAuthority } from './reaction-catalog-authority.js?v=1';
 import { createReactionProgress } from './reaction-progress.js?v=1';
 import { startGamepadUi } from './gamepad-input.js';
@@ -133,7 +133,7 @@ loadMoleculeDatabase().then(async result=>{
       const reactionProgress=createReactionProgress({storage:reactionStorage,authority:reactionAuthority,legacyPolymerEntries:collectionGame.polymerState.entries(),onChange:()=>{veilUI?.refreshPendingRecipes?.();collectionGame?.refreshReactionProgress?.();},onStatus:text=>{const node=document.querySelector('#game-save-status');if(node){node.dataset.reactionStatus=text;const messages=[node.dataset.collectionStatus,text].filter(Boolean);node.textContent=messages.join('　');node.hidden=!messages.length;labWarning.textContent=node.textContent;labWarning.hidden=node.hidden;}}});
       collectionGame.reactionAuthority=reactionAuthority;collectionGame.reactionProgress=reactionProgress;collectionGame.setReactionProgress(reactionAuthority,reactionProgress);const openReactionGuide=async id=>{const entry=reactionAuthority.get(id);if(!entry||reactionProgress.getState(id)==='notFound')return;await collectionGame.closeAndWait();reactionLabViewer.openGuide(entry);};collectionGame.setReactionGuideHandler(openReactionGuide);void veilUI.configureReactionRecipes({authority:reactionAuthority,progress:reactionProgress,collection:collectionGame.state,records:moleculeCatalog(),polymerNameFor:collectionGame.polymerNameFor,onTryReaction:openReactionGuide});
       reactionLabDiscovery=createReactionLabDiscoveryCoordinator({reactionAuthority,reactionProgress,records:moleculeCatalog(),polymerRoutes:collectionGame.polymerRoutes,polymerIds:collectionGame.polymerRoutes.map(route=>route.polymerId),collection:collectionGame,root:document,
-        closeLabAndWait:()=>reactionLabViewer.closeAndWait({preserveState:true}),openLab:()=>reactionLabViewer.open(),isLabOpen:()=>reactionLabViewer.isOpen(),getBatchGeneration:()=>reactionLabViewer.getBatchGeneration(),
+        closeLabAndWait:()=>reactionLabViewer.closeAndWait({preserveState:false}),openLab:()=>reactionLabViewer.open(),isLabOpen:()=>reactionLabViewer.isOpen(),getBatchGeneration:()=>reactionLabViewer.getBatchGeneration(),
         getFocus:()=>document.activeElement,onVibrate:()=>vibrateFeedback(22,'touch')});
       window.addEventListener('molecule-craft:reaction-lab-product',event=>reactionLabDiscovery?.handleProductEvent(event));
       window.addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>reactionLabDiscovery?.handlePolymerSampleEvent(event));

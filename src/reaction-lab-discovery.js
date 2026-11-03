@@ -1,4 +1,4 @@
-import {presentFirstRegistration} from './collection-registration-reveal.js?v=3';
+import {presentFirstRegistration} from './collection-registration-reveal.js?v=4';
 
 const isNonEmptyString=value=>typeof value==='string'&&value.trim().length>0;
 
@@ -66,16 +66,13 @@ export function createReactionLabDiscoveryCoordinator({
   const polymerSamples=new Map(),dismissedSampleIds=new Set();
 
   function diagnostic(code,message,extra={}){onDiagnostic({code,message,...extra});}
-  function sessionItems(){return session?.items??[];}
   function updateSessionControl(ready=session?.current?.status==='presented'){
-    if(!session||session.state!=='presenting')return;
-    const current=session.current;
-    if(!current)return;
-    for(const item of session.items)if(item.status==='pending'&&getBatchGeneration()!==item.batchGeneration)item.status='stale';
+    if(!session||session.state!=='presenting'||!session.current)return;
+    const current=session.current,hasNext=session.items.some(item=>item.status==='pending');
     const total=session.items.filter(item=>['pending','active','presented'].includes(item.status)).length;
-    const hasNext=session.items.some(item=>item.status==='pending');
     collection?.setDiscoverySession?.({
-      kind:current.kind??'molecules',id:current.id??current.speciesId,speciesId:current.speciesId,index:session.displayIndex,total:Math.max(total,session.displayIndex),ready:!!ready,hasNext,
+      kind:current.kind??'molecules',id:current.id??current.speciesId,speciesId:current.speciesId,
+      index:session.displayIndex,total:Math.max(total,session.displayIndex),ready:!!ready,hasNext,
       onNext:advance,onReturn:finishSession,
     });
   }
@@ -87,43 +84,49 @@ export function createReactionLabDiscoveryCoordinator({
   async function startSession(){
     if(session||!queue.some(item=>item.status==='pending'))return;
     const items=queue.filter(item=>item.status==='pending');
-    session={state:'suspending',items,current:null,displayIndex:0,returnToLab:!!isLabOpen(),focusTarget:getFocus(),resumeScheduled:false};
+    // Check the live generation before closing. Normal close intentionally invalidates it.
+    const currentGeneration=getBatchGeneration();
+    for(const item of items)if(item.batchGeneration!==currentGeneration)item.status='stale';
+    if(!items.some(item=>item.status==='pending'))return;
+    session={state:'suspending',items,current:null,displayIndex:0};
     try{await closeLabAndWait();}
-    catch(error){markPending(session?.items??items,'failed');diagnostic('lab-suspend-failed','Reaction Lab could not be safely suspended for discovery presentation.',{error:String(error?.message??error)});session=null;return;}
+    catch(error){markPending(items,'failed');diagnostic('lab-suspend-failed','LAB could not close for discovery presentation.',{error:String(error?.message??error)});session=null;return;}
     if(!session||session.state!=='suspending')return;
-    for(const item of items)if(item.status==='pending'&&getBatchGeneration()!==item.batchGeneration)item.status='stale';
-    if(!items.some(item=>item.status==='pending')){await resumeSession();return;}
-    session.state='presenting';
-    beginNextPresentation();
+    session.state='presenting';beginNextPresentation();
   }
   function beginNextPresentation(){
     if(!session||session.state!=='presenting')return;
-    const currentGeneration=getBatchGeneration();
     while(session.items.some(item=>item.status==='pending')){
       const item=session.items.find(candidate=>candidate.status==='pending');
-      if(currentGeneration!==item.batchGeneration){item.status='stale';continue;}
       item.status='active';session.current=item;session.displayIndex++;
       updateSessionControl(false);
       let started=false;
-      try{started=!!present({collection,kind:item.kind??'molecules',id:item.id??item.speciesId,root,onSettled:result=>settlePresentation(item,result)});}
-      catch(error){diagnostic('presentation-threw','Canonical Collection presentation failed to start.',{speciesId:item.speciesId,error:String(error?.message??error)});}
+      const onSettled=result=>settlePresentation(item,result);
+      try{
+        if(item.kind==='reactions')started=!!collection?.openReactionAward?.(item.id,{onSettled});
+        else if(item.kind==='polymers')started=!!collection?.openPolymerAward?.(item.id,{onSettled});
+        else started=!!present({collection,kind:'molecules',id:item.id??item.speciesId,root,onSettled});
+      }catch(error){diagnostic('presentation-threw','Discovery presentation failed to start.',{kind:item.kind,id:item.id,error:String(error?.message??error)});}
       if(!started){
-        diagnostic('presentation-start-failed','Canonical Collection presentation did not start.',{kind:item.kind??'molecules',id:item.id??item.speciesId,reason:item.presentationResult?.reason??'collection-unavailable'});
-        item.status='failed';item.presentationResult={status:'failed',reason:item.presentationResult?.reason??'collection-unavailable'};session.current=null;abortSession('presentation-failed');return;
+        diagnostic('presentation-start-failed','Discovery presentation could not open the Collection entry.',{kind:item.kind,id:item.id});
+        item.status='failed';session.current=null;abortSession('presentation-failed');return;
       }
       try{onVibrate();}catch{}
       return;
     }
-    void finishSession();
+    finishSession();
   }
   function settlePresentation(item,result={}){
     if(!session||session.state!=='presenting'||session.current!==item||item.status!=='active')return;
     item.presentationResult={status:result.status??'presented',reason:result.reason??null};
     if(result.status==='presented'){
-      item.status='presented';updateSessionControl(true);return;
+      item.status='presented';updateSessionControl(true);
+      if(item.kind==='reactions'||item.kind==='polymers'){advance();return;}
+      if(!session.items.some(candidate=>candidate.status==='pending'))finishSession();
+      return;
     }
     if(result.status==='dismissed'){
-      item.status='dismissed';markPending(session.items,'dismissed');session.state='closing';collection?.setDiscoverySession?.(null);scheduleResume();return;
+      item.status='dismissed';markPending(session.items,'dismissed');finishSession();return;
     }
     item.status='failed';markPending(session.items,'failed');abortSession('presentation-failed');
   }
@@ -131,83 +134,72 @@ export function createReactionLabDiscoveryCoordinator({
     if(!session||session.state!=='presenting'||session.current?.status!=='presented')return false;
     session.current=null;beginNextPresentation();return true;
   }
-  async function finishSession(){
-    if(!session||!['presenting','closing'].includes(session.state))return false;
-    const current=session;current.state='finishing';collection?.setDiscoverySession?.(null);
-    try{await collection?.closeAndWait?.();}
-    catch(error){diagnostic('collection-close-failed','Collection dialog did not finish closing cleanly.',{error:String(error?.message??error)});if(collection?.isOpen?.())return false;}
-    if(collection?.isOpen?.()){diagnostic('collection-close-failed','Collection dialog remains open; Reaction Lab will stay suspended.');return false;}
-    if(session===current)await resumeSession();
+  function finishSession(){
+    if(!session)return false;
+    session.state='finished';session=null;
+    collection?.setDiscoverySession?.(null);
+    // The earned Collection entry remains open. The user chooses what to do next.
     return true;
   }
   function abortSession(reason){
     if(!session)return;
-    session.state='closing';if(session.current?.status==='active')session.current.status='failed';markPending(session.items,'failed');collection?.setDiscoverySession?.(null);
-    const current=session;
-    if(collection?.isOpen?.()){
-      void collection.closeAndWait?.().catch?.(error=>diagnostic('collection-close-failed','Collection dialog did not finish closing cleanly.',{reason,error:String(error?.message??error)})).finally(()=>{if(session===current)void resumeSession();});
-    }else scheduleResume();
-  }
-  function scheduleResume(){
-    if(!session||session.resumeScheduled)return;
-    session.resumeScheduled=true;
-    defer(()=>{if(session)void resumeSession();});
-  }
-  async function resumeSession(){
-    const current=session;if(!current)return;
-    current.state='resuming';session=null;
-    if(!current.returnToLab)return;
-    try{
-      const opened=await openLab();
-      const focusTarget=current.focusTarget;
-      defer(()=>{
-        const valid=focusTarget?.isConnected&&!focusTarget.disabled&&!focusTarget.closest?.('[inert]');
-        const fallback=root?.querySelector?.('#reaction-lab-dialog [data-lab-close]')??root?.querySelector?.('#open-reaction-lab');
-        const target=valid?focusTarget:fallback;
-        if(target?.isConnected&&!target.disabled)target.focus?.({preventScroll:true});
-        if(valid&&root?.activeElement!==focusTarget&&fallback?.isConnected&&!fallback.disabled)fallback.focus?.({preventScroll:true});
-      });
-      if(!opened)diagnostic('lab-resume-failed','Reaction Lab could not be reopened after Collection presentation.');
-    }catch(error){diagnostic('lab-resume-failed','Reaction Lab could not be reopened after Collection presentation.',{error:String(error?.message??error)});}
+    if(session.current?.status==='active')session.current.status='failed';
+    markPending(session.items,'failed');
+    finishSession();
+    // Keep any successfully opened Collection screen, never silently restart LAB.
+    diagnostic('presentation-aborted','Discovery sequence ended without changing saved discoveries.',{reason});
   }
   function onCollectionClosed(){
-    if(session?.state==='finishing'){scheduleResume();return;}
-    if(!session||!['presenting','suspending'].includes(session.state))return;
-    if(session.state==='suspending')return;
+    if(!session)return;
     if(['active','presented'].includes(session.current?.status))session.current.status='dismissed';
-    markPending(session.items,'dismissed');session.state='closing';collection?.setDiscoverySession?.(null);scheduleResume();
+    markPending(session.items,'dismissed');finishSession();
   }
   function handleProductEvent(event){
     const payload=event?.detail??event,validated=validateProductEvent(payload,recordsById);
     if(!validated.ok){diagnostic(validated.code,validated.message,{reactionId:payload?.reactionId??null,unknownIds:validated.unknownIds??[]});return {accepted:false,reason:validated.code};}
+    let newlyVerifiedReactionId=null;
     if(reactionProgress&&reactionAuthority){
       const entry=reactionAuthority.get(`normal:${payload.reactionId}`);
-      if(entry&&payload.pathwayId.startsWith(`${payload.reactionId}/`)&&JSON.stringify(entry.definition.products)===JSON.stringify(payload.products))reactionProgress.verify(entry.reactionId);
-      else diagnostic('unknown-reaction-authority','Reaction identity or products do not match the catalog.',{reactionId:payload.reactionId});
+      if(entry&&payload.pathwayId.startsWith(`${payload.reactionId}/`)&&JSON.stringify(entry.definition.products)===JSON.stringify(payload.products)){
+        const verified=reactionProgress.verify(entry.reactionId);
+        if(verified.changed&&verified.saved)newlyVerifiedReactionId=entry.reactionId;
+        if(verified.changed)collection?.refreshReactionProgress?.();
+      }else diagnostic('unknown-reaction-authority','Reaction identity or products do not match the catalog.',{reactionId:payload.reactionId});
     }
     const sequence=++eventSequence,at=now(),newItems=[];
+    if(newlyVerifiedReactionId)newItems.push({kind:'reactions',id:newlyVerifiedReactionId,eventSequence:sequence,status:'pending',batchGeneration:payload.batchGeneration});
     for(const speciesId of validated.species){
       const result=collection.registerDiscoveredMolecule(speciesId,{at}),registrationEvent=result?.event??null;
       if(result?.changed!==true||registrationEvent?.isNew!==true||result.saved===false)continue;
       const duplicate=queue.some(item=>item.speciesId===speciesId&&['pending','active','presented','dismissed'].includes(item.status));
       if(duplicate)continue;
       const item={kind:'molecules',id:speciesId,eventSequence:sequence,status:'pending',speciesId,reactionId:payload.reactionId,pathwayId:payload.pathwayId,batchGeneration:payload.batchGeneration,firstProductIndex:validated.firstIndexBySpecies.get(speciesId),registrationEvent,registrationResult:result,productIds:[...payload.products]};
-      queue.push(item);newItems.push(item);
-      if(session&&['suspending','presenting'].includes(session.state))session.items.push(item);
+      newItems.push(item);
     }
     if(newItems.length){
+      queue.push(...newItems);
+      if(session&&['suspending','presenting'].includes(session.state))session.items.push(...newItems);
       if(session?.state==='presenting')updateSessionControl(session.current?.status==='presented');
       scheduleSession();
     }
-    return {accepted:true,eventSequence:sequence,species:[...validated.species],newSpecies:newItems.map(item=>item.speciesId),timestamp:at};
+    return {accepted:true,eventSequence:sequence,species:[...validated.species],newSpecies:newItems.filter(item=>item.kind==='molecules').map(item=>item.speciesId),newReaction:newlyVerifiedReactionId,timestamp:at};
   }
   function handlePolymerSampleEvent(event){
     const payload=event?.detail??event,validated=validatePolymerSampleEvent(payload,{recordsById,polymerIds:polymerIdSet,routesById});
     if(!validated.ok){diagnostic(validated.code,'Reaction Lab PolymerSample registration was rejected.',{routeId:payload?.routeId??null,polymerId:payload?.polymerId??null});return{accepted:false,reason:validated.code};}
-    if(reactionProgress&&reactionAuthority){const entry=reactionAuthority.get(`polymer:${payload.routeId}`);if(entry&&entry.definition.polymerId===payload.polymerId)reactionProgress.verify(entry.reactionId);}
+    let newlyVerifiedReactionId=null;
+    if(reactionProgress&&reactionAuthority){
+      const entry=reactionAuthority.get(`polymer:${payload.routeId}`);
+      if(entry&&entry.definition.polymerId===payload.polymerId){
+        const verified=reactionProgress.verify(entry.reactionId);
+        if(verified.changed&&verified.saved)newlyVerifiedReactionId=entry.reactionId;
+        if(verified.changed)collection?.refreshReactionProgress?.();
+      }
+    }
     const existing=polymerSamples.get(payload.sampleId);
     if(existing)return existing.batchGeneration===payload.batchGeneration?{accepted:true,duplicate:true,eventSequence:existing.eventSequence,newEntries:[]}:{accepted:false,reason:'sample-generation-mismatch'};
     const sequence=++eventSequence,at=now(),items=[];
+    if(newlyVerifiedReactionId)items.push({kind:'reactions',id:newlyVerifiedReactionId,eventSequence:sequence,status:'registered',batchGeneration:payload.batchGeneration,sampleId:payload.sampleId});
     try{
       const polymerResult=collection.registerDiscoveredPolymer(payload.polymerId,{at});
       if(polymerResult?.changed===true&&polymerResult?.saved!==false&&polymerResult?.event?.isNew===true)items.push({kind:'polymers',id:payload.polymerId,eventSequence:sequence,status:'awaiting-present',speciesId:payload.polymerId,polymerId:payload.polymerId,routeId:payload.routeId,sampleId:payload.sampleId,batchGeneration:payload.batchGeneration,registrationEvent:polymerResult.event,registrationResult:polymerResult});
@@ -220,8 +212,7 @@ export function createReactionLabDiscoveryCoordinator({
         items.push({kind:'molecules',id:byproduct.species,eventSequence:sequence,status:'awaiting-present',speciesId:byproduct.species,routeId:payload.routeId,polymerId:payload.polymerId,sampleId:payload.sampleId,batchGeneration:payload.batchGeneration,firstProductIndex:byproduct.formationIndex,byproduct:{...byproduct},registrationEvent,registrationResult:result});
       }
     }catch(error){diagnostic('polymer-registration-failed','PolymerSample registration could not be persisted.',{sampleId:payload.sampleId,error:String(error?.message??error)});return{accepted:false,reason:'registration-failed'};}
-    // Polymer discovery is saved immediately, but its Lab growth is the reveal.
-    // Do not enqueue polymers or their byproducts into the Collection broker.
+    // Save discoveries now, but wait until growth completes before opening the Collection.
     for(const item of items)item.status='registered';
     polymerSamples.set(payload.sampleId,{batchGeneration:payload.batchGeneration,eventSequence:sequence,items});
     return{accepted:true,eventSequence:sequence,newEntries:items.map(item=>({kind:item.kind,id:item.id})),timestamp:at};
@@ -229,13 +220,20 @@ export function createReactionLabDiscoveryCoordinator({
   function handlePolymerSamplePresent(event){
     const payload=event?.detail??event;if(!payload||!isNonEmptyString(payload.sampleId)||!Number.isSafeInteger(payload.batchGeneration)||payload.batchGeneration<0)return{accepted:false,reason:'invalid-presentation-identity'};
     const sample=polymerSamples.get(payload.sampleId);if(!sample||sample.batchGeneration!==payload.batchGeneration||dismissedSampleIds.has(payload.sampleId))return{accepted:false,reason:'stale-or-dismissed-sample'};
-    for(const item of sample.items)if(item.status==='registered')item.status='ready-in-lab';
-    return{accepted:true,eventSequence:sample.eventSequence,newEntries:[]};
+    const ready=[
+      ...sample.items.filter(item=>item.kind==='reactions'),
+      ...sample.items.filter(item=>item.kind==='molecules'),
+      ...sample.items.filter(item=>item.kind==='polymers'),
+    ].filter(item=>item.status==='registered');
+    for(const item of ready){item.status='pending';queue.push(item);}
+    // Give the final grown structure a moment on screen before the Collection transition.
+    if(ready.length)setTimeout(()=>{if(!dismissedSampleIds.has(payload.sampleId))scheduleSession();},650);
+    return{accepted:true,eventSequence:sample.eventSequence,newEntries:ready.map(item=>({kind:item.kind,id:item.id}))};
   }
   function handlePolymerSampleDismiss(event){
     const payload=event?.detail??event;if(!payload||!isNonEmptyString(payload.sampleId)||!Number.isSafeInteger(payload.batchGeneration)||payload.batchGeneration<0)return false;
     const sample=polymerSamples.get(payload.sampleId);if(!sample||sample.batchGeneration!==payload.batchGeneration)return false;
-    dismissedSampleIds.add(payload.sampleId);for(const item of sample.items)if(['registered','ready-in-lab'].includes(item.status))item.status='dismissed';
+    dismissedSampleIds.add(payload.sampleId);for(const item of sample.items)if(['registered','ready-in-lab','pending'].includes(item.status))item.status='dismissed';
     return true;
   }
   function snapshot(){return {eventSequence,sessionState:session?.state??null,queue:queue.map(item=>({...item,...(item.productIds?{productIds:[...item.productIds]}:{})}))};}
