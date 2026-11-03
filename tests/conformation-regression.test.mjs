@@ -232,6 +232,46 @@ test('an atom lying on its only torsion axis still moves through whole-skeleton 
   assert.equal(item.solver.validateConformation({ids:session.plan.scope,rigidReference:session.rigidReference,mode:'drag'}).valid,true);engine.release();
 });
 
+test('rejected conformation retries restore pose and plane normals without topology rebuild',()=>{
+  const item=benzeneWithChain(2),allIds=new Set(item.ids);
+  const originalPose=item.solver.captureConformation(allIds),originalFrames=item.solver.captureReferenceFrames();
+  const originalNormal=originalFrames.normals.find(([frame])=>frame.atomIds.length>=6);
+  assert.ok(originalNormal,'an aromatic reference plane must exist');
+  const turn=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),.7);
+  item.solver.rotateReferenceFrames(turn,allIds);
+  assert.ok(originalNormal[0].normal.distanceTo(originalNormal[1])>.1,'the reference frame must actually rotate');
+  for(const id of item.ids)item.positionFor(id).applyQuaternion(turn);
+  item.solver.restoreConformation(originalPose);
+  assert.equal(item.solver.restoreReferenceFrames(originalFrames),true);
+  for(const [frame,normal]of originalFrames.normals)assert.ok(frame.normal.distanceTo(normal)<1e-12,'a frame normal was not restored');
+  for(const [id,point]of originalPose)assert.ok(item.positionFor(id).distanceTo(point)<1e-12,'a coordinate was not restored');
+
+  // Reject every attempted scale after the initial drag snapshot. The engine
+  // must use the cheap rollback even when no attempt can be accepted.
+  const validate=item.solver.validateConformation.bind(item.solver);
+  let reject=false,rebuilds=0;
+  item.solver.validateConformation=options=>{
+    const result=validate(options);
+    return{...result,valid:!reject,reasons:reject?['forced-rejection']:[]};
+  };
+  const rebuild=item.solver.rebuildTopology.bind(item.solver);
+  item.solver.rebuildTopology=(...args)=>{rebuilds++;return rebuild(...args);};
+  const model=createTorsionModel(item.molecule,{aromaticCycles:[item.ids.slice(0,6)]});
+  const engine=createConformationEngine({THREE,molecule:item.molecule,solver:item.solver,positionFor:item.positionFor,modelFor:()=>model});
+  const session=engine.beginDrag(item.ids[7]);
+  assert.ok(session,'fixture must support a drag');
+  const safe=item.solver.captureConformation(session.plan.scope);
+  reject=true;
+  const result=engine.updateDrag(item.positionFor(item.ids[7]).clone().add(new THREE.Vector3(1,1,.6)));
+  assert.equal(result.rolledBack,true);
+  assert.equal(result.accepted,false);
+  assert.equal(rebuilds,0,'a failed drag must not rebuild an unchanged bond graph');
+  for(const[id,point]of safe)assert.ok(item.positionFor(id).distanceTo(point)<1e-10,'rejected drag did not restore its pose');
+
+  item.solver.rebuildTopology();
+  assert.equal(item.solver.restoreReferenceFrames(originalFrames),false,'stale frame references must be rejected after graph rebuild');
+});
+
 test('invalid drag rolls back and release relaxation preserves the new conformation',()=>{
   const item=saturatedChain(6);for(let index=0;index<420;index++)item.solver.step(.62,2);
   const model=createTorsionModel(item.molecule),engine=createConformationEngine({THREE,molecule:item.molecule,solver:item.solver,
