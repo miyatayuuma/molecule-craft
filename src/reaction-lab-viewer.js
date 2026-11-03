@@ -1,3 +1,4 @@
+import {capturePolymerIdMask,measurePolymerDisplayBounds} from './reaction-lab-debug-visual.js?v=1';
 import {planPolymerAutomaticPath} from './reaction-lab-polymer-path.js?v=1';
 import {compileReactionGuide,evaluateReactionGuide} from './reaction-lab-guidance.js?v=1';
 import { createPreviewModel } from './preview-model.js?v=37';
@@ -1586,26 +1587,9 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
         const lanes=v.bondMeshes.filter(m=>m.visible).map(m=>{const a=m.localToWorld(new THREE.Vector3(0,-.5,0)),b=m.localToWorld(new THREE.Vector3(0,.5,0)),radius=m.scale.x*v.group.scale.x;return{bondIndex:m.userData.polymerBondIndex,order:m.userData.polymerOrder,offset:m.userData.polymerLaneOffset,atomIndices:m.userData.polymerAtomIndices,a:project(a),b:project(b),radius:f*radius/((project(a).depth+project(b).depth)/2)};});
         return{contextLost,gpuResources:{...renderer.info.memory,renderCalls:renderer.info.render.calls},graph:v.graph,layoutAtoms:v.layoutPlan.atoms,fitError:v.fitError??null,atoms,lanes,canvas:{left:r.left,top:r.top,width:r.width,height:r.height,bufferWidth:canvas.width,bufferHeight:canvas.height,dpr:renderer.getPixelRatio()},camera:{position:camera.position.toArray(),matrix:camera.matrixWorld.toArray(),projection:camera.projectionMatrix.toArray(),fov:camera.fov,near:camera.near,far:camera.far},pose:{position:v.group.position.toArray(),quaternion:v.group.quaternion.toArray(),scale:v.group.scale.x},fit:polymerSamplePresentation?.fit,activeFit:polymerSamplePresentation?.focusFit??polymerSamplePresentation?.fit,observation:observation.snapshot(),metrics:{...polymerRuntimeMetrics}};
       },
-      polymerIdMask(){
-        if(!polymerGraphVisual||polymerGraphVisual.suspended)throw new Error('No visible sample');
-        const maskColor=id=>(Math.imul(id,73856093)>>>0)&0xffffff,saved=[],background=scene.background,previousTarget=renderer.getRenderTarget(),target=new THREE.WebGLRenderTarget(canvas.width,canvas.height,{samples:0});target.texture.colorSpace=THREE.SRGBColorSpace;scene.background=new THREE.Color(0);let lane=1024;
-        let occluder=50000;for(const child of world.children)if(child!==polymerGraphVisual.group)child.traverse(o=>{if(o.isMesh){saved.push([o,'material',o.material]);o.material=new THREE.MeshBasicMaterial({color:maskColor(occluder++),toneMapped:false});}});
-        for(const [i,m]of polymerGraphVisual.atomByGraphIndex){saved.push([m,'material',m.material]);m.material=new THREE.MeshBasicMaterial({color:maskColor(i+1),toneMapped:false});}
-        for(const m of polymerGraphVisual.bondMeshes){saved.push([m,'material',m.material]);m.material=new THREE.MeshBasicMaterial({color:maskColor(lane++),toneMapped:false});}
-        // ID coverage must not discard MSAA pixels whose colors mix two IDs.
-        // This localhost-only attachment uses the same geometry/pose/DPR with
-        // single-sample rasterization; the actual antialiased PNG is separate.
-        try{renderer.setRenderTarget(target);renderer.render(scene,camera);const pixels=new Uint8Array(canvas.width*canvas.height*4);renderer.readRenderTargetPixels(target,0,0,canvas.width,canvas.height,pixels);const mask=document.createElement('canvas');mask.width=canvas.width;mask.height=canvas.height;const context=mask.getContext('2d'),image=context.createImageData(mask.width,mask.height),stride=mask.width*4;for(let y=0;y<mask.height;y++)image.data.set(pixels.subarray((mask.height-y-1)*stride,(mask.height-y)*stride),y*stride);context.putImageData(image,0,0);return mask.toDataURL('image/png');}finally{renderer.setRenderTarget(previousTarget);target.dispose();for(const [o,k,v]of saved){if(k==='material')o.material.dispose();o[k]=v;}scene.background=background;renderer.render(scene,camera);}
-      },
+      polymerIdMask(){return capturePolymerIdMask({THREE,visual:polymerGraphVisual,renderer,canvas,scene,world,camera,document});},
       setPolymerObservationPose({quaternion,reset=false}){if(!canObservePolymerSample())throw new Error('Sample not ready');if(reset)observation.reset();if(quaternion){const fit=polymerSamplePresentation.focusFit??polymerSamplePresentation.fit,pivot=new THREE.Vector3(...fit.pivot),anchor=pivot.clone().applyMatrix4(polymerGraphVisual.group.matrixWorld);polymerGraphVisual.group.quaternion.fromArray(quaternion).normalize();polymerGraphVisual.group.position.copy(anchor).sub(pivot.applyQuaternion(polymerGraphVisual.group.quaternion).multiplyScalar(polymerGraphVisual.group.scale.x));polymerGraphVisual.group.updateMatrixWorld(true);updatePolymerBondVisuals();observation.updateOutline();}return this.polymerVisualSnapshot();},
-      polymerDisplayBounds(){
-        if(!polymerGraphVisual?.layoutPlan)return null;
-        const rect=canvas.getBoundingClientRect(),forward=cameraNormal(),points=[];camera.updateMatrixWorld(true);polymerGraphVisual.group.updateMatrixWorld(true);
-        for(const[index,mesh]of polymerGraphVisual.atomByGraphIndex){const atom=polymerGraphVisual.layoutPlan.atoms[index],worldPoint=mesh.getWorldPosition(new THREE.Vector3()),depth=worldPoint.clone().sub(camera.position).dot(forward),projected=worldPoint.project(camera),radius=modelAtomRadius(atom.element)*polymerGraphVisual.group.scale.x*rect.height/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))*Math.max(camera.near,depth));points.push({x:(projected.x+1)*.5*rect.width,y:(1-projected.y)*.5*rect.height,radius,depth,ndcZ:projected.z});}
-        const bounds={left:Math.min(...points.map(point=>point.x-point.radius)),right:Math.max(...points.map(point=>point.x+point.radius)),top:Math.min(...points.map(point=>point.y-point.radius)),bottom:Math.max(...points.map(point=>point.y+point.radius))},safe=polymerSamplePresentation?.fit?.safeRegion??null;
-        bounds.width=bounds.right-bounds.left;bounds.height=bounds.bottom-bounds.top;
-        return{bounds,safeRegion:safe,atomCount:points.length,depthVisible:points.every(point=>point.depth>camera.near&&point.depth<camera.far&&point.ndcZ>=-1&&point.ndcZ<=1),insideSafeRegion:!!safe&&bounds.left>=safe.left-1&&bounds.right<=safe.right+1&&bounds.top>=safe.top-1&&bounds.bottom<=safe.bottom+1};
-      },
+      polymerDisplayBounds(){return measurePolymerDisplayBounds({THREE,visual:polymerGraphVisual,camera,canvas,fit:polymerSamplePresentation?.fit,modelAtomRadius});},
       physicsMode:stageBPhysicsEnabled?'stage-b':'stage-a',physicalPsPerGameSecond:STAGE_A_PHYSICAL_PS_PER_GAME_SECOND,qA:stageBPhysicsEnabled?stageBChargeE:null,
       snapshot:()=>{
         const current=probeForces(),state=batch.snapshot();
