@@ -1323,11 +1323,10 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       else if(!seed&&product.canonicalPreview){product.canonicalPreview.step();product.canonicalSteps++;if(product.canonicalSteps>=190){product.canonicalModel=product.canonicalPreview.snapshot();product.canonicalPreview=null;}}
     }
     animation.preparationCursor=cursor;animation.phaseElapsedMs+=elapsedMs;
-    const timedOut=animation.phaseElapsedMs>=(reducedMotion?REDUCED_PRESENTATION_PHASES.prepare:NORMAL_PRESENTATION_PHASES.prepare),finished=animation.products.every(product=>product.seedModel&&product.canonicalModel);
-    if(!timedOut&&!finished)return false;
+    // Keep the per-frame work budget, but never accept a partly settled
+    // product merely because the presentation's nominal prepare time elapsed.
+    if(animation.products.some(product=>product.seedPreview||product.canonicalPreview))return false;
     for(const product of animation.products){
-      if(!product.seedModel&&product.seedPreview){product.seedModel=product.seedPreview.snapshot();product.seedQuality=product.seedPreview.quality();product.seedPreview=null;}
-      if(!product.canonicalModel&&product.canonicalPreview){product.canonicalModel=product.canonicalPreview.snapshot();product.canonicalPreview=null;}
       const valid=model=>model?.atoms?.length===product.record.atoms.length&&model.atoms.every(atom=>atom.point&&[atom.point.x,atom.point.y,atom.point.z].every(Number.isFinite));
       const target=resolveProductTargetGeometry({seededPoints:valid(product.seedModel)?product.seedModel.atoms.map(atom=>atom.point.toArray()):null,seedConverged:!!product.seedQuality?.validation?.valid,canonicalPoints:valid(product.canonicalModel)?product.canonicalModel.atoms.map(atom=>atom.point.toArray()):null,sourcePoints:product.sourcePoints.map(point=>point.toArray()),elements:product.record.atoms.map((_,index)=>recordAtomElement(product.record,index))});
       product.model=withStaticChargeAuthority(target.geometry==='source-seeded'?product.seedModel:product.canonicalModel??product.seedModel??sourceContinuityPreview(product),product.record);
