@@ -43,7 +43,6 @@ export function presentFirstRegistration({
     marker.replaceChildren(...nodes);
   };setMarker('NEW ENTRY · REGISTERING');
   const nav=detail.querySelector('.detail-navigation');if(nav?.after)nav.after(marker);else detail.prepend(marker);
-  const tapHint=root.createElement('p');tapHint.className='discovery-registration-tap';tapHint.textContent='タップでつづける';tapHint.hidden=true;marker.after(tapHint);
 
   const live=root.createElement('p');live.className='sr-only';live.setAttribute('role','status');live.setAttribute('aria-live','polite');live.setAttribute('aria-atomic','true');detail.append(live);
   const name=detail.querySelector('.detail-heading h3')?.textContent?.trim()||'',formula=kind==='molecules'?(detail.querySelector('.detail-heading .detail-formula')?.textContent?.trim()||''):'';
@@ -67,7 +66,7 @@ export function presentFirstRegistration({
   const cleanup=(outcome='dismissed')=>{
     if(cancelled)return;cancelled=true;observer?.disconnect?.();observer=null;
     for(const timer of timers)clearTimer(timer);timers.clear();for(const animation of animations)try{animation.cancel();}catch{}animations.clear();
-    scan?.remove();marker.remove();tapHint.remove();live.remove();restore();if(closeHandler)dialog.removeEventListener('close',closeHandler);
+    scan?.remove();marker.remove();live.remove();restore();if(closeHandler)dialog.removeEventListener('close',closeHandler);
     dialog.removeEventListener('click',onTap,true);dialog.removeEventListener('keydown',onKey,true);
     if(dialog.__moleculeCraftRegistrationRevealCleanup===cleanup)delete dialog.__moleculeCraftRegistrationRevealCleanup;
     if(!settled){settled=true;notifySettled({status:outcome});}
@@ -85,7 +84,7 @@ export function presentFirstRegistration({
     const saved=originals.get(modelHost)??{};applyStyles(modelHost,{filter:saved.filter??'',opacity:saved.opacity??'',pointerEvents:saved.pointerEvents??''});
     if(!reduceMotion)animate(stage,[{boxShadow:'inset 0 0 0 1px #7ce8d633'},{boxShadow:'inset 0 0 28px 3px #7ce8d655'},{boxShadow:'inset 0 0 0 1px #7ce8d600'}],{duration:1050,easing:'ease-out'},animations);
     // Keep the completed registration visible until the player taps.
-    schedule(()=>{ready=true;tapHint.hidden=false;},reduceMotion?90:1100);
+    schedule(()=>{ready=true;},reduceMotion?90:1100);
   };
   const startReveal=()=>{
     if(cancelled||started)return;
@@ -111,7 +110,7 @@ export function presentFirstRegistration({
   const fallback=()=>{
     if(cancelled||started)return;started=true;observer?.disconnect?.();observer=null;revealIdentity();setMarker('REGISTERED');
     const saved=originals.get(modelHost)??{};applyStyles(modelHost,{filter:saved.filter??'',opacity:saved.opacity??'',pointerEvents:saved.pointerEvents??''});
-    schedule(()=>{ready=true;tapHint.hidden=false;},reduceMotion?120:600);
+    schedule(()=>{ready=true;},reduceMotion?120:600);
   };
   const inspect=()=>{
     if(cancelled||started)return;
