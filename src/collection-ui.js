@@ -25,7 +25,7 @@ export async function loadCollectionData(){
     load('../data/craft-structures.json?v=25'),
     load('../data/encyclopedia.json?v=34').catch(()=>({molecules:{},parts:{},noteDefinitions:{}})),
     loadMoleculeGraph({url:new URL('../data/molecule-graph.json',import.meta.url).href}),
-    load('../data/encyclopedia-furigana.json?v=2').catch(()=>({molecules:{},parts:{}})),
+    load('../data/encyclopedia-furigana.json?v=3').catch(()=>({molecules:{},parts:{}})),
   ]);
   validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph,furigana};
 }
@@ -86,7 +86,10 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(glossaryTrigger===trigger){closeGlossary();return;}
     closeGlossary();
     const popup=el('div',null,'dex-glossary-popup');popup.id='dex-molecule-glossary-popup';popup.setAttribute('role','tooltip');
-    popup.append(el('strong',word),el('span',meaning));
+    const heading=el('strong'),explanation=el('span');
+    for(const child of trigger.childNodes)heading.append(child.cloneNode(true));
+    appendReadingText(explanation,meaning,data.furigana?.glossary?.[word]??[],0,meaning.length);
+    popup.append(heading,explanation);
     dialog.append(popup);
     glossaryPopup=popup;glossaryTrigger=trigger;
     trigger.setAttribute('aria-expanded','true');trigger.setAttribute('aria-describedby',popup.id);
