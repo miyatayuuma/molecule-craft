@@ -70,8 +70,15 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
   const title=make('h3',`${model.verified} / ${model.entries.length} 経路`);
   const note=make('p','件数はこの図鑑に収録された経路です。実験での到達方法が未確認のものも含みます。');
   function showList(){
-    host.classList.add('reaction-book-categories');
-    host.replaceChildren(title,note);
+    host.classList.remove('reaction-book-categories');
+    const grid=make('div','');
+    grid.className='reaction-book-category-grid';
+    // Keep the core two-column layout even if an older PWA stylesheet is still in memory.
+    grid.style.display='grid';
+    grid.style.gridTemplateColumns='repeat(2,minmax(0,1fr))';
+    grid.style.gap='8px';
+    grid.style.width='100%';
+    host.replaceChildren(title,note,grid);
     for(const group of model.groups){
       const done=group.items.filter(x=>x.state==='verified').length;
       const control=button('',()=>showGroup(group));
@@ -83,11 +90,16 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
       control.append(label);
       const preview=createReactionGroupPreview(group.id);
       if(preview)control.append(preview);
-      host.append(control);
+      grid.append(control);
+    }
+    if(model.groups.length%2===1){
+      const last=grid.lastElementChild;
+      last.style.gridColumn='1 / -1';
+      last.style.width='calc((100% - 8px) / 2)';
+      last.style.justifySelf='center';
     }
   }
   function showGroup(group){
-    host.classList.remove('reaction-book-categories');
     host.replaceChildren(button('‹ カテゴリ一覧',showList),make('h3',group.label));
     for(const item of group.items.filter(x=>x.state!=='notFound')){
       const d=item.definition,inputs=item.kind==='normal'?d.reactants.map(x=>name(x.species)):d.feedSpecies.map(name),outputs=item.kind==='normal'?d.products.map(name):[polymerRecords.find(x=>x.id===d.polymerId)?.nameJa??d.polymerId];
