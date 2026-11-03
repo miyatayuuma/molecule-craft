@@ -47,6 +47,17 @@
 
 `src/app.js` は各小モジュールを組み合わせて起動します。分子DB読込後の `collection-ui.js` 遅延importは `craft-connections.js`、図鑑模型の遅延importは `collection-ui.js` が担当します。
 
+### CRAFT 3D 形状エンジンの責務
+
+- `torsion-model.js`：結合グラフから回転可能な軸と、ドラッグ対象の連結成分を判定する。トポロジー変更時に再構築し、通常のpointer移動中には再判定しない。
+- `conformation-engine.js`：ドラッグ中に回転軸・剛体移動で仮配置を作り、`structure-relaxation.js` の制約で検証して不正な変更を巻き戻す。
+- `structure-relaxation.js`：結合距離、局所角度、平面性、環配座、衝突・交差の唯一の形状制約ソルバー。処理順序と補正強度は相互依存する。局所の `step({activeIds})` は指定した原子以外を変更してはいけない。
+- `structure-settlement.js`：結合後・ドラッグ後に独立した仮配置で反復し、採用した姿勢のみを短時間で補間する。反復上限はこのモジュール内の `SETTLEMENT_WORK_LIMITS` が担当する。
+- `structure-motion.js`：結合前に別成分を近づける `planBondDocking()`。同ファイルの `createRelaxationSession()` は旧テスト用経路で、現在のCRAFT本番の形状調整は呼び出さない。
+- `workspace-view.js`：選択中の連結成分と回転中心を管理する。分子全体の回転時には実座標とソルバーの参照平面を同じQuaternionで回転させる。
+
+操作中・保存復元時の幾何補正と、図鑑模型の静的座標生成は別責務。結合グラフ、原子ID、保存形式を変更せずに形状実装を保守する。
+
 ## 探索ゲーム
 
 | 領域 | 担当 |
