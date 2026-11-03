@@ -73,6 +73,21 @@ def annotate(text, tokenizer, context):
                 reading = 'セイ'
             if surface == '本' and text[:offset].endswith('1'):
                 reading = 'ポン'
+            # Compound names must keep their on-yomi; a standalone character can
+            # have a different kun-yomi (鎖=くさり, 塩=しお, etc.).
+            if surface == '鎖' and text[:offset].endswith('炭素'):
+                reading = 'サ'
+            if surface == '塩' and (
+                text[:offset].endswith(('リン酸', 'カルシウム'))
+                or text.startswith('塩の形', offset)
+            ):
+                reading = 'エン'
+            if surface == '濃' and text.startswith('濃硫酸', offset):
+                reading = 'ノウ'
+            if surface == '湿' and text[:offset].endswith('保') and text.startswith('湿剤', offset):
+                reading = 'シツ'
+            if surface == '黄' and text.startswith('黄緑色', offset):
+                reading = 'オウ'
             # The glossary treats 肥料 as an individually tappable term.
             if surface == '窒素肥料':
                 annotations.extend([[offset, '窒素', 'ちっそ'], [offset + 2, '肥料', 'ひりょう']])
