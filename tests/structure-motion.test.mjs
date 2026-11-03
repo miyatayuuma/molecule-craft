@@ -1,35 +1,29 @@
 import assert from 'node:assert/strict';
-import {createRelaxationSession, RELAXATION_POLICY} from '../src/structure-motion.js?v=30';
+import * as THREE from '../vendor/three/three.module.min.js';
+import {planBondDocking} from '../src/structure-motion.js?v=30';
 import {createWorkspaceView} from '../src/workspace-view.js';
 
-// No dependency on real wall-clock speed or WebGL for convergence policy tests.
-for (const fps of [15,30,60]) {
-  let steps=0;
-  const solver={step:()=>steps++,measureError:()=>({finite:true,bondRelative:steps<300?.4:0,angleRadians:0,planeDistance:0})};
-  const session=createRelaxationSession({solver});let result;
-  for(let frame=1;frame<fps*10;frame++) {result=session.advance(frame*1000/fps,{clock:()=>0});if(result.done)break;}
-  assert.ok(result.converged);assert.ok(steps>=300&&steps<=330);
-}
+// Docking is the only production responsibility of structure-motion.js.
 {
-  const solver={step:()=>0,measureError:()=>({finite:true,bondRelative:.5,angleRadians:0,planeDistance:0})};
-  const session=createRelaxationSession({solver});let result;
-  for(let frame=1;frame<=400;frame++){result=session.advance(frame*1000/60,{clock:()=>0});if(result.done)break;}
-  assert.ok(result.steps<RELAXATION_POLICY.maxSteps);assert.equal(result.reason,'stalled');
-  assert.equal(result.converged,false,'No movement is NOT proof of correct bond lengths');
+  const neighbors=new Map([[1,[2]],[2,[1]],[3,[4]],[4,[3]]]);
+  const molecule={neighbors:id=>(neighbors.get(id)??[]).map(atomId=>({atomId}))};
+  const points=new Map([[1,new THREE.Vector3(0,0,0)],[2,new THREE.Vector3(-1,0,0)],
+    [3,new THREE.Vector3(8,2,0)],[4,new THREE.Vector3(9,2,0)]]);
+  const pos=id=>points.get(id),before=new Map([...points].map(([id,p])=>[id,p.clone()]));
+  const docking=planBondDocking({THREE,molecule,positionFor:pos,a:1,b:3,length:1.3,
+    preferredIds:new Set([1,2]),directionFor:id=>new THREE.Vector3(id===1?1:-1,0,0)});
+  assert.ok(docking);
+  assert.deepEqual([...docking.ids].sort(),[3,4]);
+  docking.apply(0);
+  assert.ok([...points].every(([id,p])=>p.distanceTo(before.get(id))<1e-10),'Docking must not teleport on start');
+  docking.apply(.5);
+  assert.equal(pos(1).distanceTo(before.get(1)),0,'Anchor must stay fixed');
+  assert.ok(Math.abs(pos(3).distanceTo(pos(4))-1)<1e-10,'Moving fragment must stay rigid');
+  assert.equal(docking.apply(1),true);
+  assert.ok(Math.abs(pos(1).distanceTo(pos(3))-1.3)<1e-10,'Final bond length must match the target');
 }
-// A slow solver is still interrupted by elapsed visible time, not 1440 steps.
-for(const cost of [6,30]) {
-  let clock=0;
-  const session=createRelaxationSession({solver:{step:()=>{clock+=cost;},measureError:()=>({finite:true,bondRelative:1,angleRadians:0,planeDistance:0})}});
-  let result,time=0;
-  while(time<3000){time+=1000/60;result=session.advance(time,{clock:()=>clock});if(result.done)break;}
-  assert.ok(result.done&&time<=RELAXATION_POLICY.maxDuration+20);assert.equal(result.converged,false);
-}
-{
-  const session=createRelaxationSession({solver:{step:()=>0,measureError:()=>({finite:true,bondRelative:1,angleRadians:0,planeDistance:0})}});
-  session.pause(100000);
-  assert.equal(session.advance(100000,{clock:()=>0}).steps,0,'No hidden-tab catch-up jump');
-}
+
+// Background deselection must preserve the focused structure and rotation center.
 {
   const a={signature:'a',ids:new Set([1,2]),graph:{atoms:[{id:1,element:'C'},{id:2,element:'C'}]}};
   const b={signature:'b',ids:new Set([3]),graph:{atoms:[{id:3,element:'O'}]}};
@@ -40,4 +34,4 @@ for(const cost of [6,30]) {
   view.select(1);assert.equal(view.resolve([a,b],a),a);
   view.clear();assert.equal(view.resolve([],null),null);
 }
-console.log('Motion policy tests passed: 15/30/60 FPS, stalled solver, pause and persistent view focus.');
+console.log('Bond docking and focused-structure view checks passed.');
