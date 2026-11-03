@@ -99,11 +99,12 @@ function assessNormalizedComponents(prepared,graph){
   }
   return assessments;
 }
-function resultFor(score,totalUnits,state,atomIds=[]){const percent=totalUnits>0?Math.max(0,Math.min(100,Math.round(score/totalUnits*100))):0;return{score,matchedBondOrderUnits:score,targetBondOrderUnits:totalUnits,percent,state,atomIds:[...atomIds]};}
+function resultFor(score,totalUnits,state,atomIds=[],offTargetBondedComponents=0){const percent=totalUnits>0?Math.max(0,Math.min(100,Math.round(score/totalUnits*100))):0;return{score,matchedBondOrderUnits:score,targetBondOrderUnits:totalUnits,percent,state,atomIds:[...atomIds],offTargetBondedComponents};}
 
 export function evaluateCraftTargetMatch(targetGraph,workspaceGraph){
   const prepared=prepareTarget(targetGraph);if(!prepared)return null;const assessments=assessNormalizedComponents(prepared,normalizeGraph(workspaceGraph)),valid=assessments.filter(item=>item.valid&&item.score>0).sort((a,b)=>b.score-a.score||String(a.key).localeCompare(String(b.key))),best=valid[0];
-  if(!best)return resultFor(0,prepared.totalUnits,'matching');return resultFor(best.score,prepared.totalUnits,best.score===prepared.totalUnits?'complete':'matching',best.atomIds);
+  const offTarget=assessments.filter(item=>!item.valid&&item.score>0).length;
+  if(!best)return resultFor(0,prepared.totalUnits,'matching',[],offTarget);return resultFor(best.score,prepared.totalUnits,best.score===prepared.totalUnits?'complete':'matching',best.atomIds,offTarget);
 }
 
 export function createCraftTargetMatchTracker(){
@@ -115,14 +116,15 @@ export function createCraftTargetMatchTracker(){
     if(nextTargetKey!==lastTargetKey){prepared=prepareTarget(targetGraph,normalizedTarget);lastTargetKey=nextTargetKey;lastWorkspaceKey='';lastResult=null;trackedIds=new Set();deadEnd=false;}
     const normalizedWorkspace=normalizeGraph(workspaceGraph),nextWorkspaceKey=graphKey(normalizedWorkspace,{includeIds:true});if(nextWorkspaceKey===lastWorkspaceKey&&lastResult)return lastResult;lastWorkspaceKey=nextWorkspaceKey;
     const assessments=assessNormalizedComponents(prepared,normalizedWorkspace),tracked=trackedIds.size?assessments.find(item=>[...trackedIds].every(id=>item.atomIds.includes(id))):null;
+    const offTarget=assessments.filter(item=>!item.valid&&item.score>0&&item!==tracked).length;
     if(tracked&&(!tracked.valid||deadEnd)){
-      if(!tracked.valid){deadEnd=true;lastResult=resultFor(0,prepared.totalUnits,'dead-end',tracked.atomIds);return lastResult;}
+      if(!tracked.valid){deadEnd=true;lastResult=resultFor(0,prepared.totalUnits,'dead-end',tracked.atomIds,offTarget);return lastResult;}
       deadEnd=false;
     }else if(deadEnd){deadEnd=false;trackedIds=new Set();}
     const valid=assessments.filter(item=>item.valid&&item.score>0);
     valid.sort((a,b)=>b.score-a.score||(tracked&&a===tracked?-1:tracked&&b===tracked?1:String(a.key).localeCompare(String(b.key))));
-    const best=valid[0];if(!best){trackedIds=new Set();lastResult=resultFor(0,prepared.totalUnits,'matching');return lastResult;}
-    trackedIds=new Set(best.atomIds);lastResult=resultFor(best.score,prepared.totalUnits,best.score===prepared.totalUnits?'complete':'matching',best.atomIds);return lastResult;
+    const best=valid[0];if(!best){trackedIds=new Set();lastResult=resultFor(0,prepared.totalUnits,'matching',[],offTarget);return lastResult;}
+    trackedIds=new Set(best.atomIds);lastResult=resultFor(best.score,prepared.totalUnits,best.score===prepared.totalUnits?'complete':'matching',best.atomIds,offTarget);return lastResult;
   }
   return{update,reset};
 }

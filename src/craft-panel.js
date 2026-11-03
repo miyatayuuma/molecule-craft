@@ -38,15 +38,41 @@ export function renderCraftTargetAtoms(container,record,placedAtoms=[],{size=31}
 
 export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=31,onPlace=()=>{}}={}){
   if(!container)return[];container.replaceChildren();const rendered=[],used={};
+  function appendAtom(item,parent=container){
+    const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;
+    const slot={symbol,index,filled:false},chip=container.ownerDocument.createElement('button');
+    chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled='false';chip.textContent=symbol;
+    chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);
+    styleTargetAtom(chip,symbol,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';
+    chip.addEventListener('click',()=>onPlace(item));parent.appendChild(chip);
+    rendered.push({item,node:chip,slot});
+  }
   for(const item of parts){
-    if(item.partId){
-      const template=item.template,chip=container.ownerDocument.createElement('button'),model=container.ownerDocument.createElement('img'),formula=container.ownerDocument.createElement('strong');
-      chip.type='button';chip.className='craft-target-part';chip.dataset.partId=item.partId;
-      model.className='craft-target-part-model';model.alt='';model.src=new URL(`../assets/models/part-${item.partId}.svg`,import.meta.url).href;model.addEventListener('error',()=>{model.hidden=true;},{once:true});
-      const notation=compactPartNotation(template)||item.partId;formula.className='craft-target-part-formula';formula.textContent=notation;formula.dataset.long=String([...notation].length>8);
-      chip.setAttribute('aria-label',`${template?.nameJa??notation}をクラフト台へ出す`);chip.append(model,formula);chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot:null});continue;
+    if(!item.partId){appendAtom(item);continue;}
+    const template=item.template,chip=container.ownerDocument.createElement('button'),model=container.ownerDocument.createElement('img'),formula=container.ownerDocument.createElement('strong');
+    chip.type='button';chip.className='craft-target-part';chip.dataset.partId=item.partId;
+    model.className='craft-target-part-model';model.alt='';model.src=new URL(`../assets/models/part-${item.partId}.svg`,import.meta.url).href;
+    model.addEventListener('error',()=>{model.hidden=true;},{once:true});
+    const notation=compactPartNotation(template)||item.partId;formula.className='craft-target-part-formula';formula.textContent=notation;formula.dataset.long=String([...notation].length>8);
+    chip.append(model,formula);
+    const missing=item.incomplete&&Array.isArray(item.missingAtoms)?item.missingAtoms:[];
+    if(missing.length){
+      // Keep the part's identity in view. A whole prebuilt part would duplicate
+      // material already on the board, so expose only the missing atom actions.
+      chip.disabled=true;chip.dataset.incomplete='true';chip.style.opacity='.58';
+      chip.setAttribute('aria-label',`${template?.nameJa??notation}は一部配置済み。右の原子を追加してください`);
+      const group=container.ownerDocument.createElement('span');
+      group.className='craft-target-part-incomplete';
+      Object.assign(group.style,{display:'inline-flex',flex:'0 0 auto',alignItems:'center',height:'48px',gap:'3px'});
+      group.appendChild(chip);
+      for(const atom of missing)appendAtom(atom,group);
+      container.appendChild(group);
+    }else{
+      chip.setAttribute('aria-label',`${template?.nameJa??notation}をクラフト台へ出す`);
+      chip.addEventListener('click',()=>onPlace(item));
+      container.appendChild(chip);
     }
-    const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;const slot={symbol,index,filled:false},chip=container.ownerDocument.createElement('button');chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled=String(slot.filled);chip.textContent=symbol;chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);styleTargetAtom(chip,symbol,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';chip.addEventListener('click',()=>onPlace(item));container.appendChild(chip);rendered.push({item,node:chip,slot});
+    rendered.push({item,node:chip,slot:null});
   }
   return rendered;
 }
@@ -64,9 +90,10 @@ target:document.querySelector('#craft-target'),targetName:document.querySelector
   stereoObservation.className='craft-stereo-observation';stereoObservation.hidden=true;stereoObservation.setAttribute('role','status');stereoObservation.setAttribute('aria-live','polite');
   stereoLabel.className='craft-stereo-label';stereoDetail.className='craft-stereo-detail';stereoObservation.append(stereoLabel,stereoDetail);nodes.formula?.after(stereoObservation);
   nodes.stereoObservation=stereoObservation;nodes.stereoLabel=stereoLabel;nodes.stereoDetail=stereoDetail;
-  const targetMatchTracker=createCraftTargetMatchTracker(),targetMatch=document.createElement('span'),targetTint=document.createElement('span'),targetScale=document.createElement('span'),targetScaleFill=document.createElement('span');
+  const targetMatchTracker=createCraftTargetMatchTracker(),targetMatch=document.createElement('span'),targetWarning=document.createElement('span'),targetTint=document.createElement('span'),targetScale=document.createElement('span'),targetScaleFill=document.createElement('span');
   targetMatch.className='craft-target-match';targetMatch.setAttribute('aria-hidden','true');Object.assign(targetMatch.style,{display:'block',marginTop:'2px',color:'#b8e7e8',fontSize:'10px',fontWeight:'750',fontVariantNumeric:'tabular-nums',letterSpacing:'.03em',lineHeight:'1.05',whiteSpace:'nowrap'});nodes.targetMatch=targetMatch;
   nodes.targetFormula?.parentNode?.insertBefore(targetMatch,nodes.targetFormula.nextSibling);
+   targetWarning.className='craft-target-warning';targetWarning.hidden=true;targetWarning.setAttribute('role','status');Object.assign(targetWarning.style,{color:'#f2bd7e',fontSize:'9px',fontWeight:'700',lineHeight:'1.1',whiteSpace:'normal'});targetMatch.after(targetWarning);nodes.targetWarning=targetWarning;
   targetTint.className='craft-target-match-tint';Object.assign(targetTint.style,{position:'absolute',inset:'0',pointerEvents:'none',background:'radial-gradient(circle at 22% 50%,rgba(103,217,199,.78),rgba(88,154,214,.34) 58%,transparent 100%)',opacity:'0',transition:'opacity .22s ease',zIndex:'0'});
   targetScale.className='craft-target-match-scale';Object.assign(targetScale.style,{position:'absolute',left:'0',right:'0',bottom:'0',height:'2px',overflow:'hidden',pointerEvents:'none',background:'rgba(143,224,223,.13)',zIndex:'2'});
   targetScaleFill.className='craft-target-match-scale-fill';Object.assign(targetScaleFill.style,{display:'block',width:'100%',height:'100%',transform:'scaleX(0)',transformOrigin:'left center',transition:'transform .22s ease',background:'linear-gradient(90deg,#69c7db,#8fe0df)',boxShadow:'0 0 8px rgba(143,224,223,.72)'});targetScale.append(targetScaleFill);
@@ -94,14 +121,14 @@ target:document.querySelector('#craft-target'),targetName:document.querySelector
   }
 
   function renderTargetMatch(record,match){
-    if(!record||!match){nodes.targetMatch.textContent='';targetScaleFill.style.transform='scaleX(0)';targetTint.style.opacity='0';nodes.target?.style.removeProperty('box-shadow');if(nodes.target)delete nodes.target.dataset.targetMatchState;return 0;}
-    const percent=Math.max(0,Math.min(100,Math.round(Number(match.percent)||0))),ratio=percent/100;nodes.targetMatch.textContent=`${percent}%`;targetScaleFill.style.transform=`scaleX(${ratio})`;targetTint.style.opacity=(ratio*.18).toFixed(3);if(nodes.target){nodes.target.dataset.targetMatchState=match.state??'matching';nodes.target.style.boxShadow=`inset 0 -12px 22px rgba(103,217,199,${(ratio*.075).toFixed(3)}),0 0 ${Math.round(4+ratio*8)}px rgba(103,217,199,${(ratio*.07).toFixed(3)})`;}
+    if(!record||!match){nodes.targetMatch.textContent='';targetWarning.hidden=true;targetScaleFill.style.transform='scaleX(0)';targetTint.style.opacity='0';nodes.target?.style.removeProperty('box-shadow');if(nodes.target)delete nodes.target.dataset.targetMatchState;return 0;}
+    const percent=Math.max(0,Math.min(100,Math.round(Number(match.percent)||0))),ratio=percent/100;nodes.targetMatch.textContent=`${percent}%`;const warning=match.state==='dead-end'?'⚠ つなぎかたがちがう':match.offTargetBondedComponents>0?'⚠ べつのかたまりにちがう結合':'';targetWarning.textContent=warning;targetWarning.hidden=!warning;targetScaleFill.style.transform=`scaleX(${ratio})`;targetTint.style.opacity=(ratio*.18).toFixed(3);if(nodes.target){nodes.target.dataset.targetMatchState=match.state??'matching';nodes.target.style.boxShadow=`inset 0 -12px 22px rgba(103,217,199,${(ratio*.075).toFixed(3)}),0 0 ${Math.round(4+ratio*8)}px rgba(103,217,199,${(ratio*.07).toFixed(3)})`;}
     return percent;
   }
 
 function renderTarget(record,placedAtoms,onClearTarget,{discovered=false,targetParts=null,onPlaceTargetPart=()=>{},targetMatch=null}={}){
   clearTarget=onClearTarget??(()=>{});nodes.target.hidden=!record;if(!record){nodes.targetName.hidden=true;renderTargetMatch(null,null);lastTargetKey='';lastTargetFilled={};return;}
-  const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;const matchPercent=renderTargetMatch(record,targetMatch??{percent:0,state:'matching'});nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標 · 接近度 ${matchPercent}%`);
+  const displayName=record.commonNameJa??record.nameJa??record.name??'',idea=!discovered;nodes.targetName.textContent=discovered?displayName:'';nodes.targetName.hidden=!discovered;nodes.targetFormula.textContent=`${idea?'💡 ':''}${record.formula??''}`;const matchPercent=renderTargetMatch(record,targetMatch??{percent:0,state:'matching'});nodes.target.setAttribute('aria-label',`${idea?'ひらめいた ':''}${record.formula??'分子'}${discovered&&displayName?` ${displayName}`:''} 制作目標 · 接近度 ${matchPercent}%${targetWarning.hidden?'':` · ${targetWarning.textContent}`}`);
   const rendered=targetParts!==null?renderCraftTargetParts(nodes.targetAtoms,targetParts,placedAtoms,{size:31,onPlace:onPlaceTargetPart}):renderCraftTargetAtoms(nodes.targetAtoms,record,placedAtoms,{size:31});
   const key=record.id??record.formula??record.name??'target',sameTarget=key===lastTargetKey,filledNow={};
   for(const {slot,node:chip}of rendered){if(!slot)continue;if(slot.filled)filledNow[slot.symbol]=(filledNow[slot.symbol]??0)+1;if(sameTarget&&slot.filled&&slot.index>=(lastTargetFilled[slot.symbol]??0)&&typeof chip.animate==='function')chip.animate([{transform:'scale(.82)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}

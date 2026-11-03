@@ -88,3 +88,17 @@ test('target bar integration renders percent, bottom scale and subtle heat witho
   assert.match(source,/createCraftTargetMatchTracker/);assert.match(source,/targetMatchTracker\.update\(target,molecule\)/);assert.match(source,/targetMatch\.textContent=`\$\{percent\}%`/);assert.match(source,/bottom:'0'/);assert.match(source,/scaleX\(\$\{ratio\}\)/);assert.match(source,/targetTint\.style\.opacity/);assert.match(source,/nodes\.target\.hidden=!record/);
   assert.doesNotMatch(source,/STRUCTURE MATCH|正解|不正解/);assert.doesNotMatch(source,/targetMatch.*(?:complete|discovery|validation)\s*=/i);
 });
+
+test('incorrect detached component warns without resetting the best correct component',()=>{
+  const t=target(['C','H','H','O','O'],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]],'detached-warning');
+  const tracker=createCraftTargetMatchTracker();
+  const base=graph(t.atoms,[[0,1,1],[0,2,1]]);
+  const first=tracker.update(t,base);
+  assert.equal(first.percent,50);assert.equal(first.offTargetBondedComponents,0);
+  const mistaken=graph(t.atoms,[[0,1,1],[0,2,1],[3,4,1]]);
+  const warned=tracker.update(t,mistaken);
+  assert.equal(warned.percent,50);assert.equal(warned.state,'matching');
+  assert.equal(warned.offTargetBondedComponents,1);
+  const fixed=tracker.update(t,base);
+  assert.equal(fixed.percent,50);assert.equal(fixed.offTargetBondedComponents,0);
+});

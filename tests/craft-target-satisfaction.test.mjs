@@ -6,7 +6,7 @@ import {decomposeTargetIntoAvailableParts as decompose} from '../src/craft-decom
 const target={atoms:['C','C','O','H','H','H','H','H','H'],bonds:[[0,1,1],[1,2,1],[0,3,1],[0,4,1],[0,5,1],[1,6,1],[1,7,1],[2,8,1]]};
 const oh={id:'hydroxyl',atoms:['O','H'],bonds:[[0,1,1]]},pieces=decompose(target,[oh]);
 const graph=(atoms=[],bonds=[],ids=atoms.map((_,i)=>i+20))=>({atoms:atoms.map((element,i)=>({id:ids[i],element})),bonds:bonds.map(([a,b,order])=>({a:ids[a],b:ids[b],order}))});
-const missingAtoms=result=>result.unsatisfiedPieces.flatMap(piece=>piece.partId?piece.atomIndices.map(()=>null):[piece.element]).filter(Boolean);
+const missingAtoms=result=>result.unsatisfiedPieces.flatMap(piece=>piece.partId?(piece.missingAtoms??[]).map(atom=>atom.element):[piece.element]).filter(Boolean);
 function run(workspace,t=target,p=pieces){
   const before=JSON.stringify([t,p,workspace]),result=match(t,p,workspace);
   assert.equal(JSON.stringify([t,p,workspace]),before,'matcher is pure');
@@ -17,21 +17,25 @@ function run(workspace,t=target,p=pieces){
 
 test('empty workspace leaves every decomposed material missing',()=>assert.deepEqual(run(graph()).unsatisfiedPieces,pieces));
 
-test('material reservation ignores current bond topology',()=>{
+test('complete structural parts win, while loose material keeps partial parts identifiable',()=>{
   const loose=run(graph(['O','H'])),bonded=run(graph(['O','H'],[[0,1,1]])),wrong=run(graph(['O','H'],[[0,1,3]]));
-  assert.deepEqual(loose,bonded);assert.deepEqual(loose,wrong);
-  assert.ok(loose.satisfiedPieces.some(piece=>piece.partId==='hydroxyl'),'O + H secure the hydroxyl material shortcut even before bonding');
+  assert.ok(loose.unsatisfiedPieces.some(piece=>piece.partId==='hydroxyl'&&piece.incomplete));
+  assert.ok(bonded.satisfiedPieces.some(piece=>piece.partId==='hydroxyl'));
+  assert.deepEqual(loose,wrong,'a wrong bond does not make the missing atom composition change');
 });
 
-test('breaking and rebuilding bonds never makes secured material reappear',()=>{
+test('breaking and rebuilding changes whole-part status, not the reserved atom quantity',()=>{
   const workspace=graph(['O','H'],[[0,1,1]]),before=run(workspace);workspace.bonds=[];const broken=run(workspace);workspace.bonds.push({a:20,b:21,order:1});const rebuilt=run(workspace);
-  assert.deepEqual(broken,before);assert.deepEqual(rebuilt,before);
+  assert.equal(before.assignments.length,broken.assignments.length);
+  assert.equal(broken.assignments.length,rebuilt.assignments.length);
+  assert.ok(broken.unsatisfiedPieces.some(piece=>piece.partId==='hydroxyl'&&piece.incomplete));
+  assert.deepEqual(rebuilt,before);
 });
 
 test('deleting a secured atom reintroduces only the exact missing atom',()=>{
   const completeOH=run(graph(['O','H']));assert.ok(completeOH.satisfiedPieces.some(piece=>piece.partId==='hydroxyl'));
   const onlyO=run(graph(['O']));assert.equal(onlyO.satisfiedPieces.some(piece=>piece.partId==='hydroxyl'),false);assert.ok(missingAtoms(onlyO).includes('H'));
-  assert.equal(onlyO.unsatisfiedPieces.some(piece=>piece.partId==='hydroxyl'),false,'partially secured shortcuts fall back to atomic shortage instead of re-requesting the whole part');
+  assert.ok(onlyO.unsatisfiedPieces.some(piece=>piece.partId==='hydroxyl'&&piece.incomplete),'partially secured shortcuts retain the part card and show only missing atoms');
 });
 
 test('workspace extras and unrelated elements do not increase target coverage',()=>{
@@ -94,9 +98,9 @@ test('three piece occurrences stay whole whichever structural component is spawn
   }
 });
 
-test('atom shortage still falls back to only the missing atom',()=>{
+test('partial part stays whole and exposes its missing atom without duplicating material',()=>{
   const t={atoms:['C','O','H'],bonds:[[0,1,1],[1,2,1]]},piece={partId:'co',atomIndices:[0,1]},result=run(graph(['C']),t,[piece,{partId:null,element:'H',atomIndices:[2]}]);
-  assert.deepEqual(result.unsatisfiedPieces,[{partId:null,element:'O',atomIndices:[1]},{partId:null,element:'H',atomIndices:[2]}]);
+  assert.deepEqual(result.unsatisfiedPieces,[{...piece,incomplete:true,missingAtoms:[{partId:null,element:'O',atomIndices:[1]}]},{partId:null,element:'H',atomIndices:[2]}]);
 });
 
 test('repeated equivalent piece occurrences are independently structural matches',()=>{
@@ -107,4 +111,19 @@ test('repeated equivalent piece occurrences are independently structural matches
 test('same object repeated twice still tracks target-piece occurrences independently',()=>{
   const t={atoms:['C','O','C','O'],bonds:[[0,1,1],[2,3,1]]},piece={partId:'co',atomIndices:[0,1]},workspace=graph(['C','O'],[[0,1,1]]),result=run(workspace,t,[piece,piece]);
   assert.deepEqual(result.satisfiedPieces,[piece]);assert.deepEqual(result.unsatisfiedPieces,[piece]);
+});
+
+test('TNT-style methyl shortcut stays available when standalone C or H is placed first',()=>{
+  const t={atoms:['C','C','H','H','H','H'],bonds:[[0,2,1],[0,3,1],[0,4,1],[1,5,1]]};
+  const methyl={id:'methyl',atoms:['C','H','H','H'],bonds:[[0,1,1],[0,2,1],[0,3,1]]};
+  const p=decompose(t,[methyl]);
+  assert.ok(p.some(item=>item.partId==='methyl'));
+  for(const element of ['C','H']){
+    const result=run(graph([element]),t,p);
+    assert.ok(result.unsatisfiedPieces.some(item=>item.partId==='methyl'&&!item.incomplete),element+' first must not dismantle methyl');
+  }
+  const partial=run(graph(['C','C','H','H']),t,p);
+  const card=partial.unsatisfiedPieces.find(item=>item.partId==='methyl');
+  assert.ok(card?.incomplete,'part identity persists when incomplete');
+  assert.deepEqual(card.missingAtoms.map(item=>item.element),['H','H']);
 });
