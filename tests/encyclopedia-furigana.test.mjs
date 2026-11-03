@@ -180,3 +180,32 @@ test('context-sensitive chemical and everyday readings never use name/place defa
   assert.ok(furigana.molecules['carbon-monoxide'].some(([,surface,reading])=>surface==='生'&&reading==='しょう'));
   assert.ok(furigana.molecules['sulfur-dioxide'].some(([,surface,reading])=>surface==='雨'&&reading==='う'));
 });
+
+test('compound-specific readings override the isolated kanji only where needed',()=>{
+  const cases=[
+    {kanji:'鎖',reading:'さ',count:5,include:(description,index)=>description.slice(Math.max(0,index-2),index+1)==='炭素鎖'},
+    {kanji:'塩',reading:'えん',count:4,include:(description,index)=>!description.startsWith('塩や',index)},
+    {kanji:'濃',reading:'のう',count:1,include:(description,index)=>description.startsWith('濃硫酸',index)},
+    {kanji:'湿',reading:'しつ',count:1,include:(description,index)=>description.slice(Math.max(0,index-1),index+2)==='保湿剤'},
+    {kanji:'黄',reading:'おう',count:1,include:(description,index)=>description.startsWith('黄緑色',index)},
+  ];
+  for(const {kanji,reading,count,include} of cases){
+    let observed=0;
+    for(const kind of ['molecules','parts']){
+      for(const [id,{description}] of Object.entries(encyclopedia[kind])){
+        for(const [offset,surface,pronunciation] of furigana[kind][id]){
+          if(surface!==kanji||!include(description,offset))continue;
+          assert.equal(pronunciation,reading,`${kind}:${id}: ${description}`);
+          observed++;
+        }
+      }
+    }
+    assert.equal(observed,count,`${kanji}: compound reading coverage`);
+  }
+
+  // Same glyphs still use their correct kun-yomi outside those compounds.
+  assert.ok(furigana.molecules.water.some(([,surface,reading])=>surface==='塩'&&reading==='しお'));
+  assert.ok(furigana.glossary['炭素鎖'].some(([,surface,reading])=>surface==='鎖'&&reading==='くさり'));
+  assert.ok(furigana.molecules['sulfuric-acid'].some(([,surface,reading])=>surface==='鉛'&&reading==='なまり'));
+  assert.ok(furigana.molecules.chlorine.some(([,surface,reading])=>surface==='緑色'&&reading==='りょくしょく'));
+});
