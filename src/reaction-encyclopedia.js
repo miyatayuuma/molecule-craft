@@ -67,14 +67,17 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
   const name=id=>{const r=records.find(x=>x.id===id);return r?.commonNameJa??r?.nameJa??id;};
   const model=reactionGroups(authority,progress);
   const visualContext={records,polymerRecords};
-  const title=make('h3',`実証 ${model.verified} / ${model.entries.length} 経路`);
+  const title=make('h3',`${model.verified} / ${model.entries.length} 経路`);
   const note=make('p','件数はこの図鑑に収録された経路です。実験での到達方法が未確認のものも含みます。');
   function showList(){
     host.replaceChildren(title,note);
     for(const group of model.groups){
       const done=group.items.filter(x=>x.state==='verified').length;
-      const control=button(`${group.label}　実証 ${done} / ${group.items.length}`,()=>showGroup(group));
+      const control=button('',()=>showGroup(group));
       control.className='reaction-book-group';
+      const label=make('span',`${group.label}　${done} / ${group.items.length}`);
+      label.className='reaction-book-group-label';
+      control.append(label);
       const preview=createReactionGroupPreview(group.id);
       if(preview)control.append(preview);
       host.append(control);
