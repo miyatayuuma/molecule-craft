@@ -61,6 +61,18 @@ def annotate(text, tokenizer, context):
             # The functional-group suffix is pronounced "ki" (OH基, アミノ基, etc.).
             if surface == '基':
                 reading = 'キ'
+            # Janome may interpret chemical-ring and triple-bond terms as names/places.
+            if surface == '環':
+                reading = 'カン'
+            if surface == '三重' and text.startswith('三重結合', offset):
+                reading = 'サンジュウ'
+            # Standalone words are read differently from their common dictionary defaults.
+            if surface == '間' and text[offset + len(surface):].startswith(('に', 'で')):
+                reading = 'アイダ'
+            if surface == '生' and text.startswith('生分解性', offset):
+                reading = 'セイ'
+            if surface == '本' and text[:offset].endswith('1'):
+                reading = 'ポン'
             # The glossary treats 肥料 as an individually tappable term.
             if surface == '窒素肥料':
                 annotations.extend([[offset, '窒素', 'ちっそ'], [offset + 2, '肥料', 'ひりょう']])
