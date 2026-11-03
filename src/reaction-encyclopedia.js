@@ -63,28 +63,29 @@ export function reactionGroups(authority,progress){
 }
 
 const STAR_POINTS='12,1 15.3,8.2 23.2,9.2 17.5,14.8 18.9,22.8 12,19 5.1,22.8 6.5,14.8 .8,9.2 8.7,8.2';
-function starIcon(filled){
+function starIcon(filled,justEarned=false){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.classList.add('reaction-progress-star');
   if(filled)svg.classList.add('is-filled');
+  if(justEarned)svg.classList.add('is-new');
   const shape=document.createElementNS('http://www.w3.org/2000/svg','polygon');
   shape.setAttribute('points',STAR_POINTS);svg.append(shape);return svg;
 }
-export function updateReactionStars(host,done,total){
+export function updateReactionStars(host,done,total,{award=false}={}){
   const count=Math.max(0,Math.min(total,done));
   host.className='reaction-book-group-count';
   host.setAttribute('aria-label',`実証済み ${count} / ${total} 経路`);
   host.dataset.done=String(count);host.dataset.total=String(total);
   host.replaceChildren();
   if(total<=7){
-    for(let n=0;n<total;n++)host.append(starIcon(n<count));
+    for(let n=0;n<total;n++)host.append(starIcon(n<count,award&&n===count-1));
   }else{
-    const mark=starIcon(true),numbers=document.createElement('span'),meter=document.createElement('span'),fill=document.createElement('span');
+    const mark=starIcon(true,award),numbers=document.createElement('span'),meter=document.createElement('span'),fill=document.createElement('span');
     numbers.textContent=`${count}/${total}`;meter.className='reaction-progress-meter';fill.className='reaction-progress-meter-fill';
     fill.style.width=`${total?100*count/total:0}%`;meter.append(fill);host.append(mark,numbers,meter);
   }
 }
-export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},onReady=()=>{},reducedMotion=false}={}){
+export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},reducedMotion=false}={}){
   const entries=[...new Set(tags)].map(tag=>{
     const card=[...host.querySelectorAll('[data-reaction-group]')].find(node=>node.dataset.reactionGroup===tag);
     const stars=card?.querySelector('.reaction-book-group-count'),done=Number(stars?.dataset.done),total=Number(stars?.dataset.total);
@@ -106,11 +107,19 @@ export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},onReady=
     item.card.classList.add('reaction-award-focus');
     timer=setTimeout(()=>{
       if(cancelled)return;
-      updateReactionStars(item.stars,item.done,item.total);item.card.classList.add('reaction-award-earned');
+      updateReactionStars(item.stars,item.done,item.total,{award:true});
+      const star=item.stars.querySelector('.reaction-progress-star.is-new');
+      const burst=document.createElement('span');burst.className='reaction-award-burst';burst.setAttribute('aria-hidden','true');
+      if(star){
+        const a=star.getBoundingClientRect(),b=item.stars.getBoundingClientRect();
+        burst.style.left=`${a.left-b.left+a.width/2}px`;burst.style.top=`${a.top-b.top+a.height/2}px`;
+        item.stars.append(burst);
+      }
+      item.card.classList.add('reaction-award-earned');
       timer=setTimeout(()=>{
         if(cancelled)return;
-        item.card.classList.remove('reaction-award-earned');
-        ready=true;onReady({index:index+1,total:entries.length});
+        burst.remove();item.card.classList.remove('reaction-award-earned');
+        ready=true;
       },reducedMotion?80:1350);
     },reducedMotion?60:700);
   };

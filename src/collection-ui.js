@@ -1,5 +1,5 @@
 import {unfinishedCraftIds,pendingReactionRecipeIds,reactionRecipeRowModel} from './pending-craft.js';
-import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=3';
+import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=4';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
 import { validateCraftStructures } from './craft-structures.js?v=34';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=38';
@@ -279,9 +279,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       if(typeof part==='string'){notice.append(document.createTextNode(part));continue;}
       const ruby=el('ruby');ruby.append(document.createTextNode(part[0]),el('rt',part[1]));notice.append(ruby);
     }
-    const prompt=el('span','タップでつづける','discovery-award-tap');
-    prompt.hidden=true;notice.append(prompt);
-    dialog.append(notice);return {notice,prompt};
+    dialog.append(notice);return notice;
   }
   function beginAwardInteraction(advance){
     const click=event=>{
@@ -302,16 +300,16 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     tab='reactions';currentDetail=null;listScroll=0;renderBook();
     if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');notifyOpen();}
     dialog.scrollTop=0;
-    const {notice,prompt}=showAwardNotice('reactions');
+    const notice=showAwardNotice('reactions');
     let finished=false,removeInteraction=()=>{},cancelVisual=()=>{};
     const complete=result=>{
       if(finished)return;finished=true;removeInteraction();dialog.removeEventListener('close',dismiss);
       notice.remove();discoveryAward=null;onSettled(result);
     };
     const dismiss=()=>{cancelVisual();complete({status:'dismissed'});};
-    const runner=playReactionStarCeremony({host:list,tags,reducedMotion:prefersReducedMotion(),onReady:()=>{prompt.hidden=false;},onSettled:complete});
+    const runner=playReactionStarCeremony({host:list,tags,reducedMotion:prefersReducedMotion(),onSettled:complete});
     cancelVisual=runner.cancel;
-    removeInteraction=beginAwardInteraction(()=>{if(runner.advance())prompt.hidden=true;});
+    removeInteraction=beginAwardInteraction(()=>runner.advance());
     dialog.addEventListener('close',dismiss,{once:true});
     discoveryAward={cancel:()=>{runner.cancel();removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();finished=true;}};
     return true;
@@ -323,7 +321,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(!dialog.open){dialog.showModal();document.body.classList.add('collection-open');notifyOpen();}
     const card=[...list.querySelectorAll('[data-entry-id]')].find(node=>node.dataset.entryId===id);
     if(!card)return false;
-    const {notice,prompt}=showAwardNotice('polymers');
+    const notice=showAwardNotice('polymers');
     card.classList.add('polymer-award-hidden');
     const name=card.querySelector('strong'),originalName=name?.textContent;
     if(name)name.textContent='???';
@@ -343,7 +341,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const reveal=()=>{
       card.classList.remove('polymer-award-hidden');card.classList.add('polymer-award-target');
       if(name)name.textContent=originalName;
-      timer=setTimeout(()=>{ready=true;prompt.hidden=false;},prefersReducedMotion()?80:1450);
+      timer=setTimeout(()=>{ready=true;},prefersReducedMotion()?80:1450);
     };
     removeInteraction=beginAwardInteraction(()=>settle());
     dialog.addEventListener('close',dismiss,{once:true});
