@@ -409,18 +409,28 @@ function onPointerUp(e){
   dragState=null;release(e);if(!interactionLocked())refresh();else refreshInfo(true);
   if(state.frameRequested)requestStructureFrame();
 }
+// Pointer capture belongs to the input layer; clearing the gesture state is
+// separate so rollback and recovery can keep their existing cleanup order.
+function releaseCraftPointerCaptures(){
+  for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
+}
+function resetCraftPointerState(){
+  activePointers.clear();dragState=null;multiGesture=null;hoverElectron=null;electronReturn=null;lastBackgroundTap=null;
+}
+function clearBondHoldTimer(){
+  clearTimeout(bondHoldTimer);bondHoldTimer=null;
+}
 function abortPointerInteraction(e=null){
   if(e?.pointerId!==undefined&&!activePointers.has(e.pointerId))return false;
   if(!activePointers.size&&!dragState&&!multiGesture&&!hoverElectron&&!craftHistory.pending)return false;
-  lastBackgroundTap=null;clearTimeout(bondHoldTimer);bondHoldTimer=null;
+  lastBackgroundTap=null;clearBondHoldTimer();
   try{conformationEngine.release();}catch{}
   cleanupDetachedTear(dragState);
   if(craftHistory.pending){
     try{if(craftHistory.rollback())return true;}
     catch(error){console.error('Craft gesture rollback failed; clearing transient input state.',error);}
   }
-  for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
-  activePointers.clear();dragState=null;multiGesture=null;hoverElectron=null;electronReturn=null;
+  releaseCraftPointerCaptures();resetCraftPointerState();
   if(!interactionLocked())refresh();else refreshInfo(true);return true;
 }
 function onPointerCancel(e){if(!activePointers.has(e.pointerId))return;abortPointerInteraction(e);}
@@ -536,7 +546,6 @@ function rotateWholeMolecule(dx,dy,roll=0,rotation=workspaceView.capture(structu
   if(roll)q.multiply(new THREE.Quaternion().setFromAxisAngle(cameraDirection(),roll));
   solver.rotateReferenceFrames(q,rotation.ids);rotateStructure(rotation,pos,q);relaxation?.session.rotate(rotation,q);
 }
-function moleculeCenter(){const center=workspaceView.capture(structures,mainStructure,pos)?.center;return center?new THREE.Vector3(center.x,center.y,center.z):cameraTarget.clone();}
 
 function repairSavedGeometry(){
   if(relaxation||bondTransition)return;
@@ -827,9 +836,8 @@ function captureCraftHistoryState(){
 }
 function restoreCraftHistoryState(snapshot){
   if(!snapshot?.workspace||!snapshot?.elements)return false;
-  stopRelaxation();clearBondTransition();clearTorsionGuide();clearTimeout(bondHoldTimer);bondHoldTimer=null;
-  for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
-  cleanupDetachedTear(dragState);activePointers.clear();dragState=null;multiGesture=null;electronReturn=null;hoverElectron=null;frameTransition=null;lastBackgroundTap=null;
+  stopRelaxation();clearBondTransition();clearTorsionGuide();clearBondHoldTimer();
+  releaseCraftPointerCaptures();cleanupDetachedTear(dragState);resetCraftPointerState();frameTransition=null;
   workspaceView.clear();const restored=restoreWorkspace(snapshot.workspace,{THREE,molecule,placements,camera,cameraTarget});
   for(const symbol of Object.keys(resources.state.elements))if(!Object.hasOwn(snapshot.elements,symbol))delete resources.state.elements[symbol];Object.assign(resources.state.elements,snapshot.elements);
   selectedAtomId=restored.selected;craftTargetId=(resources.state.recipes.includes(restored.targetMoleculeId)||resources.state.hints.includes(restored.targetMoleculeId))?restored.targetMoleculeId:null;workspaceView.select(restored.focus);
@@ -903,13 +911,12 @@ function recoverCraftAnimationState(){
     catch(error){console.error('Craft animation rollback failed; aborting transient transaction.',error);}
   }
   try{conformationEngine.release();}catch{}
-  cleanupDetachedTear(dragState);stopRelaxation();frameTransition=null;clearTimeout(bondHoldTimer);bondHoldTimer=null;
+  cleanupDetachedTear(dragState);stopRelaxation();frameTransition=null;clearBondHoldTimer();
   try{clearBondTransition();}catch{
     bondTransition=null;
     for(const object of[...interactionOverlay.children])try{interactionOverlay.remove(object);disposeObject(object);}catch{}
   }
-  for(const id of activePointers.keys())try{renderer.domElement.releasePointerCapture(id);}catch{}
-  activePointers.clear();dragState=null;multiGesture=null;hoverElectron=null;electronReturn=null;lastBackgroundTap=null;
+  releaseCraftPointerCaptures();resetCraftPointerState();
   try{refreshInfo(true);}catch{}
   return true;
 }
