@@ -37,7 +37,7 @@ try{
   await evaluate(`window.__collection.registerDiscoveredPolymer('polyethylene');window.__collection.openPolymer('polyethylene')`);
   await waitFor(`document.querySelectorAll('#collection-detail .polymer-model-mode').length===2`,'Polymer model controls ready');
   const splitLayout=await evaluate(`(()=>{const list=document.querySelector('#collection-list'),detail=document.querySelector('#collection-detail'),a=list.getBoundingClientRect(),b=detail.getBoundingClientRect();return{listHidden:list.hidden,detailHidden:detail.hidden,left:a.left,right:a.right,detailLeft:b.left,detailRight:b.right};})()`);
-  if(Number(process.env.REACTION_VIEWPORT||360)>=1050){assert.equal(splitLayout.listHidden,false,'Desktop keeps the polymer list visible');assert.equal(splitLayout.detailHidden,false);assert.ok(splitLayout.right<=splitLayout.detailLeft,'Desktop list and details must not overlap');}
+  if(Number(process.env.REACTION_VIEWPORT||360)>=1050){assert.equal(splitLayout.listHidden,true,'Desktop opens a dedicated polymer detail page');assert.equal(splitLayout.detailHidden,false);assert.ok(splitLayout.detailRight-splitLayout.detailLeft>700,'Desktop detail uses the wide viewport');}
   else{assert.equal(splitLayout.listHidden,true,'Mobile keeps the existing detail view');assert.equal(splitLayout.detailHidden,false);}
 
   await evaluate(`document.querySelectorAll('#collection-detail .polymer-model-mode')[1].click()`);
@@ -48,7 +48,8 @@ try{
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),13);
   const categoryLayout=await evaluate(`(()=>{const list=document.querySelector('.reaction-book-category-grid'),cards=[...list.querySelectorAll('.reaction-book-group')],a=cards[0].getBoundingClientRect(),b=cards[1].getBoundingClientRect(),c=cards[2].getBoundingClientRect(),style=getComputedStyle(list);return{display:style.display,columns:style.gridTemplateColumns,firstRow:Math.abs(a.top-b.top)<2,secondAtRight:b.left>a.left,nextRow:c.top>a.bottom,compact:a.height/a.width>=.69&&a.height/a.width<=.76,cardSize:[Math.round(a.width),Math.round(a.height)]};})()`);
   assert.equal(categoryLayout.display,'grid',JSON.stringify(categoryLayout));
-  assert.equal(categoryLayout.columns.split(' ').length,2,JSON.stringify(categoryLayout));
+  if(Number(process.env.REACTION_VIEWPORT||360)>=1050){assert.ok(categoryLayout.columns.split(' ').length>=3,JSON.stringify(categoryLayout));assert.ok(categoryLayout.cardSize[0]<=330,'Desktop reaction cards stay compact');}
+  else assert.equal(categoryLayout.columns.split(' ').length,2,JSON.stringify(categoryLayout));
   const artworkLayout=await evaluate(`[...document.querySelectorAll('.reaction-book-group')].map(card=>{const scene=card.querySelector('.rb-schem-scene'),frame=card.getBoundingClientRect(),image=scene?.getBoundingClientRect();return{centerError:!image?1:Math.abs((image.left+image.right-frame.left-frame.right)/2)/frame.width,widthRatio:!image?0:image.width/frame.width};})`);
   assert.equal(artworkLayout.every(x=>x.centerError<.12&&x.widthRatio<1.2),true,JSON.stringify(artworkLayout));
   assert.equal(await evaluate(`(()=>{const grid=document.querySelector('.reaction-book-category-grid'),first=grid.firstElementChild.getBoundingClientRect(),last=grid.lastElementChild.getBoundingClientRect();return Math.abs(last.left-first.left)<2&&Math.abs(last.width-first.width)<2;})()`),true,'odd final category card stays left-aligned');
@@ -89,7 +90,7 @@ try{
   })()`);
   assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/5 \/ 54 経路/);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-preview-group]').length`),13);
-  assert.equal(await evaluate(`(()=>{const grid=document.querySelector('.reaction-book-category-grid');return !!grid&&getComputedStyle(grid).display==='grid'&&getComputedStyle(grid).gridTemplateColumns.split(' ').length===2;})()`),true,'returning to reactions keeps two columns');
+  assert.equal(await evaluate(`(()=>{const grid=document.querySelector('.reaction-book-category-grid');return !!grid&&getComputedStyle(grid).display==='grid'&&(window.innerWidth>=1050?getComputedStyle(grid).gridTemplateColumns.split(' ').length>=3:getComputedStyle(grid).gridTemplateColumns.split(' ').length===2);})()`),true,'returning to reactions keeps viewport-appropriate columns');
   const previews=[['加水分解','normal:complete-01-anhydride-hydrolysis'],['付加','normal:complete-06-ethene-halogenation'],['環化','normal:complete-21-cyclobutane-dimerization'],['重合','polymer:polyethylene-coordination']];
   for(const [label,id] of previews){
     await evaluate(`[...document.querySelectorAll('#collection-list button')].find(button=>button.textContent.startsWith(${JSON.stringify(label)})).click()`);
