@@ -1,5 +1,4 @@
-import {unfinishedCraftIds,pendingReactionRecipeIds,reactionRecipeRowModel} from './pending-craft.js';
-import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=4';
+import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=5';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
 import { validateCraftStructures } from './craft-structures.js?v=34';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=38';
@@ -400,16 +399,6 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       onFocus:id=>focusGraph(id),onDetail:(id,node)=>showMoleculeDetailFromGraph(id,node),
     });
     lastGraphPositions=result.positions;lastGraphVisibleIds=result.visibleIds;
-    const normal=unfinishedCraftIds(recipeState?.()).filter(id=>recordById(id));
-    const special=pendingReactionRecipeIds({authority:reactionAuthority,progress:reactionProgress}).map(id=>reactionAuthority.get(id));
-    if(normal.length||special.length){
-      const panel=el('details',null,'collection-recipe-list'),summary=el('summary',`💡 ひらめいたレシピ（${normal.length+special.length}）`);
-      panel.open=!window.matchMedia?.('(min-width: 1024px) and (min-height: 640px)')?.matches;
-      panel.append(summary);
-      for(const id of normal){const record=recordById(id),item=el('div',null,'collection-recipe-reference');item.append(document.createTextNode('💡 '));appendMoleculeNameFurigana(item,moleculeDisplayName(record));panel.append(item);}
-      for(const entry of special){const model=reactionRecipeRowModel(entry,{records,polymerNameFor:id=>polymerRecords.find(row=>row.id===id)?.nameJa});const item=button(`💡 ${model.name}（${model.detail}）`,()=>onTryReaction(entry.reactionId));item.dataset.reactionRecipe=entry.reactionId;item.className='collection-special-recipe';panel.append(item);}
-      list.prepend(panel);
-    }
   }
   function renderGroupList(){
     list.className='collection-grid';

@@ -21,7 +21,7 @@ try{
  const saved={schemaVersion:3,discoveredMolecules:records.map((x,i)=>({id:x.id,at:i+1,order:i+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
  await send('Page.addScriptToEvaluateOnNewDocument',{source:`if(!localStorage.getItem('molecule-craft.collection.v1'))localStorage.setItem('molecule-craft.collection.v1',${JSON.stringify(JSON.stringify(saved))});if(!localStorage.getItem('molecule-craft.reaction-progress.v1'))localStorage.setItem('molecule-craft.reaction-progress.v1',JSON.stringify({schemaVersion:1,hintedReactionIds:['normal:complete-21-cyclobutane-dimerization','normal:complete-01-anhydride-hydrolysis'],verifiedReactionIds:[]}));`});
  await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1`});await wait("!!window.__reactionLabProbe&&!document.querySelector('#open-reaction-lab').disabled",'app ready');
- await ev(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click();[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('環化')).click();document.querySelector('.reaction-book-hint').click();[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent==='LABでためす').click()`);
+ await ev(`document.querySelector('#open-pending-crafts').click();document.querySelector('[data-reaction-recipe="normal:complete-21-cyclobutane-dimerization"]').click()`);
  await wait("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('[data-reaction-guide]').hidden",'guided LAB opens');
  assert.equal(await ev("document.querySelectorAll('[data-lab-slot].reaction-guide-target').length"),1);
  assert.equal(await ev("document.querySelector('#reaction-lab-dialog').scrollWidth<=document.querySelector('#reaction-lab-dialog').clientWidth+1"),true);
@@ -39,7 +39,7 @@ try{
  await ev("document.querySelector('[data-lab-close]').click()");await wait("!document.querySelector('#reaction-lab-dialog').open",'lab closes');
  await send('Page.reload');await wait("!!window.__reactionLabProbe&&!document.querySelector('#open-reaction-lab').disabled",'reload ready');
  assert.equal(await ev("document.querySelector('[data-reaction-guide]').hidden"),true,'guide does not persist after reload');
- await ev(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click();[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('加水分解')).click();document.querySelector('.reaction-book-hint').click();[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent==='LABでためす').click()`);
+ await ev(`document.querySelector('#open-pending-crafts').click();document.querySelector('[data-reaction-recipe="normal:complete-01-anhydride-hydrolysis"]').click()`);
  await wait("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('[data-reaction-guide]').hidden",'second guide opens');
  for(const species of ['acetic-anhydride','water']){
    await wait("!!document.querySelector('[data-lab-slot].reaction-guide-target')",'required slot');await ev("document.querySelector('[data-lab-slot].reaction-guide-target').click()");

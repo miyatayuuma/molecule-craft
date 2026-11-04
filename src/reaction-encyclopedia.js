@@ -140,8 +140,6 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
   const name=id=>{const r=records.find(x=>x.id===id);return r?.commonNameJa??r?.nameJa??id;};
   const model=reactionGroups(authority,progress);
   const visualContext={records,polymerRecords};
-  const title=make('h3',`${model.verified} / ${model.entries.length} 経路`);
-  const note=make('p','件数はこの図鑑に収録された経路です。実験での到達方法が未確認のものも含みます。');
   function showList(){
     host.classList.remove('reaction-book-categories');
     const grid=make('div','');
@@ -151,7 +149,8 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
     // CSS owns responsive category widths; never force two columns inline.
     grid.style.gap='8px';
     grid.style.width='100%';
-    host.replaceChildren(title,note,grid);
+    // Progress is already shown in the tab; do not spend a mobile row repeating it.
+    host.replaceChildren(grid);
     for(const group of model.groups){
       const done=group.items.filter(x=>x.state==='verified').length;
       const control=button('',()=>showGroup(group));
@@ -169,7 +168,8 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
   }
   function showGroup(group){
     host.replaceChildren(button('‹ カテゴリ一覧',showList),make('h3',group.label));
-    for(const item of group.items.filter(x=>x.state!=='notFound')){
+    // Pending recipe actions belong to the top-level lightbulb, never the atlas.
+    for(const item of group.items.filter(x=>x.state==='verified')){
       const d=item.definition,inputs=item.kind==='normal'?d.reactants.map(x=>name(x.species)):d.feedSpecies.map(name),outputs=item.kind==='normal'?d.products.map(name):[polymerRecords.find(x=>x.id===d.polymerId)?.nameJa??d.polymerId];
       const equation=`${inputs.join(' + ')} → ${outputs.join(' + ')}`;
       const conditions=item.kind==='normal'?d.requires:(d.environment?.requires??[]),forbidden=item.kind==='normal'?d.forbids:(d.environment?.forbids??[]);
@@ -190,16 +190,8 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
           for(const condition of detail.conditions)chemistry.append(make('p',condition));
           host.append(chemistry);
         }
-        if(item.state==='hinted')host.append(make('p','手掛かりを獲得しました。まだLABで実証していません。反応を確かめるにはLABで実験してください。'));
-        else host.append(make('p','LABで実証した反応です。模型は生成物の構造を示し、反応の途中を再現した映像ではありません。'));
-        host.append(button(item.state==='hinted'?'LABでためす':'LABでもう一度ためす',()=>onTry(item.reactionId)));
-      }
-      if(item.state==='hinted'){
-        const hint=button(`✦ ひらめいたレシピ · 未実証：${outputs.join(' + ')}`,showDetail);
-        hint.className='reaction-book-hint';
-        const thumb=createReactionThumbnailFromEntry(item,visualContext);
-        if(thumb)hint.append(thumb);
-        host.append(hint);continue;
+      host.append(make('p','LABで実証した反応です。模型は生成物の構造を示し、反応の途中を再現した映像ではありません。'));
+      host.append(button('LABでもう一度ためす',()=>onTry(item.reactionId)));
       }
       const block=make('section','');block.className='reaction-book-entry';
       block.append(make('strong',equation),make('p',`LABの条件：${conditionText}`));
@@ -212,8 +204,8 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
       }
       host.append(block);
     }
-    const missing=group.items.filter(x=>x.state==='notFound'&&!x.unavailable).length, unavailable=group.items.filter(x=>x.state==='notFound'&&x.unavailable).length;
-    host.append(make('p',`未発見 ${missing} 件${unavailable?` · 到達経路未整備 ${unavailable} 件`:''}`));
+    const missing=group.items.filter(x=>x.state!=='verified'&&!x.unavailable).length, unavailable=group.items.filter(x=>x.state!=='verified'&&x.unavailable).length;
+    host.append(make('p',`未実証 ${missing} 件${unavailable?` · 到達経路未整備 ${unavailable} 件`:''}`));
   }
   showList();
 }
