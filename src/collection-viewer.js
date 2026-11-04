@@ -25,7 +25,6 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
   const controls=createPreviewControls(view=>{Object.assign(viewState,view);try{onViewChange({...viewState});}catch{}requestDraw();},initialView);
   Object.assign(viewState,controls.snapshot());try{onViewChange({...viewState});}catch{}
 
-  if(record.attachments?.length)host.append(make('p','金色の輪が接続点','model-port-key'));
 
   function requestDraw(){if(!disposed&&!frame&&!owner.hidden)frame=requestAnimationFrame(tick);}
   function tick(){
