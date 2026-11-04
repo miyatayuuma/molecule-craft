@@ -21,3 +21,44 @@ test('FIELD receives sampled movement and is cleared on blur', async()=>{
  const window={navigator:{getGamepads:()=>[p]},requestAnimationFrame:f=>{frame=f;},addEventListener:(name,f)=>{if(name==='blur')blur=f;},removeEventListener(){}};
  const stop=startGamepadUi({window,document,onFieldSample:s=>received.push(s)});frame(0);p=pad(0,[],[.7,0,0,0]);frame(20);assert.equal(received.at(-1).axes[0],.7);blur();assert.equal(received.at(-1),null);stop();
 });
+
+test('pH direction and cleanup hold use direct gamepad adapters',async()=>{
+  const {startGamepadUi}=await import('../src/gamepad-input.js');
+  let nextFrame,active,p=pad(0),adjustments=[],holds=[];
+  const el=()=>({
+    tagName:'BUTTON',tabIndex:0,id:'',dataset:{},hasAttribute:()=>false,getAttribute:()=>null,
+    closest:()=>null,getClientRects:()=>[{}],getBoundingClientRect:()=>({left:0,right:80,top:0,bottom:40}),
+    focus(){active=this;},matches:()=>false
+  });
+  const medium=el(),cleanup=el();
+  medium.gamepadAdjust=direction=>adjustments.push(direction);
+  cleanup.gamepadHold=pressed=>holds.push(pressed);
+  active=medium;
+  const items=[medium,cleanup],body={dataset:{mode:'craft'},classList:{add(){},remove(){}},querySelectorAll:()=>items};
+  const document={
+    hidden:false,body,get activeElement(){return active;},querySelectorAll:()=>[],
+    addEventListener(){},removeEventListener(){},getElementById:()=>null
+  };
+  const window={
+    navigator:{getGamepads:()=>[p]},requestAnimationFrame:fn=>{nextFrame=fn;},
+    addEventListener(){},removeEventListener(){},getComputedStyle:()=>({visibility:'visible'})
+  };
+  const stop=startGamepadUi({window,document});
+  nextFrame(0);
+  p=pad(0,[],[0,-.8,0,0]);nextFrame(16);
+  assert.deepEqual(adjustments,['up']);
+  p=pad(0);nextFrame(32);
+  active=cleanup;p=pad(0,[0]);nextFrame(48);
+  p=pad(0);nextFrame(64);
+  assert.deepEqual(holds,[true,false]);
+  stop();
+});
+
+test('controller deadzone preset can be calibrated without changing mappings',()=>{
+  const sampler=createGamepadSampler();
+  sampler.sample([pad(0)],0,'field');
+  assert.deepEqual(sampler.sample([pad(0,[],[.24,0,0,0])],1,'field').axes,[.24,0,0,0]);
+  sampler.setDeadzone(.3);
+  sampler.sample([pad(0)],2,'field');
+  assert.deepEqual(sampler.sample([pad(0,[],[.24,0,0,0])],3,'field').axes,[0,0,0,0]);
+});

@@ -127,10 +127,13 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     const img=document.createElement('img');img.src=new URL(`../../assets/models/molecule-${record.id}.svg`,import.meta.url).href;img.alt='';img.width=76;img.height=56;img.loading='lazy';img.decoding='async';img.addEventListener('error',()=>img.remove(),{once:true});button.append(img);
   }
   function renderCandidates(list,loadedId){
-    const tabs=q('tank-molecules'),left=tabs.scrollLeft,loadoutId=resources.selectedLoadout()[selectedUse];tabs.replaceChildren();
+    const tabs=q('tank-molecules'),left=tabs.scrollLeft,loadoutId=resources.selectedLoadout()[selectedUse];
+    const focusedId=tabs.contains(document.activeElement)?document.activeElement?.dataset?.moleculeId:undefined;
+    tabs.replaceChildren();
     const emptyButton=document.createElement('button'),emptyLabels=document.createElement('span'),emptyState=document.createElement('small');emptyButton.type='button';emptyButton.dataset.moleculeId='';emptyButton.dataset.loaded=String(!loadedId);emptyButton.setAttribute('aria-pressed',String(loadoutId===null));Object.assign(emptyLabels,{textContent:'∅'});emptyState.textContent=loadoutId===null?'選択中':'';emptyButton.append(emptyLabels,emptyState);emptyButton.addEventListener('click',()=>{if(resources.setLoadoutTank(selectedUse,null)){selectedId=null;update();}});tabs.append(emptyButton);
     for(const {record,selected,loaded} of loadoutCandidateCards(list,{loadoutId,loadedId})){const button=document.createElement('button'),labels=document.createElement('span'),state=document.createElement('small');button.type='button';button.dataset.moleculeId=record.id;button.dataset.loaded=String(loaded);button.setAttribute('aria-pressed',String(selected));thumbnail(button,record);labels.append(Object.assign(document.createElement('strong'),{textContent:formula(record)}),Object.assign(document.createElement('small'),{textContent:name(record)}));state.textContent=selected?'選択中':loaded?'残量あり':'';button.append(labels,state);button.addEventListener('click',()=>{if(resources.setLoadoutTank(selectedUse,record.id)){selectedId=record.id;update();}});tabs.append(button);}
     tabs.scrollLeft=left;
+    if(focusedId!==undefined)[...tabs.querySelectorAll('[data-molecule-id]')].find(button=>button.dataset.moleculeId===focusedId)?.focus({preventScroll:true});
   }
   function renderTankDetail(){
     const loadedId=resources.state.tanks[selectedUse]?.molecule,loadoutId=resources.selectedLoadout()[selectedUse],list=candidates(selectedUse);if(selectedId!==null&&!list.some(record=>record.id===selectedId))selectedId=null;if(selectedId===null&&loadoutId&&list.some(record=>record.id===loadoutId))selectedId=loadoutId;
