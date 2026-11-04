@@ -292,7 +292,10 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
       if(sample&&active&&paused&&sample.pressed.includes(9))q('veil-resume').click();
       return;
     }
-    const stationary=Math.hypot(sample.axes[0],sample.axes[1])<.22&&Math.hypot(stick.x,stick.y)<.01&&!keys.size;
+    // Controller axes may jitter beyond the navigation deadzone while fingers
+    // are resting on a stick. Ignore small drift for the hold-to-return gesture;
+    // deliberate movement still cancels extraction immediately.
+    const stationary=Math.hypot(sample.axes[0],sample.axes[1])<.4&&Math.hypot(stick.x,stick.y)<.01&&!keys.size;
     if(sample.held[0]&&stationary&&returnMethod()){
       if(gamepadReturnStarted===null)gamepadReturnStarted=performance.now();
       const progress=Math.min(1,(performance.now()-gamepadReturnStarted)/700);returnProgress.hidden=false;returnProgress.style.setProperty('--return-progress',`${progress*100}%`);returnProgress.setAttribute('aria-valuenow',String(Math.round(progress*100)));

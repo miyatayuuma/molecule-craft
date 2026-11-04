@@ -94,7 +94,7 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
     const field=document.body.dataset.mode==='veil';
     if(field)return 'FIELD：左スティックで移動　B：BURST　X：SHOCK　RT：推進　停止中にA長押し：帰還';
     if(lab)return 'LAB：Aで3D照準を開始・つかむ／離す　Bで照準終了　右スティック：完成高分子回転　LT/RT：ズーム　pH上で上下：酸性・中性・塩基性';
-    return 'CRAFT：3D画面でAを押して照準開始　左スティック：移動　A：つかむ／離す　右スティック：回転　LT/RT：ズーム　片付けはA長押し';
+    return 'CRAFT：L3で3D操作へ／戻る　左スティック：移動　A：つかむ／離す　右スティック：回転　LT/RT：ズーム　B：元に戻す　X長押し：全片付け';
   }
   function frame(now){
     if(stopped)return;
@@ -173,6 +173,10 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
       }
       if(sample.pressed.includes(1)){
         if(partial)partial.querySelector('button')?.click();
+        else if(dialog?.id==='collection-dialog'&&!dialog.querySelector('#collection-detail')?.hidden){
+          const back=dialog.querySelector('#detail-back, #motif-detail-back');
+          if(back)back.click();else closeDialog(dialog);
+        }
         else if(dialog)closeDialog(dialog);
       }
     }
