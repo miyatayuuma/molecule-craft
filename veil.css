@@ -89,27 +89,90 @@
 
 .gamepad-return-progress{position:absolute;z-index:10;left:50%;bottom:110px;transform:translateX(-50%);padding:8px 18px;border:1px solid #8cdeec;border-radius:8px;color:#eaffff;background:linear-gradient(90deg,#267b84 var(--return-progress,0%),#132b39 var(--return-progress,0%));pointer-events:none}
 
-/* Controller-shaped action cluster shared by touch and desktop.
-   SHOCK = X (left), BURST = B (right), COMBUSTION = RT (upper right).
-   The mobile flight pad remains available for touch. */
-.veil-drive-control{display:grid;grid-template-columns:76px 110px;grid-template-rows:64px 90px;grid-template-areas:"status drive" "shock burst";gap:8px;align-items:center;justify-items:center}
-.veil-drive-control #veil-shock{grid-area:shock;position:relative;right:auto;bottom:auto;width:76px;height:70px;min-height:70px}
-.veil-drive-control #veil-combustion{grid-area:drive;position:relative;width:110px;height:64px;min-height:64px;gap:2px}
-.veil-drive-control #veil-boost{grid-area:burst;position:relative;width:90px;height:90px}
-.veil-drive-control #veil-thermal{grid-area:status;position:relative;width:76px;min-width:0;padding:5px 6px}
+/* Compact controller-shaped FIELD actions: RT above B; X to the left.
+   Key legends are inset into the controls so they never collide with their borders. */
+.veil-drive-control{
+  display:grid;grid-template-columns:70px 104px;grid-template-rows:68px 84px;
+  grid-template-areas:"status drive" "shock burst";gap:8px;
+  align-items:center;justify-items:center;pointer-events:none;
+}
+.veil-drive-control button[data-pad-button]{
+  position:relative;pointer-events:auto;overflow:hidden;
+  box-shadow:inset 0 1px 0 #ffffff18,0 5px 18px #020c1780;
+  transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.veil-drive-control button[data-pad-button]::before{
+  content:attr(data-pad-button);position:absolute;top:6px;left:7px;z-index:2;
+  display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;
+  border:1px solid currentColor;border-radius:9px;background:#0715228c;
+  color:#bfe9f2;font-size:9px;font-weight:800;letter-spacing:0;line-height:1;
+  box-shadow:none;pointer-events:none;
+}
+.veil-drive-control #veil-shock{
+  grid-area:shock;right:auto;bottom:auto;width:68px;height:68px;min-height:68px;
+  padding:17px 4px 5px;border-radius:50%;
+  background:linear-gradient(160deg,#264e5fc9,#102738e8);border-color:#548aa0b0;
+}
+.veil-drive-control #veil-shock strong{font-size:18px;line-height:1.1}
+.veil-drive-control #veil-shock small{font-size:8px;letter-spacing:0;color:#afd8e4}
+.veil-drive-control #veil-boost{
+  grid-area:burst;width:84px;height:84px;min-height:84px;
+  padding:17px 4px 6px;border-radius:50%;
+  background:linear-gradient(155deg,#2a6070dd,#112d40ea);border-color:#79b5c5bc;
+}
+.veil-drive-control #veil-boost strong{font-size:22px;line-height:1.1}
+.veil-drive-control #veil-boost small{font-size:8px;letter-spacing:.45px}
+.veil-drive-control #veil-combustion{
+  grid-area:drive;width:104px;height:68px;min-height:68px;
+  padding:15px 7px 4px;border-radius:16px;gap:2px;
+  background:linear-gradient(150deg,#563428df,#251f2cdd);border-color:#b17b6599;
+}
+.veil-drive-control #veil-combustion::before{
+  min-width:24px;height:17px;border-radius:6px;color:#ffd1b7;
+}
+.veil-drive-control #veil-combustion strong{font-size:10px;letter-spacing:.1px;line-height:1.15}
+.veil-drive-control #veil-combustion small{font-size:8px;letter-spacing:.3px}
+.veil-drive-control #veil-combustion .paired-tanks{display:flex;gap:6px;margin-top:0}
+.veil-drive-control #veil-combustion .paired-tanks>[data-role]{gap:0}
+.veil-drive-control #veil-combustion .paired-tanks b,
+.veil-drive-control #veil-combustion .combustion-link{display:none}
+.veil-drive-control #veil-combustion .paired-tanks i{width:13px;height:9px;padding:1px;border-radius:3px}
+.veil-drive-control #veil-combustion .propulsion-meter{width:75px;height:3px}
+.veil-drive-control #veil-thermal{
+  grid-area:status;position:relative;width:70px;min-width:0;padding:6px 7px;
+  border-radius:13px;background:#091a28bd;box-shadow:none;
+}
 .veil-drive-control #veil-thermal>span{gap:3px;flex-wrap:wrap}
-.veil-drive-control button[data-pad-button]::before{content:attr(data-pad-button);position:absolute;top:-7px;left:-6px;z-index:2;display:grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border:1px solid #7698ac;border-radius:7px;background:#102535;color:#d6f6f8;font-size:11px;font-weight:800;letter-spacing:0;box-shadow:0 2px 8px #07121acc;pointer-events:none}
-@media(min-width:780px) and (pointer:fine){.veil-pad{display:none}.veil-controls{justify-content:flex-end}}
+.veil-drive-control button[data-pad-button][aria-disabled=true]{box-shadow:none}
+.veil-drive-control button[data-pad-button]:active:not([aria-disabled=true]){transform:scale(.97)}
+@media(min-width:780px) and (pointer:fine){
+  .veil-pad{display:none}
+  .veil-controls{justify-content:flex-end}
+}
+@media(max-width:430px){
+  .veil-drive-control{grid-template-columns:56px 80px;grid-template-rows:60px 76px;gap:6px}
+  .veil-drive-control #veil-shock{width:56px;height:56px;min-height:56px}
+  .veil-drive-control #veil-shock strong{font-size:15px}
+  .veil-drive-control #veil-shock small{font-size:7px}
+  .veil-drive-control #veil-boost{width:76px;height:76px;min-height:76px}
+  .veil-drive-control #veil-boost strong{font-size:20px}
+  .veil-drive-control #veil-boost small{font-size:7px;letter-spacing:0}
+  .veil-drive-control #veil-combustion{width:80px;height:60px;min-height:60px;padding:14px 4px 4px}
+  .veil-drive-control #veil-combustion strong{font-size:9px}
+  .veil-drive-control #veil-combustion small{font-size:7px}
+  .veil-drive-control #veil-combustion .propulsion-meter{width:52px}
+  .veil-drive-control #veil-thermal{width:56px;padding:4px}
+  .veil-drive-control #veil-thermal b,.veil-drive-control #veil-thermal strong{font-size:8px}
+}
 @media(max-width:370px){
- .veil-pad{width:92px;height:92px}
- .veil-knob{left:25px;top:25px}
- .veil-pad:before{left:45px;top:12px;height:68px}
- .veil-pad:after{left:12px;top:45px;width:68px}
- .veil-drive-control{grid-template-columns:68px 84px;grid-template-rows:56px 74px;gap:6px}
- .veil-drive-control #veil-shock{width:66px;height:64px;min-height:64px}
- .veil-drive-control #veil-combustion{width:84px;height:56px;min-height:56px}
- .veil-drive-control #veil-boost{width:74px;height:74px}
- .veil-drive-control #veil-thermal{width:68px}
- .veil-drive-control #veil-combustion .paired-tanks{gap:2px}
- .veil-drive-control #veil-combustion .propulsion-meter{max-width:72px}
+  .veil-pad{width:92px;height:92px}
+  .veil-knob{left:25px;top:25px}
+  .veil-pad:before{left:45px;top:12px;height:68px}
+  .veil-pad:after{left:12px;top:45px;width:68px}
+}
+@media(max-height:500px){
+  .veil-drive-control{grid-template-rows:52px 72px;gap:5px}
+  .veil-drive-control #veil-boost{width:72px;height:72px;min-height:72px}
+  .veil-drive-control #veil-combustion{height:52px;min-height:52px}
+  .veil-drive-control #veil-shock{height:56px;min-height:56px}
 }
