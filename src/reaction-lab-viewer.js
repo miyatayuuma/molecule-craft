@@ -539,11 +539,12 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     newlyDiscoveredPolymerId=firstDiscovery&&isPolymerKnown(sample.polymerId)?sample.polymerId:null;
     polymerSiteIndicator.hidden=true;updatePolymerSiteIndicator();updateCommandBar();
   }
-  function presentCompletedPolymerGrowth(units){
-    // The registered Sample precedes the illustrative 100-unit growth.
-    // Do not open the Collection until its last unit has been rendered.
-    const presentation=polymerSamplePresentation;
-    if(units!==100||!finiteReferenceView||!presentation?.ready||presentation.dismissed||presentation.batchGeneration!==batch.generation)return;
+  function presentPolymerDiscoveryAfterGrowth({force=false}={}){
+    const presentation=polymerSamplePresentation,growth=polymerGraphVisual?.growth;
+    // Prefer a visibly extending chain over waiting for all 100 reference units.
+    // A bounded fallback still awards discoveries if the optional 3D preview stalls.
+    if(!presentation?.ready||presentation.dismissed||presentation.batchGeneration!==batch.generation||!dialog.open)return;
+    if(!force&&(!finiteReferenceView||!growth||growth.units<growth.awardAfterUnits))return;
     const key=`${presentation.batchGeneration}:${presentation.sampleId}`;
     if(presentedPolymerSampleIds.has(key))return;
     presentedPolymerSampleIds.add(key);
@@ -558,6 +559,11 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     presentation.ready=true;presentation.phase='ready';presentation.layoutCallsAtReady=polymerRuntimeMetrics.finiteLayoutCalls;
     updatePolymerCompletionUi(presentation,true);
     referenceUnits.value='100';referenceDisplay.value='reference';showPolymerReference();
+    const sampleId=presentation.sampleId,generation=presentation.batchGeneration;
+    setTimeout(()=>{
+      if(polymerSamplePresentation?.sampleId===sampleId&&polymerSamplePresentation.batchGeneration===generation)
+        presentPolymerDiscoveryAfterGrowth({force:true});
+    },4800);
     updateCommandBar();
   }
   polymerEncyclopediaButton?.addEventListener('click',async()=>{
@@ -718,7 +724,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       visual.group.position.copy(connectedPose.position);visual.group.quaternion.copy(connectedPose.quaternion);visual.group.scale.copy(connectedPose.scale);visual.group.updateMatrixWorld(true);
       polymerSamplePresentation.fit={...connectedPose.fit,position:connectedPose.position.toArray(),quaternion:connectedPose.quaternion.toArray(),scale:connectedPose.scale.x};
     }
-    updatePolymerBondVisuals();referenceModules.renderer.setReferenceGrowth(THREE,visual,initialUnits);visual.growth={lastRenderedAt:null,units:initialUnits};
+    updatePolymerBondVisuals();referenceModules.renderer.setReferenceGrowth(THREE,visual,initialUnits);visual.growth={lastRenderedAt:null,units:initialUnits,awardAfterUnits:Math.min(plan.unitCount,initialUnits+8)};
     if(!connectedPose)polymerSamplePresentation.fit=fitFinitePolymerToWorkArea();
     if(!polymerSamplePresentation.fit){restoreFiniteReferenceView();polymerCompletionStatus.textContent='成長イメージを表示できませんでした。次のFEEDへ進めます。';showPhenolicGrowthFailure('表示位置',new Error('missing display fit'));return;}
     if(!startGrowthCamera(visual,initialUnits)){restoreFiniteReferenceView({refit:false});polymerCompletionStatus.textContent='成長イメージを安全に表示できませんでした。実際の生成物を表示しています。';showPhenolicGrowthFailure('カメラ安全領域',new Error('no camera position'));return;}
@@ -1557,7 +1563,7 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(growth&&transition&&!transition.done&&!cameraMoving){transition.elapsed=Math.min(transition.duration,transition.elapsed+Math.min(elapsed,50));const t=transition.elapsed/transition.duration,eased=t*t*(3-2*t);transition.methylol.position.copy(transition.offset).multiplyScalar(eased);transition.methylol.children[2].material.opacity=1-eased;transition.water.position.copy(transition.offset);transition.done=t>=1;polymerVisualRevision++;}
     if(growth&&!cameraMoving&&(!transition||transition.done)&&referenceModules.renderer.advanceReferenceGrowth(growth,now,polymerGraphVisual.layoutPlan.unitCount)){referenceModules.renderer.setReferenceGrowth(THREE,polymerGraphVisual,growth.units);polymerVisualRevision++;}
     const staticSample=polymerSamplePresentation&&!polymerGraphVisual?.animation&&!batchTransition&&!reactionAnimation&&(instances.length===0||(finiteReferenceView&&polymerReferenceDefinition(polymerSamplePresentation.polymerId)?.network&&instances.every(item=>!item.group.visible)))&&!observation.comparisonActive;
-    if(!staticSample||polymerVisualRevision!==lastRenderedPolymerRevision){renderer.render(scene,camera);polymerRuntimeMetrics.renderSubmissions++;lastRenderedPolymerRevision=polymerVisualRevision;if(growth&&!growthCameraMotion&&growth.lastRenderedAt===null){growth.lastRenderedAt=performance.now();if(growth.units===polymerGraphVisual.layoutPlan.unitCount){polymerGraphVisual.growth=null;presentCompletedPolymerGrowth(growth.units);}}}
+    if(!staticSample||polymerVisualRevision!==lastRenderedPolymerRevision){renderer.render(scene,camera);polymerRuntimeMetrics.renderSubmissions++;lastRenderedPolymerRevision=polymerVisualRevision;if(growth&&!growthCameraMotion&&growth.lastRenderedAt===null){growth.lastRenderedAt=performance.now();if(growth.units>=growth.awardAfterUnits)presentPolymerDiscoveryAfterGrowth();if(growth.units===polymerGraphVisual.layoutPlan.unitCount)polymerGraphVisual.growth=null;}}
     else polymerRuntimeMetrics.staticFrameSkips++;
   }
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();contextLost=true;cancelAllPointers();observation.contextLost(true);},eventOptions);
