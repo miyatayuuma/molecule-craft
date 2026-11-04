@@ -47,8 +47,9 @@ try{
   await page.waitForSelector('#veil-view:not([hidden])');
   await page.keyboard.down('Shift');await page.waitForTimeout(300);
   assert.equal(await page.locator('#veil-combustion').getAttribute('aria-pressed'),'true');
-  assert.equal(await page.locator('#veil-combustion-fuel [data-role=fuel]').getAttribute('aria-valuenow'),'17');
-  assert.equal(await page.locator('#veil-combustion-fuel [data-role=oxidizer]').getAttribute('aria-valuenow'),'34');
+  assert.equal(await page.locator('#veil-fuel-model').getAttribute('data-molecule'),'methane');
+  assert.equal(await page.locator('#veil-oxygen-model').getAttribute('data-molecule'),'oxygen');
+  assert.match(await page.locator('#veil-combustion-remaining').innerText(),/^\d+秒$/);
   await page.screenshot({path:'/tmp/molecule-craft-visual-burn.png'});await page.keyboard.up('Shift');
   await page.keyboard.down('ArrowUp');await page.waitForTimeout(4200);await page.keyboard.up('ArrowUp');
   await page.screenshot({path:'/tmp/molecule-craft-oxygen-junction.png'});

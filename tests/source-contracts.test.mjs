@@ -78,7 +78,7 @@ assert.doesNotMatch(app, /resources\.(?:spend|refund)\(/,'BASE STOCK mutations b
 assert.match(app, /!elementPalette.canUse\(symbol\)/);
 assert.equal((app.match(/elementPalette.fallback\(\)/g)??[]).length,2,'Both DB failures restore full static palette access');
 assert.match(index, /id="veil-combustion"/);
-assert.match(index, /id="veil-combustion-remaining">HOLD DRIVE<\/small>/,'Exploration combustion control keeps its operational DRIVE label');
+assert.match(index, /id="veil-combustion-remaining" class="veil-drive-seconds">0秒<\/strong>/,'Exploration DRIVE shows remaining seconds without a text label');
 assert.doesNotMatch(gameShell, /#veil-combustion-remaining/,'Gameplay chrome pruning must not hide the DRIVE action affordance');
 assert.match(index, /id="veil-threat"/);
 assert.match(index, /id="open-supply" class="collector-access"/);
