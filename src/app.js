@@ -35,7 +35,7 @@ import { captureDetachedFragment, createDetachedDrag } from './craft-detached-dr
 import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=7';
 import { createReactionCatalogAuthority } from './reaction-catalog-authority.js?v=1';
 import { createReactionProgress } from './reaction-progress.js?v=1';
-import { startGamepadUi } from './gamepad-input.js';
+import { startGamepadUi } from './gamepad-input.js?v=2';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
@@ -218,8 +218,14 @@ const craftPadCursor=document.createElement('div');craftPadCursor.className='cra
 function craftPadPoint(){return {pointerId:-739,clientX:craftPadX,clientY:craftPadY,pointerType:'gamepad'};}
 function endCraftPad(){if(craftPadGrab)abortPointerInteraction();craftPadGrab=false;craftPadBondHold=false;craftPadActive=false;craftPadLast=0;craftPadCursor.hidden=true;}
 function releaseCraftPadClear(){if(!craftPadClearHold)return;document.getElementById('clear-all')?.gamepadHold?.(false);craftPadClearHold=false;}
-function handleCraftGamepad(sample,{dialog,now}={}){
-  if(!renderer||!sample||dialog||veilUI?.active){releaseCraftPadClear();if(craftPadActive)endCraftPad();return dialog?.id==='reaction-lab-dialog'?(reactionLabViewer?.handleGamepad?.(sample,now)??false):(reactionLabViewer?.handleGamepad?.(null,now),false);}
+function handleCraftGamepad(sample,{dialog,now,openKeyboard}={}){
+  if(!renderer||!sample||dialog||veilUI?.active){
+    releaseCraftPadClear();if(craftPadActive)endCraftPad();
+    if(dialog?.id==='collection-dialog')return collectionGame?.handleGamepad?.(sample,now,{openKeyboard})??false;
+    collectionGame?.handleGamepad?.(null);
+    if(dialog?.id==='reaction-lab-dialog')return reactionLabViewer?.handleGamepad?.(sample,now)??false;
+    reactionLabViewer?.handleGamepad?.(null,now);return false;
+  }
   // X holds the existing one-second cleanup affordance; B undoes an edit
   // outside 3D aim. L3 enters/leaves aim independently of focused UI cards.
   if(sample.held[2]&&!craftPadGrab&&!interactionLocked()){

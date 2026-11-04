@@ -793,3 +793,16 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 @media(min-width:1050px) and (min-height:600px){
  #collection-dialog #collection-detail>.detail-model-frame{grid-column:1;align-self:start;margin-top:6px}
 }
+
+/* Desktop pointer users reveal page arrows on demand. A gamepad uses the D-pad
+   for page turns, so only those redundant arrows disappear in controller mode. */
+@media(min-width:1050px) and (min-height:600px){
+ #collection-dialog .detail-navigation>button[aria-label="前の項目"],
+ #collection-dialog .detail-navigation>button[aria-label="次の項目"]{opacity:0;pointer-events:none!important;transition:opacity .16s ease}
+ #collection-dialog #collection-detail:hover .detail-navigation>button[aria-label="前の項目"],
+ #collection-dialog #collection-detail:hover .detail-navigation>button[aria-label="次の項目"],
+ #collection-dialog .detail-navigation>button[aria-label="前の項目"]:focus-visible,
+ #collection-dialog .detail-navigation>button[aria-label="次の項目"]:focus-visible{opacity:1;pointer-events:auto!important}
+ body.gamepad-navigation-active #collection-dialog .detail-navigation>button[aria-label="前の項目"],
+ body.gamepad-navigation-active #collection-dialog .detail-navigation>button[aria-label="次の項目"]{display:none!important}
+}
