@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createCollectionViewer} from './collection-viewer.js?v=45';
+import {createCollectionViewer} from './collection-viewer.js?v=46';
 
 // Read-only, centered 30-unit display geometry. The reference plan owns all
 // chemical connections; Collection neither edits it nor uses a finite Sample.
@@ -19,11 +19,12 @@ export function createPolymerLongChainLayout(THREE,plan){
   return{atoms,bonds,aromaticCycles,ports:[],sharedGroups:[],stereoDescriptor:null,unitCount:30};
 }
 
-export function mountPolymerLongChainPreview({host,polymerId,name}){
+export function mountPolymerLongChainPreview({host,polymerId,name,onReady=()=>{},onError=()=>{}}){
   const unitLabel=polymerId==='phenol-formaldehyde-resin'?'30環':new Set(['ethylene-propylene-copolymer','styrene-butadiene-copolymer','nitrile-butadiene-rubber','butyl-rubber','vinylidene-fluoride-hexafluoropropylene-copolymer']).has(polymerId)?'30構成単位':'30反復単位';
   let disposed=false,worker=null,viewer=null,timer=null;
-  const showError=()=>{if(!disposed)host.textContent=`${unitLabel}の模型を準備できませんでした。構成単位に切り替えて観察できます。`;};
-  host.textContent=`${unitLabel}の立体模型を準備しています…`;
+  const showStatus=text=>{const status=host.ownerDocument.createElement('p');status.className='model-status';status.setAttribute('role','status');status.textContent=text;host.replaceChildren(status);};
+  const showError=()=>{if(!disposed){showStatus(`${unitLabel}の模型を準備できませんでした。構成単位に切り替えて観察できます。`);onError();}};
+  showStatus(`${unitLabel}の立体模型を準備しています…`);
   try{
     worker=new Worker(new URL('./polymer-collection-worker.js?v=1',import.meta.url),{type:'module'});
     timer=setTimeout(()=>{worker?.terminate();worker=null;timer=null;showError();},12000);
@@ -36,7 +37,7 @@ export function mountPolymerLongChainPreview({host,polymerId,name}){
         host.replaceChildren();
         viewer=createCollectionViewer({
           host,record:{atoms:[],bonds:[],attachments:[]},name:`${name}・${unitLabel}`,
-          fixedLayout:layout,compact:true,showGestureHint:false,
+          fixedLayout:layout,compact:true,showGestureHint:false,onReady,onError,
         });
       }catch(error){console.warn('Polymer 30-unit viewer unavailable',polymerId,error);showError();}
     };

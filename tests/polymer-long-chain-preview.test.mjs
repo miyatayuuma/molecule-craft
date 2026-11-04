@@ -44,7 +44,7 @@ test('30-unit view is lazy, cancellable and uses a single batched viewer',async(
   assert.match(ui,/detailViewer\?\.dispose\(\);detailViewer=null/);
   assert.match(long,/worker\?\.terminate\(\)/);
   assert.match(long,/createCollectionViewer\(/);
-  assert.match(long,/compact:true,showGestureHint:true/);
+  assert.match(long,/compact:true,showGestureHint:false,onReady,onError/);
   assert.match(worker,/createPolymerReferenceModel\(THREE,polymerId,units\)/);
   assert.match(viewer,/new THREE\.InstancedMesh\(sphere/);
   assert.match(viewer,/new THREE\.InstancedMesh\(cylinder/);
