@@ -20,6 +20,9 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
   const owner=host.ownerDocument,make=(tag,text,className)=>{const node=owner.createElement(tag);if(text)node.textContent=text;if(className)node.className=className;return node;};
   const stage=make('div',null,'model-stage'),status=make('p','立体模型を準備しています…','model-status');
   status.setAttribute('role','status');
+  // A molecule detail already displays its SVG continuity thumbnail. Its
+  // loading announcement remains accessible but must not double the visual.
+  if(host.classList.contains('molecule-detail-return'))status.hidden=true;
   host.append(stage,status);host.classList.add('collection-model');
   const listen=(node,type,handler,options)=>{node.addEventListener(type,handler,options);listeners.push(()=>node.removeEventListener(type,handler,options));};
   const controls=createPreviewControls(view=>{Object.assign(viewState,view);try{onViewChange({...viewState});}catch{}requestDraw();},initialView);
@@ -35,7 +38,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         do{const movement=model.step();steps++;stable=movement<PART_SETTLEMENT.movementThreshold?stable+1:0;}while(steps<PART_SETTLEMENT.maxSteps&&stable<PART_SETTLEMENT.stableSteps&&performance.now()-started<5);
         if(steps<220&&stable<10){requestDraw();return;}
         layout=model.snapshot();model=null;
-        if(presentation?.kind==='alkene-relative-side'&&layout.stereoDescriptor?.relation!==presentation.relation){status.textContent='この立体配置を表示できませんでした。';onError();return;}
+        if(presentation?.kind==='alkene-relative-side'&&layout.stereoDescriptor?.relation!==presentation.relation){status.textContent='この立体配置を表示できませんでした。';status.hidden=false;onError();return;}
         if(!fixedLayout)layouts.set(key,layout);
         while(layouts.size>8)layouts.delete(layouts.keys().next().value);
       }
@@ -43,7 +46,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         layout.canonicalPartView??=canonicalPartView(THREE,layout);
         controls.setInitialView(layout.canonicalPartView);Object.assign(viewState,controls.snapshot());
       }
-      try{initialize();ready=true;}catch(error){status.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';console.warn('Collection preview unavailable',error);releaseGraphics();onError(error);return;}
+      try{initialize();ready=true;}catch(error){status.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';status.hidden=false;console.warn('Collection preview unavailable',error);releaseGraphics();onError(error);return;}
     }
     draw();
     if(!readyNotified){readyNotified=true;host.dataset.stereoRelation=layout.stereoDescriptor?.relation??'';try{onReady({snapshot:compact?null:snapshotImage(),view:{...viewState},stereoDescriptor:layout.stereoDescriptor??null});}catch{}}
