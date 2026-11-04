@@ -11,7 +11,7 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=77">
+  <link rel="stylesheet" href="./styles.css?v=78">
   <link rel="stylesheet" href="./veil.css?v=48">
 </head>
 <body>
@@ -130,9 +130,11 @@
     <h3>フィールドの分子 <span id="structure-count"></span></h3><div id="structure-list" class="structure-list"></div>
   </div></dialog>
   <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="book-shell">
+    <div class="book-toprail">
     <header class="book-header"><h2 id="collection-title">図鑑</h2><button id="close-collection" type="button" aria-label="図鑑を閉じる">×</button></header>
-    <p id="collection-storage" class="save-warning" role="status" hidden></p>
     <div class="book-tabs" role="tablist" aria-label="図鑑の種類"><button type="button" role="tab" data-book-tab="molecules" aria-label="分子" title="分子" aria-selected="true" aria-controls="collection-list"><svg class="ui-book-icon" aria-hidden="true"><use href="#ui-molecule"/></svg><span class="book-tab-count" data-book-count="molecules">0 / 0</span></button><button type="button" role="tab" data-book-tab="groups" aria-label="部品" title="部品" aria-selected="false" aria-controls="collection-list" tabindex="-1"><svg class="ui-book-icon" aria-hidden="true"><use href="#ui-part"/></svg><span class="book-tab-count" data-book-count="groups">0 / 0</span></button><button type="button" role="tab" data-book-tab="reactions" aria-label="反応" title="反応" aria-selected="false" aria-controls="collection-list" tabindex="-1"><svg class="ui-book-icon" aria-hidden="true"><use href="#ui-reaction"/></svg><span class="book-tab-count" data-book-count="reactions">— / —</span></button><button type="button" role="tab" data-book-tab="polymers" aria-label="高分子" title="高分子" aria-selected="false" aria-controls="collection-list" tabindex="-1"><svg class="ui-book-icon" aria-hidden="true"><use href="#ui-polymer"/></svg><span class="book-tab-count" data-book-count="polymers">0 / 0</span></button></div>
+    </div>
+    <p id="collection-storage" class="save-warning" role="status" hidden></p>
     <div id="collection-list" class="collection-grid"></div><section id="collection-detail" hidden></section>
     <footer class="book-footer"><details><summary>発見のあしあと</summary><div id="collection-milestones" class="collection-tags"></div><p>同じ分子を何度つくっても、発見数は増えません。</p></details></footer>
   </div></dialog>

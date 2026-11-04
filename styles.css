@@ -795,14 +795,15 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
  #collection-dialog #collection-detail>.detail-model-frame{grid-column:1;align-self:start;margin-top:6px}
 }
 
-/* Mobile Collection: use the same single top rail as desktop. The tab icons
-   and discovery counts remain visible, with at least 44px per touch target
-   even at a 320px viewport. */
+/* Keep the existing desktop grid placement; on mobile the header and tabs
+   become one sticky element instead of two independently scrolling rails. */
+.book-toprail{display:contents}
 @media(max-width:650px){
  #collection-dialog .book-shell{display:grid;grid-template-columns:40px minmax(0,1fr) 44px;align-items:start}
- #collection-dialog .book-header{grid-column:1/-1;grid-row:1;z-index:2;min-height:60px;margin:0 -16px 10px;padding:8px 16px}
+ #collection-dialog .book-toprail{display:grid;grid-column:1/-1;grid-row:1;grid-template-columns:40px minmax(0,1fr) 44px;align-items:center;position:sticky;top:0;z-index:10;min-height:60px;margin:0 -16px 10px;padding:0 16px;background:#132232;border-bottom:1px solid #385a6c}
+ #collection-dialog .book-toprail>.book-header{grid-column:1/-1;grid-row:1;position:relative;top:auto;z-index:0;min-height:60px;margin:0;padding:8px 0;background:transparent;border-bottom:0}
  #collection-dialog .book-header h2{font-size:18px;white-space:nowrap}
- #collection-dialog .book-tabs{grid-column:2;grid-row:1;z-index:3;position:sticky;top:0;align-self:center;justify-self:stretch;min-width:0;height:56px;min-height:0;margin:0;padding:2px;gap:3px;border-radius:12px}
+ #collection-dialog .book-toprail>.book-tabs{grid-column:2;grid-row:1;z-index:1;position:relative;top:auto;align-self:center;justify-self:stretch;min-width:0;height:56px;min-height:0;margin:0;padding:2px;gap:3px;border-radius:0;background:transparent}
  #collection-dialog .book-tabs button:has(.ui-book-icon){min-height:52px;padding:2px 0;gap:1px}
  #collection-dialog .ui-book-icon{width:24px;height:24px}
  #collection-dialog .book-tab-count{font-size:9.5px;line-height:1.1}
