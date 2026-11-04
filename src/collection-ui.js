@@ -9,7 +9,7 @@ import {appendMoleculeNameFurigana} from './molecule-name-furigana.js?v=2';
 import {appendPartNameFurigana} from './part-name-furigana.js';
 import {loadMoleculeGraph} from './molecule-graph.js?v=2';
 import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphFocus} from './encyclopedia-graph.js?v=2';
-import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=5';
+import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=6';
 import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';
 import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=5';
 import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
@@ -403,7 +403,9 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const normal=unfinishedCraftIds(recipeState?.()).filter(id=>recordById(id));
     const special=pendingReactionRecipeIds({authority:reactionAuthority,progress:reactionProgress}).map(id=>reactionAuthority.get(id));
     if(normal.length||special.length){
-      const panel=el('details',null,'collection-recipe-list'),summary=el('summary',`💡 ひらめいたレシピ（${normal.length+special.length}）`);panel.open=true;panel.append(summary);
+      const panel=el('details',null,'collection-recipe-list'),summary=el('summary',`💡 ひらめいたレシピ（${normal.length+special.length}）`);
+      panel.open=!window.matchMedia?.('(min-width: 1024px) and (min-height: 640px)')?.matches;
+      panel.append(summary);
       for(const id of normal){const record=recordById(id),item=el('div',null,'collection-recipe-reference');item.append(document.createTextNode('💡 '));appendMoleculeNameFurigana(item,moleculeDisplayName(record));panel.append(item);}
       for(const entry of special){const model=reactionRecipeRowModel(entry,{records,polymerNameFor:id=>polymerRecords.find(row=>row.id===id)?.nameJa});const item=button(`💡 ${model.name}（${model.detail}）`,()=>onTryReaction(entry.reactionId));item.dataset.reactionRecipe=entry.reactionId;item.className='collection-special-recipe';panel.append(item);}
       list.prepend(panel);

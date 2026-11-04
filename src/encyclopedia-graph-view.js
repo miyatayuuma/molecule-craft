@@ -243,7 +243,9 @@ export function renderEncyclopediaGraph({
   stage.addEventListener('pointerdown',event=>{if(event.target!==stage||event.button!==undefined&&event.button!==0)return;swipe={id:event.pointerId,x:event.clientX,y:event.clientY,at:Date.now()};try{stage.setPointerCapture?.(event.pointerId);}catch{}});
   stage.addEventListener('pointerup',event=>{if(!swipe||swipe.id!==event.pointerId)return;const start=swipe;swipe=null;const dx=event.clientX-start.x,dy=event.clientY-start.y,threshold=Math.max(44,Math.min(72,(stage.clientWidth||width)*.14));if(Date.now()-start.at>900||Math.abs(dx)<threshold||Math.abs(dx)<Math.abs(dy)*1.2)return;const target=dx<0?nextSector:previousSector;if(target)onFocus(target.id);});
   stage.addEventListener('pointercancel',()=>{swipe=null;});
-  const rect=host.getBoundingClientRect?.()??{width:0},surfaceWidth=rect.width||host.clientWidth||360;const width=Math.max(240,surfaceWidth-2),height=Math.max(370,Math.min(560,win?.innerHeight?win.innerHeight*.58:480));
+  const rect=host.getBoundingClientRect?.()??{width:0},surfaceWidth=rect.width||host.clientWidth||360;
+  const width=Math.max(240,surfaceWidth-2),desktop=!!win?.matchMedia?.('(min-width: 1024px) and (min-height: 640px)')?.matches;
+  const height=desktop&&host.clientHeight>400?Math.max(370,host.clientHeight-50):Math.max(370,Math.min(560,win?.innerHeight?win.innerHeight*.58:480));
   const nodeDiameter=width<=360?62:66,focusDiameter=width<=360?116:124;
   const layout=layoutFocusNeighborhood(graph,focusId,{width,height,nodeDiameter,focusDiameter}),canonical=canonicalGraphPositions(graph),center=layout.center,focusGlobal=canonical.get(focusId)??{x:0,y:0};
   const positions=new Map(layout.positions),contextPosition=id=>{
