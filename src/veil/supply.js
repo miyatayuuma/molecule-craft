@@ -60,7 +60,6 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     if(segments>1){fill.style.transform='none';fill.style.clipPath=`inset(0 ${(1-value)*100}% 0 0)`;fill.style.transition='clip-path .2s linear';return;}
     fill.style.clipPath='none';fill.style.transition='transform .2s linear';fill.style.transform=`scaleX(${value})`;
   }
-  const combustionLink=document.querySelector('#veil-combustion .combustion-link');if(combustionLink)combustionLink.textContent='🔥';
   styleTankMeter(q('veil-coolant-level'),'coolant',null);
 
   const accessCanvas=document.createElement('canvas');accessCanvas.id='collector-access-preview';accessCanvas.setAttribute('aria-hidden','true');Object.assign(accessCanvas.style,{display:'block',width:'42px',height:'34px',pointerEvents:'none'});access.append(accessCanvas);access.setAttribute('aria-label','探索機を開く');Object.assign(access.style,{minWidth:'50px',padding:'3px 5px',justifyContent:'center'});

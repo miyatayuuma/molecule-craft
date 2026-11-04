@@ -41,20 +41,24 @@ assert.doesNotMatch(ui,/q\('veil-coolant-level'\)/,'Coolant amount is no longer 
 assert.match(gameShell,/#veil-coolant-level/,'Legacy coolant amount bar is pruned from FIELD chrome');
 assert.doesNotMatch(gameShell,/#veil-thermal-state/,'Thermal state indicator remains visible');
 
-assert.match(index,/id="veil-combustion-remaining">HOLD DRIVE<\/small>/,'DRIVE hold affordance remains in production DOM');
-assert.match(index,/data-role="fuel"/);assert.match(index,/data-role="oxidizer"/);
-assert.match(ui,/for\(const role of \['fuel','oxidizer'\]\)/,'FIELD keeps updating both fuel and oxidizer meters');
-assert.match(ui,/node\.setAttribute\('aria-valuenow',String\(slot\.amount\)\)/,'Fuel/O2 meters keep current-value accessibility semantics');
+assert.match(index,/id="veil-combustion-remaining" class="veil-drive-seconds">0秒<\/strong>/,'DRIVE seconds remain legible in the production DOM');
+assert.match(index,/id="veil-fuel-model"/);assert.match(index,/id="veil-oxygen-model"/);
+assert.match(index,/id="veil-shock-model"/);assert.match(index,/id="veil-burst-model"/);
+assert.doesNotMatch(index,/HOLD DRIVE|paired-tanks/,'Action controls no longer display redundant labels or tank widgets');
+assert.match(ui,/hudMolecule\(q\('veil-fuel-model'\),fuel\.molecule\)/,'FIELD uses the loaded fuel molecule thumbnail');
+assert.match(ui,/hudMolecule\(q\('veil-oxygen-model'\),oxidizer\.molecule\)/,'FIELD shows oxygen as a smaller co-reactant');
+assert.match(ui,/chargeArc\(boostButton,burstGauge\.remaining,burstGauge\.capacity\)/,'BURST count and arc use the same authoritative gauge');
+assert.match(ui,/Math\.ceil\(Math\.max\(0,combustionGauge\.seconds\)\)/,'DRIVE seconds derive from the limiting-reagent burn plan');
 assert.match(ui,/combustionButton\.setAttribute\('aria-disabled',String\(!combustion\|\|run\.overheated/,'Overheat still disables DRIVE');
 assert.match(ui,/combustionButton\.addEventListener\('pointerdown',startCombustion\)/,'Pointer-hold DRIVE binding is unchanged');
 assert.match(ui,/q\('veil-boost'\)\.addEventListener\('pointerdown'/,'BURST binding remains independent');
 assert.match(ui,/q\('veil-resume'\).*root\.focus\(\)/,'Existing FIELD resume focus contract remains intact');
-assert.doesNotMatch(gameShell,/#veil-combustion-remaining/,'HOLD DRIVE is not pruned as generic chrome');
+assert.doesNotMatch(gameShell,/#veil-combustion-remaining/,'DRIVE remaining time is not pruned as generic chrome');
 
 // No new layout footprint is introduced: the existing responsive drive column
 // widths remain the bounding geometry, while one coolant meter is removed.
 assert.match(veilCss,/@media\(max-width:370px\)\{\.veil-thermal\{width:110px/);
 assert.match(veilCss,/@media\(max-height:500px\)\{\.veil-thermal\{width:90px/);
-assert.match(veilCss,/@media\(max-width:370px\).*#veil-combustion\{width:110px/);
+assert.match(veilCss,/\.veil-drive-control #veil-combustion\{width:86px/);
 
-console.log('Propulsion HUD source contract passed: max PULSE dots, relative POWER meter, continuous thermal load, coolant feedback, DRIVE/BURST bindings, and responsive bounds.');
+console.log('Propulsion HUD source contract passed: molecule-based action controls, counts and seconds, POWER/thermal states, pointer bindings, and responsive bounds.');
