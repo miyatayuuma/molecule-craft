@@ -75,7 +75,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   }
   function returnMethod(){
     if(!active||!run||paused||run.captured||returnState?.phase!=='exploring')return null;
-    if((run.carriedInsights?.length??0)>0||run.specialInsightId)return 'insight';
+    if((run.carriedInsights?.length??0)>0||run.specialInsightId||run.inspiration)return 'insight';
     return isInsideSafeExtractionSite(run.player,run.map.safeExtractionSites)?'site':null;
   }
   function notice(text,seconds=4,icon='✦'){q('veil-message').setAttribute('aria-label',text);q('veil-message').textContent=icon;messageUntil=(run?.time??0)+seconds;q('veil-message').hidden=false;}
