@@ -41,15 +41,15 @@ try{
  assert.equal(await ev("document.querySelector('#veil-recipe-notice').hidden"),true);
  await send('Page.reload');await wait("!!window.__reactionLabProbe&&!document.querySelector('#open-collection').disabled",'reload ready');
  assert.deepEqual((await ev("JSON.parse(localStorage.getItem('molecule-craft.reaction-progress.v1'))")).hintedReactionIds,[drop.reactionId]);
- await ev(`document.querySelector('#open-collection').click()`);await wait("!!document.querySelector('[data-reaction-recipe]')",'recipe in shared list');
+ await ev(`document.querySelector('#open-collection').click()`);await wait("document.querySelector('#collection-dialog').open",'collection open');
  assert.equal(await ev("document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1"),true);
- await ev("document.querySelector('[data-reaction-recipe]').click()");await wait("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('[data-reaction-guide]').hidden",'guided LAB');
- assert.equal(await ev("document.querySelector('#reaction-lab-dialog').scrollWidth<=document.querySelector('#reaction-lab-dialog').clientWidth+1"),true);
- await send('Page.reload');await wait("!!window.__reactionLabProbe&&!document.querySelector('#open-collection').disabled",'reload after guide');
+ assert.equal(await ev("document.querySelector('#collection-dialog [data-reaction-recipe]')===null"),true,'pending reactions are absent from encyclopedia');
+ await ev("document.querySelector('#collection-dialog').close()");
  await wait("!document.querySelector('#open-pending-crafts').hidden",'top-right bulb includes saved special insight');
  assert.equal(await ev("Number(document.querySelector('#open-pending-crafts small').textContent)>=1"),true,'pending count includes special insight');
  await ev("document.querySelector('#open-pending-crafts').click()");await wait("!!document.querySelector('#pending-crafts-dialog [data-reaction-recipe]')",'special reaction in existing bulb menu');
  assert.equal(await ev("document.querySelector('#pending-crafts-dialog [data-reaction-recipe]').textContent.includes('LAB')"),true,'special row explicitly opens LAB');
  await ev("document.querySelector('#pending-crafts-dialog [data-reaction-recipe]').click()");await wait("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('[data-reaction-guide]').hidden",'bulb selection opens guided LAB');
+ assert.equal(await ev("document.querySelector('#reaction-lab-dialog').scrollWidth<=document.querySelector('#reaction-lab-dialog').clientWidth+1"),true);
  console.log('MC_SR_01_TNT_SIGNAL_BROWSER PASS '+process.env.GUIDE_WIDTH);
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:100});}
