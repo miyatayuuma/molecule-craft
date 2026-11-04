@@ -550,7 +550,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     modelHost.before(frame);
     frame.append(detail.querySelector(':scope > .detail-heading'),modelHost);
     const nav=detail.querySelector(':scope > .detail-navigation');
-    if(controls)nav.insertBefore(controls,nav.querySelector('[aria-label="前の項目"]'));
+    if(controls){frame.classList.add('detail-model-frame--with-switch');frame.append(controls);}
     frame.append(nav);
     return frame;
   }
