@@ -117,6 +117,6 @@ export function mountPolymerUnitPreview({host,polymerId,name,compact=false,onRea
   const record={atoms:layout.atoms.map(atom=>({element:atom.element})),bonds:layout.bonds,attachments:[]};
   return createCollectionViewer({
     host,record,name,fixedLayout:layout,initialView:VIEWS[polymerId]??null,
-    portColor:0x48d9ff,showGestureHint:!compact,compact,onReady,onThumbnail,
+    portColor:0x48d9ff,showGestureHint:false,compact,onReady,onThumbnail,
   });
 }

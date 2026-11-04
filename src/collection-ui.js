@@ -192,7 +192,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       return import('./collection-viewer.js?v=43').then(({createCollectionViewer})=>new Promise(resolve=>{
         if(request!==mountGeneration||generation!==detailGeneration||!dialog.open||!host.isConnected){resolve(null);return;}
         host.querySelector(':scope > .model-status')?.remove();
-        detailViewer=createCollectionViewer({host,record,name,presentation:nextPresentation,initialView:previousView,
+        detailViewer=createCollectionViewer({host,record,name,presentation:nextPresentation,initialView:previousView,showGestureHint:false,
           onViewChange:view=>{if(request===mountGeneration&&host.isConnected)host.dataset.viewerView=JSON.stringify(view);},
           onReady:({snapshot,view,stereoDescriptor})=>{
             if(request!==mountGeneration||generation!==detailGeneration||!host.isConnected){resolve(null);return;}
@@ -439,7 +439,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       });
     };
     job.timeout=setTimeout(()=>finish(null),5000);
-    import('./polymer-unit-preview.js?v=5').then(({mountPolymerUnitPreview})=>{
+    import('./polymer-unit-preview.js?v=6').then(({mountPolymerUnitPreview})=>{
       if(job.done||activeThumbnailJob!==job)return;
       job.viewer=mountPolymerUnitPreview({
         host:stage,polymerId:item.record.id,name:item.record.nameJa,
@@ -544,11 +544,18 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   function heading(kind,id,name,formula=''){
     const host=el('div',null,'detail-heading'),left=el('div'),numberText=numberLabel(kind,id);if(numberText)left.append(el('span',numberText,'dex-number'));const title=el('h3');if(kind==='molecules')appendMoleculeNameFurigana(title,name);else if(kind==='groups')appendPartNameFurigana(title,name);else title.textContent=name;left.append(title);host.append(left);if(formula)host.append(el('p',formula,'detail-formula'));detail.append(host);
   }
+  function frameDetailModel(modelHost,{controls=null}={}){
+    const frame=el('div',null,'detail-model-frame');
+    modelHost.before(frame);
+    frame.append(detail.querySelector(':scope > .detail-heading'),modelHost);
+    if(controls)frame.append(controls);
+    return frame;
+  }
   function renderGroup(id){
     const group=groupById(id),known=state.hasGroup(id),sources=state.groupSources(id),part=group?.learningRole==='part'?data.templates.find(item=>item.unlock.groupId===id):null;
     heading(currentDetail.kind,id,known?group.nameJa:'???');
     if(!known){const box=el('div',null,'unknown-detail');box.append(el('div','','unknown-model'),el('p','分子を完成させると、その中の部品も見つかります。'));detail.append(box);return;}
-    if(part)preview(part,group.nameJa);
+    if(part)frameDetailModel(preview(part,group.nameJa).host);
     const description=entry('groups',id)?.description??group.description;
     detail.append(currentDetail.kind==='groups'?encyclopediaSummaryParagraph(description,'parts',id):chemistryParagraph(description,'dex-description'));
     for(const template of part?data.templates.filter(item=>item.unlock.groupId===id):[]){
@@ -596,7 +603,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       detailViewer?.dispose();detailViewer=null;
       const status=el('p',mode==='chain'?`${polymerReferenceLabel}の模型を準備しています…`:'構成単位を準備しています…','model-status');
       status.setAttribute('role','status');visual.replaceChildren(status);
-      const modulePromise=mode==='chain'?import('./polymer-long-chain-preview.js?v=3'):import('./polymer-unit-preview.js?v=5');
+      const modulePromise=mode==='chain'?import('./polymer-long-chain-preview.js?v=4'):import('./polymer-unit-preview.js?v=6');
       modulePromise.then(module=>{
         if(token!==request||generation!==detailGeneration||currentDetail?.kind!=='polymers'||currentDetail.id!==id||!visual.isConnected)return;
         visual.replaceChildren();
@@ -614,6 +621,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       buttons.set(mode,action);toggle.append(action);
     }
     detail.append(toggle,visual);
+    frameDetailModel(visual,{controls:toggle});
     switchModel('unit');
     detail.append(chemistryParagraph(content.description,'dex-description'));
     if(content.education?.observe)detail.append(chemistryParagraph('観察してみよう：'+content.education.observe,'polymer-observation-prompt'));
