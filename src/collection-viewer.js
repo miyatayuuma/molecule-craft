@@ -257,5 +257,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
   }
   listen(owner,'visibilitychange',()=>{controls.cancel();if(owner.hidden){cancelAnimationFrame(frame);frame=0;}else requestDraw();});
   requestDraw();
-  return {snapshot(){if(disposed||!ready)return null;try{draw();}catch{}return snapshotImage();},view(){return {...viewState};},dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);frame=0;releaseGraphics();model=null;host.replaceChildren();}};
+  return {snapshot(){if(disposed||!ready)return null;try{draw();}catch{}return snapshotImage();},view(){return {...viewState};},
+    rotate(yaw,pitch){if(!disposed)controls.rotate(yaw,pitch);},zoom(factor){if(!disposed)controls.zoom(factor);},
+    dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);frame=0;releaseGraphics();model=null;host.replaceChildren();}};
 }

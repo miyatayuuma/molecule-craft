@@ -5,6 +5,7 @@ import {
   GRAPH_NODE_STATE,
   buildVisibleGraphProjection,
   canonicalGraphPositions,
+  directionalGraphNeighbor,
   graphNodePresentation,
   graphSectorAnchors,
   adjacentGraphSectorAnchor,
@@ -99,6 +100,10 @@ const layoutA=layoutFocusNeighborhood(fixture,'a',{width:360,height:480}),layout
 assert.deepEqual([...layoutA.positions],[...layoutB.positions],'Local layout must be deterministic');
 assert.equal(layoutA.positions.get('b').y<layoutA.center.y,true,'N-sector neighbor should remain north-biased');
 assert.equal(layoutA.positions.get('c').x>layoutA.center.x,true,'E-sector neighbor should remain east-biased');
+assert.equal(directionalGraphNeighbor(layoutA.positions,'a',['b','c'],0,-1),'b','Left stick up should select the visible upper branch');
+assert.equal(directionalGraphNeighbor(layoutA.positions,'a',['b','c'],1,0),'c','Left stick right should select the visible right branch');
+assert.equal(directionalGraphNeighbor(layoutA.positions,'a',['b','c'],0,1),null,'No branch in the requested direction must not cause a fallback jump');
+assert.equal(directionalGraphNeighbor(layoutA.positions,'a',['b','c'],.2,0),null,'Small stick drift must not change the graph focus');
 
 assert.equal(ENCYCLOPEDIA_MOTION.graphNavigationDuration,560,'Branch traversal must be slow enough to preserve spatial orientation');
 assert.equal(ENCYCLOPEDIA_MOTION.graphEdgeDelay,48,'Edges may trail node motion only by a short readable stagger');

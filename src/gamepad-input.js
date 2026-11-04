@@ -39,7 +39,7 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
   if(document.createElement&&document.body?.append){
     guide=document.createElement('dialog');
     guide.id='gamepad-guide';guide.className='gamepad-guide';
-    guide.innerHTML='<h2>ゲームパッド操作</h2><p data-gamepad-guide-copy></p><p>十字キー・左スティック：項目移動　A：決定　B：戻る　LB/RB：タブ切替</p><p>SELECT：このガイド　START：メニュー／探索の一時停止</p><p>スティックの遊び：<button type="button" data-gamepad-deadzone="0.16">小</button> <button type="button" data-gamepad-deadzone="0.22">標準</button> <button type="button" data-gamepad-deadzone="0.30">大</button></p><button type="button" data-gamepad-guide-close>閉じる</button>';
+    guide.innerHTML='<h2>ゲームパッド操作</h2><p data-gamepad-guide-copy></p><p>SELECT：このガイド　START：メニュー／探索の一時停止</p><p>スティックの遊び：<button type="button" data-gamepad-deadzone="0.16">小</button> <button type="button" data-gamepad-deadzone="0.22">標準</button> <button type="button" data-gamepad-deadzone="0.30">大</button></p><button type="button" data-gamepad-guide-close>閉じる</button>';
     guide.querySelector('[data-gamepad-guide-close]')?.addEventListener('click',()=>guide.close());
     for(const button of guide.querySelectorAll('[data-gamepad-deadzone]'))button.addEventListener('click',()=>{
       const value=Number(button.dataset.gamepadDeadzone);sampler.setDeadzone(value);
@@ -64,7 +64,10 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
   }
   function writeKeyboard(value){
     if(!keyboardTarget)return;
-    if(value==='DONE'){keyboard.close();return;}
+    if(value==='DONE'){
+      keyboardTarget.dispatchEvent(new window.Event('change',{bubbles:true}));
+      keyboard.close();return;
+    }
     if(value==='BACK')keyboardTarget.value=keyboardTarget.value.slice(0,-1);
     else if(value==='CLEAR')keyboardTarget.value='';
     else keyboardTarget.value+=value;
@@ -91,9 +94,15 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
   }
   function guideCopy(){
     const lab=document.querySelector('#reaction-lab-dialog')?.open;
+    const collection=document.querySelector('#collection-dialog');
     const field=document.body.dataset.mode==='veil';
     if(field)return 'FIELD：左スティックで移動　B：BURST　X：SHOCK　RT：推進　停止中にA長押し：帰還';
     if(lab)return 'LAB：Aで3D照準を開始・つかむ／離す　Bで照準終了　右スティック：完成高分子回転　LT/RT：ズーム　pH上で上下：酸性・中性・塩基性';
+    if(collection?.open){
+      if(!collection.querySelector('#collection-detail')?.hidden)return '図鑑の個別ページ：十字キー左右で前後のページ　上下でスクロール　右スティックで模型を回転　LT/RTで拡大縮小　Bで一覧　LB/RBで図鑑切替';
+      if(collection.querySelector('[data-book-tab="molecules"]')?.getAttribute('aria-selected')==='true')return '分子の分岐図鑑：左スティックを傾けて枝を選ぶ（一度戻して次へ）　Aで個別ページ　十字キー左右で領域切替　Yで検索　Bで閉じる　LB/RBで図鑑切替';
+      return '図鑑の一覧：左スティック・十字キーで項目移動　Aで個別ページ　Bで閉じる　LB/RBで図鑑切替';
+    }
     return 'CRAFT：L3で3D操作へ／戻る　左スティック：移動　A：つかむ／離す　右スティック：回転　LT/RT：ズーム　B：元に戻す　X長押し：全片付け';
   }
   function frame(now){
@@ -109,6 +118,8 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
       holdTarget=null;lastDirection='';focusMemory=null;lastScope=scope;
     }
     const sample=sampler.sample(document.hidden?[]:window.navigator.getGamepads?.()??[],now,context);
+    if(!sample.connected)document.body.classList.remove('gamepad-navigation-active');
+    if(sample.connected&&(sample.pressed.length||sample.axes.some(value=>Math.abs(value)>.6)))document.body.classList.add('gamepad-navigation-active');
     if(holdTarget&&(!sample.connected||!sample.held[0]||document.activeElement!==holdTarget)){
       holdTarget.gamepadHold?.(false);holdTarget=null;
     }
@@ -122,7 +133,7 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
     }
     if(sample.connected&&!field&&!dialog&&sample.pressed.includes(9))document.getElementById?.('open-menu')?.click();
     onFieldSample(field&&sample.connected?sample:null);
-    const consumed=onUiSample(sample.connected&&!field?sample:null,{scope,dialog,now});
+    const consumed=onUiSample(sample.connected&&!field?sample:null,{scope,dialog,now,openKeyboard});
     if(sample.connected&&!field&&!consumed){
       const items=[...scope.querySelectorAll(eligible)].filter(el=>!el.closest('[hidden], [inert], [aria-hidden="true"]')&&el.tabIndex>=0&&el.getClientRects().length&&window.getComputedStyle(el).visibility!=='hidden');
       let current=document.activeElement;
@@ -187,7 +198,7 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
     if(holdTarget)holdTarget.gamepadHold?.(false);
     holdTarget=null;onFieldSample(null);onUiSample(null,{});
   };
-  const clearFocusStyle=()=>document.body.classList.remove('gamepad-focus-active');
+  const clearFocusStyle=()=>document.body.classList.remove('gamepad-focus-active','gamepad-navigation-active');
   document.addEventListener('pointerdown',clearFocusStyle);
   document.addEventListener('keydown',clearFocusStyle);
   window.addEventListener('blur',reset);

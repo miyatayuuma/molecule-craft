@@ -84,6 +84,23 @@ export function layoutFocusNeighborhood(graph,focusId,{width=360,height=480,node
   return {center,radius,nodeDiameter,focusDiameter,positions,neighbors};
 }
 
+// A tilted stick follows the visible branch direction, not DOM button order.
+// Branches are displayed in eight angular slots; a small angular tolerance
+// avoids jumping to an unrelated branch when the requested slot is empty.
+export function directionalGraphNeighbor(positions,focusId,neighborIds,x,y,{maxAngle=Math.PI*5/32}={}){
+  const origin=positions.get(focusId),length=Math.hypot(x,y);
+  if(!origin||length<.55)return null;
+  let selected=null,bestDot=Math.cos(maxAngle);
+  for(const id of neighborIds){
+    const point=positions.get(id);if(!point)continue;
+    const dx=point.x-origin.x,dy=point.y-origin.y,distance=Math.hypot(dx,dy);
+    if(distance<1)continue;
+    const dot=(dx*x+dy*y)/(distance*length);
+    if(dot>bestDot){bestDot=dot;selected=id;}
+  }
+  return selected;
+}
+
 export function localBoundsOverlap(layout,{diameter=layout.nodeDiameter??66,focusDiameter=layout.focusDiameter??diameter}={}){
   const points=[...layout.positions.values()];
   const radius=point=>(point.kind==='focus'?focusDiameter:diameter)/2;

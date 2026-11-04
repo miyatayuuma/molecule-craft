@@ -1,6 +1,6 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import {createPolymerReferenceModel,polymerReferenceDefinition} from './polymer-reference-model.js';
-import {createCollectionViewer} from './collection-viewer.js?v=44';
+import {createCollectionViewer} from './collection-viewer.js?v=45';
 
 // Shared read-only 3D model for Collection thumbnails and detailed rotation.
 // Each layout uses real atoms, bonds and XYZ from the same approved reference

@@ -1,4 +1,4 @@
-import {GRAPH_NODE_STATE,adjacentGraphSectorAnchor,buildVisibleGraphProjection,canonicalGraphPositions,graphNodePresentation,graphNodeState,layoutFocusNeighborhood,searchKnownGraphNodes} from './encyclopedia-graph.js?v=2';
+import {GRAPH_NODE_STATE,adjacentGraphSectorAnchor,buildVisibleGraphProjection,canonicalGraphPositions,graphNodePresentation,graphNodeState,layoutFocusNeighborhood,searchKnownGraphNodes} from './encyclopedia-graph.js?v=3';
 import {appendMoleculeNameFurigana} from './molecule-name-furigana.js?v=2';
 
 export const ENCYCLOPEDIA_MOTION=Object.freeze({

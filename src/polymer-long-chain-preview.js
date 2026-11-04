@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three/three.module.min.js';
-import {createCollectionViewer} from './collection-viewer.js?v=44';
+import {createCollectionViewer} from './collection-viewer.js?v=45';
 
 // Read-only, centered 30-unit display geometry. The reference plan owns all
 // chemical connections; Collection neither edits it nor uses a finite Sample.
@@ -46,6 +46,8 @@ export function mountPolymerLongChainPreview({host,polymerId,name}){
   return{
     snapshot:()=>viewer?.snapshot?.()??null,
     view:()=>viewer?.view?.()??null,
+    rotate:(yaw,pitch)=>viewer?.rotate?.(yaw,pitch),
+    zoom:factor=>viewer?.zoom?.(factor),
     dispose(){if(disposed)return;disposed=true;clearTimeout(timer);worker?.terminate();worker=null;viewer?.dispose();viewer=null;host.replaceChildren();},
   };
 }
