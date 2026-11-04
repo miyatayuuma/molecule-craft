@@ -28,21 +28,26 @@ export function presentFirstRegistration({
   const remember=(node,props)=>{if(!node||originals.has(node))return;const saved={};for(const prop of props)saved[prop]=node.style[prop]??'';originals.set(node,saved);};
   remember(modelHost,['filter','opacity','pointerEvents']);for(const node of identity){remember(node,['opacity','transform']);ariaOriginal.set(node,node.getAttribute('aria-hidden'));}
 
-  const marker=root.createElement('div');marker.dataset.registrationMarker='true';
-  applyStyles(marker,{display:'inline-flex',alignItems:'center',gap:'7px',margin:'0 0 10px',padding:'6px 9px',border:'1px solid #5ec9b8',borderRadius:'999px',background:'#123b3a',color:'#b9f4e9',fontSize:'11px',fontWeight:'800',letterSpacing:'.08em'});
-  const number=detail.querySelector('.detail-heading .dex-number')?.textContent?.trim()||'';
+  const markerAnchor=detail.querySelector('.detail-heading > div');
+  if(!markerAnchor){notifySettled({status:'failed',reason:'registration-heading-unavailable'});return false;}
+  const numberNode=detail.querySelector('.detail-heading .dex-number');
+  remember(numberNode,['visibility']);if(numberNode)numberNode.style.visibility='hidden';
+  const marker=root.createElement('div');marker.dataset.registrationMarker='true';marker.className='collection-registration-marker';
   const ruby=(base,reading)=>{const node=root.createElement('ruby');node.append(root.createTextNode(base));const rt=root.createElement('rt');rt.textContent=reading;node.append(rt);return node;};
+  const species=kind==='polymers'?['高分子','こうぶんし']:['分子','ぶんし'];
   const PHRASES={
-    'NEW ENTRY · REGISTERING':[['新','あたら'],'しい ',['分子','ぶんし'],'！'],
-    'NEW ENTRY · SCANNING':[['分子','ぶんし'],'を ',['調','しら'],'べています…'],
+    'NEW ENTRY · REGISTERING':[['新','あたら'],'しい ',species,'！'],
+    'NEW ENTRY · SCANNING':[species,'を ',['調','しら'],'べています…'],
     'REGISTERED':[['図鑑','ずかん'],'に ',['登録','とうろく'],'！'],
   };
   const setMarker=phase=>{
-    const nodes=[];if(number)nodes.push(root.createTextNode(number+' · '));
+    const nodes=[];
     for(const part of PHRASES[phase]??[phase])nodes.push(Array.isArray(part)?ruby(part[0],part[1]):root.createTextNode(part));
     marker.replaceChildren(...nodes);
   };setMarker('NEW ENTRY · REGISTERING');
-  const nav=detail.querySelector('.detail-navigation');if(nav?.after)nav.after(marker);else detail.prepend(marker);
+  // The number and name retain their layout; the badge paints over only the
+  // number's reserved space, outside the filtered 3D viewer stacking context.
+  markerAnchor.prepend(marker);
 
   const live=root.createElement('p');live.className='sr-only';live.setAttribute('role','status');live.setAttribute('aria-live','polite');live.setAttribute('aria-atomic','true');detail.append(live);
   const name=detail.querySelector('.detail-heading h3')?.textContent?.trim()||'',formula=kind==='molecules'?(detail.querySelector('.detail-heading .detail-formula')?.textContent?.trim()||''):'';
@@ -57,14 +62,25 @@ export function presentFirstRegistration({
   let closeHandler=null;
   const onTap=event=>{
     if(event.target?.closest?.('#close-collection'))return;
-    event.preventDefault();event.stopImmediatePropagation();if(ready)cleanup('presented');
+    event.preventDefault();event.stopImmediatePropagation();if(ready)confirmPresented();
   };
   const onKey=event=>{
     if(!['Enter',' ','Spacebar'].includes(event.key))return;
-    event.preventDefault();event.stopImmediatePropagation();if(ready)cleanup('presented');
+    event.preventDefault();event.stopImmediatePropagation();if(ready)confirmPresented();
+  };
+  const confirmPresented=()=>{
+    if(!ready||settled)return;
+    settled=true;
+    delete dialog.dataset.registrationAwaitingConfirmation;
+    dialog.removeEventListener('click',onTap,true);dialog.removeEventListener('keydown',onKey,true);
+    if(dialog.gamepadAdvance===gamepadAdvance)delete dialog.gamepadAdvance;
+    // The coordinator may immediately open the next discovery. On the final
+    // detail it instead leaves this badge visible until navigation or close.
+    notifySettled({status:'presented'});
   };
   const cleanup=(outcome='dismissed')=>{
     if(cancelled)return;cancelled=true;observer?.disconnect?.();observer=null;
+    delete dialog.dataset.registrationAwaitingConfirmation;
     for(const timer of timers)clearTimer(timer);timers.clear();for(const animation of animations)try{animation.cancel();}catch{}animations.clear();
     scan?.remove();marker.remove();live.remove();restore();if(closeHandler)dialog.removeEventListener('close',closeHandler);
     dialog.removeEventListener('click',onTap,true);dialog.removeEventListener('keydown',onKey,true);
@@ -72,8 +88,8 @@ export function presentFirstRegistration({
     if(dialog.gamepadAdvance===gamepadAdvance)delete dialog.gamepadAdvance;
     if(!settled){settled=true;notifySettled({status:outcome});}
   };
-  const gamepadAdvance=()=>{if(ready)cleanup('presented');};
-  closeHandler=()=>cleanup('dismissed');dialog.__moleculeCraftRegistrationRevealCleanup=cleanup;dialog.gamepadAdvance=gamepadAdvance;dialog.addEventListener('close',closeHandler,{once:true});
+  const gamepadAdvance=()=>{if(ready)confirmPresented();};
+  closeHandler=()=>cleanup('dismissed');dialog.__moleculeCraftRegistrationRevealCleanup=cleanup;dialog.gamepadAdvance=gamepadAdvance;dialog.dataset.registrationAwaitingConfirmation='true';dialog.addEventListener('close',closeHandler,{once:true});
   dialog.addEventListener('click',onTap,true);dialog.addEventListener('keydown',onKey,true);
 
   const revealIdentity=()=>{
@@ -85,7 +101,7 @@ export function presentFirstRegistration({
     revealIdentity();setMarker('REGISTERED');
     const saved=originals.get(modelHost)??{};applyStyles(modelHost,{filter:saved.filter??'',opacity:saved.opacity??'',pointerEvents:saved.pointerEvents??''});
     if(!reduceMotion)animate(stage,[{boxShadow:'inset 0 0 0 1px #7ce8d633'},{boxShadow:'inset 0 0 28px 3px #7ce8d655'},{boxShadow:'inset 0 0 0 1px #7ce8d600'}],{duration:1050,easing:'ease-out'},animations);
-    // Keep the completed registration visible until the player taps.
+    // Tapping confirms the discovery, but does not remove its badge.
     schedule(()=>{ready=true;},reduceMotion?90:1100);
   };
   const startReveal=()=>{
@@ -97,7 +113,8 @@ export function presentFirstRegistration({
       setMarker('NEW ENTRY · SCANNING');
       scan=root.createElement('div');scan.dataset.registrationScan='true';applyStyles(scan,{position:'absolute',left:'0',right:'0',top:'-22%',height:'26%',pointerEvents:'none',background:'linear-gradient(180deg,transparent,#8ff7e955,transparent)',filter:'blur(1px)',mixBlendMode:'screen',opacity:'0'});stage.append(scan);
       animate(scan,[{transform:'translateY(0)',opacity:0},{opacity:.9,offset:.42},{transform:'translateY(470%)',opacity:0}],{duration:1550,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
-      animate(modelHost,[{transform:'scale(.965)'},{transform:'scale(1.025)',offset:.68},{transform:'scale(1)'}],{duration:1850,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
+      // Only the inner stage moves; the outer frame never breathes or shifts.
+      animate(stage,[{transform:'scale(.965)'},{transform:'scale(1.025)',offset:.68},{transform:'scale(1)'}],{duration:1850,easing:'cubic-bezier(.2,.7,.2,1)'},animations);
       for(let n=0;n<9;n++){
         const particle=root.createElement('span'),angle=n*Math.PI*2/9,radius=36+n%3*10;
         applyStyles(particle,{position:'absolute',left:'50%',top:'50%',width:'4px',height:'4px',borderRadius:'50%',background:'#9dfff1',boxShadow:'0 0 8px #8cf8e6',pointerEvents:'none',zIndex:'3'});

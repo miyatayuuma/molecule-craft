@@ -1,4 +1,4 @@
-import {presentFirstRegistration} from './collection-registration-reveal.js?v=6';
+import {presentFirstRegistration} from './collection-registration-reveal.js?v=7';
 
 const isNonEmptyString=value=>typeof value==='string'&&value.trim().length>0;
 
