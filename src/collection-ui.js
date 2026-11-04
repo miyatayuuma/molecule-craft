@@ -189,7 +189,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       detailViewer?.dispose();detailViewer=null;host.replaceChildren();host.dataset.viewerReady='false';host.dataset.stereoRelation='';
       let overlay=null;if(previousSnapshot){overlay=el('img',null,'stereo-configuration-transition');overlay.src=previousSnapshot;overlay.alt='';host.append(overlay);}else if(request===1&&continuity)host.append(continuity);
       host.append(el('p','模型を準備しています…','model-status'));
-      return import('./collection-viewer.js?v=43').then(({createCollectionViewer})=>new Promise(resolve=>{
+      return import('./collection-viewer.js?v=44').then(({createCollectionViewer})=>new Promise(resolve=>{
         if(request!==mountGeneration||generation!==detailGeneration||!dialog.open||!host.isConnected){resolve(null);return;}
         host.querySelector(':scope > .model-status')?.remove();
         detailViewer=createCollectionViewer({host,record,name,presentation:nextPresentation,initialView:previousView,showGestureHint:false,
@@ -439,7 +439,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       });
     };
     job.timeout=setTimeout(()=>finish(null),5000);
-    import('./polymer-unit-preview.js?v=6').then(({mountPolymerUnitPreview})=>{
+    import('./polymer-unit-preview.js?v=7').then(({mountPolymerUnitPreview})=>{
       if(job.done||activeThumbnailJob!==job)return;
       job.viewer=mountPolymerUnitPreview({
         host:stage,polymerId:item.record.id,name:item.record.nameJa,
@@ -548,7 +548,9 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const frame=el('div',null,'detail-model-frame');
     modelHost.before(frame);
     frame.append(detail.querySelector(':scope > .detail-heading'),modelHost);
-    if(controls)frame.append(controls);
+    const nav=detail.querySelector(':scope > .detail-navigation');
+    if(controls)nav.insertBefore(controls,nav.querySelector('[aria-label="前の項目"]'));
+    frame.append(nav);
     return frame;
   }
   function renderGroup(id){
@@ -594,7 +596,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const toggle=el('div',null,'polymer-model-toggle');
     toggle.setAttribute('role','group');toggle.setAttribute('aria-label','3D模型の表示範囲');
     const polymerReferenceLabel=id==='phenol-formaldehyde-resin'?'30環':record.topology==='copolymer'?'30構成単位':'30反復単位';
-    const options=[['unit','構成単位'],['chain',polymerReferenceLabel]],buttons=new Map();
+    const options=[['unit','単位','構成単位'],['chain','30',polymerReferenceLabel]],buttons=new Map();
     let request=0;
     const switchModel=mode=>{
       if(generation!==detailGeneration||!visual.isConnected)return;
@@ -603,7 +605,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       detailViewer?.dispose();detailViewer=null;
       const status=el('p',mode==='chain'?`${polymerReferenceLabel}の模型を準備しています…`:'構成単位を準備しています…','model-status');
       status.setAttribute('role','status');visual.replaceChildren(status);
-      const modulePromise=mode==='chain'?import('./polymer-long-chain-preview.js?v=4'):import('./polymer-unit-preview.js?v=6');
+      const modulePromise=mode==='chain'?import('./polymer-long-chain-preview.js?v=5'):import('./polymer-unit-preview.js?v=7');
       modulePromise.then(module=>{
         if(token!==request||generation!==detailGeneration||currentDetail?.kind!=='polymers'||currentDetail.id!==id||!visual.isConnected)return;
         visual.replaceChildren();
@@ -615,9 +617,9 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
         console.warn('Polymer Collection viewer unavailable',id,mode,error);
       });
     };
-    for(const [mode,label] of options){
+    for(const [mode,label,fullLabel] of options){
       const action=button(label,()=>switchModel(mode),'polymer-model-mode');
-      action.dataset.polymerViewMode=mode;action.setAttribute('aria-pressed',String(mode==='unit'));
+      action.dataset.polymerViewMode=mode;action.setAttribute('aria-pressed',String(mode==='unit'));action.setAttribute('aria-label',`${fullLabel}を表示`);action.title=fullLabel;
       buttons.set(mode,action);toggle.append(action);
     }
     detail.append(toggle,visual);

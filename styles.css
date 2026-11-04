@@ -785,9 +785,11 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 #collection-dialog .detail-model-frame>.detail-heading{position:absolute;z-index:4;top:0;left:0;right:0;max-height:45%;display:flex;align-items:flex-start;gap:8px;overflow:hidden;padding:10px 14px 25px;background:linear-gradient(180deg,#0b2134f3 0%,#112d3cda 58%,transparent 100%);pointer-events:none}
 #collection-dialog .detail-model-frame>.detail-heading>div{min-width:0;width:100%}
 #collection-dialog .detail-model-frame>.detail-heading h3{margin:4px 0 0;font-size:clamp(17px,3.6vw,24px);line-height:1.25;overflow-wrap:anywhere}
-#collection-dialog .detail-model-frame>.polymer-model-toggle{position:absolute;z-index:5;left:10px;right:10px;bottom:10px;display:flex;justify-content:center;gap:8px;margin:0;pointer-events:none}
-#collection-dialog .detail-model-frame>.polymer-model-toggle button{pointer-events:auto;min-height:42px;max-width:190px;background:#102938e8;box-shadow:0 2px 8px #0006}
-#collection-dialog .detail-model-frame>.polymer-model-toggle button.selected{background:#164b4cea}
+#collection-dialog .detail-model-frame>.detail-navigation{position:absolute;z-index:5;left:8px;right:8px;bottom:8px;display:flex;align-items:center;gap:5px;margin:0;pointer-events:none}
+#collection-dialog .detail-model-frame>.detail-navigation button{pointer-events:auto;min-width:44px;min-height:44px;padding:5px 9px;border:1px solid #50738a;border-radius:11px;background:#102938ee;color:#e0f1f5;box-shadow:0 2px 8px #0005}
+#collection-dialog .detail-model-frame>.detail-navigation>.polymer-model-toggle{display:flex;flex:0 0 auto;gap:3px;margin:0;pointer-events:none}
+#collection-dialog .detail-model-frame>.detail-navigation>.polymer-model-toggle button{min-width:40px;min-height:40px;padding:4px 6px;font-size:12px}
+#collection-dialog .detail-model-frame>.detail-navigation>.polymer-model-toggle button.selected{background:#164b4cea;border-color:#63ded0}
 @media(min-width:1050px) and (min-height:600px){
  #collection-dialog #collection-detail>.detail-model-frame{grid-column:1;align-self:start;margin-top:6px}
 }
