@@ -36,7 +36,7 @@ export function mountPolymerLongChainPreview({host,polymerId,name}){
         host.replaceChildren();
         viewer=createCollectionViewer({
           host,record:{atoms:[],bonds:[],attachments:[]},name:`${name}・${unitLabel}`,
-          fixedLayout:layout,compact:true,showGestureHint:true,
+          fixedLayout:layout,compact:true,showGestureHint:false,
         });
       }catch(error){console.warn('Polymer 30-unit viewer unavailable',polymerId,error);showError();}
     };

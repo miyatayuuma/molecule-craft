@@ -777,3 +777,17 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
  #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-navigation button{pointer-events:auto;min-height:44px;padding:5px 11px;border:1px solid #50738a;border-radius:11px;background:#102938ee;color:#e0f1f5;box-shadow:0 2px 8px #0005}
  #collection-dialog #collection-detail[data-detail-kind="molecules"]>.dex-description{margin:12px 0 20px}
 }
+
+/* Parts and polymers use the same in-model identity treatment as molecules.
+   The wrapper stays outside the viewer host, which is replaced on 3D reloads. */
+#collection-dialog #collection-detail>.detail-model-frame{position:relative;min-width:0;margin:12px 0 16px;border-radius:20px;overflow:hidden;background:#122b3b}
+#collection-dialog .detail-model-frame>.collection-model{margin:0;border-radius:inherit}
+#collection-dialog .detail-model-frame>.detail-heading{position:absolute;z-index:4;top:0;left:0;right:0;max-height:45%;display:flex;align-items:flex-start;gap:8px;overflow:hidden;padding:10px 14px 25px;background:linear-gradient(180deg,#0b2134f3 0%,#112d3cda 58%,transparent 100%);pointer-events:none}
+#collection-dialog .detail-model-frame>.detail-heading>div{min-width:0;width:100%}
+#collection-dialog .detail-model-frame>.detail-heading h3{margin:4px 0 0;font-size:clamp(17px,3.6vw,24px);line-height:1.25;overflow-wrap:anywhere}
+#collection-dialog .detail-model-frame>.polymer-model-toggle{position:absolute;z-index:5;left:10px;right:10px;bottom:10px;display:flex;justify-content:center;gap:8px;margin:0;pointer-events:none}
+#collection-dialog .detail-model-frame>.polymer-model-toggle button{pointer-events:auto;min-height:42px;max-width:190px;background:#102938e8;box-shadow:0 2px 8px #0006}
+#collection-dialog .detail-model-frame>.polymer-model-toggle button.selected{background:#164b4cea}
+@media(min-width:1050px) and (min-height:600px){
+ #collection-dialog #collection-detail>.detail-model-frame{grid-column:1;align-self:start;margin-top:6px}
+}
