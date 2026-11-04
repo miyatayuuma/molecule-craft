@@ -69,9 +69,11 @@ export function presentFirstRegistration({
     scan?.remove();marker.remove();live.remove();restore();if(closeHandler)dialog.removeEventListener('close',closeHandler);
     dialog.removeEventListener('click',onTap,true);dialog.removeEventListener('keydown',onKey,true);
     if(dialog.__moleculeCraftRegistrationRevealCleanup===cleanup)delete dialog.__moleculeCraftRegistrationRevealCleanup;
+    if(dialog.gamepadAdvance===gamepadAdvance)delete dialog.gamepadAdvance;
     if(!settled){settled=true;notifySettled({status:outcome});}
   };
-  closeHandler=()=>cleanup('dismissed');dialog.__moleculeCraftRegistrationRevealCleanup=cleanup;dialog.addEventListener('close',closeHandler,{once:true});
+  const gamepadAdvance=()=>{if(ready)cleanup('presented');};
+  closeHandler=()=>cleanup('dismissed');dialog.__moleculeCraftRegistrationRevealCleanup=cleanup;dialog.gamepadAdvance=gamepadAdvance;dialog.addEventListener('close',closeHandler,{once:true});
   dialog.addEventListener('click',onTap,true);dialog.addEventListener('keydown',onKey,true);
 
   const revealIdentity=()=>{

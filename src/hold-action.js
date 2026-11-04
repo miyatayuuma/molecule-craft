@@ -32,6 +32,11 @@ export function bindHoldAction(button, action, { duration = 1000, clock = () => 
   button.addEventListener('blur', cancel);
   owner.addEventListener('visibilitychange', () => { if (owner.hidden) cancel(); });
   owner.defaultView?.addEventListener('blur', cancel);
+  // A controller press must use the same timing/progress contract as touch.
+  button.gamepadHold = pressed => {
+    if(pressed)begin({key:'gamepad'});
+    else if(active?.key==='gamepad')cancel();
+  };
   return { cancel };
 }
 

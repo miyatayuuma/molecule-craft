@@ -304,14 +304,15 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     let finished=false,removeInteraction=()=>{},cancelVisual=()=>{};
     const complete=result=>{
       if(finished)return;finished=true;removeInteraction();dialog.removeEventListener('close',dismiss);
-      notice.remove();discoveryAward=null;onSettled(result);
+      notice.remove();discoveryAward=null;delete dialog.gamepadAdvance;onSettled(result);
     };
     const dismiss=()=>{cancelVisual();complete({status:'dismissed'});};
     const runner=playReactionStarCeremony({host:list,tags,reducedMotion:prefersReducedMotion(),onSettled:complete});
     cancelVisual=runner.cancel;
     removeInteraction=beginAwardInteraction(()=>runner.advance());
+    dialog.gamepadAdvance=()=>runner.advance();
     dialog.addEventListener('close',dismiss,{once:true});
-    discoveryAward={cancel:()=>{runner.cancel();removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();finished=true;}};
+    discoveryAward={cancel:()=>{runner.cancel();removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();delete dialog.gamepadAdvance;finished=true;}};
     return true;
   }
   function openPolymerAward(id,{onSettled=()=>{}}={}){
@@ -333,7 +334,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       removeInteraction();dialog.removeEventListener('close',dismiss);
       card.classList.remove('polymer-award-hidden','polymer-award-target');
       if(name)name.textContent=originalName;
-      notice.remove();discoveryAward=null;
+      notice.remove();discoveryAward=null;delete dialog.gamepadAdvance;
       if(status==='presented')openPolymer(id);
       onSettled({status});
     };
@@ -344,8 +345,9 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       timer=setTimeout(()=>{ready=true;},prefersReducedMotion()?80:1450);
     };
     removeInteraction=beginAwardInteraction(()=>settle());
+    dialog.gamepadAdvance=()=>settle();
     dialog.addEventListener('close',dismiss,{once:true});
-    discoveryAward={cancel:()=>{finished=true;if(timer!==null)clearTimeout(timer);removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();card.classList.remove('polymer-award-hidden','polymer-award-target');if(name)name.textContent=originalName;}};
+    discoveryAward={cancel:()=>{finished=true;if(timer!==null)clearTimeout(timer);removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();delete dialog.gamepadAdvance;card.classList.remove('polymer-award-hidden','polymer-award-target');if(name)name.textContent=originalName;}};
     timer=setTimeout(reveal,prefersReducedMotion()?80:950);
     return true;
   }

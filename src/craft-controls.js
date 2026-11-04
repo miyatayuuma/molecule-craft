@@ -1,4 +1,4 @@
-import {bindHoldAction} from './hold-action.js?v=30';
+import {bindHoldAction} from './hold-action.js?v=31';
 
 function installCraftActionBar(document){
   const actions=document.querySelector('.viewer-actions'),undo=document.querySelector('#undo-cleanup'),clear=document.querySelector('#clear-all');

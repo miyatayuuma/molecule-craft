@@ -853,6 +853,11 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
     if(next===null)return;
     event.preventDefault();setMediumFromSlider(mediumStops[next]);
   },eventOptions);
+  if(mediumButton)mediumButton.gamepadAdjust=direction=>{
+    const index=mediumStops.indexOf(activationEnvironment.snapshot().medium);
+    const next=direction==='up'?Math.min(2,index+1):direction==='down'?Math.max(0,index-1):index;
+    if(next!==index)setMediumFromSlider(mediumStops[next]);
+  };
   function clearGuide(){guide=null;guideBatchId=null;updateGuide();}
   function updateGuide(){
     for(const node of root.querySelectorAll('.reaction-guide-target'))node.classList.remove('reaction-guide-target');
@@ -1717,6 +1722,16 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
   canvas.tabIndex=0;canvas.setAttribute('aria-label','LAB 3D操作領域');
   const padCursor=document.createElement('div');padCursor.className='craft-gamepad-cursor';padCursor.hidden=true;chamber.append(padCursor);
   let padActive=false,padGrab=false,padX=0,padY=0,padLast=0,padFine=false,padStartPosition=null,padStartQuaternion=null;
+  function rotateCompletedPolymerWithPad(dx,dy){
+    if(!canObservePolymerSample()||observation.comparisonActive||!polymerGraphVisual||!polymerSamplePresentation?.fit)return;
+    const fit=polymerSamplePresentation.focusFit??polymerSamplePresentation.fit;
+    const pivot=new THREE.Vector3(...fit.pivot),group=polymerGraphVisual.group,anchor=pivot.clone().applyMatrix4(group.matrixWorld);
+    const yaw=new THREE.Quaternion().setFromAxisAngle(cameraUp(),dx*.008);
+    const pitch=new THREE.Quaternion().setFromAxisAngle(cameraRight(),dy*.008);
+    group.quaternion.premultiply(yaw).premultiply(pitch).normalize();
+    group.position.copy(anchor).sub(pivot.applyQuaternion(group.quaternion).multiplyScalar(group.scale.x));
+    group.updateMatrixWorld(true);clampPolymerClipping();updatePolymerBondVisuals({orientationOnly:true});observation.updateOutline();
+  }
   const padEvent=type=>({pointerId:-740,pointerType:'gamepad',clientX:padX,clientY:padY,type,preventDefault(){}});
   function resetLabPad(){
     if(padGrab){if(selected&&padStartPosition){selected.group.position.copy(padStartPosition);selected.group.quaternion.copy(padStartQuaternion);selected.group.updateMatrixWorld(true);}endPointer(padEvent('pointercancel'));}
@@ -1734,6 +1749,15 @@ export function createReactionLabViewer({THREE,dialog,root,records,collectionSta
       const r=canvas.getBoundingClientRect(),dt=Math.min(.05,Math.max(0,(now-padLast)/1000));padLast=now;
       padX=clamp(padX+sample.axes[0]*dt*(padFine?100:390),r.left,r.right);padY=clamp(padY+sample.axes[1]*dt*(padFine?100:390),r.top,r.bottom);
       if(padGrab)handleLabPointerMove(padEvent('pointermove'));
+      if(!padGrab&&!isTransitionLocked()&&!reactionAnimation&&!growthCameraMotion&&!polymerGraphVisual?.displayError){
+        if(canObservePolymerSample()&&!observation.comparisonActive){
+          if(sample.axes[2]||sample.axes[3])rotateCompletedPolymerWithPad(sample.axes[2]*dt*160,sample.axes[3]*dt*160);
+          if(sample.held[6]||sample.held[7])zoomPolymer(Math.exp(((sample.held[6]?1:0)-(sample.held[7]?1:0))*dt*1.5));
+        }else if(sample.held[6]||sample.held[7]){
+          distance=clamp(distance*Math.exp(((sample.held[7]?1:0)-(sample.held[6]?1:0))*dt*1.5),CAMERA_MIN_DISTANCE,CAMERA_MAX_DISTANCE);
+          updateCamera();
+        }
+      }
       if(sample.pressed.includes(0)){
         if(padGrab){endPointer(padEvent('pointerup'));padGrab=false;padStartPosition=padStartQuaternion=null;}
         else if(!isTransitionLocked()&&!reactionAnimation&&!growthCameraMotion){
