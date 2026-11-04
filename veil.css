@@ -244,3 +244,25 @@
   .veil-drive-control #veil-combustion{height:68px;min-height:68px}
   .veil-drive-control #veil-shock{height:62px;min-height:62px}
 }
+
+/* Desktop LOADOUT: the vessel and the selected tank occupy the available
+   screen height. Inventory scroll stays within its own grid when necessary. */
+@media(min-width:1024px) and (min-height:640px){
+ #supply-dialog[open]{display:flex;flex-direction:column;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;overflow:hidden}
+ #supply-dialog .sheet-header{flex:0 0 60px;min-height:60px;padding:6px 18px}
+ #supply-dialog .sheet-body{position:relative;flex:1 1 auto;min-height:0;height:calc(100% - 60px);max-height:none;display:grid;grid-template-columns:minmax(0,54%) minmax(0,46%);grid-template-rows:minmax(0,1fr) auto;align-items:stretch;align-content:stretch;gap:10px;padding:12px;overflow:hidden}
+ #supply-dialog .collector-shell-map{grid-column:1;grid-row:1;height:100%;min-height:0;max-height:none;border-radius:14px}
+ #supply-dialog #loadout-element-stock{grid-column:1;grid-row:2;min-height:0;max-height:126px;overflow:auto}
+ #supply-dialog #tank-detail{grid-column:2;grid-row:1/3;display:grid;grid-template-rows:auto 5px minmax(116px,38%) minmax(0,1fr);align-content:stretch;gap:10px;height:100%;min-height:0;max-height:none;padding:12px;overflow:hidden}
+ #supply-dialog #tank-detail>header{grid-row:1}
+ #supply-dialog #tank-detail>.tank-load-meter{grid-row:2}
+ #supply-dialog #tank-molecules{grid-row:3;display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));align-content:start;gap:8px;min-height:0;padding:1px;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none}
+ #supply-dialog #tank-molecules button{width:100%;min-width:0;min-height:108px;scroll-snap-align:none}
+ #supply-dialog #tank-empty{display:none}
+ #supply-dialog .tank-inspector{grid-row:4;display:grid;grid-template-columns:minmax(0,1fr) minmax(148px,28%);align-items:stretch;gap:10px;min-height:0;height:100%}
+ #supply-dialog .tank-model{height:100%;min-height:0}
+ #supply-dialog .tank-model #tank-model-host,#supply-dialog .tank-model #tank-model-host .model-stage{height:100%;min-height:0}
+ #supply-dialog .tank-decision{justify-content:end}
+ #supply-dialog #supply-announcement:not([hidden]){position:absolute;z-index:9;top:12px;left:25%;right:25%;box-shadow:0 4px 20px #0008}
+ #supply-dialog #oxygen-route-guide:not([hidden]){position:absolute;z-index:8;left:24%;right:24%;bottom:12px;max-height:42dvh;overflow:auto;background:#102c3bf4;box-shadow:0 8px 28px #0008}
+}

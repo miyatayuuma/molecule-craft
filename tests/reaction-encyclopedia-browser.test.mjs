@@ -44,7 +44,8 @@ try{
   assert.equal(await evaluate(`window.__reactionProgress.getState('polymer:polyethylene-coordination')`),'notFound','reference display does not verify LAB reaction');
   await evaluate(`document.querySelector('#close-collection').click()`);
   await evaluate(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click()`);
-  assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/0 \/ 54 経路/);
+  assert.match(await evaluate(`document.querySelector('[data-book-tab="reactions"] [data-book-count]').textContent`),/0 \/ 54/);
+  assert.equal(await evaluate(`document.querySelector('#collection-list').querySelector('p')===null`),true,'repeated catalogue introduction is removed');
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list .rb-group-preview').length`),13);
   const categoryLayout=await evaluate(`(()=>{const list=document.querySelector('.reaction-book-category-grid'),cards=[...list.querySelectorAll('.reaction-book-group')],a=cards[0].getBoundingClientRect(),b=cards[1].getBoundingClientRect(),c=cards[2].getBoundingClientRect(),style=getComputedStyle(list);return{display:style.display,columns:style.gridTemplateColumns,firstRow:Math.abs(a.top-b.top)<2,secondAtRight:b.left>a.left,nextRow:c.top>a.bottom,compact:a.height/a.width>=.69&&a.height/a.width<=.76,cardSize:[Math.round(a.width),Math.round(a.height)]};})()`);
   assert.equal(categoryLayout.display,'grid',JSON.stringify(categoryLayout));
@@ -69,13 +70,11 @@ try{
   await send('Emulation.setEmulatedMedia',{media:'screen',features:[]});
   assert.equal(await evaluate(`document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1`),true);
   await evaluate(`[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('脱水')).click()`);
-  assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/ひらめいたレシピ · 未実証/);
-  await evaluate(`document.querySelector('.reaction-book-hint').click()`);
-  assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/まだLABで実証していません/);
-  assert.equal(await evaluate(`[...document.querySelectorAll('#collection-list button')].some(button=>button.textContent==='LABでためす')`),true);
-  await evaluate(`document.querySelector('#collection-list button').click();document.querySelector('#collection-list button').click()`);
+  assert.equal(await evaluate(`document.querySelector('.reaction-book-hint')===null`),true,'pending recipes are only available from the top lightbulb');
+  assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/未実証/);
+  await evaluate(`document.querySelector('#collection-list button').click()`);
   await evaluate(`[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('環化')).click()`);
-  const text=await evaluate(`document.querySelector('#collection-list').innerText`);assert.match(text,/未発見 1 件/);assert.doesNotMatch(text,/シクロブタン|エチレン/);
+  const text=await evaluate(`document.querySelector('#collection-list').innerText`);assert.match(text,/未実証 \d+ 件/);assert.doesNotMatch(text,/シクロブタン|エチレン/);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-preview-reaction]').length`),0);
   assert.equal(await evaluate(`document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1`),true);
   await evaluate(`document.querySelector('#collection-list button').click()`);
@@ -88,7 +87,7 @@ try{
     document.querySelector('[data-book-tab="molecules"]').click();
     document.querySelector('[data-book-tab="reactions"]').click();
   })()`);
-  assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/5 \/ 54 経路/);
+  assert.match(await evaluate(`document.querySelector('[data-book-tab="reactions"] [data-book-count]').textContent`),/5 \/ 54/);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-preview-group]').length`),13);
   assert.equal(await evaluate(`(()=>{const grid=document.querySelector('.reaction-book-category-grid');return !!grid&&getComputedStyle(grid).display==='grid'&&(window.innerWidth>=1050?getComputedStyle(grid).gridTemplateColumns.split(' ').length>=3:getComputedStyle(grid).gridTemplateColumns.split(' ').length===2);})()`),true,'returning to reactions keeps viewport-appropriate columns');
   const previews=[['加水分解','normal:complete-01-anhydride-hydrolysis'],['付加','normal:complete-06-ethene-halogenation'],['環化','normal:complete-21-cyclobutane-dimerization'],['重合','polymer:polyethylene-coordination']];

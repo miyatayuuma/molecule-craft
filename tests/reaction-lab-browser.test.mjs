@@ -276,7 +276,7 @@ try{
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1`});
   await waitFor("!!document.querySelector('#open-reaction-lab')&&!document.querySelector('#open-reaction-lab').disabled&&!!window.__reactionLabProbe",'Reaction Lab entry did not initialize');
   await evaluate("window.__labReactionEvents=[];window.addEventListener('molecule-craft:reaction-lab-product',event=>window.__labReactionEvents.push(event.detail))");
-  if(process.env.REACTION_T3_POINTER==='1')await evaluate(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click();[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('環化')).click();document.querySelector('.reaction-book-hint').click();[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent==='LABでためす').click()`);
+  if(process.env.REACTION_T3_POINTER==='1')await evaluate(`document.querySelector('#open-pending-crafts').click();document.querySelector('[data-reaction-recipe="normal:complete-21-cyclobutane-dimerization"]').click()`);
   else await evaluate("document.querySelector('#open-reaction-lab').click()");
   await waitFor("document.querySelector('#reaction-lab-dialog').open",'Reaction Lab dialog did not open');
   if(limitedReaction){

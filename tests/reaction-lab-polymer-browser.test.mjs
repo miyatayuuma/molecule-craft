@@ -59,7 +59,7 @@ try{
   await send('Page.navigate',{url:`http://127.0.0.1:${port}/?reactionLabTest=1&reactionLabPhysics=stage-b`});
   if(process.env.REACTION_T3_GUIDED==='1'){
     await waitFor("!!window.__reactionLabProbe&&!document.querySelector('#open-reaction-lab').disabled",'Guided app ready');
-    await evaluate(`document.querySelector('#open-collection').click();document.querySelector('[data-book-tab="reactions"]').click();[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('重合')).click();document.querySelector('.reaction-book-hint').click();[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent==='LABでためす').click()`);
+    await evaluate(`document.querySelector('#open-pending-crafts').click();document.querySelector('[data-reaction-recipe]').click()`);
     await waitFor("document.querySelector('#reaction-lab-dialog').open&&!document.querySelector('[data-reaction-guide]').hidden",'guided polymer lab opened');
     assert.equal(await evaluate("document.querySelector('[data-lab-slot].reaction-guide-target')?.dataset.labSlot"),'0');
   }else await openLab();await wireDiscoveryEvents();

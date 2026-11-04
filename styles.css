@@ -227,7 +227,6 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 
 .collection-grid.reaction-book{display:flex;flex-direction:column;gap:10px}.reaction-book-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}.reaction-book button{min-height:44px;text-align:left;overflow-wrap:anywhere}.reaction-book p{line-height:1.6;overflow-wrap:anywhere}.reaction-book-entry{padding:14px;border:1px solid var(--border);border-radius:12px;background:#1a3041}.reaction-book-entry strong{overflow-wrap:anywhere}.reaction-book-entry p{margin-top:6px}
 
-.reaction-book .reaction-book-hint{border-color:#d8b95e;background:#493c25;color:#fff3c3}
 
 .reaction-guide{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;padding:6px 8px;border:1px solid #e5c673;border-radius:10px;background:#342e20;color:#fff2be;font-size:13px;line-height:1.35}.reaction-guide[hidden]{display:none}.reaction-guide button{min-height:40px;flex:none;padding:4px 8px;font-size:12px}.reaction-guide-target{outline:3px solid #ffd870!important;outline-offset:-3px;box-shadow:0 0 0 3px #8e5b1b,0 0 12px #ffe18a!important}.reaction-guide-target::before{content:'★ ';color:#ffe188}
 
@@ -313,12 +312,10 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .rb-molecule-tile span{overflow-wrap:anywhere}
 .rb-thumb-legend{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
 .reaction-book .reaction-book-inspect{display:block;margin-top:8px;width:100%;min-height:44px}
-.reaction-book .reaction-book-hint .rb-reaction-thumb{color:#fff9df}
 @media(max-width:480px){.rb-reaction-thumb{grid-template-columns:minmax(0,1fr);gap:2px}.rb-reaction-thumb svg{height:65px}.rb-thumb-legend{font-size:11px}}
 @media(max-width:480px){.rb-detail-molecules{grid-template-columns:minmax(0,1fr)}.rb-molecule-tile{grid-template-columns:62px minmax(0,1fr)}.rb-molecule-tile img{width:62px;height:62px}}
 @media(prefers-reduced-motion:reduce){.rb-group-preview svg,.rb-group-preview svg *{animation:none!important;transition:none!important}.rb-motion-cycloaddition .rb-alkenes,.rb-motion-ring-opening .rb-closed-ring,.rb-motion-substitution .rb-old-substituent,.rb-motion-combustion .rb-fuel{opacity:0}.rb-motion-cycloaddition .rb-square,.rb-motion-ring-opening .rb-open-chain,.rb-motion-substitution .rb-new-substituent,.rb-motion-combustion .rb-products{opacity:1}.rb-motion-dehydration .rb-dehydration-before,.rb-motion-oxidation .rb-oxidation-oxygen{opacity:0}.rb-motion-dehydration .rb-dehydration-after{opacity:1}.rb-motion-hydrolysis .rb-hydrolysis-before{opacity:0}.rb-motion-hydrolysis .rb-hydrolysis-after{opacity:1}.rb-motion-hydration .rb-hydration-before{opacity:0}.rb-motion-hydration .rb-hydration-after{opacity:1}.rb-motion-addition .rb-double{opacity:0}.rb-motion-polymerization .rb-chain-3,.rb-motion-polymerization .rb-chain-4{opacity:1}}
 
-.collection-recipe-list{margin:12px 0;display:grid;gap:6px}.collection-recipe-list summary{cursor:pointer;padding:10px}.collection-recipe-list button{display:block;width:100%;margin:5px 0;text-align:left}.collection-recipe-reference{margin:5px 0;padding:8px 10px;color:var(--muted)}.collection-special-recipe{border-color:#b886ed;color:#d6b5ff}
 
 .rb-detail-chemistry{min-width:0;max-width:100%;margin:12px 0;padding:13px;border:1px solid #3b5d70;border-radius:12px;background:#152b3c;overflow-wrap:anywhere}
 .rb-detail-chemistry h4{margin:12px 0 4px;font-size:14px;color:#9de2d6}
@@ -585,12 +582,12 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 
 /* Short word explanations in molecule encyclopedia summaries only. */
 #collection-dialog .detail-heading h3:has(ruby){line-height:1.9}
-#collection-dialog .detail-heading h3 rt,#collection-dialog .collection-tag rt,#collection-dialog .collection-recipe-list rt{font-size:.56em;line-height:1;color:#b5d6d5}
-#collection-dialog .detail-heading ruby,#collection-dialog .collection-tag ruby,#collection-dialog .collection-recipe-list ruby{ruby-position:over}
+#collection-dialog .detail-heading h3 rt,#collection-dialog .collection-tag rt{font-size:.56em;line-height:1;color:#b5d6d5}
+#collection-dialog .detail-heading ruby,#collection-dialog .collection-tag ruby{ruby-position:over}
 #collection-dialog .collection-card ruby{ruby-position:over}
 #collection-dialog .collection-card rt{font-size:.56em;line-height:1;color:#b5d6d5}
 #collection-dialog .collection-card strong:has(ruby){line-height:1.95}
-#collection-dialog .collection-tag:has(ruby),#collection-dialog .collection-recipe-list button:has(ruby){line-height:2}
+#collection-dialog .collection-tag:has(ruby){line-height:2}
 #collection-dialog .dex-description{line-height:2.35}
 #collection-dialog .dex-description ruby{ruby-position:over}
 #collection-dialog .dex-description rt{font-size:.58em;line-height:1;color:#a9c8ce;font-weight:500}
@@ -721,4 +718,62 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
  #collection-dialog #collection-detail>.polymer-model-toggle{grid-column:1}
  #collection-dialog .collection-grid:not(.reaction-book){grid-template-columns:repeat(auto-fill,minmax(165px,200px));gap:12px;justify-content:start}
  #collection-dialog .reaction-book-category-grid{grid-template-columns:repeat(auto-fill,minmax(220px,320px));justify-content:start}
+}
+
+/* Desktop encyclopedia: one viewport, with controls in the top rail rather than
+   stacking above the content. Only long catalogues and optional reading scroll. */
+@media(min-width:1024px) and (min-height:640px){
+ #collection-dialog{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;overflow:hidden}
+ #collection-dialog .book-shell{display:grid;grid-template-columns:minmax(110px,1fr) minmax(420px,640px) minmax(60px,1fr);grid-template-rows:60px minmax(0,1fr);height:100%;min-height:0;padding:0 12px 10px;column-gap:0}
+ #collection-dialog .book-header{grid-column:1/-1;grid-row:1;position:relative;z-index:2;min-height:60px;margin:0 -12px;padding:6px 17px;border-bottom:1px solid #385a6c}
+ #collection-dialog .book-tabs{grid-column:2;grid-row:1;z-index:3;justify-self:stretch;align-self:center;min-width:0;height:52px;min-height:0;margin:0;padding:2px 4px;background:#0d1b29}
+ #collection-dialog .book-tabs button{min-height:46px;padding:2px 4px;gap:0}
+ #collection-dialog .ui-book-icon{width:27px;height:27px}
+ #collection-dialog .book-tab-count{font-size:11px}
+ #collection-dialog #collection-storage:not([hidden]){position:absolute;z-index:9;left:16px;right:16px;top:62px;margin:0;box-shadow:0 5px 20px #0008}
+ #collection-dialog #collection-list,#collection-dialog #collection-detail{grid-column:1/-1;grid-row:2;min-width:0;min-height:0;height:100%;width:100%;padding:10px 2px 0;overscroll-behavior:contain}
+ #collection-dialog #collection-list{overflow-y:auto;overflow-x:hidden;align-content:start}
+ #collection-dialog .book-footer{display:none}
+ #collection-dialog .collection-grid:not(.reaction-book){grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;justify-content:stretch}
+ #collection-dialog .collection-grid.reaction-book{gap:8px}
+ #collection-dialog .reaction-book:has(.reaction-book-category-grid)>h3,
+ #collection-dialog .reaction-book:has(.reaction-book-category-grid)>p{display:none}
+ #collection-dialog .reaction-book-category-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;justify-content:stretch}
+ #collection-dialog .reaction-book .reaction-book-group{aspect-ratio:1.68}
+ #collection-dialog #collection-list.encyclopedia-graph-host{position:relative;display:block;overflow:hidden;padding:6px 0 0}
+ #collection-dialog .encyclopedia-graph{height:100%;min-height:0;position:relative;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:6px;margin:0}
+ #collection-dialog .graph-toolbar{position:absolute;z-index:6;top:12px;left:12px;width:min(320px,32%);margin:0}
+ #collection-dialog .graph-search{min-height:38px;padding:6px 12px;background:#0a1b29e8;backdrop-filter:blur(4px)}
+ #collection-dialog .graph-search-hint{display:none}
+ #collection-dialog .graph-stage{grid-row:1;height:100%;min-height:0}
+ #collection-dialog .graph-focus-card{grid-row:2;min-height:44px;padding:0}
+
+ /* The number/name belongs on top of the model; back/previous/next belong in
+    the adjacent reading rail. The model stays visible when details expand. */
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]{position:relative;display:grid;grid-template-columns:minmax(0,55%) minmax(0,45%);grid-template-rows:minmax(0,42%) minmax(0,1fr);gap:0;overflow:hidden;padding:8px 4px 6px}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-navigation{position:absolute;z-index:5;top:16px;right:14px;display:flex;gap:6px;margin:0}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-navigation button{min-height:40px;padding:4px 10px;background:#102635ee;border-color:#395a6a}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-heading{position:absolute;z-index:4;top:12px;left:17px;width:calc(55% - 36px);padding:5px 8px 16px;background:linear-gradient(180deg,#0d2330e8,#0d233000);pointer-events:none}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"] .detail-heading h3{font-size:clamp(18px,2vw,26px);line-height:1.35;margin:3px 0}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"] .detail-heading .detail-formula{padding-top:7px;font-size:clamp(15px,1.5vw,20px)}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.collection-model{grid-column:1;grid-row:1/3;align-self:stretch;display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;margin:0;border-radius:14px}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.collection-model .model-stage{flex:1 1 auto;min-height:0;height:100%}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.collection-model .model-stage+.model-status{display:none}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.dex-description{grid-column:2;grid-row:1;align-self:stretch;min-height:0;margin:0;padding:64px 16px 12px 22px;overflow:auto;font-size:clamp(15px,1.25vw,18px);line-height:1.82}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-extras{grid-column:2;grid-row:2;min-height:0;margin:0;padding:8px 16px 12px 22px;overflow:auto}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.stereo-comparison{grid-column:1;grid-row:2;z-index:3;align-self:end;margin:0 10px 10px;max-height:150px;overflow:auto;background:#112b3ac9;border-radius:12px}
+}
+
+/* Mobile molecule detail: put navigation and identity onto the model surface,
+   preserving the original touch-sized controls and scrollable explanations. */
+@media(max-width:650px){
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]{position:relative;padding-top:12px}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.collection-model{margin:0 0 14px;min-height:clamp(220px,34dvh,330px)}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-heading{position:absolute;z-index:4;top:12px;left:0;right:0;display:flex;align-items:flex-start;gap:8px;max-height:125px;padding:9px 12px 24px;border-radius:18px 18px 0 0;background:linear-gradient(180deg,#0b2134f5 0%,#102d3cdb 56%,transparent 100%);pointer-events:none}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-heading>div{min-width:0;max-width:calc(100% - 106px)}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-heading h3{margin:3px 0 0;font-size:clamp(17px,4.7vw,21px);line-height:1.2}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-heading .detail-formula{flex:0 0 auto;max-width:100px;padding-top:8px;font-size:clamp(13px,3.4vw,16px);white-space:normal;overflow-wrap:anywhere;text-align:right}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-navigation{position:absolute;z-index:5;top:calc(12px + clamp(220px,34dvh,330px) - 52px);left:8px;right:8px;display:flex;gap:6px;margin:0;pointer-events:none}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.detail-navigation button{pointer-events:auto;min-height:44px;padding:5px 11px;border:1px solid #50738a;border-radius:11px;background:#102938ee;color:#e0f1f5;box-shadow:0 2px 8px #0005}
+ #collection-dialog #collection-detail[data-detail-kind="molecules"]>.dex-description{margin:12px 0 20px}
 }
