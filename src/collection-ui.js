@@ -235,7 +235,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   };
   keyboardTabs('[data-palette-tab]');keyboardTabs('[data-book-tab]');
   const notifyOpen=()=>{collectionDialogOpen=true;onOpenChange(true);};
-  q('open-collection').addEventListener('click',()=>{if(!canOpen())return;ensureGraphFocus();if(wideBook()&&!discoverySession&&!currentDetail&&tab==='molecules'&&state.hasMolecule(graphFocusId))currentDetail={kind:'molecules',id:graphFocusId};renderBook();dialog.showModal();document.body.classList.add('collection-open');notifyOpen();});
+  q('open-collection').addEventListener('click',()=>{if(!canOpen())return;ensureGraphFocus();renderBook();dialog.showModal();document.body.classList.add('collection-open');notifyOpen();});
   q('close-collection').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('close',()=>{closeGlossary();moleculeTransition.cancel({owner:currentDetail?'detail':'graph'});detailTransitionHandle=null;releaseViewer();document.body.classList.remove('collection-open');collectionDialogOpen=false;onOpenChange(false);for(const resolve of closeWaiters)resolve();closeWaiters.clear();});
   dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
@@ -244,10 +244,10 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(discoverySession||moleculeTransition.busy)return false;if(kind==='molecules'&&!state.hasMolecule(id))return false;if(kind==='motifs'&&!state.hasGroup(id))return false;if(kind==='polymers'&&!polymerState.hasPolymer(id))return false;
     if(!currentDetail)listScroll=dialog.scrollTop;
     if(kind==='motifs'){if(currentDetail?.kind==='molecules')motifReturnMoleculeId=currentDetail.id;tab='molecules';}else tab=kind;
-    currentDetail={kind,id};renderBook();dialog.scrollTop=0;(kind==='molecules'?detail.querySelector('.molecule-detail-return'):kind==='motifs'?q('motif-detail-back'):q('detail-back'))?.focus?.({preventScroll:true});return true;
+    currentDetail={kind,id};renderBook();dialog.scrollTop=0;(kind==='motifs'?q('motif-detail-back'):q('detail-back'))?.focus?.({preventScroll:true});return true;
   }
   function focusGraph(id){
-    const options=graphStateOptions(),next=transitionGraphFocus(data.graph,ensureGraphFocus(),id,options);graphFocusId=next.focusId;graphHighlightId=next.highlightId;if(wideBook()&&!discoverySession){currentDetail=state.hasMolecule(graphFocusId)?{kind:'molecules',id:graphFocusId}:null;list.dataset.renderedTab='';}renderBook();return next.changed;
+    const options=graphStateOptions(),next=transitionGraphFocus(data.graph,ensureGraphFocus(),id,options);graphFocusId=next.focusId;graphHighlightId=next.highlightId;renderBook();return next.changed;
   }
   function openMolecule(id){
     const record=recordById(id);if(!record||!canOpen()||moleculeTransition.busy)return false;
@@ -506,7 +506,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     for(const node of root.querySelectorAll('[data-book-tab]')){const active=node.dataset.bookTab===tab;node.setAttribute('aria-selected',String(active));node.tabIndex=active?0:-1;}
     for(const node of root.querySelectorAll('[data-book-tab]'))node.disabled=!!discoverySession;
     const footer=dialog.querySelector('.book-footer');if(footer)footer.hidden=!!currentDetail;
-    const split=wideBook()&&!discoverySession&&tab!=='reactions';
+    const split=false; // Single-page navigation on desktop and mobile.
     dialog.classList.toggle('book-split',split);list.hidden=!!currentDetail&&!split;detail.hidden=!currentDetail;
     if(currentDetail){
       if(split&&list.dataset.renderedTab!==tab){list.classList.remove('reaction-book');if(tab==='molecules'){ensureGraphFocus();renderGraph();}else if(tab==='polymers')renderPolymerList();else renderGroupList();list.dataset.renderedTab=tab;}
@@ -522,7 +522,10 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   window.matchMedia?.('(min-width: 1050px) and (min-height: 600px)')?.addEventListener?.('change',()=>{if(dialog.open&&currentDetail&&!moleculeTransition.busy)renderBook();});
   function renderDetail(){
     detail.replaceChildren();const {kind,id}=currentDetail;detail.dataset.detailKind=kind;detail.dataset.detailId=id;const nav=el('div',null,`detail-navigation${kind==='molecules'?' molecule-detail-navigation':''}`);
-    if(kind==='groups'){const back=button('‹ 一覧',()=>{const previous=currentDetail.id;currentDetail=null;renderBook();dialog.scrollTop=listScroll;[...list.querySelectorAll('button')].find(node=>node.dataset.entryId===previous)?.focus({preventScroll:true});},'book-back');back.id='detail-back';nav.append(back);}
+    if(kind==='groups'||kind==='molecules'||kind==='polymers'){
+      const back=button('‹ 一覧',()=>{const previous=currentDetail.id;currentDetail=null;if(kind==='molecules'){graphFocusId=previous;graphHighlightId=null;}renderBook();dialog.scrollTop=listScroll;[...list.querySelectorAll('button')].find(node=>node.dataset.entryId===previous||node.dataset.graphId===previous)?.focus({preventScroll:true});},'book-back');
+      back.id='detail-back';nav.append(back);
+    }
     if(kind==='motifs'){const back=button('‹ 分子',()=>{if(motifReturnMoleculeId)showDetail('molecules',motifReturnMoleculeId);},'book-back');back.id='motif-detail-back';back.disabled=!motifReturnMoleculeId;nav.append(back);}
     const items=kind==='polymers'?polymerRecords.filter(item=>polymerState.hasPolymer(item.id)).sort((a,b)=>number(kind,a.id)-number(kind,b.id)):visibleItems(kind),index=items.findIndex(item=>item.id===id);
     for(const [label,delta]of [['‹',-1],['›',1]]){const next=items[index+delta],node=button(label,()=>{if(next)showDetail(kind,next.id);});node.setAttribute('aria-label',delta<0?'前の項目':'次の項目');node.disabled=!!discoverySession||index<0||!next;nav.append(node);}

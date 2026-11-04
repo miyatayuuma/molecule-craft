@@ -148,7 +148,7 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
     grid.className='reaction-book-category-grid';
     // Keep the core two-column layout even if an older PWA stylesheet is still in memory.
     grid.style.display='grid';
-    grid.style.gridTemplateColumns='repeat(2,minmax(0,1fr))';
+    // CSS owns responsive category widths; never force two columns inline.
     grid.style.gap='8px';
     grid.style.width='100%';
     host.replaceChildren(title,note,grid);

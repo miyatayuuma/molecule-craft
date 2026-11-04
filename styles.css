@@ -682,3 +682,27 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 .gamepad-keyboard-keys{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:12px}
 .gamepad-keyboard-keys button{min-width:0;min-height:42px;padding:6px 3px;font-size:14px}
 .gamepad-keyboard-keys button:nth-last-child(-n+4){grid-column:span 3}
+
+/* CRAFT action buttons mirror the controller face-button positions: X then B. */
+.viewer-actions #clear-all,.viewer-actions #undo-cleanup{position:relative;flex:none;width:51px;height:51px;margin:0;padding:12px 8px 5px}
+.viewer-actions #clear-all::after,.viewer-actions #undo-cleanup::after{position:absolute;top:-6px;left:-6px;z-index:2;display:grid;place-items:center;width:23px;height:23px;border:1px solid #608c9e;border-radius:7px;background:#102d3d;color:#dff8fc;font-size:11px;font-weight:800;box-shadow:0 2px 8px #061521a0;pointer-events:none}
+.viewer-actions #clear-all::after{content:"X"}
+.viewer-actions #undo-cleanup::after{content:"B"}
+
+/* PC Collection is a full-width list OR a full-width detail page, never split. */
+@media(min-width:1050px) and (min-height:600px){
+ #collection-dialog .book-shell{grid-template-columns:minmax(0,1fr);column-gap:0}
+ #collection-dialog #collection-list{grid-column:1;grid-row:4;width:100%;padding-bottom:14px}
+ #collection-dialog #collection-detail{grid-column:1;grid-row:4;min-width:0;min-height:0;display:grid;grid-template-columns:minmax(280px,43%) minmax(0,1fr);gap:10px 22px;align-content:start;overflow:auto;padding:8px 12px 24px;border-left:0}
+ #collection-dialog #collection-detail>.detail-navigation,
+ #collection-dialog #collection-detail>.detail-heading{grid-column:1/-1}
+ #collection-dialog #collection-detail>.collection-model{grid-column:1;align-self:start;margin-top:6px}
+ #collection-dialog #collection-detail>.dex-description{grid-column:2;align-self:start;margin-top:6px}
+ #collection-dialog #collection-detail>.detail-extras,
+ #collection-dialog #collection-detail>.polymer-education,
+ #collection-dialog #collection-detail>.polymer-observation-prompt,
+ #collection-dialog #collection-detail>.unknown-detail{grid-column:1/-1}
+ #collection-dialog #collection-detail>.polymer-model-toggle{grid-column:1}
+ #collection-dialog .collection-grid:not(.reaction-book){grid-template-columns:repeat(auto-fill,minmax(165px,200px));gap:12px;justify-content:start}
+ #collection-dialog .reaction-book-category-grid{grid-template-columns:repeat(auto-fill,minmax(220px,320px));justify-content:start}
+}

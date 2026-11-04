@@ -4,8 +4,7 @@ function installCraftActionBar(document){
   const actions=document.querySelector('.viewer-actions'),undo=document.querySelector('#undo-cleanup'),clear=document.querySelector('#clear-all');
   if(undo){
     undo.className='icon-button craft-history-undo';undo.hidden=false;undo.disabled=true;undo.setAttribute('aria-label','直前のCRAFT操作を元に戻す');undo.setAttribute('title','直前のCRAFT操作を元に戻す');
-    undo.style.marginRight='12px';
-    if(actions&&clear)actions.insertBefore(undo,clear);
+    if(actions&&clear){actions.insertBefore(undo,clear);actions.insertBefore(clear,undo);}
   }
   if(clear){
     clear.className='hold-clear icon-button';clear.setAttribute('aria-label','1秒長押しで全片付け。クラフト中の全要素をBASE STOCKへ戻して片付ける');clear.setAttribute('title','全片付け');

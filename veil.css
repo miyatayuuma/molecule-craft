@@ -88,3 +88,28 @@
 .veil-recipe-notice{position:absolute;top:max(78px,env(safe-area-inset-top));left:16px;right:16px;margin:0;padding:8px 12px;text-align:center;color:#fff0bd;background:#3e3020e8;border:1px solid #c49a53;border-radius:10px;font-size:14px;line-height:1.4;pointer-events:none;z-index:4}.veil-recipe-notice[hidden]{display:none}
 
 .gamepad-return-progress{position:absolute;z-index:10;left:50%;bottom:110px;transform:translateX(-50%);padding:8px 18px;border:1px solid #8cdeec;border-radius:8px;color:#eaffff;background:linear-gradient(90deg,#267b84 var(--return-progress,0%),#132b39 var(--return-progress,0%));pointer-events:none}
+
+/* Controller-shaped action cluster shared by touch and desktop.
+   SHOCK = X (left), BURST = B (right), COMBUSTION = RT (upper right).
+   The mobile flight pad remains available for touch. */
+.veil-drive-control{display:grid;grid-template-columns:76px 110px;grid-template-rows:64px 90px;grid-template-areas:"status drive" "shock burst";gap:8px;align-items:center;justify-items:center}
+.veil-drive-control #veil-shock{grid-area:shock;position:relative;right:auto;bottom:auto;width:76px;height:70px;min-height:70px}
+.veil-drive-control #veil-combustion{grid-area:drive;position:relative;width:110px;height:64px;min-height:64px;gap:2px}
+.veil-drive-control #veil-boost{grid-area:burst;position:relative;width:90px;height:90px}
+.veil-drive-control #veil-thermal{grid-area:status;position:relative;width:76px;min-width:0;padding:5px 6px}
+.veil-drive-control #veil-thermal>span{gap:3px;flex-wrap:wrap}
+.veil-drive-control button[data-pad-button]::before{content:attr(data-pad-button);position:absolute;top:-7px;left:-6px;z-index:2;display:grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border:1px solid #7698ac;border-radius:7px;background:#102535;color:#d6f6f8;font-size:11px;font-weight:800;letter-spacing:0;box-shadow:0 2px 8px #07121acc;pointer-events:none}
+@media(min-width:780px) and (pointer:fine){.veil-pad{display:none}.veil-controls{justify-content:flex-end}}
+@media(max-width:370px){
+ .veil-pad{width:92px;height:92px}
+ .veil-knob{left:25px;top:25px}
+ .veil-pad:before{left:45px;top:12px;height:68px}
+ .veil-pad:after{left:12px;top:45px;width:68px}
+ .veil-drive-control{grid-template-columns:68px 84px;grid-template-rows:56px 74px;gap:6px}
+ .veil-drive-control #veil-shock{width:66px;height:64px;min-height:64px}
+ .veil-drive-control #veil-combustion{width:84px;height:56px;min-height:56px}
+ .veil-drive-control #veil-boost{width:74px;height:74px}
+ .veil-drive-control #veil-thermal{width:68px}
+ .veil-drive-control #veil-combustion .paired-tanks{gap:2px}
+ .veil-drive-control #veil-combustion .propulsion-meter{max-width:72px}
+}
