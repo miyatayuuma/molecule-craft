@@ -151,6 +151,7 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
     grid.style.width='100%';
     // Progress is already shown in the tab; do not spend a mobile row repeating it.
     host.replaceChildren(grid);
+    host.scrollTop=0;
     for(const group of model.groups){
       const done=group.items.filter(x=>x.state==='verified').length;
       const control=button('',()=>showGroup(group));
@@ -168,6 +169,7 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
   }
   function showGroup(group){
     host.replaceChildren(button('‹ カテゴリ一覧',showList),make('h3',group.label));
+    host.scrollTop=0;
     // Pending recipe actions belong to the top-level lightbulb, never the atlas.
     for(const item of group.items.filter(x=>x.state==='verified')){
       const d=item.definition,inputs=item.kind==='normal'?d.reactants.map(x=>name(x.species)):d.feedSpecies.map(name),outputs=item.kind==='normal'?d.products.map(name):[polymerRecords.find(x=>x.id===d.polymerId)?.nameJa??d.polymerId];
@@ -176,6 +178,7 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
       const conditionText=[...(conditions??[]).map(x=>CONDITION[x]??x),...(forbidden??[]).map(x=>`${CONDITION[x]??x}は不可`)].join('、')||'特別な条件なし';
       function showDetail(){
         host.replaceChildren(button('‹ '+group.label+'に戻る',()=>showGroup(group)),make('h3',outputs.join(' + ')),make('p',equation));
+        host.scrollTop=0;
         const detail=reactionDetailInfo(item,visualContext), formula=REACTION_THUMBNAIL_SPECS[item.reactionId];
         if(detail){
           const chemistry=make('section','');chemistry.className='rb-detail-chemistry';

@@ -11,7 +11,7 @@ import { RESONANCE_STYLE, SULFUR_OXO_STYLE, specialEdgeKeys, sharedBondCurves, s
 // Only a handful of CPU layouts are retained. No cached canvases/GPU contexts.
 const layouts=new Map();
 
-export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onReady=()=>{},showGestureHint=true,presentation=null,initialView=null,onViewChange=()=>{},fixedLayout=null,portColor=0xfbbf24,compact=false}) {
+export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onReady=()=>{},onError=()=>{},showGestureHint=true,presentation=null,initialView=null,onViewChange=()=>{},fixedLayout=null,portColor=0xfbbf24,compact=false}) {
   let disposed=false,frame=0,renderer=null,observer=null,model=null,layout=null;
   let scene=null,camera=null,group=null,width=1,height=1,radius=1,ready=false;
   let canvas=null,context=null,steps=0,stable=0,thumbnailSent=false,readyNotified=false;
@@ -35,7 +35,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         do{const movement=model.step();steps++;stable=movement<PART_SETTLEMENT.movementThreshold?stable+1:0;}while(steps<PART_SETTLEMENT.maxSteps&&stable<PART_SETTLEMENT.stableSteps&&performance.now()-started<5);
         if(steps<220&&stable<10){requestDraw();return;}
         layout=model.snapshot();model=null;
-        if(presentation?.kind==='alkene-relative-side'&&layout.stereoDescriptor?.relation!==presentation.relation){status.textContent='この立体配置を表示できませんでした。';return;}
+        if(presentation?.kind==='alkene-relative-side'&&layout.stereoDescriptor?.relation!==presentation.relation){status.textContent='この立体配置を表示できませんでした。';onError();return;}
         if(!fixedLayout)layouts.set(key,layout);
         while(layouts.size>8)layouts.delete(layouts.keys().next().value);
       }
@@ -43,7 +43,7 @@ export function createCollectionViewer({host,record,name,onThumbnail=()=>{},onRe
         layout.canonicalPartView??=canonicalPartView(THREE,layout);
         controls.setInitialView(layout.canonicalPartView);Object.assign(viewState,controls.snapshot());
       }
-      try{initialize();ready=true;}catch(error){status.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';console.warn('Collection preview unavailable',error);releaseGraphics();return;}
+      try{initialize();ready=true;}catch(error){status.textContent='立体模型を表示できませんでした。図鑑の説明は引き続き利用できます。';console.warn('Collection preview unavailable',error);releaseGraphics();onError(error);return;}
     }
     draw();
     if(!readyNotified){readyNotified=true;host.dataset.stereoRelation=layout.stereoDescriptor?.relation??'';try{onReady({snapshot:compact?null:snapshotImage(),view:{...viewState},stereoDescriptor:layout.stereoDescriptor??null});}catch{}}
