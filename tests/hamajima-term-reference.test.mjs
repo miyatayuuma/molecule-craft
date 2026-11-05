@@ -70,11 +70,17 @@ for(const entry of polymerEncyclopedia){
 for(const entry of Object.values(encyclopedia.parts??{}))if(typeof entry.description==='string')allProse.push(entry.description);
 for(const entry of functionalGroups)if(typeof entry.description==='string')allProse.push(entry.description);
 const productionProse=allProse.join('\n');
+// Formation labels are rendered from collection-ui.js metadata mapping rather
+// than from encyclopedia prose; keep this exact label in the coverage gate.
+const collectionUiSource=await readFile(new URL('../src/collection-ui.js',import.meta.url),'utf8');
 for(const text of allProse){
   assert.equal(hamajimaTermSegments(text).map(segment=>segment.text).join(''),text,'Linked prose keeps its exact original text.');
 }
 const initialAllowlist=new Set(['共有結合','電子対','不対電子','共有電子対','非共有電子対','孤立電子対','単結合','二重結合','三重結合','配位結合','極性','電気陰性度','無極性分子','極性分子','分子間力','重合','水素結合','官能基','構造異性体','シス-トランス異性体','混成軌道','σ結合','π結合','ベンゼン環']);
-for(const term of Object.keys(HAMAJIMA_TERM_REFERENCES).filter(term=>!initialAllowlist.has(term)))assert(productionProse.includes(term),`Additional audited term must occur in current player-facing prose: ${term}`);
+for(const term of Object.keys(HAMAJIMA_TERM_REFERENCES).filter(term=>!initialAllowlist.has(term))){
+  const inDynamicFormationLabel=term==='縮合重合'&&collectionUiSource.includes("polycondensation:'縮合重合'");
+  assert(productionProse.includes(term)||inDynamicFormationLabel,`Additional audited term must occur in current player-facing prose or a reviewed display label: ${term}`);
+}
 
 const productionCases=[
   ['water',['極性','水素結合']],
