@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --test tests/reaction-book-visual-gate.test.mjs tests/reaction-encyclopedia.test.mjs tests/reaction-progress.test.mjs
+      - run: node --test tests/reaction-equation-layout.test.mjs tests/reaction-book-visual-gate.test.mjs tests/reaction-encyclopedia.test.mjs tests/reaction-progress.test.mjs
       - run: node scripts/check-repository-hygiene.mjs
       - run: node scripts/build-precache.mjs --check
   browser:
@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        viewport: [360, 1280]
+        viewport: [320, 1280]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4

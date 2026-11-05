@@ -1,4 +1,5 @@
 import {polymerReactionImage} from './reaction-polymer-thumbnail.js';
+import {reactionEquationLayout,reactionModelMetric} from './reaction-model-layout.js';
 import {GROUP_GRAPHICS,GROUP_SCHEMATIC_DATA} from './reaction-group-schematics.js';
 // Static reaction-book preview motifs. Chemistry and unlock status remain owned by the catalog/progress.
 export const GROUP_PREVIEW_SPECS=Object.freeze({
@@ -146,13 +147,21 @@ export function createReactionThumbnailFromEntry(entry,context={}){
   box.className='rb-reaction-thumb rb-reaction-thumb-models';
   box.dataset.previewReaction=entry.reactionId;
   const images=document.createElement('span');images.className='rb-reaction-assets';
-  const asset=(data)=>{
-    const img=data.polymerUnit?polymerReactionImage(data.id,data.name):document.createElement('img');if(data.src)img.src=data.src;img.alt=data.name;
-    img.loading='lazy';img.decoding='async';img.draggable=false;return img;
+  const tiles=[...spec.inputs,...spec.outputs].map(item=>{
+    const tile=document.createElement('span');tile.className='rb-equation-model';
+    const img=document.createElement('img');img.src=reactionModelMetric(item).src;img.alt=item.name;
+    if(item.polymerUnit)img.dataset.polymerUnit=item.id;
+    img.loading='lazy';img.decoding='async';img.draggable=false;tile.append(img);images.append(tile);return{tile,img};
+  });
+  const symbols=[];
+  const layout=()=>{
+    const plan=reactionEquationLayout(spec.inputs,spec.outputs,images.clientWidth||280,100);
+    plan.placements.forEach((p,i)=>{const {tile,img}=tiles[i];Object.assign(tile.style,{left:p.x+'px',top:(p.y-p.height/2)+'px',width:p.width+'px',height:p.height+'px'});Object.assign(img.style,{width:p.modelWidth+'px',height:p.modelHeight+'px'});});
+    plan.symbols.forEach((s,i)=>{let node=symbols[i];if(!node){node=document.createElement('span');node.className=s.kind==='arrow'?'rb-arrow':'rb-plus';node.textContent=s.kind==='arrow'?'→':'＋';node.setAttribute('aria-hidden','true');symbols.push(node);images.append(node);}node.style.left=s.x+'px';node.style.top=s.y+'px';});
+    images.dataset.sharedScale=plan.scale.toFixed(4);
   };
-  const arrow=document.createElement('span');arrow.className='rb-arrow';arrow.textContent='→';
-  const side=list=>{const group=document.createElement('span');group.className='rb-reaction-side';list.forEach((item,index)=>{if(index){const plus=document.createElement('span');plus.className='rb-plus';plus.textContent='＋';group.append(plus);}group.append(asset(item));});return group;};
-  images.append(side(spec.inputs),arrow,side(spec.outputs));
+  layout();
+  if(typeof ResizeObserver!=='undefined'){const resize=new ResizeObserver(()=>{if(images.isConnected)layout();else resize.disconnect();});resize.observe(images);}
   box.append(images);
   return box;
 }

@@ -13,7 +13,7 @@ async function collect(root,files,directory){
 }
 
 export async function renderPrecache(root=DEFAULT_ROOT){
-  const files=new Set(['index.html','styles.css','veil.css','manifest.webmanifest']);
+  const files=new Set(['index.html','styles.css','veil.css','manifest.webmanifest','generated/reaction-model-metrics.js']);
   await collect(root,files,'src/veil/');
   await collect(root,files,'assets/');
   await collect(root,files,'data/');
