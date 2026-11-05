@@ -1,6 +1,6 @@
 // Short, age-appropriate definitions for selected words in molecule summaries.
 // This is deliberately not a general kanji reader or a chemical dictionary.
-const DEFINITIONS=Object.freeze([
+export const MOLECULE_GLOSSARY_DEFINITIONS=Object.freeze([
   ['燃料電池','燃料の力を使って、電気をつくる装置。',2],
   ['不完全燃焼','ものが十分に燃えきらないこと。',2],
   ['光合成','植物が光の力を使って、栄養をつくること。',2],
@@ -79,9 +79,9 @@ const DEFINITIONS=Object.freeze([
   ['カルボン酸','カルボキシ基を持つ、酸の仲間。',2],
 ]);
 
-const MATCH_ORDER=[...DEFINITIONS].sort((a,b)=>b[0].length-a[0].length);
+const MATCH_ORDER=[...MOLECULE_GLOSSARY_DEFINITIONS].sort((a,b)=>b[0].length-a[0].length);
 
-const PART_DEFINITIONS=Object.freeze([
+export const PART_GLOSSARY_DEFINITIONS=Object.freeze([
   ['水素イオン','水素の原子が電子を失ってできる、小さな粒。',2],
   ['カルボキシ基','酸としての働きに関わる、分子の部品。',2],
   ['たんぱく質','体や筋肉などをつくる、大切な物質。',2],
@@ -103,7 +103,7 @@ const PART_DEFINITIONS=Object.freeze([
   ['周囲','そのもののまわり。',1],
   ['反応','物質が別の物質に変わること。',2],
 ]);
-const PART_MATCH_ORDER=[...DEFINITIONS,...PART_DEFINITIONS].sort((a,b)=>b[0].length-a[0].length);
+const PART_MATCH_ORDER=[...MOLECULE_GLOSSARY_DEFINITIONS,...PART_GLOSSARY_DEFINITIONS].sort((a,b)=>b[0].length-a[0].length);
 
 function glossarySegments(value,matchOrder,{limit=3}={}){
   const text=String(value??'');
