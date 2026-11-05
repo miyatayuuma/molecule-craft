@@ -1,16 +1,16 @@
-"""Regenerate Kanji-only readings for molecule/part summaries and glossary popups.
+"""Preview Kanji-only reading candidates for encyclopedia summaries and glossary popups.
 
 Requires: pip install janome==0.5.0
-Run: python scripts/generate-encyclopedia-furigana.py
-Review contextual/chemical readings before committing the generated data.
+Preview: python scripts/generate-encyclopedia-furigana.py
+After reviewing EVERY changed reading, use --write --review-digest <reported digest>.
+Do not treat the tokenizer's output as a verified chemical or contextual reading.
 """
 
+import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
-
-from janome.tokenizer import Tokenizer
-
 
 ROOT = Path(__file__).resolve().parents[1]
 KANJI = re.compile(r'[一-龯々]+')
@@ -102,6 +102,18 @@ def annotate(text, tokenizer, context):
 
 
 def generate():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--write', action='store_true', help='Replace the reviewed data only after examining the reading diff')
+    parser.add_argument('--review-digest', help='The digest printed by the preview of the exact candidate data')
+    args = parser.parse_args()
+    if args.review_digest and not args.write:
+        parser.error('--review-digest requires --write')
+
+    try:
+        from janome.tokenizer import Tokenizer
+    except ModuleNotFoundError as error:
+        raise SystemExit('Janome is required for candidate generation: pip install janome==0.5.0') from error
+
     encyclopedia = json.loads((ROOT / 'data/encyclopedia.json').read_text(encoding='utf-8'))
     tokenizer = Tokenizer()
     result = {'schemaVersion': 2, 'molecules': {}, 'parts': {}, 'glossary': {}}
@@ -117,7 +129,42 @@ def generate():
         result['glossary'][word] = annotate(meaning, tokenizer, f'glossary:{word}')
 
     target = ROOT / 'data/encyclopedia-furigana.json'
-    target.write_text(json.dumps(result, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
+    candidate = json.dumps(result, ensure_ascii=False, separators=(',', ':')) + '\n'
+    previous = json.loads(target.read_text(encoding='utf-8')) if target.exists() else {}
+    changes = []
+    for kind in ('molecules', 'parts', 'glossary'):
+        old_entries = previous.get(kind, {})
+        new_entries = result[kind]
+        for entry_id in sorted(set(old_entries) | set(new_entries)):
+            old_readings = {(offset, surface): reading for offset, surface, reading in old_entries.get(entry_id, [])}
+            new_readings = {(offset, surface): reading for offset, surface, reading in new_entries.get(entry_id, [])}
+            if old_readings == new_readings:
+                continue
+            source = (encyclopedia[kind][entry_id]['description'] if kind != 'glossary'
+                      else dict(definitions)[entry_id]) if entry_id in new_entries else ''
+            for offset, surface in sorted(set(old_readings) | set(new_readings)):
+                before = old_readings.get((offset, surface), '∅')
+                after = new_readings.get((offset, surface), '∅')
+                if before == after:
+                    continue
+                context = source[max(0, offset - 5):offset + len(surface) + 5]
+                changes.append(f'{kind}/{entry_id} [{context}] {surface}: {before} → {after}')
+
+    if not changes:
+        print('No reading changes; the reviewed encyclopedia furigana is unchanged.')
+        return
+    digest = hashlib.sha256(candidate.encode('utf-8')).hexdigest()[:16]
+    print(f'{len(changes)} candidate changes require contextual reading review:')
+    for change in changes:
+        print('  ' + change)
+    print(f'Review digest: {digest}')
+    if not args.write:
+        print('Preview only. The reviewed data was NOT modified.')
+        return
+    if args.review_digest != digest:
+        parser.error('Review every changed reading first, then pass --review-digest ' + digest)
+    target.write_text(candidate, encoding='utf-8')
+    print('Reviewed candidate written. Run the encyclopedia furigana and glossary tests.')
 
 
 if __name__ == '__main__':
