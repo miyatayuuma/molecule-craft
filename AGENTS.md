@@ -41,6 +41,7 @@
 ## Generated files
 
 - Do not edit generated outputs directly.
+- Encyclopedia furigana requires semantic review: machine-generated kana are only candidates, never proof of a correct reading. Do not replace reviewed `data/encyclopedia-furigana.json` with generator output automatically. First inspect the per-word contextual diff from `python scripts/generate-encyclopedia-furigana.py`; after independently checking every changed reading, explicitly pass the displayed review digest to `--write --review-digest`. Update `tests/fixtures/encyclopedia-furigana-reviewed.sha256` only after that review; it is a mandatory review checkpoint, not a substitute for inspecting the changed readings. Run `node --test tests/encyclopedia-furigana.test.mjs tests/encyclopedia-glossary.test.mjs tests/molecule-name-furigana.test.mjs tests/part-name-furigana.test.mjs` before submitting. In particular check chemical compounds, proper-noun homographs, okurigana, and both ordinary and compound readings of the same kanji.
 - `scripts/build-molecule-db.mjs` generates `data/molecules.json`.
 - `scripts/build-collection-assets.mjs` generates `assets/models/*.svg`.
 - `scripts/build-precache.mjs` generates `precache-manifest.js` and the release marker in `sw.js`.

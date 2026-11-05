@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {furiganaSegmentsForRange} from '../src/encyclopedia-furigana.js';
 import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from '../src/encyclopedia-glossary.js';
@@ -8,6 +9,13 @@ import {hamajimaTermSegments} from '../src/hamajima-term-reference.js';
 const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',import.meta.url),'utf8'));
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
 const reconstruct=segments=>segments.map(item=>item.text).join('');
+
+test('reviewed reading checkpoint changes only after an explicit contextual audit',()=>{
+  const bytes=readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url));
+  const digest=createHash('sha256').update(bytes).digest('hex');
+  const reviewed=readFileSync(new URL('./fixtures/encyclopedia-furigana-reviewed.sha256',import.meta.url),'utf8').trim();
+  assert.equal(digest,reviewed,'Furigana changed: inspect EVERY changed reading in context before updating the reviewed digest');
+});
 
 test('all 142 molecule summaries have exact, non-overlapping kana readings',()=>{
   assert.equal(furigana.schemaVersion,2);
@@ -208,4 +216,42 @@ test('compound-specific readings override the isolated kanji only where needed',
   assert.ok(furigana.glossary['炭素鎖'].some(([,surface,reading])=>surface==='鎖'&&reading==='くさり'));
   assert.ok(furigana.molecules['sulfuric-acid'].some(([,surface,reading])=>surface==='鉛'&&reading==='なまり'));
   assert.ok(furigana.molecules.chlorine.some(([,surface,reading])=>surface==='緑色'&&reading==='りょくしょく'));
+});
+
+test('reviewed chemical phrases retain their full contextual readings across morpheme boundaries',()=>{
+  // A tokenizer can produce kana-only, well-positioned ruby that is still semantically wrong.
+  // Check complete phrases rather than the isolated kanji segmentation it happened to choose.
+  const reviewed=[
+    ['炭素鎖','たんそさ'],
+    ['三重結合','さんじゅうけつごう'],
+    ['間にはさんだ','あいだにはさんだ'],
+    ['肝臓の間で','かんぞうのあいだで'],
+    ['OH基','OHき'],
+    ['環状','かんじょう'],
+    ['生分解性','せいぶんかいせい'],
+    ['保湿剤','ほしつざい'],
+    ['黄緑色','おうりょくしょく'],
+    ['塩の形','えんのかたち'],
+    ['含フッ素','がんフッそ'],
+  ];
+  for(const [phrase,expected] of reviewed){
+    let seen=0;
+    for(const kind of ['molecules','parts']){
+      for(const [id,{description}] of Object.entries(encyclopedia[kind])){
+        let offset=-1;
+        while((offset=description.indexOf(phrase,offset+1))!==-1){
+          const pronunciation=furiganaSegmentsForRange(description,furigana[kind][id],offset,offset+phrase.length)
+            .map(item=>item.kind==='ruby'?item.reading:item.text).join('');
+          assert.equal(pronunciation,expected,`${kind}:${id}: ${phrase} in ${description}`);
+          seen++;
+        }
+      }
+    }
+    assert.ok(seen>0,`${phrase}: expected a reviewed source occurrence`);
+  }
+  // 鎖 is correctly read differently in the standalone glossary explanation.
+  const meaning='炭素の原子が鎖のようにつながった部分。';
+  const start=meaning.indexOf('鎖のように');
+  assert.equal(furiganaSegmentsForRange(meaning,furigana.glossary['炭素鎖'],start,start+'鎖のように'.length)
+    .map(item=>item.kind==='ruby'?item.reading:item.text).join(''),'くさりのように');
 });
