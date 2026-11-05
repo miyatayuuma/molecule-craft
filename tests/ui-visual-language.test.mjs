@@ -9,6 +9,8 @@ test('navigation uses one stroke language without changing accessible labels',as
  for(const [symbol] of symbols){assert.match(symbol,/stroke="currentColor" stroke-width="3.5"/);assert.doesNotMatch(symbol,/(?:stroke|fill)="#[0-9a-f]+"/i);}
  assert.match(html,/id="open-supply"[^>]+aria-label="探索機を開く"/);
  assert.match(html,/id="open-menu"[^>]+aria-label="メニュー"/);
+ const supply=await readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8');
+ assert.doesNotMatch(supply,/accessCanvas|drawAccessIcon/,'the obsolete canvas must not duplicate SVG navigation');
 });
 
 test('desktop hardware fills its grid while mobile retains bounded height',async()=>{
