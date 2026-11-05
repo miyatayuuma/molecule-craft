@@ -20,6 +20,27 @@ export function furiganaSegmentsForRange(value,annotations=[],start=0,end=String
   return segments;
 }
 
+// A reference link may end halfway through one reviewed ruby span, e.g.
+// 付加重合 (linked) + 体, while the annotation covers 付加重合体 as a whole.
+// Preserve the reading by treating that whole span as plain (unlinked) text;
+// independent links outside it remain intact.
+export function coalesceSegmentsAtRubyBoundaries(segments,annotations=[],startOffset=0){
+  const merged=[];
+  let offset=startOffset;
+  for(const segment of segments){
+    const boundaryInsideRuby=annotations.some(([start,surface])=>
+      Number.isInteger(start)&&typeof surface==='string'&&start<offset&&offset<start+surface.length);
+    if(merged.length&&boundaryInsideRuby){
+      const previous=merged.at(-1);
+      previous.text+=segment.text;
+      previous.kind='text';
+      delete previous.reference;
+    }else merged.push({...segment});
+    offset+=segment.text.length;
+  }
+  return merged;
+}
+
 // Every long encyclopedia sentence has its own context-sensitive readings in
 // encyclopedia-extra-furigana.json. The old list of 26 science terms omitted
 // most Kanji, and a nearby-Kanji restriction silently omitted compounds.
