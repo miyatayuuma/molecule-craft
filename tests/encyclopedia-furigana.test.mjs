@@ -51,7 +51,14 @@ test('all encyclopedia science texts have complete Kanji-only ruby, not a 26-ter
    '付加重合体':'ふかじゅうごうたい','四面体':'しめんたい','四面体形':'しめんたいけい',
    '網目':'あみめ','水和':'すいわ','不斉':'ふせい','酸無水物':'さんむすいぶつ',
    '炭素数':'たんそすう','原子数':'げんしすう','頭尾結合':'とうびけつごう',
-   '四塩化炭素':'しえんかたんそ','分子間力':'ぶんしかんりょく'
+   '四塩化炭素':'しえんかたんそ','分子間力':'ぶんしかんりょく',
+   // Contextual readings that a general Japanese tokenizer got wrong in the
+   // first all-Kanji release: coverage alone did not catch these mistakes.
+   '懸濁':'けんだく','多価':'たか','正四面体':'せいしめんたい',
+   '正四面体形':'せいしめんたいけい','改質':'かいしつ',
+   '実鎖長':'じつさちょう','実工程':'じつこうてい',
+   '水素化物':'すいそかぶつ',
+   '炭化水素':'たんかすいそ',
  };
  for(const [word,expected] of Object.entries(chemistryReadings)){
    let seen=0;
@@ -65,6 +72,25 @@ test('all encyclopedia science texts have complete Kanji-only ruby, not a 26-ter
    }
    assert.ok(seen>0,`${word}: no reviewed example`);
  }
+ // These single-character readings looked plausible to a generic tokenizer,
+ // but refer to chemical charge, numerical valence, and molecular shape here.
+ for(const [text,annotations] of Object.entries(corpus.texts)){
+   for(const [offset,surface,reading] of annotations){
+     assert.notEqual(reading,'ばけもの',`chemical 化物 misread in ${text}`);
+     assert.notEqual(reading,'まけ',`negative electric charge misread in ${text}`);
+     assert.notEqual(reading,'くざい',`mixed-kana alignment lost 薬 in ${text}`);
+     if(surface==='負')assert.equal(reading,'ふ',text);
+     if(surface==='型')assert.equal(reading,'がた',text);
+     if(surface==='薬剤')assert.equal(reading,'やくざい',text);
+   }
+ }
+ const mixedPhrase=Object.entries(corpus.texts).find(([text])=>text.includes('塩や薬剤'));
+ assert.ok(mixedPhrase);
+ const [mixedText,mixedAnnotations]=mixedPhrase;
+ const salt=mixedText.indexOf('塩や薬剤');
+ assert.deepEqual(mixedAnnotations.filter(([offset])=>offset>=salt&&offset<salt+4).map(([,surface,reading])=>[surface,reading]),[
+   ['塩','えん'],['薬剤','やくざい']
+ ]);
  const dynamic='LABの条件：酸性、加熱';
  const parts=completeFuriganaSegments(dynamic,index);
  assert.equal(reconstruct(parts),dynamic);

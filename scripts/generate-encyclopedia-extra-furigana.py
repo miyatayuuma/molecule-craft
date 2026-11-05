@@ -29,6 +29,8 @@ TOKEN_READINGS = {
     '耐油手': 'タイユテ', '耐油性': 'タイユセイ', '耐衝撃': 'タイショウゲキ',
     '耐薬品': 'タイヤクヒン', '膨潤': 'ボウジュン', '酪酸': 'ラクサン',
     '圧下': 'アッカ', '引性': 'インセイ', '描像': 'ビョウゾウ',
+    # Generic-language dictionary readings are wrong in these chemical contexts.
+    '化物': 'カブツ', '薬剤': 'ヤクザイ', '負': 'フ', '型': 'ガタ',
 }
 
 # Whole compounds get reviewed readings before ambiguous word boundary splits
@@ -103,7 +105,7 @@ COMPOUNDS = {
     'ナトリウム塩': 'ナトリウムエン',
     'カルシウム塩': 'カルシウムエン',
     '塩の形': 'エンノカタチ',
-    '塩や薬剤': 'エンヤヤクザイ',
+    # Never annotate the whole phrase: a repeated や caused 薬剤=くざい.
     'その塩': 'ソノエン',
     '内円': 'ナイエン',
     '生成鎖': 'セイセイサ',
@@ -124,6 +126,19 @@ COMPOUNDS = {
     '三方両錐形': 'サンポウリョウスイケイ',
     '三重結合': 'サンジュウケツゴウ',
     '炭素鎖': 'タンソサ',
+    '懸濁': 'ケンダク',
+    '多価': 'タカ',
+    '正四面体': 'セイシメンタイ',
+    '正四面体形': 'セイシメンタイケイ',
+    '改質': 'カイシツ',
+    '実鎖長': 'ジツサチョウ',
+    '実工程': 'ジツコウテイ',
+    'シアン化物': 'シアンカブツ',
+    '水素化物': 'スイソカブツ',
+    '塩化物': 'エンカブツ',
+    '酸化物': 'サンカブツ',
+    '硫化物': 'リュウカブツ',
+    '炭化水素': 'タンカスイソ',
     '加硫': 'カリュウ',
     '耐油手袋': 'タイユテブクロ',
     '電子求引性': 'デンシキュウインセイ',
@@ -194,6 +209,8 @@ def annotate_raw(segment, tokenizer, base, full):
             raise ValueError(f'Tokenization offset mismatch: [{surface}] at {offset} in [{full}]')
         if generator.KANJI.search(surface):
             reading = TOKEN_READINGS.get(surface, token.reading)
+            if surface == '塩' and full.startswith('塩や薬剤', offset):
+                reading = 'エン'
             if surface == '基':
                 reading = 'キ'
             if surface == '環':

@@ -49,7 +49,9 @@ for(const path of ['src/collection-ui.js','src/reaction-encyclopedia.js']){
     let value=match.groups.body;
     value=value.replace(/\$\{[^}]*\}/g,'');
     value=value.replace(/\\(['"`\\])/g,'$1');
-    if(value.length<=180&&!value.includes('\n')&&!/[{};]/.test(value))add(value);
+    // The regex can encounter fragments of nested template expressions. A
+    // backtick inside the captured body is JavaScript source, not visible UI.
+    if(value.length<=180&&!value.includes('\n')&&!/[{};`]/.test(value))add(value);
   }
 }
 
