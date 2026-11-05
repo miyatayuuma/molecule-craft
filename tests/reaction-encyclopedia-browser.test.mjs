@@ -22,6 +22,9 @@ try{
   let sequence=0;const pending=new Map();socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(Error(message.error.message)):task.resolve(message.result);}});
   const send=(method,params={})=>new Promise((ok,fail)=>{const id=++sequence;pending.set(id,{resolve:ok,reject:fail});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);return result.result?.value;};
+  // Ruby <rt> belongs to pronunciation, not the source sentence. Inspect the
+  // original Japanese text without reading annotations when matching copy.
+  const plainText=selector=>evaluate(`(()=>{const node=document.querySelector(${JSON.stringify(selector)});if(!node)return '';const copy=node.cloneNode(true);copy.querySelectorAll('rt').forEach(rt=>rt.remove());return copy.textContent;})()`);
   const waitFor=async(expression,label,attempts=120)=>{for(let index=0;index<attempts;index++){try{if(await evaluate(expression))return;}catch{}await pause(100);}throw Error(label);};
   const capture=async label=>{
     const dir=process.env.REACTION_BOOK_CAPTURE_DIR;
@@ -72,10 +75,10 @@ try{
   assert.equal(await evaluate(`document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1`),true);
   await evaluate(`[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('脱水')).click()`);
   assert.equal(await evaluate(`document.querySelector('.reaction-book-hint')===null`),true,'pending recipes are only available from the top lightbulb');
-  assert.match(await evaluate(`document.querySelector('#collection-list').innerText`),/未実証/);
+  assert.match(await plainText('#collection-list'),/未実証/);
   await evaluate(`document.querySelector('#collection-list button').click()`);
   await evaluate(`[...document.querySelectorAll('#collection-list button')].find(b=>b.textContent.startsWith('環化')).click()`);
-  const text=await evaluate(`document.querySelector('#collection-list').innerText`);assert.match(text,/未実証 \d+ 件/);assert.doesNotMatch(text,/シクロブタン|エチレン/);
+  const text=await plainText('#collection-list');assert.match(text,/未実証 \d+ 件/);assert.doesNotMatch(text,/シクロブタン|エチレン/);
   assert.equal(await evaluate(`document.querySelectorAll('#collection-list [data-preview-reaction]').length`),0);
   assert.equal(await evaluate(`document.querySelector('#collection-dialog').scrollWidth<=document.querySelector('#collection-dialog').clientWidth+1`),true);
   await evaluate(`document.querySelector('#collection-list button').click()`);
@@ -122,7 +125,7 @@ try{
       const detail=document.querySelector('.rb-detail-chemistry'),advanced=document.querySelector('.rb-detail-advanced');
       if(!detail||detail.querySelectorAll('h4').length!==2||!advanced?.querySelector('.rb-detail-formula')?.textContent.includes('→'))throw Error('Missing chemistry detail in group '+i);
       if(document.querySelector('.rb-detail-molecules'))throw Error('Duplicated thumbnail models in group '+i);
-      if(![...document.querySelectorAll('#collection-list button')].some(b=>b.textContent.includes('LABでもう一度ためす')))throw Error('Missing LAB route in group '+i);
+      if(![...document.querySelectorAll('#collection-list button')].some(b=>{const copy=b.cloneNode(true);copy.querySelectorAll('rt').forEach(rt=>rt.remove());return copy.textContent.includes('LABでもう一度ためす');}))throw Error('Missing LAB route in group '+i);
       document.querySelector('#collection-list button').click();
       document.querySelector('#collection-list button').click();
     }
