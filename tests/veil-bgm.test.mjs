@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createFieldBgm, fieldBgmFile } from '../src/veil/bgm.js';
+import { createFieldBgm, fieldBgmFile, DEFAULT_FIELD_BGM_VOLUME } from '../src/veil/bgm.js';
 
 const tracks = [];
 class MockAudio {
@@ -15,6 +15,7 @@ assert.equal(fieldBgmFile('carbon'), 'pulse.mp3');
 assert.equal(fieldBgmFile('oxygen'), 'urgent.mp3');
 assert.equal(fieldBgmFile('frontier'), 'urgent.mp3');
 assert.equal(fieldBgmFile('nitrogen'), 'sector.mp3');
+assert.ok(DEFAULT_FIELD_BGM_VOLUME >= .4 && DEFAULT_FIELD_BGM_VOLUME <= .7, 'Normalized music is audible without using full-scale playback');
 for (const name of ['airy', 'pulse', 'urgent', 'sector']) {
   const text = await readFile(new URL(`../assets/audio/field/${name}.b64`, import.meta.url), 'utf8');
   const bytes = Buffer.from(text, 'base64');
