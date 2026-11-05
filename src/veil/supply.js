@@ -66,7 +66,31 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   const launchLayer=document.createElement('div');launchLayer.id='expedition-destinations';launchLayer.setAttribute('aria-hidden','true');Object.assign(launchLayer.style,{position:'absolute',inset:'0',zIndex:'3',pointerEvents:'none'});shellMap.append(launchLayer);
   const launchHandle=document.createElement('button');launchHandle.type='button';launchHandle.id='collector-launch-handle';launchHandle.setAttribute('aria-label','探索機をドラッグして出発地点を選ぶ');launchHandle.setAttribute('aria-expanded','false');launchHandle.setAttribute('aria-controls','expedition-destinations');Object.assign(launchHandle.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'80px',height:'80px',transform:'translate(-50%,-50%)',zIndex:'9',padding:'0',border:'0',borderRadius:'50%',background:'transparent',boxShadow:'none',touchAction:'none',cursor:'grab'});shellMap.append(launchHandle);
   Object.assign(shellCanvas.style,{zIndex:'1',pointerEvents:'none',transformOrigin:'center',transition:'transform .16s ease, opacity .16s ease'});
-  const drawFlightCraftPreview=()=>drawCollectorShellPreview(shellCanvas,shellMap._loadoutFlightCraftPreview??{});
+  const drawFlightCraftPreview=effects=>drawCollectorShellPreview(shellCanvas,{...shellMap._loadoutFlightCraftPreview,...effects});
+  let idleFrame=0,idleStartedAt=0,lastIdlePaintAt=0,idlePainted=false;
+  function paintFlightCraftIdle(now){
+    idleFrame=0;
+    if(!dialog.open)return;
+    if(now-lastIdlePaintAt>=45){
+      const canFloat=!launchOpen&&!launchBusy&&requestedDestinationId===null&&partialPanel.hidden&&!shellMap.dataset.launchDragging&&!shellMap.dataset.synthesisActive;
+      if(canFloat){
+        const phase=(now-idleStartedAt)*Math.PI*2/2600;
+        drawFlightCraftPreview({visualShiftX:Math.sin(phase+.8)*.7,visualShiftY:Math.sin(phase)*3,visualTilt:Math.sin(phase+.6)*Math.PI/80});
+        idlePainted=true;
+      }else if(idlePainted){drawFlightCraftPreview();idlePainted=false;}
+      lastIdlePaintAt=now;
+    }
+    idleFrame=window.requestAnimationFrame(paintFlightCraftIdle);
+  }
+  function startFlightCraftIdle(){
+    if(reduced||idleFrame||!dialog.open)return;
+    idleStartedAt=performance.now();lastIdlePaintAt=0;
+    idleFrame=window.requestAnimationFrame(paintFlightCraftIdle);
+  }
+  function stopFlightCraftIdle(){
+    if(idleFrame)window.cancelAnimationFrame(idleFrame);
+    idleFrame=0;idlePainted=false;
+  }
   const launchTrail=document.createElement('span');launchTrail.className='loadout-launch-trail';launchTrail.setAttribute('aria-hidden','true');shellMap.append(launchTrail);
   const setCraftTranslation=(x=0,y=0)=>{
     setLoadoutFlightCraftTranslation(shellMap,x,y);
@@ -168,7 +192,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   }
   function openMolecule(id,use=null){
     const roles=resources.tankUses(id);if(!canOpen()||!resources.state.recipes.includes(id)||!roles.length)return false;
-    selectedUse=roles.includes(use)?use:roles[0];selectedId=id;announcement='';dialog.showModal();update();return true;
+    selectedUse=roles.includes(use)?use:roles[0];selectedId=id;announcement='';dialog.showModal();update();startFlightCraftIdle();return true;
   }
   function renderRouteGuide(){
     const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 320 175');svg.setAttribute('role','img');svg.setAttribute('aria-label','出発点から強流の近道、連続する支流、持続流の本道が分岐し、Oの集積へ合流');
@@ -209,16 +233,16 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
       if(outcome===true||outcome?.status==='success'){requestedDestinationId=null;if(dialog.open)dialog.close();return true;}
       requestedDestinationId=null;
       if(!resources.blocked&&canOpen()&&!dialog.open)dialog.showModal();
-      update();
+      update();startFlightCraftIdle();
       return false;
     }finally{
       delete dialog.dataset.preserveShellClose;launchBusy=false;
     }
   }
 
-  q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';requestedDestinationId=null;partialPanel.hidden=true;dialog.showModal();update();resetLaunchGesture();});
+  q('open-supply').addEventListener('click',()=>{if(!canOpen())return;announcement='';requestedDestinationId=null;partialPanel.hidden=true;dialog.showModal();update();resetLaunchGesture();startFlightCraftIdle();});
   for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{resetLaunchGesture();selectedUse=use;selectedId=null;update();});
-  partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;if(!launchBusy)requestedDestinationId=null;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
+  partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{stopFlightCraftIdle();partialPanel.hidden=true;if(!launchBusy)requestedDestinationId=null;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
   q('tank-craft-molecule').addEventListener('click',startCraft);
   if(globalThis.ResizeObserver){new ResizeObserver(()=>{if(dialog.open){syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();}}).observe(shellCanvas);}
   renderRouteGuide();update();

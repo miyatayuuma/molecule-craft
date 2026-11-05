@@ -97,3 +97,23 @@ test('LOADOUT occupies the full mobile viewport without sheet margins or rounded
   assert.ok(source.includes('#supply-dialog .sheet-header{padding-top:calc(10px + env(safe-area-inset-top))}'));
   assert.doesNotMatch(source,/margin:max\(8px,env\(safe-area-inset-top\)\) 0 auto/);
 });
+
+test('LOADOUT stock has four stable compact columns and keeps portrait tiles fluid',async()=>{
+  const source=await readFile(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8');
+  assert.match(source,/\.loadout-stock-elements\{display:grid;grid-template-columns:repeat\(4,minmax\(0,78px\)\)/);
+  assert.match(source,/\.loadout-stock-elements\{width:min\(100%,260px\);grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(source,/@media\(max-width:370px\).*\.loadout-stock-elements\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)!important\}/);
+});
+
+test('LOADOUT idle float affects sprite pixels only and stops for launch and reduced motion',async()=>{
+  const [supply,preview,workstation]=await Promise.all([
+    readFile(new URL('../src/veil/supply.js',import.meta.url),'utf8'),
+    readFile(new URL('../src/veil/collector-shell.js',import.meta.url),'utf8'),
+    readFile(new URL('../src/veil/loadout-workstation.js',import.meta.url),'utf8'),
+  ]);
+  assert.match(supply,/visualShiftY:Math\.sin\(phase\)\*3,visualTilt:/);
+  assert.match(supply,/!launchOpen&&!launchBusy&&requestedDestinationId===null&&partialPanel\.hidden&&!shellMap\.dataset\.launchDragging&&!shellMap\.dataset\.synthesisActive/);
+  assert.match(supply,/if\(reduced\|\|idleFrame\|\|!dialog\.open\)return/);
+  assert.match(preview,/angle:-Math\.PI\/2\+visualTilt/);
+  assert.match(workstation,/canvas\.style\.transform=`translate\(\$\{x\}px,\$\{y\}px\)`/);
+});
