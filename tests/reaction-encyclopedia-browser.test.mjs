@@ -128,6 +128,21 @@ try{
     return{groups,seen:seen.size,overflow:document.querySelector('#collection-dialog').scrollWidth>document.querySelector('#collection-dialog').clientWidth+1};
   })()`);
   assert.deepEqual(fullCoverage,{groups:13,seen:54,overflow:false});
+  const reactionDetailNav=await evaluate(`(()=>{
+    document.querySelectorAll('.reaction-book-group')[0].click();
+    document.querySelector('.reaction-book-inspect').click();
+    const host=document.querySelector('#collection-list'),detail=host.querySelector('.rb-detail-chemistry'),advanced=host.querySelector('.rb-detail-advanced');
+    const previous=host.querySelector('[aria-label="前の項目"]'),next=host.querySelector('[aria-label="次の項目"]');
+    const first=host.querySelector('h3')?.textContent,preview=!!host.querySelector('.rb-detail-preview');
+    const holds=Array.from({length:16},(_,index)=>index===15);
+    const consumed=window.__collection.handleGamepad({pressed:[15],held:holds,repeat:[],axes:[0,0,0,0]},performance.now());
+    const second=host.querySelector('h3')?.textContent;
+    const previousAfter=host.querySelector('[aria-label="前の項目"]');
+    host.querySelector('.rb-detail-navigation .book-back').click();
+    return{detail:!!detail,advanced:!!advanced,collapsed:!advanced?.open,preview,firstDisabled:previous.disabled,consumed,moved:first!==second,previousEnabled:!previousAfter.disabled,restored:!!host.querySelector('.reaction-book-inspect')};
+  })()`);
+  assert.deepEqual(reactionDetailNav,{detail:true,advanced:true,collapsed:true,preview:true,firstDisabled:true,consumed:true,moved:true,previousEnabled:true,restored:true});
+  await evaluate(`document.querySelector('#collection-list button').click()`);
   if(process.env.REACTION_BOOK_CAPTURE_DIR){
     for(let i=0;i<13;i++){
       await evaluate(`document.querySelectorAll('.reaction-book-group')[${i}].click();document.querySelector('#collection-list').scrollTop=0`);

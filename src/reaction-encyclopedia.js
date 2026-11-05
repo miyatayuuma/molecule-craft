@@ -1,4 +1,4 @@
-import {createReactionGroupPreview,createReactionThumbnailFromEntry,reactionThumbnailModel,REACTION_THUMBNAIL_SPECS} from './reaction-book-visual.js';
+import {createReactionGroupPreview,createReactionThumbnailFromEntry,reactionThumbnailModel} from './reaction-book-visual.js';
 // The registry owns reaction definitions; this module only groups and presents them.
 const LABELS={oxidation:'酸化',combustion:'燃焼',esterification:'エステル化',halogenation:'ハロゲン化',condensation:'縮合',polymerization:'重合',hydrolysis:'加水分解',addition:'付加',hydration:'水和',substitution:'置換','ring-opening':'開環',cycloaddition:'環化',dehydration:'脱水',other:'その他'};
 const CONDITION={acidic:'酸性',basic:'塩基性',heat:'加熱',light:'光'};
@@ -26,16 +26,32 @@ const PROCESS_ROLES=Object.freeze({
  'resole-base-catalysis':'塩基触媒：フェノール樹脂の縮合を進めるための設定です。',
  'pressure-controlled-process':'圧力制御：水などの揮発成分の除去を調整します。'
 });
+// Only a catalog with explicit, complete molecule formulas and conserved atoms
+// can be presented as a chemical equation. An arrow alone is not evidence.
+function atomTotals(formulas){
+ if(!Array.isArray(formulas)||!formulas.length)return null;
+ const totals=new Map();
+ for(const formula of formulas){
+   if(typeof formula!=='string'||!/^(?:[A-Z][a-z]?(?:[1-9]\d*)?)+$/.test(formula))return null;
+   for(const [,element,count] of formula.matchAll(/([A-Z][a-z]?)(\d*)/g))totals.set(element,(totals.get(element)??0)+Number(count||1));
+ }
+ return totals;
+}
+export function isBalancedReaction(reactants,products){
+ const before=atomTotals(reactants),after=atomTotals(products);
+ return !!before&&!!after&&before.size===after.size&&[...before].every(([element,count])=>after.get(element)===count);
+}
+function coefficientFormula(ids,molecules){
+ const counts=new Map();for(const id of ids)counts.set(id,(counts.get(id)??0)+1);
+ return [...counts].map(([id,count])=>`${count>1?count+' ':''}${molecules.get(id)?.formula}`).join(' ＋ ');
+}
 export function reactionDetailInfo(entry,{records=[],polymerRecords=[]}={}){
  if(!entry?.definition)return null;
  const d=entry.definition,isPolymer=entry.kind==='polymer',molecules=new Map(records.map(r=>[r.id,r]));
- const formulas=ids=>{
-   const counts=new Map();
-   for(const id of ids)counts.set(id,(counts.get(id)??0)+1);
-   return [...counts].map(([id,n])=>(n>1?n+' ':'')+(molecules.get(id)?.formula??molecules.get(id)?.nameJa??id)).join(' ＋ ');
- };
  const feeds=isPolymer?d.feedSpecies:d.reactants.map(x=>x.species);
  const product=polymerRecords.find(x=>x.id===d.polymerId),repeat=isPolymer?(product?.repeatUnit??null):null;
+ const products=isPolymer?[]:d.products;
+ const balanced=!isPolymer&&isBalancedReaction(feeds.map(id=>molecules.get(id)?.formula),products.map(id=>molecules.get(id)?.formula));
  const water=isPolymer&&(d.transformFamilies??[]).some(x=>['ester-condensation','amide-condensation','phenol-methylene-bridge'].includes(x));
  const requires=isPolymer?(d.environment?.requires??[]):(d.requires??[]);
  const forbids=isPolymer?(d.environment?.forbids??[]):(d.forbids??[]);
@@ -45,9 +61,12 @@ export function reactionDetailInfo(entry,{records=[],polymerRecords=[]}={}){
    ...forbids.map(x=>(CONDITION[x]??x)+'：このLAB経路では避ける条件です。')
  ];
  return {
-   before:formulas(feeds),
-   after:(isPolymer?(repeat?'［'+repeat+'］ₙ':'構成単位が連なる高分子（模型で確認）'):formulas(d.products))+(water?' ＋ H₂O（縮合時の副生成物）':''),
+   kind:balanced?'equation':'mapping',
+   before:balanced?coefficientFormula(feeds,molecules):feeds.map(id=>molecules.get(id)?.nameJa??id).join(' ＋ '),
+   after:balanced?coefficientFormula(products,molecules):(isPolymer?(repeat?'［'+repeat+'］ₙ':'構成単位が連なる高分子（模型で確認）'):products.map(id=>molecules.get(id)?.nameJa??id).join(' ＋ ')),
+   byproductNote:water?'縮合で水などの小分子が生じる経路です。式の係数や生成量はこの模型からは決まりません。':null,
    bondChange:reactionThumbnailModel(entry,{records,polymerRecords})?.feature??'反応前後の結合を比べましょう。',
+   conditionSummary:[...requires.map(x=>CONDITION[x]??x),...forbids.map(x=>LAB_FORBIDDEN_LABELS[x]??`${CONDITION[x]??x}を避ける`),...(d.processSetupTokens??[]).map(x=>PROCESS_ROLES[x]?.split('：')[0]??'工程設定')].join('、')||'指定なし',
    conditions:conditions.length?conditions:['このLAB経路に指定された追加条件はありません。']
  };
 }
@@ -136,7 +155,7 @@ export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},reducedM
   return {advance,cancel:()=>{cancelled=true;if(timer!==null)clearTimeout(timer);resetCards();}};
 }
 
-export function renderReactionBook({host,authority,progress,records,polymerRecords,onTry=()=>{}}){
+export function renderReactionBook({host,authority,progress,records,polymerRecords,onTry=()=>{},appendText=(node,value)=>{node.textContent=value;return node;}}){
   const make=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;return el;};
   const button=(text,fn)=>{const el=make('button',text);el.type='button';el.addEventListener('click',fn);return el;};
   const name=id=>{const r=records.find(x=>x.id===id);return r?.commonNameJa??r?.nameJa??id;};
@@ -146,7 +165,10 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
   const currentScroll=()=>({list:host.scrollTop,dialog:scrollSurface?.scrollTop??0});
   const resetScroll=()=>{host.scrollTop=0;if(scrollSurface)scrollSurface.scrollTop=0;};
   const restoreScroll=position=>{host.scrollTop=position.list;if(scrollSurface)scrollSurface.scrollTop=position.dialog;};
+  const educational=(tag,value)=>appendText(document.createElement(tag),value);
+  let page='categories',returnToGroup=null,detailIndex=-1,verifiedItems=[];
   function showList(){
+    page='categories';returnToGroup=null;detailIndex=-1;
     host.classList.remove('reaction-book-categories');
     const grid=make('div','');
     grid.className='reaction-book-category-grid';
@@ -174,41 +196,22 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
     }
   }
   function showGroup(group,{returnPosition=null}={}){
+    page='group';returnToGroup=group;detailIndex=-1;
+    verifiedItems=group.items.filter(x=>x.state==='verified');
     host.replaceChildren(button('‹ カテゴリ一覧',showList),make('h3',group.label));
     resetScroll();
     // Pending recipe actions belong to the top-level lightbulb, never the atlas.
-    for(const item of group.items.filter(x=>x.state==='verified')){
+    for(const item of verifiedItems){
       const d=item.definition,inputs=item.kind==='normal'?d.reactants.map(x=>name(x.species)):d.feedSpecies.map(name),outputs=item.kind==='normal'?d.products.map(name):[polymerRecords.find(x=>x.id===d.polymerId)?.nameJa??d.polymerId];
       const equation=`${inputs.join(' + ')} → ${outputs.join(' + ')}`;
       const conditions=item.kind==='normal'?d.requires:(d.environment?.requires??[]),forbidden=item.kind==='normal'?d.forbids:(d.environment?.forbids??[]);
       const conditionText=[...(conditions??[]).map(x=>CONDITION[x]??x),...(forbidden??[]).map(x=>LAB_FORBIDDEN_LABELS[x]??`${CONDITION[x]??x}を避ける`)].join('、')||'特別な条件なし';
-      function showDetail(){
-        const previousPosition=currentScroll();
-        host.replaceChildren(button('‹ '+group.label+'に戻る',()=>showGroup(group,{returnPosition:previousPosition})),make('h3',outputs.join(' + ')),make('p',equation));
-        resetScroll();
-        const detail=reactionDetailInfo(item,visualContext), formula=REACTION_THUMBNAIL_SPECS[item.reactionId];
-        if(detail){
-          const chemistry=make('section','');chemistry.className='rb-detail-chemistry';
-          chemistry.append(make('h4','分子式・構成単位'));
-          const expression=make('p',`${detail.before} → ${detail.after}`);expression.className='rb-detail-formula';chemistry.append(expression);
-          if(formula){
-            chemistry.append(make('h4','結合の表し方'));
-            chemistry.append(make('p',`${formula.before} → ${formula.after}`));
-          }
-          chemistry.append(make('h4','結合の変化'),make('p',detail.bondChange));
-          chemistry.append(make('h4','LABの条件と役割'));
-          for(const condition of detail.conditions)chemistry.append(make('p',condition));
-          host.append(chemistry);
-        }
-      host.append(make('p','LABで実証した反応です。模型は生成物の構造を示し、反応の途中を再現した映像ではありません。'));
-      host.append(button('LABでもう一度ためす',()=>onTry(item.reactionId)));
-      }
       const block=make('section','');block.className='reaction-book-entry';
       block.append(make('strong',equation),make('p',`LABの条件：${conditionText}`));
       const thumb=createReactionThumbnailFromEntry(item,visualContext);
       if(thumb){
         block.prepend(thumb);
-        const inspect=button('反応のしくみ',showDetail);
+        const inspect=button('反応のしくみ',()=>showDetail(verifiedItems.indexOf(item),currentScroll()));
         inspect.className='reaction-book-inspect';
         block.append(inspect);
       }
@@ -218,5 +221,67 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
     host.append(make('p',`未実証 ${missing} 件${unavailable?` · 到達経路未整備 ${unavailable} 件`:''}`));
     if(returnPosition)restoreScroll(returnPosition);
   }
+  function showDetail(index,groupPosition){
+    if(index<0||index>=verifiedItems.length||!returnToGroup)return;
+    const item=verifiedItems[index],group=returnToGroup,detail=reactionDetailInfo(item,visualContext);
+    page='detail';detailIndex=index;
+    const back=button('‹ '+group.label+'に戻る',()=>showGroup(group,{returnPosition:groupPosition}));
+    back.className='book-back';
+    const nav=make('nav','');nav.className='rb-detail-navigation';
+    nav.append(back);
+    for(const [label,delta] of [['‹',-1],['›',1]]){
+      const prevNext=button(label,()=>showDetail(index+delta,groupPosition));
+      prevNext.setAttribute('aria-label',delta<0?'前の項目':'次の項目');
+      prevNext.setAttribute('aria-disabled',String(index+delta<0||index+delta>=verifiedItems.length));
+      prevNext.disabled=index+delta<0||index+delta>=verifiedItems.length;
+      prevNext.dataset.detailStep=String(delta);nav.append(prevNext);
+    }
+    const d=item.definition,outputs=item.kind==='normal'?d.products.map(name):[polymerRecords.find(x=>x.id===d.polymerId)?.nameJa??d.polymerId];
+    host.replaceChildren(nav,educational('h3',outputs.join(' ＋ ')));
+    const preview=createReactionThumbnailFromEntry(item,visualContext);
+    if(preview){preview.classList.add('rb-detail-preview');host.append(preview);}
+    if(detail){
+      const summary=make('section','');summary.className='rb-detail-chemistry';
+      summary.append(educational('h4','結合の変化'),educational('p',detail.bondChange),educational('h4','LABの条件'),educational('p',detail.conditionSummary));
+      host.append(summary);
+      const advanced=make('details','');advanced.className='rb-detail-advanced';
+      advanced.append(educational('summary','化学式と詳しい説明'));
+      const body=make('div','');body.className='rb-detail-advanced-body';
+      body.append(educational('h4',detail.kind==='equation'?'原子数の合う反応式':'材料と構成単位の対応'));
+      const expression=educational('p',`${detail.before} → ${detail.after}`);expression.className='rb-detail-formula';body.append(expression);
+      if(detail.kind==='mapping')body.append(educational('p','この矢印は材料と構造の対応です。化学反応式や量の比を表しません。'));
+      if(detail.byproductNote)body.append(educational('p',detail.byproductNote));
+      body.append(educational('h4','LABの条件と役割'));
+      for(const condition of detail.conditions)body.append(educational('p',condition));
+      advanced.append(body);host.append(advanced);
+    }
+    host.append(button('LABでもう一度ためす',()=>onTry(item.reactionId)));
+    resetScroll();
+  }
   showList();
+  return {
+    handleGamepad(sample){
+      const pressed=sample.pressed??[],held=sample.held??[],repeating=sample.repeat??[];
+      if(page==='detail'&&(held[14]||held[15])){
+        if(pressed.includes(14)||pressed.includes(15)){
+          const delta=pressed.includes(14)?-1:1;
+          if(detailIndex+delta>=0&&detailIndex+delta<verifiedItems.length)host.querySelector(`.rb-detail-navigation [data-detail-step="${delta}"]`)?.click();
+        }
+        return true;
+      }
+      if(pressed.includes(1)){
+        if(page==='detail')host.querySelector('.rb-detail-navigation .book-back')?.click();
+        else if(page==='group')showList();
+        else return false;
+        return true;
+      }
+      if(page==='detail'&&(held[12]||held[13])){
+        if(pressed.includes(12)||pressed.includes(13)||repeating.includes(12)||repeating.includes(13)){
+          (host.scrollHeight>host.clientHeight+2?host:scrollSurface)?.scrollBy?.({top:held[13]?140:-140,behavior:'auto'});
+        }
+        return true;
+      }
+      return false;
+    }
+  };
 }

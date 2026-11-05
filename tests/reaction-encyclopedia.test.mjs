@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createReactionCatalogAuthority} from '../src/reaction-catalog-authority.js';
 import {createReactionProgress} from '../src/reaction-progress.js';
-import {reactionGroups,reactionDetailInfo} from '../src/reaction-encyclopedia.js';
+import {reactionGroups,reactionDetailInfo,isBalancedReaction} from '../src/reaction-encyclopedia.js';
 const routes=JSON.parse(readFileSync(new URL('../data/polymerization-routes.json',import.meta.url))).routes;
 test('registry entries remain unique across categories and unreachable route is separate',()=>{
  const authority=createReactionCatalogAuthority({polymerRoutes:routes});const data=new Map(),storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,String(v))};const progress=createReactionProgress({authority,storage});const m=reactionGroups(authority,progress);
@@ -20,21 +20,29 @@ test('all 54 reviewed route categories match the mapping',()=>{
  assert.deepEqual(Object.fromEntries(entries.map(e=>[e.reactionId,e.categoryTags.length?e.categoryTags:['other']])),expected);
 });
 
-test('54 route details show formulas, bond change, and required process conditions',()=>{
+test('normal routes use conserved equations; polymer routes use non-stoichiometric mappings',()=>{
  const records=JSON.parse(readFileSync(new URL('../data/molecules.json',import.meta.url)));
  const polymerRecords=JSON.parse(readFileSync(new URL('../data/polymers.json',import.meta.url)));
  const authority=createReactionCatalogAuthority({polymerRoutes:routes}),ctx={records,polymerRecords};
  for(const entry of authority.entries()){
    const detail=reactionDetailInfo(entry,ctx);
-   assert.ok(detail?.before&&detail.after&&detail.bondChange&&detail.conditions.length,entry.reactionId);
+   assert.ok(detail?.before&&detail.after&&detail.bondChange&&detail.conditions.length&&detail.conditionSummary,entry.reactionId);
+   assert.equal(detail.kind,entry.kind==='normal'?'equation':'mapping',entry.reactionId);
  }
  const pet=reactionDetailInfo(authority.get('polymer:polyethylene-terephthalate-direct-polycondensation'),ctx);
- assert.match(pet.before,/C2H6O2/);assert.match(pet.before,/C8H6O4/);
- assert.match(pet.after,/CH₂/);assert.match(pet.after,/H₂O/);
+ assert.match(pet.before,/エチレングリコール/);assert.match(pet.before,/テレフタル酸/);
+ assert.match(pet.after,/CH₂/);assert.doesNotMatch(pet.after,/H₂O/);
+ assert.match(pet.byproductNote,/水/);
  assert.ok(pet.conditions.some(x=>x.includes('水の除去')));
  const phenol=reactionDetailInfo(authority.get('polymer:phenol-formaldehyde-resole'),ctx);
- assert.match(phenol.before,/CH2O/);assert.match(phenol.before,/C6H6O/);
- assert.match(phenol.after,/H₂O/);assert.ok(phenol.conditions.some(x=>x.includes('塩基')));
+ assert.match(phenol.before,/ホルムアルデヒド/);assert.match(phenol.before,/フェノール/);
+ assert.match(phenol.byproductNote,/水/);assert.ok(phenol.conditions.some(x=>x.includes('塩基')));
  const pe=reactionDetailInfo(authority.get('polymer:polyethylene-coordination'),ctx);
- assert.doesNotMatch(pe.after,/H₂O/);
+ assert.doesNotMatch(pe.after,/H₂O/);assert.equal(pe.byproductNote,null);
+});
+test('chemical equation guard rejects unbalanced or incomplete reaction formulas',()=>{
+ assert.equal(isBalancedReaction(['C2H4','H2O'],['C2H6O']),true);
+ assert.equal(isBalancedReaction(['CH4','O2'],['CO2','H2O']),false);
+ assert.equal(isBalancedReaction(['CH4','unknown'],['CO2']),false);
+ assert.equal(isBalancedReaction(['H2','H2','O2'],['H2O','H2O']),true);
 });
