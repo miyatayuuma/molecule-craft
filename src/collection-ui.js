@@ -13,7 +13,7 @@ import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclop
 import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=5';
 import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
 import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from './encyclopedia-glossary.js';
-import {furiganaSegmentsForRange} from './encyclopedia-furigana.js?v=1';
+import {furiganaSegmentsForRange,appendReviewedScienceText} from './encyclopedia-furigana.js?v=2';
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 
@@ -38,7 +38,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const engineeringRecipes=engineeringResources?.configureEngineering({polymers:polymerRecords,routes:polymerRoutes,molecules:records,polymerState,collectionState:state})??[];
   const polymerContentById=new Map(polymerContent.map(item=>[item.id,item])),polymerRouteById=new Map(polymerRoutes.map(item=>[item.polymerId,item]));
   const q=id=>root.querySelector(`#${id}`),dialog=q('collection-dialog'),list=q('collection-list'),detail=q('collection-detail');
-  let reactionAuthority=null,reactionProgress=null,onTryReaction=()=>{};
+  let reactionAuthority=null,reactionProgress=null,onTryReaction=()=>{},reactionBookController=null;
   let tab='molecules',currentDetail=null,detailViewer=null,detailGeneration=0,listScroll=0,listInnerScroll=0,detailTransitionHandle=null,motifReturnMoleculeId=null,discoverySession=null,collectionDialogOpen=false;
   let discoveryAward=null;
   const polymerThumbnailCache=new Map();
@@ -74,7 +74,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }
     host.append(fragment);return host;
   };
-  const chemistryParagraph=(text,className)=>appendChemistryText(el('p',null,className),text);
+  const chemistryParagraph=(text,className,{reviewedScience=false}={})=>reviewedScience?appendReviewedScienceText(el('p',null,className),text):appendChemistryText(el('p',null,className),text);
   const chemistryHeading=(text)=>appendChemistryText(el('h5'),text);
   const button=(text,handler,className)=>{const node=el('button',text,className);node.type='button';node.addEventListener('click',handler);return node;};
   let glossaryPopup=null,glossaryTrigger=null;
@@ -519,6 +519,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }else for(const item of previews)enqueue(item);
   }
   function renderBook(){
+    reactionBookController=null;
     closeGlossary();
     // Any new page/list rendering ends the prior detail's persistent badge.
     dialog.__moleculeCraftRegistrationRevealCleanup?.();
@@ -534,7 +535,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       renderDetail();if(split)detail.scrollTop=0;if(currentDetail?.kind==='molecules')moleculeTransition.markStable('detail',currentDetail.id);return;
     }
     list.dataset.renderedTab=tab;
-    if(tab==='reactions'){list.replaceChildren();list.classList.add('reaction-book');if(reactionAuthority&&reactionProgress)renderReactionBook({host:list,authority:reactionAuthority,progress:reactionProgress,records,polymerRecords,onTry:onTryReaction});else list.textContent='反応図鑑を準備中です。';return;}
+    if(tab==='reactions'){list.replaceChildren();list.classList.add('reaction-book');if(reactionAuthority&&reactionProgress)reactionBookController=renderReactionBook({host:list,authority:reactionAuthority,progress:reactionProgress,records,polymerRecords,onTry:onTryReaction,appendText:appendReviewedScienceText});else list.textContent='反応図鑑を準備中です。';return;}
     list.classList.remove('reaction-book');
     if(tab==='molecules'){renderGraph();moleculeTransition.markStable('graph',graphFocusId);return;}
     if(tab==='polymers')renderPolymerList();else renderGroupList();
@@ -682,10 +683,10 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     detail.append(toggle,visual);
     modelFrame=frameDetailModel(visual,{controls:toggle});
     switchModel('unit');
-    detail.append(chemistryParagraph(content.description,'dex-description'));
-    if(content.education?.observe)detail.append(chemistryParagraph('観察してみよう：'+content.education.observe,'polymer-observation-prompt'));
+    detail.append(chemistryParagraph(content.description,'dex-description',{reviewedScience:true}));
+    if(content.education?.observe)detail.append(chemistryParagraph('観察してみよう：'+content.education.observe,'polymer-observation-prompt',{reviewedScience:true}));
     const learning=section('構造・物性・用途');learning.classList.add('polymer-education');
-    for(const [title,field] of [['分子のしくみ','structure'],['なぜこの性質になる？','property'],['何に使われる？','applications'],['模型だけでは分からないこと','limits']])learning.append(chemistryHeading(title),chemistryParagraph(content.education[field]));
+    for(const [title,field] of [['分子のしくみ','structure'],['なぜこの性質になる？','property'],['何に使われる？','applications'],['模型だけでは分からないこと','limits']])learning.append(chemistryHeading(title),chemistryParagraph(content.education[field],null,{reviewedScience:true}));
     renderEngineering(id);
     const formationName=({addition:'付加重合',copolymerization:'共重合', 'ring-opening':'開環重合',polycondensation:'縮合重合','condensation-network':'縮合による網目形成'})[record.formation]??record.formation;
     const topologyName=({linear:'線状',copolymer:'共重合体',network:'網目状'})[record.topology]??record.topology;
@@ -693,7 +694,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const process=section('Reaction Labで観察した代表工程');process.append(el('p',route.processLabel,'polymer-process-label'));
     const detailSections=Array.isArray(content.details)?content.details:[];
     const chemistry=el('div',null,'chemistry-detail');
-    for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(chemistryHeading(item.title),chemistryParagraph(item.body));chemistry.append(sectionNode);}
+    for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(chemistryHeading(item.title),chemistryParagraph(item.body,null,{reviewedScience:true}));chemistry.append(sectionNode);}
     if(chemistry.childElementCount)process.append(chemistry);
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${record.family}`),el('p',`生成法：${formationName}`),el('p',`トポロジー：${topologyName}`));
     extra.append(el('h4','原料分子'));for(const source of sourceRecords)extra.append(appendMoleculeNameFurigana(el('span',null,'collection-tag'),moleculeDisplayName(source)));
@@ -754,6 +755,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       // explanatory glossary and fabrication) through spatial navigation.
       return !!(Math.abs(axes[2])>.12||Math.abs(axes[3])>.12||held[6]||held[7]);
     }
+    if(tab==='reactions'&&reactionBookController?.handleGamepad(sample))return true;
     if(tab!=='molecules')return false;
     const stickX=axes[0]??0,stickY=axes[1]??0;
     if(Math.hypot(stickX,stickY)<.35)gamepadStickLatched=false;

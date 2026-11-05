@@ -2,13 +2,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {furiganaSegmentsForRange} from '../src/encyclopedia-furigana.js';
+import {furiganaSegmentsForRange,reviewedScienceReadingSegments} from '../src/encyclopedia-furigana.js';
 import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from '../src/encyclopedia-glossary.js';
 import {hamajimaTermSegments} from '../src/hamajima-term-reference.js';
 
 const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',import.meta.url),'utf8'));
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
 const reconstruct=segments=>segments.map(item=>item.text).join('');
+
+test('curated reaction/polymer vocabulary avoids AI-style contextual and okurigana errors',()=>{
+ for(const phrase of ['炭素鎖が伸びる','分子の結合が変わる','二重結合が開く','化学反応式','水素結合','間にはさまれた']){
+   const segments=reviewedScienceReadingSegments(phrase);
+   assert.equal(reconstruct(segments),phrase);
+   for(const segment of segments)if(segment.kind==='ruby'){
+     assert.match(segment.text,/^[一-龯々]+$/u);
+     assert.match(segment.reading,/^[ぁ-ゖー]+$/u);
+   }
+ }
+ assert.deepEqual(reviewedScienceReadingSegments('炭素鎖'),[{kind:'ruby',text:'炭素鎖',reading:'たんそさ'}]);
+ assert.equal(reviewedScienceReadingSegments('間にはさまれた').filter(x=>x.kind==='ruby').length,0);
+ assert.equal(reviewedScienceReadingSegments('水素結合').filter(x=>x.kind==='ruby').length,0);
+});
 
 test('reviewed reading checkpoint changes only after an explicit contextual audit',()=>{
   const bytes=readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url));

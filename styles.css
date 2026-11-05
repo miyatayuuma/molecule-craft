@@ -322,6 +322,22 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .rb-detail-chemistry h4:first-child{margin-top:0}
 .rb-detail-chemistry p{margin:5px 0;line-height:1.65;font-size:13px}
 .rb-detail-chemistry .rb-detail-formula{font-size:15px;color:#f3e2b1;font-weight:600;line-height:1.8;word-break:break-word}
+.reaction-book .rb-detail-navigation{display:flex;align-items:center;gap:8px;min-width:0}
+.reaction-book .rb-detail-navigation .book-back{flex:1;min-width:0}
+.reaction-book .rb-detail-navigation [data-detail-step]{width:48px;min-width:48px;text-align:center;font-size:22px;border-radius:12px}
+.reaction-book .rb-detail-navigation [data-detail-step]:disabled{opacity:.38;cursor:default}
+.reaction-book .rb-detail-preview{display:block;width:100%;margin:10px 0 0;padding:12px;box-sizing:border-box;min-height:125px}
+.reaction-book .rb-detail-preview .rb-reaction-assets{height:125px;position:relative}
+.reaction-book .rb-detail-chemistry{margin:10px 0 0}
+.reaction-book .rb-detail-chemistry h4{margin-top:8px}
+.reaction-book .rb-detail-advanced{margin:10px 0;padding:0;border:1px solid #3b5d70;border-radius:12px;background:#152b3c}
+.reaction-book .rb-detail-advanced summary{padding:12px;cursor:pointer;color:#9de2d6;font-weight:600}
+.reaction-book .rb-detail-advanced-body{padding:0 12px 12px}
+.reaction-book .rb-detail-advanced-body h4{margin:10px 0 4px;font-size:13px;color:#9de2d6}
+.reaction-book .rb-detail-advanced-body p{margin:5px 0;font-size:13px;line-height:1.65}
+.reaction-book .rb-detail-formula{font-size:14px;color:#f3e2b1;font-weight:600;overflow-wrap:anywhere}
+.reaction-book ruby{ruby-position:over;ruby-align:center}
+.reaction-book .rb-detail-chemistry p:has(ruby),.reaction-book .rb-detail-advanced p:has(ruby){line-height:2}
 
 /* The whole feed head is the molecule preview. The formula occupies only its lower-right corner. */
 .reaction-lab-slot{position:relative;height:80px;display:block;padding:3px;isolation:isolate}

@@ -13,10 +13,11 @@ const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const {port}=server.address();
 let chrome=process.env.CHROMIUM_PATH??'';if(!chrome)for(const command of ['google-chrome','chromium','chromium-browser']){const found=spawnSync('which',[command],{encoding:'utf8'});if(found.status===0&&found.stdout.trim()){chrome=found.stdout.trim();break;}}
 assert.ok(chrome,'A Chromium browser is required for polymer Collection mobile validation');
-const profile=await mkdtemp(join(tmpdir(),'molecule-craft-polymer-collection-')),debugPort=9261,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));let child=null,socket=null;
+const profile=await mkdtemp(join(tmpdir(),'molecule-craft-polymer-collection-')),debugPort=9261,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));let child=null,socket=null,chromeErrors='';
 try{
-  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-background-networking','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:'ignore'});
-  let tabs=null;for(let attempt=0;attempt<160;attempt++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}await pause(100);}assert.ok(tabs?.length,'Collection DevTools endpoint did not become ready');
+  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-background-networking','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
+  child.stderr?.on('data',chunk=>{chromeErrors=(chromeErrors+chunk.toString()).slice(-2500);});
+  let tabs=null;for(let attempt=0;attempt<160;attempt++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){tabs=await response.json();if(tabs.length)break;}}catch{}await pause(100);}assert.ok(tabs?.length,`Collection DevTools endpoint did not become ready (exit ${child.exitCode??'unknown'}): ${chromeErrors}`);
   socket=new WebSocket(tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl??tabs[0].webSocketDebuggerUrl);await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(Error('DevTools websocket timeout')),5000);socket.addEventListener('open',()=>{clearTimeout(timer);ok();},{once:true});socket.addEventListener('error',fail,{once:true});});
   let sequence=0;const pending=new Map();socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id&&pending.has(message.id)){const task=pending.get(message.id);pending.delete(message.id);message.error?task.reject(Error(message.error.message)):task.resolve(message.result);}});
   const send=(method,params={})=>new Promise((ok,fail)=>{const id=++sequence;pending.set(id,{resolve:ok,reject:fail});socket.send(JSON.stringify({id,method,params}));});
@@ -118,8 +119,8 @@ try{
       const inspect=document.querySelector('.reaction-book-inspect');
       if(!inspect)throw Error('Missing verified detail button in group '+i);
       inspect.click();
-      const detail=document.querySelector('.rb-detail-chemistry');
-      if(!detail||!detail.querySelector('.rb-detail-formula')?.textContent.includes('→')||!detail.textContent.includes('結合の変化'))throw Error('Missing chemistry detail in group '+i);
+      const detail=document.querySelector('.rb-detail-chemistry'),advanced=document.querySelector('.rb-detail-advanced');
+      if(!detail||detail.querySelectorAll('h4').length!==2||!advanced?.querySelector('.rb-detail-formula')?.textContent.includes('→'))throw Error('Missing chemistry detail in group '+i);
       if(document.querySelector('.rb-detail-molecules'))throw Error('Duplicated thumbnail models in group '+i);
       if(![...document.querySelectorAll('#collection-list button')].some(b=>b.textContent.includes('LABでもう一度ためす')))throw Error('Missing LAB route in group '+i);
       document.querySelector('#collection-list button').click();
@@ -128,6 +129,21 @@ try{
     return{groups,seen:seen.size,overflow:document.querySelector('#collection-dialog').scrollWidth>document.querySelector('#collection-dialog').clientWidth+1};
   })()`);
   assert.deepEqual(fullCoverage,{groups:13,seen:54,overflow:false});
+  const reactionDetailNav=await evaluate(`(()=>{
+    document.querySelectorAll('.reaction-book-group')[0].click();
+    document.querySelector('.reaction-book-inspect').click();
+    const host=document.querySelector('#collection-list'),detail=host.querySelector('.rb-detail-chemistry'),advanced=host.querySelector('.rb-detail-advanced');
+    const previous=host.querySelector('[aria-label="前の項目"]'),next=host.querySelector('[aria-label="次の項目"]');
+    const first=host.querySelector('h3')?.textContent,preview=!!host.querySelector('.rb-detail-preview');
+    const holds=Array.from({length:16},(_,index)=>index===15);
+    const consumed=window.__collection.handleGamepad({pressed:[15],held:holds,repeat:[],axes:[0,0,0,0]},performance.now());
+    const second=host.querySelector('h3')?.textContent;
+    const previousAfter=host.querySelector('[aria-label="前の項目"]');
+    host.querySelector('.rb-detail-navigation .book-back').click();
+    return{detail:!!detail,advanced:!!advanced,collapsed:!advanced?.open,preview,firstDisabled:previous.disabled,consumed,moved:first!==second,previousEnabled:!previousAfter.disabled,restored:!!host.querySelector('.reaction-book-inspect')};
+  })()`);
+  assert.deepEqual(reactionDetailNav,{detail:true,advanced:true,collapsed:true,preview:true,firstDisabled:true,consumed:true,moved:true,previousEnabled:true,restored:true});
+  await evaluate(`document.querySelector('#collection-list button').click()`);
   if(process.env.REACTION_BOOK_CAPTURE_DIR){
     for(let i=0;i<13;i++){
       await evaluate(`document.querySelectorAll('.reaction-book-group')[${i}].click();document.querySelector('#collection-list').scrollTop=0`);
