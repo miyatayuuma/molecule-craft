@@ -265,4 +265,10 @@
  #supply-dialog .tank-decision{justify-content:end}
  #supply-dialog #supply-announcement:not([hidden]){position:absolute;z-index:9;top:12px;left:25%;right:25%;box-shadow:0 4px 20px #0008}
  #supply-dialog #oxygen-route-guide:not([hidden]){position:absolute;z-index:8;left:24%;right:24%;bottom:12px;max-height:42dvh;overflow:auto;background:#102c3bf4;box-shadow:0 8px 28px #0008}
+ #supply-dialog .sheet-body{grid-template-columns:minmax(0,58fr) minmax(0,42fr);gap:14px;padding:14px}
+ #supply-dialog #tank-detail{grid-template-rows:auto 5px minmax(142px,32%) minmax(0,1fr);padding:16px;gap:14px}
+ #supply-dialog #tank-molecules{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+ #supply-dialog #tank-molecules button{min-height:128px;grid-template-rows:72px auto 12px;padding:8px}
+ #supply-dialog #tank-molecules button>img{width:100px;height:72px}
+ #supply-dialog .tank-inspector{grid-template-columns:minmax(0,1fr) minmax(130px,30%)}
 }
