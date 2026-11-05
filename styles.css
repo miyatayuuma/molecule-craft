@@ -338,6 +338,12 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 .reaction-book .rb-detail-formula{font-size:14px;color:#f3e2b1;font-weight:600;overflow-wrap:anywhere}
 .reaction-book ruby{ruby-position:over;ruby-align:center}
 .reaction-book .rb-detail-chemistry p:has(ruby),.reaction-book .rb-detail-advanced p:has(ruby){line-height:2}
+/* Full Kanji ruby also appears in headings, summary toggles, and small labels. */
+#collection-dialog ruby{ruby-position:over;ruby-align:center}
+#collection-dialog .chemistry-detail-section h5:has(ruby),#collection-dialog .polymer-education h5:has(ruby),#collection-dialog .detail-extras summary:has(ruby),#collection-dialog .reaction-book h3:has(ruby),#collection-dialog .reaction-book h4:has(ruby){line-height:2}
+#collection-dialog .chemistry-detail-section p:has(ruby),#collection-dialog .polymer-education p:has(ruby),#collection-dialog .reaction-book-entry p:has(ruby),#collection-dialog .reaction-book-entry strong:has(ruby){line-height:2.1}
+#collection-dialog .reaction-book button:has(ruby),#collection-dialog .detail-extras button:has(ruby){line-height:1.8}
+#collection-dialog rt{font-size:.58em;line-height:1;font-weight:500;color:#b5d6d5}
 
 /* The whole feed head is the molecule preview. The formula occupies only its lower-right corner. */
 .reaction-lab-slot{position:relative;height:80px;display:block;padding:3px;isolation:isolate}

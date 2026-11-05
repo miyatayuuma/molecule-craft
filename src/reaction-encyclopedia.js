@@ -156,7 +156,7 @@ export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},reducedM
 }
 
 export function renderReactionBook({host,authority,progress,records,polymerRecords,onTry=()=>{},appendText=(node,value)=>{node.textContent=value;return node;}}){
-  const make=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;return el;};
+  const make=(tag,text)=>{const el=document.createElement(tag);if(text)appendText(el,text);return el;};
   const button=(text,fn)=>{const el=make('button',text);el.type='button';el.addEventListener('click',fn);return el;};
   const name=id=>{const r=records.find(x=>x.id===id);return r?.commonNameJa??r?.nameJa??id;};
   const model=reactionGroups(authority,progress);

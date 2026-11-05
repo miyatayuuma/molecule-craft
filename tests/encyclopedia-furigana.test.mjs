@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {furiganaSegmentsForRange,reviewedScienceReadingSegments} from '../src/encyclopedia-furigana.js';
+import {execFileSync} from 'node:child_process';
+import {furiganaSegmentsForRange,completeFuriganaSegments,createCompleteFuriganaIndex} from '../src/encyclopedia-furigana.js';
 import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from '../src/encyclopedia-glossary.js';
 import {hamajimaTermSegments} from '../src/hamajima-term-reference.js';
 
@@ -10,18 +11,64 @@ const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',i
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
 const reconstruct=segments=>segments.map(item=>item.text).join('');
 
-test('curated reaction/polymer vocabulary avoids AI-style contextual and okurigana errors',()=>{
- for(const phrase of ['炭素鎖が伸びる','分子の結合が変わる','二重結合が開く','化学反応式','水素結合','間にはさまれた']){
-   const segments=reviewedScienceReadingSegments(phrase);
-   assert.equal(reconstruct(segments),phrase);
-   for(const segment of segments)if(segment.kind==='ruby'){
-     assert.match(segment.text,/^[一-龯々]+$/u);
-     assert.match(segment.reading,/^[ぁ-ゖー]+$/u);
-   }
+test('all encyclopedia science texts have complete Kanji-only ruby, not a 26-term whitelist',()=>{
+ const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
+ assert.equal(corpus.schemaVersion,1);
+ assert.ok(Object.keys(corpus.texts).length>=1000);
+ const current=JSON.parse(execFileSync(process.execPath,[new URL('../scripts/collect-encyclopedia-ruby-texts.mjs',import.meta.url).pathname],{encoding:'utf8'}));
+ assert.deepEqual(Object.keys(corpus.texts).sort(),current.sort(),'source text changed: regenerate, audit and review missing ruby');
+ const index=createCompleteFuriganaIndex(corpus);
+ for(const kind of ['molecules','parts'])for(const [id,entry] of Object.entries(encyclopedia[kind])){
+   assert.deepEqual(corpus.texts[entry.description],furigana[kind][id],`curated ${kind}:${id} ruby must not regress`);
  }
- assert.deepEqual(reviewedScienceReadingSegments('炭素鎖'),[{kind:'ruby',text:'炭素鎖',reading:'たんそさ'}]);
- assert.equal(reviewedScienceReadingSegments('間にはさまれた').filter(x=>x.kind==='ruby').length,0);
- assert.equal(reviewedScienceReadingSegments('水素結合').filter(x=>x.kind==='ruby').length,0);
+ for(const [text,annotations] of Object.entries(corpus.texts)){
+   const covered=new Set();let end=0;
+   for(const [offset,surface,reading] of annotations){
+     assert.ok(Number.isInteger(offset)&&offset>=end,`overlap: ${text}`);
+     assert.equal(text.slice(offset,offset+surface.length),surface,`stale source: ${text}`);
+     assert.match(surface,/^[一-龯々]+$/u,`not kanji-only: ${text}`);
+     assert.match(reading,/^[ぁ-ゖー]+$/u,`invalid reading: ${text}`);
+     for(let i=offset;i<offset+surface.length;i++)covered.add(i);
+     end=offset+surface.length;
+   }
+   for(let i=0;i<text.length;i++)if(/[一-龯々]/u.test(text[i]))assert.ok(covered.has(i),`missing ruby at ${i}: ${text}`);
+   assert.equal(reconstruct(completeFuriganaSegments(text,index)),text);
+ }
+ const readingOf=(source,term)=>{
+   const [text,annotations]=Object.entries(corpus.texts).find(([text])=>text.includes(source));
+   const start=text.indexOf(term);
+   const spans=annotations.filter(([offset])=>offset>=start&&offset<start+term.length);
+   return spans.map(([,surface,reading])=>surface).join('')+':'+spans.map(([,surface,reading])=>reading).join('');
+ };
+ assert.equal(readingOf('三方両錐形','三方両錐形'),'三方両錐形:さんぽうりょうすいけい');
+ assert.equal(readingOf('開環反応','開環'),'開環:かいかん');
+ assert.equal(readingOf('縮合して','縮合'),'縮合:しゅくごう');
+ assert.equal(readingOf('求核剤','求核剤'),'求核剤:きゅうかくざい');
+ assert.equal(readingOf('保湿剤','保湿剤'),'保湿剤:ほしつざい');
+ assert.equal(readingOf('炭素鎖','炭素鎖'),'炭素鎖:たんそさ');
+ const chemistryReadings={
+   '側鎖':'そくさ','直鎖':'ちょくさ','鎖長':'さちょう','共重合体':'きょうじゅうごうたい',
+   '付加重合体':'ふかじゅうごうたい','四面体':'しめんたい','四面体形':'しめんたいけい',
+   '網目':'あみめ','水和':'すいわ','不斉':'ふせい','酸無水物':'さんむすいぶつ',
+   '炭素数':'たんそすう','原子数':'げんしすう','頭尾結合':'とうびけつごう',
+   '四塩化炭素':'しえんかたんそ','分子間力':'ぶんしかんりょく'
+ };
+ for(const [word,expected] of Object.entries(chemistryReadings)){
+   let seen=0;
+   for(const [text,annotations] of Object.entries(corpus.texts)){
+     for(let start=text.indexOf(word);start>=0;start=text.indexOf(word,start+1)){
+       const pieces=annotations.filter(([i,surface])=>i>=start&&i+surface.length<=start+word.length);
+       if(pieces.map(([,surface])=>surface).join('')!==word)continue;
+       assert.equal(pieces.map(([,surface,reading])=>reading).join(''),expected,`${word} in ${text}`);
+       seen++;
+     }
+   }
+   assert.ok(seen>0,`${word}: no reviewed example`);
+ }
+ const dynamic='LABの条件：酸性、加熱';
+ const parts=completeFuriganaSegments(dynamic,index);
+ assert.equal(reconstruct(parts),dynamic);
+ assert.equal(parts.filter(p=>p.kind==='text').flatMap(p=>[...p.text]).some(ch=>/[一-龯々]/u.test(ch)),false,'dynamic labels have missing readings');
 });
 
 test('reviewed reading checkpoint changes only after an explicit contextual audit',()=>{

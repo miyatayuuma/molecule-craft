@@ -20,35 +20,51 @@ export function furiganaSegmentsForRange(value,annotations=[],start=0,end=String
   return segments;
 }
 
-// Independently reviewed, unambiguous science vocabulary for the reaction and
-// polymer books. Never infer a reading from a tokenizer or from a lone kanji.
-const SCIENCE_READINGS=Object.freeze({
- '二重結合':'にじゅうけつごう','単結合':'たんけつごう',
- '分子式':'ぶんししき','高分子':'こうぶんし','構成単位':'こうせいたんい','炭素鎖':'たんそさ',
- '化学反応':'かがくはんのう','原子':'げんし','分子':'ぶんし','結合':'けつごう',
- '反応':'はんのう','生成物':'せいせいぶつ','原料':'げんりょう','酸性':'さんせい',
- '塩基性':'えんきせい','加熱':'かねつ','触媒':'しょくばい','構造':'こうぞう',
- '酸素':'さんそ','水素':'すいそ','炭素':'たんそ','縮合':'しゅくごう',
- '重合':'じゅうごう','模型':'もけい','条件':'じょうけん','工程':'こうてい'
-});
-const SCIENCE_TERMS=Object.keys(SCIENCE_READINGS).sort((a,b)=>b.length-a.length);
-export function reviewedScienceReadingSegments(value){
- const text=String(value??''),segments=[];let cursor=0;
- while(cursor<text.length){
-   const term=SCIENCE_TERMS.find(word=>{
-     if(!text.startsWith(word,cursor))return false;
-     const before=text[cursor-1]??'',after=text[cursor+word.length]??'';
-     // Avoid splitting an unknown compound (e.g. 水素結合 / 化学反応式).
-     return !/[一-龯々]/u.test(before)&&!/[一-龯々]/u.test(after);
-   });
-   if(term){segments.push({kind:'ruby',text:term,reading:SCIENCE_READINGS[term]});cursor+=term.length;}
-   else{const last=segments.at(-1);if(last?.kind==='text')last.text+=text[cursor];else segments.push({kind:'text',text:text[cursor]});cursor++;}
+// Every long encyclopedia sentence has its own context-sensitive readings in
+// encyclopedia-extra-furigana.json. The old list of 26 science terms omitted
+// most Kanji, and a nearby-Kanji restriction silently omitted compounds.
+const KANJI=/[一-龯々]/u;
+export function createCompleteFuriganaIndex(data){
+ const texts=data?.texts??{},words=new Map();
+ const add=(surface,reading)=>{if(!words.has(surface))words.set(surface,new Map());const counts=words.get(surface);counts.set(reading,(counts.get(reading)??0)+1);};
+ for(const annotations of Object.values(texts)){
+   let chain='',pronunciation='',end=-1;
+   for(const [offset,surface,reading] of annotations){
+     add(surface,reading);
+     if(offset!==end){if(chain)add(chain,pronunciation);chain='';pronunciation='';}
+     chain+=surface;pronunciation+=reading;end=offset+surface.length;
+   }
+   if(chain)add(chain,pronunciation);
+ }
+ const lookup=new Map([...words].map(([surface,readings])=>[
+   surface,[...readings].sort((a,b)=>b[1]-a[1])[0][0]
+ ]));
+ const lengths=[...new Set([...lookup.keys()].map(surface=>surface.length))].sort((a,b)=>b-a);
+ return {texts,lookup,lengths};
+}
+export function completeFuriganaSegments(value,index){
+ const text=String(value??'');
+ if(!index)return [{kind:'text',text}];
+ if(Object.prototype.hasOwnProperty.call(index.texts,text))return furiganaSegmentsForRange(text,index.texts[text]);
+ // Short UI labels can include changing counts and translated names. Match
+ // the longest known Kanji span, preserving all non-Kanji characters exactly.
+ const segments=[];
+ const addPlain=part=>{const last=segments.at(-1);if(last?.kind==='text')last.text+=part;else segments.push({kind:'text',text:part});};
+ for(let i=0;i<text.length;){
+   if(!KANJI.test(text[i])){addPlain(text[i++]);continue;}
+   let match=null;
+   for(const length of index.lengths){
+     const candidate=text.slice(i,i+length);
+     if(index.lookup.has(candidate)){match=candidate;break;}
+   }
+   if(match){segments.push({kind:'ruby',text:match,reading:index.lookup.get(match)});i+=match.length;}
+   else addPlain(text[i++]);
  }
  return segments;
 }
-export function appendReviewedScienceText(host,value){
+export function appendCompleteFuriganaText(host,value,index){
  const doc=host.ownerDocument??document;
- for(const part of reviewedScienceReadingSegments(value)){
+ for(const part of completeFuriganaSegments(value,index)){
    if(part.kind==='text'){host.append(doc.createTextNode(part.text));continue;}
    const ruby=doc.createElement('ruby'),reading=doc.createElement('rt');
    ruby.append(doc.createTextNode(part.text));reading.textContent=part.reading;ruby.append(reading);host.append(ruby);
