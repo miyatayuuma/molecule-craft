@@ -34,7 +34,7 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
   }catch{}
   let stopped=false,lastDirection='',nextMove=0,lastScope=null,focusMemory=null,holdTarget=null,keyboardTarget=null;
   const eligible='button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
-  const focusAttributes=['data-molecule-id','data-entry-id','data-species','data-region','data-tank-role','data-lab-slot','data-book-tab','data-palette-tab','data-element','data-part-id'];
+  const focusAttributes=['data-gamepad-focus-key','data-molecule-id','data-entry-id','data-species','data-region','data-tank-role','data-lab-slot','data-book-tab','data-palette-tab','data-element','data-part-id'];
   let guide=null,keyboard=null;
   if(document.createElement&&document.body?.append){
     guide=document.createElement('dialog');
@@ -103,7 +103,7 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
       if(collection.querySelector('[data-book-tab="molecules"]')?.getAttribute('aria-selected')==='true')return '分子の分岐図鑑：左スティックを傾けて枝を選ぶ（一度戻して次へ）　Aで個別ページ　十字キー左右で領域切替　Yで検索　Bで閉じる　LB/RBで図鑑切替';
       return '図鑑の一覧：左スティック・十字キーで項目移動　Aで個別ページ　Bで閉じる　LB/RBで図鑑切替';
     }
-    return 'CRAFT：L3で3D操作へ／戻る　左スティック：移動　A：つかむ／離す　右スティック：回転　LT/RT：ズーム　B：元に戻す　X長押し：全片付け';
+    return 'CRAFT：L3で3D操作へ／戻る　左スティック：移動　A：つかむ／離す　十字キー下：レシピ部品を左から投下　右スティック：回転　LT/RT：ズーム　B：元に戻す　X長押し：全片付け';
   }
   function frame(now){
     if(stopped)return;

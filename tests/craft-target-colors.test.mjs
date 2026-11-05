@@ -9,7 +9,13 @@ function createNode(tagName,ownerDocument){
     tagName:tagName.toUpperCase(),ownerDocument,className:'',dataset:{},style:{cssText:'',minHeight:'',padding:''},attributes:new Map(),children:[],textContent:'',hidden:false,
     setAttribute(name,value){this.attributes.set(name,String(value));},
     getAttribute(name){return this.attributes.get(name)??null;},
-    addEventListener(){},
+    addEventListener(name,fn){(this.listeners??=new Map()).set(name,fn);},
+    click(){this.listeners?.get('click')?.();},
+    focus(){this.ownerDocument.activeElement=this;},
+    querySelectorAll(selector){
+      const nodes=[],walk=parent=>{for(const child of parent.children){if(child.tagName==='BUTTON'&&(!selector.includes(':not(:disabled)')||!child.disabled))nodes.push(child);walk(child);}};
+      walk(this);return nodes;
+    },
     append(...nodes){this.children.push(...nodes);},
     appendChild(node){this.children.push(node);return node;},
   };
@@ -55,6 +61,31 @@ test('target part element items use canonical color without changing part presen
   assert.equal(part.node.className,'craft-target-part');
   assert.equal(part.node.children[1].className,'craft-target-part-formula');
   assert.equal(part.node.children[1].textContent,'–OH');
+});
+
+test('recipe materials expose ordered controller targets and restore focus after a placement',()=>{
+  const container=createContainer(),doc=container.ownerDocument,placed=[];
+  const first=[{element:'H'},{element:'H'},{element:'O'}];
+  renderCraftTargetParts(container,first,[],{onPlace:item=>placed.push(item.element)});
+  const before=container.querySelectorAll('button:not(:disabled)');
+  assert.deepEqual(before.map(button=>button.dataset.gamepadFocusKey),['craft-target-0','craft-target-1','craft-target-2']);
+  before[0].focus();before[0].click();
+  assert.deepEqual(placed,['H']);
+  renderCraftTargetParts(container,first.slice(1),[],{onPlace:item=>placed.push(item.element)});
+  const after=container.querySelectorAll('button:not(:disabled)');
+  assert.equal(doc.activeElement,after[0],'focus follows the next recipe action after a rendered button disappears');
+  assert.equal(after[0].dataset.element,'H');
+});
+
+test('controller skips disabled partial parts but preserves their missing-atom actions',()=>{
+  const container=createContainer(),actions=[];
+  renderCraftTargetParts(container,[
+    {partId:'partial',incomplete:true,missingAtoms:[{element:'O'},{element:'H'}],template:{id:'partial',nameJa:'未完成部品',atoms:['O','H']}},
+    {element:'C'},
+  ],[],{onPlace:item=>actions.push(item.element)});
+  const buttons=container.querySelectorAll('button:not(:disabled)');
+  assert.deepEqual(buttons.map(node=>node.dataset.element),['O','H','C']);
+  buttons[0].click();assert.deepEqual(actions,['O']);
 });
 
 test('craft target material bar has no redundant hint control',async()=>{

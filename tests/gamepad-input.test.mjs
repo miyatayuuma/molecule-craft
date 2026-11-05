@@ -73,3 +73,23 @@ test('controller deadzone preset can be calibrated without changing mappings',()
   sampler.sample([pad(0)],2,'field');
   assert.deepEqual(sampler.sample([pad(0,[],[.24,0,0,0])],3,'field').axes,[0,0,0,0]);
 });
+
+test('D-pad is sampled separately from left stick and CRAFT places one visible recipe action on a down press',async()=>{
+  const sampler=createGamepadSampler();sampler.sample([pad(0)],0,'craft');
+  const sample=sampler.sample([pad(0,[13],[.8,-.4,0,0])],16,'craft');
+  assert.deepEqual(sample.pressed,[13]);assert.equal(sample.held[13],true);
+  assert.deepEqual(sample.axes.slice(0,2),[.8,-.4]);
+  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+  assert.match(app,/function placeNextCraftTargetFromPad\(\)/);
+  assert.match(app,/#craft-target-atoms button:not\(:disabled\)/);
+  assert.match(app,/if\(sample\.pressed\.includes\(13\)&&!craftPadGrab&&!interactionLocked\(\)\)placeNextCraftTargetFromPad\(\)/);
+  assert.doesNotMatch(app,/sample\.repeat\.includes\(13\)/,'holding Down must not drop every remaining recipe part');
+});
+
+test('Collection detail consumes held D-pad paging without passing focus navigation to the shared router',async()=>{
+  const source=await readFile(new URL('../src/collection-ui.js',import.meta.url),'utf8');
+  const handler=source.slice(source.indexOf('function handleGamepad('),source.indexOf('renderPalette();renderSummary();'));
+  assert.match(handler,/if\(held\[14\]\|\|held\[15\]\)\{/);
+  assert.match(handler,/if\(held\[14\]\|\|held\[15\]\)\{[\s\S]*?if\(pressed\.includes\(14\)\|\|pressed\.includes\(15\)\)/);
+  assert.match(handler,/if\(held\[14\]\|\|held\[15\]\)\{[\s\S]*?return true;/);
+});

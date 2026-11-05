@@ -84,6 +84,17 @@ test('close and open failures report presentation outcomes without changing regi
   const unavailable=fixture({open:false}),unavailableSettled=[];assert.equal(unavailable.present({onSettled:result=>unavailableSettled.push(result)}),false);assert.deepEqual(unavailableSettled,[{status:'failed',reason:'collection-unavailable'}]);
 });
 
+test('new-registration badge reserves a stable identity slot and uses ruby-aligned wrapping rather than flex',async()=>{
+  const css=await readFile(new URL('../styles.css',import.meta.url),'utf8');
+  const marker=css.slice(css.indexOf('#collection-dialog .collection-registration-marker{'),css.indexOf('#collection-dialog .collection-registration-marker ruby{'));
+  assert.match(css,/#collection-dialog \.detail-heading \.dex-number\{display:block;min-height:40px/);
+  assert.match(marker,/display:inline-block/);
+  assert.match(marker,/max-width:100%/);
+  assert.match(marker,/white-space:normal;overflow-wrap:anywhere/);
+  assert.doesNotMatch(marker,/display:inline-flex|white-space:nowrap/);
+  assert.match(css,/\.detail-model-frame>\.detail-heading\{[^\n]*max-height:60%;[^\n]*overflow:visible/);
+});
+
 const craft=await readFile(new URL('../src/craft-connections.js',import.meta.url),'utf8');
 assert.match(craft,/const isNew=!!event\.gameEvent\?\.isNew&&event\.gameEvent\?\.saved!==false,recordId=/);
 assert.match(craft,/if\(isNew&&recordId\)[\s\S]*presentRegistration\(\{collection,id:recordId\}\)/);

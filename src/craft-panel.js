@@ -37,13 +37,17 @@ export function renderCraftTargetAtoms(container,record,placedAtoms=[],{size=31}
 }
 
 export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=31,onPlace=()=>{}}={}){
-  if(!container)return[];container.replaceChildren();const rendered=[],used={};
+  if(!container)return[];
+  const previousButtons=[...(container.querySelectorAll?.('button:not(:disabled)')??[])];
+  const previousFocusIndex=previousButtons.indexOf(container.ownerDocument.activeElement);
+  container.replaceChildren();const rendered=[],used={};let actionIndex=0;
+  const identifyAction=node=>{node.dataset.gamepadFocusKey=`craft-target-${actionIndex++}`;};
   function appendAtom(item,parent=container){
     const symbol=item.element,index=used[symbol]??0;used[symbol]=index+1;
     const slot={symbol,index,filled:false},chip=container.ownerDocument.createElement('button');
     chip.type='button';chip.className='craft-target-atom';chip.dataset.element=symbol;chip.dataset.filled='false';chip.textContent=symbol;
     chip.setAttribute('aria-label',`${ELEMENTS[symbol]?.name??symbol}をクラフト台へ出す`);
-    styleTargetAtom(chip,symbol,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';
+    styleTargetAtom(chip,symbol,size);chip.style.minHeight=`${size}px`;chip.style.padding='0';identifyAction(chip);
     chip.addEventListener('click',()=>onPlace(item));parent.appendChild(chip);
     rendered.push({item,node:chip,slot});
   }
@@ -69,10 +73,17 @@ export function renderCraftTargetParts(container,parts=[],placedAtoms=[],{size=3
       container.appendChild(group);
     }else{
       chip.setAttribute('aria-label',`${template?.nameJa??notation}をクラフト台へ出す`);
+      identifyAction(chip);
       chip.addEventListener('click',()=>onPlace(item));
       container.appendChild(chip);
     }
     rendered.push({item,node:chip,slot:null});
+  }
+  // Refresh replaces buttons after each placement. Keep controller focus on
+  // the next actionable material instead of dropping it into the page chrome.
+  if(previousFocusIndex>=0){
+    const buttons=[...(container.querySelectorAll?.('button:not(:disabled)')??[])];
+    (buttons[Math.min(previousFocusIndex,buttons.length-1)]??container.ownerDocument.querySelector('#clear-craft-target'))?.focus?.({preventScroll:true});
   }
   return rendered;
 }
