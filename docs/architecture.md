@@ -148,6 +148,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 ## 図鑑とデータ
 
 - `src/collection-ui.js`：図鑑DOM、データfetch、模型の遅延読込。
+- `src/reaction-model-layout.js`：反応式54経路の固定水平軸と全模型共通尺度。`scripts/build-reaction-model-assets.mjs` は既存分子SVGと承認済み高分子構成単位から `assets/reaction-models/` / `generated/reaction-model-metrics.js` を生成する。3D詳細・化学authorityとは独立。`tests/reaction-equation-layout.test.mjs` が尺度と記号の非重複を検証する。
 - `src/collection-state.js`：発見記録、部品解放、保存互換。
 - `src/collection-viewer.js`, `src/preview-model.js`, `src/preview-controls.js`：図鑑3D模型。
 - `tests/preview-geometry-audit.test.mjs`：全分子の図鑑模型について、三配位角と結合距離の歪み、カルボニル・アミド・飽和環置換基を点検する。

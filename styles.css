@@ -619,14 +619,17 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 @keyframes rb-schem-before{0%,26%{opacity:1}43%,100%{opacity:0}}
 @keyframes rb-schem-after{0%,40%{opacity:0}58%,100%{opacity:1}}
 /* A whole-model preview needs the full card width, not the retired two-column diagram/legend grid. */
-.rb-reaction-thumb.rb-reaction-thumb-models{display:block;width:100%;padding:7px 8px}
-.rb-reaction-thumb-models .rb-reaction-assets{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);gap:4px}
-.rb-reaction-thumb-models .rb-reaction-side{gap:4px}
-.rb-reaction-thumb-models .rb-reaction-side img{width:80px;flex:0 1 80px;max-width:100%;height:80px}
-.rb-reaction-thumb-models .rb-arrow{font-size:21px}
-@media(max-width:480px){
- .rb-reaction-thumb-models .rb-reaction-side img{width:65px;flex-basis:65px;height:69px}
-}
+.rb-reaction-thumb.rb-reaction-thumb-models{display:block;width:100%;padding:0;margin:2px 0 8px;border:0;border-radius:0;background:transparent}
+.rb-reaction-thumb-models .rb-reaction-assets{position:relative;display:block;width:100%;height:100px;max-width:620px;margin:0 auto;overflow:hidden}
+.rb-reaction-thumb-models .rb-equation-model{position:absolute;display:flex;align-items:center;justify-content:center;overflow:hidden;min-width:0}
+.rb-reaction-thumb-models .rb-equation-model img{display:block;max-width:none;min-width:0;object-fit:contain;flex:none;background:transparent}
+.rb-reaction-thumb-models .rb-arrow,.rb-reaction-thumb-models .rb-plus{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;line-height:1;color:#94bdb9;font-weight:400;pointer-events:none}
+.rb-reaction-thumb-models .rb-arrow{font-size:22px;width:24px}
+.rb-reaction-thumb-models .rb-plus{font-size:14px;width:12px}
+.reaction-book .reaction-book-entry{padding:10px 12px;border-color:#304d59;border-radius:14px;background:#142b39}
+.reaction-book .reaction-book-inspect{margin-top:8px;border-color:#3b625f;border-radius:10px;background:#183a3c;color:#b6e3d8}
+.collection-thumbnail,.polymer-thumbnail{object-position:center}
+#collection-dialog .detail-model-frame>.collection-model{isolation:isolate}
 @media(prefers-reduced-motion:reduce){
  .rb-group-preview .rb-schem-atom{animation:none!important;transform:translate(var(--rb-dx,0px),var(--rb-dy,0px))}
  .rb-group-preview .rb-schem-before{animation:none!important;opacity:0}
