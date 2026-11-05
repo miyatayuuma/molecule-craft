@@ -13,7 +13,7 @@ import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclop
 import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=5';
 import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
 import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from './encyclopedia-glossary.js';
-import {furiganaSegmentsForRange,completeFuriganaSegments,createCompleteFuriganaIndex,appendCompleteFuriganaText} from './encyclopedia-furigana.js?v=3';
+import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriganaSegments,createCompleteFuriganaIndex,appendCompleteFuriganaText} from './encyclopedia-furigana.js?v=4';
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 
@@ -72,7 +72,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }
     const fragment=document.createDocumentFragment();
     let offset=startOffset;
-    for(const segment of hamajimaTermSegments(text)){
+    for(const segment of coalesceSegmentsAtRubyBoundaries(hamajimaTermSegments(text),annotations,startOffset)){
       if(segment.kind==='term'){
         const link=document.createElement('a');link.href=segment.reference.url;link.target='_blank';link.rel='noopener noreferrer external';appendReadingText(link,fullText,annotations,offset,offset+segment.text.length);fragment.append(link);
       }else appendReadingText(fragment,fullText,annotations,offset,offset+segment.text.length);

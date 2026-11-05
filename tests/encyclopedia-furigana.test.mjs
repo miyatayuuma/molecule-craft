@@ -3,13 +3,48 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
-import {furiganaSegmentsForRange,completeFuriganaSegments,createCompleteFuriganaIndex} from '../src/encyclopedia-furigana.js';
+import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriganaSegments,createCompleteFuriganaIndex} from '../src/encyclopedia-furigana.js';
 import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from '../src/encyclopedia-glossary.js';
 import {hamajimaTermSegments} from '../src/hamajima-term-reference.js';
 
 const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',import.meta.url),'utf8'));
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
 const reconstruct=segments=>segments.map(item=>item.text).join('');
+
+test('chemistry reference links never cut through a complete ruby span',()=>{
+  const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
+  let crossingCount=0;
+  for(const [text,annotations] of Object.entries(corpus.texts)){
+    const raw=hamajimaTermSegments(text);
+    const chunks=coalesceSegmentsAtRubyBoundaries(raw,annotations);
+    assert.equal(reconstruct(chunks),text);
+    let offset=0;
+    const covered=new Set();
+    for(const chunk of chunks){
+      const pieces=furiganaSegmentsForRange(text,annotations,offset,offset+chunk.text.length);
+      assert.equal(reconstruct(pieces),chunk.text);
+      let cursor=offset;
+      for(const piece of pieces){
+        if(piece.kind==='ruby')for(let at=cursor;at<cursor+piece.text.length;at++)covered.add(at);
+        cursor+=piece.text.length;
+      }
+      offset+=chunk.text.length;
+    }
+    for(const [at,surface] of annotations){
+      for(let i=at;i<at+surface.length;i++)assert.ok(covered.has(i),`reference link hides ruby at ${i}: ${text}`);
+    }
+    if(chunks.length<raw.length)crossingCount++;
+  }
+  assert.ok(crossingCount>0,'test corpus must contain intersecting reference links');
+  const sentence='プロピレンの付加重合体。主鎖にメチル置換基を持つ。';
+  const annotations=corpus.texts[sentence];
+  assert.ok(annotations?.some(([,surface,reading])=>surface==='付加重合体'&&reading==='ふかじゅうごうたい'));
+  const original=hamajimaTermSegments(sentence);
+  assert.ok(original.some(x=>x.kind==='term'&&x.text==='付加重合'));
+  const fixed=coalesceSegmentsAtRubyBoundaries(original,annotations);
+  assert.ok(fixed.some(x=>x.kind==='text'&&x.text.includes('付加重合体')));
+  assert.ok(!fixed.some(x=>x.kind==='term'&&x.text==='付加重合'));
+});
 
 test('all encyclopedia science texts have complete Kanji-only ruby, not a 26-term whitelist',()=>{
  const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
