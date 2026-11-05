@@ -96,7 +96,7 @@ export function startGamepadUi({window,document,onFieldSample=()=>{},onUiSample=
     const lab=document.querySelector('#reaction-lab-dialog')?.open;
     const collection=document.querySelector('#collection-dialog');
     const field=document.body.dataset.mode==='veil';
-    if(field)return 'FIELD：左スティックで移動　B：BURST　X：SHOCK　RT：推進　停止中にA長押し：帰還';
+    if(field)return 'FIELD：左スティックで移動　B：BURST　X：SHOCK　RT：推進　A長押し：帰還（移動中も可・INSIGHT所持かSAFE SITE内）';
     if(lab)return 'LAB：Aで3D照準を開始・つかむ／離す　Bで照準終了　右スティック：完成高分子回転　LT/RT：ズーム　pH上で上下：酸性・中性・塩基性';
     if(collection?.open){
       if(!collection.querySelector('#collection-detail')?.hidden)return '図鑑の個別ページ：十字キー左右で前後のページ　上下でスクロール　右スティックで模型を回転　LT/RTで拡大縮小　Bで一覧　LB/RBで図鑑切替';

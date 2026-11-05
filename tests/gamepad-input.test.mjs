@@ -1,5 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {createGamepadSampler} from '../src/gamepad-input.js';
 const pad=(index,buttons=[],axes=[0,0,0,0])=>({index,connected:true,mapping:'standard',buttons:Array.from({length:16},(_,i)=>({pressed:buttons.includes(i)})),axes});
 test('suppresses held inputs at connection and context changes until neutral',()=>{
@@ -20,6 +21,16 @@ test('FIELD receives sampled movement and is cleared on blur', async()=>{
  const document={hidden:false,body:{dataset:{mode:'veil'},classList:{add(){},remove(){}}},querySelectorAll:()=>[],addEventListener(){},removeEventListener(){}};
  const window={navigator:{getGamepads:()=>[p]},requestAnimationFrame:f=>{frame=f;},addEventListener:(name,f)=>{if(name==='blur')blur=f;},removeEventListener(){}};
  const stop=startGamepadUi({window,document,onFieldSample:s=>received.push(s)});frame(0);p=pad(0,[],[.7,0,0,0]);frame(20);assert.equal(received.at(-1).axes[0],.7);blur();assert.equal(received.at(-1),null);stop();
+});
+
+test('FIELD return hold accepts A during left-stick movement without changing extraction eligibility',async()=>{
+  const sampler=createGamepadSampler();sampler.sample([pad(0)],0,'field');
+  const sample=sampler.sample([pad(0,[0],[.8,-.4,0,0])],16,'field');
+  assert.equal(sample.held[0],true);assert.deepEqual(sample.axes.slice(0,2),[.8,-.4]);
+  const source=await readFile(new URL('../src/veil/ui.js',import.meta.url),'utf8');
+  assert.match(source,/if\(sample\.held\[0\]&&returnMethod\(\)\)/);
+  assert.doesNotMatch(source,/sample\.held\[0\]&&stationary/);
+  assert.match(source,/gamepadReturnStarted\)\/700/);
 });
 
 test('pH direction and cleanup hold use direct gamepad adapters',async()=>{

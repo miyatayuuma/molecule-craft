@@ -1,4 +1,4 @@
-import {createVeilUI} from './veil/ui.js?v=6';
+import {createVeilUI} from './veil/ui.js?v=7';
 import {createCompletionSideEffectGate} from './completion-side-effects.js?v=1';
 import {installPendingCraftAccess} from './pending-craft.js?v=1';
 import {loadMoleculeDatabase,moleculeCatalog} from './chemistry.js?v=20';

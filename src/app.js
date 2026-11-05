@@ -24,7 +24,7 @@ import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=2';
 import { createCraftHistory } from './craft-history.js?v=2';
 import { bindCraftControls } from './craft-controls.js?v=3';
-import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=27';
+import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=28';
 import { createCraftPanel } from './craft-panel.js?v=4';
 import { decomposeTargetIntoAvailableParts } from './craft-decomposition.js?v=1';
 import { matchCraftTarget } from './craft-target-satisfaction.js';
@@ -35,7 +35,7 @@ import { captureDetachedFragment, createDetachedDrag } from './craft-detached-dr
 import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=8';
 import { createReactionCatalogAuthority } from './reaction-catalog-authority.js?v=1';
 import { createReactionProgress } from './reaction-progress.js?v=1';
-import { startGamepadUi } from './gamepad-input.js?v=2';
+import { startGamepadUi } from './gamepad-input.js?v=3';
 
 import { createResources } from './veil/resources.js';
 let veilUI=null;
