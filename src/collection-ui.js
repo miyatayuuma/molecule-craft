@@ -1,4 +1,4 @@
-import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=6';
+import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=7';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
 import { validateCraftStructures } from './craft-structures.js?v=34';
 import { createCollectionState, MILESTONES } from './collection-state.js?v=38';
@@ -13,24 +13,26 @@ import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclop
 import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=5';
 import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
 import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from './encyclopedia-glossary.js';
-import {furiganaSegmentsForRange,appendReviewedScienceText} from './encyclopedia-furigana.js?v=2';
+import {furiganaSegmentsForRange,completeFuriganaSegments,createCompleteFuriganaIndex,appendCompleteFuriganaText} from './encyclopedia-furigana.js?v=3';
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
-  const [groups,templates,encyclopedia,graph,furigana]=await Promise.all([
+  const [groups,templates,encyclopedia,graph,furigana,extraFurigana]=await Promise.all([
     load('../data/functional-groups.json?v=26'),
     load('../data/craft-structures.json?v=25'),
     load('../data/encyclopedia.json?v=34').catch(()=>({molecules:{},parts:{},noteDefinitions:{}})),
     loadMoleculeGraph({url:new URL('../data/molecule-graph.json',import.meta.url).href}),
     load('../data/encyclopedia-furigana.json?v=3').catch(()=>({molecules:{},parts:{}})),
+    load('../data/encyclopedia-extra-furigana.json?v=1'),
   ]);
-  validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph,furigana};
+  validateFunctionalGroups(groups);validateCraftStructures(templates,groups);return {groups,templates,encyclopedia,graph,furigana,extraFurigana};
 }
 
 export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true,recipeState=()=>({recipes:[],hints:[]}),polymerRecords=[],polymerContent=[],polymerRoutes=[],engineeringResources=null}){
   const data=await loadCollectionData();
+  const completeFurigana=createCompleteFuriganaIndex(data.extraFurigana);
   validateChemistryVisualSpecs(data.encyclopedia,records);
   if(storage===undefined){try{storage=window.localStorage;}catch{storage=null;}}
   const state=createCollectionState({records,...data,storage,elementAccess});
@@ -54,7 +56,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const polymerEntry=id=>createPolymerEncyclopediaModel(polymerRecords,polymerContent,{knownIds:polymerState.entries().map(item=>item.id)}).entry(id);
   const number=(kind,id)=>kind==='molecules'?entry(kind,id)?.number??(records.findIndex(item=>item.id===id)+1):kind==='polymers'?polymerContentById.get(id)?.number??(polymerRecords.findIndex(item=>item.id===id)+1):groupById(id)?.learningRole==='part'?(entry('groups',id)?.number??(partGroups.findIndex(item=>item.id===id)+1)):null;
   const numberLabel=(kind,id)=>{const value=number(kind,id);return Number.isInteger(value)?`No. ${String(value).padStart(3,'0')}`:'';};
-  const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node;};
+  const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!=null){if(/[一-龯々]/u.test(String(text)))appendCompleteFuriganaText(node,text,completeFurigana);else node.textContent=text;}if(className)node.className=className;return node;};
   const appendReadingText=(host,fullText,annotations,start,end)=>{
     for(const segment of furiganaSegmentsForRange(fullText,annotations,start,end)){
       if(segment.kind==='ruby'){
@@ -64,6 +66,10 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     return host;
   };
   const appendChemistryText=(host,text,{fullText=text,annotations=[],startOffset=0}={})=>{
+    if(fullText===text&&startOffset===0&&!annotations.length){
+      annotations=completeFurigana.texts[String(text??'')]??[];
+      if(!annotations.length){let offset=0;annotations=[];for(const part of completeFuriganaSegments(text,completeFurigana)){if(part.kind==='ruby')annotations.push([offset,part.text,part.reading]);offset+=part.text.length;}}
+    }
     const fragment=document.createDocumentFragment();
     let offset=startOffset;
     for(const segment of hamajimaTermSegments(text)){
@@ -74,7 +80,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }
     host.append(fragment);return host;
   };
-  const chemistryParagraph=(text,className,{reviewedScience=false}={})=>reviewedScience?appendReviewedScienceText(el('p',null,className),text):appendChemistryText(el('p',null,className),text);
+  const chemistryParagraph=(text,className)=>appendChemistryText(el('p',null,className),text);
   const chemistryHeading=(text)=>appendChemistryText(el('h5'),text);
   const button=(text,handler,className)=>{const node=el('button',text,className);node.type='button';node.addEventListener('click',handler);return node;};
   let glossaryPopup=null,glossaryTrigger=null;
@@ -350,7 +356,8 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(!card)return false;
     const notice=showAwardNotice('polymers');
     card.classList.add('polymer-award-hidden');
-    const name=card.querySelector('strong'),originalName=name?.textContent;
+    const name=card.querySelector('strong'),originalName=name?[...name.childNodes].map(child=>child.cloneNode(true)):[];
+    const restoreName=()=>{if(name)name.replaceChildren(...originalName.map(child=>child.cloneNode(true)));};
     if(name)name.textContent='???';
     card.scrollIntoView?.({block:'center',behavior:prefersReducedMotion()?'auto':'smooth'});
     let timer=null,finished=false,ready=false,removeInteraction=()=>{};
@@ -359,7 +366,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       finished=true;if(timer!==null)clearTimeout(timer);
       removeInteraction();dialog.removeEventListener('close',dismiss);
       card.classList.remove('polymer-award-hidden','polymer-award-target');
-      if(name)name.textContent=originalName;
+      restoreName();
       notice.remove();discoveryAward=null;delete dialog.gamepadAdvance;
       if(status==='presented')openPolymer(id);
       onSettled({status});
@@ -367,13 +374,13 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const dismiss=()=>settle('dismissed');
     const reveal=()=>{
       card.classList.remove('polymer-award-hidden');card.classList.add('polymer-award-target');
-      if(name)name.textContent=originalName;
+      restoreName();
       timer=setTimeout(()=>{ready=true;},prefersReducedMotion()?80:1450);
     };
     removeInteraction=beginAwardInteraction(()=>settle());
     dialog.gamepadAdvance=()=>settle();
     dialog.addEventListener('close',dismiss,{once:true});
-    discoveryAward={cancel:()=>{finished=true;if(timer!==null)clearTimeout(timer);removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();delete dialog.gamepadAdvance;card.classList.remove('polymer-award-hidden','polymer-award-target');if(name)name.textContent=originalName;}};
+    discoveryAward={cancel:()=>{finished=true;if(timer!==null)clearTimeout(timer);removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();delete dialog.gamepadAdvance;card.classList.remove('polymer-award-hidden','polymer-award-target');restoreName();}};
     timer=setTimeout(reveal,prefersReducedMotion()?80:950);
     return true;
   }
@@ -535,7 +542,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       renderDetail();if(split)detail.scrollTop=0;if(currentDetail?.kind==='molecules')moleculeTransition.markStable('detail',currentDetail.id);return;
     }
     list.dataset.renderedTab=tab;
-    if(tab==='reactions'){list.replaceChildren();list.classList.add('reaction-book');if(reactionAuthority&&reactionProgress)reactionBookController=renderReactionBook({host:list,authority:reactionAuthority,progress:reactionProgress,records,polymerRecords,onTry:onTryReaction,appendText:appendReviewedScienceText});else list.textContent='反応図鑑を準備中です。';return;}
+    if(tab==='reactions'){list.replaceChildren();list.classList.add('reaction-book');if(reactionAuthority&&reactionProgress)reactionBookController=renderReactionBook({host:list,authority:reactionAuthority,progress:reactionProgress,records,polymerRecords,onTry:onTryReaction,appendText:(host,text)=>appendCompleteFuriganaText(host,text,completeFurigana)});else list.textContent='反応図鑑を準備中です。';return;}
     list.classList.remove('reaction-book');
     if(tab==='molecules'){renderGraph();moleculeTransition.markStable('graph',graphFocusId);return;}
     if(tab==='polymers')renderPolymerList();else renderGroupList();
@@ -579,7 +586,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(discoverySession)for(const node of detail.querySelectorAll('button'))node.disabled=true;
   }
   function heading(kind,id,name,formula=''){
-    const host=el('div',null,'detail-heading'),left=el('div'),numberText=numberLabel(kind,id);if(numberText)left.append(el('span',numberText,'dex-number'));const title=el('h3');if(kind==='molecules')appendMoleculeNameFurigana(title,name);else if(kind==='groups')appendPartNameFurigana(title,name);else title.textContent=name;left.append(title);host.append(left);if(formula)host.append(el('p',formula,'detail-formula'));detail.append(host);
+    const host=el('div',null,'detail-heading'),left=el('div'),numberText=numberLabel(kind,id);if(numberText)left.append(el('span',numberText,'dex-number'));const title=el('h3');if(kind==='molecules')appendMoleculeNameFurigana(title,name);else if(kind==='groups')appendPartNameFurigana(title,name);else appendCompleteFuriganaText(title,name,completeFurigana);left.append(title);host.append(left);if(formula)host.append(el('p',formula,'detail-formula'));detail.append(host);
   }
   function frameDetailModel(modelHost,{controls=null}={}){
     const frame=el('div',null,'detail-model-frame');
