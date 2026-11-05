@@ -20,3 +20,13 @@ test('desktop hardware fills its grid while mobile retains bounded height',async
  assert.match(source,/@media\(min-width:1024px\) and \(min-height:640px\)\{#supply-dialog \.collector-shell-map\{height:100%;/);
  assert.match(source,/shell-port\[data-active=true\]:before\{border:2px solid/);
 });
+
+test('launch affordances are decorative and reduced-motion leaves the vessel still',async()=>{
+ const [css,supply]=await Promise.all(['../veil.css','../src/veil/supply.js'].map(path=>readFile(new URL(path,import.meta.url),'utf8')));
+ assert.match(css,/\.loadout-launch-trail\{[^}]*pointer-events:none/);
+ assert.match(css,/@media\(prefers-reduced-motion:no-preference\)\{[\s\S]*?animation:loadout-vessel-rest/);
+ assert.match(css,/#collector-shell-preview\{animation:none;translate:none\}/);
+ assert.match(supply,/launchTrail\.setAttribute\('aria-hidden','true'\)/);
+ assert.match(supply,/delete shellMap\.dataset\.launchDragging/);
+ assert.match(supply,/setLoadoutFlightCraftTranslation\(shellMap,x,y\)/,'visual trail must follow, not replace, canonical vessel translation');
+});

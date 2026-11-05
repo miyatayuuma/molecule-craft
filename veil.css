@@ -245,6 +245,26 @@
   .veil-drive-control #veil-shock{height:62px;min-height:62px}
 }
 
+/* The launch affordance shares the existing hit target and canonical anchor.
+   Decorative paint never intercepts gestures or changes hardware geometry. */
+#supply-dialog #collector-launch-handle:before{content:'';position:absolute;inset:8%;border:1px solid #7fbaaa42;border-radius:24%;background:transparent;pointer-events:none;transition:border-color .16s ease,background-color .16s ease}
+#supply-dialog #collector-launch-handle:hover:before,#supply-dialog #collector-launch-handle:focus-visible:before{border-color:#9be3d3b3;background:#8ce2cb08}
+#supply-dialog #collector-launch-handle:focus-visible{outline:2px solid #9be3d3;outline-offset:5px}
+#supply-dialog .collector-shell-map[data-launch-dragging=true] #collector-launch-handle:before{border-color:#9be3d333;background:transparent}
+#supply-dialog .loadout-launch-trail{position:absolute;z-index:6;left:var(--loadout-craft-drag-left);top:var(--loadout-craft-drag-top);width:var(--trail-length,0px);height:1px;transform:rotate(var(--trail-angle,0rad));transform-origin:0 50%;background:linear-gradient(90deg,#9be3d31a,#9be3d3b3);opacity:0;pointer-events:none;transition:opacity .14s ease}
+#supply-dialog .loadout-launch-trail[data-visible=true]{opacity:1}
+#supply-dialog .loadout-launch-trail:after{content:'';position:absolute;right:-3px;top:-3px;width:7px;height:7px;border:1px solid #b8f1e3;border-radius:50%;background:#102b35}
+#supply-dialog #expedition-destinations button[data-launch-active=true]{outline:2px solid #c0f4e6;outline-offset:4px}
+#supply-dialog #expedition-destinations button:focus-visible{outline:2px solid #c0f4e6;outline-offset:4px}
+@keyframes loadout-vessel-rest{0%,100%{translate:0 0}50%{translate:0 -2px}}
+@media(prefers-reduced-motion:no-preference){
+ #supply-dialog[open] .collector-shell-map:not(.launch-selecting):not([data-synthesis-active=true]) #collector-shell-preview{animation:loadout-vessel-rest 4s ease-in-out infinite}
+}
+@media(prefers-reduced-motion:reduce){
+ #supply-dialog #collector-launch-handle:before,#supply-dialog .loadout-launch-trail{transition:none}
+ #supply-dialog #collector-shell-preview{animation:none;translate:none}
+}
+
 /* Desktop LOADOUT: the vessel and the selected tank occupy the available
    screen height. Inventory scroll stays within its own grid when necessary. */
 @media(min-width:1024px) and (min-height:640px){
