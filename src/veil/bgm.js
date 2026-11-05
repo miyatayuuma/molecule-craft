@@ -26,7 +26,11 @@ function loadEmbeddedMp3(region) {
   return sourceCache.get(file);
 }
 
-export function createFieldBgm({ AudioCtor = globalThis.Audio, loadSource = loadEmbeddedMp3, volume = 0.12, fadeSeconds = 1.8 } = {}) {
+// Tracks are mastered to approximately -23.4 LUFS. Keep the in-game bed
+// audible while leaving room for the separately synthesized event sounds.
+export const DEFAULT_FIELD_BGM_VOLUME = 0.55;
+
+export function createFieldBgm({ AudioCtor = globalThis.Audio, loadSource = loadEmbeddedMp3, volume = DEFAULT_FIELD_BGM_VOLUME, fadeSeconds = 1.8 } = {}) {
   let desired = 'veil', current = null, incoming = null, fade = 0, running = false, muted = false, loadToken = 0, loadingRegion = null;
   const level = Math.max(0, Math.min(1, volume));
   const fadeDuration = Math.max(0.1, fadeSeconds);
