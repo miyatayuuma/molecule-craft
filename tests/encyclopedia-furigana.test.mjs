@@ -59,6 +59,8 @@ test('all encyclopedia science texts have complete Kanji-only ruby, not a 26-ter
    '実鎖長':'じつさちょう','実工程':'じつこうてい',
    '水素化物':'すいそかぶつ',
    '炭化水素':'たんかすいそ',
+   '双極子':'そうきょくし','六角形':'ろっかっけい',
+   '三角平面形':'さんかくへいめんけい','第一級':'だいいっきゅう',
  };
  for(const [word,expected] of Object.entries(chemistryReadings)){
    let seen=0;
