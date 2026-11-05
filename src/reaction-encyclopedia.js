@@ -2,6 +2,8 @@ import {createReactionGroupPreview,createReactionThumbnailFromEntry,reactionThum
 // The registry owns reaction definitions; this module only groups and presents them.
 const LABELS={oxidation:'酸化',combustion:'燃焼',esterification:'エステル化',halogenation:'ハロゲン化',condensation:'縮合',polymerization:'重合',hydrolysis:'加水分解',addition:'付加',hydration:'水和',substitution:'置換','ring-opening':'開環',cycloaddition:'環化',dehydration:'脱水',other:'その他'};
 const CONDITION={acidic:'酸性',basic:'塩基性',heat:'加熱',light:'光'};
+// These labels describe the LAB control state, not a universal chemical prohibition.
+const LAB_FORBIDDEN_LABELS=Object.freeze({acidic:'酸性にしない',basic:'塩基性にしない',heat:'加熱OFF',light:'光OFF'});
 
 const CONDITION_ROLES=Object.freeze({
  acidic:'酸性：酸塩基状態の変化が反応を助ける場合があります。',
@@ -140,6 +142,10 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
   const name=id=>{const r=records.find(x=>x.id===id);return r?.commonNameJa??r?.nameJa??id;};
   const model=reactionGroups(authority,progress);
   const visualContext={records,polymerRecords};
+  const scrollSurface=host.closest?.('dialog')??null;
+  const currentScroll=()=>({list:host.scrollTop,dialog:scrollSurface?.scrollTop??0});
+  const resetScroll=()=>{host.scrollTop=0;if(scrollSurface)scrollSurface.scrollTop=0;};
+  const restoreScroll=position=>{host.scrollTop=position.list;if(scrollSurface)scrollSurface.scrollTop=position.dialog;};
   function showList(){
     host.classList.remove('reaction-book-categories');
     const grid=make('div','');
@@ -151,7 +157,7 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
     grid.style.width='100%';
     // Progress is already shown in the tab; do not spend a mobile row repeating it.
     host.replaceChildren(grid);
-    host.scrollTop=0;
+    resetScroll();
     for(const group of model.groups){
       const done=group.items.filter(x=>x.state==='verified').length;
       const control=button('',()=>showGroup(group));
@@ -167,18 +173,19 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
       grid.append(control);
     }
   }
-  function showGroup(group){
+  function showGroup(group,{returnPosition=null}={}){
     host.replaceChildren(button('‹ カテゴリ一覧',showList),make('h3',group.label));
-    host.scrollTop=0;
+    resetScroll();
     // Pending recipe actions belong to the top-level lightbulb, never the atlas.
     for(const item of group.items.filter(x=>x.state==='verified')){
       const d=item.definition,inputs=item.kind==='normal'?d.reactants.map(x=>name(x.species)):d.feedSpecies.map(name),outputs=item.kind==='normal'?d.products.map(name):[polymerRecords.find(x=>x.id===d.polymerId)?.nameJa??d.polymerId];
       const equation=`${inputs.join(' + ')} → ${outputs.join(' + ')}`;
       const conditions=item.kind==='normal'?d.requires:(d.environment?.requires??[]),forbidden=item.kind==='normal'?d.forbids:(d.environment?.forbids??[]);
-      const conditionText=[...(conditions??[]).map(x=>CONDITION[x]??x),...(forbidden??[]).map(x=>`${CONDITION[x]??x}は不可`)].join('、')||'特別な条件なし';
+      const conditionText=[...(conditions??[]).map(x=>CONDITION[x]??x),...(forbidden??[]).map(x=>LAB_FORBIDDEN_LABELS[x]??`${CONDITION[x]??x}を避ける`)].join('、')||'特別な条件なし';
       function showDetail(){
-        host.replaceChildren(button('‹ '+group.label+'に戻る',()=>showGroup(group)),make('h3',outputs.join(' + ')),make('p',equation));
-        host.scrollTop=0;
+        const previousPosition=currentScroll();
+        host.replaceChildren(button('‹ '+group.label+'に戻る',()=>showGroup(group,{returnPosition:previousPosition})),make('h3',outputs.join(' + ')),make('p',equation));
+        resetScroll();
         const detail=reactionDetailInfo(item,visualContext), formula=REACTION_THUMBNAIL_SPECS[item.reactionId];
         if(detail){
           const chemistry=make('section','');chemistry.className='rb-detail-chemistry';
@@ -209,6 +216,7 @@ export function renderReactionBook({host,authority,progress,records,polymerRecor
     }
     const missing=group.items.filter(x=>x.state!=='verified'&&!x.unavailable).length, unavailable=group.items.filter(x=>x.state!=='verified'&&x.unavailable).length;
     host.append(make('p',`未実証 ${missing} 件${unavailable?` · 到達経路未整備 ${unavailable} 件`:''}`));
+    if(returnPosition)restoreScroll(returnPosition);
   }
   showList();
 }

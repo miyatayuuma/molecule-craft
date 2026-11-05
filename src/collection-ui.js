@@ -684,7 +684,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     switchModel('unit');
     detail.append(chemistryParagraph(content.description,'dex-description'));
     if(content.education?.observe)detail.append(chemistryParagraph('観察してみよう：'+content.education.observe,'polymer-observation-prompt'));
-    const learning=section('構造・物性・用途');learning.classList.add('polymer-education');learning.open=true;
+    const learning=section('構造・物性・用途');learning.classList.add('polymer-education');
     for(const [title,field] of [['分子のしくみ','structure'],['なぜこの性質になる？','property'],['何に使われる？','applications'],['模型だけでは分からないこと','limits']])learning.append(chemistryHeading(title),chemistryParagraph(content.education[field]));
     renderEngineering(id);
     const formationName=({addition:'付加重合',copolymerization:'共重合', 'ring-opening':'開環重合',polycondensation:'縮合重合','condensation-network':'縮合による網目形成'})[record.formation]??record.formation;
