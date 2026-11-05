@@ -272,7 +272,8 @@ function installStyles(){
   style.id=STYLE_ID;
   style.textContent=`
 @media(max-width:650px){#supply-dialog{inset:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;overflow-y:auto}}
-#supply-dialog .collector-shell-map{height:clamp(205px,60vw,240px)!important;border-color:#294656;background:#071520;overflow:hidden}
+#supply-dialog .collector-shell-map{height:clamp(205px,60vw,240px);border-color:#294656;background:#071520;overflow:hidden}
+@media(min-width:1024px) and (min-height:640px){#supply-dialog .collector-shell-map{height:100%;background:radial-gradient(ellipse at 50% 48%,#12303d 0%,#0a1c29 48%,#071520 80%)}}
 #supply-dialog .sheet-header{padding:10px 16px}
 #supply-dialog .sheet-body{padding:8px 14px 14px;gap:10px}
 #supply-dialog .tank-empty{padding:8px 4px}
@@ -288,7 +289,9 @@ function installStyles(){
 #supply-dialog #expedition-destinations button{left:var(--loadout-craft-drag-left)!important;top:var(--loadout-craft-drag-top)!important}
 #supply-dialog .shell-port{position:absolute!important;z-index:6!important;min-width:0!important;min-height:0!important;margin:0!important;box-sizing:border-box;left:var(--slot-hit-left)!important;right:auto!important;top:var(--slot-hit-top)!important;bottom:auto!important;width:var(--slot-hit-width)!important;height:var(--slot-hit-height)!important;transform:none!important;padding:0!important;border:0!important;border-radius:12px!important;background:transparent!important;box-shadow:none!important;color:#d9e8ed;overflow:visible;pointer-events:auto;cursor:pointer;touch-action:manipulation;transition:opacity .14s ease,filter .12s ease}
 #supply-dialog .shell-port:before{content:'';position:absolute;z-index:-1;left:calc(var(--slot-visual-left) - var(--slot-hit-left));top:calc(var(--slot-visual-top) - var(--slot-hit-top));width:var(--slot-visual-width);height:var(--slot-visual-height);border:1px solid transparent;border-radius:10px;pointer-events:none;transition:border-color .12s ease,box-shadow .12s ease,background .12s ease}
-#supply-dialog .shell-port[data-active=true]:before{border-color:#a8edf5d6;background:#a9f1f51c;box-shadow:0 0 12px #74d6e177,inset 0 0 10px #74d6e133}
+#supply-dialog .shell-port[data-active=true]:before{border:2px solid #91e4d5;background:#79d8c51a;box-shadow:0 0 0 3px #071520bb,inset 0 0 0 1px #091e28}
+#supply-dialog .shell-port:focus-visible:before{outline:2px solid #e3fff6;outline-offset:5px}
+#supply-dialog .collector-shell-map:has(#shell-propellant[data-active=true]) [data-loadout-label=propellant],#supply-dialog .collector-shell-map:has(#shell-shock[data-active=true]) [data-loadout-label=shock],#supply-dialog .collector-shell-map:has(#shell-fuel[data-active=true]) [data-loadout-label=fuel],#supply-dialog .collector-shell-map:has(#shell-oxidizer[data-active=true]) [data-loadout-label=oxidizer],#supply-dialog .collector-shell-map:has(#shell-coolant[data-active=true]) [data-loadout-label=coolant]{color:#b8f6e8;text-shadow:0 1px 4px #071520;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
 #supply-dialog .shell-port>i,#supply-dialog .shell-port>span:not(.loadout-molecule-pod):not(.tank-scale),#supply-dialog .shell-port>small{display:none!important}
 #supply-dialog .shell-port .tank-scale{position:absolute;left:var(--meter-left);top:var(--meter-top);width:var(--meter-width);height:var(--meter-height);display:block!important;margin:0;z-index:4}
 #supply-dialog .shell-port .tank-scale{background:#304553!important;box-shadow:0 0 5px #06101899}

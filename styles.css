@@ -841,6 +841,38 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
  #collection-dialog #collection-storage,#collection-dialog #collection-list,#collection-dialog #collection-detail,#collection-dialog .book-footer{grid-column:1/-1}
 }
 
+/* Shared instrument language: quiet navy surfaces, one mint selection accent,
+   and a single optical weight for navigation. Scientific model colours stay intact. */
+:root{--ui-surface:#142635;--ui-edge:#304a5b;--ui-selected:#234640;--ui-mint:#9be3d3}
+.topbar-actions button.ui-icon-button{width:46px;height:46px;min-width:46px!important;padding:7px!important;border:1px solid var(--ui-edge);border-radius:12px;background:#142635;color:#aec6d1;box-shadow:inset 0 1px 0 #ffffff05}
+.topbar-actions button.ui-icon-button:hover:not(:disabled){border-color:#638f94;background:#1c3542;color:#d2f3eb}
+.topbar-actions #collector-access-preview{display:none!important}
+.ui-nav-icon{width:28px;height:28px}
+.palette-tabs{gap:4px;padding:3px;border:1px solid #2b4352;border-radius:13px;background:#0d1c29}
+.palette-tabs button:has(.ui-palette-icon){width:50px;min-width:50px;min-height:44px;padding:6px;border:1px solid transparent;border-radius:9px;color:#8daab8}
+.palette-tabs button[aria-selected=true]{border-color:#528c82;background:var(--ui-selected);color:var(--ui-mint);box-shadow:inset 0 1px 0 #c4fff00b}
+.ui-palette-icon{width:28px;height:28px}
+.book-tabs button{border-radius:10px;color:#8daab8}
+.book-tabs button[aria-selected=true]{border:1px solid #528c82;background:var(--ui-selected);color:var(--ui-mint);box-shadow:inset 0 1px 0 #c4fff00b}
+.book-tab-count{color:inherit;opacity:.8;font-variant-numeric:tabular-nums}
+.collection-card{border-color:#355161;border-radius:14px;background:linear-gradient(155deg,#1b3443,#142a39);box-shadow:inset 0 1px 0 #d7f5ff08;transition:border-color .14s ease,background .14s ease}
+.collection-card.unknown{border-color:#293f4f;background:linear-gradient(155deg,#132633,#0e1e2b);color:#839eae;box-shadow:inset 0 1px 0 #d7f5ff04}
+.collection-card:hover{border-color:#6b9a9b;background:#1c3643}
+.collection-card.unknown:hover{border-color:#496878;background:#172d3b}
+.unknown-model:before{width:52px;height:52px;border:1px solid #36515f;border-radius:15px;background:#213b461f;color:#698998;font-size:29px;transform:rotate(0deg)}
+.collection-card.unknown .dex-number{color:#607f91}
+#collection-dialog .detail-model-frame{border:1px solid #365361;border-radius:16px;background:#102737;box-shadow:inset 0 1px 0 #d7f5ff08}
+#collection-dialog .detail-model-frame>.detail-navigation button{border-color:#385967;border-radius:10px;background:#102735f0;box-shadow:0 2px 6px #0003}
+#collection-dialog .detail-model-frame>.detail-navigation button:hover{border-color:#7ab6a9;background:#21433e;color:#c6f6e8}
+#collection-dialog .unknown-detail{background:radial-gradient(ellipse at 50% 42%,#193543,#102330 72%);color:#7594a5}
+#supply-dialog #tank-detail{border-color:#355361;border-radius:16px;background:#112633;box-shadow:inset 0 1px 0 #d7f5ff08}
+#supply-dialog #tank-molecules button{border-color:#355160;border-radius:11px;background:#172e3c;box-shadow:inset 0 1px 0 #d7f5ff06}
+#supply-dialog #tank-molecules button[aria-pressed=true],#supply-dialog #tank-molecules button.selected{border-color:#8bdaca;background:#234640;box-shadow:inset 0 0 0 1px #8bdaca33}
+@media(min-width:1024px) and (min-height:640px){
+ #collection-dialog .collection-grid:not(.reaction-book){grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+}
+@media(prefers-reduced-motion:reduce){.collection-card{transition:none}}
+
 /* Desktop pointer users reveal page arrows on demand. A gamepad uses the D-pad
    for page turns, so only those redundant arrows disappear in controller mode. */
 @media(min-width:1050px) and (min-height:600px){
