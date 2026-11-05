@@ -1,6 +1,6 @@
 import { MOLECULE_USES,REGIONS,TANK_USES,isExpeditionRegionDestination } from './growth.js';
 import { ACTIVE_TANK_ROLES,performanceFor } from './molecule-roles.js';
-import { drawCollectorShell,drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
+import { drawCollectorShellPreview,TANK_PRESENTATION } from './collector-shell.js';
 import { OXYGEN_ROUTES,OXYGEN_REWARD,OXYGEN_JUNCTION } from './oxygen-routes.js';
 import { NITROGEN_REGION_ID } from './nitrogen-config.js';
 import { renderLoadoutPreview } from './loadout-preview.js';
@@ -62,10 +62,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   }
   styleTankMeter(q('veil-coolant-level'),'coolant',null);
 
-  const accessCanvas=document.createElement('canvas');accessCanvas.id='collector-access-preview';accessCanvas.setAttribute('aria-hidden','true');Object.assign(accessCanvas.style,{display:'block',width:'42px',height:'34px',pointerEvents:'none'});access.append(accessCanvas);access.setAttribute('aria-label','探索機を開く');Object.assign(access.style,{minWidth:'50px',padding:'3px 5px',justifyContent:'center'});
-  function drawAccessIcon(){
-    const rect=accessCanvas.getBoundingClientRect(),ratio=Math.min(globalThis.devicePixelRatio??1,2),width=Math.max(1,Math.round(rect.width*ratio)),height=Math.max(1,Math.round(rect.height*ratio));if(accessCanvas.width!==width||accessCanvas.height!==height){accessCanvas.width=width;accessCanvas.height=height;}const ctx=accessCanvas.getContext('2d');if(!ctx)return;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,rect.width,rect.height);drawCollectorShell(ctx,{x:rect.width/2,y:rect.height/2,angle:-Math.PI/2,scale:Math.min(rect.width/42,rect.height/34)});
-  }
+  // Navigation is the shared inline SVG; the detailed vessel belongs only to LOADOUT.
   const launchLayer=document.createElement('div');launchLayer.id='expedition-destinations';launchLayer.setAttribute('aria-hidden','true');Object.assign(launchLayer.style,{position:'absolute',inset:'0',zIndex:'3',pointerEvents:'none'});shellMap.append(launchLayer);
   const launchHandle=document.createElement('button');launchHandle.type='button';launchHandle.id='collector-launch-handle';launchHandle.setAttribute('aria-label','探索機をドラッグして出発地点を選ぶ');launchHandle.setAttribute('aria-expanded','false');launchHandle.setAttribute('aria-controls','expedition-destinations');Object.assign(launchHandle.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'80px',height:'80px',transform:'translate(-50%,-50%)',zIndex:'9',padding:'0',border:'0',borderRadius:'50%',background:'transparent',boxShadow:'none',touchAction:'none',cursor:'grab'});shellMap.append(launchHandle);
   Object.assign(shellCanvas.style,{zIndex:'1',pointerEvents:'none',transformOrigin:'center',transition:'transform .16s ease, opacity .16s ease'});
@@ -153,7 +150,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   }
   function renderShell(){
     const plan=resources.launchFillPlan(),preview=plan.status==='FULL'?plan.full:plan.partial,selected=resources.selectedLoadout();for(const use of USE_ORDER){const button=q(`shell-${use}`),id=selected[use],record=id?resources.record(id):null,entry=preview.entries.find(item=>item.use===use),presentation=TANK_PRESENTATION[use],capacity=entry?.capacity??0,amount=entry?.target??0;button.style.setProperty('--tank-color',presentation.color);button.querySelector('i').textContent=presentation.icon;button.dataset.active=String(use===selectedUse);button.setAttribute('aria-pressed',String(use===selectedUse));button.querySelector('small').textContent=record?formula(record):'∅';let track=button.querySelector('.tank-scale');if(!track){track=document.createElement('span');track.className='tank-scale';track.append(document.createElement('b'));button.append(track);}styleTankMeter(track,use,id);track.setAttribute('role','meter');track.setAttribute('aria-label',`${TANK_USES[use].label}の出発時プレビュー`);track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax',String(capacity||1));track.setAttribute('aria-valuenow',String(amount));setTankMeterLevel(track,capacity?amount/capacity:0);}
-    syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();drawAccessIcon();
+    syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();
   }
   function update(){
     const state=resources.state,destinations=availableLaunchRegionIds(state.progress);syncElementStocks(document,state.elements);syncLoadoutElementStock(resources,document);
@@ -216,7 +213,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   for(const use of USE_ORDER)q(`shell-${use}`).addEventListener('click',()=>{resetLaunchGesture();selectedUse=use;selectedId=null;update();});
   partialGo.addEventListener('click',()=>{partialPanel.hidden=true;void commitAndContinue(true);});partialBack.addEventListener('click',()=>{requestedDestinationId=null;partialPanel.hidden=true;resetLaunchGesture();});dialog.addEventListener('close',()=>{partialPanel.hidden=true;if(!launchBusy)requestedDestinationId=null;releaseViewer();resetLaunchGesture();q('tank-comparison')._loadoutPreviewToken?.cancel?.();});
   q('tank-craft-molecule').addEventListener('click',startCraft);
-  if(globalThis.ResizeObserver){new ResizeObserver(()=>{drawAccessIcon();if(dialog.open){syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();}}).observe(accessCanvas);new ResizeObserver(()=>{if(dialog.open){syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();}}).observe(shellCanvas);}
-  drawAccessIcon();renderRouteGuide();update();
+  if(globalThis.ResizeObserver){new ResizeObserver(()=>{if(dialog.open){syncLoadoutHardwareLayout(shellMap);drawFlightCraftPreview();}}).observe(shellCanvas);}
+  renderRouteGuide();update();
   return {update,requestLaunch,openMolecule,discovered(id){const uses=resources.tankUses(id);if(uses.length){selectedUse=uses[0];selectedId=id;}},clearAnnouncement(){announcement='';},usesFor:id=>resources.tankUses(id),tankStatus:(use,id)=>resources.tankStatus(use,id),fillPlan:(use,id)=>resources.tankFillPlan(use,id),commitFill,get open(){return dialog.open;},get launchPending(){return launchBusy||requestedDestinationId!==null;}};
 }
