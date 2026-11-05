@@ -707,10 +707,15 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       if(pressed.includes(1)){
         (detail.querySelector('#detail-back, #motif-detail-back')??q('close-collection'))?.click();return true;
       }
-      if(pressed.includes(14)||pressed.includes(15)){
-        const label=pressed.includes(14)?'前の項目':'次の項目';
-        const action=[...detail.querySelectorAll('.detail-navigation button')].find(node=>node.getAttribute('aria-label')===label);
-        if(action&&!action.disabled)action.click();return true;
+      if(held[14]||held[15]){
+        // Consume the entire D-pad hold, not only its first pressed frame.
+        // Otherwise the shared navigator moves DOM focus while paging.
+        if(pressed.includes(14)||pressed.includes(15)){
+          const label=pressed.includes(14)?'前の項目':'次の項目';
+          const action=[...detail.querySelectorAll('.detail-navigation button')].find(node=>node.getAttribute('aria-label')===label);
+          if(action&&!action.disabled)action.click();
+        }
+        return true;
       }
       if(held[12]||held[13]){
         if(pressed.includes(12)||pressed.includes(13)||repeating.includes(12)||repeating.includes(13)){

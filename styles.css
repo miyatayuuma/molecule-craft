@@ -781,14 +781,15 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 /* Parts and polymers use the same in-model identity treatment as molecules.
    The wrapper stays outside the viewer host, which is replaced on 3D reloads. */
 #collection-dialog .detail-heading>div{position:relative}
+#collection-dialog .detail-heading .dex-number{display:block;min-height:40px;line-height:1.2}
 #collection-dialog .collection-registration-marker{
- position:absolute;z-index:8;left:-7px;top:-7px;display:inline-flex;align-items:center;
- max-width:100%;min-height:28px;margin:0;padding:4px 8px;border:1px solid #5ec9b8;
- border-radius:999px;background:#123b3a;color:#b9f4e9;box-shadow:0 3px 12px #04182099;
- font-size:11px;font-weight:800;line-height:1.15;letter-spacing:.04em;
- white-space:nowrap;pointer-events:none;
+ position:absolute;z-index:8;left:-7px;top:-7px;display:inline-block;box-sizing:border-box;
+ width:max-content;max-width:100%;min-height:32px;margin:0;padding:5px 8px 4px;border:1px solid #5ec9b8;
+ border-radius:12px;background:#123b3a;color:#b9f4e9;box-shadow:0 3px 12px #04182099;
+ font-size:clamp(10px,2.6vw,11px);font-weight:800;line-height:1.6;letter-spacing:0;
+ white-space:normal;overflow-wrap:anywhere;pointer-events:none;
 }
-#collection-dialog .collection-registration-marker ruby{ruby-position:over}
+#collection-dialog .collection-registration-marker ruby{ruby-position:over;ruby-align:center;vertical-align:baseline}
 #collection-dialog .collection-registration-marker rt{font-size:.65em;line-height:1}
 #collection-dialog .collection-model.molecule-detail-return{height:clamp(220px,34dvh,330px)}
 #collection-dialog .collection-model.molecule-detail-return>.model-stage{height:100%}
@@ -812,7 +813,7 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 #collection-dialog .detail-model-frame>.collection-model>.model-status{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);margin:0;padding:12px 16px}
 #collection-dialog .detail-model-frame>.collection-model>.model-status[hidden]{display:none}
 #collection-dialog .detail-model-frame>.polymer-model-continuity{position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;pointer-events:none}
-#collection-dialog .detail-model-frame>.detail-heading{position:absolute;z-index:4;top:0;left:0;right:0;max-height:45%;display:flex;align-items:flex-start;gap:8px;overflow:hidden;padding:10px 14px 25px;background:linear-gradient(180deg,#0b2134f3 0%,#112d3cda 58%,transparent 100%);pointer-events:none}
+#collection-dialog .detail-model-frame>.detail-heading{position:absolute;z-index:4;top:0;left:0;right:0;max-height:60%;display:flex;align-items:flex-start;gap:8px;overflow:visible;padding:10px 14px 25px;background:linear-gradient(180deg,#0b2134f3 0%,#112d3cda 58%,transparent 100%);pointer-events:none}
 #collection-dialog .detail-model-frame>.detail-heading>div{min-width:0;width:100%}
 #collection-dialog .detail-model-frame>.detail-heading h3{margin:4px 0 0;font-size:clamp(17px,3.6vw,24px);line-height:1.25;overflow-wrap:anywhere}
 #collection-dialog .detail-model-frame>.detail-navigation{position:absolute;z-index:5;left:8px;right:8px;bottom:8px;display:flex;align-items:center;gap:5px;margin:0;pointer-events:none}

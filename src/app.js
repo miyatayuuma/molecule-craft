@@ -218,6 +218,15 @@ const craftPadCursor=document.createElement('div');craftPadCursor.className='cra
 function craftPadPoint(){return {pointerId:-739,clientX:craftPadX,clientY:craftPadY,pointerType:'gamepad'};}
 function endCraftPad(){if(craftPadGrab)abortPointerInteraction();craftPadGrab=false;craftPadBondHold=false;craftPadActive=false;craftPadLast=0;craftPadCursor.hidden=true;}
 function releaseCraftPadClear(){if(!craftPadClearHold)return;document.getElementById('clear-all')?.gamepadHold?.(false);craftPadClearHold=false;}
+function placeNextCraftTargetFromPad(){
+  if(!craftTargetId)return false;
+  // These are the same actionable buttons as the mouse/touch recipe strip.
+  // Disabled incomplete parts are skipped, but their missing-atom chips remain
+  // in the left-to-right order. A failed placement leaves that chip first.
+  const next=document.querySelector('#craft-target-atoms button:not(:disabled)');
+  if(!next)return false;
+  next.click();return true;
+}
 function handleCraftGamepad(sample,{dialog,now,openKeyboard}={}){
   if(!renderer||!sample||dialog||veilUI?.active){
     releaseCraftPadClear();if(craftPadActive)endCraftPad();
@@ -240,6 +249,7 @@ function handleCraftGamepad(sample,{dialog,now,openKeyboard}={}){
   }else{
     if(sample.pressed.includes(10)){endCraftPad();return true;}
     if(sample.pressed.includes(1)){if(craftPadGrab){abortPointerInteraction();craftPadGrab=false;craftPadBondHold=false;}else endCraftPad();return true;}
+    if(sample.pressed.includes(13)&&!craftPadGrab&&!interactionLocked())placeNextCraftTargetFromPad();
     const r=renderer.domElement.getBoundingClientRect(),dt=Math.min(.05,Math.max(0,(now-craftPadLast)/1000));craftPadLast=now;
     craftPadX=Math.max(r.left,Math.min(r.right,craftPadX+sample.axes[0]*dt*390));
     craftPadY=Math.max(r.top,Math.min(r.bottom,craftPadY+sample.axes[1]*dt*390));
