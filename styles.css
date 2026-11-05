@@ -658,10 +658,10 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
   62%{opacity:.9;transform:scale(1);box-shadow:0 -22px 0 #ffe897,16px -16px 0 #ffce58,22px 0 0 #ffe897,16px 16px 0 #ffce58,0 22px 0 #ffe897,-16px 16px 0 #ffce58,-22px 0 0 #ffe897,-16px -16px 0 #ffce58}
   100%{opacity:0;transform:scale(1.2);box-shadow:0 -28px 0 #fff6b3,20px -20px 0 #ffda66,28px 0 0 #fff6b3,20px 20px 0 #ffda66,0 28px 0 #fff6b3,-20px 20px 0 #ffda66,-28px 0 0 #fff6b3,-20px -20px 0 #ffda66}
 }
-.collection-card.polymer-award-target{outline:2px solid #8ff2dc;outline-offset:-2px;box-shadow:0 0 0 4px #49c9b744,0 0 26px #65f6d455;animation:polymer-award-reveal 1.4s ease-out}
+.collection-card.polymer-award-target{outline:2px solid #8ff2dc;outline-offset:-2px;box-shadow:0 0 0 3px #49c9b72b,0 0 16px #65f6d425;animation:polymer-award-reveal .42s ease-out}
 .collection-card.polymer-award-hidden .polymer-thumbnail,.collection-card.polymer-award-hidden .polymer-thumb-wait,.collection-card.polymer-award-hidden strong{opacity:0}
 .collection-card.polymer-award-hidden::after{content:'✧';position:absolute;inset:20% 0;display:grid;place-items:center;font-size:44px;color:#77d7c5;pointer-events:none}
-@keyframes polymer-award-reveal{from{transform:scale(.94);filter:brightness(.7)}55%{transform:scale(1.035);filter:brightness(1.35)}to{transform:scale(1);filter:brightness(1)}}
+@keyframes polymer-award-reveal{from{filter:brightness(.94)}to{filter:brightness(1)}}
 @media(prefers-reduced-motion:reduce){.reaction-book .reaction-book-group.reaction-award-earned,.collection-card.polymer-award-target,.reaction-book .reaction-book-group.reaction-award-earned .reaction-progress-star.is-new{animation:none}.reaction-book .reaction-award-burst{display:none}.reaction-progress-meter-fill{transition:none}}
 
 .discovery-award-notice{position:fixed;top:max(80px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5;width:max-content;max-width:92vw;margin:0!important;padding:7px 14px!important;border:1px solid #f1c56a;border-radius:999px;background:#2b332d;color:#ffe6a3;font-size:15px;font-weight:800;line-height:1.3;box-shadow:0 4px 18px #0008;pointer-events:none}.discovery-award-notice ruby rt{font-size:.55em;color:#fff2cd}.collection-card.polymer-award-hidden{position:relative}
@@ -871,7 +871,35 @@ body.gamepad-focus-active :focus { outline: 3px solid #7dd3fc; outline-offset: 3
 @media(min-width:1024px) and (min-height:640px){
  #collection-dialog .collection-grid:not(.reaction-book){grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
 }
-@media(prefers-reduced-motion:reduce){.collection-card{transition:none}}
+/* Tactile states change only paint: no button, frame or model reflow. */
+.topbar-actions button.ui-icon-button,.palette-tabs button,.book-tabs button,
+#collection-dialog .detail-navigation button,#supply-dialog #tank-molecules button{
+ transition:background-color .14s ease,border-color .14s ease,color .14s ease,box-shadow .14s ease;
+}
+.topbar-actions button.ui-icon-button:active:not(:disabled),
+.palette-tabs button:active,.book-tabs button:active:not(:disabled),
+#collection-dialog .detail-navigation button:active:not([aria-disabled=true]),
+#supply-dialog #tank-molecules button:active{background:#285349;box-shadow:inset 0 2px 5px #05171c66}
+.topbar-actions button.ui-icon-button:focus-visible,.palette-tabs button:focus-visible,
+.book-tabs button:focus-visible,.collection-card:focus-visible,
+#collection-dialog .detail-navigation button:focus-visible,#supply-dialog #tank-molecules button:focus-visible{
+ outline:2px solid #9be3d3;outline-offset:3px;
+}
+#collection-dialog .detail-navigation button[aria-disabled=true]{opacity:.32;cursor:default;background:#102735;box-shadow:none;border-color:#385967;color:#a1b6c2}
+#collection-dialog .detail-navigation button[aria-disabled=true]:focus-visible{opacity:.65}
+.collection-card.unknown{background:#10212e;border-color:#233946;box-shadow:none}
+.collection-card.unknown .unknown-model:before{border-color:transparent;background:none;color:#496676;font-size:24px}
+.collection-card:not(.unknown){border-color:#416c70;background:linear-gradient(155deg,#1c3943,#142b38);box-shadow:inset 0 1px 0 #a0e8da14}
+.collection-card:not(.unknown) .dex-state{color:#a5e7d6}
+.collection-card:not(.unknown):hover{border-color:#83bbae;background:#1d3d43}
+.collection-card:active{box-shadow:inset 0 2px 8px #06151d66}
+/* The model centre and viewport stay identical for known and unknown entries. */
+#collection-dialog .detail-model-frame>.unknown-detail>.unknown-model{position:absolute;left:0;top:50%;transform:translateY(-50%);margin:0}
+#collection-dialog .detail-model-frame>.unknown-detail>p{position:absolute;left:16px;right:16px;bottom:60px;margin:0;text-align:center;color:#829eac}
+@media(prefers-reduced-motion:reduce){
+ .collection-card,.topbar-actions button.ui-icon-button,.palette-tabs button,.book-tabs button,
+ #collection-dialog .detail-navigation button,#supply-dialog #tank-molecules button{transition:none}
+}
 
 /* Desktop pointer users reveal page arrows on demand. A gamepad uses the D-pad
    for page turns, so only those redundant arrows disappear in controller mode. */

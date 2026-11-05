@@ -67,7 +67,13 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   const launchHandle=document.createElement('button');launchHandle.type='button';launchHandle.id='collector-launch-handle';launchHandle.setAttribute('aria-label','探索機をドラッグして出発地点を選ぶ');launchHandle.setAttribute('aria-expanded','false');launchHandle.setAttribute('aria-controls','expedition-destinations');Object.assign(launchHandle.style,{position:'absolute',left:'calc(50% + 10px)',top:'50%',width:'80px',height:'80px',transform:'translate(-50%,-50%)',zIndex:'9',padding:'0',border:'0',borderRadius:'50%',background:'transparent',boxShadow:'none',touchAction:'none',cursor:'grab'});shellMap.append(launchHandle);
   Object.assign(shellCanvas.style,{zIndex:'1',pointerEvents:'none',transformOrigin:'center',transition:'transform .16s ease, opacity .16s ease'});
   const drawFlightCraftPreview=()=>drawCollectorShellPreview(shellCanvas,shellMap._loadoutFlightCraftPreview??{});
-  const setCraftTranslation=(x=0,y=0)=>{setLoadoutFlightCraftTranslation(shellMap,x,y);};
+  const launchTrail=document.createElement('span');launchTrail.className='loadout-launch-trail';launchTrail.setAttribute('aria-hidden','true');shellMap.append(launchTrail);
+  const setCraftTranslation=(x=0,y=0)=>{
+    setLoadoutFlightCraftTranslation(shellMap,x,y);
+    launchTrail.style.setProperty('--trail-length',`${Math.hypot(x,y)}px`);
+    launchTrail.style.setProperty('--trail-angle',`${Math.atan2(y,x)}rad`);
+    launchTrail.dataset.visible=String(launchOpen&&Math.hypot(x,y)>4);
+  };
   function decorateDestination(button,cue){
     const glyph=document.createElement('span');glyph.textContent=cue.glyph;Object.assign(glyph.style,{position:'relative',zIndex:'2',fontSize:'13px',fontWeight:'750',color:cue.color,textShadow:`0 0 8px ${cue.color}`});button.append(glyph);
     for(const [left,top,size,alpha] of [[7,10,4,.85],[31,8,3,.65],[34,29,4,.75],[9,31,3,.55]]){const dot=document.createElement('b');Object.assign(dot.style,{position:'absolute',left:`${left}px`,top:`${top}px`,width:`${size}px`,height:`${size}px`,borderRadius:'50%',background:cue.color,opacity:String(alpha),boxShadow:`0 0 7px ${cue.color}`});button.append(dot);}
@@ -75,11 +81,12 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
   function destinationTransform(item,scale=1){return `translate(-50%,-50%) translate(${item.x}px,${item.y}px) scale(${scale})`;}
   function showLaunchDestinations(show){
     launchOpen=show;launchHandle.setAttribute('aria-expanded',String(show));shellMap.classList.toggle('launch-selecting',show);launchLayer.setAttribute('aria-hidden',String(!show));for(const item of launchItems){item.node.style.opacity=show?'1':'0';item.node.style.pointerEvents=show?'auto':'none';item.node.tabIndex=show?0:-1;item.node.style.transform=destinationTransform(item,show?(item===launchActive?1.16:1):.55);item.node.style.boxShadow=item===launchActive?`0 0 25px ${item.color},inset 0 0 12px ${item.color}55`:item.checkpoint?`0 0 14px ${item.color}77`:`0 0 10px ${item.color}44`;}
-    for(const use of USE_ORDER)q(`shell-${use}`).style.opacity=show?'.34':'1';for(const path of shellMap.querySelectorAll('.loadout-slot-path'))path.style.pointerEvents=show?'none':'visibleFill';if(!show)launchActive=null;
+    for(const item of launchItems)item.node.dataset.launchActive=String(show&&item===launchActive);
+    for(const use of USE_ORDER)q(`shell-${use}`).style.opacity=show?'.34':'1';for(const path of shellMap.querySelectorAll('.loadout-slot-path'))path.style.pointerEvents=show?'none':'visibleFill';if(!show){launchActive=null;launchTrail.dataset.visible='false';}
   }
   function resetLaunchPosition(){shellCanvas.style.transition=reduced?'none':'transform .16s ease, opacity .16s ease';setCraftTranslation(0,0);shellCanvas.style.opacity='1';launchHandle.style.cursor='grab';}
   function resetLaunchGesture({keepDestinations=false}={}){
-    const pointer=launchPointer;launchPointer=null;launchStart=null;launchDragged=0;launchTapStartedOpen=false;
+    const pointer=launchPointer;launchPointer=null;launchStart=null;launchDragged=0;launchTapStartedOpen=false;delete shellMap.dataset.launchDragging;
     try{if(pointer!==null)launchHandle.releasePointerCapture(pointer);}catch{}
     if(!keepDestinations)showLaunchDestinations(false);if(!keepDestinations)resetLaunchPosition();else launchHandle.style.cursor='grab';
   }
@@ -96,7 +103,7 @@ export function createSupplyUI({resources,canOpen,canMake,onCommit,onRequestLaun
     if(event.pointerId!==launchPointer||!launchStart)return;const rawX=event.clientX-launchStart.x,rawY=event.clientY-launchStart.y,len=Math.hypot(rawX,rawY),limit=84,factor=len>limit?limit/len:1,dx=rawX*factor,dy=rawY*factor;launchDragged=Math.max(launchDragged,len);let nearest=null,best=Infinity;for(const item of launchItems){const distance=Math.hypot(rawX-item.x,rawY-item.y);if(distance<best)best=distance,nearest=item;}if(best>44)nearest=null;setLaunchActive(nearest);const x=nearest?.x??dx,y=nearest?.y??dy;setCraftTranslation(x,y);
   }
   function beginLaunch(event){
-    if(launchPointer!==null||launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen()||event.button!==undefined&&event.button!==0)return;event.preventDefault();launchTapStartedOpen=launchOpen;launchPointer=event.pointerId;launchStart={x:event.clientX,y:event.clientY};launchDragged=0;showLaunchDestinations(true);shellCanvas.style.transition='none';launchHandle.style.cursor='grabbing';try{launchHandle.setPointerCapture(launchPointer);}catch{}moveLaunch(event);
+    if(launchPointer!==null||launchBusy||requestedDestinationId!==null||resources.blocked||!canOpen()||event.button!==undefined&&event.button!==0)return;event.preventDefault();launchTapStartedOpen=launchOpen;launchPointer=event.pointerId;launchStart={x:event.clientX,y:event.clientY};launchDragged=0;shellMap.dataset.launchDragging='true';showLaunchDestinations(true);shellCanvas.style.transition='none';launchHandle.style.cursor='grabbing';try{launchHandle.setPointerCapture(launchPointer);}catch{}moveLaunch(event);
   }
   function endLaunch(event,cancel=false){
     if(event.pointerId!==launchPointer)return;const id=launchActive?.id??null,wasTap=launchDragged<8,wasOpen=launchTapStartedOpen;resetLaunchGesture({keepDestinations:!cancel&&!id&&wasTap&&!wasOpen});if(cancel)return;if(wasTap&&wasOpen&&!id)return;if(id)requestDestinationLaunch(id);
