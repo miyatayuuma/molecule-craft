@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriganaSegments,createCompleteFuriganaIndex} from '../src/encyclopedia-furigana.js';
 import {ENCYCLOPEDIA_TERM_CATALOG,encyclopediaTermSegments} from '../src/encyclopedia-terms.js';
+import {ENGINEERING_APPLICATIONS,ENGINEERING_RECIPES} from '../src/engineering-fabrication.js';
 
 const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',import.meta.url),'utf8'));
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
@@ -24,6 +25,53 @@ test('all encyclopedia UI labels have ruby, including engineering status text',(
      assert.equal(missing,'',`${file}: ${value}`);
    }
  }
+});
+
+test('all runtime-composed engineering headings have complete, contextual ruby',()=>{
+ const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
+ const index=createCompleteFuriganaIndex(corpus);
+ const apps=new Map(ENGINEERING_APPLICATIONS.map(app=>[app.id,app.nameJa]));
+ assert.deepEqual(apps.get('THERMAL_SHELL'),'耐熱シェル');
+ assert.deepEqual(apps.get('WEAR_SKIN'),'耐摩耗スキン');
+ for(const recipe of ENGINEERING_RECIPES){
+   const title=`${apps.get(recipe.applicationId)} · ${recipe.label}`;
+   assert.ok(corpus.texts[title],`runtime title is missing from the reviewed corpus: ${title}`);
+   const segments=completeFuriganaSegments(title,index);
+   const plainKanji=segments.filter(s=>s.kind==='text').flatMap(s=>[...s.text]).filter(c=>/[一-龯々]/u.test(c));
+   assert.deepEqual(plainKanji,[],`${title}: missing ruby`);
+   const lead=recipe.applicationId==='THERMAL_SHELL'?['耐熱','たいねつ']:
+     recipe.applicationId==='WEAR_SKIN'?['耐摩耗','たいまもう']:null;
+   if(lead)assert.ok(segments.some(s=>s.kind==='ruby'&&s.text===lead[0]&&s.reading===lead[1]),`${title}: incorrect prefix reading`);
+ }
+});
+
+test('ambiguous chemical and contextual compounds use independently reviewed readings',()=>{
+ const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
+ const index=createCompleteFuriganaIndex(corpus);
+ const expected={
+   '耐熱':'たいねつ','耐摩耗':'たいまもう',
+   '次亜塩素酸':'じあえんそさん','一組':'ひとくみ','反応物':'はんのうぶつ',
+   '構造中':'こうぞうちゅう','工程中':'こうていちゅう',
+   '反応中':'はんのうちゅう','反応中心':'はんのうちゅうしん','主鎖中':'しゅさちゅう',
+ };
+ for(const [surface,reading] of Object.entries(expected)){
+   assert.deepEqual(completeFuriganaSegments(surface,index),[{kind:'ruby',text:surface,reading}],surface);
+   let seen=0;
+   for(const [text,annotations] of Object.entries(corpus.texts)){
+     for(let start=text.indexOf(surface);start>=0;start=text.indexOf(surface,start+1)){
+       const spans=annotations.filter(([i,part])=>i>=start&&i+part.length<=start+surface.length);
+       if(spans.map(([,part])=>part).join('')!==surface)continue;
+       assert.equal(spans.map(([,part,kana])=>kana).join(''),reading,`${surface} in ${text}`);
+       seen++;
+     }
+   }
+   assert.ok(seen>0,`${surface}: no exact contextual reading`);
+ }
+ const text='ナイロン6,6と比べ、二つの –NH– の間の炭素は何個違う？';
+ const spans=corpus.texts[text];
+ assert.ok(spans,'the reviewed example must be present');
+ const position=text.indexOf('間');
+ assert.ok(spans.some(([start,part,kana])=>start===position&&part==='間'&&kana==='あいだ'));
 });
 
 test('reviewed compounds never inherit unrelated single-character readings',()=>{

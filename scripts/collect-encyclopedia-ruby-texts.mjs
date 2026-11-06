@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {createReactionCatalogAuthority} from '../src/reaction-catalog-authority.js';
 import {reactionDetailInfo,reactionGroups} from '../src/reaction-encyclopedia.js';
+import {ENGINEERING_APPLICATIONS,ENGINEERING_RECIPES} from '../src/engineering-fabrication.js';
 
 const root=new URL('../',import.meta.url);
 const read=path=>JSON.parse(readFileSync(new URL(path,root),'utf8'));
@@ -38,6 +39,15 @@ for(const group of reactionGroups(authority,{getState:()=> 'verified'}).groups){
     add(outputs.join(' ＋ '));
     add('‹ '+group.label+'に戻る');
   }
+}
+
+// These headings are assembled at runtime and are not string literals in the
+// Collection UI. Review their exact readings, not only the individual fragments.
+const applicationNames=new Map(ENGINEERING_APPLICATIONS.map(({id,nameJa})=>[id,nameJa]));
+for(const nameJa of applicationNames.values())add(nameJa);
+for(const recipe of ENGINEERING_RECIPES){
+  add(recipe.label);
+  add(`${applicationNames.get(recipe.applicationId)} · ${recipe.label}`);
 }
 
 // UI literals (including interpolated text fragments) become source candidates;

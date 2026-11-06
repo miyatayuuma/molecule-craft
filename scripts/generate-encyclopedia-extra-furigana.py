@@ -37,6 +37,8 @@ TOKEN_READINGS = {
 # (the tokenizer alone treats 三方 as みかた, 錐 as きり, etc.).
 COMPOUNDS = {
     # Dynamic encyclopedia and engineering labels need full contextual readings.
+    '耐熱': 'タイネツ',
+    '耐摩耗': 'タイマモウ',
     '製作': 'セイサク',
     '制作': 'セイサク',
     '消費': 'ショウヒ',
@@ -47,6 +49,16 @@ COMPOUNDS = {
     '再読み込み': 'サイヨミコミ',
     '変更': 'ヘンコウ',
     '画面': 'ガメン',
+    '次亜塩素酸': 'ジアエンソサン',
+    '一組': 'ヒトクミ',
+    '反応物': 'ハンノウブツ',
+    # These compounds describe a stage or location in a process (チュウ),
+    # unlike the ordinary noun 鎖の中 (ナカ).
+    '構造中': 'コウゾウチュウ',
+    '工程中': 'コウテイチュウ',
+    '反応中心': 'ハンノウチュウシン',
+    '反応中': 'ハンノウチュウ',
+    '主鎖中': 'シュサチュウ',
     # The suffix 上 in these noun compounds is ジョウ, not ウエ.
     '構造上': 'コウゾウジョウ',
     '構想上': 'コウソウジョウ',
@@ -237,7 +249,8 @@ def annotate_raw(segment, tokenizer, base, full):
                 reading = 'カン'
             if surface == '三重' and full.startswith('三重結合', offset):
                 reading = 'サンジュウ'
-            if surface == '間' and full[offset + len(surface):].startswith(('に', 'で', 'だけ')):
+            if surface == '間' and (full[offset + len(surface):].startswith(('に', 'で', 'だけ'))
+                                  or full[:offset].endswith('の') and full[offset + len(surface):].startswith('の')):
                 reading = 'アイダ'
             if surface == '生' and full.startswith('生分解性', offset):
                 reading = 'セイ'
