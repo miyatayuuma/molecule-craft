@@ -30,6 +30,7 @@ export class ComparisonRopePhysics {
     this.width = width;
     this.height = height;
     this.center = center;
+    this.grabbed = null;
     this.accumulator = 0;
     this.settlePosition();
   }
@@ -37,13 +38,24 @@ export class ComparisonRopePhysics {
   get x() { return this.width / 2; }
   get y() { return this.height * 0.43; }
 
+  // The strand rests on a shallow, invisible presentation surface around the
+  // analyser. Its side beads spread across the viewport instead of dangling
+  // like weights from a single overhead hook.
+  guide(index) {
+    const distance = this.arc[index] - this.center;
+    const extent = Math.abs(distance);
+    return {
+      x: this.x + distance * 0.93,
+      y: this.y + Math.min(48, Math.sqrt(extent) * 2.3),
+    };
+  }
+
   settlePosition() {
-    const center = this.center;
     for (let i = 0; i < this.count; i++) {
-      const d = this.arc[i] - center, abs = Math.abs(d);
       const point = this.points[i];
-      point.x = this.x + Math.sign(d) * Math.min(90, abs);
-      point.y = this.y + Math.max(0, abs - 66) * 0.97;
+      const guide = this.guide(i);
+      point.x = guide.x;
+      point.y = guide.y;
       point.z = Math.sin(this.arc[i] * 0.035) * 2;
       point.px = point.x;
       point.py = point.y;
@@ -54,6 +66,19 @@ export class ComparisonRopePhysics {
 
   setCenter(value) {
     this.center = clamp(value, this.arc[0], this.arc[this.count - 1]);
+  }
+
+  grab(index, x, y) {
+    if (!Number.isInteger(index) || index < 0 || index >= this.arcPositions.length) return;
+    this.grabbed = { index, x, y };
+  }
+
+  release() {
+    if (this.grabbed) {
+      const point = this.beadPosition(this.grabbed.index);
+      point.px = point.x; point.py = point.y; point.pz = point.z;
+    }
+    this.grabbed = null;
   }
 
   resize(width, height) {
@@ -82,6 +107,7 @@ export class ComparisonRopePhysics {
   }
 
   pinSupport() {
+    if (this.grabbed) return;
     const { a, b, fraction } = this.support(), p = this.points;
     const wa = 1 - fraction, wb = fraction;
     const denominator = wa * wa + wb * wb;
@@ -115,6 +141,15 @@ export class ComparisonRopePhysics {
         b.y += ((a.y + c.y) / 2 - b.y) * 0.009;
         b.z += ((a.z + c.z) / 2 - b.z) * 0.009;
       }
+      // A weak horizontal presentation field keeps the tails spreading to the
+      // sides without turning them into fixed rails. The player can displace
+      // the rope freely in two dimensions; it sways back after release.
+      for (let i = 0; i < p.length; i++) {
+        if (this.grabbed && i === this.grabbed.index * this.steps) continue;
+        const guide = this.guide(i);
+        p[i].x += (guide.x - p[i].x) * 0.008;
+        p[i].y += (guide.y - p[i].y) * 0.014;
+      }
       // Contact between the nearby large beads; intermediate yarn particles
       // are intentionally exempt from this much larger collision radius.
       const nearest = this.nearestBeadIndex();
@@ -130,6 +165,10 @@ export class ComparisonRopePhysics {
         }
       }
       this.pinSupport();
+      if (this.grabbed) {
+        const held = p[this.grabbed.index * this.steps];
+        held.x = this.grabbed.x; held.y = this.grabbed.y;
+      }
     }
   }
 
@@ -158,7 +197,7 @@ export class ComparisonRopePhysics {
       const vz = clamp((point.z - point.pz) * 0.97, -6, 6);
       point.px = point.x; point.py = point.y; point.pz = point.z;
       point.x += vx;
-      point.y += vy + 650 * step2;
+      point.y += vy + 230 * step2;
       point.z += vz;
     }
     // Solve the entire strand: the material coordinate and link lengths do not

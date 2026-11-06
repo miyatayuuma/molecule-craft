@@ -120,7 +120,9 @@ export class ComparisonRopeScene {
 
   draw(physics, focusIndex) {
     if (this.disposed || !this.width || !this.height) return;
-    const from = Math.max(0, focusIndex - 5), to = Math.min(physics.arcPositions.length - 1, focusIndex + 5);
+    const grabbedIndex = physics.grabbed?.index ?? focusIndex;
+    const from = Math.max(0, Math.min(focusIndex, grabbedIndex) - 5);
+    const to = Math.min(physics.arcPositions.length - 1, Math.max(focusIndex, grabbedIndex) + 5);
     const points = physics.ropePoints(from, to).map(point => this.toWorld(point));
     if (points.length < 2) return;
     const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.15);
@@ -200,7 +202,8 @@ export class ComparisonRopeCanvas {
     const ctx = this.context;
     if (!this.width || !this.height) return;
     ctx.clearRect(0, 0, this.width, this.height);
-    const points = physics.ropePoints(Math.max(0, focusIndex - 5), Math.min(physics.arcPositions.length - 1, focusIndex + 5));
+    const grabbedIndex = physics.grabbed?.index ?? focusIndex;
+    const points = physics.ropePoints(Math.max(0, Math.min(focusIndex, grabbedIndex) - 5), Math.min(physics.arcPositions.length - 1, Math.max(focusIndex, grabbedIndex) + 5));
     if (points.length < 2) return;
     const colors = ['#87c6c8', '#489ba8', '#c0efe1'];
     for (let ply = 0; ply < 3; ply++) {
