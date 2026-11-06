@@ -12,7 +12,7 @@ Preview entrypoint: `/?comparePhysics=1` (or `/molecule-craft/?comparePhysics=1`
 
 ## Asset/license sources
 
-- Preferred stage (installed): `Scifi pedestal turntable` by **bill1411**, BlendSwap, https://blendswap.com/blend/22567 — **CC BY 3.0**. Source ZIP was provided by the user in GitHub Release [`compare-stage-source`](https://github.com/miyatayuuma/molecule-craft/releases/tag/compare-stage-source). Source and conversion details: `assets/compare/ATTRIBUTION.md`. The production files are `assets/compare/scifi-pedestal.glb` and `assets/compare/pedestal-preview.png`.
+- Preferred stage (installed): `Scifi pedestal turntable` by **bill1411**, BlendSwap, https://blendswap.com/blend/22567 — **CC BY 3.0**. Source ZIP was provided by the user in GitHub Release [`compare-stage-source`](https://github.com/miyatayuuma/molecule-craft/releases/tag/compare-stage-source). Source and conversion details: `assets/compare/ATTRIBUTION.md`. The production files are `assets/compare/scifi-pedestal.glb` (1024px texture maps for mobile) and `assets/compare/pedestal-preview.png`.
 - Former temporary stage, retained as a reversible backup: `Hologram Projector`, Grab3D, https://grab3d.com/models/sci-fi/hologram-projector/ — CC0 1.0, 2026. The original GLB is `assets/compare/hologram-projector-cc0.glb`.
 - Rope dynamics and twisted-strand visual ideas: Codevember 2026, day 04 (Tangle), by mrdoob, https://github.com/mrdoob/codevember-2026/tree/main/04 — MIT; our implementation is a browser/DOM-oriented adaptation, not a copy of the WebGPU engine.
 - GLTFLoader and BufferGeometryUtils: Three.js r180, MIT (see `vendor/three/LICENSE`).
